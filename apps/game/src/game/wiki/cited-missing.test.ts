@@ -71,7 +71,7 @@ function manPilot(g: Game) {
 }
 
 const cradle = (): Kit => ({
-  id: "cradle",
+  id: "clonebay",
   level: 1,
   power: 1,
   left: 0,
@@ -143,7 +143,7 @@ describe("missing location pages", () => {
     const blue = ev.choices.find((c) => c.id.endsWith(":crystal"));
     assert.ok(blue);
     assert.equal(citedChoiceDisabled(g, blue.id), "Needs a Crystal crewmember");
-    g.crew[0]!.kin = "shard";
+    g.crew[0]!.kin = "crystal";
     assert.equal(citedChoiceDisabled(g, blue.id), null);
   });
 
@@ -184,7 +184,7 @@ describe("missing location pages", () => {
 
   it("does not print the Clone Bay's silence when the buried crew stays", () => {
     const g = createGame(2);
-    g.player.kits.cradle = cradle();
+    g.player.kits.clonebay = cradle();
     const crew = g.crew.filter((c) => c.side === "player").length;
     open(g, "Crystalline men buried", "cited:crystalline-men-buried");
     choose(g, "c:crystalline-men-buried:send");

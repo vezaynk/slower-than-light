@@ -123,7 +123,7 @@ describe("enemy crew AI: priorities", () => {
   it("uses the xftl priority tables (doc/crew-ai PrioritizeSystem and manning)", () => {
     assert.equal(systemPriority("shields"), 0);
     assert.equal(systemPriority("weapons"), 1);
-    assert.equal(systemPriority("cradle"), 1);
+    assert.equal(systemPriority("clonebay"), 1);
     assert.equal(systemPriority("oxygen"), 3);
     assert.equal(systemPriority("pilot"), 4);
     assert.equal(systemPriority("doors"), 7);
@@ -201,7 +201,7 @@ describe("enemy crew AI: fires and repairs", () => {
     big.breach = 0;
     const c = foes(g)[0];
     assert.ok(c);
-    c.kin = "plain";
+    c.kin = "human";
     c.hp = c.maxHp;
     c.room = big.id;
     const ai = (g.enemy!.crewAi ??= { t: 0, post: {}, task: {} });
@@ -211,7 +211,7 @@ describe("enemy crew AI: fires and repairs", () => {
     big.fire = 4;
     planCrew(g, g.enemy!, ai);
     assert.equal(ai.task[c.id]?.kind, "flee");
-    c.kin = "stone";
+    c.kin = "rock";
     planCrew(g, g.enemy!, ai);
     assert.notEqual(ai.task[c.id]?.kind, "flee");
     big.breach = 1;
@@ -247,7 +247,7 @@ describe("enemy crew AI: health", () => {
     const g = fight();
     const ox = room(g, "oxygen").id;
     const crew = foes(g);
-    for (const c of crew) c.kin = "plain";
+    for (const c of crew) c.kin = "human";
     const weak = crew[0];
     weak.maxHp = 90;
     weak.hp = 90;
@@ -344,8 +344,8 @@ describe("enemy crew AI: hacked medbay", () => {
 });
 
 function pulseMedbay(g: Game) {
-  g.player.kits.spike = {
-    id: "spike",
+  g.player.kits.hacking = {
+    id: "hacking",
     level: 2,
     power: 2,
     left: 7,

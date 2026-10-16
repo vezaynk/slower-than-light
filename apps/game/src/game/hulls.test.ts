@@ -18,34 +18,34 @@ import { WEAPONS } from "./content.ts";
 
 const SQUARES: Record<string, number> = {
   // Traced cell counts from the hangar pictures. The cruiser pages do not state these.
-  "kestrel-a": 48,
-  "kestrel-b": 42,
-  "kestrel-c": 46,
-  "engi-a": 42,
-  "engi-b": 32,
-  "engi-c": 40,
-  "fed-a": 46,
-  "fed-b": 44,
-  "fed-c": 46,
-  "zoltan-a": 46,
-  "zoltan-b": 40,
-  "zoltan-c": 46,
-  "slug-a": 40,
-  "slug-b": 54,
-  "slug-c": 42,
-  "rock-a": 48,
-  "rock-b": 44,
-  "rock-c": 40,
-  "stealth-a": 40,
-  "stealth-b": 38,
-  "stealth-c": 40,
-  "lanius-a": 42,
-  "lanius-b": 50,
-  "mantis-a": 54,
-  "mantis-b": 46,
-  "mantis-c": 56,
-  "crystal-a": 54,
-  "crystal-b": 46,
+  "PLAYER_SHIP_HARD": 48,
+  "PLAYER_SHIP_HARD_2": 42,
+  "PLAYER_SHIP_HARD_3": 46,
+  "PLAYER_SHIP_CIRCLE": 42,
+  "PLAYER_SHIP_CIRCLE_2": 32,
+  "PLAYER_SHIP_CIRCLE_3": 40,
+  "PLAYER_SHIP_FED": 46,
+  "PLAYER_SHIP_FED_2": 44,
+  "PLAYER_SHIP_FED_3": 46,
+  "PLAYER_SHIP_ENERGY": 46,
+  "PLAYER_SHIP_ENERGY_2": 40,
+  "PLAYER_SHIP_ENERGY_3": 46,
+  "PLAYER_SHIP_JELLY": 40,
+  "PLAYER_SHIP_JELLY_2": 54,
+  "PLAYER_SHIP_JELLY_3": 42,
+  "PLAYER_SHIP_ROCK": 48,
+  "PLAYER_SHIP_ROCK_2": 44,
+  "PLAYER_SHIP_ROCK_3": 40,
+  "PLAYER_SHIP_STEALTH": 40,
+  "PLAYER_SHIP_STEALTH_2": 38,
+  "PLAYER_SHIP_STEALTH_3": 40,
+  "PLAYER_SHIP_ANAEROBIC": 42,
+  "PLAYER_SHIP_ANAEROBIC_2": 50,
+  "PLAYER_SHIP_MANTIS": 54,
+  "PLAYER_SHIP_MANTIS_2": 46,
+  "PLAYER_SHIP_MANTIS_3": 56,
+  "PLAYER_SHIP_CRYSTAL": 54,
+  "PLAYER_SHIP_CRYSTAL_2": 46,
 };
 
 describe("hangar hulls", () => {
@@ -72,10 +72,10 @@ describe("hangar hulls", () => {
   });
 
   it("powers the Breach Bomb once the Anti-Bio Beam is switched off", () => {
-    const g = createGame(1, "slug-a");
+    const g = createGame(1, "PLAYER_SHIP_JELLY");
     assert.deepEqual(
       g.player.weapons.map((w) => w.defId),
-      ["twin", "antibio", "breach1"],
+      ["LASER_BURST_2", "BEAM_BIO", "BOMB_BREACH_1"],
     );
     assert.deepEqual(powerMask(g.player), [true, true, false]);
     toggleWeapon(g, g.player.weapons[1].uid);
@@ -83,34 +83,34 @@ describe("hangar hulls", () => {
   });
 
   it("fits the Engi B and C printed augments", () => {
-    const b = HULLS.find((h) => h.id === "engi-b");
-    const c = HULLS.find((h) => h.id === "engi-c");
+    const b = HULLS.find((h) => h.id === "PLAYER_SHIP_CIRCLE_2");
+    const c = HULLS.find((h) => h.id === "PLAYER_SHIP_CIRCLE_3");
     assert.ok(b);
     assert.ok(c);
-    assert.deepEqual(b.augments, ["booster"]);
+    assert.deepEqual(b.augments, ["DRONE_SPEED"]);
     assert.equal(b.unfitted.includes("Drone Reactor Booster"), false);
     assert.equal(b.unfitted.includes("Anti-Personnel Drone"), true);
     assert.equal(b.unfitted.includes("System Repair Drone (second)"), false);
-    assert.deepEqual(b.kits.swarm?.loadout, ["patch", "patch"]);
-    assert.deepEqual(createGame(1, "engi-b").player.kits.swarm?.loadout, ["patch", "patch"]);
-    assert.deepEqual(c.augments, ["scrambler"]);
+    assert.deepEqual(b.kits.drones?.loadout, ["REPAIR", "REPAIR"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_CIRCLE_2").player.kits.drones?.loadout, ["REPAIR", "REPAIR"]);
+    assert.deepEqual(c.augments, ["DEFENSE_SCRAMBLER"]);
     assert.deepEqual(c.unfitted, []);
-    assert.deepEqual(createGame(1, "engi-b").augments, ["booster"]);
-    assert.deepEqual(createGame(1, "engi-c").augments, ["scrambler"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_CIRCLE_2").augments, ["DRONE_SPEED"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_CIRCLE_3").augments, ["DEFENSE_SCRAMBLER"]);
   });
 
   it("gives The Kestrel the Burst Laser II and Artemis", () => {
-    const g = createGame(2, "kestrel-a");
+    const g = createGame(2, "PLAYER_SHIP_HARD");
     assert.deepEqual(
       g.player.weapons.map((w) => w.defId),
-      ["lineburst", "artemis"],
+      ["LASER_BURST_3", "MISSILES_2_PLAYER"],
     );
     assert.equal(g.crew.length, 3);
     assert.equal(g.player.systems.weapons.level, 3);
   });
 
   it("follows the Weapon Control click rules", () => {
-    const g = createGame(1, "kestrel-a");
+    const g = createGame(1, "PLAYER_SHIP_HARD");
     const [first, second] = g.player.weapons;
     const room = g.player.rooms[0]?.id ?? "";
     g.enemy = g.player;

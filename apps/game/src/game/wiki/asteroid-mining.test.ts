@@ -38,12 +38,12 @@ describe("Asteroid mining colony", () => {
     assert.equal(hidden.choices.some((c) => c.id === "c:asteroid-mining-colony:0"), false);
 
     const hull = createGame(2);
-    hull.player.weapons = [gun("hullmissile")];
+    hull.player.weapons = [gun("MISSILES_HULL")];
     const skipped = fillerEvent(hull, beacon());
     assert.equal(skipped?.choices.some((c) => c.id === "c:asteroid-mining-colony:0"), false);
 
     const g = createGame(3);
-    g.player.weapons = [gun("artemis")];
+    g.player.weapons = [gun("MISSILES_2_PLAYER")];
     g.missiles = 9;
     g.here = "b";
     g.beacons = [beacon()];

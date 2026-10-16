@@ -52,7 +52,7 @@ export function RoomSeat() {
  * The machine on a medical room's blocked tile (crew-spots blockedCells). INVENTED art: a Medbay bed under a scanner
  * arm, and a Clone Bay vat with a figure inside. 16×16, drawn with the console inks.
  */
-const PROP: Record<"medbay" | "cradle", string[]> = {
+const PROP: Record<"medbay" | "clonebay", string[]> = {
   medbay: [
     "................",
     "..tttttttttttt..",
@@ -71,7 +71,7 @@ const PROP: Record<"medbay" | "cradle", string[]> = {
     ".cccc......cccc.",
     "................",
   ],
-  cradle: [
+  clonebay: [
     "................",
     "....dddddddd....",
     "...dccccccccd...",
@@ -91,7 +91,7 @@ const PROP: Record<"medbay" | "cradle", string[]> = {
   ],
 };
 
-export function RoomProp({ kind }: { kind: "medbay" | "cradle" }) {
+export function RoomProp({ kind }: { kind: "medbay" | "clonebay" }) {
   return (
     <svg className="room-prop-art" data-kind={kind} viewBox="0 0 16 16" shapeRendering="crispEdges" aria-hidden="true">
       {pixelRuns(PROP[kind]).map((r) => (

@@ -137,7 +137,7 @@ function stripIfDropped(c: Crew, level: number) {
 
 function blank(): Kit {
   return {
-    id: "leash",
+    id: "mind",
     level: 1,
     power: 0,
     left: 0,
@@ -170,7 +170,7 @@ export function interruptLeash(g: Game, kit: Kit) {
   kit.left = 0;
   kit.on = false;
   woreOff(kit);
-  const player = kit === g.player.kits.leash;
+  const player = kit === g.player.kits.mind;
   for (const c of g.crew) {
     if (!c.leashed || c.leashed <= 0) continue;
     if (player && c.side === "enemy") clearCrew(c);
@@ -211,7 +211,7 @@ export function installLeash(g: Game) {
     log(g, "No price on the sheet.");
     return;
   }
-  if (g.player.kits.leash) {
+  if (g.player.kits.mind) {
     log(g, "The Lark already carries Mind Control.");
     return;
   }
@@ -221,14 +221,14 @@ export function installLeash(g: Game) {
   }
   g.scrap -= INSTALL_COST;
   noteAchieve(g, { k: "upgrade" });
-  g.player.kits.leash = blank();
+  g.player.kits.mind = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Mind Control fitted to the Lark.");
 }
 
 /** Mind Control wiki, "System Upgrades": pays 30 to reach level 2, then 60 to reach level 3. */
 export function upgradeLeash(g: Game) {
-  const kit = g.player.kits.leash;
+  const kit = g.player.kits.mind;
   if (!kit || kit.level >= 3) return;
   const next = kit.level + 1;
   const cost = UPGRADE_COST[next];
@@ -248,11 +248,11 @@ export function upgradeLeash(g: Game) {
  * Mind Control wiki, "Overview": duration depends on system power level, and removing power can change it.
  */
 export function toggleLeashPower(g: Game) {
-  const kit = g.player.kits.leash;
+  const kit = g.player.kits.mind;
   if (!kit || cooldownLocksPower(kit)) return;
-  if (kitPowerUp(g, "leash")) return;
+  if (kitPowerUp(g, "mind")) return;
   if (kit.power >= 1) {
-    kitPowerDown(g, "leash");
+    kitPowerDown(g, "mind");
     return;
   }
   if (sparePower(g.player) < 1) {
@@ -300,7 +300,7 @@ export function retarget(g: Game) {
  * Health on that table (+15 at level 2, +30 at level 3) is added to maxHp and hp (grantBoost) for the hold.
  */
 export function startLeash(g: Game, crewId: string) {
-  const kit = g.player.kits.leash;
+  const kit = g.player.kits.mind;
   if (!kit) return;
   noteZoltanKits(g);
   // Zoltans: Mind Control cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
@@ -347,7 +347,7 @@ export function startLeash(g: Game, crewId: string) {
   if (
     crew.aboard === "enemy" &&
     (g.enemy?.zoltan ?? 0) > 0 &&
-    !(g.augments.includes("bypass") && bypassZoltan("mind") === "pass")
+    !(g.augments.includes("ZOLTAN_BYPASS") && bypassZoltan("mind") === "pass")
   ) {
     log(g, "Their Zoltan Shield blocks mind control.");
     return;
@@ -441,7 +441,7 @@ export function tickLeash(g: Game, dt: number) {
     if (c.leashed <= 0) clearCrew(c);
   }
   tickEnemyLeash(g, dt);
-  const kit = g.player.kits.leash;
+  const kit = g.player.kits.mind;
   if (!kit) return;
   if (kit.left > 0) {
     const level = playerLevel(kit);
@@ -482,7 +482,7 @@ export function tickLeash(g: Game, dt: number) {
 
 /**
  * Mind Control wiki, "Overview": "Slugs cannot be mind controlled."
- * Slugs wiki page, "Race characteristics": mind-control immunity (kin id "gel", extras/kin.ts).
+ * Slugs wiki page, "Race characteristics": mind-control immunity (kin id "slug", extras/kin.ts).
  */
 function controllable(c: Crew): boolean {
   return !crewDef(c.kin).resistsMindControl;
@@ -499,7 +499,7 @@ function behindPlayerBubble(g: Game, c: Crew): boolean {
 }
 
 function enemyKit(g: Game): Kit | undefined {
-  return g.enemy?.kits.leash;
+  return g.enemy?.kits.mind;
 }
 
 /**
@@ -544,10 +544,10 @@ export function clearEnemyLeash(g: Game): number {
  */
 export function leashOnLeave(g: Game) {
   clearEnemyLeash(g);
-  const hack = g.enemy?.kits.spike;
+  const hack = g.enemy?.kits.hacking;
   if (hack) hack.hackHeld = undefined;
   for (const c of g.crew) if (isLeashed(c)) clearCrew(c);
-  const kit = g.player.kits.leash;
+  const kit = g.player.kits.mind;
   if (kit) {
     kit.on = false;
     kit.left = 0;

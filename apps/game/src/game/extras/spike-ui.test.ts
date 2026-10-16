@@ -21,7 +21,7 @@ import type { Game } from "../types.ts";
  */
 function launchLanded(g: Game): boolean {
   const ok = launchSpike(g);
-  const kit = g.player.kits.spike;
+  const kit = g.player.kits.hacking;
   if (ok && kit && kit.hackFly != null) {
     kit.hackFly = 0;
     tickSpike(g, 1e-6);
@@ -36,7 +36,7 @@ function fight(parts = 2): Game {
   g.scrap = 80;
   g.player.parts = parts;
   assert.equal(installSpike(g), true);
-  g.player.kits.spike!.level = 2;
+  g.player.kits.hacking!.level = 2;
   raiseSpikePower(g);
   startCombat(g, "scout");
   assert.ok(g.enemy);
@@ -55,7 +55,7 @@ function roomFor(g: Game, sys: string): string {
 describe("spike UI", () => {
   it("power buttons step one bar within level and reactor", () => {
     const g = fight();
-    const kit = g.player.kits.spike!;
+    const kit = g.player.kits.hacking!;
     assert.equal(kit.power, 1);
     g.player.reactor += 4;
     raiseSpikePower(g);
@@ -116,9 +116,9 @@ describe("spike UI", () => {
     assert.equal(launchLanded(g), true);
     tickSpike(g, 24);
     assert.equal(armSpike(g, "shields"), false);
-    assert.equal(g.player.kits.spike!.target, "weapons");
+    assert.equal(g.player.kits.hacking!.target, "weapons");
     // A stale target set behind the UI's back is pulled back to the latch: no second drone, no part spent.
-    g.player.kits.spike!.target = "shields";
+    g.player.kits.hacking!.target = "shields";
     assert.equal(launchLanded(g), true);
     assert.equal(g.enemy!.hackDrone, "weapons");
     assert.equal(g.player.parts, 2);
@@ -140,7 +140,7 @@ describe("spike UI", () => {
     assert.equal(z.player.parts, 2, "no part spent at a Zoltan Shield");
 
     const c = fight(2);
-    c.enemy!.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    c.enemy!.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     assert.equal(playerHackView(c)!.state, "cloaked");
     armSpike(c, "shields");
     assert.equal(launchLanded(c), false);

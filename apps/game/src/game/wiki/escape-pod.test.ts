@@ -56,7 +56,7 @@ describe("Escape pod", () => {
       fillerChoose(g, "c:escape-pod:1");
       if (g.phase === "combat") {
         boarded = true;
-        assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "blade").length, 1);
+        assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis").length, 1);
         assert.equal(players(g), crew - 1);
         assert.match(g.log.join(" "), /is lost/);
         assert.ok(g.log.includes("The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt."));
@@ -80,7 +80,7 @@ describe("Escape pod", () => {
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
       const crew = players(g);
       open(g);
       fillerChoose(g, "c:escape-pod:1");
@@ -88,7 +88,7 @@ describe("Escape pod", () => {
       seen = true;
       assert.equal(players(g), crew);
       assert.match(g.log.join(" "), /revived/);
-      assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "blade").length, 1);
+      assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis").length, 1);
     }
     assert.equal(seen, true);
   });

@@ -29,14 +29,14 @@ export type WeaponDef = {
 /**
  * Fitted weapons. Each object is cited on the comment above it.
  * Dart stays Dart: its charge is not a wiki missile. INVENTED name.
- * The id `shear` is an invented local id. Its numbers are the Pike Beam row, so the display name is Pike Beam.
+ * Pike Beam is archive blueprint BEAM_LONG. The display name stays Pike Beam.
  */
 export const WEAPONS: Record<string, WeaponDef> = {
   // Laser (Weapons), "Burst Laser Mark II": purchase price 80, power 2, charge 12 seconds, shots 3, damage per shot 1.
   // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.1, not on the page.
   // Breach is not stated. gap 0.28 is not on the page and is left in place.
-  lineburst: {
-    id: "lineburst",
+  LASER_BURST_3: {
+    id: "LASER_BURST_3",
     name: "Burst Laser II",
     kind: "laser",
     power: 2,
@@ -54,8 +54,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   // Laser (Weapons), "Basic Laser": "Sells for: 10 (cannot be bought or found)". price 0, not the sell value.
   // Power 1, charge 10 seconds, shots 1, damage per shot 1.
   // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.08, not on the page.
-  spark: {
-    id: "spark",
+  LASER_BURST_1: {
+    id: "LASER_BURST_1",
     name: "Basic Laser",
     kind: "laser",
     power: 1,
@@ -74,8 +74,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   // Power 1, charge 10 seconds, shots 2, damage per shot 1.
   // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.08, not on the page.
   // gap 0.3 is not on the page and is left in place.
-  twin: {
-    id: "twin",
+  LASER_BURST_2: {
+    id: "LASER_BURST_2",
     name: "Dual Lasers",
     kind: "laser",
     power: 1,
@@ -92,8 +92,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   },
   // Laser (Weapons), "Heavy Laser Mark I": purchase price 50, power 1, charge 9 seconds, shots 1, damage per shot 2.
   // Laser (Weapons), "Types of lasers": the 30% fire chance is rolled first, then (if no fires started) the 30% breach chance.
-  heavy: {
-    id: "heavy",
+  LASER_HEAVY_1: {
+    id: "LASER_HEAVY_1",
     name: "Heavy Laser",
     kind: "laser",
     power: 1,
@@ -127,8 +127,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   },
   // Ion (Weapons), "Ion Blast": purchase price 30, power 1, charge 8 seconds, shots 1, ion damage per shot 1.
   // The section and the page lead give no hull damage, so damage is 0. Effect: low chance to stun. No percent is published. Stun is not a field.
-  needle: {
-    id: "needle",
+  ION_1: {
+    id: "ION_1",
     name: "Ion Blast",
     kind: "ion",
     power: 1,
@@ -147,8 +147,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   // Power 1, charge 11 seconds, shots 1, damage per shot 2.
   // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
   // Low chance to stun is not a field. The lead says a missile spends 1 ammunition.
-  artemis: {
-    id: "artemis",
+  MISSILES_2_PLAYER: {
+    id: "MISSILES_2_PLAYER",
     name: "Artemis Missiles",
     kind: "missile",
     power: 1,
@@ -167,8 +167,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   // Power 1, charge 9 seconds, shots 1, damage per shot 1.
   // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
   // Low chance to stun is not a field. The lead says a missile spends 1 ammunition.
-  leto: {
-    id: "leto",
+  MISSILES_1: {
+    id: "MISSILES_1",
     name: "Leto Missiles",
     kind: "missile",
     power: 1,
@@ -185,8 +185,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   },
   // Ion (Weapons), "Ion Blast Mark II": purchase price 70, power 3, charge 4 seconds, shots 1, ion damage per shot 1.
   // No hull damage is stated, so damage is 0. Effect: low chance to stun. No percent is published. Stun is not a field.
-  ion2: {
-    id: "ion2",
+  ION_4: {
+    id: "ION_4",
     name: "Ion Blast II",
     kind: "ion",
     power: 3,
@@ -203,8 +203,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   },
   // Ion (Weapons), "Heavy Ion": purchase price 45, power 2, charge 13 seconds, shots 1, ion damage per shot 2.
   // No hull damage is stated, so damage is 0. Effect: moderate-low chance to stun. No percent is published. Stun is not a field.
-  heavyion: {
-    id: "heavyion",
+  ION_2: {
+    id: "ION_2",
     name: "Heavy Ion",
     kind: "ion",
     power: 2,
@@ -221,8 +221,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
   },
   // Ion (Weapons), "Ion Stunner": purchase price 35, power 1, charge 10 seconds, shots 1, ion damage per shot 1.
   // No hull damage is stated, so damage is 0. Boarding, "Stun effect": the room stun is 5 seconds (sim.ts).
-  stunner: {
-    id: "stunner",
+  ION_STUN: {
+    id: "ION_STUN",
     name: "Ion Stunner",
     kind: "ion",
     power: 1,
@@ -238,10 +238,10 @@ export const WEAPONS: Record<string, WeaponDef> = {
     blurb: "No hull damage. One ion if it lands. Stuns the room for 5 seconds.",
   },
   // Beam (Weapons), "Pike Beam": purchase price 55, power 2, charge 16 seconds, damage 1 per room.
-  // The id `shear` is INVENTED. The display name is the wiki row those numbers match.
+  // Archive blueprint BEAM_LONG. The display name stays Pike Beam.
   // Halberd Beam is a different row: 65 scrap, 3 power, 17 seconds, 2 damage. It is registered from weapons-beam.ts.
-  shear: {
-    id: "shear",
+  BEAM_LONG: {
+    id: "BEAM_LONG",
     name: "Pike Beam",
     kind: "beam",
     power: 2,
@@ -261,7 +261,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
 // Wiki page "Flak (Weapons)", section "Flak Gun Mark I", and wiki page "Bomb (Weapons)", section "Fire Bomb".
 for (const extra of ORDNANCE) WEAPONS[extra.id] = extra;
 // Ids already stored are left as they are. The added rows are wiki page "Laser (Weapons)", section "List of Laser weapons"; "Beam (Weapons)", section "List of Beam weapons"; "Ion (Weapons)", section "List of Ion weapons"; "Missile (Weapons)", section "List of Missile weapons"; "Bomb (Weapons)", section "List of Bomb weapons"; "Flak (Weapons)", section "List of Flak weapons"; "Crystal (Weapons)", section "List of Crystal weapons".
-// `pike` is skipped: wiki page "Beam (Weapons)", section "Pike Beam", is already stored as `shear`.
+// The unregistered pike row shares BEAM_LONG with the Pike Beam above, so it is skipped.
 for (const extra of [
   ...LASER_WEAPONS,
   ...BEAM_WEAPONS,
@@ -270,7 +270,7 @@ for (const extra of [
   ...BOMB_WEAPONS,
   ...FLAK_CRYSTAL_WEAPONS,
 ]) {
-  if (extra.id === "pike" || WEAPONS[extra.id]) continue;
+  if (extra.id === "BEAM_LONG" || WEAPONS[extra.id]) continue;
   WEAPONS[extra.id] = extra;
 }
 // @agent:flagship. Boss Laser and Boss Beam, and the flagship page's Boss Missile breach (wiki/flagship-weapons.ts).

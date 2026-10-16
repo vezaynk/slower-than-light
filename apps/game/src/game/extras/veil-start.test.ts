@@ -5,8 +5,8 @@ import { startVeil } from "./veil.ts";
 
 describe("Per the user (bug): a powered starting cloak is ready, not cooling", () => {
   it("Stealth A can cloak at the start of its first fight", () => {
-    const g = createGame(1, "stealth-a");
-    const veil = g.player.kits.veil!;
+    const g = createGame(1, "PLAYER_SHIP_STEALTH");
+    const veil = g.player.kits.cloaking!;
     assert.equal(veil.on, false);
     startCombat(g, "scout");
     g.paused = false;
@@ -18,9 +18,9 @@ describe("Per the user (bug): a powered starting cloak is ready, not cooling", (
   });
 
   it("starts every activated system idle", () => {
-    for (const hull of ["mantis-a", "slug-a", "lanius-b", "crystal-a"]) {
+    for (const hull of ["PLAYER_SHIP_MANTIS", "PLAYER_SHIP_JELLY", "PLAYER_SHIP_ANAEROBIC_2", "PLAYER_SHIP_CRYSTAL"]) {
       const g = createGame(1, hull);
-      for (const id of ["veil", "sling", "leash", "spike", "cell"] as const) {
+      for (const id of ["cloaking", "teleporter", "mind", "hacking", "battery"] as const) {
         const kit = g.player.kits[id];
         if (kit) assert.equal(kit.on, false, `${hull} ${id}`);
       }

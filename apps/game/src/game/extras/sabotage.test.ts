@@ -98,7 +98,7 @@ describe("system sabotage by boarders and fires", () => {
     const id = room.system!;
     const drone = (extra: Partial<DroneUnit>): DroneUnit => ({
       id: "d",
-      kind: "board",
+      kind: "BOARDER",
       alive: true,
       powered: true,
       aux: 0,
@@ -108,8 +108,8 @@ describe("system sabotage by boarders and fires", () => {
       room: room.id,
       ...extra,
     });
-    g.enemy!.kits.swarm = {
-      id: "swarm",
+    g.enemy!.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -120,25 +120,25 @@ describe("system sabotage by boarders and fires", () => {
       drones: [drone({ fly: 2 })],
     } satisfies Kit;
     assert.equal(systemUnderBoarders(g, g.player, "player", id), false);
-    g.enemy!.kits.swarm.drones = [drone({})];
+    g.enemy!.kits.drones.drones = [drone({})];
     assert.equal(systemUnderBoarders(g, g.player, "player", id), true);
-    g.enemy!.kits.swarm.drones = [drone({ path: ["next"] })];
+    g.enemy!.kits.drones.drones = [drone({ path: ["next"] })];
     assert.equal(systemUnderBoarders(g, g.player, "player", id), false);
 
     const foe = sysRoom(g.enemy!);
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "board",
+      target: "BOARDER",
       on: true,
       aux: 0,
       room: foe.id,
     };
     assert.equal(systemUnderBoarders(g, g.enemy!, "enemy", foe.system!), true);
-    g.player.kits.swarm.stun = 3;
+    g.player.kits.drones.stun = 3;
     assert.equal(systemUnderBoarders(g, g.enemy!, "enemy", foe.system!), false);
   });
 
@@ -196,12 +196,12 @@ describe("system sabotage by boarders and fires", () => {
     const g = fight();
     const r = g.enemy!.rooms.find((x) => !x.system) ?? g.enemy!.rooms[0]!;
     r.system = null;
-    r.kit = "leash";
+    r.kit = "mind";
     r.fire = 0;
-    g.enemy!.kits.leash = { id: "leash", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.enemy!.kits.mind = { id: "mind", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
     g.crew.push(body("b", "player", "enemy", r.id));
     run(g, 12.6);
-    assert.equal(g.enemy!.kits.leash!.damage, 1);
+    assert.equal(g.enemy!.kits.mind!.damage, 1);
   });
 
   it("INFERRED: a leashed enemy on its own ship sabotages it; a leashed player boarder defends there", () => {

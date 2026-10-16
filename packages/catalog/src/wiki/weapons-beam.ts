@@ -11,7 +11,7 @@ import type { WeaponDef } from "../content.ts";
 
 export const BEAM_WEAPONS: WeaponDef[] = [
   {
-    id: "mini",
+    id: "BEAM_1",
     name: "Mini Beam",
     kind: "beam",
     // Beam (Weapons), "Mini Beam": 1 power, charge 12 seconds, 1 damage per room.
@@ -32,7 +32,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     blurb: "Extremely cheap and weak beam weapon.",
   },
   {
-    id: "pike",
+    id: "BEAM_LONG",
     name: "Pike Beam",
     kind: "beam",
     // Beam (Weapons), "Pike Beam": 2 power, charge 16 seconds, 1 damage per room.
@@ -53,7 +53,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     blurb: "Can cut across entire ships, assuming there's no shield to stop it.",
   },
   {
-    id: "hullbeam",
+    id: "BEAM_HULL",
     name: "Hull Beam",
     kind: "beam",
     // Beam (Weapons), "Hull Beam": 2 power, charge 14 seconds, 1 damage per room.
@@ -75,7 +75,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     blurb: "This beam is most powerful when targeting large, empty sections of hull.",
   },
   {
-    id: "halberd",
+    id: "BEAM_2",
     name: "Halberd Beam",
     kind: "beam",
     // Beam (Weapons), "Halberd Beam": 3 power, charge 17 seconds, 2 damage per room.
@@ -97,7 +97,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     blurb: "Slow but reliably powerful standard beam weapon.",
   },
   {
-    id: "glaive",
+    id: "BEAM_3",
     name: "Glaive Beam",
     kind: "beam",
     // Beam (Weapons), "Glaive Beam": 4 power, charge 25 seconds, 3 damage per room.
@@ -119,7 +119,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
       "One of the most powerful weapons of war ever created. Known to take out some ships in a single blast.",
   },
   {
-    id: "firebeam",
+    id: "BEAM_FIRE",
     name: "Fire Beam",
     kind: "beam",
     // Beam (Weapons), "Fire Beam": 2 power, charge 20 seconds.
@@ -142,7 +142,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     blurb: "This terrifying beam does no physical damage but ignites fires.",
   },
   {
-    id: "antibio",
+    id: "BEAM_BIO",
     name: "Anti-Bio Beam",
     kind: "beam",
     // Beam (Weapons), "Anti-Bio Beam": 2 power, charge 16 seconds.
@@ -174,27 +174,26 @@ export const BEAM_WEAPONS: WeaponDef[] = [
  */
 /**
  * Beam (Weapons): the parenthetical tile count, not the pixel figure.
- * `shear` is the fitted id of the Pike Beam row.
+ * Pike Beam and the fitted beam share BEAM_LONG.
  * Artillery Beam is not aimed with this line. Its length is ARTILLERY_BEAM_PX.
  */
 export const BEAM_TILES: Record<string, number> = {
   // "Beam length: 45 (1 tile diagonally)"
-  mini: 1,
-  // "Beam length: 170 (3.8 tiles diagonally)"
-  pike: 3.8,
-  shear: 3.8,
+  BEAM_1: 1,
+  // "Beam length: 170 (3.8 tiles diagonally)". Pike Beam uses the same blueprint.
+  BEAM_LONG: 3.8,
   // "Beam length: 100 (2.2 tiles diagonally)"
-  hullbeam: 2.2,
+  BEAM_HULL: 2.2,
   // "Beam length: 80 (1.8 tiles diagonally)"
-  halberd: 1.8,
+  BEAM_2: 1.8,
   // "Beam length: 80 (1.8 tiles diagonally)"
-  glaive: 1.8,
+  BEAM_3: 1.8,
   // "Beam length: 140 (3.1 tiles diagonally)"
-  firebeam: 3.1,
+  BEAM_FIRE: 3.1,
   // "Beam length: 140 (3.1 tiles diagonally)"
-  antibio: 3.1,
+  BEAM_BIO: 3.1,
   // Beam (Weapons), Boss Beam: "Beam length: 100 (2.2 tiles diagonally)".
-  bossbeam: 2.2,
+  ARTILLERY_BOSS_3: 2.2,
 };
 
 export function beamTileLength(defId: string | undefined): number | null {
@@ -217,22 +216,21 @@ export function beamBodyTiles(defId: string | undefined): number | null {
  */
 export const BEAM_SPEED: Record<string, number> = {
   // BEAM_1, 'Spetum' Beam, speed 3.
-  mini: 3,
-  // BEAM_LONG, 'Pike' Beam, speed 9. Fitted id is shear.
-  pike: 9,
-  shear: 9,
+  BEAM_1: 3,
+  // BEAM_LONG, 'Pike' Beam, speed 9.
+  BEAM_LONG: 9,
   // BEAM_HULL, 'Lucerne' Beam, speed 5.
-  hullbeam: 5,
+  BEAM_HULL: 5,
   // BEAM_2, 'Halberd' Beam, speed 5.
-  halberd: 5,
+  BEAM_2: 5,
   // BEAM_3, 'Glaive' Beam, speed 5.
-  glaive: 5,
+  BEAM_3: 5,
   // BEAM_FIRE, 'Torch' Beam, speed 5.
-  firebeam: 5,
+  BEAM_FIRE: 5,
   // BEAM_BIO, 'Faucon' Rad-Beam, speed 30.
-  antibio: 30,
+  BEAM_BIO: 30,
   // Template:Beam weapons, Boss Beam: speed 5. Length 100 (2.2 tiles) is BEAM_TILES.
-  bossbeam: 5,
+  ARTILLERY_BOSS_3: 5,
   // Template:Beam weapons, Artillery Beam: speed 13. Length 500 is ARTILLERY_BEAM_PX.
   "artillery-beam": 13,
 };
@@ -258,46 +256,46 @@ export function beamSwipeSeconds(defId: string | undefined, tiles: number): numb
 
 export const BEAM_CREW: Record<string, number> = {
   // Beam (Weapons), "Mini Beam": Crew damage: 15 HP per room tile.
-  mini: 15,
-  // Beam (Weapons), "Pike Beam": Crew damage: 15 HP per room tile. Fitted id is shear, not pike.
-  pike: 15,
+  BEAM_1: 15,
+  // Beam (Weapons), "Pike Beam": Crew damage: 15 HP per room tile. The unregistered pike row is the same blueprint.
+  BEAM_LONG: 15,
   // Beam (Weapons), "Hull Beam": Crew damage: 15 HP per room tile.
-  hullbeam: 15,
+  BEAM_HULL: 15,
   // Beam (Weapons), "Halberd Beam": Crew damage: 30 HP per room tile.
-  halberd: 30,
+  BEAM_2: 30,
   // Beam (Weapons), "Glaive Beam": Crew damage: 45 HP per room tile.
-  glaive: 45,
+  BEAM_3: 45,
   // Beam (Weapons), "Anti-Bio Beam": Crew damage: 60 HP per room tile.
-  antibio: 60,
+  BEAM_BIO: 60,
 };
 
 export const BEAM_GAPS: { id: string; note: string }[] = [
   {
-    id: "mini",
+    id: "BEAM_1",
     note: 'Beam (Weapons), "Mini Beam": beam length 45 (1 tile diagonally). Crew damage 15 HP per room tile. WeaponDef has no length or crew-damage field.',
   },
   {
-    id: "pike",
+    id: "BEAM_LONG",
     note: 'Beam (Weapons), "Pike Beam": beam length 170 (3.8 tiles diagonally). Crew damage 15 HP per room tile. WeaponDef has no length or crew-damage field.',
   },
   {
-    id: "hullbeam",
+    id: "BEAM_HULL",
     note: 'Beam (Weapons), "Hull Beam": beam length 100 (2.2 tiles diagonally). 2 damage on systemless rooms, applied as hull damage. Each shield layer cuts that figure by one. Crew damage 15 HP per room tile. WeaponDef stores only the 1 damage per room.',
   },
   {
-    id: "halberd",
+    id: "BEAM_2",
     note: 'Beam (Weapons), "Halberd Beam": beam length 80 (1.8 tiles diagonally). Can target 3-4 rooms straight, 2-3 diagonally, 5 max. Still deals 1 damage per room through 1 shield. Crew damage 30 HP per room tile.',
   },
   {
-    id: "glaive",
+    id: "BEAM_3",
     note: 'Beam (Weapons), "Glaive Beam": beam length 80 (1.8 tiles diagonally). Still deals 1 damage per room through 2 shields, or 2 damage per room through 1 shield. Crew damage 45 HP per room tile.',
   },
   {
-    id: "firebeam",
+    id: "BEAM_FIRE",
     note: 'Beam (Weapons), "Fire Beam": beam length 140 (3.1 tiles diagonally). Deals 1 point of damage twice against Zoltan Shields. Crew damage is listed as "-". Fires: "Fire beams can be blocked by a regular shield barrier (1 is enough)".',
   },
   {
-    id: "antibio",
+    id: "BEAM_BIO",
     note: 'Beam (Weapons), "Anti-Bio Beam": beam length 140 (3.1 tiles diagonally). Crew damage 60 HP per room tile, which is not hull damage. Deals 1 point of damage twice against Zoltan Shields. Beam (Weapons): "even one shield layer is enough to block most beam weapons."',
   },
   {
@@ -306,7 +304,7 @@ export const BEAM_GAPS: { id: string; note: string }[] = [
     note: 'lance.ts owns the system. Beam (Weapons), "Artillery Beam": artillery system with 4 system levels maximum. Charge time 50s for level 1, reduced by 10 seconds for each level above 1 to a minimum of 20s for level 4. Beam length 500 (12.5 tiles diagonally). Deals 1 damage per room hit and ignores all standard shields. Crew damage 15 HP per room tile. Effect: 10% chance to start fire (per tile). Pre-installed on Federation Cruiser Layout A and Layout B. Opening paragraph: pierces all regular shield layers (up to all 5).',
   },
   {
-    id: "bossbeam",
+    id: "ARTILLERY_BOSS_3",
     // Beam (Weapons), "Boss Beam": "Artillery system: with 3 system levels maximum". No power requirement.
     // INFERRED: that maximum is the WeaponDef power in flagship-weapons.ts, and it is not a Weapons-pool cost.
     note: 'INFERRED: the artillery maximum is 3, stored on the WeaponDef in flagship-weapons.ts, and it is not a Weapons-pool cost. Beam (Weapons), "Boss Beam" states no power requirement. This catalog does not emit a second WeaponDef. Charge time 32.5s for level 1, 26s for level 2, 19.5s for level 3. Beam length 100 (2.2 tiles diagonally). Deals 2 damage per room hit. Artillery system with 3 system levels maximum. Only used by the Rebel Flagship in phase 1-2. The italic quote is inside an HTML comment and is not copied.',

@@ -19,7 +19,7 @@ function open(g: Game) {
 }
 
 function mind(): Kit {
-  return { id: "leash", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "mind", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 describe("Pirate ship selling weapon", () => {
@@ -52,7 +52,7 @@ describe("Pirate ship selling weapon", () => {
     for (let seed = 1; seed <= 40 && (!deal || !lie); seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.leash = mind();
+      g.player.kits.mind = mind();
       const scrap = g.scrap;
       const guns = g.player.weapons.length;
       choose(g, MIND);

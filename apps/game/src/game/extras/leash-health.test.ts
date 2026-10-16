@@ -6,7 +6,7 @@ import type { Crew, Game, Kit } from "../types.ts";
 
 // Mind Control, Overview: the hold follows the powered level, so a kit is fully powered unless a test says otherwise.
 function kit(level: number, power = level): Kit {
-  return { id: "leash", level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "mind", level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 function fight(seed: number): Game {
@@ -34,7 +34,7 @@ describe("Mind Control health boost", () => {
       [3, 30, 28],
     ] as const) {
       const g = fight(20 + level);
-      g.player.kits.leash = kit(level);
+      g.player.kits.mind = kit(level);
       const c = foe(g);
       const base = c.maxHp;
       const hp = c.hp;
@@ -51,7 +51,7 @@ describe("Mind Control health boost", () => {
 
   it("clamps hp to the base max when the boost ends (INFERRED)", () => {
     const g = fight(30);
-    g.player.kits.leash = kit(3);
+    g.player.kits.mind = kit(3);
     const c = foe(g);
     const base = c.maxHp;
     startLeash(g, c.id);
@@ -63,9 +63,9 @@ describe("Mind Control health boost", () => {
 
   it("boosts player crew the enemy holds, and removes it when freed or at combat end", () => {
     const g = fight(31);
-    g.enemy!.kits.leash = kit(2);
+    g.enemy!.kits.mind = kit(2);
     const room = g.enemy!.rooms.find((r) => !r.system) ?? g.enemy!.rooms[0]!;
-    room.kit = "leash";
+    room.kit = "mind";
     const bases = new Map(g.crew.map((c) => [c.id, c.maxHp]));
     tickLeash(g, 0.05);
     const c = g.crew.find((o) => heldByEnemy(o))!;
@@ -76,9 +76,9 @@ describe("Mind Control health boost", () => {
     assert.equal(c.maxHp, bases.get(c.id));
 
     const h = fight(32);
-    h.enemy!.kits.leash = kit(3);
-    (h.enemy!.rooms.find((r) => !r.system) ?? h.enemy!.rooms[0]!).kit = "leash";
-    h.player.kits.leash = kit(1);
+    h.enemy!.kits.mind = kit(3);
+    (h.enemy!.rooms.find((r) => !r.system) ?? h.enemy!.rooms[0]!).kit = "mind";
+    h.player.kits.mind = kit(1);
     tickLeash(h, 0.05);
     const d = h.crew.find((o) => heldByEnemy(o))!;
     const base = d.maxHp - 30;
@@ -89,25 +89,25 @@ describe("Mind Control health boost", () => {
 
   it("removes health and damage boosts when the system level drops", () => {
     const g = fight(33);
-    g.enemy!.kits.leash = kit(3);
-    (g.enemy!.rooms.find((r) => !r.system) ?? g.enemy!.rooms[0]!).kit = "leash";
+    g.enemy!.kits.mind = kit(3);
+    (g.enemy!.rooms.find((r) => !r.system) ?? g.enemy!.rooms[0]!).kit = "mind";
     tickLeash(g, 0.05);
     const c = g.crew.find((o) => heldByEnemy(o))!;
     const base = c.maxHp - 30;
     assert.equal(leashedDamageBonus(c), 2);
-    g.enemy!.kits.leash!.damage = 1;
+    g.enemy!.kits.mind!.damage = 1;
     tickLeash(g, 0.05);
     assert.ok(heldByEnemy(c), "hold continues on a lower level");
     assert.equal(c.maxHp, base);
     assert.equal(leashedDamageBonus(c), 1);
 
     const p = fight(34);
-    p.player.kits.leash = kit(2);
+    p.player.kits.mind = kit(2);
     const f = foe(p);
     const fBase = f.maxHp;
     startLeash(p, f.id);
     assert.equal(leashedDamageBonus(f), 1.25);
-    p.player.kits.leash!.damage = 1;
+    p.player.kits.mind!.damage = 1;
     tickLeash(p, 0.05);
     assert.equal(f.maxHp, fBase);
     assert.equal(leashedDamageBonus(f), 1);
@@ -115,7 +115,7 @@ describe("Mind Control health boost", () => {
 
   it("keeps the damage multiplier across a JSON save/load", () => {
     const g = fight(35);
-    g.player.kits.leash = kit(3);
+    g.player.kits.mind = kit(3);
     const c = foe(g);
     startLeash(g, c.id);
     const loaded = JSON.parse(JSON.stringify(g)) as Game;
@@ -129,9 +129,9 @@ describe("Mind Control health boost", () => {
 describe("Mind Control on Slugs", () => {
   it("the player cannot leash an enemy Slug and the kit is not spent", () => {
     const g = fight(36);
-    const k = (g.player.kits.leash = kit(2, 1));
+    const k = (g.player.kits.mind = kit(2, 1));
     const c = foe(g);
-    c.kin = "gel";
+    c.kin = "slug";
     const base = c.maxHp;
     const logs = g.log.length;
     startLeash(g, c.id);

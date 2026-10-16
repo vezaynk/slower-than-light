@@ -64,9 +64,9 @@ describe("targetable slider range", () => {
 
 describe("slider aim", () => {
   it("moves a queued laser onto the room under the point and does not fire", () => {
-    const g = createGame(1, "slug-a");
+    const g = createGame(1, "PLAYER_SHIP_JELLY");
     startCombat(g, "scout");
-    const laser = g.player.weapons.find((gun) => gun.defId !== "antibio" && gun.enabled);
+    const laser = g.player.weapons.find((gun) => gun.defId !== "BEAM_BIO" && gun.enabled);
     assert.ok(laser);
     const rooms = g.enemy!.rooms;
     laser.charge = 1;
@@ -81,9 +81,9 @@ describe("slider aim", () => {
   });
 
   it("sets a beam from two points and will not leave the enemy floor", () => {
-    const g = createGame(1, "slug-a");
+    const g = createGame(1, "PLAYER_SHIP_JELLY");
     startCombat(g, "scout");
-    const w = g.player.weapons.find((gun) => gun.defId === "antibio");
+    const w = g.player.weapons.find((gun) => gun.defId === "BEAM_BIO");
     assert.ok(w);
     w.charge = 0;
     armWeapon(g, w.uid);
@@ -100,7 +100,7 @@ describe("slider aim", () => {
     assert.ok(w.beamLine.a.x >= span.minX && w.beamLine.a.x <= span.maxX);
     assert.ok(w.beamLine.b.x >= span.minX - 1e-6 && w.beamLine.b.x <= span.maxX + 1e-6);
     assert.ok(w.beamLine.b.y >= span.minY - 1e-6 && w.beamLine.b.y <= span.maxY + 1e-6);
-    const tiles = beamTileLength("antibio") ?? 0;
+    const tiles = beamTileLength("BEAM_BIO") ?? 0;
     assert.ok(Math.hypot(w.beamLine.b.x - w.beamLine.a.x, w.beamLine.b.y - w.beamLine.a.y) <= tiles + 0.05);
     assert.equal(g.shots.length, 0);
     nudgeAim(g, "a", roomCenter(rooms[Math.min(1, rooms.length - 1)]));
@@ -109,9 +109,9 @@ describe("slider aim", () => {
   });
 
   it("lets either beam thumb pull the other once the swipe is at full length", () => {
-    const g = createGame(1, "slug-a");
+    const g = createGame(1, "PLAYER_SHIP_JELLY");
     startCombat(g, "scout");
-    const w = g.player.weapons.find((gun) => gun.defId === "antibio");
+    const w = g.player.weapons.find((gun) => gun.defId === "BEAM_BIO");
     assert.ok(w);
     w.charge = 0;
     armWeapon(g, w.uid);
@@ -121,7 +121,7 @@ describe("slider aim", () => {
     nudgeAim(g, "a", start);
     nudgeAim(g, "b", far);
     assert.ok(w.beamLine);
-    const tiles = beamTileLength("antibio") ?? 0;
+    const tiles = beamTileLength("BEAM_BIO") ?? 0;
     const span = (line: { a: { x: number; y: number }; b: { x: number; y: number } }) =>
       Math.hypot(line.b.x - line.a.x, line.b.y - line.a.y);
     assert.ok(span(w.beamLine) <= tiles + 0.05);
@@ -222,9 +222,9 @@ describe("printed beam length", () => {
 
 describe("player beam aim", () => {
   function fight() {
-    const g = createGame(1, "slug-a");
+    const g = createGame(1, "PLAYER_SHIP_JELLY");
     startCombat(g, "scout");
-    const w = g.player.weapons.find((gun) => gun.defId === "antibio");
+    const w = g.player.weapons.find((gun) => gun.defId === "BEAM_BIO");
     assert.ok(w);
     const index = g.player.weapons.indexOf(w);
     assert.equal(powerMask(g.player)[index], true);
@@ -245,7 +245,7 @@ describe("player beam aim", () => {
     assert.equal(w.target, null);
     assert.equal(w.beamLine, null);
     assert.deepEqual(g.beamAnchor, center(room));
-    assert.equal(g.shots.filter((s) => s.defId === "antibio").length, 0);
+    assert.equal(g.shots.filter((s) => s.defId === "BEAM_BIO").length, 0);
   });
 
   it("hits only the clicked room when the line does not leave it", () => {
@@ -255,7 +255,7 @@ describe("player beam aim", () => {
     armWeapon(g, w.uid);
     aim(g, room.id);
     aim(g, room.id);
-    const shot = g.shots.find((s) => s.defId === "antibio");
+    const shot = g.shots.find((s) => s.defId === "BEAM_BIO");
     assert.ok(shot);
     assert.deepEqual(shot.beamRooms, [room.id]);
     assert.equal(shot.duration, 1 / 60);
@@ -273,14 +273,14 @@ describe("player beam aim", () => {
     armWeapon(g, w.uid);
     aim(g, start.id, center(start));
     aim(g, far.id, center(far));
-    const shot = g.shots.find((s) => s.defId === "antibio");
+    const shot = g.shots.find((s) => s.defId === "BEAM_BIO");
     assert.ok(shot);
-    const clipped = clipBeamEnd(center(start), center(far), beamTileLength("antibio") ?? 0);
+    const clipped = clipBeamEnd(center(start), center(far), beamTileLength("BEAM_BIO") ?? 0);
     assert.deepEqual(shot.beamRooms, roomsOnSegment(g.enemy!, center(start), clipped));
     assert.equal(shot.beamRooms?.[0], shot.targetRoom);
     assert.deepEqual(shot.beamLine, { a: center(start), b: clipped });
     const span = Math.hypot(clipped.x - center(start).x, clipped.y - center(start).y);
-    assert.equal(shot.duration, Math.max(beamSwipeSeconds("antibio", span) ?? 0, 1 / 60));
+    assert.equal(shot.duration, Math.max(beamSwipeSeconds("BEAM_BIO", span) ?? 0, 1 / 60));
   });
 
   it("queues the segment while the beam is still charging", () => {
@@ -290,10 +290,10 @@ describe("player beam aim", () => {
     armWeapon(g, w.uid);
     aim(g, rooms[0].id);
     aim(g, rooms[rooms.length - 1].id);
-    assert.equal(g.shots.filter((s) => s.defId === "antibio").length, 0);
+    assert.equal(g.shots.filter((s) => s.defId === "BEAM_BIO").length, 0);
     assert.equal(g.targeting, false);
     assert.ok(w.beamLine);
-    const end = clipBeamEnd(center(rooms[0]), center(rooms[rooms.length - 1]), beamTileLength("antibio") ?? 0);
+    const end = clipBeamEnd(center(rooms[0]), center(rooms[rooms.length - 1]), beamTileLength("BEAM_BIO") ?? 0);
     assert.equal(w.target, roomsOnSegment(g.enemy!, center(rooms[0]), end)[0]);
   });
 
@@ -328,7 +328,7 @@ describe("player beam aim", () => {
 
   it("still lets a laser confirm on one click", () => {
     const { g } = fight();
-    const laser = g.player.weapons.find((gun) => gun.defId !== "antibio" && gun.enabled);
+    const laser = g.player.weapons.find((gun) => gun.defId !== "BEAM_BIO" && gun.enabled);
     assert.ok(laser);
     const room = g.enemy!.rooms[0].id;
     laser.charge = 0;
@@ -347,7 +347,7 @@ describe("enemy beam aim", () => {
     for (const w of g.player.weapons) w.enabled = false;
     const enemy = g.enemy!;
     enemy.weapons = [
-      { uid: "e-beam", defId: "mini", charge: 1, enabled: true, autofire: true, target: g.player.rooms[0].id },
+      { uid: "e-beam", defId: "BEAM_1", charge: 1, enabled: true, autofire: true, target: g.player.rooms[0].id },
     ];
     step(g, 0.05);
     const shot = g.shots.find((s) => s.from === "enemy" && s.kind === "beam");
@@ -372,7 +372,7 @@ describe("enemy beam aim", () => {
       const cb = roomCenter(b);
       tiles = Math.hypot(cb.x - ca.x, cb.y - ca.y);
     }
-    assert.equal(shot.duration, Math.max(beamSwipeSeconds("mini", tiles) ?? 0, 1 / 60));
+    assert.equal(shot.duration, Math.max(beamSwipeSeconds("BEAM_1", tiles) ?? 0, 1 / 60));
   });
 
   it("swipes the Boss Beam at the printed speed of 5", () => {
@@ -381,12 +381,12 @@ describe("enemy beam aim", () => {
     for (const w of g.player.weapons) w.enabled = false;
     const enemy = g.enemy!;
     enemy.weapons = [
-      { uid: "e-beam", defId: "bossbeam", charge: 1, enabled: true, autofire: true, target: g.player.rooms[0].id },
+      { uid: "e-beam", defId: "ARTILLERY_BOSS_3", charge: 1, enabled: true, autofire: true, target: g.player.rooms[0].id },
     ];
     step(g, 0.05);
     const shot = g.shots.find((s) => s.from === "enemy" && s.kind === "beam");
     assert.ok(shot);
-    assert.equal(shot.defId, "bossbeam");
+    assert.equal(shot.defId, "ARTILLERY_BOSS_3");
     let tiles = 0;
     if ((shot.beamRooms?.length ?? 0) >= 2) {
       const a = g.player.rooms.find((room) => room.id === shot.beamRooms?.[0]);
@@ -396,7 +396,7 @@ describe("enemy beam aim", () => {
       const cb = roomCenter(b);
       tiles = Math.hypot(cb.x - ca.x, cb.y - ca.y);
     }
-    assert.equal(shot.duration, Math.max(beamSwipeSeconds("bossbeam", tiles) ?? 0, 1 / 60));
+    assert.equal(shot.duration, Math.max(beamSwipeSeconds("ARTILLERY_BOSS_3", tiles) ?? 0, 1 / 60));
   });
 });
 
@@ -498,7 +498,7 @@ describe("beam crew standing tile", () => {
       impactShot({
         kind: "beam",
         damage: 1,
-        defId: "mini",
+        defId: "BEAM_1",
         targetRoom: room.id,
         beamRooms: [room.id],
         beamLine: line,
@@ -520,7 +520,7 @@ describe("beam crew standing tile", () => {
       impactShot({
         kind: "beam",
         damage: 1,
-        defId: "mini",
+        defId: "BEAM_1",
         targetRoom: room.id,
         beamRooms: [room.id],
         beamLine: line,
@@ -537,7 +537,7 @@ describe("beam crew standing tile", () => {
       impactShot({
         kind: "beam",
         damage: 1,
-        defId: "mini",
+        defId: "BEAM_1",
         targetRoom: room.id,
         beamRooms: [room.id],
       }),

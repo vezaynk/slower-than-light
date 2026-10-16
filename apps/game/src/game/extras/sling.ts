@@ -36,12 +36,12 @@ export function slingUpgradeCost(level: number): number | null {
 }
 
 function sling(g: Game): Kit | undefined {
-  return g.player.kits.sling;
+  return g.player.kits.teleporter;
 }
 
 function blank(): Kit {
   return {
-    id: "sling",
+    id: "teleporter",
     level: 1,
     power: 0,
     left: 0,
@@ -103,11 +103,11 @@ function pickCrew(g: Game): Crew[] {
 
 /** Crew Teleporter wiki, "System Upgrades": spends the level 1 cost of 90. */
 export function installSling(g: Game) {
-  if (g.player.kits.sling) return;
+  if (g.player.kits.teleporter) return;
   if (g.scrap < INSTALL_COST) return;
   g.scrap -= INSTALL_COST;
   noteAchieve(g, { k: "upgrade" });
-  g.player.kits.sling = blank();
+  g.player.kits.teleporter = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Teleporter fitted to the Lark.");
 }
@@ -171,7 +171,7 @@ export function sendSling(g: Game, roomId: string) {
   // Zoltan Shield: the bubble prevents boarding. Bypass lets crew teleport through and does not spend the bubble.
   if (
     (g.enemy.zoltan ?? 0) > 0 &&
-    !(g.augments.includes("bypass") && bypassZoltan("crew") === "pass")
+    !(g.augments.includes("ZOLTAN_BYPASS") && bypassZoltan("crew") === "pass")
   ) {
     log(g, "Their Zoltan Shield blocks the teleporter.");
     return;
@@ -198,7 +198,7 @@ export function sendSling(g: Game, roomId: string) {
 
 /** Squares of floor. Crew Teleporter: a 2-tile room, or a four-person room on Mantis B, Mantis C, and Crystal B. */
 function padTiles(ship: Ship): { id: string; tiles: number } {
-  const pad = ship.rooms.find((r) => r.kit === "sling");
+  const pad = ship.rooms.find((r) => r.kit === "teleporter");
   if (!pad) return { id: ship.rooms[0]?.id ?? "", tiles: 1 };
   // INFERRED: one crew per tile. The page pairs "2-tile" rooms with "four-person" rooms and does not say "one per tile".
   return { id: pad.id, tiles: Math.max(1, pad.w * pad.h - (pad.omit?.length ?? 0)) };
@@ -348,7 +348,7 @@ const RECALL_BROKEN = 3;
 /** The enemy hull's working teleporter kit, or undefined when it has none (or no pad room). */
 function enemySling(g: Game): Kit | undefined {
   const ship = g.enemy;
-  const kit = ship?.kits.sling;
+  const kit = ship?.kits.teleporter;
   if (!ship || !kit || kit.level <= 0 || !roomById(ship, PADS)) return undefined;
   return kit;
 }
@@ -577,7 +577,7 @@ function formParty(g: Game, ship: Ship, b: EnemyBoarding) {
     (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && !leashed(c),
   );
   const keep = b.stay ?? 0;
-  const padRoom = ship.rooms.find((r) => r.kit === "sling");
+  const padRoom = ship.rooms.find((r) => r.kit === "teleporter");
   const spots = padRoom ? roomCapacity(padRoom, "enemy", interiorLinks(ship.doors, padRoom.id)) : 1;
   const size = Math.min(spots, home.length - keep);
   if (size <= 0) return;

@@ -13,7 +13,7 @@ function boarder(minCrew = 3): Game {
     // Enemy Ships: crew is interpolated by sector, so sector 1 Rebel and Mantis hulls carry at most 3. Fight mid-run.
     g.sector = 5;
     startCombat(g, "Mantis ship");
-    if (!g.enemy?.kits.sling) continue;
+    if (!g.enemy?.kits.teleporter) continue;
     if (foes(g).length < minCrew) continue;
     calm(g);
     return g;
@@ -42,7 +42,7 @@ function aboard(g: Game): Crew[] {
 }
 
 function pad(g: Game): Kit {
-  const kit = g.enemy?.kits.sling;
+  const kit = g.enemy?.kits.teleporter;
   assert.ok(kit);
   return kit;
 }
@@ -85,7 +85,7 @@ describe("enemy crew teleporter", () => {
     for (let seed = 1; seed < 500 && !g; seed++) {
       const t = createGame(seed);
       startCombat(t, "Rebel ship");
-      if (!t.enemy?.kits.sling && !t.enemy?.automated && foes(t).length >= 3) g = t;
+      if (!t.enemy?.kits.teleporter && !t.enemy?.automated && foes(t).length >= 3) g = t;
     }
     assert.ok(g);
     calm(g);

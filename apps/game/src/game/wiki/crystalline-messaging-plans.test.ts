@@ -104,7 +104,7 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
         assert.equal(g.fightEvent, "crystalline-ship-messaging-about-rebels");
         assert.equal(g.event, null);
         assert.ok(g.log.includes(LIE));
-        const boarders = g.crew.filter((c) => c.side === "enemy" && c.kin === "shard" && c.aboard === "player");
+        const boarders = g.crew.filter((c) => c.side === "enemy" && c.kin === "crystal" && c.aboard === "player");
         assert.ok(boarders.length === 1 || boarders.length === 2, String(boarders.length));
         assert.deepEqual(
           g.crew.filter((c) => c.side === "player").map((c) => c.id),
@@ -141,7 +141,7 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
 
     const g = createGame(1);
     open(g);
-    g.augments = ["falsebuoy"];
+    g.augments = ["FLEET_DISTRACTION"];
     g.fleet = 4;
     assert.equal(choiceDisabled(g, `${PLANS}:2`), null);
     const scrap = g.scrap;
@@ -152,7 +152,7 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
     assert.equal(g.event?.body, `${BUOY}\n\nHigh scrap: ${gained}. Rebel Fleet pursuit is delayed for 1 jump.`);
     assert.equal(g.scrap, scrap + gained);
     assert.equal(g.fleet, 3);
-    assert.deepEqual(g.augments, ["falsebuoy"]);
+    assert.deepEqual(g.augments, ["FLEET_DISTRACTION"]);
     assert.equal(g.fuel, fitted.fuel);
     assert.equal(g.missiles, fitted.missiles);
     assert.equal(g.player.parts, fitted.parts);

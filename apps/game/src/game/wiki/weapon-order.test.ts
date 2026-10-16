@@ -43,7 +43,7 @@ function spark(room: string, id: string): Crew {
     move: 0,
     think: 0,
     tone: 0,
-    kin: "spark",
+    kin: "energy",
   };
 }
 
@@ -142,24 +142,24 @@ describe("charger banks", () => {
   it("stores an Ion Charger shot every 6 seconds and fires the whole bank on a click", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["ioncharger"]);
+    feed(g, 4, 4, ["ION_CHARGEGUN"]);
     const w = g.player.weapons[0];
     const room = g.enemy!.rooms[0].id;
     const first = until(g, () => (w.loaded ?? 0) >= 1, 160);
     assert.ok(first >= 110 && first <= 140, `first shot at ${first}`);
     assert.equal(w.loaded, 1);
     assert.ok(w.charge < 0.05);
-    assert.equal(shotsOf(g, "ioncharger").length, 0);
+    assert.equal(shotsOf(g, "ION_CHARGEGUN").length, 0);
 
     const third = until(g, () => (w.loaded ?? 0) >= 3, 400);
     assert.ok(third >= 220 && third <= 280, `rest of the bank at ${third}`);
     assert.equal(w.loaded, 3);
     assert.equal(w.charge, 0);
-    assert.equal(shotsOf(g, "ioncharger").length, 0);
+    assert.equal(shotsOf(g, "ION_CHARGEGUN").length, 0);
 
     armWeapon(g, w.uid);
     aim(g, room);
-    const volley = shotsOf(g, "ioncharger");
+    const volley = shotsOf(g, "ION_CHARGEGUN");
     assert.equal(volley.length, 3);
     assert.ok(volley.every((s) => s.ion === 1));
     assert.equal(w.loaded, 0);
@@ -169,7 +169,7 @@ describe("charger banks", () => {
   it("fires one Ion Charger shot early, and keeps the next shot's progress", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["ioncharger"]);
+    feed(g, 4, 4, ["ION_CHARGEGUN"]);
     const w = g.player.weapons[0];
     const room = g.enemy!.rooms[0].id;
     until(g, () => (w.loaded ?? 0) >= 1, 160);
@@ -177,7 +177,7 @@ describe("charger banks", () => {
     w.charge = 0.4;
     armWeapon(g, w.uid);
     aim(g, room);
-    assert.equal(shotsOf(g, "ioncharger").length, 2);
+    assert.equal(shotsOf(g, "ION_CHARGEGUN").length, 2);
     assert.equal(w.loaded, 0);
     assert.ok(Math.abs(w.charge - 0.4) < 1e-9);
   });
@@ -185,13 +185,13 @@ describe("charger banks", () => {
   it("autofire releases each finished shot and does not bank", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["ioncharger"]);
+    feed(g, 4, 4, ["ION_CHARGEGUN"]);
     toggleAutoAll(g);
     const w = g.player.weapons[0];
     const room = g.enemy!.rooms[0].id;
     armWeapon(g, w.uid);
     aim(g, room);
-    const fired = watch(g, "ioncharger");
+    const fired = watch(g, "ION_CHARGEGUN");
     assert.equal(fired(), 0);
     let n = 0;
     while (fired() < 1 && n < 200) {
@@ -213,8 +213,8 @@ describe("charger banks", () => {
 
   it("primes one charger shot and still fills a normal gun", () => {
     const g = createGame(4);
-    g.augments = ["hot"];
-    feed(g, 4, 4, ["ioncharger", "lineburst"]);
+    g.augments = ["WEAPON_PREIGNITE"];
+    feed(g, 4, 4, ["ION_CHARGEGUN", "LASER_BURST_3"]);
     g.player.weapons[0].charge = 0.2;
     g.player.weapons[1].charge = 0.2;
     primeWeapons(g);
@@ -229,7 +229,7 @@ describe("charger banks", () => {
   it("drains the shot in progress and then the bank when the slot loses power", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["ioncharger"]);
+    feed(g, 4, 4, ["ION_CHARGEGUN"]);
     const w = g.player.weapons[0];
     w.loaded = 2;
     w.charge = 0.25;
@@ -245,7 +245,7 @@ describe("charger banks", () => {
   it("banks Laser Charger (S) to 2 and Laser Charger Mark II to 4", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["chargers"]);
+    feed(g, 4, 4, ["LASER_CHARGEGUN_PLAYER"]);
     const small = g.player.weapons[0];
     const first = until(g, () => (small.loaded ?? 0) >= 1, 160);
     assert.ok(first >= 100 && first <= 140, `S first shot at ${first}`);
@@ -253,19 +253,19 @@ describe("charger banks", () => {
     for (let i = 0; i < 40; i++) step(g, 0.05);
     assert.equal(small.loaded, 2);
 
-    feed(g, 4, 4, ["charger2"]);
+    feed(g, 4, 4, ["LASER_CHARGEGUN_2"]);
     const mark = g.player.weapons[0];
     until(g, () => (mark.loaded ?? 0) >= 4, 500);
     for (let i = 0; i < 40; i++) step(g, 0.05);
     assert.equal(mark.loaded, 4);
-    assert.equal(shotsOf(g, "charger2").length, 0);
+    assert.equal(shotsOf(g, "LASER_CHARGEGUN_2").length, 0);
   });
 });
 
 describe("weapon power lock and order", () => {
   it("blocks reactor and slot power while ionized, and still reorders", () => {
     const g = createGame(11);
-    feed(g, 6, 4, ["leto", "burst1", "charger"]);
+    feed(g, 6, 4, ["MISSILES_1", "LASER_BURST_2_A", "LASER_CHARGEGUN"]);
     // Per the user: weapons only aim in a fight.
     g.enemy = g.player;
     g.phase = "combat";
@@ -284,61 +284,61 @@ describe("weapon power lock and order", () => {
     powerDown(g, "engines");
     assert.equal(g.player.systems.engines.power, engines - 1);
 
-    depowerWeapon(g, "leto");
+    depowerWeapon(g, "MISSILES_1");
     assert.equal(g.player.weapons[0].enabled, true);
-    armWeapon(g, "charger");
+    armWeapon(g, "LASER_CHARGEGUN");
     assert.equal(g.player.weapons[2].enabled, false);
-    armWeapon(g, "leto");
+    armWeapon(g, "MISSILES_1");
     assert.equal(g.targeting, true);
-    reverseSlotAuto(g, "leto");
+    reverseSlotAuto(g, "MISSILES_1");
     assert.equal(g.player.weapons[0].autoInvert, true);
 
     reorderWeapons(g, 2, 0);
     assert.deepEqual(
       g.player.weapons.map((w) => w.uid),
-      ["charger", "leto", "burst1"],
+      ["LASER_CHARGEGUN", "MISSILES_1", "LASER_BURST_2_A"],
     );
     assert.equal(g.player.weapons[0].loaded, 1);
     assert.equal(g.player.weapons[0].charge, 0.3);
     reorderWeapons(g, 0, 0);
     reorderWeapons(g, -1, 0);
-    assert.equal(g.player.weapons[0].uid, "charger");
+    assert.equal(g.player.weapons[0].uid, "LASER_CHARGEGUN");
 
     g.player.systems.weapons.ion = [];
-    feed(g, 4, 4, ["vulcan", "burst1", "charger"]);
+    feed(g, 4, 4, ["LASER_CHAINGUN_2", "LASER_BURST_2_A", "LASER_CHARGEGUN"]);
     const room = g.player.rooms.find((r) => r.system === "weapons")!.id;
     g.crew.push(spark(room, "za"), spark(room, "zb"));
     settleZoltanPower(g);
     assert.deepEqual(powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons")), [false, true, false]);
     reorderWeapons(g, 1, 0);
-    assert.equal(g.player.weapons[0].defId, "burst1");
+    assert.equal(g.player.weapons[0].defId, "LASER_BURST_2_A");
     assert.equal(powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"))[0], true);
   });
 
   it("still fires a slot that has power while ionized", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 3, 2, ["spark"]);
+    feed(g, 3, 2, ["LASER_BURST_1"]);
     g.player.weapons[0].charge = 1;
     applyIon(g.player, "weapons", 1);
     const w = g.player.weapons[0];
     armWeapon(g, w.uid);
     aim(g, g.enemy!.rooms[0].id);
-    assert.equal(shotsOf(g, "spark").length, 1);
+    assert.equal(shotsOf(g, "LASER_BURST_1").length, 1);
   });
 
   it("holds a banked charger through a hack pulse, and still drains a normal gun", () => {
     const g = fight(9);
     parkGunners(g);
-    feed(g, 4, 4, ["ioncharger", "burst1"]);
+    feed(g, 4, 4, ["ION_CHARGEGUN", "LASER_BURST_2_A"]);
     const ion = g.player.weapons[0];
     const burst = g.player.weapons[1];
     ion.loaded = 2;
     ion.charge = 0.4;
     burst.charge = 1;
     const room = g.enemy!.rooms[0].id;
-    g.enemy!.kits.spike = {
-      id: "spike",
+    g.enemy!.kits.hacking = {
+      id: "hacking",
       level: 2,
       power: 2,
       left: 7,
@@ -355,14 +355,14 @@ describe("weapon power lock and order", () => {
 
     armWeapon(g, burst.uid);
     aim(g, room);
-    assert.equal(shotsOf(g, "burst1").length, 0);
+    assert.equal(shotsOf(g, "LASER_BURST_2_A").length, 0);
     assert.equal(burst.target, room);
     burst.target = null;
     burst.charge = 0.5;
 
     armWeapon(g, ion.uid);
     aim(g, room);
-    assert.equal(shotsOf(g, "ioncharger").length, 0);
+    assert.equal(shotsOf(g, "ION_CHARGEGUN").length, 0);
     assert.equal(ion.loaded, 2);
     assert.equal(ion.charge, 0.4);
     depowerWeapon(g, ion.uid);
@@ -372,22 +372,22 @@ describe("weapon power lock and order", () => {
     assert.equal(ion.loaded, 2);
     assert.equal(ion.charge, 0.4);
     assert.ok(burst.charge < 0.5);
-    assert.equal(shotsOf(g, "ioncharger").length, 0);
+    assert.equal(shotsOf(g, "ION_CHARGEGUN").length, 0);
 
     reorderWeapons(g, 1, 0);
-    assert.equal(g.player.weapons[0].uid, "burst1");
+    assert.equal(g.player.weapons[0].uid, "LASER_BURST_2_A");
     assert.equal(ion.loaded, 2);
 
-    const hack = g.enemy!.kits.spike!;
+    const hack = g.enemy!.kits.hacking!;
     hack.on = false;
     hack.left = 0;
     hack.cool = 30;
     step(g, 0.05);
-    const volley = shotsOf(g, "ioncharger");
+    const volley = shotsOf(g, "ION_CHARGEGUN");
     assert.equal(volley.length, 2);
     assert.ok(volley.every((s) => s.ion === 1));
     assert.equal(ion.loaded, 0);
-    assert.equal(shotsOf(g, "burst1").length, 0);
+    assert.equal(shotsOf(g, "LASER_BURST_2_A").length, 0);
   });
 });
 
@@ -396,10 +396,10 @@ describe("drone order and enemy chargers", () => {
     const g = fight(12);
     const enemy = g.enemy!;
     enemy.reactor = 40;
-    for (const room of enemy.rooms) if (room.kit === "swarm") delete room.kit;
+    for (const room of enemy.rooms) if (room.kit === "drones") delete room.kit;
     enemy.parts = 8;
-    enemy.kits.swarm = {
-      id: "swarm",
+    enemy.kits.drones = {
+      id: "drones",
       level: 4,
       power: 4,
       left: 0,
@@ -408,16 +408,16 @@ describe("drone order and enemy chargers", () => {
       on: false,
       aux: 0,
       zoltan: 2,
-      loadout: ["combat2", "ward", "striker"],
+      loadout: ["COMBAT_2", "DEFENSE_1", "COMBAT_1"],
       drones: [
-        { id: "a", kind: "combat2", alive: true, powered: true, aux: 0, cool: 0, stun: 10 },
-        { id: "b", kind: "ward", alive: true, powered: true, aux: 0, cool: 0, stun: 10 },
-        { id: "c", kind: "striker", alive: true, powered: true, aux: 0, cool: 0, stun: 10 },
+        { id: "a", kind: "COMBAT_2", alive: true, powered: true, aux: 0, cool: 0, stun: 10 },
+        { id: "b", kind: "DEFENSE_1", alive: true, powered: true, aux: 0, cool: 0, stun: 10 },
+        { id: "c", kind: "COMBAT_1", alive: true, powered: true, aux: 0, cool: 0, stun: 10 },
       ],
     };
-    const kit = enemy.kits.swarm;
+    const kit = enemy.kits.drones;
     reorderDroneSlots(kit, 1, 0);
-    assert.deepEqual(kit.loadout, ["ward", "combat2", "striker"]);
+    assert.deepEqual(kit.loadout, ["DEFENSE_1", "COMBAT_2", "COMBAT_1"]);
     assert.deepEqual(
       kit.drones!.map((d) => d.id),
       ["b", "a", "c"],
@@ -428,10 +428,10 @@ describe("drone order and enemy chargers", () => {
       [true, false, true],
     );
     reorderDroneSlots(kit, 0, 0);
-    assert.equal(kit.loadout![0], "ward");
+    assert.equal(kit.loadout![0], "DEFENSE_1");
 
     const mismatch: Kit = {
-      id: "swarm",
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -439,25 +439,25 @@ describe("drone order and enemy chargers", () => {
       target: null,
       on: false,
       aux: 0,
-      loadout: ["ward", "patch"],
-      drones: [{ id: "only", kind: "ward", alive: false, powered: false, aux: 0, cool: 0 }],
+      loadout: ["DEFENSE_1", "REPAIR"],
+      drones: [{ id: "only", kind: "DEFENSE_1", alive: false, powered: false, aux: 0, cool: 0 }],
     };
     reorderDroneSlots(mismatch, 1, 0);
-    assert.deepEqual(mismatch.loadout, ["ward", "patch"]);
+    assert.deepEqual(mismatch.loadout, ["DEFENSE_1", "REPAIR"]);
     assert.equal(mismatch.drones![0].id, "only");
 
-    const single: Kit = { id: "swarm", level: 2, power: 0, left: 0, cool: 0, target: "ward", on: false, aux: 0 };
+    const single: Kit = { id: "drones", level: 2, power: 0, left: 0, cool: 0, target: "DEFENSE_1", on: false, aux: 0 };
     reorderDroneSlots(single, 0, 1);
-    assert.equal(single.target, "ward");
+    assert.equal(single.target, "DEFENSE_1");
   });
 
   it("never mounts Laser Charger (S), and an enemy Laser Charger Mark II fires one shot", () => {
-    assert.equal(enemyMayMount("chargers"), false);
-    assert.equal(enemyMayMount("charger2"), true);
+    assert.equal(enemyMayMount("LASER_CHARGEGUN_PLAYER"), false);
+    assert.equal(enemyMayMount("LASER_CHARGEGUN_2"), true);
     for (const names of Object.values(ENEMY_WEAPON_POOLS)) assert.equal(names.includes("Laser Charger (S)"), false);
     for (const cls of ENEMY_CLASSES) {
       const spec = rollEnemy(cls, false, { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" }, seeded(cls.id.length + 4));
-      assert.equal(spec.weapons.includes("chargers"), false, cls.id);
+      assert.equal(spec.weapons.includes("LASER_CHARGEGUN_PLAYER"), false, cls.id);
     }
 
     const g = fight(15);
@@ -466,15 +466,15 @@ describe("drone order and enemy chargers", () => {
     g.crew = g.crew.filter((c) => c.side === "player");
     g.player.weapons = [];
     const enemy = g.enemy!;
-    delete enemy.kits.swarm;
+    delete enemy.kits.drones;
     enemy.systems.weapons.level = 4;
     enemy.systems.weapons.power = 4;
     enemy.systems.weapons.damage = 0;
     enemy.systems.weapons.ion = [];
-    enemy.weapons = [gun("charger2", { uid: "e-mark" })];
+    enemy.weapons = [gun("LASER_CHARGEGUN_2", { uid: "e-mark" })];
     enemy.weapons[0].target = g.player.rooms[0].id;
     const w = enemy.weapons[0];
-    const fired = watch(g, "charger2", "enemy");
+    const fired = watch(g, "LASER_CHARGEGUN_2", "enemy");
     const at = until(g, () => fired() >= 1, 160);
     assert.ok(at >= 90 && at <= 140, `enemy shot at ${at}`);
     assert.equal(fired(), 1);
@@ -491,13 +491,13 @@ describe("swarm missiles", () => {
   it("banks three shots at 7 seconds and spends one missile for the volley", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["swarmmissiles"]);
+    feed(g, 4, 4, ["MISSILE_CHARGEGUN"]);
     g.missiles = 5;
     const w = g.player.weapons[0];
     const room = g.enemy!.rooms[0].id;
     const first = until(g, () => (w.loaded ?? 0) >= 1, 200);
     assert.ok(first >= 125 && first <= 155, `first shot at ${first}`);
-    assert.equal(shotsOf(g, "swarmmissiles").length, 0);
+    assert.equal(shotsOf(g, "MISSILE_CHARGEGUN").length, 0);
     const third = until(g, () => (w.loaded ?? 0) >= 3, 500);
     assert.ok(third >= 250 && third <= 310, `rest of the bank at ${third}`);
     assert.equal(w.loaded, 3);
@@ -505,7 +505,7 @@ describe("swarm missiles", () => {
     assert.equal(g.missiles, 5);
     armWeapon(g, w.uid);
     aim(g, room);
-    const volley = shotsOf(g, "swarmmissiles");
+    const volley = shotsOf(g, "MISSILE_CHARGEGUN");
     assert.equal(volley.length, 3);
     assert.ok(volley.every((s) => s.damage === 1 && s.targetRoom === room));
     assert.equal(w.loaded, 0);
@@ -515,14 +515,14 @@ describe("swarm missiles", () => {
   it("fires one stored shot early and keeps the next shot's progress", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["swarmmissiles"]);
+    feed(g, 4, 4, ["MISSILE_CHARGEGUN"]);
     g.missiles = 3;
     const w = g.player.weapons[0];
     w.loaded = 1;
     w.charge = 0.4;
     armWeapon(g, w.uid);
     aim(g, g.enemy!.rooms[0].id);
-    assert.equal(shotsOf(g, "swarmmissiles").length, 1);
+    assert.equal(shotsOf(g, "MISSILE_CHARGEGUN").length, 1);
     assert.equal(g.missiles, 2);
     assert.equal(w.loaded, 0);
     assert.ok(Math.abs(w.charge - 0.4) < 1e-9);
@@ -531,14 +531,14 @@ describe("swarm missiles", () => {
   it("autofire spends one missile per finished shot and does not bank", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["swarmmissiles"]);
+    feed(g, 4, 4, ["MISSILE_CHARGEGUN"]);
     g.missiles = 5;
     toggleAutoAll(g);
     const w = g.player.weapons[0];
     const room = g.enemy!.rooms[0].id;
     armWeapon(g, w.uid);
     aim(g, room);
-    const fired = watch(g, "swarmmissiles");
+    const fired = watch(g, "MISSILE_CHARGEGUN");
     const atFirst = until(g, () => fired() >= 1, 200);
     assert.ok(atFirst >= 125 && atFirst <= 155, `first autofire at ${atFirst}`);
     assert.equal(fired(), 1);
@@ -554,22 +554,22 @@ describe("swarm missiles", () => {
   it("keeps a stored bank when the magazine is empty", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["swarmmissiles"]);
+    feed(g, 4, 4, ["MISSILE_CHARGEGUN"]);
     g.missiles = 0;
     const w = g.player.weapons[0];
     w.loaded = 2;
     w.charge = 0.4;
     armWeapon(g, w.uid);
     aim(g, g.enemy!.rooms[0].id);
-    assert.equal(shotsOf(g, "swarmmissiles").length, 0);
+    assert.equal(shotsOf(g, "MISSILE_CHARGEGUN").length, 0);
     assert.equal(w.loaded, 2);
     assert.equal(g.missiles, 0);
   });
 
   it("primes one Swarm shot, and Pegasus still fires both missiles from one charge", () => {
     const primed = createGame(4);
-    primed.augments = ["hot"];
-    feed(primed, 4, 4, ["swarmmissiles"]);
+    primed.augments = ["WEAPON_PREIGNITE"];
+    feed(primed, 4, 4, ["MISSILE_CHARGEGUN"]);
     primed.player.weapons[0].charge = 0.2;
     primeWeapons(primed);
     assert.equal(primed.player.weapons[0].loaded, 1);
@@ -577,37 +577,37 @@ describe("swarm missiles", () => {
 
     const g = fight(8);
     parkGunners(g);
-    feed(g, 4, 4, ["pegasus"]);
+    feed(g, 4, 4, ["MISSILES_BURST"]);
     g.missiles = 4;
     const w = g.player.weapons[0];
     armWeapon(g, w.uid);
     aim(g, g.enemy!.rooms[0].id);
-    const at = until(g, () => shotsOf(g, "pegasus").length >= 1, 500);
+    const at = until(g, () => shotsOf(g, "MISSILES_BURST").length >= 1, 500);
     assert.ok(at >= 380 && at <= 430, `pegasus at ${at}`);
-    assert.equal(shotsOf(g, "pegasus").length, 2);
+    assert.equal(shotsOf(g, "MISSILES_BURST").length, 2);
     assert.equal(g.missiles, 3);
     assert.equal(w.loaded, undefined);
   });
 
   it("is not mounted on a generated enemy, and neither is Pegasus", () => {
-    assert.equal(enemyMayMount("swarmmissiles"), false);
-    assert.equal(enemyMayMount("pegasus"), false);
-    assert.equal(enemyMayMount("charger2"), true);
+    assert.equal(enemyMayMount("MISSILE_CHARGEGUN"), false);
+    assert.equal(enemyMayMount("MISSILES_BURST"), false);
+    assert.equal(enemyMayMount("LASER_CHARGEGUN_2"), true);
     for (const names of Object.values(ENEMY_WEAPON_POOLS)) {
       assert.equal(names.includes("Swarm Missiles"), false);
       assert.equal(names.includes("Pegasus Missile"), false);
     }
     for (const cls of ENEMY_CLASSES) {
       const spec = rollEnemy(cls, false, { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" }, seeded(cls.id.length + 9));
-      assert.equal(spec.weapons.includes("swarmmissiles"), false, cls.id);
-      assert.equal(spec.weapons.includes("pegasus"), false, cls.id);
+      assert.equal(spec.weapons.includes("MISSILE_CHARGEGUN"), false, cls.id);
+      assert.equal(spec.weapons.includes("MISSILES_BURST"), false, cls.id);
     }
   });
 
   it("does not roll a 2x2 or a 1x1", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["swarmmissiles"]);
+    feed(g, 4, 4, ["MISSILE_CHARGEGUN"]);
     g.missiles = 4;
     const enemy = g.enemy!;
     const base = enemy.rooms[0];
@@ -618,20 +618,20 @@ describe("swarm missiles", () => {
     armWeapon(g, w.uid);
     aim(g, "box");
     assert.equal(g.seed, seed);
-    assert.equal(shotsOf(g, "swarmmissiles")[0]?.targetRoom, "box");
-    assert.equal(shotsOf(g, "swarmmissiles")[0]?.offRoom, undefined);
+    assert.equal(shotsOf(g, "MISSILE_CHARGEGUN")[0]?.targetRoom, "box");
+    assert.equal(shotsOf(g, "MISSILE_CHARGEGUN")[0]?.offRoom, undefined);
     g.shots = [];
     w.loaded = 1;
     armWeapon(g, w.uid);
     aim(g, "one");
     assert.equal(g.seed, seed);
-    assert.equal(shotsOf(g, "swarmmissiles")[0]?.targetRoom, "one");
+    assert.equal(shotsOf(g, "MISSILE_CHARGEGUN")[0]?.targetRoom, "one");
   });
 
   it("scatters a 2x1 room with the launch roll", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["swarmmissiles"]);
+    feed(g, 4, 4, ["MISSILE_CHARGEGUN"]);
     g.missiles = 2;
     const enemy = g.enemy!;
     const base = enemy.rooms[0];
@@ -642,7 +642,7 @@ describe("swarm missiles", () => {
     const land = swarmLanding(enemy.rooms, "n", sameRand(seed));
     armWeapon(g, w.uid);
     aim(g, "n");
-    const shot = shotsOf(g, "swarmmissiles")[0];
+    const shot = shotsOf(g, "MISSILE_CHARGEGUN")[0];
     assert.ok(shot);
     assert.notEqual(g.seed, seed);
     if (land.kind === "miss") assert.equal(shot.offRoom, true);
@@ -653,7 +653,7 @@ describe("swarm missiles", () => {
   it("deals the long-side hit to that room, and an empty tile misses", () => {
     const g = fight();
     parkGunners(g);
-    feed(g, 4, 4, ["swarmmissiles"]);
+    feed(g, 4, 4, ["MISSILE_CHARGEGUN"]);
     g.missiles = 4;
     const enemy = g.enemy!;
     const base = enemy.rooms[0];
@@ -676,7 +676,7 @@ describe("swarm missiles", () => {
     w.loaded = 1;
     armWeapon(g, w.uid);
     aim(g, "n");
-    const hit = shotsOf(g, "swarmmissiles")[0];
+    const hit = shotsOf(g, "MISSILE_CHARGEGUN")[0];
     assert.equal(hit.targetRoom, "e");
     assert.equal(hit.offRoom, undefined);
     applyImpact(g, hit);
@@ -689,7 +689,7 @@ describe("swarm missiles", () => {
     w.loaded = 1;
     armWeapon(g, w.uid);
     aim(g, "n");
-    const miss = shotsOf(g, "swarmmissiles")[0];
+    const miss = shotsOf(g, "MISSILE_CHARGEGUN")[0];
     assert.equal(miss.offRoom, true);
     assert.equal(miss.targetRoom, "n");
     applyImpact(g, miss);

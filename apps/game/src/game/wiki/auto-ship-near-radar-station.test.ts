@@ -19,11 +19,11 @@ function open(g: Game) {
 }
 
 function swarm(target: string | null): Kit {
-  return { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target, on: true, aux: 0 };
+  return { id: "drones", level: 2, power: 2, left: 0, cool: 0, target, on: true, aux: 0 };
 }
 
 function spike(level: number): Kit {
-  return { id: "spike", level, power: level, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "hacking", level, power: level, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 function scraps(body: string): number[] {
@@ -78,13 +78,13 @@ describe("Auto-ship near radar station", () => {
     const bare = createGame(1);
     open(bare);
     assert.equal(choiceDisabled(bare, "c:auto-ship-near-radar-station:2"), "Needs a Combat Drone");
-    bare.player.kits.swarm = swarm("ward");
+    bare.player.kits.drones = swarm("DEFENSE_1");
     assert.equal(choiceDisabled(bare, "c:auto-ship-near-radar-station:2"), "Needs a Combat Drone");
-    for (const kind of ["striker", "combat2", "beam", "beam2"]) {
-      bare.player.kits.swarm = swarm(kind);
+    for (const kind of ["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2"]) {
+      bare.player.kits.drones = swarm(kind);
       assert.equal(choiceDisabled(bare, "c:auto-ship-near-radar-station:2"), null);
     }
-    bare.player.kits.swarm = swarm("striker");
+    bare.player.kits.drones = swarm("COMBAT_1");
     bare.player.parts = 0;
     assert.equal(choiceDisabled(bare, "c:auto-ship-near-radar-station:2"), "Need 1 drone part");
     choose(bare, "c:auto-ship-near-radar-station:2");
@@ -97,11 +97,11 @@ describe("Auto-ship near radar station", () => {
     for (let seed = 1; seed <= 90; seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.swarm = swarm("striker");
-      const target = g.player.kits.swarm.target;
+      g.player.kits.drones = swarm("COMBAT_1");
+      const target = g.player.kits.drones.target;
       choose(g, "c:auto-ship-near-radar-station:2");
       assert.equal(g.player.parts, 2);
-      assert.equal(g.player.kits.swarm?.target, target);
+      assert.equal(g.player.kits.drones?.target, target);
       assert.equal(g.scrap, 10);
       if (g.phase === "combat") {
         fight += 1;
@@ -165,7 +165,7 @@ describe("Auto-ship near radar station", () => {
     const bare = createGame(1);
     open(bare);
     assert.equal(choiceDisabled(bare, "q:auto-radar:drone"), "Needs a Hacking system");
-    bare.player.kits.spike = spike(1);
+    bare.player.kits.hacking = spike(1);
     bare.player.parts = 0;
     assert.equal(choiceDisabled(bare, "q:auto-radar:drone"), "Need 1 drone part");
     choose(bare, "q:auto-radar:drone");
@@ -174,7 +174,7 @@ describe("Auto-ship near radar station", () => {
 
     const g = createGame(1);
     open(g);
-    g.player.kits.spike = spike(1);
+    g.player.kits.hacking = spike(1);
     assert.equal(choiceDisabled(g, "q:auto-radar:drone"), null);
     const seenMap = g.beacons.map((b) => b.visited);
     choose(g, "q:auto-radar:drone");

@@ -9,7 +9,7 @@ describe("Slug hacker (doors) fire weapons", () => {
       startCombat(g, "Slug ship", false, "slug-hacker-doors");
       const guns = g.enemy?.weapons ?? [];
       assert.ok(
-        guns.some((w) => w.defId === "firebeam" || w.defId === "cask"),
+        guns.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE"),
         `seed ${seed}: ${guns.map((w) => w.defId).join(",")}`,
       );
     }

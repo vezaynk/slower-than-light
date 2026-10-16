@@ -89,7 +89,7 @@ describe("Slug moons question", () => {
     // > "You receive a Slug crewmember." — [[Slug moons question#Correct Answer]]
     const g = open(2);
     const before = g.crew.filter((c) => c.side === "player").length;
-    const gels = g.crew.filter((c) => c.kin === "gel").length;
+    const gels = g.crew.filter((c) => c.kin === "slug").length;
     const scrap = g.scrap;
     const n = moons(g.event?.body ?? "");
     choose(g, g.event?.choices[0]?.id ?? "");
@@ -100,7 +100,7 @@ describe("Slug moons question", () => {
     );
     choose(g, `c:slug-moons-question:answer:${n}:${n}`);
     assert.equal(g.crew.filter((c) => c.side === "player").length, before + 1);
-    assert.equal(g.crew.filter((c) => c.kin === "gel").length, gels + 1);
+    assert.equal(g.crew.filter((c) => c.kin === "slug").length, gels + 1);
     assert.equal(g.scrap, scrap);
     assert.match(g.event?.body ?? "", /That isss\.\.\. correct/);
     assert.match(g.event?.body ?? "", /You receive a Slug crewmember/);
@@ -128,7 +128,7 @@ describe("Slug moons question", () => {
     const parts = new Set<number>();
     for (let seed = 1; seed <= 40; seed++) {
       const g = open(seed);
-      const gels = g.crew.filter((c) => c.kin === "gel").length;
+      const gels = g.crew.filter((c) => c.kin === "slug").length;
       const n = moons(g.event?.body ?? "");
       const wrong = n === 5 ? 6 : 5;
       g.scrap = 80;
@@ -143,7 +143,7 @@ describe("Slug moons question", () => {
       assert.ok(spent >= 1 && spent <= 2, String(spent));
       fuels.add(fuel);
       parts.add(spent);
-      assert.equal(g.crew.filter((c) => c.kin === "gel").length, gels);
+      assert.equal(g.crew.filter((c) => c.kin === "slug").length, gels);
       assert.match(g.event?.body ?? "", /That issss\.\.\. incorrect/);
     }
     assert.deepEqual([...fuels].sort((a, b) => a - b), [2, 3, 4]);

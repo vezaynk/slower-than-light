@@ -72,31 +72,31 @@ describe("Crushed pirate", () => {
     assert.equal(choiceDisabled(plain, "c:crushed-pirate:3"), "Needs a beam drone");
 
     const pike = createGame(1);
-    pike.player.weapons.push(gun("shear"));
+    pike.player.weapons.push(gun("BEAM_LONG"));
     assert.ok(open(pike).choices.some((c) => c.id === "c:crushed-pirate:2"));
 
     const fire = createGame(1);
-    fire.player.weapons.push(gun("firebeam"));
+    fire.player.weapons.push(gun("BEAM_FIRE"));
     assert.equal(open(fire).choices.some((c) => c.id === "c:crushed-pirate:2"), false);
 
     const anti = createGame(1);
-    anti.player.weapons.push(gun("antibio"));
+    anti.player.weapons.push(gun("BEAM_BIO"));
     assert.equal(open(anti).choices.some((c) => c.id === "c:crushed-pirate:2"), false);
 
     const lance = createGame(1);
-    lance.player.kits.lance = kit("lance");
+    lance.player.kits.artillery = kit("artillery");
     assert.ok(open(lance).choices.some((c) => c.id === "c:crushed-pirate:2"));
 
     const beam = createGame(1);
-    beam.player.kits.swarm = kit("swarm", { target: "beam" });
+    beam.player.kits.drones = kit("drones", { target: "COMBAT_BEAM" });
     assert.ok(open(beam).choices.some((c) => c.id === "c:crushed-pirate:3"));
 
     const mark2 = createGame(1);
-    mark2.player.kits.swarm = kit("swarm", { target: null, loadout: ["beam2"] });
+    mark2.player.kits.drones = kit("drones", { target: null, loadout: ["COMBAT_BEAM_2"] });
     assert.ok(open(mark2).choices.some((c) => c.id === "c:crushed-pirate:3"));
 
     const fired = createGame(1);
-    fired.player.kits.swarm = kit("swarm", { target: "fire" });
+    fired.player.kits.drones = kit("drones", { target: "fire" });
     assert.equal(open(fired).choices.some((c) => c.id === "c:crushed-pirate:3"), false);
   });
 
@@ -160,7 +160,7 @@ describe("Crushed pirate", () => {
 
   it("a cutting beam pays medium scrap with resources", () => {
     const g = createGame(3);
-    g.player.weapons.push(gun("shear"));
+    g.player.weapons.push(gun("BEAM_LONG"));
     const hull = g.player.hull;
     const weapons = g.player.weapons.length;
     open(g);
@@ -180,9 +180,9 @@ describe("Crushed pirate", () => {
     let spent = false;
     for (let seed = 1; seed <= 50 && (!failed || !kept || !spent); seed++) {
       const dry = createGame(seed);
-      dry.player.kits.swarm = kit("swarm", { target: "beam" });
+      dry.player.kits.drones = kit("drones", { target: "COMBAT_BEAM" });
       dry.player.parts = 0;
-      dry.augments = ["weld"];
+      dry.augments = ["REPAIR_ARM"];
       dry.player.hull = dry.player.hullMax - 4;
       const hull = dry.player.hull;
       const ev = open(dry);
@@ -195,7 +195,7 @@ describe("Crushed pirate", () => {
       } else kept = true;
 
       const stocked = createGame(seed);
-      stocked.player.kits.swarm = kit("swarm", { target: "beam" });
+      stocked.player.kits.drones = kit("drones", { target: "COMBAT_BEAM" });
       stocked.player.parts = 5;
       const hull2 = stocked.player.hull;
       open(stocked);

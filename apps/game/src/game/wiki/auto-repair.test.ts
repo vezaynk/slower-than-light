@@ -13,7 +13,7 @@ function fight() {
     w.charge = 0;
     w.target = null;
   }
-  const veil = g.enemy.kits.veil;
+  const veil = g.enemy.kits.cloaking;
   if (veil) {
     veil.power = 0;
     veil.on = false;

@@ -126,7 +126,7 @@ function Toggle({
     <label className="opt-row">
       <span className="opt-text">
         <b>{label}</b>
-        <span className="mini">{note}</span>
+        <span className="BEAM_1">{note}</span>
       </span>
       <button
         type="button"
@@ -207,17 +207,17 @@ export function OptionsPanel({
             <div className="opt-exit">
               <button type="button" className="is-primary" onClick={onClose}>
                 <b>{"Resume"}</b>
-                <span className="mini">{"Back to the game."}</span>
+                <span className="BEAM_1">{"Back to the game."}</span>
               </button>
               <button type="button" onClick={() => leaveRun("title")}>
                 <b>{"Save and exit"}</b>
-                <span className="mini">
+                <span className="BEAM_1">
                   {"Save this run and go to the title screen. CONTINUE picks it up."}
                 </span>
               </button>
               <button type="button" onClick={() => leaveRun("hangar")}>
                 <b>{"Return to hangar"}</b>
-                <span className="mini">
+                <span className="BEAM_1">
                   {
                     "Save this run and pick a ship for a new one. Starting a new run replaces the save."
                   }
@@ -248,7 +248,7 @@ export function OptionsPanel({
               <div className="opt-row">
                 <span className="opt-text">
                   <b>{"Lock to landscape"}</b>
-                  <span className="mini">
+                  <span className="BEAM_1">
                     {landscapeOk
                       ? "Keep the game sideways however the phone is held, with the phone's top on this side."
                       : "Only in the installed app on a phone (INSTALL APP on the title screen)."}
@@ -295,7 +295,7 @@ export function OptionsPanel({
               <label className="opt-row">
                 <span className="opt-text">
                   <b>{"Volume"}</b>
-                  <span className="mini">{"Master volume for every sound."}</span>
+                  <span className="BEAM_1">{"Master volume for every sound."}</span>
                 </span>
                 <span className="opt-volume">
                   <input

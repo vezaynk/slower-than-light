@@ -234,7 +234,7 @@ function paintBody(
         const id = key(c.x + dx, c.y + dy);
         if (!ink.has(id) && !floor.has(id)) empty++;
       }
-      // Corners and every third rim cell: a dark ring, olive skin still shows.
+      // Corners and every third rim battery: a dark ring, olive skin still shows.
       if (empty >= 2 || (c.x + c.y) % 3 === 0) ink.set(key(c.x, c.y), "edge");
     }
     const bays = cells.filter((c) => ink.get(key(c.x, c.y)) === "skin");

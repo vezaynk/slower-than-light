@@ -23,7 +23,7 @@ function quietEnemy(g: Game) {
   const enemy = g.enemy;
   if (!enemy) return;
   for (const w of enemy.weapons) w.enabled = false;
-  if (enemy.kits.swarm) enemy.kits.swarm.loadout = [];
+  if (enemy.kits.drones) enemy.kits.drones.loadout = [];
 }
 
 describe("solar flare", () => {

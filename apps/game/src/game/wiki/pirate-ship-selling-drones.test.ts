@@ -109,7 +109,7 @@ describe("Pirate ship selling drones", () => {
     open(slug);
     choose(slug, "q:pirate-drones:hail");
     joinCrew(slug, "Slug");
-    const dead = slug.crew.filter((c) => c.kin === "gel").at(-1);
+    const dead = slug.crew.filter((c) => c.kin === "slug").at(-1);
     assert.ok(dead);
     dead.hp = 0;
     assert.equal(choiceDisabled(slug, "q:pirate-drones:slug"), "Needs a Slug crewmember");
@@ -120,7 +120,7 @@ describe("Pirate ship selling drones", () => {
 
     const hack = createGame(6);
     open(hack);
-    hack.player.kits.spike = { id: "spike", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    hack.player.kits.hacking = { id: "hacking", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
     const fuel = hack.fuel;
     const missiles = hack.missiles;
     const parts = hack.player.parts;
@@ -135,25 +135,25 @@ describe("Pirate ship selling drones", () => {
 
     const broke = createGame(7);
     open(broke);
-    broke.player.kits.swarm = { id: "swarm", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    broke.player.kits.drones = { id: "drones", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
     broke.scrap = 10;
     choose(broke, "q:pirate-drones:hail");
     choose(broke, "q:pirate-drones:dock");
     assert.equal(choiceDisabled(broke, "q:pirate-drones:upgrade"), null);
     choose(broke, "q:pirate-drones:upgrade");
-    assert.equal(broke.player.kits.swarm?.level, 1);
+    assert.equal(broke.player.kits.drones?.level, 1);
     assert.equal(broke.scrap, 10);
 
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.swarm = { id: "swarm", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.drones = { id: "drones", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
       g.scrap = 200;
       choose(g, "q:pirate-drones:hail");
       choose(g, "q:pirate-drones:dock");
       choose(g, "q:pirate-drones:upgrade");
-      const level = g.player.kits.swarm?.level ?? 0;
+      const level = g.player.kits.drones?.level ?? 0;
       const cost = 200 - g.scrap;
       if (level >= 2 && level <= 3) {
         assert.ok(cost >= 15 && cost <= 20);

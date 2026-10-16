@@ -56,8 +56,8 @@ function shot(partial: Partial<Shot> & Pick<Shot, "kind" | "from" | "damage" | "
 
 function swarmKit(g: Game, power: number) {
   g.player.parts = 3;
-  g.player.kits.swarm = {
-    id: "swarm",
+  g.player.kits.drones = {
+    id: "drones",
     level: 4,
     power,
     left: 0,
@@ -87,7 +87,7 @@ function ensureFoe(g: Game) {
       move: 0,
       think: 0,
       tone: 0,
-      kin: "plain",
+      kin: "human",
     };
     g.crew.push(foe);
   }
@@ -107,22 +107,22 @@ describe("Zoltan Shield Bypass", () => {
   it("sells for 55 and Crystal Vengeance stays out of the catalog at a printed sell of 40", () => {
     const g = createGame(1);
     g.scrap = 500;
-    assert.equal(installAugment(g, "vengeance"), false);
+    assert.equal(installAugment(g, "CRYSTAL_SHARDS"), false);
     assert.deepEqual(g.augments, []);
     assert.equal(g.scrap, 500);
-    assert.equal(installAugment(g, "bypass"), true);
-    assert.deepEqual(g.augments, ["bypass"]);
+    assert.equal(installAugment(g, "ZOLTAN_BYPASS"), true);
+    assert.deepEqual(g.augments, ["ZOLTAN_BYPASS"]);
     assert.equal(g.scrap, 445);
 
-    g.augments = ["vengeance", "bypass"];
+    g.augments = ["CRYSTAL_SHARDS", "ZOLTAN_BYPASS"];
     const quotes = Object.fromEntries(citedSellQuote(g).map((quote) => [quote.ref, quote]));
-    assert.equal(quotes.vengeance?.scrap, 40);
-    assert.equal(quotes.vengeance?.name, "Crystal Vengeance");
-    assert.equal(quotes.bypass?.scrap, 27);
+    assert.equal(quotes.CRYSTAL_SHARDS?.scrap, 40);
+    assert.equal(quotes.CRYSTAL_SHARDS?.name, "Crystal Vengeance");
+    assert.equal(quotes.ZOLTAN_BYPASS?.scrap, 27);
 
     const stock = citedStock(createGame(2));
     assert.equal(
-      stock.some((item) => item.ref === "firedrone" || item.ref === "overchargerplus"),
+      stock.some((item) => item.ref === "firedrone" || item.ref === "DRONE_SHIELD_PLAYER"),
       false,
     );
   });
@@ -131,7 +131,7 @@ describe("Zoltan Shield Bypass", () => {
     const blocked = fight(3);
     blocked.scrap = 200;
     installSling(blocked);
-    const sling = blocked.player.kits.sling;
+    const sling = blocked.player.kits.teleporter;
     assert.ok(sling);
     sling.power = sling.level;
     blocked.enemy!.zoltan = 4;
@@ -147,14 +147,14 @@ describe("Zoltan Shield Bypass", () => {
 
     const open = fight(4);
     open.scrap = 200;
-    open.augments = ["bypass"];
+    open.augments = ["ZOLTAN_BYPASS"];
     installSling(open);
-    const pad = open.player.kits.sling;
+    const pad = open.player.kits.teleporter;
     assert.ok(pad);
     pad.power = pad.level;
     open.enemy!.zoltan = 4;
     // Crew Teleporter: a send needs someone standing in the teleporter room.
-    const padRoom = open.player.rooms.find((r) => r.kit === "sling");
+    const padRoom = open.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(padRoom);
     const rider = open.crew.find((c) => c.side === "player" && c.hp > 0);
     assert.ok(rider);
@@ -177,8 +177,8 @@ describe("Zoltan Shield Bypass", () => {
     // Mind Control, Overview: the hold needs a view. Level 2 Sensors shows the pilot.
     mind.player.systems.sensors.level = 2;
     const pilot = ensureFoe(mind);
-    mind.player.kits.leash = {
-      id: "leash",
+    mind.player.kits.mind = {
+      id: "mind",
       level: 1,
       power: 1,
       left: 0,
@@ -191,7 +191,7 @@ describe("Zoltan Shield Bypass", () => {
     assert.equal(pilot.leashed, undefined);
     assert.equal(mind.enemy!.zoltan, 5);
 
-    mind.augments = ["bypass"];
+    mind.augments = ["ZOLTAN_BYPASS"];
     startLeash(mind, pilot.id);
     assert.equal(pilot.leashed, 14);
     assert.equal(mind.enemy!.zoltan, 5);
@@ -200,8 +200,8 @@ describe("Zoltan Shield Bypass", () => {
     boarded.enemy!.zoltan = 5;
     const foe = ensureFoe(boarded);
     foe.aboard = "player";
-    boarded.player.kits.leash = {
-      id: "leash",
+    boarded.player.kits.mind = {
+      id: "mind",
       level: 1,
       power: 1,
       left: 0,
@@ -226,36 +226,36 @@ describe("Zoltan Shield Bypass", () => {
     bare.enemy!.zoltan = 4;
     assert.equal(launchSpike(bare), false);
     assert.equal(bare.player.parts, 2);
-    assert.equal(bare.player.kits.spike?.on, false);
+    assert.equal(bare.player.kits.hacking?.on, false);
     assert.equal(bare.enemy!.zoltan, 4);
 
     const fitted = fight(8);
     fitted.scrap = 80;
     fitted.player.parts = 2;
-    fitted.augments = ["bypass"];
+    fitted.augments = ["ZOLTAN_BYPASS"];
     assert.equal(installSpike(fitted), true);
     toggleSpikePower(fitted);
     armSpike(fitted, "shields");
     fitted.enemy!.zoltan = 4;
     assert.equal(launchSpike(fitted), false);
     assert.equal(fitted.player.parts, 2);
-    assert.equal(fitted.player.kits.spike?.on, false);
+    assert.equal(fitted.player.kits.hacking?.on, false);
     assert.equal(fitted.enemy!.zoltan, 4);
   });
 
   it("destroys a boarding drone on contact with or without the bypass", () => {
     for (const fitted of [false, true]) {
       const g = fight(fitted ? 9 : 10);
-      if (fitted) g.augments = ["bypass"];
+      if (fitted) g.augments = ["ZOLTAN_BYPASS"];
       swarmKit(g, 3);
       g.enemy!.zoltan = 3;
-      assert.equal(deploy(g, "board"), true);
+      assert.equal(deploy(g, "BOARDER"), true);
       const hp = g.crew.filter((c) => c.side === "enemy").reduce((sum, c) => sum + c.hp, 0);
       const bars = Object.values(g.enemy!.systems).reduce((sum, sys) => sum + sys.damage, 0);
       tickSwarm(g, 0.5);
-      assert.equal(g.player.kits.swarm?.on, true);
+      assert.equal(g.player.kits.drones?.on, true);
       tickSwarm(g, 0.5);
-      assert.equal(g.player.kits.swarm?.on, false);
+      assert.equal(g.player.kits.drones?.on, false);
       assert.equal(
         g.crew.filter((c) => c.side === "enemy").reduce((sum, c) => sum + c.hp, 0),
         hp,
@@ -272,7 +272,7 @@ describe("Zoltan Shield Bypass", () => {
       for (let s = seed; s < seed + 400; s++) {
         const g = createGame(s);
         startCombat(g, "Mantis ship");
-        if (!g.enemy?.kits.sling) continue;
+        if (!g.enemy?.kits.teleporter) continue;
         g.enemy.weapons = [];
         g.player.weapons = [];
         g.enemyEscape = null;
@@ -314,7 +314,7 @@ describe("Zoltan Shield Bypass", () => {
 
     const fitted = fight(14);
     park(fitted.enemy!);
-    fitted.augments = ["bypass"];
+    fitted.augments = ["ZOLTAN_BYPASS"];
     fitted.enemy!.zoltan = 5;
     const target = fitted.enemy!.rooms.find((item) => item.system);
     assert.ok(target?.system);
@@ -328,7 +328,7 @@ describe("Zoltan Shield Bypass", () => {
 
     const ion = fight(15);
     park(ion.enemy!);
-    ion.augments = ["bypass"];
+    ion.augments = ["ZOLTAN_BYPASS"];
     ion.enemy!.zoltan = 5;
     const ionRoom = ion.enemy!.rooms.find((item) => item.system);
     assert.ok(ionRoom?.system);
@@ -359,7 +359,7 @@ describe("Zoltan Shield Bypass", () => {
 
     const heal = fight(18);
     park(heal.enemy!);
-    heal.augments = ["bypass"];
+    heal.augments = ["ZOLTAN_BYPASS"];
     heal.enemy!.zoltan = 5;
     const bay = heal.enemy!.rooms.find((item) => item.system);
     assert.ok(bay);
@@ -369,13 +369,13 @@ describe("Zoltan Shield Bypass", () => {
     crew.room = bay.id;
     crew.hp = 10;
     crew.maxHp = 100;
-    applyImpact(heal, shot({ kind: "bomb", from: "player", damage: 0, defId: "healburst", targetRoom: bay.id }));
+    applyImpact(heal, shot({ kind: "bomb", from: "player", damage: 0, defId: "BOMB_HEAL", targetRoom: bay.id }));
     assert.equal(crew.hp, 100);
     assert.equal(heal.enemy!.zoltan, 5);
 
     const inbound = fight(19);
     park(inbound.player);
-    inbound.augments = ["bypass"];
+    inbound.augments = ["ZOLTAN_BYPASS"];
     inbound.player.zoltan = 5;
     inbound.player.systems.weapons.level = 4;
     inbound.player.systems.weapons.damage = 0;
@@ -405,8 +405,8 @@ describe("Crystal Vengeance", () => {
   }
 
   it("starts fitted on the Crystal cruisers", () => {
-    assert.deepEqual(createGame(1, "crystal-a").augments, ["vengeance"]);
-    assert.deepEqual(createGame(2, "crystal-b").augments, ["vengeance"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_CRYSTAL").augments, ["CRYSTAL_SHARDS"]);
+    assert.deepEqual(createGame(2, "PLAYER_SHIP_CRYSTAL_2").augments, ["CRYSTAL_SHARDS"]);
   });
 
   it("rolls a shard only after the player hull drops, ignoring regular shields", () => {
@@ -418,7 +418,7 @@ describe("Crystal Vengeance", () => {
     assert.equal(quiet.enemy!.shieldNow, 4);
 
     const g = fight(21);
-    g.augments = ["vengeance"];
+    g.augments = ["CRYSTAL_SHARDS"];
     const hull = g.enemy!.hull;
     const damage = Object.values(g.enemy!.systems).reduce((sum, sys) => sum + sys.damage, 0);
     hammer(g, 100, 0);
@@ -435,7 +435,7 @@ describe("Crystal Vengeance", () => {
     assert.ok(g.crew.every((c) => (c.stun ?? 0) === 0));
 
     const bubble = fight(22);
-    bubble.augments = ["vengeance"];
+    bubble.augments = ["CRYSTAL_SHARDS"];
     const bubbleHull = bubble.enemy!.hull;
     hammer(bubble, 100, 40);
     assert.ok((bubble.enemy!.zoltan ?? 0) < 40);
@@ -449,66 +449,66 @@ describe("Crystal Vengeance", () => {
     mark1.enemy!.systems.shields.level = 0;
     mark1.enemy!.shieldNow = 0;
     mark1.enemy!.zoltan = 0;
-    mark1.enemy!.kits.swarm = {
-      id: "swarm",
+    mark1.enemy!.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "ward",
+      target: "DEFENSE_1",
       on: true,
       aux: 0,
     };
     assert.equal(
-      enemyDefenseIntercept(mark1, { kind: "laser", from: "player", defId: "vengeance" }),
+      enemyDefenseIntercept(mark1, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }),
       true,
     );
-    assert.equal(mark1.enemy!.kits.swarm?.cool, DRONE_COOLDOWN_S.ward);
+    assert.equal(mark1.enemy!.kits.drones?.cool, DRONE_COOLDOWN_S.DEFENSE_1);
 
     const mark2 = fight(24);
-    mark2.enemy!.kits.swarm = {
-      id: "swarm",
+    mark2.enemy!.kits.drones = {
+      id: "drones",
       level: 3,
       power: 3,
       left: 0,
       cool: 0,
-      target: "ward2",
+      target: "DEFENSE_2",
       on: true,
       aux: 0,
     };
     assert.equal(
-      enemyDefenseIntercept(mark2, { kind: "laser", from: "player", defId: "vengeance" }),
+      enemyDefenseIntercept(mark2, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }),
       true,
     );
-    assert.equal(mark2.enemy!.kits.swarm?.cool, DRONE_COOLDOWN_S.ward2);
+    assert.equal(mark2.enemy!.kits.drones?.cool, DRONE_COOLDOWN_S.DEFENSE_2);
 
     const striker = fight(25);
-    striker.enemy!.kits.swarm = {
-      id: "swarm",
+    striker.enemy!.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "striker",
+      target: "COMBAT_1",
       on: true,
       aux: 0,
     };
     assert.equal(
-      enemyDefenseIntercept(striker, { kind: "laser", from: "player", defId: "vengeance" }),
+      enemyDefenseIntercept(striker, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }),
       false,
     );
-    assert.equal(striker.enemy!.kits.swarm?.cool, 0);
+    assert.equal(striker.enemy!.kits.drones?.cool, 0);
 
     const own = fight(26);
     swarmKit(own, 2);
-    assert.equal(deploy(own, "ward"), true);
-    assert.equal(swarmIntercept(own, { kind: "laser", from: "player", defId: "vengeance" }), true);
-    assert.equal(own.player.kits.swarm?.cool, DRONE_COOLDOWN_S.ward);
+    assert.equal(deploy(own, "DEFENSE_1"), true);
+    assert.equal(swarmIntercept(own, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }), true);
+    assert.equal(own.player.kits.drones?.cool, DRONE_COOLDOWN_S.DEFENSE_1);
   });
 
   it("does not answer a hit on the enemy hull", () => {
     const g = fight(27);
-    g.augments = ["vengeance"];
+    g.augments = ["CRYSTAL_SHARDS"];
     park(g.enemy!);
     const room = g.enemy!.rooms.find((item) => item.system);
     assert.ok(room);
@@ -524,7 +524,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
   it("deploys Mark II at power 4 and fires when the orbit leg finishes", () => {
     const low = fight(31);
     swarmKit(low, 3);
-    assert.equal(deploy(low, "combat2"), true);
+    assert.equal(deploy(low, "COMBAT_2"), true);
     const held = low.enemy!.hull;
     low.shots = [];
     tickSwarm(low, 30);
@@ -533,8 +533,8 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
 
     const g = fight(32);
     swarmKit(g, 4);
-    assert.equal(deploy(g, "combat2"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "COMBAT_2"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     kit.heading = 0;
     kit.bearing = 180;
@@ -558,7 +558,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     // Drone Control, Ion Intruder: a friendly boarder is not stunned, even if that boarder is mind-controlled.
     const g = fight(33);
     swarmKit(g, 3);
-    assert.equal(deploy(g, "ionintruder"), true);
+    assert.equal(deploy(g, "BOARDER_ION"), true);
     const enemy = g.enemy!;
     const systems = enemy.rooms.filter((room) => room.system);
     assert.ok(systems.length >= 2);
@@ -567,7 +567,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     if (enemy.systems[room.system].damage >= enemy.systems[room.system].level) {
       enemy.systems[room.system].level = enemy.systems[room.system].damage + 1;
     }
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     kit.room = room.id;
     kit.power = 3;
@@ -589,8 +589,8 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     friend.leashed = 8;
     enemy.systems[room.system].ion = [];
     // No loadout: tickEnemyDrones returns before it can walk these drones off the pulsed room.
-    const bay = enemy.kits.swarm ?? {
-      id: "swarm" as const,
+    const bay = enemy.kits.drones ?? {
+      id: "drones" as const,
       level: 1,
       power: 0,
       left: 0,
@@ -613,7 +613,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     };
     const boardDrone = {
       id: "ed-board",
-      kind: "board",
+      kind: "BOARDER",
       alive: true,
       powered: true,
       aux: 0,
@@ -625,7 +625,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     };
     const ionDrone = {
       id: "ed-ion",
-      kind: "ionintruder",
+      kind: "BOARDER_ION",
       alive: true,
       powered: true,
       aux: 0,
@@ -637,7 +637,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     };
     const striker = {
       id: "ed-striker",
-      kind: "striker",
+      kind: "COMBAT_1",
       alive: true,
       powered: true,
       aux: 0,
@@ -645,7 +645,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
       stun: 0,
     };
     bay.drones = [personnel, boardDrone, ionDrone, striker];
-    enemy.kits.swarm = bay;
+    enemy.kits.drones = bay;
 
     tickSwarm(g, 8.19);
     assert.equal(enemy.systems[room.system].ion.length, 0);
@@ -673,12 +673,12 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
   it("does not ionize a destroyed system and freezes the timer while unpowered", () => {
     const dead = fight(34);
     swarmKit(dead, 3);
-    assert.equal(deploy(dead, "ionintruder"), true);
+    assert.equal(deploy(dead, "BOARDER_ION"), true);
     const systems = dead.enemy!.rooms.filter((room) => room.system);
     assert.ok(systems.length >= 2);
     const room = systems[0]!;
     assert.ok(room.system);
-    const kit = dead.player.kits.swarm;
+    const kit = dead.player.kits.drones;
     assert.ok(kit);
     kit.room = room.id;
     kit.power = 3;
@@ -700,8 +700,8 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
 
     const frozen = fight(35);
     swarmKit(frozen, 2);
-    assert.equal(deploy(frozen, "ionintruder"), true);
-    const cold = frozen.player.kits.swarm;
+    assert.equal(deploy(frozen, "BOARDER_ION"), true);
+    const cold = frozen.player.kits.drones;
     assert.ok(cold);
     cold.power = 2;
     tickSwarm(frozen, 20);
@@ -741,8 +741,8 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     boarder.room = room.id;
     boarder.aboard = "player";
     boarder.stun = 0;
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -758,7 +758,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     assert.ok(enemy);
     const boardUnit = {
       id: "ed-board",
-      kind: "board",
+      kind: "BOARDER",
       alive: true,
       powered: true,
       aux: 0,
@@ -771,7 +771,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     };
     const otherIon = {
       id: "ed-ion-2",
-      kind: "ionintruder",
+      kind: "BOARDER_ION",
       alive: true,
       powered: true,
       aux: 0,
@@ -783,8 +783,8 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
       stun: 0,
     };
     enemy.parts = 8;
-    enemy.kits.swarm = {
-      id: "swarm",
+    enemy.kits.drones = {
+      id: "drones",
       level: 9,
       power: 9,
       left: 0,
@@ -792,11 +792,11 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
       target: null,
       on: true,
       aux: 0,
-      loadout: ["ionintruder"],
+      loadout: ["BOARDER_ION"],
       drones: [
         {
           id: "ed-ion",
-          kind: "ionintruder",
+          kind: "BOARDER_ION",
           alive: true,
           powered: true,
           aux: 0,
@@ -812,8 +812,8 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
       ],
     };
     tickEnemyDrones(g, 0.02);
-    assert.equal(g.player.kits.swarm.stun, 6);
-    assert.equal(g.player.kits.swarm.ionT, undefined);
+    assert.equal(g.player.kits.drones.stun, 6);
+    assert.equal(g.player.kits.drones.ionT, undefined);
     assert.equal(boardUnit.stun, 0);
     assert.equal(otherIon.stun, 0);
     assert.equal(friend.stun, 6);

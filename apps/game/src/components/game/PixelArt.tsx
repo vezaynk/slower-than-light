@@ -6,15 +6,14 @@ import type { KitId } from "@/game/types";
 
 /** Kits a hull can seat. Any other id stays on the blueprint and does not take a room. */
 const INSTALLABLE_KITS = new Set<string>([
-  "veil",
-  "sling",
-  "spike",
-  "swarm",
-  "leash",
-  "cradle",
-  "cell",
-  "lance",
-  "flak",
+  "cloaking",
+  "teleporter",
+  "hacking",
+  "drones",
+  "mind",
+  "clonebay",
+  "battery",
+  "artillery",
 ]);
 import { DoorTicks } from "./DoorTicks";
 import { HullPlate } from "./HullPlate";
@@ -202,15 +201,14 @@ const ROOM_COLOR: Record<string, string> = {
 
 /** Kit rooms carry a short tag in the cutaway, so a bought or starting kit's room reads at a glance. */
 const KIT_SHORT: Record<KitId, string> = {
-  veil: "CLOAK",
-  sling: "TELE",
-  spike: "HACK",
-  swarm: "DRONE",
-  leash: "MIND",
-  cradle: "CLONE",
-  cell: "BATT",
-  lance: "ARTY",
-  flak: "ARTY",
+  cloaking: "CLOAK",
+  teleporter: "TELE",
+  hacking: "HACK",
+  drones: "DRONE",
+  mind: "MIND",
+  clonebay: "CLONE",
+  battery: "BATT",
+  artillery: "ARTY",
 };
 
 const KIT_TAG = {

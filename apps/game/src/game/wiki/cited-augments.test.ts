@@ -6,13 +6,13 @@ import { REPAIR_SECONDS, createGame, startCombat, step } from "../sim.ts";
 
 describe("starting augments", () => {
   it("fits the ones whose effect already runs", () => {
-    assert.deepEqual(createGame(1, "engi-a").augments, ["medbot"]);
-    assert.deepEqual(createGame(1, "slug-a").augments, ["gel"]);
-    assert.deepEqual(createGame(1, "slug-b").augments, ["gel"]);
-    assert.deepEqual(createGame(1, "slug-c").augments, ["gel"]);
-    assert.deepEqual(createGame(1, "mantis-a").augments, ["pheromone"]);
-    assert.deepEqual(createGame(1, "mantis-b").augments, ["pheromone"]);
-    assert.deepEqual(createGame(1, "mantis-c").augments, ["pheromone"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_CIRCLE").augments, ["NANO_MEDBAY"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_JELLY").augments, ["SLUG_GEL"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_JELLY_2").augments, ["SLUG_GEL"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_JELLY_3").augments, ["SLUG_GEL"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_MANTIS").augments, ["CREW_STIMS"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_MANTIS_2").augments, ["CREW_STIMS"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_MANTIS_3").augments, ["CREW_STIMS"]);
   });
 });
 
@@ -29,7 +29,7 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
     room.breach = 1;
     room.breachFix = REPAIR_SECONDS - 0.03;
     room.fire = 0;
-    empty.augments = ["gel"];
+    empty.augments = ["SLUG_GEL"];
     step(empty, 0.05);
     assert.equal(room.breach, 0);
 
@@ -64,7 +64,7 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
     bench.fire = 0;
     bench.breach = 1;
     bench.breachFix = REPAIR_SECONDS - 0.08;
-    stacked.augments = ["gel"];
+    stacked.augments = ["SLUG_GEL"];
     step(stacked, 0.05);
     assert.equal(bench.breach, 0);
   });
@@ -85,7 +85,7 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
       else crew.path = [next.id];
       crew.move = 0;
       crew.stun = 0;
-      if (pheromone) g.augments = ["pheromone"];
+      if (pheromone) g.augments = ["CREW_STIMS"];
       const dest = ship.rooms.find((room) => room.id === crew.path[crew.path.length - 1]);
       const spot = dest ? restSpot(dest, g.crew, crew.id, crew.aboard, ship) : null;
       const tiles = hopSteps(walkCells(ship, crew.room, crew.path, crew.via, spot ?? undefined));

@@ -4,17 +4,17 @@ import type { Game, KitId, SysId } from "../types.ts";
 import { CHOICE_REQS } from "./choice-reqs.ts";
 
 const KITS = new Set<string>([
-  "veil",
-  "sling",
-  "spike",
-  "swarm",
-  "leash",
-  "cradle",
-  "cell",
-  "lance",
-  "flak",
+  "cloaking",
+  "teleporter",
+  "hacking",
+  "drones",
+  "mind",
+  "clonebay",
+  "battery",
+  "artillery",
+  "artillery",
 ]);
-const RADAR = new Set(["striker", "combat2", "beam", "beam2"]);
+const RADAR = new Set(["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2"]);
 
 /**
  * The first packed lock that fails, or null when the button has no locks or every lock passes.
@@ -102,7 +102,7 @@ function have(g: Game, id: string): number {
 function meetsFamily(g: Game, id: string): boolean {
   if (id === "missile") {
     return g.player.weapons.some(
-      (w) => w.defId !== "hullmissile" && weaponDef(w.defId)?.kind === "missile",
+      (w) => w.defId !== "MISSILES_HULL" && weaponDef(w.defId)?.kind === "missile",
     );
   }
   if (id === "ion") {
@@ -112,10 +112,10 @@ function meetsFamily(g: Game, id: string): boolean {
     });
   }
   if (id === "beam") {
-    if ((g.player.kits.lance?.level ?? 0) > 0) return true;
+    if ((g.player.kits.artillery?.level ?? 0) > 0) return true;
     return g.player.weapons.some((w) => {
       const def = weaponDef(w.defId);
-      return def?.kind === "beam" && w.defId !== "antibio" && w.defId !== "firebeam";
+      return def?.kind === "beam" && w.defId !== "BEAM_BIO" && w.defId !== "BEAM_FIRE";
     });
   }
   return false;
@@ -127,20 +127,20 @@ function meetsFamily(g: Game, id: string): boolean {
  * radar and antipersonnel require Drone Control power and ignore the loadout.
  */
 function meetsDrone(g: Game, id: string): boolean {
-  const kit = g.player.kits.swarm;
-  if (id === "board" || id === "hull" || id === "personnel" || id === "patch") {
+  const kit = g.player.kits.drones;
+  if (id === "BOARDER" || id === "SHIP_REPAIR" || id === "personnel" || id === "REPAIR") {
     if (!kit) return false;
     return kit.target === id || (kit.loadout ?? []).includes(id);
   }
-  if (id === "beam") {
+  if (id === "COMBAT_BEAM") {
     if (!kit) return false;
-    return [kit.target, ...(kit.loadout ?? [])].some((kind) => kind === "beam" || kind === "beam2");
+    return [kit.target, ...(kit.loadout ?? [])].some((kind) => kind === "COMBAT_BEAM" || kind === "COMBAT_BEAM_2");
   }
   if (id === "mine") {
     if (!kit) return false;
-    return kit.target === "beam" || (kit.loadout ?? []).includes("beam");
+    return kit.target === "COMBAT_BEAM" || (kit.loadout ?? []).includes("COMBAT_BEAM");
   }
   if (id === "radar") return !!kit && kit.level > 0 && RADAR.has(kit.target ?? "");
-  if (id === "antipersonnel") return !!kit && kit.level > 0 && kit.target === "antipersonnel";
+  if (id === "BATTLE") return !!kit && kit.level > 0 && kit.target === "BATTLE";
   return false;
 }

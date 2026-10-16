@@ -17,7 +17,7 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    * Augmentations, "Crystal Vengeance", bullet "Fires a crystal shot that does 1 damage, has a 10% chance to breach, has a 20% chance to stun for 3s (with Advanced Edition), completely ignores shields, and is affected by evasion; can be shot down by defense drones."
    */
   {
-    id: "vengeance",
+    id: "CRYSTAL_SHARDS",
     name: "Crystal Vengeance",
     detail:
       "Each time the ship takes damage there is a 10 percent chance to fire a crystal shot that does 1 damage, has a 10 percent chance to breach, has a 20 percent chance to stun for 3 seconds, ignores shields, is affected by evasion, and can be shot down by defense drones.",
@@ -31,7 +31,7 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    * Augmentations, "Damaged Stasis Pod", bullet "each one will open a single pod."
    */
   {
-    id: "stasis",
+    id: "STASIS_POD",
     name: "Damaged Stasis Pod",
     detail:
       "More than one can be held at a time with each copy in an augmentation slot, each can be acquired only from the Dense asteroid field distress call, and each Zoltan research facility opens a single pod to yield a Crystal crewmember.",
@@ -43,7 +43,7 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    * Augmentations, "Drone Reactor Booster", bullet "Increases the speed of crew drones by 25%, however, the actual crew drone speed is increased from 50% of regular crew speed to 62.5%."
    */
   {
-    id: "booster",
+    id: "DRONE_SPEED",
     name: "Drone Reactor Booster",
     detail:
       "Crew drone movement speed is increased by 25 percent, from 50 percent of regular crew speed to 62.5 percent.",
@@ -59,7 +59,7 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    * Augmentations, "Engi Med-bot Dispersal", bullet "Does nothing if you have a Clone Bay."
    */
   {
-    id: "medbot",
+    id: "NANO_MEDBAY",
     name: "Engi Med-bot Dispersal",
     detail:
       "It heals 1.6 health points per second when the medbay is powered, medbay upgrades do not affect it, it does not heal crew on another ship, and it does nothing with a clone bay.",
@@ -72,7 +72,7 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    * Augmentations, "Mantis Pheromones", bullet "Applies both on your ship and when boarding an enemy."
    */
   {
-    id: "pheromone",
+    id: "CREW_STIMS",
     name: "Mantis Pheromones",
     detail: "Crew movement speed increases by 25 percent on your ship and while boarding an enemy.",
     cost: null,
@@ -84,7 +84,7 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    * Augmentations, "Slug Repair Gel", bullet "Stacks with crew repairs."
    */
   {
-    id: "gel",
+    id: "SLUG_GEL",
     name: "Slug Repair Gel",
     detail:
       "It fixes all breaches simultaneously at 75 percent of regular crew speed and stacks with crew repairs.",
@@ -102,7 +102,7 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    * Bubble hit points, recharge, and what passes through follow Zoltan Shield, not the arrival wording or the beam-twice claim on Augmentations. Anti-Bio Beam, Fire Beam, and Artillery Beam deal 2 damage in total on Zoltan Shield, which is not this bubble's hit points.
    */
   {
-    id: "zshield",
+    id: "ENERGY_SHIELD",
     name: "Zoltan Shield",
     detail:
       "It has 5 points of energy shielding that are completely recharged on an FTL jump, enemy shields are replenished on revisiting the beacon, only the initial boarding party of a boarding event passes through it, and Zoltan Shield Bypass lets crew teleportation, bomb teleportation, and mind control pass through it.",

@@ -6,7 +6,7 @@ import { stampEngiCache } from "./engi-cache.ts";
 import { heldSchematics } from "./make-room.ts";
 
 function land(sectorName: string) {
-  const g = createGame(3, "kestrel-a", "normal");
+  const g = createGame(3, "PLAYER_SHIP_HARD", "normal");
   g.sector = 3;
   g.sectorName = sectorName;
   g.fuel = 8;

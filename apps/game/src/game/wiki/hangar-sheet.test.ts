@@ -13,7 +13,7 @@ function sheet(id: string) {
 
 describe("hangar sheet", () => {
   it("reads Kestrel A from that layout's lines", () => {
-    const row = sheet("kestrel-a");
+    const row = sheet("PLAYER_SHIP_HARD");
     assert.equal(row.defaultName, "The Kestrel");
     assert.deepEqual(row.crew, ["Human", "Human", "Human"]);
     assert.deepEqual(
@@ -43,7 +43,7 @@ describe("hangar sheet", () => {
   });
 
   it("keeps system levels out of the weapon list", () => {
-    const row = sheet("zoltan-c");
+    const row = sheet("PLAYER_SHIP_ENERGY_3");
     assert.equal(row.defaultName, "Cerenkov");
     assert.deepEqual(row.weapons, ["Ion Charger"]);
     assert.equal(row.systems.find((system) => system.name === "Weapons")?.level, 2);
@@ -54,40 +54,40 @@ describe("hangar sheet", () => {
   });
 
   it("reads slot lines and singular weapon headings", () => {
-    const lanius = sheet("lanius-a");
+    const lanius = sheet("PLAYER_SHIP_ANAEROBIC");
     assert.deepEqual(lanius.weapons, ["Chain Burst Laser", "Ion Stunner"]);
     assert.equal(lanius.weaponSlots, 4);
     assert.equal(lanius.droneSlots, 2);
     assert.deepEqual(lanius.drones, []);
     assert.deepEqual(lanius.crew, ["Human", "Lanius", "Lanius"]);
-    const stealth = sheet("stealth-b");
+    const stealth = sheet("PLAYER_SHIP_STEALTH_2");
     assert.deepEqual(stealth.weapons, ["Glaive Beam"]);
     assert.equal(stealth.weaponSlots, 3);
     assert.deepEqual(stealth.crew, ["Human", "Human", "Zoltan"]);
-    const mantis = sheet("mantis-a");
+    const mantis = sheet("PLAYER_SHIP_MANTIS");
     assert.deepEqual(mantis.weapons, ["Small Bomb", "Basic Laser"]);
     assert.deepEqual(mantis.crew, ["Mantis", "Mantis", "Mantis", "Engi"]);
     assert.deepEqual(mantis.augments, ["Mantis Pheromones"]);
-    const slug = sheet("slug-c");
+    const slug = sheet("PLAYER_SHIP_JELLY_3");
     assert.equal(slug.defaultName, "Ariolimax");
     assert.deepEqual(slug.crew, ["Slug", "Slug", "Slug"]);
   });
 
   it("draws no card for a Weapons: none line, and reads bare Unlock headings", () => {
     // "The Federation Cruiser", Layout C (The Fregatidae) and "The Crystal Cruiser", Layout B print Weapons: none.
-    assert.deepEqual(sheet("fed-c").weapons, []);
-    assert.deepEqual(sheet("crystal-b").weapons, []);
-    assert.equal(sheet("fed-c").weaponSlots, 4);
+    assert.deepEqual(sheet("PLAYER_SHIP_FED_3").weapons, []);
+    assert.deepEqual(sheet("PLAYER_SHIP_CRYSTAL_2").weapons, []);
+    assert.equal(sheet("PLAYER_SHIP_FED_3").weaponSlots, 4);
     // "The Lanius Cruiser", Layout A: "Unlock" then "Unlock 4 ships (Excluding The Kestrel) to unlock this ship."
-    assert.deepEqual(sheet("lanius-a").unlock, ["Unlock 4 ships (Excluding The Kestrel) to unlock this ship."]);
+    assert.deepEqual(sheet("PLAYER_SHIP_ANAEROBIC").unlock, ["Unlock 4 ships (Excluding The Kestrel) to unlock this ship."]);
     // "The Mantis Cruiser", Layout C: the "Notes:" line is not an unlock line.
-    assert.equal(sheet("mantis-c").unlock.length, 1);
+    assert.equal(sheet("PLAYER_SHIP_MANTIS_3").unlock.length, 1);
     assert.deepEqual(orderByIds(["a1", "b1", "a2"], ["b", "a"], (name) => name[0]), ["b1", "a1", "a2"]);
   });
 
   it("marks Advanced Edition only where that layout's lines say so", () => {
     const marked = layouts.filter(layoutNeedsAe).map((layout) => layout.id);
-    assert.deepEqual(marked, ["kestrel-c", "engi-c", "fed-c", "zoltan-c", "slug-c", "mantis-c"]);
+    assert.deepEqual(marked, ["PLAYER_SHIP_HARD_3", "PLAYER_SHIP_CIRCLE_3", "PLAYER_SHIP_FED_3", "PLAYER_SHIP_ENERGY_3", "PLAYER_SHIP_JELLY_3", "PLAYER_SHIP_MANTIS_3"]);
     assert.equal(layouts.some((layout) => layout.id === "crystal-c"), false);
     assert.equal(layouts.some((layout) => layout.id === "lanius-c"), false);
   });

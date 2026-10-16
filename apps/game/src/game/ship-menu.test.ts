@@ -51,26 +51,26 @@ describe("ship menu upgrades", () => {
     assert.equal(upgradeSpike(hack), false);
     hack.scrap = 35;
     assert.equal(upgradeSpike(hack), true);
-    assert.equal(hack.player.kits.spike?.level, 2);
+    assert.equal(hack.player.kits.hacking?.level, 2);
     hack.scrap = 60;
     assert.equal(upgradeSpike(hack), true);
-    assert.equal(hack.player.kits.spike?.level, 3);
+    assert.equal(hack.player.kits.hacking?.level, 3);
 
     const bay = createGame(3);
     bay.scrap = 50;
     installCradle(bay);
     bay.scrap = 35;
     upgradeCradle(bay);
-    assert.equal(bay.player.kits.cradle?.level, 2);
+    assert.equal(bay.player.kits.clonebay?.level, 2);
     assert.equal(bay.scrap, 0);
     bay.scrap = 45;
     upgradeCradle(bay);
-    assert.equal(bay.player.kits.cradle?.level, 3);
+    assert.equal(bay.player.kits.clonebay?.level, 3);
     assert.equal(bay.scrap, 0);
 
     // Artillery Beam, "Overview": only Federation A and B carry it.
-    const lance = createGame(4, "fed-a");
-    delete lance.player.kits.lance;
+    const lance = createGame(4, "PLAYER_SHIP_FED");
+    delete lance.player.kits.artillery;
     assert.equal(installLance(lance), true);
     lance.scrap = 30;
     assert.equal(upgradeLance(lance), true);
@@ -78,7 +78,7 @@ describe("ship menu upgrades", () => {
     assert.equal(upgradeLance(lance), true);
     lance.scrap = 80;
     assert.equal(upgradeLance(lance), true);
-    assert.equal((lance.player.kits as Game["player"]["kits"]).lance?.level, 4);
+    assert.equal((lance.player.kits as Game["player"]["kits"]).artillery?.level, 4);
     lance.scrap = 80;
     assert.equal(upgradeLance(lance), false);
 
@@ -90,7 +90,7 @@ describe("ship menu upgrades", () => {
     assert.equal(upgradeFlak(flak), true);
     flak.scrap = 80;
     assert.equal(upgradeFlak(flak), true);
-    assert.equal(flak.player.kits.flak?.level, 4);
+    assert.equal(flak.player.kits.artillery?.level, 4);
     assert.equal(upgradeFlak(flak), false);
   });
 

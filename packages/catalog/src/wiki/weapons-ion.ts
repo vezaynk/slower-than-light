@@ -10,7 +10,7 @@ import type { WeaponDef } from "../content.ts";
  */
 export const ION_WEAPONS: WeaponDef[] = [
   {
-    id: "ioncharger",
+    id: "ION_CHARGEGUN",
     name: "Ion Charger",
     kind: "ion",
     // Wiki page "Ion (Weapons)", ===Ion Charger===.
@@ -32,7 +32,7 @@ export const ION_WEAPONS: WeaponDef[] = [
     blurb: "This ion weapon can charge multiple times, giving it additional projectiles.",
   },
   {
-    id: "chainion",
+    id: "ION_CHAINGUN",
     name: "Chain Ion",
     kind: "ion",
     // Wiki page "Ion (Weapons)", ===Chain Ion===.
@@ -54,7 +54,7 @@ export const ION_WEAPONS: WeaponDef[] = [
     blurb: "This weapon's Ion damage increases each time it fires to a max of 4.",
   },
   {
-    id: "bossion",
+    id: "ARTILLERY_BOSS_4",
     name: "Boss Ion",
     kind: "ion",
     // Wiki page "Ion (Weapons)", ===Boss Ion===.
@@ -83,7 +83,7 @@ export const ION_WEAPONS: WeaponDef[] = [
  * Wiki page "Ion (Weapons)".
  */
 export const ION_GAPS = {
-  ioncharger: {
+  ION_CHARGEGUN: {
     // Wiki page "Ion (Weapons)", ===Ion Charger===.
     // Can fire early: a volley of 1 or 2, before the third charge.
     // "Autofire" causes continuous fire, disables charging.
@@ -92,7 +92,7 @@ export const ION_GAPS = {
     maxShots: 3,
     autofireDisablesCharging: true,
   },
-  chainion: {
+  ION_CHAINGUN: {
     // Wiki page "Ion (Weapons)", ===Chain Ion===.
     // "each subsequent shot dealing 1 additional ion damage, up to a maximum of 4".
     // WeaponDef has no chain field. ion stays the first printed shot, 1. Later steps:
@@ -101,7 +101,7 @@ export const ION_GAPS = {
     // "it takes 56 seconds to fully chain."
     secondsToFullChain: 56,
   },
-  bossion: {
+  ARTILLERY_BOSS_4: {
     // Wiki page "Ion (Weapons)", ===Boss Ion===.
     // Level 1 is the weapon charge, 35 seconds. The other printed times:
     chargeByLevel: { 1: 35, 2: 28, 3: 21 },

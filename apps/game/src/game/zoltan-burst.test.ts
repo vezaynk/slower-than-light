@@ -26,7 +26,7 @@ describe("zoltan death burst", () => {
       name: "Zed",
       side: "player",
       room: "p-sensors",
-      kin: "spark",
+      kin: "energy",
       hp: 0,
       maxHp: 70,
     });
@@ -53,7 +53,7 @@ describe("zoltan death burst", () => {
       name: "Zed",
       side: "player",
       room: "p-sensors",
-      kin: "spark",
+      kin: "energy",
       hp: 0,
       maxHp: 70,
       leashed: 10,
@@ -76,7 +76,7 @@ describe("zoltan death burst", () => {
       name: "Hue",
       side: "player",
       room: "p-sensors",
-      kin: "plain",
+      kin: "human",
       hp: 0,
     });
     const near = body({ id: "near", name: "Near", side: "enemy", room: "p-sensors", hp: 100 });
@@ -103,17 +103,17 @@ describe("zoltan death burst", () => {
     const g = createGame(4);
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    const swarm = g.enemy.kits.swarm ?? (g.enemy.kits.swarm = kit());
+    const swarm = g.enemy.kits.drones ?? (g.enemy.kits.drones = kit());
     swarm.loadout = [];
-    const intruder = drone({ id: "ion", kind: "ionintruder", hp: 125, room: "p-sensors" });
-    const boarder = drone({ id: "board", kind: "board", hp: 150, room: "p-doors" });
-    const repair = drone({ id: "patch", kind: "patch", hp: 25, room: "p-sensors" });
-    const orbiter = drone({ id: "orb", kind: "striker", room: "p-sensors" });
+    const intruder = drone({ id: "ion", kind: "BOARDER_ION", hp: 125, room: "p-sensors" });
+    const boarder = drone({ id: "BOARDER", kind: "BOARDER", hp: 150, room: "p-doors" });
+    const repair = drone({ id: "REPAIR", kind: "REPAIR", hp: 25, room: "p-sensors" });
+    const orbiter = drone({ id: "orb", kind: "COMBAT_1", room: "p-sensors" });
     delete orbiter.hp;
     const fragile = drone({ id: "frag", kind: "personnel", hp: 4, room: "p-sensors" });
     swarm.drones = [intruder, boarder, repair, orbiter, fragile];
     g.crew.push(
-      body({ id: "z", name: "Zed", side: "player", room: "p-sensors", kin: "spark", hp: 0, maxHp: 70 }),
+      body({ id: "z", name: "Zed", side: "player", room: "p-sensors", kin: "energy", hp: 0, maxHp: 70 }),
     );
     step(g, 0);
     assert.equal(intruder.hp, 117.5);
@@ -139,17 +139,17 @@ describe("zoltan death burst", () => {
     const g = createGame(5);
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    if (g.enemy.kits.cradle) g.enemy.kits.cradle.level = 0;
-    const swarm = g.enemy.kits.swarm ?? (g.enemy.kits.swarm = kit());
+    if (g.enemy.kits.clonebay) g.enemy.kits.clonebay.level = 0;
+    const swarm = g.enemy.kits.drones ?? (g.enemy.kits.drones = kit());
     swarm.loadout = [];
-    const theirs = drone({ id: "ion", kind: "ionintruder", hp: 125, room: "e-weapons" });
+    const theirs = drone({ id: "ion", kind: "BOARDER_ION", hp: 125, room: "e-weapons" });
     swarm.drones = [theirs];
-    g.player.kits.swarm = kit();
-    g.player.kits.swarm.on = true;
-    g.player.kits.swarm.target = "ionintruder";
-    g.player.kits.swarm.hp = 125;
-    g.player.kits.swarm.room = "e-weapons";
-    g.player.kits.swarm.left = 9;
+    g.player.kits.drones = kit();
+    g.player.kits.drones.on = true;
+    g.player.kits.drones.target = "BOARDER_ION";
+    g.player.kits.drones.hp = 125;
+    g.player.kits.drones.room = "e-weapons";
+    g.player.kits.drones.left = 9;
     g.crew.push(
       body({
         id: "ez",
@@ -157,21 +157,21 @@ describe("zoltan death burst", () => {
         side: "enemy",
         aboard: "enemy",
         room: "e-weapons",
-        kin: "spark",
+        kin: "energy",
         hp: 0,
         maxHp: 70,
       }),
     );
     step(g, 0);
-    assert.equal(g.player.kits.swarm.hp, 117.5);
-    assert.equal(g.player.kits.swarm.on, true);
+    assert.equal(g.player.kits.drones.hp, 117.5);
+    assert.equal(g.player.kits.drones.on, true);
     assert.equal(theirs.hp, 125);
     assert.equal(theirs.alive, true);
   });
 });
 
 function kit(): Kit {
-  return { id: "swarm", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "drones", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 function drone(partial: Pick<DroneUnit, "id" | "kind" | "room"> & Partial<DroneUnit>): DroneUnit {

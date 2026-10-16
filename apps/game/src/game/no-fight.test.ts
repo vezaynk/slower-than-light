@@ -5,7 +5,7 @@ import type { Game } from "./types.ts";
 
 /** Per the user: the ship behaves the same with or without a fight on. These run on the map, with no enemy ship. */
 function map(): Game {
-  const g = createGame(4, "kestrel-a");
+  const g = createGame(4, "PLAYER_SHIP_HARD");
   g.phase = "map";
   g.enemy = null;
   g.paused = false;

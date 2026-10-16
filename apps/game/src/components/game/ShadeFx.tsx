@@ -395,7 +395,7 @@ export function ShadeFx() {
           if (b) {
             const cx = b.x + b.w / 2;
             const cy = b.y + b.h / 2;
-            if (prev.kin === "spark") spray(cx, cy, SPARK, 18, 150, 0.48, 2, Math.min(b.w, b.h) * 0.35);
+            if (prev.kin === "energy") spray(cx, cy, SPARK, 18, 150, 0.48, 2, Math.min(b.w, b.h) * 0.35);
             else spray(cx, cy, ASH, 7, 55, 0.32, 2, Math.min(b.w, b.h) * 0.2);
           }
           crew.delete(id);

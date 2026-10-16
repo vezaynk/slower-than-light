@@ -30,7 +30,7 @@ const SOURCE = readFileSync(
   "utf8",
 );
 
-const CRYSTAL_IDS = ["crystalburst", "crystalburst2", "heavycrystal", "heavycrystal2"] as const;
+const CRYSTAL_IDS = ["CRYSTAL_BURST_1", "CRYSTAL_BURST_2", "CRYSTAL_HEAVY_1", "CRYSTAL_HEAVY_2"] as const;
 
 function sections(text: string): Map<string, string> {
   const map = new Map<string, string>();
@@ -100,12 +100,12 @@ describe("flak and crystal wiki weapons", () => {
   it("fits Adv. Flak and Flak II and leaves Mark I and artillery off the list", () => {
     assert.deepEqual(
       FLAK_CRYSTAL_WEAPONS.map((row) => row.id),
-      ["advflak", "flak2", ...CRYSTAL_IDS],
+      ["SHOTGUN_PLAYER", "SHOTGUN_2", ...CRYSTAL_IDS],
     );
     assert.equal(flak.has("Flak Gun Mark I"), true);
     assert.equal(
       FLAK_CRYSTAL_WEAPONS.some(
-        (row) => row.name === "Flak Gun Mark I" || row.name === "Flak I" || row.id === "scatter",
+        (row) => row.name === "Flak Gun Mark I" || row.name === "Flak I" || row.id === "SHOTGUN",
       ),
       false,
     );
@@ -116,7 +116,7 @@ describe("flak and crystal wiki weapons", () => {
       false,
     );
     assert.equal(
-      FLAK_CRYSTAL_GAPS.some((row) => row.id === "scatter" || row.id === "flak1"),
+      FLAK_CRYSTAL_GAPS.some((row) => row.id === "SHOTGUN" || row.id === "flak1"),
       false,
     );
   });
@@ -124,7 +124,7 @@ describe("flak and crystal wiki weapons", () => {
   it("copies Adv. Flak numbers, with price 0 because it is unsold", () => {
     const section = flak.get("Adv. Flak Gun");
     assert.ok(section);
-    const row = weapon("advflak");
+    const row = weapon("SHOTGUN_PLAYER");
     assert.equal(row.name, "Adv. Flak Gun");
     assert.equal(row.kind, "flak");
     assert.equal(row.power, field(section, "Power requirement"));
@@ -141,7 +141,7 @@ describe("flak and crystal wiki weapons", () => {
     assert.equal(row.price, 0);
     assert.notEqual(row.price, field(section, "Sells for"));
     assert.equal(row.blurb, quote(section));
-    const extra = gap("advflak");
+    const extra = gap("SHOTGUN_PLAYER");
     assert.equal(extra.radius, field(section, "Targeting area radius"));
     assert.equal(extra.fake, field(section, "Additional fake flak"));
     assert.equal(extra.sell, field(section, "Sells for"));
@@ -152,7 +152,7 @@ describe("flak and crystal wiki weapons", () => {
   it("copies Flak II as seven projectiles of 1 damage", () => {
     const section = flak.get("Flak Gun Mark II");
     assert.ok(section);
-    const row = weapon("flak2");
+    const row = weapon("SHOTGUN_2");
     assert.equal(row.name, "Flak Gun Mark II");
     assert.equal(row.kind, "flak");
     assert.equal(row.power, field(section, "Power requirement"));
@@ -165,7 +165,7 @@ describe("flak and crystal wiki weapons", () => {
     assert.equal(row.breach, 0);
     assert.equal(row.ammo, false);
     assert.equal(row.blurb, quote(section));
-    const extra = gap("flak2");
+    const extra = gap("SHOTGUN_2");
     assert.equal(extra.radius, field(section, "Targeting area radius"));
     assert.equal(extra.fake, field(section, "Additional fake flak"));
     assert.deepEqual(extra.rooms, rooms(section));
@@ -194,10 +194,10 @@ describe("flak and crystal wiki weapons", () => {
 
   it("stores crystal rows as lasers and keeps pierce 1 only in the gaps", () => {
     const titles = {
-      crystalburst: "Crystal Burst Mark I",
-      crystalburst2: "Crystal Burst Mark II",
-      heavycrystal: "Heavy Crystal Mark I",
-      heavycrystal2: "Heavy Crystal Mark II",
+      CRYSTAL_BURST_1: "Crystal Burst Mark I",
+      CRYSTAL_BURST_2: "Crystal Burst Mark II",
+      CRYSTAL_HEAVY_1: "Heavy Crystal Mark I",
+      CRYSTAL_HEAVY_2: "Heavy Crystal Mark II",
     } as const;
     for (const id of CRYSTAL_IDS) {
       const section = crystal.get(titles[id]);
@@ -300,7 +300,7 @@ describe("Flak II room odds", () => {
     g.player.systems.weapons.level = 3;
     g.player.systems.weapons.power = 3;
     g.player.weapons = [
-      { uid: "f2", defId: "flak2", charge: 1, enabled: true, autofire: false, target: "n" },
+      { uid: "f2", defId: "SHOTGUN_2", charge: 1, enabled: true, autofire: false, target: "n" },
     ];
     g.seed = 4;
     const preview = createGame(1);
@@ -340,7 +340,7 @@ describe("Flak II room odds", () => {
     quiet.player.systems.weapons.level = 3;
     quiet.player.systems.weapons.power = 3;
     quiet.player.weapons = [
-      { uid: "f2", defId: "flak2", charge: 1, enabled: true, autofire: false, target: "dot" },
+      { uid: "f2", defId: "SHOTGUN_2", charge: 1, enabled: true, autofire: false, target: "dot" },
     ];
     const seed = quiet.seed;
     fireReady(quiet);
@@ -408,7 +408,7 @@ describe("Adv. Flak room odds", () => {
     g.player.systems.weapons.level = 1;
     g.player.systems.weapons.power = 1;
     g.player.weapons = [
-      { uid: "af", defId: "advflak", charge: 1, enabled: true, autofire: false, target: "n" },
+      { uid: "af", defId: "SHOTGUN_PLAYER", charge: 1, enabled: true, autofire: false, target: "n" },
     ];
     g.seed = 8;
     const preview = createGame(1);
@@ -461,7 +461,7 @@ describe("Flak II and Adv. Flak fake pellets", () => {
         g.shots.slice(0, fake).every((shot) => shot.label === FLAK1_FAKE_LABEL),
         true,
       );
-      assert.equal(reals.length, defId === "flak2" ? 7 : 3);
+      assert.equal(reals.length, defId === "SHOTGUN_2" ? 7 : 3);
       for (const shot of fakes) {
         assert.equal(shot.kind, "missile");
         assert.equal(shot.damage, 0);
@@ -473,8 +473,8 @@ describe("Flak II and Adv. Flak fake pellets", () => {
       assert.equal(g.enemy.zoltan, 2);
       assert.equal(g.enemy.hull, hull);
     };
-    fire("flak2", 3, 6, 9);
-    fire("advflak", 1, 3, 10);
+    fire("SHOTGUN_2", 3, 6, 9);
+    fire("SHOTGUN_PLAYER", 1, 3, 10);
   });
 
   it("lets a defense drone shoot a Flak II fake pellet", () => {
@@ -482,8 +482,8 @@ describe("Flak II and Adv. Flak fake pellets", () => {
     startCombat(g, "scout");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
-    g.enemy.kits.swarm = {
-      id: "swarm",
+    g.enemy.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -491,7 +491,7 @@ describe("Flak II and Adv. Flak fake pellets", () => {
       target: null,
       on: false,
       aux: 0,
-      loadout: ["ward"],
+      loadout: ["DEFENSE_1"],
     };
     g.enemy.parts = 3;
     tickSwarm(g, 0.05);
@@ -501,7 +501,7 @@ describe("Flak II and Adv. Flak fake pellets", () => {
     g.player.weapons = [
       {
         uid: "f2",
-        defId: "flak2",
+        defId: "SHOTGUN_2",
         charge: 1,
         enabled: true,
         autofire: false,

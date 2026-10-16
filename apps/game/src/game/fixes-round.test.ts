@@ -6,7 +6,7 @@ import { hackHoldsWeapons } from "./extras/spike.ts";
 import type { Game } from "./types.ts";
 
 function playerHack(g: Game, target: string) {
-  g.player.kits.spike = { id: "spike", level: 3, power: 3, left: 5, cool: 0, target, on: true, aux: 0 };
+  g.player.kits.hacking = { id: "hacking", level: 3, power: 3, left: 5, cool: 0, target, on: true, aux: 0 };
 }
 
 describe("rates from the wiki", () => {
@@ -53,7 +53,7 @@ describe("the player's own hacking", () => {
     startCombat(g, "Rebel ship");
     playerHack(g, "engines");
     assert.equal(evasionPercent(g, g.enemy!, "enemy"), 0);
-    g.enemy!.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: "fire", on: true, aux: 0 };
+    g.enemy!.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: "fire", on: true, aux: 0 };
     assert.ok(evasionPercent(g, g.enemy!, "enemy") > 0);
   });
 });
@@ -62,12 +62,12 @@ describe("drones on an FTL jump (Drone Control, Overview)", () => {
   it("loses a deployed external drone, keeps a crew drone, and keeps the deploy delay", async () => {
     const { onPlayerJump } = await import("./extras/index.ts");
     const g = createGame(5);
-    g.player.kits.swarm = { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: "striker", on: true, aux: 1, lost: 4 };
+    g.player.kits.drones = { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "COMBAT_1", on: true, aux: 1, lost: 4 };
     onPlayerJump(g);
-    assert.equal(g.player.kits.swarm.on, false);
-    assert.equal(g.player.kits.swarm.lost, 4);
-    g.player.kits.swarm = { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: "patch", on: true, aux: 0 };
+    assert.equal(g.player.kits.drones.on, false);
+    assert.equal(g.player.kits.drones.lost, 4);
+    g.player.kits.drones = { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "REPAIR", on: true, aux: 0 };
     onPlayerJump(g);
-    assert.equal(g.player.kits.swarm.on, true);
+    assert.equal(g.player.kits.drones.on, true);
   });
 });

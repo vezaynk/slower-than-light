@@ -49,7 +49,7 @@ describe("choice requirements", () => {
       ?.cards?.flatMap((card) => card.choices)
       .find((choice) => choice.id === "c:no-fuel-refugee-trading:engi");
     assert.equal(engi?.reqs?.[0]?.k, "crew");
-    assert.equal(engi?.reqs?.[0]?.id, "shell");
+    assert.equal(engi?.reqs?.[0]?.id, "engi");
     const g = createGame(1);
     assert.equal(
       g.beacons.some((beacon) => beacon.flag === "reqs:blue-button-reqs"),
@@ -96,7 +96,7 @@ describe("choice requirements", () => {
       .flatMap((card) => card.choices)
       .find((choice) => choice.id === "c:no-fuel-refugee-trading:engi");
     assert.ok(button);
-    button.reqs = [{ k: "crew", id: "shell", text: "Ember engi." }];
+    button.reqs = [{ k: "crew", id: "engi", text: "Ember engi." }];
     loadPack({ events: [{ ...row, cards }] }, "append");
     assert.equal(missingDisabled(createGame(1), "c:no-fuel-refugee-trading:engi"), "Ember engi.");
     resetPackForTests();
@@ -105,7 +105,7 @@ describe("choice requirements", () => {
       "Needs an Engi crewmember",
     );
 
-    const ember: ChoiceReq = { k: "crew", id: "shell", text: "Need an Ember engi." };
+    const ember: ChoiceReq = { k: "crew", id: "engi", text: "Need an Ember engi." };
     loadPack(
       {
         events: [

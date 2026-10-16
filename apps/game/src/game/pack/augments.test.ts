@@ -11,7 +11,7 @@ afterEach(() => resetPackForTests());
 
 describe("augment listings", () => {
   it("stocks and charges the packed price", () => {
-    const feed = augmentDef("feed");
+    const feed = augmentDef("AUTO_COOLDOWN");
     assert.ok(feed);
     loadPack({ augments: [{ ...feed, name: "Reloaded", cost: 77 }] }, "append");
     const g = createGame(1);
@@ -20,11 +20,11 @@ describe("augment listings", () => {
     const shelf = augmentItems(g);
     assert.deepEqual(
       shelf.map((row) => row.ref),
-      ["feed", "echo", "quiet"],
+      ["AUTO_COOLDOWN", "EXPLOSIVE_REPLICATOR", "CLOAK_FIRE"],
     );
     assert.equal(shelf[0]?.name, "Reloaded");
     assert.equal(shelf[0]?.cost, 77);
-    assert.equal(installAugment(g, "feed"), true);
+    assert.equal(installAugment(g, "AUTO_COOLDOWN"), true);
     assert.equal(g.scrap, 23);
   });
 
@@ -34,7 +34,7 @@ describe("augment listings", () => {
     g.augments = [];
     assert.deepEqual(
       augmentItems(g).map((row) => row.ref),
-      ["feed", "echo", "quiet"],
+      ["AUTO_COOLDOWN", "EXPLOSIVE_REPLICATOR", "CLOAK_FIRE"],
     );
     assert.equal(grantBonusAugment(g, "ember"), "Ember fitted.");
     assert.deepEqual(g.augments, ["ember"]);

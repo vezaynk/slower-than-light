@@ -59,7 +59,7 @@ export function isUnlocked(hullId: string): boolean {
   return isUnlockedIn(getUnlocks(), hullId);
 }
 
-/** Store hook: after a step or action, fold this run's progress into the saved state. Returns hull ids newly unlocked. */
+/** Store SCRAP_COLLECTOR: after a step or action, fold this run's progress into the saved state. Returns hull ids newly unlocked. */
 export function noteUnlocks(g: Game): string[] {
   const prev = getUnlocks();
   const next = deriveUnlocks(prev, g, earnedIds());
@@ -83,7 +83,7 @@ export function subscribeUnlocks(fn: () => void): () => void {
   return () => listeners.delete(fn);
 }
 
-/** Test hook: drop the in-memory copy so the next read uses localStorage. */
+/** Test SCRAP_COLLECTOR: drop the in-memory copy so the next read uses localStorage. */
 export function resetUnlockMemory(): void {
   memory = null;
 }

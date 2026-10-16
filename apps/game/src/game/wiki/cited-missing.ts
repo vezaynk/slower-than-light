@@ -123,7 +123,7 @@ function repairs(n: number): SurrenderOffer {
  */
 function loseCrew(ctx: Ctx, noClone: boolean, quiet = false): string {
   const g = ctx.g;
-  if (!noClone && g.player.kits.cradle) return "The lost crewmember is revived.";
+  if (!noClone && g.player.kits.clonebay) return "The lost crewmember is revived.";
   const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
   if (mine.length <= 1) return "";
   const lost = mine[ctx.irand(mine.length)]!;
@@ -132,7 +132,7 @@ function loseCrew(ctx: Ctx, noClone: boolean, quiet = false): string {
   // Drifting debris prints the Clone Bay's silence. Buried leave prints no such line.
   // Wiki citations:
   // > "(Clone Bay) [no effect] Before preparing to jump you check the Clone Bay but there is no sign of activity." — [[No fuel: drifting debris]]
-  if (quiet && g.player.kits.cradle)
+  if (quiet && g.player.kits.clonebay)
     return `${line} ${"Before preparing to jump you check the Clone Bay but there is no sign of activity."}`;
   return line;
 }
@@ -733,7 +733,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "wait2") {
-      const line = weaponLine(g, "heavycrystal2");
+      const line = weaponLine(g, "CRYSTAL_HEAVY_2");
       fleetJump(ctx);
       done(
         g,
@@ -795,7 +795,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       );
       return true;
     }
-    if (name === "dna") {
+    if (name === "BACKUP_DNA") {
       const offer = scrapOnly(g, "medium");
       offer.random = "weapon";
       done(

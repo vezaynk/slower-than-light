@@ -41,27 +41,27 @@ describe("cruiser layout pages", () => {
   it("keeps each page's own field labels", () => {
     assert.equal(layouts.length, 28);
     line(
-      "kestrel-a",
+      "PLAYER_SHIP_HARD",
       "Does not require unlocking (it is the only ship, the cruiser and the layout, available from the very start of the game)",
     );
-    line("kestrel-a", "Weapon Control (3)");
-    line("kestrel-a", "Door System (1)");
-    line("kestrel-a", "none (system not installed)");
-    line("kestrel-b", "none (requires system)");
-    line("stealth-a", "none (and requires system)");
-    line("mantis-a", "Starting Crew: 3 Mantis, 1 Engi");
-    line("mantis-a", "Doors (1)");
-    line("mantis-a", "Slots: 3 Weapon, 2 Drone (requires system)");
-    line("mantis-b", "Default Name: The Basilisk");
-    line("zoltan-c", "none (requires system)");
-    line("zoltan-c", "Anti-Ship Beam Drone I");
-    line("slug-c", "Starting crew: 3 Slug");
+    line("PLAYER_SHIP_HARD", "Weapon Control (3)");
+    line("PLAYER_SHIP_HARD", "Door System (1)");
+    line("PLAYER_SHIP_HARD", "none (system not installed)");
+    line("PLAYER_SHIP_HARD_2", "none (requires system)");
+    line("PLAYER_SHIP_STEALTH", "none (and requires system)");
+    line("PLAYER_SHIP_MANTIS", "Starting Crew: 3 Mantis, 1 Engi");
+    line("PLAYER_SHIP_MANTIS", "Doors (1)");
+    line("PLAYER_SHIP_MANTIS", "Slots: 3 Weapon, 2 Drone (requires system)");
+    line("PLAYER_SHIP_MANTIS_2", "Default Name: The Basilisk");
+    line("PLAYER_SHIP_ENERGY_3", "none (requires system)");
+    line("PLAYER_SHIP_ENERGY_3", "Anti-Ship Beam Drone I");
+    line("PLAYER_SHIP_JELLY_3", "Starting crew: 3 Slug");
     assert.equal(
-      layouts.find((item) => item.id === "kestrel-a")?.figureFile,
+      layouts.find((item) => item.id === "PLAYER_SHIP_HARD")?.figureFile,
       "KestralASystems.png",
     );
-    assert.equal(layouts.find((item) => item.id === "kestrel-b")?.figureFile, "KestralB.png");
-    assert.equal(layouts.find((item) => item.id === "lanius-b")?.heading, "Layout B");
+    assert.equal(layouts.find((item) => item.id === "PLAYER_SHIP_HARD_2")?.figureFile, "KestralB.png");
+    assert.equal(layouts.find((item) => item.id === "PLAYER_SHIP_ANAEROBIC_2")?.heading, "Layout B");
     assert.equal(layouts.some((item) => item.id === "lanius-c"), false);
     assert.equal(layouts.some((item) => item.id === "crystal-c"), false);
   });

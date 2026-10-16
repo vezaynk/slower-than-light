@@ -21,9 +21,9 @@ function open(g: Game) {
 function quiet(g: Game) {
   assert.ok(g.enemy);
   for (const w of g.enemy.weapons) w.enabled = false;
-  if (g.enemy.kits.spike) {
-    g.enemy.kits.spike.on = false;
-    g.enemy.kits.spike.power = 0;
+  if (g.enemy.kits.hacking) {
+    g.enemy.kits.hacking.on = false;
+    g.enemy.kits.hacking.power = 0;
   }
 }
 

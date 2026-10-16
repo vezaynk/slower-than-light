@@ -11,12 +11,12 @@ import { droneDef, loadPack, resetPackForTests } from "@stl/pack";
 afterEach(() => resetPackForTests());
 
 function swarm(): Kit {
-  return { id: "swarm", level: 2, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "drones", level: 2, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 describe("drone listings", () => {
   it("stocks the packed name and cost in the same window", () => {
-    const striker = droneDef("striker");
+    const striker = droneDef("COMBAT_1");
     assert.ok(striker);
     loadPack({ drones: [{ ...striker, name: "Mark", cost: 80 }] }, "append");
     const g = createGame(1);
@@ -24,12 +24,12 @@ describe("drone listings", () => {
     const shelf = droneItems(g);
     assert.deepEqual(
       shelf.map((row) => row.ref),
-      ["striker", "combat2", "beam"],
+      ["COMBAT_1", "COMBAT_2", "COMBAT_BEAM"],
     );
     assert.equal(shelf[0]?.name, "Mark");
     assert.equal(shelf[0]?.cost, 80);
     assert.equal(shelf[0]?.detail, 'Drone Control, "Mark". Purchase price 80.');
-    const authored = CITED_DRONES.find((row) => row.ref === "striker");
+    const authored = CITED_DRONES.find((row) => row.ref === "COMBAT_1");
     assert.equal(authored?.name, "Combat Drone Mark I");
     assert.equal(authored?.cost, 50);
   });
@@ -41,16 +41,16 @@ describe("drone listings", () => {
     const shelf = droneItems(g);
     assert.deepEqual(
       shelf.map((row) => row.ref),
-      ["ember", "striker", "combat2"],
+      ["ember", "COMBAT_1", "COMBAT_2"],
     );
     assert.equal(shelf[0]?.name, "Ember");
     assert.equal(shelf[0]?.cost, 15);
     assert.equal(droneLine(g, "ember"), "Ember schematic stowed in cargo.");
     assert.deepEqual(g.cargo, [{ kind: "drone", id: "ember" }]);
-    assert.equal(g.player.kits.swarm, undefined);
+    assert.equal(g.player.kits.drones, undefined);
 
     const bought = createGame(1);
-    bought.player.kits.swarm = swarm();
+    bought.player.kits.drones = swarm();
     assert.equal(
       citedBuy(bought, {
         id: "drone-ember",
@@ -63,7 +63,7 @@ describe("drone listings", () => {
       }),
       true,
     );
-    assert.equal(bought.player.kits.swarm?.target, "ember");
-    assert.equal(droneDef("overchargerplus"), undefined);
+    assert.equal(bought.player.kits.drones?.target, "ember");
+    assert.equal(droneDef("DRONE_SHIELD_PLAYER"), undefined);
   });
 });

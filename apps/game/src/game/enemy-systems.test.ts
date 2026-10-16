@@ -21,7 +21,7 @@ describe("enemy subsystems: groundwork", () => {
         assert.deepEqual(spec.unwired.map((u) => u.id).filter((id) => id !== "artillery"), [], cls.id);
       }
     }
-    for (const kit of ["swarm", "spike", "veil", "sling", "cradle", "leash"]) assert.ok(seen.has(kit), kit);
+    for (const kit of ["drones", "hacking", "cloaking", "teleporter", "clonebay", "mind"]) assert.ok(seen.has(kit), kit);
   });
 
   it("sizes the reactor to the installed capacity", () => {
@@ -36,7 +36,7 @@ describe("enemy subsystems: groundwork", () => {
     for (const cls of ENEMY_CLASSES) {
       for (let i = 0; i < 12; i++) {
         const spec = rollEnemy(cls, false, ctx, seeded(i * 7 + 1));
-        assert.ok(!(spec.kits.cradle && spec.systems.medbay), cls.id);
+        assert.ok(!(spec.kits.clonebay && spec.systems.medbay), cls.id);
       }
     }
   });
@@ -48,9 +48,9 @@ describe("enemy subsystems: groundwork", () => {
       const g = createGame(seed);
       g.sector = 6;
       startCombat(g, "Crystal ship");
-      if (!g.enemy?.kits.veil) continue;
+      if (!g.enemy?.kits.cloaking) continue;
       step(g, 1 / 30);
-      cloaked ||= g.enemy.kits.veil.on;
+      cloaked ||= g.enemy.kits.cloaking.on;
       held ||= enemyHoldsFire(g);
     }
     assert.ok(cloaked, "no cloaking enemy rolled");

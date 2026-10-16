@@ -21,7 +21,7 @@ describe("Zoltan ship follows Mantis ship help", () => {
     // Wiki citations:
     // > "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends." — [[Zoltan ship follows Mantis ship]]
     // > "Fight a Mantis ship with crew entirely composed of Mantis." — [[Zoltan ship follows Mantis ship]]
-    const hp = kinOf("blade").hp;
+    const hp = kinOf("mantis").hp;
     const g = createGame(1);
     open(g);
     choose(g, "c:zoltan-ship-follows-mantis-ship:1");
@@ -32,7 +32,7 @@ describe("Zoltan ship follows Mantis ship help", () => {
     assert.equal(g.scrap, 10);
     const theirs = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(theirs.length > 0);
-    assert.ok(theirs.every((c) => c.kin === "blade" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
+    assert.ok(theirs.every((c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
     assert.ok(
       g.log.includes(
         "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends.",

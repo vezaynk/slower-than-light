@@ -75,7 +75,7 @@ function nearestSystem(ship: Ship, from: string): string[] {
 
 function place(g: Game, power = 3): Kit {
   const kit: Kit = {
-    id: "swarm",
+    id: "drones",
     level: 3,
     power,
     left: 0,
@@ -84,44 +84,44 @@ function place(g: Game, power = 3): Kit {
     on: false,
     aux: 0,
   };
-  g.player.kits.swarm = kit;
+  g.player.kits.drones = kit;
   g.player.parts = 2;
   return kit;
 }
 
-describe("swarm", () => {
+describe("drones", () => {
   it("refuses install when the page has no single store price", () => {
     const g = createGame(1);
     g.scrap = 999;
     assert.equal(INSTALL_SCRAP, null);
     assert.equal(installSwarm(g), false);
-    assert.equal(g.player.kits.swarm, undefined);
+    assert.equal(g.player.kits.drones, undefined);
     assert.equal(g.scrap, 999);
   });
 
   it("sells the repair bundle for 75 and any other schematic for 85", () => {
     const g = createGame(4);
     g.scrap = 80;
-    assert.equal(installSwarmBundle(g, "patch"), true);
+    assert.equal(installSwarmBundle(g, "REPAIR"), true);
     assert.equal(g.scrap, 5);
-    assert.equal(g.player.kits.swarm?.target, "patch");
-    assert.equal(g.player.kits.swarm?.level, 2);
-    assert.equal(installSwarmBundle(g, "ward"), false);
+    assert.equal(g.player.kits.drones?.target, "REPAIR");
+    assert.equal(g.player.kits.drones?.level, 2);
+    assert.equal(installSwarmBundle(g, "DEFENSE_1"), false);
     const other = createGame(5);
     other.scrap = 85;
-    assert.equal(installSwarmBundle(other, "ward"), true);
+    assert.equal(installSwarmBundle(other, "DEFENSE_1"), true);
     assert.equal(other.scrap, 0);
-    assert.equal(other.player.kits.swarm?.target, "ward");
+    assert.equal(other.player.kits.drones?.target, "DEFENSE_1");
     other.scrap = 84;
     const short = createGame(6);
     short.scrap = 74;
-    assert.equal(installSwarmBundle(short, "patch"), false);
+    assert.equal(installSwarmBundle(short, "REPAIR"), false);
   });
 
   it("defense drone intercepts a missile and then is on cooldown for 1s", () => {
     const g = createGame(2);
     const kit = place(g);
-    assert.equal(deploy(g, "ward"), true);
+    assert.equal(deploy(g, "DEFENSE_1"), true);
     assert.equal(g.player.parts, 1);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), true);
     assert.equal(kit.cool, 1);
@@ -139,7 +139,7 @@ describe("swarm", () => {
   it("does not intercept a laser", () => {
     const g = createGame(3);
     const kit = place(g);
-    deploy(g, "ward");
+    deploy(g, "DEFENSE_1");
     assert.equal(swarmIntercept(g, { kind: "laser", from: "enemy" }), false);
     assert.equal(kit.cool, 0);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), true);
@@ -148,9 +148,9 @@ describe("swarm", () => {
   it("mark II does intercept a laser", () => {
     const g = createGame(4);
     const kit = place(g);
-    assert.equal(deploy(g, "ward2"), true);
+    assert.equal(deploy(g, "DEFENSE_2"), true);
     assert.equal(swarmIntercept(g, { kind: "laser", from: "enemy" }), true);
-    assert.equal(kit.cool, DRONE_COOLDOWN_S.ward2);
+    assert.equal(kit.cool, DRONE_COOLDOWN_S.DEFENSE_2);
     assert.equal(swarmIntercept(g, { kind: "laser", from: "enemy" }), false);
     assert.equal(swarmIntercept(g, { kind: "ion", from: "enemy" }), false);
     tickSwarm(g, 1);
@@ -159,18 +159,18 @@ describe("swarm", () => {
   });
 
   it("a friendly defense drone shoots a Crystal Vengeance shard", () => {
-    for (const kind of ["ward", "ward2"] as const) {
+    for (const kind of ["DEFENSE_1", "DEFENSE_2"] as const) {
       const g = createGame(11);
       const kit = place(g);
       assert.equal(deploy(g, kind), true);
-      assert.equal(swarmIntercept(g, { kind: "laser", from: "player", defId: "vengeance" }), true);
+      assert.equal(swarmIntercept(g, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }), true);
       assert.equal(kit.cool, DRONE_COOLDOWN_S[kind]);
     }
     const combat = createGame(12);
     place(combat);
-    assert.equal(deploy(combat, "striker"), true);
-    assert.equal(swarmIntercept(combat, { kind: "laser", from: "player", defId: "vengeance" }), false);
-    assert.equal(combat.player.kits.swarm?.cool, 0);
+    assert.equal(deploy(combat, "COMBAT_1"), true);
+    assert.equal(swarmIntercept(combat, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }), false);
+    assert.equal(combat.player.kits.drones?.cool, 0);
   });
 
   it("spends that drone when a hull hit breaks off a shard", () => {
@@ -191,9 +191,9 @@ describe("swarm", () => {
       g.enemy.systems.engines.power = 0;
       g.enemy.shieldNow = 0;
       g.enemy.zoltan = 0;
-      g.augments = ["vengeance"];
+      g.augments = ["CRYSTAL_SHARDS"];
       place(g);
-      assert.equal(deploy(g, "ward"), true);
+      assert.equal(deploy(g, "DEFENSE_1"), true);
       const hull = g.enemy.hull;
       const room = g.player.rooms.find((item) => item.id === "p-weapons") ?? g.player.rooms[0];
       assert.ok(room);
@@ -221,7 +221,7 @@ describe("swarm", () => {
   it("ward shoots flak and an environmental asteroid", () => {
     const g = createGame(5);
     place(g);
-    deploy(g, "ward");
+    deploy(g, "DEFENSE_1");
     assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy" }), true);
     tickSwarm(g, 1);
     assert.equal(swarmIntercept(g, { kind: "laser", from: "env" }), true);
@@ -234,8 +234,8 @@ describe("swarm", () => {
     place(g);
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    assert.equal(deploy(g, "striker"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "COMBAT_1"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     // 180 degrees at Speed 15: a 2.3-unit chord at 15/21.875 units a second, then the 0.5 s pause.
     kit.heading = 0;
@@ -271,18 +271,18 @@ describe("swarm", () => {
   });
 
   it("keeps orbiting a cloaked enemy and does not fire until the cloak drops", () => {
-    for (const kind of ["striker", "combat2"] as const) {
-      const g = createGame(kind === "striker" ? 61 : 62);
+    for (const kind of ["COMBAT_1", "COMBAT_2"] as const) {
+      const g = createGame(kind === "COMBAT_1" ? 61 : 62);
       const kit = place(g, 4);
       startCombat(g, "scout");
       assert.ok(g.enemy);
       assert.equal(deploy(g, kind), true);
-      const speed = kind === "combat2" ? COMBAT2.speed : COMBAT1_SPEED;
+      const speed = kind === "COMBAT_2" ? COMBAT2.speed : COMBAT1_SPEED;
       kit.heading = 0;
       kit.bearing = 180;
       kit.left = orbitLegSeconds(0, 180, speed);
       kit.aux = 0;
-      g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+      g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
       const heading = kit.heading;
       const bearing = kit.bearing;
       g.shots = [];
@@ -295,7 +295,7 @@ describe("swarm", () => {
       assert.equal(swarmCombatShots(g).length, 0, kind);
       assert.notEqual(kit.heading, heading, kind);
       assert.notEqual(kit.bearing, bearing, kind);
-      g.enemy.kits.veil.on = false;
+      g.enemy.kits.cloaking.on = false;
       const next = kit.left ?? 0;
       assert.ok(next > 0, kind);
       tickSwarm(g, next);
@@ -311,7 +311,7 @@ describe("swarm", () => {
     const g = createGame(7);
     const kit = place(g);
     g.player.parts = 0;
-    assert.equal(deploy(g, "ward"), false);
+    assert.equal(deploy(g, "DEFENSE_1"), false);
     assert.equal(g.player.parts, 0);
     assert.equal(kit.on, false);
     assert.equal(kit.target, null);
@@ -320,7 +320,7 @@ describe("swarm", () => {
   it("an underpowered ward does not intercept", () => {
     const g = createGame(8);
     place(g, 1);
-    assert.equal(deploy(g, "ward"), true);
+    assert.equal(deploy(g, "DEFENSE_1"), true);
     assert.equal(g.player.parts, 1);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), false);
   });
@@ -331,8 +331,8 @@ describe("swarm", () => {
     startCombat(g, "scout");
     assert.ok(g.enemy);
     assert.ok(g.enemy.shieldNow > 0);
-    assert.equal(DRONE_POWER.beam, 2);
-    assert.equal(deploy(g, "beam"), true);
+    assert.equal(DRONE_POWER.COMBAT_BEAM, 2);
+    assert.equal(deploy(g, "COMBAT_BEAM"), true);
     const hull = g.enemy.hull;
     const shields = g.enemy.shieldNow;
     const bars = Object.values(g.enemy.systems).reduce((sum, sys) => sum + sys.damage, 0);
@@ -355,13 +355,13 @@ describe("swarm", () => {
     startCombat(g, "scout");
     assert.ok(g.enemy);
     g.enemy.shieldNow = 0;
-    assert.equal(deploy(g, "beam"), true);
+    assert.equal(deploy(g, "COMBAT_BEAM"), true);
     const hull = g.enemy.hull;
     // The swipe picks one room. A traced hull has halls, so pin the swipe to a system room.
     const systemRoom = g.enemy.rooms.find((r) => r.system);
     assert.ok(systemRoom?.system);
     g.enemy.rooms = [systemRoom];
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     // Beam speed 3 is not the wait. Speed 15 is the flight.
     pinLeg(kit, BEAM1_SPEED);
@@ -387,10 +387,10 @@ describe("swarm", () => {
     assert.ok(systemRoom?.system);
     const system = systemRoom.system;
     g.enemy.rooms = [systemRoom];
-    assert.equal(deploy(g, "beam"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "COMBAT_BEAM"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
-    g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     const hull = g.enemy.hull;
     const damage = g.enemy.systems[system].damage;
     pinLeg(kit, BEAM1_SPEED);
@@ -406,7 +406,7 @@ describe("swarm", () => {
     assert.equal(g.enemy.systems[system].damage, damage);
     assert.equal(g.enemy.zoltan, 0);
     assert.equal(kit.heading, 90);
-    g.enemy.kits.veil.on = false;
+    g.enemy.kits.cloaking.on = false;
     pinLeg(kit, BEAM1_SPEED);
     tickSwarm(g, kit.left ?? 0);
     assert.equal(g.enemy.hull, hull - 1);
@@ -419,8 +419,8 @@ describe("swarm", () => {
     assert.ok(g.enemy);
     g.enemy.zoltan = 2;
     g.enemy.shieldNow = 0;
-    assert.equal(deploy(g, "beam"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "COMBAT_BEAM"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     const hull = g.enemy.hull;
     pinLeg(kit, BEAM1_SPEED);
@@ -442,7 +442,7 @@ describe("swarm", () => {
     startCombat(g, "scout");
     assert.ok(g.enemy);
     g.enemy.shieldNow = 0;
-    deploy(g, "beam");
+    deploy(g, "COMBAT_BEAM");
     tickSwarm(g, 3 * 80);
     const fires = g.enemy.rooms.reduce((sum, r) => sum + r.fire, 0);
     assert.ok(fires > 0);
@@ -455,7 +455,7 @@ describe("swarm", () => {
     startCombat(g, "scout");
     assert.ok(g.enemy);
     g.enemy.shieldNow = 0;
-    assert.equal(deploy(g, "beam"), true);
+    assert.equal(deploy(g, "COMBAT_BEAM"), true);
     const hull = g.enemy.hull;
     tickSwarm(g, 3);
     assert.equal(g.enemy.hull, hull);
@@ -466,9 +466,9 @@ describe("swarm", () => {
     place(g);
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    assert.equal(DRONE_POWER.board, 3);
+    assert.equal(DRONE_POWER.BOARDER, 3);
     assert.ok(g.enemy.shieldNow > 0);
-    assert.equal(deploy(g, "board"), true);
+    assert.equal(deploy(g, "BOARDER"), true);
     const shields = g.enemy.shieldNow;
     const hull = g.enemy.hull;
     const hp = () =>
@@ -483,7 +483,7 @@ describe("swarm", () => {
     assert.ok(once >= 3 && once <= 7, String(once));
     assert.equal(g.enemy.shieldNow, shields);
     assert.equal(g.enemy.hull, hull);
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     assert.ok(kit?.room);
     const landed = g.enemy.rooms.find((r) => r.id === kit.room);
     assert.ok(landed);
@@ -502,10 +502,10 @@ describe("swarm", () => {
     place(g);
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    assert.equal(deploy(g, "board"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "BOARDER"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
-    g.enemy.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     const shields = g.enemy.shieldNow;
     const hull = g.enemy.hull;
     const hp = () =>
@@ -519,7 +519,7 @@ describe("swarm", () => {
       g.enemy.rooms.reduce((sum, r) => sum + r.breach, 0),
       breachBefore,
     );
-    g.enemy.kits.veil.on = false;
+    g.enemy.kits.cloaking.on = false;
     tickSwarm(g, 1);
     const dealt = before - hp();
     assert.ok(dealt >= 3 && dealt <= 7, String(dealt));
@@ -545,7 +545,7 @@ describe("swarm", () => {
     friend.room = g.enemy.rooms[0]!.id;
     const friendHp = friend.hp;
     g.crew = g.crew.filter((c) => c.side !== "enemy");
-    assert.equal(deploy(g, "board"), true);
+    assert.equal(deploy(g, "BOARDER"), true);
     const hull = g.enemy.hull;
     const bars = () => Object.values(g.enemy!.systems).reduce((sum, sys) => sum + sys.damage, 0);
     // Crew skills, Combat skill: 12.5 seconds per bar. The arrival second is still flight.
@@ -567,9 +567,9 @@ describe("swarm", () => {
     place(g);
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    assert.equal(deploy(g, "board"), true);
+    assert.equal(deploy(g, "BOARDER"), true);
     tickSwarm(g, 1);
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     assert.ok(kit?.room);
     const from = kit.room;
     const room = g.enemy.rooms.find((r) => r.id === from);
@@ -593,7 +593,7 @@ describe("swarm", () => {
     place(g, 2);
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    assert.equal(deploy(g, "board"), true);
+    assert.equal(deploy(g, "BOARDER"), true);
     const hp = g.crew.filter((c) => c.side === "enemy").reduce((sum, c) => sum + c.hp, 0);
     tickSwarm(g, 2);
     assert.equal(
@@ -607,7 +607,7 @@ describe("swarm", () => {
     place(g, 1);
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    assert.equal(DRONE_POWER.patch, 1);
+    assert.equal(DRONE_POWER.REPAIR, 1);
     const weapons = g.player.rooms.find((room) => room.system === "weapons")!;
     g.player.systems.weapons.damage = 1;
     g.player.systems.weapons.fix = 0;
@@ -615,12 +615,12 @@ describe("swarm", () => {
     weapons.o2 = 0;
     const power = g.player.systems.weapons.power;
     const playerHull = g.player.hull;
-    assert.equal(deploy(g, "patch"), true);
+    assert.equal(deploy(g, "REPAIR"), true);
     assert.equal(g.player.parts, 1);
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     assert.equal(kit.on, true);
-    assert.equal(kit.target, "patch");
+    assert.equal(kit.target, "REPAIR");
     kit.room = weapons.id;
     kit.path = [];
     tickSwarm(g, 6.24);
@@ -641,8 +641,8 @@ describe("swarm", () => {
   it("walks to a fire before a damaged Shields room, and to Oxygen when the air is under 25%", () => {
     const g = createGame(18);
     place(g, 1);
-    assert.equal(deploy(g, "patch"), true);
-    const kit = g.player.kits.swarm!;
+    assert.equal(deploy(g, "REPAIR"), true);
+    const kit = g.player.kits.drones!;
     const weapons = g.player.rooms.find((room) => room.system === "weapons")!;
     const shields = g.player.rooms.find((room) => room.system === "shields")!;
     const oxygen = g.player.rooms.find((room) => room.system === "oxygen")!;
@@ -683,8 +683,8 @@ describe("swarm", () => {
   it("breaks a shut blast door at two hits a second, then walks through", () => {
     const g = createGame(19);
     place(g, 1);
-    assert.equal(deploy(g, "patch"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "REPAIR"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     const weapons = g.player.rooms.find((room) => room.system === "weapons");
     const shields = g.player.rooms.find((room) => room.system === "shields");
@@ -729,8 +729,8 @@ describe("swarm", () => {
     // Door System: without blast doors, drones move freely. The door stays shut.
     const g = createGame(21);
     place(g, 1);
-    assert.equal(deploy(g, "patch"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "REPAIR"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     const weapons = g.player.rooms.find((room) => room.system === "weapons");
     const shields = g.player.rooms.find((room) => room.system === "shields");
@@ -774,15 +774,15 @@ describe("swarm", () => {
     place(g, 2);
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    assert.equal(DRONE_POWER.hull, 2);
+    assert.equal(DRONE_POWER.SHIP_REPAIR, 2);
     g.player.hull = 4;
     g.enemy.hull = 3;
-    assert.equal(deploy(g, "hull"), true);
+    assert.equal(deploy(g, "SHIP_REPAIR"), true);
     assert.equal(g.player.parts, 1);
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     assert.equal(kit.on, true);
-    assert.equal(kit.target, "hull");
+    assert.equal(kit.target, "SHIP_REPAIR");
     assert.ok(kit.left >= 3 && kit.left <= 5);
     kit.left = 3;
     kit.aux = 0;
@@ -803,8 +803,8 @@ describe("swarm", () => {
     const g = createGame(21);
     place(g, 2);
     g.player.hull = g.player.hullMax - 1;
-    assert.equal(deploy(g, "hull"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "SHIP_REPAIR"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     kit.left = 5;
     kit.aux = 0;
@@ -816,8 +816,8 @@ describe("swarm", () => {
     const dropped = createGame(22);
     place(dropped, 2);
     dropped.player.hull = 4;
-    assert.equal(deploy(dropped, "hull"), true);
-    const off = dropped.player.kits.swarm;
+    assert.equal(deploy(dropped, "SHIP_REPAIR"), true);
+    const off = dropped.player.kits.drones;
     assert.ok(off);
     const parts = dropped.player.parts;
     off.power = 0;
@@ -828,7 +828,7 @@ describe("swarm", () => {
     assert.equal(off.lost ?? 0, 0);
     assert.equal(dropped.player.parts, parts);
     off.power = 2;
-    assert.equal(deploy(dropped, "hull"), true);
+    assert.equal(deploy(dropped, "SHIP_REPAIR"), true);
     assert.equal(dropped.player.parts, parts - 1);
   });
 
@@ -836,9 +836,9 @@ describe("swarm", () => {
     const g = createGame(24);
     place(g, 2);
     g.player.hull = 4;
-    g.augments = ["recover"];
-    assert.equal(deploy(g, "hull"), true);
-    const kit = g.player.kits.swarm;
+    g.augments = ["DRONE_RECOVERY"];
+    assert.equal(deploy(g, "SHIP_REPAIR"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     kit.left = 5;
     kit.aux = 0;
@@ -853,9 +853,9 @@ describe("swarm", () => {
     const done = createGame(25);
     place(done, 2);
     done.player.hull = 4;
-    done.augments = ["recover"];
-    assert.equal(deploy(done, "hull"), true);
-    const dead = done.player.kits.swarm;
+    done.augments = ["DRONE_RECOVERY"];
+    assert.equal(deploy(done, "SHIP_REPAIR"), true);
+    const dead = done.player.kits.drones;
     assert.ok(dead);
     dead.left = 3;
     dead.aux = 0;
@@ -881,7 +881,7 @@ describe("swarm", () => {
 
     const repair = createGame(27);
     const patch = place(repair, 1);
-    patch.target = "patch";
+    patch.target = "REPAIR";
     patch.on = true;
     patch.aux = 2;
     onPlayerJump(repair);
@@ -890,7 +890,7 @@ describe("swarm", () => {
 
     const combat = createGame(28);
     const striker = place(combat, 2);
-    striker.target = "striker";
+    striker.target = "COMBAT_1";
     striker.on = true;
     striker.aux = 4;
     onPlayerJump(combat);
@@ -901,15 +901,15 @@ describe("swarm", () => {
   it("sticks to the system it was standing in when power returns, then walks home", () => {
     const g = createGame(23);
     place(g, 1);
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     assert.ok(kit);
-    assert.equal(deploy(g, "patch"), true);
+    assert.equal(deploy(g, "REPAIR"), true);
     assert.equal(kit.hp, 25);
     const shields = g.player.rooms.find((room) => room.system === "shields");
     const oxygen = g.player.rooms.find((room) => room.system === "oxygen");
     const sensors = g.player.rooms.find((room) => room.system === "sensors");
     assert.ok(shields && oxygen && sensors);
-    sensors.kit = "swarm";
+    sensors.kit = "drones";
     for (const room of g.player.rooms) room.o2 = 20;
     g.player.systems.shields.damage = 1;
     g.player.systems.oxygen.damage = 1;
@@ -980,9 +980,9 @@ describe("swarm", () => {
       if (door.b !== "void") door.open = true;
     }
     enemy.systems[dest.system].damage = 1;
-    const patch = unit({ id: "ed-walk", kind: "patch", hp: 20, room: start.id, powered: true });
-    enemy.kits.swarm = {
-      id: "swarm",
+    const patch = unit({ id: "ed-walk", kind: "REPAIR", hp: 20, room: start.id, powered: true });
+    enemy.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -990,7 +990,7 @@ describe("swarm", () => {
       target: null,
       on: true,
       aux: 0,
-      loadout: ["patch"],
+      loadout: ["REPAIR"],
       drones: [patch],
     };
     enemy.parts = 3;
@@ -1013,8 +1013,8 @@ describe("swarm", () => {
   it("a redeployed repair drone ignores fires in other rooms until Drone Control is repaired", () => {
     const g = createGame(21);
     place(g, 2);
-    assert.equal(deploy(g, "patch"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "REPAIR"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     const weapons = g.player.rooms.find((room) => room.system === "weapons");
     const shields = g.player.rooms.find((room) => room.system === "shields");
@@ -1036,7 +1036,7 @@ describe("swarm", () => {
     assert.equal(kit.coldFires, true);
     assert.equal(kit.lost, REDEPLOY_S);
     kit.lost = 0;
-    assert.equal(deploy(g, "patch"), true);
+    assert.equal(deploy(g, "REPAIR"), true);
     assert.equal(kit.coldFires, true);
     kit.room = weapons.id;
     kit.path = [];
@@ -1078,9 +1078,9 @@ describe("swarm", () => {
     for (const door of enemy.doors) {
       if (door.b !== "void") door.open = true;
     }
-    const patch = unit({ id: "ed-cold", kind: "patch", hp: 1, room: start.id });
-    enemy.kits.swarm = {
-      id: "swarm",
+    const patch = unit({ id: "ed-cold", kind: "REPAIR", hp: 1, room: start.id });
+    enemy.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -1089,7 +1089,7 @@ describe("swarm", () => {
       on: true,
       aux: 0,
       damage: 1,
-      loadout: ["patch"],
+      loadout: ["REPAIR"],
       drones: [patch],
     };
     enemy.parts = 3;
@@ -1107,7 +1107,7 @@ describe("swarm", () => {
     assert.equal(patch.coldFires, true);
     assert.equal(patch.path?.[patch.path.length - 1], dest.id);
     assert.equal(burn.fire, 1);
-    enemy.kits.swarm.damage = 0;
+    enemy.kits.drones.damage = 0;
     patch.path = [];
     patch.room = start.id;
     tickSwarm(g, 0.01);
@@ -1118,8 +1118,8 @@ describe("swarm", () => {
   it("finishes the system bar already underway after a killing hit, then breaks apart", () => {
     const g = createGame(27);
     place(g, 2);
-    assert.equal(deploy(g, "patch"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "REPAIR"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     const weapons = g.player.rooms.find((room) => room.system === "weapons");
     assert.ok(weapons);
@@ -1150,8 +1150,8 @@ describe("swarm", () => {
   it("dies at once in a fire or a breach and does not keep working that room", () => {
     const fire = createGame(28);
     place(fire, 2);
-    assert.equal(deploy(fire, "patch"), true);
-    const burning = fire.player.kits.swarm;
+    assert.equal(deploy(fire, "REPAIR"), true);
+    const burning = fire.player.kits.drones;
     assert.ok(burning);
     const weapons = fire.player.rooms.find((room) => room.system === "weapons");
     assert.ok(weapons);
@@ -1169,8 +1169,8 @@ describe("swarm", () => {
 
     const breached = createGame(29);
     place(breached, 2);
-    assert.equal(deploy(breached, "patch"), true);
-    const kit = breached.player.kits.swarm;
+    assert.equal(deploy(breached, "REPAIR"), true);
+    const kit = breached.player.kits.drones;
     assert.ok(kit);
     const shields = breached.player.rooms.find((room) => room.system === "shields");
     assert.ok(shields);
@@ -1198,9 +1198,9 @@ describe("swarm", () => {
     const sys = enemy.systems[dest.system];
     sys.damage = 2;
     sys.fix = REPAIR_SECONDS - 2;
-    const patch = unit({ id: "ed-dying", kind: "patch", hp: 20, room: dest.id, powered: true });
-    enemy.kits.swarm = {
-      id: "swarm",
+    const patch = unit({ id: "ed-dying", kind: "REPAIR", hp: 20, room: dest.id, powered: true });
+    enemy.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -1208,7 +1208,7 @@ describe("swarm", () => {
       target: null,
       on: true,
       aux: 0,
-      loadout: ["patch"],
+      loadout: ["REPAIR"],
       drones: [patch],
     };
     enemy.parts = 3;
@@ -1253,8 +1253,8 @@ describe("Ion Intruder body", () => {
     startCombat(g, "scout");
     const enemy = g.enemy;
     assert.ok(enemy);
-    assert.equal(deploy(g, "ionintruder"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "BOARDER_ION"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     assert.equal(kit.hp, 125);
     const room = enemy.rooms.find((item) => item.system);
@@ -1280,8 +1280,8 @@ describe("Ion Intruder body", () => {
     startCombat(g, "scout");
     const enemy = g.enemy;
     assert.ok(enemy);
-    assert.equal(deploy(g, "ionintruder"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "BOARDER_ION"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     const room = enemy.rooms.find((item) => item.system);
     assert.ok(room?.system);
@@ -1348,8 +1348,8 @@ describe("Ion Intruder body", () => {
     const g = createGame(42);
     place(g, 3);
     startCombat(g, "scout");
-    assert.equal(deploy(g, "ionintruder"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "BOARDER_ION"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     const room = g.enemy?.rooms.find((item) => item.system);
     assert.ok(room);
@@ -1366,7 +1366,7 @@ describe("Ion Intruder body", () => {
     foe.stun = 0;
     foe.leashed = undefined;
     // A Human: the pirate crew is rolled from the sector's races, and an Engi hits for half.
-    foe.kin = "plain";
+    foe.kin = "human";
     // One untrained blow is 3 to 7 HP. 125 HP takes more than one blow, then the drone waits out the redeploy.
     tickSwarm(g, 1);
     assert.equal(kit.on, true);
@@ -1382,8 +1382,8 @@ describe("Ion Intruder body", () => {
       const g = createGame(42);
       place(g, 3);
       startCombat(g, "scout");
-      assert.equal(deploy(g, "ionintruder"), true);
-      const kit = g.player.kits.swarm;
+      assert.equal(deploy(g, "BOARDER_ION"), true);
+      const kit = g.player.kits.drones;
       assert.ok(kit);
       const room = g.enemy?.rooms.find((item) => item.system);
       assert.ok(room);
@@ -1398,7 +1398,7 @@ describe("Ion Intruder body", () => {
       foe.path = [];
       foe.stun = 0;
       foe.leashed = undefined;
-      foe.kin = "plain";
+      foe.kin = "human";
       foe.skills = { combat: xp };
       const before = kit.hp ?? 0;
       tickSwarm(g, 1);
@@ -1442,21 +1442,21 @@ describe("on-board drone damage", () => {
     const room = enemy.rooms.find((item) => item.system);
     const other = enemy.rooms.find((item) => item.id !== room?.id);
     assert.ok(room && other);
-    assert.equal(deploy(g, "ionintruder"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "BOARDER_ION"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     kit.room = room.id;
     kit.hp = 125;
-    const patch = unit({ id: "ed-patch", kind: "patch", hp: 25, room: room.id });
-    const away = unit({ id: "ed-away", kind: "patch", hp: 25, room: other.id });
-    const flying = unit({ id: "ed-fly", kind: "ionintruder", hp: 125, room: room.id, fly: 1 });
-    enemy.kits.swarm = {
-      id: "swarm",
+    const patch = unit({ id: "ed-patch", kind: "REPAIR", hp: 25, room: room.id });
+    const away = unit({ id: "ed-away", kind: "REPAIR", hp: 25, room: other.id });
+    const flying = unit({ id: "ed-fly", kind: "BOARDER_ION", hp: 125, room: room.id, fly: 1 });
+    enemy.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "patch",
+      target: "REPAIR",
       on: true,
       aux: 0,
       drones: [patch, away, flying],
@@ -1484,8 +1484,8 @@ describe("on-board drone damage", () => {
     const room = enemy.rooms.find((item) => item.system);
     const playerRoom = g.player.rooms.find((item) => item.system);
     assert.ok(room && playerRoom);
-    assert.equal(deploy(g, "ionintruder"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "BOARDER_ION"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     kit.room = room.id;
     kit.hp = 7;
@@ -1495,7 +1495,7 @@ describe("on-board drone damage", () => {
         kind: "beam",
         from: "player",
         damage: 2,
-        defId: "halberd",
+        defId: "BEAM_2",
         targetRoom: room.id,
         beamRooms: [room.id],
       }),
@@ -1504,17 +1504,17 @@ describe("on-board drone damage", () => {
     assert.ok(g.log.some((line) => /destroys the drone/.test(line)));
 
     kit.on = true;
-    kit.target = "ionintruder";
+    kit.target = "BOARDER_ION";
     kit.room = playerRoom.id;
     kit.hp = 125;
-    const board = unit({ id: "ed-board", kind: "board", hp: 150, room: playerRoom.id });
-    enemy.kits.swarm = {
-      id: "swarm",
+    const board = unit({ id: "ed-board", kind: "BOARDER", hp: 150, room: playerRoom.id });
+    enemy.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "board",
+      target: "BOARDER",
       on: true,
       aux: 0,
       drones: [board],
@@ -1534,7 +1534,7 @@ describe("Zoltans drone depower", () => {
     const kit = place(g, 0);
     kit.zoltan = 2;
     const parts = g.player.parts;
-    assert.equal(deploy(g, "ward"), true);
+    assert.equal(deploy(g, "DEFENSE_1"), true);
     assert.equal(depowerDrone(g), false);
     assert.equal(kit.on, true);
     assert.equal(kit.idle, undefined);
@@ -1545,7 +1545,7 @@ describe("Zoltans drone depower", () => {
     assert.equal(kit.on, true);
     assert.equal(kit.idle, true);
     const spent = g.player.parts;
-    assert.equal(deploy(g, "ward"), true);
+    assert.equal(deploy(g, "DEFENSE_1"), true);
     assert.equal(kit.idle, undefined);
     assert.equal(g.player.parts, spent);
 
@@ -1561,10 +1561,10 @@ describe("drone schematic activation", () => {
     // Drone Control, Overview: activating spends one part only when the drone is not already deployed.
     const g = createGame(8);
     const kit = place(g, 2);
-    kit.target = "striker";
+    kit.target = "COMBAT_1";
     assert.equal(activateDroneSlot(g, 0), true);
     assert.equal(kit.on, true);
-    assert.equal(kit.target, "striker");
+    assert.equal(kit.target, "COMBAT_1");
     assert.equal(g.player.parts, 1);
     assert.equal(activateDroneSlot(g, 0), true);
     assert.equal(g.player.parts, 1);
@@ -1577,9 +1577,9 @@ describe("drone schematic activation", () => {
     const g = createGame(9);
     const kit = place(g, 3);
     kit.target = null;
-    kit.loadout = ["ward", "striker"];
+    kit.loadout = ["DEFENSE_1", "COMBAT_1"];
     assert.equal(activateDroneSlot(g, 1), true);
-    assert.equal(kit.target, "striker");
+    assert.equal(kit.target, "COMBAT_1");
     assert.equal(g.player.parts, 1);
     depowerDrone(g);
     assert.equal(kit.idle, true);
@@ -1592,10 +1592,10 @@ describe("drone schematic activation", () => {
 describe("Engi B paired System Repair drones", () => {
   it("fits both schematics, spends one part each, and repairs two rooms at once", () => {
     // The Engi Cruiser, Layout B: System Repair Drone (x2). Each activation spends one part.
-    const g = createGame(3, "engi-b");
-    const kit = g.player.kits.swarm;
+    const g = createGame(3, "PLAYER_SHIP_CIRCLE_2");
+    const kit = g.player.kits.drones;
     assert.ok(kit);
-    assert.deepEqual(kit.loadout, ["patch", "patch"]);
+    assert.deepEqual(kit.loadout, ["REPAIR", "REPAIR"]);
     kit.power = 2;
     const parts = g.player.parts;
     assert.equal(activateDroneSlot(g, 0), true);
@@ -1605,7 +1605,7 @@ describe("Engi B paired System Repair drones", () => {
     assert.equal(g.player.parts, parts - 2);
     const units = kit.drones ?? [];
     assert.equal(units.length, 2);
-    assert.equal(units.every((unit) => unit.alive && unit.kind === "patch"), true);
+    assert.equal(units.every((unit) => unit.alive && unit.kind === "REPAIR"), true);
     const weapons = g.player.rooms.find((room) => room.system === "weapons");
     const shields = g.player.rooms.find((room) => room.system === "shields");
     assert.ok(weapons && shields);
@@ -1631,8 +1631,8 @@ describe("Engi B paired System Repair drones", () => {
   });
 
   it("powers only the first repair drone when one bar is fed", () => {
-    const g = createGame(4, "engi-b");
-    const kit = g.player.kits.swarm;
+    const g = createGame(4, "PLAYER_SHIP_CIRCLE_2");
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     assert.equal(kit.power, 1);
     assert.equal(activateDroneSlot(g, 0), true);

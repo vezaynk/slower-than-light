@@ -38,9 +38,9 @@ function settle(g: Game, seconds: number) {
 describe("Lanius oxygen drain (a breach-sized hole, air.ts)", () => {
   it("drains its room like one breach, and does more than a breathing crew member", () => {
     assert.equal(LANIUS_HOLE_C, BREACH_C);
-    const run = (kin: "voidlung" | "plain") => {
+    const run = (kin: "anaerobic" | "human") => {
       const g = combat();
-      for (const c of g.crew) c.kin = "plain";
+      for (const c of g.crew) c.kin = "human";
       const lan = crewOn(g, "player");
       lan.kin = kin;
       const r = roomOf(g, lan);
@@ -49,19 +49,19 @@ describe("Lanius oxygen drain (a breach-sized hole, air.ts)", () => {
       settle(g, 1);
       return r.o2;
     };
-    assert.ok(run("voidlung") < run("plain"));
+    assert.ok(run("anaerobic") < run("human"));
   });
 
   it("stacks per Lanius in the same room", () => {
     const run = (n: 1 | 2) => {
       const g = combat();
-      for (const c of g.crew) c.kin = "plain";
+      for (const c of g.crew) c.kin = "human";
       const a = crewOn(g, "player");
       const b = g.crew.find((x) => x !== a && x.aboard === "player" && x.hp > 0);
       assert.ok(b);
       b.room = a.room;
-      a.kin = "voidlung";
-      b.kin = n === 2 ? "voidlung" : "plain";
+      a.kin = "anaerobic";
+      b.kin = n === 2 ? "anaerobic" : "human";
       const r = roomOf(g, a);
       r.o2 = 100;
       settle(g, 1);
@@ -71,9 +71,9 @@ describe("Lanius oxygen drain (a breach-sized hole, air.ts)", () => {
   });
 
   it("drains the enemy ship when a Lanius boards it, and never goes below 0", () => {
-    const run = (kin: "voidlung" | "plain") => {
+    const run = (kin: "anaerobic" | "human") => {
       const g = combat();
-      for (const c of g.crew) c.kin = "plain";
+      for (const c of g.crew) c.kin = "human";
       const lan = crewOn(g, "player");
       lan.kin = kin;
       lan.aboard = "enemy";
@@ -85,16 +85,16 @@ describe("Lanius oxygen drain (a breach-sized hole, air.ts)", () => {
       settle(g, 3);
       return target.o2;
     };
-    const drained = run("voidlung");
-    assert.ok(drained < run("plain"), `${drained}`);
+    const drained = run("anaerobic");
+    assert.ok(drained < run("human"), `${drained}`);
     assert.ok(drained >= 0);
   });
 
   it("dead Lanius do not drain", () => {
     const g = combat();
-    for (const c of g.crew) c.kin = "plain";
+    for (const c of g.crew) c.kin = "human";
     const lan = crewOn(g, "player");
-    lan.kin = "voidlung";
+    lan.kin = "anaerobic";
     lan.hp = 0;
     const r = roomOf(g, lan);
     for (const c of g.crew) if (c !== lan && c.room === r.id) c.room = g.player.rooms.find((x) => x.id !== r.id)!.id;
@@ -115,9 +115,9 @@ describe("Human experience requirements", () => {
   });
 
   it("humans (plain or no kin) rank up sooner; others use the base table", () => {
-    const human = { kin: "plain" } as Crew;
+    const human = { kin: "human" } as Crew;
     const baseline = {} as Crew;
-    const engi = { kin: "shell" } as Crew;
+    const engi = { kin: "engi" } as Crew;
     assert.ok(isHuman(human) && isHuman(baseline) && !isHuman(engi));
     assert.equal(skillRank(13, xpNeedFor(human, "pilot")), 1);
     assert.equal(skillRank(13, xpNeedFor(engi, "pilot")), 0);

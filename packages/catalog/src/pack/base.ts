@@ -65,15 +65,15 @@ function crewRow(id: KinId): CrewDef {
     fight: kin.fight,
     suffocate: kin.suffocate,
     fireTaken: kin.fireTaken,
-    bonusPower: id === "spark" ? 1 : 0,
-    hasDeathExplosion: id === "spark",
-    drainsOxygen: id === "voidlung",
-    detectsLifeforms: id === "gel",
-    resistsMindControl: id === "gel",
-    lockdown: id === "shard",
-    lockCooldown: id === "shard" ? 50 : 0,
+    bonusPower: id === "energy" ? 1 : 0,
+    hasDeathExplosion: id === "energy",
+    drainsOxygen: id === "anaerobic",
+    detectsLifeforms: id === "slug",
+    resistsMindControl: id === "slug",
+    lockdown: id === "crystal",
+    lockCooldown: id === "crystal" ? 50 : 0,
     fireRepairMultiplier:
-      id === "stone" ? rockExtinguishScale() : id === "shard" ? crystalExtinguishScale() : 1,
+      id === "rock" ? rockExtinguishScale() : id === "crystal" ? crystalExtinguishScale() : 1,
   };
 }
 
@@ -359,6 +359,7 @@ function hullRow(spec: HullSpec): HullDef {
     if (kit.target !== undefined) copy.target = kit.target;
     if (kit.loadout) copy.loadout = [...kit.loadout];
     if (kit.on !== undefined) copy.on = kit.on;
+    if (kit.weapon) copy.weapon = kit.weapon;
     kits[id] = copy;
   }
   return {
@@ -386,7 +387,7 @@ function weaponRow(id: string): WeaponBlueprint {
   const row: WeaponBlueprint = { ...WEAPONS[id] };
   if (Object.prototype.hasOwnProperty.call(BEAM_TILES, id)) row.lengthTiles = BEAM_TILES[id];
   if (Object.prototype.hasOwnProperty.call(BEAM_SPEED, id)) row.speed = BEAM_SPEED[id];
-  if (id === "shear") row.crewDamage = BEAM_CREW.pike;
+  if (id === "BEAM_LONG") row.crewDamage = BEAM_CREW.BEAM_LONG;
   else if (Object.prototype.hasOwnProperty.call(BEAM_CREW, id)) row.crewDamage = BEAM_CREW[id];
   return row;
 }

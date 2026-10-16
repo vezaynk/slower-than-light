@@ -11,7 +11,7 @@ import type { HullSpec } from "../hulls.ts";
 
 export const MANTIS_HULLS: HullSpec[] = [
   {
-    id: "mantis-a",
+    id: "PLAYER_SHIP_MANTIS",
     cruiser: "Mantis Cruiser",
     layout: "A",
     name: "The Gila Monster",
@@ -38,21 +38,21 @@ export const MANTIS_HULLS: HullSpec[] = [
       pilot: [1, 1],
       doors: [1, 1],
     },
-    weapons: ["smallbomb", "spark"],
+    weapons: ["BOMB_1", "LASER_BURST_1"],
     // Seating is INFERRED. Wiki page "The Mantis Cruiser", section "Layout A": Starting Crew: 3 Mantis, 1 Engi. No chairs are assigned.
     crew: [
-      { kin: "blade", room: "p-pilot" },
-      { kin: "blade", room: "p-engines" },
-      { kin: "blade", room: "p-weapons" },
-      { kin: "shell", room: "p-shields" },
+      { kin: "mantis", room: "p-pilot" },
+      { kin: "mantis", room: "p-engines" },
+      { kin: "mantis", room: "p-weapons" },
+      { kin: "engi", room: "p-shields" },
     ],
     // Wiki page "The Mantis Cruiser", section "Layout A": Teleporter (1). Medbay power is the bar left empty. INFERRED.
-    kits: { sling: { level: 1, power: 1 } },
-    augments: ["pheromone"],
+    kits: { teleporter: { level: 1, power: 1 } },
+    augments: ["CREW_STIMS"],
     unfitted: [],
   },
   {
-    id: "mantis-b",
+    id: "PLAYER_SHIP_MANTIS_2",
     cruiser: "Mantis Cruiser",
     layout: "B",
     name: "The Basilisk",
@@ -82,23 +82,23 @@ export const MANTIS_HULLS: HullSpec[] = [
     weapons: [],
     // Seating is INFERRED. Wiki page "The Mantis Cruiser", section "Layout B": Starting Crew: 2 Mantis. No chairs are assigned.
     crew: [
-      { kin: "blade", room: "p-pilot" },
-      { kin: "blade", room: "p-engines" },
+      { kin: "mantis", room: "p-pilot" },
+      { kin: "mantis", room: "p-engines" },
     ],
     kits: {
       // Wiki page "The Mantis Cruiser", section "Layout B": Drones (3); Starting Drones: Boarding Drone, Defense Drone I.
       // Both schematics are fitted (loadout). Boarding Drone is the one deployed first and takes the 3 power. INFERRED:
       // the player kit flies one drone at a time (extras/swarm.ts deploy), so Defense Drone I is a switch, not a second flyer.
-      swarm: { level: 3, power: 3, target: "board", loadout: ["board", "ward"] },
+      drones: { level: 3, power: 3, target: "BOARDER", loadout: ["BOARDER", "DEFENSE_1"] },
       // Wiki page "The Mantis Cruiser", section "Layout B": Teleporter (1).
       // The empty weapon bar is left off so this pad can take one bar. INFERRED.
-      sling: { level: 1, power: 1 },
+      teleporter: { level: 1, power: 1 },
     },
-    augments: ["pheromone"],
+    augments: ["CREW_STIMS"],
     unfitted: [],
   },
   {
-    id: "mantis-c",
+    id: "PLAYER_SHIP_MANTIS_3",
     cruiser: "Mantis Cruiser",
     layout: "C",
     name: "The Theseus",
@@ -126,21 +126,21 @@ export const MANTIS_HULLS: HullSpec[] = [
       pilot: [1, 1],
       doors: [1, 1],
     },
-    weapons: ["lockdown", "stunbomb"],
+    weapons: ["BOMB_LOCK", "BOMB_STUN"],
     // Seating is INFERRED. Wiki page "The Mantis Cruiser", section "Layout C": Starting Crew: 1 Engi, 1 Mantis, 1 Lanius. No chairs are assigned.
     crew: [
-      { kin: "shell", room: "p-pilot" },
-      { kin: "blade", room: "p-engines" },
-      { kin: "voidlung", room: "p-weapons" },
+      { kin: "engi", room: "p-pilot" },
+      { kin: "mantis", room: "p-engines" },
+      { kin: "anaerobic", room: "p-weapons" },
     ],
     kits: {
       // Wiki page "The Mantis Cruiser", section "Layout C": Clone Bay (2).
       // One bar is left after shields, engines, oxygen, and weapons. It goes to the teleporter. Clone bay stays at 0. INFERRED.
-      cradle: { level: 2, power: 0 },
+      clonebay: { level: 2, power: 0 },
       // Wiki page "The Mantis Cruiser", section "Layout C": Teleporter (1). The layout quote is the boarding party.
-      sling: { level: 1, power: 1 },
+      teleporter: { level: 1, power: 1 },
     },
-    augments: ["pheromone"],
+    augments: ["CREW_STIMS"],
     unfitted: [],
   },
 ];

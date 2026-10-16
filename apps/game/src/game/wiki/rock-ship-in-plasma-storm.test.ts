@@ -53,13 +53,13 @@ describe("Rock ship in plasma storm", () => {
 
     const dead = createGame(2);
     open(dead);
-    dead.crew[0].kin = "stone";
+    dead.crew[0].kin = "rock";
     dead.crew[0].hp = 0;
     assert.equal(choiceDisabled(dead, "c:rock-ship-in-plasma-storm:2"), "Needs a Rock crewmember");
 
     const g = createGame(3);
     open(g);
-    g.crew[0].kin = "stone";
+    g.crew[0].kin = "rock";
     const guns = g.player.weapons.length;
     const crew = g.crew.filter((c) => c.side === "player").length;
     const fuel = g.fuel;

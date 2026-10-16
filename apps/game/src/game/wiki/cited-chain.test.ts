@@ -20,13 +20,13 @@ function mount(g: Game, defId: string, power: number): WeaponInst {
   g.enemy.hull = 400;
   g.enemy.hullMax = 400;
   for (const w of g.enemy.weapons) w.enabled = false;
-  const veil = g.enemy.kits.veil;
+  const veil = g.enemy.kits.cloaking;
   if (veil) {
     veil.power = 0;
     veil.on = false;
     veil.left = 0;
   }
-  const spike = g.enemy.kits.spike;
+  const spike = g.enemy.kits.hacking;
   if (spike) {
     spike.power = 0;
     spike.on = false;
@@ -68,23 +68,23 @@ function fire(g: Game) {
 
 describe("chain weapon profiles", () => {
   it("stores the printed steps and stays on the last one", () => {
-    BURST.forEach((seconds, i) => assert.equal(chainChargeSeconds("chainlaser", i), seconds));
-    assert.equal(chainChargeSeconds("chainlaser", 9), 7);
-    VULCAN.forEach((seconds, i) => assert.equal(chainChargeSeconds("vulcan", i), seconds));
-    assert.equal(chainChargeSeconds("vulcan", 9), 1.1);
+    BURST.forEach((seconds, i) => assert.equal(chainChargeSeconds("LASER_CHAINGUN", i), seconds));
+    assert.equal(chainChargeSeconds("LASER_CHAINGUN", 9), 7);
+    VULCAN.forEach((seconds, i) => assert.equal(chainChargeSeconds("LASER_CHAINGUN_2", i), seconds));
+    assert.equal(chainChargeSeconds("LASER_CHAINGUN_2", 9), 1.1);
     close(VULCAN.slice(0, 5).reduce((sum, n) => sum + n, 0), 35.5);
-    ION.forEach((ion, i) => assert.equal(chainIonAmount("chainion", i), ion));
-    assert.equal(chainIonAmount("chainion", 9), 4);
-    assert.equal(chainChargeSeconds("chainion", 0), null);
-    assert.equal(nextChainStep("chainlaser", 2), 3);
-    assert.equal(nextChainStep("chainlaser", 3), 3);
-    assert.equal(nextChainStep("spark", 0), null);
+    ION.forEach((ion, i) => assert.equal(chainIonAmount("ION_CHAINGUN", i), ion));
+    assert.equal(chainIonAmount("ION_CHAINGUN", 9), 4);
+    assert.equal(chainChargeSeconds("ION_CHAINGUN", 0), null);
+    assert.equal(nextChainStep("LASER_CHAINGUN", 2), 3);
+    assert.equal(nextChainStep("LASER_CHAINGUN", 3), 3);
+    assert.equal(nextChainStep("LASER_BURST_1", 0), null);
   });
 
   it("steps Chain Burst through 16, 13, 10, then 7, and a manned gun uses the 0.9 rate", () => {
     const g = createGame(4);
     startCombat(g, "scout");
-    const w = mount(g, "chainlaser", 2);
+    const w = mount(g, "LASER_CHAINGUN", 2);
     unman(g);
     for (const seconds of BURST) {
       close(rate(g), 0.05 / seconds);
@@ -97,14 +97,14 @@ describe("chain weapon profiles", () => {
 
     const manned = createGame(5);
     startCombat(manned, "scout");
-    mount(manned, "chainlaser", 2);
+    mount(manned, "LASER_CHAINGUN", 2);
     close(rate(manned), 0.05 / (16 * 0.9));
   });
 
   it("steps Chain Vulcan down to 1.1 and resets to 11.1 when power drops", () => {
     const g = createGame(6);
     startCombat(g, "scout");
-    const w = mount(g, "vulcan", 4);
+    const w = mount(g, "LASER_CHAINGUN_2", 4);
     unman(g);
     for (const seconds of VULCAN) {
       close(rate(g), 0.05 / seconds);
@@ -138,7 +138,7 @@ describe("chain weapon profiles", () => {
   it("climbs Chain Ion from 1 to 4 and keeps the 14 second charge", () => {
     const g = createGame(7);
     startCombat(g, "scout");
-    const w = mount(g, "chainion", 3);
+    const w = mount(g, "ION_CHAINGUN", 3);
     unman(g);
     const seen: number[] = [];
     for (let n = 0; n < 5; n++) {
@@ -161,7 +161,7 @@ describe("chain weapon profiles", () => {
   it("pauses a chain on a cloaked enemy and drains an ordinary gun's charge when it loses power", () => {
     const g = createGame(8);
     startCombat(g, "scout");
-    const w = mount(g, "chainlaser", 2);
+    const w = mount(g, "LASER_CHAINGUN", 2);
     unman(g);
     fire(g);
     fire(g);
@@ -169,8 +169,8 @@ describe("chain weapon profiles", () => {
     w.charge = 0.4;
     const enemy = g.enemy;
     assert.ok(enemy);
-    enemy.kits.veil = {
-      id: "veil",
+    enemy.kits.cloaking = {
+      id: "cloaking",
       level: 1,
       power: 1,
       left: 5,
@@ -185,7 +185,7 @@ describe("chain weapon profiles", () => {
 
     const plain = createGame(9);
     startCombat(plain, "scout");
-    const spark = mount(plain, "spark", 1);
+    const spark = mount(plain, "LASER_BURST_1", 1);
     unman(plain);
     spark.charge = 0.4;
     plain.player.systems.weapons.power = 0;

@@ -41,12 +41,12 @@ export const HUMAN_XP_NEED: Record<SkillName, number> = {
 };
 
 /**
- * Human means kin "plain" (kin.ts names that row "Human") or no kin at all
+ * Human means kin "human" (kin.ts names that row "Human") or no kin at all
  * (types.ts: "Absent means the baseline row", which is the plain row).
  * INFERRED: absent kin counts as human.
  */
 export function isHuman(c: Crew): boolean {
-  return c.kin === undefined || c.kin === "plain";
+  return c.kin === undefined || c.kin === "human";
 }
 
 /**

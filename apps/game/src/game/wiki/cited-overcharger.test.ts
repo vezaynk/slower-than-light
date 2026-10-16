@@ -12,8 +12,8 @@ const src = readFileSync(new URL("./cited-overcharger.ts", import.meta.url), "ut
 
 function arm(g: Game, power: number) {
   g.player.parts = 3;
-  g.player.kits.swarm = {
-    id: "swarm",
+  g.player.kits.drones = {
+    id: "drones",
     level: 4,
     power,
     left: 0,
@@ -62,13 +62,13 @@ describe("Shield Overcharger", () => {
     const g = createGame(1);
     arm(g, 3);
     const seed = g.seed;
-    assert.equal(deploy(g, "overcharger"), true);
+    assert.equal(deploy(g, "DRONE_SHIELD"), true);
     assert.equal(g.player.parts, 2);
-    assert.equal(deploy(g, "overcharger"), true);
+    assert.equal(deploy(g, "DRONE_SHIELD"), true);
     assert.equal(g.player.parts, 2);
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     assert.ok(kit);
-    assert.equal(kit.target, "overcharger");
+    assert.equal(kit.target, "DRONE_SHIELD");
     assert.equal(g.player.zoltan ?? null, null);
     assert.equal(kit.left, 0);
     assert.equal(kit.aux, 0);
@@ -82,8 +82,8 @@ describe("Shield Overcharger", () => {
 
     const exact = createGame(21);
     arm(exact, 3);
-    assert.equal(deploy(exact, "overcharger"), true);
-    const ready = exact.player.kits.swarm;
+    assert.equal(deploy(exact, "DRONE_SHIELD"), true);
+    const ready = exact.player.kits.drones;
     assert.ok(ready);
     tickSwarm(exact, 8);
     assert.equal(exact.player.zoltan, 1);
@@ -113,20 +113,20 @@ describe("Shield Overcharger", () => {
   it("reaches five layers in one 67 second tick and not in 66", () => {
     const full = createGame(2);
     arm(full, 3);
-    assert.equal(deploy(full, "overcharger"), true);
+    assert.equal(deploy(full, "DRONE_SHIELD"), true);
     tickSwarm(full, 67);
     assert.equal(full.player.zoltan, 5);
-    assert.equal(full.player.kits.swarm?.left, 0);
+    assert.equal(full.player.kits.drones?.left, 0);
     tickSwarm(full, 30);
     assert.equal(full.player.zoltan, 5);
 
     const short = createGame(3);
     arm(short, 3);
-    assert.equal(deploy(short, "overcharger"), true);
+    assert.equal(deploy(short, "DRONE_SHIELD"), true);
     tickSwarm(short, 66);
     assert.equal(short.player.zoltan, 4);
-    assert.equal(short.player.kits.swarm?.left, 20);
-    assert.equal(short.player.kits.swarm?.aux, 19);
+    assert.equal(short.player.kits.drones?.left, 20);
+    assert.equal(short.player.kits.drones?.aux, 19);
     tickSwarm(short, 1);
     assert.equal(short.player.zoltan, 5);
   });
@@ -134,8 +134,8 @@ describe("Shield Overcharger", () => {
   it("resets the timer when power drops and does not charge below 3", () => {
     const g = createGame(4);
     arm(g, 3);
-    assert.equal(deploy(g, "overcharger"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "DRONE_SHIELD"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     tickSwarm(g, 7);
     assert.equal(g.player.zoltan ?? null, null);
@@ -158,18 +158,18 @@ describe("Shield Overcharger", () => {
 
     const weak = createGame(5);
     arm(weak, 2);
-    assert.equal(deploy(weak, "overcharger"), true);
+    assert.equal(deploy(weak, "DRONE_SHIELD"), true);
     tickSwarm(weak, 67);
     assert.equal(weak.player.zoltan ?? null, null);
-    assert.equal(weak.player.kits.swarm?.aux, 0);
-    assert.equal(weak.player.kits.swarm?.left, 0);
+    assert.equal(weak.player.kits.drones?.aux, 0);
+    assert.equal(weak.player.kits.drones?.left, 0);
   });
 
   it("keeps the wait that already started when the layer count changes", () => {
     const g = createGame(6);
     arm(g, 3);
-    assert.equal(deploy(g, "overcharger"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "DRONE_SHIELD"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     tickSwarm(g, 3);
     assert.equal(kit.left, 8);
@@ -186,16 +186,16 @@ describe("Shield Overcharger", () => {
     const five = createGame(7);
     arm(five, 3);
     five.player.zoltan = 5;
-    assert.equal(deploy(five, "overcharger"), true);
+    assert.equal(deploy(five, "DRONE_SHIELD"), true);
     tickSwarm(five, 100);
     assert.equal(five.player.zoltan, 5);
     assert.equal(five.player.zoltanOver ?? false, false);
-    assert.equal(five.player.kits.swarm?.left, 0);
+    assert.equal(five.player.kits.drones?.left, 0);
 
     const twelve = createGame(8);
     arm(twelve, 3);
     twelve.player.zoltan = 12;
-    assert.equal(deploy(twelve, "overcharger"), true);
+    assert.equal(deploy(twelve, "DRONE_SHIELD"), true);
     tickSwarm(twelve, 40);
     assert.equal(twelve.player.zoltan, 12);
     assert.equal(twelve.player.zoltanOver ?? false, false);
@@ -204,22 +204,22 @@ describe("Shield Overcharger", () => {
   it("does not shoot and does not intercept", () => {
     const g = createGame(9);
     arm(g, 3);
-    assert.equal(deploy(g, "overcharger"), true);
+    assert.equal(deploy(g, "DRONE_SHIELD"), true);
     tickSwarm(g, 3);
-    const kit = g.player.kits.swarm;
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), false);
     assert.equal(kit.aux, 3);
     assert.equal(kit.left, 8);
     assert.equal(g.shots.length, 0);
-    assert.equal(Object.hasOwn(DRONE_POWER, "overcharger"), false);
-    assert.equal(Object.hasOwn(DRONE_POWER, "overchargerplus"), false);
+    assert.equal(Object.hasOwn(DRONE_POWER, "DRONE_SHIELD"), false);
+    assert.equal(Object.hasOwn(DRONE_POWER, "DRONE_SHIELD_PLAYER"), false);
   });
 
   it("loses a bubble it created and still recharges one that was already there", () => {
     const made = createGame(10);
     arm(made, 3);
-    assert.equal(deploy(made, "overcharger"), true);
+    assert.equal(deploy(made, "DRONE_SHIELD"), true);
     tickSwarm(made, 8);
     assert.equal(made.player.zoltan, 1);
     assert.equal(made.player.zoltanOver, true);
@@ -229,25 +229,25 @@ describe("Shield Overcharger", () => {
 
     const spent = createGame(11);
     arm(spent, 3);
-    assert.equal(deploy(spent, "overcharger"), true);
+    assert.equal(deploy(spent, "DRONE_SHIELD"), true);
     tickSwarm(spent, 8);
     spent.player.zoltan = 0;
     jump(spent);
     assert.equal(spent.player.zoltan ?? null, null);
 
-    const cruiser = createGame(12, "zoltan-a");
+    const cruiser = createGame(12, "PLAYER_SHIP_ENERGY");
     assert.equal(cruiser.player.zoltan, 5);
     arm(cruiser, 3);
-    assert.equal(deploy(cruiser, "overcharger"), true);
+    assert.equal(deploy(cruiser, "DRONE_SHIELD"), true);
     tickSwarm(cruiser, 30);
     assert.equal(cruiser.player.zoltan, 5);
     jump(cruiser);
     assert.equal(cruiser.player.zoltan, 5);
 
-    const depleted = createGame(13, "zoltan-a");
+    const depleted = createGame(13, "PLAYER_SHIP_ENERGY");
     depleted.player.zoltan = 0;
     arm(depleted, 3);
-    assert.equal(deploy(depleted, "overcharger"), true);
+    assert.equal(deploy(depleted, "DRONE_SHIELD"), true);
     tickSwarm(depleted, 8);
     assert.equal(depleted.player.zoltan, 1);
     assert.equal(depleted.player.zoltanOver ?? false, false);
@@ -257,7 +257,7 @@ describe("Shield Overcharger", () => {
     const flag = createGame(14);
     flag.player.zoltan = 12;
     arm(flag, 3);
-    assert.equal(deploy(flag, "overcharger"), true);
+    assert.equal(deploy(flag, "DRONE_SHIELD"), true);
     tickSwarm(flag, 40);
     assert.equal(flag.player.zoltan, 12);
     jump(flag);
@@ -270,11 +270,11 @@ describe("Shield Overcharger +", () => {
     const g = createGame(15);
     arm(g, 2);
     const seed = g.seed;
-    assert.equal(deploy(g, "overchargerplus"), true);
+    assert.equal(deploy(g, "DRONE_SHIELD_PLAYER"), true);
     tickSwarm(g, 8);
     assert.equal(g.player.zoltan, 1);
     assert.equal(g.player.zoltanOver, true);
-    assert.equal(g.player.kits.swarm?.left, 10);
+    assert.equal(g.player.kits.drones?.left, 10);
     assert.equal(g.shots.length, 0);
     assert.equal(g.seed, seed);
     jump(g);
@@ -282,15 +282,15 @@ describe("Shield Overcharger +", () => {
 
     const weak = createGame(16);
     arm(weak, 1);
-    assert.equal(deploy(weak, "overchargerplus"), true);
+    assert.equal(deploy(weak, "DRONE_SHIELD_PLAYER"), true);
     tickSwarm(weak, 67);
     assert.equal(weak.player.zoltan ?? null, null);
-    assert.equal(weak.player.kits.swarm?.left, 0);
+    assert.equal(weak.player.kits.drones?.left, 0);
 
     const fed = createGame(17);
     arm(fed, 2);
     fed.player.zoltan = 4;
-    assert.equal(deploy(fed, "overchargerplus"), true);
+    assert.equal(deploy(fed, "DRONE_SHIELD_PLAYER"), true);
     tickSwarm(fed, 19);
     assert.equal(fed.player.zoltan, 4);
     tickSwarm(fed, 1);
@@ -309,7 +309,7 @@ describe("Shield Overcharger +", () => {
     );
     const stock = citedStock(createGame(18));
     assert.equal(
-      stock.some((item) => item.ref === "overcharger" || item.ref === "overchargerplus"),
+      stock.some((item) => item.ref === "DRONE_SHIELD" || item.ref === "DRONE_SHIELD_PLAYER"),
       false,
     );
     const quotes = citedSellQuote(createGame(22));
@@ -319,53 +319,53 @@ describe("Shield Overcharger +", () => {
     );
     const fitted = createGame(23);
     fitted.scrap = 0;
-    fitted.player.kits.swarm = {
-      id: "swarm",
+    fitted.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
       cool: 0,
-      target: "overchargerplus",
+      target: "DRONE_SHIELD_PLAYER",
       on: true,
       aux: 0,
     };
-    const plus = citedSellQuote(fitted).find((quote) => quote.ref === "overchargerplus");
+    const plus = citedSellQuote(fitted).find((quote) => quote.ref === "DRONE_SHIELD_PLAYER");
     assert.ok(plus);
     assert.equal(plus.id, "d:overchargerplus");
     assert.equal(plus.kind, "drone");
     assert.equal(plus.scrap, 30);
     assert.equal(citedSell(fitted, plus.id), true);
     assert.equal(fitted.scrap, 30);
-    assert.equal(fitted.player.kits.swarm?.target, null);
-    fitted.player.kits.swarm = {
-      id: "swarm",
+    assert.equal(fitted.player.kits.drones?.target, null);
+    fitted.player.kits.drones = {
+      id: "drones",
       level: 3,
       power: 3,
       left: 0,
       cool: 0,
-      target: "overcharger",
+      target: "DRONE_SHIELD",
       on: true,
       aux: 0,
     };
     assert.equal(
-      citedSellQuote(fitted).some((quote) => quote.ref === "overcharger" || quote.ref === "overchargerplus"),
+      citedSellQuote(fitted).some((quote) => quote.ref === "DRONE_SHIELD" || quote.ref === "DRONE_SHIELD_PLAYER"),
       false,
     );
 
-    const spec = HULLS.find((hull) => hull.id === "stealth-c");
+    const spec = HULLS.find((hull) => hull.id === "PLAYER_SHIP_STEALTH_3");
     assert.ok(spec);
     // The Stealth Cruiser, Layout C: Starting Drones lists Shield Overcharger +.
     // One spare reactor bar cannot feed its 2 power, so the slot stays unpowered. INFERRED.
     assert.equal(spec.unfitted.includes("Shield Overcharger +"), false);
     // Starting Drones also lists Anti-Drone (Anti-Combat Drone). It is fitted as the second schematic.
     assert.equal(spec.unfitted.includes("Anti-Drone"), false);
-    assert.deepEqual(spec.kits.swarm?.loadout, ["overchargerplus", "wardcut"]);
-    assert.equal(spec.kits.swarm?.target, "overchargerplus");
-    assert.equal(spec.kits.swarm?.power, 0);
-    const simo = createGame(19, "stealth-c");
-    assert.equal(simo.player.kits.swarm?.target, "overchargerplus");
-    assert.equal(simo.player.kits.swarm?.power, 0);
-    assert.equal(simo.player.kits.swarm?.on, false);
+    assert.deepEqual(spec.kits.drones?.loadout, ["DRONE_SHIELD_PLAYER", "ANTI_DRONE"]);
+    assert.equal(spec.kits.drones?.target, "DRONE_SHIELD_PLAYER");
+    assert.equal(spec.kits.drones?.power, 0);
+    const simo = createGame(19, "PLAYER_SHIP_STEALTH_3");
+    assert.equal(simo.player.kits.drones?.target, "DRONE_SHIELD_PLAYER");
+    assert.equal(simo.player.kits.drones?.power, 0);
+    assert.equal(simo.player.kits.drones?.on, false);
     assert.equal(simo.player.zoltan ?? null, null);
     assert.equal(simo.player.parts, 16);
 
@@ -374,13 +374,13 @@ describe("Shield Overcharger +", () => {
     const enemy = fight.enemy;
     assert.ok(enemy);
     const before = enemy.zoltan ?? null;
-    const enemyKit = enemy.kits.swarm;
+    const enemyKit = enemy.kits.drones;
     if (enemyKit) {
       assert.equal(enemyKit.target, null);
       assert.equal(enemyKit.on, false);
     }
     arm(fight, 3);
-    assert.equal(deploy(fight, "overcharger"), true);
+    assert.equal(deploy(fight, "DRONE_SHIELD"), true);
     tickSwarm(fight, 8);
     assert.equal(fight.player.zoltan, 1);
     assert.equal(enemy.zoltan ?? null, before);

@@ -62,13 +62,13 @@ function ownEveryPricedSystem(g: Game) {
   g.player.systems.medbay.level = 1;
   g.player.systems.sensors.level = 1;
   g.player.systems.doors.level = 1;
-  g.player.kits.cradle = kit("cradle");
-  g.player.kits.sling = kit("sling");
-  g.player.kits.veil = kit("veil");
-  g.player.kits.leash = kit("leash");
-  g.player.kits.spike = kit("spike");
-  g.player.kits.cell = kit("cell");
-  g.player.kits.swarm = kit("swarm", 2);
+  g.player.kits.clonebay = kit("clonebay");
+  g.player.kits.teleporter = kit("teleporter");
+  g.player.kits.cloaking = kit("cloaking");
+  g.player.kits.mind = kit("mind");
+  g.player.kits.hacking = kit("hacking");
+  g.player.kits.battery = kit("battery");
+  g.player.kits.drones = kit("drones", 2);
 }
 
 function kinds(g: Game) {
@@ -90,7 +90,7 @@ describe("cited stores", () => {
     assert.ok(shields);
     assert.equal(shields.cost, 125);
     assert.equal(
-      g.stock?.some((item) => item.name === "Drone Control" || item.ref === "swarm"),
+      g.stock?.some((item) => item.name === "Drone Control" || item.ref === "drones"),
       true,
     );
     assert.equal(
@@ -112,13 +112,13 @@ describe("cited stores", () => {
   });
 
   it("does not offer shields that are already installed, and offers the other medical system only at random", () => {
-    const g = openStore(5, undefined, (stock) => stock.some((item) => item.ref === "cradle"));
+    const g = openStore(5, undefined, (stock) => stock.some((item) => item.ref === "clonebay"));
     assert.ok(g.player.systems.shields.level > 0);
     assert.equal(
       g.stock?.some((item) => item.ref === "shields"),
       false,
     );
-    const bay = g.stock?.find((item) => item.ref === "cradle");
+    const bay = g.stock?.find((item) => item.ref === "clonebay");
     assert.ok(bay);
     assert.equal(bay.cost, 50);
     assert.equal(
@@ -135,17 +135,17 @@ describe("cited stores", () => {
         game.player.systems.medbay.level = 0;
         game.player.systems.medbay.power = 1;
       }, (stock) => stock.some((item) => item.kind === "system"));
-      const medical = (g.stock ?? []).filter((item) => item.ref === "medbay" || item.ref === "cradle");
+      const medical = (g.stock ?? []).filter((item) => item.ref === "medbay" || item.ref === "clonebay");
       assert.equal(medical.length, 1);
       assert.equal(medical[0].cost, 50);
       seen.add(medical[0].ref);
       g.scrap = 50;
       buy(g, medical[0].id);
-      if (medical[0].ref === "cradle") assert.equal(g.player.kits.cradle?.level, 1);
+      if (medical[0].ref === "clonebay") assert.equal(g.player.kits.clonebay?.level, 1);
       else assert.equal(g.player.systems.medbay.level, 1);
       assert.equal(g.scrap, 0);
     }
-    assert.deepEqual([...seen].sort(), ["cradle", "medbay"]);
+    assert.deepEqual([...seen].sort(), ["clonebay", "medbay"]);
   });
 
   it("lists the other priced systems only while missing, and not artillery", () => {
@@ -167,15 +167,15 @@ describe("cited stores", () => {
     // Shields and one medical system are guaranteed. The third is a random missing non-medical system.
     assert.equal(systems.length, 3);
     assert.equal(byName.Shields, 125);
-    const medical = systems.filter((item) => item.ref === "medbay" || item.ref === "cradle");
+    const medical = systems.filter((item) => item.ref === "medbay" || item.ref === "clonebay");
     assert.equal(medical.length, 1);
     assert.equal(medical[0].cost, 50);
-    assert.equal(systems.some((item) => item.ref === "engines" || item.ref === "lance" || item.ref === "flak"), false);
+    assert.equal(systems.some((item) => item.ref === "engines" || item.ref === "artillery"), false);
 
     g.scrap = 50;
     buy(g, medical[0].id);
     assert.equal(g.scrap, 0);
-    assert.equal(g.player.kits.swarm, undefined);
+    assert.equal(g.player.kits.drones, undefined);
   });
 
   it("buys one catalog augment and one priced crew member without charging twice", () => {
@@ -186,24 +186,24 @@ describe("cited stores", () => {
     const stock = citedStock(g);
     assert.equal(g.seed, seed);
     g.stock = stock;
-    const augment = stock.find((item) => item.kind === "augment" && item.ref === "feed");
-    const human = stock.find((item) => item.kind === "crew" && item.ref === "plain");
+    const augment = stock.find((item) => item.kind === "augment" && item.ref === "AUTO_COOLDOWN");
+    const human = stock.find((item) => item.kind === "crew" && item.ref === "human");
     assert.ok(augment && human);
     assert.equal(augment.cost, 40);
     assert.equal(human.cost, 45);
     assert.equal(
-      stock.some((item) => item.ref === "keel" || item.ref === "casing"),
+      stock.some((item) => item.ref === "ROCK_ARMOR" || item.ref === "SYSTEM_CASING"),
       false,
     );
     const crewBefore = g.crew.filter((c) => c.side === "player").length;
     g.scrap = 40;
     buy(g, augment.id);
-    assert.deepEqual(g.augments, ["feed"]);
+    assert.deepEqual(g.augments, ["AUTO_COOLDOWN"]);
     assert.equal(g.scrap, 0);
     g.scrap = 45;
     buy(g, human.id);
     assert.equal(g.scrap, 0);
-    const hired = g.crew.filter((c) => c.side === "player" && c.kin === "plain");
+    const hired = g.crew.filter((c) => c.side === "player" && c.kin === "human");
     assert.equal(g.crew.filter((c) => c.side === "player").length, crewBefore + 1);
     assert.ok(hired.some((c) => c.maxHp === 100));
   });
@@ -212,14 +212,14 @@ describe("cited stores", () => {
     const rows: { ref: string; name: string; cost: number; slot: "sys" | "kit" }[] = [
       { ref: "shields", name: "Shields", cost: 125, slot: "sys" },
       { ref: "medbay", name: "Medbay", cost: 50, slot: "sys" },
-      { ref: "cradle", name: "Clone Bay", cost: 50, slot: "kit" },
-      { ref: "sling", name: "Crew Teleporter", cost: 90, slot: "kit" },
-      { ref: "veil", name: "Cloaking", cost: 150, slot: "kit" },
-      { ref: "leash", name: "Mind Control", cost: 75, slot: "kit" },
-      { ref: "spike", name: "Hacking", cost: 80, slot: "kit" },
+      { ref: "clonebay", name: "Clone Bay", cost: 50, slot: "kit" },
+      { ref: "teleporter", name: "Crew Teleporter", cost: 90, slot: "kit" },
+      { ref: "cloaking", name: "Cloaking", cost: 150, slot: "kit" },
+      { ref: "mind", name: "Mind Control", cost: 75, slot: "kit" },
+      { ref: "hacking", name: "Hacking", cost: 80, slot: "kit" },
       { ref: "sensors", name: "Sensors", cost: 40, slot: "sys" },
       { ref: "doors", name: "Door System", cost: 60, slot: "sys" },
-      { ref: "cell", name: "Backup Battery", cost: 35, slot: "kit" },
+      { ref: "battery", name: "Backup Battery", cost: 35, slot: "kit" },
     ];
     for (const row of rows) {
       const g = createGame(1);
@@ -232,7 +232,7 @@ describe("cited stores", () => {
       assert.equal(hit.name, row.name);
       assert.equal(hit.cost, row.cost);
       assert.equal(
-        citedStock(g).some((item) => item.ref === "swarm" || item.name === "Drone Control"),
+        citedStock(g).some((item) => item.ref === "drones" || item.name === "Drone Control"),
         false,
       );
     }
@@ -242,22 +242,22 @@ describe("cited stores", () => {
     assert.equal(BUNDLE_PATCH, 75);
     assert.equal(BUNDLE_OTHER, 85);
     const cases = [
-      { seed: 0, id: "sys-swarm-patch", detail: "System Repair Drone", cost: 75, target: "patch" },
-      { seed: 1, id: "sys-swarm-ward", detail: "Defense Drone Mark I", cost: 85, target: "ward" },
-      { seed: 2, id: "sys-swarm-striker", detail: "Combat Drone Mark I", cost: 85, target: "striker" },
-      { seed: -1, id: "sys-swarm-striker", detail: "Combat Drone Mark I", cost: 85, target: "striker" },
+      { seed: 0, id: "sys-drones-REPAIR", detail: "System Repair Drone", cost: 75, target: "REPAIR" },
+      { seed: 1, id: "sys-drones-DEFENSE_1", detail: "Defense Drone Mark I", cost: 85, target: "DEFENSE_1" },
+      { seed: 2, id: "sys-drones-COMBAT_1", detail: "Combat Drone Mark I", cost: 85, target: "COMBAT_1" },
+      { seed: -1, id: "sys-drones-COMBAT_1", detail: "Combat Drone Mark I", cost: 85, target: "COMBAT_1" },
     ];
     for (const row of cases) {
       const g = createGame(1);
       ownEveryPricedSystem(g);
-      delete g.player.kits.swarm;
+      delete g.player.kits.drones;
       g.seed = row.seed;
       // With a drones section Drone Control leaves the random list, and min(3, an empty list) sells no system.
       reseed(g, (x) => rolls("systems")(x) && !storeSections(x).includes("drones"));
       const seed = g.seed;
       const stock = citedStock(g);
       assert.equal(g.seed, seed);
-      const item = stock.find((entry) => entry.ref === "swarm");
+      const item = stock.find((entry) => entry.ref === "drones");
       assert.ok(item, String(row.seed));
       assert.equal(item.id, row.id);
       assert.equal(item.name, "Drone Control");
@@ -267,18 +267,18 @@ describe("cited stores", () => {
       g.stock = stock;
       g.scrap = row.cost - 1;
       buy(g, item.id);
-      assert.equal(g.player.kits.swarm, undefined);
+      assert.equal(g.player.kits.drones, undefined);
       g.scrap = row.cost;
       buy(g, item.id);
       assert.equal(g.scrap, 0);
       // Cast: the assert.equal(..., undefined) above narrows this path to undefined for TypeScript.
-      const bay = g.player.kits.swarm as Kit | undefined;
+      const bay = g.player.kits.drones as Kit | undefined;
       assert.equal(bay?.level, 2);
       assert.equal(bay?.power, 0);
       assert.equal(bay?.target, row.target);
       assert.equal(bay?.on, false);
       assert.equal(
-        g.player.rooms.some((room) => room.kit === "swarm"),
+        g.player.rooms.some((room) => room.kit === "drones"),
         true,
       );
     }
@@ -286,7 +286,7 @@ describe("cited stores", () => {
     ownEveryPricedSystem(owned);
     reseed(owned, rolls("systems"));
     assert.equal(
-      citedStock(owned).some((item) => item.ref === "swarm"),
+      citedStock(owned).some((item) => item.ref === "drones"),
       false,
     );
   });
@@ -338,13 +338,13 @@ describe("cited stores", () => {
 
   it("swaps a drones section for weapons, augments, crew, or systems without Drone Control or a systems section", () => {
     const g = createGame(3);
-    assert.equal(g.player.kits.swarm, undefined);
+    assert.equal(g.player.kits.drones, undefined);
     for (let i = 0; i < 2000; i++) {
       g.seed = i * 104729 + 3;
       const sections = storeSections(g);
       if (!sections.includes("systems")) assert.equal(sections.includes("drones"), false, sections.join());
     }
-    g.player.kits.swarm = kit("swarm", 2);
+    g.player.kits.drones = kit("drones", 2);
     reseed(g, (x) => storeSections(x).includes("drones") && !storeSections(x).includes("systems"));
   });
 
@@ -353,20 +353,20 @@ describe("cited stores", () => {
     const g = createGame(1);
     ownEveryPricedSystem(g);
     g.player.systems.medbay.level = 0;
-    delete g.player.kits.cradle;
+    delete g.player.kits.clonebay;
     g.player.systems.sensors.level = 0;
     g.player.systems.doors.level = 0;
     reseed(g, rolls("systems"));
     const systems = citedStock(g).filter((item) => item.kind === "system");
     assert.equal(systems.length, 2);
-    assert.ok(systems[0].ref === "cradle" || systems[0].ref === "medbay");
+    assert.ok(systems[0].ref === "clonebay" || systems[0].ref === "medbay");
     assert.ok(systems.slice(1).every((item) => item.ref === "sensors" || item.ref === "doors"));
   });
 
   it("sells no system when the only missing one is a forced Drone Control beside a drones section", () => {
     const g = createGame(1);
     ownEveryPricedSystem(g);
-    delete g.player.kits.swarm;
+    delete g.player.kits.drones;
     reseed(g, rolls("systems", "drones"));
     const stock = citedStock(g);
     assert.equal(
@@ -379,7 +379,7 @@ describe("cited stores", () => {
   it("returns fewer slots when fewer categories have anything to sell", () => {
     const g = createGame(1);
     ownEveryPricedSystem(g);
-    g.augments = ["feed", "echo", "quiet"];
+    g.augments = ["AUTO_COOLDOWN", "EXPLOSIVE_REPLICATOR", "CLOAK_FIRE"];
     while (g.crew.filter((c) => c.side === "player").length < 8) {
       const n = g.crew.length;
       g.crew.push({
@@ -408,18 +408,18 @@ describe("cited stores", () => {
     const g = openStore(11, (game) => {
       game.player.systems.medbay.level = 3;
       game.player.systems.medbay.power = 2;
-    }, (stock) => stock.some((item) => item.ref === "cradle"));
+    }, (stock) => stock.some((item) => item.ref === "clonebay"));
     const rooms = g.player.rooms.length;
     const reactor = g.player.reactor;
-    const bay = g.stock?.find((item) => item.ref === "cradle");
+    const bay = g.stock?.find((item) => item.ref === "clonebay");
     assert.ok(bay);
     assert.equal(bay.cost, 50);
     g.scrap = 50;
     buy(g, bay.id);
     assert.equal(g.player.systems.medbay.level, 0);
     assert.equal(g.player.systems.medbay.power, 0);
-    assert.equal(g.player.kits.cradle?.level, 3);
-    assert.equal(g.player.kits.cradle?.power, 0);
+    assert.equal(g.player.kits.clonebay?.level, 3);
+    assert.equal(g.player.kits.clonebay?.power, 0);
     assert.equal(g.scrap, 0);
     assert.equal(g.player.rooms.length, rooms);
     assert.equal(g.player.reactor, reactor);
@@ -429,15 +429,15 @@ describe("cited stores", () => {
     const g = openStore(12, (game) => {
       game.player.systems.medbay.level = 0;
       game.player.systems.medbay.power = 1;
-      game.player.kits.cradle = kit("cradle", 4);
-      game.player.kits.cradle.power = 2;
+      game.player.kits.clonebay = kit("clonebay", 4);
+      game.player.kits.clonebay.power = 2;
     }, (stock) => stock.some((item) => item.ref === "medbay"));
     const medbay = g.stock?.find((item) => item.ref === "medbay");
     assert.ok(medbay);
     assert.equal(medbay.cost, 50);
     g.scrap = 50;
     buy(g, medbay.id);
-    assert.equal(g.player.kits.cradle, undefined);
+    assert.equal(g.player.kits.clonebay, undefined);
     assert.equal(g.player.systems.medbay.level, 4);
     assert.equal(g.player.systems.medbay.power, 0);
     assert.equal(g.scrap, 0);
@@ -447,39 +447,39 @@ describe("cited stores", () => {
     const g = createGame(1);
     const collected = g.scrapCollected;
     g.player.weapons = [
-      mount("lineburst", "w-line"),
-      mount("spark"),
+      mount("LASER_BURST_3", "w-line"),
+      mount("LASER_BURST_1"),
       mount("dart"),
-      mount("scatter"),
-      mount("artemis"),
-      mount("bossion"),
-      mount("artemisEnemy"),
+      mount("SHOTGUN"),
+      mount("MISSILES_2_PLAYER"),
+      mount("ARTILLERY_BOSS_4"),
+      mount("MISSILES_2"),
     ];
-    g.augments = ["feed", "keel", "casing", "medbot"];
+    g.augments = ["AUTO_COOLDOWN", "ROCK_ARMOR", "SYSTEM_CASING", "NANO_MEDBAY"];
     g.player.zoltan = 5;
     const byRef = Object.fromEntries(citedSellQuote(g).map((quote) => [quote.ref, quote.scrap]));
-    assert.equal(byRef.lineburst, 40);
-    assert.equal(byRef.spark, 10);
-    assert.equal(byRef.scatter, 32);
-    assert.equal(byRef.artemis, 19);
-    assert.equal(byRef.feed, 20);
-    assert.equal(byRef.medbot, 30);
+    assert.equal(byRef.LASER_BURST_3, 40);
+    assert.equal(byRef.LASER_BURST_1, 10);
+    assert.equal(byRef.SHOTGUN, 32);
+    assert.equal(byRef.MISSILES_2_PLAYER, 19);
+    assert.equal(byRef.AUTO_COOLDOWN, 20);
+    assert.equal(byRef.NANO_MEDBAY, 30);
     assert.equal(byRef.dart, undefined);
-    assert.equal(byRef.bossion, undefined);
-    assert.equal(byRef.artemisEnemy, undefined);
-    assert.equal(byRef.keel, undefined);
-    assert.equal(byRef.casing, undefined);
+    assert.equal(byRef.ARTILLERY_BOSS_4, undefined);
+    assert.equal(byRef.MISSILES_2, undefined);
+    assert.equal(byRef.ROCK_ARMOR, undefined);
+    assert.equal(byRef.SYSTEM_CASING, undefined);
     assert.equal(
       citedSellQuote(g).some((quote) => quote.kind !== "weapon" && quote.kind !== "augment"),
       false,
     );
     assert.equal(
-      citedSellQuote(g).some((quote) => quote.name === "Drone Control" || quote.ref === "swarm"),
+      citedSellQuote(g).some((quote) => quote.name === "Drone Control" || quote.ref === "drones"),
       false,
     );
 
     const before = g.scrap;
-    const line = citedSellQuote(g).find((quote) => quote.ref === "lineburst");
+    const line = citedSellQuote(g).find((quote) => quote.ref === "LASER_BURST_3");
     assert.ok(line);
     assert.equal(citedSell(g, line.id), true);
     assert.equal(g.scrap, before + 40);
@@ -497,25 +497,25 @@ describe("cited stores", () => {
   it("sells one copy of a repeated augment and uses the other printed sell prices", () => {
     const g = createGame(1);
     g.player.weapons = [
-      mount("twin"),
-      mount("heavypierce"),
-      mount("chargers"),
-      mount("mini"),
-      mount("breach1"),
-      mount("advflak"),
-      mount("leto"),
-      mount("bossmissile"),
+      mount("LASER_BURST_2"),
+      mount("LASER_HEAVY_1_SP"),
+      mount("LASER_CHARGEGUN_PLAYER"),
+      mount("BEAM_1"),
+      mount("BOMB_BREACH_1"),
+      mount("SHOTGUN_PLAYER"),
+      mount("MISSILES_1"),
+      mount("ARTILLERY_BOSS_2"),
     ];
-    g.augments = ["feed", "feed", "pheromone", "gel"];
+    g.augments = ["AUTO_COOLDOWN", "AUTO_COOLDOWN", "CREW_STIMS", "SLUG_GEL"];
     const scrap = Object.fromEntries(citedSellQuote(g).filter((quote) => quote.kind === "weapon").map((quote) => [quote.ref, quote.scrap]));
     assert.deepEqual(scrap, {
-      twin: 12,
-      heavypierce: 27,
-      chargers: 15,
-      mini: 10,
-      breach1: 25,
-      advflak: 30,
-      leto: 10,
+      LASER_BURST_2: 12,
+      LASER_HEAVY_1_SP: 27,
+      LASER_CHARGEGUN_PLAYER: 15,
+      BEAM_1: 10,
+      BOMB_BREACH_1: 25,
+      SHOTGUN_PLAYER: 30,
+      MISSILES_1: 10,
     });
     const augments = citedSellQuote(g).filter((quote) => quote.kind === "augment");
     assert.deepEqual(
@@ -524,7 +524,7 @@ describe("cited stores", () => {
     );
     const before = g.scrap;
     assert.equal(citedSell(g, augments[0].id), true);
-    assert.deepEqual(g.augments, ["feed", "pheromone", "gel"]);
+    assert.deepEqual(g.augments, ["AUTO_COOLDOWN", "CREW_STIMS", "SLUG_GEL"]);
     assert.equal(g.scrap, before + 20);
   });
 
@@ -538,7 +538,7 @@ describe("cited stores", () => {
       false,
     );
     assert.equal(
-      CITED_DRONES.some((row) => row.name === "Drone Control" || row.ref === "swarm"),
+      CITED_DRONES.some((row) => row.name === "Drone Control" || row.ref === "drones"),
       false,
     );
     assert.deepEqual(
@@ -570,19 +570,19 @@ describe("cited stores", () => {
       return drones.map((item) => [item.ref, item.cost, item.name]);
     };
     assert.deepEqual(windowOf(2), [
-      ["beam", 50, "Anti-Ship Beam Drone I"],
-      ["beam2", 60, "Anti-Ship Beam Drone II"],
-      ["ward", 50, "Defense Drone Mark I"],
+      ["COMBAT_BEAM", 50, "Anti-Ship Beam Drone I"],
+      ["COMBAT_BEAM_2", 60, "Anti-Ship Beam Drone II"],
+      ["DEFENSE_1", 50, "Defense Drone Mark I"],
     ]);
     assert.deepEqual(windowOf(7), [
-      ["overcharger", 60, "Shield Overcharger"],
-      ["antipersonnel", 35, "Anti-Personnel Drone"],
-      ["patch", 30, "System Repair Drone"],
+      ["DRONE_SHIELD", 60, "Shield Overcharger"],
+      ["BATTLE", 35, "Anti-Personnel Drone"],
+      ["REPAIR", 30, "System Repair Drone"],
     ]);
     assert.deepEqual(windowOf(10), [
-      ["hull", 85, "Hull Repair Drone"],
-      ["board", 70, "Boarding Drone"],
-      ["ionintruder", 65, "Ion Intruder Drone"],
+      ["SHIP_REPAIR", 85, "Hull Repair Drone"],
+      ["BOARDER", 70, "Boarding Drone"],
+      ["BOARDER_ION", 65, "Ion Intruder Drone"],
     ]);
     assert.deepEqual(windowOf(-3), windowOf(10));
     const bare = createGame(1);
@@ -594,33 +594,33 @@ describe("cited stores", () => {
         .filter((item) => item.kind === "drone")
         .map((item) => [item.ref, item.cost]),
       [
-        ["beam", 50],
-        ["beam2", 60],
-        ["ward", 50],
+        ["COMBAT_BEAM", 50],
+        ["COMBAT_BEAM_2", 60],
+        ["DEFENSE_1", 50],
       ],
     );
-    const control = citedStock(bare).find((item) => item.ref === "swarm");
+    const control = citedStock(bare).find((item) => item.ref === "drones");
     assert.ok(control);
     assert.equal(control.cost, 85);
     bare.scrap = 50;
     bare.stock = citedStock(bare);
-    const beam = bare.stock.find((item) => item.ref === "beam");
+    const beam = bare.stock.find((item) => item.ref === "COMBAT_BEAM");
     assert.ok(beam);
     // Per the user: a schematic with nowhere to fit goes to the cargo hold (make-room.ts).
     buy(bare, beam.id);
     assert.equal(bare.scrap, 0);
-    assert.equal(bare.player.kits.swarm, undefined);
-    assert.deepEqual(bare.cargo, [{ kind: "drone", id: "beam" }]);
+    assert.equal(bare.player.kits.drones, undefined);
+    assert.deepEqual(bare.cargo, [{ kind: "drone", id: "COMBAT_BEAM" }]);
     const fitted = createGame(1);
-    fitted.player.kits.swarm = kit("swarm", 2);
+    fitted.player.kits.drones = kit("drones", 2);
     fitted.seed = 2;
     reseed(fitted, rolls("drones"));
     assert.equal(
-      citedSellQuote(fitted).some((quote) => quote.kind === "weapon" && quote.ref === "swarm"),
+      citedSellQuote(fitted).some((quote) => quote.kind === "weapon" && quote.ref === "drones"),
       false,
     );
     assert.equal(
-      citedStock(fitted).some((item) => item.ref === "overchargerplus" || item.ref === "firedrone"),
+      citedStock(fitted).some((item) => item.ref === "DRONE_SHIELD_PLAYER" || item.ref === "firedrone"),
       false,
     );
   });
@@ -628,31 +628,31 @@ describe("cited stores", () => {
   it("fits a bought schematic in a free slot, else stows it in cargo, and never buys one already held", () => {
     const g = createGame(1);
     ownEveryPricedSystem(g);
-    const swarm = g.player.kits.swarm;
+    const swarm = g.player.kits.drones;
     assert.ok(swarm);
     swarm.target = null;
     g.seed = 2;
     g.stock = citedStock(g);
-    const beam = g.stock.find((item) => item.ref === "beam");
-    const beam2 = g.stock.find((item) => item.ref === "beam2");
-    const ward = g.stock.find((item) => item.ref === "ward");
+    const beam = g.stock.find((item) => item.ref === "COMBAT_BEAM");
+    const beam2 = g.stock.find((item) => item.ref === "COMBAT_BEAM_2");
+    const ward = g.stock.find((item) => item.ref === "DEFENSE_1");
     assert.ok(beam && beam2 && ward);
     g.scrap = 50;
     buy(g, beam.id);
     assert.equal(g.scrap, 0);
-    assert.equal(swarm.target, "beam");
+    assert.equal(swarm.target, "COMBAT_BEAM");
     assert.equal(swarm.loadout, undefined);
     g.scrap = 60;
     buy(g, beam2.id);
     assert.equal(g.scrap, 0);
-    assert.deepEqual(swarm.loadout, ["beam", "beam2"]);
-    assert.equal(swarm.target, "beam");
+    assert.deepEqual(swarm.loadout, ["COMBAT_BEAM", "COMBAT_BEAM_2"]);
+    assert.equal(swarm.target, "COMBAT_BEAM");
     // Per the user: with the schematic slots full it goes to cargo.
     g.scrap = 50;
     buy(g, ward.id);
     assert.equal(g.scrap, 0);
-    assert.deepEqual(swarm.loadout, ["beam", "beam2"]);
-    assert.deepEqual(g.cargo, [{ kind: "drone", id: "ward" }]);
+    assert.deepEqual(swarm.loadout, ["COMBAT_BEAM", "COMBAT_BEAM_2"]);
+    assert.deepEqual(g.cargo, [{ kind: "drone", id: "DEFENSE_1" }]);
 
     const bare = createGame(3);
     bare.scrap = 85;
@@ -660,7 +660,7 @@ describe("cited stores", () => {
       {
         id: "drone-hull",
         kind: "drone",
-        ref: "hull",
+        ref: "SHIP_REPAIR",
         name: "Hull Repair Drone",
         detail: "",
         cost: 85,
@@ -669,78 +669,78 @@ describe("cited stores", () => {
     ];
     buy(bare, "drone-hull");
     assert.equal(bare.scrap, 0);
-    assert.equal(bare.player.kits.swarm, undefined);
-    assert.deepEqual(bare.cargo, [{ kind: "drone", id: "hull" }]);
+    assert.equal(bare.player.kits.drones, undefined);
+    assert.deepEqual(bare.cargo, [{ kind: "drone", id: "SHIP_REPAIR" }]);
 
     g.stock = [beam];
     g.scrap = 50;
     buy(g, beam.id);
     assert.equal(g.scrap, 50);
-    assert.deepEqual(swarm.loadout, ["beam", "beam2"]);
+    assert.deepEqual(swarm.loadout, ["COMBAT_BEAM", "COMBAT_BEAM_2"]);
 
     const engi = createGame(4);
-    engi.hullId = "engi-a";
-    engi.player.kits.swarm = kit("swarm", 3);
-    engi.player.kits.swarm.target = "striker";
+    engi.hullId = "PLAYER_SHIP_CIRCLE";
+    engi.player.kits.drones = kit("drones", 3);
+    engi.player.kits.drones.target = "COMBAT_1";
     engi.stock = [
-      { id: "d-beam", kind: "drone", ref: "beam", name: "Anti-Ship Beam Drone I", detail: "", cost: 50, amount: 1 },
-      { id: "d-hull", kind: "drone", ref: "hull", name: "Hull Repair Drone", detail: "", cost: 85, amount: 1 },
-      { id: "d-board", kind: "drone", ref: "board", name: "Boarding Drone", detail: "", cost: 70, amount: 1 },
+      { id: "d-beam", kind: "drone", ref: "COMBAT_BEAM", name: "Anti-Ship Beam Drone I", detail: "", cost: 50, amount: 1 },
+      { id: "d-hull", kind: "drone", ref: "SHIP_REPAIR", name: "Hull Repair Drone", detail: "", cost: 85, amount: 1 },
+      { id: "d-board", kind: "drone", ref: "BOARDER", name: "Boarding Drone", detail: "", cost: 70, amount: 1 },
     ];
     engi.scrap = 205;
     buy(engi, "d-beam");
     buy(engi, "d-hull");
     assert.equal(engi.scrap, 70);
-    assert.deepEqual(engi.player.kits.swarm?.loadout, ["striker", "beam", "hull"]);
+    assert.deepEqual(engi.player.kits.drones?.loadout, ["COMBAT_1", "COMBAT_BEAM", "SHIP_REPAIR"]);
     buy(engi, "d-board");
     assert.equal(engi.scrap, 0);
-    assert.deepEqual(engi.player.kits.swarm?.loadout, ["striker", "beam", "hull"]);
-    assert.deepEqual(engi.cargo, [{ kind: "drone", id: "board" }]);
+    assert.deepEqual(engi.player.kits.drones?.loadout, ["COMBAT_1", "COMBAT_BEAM", "SHIP_REPAIR"]);
+    assert.deepEqual(engi.cargo, [{ kind: "drone", id: "BOARDER" }]);
 
     const vortex = createGame(5);
-    vortex.hullId = "engi-b";
-    vortex.player.kits.swarm = kit("swarm", 3);
-    vortex.player.kits.swarm.loadout = ["patch", "patch"];
+    vortex.hullId = "PLAYER_SHIP_CIRCLE_2";
+    vortex.player.kits.drones = kit("drones", 3);
+    vortex.player.kits.drones.loadout = ["REPAIR", "REPAIR"];
     vortex.stock = [
-      { id: "d-hull", kind: "drone", ref: "hull", name: "Hull Repair Drone", detail: "", cost: 85, amount: 1 },
+      { id: "d-hull", kind: "drone", ref: "SHIP_REPAIR", name: "Hull Repair Drone", detail: "", cost: 85, amount: 1 },
     ];
     vortex.scrap = 85;
     buy(vortex, "d-hull");
     assert.equal(vortex.scrap, 0);
-    assert.deepEqual(vortex.player.kits.swarm?.loadout, ["patch", "patch"]);
-    assert.deepEqual(vortex.cargo, [{ kind: "drone", id: "hull" }]);
+    assert.deepEqual(vortex.player.kits.drones?.loadout, ["REPAIR", "REPAIR"]);
+    assert.deepEqual(vortex.cargo, [{ kind: "drone", id: "SHIP_REPAIR" }]);
   });
 
   it("counts drone slots only when Drone Control is installed", () => {
-    const kestrel = createGame(1, "kestrel-a");
-    assert.equal(kestrel.player.kits.swarm, undefined);
+    const kestrel = createGame(1, "PLAYER_SHIP_HARD");
+    assert.equal(kestrel.player.kits.drones, undefined);
     assert.equal(droneSlotCap(kestrel), 0);
-    kestrel.player.kits.swarm = kit("swarm", 2);
+    kestrel.player.kits.drones = kit("drones", 2);
     assert.equal(droneSlotCap(kestrel), 2);
 
-    const engi = createGame(1, "engi-a");
+    const engi = createGame(1, "PLAYER_SHIP_CIRCLE");
     assert.equal(droneSlotCap(engi), 3);
-    const stealth = createGame(1, "stealth-c");
+    const stealth = createGame(1, "PLAYER_SHIP_STEALTH_3");
     assert.equal(droneSlotCap(stealth), 3);
-    const nesasio = createGame(1, "stealth-a");
-    assert.equal(nesasio.player.kits.swarm, undefined);
+    const nesasio = createGame(1, "PLAYER_SHIP_STEALTH");
+    assert.equal(nesasio.player.kits.drones, undefined);
     assert.equal(droneSlotCap(nesasio), 0);
   });
 
   it("sells a fitted Zoltan Shield for 40 and does not let the next jump refill it", () => {
-    const g = createGame(1, "zoltan-a");
-    assert.ok(g.augments.includes("zshield"));
+    const g = createGame(1, "PLAYER_SHIP_ENERGY");
+    assert.ok(g.augments.includes("ENERGY_SHIELD"));
     g.player.zoltan = 0;
     g.player.zoltanOver = true;
     const before = g.scrap;
-    const quote = citedSellQuote(g).find((row) => row.ref === "zshield");
+    const quote = citedSellQuote(g).find((row) => row.ref === "ENERGY_SHIELD");
     assert.ok(quote);
     assert.equal(quote.kind, "augment");
     assert.equal(quote.scrap, 40);
     assert.equal(quote.name, "Zoltan Shield");
     assert.equal(citedSell(g, quote.id), true);
     assert.equal(g.scrap, before + 40);
-    assert.equal(g.augments.includes("zshield"), false);
+    assert.equal(g.augments.includes("ENERGY_SHIELD"), false);
     assert.equal(g.player.zoltan, undefined);
     assert.equal(g.player.zoltanOver, undefined);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -748,7 +748,7 @@ describe("cited stores", () => {
     g.fuel = 3;
     commitJump(g, here.links[0]);
     assert.equal(g.player.zoltan, undefined);
-    assert.equal(createGame(1, "kestrel-a").augments.includes("zshield"), false);
+    assert.equal(createGame(1, "PLAYER_SHIP_HARD").augments.includes("ENERGY_SHIELD"), false);
   });
 });
 
@@ -759,22 +759,22 @@ describe("Hidden Crystal Worlds stock", () => {
     const g = openStore(8, (game) => {
       game.sectorName = "Hidden Crystal Worlds";
       ownEveryPricedSystem(game);
-      game.augments = ["feed", "echo", "quiet"];
+      game.augments = ["AUTO_COOLDOWN", "EXPLOSIVE_REPLICATOR", "CLOAK_FIRE"];
     }, (stock) => stock.some((item) => item.kind === "weapon") && stock.some((item) => item.kind === "crew"));
     const guns = (g.stock ?? []).filter((item) => item.kind === "weapon");
     assert.deepEqual(
       guns.map((item) => item.ref),
-      ["crystalburst", "crystalburst2"],
+      ["CRYSTAL_BURST_1", "CRYSTAL_BURST_2"],
     );
     const crew = (g.stock ?? []).filter((item) => item.kind === "crew");
     assert.deepEqual(
       crew.map((item) => item.ref),
-      ["shard"],
+      ["crystal"],
     );
     g.scrap = crew[0].cost;
     buy(g, crew[0].id);
     assert.equal(
-      g.crew.some((c) => c.side === "player" && c.kin === "shard"),
+      g.crew.some((c) => c.side === "player" && c.kin === "crystal"),
       true,
     );
     for (const gun of guns) assert.ok(allowed.has(gun.ref));
@@ -792,7 +792,7 @@ describe("Hidden Crystal Worlds stock", () => {
         assert.ok(g.enemy);
         g.enemy.automated = false;
         g.enemy.classId = g.enemy.classId || "cited";
-        if (g.enemy.kits.cradle) g.enemy.kits.cradle.level = 0;
+        if (g.enemy.kits.clonebay) g.enemy.kits.clonebay.level = 0;
         if (mode === "crew") {
           for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
         } else {

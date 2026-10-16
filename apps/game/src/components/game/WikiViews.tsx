@@ -278,7 +278,7 @@ export function AchievementsScreen({ game, onClose }: { game: Game | null; onClo
                 <section key={group.title} className="sheet-group">
                   <h3 className="sheet-group-head">
                     {group.title}
-                    <span className="mini">
+                    <span className="BEAM_1">
                       {have}/{group.ids.length}
                     </span>
                   </h3>

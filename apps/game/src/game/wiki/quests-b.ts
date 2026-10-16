@@ -62,17 +62,17 @@ import {
 function hasKin(g: Game, kin: string): boolean {
   return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === kin);
 }
-const hasEngi = (g: Game) => hasKin(g, "shell");
-const hasSlug = (g: Game) => hasKin(g, "gel");
+const hasEngi = (g: Game) => hasKin(g, "engi");
+const hasSlug = (g: Game) => hasKin(g, "slug");
 function medbay(g: Game): number {
   return g.player.systems.medbay?.level ?? 0;
 }
 function hasClonebay(g: Game): boolean {
-  return (g.player.kits.cradle?.level ?? 0) > 0;
+  return (g.player.kits.clonebay?.level ?? 0) > 0;
 }
 /** The player's Drone Control schematic (extras/swarm.ts kit.target). */
 function hasDrone(g: Game, kinds: string[]): boolean {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   return !!kit && kit.level > 0 && kinds.includes(kit.target ?? "");
 }
 
@@ -199,7 +199,7 @@ function noRun(g: Game, text: string, tier: string, slug: string) {
 /** "1-2 mantis boarders beam aboard your ship". INFERRED: each lands in a random room (as surrender.ts humanBoarders). */
 function mantisBoarders(g: Game, lo: number, hi: number) {
   const n = between(g, [lo, hi]);
-  const hp = crewDef("blade").hp;
+  const hp = crewDef("mantis").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
     const room =
@@ -217,7 +217,7 @@ function mantisBoarders(g: Game, lo: number, hi: number) {
       move: 0,
       think: 0,
       tone: 3,
-      kin: "blade",
+      kin: "mantis",
     });
   }
   log(g, `${n} Mantis boarders teleport aboard.`);
@@ -244,15 +244,15 @@ function asteroidCard(g: Game) {
     { id: "q:asteroid:leave", label: "Don't risk our ship. Leave them to their fate." },
   ];
   // {{Blue Option|Defense Drone|...}} / {{Blue Option|Repair Drone|...}}, each [1 drone part]. INFERRED: "Repair Drone"
-  // is the System Repair drone ("patch"): it is sent "to fix their Shields", a system.
-  if (hasDrone(g, ["ward", "ward2"]))
+  // is the System Repair drone ("REPAIR"): it is sent "to fix their Shields", a system.
+  if (hasDrone(g, ["DEFENSE_1", "DEFENSE_2"]))
     choices.push({ id: "q:asteroid:defense", label: "Use a Defense Drone to protect their ship." });
-  if (hasDrone(g, ["patch"]))
+  if (hasDrone(g, ["REPAIR"]))
     choices.push({ id: "q:asteroid:repair", label: "Send a Repair Drone to fix their Shields." });
   if (hasTeleporter(g))
     choices.push({ id: "q:asteroid:teleport", label: "Offer to beam them aboard your ship." });
-  // {{Blue Option|Rock Armor|...|shortreq=Rock Plating}}. Rock Plating is fitted as "keel" (extras/augments.ts).
-  if (g.augments.includes("keel"))
+  // {{Blue Option|Rock Armor|...|shortreq=Rock Plating}}. Rock Plating is fitted as "ROCK_ARMOR" (extras/augments.ts).
+  if (g.augments.includes("ROCK_ARMOR"))
     choices.push({
       id: "q:asteroid:rock",
       label: "Shield their ship with yours and escort them out.",
@@ -517,7 +517,7 @@ function spendDronePart(g: Game): boolean {
  * Footnote: no drone part is required if the reward includes drone parts. The printed 2/9 is that case, not a second roll.
  */
 function researchDrone(g: Game) {
-  if (!hasDrone(g, ["antipersonnel"])) return;
+  if (!hasDrone(g, ["BATTLE"])) return;
   const kind = weighted(g, [
     ["nothing", 2],
     ["scrap", 1],
@@ -550,7 +550,7 @@ function researchDrone(g: Game) {
 
 /** Lifeform Scanner. Two results and no odds. INFERRED: equal. Standalone card only. */
 function researchScan(g: Game) {
-  if (!g.augments.includes("pulseeye")) return;
+  if (!g.augments.includes("LIFE_SCANNER")) return;
   if (
     weighted(g, [
       ["clear", 1],
@@ -643,8 +643,8 @@ export const PART_B: QuestPart = {
         { id: "q:merchant:paltry", label: "Accept the paltry payment." },
         { id: "q:merchant:refuse", label: "Refuse and keep the drone parts." },
       ];
-      // {{Blue Option|Mind Control|...}} (the Mind Control system is the "leash" kit); {{Blue Option|Weapons|...|level=6+}}.
-      if ((g.player.kits.leash?.level ?? 0) > 0)
+      // {{Blue Option|Mind Control|...}} (the Mind Control system is the "mind" kit); {{Blue Option|Weapons|...|level=6+}}.
+      if ((g.player.kits.mind?.level ?? 0) > 0)
         choices.push({ id: "q:merchant:mind", label: "Convince him that he's being 'unfair'." });
       if ((g.player.systems.weapons?.level ?? 0) >= 6)
         choices.push({
@@ -958,10 +958,10 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
           "Engi ship",
           ENGI_PAGE_ENGI,
         );
-        const hp = crewDef("blade").hp;
+        const hp = crewDef("mantis").hp;
         for (const c of g.crew) {
           if (c.side !== "enemy") continue;
-          c.kin = "blade";
+          c.kin = "mantis";
           c.hp = hp;
           c.maxHp = hp;
         }

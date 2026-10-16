@@ -119,7 +119,7 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
   });
 
   it("with every door and airlock open, a Kestrel on level-1 Oxygen loses its air fairly quickly", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     const s = g.player;
     for (const d of s.doors) d.open = true;
     for (const r of s.rooms) r.o2 = 100;
@@ -205,8 +205,8 @@ describe("air model (air.ts, INTENTIONALLY OVERRIDING SPEC)", () => {
     stepAir(ship([idle], []), off(), 1);
     assert.ok(Math.abs(100 - idle.o2 - 0.3) < 0.001, `${idle.o2}`);
     // Level 1 gains on one crew member in a 1-tile room: 1.8 - 0.6 - about 0.2 (the leak near half air).
-    const cell = room("cell", 1, 1, 50);
-    run(ship([cell], []), off({ o2Bars: 1, breathers: new Map([["cell", 1]]) }), 10);
+    const cell = room("battery", 1, 1, 50);
+    run(ship([cell], []), off({ o2Bars: 1, breathers: new Map([["battery", 1]]) }), 10);
     assert.ok(cell.o2 > 59.5 && cell.o2 < 61, `${cell.o2}`);
     // Unpowered, that room thins.
     const dark = room("dark", 1, 1, 50);

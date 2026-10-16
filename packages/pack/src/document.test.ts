@@ -34,7 +34,7 @@ const laser: WeaponBlueprint = {
 const pack: ContentPack = {
   crew: [
     {
-      id: "plain",
+      id: "human",
       name: "Human",
       hp: 100,
       move: 1,
@@ -86,7 +86,7 @@ const pack: ContentPack = {
       lines: [
         { id: "fuel", kind: "fuel", name: "Fuel", cost: 3, min: 3, max: 7 },
         { id: "repair", kind: "repair", name: "Hull patch +5", cost: 0, min: 5, max: 5 },
-        { id: "plain", kind: "crew", name: "Human", cost: 45, min: 1, max: 1 },
+        { id: "human", kind: "crew", name: "Human", cost: 45, min: 1, max: 1 },
         { id: "relic", kind: "", name: "Relic", cost: 9, min: 1, max: 1 },
       ],
     },
@@ -442,7 +442,7 @@ describe("pack document", () => {
               {
                 id: "c:locked:engi",
                 label: "Negotiate",
-                reqs: [{ k: "crew" as const, id: "shell", text: "Needs an Engi crewmember." }],
+                reqs: [{ k: "crew" as const, id: "engi", text: "Needs an Engi crewmember." }],
               },
             ],
           },
@@ -455,10 +455,10 @@ describe("pack document", () => {
               { k: "system" as const, id: "medbay", level: 2, text: "Needs a level 2 Medbay." },
               { k: "band" as const, id: "engines", lo: 3, hi: 5, text: "Needs Engines level 3-5." },
               { k: "stock" as const, id: "parts", n: 1, text: "Need 1 drone part." },
-              { k: "augment" as const, id: "glass", text: "Needs a Crystal Vengeance." },
-              { k: "weapon" as const, id: "antibio", text: "Needs an Anti-Bio Beam." },
+              { k: "augment" as const, id: "ADV_SCANNERS", text: "Needs a Crystal Vengeance." },
+              { k: "weapon" as const, id: "BEAM_BIO", text: "Needs an Anti-Bio Beam." },
               { k: "family" as const, id: "missile", text: "Needs a missile weapon." },
-              { k: "drone" as const, id: "beam", text: "Needs a beam drone." },
+              { k: "drone" as const, id: "COMBAT_BEAM", text: "Needs a beam drone." },
             ],
             fx: [{ k: "nothing" as const }],
           },
@@ -466,10 +466,10 @@ describe("pack document", () => {
       },
     ];
     const xml = emitPack({ events });
-    assert.match(xml, /<crewMember name="shell"\/>/);
+    assert.match(xml, /<crewMember name="engi"\/>/);
     assert.match(xml, /req="engines" lvl="3" max_lvl="5"/);
     assert.match(xml, /<item type="drones" min="-1" max="-1"\/>/);
-    assert.match(xml, /<drone name="beam"\/>/);
+    assert.match(xml, /<drone name="COMBAT_BEAM"\/>/);
     assert.match(xml, /<req req="missile">/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
@@ -478,7 +478,7 @@ describe("pack document", () => {
         <text>Body</text>
         <choice name="c:broken:0">
           <text>Go</text>
-          <req><crewMember name="shell"/></req>
+          <req><crewMember name="engi"/></req>
           <req req="nope">Nope.</req>
           <req req="engines" lvl="5" max_lvl="3">Backwards.</req>
           <req>
@@ -956,7 +956,7 @@ describe("pack document", () => {
   });
 
   it("reads a title stored as character data", () => {
-    const back = parsePack(`<FTL><race name="plain"><title><![CDATA[A & B]]></title></race></FTL>`);
+    const back = parsePack(`<FTL><race name="human"><title><![CDATA[A & B]]></title></race></FTL>`);
     assert.equal(back.crew?.[0]?.name, "A & B");
   });
 

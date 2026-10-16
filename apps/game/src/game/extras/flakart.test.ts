@@ -34,7 +34,7 @@ function fight(seed: number): Game {
 /** A fully powered kit. Charge time then matches the installed level: 50/40/30/20. */
 function armFed(g: Game, level: 1 | 2 | 3 | 4): void {
   armFlak(g, level);
-  const kit = g.player.kits.flak;
+  const kit = g.player.kits.artillery;
   assert.ok(kit);
   kit.power = level;
 }
@@ -96,8 +96,8 @@ describe("flak burst", () => {
     const scrap = g.scrap;
     armFlak(g, 3);
     assert.equal(g.scrap, scrap);
-    assert.equal(g.player.kits.flak?.level, 3);
-    assert.equal(g.player.kits.flak?.aux, 0);
+    assert.equal(g.player.kits.artillery?.level, 3);
+    assert.equal(g.player.kits.artillery?.aux, 0);
   });
 
   it("holds the spool until the level clock, then pushes seven shots and seven fakes", () => {
@@ -191,13 +191,13 @@ describe("flak burst", () => {
     g.enemy.rooms = [{ ...base, id: "b", x: 0, y: 0, w: 2, h: 2, omit: undefined }];
     g.enemy.systems.engines.level = 0;
     g.enemy.systems.engines.power = 0;
-    if (g.enemy.kits.veil) g.enemy.kits.veil.on = false;
+    if (g.enemy.kits.cloaking) g.enemy.kits.cloaking.on = false;
     g.enemy.zoltan = 5;
     g.enemy.shieldNow = 8;
     const hull = g.enemy.hull;
-    if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+    if (g.enemy.kits.artillery) g.enemy.kits.artillery.on = false;
     armFed(g, 1);
-    g.player.kits.flak!.aux = 50;
+    g.player.kits.artillery!.aux = 50;
     tickFlak(g, 0.01);
     expectBurst(g.shots);
     assert.equal(evasionPercent(g, g.enemy, "enemy"), 0);
@@ -206,7 +206,7 @@ describe("flak burst", () => {
     assert.equal(g.enemy.shieldNow, 8);
     assert.equal(g.enemy.zoltan, 5);
     assert.equal(g.enemy.hull, hull);
-    assert.equal(g.log.slice(before).some((line) => line.toLowerCase().includes("swarm")), false);
+    assert.equal(g.log.slice(before).some((line) => line.toLowerCase().includes("drones")), false);
     g.enemy.zoltan = 0;
     for (const shot of realOf(g.shots)) applyImpact(g, shot);
     assert.equal(g.enemy.shieldNow, 1);
@@ -216,8 +216,8 @@ describe("flak burst", () => {
   it("lets a defense drone shoot a fake pellet", () => {
     const g = fight(12);
     assert.ok(g.enemy);
-    g.enemy.kits.swarm = {
-      id: "swarm",
+    g.enemy.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -225,22 +225,22 @@ describe("flak burst", () => {
       target: null,
       on: false,
       aux: 0,
-      loadout: ["ward"],
+      loadout: ["DEFENSE_1"],
     };
     g.enemy.parts = 3;
     tickSwarm(g, 0.05);
     tickSwarm(g, ACQUIRE_S);
-    if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+    if (g.enemy.kits.artillery) g.enemy.kits.artillery.on = false;
     armFed(g, 1);
-    g.player.kits.flak!.aux = 50;
+    g.player.kits.artillery!.aux = 50;
     tickFlak(g, 0.01);
     const fake = fakeOf(g.shots)[0];
     assert.ok(fake);
     assert.equal(enemyDefenseIntercept(g, fake), true);
     assert.equal(enemyDefenseIntercept(g, fake), false);
 
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 2,
       power: 2,
       left: 0,
@@ -250,7 +250,7 @@ describe("flak burst", () => {
       aux: 0,
     };
     g.player.parts = 2;
-    assert.equal(deploy(g, "ward"), true);
+    assert.equal(deploy(g, "DEFENSE_1"), true);
     const incoming: Shot = { ...fake, from: "enemy" };
     assert.equal(swarmIntercept(g, incoming), true);
   });
@@ -260,8 +260,8 @@ describe("flak burst", () => {
     for (let seed = 1; seed <= 250 && hits === 0; seed++) {
       const g = fight(seed);
       assert.ok(g.enemy);
-      g.enemy.kits.swarm = {
-        id: "swarm",
+      g.enemy.kits.drones = {
+        id: "drones",
         level: 2,
         power: 2,
         left: 0,
@@ -269,13 +269,13 @@ describe("flak burst", () => {
         target: null,
         on: false,
         aux: 0,
-        loadout: ["ward"],
+        loadout: ["DEFENSE_1"],
       };
       g.enemy.parts = 3;
       tickSwarm(g, 0.05);
-      if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+      if (g.enemy.kits.artillery) g.enemy.kits.artillery.on = false;
       armFed(g, 1);
-      g.player.kits.flak!.aux = 50;
+      g.player.kits.artillery!.aux = 50;
       tickFlak(g, 0.01);
       const fake = fakeOf(g.shots)[0];
       assert.ok(fake);
@@ -287,7 +287,7 @@ describe("flak burst", () => {
   it("charges a level 4 kit with one bar on the 50 second clock", () => {
     const g = fight(21);
     armFlak(g, 4);
-    const kit = g.player.kits.flak;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.power = 1;
     // A Zoltan stamp is not a reactor bar. One filled bar is still the 50s clock.
@@ -305,7 +305,7 @@ describe("flak burst", () => {
   it("stops adding bars at the cap and removes one bar", () => {
     const g = createGame(22);
     armFlak(g, 2);
-    const kit = g.player.kits.flak;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     const missing = 2 - sparePower(g.player);
     if (missing > 0) g.player.reactor += missing;
@@ -340,10 +340,10 @@ describe("flak burst", () => {
   it("drains a full bar in 2 seconds when off, unpowered, or destroyed", () => {
     // Flak Artillery, Overview: "Powering off drains charge quickly."
     // INFERRED: a full bar of the installed level empties in 2 seconds. The page prints no duration.
-    const emptied = (seed: number, level: 1 | 4, full: number, setup: (kit: NonNullable<Game["player"]["kits"]["flak"]>) => void) => {
+    const emptied = (seed: number, level: 1 | 4, full: number, setup: (kit: NonNullable<Game["player"]["kits"]["artillery"]>) => void) => {
       const g = fight(seed);
       armFlak(g, level);
-      const kit = g.player.kits.flak;
+      const kit = g.player.kits.artillery;
       assert.ok(kit);
       kit.aux = full;
       setup(kit);
@@ -370,7 +370,7 @@ describe("flak burst", () => {
 
     const paused = fight(33);
     armFlak(paused, 4);
-    const held = paused.player.kits.flak;
+    const held = paused.player.kits.artillery;
     assert.ok(held);
     held.power = 0;
     held.aux = 20;
@@ -380,7 +380,7 @@ describe("flak burst", () => {
 
     const idle = createGame(34);
     armFlak(idle, 1);
-    const parked = idle.player.kits.flak;
+    const parked = idle.player.kits.artillery;
     assert.ok(parked);
     parked.aux = 50;
     tickFlak(idle, 2);
@@ -392,7 +392,7 @@ describe("flak burst", () => {
     // Augmentations, Automated Re-loader: one copy divides cooldown by 1.1; three raise firing rate by 30%.
     const once = fight(40);
     armFed(once, 1);
-    once.augments.push("feed");
+    once.augments.push("AUTO_COOLDOWN");
     tickFlak(once, 50 / 1.1 - 0.05);
     assert.equal(once.shots.length, 0);
     tickFlak(once, 0.1);
@@ -400,7 +400,7 @@ describe("flak burst", () => {
 
     const triple = fight(41);
     armFed(triple, 1);
-    triple.augments.push("feed", "feed", "feed");
+    triple.augments.push("AUTO_COOLDOWN", "AUTO_COOLDOWN", "AUTO_COOLDOWN");
     tickFlak(triple, 50 / 1.3 - 0.05);
     assert.equal(triple.shots.length, 0);
     tickFlak(triple, 0.1);
@@ -408,8 +408,8 @@ describe("flak burst", () => {
 
     const draining = fight(42);
     armFlak(draining, 1);
-    draining.augments.push("feed", "feed", "feed");
-    const kit = draining.player.kits.flak;
+    draining.augments.push("AUTO_COOLDOWN", "AUTO_COOLDOWN", "AUTO_COOLDOWN");
+    const kit = draining.player.kits.artillery;
     assert.ok(kit);
     kit.power = 0;
     kit.on = true;
@@ -425,8 +425,8 @@ describe("flak burst", () => {
     const g = fight(43);
     armFed(g, 4);
     assert.ok(g.enemy);
-    g.enemy.kits.veil = {
-      id: "veil",
+    g.enemy.kits.cloaking = {
+      id: "cloaking",
       level: 1,
       power: 1,
       left: 10,
@@ -435,7 +435,7 @@ describe("flak burst", () => {
       on: true,
       aux: 0,
     };
-    const kit = g.player.kits.flak;
+    const kit = g.player.kits.artillery;
     assert.ok(kit);
     tickFlak(g, 20);
     assert.equal(kit.aux, 0);
@@ -511,9 +511,9 @@ describe("flak room odds", () => {
     assert.ok(g.enemy);
     const base = g.enemy.rooms[0];
     g.enemy.rooms = [{ ...base, id: "n", x: 1, y: 0, w: 1, h: 2, omit: undefined }];
-    if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+    if (g.enemy.kits.artillery) g.enemy.kits.artillery.on = false;
     armFed(g, 1);
-    g.player.kits.flak!.aux = 50;
+    g.player.kits.artillery!.aux = 50;
     g.seed = 4;
     const preview = createGame(0);
     preview.seed = 4;
@@ -543,9 +543,9 @@ describe("flak room odds", () => {
     assert.ok(g.enemy);
     const base = g.enemy.rooms[0];
     g.enemy.rooms = [{ ...base, id: "b", x: 0, y: 0, w: 2, h: 2, omit: undefined }];
-    if (g.enemy.kits.flak) g.enemy.kits.flak.on = false;
+    if (g.enemy.kits.artillery) g.enemy.kits.artillery.on = false;
     armFed(g, 1);
-    g.player.kits.flak!.aux = 50;
+    g.player.kits.artillery!.aux = 50;
     g.seed = 4;
     tickFlak(g, 0.01);
     assert.equal(g.seed, 4);

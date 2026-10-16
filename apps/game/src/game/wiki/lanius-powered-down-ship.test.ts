@@ -133,7 +133,7 @@ describe("Lanius powered-down ship", () => {
     const dead = createGame(2);
     open(dead);
     assert.equal(joinCrew(dead, "Lanius"), true);
-    const lan = dead.crew.find((c) => c.kin === "voidlung");
+    const lan = dead.crew.find((c) => c.kin === "anaerobic");
     assert.ok(lan);
     lan.hp = 0;
     choose(dead, "c:lanius-powered-down-ship:2");

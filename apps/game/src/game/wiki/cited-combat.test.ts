@@ -23,9 +23,9 @@ function shot(partial: Partial<Shot> & Pick<Shot, "kind" | "from" | "damage">): 
 
 describe("one-layer pierce, bombs, and the battery", () => {
   it("lets Heavy Pierce and crystal shots through one shield layer and not two", () => {
-    assert.equal(citedPierce("heavypierce"), 1);
-    assert.equal(citedPierce("crystalburst"), 1);
-    assert.equal(citedPierce("heavycrystal2"), 1);
+    assert.equal(citedPierce("LASER_HEAVY_1_SP"), 1);
+    assert.equal(citedPierce("CRYSTAL_BURST_1"), 1);
+    assert.equal(citedPierce("CRYSTAL_HEAVY_2"), 1);
     assert.equal(citedPierce("burst2"), 0);
     assert.equal(citedPierce(undefined), 0);
 
@@ -40,7 +40,7 @@ describe("one-layer pierce, bombs, and the battery", () => {
     enemy.hull = 10;
     applyImpact(
       g,
-      shot({ kind: "laser", from: "player", damage: 2, defId: "heavypierce", targetRoom: room.id }),
+      shot({ kind: "laser", from: "player", damage: 2, defId: "LASER_HEAVY_1_SP", targetRoom: room.id }),
     );
     assert.equal(enemy.shieldNow, 0);
     assert.equal(enemy.hull, 8);
@@ -49,7 +49,7 @@ describe("one-layer pierce, bombs, and the battery", () => {
     enemy.hull = 10;
     applyImpact(
       g,
-      shot({ kind: "laser", from: "player", damage: 2, defId: "crystalburst", targetRoom: room.id }),
+      shot({ kind: "laser", from: "player", damage: 2, defId: "CRYSTAL_BURST_1", targetRoom: room.id }),
     );
     assert.equal(enemy.shieldNow, 1);
     assert.equal(enemy.hull, 10);
@@ -70,14 +70,14 @@ describe("one-layer pierce, bombs, and the battery", () => {
     crew.room = room.id;
     crew.hp = 10;
     crew.maxHp = 100;
-    applyImpact(g, shot({ kind: "bomb", from: "player", damage: 0, defId: "healburst", targetRoom: room.id }));
+    applyImpact(g, shot({ kind: "bomb", from: "player", damage: 0, defId: "BOMB_HEAL", targetRoom: room.id }));
     assert.equal(crew.hp, 100);
     assert.equal(enemy.zoltan, 5);
 
     enemy.systems[room.system].damage = 3;
     room.fire = 1;
     room.breach = 1;
-    applyImpact(g, shot({ kind: "bomb", from: "player", damage: 0, defId: "repairburst", targetRoom: room.id }));
+    applyImpact(g, shot({ kind: "bomb", from: "player", damage: 0, defId: "BOMB_HEAL_SYSTEM", targetRoom: room.id }));
     assert.equal(enemy.systems[room.system].damage, 0);
     assert.equal(room.fire, 1);
     assert.equal(room.breach, 1);
@@ -90,10 +90,10 @@ describe("one-layer pierce, bombs, and the battery", () => {
     g.player.systems.engines.power = 0;
     g.player.zoltan = 5;
     g.player.parts = 2;
-    g.player.kits.swarm = { id: "swarm", level: 3, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
-    assert.equal(deploy(g, "ward"), true);
+    g.player.kits.drones = { id: "drones", level: 3, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    assert.equal(deploy(g, "DEFENSE_1"), true);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "env" }), false);
-    assert.equal(g.player.kits.swarm?.cool, 0);
+    assert.equal(g.player.kits.drones?.cool, 0);
     const room = g.player.rooms[0];
     const hull = g.player.hull;
     applyImpact(
@@ -110,7 +110,7 @@ describe("one-layer pierce, bombs, and the battery", () => {
     assert.equal(g.player.zoltan, 5);
     assert.equal(g.player.hull, hull - 3);
     assert.equal(room.breach, 1);
-    assert.equal(g.player.kits.swarm?.cool ?? 0, 0);
+    assert.equal(g.player.kits.drones?.cool ?? 0, 0);
   });
 });
 
@@ -118,7 +118,7 @@ describe("Distraction Buoys at a fleet of 0", () => {
   it("skips the next advance and then lets the following jump count", () => {
     const g = createGame(4);
     g.sector = 3;
-    g.augments = ["falsebuoy"];
+    g.augments = ["FLEET_DISTRACTION"];
     g.fleet = 0;
     g.fuel = 6;
     g.phase = "map";
@@ -238,7 +238,7 @@ describe("flagship stages inside the fight", () => {
     assert.deepEqual(
       g.enemy?.weapons.map((weapon) => weapon.defId),
       // @agent:flagship. Boss Laser and Boss Beam are WeaponDefs now (wiki/flagship-weapons.ts).
-      ["bosslaser", "bossmissile", "bossbeam"],
+      ["ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
     );
     assert.equal(g.enemy?.zoltan, undefined);
     g.enemy!.hull = 0;
@@ -291,7 +291,7 @@ describe("beams with a damage dash", () => {
         kind: "beam",
         from: "player",
         damage: 0,
-        defId: "antibio",
+        defId: "BEAM_BIO",
         targetRoom: blocked.room.id,
         beamRooms: [blocked.room.id],
       }),
@@ -310,7 +310,7 @@ describe("beams with a damage dash", () => {
         kind: "beam",
         from: "player",
         damage: 0,
-        defId: "antibio",
+        defId: "BEAM_BIO",
         targetRoom: open.room.id,
         beamRooms: [open.room.id],
       }),
@@ -329,7 +329,7 @@ describe("beams with a damage dash", () => {
         kind: "beam",
         from: "player",
         damage: 1,
-        defId: "mini",
+        defId: "BEAM_1",
         targetRoom: room.id,
         beamRooms: [room.id],
       }),
@@ -349,7 +349,7 @@ describe("beams with a damage dash", () => {
         kind: "beam",
         from: "player",
         damage: 0,
-        defId: "firebeam",
+        defId: "BEAM_FIRE",
         fireChance: 1,
         targetRoom: blocked.room.id,
         beamRooms: [blocked.room.id],
@@ -370,7 +370,7 @@ describe("beams with a damage dash", () => {
         kind: "beam",
         from: "player",
         damage: 0,
-        defId: "firebeam",
+        defId: "BEAM_FIRE",
         fireChance: 1,
         targetRoom: open.room.id,
         beamRooms: [open.room.id],

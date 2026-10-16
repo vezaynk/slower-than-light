@@ -29,7 +29,7 @@ function spark(room: string, id: string): Crew {
     move: 0,
     think: 0,
     tone: 0,
-    kin: "spark",
+    kin: "energy",
   };
 }
 
@@ -145,7 +145,7 @@ describe("Zoltan power bar", () => {
 
 describe("Adv. FTL Navigation", () => {
   it("is sold for 50", () => {
-    const row = CATALOG.find((item) => item.id === "nav");
+    const row = CATALOG.find((item) => item.id === "FTL_JUMPER");
     assert.ok(row);
     assert.equal(row.name, "Adv. FTL Navigation");
     assert.equal(row.cost, 50);
@@ -164,7 +164,7 @@ describe("Adv. FTL Navigation", () => {
     assert.equal(g.here, here.id);
     assert.equal(g.fuel, fuel);
 
-    g.augments = ["nav"];
+    g.augments = ["FTL_JUMPER"];
     assert.equal(canJumpTo(g, dest.id), true);
     dest.col = 0;
     g.fleet = 4;

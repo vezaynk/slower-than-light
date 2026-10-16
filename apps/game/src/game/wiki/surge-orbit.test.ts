@@ -26,12 +26,12 @@ function stage2Surge(seed: number) {
   for (const d of surge) {
     d.heading = 0;
     d.bearing = 90;
-    d.left = orbitLegSeconds(0, 90, d.kind === "beam" ? BEAM1_SPEED : COMBAT1_SPEED);
+    d.left = orbitLegSeconds(0, 90, d.kind === "COMBAT_BEAM" ? BEAM1_SPEED : COMBAT1_SPEED);
     d.aux = 0;
     d.shots = 0;
   }
   // Only the surge drones are under test: the stage 2 Drone Control drones fly their own random legs.
-  const swarm = g.enemy!.kits.swarm;
+  const swarm = g.enemy!.kits.drones;
   if (swarm) {
     swarm.loadout = [];
     swarm.drones = [];
@@ -62,8 +62,8 @@ describe("stage 2 power surge drones", () => {
   it("counts the shot while the player is cloaked and does not fire it", () => {
     // The Rebel Flagship, Power Surge: cloaked, they position for a shot, and that counts as one of the two.
     const g = stage2Surge(72);
-    g.player.kits.veil = {
-      id: "veil",
+    g.player.kits.cloaking = {
+      id: "cloaking",
       level: 1,
       power: 1,
       left: 15,

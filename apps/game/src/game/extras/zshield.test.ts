@@ -64,28 +64,28 @@ function quiet(g: ReturnType<typeof createGame>) {
 
 describe("zoltan shield", () => {
   it("starts Zoltan A, B, and C with 5 points and does not give other hulls one", () => {
-    for (const id of ["zoltan-a", "zoltan-b", "zoltan-c"] as const) {
+    for (const id of ["PLAYER_SHIP_ENERGY", "PLAYER_SHIP_ENERGY_2", "PLAYER_SHIP_ENERGY_3"] as const) {
       const g = createGame(1, id);
-      assert.ok(g.augments.includes("zshield"), id);
+      assert.ok(g.augments.includes("ENERGY_SHIELD"), id);
       assert.equal(g.player.zoltan, 5, id);
     }
-    const kestrel = createGame(1, "kestrel-a");
-    assert.equal(kestrel.augments.includes("zshield"), false);
+    const kestrel = createGame(1, "PLAYER_SHIP_HARD");
+    assert.equal(kestrel.augments.includes("ENERGY_SHIELD"), false);
     assert.equal(kestrel.player.zoltan, undefined);
   });
 
   it("sells for 40, clears the bubble, and refuses a third augment on a full Zoltan rack", () => {
-    const sold = createGame(2, "zoltan-a");
+    const sold = createGame(2, "PLAYER_SHIP_ENERGY");
     sold.player.zoltan = 0;
     sold.player.zoltanOver = true;
     const before = sold.scrap;
-    const quote = citedSellQuote(sold).find((row) => row.ref === "zshield");
+    const quote = citedSellQuote(sold).find((row) => row.ref === "ENERGY_SHIELD");
     assert.ok(quote);
     assert.equal(quote.scrap, 40);
     assert.equal(quote.name, "Zoltan Shield");
     assert.equal(citedSell(sold, quote.id), true);
     assert.equal(sold.scrap, before + 40);
-    assert.equal(sold.augments.includes("zshield"), false);
+    assert.equal(sold.augments.includes("ENERGY_SHIELD"), false);
     assert.equal(sold.player.zoltan, undefined);
     assert.equal(sold.player.zoltanOver, undefined);
     const here = sold.beacons.find((b) => b.id === sold.here);
@@ -95,20 +95,20 @@ describe("zoltan shield", () => {
     commitJump(sold, here.links[0]);
     assert.equal(sold.player.zoltan, undefined);
 
-    const full = createGame(3, "zoltan-b");
-    assert.ok(full.augments.includes("zshield"));
+    const full = createGame(3, "PLAYER_SHIP_ENERGY_2");
+    assert.ok(full.augments.includes("ENERGY_SHIELD"));
     full.scrap = 200;
-    assert.equal(installAugment(full, "glass"), true);
-    assert.equal(installAugment(full, "jammer"), true);
+    assert.equal(installAugment(full, "ADV_SCANNERS"), true);
+    assert.equal(installAugment(full, "FTL_JAMMER"), true);
     assert.equal(full.augments.length, 3);
     const scrap = full.scrap;
-    assert.equal(installAugment(full, "feed"), false);
+    assert.equal(installAugment(full, "AUTO_COOLDOWN"), false);
     assert.equal(full.scrap, scrap);
-    assert.deepEqual(full.augments, ["zshield", "glass", "jammer"]);
+    assert.deepEqual(full.augments, ["ENERGY_SHIELD", "ADV_SCANNERS", "FTL_JAMMER"]);
   });
 
   it("absorbs damage before regular shields and hull, and only a jump refills it", () => {
-    const g = createGame(2, "zoltan-a");
+    const g = createGame(2, "PLAYER_SHIP_ENERGY");
     parkEngines(g);
     const hull = g.player.hull;
     const bubble = g.player.shieldNow;
@@ -152,7 +152,7 @@ describe("zoltan shield", () => {
   });
 
   it("doubles ion and beam damage against the bubble, and utility bombs do nothing to it", () => {
-    const g = createGame(3, "zoltan-b");
+    const g = createGame(3, "PLAYER_SHIP_ENERGY_2");
     parkEngines(g);
     const hull = g.player.hull;
     applyImpact(g, shot({ kind: "ion", damage: 0, ion: 1 }));
@@ -170,9 +170,9 @@ describe("zoltan shield", () => {
     assert.equal(g.player.zoltan, 0);
     assert.ok(g.player.hull < hull);
 
-    const fresh = createGame(4, "zoltan-b");
+    const fresh = createGame(4, "PLAYER_SHIP_ENERGY_2");
     parkEngines(fresh);
-    applyImpact(fresh, shot({ kind: "beam", damage: 0, defId: "antibio" }));
+    applyImpact(fresh, shot({ kind: "beam", damage: 0, defId: "BEAM_BIO" }));
     assert.equal(fresh.player.zoltan, 3);
     assert.equal(fresh.player.hull, fresh.player.hullMax);
 
@@ -181,14 +181,14 @@ describe("zoltan shield", () => {
     assert.equal(fresh.player.zoltan, 3);
     assert.equal(roomFire(fresh), fire);
 
-    applyImpact(fresh, shot({ kind: "bomb", damage: 0, defId: "lockdown" }));
+    applyImpact(fresh, shot({ kind: "bomb", damage: 0, defId: "BOMB_LOCK" }));
     assert.equal(fresh.player.zoltan, 3);
     assert.equal(fresh.player.rooms.find((r) => r.id === "p-weapons")?.lock ?? 0, 0);
 
     const plain = createGame(5);
     plain.player.systems.engines.power = 0;
     plain.player.systems.doors.level = 2;
-    applyImpact(plain, shot({ kind: "bomb", damage: 0, defId: "lockdown" }));
+    applyImpact(plain, shot({ kind: "bomb", damage: 0, defId: "BOMB_LOCK" }));
     const room = plain.player.rooms.find((r) => r.id === "p-weapons");
     assert.equal(room?.lock, 12);
     const door = plain.player.doors.find(
@@ -207,11 +207,11 @@ function roomFire(g: ReturnType<typeof createGame>) {
 
 describe("crystal lockdown", () => {
   it("coats for 12 seconds, recharges in 50, and blocks new passage", () => {
-    const g = createGame(6, "crystal-a");
+    const g = createGame(6, "PLAYER_SHIP_CRYSTAL");
     startCombat(g, "scout");
     quiet(g);
-    const shards = g.crew.filter((c) => c.kin === "shard" && c.hp > 0);
-    const human = g.crew.find((c) => c.kin === "plain" && c.hp > 0);
+    const shards = g.crew.filter((c) => c.kin === "crystal" && c.hp > 0);
+    const human = g.crew.find((c) => c.kin === "human" && c.hp > 0);
     assert.ok(shards.length >= 2);
     assert.ok(human);
     const [first, second] = shards;
@@ -341,8 +341,8 @@ describe("crystal lockdown", () => {
   });
 
   it("recharges on a jump unless the Crystal is in the Clone Bay", () => {
-    const g = createGame(7, "crystal-a");
-    const shards = g.crew.filter((c) => c.kin === "shard");
+    const g = createGame(7, "PLAYER_SHIP_CRYSTAL");
+    const shards = g.crew.filter((c) => c.kin === "crystal");
     assert.ok(shards.length >= 2);
     shards[0].lockCool = 40;
     shards[1].lockCool = 40;
@@ -353,7 +353,7 @@ describe("crystal lockdown", () => {
     assert.equal(shards[0].lockCool, 0);
     assert.equal(shards[1].lockCool, 40);
 
-    const bay = createGame(8, "zoltan-c");
+    const bay = createGame(8, "PLAYER_SHIP_ENERGY_3");
     const crystal = {
       id: "gem",
       name: "Gem",
@@ -366,7 +366,7 @@ describe("crystal lockdown", () => {
       move: 0,
       think: 0,
       tone: 0,
-      kin: "shard" as const,
+      kin: "crystal" as const,
       lockCool: 22,
     };
     // The jump rule reads the room title. This picture has no clone-bay icon, so the check uses a titled room.

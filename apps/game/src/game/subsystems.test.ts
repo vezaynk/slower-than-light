@@ -161,7 +161,7 @@ function plantBoarder(g: Game, room: string): Crew {
     move: 0,
     think: 9999,
     tone: 3,
-    kin: "plain",
+    kin: "human",
   };
   g.crew.push(c);
   return c;

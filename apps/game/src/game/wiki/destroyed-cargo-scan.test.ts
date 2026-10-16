@@ -29,7 +29,7 @@ describe("Destroyed cargo ship scan", () => {
     // > "(Long-Ranged Scanners) Run an advanced scan on the boxes." — [[Destroyed cargo ship]]
     const g = createGame(1);
     g.player.systems.sensors.level = 1;
-    g.augments = g.augments.filter((id) => id !== "glass");
+    g.augments = g.augments.filter((id) => id !== "ADV_SCANNERS");
     open(g);
     assert.ok(g.event?.choices.some((c) => c.id === SENSORS && c.label === "Run an advanced scan on the boxes."));
     assert.ok(g.event?.choices.some((c) => c.id === SCANNERS && c.label === "Run an advanced scan on the boxes."));
@@ -47,14 +47,14 @@ describe("Destroyed cargo ship scan", () => {
   it("Sensors level 2 scans without the augment, and the augment scans at level 1", () => {
     const sensors = createGame(2);
     sensors.player.systems.sensors.level = 2;
-    sensors.augments = sensors.augments.filter((id) => id !== "glass");
+    sensors.augments = sensors.augments.filter((id) => id !== "ADV_SCANNERS");
     open(sensors);
     assert.equal(choiceDisabled(sensors, SENSORS), null);
     assert.equal(choiceDisabled(sensors, SCANNERS), "Needs Long-Ranged Scanners");
 
     const glass = createGame(3);
     glass.player.systems.sensors.level = 1;
-    glass.augments = [...glass.augments.filter((id) => id !== "glass"), "glass"];
+    glass.augments = [...glass.augments.filter((id) => id !== "ADV_SCANNERS"), "ADV_SCANNERS"];
     open(glass);
     assert.equal(choiceDisabled(glass, SENSORS), "Needs Sensors level 2");
     assert.equal(choiceDisabled(glass, SCANNERS), null);

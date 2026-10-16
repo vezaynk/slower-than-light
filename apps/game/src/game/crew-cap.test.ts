@@ -9,7 +9,7 @@ function players(g: ReturnType<typeof createGame>) {
 
 describe("crew cap", () => {
   it("lets a ship carry eight, and a ninth asks who is relieved", () => {
-    const g = createGame(1, "mantis-a");
+    const g = createGame(1, "PLAYER_SHIP_MANTIS");
     assert.ok(players(g).length > 0);
     assert.ok(players(g).length < CREW_CAP);
     while (players(g).length < CREW_CAP) assert.equal(joinCrew(g, "Human"), true);

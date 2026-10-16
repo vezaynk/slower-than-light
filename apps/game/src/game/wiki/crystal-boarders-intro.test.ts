@@ -53,7 +53,7 @@ describe("Boarders: Crystal intros", () => {
     const g = createGame(2);
     open(g);
     choose(g, "c:boarders-crystal:0");
-    const crystals = g.crew.filter((c) => c.side === "enemy" && c.kin === "shard" && c.aboard === "player");
+    const crystals = g.crew.filter((c) => c.side === "enemy" && c.kin === "crystal" && c.aboard === "player");
     assert.ok(crystals.length >= 2 && crystals.length <= 3, String(crystals.length));
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "combat");

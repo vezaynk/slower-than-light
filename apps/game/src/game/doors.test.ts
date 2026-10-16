@@ -234,10 +234,10 @@ describe("broken doors", () => {
 
   it("closes a coated door by hand after Open All", () => {
     // Door System: Z overrides the coating, and those doors can then be closed (X, or one door).
-    const g = createGame(11, "crystal-a");
+    const g = createGame(11, "PLAYER_SHIP_CRYSTAL");
     startCombat(g, "scout");
     calm(g);
-    const crystal = g.crew.find((c) => c.kin === "shard" && c.hp > 0);
+    const crystal = g.crew.find((c) => c.kin === "crystal" && c.hp > 0);
     assert.ok(crystal);
     const room = g.player.rooms.find((r) => r.id === crystal.room);
     assert.ok(room);
@@ -274,7 +274,7 @@ describe("hacked doors", () => {
   function land(g: Game, system: string) {
     armSpike(g, system);
     assert.equal(launchSpike(g), true);
-    const kit = g.player.kits.spike!;
+    const kit = g.player.kits.hacking!;
     kit.hackFly = 0;
     tickSpike(g, 1e-6);
   }
@@ -299,7 +299,7 @@ describe("hacked doors", () => {
     door.open = true;
     door.stuck = 0.2;
     door.hp = 0;
-    g.player.kits.spike!.power = 0;
+    g.player.kits.hacking!.power = 0;
     finishStuck(g, door);
     assert.equal(door.open, true);
     assert.equal(door.hacked, undefined);
@@ -441,7 +441,7 @@ describe("enemy breaches and doors", () => {
 
 describe("Open All / Close All in two steps (per the user)", () => {
   it("opens interior doors first, then airlocks; closes airlocks first, then interior doors", () => {
-    const g = createGame(5, "kestrel-a");
+    const g = createGame(5, "PLAYER_SHIP_HARD");
     const inner = () => g.player.doors.filter((d) => d.b !== "void");
     const locks = () => g.player.doors.filter((d) => d.b === "void");
     for (const d of g.player.doors) d.open = false;
@@ -463,7 +463,7 @@ describe("Open All / Close All in two steps (per the user)", () => {
   });
 
   it("moves on past an airlock stuck open, once it is marked to shut", () => {
-    const g = createGame(5, "kestrel-a");
+    const g = createGame(5, "PLAYER_SHIP_HARD");
     for (const d of g.player.doors) d.open = true;
     const lock = g.player.doors.find((d) => d.b === "void")!;
     lock.stuck = 5;

@@ -29,7 +29,7 @@ import type { Layout } from "../layouts.ts";
  */
 export type SurgeDrone = {
   id: string;
-  kind: "beam" | "striker";
+  kind: "COMBAT_BEAM" | "COMBAT_1";
   shots: number;
   aux: number;
   heading?: number;
@@ -107,11 +107,11 @@ const ROLE: Record<string, { id: string; system: SysId | null; kit?: KitId }> = 
   engines: { id: "e-engines", system: "engines" },
   medbay: { id: "e-medbay", system: "medbay" },
   doors: { id: "e-doors", system: "doors" },
-  cloak: { id: "e-cloaking", system: null, kit: "veil" },
-  hack: { id: "e-hacking", system: null, kit: "spike" },
-  drone: { id: "e-drones", system: null, kit: "swarm" },
-  teleporter: { id: "e-teleporter", system: null, kit: "sling" },
-  mind: { id: "e-mindcontrol", system: null, kit: "leash" },
+  cloak: { id: "e-cloaking", system: null, kit: "cloaking" },
+  hack: { id: "e-hacking", system: null, kit: "hacking" },
+  drone: { id: "e-drones", system: null, kit: "drones" },
+  teleporter: { id: "e-teleporter", system: null, kit: "teleporter" },
+  mind: { id: "e-mindcontrol", system: null, kit: "mind" },
   ion: { id: "e-ion", system: "weapons" },
   laser: { id: "e-laser", system: "weapons" },
   missile: { id: "e-missile", system: "weapons" },
@@ -194,9 +194,9 @@ export function flagshipSeats(hard: boolean): string[] {
  * drone system, the Boarding Drone is the first drone to go down. Further damage will take the regular beam and
  * combat drones offline (not the power surge drones), and finally the defense drone." swarm.ts powers drones in
  * loadout order, so the defense drone is first and the boarding drone last.
- * INFERRED: "Boarding Drone (Boss)" runs as swarm.ts "board" (the regular Boarding Drone), at the printed (2) power.
+ * INFERRED: "Boarding Drone (Boss)" runs as swarm.ts "BOARDER" (the regular Boarding Drone), at the printed (2) power.
  */
-export const STAGE2_DRONES = ["ward", "beam", "striker", "board"] as const;
+export const STAGE2_DRONES = ["DEFENSE_1", "COMBAT_BEAM", "COMBAT_1", "BOARDER"] as const;
 
 /**
  * Power of one Drone Control schematic on the flagship, or null to use the regular figure.
@@ -204,17 +204,17 @@ export const STAGE2_DRONES = ["ward", "beam", "striker", "board"] as const;
  */
 export function flagshipDronePower(ship: Ship, kind: string): number | null {
   if (!isFlagship(ship)) return null;
-  return kind === "board" ? 2 : null;
+  return kind === "BOARDER" ? 2 : null;
 }
 
 /** Printed system levels that the sim runs as kits, per stage ("Systems" lists). */
 const STAGE_KITS: Record<1 | 2 | 3, Partial<Record<KitId, number>>> = {
   // "1st Stage" / "Systems": "Cloaking (2)", "Hacking (3) [Advanced Edition]".
-  1: { veil: 2, spike: 3 },
+  1: { cloaking: 2, hacking: 3 },
   // "2nd stage" / "Systems": "Drone (8)".
-  2: { swarm: 8 },
+  2: { drones: 8 },
   // "Final stage" / "Systems": "Teleporter (2)", "Mind Control (3) [Advanced Edition]".
-  3: { sling: 2, leash: 3 },
+  3: { teleporter: 2, mind: 3 },
 };
 
 function blankKit(id: KitId, level: number): Kit {
@@ -229,7 +229,7 @@ export function flagshipKits(stage: 1 | 2 | 3): Ship["kits"] {
   const kits: Ship["kits"] = {};
   for (const [id, level] of Object.entries(STAGE_KITS[stage]) as [KitId, number][])
     kits[id] = blankKit(id, level);
-  if (kits.swarm) kits.swarm.loadout = [...STAGE2_DRONES];
+  if (kits.drones) kits.drones.loadout = [...STAGE2_DRONES];
   return kits;
 }
 
@@ -361,7 +361,7 @@ export const FLAGSHIP_ZOLTAN = 12;
  * but is about 7 seconds." The variation is the orbit leg. Beam speed is not this wait.
  */
 function surgeSpeed(kind: SurgeDrone["kind"]): number {
-  return kind === "beam" ? BEAM1_SPEED : COMBAT1_SPEED;
+  return kind === "COMBAT_BEAM" ? BEAM1_SPEED : COMBAT1_SPEED;
 }
 
 function armSurgeLeg(g: Game, d: SurgeDrone, speed: number) {
@@ -369,7 +369,7 @@ function armSurgeLeg(g: Game, d: SurgeDrone, speed: number) {
   if (d.bearing == null || !(d.left != null && d.left > 0)) {
     d.bearing = pickOrbitBearing(g, d.heading);
     // xftl doc/combat-drone: the beam surge drone holds 0.5 s after each swipe, like any beam drone.
-    d.left = orbitLegSeconds(d.heading, d.bearing, speed, d.kind === "beam" ? BEAM_HOLD_S : 0);
+    d.left = orbitLegSeconds(d.heading, d.bearing, speed, d.kind === "COMBAT_BEAM" ? BEAM_HOLD_S : 0);
   }
 }
 
@@ -410,9 +410,9 @@ export function firePowerSurge(g: Game, ship: Ship) {
   if (state.stage === 2) {
     state.split ??= rollSplit(g);
     for (let i = 0; i < state.split.beam; i++)
-      state.surge.push({ id: "surge-" + nextId(g), kind: "beam", shots: 0, aux: 0 });
+      state.surge.push({ id: "surge-" + nextId(g), kind: "COMBAT_BEAM", shots: 0, aux: 0 });
     for (let i = 0; i < state.split.striker; i++)
-      state.surge.push({ id: "surge-" + nextId(g), kind: "striker", shots: 0, aux: 0 });
+      state.surge.push({ id: "surge-" + nextId(g), kind: "COMBAT_1", shots: 0, aux: 0 });
     log(g, `Power surge: ${state.split.beam + state.split.striker} drones deploy.`);
     return;
   }
@@ -466,7 +466,7 @@ function tickSurgeDrones(g: Game, state: FlagshipState, dt: number) {
     // "If you are cloaked, they will position for taking a shot, and that will count as one of their allowed two shots."
     if (veilBlocks(g, "enemy")) continue;
     const room = randomRoom(g, g.player);
-    const beam = d.kind === "beam";
+    const beam = d.kind === "COMBAT_BEAM";
     // Anti-Ship Beam Drone I: a beam, "100% accurate" but "cannot penetrate shields at all". sim.ts applyImpact skips
     // the miss roll for a "drone:" beam and cuts its damage by each shield layer. Combat Drone Mark I: a laser.
     g.shots.push({
@@ -616,10 +616,10 @@ export function surgeRearm(ship: Ship) {
 
 /** Artillery room of each boss gun (wiki/flagship-layout.ts traced rooms, ROLE above). */
 export const GUN_ROOM: Record<string, string> = {
-  bossion: "e-ion",
-  bosslaser: "e-laser",
-  bossmissile: "e-missile",
-  bossbeam: "e-beam",
+  ARTILLERY_BOSS_4: "e-ion",
+  ARTILLERY_BOSS_1: "e-laser",
+  ARTILLERY_BOSS_2: "e-missile",
+  ARTILLERY_BOSS_3: "e-beam",
 };
 
 /**

@@ -23,7 +23,7 @@ function arrive(seed: number): Game {
 }
 
 function slugsAboard(g: Game) {
-  return g.crew.filter((c) => c.side === "enemy" && c.kin === "gel" && c.aboard === "player");
+  return g.crew.filter((c) => c.side === "enemy" && c.kin === "slug" && c.aboard === "player");
 }
 
 describe("The Black Raven mind duel", () => {
@@ -37,7 +37,7 @@ describe("The Black Raven mind duel", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.enemy, null);
     assert.equal(g.player.weapons.length, weapons);
-    g.crew[0].kin = "gel";
+    g.crew[0].kin = "slug";
     g.crew[0].hp = 0;
     assert.equal(choiceDisabled(g, DUEL), "Needs a Slug crewmember");
     choose(g, DUEL);
@@ -55,7 +55,7 @@ describe("The Black Raven mind duel", () => {
     let paid = false;
     for (let seed = 1; seed <= 80 && !(boarded && paid); seed++) {
       const g = arrive(seed);
-      g.crew[0].kin = "gel";
+      g.crew[0].kin = "slug";
       assert.equal(choiceDisabled(g, DUEL), null);
       const weapons = g.player.weapons.map((w) => w.defId);
       const scrap = g.scrap;

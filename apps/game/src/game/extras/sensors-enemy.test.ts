@@ -33,7 +33,7 @@ function fight(seed = 7): Game {
 /** The player's drone latched on the enemy's Sensors with a 4 s pulse running. */
 function pulseSensors(g: Game) {
   g.enemy!.hackDrone = "sensors";
-  const k = g.player.kits.spike!;
+  const k = g.player.kits.hacking!;
   k.target = "sensors";
   k.on = true;
   k.left = 4;

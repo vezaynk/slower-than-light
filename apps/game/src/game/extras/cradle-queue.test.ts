@@ -5,7 +5,7 @@ import { deathAnimSeconds, onCradleDeath, onCradleJump, tickCradle } from "./cra
 import type { Crew, Game, Kit } from "../types.ts";
 
 function poweredKit(level = 1): Kit {
-  return { id: "cradle", level, power: 1, left: 0, cool: 0, target: null, on: true, aux: 0 };
+  return { id: "clonebay", level, power: 1, left: 0, cool: 0, target: null, on: true, aux: 0 };
 }
 
 function players(g: Game): Crew[] {
@@ -20,7 +20,7 @@ function kill(g: Game, c: Crew) {
 describe("player Clone Bay queue (wiki Clone Bay, Overview)", () => {
   it("clones one-by-one in death order", () => {
     const g = createGame(1);
-    g.player.kits.cradle = poweredKit(1);
+    g.player.kits.clonebay = poweredKit(1);
     const [a, b] = players(g);
     kill(g, a);
     kill(g, b);
@@ -40,7 +40,7 @@ describe("player Clone Bay queue (wiki Clone Bay, Overview)", () => {
   it("offline loses the last-entered clone every 3 s; the head survives longer", () => {
     const g = createGame(1);
     const kit = poweredKit(1);
-    g.player.kits.cradle = kit;
+    g.player.kits.clonebay = kit;
     const [a, b, c] = players(g);
     kill(g, a);
     kill(g, b);
@@ -59,7 +59,7 @@ describe("player Clone Bay queue (wiki Clone Bay, Overview)", () => {
   it("a destroyed bay counts as offline", () => {
     const g = createGame(1);
     const kit = poweredKit(1);
-    g.player.kits.cradle = kit;
+    g.player.kits.clonebay = kit;
     const [a] = players(g);
     kill(g, a);
     kit.damage = 1;
@@ -70,7 +70,7 @@ describe("player Clone Bay queue (wiki Clone Bay, Overview)", () => {
   it("loss progression survives a jump heal", () => {
     const g = createGame(1);
     const kit = poweredKit(1);
-    g.player.kits.cradle = kit;
+    g.player.kits.clonebay = kit;
     const [a] = players(g);
     kill(g, a);
     kit.power = 0;
@@ -84,7 +84,7 @@ describe("player Clone Bay queue (wiki Clone Bay, Overview)", () => {
   it("jump heal skips a destroyed bay", () => {
     const g = createGame(1);
     const kit = poweredKit(2);
-    g.player.kits.cradle = kit;
+    g.player.kits.clonebay = kit;
     const [a] = players(g);
     a.hp = 50;
     kit.damage = 2;
@@ -98,7 +98,7 @@ describe("player Clone Bay queue (wiki Clone Bay, Overview)", () => {
 
   it("waiting at a beacon applies the jump heal", () => {
     const g = createGame(1);
-    g.player.kits.cradle = poweredKit(1);
+    g.player.kits.clonebay = poweredKit(1);
     g.phase = "map";
     const [a] = players(g);
     a.hp = 40;

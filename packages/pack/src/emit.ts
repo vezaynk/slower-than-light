@@ -686,6 +686,7 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
       add(kitNode, loadout);
     }
     if (kit.on !== undefined) add(kitNode, leaf(doc, "on", kit.on));
+    if (kit.weapon) add(kitNode, leaf(doc, "weapon", kit.weapon));
     add(kits, kitNode);
   }
   add(node, kits);

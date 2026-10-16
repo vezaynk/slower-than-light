@@ -92,7 +92,7 @@ describe("Auto-ship fight in plasma storm", () => {
 
     const cloaked = createGame(4);
     open(cloaked);
-    cloaked.player.kits.veil = { id: "veil", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    cloaked.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
     assert.equal(choiceDisabled(cloaked, "c:auto-ship-fight-in-plasma-storm:3"), null);
     choose(cloaked, "c:auto-ship-fight-in-plasma-storm:3");
     assert.match(cloaked.event?.body ?? "", /lose your pursuer in the storm/);

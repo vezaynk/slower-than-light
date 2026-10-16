@@ -101,7 +101,7 @@ describe("Lanius trader with translator", () => {
     assert.equal(g.scrap, 0);
     const hired = g.crew.filter((c) => c.name === "Translator");
     assert.equal(hired.length, 1);
-    assert.equal(hired[0]!.kin, "voidlung");
+    assert.equal(hired[0]!.kin, "anaerobic");
     assert.equal(hired[0]!.skills, undefined);
     assert.equal(g.crew.filter((c) => c.side === "player").length, before + 1);
 

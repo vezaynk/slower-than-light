@@ -52,8 +52,8 @@ const start = emptyUnlocks();
 
 describe("ship unlocks (Ships, Layouts)", () => {
   it("starts with only the Kestrel A", () => {
-    assert.deepEqual(start.ships, ["kestrel-a"]);
-    for (const hull of HULLS) assert.equal(isUnlockedIn(start, hull.id), hull.id === "kestrel-a", hull.id);
+    assert.deepEqual(start.ships, ["PLAYER_SHIP_HARD"]);
+    for (const hull of HULLS) assert.equal(isUnlockedIn(start, hull.id), hull.id === "PLAYER_SHIP_HARD", hull.id);
   });
 
   it("has a rule and a page line for every hull", () => {
@@ -68,26 +68,26 @@ describe("ship unlocks (Ships, Layouts)", () => {
   });
 
   it("unlocks the Engi Cruiser at sector 5 with any Kestrel layout, not before", () => {
-    assert.equal(deriveUnlocks(start, run("kestrel-a", { sector: 4 }), []), start);
-    assert.ok(deriveUnlocks(start, run("kestrel-a", { sector: 5 }), []).ships.includes("engi-a"));
-    assert.ok(deriveUnlocks(start, run("kestrel-b", { sector: 5 }), []).ships.includes("engi-a"));
-    assert.equal(deriveUnlocks(start, run("fed-a", { sector: 5 }), []).ships.includes("engi-a"), false);
+    assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_HARD", { sector: 4 }), []), start);
+    assert.ok(deriveUnlocks(start, run("PLAYER_SHIP_HARD", { sector: 5 }), []).ships.includes("PLAYER_SHIP_CIRCLE"));
+    assert.ok(deriveUnlocks(start, run("PLAYER_SHIP_HARD_2", { sector: 5 }), []).ships.includes("PLAYER_SHIP_CIRCLE"));
+    assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_FED", { sector: 5 }), []).ships.includes("PLAYER_SHIP_CIRCLE"), false);
   });
 
   it("ignores the title placeholder", () => {
-    const title = run("kestrel-a", { sector: 8 });
+    const title = run("PLAYER_SHIP_HARD", { sector: 8 });
     title.phase = "title";
     assert.equal(deriveUnlocks(start, title, []), start);
   });
 
   it("follows the Flagship chain: Engi > Fed > Zoltan > Mantis > Slug > Rock > Stealth", () => {
     const chain: [string, string][] = [
-      ["engi-a", "fed-a"],
-      ["fed-b", "zoltan-a"],
-      ["zoltan-a", "mantis-a"],
-      ["mantis-c", "slug-a"],
-      ["slug-a", "rock-a"],
-      ["rock-a", "stealth-a"],
+      ["PLAYER_SHIP_CIRCLE", "PLAYER_SHIP_FED"],
+      ["PLAYER_SHIP_FED_2", "PLAYER_SHIP_ENERGY"],
+      ["PLAYER_SHIP_ENERGY", "PLAYER_SHIP_MANTIS"],
+      ["PLAYER_SHIP_MANTIS_3", "PLAYER_SHIP_JELLY"],
+      ["PLAYER_SHIP_JELLY", "PLAYER_SHIP_ROCK"],
+      ["PLAYER_SHIP_ROCK", "PLAYER_SHIP_STEALTH"],
     ];
     for (const [hull, next] of chain) {
       const after = deriveUnlocks(start, won(hull), []);
@@ -95,50 +95,50 @@ describe("ship unlocks (Ships, Layouts)", () => {
       assert.ok(after.wins.includes(hull));
     }
     // The Kestrel's win is not on any event page's parenthetical (sector 8 still passes the Engi's sector 5).
-    assert.deepEqual(deriveUnlocks(start, won("kestrel-a"), []).ships, ["kestrel-a", "engi-a"]);
+    assert.deepEqual(deriveUnlocks(start, won("PLAYER_SHIP_HARD"), []).ships, ["PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE"]);
   });
 
   it("grants Layout A from an event outcome through the run (pure)", () => {
-    const g = run("kestrel-a");
-    assert.equal(grantUnlock(g, "stealth-a"), "You unlock the Stealth Cruiser.");
-    grantUnlock(g, "stealth-a");
-    assert.deepEqual(g.unlocked, ["stealth-a"]);
+    const g = run("PLAYER_SHIP_HARD");
+    assert.equal(grantUnlock(g, "PLAYER_SHIP_STEALTH"), "You unlock the Stealth Cruiser.");
+    grantUnlock(g, "PLAYER_SHIP_STEALTH");
+    assert.deepEqual(g.unlocked, ["PLAYER_SHIP_STEALTH"]);
     assert.equal(g.log[0], "You unlock the Stealth Cruiser.");
-    assert.ok(deriveUnlocks(start, g, []).ships.includes("stealth-a"));
+    assert.ok(deriveUnlocks(start, g, []).ships.includes("PLAYER_SHIP_STEALTH"));
     assert.equal(grantUnlock(g, "nope"), "");
   });
 
   it("unlocks the Federation Cruiser from the Rebel shipyard fight, nothing from other fights", () => {
-    const g = run("kestrel-a");
+    const g = run("PLAYER_SHIP_HARD");
     fightUnlock(g, "some-other-page");
     fightUnlock(g, null);
     assert.equal(g.unlocked, undefined);
     fightUnlock(g, "rebel-shipyard");
-    assert.deepEqual(g.unlocked, ["fed-a"]);
+    assert.deepEqual(g.unlocked, ["PLAYER_SHIP_FED"]);
   });
 
   it("unlocks Layout B with 2 of the 3 ship achievements", () => {
     const ids = shipAchievements("Kestrel Cruiser");
     assert.equal(ids.length, 3);
-    assert.equal(deriveUnlocks(start, run("kestrel-a"), ids.slice(0, 1)).ships.includes("kestrel-b"), false);
-    assert.ok(deriveUnlocks(start, run("kestrel-a"), ids.slice(0, 2)).ships.includes("kestrel-b"));
+    assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_HARD"), ids.slice(0, 1)).ships.includes("PLAYER_SHIP_HARD_2"), false);
+    assert.ok(deriveUnlocks(start, run("PLAYER_SHIP_HARD"), ids.slice(0, 2)).ships.includes("PLAYER_SHIP_HARD_2"));
   });
 
   it("unlocks Layout C at sector 8 with Layout B only", () => {
-    assert.ok(deriveUnlocks(start, run("zoltan-b", { sector: 8 }), []).ships.includes("zoltan-c"));
-    assert.equal(deriveUnlocks(start, run("zoltan-b", { sector: 7 }), []).ships.includes("zoltan-c"), false);
-    assert.equal(deriveUnlocks(start, run("zoltan-a", { sector: 8 }), []).ships.includes("zoltan-c"), false);
+    assert.ok(deriveUnlocks(start, run("PLAYER_SHIP_ENERGY_2", { sector: 8 }), []).ships.includes("PLAYER_SHIP_ENERGY_3"));
+    assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_ENERGY_2", { sector: 7 }), []).ships.includes("PLAYER_SHIP_ENERGY_3"), false);
+    assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_ENERGY", { sector: 8 }), []).ships.includes("PLAYER_SHIP_ENERGY_3"), false);
     // Lanius and Crystal have no Layout C.
-    const lanius = deriveUnlocks(start, run("lanius-b", { sector: 8 }), []);
-    assert.equal(lanius.ships.some((id) => id.endsWith("-c") && id.startsWith("lanius")), false);
+    const lanius = deriveUnlocks(start, run("PLAYER_SHIP_ANAEROBIC_2", { sector: 8 }), []);
+    assert.equal(lanius.ships.includes("PLAYER_SHIP_ANAEROBIC_3"), false);
   });
 
   it("unlocks the Lanius after 4 cruisers besides the Kestrel", () => {
-    const three: UnlockState = { ships: ["kestrel-a", "engi-a", "fed-a", "zoltan-a", "kestrel-b"], wins: [] };
-    assert.equal(deriveUnlocks(three, run("kestrel-a"), []), three);
-    const g = run("kestrel-a");
-    grantUnlock(g, "mantis-a");
-    assert.ok(deriveUnlocks(three, g, []).ships.includes("lanius-a"));
+    const three: UnlockState = { ships: ["PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE", "PLAYER_SHIP_FED", "PLAYER_SHIP_ENERGY", "PLAYER_SHIP_HARD_2"], wins: [] };
+    assert.equal(deriveUnlocks(three, run("PLAYER_SHIP_HARD"), []), three);
+    const g = run("PLAYER_SHIP_HARD");
+    grantUnlock(g, "PLAYER_SHIP_MANTIS");
+    assert.ok(deriveUnlocks(three, g, []).ships.includes("PLAYER_SHIP_ANAEROBIC"));
   });
 
   it("unlocks the Crystal after Flagship wins with A and B of every ship but the Lanius", () => {
@@ -146,35 +146,35 @@ describe("ship unlocks (Ships, Layouts)", () => {
       (c) => c !== "Lanius Cruiser" && c !== "Crystal Cruiser",
     );
     const wins = HULLS.filter((h) => cruisers.includes(h.cruiser) && h.layout !== "C").map((h) => h.id);
-    const most: UnlockState = { ships: ["kestrel-a"], wins: wins.slice(1) };
+    const most: UnlockState = { ships: ["PLAYER_SHIP_HARD"], wins: wins.slice(1) };
     const missing = HULLS.find((h) => h.id === wins[0])!;
-    assert.equal(deriveUnlocks(most, run("kestrel-a"), []).ships.includes("crystal-a"), false);
-    assert.ok(deriveUnlocks(most, won(missing.id), []).ships.includes("crystal-a"));
+    assert.equal(deriveUnlocks(most, run("PLAYER_SHIP_HARD"), []).ships.includes("PLAYER_SHIP_CRYSTAL"), false);
+    assert.ok(deriveUnlocks(most, won(missing.id), []).ships.includes("PLAYER_SHIP_CRYSTAL"));
   });
 
   it("unlock-all opens every hull and keeps wins", () => {
-    const all = allUnlocks({ ships: ["kestrel-a"], wins: ["engi-a"] });
+    const all = allUnlocks({ ships: ["PLAYER_SHIP_HARD"], wins: ["PLAYER_SHIP_CIRCLE"] });
     for (const hull of HULLS) assert.ok(isUnlockedIn(all, hull.id));
-    assert.deepEqual(all.wins, ["engi-a"]);
+    assert.deepEqual(all.wins, ["PLAYER_SHIP_CIRCLE"]);
   });
 
   it("records the difficulty of a Flagship win", () => {
     const easy = deriveUnlocks(
       start,
-      run("kestrel-a", { phase: "victory", outcome: "victory", sector: 8, difficulty: "easy" }),
+      run("PLAYER_SHIP_HARD", { phase: "victory", outcome: "victory", sector: 8, difficulty: "easy" }),
       [],
     );
     assert.deepEqual(easy.boss, ["easy"]);
-    assert.ok(easy.wins.includes("kestrel-a"));
+    assert.ok(easy.wins.includes("PLAYER_SHIP_HARD"));
     const both = deriveUnlocks(
       easy,
-      run("engi-a", { phase: "victory", outcome: "victory", sector: 8, difficulty: "normal" }),
+      run("PLAYER_SHIP_CIRCLE", { phase: "victory", outcome: "victory", sector: 8, difficulty: "normal" }),
       [],
     );
     assert.deepEqual(both.boss, ["easy", "normal"]);
     const hard = deriveUnlocks(
       start,
-      run("kestrel-a", { phase: "victory", outcome: "victory", difficulty: "hard" }),
+      run("PLAYER_SHIP_HARD", { phase: "victory", outcome: "victory", difficulty: "hard" }),
       [],
     );
     assert.deepEqual(hard.boss, ["hard"]);
@@ -184,8 +184,8 @@ describe("ship unlocks (Ships, Layouts)", () => {
   it("reads bad storage as the start state", () => {
     assert.deepEqual(parseUnlocks(null), start);
     assert.deepEqual(parseUnlocks("{nope"), start);
-    assert.deepEqual(parseUnlocks(JSON.stringify({ ships: ["engi-a", "bogus", 4], wins: "x" })), {
-      ships: ["kestrel-a", "engi-a"],
+    assert.deepEqual(parseUnlocks(JSON.stringify({ ships: ["PLAYER_SHIP_CIRCLE", "bogus", 4], wins: "x" })), {
+      ships: ["PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE"],
       wins: [],
     });
   });
@@ -194,15 +194,15 @@ describe("ship unlocks (Ships, Layouts)", () => {
 describe("unlock storage (stl:unlocks)", () => {
   it("persists progress across runs and survives a reload", () => {
     const bag = memoryStorage();
-    assert.equal(isUnlocked("engi-a"), false);
-    assert.deepEqual(noteUnlocks(run("kestrel-a", { sector: 5 })), ["engi-a"]);
-    assert.deepEqual(noteUnlocks(run("kestrel-a", { sector: 5 })), []);
-    assert.ok(JSON.parse(bag.get(UNLOCKS_KEY)!).ships.includes("engi-a"));
+    assert.equal(isUnlocked("PLAYER_SHIP_CIRCLE"), false);
+    assert.deepEqual(noteUnlocks(run("PLAYER_SHIP_HARD", { sector: 5 })), ["PLAYER_SHIP_CIRCLE"]);
+    assert.deepEqual(noteUnlocks(run("PLAYER_SHIP_HARD", { sector: 5 })), []);
+    assert.ok(JSON.parse(bag.get(UNLOCKS_KEY)!).ships.includes("PLAYER_SHIP_CIRCLE"));
     resetUnlockMemory();
-    assert.ok(isUnlocked("engi-a"));
+    assert.ok(isUnlocked("PLAYER_SHIP_CIRCLE"));
     // A later run that does nothing keeps the unlock.
-    noteUnlocks(run("kestrel-a"));
-    assert.ok(getUnlocks().ships.includes("engi-a"));
+    noteUnlocks(run("PLAYER_SHIP_HARD"));
+    assert.ok(getUnlocks().ships.includes("PLAYER_SHIP_CIRCLE"));
   });
 
   it("unlock all and reset", () => {
@@ -210,7 +210,7 @@ describe("unlock storage (stl:unlocks)", () => {
     unlockAll();
     for (const hull of HULLS) assert.ok(isUnlocked(hull.id), hull.id);
     resetUnlocks();
-    assert.deepEqual(getUnlocks().ships, ["kestrel-a"]);
+    assert.deepEqual(getUnlocks().ships, ["PLAYER_SHIP_HARD"]);
   });
 
   it("works with no localStorage at all", () => {
@@ -221,9 +221,9 @@ describe("unlock storage (stl:unlocks)", () => {
       },
     });
     resetUnlockMemory();
-    assert.equal(isUnlocked("kestrel-a"), true);
+    assert.equal(isUnlocked("PLAYER_SHIP_HARD"), true);
     unlockAll();
-    assert.equal(isUnlocked("rock-c"), true);
+    assert.equal(isUnlocked("PLAYER_SHIP_ROCK_3"), true);
     memoryStorage();
   });
 });

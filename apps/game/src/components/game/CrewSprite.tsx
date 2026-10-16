@@ -12,7 +12,7 @@ import "./crew-motion.css";
 
 // h = skin, d = outline, e = eye. 12 wide, 8 tall; the body below is shared.
 const HEADS: Record<KinId, string[]> = {
-  plain: [
+  human: [
     "....dddd....",
     "...dhhhhd...",
     "..dhhhhhhd..",
@@ -22,7 +22,7 @@ const HEADS: Record<KinId, string[]> = {
     "....dhhd....",
     "....dhhd....",
   ],
-  shell: [
+  engi: [
     ".d........d.",
     "..d......d..",
     "..dddddddd..",
@@ -32,7 +32,7 @@ const HEADS: Record<KinId, string[]> = {
     "..dddddddd..",
     "....dhhd....",
   ],
-  spark: [
+  energy: [
     "....dddd....",
     "...dheehd...",
     "..dhhhhhhd..",
@@ -42,7 +42,7 @@ const HEADS: Record<KinId, string[]> = {
     "....dhhd....",
     "....dhhd....",
   ],
-  blade: [
+  mantis: [
     ".d........d.",
     "..d......d..",
     "..dddddddd..",
@@ -52,7 +52,7 @@ const HEADS: Record<KinId, string[]> = {
     "....dhhd....",
     "....dhhd....",
   ],
-  gel: [
+  slug: [
     "..e......e..",
     "..d......d..",
     "..dhhhhhhd..",
@@ -62,7 +62,7 @@ const HEADS: Record<KinId, string[]> = {
     "...dhhhhd...",
     "....dhhd....",
   ],
-  stone: [
+  rock: [
     "..dddddddd..",
     ".dhhhhhhhhd.",
     ".dhhhhhhhhd.",
@@ -72,7 +72,7 @@ const HEADS: Record<KinId, string[]> = {
     "..dddddddd..",
     "...dhhhhd...",
   ],
-  voidlung: [
+  anaerobic: [
     "...dddddd...",
     "..dhhhhhhd..",
     "..dhhhhhhd..",
@@ -82,7 +82,7 @@ const HEADS: Record<KinId, string[]> = {
     "...dhhhhd...",
     "....dhhd....",
   ],
-  shard: [
+  crystal: [
     ".....dd.....",
     "....dhhd....",
     "...dhhhhd...",
@@ -197,8 +197,8 @@ export function CrewSprite({
   loopAll?: boolean;
   phase?: number;
 }) {
-  const id = kin ?? "plain";
-  const skin = (KIN_SKIN as Record<string, string>)[id] ?? KIN_SKIN.plain;
+  const id = kin ?? "human";
+  const skin = (KIN_SKIN as Record<string, string>)[id] ?? KIN_SKIN.human;
   const looping = loopAll || (cycle && (pose === "idle" || pose === "work"));
   const frames = looping ? [0, 1, 2, 3] : [frameIndex(frame)];
   const spriteClass = ["crew-sprite", className, looping ? `is-cycle is-${pose}` : ""].filter(Boolean).join(" ");
@@ -215,7 +215,7 @@ export function CrewSprite({
     >
       {frames.map((fi) => (
         <g key={fi} className={looping ? `crew-frame is-f${fi}` : undefined}>
-          {(id in RUNS ? RUNS[id as KinId] : RUNS.plain)[pose][fi]!.map((r) => (
+          {(id in RUNS ? RUNS[id as KinId] : RUNS.human)[pose][fi]!.map((r) => (
             <rect
               key={`${fi}-${r.x}-${r.y}-${r.w}-${r.c}`}
               x={r.x}

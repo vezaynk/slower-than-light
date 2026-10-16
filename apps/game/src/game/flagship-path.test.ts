@@ -4,7 +4,7 @@ import { chooseSector, commitJump, createGame } from "./sim.ts";
 import type { Beacon, Game } from "./types.ts";
 
 function lastStand(seed: number): Game {
-  const g = createGame(seed, "kestrel-a");
+  const g = createGame(seed, "PLAYER_SHIP_HARD");
   const from = g.route.find((n) => n.links.includes("sec-7"));
   assert.ok(from);
   g.sector = 7;

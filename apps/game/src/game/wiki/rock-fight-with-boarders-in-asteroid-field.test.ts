@@ -79,7 +79,7 @@ describe("Rock fight with boarders in asteroid field", () => {
     assert.equal(g.enemy?.faction, "rock");
     assert.equal(g.asteroid, true);
     assert.equal(g.fightEvent, "rock-fight-with-boarders-in-asteroid-field");
-    const rocks = g.crew.filter((c) => c.side === "enemy" && c.kin === "stone" && c.aboard === "player");
+    const rocks = g.crew.filter((c) => c.side === "enemy" && c.kin === "rock" && c.aboard === "player");
     assert.ok(rocks.length >= 1 && rocks.length <= 2, String(rocks.length));
     assert.ok(g.log.some((line) => line.includes("rock boarders beam aboard your ship.")));
   });

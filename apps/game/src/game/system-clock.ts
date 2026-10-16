@@ -14,7 +14,7 @@ export type SystemClock = {
 const ION_POINT = 5;
 
 /** Effects whose `left` is the system counting down, not a drone leg or a beam swipe. */
-const LIVE_LEFT: ReadonlySet<string> = new Set(["veil", "leash", "spike", "cell"]);
+const LIVE_LEFT: ReadonlySet<string> = new Set(["cloaking", "mind", "hacking", "battery"]);
 
 type Span = { total: number; last: number };
 const books = new WeakMap<object, Map<string, Span>>();
@@ -55,7 +55,7 @@ export function ionClock(times: readonly number[] | undefined): SystemClock | nu
 
 function liveOf(kit: Kit): { remaining: number; total?: number } | null {
   if (LIVE_LEFT.has(kit.id) && kit.on && kit.left > 0) return { remaining: kit.left };
-  if (kit.id === "spike" && (kit.hackFly ?? 0) > 0) {
+  if (kit.id === "hacking" && (kit.hackFly ?? 0) > 0) {
     const total = kit.hackFlyTotal;
     return { remaining: kit.hackFly ?? 0, total: total != null && total > 0 ? total : undefined };
   }

@@ -69,13 +69,13 @@ describe("crystal sector restart", () => {
       assert.equal(parked.game.phase, "title");
       assert.equal(parked.game.sectorName, "Civilian (Starting) Sector");
       assert.equal(parked.played, played);
-      useGame.getState().newRun("kestrel-a");
+      useGame.getState().newRun("PLAYER_SHIP_HARD");
       const started = useGame.getState().game;
       assert.equal(useGame.getState().played, null);
       assert.equal(started.sector, 1);
       assert.equal(started.sectorName, "Civilian Sector");
       assert.equal(started.crystalRestart, true);
-      assert.equal(started.hullId, "kestrel-a");
+      assert.equal(started.hullId, "PLAYER_SHIP_HARD");
       leaveExit(started);
       assert.equal(started.sectorMap, false);
       assert.equal(started.sector, 2);
@@ -86,7 +86,7 @@ describe("crystal sector restart", () => {
       useGame.setState({ game: plain, played: null, boot: "title" });
       goTitle("hangar");
       assert.equal(useGame.getState().played, plain);
-      useGame.getState().newRun("kestrel-a");
+      useGame.getState().newRun("PLAYER_SHIP_HARD");
       const fresh = useGame.getState().game;
       assert.equal(fresh.sectorName, "Civilian (Starting) Sector");
       assert.equal(fresh.crystalRestart, undefined);

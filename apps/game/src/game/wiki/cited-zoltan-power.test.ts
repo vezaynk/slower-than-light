@@ -9,7 +9,7 @@ type Body = Pick<Crew, "kin" | "hp" | "room">;
 const ROOM = "p-shields";
 
 function spark(room: string, hp = 70): Body {
-  return { kin: "spark", hp, room };
+  return { kin: "energy", hp, room };
 }
 
 describe("citedZoltanPower", () => {
@@ -29,7 +29,7 @@ describe("citedZoltanPower", () => {
   });
 
   it("counts a spark in another room and any other race as 0", () => {
-    const other: Body = { kin: "plain", hp: 100, room: ROOM };
+    const other: Body = { kin: "human", hp: 100, room: ROOM };
     assert.equal(citedZoltanPower([spark("p-engines")], ROOM), 0);
     assert.equal(citedZoltanPower([other], ROOM), 0);
   });
@@ -41,7 +41,7 @@ describe("zoltanBars", () => {
     // Race characteristics: one yellow bar on an occupied system. Mind control leaves that bar where they stand.
     const g = createGame(6);
     startCombat(g, "scout");
-    const zoltan = g.crew.find((c) => c.side === "enemy" && c.kin === "spark")!;
+    const zoltan = g.crew.find((c) => c.side === "enemy" && c.kin === "energy")!;
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
     zoltan.aboard = "player";
     zoltan.room = bay.id;
@@ -72,7 +72,7 @@ describe("zoltanBars", () => {
     const friend = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
     const shields = zoltanBars(g.crew, g.enemy!, "enemy", "shields");
-    friend.kin = "spark";
+    friend.kin = "energy";
     friend.room = bay.id;
     friend.aboard = "player";
     friend.path = [];
@@ -87,7 +87,7 @@ describe("zoltanBars", () => {
     const room = g.enemy!.rooms.find((r) => r.system === "engines")!;
     const before = zoltanBars(g.crew, g.enemy!, "enemy", "engines");
     const you = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
-    you.kin = "spark";
+    you.kin = "energy";
     you.aboard = "enemy";
     you.room = room.id;
     you.path = [];

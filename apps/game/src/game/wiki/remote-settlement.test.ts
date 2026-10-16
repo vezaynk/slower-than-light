@@ -95,7 +95,7 @@ describe("Remote settlement", () => {
   it("a fire beam burns the crops, pays high scrap, and grants a random drone schematic", () => {
     const g = createGame(1);
     open(g);
-    g.player.weapons.push({ uid: "w-fire", defId: "firebeam", charge: 0, enabled: false, autofire: false, target: null });
+    g.player.weapons.push({ uid: "w-fire", defId: "BEAM_FIRE", charge: 0, enabled: false, autofire: false, target: null });
     const weapons = g.player.weapons.length;
     const parts = g.player.parts;
     const augments = g.augments.slice();
@@ -124,7 +124,7 @@ describe("Remote settlement", () => {
   it("a fire bomb spends 1 missile, pays high scrap, and grants a random drone schematic", () => {
     const g = createGame(1);
     open(g);
-    g.player.weapons.push({ uid: "w-cask", defId: "cask", charge: 0, enabled: false, autofire: false, target: null });
+    g.player.weapons.push({ uid: "w-cask", defId: "BOMB_FIRE", charge: 0, enabled: false, autofire: false, target: null });
     g.missiles = 1;
     const weapons = g.player.weapons.length;
     const parts = g.player.parts;
@@ -153,7 +153,7 @@ describe("Remote settlement", () => {
   it("a fire bomb with no missiles is refused and changes nothing", () => {
     const g = createGame(1);
     open(g);
-    g.player.weapons.push({ uid: "w-cask", defId: "cask", charge: 0, enabled: false, autofire: false, target: null });
+    g.player.weapons.push({ uid: "w-cask", defId: "BOMB_FIRE", charge: 0, enabled: false, autofire: false, target: null });
     g.missiles = 0;
     const body = g.event?.body;
     const weapons = g.player.weapons.length;

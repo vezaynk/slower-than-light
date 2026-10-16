@@ -35,17 +35,17 @@ function quiet(seed: number): Game {
 }
 
 function fleet(g: Game, loadout: string[], level = 8) {
-  g.enemy!.kits.swarm = { id: "swarm", level, power: level, left: 0, cool: 0, target: null, on: false, aux: 0, loadout };
+  g.enemy!.kits.drones = { id: "drones", level, power: level, left: 0, cool: 0, target: null, on: false, aux: 0, loadout };
   g.enemy!.parts = 8;
   tickSwarm(g, 0.05);
-  return g.enemy!.kits.swarm.drones!;
+  return g.enemy!.kits.drones.drones!;
 }
 
 function mine(g: Game, kind: string): Kit {
-  g.player.kits.swarm = { id: "swarm", level: 3, power: 3, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  g.player.kits.drones = { id: "drones", level: 3, power: 3, left: 0, cool: 0, target: null, on: false, aux: 0 };
   g.player.parts = 5;
   assert.equal(deploy(g, kind), true);
-  return g.player.kits.swarm;
+  return g.player.kits.drones;
 }
 
 function shot(g: Game, over: Partial<Shot>): Shot {
@@ -82,7 +82,7 @@ describe("shots in the line of fire (Drone Control, Overview)", () => {
     let seen = 0;
     for (let seed = 1; seed <= 200 && !seen; seed++) {
       const g = quiet(seed);
-      const kit = mine(g, "ward");
+      const kit = mine(g, "DEFENSE_1");
       if (!shotHitsDrone(g, shot(g, { from: "enemy" }))) continue;
       seen += 1;
       assert.equal(kit.on, false);
@@ -92,33 +92,33 @@ describe("shots in the line of fire (Drone Control, Overview)", () => {
       assert.equal(g.droneBlasts?.[0]?.result, "down");
     }
     assert.equal(seen, 1);
-    const r = rate(600, (g) => void mine(g, "ward"), (g) => shot(g, { from: "enemy" }));
+    const r = rate(600, (g) => void mine(g, "DEFENSE_1"), (g) => shot(g, { from: "enemy" }));
     assert.ok(Math.abs(r - LINE_OF_FIRE) < 0.03, String(r));
   });
 
   it("your weapons never hit your own drones", () => {
-    assert.equal(rate(200, (g) => void mine(g, "striker"), (g) => shot(g, { from: "player" })), 0);
-    assert.equal(rate(200, (g) => void mine(g, "ward"), (g) => shot(g, { from: "player" })), 0);
+    assert.equal(rate(200, (g) => void mine(g, "COMBAT_1"), (g) => shot(g, { from: "player" })), 0);
+    assert.equal(rate(200, (g) => void mine(g, "DEFENSE_1"), (g) => shot(g, { from: "player" })), 0);
   });
 
   it("their outgoing shots cross your combat drone orbiting them, and yours cross theirs orbiting you", () => {
-    const r1 = rate(400, (g) => void mine(g, "striker"), (g) => shot(g, { from: "enemy" }));
+    const r1 = rate(400, (g) => void mine(g, "COMBAT_1"), (g) => shot(g, { from: "enemy" }));
     assert.ok(r1 > 0 && r1 < 0.12, String(r1));
-    const r2 = rate(400, (g) => void fleet(g, ["striker"], 2), (g) => shot(g, { from: "player" }));
+    const r2 = rate(400, (g) => void fleet(g, ["COMBAT_1"], 2), (g) => shot(g, { from: "player" }));
     assert.ok(r2 > 0 && r2 < 0.12, String(r2));
   });
 
   it("a drone's own shot starts beside the target, so it never crosses drones round the far hull", () => {
     // Their combat drone orbits the Lark; your striker's laser leaves from orbit round them.
-    assert.equal(rate(300, (g) => void fleet(g, ["striker"], 2), (g) => shot(g, { from: "player", label: "swarm" })), 0);
+    assert.equal(rate(300, (g) => void fleet(g, ["COMBAT_1"], 2), (g) => shot(g, { from: "player", label: "drones" })), 0);
     // Their defense drone round their own hull is in its way.
-    assert.ok(rate(300, (g) => void fleet(g, ["ward"], 2), (g) => shot(g, { from: "player", label: "swarm" })) > 0);
+    assert.ok(rate(300, (g) => void fleet(g, ["DEFENSE_1"], 2), (g) => shot(g, { from: "player", label: "drones" })) > 0);
   });
 
   it("beams, bombs, and ASB shots never collide (Weapons, lead)", () => {
     const setup = (g: Game) => {
-      mine(g, "ward");
-      fleet(g, ["striker", "ward"]);
+      mine(g, "DEFENSE_1");
+      fleet(g, ["COMBAT_1", "DEFENSE_1"]);
     };
     assert.equal(rate(200, setup, (g) => shot(g, { kind: "beam" })), 0);
     assert.equal(rate(200, setup, (g) => shot(g, { kind: "bomb" })), 0);
@@ -128,7 +128,7 @@ describe("shots in the line of fire (Drone Control, Overview)", () => {
   it("an ion shot stuns an enemy drone 5 s per ion instead of destroying it", () => {
     for (let seed = 1; seed <= 300; seed++) {
       const g = quiet(seed);
-      const [ward] = fleet(g, ["ward"], 2);
+      const [ward] = fleet(g, ["DEFENSE_1"], 2);
       if (!shotHitsDrone(g, shot(g, { from: "player", kind: "ion", damage: 0, ion: 2 }))) continue;
       assert.equal(ward.alive, true);
       assert.equal(ward.stun, 2 * ION_STUN_PER);
@@ -144,7 +144,7 @@ describe("shots in the line of fire (Drone Control, Overview)", () => {
     let survived = 0;
     for (let seed = 1; seed <= 400 && (burnt < 2 || survived < 2); seed++) {
       const g = quiet(seed);
-      const kit = mine(g, "ward");
+      const kit = mine(g, "DEFENSE_1");
       if (!shotHitsDrone(g, shot(g, { from: "enemy", kind: "ion", damage: 0, ion: 1 }))) continue;
       assert.equal(kit.on, true);
       assert.equal(kit.stun, ION_STUN_PER);
@@ -163,9 +163,9 @@ describe("shots in the line of fire (Drone Control, Overview)", () => {
   it("stepShots spends a shot a drone took: the hull is untouched", () => {
     for (let seed = 1; seed <= 300; seed++) {
       const g = quiet(seed);
-      mine(g, "ward2");
-      g.player.kits.swarm!.cool = 99; // keep the defense drone from shooting the laser itself
-      g.player.kits.swarm!.aux = 99;
+      mine(g, "DEFENSE_2");
+      g.player.kits.drones!.cool = 99; // keep the defense drone from shooting the laser itself
+      g.player.kits.drones!.aux = 99;
       g.player.systems.shields.power = 0;
       g.player.shieldNow = 0;
       const hull = g.player.hull;
@@ -186,12 +186,12 @@ describe("asteroids (Drone Control, Overview: \"destroyed by colliding with aste
   const rock = (g: Game) => shot(g, { from: "env", label: "Rock" });
 
   it("a rock can smash any drone orbiting the Lark, either side's", () => {
-    const own = rate(600, (g) => void mine(g, "ward"), rock);
+    const own = rate(600, (g) => void mine(g, "DEFENSE_1"), rock);
     assert.ok(Math.abs(own - ROCK_HIT) < 0.04, String(own));
     let theirs = 0;
     for (let seed = 1; seed <= 300; seed++) {
       const g = quiet(seed);
-      const [striker] = fleet(g, ["striker"], 2);
+      const [striker] = fleet(g, ["COMBAT_1"], 2);
       if (shotHitsDrone(g, rock(g))) {
         theirs += 1;
         assert.equal(striker.alive, false);
@@ -203,8 +203,8 @@ describe("asteroids (Drone Control, Overview: \"destroyed by colliding with aste
   });
 
   it("rocks fly at the Lark only, so drones round the enemy hull are safe", () => {
-    assert.equal(rate(300, (g) => void mine(g, "striker"), rock), 0);
-    assert.equal(rate(300, (g) => void fleet(g, ["ward"], 2), rock), 0);
+    assert.equal(rate(300, (g) => void mine(g, "COMBAT_1"), rock), 0);
+    assert.equal(rate(300, (g) => void fleet(g, ["DEFENSE_1"], 2), rock), 0);
   });
 });
 
@@ -212,16 +212,16 @@ describe("player redeploy delay (Overview: \"10 second delay before it can be de
   it("refuses for 10 s after a loss, then spends another part", () => {
     for (let seed = 1; seed <= 300; seed++) {
       const g = quiet(seed);
-      const kit = mine(g, "ward");
+      const kit = mine(g, "DEFENSE_1");
       if (!shotHitsDrone(g, shot(g, { from: "enemy" }))) continue;
       const parts = g.player.parts;
-      assert.equal(deploy(g, "ward"), false);
-      assert.equal(deploy(g, "striker"), false);
+      assert.equal(deploy(g, "DEFENSE_1"), false);
+      assert.equal(deploy(g, "COMBAT_1"), false);
       for (let t = 0; t < REDEPLOY_S - 0.5; t += 0.5) tickSwarm(g, 0.5);
-      assert.equal(deploy(g, "ward"), false);
+      assert.equal(deploy(g, "DEFENSE_1"), false);
       tickSwarm(g, 0.6);
       assert.equal(kit.lost, 0);
-      assert.equal(deploy(g, "ward"), true);
+      assert.equal(deploy(g, "DEFENSE_1"), true);
       assert.equal(g.player.parts, parts - 1);
       return;
     }
@@ -235,10 +235,10 @@ describe("stray defense fire (Combat Drones (offensive drones))", () => {
     const n = 400;
     for (let seed = 1; seed <= n; seed++) {
       const g = quiet(seed);
-      const kit = mine(g, "striker");
-      fleet(g, ["ward2"], 3);
+      const kit = mine(g, "COMBAT_1");
+      fleet(g, ["DEFENSE_2"], 3);
       tickSwarm(g, ACQUIRE_S);
-      assert.equal(enemyDefenseIntercept(g, { kind: "laser", from: "player", label: "swarm" }), true);
+      assert.equal(enemyDefenseIntercept(g, { kind: "laser", from: "player", label: "drones" }), true);
       if (!kit.on) {
         killed += 1;
         assert.equal(kit.lost, REDEPLOY_S);
@@ -251,8 +251,8 @@ describe("stray defense fire (Combat Drones (offensive drones))", () => {
     let killed = 0;
     for (let seed = 1; seed <= 300; seed++) {
       const g = quiet(seed);
-      const [striker] = fleet(g, ["striker"], 2) as DroneUnit[];
-      const kit = mine(g, "ward2");
+      const [striker] = fleet(g, ["COMBAT_1"], 2) as DroneUnit[];
+      const kit = mine(g, "DEFENSE_2");
       kit.cool = 0;
       kit.aux = 0;
       const s = shot(g, { from: "enemy", label: DRONE_LABEL + striker.id, t: 0.99, duration: 1 });

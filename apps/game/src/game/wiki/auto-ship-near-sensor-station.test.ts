@@ -94,7 +94,7 @@ describe("Auto-ship near sensor station", () => {
 
     const g = createGame(2);
     open(g);
-    g.player.kits.sling = { id: "sling", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
     assert.equal(choiceDisabled(g, "c:auto-ship-near-sensor-station:3"), null);
     const guns = g.player.weapons.length;
     choose(g, "c:auto-ship-near-sensor-station:3");

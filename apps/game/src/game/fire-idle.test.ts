@@ -52,7 +52,7 @@ describe("Fires outside a fight", () => {
   it("catches a second tile of a sealed 2x1 room after 6.25 to 30.6 seconds (xftl doc/fires)", () => {
     // A counter of 10 to 49, drained 1.6 a second by the one adjacent fire.
     for (const seed of [1, 2, 3, 4]) {
-      const g = createGame(seed, "kestrel-a");
+      const g = createGame(seed, "PLAYER_SHIP_HARD");
       const room = sealed(g, "p-oxygen");
       assert.equal(room.w * room.h, 2);
       const t = until(g, () => room.fire >= 2, 40);
@@ -63,7 +63,7 @@ describe("Fires outside a fight", () => {
 
   it("holds a fire behind shut blast doors for at least 62.5 seconds", () => {
     // doc/fires: a level 2+ door drains the far tile's counter 0.16 a second, so 10 / 0.16 at the soonest.
-    const g = createGame(2, "kestrel-a");
+    const g = createGame(2, "PLAYER_SHIP_HARD");
     g.player.systems.doors.level = 2;
     const room = sealed(g, "p-oxygen");
     room.fire = 2;
@@ -77,7 +77,7 @@ describe("Fires outside a fight", () => {
     for (const c of g.crew) {
       c.path = [];
       c.stun = 0;
-      c.kin = "plain";
+      c.kin = "human";
       c.skills = {};
       if (c.id !== worker.id) c.room = "p-pilot";
     }
@@ -194,7 +194,7 @@ describe("Fires outside a fight", () => {
   });
 
   it("crosses an open door from a burning room after 6.25 to 30.6 seconds", () => {
-    const g = createGame(6, "kestrel-a");
+    const g = createGame(6, "PLAYER_SHIP_HARD");
     const room = sealed(g, "p-oxygen");
     room.fire = 2;
     for (const d of g.player.doors) {
@@ -223,7 +223,7 @@ describe("Fires outside a fight", () => {
 
 describe("Oxygen outside a fight", () => {
   it("drains the ship when every door is open, and keeps the clock running", () => {
-    const g = createGame(21, "kestrel-a");
+    const g = createGame(21, "PLAYER_SHIP_HARD");
     assert.equal(g.phase, "map");
     assert.equal(shipTicking(g), true);
     g.paused = true;
@@ -244,7 +244,7 @@ describe("Oxygen outside a fight", () => {
   });
 
   it("suffocates at 6.4 HP per second with no fight on", () => {
-    const g = createGame(22, "kestrel-a");
+    const g = createGame(22, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.player.systems.oxygen.power = 0;
     for (const d of g.player.doors) d.open = false;
@@ -264,7 +264,7 @@ describe("Oxygen outside a fight", () => {
   });
 
   it("lets a Lanius drain oxygen with no fight on, and does not suffocate them", () => {
-    const g = createGame(23, "kestrel-a");
+    const g = createGame(23, "PLAYER_SHIP_HARD");
     g.phase = "map";
     for (const d of g.player.doors) d.open = false;
     const room = g.player.rooms.find((r) => r.id === "p-pilot")!;
@@ -274,7 +274,7 @@ describe("Oxygen outside a fight", () => {
     const ada = g.crew.find((c) => c.name === "Ada Voss")!;
     ada.room = room.id;
     ada.path = [];
-    ada.kin = "voidlung";
+    ada.kin = "anaerobic";
     ada.hp = 50;
     for (const c of g.crew) if (c.id !== ada.id) c.room = "p-engines";
     // A Lanius is a breach-sized hole in its room (air.ts), so the room falls even with the Oxygen system on.
@@ -289,7 +289,7 @@ function ventFight(seed: number): Game {
   const g = createGame(seed);
   startCombat(g, "scout");
   for (const w of [...g.player.weapons, ...(g.enemy?.weapons ?? [])]) w.enabled = false;
-  const swarm = g.enemy?.kits.swarm;
+  const swarm = g.enemy?.kits.drones;
   if (swarm) swarm.loadout = [];
   for (const d of g.player.doors) d.open = false;
   for (const r of g.player.rooms) {
@@ -444,12 +444,12 @@ describe("Boarders leave airless rooms", () => {
     foe.room = thin.id;
     foe.path = [];
     foe.think = 30;
-    foe.kin = "plain";
+    foe.kin = "human";
     step(g, 0.05);
     const dest = foe.path[foe.path.length - 1];
     const there = g.player.rooms.find((r) => r.id === dest);
     assert.ok(there && there.o2 >= 10, `${dest} ${there?.o2}`);
-    foe.kin = "voidlung";
+    foe.kin = "anaerobic";
     foe.path = [];
     foe.room = thin.id;
     thin.o2 = 0;
@@ -470,10 +470,10 @@ describe("Boarders leave airless rooms", () => {
     assert.ok(foe);
     foe.room = thin.id;
     foe.path = [];
-    foe.kin = "plain";
+    foe.kin = "human";
     foe.leashed = 14;
-    g.player.kits.leash = {
-      id: "leash",
+    g.player.kits.mind = {
+      id: "mind",
       level: 1,
       power: 1,
       left: 14,

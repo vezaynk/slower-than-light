@@ -323,7 +323,7 @@ function engiDistressGift(g: Game) {
     result(
       g,
       "The Engies are grateful. They don't have any supplies or weapons to spare, but they do send over a self-teleporting med-bot disperser they hope they won't need.",
-      { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0, weapon: "healburst" },
+      { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0, weapon: "BOMB_HEAL" },
       [spent],
     );
     return;
@@ -400,15 +400,15 @@ export function repair(g: Game, n: number): string {
 }
 
 const AUG_NAMES: Partial<Record<AugmentId, string>> = {
-  casing: "Titanium System Casing",
-  gel: "Slug Repair Gel",
-  pheromone: "Mantis Pheromones",
+  SYSTEM_CASING: "Titanium System Casing",
+  SLUG_GEL: "Slug Repair Gel",
+  CREW_STIMS: "Mantis Pheromones",
   // Engi distress Rebel fight prints this name for the med-bot augment.
-  medbot: "Engi Med-bot Dispersal",
+  NANO_MEDBAY: "Engi Med-bot Dispersal",
   // @agent:quests-a.
-  keel: "Rock Plating",
-  vengeance: "Crystal Vengeance",
-  zshield: "Zoltan Shield",
+  ROCK_ARMOR: "Rock Plating",
+  CRYSTAL_SHARDS: "Crystal Vengeance",
+  ENERGY_SHIELD: "Zoltan Shield",
 };
 
 /**
@@ -432,16 +432,16 @@ export function crew(g: Game, race: string, skill?: SkillName, name?: string): s
 }
 
 function hasEngi(g: Game): boolean {
-  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "shell");
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "engi");
 }
 function hasSlug(g: Game): boolean {
-  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "gel");
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "slug");
 }
 function hasLanius(g: Game): boolean {
-  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "voidlung");
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "anaerobic");
 }
 function hasRock(g: Game): boolean {
-  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "stone");
+  return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === "rock");
 }
 
 /** Slug drink. Two results and no odds. INFERRED: equal. A Rock's trap is the fight; the drink's trap loses 25–35 scrap. */
@@ -510,12 +510,12 @@ export function sensors(g: Game): number {
   return g.player.systems.sensors?.level ?? 0;
 }
 export function hasTeleporter(g: Game): boolean {
-  return (g.player.kits.sling?.level ?? 0) > 0;
+  return (g.player.kits.teleporter?.level ?? 0) > 0;
 }
 function hasMissileWeapon(g: Game): boolean {
   // Weapons, Hull Missile: countedAsMissileInEvents is false. A Hull Missile does not open a Missile Weapon option.
   return g.player.weapons.some(
-    (w) => w.defId !== "hullmissile" && weaponDef(w.defId)?.kind === "missile",
+    (w) => w.defId !== "MISSILES_HULL" && weaponDef(w.defId)?.kind === "missile",
   );
 }
 
@@ -693,7 +693,7 @@ function arriveFedBase(g: Game) {
     const scan = "Run a second scan pass.";
     if (sensors(g) >= 2) choices.push({ id: "q:fed-base:scan-2", label: scan });
     if (sensors(g) >= 3) choices.push({ id: "q:fed-base:scan-3", label: scan });
-    if (g.augments.includes("glass")) choices.push({ id: "q:fed-base:scan-glass", label: scan });
+    if (g.augments.includes("ADV_SCANNERS")) choices.push({ id: "q:fed-base:scan-glass", label: scan });
     card(
       g,
       "You search near the coordinates given to you, but your search yields no results. Perhaps they were mistaken.",
@@ -735,8 +735,8 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       // {{Blue Option|Missile Weapon|Bombard their key structures.}} [1 missile]
       if (hasMissileWeapon(g))
         choices.push({ id: "q:war-camp:missile", label: "Bombard their key structures." });
-      // {{Blue Option|Fire Bomb|Teleport fire bombs into key structures.}} [2 missiles]. Fire Bomb is fitted as "cask".
-      if (g.player.weapons.some((w) => w.defId === "cask"))
+      // {{Blue Option|Fire Bomb|Teleport fire bombs into key structures.}} [2 missiles]. Fire Bomb is fitted as "BOMB_FIRE".
+      if (g.player.weapons.some((w) => w.defId === "BOMB_FIRE"))
         choices.push({
           id: "q:war-camp:firebomb",
           label: "Teleport fire bombs into key structures.",
@@ -812,8 +812,8 @@ function loyalistsRescueCard(g: Game) {
   const choices: Choice[] = [
     { id: "q:loyalists:rescue", label: "Quickly try to rescue the crew." },
   ];
-  // {{Blue Option|Nano Med-bot Dispersal|...}} ("medbot"), {{Blue Option|Teleporter|...}}, {{Blue Option|Healing Burst|...}}.
-  if (g.augments.includes("medbot"))
+  // {{Blue Option|Nano Med-bot Dispersal|...}} ("NANO_MEDBAY"), {{Blue Option|Teleporter|...}}, {{Blue Option|Healing Burst|...}}.
+  if (g.augments.includes("NANO_MEDBAY"))
     choices.push({
       id: "q:loyalists:medbot",
       label: "Pump their ship with Nano Med-bots to aid in the rescue.",
@@ -823,7 +823,7 @@ function loyalistsRescueCard(g: Game) {
       id: "q:loyalists:teleport",
       label: "Lock on to all remaining life signatures and beam them onto your ship.",
     });
-  if (g.player.weapons.some((w) => w.defId === "healburst"))
+  if (g.player.weapons.some((w) => w.defId === "BOMB_HEAL"))
     choices.push({ id: "q:loyalists:heal", label: "Use a healing bomb to keep them alive." });
   card(
     g,
@@ -849,7 +849,7 @@ function thiefDyingCard(g: Game, scan: boolean) {
         : "Quickly teleport him back to the medbay.",
     });
   }
-  if ((g.player.kits.cradle?.level ?? 0) >= 2)
+  if ((g.player.kits.clonebay?.level ?? 0) >= 2)
     choices.push({ id: "q:thief:clone", label: "Quickly configure the Clonebay to save him." });
   card(
     g,
@@ -1455,7 +1455,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Cloaking. Always lose the ship. The page prints no drone-part cost.
   "c:auto-ship-fight-in-plasma-storm:3": (g) => {
-    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    if ((g.player.kits.cloaking?.level ?? 0) <= 0) return;
     result(
       g,
       "By using your advanced cloaking system you easily lose your pursuer in the storm.",
@@ -1535,7 +1535,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Escort civilians FTL haywire. Advanced FTL Navigation. High scrap with resources. No quest marker.
   "c:escort-civilians-ftl-haywire:2": (g) => {
-    if (!g.augments.includes("nav")) return;
+    if (!g.augments.includes("FTL_JUMPER")) return;
     result(
       g,
       "We're receiving your transmission... Wow, I didn't know that chain-jumping was possible with this class of ship. We'll get back in a single jump! Thank you so much, please accept this.",
@@ -1598,7 +1598,7 @@ ${laniusTraderOfferText(offer)}`,
       g,
       'They wouldn\'t get more than a few jumps with that load-out. You provide them with all the munitions and supplies they should need for the journey home. "Generosity magnitude unpredicted. Well-being syntax error [value too high]. Accept this token."',
       undefined,
-      [grantAug(g, "medbot"), spentScrap, spentMissiles, spentFuel],
+      [grantAug(g, "NANO_MEDBAY"), spentScrap, spentMissiles, spentFuel],
     );
   },
   "q:engi-distress:nothing": (g) => {
@@ -1681,7 +1681,7 @@ ${laniusTraderOfferText(offer)}`,
     );
   },
   "q:pirate-drones:hack": (g) => {
-    if ((g.player.kits.spike?.level ?? 0) <= 0) return;
+    if ((g.player.kits.hacking?.level ?? 0) <= 0) return;
     result(
       g,
       "You receive a hail as soon as your Hacking system finishes: \"What have you done!? You can never trust a Federation ship! Here, take your 'standard toll'. I really should do business elsewhere, scum.\"",
@@ -1797,7 +1797,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Cloaking. Nothing happens.
   "c:rebel-fight-choice-in-nebula:2": (g) => {
-    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    if ((g.player.kits.cloaking?.level ?? 0) <= 0) return;
     result(
       g,
       "You use your cloaking system to slip further into the nebula undetected.",
@@ -1844,7 +1844,7 @@ ${laniusTraderOfferText(offer)}`,
     // > "Nothing happens." — [[Mantis fight choice]]
     // > "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage." — [[Mantis fight choice]]
     // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice]]
-    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    if ((g.player.kits.cloaking?.level ?? 0) <= 0) return;
     const away = weighted(g, [
       [true, 2],
       [false, 1],
@@ -2124,7 +2124,7 @@ ${laniusTraderOfferText(offer)}`,
       "refueling-platform-garbled-broadcast",
     );
     const land = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))];
-    const hp = crewDef("voidlung").hp;
+    const hp = crewDef("anaerobic").hp;
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({
       id: "u" + g.uid.toString(36),
@@ -2138,7 +2138,7 @@ ${laniusTraderOfferText(offer)}`,
       move: 0,
       think: 0,
       tone: 3,
-      kin: "voidlung",
+      kin: "anaerobic",
     });
     log(g, "1 lanius boarder beams aboard your ship.");
   },
@@ -2475,7 +2475,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   "q:station:sale": (g) => {
     const living = g.crew.filter((c) => c.side === "player" && c.hp > 0);
-    const sold = living.find((c) => c.kin === "voidlung");
+    const sold = living.find((c) => c.kin === "anaerobic");
     // The project does not remove the last living crewmember. A clone bay does not bring a sold Lanius back.
     if (!sold || living.length < 2) return;
     g.crew = g.crew.filter((c) => c.id !== sold.id);
@@ -3040,7 +3040,7 @@ ${laniusTraderOfferText(offer)}`,
       g.crew = g.crew.filter((c) => c.id !== lost.id);
       extras.push(`${lost.name} is lost.`);
     }
-    if (g.player.kits.cradle)
+    if (g.player.kits.clonebay)
       extras.push(
         "Unfortunately your crewmember was taken away unharmed so your Clone Bay was unable to retrieve them.",
       );
@@ -3085,7 +3085,7 @@ ${laniusTraderOfferText(offer)}`,
     // > "(Mind Control) Make the guards believe they have already checked your crew today." — [[Zoltan security checkpoint]]
     // > "The captain of the guard appears on the vid screen \"Back so soon friend! Well, no need to waste your time further. Here, take these spare fuel canisters and get on with your mission.\" Your ship is cleared to pass." — [[Zoltan security checkpoint]]
     // > "You receive medium fuel." — [[Zoltan security checkpoint]]
-    if ((g.player.kits.leash?.level ?? 0) <= 0) return;
+    if ((g.player.kits.mind?.level ?? 0) <= 0) return;
     zoltanCheckpointFuel(
       g,
       "c:zoltan-security-checkpoint:3",
@@ -3113,7 +3113,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Auto-ship near storage station. Two results, no odds. INFERRED: equal.
   "c:auto-ship-near-storage-station:2": (g) => {
-    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    if ((g.player.kits.cloaking?.level ?? 0) <= 0) return;
     if (pick(g, ["fight", "station"] as const) === "fight") {
       pageFight(
         g,
@@ -3130,7 +3130,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Auto-ship near storage station in nebula. Cloaking: two results, no odds. INFERRED: equal.
   "c:auto-ship-near-storage-station-in-nebula:2": (g) => {
-    if ((g.player.kits.veil?.level ?? 0) <= 0) return;
+    if ((g.player.kits.cloaking?.level ?? 0) <= 0) return;
     if (pick(g, ["fight", "station"] as const) === "fight") {
       pageFight(
         g,
@@ -3144,13 +3144,13 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Improved Cloaking, level 2+. Always the station.
   "c:auto-ship-near-storage-station-in-nebula:3": (g) => {
-    if ((g.player.kits.veil?.level ?? 0) < 2) return;
+    if ((g.player.kits.cloaking?.level ?? 0) < 2) return;
     storageInvestigate(g, "You successfully sneak by the ship and access the station undetected.");
   },
   // Hacking, one drone part. Two results, no odds. INFERRED: equal. The part is spent either way.
   "c:auto-ship-near-storage-station-in-nebula:4": (g) => {
     const n = affordStock(g, "c:auto-ship-near-storage-station-in-nebula:4", "parts");
-    if ((g.player.kits.spike?.level ?? 0) <= 0 || n == null) return;
+    if ((g.player.kits.hacking?.level ?? 0) <= 0 || n == null) return;
     takeStock(g, "parts", n);
     log(g, partsLine(n));
     if (pick(g, ["fight", "station"] as const) === "fight") {
@@ -3170,7 +3170,7 @@ ${laniusTraderOfferText(offer)}`,
   // Improved Hacking, level 2+, one drone part. Always the station.
   "c:auto-ship-near-storage-station-in-nebula:5": (g) => {
     const n = affordStock(g, "c:auto-ship-near-storage-station-in-nebula:5", "parts");
-    if ((g.player.kits.spike?.level ?? 0) < 2 || n == null) return;
+    if ((g.player.kits.hacking?.level ?? 0) < 2 || n == null) return;
     takeStock(g, "parts", n);
     log(g, partsLine(n));
     storageInvestigate(
@@ -3216,7 +3216,7 @@ ${laniusTraderOfferText(offer)}`,
   // The map reveal is not wired.
   "q:auto-radar:drone": (g) => {
     const n = affordStock(g, "q:auto-radar:drone", "parts");
-    if ((g.player.kits.spike?.level ?? 0) <= 0 || n == null) return;
+    if ((g.player.kits.hacking?.level ?? 0) <= 0 || n == null) return;
     takeStock(g, "parts", n);
     log(g, partsLine(n));
     g.fleet = Math.max(0, g.fleet - 1);
@@ -3512,7 +3512,7 @@ ${second}`,
     } else {
       // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). Never the last living crewmember.
       const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
-      if (g.player.kits.cradle)
+      if (g.player.kits.clonebay)
         log(
           g,
           "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge.",
@@ -3610,7 +3610,7 @@ ${second}`,
     } else {
       // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). INFERRED: never the last crewmember.
       const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
-      if (g.player.kits.cradle)
+      if (g.player.kits.clonebay)
         log(
           g,
           "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge.",
@@ -3720,8 +3720,8 @@ With most of their ships and forces focused on the chaos, you slip undetected to
       ["pirate", 1],
       ["battery", 1],
       ["clone", 1],
-      ["shell", 1],
-    ] as ["rest" | "hull" | "pirate" | "battery" | "clone" | "shell", number][]);
+      ["engi", 1],
+    ] as ["rest" | "hull" | "pirate" | "battery" | "clone" | "engi", number][]);
     if (r === "rest") {
       result(
         g,
@@ -3751,7 +3751,7 @@ With most of their ships and forces focused on the chaos, you slip undetected to
       beginBoarding(g, true);
     } else if (r === "clone") {
       const choices: Choice[] = [{ id: "q:station:scrapmachines", label: "Scrap the machinery." }];
-      if (g.player.kits.cradle)
+      if (g.player.kits.clonebay)
         choices.unshift({ id: "q:station:dna", label: "Search for a surviving DNA bank." });
       card(
         g,
@@ -3885,7 +3885,7 @@ With most of their ships and forces focused on the chaos, you slip undetected to
   // {{Blue Option|Healing Burst}}. 1 missile. A crewmember with 1 skill in engines, medium scrap, and the Federation base.
   "q:loyalists:heal": (g) => {
     const n = affordStock(g, "q:loyalists:heal", "missiles");
-    if (n == null || !g.player.weapons.some((w) => w.defId === "healburst")) return;
+    if (n == null || !g.player.weapons.some((w) => w.defId === "BOMB_HEAL")) return;
     takeStock(g, "missiles", n);
     const joined = crew(g, randomRace(g), "engines");
     result(
@@ -3918,7 +3918,7 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
   },
   // Long-Ranged Scanners: a weapon with medium scrap. The weapon is not named.
   "q:fed-base:scan-glass": (g) => {
-    if (!g.augments.includes("glass")) return;
+    if (!g.augments.includes("ADV_SCANNERS")) return;
     result(
       g,
       "Your sensors pick faint signatures of what appears to be a storage space hidden under the rock. You find the access point and discover a weapons cache whose Federation signal emitter has malfunctioned.",
@@ -4028,7 +4028,7 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
   "q:thief:accept": (g) => {
     // "receive high scrap, Mantis Pheromones augmentation, Mantis crewmember named Kazaaak maxed in all skills, and a
     // quest marker". The Mantis Cruiser unlock is the grantUnlock line below.
-    grantUnlock(g, "mantis-a"); // @agent:unlocks. "You unlock the Mantis Cruiser".
+    grantUnlock(g, "PLAYER_SHIP_MANTIS"); // @agent:unlocks. "You unlock the Mantis Cruiser".
     let joined = "There is no room aboard for Kazaaak.";
     if (joinCrew(g, "Mantis", "Kazaaak")) {
       const c = g.crew[g.crew.length - 1];
@@ -4040,7 +4040,7 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
       g,
       "KazaaakplethKilik joins your crew, offers the coordinates for a nearby stash of stolen military goods and transmits the coordinates for a custom cruiser he has been working on. You forward it to the Federation, sure they can make good use of it.",
       scrapOnly(g, "high"),
-      [joined, grantAug(g, "pheromone"), addQuest(g, "thief-stash")],
+      [joined, grantAug(g, "CREW_STIMS"), addQuest(g, "thief-stash")],
     );
   },
 
@@ -4118,10 +4118,10 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
     pageFight(g, "The Mantis escort turns to meet you.", "Mantis ship", "quest-engi-final", {
       ...NEVER_RUN,
     });
-    const hp = crewDef("plain").hp;
+    const hp = crewDef("human").hp;
     for (const c of g.crew) {
       if (c.side !== "enemy") continue;
-      c.kin = "plain";
+      c.kin = "human";
       c.hp = hp;
       c.maxHp = hp;
     }
@@ -4142,12 +4142,12 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
     // > "You unlock the Stealth Cruiser; you receive Titanium System Casing augmentation, high scrap with resources and your ship receives 20 repairs." — [[Engi fleet discussion#Victory]]
     // "You unlock the Stealth Cruiser; you receive Titanium System Casing augmentation, high scrap with resources and your
     // ship receives 20 repairs." The unlock is the grantUnlock line below.
-    grantUnlock(g, "stealth-a"); // @agent:unlocks. "You unlock the Stealth Cruiser".
+    grantUnlock(g, "PLAYER_SHIP_STEALTH"); // @agent:unlocks. "You unlock the Stealth Cruiser".
     result(
       g,
       '"Satisfactory. Delivery of tech will assist in Federation cause. Gratitude alone insufficient. Commencing ship repair and compensation." Their crews deliver a weapon for installation but you\'re more pleased to hear that the Federation will have an improved arsenal.',
       rollStandard(g, "high"),
-      [grantAug(g, "casing"), repair(g, 20)],
+      [grantAug(g, "SYSTEM_CASING"), repair(g, 20)],
     );
   },
 
@@ -4610,10 +4610,10 @@ function storageInvestigate(g: Game, text: string) {
 }
 
 /** Auto-ship near radar station. Combat Drone Mark I and II, and Anti-Ship Beam Drone I and II. */
-const RADAR_COMBAT = ["striker", "combat2", "beam", "beam2"];
+const RADAR_COMBAT = ["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2"];
 
 function hasRadarCombat(g: Game): boolean {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   return !!kit && kit.level > 0 && RADAR_COMBAT.includes(kit.target ?? "");
 }
 
@@ -4989,7 +4989,7 @@ function pirateDroneNothing(g: Game) {
  * An empty table leaves the system alone. One row is not a pick. The level rolls only after the ship can pay.
  */
 function pirateDroneUpgrade(g: Game) {
-  const kit = g.player.kits.swarm;
+  const kit = g.player.kits.drones;
   if (!kit || kit.level <= 0) return;
   const rows = upgradeRows("pirate-ship-selling-drones");
   if (rows.length === 0) return;
@@ -6097,12 +6097,12 @@ export const PAGE_WINS: Record<string, Win> = {
     // Wiki citations:
     // > "After destroying enemy ship or after killing enemy crew With the escort destroyed you take a look at your impressive prize. Your mission is too pressing to take a test flight. Before you rig the ship's computer to guide the it back to the main Federation hangar you discover a unique augment that duplicates the Slug's ability to heal breaches!" — [[Slug Home Nebula surrender#Fight the interceptor]]
     // > "You unlock the Slug Cruiser; receive high scrap with resources and Slug Repair Gel augmentation." — [[Slug Home Nebula surrender#Fight the interceptor]]
-    grantUnlock(g, "slug-a"); // @agent:unlocks. Slug Home Nebula surrender: "You unlock the Slug Cruiser".
+    grantUnlock(g, "PLAYER_SHIP_JELLY"); // @agent:unlocks. Slug Home Nebula surrender: "You unlock the Slug Cruiser".
     result(
       g,
       "With the escort destroyed you take a look at your impressive prize. Your mission is too pressing to take a test flight. Before you rig the ship's computer to guide the it back to the main Federation hangar you discover a unique augment that duplicates the Slug's ability to heal breaches!",
       rollStandard(g, "high"),
-      [grantAug(g, "gel")],
+      [grantAug(g, "SLUG_GEL")],
     );
   },
   // Settlement mercenary work marker: "medium scrap, your ship receives 5 repairs and a store opens."

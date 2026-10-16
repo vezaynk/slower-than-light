@@ -115,7 +115,7 @@ describe("Crystal fight surrender", () => {
           choose(g, "s:crystal-fight:yes");
           seen.add("yes");
           assert.match(g.event?.body ?? "", /Crystal crewmember/);
-          assert.equal(g.crew.filter((c) => c.side === "player" && c.kin === "shard").length, 1);
+          assert.equal(g.crew.filter((c) => c.side === "player" && c.kin === "crystal").length, 1);
           assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
         }
         assert.equal(g.enemy, null);

@@ -40,7 +40,7 @@ function slugRooms(g: Game, aboard: "player" | "enemy"): Set<string> {
 }
 
 function enemyCloaked(g: Game): boolean {
-  const veil = g.enemy?.kits.veil;
+  const veil = g.enemy?.kits.cloaking;
   return !!veil?.on && (veil.left ?? 0) > 0;
 }
 
@@ -73,7 +73,7 @@ export function shipSight(g: Game): ShipSight {
   const cloaked = enemyCloaked(g);
   const ownAboard = g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
   const life =
-    g.crew.some((c) => c.side === "player" && crewDef(c.kin).detectsLifeforms && c.hp > 0) || g.augments.includes("pulseeye");
+    g.crew.some((c) => c.side === "player" && crewDef(c.kin).detectsLifeforms && c.hp > 0) || g.augments.includes("LIFE_SCANNER");
 
   // A room your own crew stand in is always seen, on either hull. We're in position!: boarding crew give "vision of
   // ... the enemy ship without functioning sensors". INFERRED: the room each crew member stands in.

@@ -52,7 +52,7 @@ function systemDamage(g: Game): number {
 }
 
 function repairDrone(): Kit {
-  return { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: "patch", on: false, aux: 0 };
+  return { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "REPAIR", on: false, aux: 0 };
 }
 
 describe("Fire on research station", () => {
@@ -71,11 +71,11 @@ describe("Fire on research station", () => {
     assert.equal(choiceDisabled(plain, "c:fire-on-research-station:4"), "Needs a Repair Drone");
 
     const rock = createGame(1);
-    rock.crew[0].kin = "stone";
+    rock.crew[0].kin = "rock";
     assert.ok(open(rock).choices.some((c) => c.id === "c:fire-on-research-station:3"));
 
     const drone = createGame(1);
-    drone.player.kits.swarm = repairDrone();
+    drone.player.kits.drones = repairDrone();
     assert.ok(open(drone).choices.some((c) => c.id === "c:fire-on-research-station:4"));
   });
 
@@ -107,7 +107,7 @@ describe("Fire on research station", () => {
     let seen = false;
     for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:fire-on-research-station:0");
@@ -164,15 +164,15 @@ describe("Fire on research station", () => {
   // Rewards, "Augment": "A random augmentation & T scrap."
   it("a Rock pays high scrap and installs a random augment", () => {
     const g = createGame(3);
-    g.crew[0].kin = "stone";
-    g.augments = ["hook"];
+    g.crew[0].kin = "rock";
+    g.augments = ["SCRAP_COLLECTOR"];
     const weapons = g.player.weapons.length;
     open(g);
     fillerChoose(g, "c:fire-on-research-station:3");
     assert.match(g.event?.body ?? "", /fire suppressant/);
     scrapOnly(g.event?.body ?? "", 19, 23);
     assert.equal(g.augments.length, 2);
-    assert.equal(g.augments[0], "hook");
+    assert.equal(g.augments[0], "SCRAP_COLLECTOR");
     assert.match(g.event?.body ?? "", / fitted\.$/);
     assert.equal(g.player.weapons.length, weapons);
   });
@@ -180,14 +180,14 @@ describe("Fire on research station", () => {
   // Rewards, "Drone": "A random drone schematic & T scrap."
   it("a repair drone pays high scrap and grants a random schematic", () => {
     const g = createGame(4);
-    g.player.kits.swarm = repairDrone();
+    g.player.kits.drones = repairDrone();
     const held = heldSchematics(g).length;
     const weapons = g.player.weapons.length;
     open(g);
     fillerChoose(g, "c:fire-on-research-station:4");
     assert.match(g.event?.body ?? "", /repair drone/);
     scrapOnly(g.event?.body ?? "", 19, 23);
-    assert.equal(g.player.kits.swarm.target, "patch");
+    assert.equal(g.player.kits.drones.target, "REPAIR");
     assert.equal(heldSchematics(g).length, held + 1);
     assert.match(g.event?.body ?? "", /schematic (fitted|stowed in cargo)\.$/);
     assert.equal(g.player.weapons.length, weapons);

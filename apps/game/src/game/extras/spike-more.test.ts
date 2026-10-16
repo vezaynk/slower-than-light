@@ -28,7 +28,7 @@ import type { Game, Kit, KitId } from "../types.ts";
  */
 function launchLanded(g: Game): boolean {
   const ok = launchSpike(g);
-  const kit = g.player.kits.spike;
+  const kit = g.player.kits.hacking;
   if (ok && kit && kit.hackFly != null) {
     kit.hackFly = 0;
     tickSpike(g, 1e-6);
@@ -46,7 +46,7 @@ function fight(seed = 7): Game {
   const g = createGame(seed);
   startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
-  g.enemy.kits = { spike: kit("spike", 2) };
+  g.enemy.kits = { hacking: kit("hacking", 2) };
   g.enemy.classId = "rebel-fighter";
   g.enemy.parts = 3;
   g.enemy.weapons = [];
@@ -58,7 +58,7 @@ function fight(seed = 7): Game {
 /** Their drone latched on `target`; `pulse` also starts a 7 s pulse. */
 function hacked(target: string, pulse: boolean, seed = 7): Game {
   const g = fight(seed);
-  const k = g.enemy!.kits.spike!;
+  const k = g.enemy!.kits.hacking!;
   k.target = target;
   k.hackLatched = true;
   if (pulse) {
@@ -78,29 +78,29 @@ function withSpike(g: Game, parts = 2) {
 
 describe("hacking: artillery drains (Hacking, Artillery Beam / Flak Artillery row)", () => {
   it("an enemy pulse on the Artillery Beam takes charge back at its own charge speed", () => {
-    const g = hacked("lance", true);
-    g.player.kits.lance = { ...kit("lance", 1, 1), aux: 0.5 };
-    assert.equal(hackPulseOn(g, g.player, "lance"), true);
+    const g = hacked("artillery", true);
+    g.player.kits.artillery = { weapon: "ARTILLERY_FED", ...kit("artillery", 1, 1), aux: 0.5 };
+    assert.equal(hackPulseOn(g, g.player, "artillery"), true);
     tickLance(g, 1);
-    assert.ok(Math.abs(g.player.kits.lance.aux - (0.5 - 1 / 50)) < 1e-9);
-    g.enemy!.kits.spike!.on = false;
-    g.enemy!.kits.spike!.left = 0;
+    assert.ok(Math.abs(g.player.kits.artillery.aux - (0.5 - 1 / 50)) < 1e-9);
+    g.enemy!.kits.hacking!.on = false;
+    g.enemy!.kits.hacking!.left = 0;
     tickLance(g, 1);
-    assert.ok(Math.abs(g.player.kits.lance.aux - 0.5) < 1e-9);
+    assert.ok(Math.abs(g.player.kits.artillery.aux - 0.5) < 1e-9);
   });
 
   it("an enemy pulse on Flak Artillery drains one second of charge per second", () => {
-    const g = hacked("flak", true);
-    g.player.kits.flak = { ...kit("flak", 1, 1), on: true, aux: 10 };
+    const g = hacked("artillery", true);
+    g.player.kits.artillery = { weapon: "ARTILLERY_FED_C", ...kit("artillery", 1, 1), on: true, aux: 10 };
     tickFlak(g, 2);
-    assert.ok(Math.abs(g.player.kits.flak.aux - 8) < 1e-9);
+    assert.ok(Math.abs(g.player.kits.artillery.aux - 8) < 1e-9);
   });
 });
 
 describe("hacking: Clone Bay row", () => {
   it("a pulse disables the player's bay: the queue stops and the last clone is lost after 3 s", () => {
-    const g = hacked("cradle", true);
-    g.player.kits.cradle = kit("cradle", 1, 1);
+    const g = hacked("clonebay", true);
+    g.player.kits.clonebay = kit("clonebay", 1, 1);
     const ada = g.crew.find((c) => c.side === "player")!;
     ada.hp = 0;
     assert.equal(onCradleDeath(g, ada), true);
@@ -114,24 +114,24 @@ describe("hacking: Clone Bay row", () => {
 
 describe("hacking: Backup Battery row", () => {
   it("removes two reactor bars for the pulse and sheds assigned power to fit", () => {
-    const g = hacked("cell", true);
-    g.player.kits.cell = kit("cell", 1, 0);
+    const g = hacked("battery", true);
+    g.player.kits.battery = kit("battery", 1, 0);
     while (sparePower(g.player) > 0) {
       const sys = g.player.systems.engines;
       sys.level = Math.max(sys.level, sys.power + 1);
       sys.power += 1;
     }
     tickEnemySpike(g, 0.05);
-    assert.equal(g.player.kits.cell.drained, 2);
+    assert.equal(g.player.kits.battery.drained, 2);
     assert.equal(cellBonus(g.player), -2);
     tickCell(g, 0.05);
     assert.equal(sparePower(g.player), 0);
-    const k = g.enemy!.kits.spike!;
+    const k = g.enemy!.kits.hacking!;
     k.on = false;
     k.left = 0;
     k.cool = 20;
     tickEnemySpike(g, 0.05);
-    assert.equal(g.player.kits.cell.drained, undefined);
+    assert.equal(g.player.kits.battery.drained, undefined);
     assert.equal(cellBonus(g.player), 0);
     assert.equal(sparePower(g.player), 2);
   });
@@ -160,7 +160,7 @@ describe("hacking: passive rules (no manning, half repair)", () => {
     b.path = [];
     for (const c of g.crew) if (c !== a && c !== b && c.side === "player") c.room = roomWith(g.player, "shields")!.id;
     const free = evasionPercent(g, g.player, "player");
-    const k = g.enemy!.kits.spike!;
+    const k = g.enemy!.kits.hacking!;
     k.target = "engines";
     k.hackLatched = true;
     const held = evasionPercent(g, g.player, "player");
@@ -173,10 +173,10 @@ describe("hacking: passive rules (no manning, half repair)", () => {
     assert.equal(hackRepairScale(h, h.player, "oxygen"), 1);
     const progress = (latch: boolean) => {
       const g = fight(3);
-      g.enemy!.kits.spike!.cool = 999; // no launch, no pulse
+      g.enemy!.kits.hacking!.cool = 999; // no launch, no pulse
       if (latch) {
-        g.enemy!.kits.spike!.target = "oxygen";
-        g.enemy!.kits.spike!.hackLatched = true;
+        g.enemy!.kits.hacking!.target = "oxygen";
+        g.enemy!.kits.hacking!.hackLatched = true;
       }
       const sys = g.player.systems.oxygen;
       sys.damage = 1;
@@ -200,7 +200,7 @@ describe("hacking: Sensors row and vision", () => {
   it("an enemy pulse on Sensors reads 0; a latched drone drops the manning level", () => {
     const g = hacked("sensors", true);
     assert.equal(playerSensorLevel(g), 0);
-    const k = g.enemy!.kits.spike!;
+    const k = g.enemy!.kits.hacking!;
     k.on = false;
     k.left = 0;
     const sys = g.player.systems.sensors;
@@ -230,7 +230,7 @@ describe("hacking: the Hacking row, both directions", () => {
     assert.equal(g.player.parts, 0);
     assert.equal(g.enemy!.hackDrone, "shields");
     tickSpike(g, 4);
-    g.enemy!.kits.spike!.cool = 999;
+    g.enemy!.kits.hacking!.cool = 999;
     tickSpike(g, 20);
     assert.equal(launchLanded(g), true);
     assert.equal(g.player.parts, 0);
@@ -241,11 +241,11 @@ describe("hacking: the Hacking row, both directions", () => {
     for (let seed = 1; seed <= 30; seed++) {
       const g = hacked("shields", true, seed);
       withSpike(g);
-      armSpike(g, "spike");
-      assert.equal(g.player.kits.spike!.target, "spike", "Hacking is a valid target");
+      armSpike(g, "hacking");
+      assert.equal(g.player.kits.hacking!.target, "hacking", "Hacking is a valid target");
       assert.equal(launchLanded(g), true);
       tickSpike(g, 0.05);
-      const k = g.enemy!.kits.spike!;
+      const k = g.enemy!.kits.hacking!;
       assert.equal(k.on, false);
       assert.equal(k.cool > 0 || !k.hackLatched, true);
       // One-second delay: never destroyed in the first second.
@@ -261,7 +261,7 @@ describe("hacking: the Hacking row, both directions", () => {
   it("their pulse on the player's Hacking may burn out the player's latched drone", () => {
     let burned = 0;
     for (let seed = 1; seed <= 30; seed++) {
-      const g = hacked("spike", true, seed);
+      const g = hacked("hacking", true, seed);
       withSpike(g);
       g.enemy!.hackDrone = "weapons";
       for (let i = 0; i < 140; i++) tickEnemySpike(g, 0.05);
@@ -275,20 +275,20 @@ describe("hacking: the Hacking row, both directions", () => {
 describe("mind control across a jump", () => {
   it("leaving frees crew the enemy holds and resets the player's hold", () => {
     const g = fight();
-    g.enemy!.kits.leash = kit("leash", 1, 1);
+    g.enemy!.kits.mind = kit("mind", 1, 1);
     assert.equal(fireEnemyLeash(g), true);
     const held = g.crew.find((c) => heldByEnemy(c))!;
     assert.ok(held);
-    g.player.kits.leash = { ...kit("leash", 1, 1), on: true, left: 5, cool: 3, target: "x" };
+    g.player.kits.mind = { ...kit("mind", 1, 1), on: true, left: 5, cool: 3, target: "x" };
     leashOnLeave(g);
     assert.equal(heldByEnemy(held), false);
-    assert.equal(g.player.kits.leash.on, false);
-    assert.equal(g.player.kits.leash.cool, 0);
+    assert.equal(g.player.kits.mind.on, false);
+    assert.equal(g.player.kits.mind.cool, 0);
   });
 
   it("commitJump out of a fight ends the enemy's hold", () => {
     const g = fight();
-    g.enemy!.kits.leash = kit("leash", 1, 1);
+    g.enemy!.kits.mind = kit("mind", 1, 1);
     assert.equal(fireEnemyLeash(g), true);
     const held = g.crew.find((c) => heldByEnemy(c))!;
     // Piloting, "Overview": a mind-controlled body is no pilot, so a free crew member takes the seat.

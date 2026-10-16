@@ -65,7 +65,7 @@ describe("Sell missiles for scrap", () => {
     hook.missiles = 5;
     hook.scrap = 0;
     hook.scrapCollected = 0;
-    hook.augments = ["hook"];
+    hook.augments = ["SCRAP_COLLECTOR"];
     choose(hook, "c:sell-missiles-for-scrap:0");
     assert.equal(hook.missiles, 0);
     assert.equal(hook.scrap, 16);
@@ -77,7 +77,7 @@ describe("Sell missiles for scrap", () => {
     weld.scrap = 0;
     weld.scrapCollected = 0;
     weld.player.hull = weld.player.hullMax - 5;
-    weld.augments = ["weld"];
+    weld.augments = ["REPAIR_ARM"];
     choose(weld, "c:sell-missiles-for-scrap:0");
     assert.equal(weld.scrap, 12);
     assert.equal(weld.scrapCollected, 15);
@@ -87,7 +87,7 @@ describe("Sell missiles for scrap", () => {
     both.missiles = 5;
     both.scrap = 0;
     both.player.hull = 10;
-    both.augments = ["hook", "weld"];
+    both.augments = ["SCRAP_COLLECTOR", "REPAIR_ARM"];
     choose(both, "c:sell-missiles-for-scrap:0");
     assert.equal(both.scrap, 14);
     assert.equal(both.player.hull, 12);

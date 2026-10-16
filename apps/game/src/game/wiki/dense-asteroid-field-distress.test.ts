@@ -99,7 +99,7 @@ describe("Dense asteroid field distress", () => {
     // > "Your crew grabs what they can and returns to the ship before the asteroid hits." — [[Dense asteroid field distress#Find remains of a ship]]
     // > "You receive a weapon with low scrap." — [[Dense asteroid field distress#Find remains of a ship]]
     const g = createGame(2);
-    g.augments.push("keel");
+    g.augments.push("ROCK_ARMOR");
     const guns = g.player.weapons.map((w) => w.defId);
     open(g);
     assert.equal(choiceDisabled(g, "c:dense-asteroid-field-distress:2"), null);
@@ -117,7 +117,7 @@ describe("Dense asteroid field distress", () => {
     const stowed = (g.cargo ?? []).filter((c) => c.kind === "weapon");
     assert.equal(added.length + stowed.length, 1, body);
     assert.match(body, /mounted\.|stowed in cargo/);
-    assert.equal(g.augments.includes("stasis"), false);
+    assert.equal(g.augments.includes("STASIS_POD"), false);
   });
 
   it("grabbing the pod mounts Damaged Stasis Pod with low scrap, and a full list asks what to leave behind", () => {
@@ -126,7 +126,7 @@ describe("Dense asteroid field distress", () => {
     // > "The pod appears to be functioning but you see nothing but shards of crystal inside." — [[Dense asteroid field distress#Find remains of a ship]]
     // > "You receive Damaged Stasis Pod augmentation with low scrap." — [[Dense asteroid field distress#Find remains of a ship]]
     const g = createGame(3);
-    g.augments.push("keel");
+    g.augments.push("ROCK_ARMOR");
     open(g);
     fillerChoose(g, "c:dense-asteroid-field-distress:2");
     fillerChoose(g, "s:dense-asteroid-field-distress:pod");
@@ -135,18 +135,18 @@ describe("Dense asteroid field distress", () => {
     assert.match(body, /shards of crystal/);
     assert.match(body, /Damaged Stasis Pod/);
     assert.ok(got.scrap >= 7 && got.scrap <= 10, body);
-    assert.equal(g.augments.filter((id) => id === "stasis").length, 1);
+    assert.equal(g.augments.filter((id) => id === "STASIS_POD").length, 1);
 
     const full = createGame(4);
-    full.augments.push("keel", "glass", "hook");
+    full.augments.push("ROCK_ARMOR", "ADV_SCANNERS", "SCRAP_COLLECTOR");
     open(full);
     fillerChoose(full, "c:dense-asteroid-field-distress:2");
     fillerChoose(full, "s:dense-asteroid-field-distress:pod");
     // Augmentations: a full rack asks which one to leave behind (make-room.ts).
     assert.match(full.event?.body ?? "", /choose what to leave behind/);
-    assert.equal(full.augments.includes("stasis"), false);
+    assert.equal(full.augments.includes("STASIS_POD"), false);
     assert.equal(full.augments.length, 3);
-    assert.deepEqual(full.overflow, [{ kind: "augment", id: "stasis" }]);
+    assert.deepEqual(full.overflow, [{ kind: "augment", id: "STASIS_POD" }]);
     const paid = reward(full.event?.body ?? "");
     assert.ok(paid.scrap >= 7 && paid.scrap <= 10, full.event?.body);
   });
@@ -164,6 +164,6 @@ describe("Dense asteroid field distress", () => {
     assert.match(g.event?.body ?? "", /distress call/);
     assert.equal(g.scrap, 10);
     assert.equal(g.player.hull, hull);
-    assert.equal(g.augments.includes("stasis"), false);
+    assert.equal(g.augments.includes("STASIS_POD"), false);
   });
 });

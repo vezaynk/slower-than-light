@@ -16,13 +16,13 @@ function spark(room: string): Crew {
     move: 0,
     think: 0,
     tone: 0,
-    kin: "spark",
+    kin: "energy",
   };
 }
 
 describe("power steps", () => {
   it("raises and lowers shields by a whole layer", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     g.player.reactor = 30;
     const sys = g.player.systems.shields;
     sys.level = 8;
@@ -44,7 +44,7 @@ describe("power steps", () => {
   });
 
   it("does not spend a lone shield bar when a pair is out of reach", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     const sys = g.player.systems.shields;
     sys.level = 4;
     sys.damage = 0;
@@ -59,7 +59,7 @@ describe("power steps", () => {
   });
 
   it("lets one Zoltan finish a shield pair", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     g.player.reactor = 30;
     const sys = g.player.systems.shields;
     sys.level = 4;
@@ -83,15 +83,15 @@ describe("power steps", () => {
   });
 
   it("will not power a weapon with a partial bar", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     const sys = g.player.systems.weapons;
     sys.level = 8;
     sys.damage = 0;
     sys.ion = [];
     sys.power = 0;
     g.player.weapons = [
-      { uid: "burst", defId: "lineburst", charge: 0, enabled: false, autofire: false, target: null },
-      { uid: "laser", defId: "spark", charge: 0, enabled: false, autofire: false, target: null },
+      { uid: "burst", defId: "LASER_BURST_3", charge: 0, enabled: false, autofire: false, target: null },
+      { uid: "laser", defId: "LASER_BURST_1", charge: 0, enabled: false, autofire: false, target: null },
     ];
     const used = g.player.reactor - sparePower(g.player);
     g.player.reactor = used + 1;
@@ -103,7 +103,7 @@ describe("power steps", () => {
   });
 
   it("still moves engines one bar at a time", () => {
-    const g = createGame(3, "kestrel-a");
+    const g = createGame(3, "PLAYER_SHIP_HARD");
     g.player.reactor = 20;
     const sys = g.player.systems.engines;
     sys.level = 4;

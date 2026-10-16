@@ -21,7 +21,7 @@ function open(g: Game) {
 }
 
 function drone(kind: string): Kit {
-  return { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: kind, on: false, aux: 0 };
+  return { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: kind, on: false, aux: 0 };
 }
 
 function scraps(body: string): number[] {
@@ -119,7 +119,7 @@ describe("Research station with no response", () => {
 
     const broke = createGame(2);
     open(broke);
-    broke.player.kits.swarm = drone("antipersonnel");
+    broke.player.kits.drones = drone("BATTLE");
     broke.player.parts = 0;
     assert.equal(choiceDisabled(broke, DRONE), null);
   });
@@ -139,7 +139,7 @@ describe("Research station with no response", () => {
     for (let seed = 1; seed <= 80 && (!tear || !mob || !charged || !waived); seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.swarm = drone("antipersonnel");
+      g.player.kits.drones = drone("BATTLE");
       g.player.parts = 4;
       choose(g, DRONE);
       const body = g.event?.body ?? "";
@@ -185,7 +185,7 @@ describe("Research station with no response", () => {
     for (let seed = 1; seed <= 80 && (!ran || !held); seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.swarm = drone("antipersonnel");
+      g.player.kits.drones = drone("BATTLE");
       g.player.parts = 0;
       const scrap = g.scrap;
       choose(g, DRONE);
@@ -224,7 +224,7 @@ describe("Research station with no response", () => {
     for (let seed = 1; seed <= 40 && (!clear || !life); seed++) {
       const g = createGame(seed);
       open(g);
-      g.augments = ["pulseeye"];
+      g.augments = ["LIFE_SCANNER"];
       const parts = g.player.parts;
       choose(g, SCAN);
       const body = g.event?.body ?? "";

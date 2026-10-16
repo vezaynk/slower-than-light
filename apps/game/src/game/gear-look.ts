@@ -53,9 +53,9 @@ const PINK = "#ff8fd0";
 
 export const WEAPON_LOOKS: Record<string, WeaponLook> = {
   // Lasers: square housings, red light.
-  spark: { frame: "block", barrels: 1, reach: 5, body: STEEL, trim: GUNMETAL, glow: RED },
-  twin: { frame: "block", barrels: 2, reach: 6, body: STEEL, trim: SLATE, glow: RED },
-  burst1: {
+  LASER_BURST_1: { frame: "block", barrels: 1, reach: 5, body: STEEL, trim: GUNMETAL, glow: RED },
+  LASER_BURST_2: { frame: "block", barrels: 2, reach: 6, body: STEEL, trim: SLATE, glow: RED },
+  LASER_BURST_2_A: {
     frame: "block",
     barrels: 2,
     reach: 6,
@@ -64,7 +64,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: GUNMETAL,
     glow: ORANGE,
   },
-  lineburst: {
+  LASER_BURST_3: {
     frame: "block",
     barrels: 3,
     reach: 7,
@@ -73,8 +73,8 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: GUNMETAL,
     glow: RED,
   },
-  burst3: { frame: "block", barrels: 5, reach: 8, mark: 3, body: BONE, trim: SLATE, glow: RED },
-  heavy: {
+  LASER_BURST_5: { frame: "block", barrels: 5, reach: 8, mark: 3, body: BONE, trim: SLATE, glow: RED },
+  LASER_HEAVY_1: {
     frame: "block",
     barrels: 1,
     reach: 7,
@@ -83,7 +83,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: RED,
   },
-  heavy2: {
+  LASER_HEAVY_2: {
     frame: "block",
     barrels: 2,
     reach: 7,
@@ -93,7 +93,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: ORANGE,
   },
-  heavypierce: {
+  LASER_HEAVY_1_SP: {
     frame: "block",
     barrels: 1,
     reach: 11,
@@ -103,7 +103,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: GUNMETAL,
     glow: AMBER,
   },
-  hullsmash: {
+  LASER_HULL_1: {
     frame: "block",
     barrels: 2,
     reach: 4,
@@ -113,7 +113,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: ORANGE,
   },
-  hullsmash2: {
+  LASER_HULL_2: {
     frame: "block",
     barrels: 3,
     reach: 5,
@@ -123,7 +123,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  chainlaser: {
+  LASER_CHAINGUN: {
     frame: "block",
     barrels: 2,
     reach: 7,
@@ -132,7 +132,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: ORANGE,
   },
-  vulcan: {
+  LASER_CHAINGUN_2: {
     frame: "drum",
     barrels: 4,
     reach: 9,
@@ -141,7 +141,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: ORANGE,
   },
-  chargers: {
+  LASER_CHARGEGUN_PLAYER: {
     frame: "block",
     barrels: 1,
     reach: 4,
@@ -150,7 +150,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  charger: {
+  LASER_CHARGEGUN: {
     frame: "block",
     barrels: 2,
     reach: 6,
@@ -159,7 +159,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  charger2: {
+  LASER_CHARGEGUN_2: {
     frame: "block",
     barrels: 4,
     reach: 7,
@@ -170,7 +170,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     glow: AMBER,
   },
   // @agent:flagship. Rebel Flagship artillery (wiki/flagship-weapons.ts), in the boss maroon of Boss Ion / Missile.
-  bosslaser: {
+  ARTILLERY_BOSS_1: {
     frame: "block",
     barrels: 3,
     reach: 9,
@@ -181,7 +181,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     glow: RED,
   },
   // Crystal: faceted prisms.
-  crystalburst: {
+  CRYSTAL_BURST_1: {
     frame: "prism",
     barrels: 2,
     reach: 5,
@@ -189,7 +189,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#5aa8c8",
     glow: PINK,
   },
-  crystalburst2: {
+  CRYSTAL_BURST_2: {
     frame: "prism",
     barrels: 3,
     reach: 6,
@@ -198,7 +198,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#5aa8c8",
     glow: PINK,
   },
-  heavycrystal: {
+  CRYSTAL_HEAVY_1: {
     frame: "prism",
     barrels: 1,
     reach: 6,
@@ -207,7 +207,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#b0609a",
     glow: CYAN,
   },
-  heavycrystal2: {
+  CRYSTAL_HEAVY_2: {
     frame: "prism",
     barrels: 2,
     reach: 7,
@@ -219,8 +219,8 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
   },
   // Missiles: launch tubes, warheads lit.
   dart: { frame: "tube", barrels: 1, reach: 3, fins: true, body: BRONZE, trim: RUST, glow: AMBER },
-  leto: { frame: "tube", barrels: 1, reach: 3, body: STEEL, trim: GUNMETAL, glow: RED },
-  artemis: {
+  MISSILES_1: { frame: "tube", barrels: 1, reach: 3, body: STEEL, trim: GUNMETAL, glow: RED },
+  MISSILES_2_PLAYER: {
     frame: "tube",
     barrels: 1,
     reach: 5,
@@ -229,7 +229,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: GUNMETAL,
     glow: RED,
   },
-  artemisEnemy: {
+  MISSILES_2: {
     frame: "tube",
     barrels: 1,
     reach: 5,
@@ -239,7 +239,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  hermes: {
+  MISSILES_3: {
     frame: "tube",
     barrels: 1,
     reach: 6,
@@ -250,7 +250,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: GUNMETAL,
     glow: ORANGE,
   },
-  breachmissiles: {
+  MISSILES_BREACH: {
     frame: "tube",
     barrels: 1,
     reach: 7,
@@ -261,7 +261,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: ORANGE,
   },
-  hullmissile: {
+  MISSILES_HULL: {
     frame: "tube",
     barrels: 1,
     reach: 4,
@@ -271,9 +271,9 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: RED,
   },
-  swarmmissiles: { frame: "tube", barrels: 4, reach: 3, body: STEEL, trim: SLATE, glow: AMBER },
-  pegasus: { frame: "tube", barrels: 2, reach: 5, fins: true, body: BONE, trim: SLATE, glow: BLUE },
-  bossmissile: {
+  MISSILE_CHARGEGUN: { frame: "tube", barrels: 4, reach: 3, body: STEEL, trim: SLATE, glow: AMBER },
+  MISSILES_BURST: { frame: "tube", barrels: 2, reach: 5, fins: true, body: BONE, trim: SLATE, glow: BLUE },
+  ARTILLERY_BOSS_2: {
     frame: "tube",
     barrels: 3,
     reach: 6,
@@ -284,8 +284,8 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     glow: RED,
   },
   // Ion: coiled housings, blue light.
-  needle: { frame: "coil", barrels: 1, reach: 4, body: "#4a6a9a", trim: "#2a3c5c", glow: BLUE },
-  ion2: {
+  ION_1: { frame: "coil", barrels: 1, reach: 4, body: "#4a6a9a", trim: "#2a3c5c", glow: BLUE },
+  ION_4: {
     frame: "coil",
     barrels: 1,
     reach: 5,
@@ -294,7 +294,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#2a3c5c",
     glow: CYAN,
   },
-  heavyion: {
+  ION_2: {
     frame: "coil",
     barrels: 1,
     reach: 6,
@@ -303,8 +303,8 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#22304c",
     glow: BLUE,
   },
-  stunner: { frame: "coil", barrels: 2, reach: 3, body: "#6a7aa8", trim: "#2a3c5c", glow: VIOLET },
-  ioncharger: {
+  ION_STUN: { frame: "coil", barrels: 2, reach: 3, body: "#6a7aa8", trim: "#2a3c5c", glow: VIOLET },
+  ION_CHARGEGUN: {
     frame: "coil",
     barrels: 2,
     reach: 5,
@@ -313,7 +313,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#2a3c5c",
     glow: BLUE,
   },
-  chainion: {
+  ION_CHAINGUN: {
     frame: "coil",
     barrels: 1,
     reach: 6,
@@ -322,7 +322,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#22304c",
     glow: CYAN,
   },
-  bossion: {
+  ARTILLERY_BOSS_4: {
     frame: "coil",
     barrels: 3,
     reach: 7,
@@ -332,9 +332,9 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     glow: BLUE,
   },
   // Beams: lens cones, a lit emitter.
-  mini: { frame: "lens", barrels: 1, reach: 2, body: STEEL, trim: SLATE, glow: AMBER },
-  shear: { frame: "lens", barrels: 1, reach: 6, body: BONE, trim: SLATE, glow: AMBER },
-  hullbeam: {
+  BEAM_1: { frame: "lens", barrels: 1, reach: 2, body: STEEL, trim: SLATE, glow: AMBER },
+  BEAM_LONG: { frame: "lens", barrels: 1, reach: 6, body: BONE, trim: SLATE, glow: AMBER },
+  BEAM_HULL: {
     frame: "lens",
     barrels: 1,
     reach: 5,
@@ -343,7 +343,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  halberd: {
+  BEAM_2: {
     frame: "lens",
     barrels: 1,
     reach: 8,
@@ -352,7 +352,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: GUNMETAL,
     glow: AMBER,
   },
-  glaive: {
+  BEAM_3: {
     frame: "lens",
     barrels: 1,
     reach: 10,
@@ -362,7 +362,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: GUNMETAL,
     glow: "#fff27a",
   },
-  firebeam: {
+  BEAM_FIRE: {
     frame: "lens",
     barrels: 1,
     reach: 6,
@@ -371,7 +371,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: RUST,
     glow: ORANGE,
   },
-  antibio: {
+  BEAM_BIO: {
     frame: "lens",
     barrels: 1,
     reach: 4,
@@ -381,7 +381,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     glow: GREEN,
   },
   // @agent:flagship. Boss Beam, flagship artillery.
-  bossbeam: {
+  ARTILLERY_BOSS_3: {
     frame: "lens",
     barrels: 2,
     reach: 9,
@@ -392,8 +392,8 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     glow: RED,
   },
   // Flak: drums with stubby barrels.
-  scatter: { frame: "drum", barrels: 3, reach: 4, body: "#a04040", trim: SLATE, glow: ORANGE },
-  advflak: {
+  SHOTGUN: { frame: "drum", barrels: 3, reach: 4, body: "#a04040", trim: SLATE, glow: ORANGE },
+  SHOTGUN_PLAYER: {
     frame: "drum",
     barrels: 3,
     reach: 6,
@@ -402,7 +402,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  flak2: {
+  SHOTGUN_2: {
     frame: "drum",
     barrels: 5,
     reach: 5,
@@ -412,7 +412,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     glow: ORANGE,
   },
   // Bombs: teleporter pods, the payload as an emblem.
-  smallbomb: {
+  BOMB_1: {
     frame: "pod",
     barrels: 0,
     reach: 0,
@@ -421,7 +421,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: RED,
   },
-  cask: {
+  BOMB_FIRE: {
     frame: "pod",
     barrels: 0,
     reach: 0,
@@ -430,7 +430,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: ORANGE,
   },
-  breach1: {
+  BOMB_BREACH_1: {
     frame: "pod",
     barrels: 0,
     reach: 0,
@@ -440,7 +440,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  breach2: {
+  BOMB_BREACH_2: {
     frame: "pod",
     barrels: 0,
     reach: 0,
@@ -450,7 +450,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: ORANGE,
   },
-  ionbomb: {
+  BOMB_ION: {
     frame: "pod",
     barrels: 0,
     reach: 0,
@@ -460,7 +460,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#2a3c5c",
     glow: BLUE,
   },
-  stunbomb: {
+  BOMB_STUN: {
     frame: "pod",
     barrels: 0,
     reach: 0,
@@ -469,7 +469,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#2a3c5c",
     glow: VIOLET,
   },
-  healburst: {
+  BOMB_HEAL: {
     frame: "pod",
     barrels: 0,
     reach: 0,
@@ -478,7 +478,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: "#3a6a3a",
     glow: GREEN,
   },
-  repairburst: {
+  BOMB_HEAL_SYSTEM: {
     frame: "pod",
     barrels: 0,
     reach: 0,
@@ -487,7 +487,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  lockdown: {
+  BOMB_LOCK: {
     frame: "pod",
     barrels: 0,
     reach: 0,
@@ -506,7 +506,7 @@ export type DroneLook = Palette & { name: string; hull: DroneHull; tool: DroneTo
 export type DroneKey =
   | SwarmKind
   | "striker2"
-  | "beam2"
+  | "COMBAT_BEAM_2"
   | "fire"
   | "intruder"
   | "personnel"
@@ -514,7 +514,7 @@ export type DroneKey =
   | "overcharge2";
 
 export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
-  ward: {
+  DEFENSE_1: {
     name: "Defense Drone Mark I",
     hull: "hex",
     tool: "gun",
@@ -522,7 +522,7 @@ export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
     trim: SLATE,
     glow: BLUE,
   },
-  ward2: {
+  DEFENSE_2: {
     name: "Defense Drone Mark II",
     hull: "hex",
     tool: "twin",
@@ -531,7 +531,7 @@ export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  wardcut: {
+  ANTI_DRONE: {
     name: "Anti-Combat Drone",
     hull: "hex",
     tool: "ion",
@@ -539,7 +539,7 @@ export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
     trim: SLATE,
     glow: VIOLET,
   },
-  striker: {
+  COMBAT_1: {
     name: "Combat Drone Mark I",
     hull: "dart",
     tool: "gun",
@@ -556,7 +556,7 @@ export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
     trim: SLATE,
     glow: RED,
   },
-  beam: {
+  COMBAT_BEAM: {
     name: "Anti-Ship Beam Drone I",
     hull: "diamond",
     tool: "beam",
@@ -564,7 +564,7 @@ export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  beam2: {
+  COMBAT_BEAM_2: {
     name: "Anti-Ship Beam Drone II",
     hull: "diamond",
     tool: "beam",
@@ -589,7 +589,7 @@ export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
     trim: "#2a3c5c",
     glow: CYAN,
   },
-  board: {
+  BOARDER: {
     name: "Boarding Drone",
     hull: "box",
     tool: "claw",
@@ -605,7 +605,7 @@ export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
     trim: "#34472a",
     glow: GREEN,
   },
-  patch: {
+  REPAIR: {
     name: "System Repair Drone",
     hull: "disc",
     tool: "wrench",
@@ -613,7 +613,7 @@ export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
     trim: SLATE,
     glow: AMBER,
   },
-  hull: {
+  SHIP_REPAIR: {
     name: "Hull Repair Drone",
     hull: "ring",
     tool: "wrench",
@@ -818,18 +818,18 @@ export function weaponPixels(id: string): PixelArt {
 
 /** Colours of a weapon's art, for the shots it fires. */
 export function weaponPalette(id: string | undefined): Palette {
-  if (!id) return WEAPON_LOOKS.spark;
+  if (!id) return WEAPON_LOOKS.LASER_BURST_1;
   return WEAPON_LOOKS[id] ?? WEAPON_LOOKS[fallbackWeapon(id)];
 }
 
 function fallbackWeapon(id: string) {
   const kind = weaponDef(id)?.kind;
-  if (kind === "missile") return "artemis";
-  if (kind === "ion") return "needle";
-  if (kind === "beam") return "shear";
-  if (kind === "flak") return "scatter";
-  if (kind === "bomb") return "smallbomb";
-  return "spark";
+  if (kind === "missile") return "MISSILES_2_PLAYER";
+  if (kind === "ion") return "ION_1";
+  if (kind === "beam") return "BEAM_LONG";
+  if (kind === "flak") return "SHOTGUN";
+  if (kind === "bomb") return "BOMB_1";
+  return "LASER_BURST_1";
 }
 
 const DRONE_S = 18;
@@ -943,16 +943,16 @@ export function dronePixels(key: DroneKey | null): PixelArt {
 
 /** Hangar and catalog names use several spellings. */
 const WEAPON_ALIASES: Record<string, string> = {
-  "heavy laser i": "heavy",
-  "advanced flak": "advflak",
-  "breach bomb i": "breach1",
-  "breach bomb ii": "breach2",
+  "heavy laser i": "LASER_HEAVY_1",
+  "advanced flak": "SHOTGUN_PLAYER",
+  "breach bomb i": "BOMB_BREACH_1",
+  "breach bomb ii": "BOMB_BREACH_2",
   // Faction "Weapons" tables (Rebel Ships and the other enemy pages) spell these out in full.
-  "burst laser mark ii": "lineburst",
-  "heavy laser mark i": "heavy",
-  "ion blast mark ii": "ion2",
-  "flak gun i": "scatter",
-  "flak gun ii": "flak2",
+  "burst laser mark ii": "LASER_BURST_3",
+  "heavy laser mark i": "LASER_HEAVY_1",
+  "ion blast mark ii": "ION_4",
+  "flak gun i": "SHOTGUN",
+  "flak gun ii": "SHOTGUN_2",
 };
 
 function normal(name: string) {
@@ -976,18 +976,18 @@ const DRONE_NAME_KEYS: [RegExp, DroneKey][] = [
   [/overcharger \+/, "overcharge2"],
   [/overcharger/, "overcharge"],
   [/anti-ship fire/, "fire"],
-  [/beam drone ii|beam ii/, "beam2"],
-  [/^beam\b|beam drone/, "beam"],
+  [/beam drone ii|beam ii/, "COMBAT_BEAM_2"],
+  [/^beam\b|beam drone/, "COMBAT_BEAM"],
   [/combat drone mark ii/, "striker2"],
-  [/^combat drone/, "striker"],
-  [/anti-combat|anti-drone/, "wardcut"],
-  [/defense drone (mark )?ii/, "ward2"],
-  [/defense drone/, "ward"],
+  [/^combat drone/, "COMBAT_1"],
+  [/anti-combat|anti-drone/, "ANTI_DRONE"],
+  [/defense drone (mark )?ii/, "DEFENSE_2"],
+  [/defense drone/, "DEFENSE_1"],
   [/ion intruder/, "intruder"],
   [/anti-personnel/, "personnel"],
-  [/boarding/, "board"],
-  [/system repair/, "patch"],
-  [/hull repair/, "hull"],
+  [/boarding/, "BOARDER"],
+  [/system repair/, "REPAIR"],
+  [/hull repair/, "SHIP_REPAIR"],
 ];
 
 /** Drone key for a Drone Control schematic id (Kit.target), or null. */

@@ -105,6 +105,8 @@ export type HullKitDef = {
   target?: string | null;
   loadout?: string[];
   on?: boolean;
+  /** Archive weapon blueprint when this kit is artillery. */
+  weapon?: string;
 };
 
 /**

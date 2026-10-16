@@ -17,8 +17,8 @@ describe("crystal cruiser hulls", () => {
     assert.deepEqual(
       CRYSTAL_HULLS.map((h) => [h.id, h.layout, h.name, h.cruiser]),
       [
-        ["crystal-a", "A", "Bravais", "Crystal Cruiser"],
-        ["crystal-b", "B", "Carnelian", "Crystal Cruiser"],
+        ["PLAYER_SHIP_CRYSTAL", "A", "Bravais", "Crystal Cruiser"],
+        ["PLAYER_SHIP_CRYSTAL_2", "B", "Carnelian", "Crystal Cruiser"],
       ],
     );
   });
@@ -34,14 +34,14 @@ describe("crystal cruiser hulls", () => {
   });
 
   it("counts the listed crew", () => {
-    const a = CRYSTAL_HULLS.find((h) => h.id === "crystal-a");
-    const b = CRYSTAL_HULLS.find((h) => h.id === "crystal-b");
+    const a = CRYSTAL_HULLS.find((h) => h.id === "PLAYER_SHIP_CRYSTAL");
+    const b = CRYSTAL_HULLS.find((h) => h.id === "PLAYER_SHIP_CRYSTAL_2");
     assert.ok(a && b);
-    assert.equal(a.crew.filter((c) => c.kin === "plain").length, 2);
-    assert.equal(a.crew.filter((c) => c.kin === "shard").length, 2);
+    assert.equal(a.crew.filter((c) => c.kin === "human").length, 2);
+    assert.equal(a.crew.filter((c) => c.kin === "crystal").length, 2);
     assert.equal(a.crew.length, 4);
-    assert.equal(b.crew.filter((c) => c.kin === "shard").length, 3);
-    assert.equal(b.crew.filter((c) => c.kin === "plain").length, 0);
+    assert.equal(b.crew.filter((c) => c.kin === "crystal").length, 3);
+    assert.equal(b.crew.filter((c) => c.kin === "human").length, 0);
     assert.equal(b.crew.length, 3);
     for (const hull of CRYSTAL_HULLS) {
       assert.equal(new Set(hull.crew.map((c) => c.room)).size, hull.crew.length, hull.id);
@@ -50,8 +50,8 @@ describe("crystal cruiser hulls", () => {
   });
 
   it("keeps powered bars and kit power inside the reactor", () => {
-    const a = CRYSTAL_HULLS.find((h) => h.id === "crystal-a");
-    const b = CRYSTAL_HULLS.find((h) => h.id === "crystal-b");
+    const a = CRYSTAL_HULLS.find((h) => h.id === "PLAYER_SHIP_CRYSTAL");
+    const b = CRYSTAL_HULLS.find((h) => h.id === "PLAYER_SHIP_CRYSTAL_2");
     assert.ok(a && b);
     assert.equal(a.systems.shields?.[0], 2);
     assert.equal(a.systems.engines?.[0], 2);
@@ -60,17 +60,17 @@ describe("crystal cruiser hulls", () => {
     assert.equal(a.systems.medbay?.[1], 0);
     assert.equal(a.systems.weapons?.[0], 3);
     assert.equal(a.systems.weapons?.[1], 3);
-    assert.deepEqual(a.weapons, ["crystalburst", "heavycrystal"]);
+    assert.deepEqual(a.weapons, ["CRYSTAL_BURST_1", "CRYSTAL_HEAVY_1"]);
     assert.deepEqual(Object.keys(a.kits), []);
     assert.deepEqual(b.weapons, []);
     assert.equal(b.systems.weapons?.[0], 1);
     assert.equal(b.systems.weapons?.[1], 0);
     assert.equal(b.systems.medbay?.[0], 1);
     assert.equal(b.systems.medbay?.[1], 1);
-    assert.equal(b.kits.sling?.level, 1);
-    assert.equal(b.kits.sling?.power, 1);
-    assert.equal(b.kits.veil?.level, 1);
-    assert.equal(b.kits.veil?.power, 1);
+    assert.equal(b.kits.teleporter?.level, 1);
+    assert.equal(b.kits.teleporter?.power, 1);
+    assert.equal(b.kits.cloaking?.level, 1);
+    assert.equal(b.kits.cloaking?.power, 1);
     for (const hull of CRYSTAL_HULLS) {
       assert.ok(draw(hull) <= hull.reactor, `${hull.id} draws ${draw(hull)}`);
       assert.equal(hull.systems.pilot?.[0], 1, hull.id);
@@ -80,7 +80,7 @@ describe("crystal cruiser hulls", () => {
         assert.ok(pair, id);
         assert.ok(pair[1] <= pair[0], `${hull.id} ${id}`);
       }
-      assert.deepEqual(hull.augments, ["vengeance"]);
+      assert.deepEqual(hull.augments, ["CRYSTAL_SHARDS"]);
       assert.deepEqual(hull.unfitted, []);
     }
   });

@@ -232,7 +232,7 @@ describe("Single life form on moon", () => {
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = scene(seed, (game) => {
-        game.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+        game.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
       });
       assert.ok(g);
       if (!/living alone in a cave/.test(g.event?.body ?? "")) continue;
@@ -324,7 +324,7 @@ describe("Single life form on moon", () => {
       }
       bay = true;
       const cloned = scene(seed, (game) => {
-        game.player.kits.cradle = { id: "cradle", level: 2, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+        game.player.kits.clonebay = { id: "clonebay", level: 2, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
       });
       assert.ok(cloned);
       fillerChoose(cloned, "s:moon:bring");
@@ -344,7 +344,7 @@ describe("Single life form on moon", () => {
     let leave = false;
     for (let seed = 1; seed <= 40 && (!stay || !leave); seed++) {
       const g = scene(seed, (game) => {
-        game.crew[0].kin = "gel";
+        game.crew[0].kin = "slug";
       });
       assert.ok(g);
       if (!/living alone in a cave/.test(g.event?.body ?? "")) continue;

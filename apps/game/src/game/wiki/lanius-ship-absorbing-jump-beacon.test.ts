@@ -17,7 +17,7 @@ function open(g: Game) {
 }
 
 function drone(kind: string): Kit {
-  return { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: kind, on: false, aux: 0 };
+  return { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: kind, on: false, aux: 0 };
 }
 
 function stock(g: Game) {
@@ -192,7 +192,7 @@ describe("Lanius ship absorbing jump beacon", () => {
 
     const g = createGame(3);
     open(g);
-    g.player.kits.swarm = drone("hull");
+    g.player.kits.drones = drone("SHIP_REPAIR");
     const parts = g.player.parts;
     const crew = g.crew.filter((c) => c.side === "player").length;
     assert.equal(choiceDisabled(g, "c:lanius-ship-absorbing-jump-beacon:3"), null);
@@ -200,19 +200,19 @@ describe("Lanius ship absorbing jump beacon", () => {
     assert.match(g.event?.body ?? "", /breaking it down for metal/);
     assert.match(g.event?.body ?? "", /You receive a Lanius crewmember/);
     assert.equal(g.player.parts, parts);
-    assert.equal(g.player.kits.swarm?.target, "hull");
+    assert.equal(g.player.kits.drones?.target, "SHIP_REPAIR");
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
-    assert.equal(g.crew.filter((c) => c.kin === "voidlung").length, 1);
+    assert.equal(g.crew.filter((c) => c.kin === "anaerobic").length, 1);
     assert.equal(g.phase, "event");
 
     const full = createGame(4);
     open(full);
-    full.player.kits.swarm = drone("hull");
+    full.player.kits.drones = drone("SHIP_REPAIR");
     while (full.crew.filter((c) => c.side === "player").length < CREW_CAP) joinCrew(full, "Human");
     choose(full, "c:lanius-ship-absorbing-jump-beacon:3");
     // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).
     assert.equal(full.crew.filter((c) => c.side === "player").length, CREW_CAP + 1);
-    assert.equal(full.crew.filter((c) => c.kin === "voidlung").length, 1);
+    assert.equal(full.crew.filter((c) => c.kin === "anaerobic").length, 1);
     assert.deepEqual(full.overflow, [{ kind: "crew" }]);
   });
 });

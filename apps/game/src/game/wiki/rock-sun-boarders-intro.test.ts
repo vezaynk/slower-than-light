@@ -51,7 +51,7 @@ describe("Boarders: Rockmen near sun intros", () => {
     const g = createGame(2);
     open(g);
     choose(g, "c:boarders-rockmen-near-sun:0");
-    const rocks = g.crew.filter((c) => c.side === "enemy" && c.kin === "stone" && c.aboard === "player");
+    const rocks = g.crew.filter((c) => c.side === "enemy" && c.kin === "rock" && c.aboard === "player");
     assert.ok(rocks.length >= 2 && rocks.length <= 3, String(rocks.length));
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "combat");

@@ -9,7 +9,7 @@ const CLONE = "Your abandoned crewmember is waiting on the ship when you return,
 
 function board(seed: number, cradle: boolean): Game {
   const g = createGame(seed);
-  if (cradle) g.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  if (cradle) g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
   fillerChoose(g, ID);
   return g;
 }

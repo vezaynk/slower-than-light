@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { MISSING_DRONES } from "./drones-missing.ts";
 
 /** SwarmKind ids already implemented in swarm.ts. */
-const EXISTING = ["ward", "ward2", "wardcut", "striker", "beam", "board", "patch", "hull"];
+const EXISTING = ["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE", "COMBAT_1", "COMBAT_BEAM", "BOARDER", "REPAIR", "SHIP_REPAIR"];
 
 describe("missing drone schematics", () => {
   it("does not reuse a SwarmKind id", () => {
@@ -26,13 +26,13 @@ describe("missing drone schematics", () => {
     assert.deepEqual(
       MISSING_DRONES.map((row) => [row.id, row.name, row.power, row.cooldown]),
       [
-        ["ionintruder", "Ion Intruder Drone", 3, "Pulse time varies between 8.2 and 10 seconds"],
-        ["combat2", "Combat Drone Mark II", 4, null],
-        ["beam2", "Anti-Ship Beam Drone II", 3, null],
+        ["BOARDER_ION", "Ion Intruder Drone", 3, "Pulse time varies between 8.2 and 10 seconds"],
+        ["COMBAT_2", "Combat Drone Mark II", 4, null],
+        ["COMBAT_BEAM_2", "Anti-Ship Beam Drone II", 3, null],
         ["firedrone", "Anti-Ship Fire Drone", 3, null],
-        ["antipersonnel", "Anti-Personnel Drone", 2, null],
-        ["overcharger", "Shield Overcharger", 3, "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers"],
-        ["overchargerplus", "Shield Overcharger +", 2, "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers"],
+        ["BATTLE", "Anti-Personnel Drone", 2, null],
+        ["DRONE_SHIELD", "Shield Overcharger", 3, "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers"],
+        ["DRONE_SHIELD_PLAYER", "Shield Overcharger +", 2, "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers"],
       ],
     );
     for (const row of MISSING_DRONES) {

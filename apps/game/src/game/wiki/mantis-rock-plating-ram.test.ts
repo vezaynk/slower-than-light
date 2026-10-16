@@ -38,7 +38,7 @@ describe("Mantis ship with Rock body parts Rock Plating ram", () => {
     // > "Before they have a chance, you ram your ship into theirs, causing irreparable damage to their engines. Luckily, your ship's armored hull is hardly dented from the impact. The Mantis ship careens away and you move in to attack." — [[Mantis ship with Rock body parts]]
     // > "Fight the Mantis ship (default rewards), whose engines are disabled." — [[Mantis ship with Rock body parts]]
     const g = createGame(2);
-    g.augments.push("keel");
+    g.augments.push("ROCK_ARMOR");
     open(g);
     assert.equal(choiceDisabled(g, "c:mantis-ship-with-rock-body-parts:3"), null);
     const hull = g.player.hull;

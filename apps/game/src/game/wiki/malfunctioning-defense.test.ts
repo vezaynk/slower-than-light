@@ -21,7 +21,7 @@ function beacon(): Beacon {
 }
 
 function cloak(level: number): Kit {
-  return { id: "veil", level, power: level, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  return { id: "cloaking", level, power: level, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
 function open(g: Game) {
@@ -110,7 +110,7 @@ describe("Malfunctioning defense system", () => {
   });
 
   it("an ion weapon, including Ion Bomb and Stun Bomb, pays high scrap and wastes no missile", () => {
-    for (const defId of ["needle", "ionbomb", "stunbomb"]) {
+    for (const defId of ["ION_1", "BOMB_ION", "BOMB_STUN"]) {
       const g = createGame(3);
       arm(g, defId);
       g.missiles = 4;
@@ -127,7 +127,7 @@ describe("Malfunctioning defense system", () => {
 
   it("shows each cloaking option the installed level meets", () => {
     const plain = createGame(4);
-    plain.player.kits.veil = cloak(1);
+    plain.player.kits.cloaking = cloak(1);
     open(plain);
     fillerChoose(plain, "c:malfunctioning-defense-system:0");
     assert.deepEqual(
@@ -140,7 +140,7 @@ describe("Malfunctioning defense system", () => {
     standard(low, [7, 10]);
 
     const improved = createGame(5);
-    improved.player.kits.veil = cloak(2);
+    improved.player.kits.cloaking = cloak(2);
     open(improved);
     fillerChoose(improved, "c:malfunctioning-defense-system:0");
     assert.deepEqual(
@@ -153,7 +153,7 @@ describe("Malfunctioning defense system", () => {
     standard(mid, [12, 19]);
 
     const advanced = createGame(6);
-    advanced.player.kits.veil = cloak(3);
+    advanced.player.kits.cloaking = cloak(3);
     open(advanced);
     fillerChoose(advanced, "c:malfunctioning-defense-system:0");
     assert.deepEqual(
@@ -173,7 +173,7 @@ describe("Malfunctioning defense system", () => {
 
   it("an Engi crewmember pays high scrap", () => {
     const g = createGame(7);
-    g.crew[0].kin = "shell";
+    g.crew[0].kin = "engi";
     open(g);
     fillerChoose(g, "c:malfunctioning-defense-system:0");
     assert.ok(g.event?.choices.some((c) => c.id === "c:malfunctioning-defense-system:7"));

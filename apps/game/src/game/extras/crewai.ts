@@ -104,29 +104,28 @@ export function systemPriority(sys: System | undefined, medbayRequested = false)
     case "shields":
       return 0;
     case "weapons":
-    case "cradle":
+    case "clonebay":
       return 1;
-    case "lance":
-    case "flak":
+    case "artillery":
       return 2;
     case "oxygen":
       return 3;
     case "engines":
-    case "swarm":
+    case "drones":
     case "pilot":
       return 4;
-    case "veil":
-    case "leash":
-    case "spike":
+    case "cloaking":
+    case "mind":
+    case "hacking":
       return 5;
     case "sensors":
-    case "cell":
+    case "battery":
       return 6;
     case "doors":
       return 7;
     case "medbay":
       return medbayRequested ? 1 : 2;
-    case "sling":
+    case "teleporter":
       return 3;
     default:
       return 8;
@@ -147,17 +146,16 @@ export function manPriority(sys: System | undefined, hard: boolean): number {
     case "engines":
       return hard ? 65 : 67;
     case "weapons":
-    case "lance":
-    case "flak":
+    case "artillery":
       return 66;
     case "oxygen":
       return 68;
     case "sensors":
       return 69;
     case "doors":
-    case "veil":
+    case "cloaking":
       return 70;
-    case "sling":
+    case "teleporter":
       return 71;
     case "medbay":
       return 72;
@@ -237,13 +235,13 @@ export function aiCrew(g: Game, ship: Ship): Crew[] {
 
 /** True when the crew member is "bad at combat": "<1x damage or <100hp" (xftl doc/crew-ai, PrioritizeTask). */
 function badFighter(c: Crew): boolean {
-  return crewDef(c.kin ?? "plain").fight < 1 || c.maxHp < 100;
+  return crewDef(c.kin ?? "human").fight < 1 || c.maxHp < 100;
 }
 
 /** The system a room houses, for the priority tables. */
 function roomSystem(ship: Ship, r: Room | undefined): System | undefined {
   if (!r) return undefined;
-  if (artilleryGun(ship, r.id)) return "lance";
+  if (artilleryGun(ship, r.id)) return "artillery";
   return r.system ?? r.kit;
 }
 
@@ -462,8 +460,8 @@ function hostilesIn(g: Game, roomId: string): number {
   // Per the user: a neutral ship (sim.ts truce) has no hostiles aboard.
   if (truce(g)) return 0;
   let n = g.crew.filter((c) => c.aboard === "enemy" && c.room === roomId && c.hp > 0 && sideOf(c) === "player").length;
-  const swarm = g.player.kits.swarm;
-  if (swarm?.target === "ionintruder" && swarm.room === roomId) n += 1;
+  const swarm = g.player.kits.drones;
+  if (swarm?.target === "BOARDER_ION" && swarm.room === roomId) n += 1;
   return n;
 }
 
@@ -516,7 +514,7 @@ function medbayFor(g: Game, ship: Ship, c: Crew): Room | undefined {
  */
 function unsafe(g: Game, ship: Ship, c: Crew, r: Room, hackCounts = true): boolean {
   if (ship.doors.some((d) => d.open && d.b === "void" && d.a === r.id)) return true;
-  if (r.o2 < AIR_DANGER_O2 && c.hp < c.maxHp * AIR_FLEE_BELOW && crewDef(c.kin ?? "plain").suffocate > 0) return true;
+  if (r.o2 < AIR_DANGER_O2 && c.hp < c.maxHp * AIR_FLEE_BELOW && crewDef(c.kin ?? "human").suffocate > 0) return true;
   if (r.fire > 0) {
     if (fullFire(r) && r.breach > 0) return true;
     if (!fireProof(c) && (r.fire >= 4 || c.hp <= c.maxHp * FIRE_FLEE_AT)) return true;
@@ -573,7 +571,7 @@ function fullFire(r: Room, minTiles = 2): boolean {
 
 /** Rockmen (and any lineage that takes no fire damage) are immune. */
 function fireProof(c: Crew): boolean {
-  return crewDef(c.kin ?? "plain").fireTaken <= 0;
+  return crewDef(c.kin ?? "human").fireTaken <= 0;
 }
 
 function coated(ship: Ship, id: string): boolean {

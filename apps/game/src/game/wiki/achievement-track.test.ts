@@ -89,19 +89,19 @@ describe("achievement tracker", () => {
     assert.equal(earnedNow(eight).includes("federation-victory-easy"), false);
     assert.equal(earnedNow(eight).includes("federation-victory-normal"), false);
 
-    const short = createGame(1, "lanius-a");
+    const short = createGame(1, "PLAYER_SHIP_ANAEROBIC");
     short.phase = "map";
     short.scrap = 599;
     assert.equal(earnedNow(short).includes("scrap-hoarder"), false);
     short.scrap = 600;
     assert.deepEqual(earnedNow(short), ["scrap-hoarder"]);
 
-    const other = createGame(1, "kestrel-a");
+    const other = createGame(1, "PLAYER_SHIP_HARD");
     other.phase = "map";
     other.scrap = 600;
     assert.equal(earnedNow(other).includes("scrap-hoarder"), false);
 
-    const title = createGame(1, "lanius-a");
+    const title = createGame(1, "PLAYER_SHIP_ANAEROBIC");
     title.phase = "title";
     title.sector = 8;
     title.scrap = 600;
@@ -116,7 +116,7 @@ describe("achievement tracker", () => {
 
     localStorage.setItem("stl-achievements-v1", JSON.stringify(["warlord", "just-getting-started"]));
     resetAchievementMemory();
-    const run = createGame(1, "lanius-b");
+    const run = createGame(1, "PLAYER_SHIP_ANAEROBIC_2");
     run.phase = "map";
     run.sector = 8;
     run.scrap = 600;
@@ -168,7 +168,7 @@ describe("achievement tracker", () => {
   });
 
   it("Manpower ignores an event reactor bar and counts an upgrades-tab bar", () => {
-    const g = createGame(1, "zoltan-a");
+    const g = createGame(1, "PLAYER_SHIP_ENERGY");
     g.sector = 5;
     assert.equal(earnedNow(g).includes("manpower"), true);
     g.player.reactor += 1;

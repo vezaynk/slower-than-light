@@ -18,7 +18,7 @@ export function cellUpgradeCost(level: number): number | null {
 const ACTIVE = 30;
 /** Wiki page "Backup Battery", section "Overview": 20 seconds before it can be started again. */
 const COOL = 20;
-/** Wiki page "Backup Battery", section "Overview": the charger augment cuts cooldown to 10 seconds. Code id stays "tap". */
+/** Wiki page "Backup Battery", section "Overview": the charger augment cuts cooldown to 10 seconds. Code id stays "BATTERY_BOOSTER". */
 const COOL_TAP = 10;
 /**
  * Backup Battery, Overview: full ionization enters the maximum 25 second cooldown.
@@ -28,7 +28,7 @@ const ION_MAX_COOL = 25;
 
 function makeCell(level: number): Kit {
   return {
-    id: "cell",
+    id: "battery",
     level,
     power: 0,
     left: 0,
@@ -47,7 +47,7 @@ function barsFor(level: number): number {
 }
 
 function coolFor(g: Game): number {
-  return g.augments?.includes("tap") ? COOL_TAP : COOL;
+  return g.augments?.includes("BATTERY_BOOSTER") ? COOL_TAP : COOL;
 }
 
 function running(kit: Kit): boolean {
@@ -63,7 +63,7 @@ function arm(kit: Kit) {
 
 /** Wiki page "Backup Battery", sections "Overview" and "System Upgrades": 2 bars at level 1, 4 at level 2 while the cell is on. */
 export function cellBonus(ship: Ship): number {
-  const kit = ship.kits.cell;
+  const kit = ship.kits.battery;
   // @agent:hacking. Hacking wiki, "Overview" (Backup Battery): "temporarily removes two regular power bars from
   // reactor" (Kit.drained, set by spike.ts while the enemy's pulse is on it). It reaches the reactor through
   // sim.ts sparePower -> batteryBonus, so it can go negative.
@@ -91,7 +91,7 @@ export function batteryPaint(ship: Ship): {
   if (left <= 0) return { systems, kits };
   for (const other of Object.values(ship.kits)) {
     if (left <= 0) break;
-    if (!other || other.id === "cell" || other.power <= 0) continue;
+    if (!other || other.id === "battery" || other.power <= 0) continue;
     const take = Math.min(other.power, left);
     kits[other.id] = take;
     left -= take;
@@ -135,16 +135,16 @@ export function batteryBarsOn(ship: Ship, id: string): number {
  * Only runs while a drain is on, so an ordinary battery shutdown keeps its old behaviour.
  */
 function shedDrained(g: Game, ship: Ship) {
-  const kit = ship.kits.cell;
+  const kit = ship.kits.battery;
   if (!kit || !(kit.drained ?? 0)) return;
   let over = -sparePower(ship);
   for (const other of Object.values(ship.kits)) {
     if (over <= 0) return;
-    if (!other || other.id === "cell" || other.power <= 0) continue;
+    if (!other || other.id === "battery" || other.power <= 0) continue;
     const take = Math.min(other.power, over);
     other.power -= take;
     over -= take;
-    if (other.power <= 0 && other.on && (other.id === "veil" || other.id === "leash"))
+    if (other.power <= 0 && other.on && (other.id === "cloaking" || other.id === "mind"))
       other.on = false;
   }
   for (const id of ["weapons", "medbay", "oxygen", "engines", "shields"] as const) {
@@ -172,12 +172,12 @@ export function shedOverAssigned(g: Game, ship: Ship, aboard: "player" | "enemy"
   if (over <= 0) return;
   for (const other of Object.values(ship.kits)) {
     if (over <= 0) break;
-    if (!other || other.id === "cell" || other.power <= 0) continue;
+    if (!other || other.id === "battery" || other.power <= 0) continue;
     const take = Math.min(other.power, over);
     other.power -= take;
     over -= take;
-    if (other.id === "veil") interruptVeil(other);
-    if (other.id === "leash") interruptLeash(g, other);
+    if (other.id === "cloaking") interruptVeil(other);
+    if (other.id === "mind") interruptLeash(g, other);
   }
   for (const id of ["weapons", "medbay", "oxygen", "engines", "shields"] as const) {
     if (over <= 0) break;
@@ -192,21 +192,21 @@ export function shedOverAssigned(g: Game, ship: Ship, aboard: "player" | "enemy"
 
 /** Wiki page "Backup Battery", section "System Upgrades": fit level 1 for 35. "Overview": no reactor energy is required, so power stays 0. */
 export function installCell(g: Game) {
-  if (g.player.kits.cell) return;
+  if (g.player.kits.battery) return;
   if (g.scrap < INSTALL_COST) {
     log(g, "Not enough scrap.");
     return;
   }
   g.scrap -= INSTALL_COST;
   noteAchieve(g, { k: "upgrade" });
-  g.player.kits.cell = makeCell(1);
+  g.player.kits.battery = makeCell(1);
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Backup Battery fitted to the Lark.");
 }
 
 /** Wiki page "Backup Battery", section "System Upgrades": 1→2 costs 50 and supplies 4 bars. Power stays 0. */
 export function upgradeCell(g: Game) {
-  const kit = g.player.kits.cell;
+  const kit = g.player.kits.battery;
   if (!kit || kit.level !== 1) return;
   if (g.scrap < UPGRADE_COST) {
     log(g, "Not enough scrap.");
@@ -225,7 +225,7 @@ export function upgradeCell(g: Game) {
  * Waiting is a different path and does not call this.
  */
 export function cellOnJump(g: Game) {
-  const kit = g.player.kits.cell;
+  const kit = g.player.kits.battery;
   if (!kit || kit.cool <= 0) return;
   kit.cool = 0;
   log(g, "Backup Battery is ready.");
@@ -257,16 +257,16 @@ export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
   delete kit.ionAt;
   delete kit.ionN;
   if (wasRunning) {
-    const ship = kit === g.player.kits.cell ? g.player : g.enemy;
+    const ship = kit === g.player.kits.battery ? g.player : g.enemy;
     if (ship) shedOverAssigned(g, ship, ship === g.player ? "player" : "enemy");
   }
-  log(g, kit === g.player.kits.cell ? "Backup Battery cooling." : "Their Backup Battery cooling.");
+  log(g, kit === g.player.kits.battery ? "Backup Battery cooling." : "Their Backup Battery cooling.");
   return true;
 }
 
 /** Wiki page "Backup Battery", section "Overview": start a 30s window if the Cell is idle and cooled. */
 export function startCell(g: Game) {
-  const kit = g.player.kits.cell;
+  const kit = g.player.kits.battery;
   if (!kit) return;
   if (kit.cool > 0 || running(kit)) return;
   // Systems, "Damaged and destroyed systems": every level damaged is "completely unfunctional".
@@ -317,20 +317,20 @@ function spareLooksTight(ship: Ship): boolean {
 function maybeEnemy(g: Game) {
   const foe = g.enemy;
   if (!foe) return;
-  const kit = foe.kits?.cell;
+  const kit = foe.kits?.battery;
   if (!kit || kit.cool > 0 || running(kit)) return;
   if (!spareLooksTight(foe)) return;
   arm(kit);
 }
 
 /**
- * Wiki page "Backup Battery", section "Overview": count down 30s, then 20s (10s with the "tap" augment).
+ * Wiki page "Backup Battery", section "Overview": count down 30s, then 20s (10s with the "BATTERY_BOOSTER" augment).
  * INVENTED: an enemy Cell starts when assigned bars already fill the reactor. The page does not describe that.
  */
 export function tickCell(g: Game, dt: number) {
-  stepKit(g, g.player.kits.cell, dt, true);
+  stepKit(g, g.player.kits.battery, dt, true);
   shedDrained(g, g.player);
   if (!g.enemy) return;
-  stepKit(g, g.enemy.kits?.cell, dt, false);
+  stepKit(g, g.enemy.kits?.battery, dt, false);
   maybeEnemy(g);
 }

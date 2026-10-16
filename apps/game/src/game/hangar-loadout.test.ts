@@ -53,23 +53,23 @@ describe("hangar loadout", () => {
  * lines, and it names the same weapons, drones, systems, crew, augments, and resources a run starts with (hulls.ts).
  */
 const RACE_KIN: Record<string, string> = {
-  human: "plain",
-  engi: "shell",
-  zoltan: "spark",
-  mantis: "blade",
-  slug: "gel",
-  rockman: "stone",
-  rockmen: "stone",
-  lanius: "voidlung",
-  crystal: "shard",
+  human: "human",
+  engi: "engi",
+  zoltan: "energy",
+  mantis: "mantis",
+  slug: "slug",
+  rockman: "rock",
+  rockmen: "rock",
+  lanius: "anaerobic",
+  crystal: "crystal",
 };
 
 /** gear-look DroneKey -> Drone Control schematic id, where the two differ. */
 const DRONE_KIT_ID: Record<string, string> = {
-  overcharge: "overcharger",
-  overcharge2: "overchargerplus",
-  striker2: "combat2",
-  intruder: "ionintruder",
+  overcharge: "DRONE_SHIELD",
+  overcharge2: "DRONE_SHIELD_PLAYER",
+  striker2: "COMBAT_2",
+  intruder: "BOARDER_ION",
 };
 
 const AUGMENT_ID = new Map<string, string>(
@@ -115,7 +115,7 @@ describe("hangar sheet vs run, every layout", () => {
       const sheet = hangarSheet(layout);
       const spec = hullById(layout.id)!;
       const run = createGame(3, layout.id, "normal", picks);
-      const kit = run.player.kits.swarm;
+      const kit = run.player.kits.drones;
       assert.equal(sheet.droneSystem, !!kit, layout.id);
       const named = sheet.drones
         .filter((name) => !spec.unfitted.includes(name))
@@ -135,11 +135,17 @@ describe("hangar sheet vs run, every layout", () => {
       const levels = new Map<string, number>();
       for (const [id, system] of Object.entries(run.player.systems)) if (system.level > 0) levels.set(id, system.level);
       for (const [id, kit] of Object.entries(run.player.kits)) if (kit && kit.level > 0) levels.set(id, kit.level);
-      const shown = new Map(sheet.systems.map((system) => [iconForName(system.name) as string, system.level]));
+      const shown = new Map(
+        sheet.systems.map((system) => {
+          const icon = iconForName(system.name);
+          const id = icon === "ARTILLERY_FED_C" ? "artillery" : icon;
+          return [id as string, system.level];
+        }),
+      );
       assert.deepEqual(Object.fromEntries([...shown].sort()), Object.fromEntries([...levels].sort()), layout.id);
 
       const kin = run.crew.filter((crew) => crew.side === "player").map((crew) => crew.kin as string);
-      assert.deepEqual(sorted(sheet.crew.map((race) => RACE_KIN[race.toLowerCase()] ?? "plain")), sorted(kin), layout.id);
+      assert.deepEqual(sorted(sheet.crew.map((race) => RACE_KIN[race.toLowerCase()] ?? "human")), sorted(kin), layout.id);
 
       assert.deepEqual(
         sorted(sheet.augments.map((name) => AUGMENT_ID.get(name.toLowerCase()) ?? `?${name}`)),

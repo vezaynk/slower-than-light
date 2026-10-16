@@ -20,7 +20,7 @@ function gun(defId: string): WeaponInst {
 }
 
 function beam(): Kit {
-  return { id: "swarm", level: 2, power: 2, left: 0, cool: 0, target: "beam", on: false, aux: 0 };
+  return { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "COMBAT_BEAM", on: false, aux: 0 };
 }
 
 function scraps(body: string): number[] {
@@ -94,7 +94,7 @@ describe("Rock live mine", () => {
       const hull = g.player.hull;
       const crew = g.crew.length;
       const holes = breaches(g);
-      if (seed % 2 === 0) g.player.kits.cradle = { id: "cradle", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      if (seed % 2 === 0) g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
       choose(g, seed % 3 === 0 ? "s:rock-mine:blue" : "s:rock-mine:red");
       const body = g.event?.body ?? "";
       if (/You did it/.test(body)) {
@@ -112,7 +112,7 @@ describe("Rock live mine", () => {
         assert.equal(g.player.hull, hull - 6);
         assert.equal(breaches(g), holes + 1);
         assert.equal(g.scrap, 10);
-        if (g.player.kits.cradle) {
+        if (g.player.kits.clonebay) {
           revived = true;
           assert.match(body, /revived/);
           assert.equal(g.crew.length, crew);
@@ -134,7 +134,7 @@ describe("Rock live mine", () => {
     // > "Your ship takes 4 hull damage, 1 damage to a random system, and you receive low scrap." — [[Rock live mine]]
     const bare = createGame(1);
     open(bare);
-    bare.player.weapons = [gun("hullmissile")];
+    bare.player.weapons = [gun("MISSILES_HULL")];
     choose(bare, "c:rock-live-mine:0");
     assert.equal(choiceDisabled(bare, "s:rock-mine:missile"), "Needs a missile weapon");
     const hull = bare.player.hull;
@@ -144,7 +144,7 @@ describe("Rock live mine", () => {
 
     const g = createGame(2);
     open(g);
-    g.player.weapons = [gun("artemis")];
+    g.player.weapons = [gun("MISSILES_2_PLAYER")];
     g.missiles = 3;
     const before = g.player.hull;
     const broken = damage(g);
@@ -173,7 +173,7 @@ describe("Rock live mine", () => {
 
     const broke = createGame(2);
     open(broke);
-    broke.player.kits.swarm = beam();
+    broke.player.kits.drones = beam();
     broke.player.parts = 0;
     choose(broke, "c:rock-live-mine:0");
     assert.equal(choiceDisabled(broke, "s:rock-mine:beam"), "Need 1 drone part");
@@ -183,7 +183,7 @@ describe("Rock live mine", () => {
 
     const g = createGame(3);
     open(g);
-    g.player.kits.swarm = beam();
+    g.player.kits.drones = beam();
     g.player.parts = 2;
     const hull = g.player.hull;
     choose(g, "c:rock-live-mine:0");

@@ -17,7 +17,7 @@ const CREW_BY_ID: Record<string, number> = {
   ...BOMB_CREW,
   ...BEAM_CREW,
   // content.ts stores Beam (Weapons), "Pike Beam" as shear and skips id pike.
-  shear: BEAM_CREW.pike,
+  BEAM_LONG: BEAM_CREW.BEAM_LONG,
 };
 
 export function citedCrewDamage(shot: Shot, _damage: number): number | null {
@@ -38,10 +38,10 @@ export function citedCrewDamage(shot: Shot, _damage: number): number | null {
  * A kit room counts as a system room. The pages say "system rooms" and "empty rooms" and do not mention kits.
  */
 const SYSTEMLESS_HULL: Record<string, number> = {
-  hullsmash: 2,
-  hullsmash2: 2,
-  hullbeam: 2,
-  hullmissile: 4,
+  LASER_HULL_1: 2,
+  LASER_HULL_2: 2,
+  BEAM_HULL: 2,
+  MISSILES_HULL: 4,
 };
 
 export function systemlessHull(defId: string | undefined): number | null {
@@ -50,7 +50,7 @@ export function systemlessHull(defId: string | undefined): number | null {
 }
 
 /** Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer. Other guns print no pierce. */
-const PIERCE_ONE = new Set(["heavypierce", "crystalburst", "crystalburst2", "heavycrystal", "heavycrystal2"]);
+const PIERCE_ONE = new Set(["LASER_HEAVY_1_SP", "CRYSTAL_BURST_1", "CRYSTAL_BURST_2", "CRYSTAL_HEAVY_1", "CRYSTAL_HEAVY_2"]);
 
 export function citedPierce(defId: string | undefined): number {
   const packed = defId ? weaponDef(defId)?.pierce : undefined;

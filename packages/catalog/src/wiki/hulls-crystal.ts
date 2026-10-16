@@ -17,7 +17,7 @@ const sub = {
 
 export const CRYSTAL_HULLS: HullSpec[] = [
   {
-    id: "crystal-a",
+    id: "PLAYER_SHIP_CRYSTAL",
     cruiser: "Crystal Cruiser",
     layout: "A",
     name: "Bravais",
@@ -43,21 +43,21 @@ export const CRYSTAL_HULLS: HullSpec[] = [
       ...sub,
     },
     // Crystal Burst Mark I and Heavy Crystal Mark I. Power costs are not on this page.
-    weapons: ["crystalburst", "heavycrystal"],
+    weapons: ["CRYSTAL_BURST_1", "CRYSTAL_HEAVY_1"],
     // 2 Human, 2 Crystal. Seating INFERRED.
     crew: [
-      { kin: "plain", room: "p-pilot" },
-      { kin: "plain", room: "p-engines" },
-      { kin: "shard", room: "p-weapons" },
-      { kin: "shard", room: "p-shields" },
+      { kin: "human", room: "p-pilot" },
+      { kin: "human", room: "p-engines" },
+      { kin: "crystal", room: "p-weapons" },
+      { kin: "crystal", room: "p-shields" },
     ],
     kits: {},
     // The Crystal Cruiser, Layout A: Augmentations lists Crystal Vengeance.
-    augments: ["vengeance"],
+    augments: ["CRYSTAL_SHARDS"],
     unfitted: [],
   },
   {
-    id: "crystal-b",
+    id: "PLAYER_SHIP_CRYSTAL_2",
     cruiser: "Crystal Cruiser",
     layout: "B",
     name: "Carnelian",
@@ -85,17 +85,17 @@ export const CRYSTAL_HULLS: HullSpec[] = [
     weapons: [],
     // 3 Crystal. Seating INFERRED. The page lists a count, not chairs.
     crew: [
-      { kin: "shard", room: "p-pilot" },
-      { kin: "shard", room: "p-engines" },
-      { kin: "shard", room: "p-weapons" },
+      { kin: "crystal", room: "p-pilot" },
+      { kin: "crystal", room: "p-engines" },
+      { kin: "crystal", room: "p-weapons" },
     ],
     // Teleporter is sling. Cloaking is veil. Both level 1, and the reactor holds power 1 on each.
     kits: {
-      sling: { level: 1, power: 1 },
-      veil: { level: 1, power: 1 },
+      teleporter: { level: 1, power: 1 },
+      cloaking: { level: 1, power: 1 },
     },
     // The Crystal Cruiser, Layout B: Augmentations lists Crystal Vengeance.
-    augments: ["vengeance"],
+    augments: ["CRYSTAL_SHARDS"],
     unfitted: [],
   },
 ];

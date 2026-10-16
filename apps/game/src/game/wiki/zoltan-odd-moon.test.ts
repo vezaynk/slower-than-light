@@ -47,13 +47,13 @@ function look(g: Game) {
 }
 
 function fitBoard(g: Game) {
-  g.player.kits.swarm = {
-    id: "swarm",
+  g.player.kits.drones = {
+    id: "drones",
     level: 2,
     power: 0,
     left: 0,
     cool: 0,
-    target: "board",
+    target: "BOARDER",
     on: true,
     aux: 0,
     hp: 125,
@@ -234,11 +234,11 @@ describe("Zoltan odd moon", () => {
     fitBoard(g);
     g.player.parts = 3;
     const before = g.crew.filter((c) => c.side === "player").length;
-    const sparks = g.crew.filter((c) => c.kin === "spark").length;
+    const sparks = g.crew.filter((c) => c.kin === "energy").length;
     choose(g, "c:zoltan-odd-moon:drone");
     assert.equal(g.player.parts, 2);
     assert.equal(g.crew.filter((c) => c.side === "player").length, before + 1);
-    assert.equal(g.crew.filter((c) => c.kin === "spark").length, sparks + 1);
+    assert.equal(g.crew.filter((c) => c.kin === "energy").length, sparks + 1);
     assert.match(g.event?.body ?? "", /You receive a Zoltan crewmember/);
     assert.match(g.event?.body ?? "", /boarding drone/);
   });

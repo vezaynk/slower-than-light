@@ -87,6 +87,7 @@ function copyKit(kit: HullKitDef): HullKitDef {
   if (kit.target !== undefined) copy.target = kit.target;
   if (kit.loadout) copy.loadout = [...kit.loadout];
   if (kit.on !== undefined) copy.on = kit.on;
+  if (kit.weapon) copy.weapon = kit.weapon;
   return copy;
 }
 
@@ -445,7 +446,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
 export function crewDef(id: string | undefined): CrewDef {
   const row = id ? crew.get(id) : undefined;
   if (row) return row;
-  const plain = crew.get("plain");
+  const plain = crew.get("human");
   if (plain) return plain;
   throw new Error("crew pack is not loaded");
 }

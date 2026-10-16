@@ -6,12 +6,12 @@ import { DRIFT_TAU, stepDrift, type DroneDrift } from "./drone-drift.ts";
 
 function kit(partial: Partial<Kit> = {}): Kit {
   return {
-    id: "swarm",
+    id: "drones",
     level: 2,
     power: 2,
     left: 0,
     cool: 0,
-    target: "striker",
+    target: "COMBAT_1",
     on: true,
     aux: 0,
     ...partial,
@@ -92,9 +92,9 @@ describe("player drone power", () => {
   });
 
   it("uses the cited cost for schematics outside the original eight", () => {
-    assert.equal(playerDroneCruising(kit({ level: 4, power: 4, target: "combat2" })), true);
-    assert.equal(playerDroneCruising(kit({ level: 4, power: 3, target: "combat2" })), false);
-    assert.equal(playerDroneCruising(kit({ power: 2, target: "overchargerplus" })), true);
-    assert.equal(playerDroneCruising(kit({ power: 1, target: "overchargerplus" })), false);
+    assert.equal(playerDroneCruising(kit({ level: 4, power: 4, target: "COMBAT_2" })), true);
+    assert.equal(playerDroneCruising(kit({ level: 4, power: 3, target: "COMBAT_2" })), false);
+    assert.equal(playerDroneCruising(kit({ power: 2, target: "DRONE_SHIELD_PLAYER" })), true);
+    assert.equal(playerDroneCruising(kit({ power: 1, target: "DRONE_SHIELD_PLAYER" })), false);
   });
 });

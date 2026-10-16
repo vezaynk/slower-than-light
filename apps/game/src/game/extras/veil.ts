@@ -29,7 +29,7 @@ export function veilUpgradeCost(level: number): number | null {
 
 function blankVeil(): Kit {
   return {
-    id: "veil",
+    id: "cloaking",
     level: 1,
     power: 0,
     left: 0,
@@ -73,18 +73,18 @@ function tickKit(kit: Kit | undefined, dt: number) {
 
 /** Wiki page "Cloaking", section "System Upgrades": buy a level-1 Veil for 150. No-op if already fitted or scrap is short. */
 export function installVeil(g: Game) {
-  if (g.player.kits.veil) return;
+  if (g.player.kits.cloaking) return;
   if (g.scrap < INSTALL_COST) return;
   g.scrap -= INSTALL_COST;
   noteAchieve(g, { k: "upgrade" });
-  g.player.kits.veil = blankVeil();
+  g.player.kits.cloaking = blankVeil();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
   log(g, "Cloaking fitted.");
 }
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1→2 costs 30, level 2→3 costs 50. Level 3 is the cap. */
 export function upgradeVeil(g: Game) {
-  const kit = g.player.kits.veil;
+  const kit = g.player.kits.cloaking;
   if (!kit || kit.level >= 3) return;
   const cost = UPGRADE_COST[kit.level];
   if (cost == null || g.scrap < cost) return;
@@ -95,8 +95,8 @@ export function upgradeVeil(g: Game) {
 
 /** Add a bar (sim kitPowerUp); at the top, or with no spare bar, remove one, as toggleSlingPower does. */
 export function toggleVeilPower(g: Game) {
-  if (kitPowerUp(g, "veil")) return;
-  kitPowerDown(g, "veil");
+  if (kitPowerUp(g, "cloaking")) return;
+  kitPowerDown(g, "cloaking");
 }
 
 /**
@@ -111,7 +111,7 @@ export function veilSeconds(kit: Kit): number {
 
 /** Wiki page "Cloaking": the cloak runs veilSeconds for the bars powered when it starts. */
 export function startVeil(g: Game) {
-  const kit = g.player.kits.veil;
+  const kit = g.player.kits.cloaking;
   if (!kit) return;
   noteZoltanKits(g);
   // Zoltans: Cloaking cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
@@ -139,12 +139,12 @@ export function startVeil(g: Game) {
  */
 export function tickVeil(g: Game, dt: number) {
   // Cloaking, Zoltan note: removing power shortens a running cloak, down to "a fraction of a second".
-  capVeil(g.player.kits.veil);
-  capVeil(g.enemy?.kits.veil);
-  tickKit(g.player.kits.veil, dt);
+  capVeil(g.player.kits.cloaking);
+  capVeil(g.enemy?.kits.cloaking);
+  tickKit(g.player.kits.cloaking, dt);
   const foe = g.enemy;
   if (!foe) return;
-  const kit = foe.kits.veil;
+  const kit = foe.kits.cloaking;
   tickKit(kit, dt);
   if (!kit || kit.on) return;
   // Zoltans: an ionized Cloaking system cannot be activated.
@@ -160,7 +160,7 @@ export function tickVeil(g: Game, dt: number) {
 
 /** The enemy is cloaked and chose to hold fire for this cloak (see tickVeil). */
 export function enemyHoldsFire(g: Game): boolean {
-  const kit = g.enemy?.kits.veil;
+  const kit = g.enemy?.kits.cloaking;
   return !!kit && active(kit) && kit.target === "hold";
 }
 
@@ -172,13 +172,13 @@ function capVeil(kit: Kit | undefined) {
 export function veilEvade(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   void g;
   void aboard;
-  return active(ship.kits.veil) ? EVADE : 0;
+  return active(ship.kits.cloaking) ? EVADE : 0;
 }
 
 /** Wiki page "Cloaking", section "Overview": weapons cannot target a cloaked ship. */
 export function veilBlocks(g: Game, from: "player" | "enemy"): boolean {
   const target = from === "player" ? g.enemy : g.player;
-  return active(target?.kits.veil);
+  return active(target?.kits.cloaking);
 }
 
 /**
@@ -192,7 +192,7 @@ export function veilBlocks(g: Game, from: "player" | "enemy"): boolean {
  */
 export function cloakVolleyCuts(defId: string, count: number): number {
   if (count < 1) return 0;
-  if (defId === "ioncharger" || defId === "charger") return count;
+  if (defId === "ION_CHARGEGUN" || defId === "LASER_CHARGEGUN") return count;
   return 1;
 }
 
@@ -204,9 +204,9 @@ export function cloakVolleyCuts(defId: string, count: number): number {
  */
 export function veilBrokenByFire(g: Game, from: "player" | "enemy", kind: string) {
   if (kind === "beam") return;
-  if (g.augments.includes("quiet")) return;
+  if (g.augments.includes("CLOAK_FIRE")) return;
   const ship = from === "player" ? g.player : g.enemy;
-  const kit = ship?.kits.veil;
+  const kit = ship?.kits.cloaking;
   if (!kit || !active(kit)) return;
   const full = veilSeconds(kit);
   kit.left -= full * 0.2;

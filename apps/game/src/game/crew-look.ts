@@ -19,14 +19,14 @@ const ENEMY_UNIFORM = UNIFORMS.length - 1;
 
 /** Head colour per lineage. */
 export const KIN_SKIN: Record<KinId, string> = {
-  plain: "#e8b98a",
-  shell: "#9be7c8",
-  spark: "#d7f28a",
-  blade: "#8fd14a",
-  gel: "#c084fc",
-  stone: "#b9a48a",
-  voidlung: "#c9d0d8",
-  shard: "#bfe8ff",
+  human: "#e8b98a",
+  engi: "#9be7c8",
+  energy: "#d7f28a",
+  mantis: "#8fd14a",
+  slug: "#c084fc",
+  rock: "#b9a48a",
+  anaerobic: "#c9d0d8",
+  crystal: "#bfe8ff",
 };
 
 export const NAME_MAX = 14;

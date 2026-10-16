@@ -93,8 +93,8 @@ function openEnemy(g: Game) {
 function armEnemy(g: Game, kind: string, power: number) {
   const enemy = g.enemy;
   assert.ok(enemy);
-  enemy.kits.swarm = {
-    id: "swarm",
+  enemy.kits.drones = {
+    id: "drones",
     level: power,
     power,
     left: 0,
@@ -112,32 +112,32 @@ describe("Rock and Crystal extinguish shares", () => {
     close(burn(human, "p-medbay"), SHARE);
 
     const rock = fight(2);
-    hold(rock, "p-medbay", [{ id: "c-ada", kin: "stone" }]);
+    hold(rock, "p-medbay", [{ id: "c-ada", kin: "rock" }]);
     const rockHp = rock.crew.find((c) => c.id === "c-ada")!.hp;
     close(burn(rock, "p-medbay"), SHARE * rockExtinguishScale());
     assert.equal(rock.crew.find((c) => c.id === "c-ada")!.hp, rockHp);
 
     const crystal = fight(3);
-    hold(crystal, "p-medbay", [{ id: "c-ada", kin: "shard" }]);
+    hold(crystal, "p-medbay", [{ id: "c-ada", kin: "crystal" }]);
     close(burn(crystal, "p-medbay"), SHARE * crystalExtinguishScale());
 
     const both = fight(4);
     hold(both, "p-medbay", [
       { id: "c-ada" },
-      { id: "c-ivo", kin: "stone" },
+      { id: "c-ivo", kin: "rock" },
     ]);
     close(burn(both, "p-medbay"), SHARE + SHARE * rockExtinguishScale());
   });
 
   it("keeps Fire Suppression at Crystal speed on top of a Rock", () => {
     const empty = fight(5);
-    empty.augments = ["squall"];
+    empty.augments = ["FIRE_EXTINGUISHERS"];
     hold(empty, "p-medbay", []);
     close(burn(empty, "p-medbay"), FIRE_FIGHT_SHARE * crystalExtinguishScale());
 
     const rock = fight(6);
-    rock.augments = ["squall"];
-    hold(rock, "p-medbay", [{ id: "c-ada", kin: "stone" }]);
+    rock.augments = ["FIRE_EXTINGUISHERS"];
+    hold(rock, "p-medbay", [{ id: "c-ada", kin: "rock" }]);
     close(burn(rock, "p-medbay"), FIRE_FIGHT_SHARE * crystalExtinguishScale() + SHARE * rockExtinguishScale());
   });
 });
@@ -146,51 +146,51 @@ describe("Defense Scrambler", () => {
   it("sells for 80 and is the only one of the four with a store row", () => {
     const g = createGame(7);
     g.scrap = 500;
-    assert.equal(installAugment(g, "booster"), false);
+    assert.equal(installAugment(g, "DRONE_SPEED"), false);
     assert.deepEqual(g.augments, []);
     assert.equal(g.scrap, 500);
-    assert.equal(installAugment(g, "scrambler"), true);
-    assert.deepEqual(g.augments, ["scrambler"]);
+    assert.equal(installAugment(g, "DEFENSE_SCRAMBLER"), true);
+    assert.deepEqual(g.augments, ["DEFENSE_SCRAMBLER"]);
     assert.equal(g.scrap, 420);
   });
 
   it("stops an enemy defense drone aimed at your ship and does not spend its cooldown", () => {
     const open = fight(8);
     openEnemy(open);
-    armEnemy(open, "ward", 2);
+    armEnemy(open, "DEFENSE_1", 2);
     const hull = open.enemy!.hull;
     open.shots = [shot({ kind: "missile", from: "player", targetRoom: open.enemy!.rooms[0].id })];
     step(open, 0.05);
     assert.equal(open.enemy!.hull, hull);
-    assert.equal(open.enemy!.kits.swarm?.cool, DRONE_COOLDOWN_S.ward);
+    assert.equal(open.enemy!.kits.drones?.cool, DRONE_COOLDOWN_S.DEFENSE_1);
 
     const blocked = fight(9);
-    blocked.augments = ["scrambler"];
+    blocked.augments = ["DEFENSE_SCRAMBLER"];
     openEnemy(blocked);
-    armEnemy(blocked, "ward", 2);
+    armEnemy(blocked, "DEFENSE_1", 2);
     const before = blocked.enemy!.hull;
     blocked.shots = [shot({ kind: "missile", from: "player", targetRoom: blocked.enemy!.rooms[0].id })];
     step(blocked, 0.05);
     assert.equal(blocked.enemy!.hull, before - 1);
-    assert.equal(blocked.enemy!.kits.swarm?.cool, 0);
+    assert.equal(blocked.enemy!.kits.drones?.cool, 0);
 
     const mark2 = fight(10);
-    mark2.augments = ["scrambler"];
+    mark2.augments = ["DEFENSE_SCRAMBLER"];
     openEnemy(mark2);
-    armEnemy(mark2, "ward2", 3);
+    armEnemy(mark2, "DEFENSE_2", 3);
     const markHull = mark2.enemy!.hull;
     mark2.shots = [shot({ kind: "laser", from: "player", targetRoom: mark2.enemy!.rooms[0].id })];
     step(mark2, 0.05);
     assert.equal(mark2.enemy!.hull, markHull - 1);
-    assert.equal(mark2.enemy!.kits.swarm?.cool, 0);
+    assert.equal(mark2.enemy!.kits.drones?.cool, 0);
   });
 
   it("still lets your own defense drone fire, and an enemy combat drone does not intercept", () => {
     const g = fight(11);
-    g.augments = ["scrambler"];
+    g.augments = ["DEFENSE_SCRAMBLER"];
     g.player.parts = 2;
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 3,
       power: 2,
       left: 0,
@@ -199,18 +199,18 @@ describe("Defense Scrambler", () => {
       on: false,
       aux: 0,
     };
-    assert.equal(deploy(g, "ward"), true);
+    assert.equal(deploy(g, "DEFENSE_1"), true);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), true);
-    assert.equal(g.player.kits.swarm?.cool, DRONE_COOLDOWN_S.ward);
+    assert.equal(g.player.kits.drones?.cool, DRONE_COOLDOWN_S.DEFENSE_1);
 
     const striker = fight(12);
     openEnemy(striker);
-    armEnemy(striker, "striker", 2);
+    armEnemy(striker, "COMBAT_1", 2);
     const hull = striker.enemy!.hull;
     striker.shots = [shot({ kind: "missile", from: "player", targetRoom: striker.enemy!.rooms[0].id })];
     step(striker, 0.05);
     assert.equal(striker.enemy!.hull, hull - 1);
-    assert.equal(striker.enemy!.kits.swarm?.cool, 0);
+    assert.equal(striker.enemy!.kits.drones?.cool, 0);
   });
 
   it("leaves a generated enemy drone schematic undeployed", () => {
@@ -220,7 +220,7 @@ describe("Defense Scrambler", () => {
       g.sector = 5;
       g.sectorName = "Rebel Controlled Sector";
       startCombat(g, "Rebel ship");
-      const kit = g.enemy?.kits.swarm;
+      const kit = g.enemy?.kits.drones;
       if (!kit) continue;
       droneShips += 1;
       assert.equal(kit.target, null);
@@ -234,8 +234,8 @@ describe("Drone Reactor Booster", () => {
   function patch(seed: number, boosted: boolean) {
     const g = createGame(seed);
     g.player.parts = 2;
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 3,
       power: 1,
       left: 0,
@@ -244,9 +244,9 @@ describe("Drone Reactor Booster", () => {
       on: false,
       aux: 0,
     };
-    if (boosted) g.augments = ["booster"];
-    assert.equal(deploy(g, "patch"), true);
-    const kit = g.player.kits.swarm;
+    if (boosted) g.augments = ["DRONE_SPEED"];
+    assert.equal(deploy(g, "REPAIR"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     kit.room = "p-engines";
     kit.path = ["p-shields"];
@@ -269,13 +269,13 @@ describe("Drone Reactor Booster", () => {
   });
 
   it("does not speed any other drone, and does not speed the repair itself", () => {
-    const others: SwarmKind[] = ["ward", "ward2", "wardcut", "striker", "beam", "board", "hull"];
+    const others: SwarmKind[] = ["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE", "COMBAT_1", "COMBAT_BEAM", "BOARDER", "SHIP_REPAIR"];
     for (const kind of others) {
       const g = createGame(15);
-      g.augments = ["booster"];
+      g.augments = ["DRONE_SPEED"];
       g.player.parts = 2;
-      g.player.kits.swarm = {
-        id: "swarm",
+      g.player.kits.drones = {
+        id: "drones",
         level: 3,
         power: 3,
         left: 0,
@@ -285,7 +285,7 @@ describe("Drone Reactor Booster", () => {
         aux: 0,
       };
       assert.equal(deploy(g, kind), true, kind);
-      const kit = g.player.kits.swarm;
+      const kit = g.player.kits.drones;
       assert.ok(kit);
       kit.room = "p-engines";
       kit.path = ["p-shields"];
@@ -295,10 +295,10 @@ describe("Drone Reactor Booster", () => {
     }
 
     const g = createGame(16);
-    g.augments = ["booster"];
+    g.augments = ["DRONE_SPEED"];
     g.player.parts = 2;
-    g.player.kits.swarm = {
-      id: "swarm",
+    g.player.kits.drones = {
+      id: "drones",
       level: 3,
       power: 1,
       left: 0,
@@ -311,8 +311,8 @@ describe("Drone Reactor Booster", () => {
     const weapons = g.player.rooms.find((room) => room.system === "weapons")!;
     g.player.systems.weapons.damage = 1;
     g.player.systems.weapons.fix = 0;
-    assert.equal(deploy(g, "patch"), true);
-    const kit = g.player.kits.swarm;
+    assert.equal(deploy(g, "REPAIR"), true);
+    const kit = g.player.kits.drones;
     assert.ok(kit);
     kit.room = weapons.id;
     kit.path = [];

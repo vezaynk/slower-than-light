@@ -83,15 +83,15 @@ function offensiveDrone(kind: string): boolean {
   // Drone Control ids are striker and board. The printed names stay accepted too.
   return (
     kind === "combat" ||
-    kind === "striker" ||
-    kind === "combat2" ||
+    kind === "COMBAT_1" ||
+    kind === "COMBAT_2" ||
     kind === "beam" ||
-    kind === "beam2" ||
+    kind === "COMBAT_BEAM_2" ||
     kind === "fire" ||
-    kind === "board" ||
+    kind === "BOARDER" ||
     kind === "boarder" ||
     kind === "boarding" ||
-    kind === "ionintruder"
+    kind === "BOARDER_ION"
   );
 }
 
@@ -119,12 +119,12 @@ function observe(g: Game) {
     if (trapped >= 4) t.trapped = true;
   }
   if (t.shieldArmed && (g.player.zoltan ?? 0) <= 0) t.shieldIntact = false;
-  const hack = g.player.kits.spike;
-  const mind = g.player.kits.leash;
-  const cell = g.player.kits.cell;
+  const hack = g.player.kits.hacking;
+  const mind = g.player.kits.mind;
+  const cell = g.player.kits.battery;
   // Ship Achievements, Lanius: "Have Hacking, Mind Control and the Battery all active at once."
   if (hack?.on && mind?.on && cell?.on) t.mastery = true;
-  const functioning = (g.player.kits.swarm?.drones ?? []).filter((d) => d.alive && d.powered).length;
+  const functioning = (g.player.kits.drones?.drones ?? []).filter((d) => d.alive && d.powered).length;
   if (functioning > (t.dronePeak ?? 0)) t.dronePeak = functioning;
 }
 
@@ -151,7 +151,7 @@ function onShot(g: Game, ev: Extract<AchieveNote, { k: "shot" }>) {
     t.beamRooms = [...seen];
     if (g.enemy.rooms.length > 0 && g.enemy.rooms.every((r) => seen.has(r.id))) t.sliced = true;
   }
-  if (ev.defId === "antibio") {
+  if (ev.defId === "BEAM_BIO") {
     const n = ev.rooms.reduce(
       (sum, id) => sum + g.crew.filter((c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy" && c.room === id).length,
       0,
@@ -191,9 +191,9 @@ function onWin(g: Game, ev: Extract<AchieveNote, { k: "win" }>) {
   if (t.droneHurt && !t.weaponHurt && !t.otherWeapon && !t.artilleryUsed) t.droneOnly = true;
   if ((t.missileShots ?? 0) > 0 && !t.otherWeapon && ev.defense) t.missileDefense = true;
   if (t.shieldArmed && t.shieldIntact) t.shieldsHeld = true;
-  if (t.cloakPrey && g.player.kits.veil?.on) t.bird = true;
+  if (t.cloakPrey && g.player.kits.cloaking?.on) t.bird = true;
   if (ev.rock) t.rockKills = (t.rockKills ?? 0) + 1;
-  if (g.augments.includes("hot") && !t.enemyShot && (t.playerShots ?? 0) > 0) t.sawIt = true;
+  if (g.augments.includes("WEAPON_PREIGNITE") && !t.enemyShot && (t.playerShots ?? 0) > 0) t.sawIt = true;
 }
 
 /** Record one printed achievement condition. Safe to call when the tally was absent. */
@@ -228,7 +228,7 @@ export function noteAchieve(g: Game, ev: AchieveNote) {
   if (ev.k === "evade") {
     // Ship Achievements, Stealth: "avoid 9 points of damage during a single cloak."
     // A miss while the cloak is up is damage that did not land. Hull that does land is not avoided.
-    if (ev.missed && g.player.kits.veil?.on && (ev.damage ?? 0) > 0) {
+    if (ev.missed && g.player.kits.cloaking?.on && (ev.damage ?? 0) > 0) {
       t.cloakAvoid = (t.cloakAvoid ?? 0) + (ev.damage ?? 0);
       if ((t.cloakAvoid ?? 0) >= 9) t.phaseShift = true;
     }

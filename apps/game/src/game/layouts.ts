@@ -1722,34 +1722,34 @@ const crystalB = traced(
 );
 
 export const LAYOUTS: Record<string, Layout> = {
-  "kestrel-a": kestrelA,
-  "kestrel-b": kestrelB,
-  "kestrel-c": kestrelC,
-  "engi-a": engiA,
-  "engi-b": engiB,
-  "engi-c": engiC,
-  "fed-a": fedA,
-  "fed-b": fedB,
-  "fed-c": fedC,
-  "zoltan-a": zoltanA,
-  "zoltan-b": zoltanB,
-  "zoltan-c": zoltanC,
-  "slug-a": slugA,
-  "slug-b": slugB,
-  "slug-c": slugC,
-  "rock-a": rockA,
-  "rock-b": rockB,
-  "rock-c": rockC,
-  "stealth-a": stealthA,
-  "stealth-b": stealthB,
-  "stealth-c": stealthC,
-  "lanius-a": laniusA,
-  "lanius-b": laniusB,
-  "mantis-a": mantisA,
-  "mantis-b": mantisB,
-  "mantis-c": mantisC,
-  "crystal-a": crystalA,
-  "crystal-b": crystalB,
+  "PLAYER_SHIP_HARD": kestrelA,
+  "PLAYER_SHIP_HARD_2": kestrelB,
+  "PLAYER_SHIP_HARD_3": kestrelC,
+  "PLAYER_SHIP_CIRCLE": engiA,
+  "PLAYER_SHIP_CIRCLE_2": engiB,
+  "PLAYER_SHIP_CIRCLE_3": engiC,
+  "PLAYER_SHIP_FED": fedA,
+  "PLAYER_SHIP_FED_2": fedB,
+  "PLAYER_SHIP_FED_3": fedC,
+  "PLAYER_SHIP_ENERGY": zoltanA,
+  "PLAYER_SHIP_ENERGY_2": zoltanB,
+  "PLAYER_SHIP_ENERGY_3": zoltanC,
+  "PLAYER_SHIP_JELLY": slugA,
+  "PLAYER_SHIP_JELLY_2": slugB,
+  "PLAYER_SHIP_JELLY_3": slugC,
+  "PLAYER_SHIP_ROCK": rockA,
+  "PLAYER_SHIP_ROCK_2": rockB,
+  "PLAYER_SHIP_ROCK_3": rockC,
+  "PLAYER_SHIP_STEALTH": stealthA,
+  "PLAYER_SHIP_STEALTH_2": stealthB,
+  "PLAYER_SHIP_STEALTH_3": stealthC,
+  "PLAYER_SHIP_ANAEROBIC": laniusA,
+  "PLAYER_SHIP_ANAEROBIC_2": laniusB,
+  "PLAYER_SHIP_MANTIS": mantisA,
+  "PLAYER_SHIP_MANTIS_2": mantisB,
+  "PLAYER_SHIP_MANTIS_3": mantisC,
+  "PLAYER_SHIP_CRYSTAL": crystalA,
+  "PLAYER_SHIP_CRYSTAL_2": crystalB,
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -1763,15 +1763,14 @@ export const LAYOUTS: Record<string, Layout> = {
 
 /** Room title for a kit, as the hangar pictures label it. Artillery Beam and Flak Artillery share one label. */
 export const KIT_TITLE: Record<KitId, string> = {
-  veil: "Cloaking",
-  sling: "Teleporter",
-  spike: "Hacking",
-  swarm: "Drones",
-  leash: "Mind Control",
-  cradle: "Clone Bay",
-  cell: "Backup Battery",
-  lance: "Artillery",
-  flak: "Artillery",
+  cloaking: "Cloaking",
+  teleporter: "Teleporter",
+  hacking: "Hacking",
+  drones: "Drones",
+  mind: "Mind Control",
+  clonebay: "Clone Bay",
+  battery: "Backup Battery",
+  artillery: "Artillery",
 };
 
 /**
@@ -1784,15 +1783,14 @@ export const KIT_TITLE: Record<KitId, string> = {
  * - INFERRED for the rest: the traced Cloaking rooms are 4 squares, the traced Artillery and Backup Battery rooms 2.
  */
 const KIT_SQUARES: Record<KitId, number[]> = {
-  sling: [2, 4],
-  cradle: [4, 2],
-  leash: [4, 2],
-  swarm: [4, 2],
-  veil: [4, 2],
-  spike: [4, 2, 1],
-  cell: [2, 4],
-  lance: [2, 4],
-  flak: [2, 4],
+  teleporter: [2, 4],
+  clonebay: [4, 2],
+  mind: [4, 2],
+  drones: [4, 2],
+  cloaking: [4, 2],
+  hacking: [4, 2, 1],
+  battery: [2, 4],
+  artillery: [2, 4],
 };
 
 type Seat = {
@@ -1823,7 +1821,7 @@ export function kitSeat<R extends Seat>(rooms: R[], kit: KitId, medbayLevel = 0)
   const free = (r: R) => !r.kit && r.system === null;
   const traced = rooms.find((r) => free(r) && r.reserve === KIT_TITLE[kit]);
   if (traced) return traced;
-  if (kit === "cradle" && medbayLevel <= 0) {
+  if (kit === "clonebay" && medbayLevel <= 0) {
     const bay = rooms.find(
       (r) => !r.kit && (r.system === "medbay" || (r.system === null && r.reserve === "Medbay")),
     );
@@ -1844,7 +1842,7 @@ function claim(r: Seat, kit: KitId) {
   r.kit = kit;
   r.title = KIT_TITLE[kit];
   // Clone Bay takes over the medical room (Systems: buying one replaces the other).
-  if (kit === "cradle" && r.system === "medbay") r.system = null;
+  if (kit === "clonebay" && r.system === "medbay") r.system = null;
 }
 
 /** A copy of a hangar layout with each listed kit seated, for the hangar cutaway. */
@@ -1935,7 +1933,7 @@ export function seatKits(ship: Ship): void {
   const medbay = ship.systems?.medbay?.level ?? 0;
   for (const r of ship.rooms) {
     if (!r.kit || ship.kits[r.kit]) continue;
-    if (r.kit === "cradle" && medbay > 0 && !ship.rooms.some((o) => o.system === "medbay")) {
+    if (r.kit === "clonebay" && medbay > 0 && !ship.rooms.some((o) => o.system === "medbay")) {
       r.system = "medbay";
       r.title = "Medbay";
     } else {

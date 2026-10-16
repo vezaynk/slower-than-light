@@ -36,7 +36,7 @@ describe("Slug drink", () => {
 
     const dead = createGame(2);
     open(dead);
-    dead.crew[0].kin = "stone";
+    dead.crew[0].kin = "rock";
     dead.crew[0].hp = 0;
     assert.equal(choiceDisabled(dead, "c:slug-drink:2"), "Needs a Rock crewmember");
 
@@ -96,7 +96,7 @@ describe("Slug drink", () => {
     for (let seed = 1; seed <= 40 && (!trust || !trap); seed++) {
       const g = createGame(seed);
       open(g);
-      g.crew[0].kin = "stone";
+      g.crew[0].kin = "rock";
       g.scrap = 80;
       g.player.hull = g.player.hullMax - 20;
       const hull = g.player.hull;

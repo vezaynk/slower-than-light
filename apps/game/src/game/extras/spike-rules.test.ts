@@ -52,7 +52,7 @@ function fit(g: Game, id: KitId, level = 2, extra: Partial<Kit> = {}): Kit {
 /** The player's drone latched on `id` with a 4 s pulse running (what arriveOwn leaves behind). */
 function pulsing(g: Game, id: string) {
   g.enemy!.hackDrone = id;
-  const k = g.player.kits.spike!;
+  const k = g.player.kits.hacking!;
   k.target = id;
   k.on = true;
   k.left = 4;
@@ -109,7 +109,7 @@ describe("hack rules: drone flight", () => {
     flyAll(g, 1.1);
     assert.equal(g.enemy!.hackDrone, "shields");
     assert.equal(g.enemy!.hackFlying, undefined);
-    assert.equal(g.player.kits.spike!.on, true);
+    assert.equal(g.player.kits.hacking!.on, true);
     assert.equal(playerHackView(g)?.state, "pulse");
   });
 
@@ -117,7 +117,7 @@ describe("hack rules: drone flight", () => {
     const g = fight();
     armSpike(g, "oxygen");
     launchSpike(g);
-    const k = g.player.kits.spike!;
+    const k = g.player.kits.hacking!;
     const before = k.hackFly;
     k.power = 0;
     flyAll(g, 5);
@@ -133,12 +133,12 @@ describe("hack rules: drone flight", () => {
     let stun = 0;
     for (let seed = 1; seed <= 20; seed++) {
       const g = fight(seed);
-      const swarm = fit(g, "swarm", 2);
-      swarm.drones = [{ id: "cut", kind: "wardcut", alive: true, powered: true, aux: 0, cool: 0 }];
+      const swarm = fit(g, "drones", 2);
+      swarm.drones = [{ id: "cut", kind: "ANTI_DRONE", alive: true, powered: true, aux: 0, cool: 0 }];
       armSpike(g, "weapons");
       launchSpike(g);
       tickSpike(g, 0.05);
-      const k = g.player.kits.spike!;
+      const k = g.player.kits.hacking!;
       if (g.enemy!.hackFlying == null) {
         down += 1;
         assert.ok(k.cool > 4.9 && k.cool <= 5, String(k.cool));
@@ -163,14 +163,14 @@ describe("hack rules: drone flight", () => {
     const g = fight();
     assert.equal(armSpike(g, "shields"), true);
     assert.equal(launchSpike(g), true);
-    const k = g.player.kits.spike!;
+    const k = g.player.kits.hacking!;
     const before = k.hackFly;
-    g.enemy!.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy!.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     flyAll(g, 1);
     assert.equal(k.hackFly, before);
     assert.equal(g.enemy!.hackDrone, undefined);
-    g.enemy!.kits.veil.on = false;
-    g.enemy!.kits.veil.left = 0;
+    g.enemy!.kits.cloaking.on = false;
+    g.enemy!.kits.cloaking.left = 0;
     flyAll(g, 3.1);
     assert.equal(g.enemy!.hackDrone, "shields");
   });
@@ -178,17 +178,17 @@ describe("hack rules: drone flight", () => {
   it("holds an enemy hacking drone while the player is cloaked", () => {
     const g = fight();
     g.enemy!.parts = 3;
-    g.enemy!.kits.spike = { id: "spike", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.enemy!.kits.hacking = { id: "hacking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
     assert.equal(launchEnemySpike(g), true);
-    const k = g.enemy!.kits.spike!;
+    const k = g.enemy!.kits.hacking!;
     const before = k.hackFly;
     assert.ok(before != null && before > 0);
-    g.player.kits.veil = { id: "veil", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
     tickEnemySpike(g, 1);
     assert.equal(k.hackFly, before);
     assert.equal(k.hackLatched, undefined);
-    g.player.kits.veil.on = false;
-    g.player.kits.veil.left = 0;
+    g.player.kits.cloaking.on = false;
+    g.player.kits.cloaking.left = 0;
     tickEnemySpike(g, 3.1);
     assert.equal(k.hackLatched, true);
   });
@@ -201,16 +201,16 @@ describe("hack rules: drone flight", () => {
     flyAll(g, 3.1);
     assert.equal(g.enemy!.hackDrone, undefined);
     assert.equal(g.enemy!.zoltan, 5);
-    assert.equal(g.player.kits.spike!.cool > 0, true);
+    assert.equal(g.player.kits.hacking!.cool > 0, true);
   });
 });
 
 describe("hack rules: every listed target", () => {
   it("Sensors and every fitted subsystem room can be picked; unfitted kits cannot", () => {
     const g = fight();
-    assert.equal(armSpike(g, "veil"), false);
-    for (const id of ["veil", "sling", "leash", "swarm", "cell", "cradle", "spike", "flak"] as KitId[]) fit(g, id, 1);
-    for (const id of ["veil", "sling", "leash", "swarm", "cell", "cradle", "spike", "flak"]) {
+    assert.equal(armSpike(g, "cloaking"), false);
+    for (const id of ["cloaking", "teleporter", "mind", "drones", "battery", "clonebay", "hacking", "artillery"] as KitId[]) fit(g, id, 1);
+    for (const id of ["cloaking", "teleporter", "mind", "drones", "battery", "clonebay", "hacking", "artillery"]) {
       assert.equal(spikeRoomTargetable(g, `e-${id}`), true, id);
     }
     const sensors = g.enemy!.rooms.find((r) => r.system === "sensors");
@@ -220,22 +220,22 @@ describe("hack rules: every listed target", () => {
 
   it("Sensors: disable sensors; artillery: drains charge", () => {
     const g = fight();
-    fit(g, "flak", 1);
+    fit(g, "artillery", 1);
     pulsing(g, "sensors");
     assert.equal(enemySensorsHacked(g), true);
-    pulsing(g, "flak");
-    assert.equal(hackPulseOn(g, g.enemy!, "flak"), true);
+    pulsing(g, "artillery");
+    assert.equal(hackPulseOn(g, g.enemy!, "artillery"), true);
   });
 
   it("Cloaking: ends an active cloak and prevents a new one", () => {
     const g = fight();
-    const veil = fit(g, "veil", 1);
-    armSpike(g, "veil");
+    const veil = fit(g, "cloaking", 1);
+    armSpike(g, "cloaking");
     // Hacking: "if they are cloaked, you must wait for the cloak to end" is the launch.
     // Cloaking, Overview: a drone already in space holds, so this latch happens after the cloak is down.
     assert.equal(launchSpike(g), true);
     flyAll(g, 3.1);
-    assert.equal(g.enemy!.hackDrone, "veil");
+    assert.equal(g.enemy!.hackDrone, "cloaking");
     veil.on = true;
     veil.left = 10;
     tickSpike(g, 0.05);
@@ -249,8 +249,8 @@ describe("hack rules: every listed target", () => {
 
   it("Cloaking: a cloak turned on during the pulse ends on the full 20 second cooldown", () => {
     const g = fight();
-    const veil = fit(g, "veil", 1);
-    pulsing(g, "veil");
+    const veil = fit(g, "cloaking", 1);
+    pulsing(g, "cloaking");
     veil.on = true;
     veil.left = 5;
     veil.cool = 0;
@@ -266,8 +266,8 @@ describe("hack rules: every listed target", () => {
 
   it("Backup Battery: shuts it down onto cooldown and drains two bars for the pulse", () => {
     const g = fight();
-    const cell = fit(g, "cell", 1, { on: true, left: 10 });
-    pulsing(g, "cell");
+    const cell = fit(g, "battery", 1, { on: true, left: 10 });
+    pulsing(g, "battery");
     tickSpike(g, 0.1);
     assert.equal(cell.on, false);
     assert.equal(cell.cool, 20);
@@ -280,12 +280,12 @@ describe("hack rules: every listed target", () => {
     let burned = 0;
     for (let seed = 1; seed <= 20; seed++) {
       const g = fight(seed);
-      const swarm = fit(g, "swarm", 2);
+      const swarm = fit(g, "drones", 2);
       swarm.drones = [
-        { id: "a", kind: "striker", alive: true, powered: true, aux: 0, cool: 0 },
-        { id: "b", kind: "ward", alive: true, powered: true, aux: 0, cool: 0 },
+        { id: "a", kind: "COMBAT_1", alive: true, powered: true, aux: 0, cool: 0 },
+        { id: "b", kind: "DEFENSE_1", alive: true, powered: true, aux: 0, cool: 0 },
       ];
-      pulsing(g, "swarm");
+      pulsing(g, "drones");
       tickSpike(g, 0.05);
       for (const u of swarm.drones) assert.ok((u.stun ?? 0) > 3);
       flyAll(g, 4);
@@ -297,31 +297,31 @@ describe("hack rules: every listed target", () => {
 
   it("Mind Control: turns one enemy for the pulse and frees allies they hold", () => {
     const g = fight();
-    fit(g, "leash", 1);
+    fit(g, "mind", 1);
     const mine = g.crew.find((c) => c.side === "player")!;
     mine.leashed = 10;
-    pulsing(g, "leash");
+    pulsing(g, "mind");
     tickSpike(g, 0.05);
     assert.equal((mine.leashed ?? 0) > 0, false);
-    const turned = g.crew.find((c) => c.id === g.player.kits.spike!.hackHeld)!;
+    const turned = g.crew.find((c) => c.id === g.player.kits.hacking!.hackHeld)!;
     assert.ok(turned);
     assert.equal(turned.side, "enemy");
     assert.equal(sideOf(turned), "player");
     flyAll(g, 4.1);
     assert.equal(sideOf(turned), "enemy");
-    assert.equal(g.player.kits.spike!.hackHeld, undefined);
+    assert.equal(g.player.kits.hacking!.hackHeld, undefined);
   });
 
   it("Crew Teleporter: recalls their boarders and cools the teleporter", () => {
     const g = fight();
-    const sling = fit(g, "sling", 1);
+    const sling = fit(g, "teleporter", 1);
     const foe = g.crew.find((c) => c.side === "enemy")!;
     foe.aboard = "player";
     foe.room = g.player.rooms[0].id;
-    pulsing(g, "sling");
+    pulsing(g, "teleporter");
     tickSpike(g, 0.05);
     assert.equal(foe.aboard, "enemy");
-    assert.equal(foe.room, "e-sling");
+    assert.equal(foe.room, "e-teleporter");
     assert.equal(sling.cool, 20);
   });
 });

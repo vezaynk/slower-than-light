@@ -29,7 +29,7 @@ function kit(id: Kit["id"], level = 1): Kit {
 }
 
 function swarm(target: string): Kit {
-  return { id: "swarm", level: 1, power: 1, left: 0, cool: 0, target, on: true, aux: 0 };
+  return { id: "drones", level: 1, power: 1, left: 0, cool: 0, target, on: true, aux: 0 };
 }
 
 function openFiller(g: Game, slug: string, name: string) {
@@ -73,7 +73,7 @@ describe("Skipped blue options", () => {
     assert.equal(choiceDisabled(plain, "c:nebula-lost-ship:3"), "Needs Long-Ranged Scanners");
 
     const beam = createGame(2);
-    beam.player.kits.sling = kit("sling");
+    beam.player.kits.teleporter = kit("teleporter");
     const crew = beam.crew.filter((c) => c.side === "player").length;
     const scrap = beam.scrap;
     openFiller(beam, "nebula-lost-ship", "Nebula lost ship");
@@ -86,7 +86,7 @@ describe("Skipped blue options", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed < 40 && seen.size < 2; seed++) {
       const g = createGame(seed);
-      g.augments = ["glass"];
+      g.augments = ["ADV_SCANNERS"];
       const before = g.scrap;
       const n = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:nebula-lost-ship:3");
@@ -152,7 +152,7 @@ describe("Skipped blue options", () => {
     assert.equal(choiceDisabled(bare, "c:no-fuel-engi-ship-repair:2"), "Needs a Hull Repair Drone");
 
     const dry = createGame(2);
-    dry.player.kits.swarm = swarm("hull");
+    dry.player.kits.drones = swarm("SHIP_REPAIR");
     dry.player.parts = 0;
     openCited(dry, "no-fuel-engi-ship-repair", "No fuel: Engi ship repair");
     assert.equal(choiceDisabled(dry, "c:no-fuel-engi-ship-repair:2"), "Need 1 drone part");
@@ -162,7 +162,7 @@ describe("Skipped blue options", () => {
     assert.equal(dry.player.parts, 0);
 
     const g = createGame(3);
-    g.player.kits.swarm = swarm("hull");
+    g.player.kits.drones = swarm("SHIP_REPAIR");
     g.player.parts = 1;
     const before = g.fuel;
     openCited(g, "no-fuel-engi-ship-repair", "No fuel: Engi ship repair");
@@ -177,13 +177,13 @@ describe("Skipped blue options", () => {
   it("the abandoned clone bay can calm a crewmember or send one boarder", () => {
     const g = createGame(1);
     assert.equal(choiceDisabled(g, "s:abandoned-station:dna"), "Needs a Clone Bay");
-    g.player.kits.cradle = kit("cradle");
+    g.player.kits.clonebay = kit("clonebay");
     assert.equal(choiceDisabled(g, "s:abandoned-station:dna"), null);
 
     const seen = new Set<string>();
     for (let seed = 1; seed < 80 && seen.size < 3; seed++) {
       const run = createGame(seed);
-      run.player.kits.cradle = kit("cradle");
+      run.player.kits.clonebay = kit("clonebay");
       const crew = run.crew.filter((c) => c.side === "player").length;
       fillerChoose(run, "s:abandoned-station:dna");
       const body = run.event?.body ?? run.log.join("\n");
@@ -220,19 +220,19 @@ describe("Skipped blue options", () => {
     openCited(g, "zoltan-research-facility", "Zoltan research facility");
     assert.ok(g.event?.choices.some((c) => c.id === "c:zoltan-research-facility:3"));
     assert.equal(choiceDisabled(g, "c:zoltan-research-facility:3"), "Needs a Damaged Stasis Pod");
-    g.augments = ["glass", "stasis", "stasis"];
+    g.augments = ["ADV_SCANNERS", "STASIS_POD", "STASIS_POD"];
     assert.equal(choiceDisabled(g, "c:zoltan-research-facility:3"), null);
     choose(g, "c:zoltan-research-facility:3");
-    assert.deepEqual(g.augments, ["glass", "stasis"]);
+    assert.deepEqual(g.augments, ["ADV_SCANNERS", "STASIS_POD"]);
     const ruwen = g.crew.find((c) => c.name === "Ruwen");
     assert.ok(ruwen);
-    assert.equal(ruwen?.kin, "shard");
+    assert.equal(ruwen?.kin, "crystal");
     assert.match(g.event?.body ?? "", /cryogenic system/);
     assert.doesNotMatch(g.event?.body ?? "", /lose the augment/i);
   });
 
   it("a healing bomb keeps one Federation engineer and marks the hidden base", () => {
-    const heal = { uid: "heal", defId: "healburst", charge: 0, enabled: false, autofire: false, target: null };
+    const heal = { uid: "heal", defId: "BOMB_HEAL", charge: 0, enabled: false, autofire: false, target: null };
     let plain: Game | undefined;
     let card: Game | undefined;
     for (let seed = 1; seed < 80 && (!plain || !card); seed++) {

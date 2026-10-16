@@ -24,7 +24,7 @@ describe("score", () => {
     assert.equal(createGame(1).scrapCollected, 0);
     assert.equal(createGame(1, undefined, "easy").scrap, 30);
     assert.equal(createGame(1, undefined, "hard").scrap, 0);
-    assert.equal(createGame(1, "kestrel-a", "easy").scrap, 30);
+    assert.equal(createGame(1, "PLAYER_SHIP_HARD", "easy").scrap, 30);
   });
 
   it("multiplies (s + 10b + 20k) by 1, 1.25, or 1.5 and floors", () => {
@@ -46,7 +46,7 @@ describe("score", () => {
 
   it("keeps the Scrap Recovery Arm bonus out of s and does not let Repair Arm reduce s", () => {
     const hook = createGame(4);
-    hook.augments = ["hook"];
+    hook.augments = ["SCRAP_COLLECTOR"];
     const start = hook.scrap;
     startCombat(hook, "scout");
     assert.ok(hook.enemy);
@@ -58,7 +58,7 @@ describe("score", () => {
     assert.ok(hook.scrapCollected >= 12);
 
     const weld = createGame(4);
-    weld.augments = ["weld"];
+    weld.augments = ["REPAIR_ARM"];
     weld.player.hull = 20;
     const weldStart = weld.scrap;
     startCombat(weld, "scout");

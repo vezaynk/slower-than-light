@@ -169,11 +169,11 @@ describe("Pirate engine hacker", () => {
     assert.equal(g.phase, "combat");
     assert.ok(g.enemy);
     for (const w of g.enemy.weapons) w.enabled = false;
-    if (g.enemy.kits.spike) {
-      g.enemy.kits.spike.on = false;
-      g.enemy.kits.spike.power = 0;
+    if (g.enemy.kits.hacking) {
+      g.enemy.kits.hacking.on = false;
+      g.enemy.kits.hacking.power = 0;
     }
-    if (g.enemy.kits.veil) g.enemy.kits.veil.on = false;
+    if (g.enemy.kits.cloaking) g.enemy.kits.cloaking.on = false;
     const high = evasionPercent(g, g.player, "player");
     const highFtl = ftlSeconds(g, g.player);
     g.player.systems.engines.level = 1;

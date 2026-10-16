@@ -16,12 +16,12 @@ export const CITED_SYSTEMS: readonly {
 }[] = [
   { slot: "sys", ref: "shields", name: "Shields", cost: 125 },
   { slot: "sys", ref: "medbay", name: "Medbay", cost: 50 },
-  { slot: "kit", ref: "cradle", name: "Clone Bay", cost: 50 },
-  { slot: "kit", ref: "sling", name: "Crew Teleporter", cost: 90 },
-  { slot: "kit", ref: "veil", name: "Cloaking", cost: 150 },
-  { slot: "kit", ref: "leash", name: "Mind Control", cost: 75 },
-  { slot: "kit", ref: "spike", name: "Hacking", cost: 80 },
+  { slot: "kit", ref: "clonebay", name: "Clone Bay", cost: 50 },
+  { slot: "kit", ref: "teleporter", name: "Crew Teleporter", cost: 90 },
+  { slot: "kit", ref: "cloaking", name: "Cloaking", cost: 150 },
+  { slot: "kit", ref: "mind", name: "Mind Control", cost: 75 },
+  { slot: "kit", ref: "hacking", name: "Hacking", cost: 80 },
   { slot: "sys", ref: "sensors", name: "Sensors", cost: 40 },
   { slot: "sys", ref: "doors", name: "Door System", cost: 60 },
-  { slot: "kit", ref: "cell", name: "Backup Battery", cost: 35 },
+  { slot: "kit", ref: "battery", name: "Backup Battery", cost: 35 },
 ];

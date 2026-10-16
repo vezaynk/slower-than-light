@@ -25,7 +25,7 @@ function beacon(): Beacon {
 }
 
 function boarded(g: Game) {
-  return g.crew.filter((c) => c.side === "enemy" && c.kin === "plain" && c.aboard === "player");
+  return g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
 }
 
 describe("Boarders: Humans in nebula", () => {

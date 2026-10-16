@@ -345,6 +345,13 @@ export type SurrenderOfferDef = {
 };
 
 /**
+ * Scrap rolled onto the bribe button when the card opens.
+ * A fixed band has the same ends and does not roll.
+ * The handler still reads the amount from the choice id.
+ */
+export type EventBribe = { k: "scrap"; lo: number; hi: number };
+
+/**
  * A beacon page. `id` is the page slug. `flag` is what a beacon stores.
  * `dest` is the title. An arrival page uses flag `quest:` plus the quest id and an empty sector list.
  * A fight page can carry a `surrender` offer. Sector depth gates stay in code.
@@ -366,6 +373,12 @@ export type EventDef = {
    * Stored when a page has at least one entry.
    */
   rolls?: RollEntry[];
+  /**
+   * Scrap rolled onto the bribe button when the card opens.
+   * A fixed band has the same ends and does not roll.
+   * The handler still reads the amount from the choice id.
+   */
+  bribe?: EventBribe;
   /**
    * Whole opening cards. The sim still draws one with between.
    * Stored when a page has at least one. Button handlers stay in code.

@@ -23,6 +23,7 @@
   A choice is its id, label, effects, req locks, and an optional fuel gift.
   A req is checked in order and its text is the refusal.
   A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
+  A bribe tag is the scrap band rolled onto that button when the card opens. A fixed bribe does not roll.
   A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
@@ -4355,6 +4356,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <roll k="label">Shut down all non-vital systems and stay hidden.</roll>
     <roll k="label">Stay quiet and hope they don't notice you.</roll>
     <roll k="label">Stay out of their way and charge your FTL drive.</roll>
+    <bribe k="scrap" lo="10" hi="15"/>
     <choice name="c:rebel-checkpoint:0">
       <text>Fend for yourself, attack, and escape</text>
       <effect k="fight" tier="Rebel ship"/>

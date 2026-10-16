@@ -37,6 +37,7 @@ export type {
   EmptyBeaconDef,
   ChoiceGift,
   ChoiceReq,
+  EventBribe,
   EventChoice,
   EventDef,
   OfferPay,

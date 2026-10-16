@@ -40,6 +40,7 @@ import { noteReactorEvent } from "./achievement-track.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 import { ownedLock } from "./choice-locks.ts";
 import { QUEST_LOCKS } from "./choice-reqs.ts";
+import { bribeBand } from "./event-bribes.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { fleetToReach, jumpsBetween, overtaken } from "./sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
@@ -3418,9 +3419,10 @@ const REBEL_CHECKPOINT_BRIBE = [
   tx("wiki.quests.they-eagerly-accept-your-bribe-obviously"),
 ];
 
-/** Rebel checkpoint. Transaction 10-15. The four texts have no odds. INFERRED: equal. Then the civilians. */
+/** Rebel checkpoint. The packed scrap band. The four texts have no odds. INFERRED: equal. Then the civilians. */
 function rebelCheckpointBribe(g: Game, n: number) {
-  if (!Number.isInteger(n) || n < 10 || n > 15 || g.scrap < n) return;
+  const band = bribeBand("rebel-checkpoint");
+  if (!band || !Number.isInteger(n) || n < band[0] || n > band[1] || g.scrap < n) return;
   g.scrap -= n;
   log(g, tx("wiki.quests.scrap-3", { n: n }));
   const text = pick(g, REBEL_CHECKPOINT_BRIBE);

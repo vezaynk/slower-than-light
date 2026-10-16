@@ -16,6 +16,7 @@ import { enterHiddenCrystal, log, rand } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts";
 import { grantRandomItem } from "./bonus-item.ts";
+import { affordStock, scrapLine, takeStock } from "./stock-spend.ts";
 import {
   addQuest,
   card,
@@ -631,9 +632,10 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     // > "(Zoltan Crew) Present his official documentation and pay the entry fee." — [[Zoltan trade hub]]
     // > "You lose Scrap lost: 10." — [[Zoltan trade hub]]
     // > "They scan ID that declares your crewmember an official citizen" — [[Zoltan trade hub]]
-    if (!hasZoltan(g) || g.scrap < 10) return;
-    g.scrap -= 10;
-    log(g, "Scrap: -10.");
+    const cost = affordStock(g, "c:zoltan-trade-hub:2", "scrap");
+    if (!hasZoltan(g) || cost == null) return;
+    takeStock(g, "scrap", cost);
+    log(g, scrapLine(cost));
     zoltanHub(
       g,
       "They scan ID that declares your crewmember an official citizen, collect their fee, and let you pass.",

@@ -25,6 +25,7 @@ import { beginBoarding, deselectCrew, hurtSystem, log, rand } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 import { rollFuel } from "./fuel-gifts.ts";
+import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
 import {
   addQuest,
   arriveFedAssist,
@@ -256,14 +257,15 @@ function asteroidCard(g: Game) {
   card(g, 'They respond: "Help! Our shields are down and we won\'t last long!"', choices);
 }
 
-function asteroidDrone(g: Game) {
+function asteroidDrone(g: Game, id: string) {
   // Wiki citations:
   // > "Your drone succeeds in keeping their ship from breaking apart" — [[Asteroid belt distress]]
   // > "Your ship takes 4 hull damage, 1 damage to a random system" — [[Asteroid belt distress]]
   // > "you receive a weapon with medium scrap." — [[Asteroid belt distress]]
   // > "Hidden Federation Base quest marker is added to your map." — [[Asteroid belt distress]]
-  if (g.player.parts < 1) return;
-  g.player.parts -= 1;
+  const n = affordStock(g, id, "parts");
+  if (n == null) return;
+  takeStock(g, "parts", n);
   if (rand(g) < 0.5) {
     // "4 hull damage, 1 damage to a random system, 1 damage with fire to a random room, and you receive a weapon with
     // medium scrap." Rewards, "Weapon": "A random weapon & T scrap."
@@ -374,9 +376,11 @@ function fullPriceCard(g: Game, text: string) {
   ]);
 }
 
-function payParts(g: Game): string {
-  g.player.parts -= PARTS_OWED;
-  return `Drone parts: -${PARTS_OWED}.`;
+function payParts(g: Game, id: string): string | null {
+  const n = affordStock(g, id, "parts");
+  if (n == null) return null;
+  takeStock(g, "parts", n);
+  return partsLine(n);
 }
 
 /** Merchant's request, "Investigate the Cargo": three results. */
@@ -795,8 +799,8 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
         result(g, "You watch helplessly as their ship smashes against a cruiser-sized rock...");
       }
     },
-    "q:asteroid:defense": (g) => asteroidDrone(g),
-    "q:asteroid:repair": (g) => asteroidDrone(g),
+    "q:asteroid:defense": (g) => asteroidDrone(g, "q:asteroid:defense"),
+    "q:asteroid:repair": (g) => asteroidDrone(g, "q:asteroid:repair"),
     "q:asteroid:teleport": (g) => {
       // Wiki citations:
       // > "You receive a crewmember." — [[Asteroid belt distress]]
@@ -1041,7 +1045,8 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
     "q:merchant:paltry": (g) => {
       // Wiki citations:
       // > "You receive Scrap gained: 20-30 and lose Drone parts lost: 5." — [[Merchant's request#The station responds]]
-      const parts = payParts(g);
+      const parts = payParts(g, "q:merchant:paltry");
+      if (!parts) return;
       result(g, "You drop the parts off and take your pay.", fixedScrap(g, 20, 30), [parts]);
     },
     "q:merchant:refuse": (g) => {
@@ -1056,13 +1061,15 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
     },
     // "You receive 40-55 scrap and lose 5 drone parts." The page prints no text for it.
     "q:merchant:full": (g) => {
-      const parts = payParts(g);
+      const parts = payParts(g, "q:merchant:full");
+      if (!parts) return;
       paid(g, fixedScrap(g, 40, 55), [parts]);
     },
     "q:merchant:leave": (g) => done(g),
     // "You receive 55-70 scrap, 2-5 fuel and lose 5 drone parts."
     "q:merchant:weapons": (g) => {
-      const parts = payParts(g);
+      const parts = payParts(g, "q:merchant:weapons");
+      if (!parts) return;
       const offer = fixedScrap(g, 55, 70);
       offer.fuel = rollFuel("q:merchant:weapons", (lo, hi) => between(g, [lo, hi]));
       result(

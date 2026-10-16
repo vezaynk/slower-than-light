@@ -26,6 +26,7 @@ import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
 import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
 import { addQuest, questChoose } from "./quests.ts";
+import { stampStockLabels } from "./stock-labels.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 import { pirateCrewRaces } from "./skills.ts";
 
@@ -926,7 +927,7 @@ export function pageResult(g: Game, text: string, offer?: SurrenderOffer) {
 
 /** A follow-up dialogue card on the same beacon. */
 export function pageCard(g: Game, body: string, choices: { id: string; label: string }[]) {
-  g.event = { title: here(g)?.name ?? "Event", body, choices };
+  g.event = { title: here(g)?.name ?? "Event", body, choices: stampStockLabels(choices) };
   g.phase = "event";
 }
 

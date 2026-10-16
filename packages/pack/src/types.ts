@@ -351,9 +351,10 @@ export type SurrenderOfferDef = {
 };
 
 /**
- * A band rolled onto a button when the card opens.
- * `id` names the button. A fixed band has the same ends and does not roll.
- * The handler still reads the amount from the choice id.
+ * A band the handler rolls at its existing call site.
+ * `id` names the price. A fixed band has the same ends and does not roll.
+ * A missing price omits that button and pays nothing.
+ * A button that shows the amount still reads it from the choice id.
  */
 export type EventPrice = { id: string; k: "scrap" | "fuel"; lo: number; hi: number };
 

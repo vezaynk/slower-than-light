@@ -41,11 +41,18 @@ function choiceLock(g: Game, id: string): string | null {
   return null;
 }
 
-/** The packed scrap this button spends, or null when the button stores none. */
-export function scrapStock(id: string): number | null {
-  const req = reqsFor(id)?.find((row) => row.k === "stock" && row.id === "scrap");
+export type StockKind = "scrap" | "fuel" | "missiles" | "parts";
+
+/** The packed count this button spends, or null when the button stores none of that resource. */
+export function stockCount(id: string, kind: StockKind): number | null {
+  const req = reqsFor(id)?.find((row) => row.k === "stock" && row.id === kind);
   if (!req || req.k !== "stock") return null;
   return req.n;
+}
+
+/** The packed scrap this button spends, or null when the button stores none. */
+export function scrapStock(id: string): number | null {
+  return stockCount(id, "scrap");
 }
 
 function reqsFor(id: string): readonly ChoiceReq[] | null {

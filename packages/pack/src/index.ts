@@ -38,6 +38,8 @@ export type {
   ChoiceGift,
   ChoiceReq,
   EventBribe,
+  EventGrade,
+  GradePay,
   EventChoice,
   EventDef,
   OfferPay,

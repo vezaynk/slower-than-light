@@ -13,6 +13,8 @@ import type {
   DroneDef,
   EmptyBeaconDef,
   EventBribe,
+  EventGrade,
+  GradePay,
   EventCard,
   EventChoice,
   EventDef,
@@ -541,6 +543,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const rolls: RollEntry[] = [];
   const cards: EventCard[] = [];
   let bribe: EventBribe | undefined;
+  let grade: EventGrade | undefined;
   let surrender: SurrenderOfferDef | undefined;
   for (const item of elements(node)) {
     if (item.tagName === "text") {
@@ -559,6 +562,10 @@ function readEvent(node: XmlElement): EventDef | undefined {
     }
     if (item.tagName === "bribe") {
       bribe ??= readBribe(item);
+      continue;
+    }
+    if (item.tagName === "grade") {
+      grade ??= readGrade(item);
       continue;
     }
     if (item.tagName === "card") {
@@ -610,6 +617,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   if (offers.length > 0) event.offers = offers;
   if (rolls.length > 0) event.rolls = rolls;
   if (bribe) event.bribe = bribe;
+  if (grade) event.grade = grade;
   if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
   return event;
@@ -773,6 +781,29 @@ function readNamedChoice(node: XmlElement, name: string): SurrenderChoice | unde
 
 function choiceLabel(node: XmlElement, fallback: string): string {
   return textOf(node, "text") ?? (ownText(node).trim() || fallback);
+}
+
+/** The first grade with a hire and a payment. An empty hire or a bad payment is skipped. */
+function readGrade(node: XmlElement): EventGrade | undefined {
+  const hire = attr(node, "hire")?.trim();
+  if (!hire) return undefined;
+  const pays: GradePay[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "pay") continue;
+    const pay = readPay(item);
+    if (pay) pays.push(pay);
+  }
+  if (pays.length === 0) return undefined;
+  return { hire, pays };
+}
+
+function readPay(node: XmlElement): GradePay | undefined {
+  const k = attr(node, "k")?.trim();
+  if (k !== "scrap" && k !== "fuel" && k !== "parts") return undefined;
+  const lo = intAttr(node, "lo");
+  const hi = intAttr(node, "hi");
+  if (lo == null || hi == null || lo > hi) return undefined;
+  return { k, lo, hi };
 }
 
 /** The first scrap bribe. An unknown kind, a bad number, or a backwards band is skipped. */

@@ -13,6 +13,7 @@ import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
 import { allMantisCrew, between, closeFight, crystalBoarders, humanBoarders, joinCrew, mantisBoarders, pageCard, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
 import { rollBribe } from "./event-bribes.ts";
+import { eventGrade, rollGrade } from "./event-grades.ts";
 import { addQuest, result } from "./quests.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { grantRandomItem } from "./bonus-item.ts";
@@ -398,7 +399,9 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
     // > "That isss... correct. You sssurprise me." — [[Slug moons question#Correct Answer]]
     // > "You receive a Slug crewmember." — [[Slug moons question#Correct Answer]]
     // Crew: eight is the cap. A ninth is not added. This page does not print that refusal.
-    const joined = joinCrew(ctx.g, tx("wiki.cited-events.slug"));
+    const grade = eventGrade("slug-moons-question");
+    if (!grade) return false;
+    const joined = joinCrew(ctx.g, grade.hire);
     const line = joined ? tx("wiki.cited-events.you-receive-a-slug-crewmember") : tx("wiki.cited-events.there-is-no-room-aboard-for");
     ctx.note(line);
     citedResult(ctx.g, SLUG_MOON_CORRECT, [line]);
@@ -409,14 +412,17 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
   // > "You lose Scrap lost: 35, Fuel lost: 2-4, Drone parts lost: 1-2." — [[Slug moons question#Incorrect Answer]]
   // "You lose 35 scrap, 2-4 fuel, and 1-2 drone parts." Inclusive ranges.
   // A shortfall returns before any spend, the same way a cited price does.
-  const fuel = roll(ctx, 2, 4);
-  const parts = roll(ctx, 1, 2);
+  const bill = rollGrade("slug-moons-question", (lo, hi) => roll(ctx, lo, hi));
+  if (!bill) return false;
   const g = ctx.g;
-  if (g.scrap < 35 || g.fuel < fuel || g.player.parts < parts) return false;
-  g.scrap -= 35;
-  g.fuel -= fuel;
-  g.player.parts -= parts;
-  const paid = [tx("wiki.cited-events.scrap-35"), tx("wiki.cited-events.fuel-2", { fuel: fuel }), tx("wiki.cited-events.drone-parts-2", { parts: parts })];
+  if (g.scrap < bill.scrap || g.fuel < bill.fuel || g.player.parts < bill.parts) return false;
+  g.scrap -= bill.scrap;
+  g.fuel -= bill.fuel;
+  g.player.parts -= bill.parts;
+  const paid: string[] = [];
+  if (bill.scrap) paid.push(bill.scrap === 35 ? tx("wiki.cited-events.scrap-35") : `Scrap: -${bill.scrap}.`);
+  if (bill.fuel) paid.push(tx("wiki.cited-events.fuel-2", { fuel: bill.fuel }));
+  if (bill.parts) paid.push(tx("wiki.cited-events.drone-parts-2", { parts: bill.parts }));
   for (const line of paid) ctx.note(line);
   citedResult(g, SLUG_MOON_WRONG, paid);
   return true;

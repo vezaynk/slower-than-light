@@ -480,6 +480,76 @@ describe("pack document", () => {
     assert.equal(broken.events?.[0]?.bribe, undefined);
   });
 
+  it("round-trips a moon grade and drops a grade with no hire", () => {
+    const events = [
+      {
+        id: "moons",
+        dest: "Moons",
+        flag: "cited:moons",
+        aliases: [],
+        sectors: [],
+        body: "A planet.",
+        grade: {
+          hire: "Slug",
+          pays: [
+            { k: "scrap" as const, lo: 35, hi: 35 },
+            { k: "fuel" as const, lo: 2, hi: 4 },
+            { k: "parts" as const, lo: 1, hi: 2 },
+          ],
+        },
+        choices: [{ id: "c:moons:0", label: "Investigate", fx: [{ k: "nothing" as const }] }],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.match(xml, /<grade hire="Slug">/);
+    assert.match(xml, /<pay k="scrap" lo="35" hi="35"\/>/);
+    assert.match(xml, /<pay k="fuel" lo="2" hi="4"\/>/);
+    assert.match(xml, /<pay k="parts" lo="1" hi="2"\/>/);
+    assert.deepEqual(parsePack(xml).events, events);
+    const broken = parsePack(`<FTL>
+      <eventBlueprint name="broken" flag="cited:broken">
+        <title>Broken</title>
+        <text>Body</text>
+        <grade hire="">
+          <pay k="scrap" lo="35" hi="35"/>
+        </grade>
+        <grade>
+          <pay k="fuel" lo="2" hi="4"/>
+        </grade>
+        <grade hire="Engi">
+          <pay k="missiles" lo="1" hi="2"/>
+          <pay k="fuel" lo="4" hi="1"/>
+          <pay k="parts" lo="1.5" hi="2"/>
+        </grade>
+        <choice name="c:broken:0">
+          <text>Go</text>
+          <grade hire="Slug"><pay k="scrap" lo="1" hi="1"/></grade>
+          <effect k="nothing"/>
+        </choice>
+      </eventBlueprint>
+      <eventBlueprint name="kept" flag="cited:kept">
+        <title>Kept</title>
+        <text>Body</text>
+        <grade hire="">
+          <pay k="scrap" lo="1" hi="1"/>
+        </grade>
+        <grade hire="Rock">
+          <pay k="scrap" lo="8" hi="8"/>
+          <pay k="parts" lo="1" hi="1"/>
+        </grade>
+        <choice name="c:kept:0"><text>Go</text><effect k="nothing"/></choice>
+      </eventBlueprint>
+    </FTL>`);
+    assert.equal(broken.events?.[0]?.grade, undefined);
+    assert.deepEqual(broken.events?.[1]?.grade, {
+      hire: "Rock",
+      pays: [
+        { k: "scrap", lo: 8, hi: 8 },
+        { k: "parts", lo: 1, hi: 1 },
+      ],
+    });
+  });
+
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>

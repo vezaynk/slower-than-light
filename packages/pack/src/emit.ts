@@ -13,6 +13,7 @@ import type {
   DroneDef,
   EmptyBeaconDef,
   EventBribe,
+  EventGrade,
   EventCard,
   EventDef,
   EventEffect,
@@ -67,6 +68,8 @@ const HEADER = `
   A req is checked in order and its text is the refusal.
   A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
   A bribe tag is the scrap band rolled onto that button when the card opens. A fixed bribe does not roll.
+  A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
+  A fixed payment does not roll. The handler still compares the two numbers on the choice id.
   A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
@@ -159,6 +162,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   for (const offer of event.offers ?? []) add(node, offerElement(doc, offer), 2);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll), 2);
   if (event.bribe) add(node, bribeElement(doc, event.bribe), 2);
+  if (event.grade) add(node, gradeElement(doc, event.grade), 2);
   for (const card of event.cards ?? []) add(node, cardElement(doc, card), 2);
   for (const choice of event.choices) {
     const choiceNode = element(doc, "choice", { name: choice.id });
@@ -283,6 +287,15 @@ function giftElement(doc: XmlDocument, gift: ChoiceGift): XmlElement {
 
 function bribeElement(doc: XmlDocument, bribe: EventBribe): XmlElement {
   return element(doc, "bribe", { k: bribe.k, lo: num(bribe.lo), hi: num(bribe.hi) });
+}
+
+function gradeElement(doc: XmlDocument, grade: EventGrade): XmlElement {
+  const node = element(doc, "grade", { hire: grade.hire });
+  for (const pay of grade.pays) {
+    add(node, element(doc, "pay", { k: pay.k, lo: num(pay.lo), hi: num(pay.hi) }), 3);
+  }
+  end(node, 2);
+  return node;
 }
 
 function reqElement(doc: XmlDocument, req: ChoiceReq): XmlElement {

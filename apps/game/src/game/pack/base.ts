@@ -13,6 +13,7 @@ import { OPENING_TEXTS } from "../wiki/event-intros.ts";
 import { OFFER_ROWS } from "../wiki/event-offers.ts";
 import { ROLL_LISTS } from "../wiki/event-rolls.ts";
 import { BRIBE_BANDS } from "../wiki/event-bribes.ts";
+import { GRADES } from "../wiki/event-grades.ts";
 import { CARD_LISTS } from "../wiki/event-cards.ts";
 import { CHOICE_REQS } from "../wiki/choice-reqs.ts";
 import { FUEL_GIFTS } from "../wiki/fuel-gifts.ts";
@@ -169,6 +170,13 @@ function eventRow(row: EventDef): EventDef {
   if (rolls && rolls.length > 0) copy.rolls = rolls.map(copyRoll);
   const bribe = BRIBE_BANDS[row.id];
   if (bribe) copy.bribe = { k: "scrap", lo: bribe.lo, hi: bribe.hi };
+  const grade = GRADES[row.id];
+  if (grade) {
+    copy.grade = {
+      hire: grade.hire,
+      pays: grade.pays.map((pay) => ({ k: pay.k, lo: pay.lo, hi: pay.hi })),
+    };
+  }
   const cards = CARD_LISTS[row.id];
   if (cards && cards.length > 0) copy.cards = cards.map(copyCard);
   if (row.surrender) copy.surrender = surrenderRow(row.surrender);

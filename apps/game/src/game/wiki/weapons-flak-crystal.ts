@@ -1,241 +1,12 @@
-import { tx } from "../../i18n/index.ts";
-import type { WeaponDef } from "../content.ts";
 import { cellOccupied } from "../layouts.ts";
+export type { FlakCrystalGap } from "@stl/catalog/src/wiki/weapons-flak-crystal.ts";
+export {
+  ADV_FLAK_FAKE,
+  FLAK2_FAKE,
+  FLAK_CRYSTAL_GAPS,
+  FLAK_CRYSTAL_WEAPONS,
+} from "@stl/catalog/src/wiki/weapons-flak-crystal.ts";
 
-/**
- * Unfitted rows from page titles "Flak (Weapons)" and "Crystal (Weapons)".
- * Flak Gun Mark I is already fitted as scatter. Flak Artillery is not a weapon
- * row; flakart.ts owns that system, and the extra numbers sit in the gaps.
- * Crystal pages state one shield layer of pierce. WeaponDef has no pierce field.
- */
-export type FlakCrystalGap = {
-  id: string;
-  note: string;
-  radius?: number;
-  fake?: number;
-  pierce?: number;
-  /** Adv. Flak sells for this scrap and is not a store purchase. */
-  sell?: number;
-  rooms?: readonly string[];
-};
-
-/**
- * Flak (Weapons) lead: "they never cause fires or breaches."
- * INFERRED: gap 0 because that page says the shots arrive almost simultaneously,
- * and neither weapon section gives a per-shot gap. Ion 0 and ammo false: no ion
- * and no missile cost are listed. Shots are the projectile count.
- */
-const FLAK_FAMILY = {
-  gap: 0,
-  ion: 0,
-  fire: 0,
-  breach: 0,
-  ammo: false,
-} as const;
-
-export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
-  {
-    id: "advflak",
-    name: tx("wiki.weapons-flak-crystal.adv-flak-gun"),
-    kind: "flak",
-    // Flak (Weapons) "Adv. Flak Gun": 1 power, 8s, 3 shots, 1 damage.
-    // Sells for 30 and cannot be bought or found, so price is 0, not the sell scrap.
-    power: 1,
-    charge: 8,
-    shots: 3,
-    // INFERRED: gap 0. The shots arrive almost simultaneously, and the section gives no gap.
-    gap: FLAK_FAMILY.gap,
-    damage: 1,
-    ion: FLAK_FAMILY.ion,
-    // Flak (Weapons) lead: they never cause fires or breaches.
-    fire: FLAK_FAMILY.fire,
-    breach: FLAK_FAMILY.breach,
-    // INFERRED: ammo false. The section lists no missile cost.
-    ammo: FLAK_FAMILY.ammo,
-    price: 0,
-    blurb:
-      tx("wiki.weapons-flak-crystal.fires-a-blast-of-debris-across"),
-  },
-  {
-    id: "flak2",
-    name: tx("wiki.weapons-flak-crystal.flak-gun-mark-ii"),
-    kind: "flak",
-    // Flak (Weapons) "Flak Gun Mark II": 3 power, 21s, 7 shots, 1 damage, purchase price 80.
-    power: 3,
-    charge: 21,
-    shots: 7,
-    // INFERRED: gap 0. The shots arrive almost simultaneously, and the section gives no gap.
-    gap: FLAK_FAMILY.gap,
-    damage: 1,
-    ion: FLAK_FAMILY.ion,
-    // Flak (Weapons) lead: they never cause fires or breaches.
-    fire: FLAK_FAMILY.fire,
-    breach: FLAK_FAMILY.breach,
-    // INFERRED: ammo false. The section lists no missile cost.
-    ammo: FLAK_FAMILY.ammo,
-    price: 80,
-    blurb:
-      tx("wiki.weapons-flak-crystal.fires-a-blast-of-debris-across-2"),
-  },
-  {
-    id: "crystalburst",
-    name: tx("wiki.weapons-flak-crystal.crystal-burst-mark-i"),
-    // Shards are projectiles. WeaponKind has no crystal kind.
-    // kind "laser" is the closest stored kind and pierce is NOT modeled by kind.
-    kind: "laser",
-    // Crystal (Weapons) "Crystal Burst Mark I": 2 power, 15s, 2 shots, 1 damage, purchase price 20.
-    power: 2,
-    charge: 15,
-    shots: 2,
-    // INFERRED: gap 0. Crystal (Weapons) gives no gap.
-    gap: 0,
-    damage: 1,
-    // INFERRED: ion 0. The row lists no ion.
-    ion: 0,
-    // INFERRED: fire 0. The row lists no fire chance.
-    fire: 0,
-    // "low chance of breach" and no percent is given.
-    breach: 0,
-    // INFERRED: ammo false. The section lists no missile cost.
-    ammo: false,
-    price: 20,
-    blurb: tx("wiki.weapons-flak-crystal.modified-projectile-weapon-that-fires-shield"),
-  },
-  {
-    id: "crystalburst2",
-    name: tx("wiki.weapons-flak-crystal.crystal-burst-mark-ii"),
-    // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
-    kind: "laser",
-    // Crystal (Weapons) "Crystal Burst Mark II": 3 power, 17s, 3 shots, 1 damage, purchase price 20.
-    power: 3,
-    charge: 17,
-    shots: 3,
-    // INFERRED: gap 0. Crystal (Weapons) gives no gap.
-    gap: 0,
-    damage: 1,
-    ion: 0,
-    fire: 0,
-    // "low chance of breach" and no percent is given.
-    breach: 0,
-    ammo: false,
-    price: 20,
-    blurb: tx("wiki.weapons-flak-crystal.modified-projectile-weapon-that-fires-shield"),
-  },
-  {
-    id: "heavycrystal",
-    name: tx("wiki.weapons-flak-crystal.heavy-crystal-mark-i"),
-    // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
-    kind: "laser",
-    // Crystal (Weapons) "Heavy Crystal Mark I": 1 power, 13s, 1 shot, 2 damage, purchase price 20.
-    power: 1,
-    charge: 13,
-    shots: 1,
-    // INFERRED: gap 0. Crystal (Weapons) gives no gap.
-    gap: 0,
-    damage: 2,
-    ion: 0,
-    fire: 0,
-    // "low chance of breach" and no percent is given.
-    breach: 0,
-    ammo: false,
-    price: 20,
-    blurb: tx("wiki.weapons-flak-crystal.modified-projectile-weapon-that-fires-shield"),
-  },
-  {
-    id: "heavycrystal2",
-    name: tx("wiki.weapons-flak-crystal.heavy-crystal-mark-ii"),
-    // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
-    kind: "laser",
-    // Crystal (Weapons) "Heavy Crystal Mark II": 3 power, 19s, 1 shot, 4 damage, purchase price 20.
-    power: 3,
-    charge: 19,
-    shots: 1,
-    // INFERRED: gap 0. Crystal (Weapons) gives no gap.
-    gap: 0,
-    damage: 4,
-    ion: 0,
-    fire: 0,
-    // "guaranteed breach" is certain, so this is 1 rather than a guessed percent.
-    breach: 1,
-    ammo: false,
-    price: 20,
-    blurb: tx("wiki.weapons-flak-crystal.modified-projectile-weapon-that-fires-shield"),
-  },
-];
-
-export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
-  {
-    id: "advflak",
-    radius: 40,
-    fake: 3,
-    sell: 30,
-    rooms: [
-      tx("wiki.weapons-flak-crystal.when-fired-at-1x2-room-48"),
-      tx("wiki.weapons-flak-crystal.when-fired-at-2x2-room-89"),
-    ],
-    note: tx("wiki.weapons-flak-crystal.flak-weapons-adv-flak-gun-targeting"),
-  },
-  {
-    id: "flak2",
-    radius: 55,
-    fake: 6,
-    rooms: [
-      tx("wiki.weapons-flak-crystal.when-fired-at-1x2-room-25"),
-      tx("wiki.weapons-flak-crystal.when-fired-at-2x2-room-51"),
-    ],
-    note: tx("wiki.weapons-flak-crystal.flak-weapons-flak-gun-mark-ii"),
-  },
-  {
-    id: "flak-artillery",
-    radius: 35,
-    fake: 7,
-    rooms: [
-      tx("wiki.weapons-flak-crystal.when-fired-at-1x2-room-60"),
-      tx("wiki.weapons-flak-crystal.when-fired-at-2x2-room-100"),
-    ],
-    note: tx("wiki.weapons-flak-crystal.flakart-ts-owns-the-system-flak"),
-  },
-  {
-    id: "crystalburst",
-    pierce: 1,
-    note: tx("wiki.weapons-flak-crystal.crystal-weapons-crystal-burst-mark-i"),
-  },
-  {
-    id: "crystalburst2",
-    pierce: 1,
-    note: tx("wiki.weapons-flak-crystal.crystal-weapons-crystal-burst-mark-ii"),
-  },
-  {
-    id: "heavycrystal",
-    pierce: 1,
-    note: tx("wiki.weapons-flak-crystal.crystal-weapons-heavy-crystal-mark-i"),
-  },
-  {
-    id: "heavycrystal2",
-    pierce: 1,
-    note: tx("wiki.weapons-flak-crystal.crystal-weapons-heavy-crystal-mark-ii"),
-  },
-];
-
-/** Flak (Weapons), "Flak Gun Mark II": Additional fake flak 6. Not a WeaponDef field. */
-export const FLAK2_FAKE = 6;
-/** Flak (Weapons), "Adv. Flak Gun": Additional fake flak 3. Not a WeaponDef field. */
-export const ADV_FLAK_FAKE = 3;
-
-/**
- * Flak (Weapons), "Flak Gun Mark II".
- * "When fired at 1x2 room: 25.78% in main room, 12.06% in each tile next to long sides, 7.02% in each tile next to short sides, 2.70% in each tile next to corners, 0.29% in each tile after the tiles next to long sides."
- * "When fired at 2x2 room: 51.56% in main room, 5.90% in each tile next to sides, 0.31% in each tile next to corners."
- * Targeting area radius 55 is not simulated as pixels. Additional fake flak is FLAK2_FAKE, spawned in launch.
- * INFERRED: each of the seven pellets rolls on its own. The page does not say they share one roll.
- * INFERRED: a 2×1 is that 1×2 rectangle turned, so it uses the same split.
- * INFERRED: 25.78 + 4×12.06 + 2×7.02 + 4×2.70 + 4×0.29 = 100.02, so the last outer long-side tile is 0.27%.
- * INFERRED: "each tile after the tiles next to long sides" is the next tile outward from each of those four.
- * INFERRED: a shape with no printed percent stays in the aimed room.
- * INFERRED: a neighboring tile maps to the room whose floor contains that cell. An empty tile is a miss.
- * INFERRED: long sides, then short sides, then corners, then the outer long-side tiles. Along a room, north then south, or west then east.
- * INFERRED: a 2×2 lists sides before corners. Corner order is northwest, northeast, southwest, southeast.
- */
 export type Flak2Room = {
   id: string;
   x: number;
@@ -282,7 +53,8 @@ function twoTile(room: Flak2Room): [Tile, Tile] | null {
   const tiles = floorTiles(room);
   if (tiles.length !== 2) return null;
   const [a, b] = tiles;
-  const straight = (a.x === b.x && Math.abs(a.y - b.y) === 1) || (a.y === b.y && Math.abs(a.x - b.x) === 1);
+  const straight =
+    (a.x === b.x && Math.abs(a.y - b.y) === 1) || (a.y === b.y && Math.abs(a.x - b.x) === 1);
   return straight ? [a, b] : null;
 }
 
@@ -436,7 +208,11 @@ export function advFlakAimRolls(room: Flak2Room): boolean {
  * Where one Adv. Flak pellet lands. `roll` is used only for a 1×2 or a 2×2.
  * Every other shape ignores `roll` and stays.
  */
-export function advFlakLanding(rooms: readonly Flak2Room[], aimId: string, roll: number): Flak2Land {
+export function advFlakLanding(
+  rooms: readonly Flak2Room[],
+  aimId: string,
+  roll: number,
+): Flak2Land {
   const aim = rooms.find((room) => room.id === aimId);
   if (!aim) return { kind: "stay" };
   const pair = twoTile(aim);

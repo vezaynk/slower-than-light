@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import { hurtKit, hurtSystem, log, noteCombatPoint, shakeShip, zoltanBars } from "../sim.ts";
 import type { Crew, Game, Room, Ship } from "../types.ts";
 import { sideOf } from "./leash.ts";
@@ -21,7 +20,11 @@ export const SABOTAGE_RATE = 0.08;
  * enemy stops sabotaging and instead counts as a defender there.
  * INFERRED: a stunned boarder does not sabotage. A stunned defender still blocks sabotage (it is hostile crew in the room).
  */
-function sabotageCounts(g: Game, aboard: "player" | "enemy", r: Room): { boarders: number; defenders: number; striking: Crew[] } {
+function sabotageCounts(
+  g: Game,
+  aboard: "player" | "enemy",
+  r: Room,
+): { boarders: number; defenders: number; striking: Crew[] } {
   let boarders = 0;
   let defenders = 0;
   const striking: Crew[] = [];
@@ -86,9 +89,9 @@ function sabotageShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: numbe
     const credit = working > 0 ? striking : [];
     r.sabotage = 0;
     if (r.system) {
-      if (!hurtArtillery(ship, r.id, 1)) hurtSystem(ship, r.system, 1, zoltanBars(g.crew, ship, aboard, "shields"));
-    }
-    else if (r.kit) hurtKit(ship, r.kit, 1);
+      if (!hurtArtillery(ship, r.id, 1))
+        hurtSystem(ship, r.system, 1, zoltanBars(g.crew, ship, aboard, "shields"));
+    } else if (r.kit) hurtKit(ship, r.kit, 1);
     for (const c of credit) noteCombatPoint(g, c);
     r.flash = Math.max(r.flash, 0.3);
     const after = target(ship, r);
@@ -99,7 +102,7 @@ function sabotageShip(g: Game, ship: Ship, aboard: "player" | "enemy", dt: numbe
       ship.hull = Math.max(0, ship.hull - 1);
       // Per the user: fires (and boarders) destroying a system shake the ship like any other hull damage.
       if (ship === g.player) shakeShip(g);
-      log(g, tx("extras.sabotage.destroyed-by-sabotage", { title: r.title }));
+      log(g, `${r.title} destroyed by sabotage.`);
     }
   }
 }
@@ -131,7 +134,8 @@ function crewAttacking(g: Game, aboard: "player" | "enemy", roomId: string): boo
 function droneAttacking(g: Game, aboard: "player" | "enemy", roomId: string): boolean {
   if (aboard === "enemy") {
     const kit = g.player.kits.swarm;
-    if (!kit?.on || kit.room !== roomId || !kit.target || !BOARDER_DRONES.has(kit.target)) return false;
+    if (!kit?.on || kit.room !== roomId || !kit.target || !BOARDER_DRONES.has(kit.target))
+      return false;
     if ((kit.stun ?? 0) > 0 || (kit.path?.length ?? 0) > 0) return false;
     return kit.hp == null || kit.hp > 0;
   }
@@ -149,7 +153,12 @@ function droneAttacking(g: Game, aboard: "player" | "enemy", roomId: string): bo
  * `id` is a system id, a kit id, or an artillery room id.
  * A fire alone is not a boarder. Defenders do not clear the attack; they only pause sabotage.
  */
-export function systemUnderBoarders(g: Game, ship: Ship, aboard: "player" | "enemy", id: string): boolean {
+export function systemUnderBoarders(
+  g: Game,
+  ship: Ship,
+  aboard: "player" | "enemy",
+  id: string,
+): boolean {
   for (const r of ship.rooms) {
     if (r.system !== id && r.kit !== id && r.id !== id) continue;
     if (crewAttacking(g, aboard, r.id) || droneAttacking(g, aboard, r.id)) return true;

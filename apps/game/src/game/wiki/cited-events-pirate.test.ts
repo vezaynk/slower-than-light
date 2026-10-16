@@ -16,7 +16,6 @@ const TITLES = [
   "Store (Pirate)",
 ];
 
-
 function slugOf(title: string): string {
   return title
     .toLowerCase()
@@ -83,7 +82,10 @@ describe("cited pirate events", () => {
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee (Pirate)]]
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee distress (Pirate)]]
     // > "This random event occurs in Pirate Controlled Sector." — [[Research station with no response]]
-    const src = readFileSync(new URL("./cited-events-pirate.ts", import.meta.url), "utf8");
+    const src = readFileSync(
+      new URL("../../../../../packages/catalog/src/wiki/cited-events-pirate.ts", import.meta.url),
+      "utf8",
+    );
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {
       assert.ok(TITLES.includes(ev.dest), ev.dest);

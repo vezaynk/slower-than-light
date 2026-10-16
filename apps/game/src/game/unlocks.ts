@@ -15,7 +15,6 @@
  * The store calls noteUnlocks after each step; that reads the run and writes localStorage ("stl:unlocks").
  * Layout C is reaching sector 8 on Layout B. Advanced Edition content is always on.
  */
-import { tx } from "../i18n/index.ts";
 import { HULLS, type HullSpec } from "./hulls.ts";
 import type { Difficulty, Game } from "./types.ts";
 import { ACHIEVEMENTS } from "./wiki/achievements.ts";
@@ -59,65 +58,77 @@ export type UnlockRule = {
 export const A_RULES: UnlockRule[] = [
   {
     hull: "kestrel-a",
-    quote: tx("game.unlocks.does-not-require-unlocking-it-is"),
+    quote:
+      "Does not require unlocking (it is the only ship, the cruiser and the layout, available from the very start of the game)",
   },
   {
     hull: "engi-a",
-    quote: tx("game.unlocks.reaching-a-sector-5-with-any"),
+    quote:
+      "Reaching a sector 5 with any Kestrel Cruiser layout automatically unlocks the Engi Cruiser",
   },
   {
     hull: "fed-a",
-    quote: tx("game.unlocks.rebel-shipyard-you-unlock-the-federation"),
+    quote:
+      'Rebel shipyard: "You unlock the Federation Cruiser." (the ship can also be unlocked by winning the game with the Engi Cruiser)',
     events: ["rebel-shipyard"],
-    winWith: tx("game.unlocks.engi-cruiser"),
+    winWith: "Engi Cruiser",
   },
   {
     hull: "zoltan-a",
-    quote: tx("game.unlocks.unarmed-zoltan-transport-you-unlock-the"),
+    quote:
+      'Unarmed Zoltan transport: "You unlock the Zoltan Cruiser" (the ship can also be unlocked by winning the game with the Federation Cruiser)',
     events: ["unarmed-zoltan-transport"],
-    winWith: tx("game.unlocks.federation-cruiser"),
-    inferred: tx("game.unlocks.the-unarmed-zoltan-transport-event-has"),
+    winWith: "Federation Cruiser",
+    inferred:
+      "The Unarmed Zoltan transport event has no outcome code in this build yet; only the Flagship route can fire.",
   },
   {
     hull: "mantis-a",
-    quote: tx("game.unlocks.legendary-thief-kazaaakplethkilik-you-unlock-the"),
+    quote:
+      'Legendary thief KazaaakplethKilik: "You unlock the Mantis Cruiser" (the ship can also be unlocked by winning the game with the Zoltan Cruiser)',
     events: ["legendary-thief-kazaaakplethkilik"],
-    winWith: tx("game.unlocks.zoltan-cruiser"),
+    winWith: "Zoltan Cruiser",
   },
   {
     hull: "slug-a",
-    quote: tx("game.unlocks.slug-home-nebula-surrender-you-unlock"),
+    quote:
+      'Slug Home Nebula surrender: "You unlock the Slug Cruiser" (the ship can also be unlocked by winning the game with the Mantis Cruiser)',
     events: ["slug-home-nebula-surrender"],
-    winWith: tx("game.unlocks.mantis-cruiser"),
+    winWith: "Mantis Cruiser",
   },
   {
     hull: "rock-a",
-    quote: tx("game.unlocks.rock-war-vessel-encounter-you-unlock"),
+    quote:
+      'Rock war vessel encounter: "You unlock the Rock Cruiser." (the ship can also be unlocked by winning the game with the Slug Cruiser)',
     events: ["rock-war-vessel-encounter"],
-    winWith: tx("game.unlocks.slug-cruiser"),
-    inferred: tx("game.unlocks.the-rock-war-vessel-encounter-has"),
+    winWith: "Slug Cruiser",
+    inferred:
+      "The Rock war vessel encounter has no outcome code in this build yet; only the Flagship route can fire.",
   },
   {
     hull: "stealth-a",
-    quote: tx("game.unlocks.engi-fleet-discussion-you-unlock-the"),
+    quote:
+      'Engi fleet discussion: "You unlock the Stealth Cruiser" (the ship can also be unlocked by winning the game with the Rock Cruiser)',
     events: ["engi-fleet-discussion"],
-    winWith: tx("game.unlocks.rock-cruiser"),
+    winWith: "Rock Cruiser",
   },
   {
     hull: "lanius-a",
-    quote: tx("game.unlocks.unlock-4-ships-excluding-the-kestrel"),
-    inferred: tx("game.unlocks.ships-counts-cruisers-their-layout-a"),
+    quote: "Unlock 4 ships (Excluding The Kestrel) to unlock this ship.",
+    inferred: '"Ships" counts cruisers (their Layout A), not layouts.',
   },
   {
     hull: "crystal-a",
-    quote: tx("game.unlocks.ancient-device-you-unlock-the-crystal"),
+    quote:
+      'Ancient device: "You unlock the Crystal Cruiser" (the Crystal Cruiser can also be unlocked by winning the game with Layout A and B of all ships, not counting the Lanius Cruiser)',
     events: ["ancient-device"],
-    inferred: tx("game.unlocks.the-ancient-device-event-has-no"),
+    inferred:
+      "The Ancient device event has no outcome code in this build yet; only the A-and-B victories route can fire.",
   },
 ];
 
-const B_QUOTE = tx("game.unlocks.layout-b-earn-2-out-of");
-const C_QUOTE = tx("game.unlocks.layout-c-reach-sector-8-with");
+const B_QUOTE = "Layout B - earn 2 out of 3 ship-related Achievements.";
+const C_QUOTE = "Layout C - reach sector 8 with Layout B and Advanced Edition Content enabled.";
 
 function cruiserOf(hullId: string | undefined): HullSpec | undefined {
   return hullId ? HULLS.find((h) => h.id === hullId) : undefined;
@@ -135,7 +146,7 @@ export function ruleFor(hullId: string): UnlockRule {
   if (hull?.layout === "B") return { hull: hullId, quote: B_QUOTE };
   const inferred =
     hull?.cruiser === "Kestrel Cruiser" || hull?.cruiser === "Engi Cruiser"
-      ? tx("game.unlocks.those-pages-say-the-final-sector")
+      ? 'Those pages say "the final sector"; sector 8 is the final sector here.'
       : undefined;
   return { hull: hullId, quote: C_QUOTE, inferred };
 }
@@ -168,7 +179,7 @@ export function grantUnlock(g: Game, hullId: string): string {
   if (!hull) return "";
   const list = (g.unlocked ??= []);
   if (!list.includes(hullId)) list.push(hullId);
-  const line = tx("game.unlocks.you-unlock-the", { cruiser: hull.cruiser });
+  const line = `You unlock the ${hull.cruiser}.`;
   g.log.unshift(line);
   if (g.log.length > 5) g.log.length = 5;
   return line;
@@ -236,10 +247,12 @@ export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly stri
   const others = [...new Set(HULLS.map((h) => h.cruiser))].filter(
     (c) => c !== "Lanius Cruiser" && c !== "Crystal Cruiser",
   );
-  const allAB = others.every((c) => ["A", "B"].every((l) => {
-    const id = hullFor(c, l as "A" | "B");
-    return !!id && wins.has(id);
-  }));
+  const allAB = others.every((c) =>
+    ["A", "B"].every((l) => {
+      const id = hullFor(c, l as "A" | "B");
+      return !!id && wins.has(id);
+    }),
+  );
   if (allAB) ships.add("crystal-a");
 
   // Lanius: "Unlock 4 ships (Excluding The Kestrel)". Counted last, after every other A rule.
@@ -250,7 +263,9 @@ export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly stri
 
   const prevBoss = state.boss ?? [];
   const same =
-    ships.size === state.ships.length && wins.size === state.wins.length && state.ships.every((s) => ships.has(s));
+    ships.size === state.ships.length &&
+    wins.size === state.wins.length &&
+    state.ships.every((s) => ships.has(s));
   const bossSame = boss.size === prevBoss.length && prevBoss.every((d) => boss.has(d));
   if (same && state.wins.every((w) => wins.has(w)) && bossSame) return state;
   const order = HULLS.map((h) => h.id);
@@ -270,10 +285,15 @@ export function parseUnlocks(raw: string | null): UnlockState {
   try {
     const parsed = JSON.parse(raw) as Partial<UnlockState> | null;
     const ok = (list: unknown) =>
-      Array.isArray(list) ? list.filter((id): id is string => typeof id === "string" && !!cruiserOf(id)) : [];
+      Array.isArray(list)
+        ? list.filter((id): id is string => typeof id === "string" && !!cruiserOf(id))
+        : [];
     const ships = new Set([...base.ships, ...ok(parsed?.ships)]);
     const boss = Array.isArray(parsed?.boss)
-      ? parsed.boss.filter((d): d is Difficulty => typeof d === "string" && (DIFFICULTIES as readonly string[]).includes(d))
+      ? parsed.boss.filter(
+          (d): d is Difficulty =>
+            typeof d === "string" && (DIFFICULTIES as readonly string[]).includes(d),
+        )
       : [];
     const next: UnlockState = { ships: [...ships], wins: ok(parsed?.wins) };
     const recorded = DIFFICULTIES.filter((d) => boss.includes(d));

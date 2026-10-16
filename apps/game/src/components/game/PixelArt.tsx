@@ -1,4 +1,3 @@
-import { tx } from "@/i18n";
 import { type ReactNode } from "react";
 import "@/game/pack/base";
 import { hullDef } from "@stl/pack";
@@ -6,7 +5,17 @@ import { layoutFor, roomClip, seatLayout } from "@/game/layouts";
 import type { KitId } from "@/game/types";
 
 /** Kits a hull can seat. Any other id stays on the blueprint and does not take a room. */
-const INSTALLABLE_KITS = new Set<string>(["veil", "sling", "spike", "swarm", "leash", "cradle", "cell", "lance", "flak"]);
+const INSTALLABLE_KITS = new Set<string>([
+  "veil",
+  "sling",
+  "spike",
+  "swarm",
+  "leash",
+  "cradle",
+  "cell",
+  "lance",
+  "flak",
+]);
 import { DoorTicks } from "./DoorTicks";
 import { HullPlate } from "./HullPlate";
 
@@ -193,15 +202,15 @@ const ROOM_COLOR: Record<string, string> = {
 
 /** Kit rooms carry a short tag in the cutaway, so a bought or starting kit's room reads at a glance. */
 const KIT_SHORT: Record<KitId, string> = {
-  veil: tx("ui.PixelArt.cloak"),
-  sling: tx("ui.PixelArt.tele"),
-  spike: tx("ui.PixelArt.hack"),
-  swarm: tx("ui.PixelArt.drone"),
-  leash: tx("ui.PixelArt.mind"),
-  cradle: tx("ui.PixelArt.clone"),
-  cell: tx("ui.PixelArt.batt"),
-  lance: tx("ui.PixelArt.arty"),
-  flak: tx("ui.PixelArt.arty"),
+  veil: "CLOAK",
+  sling: "TELE",
+  spike: "HACK",
+  swarm: "DRONE",
+  leash: "MIND",
+  cradle: "CLONE",
+  cell: "BATT",
+  lance: "ARTY",
+  flak: "ARTY",
 };
 
 const KIT_TAG = {
@@ -243,7 +252,18 @@ export function PixelHull({ kind, dim = false }: { kind: string; dim?: boolean }
     >
       {stamp.rows.flatMap((row, y) =>
         [...row].flatMap((ch, x) =>
-          ch === "." ? [] : [<rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={stamp.paint[ch] ?? "#ccc"} />],
+          ch === "."
+            ? []
+            : [
+                <rect
+                  key={`${x}-${y}`}
+                  x={x}
+                  y={y}
+                  width={1}
+                  height={1}
+                  fill={stamp.paint[ch] ?? "#ccc"}
+                />,
+              ],
         ),
       )}
     </svg>
@@ -255,7 +275,9 @@ export function PixelLayout({ id }: { id: string }) {
   const kind = id.replace(/-[a-c]$/, "");
   // Kit rooms: the hull's starting kits sit in their rooms (layouts.ts seatLayout), as they do in a fight.
   const raw = layoutFor(id);
-  const kits = Object.keys(hullDef(id)?.kits ?? {}).filter((kit): kit is KitId => INSTALLABLE_KITS.has(kit));
+  const kits = Object.keys(hullDef(id)?.kits ?? {}).filter((kit): kit is KitId =>
+    INSTALLABLE_KITS.has(kit),
+  );
   const layout = raw ? seatLayout(raw, kits) : undefined;
   return (
     <div className="pixel-figure">
@@ -292,7 +314,9 @@ export function PixelLayout({ id }: { id: string }) {
                   background: clip ? "transparent" : fill,
                 }}
               >
-                {clip ? <i className="pixel-fill" style={{ clipPath: clip, background: fill }} /> : null}
+                {clip ? (
+                  <i className="pixel-fill" style={{ clipPath: clip, background: fill }} />
+                ) : null}
                 {room.kit ? <b style={KIT_TAG}>{KIT_SHORT[room.kit]}</b> : null}
                 <DoorTicks room={room} marks={layout.marks} />
               </i>
@@ -318,7 +342,11 @@ export function UnlockDiagram() {
               <PixelHull kind={kind} dim={i !== 0} />
               {i === 0 ? null : <i className="pixel-lock" />}
             </span>
-            {i < UNLOCK_TOP.length - 1 ? <i className="pixel-arrow is-right" /> : <i className="pixel-arrow is-gap" />}
+            {i < UNLOCK_TOP.length - 1 ? (
+              <i className="pixel-arrow is-right" />
+            ) : (
+              <i className="pixel-arrow is-gap" />
+            )}
           </span>
         ))}
       </div>
@@ -332,7 +360,11 @@ export function UnlockDiagram() {
               <PixelHull kind={kind} dim />
               <i className="pixel-lock" />
             </span>
-            {i < UNLOCK_BOTTOM.length - 1 ? <i className="pixel-arrow is-left" /> : <i className="pixel-arrow is-gap" />}
+            {i < UNLOCK_BOTTOM.length - 1 ? (
+              <i className="pixel-arrow is-left" />
+            ) : (
+              <i className="pixel-arrow is-gap" />
+            )}
           </span>
         ))}
       </div>
@@ -360,11 +392,22 @@ export function PixelTitle() {
       <g transform="translate(8 8) scale(2.4)">
         {HULLS.kestrel.rows.flatMap((row, y) =>
           [...row].flatMap((ch, x) =>
-            ch === "." ? [] : [<rect key={`k${x}-${y}`} x={x} y={y} width={1} height={1} fill={HULLS.kestrel.paint[ch]} />],
+            ch === "."
+              ? []
+              : [
+                  <rect
+                    key={`k${x}-${y}`}
+                    x={x}
+                    y={y}
+                    width={1}
+                    height={1}
+                    fill={HULLS.kestrel.paint[ch]}
+                  />,
+                ],
           ),
         )}
       </g>
-      {blit(tx("ui.PixelArt.stl"), 152 - textWidth(tx("ui.PixelArt.stl"), 1), 19, 1, "#f4f7f4", "banner")}
+      {blit("STL", 152 - textWidth("STL", 1), 19, 1, "#f4f7f4", "banner")}
     </svg>
   );
 }
@@ -424,13 +467,13 @@ function textWidth(text: string, scale: number) {
 }
 
 const TITLE_LINES = [
-  { id: "continue", label: tx("ui.PixelArt.continue") },
-  { id: "new", label: tx("ui.PixelArt.new-game") },
-  { id: "tutorial", label: tx("ui.PixelArt.tutorial") },
-  { id: "stats", label: tx("ui.PixelArt.stats") },
-  { id: "options", label: tx("ui.PixelArt.options") },
-  { id: "credits", label: tx("ui.PixelArt.credits") },
-  { id: "quit", label: tx("ui.PixelArt.quit") },
+  { id: "continue", label: "CONTINUE" },
+  { id: "new", label: "NEW GAME" },
+  { id: "tutorial", label: "TUTORIAL" },
+  { id: "stats", label: "STATS" },
+  { id: "options", label: "OPTIONS" },
+  { id: "credits", label: "CREDITS" },
+  { id: "quit", label: "QUIT" },
 ];
 
 export const TITLE_MENU_ART = TITLE_LINES.map((item, i) => {
@@ -556,21 +599,42 @@ function shipPixels(ship: (typeof FLEET)[number]) {
 
 /** Title: planet and fleet on the left, the STL mark, the Slower Than Light subtitle and the menu on the right. */
 export function PixelMenu({ continueReady }: { continueReady: boolean }) {
-  const subtitle = tx("ui.PixelArt.slower-than-light");
-  const mark = tx("ui.PixelArt.fan-project-inspired-by-ftl");
-  const version = tx("ui.PixelArt.v-0-1");
+  const subtitle = "SLOWER THAN LIGHT";
+  const mark = "FAN PROJECT · INSPIRED BY FTL";
+  const version = "v. 0.1";
   return (
     <svg className="pixel-menu" viewBox={`0 0 ${TITLE_VIEW.w} ${TITLE_VIEW.h}`} aria-hidden="true">
       <rect width={TITLE_VIEW.w} height={TITLE_VIEW.h} fill="#07060d" />
       {STARS.map((star, i) => (
-        <rect key={`s${i}`} x={star.x} y={star.y} width="1" height="1" fill={star.bright ? "#f4f7f4" : "#8a93a8"} />
+        <rect
+          key={`s${i}`}
+          x={star.x}
+          y={star.y}
+          width="1"
+          height="1"
+          fill={star.bright ? "#f4f7f4" : "#8a93a8"}
+        />
       ))}
       {PLANET.map((cell) => (
-        <rect key={`p${cell.x}-${cell.y}`} x={cell.x} y={cell.y} width="2" height="2" fill={cell.fill} />
+        <rect
+          key={`p${cell.x}-${cell.y}`}
+          x={cell.x}
+          y={cell.y}
+          width="2"
+          height="2"
+          fill={cell.fill}
+        />
       ))}
       {FLEET.map((ship) => shipPixels(ship))}
-      {blit(tx("ui.PixelArt.stl"), TITLE_VIEW.w - MENU_RIGHT - textWidth(tx("ui.PixelArt.stl"), 4), 24, 4, "#f4f7f4", "logo")}
-      {blit(subtitle, TITLE_VIEW.w - MENU_RIGHT - textWidth(subtitle, 1), 58, 1, "#c8c8c8", "subtitle")}
+      {blit("STL", TITLE_VIEW.w - MENU_RIGHT - textWidth("STL", 4), 24, 4, "#f4f7f4", "logo")}
+      {blit(
+        subtitle,
+        TITLE_VIEW.w - MENU_RIGHT - textWidth(subtitle, 1),
+        58,
+        1,
+        "#c8c8c8",
+        "subtitle",
+      )}
       {TITLE_LINES.map((item, i) =>
         blit(
           item.label,

@@ -1,3 +1,4 @@
+import { loadCatalog } from "@stl/catalog";
 import {
   allAugments,
   allCrew,
@@ -14,18 +15,9 @@ import {
   emitPack,
 } from "@stl/pack";
 
-/**
- * The assembler is imported by file URL. A static import would pull the game
- * into this package's typecheck.
- */
-async function loadCampaign(): Promise<void> {
-  const assembler = new URL("../../../apps/game/src/game/pack/base.ts", import.meta.url);
-  await import(assembler.href);
-}
-
-/** The campaign document: `emitPack` of the records `base.ts` loads. */
+/** The campaign document: `emitPack` of the records the catalog loads. */
 export async function campaignXml(): Promise<string> {
-  await loadCampaign();
+  loadCatalog();
   return emitPack({
     crew: allCrew(),
     weapons: allWeapons(),

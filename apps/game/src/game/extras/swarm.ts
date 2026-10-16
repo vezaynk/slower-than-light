@@ -1,6 +1,26 @@
-import { tx } from "../../i18n/index.ts";
 import { skillRank } from "../content.ts";
-import { applyIon, blastHits, crewBlowDamage, crewBlowDue, doorLevel, FIRE_FIGHT_SHARE, isMain, kitBars, log, negateIon, noteDoorArmed, noteEnemyBreach, powerSlotFits, punchCoat, rand, REPAIR_SECONDS, sparePower, syncShields, takePowerSlot, zoltanBars } from "../sim.ts";
+import {
+  applyIon,
+  blastHits,
+  crewBlowDamage,
+  crewBlowDue,
+  doorLevel,
+  FIRE_FIGHT_SHARE,
+  isMain,
+  kitBars,
+  log,
+  negateIon,
+  noteDoorArmed,
+  noteEnemyBreach,
+  powerSlotFits,
+  punchCoat,
+  rand,
+  REPAIR_SECONDS,
+  sparePower,
+  syncShields,
+  takePowerSlot,
+  zoltanBars,
+} from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
 import { combatSkillMult } from "../wiki/skills.ts";
 import { seatKits } from "../layouts.ts";
@@ -43,7 +63,8 @@ export const BUNDLE_OTHER = 85;
  */
 export const SYSTEM_POWER = 0;
 
-export type SwarmKind = "ward" | "ward2" | "wardcut" | "striker" | "beam" | "board" | "patch" | "hull";
+export type SwarmKind =
+  "ward" | "ward2" | "wardcut" | "striker" | "beam" | "board" | "patch" | "hull";
 
 /** Per-drone power. The system overhead above is separate and is 0. INFERRED, same as SYSTEM_POWER. */
 export const DRONE_POWER: Record<SwarmKind, number> = {
@@ -162,7 +183,16 @@ const SHOT_T = 0;
 const READY_LABEL = "swarm-ready";
 const FLOWN_LABEL = "swarm";
 
-const KINDS: readonly SwarmKind[] = ["ward", "ward2", "wardcut", "striker", "beam", "board", "patch", "hull"];
+const KINDS: readonly SwarmKind[] = [
+  "ward",
+  "ward2",
+  "wardcut",
+  "striker",
+  "beam",
+  "board",
+  "patch",
+  "hull",
+];
 
 function isKind(kind: string | null): kind is SwarmKind {
   return !!kind && (KINDS as readonly string[]).includes(kind);
@@ -216,7 +246,7 @@ export function installSwarm(g: Game): boolean {
   g.scrap -= INSTALL_SCRAP;
   g.player.kits.swarm = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, tx("extras.swarm.drone-control-installed-on-the-lark"));
+  log(g, "Drone Control installed on the Lark.");
   return true;
 }
 
@@ -235,7 +265,12 @@ export function installSwarmBundle(g: Game, kind: "patch" | "ward" | "striker"):
   kit.target = kind;
   g.player.kits.swarm = kit;
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, kind === "patch" ? tx("extras.swarm.drone-control-fitted-with-a-system") : tx("extras.swarm.drone-control-fitted"));
+  log(
+    g,
+    kind === "patch"
+      ? "Drone Control fitted, with a System Repair schematic."
+      : "Drone Control fitted.",
+  );
   return true;
 }
 
@@ -345,7 +380,10 @@ export function deploy(g: Game, kind: string): boolean {
   // Combat Drone Mark II, the Ion Intruder, and both Shield Overchargers stay outside SwarmKind.
   // drones-missing.ts still lists them.
   const cited =
-    kind === "combat2" || kind === "ionintruder" || kind === "overcharger" || kind === "overchargerplus";
+    kind === "combat2" ||
+    kind === "ionintruder" ||
+    kind === "overcharger" ||
+    kind === "overchargerplus";
   if (!kit || (!isKind(kind) && !cited)) return false;
   if (kit.on && kit.target === kind) {
     delete kit.idle;
@@ -355,11 +393,11 @@ export function deploy(g: Game, kind: string): boolean {
   // deployed again (costing another part)." INFERRED: the player kit flies one drone, so that delay holds the whole
   // kit, whichever schematic is picked next. killPlayerDrone sets kit.lost.
   if ((kit.lost ?? 0) > 0) {
-    log(g, tx("extras.swarm.drone-control-is-rebuilding-s", { ceil: Math.ceil(kit.lost ?? 0) }));
+    log(g, `Drone Control is rebuilding: ${Math.ceil(kit.lost ?? 0)} s.`);
     return false;
   }
   if (g.player.parts < PART_COST) {
-    log(g, tx("extras.swarm.drone-control-needs-a-drone-part"));
+    log(g, "Drone Control needs a drone part.");
     return false;
   }
   g.player.parts -= PART_COST;
@@ -387,7 +425,7 @@ export function deploy(g: Game, kind: string): boolean {
   // A new flight starts at the nose. The first leg is chosen on the next tick.
   delete kit.heading;
   delete kit.bearing;
-  log(g, tx("extras.swarm.drone-control-deploys", { kind: kind }));
+  log(g, `Drone Control deploys ${kind}.`);
   const functioning = (kit.drones ?? []).filter((d) => d.alive && d.powered).length;
   noteAchieve(g, { k: "drone", kind, functioning: Math.max(functioning, kit.on ? 1 : 0) });
   return true;
@@ -424,17 +462,17 @@ function deploySlot(g: Game, index: number): boolean {
     return true;
   }
   if (unit.cool > 0) {
-    log(g, tx("extras.swarm.drone-control-is-rebuilding-s", { ceil: Math.ceil(unit.cool) }));
+    log(g, `Drone Control is rebuilding: ${Math.ceil(unit.cool)} s.`);
     return false;
   }
   if (g.player.parts < PART_COST) {
-    log(g, tx("extras.swarm.drone-control-needs-a-drone-part"));
+    log(g, "Drone Control needs a drone part.");
     return false;
   }
   deployUnit(g, g.player, unit);
   delete kit.idle;
   kit.on = true;
-  log(g, tx("extras.swarm.drone-control-deploys", { kind: unit.kind }));
+  log(g, `Drone Control deploys ${unit.kind}.`);
   const functioning = (kit.drones ?? []).filter((d) => d.alive && d.powered).length;
   noteAchieve(g, { k: "drone", kind: unit.kind, functioning });
   return true;
@@ -462,7 +500,7 @@ function tickPlayerSlots(g: Game, kit: Kit, dt: number) {
         unit.powered = false;
         unit.cool = REDEPLOY_S;
         unit.coldFires = true;
-        log(g, tx("extras.swarm.your-repair-drone-finishes-the-bar"));
+        log(g, "Your repair drone finishes the bar and breaks apart.");
       });
       continue;
     }
@@ -474,7 +512,15 @@ function tickPlayerSlots(g: Game, kit: Kit, dt: number) {
       maybeHealBay(g.player, unit, dt);
       continue;
     }
-    tickRepair(g, g.player, unit, dt, "player", false, crewDroneSpeed(g.augments.includes("booster")));
+    tickRepair(
+      g,
+      g.player,
+      unit,
+      dt,
+      "player",
+      false,
+      crewDroneSpeed(g.augments.includes("booster")),
+    );
   }
   kit.on = any;
 }
@@ -511,7 +557,10 @@ function shoots(
  * True when a powered defense drone is off cooldown and this shot is one it
  * shoots down. One shot per cooldown: a hit fills kit.cool and kit.aux.
  */
-export function swarmIntercept(g: Game, shot: { kind: string; from: string; defId?: string; label?: string }): boolean {
+export function swarmIntercept(
+  g: Game,
+  shot: { kind: string; from: string; defId?: string; label?: string },
+): boolean {
   const kit = g.player.kits.swarm;
   if (!kit || !isKind(kit.target)) return false;
   const kind = kit.target;
@@ -528,7 +577,10 @@ export function swarmIntercept(g: Game, shot: { kind: string; from: string; defI
  * and Anti-Combat drones cannot acquire a target. The player's own drones are
  * not this check. A blocked drone does not spend its cooldown.
  */
-export function enemyDefenseIntercept(g: Game, shot: { kind: string; from: string; defId?: string; label?: string }): boolean {
+export function enemyDefenseIntercept(
+  g: Game,
+  shot: { kind: string; from: string; defId?: string; label?: string },
+): boolean {
   const kit = g.enemy?.kits.swarm;
   // @agent:drones. A generated enemy fields several drones (kit.drones). Hand-built kits keep the single target below.
   if (kit?.drones) return enemyUnitsIntercept(g, kit.drones, shot);
@@ -642,10 +694,17 @@ function flyCombatLaser(
 }
 
 function tickStriker(g: Game, kit: Kit, dt: number) {
-  flyCombatLaser(g, kit, dt, COMBAT1_SPEED, () => enemyRoom(g), (room) => {
-    if (combatFireBlocked(g, "player")) return;
-    pushStriker(g, room);
-  });
+  flyCombatLaser(
+    g,
+    kit,
+    dt,
+    COMBAT1_SPEED,
+    () => enemyRoom(g),
+    (room) => {
+      if (combatFireBlocked(g, "player")) return;
+      pushStriker(g, room);
+    },
+  );
 }
 
 function tickWardcut(g: Game, kit: Kit, dt: number) {
@@ -676,7 +735,11 @@ function tickBeam(g: Game, kit: Kit, dt: number) {
 /** Crew rooms first, otherwise a system room, otherwise any room. Same rule as the hit below. */
 function boardLanding(g: Game, enemy: Ship): Room | undefined {
   const alive = g.crew.filter(
-    (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && enemy.rooms.some((r) => r.id === c.room),
+    (c) =>
+      c.side === "enemy" &&
+      c.aboard === "enemy" &&
+      c.hp > 0 &&
+      enemy.rooms.some((r) => r.id === c.room),
   );
   if (alive.length > 0) {
     const rooms = enemy.rooms.filter((r) => alive.some((c) => c.room === r.id));
@@ -711,7 +774,7 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
       const via = g.augments.includes("bypass") ? bypassZoltan("board") : "destroyed";
       if (via !== "pass") {
         kit.on = false;
-        log(g, tx("extras.swarm.the-boarding-drone-breaks-on-their"));
+        log(g, "The boarding drone breaks on their Zoltan Shield.");
         return;
       }
     }
@@ -732,7 +795,9 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
     }
     const room = enemy.rooms.find((r) => r.id === kit.room);
     if (!room) continue;
-    const alive = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === room.id);
+    const alive = g.crew.filter(
+      (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === room.id,
+    );
     if (alive.length > 0) {
       const crew = alive[Math.floor(rand(g) * alive.length)];
       if (!crew) continue;
@@ -744,7 +809,9 @@ function tickBoard(g: Game, kit: Kit, dt: number) {
   // Boarding, "Boarding Drones": stay until the system is destroyed and no hostile crew remain, then the nearest system room.
   if (boarded && g.enemy) {
     stepFinishedBoard(g, g.enemy, kit, (roomId) =>
-      g.crew.some((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === roomId),
+      g.crew.some(
+        (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === roomId,
+      ),
     );
   }
 }
@@ -755,7 +822,9 @@ function sabotagePlayerBoard(g: Game, kit: Kit, dt: number) {
   if (!enemy || !kit.room) return;
   const room = enemy.rooms.find((r) => r.id === kit.room);
   if (!room?.system) return;
-  const blocked = g.crew.some((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === room.id);
+  const blocked = g.crew.some(
+    (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === room.id,
+  );
   if (blocked) return;
   const sys = enemy.systems[room.system];
   if (!sys || sys.damage >= sys.level) return;
@@ -904,7 +973,13 @@ function shipAir(ship: Ship): number {
   return sum / ship.rooms.length;
 }
 
-function patchRank(ship: Ship, room: Room, air: number, here: string, skipRemote: boolean): number | null {
+function patchRank(
+  ship: Ship,
+  room: Room,
+  air: number,
+  here: string,
+  skipRemote: boolean,
+): number | null {
   if (air < PATCH_AIR && room.system === "oxygen" && ship.systems.oxygen.damage > 0) return 0;
   // "if a fire is in a vented room, it will be completely ignored" even when that room is damaged.
   if (room.venting && room.fire > 0) return null;
@@ -1192,7 +1267,7 @@ function tickHull(g: Game, kit: Kit, dt: number): void {
     repaired = true;
   }
   if (kit.left <= 0 || (repaired && g.player.hull >= g.player.hullMax)) {
-    killPlayerDrone(g, tx("extras.swarm.your-hull-repair-drone-breaks-apart"));
+    killPlayerDrone(g, "Your hull repair drone breaks apart.");
   }
 }
 
@@ -1200,10 +1275,17 @@ function tickCombat2(g: Game, kit: Kit, dt: number) {
   // Drone Control, Combat Drone Mark II: "Power requirement: 4 power".
   // "Moves faster, and consequently has a higher rate of fire." The wait is the orbit leg.
   if (!kit.on || kit.power < COMBAT2.power) return;
-  flyCombatLaser(g, kit, dt, COMBAT2.speed, () => enemyRoom(g), (room) => {
-    if (combatFireBlocked(g, "player")) return;
-    pushStriker(g, room);
-  });
+  flyCombatLaser(
+    g,
+    kit,
+    dt,
+    COMBAT2.speed,
+    () => enemyRoom(g),
+    (room) => {
+      if (combatFireBlocked(g, "player")) return;
+      pushStriker(g, room);
+    },
+  );
 }
 
 function systemRooms(enemy: Ship): Room[] {
@@ -1241,10 +1323,19 @@ export const DRONE_DOOR_HITS_PER_S = 2;
 /** Hacking, "Overview": hacked doors are level-3 blast doors. extras/spike.ts HACKED_DOOR_LEVEL. */
 const HACKED_DOOR_LEVEL = 3;
 
-type Walker = { room?: string; path?: string[]; move?: number; doorHit?: boolean; doorChew?: string };
+type Walker = {
+  room?: string;
+  path?: string[];
+  move?: number;
+  doorHit?: boolean;
+  doorChew?: string;
+};
 
 function interiorDoor(ship: Ship, a: string, b: string) {
-  return ship.doors.find((door) => door.b !== "void" && ((door.a === a && door.b === b) || (door.a === b && door.b === a)));
+  return ship.doors.find(
+    (door) =>
+      door.b !== "void" && ((door.a === a && door.b === b) || (door.a === b && door.b === a)),
+  );
 }
 
 function roomCoated(ship: Ship, id: string): boolean {
@@ -1277,7 +1368,7 @@ function chewDoor(
       walker.doorChew = key;
       walker.doorHit = true;
     }
-    if (punchCoat(door, dt * DRONE_DOOR_HITS_PER_S) === "broke") log(g, tx("extras.swarm.a-door-gives-way"));
+    if (punchCoat(door, dt * DRONE_DOOR_HITS_PER_S) === "broke") log(g, "A door gives way.");
     return "blocked";
   }
   const hacked = ship === g.player && !!door.hacked && !!g.enemy;
@@ -1301,7 +1392,7 @@ function chewDoor(
   door.open = true;
   door.stuck = 7;
   door.hp = 0;
-  log(g, tx("extras.swarm.a-door-gives-way"));
+  log(g, "A door gives way.");
   return "blocked";
 }
 
@@ -1311,7 +1402,14 @@ function takeDoorSkip(walker: Walker): boolean {
   return true;
 }
 
-function stepIntruderWalk(g: Game, ship: Ship, walker: Walker, dt: number, aboard: "player" | "enemy", side: "player" | "enemy") {
+function stepIntruderWalk(
+  g: Game,
+  ship: Ship,
+  walker: Walker,
+  dt: number,
+  aboard: "player" | "enemy",
+  side: "player" | "enemy",
+) {
   if (!walker.path?.length) return;
   if (chewDoor(g, ship, walker, dt, aboard, side, false) === "blocked") return;
   walker.move = (walker.move ?? 0) + dt / INTRUDER_ROOM_S;
@@ -1338,7 +1436,13 @@ function intruderRoute(g: Game, ship: Ship, from: string, systems: Room[]): stri
 function hurtPlayerIntruder(g: Game, kit: Kit, dt: number): boolean {
   if (!kit.room || kit.hp == null) return false;
   const foes = g.crew.filter(
-    (c) => c.aboard === "enemy" && c.room === kit.room && c.hp > 0 && c.path.length === 0 && (c.stun ?? 0) <= 0 && !forPlayer(c),
+    (c) =>
+      c.aboard === "enemy" &&
+      c.room === kit.room &&
+      c.hp > 0 &&
+      c.path.length === 0 &&
+      (c.stun ?? 0) <= 0 &&
+      !forPlayer(c),
   );
   if (!foes.length) return false;
   kit.hp -= foes.reduce((sum, c) => sum + crewBlow(g, c, dt), 0);
@@ -1346,7 +1450,7 @@ function hurtPlayerIntruder(g: Game, kit: Kit, dt: number): boolean {
   kit.hp = 0;
   kit.path = [];
   kit.move = 0;
-  killPlayerDrone(g, tx("extras.swarm.crew-tore-your-ion-intruder-apart"));
+  killPlayerDrone(g, "Crew tore your ion intruder apart.");
   return true;
 }
 
@@ -1497,7 +1601,7 @@ export function tickSwarm(g: Game, dt: number) {
   // System Repair dying animation runs even with no power and through a stun. The bar, not the hit, ends it.
   if (kit.target === "patch" && kit.on && kit.dying) {
     tickDyingRepair(g, g.player, kit, dt, false, () =>
-      killPlayerDrone(g, tx("extras.swarm.your-repair-drone-finishes-the-bar")),
+      killPlayerDrone(g, "Your repair drone finishes the bar and breaks apart."),
     );
     return;
   }
@@ -1510,7 +1614,7 @@ export function tickSwarm(g: Game, dt: number) {
       const before = kit.ionT;
       kit.ionT = before + spent;
       if (ionBurnsOut(g, before, kit.ionT)) {
-        killPlayerDrone(g, tx("extras.swarm.your-burns-out-under-the-ion", { unitName: unitName(kit.target) }));
+        killPlayerDrone(g, `Your ${unitName(kit.target)} burns out under the ion charge.`);
         return;
       }
       if (kit.stun <= 0) kit.ionT = undefined;
@@ -1536,7 +1640,7 @@ export function tickSwarm(g: Game, dt: number) {
     kit.target = null;
     kit.left = 0;
     kit.aux = 0;
-    log(g, tx("extras.swarm.hull-repair-goes-offline-the-drone"));
+    log(g, "Hull Repair goes offline. The drone part stays spent.");
     return;
   }
   if (kit.target === "patch" && kit.on) {
@@ -1546,7 +1650,15 @@ export function tickSwarm(g: Game, dt: number) {
       maybeHealBay(g.player, kit, dt);
       return;
     }
-    tickRepair(g, g.player, kit, dt, "player", false, crewDroneSpeed(g.augments.includes("booster")));
+    tickRepair(
+      g,
+      g.player,
+      kit,
+      dt,
+      "player",
+      false,
+      crewDroneSpeed(g.augments.includes("booster")),
+    );
     return;
   }
   if (!isKind(kit.target) || !powered(kit, kit.target)) return;
@@ -1615,7 +1727,12 @@ export const ION_KILL_PER_S = 15 / 100;
  * Health lines: Boarding Drone "Health: 150 HP", Ion Intruder Drone "Health: 125 HP",
  * Anti-Personnel Drone "Health: 150 HP", System Repair Drone "Health: 25 HP".
  */
-const UNIT_HP: Record<string, number> = { board: 150, ionintruder: INTRUDER_HP, personnel: 150, patch: 25 };
+const UNIT_HP: Record<string, number> = {
+  board: 150,
+  ionintruder: INTRUDER_HP,
+  personnel: 150,
+  patch: 25,
+};
 
 /**
  * INVENTED: Boarding Drone and Ion Intruder print "Speed: 18 (when moving through space)" (INTRUDER_SPACE_SPEED),
@@ -1718,7 +1835,12 @@ export function roomDroneHp(ship: Ship, g: Game): { room: string; shown: number 
  * crewHit is the damage the crew in that room just took. A drone with no health field is orbiting and is skipped.
  * A drone at 0 or below is destroyed. The player's Ion Intruder stands on the enemy ship. A crew drone stands on its own.
  */
-export function hurtRoomDrones(g: Game, aboard: "player" | "enemy", roomId: string, crewHit: number): void {
+export function hurtRoomDrones(
+  g: Game,
+  aboard: "player" | "enemy",
+  roomId: string,
+  crewHit: number,
+): void {
   if (!(crewHit > 0)) return;
   const half = crewHit / 2;
   const kit = g.player.kits.swarm;
@@ -1726,7 +1848,7 @@ export function hurtRoomDrones(g: Game, aboard: "player" | "enemy", roomId: stri
     const onEnemy = kit.target === "ionintruder" || kit.target === "board";
     if ((aboard === "enemy") === onEnemy) {
       kit.hp -= half;
-      if (kit.hp <= 0) killPlayerDrone(g, tx("extras.swarm.the-hit-destroys-the-drone"));
+      if (kit.hp <= 0) killPlayerDrone(g, "The hit destroys the drone.");
     }
   }
   for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
@@ -1735,13 +1857,13 @@ export function hurtRoomDrones(g: Game, aboard: "player" | "enemy", roomId: stri
     if (aboard === "player" && spot?.at !== "player-room") continue;
     if (aboard === "enemy" && spot?.at !== "enemy-room") continue;
     unit.hp -= half;
-    if (unit.hp <= 0) killUnit(g, unit, tx("extras.swarm.the-hit-destroys-the-drone"));
+    if (unit.hp <= 0) killUnit(g, unit, "The hit destroys the drone.");
   }
   if (aboard !== "player") return;
   for (const unit of g.boarded ?? []) {
     if (!unit.alive || unit.hp == null || unit.room !== roomId) continue;
     unit.hp -= half;
-    if (unit.hp <= 0) killUnit(g, unit, tx("extras.swarm.the-hit-destroys-the-drone"));
+    if (unit.hp <= 0) killUnit(g, unit, "The hit destroys the drone.");
   }
 }
 
@@ -1751,13 +1873,13 @@ export function zoltanBurstDrones(g: Game, dead: Crew): void {
     const kit = g.player.kits.swarm;
     if (!kit?.on || kit.hp == null || kit.room !== dead.room) return;
     kit.hp -= ZOLTAN_DRONE_HP;
-    if (kit.hp <= 0) killPlayerDrone(g, tx("extras.swarm.the-zoltan-burst-destroys-the-drone"));
+    if (kit.hp <= 0) killPlayerDrone(g, "The Zoltan burst destroys the drone.");
     return;
   }
   for (const unit of [...(g.enemy?.kits.swarm?.drones ?? []), ...(g.boarded ?? [])]) {
     if (!unit.alive || unit.hp == null || unit.room !== dead.room) continue;
     unit.hp -= ZOLTAN_DRONE_HP;
-    if (unit.hp <= 0) killUnit(g, unit, tx("extras.swarm.the-zoltan-burst-destroys-the-drone"));
+    if (unit.hp <= 0) killUnit(g, unit, "The Zoltan burst destroys the drone.");
   }
 }
 
@@ -1773,10 +1895,12 @@ export function enemyDroneSpot(unit: DroneUnit): EnemyDroneSpot | null {
   if (!unit.alive) return null;
   if (OFFENSIVE.has(unit.kind)) return { at: "player-orbit" };
   if (BOARDERS.has(unit.kind)) {
-    if ((unit.fly ?? 0) > 0 || !unit.room) return { at: "flying", progress: 1 - Math.max(0, unit.fly ?? 0) / BOARD_FLY_S };
+    if ((unit.fly ?? 0) > 0 || !unit.room)
+      return { at: "flying", progress: 1 - Math.max(0, unit.fly ?? 0) / BOARD_FLY_S };
     return { at: "player-room", room: unit.room };
   }
-  if (CREW_DRONES.has(unit.kind)) return unit.room ? { at: "enemy-room", room: unit.room } : { at: "enemy-orbit" };
+  if (CREW_DRONES.has(unit.kind))
+    return unit.room ? { at: "enemy-room", room: unit.room } : { at: "enemy-orbit" };
   return { at: "enemy-orbit" };
 }
 
@@ -1810,7 +1934,8 @@ function stowed(kind: string, i: number, g: Game): DroneUnit {
 function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
   // Drone Control, Overview: activating a drone that is not deployed "will spend one drone part".
   enemy.parts -= PART_COST;
-  const intruderCharge = unit.kind === "ionintruder" && (unit.left ?? 0) > 0 ? { aux: unit.aux, left: unit.left } : null;
+  const intruderCharge =
+    unit.kind === "ionintruder" && (unit.left ?? 0) > 0 ? { aux: unit.aux, left: unit.left } : null;
   unit.alive = true;
   unit.powered = true;
   unit.aux = 0;
@@ -1956,13 +2081,14 @@ export function tickEnemyDrones(g: Game, dt: number) {
       takePowerSlot(need, true, pool);
       kit.on = true;
       const name = unitName(unit.kind);
-      log(g, tx("extras.swarm.their-drone-control-launches", { v: /^[aeiou]/.test(name) ? "an" : "a", name: name }));
+      log(g, `Their Drone Control launches ${/^[aeiou]/.test(name) ? "an" : "a"} ${name}.`);
       continue;
     }
     const was = unit.powered;
     unit.powered = takePowerSlot(need, true, pool);
     // Defensive Drones: the acquire second also follows a reactivation.
-    if (unit.powered && !was && DEFENSIVE.has(unit.kind)) unit.cool = Math.max(unit.cool, ACQUIRE_S);
+    if (unit.powered && !was && DEFENSIVE.has(unit.kind))
+      unit.cool = Math.max(unit.cool, ACQUIRE_S);
     tickUnit(g, enemy, unit, dt);
   }
 }
@@ -1999,7 +2125,7 @@ function tickStun(g: Game, unit: DroneUnit, dt: number) {
     // Overview: "Each second of stun after the first, they have a 15% chance to be destroyed."
     for (let s = Math.floor(before) + 1; s <= Math.floor(after + 1e-9); s++) {
       if (s >= 2 && rand(g) < ION_KILL_PER_S) {
-        killUnit(g, unit, tx("extras.swarm.their-burns-out-under-the-ion", { unitName: unitName(unit.kind) }));
+        killUnit(g, unit, `Their ${unitName(unit.kind)} burns out under the ion charge.`);
         return;
       }
     }
@@ -2013,7 +2139,7 @@ function tickStun(g: Game, unit: DroneUnit, dt: number) {
 function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
   if (unit.kind === "patch" && unit.dying) {
     tickDyingRepair(g, enemy, unit, dt, true, () =>
-      killUnit(g, unit, tx("extras.swarm.their-repair-drone-finishes-the-bar")),
+      killUnit(g, unit, "Their repair drone finishes the bar and breaks apart."),
     );
     return;
   }
@@ -2023,7 +2149,10 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
     if (!unit.alive || (unit.stun ?? 0) > 0) return;
   }
   // Overview: "Crew and boarding drones can be damaged and destroyed by hostile crew". Power does not matter for that.
-  if ((BOARDERS.has(unit.kind) && (unit.fly ?? 0) <= 0 && unit.room) || CREW_DRONES.has(unit.kind)) {
+  if (
+    (BOARDERS.has(unit.kind) && (unit.fly ?? 0) <= 0 && unit.room) ||
+    CREW_DRONES.has(unit.kind)
+  ) {
     const aboard = BOARDERS.has(unit.kind) ? "player" : "enemy";
     if (crewHitsDrone(g, unit, aboard, dt)) return;
   }
@@ -2080,12 +2209,18 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
 function crewHitsDrone(g: Game, unit: DroneUnit, aboard: "player" | "enemy", dt: number): boolean {
   if (!unit.room || unit.hp == null) return false;
   const foes = g.crew.filter(
-    (c) => c.aboard === aboard && c.room === unit.room && c.hp > 0 && c.path.length === 0 && (c.stun ?? 0) <= 0 && forPlayer(c),
+    (c) =>
+      c.aboard === aboard &&
+      c.room === unit.room &&
+      c.hp > 0 &&
+      c.path.length === 0 &&
+      (c.stun ?? 0) <= 0 &&
+      forPlayer(c),
   );
   if (!foes.length) return false;
   unit.hp -= foes.reduce((sum, c) => sum + crewBlow(g, c, dt), 0);
   if (unit.hp > 0) return false;
-  killUnit(g, unit, tx("extras.swarm.crew-tore-their-apart", { unitName: unitName(unit.kind) }));
+  killUnit(g, unit, `Crew tore their ${unitName(unit.kind)} apart.`);
   return true;
 }
 
@@ -2139,15 +2274,21 @@ function linkedRoom(g: Game, ship: Ship, id: string): string | undefined {
  * Anti-Ship Beam Drone II: "it can often hit 2 rooms". INFERRED: a door-linked neighbour is the second room.
  * "0.4 tile diagonally" is the Beam I length, not a flight time, so this does not wait a second duration.
  */
-function landBeamSwipe(g: Game, ship: Ship | null, roomId: string, kind: string, from: "player" | "enemy"): void {
+function landBeamSwipe(
+  g: Game,
+  ship: Ship | null,
+  roomId: string,
+  kind: string,
+  from: "player" | "enemy",
+): void {
   if (!ship || combatFireBlocked(g, from)) return;
   if ((ship.zoltan ?? 0) > 0) {
     ship.zoltan = Math.max(0, (ship.zoltan ?? 0) - (SWIPE_ZOLTAN[kind] ?? 1));
     log(
       g,
       from === "player"
-        ? tx("extras.swarm.your-beam-drone-drains-the-zoltan", { zoltan: ship.zoltan })
-        : tx("extras.swarm.their-drains-the-zoltan-shield-to", { unitName: unitName(kind), zoltan: ship.zoltan }),
+        ? `Your beam drone drains the Zoltan Shield to ${ship.zoltan}.`
+        : `Their ${unitName(kind)} drains the Zoltan Shield to ${ship.zoltan}.`,
     );
     return;
   }
@@ -2160,7 +2301,7 @@ function landBeamSwipe(g: Game, ship: Ship | null, roomId: string, kind: string,
     // Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
     if (rand(g) < FIRE_DRONE_FIRE) {
       room.fire = Math.min(4, room.fire + 1);
-      if (from === "enemy") log(g, tx("extras.swarm.their-fire-drone-lights-the", { title: room.title }));
+      if (from === "enemy") log(g, `Their fire drone lights the ${room.title}.`);
     }
     return;
   }
@@ -2257,7 +2398,7 @@ function tickEnemyBoarder(g: Game, unit: DroneUnit, dt: number) {
     if (veilBlocks(g, "enemy")) return;
     const hit = interceptIncomingDrone(g, "player", "boarding");
     if (hit === "down") {
-      killUnit(g, unit, tx("extras.swarm.your-drone-shot-down-their", { unitName: unitName(unit.kind) }));
+      killUnit(g, unit, `Your drone shot down their ${unitName(unit.kind)}.`);
       return;
     }
     if (hit === "stun") {
@@ -2267,7 +2408,7 @@ function tickEnemyBoarder(g: Game, unit: DroneUnit, dt: number) {
     unit.fly = Math.max(0, (unit.fly ?? 0) - dt);
     if (unit.fly > 0) return;
     if ((g.player.zoltan ?? 0) > 0) {
-      killUnit(g, unit, tx("extras.swarm.their-breaks-on-the-zoltan-shield", { unitName: unitName(unit.kind) }));
+      killUnit(g, unit, `Their ${unitName(unit.kind)} breaks on the Zoltan Shield.`);
       return;
     }
     // INFERRED: the page does not say where a drone breaches in. A random system room, any room if none.
@@ -2279,7 +2420,7 @@ function tickEnemyBoarder(g: Game, unit: DroneUnit, dt: number) {
     unit.aux = unit.kind === "ionintruder" ? unit.aux : 0;
     // "breach the hull": INFERRED one breach in the landing room.
     if (room.breach < 1) room.breach = 1;
-    log(g, tx("extras.swarm.their-breaches-into-the", { unitName: unitName(unit.kind), title: room.title }));
+    log(g, `Their ${unitName(unit.kind)} breaches into the ${room.title}.`);
     return;
   }
   if (unit.kind === "ionintruder") tickEnemyIntruder(g, unit, dt);
@@ -2290,12 +2431,14 @@ function tickEnemyBoarder(g: Game, unit: DroneUnit, dt: number) {
 function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
   const here0 = g.player.rooms.find((room) => room.id === unit.room);
   if (here0?.system) {
-    const foes0 = g.crew.filter((c) => c.aboard === "player" && c.room === here0.id && c.hp > 0 && forPlayer(c));
+    const foes0 = g.crew.filter(
+      (c) => c.aboard === "player" && c.room === here0.id && c.hp > 0 && forPlayer(c),
+    );
     const sys0 = g.player.systems[here0.system];
     if (foes0.length === 0 && sys0 && sys0.damage < sys0.level && accrueBar(unit, dt)) {
       breakPlayerBar(g, here0.system);
       unit.fired = 0;
-      log(g, tx("extras.swarm.their-boarding-drone-wrecks-the", { title: here0.title }));
+      log(g, `Their boarding drone wrecks the ${here0.title}.`);
     }
   }
   unit.aux += dt;
@@ -2303,7 +2446,9 @@ function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
     unit.aux -= BOARD_INTERVAL_S;
     const here = g.player.rooms.find((room) => room.id === unit.room);
     if (!here) return;
-    const foes = g.crew.filter((c) => c.aboard === "player" && c.room === here.id && c.hp > 0 && forPlayer(c));
+    const foes = g.crew.filter(
+      (c) => c.aboard === "player" && c.room === here.id && c.hp > 0 && forPlayer(c),
+    );
     const crew = randomOf(g, foes);
     if (crew) {
       crew.hp -= boardHit(g);
@@ -2342,9 +2487,11 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
         // Augmentations, Reverse Ion Field: "immunity to all sources of ion damage", including this pulse.
         // INFERRED: Drone Control, Ion Intruder, prints the stun beside the ion damage, so a resist still stuns.
         const held = negateIon(g);
-        if (!held) applyIon(ship, room.system, INTRUDER.ion, zoltanBars(g.crew, ship, "player", "shields"));
+        if (!held)
+          applyIon(ship, room.system, INTRUDER.ion, zoltanBars(g.crew, ship, "player", "shields"));
         for (const c of g.crew) {
-          if (c.side !== "player" || c.aboard !== "player" || c.room !== room.id || c.hp <= 0) continue;
+          if (c.side !== "player" || c.aboard !== "player" || c.room !== room.id || c.hp <= 0)
+            continue;
           c.stun = Math.max(c.stun ?? 0, INTRUDER.stunSeconds);
         }
         // Boarding, "Boarding Drones": "The Ion Intruder will ionize a system, stunning all hostile crew and drones for 6 seconds, and then move to another system."
@@ -2360,7 +2507,12 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
           kit.stun = Math.max(kit.stun ?? 0, INTRUDER.stunSeconds);
         }
         unit.fired = 0;
-        log(g, held ? tx("extras.swarm.reverse-ion-field-shrugged-that-off") : tx("extras.swarm.their-ion-intruder-pulses-the", { title: room.title }));
+        log(
+          g,
+          held
+            ? "Reverse Ion Field shrugged that off."
+            : `Their ion intruder pulses the ${room.title}.`,
+        );
       }
     }
     // "then moves to a different system". A shut blast door is broken on the walk, at DRONE_DOOR_HITS_PER_S.
@@ -2410,16 +2562,17 @@ function enemyAntiCombat(g: Game, unit: DroneUnit) {
   if (g.augments.includes("scrambler") && scramblerBlocks("wardcut")) return;
   const kit = g.player.kits.swarm;
   const kind = kit?.target;
-  if (!kit?.on || !kind || (!OFFENSIVE.has(kind) && !BOARDERS.has(kind)) || (kit.stun ?? 0) > 0) return;
+  if (!kit?.on || !kind || (!OFFENSIVE.has(kind) && !BOARDERS.has(kind)) || (kit.stun ?? 0) > 0)
+    return;
   // "after the first shot it needs continuous power for 7 seconds to charge the next one".
   unit.cool = DRONE_COOLDOWN_S.wardcut;
   unit.fired = 0;
   if (rand(g) < ANTI_KILL) {
-    killPlayerDrone(g, tx("extras.swarm.their-anti-combat-drone-destroyed-your"));
+    killPlayerDrone(g, "Their anti-combat drone destroyed your drone.");
     return;
   }
   kit.stun = ANTI_STUN_S;
-  log(g, tx("extras.swarm.their-anti-combat-drone-stunned-your"));
+  log(g, "Their anti-combat drone stunned your drone.");
 }
 
 /** Your Anti-Combat Drone against their combat drones and their boarding drones in flight. INFERRED: a random target. */
@@ -2435,12 +2588,12 @@ function playerAntiCombat(g: Game, kit: Kit) {
   if (!target) return;
   setCooldown(kit, DRONE_COOLDOWN_S.wardcut);
   if (rand(g) < ANTI_KILL) {
-    killUnit(g, target, tx("extras.swarm.your-anti-combat-drone-destroyed-their", { unitName: unitName(target.kind) }));
+    killUnit(g, target, `Your anti-combat drone destroyed their ${unitName(target.kind)}.`);
     return;
   }
   target.stun = ANTI_STUN_S;
   target.ionT = undefined;
-  log(g, tx("extras.swarm.your-anti-combat-drone-stunned-their", { unitName: unitName(target.kind) }));
+  log(g, `Your anti-combat drone stunned their ${unitName(target.kind)}.`);
 }
 
 /**
@@ -2493,19 +2646,32 @@ function enemyUnitsIntercept(
  * Hacking, Overview: "While travelling, the hacking drone can be targeted by defense drones and anti-combat drones".
  * The Defense Scrambler stops the enemy's drones (defender "enemy"), never yours.
  */
-export function interceptIncomingDrone(g: Game, defender: "player" | "enemy", kind: "hacking" | "boarding"): "down" | "stun" | null {
+export function interceptIncomingDrone(
+  g: Game,
+  defender: "player" | "enemy",
+  kind: "hacking" | "boarding",
+): "down" | "stun" | null {
   const from = defender === "player" ? "enemy" : "player";
   if (defender === "player") {
     if (swarmIntercept(g, { kind, from })) return "down";
     const kit = g.player.kits.swarm;
-    if (!kit || kit.target !== "wardcut" || !powered(kit, "wardcut") || !ready(kit) || (kit.stun ?? 0) > 0) return null;
+    if (
+      !kit ||
+      kit.target !== "wardcut" ||
+      !powered(kit, "wardcut") ||
+      !ready(kit) ||
+      (kit.stun ?? 0) > 0
+    )
+      return null;
     setCooldown(kit, DRONE_COOLDOWN_S.wardcut);
     return rand(g) < ANTI_KILL ? "down" : "stun";
   }
   if (enemyDefenseIntercept(g, { kind, from })) return "down";
   const units = g.enemy?.kits.swarm?.drones ?? [];
   if (g.augments.includes("scrambler") && scramblerBlocks("wardcut")) return null;
-  const cut = units.find((u) => u.kind === "wardcut" && u.alive && u.powered && (u.stun ?? 0) <= 0 && u.cool <= 0);
+  const cut = units.find(
+    (u) => u.kind === "wardcut" && u.alive && u.powered && (u.stun ?? 0) <= 0 && u.cool <= 0,
+  );
   if (!cut) return null;
   cut.cool = DRONE_COOLDOWN_S.wardcut;
   cut.fired = 0;
@@ -2569,13 +2735,16 @@ function orbiters(g: Game): Orbiter[] {
   const kit = g.player.kits.swarm;
   if (kit?.on && kit.target && (kit.lost ?? 0) <= 0) {
     // Combat Drones: offensive drones "orbit the enemy ship". Defensive drones fly around their own.
-    if (OFFENSIVE.has(kit.target)) out.push({ side: "player", kind: kit.target, at: "enemy-orbit" });
-    else if (HOME_ORBIT.has(kit.target)) out.push({ side: "player", kind: kit.target, at: "player-orbit" });
+    if (OFFENSIVE.has(kit.target))
+      out.push({ side: "player", kind: kit.target, at: "enemy-orbit" });
+    else if (HOME_ORBIT.has(kit.target))
+      out.push({ side: "player", kind: kit.target, at: "player-orbit" });
   }
   for (const unit of g.enemy?.kits.swarm?.drones ?? []) {
     if (!unit.alive || CREW_DRONES.has(unit.kind) || BOARDERS.has(unit.kind)) continue;
     const spot = enemyDroneSpot(unit);
-    if (spot?.at === "player-orbit" || spot?.at === "enemy-orbit") out.push({ side: "enemy", kind: unit.kind, at: spot.at, unit });
+    if (spot?.at === "player-orbit" || spot?.at === "enemy-orbit")
+      out.push({ side: "enemy", kind: unit.kind, at: spot.at, unit });
   }
   return out;
 }
@@ -2634,20 +2803,22 @@ function strike(g: Game, o: Orbiter, by: DroneBlast["by"], ion: number): boolean
   const name = unitName(o.kind);
   const whose = o.side === "player" ? "your" : "their";
   if (ion > 0) {
-    const hit = o.unit ? ionHitsDrone(o.unit, ion) : !!g.player.kits.swarm && ionHitsKit(g.player.kits.swarm, ion);
+    const hit = o.unit
+      ? ionHitsDrone(o.unit, ion)
+      : !!g.player.kits.swarm && ionHitsKit(g.player.kits.swarm, ion);
     if (!hit) return false;
-    log(g, tx("extras.swarm.an-ion-blast-stunned", { whose: whose, name: name }));
+    log(g, `An ion blast stunned ${whose} ${name}.`);
     noteBlast(g, o, by, "ion");
     return true;
   }
   const why =
     by === "rock"
-      ? tx("extras.swarm.an-asteroid-smashed", { whose: whose, name: name })
+      ? `An asteroid smashed ${whose} ${name}.`
       : by === "defense"
-        ? tx("extras.swarm.a-stray-defense-shot-destroyed", { whose: whose, name: name })
+        ? `A stray defense shot destroyed ${whose} ${name}.`
         : o.side === "player"
-          ? tx("extras.swarm.their-fire-caught-your", { name: name })
-          : tx("extras.swarm.your-fire-caught-their", { name: name });
+          ? `Their fire caught your ${name}.`
+          : `Your fire caught their ${name}.`;
   if (o.unit) killUnit(g, o.unit, why);
   else killPlayerDrone(g, why);
   noteBlast(g, o, by, "down");
@@ -2676,15 +2847,21 @@ export function shotHitsDrone(g: Game, shot: Shot): boolean {
   if (!all.length) return false;
   let inWay: Orbiter[];
   // Environmental Hazards, Asteroid Field: a rock aimed at the enemy meets drones around that hull.
-  if (rock) inWay = all.filter((o) => o.at === (shot.at === "enemy" ? "enemy-orbit" : "player-orbit"));
+  if (rock)
+    inWay = all.filter((o) => o.at === (shot.at === "enemy" ? "enemy-orbit" : "player-orbit"));
   else {
     const outbound = droneShot(shot) ? null : `${shot.from}-orbit`;
-    inWay = all.filter((o) => o.side === target && (o.at === `${target}-orbit` || o.at === outbound));
+    inWay = all.filter(
+      (o) => o.side === target && (o.at === `${target}-orbit` || o.at === outbound),
+    );
   }
   const chance = rock ? ROCK_HIT : LINE_OF_FIRE;
   for (const o of inWay) {
     if (rand(g) >= chance) continue;
-    if (strike(g, o, rock ? "rock" : "shot", !rock && shot.kind === "ion" ? Math.max(1, shot.ion) : 0)) return true;
+    if (
+      strike(g, o, rock ? "rock" : "shot", !rock && shot.kind === "ion" ? Math.max(1, shot.ion) : 0)
+    )
+      return true;
   }
   return false;
 }
@@ -2695,12 +2872,21 @@ export function shotHitsDrone(g: Game, shot: Shot): boolean {
  * Combat Drones (offensive drones), quoted on MARK2_OWN_LASER. "your defense drones cannot shoot down each other", so
  * only the other side's drones count.
  */
-function defenseStray(g: Game, defender: "player" | "enemy", kind: string, shot: { label?: string }) {
-  const victims = orbiters(g).filter((o) => o.side !== defender && o.at === `${defender}-orbit` && OFFENSIVE.has(o.kind));
+function defenseStray(
+  g: Game,
+  defender: "player" | "enemy",
+  kind: string,
+  shot: { label?: string },
+) {
+  const victims = orbiters(g).filter(
+    (o) => o.side !== defender && o.at === `${defender}-orbit` && OFFENSIVE.has(o.kind),
+  );
   for (const o of victims) {
     const own =
       kind === "ward2" &&
-      (o.unit ? shot.label === DRONE_LABEL + o.unit.id : shot.label === READY_LABEL || shot.label === FLOWN_LABEL);
+      (o.unit
+        ? shot.label === DRONE_LABEL + o.unit.id
+        : shot.label === READY_LABEL || shot.label === FLOWN_LABEL);
     if (rand(g) >= (own ? MARK2_OWN_LASER : DEFENSE_STRAY)) continue;
     strike(g, o, "defense", 0);
     return;

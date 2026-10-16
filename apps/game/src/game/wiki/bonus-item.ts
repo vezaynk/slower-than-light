@@ -4,14 +4,14 @@
  * and drone schematics go to cargo, and make-room.ts asks what to leave behind when that is full too. See
  * grantBonusAugment for a duplicate augmentation.
  */
-import { tx } from "../../i18n/index.ts";
 import { allAugments, allDrones, allWeapons, augmentDef, droneDef, weaponDef } from "@stl/pack";
 import { rand } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { NOT_SOLD } from "./cited-stores.ts";
 import { heldSchematics, receiveAugment, receiveDrone, receiveWeapon } from "./make-room.ts";
 
-export type BonusItem = { kind: "weapon"; id: string } | { kind: "augment"; id: string } | { kind: "drone"; id: string };
+export type BonusItem =
+  { kind: "weapon"; id: string } | { kind: "augment"; id: string } | { kind: "drone"; id: string };
 
 /**
  * Augmentations, intro: "Most stat-boosting Augmentations stack with each other." The stackable ones are the five the
@@ -21,13 +21,17 @@ export type BonusItem = { kind: "weapon"; id: string } | { kind: "augment"; id: 
 const STACKS: ReadonlySet<string> = new Set(["feed", "baffle", "coil", "spool", "hook"]);
 
 function pickOne<T>(g: Game, items: readonly T[]): T | undefined {
-  return items.length ? items[Math.min(items.length - 1, Math.floor(rand(g) * items.length))] : undefined;
+  return items.length
+    ? items[Math.min(items.length - 1, Math.floor(rand(g) * items.length))]
+    : undefined;
 }
 
 /** Draws the bonus item, or nothing when no kind fits. `weapons` narrows the weapon pool (Hidden Crystal Worlds). */
 export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): BonusItem | undefined {
   const owned = new Set(g.player.weapons.map((w) => w.defId));
-  const guns = allWeapons().filter((w) => w.price > 0 && !owned.has(w.id) && (!weapons || weapons(w.id)));
+  const guns = allWeapons().filter(
+    (w) => w.price > 0 && !owned.has(w.id) && (!weapons || weapons(w.id)),
+  );
   // INFERRED: the loot pool is the store pool (no Rock Plating or Titanium System Casing).
   const augs = allAugments().filter((row) => !NOT_SOLD.has(row.id));
   const held = heldSchematics(g);
@@ -55,16 +59,25 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
 export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): string {
   if (kind === "weapon") {
     const owned = new Set(g.player.weapons.map((w) => w.defId));
-    const def = pickOne(g, allWeapons().filter((w) => w.price > 0 && !owned.has(w.id)));
-    return def ? weaponLine(g, def.id) : tx("wiki.bonus-item.no-weapon-is-left-to-give");
+    const def = pickOne(
+      g,
+      allWeapons().filter((w) => w.price > 0 && !owned.has(w.id)),
+    );
+    return def ? weaponLine(g, def.id) : "No weapon is left to give.";
   }
   if (kind === "augment") {
-    const id = pickOne(g, allAugments().filter((row) => !NOT_SOLD.has(row.id)))?.id;
-    return id ? grantBonusAugment(g, id) : tx("wiki.bonus-item.no-augmentation-is-left-to-give");
+    const id = pickOne(
+      g,
+      allAugments().filter((row) => !NOT_SOLD.has(row.id)),
+    )?.id;
+    return id ? grantBonusAugment(g, id) : "No augmentation is left to give.";
   }
   const held = heldSchematics(g);
-  const ref = pickOne(g, allDrones().filter((row) => !held.includes(row.id)))?.id;
-  return ref ? droneLine(g, ref) : tx("wiki.bonus-item.no-drone-schematic-is-left-to");
+  const ref = pickOne(
+    g,
+    allDrones().filter((row) => !held.includes(row.id)),
+  )?.id;
+  return ref ? droneLine(g, ref) : "No drone schematic is left to give.";
 }
 
 /** Receives a weapon and returns the line for the result card. */
@@ -72,8 +85,8 @@ export function weaponLine(g: Game, defId: string): string {
   const name = weaponDef(defId)?.name ?? defId;
   const got = receiveWeapon(g, defId);
   if (got === "mounted") return `${name} mounted.`;
-  if (got === "cargo") return tx("wiki.bonus-item.no-free-weapon-slot-is-stowed", { name: name });
-  return tx("wiki.bonus-item.no-room-in-cargo-for-choose", { name: name });
+  if (got === "cargo") return `No free weapon slot: ${name} is stowed in cargo.`;
+  return `No room in cargo for ${name}: choose what to leave behind.`;
 }
 
 /** What a looted augmentation does to this ship: fitted, 25 scrap for a duplicate, or a make-room choice. */
@@ -92,9 +105,10 @@ export function grantBonusAugment(g: Game, id: string): string {
   const fate = bonusAugmentFate(g, id);
   if (fate === "scrap") {
     g.scrap += 25;
-    return tx("wiki.bonus-item.is-already-fitted-25-scrap-instead", { name: name });
+    return `${name} is already fitted: 25 scrap instead.`;
   }
-  if (receiveAugment(g, id) === "queued") return tx("wiki.bonus-item.no-free-augmentation-slot-for-choose", { name: name });
+  if (receiveAugment(g, id) === "queued")
+    return `No free augmentation slot for ${name}: choose what to leave behind.`;
   return `${name} fitted.`;
 }
 
@@ -110,10 +124,11 @@ export function augmentDetail(id: string): string {
 export function droneLine(g: Game, ref: string): string {
   const name = droneName(ref);
   const got = receiveDrone(g, ref);
-  if (got === "fitted") return tx("wiki.bonus-item.schematic-fitted", { name: name });
-  if (got === "cargo") return tx("wiki.bonus-item.schematic-stowed-in-cargo", { name: name });
-  if (got === "queued") return tx("wiki.bonus-item.no-room-in-cargo-for-the", { name: name });
-  return tx("wiki.bonus-item.you-already-have-the-schematic", { name: name });
+  if (got === "fitted") return `${name} schematic fitted.`;
+  if (got === "cargo") return `${name} schematic stowed in cargo.`;
+  if (got === "queued")
+    return `No room in cargo for the ${name} schematic: choose what to leave behind.`;
+  return `You already have the ${name} schematic.`;
 }
 
 export function droneName(ref: string): string {

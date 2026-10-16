@@ -4,7 +4,6 @@
  * and `dronePixels` paint onto a small grid. gear-look.test.ts checks that every
  * fitted weapon and every drone renders to a different picture.
  */
-import { tx } from "../i18n/index.ts";
 import "./pack/base.ts";
 import { allWeapons, weaponDef } from "@stl/pack";
 import type { SwarmKind } from "./extras/swarm.ts";
@@ -56,69 +55,447 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
   // Lasers: square housings, red light.
   spark: { frame: "block", barrels: 1, reach: 5, body: STEEL, trim: GUNMETAL, glow: RED },
   twin: { frame: "block", barrels: 2, reach: 6, body: STEEL, trim: SLATE, glow: RED },
-  burst1: { frame: "block", barrels: 2, reach: 6, mark: 1, body: BONE, trim: GUNMETAL, glow: ORANGE },
-  lineburst: { frame: "block", barrels: 3, reach: 7, mark: 2, body: BONE, trim: GUNMETAL, glow: RED },
+  burst1: {
+    frame: "block",
+    barrels: 2,
+    reach: 6,
+    mark: 1,
+    body: BONE,
+    trim: GUNMETAL,
+    glow: ORANGE,
+  },
+  lineburst: {
+    frame: "block",
+    barrels: 3,
+    reach: 7,
+    mark: 2,
+    body: BONE,
+    trim: GUNMETAL,
+    glow: RED,
+  },
   burst3: { frame: "block", barrels: 5, reach: 8, mark: 3, body: BONE, trim: SLATE, glow: RED },
-  heavy: { frame: "block", barrels: 1, reach: 7, heavy: true, body: GUNMETAL, trim: SLATE, glow: RED },
-  heavy2: { frame: "block", barrels: 2, reach: 7, heavy: true, mark: 2, body: GUNMETAL, trim: SLATE, glow: ORANGE },
-  heavypierce: { frame: "block", barrels: 1, reach: 11, heavy: true, mark: 1, body: SLATE, trim: GUNMETAL, glow: AMBER },
-  hullsmash: { frame: "block", barrels: 2, reach: 4, heavy: true, mark: 1, body: RUST, trim: SLATE, glow: ORANGE },
-  hullsmash2: { frame: "block", barrels: 3, reach: 5, heavy: true, mark: 2, body: RUST, trim: SLATE, glow: AMBER },
-  chainlaser: { frame: "block", barrels: 2, reach: 7, chain: true, body: STEEL, trim: SLATE, glow: ORANGE },
-  vulcan: { frame: "drum", barrels: 4, reach: 9, chain: true, body: GUNMETAL, trim: SLATE, glow: ORANGE },
-  chargers: { frame: "block", barrels: 1, reach: 4, charger: true, body: BONE, trim: SLATE, glow: AMBER },
-  charger: { frame: "block", barrels: 2, reach: 6, charger: true, body: STEEL, trim: SLATE, glow: AMBER },
-  charger2: { frame: "block", barrels: 4, reach: 7, charger: true, mark: 2, body: STEEL, trim: GUNMETAL, glow: AMBER },
+  heavy: {
+    frame: "block",
+    barrels: 1,
+    reach: 7,
+    heavy: true,
+    body: GUNMETAL,
+    trim: SLATE,
+    glow: RED,
+  },
+  heavy2: {
+    frame: "block",
+    barrels: 2,
+    reach: 7,
+    heavy: true,
+    mark: 2,
+    body: GUNMETAL,
+    trim: SLATE,
+    glow: ORANGE,
+  },
+  heavypierce: {
+    frame: "block",
+    barrels: 1,
+    reach: 11,
+    heavy: true,
+    mark: 1,
+    body: SLATE,
+    trim: GUNMETAL,
+    glow: AMBER,
+  },
+  hullsmash: {
+    frame: "block",
+    barrels: 2,
+    reach: 4,
+    heavy: true,
+    mark: 1,
+    body: RUST,
+    trim: SLATE,
+    glow: ORANGE,
+  },
+  hullsmash2: {
+    frame: "block",
+    barrels: 3,
+    reach: 5,
+    heavy: true,
+    mark: 2,
+    body: RUST,
+    trim: SLATE,
+    glow: AMBER,
+  },
+  chainlaser: {
+    frame: "block",
+    barrels: 2,
+    reach: 7,
+    chain: true,
+    body: STEEL,
+    trim: SLATE,
+    glow: ORANGE,
+  },
+  vulcan: {
+    frame: "drum",
+    barrels: 4,
+    reach: 9,
+    chain: true,
+    body: GUNMETAL,
+    trim: SLATE,
+    glow: ORANGE,
+  },
+  chargers: {
+    frame: "block",
+    barrels: 1,
+    reach: 4,
+    charger: true,
+    body: BONE,
+    trim: SLATE,
+    glow: AMBER,
+  },
+  charger: {
+    frame: "block",
+    barrels: 2,
+    reach: 6,
+    charger: true,
+    body: STEEL,
+    trim: SLATE,
+    glow: AMBER,
+  },
+  charger2: {
+    frame: "block",
+    barrels: 4,
+    reach: 7,
+    charger: true,
+    mark: 2,
+    body: STEEL,
+    trim: GUNMETAL,
+    glow: AMBER,
+  },
   // @agent:flagship. Rebel Flagship artillery (wiki/flagship-weapons.ts), in the boss maroon of Boss Ion / Missile.
-  bosslaser: { frame: "block", barrels: 3, reach: 9, heavy: true, mark: 3, body: "#5a2a2a", trim: SLATE, glow: RED },
+  bosslaser: {
+    frame: "block",
+    barrels: 3,
+    reach: 9,
+    heavy: true,
+    mark: 3,
+    body: "#5a2a2a",
+    trim: SLATE,
+    glow: RED,
+  },
   // Crystal: faceted prisms.
-  crystalburst: { frame: "prism", barrels: 2, reach: 5, body: "#a8e8ff", trim: "#5aa8c8", glow: PINK },
-  crystalburst2: { frame: "prism", barrels: 3, reach: 6, mark: 2, body: "#a8e8ff", trim: "#5aa8c8", glow: PINK },
-  heavycrystal: { frame: "prism", barrels: 1, reach: 6, heavy: true, body: "#f0b8e0", trim: "#b0609a", glow: CYAN },
-  heavycrystal2: { frame: "prism", barrels: 2, reach: 7, heavy: true, mark: 2, body: "#f0b8e0", trim: "#b0609a", glow: CYAN },
+  crystalburst: {
+    frame: "prism",
+    barrels: 2,
+    reach: 5,
+    body: "#a8e8ff",
+    trim: "#5aa8c8",
+    glow: PINK,
+  },
+  crystalburst2: {
+    frame: "prism",
+    barrels: 3,
+    reach: 6,
+    mark: 2,
+    body: "#a8e8ff",
+    trim: "#5aa8c8",
+    glow: PINK,
+  },
+  heavycrystal: {
+    frame: "prism",
+    barrels: 1,
+    reach: 6,
+    heavy: true,
+    body: "#f0b8e0",
+    trim: "#b0609a",
+    glow: CYAN,
+  },
+  heavycrystal2: {
+    frame: "prism",
+    barrels: 2,
+    reach: 7,
+    heavy: true,
+    mark: 2,
+    body: "#f0b8e0",
+    trim: "#b0609a",
+    glow: CYAN,
+  },
   // Missiles: launch tubes, warheads lit.
   dart: { frame: "tube", barrels: 1, reach: 3, fins: true, body: BRONZE, trim: RUST, glow: AMBER },
   leto: { frame: "tube", barrels: 1, reach: 3, body: STEEL, trim: GUNMETAL, glow: RED },
-  artemis: { frame: "tube", barrels: 1, reach: 5, fins: true, body: BONE, trim: GUNMETAL, glow: RED },
-  artemisEnemy: { frame: "tube", barrels: 1, reach: 5, fins: true, mark: 1, body: "#c8564a", trim: SLATE, glow: AMBER },
-  hermes: { frame: "tube", barrels: 1, reach: 6, heavy: true, fins: true, mark: 1, body: BONE, trim: GUNMETAL, glow: ORANGE },
-  breachmissiles: { frame: "tube", barrels: 1, reach: 7, heavy: true, fins: true, mark: 2, body: GUNMETAL, trim: SLATE, glow: ORANGE },
-  hullmissile: { frame: "tube", barrels: 1, reach: 4, heavy: true, chain: true, body: RUST, trim: SLATE, glow: RED },
+  artemis: {
+    frame: "tube",
+    barrels: 1,
+    reach: 5,
+    fins: true,
+    body: BONE,
+    trim: GUNMETAL,
+    glow: RED,
+  },
+  artemisEnemy: {
+    frame: "tube",
+    barrels: 1,
+    reach: 5,
+    fins: true,
+    mark: 1,
+    body: "#c8564a",
+    trim: SLATE,
+    glow: AMBER,
+  },
+  hermes: {
+    frame: "tube",
+    barrels: 1,
+    reach: 6,
+    heavy: true,
+    fins: true,
+    mark: 1,
+    body: BONE,
+    trim: GUNMETAL,
+    glow: ORANGE,
+  },
+  breachmissiles: {
+    frame: "tube",
+    barrels: 1,
+    reach: 7,
+    heavy: true,
+    fins: true,
+    mark: 2,
+    body: GUNMETAL,
+    trim: SLATE,
+    glow: ORANGE,
+  },
+  hullmissile: {
+    frame: "tube",
+    barrels: 1,
+    reach: 4,
+    heavy: true,
+    chain: true,
+    body: RUST,
+    trim: SLATE,
+    glow: RED,
+  },
   swarmmissiles: { frame: "tube", barrels: 4, reach: 3, body: STEEL, trim: SLATE, glow: AMBER },
   pegasus: { frame: "tube", barrels: 2, reach: 5, fins: true, body: BONE, trim: SLATE, glow: BLUE },
-  bossmissile: { frame: "tube", barrels: 3, reach: 6, fins: true, mark: 3, body: "#5a2a2a", trim: SLATE, glow: RED },
+  bossmissile: {
+    frame: "tube",
+    barrels: 3,
+    reach: 6,
+    fins: true,
+    mark: 3,
+    body: "#5a2a2a",
+    trim: SLATE,
+    glow: RED,
+  },
   // Ion: coiled housings, blue light.
   needle: { frame: "coil", barrels: 1, reach: 4, body: "#4a6a9a", trim: "#2a3c5c", glow: BLUE },
-  ion2: { frame: "coil", barrels: 1, reach: 5, mark: 1, body: "#4a6a9a", trim: "#2a3c5c", glow: CYAN },
-  heavyion: { frame: "coil", barrels: 1, reach: 6, heavy: true, body: "#3a5080", trim: "#22304c", glow: BLUE },
+  ion2: {
+    frame: "coil",
+    barrels: 1,
+    reach: 5,
+    mark: 1,
+    body: "#4a6a9a",
+    trim: "#2a3c5c",
+    glow: CYAN,
+  },
+  heavyion: {
+    frame: "coil",
+    barrels: 1,
+    reach: 6,
+    heavy: true,
+    body: "#3a5080",
+    trim: "#22304c",
+    glow: BLUE,
+  },
   stunner: { frame: "coil", barrels: 2, reach: 3, body: "#6a7aa8", trim: "#2a3c5c", glow: VIOLET },
-  ioncharger: { frame: "coil", barrels: 2, reach: 5, charger: true, body: "#4a6a9a", trim: "#2a3c5c", glow: BLUE },
-  chainion: { frame: "coil", barrels: 1, reach: 6, chain: true, body: "#4a6a9a", trim: "#22304c", glow: CYAN },
-  bossion: { frame: "coil", barrels: 3, reach: 7, mark: 3, body: "#5a2a2a", trim: "#2a3c5c", glow: BLUE },
+  ioncharger: {
+    frame: "coil",
+    barrels: 2,
+    reach: 5,
+    charger: true,
+    body: "#4a6a9a",
+    trim: "#2a3c5c",
+    glow: BLUE,
+  },
+  chainion: {
+    frame: "coil",
+    barrels: 1,
+    reach: 6,
+    chain: true,
+    body: "#4a6a9a",
+    trim: "#22304c",
+    glow: CYAN,
+  },
+  bossion: {
+    frame: "coil",
+    barrels: 3,
+    reach: 7,
+    mark: 3,
+    body: "#5a2a2a",
+    trim: "#2a3c5c",
+    glow: BLUE,
+  },
   // Beams: lens cones, a lit emitter.
   mini: { frame: "lens", barrels: 1, reach: 2, body: STEEL, trim: SLATE, glow: AMBER },
   shear: { frame: "lens", barrels: 1, reach: 6, body: BONE, trim: SLATE, glow: AMBER },
-  hullbeam: { frame: "lens", barrels: 1, reach: 5, heavy: true, body: RUST, trim: SLATE, glow: AMBER },
-  halberd: { frame: "lens", barrels: 1, reach: 8, mark: 1, body: BONE, trim: GUNMETAL, glow: AMBER },
-  glaive: { frame: "lens", barrels: 1, reach: 10, heavy: true, mark: 2, body: BONE, trim: GUNMETAL, glow: "#fff27a" },
-  firebeam: { frame: "lens", barrels: 1, reach: 6, fins: true, body: GUNMETAL, trim: RUST, glow: ORANGE },
-  antibio: { frame: "lens", barrels: 1, reach: 4, mark: 1, body: "#5a7a4a", trim: "#34472a", glow: GREEN },
+  hullbeam: {
+    frame: "lens",
+    barrels: 1,
+    reach: 5,
+    heavy: true,
+    body: RUST,
+    trim: SLATE,
+    glow: AMBER,
+  },
+  halberd: {
+    frame: "lens",
+    barrels: 1,
+    reach: 8,
+    mark: 1,
+    body: BONE,
+    trim: GUNMETAL,
+    glow: AMBER,
+  },
+  glaive: {
+    frame: "lens",
+    barrels: 1,
+    reach: 10,
+    heavy: true,
+    mark: 2,
+    body: BONE,
+    trim: GUNMETAL,
+    glow: "#fff27a",
+  },
+  firebeam: {
+    frame: "lens",
+    barrels: 1,
+    reach: 6,
+    fins: true,
+    body: GUNMETAL,
+    trim: RUST,
+    glow: ORANGE,
+  },
+  antibio: {
+    frame: "lens",
+    barrels: 1,
+    reach: 4,
+    mark: 1,
+    body: "#5a7a4a",
+    trim: "#34472a",
+    glow: GREEN,
+  },
   // @agent:flagship. Boss Beam, flagship artillery.
-  bossbeam: { frame: "lens", barrels: 2, reach: 9, heavy: true, mark: 3, body: "#5a2a2a", trim: SLATE, glow: RED },
+  bossbeam: {
+    frame: "lens",
+    barrels: 2,
+    reach: 9,
+    heavy: true,
+    mark: 3,
+    body: "#5a2a2a",
+    trim: SLATE,
+    glow: RED,
+  },
   // Flak: drums with stubby barrels.
   scatter: { frame: "drum", barrels: 3, reach: 4, body: "#a04040", trim: SLATE, glow: ORANGE },
-  advflak: { frame: "drum", barrels: 3, reach: 6, mark: 1, body: "#a04040", trim: SLATE, glow: AMBER },
-  flak2: { frame: "drum", barrels: 5, reach: 5, mark: 2, body: "#7a2e2e", trim: SLATE, glow: ORANGE },
+  advflak: {
+    frame: "drum",
+    barrels: 3,
+    reach: 6,
+    mark: 1,
+    body: "#a04040",
+    trim: SLATE,
+    glow: AMBER,
+  },
+  flak2: {
+    frame: "drum",
+    barrels: 5,
+    reach: 5,
+    mark: 2,
+    body: "#7a2e2e",
+    trim: SLATE,
+    glow: ORANGE,
+  },
   // Bombs: teleporter pods, the payload as an emblem.
-  smallbomb: { frame: "pod", barrels: 0, reach: 0, emblem: "dot", body: STEEL, trim: SLATE, glow: RED },
-  cask: { frame: "pod", barrels: 0, reach: 0, emblem: "flame", body: RUST, trim: SLATE, glow: ORANGE },
-  breach1: { frame: "pod", barrels: 0, reach: 0, emblem: "arrow", mark: 1, body: "#4a8a8a", trim: SLATE, glow: AMBER },
-  breach2: { frame: "pod", barrels: 0, reach: 0, emblem: "arrow", mark: 2, body: "#2f6a6a", trim: SLATE, glow: ORANGE },
-  ionbomb: { frame: "pod", barrels: 0, reach: 0, emblem: "bolt", charger: true, body: "#4a6a9a", trim: "#2a3c5c", glow: BLUE },
-  stunbomb: { frame: "pod", barrels: 0, reach: 0, emblem: "ring", body: "#6a7aa8", trim: "#2a3c5c", glow: VIOLET },
-  healburst: { frame: "pod", barrels: 0, reach: 0, emblem: "cross", body: BONE, trim: "#3a6a3a", glow: GREEN },
-  repairburst: { frame: "pod", barrels: 0, reach: 0, emblem: "wrench", body: BONE, trim: SLATE, glow: AMBER },
-  lockdown: { frame: "pod", barrels: 0, reach: 0, emblem: "lock", body: "#a8e8ff", trim: "#5aa8c8", glow: PINK },
+  smallbomb: {
+    frame: "pod",
+    barrels: 0,
+    reach: 0,
+    emblem: "dot",
+    body: STEEL,
+    trim: SLATE,
+    glow: RED,
+  },
+  cask: {
+    frame: "pod",
+    barrels: 0,
+    reach: 0,
+    emblem: "flame",
+    body: RUST,
+    trim: SLATE,
+    glow: ORANGE,
+  },
+  breach1: {
+    frame: "pod",
+    barrels: 0,
+    reach: 0,
+    emblem: "arrow",
+    mark: 1,
+    body: "#4a8a8a",
+    trim: SLATE,
+    glow: AMBER,
+  },
+  breach2: {
+    frame: "pod",
+    barrels: 0,
+    reach: 0,
+    emblem: "arrow",
+    mark: 2,
+    body: "#2f6a6a",
+    trim: SLATE,
+    glow: ORANGE,
+  },
+  ionbomb: {
+    frame: "pod",
+    barrels: 0,
+    reach: 0,
+    emblem: "bolt",
+    charger: true,
+    body: "#4a6a9a",
+    trim: "#2a3c5c",
+    glow: BLUE,
+  },
+  stunbomb: {
+    frame: "pod",
+    barrels: 0,
+    reach: 0,
+    emblem: "ring",
+    body: "#6a7aa8",
+    trim: "#2a3c5c",
+    glow: VIOLET,
+  },
+  healburst: {
+    frame: "pod",
+    barrels: 0,
+    reach: 0,
+    emblem: "cross",
+    body: BONE,
+    trim: "#3a6a3a",
+    glow: GREEN,
+  },
+  repairburst: {
+    frame: "pod",
+    barrels: 0,
+    reach: 0,
+    emblem: "wrench",
+    body: BONE,
+    trim: SLATE,
+    glow: AMBER,
+  },
+  lockdown: {
+    frame: "pod",
+    barrels: 0,
+    reach: 0,
+    emblem: "lock",
+    body: "#a8e8ff",
+    trim: "#5aa8c8",
+    glow: PINK,
+  },
 };
 
 type DroneHull = "disc" | "hex" | "diamond" | "box" | "dart" | "ring";
@@ -137,24 +514,140 @@ export type DroneKey =
   | "overcharge2";
 
 export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
-  ward: { name: tx("game.gear-look.defense-drone-mark-i"), hull: "hex", tool: "gun", body: "#4a6a9a", trim: SLATE, glow: BLUE },
-  ward2: { name: tx("game.gear-look.defense-drone-mark-ii"), hull: "hex", tool: "twin", mark: 2, body: "#4a6a9a", trim: SLATE, glow: AMBER },
-  wardcut: { name: tx("game.gear-look.anti-combat-drone"), hull: "hex", tool: "ion", body: "#6a5a9a", trim: SLATE, glow: VIOLET },
-  striker: { name: tx("game.gear-look.combat-drone-mark-i"), hull: "dart", tool: "gun", body: "#a04040", trim: SLATE, glow: ORANGE },
-  striker2: { name: tx("game.gear-look.combat-drone-mark-ii"), hull: "dart", tool: "twin", mark: 2, body: "#a04040", trim: SLATE, glow: RED },
-  beam: { name: tx("game.gear-look.anti-ship-beam-drone-i"), hull: "diamond", tool: "beam", body: BONE, trim: SLATE, glow: AMBER },
-  beam2: { name: tx("game.gear-look.anti-ship-beam-drone-ii"), hull: "diamond", tool: "beam", mark: 2, body: BONE, trim: GUNMETAL, glow: ORANGE },
-  fire: { name: tx("game.gear-look.anti-ship-fire-drone"), hull: "diamond", tool: "fire", body: RUST, trim: SLATE, glow: ORANGE },
-  intruder: { name: tx("game.gear-look.ion-intruder-drone"), hull: "box", tool: "ion", body: "#4a6a9a", trim: "#2a3c5c", glow: CYAN },
-  board: { name: tx("game.gear-look.boarding-drone"), hull: "box", tool: "claw", body: GUNMETAL, trim: SLATE, glow: RED },
-  personnel: { name: tx("game.gear-look.anti-personnel-drone"), hull: "box", tool: "gun", body: "#5a7a4a", trim: "#34472a", glow: GREEN },
-  patch: { name: tx("game.gear-look.system-repair-drone"), hull: "disc", tool: "wrench", body: "#c8a040", trim: SLATE, glow: AMBER },
-  hull: { name: tx("game.gear-look.hull-repair-drone"), hull: "ring", tool: "wrench", body: "#5a8a5a", trim: SLATE, glow: GREEN },
-  overcharge: { name: tx("game.gear-look.shield-overcharger"), hull: "ring", tool: "shield", body: "#4a8a8a", trim: SLATE, glow: CYAN },
-  overcharge2: { name: tx("game.gear-look.shield-overcharger-2"), hull: "ring", tool: "shield", mark: 2, body: "#4a8a8a", trim: SLATE, glow: "#d0fff0" },
+  ward: {
+    name: "Defense Drone Mark I",
+    hull: "hex",
+    tool: "gun",
+    body: "#4a6a9a",
+    trim: SLATE,
+    glow: BLUE,
+  },
+  ward2: {
+    name: "Defense Drone Mark II",
+    hull: "hex",
+    tool: "twin",
+    mark: 2,
+    body: "#4a6a9a",
+    trim: SLATE,
+    glow: AMBER,
+  },
+  wardcut: {
+    name: "Anti-Combat Drone",
+    hull: "hex",
+    tool: "ion",
+    body: "#6a5a9a",
+    trim: SLATE,
+    glow: VIOLET,
+  },
+  striker: {
+    name: "Combat Drone Mark I",
+    hull: "dart",
+    tool: "gun",
+    body: "#a04040",
+    trim: SLATE,
+    glow: ORANGE,
+  },
+  striker2: {
+    name: "Combat Drone Mark II",
+    hull: "dart",
+    tool: "twin",
+    mark: 2,
+    body: "#a04040",
+    trim: SLATE,
+    glow: RED,
+  },
+  beam: {
+    name: "Anti-Ship Beam Drone I",
+    hull: "diamond",
+    tool: "beam",
+    body: BONE,
+    trim: SLATE,
+    glow: AMBER,
+  },
+  beam2: {
+    name: "Anti-Ship Beam Drone II",
+    hull: "diamond",
+    tool: "beam",
+    mark: 2,
+    body: BONE,
+    trim: GUNMETAL,
+    glow: ORANGE,
+  },
+  fire: {
+    name: "Anti-Ship Fire Drone",
+    hull: "diamond",
+    tool: "fire",
+    body: RUST,
+    trim: SLATE,
+    glow: ORANGE,
+  },
+  intruder: {
+    name: "Ion Intruder Drone",
+    hull: "box",
+    tool: "ion",
+    body: "#4a6a9a",
+    trim: "#2a3c5c",
+    glow: CYAN,
+  },
+  board: {
+    name: "Boarding Drone",
+    hull: "box",
+    tool: "claw",
+    body: GUNMETAL,
+    trim: SLATE,
+    glow: RED,
+  },
+  personnel: {
+    name: "Anti-Personnel Drone",
+    hull: "box",
+    tool: "gun",
+    body: "#5a7a4a",
+    trim: "#34472a",
+    glow: GREEN,
+  },
+  patch: {
+    name: "System Repair Drone",
+    hull: "disc",
+    tool: "wrench",
+    body: "#c8a040",
+    trim: SLATE,
+    glow: AMBER,
+  },
+  hull: {
+    name: "Hull Repair Drone",
+    hull: "ring",
+    tool: "wrench",
+    body: "#5a8a5a",
+    trim: SLATE,
+    glow: GREEN,
+  },
+  overcharge: {
+    name: "Shield Overcharger",
+    hull: "ring",
+    tool: "shield",
+    body: "#4a8a8a",
+    trim: SLATE,
+    glow: CYAN,
+  },
+  overcharge2: {
+    name: "Shield Overcharger +",
+    hull: "ring",
+    tool: "shield",
+    mark: 2,
+    body: "#4a8a8a",
+    trim: SLATE,
+    glow: "#d0fff0",
+  },
 };
 
-const UNKNOWN_DRONE: DroneLook = { name: tx("game.gear-look.drone"), hull: "disc", tool: "eye", body: STEEL, trim: SLATE, glow: BONE };
+const UNKNOWN_DRONE: DroneLook = {
+  name: "Drone",
+  hull: "disc",
+  tool: "eye",
+  body: STEEL,
+  trim: SLATE,
+  glow: BONE,
+};
 
 export type PixelRun = { x: number; y: number; w: number; c: string };
 
@@ -190,7 +683,8 @@ class Grid {
     for (let y = y0; y <= y1; y += 1) for (let x = x0; x <= x1; x += 1) this.set(x, y, c);
   }
   where(test: (x: number, y: number) => boolean, c: Paint) {
-    for (let y = 0; y < this.h; y += 1) for (let x = 0; x < this.w; x += 1) if (test(x, y)) this.set(x, y, c);
+    for (let y = 0; y < this.h; y += 1)
+      for (let x = 0; x < this.w; x += 1) if (test(x, y)) this.set(x, y, c);
   }
   stamp(x0: number, y0: number, rows: string[]) {
     rows.forEach((row, dy) => {
@@ -281,7 +775,13 @@ function frameFront(grid: Grid, look: WeaponLook): number {
       return 10;
     case "pod":
       grid.rect(2, 3, 13, 10, "b");
-      for (const [x, y] of [[2, 3], [13, 3], [2, 10], [13, 10]] as const) grid.set(x, y, ".");
+      for (const [x, y] of [
+        [2, 3],
+        [13, 3],
+        [2, 10],
+        [13, 10],
+      ] as const)
+        grid.set(x, y, ".");
       grid.rect(4, 3, 4, 10, "t");
       grid.rect(14, 5, 15, 8, "t");
       grid.stamp(7, 4, EMBLEMS[look.emblem ?? "dot"]);
@@ -359,7 +859,10 @@ export function dronePixels(key: DroneKey | null): PixelArt {
       }, "t");
       break;
     case "hex":
-      grid.where((x, y) => Math.abs(dy(y)) <= 5 && Math.abs(dx(x)) + Math.abs(dy(y)) * 0.55 <= 6, "b");
+      grid.where(
+        (x, y) => Math.abs(dy(y)) <= 5 && Math.abs(dx(x)) + Math.abs(dy(y)) * 0.55 <= 6,
+        "b",
+      );
       grid.where((x, y) => Math.abs(dy(y)) <= 1 && Math.abs(dx(x)) <= 5, "t");
       break;
     case "diamond":
@@ -371,7 +874,13 @@ export function dronePixels(key: DroneKey | null): PixelArt {
       break;
     case "box":
       grid.rect(3, 4, 13, 13, "b");
-      for (const [x, y] of [[3, 4], [13, 4], [3, 13], [13, 13]] as const) grid.set(x, y, ".");
+      for (const [x, y] of [
+        [3, 4],
+        [13, 4],
+        [3, 13],
+        [13, 13],
+      ] as const)
+        grid.set(x, y, ".");
       grid.rect(3, 8, 13, 9, "t");
       break;
     case "dart":
@@ -405,7 +914,17 @@ export function dronePixels(key: DroneKey | null): PixelArt {
       grid.stamp(11, 10, ["t....", ".t...", "..t..", "..tgg", "..g..", "..g.."]);
       break;
     case "claw":
-      grid.stamp(12, 4, ["tt...", "..tt.", "...tg", ".....", ".....", ".....", "...tg", "..tt.", "tt..."]);
+      grid.stamp(12, 4, [
+        "tt...",
+        "..tt.",
+        "...tg",
+        ".....",
+        ".....",
+        ".....",
+        "...tg",
+        "..tt.",
+        "tt...",
+      ]);
       break;
     case "shield":
       grid.where((x, y) => {

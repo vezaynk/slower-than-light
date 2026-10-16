@@ -1,4 +1,3 @@
-import { tx } from "@/i18n";
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { doorHurt } from "@/game/sim";
@@ -139,7 +138,10 @@ export function RoomRadial({
       <div className="radial" style={{ left: cx, top: cy, width: radius * 2, height: radius * 2 }}>
         <i className="radial-ring" aria-hidden="true" />
         {crew.length ? (
-          <div className="radial-crew" style={{ gridTemplateColumns: `repeat(${cols}, ${CREW_PX}px)` }}>
+          <div
+            className="radial-crew"
+            style={{ gridTemplateColumns: `repeat(${cols}, ${CREW_PX}px)` }}
+          >
             {crew.map((c) => {
               const hp = Math.max(0, Math.min(100, (c.hp / Math.max(1, c.maxHp)) * 100));
               const on = picked.has(c.id);
@@ -155,7 +157,15 @@ export function RoomRadial({
                 >
                   {(() => {
                     const look = lookOf(c);
-                    return <CrewFace crew={c} pose={look.pose} frame={look.frame} cycle={look.cycle} loopAll />;
+                    return (
+                      <CrewFace
+                        crew={c}
+                        pose={look.pose}
+                        frame={look.frame}
+                        cycle={look.cycle}
+                        loopAll
+                      />
+                    );
                   })()}
                   <span className="crew-hp" aria-hidden="true">
                     <b style={{ width: `${hp}%` }} />
@@ -166,7 +176,10 @@ export function RoomRadial({
           </div>
         ) : null}
         {power ? (
-          <div className={`radial-power${powerRight ? " is-right" : " is-left"}`} style={{ ["--reach" as string]: `${reach}px` }}>
+          <div
+            className={`radial-power${powerRight ? " is-right" : " is-left"}`}
+            style={{ ["--reach" as string]: `${reach}px` }}
+          >
             {power}
           </div>
         ) : null}
@@ -191,7 +204,7 @@ export function RoomRadial({
               }
               style={{ left: radius + Math.cos(a) * radius, top: radius + Math.sin(a) * radius }}
               disabled={!onDoor || dead}
-              aria-label={`${airlock ? tx("ui.RoomRadial.airlock") : tx("ui.RoomRadial.door")}: ${broken ? "broken" : hurt ? "damaged" : doorsDead ? "no door control" : open ? "close" : "open"}`}
+              aria-label={`${airlock ? "Airlock" : "Door"}: ${broken ? "broken" : hurt ? "damaged" : doorsDead ? "no door control" : open ? "close" : "open"}`}
               aria-pressed={open}
               onClick={() => onDoor?.(d.room, d.other)}
             >

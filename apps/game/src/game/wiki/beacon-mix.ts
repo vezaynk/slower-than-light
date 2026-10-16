@@ -1,8 +1,13 @@
-import { tx } from "../../i18n/index.ts";
 import type { Beacon, BeaconKind, Game } from "../types.ts";
 import { rand } from "../sim.ts";
 // @agent:filler. Documented fallback lists for plain slots (circular import: only used inside mixBeacons).
-import { drawFiller, pageForRow, stampEmptyNebula, stampFiller, type FillerList } from "./filler-events.ts";
+import {
+  drawFiller,
+  pageForRow,
+  stampEmptyNebula,
+  stampFiller,
+  type FillerList,
+} from "./filler-events.ts";
 
 /**
  * Wiki page "Sectors": each sector type's "Beacons:" list, and
@@ -35,7 +40,13 @@ export type Slot =
 /** One "Beacons:" bullet. `quote` is the bullet as the page prints it. `event` names a special event's page. */
 export type MixLine = { slot: Slot; lo: number; hi: number; quote: string; event?: string };
 
-const L = (slot: Slot, lo: number, hi: number, quote: string, event?: string): MixLine => ({ slot, lo, hi, quote, event });
+const L = (slot: Slot, lo: number, hi: number, quote: string, event?: string): MixLine => ({
+  slot,
+  lo,
+  hi,
+  quote,
+  event,
+});
 
 const CIVILIAN: MixLine[] = [
   L("store", 2, 3, "2-3 stores"),
@@ -110,28 +121,35 @@ const SLUG: MixLine[] = [
   L("nebula-neutral", 3, 5, "3-5 nebula neutral encounters"),
   L("neutral", 1, 2, "1-2 neutral encounters"),
 ];
-const special = (name: string) => L("special", 1, 1, tx("wiki.beacon-mix.1-event", { name: name }), name);
+const special = (name: string) => L("special", 1, 1, `1 [[${name}]] event`, name);
 
 /** Keyed by the sector names that g.sectorName carries (wiki/sectors.ts). */
 export const SECTOR_MIX: Record<string, MixLine[]> = {
   "Civilian (Starting) Sector": [
     L("nebula", 0, 4, "0-4 nebula beacons"),
     L("store", 1, 2, "1-2 stores"),
-    L("items", 1, 1, tx("wiki.beacon-mix.1-items-override-items-events")),
+    L("items", 1, 1, "1 items / override_items events"),
     L("neutral", 2, 4, "2-4 neutral_civilian events"),
     L("empty", 1, 2, "1-2 empty beacons"),
     L("distress", 1, 2, "1-2 distress_beacon events"),
     L("hostile", 4, 6, "4-6 hostile_civilian events"),
-    L("quest", 1, 1, tx("wiki.beacon-mix.1-quests-override-quests-event")),
-    L("hostile", 2, 2, tx("wiki.beacon-mix.2-hostile1-override-hostile1-events")),
+    L("quest", 1, 1, "1 quests / override_quests event"),
+    L("hostile", 2, 2, "2 hostile1 / override_hostile1 events"),
   ],
   "Civilian Sector": CIVILIAN,
   "Engi Controlled Sector": ENGI(L("neutral", 4, 6, "4-6 neutral encounters")),
-  "Engi Homeworlds": [special(tx("wiki.beacon-mix.engi-fleet-discussion")), ...ENGI(L("neutral", 5, 7, "5-7 neutral encounters"))],
+  "Engi Homeworlds": [
+    special("Engi fleet discussion"),
+    ...ENGI(L("neutral", 5, 7, "5-7 neutral encounters")),
+  ],
   // Wiki citations:
   // > "at one beacon per Zoltan sector" — [[Zoltan research facility#Trivia]]
-  "Zoltan Controlled Sector": [special(tx("wiki.beacon-mix.zoltan-research-facility")), ...ZOLTAN],
-  "Zoltan Homeworlds": [special(tx("wiki.beacon-mix.zoltan-research-facility")), special(tx("wiki.beacon-mix.unarmed-zoltan-transport")), ...ZOLTAN],
+  "Zoltan Controlled Sector": [special("Zoltan research facility"), ...ZOLTAN],
+  "Zoltan Homeworlds": [
+    special("Zoltan research facility"),
+    special("Unarmed Zoltan transport"),
+    ...ZOLTAN,
+  ],
   "Abandoned Sector": [
     L("store", 2, 2, "2 stores"),
     L("empty", 1, 2, "1-2 empty beacons"),
@@ -144,14 +162,14 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
     L("neutral", 5, 6, "5-6 neutral encounters"),
   ],
   "Mantis Controlled Sector": MANTIS,
-  "Mantis Homeworlds": [special(tx("wiki.beacon-mix.legendary-thief-kazaaakplethkilik")), ...MANTIS],
+  "Mantis Homeworlds": [special("Legendary thief KazaaakplethKilik"), ...MANTIS],
   "Pirate Controlled Sector": REBEL(L("quest", 0, 1, "0-1 quests")),
   "Rebel Controlled Sector": REBEL(L("quest", 0, 2, "0-2 quests")),
-  "Rebel Stronghold": [special(tx("wiki.beacon-mix.rebel-shipyard")), ...REBEL(L("quest", 0, 2, "0-2 quests"))],
+  "Rebel Stronghold": [special("Rebel shipyard"), ...REBEL(L("quest", 0, 2, "0-2 quests"))],
   "Rock Controlled Sector": ROCK,
-  "Rock Homeworlds": [special(tx("wiki.beacon-mix.ancient-device")), special(tx("wiki.beacon-mix.rock-war-vessel-encounter")), ...ROCK],
+  "Rock Homeworlds": [special("Ancient device"), special("Rock war vessel encounter"), ...ROCK],
   "Slug Controlled Nebula": SLUG,
-  "Slug Home Nebula": [special(tx("wiki.beacon-mix.slug-home-nebula-surrender")), ...SLUG],
+  "Slug Home Nebula": [special("Slug Home Nebula surrender"), ...SLUG],
   "Uncharted Nebula": [
     L("store", 0, 1, "0-1 stores"),
     L("items", 1, 3, "1-3 various items"),
@@ -178,15 +196,21 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
 };
 
 /** Hostile-group slots: a hostile cited event or a plain hostile beacon (sector-hostiles via enemy-gen). */
-const HOSTILE_SLOTS = new Set<Slot>(["hostile", "nebula-hostile", "storm", "boarder", "environment"]);
+const HOSTILE_SLOTS = new Set<Slot>([
+  "hostile",
+  "nebula-hostile",
+  "storm",
+  "boarder",
+  "environment",
+]);
 
 /**
  * unique=false boarder pages. Template:Locations: "This event can occur multiple times per sector."
  * The sector's "1-2 boarders" line is that list, so both beacons can be the same event.
  */
 const REPEAT_BOARDERS: Record<string, string> = {
-  "Abandoned Sector": tx("wiki.beacon-mix.boarders-humans-abandoned"),
-  "Hidden Crystal Worlds": tx("wiki.beacon-mix.boarders-crystal"),
+  "Abandoned Sector": "Boarders: Humans (Abandoned)",
+  "Hidden Crystal Worlds": "Boarders: Crystal",
 };
 
 // ---- Classification -------------------------------------------------------------------------------------------
@@ -195,38 +219,86 @@ export type EventClass = "hostile" | "neutral" | "distress" | "items";
 
 /** Template:EventList HOSTILE CIVILIAN and Template:EventList HOSTILE1 (and OVERRIDE_HOSTILE1, same rows). */
 const LIST_HOSTILE = [
-  tx("wiki.beacon-mix.auto-ship-attacking-outpost"), tx("wiki.beacon-mix.auto-ship-fight-near-sun"), tx("wiki.beacon-mix.pirate-fight"), tx("wiki.beacon-mix.pirate-fight-in-asteroid-field"),
-  tx("wiki.beacon-mix.pirate-toll"), tx("wiki.beacon-mix.pirate-engine-hacker"), tx("wiki.beacon-mix.slaver-hostile"), tx("wiki.beacon-mix.pirate-fight-near-sun"), tx("wiki.beacon-mix.rebel-fight"),
-  tx("wiki.beacon-mix.rebel-ship-attacking-refueling-outpost"), tx("wiki.beacon-mix.rebel-ship-warning"), tx("wiki.beacon-mix.auto-ship-fight-in-asteroid-field"),
-  tx("wiki.beacon-mix.auto-ship-attacking-civilian"), tx("wiki.beacon-mix.auto-ship-carrying-shield-virus"), tx("wiki.beacon-mix.auto-ship-warning"), tx("wiki.beacon-mix.auto-ship-fight"),
+  "Auto-ship attacking outpost",
+  "Auto-ship fight near sun",
+  "Pirate fight",
+  "Pirate fight in asteroid field",
+  "Pirate toll",
+  "Pirate engine hacker",
+  "Slaver (hostile)",
+  "Pirate fight near sun",
+  "Rebel fight",
+  "Rebel ship attacking refueling outpost",
+  "Rebel ship warning",
+  "Auto-ship fight in asteroid field",
+  "Auto-ship attacking civilian",
+  "Auto-ship carrying shield virus",
+  "Auto-ship warning",
+  "Auto-ship fight",
 ];
 /** Template:EventList NEUTRAL CIVILIAN, NEUTRAL EXIT and QUESTS. */
 const LIST_NEUTRAL = [
-  tx("wiki.beacon-mix.large-asteroid-field"), tx("wiki.beacon-mix.auto-ship-near-storage-station"), tx("wiki.beacon-mix.auto-ship-near-sensor-station"), tx("wiki.beacon-mix.slaver-friendly"),
-  tx("wiki.beacon-mix.the-mercenary"), tx("wiki.beacon-mix.pirate-briber"), tx("wiki.beacon-mix.pirate-ship-attacking-civilian"), tx("wiki.beacon-mix.remote-settlement"), tx("wiki.beacon-mix.rebel-transport-ship"),
-  tx("wiki.beacon-mix.plagued-station"), tx("wiki.beacon-mix.intelligent-ponies"), tx("wiki.beacon-mix.refueling-platform"), tx("wiki.beacon-mix.pirate-ship-selling-drones"), tx("wiki.beacon-mix.rebel-checkpoint"),
-  tx("wiki.beacon-mix.rebel-ship-supplying-civilians"), tx("wiki.beacon-mix.refugee"), tx("wiki.beacon-mix.rebel-fight-chance"), tx("wiki.beacon-mix.battlefield-wreckage"),
-  tx("wiki.beacon-mix.encrypted-federation-signal"), tx("wiki.beacon-mix.settlement-mercenary-work"), tx("wiki.beacon-mix.merchant-s-request"), tx("wiki.beacon-mix.capture-the-ship"),
-  tx("wiki.beacon-mix.escort-civilians"), tx("wiki.beacon-mix.mantis-war-camp"),
+  "Large asteroid field",
+  "Auto-ship near storage station",
+  "Auto-ship near sensor station",
+  "Slaver (friendly)",
+  "The mercenary",
+  "Pirate briber",
+  "Pirate ship attacking civilian",
+  "Remote settlement",
+  "Rebel transport ship",
+  "Plagued station",
+  "Intelligent ponies",
+  "Refueling platform",
+  "Pirate ship selling drones",
+  "Rebel checkpoint",
+  "Rebel ship supplying civilians",
+  "Refugee",
+  "Rebel fight chance",
+  "Battlefield wreckage",
+  "Encrypted federation signal",
+  "Settlement mercenary work",
+  "Merchant's request",
+  "Capture the ship",
+  "Escort civilians",
+  "Mantis war camp",
 ];
 /** Template:EventList DISTRESS BEACON. */
 const LIST_DISTRESS = [
-  tx("wiki.beacon-mix.asteroid-belt-distress"), tx("wiki.beacon-mix.giant-alien-spiders"), tx("wiki.beacon-mix.malfunctioning-defense-system"), tx("wiki.beacon-mix.unknown-disease-on-mining-colony"),
-  tx("wiki.beacon-mix.fire-on-research-station"), tx("wiki.beacon-mix.crushed-pirate"), tx("wiki.beacon-mix.escort-civilians-ftl-haywire"), tx("wiki.beacon-mix.friendly-ship-out-of-fuel"),
-  tx("wiki.beacon-mix.pirate-ship-attacking-civilian-distress"), tx("wiki.beacon-mix.refugee-distress"),
-  tx("wiki.beacon-mix.refugee-comms-down"), tx("wiki.beacon-mix.single-life-form-on-moon"), tx("wiki.beacon-mix.pirate-ship-distress-trap"),
-  tx("wiki.beacon-mix.slug-ship-boarding-rock-ship"),
-  tx("wiki.beacon-mix.lanius-empty-distress-beacon-1"),
-  tx("wiki.beacon-mix.lanius-empty-distress-beacon-2"),
-  tx("wiki.beacon-mix.free-scrap-with-resources-zoltan"),
-  tx("wiki.beacon-mix.engi-research-station"),
+  "Asteroid belt distress",
+  "Giant alien spiders",
+  "Malfunctioning defense system",
+  "Unknown disease on mining colony",
+  "Fire on research station",
+  "Crushed pirate",
+  "Escort civilians FTL haywire",
+  "Friendly ship out of fuel",
+  "Pirate ship attacking civilian distress",
+  "Refugee distress",
+  "Refugee comms down",
+  "Single life form on moon",
+  "Pirate ship distress trap",
+  "Slug ship boarding Rock ship",
+  "Lanius empty distress beacon 1",
+  "Lanius empty distress beacon 2",
+  "Free scrap with resources (Zoltan)",
+  "Engi research station",
 ];
 /** Template:EventList ITEMS (and OVERRIDE_ITEMS, same rows). */
 const LIST_ITEMS = [
-  tx("wiki.beacon-mix.free-drone-schematic"), tx("wiki.beacon-mix.free-weapon"), tx("wiki.beacon-mix.free-scrap-with-resources"), tx("wiki.beacon-mix.trade-fuel-for-drone-parts"),
-  tx("wiki.beacon-mix.asteroid-mining-colony"), tx("wiki.beacon-mix.refueling-station"), tx("wiki.beacon-mix.repair-station"), tx("wiki.beacon-mix.sell-drone-parts-for-scrap"),
-  tx("wiki.beacon-mix.sell-missiles-for-scrap"), tx("wiki.beacon-mix.crew-hiring-station"), tx("wiki.beacon-mix.trade-resources"), tx("wiki.beacon-mix.trade-scrap-for-upgrades"),
-  tx("wiki.beacon-mix.improve-reactor-for-supplies"),
+  "Free drone schematic",
+  "Free weapon",
+  "Free scrap with resources",
+  "Trade fuel for drone parts",
+  "Asteroid mining colony",
+  "Refueling station",
+  "Repair station",
+  "Sell drone parts for scrap",
+  "Sell missiles for scrap",
+  "Crew hiring station",
+  "Trade resources",
+  "Trade scrap for upgrades",
+  "Improve reactor for supplies",
 ];
 
 /** The shape of a cited-events table row this module reads. */
@@ -266,7 +338,8 @@ export function classifyEvent(ev: MixEvent): EventClass {
  */
 function dealer(g: Game): Game {
   let h = 2166136261 ^ g.seed ^ Math.imul(g.sector, 0x85ebca6b);
-  for (let i = 0; i < g.sectorName.length; i++) h = Math.imul(h ^ g.sectorName.charCodeAt(i), 16777619);
+  for (let i = 0; i < g.sectorName.length; i++)
+    h = Math.imul(h ^ g.sectorName.charCodeAt(i), 16777619);
   return { seed: h >>> 0 || 1 } as Game;
 }
 
@@ -293,7 +366,10 @@ export function takeLines(rolls: number[], room: number): number[] {
 /** @agent:quests-a. A Sectors-page special line ("1 [[Ancient device]] event") names this cited page. */
 function specialMatch(ev: MixEvent, name: string): boolean {
   if (!name) return false;
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
   return ev.dest === name || ev.aliases.includes(name) || ev.flag === `cited:${slug}`;
 }
 
@@ -317,7 +393,9 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
   mixed.set(g.beacons, g.sectorName);
   const r = dealer(g);
 
-  const free = g.beacons.filter((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && !b.flag);
+  const free = g.beacons.filter(
+    (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && !b.flag,
+  );
   // Shuffle so slot kinds land anywhere on the map (Fisher-Yates on rand(g)).
   for (let i = free.length - 1; i > 0; i--) {
     const j = irand(r, i + 1);
@@ -343,7 +421,12 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
       : c === "neutral"
         ? slotsHere.has("neutral") || slotsHere.has("nebula-neutral")
         : slotsHere.has(c);
-  const queue: Record<EventClass, MixEvent[]> = { hostile: [], neutral: [], distress: [], items: [] };
+  const queue: Record<EventClass, MixEvent[]> = {
+    hostile: [],
+    neutral: [],
+    distress: [],
+    items: [],
+  };
   const specials = lines.flatMap((l) => (l.event ? [l.event] : []));
   // Wiki citations:
   // > "It is unique." — [[Ancient device]]
@@ -352,19 +435,31 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
   // > "It is unique." — [[Zoltan trade hub]]
   // > "It is unique." — [[Rock bride]]
   for (const ev of events) {
-    if (specials.some((name) => specialMatch(ev, name)) || g.beacons.some((b) => b.flag === ev.flag)) continue;
+    if (
+      specials.some((name) => specialMatch(ev, name)) ||
+      g.beacons.some((b) => b.flag === ev.flag)
+    )
+      continue;
     // unique=false boarder page for this sector. It fills the boarders line, including both beacons, and is not also a one-shot neutral.
     if (ev.dest === REPEAT_BOARDERS[g.sectorName]) continue;
     const c = classifyEvent(ev);
     queue[has(c) ? c : "neutral"].push(ev);
   }
   // These openers print nebula=true. The marker for the first two is marked separately in quests.ts.
-  const NEBULA_OPENERS = new Set(["Slug comm tapping", "Slug Home Nebula surrender", "Nebula wreckage"]);
+  const NEBULA_OPENERS = new Set([
+    "Slug comm tapping",
+    "Slug Home Nebula surrender",
+    "Nebula wreckage",
+  ]);
   // unique=false openers. After the first copy, one extra candidate on later leftover slots of the same class.
   // A sector that forces Zoltan research as a special does not also draw a leftover copy.
   // Wiki citations:
   // > "This event can occur multiple times per game" — [[Zoltan research facility#Trivia]]
-  const REPEAT_DESTS = new Set(["Escort civilians", "Engi ship attacked by Mantis ship", "Zoltan research facility"]);
+  const REPEAT_DESTS = new Set([
+    "Escort civilians",
+    "Engi ship attacked by Mantis ship",
+    "Zoltan research facility",
+  ]);
   const place = (b: Beacon, ev: MixEvent, kind: BeaconKind = "event") => {
     setKind(b, NEBULA_OPENERS.has(ev.dest) ? "nebula" : kind);
     b.flag = ev.flag;
@@ -432,7 +527,7 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
         // The Last Stand: citedSector (cited-sectors.ts) counts these flags and only tops up the missing ones.
         setKind(b, "event");
         b.flag = "last-stand-repair";
-        b.name = tx("wiki.beacon-mix.federation-repair-station");
+        b.name = "Federation Repair Station";
         return;
       case "items": {
         const ev = take("items");

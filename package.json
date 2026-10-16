@@ -4,14 +4,12 @@
   "packageManager": "pnpm@10.18.2",
   "scripts": {
     "dev": "pnpm --filter @stl/game dev",
-    "dev:wiki": "pnpm --filter @stl/wiki dev",
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "format": "prettier --write .",
     "wiki:dump": "pnpm --filter @stl/wiki-dump dump",
-    "wiki:parity": "pnpm --filter @stl/wiki parity",
     "campaign:xml": "turbo run generate --filter=@stl/campaign",
     "totallynotftl:dat": "turbo run generate --filter=@stl/totallynotftl"
   },

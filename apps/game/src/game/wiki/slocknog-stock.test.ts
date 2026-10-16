@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { ChoiceReq, EventDef } from "@stl/pack";
-import { tx } from "../../i18n/index.ts";
 import { choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
@@ -19,16 +18,25 @@ function page(): EventDef {
 }
 
 function rewrite(reqs: ChoiceReq[] | undefined) {
-  loadPack({
-    events: [{
-      ...page(),
-      choices: page().choices.map((choice) => (choice.id === "c:slocknog:0" ? { ...choice, reqs } : choice)),
-    }],
-  }, "append");
+  loadPack(
+    {
+      events: [
+        {
+          ...page(),
+          choices: page().choices.map((choice) =>
+            choice.id === "c:slocknog:0" ? { ...choice, reqs } : choice,
+          ),
+        },
+      ],
+    },
+    "append",
+  );
 }
 
 function open(g: Game) {
-  const beacon = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+  const beacon = g.beacons.find(
+    (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
+  );
   assert.ok(beacon);
   beacon.flag = "cited:slocknog";
   beacon.name = "Slocknog";
@@ -54,7 +62,7 @@ describe("slocknog stock", () => {
   });
 
   it("spends a replaced scrap count and refuses below it", () => {
-    const text = tx("wiki.filler-events.need-scrap", { v: 7 });
+    const text = `Need ${7} scrap`;
     rewrite([{ k: "stock", id: "scrap", n: 7, text }]);
     const g = createGame(2);
     g.scrap = 6;
@@ -79,7 +87,10 @@ describe("slocknog stock", () => {
     const g = createGame(3);
     g.scrap = 80;
     open(g);
-    assert.equal(g.event?.choices.some((choice) => choice.id === "c:slocknog:0"), true);
+    assert.equal(
+      g.event?.choices.some((choice) => choice.id === "c:slocknog:0"),
+      true,
+    );
     assert.equal(choiceDisabled(g, "c:slocknog:0"), null);
     const body = g.event?.body;
     fillerChoose(g, "c:slocknog:0");

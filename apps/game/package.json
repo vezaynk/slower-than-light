@@ -16,6 +16,7 @@
     "lint": "cd ../.. && ./node_modules/.bin/eslint apps/game"
   },
   "dependencies": {
+    "@stl/catalog": "workspace:*",
     "@stl/pack": "workspace:*",
     "@stl/ui": "workspace:*",
     "@capacitor/cli": "^8.5.3",
@@ -54,7 +55,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.0.0",
-    "i18next": "^26.4.4",
     "lightningcss": "^1.28.0",
     "lucide-react": "^0.510.0",
     "nitro": "3.0.260610-beta",

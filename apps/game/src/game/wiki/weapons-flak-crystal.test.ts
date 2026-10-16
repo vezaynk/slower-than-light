@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { fileURLToPath } from "node:url";
 import { FLAK1_FAKE_LABEL } from "../extras/ordnance.ts";
 import { CHARGE_SECONDS, DAMAGE, PROJECTILES } from "../extras/flakart.ts";
 import { ACQUIRE_S, enemyDefenseIntercept, tickSwarm } from "../extras/swarm.ts";
@@ -27,7 +26,7 @@ import { wikiPage } from "@stl/wiki-dump";
 const FLAK_PAGE = wikiPage("Flak (Weapons)");
 const CRYSTAL_PAGE = wikiPage("Crystal (Weapons)");
 const SOURCE = readFileSync(
-  fileURLToPath(new URL("./weapons-flak-crystal.ts", import.meta.url)),
+  new URL("../../../../../packages/catalog/src/wiki/weapons-flak-crystal.ts", import.meta.url),
   "utf8",
 );
 
@@ -261,14 +260,20 @@ describe("Flak II room odds", () => {
 
   it("stays in a 1x2 on the main-room roll and can leave through a long side or the tile past it", () => {
     assert.deepEqual(flak2Landing([narrow, north], "aim", 0.2577), { kind: "stay" });
-    assert.deepEqual(flak2Landing([narrow, north], "aim", 0.2578), { kind: "room", roomId: "north" });
+    assert.deepEqual(flak2Landing([narrow, north], "aim", 0.2578), {
+      kind: "room",
+      roomId: "north",
+    });
     const past = 0.2578 + 0.1206 * 4 + 0.0702 * 2 + 0.027 * 4;
     assert.deepEqual(flak2Landing([narrow, north], "aim", past), { kind: "miss" });
   });
 
   it("stays in a 2x2 on the main-room roll and can leave through a side or a corner", () => {
     assert.deepEqual(flak2Landing([square, beside], "box", 0.5155), { kind: "stay" });
-    assert.deepEqual(flak2Landing([square, beside], "box", 0.5156), { kind: "room", roomId: "beside" });
+    assert.deepEqual(flak2Landing([square, beside], "box", 0.5156), {
+      kind: "room",
+      roomId: "beside",
+    });
     assert.deepEqual(flak2Landing([square], "box", 0.5156 + 0.059 * 8), { kind: "miss" });
   });
 
@@ -280,15 +285,35 @@ describe("Flak II room odds", () => {
     const base = g.enemy.rooms[0];
     g.enemy.rooms = [
       { ...base, id: "n", x: 1, y: 1, w: 2, h: 1, omit: undefined },
-      { ...base, id: "north", title: "North", system: null, x: 1, y: 0, w: 2, h: 1, omit: undefined },
+      {
+        ...base,
+        id: "north",
+        title: "North",
+        system: null,
+        x: 1,
+        y: 0,
+        w: 2,
+        h: 1,
+        omit: undefined,
+      },
     ];
     g.player.systems.weapons.level = 3;
     g.player.systems.weapons.power = 3;
-    g.player.weapons = [{ uid: "f2", defId: "flak2", charge: 1, enabled: true, autofire: false, target: "n" }];
+    g.player.weapons = [
+      { uid: "f2", defId: "flak2", charge: 1, enabled: true, autofire: false, target: "n" },
+    ];
     g.seed = 4;
     const preview = createGame(1);
     preview.seed = 4;
-    const rolls = [rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview)];
+    const rolls = [
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+    ];
     fireReady(g);
     const reals = g.shots.filter((shot) => shot.kind === "flak");
     assert.equal(reals.length, 7);
@@ -314,7 +339,9 @@ describe("Flak II room odds", () => {
     quiet.enemy.rooms = [{ ...dot, id: "dot", x: 0, y: 0, w: 1, h: 1, omit: undefined }];
     quiet.player.systems.weapons.level = 3;
     quiet.player.systems.weapons.power = 3;
-    quiet.player.weapons = [{ uid: "f2", defId: "flak2", charge: 1, enabled: true, autofire: false, target: "dot" }];
+    quiet.player.weapons = [
+      { uid: "f2", defId: "flak2", charge: 1, enabled: true, autofire: false, target: "dot" },
+    ];
     const seed = quiet.seed;
     fireReady(quiet);
     assert.equal(quiet.seed, seed);
@@ -343,12 +370,18 @@ describe("Adv. Flak room odds", () => {
 
   it("stays in a 1x2 on the main-room roll and steps onto a long side", () => {
     assert.deepEqual(advFlakLanding([narrow, north], "aim", 4873 / 10000), { kind: "stay" });
-    assert.deepEqual(advFlakLanding([narrow, north], "aim", 4874 / 10000), { kind: "room", roomId: "north" });
+    assert.deepEqual(advFlakLanding([narrow, north], "aim", 4874 / 10000), {
+      kind: "room",
+      roomId: "north",
+    });
   });
 
   it("stays in a 2x2 on the main-room roll and can leave through a side tile", () => {
     assert.deepEqual(advFlakLanding([square, beside], "box", 8958 / 10000), { kind: "stay" });
-    assert.deepEqual(advFlakLanding([square, beside], "box", 8959 / 10000), { kind: "room", roomId: "beside" });
+    assert.deepEqual(advFlakLanding([square, beside], "box", 8959 / 10000), {
+      kind: "room",
+      roomId: "beside",
+    });
     assert.deepEqual(advFlakLanding([square], "box", 0.999), { kind: "miss" });
   });
 
@@ -360,11 +393,23 @@ describe("Adv. Flak room odds", () => {
     const base = g.enemy.rooms[0];
     g.enemy.rooms = [
       { ...base, id: "n", x: 1, y: 1, w: 2, h: 1, omit: undefined },
-      { ...base, id: "north", title: "North", system: null, x: 1, y: 0, w: 2, h: 1, omit: undefined },
+      {
+        ...base,
+        id: "north",
+        title: "North",
+        system: null,
+        x: 1,
+        y: 0,
+        w: 2,
+        h: 1,
+        omit: undefined,
+      },
     ];
     g.player.systems.weapons.level = 1;
     g.player.systems.weapons.power = 1;
-    g.player.weapons = [{ uid: "af", defId: "advflak", charge: 1, enabled: true, autofire: false, target: "n" }];
+    g.player.weapons = [
+      { uid: "af", defId: "advflak", charge: 1, enabled: true, autofire: false, target: "n" },
+    ];
     g.seed = 8;
     const preview = createGame(1);
     preview.seed = 8;
@@ -405,12 +450,17 @@ describe("Flak II and Adv. Flak fake pellets", () => {
       const room = g.enemy.rooms[0]!.id;
       g.player.systems.weapons.level = power;
       g.player.systems.weapons.power = power;
-      g.player.weapons = [{ uid: "f", defId, charge: 1, enabled: true, autofire: false, target: room }];
+      g.player.weapons = [
+        { uid: "f", defId, charge: 1, enabled: true, autofire: false, target: room },
+      ];
       fireReady(g);
       const fakes = g.shots.filter((shot) => shot.label === FLAK1_FAKE_LABEL);
       const reals = g.shots.filter((shot) => shot.kind === "flak");
       assert.equal(fakes.length, fake);
-      assert.equal(g.shots.slice(0, fake).every((shot) => shot.label === FLAK1_FAKE_LABEL), true);
+      assert.equal(
+        g.shots.slice(0, fake).every((shot) => shot.label === FLAK1_FAKE_LABEL),
+        true,
+      );
       assert.equal(reals.length, defId === "flak2" ? 7 : 3);
       for (const shot of fakes) {
         assert.equal(shot.kind, "missile");
@@ -448,7 +498,16 @@ describe("Flak II and Adv. Flak fake pellets", () => {
     tickSwarm(g, ACQUIRE_S);
     g.player.systems.weapons.level = 3;
     g.player.systems.weapons.power = 3;
-    g.player.weapons = [{ uid: "f2", defId: "flak2", charge: 1, enabled: true, autofire: false, target: g.enemy.rooms[0]!.id }];
+    g.player.weapons = [
+      {
+        uid: "f2",
+        defId: "flak2",
+        charge: 1,
+        enabled: true,
+        autofire: false,
+        target: g.enemy.rooms[0]!.id,
+      },
+    ];
     fireReady(g);
     const fake = g.shots.find((shot) => shot.label === FLAK1_FAKE_LABEL);
     assert.ok(fake);

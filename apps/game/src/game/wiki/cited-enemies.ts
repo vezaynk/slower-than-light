@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import type { Crew, Game, Ship, SysId } from "../types.ts";
 import { allWeapons, weaponDef } from "@stl/pack";
 import { FLAGSHIP_PHASES, type FlagshipPhase } from "./flagship.ts";
@@ -15,7 +14,7 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
   if (tier === "elite") {
     // Rebel Fleet: jumping into the fleet fights a Rebel Elite.
     // Elite Fighter and Elite Assault print ranges, not one loadout, so the grid stays.
-    ship.name = tx("wiki.cited-enemies.rebel-elite");
+    ship.name = "Rebel Elite";
     return;
   }
   if (tier !== "boss") {
@@ -25,7 +24,7 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
   const phase = FLAGSHIP_PHASES.find((row) => row.phase === stageNow(g, ship));
   if (!phase) return;
   // Wiki page "The Rebel Flagship". The page's name, without the article.
-  ship.name = tx("wiki.cited-enemies.rebel-flagship");
+  ship.name = "Rebel Flagship";
   if (phase.hull != null) {
     ship.hull = phase.hull;
     ship.hullMax = phase.hull;
@@ -158,7 +157,10 @@ function fund(ship: Ship) {
     spare -= give;
   }
   const shields = ship.systems.shields;
-  const powered = Math.max(0, Math.min(shields.power, shields.level - shields.damage - shields.ion.length));
+  const powered = Math.max(
+    0,
+    Math.min(shields.power, shields.level - shields.damage - shields.ion.length),
+  );
   // Shields, Overview: one bubble for every two powered levels.
   ship.shieldNow = Math.floor(powered / 2);
 }
@@ -194,7 +196,7 @@ function addHumans(g: Game, ship: Ship, crew: Crew[], total: number) {
     crew.push({
       id: "u" + g.uid,
       // "1st Stage" / "General": "Crew 11 Humans." No personal names are printed.
-      name: tx("wiki.cited-enemies.human"),
+      name: "Human",
       side: "enemy",
       aboard: "enemy",
       hp: 100,

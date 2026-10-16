@@ -1,5 +1,15 @@
-import { tx } from "../../i18n/index.ts";
-import { allAugments, allCrew, allDrones, allSystems, augmentDef, droneDef, storeDef, systemDef, tuneDef, weaponDef } from "@stl/pack";
+import {
+  allAugments,
+  allCrew,
+  allDrones,
+  allSystems,
+  augmentDef,
+  droneDef,
+  storeDef,
+  systemDef,
+  tuneDef,
+  weaponDef,
+} from "@stl/pack";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
@@ -22,8 +32,27 @@ type Offer = { slot: "sys" | "kit"; ref: string; name: string; cost: number };
 /** Authored single-price system list. The store reads the loaded copy. */
 export { CITED_SYSTEMS } from "./system-catalog.ts";
 
-const SYS_IDS: readonly SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"];
-const KIT_IDS: readonly KitId[] = ["veil", "sling", "spike", "swarm", "leash", "cradle", "cell", "lance", "flak"];
+const SYS_IDS: readonly SysId[] = [
+  "shields",
+  "engines",
+  "oxygen",
+  "medbay",
+  "weapons",
+  "pilot",
+  "sensors",
+  "doors",
+];
+const KIT_IDS: readonly KitId[] = [
+  "veil",
+  "sling",
+  "spike",
+  "swarm",
+  "leash",
+  "cradle",
+  "cell",
+  "lance",
+  "flak",
+];
 
 function isSysId(id: string): id is SysId {
   return (SYS_IDS as readonly string[]).includes(id);
@@ -34,7 +63,12 @@ function isKitId(id: string): id is KitId {
 }
 
 function catalogOffers(): Offer[] {
-  return allSystems().map((row) => ({ slot: row.slot, ref: row.id, name: row.name, cost: row.cost }));
+  return allSystems().map((row) => ({
+    slot: row.slot,
+    ref: row.id,
+    name: row.name,
+    cost: row.cost,
+  }));
 }
 
 /**
@@ -65,7 +99,13 @@ export const NOT_SOLD: ReadonlySet<string> = new Set(["keel", "casing"]);
  * Page order of Crystal (Weapons), then Bomb (Weapons) "Crystal Lockdown Bomb".
  * Store rarity on those rows is not used. This list is the allowed set.
  */
-export const CRYSTAL_SECTOR_WEAPONS = ["crystalburst", "crystalburst2", "heavycrystal", "heavycrystal2", "lockdown"] as const;
+export const CRYSTAL_SECTOR_WEAPONS = [
+  "crystalburst",
+  "crystalburst2",
+  "heavycrystal",
+  "heavycrystal2",
+  "lockdown",
+] as const;
 
 /** Authored schematic list. The store reads the loaded copy. Fire Drone, Shield Overcharger +, and Drone Control stay off it. */
 export { CITED_DRONES } from "./drone-catalog.ts";
@@ -100,11 +140,11 @@ const AUGMENT_SELL: Partial<Record<string, number>> = {
 };
 
 const AUGMENT_SELL_NAME: Partial<Record<string, string>> = {
-  medbot: tx("wiki.cited-stores.engi-med-bot-dispersal"),
-  pheromone: tx("wiki.cited-stores.mantis-pheromones"),
-  gel: tx("wiki.cited-stores.slug-repair-gel"),
-  vengeance: tx("wiki.cited-stores.crystal-vengeance"),
-  zshield: tx("wiki.cited-stores.zoltan-shield"),
+  medbot: "Engi Med-bot Dispersal",
+  pheromone: "Mantis Pheromones",
+  gel: "Slug Repair Gel",
+  vengeance: "Crystal Vengeance",
+  zshield: "Zoltan Shield",
 };
 
 export type SellQuote = {
@@ -213,7 +253,7 @@ export function storeSections(g: Game, storeId = "standard"): StoreSection[] {
  */
 function systemItems(g: Game, sections: readonly StoreSection[], slot: number): StockItem[] {
   const bundle = swarmBundle(g);
-  const swarmRow: Offer = { slot: "kit", ref: "swarm", name: tx("wiki.cited-stores.drone-control"), cost: bundle.cost };
+  const swarmRow: Offer = { slot: "kit", ref: "swarm", name: "Drone Control", cost: bundle.cost };
   const catalog = catalogOffers();
   const missing = catalog.filter((row) => !ownedSystem(g, row));
   const drones = sections.includes("drones");
@@ -237,7 +277,8 @@ function systemItems(g: Game, sections: readonly StoreSection[], slot: number): 
   // others ... the store will only sell two systems"). INFERRED: when the guarantees alone pass it, the first ones
   // listed above are kept.
   const rest = pool.filter((row) => !picked.includes(row));
-  while (picked.length < count && rest.length) picked.push(rest.splice(Math.floor(roll() * rest.length), 1)[0]);
+  while (picked.length < count && rest.length)
+    picked.push(rest.splice(Math.floor(roll() * rest.length), 1)[0]);
   return picked.slice(0, count).map((row) => ({
     id: row.ref === "swarm" ? `sys-swarm-${bundle.schematic}` : `sys-${row.ref}`,
     kind: "system" as const,
@@ -245,8 +286,8 @@ function systemItems(g: Game, sections: readonly StoreSection[], slot: number): 
     name: row.name,
     detail:
       row.ref === "swarm"
-        ? tx("wiki.cited-stores.drone-control-the-paragraph-above-overview", { label: bundle.label })
-        : tx("wiki.cited-stores.template-purchasable-systems", { name: row.name, cost: row.cost }),
+        ? `Drone Control, the paragraph above Overview. Bundled with ${bundle.label}.`
+        : `Template:Purchasable systems. ${row.name} ${row.cost}.`,
     cost: row.cost,
     amount: 1,
   }));
@@ -267,7 +308,7 @@ export function droneItems(g: Game, slot = storeDef("standard")?.slot ?? 3): Sto
     kind: "drone" as const,
     ref: row.id,
     name: row.name,
-    detail: tx("wiki.cited-stores.drone-control-purchase-price", { name: row.name, cost: row.cost }),
+    detail: `Drone Control, "${row.name}". Purchase price ${row.cost}.`,
     cost: row.cost,
     amount: 1,
   }));
@@ -296,7 +337,8 @@ function crewItems(g: Game, storeId: string, slot: number): StockItem[] {
   // Sectors, "Hidden Crystal Worlds", "Crewmembers": only Crystal crew can be purchased.
   // Not a random draw. The run RNG is left alone. First hire lines that still fit.
   const rows = (storeDef(storeId)?.lines ?? []).filter((row) => row.kind === "crew");
-  const list = g.sectorName === "Hidden Crystal Worlds" ? rows.filter((row) => row.id === "shard") : rows;
+  const list =
+    g.sectorName === "Hidden Crystal Worlds" ? rows.filter((row) => row.id === "shard") : rows;
   return list.slice(0, slot).map((row) => {
     const hp = crewHp(row.id);
     return {
@@ -304,7 +346,7 @@ function crewItems(g: Game, storeId: string, slot: number): StockItem[] {
       kind: "crew" as const,
       ref: row.id,
       name: row.name,
-      detail: tx("wiki.cited-stores.template-crew-races-comparison-costs-health", { name: row.name, cost: row.cost, hp }),
+      detail: `Template:Crew races (comparison). ${row.name} costs ${row.cost}. Health ${hp}.`,
       cost: row.cost,
       amount: 1,
     };
@@ -339,7 +381,9 @@ function clearMedbay(g: Game) {
 
 function grantSystem(g: Game, item: StockItem): boolean {
   if (item.ref === "swarm") {
-    const schematic = SWARM_BUNDLE.find((row) => item.id === `sys-swarm-${row.schematic}`)?.schematic;
+    const schematic = SWARM_BUNDLE.find(
+      (row) => item.id === `sys-swarm-${row.schematic}`,
+    )?.schematic;
     if (!schematic || hasSwarm(g)) return false;
     // Same shape as installSwarmBundle. buy() spends the scrap. 2 levels, schematic selected, not deployed.
     g.player.kits.swarm = {
@@ -437,7 +481,9 @@ export function canFieldDrone(g: Game, ref: string): boolean {
   const kit = g.player.kits.swarm;
   if (!kit || !droneDef(ref)) return false;
   const have = fieldedSchematics(kit);
-  return !have.includes(ref) && have.length < schematicCap(g) && (!pairedRepair(kit) || ref === "patch");
+  return (
+    !have.includes(ref) && have.length < schematicCap(g) && (!pairedRepair(kit) || ref === "patch")
+  );
 }
 
 /** Fits a drone schematic (a store purchase, or a loot bonus item). */
@@ -551,7 +597,13 @@ export function citedSellQuote(g: Game): SellQuote[] {
     if (item.kind !== "weapon") return;
     const scrap = weaponSell(item.id);
     if (scrap == null || scrap <= 0) return;
-    quotes.push({ id: `c:${index}:${item.id}`, kind: "weapon", ref: item.id, name: `${weaponDef(item.id)?.name ?? item.id} (cargo)`, scrap });
+    quotes.push({
+      id: `c:${index}:${item.id}`,
+      kind: "weapon",
+      ref: item.id,
+      name: `${weaponDef(item.id)?.name ?? item.id} (cargo)`,
+      scrap,
+    });
   });
   (g.augments ?? []).forEach((id, index) => {
     const scrap = augmentSell(id);
@@ -572,7 +624,7 @@ export function citedSellQuote(g: Game): SellQuote[] {
       id: "d:overchargerplus",
       kind: "drone",
       ref: "overchargerplus",
-      name: tx("wiki.cited-stores.shield-overcharger-2"),
+      name: "Shield Overcharger +",
       scrap: OVERCHARGER_PLUS.sell,
     });
   }

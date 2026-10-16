@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { tx } from "@/i18n";
 /**
  * The one close control for every dismissible panel: an × in the panel's top-right corner.
  * The panel carries `has-x` so it is the positioning parent. INVENTED, after the beacon map's ×.
@@ -18,7 +17,7 @@ if (typeof window !== "undefined") {
   });
 }
 
-export function CloseX({ onClose, label = tx("ui.CloseX.close") }: { onClose: () => void; label?: string }) {
+export function CloseX({ onClose, label = "Close" }: { onClose: () => void; label?: string }) {
   const latest = useRef(onClose);
   latest.current = onClose;
   useEffect(() => {

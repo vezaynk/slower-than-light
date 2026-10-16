@@ -1,5 +1,22 @@
-import { tx } from "../../i18n/index.ts";
-import { HACK_COAT_HITS, bars, blastHits, chargerCap, cooldownLocksPower, deselectCrew, evasionPercent, kitBars, kitIonLocked, log, noteHackLatchedDuringLock, noteHackPulseDuringLock, noteZoltanKits, playerHackingOff, rand, roomWith, sparePower } from "../sim.ts";
+import {
+  HACK_COAT_HITS,
+  bars,
+  blastHits,
+  chargerCap,
+  cooldownLocksPower,
+  deselectCrew,
+  evasionPercent,
+  kitBars,
+  kitIonLocked,
+  log,
+  noteHackLatchedDuringLock,
+  noteHackPulseDuringLock,
+  noteZoltanKits,
+  playerHackingOff,
+  rand,
+  roomWith,
+  sparePower,
+} from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import "../pack/base.ts";
@@ -10,7 +27,17 @@ import { hackStuns } from "./moreaugs.ts";
 import { clearEnemyLeash, sideOf } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";
 import { ANTI_STUN_S, REDEPLOY_S, enemyDroneSpot, interceptIncomingDrone } from "./swarm.ts";
-import type { Difficulty, Door, Game, Kit, KitId, Room, Ship, SysId, SystemState } from "../types.ts";
+import type {
+  Difficulty,
+  Door,
+  Game,
+  Kit,
+  KitId,
+  Room,
+  Ship,
+  SysId,
+  SystemState,
+} from "../types.ts";
 
 /** Hacking wiki, "System upgrades": level 1 cost is 80. */
 export const SPIKE_COST = 80;
@@ -104,7 +131,17 @@ function pulseSeconds(powered: number): number {
  * ally", "Cloaking: ends an active cloak", "Clone Bay: disables the clone bay", and "Artillery Beam / Flak Artillery
  * / Rebel Flagship weapons: drains charge". Effects: applyPulse below (flak / cradle read hackPulseOn).
  */
-const KIT_TARGETS: readonly KitId[] = ["spike", "cradle", "veil", "sling", "leash", "swarm", "cell", "flak", "lance"];
+const KIT_TARGETS: readonly KitId[] = [
+  "spike",
+  "cradle",
+  "veil",
+  "sling",
+  "leash",
+  "swarm",
+  "cell",
+  "flak",
+  "lance",
+];
 
 /** Hacking wiki, "Overview": "A destroyed system cannot be actively hacked". */
 function targetDestroyed(g: Game, id: string): boolean {
@@ -119,7 +156,8 @@ function targetDestroyed(g: Game, id: string): boolean {
 function isTarget(g: Game, id: string): boolean {
   // Each flagship artillery room is its own system. "weapons" would drain every gun.
   if (id === "weapons" && g.enemy?.flagship) return false;
-  if (g.enemy?.flagship && FLAGSHIP_GUN[id] && g.enemy.rooms.some((room) => room.id === id)) return true;
+  if (g.enemy?.flagship && FLAGSHIP_GUN[id] && g.enemy.rooms.some((room) => room.id === id))
+    return true;
   if ((TARGETS as readonly string[]).includes(id)) return true;
   return (KIT_TARGETS as readonly string[]).includes(id) && !!g.enemy?.kits[id as KitId];
 }
@@ -155,7 +193,7 @@ export function installSpike(g: Game): boolean {
     aux: 0,
   };
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, tx("extras.spike.hacking-installed-on-the-lark"));
+  log(g, "Hacking installed on the Lark.");
   return true;
 }
 
@@ -175,7 +213,7 @@ export function upgradeSpike(g: Game): boolean {
   g.scrap -= cost;
   kit.level += 1;
   noteAchieve(g, { k: "upgrade" });
-  log(g, tx("extras.spike.hacking-raised"));
+  log(g, "Hacking raised.");
   return true;
 }
 
@@ -249,20 +287,20 @@ export function launchSpike(g: Game): boolean {
     const again = pulseSeconds(powered);
     if (again <= 0) return false;
     startOwnPulse(g, kit, again);
-    log(g, tx("extras.spike.hacking-pulses-their", { v: LABEL[kit.target] ?? kit.target }));
+    log(g, `Hacking pulses their ${LABEL[kit.target] ?? kit.target}.`);
     return true;
   }
   // @agent:hack-rules. One drone at a time: a drone still in flight is not doubled.
   if (g.enemy.hackFlying != null) return false;
   if (g.player.parts < 1) {
-    log(g, tx("extras.spike.hacking-needs-a-drone-part"));
+    log(g, "Hacking needs a drone part.");
     return false;
   }
   if (running(kit) || kit.cool > 0) return false;
   // @agent:hack-ui. Hacking wiki, "Choosing your hacking target": "if they are cloaked, you must wait for the cloak to
   // end." No part is spent: nothing launches.
   if (veilBlocks(g, "player")) {
-    log(g, tx("extras.spike.hacking-must-wait-for-their-cloak"));
+    log(g, "Hacking must wait for their cloak to end.");
     return false;
   }
   // @agent:hacking. INFERRED: no launch while the enemy's pulse is on this Hacking system. Hacking, "Overview"
@@ -274,7 +312,7 @@ export function launchSpike(g: Game): boolean {
   // augmentation." So nothing launches and no part is spent. (A drone already flying when a shield goes up still
   // breaks on impact: arriveOwn.)
   if ((g.enemy.zoltan ?? 0) > 0) {
-    log(g, tx("extras.spike.hacking-cannot-launch-at-a-zoltan"));
+    log(g, "Hacking cannot launch at a Zoltan Shield.");
     return false;
   }
   g.player.parts -= 1;
@@ -290,7 +328,7 @@ export function launchSpike(g: Game): boolean {
   kit.aux = 0;
   kit.cool = 0;
   g.enemy.hackFlying = kit.target;
-  log(g, tx("extras.spike.hacking-drone-away-toward-their", { v: LABEL[kit.target] ?? kit.target }));
+  log(g, `Hacking drone away toward their ${LABEL[kit.target] ?? kit.target}.`);
   return true;
 }
 
@@ -372,7 +410,7 @@ function arriveOwn(g: Game, kit: Kit) {
   }
   if ((foe.zoltan ?? 0) > 0) {
     loseOwnDrone(g, kit);
-    log(g, tx("extras.spike.your-hacking-drone-breaks-on-their"));
+    log(g, "Your hacking drone breaks on their Zoltan Shield.");
     return;
   }
   clearOwnFlight(g, kit);
@@ -380,7 +418,7 @@ function arriveOwn(g: Game, kit: Kit) {
   foe.hackDrone = target;
   // Crystal Lockdown: a coating already on this room is what leaves 4 hits. The pulse below can cancel it.
   noteHackLatchedDuringLock(foe, target);
-  log(g, tx("extras.spike.hacking-drone-latches-onto-their", { v: LABEL[target] ?? target }));
+  log(g, `Hacking drone latches onto their ${LABEL[target] ?? target}.`);
   const seconds = pulseSeconds(fedBars(kit));
   if (seconds > 0 && !enemyPulseOn(g, ["spike"])) startOwnPulse(g, kit, seconds);
 }
@@ -404,12 +442,12 @@ function tickOwnFlight(g: Game, kit: Kit, dt: number) {
   const hit = powered ? interceptIncomingDrone(g, "enemy", "hacking") : null;
   if (hit === "down") {
     loseOwnDrone(g, kit);
-    log(g, tx("extras.spike.their-drone-shoots-down-your-hacking"));
+    log(g, "Their drone shoots down your hacking drone.");
     return;
   }
   if (hit === "stun") {
     kit.stun = ANTI_STUN_S;
-    log(g, tx("extras.spike.their-drone-stuns-your-hacking-drone"));
+    log(g, "Their drone stuns your hacking drone.");
     return;
   }
   if (!powered || stunned) return;
@@ -599,7 +637,7 @@ function pulseTheirSwarm(g: Game, kit: Kit, dt: number) {
         u.aux = 0;
         u.left = undefined;
       }
-      log(g, tx("extras.spike.your-hack-burns-out-one-of"));
+      log(g, "Your hack burns out one of their drones.");
     }
   }
 }
@@ -619,14 +657,17 @@ function pulseTheirMind(g: Game, kit: Kit) {
     return;
   }
   kit.hackHeld = undefined;
-  const pool = g.crew.filter((c) => c.side === "enemy" && c.hp > 0 && (c.leashed ?? 0) <= 0 && !crewDef(c.kin).resistsMindControl);
+  const pool = g.crew.filter(
+    (c) =>
+      c.side === "enemy" && c.hp > 0 && (c.leashed ?? 0) <= 0 && !crewDef(c.kin).resistsMindControl,
+  );
   if (!pool.length) return;
   const c = pool[Math.floor(rand(g) * pool.length) % pool.length];
   c.leashed = kit.left;
   c.path = [];
   c.move = 0;
   kit.hackHeld = c.id;
-  log(g, tx("extras.spike.is-turned-by-your-hack", { name: c.name }));
+  log(g, `${c.name} is turned by your hack.`);
 }
 
 /**
@@ -646,7 +687,8 @@ function retrievedRoom(ship: Ship, index: number): string | undefined {
   for (const d of ship.doors) {
     if (d.b === "void") continue;
     const other = d.a === id ? d.b : d.b === id ? d.a : "";
-    if (other && ship.rooms.some((r) => r.id === other) && !neighbors.includes(other)) neighbors.push(other);
+    if (other && ship.rooms.some((r) => r.id === other) && !neighbors.includes(other))
+      neighbors.push(other);
   }
   if (neighbors.length === 0) return id;
   return neighbors[Math.min(index - tiles, neighbors.length - 1)];
@@ -664,10 +706,16 @@ function pulseTheirSling(g: Game) {
   const foe = g.enemy;
   const sling = foe?.kits.sling;
   if (!foe || !sling || veilBlocks(g, "enemy")) return;
-  const away = g.crew.filter((c) => c.aboard === "player" && c.hp > 0 && c.side === "enemy" && sideOf(c) === "enemy");
+  const away = g.crew.filter(
+    (c) => c.aboard === "player" && c.hp > 0 && c.side === "enemy" && sideOf(c) === "enemy",
+  );
   if (!away.length) return;
   const heldRooms = new Set(
-    g.crew.filter((c) => c.aboard === "player" && c.hp > 0 && c.side === "player" && sideOf(c) === "enemy").map((c) => c.room),
+    g.crew
+      .filter(
+        (c) => c.aboard === "player" && c.hp > 0 && c.side === "player" && sideOf(c) === "enemy",
+      )
+      .map((c) => c.room),
   );
   const pull = heldRooms.size ? away.filter((c) => heldRooms.has(c.room)) : away;
   if (!pull.length) return;
@@ -681,7 +729,10 @@ function pulseTheirSling(g: Game) {
   sling.on = false;
   sling.left = 0;
   sling.cool = slingCooldown(sling.level);
-  log(g, pull.length > 1 ? tx("extras.spike.your-hack-yanks-their-boarders-home") : tx("extras.spike.your-hack-yanks-a-boarder-home"));
+  log(
+    g,
+    pull.length > 1 ? "Your hack yanks their boarders home." : "Your hack yanks a boarder home.",
+  );
 }
 
 /**
@@ -715,7 +766,7 @@ function pulseTheirHacking(g: Game, kit: Kit, dt: number) {
   if (!theirs) return;
   if (running(theirs)) {
     endEnemyPulse(g, theirs);
-    log(g, tx("extras.spike.your-hack-cuts-their-hacking-pulse"));
+    log(g, "Your hack cuts their hacking pulse.");
   }
   if (!theirs.hackLatched) return;
   const before = kit.aux;
@@ -723,7 +774,7 @@ function pulseTheirHacking(g: Game, kit: Kit, dt: number) {
   for (let s = Math.floor(before) + 1; s <= Math.floor(kit.aux + 1e-9); s++) {
     if (s >= 2 && rand(g) < DRONE_KILL_PER_S) {
       loseDrone(theirs);
-      log(g, tx("extras.spike.your-hack-burns-out-their-hacking"));
+      log(g, "Your hack burns out their hacking drone.");
       return;
     }
   }
@@ -848,26 +899,35 @@ function slingCooldown(level: number): number {
 }
 
 /** Player systems that live in a room, in a fixed order so the random pick is reproducible per seed. */
-const PLAYER_SYSTEMS: readonly SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"];
+const PLAYER_SYSTEMS: readonly SysId[] = [
+  "shields",
+  "engines",
+  "oxygen",
+  "medbay",
+  "weapons",
+  "pilot",
+  "sensors",
+  "doors",
+];
 
 const LABEL: Record<string, string> = {
-  shields: tx("extras.spike.shields"),
-  engines: tx("extras.spike.engines"),
-  oxygen: tx("extras.spike.oxygen"),
-  medbay: tx("extras.spike.medbay"),
-  weapons: tx("extras.spike.weapons"),
-  pilot: tx("extras.spike.piloting"),
-  sensors: tx("extras.spike.sensors"),
-  doors: tx("extras.spike.doors"),
-  veil: tx("extras.spike.cloaking"),
-  sling: tx("extras.spike.teleporter"),
-  spike: tx("extras.spike.hacking"),
-  swarm: tx("extras.spike.drone-control"),
-  leash: tx("extras.spike.mind-control"),
-  cradle: tx("extras.spike.clone-bay"),
-  cell: tx("extras.spike.backup-battery"),
-  lance: tx("extras.spike.artillery-beam"),
-  flak: tx("extras.spike.flak-artillery"),
+  shields: "Shields",
+  engines: "Engines",
+  oxygen: "Oxygen",
+  medbay: "Medbay",
+  weapons: "Weapons",
+  pilot: "Piloting",
+  sensors: "Sensors",
+  doors: "Doors",
+  veil: "Cloaking",
+  sling: "Teleporter",
+  spike: "Hacking",
+  swarm: "Drone Control",
+  leash: "Mind Control",
+  cradle: "Clone Bay",
+  cell: "Backup Battery",
+  lance: "Artillery Beam",
+  flak: "Flak Artillery",
 };
 
 function enemyKit(g: Game): Kit | undefined {
@@ -958,7 +1018,7 @@ export function launchEnemySpike(g: Game): boolean {
   kit.on = false;
   kit.left = 0;
   kit.aux = 0;
-  log(g, tx("extras.spike.they-launch-a-hacking-drone"));
+  log(g, "They launch a hacking drone.");
   return true;
 }
 
@@ -980,7 +1040,7 @@ function loseDrone(kit: Kit) {
 function arrive(g: Game, kit: Kit) {
   if (playerBubble(g)) {
     loseDrone(kit);
-    log(g, tx("extras.spike.their-hacking-drone-breaks-on-your"));
+    log(g, "Their hacking drone breaks on your Zoltan Shield.");
     return;
   }
   kit.hackFly = undefined;
@@ -988,7 +1048,7 @@ function arrive(g: Game, kit: Kit) {
   kit.hackLatched = true;
   // Crystal Lockdown: a coating already on this room is what leaves 4 hits. The later pulse can cancel it.
   if (kit.target) noteHackLatchedDuringLock(g.player, kit.target);
-  log(g, tx("extras.spike.their-hacking-drone-latches-onto-your", { v: LABEL[kit.target ?? ""] ?? kit.target }));
+  log(g, `Their hacking drone latches onto your ${LABEL[kit.target ?? ""] ?? kit.target}.`);
 }
 
 /** Hacking wiki, "Overview" (Hacking pulse): 4 / 7 / 10 seconds by the hacker's working bars. */
@@ -1008,7 +1068,7 @@ function startEnemyPulse(g: Game, kit: Kit) {
     veil.left = 0;
     veil.cool = CLOAK_COOLDOWN;
   }
-  log(g, tx("extras.spike.they-hack-your", { v: LABEL[kit.target ?? ""] ?? kit.target }));
+  log(g, `They hack your ${LABEL[kit.target ?? ""] ?? kit.target}.`);
 }
 
 function releaseHeld(g: Game, kit: Kit) {
@@ -1087,7 +1147,13 @@ function pulseMind(g: Game, kit: Kit) {
     return;
   }
   kit.hackHeld = undefined;
-  const pool = g.crew.filter((c) => c.side === "player" && c.hp > 0 && (c.leashed ?? 0) <= 0 && !crewDef(c.kin).resistsMindControl);
+  const pool = g.crew.filter(
+    (c) =>
+      c.side === "player" &&
+      c.hp > 0 &&
+      (c.leashed ?? 0) <= 0 &&
+      !crewDef(c.kin).resistsMindControl,
+  );
   if (!pool.length) return;
   const c = pool[Math.floor(rand(g) * pool.length) % pool.length];
   c.leashed = kit.left;
@@ -1095,7 +1161,7 @@ function pulseMind(g: Game, kit: Kit) {
   c.move = 0;
   deselectCrew(g, c.id);
   kit.hackHeld = c.id;
-  log(g, tx("extras.spike.is-turned-by-their-hack", { name: c.name }));
+  log(g, `${c.name} is turned by their hack.`);
 }
 
 /**
@@ -1134,7 +1200,7 @@ function pulseSling(g: Game) {
   sling.on = false;
   sling.left = 0;
   sling.cool = slingCooldown(sling.level);
-  log(g, tx("extras.spike.their-hack-yanks-your-boarders-home"));
+  log(g, "Their hack yanks your boarders home.");
 }
 
 /**
@@ -1152,7 +1218,7 @@ function pulseSwarm(g: Game, kit: Kit, dt: number) {
     if (s >= 2 && rand(g) < DRONE_KILL_PER_S) {
       swarm.on = false;
       swarm.stun = 0;
-      log(g, tx("extras.spike.their-hack-burns-out-your-drone"));
+      log(g, "Their hack burns out your drone.");
       return;
     }
   }
@@ -1206,7 +1272,8 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
       const bay = roomWith(ship, "medbay");
       if (!bay) return;
       for (const c of g.crew) {
-        if (c.aboard !== "player" || c.room !== bay.id || c.hp <= 0 || sideOf(c) !== "player") continue;
+        if (c.aboard !== "player" || c.room !== bay.id || c.hp <= 0 || sideOf(c) !== "player")
+          continue;
         c.hp = Math.max(0, c.hp - MEDBAY_HURT * dt);
       }
       return;
@@ -1240,7 +1307,7 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
       for (let s = Math.floor(before) + 1; s <= Math.floor(kit.aux + 1e-9); s++) {
         if (s >= 2 && rand(g) < DRONE_KILL_PER_S) {
           delete foe.hackDrone;
-          log(g, tx("extras.spike.their-hack-burns-out-your-hacking"));
+          log(g, "Their hack burns out your hacking drone.");
           return;
         }
       }
@@ -1304,13 +1371,22 @@ function syncOwnDoors(g: Game, kit: Kit) {
   const ship = g.enemy;
   if (!ship) return;
   const live =
-    g.phase === "combat" && ship.hackDrone != null && kit.target != null && ship.hackDrone === kit.target && fedBars(kit) >= 1;
+    g.phase === "combat" &&
+    ship.hackDrone != null &&
+    kit.target != null &&
+    ship.hackDrone === kit.target &&
+    fedBars(kit) >= 1;
   const all = live && running(kit) && kit.target === "doors";
   const room = live && kit.target ? aimRoom(ship, kit.target)?.id : undefined;
   lockHackedDoors(ship, all, room, g.difficulty);
 }
 
-function lockHackedDoors(ship: Ship, all: boolean, room: string | undefined, difficulty: Difficulty = "normal") {
+function lockHackedDoors(
+  ship: Ship,
+  all: boolean,
+  room: string | undefined,
+  difficulty: Difficulty = "normal",
+) {
   for (const d of ship.doors) {
     const want = d.b !== "void" && (all || (!!room && (d.a === room || d.b === room)));
     if (want) {
@@ -1330,7 +1406,8 @@ function lockHackedDoors(ship: Ship, all: boolean, room: string | undefined, dif
 
 /** Marks the player's hacked room for ShipView (Room.hacked). */
 function syncRooms(g: Game, kit: Kit | undefined) {
-  const room = kit?.hackLatched && kit.target ? roomWith(g.player, kit.target as SysId)?.id : undefined;
+  const room =
+    kit?.hackLatched && kit.target ? roomWith(g.player, kit.target as SysId)?.id : undefined;
   const mark = kit && running(kit) && operational(kit) ? "pulse" : "latched";
   for (const r of g.player.rooms) {
     if (r.id === room) r.hacked = mark;
@@ -1381,10 +1458,10 @@ export function tickEnemySpike(g: Game, dt: number) {
     const hit = hackDroneIntercept(g);
     if (hit === "down") {
       loseDrone(kit);
-      log(g, tx("extras.spike.your-drone-shoots-down-their-hacking"));
+      log(g, "Your drone shoots down their hacking drone.");
     } else if (hit === "stun") {
       kit.stun = ANTI_STUN_S;
-      log(g, tx("extras.spike.your-drone-stuns-their-hacking-drone"));
+      log(g, "Your drone stuns their hacking drone.");
     } else if (live && !stunned && !veilBlocks(g, "enemy")) {
       // "Defense drones can be dodged by de-powering the hacking drone ..., which freezes the hacking drone in place".
       // Cloaking, Overview: the drone also holds while the player ship it is flying to is cloaked, then continues.
@@ -1492,7 +1569,15 @@ export function enemyHackView(g: Game): {
   }
   if (!kit.hackLatched) return null;
   const pulse = running(kit) && operational(kit);
-  return { phase: pulse ? "pulse" : "latched", progress: 1, target: kit.target, label, room, left: kit.left, cool: kit.cool };
+  return {
+    phase: pulse ? "pulse" : "latched",
+    progress: 1,
+    target: kit.target,
+    label,
+    room,
+    left: kit.left,
+    cool: kit.cool,
+  };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1571,13 +1656,16 @@ export function playerSensorLevel(g: Game): number {
  * name on the top right corner is replaced with text that states the current Evasion of the enemy ship."
  * -> `evasion` is that percent while the player's Hacking has a working bar, else null.
  */
-export function hackVision(g: Game): { system: string; room: string | null; sensors: 4; evasion: number | null } | null {
+export function hackVision(
+  g: Game,
+): { system: string; room: string | null; sensors: 4; evasion: number | null } | null {
   const foe = g.enemy;
   const id = foe?.hackDrone;
   if (!foe || !id) return null;
   const kit = kitOf(g);
   const powered = !!kit && fedBars(kit) >= 1;
-  const evasion = powered && (id === "engines" || id === "pilot") ? evasionPercent(g, foe, "enemy") : null;
+  const evasion =
+    powered && (id === "engines" || id === "pilot") ? evasionPercent(g, foe, "enemy") : null;
   return { system: id, room: aimRoom(foe, id)?.id ?? null, sensors: 4, evasion };
 }
 
@@ -1597,7 +1685,8 @@ export function lowerSpikePower(g: Game) {
 /** Adds one bar when the reactor has one spare and the level allows it (the add half of toggleSpikePower). */
 export function raiseSpikePower(g: Game) {
   const kit = kitOf(g);
-  if (kit && !cooldownLocksPower(kit) && kit.power < kit.level && sparePower(g.player) >= 1) kit.power += 1;
+  if (kit && !cooldownLocksPower(kit) && kit.power < kit.level && sparePower(g.player) >= 1)
+    kit.power += 1;
 }
 
 /**
@@ -1662,7 +1751,8 @@ export function playerHackView(g: Game): {
   const flyingId = foe?.hackFlying ?? null;
   const flying = flyingId != null && kit.hackFly != null;
   const total = kit.hackFlyTotal ?? kit.hackFly ?? 0;
-  const progress = flying && total > 0 ? Math.min(1, Math.max(0, 1 - (kit.hackFly ?? 0) / total)) : 0;
+  const progress =
+    flying && total > 0 ? Math.min(1, Math.max(0, 1 - (kit.hackFly ?? 0) / total)) : 0;
   const target = latchedId ?? flyingId ?? kit.target ?? null;
   const room = foe && target ? (aimRoom(foe, target)?.id ?? null) : null;
   const powered = fedBars(kit);

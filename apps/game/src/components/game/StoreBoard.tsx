@@ -6,12 +6,19 @@
  * a fixed price; ×N is what the store has left (sim.ts rollStock).
  */
 import { Kicker } from "@stl/ui";
-import { tx } from "@/i18n";
 import { useState, type ReactNode } from "react";
 import { hullRepairPerPoint } from "@/game/content";
 import { droneKeyOf } from "@/game/gear-look";
 import type { IconName } from "@/game/icons";
-import { buy, canDismiss, CREW_CAP, dismissCrew, leaveStore, repairHull, weaponSlotCap } from "@/game/sim";
+import {
+  buy,
+  canDismiss,
+  CREW_CAP,
+  dismissCrew,
+  leaveStore,
+  repairHull,
+  weaponSlotCap,
+} from "@/game/sim";
 import { useGame } from "@/game/store";
 import type { Game, StockItem } from "@/game/types";
 import type { KinId } from "@/game/extras/kin";
@@ -28,11 +35,11 @@ const act = (fn: (g: Game) => void) => useGame.getState().act(fn);
 type Tab = "supplies" | "weapon" | "system" | "drone" | "augment" | "crew" | "sell";
 
 const SECTION_TABS: [Tab, string, IconName][] = [
-  ["weapon", tx("ui.StoreBoard.weapons"), "weapons"],
-  ["system", tx("ui.StoreBoard.systems"), "upgrade"],
-  ["drone", tx("ui.StoreBoard.drones"), "swarm"],
-  ["augment", tx("ui.StoreBoard.augments"), "upgrade"],
-  ["crew", tx("ui.StoreBoard.crew"), "medbay"],
+  ["weapon", "Weapons", "weapons"],
+  ["system", "Systems", "upgrade"],
+  ["drone", "Drones", "swarm"],
+  ["augment", "Augments", "upgrade"],
+  ["crew", "Crew", "medbay"],
 ];
 
 const RESOURCE: Record<"fuel" | "missiles" | "parts", [IconName, (g: Game) => number]> = {
@@ -45,48 +52,84 @@ const RESOURCE: Record<"fuel" | "missiles" | "parts", [IconName, (g: Game) => nu
 function blocked(g: Game, item: StockItem): string | null {
   // Per the user: what does not fit goes to cargo, so only a full cargo hold blocks a purchase.
   const cargoFull = cargoOf(g).length >= CARGO_SLOTS;
-  if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g) && cargoFull) return tx("ui.StoreBoard.no-free-weapon-slot-or-cargo");
-  if (item.kind === "drone" && !canFieldDrone(g, item.ref) && cargoFull) return tx("ui.StoreBoard.no-free-schematic-slot-or-cargo");
-  if (item.kind === "augment" && g.augments.length >= 3) return tx("ui.StoreBoard.three-augments-is-the-cap");
+  if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g) && cargoFull)
+    return "No free weapon slot or cargo slot.";
+  if (item.kind === "drone" && !canFieldDrone(g, item.ref) && cargoFull)
+    return "No free schematic slot or cargo slot.";
+  if (item.kind === "augment" && g.augments.length >= 3) return "Three augments is the cap.";
   return null;
 }
 
 function itemArt(item: StockItem): ReactNode {
   if (item.kind === "weapon") return <WeaponArt id={item.ref} height={30} />;
   if (item.kind === "drone") return <DroneArt kind={droneKeyOf(item.ref)} height={30} />;
-  if (item.kind === "crew") return <CrewSprite kin={item.ref as KinId} uniform={UNIFORMS[0]} size={40} />;
+  if (item.kind === "crew")
+    return <CrewSprite kin={item.ref as KinId} uniform={UNIFORMS[0]} size={40} />;
   if (item.kind === "system") return <PixelIcon name={item.ref as IconName} size={28} />;
   return <PixelIcon name="upgrade" size={28} />;
 }
 
-function PriceButton({ cost, scrap, why, label, onBuy }: { cost: number; scrap: number; why?: string | null; label: string; onBuy: () => void }) {
+function PriceButton({
+  cost,
+  scrap,
+  why,
+  label,
+  onBuy,
+}: {
+  cost: number;
+  scrap: number;
+  why?: string | null;
+  label: string;
+  onBuy: () => void;
+}) {
   const poor = scrap < cost;
   return (
-    <button type="button" className={`store-price${poor ? " is-poor" : ""}`} disabled={!!why || poor} aria-label={tx("ui.StoreBoard.scrap", { label: label, cost: cost })} onClick={onBuy}>
+    <button
+      type="button"
+      className={`store-price${poor ? " is-poor" : ""}`}
+      disabled={!!why || poor}
+      aria-label={`${label}, ${cost} scrap`}
+      onClick={onBuy}
+    >
       <PixelIcon name="scrap" size={14} />
       <b>{cost}</b>
     </button>
   );
 }
 
-function ItemCard({ game, item, onFullCrew }: { game: Game; item: StockItem; onFullCrew: (item: StockItem) => void }) {
+function ItemCard({
+  game,
+  item,
+  onFullCrew,
+}: {
+  game: Game;
+  item: StockItem;
+  onFullCrew: (item: StockItem) => void;
+}) {
   const why = blocked(game, item);
-  const fullCrew = item.kind === "crew" && game.crew.filter((c) => c.side === "player").length >= CREW_CAP;
+  const fullCrew =
+    item.kind === "crew" && game.crew.filter((c) => c.side === "player").length >= CREW_CAP;
   return (
     <section className="store-card" data-kind={item.kind}>
       <span className="store-card-art">{itemArt(item)}</span>
       <b className="store-card-name">{item.name}</b>
-      {item.kind === "weapon" || item.kind === "augment" ? <span className="store-card-note">{item.detail}</span> : null}
-      {why ? <span className="offer-warn">{why}</span> : null}
-      {!why && ((item.kind === "weapon" && game.player.weapons.length >= weaponSlotCap(game)) || (item.kind === "drone" && !canFieldDrone(game, item.ref))) ? (
-        <span className="store-card-note">{tx("ui.StoreBoard.goes-to-cargo")}</span>
+      {item.kind === "weapon" || item.kind === "augment" ? (
+        <span className="store-card-note">{item.detail}</span>
       ) : null}
-      {fullCrew ? <span className="offer-warn">{tx("ui.StoreBoard.crew-is-full-someone-leaves-first")}</span> : null}
+      {why ? <span className="offer-warn">{why}</span> : null}
+      {!why &&
+      ((item.kind === "weapon" && game.player.weapons.length >= weaponSlotCap(game)) ||
+        (item.kind === "drone" && !canFieldDrone(game, item.ref))) ? (
+        <span className="store-card-note">{"Goes to cargo."}</span>
+      ) : null}
+      {fullCrew ? (
+        <span className="offer-warn">{"Crew is full: someone leaves first."}</span>
+      ) : null}
       <PriceButton
         cost={item.cost}
         scrap={game.scrap}
         why={why}
-        label={tx("ui.StoreBoard.buy", { name: item.name })}
+        label={`Buy ${item.name}`}
         onBuy={() => (fullCrew ? onFullCrew(item) : act((g) => buy(g, item.id)))}
       />
     </section>
@@ -102,26 +145,40 @@ function Supplies({ game }: { game: Game }) {
     <div className="store-supplies">
       <section className="sheet-group">
         <h3 className="sheet-group-head">
-          {tx("ui.StoreBoard.resources")}<span className="mini">{tx("ui.StoreBoard.one-per-purchase-n-is-what")}</span>
+          {"Resources "}
+          <span className="mini">{"One per purchase. ×N is what the store has left."}</span>
         </h3>
         <div className="store-cards">
           {(["fuel", "missiles", "parts"] as const).map((kind) => {
             const item = stock.find((s) => s.kind === kind);
             const [icon, have] = RESOURCE[kind];
-            const name = kind === "fuel" ? tx("ui.StoreBoard.fuel") : kind === "missiles" ? tx("ui.StoreBoard.missiles") : tx("ui.StoreBoard.drone-parts");
+            const name =
+              kind === "fuel" ? "Fuel" : kind === "missiles" ? "Missiles" : "Drone parts";
             return (
-              <section key={kind} className={`store-card${item ? "" : " is-sold-out"}`} data-kind={kind}>
+              <section
+                key={kind}
+                className={`store-card${item ? "" : " is-sold-out"}`}
+                data-kind={kind}
+              >
                 <span className="store-card-art">
                   <PixelIcon name={icon} size={28} />
                 </span>
                 <b className="store-card-name">
                   {name} <em className="store-stock">×{item?.amount ?? 0}</em>
                 </b>
-                <span className="store-card-note">{tx("ui.StoreBoard.you-have")}{have(game)}.</span>
+                <span className="store-card-note">
+                  {"You have "}
+                  {have(game)}.
+                </span>
                 {item ? (
-                  <PriceButton cost={item.cost} scrap={game.scrap} label={tx("ui.StoreBoard.buy-1", { toLowerCase: name.toLowerCase() })} onBuy={() => act((g) => buy(g, item.id))} />
+                  <PriceButton
+                    cost={item.cost}
+                    scrap={game.scrap}
+                    label={`Buy 1 ${name.toLowerCase()}`}
+                    onBuy={() => act((g) => buy(g, item.id))}
+                  />
                 ) : (
-                  <span className="store-sold">{tx("ui.StoreBoard.sold-out")}</span>
+                  <span className="store-sold">{"SOLD OUT"}</span>
                 )}
               </section>
             );
@@ -130,7 +187,11 @@ function Supplies({ game }: { game: Game }) {
       </section>
       <section className="sheet-group">
         <h3 className="sheet-group-head">
-          {tx("ui.StoreBoard.hull-repair")}<span className="mini">{rate}{tx("ui.StoreBoard.scrap-a-point")}</span>
+          {"Hull repair "}
+          <span className="mini">
+            {rate}
+            {" scrap a point."}
+          </span>
         </h3>
         <div className="store-repair">
           <span className="store-hull">
@@ -139,17 +200,28 @@ function Supplies({ game }: { game: Game }) {
               {game.player.hull}/{game.player.hullMax}
             </b>
           </span>
-          <button type="button" disabled={missing <= 0 || game.scrap < rate} onClick={() => act((g) => repairHull(g, "one"))}>
-            {tx("ui.StoreBoard.repair-1")}<small>{rate}</small>
+          <button
+            type="button"
+            disabled={missing <= 0 || game.scrap < rate}
+            onClick={() => act((g) => repairHull(g, "one"))}
+          >
+            {"Repair 1 "}
+            <small>{rate}</small>
           </button>
           {/* What the scrap covers, when that is short of a full repair. */}
           {afford > 1 && afford < missing ? (
             <button type="button" onClick={() => act((g) => repairHull(g, "max"))}>
-              {tx("ui.StoreBoard.repair")}{afford} <small>{afford * rate}</small>
+              {"Repair "}
+              {afford} <small>{afford * rate}</small>
             </button>
           ) : null}
-          <button type="button" disabled={missing <= 0 || game.scrap < missing * rate} onClick={() => act((g) => repairHull(g, "all"))}>
-            {tx("ui.StoreBoard.repair-all")}<small>{missing * rate || ""}</small>
+          <button
+            type="button"
+            disabled={missing <= 0 || game.scrap < missing * rate}
+            onClick={() => act((g) => repairHull(g, "all"))}
+          >
+            {"Repair all "}
+            <small>{missing * rate || ""}</small>
           </button>
         </div>
       </section>
@@ -159,7 +231,7 @@ function Supplies({ game }: { game: Game }) {
 
 function SellList({ game }: { game: Game }) {
   const quotes = citedSellQuote(game);
-  if (!quotes.length) return <p className="store-note">{tx("ui.StoreBoard.nothing-fitted-sells")}</p>;
+  if (!quotes.length) return <p className="store-note">{"Nothing fitted sells."}</p>;
   return (
     <div className="store-cards">
       {quotes.map((quote) => (
@@ -174,8 +246,14 @@ function SellList({ game }: { game: Game }) {
             )}
           </span>
           <b className="store-card-name">{quote.name}</b>
-          <button type="button" className="store-price is-sell" aria-label={tx("ui.StoreBoard.sell-for-scrap", { name: quote.name, scrap: quote.scrap })} onClick={() => act((g) => citedSell(g, quote.id))}>
-            {tx("ui.StoreBoard.sell")}<PixelIcon name="scrap" size={14} />
+          <button
+            type="button"
+            className="store-price is-sell"
+            aria-label={`Sell ${quote.name} for ${quote.scrap} scrap`}
+            onClick={() => act((g) => citedSell(g, quote.id))}
+          >
+            {"SELL "}
+            <PixelIcon name="scrap" size={14} />
             <b>{quote.scrap}</b>
           </button>
         </section>
@@ -193,10 +271,16 @@ function RelieveFirst({ game, item, onDone }: { game: Game; item: StockItem; onD
   const crew = game.crew.filter((c) => c.side === "player");
   const chosen = crew.find((c) => c.id === pick && canDismiss(game, c.id));
   return (
-    <div className="make-room-store" role="dialog" aria-label={tx("ui.StoreBoard.make-room-for-the-new-hire")}>
-      <p className="event-lead">{tx("ui.StoreBoard.hire")}{item.name}{tx("ui.StoreBoard.who-leaves")}</p>
-      <p className="mini">{tx("ui.StoreBoard.a-ship-holds-eight-someone-already")}</p>
-      <div className="make-room-picks" role="radiogroup" aria-label={tx("ui.StoreBoard.relieve")}>
+    <div className="make-room-store" role="dialog" aria-label={"Make room for the new hire"}>
+      <p className="event-lead">
+        {"Hire "}
+        {item.name}
+        {": who leaves?"}
+      </p>
+      <p className="mini">
+        {"A ship holds eight. Someone already aboard must be relieved before the hire."}
+      </p>
+      <div className="make-room-picks" role="radiogroup" aria-label={"Relieve"}>
         {crew.map((c) => {
           const may = canDismiss(game, c.id);
           return (
@@ -213,14 +297,16 @@ function RelieveFirst({ game, item, onDone }: { game: Game; item: StockItem; onD
                 <CrewFace crew={c} size={40} />
               </span>
               <b>{c.name}</b>
-              <span className="mini">{may ? kinLabel(c.kin) : c.aboard !== "player" ? tx("ui.StoreBoard.not-aboard") : tx("ui.StoreBoard.can-t-leave-now")}</span>
+              <span className="mini">
+                {may ? kinLabel(c.kin) : c.aboard !== "player" ? "Not aboard." : "Can't leave now."}
+              </span>
             </button>
           );
         })}
       </div>
       <div className="store-repair">
         <button type="button" onClick={onDone}>
-          {tx("ui.StoreBoard.cancel")}
+          {"Cancel"}
         </button>
         <button
           type="button"
@@ -235,7 +321,7 @@ function RelieveFirst({ game, item, onDone }: { game: Game; item: StockItem; onD
             onDone();
           }}
         >
-          {chosen ? tx("ui.StoreBoard.relieve-and-hire", { name: chosen.name }) : tx("ui.StoreBoard.pick-who-leaves")}
+          {chosen ? `Relieve ${chosen.name} and hire` : "Pick who leaves"}
         </button>
       </div>
     </div>
@@ -246,9 +332,9 @@ export function StoreBoard({ game }: { game: Game }) {
   const [hiring, setHiring] = useState<StockItem | null>(null);
   const stock = game.stock ?? [];
   const tabs: [Tab, string, IconName][] = [
-    ["supplies", tx("ui.StoreBoard.supplies"), "fuel"],
+    ["supplies", "Supplies", "fuel"],
     ...SECTION_TABS.filter(([kind]) => stock.some((item) => item.kind === kind)),
-    ["sell", tx("ui.StoreBoard.sell-2"), "scrap"],
+    ["sell", "Sell", "scrap"],
   ];
   const [picked, setTab] = useState<Tab>("supplies");
   // A section emptied by buying its last item falls back to Supplies.
@@ -256,24 +342,24 @@ export function StoreBoard({ game }: { game: Game }) {
   const leave = () => act((g) => leaveStore(g));
   return (
     <div className="overlay">
-      <article className="sheet ftl-sheet ship-sheet store-sheet has-x" aria-label={tx("ui.StoreBoard.store")}>
-        <CloseX onClose={leave} label={tx("ui.StoreBoard.leave-the-store")} />
+      <article className="sheet ftl-sheet ship-sheet store-sheet has-x" aria-label={"Store"}>
+        <CloseX onClose={leave} label={"Leave the store"} />
         <header className="ship-sheet-head">
-          <Kicker as="h2">{tx("ui.StoreBoard.store")}</Kicker>
-          <span className="store-have" aria-label={tx("ui.StoreBoard.your-supplies")}>
-            <span title={tx("ui.StoreBoard.hull")}>
+          <Kicker as="h2">{"Store"}</Kicker>
+          <span className="store-have" aria-label={"Your supplies"}>
+            <span title={"Hull"}>
               <PixelIcon name="ship" size={16} />
               {game.player.hull}
             </span>
-            <span title={tx("ui.StoreBoard.fuel")}>
+            <span title={"Fuel"}>
               <PixelIcon name="fuel" size={16} />
               {game.fuel}
             </span>
-            <span title={tx("ui.StoreBoard.missiles")}>
+            <span title={"Missiles"}>
               <PixelIcon name="missile" size={16} />
               {game.missiles}
             </span>
-            <span title={tx("ui.StoreBoard.drone-parts")}>
+            <span title={"Drone parts"}>
               <PixelIcon name="parts" size={16} />
               {game.player.parts}
             </span>
@@ -286,12 +372,14 @@ export function StoreBoard({ game }: { game: Game }) {
         <div
           className="ship-tabs"
           role="tablist"
-          aria-label={tx("ui.StoreBoard.store")}
+          aria-label={"Store"}
           onKeyDown={(e) => {
             if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
             e.preventDefault();
             const ids = tabs.map(([id]) => id);
-            const focused = ids.indexOf((e.target as HTMLElement).id.replace("store-tab-", "") as Tab);
+            const focused = ids.indexOf(
+              (e.target as HTMLElement).id.replace("store-tab-", "") as Tab,
+            );
             const at = focused >= 0 ? focused : ids.indexOf(tab);
             const next = ids[(at + (e.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length]!;
             setTab(next);
@@ -300,7 +388,10 @@ export function StoreBoard({ game }: { game: Game }) {
         >
           {tabs.map(([id, label, icon]) => {
             const on = tab === id;
-            const count = id === "supplies" || id === "sell" ? null : stock.filter((item) => item.kind === id).length;
+            const count =
+              id === "supplies" || id === "sell"
+                ? null
+                : stock.filter((item) => item.kind === id).length;
             return (
               <button
                 key={id}
@@ -320,7 +411,12 @@ export function StoreBoard({ game }: { game: Game }) {
             );
           })}
         </div>
-        <div className="ship-tab-panel store-panel" id="store-tab-panel" role="tabpanel" aria-labelledby={`store-tab-${tab}`}>
+        <div
+          className="ship-tab-panel store-panel"
+          id="store-tab-panel"
+          role="tabpanel"
+          aria-labelledby={`store-tab-${tab}`}
+        >
           {tab === "supplies" ? <Supplies game={game} /> : null}
           {tab === "sell" ? <SellList game={game} /> : null}
           {hiring && stock.some((item) => item.id === hiring.id) ? (

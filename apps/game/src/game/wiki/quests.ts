@@ -28,12 +28,20 @@
  * INVENTED: quest beacon names, and the one-word labels of "Fight ..." / "Continue" buttons where a page prints none.
  * Ship unlocks go through unlocks.ts grantUnlock.
  */
-import { tx } from "../../i18n/index.ts";
 import { upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { allEvents, crewDef, weaponDef } from "@stl/pack";
 import { xpNeedFor } from "../extras/lineage.ts";
-import { aidPlayerAsb, beginBoarding, halvePlayerSystems, hurtSystem, log, openStoreHere, rand, shutPlayerHacking } from "../sim.ts";
+import {
+  aidPlayerAsb,
+  beginBoarding,
+  halvePlayerSystems,
+  hurtSystem,
+  log,
+  openStoreHere,
+  rand,
+  shutPlayerHacking,
+} from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
@@ -84,7 +92,10 @@ export type QuestPart = {
   gotAway: Record<string, (g: Game) => void>;
 };
 const PARTS = (): QuestPart[] => [PART_A, PART_B];
-function fromParts<K extends "quests" | "arrive" | "choices" | "wins" | "gotAway">(k: K, id: string): QuestPart[K][string] | undefined {
+function fromParts<K extends "quests" | "arrive" | "choices" | "wins" | "gotAway">(
+  k: K,
+  id: string,
+): QuestPart[K][string] | undefined {
   for (const part of PARTS()) {
     const table = part?.[k] as Record<string, QuestPart[K][string]> | undefined;
     if (table?.[id]) return table[id];
@@ -94,25 +105,28 @@ function fromParts<K extends "quests" | "arrive" | "choices" | "wins" | "gotAway
 
 /** Quest id -> the event page whose "Quest Marker" section it is, and the INVENTED beacon name. */
 export const QUESTS: Record<string, { page: string; title: string }> = {
-  escort: { page: "Escort civilians", title: tx("wiki.quests.escort-destination") },
-  "mantis-war-camp": { page: "Mantis war camp", title: tx("wiki.quests.mantis-encampment") },
-  "space-station": { page: "Space station under construction", title: tx("wiki.quests.missing-cargo-ship") },
-  "defector-cache": { page: "Rebel defector", title: tx("wiki.quests.defector-s-cache") },
-  "mantis-chase": { page: "Mantis ship-collectors", title: tx("wiki.quests.mantis-trail") },
-  "fed-base": { page: "Rebel ship attacking Federation loyalists", title: tx("wiki.quests.hidden-federation-base") },
-  "thief-stash": { page: "Legendary thief KazaaakplethKilik", title: tx("wiki.quests.thief-s-cache") },
-  "slug-pirate-trap": { page: "Slug comm tapping", title: tx("wiki.quests.slug-raid") },
-  "engi-real": { page: "Engi fleet discussion", title: tx("wiki.quests.rebel-base") },
-  "engi-fake": { page: "Engi fleet discussion", title: tx("wiki.quests.rebel-base") },
-  "engi-final": { page: "Engi fleet discussion", title: tx("wiki.quests.mantis-convoy") },
-  "slug-platform": { page: "Slug Home Nebula surrender", title: tx("wiki.quests.construction-platform") },
-  "store-rescue": { page: "Settlement mercenary work", title: tx("wiki.quests.space-dock") },
+  escort: { page: "Escort civilians", title: "Escort destination" },
+  "mantis-war-camp": { page: "Mantis war camp", title: "Mantis encampment" },
+  "space-station": { page: "Space station under construction", title: "Missing cargo ship" },
+  "defector-cache": { page: "Rebel defector", title: "Defector's cache" },
+  "mantis-chase": { page: "Mantis ship-collectors", title: "Mantis trail" },
+  "fed-base": {
+    page: "Rebel ship attacking Federation loyalists",
+    title: "Hidden Federation Base",
+  },
+  "thief-stash": { page: "Legendary thief KazaaakplethKilik", title: "Thief's cache" },
+  "slug-pirate-trap": { page: "Slug comm tapping", title: "Slug raid" },
+  "engi-real": { page: "Engi fleet discussion", title: "Rebel base" },
+  "engi-fake": { page: "Engi fleet discussion", title: "Rebel base" },
+  "engi-final": { page: "Engi fleet discussion", title: "Mantis convoy" },
+  "slug-platform": { page: "Slug Home Nebula surrender", title: "Construction platform" },
+  "store-rescue": { page: "Settlement mercenary work", title: "Space dock" },
 };
 
-export const QUEST_ADDED = tx("wiki.quests.added-a-quest-marker-to-your");
-export const QUEST_NEXT = tx("wiki.quests.added-a-quest-marker-to-the");
+export const QUEST_ADDED = "Added a quest marker to your map!";
+export const QUEST_NEXT = "Added a quest marker to the next sector!";
 export const QUEST_CANCELLED =
-  tx("wiki.quests.upon-examining-your-map-you-realize");
+  "Upon examining your map, you realize you just won't have time and need to get to the Federation base! You leave the quest for another day.";
 
 /** Ship-unlocking event pages (Category:Ship Unlocking Events) are not overwritten by a marker. INFERRED (Beacons @to-do). */
 const KEEP_FLAGS = new Set([
@@ -139,7 +153,8 @@ const KEEP_FLAGS = new Set([
  * the KEEP_FLAGS pages are also kept clear.
  */
 function canHold(g: Game, b: Beacon, from: Beacon | undefined, force: boolean): boolean {
-  if (b.kind === "start" || b.kind === "exit" || b.kind === "boss" || b.kind === "store") return false;
+  if (b.kind === "start" || b.kind === "exit" || b.kind === "boss" || b.kind === "store")
+    return false;
   if (b.kind === "nebula" || b.kind === "distress") return false;
   if (b.quest || b.visited || b.id === g.here || KEEP_FLAGS.has(b.flag)) return false;
   if (overtaken(g, b)) return false;
@@ -173,7 +188,7 @@ function mark(b: Beacon, id: string) {
   // > "Note: this event occurs at a regular quest marker beacon, but when you arrive there will be a nebula environment." — [[Slug Home Nebula surrender#Quest Marker]]
   b.kind = id === "slug-pirate-trap" || id === "slug-platform" ? "nebula" : "event";
   b.flag = `quest:${id}`;
-  b.name = QUESTS[id]?.title ?? fromParts("quests", id)?.title ?? tx("wiki.quests.quest");
+  b.name = QUESTS[id]?.title ?? fromParts("quests", id)?.title ?? "Quest";
   b.asteroid = false;
   b.resolved = false;
   b.visited = false;
@@ -211,7 +226,7 @@ export function placeQueuedQuests(g: Game) {
     const spot = questSpot(g, true);
     if (spot) mark(spot, id);
     // INFERRED: a sector with no room (all nebula, say) loses the marker. The page does not cover this case.
-    else log(g, tx("wiki.quests.no-room-on-this-map-for"));
+    else log(g, "No room on this map for the quest marker.");
   }
 }
 
@@ -220,7 +235,7 @@ export function placeQueuedQuests(g: Game) {
 // ---------------------------------------------------------------------------------------------------------------
 
 export type Choice = { id: string; label: string };
-const ACK: Choice[] = [{ id: "ack", label: tx("wiki.quests.continue") }];
+const ACK: Choice[] = [{ id: "ack", label: "Continue" }];
 
 /** Rewards, "Scrap only": T scrap. Same augment adjustment as the other rewards. */
 export function scrapOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
@@ -231,15 +246,16 @@ export function scrapOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
 /** Rewards, "Fuel" / "Missiles": T of that resource and T scrap. Bands are the page tooltips. */
 function cargoAndScrap(g: Game, tier: "low" | "high", kind: "fuel" | "missiles"): SurrenderOffer {
   const offer = scrapOnly(g, tier);
-  const band = kind === "fuel" ? (tier === "high" ? [3, 6] : [1, 3]) : tier === "high" ? [4, 8] : [1, 2];
+  const band =
+    kind === "fuel" ? (tier === "high" ? [3, 6] : [1, 3]) : tier === "high" ? [4, 8] : [1, 2];
   offer[kind] = between(g, band as [number, number]);
   return offer;
 }
 
 const ENGI_DISTRESS_AFTER: Choice[] = [
-  { id: "q:engi-distress:scrap", label: tx("wiki.quests.give-them-25-scrap") },
-  { id: "q:engi-distress:supplies", label: tx("wiki.quests.give-them-40-scrap-2-missiles") },
-  { id: "q:engi-distress:nothing", label: tx("wiki.quests.give-them-nothing") },
+  { id: "q:engi-distress:scrap", label: "Give them 25 scrap." },
+  { id: "q:engi-distress:supplies", label: "Give them 40 scrap, 2 missiles and 2 fuel." },
+  { id: "q:engi-distress:nothing", label: "Give them nothing." },
 ];
 
 /**
@@ -252,7 +268,7 @@ function lastStandSurvivors(g: Game) {
   if (kind === "repair") {
     result(
       g,
-      tx("wiki.quests.you-are-hailed-thank-you-it"),
+      'You are hailed, "Thank you! It\'s not much but we can repair a bit of damage before you jump off into the war. Good luck!"',
       undefined,
       [repair(g, 8)],
     );
@@ -261,16 +277,16 @@ function lastStandSurvivors(g: Game) {
   if (kind === "supplies") {
     result(
       g,
-      tx("wiki.quests.the-survivors-send-a-message-thanks"),
+      "The survivors send a message, \"Thanks for the support, I don't know how much longer we could have held on. Take some supplies, we probably won't need them at this point.\"",
       rollSurrenderOffer(g, "medium", true),
     );
     return;
   }
   result(
     g,
-    tx("wiki.quests.the-people-you-rescued-were-primarily"),
+    "The people you rescued were primarily refugees fleeing the conflict. They offer you their sincere gratitude.",
     undefined,
-    [tx("wiki.quests.nothing-happens")],
+    ["Nothing happens."],
   );
 }
 
@@ -278,7 +294,7 @@ function lastStandSurvivors(g: Game) {
 function engiDistressWin(g: Game, deadCrew: boolean) {
   result(
     g,
-    tx("wiki.quests.the-rebels-destroyed-you-pick-the"),
+    "The rebels destroyed, you pick the bones of their ship and wait for the small Engi ship to catch up. The Engi vessel turns out to be very poorly equipped - barely a runabout, really. They're trying to outrun the rebels, and need all the help they can get.",
     rollStandard(g, deadCrew ? "medium" : "low"),
     [],
     ENGI_DISTRESS_AFTER,
@@ -290,44 +306,50 @@ function engiDistressWin(g: Game, deadCrew: boolean) {
 function engiDistressGift(g: Game) {
   if (g.scrap < 25) return;
   g.scrap -= 25;
-  log(g, tx("wiki.quests.scrap-25"));
+  log(g, "Scrap: -25.");
   const r = pick(g, ["nothing", "heal", "schematic"] as const);
   if (r === "heal") {
     result(
       g,
-      tx("wiki.quests.the-engies-are-grateful-they-don"),
+      "The Engies are grateful. They don't have any supplies or weapons to spare, but they do send over a self-teleporting med-bot disperser they hope they won't need.",
       { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0, weapon: "healburst" },
-      [tx("wiki.quests.scrap-25")],
+      ["Scrap: -25."],
     );
     return;
   }
   if (r === "schematic") {
     result(
       g,
-      tx("wiki.quests.the-engies-are-grateful-they-don-2"),
+      "The Engies are grateful. They don't have much by way of supplies but they do offer a drone schematic for your use.",
       undefined,
-      [tx("wiki.quests.scrap-25"), grantRandomItem(g, "drone")],
+      ["Scrap: -25.", grantRandomItem(g, "drone")],
     );
     return;
   }
   result(
     g,
-    tx("wiki.quests.the-words-they-use-are-need"),
+    'The words they use are "Need = fulfilled", but you take it for gratitude. They take the next jump in their long journey home.',
     undefined,
-    [tx("wiki.quests.nothing-else-happens"), tx("wiki.quests.scrap-25")],
+    ["Nothing else happens.", "Scrap: -25."],
   );
 }
 
 /** The result card: page text, what was paid, extras, and the next choices ("ack" by default). */
-export function result(g: Game, text: string, offer?: SurrenderOffer, extras: string[] = [], choices: Choice[] = ACK) {
+export function result(
+  g: Game,
+  text: string,
+  offer?: SurrenderOffer,
+  extras: string[] = [],
+  choices: Choice[] = ACK,
+) {
   const lines: string[] = [text];
   const got: string[] = [];
   if (offer) {
     const paid = payOffer(g, offer, true);
-    if (offer.scrap) got.push(tx("wiki.quests.scrap", { scrap: offer.scrap }));
-    if (offer.fuel) got.push(tx("wiki.quests.fuel", { fuel: offer.fuel }));
-    if (offer.missiles) got.push(tx("wiki.quests.missiles", { missiles: offer.missiles }));
-    if (offer.parts) got.push(tx("wiki.quests.drone-parts", { parts: offer.parts }));
+    if (offer.scrap) got.push(`Scrap: ${offer.scrap}.`);
+    if (offer.fuel) got.push(`Fuel: ${offer.fuel}.`);
+    if (offer.missiles) got.push(`Missiles: ${offer.missiles}.`);
+    if (offer.parts) got.push(`Drone parts: ${offer.parts}.`);
     if (paid.weaponName) got.push(`${paid.weaponName}.`);
     got.push(...paid.extras);
   }
@@ -359,19 +381,19 @@ export function pick<T>(g: Game, items: T[]): T {
 
 export function repair(g: Game, n: number): string {
   g.player.hull = Math.min(g.player.hullMax, g.player.hull + n);
-  return tx("wiki.quests.hull-repairs", { n: n });
+  return `Hull repairs: ${n}.`;
 }
 
 const AUG_NAMES: Partial<Record<AugmentId, string>> = {
-  casing: tx("wiki.quests.titanium-system-casing"),
-  gel: tx("wiki.quests.slug-repair-gel"),
-  pheromone: tx("wiki.quests.mantis-pheromones"),
+  casing: "Titanium System Casing",
+  gel: "Slug Repair Gel",
+  pheromone: "Mantis Pheromones",
   // Engi distress Rebel fight prints this name for the med-bot augment.
-  medbot: tx("wiki.quests.engi-med-bot-dispersal"),
+  medbot: "Engi Med-bot Dispersal",
   // @agent:quests-a.
-  keel: tx("wiki.quests.rock-plating"),
-  vengeance: tx("wiki.quests.crystal-vengeance"),
-  zshield: tx("wiki.quests.zoltan-shield"),
+  keel: "Rock Plating",
+  vengeance: "Crystal Vengeance",
+  zshield: "Zoltan Shield",
 };
 
 /**
@@ -380,17 +402,18 @@ const AUG_NAMES: Partial<Record<AugmentId, string>> = {
  */
 export function grantAug(g: Game, id: AugmentId): string {
   const name = AUG_NAMES[id] ?? id;
-  if (g.augments.includes(id)) return tx("wiki.quests.is-already-fitted", { name: name });
-  if (receiveAugment(g, id) === "queued") return tx("wiki.quests.no-free-augmentation-slot-for-choose", { name: name });
+  if (g.augments.includes(id)) return `${name} is already fitted.`;
+  if (receiveAugment(g, id) === "queued")
+    return `No free augmentation slot for ${name}: choose what to leave behind.`;
   return `${name} fitted.`;
 }
 
 /** A crewmember joins; `skill` at level 1 (page: "with 1 skill in ..."). */
 export function crew(g: Game, race: string, skill?: SkillName, name?: string): string {
-  if (!joinCrew(g, race, name)) return tx("wiki.quests.there-is-no-room-aboard-for");
+  if (!joinCrew(g, race, name)) return "There is no room aboard for the new crewmember.";
   const c = g.crew[g.crew.length - 1];
   if (skill) c.skills = { ...(c.skills ?? {}), [skill]: xpNeedFor(c, skill) };
-  return tx("wiki.quests.a-crewmember-joins-you", { race: race });
+  return `A ${race} crewmember joins you.`;
 }
 
 function hasEngi(g: Game): boolean {
@@ -413,8 +436,8 @@ function slugDrink(g: Game, rock: boolean) {
     log(
       g,
       rock
-        ? tx("wiki.quests.even-if-there-was-something-malicious")
-        : tx("wiki.quests.you-take-a-cautious-gulp-it"),
+        ? "Even if there was something malicious in the drink, you doubt it would affect the Rock digestive system. The Slug casually celebrates your newfound trust by repairing part of your ship and offering to sell you his wares."
+        : "You take a cautious gulp. It's foul, but doesn't do any lasting damage. It's a thousand to one chance, but this Slug actually seems to be trustworthy. He casually celebrates your newfound trust by repairing part of your ship and offering to sell you his wares.",
     );
     log(g, note);
     openStoreHere(g);
@@ -423,8 +446,8 @@ function slugDrink(g: Game, rock: boolean) {
   if (rock) {
     pageFight(
       g,
-      tx("wiki.quests.your-crewmember-is-able-to-identify"),
-      tx("wiki.quests.slug-ship"),
+      "Your crewmember is able to identify a heavy anaesthetic contained in the flask when he feels slightly drowsy (the Rock digestion system is very robust). His ruse discovered, the Slug immediately returns to his ship and opens fire.",
+      "Slug ship",
       "slug-drink",
     );
     return;
@@ -433,23 +456,33 @@ function slugDrink(g: Game, rock: boolean) {
   const n = between(g, [25, 35]);
   const lost = Math.min(g.scrap, n);
   g.scrap -= lost;
-  log(g, tx("wiki.quests.scrap-2", { lost: lost }));
+  log(g, `Scrap: -${lost}.`);
   result(
     g,
-    tx("wiki.quests.you-take-one-gulp-and-wake"),
+    "You take one gulp and wake up with the rest of the crew in the cargo hold... which contains noticeably less scrap than before.",
     undefined,
-    [tx("wiki.quests.scrap-2", { lost: lost })],
+    [`Scrap: -${lost}.`],
   );
 }
 
 /** Lanius powered-down ship, "Investigate the vessel." Blue options stay visible when the ship cannot use them. */
 function investigateDormant(g: Game) {
-  card(g, tx("wiki.quests.the-vessel-appears-to-be-dormant"), [
-    { id: "q:lanius-dormant:ignore", label: tx("wiki.quests.ignore-the-vessel") },
-    { id: "q:lanius-dormant:navigate", label: tx("wiki.quests.navigate-carefully-around-the-ship-and") },
-    { id: "q:lanius-dormant:plunder", label: tx("wiki.quests.send-over-a-lanius-crewmember-to") },
-    { id: "q:lanius-dormant:autopilot", label: tx("wiki.quests.engage-the-autopilot-to-strip-the") },
-  ]);
+  card(
+    g,
+    "The vessel appears to be dormant. It is likely there are Lanius on board, but they may be in hibernation until the ship comes within range of new materials.",
+    [
+      { id: "q:lanius-dormant:ignore", label: "Ignore the vessel." },
+      {
+        id: "q:lanius-dormant:navigate",
+        label: "Navigate carefully around the ship and strip what materials from the hull you can.",
+      },
+      {
+        id: "q:lanius-dormant:plunder",
+        label: "Send over a Lanius crewmember to plunder the ship of resources.",
+      },
+      { id: "q:lanius-dormant:autopilot", label: "Engage the autopilot to strip the ship safely." },
+    ],
+  );
 }
 export function sensors(g: Game): number {
   return g.player.systems.sensors?.level ?? 0;
@@ -459,12 +492,14 @@ export function hasTeleporter(g: Game): boolean {
 }
 function hasMissileWeapon(g: Game): boolean {
   // Weapons, Hull Missile: countedAsMissileInEvents is false. A Hull Missile does not open a Missile Weapon option.
-  return g.player.weapons.some((w) => w.defId !== "hullmissile" && weaponDef(w.defId)?.kind === "missile");
+  return g.player.weapons.some(
+    (w) => w.defId !== "hullmissile" && weaponDef(w.defId)?.kind === "missile",
+  );
 }
 
 function damageHull(g: Game, n: number): boolean {
   g.player.hull = Math.max(0, g.player.hull - n);
-  log(g, tx("wiki.quests.hull-damage", { n: n }));
+  log(g, `Hull damage: ${n}.`);
   if (g.player.hull > 0) return false;
   g.phase = "defeat";
   g.outcome = g.training ? "tutorial" : "hull";
@@ -488,53 +523,82 @@ export function hullRun(chance: number, threshold: number, seconds: number): Esc
 function arriveEscort(g: Game) {
   const r = pick(g, ["ambush", "reward", "store", "reactor"] as const);
   if (r === "ambush") {
-    card(g, tx("wiki.quests.you-escort-the-ship-to-the"), [
-      { id: "q:escort:fight", label: tx("wiki.quests.fight-the-rebel-ship") },
-    ]);
+    card(
+      g,
+      "You escort the ship to the requested beacon. Much to your dismay you are ambushed by a Rebel ship. You walked right into their trap!",
+      [{ id: "q:escort:fight", label: "Fight the Rebel ship." }],
+    );
   } else if (r === "reward") {
-    result(g, tx("wiki.quests.shortly-after-you-arrive-the-ship"), rollStandard(g, "high"));
+    result(
+      g,
+      "Shortly after you arrive, the ship you were escorting jumps nearby. They thank you for your help and offer you a reward.",
+      rollStandard(g, "high"),
+    );
   } else if (r === "store") {
     // "Your ship receives 5 repairs and a store opens."
-    result(g, tx("wiki.quests.the-ship-you-were-escorting-thanks"), undefined, [repair(g, 5)], STORE_CHOICES);
+    result(
+      g,
+      'The ship you were escorting thanks you, "I don\'t think we could have made it without your help. Let my friends patch up some of your hull and show you their wares."',
+      undefined,
+      [repair(g, 5)],
+      STORE_CHOICES,
+    );
   } else {
     // "Your ship reactor is upgraded." Ref: "If your ship reactor was already fully upgraded ... "Could not upgrade the
     // Reactor, it's maxed" - and nothing happens."
-    let note = tx("wiki.quests.could-not-upgrade-the-reactor-it");
+    let note = "Could not upgrade the Reactor, it's maxed";
     if (upgradeCost("reactor", g.player.reactor) != null) {
       g.player.reactor += 1;
       // Manpower: an event offer to upgrade the reactor does not count against the achievement.
       noteReactorEvent(g);
-      note = tx("wiki.quests.reactor", { reactor: g.player.reactor });
+      note = `Reactor ${g.player.reactor}.`;
     }
-    result(g, tx("wiki.quests.you-arrive-and-the-ship-you"), undefined, [note]);
+    result(
+      g,
+      'You arrive and the ship you were escorting jumps in behind you. "Thanks for the help. We work at a nearby fusion power plant, we could try to improve your reactor\'s output as a form of compensation."',
+      undefined,
+      [note],
+    );
   }
 }
 
 export const STORE_CHOICES: Choice[] = [
-  { id: "q:open-store", label: tx("wiki.quests.see-their-wares") },
-  { id: "ack", label: tx("wiki.quests.leave") },
+  { id: "q:open-store", label: "See their wares." },
+  { id: "ack", label: "Leave." },
 ];
 
 /** Space station under construction, "Quest Marker": "One of the following subevents occurs". */
 function arriveStation(g: Game) {
   const r = pick(g, ["rebel", "empty", "floating"] as const);
   if (r === "rebel") {
-    card(g, tx("wiki.quests.you-find-the-missing-cargo-ship"), [
-      { id: "q:station:attack", label: tx("wiki.quests.attack-the-rebels-to-help-them") },
-      { id: "q:station:leave", label: tx("wiki.quests.leave") },
-    ]);
+    card(
+      g,
+      "You find the missing cargo ship docked to a Rebel station. You send a short-band message to them and discover they are being held against their will and forced to 'donate to their supplies for the war effort.'",
+      [
+        { id: "q:station:attack", label: "Attack the Rebels to help them escape." },
+        { id: "q:station:leave", label: "Leave." },
+      ],
+    );
   } else if (r === "empty") {
     // {{:Abandoned station}}.
-    card(g, tx("wiki.quests.you-find-the-missing-cargo-ship-2"), [
-      { id: "q:station:examine", label: tx("wiki.quests.move-in-to-examine-the-station") },
-      { id: "q:station:stay", label: tx("wiki.quests.stay-near-the-beacon") },
-    ]);
+    card(
+      g,
+      "You find the missing cargo ship docked to an empty space station. However their hold appears to be empty and there are no obvious signs that anyone is inside the ship or station. Everything looks abandoned.",
+      [
+        { id: "q:station:examine", label: "Move in to examine the station." },
+        { id: "q:station:stay", label: "Stay near the Beacon." },
+      ],
+    );
   } else {
-    card(g, tx("wiki.quests.you-find-the-missing-cargo-ship-3"), [
-      { id: "q:station:fuel4", label: tx("wiki.quests.give-them-the-requested-4-fuel") },
-      { id: "q:station:fuel1", label: tx("wiki.quests.give-them-1-fuel") },
-      { id: "q:station:none", label: tx("wiki.quests.do-not-give-them-any") },
-    ]);
+    card(
+      g,
+      'You find the missing cargo ship floating near the beacon. "Thank heavens! We\'ve been drifting here after using the last of our fuel to escape a pirate raid."',
+      [
+        { id: "q:station:fuel4", label: "Give them the requested 4 fuel." },
+        { id: "q:station:fuel1", label: "Give them 1 fuel." },
+        { id: "q:station:none", label: "Do not give them any." },
+      ],
+    );
   }
 }
 
@@ -547,21 +611,29 @@ function arriveStation(g: Game) {
 export function arriveFedAssist(g: Game) {
   const r = pick(g, ["auto", "repair", "asb", "wing"] as const);
   if (r === "asb") {
-    card(g, tx("wiki.quests.you-arrive-in-the-sector-to"), [
-      { id: "q:fed-base:assist-asb", label: tx("wiki.quests.fight-the-auto-ship") },
-    ]);
+    card(
+      g,
+      "You arrive in the sector to see a small Federation outpost using their Anti-Ship Battery to fire at an automated drone. Debris from other ships is strewn around the area. It looks like the brunt of the battle is already over. You move in to assist.",
+      [{ id: "q:fed-base:assist-asb", label: "Fight the Auto-ship." }],
+    );
   } else if (r === "wing") {
-    card(g, tx("wiki.quests.you-arrive-in-the-sector-to-2"), [
-      { id: "q:fed-base:assist-wing", label: tx("wiki.quests.fight-the-elite-rebel") },
-    ]);
+    card(
+      g,
+      "You arrive in the sector to see the Federation outpost under fire from multiple Rebel ships. However, as you approach they get their Anti-Ship Battery online and disable two of the smaller ships. You swoop in to assist, taking down the wing leader.",
+      [{ id: "q:fed-base:assist-wing", label: "Fight the Elite Rebel." }],
+    );
   } else if (r === "repair") {
-    card(g, tx("wiki.quests.you-arrive-in-the-sector-to-3"), [
-      { id: "q:fed-base:assist-repair", label: tx("wiki.quests.fight-the-auto-ship") },
-    ]);
+    card(
+      g,
+      "You arrive in the sector to see a small outpost being bombarded by an automated drone. This must be the Federation base you were told about!",
+      [{ id: "q:fed-base:assist-repair", label: "Fight the Auto-ship." }],
+    );
   } else {
-    card(g, tx("wiki.quests.you-arrive-in-the-sector-to-3"), [
-      { id: "q:fed-base:assist", label: tx("wiki.quests.fight-the-auto-ship") },
-    ]);
+    card(
+      g,
+      "You arrive in the sector to see a small outpost being bombarded by an automated drone. This must be the Federation base you were told about!",
+      [{ id: "q:fed-base:assist", label: "Fight the Auto-ship." }],
+    );
   }
 }
 
@@ -570,22 +642,41 @@ function arriveFedBase(g: Game) {
   const r = pick(g, ["schematic", "crew", "dock", "empty", "assist"] as const);
   if (r === "schematic") {
     // "You receive a drone schematic with high scrap." The schematic is not named: Rewards, "Drone": "A random drone schematic & T scrap."
-    result(g, tx("wiki.quests.you-find-the-planet-at-the"), scrapOnly(g, "high"), [grantRandomItem(g, "drone")]);
+    result(
+      g,
+      'You find the planet at the indicated coordinates. Your initial scans show the planet to be barren and devoid of life, but you get a prompt reply when you broadcast on Federation frequencies. "Hello! So nice to see friends. We\'ll bring you up some supplies."',
+      scrapOnly(g, "high"),
+      [grantRandomItem(g, "drone")],
+    );
   } else if (r === "crew") {
     // "You receive a crewmember and low scrap with resources." Race not named: INFERRED random.
     const joined = crew(g, randomRace(g));
-    result(g, tx("wiki.quests.by-following-the-directions-given-to"), rollStandard(g, "low"), [joined]);
+    result(
+      g,
+      "By following the directions given to you, you find a well-disguised outpost. You are welcomed by a friendly face who offers to assist you in your quest by joining your crew.",
+      rollStandard(g, "low"),
+      [joined],
+    );
   } else if (r === "dock") {
-    result(g, tx("wiki.quests.after-a-quick-search-you-discover"), rollStandard(g, "medium"), [repair(g, 35)]);
+    result(
+      g,
+      "After a quick search you discover the hidden Federation space-dock. They offer you some supplies in addition to fully repairing your ship.",
+      rollStandard(g, "medium"),
+      [repair(g, 35)],
+    );
   } else if (r === "empty") {
-    const choices: Choice[] = [{ id: "ack", label: tx("wiki.quests.leave") }];
+    const choices: Choice[] = [{ id: "ack", label: "Leave." }];
     // {{Blue Option|Improved Sensors|...|level=2}} / {{Blue Option|Advanced Sensors|...|level=3}} / Long-Ranged Scanners.
     // The same label is printed on each. A ship that meets more than one requirement can pick.
-    const scan = tx("wiki.quests.run-a-second-scan-pass");
+    const scan = "Run a second scan pass.";
     if (sensors(g) >= 2) choices.push({ id: "q:fed-base:scan-2", label: scan });
     if (sensors(g) >= 3) choices.push({ id: "q:fed-base:scan-3", label: scan });
     if (g.augments.includes("glass")) choices.push({ id: "q:fed-base:scan-glass", label: scan });
-    card(g, tx("wiki.quests.you-search-near-the-coordinates-given"), choices);
+    card(
+      g,
+      "You search near the coordinates given to you, but your search yields no results. Perhaps they were mistaken.",
+      choices,
+    );
   } else {
     arriveFedAssist(g);
   }
@@ -614,12 +705,23 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       break;
     case "mantis-war-camp": {
       // Mantis war camp, "Quest Marker".
-      const choices: Choice[] = [{ id: "q:war-camp:leave", label: tx("wiki.quests.leave-before-they-notice-you") }];
+      const choices: Choice[] = [
+        { id: "q:war-camp:leave", label: "Leave before they notice you." },
+      ];
       // {{Blue Option|Missile Weapon|Bombard their key structures.}} [1 missile]
-      if (hasMissileWeapon(g)) choices.push({ id: "q:war-camp:missile", label: tx("wiki.quests.bombard-their-key-structures") });
+      if (hasMissileWeapon(g))
+        choices.push({ id: "q:war-camp:missile", label: "Bombard their key structures." });
       // {{Blue Option|Fire Bomb|Teleport fire bombs into key structures.}} [2 missiles]. Fire Bomb is fitted as "cask".
-      if (g.player.weapons.some((w) => w.defId === "cask")) choices.push({ id: "q:war-camp:firebomb", label: tx("wiki.quests.teleport-fire-bombs-into-key-structures") });
-      card(g, tx("wiki.quests.you-find-the-mantis-encampment-but"), choices);
+      if (g.player.weapons.some((w) => w.defId === "cask"))
+        choices.push({
+          id: "q:war-camp:firebomb",
+          label: "Teleport fire bombs into key structures.",
+        });
+      card(
+        g,
+        "You find the Mantis encampment but there are far too many of them to count accurately. You send a long range message back to the settlement with your findings but unfortunately there's not much you can do. It would be suicide to attack directly.",
+        choices,
+      );
       break;
     }
     case "space-station":
@@ -633,9 +735,17 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       // > "You receive low scrap." — [[Rebel defector#Quest Marker]]
       // Rebel defector, "Quest Marker": two results.
       if (rand(g) < 0.5) {
-        result(g, tx("wiki.quests.arriving-at-the-specified-coordinates-you"), rollSurrenderOffer(g, "high", true));
+        result(
+          g,
+          "Arriving at the specified coordinates, you find a sizable stash of useful materials.",
+          rollSurrenderOffer(g, "high", true),
+        );
       } else {
-        result(g, tx("wiki.quests.you-arrive-at-location-of-the"), scrapOnly(g, "low"));
+        result(
+          g,
+          "You arrive at location of the hoard, but discover that it was not quite as large as advertised.",
+          scrapOnly(g, "low"),
+        );
       }
       break;
     case "fed-base":
@@ -643,7 +753,12 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       break;
     case "thief-stash":
       // "You receive a weapon with high scrap." The weapon is not named: Rewards, "Weapon": "A random weapon & T scrap."
-      result(g, tx("wiki.quests.you-arrive-at-small-asteroid-field"), scrapOnly(g, "high"), [grantRandomItem(g, "weapon")]);
+      result(
+        g,
+        "You arrive at small asteroid field and discover the hidden cache among the debris. You input the codes given to you by KazaaakplethKilik and find a weapon inside.",
+        scrapOnly(g, "high"),
+        [grantRandomItem(g, "weapon")],
+      );
       break;
     case RUWEN_ENTRY:
       // Ancient device: the QUEST tag does not replace the card. eventFor falls through to that page.
@@ -662,7 +777,7 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
 // Choices (routed by surrender.ts surrenderChoose, before citedChoose)
 // ---------------------------------------------------------------------------------------------------------------
 
-const DEFECTOR_FIGHT = tx("wiki.quests.rebel-ship");
+const DEFECTOR_FIGHT = "Rebel ship";
 
 function defectorFight(g: Game, text: string) {
   pageFight(g, text, DEFECTOR_FIGHT, "rebel-defector");
@@ -670,25 +785,55 @@ function defectorFight(g: Game, text: string) {
 
 /** Rebel Defector victories after the Federation loyalists fight: "Contact the Federation ship". */
 function loyalistsRescueCard(g: Game) {
-  const choices: Choice[] = [{ id: "q:loyalists:rescue", label: tx("wiki.quests.quickly-try-to-rescue-the-crew") }];
+  const choices: Choice[] = [
+    { id: "q:loyalists:rescue", label: "Quickly try to rescue the crew." },
+  ];
   // {{Blue Option|Nano Med-bot Dispersal|...}} ("medbot"), {{Blue Option|Teleporter|...}}, {{Blue Option|Healing Burst|...}}.
-  if (g.augments.includes("medbot")) choices.push({ id: "q:loyalists:medbot", label: tx("wiki.quests.pump-their-ship-with-nano-med") });
-  if (hasTeleporter(g)) choices.push({ id: "q:loyalists:teleport", label: tx("wiki.quests.lock-on-to-all-remaining-life") });
-  if (g.player.weapons.some((w) => w.defId === "healburst")) choices.push({ id: "q:loyalists:heal", label: tx("wiki.quests.use-a-healing-bomb-to-keep") });
-  card(g, tx("wiki.quests.their-ship-looks-to-be-on"), choices);
+  if (g.augments.includes("medbot"))
+    choices.push({
+      id: "q:loyalists:medbot",
+      label: "Pump their ship with Nano Med-bots to aid in the rescue.",
+    });
+  if (hasTeleporter(g))
+    choices.push({
+      id: "q:loyalists:teleport",
+      label: "Lock on to all remaining life signatures and beam them onto your ship.",
+    });
+  if (g.player.weapons.some((w) => w.defId === "healburst"))
+    choices.push({ id: "q:loyalists:heal", label: "Use a healing bomb to keep them alive." });
+  card(
+    g,
+    "Their ship looks to be on the verge of destruction and life signs are fading quickly.",
+    choices,
+  );
 }
 
 function thiefDyingCard(g: Game, scan: boolean) {
   const choices: Choice[] = [
-    { id: "q:thief:mercy", label: scan ? tx("wiki.quests.let-him-die") : tx("wiki.quests.put-him-out-of-his-misery") },
-    { id: "q:thief:listen", label: scan ? tx("wiki.quests.dock-and-try-to-speak-with") : tx("wiki.quests.listen-to-what-he-has-to") },
+    { id: "q:thief:mercy", label: scan ? "Let him die." : "Put him out of his misery." },
+    {
+      id: "q:thief:listen",
+      label: scan ? "Dock and try to speak with him." : "Listen to what he has to say.",
+    },
   ];
   // {{Blue Option|Adv. Medbay|...|level=2+}}, {{Blue Option|Adv. Clonebay|...|level=2+}}.
   if ((g.player.systems.medbay?.level ?? 0) >= 2) {
-    choices.push({ id: "q:thief:save", label: scan ? tx("wiki.quests.dock-and-quickly-take-him-back") : tx("wiki.quests.quickly-teleport-him-back-to-the") });
+    choices.push({
+      id: "q:thief:save",
+      label: scan
+        ? "Dock and quickly take him back to the medbay."
+        : "Quickly teleport him back to the medbay.",
+    });
   }
-  if ((g.player.kits.cradle?.level ?? 0) >= 2) choices.push({ id: "q:thief:clone", label: tx("wiki.quests.quickly-configure-the-clonebay-to-save") });
-  card(g, scan ? tx("wiki.quests.you-detect-kazaaakplethkilik-slumped-in-a") : tx("wiki.quests.you-find-kazaaakplethkilik-slumped-in-a"), choices);
+  if ((g.player.kits.cradle?.level ?? 0) >= 2)
+    choices.push({ id: "q:thief:clone", label: "Quickly configure the Clonebay to save him." });
+  card(
+    g,
+    scan
+      ? "You detect KazaaakplethKilik slumped in a corner dying."
+      : "You find KazaaakplethKilik slumped in a corner dying.",
+    choices,
+  );
 }
 
 function engiVictory(g: Game, text = "", offer?: SurrenderOffer) {
@@ -696,8 +841,9 @@ function engiVictory(g: Game, text = "", offer?: SurrenderOffer) {
   // > "Victory." — [[Engi fleet discussion#Final Quest Marker]]
   // > "The Engi emerge victorious from their battles with only minor losses. They message you, \"Project X-ME56 commissioned by Federation military research division. Advanced stealth cruiser. Project finished during rebellion. Unable to reconnect with Federation military command.\"" — [[Engi fleet discussion#Victory]]
   // > "Ask about the Mantis ships." — [[Engi fleet discussion#Victory]]
-  const body = tx("wiki.quests.the-engi-emerge-victorious-from-their");
-  const choices = [{ id: "q:engi-victory:ask", label: tx("wiki.quests.ask-about-the-mantis-ships") }];
+  const body =
+    'The Engi emerge victorious from their battles with only minor losses. They message you, "Project X-ME56 commissioned by Federation military research division. Advanced stealth cruiser. Project finished during rebellion. Unable to reconnect with Federation military command."';
+  const choices = [{ id: "q:engi-victory:ask", label: "Ask about the Mantis ships." }];
   if (offer) result(g, `${text}\n\n${body}`, offer, [], choices);
   else card(g, text ? `${text}\n\n${body}` : body, choices);
 }
@@ -708,13 +854,17 @@ function deactivatedDownload(g: Game) {
   if (pick(g, ["data", "fight"] as const) === "fight") {
     pageFight(
       g,
-      tx("wiki.quests.you-accidentally-reactivate-the-ships-ai"),
+      "You accidentally reactivate the ships AI. Its weapons and shields immediately go online; prepare for a fight!",
       "Auto-ship",
       "deactivated-auto-ship",
     );
     return;
   }
-  result(g, tx("wiki.quests.you-are-able-to-pull-all"), rollStandard(g, "low"));
+  result(
+    g,
+    "You are able to pull all of the ship's data about this sector. Your map has been updated.",
+    rollStandard(g, "low"),
+  );
 }
 
 /** Refueling platform dock. 3 damage to engines. `fires` is the ignite result's 1-2 fires. */
@@ -726,31 +876,32 @@ function refuelEngines(g: Game, fires: boolean) {
   // The fire icon says 1-2 fires and prints no odds. INFERRED: the second flame is a coin flip.
   const n = 1 + (rand(g) < 0.5 ? 1 : 0);
   room.fire = Math.min(4, room.fire + n);
-  log(g, n === 1 ? tx("wiki.quests.1-fire-in", { title: room.title }) : tx("wiki.quests.2-fires-in", { title: room.title }));
+  log(g, n === 1 ? `1 fire in ${room.title}.` : `2 fires in ${room.title}.`);
 }
 
 /** The berth that is already a Pirate ship. 3 hull, 3 engine damage, then the default Pirate fight. No fires. */
 function refuelAmbush(g: Game) {
-  const text = tx("wiki.quests.the-refueling-station-welcomes-you-into");
+  const text =
+    "The refueling station welcomes you into one of its berths, and as you hail them, there is an explosion from your engine room! While assessing the damage, you detect a Pirate Ship closing fast!";
   if (damageHull(g, 3)) {
     log(g, text);
     return;
   }
   refuelEngines(g, false);
-  pageFight(g, text, tx("wiki.quests.pirate-ship"), "refueling-platform");
+  pageFight(g, text, "Pirate ship", "refueling-platform");
 }
 
 const REBEL_SUPPLY_NEXT: Choice[] = [
-  { id: "s:rebel-supply:steal", label: tx("wiki.quests.steal-the-civilian-supplies") },
-  { id: "s:rebel-supply:leave", label: tx("wiki.quests.leave-the-civilians-alone") },
+  { id: "s:rebel-supply:steal", label: "Steal the civilian supplies." },
+  { id: "s:rebel-supply:leave", label: "Leave the civilians alone." },
 ];
 
 // Leave the civilians alone. Four printed sentences, no odds. INFERRED: equal.
 const REBEL_SUPPLY_LEAVE = [
-  tx("wiki.quests.you-make-the-preparations-to-leave"),
-  tx("wiki.quests.you-leave-the-civilians-with-the"),
-  tx("wiki.quests.you-wonder-if-any-more-rebels"),
-  tx("wiki.quests.before-your-ftl-drive-charges-you"),
+  'You make the preparations to leave. One of the civilian leaders contacts you: "That Rebel was our sole source of supplies. You have doomed us all."',
+  "You leave the civilians with the supplies, though without the Rebel that was running supplies to them its unlikely they'll live long.",
+  "You wonder if any more Rebels will be available to help these civilians on the edge of nowhere. Oh well, for you a few more dead Rebels matter more than the lives of a thousand colonists.",
+  'Before your FTL drive charges, you receive a hail: "My son was on that ship. He only helped the Rebels because they cared enough to help us. Without him to find us supplies, we\'ll likely be forgotten and die out here."',
 ];
 
 /**
@@ -769,15 +920,15 @@ function rebelSupplyRoom(g: Game): string {
     const before = sys.damage;
     hurtSystem(g.player, id, 2);
     const applied = sys.damage - before;
-    if (applied) bits.push(tx("wiki.quests.damage-to", { applied: applied, id: id }));
+    if (applied) bits.push(`${applied} damage to ${id}.`);
   }
   if (rand(g) < 0.5) {
     const n = 1 + (rand(g) < 0.5 ? 1 : 0);
     room.fire = Math.min(4, room.fire + n);
-    bits.push(n === 1 ? tx("wiki.quests.1-fire-in", { title: room.title }) : tx("wiki.quests.2-fires-in", { title: room.title }));
+    bits.push(n === 1 ? `1 fire in ${room.title}.` : `2 fires in ${room.title}.`);
   } else {
     room.breach += 1;
-    bits.push(tx("wiki.quests.a-breach-opens-in", { title: room.title }));
+    bits.push(`A breach opens in ${room.title}.`);
   }
   const line = bits.join(" ");
   if (line) log(g, line);
@@ -791,39 +942,53 @@ function rebelSupplySteal(g: Game) {
     // Rewards, Drone parts: "T drone parts & T scrap." The event tooltip prints low as 1 drone part.
     const offer = scrapOnly(g, "low");
     offer.parts = 1;
-    result(g, tx("wiki.quests.the-colonists-hand-over-the-supplies"), offer);
+    result(
+      g,
+      'The colonists hand over the supplies. It appears to be mostly equipment meant for automated farming, but you can make use of it. As you leave, you receive a message: "This is why the Rebels will always have support!"',
+      offer,
+    );
     return;
   }
   if (kind === "scrap") {
-    result(g, tx("wiki.quests.you-make-the-colonists-teleport-the"), scrapOnly(g, "low"));
+    result(
+      g,
+      "You make the colonists teleport the supplies to your ship. It's nothing more than building construction supplies. Oh well, scrap is scrap.",
+      scrapOnly(g, "low"),
+    );
     return;
   }
   if (kind === "trap") {
-    const text = tx("wiki.quests.the-colonists-willingly-give-up-their");
+    const text =
+      "The colonists willingly give up their supplies. But as you make to jump away, an explosion rocks your ship. The cargo was booby-trapped!";
     log(g, text);
     if (damageHull(g, 2)) return;
     const room = rebelSupplyRoom(g);
-    result(g, text, undefined, [tx("wiki.quests.hull-damage-2"), room].filter(Boolean));
+    result(g, text, undefined, ["Hull damage: 2.", room].filter(Boolean));
     return;
   }
-  result(g, tx("wiki.quests.the-colonists-hand-over-the-supplies-2"), undefined, [tx("wiki.quests.nothing-happens")]);
+  result(
+    g,
+    "The colonists hand over the supplies and you load it onto your ship. As you jump away, you crack it open and discover nothing more than vaccinations for a local plague.",
+    undefined,
+    ["Nothing happens."],
+  );
 }
 
 function rebelSupplyLeave(g: Game) {
-  result(g, pick(g, REBEL_SUPPLY_LEAVE), undefined, [tx("wiki.quests.nothing-happens")]);
+  result(g, pick(g, REBEL_SUPPLY_LEAVE), undefined, ["Nothing happens."]);
 }
 
 /** Destroyed pays low scrap with resources. A crew kill pays medium. Then steal or leave. */
 function rebelSupplyWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
-    ? tx("wiki.quests.with-the-rebel-crew-dead-you")
-    : tx("wiki.quests.with-the-rebel-ship-destroyed-you");
+    ? "With the Rebel crew dead, you strip their ship for equipment. They had already made their delivery to the civilians."
+    : "With the Rebel ship destroyed, you take the time to collect what little scrap remains. They had already made the delivery to the civilians.";
   result(g, text, rollStandard(g, deadCrew ? "medium" : "low"), [], REBEL_SUPPLY_NEXT);
 }
 
 const ZOLTAN_RAFT_NEXT: Choice[] = [
-  { id: "s:zoltan-raft:go", label: tx("wiki.quests.let-him-go") },
-  { id: "s:zoltan-raft:hire", label: tx("wiki.quests.offer-to-hire-him-for-40") },
+  { id: "s:zoltan-raft:go", label: "Let him go." },
+  { id: "s:zoltan-raft:hire", label: "Offer to hire him for 40 scrap." },
 ];
 
 /**
@@ -832,14 +997,21 @@ const ZOLTAN_RAFT_NEXT: Choice[] = [
  */
 function zoltanRaftWin(g: Game, deadCrew: boolean) {
   if (deadCrew) {
-    result(g, tx("wiki.quests.the-last-pirate-life-signs-blink"), scrapOnly(g, "high"), [grantRandomItem(g, "augment")]);
+    result(
+      g,
+      'The last pirate life-signs blink out and the Zoltan returns to his bridge. "Egalitarianism is a cornerstone of successful cohabitation. Please, enjoy the fruits of your labor."',
+      scrapOnly(g, "high"),
+      [grantRandomItem(g, "augment")],
+    );
     return;
   }
   result(
     g,
-    tx("wiki.quests.you-salvage-what-you-can-from"),
+    "You salvage what you can from the ship.",
     rollStandard(g, "medium"),
-    [tx("wiki.quests.the-zoltan-looks-deeply-dissatisfied-with")],
+    [
+      "The Zoltan looks deeply dissatisfied with your aiming and demands to be dropped off at your earliest convenience.",
+    ],
     ZOLTAN_RAFT_NEXT,
   );
 }
@@ -849,12 +1021,22 @@ function zoltanRaftHire(g: Game) {
   if (g.scrap < 40) return;
   if (pick(g, ["accept", "refuse"] as const) === "accept") {
     g.scrap -= 40;
-    log(g, tx("wiki.quests.scrap-40"));
-    const joined = crew(g, tx("wiki.quests.zoltan"));
-    result(g, tx("wiki.quests.he-responds-defeatedly-i-suppose-i"), undefined, [tx("wiki.quests.scrap-40"), joined]);
+    log(g, "Scrap: -40.");
+    const joined = crew(g, "Zoltan");
+    result(
+      g,
+      'He responds defeatedly, "I suppose I have nowhere else to go without a ship. I accept your offer."',
+      undefined,
+      ["Scrap: -40.", joined],
+    );
     return;
   }
-  result(g, tx("wiki.quests.he-responds-haughtily-you-would-presume"), undefined, [tx("wiki.quests.nothing-happens")]);
+  result(
+    g,
+    'He responds haughtily, "You would presume I would work under your command after such a display of... prowess? No, I must decline."',
+    undefined,
+    ["Nothing happens."],
+  );
 }
 
 /**
@@ -883,136 +1065,269 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "You have no interest in anything the Slugs could make business out of. Time to move on." — [[Slug comm tapping]]
     // > "Nothing happens." — [[Slug comm tapping]]
-    result(g, tx("wiki.quests.you-have-no-interest-in-anything"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You have no interest in anything the Slugs could make business out of. Time to move on.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius ship attacking civilian, "Contact the civilian ship." Template:Save the Civilian Ship.
   // Six results, no odds. The unnamed crewmember is not offered. INFERRED: the other five are equal.
   // The weapon is unnamed: Rewards, "Weapon": "A random weapon & T scrap."
   "q:lanius-civilian:contact": (g) => {
-    const kind = weighted(g, [["weapon", 1], ["repair", 1], ["medium", 1], ["low", 1], ["nothing", 1]] as const);
+    const kind = weighted(g, [
+      ["weapon", 1],
+      ["repair", 1],
+      ["medium", 1],
+      ["low", 1],
+      ["nothing", 1],
+    ] as const);
     if (kind === "weapon") {
-      result(g, tx("wiki.quests.they-respond-it-s-a-good"), scrapOnly(g, "low"), [grantRandomItem(g, "weapon")]);
+      result(
+        g,
+        "They respond, \"It's a good thing you came when you did; we'd be dead now otherwise. I'm a shipwright and I'd like to help you like you helped me.\" The captain offers to install a piece of equipment on your ship.",
+        scrapOnly(g, "low"),
+        [grantRandomItem(g, "weapon")],
+      );
       return;
     }
     if (kind === "repair") {
-      result(g, tx("wiki.quests.this-sector-has-become-increasingly-dangerous"), undefined, [repair(g, 5)]);
+      result(
+        g,
+        '"This sector has become increasingly dangerous for friends of the Federation. I think my crew can patch up some of your hull damage as thanks."',
+        undefined,
+        [repair(g, 5)],
+      );
       return;
     }
     if (kind === "medium") {
-      result(g, tx("wiki.quests.apparently-the-ship-that-was-being"), rollStandard(g, "medium"));
+      result(
+        g,
+        "Apparently the ship that was being assaulted was a science vessel. They thank you for saving them and offer a small reward.",
+        rollStandard(g, "medium"),
+      );
       return;
     }
     if (kind === "low") {
-      result(g, tx("wiki.quests.it-seems-the-crew-did-not"), rollStandard(g, "low"));
-      return;
-    }
-    result(g, tx("wiki.quests.the-civilian-ship-wisely-made-a"), undefined, [tx("wiki.quests.nothing-happens")]);
-  },
-  // Crystal ship attacking Federation loyalists, "You contact the Federation ship."
-  // Two results and no odds. INFERRED: equal.
-  // The crewmember is unnamed and not granted. Low scrap with resources still is.
-  // "a random amount of resources with some scrap" is Rewards, Stuff. The unnamed bonus item is not granted.
-  "q:crystal-loyalists:contact": (g) => {
-    if (weighted(g, [["survivor", 1], ["materials", 1]] as const) === "survivor") {
       result(
         g,
-        tx("wiki.quests.the-ship-looks-battered-and-ready"),
+        "It seems the crew did not survive the assault. You take what you can from the remains of the ship.",
         rollStandard(g, "low"),
       );
       return;
     }
     result(
       g,
-      tx("wiki.quests.thank-you-we-heard-you-jumped"),
+      "The civilian ship wisely made a fast retreat while you distracted the hostile ship.",
+      undefined,
+      ["Nothing happens."],
+    );
+  },
+  // Crystal ship attacking Federation loyalists, "You contact the Federation ship."
+  // Two results and no odds. INFERRED: equal.
+  // The crewmember is unnamed and not granted. Low scrap with resources still is.
+  // "a random amount of resources with some scrap" is Rewards, Stuff. The unnamed bonus item is not granted.
+  "q:crystal-loyalists:contact": (g) => {
+    if (
+      weighted(g, [
+        ["survivor", 1],
+        ["materials", 1],
+      ] as const) === "survivor"
+    ) {
+      result(
+        g,
+        "The ship looks battered and ready to break apart. You quickly move in to help rescue the survivors, but it looks like only one person made it. They offer to join your crew as thanks.",
+        rollStandard(g, "low"),
+      );
+      return;
+    }
+    result(
+      g,
+      '"Thank you! We heard you jumped into an unknown sector and we figured it would be a safe enough place to hide from the Rebels. We were wrong!" They transfer some excess materials for your trouble.',
       rollSurrenderOffer(g, undefined, true),
     );
   },
   // Lanius ship attacking Rock, "Contact the Rockmen." Two results, no odds. INFERRED: equal.
   "q:lanius-rock:contact": (g) => {
-    if (weighted(g, [["scrap", 1], ["nothing", 1]] as const) === "scrap") {
-      result(g, tx("wiki.quests.the-rockman-ship-jumped-away-during"), rollStandard(g, "medium"));
+    if (
+      weighted(g, [
+        ["scrap", 1],
+        ["nothing", 1],
+      ] as const) === "scrap"
+    ) {
+      result(
+        g,
+        "The Rockman ship jumped away during the battle, but it left much of its hull and spare parts floating behind - you salvage what you can, and prepare to jump.",
+        rollStandard(g, "medium"),
+      );
       return;
     }
-    result(g, tx("wiki.quests.the-rockmen-give-an-awkwardly-translated"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The Rockmen give an awkwardly-translated message that seems to indicate something about gratitude. They then jump away without another word.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius ship attacking Mantis, "Contact the Mantis." Two results, no odds. INFERRED: equal.
   // Rewards, Missiles: "T missiles & T scrap." The page tooltip prints medium as 2-4 missiles.
   "q:lanius-mantis:contact": (g) => {
-    if (weighted(g, [["missiles", 1], ["wreck", 1]] as const) === "missiles") {
+    if (
+      weighted(g, [
+        ["missiles", 1],
+        ["wreck", 1],
+      ] as const) === "missiles"
+    ) {
       const offer = scrapOnly(g, "medium");
       offer.missiles = between(g, [2, 4]);
-      result(g, tx("wiki.quests.the-mantis-hiss-and-click-angry"), offer);
+      result(
+        g,
+        "The Mantis hiss and click, angry at being saved, and angry at themselves for needing to be saved. They part ways with some scrap metal that is no longer attached to their hull and a few missiles they can no longer use.",
+        offer,
+      );
       return;
     }
-    result(g, tx("wiki.quests.the-mantis-ship-sustained-too-much"), rollStandard(g, "medium"));
+    result(
+      g,
+      "The Mantis ship sustained too much damage - there are no survivors. You gather what resources you can from the wreckage.",
+      rollStandard(g, "medium"),
+    );
   },
   // Lanius ship attacking Slug, "Contact the Slugs." Two results, no odds. INFERRED: equal.
   "q:lanius-slug:contact": (g) => {
-    if (weighted(g, [["supplies", 1], ["nothing", 1]] as const) === "supplies") {
-      result(g, tx("wiki.quests.the-slugs-reluctantly-thank-you-for"), rollStandard(g, "medium"));
+    if (
+      weighted(g, [
+        ["supplies", 1],
+        ["nothing", 1],
+      ] as const) === "supplies"
+    ) {
+      result(
+        g,
+        "The Slugs reluctantly thank you for your help, protest they had the whole situation under control, attempt to make you pay for them helping you, and an hour later, finally relent and give you some supplies.",
+        rollStandard(g, "medium"),
+      );
       return;
     }
-    result(g, tx("wiki.quests.the-slugs-taking-advantage-of-the"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The Slugs, taking advantage of the firefight, have fled the system. So much for gratitude.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius ship in rich debris field. Improved Piloting level 2 and Advanced Piloting level 3.
   "c:lanius-ship-in-rich-debris-field:3": (g) => {
     if ((g.player.systems.pilot?.level ?? 0) < 2) return;
-    result(g, tx("wiki.quests.with-help-from-the-computer-you"), rollStandard(g, "medium"));
+    result(
+      g,
+      "With help from the computer, you are able to keep a comfortable distance between you and the Lanius ship, and you are able to gather resources from the debris field without conflict.",
+      rollStandard(g, "medium"),
+    );
   },
   "c:lanius-ship-in-rich-debris-field:4": (g) => {
     if ((g.player.systems.pilot?.level ?? 0) < 3) return;
-    result(g, tx("wiki.quests.with-help-from-the-computer-you-2"), rollStandard(g, "high"));
+    result(
+      g,
+      "With help from the computer, you are able to keep a comfortable distance between you and the Lanius ship, and you gather a considerable amount of resources from the debris field without conflict.",
+      rollStandard(g, "high"),
+    );
   },
   // Investigate the debris. Three results, no odds. INFERRED: equal.
   "q:lanius-debris:investigate": (g) => {
-    const kind = weighted(g, [["high", 1], ["medium", 1], ["low", 1]] as const);
+    const kind = weighted(g, [
+      ["high", 1],
+      ["medium", 1],
+      ["low", 1],
+    ] as const);
     if (kind === "high") {
-      result(g, tx("wiki.quests.it-looks-like-you-interrupted-the"), rollStandard(g, "high"));
+      result(
+        g,
+        "It looks like you interrupted the Lanius before they had a chance to scavenge much from the debris, and you make off with a good haul.",
+        rollStandard(g, "high"),
+      );
       return;
     }
     if (kind === "medium") {
-      result(g, tx("wiki.quests.the-competitor-gone-you-proceed-to"), rollStandard(g, "medium"));
+      result(
+        g,
+        "The competitor gone, you proceed to investigate the field and scavenge what you can.",
+        rollStandard(g, "medium"),
+      );
       return;
     }
-    result(g, tx("wiki.quests.the-competitor-gone-you-investigate-the"), rollStandard(g, "low"));
+    result(
+      g,
+      "The competitor gone, you investigate the debris, but it looks as if the Lanius harvested much of it before you arrived.",
+      rollStandard(g, "low"),
+    );
   },
   // Lanius ship salvager. "Attack the ship." One printed lead-in, then a Lanius ship fight.
   // The nested scoff attack prints "were doing". This choice prints "are doing".
   "c:lanius-ship-salvager:0": (g) => {
-    pageFight(g, tx("wiki.quests.you-move-in-and-power-up"), tx("wiki.quests.lanius-ship"), "lanius-ship-salvager");
+    pageFight(
+      g,
+      "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.",
+      "Lanius ship",
+      "lanius-ship-salvager",
+    );
   },
   // Lanius ship salvager. "Leave them alone." One printed result.
   "c:lanius-ship-salvager:1": (g) => {
-    result(g, tx("wiki.quests.you-ignore-the-ship-and-prepare"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You ignore the ship and prepare to jump.", undefined, ["Nothing happens."]);
   },
   // Lanius ship salvager, {{Blue Option|Lanius Crew|Request some scrap.}}
   // Three results, no odds. INFERRED: equal. Medium scrap is scrap only, not scrap with resources.
   // The nested fight is default Lanius rewards: no PAGE_WINS row, so winCombat pays the default salvage.
   "c:lanius-ship-salvager:2": (g) => {
     if (!hasLanius(g)) return;
-    const kind = weighted(g, [["share", 1], ["scoff", 1], ["low", 1]] as const);
+    const kind = weighted(g, [
+      ["share", 1],
+      ["scoff", 1],
+      ["low", 1],
+    ] as const);
     if (kind === "share") {
-      result(g, tx("wiki.quests.your-crew-hails-their-ship-wondering"), scrapOnly(g, "medium"));
+      result(
+        g,
+        "Your crew hails their ship, wondering if they have any extra salvage. Their crew seems happy to share.",
+        scrapOnly(g, "medium"),
+      );
       return;
     }
     if (kind === "scoff") {
-      card(g, tx("wiki.quests.they-scoff-at-your-crewmember-s"), [
-        { id: "q:lanius-salvager:attack", label: tx("wiki.quests.attack-the-ship") },
-        { id: "q:lanius-salvager:leave", label: tx("wiki.quests.leave") },
-      ]);
+      card(
+        g,
+        'They scoff at your crewmember\'s request and utter something that was translated as, "Get your own, lazy solder."',
+        [
+          { id: "q:lanius-salvager:attack", label: "Attack the ship." },
+          { id: "q:lanius-salvager:leave", label: "Leave." },
+        ],
+      );
       return;
     }
-    result(g, tx("wiki.quests.your-crewmember-hails-them-asking-if"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "Your crewmember hails them, asking if they have any extra scrap. They state that they are extremely low and cannot spare any.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   "q:lanius-salvager:attack": (g) => {
-    pageFight(g, tx("wiki.quests.you-move-in-and-power-up-2"), tx("wiki.quests.lanius-ship"), "lanius-ship-salvager");
+    pageFight(
+      g,
+      "You move in and power up your weapons. Detecting the threat, they stop what they were doing and prepare for a fight.",
+      "Lanius ship",
+      "lanius-ship-salvager",
+    );
   },
   "q:lanius-salvager:leave": (g) => {
-    result(g, tx("wiki.quests.you-ignore-their-derisive-tone-and"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You ignore their derisive tone and prepare to jump.", undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Lanius trader. "Decline." One printed result. Also the second proposal's Decline, same id.
   "c:lanius-trader:3": (g) => {
-    result(g, tx("wiki.quests.they-leave-without-a-word"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "They leave without a word.", undefined, ["Nothing happens."]);
   },
   // Lanius trader, {{Blue Option|Lanius Crew|Ask for an alternative trade.}}
   // A new roll of resource, cost, and scrap. INFERRED: the three better bands are equal.
@@ -1020,33 +1335,49 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:lanius-trader:4": (g) => {
     if (!hasLanius(g)) return;
     const offer = rollLaniusTrader(g, true);
-    card(g, tx("wiki.quests.after-a-short-discussion-you-do", { laniusTraderOfferText: laniusTraderOfferText(offer) }), [
-      { id: laniusTraderTakeId(offer), label: tx("wiki.quests.agree-to-the-exchange") },
-      { id: "c:lanius-trader:3", label: tx("wiki.quests.decline") },
-    ]);
+    card(
+      g,
+      `After a short discussion you do not understand, the trader comes back with a second proposal.
+
+${laniusTraderOfferText(offer)}`,
+      [
+        { id: laniusTraderTakeId(offer), label: "Agree to the exchange." },
+        { id: "c:lanius-trader:3", label: "Decline" },
+      ],
+    );
   },
   // Lanius trader with translator. "Decline." One printed result.
   "c:lanius-trader-with-translator:3": (g) => {
-    result(g, tx("wiki.quests.they-leave-without-a-word"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "They leave without a word.", undefined, ["Nothing happens."]);
   },
   // Lanius trader with translator. "Decline but ask about their translation device."
   "c:lanius-trader-with-translator:4": (g) => {
-    card(g, tx("wiki.quests.yes-it-is-quality-our-ship"), [
-      { id: "q:lanius-translator:buy", label: tx("wiki.quests.purchase-the-translator-for-40-scrap") },
-      { id: "q:lanius-translator:decline", label: tx("wiki.quests.decline-again") },
+    card(g, '"Yes. It is quality. Our ship contains excess. Care to purchase?"', [
+      { id: "q:lanius-translator:buy", label: "Purchase the translator for 40 scrap." },
+      { id: "q:lanius-translator:decline", label: "Decline again." },
     ]);
   },
   // 40 scrap for a Lanius named Translator. The page prints no skill.
   // At full crew the hire goes ahead and someone already aboard is relieved (make-room.ts keepNewHire).
   "q:lanius-translator:buy": (g) => {
     if (g.scrap < 40) return;
-    joinCrew(g, tx("wiki.quests.lanius"), tx("wiki.quests.translator"));
+    joinCrew(g, "Lanius", "Translator");
     keepNewHire(g);
     g.scrap -= 40;
-    result(g, tx("wiki.quests.your-ships-dock-and-you-are"), undefined, [tx("wiki.quests.a-lanius-crewmember-named-translator-joins")]);
+    result(
+      g,
+      "Your ships dock and you are more than a little surprised when the Lanius you spoke with boards your ship. It appears the 'device' you purchased was one of the beings that learned your language.",
+      undefined,
+      ["A Lanius crewmember named Translator joins you."],
+    );
   },
   "q:lanius-translator:decline": (g) => {
-    result(g, tx("wiki.quests.no-matter-this-one-does-not"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      '"No matter. This one does not mind this ship." They pull away and you are left to wonder what it meant by that. Perhaps the translation device has not yet been perfected?',
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius ship absorbing automated scout. Two inspect results, no odds. INFERRED: equal.
   // "a random amount of scrap". The page notes lowercase "low" is treated as RANDOM.
@@ -1056,10 +1387,18 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:auto-ship-near-sensor-station:2": (g) => {
     if (sensors(g) < 3) return;
     if (pick(g, ["fight", "map"] as const) === "fight") {
-      pageFight(g, tx("wiki.quests.the-automated-ship-must-be-remotely"), "Auto-ship", "auto-ship-near-sensor-station");
+      pageFight(
+        g,
+        "The automated ship must be remotely connected to the station; as soon as you attempt to log on, the ship activates and charges you.",
+        "Auto-ship",
+        "auto-ship-near-sensor-station",
+      );
       return;
     }
-    result(g, tx("wiki.quests.your-improved-sensors-are-able-to"));
+    result(
+      g,
+      "Your improved sensors are able to remotely access and download the public radar station's local map data.",
+    );
   },
   // Crew Teleporter. The map reveal is not wired.
   // Auto-ship fight in plasma storm. Engines 3-5. Two results, no odds. INFERRED: equal.
@@ -1067,20 +1406,30 @@ const CHOICES: Record<string, (g: Game) => void> = {
     const level = g.player.systems.engines?.level ?? 0;
     if (level < 3 || level > 5) return;
     if (pick(g, ["lose", "fight"] as const) === "fight") {
-      pageFight(g, tx("wiki.quests.despite-your-advanced-engines-you-are"), "Auto-ship", "auto-ship-fight-in-plasma-storm");
+      pageFight(
+        g,
+        "Despite your advanced engines you are unable to shake them; you turn and prepare for a fight.",
+        "Auto-ship",
+        "auto-ship-fight-in-plasma-storm",
+      );
       return;
     }
-    result(g, tx("wiki.quests.you-successfully-lose-the-ship-in"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You successfully lose the ship in the storm.", undefined, ["Nothing happens."]);
   },
   // Improved Engines, level 6+. Always lose the ship.
   "c:auto-ship-fight-in-plasma-storm:2": (g) => {
     if ((g.player.systems.engines?.level ?? 0) < 6) return;
-    result(g, tx("wiki.quests.you-successfully-lose-the-ship-in"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You successfully lose the ship in the storm.", undefined, ["Nothing happens."]);
   },
   // Cloaking. Always lose the ship. The page prints no drone-part cost.
   "c:auto-ship-fight-in-plasma-storm:3": (g) => {
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
-    result(g, tx("wiki.quests.by-using-your-advanced-cloaking-system"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "By using your advanced cloaking system you easily lose your pursuer in the storm.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Deactivated Auto-ship. Download, two results, no odds. INFERRED: equal. The map reveal is not wired.
   "c:deactivated-auto-ship:1": (g) => {
@@ -1090,25 +1439,37 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:deactivated-auto-ship:2": (g) => {
     if (sensors(g) < 3) return;
     if (pick(g, ["safe", "standby"] as const) === "safe") {
-      result(g, tx("wiki.quests.your-improved-sensors-indicate-that-it"), rollStandard(g, "low"));
+      result(
+        g,
+        "Your improved sensors indicate that it's safe to hack into the drone. You upload its map data to your navigation system and strip the ship of useful materials.",
+        rollStandard(g, "low"),
+      );
       return;
     }
-    card(g, tx("wiki.quests.your-improved-sensors-indicate-the-ship"), [
-      { id: "q:deactivated-auto:yes", label: tx("wiki.quests.yes") },
-      { id: "q:deactivated-auto:no", label: tx("wiki.quests.no") },
-    ]);
+    card(
+      g,
+      "Your improved sensors indicate the ship is on standby, ready to activate at a moment's notice. Will you still attempt to access the ship's data?",
+      [
+        { id: "q:deactivated-auto:yes", label: "Yes." },
+        { id: "q:deactivated-auto:no", label: "No." },
+      ],
+    );
   },
   // Standby "Yes." reuses the download's two results.
   "q:deactivated-auto:yes": (g) => {
     deactivatedDownload(g);
   },
   "q:deactivated-auto:no": (g) => {
-    result(g, tx("wiki.quests.you-leave-the-ship-alone-and"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You leave the ship alone and prepare to jump.", undefined, ["Nothing happens."]);
   },
   // Rock ship in plasma storm. A living Rock crewmember. High standard. The map is not involved.
   "c:rock-ship-in-plasma-storm:2": (g) => {
     if (!hasRock(g)) return;
-    result(g, tx("wiki.quests.the-rock-grudgingly-transfer-control-of"), rollStandard(g, "high"));
+    result(
+      g,
+      "The rock grudgingly transfer control of their helm to you and you steer them to a thinner part of the nebula. They're not sure what to think, but transfer over some supplies all the same.",
+      rollStandard(g, "high"),
+    );
   },
   // Slug drink. Two results, no odds. INFERRED: equal.
   "c:slug-drink:1": (g) => {
@@ -1124,36 +1485,60 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "You don't want to alert the Rebels of your presence and you don't want to anger the Zoltan in their territory. The best solution is to leave." — [[Zoltan quest primitives]]
     // > "Nothing happens." — [[Zoltan quest primitives]]
-    result(g, tx("wiki.quests.you-don-t-want-to-alert"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You don't want to alert the Rebels of your presence and you don't want to anger the Zoltan in their territory. The best solution is to leave.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Escort civilians FTL haywire. "Decline." One printed result. No quest marker.
   "c:escort-civilians-ftl-haywire:1": (g) => {
-    result(g, tx("wiki.quests.alright-if-you-re-not-going"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "Alright... If you're not going that way I guess it can't be helped. We'll just wait for the next ship to come.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Escort civilians FTL haywire. Advanced FTL Navigation. High scrap with resources. No quest marker.
   "c:escort-civilians-ftl-haywire:2": (g) => {
     if (!g.augments.includes("nav")) return;
-    result(g, tx("wiki.quests.we-re-receiving-your-transmission-wow"), rollStandard(g, "high"));
+    result(
+      g,
+      "We're receiving your transmission... Wow, I didn't know that chain-jumping was possible with this class of ship. We'll get back in a single jump! Thank you so much, please accept this.",
+      rollStandard(g, "high"),
+    );
   },
   // Auto-ship warning has no choice. Arrival calls this id.
   // One printed lead-in, then "Fight an Auto-ship that is running away." Escape stays the 40 second pursuit row.
   "c:auto-ship-warning:0": (g) => {
-    pageFight(g, tx("wiki.quests.the-ship-starts-to-power-up"), "Auto-ship", "auto-ship-warning");
+    pageFight(
+      g,
+      "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!",
+      "Auto-ship",
+      "auto-ship-warning",
+    );
   },
   // Pirate briber. Low scrap with resources. The static tier note does not pay the resources.
   "c:pirate-briber:0": (g) => {
-    result(g, tx("wiki.quests.good-choice-son-we-ve-both"), rollStandard(g, "low"));
+    result(g, '"Good choice, son. We\'ve both come out of this richer."', rollStandard(g, "low"));
   },
   // Pirate briber. "Try to be a hero. Attack the pirate." One printed lead-in, then a Pirate ship fight.
   "c:pirate-briber:1": (g) => {
-    pageFight(g, tx("wiki.quests.the-pirate-ship-stops-its-pursuit"), tx("wiki.quests.pirate-ship"), "pirate-briber");
+    pageFight(
+      g,
+      "The pirate ship stops its pursuit and locks weapons onto your ship.",
+      "Pirate ship",
+      "pirate-briber",
+    );
   },
   // Engi distress Rebel fight. {{SurrenderEscape(alt)|no}}: never runs away, never surrenders.
   "c:engi-distress-rebel-fight:0": (g) => {
     pageFight(
       g,
-      tx("wiki.quests.the-distress-signal-originates-at-a"),
-      tx("wiki.quests.rebel-ship-2"),
+      "The distress signal originates at a small Engi ship under attack by a rebel fighter - but when they see Federation markings they turn to attack!",
+      "Rebel Ship",
       "engi-distress-rebel-fight",
       { ...NEVER_RUN },
     );
@@ -1167,64 +1552,79 @@ const CHOICES: Record<string, (g: Game) => void> = {
     g.scrap -= 40;
     g.missiles -= 2;
     g.fuel -= 2;
-    log(g, tx("wiki.quests.scrap-40"));
-    log(g, tx("wiki.quests.missiles-2"));
-    log(g, tx("wiki.quests.fuel-2"));
+    log(g, "Scrap: -40.");
+    log(g, "Missiles: -2.");
+    log(g, "Fuel: -2.");
     result(
       g,
-      tx("wiki.quests.they-wouldn-t-get-more-than"),
+      'They wouldn\'t get more than a few jumps with that load-out. You provide them with all the munitions and supplies they should need for the journey home. "Generosity magnitude unpredicted. Well-being syntax error [value too high]. Accept this token."',
       undefined,
-      [grantAug(g, "medbot"), tx("wiki.quests.scrap-40"), tx("wiki.quests.missiles-2"), tx("wiki.quests.fuel-2")],
+      [grantAug(g, "medbot"), "Scrap: -40.", "Missiles: -2.", "Fuel: -2."],
     );
   },
   "q:engi-distress:nothing": (g) => {
     result(
       g,
-      tx("wiki.quests.engi-can-t-feel-fear-so"),
+      "Engi can't feel fear, so they bear you no ill will when you explain you're unwilling to help. They set off on their journey and you do the same.",
       undefined,
-      [tx("wiki.quests.nothing-happens")],
+      ["Nothing happens."],
     );
   },
   // Pirate smuggler. Weapon Control level 6+. Medium fuel (2-4) and medium scrap.
   "c:pirate-smuggler:2": (g) => {
     if ((g.player.systems.weapons?.level ?? 0) < 6) return;
-    card(g, tx("wiki.quests.they-hail-you-there-s-no"), [
-      { id: "q:pirate-smuggler:bribe", label: tx("wiki.quests.take-their-bribe") },
-      { id: "q:pirate-smuggler:attack", label: tx("wiki.quests.ignore-their-bribe-and-attack") },
-    ]);
+    card(
+      g,
+      'They hail you, "There\'s no need for aggression... Perhaps this would convince you to look the other way?"',
+      [
+        { id: "q:pirate-smuggler:bribe", label: "Take their bribe." },
+        { id: "q:pirate-smuggler:attack", label: "Ignore their bribe and attack." },
+      ],
+    );
   },
   "q:pirate-smuggler:bribe": (g) => {
     const offer = scrapOnly(g, "medium");
     offer.fuel = rollFuel("q:pirate-smuggler:bribe", (lo, hi) => between(g, [lo, hi]));
-    result(g, tx("wiki.quests.you-receive-medium-fuel-and-scrap"), offer);
+    result(g, "You receive medium fuel and scrap.", offer);
   },
   "q:pirate-smuggler:attack": (g) => {
-    pageFight(g, tx("wiki.quests.you-power-up-your-weapons-and"), tx("wiki.quests.pirate-ship"), "pirate-smuggler");
+    pageFight(
+      g,
+      "You power up your weapons and move in to engage.",
+      "Pirate ship",
+      "pirate-smuggler",
+    );
   },
   // Pirate ship attacking Crystal. Template:Crystal Ship Saved. The Crystal weapon is not named.
   "q:crystal-pirate:contact": (g) => crystalContact(g),
   // Rock atheists. Two texts, no odds. INFERRED: equal. The fight marker sits under the second sentence; both charge.
   "c:rock-atheists:0": (g) => {
     const text = pick(g, [
-      tx("wiki.quests.they-barely-hear-out-your-appeals"),
-      tx("wiki.quests.they-listen-to-your-appeals-and"),
+      'They barely hear out your appeals before yelling, "These are the lies I sought to escape!" Looks like they\'re charging weapons!',
+      'They listen to your appeals and whisper, "Traitors to truth. You\'re no better than them!" Chaos ensues.',
     ]);
-    pageFight(g, text, tx("wiki.quests.rock-ship"), "rock-atheists");
+    pageFight(g, text, "Rock ship", "rock-atheists");
   },
   // Promise. {{DuplicateEvent|2}} on nothing. The Rockman is one result.
   "c:rock-atheists:1": (g) => rockAtheistPromise(g),
   // Improved Sensors level 2+. A Rockman joins. No skill is printed.
   "c:rock-atheists:2": (g) => {
     if ((g.player.systems.sensors?.level ?? 0) < 2) return;
-    rockAtheistJoins(g, tx("wiki.quests.the-rock-captain-is-impressed-by"));
+    rockAtheistJoins(
+      g,
+      "The Rock captain is impressed by the data you've collected and agrees to stay with you until they find their footing in the galaxy.",
+    );
   },
   // Pirate ship selling drones. Hail opens the dock, the slug warning, and the hacking toll.
   "q:pirate-drones:hail": (g) => {
-    card(g, tx("wiki.quests.the-ship-responds-yes-we-have"), [
-      { id: "q:pirate-drones:dock", label: tx("wiki.quests.dock-with-the-ship") },
-      { id: "q:pirate-drones:leave", label: tx("wiki.quests.this-seems-dangerous-leave") },
-      { id: "q:pirate-drones:slug", label: tx("wiki.quests.sir-we-can-dock-but-i") },
-      { id: "q:pirate-drones:hack", label: tx("wiki.quests.disable-their-weapon-system-before-docking") },
+    card(g, 'The ship responds "Yes, we have an extensive stock! Come aboard and see our wares!"', [
+      { id: "q:pirate-drones:dock", label: "Dock with the ship." },
+      { id: "q:pirate-drones:leave", label: "This seems dangerous, leave." },
+      {
+        id: "q:pirate-drones:slug",
+        label: "Sir: We can dock, but I sense that we better plan on making a purchase...",
+      },
+      { id: "q:pirate-drones:hack", label: "Disable their Weapon system before docking." },
     ]);
   },
   // Slug blue: "Same as the first option." That option is Dock.
@@ -1236,8 +1636,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:pirate-drones:leave": (g) => {
     pageFight(
       g,
-      tx("wiki.quests.as-soon-as-you-start-to"),
-      tx("wiki.quests.pirate-ship"),
+      "As soon as you start to reverse your ship, the pirate reveals hidden weaponry and sets off in pursuit. You'll have to fight him to escape!",
+      "Pirate ship",
       "pirate-ship-selling-drones",
     );
   },
@@ -1245,7 +1645,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if ((g.player.kits.spike?.level ?? 0) <= 0) return;
     result(
       g,
-      tx("wiki.quests.you-receive-a-hail-as-soon"),
+      "You receive a hail as soon as your Hacking system finishes: \"What have you done!? You can never trust a Federation ship! Here, take your 'standard toll'. I really should do business elsewhere, scum.\"",
       scrapOnly(g, "low"),
     );
   },
@@ -1262,8 +1662,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "You jet toward the pirate with the fuel supplies and engage - hopefully you can leave the ship in one piece!" — [[Pirate ships in plasma storm]]
     pageFight(
       g,
-      tx("wiki.quests.you-jet-toward-the-pirate-with"),
-      tx("wiki.quests.pirate-ship"),
+      "You jet toward the pirate with the fuel supplies and engage - hopefully you can leave the ship in one piece!",
+      "Pirate ship",
       "pirate-ships-in-plasma-storm",
     );
   },
@@ -1274,8 +1674,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "You jet toward the pirate with the ammunition and engage - hopefully you can leave the ship in one piece!" — [[Pirate ships in plasma storm]]
     pageFight(
       g,
-      tx("wiki.quests.you-jet-toward-the-pirate-with-2"),
-      tx("wiki.quests.pirate-ship"),
+      "You jet toward the pirate with the ammunition and engage - hopefully you can leave the ship in one piece!",
+      "Pirate ship",
       "pirate-ships-in-plasma-storm-ammo",
     );
   },
@@ -1285,59 +1685,86 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Let them leave." — [[Pirate ships in plasma storm]]
     // > "Sometimes discretion is the better part of valor." — [[Pirate ships in plasma storm]]
     // > "Nothing happens." — [[Pirate ships in plasma storm]]
-    result(g, tx("wiki.quests.sometimes-discretion-is-the-better-part"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "Sometimes discretion is the better part of valor.", undefined, ["Nothing happens."]);
   },
   "q:pirate-briber:gone": (g) => {
     pirateGone(g);
   },
   "q:pirate-briber:salvage": (g) => {
-    result(g, tx("wiki.quests.you-strip-the-ship-of-anything"), rollStandard(g, "low"));
+    result(
+      g,
+      "You strip the ship of anything useful and leave its crew to hope help arrives.",
+      rollStandard(g, "low"),
+    );
   },
   // No effect in The Last Stand.
   "q:pirate-briber:delay": (g) => {
     if (g.sector === 8 || g.sectorName === "The Last Stand") {
-      result(g, tx("wiki.quests.hopefully-that-will-buy-you-more"), undefined, [tx("wiki.quests.no-effect-in-the-last-stand")]);
+      result(g, "Hopefully that will buy you more time to get to the next sector.", undefined, [
+        "No effect in The Last Stand.",
+      ]);
       return;
     }
     g.fleet = Math.max(0, g.fleet - 1);
-    result(g, tx("wiki.quests.hopefully-that-will-buy-you-more"), undefined, [tx("wiki.quests.the-rebel-fleet-is-delayed-for")]);
+    result(g, "Hopefully that will buy you more time to get to the next sector.", undefined, [
+      "The Rebel Fleet is delayed for 1 turn.",
+    ]);
   },
   // Rebel fight choice in nebula. Conceal lists three results and prints no odds. INFERRED: equal.
   // Caught opens Prepare to fight, or Engines 4+. Chase doubles pursuit for 1 jump (citedChoose `faster`: one extra step).
   "c:rebel-fight-choice-in-nebula:1": (g) => {
     const r = pick(g, ["caught", "chase", "hidden"] as const);
     if (r === "caught") {
-      card(g, tx("wiki.quests.you-immediately-slip-further-into-the"), [
-        { id: "q:rebel-nebula:fight", label: tx("wiki.quests.prepare-to-fight") },
-        { id: "q:rebel-nebula:engines", label: tx("wiki.quests.fully-power-the-engines-to-out") },
-      ]);
+      card(
+        g,
+        "You immediately slip further into the clouds, but not quickly enough. The rebel catches sight of you and moves in to engage!",
+        [
+          { id: "q:rebel-nebula:fight", label: "Prepare to fight." },
+          { id: "q:rebel-nebula:engines", label: "Fully power the engines to out-run them." },
+        ],
+      );
       return;
     }
     if (r === "chase") {
       g.fleet += 1;
-      log(g, tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for"));
+      log(g, "Rebel Fleet pursuit is doubled for 1 jump.");
       result(
         g,
-        tx("wiki.quests.the-ship-spots-you-and-gives"),
+        "The ship spots you and gives chase. After some quick maneuvering you were able to lose your pursuers in the clouds. You expect they warned the fleet of your position, however.",
         undefined,
-        [tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for")],
+        ["Rebel Fleet pursuit is doubled for 1 jump."],
       );
       return;
     }
-    result(g, tx("wiki.quests.you-power-down-non-essential-systems"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You power down non-essential systems and slip into the cloud. The ship never noticed you.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   "q:rebel-nebula:fight": (g) => {
-    pageFight(g, tx("wiki.quests.prepare-to-fight"), tx("wiki.quests.rebel-ship"), "rebel-fight-choice-in-nebula");
+    pageFight(g, "Prepare to fight.", "Rebel ship", "rebel-fight-choice-in-nebula");
   },
   // Engines level 4+. The page prints no percent.
   "q:rebel-nebula:engines": (g) => {
     if ((g.player.systems.engines?.level ?? 0) < 4) return;
-    result(g, tx("wiki.quests.your-powerful-engines-allow-you-to"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "Your powerful engines allow you to out-distance the ship and eventually lose it within the nebula.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Cloaking. Nothing happens.
   "c:rebel-fight-choice-in-nebula:2": (g) => {
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
-    result(g, tx("wiki.quests.you-use-your-cloaking-system-to"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You use your cloaking system to slip further into the nebula undetected.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Mantis fight choice. Conceal: {{DuplicateEvent|2}} on the fight, once on nothing.
   // The printed OR is the two fight sentences. INFERRED: those two are equal inside the doubled result.
@@ -1349,16 +1776,24 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "You power down non-essential systems and wait for the FTL drive to charge. They either don't want to fight or have failed to notice your ship, the latter being more likely." — [[Mantis fight choice]]
     // > "Nothing happens." — [[Mantis fight choice]]
     // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice]]
-    const spotted = weighted(g, [[true, 2], [false, 1]] as [boolean, number][]);
+    const spotted = weighted(g, [
+      [true, 2],
+      [false, 1],
+    ] as [boolean, number][]);
     if (!spotted) {
-      result(g, tx("wiki.quests.you-power-down-non-essential-systems-2"), undefined, [tx("wiki.quests.nothing-happens")]);
+      result(
+        g,
+        "You power down non-essential systems and wait for the FTL drive to charge. They either don't want to fight or have failed to notice your ship, the latter being more likely.",
+        undefined,
+        ["Nothing happens."],
+      );
       return;
     }
     const line = pick(g, [
       "You power down non-essential systems in an attempt to remain unnoticed. It looks like they are about to leave when suddenly they turn and set course toward you, weapons powered.",
       "Before you have a chance to slink away the Mantis ship notices you and powers up their weapons.",
     ] as const);
-    pageFight(g, line, tx("wiki.quests.mantis-ship"), "mantis-fight-choice");
+    pageFight(g, line, "Mantis ship", "mantis-fight-choice");
   },
   // Cloaking. {{DuplicateEvent|2}} on nothing, once on the fight.
   // The printed OR is the two nothing sentences. INFERRED: those two are equal inside the doubled result.
@@ -1371,76 +1806,151 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage." — [[Mantis fight choice]]
     // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice]]
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
-    const away = weighted(g, [[true, 2], [false, 1]] as [boolean, number][]);
+    const away = weighted(g, [
+      [true, 2],
+      [false, 1],
+    ] as [boolean, number][]);
     if (away) {
       const line = pick(g, [
         "You cloak and shut down non-essential systems. In a short time the Mantis ship jumps away, no doubt in search of prey.",
         "You quickly cloak the ship and move out of immediate scanning range. You appear to have gotten away undetected.",
       ] as const);
-      result(g, line, undefined, [tx("wiki.quests.nothing-happens")]);
+      result(g, line, undefined, ["Nothing happens."]);
       return;
     }
-    pageFight(g, tx("wiki.quests.you-quickly-cloak-the-ship-but"), tx("wiki.quests.mantis-ship"), "mantis-fight-choice");
+    pageFight(
+      g,
+      "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage.",
+      "Mantis ship",
+      "mantis-fight-choice",
+    );
   },
   // Pirate ship attacking civilian. "Aid the civilian ship." One printed lead-in, then a Pirate ship fight.
   "c:pirate-ship-attacking-civilian:0": (g) => {
-    pageFight(g, tx("wiki.quests.you-power-up-your-weapons-and-2"), tx("wiki.quests.pirate-ship"), "pirate-ship-attacking-civilian");
+    pageFight(
+      g,
+      "You power up your weapons and engage the pirate ship.",
+      "Pirate ship",
+      "pirate-ship-attacking-civilian",
+    );
   },
   // Pirate ship attacking civilian. "Stay out of it." One printed result.
   "c:pirate-ship-attacking-civilian:1": (g) => {
-    result(g, tx("wiki.quests.the-fight-brings-them-out-of"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The fight brings them out of your immediate scanning range. After a time the distress calls stop.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Pirate ship attacking civilian distress. "Aid the civilian ship." One printed lead-in, then a Pirate ship fight.
   "c:pirate-ship-attacking-civilian-distress:0": (g) => {
-    pageFight(g, tx("wiki.quests.you-power-up-your-weapons-and-2"), tx("wiki.quests.pirate-ship"), "pirate-ship-attacking-civilian-distress");
+    pageFight(
+      g,
+      "You power up your weapons and engage the pirate ship.",
+      "Pirate ship",
+      "pirate-ship-attacking-civilian-distress",
+    );
   },
   // Pirate ship attacking civilian distress. The distress page's stay-out line.
   "c:pirate-ship-attacking-civilian-distress:1": (g) => {
-    result(g, tx("wiki.quests.the-fight-brings-them-out-of-2"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The fight brings them out of your immediate scanning range; however, after a time the distress calls stop.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Pirate ship attacking civilian (Lanius). "Attack the pirate." One printed lead-in, then a Pirate ship fight.
   "c:pirate-ship-attacking-civilian-lanius:0": (g) => {
-    pageFight(g, tx("wiki.quests.you-charge-the-weapons-which-quickly"), tx("wiki.quests.pirate-ship"), "pirate-ship-attacking-civilian-lanius");
+    pageFight(
+      g,
+      "You charge the weapons, which quickly gets the pirate ship's attention.",
+      "Pirate ship",
+      "pirate-ship-attacking-civilian-lanius",
+    );
   },
   // Pirate ship attacking civilian (Lanius). "Avoid the conflict." One printed result.
   "c:pirate-ship-attacking-civilian-lanius:1": (g) => {
-    result(g, tx("wiki.quests.unfortunately-it-is-not-your-mission"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "Unfortunately it is not your mission to save every person affected by this war or the Lanius invasion.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius ship attacking civilian. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-civilian:0": (g) => {
-    pageFight(g, tx("wiki.quests.you-charge-your-weapons-which-quickly"), tx("wiki.quests.lanius-ship"), "lanius-ship-attacking-civilian");
+    pageFight(
+      g,
+      "You charge your weapons, which quickly gets the Lanius ship's attention.",
+      "Lanius ship",
+      "lanius-ship-attacking-civilian",
+    );
   },
   // Lanius ship attacking civilian. "Avoid the conflict." One printed result.
   "c:lanius-ship-attacking-civilian:1": (g) => {
-    result(g, tx("wiki.quests.unfortunately-it-is-not-your-mission"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "Unfortunately it is not your mission to save every person affected by this war or the Lanius invasion.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius ship attacking civilian distress. "Fight the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-civilian-distress:0": (g) => {
-    pageFight(g, tx("wiki.quests.you-move-in-to-intercept-the"), tx("wiki.quests.lanius-ship"), "lanius-ship-attacking-civilian-distress");
+    pageFight(
+      g,
+      "You move in to intercept the ship. Detecting a greater threat, the Lanius prepare to fight.",
+      "Lanius ship",
+      "lanius-ship-attacking-civilian-distress",
+    );
   },
   // The Mercenary. "Fight the ship." One printed lead-in, then a Pirate ship fight.
   "c:the-mercenary:1": (g) => {
-    pageFight(g, tx("wiki.quests.mercenaries-are-worse-than-rebels-the"), tx("wiki.quests.pirate-ship"), "the-mercenary");
+    pageFight(
+      g,
+      "Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle.",
+      "Pirate ship",
+      "the-mercenary",
+    );
   },
   // Pirate toll. "Reject their offer." One printed lead-in, then a Pirate ship fight.
   "c:pirate-toll:1": (g) => {
-    pageFight(g, tx("wiki.quests.too-bad-you-will-regret-this"), tx("wiki.quests.pirate-ship"), "pirate-toll");
+    pageFight(g, '"Too bad... You will regret this decision!"', "Pirate ship", "pirate-toll");
   },
   // Lanius ship attacking Rock. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-rock:0": (g) => {
-    pageFight(g, tx("wiki.quests.the-rockmen-need-your-help-you"), tx("wiki.quests.lanius-ship"), "lanius-ship-attacking-rock");
+    pageFight(
+      g,
+      "The Rockmen need your help - you target the Lanius ship and grimly prepare for battle.",
+      "Lanius ship",
+      "lanius-ship-attacking-rock",
+    );
   },
   // Lanius ship attacking Rock. "Leave the Rockmen to their fate." One printed result.
   "c:lanius-ship-attacking-rock:1": (g) => {
-    result(g, tx("wiki.quests.as-you-make-your-escape-the"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "As you make your escape, the Rockman's ship's engines explode, and you watch the Lanius ship slowly feed on the remains - and the crew.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius ship absorbing automated scout. "Leave them alone." One printed result. Do not inspect the scout.
   "c:lanius-ship-absorbing-automated-scout:1": (g) => {
-    result(g, tx("wiki.quests.whatever-assistance-the-disabled-scout-could"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "Whatever assistance the disabled scout could provide is not worth the risk of fighting another Lanius. You prepare to move on.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Mantis ship attacking Crystal. "Ignore them." One printed result.
   "c:mantis-ship-attacking-crystal:1": (g) => {
-    result(g, tx("wiki.quests.you-try-to-keep-a-low"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You try to keep a low profile and quickly prepare to jump.", undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Mantis ship with Rock body parts. "Ignore them." One printed result.
   "c:mantis-ship-with-rock-body-parts:1": (g) => {
@@ -1448,11 +1958,21 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Ignore them." — [[Mantis ship with Rock body parts]]
     // > "The Mantis take no interest in your ship - they're lying in wait for the next Rock ship to venture through. You're able to spin up the engines and jump at your leisure." — [[Mantis ship with Rock body parts]]
     // > "Nothing happens." — [[Mantis ship with Rock body parts]]
-    result(g, tx("wiki.quests.the-mantis-take-no-interest-in"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The Mantis take no interest in your ship - they're lying in wait for the next Rock ship to venture through. You're able to spin up the engines and jump at your leisure.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius lone ship. "Stay out of it." One printed result.
   "c:lanius-lone-ship:1": (g) => {
-    result(g, tx("wiki.quests.you-ignore-the-ship-s-pleas"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You ignore the ship's pleas and watch as it hastily escapes. Oddly, the Lanius ship makes no move to chase it. You wonder if they were ever a threat at all.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Crystal fight choice. "Leave them alone." One printed result.
   "c:crystal-fight-choice:1": (g) => {
@@ -1460,14 +1980,19 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Leave them alone." — [[Crystal fight choice]]
     // > "It's best to take advantage of the rare occasions when the Rebels aren't shooting at you. You prepare to jump." — [[Crystal fight choice]]
     // > "Nothing happens." — [[Crystal fight choice]]
-    result(g, tx("wiki.quests.it-s-best-to-take-advantage"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "It's best to take advantage of the rare occasions when the Rebels aren't shooting at you. You prepare to jump.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Destroyed cargo ship. "Leave it alone, this looks suspicious." One printed result.
   "c:destroyed-cargo-ship:1": (g) => {
     // Wiki citations:
     // > "You leave the cargo alone and prepare to jump." — [[Destroyed cargo ship]]
     // > "Nothing happens." — [[Destroyed cargo ship]]
-    result(g, tx("wiki.quests.you-leave-the-cargo-alone-and"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You leave the cargo alone and prepare to jump.", undefined, ["Nothing happens."]);
   },
   // Pirate ship attacking Crystal. "Ignore them." One printed result.
   "c:pirate-ship-attacking-crystal:1": (g) => {
@@ -1475,29 +2000,49 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Ignore them." — [[Pirate ship attacking Crystal]]
     // > "You assume the Crystalline ship can handle itself. You have enough of your own problems." — [[Pirate ship attacking Crystal]]
     // > "Nothing happens." — [[Pirate ship attacking Crystal]]
-    result(g, tx("wiki.quests.you-assume-the-crystalline-ship-can"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You assume the Crystalline ship can handle itself. You have enough of your own problems.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Escort civilians. "Decline." One printed result.
   "c:escort-civilians:1": (g) => {
-    result(g, tx("wiki.quests.we-understand-not-everyone-is-confident"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      '"We understand. Not everyone is confident they can survive in these hostile times, let alone take the responsibility of protecting others."',
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Remote settlement. "Ignore them." One printed result.
   "c:remote-settlement:1": (g) => {
-    result(g, tx("wiki.quests.it-s-just-not-possible-to"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "It's just not possible to save every civilian affected by this war. You prepare to jump.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Pirate smuggler. "Ignore the ship." One printed result.
   "c:pirate-smuggler:1": (g) => {
-    result(g, tx("wiki.quests.it-jumps-away-after-a-time"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "It jumps away after a time.", undefined, ["Nothing happens."]);
   },
   // Refueling platform garbled broadcast. "Ignore the platform." One printed result.
   "c:refueling-platform-garbled-broadcast:1": (g) => {
-    result(g, tx("wiki.quests.you-leave-the-platform-alone-and"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You leave the platform alone, and prepare to jump.", undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Refueling platform garbled broadcast. "Dock with the platform." The berth, then signal or the blast doors.
   "c:refueling-platform-garbled-broadcast:2": (g) => {
-    card(g, tx("wiki.quests.your-ship-enters-one-of-the"), [
-      { id: "s:garbled-dock:signal", label: tx("wiki.quests.signal-for-a-refuel") },
-      { id: "s:garbled-dock:doors", label: tx("wiki.quests.secure-your-blast-doors-best-to") },
+    card(g, "Your ship enters one of the refueling station berths, grateful for a rest.", [
+      { id: "s:garbled-dock:signal", label: "Signal for a refuel." },
+      {
+        id: "s:garbled-dock:doors",
+        label: "Secure your blast doors - best to be safe when docked.",
+      },
     ]);
   },
   // "Signal for a refuel." Three results, no odds and no DuplicateEvent. INFERRED: equal, one of three.
@@ -1506,31 +2051,45 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (kind === "abandoned") {
       const n = rollFuel("s:garbled-dock:signal", (lo, hi) => between(g, [lo, hi]));
       g.fuel += n;
-      log(g, tx("wiki.quests.fuel-3", { n: n }));
-      card(g, tx("wiki.quests.no-one-answers-your-hails-you"), [
-        { id: "s:garbled-dock:continue", label: tx("wiki.quests.continue-2") },
-        { id: "s:garbled-dock:sensors2", label: tx("wiki.quests.run-another-scan-at-maximum-sensitivity") },
-        { id: "s:garbled-dock:sensors3", label: tx("wiki.quests.run-another-scan-at-maximum-sensitivity") },
-      ]);
+      log(g, `Fuel: ${n}.`);
+      card(
+        g,
+        "No one answers your hails. You run some scans and discover that the station has been recently abandoned, no doubt due to the threat of the Lanius. You empty their fuel reserves before leaving.",
+        [
+          { id: "s:garbled-dock:continue", label: "Continue..." },
+          { id: "s:garbled-dock:sensors2", label: "Run another scan at maximum sensitivity." },
+          { id: "s:garbled-dock:sensors3", label: "Run another scan at maximum sensitivity." },
+        ],
+      );
       return;
     }
     if (kind === "trap") {
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "engines", 3);
-      pageFight(g, tx("wiki.quests.what-seemed-to-be-a-brief"), tx("wiki.quests.lanius-ship"), "refueling-platform-garbled-broadcast");
+      pageFight(
+        g,
+        "What seemed to be a brief respite turns into a Lanius trap... the first warning is an explosion from your engine room, followed moments later by detection of a Lanius ship at sensor range!",
+        "Lanius ship",
+        "refueling-platform-garbled-broadcast",
+      );
       return;
     }
     // A breach in one room. INFERRED: every player room is equally likely. The page prints no system damage.
     const rooms = g.player.rooms;
     const hit = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))];
     if (hit) hit.breach += 1;
-    pageFight(g, tx("wiki.quests.your-ship-s-dash-suddenly-lights"), tx("wiki.quests.lanius-ship"), "refueling-platform-garbled-broadcast");
+    pageFight(
+      g,
+      "Your ship's dash suddenly lights up with warnings - a hull breach! Lanius were on board the platform and are now on board your ship. A hidden cruiser comes into view!",
+      "Lanius ship",
+      "refueling-platform-garbled-broadcast",
+    );
     const land = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))];
     const hp = crewDef("voidlung").hp;
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({
       id: "u" + g.uid.toString(36),
-      name: tx("wiki.quests.lanius"),
+      name: "Lanius",
       side: "enemy",
       aboard: "player",
       hp,
@@ -1542,26 +2101,32 @@ const CHOICES: Record<string, (g: Game) => void> = {
       tone: 3,
       kin: "voidlung",
     });
-    log(g, tx("wiki.quests.1-lanius-boarder-beams-aboard-your"));
+    log(g, "1 lanius boarder beams aboard your ship.");
   },
   // Blast Doors, level 2+. questChoose already skips this when the requirement fails.
   "s:garbled-dock:doors": (g) => {
     if ((g.player.systems.doors?.level ?? 0) < 2) return;
     g.fuel += rollFuel("s:garbled-dock:doors", (lo, hi) => between(g, [lo, hi]));
-    log(g, tx("wiki.quests.fuel-5"));
-    result(g, tx("wiki.quests.your-reinforced-doors-save-you-from"));
+    log(g, "Fuel: 5.");
+    result(
+      g,
+      "Your reinforced doors save you from an attempted ambush by the Lanius, who cluster around the doors and hull, attempting to consume your ship. Coldly, you wipe them out one by one with your weapon array, then take control of the station and take its fuel reserves.",
+    );
   },
   // Abandoned follow-up. The page prints no italic before this line.
   "s:garbled-dock:continue": (g) => {
-    result(g, tx("wiki.quests.nothing-happens"));
+    result(g, "Nothing happens.");
   },
   // Improved Sensors, level 2. The button stays on the abandoned card. questChoose skips a ship that is short.
   "s:garbled-dock:sensors2": (g) => {
     if (sensors(g) < 2) return;
     const n = rollFuel("s:garbled-dock:sensors2", (lo, hi) => between(g, [lo, hi]));
     g.fuel += n;
-    log(g, tx("wiki.quests.fuel-3", { n: n }));
-    result(g, tx("wiki.quests.you-run-an-additional-more-focused"));
+    log(g, `Fuel: ${n}.`);
+    result(
+      g,
+      "You run an additional more focused scan and find one of the auxiliary refueling platforms has some unclaimed fuel.",
+    );
   },
   // Advanced Sensors, level 3. Same label as the level-2 scan. A level-3 ship may take either; neither is picked for it.
   "s:garbled-dock:sensors3": (g) => {
@@ -1570,51 +2135,72 @@ const CHOICES: Record<string, (g: Game) => void> = {
     const parts = between(g, [1, 3]);
     g.fuel += fuel;
     g.player.parts += parts;
-    log(g, tx("wiki.quests.fuel", { fuel: fuel }));
-    log(g, tx("wiki.quests.drone-parts", { parts: parts }));
-    result(g, tx("wiki.quests.you-run-an-additional-more-focused-2"));
+    log(g, `Fuel: ${fuel}.`);
+    log(g, `Drone parts: ${parts}.`);
+    result(
+      g,
+      "You run an additional more focused scan and find one of the auxiliary refueling platforms has some unclaimed fuel and drone parts.",
+    );
   },
   // Refueling platform. "Ignore the refueling platform."
   // {{DuplicateEvent|2}} is Nothing happens, then one printed pirate-bait fight.
   // INFERRED: those three printed slots are weights 2 and 1. Nothing has no italic.
   // This handler returns before citedChoose, so the choice fx does not also start a fight.
   "c:refueling-platform:1": (g) => {
-    const r = weighted(g, [["nothing", 2], ["fight", 1]] as const);
+    const r = weighted(g, [
+      ["nothing", 2],
+      ["fight", 1],
+    ] as const);
     if (r === "nothing") {
-      result(g, tx("wiki.quests.nothing-happens"));
+      result(g, "Nothing happens.");
       return;
     }
-    pageFight(g, tx("wiki.quests.as-you-prepare-to-leave-the"), tx("wiki.quests.pirate-ship"), "refueling-platform");
+    pageFight(
+      g,
+      "As you prepare to leave the system, a Pirate ship suddenly appears on scanners - it looks like it was attempting to use the platform as bait!",
+      "Pirate ship",
+      "refueling-platform",
+    );
   },
   // Refueling platform. "Dock with the refueling platform." Five printed results and no odds.
   // INFERRED: equal, one of five. The offer's price is rolled on accept.
   "c:refueling-platform:0": (g) => {
     const kind = pick(g, ["offer", "steal", "ignite", "staff", "ambush"] as const);
     if (kind === "offer") {
-      card(g, tx("wiki.quests.the-platform-makes-an-offer"), [
-        { id: "s:refuel-dock:accept", label: tx("wiki.quests.accept-it") },
-        { id: "s:refuel-dock:reject", label: tx("wiki.quests.reject-it") },
+      card(g, "The platform makes an offer.", [
+        { id: "s:refuel-dock:accept", label: "Accept it." },
+        { id: "s:refuel-dock:reject", label: "Reject it." },
       ]);
       return;
     }
     if (kind === "steal") {
-      card(g, tx("wiki.quests.the-automated-platform-seems-to-be"), [
-        { id: "s:refuel-dock:steal", label: tx("wiki.quests.steal-it") },
-        { id: "s:refuel-dock:values", label: tx("wiki.quests.war-doesn-t-justify-abandoning-one") },
-      ]);
+      card(
+        g,
+        "The automated platform seems to be damaged. You can likely steal as much fuel as remains.",
+        [
+          { id: "s:refuel-dock:steal", label: "Steal it." },
+          {
+            id: "s:refuel-dock:values",
+            label: "War doesn't justify abandoning one's values. You leave it alone.",
+          },
+        ],
+      );
       return;
     }
     if (kind === "ignite") {
-      card(g, tx("wiki.quests.the-platform-seems-to-be-malfunctioning"), [
-        { id: "s:refuel-dock:quick", label: tx("wiki.quests.quickly-dock-and-refuel") },
-        { id: "s:refuel-dock:berth", label: tx("wiki.quests.give-the-station-a-wide-berth") },
+      card(g, "The platform seems to be malfunctioning and could ignite at any moment.", [
+        { id: "s:refuel-dock:quick", label: "Quickly dock and refuel." },
+        { id: "s:refuel-dock:berth", label: "Give the station a wide berth and carry on." },
       ]);
       return;
     }
     if (kind === "staff") {
-      card(g, tx("wiki.quests.you-dock-and-signal-the-fuel"), [
-        { id: "s:refuel-dock:wait", label: tx("wiki.quests.wait-for-them-to-finish") },
-        { id: "s:refuel-dock:doors", label: tx("wiki.quests.seal-your-blast-doors-one-can") },
+      card(g, "You dock and signal the fuel station's staff to begin refueling.", [
+        { id: "s:refuel-dock:wait", label: "Wait for them to finish." },
+        {
+          id: "s:refuel-dock:doors",
+          label: "Seal your blast doors, one can never be too careful when docked.",
+        },
       ]);
       return;
     }
@@ -1625,60 +2211,84 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (g.scrap < n) return;
     g.scrap -= n;
     g.fuel += rollFuel("s:refuel-dock:accept", (lo, hi) => between(g, [lo, hi]));
-    log(g, tx("wiki.quests.scrap-3", { n: n }));
-    log(g, tx("wiki.quests.fuel-5"));
-    result(g, tx("wiki.quests.you-receive-5-fuel"), undefined, [tx("wiki.quests.scrap-3", { n: n }), tx("wiki.quests.fuel-5")]);
+    log(g, `Scrap: -${n}.`);
+    log(g, "Fuel: 5.");
+    result(g, "You receive 5 fuel.", undefined, [`Scrap: -${n}.`, "Fuel: 5."]);
   },
   "s:refuel-dock:reject": (g) => {
-    result(g, tx("wiki.quests.nothing-happens"));
+    result(g, "Nothing happens.");
   },
   "s:refuel-dock:steal": (g) => {
     const n = rollFuel("s:refuel-dock:steal", (lo, hi) => between(g, [lo, hi]));
     g.fuel += n;
-    log(g, tx("wiki.quests.fuel-3", { n: n }));
-    result(g, tx("wiki.quests.if-you-take-the-fuel-at"), undefined, [tx("wiki.quests.fuel-3", { n: n })]);
+    log(g, `Fuel: ${n}.`);
+    result(
+      g,
+      "If you take the fuel at least it won't fall into the hands of the Rebels. You breach the containment and access what remains of the fuel reserves.",
+      undefined,
+      [`Fuel: ${n}.`],
+    );
   },
   "s:refuel-dock:values": (g) => {
-    result(g, tx("wiki.quests.nothing-happens"));
+    result(g, "Nothing happens.");
   },
   // Quickly dock. Two printed results and no odds. INFERRED: equal.
   "s:refuel-dock:quick": (g) => {
     if (pick(g, ["safe", "boom"] as const) === "safe") {
       g.fuel += rollFuel("s:refuel-dock:quick", (lo, hi) => between(g, [lo, hi]));
-      log(g, tx("wiki.quests.fuel-5"));
-      result(g, tx("wiki.quests.you-re-able-to-safely-refuel"), undefined, [tx("wiki.quests.fuel-5")]);
+      log(g, "Fuel: 5.");
+      result(
+        g,
+        "You're able to safely refuel and get clear before the station explodes.",
+        undefined,
+        ["Fuel: 5."],
+      );
       return;
     }
-    const text = tx("wiki.quests.just-as-you-hook-up-to");
+    const text =
+      "Just as you hook up to refuel, the station ignites and explodes. Your own fuel reserve ignites, losing your precious fuel and damaging your ship.";
     log(g, text);
     if (damageHull(g, 3)) return;
     refuelEngines(g, true);
     // The page says lose 3 fuel. INFERRED: fuel does not go below zero.
     const lost = Math.min(g.fuel, 3);
     g.fuel -= lost;
-    log(g, tx("wiki.quests.fuel-4", { lost: lost }));
-    result(g, text, undefined, [tx("wiki.quests.fuel-4", { lost: lost })]);
+    log(g, `Fuel: -${lost}.`);
+    result(g, text, undefined, [`Fuel: -${lost}.`]);
   },
   "s:refuel-dock:berth": (g) => {
-    result(g, tx("wiki.quests.you-pull-away-from-the-station"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You pull away from the station. After a short time a few silent explosions cause the depressurized tanks to implode.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   "s:refuel-dock:wait": (g) => {
-    log(g, tx("wiki.quests.as-you-dock-with-the-refueling"));
+    log(
+      g,
+      "As you dock with the refueling platform, there is an explosion from your engine room! Warning lights flash in your ship as pirates from the station swarm aboard your vessel!",
+    );
     if (damageHull(g, 3)) return;
     hurtSystem(g.player, "engines", 3);
     // "2-4 boarders". The race is not named. INFERRED: human, the same as the pirate burst on Abandoned station.
-    humanBoarders(g, 2, 4, tx("wiki.quests.boarders-beam-aboard-your-ship"));
+    humanBoarders(g, 2, 4, "boarders beam aboard your ship.");
     beginBoarding(g);
   },
   "s:refuel-dock:doors": (g) => {
     if ((g.player.systems.doors?.level ?? 0) < 2) return;
     g.fuel += rollFuel("s:refuel-dock:doors", (lo, hi) => between(g, [lo, hi]));
-    log(g, tx("wiki.quests.fuel-5"));
-    result(g, tx("wiki.quests.pirates-hidden-on-the-station-are"), undefined, [tx("wiki.quests.fuel-5")]);
+    log(g, "Fuel: 5.");
+    result(
+      g,
+      "Pirates hidden on the station are confounded by your security locks, turning an attempted ambush into a fish-in-a-barrel firefight. You take control of the station and take its fuel reserves.",
+      undefined,
+      ["Fuel: 5."],
+    );
   },
   // Rebel ship supplying civilians. "Leave them be." One printed result.
   "c:rebel-ship-supplying-civilians:1": (g) => {
-    result(g, tx("wiki.quests.nothing-happens"));
+    result(g, "Nothing happens.");
   },
   // "Wait and steal the supplies from the civilians." The same four results as the post-fight steal.
   "c:rebel-ship-supplying-civilians:2": (g) => {
@@ -1691,7 +2301,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
     rebelSupplyLeave(g);
   },
   "s:zoltan-raft:go": (g) => {
-    result(g, tx("wiki.quests.nothing-happens"));
+    result(g, "Nothing happens.");
   },
   "s:zoltan-raft:hire": (g) => {
     zoltanRaftHire(g);
@@ -1701,19 +2311,34 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "They leave without a word." — [[Zoltan ship asks to dock]]
     // > "Nothing happens." — [[Zoltan ship asks to dock]]
-    result(g, tx("wiki.quests.they-leave-without-a-word"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "They leave without a word.", undefined, ["Nothing happens."]);
   },
   // Lanius ship attacking Mantis. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-mantis:0": (g) => {
-    pageFight(g, tx("wiki.quests.the-lanius-haven-t-noticed-you"), tx("wiki.quests.lanius-ship"), "lanius-ship-attacking-mantis");
+    pageFight(
+      g,
+      "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!",
+      "Lanius ship",
+      "lanius-ship-attacking-mantis",
+    );
   },
   // Lanius ship attacking Mantis. "Leave the Mantis to their fate." One printed result.
   "c:lanius-ship-attacking-mantis:1": (g) => {
-    result(g, tx("wiki.quests.the-mantis-ship-is-quickly-overcome"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The Mantis ship is quickly overcome by the Lanius vessel, and you move away as the Lanius feed on the remains.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius ship attacking Slug. "Leave the Slugs to their fate." One printed result.
   "c:lanius-ship-attacking-slug:1": (g) => {
-    result(g, tx("wiki.quests.you-leave-the-lanius-ship-alone"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You leave the Lanius ship alone, and prepare to jump to the next beacon.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Zoltan ship follows Mantis ship. "Interfere and save the Mantis ship." One printed lead-in, then a Zoltan ship fight in the asteroid field.
   "c:zoltan-ship-follows-mantis-ship:0": (g) => {
@@ -1723,8 +2348,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Fight a Zoltan ship." — [[Zoltan ship follows Mantis ship]]
     pageFight(
       g,
-      tx("wiki.quests.sometimes-you-have-to-bet-on"),
-      tx("wiki.quests.zoltan-ship"),
+      "Sometimes you have to bet on the underdog - even on the rare occasions that the underdog is a Mantis warship. You set off for the heart of the asteroid field and engage the Zoltan there.",
+      "Zoltan ship",
       "zoltan-ship-follows-mantis-ship",
       undefined,
       true,
@@ -1739,8 +2364,8 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Fight a Mantis ship with crew entirely composed of Mantis." — [[Zoltan ship follows Mantis ship]]
     pageFight(
       g,
-      tx("wiki.quests.you-overtake-the-zoltan-and-catch"),
-      tx("wiki.quests.mantis-ship"),
+      "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends.",
+      "Mantis ship",
       "zoltan-ship-follows-mantis-ship",
       undefined,
       true,
@@ -1753,33 +2378,59 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Don't interfere." — [[Zoltan ship follows Mantis ship]]
     // > "The Zoltan know their business better than most - best to leave them to it. You prepare to jump." — [[Zoltan ship follows Mantis ship]]
     // > "Nothing happens." — [[Zoltan ship follows Mantis ship]]
-    result(g, tx("wiki.quests.the-zoltan-know-their-business-better"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The Zoltan know their business better than most - best to leave them to it. You prepare to jump.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Zoltan wise man. "Mantis." One printed lead-in, then a Mantis ship whose crew are all Mantis.
   "c:zoltan-wise-man:0": (g) => {
-    pageFight(g, tx("wiki.quests.you-like-a-challenge-so-be"), tx("wiki.quests.mantis-ship"), "zoltan-wise-man");
+    pageFight(
+      g,
+      '"You like a challenge. So be it!" A wormhole forms and a confused, angry Mantis ship hurtles toward you!',
+      "Mantis ship",
+      "zoltan-wise-man",
+    );
     allMantisCrew(g);
   },
   // Zoltan wise man. "Slug." One printed lead-in, then a Slug ship fight. The page does not say the crew are all Mantis.
   "c:zoltan-wise-man:1": (g) => {
-    pageFight(g, tx("wiki.quests.do-not-be-fooled-federation-by"), tx("wiki.quests.slug-ship"), "zoltan-wise-man");
+    pageFight(
+      g,
+      '"Do not be fooled, Federation, by a soft underbelly." You detect a wormhole opening up, and seconds later a Slug ship is attacking from the other direction!',
+      "Slug ship",
+      "zoltan-wise-man",
+    );
   },
   // Zoltan wise man. "Rockmen." One printed lead-in, then a Rock ship fight. The page does not say the crew are all Mantis.
   "c:zoltan-wise-man:2": (g) => {
-    pageFight(g, tx("wiki.quests.a-hardened-foe-for-a-hardened"), tx("wiki.quests.rock-ship"), "zoltan-wise-man");
+    pageFight(
+      g,
+      '"A hardened foe for a hardened veteran." You detect a wormhole opening up, and a Rock ship appears with guns blazing. It appears they were in combat when they were thrust across space-time.',
+      "Rock ship",
+      "zoltan-wise-man",
+    );
   },
   // Space station under construction. "Decline." One printed result.
   "c:space-station-under-construction:1": (g) => {
-    result(g, tx("wiki.quests.i-understand-transmission-has-been-cut"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, '"I understand." Transmission has been cut.', undefined, ["Nothing happens."]);
   },
   // Space station under construction. {{Blue Option|Lanius Crew}}. The sale loses that Lanius.
   // Clone Bay: "Your clonebay obviously does not revive your crewmember since they did not die."
   "c:space-station-under-construction:2": (g) => {
     if (!hasLanius(g)) return;
-    card(g, tx("wiki.quests.interesting-so-this-metal-man-can"), [
-      { id: "q:station:sale", label: tx("wiki.quests.ask-your-crew-if-they-agree") },
-      { id: "q:station:nosale", label: tx("wiki.quests.our-crew-is-not-for-sale") },
-    ]);
+    card(
+      g,
+      `"Interesting. So this metal man can help us make some of these unique parts out of scrap? That would be a huge help." Your crewmember checks over the blueprints and quickly converts some of their base metal sheets into the specialized parts.
+
+"Amazing! This robot thing could save us a ton of time. Could I buy it off you?"`,
+      [
+        { id: "q:station:sale", label: "Ask your crew if they agree." },
+        { id: "q:station:nosale", label: "Our crew is not for sale." },
+      ],
+    );
   },
   "q:station:sale": (g) => {
     const living = g.crew.filter((c) => c.side === "player" && c.hp > 0);
@@ -1787,37 +2438,67 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // The project does not remove the last living crewmember. A clone bay does not bring a sold Lanius back.
     if (!sold || living.length < 2) return;
     g.crew = g.crew.filter((c) => c.id !== sold.id);
-    log(g, tx("wiki.quests.is-gone", { name: sold.name }));
-    result(g, tx("wiki.quests.once-your-lanius-crewmember-understands"), scrapOnly(g, "high"), [grantRandomItem(g, "augment")]);
+    log(g, `${sold.name} is gone.`);
+    result(
+      g,
+      "Once your Lanius crewmember understands the situation, it appears to like the idea of assisting with construction in deep space. Much less dangerous. They offer you some goods in exchange.",
+      scrapOnly(g, "high"),
+      [grantRandomItem(g, "augment")],
+    );
   },
   "q:station:nosale": (g) => {
     result(
       g,
-      tx("wiki.quests.a-pity-in-terms-of-payment"),
+      "A pity. In terms of payment, here's some of the scrap metal we don't need, now that we've got the necessary parts.",
       scrapOnly(g, "medium"),
     );
   },
   // Crystal ship attacking Federation loyalists. "Save the Federation ship." One printed lead-in, then a Crystal ship fight.
   // {{SurrenderEscape(alt)|no|CRYSTAL_FED}} is not this line.
   "c:crystal-ship-attacking-federation-loyalists:0": (g) => {
-    pageFight(g, tx("wiki.quests.it-doesn-t-look-like-the"), tx("wiki.quests.crystal-ship"), "crystal-ship-attacking-federation-loyalists");
+    pageFight(
+      g,
+      "It doesn't look like the Fed ship can stand much more pressure. You fly in and intercept the Crystalline ship.",
+      "Crystal ship",
+      "crystal-ship-attacking-federation-loyalists",
+    );
   },
   // Crystal ship attacking Federation loyalists. "Prepare to leave." One printed result.
   "c:crystal-ship-attacking-federation-loyalists:1": (g) => {
-    result(g, tx("wiki.quests.with-the-federation-ship-distracting-the"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "With the Federation ship distracting the guard, you are free to continue on your mission.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Engi smashed ships. "Attempt to help the ships by prying them apart." One printed lead-in, then an Engi ship fight.
   "c:engi-smashed-ships:0": (g) => {
-    pageFight(g, tx("wiki.quests.to-your-surprise-one-of-the"), tx("wiki.quests.engi-ship"), "engi-smashed-ships");
+    pageFight(
+      g,
+      "To your surprise, one of the Engi vessels attacks! One ship detaches itself, surprisingly still quite whole, and opens fire - it looks like it's somehow identified you as hostile!",
+      "Engi ship",
+      "engi-smashed-ships",
+    );
   },
   // The Engi virus. "Attack the Engi vessel!" One printed lead-in, then an Engi ship fight. Halving engines and shields is the other choice.
   "c:the-engi-virus:1": (g) => {
-    pageFight(g, tx("wiki.quests.the-engi-be-damned-no-one"), tx("wiki.quests.engi-ship"), "the-engi-virus");
+    pageFight(
+      g,
+      "The Engi be damned, no one threatens your ship. You prepare for a fight!",
+      "Engi ship",
+      "the-engi-virus",
+    );
   },
   // The Engi virus. "Hold on! Let us try to purge the system code!" One printed lead-in, then an Engi ship fight.
   // The page halves Engines and Shields, rounding down. This handler returns before citedChoose, so the half is applied here.
   "c:the-engi-virus:0": (g) => {
-    pageFight(g, tx("wiki.quests.wiping-your-engine-core-and-shields"), tx("wiki.quests.engi-ship"), "the-engi-virus");
+    pageFight(
+      g,
+      "Wiping your engine core and shields proves useless... eventually you trap the virus in the weapons systems to purge it, but before you do, the Engi grow restless and attack!",
+      "Engi ship",
+      "the-engi-virus",
+    );
     halvePlayerSystems(g, ["engines", "shields"]);
   },
   // Slug hacker (choice). "Shields." One printed lead-in, then a Slug ship fight.
@@ -1825,7 +2506,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Destroyed pays medium scrap with resources. A crew kill pays high.
   "c:slug-hacker-choice:0": (g) => {
     choiceWin.set(g, "shields");
-    pageFight(g, tx("wiki.quests.very-good-then-your-shield-power"), tx("wiki.quests.slug-ship"), "slug-hacker-choice");
+    pageFight(
+      g,
+      '"Very good then!" Your shield power suddenly drops and they charge.',
+      "Slug ship",
+      "slug-hacker-choice",
+    );
     halvePlayerSystems(g, ["shields"]);
   },
   // Slug hacker (choice). "Oxygen." One printed lead-in, then a Slug ship fight.
@@ -1833,7 +2519,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Both endings pay medium scrap with resources.
   "c:slug-hacker-choice:1": (g) => {
     choiceWin.set(g, "oxygen");
-    pageFight(g, tx("wiki.quests.a-being-that-would-choose-sssuffocation"), tx("wiki.quests.slug-ship"), "slug-hacker-choice");
+    pageFight(
+      g,
+      '"A being that would choose sssuffocation? Who am I to judge..." Your life support shuts off and they move in to attack.',
+      "Slug ship",
+      "slug-hacker-choice",
+    );
     halvePlayerSystems(g, ["oxygen"]);
   },
   // Slug hacker (choice). "Weapons." One printed lead-in, then a Slug ship fight.
@@ -1841,7 +2532,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Both endings pay high scrap with resources.
   "c:slug-hacker-choice:2": (g) => {
     choiceWin.set(g, "weapons");
-    pageFight(g, tx("wiki.quests.your-acceptance-of-death-is-almosst"), tx("wiki.quests.slug-ship"), "slug-hacker-choice");
+    pageFight(
+      g,
+      '"Your acceptance of death is almosst admirable... Almosst." Your weapons system registers a hacking module. You hardly have time to respond before they attack.',
+      "Slug ship",
+      "slug-hacker-choice",
+    );
     halvePlayerSystems(g, ["weapons"]);
   },
   // Slug hacker (choice). "Offer 35 scrap to leave you alone." One printed result. The page spends 35 scrap.
@@ -1849,14 +2545,21 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:slug-hacker-choice:3": (g) => {
     if (g.scrap < 35) return;
     g.scrap -= 35;
-    result(g, tx("wiki.quests.i-really-am-feeling-generousss-they"), undefined, [tx("wiki.quests.you-avoided-the-fight")]);
+    result(g, '"I really am feeling generousss..." They take the scrap and leave.', undefined, [
+      "You avoided the fight.",
+    ]);
   },
   // Slug hacker (choice). "Counter any hack attempt." One printed lead-in, then a Slug ship fight.
   // The page says "Hacking offline". INFERRED: the installed level stays, and a launch is refused until that fight ends.
   // Both endings pay high scrap with resources. The wiki's "[sic]" after "weapon system" is not shown.
   "c:slug-hacker-choice:4": (g) => {
     choiceWin.set(g, "hack");
-    pageFight(g, tx("wiki.quests.sssilence-won-t-protect-you-i"), tx("wiki.quests.slug-ship"), "slug-hacker-choice");
+    pageFight(
+      g,
+      "\"Sssilence won't protect you. I'll make the choice mysself... Wait. Why isn't this working?\" You cut transmission and move in to attack.",
+      "Slug ship",
+      "slug-hacker-choice",
+    );
     shutPlayerHacking(g);
   },
   // Rebel ship attacking Crystal ship. "Attack the Rebel." One printed lead-in, then a Rebel ship fight.
@@ -1867,27 +2570,39 @@ const CHOICES: Record<string, (g: Game) => void> = {
     rebelCrystalBones.set(g, true);
     pageFight(
       g,
-      tx("wiki.quests.you-message-the-crystalline-ship-your"),
-      tx("wiki.quests.rebel-ship"),
+      "You message the Crystalline ship your intentions and move in to intercept the Rebel ship.",
+      "Rebel ship",
       "rebel-ship-attacking-crystal-ship",
     );
   },
   // Rebel ship attacking Crystal ship. "Ignore them." One printed result.
   "c:rebel-ship-attacking-crystal-ship:2": (g) => {
-    result(g, tx("wiki.quests.with-the-two-ships-engaged-in"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "With the two ships engaged in combat, you sneak by unnoticed.", undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Rebel ship attacking Crystal ship. Template:Crystal Ship Saved. The Crystal weapon is not named.
   "q:rebel-crystal:contact": (g) => crystalContact(g),
   // Slug hacker (oxygen). "Try to squeeze some extra power to the system." One printed lead-in, then a Slug ship fight.
   // The page halves the Oxygen system, rounding down. This handler returns before citedChoose, so the half is applied here.
   "c:slug-hacker-oxygen:1": (g) => {
-    pageFight(g, tx("wiki.quests.thankfully-your-improved-subsystem-is-able"), tx("wiki.quests.slug-ship"), "slug-hacker-oxygen");
+    pageFight(
+      g,
+      "Thankfully your improved subsystem is able to counter their hacking enough to keep the life support barely functional. That should keep you alive at least...",
+      "Slug ship",
+      "slug-hacker-oxygen",
+    );
     halvePlayerSystems(g, ["oxygen"]);
   },
   // Slug hacker (oxygen). "Counter the remote hacking." One printed lead-in, then a Slug ship fight.
   // The page says "Hacking offline". INFERRED: the installed level stays, and a launch is refused until that fight ends.
   "c:slug-hacker-oxygen:2": (g) => {
-    pageFight(g, tx("wiki.quests.your-hacking-system-automatically-counters-the"), tx("wiki.quests.slug-ship"), "slug-hacker-oxygen");
+    pageFight(
+      g,
+      "Your hacking system automatically counters the digital assault and you move in to fight the ship.",
+      "Slug ship",
+      "slug-hacker-oxygen",
+    );
     shutPlayerHacking(g);
   },
   // Slug hacker (doors). "Counter the remote hacking." One printed lead-in, then a Slug ship fight.
@@ -1897,7 +2612,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Both endings on this path pay high scrap. Continue pays medium when the ship is destroyed.
   "c:slug-hacker-doors:1": (g) => {
     doorsCounterWin.set(g, true);
-    pageFight(g, tx("wiki.quests.your-hacking-system-automatically-counters-the"), tx("wiki.quests.slug-ship"), "slug-hacker-doors");
+    pageFight(
+      g,
+      "Your hacking system automatically counters the digital assault and you move in to fight the ship.",
+      "Slug ship",
+      "slug-hacker-doors",
+    );
     shutPlayerHacking(g);
   },
   // Slug hacker (medical). "Counter the remote hacking." One printed lead-in, then a Slug ship fight.
@@ -1905,23 +2625,38 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // INFERRED: the installed hacking level stays, and a launch is refused until that fight ends.
   // This handler returns before citedChoose, so the Continue path's medical shutdown and boarders do not run.
   "c:slug-hacker-medical:1": (g) => {
-    pageFight(g, tx("wiki.quests.you-are-able-to-undo-the"), tx("wiki.quests.slug-ship"), "slug-hacker-medical");
+    pageFight(
+      g,
+      "You are able to undo the damage of their remote hacking satellite but it's taking everything your hacking system has. Time to take out the enemy the old fashioned way.",
+      "Slug ship",
+      "slug-hacker-medical",
+    );
     shutPlayerHacking(g);
-    slugBoarders(g, 2, 2, tx("wiki.quests.slug-boarders-beam-aboard-your-ship"));
+    slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
   },
   // Slug hacker (medical). "Try to squeeze some extra power to the system." One printed lead-in, then a Slug ship fight.
   // The page halves the Medbay, rounding down, and beams 2 slug boarders. Clone Bay stays online.
   // This handler returns before citedChoose, so the Continue path's full medical shutdown does not run.
   "c:slug-hacker-medical:2": (g) => {
     if ((g.player.systems.medbay?.level ?? 0) < 2) return;
-    pageFight(g, tx("wiki.quests.fearing-the-imminent-battle-you-desperately"), tx("wiki.quests.slug-ship"), "slug-hacker-medical");
+    pageFight(
+      g,
+      "Fearing the imminent battle you desperately try to get the medbay working again. It's lights flicker back on and you turn to face the intruders.",
+      "Slug ship",
+      "slug-hacker-medical",
+    );
     halvePlayerSystems(g, ["medbay"]);
-    slugBoarders(g, 2, 2, tx("wiki.quests.slug-boarders-beam-aboard-your-ship"));
+    slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
   },
   // Legendary thief KazaaakplethKilik. "Attempt to hail him." One printed lead-in, then a Mantis ship fight.
   // The page prints "crew entirely composed of Mantis." This handler returns before citedChoose.
   "c:legendary-thief-kazaaakplethkilik:1": (g) => {
-    pageFight(g, tx("wiki.quests.your-mantis-crew-member-steps-forward"), tx("wiki.quests.mantis-ship"), "legendary-thief-kazaaakplethkilik");
+    pageFight(
+      g,
+      "Your Mantis crew-member steps forward. He and KazaaakplethKilik perform a weird kind of alien haka. You, meanwhile, charge the battle systems.",
+      "Mantis ship",
+      "legendary-thief-kazaaakplethkilik",
+    );
     allMantisCrew(g);
   },
   // Mantis ship with Rock body parts. "Put your Rock crewmember on the comm." One printed lead-in, then a Mantis ship.
@@ -1931,7 +2666,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "(Rock Crew) Put your Rock crewmember on the comm." — [[Mantis ship with Rock body parts]]
     // > "The two aliens face one another over the vidscreen. \"Cave-dwelling pebble-man!\" yells the furious Mantis captain. \"See, I paint my ship with your companions! I paint my ship with you!\"" — [[Mantis ship with Rock body parts]]
     // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
-    pageFight(g, tx("wiki.quests.the-two-aliens-face-one-another"), tx("wiki.quests.mantis-ship"), "mantis-ship-with-rock-body-parts");
+    pageFight(
+      g,
+      'The two aliens face one another over the vidscreen. "Cave-dwelling pebble-man!" yells the furious Mantis captain. "See, I paint my ship with your companions! I paint my ship with you!"',
+      "Mantis ship",
+      "mantis-ship-with-rock-body-parts",
+    );
   },
   // Mantis ship with Rock body parts. "Ram the bastards." One printed lead-in, then a Mantis ship.
   // The page says their engines are disabled. INFERRED: every installed engine bar is damaged. The page prints no bar count.
@@ -1941,49 +2681,97 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "(Rock Ship) Ram the bastards. (Requires Rock Plating)" — [[Mantis ship with Rock body parts]]
     // > "Before they have a chance, you ram your ship into theirs, causing irreparable damage to their engines. Luckily, your ship's armored hull is hardly dented from the impact. The Mantis ship careens away and you move in to attack." — [[Mantis ship with Rock body parts]]
     // > "Fight the Mantis ship (default rewards), whose engines are disabled." — [[Mantis ship with Rock body parts]]
-    pageFight(g, tx("wiki.quests.before-they-have-a-chance-you"), tx("wiki.quests.mantis-ship"), "mantis-ship-with-rock-body-parts");
+    pageFight(
+      g,
+      "Before they have a chance, you ram your ship into theirs, causing irreparable damage to their engines. Luckily, your ship's armored hull is hardly dented from the impact. The Mantis ship careens away and you move in to attack.",
+      "Mantis ship",
+      "mantis-ship-with-rock-body-parts",
+    );
     const engines = g.enemy?.systems.engines;
-    if (g.enemy && engines && engines.level > engines.damage) hurtSystem(g.enemy, "engines", engines.level - engines.damage);
+    if (g.enemy && engines && engines.level > engines.damage)
+      hurtSystem(g.enemy, "engines", engines.level - engines.damage);
   },
   // Pirate engine hacker. "Counter the remote hacking." One printed lead-in, then a Pirate ship fight.
   // The page says "Hacking offline". INFERRED: the installed level stays, and a launch is refused until that fight ends.
   // This handler returns before citedChoose, so the Continue path's engine cap does not apply.
   "c:pirate-engine-hacker:1": (g) => {
-    pageFight(g, tx("wiki.quests.your-hacking-system-automatically-counters-the-2"), tx("wiki.quests.pirate-ship"), "pirate-engine-hacker");
+    pageFight(
+      g,
+      "Your Hacking System automatically counters the digital assault and you move in to fight the ship.",
+      "Pirate ship",
+      "pirate-engine-hacker",
+    );
     shutPlayerHacking(g);
   },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
-    result(g, tx("wiki.quests.you-refuse-to-get-his-ship"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You refuse to get his ship back, but still offer to drop him off at the next station. The Zoltan is displeased, but directs you to a nearby starbase just the same.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Federation Deserters. "Attack the traitors." One printed lead-in, then a Federation ship fight.
   "c:federation-deserters:0": (g) => {
-    pageFight(g, tx("wiki.quests.deserters-cannot-be-tolerated-you-open"), tx("wiki.quests.federation-ship"), "federation-deserters");
+    pageFight(
+      g,
+      "Deserters cannot be tolerated. You open fire on the cowards - though it doesn't please you to do so. The Federation needs every soldier it can get.",
+      "Federation ship",
+      "federation-deserters",
+    );
   },
   // Federation Deserters. "Leave them be." One printed result.
   "c:federation-deserters:1": (g) => {
-    result(g, tx("wiki.quests.you-send-them-a-friendly-warning"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You send them a friendly warning regarding the armada of Rebel ships pursuing you, and then get underway lest they catch you up.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Rebel ship attacking refueling outpost. "Intervene to defend the outpost." One printed lead-in, then a Rebel ship fight.
   // Never-escape and never-surrender stay on this fight slug.
   "c:rebel-ship-attacking-refueling-outpost:0": (g) => {
-    pageFight(g, tx("wiki.quests.the-rebel-responds-to-your-threat"), tx("wiki.quests.rebel-ship"), "rebel-ship-attacking-refueling-outpost");
+    pageFight(
+      g,
+      'The rebel responds to your threat, "I don\'t know who you are, but no one defies the Rebel Fleet!" They move in to engage.',
+      "Rebel ship",
+      "rebel-ship-attacking-refueling-outpost",
+    );
   },
   // Auto-ship attacking outpost. "Intervene to defend the outpost." One printed lead-in, then an Auto-ship fight.
   "c:auto-ship-attacking-outpost:0": (g) => {
-    pageFight(g, tx("wiki.quests.detecting-the-higher-threat-the-automated"), "Auto-ship", "auto-ship-attacking-outpost");
+    pageFight(
+      g,
+      "Detecting the higher threat, the automated ship moves in to engage your ship.",
+      "Auto-ship",
+      "auto-ship-attacking-outpost",
+    );
   },
   // Auto-ship attacking outpost. "Avoid the conflict." One printed result.
   "c:auto-ship-attacking-outpost:1": (g) => {
-    result(g, tx("wiki.quests.you-steer-clear-of-the-conflict"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You steer clear of the conflict. The outpost receives a beating but the ship stops its attack before it's destroyed.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Auto-ship attacking civilian. "Stay out of it." One printed result.
   "c:auto-ship-attacking-civilian:1": (g) => {
-    result(g, tx("wiki.quests.the-fight-brings-them-out-of-3"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "The fight brings them out of your immediate scanning range.", undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Rebel ship attacking refueling outpost. "Avoid the conflict." One printed result.
   "c:rebel-ship-attacking-refueling-outpost:1": (g) => {
-    result(g, tx("wiki.quests.the-rebel-ship-fires-some-warning"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The Rebel ship fires some warning shots but eventually powers down their weapons. The outpost seems to have given them what they demanded.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Rebel ship attacking refueling outpost. "Contact the outpost." Medium fuel (tooltip 2-4) and medium scrap.
   "q:refuel-outpost:contact": (g) => {
@@ -1991,24 +2779,36 @@ const CHOICES: Record<string, (g: Game) => void> = {
     offer.fuel = rollFuel("q:refuel-outpost:contact", (lo, hi) => between(g, [lo, hi]));
     result(
       g,
-      tx("wiki.quests.the-outpost-hails-you-the-pompous"),
+      'The outpost hails you, "The pompous bastards expected free service just because they defeated the Federation. Take this for the help."',
       offer,
     );
   },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
-    pageFight(g, tx("wiki.quests.you-move-in-to-intercept"), tx("wiki.quests.rebel-ship"), "rebel-ship-attacking-civilians-in-last-stand");
+    pageFight(
+      g,
+      "You move in to intercept.",
+      "Rebel ship",
+      "rebel-ship-attacking-civilians-in-last-stand",
+    );
   },
   // Rebel ship attacking civilians in Last Stand. "There's no time, get ready to jump." One printed result.
   "c:rebel-ship-attacking-civilians-in-last-stand:1": (g) => {
-    result(g, tx("wiki.quests.you-try-to-block-out-the"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You try to block out the horrors of war and focus on your mission.", undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Rebel ship attacking civilians in Last Stand. "Contact the survivors." Three results, no odds. INFERRED: equal.
   // The supplies line is Rewards, Stuff: medium resources and low scrap. The page names no bonus item, so none is granted.
   "q:last-stand-survivors:contact": (g) => lastStandSurvivors(g),
   // Lanius ship in rich debris field. "Attempt to harvest some for yourself." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-in-rich-debris-field:0": (g) => {
-    pageFight(g, tx("wiki.quests.as-you-attempt-to-navigate-the"), tx("wiki.quests.lanius-ship"), "lanius-ship-in-rich-debris-field");
+    pageFight(
+      g,
+      "As you attempt to navigate the debris, you come too close to the Lanius ship - and they proceed to try to harvest you!",
+      "Lanius ship",
+      "lanius-ship-in-rich-debris-field",
+    );
   },
   // Zoltan security checkpoint. "You don't have time for this nonsense. Attack!" One printed lead-in, then a Zoltan ship fight.
   "c:zoltan-security-checkpoint:0": (g) => {
@@ -2016,40 +2816,82 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "You don't have time for this nonsense. Attack!" — [[Zoltan security checkpoint]]
     // > "Expecting resistance, their Energy Shield is raised and ready for combat." — [[Zoltan security checkpoint]]
     // > "Fight a Zoltan ship (default rewards)." — [[Zoltan security checkpoint]]
-    pageFight(g, tx("wiki.quests.expecting-resistance-their-energy-shield-is"), tx("wiki.quests.zoltan-ship"), "zoltan-security-checkpoint");
+    pageFight(
+      g,
+      "Expecting resistance, their Energy Shield is raised and ready for combat.",
+      "Zoltan ship",
+      "zoltan-security-checkpoint",
+    );
   },
   // Lanius ship in rich debris field. "Attack the vessel." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-in-rich-debris-field:1": (g) => {
-    pageFight(g, tx("wiki.quests.you-go-on-the-offensive-and"), tx("wiki.quests.lanius-ship"), "lanius-ship-in-rich-debris-field");
+    pageFight(
+      g,
+      "You go on the offensive and power up your weapons - with any luck, you'll soon have the mineral field all to yourself.",
+      "Lanius ship",
+      "lanius-ship-in-rich-debris-field",
+    );
   },
   // Lanius ship in rich debris field. "Ignore the vessel." One printed result.
   "c:lanius-ship-in-rich-debris-field:2": (g) => {
-    result(g, tx("wiki.quests.you-charge-up-your-drive-and"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You charge up your drive and prepare to make the next jump. No sense in antagonizing the Lanius if you don't need to.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Lanius ship attacking civilian distress. "Avoid the conflict." One printed result.
   "c:lanius-ship-attacking-civilian-distress:1": (g) => {
-    result(g, tx("wiki.quests.your-crew-seems-unhappy-to-leave"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "Your crew seems unhappy to leave the civilians to such a fate but you try to convince them of the greater good. You don't speak of your own misgivings, however.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Rebel ship attacking Federation loyalists. "Aid the Federation ship." One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-federation-loyalists:0": (g) => {
-    pageFight(g, tx("wiki.quests.you-power-up-your-weapons-and-3"), tx("wiki.quests.rebel-ship"), "rebel-ship-attacking-federation-loyalists");
+    pageFight(
+      g,
+      "You power up your weapons and engage the Rebel ship.",
+      "Rebel ship",
+      "rebel-ship-attacking-federation-loyalists",
+    );
   },
   // Rebel ship warning has no choice. Arrival calls this id.
   // "Fight a Rebel ship that is running away." One printed lead-in, then the running Rebel fight.
   "c:rebel-ship-warning:0": (g) => {
-    pageFight(g, tx("wiki.quests.they-are-powering-up-their-ftl"), tx("wiki.quests.rebel-ship"), "rebel-ship-warning");
+    pageFight(
+      g,
+      "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!",
+      "Rebel ship",
+      "rebel-ship-warning",
+    );
   },
   // Rebel ship attacking Federation loyalists. "Use this chance to escape." One printed result.
   "c:rebel-ship-attacking-federation-loyalists:1": (g) => {
-    result(g, tx("wiki.quests.the-rebel-s-preoccupation-with-the"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The Rebel's preoccupation with the Federation ship allows you to slip away undetected. However, you can't help but feel you should have helped them.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Rebel shipyard. "Leave immediately." One printed result. Do not grant the unnamed salvage or start the Flagship fight.
   "c:rebel-shipyard:1": (g) => {
-    result(g, tx("wiki.quests.you-feel-the-mission-is-the"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You feel the mission is the highest priority and it's too risky to stay in such a dangerous location.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Rebel transport ship. "Avoid the ship." One printed result.
   "c:rebel-transport-ship:1": (g) => {
-    result(g, tx("wiki.quests.they-stay-outside-your-weapons-range"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "They stay outside your weapons range, and eventually jump away.", undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Mantis ship attacking civilian. "Aid the civilian ship." One printed lead-in, then a Mantis ship fight.
   "c:mantis-ship-attacking-civilian:0": (g) => {
@@ -2057,7 +2899,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Aid the civilian ship." — [[Mantis ship attacking civilian]]
     // > "You frown, power up the weapons and prepare to engage the Mantis ship. Not today." — [[Mantis ship attacking civilian]]
     // > "Fight the Mantis Ship." — [[Mantis ship attacking civilian]]
-    pageFight(g, tx("wiki.quests.you-frown-power-up-the-weapons"), tx("wiki.quests.mantis-ship"), "mantis-ship-attacking-civilian");
+    pageFight(
+      g,
+      "You frown, power up the weapons and prepare to engage the Mantis ship. Not today.",
+      "Mantis ship",
+      "mantis-ship-attacking-civilian",
+    );
   },
   // Mantis ship attacking civilian. "Stay out of it." Three results and no odds. INFERRED: equal.
   "c:mantis-ship-attacking-civilian:1": (g) => {
@@ -2072,7 +2919,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
       "The noise of the FTL spinning up almost drowns out the explosions. Almost.",
       "You let them pass and try not to think about it.",
     ] as const);
-    result(g, line, undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, line, undefined, ["Nothing happens."]);
   },
   // Mantis ship attacking Slug ship. {{SurrenderEscape(alt)|no}}. The Mantis fight keeps the page slug.
   "c:mantis-ship-attacking-slug-ship:0": (g) => {
@@ -2080,7 +2927,13 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Attack the Mantis ship." — [[Mantis ship attacking Slug ship]]
     // > "You lock onto the Mantis ship and engage." — [[Mantis ship attacking Slug ship]]
     // > "Fight a Mantis Ship." — [[Mantis ship attacking Slug ship]]
-    pageFight(g, tx("wiki.quests.you-lock-onto-the-mantis-ship"), tx("wiki.quests.mantis-ship"), "mantis-ship-attacking-slug-ship", { ...NEVER_RUN });
+    pageFight(
+      g,
+      "You lock onto the Mantis ship and engage.",
+      "Mantis ship",
+      "mantis-ship-attacking-slug-ship",
+      { ...NEVER_RUN },
+    );
   },
   // The Slug fight must not use the Mantis win. It does not surrender or escape.
   "c:mantis-ship-attacking-slug-ship:1": (g) => {
@@ -2088,14 +2941,22 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Attack the Slug ship." — [[Mantis ship attacking Slug ship]]
     // > "You move to finish what the Mantis have started." — [[Mantis ship attacking Slug ship]]
     // > "Fight a Slug ship." — [[Mantis ship attacking Slug ship]]
-    pageFight(g, tx("wiki.quests.you-move-to-finish-what-the"), tx("wiki.quests.slug-ship"), "mantis-ship-attacking-slug-ship-slug", { ...NEVER_RUN });
+    pageFight(
+      g,
+      "You move to finish what the Mantis have started.",
+      "Slug ship",
+      "mantis-ship-attacking-slug-ship-slug",
+      { ...NEVER_RUN },
+    );
   },
   "q:mantis-slug:leave": (g) => {
     // Wiki citations:
     // > "Leave them be." — [[Mantis ship attacking Slug ship]]
     // > "These wretches aren't worth fighting. Time to spin up and jump off." — [[Mantis ship attacking Slug ship]]
     // > "Nothing happens." — [[Mantis ship attacking Slug ship]]
-    result(g, tx("wiki.quests.these-wretches-aren-t-worth-fighting"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "These wretches aren't worth fighting. Time to spin up and jump off.", undefined, [
+      "Nothing happens.",
+    ]);
   },
   "q:mantis-slug:finish": (g) => {
     mantisSlugFinish(g);
@@ -2108,15 +2969,21 @@ const CHOICES: Record<string, (g: Game) => void> = {
       // Wiki citations:
       // > "After a few moments of uncertainty, your crew is allowed to pass." — [[Zoltan security checkpoint]]
       // > "Nothing happens." — [[Zoltan security checkpoint]]
-      result(g, tx("wiki.quests.after-a-few-moments-of-uncertainty"), undefined, [tx("wiki.quests.nothing-happens")]);
+      result(g, "After a few moments of uncertainty, your crew is allowed to pass.", undefined, [
+        "Nothing happens.",
+      ]);
       return;
     }
     // Wiki citations:
     // > "The Zoltan security staff board your ship and begin scanning the crew's faces into a computer. Suddenly alarms go off and the Zoltan leap on one of your crew! \"This person is wanted on five charges of Utter Villainy! Surrender them to us!\"" — [[Zoltan security checkpoint]]
-    card(g, tx("wiki.quests.the-zoltan-security-staff-board-your"), [
-      { id: "q:zoltan-checkpoint:give", label: tx("wiki.quests.give-up-your-crewmember") },
-      { id: "q:zoltan-checkpoint:fight", label: tx("wiki.quests.refuse-and-fight") },
-    ]);
+    card(
+      g,
+      'The Zoltan security staff board your ship and begin scanning the crew\'s faces into a computer. Suddenly alarms go off and the Zoltan leap on one of your crew! "This person is wanted on five charges of Utter Villainy! Surrender them to us!"',
+      [
+        { id: "q:zoltan-checkpoint:give", label: "Give up your crewmember." },
+        { id: "q:zoltan-checkpoint:fight", label: "Refuse and fight." },
+      ],
+    );
   },
   // Clone Bay has no effect. INFERRED: never the last crewmember.
   "q:zoltan-checkpoint:give": (g) => {
@@ -2130,10 +2997,18 @@ const CHOICES: Record<string, (g: Game) => void> = {
     if (mine.length > 1) {
       const lost = pick(g, mine);
       g.crew = g.crew.filter((c) => c.id !== lost.id);
-      extras.push(tx("wiki.quests.is-lost", { name: lost.name }));
+      extras.push(`${lost.name} is lost.`);
     }
-    if (g.player.kits.cradle) extras.push(tx("wiki.quests.unfortunately-your-crewmember-was-taken-away"));
-    result(g, tx("wiki.quests.it-s-a-tough-call-but"), undefined, extras);
+    if (g.player.kits.cradle)
+      extras.push(
+        "Unfortunately your crewmember was taken away unharmed so your Clone Bay was unable to retrieve them.",
+      );
+    result(
+      g,
+      "It's a tough call, but Zoltan law holds sway here. Besides, that one always seemed a bit shifty.",
+      undefined,
+      extras,
+    );
   },
   // The scan fight is not the attack fight. Weapon Control is halved, and 2-4 Zoltan boarders come aboard.
   "q:zoltan-checkpoint:fight": (g) => {
@@ -2141,7 +3016,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Refuse and fight." — [[Zoltan security checkpoint]]
     // > "You're not going to leave anyone behind. You pull away from the station with the enemy guards on board. Unfortunately, they are able to sabotage your weapon system in the chaos. It's time to leave!" — [[Zoltan security checkpoint]]
     // > "2-4 zoltan boarders beam aboard your ship and you fight a Zoltan ship with your Weapon Control halved." — [[Zoltan security checkpoint]]
-    pageFight(g, tx("wiki.quests.you-re-not-going-to-leave"), tx("wiki.quests.zoltan-ship"), "zoltan-security-checkpoint-scan");
+    pageFight(
+      g,
+      "You're not going to leave anyone behind. You pull away from the station with the enemy guards on board. Unfortunately, they are able to sabotage your weapon system in the chaos. It's time to leave!",
+      "Zoltan ship",
+      "zoltan-security-checkpoint-scan",
+    );
     halvePlayerSystems(g, ["weapons"]);
     zoltanBoarders(g, 2, 4);
   },
@@ -2152,7 +3032,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "You give the guards permission to dock with the ship, but before they come on board your crew member slowly advances to meet them. As far as you can tell no words were exchanged, but the guards offer you some supplies and say the ship checks out. Best to not ask questions." — [[Zoltan security checkpoint]]
     // > "You receive medium fuel." — [[Zoltan security checkpoint]]
     if (!hasSlug(g)) return;
-    zoltanCheckpointFuel(g, "c:zoltan-security-checkpoint:2", tx("wiki.quests.you-give-the-guards-permission-to"));
+    zoltanCheckpointFuel(
+      g,
+      "c:zoltan-security-checkpoint:2",
+      "You give the guards permission to dock with the ship, but before they come on board your crew member slowly advances to meet them. As far as you can tell no words were exchanged, but the guards offer you some supplies and say the ship checks out. Best to not ask questions.",
+    );
   },
   // {{Blue Option|Mind Control}}. Medium fuel, 2-4.
   "c:zoltan-security-checkpoint:3": (g) => {
@@ -2161,60 +3045,95 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "The captain of the guard appears on the vid screen \"Back so soon friend! Well, no need to waste your time further. Here, take these spare fuel canisters and get on with your mission.\" Your ship is cleared to pass." — [[Zoltan security checkpoint]]
     // > "You receive medium fuel." — [[Zoltan security checkpoint]]
     if ((g.player.kits.leash?.level ?? 0) <= 0) return;
-    zoltanCheckpointFuel(g, "c:zoltan-security-checkpoint:3", tx("wiki.quests.the-captain-of-the-guard-appears"));
+    zoltanCheckpointFuel(
+      g,
+      "c:zoltan-security-checkpoint:3",
+      'The captain of the guard appears on the vid screen "Back so soon friend! Well, no need to waste your time further. Here, take these spare fuel canisters and get on with your mission." Your ship is cleared to pass.',
+    );
   },
   // Pirate ship attacking civilian distress. Improved Weapons, level 6+. Two results, no odds. INFERRED: equal.
   // The scare-off path offers the same civilian contact. The page's scrap preview is not a separate payout.
   "c:pirate-ship-attacking-civilian-distress:2": (g) => {
     if ((g.player.systems.weapons?.level ?? 0) < 6) return;
     if (pick(g, ["fight", "leave"] as const) === "fight") {
-      pageFight(g, tx("wiki.quests.detecting-the-greater-threat-and-potential"), tx("wiki.quests.pirate-ship"), "pirate-ship-attacking-civilian-distress");
+      pageFight(
+        g,
+        "Detecting the greater threat (and potential reward), they turn and engage your ship.",
+        "Pirate ship",
+        "pirate-ship-attacking-civilian-distress",
+      );
       return;
     }
-    card(g, tx("wiki.quests.it-seems-the-pirate-wasn-t"), [
-      { id: "q:lanius-civilian:contact", label: tx("wiki.quests.contact-the-civilian-ship") },
-    ]);
+    card(
+      g,
+      "It seems the pirate wasn't looking for a fight with someone who could fight back. They leave and you move to contact the civilian ship.",
+      [{ id: "q:lanius-civilian:contact", label: "Contact the civilian ship." }],
+    );
   },
   // Auto-ship near storage station. Two results, no odds. INFERRED: equal.
   "c:auto-ship-near-storage-station:2": (g) => {
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
     if (pick(g, ["fight", "station"] as const) === "fight") {
-      pageFight(g, tx("wiki.quests.before-you-can-get-close-enough"), "Auto-ship", "auto-ship-near-storage-station");
+      pageFight(
+        g,
+        "Before you can get close enough to scan the station, the automated ship detects you and moves in to attack!",
+        "Auto-ship",
+        "auto-ship-near-storage-station",
+      );
       return;
     }
-    storageInvestigate(g, tx("wiki.quests.the-ship-patrols-wide-around-the"));
+    storageInvestigate(
+      g,
+      "The ship patrols wide around the area, successfully approaching the station while avoiding detection.",
+    );
   },
   // Auto-ship near storage station in nebula. Cloaking: two results, no odds. INFERRED: equal.
   "c:auto-ship-near-storage-station-in-nebula:2": (g) => {
     if ((g.player.kits.veil?.level ?? 0) <= 0) return;
     if (pick(g, ["fight", "station"] as const) === "fight") {
-      pageFight(g, tx("wiki.quests.you-try-to-sneak-past-the"), "Auto-ship", "auto-ship-near-storage-station-in-nebula");
+      pageFight(
+        g,
+        "You try to sneak past the automated ship but it quickly turns and attacks!",
+        "Auto-ship",
+        "auto-ship-near-storage-station-in-nebula",
+      );
       return;
     }
-    storageInvestigate(g, tx("wiki.quests.you-successfully-sneak-by-the-ship"));
+    storageInvestigate(g, "You successfully sneak by the ship and access the station undetected.");
   },
   // Improved Cloaking, level 2+. Always the station.
   "c:auto-ship-near-storage-station-in-nebula:3": (g) => {
     if ((g.player.kits.veil?.level ?? 0) < 2) return;
-    storageInvestigate(g, tx("wiki.quests.you-successfully-sneak-by-the-ship"));
+    storageInvestigate(g, "You successfully sneak by the ship and access the station undetected.");
   },
   // Hacking, one drone part. Two results, no odds. INFERRED: equal. The part is spent either way.
   "c:auto-ship-near-storage-station-in-nebula:4": (g) => {
     if ((g.player.kits.spike?.level ?? 0) <= 0 || g.player.parts < 1) return;
     g.player.parts -= 1;
-    log(g, tx("wiki.quests.drone-parts-1"));
+    log(g, "Drone parts: -1.");
     if (pick(g, ["fight", "station"] as const) === "fight") {
-      pageFight(g, tx("wiki.quests.you-send-a-drone-to-hack"), "Auto-ship", "auto-ship-near-storage-station-in-nebula");
+      pageFight(
+        g,
+        "You send a drone to hack the station but the automated ship notices and turns to attack!",
+        "Auto-ship",
+        "auto-ship-near-storage-station-in-nebula",
+      );
       return;
     }
-    storageInvestigate(g, tx("wiki.quests.you-successfully-hack-into-the-station"));
+    storageInvestigate(
+      g,
+      "You successfully hack into the station and sever the connection to the automated ship. You access the station undetected.",
+    );
   },
   // Improved Hacking, level 2+, one drone part. Always the station.
   "c:auto-ship-near-storage-station-in-nebula:5": (g) => {
     if ((g.player.kits.spike?.level ?? 0) < 2 || g.player.parts < 1) return;
     g.player.parts -= 1;
-    log(g, tx("wiki.quests.drone-parts-1"));
-    storageInvestigate(g, tx("wiki.quests.you-successfully-hack-into-the-station-2"));
+    log(g, "Drone parts: -1.");
+    storageInvestigate(
+      g,
+      "You successfully hack into the station and sever the connection to the automated ship, accessing the station completely undetected.",
+    );
   },
   // Auto-ship near radar station. {{DuplicateEvent|2}} on the station, once on the fight.
   // The two station sentences have no odds between them. INFERRED: equal. The part is spent either way.
@@ -2222,9 +3141,19 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "c:auto-ship-near-radar-station:2": (g) => {
     if (!hasRadarCombat(g) || g.player.parts < 1) return;
     g.player.parts -= 1;
-    log(g, tx("wiki.quests.drone-parts-1"));
-    if (weighted(g, [["station", 2], ["fight", 1]] as const) === "fight") {
-      pageFight(g, tx("wiki.quests.before-your-drone-has-a-chance"), "Auto-ship", "auto-ship-near-radar-station");
+    log(g, "Drone parts: -1.");
+    if (
+      weighted(g, [
+        ["station", 2],
+        ["fight", 1],
+      ] as const) === "fight"
+    ) {
+      pageFight(
+        g,
+        "Before your drone has a chance to attack, the automated ship activates and shoots it down. It then detects your ship and moves in on your position.",
+        "Auto-ship",
+        "auto-ship-near-radar-station",
+      );
       return;
     }
     const lead = pick(g, [
@@ -2237,16 +3166,21 @@ const CHOICES: Record<string, (g: Game) => void> = {
     autoRadarAccess(g);
   },
   "q:auto-radar:leave": (g) => {
-    result(g, tx("wiki.quests.you-leave-the-station-and-prepare"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(g, "You leave the station and prepare to jump.", undefined, ["Nothing happens."]);
   },
   // Hacking spends one drone part. The page prints one result: a one-turn fleet delay and a map download.
   // The map reveal is not wired.
   "q:auto-radar:drone": (g) => {
     if ((g.player.kits.spike?.level ?? 0) <= 0 || g.player.parts < 1) return;
     g.player.parts -= 1;
-    log(g, tx("wiki.quests.drone-parts-1"));
+    log(g, "Drone parts: -1.");
     g.fleet = Math.max(0, g.fleet - 1);
-    result(g, tx("wiki.quests.you-successfully-hack-into-their-system"), undefined, [tx("wiki.quests.the-rebel-fleet-is-delayed-for")]);
+    result(
+      g,
+      "You successfully hack into their system and transmit false information about your location. That should hold off the fleet for at least a little while. You also are able to download data about the surrounding beacons.",
+      undefined,
+      ["The Rebel Fleet is delayed for 1 turn."],
+    );
   },
   // Template:Investigate the station. Four results, no odds. INFERRED: equal.
   // The weapon and the drone schematic are unnamed: Rewards, "Weapon": "A random weapon & T scrap." / "Drone": "A
@@ -2254,107 +3188,205 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:auto-storage:investigate": (g) => {
     const kind = pick(g, ["weapon", "schematic", "resources", "nothing"] as const);
     if (kind === "weapon") {
-      result(g, tx("wiki.quests.the-station-is-a-storage-site"), scrapOnly(g, "low"), [grantRandomItem(g, "weapon")]);
+      result(
+        g,
+        "The station is a storage site for military grade weapons. You find one that can be easily attached to the ship.",
+        scrapOnly(g, "low"),
+        [grantRandomItem(g, "weapon")],
+      );
       return;
     }
     if (kind === "schematic") {
-      result(g, tx("wiki.quests.the-station-was-apparently-designed-to"), scrapOnly(g, "low"), [grantRandomItem(g, "drone")]);
+      result(
+        g,
+        "The station was apparently designed to outfit Rebel ships with Drone Systems. You find a functioning Schematic.",
+        scrapOnly(g, "low"),
+        [grantRandomItem(g, "drone")],
+      );
       return;
     }
     if (kind === "resources") {
-      result(g, tx("wiki.quests.the-station-is-a-storage-site-2"), rollSurrenderOffer(g, "medium", true));
+      result(
+        g,
+        "The station is a storage site for various resources. You salvage everything possible.",
+        rollSurrenderOffer(g, "medium", true),
+      );
       return;
     }
-    result(g, tx("wiki.quests.the-station-was-either-abandoned-or"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "The station was either abandoned or stripped clean. It seems to have lain unused for quite some time. You find nothing useful.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   "c:auto-ship-near-sensor-station:3": (g) => {
     if (!hasTeleporter(g)) return;
-    result(g, tx("wiki.quests.once-on-board-your-crew-is"));
+    result(
+      g,
+      "Once on board, your crew is able to access and download the long-range scanner's archived information. Your map has been updated.",
+    );
   },
   "q:lanius-scout:inspect": (g) => {
     const offer = scrapOnly(g, pick(g, ["low", "medium", "high"]));
     if (pick(g, ["map", "fleet"] as const) === "fleet") {
       g.fleet = Math.max(0, g.fleet - 1);
-      result(g, tx("wiki.quests.you-find-the-ship-has-a"), offer, [tx("wiki.quests.the-rebel-fleet-is-delayed-for")]);
+      result(
+        g,
+        "You find the ship has a built-in method of warning the Rebel fleet of contact with your ship. You feed it some false data about your ship's whereabouts that should keep the fleet off your tail for a time.",
+        offer,
+        ["The Rebel Fleet is delayed for 1 turn."],
+      );
       return;
     }
-    result(g, tx("wiki.quests.you-are-able-to-retrieve-a"), offer);
+    result(
+      g,
+      "You are able to retrieve a significant amount of data about the surrounding beacons from the scout before you scrap it.",
+      offer,
+    );
   },
   // Lanius lone ship, "Try to contact the Lanius ship." The civilian warning, then one button.
   "c:lanius-lone-ship:2": (g) => {
-    card(g, tx("wiki.quests.you-approach-the-ship-without-activating"), [
-      { id: "q:lanius-lone:continue", label: tx("wiki.quests.ignore-them-and-continue") },
-    ]);
+    card(
+      g,
+      'You approach the ship without activating weapons and the civilian ship says, "Don\'t go any closer! Just kill them!" before hastily making their retreat.',
+      [{ id: "q:lanius-lone:continue", label: "Ignore them and continue." }],
+    );
   },
   // Three results, no odds. INFERRED: equal. The fight is default Lanius rewards, so there is no PAGE_WINS row.
   "q:lanius-lone:continue": (g) => {
-    const kind = weighted(g, [["store", 1], ["fight", 1], ["nothing", 1]] as const);
+    const kind = weighted(g, [
+      ["store", 1],
+      ["fight", 1],
+      ["nothing", 1],
+    ] as const);
     if (kind === "store") {
-      log(g, tx("wiki.quests.you-ask-what-they-want-and"));
+      log(
+        g,
+        'You ask what they want and the translator chirps their response, "Explore. Assess trade potential." It appears to be a merchant ship attempting to make connections with the other races. The civilian must have simply been too scared to ask. You check what they have to sell at the moment.',
+      );
       openStoreHere(g);
       return;
     }
     if (kind === "fight") {
-      pageFight(g, tx("wiki.quests.you-ask-what-they-are-doing"), tx("wiki.quests.lanius-ship"), "lanius-lone-ship");
+      pageFight(
+        g,
+        "You ask what they are doing here but the translator clearly has problems with the request. The Lanius seem enraged for an indiscernible reason. They cut transmission and power their weapons. Looks like you'll have to fight after all!",
+        "Lanius ship",
+        "lanius-lone-ship",
+      );
       return;
     }
-    result(g, tx("wiki.quests.you-ask-what-they-are-doing-2"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      'You ask what they are doing here but the translator clearly has problems with the request. It chirps with their response, "Expunge... Floral... Proposition..." You try to clarify their answer but to no avail. Both you and the Lanius captain end the transmission despondently.',
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // {{Blue Option|Lanius Crew|Try to contact the ship.}} A dead Lanius does not count.
   "c:lanius-lone-ship:3": (g) => {
     if (!hasLanius(g)) return;
-    log(g, tx("wiki.quests.your-crewmember-opens-a-channel-with"));
+    log(
+      g,
+      "Your crewmember opens a channel with them. It seems they are scouting for a merchant's guild which is seeking to establish connections with other sentient races. You suggest they invest research time into developing better translators and ask to see if they are selling anything at the moment.",
+    );
     openStoreHere(g);
   },
   // Lanius powered-down ship. Fights stay on default Lanius rewards: no PAGE_WINS row.
   // Power weapons: two results, no odds. INFERRED: equal.
   "c:lanius-powered-down-ship:1": (g) => {
-    if (weighted(g, [["fight", 1], ["silent", 1]] as const) === "fight") {
-      pageFight(g, tx("wiki.quests.you-power-up-your-weapons-and-4"), tx("wiki.quests.lanius-ship"), "lanius-powered-down-ship");
+    if (
+      weighted(g, [
+        ["fight", 1],
+        ["silent", 1],
+      ] as const) === "fight"
+    ) {
+      pageFight(
+        g,
+        "You power up your weapons, and in response, the Lanius ship does the same! Prepare for a fight.",
+        "Lanius ship",
+        "lanius-powered-down-ship",
+      );
       return;
     }
-    card(g, tx("wiki.quests.you-power-up-your-weapons-but"), [
-      { id: "q:lanius-dormant:investigate", label: tx("wiki.quests.investigate-the-vessel") },
-      { id: "q:lanius-dormant:destroy", label: tx("wiki.quests.destroy-and-scrap-it") },
+    card(g, "You power up your weapons, but don't get a response.", [
+      { id: "q:lanius-dormant:investigate", label: "Investigate the vessel." },
+      { id: "q:lanius-dormant:destroy", label: "Destroy and scrap it." },
     ]);
   },
   "c:lanius-powered-down-ship:2": (g) => investigateDormant(g),
   "q:lanius-dormant:investigate": (g) => investigateDormant(g),
   "q:lanius-dormant:destroy": (g) => {
-    pageFight(g, tx("wiki.quests.as-soon-as-you-lock-your"), tx("wiki.quests.lanius-ship"), "lanius-powered-down-ship");
+    pageFight(
+      g,
+      "As soon as you lock your weapons onto their vessel, it awakens... they must have been in hibernation and were awoken by the danger!",
+      "Lanius ship",
+      "lanius-powered-down-ship",
+    );
   },
   "q:lanius-dormant:ignore": (g) => {
-    result(g, tx("wiki.quests.nothing-happens"));
+    result(g, "Nothing happens.");
   },
   // Navigate carefully. Two results, no odds. INFERRED: equal. Low scrap is scrap only.
   "q:lanius-dormant:navigate": (g) => {
-    if (weighted(g, [["fight", 1], ["scrap", 1]] as const) === "fight") {
-      pageFight(g, tx("wiki.quests.as-you-drift-toward-the-vessel"), tx("wiki.quests.lanius-ship"), "lanius-powered-down-ship");
+    if (
+      weighted(g, [
+        ["fight", 1],
+        ["scrap", 1],
+      ] as const) === "fight"
+    ) {
+      pageFight(
+        g,
+        "As you drift toward the vessel, your piloting skill is unable to match your intent - the Lanius ship powers up, hungry for raw materials!",
+        "Lanius ship",
+        "lanius-powered-down-ship",
+      );
       return;
     }
-    result(g, tx("wiki.quests.you-clumsily-manage-to-strip-some"), scrapOnly(g, "low"));
+    result(
+      g,
+      "You clumsily manage to strip some hull plating before being forced to retreat or risk collision.",
+      scrapOnly(g, "low"),
+    );
   },
   // {{Blue Option|Lanius Crew}}. Medium resources with some scrap (Rewards, Stuff). The unnamed bonus item is not granted.
   "q:lanius-dormant:plunder": (g) => {
     if (!hasLanius(g)) return;
-    result(g, tx("wiki.quests.your-crewmember-manages-to-salvage-some"), rollSurrenderOffer(g, "medium", true));
+    result(
+      g,
+      "Your crewmember manages to salvage some resources without waking the hibernating crew.",
+      rollSurrenderOffer(g, "medium", true),
+    );
   },
   // {{Blue Option|Advanced Piloting|level=2+}}. Medium scrap with resources.
   "q:lanius-dormant:autopilot": (g) => {
     if ((g.player.systems.pilot?.level ?? 0) < 2) return;
-    result(g, tx("wiki.quests.the-computer-matches-the-rotation-and"), rollStandard(g, "medium"));
+    result(
+      g,
+      "The computer matches the rotation and speed of the target ship, and you take the opportunity to gather what residual scrap you can without awakening the Lanius crew. You get an excellent haul!",
+      rollStandard(g, "medium"),
+    );
   },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
     // Wiki citations:
     // > "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"" — [[Engi fleet discussion]]
-    result(g, tx("wiki.quests.slightly-shocked-at-your-question-their"));
+    result(
+      g,
+      'Slightly shocked at your question, their leader quickly responds, "Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation."',
+    );
   },
   // Engi fleet discussion. "Ignore it and move on." One printed result.
   "c:engi-fleet-discussion:1": (g) => {
     // Wiki citations:
     // > "You can't help but wonder what they were discussing as you prepare to jump." — [[Engi fleet discussion]]
-    result(g, tx("wiki.quests.you-can-t-help-but-wonder"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "You can't help but wonder what they were discussing as you prepare to jump.",
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // {{Blue Option|Engi Crew|Have your Engi crewmember contact them.}}
   "c:engi-fleet-discussion:2": (g) => {
@@ -2362,9 +3394,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "Your crew member syncs with the comm unit to communicate with them directly. You offer your help and a summary of the ship's mission. They respond, \"Our goals have analogous elements. However, not all available for disclosure, discretion necessary.\"" — [[Engi fleet discussion]]
     // > "Offer your help." — [[Engi fleet discussion]]
-    card(g, tx("wiki.quests.your-crew-member-syncs-with-the"), [
-      { id: "q:engi-fleet:offer", label: tx("wiki.quests.offer-your-help") },
-    ]);
+    card(
+      g,
+      'Your crew member syncs with the comm unit to communicate with them directly. You offer your help and a summary of the ship\'s mission. They respond, "Our goals have analogous elements. However, not all available for disclosure, discretion necessary."',
+      [{ id: "q:engi-fleet:offer", label: "Offer your help." }],
+    );
   },
   "q:engi-fleet:offer": (g) => {
     // Wiki citations:
@@ -2377,8 +3411,14 @@ const CHOICES: Record<string, (g: Game) => void> = {
     const second = addQuest(g, "engi-fake");
     card(
       g,
-      tx("wiki.quests.secret-technologies-stolen-by-mantis-implicit", { first: first, second: second }),
-      [{ id: "ack", label: tx("wiki.quests.agree") }],
+      `"Secret technologies stolen by Mantis. Implicit connection to Rebels. Implicit. Tracked Mantis to hidden Rebel base, uploading coordinates."
+
+${first}
+
+"However, tracked second ship to different base. Would calculate probability but data insufficient. Cannot risk obvious Rebel-Engi conflict. Also, need time to acquire military ships. Assist in finding technology?"
+
+${second}`,
+      [{ id: "ack", label: "Agree." }],
     );
   },
   // Rebel defector, "Accept his proposal." {{DuplicateEvent|3}} on the crew result; the other three once each.
@@ -2402,29 +3442,45 @@ const CHOICES: Record<string, (g: Game) => void> = {
       ["evisc", 1],
     ] as ["join" | "deceive" | "trigger" | "evisc", number][]);
     if (r === "join") {
-      const joined = crew(g, tx("wiki.quests.human"));
+      const joined = crew(g, "Human");
       log(g, joined);
-      defectorFight(g, tx("wiki.quests.relieved-and-light-headed-your-new"));
+      defectorFight(
+        g,
+        "Relieved and light-headed, your new crew member gets to work as the Rebel ship attacks.",
+      );
     } else if (r === "deceive") {
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "engines", 1);
       g.fleet *= 2;
-      log(g, tx("wiki.quests.rebel-fleet-pursuit-is-doubled"));
-      defectorFight(g, tx("wiki.quests.the-dishonorable-rebel-has-deceived-you"));
+      log(g, "Rebel Fleet pursuit is doubled.");
+      defectorFight(
+        g,
+        "The dishonorable Rebel has deceived you. He damages your ship and steals ship information before teleporting away. The fleet will be able to track you with ease. If they can't kill you now, that is!",
+      );
     } else if (r === "trigger") {
       if (damageHull(g, 3)) return;
-      defectorFight(g, tx("wiki.quests.your-new-crew-member-smiles-then"));
+      defectorFight(
+        g,
+        "Your new crew-member smiles, then reveals a small remote trigger in the palm of his hand. Explosions rocket around the ship as more intruders teleport aboard!",
+      );
       humanBoarders(g, 2, 2);
     } else {
       // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). Never the last living crewmember.
       const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
-      if (g.player.kits.cradle) log(g, tx("wiki.quests.the-eviscerated-crewmember-s-clone-launches"));
+      if (g.player.kits.cradle)
+        log(
+          g,
+          "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge.",
+        );
       else if (mine.length > 1) {
         const lost = pick(g, mine);
         g.crew = g.crew.filter((c) => c.id !== lost.id);
-        log(g, tx("wiki.quests.is-gone", { name: lost.name }));
+        log(g, `${lost.name} is gone.`);
       }
-      defectorFight(g, tx("wiki.quests.the-rebel-makes-to-take-his"));
+      defectorFight(
+        g,
+        "The Rebel makes to take his assigned station, then suddenly turns and eviscerates the nearest crew-member. Red Alert!",
+      );
       humanBoarders(g, 1, 1);
     }
   },
@@ -2438,16 +3494,26 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "You fight a Rebel ship (default rewards)." — [[Rebel defector]]
     const r = pick(g, ["cache", "boarder", "fight"] as const);
     if (r === "cache") {
-      card(g, tx("wiki.quests.he-offers-to-lead-you-to"), [
-        { id: "q:defector:reluctant", label: tx("wiki.quests.reluctantly-accept-his-proposal-and-fight") },
-        { id: "q:defector:execute", label: tx("wiki.quests.reject-him-outright-and-execute-him") },
-        { id: "q:defector:again", label: tx("wiki.quests.reject-his-offer-again") },
-      ]);
+      card(
+        g,
+        "He offers to lead you to a secret cache of scrap nearby if you let him join your crew.",
+        [
+          {
+            id: "q:defector:reluctant",
+            label: "Reluctantly accept his proposal and fight the Rebel ship.",
+          },
+          { id: "q:defector:execute", label: "Reject him outright and execute him on the spot." },
+          { id: "q:defector:again", label: "Reject his offer again." },
+        ],
+      );
     } else if (r === "boarder") {
-      defectorFight(g, tx("wiki.quests.attempting-to-deal-with-attacks-from"));
+      defectorFight(g, "Attempting to deal with attacks from inside and out is never easy!");
       humanBoarders(g, 1, 1);
     } else {
-      defectorFight(g, tx("wiki.quests.your-fearless-crew-easily-overcome-the"));
+      defectorFight(
+        g,
+        "Your fearless crew easily overcome the intruder, but the Rebel ship still needs to be dealt with.",
+      );
     }
   },
   "q:defector:reluctant": (g) => {
@@ -2470,33 +3536,49 @@ const CHOICES: Record<string, (g: Game) => void> = {
       ["evisc", 1],
     ] as ["join" | "deceive" | "trigger" | "evisc", number][]);
     if (r === "join") {
-      const joined = crew(g, tx("wiki.quests.human"));
+      const joined = crew(g, "Human");
       const line = addQuest(g, "defector-cache");
       log(g, joined);
-      defectorFight(g, tx("wiki.quests.relieved-and-light-headed-your-new"));
+      defectorFight(
+        g,
+        "Relieved and light-headed, your new crew member gets to work as the Rebel ship attacks.",
+      );
       log(g, line);
     } else if (r === "deceive") {
       // "3 hull damage, 1 damage to engines; Rebel Fleet pursuit is doubled". Doubling as cited-events.ts fx "double".
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "engines", 1);
       g.fleet *= 2;
-      log(g, tx("wiki.quests.rebel-fleet-pursuit-is-doubled"));
-      defectorFight(g, tx("wiki.quests.the-dishonorable-rebel-has-deceived-you"));
+      log(g, "Rebel Fleet pursuit is doubled.");
+      defectorFight(
+        g,
+        "The dishonorable Rebel has deceived you. He damages your ship and steals ship information before teleporting away. The fleet will be able to track you with ease. If they can't kill you now, that is!",
+      );
     } else if (r === "trigger") {
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "pilot", 1);
-      defectorFight(g, tx("wiki.quests.your-new-crew-member-smiles-then"));
+      defectorFight(
+        g,
+        "Your new crew-member smiles, then reveals a small remote trigger in the palm of his hand. Explosions rocket around the ship as more intruders teleport aboard!",
+      );
       humanBoarders(g, 2, 2);
     } else {
       // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). INFERRED: never the last crewmember.
       const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
-      if (g.player.kits.cradle) log(g, tx("wiki.quests.the-eviscerated-crewmember-s-clone-launches"));
+      if (g.player.kits.cradle)
+        log(
+          g,
+          "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge.",
+        );
       else if (mine.length > 1) {
         const lost = pick(g, mine);
         g.crew = g.crew.filter((c) => c.id !== lost.id);
-        log(g, tx("wiki.quests.is-gone", { name: lost.name }));
+        log(g, `${lost.name} is gone.`);
       }
-      defectorFight(g, tx("wiki.quests.the-rebel-makes-to-take-his"));
+      defectorFight(
+        g,
+        "The Rebel makes to take his assigned station, then suddenly turns and eviscerates the nearest crew-member. Red Alert!",
+      );
       humanBoarders(g, 1, 1);
     }
   },
@@ -2504,12 +3586,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "Reject him outright and execute him on the spot." — [[Rebel defector]]
     // > "You fight a Rebel ship (default rewards)." — [[Rebel defector]]
-    defectorFight(g, tx("wiki.quests.you-execute-the-defector-and-turn"));
+    defectorFight(g, "You execute the defector and turn to the Rebel ship.");
   },
   "q:defector:again": (g) => {
     // Wiki citations:
     // > "Reject his offer again." — [[Rebel defector]]
-    defectorFight(g, tx("wiki.quests.you-reject-his-offer-again"));
+    defectorFight(g, "You reject his offer again.");
     humanBoarders(g, 1, 1);
   },
 
@@ -2517,40 +3599,68 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:open-store": (g) => {
     openStoreHere(g);
   },
-  "q:escort:fight": (g) => pageFight(g, tx("wiki.quests.the-rebel-ship-attacks"), tx("wiki.quests.rebel-ship"), "quest-escort"),
+  "q:escort:fight": (g) => pageFight(g, "The Rebel ship attacks.", "Rebel ship", "quest-escort"),
 
   "q:war-camp:leave": (g) => {
     if (rand(g) < 0.5) {
-      pageFight(g, tx("wiki.quests.as-you-try-to-leave-a"), tx("wiki.quests.mantis-ship"), "quest-mantis-war-camp", { ...NEVER_RUN });
+      pageFight(
+        g,
+        "As you try to leave, a patrol spots you. Wailing sirens begin to blare around the camp and the ship moves in to attack!",
+        "Mantis ship",
+        "quest-mantis-war-camp",
+        { ...NEVER_RUN },
+      );
     } else {
-      result(g, tx("wiki.quests.they-must-have-been-focused-on"));
+      result(
+        g,
+        "They must have been focused on setting up camp since you got far enough away to attempt a jump without being noticed.",
+      );
     }
   },
   "q:war-camp:missile": (g) => {
     if (g.missiles < 1 || !hasMissileWeapon(g)) return;
     g.missiles -= 1;
-    pageFight(g, tx("wiki.quests.you-fire-at-their-fuel-depot"), tx("wiki.quests.mantis-ship"), "quest-mantis-war-camp", { ...NEVER_RUN });
+    pageFight(
+      g,
+      "You fire at their fuel depot, but a shot from the surface rips the missile to shreds. They must have a planetary defense system set up already! You try to get away but a nearby patrol ship moves in to attack.",
+      "Mantis ship",
+      "quest-mantis-war-camp",
+      { ...NEVER_RUN },
+    );
   },
   "q:war-camp:firebomb": (g) => {
     if (g.missiles < 2) return;
     g.missiles -= 2;
-    const joined = crew(g, tx("wiki.quests.engi"));
+    const joined = crew(g, "Engi");
     result(
       g,
-      tx("wiki.quests.it-appears-they-have-not-set"),
+      `It appears they have not set up a Teleporter disruption field yet. You deposit one bomb in a fuel depot and another in the barracks. Mantis comm channels fill with panicked chatter and you watch a number of structures go up in flames.
+
+With most of their ships and forces focused on the chaos, you slip undetected to a nearby depot. You find some useful resources and an Engi slave who gladly accepts your liberation.`,
       rollSurrenderOffer(g, "high", true),
       [joined],
     );
   },
 
   "q:station:attack": (g) => {
-    pageFight(g, tx("wiki.quests.you-move-in-to-attack-the"), tx("wiki.quests.rebel-ship"), "quest-space-station-rebel", { ...NEVER_RUN });
+    pageFight(
+      g,
+      "You move in to attack the Rebel ship that is threatening them and scanners detect weapon locks from a nearby Anti-Ship Battery. It's about to get hectic!",
+      "Rebel ship",
+      "quest-space-station-rebel",
+      { ...NEVER_RUN },
+    );
     // "while a planet-side Anti-Ship Battery periodically fires on your ship."
     g.asb = true;
   },
-  "q:station:leave": (g) => result(g, tx("wiki.quests.you-apologize-but-it-s-not")),
+  "q:station:leave": (g) =>
+    result(g, "You apologize but it's not worth the risk to attack a Rebel station."),
   "q:station:contact": (g) => {
-    result(g, tx("wiki.quests.amidst-the-blasts-from-the-anti"), scrapOnly(g, "medium"));
+    result(
+      g,
+      "Amidst the blasts from the Anti-Ship Battery, the cargo ship escaped from the station. They jettisoned some scrap towards your ship before jumping away.",
+      scrapOnly(g, "medium"),
+    );
   },
   // Abandoned station, "Move in to examine the station." DuplicateEvent|2 on the scrap text, then one each of the
   // pirate ship, the battery with no ship, the cloning bay, and the empty shell. Race of the unnamed boarders is
@@ -2566,123 +3676,214 @@ const CHOICES: Record<string, (g: Game) => void> = {
       ["shell", 1],
     ] as ["rest" | "hull" | "pirate" | "battery" | "clone" | "shell", number][]);
     if (r === "rest") {
-      result(g, tx("wiki.quests.you-approach-cautiously-but-you-detect"), scrapOnly(g, "low"));
+      result(
+        g,
+        "You approach cautiously but you detect no danger. It appears to have been a small rest stop that was abandoned a while ago. You take what few supplies you can find.",
+        scrapOnly(g, "low"),
+      );
     } else if (r === "hull") {
-      result(g, tx("wiki.quests.upon-closer-inspection-it-appears-to"), scrapOnly(g, "low"));
+      result(
+        g,
+        "Upon closer inspection it appears to have a large portion of its hull destroyed. You take what few supplies you can find.",
+        scrapOnly(g, "low"),
+      );
     } else if (r === "pirate") {
-      pageFight(g, tx("wiki.quests.you-dock-with-the-station-to"), tx("wiki.quests.pirate-ship"), "quest-abandoned-station");
+      pageFight(
+        g,
+        "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile scanners pick up a previously undetected pirate ship moving in to attack!",
+        "Pirate ship",
+        "quest-abandoned-station",
+      );
       humanBoarders(g, 2, 2);
     } else if (r === "battery") {
-      log(g, tx("wiki.quests.you-dock-with-the-station-to-2"));
-      humanBoarders(g, 2, 4, tx("wiki.quests.boarders-beam-aboard"));
+      log(
+        g,
+        "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile multiple warning signals go off on the bridge. The pirates have activated a remote planetary defense system and it's locking onto your ship!",
+      );
+      humanBoarders(g, 2, 4, "boarders beam aboard.");
       beginBoarding(g, true);
     } else if (r === "clone") {
-      const choices: Choice[] = [{ id: "q:station:scrapmachines", label: tx("wiki.quests.scrap-the-machinery") }];
-      if (g.player.kits.cradle) choices.unshift({ id: "q:station:dna", label: tx("wiki.quests.search-for-a-surviving-dna-bank") });
-      card(g, tx("wiki.quests.the-station-is-in-disarray-you"), choices);
+      const choices: Choice[] = [{ id: "q:station:scrapmachines", label: "Scrap the machinery." }];
+      if (g.player.kits.cradle)
+        choices.unshift({ id: "q:station:dna", label: "Search for a surviving DNA bank." });
+      card(
+        g,
+        "The station is in disarray. You find a cloning bay partially intact but nothing else seems to be functioning.",
+        choices,
+      );
     } else {
-      result(g, tx("wiki.quests.as-you-approach-it-becomes-clear"));
+      result(
+        g,
+        "As you approach it becomes clear that the station is simply an empty shell. It has been stripped of useful materials long ago.",
+      );
     }
   },
   // Clonebay DNA: DuplicateEvent|2 calm crewmember, or 1 crazed boarder. No printed odds (weight 2 / 1).
   // The crazed boarder's race is not named. INFERRED human, same as the unnamed boarders on this page.
   "q:station:dna": (g) => {
-    const rebuilt = tx("wiki.quests.while-the-cloning-facilities-are-no");
-    if (weighted(g, [["calm", 2], ["crazed", 1]] as ["calm" | "crazed", number][]) === "crazed") {
-      log(g, tx("wiki.quests.the-clone-emerges-in-a-crazed", { rebuilt: rebuilt }));
-      humanBoarders(g, 1, 1, tx("wiki.quests.boarder-beams-aboard"));
+    const rebuilt =
+      "While the cloning facilities are no longer functioning, you find someone was in queue to be cloned. You transfer their data to your Clonebay and after a time their body is rebuilt.";
+    if (
+      weighted(g, [
+        ["calm", 2],
+        ["crazed", 1],
+      ] as ["calm" | "crazed", number][]) === "crazed"
+    ) {
+      log(
+        g,
+        `${rebuilt} The clone emerges in a crazed frenzy and refuses to calm down. You have no choice but to fight.`,
+      );
+      humanBoarders(g, 1, 1, "boarder beams aboard.");
       beginBoarding(g);
       return;
     }
     // DuplicateEvent|2: calms down, or seems to accept. INFERRED: equal.
-    const calm = rand(g) < 0.5
-      ? tx("wiki.quests.the-clone-is-extremely-confused-but", { rebuilt: rebuilt })
-      : tx("wiki.quests.the-clone-is-extremely-confused-but-2", { rebuilt: rebuilt });
+    const calm =
+      rand(g) < 0.5
+        ? `${rebuilt} The clone is extremely confused but calms down after you try to explain the situation. With no other options the clone offers to work on your ship for a time.`
+        : `${rebuilt} The clone is extremely confused but seems to accept their new situation. With no other options the clone offers to work on your ship for a time.`;
     result(g, calm, undefined, [crew(g, randomRace(g))]);
   },
-  "q:station:scrapmachines": (g) => result(g, tx("wiki.quests.you-take-what-you-can-and"), scrapOnly(g, "low")),
-  "q:station:stay": (g) => result(g, tx("wiki.quests.you-decide-it-s-not-worth")),
+  "q:station:scrapmachines": (g) =>
+    result(g, "You take what you can and prepare to move on.", scrapOnly(g, "low")),
+  "q:station:stay": (g) => result(g, "You decide it's not worth the time to examine."),
   "q:station:fuel4": (g) => {
     if (g.fuel < 4) return;
     g.fuel -= 4;
-    result(g, tx("wiki.quests.great-thank-you-here-s-some"), scrapOnly(g, "medium"));
+    result(
+      g,
+      '"Great, thank you. Here\'s some scrap metal for your troubles. Be careful out there."',
+      scrapOnly(g, "medium"),
+    );
   },
   "q:station:fuel1": (g) => {
     if (g.fuel < 1) return;
     g.fuel -= 1;
-    result(g, tx("wiki.quests.well-i-suppose-that-s-better"));
+    result(
+      g,
+      '"Well, I suppose that\'s better than nothing. Thank you. Hopefully we can find a station at the next Beacon."',
+    );
   },
-  "q:station:none": (g) => result(g, tx("wiki.quests.i-see")),
+  "q:station:none": (g) => result(g, '"I see..."'),
 
   "q:mantis-collectors:forget": (g) => {
     // Wiki citations:
     // > "Forget it." — [[Mantis ship-collectors]]
     // > "They're not worth the trouble. You prepare to leave." — [[Mantis ship-collectors]]
     // > "Nothing happens." — [[Mantis ship-collectors]]
-    result(g, tx("wiki.quests.they-re-not-worth-the-trouble"));
+    result(g, "They're not worth the trouble. You prepare to leave.");
   },
   // DONOR_MANTIS_CHASE2: "attempts to escape at 60% hull (12 seconds timer)". INFERRED: a certain attempt, like CHASE1.
   // "Fight a Mantis Bomber" with crew entirely composed of Mantis.
   "q:mantis-chase:fight": (g) => {
     // Wiki citations:
     // > "Fight a Mantis Bomber with crew entirely composed of Mantis." — [[Mantis ship-collectors#Quest Marker]]
-    pageFight(g, tx("wiki.quests.the-mantis-bomber-moves-in"), tx("wiki.quests.mantis-bomber"), "quest-mantis-chase", hullRun(100, 60, 12));
+    pageFight(
+      g,
+      "The Mantis Bomber moves in.",
+      "Mantis Bomber",
+      "quest-mantis-chase",
+      hullRun(100, 60, 12),
+    );
     allMantisCrew(g);
   },
 
   "q:loyalists:contact": (g) => {
     const r = pick(g, ["base", "supplies", "rescue"] as const);
     if (r === "base") {
-      result(g, tx("wiki.quests.thank-you-for-saving-us-this"), undefined, [addQuest(g, "fed-base")]);
+      result(
+        g,
+        "\"Thank you for saving us. This ship is transporting Federation civilians on the run from the rebellion and we don't have the equipment to fight for ourselves. I don't have much to offer, but I can inform you of a hidden Federation base nearby. Perhaps they can assist you more.\"",
+        undefined,
+        [addQuest(g, "fed-base")],
+      );
     } else if (r === "supplies") {
-      result(g, tx("wiki.quests.thanks-we-didn-t-think-there"), rollStandard(g, "medium"));
+      result(
+        g,
+        '"Thanks, we didn\'t think there would be Rebel ships all the way out here. They seem to be searching for something. Take some extra supplies as thanks for your aid."',
+        rollStandard(g, "medium"),
+      );
     } else loyalistsRescueCard(g);
   },
   "q:loyalists:rescue": (g) => {
-    result(g, tx("wiki.quests.despite-your-efforts-the-majority-do"), rollStandard(g, "low"), [crew(g, randomRace(g))]);
+    result(
+      g,
+      "Despite your efforts the majority do not survive. The sole survivor offers to join your crew and helps you strip the now derelict ship of useful components.",
+      rollStandard(g, "low"),
+      [crew(g, randomRace(g))],
+    );
   },
   "q:loyalists:medbot": (g) => {
     // "a crewmember with 1 skill in shields, and high (3-6 fuel) fuel and scrap" (Rewards, "Fuel": T fuel & T scrap).
     const offer = scrapOnly(g, "high");
     offer.fuel = rollFuel("q:loyalists:medbot", (lo, hi) => between(g, [lo, hi]));
-    result(g, tx("wiki.quests.you-drag-the-injured-and-dying"), offer, [crew(g, randomRace(g), "shields")]);
+    result(
+      g,
+      "You drag the injured and dying crew on to your ship. The Med-bots help stabilize their condition, but most perish. The surviving shields operator offers to join your crew and helps you strip their broken ship of scrap.",
+      offer,
+      [crew(g, randomRace(g), "shields")],
+    );
   },
   "q:loyalists:teleport": (g) => {
     const joined = crew(g, randomRace(g), "combat");
-    result(g, tx("wiki.quests.your-quick-reactions-allow-you-to"), scrapOnly(g, "medium"), [joined, addQuest(g, "fed-base")]);
+    result(
+      g,
+      "Your quick reactions allow you to stabilize a few of the seriously wounded crewmembers. An infantryman offers to join your crew and the rest tell you of a hidden Federation base a few jumps from here.",
+      scrapOnly(g, "medium"),
+      [joined, addQuest(g, "fed-base")],
+    );
   },
   // {{Blue Option|Healing Burst}}. 1 missile. A crewmember with 1 skill in engines, medium scrap, and the Federation base.
   "q:loyalists:heal": (g) => {
     if (g.missiles < 1 || !g.player.weapons.some((w) => w.defId === "healburst")) return;
     g.missiles -= 1;
     const joined = crew(g, randomRace(g), "engines");
-    result(g, tx("wiki.quests.you-launch-a-healing-bomb"), scrapOnly(g, "medium"), [
-      tx("wiki.quests.missiles-1"),
-      joined,
-      addQuest(g, "fed-base"),
-    ]);
+    result(
+      g,
+      `You launch a healing bomb into their ship and the Nanobots are able to keep the crew stabilized. Once they come to, you send over some supplies to keep them healthy enough to get to friendly territory.
+
+Now that they're safe an engineer offers to join your crew and the rest tell you of a hidden Federation base a few jumps from here.`,
+      scrapOnly(g, "medium"),
+      ["Missiles: -1.", joined, addQuest(g, "fed-base")],
+    );
   },
   // Improved Sensors, level 2: medium scrap with resources.
   "q:fed-base:scan-2": (g) => {
     if (sensors(g) < 2) return;
-    result(g, tx("wiki.quests.your-advanced-sensors-pick-faint-signatures"), rollStandard(g, "medium"));
+    result(
+      g,
+      "Your Advanced Sensors pick faint signatures of what appears to be a storage space hidden under the rock. You find the access point and discover a supply cache whose Federation signal emitter has malfunctioned.",
+      rollStandard(g, "medium"),
+    );
   },
   // Advanced Sensors, level 3: a weapon with medium scrap.
   "q:fed-base:scan-3": (g) => {
     if (sensors(g) < 3) return;
-    result(g, tx("wiki.quests.your-sensors-pick-faint-signatures-of"), scrapOnly(g, "medium"), [grantRandomItem(g, "weapon")]);
+    result(
+      g,
+      "Your sensors pick faint signatures of what appears to be a storage space hidden under the rock. You find the access point and discover a weapons cache whose Federation signal emitter has malfunctioned.",
+      scrapOnly(g, "medium"),
+      [grantRandomItem(g, "weapon")],
+    );
   },
   // Long-Ranged Scanners: a weapon with medium scrap. The weapon is not named.
   "q:fed-base:scan-glass": (g) => {
     if (!g.augments.includes("glass")) return;
-    result(g, tx("wiki.quests.your-sensors-pick-faint-signatures-of"), scrapOnly(g, "medium"), [grantRandomItem(g, "weapon")]);
+    result(
+      g,
+      "Your sensors pick faint signatures of what appears to be a storage space hidden under the rock. You find the access point and discover a weapons cache whose Federation signal emitter has malfunctioned.",
+      scrapOnly(g, "medium"),
+      [grantRandomItem(g, "weapon")],
+    );
   },
-  "q:fed-base:assist": (g) => pageFight(g, tx("wiki.quests.the-automated-drone-turns-on-you"), "Auto-ship", "quest-fed-assist"),
+  "q:fed-base:assist": (g) =>
+    pageFight(g, "The automated drone turns on you.", "Auto-ship", "quest-fed-assist"),
   // The other non-AE arrival. Same sentence, a different contact.
-  "q:fed-base:assist-repair": (g) => pageFight(g, tx("wiki.quests.the-automated-drone-turns-on-you"), "Auto-ship", "quest-fed-assist-repair"),
+  "q:fed-base:assist-repair": (g) =>
+    pageFight(g, "The automated drone turns on you.", "Auto-ship", "quest-fed-assist-repair"),
   // AE Auto-ship. "periodically" prints no seconds: aidPlayerAsb is the existing friendly battery.
   "q:fed-base:assist-asb": (g) => {
-    pageFight(g, tx("wiki.quests.you-move-in-to-assist"), "Auto-ship", "quest-fed-assist-asb");
+    pageFight(g, "You move in to assist.", "Auto-ship", "quest-fed-assist-asb");
     aidPlayerAsb(g);
   },
   // AE Elite Rebel. {{SurrenderEscape(alt)|escapechance|REBEL_FEDERATION_PDS|dlcEventsOverwrite.xml|20|40-60|4-6}}
@@ -2690,59 +3891,107 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // 4-6 is the template's actual-hull warning, not a timer, so the typical 15 seconds stays.
   // INFERRED: the threshold is uniform inside 40..60, the same reading as escape.ts.
   "q:fed-base:assist-wing": (g) => {
-    pageFight(g, tx("wiki.quests.you-swoop-in-to-assist-taking"), "elite", "quest-fed-assist-wing", hullRun(20, 40 + rand(g) * 20, HULL_RUN_SECONDS));
+    pageFight(
+      g,
+      "You swoop in to assist, taking down the wing leader.",
+      "elite",
+      "quest-fed-assist-wing",
+      hullRun(20, 40 + rand(g) * 20, HULL_RUN_SECONDS),
+    );
     aidPlayerAsb(g);
   },
   // Non-AE contact fixed by the weapon arrival: a crewmember and a weapon with low scrap.
   "q:fed-assist:contact": (g) => {
-    result(g, tx("wiki.quests.with-the-threat-gone-you-contact"), scrapOnly(g, "low"), [crew(g, randomRace(g)), grantRandomItem(g, "weapon")]);
+    result(
+      g,
+      'With the threat gone, you contact the Federation outpost. They respond, "Our location has been compromised! Take everything you can and please drop our survivors off at the next station." One soldier offers to stay and fight.',
+      scrapOnly(g, "low"),
+      [crew(g, randomRace(g)), grantRandomItem(g, "weapon")],
+    );
   },
   // Non-AE contact fixed by the repair arrival: a crewmember, high scrap with resources, and 7 repairs.
   "q:fed-assist-repair:contact": (g) => {
-    result(g, tx("wiki.quests.you-contact-the-station-once-the"), rollStandard(g, "high"), [crew(g, randomRace(g)), repair(g, 7)]);
+    result(
+      g,
+      "You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\"",
+      rollStandard(g, "high"),
+      [crew(g, randomRace(g)), repair(g, 7)],
+    );
   },
   // AE Auto-ship contact: a crewmember, high scrap with resources, and 7 repairs.
   "q:fed-assist-asb:contact": (g) => {
-    result(g, tx("wiki.quests.you-contact-the-station-once-the"), rollStandard(g, "high"), [crew(g, randomRace(g)), repair(g, 7)]);
+    result(
+      g,
+      "You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\"",
+      rollStandard(g, "high"),
+      [crew(g, randomRace(g)), repair(g, 7)],
+    );
   },
   // AE Elite contact: a crewmember and no scrap. The footnote drops only the scrap.
   "q:fed-assist-wing:contact": (g) => {
-    result(g, tx("wiki.quests.with-the-threat-gone-you-contact"), undefined, [crew(g, randomRace(g))]);
+    result(
+      g,
+      'With the threat gone, you contact the Federation outpost. They respond, "Our location has been compromised! Take everything you can and please drop our survivors off at the next station." One soldier offers to stay and fight.',
+      undefined,
+      [crew(g, randomRace(g))],
+    );
   },
 
   "q:thief:strip": (g) => {
-    result(g, tx("wiki.quests.it-seems-almost-a-waste-for"), rollStandard(g, "high"));
+    result(
+      g,
+      "It seems almost a waste for such a fierce foe to die in such an anticlimactic fashion. You shrug it off and take what you can.",
+      rollStandard(g, "high"),
+    );
   },
   "q:thief:teleport": (g) => thiefDyingCard(g, false),
   "q:thief:scan": (g) => thiefDyingCard(g, true),
   "q:thief:mercy": (g) => {
-    result(g, tx("wiki.quests.thus-ends-the-life-of-the"), rollStandard(g, "high"));
+    result(
+      g,
+      "Thus ends the life of the famed captain, KazaaakplethKilik... You wonder what secrets went with him to the grave as you thoroughly loot his ship.",
+      rollStandard(g, "high"),
+    );
   },
   "q:thief:listen": (g) => {
-    result(g, tx("wiki.quests.in-his-dying-moments-he-gives"), rollStandard(g, "high"), [addQuest(g, "thief-stash")]);
+    result(
+      g,
+      "In his dying moments he gives up the location of his secret stash. You strip the ship wondering what other secrets went with him to the grave.",
+      rollStandard(g, "high"),
+      [addQuest(g, "thief-stash")],
+    );
   },
   "q:thief:save": (g) => {
-    card(g, tx("wiki.quests.your-haste-has-paid-off-and"), [
-      { id: "q:thief:accept", label: tx("wiki.quests.accept") },
-    ]);
+    card(
+      g,
+      'Your haste has paid off and you are able to bring him back from the brink of death. When his senses return he says, "I never thought I would see this day, but... I am willing to devote myself and my ships to your cause."',
+      [{ id: "q:thief:accept", label: "Accept." }],
+    );
   },
   "q:thief:clone": (g) => {
-    card(g, tx("wiki.quests.your-haste-has-paid-off-and-2"), [
-      { id: "q:thief:accept", label: tx("wiki.quests.accept") },
-    ]);
+    card(
+      g,
+      'Your haste has paid off and you register him into the Clonebay\'s database. After he passes away he is quickly reconstructed on board your ship. When his senses return he says, "I never thought I would see this day, but... I am willing to devote myself and my ships to your cause."',
+      [{ id: "q:thief:accept", label: "Accept." }],
+    );
   },
   "q:thief:accept": (g) => {
     // "receive high scrap, Mantis Pheromones augmentation, Mantis crewmember named Kazaaak maxed in all skills, and a
     // quest marker". The Mantis Cruiser unlock is the grantUnlock line below.
     grantUnlock(g, "mantis-a"); // @agent:unlocks. "You unlock the Mantis Cruiser".
-    let joined = tx("wiki.quests.there-is-no-room-aboard-for-2");
-    if (joinCrew(g, tx("wiki.quests.mantis"), tx("wiki.quests.kazaaak"))) {
+    let joined = "There is no room aboard for Kazaaak.";
+    if (joinCrew(g, "Mantis", "Kazaaak")) {
       const c = g.crew[g.crew.length - 1];
       const all: SkillName[] = ["pilot", "engines", "weapons", "shields", "repair", "combat"];
       c.skills = Object.fromEntries(all.map((s) => [s, xpNeedFor(c, s) * 2]));
-      joined = tx("wiki.quests.kazaaak-joins-your-crew");
+      joined = "Kazaaak joins your crew.";
     }
-    result(g, tx("wiki.quests.kazaaakplethkilik-joins-your-crew-offers-the"), scrapOnly(g, "high"), [joined, grantAug(g, "pheromone"), addQuest(g, "thief-stash")]);
+    result(
+      g,
+      "KazaaakplethKilik joins your crew, offers the coordinates for a nearby stash of stolen military goods and transmits the coordinates for a custom cruiser he has been working on. You forward it to the Federation, sure they can make good use of it.",
+      scrapOnly(g, "high"),
+      [joined, grantAug(g, "pheromone"), addQuest(g, "thief-stash")],
+    );
   },
 
   "q:slug-trap:engage": (g) => {
@@ -2750,32 +3999,56 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "There's money to be made here. The Slugs know that. You turn on the pirate and intercept just before he can reach the cache!" — [[Slug comm tapping#Quest Marker]]
     // > "Fight a Pirate ship." — [[Slug comm tapping#Quest Marker]]
     // INFERRED: the page prints no escape for this pirate.
-    pageFight(g, tx("wiki.quests.there-s-money-to-be-made"), tx("wiki.quests.pirate-ship"), "quest-slug-pirate-trap-engage", { ...NEVER_RUN });
+    pageFight(
+      g,
+      "There's money to be made here. The Slugs know that. You turn on the pirate and intercept just before he can reach the cache!",
+      "Pirate ship",
+      "quest-slug-pirate-trap-engage",
+      { ...NEVER_RUN },
+    );
   },
   "q:slug-trap:cache": (g) => {
     // Wiki citations:
     // > "When he sees you making for the cache the Slug captain hails: \"Foolish alienss, no eye for profit. Bessst of luck to you.\" They jump off, leaving you toe to toe with the pirate!" — [[Slug comm tapping#Quest Marker]]
     // > "Fight a Pirate ship." — [[Slug comm tapping#Quest Marker]]
-    pageFight(g, tx("wiki.quests.when-he-sees-you-making-for"), tx("wiki.quests.pirate-ship"), "quest-slug-pirate-trap-cache", { ...NEVER_RUN });
+    pageFight(
+      g,
+      'When he sees you making for the cache the Slug captain hails: "Foolish alienss, no eye for profit. Bessst of luck to you." They jump off, leaving you toe to toe with the pirate!',
+      "Pirate ship",
+      "quest-slug-pirate-trap-cache",
+      { ...NEVER_RUN },
+    );
   },
 
   // REBEL_ENGI_UNLOCK_2REAL / 2FAKE: "immediately starts to escape (40 seconds timer)".
   "q:engi-real:fight": (g) => {
     // Wiki citations:
     // > "When the ship wants to escape As soon as they see you they power up their engines to jump away. Stop them!" — [[Engi fleet discussion#First Quest Marker (Real)]]
-    pageFight(g, tx("wiki.quests.as-soon-as-they-see-you"), tx("wiki.quests.rebel-ship"), "quest-engi-real", startRun(40));
+    pageFight(
+      g,
+      "As soon as they see you they power up their engines to jump away. Stop them!",
+      "Rebel ship",
+      "quest-engi-real",
+      startRun(40),
+    );
   },
   "q:engi-fake:fight": (g) => {
     // Wiki citations:
     // > "When the ship wants to escape As soon as they see you, they power up their engines to jump away. Stop them!" — [[Engi fleet discussion#Second Quest Marker (Fake)]]
-    pageFight(g, tx("wiki.quests.as-soon-as-they-see-you-2"), tx("wiki.quests.rebel-ship"), "quest-engi-fake", startRun(40));
+    pageFight(
+      g,
+      "As soon as they see you, they power up their engines to jump away.  Stop them!",
+      "Rebel ship",
+      "quest-engi-fake",
+      startRun(40),
+    );
   },
   // Fake marker, after "Demand information": "Let them go." -> "The ship turns neutral." / "Ignore him and attack."
   "q:engi-fake:go": (g) => {
     // Wiki citations:
     // > "The ship turns neutral." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
     closeFight(g);
-    result(g, tx("wiki.quests.the-ship-turns-neutral-and-jumps"));
+    result(g, "The ship turns neutral and jumps away.");
   },
   "q:engi-fake:attack": (g) => {
     // Wiki citations:
@@ -2786,13 +4059,15 @@ const CHOICES: Record<string, (g: Game) => void> = {
     g.event = null;
     g.phase = g.enemy ? "combat" : "map";
     g.paused = false;
-    log(g, tx("wiki.quests.no-wait-you-cut-the-transmission"));
+    log(g, '"No, wait..." You cut the transmission and continue the assault.');
   },
   // MANTIS_ENGI_UNLOCK_3: "Fight the Mantis Ship controlled by Humans", {{SurrenderEscape(alt)|no|...}}.
   "q:engi-final:fight": (g) => {
     // Wiki citations:
     // > "Fight the Mantis Ship controlled by Humans." — [[Engi fleet discussion#Final Quest Marker]]
-    pageFight(g, tx("wiki.quests.the-mantis-escort-turns-to-meet"), tx("wiki.quests.mantis-ship"), "quest-engi-final", { ...NEVER_RUN });
+    pageFight(g, "The Mantis escort turns to meet you.", "Mantis ship", "quest-engi-final", {
+      ...NEVER_RUN,
+    });
     const hp = crewDef("plain").hp;
     for (const c of g.crew) {
       if (c.side !== "enemy") continue;
@@ -2805,9 +4080,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "\"Likely ploy by Rebels to avoid breaking non-aggression pact with Engi. 97.56 percent likely. Your mission to assist last Federation fleet, correct? Coordinates?\"" — [[Engi fleet discussion#Victory]]
     // > "Transmit coordinates of Federation command." — [[Engi fleet discussion#Victory]]
-    card(g, tx("wiki.quests.likely-ploy-by-rebels-to-avoid"), [
-      { id: "q:engi-victory:transmit", label: tx("wiki.quests.transmit-coordinates-of-federation-command") },
-    ]);
+    card(
+      g,
+      '"Likely ploy by Rebels to avoid breaking non-aggression pact with Engi. 97.56 percent likely. Your mission to assist last Federation fleet, correct? Coordinates?"',
+      [{ id: "q:engi-victory:transmit", label: "Transmit coordinates of Federation command." }],
+    );
   },
   "q:engi-victory:transmit": (g) => {
     // Wiki citations:
@@ -2816,38 +4093,78 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // "You unlock the Stealth Cruiser; you receive Titanium System Casing augmentation, high scrap with resources and your
     // ship receives 20 repairs." The unlock is the grantUnlock line below.
     grantUnlock(g, "stealth-a"); // @agent:unlocks. "You unlock the Stealth Cruiser".
-    result(g, tx("wiki.quests.satisfactory-delivery-of-tech-will-assist"), rollStandard(g, "high"), [grantAug(g, "casing"), repair(g, 20)]);
+    result(
+      g,
+      '"Satisfactory. Delivery of tech will assist in Federation cause. Gratitude alone insufficient. Commencing ship repair and compensation." Their crews deliver a weapon for installation but you\'re more pleased to hear that the Federation will have an improved arsenal.',
+      rollStandard(g, "high"),
+      [grantAug(g, "casing"), repair(g, 20)],
+    );
   },
 
   // "this ship is always a Slug Assault class" / the interceptor: "It is always a Slug Interceptor class" (enemy-gen classId).
   "q:slug-platform:charge": (g) => {
-    pageFight(g, tx("wiki.quests.you-charge-the-assault-ship-guarding"), tx("wiki.quests.slug-assault"), "quest-slug-platform", { ...NEVER_RUN });
+    pageFight(
+      g,
+      "You charge the assault ship guarding the platform.",
+      "Slug Assault",
+      "quest-slug-platform",
+      { ...NEVER_RUN },
+    );
   },
   "q:slug-platform:tail": (g) => {
     const choices: Choice[] = [
-      { id: "q:slug-platform:slow", label: tx("wiki.quests.fly-slowly-toward-their-last-known") },
-      { id: "q:slug-platform:wait", label: tx("wiki.quests.wait-and-hope-the-escort-leaves") },
+      { id: "q:slug-platform:slow", label: "Fly slowly toward their last known position." },
+      { id: "q:slug-platform:wait", label: "Wait and hope the escort leaves." },
     ];
     // {{Blue Option|Slug Crew|...}}, {{Blue Option|Improved Sensors|...|level=2+}}.
-    if (hasSlug(g)) choices.push({ id: "q:slug-platform:slug", label: tx("wiki.quests.have-your-crewmember-monitor-their-life") });
-    if (sensors(g) >= 2) choices.push({ id: "q:slug-platform:sensors", label: tx("wiki.quests.try-to-maintain-a-lock-on") });
-    card(g, tx("wiki.quests.you-slip-into-the-nebula-undetected"), choices);
+    if (hasSlug(g))
+      choices.push({
+        id: "q:slug-platform:slug",
+        label: "Have your crewmember monitor their life signatures.",
+      });
+    if (sensors(g) >= 2)
+      choices.push({
+        id: "q:slug-platform:sensors",
+        label: "Try to maintain a lock on their ships from a distance.",
+      });
+    card(
+      g,
+      "You slip into the nebula undetected but at this rate you are likely to get lost and lose track of them.",
+      choices,
+    );
   },
   "q:slug-platform:slow": (g) => {
-    pageFight(g, tx("wiki.quests.you-are-advancing-slowly-when-suddenly"), tx("wiki.quests.slug-assault"), "quest-slug-platform", { ...NEVER_RUN });
+    pageFight(
+      g,
+      "You are advancing slowly when suddenly the assault ship bursts through the clouds. They must have been able to detect you with their telepathy!",
+      "Slug Assault",
+      "quest-slug-platform",
+      { ...NEVER_RUN },
+    );
   },
   "q:slug-platform:wait": (g) => {
-    result(g, tx("wiki.quests.you-wait-for-a-time-before"));
+    result(
+      g,
+      "You wait for a time before attempting to advance toward the platform. However, after some frantic searching you can't tell if they left or you simply miscalculated your trajectory... You give up the search and prepare to leave.",
+    );
   },
   "q:slug-platform:slug": (g) => {
-    card(g, tx("wiki.quests.you-try-to-stay-just-far"), [
-      { id: "q:slug-platform:interceptor", label: tx("wiki.quests.fight-the-interceptor") },
-    ]);
+    card(
+      g,
+      `You try to stay just far enough away that they won't detect your life signatures without actively searching for you. After a time, your Slug tells you the ship with a larger crew has jumped away. He guides the helm toward the platform...
+
+The only ship left near the cruiser is an interceptor. This should be easy!`,
+      [{ id: "q:slug-platform:interceptor", label: "Fight the interceptor." }],
+    );
   },
   "q:slug-platform:sensors": (g) => {
-    card(g, tx("wiki.quests.you-overclock-your-sensors-trying-to"), [
-      { id: "q:slug-platform:interceptor", label: tx("wiki.quests.fight-the-interceptor") },
-    ]);
+    card(
+      g,
+      `You overclock your sensors, trying to get them to function in the clouds. They work just enough to let you keep tabs on their general position. After a time, the assault ship and most of the escort jumps away from the platform. You take the opportunity and move in to attack.
+
+The only ship left near the cruiser is an interceptor. This should be easy!`,
+      [{ id: "q:slug-platform:interceptor", label: "Fight the interceptor." }],
+    );
   },
   // "This ship starts to escape with 35 seconds countdown timer."
   "q:slug-platform:interceptor": (g) => {
@@ -2855,23 +4172,35 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // > "Fight the interceptor." — [[Slug Home Nebula surrender#Quest Marker]]
     // > "This ship starts to escape with 35 seconds countdown timer. It is always a Slug Interceptor class." — [[Slug Home Nebula surrender#Fight the interceptor]]
     // > "When the ship wants to escape The interceptor powers up its FTL drive in preparation to escape. At the same time, the cruiser's FTL drive does the same. They must be linked! Don't let them get away!" — [[Slug Home Nebula surrender#Fight the interceptor]]
-    pageFight(g, tx("wiki.quests.the-interceptor-powers-up-its-ftl"), tx("wiki.quests.slug-interceptor"), "quest-slug-interceptor", startRun(35));
+    pageFight(
+      g,
+      "The interceptor powers up its FTL drive in preparation to escape. At the same time, the cruiser's FTL drive does the same. They must be linked! Don't let them get away!",
+      "Slug Interceptor",
+      "quest-slug-interceptor",
+      startRun(35),
+    );
   },
 
   "q:store-rescue:engage": (g) => {
     // Wiki citations:
     // > "The \"SQUAT_STORE_RESCUE\" ship assaulting the space dock doesn't surrender, nor tries to escape." — [[Settlement mercenary work#Trivia]]
-    pageFight(g, tx("wiki.quests.you-engage-the-rebel-scout"), tx("wiki.quests.rebel-ship"), "quest-store-rescue", { ...NEVER_RUN });
+    pageFight(g, "You engage the Rebel scout.", "Rebel ship", "quest-store-rescue", {
+      ...NEVER_RUN,
+    });
   },
   "q:store-rescue:avoid": (g) => {
     // Wiki citations:
     // > "After a time the ship powers down its weapons and jumps away. No life-signs are detected on the moon." — [[Settlement mercenary work#Quest marker]]
     // > "Nothing happens." — [[Settlement mercenary work#Quest marker]]
-    result(g, tx("wiki.quests.after-a-time-the-ship-powers"));
+    result(
+      g,
+      "After a time the ship powers down its weapons and jumps away. No life-signs are detected on the moon.",
+    );
   },
 };
 
-const LANIUS_TRADER_TAKE = /^q:lanius-(?:trader|translator):take:(fuel|missiles|parts):(\d+):(\d+)$/;
+const LANIUS_TRADER_TAKE =
+  /^q:lanius-(?:trader|translator):take:(fuel|missiles|parts):(\d+):(\d+)$/;
 
 /** The shown Lanius trader offer. The page prints those amounts before the choice, so this does not roll again. */
 function payLaniusTrader(g: Game, id: string) {
@@ -2887,8 +4216,8 @@ function payLaniusTrader(g: Game, id: string) {
   else g.player.parts -= cost;
   g.scrap += scrap;
   g.scrapCollected = (g.scrapCollected ?? 0) + scrap;
-  log(g, tx("wiki.quests.after-the-exchange-is-complete-they"));
-  log(g, tx("wiki.quests.scrap", { scrap: scrap }));
+  log(g, "After the exchange is complete they leave without a word.");
+  log(g, `Scrap: ${scrap}.`);
   const b = here(g);
   if (b) b.resolved = true;
   g.event = null;
@@ -2923,13 +4252,13 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   if (locked) return locked;
   // Rebel checkpoint. The bribe amount is the one shown on the button.
   const checkpoint = /^q:rebel-checkpoint:bribe:(\d+)$/.exec(id);
-  if (checkpoint && g.scrap < Number(checkpoint[1])) return tx("wiki.quests.need-scrap", { v: checkpoint[1] });
+  if (checkpoint && g.scrap < Number(checkpoint[1])) return `Need ${checkpoint[1]} scrap`;
   const trader = LANIUS_TRADER_TAKE.exec(id);
   if (trader) {
     const res = trader[1];
     const cost = Number(trader[2]);
     const have = res === "fuel" ? g.fuel : res === "missiles" ? g.missiles : g.player.parts;
-    if (have < cost) return tx("wiki.quests.need", { cost: cost, v: res === "parts" ? "drone parts" : res });
+    if (have < cost) return `Need ${cost} ${res === "parts" ? "drone parts" : res}`;
   }
   // Wiki citations:
   // > "(Engi Crew) Have your Engi crewmember contact them." — [[Engi fleet discussion]]
@@ -3031,13 +4360,21 @@ export function questAfterCited(g: Game, id: string) {
     // Escort civilians FTL haywire, Lead them. Low scrap is already applied; the card does not print a count.
     const body =
       id === "c:escort-civilians:0"
-        ? tx("wiki.quests.great-take-this-bit-of-fuel", { line: line })
+        ? `"Great. Take this bit of fuel as a down-payment. We'll be one step behind you, following your jump signatures. Don't want to take any risks now, do we?"
+
+${line}`
         : id === "c:mantis-war-camp:0"
-          ? tx("wiki.quests.thank-you-if-you-can-just", { line: line })
+          ? `"Thank you! If you can just give us a count on their numbers perhaps we can get the Rebels to help."
+
+${line}`
           : id === "c:space-station-under-construction:0"
-            ? tx("wiki.quests.great-thanks-for-your-help-i", { line: line })
+            ? `"Great. Thanks for your help. I've marked their last known coordinates and sent over some supplies to help you get there."
+
+${line}`
             : id === "c:escort-civilians-ftl-haywire:0"
-              ? tx("wiki.quests.take-this-bit-of-scrap-as", { line: line })
+              ? `"Take this bit of scrap as a down-payment. We'll use your jump signatures to follow you. You're really helping us out here."
+
+${line}`
               : line;
     // A short card so the marker line is seen; "ack" goes back to the map (the beacon is already resolved).
     g.event = { title: here(g)?.name ?? "Event", body, choices: ACK };
@@ -3060,8 +4397,15 @@ export function questAfterCited(g: Game, id: string) {
 export type Win = (g: Game, deadCrew: boolean) => boolean | void;
 
 /** Rewards, "Standard" by destroyed / crew-killed, with the page's text. */
-export function std(destroyed: SurrenderTier, killed: SurrenderTier, textD: string, textK = textD, then?: Choice[]): Win {
-  return (g, deadCrew) => result(g, deadCrew ? textK : textD, rollStandard(g, deadCrew ? killed : destroyed), [], then);
+export function std(
+  destroyed: SurrenderTier,
+  killed: SurrenderTier,
+  textD: string,
+  textK = textD,
+  then?: Choice[],
+): Win {
+  return (g, deadCrew) =>
+    result(g, deadCrew ? textK : textD, rollStandard(g, deadCrew ? killed : destroyed), [], then);
 }
 
 /** Rock and Slug standoff. "Your ship reactor is upgraded." No step is printed. INFERRED: one bar.
@@ -3073,16 +4417,16 @@ function eventReactor(g: Game): string {
   if (upgradeCost("reactor", g.player.reactor) == null) return "";
   g.player.reactor += 1;
   noteReactorEvent(g);
-  return tx("wiki.quests.your-ship-reactor-is-upgraded");
+  return "Your ship reactor is upgraded.";
 }
 
 function offerLines(g: Game, offer: SurrenderOffer): string[] {
   const paid = payOffer(g, offer, true);
   const got: string[] = [];
-  if (offer.scrap) got.push(tx("wiki.quests.scrap", { scrap: offer.scrap }));
-  if (offer.fuel) got.push(tx("wiki.quests.fuel", { fuel: offer.fuel }));
-  if (offer.missiles) got.push(tx("wiki.quests.missiles", { missiles: offer.missiles }));
-  if (offer.parts) got.push(tx("wiki.quests.drone-parts", { parts: offer.parts }));
+  if (offer.scrap) got.push(`Scrap: ${offer.scrap}.`);
+  if (offer.fuel) got.push(`Fuel: ${offer.fuel}.`);
+  if (offer.missiles) got.push(`Missiles: ${offer.missiles}.`);
+  if (offer.parts) got.push(`Drone parts: ${offer.parts}.`);
   if (paid.weaponName) got.push(`${paid.weaponName}.`);
   got.push(...paid.extras);
   for (const line of got) log(g, line);
@@ -3091,13 +4435,22 @@ function offerLines(g: Game, offer: SurrenderOffer): string[] {
 
 /** The grateful Slug captain. Three results and no odds. INFERRED: equal. */
 export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []) {
-  const kind = weighted(g, [["free", 1], ["price", 1], ["thanks", 1]] as const);
+  const kind = weighted(g, [
+    ["free", 1],
+    ["price", 1],
+    ["thanks", 1],
+  ] as const);
   if (kind === "free") {
     // Wiki citations:
     // > "The Slug Captain offers a free reactor upgrade for your help. It never hurts to get a little power boost!" — [[Rock and Slug standoff#Slug reward]]
     // > "Your ship reactor is upgraded." — [[Rock and Slug standoff#Slug reward]]
     const note = eventReactor(g);
-    result(g, tx("wiki.quests.the-slug-captain-offers-a-free", { lead: lead }), undefined, [...extras, note].filter(Boolean));
+    result(
+      g,
+      `${lead} The Slug Captain offers a free reactor upgrade for your help. It never hurts to get a little power boost!`,
+      undefined,
+      [...extras, note].filter(Boolean),
+    );
     return;
   }
   if (kind === "price") {
@@ -3109,28 +4462,41 @@ export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []
     const tail = extras.length ? ` ${extras.join(" ")}` : "";
     const choices = [];
     if (n != null) {
-      choices.push({ id: `s:rock-slug:upgrade:${n}`, label: tx("wiki.quests.agree-to-the-price-scrap", { n: n }) });
+      choices.push({ id: `s:rock-slug:upgrade:${n}`, label: `Agree to the price. [${n} scrap]` });
     }
-    choices.push({ id: "s:rock-slug:decline", label: tx("wiki.quests.decline-the-offer") });
-    card(g, tx("wiki.quests.the-slug-captain-thankful-for-your", { lead: lead, tail: tail }), choices);
+    choices.push({ id: "s:rock-slug:decline", label: "Decline the offer." });
+    card(
+      g,
+      `${lead} The Slug Captain, thankful for your help, offers a reactor upgrade for your ship... for a 'fair' price.${tail}`,
+      choices,
+    );
     return;
   }
   // Wiki citations:
   // > "The Slugs offer their thanks for your help, and jump away. Their true appreciation is questionable, but at least you can get back to your mission." — [[Rock and Slug standoff#Slug reward]]
   // > "Nothing happens." — [[Rock and Slug standoff#Slug reward]]
-  result(g, tx("wiki.quests.the-slugs-offer-their-thanks-for", { lead: lead }), undefined, [...extras, tx("wiki.quests.nothing-happens")]);
+  result(
+    g,
+    `${lead} The Slugs offer their thanks for your help, and jump away. Their true appreciation is questionable, but at least you can get back to your mission.`,
+    undefined,
+    [...extras, "Nothing happens."],
+  );
 }
 
 /** Transaction 10-15 subtract_scrap. The amount is the one shown on the choice. */
 export function rockSlugPay(g: Game, kind: "debt" | "upgrade", n: number): boolean {
   if (!priced("rock-and-slug-standoff", kind, n, "scrap") || g.scrap < n) return true;
   g.scrap -= n;
-  log(g, tx("wiki.quests.scrap-3", { n: n }));
+  log(g, `Scrap: -${n}.`);
   if (kind === "debt") {
     // Wiki citations:
     // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
     // > "You pay off the debt. The Rock Captain still seems annoyed at the Slug's getting their 'undeserved' scrap, but at least the situation will remain peaceful." — [[Rock and Slug standoff]]
-    slugCaptainGrateful(g, tx("wiki.quests.you-pay-off-the-debt-the"), [tx("wiki.quests.scrap-3", { n: n })]);
+    slugCaptainGrateful(
+      g,
+      "You pay off the debt. The Rock Captain still seems annoyed at the Slug's getting their 'undeserved' scrap, but at least the situation will remain peaceful.",
+      [`Scrap: -${n}.`],
+    );
     return true;
   }
   // Wiki citations:
@@ -3138,34 +4504,55 @@ export function rockSlugPay(g: Game, kind: "debt" | "upgrade", n: number): boole
   // > "You let their team on board and after a short time they finish their work." — [[Rock and Slug standoff#Slug reward]]
   // > "Your ship reactor is upgraded." — [[Rock and Slug standoff#Slug reward]]
   const note = eventReactor(g);
-  result(g, tx("wiki.quests.you-let-their-team-on-board"), undefined, [tx("wiki.quests.scrap-3", { n: n }), note].filter(Boolean));
+  result(
+    g,
+    "You let their team on board and after a short time they finish their work.",
+    undefined,
+    [`Scrap: -${n}.`, note].filter(Boolean),
+  );
   return true;
 }
 
 /** Lanius ship attacking civilian, and the distress page, print the same two endings. */
 function laniusCivilianWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
-    ? tx("wiki.quests.no-more-life-signs-detected-on")
-    : tx("wiki.quests.the-lanius-craft-breaks-apart-you");
-  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [{ id: "q:lanius-civilian:contact", label: tx("wiki.quests.contact-the-civilian-ship") }]);
+    ? "No more life signs detected on the Lanius ship. You hasten to contact the civilian ship."
+    : "The Lanius craft breaks apart. You hasten to contact the civilian ship.";
+  result(
+    g,
+    text,
+    rollStandard(g, deadCrew ? "high" : "medium"),
+    [],
+    [{ id: "q:lanius-civilian:contact", label: "Contact the civilian ship." }],
+  );
 }
 
-const SCOUT_INSPECT: Choice[] = [{ id: "q:lanius-scout:inspect", label: tx("wiki.quests.inspect-the-automated-ship") }];
+const SCOUT_INSPECT: Choice[] = [
+  { id: "q:lanius-scout:inspect", label: "Inspect the automated ship." },
+];
 
 /** Lanius ship absorbing automated scout. Destroyed pays medium standard. A crew kill pays high. Then inspect. */
 function laniusScoutWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
-    ? tx("wiki.quests.no-more-life-signs-detected-on-2")
-    : tx("wiki.quests.the-lanius-craft-breaks-apart-you-2");
+    ? "No more life signs detected on the Lanius ship. You move to inspect the automated Rebel ship that it was absorbing."
+    : "The Lanius craft breaks apart. You move to inspect the automated Rebel ship that it was absorbing.";
   result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], SCOUT_INSPECT);
 }
 
-const STORAGE_INVESTIGATE: Choice[] = [{ id: "q:auto-storage:investigate", label: tx("wiki.quests.investigate-the-station") }];
+const STORAGE_INVESTIGATE: Choice[] = [
+  { id: "q:auto-storage:investigate", label: "Investigate the station." },
+];
 
 /** Auto-ship near storage station, and the nebula page. Destroyed pays medium scrap only. No crew-kill reward. */
 function autoStorageWin(g: Game, deadCrew: boolean) {
   if (deadCrew) return false;
-  result(g, tx("wiki.quests.you-salvage-what-you-can-from-2"), scrapOnly(g, "medium"), [], STORAGE_INVESTIGATE);
+  result(
+    g,
+    "You salvage what you can from the broken ship.",
+    scrapOnly(g, "medium"),
+    [],
+    STORAGE_INVESTIGATE,
+  );
 }
 
 function storageInvestigate(g: Game, text: string) {
@@ -3181,15 +4568,21 @@ function hasRadarCombat(g: Game): boolean {
 }
 
 const RADAR_AFTER: Choice[] = [
-  { id: "q:auto-radar:hack", label: tx("wiki.quests.attempt-to-manually-hack-into-the") },
-  { id: "q:auto-radar:leave", label: tx("wiki.quests.don-t-risk-it-leave-the") },
-  { id: "q:auto-radar:drone", label: tx("wiki.quests.use-a-drone-to-hack-into") },
+  { id: "q:auto-radar:hack", label: "Attempt to manually hack into the station." },
+  { id: "q:auto-radar:leave", label: "Don't risk it. Leave the station." },
+  { id: "q:auto-radar:drone", label: "Use a drone to hack into the station." },
 ];
 
 /** Destroyed pays medium scrap only. The page prints no crew-kill reward. */
 function autoRadarWin(g: Game, deadCrew: boolean) {
   if (deadCrew) return false;
-  result(g, tx("wiki.quests.you-salvage-what-you-can-and"), scrapOnly(g, "medium"), [], RADAR_AFTER);
+  result(
+    g,
+    "You salvage what you can and approach the station. It is used to relay information to the Rebel Fleet. You could attempt to hack it to give the Rebels false information.",
+    scrapOnly(g, "medium"),
+    [],
+    RADAR_AFTER,
+  );
 }
 
 /**
@@ -3202,32 +4595,48 @@ function autoRadarAccess(g: Game, lead = "") {
   const extras: string[] = [];
   if (kind === "delay") {
     g.fleet = Math.max(0, g.fleet - 1);
-    text = tx("wiki.quests.you-successfully-hack-into-their-system-2");
-    extras.push(tx("wiki.quests.the-rebel-fleet-is-delayed-for"));
+    text =
+      "You successfully hack into their system and transmit false information about your location. That should hold off the fleet for at least a little while.";
+    extras.push("The Rebel Fleet is delayed for 1 turn.");
   } else if (kind === "map") {
-    text = tx("wiki.quests.the-firewalls-prove-too-difficult-to");
+    text =
+      "The firewalls prove too difficult to bypass. As you are about to disconnect, you stumble across unprotected information about the surrounding beacons. Your map is updated.";
   } else if (kind === "pursuit") {
     g.pursuitDouble = true;
-    text = tx("wiki.quests.as-you-attempt-to-hack-in");
-    extras.push(tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for"));
+    text =
+      "As you attempt to hack in, you set off a hidden alarm system. It seems that now the Rebels must surely be aware of your position! You hasten back to the ship to jump away.";
+    extras.push("Rebel Fleet pursuit is doubled for 1 jump.");
   } else {
-    text = tx("wiki.quests.you-are-unable-to-penetrate-the");
-    extras.push(tx("wiki.quests.nothing-happens"));
+    text =
+      "You are unable to penetrate the computer's defenses. You give up and return to the ship.";
+    extras.push("Nothing happens.");
   }
   result(g, lead ? `${lead} ${text}` : text, undefined, extras);
 }
 
 /** Pirate briber. Continue is not printed. INVENTED label. The five victim results have no odds. INFERRED: equal. */
-const PIRATE_GONE: Choice[] = [{ id: "q:pirate-briber:gone", label: tx("wiki.quests.continue-3") }];
+const PIRATE_GONE: Choice[] = [{ id: "q:pirate-briber:gone", label: "Continue." }];
 
 /** Destroyed pays a random scrap-only amount. INFERRED: low, medium, and high are equal.
  *  A crew kill pays medium standard. Then the victim. */
 function pirateBriberWin(g: Game, deadCrew: boolean) {
   if (deadCrew) {
-    result(g, tx("wiki.quests.the-pirates-are-all-dead-leaving"), rollStandard(g, "medium"), [], PIRATE_GONE);
+    result(
+      g,
+      "The pirates are all dead, leaving the ship dead in space. You scrounge what you can from their ship before contacting its former prey.",
+      rollStandard(g, "medium"),
+      [],
+      PIRATE_GONE,
+    );
     return;
   }
-  result(g, tx("wiki.quests.the-pirate-explodes-leaving-behind-a"), scrapOnly(g, pick(g, ["low", "medium", "high"])), [], PIRATE_GONE);
+  result(
+    g,
+    "The pirate explodes, leaving behind a substantial collection of useful scrap material. You go to examine the ship you just saved.",
+    scrapOnly(g, pick(g, ["low", "medium", "high"])),
+    [],
+    PIRATE_GONE,
+  );
 }
 
 /**
@@ -3259,24 +4668,119 @@ function smugglePay(g: Game, pay: SmugglePay): SurrenderOffer {
 }
 
 const SMUGGLE_HULL: [SmuggleRow, number][] = [
-  [{ text: tx("wiki.quests.you-search-the-ship-and-discover"), pay: { k: "scrap", tier: "medium" }, item: "weapon" }, 1],
-  [{ text: tx("wiki.quests.the-ship-was-transporting-weaponry-you"), pay: { k: "random" }, item: "weapon" }, 1],
-  [{ text: tx("wiki.quests.searching-the-remains-you-find-that"), pay: { k: "scrap", tier: "medium" }, item: "drone" }, 1],
-  [{ text: tx("wiki.quests.you-detect-faint-life-signatures-from"), pay: { k: "standard", tier: "low" } }, 1],
-  [{ text: tx("wiki.quests.this-ship-s-cargo-was-not"), pay: { k: "scrap", tier: "medium" } }, 1],
-  [{ text: tx("wiki.quests.the-ship-was-carrying-military-supplies"), pay: { k: "standard", tier: "high" } }, 1],
-  [{ text: tx("wiki.quests.the-debris-implies-that-the-ship"), pay: { k: "parts" } }, 1],
-  [{ text: tx("wiki.quests.the-ship-was-apparently-transporting-weaponry"), pay: { k: "scrap", tier: "medium" } }, 1],
-  [{ text: tx("wiki.quests.from-the-bits-and-pieces-you"), pay: { k: "scrap", tier: "medium" } }, 1],
-  [{ text: tx("wiki.quests.the-ship-appears-to-have-been"), pay: { k: "standard", tier: "low" } }, 1],
-  [{ text: tx("wiki.quests.you-search-the-remains-of-the"), pay: { k: "standard", tier: "low" } }, 1],
+  [
+    {
+      text: "You search the ship and discover that its cargo was new military-grade weaponry! It was somehow undamaged in the fight and can easily be mounted on the ship.",
+      pay: { k: "scrap", tier: "medium" },
+      item: "weapon",
+    },
+    1,
+  ],
+  [
+    {
+      text: "The ship was transporting weaponry. You find a piece still intact, despite the battle.",
+      pay: { k: "random" },
+      item: "weapon",
+    },
+    1,
+  ],
+  [
+    {
+      text: "Searching the remains, you find that the cargo was military-grade Drone Schematics! You bring them aboard to install in your ship.",
+      pay: { k: "scrap", tier: "medium" },
+      item: "drone",
+    },
+    1,
+  ],
+  [
+    {
+      text: "You detect faint life signatures from an intact piece of the hull. They were transporting prisoners, and the sole survivor offers to join your crew, as a first step on his path to get revenge.",
+      pay: { k: "standard", tier: "low" },
+    },
+    1,
+  ],
+  [
+    {
+      text: "This ship's cargo was not salvageable. However, they seem to have been surveying the region; they possess detailed maps and data. You download what you can to the ship's map.",
+      pay: { k: "scrap", tier: "medium" },
+    },
+    1,
+  ],
+  [
+    {
+      text: "The ship was carrying military supplies. You pick up anything that looks salvageable from the debris.",
+      pay: { k: "standard", tier: "high" },
+    },
+    1,
+  ],
+  [
+    {
+      text: "The debris implies that the ship was carrying Drone Schematics, but unfortunately nothing remains. You do find functioning Drone Parts, however.",
+      pay: { k: "parts" },
+    },
+    1,
+  ],
+  [
+    {
+      text: "The ship was apparently transporting weaponry; however, nothing seems to have survived the battle.",
+      pay: { k: "scrap", tier: "medium" },
+    },
+    1,
+  ],
+  [
+    {
+      text: "From the bits and pieces you find, you decide that this ship was gathering information. Nothing seems useful.",
+      pay: { k: "scrap", tier: "medium" },
+    },
+    1,
+  ],
+  [
+    {
+      text: "The ship appears to have been transporting prisoners. Unfortunately they were all killed in the battle. You salvage what you can.",
+      pay: { k: "standard", tier: "low" },
+    },
+    1,
+  ],
+  [
+    {
+      text: "You search the remains of the ship, but only come across blueprints and debris from broken machinery. A shame, but you take what scrap you can salvage.",
+      pay: { k: "standard", tier: "low" },
+    },
+    1,
+  ],
 ];
 
 const SMUGGLE_CREW: [SmuggleRow, number][] = [
-  [{ text: tx("wiki.quests.with-the-crew-dead-you-search"), pay: { k: "scrap", tier: "medium" }, item: "weapon" }, 1],
-  [{ text: tx("wiki.quests.searching-the-remains-you-find-that-2"), pay: { k: "scrap", tier: "medium" }, item: "drone" }, 1],
-  [{ text: tx("wiki.quests.the-ship-refuses-to-fight-but"), pay: { k: "scrap", tier: "high" } }, 1],
-  [{ text: tx("wiki.quests.this-ship-was-apparently-carrying-information"), pay: { k: "scrap", tier: "medium" } }, 1],
+  [
+    {
+      text: "With the crew dead, you search the ship. You find military-grade weaponry and take what looks most useful.",
+      pay: { k: "scrap", tier: "medium" },
+      item: "weapon",
+    },
+    1,
+  ],
+  [
+    {
+      text: "Searching the remains you find that the cargo was military-grade Drone Schematics! You bring them aboard to install on your ship.",
+      pay: { k: "scrap", tier: "medium" },
+      item: "drone",
+    },
+    1,
+  ],
+  [
+    {
+      text: "The ship refuses to fight, but you still detect life signatures. Apparently this was a prisoner transport. The single survivor offers to join your crew in exchange for their freedom.",
+      pay: { k: "scrap", tier: "high" },
+    },
+    1,
+  ],
+  [
+    {
+      text: "This ship was apparently carrying information about the surrounding beacons. You download what you can to the ship's map, and scrap the rest of the ship.",
+      pay: { k: "scrap", tier: "medium" },
+    },
+    1,
+  ],
 ];
 
 /** Pirate smuggler. Template:Pirate Smuggler / Rebel Transport, destroyed and a crew kill. */
@@ -3285,7 +4789,9 @@ function smuggleCargoWin(g: Game, deadCrew: boolean) {
   result(g, row.text, smugglePay(g, row.pay), row.item ? [grantRandomItem(g, row.item)] : []);
 }
 
-const CRYSTAL_CONTACT: Choice[] = [{ id: "q:crystal-pirate:contact", label: tx("wiki.quests.contact-the-crystal-ship") }];
+const CRYSTAL_CONTACT: Choice[] = [
+  { id: "q:crystal-pirate:contact", label: "Contact the Crystal ship." },
+];
 
 /**
  * Template:Crystal Ship Saved. {{DuplicateEvent|2}} on the reward and on nothing. The printed OR is the two
@@ -3293,11 +4799,26 @@ const CRYSTAL_CONTACT: Choice[] = [{ id: "q:crystal-pirate:contact", label: tx("
  * A random amount of resources is rollStandard with no tier.
  */
 const CRYSTAL_SAVED: [string, "stuff" | "nothing" | "weapon"][] = [
-  [tx("wiki.quests.you-contact-the-other-ship-thank"), "stuff"],
-  [tx("wiki.quests.the-crystalline-ship-hails-you-it"), "stuff"],
-  [tx("wiki.quests.you-contact-the-crystalline-ship-to"), "nothing"],
-  [tx("wiki.quests.the-crystalline-ship-messages-you-you"), "nothing"],
-  [tx("wiki.quests.the-crystalline-ship-messages-you-thank"), "weapon"],
+  [
+    'You contact the other ship, "Thank you for your assistance. It\'s glad to know that not all of you foreigners are so barbaric. Take this as a reward."',
+    "stuff",
+  ],
+  [
+    'The Crystalline ship hails you, "It\'s a good thing you came when you did. We appreciate the assistance. Please take this for your help."',
+    "stuff",
+  ],
+  [
+    "You contact the Crystalline ship to hear, \"It seems you have brought war to our doorstep. I hope you're not too surprised that we don't welcome you with open arms. I should kill you myself...\" They cut communications.",
+    "nothing",
+  ],
+  [
+    "The Crystalline ship messages you, \"You're the one that opened our sector to the outside, aren't you! Bastards, my home was just overrun by your 'Rebels'. Just leave us in peace!\" They quickly jump away.",
+    "nothing",
+  ],
+  [
+    'The Crystalline ship messages you, "Thank you. We were not prepared for the savagery with which you aliens battle. We will give you one of our weapons if you intend on assisting our kind in the future."',
+    "weapon",
+  ],
 ];
 
 function crystalContact(g: Game) {
@@ -3307,10 +4828,10 @@ function crystalContact(g: Game) {
     return;
   }
   if (kind === "weapon") {
-    result(g, text, undefined, [tx("wiki.quests.you-receive-a-crystal-weapon")]);
+    result(g, text, undefined, ["You receive a Crystal weapon."]);
     return;
   }
-  result(g, text, undefined, [tx("wiki.quests.nothing-happens")]);
+  result(g, text, undefined, ["Nothing happens."]);
 }
 
 /**
@@ -3318,27 +4839,44 @@ function crystalContact(g: Game) {
  * INFERRED: the refusal is twice as likely as the join.
  */
 function rockAtheistPromise(g: Game) {
-  const join = weighted(g, [[false, 2], [true, 1]] as [boolean, number][]);
+  const join = weighted(g, [
+    [false, 2],
+    [true, 1],
+  ] as [boolean, number][]);
   if (!join) {
-    result(g, tx("wiki.quests.they-seem-tempted-by-your-offer"), undefined, [tx("wiki.quests.nothing-happens")]);
+    result(
+      g,
+      "They seem tempted by your offer, but decide they can't risk being lied to again. They close frequencies and jump away.",
+      undefined,
+      ["Nothing happens."],
+    );
     return;
   }
-  rockAtheistJoins(g, tx("wiki.quests.your-promises-gain-their-attention-and"));
+  rockAtheistJoins(
+    g,
+    "Your promises gain their attention and they agree to serve with you, for a while.",
+  );
 }
 
 /** The page names a Rockman and prints no skill. */
 function rockAtheistJoins(g: Game, text: string) {
-  const joined = joinCrew(g, tx("wiki.quests.rock"));
-  result(g, text, undefined, [joined ? tx("wiki.quests.a-rockman-crewmember-joins-you") : tx("wiki.quests.there-is-no-room-aboard-for")]);
+  const joined = joinCrew(g, "Rock");
+  result(g, text, undefined, [
+    joined ? "A Rockman crewmember joins you." : "There is no room aboard for the new crewmember.",
+  ]);
 }
 
 /** Pirate ship selling drones. The unnamed schematic is not offered. Five parts for 25 scrap stay on the static choice. */
 function pirateDroneDock(g: Game) {
-  card(g, tx("wiki.quests.a-human-in-an-exquisite-suit"), [
-    { id: "c:pirate-ship-selling-drones:0", label: tx("wiki.quests.buy-some-drone-parts-25-scrap") },
-    { id: "q:pirate-drones:nothing", label: tx("wiki.quests.buy-nothing") },
-    { id: "q:pirate-drones:upgrade", label: tx("wiki.quests.buy-drone-control-system-upgrade") },
-  ]);
+  card(
+    g,
+    'A human in an exquisite suit meets you on board. "Welcome to my ship! We specialize in drones of all kinds, can I interest you in any?"',
+    [
+      { id: "c:pirate-ship-selling-drones:0", label: "Buy some Drone parts. [25 scrap]" },
+      { id: "q:pirate-drones:nothing", label: "Buy nothing." },
+      { id: "q:pirate-drones:upgrade", label: "Buy Drone Control system upgrade." },
+    ],
+  );
 }
 
 /**
@@ -3349,20 +4887,23 @@ function salesmanMark(g: Game, room: { fire: number; breach: number; title: stri
   if (rand(g) < 0.5) {
     const n = 1 + (rand(g) < 0.5 ? 1 : 0);
     room.fire = Math.min(4, room.fire + n);
-    return n === 1 ? tx("wiki.quests.1-fire-in", { title: room.title }) : tx("wiki.quests.2-fires-in", { title: room.title });
+    return n === 1 ? `1 fire in ${room.title}.` : `2 fires in ${room.title}.`;
   }
   room.breach += 1;
-  return tx("wiki.quests.a-breach-opens-in", { title: room.title });
+  return `A breach opens in ${room.title}.`;
 }
 
 /** 1 damage to that room's system when a bar is left, plus the tooltip's effect. */
-function salesmanRoom(g: Game, room: { fire: number; breach: number; title: string; system?: string | null }): string {
+function salesmanRoom(
+  g: Game,
+  room: { fire: number; breach: number; title: string; system?: string | null },
+): string {
   const bits: string[] = [];
   const id = room.system;
   const sys = id ? g.player.systems[id as "engines"] : undefined;
   if (id && sys && sys.level > 0 && sys.damage < sys.level) {
     hurtSystem(g.player, id as "engines", 1);
-    bits.push(tx("wiki.quests.1-damage-to", { id: id }));
+    bits.push(`1 damage to ${id}.`);
   }
   bits.push(salesmanMark(g, room));
   return bits.join(" ");
@@ -3386,8 +4927,8 @@ function pirateDroneNothing(g: Game) {
   if (dead) return;
   pageFight(
     g,
-    tx("wiki.quests.ah-i-m-sorry-to-hear"),
-    tx("wiki.quests.pirate-ship"),
+    '"Ah, I\'m sorry to hear that! Pleasant journeys." Once back to the helm, a series of explosions rocks your ship. The pirate ship has powered its weapons! You receive a message, "You shouldn\'t waste people\'s time Captain!"',
+    "Pirate ship",
     "pirate-ship-selling-drones",
   );
 }
@@ -3410,24 +4951,30 @@ function pirateDroneUpgrade(g: Game) {
   g.scrap -= cost;
   kit.level = level;
   if (kit.power > kit.level) kit.power = kit.level;
-  log(g, tx("wiki.quests.scrap-4", { cost: cost }));
-  result(g, tx("wiki.quests.drone-control-at-level", { level: level }), undefined, [tx("wiki.quests.scrap-4", { cost: cost })]);
+  log(g, `Scrap: -${cost}.`);
+  result(g, `Drone Control at level ${level}.`, undefined, [`Scrap: -${cost}.`]);
 }
 
 const REBEL_CHECKPOINT_BRIBE = [
-  tx("wiki.quests.these-rebels-are-easily-swayed-by"),
-  tx("wiki.quests.like-most-rebels-these-are-just"),
-  tx("wiki.quests.as-everyone-currently-awaiting-inspection-is"),
-  tx("wiki.quests.they-eagerly-accept-your-bribe-obviously"),
+  "These Rebels are easily swayed by the prospect of additional scrap. They release the civilian ships and everyone is free to go.",
+  "Like most Rebels, these are just men trying to get by in a rough galaxy. They take your scrap and let everyone continue their journeys.",
+  "As everyone currently awaiting inspection is human anyway, the Rebels let them go. They take your scrap and tell you to hurry along.",
+  "They eagerly accept your bribe, obviously revolutionaries are under paid. The civilian ships all begin to jump away.",
 ];
 
 /** Rebel checkpoint. The packed scrap band. The four texts have no odds. INFERRED: equal. Then the civilians. */
 function rebelCheckpointBribe(g: Game, n: number) {
   if (!priced("rebel-checkpoint", "bribe", n, "scrap") || g.scrap < n) return;
   g.scrap -= n;
-  log(g, tx("wiki.quests.scrap-3", { n: n }));
+  log(g, `Scrap: -${n}.`);
   const text = pick(g, REBEL_CHECKPOINT_BRIBE);
-  card(g, tx("wiki.quests.scrap-5", { text: text, n: n }), [{ id: "q:rebel-checkpoint:contact", label: tx("wiki.quests.contact-the-civilian-ships") }]);
+  card(
+    g,
+    `${text}
+
+Scrap: -${n}.`,
+    [{ id: "q:rebel-checkpoint:contact", label: "Contact the civilian ships." }],
+  );
 }
 
 /** Contact the civilian ships. Four results and no odds. INFERRED: equal. */
@@ -3436,21 +4983,34 @@ function rebelCheckpointContact(g: Game) {
   if (kind === "fight") {
     pageFight(
       g,
-      tx("wiki.quests.one-of-the-civilian-ships-contacts"),
-      tx("wiki.quests.rebel-ship"),
+      "One of the civilian ships contacts you and reveals they are Federation loyalists. An eavesdropping Rebel swoops in, destroys the ship, and turns to attack you!",
+      "Rebel ship",
       "rebel-checkpoint",
     );
     return;
   }
   if (kind === "standard") {
-    result(g, tx("wiki.quests.one-of-the-civilian-ships-quietly"), rollStandard(g, "low"));
+    result(
+      g,
+      "One of the civilian ships quietly teleports over a crate of Federation military supplies.",
+      rollStandard(g, "low"),
+    );
     return;
   }
   if (kind === "scrap") {
-    result(g, tx("wiki.quests.some-of-the-civilians-pool-together"), scrapOnly(g, "low"));
+    result(
+      g,
+      "Some of the civilians pool together their excess scrap to try to repay you for your help.",
+      scrapOnly(g, "low"),
+    );
     return;
   }
-  result(g, tx("wiki.quests.the-civilians-are-grateful-however-none"), undefined, [tx("wiki.quests.nothing-happens")]);
+  result(
+    g,
+    "The civilians are grateful. However, none of them seem eager to be mistaken as Federation loyalists so they quickly jump away.",
+    undefined,
+    ["Nothing happens."],
+  );
 }
 
 /** Pirate ship attacking Crystal, and Mantis ship attacking Crystal.
@@ -3465,14 +5025,14 @@ function crystalPirateWin(g: Game, deadCrew: boolean) {
   // > "After killing enemy crew With the crew dead you take as much salvage from the ship as possible." — [[Pirate ship attacking Crystal]]
   // > "You receive high scrap with resources." — [[Pirate ship attacking Crystal]]
   const text = deadCrew
-    ? tx("wiki.quests.with-the-crew-dead-you-take")
-    : tx("wiki.quests.the-ship-explodes-and-you-scrap");
+    ? "With the crew dead you take as much salvage from the ship as possible."
+    : "The ship explodes and you scrap what you can.";
   result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], CRYSTAL_CONTACT);
 }
 
 const MANTIS_SLUG_AFTER: Choice[] = [
-  { id: "q:mantis-slug:leave", label: tx("wiki.quests.leave-them-be") },
-  { id: "q:mantis-slug:finish", label: tx("wiki.quests.finish-them-off") },
+  { id: "q:mantis-slug:leave", label: "Leave them be." },
+  { id: "q:mantis-slug:finish", label: "Finish them off." },
 ];
 
 /** Mantis ship attacking Slug ship. Both endings pay medium standard, then the Slug vessel. */
@@ -3482,7 +5042,7 @@ function mantisSlugSaved(g: Game) {
   // > "You receive medium scrap with resources." — [[Mantis ship attacking Slug ship]]
   result(
     g,
-    tx("wiki.quests.the-mantis-defeated-you-contact-the"),
+    'The Mantis defeated, you contact the weakened Slug vessel. "You ssseee," they begin, "we are are most grateful, but, that is, we do not currently have the liquid asssets to reward you at this time."',
     rollStandard(g, "medium"),
     [],
     MANTIS_SLUG_AFTER,
@@ -3501,7 +5061,7 @@ function mantisSlugFinish(g: Game) {
     // > "You receive an augmentation with low scrap." — [[Mantis ship attacking Slug ship]]
     result(
       g,
-      tx("wiki.quests.the-slug-captain-hails-you-a"),
+      'The Slug captain hails you: "A misstake! A sssimple misstake. Of course we can pay you! Ssseee? An augmentation has already transported." You allow them to leave with their lives.',
       scrapOnly(g, "low"),
       [grantRandomItem(g, "augment")],
     );
@@ -3512,7 +5072,7 @@ function mantisSlugFinish(g: Game) {
   // > "You receive a random amount of scrap with resources." — [[Mantis ship attacking Slug ship]]
   result(
     g,
-    tx("wiki.quests.it-doesn-t-look-like-they"),
+    "It doesn't look like they can stand much more damage. After a few shots their ship breaks apart and you move in to loot the remains.",
     rollStandard(g, pick(g, ["low", "medium", "high"])),
   );
 }
@@ -3521,47 +5081,79 @@ function mantisSlugFinish(g: Game) {
 function zoltanCheckpointFuel(g: Game, id: string, text: string) {
   const n = rollFuel(id, (lo, hi) => between(g, [lo, hi]));
   g.fuel += n;
-  log(g, tx("wiki.quests.fuel-3", { n: n }));
-  result(g, text, undefined, [tx("wiki.quests.fuel-3", { n: n })]);
+  log(g, `Fuel: ${n}.`);
+  result(g, text, undefined, [`Fuel: ${n}.`]);
 }
 
 /** The pirate is gone. Five results, no odds. INFERRED: equal. */
 function pirateGone(g: Game) {
   const kind = pick(g, ["store", "repair", "rebel", "scrap", "nothing"] as const);
   if (kind === "store") {
-    log(g, tx("wiki.quests.thank-you-for-the-aid-i"));
+    log(
+      g,
+      "Thank you for the aid! I'm an arms dealer that usually only works with rebels, but considering the circumstances I'll make an exception.",
+    );
     openStoreHere(g);
     return;
   }
   if (kind === "repair") {
-    result(g, tx("wiki.quests.thank-the-heavens-you-showed-up"), undefined, [repair(g, 15)]);
+    result(
+      g,
+      "Thank the heavens you showed up! We don't have much to offer as a reward, but our engineer should be proficient enough to patch your ship up a bit after that nasty fight.",
+      undefined,
+      [repair(g, 15)],
+    );
     return;
   }
   if (kind === "rebel") {
-    card(g, tx("wiki.quests.upon-closer-inspection-you-realize-the"), [
-      { id: "q:pirate-briber:salvage", label: tx("wiki.quests.destroy-the-ship-and-salvage-it") },
-      { id: "q:pirate-briber:delay", label: tx("wiki.quests.use-the-leverage-you-gained-by") },
-    ]);
+    card(
+      g,
+      "Upon closer inspection, you realize the ship under attack was a Rebel scout! It's too damaged to put up much of a fight.",
+      [
+        { id: "q:pirate-briber:salvage", label: "Destroy the ship and salvage it." },
+        {
+          id: "q:pirate-briber:delay",
+          label:
+            "Use the leverage you gained by saving their lives to convince them to delay the pursuing fleet.",
+        },
+      ],
+    );
     return;
   }
   if (kind === "scrap") {
-    result(g, tx("wiki.quests.you-were-too-late-a-hull"), scrapOnly(g, "medium"));
+    result(
+      g,
+      "You were too late. A hull breach deprived the crew of oxygen during your fight with the pirate. You salvage what you can.",
+      scrapOnly(g, "medium"),
+    );
     return;
   }
-  result(g, tx("wiki.quests.the-pirate-s-victim-quickly-jumps"), undefined, [tx("wiki.quests.nothing-happens")]);
+  result(
+    g,
+    "The pirate's victim quickly jumps away before you have a chance to speak to them.",
+    undefined,
+    ["Nothing happens."],
+  );
 }
 
 /** Refueling platform garbled broadcast. Both endings pay medium scrap with resources, then the station's fuel.
  *  The extra fuel is inclusive 3-5 on top of whatever rollStandard already paid. No Investigate button. */
 function garbledBroadcastWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
-    ? tx("wiki.quests.there-are-no-more-life-signs")
-    : tx("wiki.quests.the-ship-explodes-leaving-behind-a");
+    ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+    : "The ship explodes, leaving behind a collection of useful scrap material.";
   const offer = rollStandard(g, "medium");
   const extra = between(g, [3, 5]);
-  const line = tx("wiki.quests.fuel-6", { extra: extra });
+  const line = `Fuel: ${extra}.`;
   g.fuel += extra;
-  result(g, tx("wiki.quests.it-looks-as-if-the-lanius", { text: text }), offer, [line]);
+  result(
+    g,
+    `${text}
+
+It looks as if the Lanius were uninterested in the fuel reserves on the station, and there is a good amount of fuel left. You take what your ship can hold and prepare to jump to the next beacon.`,
+    offer,
+    [line],
+  );
   log(g, line);
 }
 
@@ -3569,11 +5161,15 @@ function garbledBroadcastWin(g: Game, deadCrew: boolean) {
 function refugeeZoltanWin(slug: string): Win {
   return (g, deadCrew) => {
     const text = deadCrew
-      ? tx("wiki.quests.the-zoltan-ship-now-empty-of")
-      : tx("wiki.quests.the-zoltan-ship-breaks-apart-and");
-    result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [
-      { id: `s:${slug}:contact`, label: tx("wiki.quests.contact-the-refugee-ship") },
-    ]);
+      ? "The Zoltan ship, now empty of lifeforms, provides easy salvage."
+      : "The Zoltan ship breaks apart and you salvage what you can.";
+    result(
+      g,
+      text,
+      rollStandard(g, deadCrew ? "high" : "medium"),
+      [],
+      [{ id: `s:${slug}:contact`, label: "Contact the refugee ship." }],
+    );
   };
 }
 
@@ -3582,11 +5178,20 @@ function refugeeZoltanWin(slug: string): Win {
 function refugeePirateWin(slug: string): Win {
   return (g, deadCrew) => {
     const text = deadCrew
-      ? tx("wiki.quests.the-pirate-ship-now-empty-of")
-      : tx("wiki.quests.the-pirate-ship-breaks-apart-and");
-    result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [
-      { id: deadCrew ? `s:${slug}:contact-dead` : `s:${slug}:contact`, label: tx("wiki.quests.contact-the-refugee-ship") },
-    ]);
+      ? "The pirate ship, now empty of lifeforms, provides easy salvage."
+      : "The pirate ship breaks apart and you salvage what you can.";
+    result(
+      g,
+      text,
+      rollStandard(g, deadCrew ? "high" : "medium"),
+      [],
+      [
+        {
+          id: deadCrew ? `s:${slug}:contact-dead` : `s:${slug}:contact`,
+          label: "Contact the refugee ship.",
+        },
+      ],
+    );
   };
 }
 
@@ -3594,11 +5199,15 @@ function refugeePirateWin(slug: string): Win {
  *  A crew kill is high. Then Contact the civilian ship. */
 function pirateCivilianWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
-    ? tx("wiki.quests.no-more-life-signs-detected-on-3")
-    : tx("wiki.quests.the-pirate-ship-breaks-apart-you");
-  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], [
-    { id: "q:lanius-civilian:contact", label: tx("wiki.quests.contact-the-civilian-ship") },
-  ]);
+    ? "No more life signs detected on the pirate ship. You hasten to contact the civilian ship."
+    : "The pirate ship breaks apart. You hasten to contact the civilian ship.";
+  result(
+    g,
+    text,
+    rollStandard(g, deadCrew ? "high" : "medium"),
+    [],
+    [{ id: "q:lanius-civilian:contact", label: "Contact the civilian ship." }],
+  );
 }
 
 /**
@@ -3611,21 +5220,35 @@ export const PAGE_WINS: Record<string, Win> = {
   // Wiki citations:
   // > "After destroying enemy ship or after killing enemy crew With all of the would-be pirates dead, you think it best not to return to the settlement... You prepare to jump." — [[Settlement mercenary work]]
   // > "You receive low scrap with resources." — [[Settlement mercenary work]]
-  "settlement-mercenary-work": std("low", "low", tx("wiki.quests.with-all-of-the-would-be")),
+  "settlement-mercenary-work": std(
+    "low",
+    "low",
+    "With all of the would-be pirates dead, you think it best not to return to the settlement... You prepare to jump.",
+  ),
   // The Black Raven: destroyed -> medium, deadCrew -> high scrap with resources.
   // Wiki citations:
   // > "\"The Black Raven\" breaks apart and you salvage the remains." — [[The Black Raven#Fighting the Black Raven]]
   // > "You receive medium scrap with resources." — [[The Black Raven#Fighting the Black Raven]]
   // > "The once-dreaded pirate Nights has been killed and you proceed to loot his ship." — [[The Black Raven#Fighting the Black Raven]]
   // > "You receive high scrap with resources." — [[The Black Raven#Fighting the Black Raven]]
-  "the-black-raven": std("medium", "high", tx("wiki.quests.the-black-raven-breaks-apart-and"), tx("wiki.quests.the-once-dreaded-pirate-nights-has")),
+  "the-black-raven": std(
+    "medium",
+    "high",
+    '"The Black Raven" breaks apart and you salvage the remains.',
+    "The once-dreaded pirate Nights has been killed and you proceed to loot his ship.",
+  ),
   // Zoltan ship asks to dock: destroyed -> low, deadCrew -> medium scrap with resources.
   // Wiki citations:
   // > "While you search the debris, you wonder what it was that could have provoked them to act so irrationally." — [[Zoltan ship asks to dock]]
   // > "You receive low scrap with resources." — [[Zoltan ship asks to dock]]
   // > "While you scrap their ship, you wonder what it was that could have provoked them to act so irrationally." — [[Zoltan ship asks to dock]]
   // > "You receive medium scrap with resources." — [[Zoltan ship asks to dock]]
-  "zoltan-ship-asks-to-dock": std("low", "medium", tx("wiki.quests.while-you-search-the-debris-you"), tx("wiki.quests.while-you-scrap-their-ship-you")),
+  "zoltan-ship-asks-to-dock": std(
+    "low",
+    "medium",
+    "While you search the debris, you wonder what it was that could have provoked them to act so irrationally.",
+    "While you scrap their ship, you wonder what it was that could have provoked them to act so irrationally.",
+  ),
   // ---- Other cited pages with a quest branch ----
   // Mantis ship-collectors: destroyed -> medium, deadCrew -> high scrap with resources.
   // Wiki citations:
@@ -3633,11 +5256,20 @@ export const PAGE_WINS: Record<string, Win> = {
   // > "You receive medium scrap with resources." — [[Mantis ship-collectors]]
   // > "After killing enemy crew With no more crew on board you are free to salvage what you can from the remains." — [[Mantis ship-collectors]]
   // > "You receive high scrap with resources." — [[Mantis ship-collectors]]
-  "mantis-ship-collectors": std("medium", "high", tx("wiki.quests.their-ship-breaks-apart-and-you"), tx("wiki.quests.with-no-more-crew-on-board")),
+  "mantis-ship-collectors": std(
+    "medium",
+    "high",
+    "Their ship breaks apart and you move in to scrap the remains.",
+    "With no more crew on board you are free to salvage what you can from the remains.",
+  ),
   // Rebel ship attacking Federation loyalists: "medium scrap with resources" -> "Contact the Federation ship".
-  "rebel-ship-attacking-federation-loyalists": std("medium", "medium", tx("wiki.quests.with-the-ship-destroyed-you-quickly"), tx("wiki.quests.with-the-crew-of-the-rebel"), [
-    { id: "q:loyalists:contact", label: tx("wiki.quests.contact-the-federation-ship") },
-  ]),
+  "rebel-ship-attacking-federation-loyalists": std(
+    "medium",
+    "medium",
+    "With the ship destroyed, you quickly collect useful resources.",
+    "With the crew of the Rebel ship dead, you salvage what you can.",
+    [{ id: "q:loyalists:contact", label: "Contact the Federation ship." }],
+  ),
   // Slug ship boarding Rock ship: both endings pay medium scrap, then the freighter.
   // The nothing result is printed twice. The two sentences are alternatives. INFERRED: equal.
   "slug-ship-boarding-rock-ship": (g, deadCrew) => {
@@ -3645,29 +5277,40 @@ export const PAGE_WINS: Record<string, Win> = {
     // > "After destroying enemy ship With the Slug ship destroyed, you retrieve some scrap and return to the Rock ship.After killing enemy crew With the Slugs no longer a threat, you strip the ship and return to the Rockmen." — [[Slug ship boarding Rock ship]]
     // > "You receive medium scrap with resources." — [[Slug ship boarding Rock ship]]
     const text = deadCrew
-      ? tx("wiki.quests.with-the-slugs-no-longer-a")
-      : tx("wiki.quests.with-the-slug-ship-destroyed-you");
+      ? "With the Slugs no longer a threat, you strip the ship and return to the Rockmen."
+      : "With the Slug ship destroyed, you retrieve some scrap and return to the Rock ship.";
     const extras: string[] = [];
-    if (weighted(g, [["nothing", 2], ["abandoned", 1]] as const) === "abandoned") {
+    if (
+      weighted(g, [
+        ["nothing", 2],
+        ["abandoned", 1],
+      ] as const) === "abandoned"
+    ) {
       // Wiki citations:
       // > "It appears the Rock ship was long since abandoned. You strip what you can from it." — [[Slug ship boarding Rock ship]]
       // > "You receive medium scrap with resources." — [[Slug ship boarding Rock ship]]
       const more = rollStandard(g, "medium");
       payOffer(g, more, true);
-      extras.push(tx("wiki.quests.it-appears-the-rock-ship-was"));
-      if (more.scrap) extras.push(tx("wiki.quests.scrap", { scrap: more.scrap }));
-      if (more.fuel) extras.push(tx("wiki.quests.fuel", { fuel: more.fuel }));
-      if (more.missiles) extras.push(tx("wiki.quests.missiles", { missiles: more.missiles }));
-      if (more.parts) extras.push(tx("wiki.quests.drone-parts", { parts: more.parts }));
+      extras.push(
+        "It appears the Rock ship was long since abandoned. You strip what you can from it.",
+      );
+      if (more.scrap) extras.push(`Scrap: ${more.scrap}.`);
+      if (more.fuel) extras.push(`Fuel: ${more.fuel}.`);
+      if (more.missiles) extras.push(`Missiles: ${more.missiles}.`);
+      if (more.parts) extras.push(`Drone parts: ${more.parts}.`);
       for (const line of extras.slice(1)) log(g, line);
     } else {
       // Wiki citations:
       // > "2× It appears that the Rock ship left during your battle. You doubt they could have been more ungrateful for your assistance. OR After the battle the Rock ship hails you. Their captain simply says, \"Thanks.\" and jumps away. That's pretty gracious of them, considering the Rockmen's reputation." — [[Slug ship boarding Rock ship]]
       // > "Nothing happens." — [[Slug ship boarding Rock ship]]
-      const line = weighted(g, [["left", 1], ["thanks", 1]] as const) === "left"
-        ? tx("wiki.quests.it-appears-that-the-rock-ship")
-        : tx("wiki.quests.after-the-battle-the-rock-ship");
-      extras.push(line, tx("wiki.quests.nothing-happens"));
+      const line =
+        weighted(g, [
+          ["left", 1],
+          ["thanks", 1],
+        ] as const) === "left"
+          ? "It appears that the Rock ship left during your battle. You doubt they could have been more ungrateful for your assistance."
+          : "After the battle the Rock ship hails you. Their captain simply says, \"Thanks.\" and jumps away. That's pretty gracious of them, considering the Rockmen's reputation.";
+      extras.push(line, "Nothing happens.");
     }
     result(g, text, rollStandard(g, "medium"), extras);
   },
@@ -3676,7 +5319,11 @@ export const PAGE_WINS: Record<string, Win> = {
     // Wiki citations:
     // > "After destroying enemy ship or after killing enemy crew In the time it took you to eliminate the Mantis ship the Rock must have repaired their FTL drive and jumped away. You pick the bones of both Mantis vessels." — [[Mantis ships battle for Rock freighter]]
     // > "You receive medium scrap with resources." — [[Mantis ships battle for Rock freighter]]
-    result(g, tx("wiki.quests.in-the-time-it-took-you"), rollStandard(g, "medium"));
+    result(
+      g,
+      "In the time it took you to eliminate the Mantis ship the Rock must have repaired their FTL drive and jumped away. You pick the bones of both Mantis vessels.",
+      rollStandard(g, "medium"),
+    );
   },
   // Lanius ship absorbing automated scout. Destroyed pays medium standard. A crew kill pays high. Then inspect.
   "lanius-ship-absorbing-automated-scout": laniusScoutWin,
@@ -3690,80 +5337,104 @@ export const PAGE_WINS: Record<string, Win> = {
   // The page prints no crew-kill reward.
   "auto-ship-near-sensor-station": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.you-access-the-recent-scans-from"), scrapOnly(g, "low"));
+    result(
+      g,
+      "You access the recent scans from the unguarded station. Your map has been updated with details of the surrounding area.",
+      scrapOnly(g, "low"),
+    );
   },
   // Auto-ship fight in nebula. The page prints medium scrap with resources on a destroyed ship and no crew-kill reward.
   "auto-ship-fight-in-nebula": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-explodes-leaving-behind-a-2"), rollStandard(g, "medium"));
+    result(
+      g,
+      "The ship explodes, leaving behind a substantial collection of useful scrap material.",
+      rollStandard(g, "medium"),
+    );
   },
   // Auto-ship fight (Crystal) has no choice. Arrival calls this fight.
   // The page prints the same destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward.
   "auto-ship-fight-crystal": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-explodes-leaving-behind-a-2"), rollStandard(g, "medium"));
+    result(
+      g,
+      "The ship explodes, leaving behind a substantial collection of useful scrap material.",
+      rollStandard(g, "medium"),
+    );
   },
   // Auto-ship fight near sun. The page prints the same destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward. The red giant stays on the fight slug.
   "auto-ship-fight-near-sun": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-explodes-leaving-behind-a-2"), rollStandard(g, "medium"));
+    result(
+      g,
+      "The ship explodes, leaving behind a substantial collection of useful scrap material.",
+      rollStandard(g, "medium"),
+    );
   },
   // Auto-ship fight in asteroid field. The page prints the same destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward. The asteroid field stays on the fight.
   "auto-ship-fight-in-asteroid-field": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-explodes-leaving-behind-a-2"), rollStandard(g, "medium"));
+    result(
+      g,
+      "The ship explodes, leaving behind a substantial collection of useful scrap material.",
+      rollStandard(g, "medium"),
+    );
   },
   // Auto-ship fight. The page prints the same destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward.
   "auto-ship-fight": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-explodes-leaving-behind-a-2"), rollStandard(g, "medium"));
+    result(
+      g,
+      "The ship explodes, leaving behind a substantial collection of useful scrap material.",
+      rollStandard(g, "medium"),
+    );
   },
   // Crystal ship attacking Federation loyalists. Destroyed pays medium scrap with resources.
   // A crew kill pays high. Then "You contact the Federation ship." Default salvage is not paid.
   "crystal-ship-attacking-federation-loyalists": std(
     "medium",
     "high",
-    tx("wiki.quests.the-crystalline-ship-shatters-and-you"),
-    tx("wiki.quests.the-crew-of-the-enemy-ship"),
-    [{ id: "q:crystal-loyalists:contact", label: tx("wiki.quests.you-contact-the-federation-ship") }],
+    "The Crystalline ship shatters and you pick what you can from the debris.",
+    "The crew of the enemy ship has been eliminated. You scrap what you can.",
+    [{ id: "q:crystal-loyalists:contact", label: "You contact the Federation ship." }],
   ),
   // Crystal fight with surrender offer (Human crew). Both endings pay medium scrap with resources.
   // The surrender human is a separate offer. This win does not grant a crewmember.
   "crystal-fight-with-surrender-offer-human-crew": std(
     "medium",
     "medium",
-    tx("wiki.quests.the-crystalline-ship-shatters-and-you-2"),
-    tx("wiki.quests.the-crew-of-the-enemy-ship-2"),
+    "The Crystalline ship shatters and you pick what you can from the debris. Who knows how many people you've saved by stopping this ship.",
+    "The crew of the enemy ship has been eliminated. You scrap what you can. Who knows how many people you've saved by stopping this ship.",
   ),
   // Crystal fight with surrender offer (hull repairs). Both endings pay medium scrap with resources.
   // The surrender's fuel and 8 repairs are a separate offer. This win does not repair the hull.
   "crystal-fight-with-surrender-offer-hull-repairs": std(
     "medium",
     "medium",
-    tx("wiki.quests.the-crystalline-ship-shatters-and-you-3"),
-    tx("wiki.quests.the-crew-of-the-enemy-ship-3"),
+    "The Crystalline ship shatters and you pick what you can from the debris. The rest of the convoy used the time to put a significant amount of distance between you and them. Nothing left to do but jump.",
+    "The crew of the enemy ship has been eliminated. You scrap what you can. The rest of the convoy used the time to put a significant amount of distance between you and them. Nothing left to do but jump.",
   ),
   // Rebel ship attacking civilians in Last Stand. Destroyed pays medium scrap with resources.
   // A crew kill pays high. Then contact the survivors.
   "rebel-ship-attacking-civilians-in-last-stand": std(
     "medium",
     "high",
-    tx("wiki.quests.with-the-rebel-ship-destroyed-you-2"),
-    tx("wiki.quests.with-the-rebel-ship-defeated-you"),
-    [{ id: "q:last-stand-survivors:contact", label: tx("wiki.quests.contact-the-survivors") }],
+    "With the Rebel ship destroyed you are free to contact their would-be victim.",
+    "With the Rebel ship defeated you quickly salvage what you can and move to contact their prey.",
+    [{ id: "q:last-stand-survivors:contact", label: "Contact the survivors." }],
   ),
   // Rebel ship attacking refueling outpost. Destroyed pays medium scrap with resources.
   // A crew kill pays high. Then contact the outpost.
   "rebel-ship-attacking-refueling-outpost": std(
     "medium",
     "high",
-    tx("wiki.quests.the-ship-breaks-apart-and-you"),
-    tx("wiki.quests.with-the-crew-dead-you-quickly"),
-    [{ id: "q:refuel-outpost:contact", label: tx("wiki.quests.contact-the-outpost") }],
+    "The ship breaks apart and you quickly salvage what you can.",
+    "With the crew dead you quickly salvage what you can.",
+    [{ id: "q:refuel-outpost:contact", label: "Contact the outpost." }],
   ),
   // Rebel ship attacking Crystal ship. Attack the Rebel: both endings share the bones sentence.
   // Destroyed pays medium scrap with resources. A crew kill pays high. Then contact the Crystal ship.
@@ -3773,10 +5444,10 @@ export const PAGE_WINS: Record<string, Win> = {
     rebelCrystalBones.delete(g);
     result(
       g,
-      tx("wiki.quests.the-rebels-destroyed-you-pick-the-2"),
+      "The Rebels destroyed, you pick the bones of their ship.",
       rollStandard(g, deadCrew ? "high" : "medium"),
       [],
-      [{ id: "q:rebel-crystal:contact", label: tx("wiki.quests.you-contact-the-crystal-ship") }],
+      [{ id: "q:rebel-crystal:contact", label: "You contact the Crystal ship." }],
     );
   },
   // Zoltan wise man. After the fight, both endings contact him and then he implodes.
@@ -3784,10 +5455,10 @@ export const PAGE_WINS: Record<string, Win> = {
   // The page nests the two rewards and prints no choice, so both are paid on this card.
   "zoltan-wise-man": (g, deadCrew) => {
     const lead = deadCrew
-      ? tx("wiki.quests.you-salvage-the-ship-and-contact")
-      : tx("wiki.quests.you-salvage-the-remains-and-contact");
+      ? "You salvage the ship and contact the wise man."
+      : "You salvage the remains and contact the wise man.";
     const rage =
-      tx("wiki.quests.when-he-sees-you-have-emerged");
+      "When he sees you have emerged victorious, the Zoltan wise man enters a rage. Rifts threaten to tear space apart until, instead, the Zoltan implodes, sending a blast wave of scrap and salvage dragged here from distant worlds in your direction.";
     const first = rollStandard(g, deadCrew ? "medium" : "low");
     const second = rollStandard(g, "high");
     result(g, `${lead}\n\n${rage}`, first, offerLines(g, second));
@@ -3801,8 +5472,8 @@ export const PAGE_WINS: Record<string, Win> = {
       result(
         g,
         deadCrew
-          ? tx("wiki.quests.with-their-crew-dead-you-quickly")
-          : tx("wiki.quests.the-slug-ship-breaks-apart-and"),
+          ? "With their crew dead, you quickly shut off their hacking module and your shields return to normal. You strip the ship."
+          : "The Slug ship breaks apart and your shields return to normal. You collect what you can.",
         rollStandard(g, deadCrew ? "high" : "medium"),
       );
       return;
@@ -3811,8 +5482,8 @@ export const PAGE_WINS: Record<string, Win> = {
       result(
         g,
         deadCrew
-          ? tx("wiki.quests.with-their-crew-dead-you-quickly-2")
-          : tx("wiki.quests.the-slug-ship-breaks-apart-and-2"),
+          ? "With their crew dead, you quickly shut off their hacking module and your systems return to normal. You strip the ship."
+          : "The Slug ship breaks apart and your systems return to normal. You collect what you can.",
         rollStandard(g, "medium"),
       );
       return;
@@ -3821,8 +5492,8 @@ export const PAGE_WINS: Record<string, Win> = {
       result(
         g,
         deadCrew
-          ? tx("wiki.quests.with-their-crew-dead-you-quickly-3")
-          : tx("wiki.quests.the-slug-ship-breaks-apart-and-3"),
+          ? "With their crew dead, you quickly shut off their hacking module and your weapon system returns to normal. You strip the ship."
+          : "The Slug ship breaks apart and your weapon system returns to normal. You collect what you can.",
         rollStandard(g, "high"),
       );
       return;
@@ -3831,8 +5502,8 @@ export const PAGE_WINS: Record<string, Win> = {
       result(
         g,
         deadCrew
-          ? tx("wiki.quests.with-their-crew-dead-you-quickly-3")
-          : tx("wiki.quests.the-slug-ship-breaks-apart-and-4"),
+          ? "With their crew dead, you quickly shut off their hacking module and your weapon system returns to normal. You strip the ship."
+          : "The Slug ship breaks apart and their hacking module is destroyed. You collect what you can.",
         rollStandard(g, "high"),
       );
       return;
@@ -3848,8 +5519,8 @@ export const PAGE_WINS: Record<string, Win> = {
       result(
         g,
         deadCrew
-          ? tx("wiki.quests.with-their-crew-dead-you-quickly-3")
-          : tx("wiki.quests.the-slug-ship-breaks-apart-and-4"),
+          ? "With their crew dead, you quickly shut off their hacking module and your weapon system returns to normal. You strip the ship."
+          : "The Slug ship breaks apart and their hacking module is destroyed. You collect what you can.",
         rollStandard(g, "high"),
       );
       return;
@@ -3857,8 +5528,8 @@ export const PAGE_WINS: Record<string, Win> = {
     result(
       g,
       deadCrew
-        ? tx("wiki.quests.with-their-crew-dead-their-hacking")
-        : tx("wiki.quests.the-slug-ship-breaks-apart-and-2"),
+        ? "With their crew dead, their hacking system shuts down and your systems return to normal. You strip the ship."
+        : "The Slug ship breaks apart and your systems return to normal. You collect what you can.",
       rollStandard(g, deadCrew ? "high" : "medium"),
     );
   },
@@ -3867,29 +5538,34 @@ export const PAGE_WINS: Record<string, Win> = {
   "slug-hacker-oxygen": std(
     "medium",
     "medium",
-    tx("wiki.quests.the-slug-ship-breaks-apart-and-2"),
-    tx("wiki.quests.with-their-crew-dead-their-hacking"),
+    "The Slug ship breaks apart and your systems return to normal. You collect what you can.",
+    "With their crew dead, their hacking system shuts down and your systems return to normal. You strip the ship.",
   ),
   // Slug hacker (medical). Fight a Slug ship: both endings pay high scrap with resources.
   // The medbay shutdown, the halved medbay, and the hacking shutdown already end with the fight.
   "slug-hacker-medical": std(
     "high",
     "high",
-    tx("wiki.quests.the-slug-ship-breaks-apart-and-2"),
-    tx("wiki.quests.with-their-crew-dead-you-quickly-2"),
+    "The Slug ship breaks apart and your systems return to normal. You collect what you can.",
+    "With their crew dead, you quickly shut off their hacking module and your systems return to normal. You strip the ship.",
   ),
   // Lanius fight with friendly ASB support. Destroyed pays medium scrap with resources.
   // A crew kill pays high. After the fight, two results and no odds. INFERRED: equal.
   // The battery shot itself stays on the fight. Default salvage is not paid.
   "lanius-fight-with-friendly-asb-support": (g, deadCrew) => {
     const text = deadCrew
-      ? tx("wiki.quests.no-more-life-signs-detected-on-4")
-      : tx("wiki.quests.the-ship-breaks-apart-you-decide");
+      ? "No more life signs detected on the Lanius ship. You decide to salvage it when the opportunity arises."
+      : "The ship breaks apart. You decide to salvage it when the opportunity arises.";
     const tier = deadCrew ? "high" : "medium";
-    if (weighted(g, [["repair", 1], ["leave", 1]] as const) === "repair") {
+    if (
+      weighted(g, [
+        ["repair", 1],
+        ["leave", 1],
+      ] as const) === "repair"
+    ) {
       result(
         g,
-        tx("wiki.quests.after-your-skirmish-the-fighting-dies", { text: text }),
+        `${text} After your skirmish, the fighting dies down and you're contacted by the planetary defense team. "Sorry you got caught up in that fight, stranger. No matter how many of these monsters we blow out of the sky, they just keep coming. We can patch up your ship for you."`,
         rollStandard(g, tier),
         [repair(g, 8)],
       );
@@ -3897,45 +5573,61 @@ export const PAGE_WINS: Record<string, Win> = {
     }
     result(
       g,
-      tx("wiki.quests.you-finish-off-your-assailant-with", { text: text }),
+      `${text} You finish off your assailant with the help of the Anti-Ship Battery but the fight rages on in the distance. You'd best leave before you get dragged into it again.`,
       rollStandard(g, tier),
-      [tx("wiki.quests.nothing-happens")],
+      ["Nothing happens."],
     );
   },
   // Auto-ship fight in plasma storm. Both fight paths print that destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward. The engines and cloaking escapes stay as they are.
   "auto-ship-fight-in-plasma-storm": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-explodes-leaving-behind-a-2"), rollStandard(g, "medium"));
+    result(
+      g,
+      "The ship explodes, leaving behind a substantial collection of useful scrap material.",
+      rollStandard(g, "medium"),
+    );
   },
   // Rebel ship warning. Both endings pay medium scrap with resources.
   // The 40 second run and doubled pursuit stay in wiki/escape.ts.
   "rebel-ship-warning": std(
     "medium",
     "medium",
-    tx("wiki.quests.their-ship-breaks-apart-and-you-2"),
-    tx("wiki.quests.their-ship-goes-silent-and-you"),
+    "Their ship breaks apart and you are relieved to know that you are still one step ahead of the fleet.",
+    "Their ship goes silent and you are relieved to know that you are still one step ahead of the fleet.",
   ),
   // Auto-ship warning. {{Winning|destroyed=true}}: "You receive low scrap with resources."
   // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape.ts.
   "auto-ship-warning": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-breaks-apart-and-you-2"), rollStandard(g, "low"));
+    result(
+      g,
+      "The ship breaks apart and you feel relief in the knowledge that you will hopefully still be one step ahead of the fleet.",
+      rollStandard(g, "low"),
+    );
   },
   // Auto-ship warning in nebula. Same destroyed line: "You receive low scrap with resources."
   // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape.ts.
   "auto-ship-warning-in-nebula": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-breaks-apart-and-you-2"), rollStandard(g, "low"));
+    result(
+      g,
+      "The ship breaks apart and you feel relief in the knowledge that you will hopefully still be one step ahead of the fleet.",
+      rollStandard(g, "low"),
+    );
   },
   // Auto-ship attacking civilian. Destroyed pays low standard, then Contact the civilian ship.
   // Template:Save the Civilian Ship is the same card as the Lanius civilian contact.
   // The page prints no crew-kill reward. Stay out of it is the nothing choice.
   "auto-ship-attacking-civilian": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-breaks-apart-you-hasten"), rollStandard(g, "low"), [], [
-      { id: "q:lanius-civilian:contact", label: tx("wiki.quests.contact-the-civilian-ship") },
-    ]);
+    result(
+      g,
+      "The ship breaks apart. You hasten to contact the civilian ship.",
+      rollStandard(g, "low"),
+      [],
+      [{ id: "q:lanius-civilian:contact", label: "Contact the civilian ship." }],
+    );
   },
   // Mantis ship attacking civilian. Destroyed and a crew kill both pay medium standard,
   // then Attempt to contact the civilian ship. Template:Save the Civilian Ship is the
@@ -3947,11 +5639,15 @@ export const PAGE_WINS: Record<string, Win> = {
     // > "You receive medium scrap with resources." — [[Mantis ship attacking civilian]]
     // > "Attempt to contact the civilian ship." — [[Mantis ship attacking civilian]]
     const text = deadCrew
-      ? tx("wiki.quests.no-more-life-signs-detected-on-3")
-      : tx("wiki.quests.the-mantis-ship-breaks-apart");
-    result(g, text, rollStandard(g, "medium"), [], [
-      { id: "q:lanius-civilian:contact", label: tx("wiki.quests.attempt-to-contact-the-civilian-ship") },
-    ]);
+      ? "No more life signs detected on the pirate ship. You hasten to contact the civilian ship."
+      : "The Mantis ship breaks apart.";
+    result(
+      g,
+      text,
+      rollStandard(g, "medium"),
+      [],
+      [{ id: "q:lanius-civilian:contact", label: "Attempt to contact the civilian ship." }],
+    );
   },
   // Pirate ship attacking civilian, and the Lanius variant. Destroyed pays medium standard.
   // A crew kill pays high. Then Contact the civilian ship. Template:Save the Civilian Ship
@@ -3993,12 +5689,16 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) {
       result(
         g,
-        tx("wiki.quests.there-isn-t-time-to-salvage"),
+        "There isn't time to salvage the enemy ship but your crew made off with a few nearby materials. Prepare to jump.",
         rollStandard(g, "medium"),
       );
       return;
     }
-    result(g, tx("wiki.quests.there-s-no-time-to-salvage"), scrapOnly(g, "low"));
+    result(
+      g,
+      "There's no time to salvage all of the wreck, the fleet is still nearby. Get ready to jump!",
+      scrapOnly(g, "low"),
+    );
   },
   // Rebel fight among Federation and Rebel fleets. This page prints low scrap only on a hull kill and medium scrap with resources on a crew kill.
   // The two endings are separate printed results. Default salvage is not paid.
@@ -4006,12 +5706,16 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) {
       result(
         g,
-        tx("wiki.quests.there-isn-t-time-to-salvage"),
+        "There isn't time to salvage the enemy ship but your crew made off with a few nearby materials. Prepare to jump.",
         rollStandard(g, "medium"),
       );
       return;
     }
-    result(g, tx("wiki.quests.there-s-no-time-to-salvage"), scrapOnly(g, "low"));
+    result(
+      g,
+      "There's no time to salvage all of the wreck, the fleet is still nearby. Get ready to jump!",
+      scrapOnly(g, "low"),
+    );
   },
   // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.
   // Rewards, "Fuel": T fuel and T scrap. The ion-storm sentence is the page's text. No storm duration is printed.
@@ -4020,13 +5724,21 @@ export const PAGE_WINS: Record<string, Win> = {
       // Wiki citations:
       // > "After killing enemy crew With the ship in one piece, you are able to salvage most of the fuel supplies before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
       // > "You receive high fuel and scrap." — [[Pirate ships in plasma storm]]
-      result(g, tx("wiki.quests.with-the-ship-in-one-piece"), cargoAndScrap(g, "high", "fuel"));
+      result(
+        g,
+        "With the ship in one piece, you are able to salvage most of the fuel supplies before the ion storm clears and you have to jump away.",
+        cargoAndScrap(g, "high", "fuel"),
+      );
       return;
     }
     // Wiki citations:
     // > "After destroying enemy ship The ship obliterated, only scant fuel canisters can be scavenged from the wreckage before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
     // > "You receive low fuel and scrap." — [[Pirate ships in plasma storm]]
-    result(g, tx("wiki.quests.the-ship-obliterated-only-scant-fuel"), cargoAndScrap(g, "low", "fuel"));
+    result(
+      g,
+      "The ship obliterated, only scant fuel canisters can be scavenged from the wreckage before the ion storm clears and you have to jump away.",
+      cargoAndScrap(g, "low", "fuel"),
+    );
   },
   // Destroyed: low missiles (1-2) and low scrap. Crew kill: high missiles (4-8) and high scrap.
   "pirate-ships-in-plasma-storm-ammo": (g, deadCrew) => {
@@ -4034,13 +5746,21 @@ export const PAGE_WINS: Record<string, Win> = {
       // Wiki citations:
       // > "After killing enemy crew With the ship in one piece, you are able to salvage most of the ammunition before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
       // > "You receive high missiles and scrap." — [[Pirate ships in plasma storm]]
-      result(g, tx("wiki.quests.with-the-ship-in-one-piece-2"), cargoAndScrap(g, "high", "missiles"));
+      result(
+        g,
+        "With the ship in one piece, you are able to salvage most of the ammunition before the ion storm clears and you have to jump away.",
+        cargoAndScrap(g, "high", "missiles"),
+      );
       return;
     }
     // Wiki citations:
     // > "After destroying enemy ship The ship obliterated, only scant ammunition crates can be scavenged from the wreckage before the ion storm clears and you have to jump away." — [[Pirate ships in plasma storm]]
     // > "You receive low missiles and scrap." — [[Pirate ships in plasma storm]]
-    result(g, tx("wiki.quests.the-ship-obliterated-only-scant-ammunition"), cargoAndScrap(g, "low", "missiles"));
+    result(
+      g,
+      "The ship obliterated, only scant ammunition crates can be scavenged from the wreckage before the ion storm clears and you have to jump away.",
+      cargoAndScrap(g, "low", "missiles"),
+    );
   },
   // Mantis ship attacking Slug ship. Saving the Slugs pays medium either way. Killing them pays high either way.
   "mantis-ship-attacking-slug-ship": (g) => {
@@ -4050,7 +5770,11 @@ export const PAGE_WINS: Record<string, Win> = {
     // Wiki citations:
     // > "After destroying enemy ship or after killing enemy crew At last the Slugs' prized possessions are yours for the taking. After, that is, you split your takings with the Mantis." — [[Mantis ship attacking Slug ship]]
     // > "You receive high scrap with resources." — [[Mantis ship attacking Slug ship]]
-    result(g, tx("wiki.quests.at-last-the-slugs-prized-possessions"), rollStandard(g, "high"));
+    result(
+      g,
+      "At last the Slugs' prized possessions are yours for the taking. After, that is, you split your takings with the Mantis.",
+      rollStandard(g, "high"),
+    );
   },
   // Zoltan security checkpoint, the scan fight. Destroyed pays low standard. A crew kill pays medium. The attack stays default.
   "zoltan-security-checkpoint-scan": (g, deadCrew) => {
@@ -4058,13 +5782,21 @@ export const PAGE_WINS: Record<string, Win> = {
       // Wiki citations:
       // > "After killing enemy crew You scrap what you can and prepare to jump before the other guards arrive." — [[Zoltan security checkpoint]]
       // > "You receive medium scrap with resources." — [[Zoltan security checkpoint]]
-      result(g, tx("wiki.quests.you-scrap-what-you-can-and"), rollStandard(g, "medium"));
+      result(
+        g,
+        "You scrap what you can and prepare to jump before the other guards arrive.",
+        rollStandard(g, "medium"),
+      );
       return;
     }
     // Wiki citations:
     // > "After destroying enemy ship You scrap what you can and prepare to jump before the other guards arrive." — [[Zoltan security checkpoint]]
     // > "You receive low scrap with resources." — [[Zoltan security checkpoint]]
-    result(g, tx("wiki.quests.you-scrap-what-you-can-and"), rollStandard(g, "low"));
+    result(
+      g,
+      "You scrap what you can and prepare to jump before the other guards arrive.",
+      rollStandard(g, "low"),
+    );
   },
   "pirate-ship-attacking-civilian-lanius": pirateCivilianWin,
   // Pirate ship attacking civilian distress. Same destroyed and crew-kill rewards.
@@ -4076,19 +5808,28 @@ export const PAGE_WINS: Record<string, Win> = {
     const more = rollStandard(g, "medium");
     payOffer(g, more, true);
     const extras = [
-      tx("wiki.quests.the-outpost-hails-you-after-the"),
+      'The outpost hails you after the scout was destroyed, "Thanks for the help. We\'ve been harassed non-stop by those scouts. Take this on the house."',
     ];
-    if (more.scrap) extras.push(tx("wiki.quests.scrap", { scrap: more.scrap }));
-    if (more.fuel) extras.push(tx("wiki.quests.fuel", { fuel: more.fuel }));
-    if (more.missiles) extras.push(tx("wiki.quests.missiles", { missiles: more.missiles }));
-    if (more.parts) extras.push(tx("wiki.quests.drone-parts", { parts: more.parts }));
-    result(g, tx("wiki.quests.the-ship-breaks-apart-and-you"), rollStandard(g, "low"), extras);
+    if (more.scrap) extras.push(`Scrap: ${more.scrap}.`);
+    if (more.fuel) extras.push(`Fuel: ${more.fuel}.`);
+    if (more.missiles) extras.push(`Missiles: ${more.missiles}.`);
+    if (more.parts) extras.push(`Drone parts: ${more.parts}.`);
+    result(
+      g,
+      "The ship breaks apart and you quickly salvage what you can.",
+      rollStandard(g, "low"),
+      extras,
+    );
   },
   // Auto-ship carrying shield virus. Both fights (Continue and the hacking counter) use this slug.
   // Destroyed pays medium scrap with resources. The page prints no crew-kill reward.
   "auto-ship-carrying-shield-virus": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, tx("wiki.quests.the-ship-explodes-leaving-behind-a"), rollStandard(g, "medium"));
+    result(
+      g,
+      "The ship explodes, leaving behind a collection of useful scrap material.",
+      rollStandard(g, "medium"),
+    );
   },
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
   // Lanius ship attacking civilian distress prints the same two endings and the same contact.
@@ -4097,30 +5838,54 @@ export const PAGE_WINS: Record<string, Win> = {
   // Lanius ship attacking Rock. Both endings pay medium standard, then "Contact the Rockmen."
   "lanius-ship-attacking-rock": (g, deadCrew) => {
     const text = deadCrew
-      ? tx("wiki.quests.there-are-no-more-life-signs")
-      : tx("wiki.quests.the-ship-explodes-leaving-behind-a");
-    result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-rock:contact", label: tx("wiki.quests.contact-the-rockmen") }]);
+      ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+      : "The ship explodes, leaving behind a collection of useful scrap material.";
+    result(
+      g,
+      text,
+      rollStandard(g, "medium"),
+      [],
+      [{ id: "q:lanius-rock:contact", label: "Contact the Rockmen." }],
+    );
   },
   // Lanius ship attacking Mantis. Both endings pay medium standard, then "Contact the Mantis."
   "lanius-ship-attacking-mantis": (g, deadCrew) => {
     const text = deadCrew
-      ? tx("wiki.quests.there-are-no-more-life-signs")
-      : tx("wiki.quests.the-ship-explodes-leaving-behind-a");
-    result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-mantis:contact", label: tx("wiki.quests.contact-the-mantis") }]);
+      ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+      : "The ship explodes, leaving behind a collection of useful scrap material.";
+    result(
+      g,
+      text,
+      rollStandard(g, "medium"),
+      [],
+      [{ id: "q:lanius-mantis:contact", label: "Contact the Mantis." }],
+    );
   },
   // Lanius ship attacking Slug. Both endings pay medium standard, then "Contact the Slugs."
   "lanius-ship-attacking-slug": (g, deadCrew) => {
     const text = deadCrew
-      ? tx("wiki.quests.there-are-no-more-life-signs")
-      : tx("wiki.quests.the-ship-explodes-leaving-behind-a");
-    result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-slug:contact", label: tx("wiki.quests.contact-the-slugs") }]);
+      ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+      : "The ship explodes, leaving behind a collection of useful scrap material.";
+    result(
+      g,
+      text,
+      rollStandard(g, "medium"),
+      [],
+      [{ id: "q:lanius-slug:contact", label: "Contact the Slugs." }],
+    );
   },
   // Lanius ship in rich debris field. Both fights pay medium standard, then "Investigate the debris."
   "lanius-ship-in-rich-debris-field": (g, deadCrew) => {
     const text = deadCrew
-      ? tx("wiki.quests.there-are-no-more-life-signs")
-      : tx("wiki.quests.the-ship-explodes-leaving-behind-a");
-    result(g, text, rollStandard(g, "medium"), [], [{ id: "q:lanius-debris:investigate", label: tx("wiki.quests.investigate-the-debris") }]);
+      ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
+      : "The ship explodes, leaving behind a collection of useful scrap material.";
+    result(
+      g,
+      text,
+      rollStandard(g, "medium"),
+      [],
+      [{ id: "q:lanius-debris:investigate", label: "Investigate the debris." }],
+    );
   },
   // Refueling platform garbled broadcast. Every Lanius fight on the page, including the hail.
   // Both endings pay medium scrap with resources, then 3-5 fuel from the station. Not default salvage.
@@ -4128,9 +5893,14 @@ export const PAGE_WINS: Record<string, Win> = {
   // Engi smashed ships. Both endings explain the consolidation, then nothing. Default salvage is not paid.
   "engi-smashed-ships": (g, deadCrew) => {
     const hail = deadCrew
-      ? tx("wiki.quests.with-the-ship-disabled-the-remaining")
-      : tx("wiki.quests.with-the-ship-destroyed-the-remaining");
-    result(g, tx("wiki.quests.apparently-you-interrupted-the-equivalent-of", { hail: hail }), undefined, [tx("wiki.quests.nothing-happens")]);
+      ? "With the ship disabled, the remaining Engi hails you frantically and explains the situation to you."
+      : "With the ship destroyed, the remaining Engi hails you frantically and explains the situation to you.";
+    result(
+      g,
+      `${hail} Apparently, you interrupted the equivalent of a "consolidation" of two ships that were using each other's parts to construct a new vessel. The Engi were not truly hostile, their targeting computers had not finished adjusting. There's nothing to be done about it now. You leave the remains for the surviving ship.`,
+      undefined,
+      ["Nothing happens."],
+    );
   },
   // Rock and Slug standoff. Destroyed pays low standard. A crew kill pays medium. Then the Slug captain.
   "rock-and-slug-standoff": (g, deadCrew) => {
@@ -4138,32 +5908,58 @@ export const PAGE_WINS: Record<string, Win> = {
       // Wiki citations:
       // > "After killing enemy crew With the Rock crew dead, you scrap the ship for supplies." — [[Rock and Slug standoff]]
       // > "You receive medium scrap with resources." — [[Rock and Slug standoff]]
-      slugCaptainGrateful(g, tx("wiki.quests.with-the-rock-crew-dead-you"), offerLines(g, rollStandard(g, "medium")));
+      slugCaptainGrateful(
+        g,
+        "With the Rock crew dead, you scrap the ship for supplies.",
+        offerLines(g, rollStandard(g, "medium")),
+      );
       return;
     }
     // Wiki citations:
     // > "After destroying enemy ship With the Rock Ship destroyed, you take the time to collect what little scrap remains." — [[Rock and Slug standoff]]
     // > "You receive low scrap with resources." — [[Rock and Slug standoff]]
-    slugCaptainGrateful(g, tx("wiki.quests.with-the-rock-ship-destroyed-you"), offerLines(g, rollStandard(g, "low")));
+    slugCaptainGrateful(
+      g,
+      "With the Rock Ship destroyed, you take the time to collect what little scrap remains.",
+      offerLines(g, rollStandard(g, "low")),
+    );
   },
   // Legendary thief KazaaakplethKilik: destroyed -> medium; deadCrew opens the strip / survivors card.
   "legendary-thief-kazaaakplethkilik": (g, deadCrew) => {
     if (!deadCrew) {
-      result(g, tx("wiki.quests.kazaaakplethkilik-fights-to-the-last-and"), rollStandard(g, "medium"));
+      result(
+        g,
+        "KazaaakplethKilik fights to the last, and you pick the scraps from the corpse of his ship. You sense, though, that his death has left a great mystery unresolved.",
+        rollStandard(g, "medium"),
+      );
       return;
     }
-    const choices: Choice[] = [{ id: "q:thief:strip", label: tx("wiki.quests.move-in-to-strip-their-ship") }];
+    const choices: Choice[] = [{ id: "q:thief:strip", label: "Move in to strip their ship." }];
     // {{Blue Option|Teleporter|...}}, {{Blue Option|Sensors|...|level=3}}.
-    if (hasTeleporter(g)) choices.push({ id: "q:thief:teleport", label: tx("wiki.quests.quickly-teleport-additional-crew-and-check") });
-    if (sensors(g) >= 3) choices.push({ id: "q:thief:scan", label: tx("wiki.quests.quickly-scan-their-ship-for-survivors") });
-    card(g, tx("wiki.quests.no-more-life-signs-are-detected"), choices);
+    if (hasTeleporter(g))
+      choices.push({
+        id: "q:thief:teleport",
+        label: "Quickly teleport additional crew and check for survivors.",
+      });
+    if (sensors(g) >= 3)
+      choices.push({ id: "q:thief:scan", label: "Quickly scan their ship for survivors." });
+    card(g, "No more life signs are detected aboard their ship.  You appear to have won.", choices);
   },
   // ---- Quest-marker fights ----
-  "quest-mantis-war-camp": std("medium", "high", tx("wiki.quests.with-the-patrol-ship-destroyed-you"), tx("wiki.quests.with-the-patrol-ship-taken-care")),
+  "quest-mantis-war-camp": std(
+    "medium",
+    "high",
+    "With the patrol ship destroyed you hasten to leave. It won't be long before the other ships catch up.",
+    "With the patrol ship taken care of you hasten to leave. It won't be long before the other ships catch up.",
+  ),
   // Space station under construction: destroyed -> medium, deadCrew -> high; then "Contact the cargo ship." -> medium scrap.
-  "quest-space-station-rebel": std("medium", "high", tx("wiki.quests.you-quickly-salvage-what-you-can"), tx("wiki.quests.you-quickly-salvage-what-you-can"), [
-    { id: "q:station:contact", label: tx("wiki.quests.contact-the-cargo-ship") },
-  ]),
+  "quest-space-station-rebel": std(
+    "medium",
+    "high",
+    "You quickly salvage what you can from the ship.",
+    "You quickly salvage what you can from the ship.",
+    [{ id: "q:station:contact", label: "Contact the cargo ship." }],
+  ),
   // Mantis ship-collectors marker: "a weapon and medium" / "a weapon and high scrap with resources". The weapon is not
   // named: Rewards, "Weapon": "A random weapon & T scrap."
   "quest-mantis-chase": (g, deadCrew) => {
@@ -4172,7 +5968,9 @@ export const PAGE_WINS: Record<string, Win> = {
     // > "You receive a weapon and medium scrap with resources." — [[Mantis ship-collectors#Quest Marker]]
     // > "After killing enemy crew You find an intact weapon on their now empty ship. You take as much scrap from the ships as possible." — [[Mantis ship-collectors#Quest Marker]]
     // > "You receive a weapon and high scrap with resources." — [[Mantis ship-collectors#Quest Marker]]
-    const text = deadCrew ? tx("wiki.quests.you-find-an-intact-weapon-on") : tx("wiki.quests.their-ship-breaks-apart-and-you-3");
+    const text = deadCrew
+      ? "You find an intact weapon on their now empty ship. You take as much scrap from the ships as possible."
+      : "Their ship breaks apart and you salvage the two ships.";
     result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [grantRandomItem(g, "weapon")]);
   },
   // Slug comm tapping marker: Engage -> medium / high; Head for the cache -> low / medium (scrap with resources).
@@ -4181,13 +5979,22 @@ export const PAGE_WINS: Record<string, Win> = {
   // > "After killing enemy crew With the pirate defeated you scan the debris for anything useful. The Slug ship is long gone, spoils from the cache in hand." — [[Slug comm tapping#Quest Marker]]
   // > "You receive medium scrap with resources." — [[Slug comm tapping#Quest Marker]]
   // > "You receive high scrap with resources." — [[Slug comm tapping#Quest Marker]]
-  "quest-slug-pirate-trap-engage": std("medium", "high", tx("wiki.quests.with-the-pirate-defeated-you-scan")),
+  "quest-slug-pirate-trap-engage": std(
+    "medium",
+    "high",
+    "With the pirate defeated you scan the debris for anything useful. The Slug ship is long gone, spoils from the cache in hand.",
+  ),
   // Wiki citations:
   // > "With the pirate taken care of, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship." — [[Slug comm tapping#Quest Marker]]
   // > "You receive low scrap with resources." — [[Slug comm tapping#Quest Marker]]
   // > "With the pirate defeated, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship." — [[Slug comm tapping#Quest Marker]]
   // > "You receive medium scrap with resources." — [[Slug comm tapping#Quest Marker]]
-  "quest-slug-pirate-trap-cache": std("low", "medium", tx("wiki.quests.with-the-pirate-taken-care-of"), tx("wiki.quests.with-the-pirate-defeated-you-search")),
+  "quest-slug-pirate-trap-cache": std(
+    "low",
+    "medium",
+    "With the pirate taken care of, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship.",
+    "With the pirate defeated, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship.",
+  ),
   // Engi fleet discussion, real marker: deadCrew -> "high scrap with resources and a final quest marker". The page prints
   // no destroyed result. INFERRED: a destroyed ship pays the default reward and the trail is lost.
   "quest-engi-real": (g, deadCrew) => {
@@ -4195,48 +6002,93 @@ export const PAGE_WINS: Record<string, Win> = {
     // Wiki citations:
     // > "Once their crew is dead you scan the log for information regarding the envoy. You're in luck! It seems ships matching the thieves' description passed through here not too long ago. You strip the ship and prepare to pursue them." — [[Engi fleet discussion#First Quest Marker (Real)]]
     // > "You receive high scrap with resources and a final quest marker is added to your map." — [[Engi fleet discussion#First Quest Marker (Real)]]
-    result(g, tx("wiki.quests.once-their-crew-is-dead-you"), rollStandard(g, "high"), [addQuest(g, "engi-final")]);
+    result(
+      g,
+      "Once their crew is dead you scan the log for information regarding the envoy. You're in luck! It seems ships matching the thieves' description passed through here not too long ago. You strip the ship and prepare to pursue them.",
+      rollStandard(g, "high"),
+      [addQuest(g, "engi-final")],
+    );
   },
   // Fake marker: destroyed / deadCrew -> medium scrap with resources.
   // Wiki citations:
   // > "You take what you can from the debris." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
   // > "A quick search of their communication logs shows that the tech you were searching for never passed through this base... It must have been a decoy! You strip what you can and prepare to jump." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
   // > "You receive medium scrap with resources." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
-  "quest-engi-fake": std("medium", "medium", tx("wiki.quests.you-take-what-you-can-from"), tx("wiki.quests.a-quick-search-of-their-communication")),
+  "quest-engi-fake": std(
+    "medium",
+    "medium",
+    "You take what you can from the debris.",
+    "A quick search of their communication logs shows that the tech you were searching for never passed through this base... It must have been a decoy! You strip what you can and prepare to jump.",
+  ),
   // Final marker: destroyed -> Victory; deadCrew -> medium scrap with resources, then Victory.
   "quest-engi-final": (g, deadCrew) => {
     if (deadCrew) {
       // Wiki citations:
       // > "You strip what you can and contact the Engi ships." — [[Engi fleet discussion#Final Quest Marker]]
       // > "You receive medium scrap with resources." — [[Engi fleet discussion#Final Quest Marker]]
-      engiVictory(g, tx("wiki.quests.you-strip-what-you-can-and"), rollStandard(g, "medium"));
+      engiVictory(
+        g,
+        "You strip what you can and contact the Engi ships.",
+        rollStandard(g, "medium"),
+      );
     } else engiVictory(g);
   },
   // Slug Home Nebula marker: the platform guard -> high scrap with resources.
-  "quest-slug-platform": std("high", "high", tx("wiki.quests.with-the-assault-ship-taken-care")),
+  "quest-slug-platform": std(
+    "high",
+    "high",
+    "With the assault ship taken care of, you turn your attention to the construction platform. However, you find that it has long since disappeared into the clouds. You scrap what you can and prepare to move on.",
+  ),
   // The interceptor: "receive high scrap with resources and Slug Repair Gel augmentation". The Slug Cruiser unlock is the grantUnlock line.
   "quest-slug-interceptor": (g) => {
     // Wiki citations:
     // > "After destroying enemy ship or after killing enemy crew With the escort destroyed you take a look at your impressive prize. Your mission is too pressing to take a test flight. Before you rig the ship's computer to guide the it back to the main Federation hangar you discover a unique augment that duplicates the Slug's ability to heal breaches!" — [[Slug Home Nebula surrender#Fight the interceptor]]
     // > "You unlock the Slug Cruiser; receive high scrap with resources and Slug Repair Gel augmentation." — [[Slug Home Nebula surrender#Fight the interceptor]]
     grantUnlock(g, "slug-a"); // @agent:unlocks. Slug Home Nebula surrender: "You unlock the Slug Cruiser".
-    result(g, tx("wiki.quests.with-the-escort-destroyed-you-take"), rollStandard(g, "high"), [grantAug(g, "gel")]);
+    result(
+      g,
+      "With the escort destroyed you take a look at your impressive prize. Your mission is too pressing to take a test flight. Before you rig the ship's computer to guide the it back to the main Federation hangar you discover a unique augment that duplicates the Slug's ability to heal breaches!",
+      rollStandard(g, "high"),
+      [grantAug(g, "gel")],
+    );
   },
   // Settlement mercenary work marker: "medium scrap, your ship receives 5 repairs and a store opens."
   "quest-store-rescue": (g) => {
     // Wiki citations:
     // > "The outpost hails you, \"Thank you! I don't know what we did to anger the Rebels, but they were ready to kill us. I'll show you our goods and patch up your hull.\"" — [[Settlement mercenary work#Quest marker]]
     // > "You receive medium scrap, your ship receives 5 repairs and a store opens." — [[Settlement mercenary work#Quest marker]]
-    result(g, tx("wiki.quests.the-outpost-hails-you-thank-you"), scrapOnly(g, "medium"), [repair(g, 5)], STORE_CHOICES);
+    result(
+      g,
+      "The outpost hails you, \"Thank you! I don't know what we did to anger the Rebels, but they were ready to kill us. I'll show you our goods and patch up your hull.\"",
+      scrapOnly(g, "medium"),
+      [repair(g, 5)],
+      STORE_CHOICES,
+    );
   },
   // Federation Base Assist (Auto-ship, weapon contact): "low scrap with resources", then that contact.
-  "quest-fed-assist": std("low", "low", tx("wiki.quests.you-scrap-the-wreckage"), tx("wiki.quests.you-scrap-the-wreckage"), [{ id: "q:fed-assist:contact", label: tx("wiki.quests.contact-the-federation-outpost") }]),
+  "quest-fed-assist": std("low", "low", "You scrap the wreckage.", "You scrap the wreckage.", [
+    { id: "q:fed-assist:contact", label: "Contact the Federation outpost." },
+  ]),
   // The other non-AE Auto-ship. Same salvage, then the repair contact.
-  "quest-fed-assist-repair": std("low", "low", tx("wiki.quests.you-scrap-the-wreckage"), tx("wiki.quests.you-scrap-the-wreckage"), [{ id: "q:fed-assist-repair:contact", label: tx("wiki.quests.contact-the-federation-outpost") }]),
+  "quest-fed-assist-repair": std(
+    "low",
+    "low",
+    "You scrap the wreckage.",
+    "You scrap the wreckage.",
+    [{ id: "q:fed-assist-repair:contact", label: "Contact the Federation outpost." }],
+  ),
   // AE Auto-ship. Destroyed, and INFERRED a crew-kill the template does not list, both use this sentence and low scrap.
-  "quest-fed-assist-asb": std("low", "low", tx("wiki.quests.you-scrap-the-wreckage"), tx("wiki.quests.you-scrap-the-wreckage"), [{ id: "q:fed-assist-asb:contact", label: tx("wiki.quests.contact-the-federation-outpost") }]),
+  "quest-fed-assist-asb": std("low", "low", "You scrap the wreckage.", "You scrap the wreckage.", [
+    { id: "q:fed-assist-asb:contact", label: "Contact the Federation outpost." },
+  ]),
   // AE Elite Rebel. Destroyed is low scrap with resources; a crew kill is medium. Then the outpost contact.
-  "quest-fed-assist-wing": std("low", "medium", tx("wiki.quests.you-scrap-the-wreckage"), tx("wiki.quests.with-the-crew-dead-you-scrap"), [{ id: "q:fed-assist-wing:contact", label: tx("wiki.quests.contact-the-federation-outpost") }]),
+  "quest-fed-assist-wing": std(
+    "low",
+    "medium",
+    "You scrap the wreckage.",
+    "With the crew dead, you scrap the ship.",
+    [{ id: "q:fed-assist-wing:contact", label: "Contact the Federation outpost." }],
+  ),
 };
 
 /**
@@ -4255,11 +6107,19 @@ export function pageWin(g: Game, slug: string | null | undefined, deadCrew: bool
 const GOT_AWAY: Record<string, (g: Game) => void> = {
   // Pirate briber. Escape pays no fight scrap. Then the victim.
   "pirate-briber": (g) => {
-    card(g, tx("wiki.quests.the-pirate-has-abandoned-pursuit-of"), PIRATE_GONE);
+    card(
+      g,
+      "The pirate has abandoned pursuit of both you and its former prey. You attempt to hail the damaged ship.",
+      PIRATE_GONE,
+    );
   },
   // Lanius ship absorbing automated scout. Escape pays no fight scrap. Then inspect.
   "lanius-ship-absorbing-automated-scout": (g) => {
-    card(g, tx("wiki.quests.the-lanius-ship-has-escaped-you"), SCOUT_INSPECT);
+    card(
+      g,
+      "The Lanius ship has escaped. You move to inspect the automated Rebel ship that it was absorbing.",
+      SCOUT_INSPECT,
+    );
   },
   // Mantis ship-collectors: "After them!" -> quest marker / "Forget it." -> nothing.
   "mantis-ship-collectors": (g) => {
@@ -4267,43 +6127,64 @@ const GOT_AWAY: Record<string, (g: Game) => void> = {
     // > "The ship made an emergency FTL jump, but it looks like they didn't mask their signatures. You could easily follow them if you want." — [[Mantis ship-collectors]]
     // > "After them!" — [[Mantis ship-collectors]]
     // > "Forget it." — [[Mantis ship-collectors]]
-    card(g, tx("wiki.quests.the-ship-made-an-emergency-ftl"), [
-      { id: "q:mantis-collectors:follow", label: tx("wiki.quests.after-them") },
-      { id: "q:mantis-collectors:forget", label: tx("wiki.quests.forget-it") },
-    ]);
+    card(
+      g,
+      "The ship made an emergency FTL jump, but it looks like they didn't mask their signatures. You could easily follow them if you want.",
+      [
+        { id: "q:mantis-collectors:follow", label: "After them!" },
+        { id: "q:mantis-collectors:forget", label: "Forget it." },
+      ],
+    );
   },
   "quest-mantis-chase": (g) => {
     // Wiki citations:
     // > "Looks like they got away. At least you're able to scrap their abandoned fighter." — [[Mantis ship-collectors#Quest Marker]]
     // > "You receive high scrap with resources." — [[Mantis ship-collectors#Quest Marker]]
-    result(g, tx("wiki.quests.looks-like-they-got-away-at"), rollStandard(g, "high"));
+    result(
+      g,
+      "Looks like they got away. At least you're able to scrap their abandoned fighter.",
+      rollStandard(g, "high"),
+    );
   },
   // "Nothing happens. [unlock quest is failed]"
   "quest-engi-real": (g) => {
     // Wiki citations:
     // > "With the ship gone, you search through the abandoned base for any signs of their destination but find none." — [[Engi fleet discussion#First Quest Marker (Real)]]
-    result(g, tx("wiki.quests.with-the-ship-gone-you-search"));
+    result(
+      g,
+      "With the ship gone, you search through the abandoned base for any signs of their destination but find none.",
+    );
   },
   "quest-engi-fake": (g) => {
     // Wiki citations:
     // > "With the ship gone you search through the abandoned base for any signs of their destination but find none." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
-    result(g, tx("wiki.quests.with-the-ship-gone-you-search-2"));
+    result(
+      g,
+      "With the ship gone you search through the abandoned base for any signs of their destination but find none.",
+    );
   },
   "quest-slug-interceptor": (g) => {
     // Wiki citations:
     // > "After the ship successfully escaped The interceptor jumps away with the cruiser linked to its FTL signatures. You were so close..." — [[Slug Home Nebula surrender#Fight the interceptor]]
-    result(g, tx("wiki.quests.the-interceptor-jumps-away-with-the"));
+    result(
+      g,
+      "The interceptor jumps away with the cruiser linked to its FTL signatures. You were so close...",
+    );
   },
   // The mid-run sentence "After watching their squadron get destroyed, it looks like their leader is prepared to turn tail and run." has no separate card hook.
   "quest-fed-assist-wing": (g) => {
-    card(g, tx("wiki.quests.the-rebel-ship-jumped-away"), [{ id: "q:fed-assist-wing:contact", label: tx("wiki.quests.contact-the-federation-outpost") }]);
+    card(g, "The Rebel ship jumped away.", [
+      { id: "q:fed-assist-wing:contact", label: "Contact the Federation outpost." },
+    ]);
   },
   // Rebel ship warning. The escape already doubles pursuit (sim.ts). This card prints the page's sentence.
   "rebel-ship-warning": (g) => {
     card(
       g,
-      tx("wiki.quests.the-scout-jumps-away-they-are"),
-      [{ id: "ack", label: tx("wiki.quests.continue") }],
+      `The scout jumps away. They are sure to have informed the fleet of your position. You must get to the next Sector as soon as possible!
+
+Rebel Fleet pursuit is doubled.`,
+      [{ id: "ack", label: "Continue" }],
     );
   },
 };

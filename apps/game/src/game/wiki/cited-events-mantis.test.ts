@@ -15,7 +15,6 @@ const TITLES = [
   "Store (Mantis)",
 ] as const;
 
-
 function slugOf(title: string): string {
   return title
     .toLowerCase()
@@ -42,7 +41,10 @@ function fxNumbers(fx: CitedFx): number[] {
 async function pageText(title: string): Promise<string> {
   const lines = createInterface({ input: createReadStream(DUMP), crlfDelay: Infinity });
   for await (const line of lines) {
-    if (!line.includes(`"title": ${JSON.stringify(title)}`) && !line.includes(`"title":${JSON.stringify(title)}`)) {
+    if (
+      !line.includes(`"title": ${JSON.stringify(title)}`) &&
+      !line.includes(`"title":${JSON.stringify(title)}`)
+    ) {
       continue;
     }
     const page = JSON.parse(line) as { title?: string; text?: string };
@@ -62,7 +64,10 @@ describe("cited mantis events", () => {
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Boarders: Mantis]]
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Escape pod]]
     const allowed = new Set<string>(TITLES);
-    const src = readFileSync(new URL("./cited-events-mantis.ts", import.meta.url), "utf8");
+    const src = readFileSync(
+      new URL("../../../../../packages/catalog/src/wiki/cited-events-mantis.ts", import.meta.url),
+      "utf8",
+    );
     assert.ok(EXTRA_EVENTS.length >= 1);
     for (const ev of EXTRA_EVENTS) {
       assert.ok(allowed.has(ev.dest), ev.dest);

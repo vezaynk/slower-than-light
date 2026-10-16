@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import type { Beacon, Difficulty, Game, GameEvent } from "../types.ts";
 import { mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
@@ -11,7 +10,20 @@ import { CITED_LOCKS } from "./choice-reqs.ts";
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
-import { allMantisCrew, between, closeFight, crystalBoarders, humanBoarders, joinCrew, mantisBoarders, pageCard, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
+import {
+  allMantisCrew,
+  between,
+  closeFight,
+  crystalBoarders,
+  humanBoarders,
+  joinCrew,
+  mantisBoarders,
+  pageCard,
+  plasmaHumanBoarders,
+  rockBoarders,
+  slugBoarders,
+  zoltanBoarders,
+} from "./surrender.ts";
 import { rollPrice } from "./event-prices.ts";
 import { eventGrade, rollGrade } from "./event-grades.ts";
 import { addQuest, result } from "./quests.ts";
@@ -53,7 +65,9 @@ export function citedFriendlyAsb(id: string): boolean {
   return id === "c:lanius-fight-with-friendly-asb-support:0";
 }
 
-export function citedSystemHalf(id: string): Array<"shields" | "oxygen" | "weapons" | "engines"> | null {
+export function citedSystemHalf(
+  id: string,
+): Array<"shields" | "oxygen" | "weapons" | "engines"> | null {
   if (id === "c:slug-hacker-choice:0") return ["shields"];
   if (id === "c:slug-hacker-choice:1") return ["oxygen"];
   if (id === "c:slug-hacker-choice:2") return ["weapons"];
@@ -103,16 +117,70 @@ type EventDef = {
 
 /** Template:Scrap rewards, Low column, sectors 1–8. Easy, Normal, Hard. */
 const SCRAP_LOW: Record<Difficulty, [number, number][]> = {
-  easy: [[10, 14], [13, 18], [16, 23], [19, 27], [22, 31], [25, 35], [28, 39], [31, 44]],
-  normal: [[7, 10], [10, 14], [13, 18], [16, 23], [19, 27], [22, 31], [25, 35], [28, 39]],
-  hard: [[7, 10], [7, 10], [10, 14], [13, 18], [16, 23], [19, 27], [22, 31], [25, 35]],
+  easy: [
+    [10, 14],
+    [13, 18],
+    [16, 23],
+    [19, 27],
+    [22, 31],
+    [25, 35],
+    [28, 39],
+    [31, 44],
+  ],
+  normal: [
+    [7, 10],
+    [10, 14],
+    [13, 18],
+    [16, 23],
+    [19, 27],
+    [22, 31],
+    [25, 35],
+    [28, 39],
+  ],
+  hard: [
+    [7, 10],
+    [7, 10],
+    [10, 14],
+    [13, 18],
+    [16, 23],
+    [19, 27],
+    [22, 31],
+    [25, 35],
+  ],
 };
 
 /** Template:Scrap rewards, High column, sectors 1–8. Easy, Normal, Hard. */
 const SCRAP_HIGH: Record<Difficulty, [number, number][]> = {
-  easy: [[27, 32], [35, 41], [42, 51], [50, 60], [58, 69], [66, 79], [74, 88], [81, 97]],
-  normal: [[19, 23], [27, 32], [35, 41], [42, 51], [50, 60], [58, 69], [66, 79], [74, 88]],
-  hard: [[19, 23], [19, 23], [27, 32], [35, 41], [42, 51], [50, 60], [58, 69], [66, 79]],
+  easy: [
+    [27, 32],
+    [35, 41],
+    [42, 51],
+    [50, 60],
+    [58, 69],
+    [66, 79],
+    [74, 88],
+    [81, 97],
+  ],
+  normal: [
+    [19, 23],
+    [27, 32],
+    [35, 41],
+    [42, 51],
+    [50, 60],
+    [58, 69],
+    [66, 79],
+    [74, 88],
+  ],
+  hard: [
+    [19, 23],
+    [19, 23],
+    [27, 32],
+    [35, 41],
+    [42, 51],
+    [50, 60],
+    [58, 69],
+    [66, 79],
+  ],
 };
 
 const RES_WORD: Record<ResId, string> = {
@@ -168,12 +236,13 @@ function findChoice(id: string): ChoiceDef | null {
 
 type TradeRes = "fuel" | "missiles" | "parts";
 
-const TRADE_RESOURCES_TAKE = /^c:trade-resources:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
+const TRADE_RESOURCES_TAKE =
+  /^c:trade-resources:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
 
 // Trade resources in nebula. One intro and the same four offers, and no odds.
 // INFERRED: each offer is equally likely. The numbers are rolled once and stay on Trade.
 const TRADE_RESOURCES_NEBULA_INTRO =
-  tx("wiki.cited-events.it-s-hard-to-see-why");
+  "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal.";
 
 const TRADE_RESOURCES_NEBULA_TAKE =
   /^c:trade-resources-in-nebula:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
@@ -183,7 +252,7 @@ function tradeTake(id: string): RegExpExecArray | null {
 }
 
 function tradeNote(id: TradeRes, n: number): string {
-  const word = id === "fuel" ? tx("wiki.cited-events.fuel") : id === "missiles" ? tx("wiki.cited-events.missiles") : tx("wiki.cited-events.drone-parts");
+  const word = id === "fuel" ? "Fuel" : id === "missiles" ? "Missiles" : "Drone parts";
   return `${word}: ${n}.`;
 }
 
@@ -207,13 +276,13 @@ function tradeResourcesEvent(g: Game, title: string): GameEvent {
   const offer = rows[between(g, [0, rows.length - 1])]!;
   const cost = between(g, offer.cost);
   const gain = between(g, offer.gain);
-  const sentence = tx("wiki.cited-events.you-lose-and-receive", { cost: cost, v: RES_WORD[offer.pay], gain: gain, v2: RES_WORD[offer.get] });
+  const sentence = `You lose ${cost} ${RES_WORD[offer.pay]} and receive ${gain} ${RES_WORD[offer.get]}.`;
   return {
     title,
     body: `${intro} ${sentence}`,
     choices: [
-      { id: `c:trade-resources:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: tx("wiki.cited-events.trade") },
-      { id: "c:trade-resources:4", label: tx("wiki.cited-events.ignore") },
+      { id: `c:trade-resources:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: "Trade." },
+      { id: "c:trade-resources:4", label: "Ignore." },
     ],
   };
 }
@@ -223,13 +292,16 @@ function tradeResourcesNebulaEvent(g: Game, title: string): GameEvent {
   const offer = rows[between(g, [0, rows.length - 1])]!;
   const cost = between(g, offer.cost);
   const gain = between(g, offer.gain);
-  const sentence = tx("wiki.cited-events.you-lose-and-receive", { cost: cost, v: RES_WORD[offer.pay], gain: gain, v2: RES_WORD[offer.get] });
+  const sentence = `You lose ${cost} ${RES_WORD[offer.pay]} and receive ${gain} ${RES_WORD[offer.get]}.`;
   return {
     title,
     body: `${TRADE_RESOURCES_NEBULA_INTRO} ${sentence}`,
     choices: [
-      { id: `c:trade-resources-in-nebula:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: tx("wiki.cited-events.trade") },
-      { id: "c:trade-resources-in-nebula:4", label: tx("wiki.cited-events.ignore") },
+      {
+        id: `c:trade-resources-in-nebula:take:${offer.pay}:${cost}:${offer.get}:${gain}`,
+        label: "Trade.",
+      },
+      { id: "c:trade-resources-in-nebula:4", label: "Ignore." },
     ],
   };
 }
@@ -283,7 +355,12 @@ export function stampCitedEvents(g: Game) {
   for (const ev of mine) {
     if (g.beacons.some((b) => b.flag === ev.flag)) continue;
     const pool = g.beacons.filter(
-      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store" && !b.flag,
+      (b) =>
+        b.kind !== "start" &&
+        b.kind !== "exit" &&
+        b.kind !== "boss" &&
+        b.kind !== "store" &&
+        !b.flag,
     );
     let spot: Beacon | undefined;
     for (const kind of PLACE_KIND) {
@@ -303,31 +380,36 @@ export type LaniusTraderRes = "fuel" | "missiles" | "parts";
 export type LaniusTraderOffer = { res: LaniusTraderRes; cost: number; scrap: number };
 
 /** One Lanius row from the packed page. The resource draw stays between, then the cost, then the scrap. */
-export function rollLaniusTrader(g: Game, better: boolean, id = "lanius-trader"): LaniusTraderOffer {
+export function rollLaniusTrader(
+  g: Game,
+  better: boolean,
+  id = "lanius-trader",
+): LaniusTraderOffer {
   const band = better ? "better" : "base";
   const rows = [];
-  for (const row of eventDef(id)?.offers ?? []) if (row.k === "lanius" && row.band === band) rows.push(row);
+  for (const row of eventDef(id)?.offers ?? [])
+    if (row.k === "lanius" && row.band === band) rows.push(row);
   const row = rows[between(g, [0, rows.length - 1])]!;
   return { res: row.res, cost: between(g, row.cost), scrap: between(g, row.scrap) };
 }
 
 export function laniusTraderOfferText(offer: LaniusTraderOffer): string {
   const word = offer.res === "parts" ? "drone parts" : offer.res;
-  return tx("wiki.cited-events.you-lose-and-receive-scrap", { cost: offer.cost, word: word, scrap: offer.scrap });
+  return `You lose ${offer.cost} ${word} and receive ${offer.scrap} scrap.`;
 }
 
 export function laniusTraderTakeId(offer: LaniusTraderOffer): string {
-  return tx("wiki.cited-events.q-lanius-trader-take", { res: offer.res, cost: offer.cost, scrap: offer.scrap });
+  return `q:lanius-trader:take:${offer.res}:${offer.cost}:${offer.scrap}`;
 }
 
 const SLUG_MOON_QUESTION =
-  tx("wiki.cited-events.as-you-drift-closer-you-are");
+  'As you drift closer, you are contacted by a Slug marooned on the moon\'s surface. "I shall join your crew, sssay I, if you can answer me this simple quesssstion. How many moons are there in orbit here?"';
 
 const SLUG_MOON_CORRECT =
-  tx("wiki.cited-events.that-isss-correct-you-sssurprise-me");
+  '"That isss... correct. You sssurprise me. Human, is it? Yesss... we can be partners." The Slug beams aboard and joins your crew!';
 
 const SLUG_MOON_WRONG =
-  tx("wiki.cited-events.that-issss-incorrect-further-i-have");
+  '"That issss... incorrect." Further, I have taken advantage of your lack of acuity to beam aboard your ship and steal your stuff!';
 
 const SLUG_MOON_ASK = /^c:slug-moons-question:ask:(\d+)$/;
 const SLUG_MOON_ANSWER = /^c:slug-moons-question:answer:(\d+):(\d+)$/;
@@ -364,8 +446,10 @@ function slugMoonsCard(g: Game, b: Beacon, title: string): GameEvent {
   const row = rows[between(g, [0, rows.length - 1])]!;
   return {
     title,
-    body: tx("wiki.cited-events.you-arrive-near-the-distress-beacon", { slugMoonWord: row.word }),
-    choices: [{ id: `c:slug-moons-question:ask:${row.n}`, label: tx("wiki.cited-events.investigate") }],
+    body: `You arrive near the distress beacon's signal.
+
+You track the distress beacon with difficulty to one of the ${row.word} moons of a planet hidden in the nebula.`,
+    choices: [{ id: `c:slug-moons-question:ask:${row.n}`, label: "Investigate." }],
   };
 }
 
@@ -377,7 +461,7 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
     // > "As you drift closer, you are contacted by a Slug marooned on the moon's surface." — [[Slug moons question]]
     // > "How many moons are there in orbit here?" — [[Slug moons question]]
     const n = Number(ask[1]);
-    const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? tx("wiki.cited-events.slug-moons-question");
+    const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Slug moons question";
     ctx.g.event = {
       title,
       body: SLUG_MOON_QUESTION,
@@ -402,7 +486,9 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
     const grade = eventGrade("slug-moons-question");
     if (!grade) return false;
     const joined = joinCrew(ctx.g, grade.hire);
-    const line = joined ? tx("wiki.cited-events.you-receive-a-slug-crewmember") : tx("wiki.cited-events.there-is-no-room-aboard-for");
+    const line = joined
+      ? "You receive a Slug crewmember."
+      : "There is no room aboard for the new crewmember.";
     ctx.note(line);
     citedResult(ctx.g, SLUG_MOON_CORRECT, [line]);
     return true;
@@ -420,35 +506,37 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
   g.fuel -= bill.fuel;
   g.player.parts -= bill.parts;
   const paid: string[] = [];
-  if (bill.scrap) paid.push(bill.scrap === 35 ? tx("wiki.cited-events.scrap-35") : `Scrap: -${bill.scrap}.`);
-  if (bill.fuel) paid.push(tx("wiki.cited-events.fuel-2", { fuel: bill.fuel }));
-  if (bill.parts) paid.push(tx("wiki.cited-events.drone-parts-2", { parts: bill.parts }));
+  if (bill.scrap) paid.push(bill.scrap === 35 ? "Scrap: -35." : `Scrap: -${bill.scrap}.`);
+  if (bill.fuel) paid.push(`Fuel: -${bill.fuel}.`);
+  if (bill.parts) paid.push(`Drone parts: -${bill.parts}.`);
   for (const line of paid) ctx.note(line);
   citedResult(g, SLUG_MOON_WRONG, paid);
   return true;
 }
 
-const ZOLTAN_MOON_OPEN = tx("wiki.cited-events.something-strikes-you-as-odd-about");
+const ZOLTAN_MOON_OPEN = "Something strikes you as odd about a moon in the distance.";
 const ZOLTAN_MOON_CAVE =
-  tx("wiki.cited-events.it-looks-as-if-a-team");
+  "It looks as if a team could break through the fragile layer of the moon's surface into a hidden cavern.";
 const ZOLTAN_MOON_SHUTTLE =
-  tx("wiki.cited-events.sending-a-shuttle-to-explore-a");
+  "Sending a shuttle to explore a beckoning cave system you discover signs of a battle - and a still-functioning weapon!";
 const ZOLTAN_MOON_HEAP =
-  tx("wiki.cited-events.a-deep-scan-of-the-surface");
+  "A deep scan of the surface reveals a cave system that runs for miles, and what looks like a scrap heap left over from some heavy-duty construction.";
 const ZOLTAN_MOON_QUIET =
-  tx("wiki.cited-events.a-closer-inspection-reveals-signs-of");
+  "A closer inspection reveals signs of habitation on the surface, but nothing else particularly interesting.";
 const ZOLTAN_MOON_LEAVE =
-  tx("wiki.cited-events.you-try-not-to-fixate-on");
+  "You try not to fixate on the moon in the aft scanner as you set the coordinates for the next jump.";
 const ZOLTAN_MOON_BASE =
-  tx("wiki.cited-events.your-explosives-reveal-the-cave-is");
+  "Your explosives reveal the 'cave' is actually a secret base, located in a network of bunkers just under the surface. Everyone inside is dead; Mantis clearly came through here recently. It looks like the Zoltan were researching advanced ship weaponry. You take one of the better examples back to your ship.";
 const ZOLTAN_MOON_REMAINS =
-  tx("wiki.cited-events.a-portion-of-the-surface-layer");
-const ZOLTAN_MOON_WASTE = tx("wiki.cited-events.the-explosives-are-set-remotely-but");
-const ZOLTAN_MOON_DRONE =
-  tx("wiki.cited-events.initial-scans-indicate-a-network-of");
+  "A portion of the surface layer is destroyed in an impressive display, revealing miles of caves. You don't have time to fully explore them, but you find some remains of an old subterranean base that could be useful.";
+const ZOLTAN_MOON_WASTE =
+  "The explosives are set remotely, but the detonation achieves nothing. What a waste.";
+const ZOLTAN_MOON_DRONE = `Initial scans indicate a network of caves not far underground. You launch a boarding drone and it breaks through the surface into the cavern below.
+
+Your drone discovers a vast cave network and evidence of excavation. Buried deep below you find a Zoltan scientist, still hard at work. He tells you that all his colleagues are long dead. You decide not to ask questions and offer to let him join your crew.`;
 
 function zoltanMoonTitle(g: Game): string {
-  return g.beacons.find((b) => b.id === g.here)?.name ?? tx("wiki.cited-events.zoltan-odd-moon");
+  return g.beacons.find((b) => b.id === g.here)?.name ?? "Zoltan odd moon";
 }
 
 function zoltanOddCard(title: string): GameEvent {
@@ -462,13 +550,13 @@ function zoltanOddCard(title: string): GameEvent {
         id: "c:zoltan-odd-moon:look",
         // Wiki citations:
         // > "Check it out." — [[Zoltan odd moon]]
-        label: tx("wiki.cited-events.check-it-out"),
+        label: "Check it out.",
       },
       {
         id: "c:zoltan-odd-moon:leave",
         // Wiki citations:
         // > "Leave it be." — [[Zoltan odd moon]]
-        label: tx("wiki.cited-events.leave-it-be"),
+        label: "Leave it be.",
       },
       {
         id: "c:zoltan-odd-moon:drone",
@@ -476,7 +564,7 @@ function zoltanOddCard(title: string): GameEvent {
         // > "Send a drone to probe the surface." — [[Zoltan odd moon]]
         // > "(Boarding Drone)" — [[Zoltan odd moon]]
         // > "Drone parts lost: 1" — [[Zoltan odd moon]]
-        label: tx("wiki.cited-events.send-a-drone-to-probe-the"),
+        label: "Send a drone to probe the surface.",
       },
     ],
   };
@@ -488,8 +576,8 @@ function payRandomTier(ctx: CitedChoice): string {
   const [lo, hi] = band(ctx.g, tier);
   const n = roll(ctx, lo, hi);
   ctx.scrap(n);
-  const name = tier === "low" ? tx("wiki.cited-events.low") : tier === "medium" ? tx("wiki.cited-events.medium") : tx("wiki.cited-events.high");
-  const line = tx("wiki.cited-events.scrap", { name: name, n: n });
+  const name = tier === "low" ? "Low" : tier === "medium" ? "Medium" : "High";
+  const line = `${name} scrap: ${n}.`;
   ctx.note(line);
   return line;
 }
@@ -498,8 +586,8 @@ function payTier(ctx: CitedChoice, tier: "low" | "medium"): string {
   const [lo, hi] = band(ctx.g, tier);
   const n = roll(ctx, lo, hi);
   ctx.scrap(n);
-  const name = tier === "low" ? tx("wiki.cited-events.low") : tx("wiki.cited-events.medium");
-  const line = tx("wiki.cited-events.scrap", { name: name, n: n });
+  const name = tier === "low" ? "Low" : "Medium";
+  const line = `${name} scrap: ${n}.`;
   ctx.note(line);
   return line;
 }
@@ -534,7 +622,8 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
             id: "c:zoltan-odd-moon:spare",
             // Wiki citations:
             // > "Explosives are too valuable to waste on excavation work. Let's get out of here." — [[Zoltan odd moon]]
-            label: "Explosives are too valuable to waste on excavation work. Let's get out of here.",
+            label:
+              "Explosives are too valuable to waste on excavation work. Let's get out of here.",
           },
         ],
       };
@@ -549,7 +638,7 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       const line = payTier(ctx, "low");
       const item = grantRandomItem(g, "weapon");
       ctx.note(item);
-      citedResult(g, ZOLTAN_MOON_SHUTTLE, [tx("wiki.cited-events.you-receive-a-weapon-with-low"), line, item]);
+      citedResult(g, ZOLTAN_MOON_SHUTTLE, ["You receive a weapon with low scrap.", line, item]);
       return true;
     }
     if (which === 2) {
@@ -557,33 +646,33 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       // > "A deep scan of the surface reveals a cave system that runs for miles, and what looks like a scrap heap left over from some heavy-duty construction." — [[Zoltan odd moon]]
       // > "You receive medium scrap." — [[Zoltan odd moon]]
       const line = payTier(ctx, "medium");
-      citedResult(g, ZOLTAN_MOON_HEAP, [tx("wiki.cited-events.you-receive-medium-scrap"), line]);
+      citedResult(g, ZOLTAN_MOON_HEAP, ["You receive medium scrap.", line]);
       return true;
     }
     // Wiki citations:
     // > "A closer inspection reveals signs of habitation on the surface, but nothing else particularly interesting." — [[Zoltan odd moon]]
     // > "Nothing happens." — [[Zoltan odd moon]]
-    citedResult(g, ZOLTAN_MOON_QUIET, [tx("wiki.cited-events.nothing-happens")]);
+    citedResult(g, ZOLTAN_MOON_QUIET, ["Nothing happens."]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:leave") {
     // Wiki citations:
     // > "You try not to fixate on the moon in the aft scanner as you set the coordinates for the next jump." — [[Zoltan odd moon]]
     // > "Nothing happens." — [[Zoltan odd moon]]
-    citedResult(g, ZOLTAN_MOON_LEAVE, [tx("wiki.cited-events.nothing-happens")]);
+    citedResult(g, ZOLTAN_MOON_LEAVE, ["Nothing happens."]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:spare") {
     // Wiki citations:
     // > "Explosives are too valuable to waste on excavation work. Let's get out of here." — [[Zoltan odd moon]]
     // > "Nothing happens." — [[Zoltan odd moon]]
-    citedResult(g, tx("wiki.cited-events.nothing-happens"), [tx("wiki.cited-events.nothing-happens")]);
+    citedResult(g, "Nothing happens.", ["Nothing happens."]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:boom") {
     if (g.missiles < 1) return false;
     g.missiles -= 1;
-    ctx.note(tx("wiki.cited-events.missiles-1"));
+    ctx.note("Missiles: -1.");
     // Wiki citations:
     // > "Attempt to detonate some explosives to break through the surface." — [[Zoltan odd moon]]
     // > "Missiles lost: 1" — [[Zoltan odd moon]]
@@ -596,7 +685,12 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       const line = payRandomTier(ctx);
       const item = grantRandomItem(g, "weapon");
       ctx.note(item);
-      citedResult(g, ZOLTAN_MOON_BASE, [tx("wiki.cited-events.you-receive-a-weapon-with-a"), line, item, tx("wiki.cited-events.missiles-1")]);
+      citedResult(g, ZOLTAN_MOON_BASE, [
+        "You receive a weapon with a random amount of scrap.",
+        line,
+        item,
+        "Missiles: -1.",
+      ]);
       return true;
     }
     if (which === 1) {
@@ -604,13 +698,17 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       // > "A portion of the surface layer is destroyed in an impressive display, revealing miles of caves. You don't have time to fully explore them, but you find some remains of an old subterranean base that could be useful." — [[Zoltan odd moon]]
       // > "You receive a random amount of scrap." — [[Zoltan odd moon]]
       const line = payRandomTier(ctx);
-      citedResult(g, ZOLTAN_MOON_REMAINS, [tx("wiki.cited-events.you-receive-a-random-amount-of"), line, tx("wiki.cited-events.missiles-1")]);
+      citedResult(g, ZOLTAN_MOON_REMAINS, [
+        "You receive a random amount of scrap.",
+        line,
+        "Missiles: -1.",
+      ]);
       return true;
     }
     // Wiki citations:
     // > "The explosives are set remotely, but the detonation achieves nothing. What a waste." — [[Zoltan odd moon]]
     // > "Nothing happens." — [[Zoltan odd moon]]
-    citedResult(g, ZOLTAN_MOON_WASTE, [tx("wiki.cited-events.nothing-happens"), tx("wiki.cited-events.missiles-1")]);
+    citedResult(g, ZOLTAN_MOON_WASTE, ["Nothing happens.", "Missiles: -1."]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:drone") {
@@ -623,12 +721,14 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
     // > "You receive a Zoltan crewmember." — [[Zoltan odd moon]]
     if (!ownsBoardDrone(g) || g.player.parts < 1) return false;
     g.player.parts -= 1;
-    ctx.note(tx("wiki.cited-events.drone-parts-1"));
+    ctx.note("Drone parts: -1.");
     // Crew: eight is the cap. A ninth is not added. This page does not print that refusal.
-    const joined = joinCrew(g, tx("wiki.cited-events.zoltan"));
-    const line = joined ? tx("wiki.cited-events.you-receive-a-zoltan-crewmember") : tx("wiki.cited-events.there-is-no-room-aboard-for");
+    const joined = joinCrew(g, "Zoltan");
+    const line = joined
+      ? "You receive a Zoltan crewmember."
+      : "There is no room aboard for the new crewmember.";
     ctx.note(line);
-    citedResult(g, ZOLTAN_MOON_DRONE, [line, tx("wiki.cited-events.drone-parts-1")]);
+    citedResult(g, ZOLTAN_MOON_DRONE, [line, "Drone parts: -1."]);
     return true;
   }
   return false;
@@ -649,9 +749,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: `${intro}\n\n${laniusTraderOfferText(offer)}`,
       choices: [
-        { id: laniusTraderTakeId(offer), label: tx("wiki.cited-events.agree-to-the-exchange") },
-        { id: "c:lanius-trader:3", label: tx("wiki.cited-events.decline") },
-        { id: "c:lanius-trader:4", label: tx("wiki.cited-events.ask-for-an-alternative-trade") },
+        { id: laniusTraderTakeId(offer), label: "Agree to the exchange." },
+        { id: "c:lanius-trader:3", label: "Decline" },
+        { id: "c:lanius-trader:4", label: "Ask for an alternative trade." },
       ],
     };
   }
@@ -662,7 +762,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-near-radar-station:2", label: tx("wiki.cited-events.send-a-drone-to-distract-the") },
+        {
+          id: "c:auto-ship-near-radar-station:2",
+          label: "Send a drone to distract the automated ship.",
+        },
       ],
     };
   }
@@ -673,10 +776,22 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-near-storage-station-in-nebula:2", label: tx("wiki.cited-events.attempt-to-stealthily-access-the-space") },
-        { id: "c:auto-ship-near-storage-station-in-nebula:3", label: tx("wiki.cited-events.use-your-stealth-to-access-the") },
-        { id: "c:auto-ship-near-storage-station-in-nebula:4", label: tx("wiki.cited-events.try-to-hack-the-station-to") },
-        { id: "c:auto-ship-near-storage-station-in-nebula:5", label: tx("wiki.cited-events.hack-the-station-to-prevent-an") },
+        {
+          id: "c:auto-ship-near-storage-station-in-nebula:2",
+          label: "Attempt to stealthily access the space station.",
+        },
+        {
+          id: "c:auto-ship-near-storage-station-in-nebula:3",
+          label: "Use your stealth to access the space station.",
+        },
+        {
+          id: "c:auto-ship-near-storage-station-in-nebula:4",
+          label: "Try to hack the station to prevent an alert.",
+        },
+        {
+          id: "c:auto-ship-near-storage-station-in-nebula:5",
+          label: "Hack the station to prevent an alert.",
+        },
       ],
     };
   }
@@ -687,7 +802,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:pirate-ship-attacking-civilian-distress:2", label: tx("wiki.cited-events.fire-a-warning-shot-from-your") },
+        {
+          id: "c:pirate-ship-attacking-civilian-distress:2",
+          label: "Fire a warning shot from your strongest weapon.",
+        },
       ],
     };
   }
@@ -702,9 +820,15 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:zoltan-security-checkpoint:1", label: tx("wiki.cited-events.submit-to-profiling") },
-        { id: "c:zoltan-security-checkpoint:2", label: tx("wiki.cited-events.have-your-slug-talk-them-into") },
-        { id: "c:zoltan-security-checkpoint:3", label: tx("wiki.cited-events.make-the-guards-believe-they-have") },
+        { id: "c:zoltan-security-checkpoint:1", label: "Submit to profiling." },
+        {
+          id: "c:zoltan-security-checkpoint:2",
+          label: "Have your Slug talk them into letting you go.",
+        },
+        {
+          id: "c:zoltan-security-checkpoint:3",
+          label: "Make the guards believe they have already checked your crew today.",
+        },
       ],
     };
   }
@@ -715,7 +839,11 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:escort-civilians-ftl-haywire:2", label: tx("wiki.cited-events.have-your-navigation-software-calculate-and") },
+        {
+          id: "c:escort-civilians-ftl-haywire:2",
+          label:
+            "Have your navigation software calculate and upload route instructions to their ship.",
+        },
       ],
     };
   }
@@ -725,9 +853,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ev.body,
       choices: [
-        { id: "c:slug-drink:1", label: tx("wiki.cited-events.drink") },
+        { id: "c:slug-drink:1", label: "Drink." },
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:slug-drink:2", label: tx("wiki.cited-events.have-your-rockman-pose-as-captain") },
+        { id: "c:slug-drink:2", label: "Have your Rockman pose as captain." },
       ],
     };
   }
@@ -738,7 +866,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:rock-ship-in-plasma-storm:2", label: tx("wiki.cited-events.offer-to-lead-them-out-of") },
+        { id: "c:rock-ship-in-plasma-storm:2", label: "Offer to lead them out of the nebula." },
       ],
     };
   }
@@ -748,9 +876,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ev.body,
       choices: [
-        { id: "c:deactivated-auto-ship:1", label: tx("wiki.cited-events.attempt-to-download-the-ship-s") },
+        { id: "c:deactivated-auto-ship:1", label: "Attempt to download the ship's data stores." },
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:deactivated-auto-ship:2", label: tx("wiki.cited-events.remotely-scan-the-ship") },
+        { id: "c:deactivated-auto-ship:2", label: "Remotely scan the ship." },
       ],
     };
   }
@@ -761,9 +889,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-fight-in-plasma-storm:1", label: tx("wiki.cited-events.attempt-to-out-run-it") },
-        { id: "c:auto-ship-fight-in-plasma-storm:2", label: tx("wiki.cited-events.attempt-to-out-run-it") },
-        { id: "c:auto-ship-fight-in-plasma-storm:3", label: tx("wiki.cited-events.use-your-cloaking-to-escape") },
+        { id: "c:auto-ship-fight-in-plasma-storm:1", label: "Attempt to out-run it." },
+        { id: "c:auto-ship-fight-in-plasma-storm:2", label: "Attempt to out-run it." },
+        { id: "c:auto-ship-fight-in-plasma-storm:3", label: "Use your cloaking to escape." },
       ],
     };
   }
@@ -774,7 +902,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-near-storage-station:2", label: tx("wiki.cited-events.attempt-to-cloak-and-access-the") },
+        {
+          id: "c:auto-ship-near-storage-station:2",
+          label: "Attempt to cloak and access the cache.",
+        },
       ],
     };
   }
@@ -785,8 +916,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-near-sensor-station:2", label: tx("wiki.cited-events.use-your-sensors-to-attempt-to") },
-        { id: "c:auto-ship-near-sensor-station:3", label: tx("wiki.cited-events.beam-directly-onto-the-station-to") },
+        {
+          id: "c:auto-ship-near-sensor-station:2",
+          label: "Use your sensors to attempt to access the data.",
+        },
+        {
+          id: "c:auto-ship-near-sensor-station:3",
+          label: "Beam directly onto the station to try to avoid detection.",
+        },
       ],
     };
   }
@@ -798,10 +935,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   if (ev.slug === "pirate-smuggler") {
     return {
       title: ev.dest,
-      body: tx("wiki.cited-events.a-pirate-ship-arrives-shortly-after"),
+      body: "A pirate ship arrives shortly after you. Judging from the fact that it is attempting to avoid your ship, you assume that it's a smuggler trying to stay away from beacons.",
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:pirate-smuggler:2", label: tx("wiki.cited-events.activate-your-advanced-weapons-threateningly") },
+        { id: "c:pirate-smuggler:2", label: "Activate your advanced weapons threateningly." },
       ],
     };
   }
@@ -811,7 +948,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "pirate-fight"),
-      choices: [{ id: "c:pirate-fight:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
+      choices: [{ id: "c:pirate-fight:0", label: "Fight a Pirate ship" }],
     };
   }
   // Pirate fight in nebula has no choice. Arrival calls this fight.
@@ -848,11 +985,14 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   if (ev.slug === "rock-atheists") {
     return {
       title: ev.dest,
-      body: tx("wiki.cited-events.you-encounter-a-small-craft-with"),
+      body: "You encounter a small craft with minimal propulsion; its Rock crew-member explains that the Rock home-world is run on lies and propaganda that keep the populace in check, and that they want no part of it.",
       choices: [
-        { id: "c:rock-atheists:0", label: tx("wiki.cited-events.tell-them-their-god-sent-them-2") },
-        { id: "c:rock-atheists:1", label: tx("wiki.cited-events.promise-to-share-with-them-the") },
-        { id: "c:rock-atheists:2", label: tx("wiki.cited-events.show-them-to-your-data-suite") },
+        { id: "c:rock-atheists:0", label: "Tell them their god sent them here to join your crew." },
+        {
+          id: "c:rock-atheists:1",
+          label: "Promise to share with them the truths they've been denied.",
+        },
+        { id: "c:rock-atheists:2", label: "Show them to your data suite." },
       ],
     };
   }
@@ -862,9 +1002,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ev.body,
       choices: [
-        { id: "q:pirate-drones:hail", label: tx("wiki.cited-events.hail-the-ship") },
-        { id: "c:pirate-ship-selling-drones:1", label: tx("wiki.cited-events.attack-him-before-he-can-attack") },
-        { id: "c:pirate-ship-selling-drones:2", label: tx("wiki.cited-events.quickly-prepare-to-jump-away-2") },
+        { id: "q:pirate-drones:hail", label: "Hail the ship." },
+        { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
+        { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
       ],
     };
   }
@@ -874,7 +1014,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rebel-fight-lanius"),
-      choices: [{ id: "c:rebel-fight-lanius:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
+      choices: [{ id: "c:rebel-fight-lanius:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rock fight with boarders. One of the two printed intros. The fight stays c:rock-fight-with-boarders:0.
@@ -885,7 +1025,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rock-fight-with-boarders"),
-      choices: [{ id: "c:rock-fight-with-boarders:0", label: tx("wiki.cited-events.fight-a-rock-ship") }],
+      choices: [{ id: "c:rock-fight-with-boarders:0", label: "Fight a Rock ship" }],
     };
   }
   // Auto-ship fight has no choice. Arrival calls c:auto-ship-fight:0.
@@ -894,7 +1034,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "auto-ship-fight"),
-      choices: [{ id: "c:auto-ship-fight:0", label: tx("wiki.cited-events.fight-an-auto-ship") }],
+      choices: [{ id: "c:auto-ship-fight:0", label: "Fight an Auto-ship" }],
     };
   }
   // Auto-ship warning has no choice. Arrival calls c:auto-ship-warning:0.
@@ -904,7 +1044,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "auto-ship-warning"),
-      choices: [{ id: "c:auto-ship-warning:0", label: tx("wiki.cited-events.fight-an-auto-ship-that-is") }],
+      choices: [{ id: "c:auto-ship-warning:0", label: "Fight an Auto-ship that is running away" }],
     };
   }
   // Rebel fight with boarders. One of the four printed intros. The fight stays c:rebel-fight-with-boarders:0.
@@ -914,7 +1054,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rebel-fight-with-boarders"),
-      choices: [{ id: "c:rebel-fight-with-boarders:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
+      choices: [{ id: "c:rebel-fight-with-boarders:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rock fight with boarders in asteroid field. One of the two printed intros. The fight stays c:rock-fight-with-boarders-in-asteroid-field:0.
@@ -925,7 +1065,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rock-fight-with-boarders-in-asteroid-field"),
-      choices: [{ id: "c:rock-fight-with-boarders-in-asteroid-field:0", label: tx("wiki.cited-events.fight-a-rock-ship") }],
+      choices: [
+        { id: "c:rock-fight-with-boarders-in-asteroid-field:0", label: "Fight a Rock ship" },
+      ],
     };
   }
   // Lanius fight has no choice. Arrival calls this fight.
@@ -934,7 +1076,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "lanius-fight"),
-      choices: [{ id: "c:lanius-fight:0", label: tx("wiki.cited-events.fight-a-lanius-ship") }],
+      choices: [{ id: "c:lanius-fight:0", label: "Fight a Lanius ship" }],
     };
   }
   // Mantis fight (Engi) has no choice. Arrival calls this fight.
@@ -946,7 +1088,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "mantis-fight-engi"),
-      choices: [{ id: "c:mantis-fight-engi:0", label: tx("wiki.cited-events.fight-a-mantis-ship") }],
+      choices: [{ id: "c:mantis-fight-engi:0", label: "Fight a Mantis ship" }],
     };
   }
   // Mantis fight in nebula has no choice. Arrival calls this fight.
@@ -955,7 +1097,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "mantis-fight-in-nebula"),
-      choices: [{ id: "c:mantis-fight-in-nebula:0", label: tx("wiki.cited-events.fight-a-mantis-ship") }],
+      choices: [{ id: "c:mantis-fight-in-nebula:0", label: "Fight a Mantis ship" }],
     };
   }
   // Mantis fight has no choice. Arrival calls this fight.
@@ -964,7 +1106,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "mantis-fight"),
-      choices: [{ id: "c:mantis-fight:0", label: tx("wiki.cited-events.fight-a-mantis-ship") }],
+      choices: [{ id: "c:mantis-fight:0", label: "Fight a Mantis ship" }],
     };
   }
   // Mantis fight choice. One of the six printed intros. Attack, conceal, and cloaking stay on the def.
@@ -1012,7 +1154,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "zoltan-fight"),
-      choices: [{ id: "c:zoltan-fight:0", label: tx("wiki.cited-events.fight-a-zoltan-ship") }],
+      choices: [{ id: "c:zoltan-fight:0", label: "Fight a Zoltan ship" }],
     };
   }
   // Crystal fight has no choice. Arrival calls c:crystal-fight:0.
@@ -1024,7 +1166,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "crystal-fight"),
-      choices: [{ id: "c:crystal-fight:0", label: tx("wiki.cited-events.fight-a-crystal-ship-default-rewards") }],
+      choices: [{ id: "c:crystal-fight:0", label: "Fight a Crystal ship (default rewards)" }],
     };
   }
   // Rebel fight among Rebel fleet has no choice. Arrival calls this fight.
@@ -1037,7 +1179,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rebel-fight-among-rebel-fleet"),
-      choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
+      choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
     };
   }
   // The mercenary. One of the six printed intros. Delay, Fight, and Decline stay the existing choices.
@@ -1081,7 +1223,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "slug-fight-in-nebula"),
-      choices: [{ id: "c:slug-fight-in-nebula:0", label: tx("wiki.cited-events.fight-a-slug-ship") }],
+      choices: [{ id: "c:slug-fight-in-nebula:0", label: "Fight a Slug ship" }],
     };
   }
   // Lanius ship attacking civilian. One of the three printed intros. Attack and Avoid stay the existing choices.
@@ -1106,7 +1248,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rebel-fight-among-federation-and-rebel-fleets"),
-      choices: [{ id: "c:rebel-fight-among-federation-and-rebel-fleets:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
+      choices: [
+        { id: "c:rebel-fight-among-federation-and-rebel-fleets:0", label: "Fight a Rebel ship" },
+      ],
     };
   }
   // Escort civilians. One of the three printed intros. Accept and Decline stay the existing choices.
@@ -1134,7 +1278,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rock-pirates-fight-near-sun"),
-      choices: [{ id: "c:rock-pirates-fight-near-sun:0", label: tx("wiki.cited-events.fight-a-rock-pirate-ship") }],
+      choices: [{ id: "c:rock-pirates-fight-near-sun:0", label: "Fight a Rock pirate ship" }],
     };
   }
   // Rock pirates fight in asteroid field has no choice. Arrival calls this fight.
@@ -1146,7 +1290,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rock-pirates-fight-in-asteroid-field"),
-      choices: [{ id: "c:rock-pirates-fight-in-asteroid-field:0", label: tx("wiki.cited-events.fight-a-rock-pirate-ship") }],
+      choices: [
+        { id: "c:rock-pirates-fight-in-asteroid-field:0", label: "Fight a Rock pirate ship" },
+      ],
     };
   }
   // Rock fight in asteroid field has no choice. Arrival calls this fight.
@@ -1158,7 +1304,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rock-fight-in-asteroid-field"),
-      choices: [{ id: "c:rock-fight-in-asteroid-field:0", label: tx("wiki.cited-events.fight-a-rock-ship") }],
+      choices: [{ id: "c:rock-fight-in-asteroid-field:0", label: "Fight a Rock ship" }],
     };
   }
   // Rebel fight (Slug) has no choice. Arrival calls this fight.
@@ -1170,7 +1316,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rebel-fight-slug"),
-      choices: [{ id: "c:rebel-fight-slug:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
+      choices: [{ id: "c:rebel-fight-slug:0", label: "Fight a Rebel ship" }],
     };
   }
   // Pirate fight (Slug) has no choice. Arrival calls this fight.
@@ -1182,7 +1328,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "pirate-fight-slug"),
-      choices: [{ id: "c:pirate-fight-slug:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
+      choices: [{ id: "c:pirate-fight-slug:0", label: "Fight a Pirate ship" }],
     };
   }
   // Pirate fight (Lanius) has no choice. Arrival calls this fight.
@@ -1191,7 +1337,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "pirate-fight-lanius"),
-      choices: [{ id: "c:pirate-fight-lanius:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
+      choices: [{ id: "c:pirate-fight-lanius:0", label: "Fight a Pirate ship" }],
     };
   }
   // Pirate fight (Zoltan) has no choice. Arrival calls c:pirate-fight-zoltan:0.
@@ -1203,7 +1349,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "pirate-fight-zoltan"),
-      choices: [{ id: "c:pirate-fight-zoltan:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
+      choices: [{ id: "c:pirate-fight-zoltan:0", label: "Fight a Pirate ship" }],
     };
   }
   // Rock pirates fight has no choice. Arrival calls this fight.
@@ -1215,7 +1361,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rock-pirates-fight"),
-      choices: [{ id: "c:rock-pirates-fight:0", label: tx("wiki.cited-events.fight-a-rock-pirate-ship") }],
+      choices: [{ id: "c:rock-pirates-fight:0", label: "Fight a Rock pirate ship" }],
     };
   }
   // Rebel fight near pulsar has no choice. Arrival calls this fight.
@@ -1224,7 +1370,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rebel-fight-near-pulsar"),
-      choices: [{ id: "c:rebel-fight-near-pulsar:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
+      choices: [{ id: "c:rebel-fight-near-pulsar:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rock fight has no choice. Arrival calls this fight.
@@ -1236,7 +1382,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rock-fight"),
-      choices: [{ id: "c:rock-fight:0", label: tx("wiki.cited-events.fight-a-rock-ship") }],
+      choices: [{ id: "c:rock-fight:0", label: "Fight a Rock ship" }],
     };
   }
   // Pirate fight near pulsar has no choice. Arrival calls this fight.
@@ -1245,7 +1391,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "pirate-fight-near-pulsar"),
-      choices: [{ id: "c:pirate-fight-near-pulsar:0", label: tx("wiki.cited-events.fight-a-pirate-ship") }],
+      choices: [{ id: "c:pirate-fight-near-pulsar:0", label: "Fight a Pirate ship" }],
     };
   }
   // Rebel fight has no choice. Arrival calls this fight.
@@ -1254,7 +1400,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "rebel-fight"),
-      choices: [{ id: "c:rebel-fight:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
+      choices: [{ id: "c:rebel-fight:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rebel checkpoint. The bribe is the packed scrap band, shown on the button.
@@ -1263,15 +1409,18 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     const body = opening(g, "rebel-checkpoint");
     const labels = hideLabels("rebel-checkpoint");
     const choices = [
-      { id: "c:rebel-checkpoint:0", label: tx("wiki.cited-events.fend-for-yourself-attack-and-escape-2") },
+      { id: "c:rebel-checkpoint:0", label: "Fend for yourself, attack, and escape." },
     ];
     if (cost != null) {
       choices.push({
         id: `q:rebel-checkpoint:bribe:${cost}`,
-        label: tx("wiki.cited-events.bribe-the-rebels-to-release-the", { cost: cost }),
+        label: `Bribe the Rebels to release the civilian ships. [${cost} scrap]`,
       });
     }
-    choices.push({ id: "c:rebel-checkpoint:1", label: labels[between(g, [0, labels.length - 1])]! });
+    choices.push({
+      id: "c:rebel-checkpoint:1",
+      label: labels[between(g, [0, labels.length - 1])]!,
+    });
     return { title: ev.dest, body, choices };
   }
   // Lanius trader with translator. The printed hail, then the same one shown base trade. No better-band blue option.
@@ -1279,11 +1428,19 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     const offer = rollLaniusTrader(g, false, "lanius-trader-with-translator");
     return {
       title: ev.dest,
-      body: tx("wiki.cited-events.a-lanius-merchant-appears-to-have", { laniusTraderOfferText: laniusTraderOfferText(offer) }),
+      body: `A Lanius merchant appears to have a significantly improved translator as you clearly understand their message. "Metal content more than sufficient. Does your ship care to exchange resources for our excess metal?"
+
+${laniusTraderOfferText(offer)}`,
       choices: [
-        { id: `q:lanius-translator:take:${offer.res}:${offer.cost}:${offer.scrap}`, label: tx("wiki.cited-events.agree-to-the-exchange") },
-        { id: "c:lanius-trader-with-translator:3", label: tx("wiki.cited-events.decline") },
-        { id: "c:lanius-trader-with-translator:4", label: tx("wiki.cited-events.decline-but-ask-about-their-translation") },
+        {
+          id: `q:lanius-translator:take:${offer.res}:${offer.cost}:${offer.scrap}`,
+          label: "Agree to the exchange.",
+        },
+        { id: "c:lanius-trader-with-translator:3", label: "Decline" },
+        {
+          id: "c:lanius-trader-with-translator:4",
+          label: "Decline but ask about their translation device.",
+        },
       ],
     };
   }
@@ -1322,7 +1479,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "slug-fight-in-plasma-storm"),
-      choices: [{ id: "c:slug-fight-in-plasma-storm:0", label: tx("wiki.cited-events.fight-a-slug-ship") }],
+      choices: [{ id: "c:slug-fight-in-plasma-storm:0", label: "Fight a Slug ship" }],
     };
   }
   // Boarders: Mantis. One of the three printed intros. The boarders stay c:boarders-mantis:0.
@@ -1333,7 +1490,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "boarders-mantis"),
-      choices: [{ id: "c:boarders-mantis:0", label: tx("wiki.cited-events.2-4-mantis-boarders-beam-aboard") }],
+      choices: [{ id: "c:boarders-mantis:0", label: "2-4 mantis boarders beam aboard your ship." }],
     };
   }
   // Boarders: Humans in nebula. One of the three printed intros. The boarders stay c:boarders-humans-in-nebula:0.
@@ -1341,7 +1498,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "boarders-humans-in-nebula"),
-      choices: [{ id: "c:boarders-humans-in-nebula:0", label: tx("wiki.cited-events.2-4-human-boarders-beam-aboard") }],
+      choices: [
+        { id: "c:boarders-humans-in-nebula:0", label: "2-4 human boarders beam aboard your ship." },
+      ],
     };
   }
   // Boarders: Crystal. One of the three printed intros. The boarders stay c:boarders-crystal:0.
@@ -1352,7 +1511,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "boarders-crystal"),
-      choices: [{ id: "c:boarders-crystal:0", label: tx("wiki.cited-events.2-3-crystal-boarders-beam-aboard") }],
+      choices: [
+        { id: "c:boarders-crystal:0", label: "2-3 crystal boarders beam aboard your ship." },
+      ],
     };
   }
   // Boarders: Rockmen near sun. One of the two printed intros. The boarders stay c:boarders-rockmen-near-sun:0.
@@ -1363,7 +1524,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "boarders-rockmen-near-sun"),
-      choices: [{ id: "c:boarders-rockmen-near-sun:0", label: tx("wiki.cited-events.2-3-rock-boarders-beam-aboard") }],
+      choices: [
+        { id: "c:boarders-rockmen-near-sun:0", label: "2-3 rock boarders beam aboard your ship." },
+      ],
     };
   }
   // Boarders: Humans (Pirate). One of the five printed intros. The boarders stay c:boarders-humans-pirate:0.
@@ -1382,7 +1545,9 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "boarders-humans-pirate"),
-      choices: [{ id: "c:boarders-humans-pirate:0", label: tx("wiki.cited-events.3-5-human-boarders-beam-aboard") }],
+      choices: [
+        { id: "c:boarders-humans-pirate:0", label: "3-5 human boarders beam aboard your ship." },
+      ],
     };
   }
   // Free weapon. One of the six printed intros. The gift stays c:free-weapon:0.
@@ -1401,7 +1566,10 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:space-station-under-construction:2", label: tx("wiki.cited-events.offer-to-have-your-crewmember-help") },
+        {
+          id: "c:space-station-under-construction:2",
+          label: "Offer to have your crewmember help.",
+        },
       ],
     };
   }
@@ -1454,14 +1622,14 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
   if (take) {
     const pay = take[1] as TradeRes;
     const cost = Number(take[2]);
-    if (stock(g, pay) < cost) return tx("wiki.cited-events.need", { cost: cost, v: RES_WORD[pay] });
+    if (stock(g, pay) < cost) return `Need ${cost} ${RES_WORD[pay]}`;
     return null;
   }
   const choice = findChoice(id);
   if (!choice) return null;
   for (const fx of choice.fx) {
     if (fx.k === "res" && fx.sign < 0 && stock(g, fx.id) < fx.lo) {
-      return tx("wiki.cited-events.need-2", { lo: fx.lo, v: RES_WORD[fx.id] });
+      return `Need ${fx.lo} ${RES_WORD[fx.id]}`;
     }
   }
   return null;
@@ -1493,32 +1661,32 @@ function sellStationThanks(id: string): string | null {
     id === "c:sell-missiles-for-scrap:1" ||
     id === "c:sell-missiles-for-scrap:2"
   ) {
-    return tx("wiki.cited-events.thank-you-this-will-help-greatly");
+    return '"Thank you, this will help greatly."';
   }
   if (
     id === "c:sell-drone-parts-for-scrap:0" ||
     id === "c:sell-drone-parts-for-scrap:1" ||
     id === "c:sell-drone-parts-for-scrap:2"
   ) {
-    return tx("wiki.cited-events.thank-you-for-your-business");
+    return '"Thank you for your business."';
   }
   return null;
 }
 
 const CRYSTAL_PLANS = "c:crystalline-ship-messaging-about-rebels";
 const CRYSTAL_OUTRUN =
-  tx("wiki.cited-events.it-was-never-your-intention-to");
+  "It was never your intention to lead the Rebels here, and frankly you could do with the scrap. The Crystalline ship immediately jumps off to inform the Rebels, leaving you with a fleet to outrun!";
 const CRYSTAL_CRUISE =
-  tx("wiki.cited-events.unable-to-interpret-it-themselves-the");
+  "Unable to interpret it themselves, the Crystalline Beings assume your data will mean something to the Rebels. It should see the pursuing fleet taking a leisurely cruise before they get back on track.";
 const CRYSTAL_LIE =
-  tx("wiki.cited-events.they-take-one-look-at-your");
+  "They take one look at your fake telemetry and realize what you've done. They apparently do not take being lied to well - they immediately attack";
 const CRYSTAL_BUOY =
-  tx("wiki.cited-events.your-distraction-buoy-allows-you-to");
+  "Your distraction buoy allows you to create a very convincing flight plan. They accept it as true and give you the scrap. The deception may not be the most honorable tactic but staying ahead of the fleet is your highest priority.";
 const CRYSTAL_REFUSE =
-  tx("wiki.cited-events.you-apologize-for-the-trouble-you");
+  "You apologize for the trouble you've brought them, but explain that you have no choice. They seem to understand, and break the comm link to set about preparing defenses.";
 
 function citedResult(g: Game, sentence: string, paid: string[]) {
-  const title = g.beacons.find((b) => b.id === g.here)?.name ?? tx("wiki.cited-events.event");
+  const title = g.beacons.find((b) => b.id === g.here)?.name ?? "Event";
   g.event = {
     title,
     body: `${sentence}\n\n${paid.join(" ")}`,
@@ -1532,7 +1700,7 @@ function highScrapNote(ctx: CitedChoice): string {
   const [lo, hi] = band(ctx.g, "high");
   const n = roll(ctx, lo, hi);
   ctx.scrap(n);
-  const line = tx("wiki.cited-events.high-scrap", { n: n });
+  const line = `High scrap: ${n}.`;
   ctx.note(line);
   return line;
 }
@@ -1540,14 +1708,14 @@ function highScrapNote(ctx: CitedChoice): string {
 /** Existing faster fx: one extra step, not a doubled column. */
 function doubledPursuit(ctx: CitedChoice): string {
   ctx.g.fleet += 1;
-  const line = tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled-for");
+  const line = "Rebel Fleet pursuit is doubled for 1 jump.";
   ctx.note(line);
   return line;
 }
 
 function delayedPursuit(ctx: CitedChoice): string {
   ctx.g.fleet = Math.max(0, ctx.g.fleet - 1);
-  const line = tx("wiki.cited-events.rebel-fleet-pursuit-is-delayed-for");
+  const line = "Rebel Fleet pursuit is delayed for 1 jump.";
   ctx.note(line);
   return line;
 }
@@ -1570,7 +1738,7 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
       return true;
     }
     ctx.note(CRYSTAL_LIE);
-    ctx.fight(tx("wiki.cited-events.crystal-ship"));
+    ctx.fight("Crystal ship");
     // INFERRED: the count is inclusive. The boarders are added after the fight starts. A new fight keeps intruders already aboard.
     crystalBoarders(g, 1, 2);
     return true;
@@ -1581,7 +1749,7 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
     return true;
   }
   if (id === `${CRYSTAL_PLANS}:3`) {
-    citedResult(g, CRYSTAL_REFUSE, [tx("wiki.cited-events.nothing-happens")]);
+    citedResult(g, CRYSTAL_REFUSE, ["Nothing happens."]);
     return true;
   }
   return null;
@@ -1633,8 +1801,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (choice.fx.some((fx) => fx.k === "close") && !g.enemy) return true;
   // Remote settlement. Fire Beam and Fire Bomb. citedChoose does not read citedChoiceDisabled.
   // A missing weapon returns before the res loop, so the missile is not spent.
-  if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "firebeam")) return false;
-  if (id === "c:remote-settlement:3" && !g.player.weapons.some((w) => w.defId === "cask")) return false;
+  if (id === "c:remote-settlement:2" && !g.player.weapons.some((w) => w.defId === "firebeam"))
+    return false;
+  if (id === "c:remote-settlement:3" && !g.player.weapons.some((w) => w.defId === "cask"))
+    return false;
   // Before the generic fleet/tier loops, so the old :0 rows are not applied twice.
   const crystalPlans = crystallineRebelPlans(ctx, id);
   if (crystalPlans !== null) return crystalPlans;
@@ -1657,14 +1827,21 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
       if (got > 0) g.scrap += got;
       if (gn.n > 0) g.scrapCollected = (g.scrapCollected ?? 0) + gn.n;
       ctx.note(thanks);
-      ctx.note(tx("wiki.cited-events.you-receive-scrap", { got: got }));
+      ctx.note(`You receive ${got} scrap.`);
       continue;
     }
     if (gn.id === "scrap") ctx.scrap(gn.n);
     else if (gn.id === "fuel") g.fuel += gn.n;
     else if (gn.id === "missiles") g.missiles += gn.n;
     else g.player.parts += gn.n;
-    const word = gn.id === "scrap" ? tx("wiki.cited-events.scrap-2") : gn.id === "fuel" ? tx("wiki.cited-events.fuel") : gn.id === "missiles" ? tx("wiki.cited-events.missiles") : tx("wiki.cited-events.drone-parts");
+    const word =
+      gn.id === "scrap"
+        ? "Scrap"
+        : gn.id === "fuel"
+          ? "Fuel"
+          : gn.id === "missiles"
+            ? "Missiles"
+            : "Drone parts";
     ctx.note(`${word}: ${gn.n}.`);
   }
   for (const fx of choice.fx) {
@@ -1672,30 +1849,30 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     const [lo, hi] = band(g, fx.tier);
     const n = roll(ctx, lo, hi);
     ctx.scrap(n);
-    const name = fx.tier === "low" ? tx("wiki.cited-events.low") : fx.tier === "high" ? tx("wiki.cited-events.high") : tx("wiki.cited-events.medium");
-    ctx.note(tx("wiki.cited-events.scrap", { name: name, n: n }));
-    if (fx.resources) ctx.note(tx("wiki.cited-events.resource-amounts-are-not-stated"));
+    const name = fx.tier === "low" ? "Low" : fx.tier === "high" ? "High" : "Medium";
+    ctx.note(`${name} scrap: ${n}.`);
+    if (fx.resources) ctx.note("Resource amounts are not stated.");
   }
   for (const fx of choice.fx) {
     if (fx.k !== "hull") continue;
     if (fx.n >= 0) g.player.hull = Math.min(g.player.hullMax, g.player.hull + fx.n);
     else g.player.hull = Math.max(0, g.player.hull + fx.n);
-    ctx.note(fx.n >= 0 ? tx("wiki.cited-events.hull-repairs", { n: fx.n }) : tx("wiki.cited-events.hull-damage", { v: -fx.n }));
+    ctx.note(fx.n >= 0 ? `Hull repairs: ${fx.n}.` : `Hull damage: ${-fx.n}.`);
   }
   for (const fx of choice.fx) {
     if (fx.k !== "fleet") continue;
     const last = !!fx.lastStand && (g.sector === 8 || g.sectorName === "The Last Stand");
     if (fx.faster) {
       g.fleet += fx.n;
-      ctx.note(tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled-for-2", { n: fx.n, v: fx.n === 1 ? "jump" : "jumps" }));
+      ctx.note(`Rebel Fleet pursuit is doubled for ${fx.n} ${fx.n === 1 ? "jump" : "jumps"}.`);
     } else if (fx.double) {
       g.fleet *= 2;
-      ctx.note(tx("wiki.cited-events.rebel-fleet-pursuit-is-doubled"));
+      ctx.note("Rebel Fleet pursuit is doubled.");
     } else if (last) {
-      ctx.note(tx("wiki.cited-events.no-effect-in-the-last-stand"));
+      ctx.note("No effect in The Last Stand.");
     } else {
       g.fleet = Math.max(0, g.fleet - fx.n);
-      ctx.note(tx("wiki.cited-events.rebel-fleet-is-delayed-for-turns", { n: fx.n }));
+      ctx.note(`Rebel Fleet is delayed for ${fx.n} turns.`);
     }
   }
   for (const fx of choice.fx) {
@@ -1713,63 +1890,105 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     return true;
   }
   // Rebel transport ship. "Demand the surrender of their goods." One printed lead-in, then the running Rebel fight.
-  if (id === "c:rebel-transport-ship:0") ctx.note(tx("wiki.cited-events.you-prepare-to-secure-their-cargo"));
+  if (id === "c:rebel-transport-ship:0") ctx.note("You prepare to secure their cargo by force.");
   // Lanius ship absorbing automated scout. "Fight the ship." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:lanius-ship-absorbing-automated-scout:0") ctx.note(tx("wiki.cited-events.you-power-up-your-weapons-which"));
+  if (id === "c:lanius-ship-absorbing-automated-scout:0")
+    ctx.note("You power up your weapons, which quickly gets the attention of the ship.");
   // Mantis ship attacking Crystal. "Attack the Mantis." One printed lead-in, then a Mantis ship fight.
-  if (id === "c:mantis-ship-attacking-crystal:0") ctx.note(tx("wiki.cited-events.you-activate-your-impulse-engines-and"));
+  if (id === "c:mantis-ship-attacking-crystal:0")
+    ctx.note(
+      "You activate your impulse engines and fly between the Mantis and their prey, weapons charging. You appear to have their full attention.",
+    );
   // Mantis ship with Rock body parts. "Attack!" One printed lead-in, then a Mantis ship fight.
   if (id === "c:mantis-ship-with-rock-body-parts:0") {
     // Wiki citations:
     // > "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!" — [[Mantis ship with Rock body parts]]
     // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
-    ctx.note(tx("wiki.cited-events.no-species-deserves-a-mantis-hunter"));
+    ctx.note(
+      "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!",
+    );
   }
   // Lanius lone ship. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:lanius-lone-ship:0") ctx.note(tx("wiki.cited-events.the-civilian-ship-hastily-retreats-while"));
+  if (id === "c:lanius-lone-ship:0")
+    ctx.note(
+      "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.",
+    );
   // Auto-ship near radar station. "Approach the station." One printed lead-in, then an Auto-ship fight.
-  if (id === "c:auto-ship-near-radar-station:0") ctx.note(tx("wiki.cited-events.the-ship-powers-up-and-targets"));
+  if (id === "c:auto-ship-near-radar-station:0") ctx.note("The ship powers up and targets you.");
   // Crystal fight choice. "Engage the Rebel ship." One printed lead-in, then a Crystal ship fight.
   if (id === "c:crystal-fight-choice:0") {
     // Wiki citations:
     // > "Engage the Rebel ship." — [[Crystal fight choice]]
     // > "Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: \"You, you are like these other aliens! You brought them here!\" With that they turn their cannons on you!" — [[Crystal fight choice]]
     // > "Fight a Crystal ship (default rewards)." — [[Crystal fight choice]]
-    ctx.note(tx("wiki.cited-events.before-you-can-engage-the-crystalline"));
+    ctx.note(
+      'Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: "You, you are like these other aliens! You brought them here!" With that they turn their cannons on you!',
+    );
   }
   // Lanius powered-down ship. "Scan the ship for lifeforms." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:lanius-powered-down-ship:0") ctx.note(tx("wiki.cited-events.as-you-scan-the-vessel-the"));
+  if (id === "c:lanius-powered-down-ship:0")
+    ctx.note(
+      "As you scan the vessel, the scan frequencies awaken the Lanius from hibernation - and they're hungry for raw materials!",
+    );
   // Pirate ship attacking Crystal. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
   if (id === "c:pirate-ship-attacking-crystal:0") {
     // Wiki citations:
     // > "Attack the pirate." — [[Pirate ship attacking Crystal]]
     // > "You chase down the pirate before it has a chance to engage the civilian ship. When it detects the real threat, it turns to face you." — [[Pirate ship attacking Crystal]]
     // > "Fight a Pirate ship." — [[Pirate ship attacking Crystal]]
-    ctx.note(tx("wiki.cited-events.you-chase-down-the-pirate-before"));
+    ctx.note(
+      "You chase down the pirate before it has a chance to engage the civilian ship. When it detects the real threat, it turns to face you.",
+    );
   }
   // Remote settlement. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
-  if (id === "c:remote-settlement:0") ctx.note(tx("wiki.cited-events.you-asked-for-it-they-pull"));
+  if (id === "c:remote-settlement:0")
+    ctx.note('"You asked for it!" They pull away from the planet and move in to engage.');
   // Pirate smuggler. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
-  if (id === "c:pirate-smuggler:0") ctx.note(tx("wiki.cited-events.you-power-up-your-weapons-and"));
+  if (id === "c:pirate-smuggler:0") ctx.note("You power up your weapons and move in to engage.");
   // Refueling platform garbled broadcast. "Hail the platform and attempt to communicate." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:refueling-platform-garbled-broadcast:0") ctx.note(tx("wiki.cited-events.there-is-a-screech-from-your"));
+  if (id === "c:refueling-platform-garbled-broadcast:0")
+    ctx.note(
+      "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!",
+    );
   // Slug drink. "Refuse." One printed lead-in, then a Slug ship fight.
-  if (id === "c:slug-drink:0") ctx.note(tx("wiki.cited-events.the-slug-feigns-offense-at-your"));
+  if (id === "c:slug-drink:0")
+    ctx.note(
+      "The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire.",
+    );
   // Zoltan quest primitives. "Interfere - make first contact with the primitive aliens." One printed lead-in, then a Zoltan ship fight.
-  if (id === "c:zoltan-quest-primitives:0") ctx.note(tx("wiki.cited-events.the-local-people-furry-one-eyed"));
+  if (id === "c:zoltan-quest-primitives:0")
+    ctx.note(
+      "The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight.",
+    );
   // Zoltan quest primitives. "Protect the aliens' way of life - Attack the Rebel ship." One printed lead-in, then a Rebel ship fight.
-  if (id === "c:zoltan-quest-primitives:1") ctx.note(tx("wiki.cited-events.these-creatures-should-be-left-to"));
+  if (id === "c:zoltan-quest-primitives:1")
+    ctx.note(
+      "These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence.",
+    );
   // Rebel ship attacking Crystal ship. "Attack the Rebel." One printed lead-in, then a Rebel ship fight.
-  if (id === "c:rebel-ship-attacking-crystal-ship:0") ctx.note(tx("wiki.cited-events.you-message-the-crystalline-ship-your"));
+  if (id === "c:rebel-ship-attacking-crystal-ship:0")
+    ctx.note(
+      "You message the Crystalline ship your intentions and move in to intercept the Rebel ship.",
+    );
   // Rebel ship attacking Crystal ship. "Attack the Crystalline ship." One printed lead-in, then a Crystal ship fight.
-  if (id === "c:rebel-ship-attacking-crystal-ship:1") ctx.note(tx("wiki.cited-events.you-move-in-to-intercept-the"));
+  if (id === "c:rebel-ship-attacking-crystal-ship:1")
+    ctx.note(
+      "You move in to intercept the Crystalline ship. As soon as the Rebel scans your ship it takes the opportunity to jump. You have the sneaking suspicion they will inform the fleet of your position, but that's the least of your current concerns.",
+    );
   // Auto-ship carrying shield virus. "Counter the remote hacking." Without Hacking the arrival card stays open.
   // citedChoose does not read citedChoiceDisabled, so this returns before the fight note and the fight.
-  if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0) return true;
+  if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.spike?.level ?? 0) <= 0)
+    return true;
   // Auto-ship carrying shield virus. "Counter the remote hacking." One printed lead-in, then an Auto-ship fight.
-  if (id === "c:auto-ship-carrying-shield-virus:1") ctx.note(tx("wiki.cited-events.your-hacking-system-automatically-counters-the"));
+  if (id === "c:auto-ship-carrying-shield-virus:1")
+    ctx.note(
+      "Your hacking system automatically counters the digital assault and you move in to fight the ship.",
+    );
   // Rebel shipyard. "Look around." One printed warning, then the same second Flagship fight. No salvage is granted here.
-  if (id === "c:rebel-shipyard:0") ctx.note(tx("wiki.cited-events.warning-lights-flash-as-scans-identify"));
+  if (id === "c:rebel-shipyard:0")
+    ctx.note(
+      "Warning lights flash as scans identify the gigantic ship under construction - it's a second Rebel Flagship! This must be the secret shipyards where the first one was built, and you've accidentally stumbled across it! Even in its weakened state, the Rebel ship powers up... get ready, you've got a hell of a fight on your hands!",
+    );
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined);
@@ -1804,14 +2023,20 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // INFERRED: inclusive 2..3. After ctx.fight: a new fight keeps intruders already aboard.
     // Wiki citations:
     // > "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)." — [[Rebel fight with boarders]]
-    if (id === "c:rebel-fight-with-boarders:0") humanBoarders(g, 2, 3, tx("wiki.cited-events.human-boarders-beam-aboard-your-ship"));
+    if (id === "c:rebel-fight-with-boarders:0")
+      humanBoarders(g, 2, 3, "human boarders beam aboard your ship.");
     // "2 slug boarders beam aboard your ship" (Slug hacker (medical)).
-    if (id === "c:slug-hacker-medical:0") slugBoarders(g, 2, 2, tx("wiki.cited-events.slug-boarders-beam-aboard-your-ship"));
+    if (id === "c:slug-hacker-medical:0")
+      slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
     // "crew entirely composed of Mantis" (Mantis ship-collectors; Zoltan ship follows Mantis ship; Legendary thief KazaaakplethKilik).
     // Wiki citations:
     // > "Fight a Mantis Fighter with crew entirely composed of Mantis." — [[Mantis ship-collectors]]
     if (id === "c:mantis-ship-collectors:0") allMantisCrew(g);
-    if (id === "c:zoltan-ship-follows-mantis-ship:1" || id === "c:legendary-thief-kazaaakplethkilik:0") allMantisCrew(g);
+    if (
+      id === "c:zoltan-ship-follows-mantis-ship:1" ||
+      id === "c:legendary-thief-kazaaakplethkilik:0"
+    )
+      allMantisCrew(g);
     return true;
   }
   // Boarders: Humans in plasma storm has no choice. Arrival calls this id.
@@ -1823,15 +2048,17 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   // Pirate toll. "Pay their toll." One printed result. The 15-25 scrap is already spent above. No fight.
   if (id === "c:pirate-toll:0") {
-    citedResult(g, tx("wiki.cited-events.you-made-the-right-decision-friend"), [tx("wiki.cited-events.you-avoid-the-fight")]);
+    citedResult(g, '"You made the right decision, friend."', ["You avoid the fight."]);
     return true;
   }
   // The mercenary. "Hire the mercenary to delay the Rebels." One printed result. Scrap and the 2-turn delay are already applied.
   if (id === "c:the-mercenary:0") {
     const last = g.sector === 8 || g.sectorName === "The Last Stand";
-    citedResult(g, tx("wiki.cited-events.the-mercenary-ship-masks-its-jump"), [
-      last ? tx("wiki.cited-events.no-effect-in-the-last-stand") : tx("wiki.cited-events.rebel-fleet-is-delayed-for-2"),
-    ]);
+    citedResult(
+      g,
+      "The mercenary ship masks its jump signature to mimic your own and then jumps off in the opposite direction. This should keep the Rebels guessing.",
+      [last ? "No effect in The Last Stand." : "Rebel Fleet is delayed for 2 turns."],
+    );
     return true;
   }
   // Federation deserters. "Offer supplies." 15-25 scrap and 1-3 fuel are already spent.
@@ -1840,8 +2067,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:federation-deserters:2") {
     citedResult(
       g,
-      tx("wiki.cited-events.you-send-over-some-supplies-to"),
-      [tx("wiki.cited-events.the-current-sector-map-is-revealed")],
+      'You send over some supplies to help them on their way and in return they upload their flight plan to your computer, allowing you to map the sector! "The Federation fleet\'s still standing - get there while you can!"',
+      ["The current sector map is revealed."],
     );
     return true;
   }
@@ -1853,9 +2080,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     citedResult(
       g,
       id === "c:remote-settlement:2"
-        ? tx("wiki.cited-events.the-pirate-watches-as-you-start")
-        : tx("wiki.cited-events.the-pirate-watches-as-you-teleport"),
-      [tx("wiki.cited-events.you-receive-a-drone-schematic-with-2"), item],
+        ? "The pirate watches as you start to light the meager crops on fire. In a few moments the settlement surrenders, offering tribute to leave them alone. The pirate seems impressed."
+        : "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'.",
+      ["You receive a drone schematic with high scrap.", item],
     );
     return true;
   }
@@ -1870,11 +2097,15 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     g.player.parts -= 1;
     const fuel = rollFuel(id, (lo, hi) => roll(ctx, lo, hi));
     g.fuel += fuel;
-    const spent = tx("wiki.cited-events.drone-parts-1");
-    const got = `${tx("wiki.cited-events.fuel")}: ${fuel}.`;
+    const spent = "Drone parts: -1.";
+    const got = `${"Fuel"}: ${fuel}.`;
     ctx.note(spent);
     ctx.note(got);
-    citedResult(g, tx("wiki.cited-events.they-happily-accept-your-offer"), [got, spent]);
+    citedResult(
+      g,
+      "They happily accept your offer for help. Once the drone does its work they transfer over some fuel for your trouble.",
+      [got, spent],
+    );
     return true;
   }
   const questFx = choice.fx.find((fx) => fx.k === "quest");

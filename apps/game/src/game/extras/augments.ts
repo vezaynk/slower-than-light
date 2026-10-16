@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import { augmentDef } from "@stl/pack";
 import { bars, chargerCap, FIRE_FIGHT_SHARE, log, powerMask, rand, zoltanBars } from "../sim.ts";
 import type { AugmentId, BeaconKind, Crew, Game, Ship } from "../types.ts";
@@ -43,7 +42,7 @@ export function primeWeapons(g: Game) {
     } else w.charge = 1;
     primed = true;
   });
-  if (primed) log(g, tx("extras.augments.weapon-pre-igniter-weapons-are-charged"));
+  if (primed) log(g, "Weapon Pre-Igniter: weapons are charged.");
 }
 
 /** Augmentations, "Defensive Augmentations", Reverse Ion Field: 50% per copy, two or more ignore every ion. */
@@ -158,12 +157,12 @@ export function onNewSector(g: Game) {
   // The map starts the fleet at 0, so a subtraction would do nothing. Hold the next advance instead.
   if (g.fleet <= 0) {
     g.buoyDelay = 1;
-    log(g, tx("extras.augments.distraction-buoys-the-fleet-loses-a"));
+    log(g, "Distraction Buoys. The fleet loses a jump.");
     return;
   }
   g.buoyDelay = 0;
   g.fleet -= 1;
-  log(g, tx("extras.augments.distraction-buoys-the-fleet-loses-a"));
+  log(g, "Distraction Buoys. The fleet loses a jump.");
 }
 
 /**
@@ -237,7 +236,7 @@ export function adjustScrapAmount(g: Game, scrap: number): number {
   if (has(g, "weld") && g.player.hull < g.player.hullMax) {
     n *= 0.85;
     g.player.hull += 2;
-    log(g, tx("extras.augments.repair-arm-seals-2-hull"));
+    log(g, "Repair Arm seals 2 hull.");
   }
   return Math.floor(n);
 }
@@ -250,15 +249,15 @@ export function installAugment(g: Game, id: AugmentId): boolean {
   const row = augmentDef(id);
   if (!row || row.cost <= 0) return false;
   if (has(g, id)) {
-    log(g, tx("extras.augments.already-fitted"));
+    log(g, "Already fitted.");
     return false;
   }
   if (g.augments.length >= 3) {
-    log(g, tx("extras.augments.three-augments-is-the-cap"));
+    log(g, "Three augments is the cap.");
     return false;
   }
   if (g.scrap < row.cost) {
-    log(g, tx("extras.augments.not-enough-scrap"));
+    log(g, "Not enough scrap.");
     return false;
   }
   g.scrap -= row.cost;

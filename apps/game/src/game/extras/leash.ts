@@ -1,6 +1,19 @@
-import { tx } from "../../i18n/index.ts";
 import { interiorLinks, mayStand } from "../crew-spots.ts";
-import { cooldownLocksPower, createGame, deselectCrew, kitBars, kitIonLocked, kitPowerDown, kitPowerUp, leaveDeprivedAir, log, noteZoltanKits, rand, sparePower, startCombat } from "../sim.ts";
+import {
+  cooldownLocksPower,
+  createGame,
+  deselectCrew,
+  kitBars,
+  kitIonLocked,
+  kitPowerDown,
+  kitPowerUp,
+  leaveDeprivedAir,
+  log,
+  noteZoltanKits,
+  rand,
+  sparePower,
+  startCombat,
+} from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
@@ -195,22 +208,22 @@ export function heldByEnemy(c: Crew): boolean {
 /** Mind Control wiki, "System Upgrades": spends the level 1 cost of 75. */
 export function installLeash(g: Game) {
   if (INSTALL_COST == null) {
-    log(g, tx("extras.leash.no-price-on-the-sheet"));
+    log(g, "No price on the sheet.");
     return;
   }
   if (g.player.kits.leash) {
-    log(g, tx("extras.leash.the-lark-already-carries-mind-control"));
+    log(g, "The Lark already carries Mind Control.");
     return;
   }
   if (g.scrap < INSTALL_COST) {
-    log(g, tx("extras.leash.not-enough-scrap-for-mind-control"));
+    log(g, "Not enough scrap for Mind Control.");
     return;
   }
   g.scrap -= INSTALL_COST;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.leash = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, tx("extras.leash.mind-control-fitted-to-the-lark"));
+  log(g, "Mind Control fitted to the Lark.");
 }
 
 /** Mind Control wiki, "System Upgrades": pays 30 to reach level 2, then 60 to reach level 3. */
@@ -221,13 +234,13 @@ export function upgradeLeash(g: Game) {
   const cost = UPGRADE_COST[next];
   if (cost == null) return;
   if (g.scrap < cost) {
-    log(g, tx("extras.leash.not-enough-scrap-to-raise-mind"));
+    log(g, "Not enough scrap to raise Mind Control.");
     return;
   }
   g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
   kit.level = next;
-  log(g, tx("extras.leash.mind-control-raised"));
+  log(g, "Mind Control raised.");
 }
 
 /**
@@ -243,12 +256,12 @@ export function toggleLeashPower(g: Game) {
     return;
   }
   if (sparePower(g.player) < 1) {
-    log(g, tx("extras.leash.no-spare-power-on-the-lark"));
+    log(g, "No spare power on the Lark.");
     return;
   }
   // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
   if (kit.level - (kit.damage ?? 0) < 1) {
-    log(g, tx("extras.leash.mind-control-is-too-damaged-to"));
+    log(g, "Mind Control is too damaged to power.");
     return;
   }
   kit.power = 1;
@@ -293,11 +306,11 @@ export function startLeash(g: Game, crewId: string) {
   // Zoltans: Mind Control cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
   if (kitIonLocked(kit)) return;
   if (kitBars(kit) < 1) {
-    log(g, tx("extras.leash.mind-control-has-no-power"));
+    log(g, "Mind Control has no power.");
     return;
   }
   if (kit.cool > 0 || (kit.on && kit.left > 0)) {
-    log(g, tx("extras.leash.mind-control-is-not-ready"));
+    log(g, "Mind Control is not ready.");
     return;
   }
   const crew = g.crew.find((c) => c.id === crewId);
@@ -311,13 +324,13 @@ export function startLeash(g: Game, crewId: string) {
     kit.left = durationOf(playerLevel(kit));
     kit.on = true;
     kit.target = null;
-    log(g, tx("extras.leash.is-freed-from-their-mind-control", { name: crew.name }));
+    log(g, `${crew.name} is freed from their mind control.`);
     return;
   }
   if (!crew || crew.side !== "enemy" || crew.hp <= 0) return;
   // Mind Control wiki, "Overview": "Slugs cannot be mind controlled." Rejected before the kit is spent.
   if (!controllable(crew)) {
-    log(g, tx("extras.leash.is-a-slug-mind-control-does", { name: crew.name }));
+    log(g, `${crew.name} is a Slug. Mind control does not take.`);
     return;
   }
   // Mind Control, Overview: "Mind control requires view of enemy crew (Slug telepathy and Lifeform Scanners count)."
@@ -326,7 +339,7 @@ export function startLeash(g: Game, crewId: string) {
   // "teleporting a bomb that doesn't miss a targeted room" is bombRoomOpen.
   // Enemies do not use this function. "Enemies do not require vision to use Mind Control" stays on fireEnemyLeash.
   if (!enemyCrewInView(g, crew)) {
-    log(g, tx("extras.leash.mind-control-has-no-view-of"));
+    log(g, "Mind Control has no view of that crew.");
     return;
   }
   // Zoltan Shield: mind control does not pass the bubble. Bypass lets it through and does not spend the bubble.
@@ -336,7 +349,7 @@ export function startLeash(g: Game, crewId: string) {
     (g.enemy?.zoltan ?? 0) > 0 &&
     !(g.augments.includes("bypass") && bypassZoltan("mind") === "pass")
   ) {
-    log(g, tx("extras.leash.their-zoltan-shield-blocks-mind-control"));
+    log(g, "Their Zoltan Shield blocks mind control.");
     return;
   }
   for (const other of g.crew) {
@@ -350,7 +363,7 @@ export function startLeash(g: Game, crewId: string) {
   kit.on = true;
   kit.target = crew.id;
   retarget(g);
-  log(g, tx("extras.leash.is-leashed", { name: crew.name }));
+  log(g, `${crew.name} is leashed.`);
 }
 
 /**
@@ -550,7 +563,12 @@ export function leashOnLeave(g: Game) {
  */
 function pickEnemyTarget(g: Game): Crew | null {
   const pool = g.crew.filter(
-    (c) => c.side === "player" && c.hp > 0 && !isLeashed(c) && controllable(c) && !behindPlayerBubble(g, c),
+    (c) =>
+      c.side === "player" &&
+      c.hp > 0 &&
+      !isLeashed(c) &&
+      controllable(c) &&
+      !behindPlayerBubble(g, c),
   );
   if (!pool.length) return null;
   return pool[Math.floor(rand(g) * pool.length)] ?? null;
@@ -581,7 +599,7 @@ export function fireEnemyLeash(g: Game): boolean {
   crew.path = [];
   crew.move = 0;
   deselectCrew(g, crew.id);
-  log(g, tx("extras.leash.is-under-their-mind-control", { name: crew.name }));
+  log(g, `${crew.name} is under their mind control.`);
   return true;
 }
 
@@ -624,14 +642,22 @@ function huntFor(g: Game, c: Crew) {
   const ship = c.aboard === "player" ? g.player : g.enemy;
   if (!ship) return;
   const prey = (room: string) =>
-    g.crew.some((o) => o.id !== c.id && o.aboard === c.aboard && o.room === room && o.hp > 0 && sideOf(o) !== sideOf(c));
+    g.crew.some(
+      (o) =>
+        o.id !== c.id &&
+        o.aboard === c.aboard &&
+        o.room === room &&
+        o.hp > 0 &&
+        sideOf(o) !== sideOf(c),
+    );
   if (prey(c.room)) return;
   const path = pathTo(ship, c.room, prey);
   if (!path || !path.length) return;
   const dest = path[path.length - 1]!;
   const room = ship.rooms.find((r) => r.id === dest);
   const hull = c.aboard === "player" ? "player" : "enemy";
-  if (!room || !mayStand(room, g.crew, c.id, dest, c.aboard, hull, interiorLinks(ship.doors, dest))) return;
+  if (!room || !mayStand(room, g.crew, c.id, dest, c.aboard, hull, interiorLinks(ship.doors, dest)))
+    return;
   c.path = path;
   c.move = 0;
   delete c.via;
@@ -652,7 +678,7 @@ function tickEnemyLeash(g: Game, dt: number) {
       clearEnemyLeash(g);
       // Systems, "Systems cooldown": the effect wore off. A player cancel does not come through here.
       woreOff(kit);
-      if (held && held.hp > 0) log(g, tx("extras.leash.shakes-off-their-mind-control", { name: held.name }));
+      if (held && held.hp > 0) log(g, `${held.name} shakes off their mind control.`);
       return;
     }
     capDuration(kit, level);
@@ -660,7 +686,7 @@ function tickEnemyLeash(g: Game, dt: number) {
     if (kit.left <= 0) {
       clearEnemyLeash(g);
       woreOff(kit);
-      if (held.hp > 0) log(g, tx("extras.leash.shakes-off-their-mind-control", { name: held.name }));
+      if (held.hp > 0) log(g, `${held.name} shakes off their mind control.`);
       return;
     }
     // "Combat damage bonus and health boost are removed if the system level is decreased": working bars are its level.

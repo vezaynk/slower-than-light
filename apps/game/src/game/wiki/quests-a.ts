@@ -10,7 +10,6 @@
  * one-word labels of "Fight ..." / "Continue" buttons and quest beacon names are INVENTED where the page prints none.
  * Ship unlocks go through unlocks.ts grantUnlock.
  */
-import { tx } from "../../i18n/index.ts";
 import { crewDef } from "@stl/pack";
 import { xpNeedFor } from "../extras/lineage.ts";
 import { enterHiddenCrystal, log, rand } from "../sim.ts";
@@ -33,7 +32,17 @@ import {
   type QuestPart,
   type Win,
 } from "./quests.ts";
-import { between, closeFight, humanBoarders, joinCrew, NEVER_RUN, pageFight, rollStandard, rollSurrenderOffer, type SurrenderPlan } from "./surrender.ts";
+import {
+  between,
+  closeFight,
+  humanBoarders,
+  joinCrew,
+  NEVER_RUN,
+  pageFight,
+  rollStandard,
+  rollSurrenderOffer,
+  type SurrenderPlan,
+} from "./surrender.ts";
 
 // ---------------------------------------------------------------------------------------------------------------
 // Helpers
@@ -49,7 +58,14 @@ const medbayLevel = (g: Game) => g.player.systems.medbay?.level ?? 0;
 
 /** A fight whose page prints no surrender (or says it "doesn't surrender"): no offer this fight. */
 function noOffer(g: Game) {
-  const plan: SurrenderPlan = { chance: 0, threshold: 0, rolled: false, offered: false, refused: false, offer: null };
+  const plan: SurrenderPlan = {
+    chance: 0,
+    threshold: 0,
+    rolled: false,
+    offered: false,
+    refused: false,
+    offer: null,
+  };
   g.enemySurrender = plan;
 }
 
@@ -59,20 +75,34 @@ function boarders(g: Game, race: string, kin: "spark", lo: number, hi: number) {
   const hp = crewDef(kin).hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
-    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    const room =
+      rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
     g.uid = (g.uid + 1) >>> 0;
-    g.crew.push({ id: "u" + g.uid.toString(36), name: race, side: "enemy", aboard: "player", hp, maxHp: hp, room, path: [], move: 0, think: 0, tone: 3, kin });
+    g.crew.push({
+      id: "u" + g.uid.toString(36),
+      name: race,
+      side: "enemy",
+      aboard: "player",
+      hp,
+      maxHp: hp,
+      room,
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 3,
+      kin,
+    });
   }
-  log(g, tx("wiki.quests-a.boarders-beam-aboard", { n: n, race: race }));
+  log(g, `${n} ${race} boarders beam aboard.`);
 }
 
 /** A named crewmember "maxed in all skills" (as quests.ts does for Kazaaak). */
 function maxedCrew(g: Game, race: string, name: string): string {
-  if (!joinCrew(g, race, name)) return tx("wiki.quests-a.there-is-no-room-aboard-for", { name: name });
+  if (!joinCrew(g, race, name)) return `There is no room aboard for ${name}.`;
   const c = g.crew[g.crew.length - 1];
   const all: SkillName[] = ["pilot", "engines", "weapons", "shields", "repair", "combat"];
   c.skills = Object.fromEntries(all.map((s) => [s, xpNeedFor(c, s) * 2]));
-  return tx("wiki.quests-a.joins-your-crew", { name: name });
+  return `${name} joins your crew.`;
 }
 
 /**
@@ -94,7 +124,7 @@ function resume(g: Game, line: string) {
   log(g, line);
 }
 
-const CONTINUE: Choice[] = [{ id: "qa:zrf:thanks", label: tx("wiki.quests-a.continue") }];
+const CONTINUE: Choice[] = [{ id: "qa:zrf:thanks", label: "Continue." }];
 
 // ---------------------------------------------------------------------------------------------------------------
 // Quest ids, beacon names (INVENTED), and arrival cards
@@ -102,16 +132,16 @@ const CONTINUE: Choice[] = [{ id: "qa:zrf:thanks", label: tx("wiki.quests-a.cont
 
 const QUESTS_A: QuestPart["quests"] = {
   // Ancient device, "Quest Marker" (CRYSTAL_UNLOCK).
-  "crystal-unlock": { page: "Ancient device", title: tx("wiki.quests-a.crystal-repair-station") },
+  "crystal-unlock": { page: "Ancient device", title: "Crystal repair station" },
   // Rock war vessel encounter, "Sun Quest Marker" and "Shipyard Quest Marker".
-  "rock-sun": { page: "Rock war vessel encounter", title: tx("wiki.quests-a.red-giant") },
-  "rock-shipyard": { page: "Rock war vessel encounter", title: tx("wiki.quests-a.rockman-shipyard") },
+  "rock-sun": { page: "Rock war vessel encounter", title: "Red giant" },
+  "rock-shipyard": { page: "Rock war vessel encounter", title: "Rockman shipyard" },
   // Unarmed Zoltan transport, "Quest Marker".
-  "zoltan-peace": { page: "Unarmed Zoltan transport", title: tx("wiki.quests-a.zoltan-brethren") },
+  "zoltan-peace": { page: "Unarmed Zoltan transport", title: "Zoltan brethren" },
   // Zoltan trade hub, "Quest Marker" ({{:Zoltan quest primitives}}).
-  "zoltan-primitives": { page: "Zoltan trade hub", title: tx("wiki.quests-a.primitive-planet") },
+  "zoltan-primitives": { page: "Zoltan trade hub", title: "Primitive planet" },
   // Rock bride, "Quest Marker".
-  "rock-bride": { page: "Rock bride", title: tx("wiki.quests-a.numa-v") },
+  "rock-bride": { page: "Rock bride", title: "Numa V" },
 };
 
 const ARRIVE: QuestPart["arrive"] = {
@@ -125,7 +155,7 @@ const ARRIVE: QuestPart["arrive"] = {
     offer.fuel = between(g, [2, 4]);
     result(
       g,
-      tx("wiki.quests-a.you-arrive-at-the-coordinates-to"),
+      "You arrive at the coordinates to find a massive Crystalline cruiser docked at a small repair station. You arrange for the ship to be sent back to the Federation base while the station upgrades your hull.",
       offer,
       [unlocked, grantAug(g, "vengeance"), repair(g, 10)],
     );
@@ -138,7 +168,11 @@ const ARRIVE: QuestPart["arrive"] = {
     const unlocked = grantUnlock(g, "rock-a"); // @agent:unlocks. Rock war vessel encounter: "You unlock the Rock Cruiser."
     result(
       g,
-      tx("wiki.quests-a.you-arrive-at-a-massive-rockman"),
+      `You arrive at a massive Rockman shipyard and notice the ship that had just tried to kill you is docked and already being repaired. "Well fought! I must say I did not expect you to survive."
+
+I am convinced of your strength and pledge to assist your cause. We'll immediately send an advanced cruiser to the Federation fleet and we will prepare our warships to move out.
+
+"Now that that's taken care of, let us patch up your hull. Maybe we can improve its armor plating while we're at it."`,
       undefined,
       [unlocked, grantAug(g, "keel"), repair(g, 29)],
     );
@@ -157,18 +191,30 @@ function zoltanHub(g: Game, text: string) {
   // > "You head into the cantina for gossip." — [[Zoltan trade hub#In the Zoltan hub]]
   // > "A quest marker is added to your map." — [[Zoltan trade hub#In the Zoltan hub]]
   if (rand(g) < 0.5) {
-    result(g, tx("wiki.quests-a.you-head-into-a-ship-supply", { text: text }), undefined, [], STORE_CHOICES);
+    result(
+      g,
+      `${text}
+
+You head into a ship supply store. It is a well-equipped, self-service affair. An order is dialed into a terminal, scrap is deposited, and the item is dispatched from a nearby chute.`,
+      undefined,
+      [],
+      STORE_CHOICES,
+    );
   } else {
     result(
       g,
-      tx("wiki.quests-a.you-head-into-the-cantina-for", { text: text }),
+      `${text}
+
+You head into the cantina for gossip. Topics of conversation in the cantina range from crop distribution microbes to the joys of Slug pleasure cruises.
+
+You overhear one group discussing a newly discovered planet yet to have first contact, and note down its location.`,
       undefined,
       [addQuest(g, "zoltan-primitives")],
     );
   }
 }
 
-const PEACE_FIGHT = tx("wiki.quests-a.rebel-ship");
+const PEACE_FIGHT = "Rebel ship";
 
 const CHOICES_A: QuestPart["choices"] = {
   // ---- Ancient device ----
@@ -180,16 +226,25 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Fight a Rock ship (default rewards)." — [[Ancient device]]
     // ROCK_SHIP keeps the Rock surrender row (surrender.ts).
     if (rand(g) < 0.5) {
-      result(g, tx("wiki.quests-a.you-break-it-apart-and-take"), scrapOnly(g, "high"));
+      result(
+        g,
+        "You break it apart and take it for scrap. No one will miss it.",
+        scrapOnly(g, "high"),
+      );
     } else {
-      pageFight(g, tx("wiki.quests-a.as-you-start-to-break-it"), tx("wiki.quests-a.rock-ship"), "ancient-device");
+      pageFight(
+        g,
+        'As you start to break it apart a Rock military ship jumps nearby, "You think you can come into our sector and just steal whatever you please?! Prepare to die, vandals!"',
+        "Rock ship",
+        "ancient-device",
+      );
     }
   },
   "c:ancient-device:1": (g) =>
     // Wiki citations:
     // > "Nothing happens." — [[Ancient device]]
     // > "Better not risk it. The Rock people are unlikely to respond well to vandalism." — [[Ancient device]]
-    result(g, tx("wiki.quests-a.better-not-risk-it-the-rock")),
+    result(g, "Better not risk it. The Rock people are unlikely to respond well to vandalism."),
   "c:ancient-device:2": (g) => {
     // Wiki citations:
     // > "(Crystal Crew) Reactivate it." — [[Ancient device]]
@@ -202,7 +257,13 @@ const CHOICES_A: QuestPart["choices"] = {
     enterHiddenCrystal(g);
     result(
       g,
-      tx("wiki.quests-a.your-crystalline-companion-says-it-looks"),
+      `Your Crystalline companion says, "It looks like we have found the abandoned link to my home worlds. I can reactivate it." He transmits some codes to the device and it immediately powers on.
+
+Before you can react, the space around you distorts and a wormhole forms. You begin to sound the alarm, but your companion calms you and indicates that you should fly directly into the wormhole. You reluctantly do as he says.
+
+You arrive in a sector not listed in any star charts. Strange crystalline ships dot the horizon. Your companion speaks, "Here we are, my home sector. It has been a long time since others have set foot here, I wonder how you will be received."
+
+"You have done as you promised and so shall I. The coordinates of my old ship have been forwarded to your navigation system."`,
       undefined,
       [addQuest(g, "crystal-unlock")],
     );
@@ -213,7 +274,10 @@ const CHOICES_A: QuestPart["choices"] = {
     // Wiki citations:
     // > "Nothing happens." — [[Rock war vessel encounter]]
     // > "If the Federation is as weak as you it deserves to fall." — [[Rock war vessel encounter]]
-    result(g, tx("wiki.quests-a.heh-like-i-expected-if-the"));
+    result(
+      g,
+      '"Heh. Like I expected. If the Federation is as weak as you it deserves to fall." They jump away without another word.',
+    );
   },
   // INFERRED: no surrender (the page prints none). The M-class star's flares are cited-flare.ts eventHasFlare("quest-rock-sun").
   "qa:rock-sun:fight": (g) => {
@@ -221,7 +285,13 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Fight the Rock Assault (Elite) ship." — [[Rock war vessel encounter#Sun Quest Marker]]
     // > "ship starts to escape with 32 seconds countdown timer" — [[Rock war vessel encounter#Sun Quest Marker]]
     // > "The Rock ship starts to power up their FTL drive." — [[Rock war vessel encounter#Sun Quest Marker]]
-    pageFight(g, tx("wiki.quests-a.the-rock-ship-starts-to-power"), tx("wiki.quests-a.rock-assault-elite"), "quest-rock-sun", startRun(32));
+    pageFight(
+      g,
+      "The Rock ship starts to power up their FTL drive. If we're going to earn their trust we must endure the heat for as long as they can!",
+      "Rock Assault (Elite)",
+      "quest-rock-sun",
+      startRun(32),
+    );
     noOffer(g);
   },
 
@@ -235,7 +305,12 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Fight a Zoltan ship." — [[Unarmed Zoltan transport]]
     // INFERRED: "We carry no weapons or shielding" strips weapons, shields, drones, hacking, and boarding.
     if (rand(g) < 0.5) {
-      pageFight(g, tx("wiki.quests-a.you-charge-your-weapons-not-that"), tx("wiki.quests-a.zoltan-ship"), "unarmed-zoltan-transport");
+      pageFight(
+        g,
+        "You charge your weapons - not that this will take much.",
+        "Zoltan ship",
+        "unarmed-zoltan-transport",
+      );
       const ship = g.enemy;
       if (ship) {
         ship.weapons = [];
@@ -252,12 +327,17 @@ const CHOICES_A: QuestPart["choices"] = {
       }
       // {{Winning|surrender=true|...}}. INFERRED: no threshold is printed and the ship cannot fight back, so the offer
       // opens with the fight. Zoltan ships otherwise never surrender (surrender.ts), so this card is the only one.
-      card(g, tx("wiki.quests-a.they-are-clearly-not-putting-up"), [
-        { id: "qa:uzt:finish", label: tx("wiki.quests-a.finish-them-off") },
-        { id: "qa:uzt:go", label: tx("wiki.quests-a.let-them-go") },
+      card(g, "They are clearly not putting up a fight. Are you sure you want to destroy them?", [
+        { id: "qa:uzt:finish", label: "Finish them off." },
+        { id: "qa:uzt:go", label: "Let them go." },
       ]);
     } else {
-      pageFight(g, tx("wiki.quests-a.just-as-you-re-preparing-to"), tx("wiki.quests-a.zoltan-ship"), "unarmed-zoltan-defense");
+      pageFight(
+        g,
+        "Just as you're preparing to attack you detect a nearby jump signature. A Zoltan defense ship comes to their aid!",
+        "Zoltan ship",
+        "unarmed-zoltan-defense",
+      );
     }
   },
   "qa:uzt:finish": (g) => {
@@ -265,7 +345,7 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Finish them off." — [[Unarmed Zoltan transport]]
     // > "You continue the assault." — [[Unarmed Zoltan transport]]
     // > "The fight continues." — [[Unarmed Zoltan transport]]
-    resume(g, tx("wiki.quests-a.you-continue-the-assault"));
+    resume(g, "You continue the assault.");
   },
   "qa:uzt:go": (g) => {
     // Wiki citations:
@@ -273,20 +353,26 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "You power down your weapons and after a time the ship slowly limps away." — [[Unarmed Zoltan transport]]
     // > "Nothing happens." — [[Unarmed Zoltan transport]]
     closeFight(g);
-    result(g, tx("wiki.quests-a.you-power-down-your-weapons-and"));
+    result(
+      g,
+      "You power down your weapons and after a time the ship slowly limps away. They refuse all communications. You can't help but feel somewhat guilty.",
+    );
   },
   "c:unarmed-zoltan-transport:2": (g) => {
     // Wiki citations:
     // > "The galaxy is at war - there's no time for talk of peace." — [[Unarmed Zoltan transport]]
     // > "Nothing happens." — [[Unarmed Zoltan transport]]
-    result(g, tx("wiki.quests-a.the-galaxy-is-at-war-there"));
+    result(
+      g,
+      "The galaxy is at war - there's no time for talk of peace. You leave their hails unanswered and charge the jump drive.",
+    );
   },
   // Quest Marker. Every Rebel fight here is "(default rewards)", so no PAGE wins entry.
   "qa:peace:attack": (g) => {
     // Wiki citations:
     // > "You power your weapons and prepare to fight." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "Fight a Rebel ship (default rewards)." — [[Unarmed Zoltan transport#Quest Marker]]
-    pageFight(g, tx("wiki.quests-a.you-power-your-weapons-and-prepare"), PEACE_FIGHT, "quest-zoltan-peace");
+    pageFight(g, "You power your weapons and prepare to fight.", PEACE_FIGHT, "quest-zoltan-peace");
   },
   "qa:peace:hail": (g) => {
     // Wiki citations:
@@ -294,52 +380,109 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Perhaps there could be a reconciliation of our ideals without war?" — [[Unarmed Zoltan transport#Quest Marker]]
     // > "Surrender. Your ultimate destruction is inevitable." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "Your Rebellion is causing millions of deaths." — [[Unarmed Zoltan transport#Quest Marker]]
-    card(g, tx("wiki.quests-a.they-open-communications-i-can-t"), [
-      { id: "qa:peace:reconcile", label: tx("wiki.quests-a.perhaps-there-could-be-a-reconciliation") },
-      { id: "qa:peace:surrender", label: tx("wiki.quests-a.surrender-your-ultimate-destruction-is-inevitabl") },
-      { id: "qa:peace:unity", label: tx("wiki.quests-a.your-rebellion-is-causing-millions-of") },
-    ]);
+    card(
+      g,
+      "They open communications: \"I can't imagine there's anything you could say that will save you. The rebellion must destroy those that are still loyal to the obsolete Federation.\"",
+      [
+        {
+          id: "qa:peace:reconcile",
+          label: '"Perhaps there could be a reconciliation of our ideals without war?"',
+        },
+        {
+          id: "qa:peace:surrender",
+          label:
+            '"Surrender. Your ultimate destruction is inevitable. We\'ve left scores of Rebels destroyed in our wake."',
+        },
+        {
+          id: "qa:peace:unity",
+          label:
+            '"Your Rebellion is causing millions of deaths. Your beliefs are dividing the galaxy. Unity is the only option!"',
+        },
+      ],
+    );
   },
   "qa:peace:reconcile": (g) => {
     // Wiki citations:
     // > "The galaxy is huge, you can find a place for your ideals elsewhere without causing this destruction." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "True progress can only be achieved without bloodshed." — [[Unarmed Zoltan transport#Quest Marker]]
-    card(g, tx("wiki.quests-a.our-ideals-are-too-different-to"), [
-      { id: "qa:peace:elsewhere", label: tx("wiki.quests-a.the-galaxy-is-huge-you-can") },
-      { id: "qa:peace:bloodless", label: tx("wiki.quests-a.true-progress-can-only-be-achieved") },
-    ]);
+    card(
+      g,
+      '"Our ideals are too different to be so easily reconciled. You think this could end any way but war?"',
+      [
+        {
+          id: "qa:peace:elsewhere",
+          label:
+            "The galaxy is huge, you can find a place for your ideals elsewhere without causing this destruction.",
+        },
+        {
+          id: "qa:peace:bloodless",
+          label: "True progress can only be achieved without bloodshed.",
+        },
+      ],
+    );
   },
   "qa:peace:elsewhere": (g) => {
     // Wiki citations:
     // > "Fight a Rebel ship (default rewards)." — [[Unarmed Zoltan transport#Quest Marker]]
-    pageFight(g, tx("wiki.quests-a.no-we-will-not-be-consigned"), PEACE_FIGHT, "quest-zoltan-peace");
+    pageFight(
+      g,
+      "\"No! We will not be consigned to the backwaters of space just because we don't fit into your 'Federation ideals'\" They charge.",
+      PEACE_FIGHT,
+      "quest-zoltan-peace",
+    );
   },
   "qa:peace:surrender": (g) => {
     // Wiki citations:
     // > "They shut off communications and immediately engage." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "Fight a Rebel ship (default rewards)." — [[Unarmed Zoltan transport#Quest Marker]]
-    pageFight(g, tx("wiki.quests-a.they-shut-off-communications-and-immediately"), PEACE_FIGHT, "quest-zoltan-peace");
+    pageFight(
+      g,
+      "They shut off communications and immediately engage.",
+      PEACE_FIGHT,
+      "quest-zoltan-peace",
+    );
   },
   "qa:peace:unity": (g) => {
     // Wiki citations:
     // > "Fight a Rebel ship (default rewards)." — [[Unarmed Zoltan transport#Quest Marker]]
-    pageFight(g, tx("wiki.quests-a.humans-are-treated-as-equal-to"), PEACE_FIGHT, "quest-zoltan-peace");
+    pageFight(
+      g,
+      "\"Humans are treated as 'equal' to aliens in the weak Federation. The sacrifice of BILLIONS of alien or human lives are justified if it means we reach our full potential!\" They charge.",
+      PEACE_FIGHT,
+      "quest-zoltan-peace",
+    );
   },
   "qa:peace:bloodless": (g) => {
     // Wiki citations:
     // > "Suddenly all indications of the Rebel ship fade away and a Zoltan fleet appears around your ship." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "You unlock the Zoltan Cruiser; receive Zoltan Shield augmentation and low scrap." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "You unlock the Zoltan Cruiser; receive a Zoltan crewmember named Envoy maxed in all skills and high scrap with resources." — [[Unarmed Zoltan transport#Quest Marker]]
-    const intro = tx("wiki.quests-a.suddenly-all-indications-of-the-rebel");
-    const said = tx("wiki.quests-a.although-your-methods-are-crude-and");
+    const intro =
+      "Suddenly all indications of the Rebel ship fade away and a Zoltan fleet appears around your ship. The captain of the ship you met previously materializes on your bridge.";
+    const said =
+      "\"Although your methods are crude and most certainly ineffective, it is clear you took our previous meeting to heart. If your ship represents the Federation's willingness to adapt we shall do what we can to aid in their fight.";
     const unlocked = grantUnlock(g, "zoltan-a"); // @agent:unlocks. Unarmed Zoltan transport: "You unlock the Zoltan Cruiser".
     // "(50% chance)" each.
     if (rand(g) < 0.5) {
       // "You unlock the Zoltan Cruiser; receive Zoltan Shield augmentation and low scrap."
-      result(g, tx("wiki.quests-a.this-technology-should-aid-your-quest", { intro: intro, said: said }), scrapOnly(g, "low"), [unlocked, zoltanShield(g)]);
+      result(
+        g,
+        `${intro}
+
+${said} This technology should aid your quest."`,
+        scrapOnly(g, "low"),
+        [unlocked, zoltanShield(g)],
+      );
     } else {
       // "You unlock the Zoltan Cruiser; receive a Zoltan crewmember named Envoy maxed in all skills and high scrap with resources."
-      result(g, tx("wiki.quests-a.i-will-personally-assist", { intro: intro, said: said }), rollStandard(g, "high"), [unlocked, maxedCrew(g, tx("wiki.quests-a.zoltan"), tx("wiki.quests-a.envoy"))]);
+      result(
+        g,
+        `${intro}
+
+${said} I will personally assist."`,
+        rollStandard(g, "high"),
+        [unlocked, maxedCrew(g, "Zoltan", "Envoy")],
+      );
     }
   },
 
@@ -357,10 +500,20 @@ const CHOICES_A: QuestPart["choices"] = {
       ["ambush", 1],
     ] as ["study" | "ambush", number][]);
     if (r === "study") {
-      result(g, tx("wiki.quests-a.your-crew-calmly-lines-up-for"), scrapOnly(g, "low"));
+      result(
+        g,
+        'Your crew calmly lines up for the Zoltans to take their readings. After a short time, the process is done. They contact you, "Thank you for your participation in our study. Please accept these small cakes made from stiff dough as well as some scrap."',
+        scrapOnly(g, "low"),
+      );
       return;
     }
-    pageFight(g, tx("wiki.quests-a.as-soon-as-you-dock-pirates"), tx("wiki.quests-a.pirate-ship"), "zoltan-research-facility", { ...NEVER_RUN });
+    pageFight(
+      g,
+      'As soon as you dock, pirates burst on board and a hostile ship appears on the radar. You hear the Zoltans yell in the distance, "We\'re being held hostage!"',
+      "Pirate ship",
+      "zoltan-research-facility",
+      { ...NEVER_RUN },
+    );
     noOffer(g);
     humanBoarders(g, 2, 2);
   },
@@ -368,14 +521,19 @@ const CHOICES_A: QuestPart["choices"] = {
     // Wiki citations:
     // > "Alright. Fly safe." — [[Zoltan research facility]]
     // > "Nothing happens." — [[Zoltan research facility]]
-    result(g, tx("wiki.quests-a.alright-fly-safe-you-prepare-to")),
+    result(g, '"Alright. Fly safe." You prepare to leave.'),
   "c:zoltan-research-facility:2": (g) => {
     // Wiki citations:
     // > "Requires level 3 Medbay" — [[Zoltan research facility]]
     // > "Thank you! We didn't expect to receive such a significant amount of data regarding your crew's health during FTL travel." — [[Zoltan research facility]]
     // > "You receive a drone schematic with low resources and scrap." — [[Zoltan research facility]]
     if (medbayLevel(g) < 3) return;
-    result(g, tx("wiki.quests-a.thank-you-we-didn-t-expect"), rollSurrenderOffer(g, "low", true), [grantRandomItem(g, "drone")]);
+    result(
+      g,
+      "\"Thank you! We didn't expect to receive such a significant amount of data regarding your crew's health during FTL travel. Please, accept this for your trouble.\"",
+      rollSurrenderOffer(g, "low", true),
+      [grantRandomItem(g, "drone")],
+    );
   },
   // Zoltan quest primitives. Interfere: a Zoltan fight. Both endings double pursuit for 1 jump (pageWin).
   "c:zoltan-quest-primitives:0": (g) => {
@@ -385,8 +543,8 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Fight the Zoltan ship." — [[Zoltan quest primitives]]
     pageFight(
       g,
-      tx("wiki.cited-events.the-local-people-furry-one-eyed"),
-      tx("wiki.quests-a.zoltan-ship"),
+      "The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight.",
+      "Zoltan ship",
       "zoltan-quest-primitives-interfere",
     );
   },
@@ -398,8 +556,8 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Fight the Rebel Ship." — [[Zoltan quest primitives]]
     pageFight(
       g,
-      tx("wiki.cited-events.these-creatures-should-be-left-to"),
-      tx("wiki.quests.rebel-ship"),
+      "These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence.",
+      "Rebel ship",
       "zoltan-quest-primitives-protect",
     );
   },
@@ -412,14 +570,28 @@ const CHOICES_A: QuestPart["choices"] = {
     const i = g.augments.indexOf("stasis");
     if (i < 0) return;
     g.augments.splice(i, 1);
-    const joined = crew(g, tx("wiki.surrender.crystal"), undefined, tx("wiki.quests-a.ruwen"));
-    result(g, tx("wiki.quests-a.interesting-i-ve-never-seen"), undefined, [joined]);
+    const joined = crew(g, "Crystal", undefined, "Ruwen");
+    result(
+      g,
+      `"Interesting. I've never seen a cryogenic system like this. It appears to still be functioning..." They hook it up to their system and run a number of tests on it.
+
+"Amazing! It has the ability to reconstruct the body if it was damaged during transit. Watch." They reactivate the pod and you watch as the hunks of crystal inside reform to build a humanoid structure. The pod slides open and the re-formed alien steps out.
+
+It speaks slowly, "Greetings. I appear to be in your debt. My people isolated themselves a long time ago, but perhaps it's time to re-establish a connection. There's a hidden wormhole near the Rock home-worlds. Perhaps you can take me there so I can properly repay you?"`,
+      undefined,
+      [joined],
+    );
   },
   "qa:zrf:thanks": (g) => {
     // Wiki citations:
     // > "Thank you for rescuing us! They held us hostage to ambush unsuspecting passersby. Please, take this." — [[Zoltan research facility]]
     // > "You receive a drone schematic with low resources and scrap." — [[Zoltan research facility]]
-    result(g, tx("wiki.quests-a.thank-you-for-rescuing-us-they"), rollSurrenderOffer(g, "low", true), [grantRandomItem(g, "drone")]);
+    result(
+      g,
+      '"Thank you for rescuing us! They held us hostage to ambush unsuspecting passersby. Please, take this."',
+      rollSurrenderOffer(g, "low", true),
+      [grantRandomItem(g, "drone")],
+    );
   },
 
   // ---- Zoltan trade hub ----
@@ -429,10 +601,19 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "You pose as traders and succeed in bypassing airlock security" — [[Zoltan trade hub]]
     // > "The Zoltan ship at the trade hub (\"ZOLTAN_SHIP\") doesn't have surrender/escape chances/requirements specified (events_ships.xml)." — [[Zoltan trade hub#Trivia]]
     if (rand(g) < 0.5) {
-      pageFight(g, tx("wiki.quests-a.they-don-t-see-many-of"), tx("wiki.quests-a.zoltan-ship"), "zoltan-trade-hub", { ...NEVER_RUN });
-      boarders(g, tx("wiki.quests-a.zoltan"), "spark", 2, 4);
+      pageFight(
+        g,
+        "They don't see many of your species in these parts, and you stick out like a Casvagarian Sea Slug in a Plutonian Shrimp Stew. You make it back to the ship with a gang of Zoltan guards in tow!",
+        "Zoltan ship",
+        "zoltan-trade-hub",
+        { ...NEVER_RUN },
+      );
+      boarders(g, "Zoltan", "spark", 2, 4);
     } else {
-      zoltanHub(g, tx("wiki.quests-a.you-pose-as-traders-and-succeed"));
+      zoltanHub(
+        g,
+        "You pose as traders and succeed in bypassing airlock security - however, it's only a matter of time before someone realizes your ID cards are counterfeit!",
+      );
     }
   },
   "c:zoltan-trade-hub:1": (g) => {
@@ -440,7 +621,10 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "(Teleporter) Beam directly to the civilian deck." — [[Zoltan trade hub]]
     // > "You re-materialize in a dark corner of the main concourse and are able to conduct your investigations in peace." — [[Zoltan trade hub]]
     if (!hasTeleporter(g)) return;
-    zoltanHub(g, tx("wiki.quests-a.you-re-materialize-in-a-dark"));
+    zoltanHub(
+      g,
+      "You re-materialize in a dark corner of the main concourse and are able to conduct your investigations in peace.",
+    );
   },
   "c:zoltan-trade-hub:2": (g) => {
     // Wiki citations:
@@ -449,35 +633,54 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "They scan ID that declares your crewmember an official citizen" — [[Zoltan trade hub]]
     if (!hasZoltan(g) || g.scrap < 10) return;
     g.scrap -= 10;
-    log(g, tx("wiki.quests-a.scrap-10"));
-    zoltanHub(g, tx("wiki.quests-a.they-scan-id-that-declares-your"));
+    log(g, "Scrap: -10.");
+    zoltanHub(
+      g,
+      "They scan ID that declares your crewmember an official citizen, collect their fee, and let you pass.",
+    );
   },
   "c:zoltan-trade-hub:3": (g) =>
     // Wiki citations:
     // > "Nothing happens." — [[Zoltan trade hub]]
     // > "You don't have the papers" — [[Zoltan trade hub]]
-    result(g, tx("wiki.quests-a.you-don-t-have-the-papers")),
+    result(
+      g,
+      "You don't have the papers - well, the neuro-laced identity bracelets - to get in, so best not to try.",
+    ),
 
   // ---- Rock bride ----
   "c:rock-bride:1": (g) =>
     // Wiki citations:
     // > "Nothing happens." — [[Rock bride]]
     // > "Arranged marriages aren't on your list of worthy causes." — [[Rock bride]]
-    result(g, tx("wiki.quests-a.arranged-marriages-aren-t-on-your")),
+    result(
+      g,
+      "Arranged marriages aren't on your list of worthy causes. You leave the Rock to their business.",
+    ),
   // The augmentation is not named: Rewards, "Augment": "A random augmentation and T scrap."
   "qa:bride:hand": (g) => {
     // Wiki citations:
     // > "Hand her over." — [[Rock bride#Quest Marker]]
     // > "You receive an augmentation with low scrap." — [[Rock bride#Quest Marker]]
-    result(g, tx("wiki.quests-a.may-your-children-erode-into-dust"), scrapOnly(g, "low"), [grantRandomItem(g, "augment")]);
+    result(
+      g,
+      '"May your children erode into dust!" she screams as she\'s bundled into the waiting shuttle. The Rock guards on board hurriedly drop off an exotic piece of technology and return to the Grand Basilisk.',
+      scrapOnly(g, "low"),
+      [grantRandomItem(g, "augment")],
+    );
   },
   "qa:bride:refuse": (g) => {
     // Wiki citations:
     // > "Refuse to comply." — [[Rock bride#Quest Marker]]
     // > "You receive a Rockman crewmember named Ariadne and fight a Rock ship." — [[Rock bride#Quest Marker]]
-    const joined = crew(g, tx("wiki.quests-a.rock"), undefined, tx("wiki.quests-a.ariadne"));
+    const joined = crew(g, "Rock", undefined, "Ariadne");
     log(g, joined);
-    pageFight(g, tx("wiki.quests-a.i-was-led-to-believe-your"), tx("wiki.quests-a.rock-ship"), "quest-rock-bride");
+    pageFight(
+      g,
+      "\"I was led to believe your kind did not know mercy. I will join you. But quickly, we must jump away - they will not tolerate...\" She's interrupted by weapons fire from the Basilisk's escort!",
+      "Rock ship",
+      "quest-rock-bride",
+    );
   },
 };
 
@@ -501,7 +704,8 @@ function disabledA(_g: Game, _id: string): string | null {
 
 /** Destroyed -> `destroyed` tier; deadCrew -> "a random amount of scrap with resources". */
 function lowOrRandom(textD: string, textK: string): Win {
-  return (g, deadCrew) => result(g, deadCrew ? textK : textD, rollStandard(g, deadCrew ? undefined : "low"));
+  return (g, deadCrew) =>
+    result(g, deadCrew ? textK : textD, rollStandard(g, deadCrew ? undefined : "low"));
 }
 
 const WINS_A: QuestPart["wins"] = {
@@ -511,8 +715,8 @@ const WINS_A: QuestPart["wins"] = {
   // > "You begin to strip their ship and don't find anything that would indicate they were on anything other than a peaceful mission." — [[Unarmed Zoltan transport]]
   // > "You receive a random amount of scrap with resources." — [[Unarmed Zoltan transport]]
   "unarmed-zoltan-transport": lowOrRandom(
-    tx("wiki.quests-a.you-can-t-help-but-feel"),
-    tx("wiki.quests-a.you-begin-to-strip-their-ship"),
+    "You can't help but feel somewhat guilty as you search through the debris. It was probably a trap... right?",
+    "You begin to strip their ship and don't find anything that would indicate they were on anything other than a peaceful mission. Perhaps you were too hasty.",
   ),
   // Wiki citations:
   // > "After destroying enemy ship You defeat your assailant, but the peace ship has jumped away in the commotion." — [[Unarmed Zoltan transport]]
@@ -520,8 +724,8 @@ const WINS_A: QuestPart["wins"] = {
   // > "You receive low scrap with resources." — [[Unarmed Zoltan transport]]
   // > "You receive a random amount of scrap with resources." — [[Unarmed Zoltan transport]]
   "unarmed-zoltan-defense": lowOrRandom(
-    tx("wiki.quests-a.you-defeat-your-assailant-but-the"),
-    tx("wiki.quests-a.you-defeat-your-assailant-but-the"),
+    "You defeat your assailant, but the peace ship has jumped away in the commotion.",
+    "You defeat your assailant, but the peace ship has jumped away in the commotion.",
   ),
   // Wiki citations:
   // > "Their ship breaks apart and you feel a twinge of guilt." — [[Rock war vessel encounter#Sun Quest Marker]]
@@ -531,28 +735,34 @@ const WINS_A: QuestPart["wins"] = {
   "quest-rock-sun": std(
     "medium",
     "high",
-    tx("wiki.quests-a.their-ship-breaks-apart-and-you"),
-    tx("wiki.quests-a.their-ship-goes-quiet-and-you"),
+    "Their ship breaks apart and you feel a twinge of guilt. Perhaps they could have helped the Federation if this had gone another way. You scrap what you can and prepare to jump out of the heat.",
+    "Their ship goes quiet and you feel a twinge of guilt. Perhaps they could have helped the Federation if this had gone another way. You scrap what you can and prepare to jump out of the heat.",
   ),
   // Wiki citations:
   // > "You take out the ship and contact the research station." — [[Zoltan research facility]]
   // > "You receive medium scrap with resources." — [[Zoltan research facility]]
   // > "You disable the ship and contact the research station." — [[Zoltan research facility]]
   // > "You receive high scrap with resources." — [[Zoltan research facility]]
-  "zoltan-research-facility": std("medium", "high", tx("wiki.quests-a.you-take-out-the-ship-and"), tx("wiki.quests-a.you-disable-the-ship-and-contact"), CONTINUE),
+  "zoltan-research-facility": std(
+    "medium",
+    "high",
+    "You take out the ship and contact the research station.",
+    "You disable the ship and contact the research station.",
+    CONTINUE,
+  ),
   // Interfere. "pursuit is doubled for 1 jump". Destroyed is low scrap with resources. A crew kill is a random amount.
   "zoltan-quest-primitives-interfere": (g, deadCrew) => {
     g.pursuitDouble = true;
-    log(g, tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for"));
+    log(g, "Rebel Fleet pursuit is doubled for 1 jump.");
     if (deadCrew) {
       // Wiki citations:
       // > "After killing enemy crew The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship." — [[Zoltan quest primitives]]
       // > "Rebel Fleet pursuit is doubled for 1 jump and you receive a random amount of scrap with resources." — [[Zoltan quest primitives]]
       result(
         g,
-        tx("wiki.quests-a.the-rebel-contacts-you-lovely"),
+        "The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship.",
         rollStandard(g),
-        [tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for")],
+        ["Rebel Fleet pursuit is doubled for 1 jump."],
       );
       return;
     }
@@ -561,9 +771,9 @@ const WINS_A: QuestPart["wins"] = {
     // > "Rebel Fleet pursuit is doubled for 1 jump and you receive low scrap with resources." — [[Zoltan quest primitives]]
     result(
       g,
-      tx("wiki.quests-a.the-rebel-contacts-you-lovely"),
+      "The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship.",
       rollStandard(g, "low"),
-      [tx("wiki.quests.rebel-fleet-pursuit-is-doubled-for")],
+      ["Rebel Fleet pursuit is doubled for 1 jump."],
     );
   },
   // Protect. A weapon with low scrap, or a weapon with medium scrap. The weapon is not named.
@@ -574,7 +784,7 @@ const WINS_A: QuestPart["wins"] = {
       // > "You receive a weapon with medium scrap." — [[Zoltan quest primitives]]
       result(
         g,
-        tx("wiki.quests-a.the-zoltan-hail-once-the-smoke"),
+        'The Zoltan hail once the smoke disperses. "Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times\' sake." You accept their reward and scrap, then collect some remains from the Rebel ship.',
         scrapOnly(g, "medium"),
         [grantRandomItem(g, "weapon")],
       );
@@ -585,7 +795,7 @@ const WINS_A: QuestPart["wins"] = {
     // > "You receive a weapon with low scrap." — [[Zoltan quest primitives]]
     result(
       g,
-      tx("wiki.quests-a.the-zoltan-hail-once-the-smoke"),
+      'The Zoltan hail once the smoke disperses. "Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times\' sake." You accept their reward and scrap, then collect some remains from the Rebel ship.',
       scrapOnly(g, "low"),
       [grantRandomItem(g, "weapon")],
     );
@@ -598,7 +808,7 @@ const WINS_A: QuestPart["wins"] = {
   "quest-rock-bride": std(
     "medium",
     "high",
-    tx("wiki.quests-a.his-escort-eliminated-the-grand-basilisk"),
+    "His escort eliminated, the Grand Basilisk dispatches his entire fleet. There's just time to take your pick from the wreck before you jump out of reach.",
   ),
 };
 
@@ -608,7 +818,12 @@ const GOT_AWAY_A: QuestPart["gotAway"] = {
     // Wiki citations:
     // > "As they jump away they relay coordinates to your navigation system." — [[Rock war vessel encounter#Sun Quest Marker]]
     // > "Another quest marker is added to your map." — [[Rock war vessel encounter#Sun Quest Marker]]
-    result(g, tx("wiki.quests-a.as-they-jump-away-they-relay"), undefined, [addQuest(g, "rock-shipyard")]);
+    result(
+      g,
+      "As they jump away they relay coordinates to your navigation system. They must mean for you to follow them!",
+      undefined,
+      [addQuest(g, "rock-shipyard")],
+    );
   },
 };
 

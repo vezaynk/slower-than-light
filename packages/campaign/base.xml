@@ -5601,6 +5601,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Abandoned Sector</sector>
     <text>You detect a refueling platform near the beacon, although its broadcast signal is garbled, and you can't make out the message.</text>
     <band id="sensors3" k="parts" lo="1" hi="3"/>
+    <band id="extra" k="fuel" lo="3" hi="5"/>
     <choice name="c:refueling-platform-garbled-broadcast:0">
       <text>Hail the platform and attempt to communicate</text>
       <effect k="fight" tier="Lanius ship"/>
@@ -6104,6 +6105,10 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Refugee (Pirate)</alias>
     <sector>Pirate Controlled Sector</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:refugee-pirate:0">
       <text>Hail them.</text>
       <effect k="note">A trade, or a pirate ship using them as bait.</effect>
@@ -6118,6 +6123,10 @@ They apologize for their hasty response to your presence and spend some time ref
     <alias>Refugee distress (Pirate)</alias>
     <sector>Pirate Controlled Sector</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:refugee-distress-pirate:0">
       <text>Hail them.</text>
       <effect k="note">A trade, or a pirate ship using them as bait.</effect>
@@ -6648,6 +6657,10 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:refugee-slug:0">
       <text>Hail them.</text>
       <effect k="note">A trade, or a pirate ship using them as bait.</effect>
@@ -6663,6 +6676,10 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:refugee-distress-slug:0">
       <text>Hail them.</text>
       <effect k="note">A trade, or a pirate ship using them as bait.</effect>
@@ -6917,6 +6934,8 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <title>No fuel: Slug fuel trader</title>
     <alias>No fuel: Slug fuel trader</alias>
     <text/>
+    <band id="theft" k="missiles" lo="2" hi="4"/>
+    <band id="theft" k="scrap" lo="20" hi="35"/>
     <choice name="c:no-fuel-slug-fuel-trader:0">
       <text>Continue</text>
       <effect k="nothing"/>
@@ -7196,6 +7215,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:refugee-zoltan:0">
       <text>Hail them.</text>
       <effect k="note">A trade, or a Zoltan ship.</effect>
@@ -7211,6 +7234,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Zoltan Controlled Sector</sector>
     <sector>Zoltan Homeworlds</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:refugee-distress-zoltan:0">
       <text>Hail them.</text>
       <effect k="note">A trade, or a Zoltan ship.</effect>
@@ -8273,6 +8300,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Slug Controlled Nebula</sector>
     <sector>Slug Home Nebula</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:refugee:0">
       <text>Hail them.</text>
       <effect k="fight" tier="Pirate ship"/>
@@ -8449,6 +8480,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <sector>Pirate Controlled Sector</sector>
     <sector>Uncharted Nebula</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
+    <offer k="trade" pay="parts" cost="1-2" get="fuel" gain="5-10"/>
+    <offer k="trade" pay="fuel" cost="1-2" get="missiles" gain="4-5"/>
+    <offer k="trade" pay="missiles" cost="2-3" get="parts" gain="2-3"/>
+    <offer k="trade" pay="missiles" cost="2-4" get="fuel" gain="4-10"/>
     <choice name="c:refugee-distress:0">
       <text>Hail them.</text>
       <effect k="fight" tier="Pirate ship"/>

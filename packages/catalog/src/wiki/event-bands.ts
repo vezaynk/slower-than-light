@@ -33,8 +33,16 @@ export const PRINTED_BANDS: Record<string, EventBand[]> = {
   "destroyed-cargo-ship": [{ id: "scan", k: "scrap", lo: 20, hi: 35 }],
   // The drink's trap. A Rock's trap is the fight and does not use this band.
   "slug-drink": [{ id: "trap", k: "scrap", lo: 25, hi: 35 }],
-  // Granted after the packed fuel gift.
-  "refueling-platform-garbled-broadcast": [{ id: "sensors3", k: "parts", lo: 1, hi: 3 }],
+  // sensors3 parts after the packed fuel gift. The fight's extra fuel is the next band.
+  "refueling-platform-garbled-broadcast": [
+    { id: "sensors3", k: "parts", lo: 1, hi: 3 },
+    { id: "extra", k: "fuel", lo: 3, hi: 5 },
+  ],
+  // Theft after the deal. Missiles, then scrap. Each loss is capped at what the ship holds.
+  "no-fuel-slug-fuel-trader": [
+    { id: "theft", k: "missiles", lo: 2, hi: 4 },
+    { id: "theft", k: "scrap", lo: 20, hi: 35 },
+  ],
 };
 
 function legal(band: EventBand): boolean {

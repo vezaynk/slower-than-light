@@ -1301,28 +1301,25 @@ function successfulScan(g: Game, lead?: string) {
   }
 }
 
-/** Template:Drifting Refugee Ship (type=main): the four trade offers; "the actual trade offer is shown" first. */
-const REFUGEE_TRADES: {
-  pay: "parts" | "fuel" | "missiles";
-  payR: [number, number];
-  get: "fuel" | "missiles" | "parts";
-  getR: [number, number];
-}[] = [
-  { pay: "parts", payR: [1, 2], get: "fuel", getR: [5, 10] },
-  { pay: "fuel", payR: [1, 2], get: "missiles", getR: [4, 5] },
-  { pay: "missiles", payR: [2, 3], get: "parts", getR: [2, 3] },
-  { pay: "missiles", payR: [2, 4], get: "fuel", getR: [4, 10] },
-];
 const WORD = { fuel: "fuel", missiles: "missiles", parts: "drone parts" } as const;
 
 function stock(g: Game, id: "fuel" | "missiles" | "parts"): number {
   return id === "fuel" ? g.fuel : id === "missiles" ? g.missiles : g.player.parts;
 }
 
+/** Packed trade rows. The hail pick already happened. An empty table stays on the hail card. */
+function refugeeOffers(id: string) {
+  const rows = [];
+  for (const row of eventDef(id)?.offers ?? []) if (row.k === "trade") rows.push(row);
+  return rows;
+}
+
 function refugeeTrade(g: Game, slug: string) {
-  const t = REFUGEE_TRADES[Math.min(3, Math.floor(rand(g) * 4))];
-  const pay = between(g, t.payR);
-  const get = between(g, t.getR);
+  const rows = refugeeOffers(slug);
+  if (rows.length === 0) return;
+  const t = rows[between(g, [0, rows.length - 1])]!;
+  const pay = between(g, t.cost);
+  const get = between(g, t.gain);
   card(
     g,
     "The vessel is relieved to hear from you! They are running low on supplies. They suggest a trade.",

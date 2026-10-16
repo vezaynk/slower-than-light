@@ -8,6 +8,7 @@ import { eventDef } from "@stl/pack";
 import { EXTRA_EVENTS } from "./cited-missing-pages.ts";
 import { ownedLock } from "./choice-locks.ts";
 import { priced, rollPrice } from "./event-prices.ts";
+import { rollBand } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { affordStock, takeStock } from "./stock-spend.ts";
 import { MISSING_LOCKS } from "./choice-reqs.ts";
@@ -1220,8 +1221,14 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       // Wiki citations:
       // > "Everything looks secure but suddenly a number of supplies disappear ! He must have planted a portable teleporter into your cargo bay somehow. Before you can react the ship is long gone." — [[No fuel: Slug fuel trader]]
       // > "You lose Missiles lost: 2-4 and Scrap lost: 20-35." — [[No fuel: Slug fuel trader]]
-      const missiles = Math.min(g.missiles, span(ctx, 2, 4));
-      const scrap = Math.min(g.scrap, span(ctx, 20, 35));
+      const missiles = Math.min(
+        g.missiles,
+        rollBand("no-fuel-slug-fuel-trader", "theft", "missiles", (lo, hi) => span(ctx, lo, hi)) ?? 0,
+      );
+      const scrap = Math.min(
+        g.scrap,
+        rollBand("no-fuel-slug-fuel-trader", "theft", "scrap", (lo, hi) => span(ctx, lo, hi)) ?? 0,
+      );
       g.missiles -= missiles;
       g.scrap -= scrap;
       done(

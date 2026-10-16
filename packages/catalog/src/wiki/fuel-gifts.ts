@@ -2,7 +2,7 @@
  * Fuel a button pays when its handler grants the gift.
  * A fixed amount has the same ends and does not roll.
  * A price already stored as a positive resource effect stays that effect.
- * Standard reward bands, a fight's extra fuel, and amounts parsed from the choice id stay in code.
+ * Standard reward bands and amounts parsed from the choice id stay in code.
  */
 import { allEvents } from "@stl/pack";
 import type { ChoiceGift, EventDef } from "@stl/pack";

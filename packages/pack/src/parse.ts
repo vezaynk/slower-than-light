@@ -49,6 +49,8 @@ import type {
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
   MISSILE: "missile",
+  // FTL 1.6 writes this spelling on missile blueprints.
+  MISSILES: "missile",
   BEAM: "beam",
   BOMB: "bomb",
   ION: "ion",

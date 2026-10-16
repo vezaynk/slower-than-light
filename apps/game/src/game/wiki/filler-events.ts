@@ -262,30 +262,44 @@ function friendlyCard(g: Game, page: Page): GameEvent {
   return { title: page.dest, body: page.body, choices };
 }
 
-type TradeId = "oxygen" | "pilot" | "doors" | "sensors" | "reactor";
+const TRADE_IDS = ["oxygen", "pilot", "doors", "sensors", "reactor"] as const;
+type TradeId = (typeof TRADE_IDS)[number];
+type TradeOffer = { id: TradeId; lo: number; hi: number };
 
-type TradeOffer = { id: TradeId; name: string; lo: number; hi: number; next: number };
+function isTradeId(id: string): id is TradeId {
+  return (TRADE_IDS as readonly string[]).includes(id);
+}
 
 /**
  * Trade scrap for upgrades. Each specialty is a result of inquiring, with a scrap band for the level already owned.
+ * The bands are packed rows. A missing row is not offered.
  * Trivia: a missing subsystem is not offered, and a system already at its maximum is not offered.
- * The reactor band is 15-25, and the reactor cannot pass 25. The page does not say the reactor step is one bar.
+ * The reactor row has no level, and the reactor cannot pass 25. The page does not say the reactor step is one bar.
  * INFERRED: that step is one bar, the same unit as the 25-bar cap.
  * INFERRED: the specialties that can still be bought are equally likely. No odds are printed.
  */
 function tradeOffers(g: Game): TradeOffer[] {
+  const rows = eventDef("trade-scrap-for-upgrades")?.trades ?? [];
+  const reactorAt = g.player.reactor;
+  const reactorRow =
+    rows.find((row) => row.id === "reactor" && row.level === reactorAt) ??
+    rows.find((row) => row.id === "reactor" && row.level == null);
   const out: TradeOffer[] = [];
-  const sys = (id: Exclude<TradeId, "reactor">, name: string, bands: Record<number, [number, number]>) => {
-    const level = g.player.systems[id]?.level ?? 0;
-    const band = bands[level];
-    if (!band) return;
-    out.push({ id, name, lo: band[0], hi: band[1], next: level + 1 });
-  };
-  sys("oxygen", tx("wiki.filler-events.oxygen"), { 1: [15, 20], 2: [25, 40] });
-  sys("pilot", tx("wiki.filler-events.piloting"), { 1: [8, 15], 2: [25, 40] });
-  sys("doors", tx("wiki.filler-events.door-system"), { 1: [8, 15], 2: [25, 40] });
-  sys("sensors", tx("wiki.filler-events.sensors"), { 1: [10, 20], 2: [35, 45] });
-  if (upgradeCost("reactor", g.player.reactor) != null) out.push({ id: "reactor", name: "reactor", lo: 15, hi: 25, next: g.player.reactor + 1 });
+  const seen = new Set<TradeId>();
+  for (const row of rows) {
+    if (!isTradeId(row.id) || seen.has(row.id) || row.lo > row.hi) continue;
+    if (row.id === "reactor") {
+      if (row !== reactorRow || upgradeCost("reactor", reactorAt) == null) continue;
+      seen.add("reactor");
+      out.push({ id: "reactor", lo: row.lo, hi: row.hi });
+      continue;
+    }
+    if (row.level == null) continue;
+    const level = g.player.systems[row.id].level;
+    if (level !== row.level) continue;
+    seen.add(row.id);
+    out.push({ id: row.id, lo: row.lo, hi: row.hi });
+  }
   return out;
 }
 
@@ -2563,7 +2577,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       return;
     }
     const o = list[Math.min(list.length - 1, Math.floor(rand(g) * list.length))];
-    const cost = between(g, [o.lo, o.hi]);
+    const cost = o.lo === o.hi ? o.lo : between(g, [o.lo, o.hi]);
     card(g, tradeOfferText(o), [
       { id: `s:trade-scrap-for-upgrades:agree:${o.id}:${cost}`, label: tx("wiki.filler-events.agree-to-the-exchange-scrap", { cost: cost }) },
       { id: "s:trade-scrap-for-upgrades:decline", label: tx("wiki.filler-events.decline") },

@@ -13,6 +13,7 @@ import type {
   DroneDef,
   EmptyBeaconDef,
   EventPrice,
+  TradeStep,
   EventGrade,
   EventCard,
   EventDef,
@@ -70,6 +71,9 @@ const HEADER = `
   A price tag is a band rolled onto a button when that card opens. The id names the button.
   A fixed price does not roll. The handler still reads the amount from the choice id.
   A bribe tag is the scrap price named bribe.
+  A trade tag is one scrap band for a specialty and the level already owned.
+  The reactor row omits the level. The sim still picks one open specialty and still rolls that band.
+  A fixed trade does not roll. The handler still reads the amount from the choice id.
   A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
   A quest effect names a marker. A goto effect opens another page.
@@ -164,6 +168,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   for (const offer of event.offers ?? []) add(node, offerElement(doc, offer), 2);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll), 2);
   for (const price of event.prices ?? []) add(node, priceElement(doc, price), 2);
+  for (const step of event.trades ?? []) add(node, tradeElement(doc, step), 2);
   if (event.grade) add(node, gradeElement(doc, event.grade), 2);
   for (const card of event.cards ?? []) add(node, cardElement(doc, card), 2);
   for (const choice of event.choices) {
@@ -289,6 +294,14 @@ function giftElement(doc: XmlDocument, gift: ChoiceGift): XmlElement {
 
 function priceElement(doc: XmlDocument, price: EventPrice): XmlElement {
   return element(doc, "price", { id: price.id, k: price.k, lo: num(price.lo), hi: num(price.hi) });
+}
+
+function tradeElement(doc: XmlDocument, step: TradeStep): XmlElement {
+  const attrs: Record<string, string> = { id: step.id };
+  if (step.level != null) attrs.level = num(step.level);
+  attrs.lo = num(step.lo);
+  attrs.hi = num(step.hi);
+  return element(doc, "trade", attrs);
 }
 
 function gradeElement(doc: XmlDocument, grade: EventGrade): XmlElement {

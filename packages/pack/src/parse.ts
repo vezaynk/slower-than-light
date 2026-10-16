@@ -13,6 +13,7 @@ import type {
   DroneDef,
   EmptyBeaconDef,
   EventPrice,
+  TradeStep,
   EventGrade,
   GradePay,
   EventCard,
@@ -543,6 +544,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const rolls: RollEntry[] = [];
   const cards: EventCard[] = [];
   const prices: EventPrice[] = [];
+  const trades: TradeStep[] = [];
   let grade: EventGrade | undefined;
   let surrender: SurrenderOfferDef | undefined;
   for (const item of elements(node)) {
@@ -566,6 +568,10 @@ function readEvent(node: XmlElement): EventDef | undefined {
     }
     if (item.tagName === "bribe") {
       keepPrice(prices, readBribe(item));
+      continue;
+    }
+    if (item.tagName === "trade") {
+      keepTrade(trades, readTrade(item));
       continue;
     }
     if (item.tagName === "grade") {
@@ -621,6 +627,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   if (offers.length > 0) event.offers = offers;
   if (rolls.length > 0) event.rolls = rolls;
   if (prices.length > 0) event.prices = prices;
+  if (trades.length > 0) event.trades = trades;
   if (grade) event.grade = grade;
   if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
@@ -825,6 +832,29 @@ function readPrice(node: XmlElement): EventPrice | undefined {
 function readBribe(node: XmlElement): EventPrice | undefined {
   if (attr(node, "k")?.trim() !== "scrap") return undefined;
   return readBand(node, "bribe");
+}
+
+/** The first valid band for a specialty and the level already owned. */
+function keepTrade(trades: TradeStep[], step: TradeStep | undefined) {
+  if (!step || trades.some((row) => tradeKey(row) === tradeKey(step))) return;
+  trades.push(step);
+}
+
+function tradeKey(step: TradeStep): string {
+  return step.level == null ? `${step.id}:*` : `${step.id}:${step.level}`;
+}
+
+function readTrade(node: XmlElement): TradeStep | undefined {
+  const id = attr(node, "id")?.trim();
+  if (!id) return undefined;
+  const lo = intAttr(node, "lo");
+  const hi = intAttr(node, "hi");
+  if (lo == null || hi == null || lo > hi) return undefined;
+  const levelText = attr(node, "level");
+  if (levelText == null || levelText.trim() === "") return { id, lo, hi };
+  const level = intAttr(node, "level");
+  if (level == null || level < 0) return undefined;
+  return { id, level, lo, hi };
 }
 
 function readBand(node: XmlElement, id: string): EventPrice | undefined {

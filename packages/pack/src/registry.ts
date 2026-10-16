@@ -210,6 +210,20 @@ function copyEvent(row: EventDef): EventDef {
     prices.push({ id, k: price.k, lo: price.lo, hi: price.hi });
   }
   if (prices.length > 0) copy.prices = prices;
+  const trades: EventDef["trades"] = [];
+  const tradeSeen = new Set<string>();
+  for (const step of row.trades ?? []) {
+    const id = step.id.trim();
+    if (!id || step.lo > step.hi) continue;
+    if (step.level != null && (!Number.isInteger(step.level) || step.level < 0)) continue;
+    const key = step.level == null ? `${id}:*` : `${id}:${step.level}`;
+    if (tradeSeen.has(key)) continue;
+    tradeSeen.add(key);
+    const next: { id: string; level?: number; lo: number; hi: number } = { id, lo: step.lo, hi: step.hi };
+    if (step.level != null) next.level = step.level;
+    trades.push(next);
+  }
+  if (trades.length > 0) copy.trades = trades;
   const hire = row.grade?.hire.trim();
   const pays = (row.grade?.pays ?? []).filter(
     (pay) => (pay.k === "scrap" || pay.k === "fuel" || pay.k === "parts") && pay.lo <= pay.hi,

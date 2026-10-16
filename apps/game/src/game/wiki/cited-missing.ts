@@ -8,6 +8,7 @@ import { tx } from "../../i18n/index.ts";
 import { eventDef } from "@stl/pack";
 import { EXTRA_EVENTS } from "./cited-missing-pages.ts";
 import { ownedLock } from "./choice-locks.ts";
+import { priced, rollPrice } from "./event-prices.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { MISSING_LOCKS } from "./choice-reqs.ts";
 import { adjustScrap } from "../extras/index.ts";
@@ -1007,20 +1008,22 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
         done(g, tx("wiki.cited-missing.debris-ammo"), offer);
         return true;
       }
-      const cost = between(g, [25, 40]);
+      const cost = rollPrice("no-fuel-drifting-debris", "ransom", (lo, hi) => between(g, [lo, hi]));
       // Wiki citations:
       // > "You lose Scrap lost: 25-40." — [[No fuel: drifting debris]]
-      card(g, tx("wiki.cited-missing.debris-ransom"), [
-        { id: `c:no-fuel-drifting-debris:pay:${cost}`, label: tx("wiki.cited-missing.pay-ransom", { cost }) },
-        { id: "c:no-fuel-drifting-debris:refuse", label: tx("wiki.cited-missing.refuse") },
-      ]);
+      const choices = [];
+      if (cost != null) {
+        choices.push({ id: `c:no-fuel-drifting-debris:pay:${cost}`, label: tx("wiki.cited-missing.pay-ransom", { cost }) });
+      }
+      choices.push({ id: "c:no-fuel-drifting-debris:refuse", label: tx("wiki.cited-missing.refuse") });
+      card(g, tx("wiki.cited-missing.debris-ransom"), choices);
       return true;
     }
     if (name.startsWith("pay:")) {
       // Wiki citations:
       // > "Despite his fragile condition, the Rockman is good to his word and returns your crew-member, who is suitably grateful. Sadly, gratitude doesn't power the FTL drive." — [[No fuel: drifting debris]]
       const cost = Number(name.slice(4));
-      if (g.scrap < cost) return false;
+      if (!priced("no-fuel-drifting-debris", "ransom", cost, "scrap") || g.scrap < cost) return false;
       g.scrap -= cost;
       done(g, tx("wiki.cited-missing.debris-paid", { cost }));
       return true;

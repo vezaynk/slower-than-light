@@ -451,7 +451,7 @@ describe("pack document", () => {
     assert.equal(broken.events?.[0]?.choices[0]?.gift, undefined);
   });
 
-  it("round-trips a scrap bribe and drops a bribe with no band", () => {
+  it("round-trips named prices and reads a bribe tag as the bribe price", () => {
     const events = [
       {
         id: "checkpoint",
@@ -460,24 +460,41 @@ describe("pack document", () => {
         aliases: [],
         sectors: [],
         body: "A fleet.",
-        bribe: { k: "scrap" as const, lo: 10, hi: 15 },
+        prices: [
+          { id: "bribe", k: "scrap" as const, lo: 10, hi: 15 },
+          { id: "give", k: "fuel" as const, lo: 2, hi: 4 },
+        ],
         choices: [{ id: "c:checkpoint:0", label: "Attack", fx: [{ k: "nothing" as const }] }],
       },
     ];
     const xml = emitPack({ events });
-    assert.match(xml, /<bribe k="scrap" lo="10" hi="15"\/>/);
+    assert.match(xml, /<price id="bribe" k="scrap" lo="10" hi="15"\/>/);
+    assert.match(xml, /<price id="give" k="fuel" lo="2" hi="4"\/>/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
       <eventBlueprint name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
-        <bribe k="fuel" lo="10" hi="15"/>
-        <bribe k="scrap" lo="15" hi="10"/>
-        <bribe k="scrap" lo="1.5" hi="2"/>
-        <choice name="c:broken:0"><text>Go</text><effect k="nothing"/></choice>
+        <price k="scrap" lo="10" hi="15"/>
+        <price id="debt" k="missiles" lo="1" hi="2"/>
+        <price id="debt" k="scrap" lo="15" hi="10"/>
+        <price id="debt" k="scrap" lo="1.5" hi="2"/>
+        <bribe k="fuel" lo="2" hi="4"/>
+        <bribe k="scrap" lo="8" hi="8"/>
+        <price id="bribe" k="scrap" lo="20" hi="30"/>
+        <price id="scan" k="scrap" lo="15" hi="25"/>
+        <choice name="c:broken:0">
+          <text>Go</text>
+          <price id="nested" k="scrap" lo="1" hi="2"/>
+          <bribe k="scrap" lo="3" hi="4"/>
+          <effect k="nothing"/>
+        </choice>
       </eventBlueprint>
     </FTL>`);
-    assert.equal(broken.events?.[0]?.bribe, undefined);
+    assert.deepEqual(broken.events?.[0]?.prices, [
+      { id: "bribe", k: "scrap", lo: 8, hi: 8 },
+      { id: "scan", k: "scrap", lo: 15, hi: 25 },
+    ]);
   });
 
   it("round-trips a moon grade and drops a grade with no hire", () => {

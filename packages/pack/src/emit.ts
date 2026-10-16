@@ -12,7 +12,7 @@ import type {
   CrewDef,
   DroneDef,
   EmptyBeaconDef,
-  EventBribe,
+  EventPrice,
   EventGrade,
   EventCard,
   EventDef,
@@ -67,7 +67,9 @@ const HEADER = `
   A choice is its id, label, effects, req locks, and an optional fuel gift.
   A req is checked in order and its text is the refusal.
   A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
-  A bribe tag is the scrap band rolled onto that button when the card opens. A fixed bribe does not roll.
+  A price tag is a band rolled onto a button when that card opens. The id names the button.
+  A fixed price does not roll. The handler still reads the amount from the choice id.
+  A bribe tag is the scrap price named bribe.
   A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
   A quest effect names a marker. A goto effect opens another page.
@@ -161,7 +163,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   for (const line of lines) add(node, leaf(doc, "text", line), 2);
   for (const offer of event.offers ?? []) add(node, offerElement(doc, offer), 2);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll), 2);
-  if (event.bribe) add(node, bribeElement(doc, event.bribe), 2);
+  for (const price of event.prices ?? []) add(node, priceElement(doc, price), 2);
   if (event.grade) add(node, gradeElement(doc, event.grade), 2);
   for (const card of event.cards ?? []) add(node, cardElement(doc, card), 2);
   for (const choice of event.choices) {
@@ -285,8 +287,8 @@ function giftElement(doc: XmlDocument, gift: ChoiceGift): XmlElement {
   return element(doc, "gift", { k: gift.k, lo: num(gift.lo), hi: num(gift.hi) });
 }
 
-function bribeElement(doc: XmlDocument, bribe: EventBribe): XmlElement {
-  return element(doc, "bribe", { k: bribe.k, lo: num(bribe.lo), hi: num(bribe.hi) });
+function priceElement(doc: XmlDocument, price: EventPrice): XmlElement {
+  return element(doc, "price", { id: price.id, k: price.k, lo: num(price.lo), hi: num(price.hi) });
 }
 
 function gradeElement(doc: XmlDocument, grade: EventGrade): XmlElement {

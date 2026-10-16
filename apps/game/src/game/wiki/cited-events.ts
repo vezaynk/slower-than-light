@@ -12,7 +12,7 @@ import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
 import { allMantisCrew, between, closeFight, crystalBoarders, humanBoarders, joinCrew, mantisBoarders, pageCard, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
-import { rollBribe } from "./event-bribes.ts";
+import { rollPrice } from "./event-prices.ts";
 import { eventGrade, rollGrade } from "./event-grades.ts";
 import { addQuest, result } from "./quests.ts";
 import { rollFuel } from "./fuel-gifts.ts";
@@ -1259,7 +1259,7 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   }
   // Rebel checkpoint. The bribe is the packed scrap band, shown on the button.
   if (ev.slug === "rebel-checkpoint") {
-    const cost = rollBribe(ev.slug, (lo, hi) => between(g, [lo, hi]));
+    const cost = rollPrice(ev.slug, "bribe", (lo, hi) => between(g, [lo, hi]));
     const body = opening(g, "rebel-checkpoint");
     const labels = hideLabels("rebel-checkpoint");
     const choices = [

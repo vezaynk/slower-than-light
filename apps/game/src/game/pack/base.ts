@@ -12,7 +12,7 @@ import { citedEventRecords } from "../wiki/event-catalog.ts";
 import { OPENING_TEXTS } from "../wiki/event-intros.ts";
 import { OFFER_ROWS } from "../wiki/event-offers.ts";
 import { ROLL_LISTS } from "../wiki/event-rolls.ts";
-import { BRIBE_BANDS } from "../wiki/event-bribes.ts";
+import { PRICE_BANDS } from "../wiki/event-prices.ts";
 import { GRADES } from "../wiki/event-grades.ts";
 import { CARD_LISTS } from "../wiki/event-cards.ts";
 import { CHOICE_REQS } from "../wiki/choice-reqs.ts";
@@ -168,8 +168,8 @@ function eventRow(row: EventDef): EventDef {
   if (offers && offers.length > 0) copy.offers = offers.map(copyOffer);
   const rolls = ROLL_LISTS[row.id];
   if (rolls && rolls.length > 0) copy.rolls = rolls.map(copyRoll);
-  const bribe = BRIBE_BANDS[row.id];
-  if (bribe) copy.bribe = { k: "scrap", lo: bribe.lo, hi: bribe.hi };
+  const prices = PRICE_BANDS[row.id];
+  if (prices?.length) copy.prices = prices.map((price) => ({ id: price.id, k: price.k, lo: price.lo, hi: price.hi }));
   const grade = GRADES[row.id];
   if (grade) {
     copy.grade = {

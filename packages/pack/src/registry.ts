@@ -200,9 +200,16 @@ function copyEvent(row: EventDef): EventDef {
   if (row.texts && row.texts.length > 1) copy.texts = [...row.texts];
   if (row.offers && row.offers.length > 0) copy.offers = row.offers.map(copyOffer);
   if (row.rolls && row.rolls.length > 0) copy.rolls = row.rolls.map(copyRoll);
-  if (row.bribe?.k === "scrap" && row.bribe.lo <= row.bribe.hi) {
-    copy.bribe = { k: "scrap", lo: row.bribe.lo, hi: row.bribe.hi };
+  const prices: EventDef["prices"] = [];
+  const seen = new Set<string>();
+  for (const price of row.prices ?? []) {
+    const id = price.id.trim();
+    if (!id || seen.has(id)) continue;
+    if ((price.k !== "scrap" && price.k !== "fuel") || price.lo > price.hi) continue;
+    seen.add(id);
+    prices.push({ id, k: price.k, lo: price.lo, hi: price.hi });
   }
+  if (prices.length > 0) copy.prices = prices;
   const hire = row.grade?.hire.trim();
   const pays = (row.grade?.pays ?? []).filter(
     (pay) => (pay.k === "scrap" || pay.k === "fuel" || pay.k === "parts") && pay.lo <= pay.hi,

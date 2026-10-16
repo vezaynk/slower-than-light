@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { EventBand } from "@stl/pack";
-import { choose, createGame } from "../sim.ts";
+import { choose, createGame, rand } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 import { printedBand, rollBand, upgradeRows } from "./event-bands.ts";
+import { pageWin } from "./quests.ts";
 
 const DULL = "nothing of much interest";
 const GULP = "cargo hold";
@@ -118,6 +119,24 @@ describe("printed bands", () => {
       k: "parts",
       lo: 1,
       hi: 3,
+    });
+    assert.deepEqual(printedBand("refueling-platform-garbled-broadcast", "extra", "fuel"), {
+      id: "extra",
+      k: "fuel",
+      lo: 3,
+      hi: 5,
+    });
+    assert.deepEqual(printedBand("no-fuel-slug-fuel-trader", "theft", "missiles"), {
+      id: "theft",
+      k: "missiles",
+      lo: 2,
+      hi: 4,
+    });
+    assert.deepEqual(printedBand("no-fuel-slug-fuel-trader", "theft", "scrap"), {
+      id: "theft",
+      k: "scrap",
+      lo: 20,
+      hi: 35,
     });
 
     let calls = 0;
@@ -425,5 +444,204 @@ describe("printed bands", () => {
     assert.equal(low.player.parts, lowParts);
     assert.equal(low.seed, lowSeed);
     assert.match(low.event?.body ?? "", new RegExp(ABANDONED));
+  });
+
+  it("pays the station fuel after the medium reward, and a fixed band shares its seed with a missing one", () => {
+    const eventId = "refueling-platform-garbled-broadcast";
+    const fuelLines = (lines: string[]) => lines.filter((line) => line.startsWith("Fuel:")).length;
+    const fuelMarks = (body: string) => body.match(/Fuel:/g)?.length ?? 0;
+    for (const dead of [false, true]) {
+      resetPackForTests();
+      const campaign = createGame(4);
+      assert.equal(pageWin(campaign, eventId, dead), true);
+      rewrite(eventId, [{ id: "sensors3", k: "parts", lo: 1, hi: 3 }]);
+      const gone = createGame(4);
+      assert.equal(pageWin(gone, eventId, dead), true);
+      const extra = campaign.fuel - gone.fuel;
+      assert.ok(extra >= 3 && extra <= 5, `extra ${extra} dead ${dead}`);
+      assert.equal(campaign.scrap, gone.scrap);
+      assert.equal(campaign.missiles, gone.missiles);
+      assert.equal(campaign.player.parts, gone.player.parts);
+      assert.notEqual(campaign.seed, gone.seed);
+      assert.equal(fuelLines(campaign.log), fuelLines(gone.log) + 1);
+      assert.equal(fuelMarks(campaign.event?.body ?? ""), fuelMarks(gone.event?.body ?? "") + 1);
+      assert.ok(campaign.log.includes(`Fuel: ${extra}.`));
+      assert.match(campaign.event?.body ?? "", /fuel reserves on the station/);
+      assert.match(gone.event?.body ?? "", /fuel reserves on the station/);
+      assert.match(
+        campaign.event?.body ?? "",
+        dead ? /no more life-signs/ : /collection of useful scrap material/,
+      );
+      assert.match(
+        gone.event?.body ?? "",
+        dead ? /no more life-signs/ : /collection of useful scrap material/,
+      );
+
+      rewrite(eventId, [
+        { id: "sensors3", k: "parts", lo: 1, hi: 3 },
+        { id: "extra", k: "fuel", lo: 7, hi: 7 },
+      ]);
+      const fixed = createGame(4);
+      assert.equal(pageWin(fixed, eventId, dead), true);
+      rewrite(eventId, [{ id: "sensors3", k: "parts", lo: 1, hi: 3 }]);
+      const quiet = createGame(4);
+      assert.equal(pageWin(quiet, eventId, dead), true);
+      assert.equal(fixed.seed, quiet.seed);
+      assert.equal(fixed.fuel - quiet.fuel, 7);
+      assert.ok(fixed.log.includes("Fuel: 7."));
+      assert.equal(quiet.log.includes("Fuel: 7."), false);
+      assert.match(quiet.event?.body ?? "", /fuel reserves on the station/);
+      assert.equal((quiet.event?.body ?? "").includes("Fuel: 7."), false);
+    }
+  });
+
+  it("loses the printed theft, clamps after the roll, and skips a missing kind", () => {
+    const eventId = "no-fuel-slug-fuel-trader";
+    const theft = "c:no-fuel-slug-fuel-trader:theft";
+    function steal(seed: number, missiles: number, scrap: number): Game {
+      const g = createGame(seed);
+      g.missiles = missiles;
+      g.scrap = scrap;
+      choose(g, theft);
+      return g;
+    }
+    const rich = steal(1, 40, 100);
+    const took = /You lose (\d+) missiles and (\d+) scrap/.exec(rich.event?.body ?? "");
+    assert.ok(took);
+    const missiles = Number(took[1]);
+    const scrap = Number(took[2]);
+    assert.ok(missiles >= 2 && missiles <= 4, rich.event?.body);
+    assert.ok(scrap >= 20 && scrap <= 35, rich.event?.body);
+    assert.equal(rich.missiles, 40 - missiles);
+    assert.equal(rich.scrap, 100 - scrap);
+    assert.match(rich.event?.body ?? "", /supplies disappear/);
+    const poor = steal(1, 0, 0);
+    assert.equal(rich.seed, poor.seed);
+    assert.equal(poor.missiles, 0);
+    assert.equal(poor.scrap, 0);
+    assert.match(poor.event?.body ?? "", /You lose 0 missiles and 0 scrap/);
+
+    rewrite(eventId, [
+      { id: "theft", k: "missiles", lo: 2, hi: 6 },
+      { id: "theft", k: "scrap", lo: 22, hi: 22 },
+    ]);
+    const moved = steal(3, 30, 100);
+    rewrite(eventId, [{ id: "theft", k: "scrap", lo: 22, hi: 22 }]);
+    const quiet = steal(3, 30, 100);
+    assert.notEqual(moved.seed, quiet.seed);
+    assert.equal(moved.scrap, 78);
+    assert.equal(quiet.scrap, 78);
+    assert.equal(quiet.missiles, 30);
+    assert.ok(moved.missiles >= 24 && moved.missiles <= 28);
+
+    rewrite(eventId, [
+      { id: "theft", k: "missiles", lo: 3, hi: 3 },
+      { id: "theft", k: "scrap", lo: 22, hi: 22 },
+    ]);
+    const both = steal(3, 30, 100);
+    assert.equal(quiet.seed, both.seed);
+    assert.equal(both.missiles, 27);
+    assert.equal(both.scrap, 78);
+    assert.match(quiet.event?.body ?? "", /You lose 0 missiles and 22 scrap/);
+    assert.match(both.event?.body ?? "", /You lose 3 missiles and 22 scrap/);
+
+    rewrite(eventId, [{ id: "theft", k: "missiles", lo: 3, hi: 3 }]);
+    const noScrap = steal(3, 30, 100);
+    assert.equal(noScrap.seed, both.seed);
+    assert.equal(noScrap.missiles, 27);
+    assert.equal(noScrap.scrap, 100);
+    assert.match(noScrap.event?.body ?? "", /You lose 3 missiles and 0 scrap/);
+
+    resetPackForTests();
+    let opened = false;
+    for (let seed = 1; seed <= 30 && !opened; seed++) {
+      const g = createGame(seed);
+      g.scrap = 40;
+      choose(g, "c:no-fuel-slug-fuel-trader:pay");
+      opened = g.event?.choices.some((choice) => choice.id === theft) ?? false;
+      if (!opened) continue;
+      assert.equal(g.event?.choices[0]?.label, "Continue");
+      assert.match(g.event?.body ?? "", /complete the exchange/);
+    }
+    assert.equal(opened, true);
+  });
+
+  it("stamps the refugee trades, and an empty table does not roll the offer", () => {
+    const trade = (eventDef("trade-resources")?.offers ?? []).filter((row) => row.k === "trade");
+    assert.equal(trade.length, 4);
+    for (const id of [
+      "refugee",
+      "refugee-distress",
+      "refugee-zoltan",
+      "refugee-distress-zoltan",
+      "refugee-pirate",
+      "refugee-distress-pirate",
+      "refugee-slug",
+      "refugee-distress-slug",
+    ]) {
+      assert.deepEqual((eventDef(id)?.offers ?? []).filter((row) => row.k === "trade"), trade, id);
+    }
+
+    let seed = 0;
+    for (let n = 1; n <= 40 && seed === 0; n++) {
+      const g = createGame(n);
+      const beacon = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+      assert.ok(beacon);
+      beacon.flag = "cited:refugee-zoltan";
+      beacon.name = "Refugee (Zoltan)";
+      g.here = beacon.id;
+      g.event = citedEvent(g, beacon);
+      g.phase = "event";
+      choose(g, "c:refugee-zoltan:0");
+      if ((g.event?.body ?? "").includes("running low on supplies")) seed = n;
+    }
+    assert.ok(seed > 0, "no refugee trade");
+
+    function open(n: number): Game {
+      const g = createGame(n);
+      const beacon = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+      assert.ok(beacon);
+      beacon.flag = "cited:refugee-zoltan";
+      beacon.name = "Refugee (Zoltan)";
+      g.here = beacon.id;
+      g.event = citedEvent(g, beacon);
+      g.phase = "event";
+      return g;
+    }
+
+    const row = eventDef("refugee-zoltan");
+    assert.ok(row);
+    loadPack({ events: [{ ...row, offers: [] }] }, "append");
+    const empty = open(seed);
+    const hail = empty.event?.body ?? "";
+    const opened = empty.seed;
+    choose(empty, "c:refugee-zoltan:0");
+    assert.equal(empty.event?.body, hail);
+    assert.equal(empty.event?.choices.some((choice) => choice.id === "c:refugee-zoltan:0"), true);
+    const sibling = open(seed);
+    assert.equal(sibling.seed, opened);
+    rand(sibling);
+    assert.equal(empty.seed, sibling.seed);
+
+    loadPack(
+      {
+        events: [{
+          ...row,
+          offers: [{ k: "trade" as const, pay: "parts" as const, cost: [2, 2], get: "fuel" as const, gain: [9, 9] }],
+        }],
+      },
+      "append",
+    );
+    const one = open(seed);
+    choose(one, "c:refugee-zoltan:0");
+    assert.equal(one.event?.choices[0]?.label, "Trade with them. [2 drone parts for 9 fuel]");
+    assert.equal(one.event?.choices[0]?.id, "s:refugee-zoltan:trade:parts:2:fuel:9");
+    assert.equal(one.event?.choices[1]?.id, "s:refugee-zoltan:decline");
+    const four = open(seed);
+    rand(four);
+    rand(four);
+    rand(four);
+    rand(four);
+    assert.equal(one.seed, four.seed);
   });
 });

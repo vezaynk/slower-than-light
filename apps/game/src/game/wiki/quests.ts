@@ -5188,23 +5188,26 @@ function pirateGone(g: Game) {
 }
 
 /** Refueling platform garbled broadcast. Both endings pay medium scrap with resources, then the station's fuel.
- *  The extra fuel is inclusive 3-5 on top of whatever rollStandard already paid. No Investigate button. */
+ *  The extra fuel is the printed band, inclusive 3-5 in campaign, on top of whatever rollStandard already paid.
+ *  A missing band adds no fuel and does not roll. No Investigate button. */
 function garbledBroadcastWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
     ? "There are no more life-signs remaining on the ship. You strip it of useful materials."
     : "The ship explodes, leaving behind a collection of useful scrap material.";
   const offer = rollStandard(g, "medium");
-  const extra = between(g, [3, 5]);
+  const extra = rollBand("refueling-platform-garbled-broadcast", "extra", "fuel", (lo, hi) =>
+    between(g, [lo, hi]),
+  );
+  const station = `${text}
+
+It looks as if the Lanius were uninterested in the fuel reserves on the station, and there is a good amount of fuel left. You take what your ship can hold and prepare to jump to the next beacon.`;
+  if (extra == null) {
+    result(g, station, offer);
+    return;
+  }
   const line = `Fuel: ${extra}.`;
   g.fuel += extra;
-  result(
-    g,
-    `${text}
-
-It looks as if the Lanius were uninterested in the fuel reserves on the station, and there is a good amount of fuel left. You take what your ship can hold and prepare to jump to the next beacon.`,
-    offer,
-    [line],
-  );
+  result(g, station, offer, [line]);
   log(g, line);
 }
 

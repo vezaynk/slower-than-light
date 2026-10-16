@@ -305,6 +305,9 @@ importers:
       '@xmldom/xmldom':
         specifier: ^0.9.12
         version: 0.9.12
+      xml-formatter:
+        specifier: ^3.7.0
+        version: 3.7.0
     devDependencies:
       '@types/node':
         specifier: ^22.16.5
@@ -324,9 +327,6 @@ importers:
       '@xmldom/xmldom':
         specifier: ^0.9.12
         version: 0.9.12
-      xml-formatter:
-        specifier: ^3.7.0
-        version: 3.7.0
     devDependencies:
       '@types/node':
         specifier: ^22.16.5

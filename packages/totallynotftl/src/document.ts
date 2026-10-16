@@ -4,8 +4,7 @@ import {
   type Document as XmlDocument,
   type Element as XmlElement,
 } from "@xmldom/xmldom";
-import { allCrew, type CrewDef, type TuneDef } from "@stl/pack";
-import formatXml from "xml-formatter";
+import { allCrew, prettyXml, type CrewDef, type TuneDef } from "@stl/pack";
 import { loadSources, type StandInSources, type SystemRow, type WeaponRow } from "./sources.ts";
 
 const TYPE: Record<WeaponRow["kind"], string> = {
@@ -28,17 +27,6 @@ function leaf(doc: XmlDocument, parent: XmlElement, tag: string, value: string |
   const node = doc.createElement(tag);
   node.appendChild(doc.createTextNode(String(value)));
   parent.appendChild(node);
-}
-
-function pretty(xml: string): string {
-  const formatted = formatXml(xml, {
-    indentation: "  ",
-    collapseContent: true,
-    lineSeparator: "\n",
-    whiteSpaceAtEndOfSelfclosingTag: false,
-    forceSelfClosingEmptyTag: true,
-  });
-  return formatted.endsWith("\n") ? formatted : `${formatted}\n`;
 }
 
 function weaponFact(sources: StandInSources, row: WeaponRow): string {
@@ -193,7 +181,7 @@ function documentXml(sources: StandInSources, crew: readonly CrewDef[]): string 
   for (const id of new Set([...cited.keys(), ...tunes.keys()])) {
     root.appendChild(systemElement(doc, sources, id, cited.get(id), tunes.get(id)));
   }
-  return pretty(serializer.serializeToString(doc));
+  return prettyXml(serializer.serializeToString(doc));
 }
 
 /** FTL blueprint XML for the stand-in archive. Descriptions state the catalog numbers. */

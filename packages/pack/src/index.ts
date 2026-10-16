@@ -1,4 +1,5 @@
 export { emitPack } from "./emit.ts";
+export { prettyXml } from "./format.ts";
 export { packFromFtl } from "./ftl.ts";
 export { fetchPackXml } from "./fetch-pack.ts";
 export { parsePack } from "./parse.ts";

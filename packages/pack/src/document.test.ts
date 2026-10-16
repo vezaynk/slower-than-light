@@ -667,6 +667,57 @@ describe("pack document", () => {
     });
   });
 
+  it("writes choice results with the hyperspace tags", () => {
+    const events = [
+      {
+        id: "pay",
+        dest: "Pay",
+        flag: "cited:pay",
+        aliases: [],
+        sectors: [],
+        body: "A toll.",
+        choices: [
+          {
+            id: "c:pay:0",
+            label: "Pay",
+            fx: [
+              { k: "res" as const, id: "parts" as const, sign: -1 as const, lo: 1, hi: 2 },
+              { k: "fight" as const, tier: "Auto-ship", asteroid: true },
+              { k: "hull" as const, n: 5 },
+              { k: "fleet" as const, n: 2, lastStand: true },
+              { k: "note" as const, text: "The gate opens." },
+              { k: "nothing" as const },
+              { k: "goto" as const, id: "next" },
+              { k: "item" as const, item: "weapon" as const },
+            ],
+          },
+        ],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.match(xml, /<item type="drones" min="-2" max="-1"\/>/);
+    assert.match(xml, /<ship hostile="true" load="Auto-ship" asteroid="true"\/>/);
+    assert.match(xml, /<damage amount="-5"\/>/);
+    assert.match(xml, /<modifyPursuit amount="-2" lastStand="true"\/>/);
+    assert.match(xml, /<event load="next"\/>/);
+    assert.match(xml, /<weapon\/>/);
+    assert.doesNotMatch(xml, /<effect k="res"/);
+    assert.deepEqual(parsePack(xml).events, events);
+    const legacy = parsePack(`<FTL>
+      <event name="pay" flag="cited:pay">
+        <title>Pay</title>
+        <text>A toll.</text>
+        <choice name="c:pay:0">
+          <text>Pay</text>
+          <effect k="res" id="scrap" sign="-1" lo="10" hi="15"/>
+        </choice>
+      </event>
+    </FTL>`);
+    assert.deepEqual(legacy.events?.[0]?.choices[0]?.fx, [
+      { k: "res", id: "scrap", sign: -1, lo: 10, hi: 15 },
+    ]);
+  });
+
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>

@@ -467,7 +467,7 @@ export function parsePack(xml: string): ContentPack {
     const row = readTune(node);
     if (row) tunes.push(row);
   }
-  for (const node of tagged(doc, "eventBlueprint")) {
+  for (const node of [...tagged(doc, "eventBlueprint"), ...tagged(doc, "event")]) {
     const row = readEvent(node);
     if (row) events.push(row);
   }
@@ -606,12 +606,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
     if (item.tagName !== "choice") continue;
     const choiceId = attr(item, "name")?.trim();
     if (!choiceId) continue;
-    const fx: EventEffect[] = [];
-    for (const effect of elements(item)) {
-      if (effect.tagName !== "effect") continue;
-      const parsed = readEffect(effect);
-      if (parsed) fx.push(parsed);
-    }
+    const fx = readChoiceEffects(item);
     const choice: EventChoice = { id: choiceId, label: textOf(item, "text") ?? choiceId, fx };
     const reqs = readReqs(item);
     if (reqs) choice.reqs = reqs;
@@ -994,6 +989,75 @@ function readReward(node: XmlElement): SurrenderReward | undefined {
 
 function isItem(value: string): value is EventItem {
   return value === "weapon" || value === "augment" || value === "drone";
+}
+
+/** Choice results, in document order. Older effect tags still read. */
+function readChoiceEffects(node: XmlElement): EventEffect[] {
+  const fx: EventEffect[] = [];
+  for (const child of elements(node)) {
+    for (const effect of readChoiceEffect(child) ?? []) fx.push(effect);
+  }
+  return fx;
+}
+
+function readChoiceEffect(node: XmlElement): EventEffect[] | undefined {
+  if (node.tagName === "effect") {
+    const parsed = readEffect(node);
+    return parsed ? [parsed] : undefined;
+  }
+  if (node.tagName === "item_modify") {
+    const rows: EventEffect[] = [];
+    for (const item of elements(node)) {
+      if (item.tagName !== "item") continue;
+      const parsed = readResourceItem(item);
+      if (parsed) rows.push(parsed);
+    }
+    return rows;
+  }
+  if (node.tagName === "ship") {
+    const tier = attr(node, "load")?.trim();
+    if (!tier) return undefined;
+    const effect: EventEffect = { k: "fight", tier };
+    if (node.getAttribute("asteroid") === "true") effect.asteroid = true;
+    return [effect];
+  }
+  if (node.tagName === "event") {
+    const load = attr(node, "load")?.trim();
+    if (load) return [{ k: "goto", id: load }];
+    const text = textOf(node, "text");
+    if (text != null) return [{ k: "note", text }];
+    return [{ k: "nothing" }];
+  }
+  if (node.tagName === "damage") {
+    const amount = intAttr(node, "amount");
+    if (amount == null) return undefined;
+    return [{ k: "hull", n: -amount }];
+  }
+  if (node.tagName === "modifyPursuit") {
+    const amount = intAttr(node, "amount");
+    if (amount == null) return undefined;
+    const faster = node.getAttribute("faster") === "true";
+    const effect: EventEffect = { k: "fleet", n: faster ? amount : -amount };
+    if (node.getAttribute("double") === "true") effect.double = true;
+    if (faster) effect.faster = true;
+    if (node.getAttribute("lastStand") === "true") effect.lastStand = true;
+    return [effect];
+  }
+  if (node.tagName === "weapon" || node.tagName === "drone" || node.tagName === "augment") {
+    return [{ k: "item", item: node.tagName === "weapon" ? "weapon" : node.tagName === "drone" ? "drone" : "augment" }];
+  }
+  return undefined;
+}
+
+function readResourceItem(node: XmlElement): EventEffect | undefined {
+  const type = attr(node, "type")?.trim();
+  const id = type === "drones" ? "parts" : type;
+  if (!isResource(id)) return undefined;
+  const min = intAttr(node, "min");
+  const max = intAttr(node, "max");
+  if (min == null || max == null || min > max) return undefined;
+  if (max < 0 || (max === 0 && min < 0)) return { k: "res", id, sign: -1, lo: -max, hi: -min };
+  return { k: "res", id, sign: 1, lo: min, hi: max };
 }
 
 function readEffect(node: XmlElement): EventEffect | undefined {

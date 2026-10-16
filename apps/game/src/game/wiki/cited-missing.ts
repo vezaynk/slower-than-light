@@ -10,6 +10,7 @@ import { EXTRA_EVENTS } from "./cited-missing-pages.ts";
 import { ownedLock } from "./choice-locks.ts";
 import { priced, rollPrice } from "./event-prices.ts";
 import { rollFuel } from "./fuel-gifts.ts";
+import { affordStock, takeStock } from "./stock-spend.ts";
 import { MISSING_LOCKS } from "./choice-reqs.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { beginBoarding, hurtSystem, openStoreHere } from "../sim.ts";
@@ -480,8 +481,9 @@ function payFifteen(ctx: Ctx, id: string, theft: boolean): boolean {
   // > "You doubt he is trustworthy but have no choice but to make the deal. However you complete the exchange without event." — [[No fuel: Slug fuel trader]]
   // > "You receive Fuel gained: 5." — [[No fuel: Slug fuel trader]]
   // > "Continue..." — [[No fuel: Slug fuel trader]]
-  if (ctx.g.scrap < 15) return false;
-  ctx.g.scrap -= 15;
+  const cost = affordStock(ctx.g, id, "scrap");
+  if (cost == null) return false;
+  takeStock(ctx.g, "scrap", cost);
   ctx.g.fuel += rollFuel(id, (lo, hi) => span(ctx, lo, hi));
   const text = tx("wiki.cited-missing.slug-exchange");
   if (!theft) {
@@ -497,8 +499,9 @@ function betterTrade(ctx: Ctx, id: string): boolean {
   // > "The refugees thank you for the parts, and gladly pass along the much-needed fuel. They wish you well on your mission, and declare their support for the Federation." — [[No fuel: refugee trading]]
   // > "You receive Fuel gained: 3 and lose Scrap lost: 10." — [[No fuel: refugee trading]]
   // > "You receive Fuel gained: 6 and lose Scrap lost: 10." — [[No fuel: refugee trading]]
-  if (ctx.g.scrap < 10) return false;
-  ctx.g.scrap -= 10;
+  const cost = affordStock(ctx.g, id, "scrap");
+  if (cost == null) return false;
+  takeStock(ctx.g, "scrap", cost);
   ctx.g.fuel += rollFuel(id, (lo, hi) => span(ctx, lo, hi));
   done(
     ctx.g,
@@ -570,7 +573,9 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "breach") {
-      g.missiles -= 1;
+      const n = affordStock(g, id, "missiles");
+      if (n == null) return true;
+      takeStock(g, "missiles", n);
       ctx.note(tx("wiki.cited-missing.missile-spent"));
       investigate(ctx);
       return true;
@@ -835,7 +840,9 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "accept50") {
-      g.scrap -= 50;
+      const cost = affordStock(g, id, "scrap");
+      if (cost == null) return true;
+      takeStock(g, "scrap", cost);
       done(g, tx("wiki.cited-missing.repair-paid"), repairs(10));
       return true;
     }
@@ -858,7 +865,9 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "fuel") {
-      g.fuel -= 15;
+      const n = affordStock(g, id, "fuel");
+      if (n == null) return true;
+      takeStock(g, "fuel", n);
       done(g, tx("wiki.cited-missing.nothing-else"));
       return true;
     }
@@ -875,7 +884,9 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       return true;
     }
     if (name === "scrap50") {
-      g.scrap -= 50;
+      const cost = affordStock(g, id, "scrap");
+      if (cost == null) return true;
+      takeStock(g, "scrap", cost);
       done(g, tx("wiki.cited-missing.nothing-else"));
       return true;
     }
@@ -949,10 +960,14 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
   }
 
   if (slug === "no-fuel-slug-fuel-trader") {
-    if (name === "pay") return payFifteen(ctx, id, ctx.irand(2) === 1);
+    if (name === "pay") {
+      if (affordStock(g, id, "scrap") == null) return false;
+      return payFifteen(ctx, id, ctx.irand(2) === 1);
+    }
     if (name === "slug") {
       // Wiki citations:
       // > "You receive Fuel gained: 5 and lose Scrap lost: 15." — [[No fuel: Slug fuel trader]]
+      if (affordStock(g, id, "scrap") == null) return false;
       return payFifteen(ctx, id, false);
     }
     if (name === "ignore") {
@@ -1244,14 +1259,16 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       // > "You lose Missiles lost: 1 and receive Fuel gained: 5-7." — [[No fuel: refugee trading]]
       // > "Having traded supplies, the ship suddenly powers up and attacks - it's a pirate ship!" — [[No fuel: refugee trading]]
       // > "You lose Missiles lost: 1, receive Fuel gained: 5-7, and you fight a Pirate ship (default rewards). (90 seconds escape countdown timer if not interrupted)" — [[No fuel: refugee trading]]
-      g.missiles -= 1;
+      const n = affordStock(g, id, "missiles");
+      if (n == null) return true;
+      takeStock(g, "missiles", n);
       const fuel = rollFuel(id, (lo, hi) => span(ctx, lo, hi));
       g.fuel += fuel;
       if (ctx.irand(2) === 0) {
-        done(g, tx("wiki.cited-missing.refugee-missile-trade", { fuel }));
+        done(g, tx("wiki.cited-missing.refugee-missile-trade", { fuel, n }));
         return true;
       }
-      ctx.note(tx("wiki.cited-missing.refugee-missile-trap", { fuel }));
+      ctx.note(tx("wiki.cited-missing.refugee-missile-trap", { fuel, n }));
       ctx.fight("Pirate ship", undefined, "no-fuel-refugee-trading");
       return true;
     }

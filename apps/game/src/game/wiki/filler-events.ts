@@ -34,6 +34,8 @@ import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 import { ownedLock, scrapStock } from "./choice-locks.ts";
+import { stampStockLabels } from "./stock-labels.ts";
+import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
 import { FILLER_LOCKS } from "./choice-reqs.ts";
 
 /**
@@ -359,7 +361,7 @@ function cardFor(g: Game, page: Page): GameEvent {
  * nothing stamped (a quest slot no quest took, an unlisted sector). Plain beacons draw now, with rand(g), and keep
  * the draw on the beacon. Null for exits and anything else this module does not own.
  */
-export function fillerEvent(g: Game, b: Beacon): GameEvent | null {
+function fillerEventRaw(g: Game, b: Beacon): GameEvent | null {
   if (b.flag.startsWith(FILLER_FLAG)) {
     const slug = b.flag.slice(FILLER_FLAG.length);
     if (slug === "empty-nebula-beacon-slug") return emptyCard(g, emptyPageFor(g.sectorName, true));
@@ -374,6 +376,13 @@ export function fillerEvent(g: Game, b: Beacon): GameEvent | null {
   if (!page) return emptyCard(g, emptyPageFor(g.sectorName, b.kind === "nebula"));
   stampFiller(b, page);
   return cardFor(g, page);
+}
+
+export function fillerEvent(g: Game, b: Beacon): GameEvent | null {
+  const ev = fillerEventRaw(g, b);
+  if (!ev) return null;
+  ev.choices = stampStockLabels(ev.choices);
+  return ev;
 }
 
 // ---- Choices ---------------------------------------------------------------------------------------------------
@@ -407,7 +416,7 @@ function show(g: Game, text: string, offer?: SurrenderOffer, extras: string[] = 
 }
 
 function card(g: Game, body: string, choices: { id: string; label: string }[]) {
-  g.event = { title: here(g)?.name ?? "Event", body, choices };
+  g.event = { title: here(g)?.name ?? "Event", body, choices: stampStockLabels(choices) };
   g.phase = "event";
   g.paused = true;
 }
@@ -713,11 +722,12 @@ function payMiners(g: Game, base: number, hull: number): string[] {
   return lines;
 }
 
-/** Asteroid mining colony. A shortfall leaves the card up. */
-function giveMiners(g: Game, n: 5 | 15) {
-  if (g.missiles < n) return;
-  g.missiles -= n;
-  if (n === 5) {
+/** Asteroid mining colony. A shortfall leaves the card up. The reward table follows the button, not the packed count. */
+function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mining-colony:2") {
+  const n = affordStock(g, id, "missiles");
+  if (n == null) return;
+  takeStock(g, "missiles", n);
+  if (id === "c:asteroid-mining-colony:1") {
     // No odds on the three results. INFERRED: equal.
     const r = weighted(g, [["hull", 1], ["reactor", 1], ["scrap", 1]] as const);
     if (r === "hull") {
@@ -961,9 +971,10 @@ function diseaseCure(g: Game) {
 }
 
 /** Refueling station: the printed scrap cost buys that many fuel. A shortfall leaves the card up. */
-function buyFuel(g: Game, cost: number, fuel: number) {
-  if (g.scrap < cost) return;
-  g.scrap -= cost;
+function buyFuel(g: Game, id: string, fuel: number) {
+  const cost = affordStock(g, id, "scrap");
+  if (cost == null) return;
+  takeStock(g, "scrap", cost);
   g.fuel += fuel;
   show(g, tx("wiki.filler-events.thank-you-for-your-business"), undefined, [tx("wiki.filler-events.you-receive-fuel", { fuel: fuel })]);
 }
@@ -1734,9 +1745,10 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     // > "(Hull Repair Drone) Repair their hull. [ Drone parts lost: 1 ]" — [[Mantis ships battle for Rock freighter]]
     // > "While the two Mantis fight you approach the Rock ship and use a drone to fix up the ship. Once the breaches are fixed the life support flickers back on. In a matter of moments they are already in pursuit of one of the Mantis ships. Meanwhile the second Mantis turns toward you." — [[Mantis ships battle for Rock freighter]]
     // > "Fight a Mantis ship." — [[Mantis ships battle for Rock freighter]]
-    if (!ownsDrone(g, "hull") || g.player.parts < 1) return;
-    g.player.parts -= 1;
-    log(g, tx("wiki.filler-events.drone-parts-1"));
+    const n = affordStock(g, "c:mantis-ships-battle-for-rock-freighter:3", "parts");
+    if (!ownsDrone(g, "hull") || n == null) return;
+    takeStock(g, "parts", n);
+    log(g, partsLine(n));
     fight(g, tx("wiki.filler-events.while-the-two-mantis-fight-you-2"), tx("wiki.filler-events.mantis-ship"), "mantis-ships-battle-for-rock-freighter");
   },
 
@@ -1805,10 +1817,12 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "(Beam Drone) Use a drone to cut away the mine with a precision beam. [ Drone parts lost: 1 ] (Anti-Ship Fire Drone doesn't count)" — [[Rock live mine]]
     // > "Carefully guided from the bridge, your beam drone removes the mine's grappling arms and sends it drifting off into space, where you shoot at it until it detonates at a safe distance." — [[Rock live mine]]
-    if (!ownsMineBeam(g) || g.player.parts < 1) return;
-    g.player.parts -= 1;
-    log(g, tx("wiki.filler-events.drone-parts-1"));
-    show(g, tx("wiki.filler-events.carefully-guided-from-the-bridge-your"), scrapOnly(g, "low"), [tx("wiki.filler-events.drone-parts-1")]);
+    const n = affordStock(g, "s:rock-mine:beam", "parts");
+    if (!ownsMineBeam(g) || n == null) return;
+    takeStock(g, "parts", n);
+    const spent = partsLine(n);
+    log(g, spent);
+    show(g, tx("wiki.filler-events.carefully-guided-from-the-bridge-your"), scrapOnly(g, "low"), [spent]);
   },
 
   // Engi smashed ships. "a random amount of resources with some scrap."
@@ -2323,9 +2337,9 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   },
 
   // Refueling station. "Buy 6 Fuel for 12 Scrap", "Buy 3 Fuel for 6 Scrap", "Buy 1 Fuel for 2 Scrap".
-  "c:refueling-station:0": (g) => buyFuel(g, 12, 6),
-  "c:refueling-station:1": (g) => buyFuel(g, 6, 3),
-  "c:refueling-station:2": (g) => buyFuel(g, 2, 1),
+  "c:refueling-station:0": (g) => buyFuel(g, "c:refueling-station:0", 6),
+  "c:refueling-station:1": (g) => buyFuel(g, "c:refueling-station:1", 3),
+  "c:refueling-station:2": (g) => buyFuel(g, "c:refueling-station:2", 1),
   "c:refueling-station:3": done,
 
   // Asteroid mining colony. The launch "has no effect" and the non-blue choices return.
@@ -2333,8 +2347,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     if (!miningMissile(g)) return;
     card(g, tx("wiki.filler-events.while-i-appreciate-your-enthusiasm-we"), miningOffers());
   },
-  "c:asteroid-mining-colony:1": (g) => giveMiners(g, 5),
-  "c:asteroid-mining-colony:2": (g) => giveMiners(g, 15),
+  "c:asteroid-mining-colony:1": (g) => giveMiners(g, "c:asteroid-mining-colony:1"),
+  "c:asteroid-mining-colony:2": (g) => giveMiners(g, "c:asteroid-mining-colony:2"),
   "c:asteroid-mining-colony:3": (g) => {
     show(g, tx("wiki.filler-events.i-understand-good-luck-out-there"));
   },

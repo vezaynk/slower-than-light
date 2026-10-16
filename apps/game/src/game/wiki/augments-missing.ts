@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 export type MissingAugment = {
   id: string;
   name: string;
@@ -19,9 +18,9 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    */
   {
     id: "vengeance",
-    name: tx("wiki.augments-missing.crystal-vengeance"),
+    name: "Crystal Vengeance",
     detail:
-      tx("wiki.augments-missing.each-time-the-ship-takes-damage"),
+      "Each time the ship takes damage there is a 10 percent chance to fire a crystal shot that does 1 damage, has a 10 percent chance to breach, has a 20 percent chance to stun for 3 seconds, ignores shields, is affected by evasion, and can be shot down by defense drones.",
     cost: null,
     purchasable: false,
   },
@@ -33,9 +32,9 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    */
   {
     id: "stasis",
-    name: tx("wiki.augments-missing.damaged-stasis-pod"),
+    name: "Damaged Stasis Pod",
     detail:
-      tx("wiki.augments-missing.more-than-one-can-be-held"),
+      "More than one can be held at a time with each copy in an augmentation slot, each can be acquired only from the Dense asteroid field distress call, and each Zoltan research facility opens a single pod to yield a Crystal crewmember.",
     cost: null,
     purchasable: false,
   },
@@ -45,9 +44,9 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    */
   {
     id: "booster",
-    name: tx("wiki.augments-missing.drone-reactor-booster"),
+    name: "Drone Reactor Booster",
     detail:
-      tx("wiki.augments-missing.crew-drone-movement-speed-is-increased"),
+      "Crew drone movement speed is increased by 25 percent, from 50 percent of regular crew speed to 62.5 percent.",
     cost: null,
     purchasable: false,
   },
@@ -61,9 +60,9 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    */
   {
     id: "medbot",
-    name: tx("wiki.augments-missing.engi-med-bot-dispersal"),
+    name: "Engi Med-bot Dispersal",
     detail:
-      tx("wiki.augments-missing.it-heals-1-6-health-points"),
+      "It heals 1.6 health points per second when the medbay is powered, medbay upgrades do not affect it, it does not heal crew on another ship, and it does nothing with a clone bay.",
     cost: null,
     purchasable: false,
   },
@@ -74,8 +73,8 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    */
   {
     id: "pheromone",
-    name: tx("wiki.augments-missing.mantis-pheromones"),
-    detail: tx("wiki.augments-missing.crew-movement-speed-increases-by-25"),
+    name: "Mantis Pheromones",
+    detail: "Crew movement speed increases by 25 percent on your ship and while boarding an enemy.",
     cost: null,
     purchasable: false,
   },
@@ -86,9 +85,9 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    */
   {
     id: "gel",
-    name: tx("wiki.augments-missing.slug-repair-gel"),
+    name: "Slug Repair Gel",
     detail:
-      tx("wiki.augments-missing.it-fixes-all-breaches-simultaneously-at"),
+      "It fixes all breaches simultaneously at 75 percent of regular crew speed and stacks with crew repairs.",
     cost: null,
     purchasable: false,
   },
@@ -104,9 +103,9 @@ export const MISSING_AUGMENTS: MissingAugment[] = [
    */
   {
     id: "zshield",
-    name: tx("wiki.augments-missing.zoltan-shield"),
+    name: "Zoltan Shield",
     detail:
-      tx("wiki.augments-missing.it-has-5-points-of-energy"),
+      "It has 5 points of energy shielding that are completely recharged on an FTL jump, enemy shields are replenished on revisiting the beacon, only the initial boarding party of a boarding event passes through it, and Zoltan Shield Bypass lets crew teleportation, bomb teleportation, and mind control pass through it.",
     cost: null,
     purchasable: false,
   },

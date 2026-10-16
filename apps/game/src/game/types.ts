@@ -1,18 +1,10 @@
 import type { WeaponKind } from "@stl/pack";
+import type { AugmentId, KitId, SysId } from "@stl/catalog";
 import type { EscapePlan } from "./wiki/escape.ts";
 import type { SurrenderPlan } from "./wiki/surrender.ts";
 import type { FlagshipState } from "./wiki/flagship-systems.ts";
 export type { WeaponKind };
-
-export type SysId =
-  | "shields"
-  | "engines"
-  | "oxygen"
-  | "medbay"
-  | "weapons"
-  | "pilot"
-  | "sensors"
-  | "doors";
+export type { AugmentId, KitId, SysId };
 
 /** A point on a hull grid, in tile units. The integer part is the cell. */
 export type BeamPoint = { x: number; y: number };
@@ -299,17 +291,6 @@ export type Shot = {
   stunChance?: number;
 };
 
-export type KitId =
-  | "veil"
-  | "sling"
-  | "spike"
-  | "swarm"
-  | "leash"
-  | "cradle"
-  | "cell"
-  | "lance"
-  | "flak";
-
 export type Kit = {
   id: KitId;
   level: number;
@@ -503,40 +484,6 @@ export type DroneUnit = {
   fired?: number;
 };
 
-export type AugmentId =
-  | "feed"
-  | "echo"
-  | "quiet"
-  | "hot"
-  | "weld"
-  | "baffle"
-  | "coil"
-  | "spool"
-  | "hook"
-  | "keel"
-  | "casing"
-  | "falsebuoy"
-  | "glass"
-  | "lung"
-  | "squall"
-  | "tap"
-  | "jammer"
-  | "recover"
-  | "stun"
-  | "dna"
-  | "mend"
-  | "pulseeye"
-  | "medbot"
-  | "gel"
-  | "pheromone"
-  | "nav"
-  | "scrambler"
-  | "booster"
-  | "bypass"
-  | "vengeance"
-  | "stasis"
-  | "zshield";
-
 /** Crew Teleporter, "Enemy Crew Teleporter": one enemy hull's boarding bookkeeping (extras/sling.ts). */
 export type EnemyBoarding = {
   /** Boardings sent this fight. */
@@ -627,7 +574,10 @@ export type Ship = {
 
 /** @agent:crewai. One enemy crew task (extras/crewai.ts). `room` is the destination room id. */
 /** xftl doc/crew-ai task kinds: heal, combat ("defend"), fire, hull breach, and repair. "flee" is the wiki's. */
-export type CrewAiTask = { kind: "heal" | "flee" | "defend" | "fire" | "breach" | "repair"; room: string };
+export type CrewAiTask = {
+  kind: "heal" | "flee" | "defend" | "fire" | "breach" | "repair";
+  room: string;
+};
 
 /** @agent:crewai. Enemy crew AI state on an enemy hull (extras/crewai.ts). */
 export type CrewAiState = {
@@ -698,14 +648,7 @@ export type SectorNode = {
 };
 
 export type Phase =
-  | "title"
-  | "map"
-  | "event"
-  | "store"
-  | "combat"
-  | "reward"
-  | "victory"
-  | "defeat";
+  "title" | "map" | "event" | "store" | "combat" | "reward" | "victory" | "defeat";
 
 /** Score, lead formula: Easy, Normal, or Hard. D is 1, 1.25, or 1.5. */
 export type Difficulty = "easy" | "normal" | "hard";
@@ -715,7 +658,8 @@ export type Difficulty = "easy" | "normal" | "hard";
  * Augmentations: "the cargo storage cannot hold any of them", and crew are not cargo.
  * Weapon Control: "A weapon charge can be stored if a weapon is fully charged and then put into a cargo slot."
  */
-export type CargoItem = { kind: "weapon"; id: string; charge?: number } | { kind: "drone"; id: string };
+export type CargoItem =
+  { kind: "weapon"; id: string; charge?: number } | { kind: "drone"; id: string };
 
 /** wiki/make-room.ts: an item with no room. A crew entry means more than 8 crew are aboard. */
 export type Overflow =
@@ -727,7 +671,8 @@ export type Overflow =
 
 export type StockItem = {
   id: string;
-  kind: "fuel" | "missiles" | "parts" | "weapon" | "repair" | "system" | "augment" | "drone" | "crew";
+  kind:
+    "fuel" | "missiles" | "parts" | "weapon" | "repair" | "system" | "augment" | "drone" | "crew";
   ref: string;
   name: string;
   detail: string;
@@ -891,7 +836,11 @@ export type Game = {
   event: GameEvent | null;
   stock: StockItem[] | null;
   /** @agent:surrender. `res` lists non-scrap resources on the reward card (surrender cargo, stalemate fuel). */
-  reward: { scrap: number; note: string; res?: { fuel?: number; missiles?: number; parts?: number } } | null;
+  reward: {
+    scrap: number;
+    note: string;
+    res?: { fuel?: number; missiles?: number; parts?: number };
+  } | null;
   pending: string | null;
   tutorial: boolean;
   hint: boolean;

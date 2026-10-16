@@ -1,300 +1,11 @@
-import { tx } from "../i18n/index.ts";
+import { CREW_POOL, SYS_LABEL, WEAPONS, type WeaponDef } from "@stl/catalog";
 import { tuneDef } from "@stl/pack";
-import type { Difficulty, SysId, WeaponKind } from "./types";
-import { ORDNANCE } from "./extras/ordnance.ts";
-import { BEAM_WEAPONS } from "./wiki/weapons-beam.ts";
-import { BOMB_WEAPONS } from "./wiki/weapons-bomb.ts";
-import { FLAK_CRYSTAL_WEAPONS } from "./wiki/weapons-flak-crystal.ts";
-import { ION_WEAPONS } from "./wiki/weapons-ion.ts";
-import { LASER_WEAPONS } from "./wiki/weapons-laser.ts";
-import { MISSILE_WEAPONS } from "./wiki/weapons-missile.ts";
-import { registerFlagshipWeapons } from "./wiki/flagship-weapons.ts";
+import type { Difficulty, SysId } from "./types";
 
-export type WeaponDef = {
-  id: string;
-  name: string;
-  kind: WeaponKind;
-  power: number;
-  charge: number;
-  shots: number;
-  gap: number;
-  damage: number;
-  ion: number;
-  fire: number;
-  breach: number;
-  ammo: boolean;
-  price: number;
-  blurb: string;
-};
+export type { WeaponDef };
+export { CREW_POOL, SYS_LABEL, WEAPONS };
 
-/**
- * Fitted weapons. Each object is cited on the comment above it.
- * Dart stays Dart: its charge is not a wiki missile. INVENTED name.
- * The id `shear` is an invented local id. Its numbers are the Pike Beam row, so the display name is Pike Beam.
- */
-export const WEAPONS: Record<string, WeaponDef> = {
-  // Laser (Weapons), "Burst Laser Mark II": purchase price 80, power 2, charge 12 seconds, shots 3, damage per shot 1.
-  // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.1, not on the page.
-  // Breach is not stated. gap 0.28 is not on the page and is left in place.
-  lineburst: {
-    id: "lineburst",
-    name: tx("game.content.burst-laser-ii"),
-    kind: "laser",
-    power: 2,
-    charge: 12,
-    shots: 3,
-    gap: 0.28,
-    damage: 1,
-    ion: 0,
-    fire: 0,
-    breach: 0,
-    ammo: false,
-    price: 80,
-    blurb: tx("game.content.three-bolts-the-first-one-only"),
-  },
-  // Laser (Weapons), "Basic Laser": "Sells for: 10 (cannot be bought or found)". price 0, not the sell value.
-  // Power 1, charge 10 seconds, shots 1, damage per shot 1.
-  // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.08, not on the page.
-  spark: {
-    id: "spark",
-    name: tx("game.content.basic-laser"),
-    kind: "laser",
-    power: 1,
-    charge: 10,
-    shots: 1,
-    gap: 0,
-    damage: 1,
-    ion: 0,
-    fire: 0,
-    breach: 0,
-    ammo: false,
-    price: 0,
-    blurb: tx("game.content.one-bolt-a-shield-layer-stops"),
-  },
-  // Laser (Weapons), "Dual Lasers": "Sells for: 12 (cannot be bought or found)". price 0, not the sell value.
-  // Power 1, charge 10 seconds, shots 2, damage per shot 1.
-  // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.08, not on the page.
-  // gap 0.3 is not on the page and is left in place.
-  twin: {
-    id: "twin",
-    name: tx("game.content.dual-lasers"),
-    kind: "laser",
-    power: 1,
-    charge: 10,
-    shots: 2,
-    gap: 0.3,
-    damage: 1,
-    ion: 0,
-    fire: 0,
-    breach: 0,
-    ammo: false,
-    price: 0,
-    blurb: tx("game.content.two-bolts-from-a-single-power"),
-  },
-  // Laser (Weapons), "Heavy Laser Mark I": purchase price 50, power 1, charge 9 seconds, shots 1, damage per shot 2.
-  // Laser (Weapons), "Types of lasers": the 30% fire chance is rolled first, then (if no fires started) the 30% breach chance.
-  heavy: {
-    id: "heavy",
-    name: tx("game.content.heavy-laser"),
-    kind: "laser",
-    power: 1,
-    charge: 9,
-    shots: 1,
-    gap: 0,
-    damage: 2,
-    ion: 0,
-    fire: 0.3,
-    breach: 0.3,
-    ammo: false,
-    price: 50,
-    blurb: tx("game.content.two-hull-if-it-lands-one"),
-  },
-  // INVENTED. Charge is 14 seconds, which is not Artemis (Missile (Weapons), "Artemis Missiles", 11 seconds) or Leto ("Leto Missiles", 9 seconds), so it is not renamed.
-  dart: {
-    id: "dart",
-    name: tx("game.content.dart"),
-    kind: "missile",
-    power: 1,
-    charge: 14,
-    shots: 1,
-    gap: 0,
-    damage: 2,
-    ion: 0,
-    fire: 0.1,
-    breach: 0.25,
-    ammo: true,
-    price: 40,
-    blurb: tx("game.content.ignores-shields-spends-one-missile-can"),
-  },
-  // Ion (Weapons), "Ion Blast": purchase price 30, power 1, charge 8 seconds, shots 1, ion damage per shot 1.
-  // The section and the page lead give no hull damage, so damage is 0. Effect: low chance to stun. No percent is published. Stun is not a field.
-  needle: {
-    id: "needle",
-    name: tx("game.content.ion-blast"),
-    kind: "ion",
-    power: 1,
-    charge: 8,
-    shots: 1,
-    gap: 0,
-    damage: 0,
-    ion: 1,
-    fire: 0,
-    breach: 0,
-    ammo: false,
-    price: 30,
-    blurb: tx("game.content.no-hull-damage-a-shield-blocks"),
-  },
-  // Missile (Weapons), "Artemis Missiles": sells for 19 (cannot be bought or found), so price is 0, not 19.
-  // Power 1, charge 11 seconds, shots 1, damage per shot 2.
-  // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
-  // Low chance to stun is not a field. The lead says a missile spends 1 ammunition.
-  artemis: {
-    id: "artemis",
-    name: tx("game.content.artemis-missiles"),
-    kind: "missile",
-    power: 1,
-    charge: 11,
-    shots: 1,
-    gap: 0,
-    damage: 2,
-    ion: 0,
-    fire: 0,
-    breach: 0,
-    ammo: true,
-    price: 0,
-    blurb: tx("game.content.ignores-shields-two-damage-spends-one"),
-  },
-  // Missile (Weapons), "Leto Missiles": sells for 10 (cannot be bought or found), so price is 0, not 10.
-  // Power 1, charge 9 seconds, shots 1, damage per shot 1.
-  // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
-  // Low chance to stun is not a field. The lead says a missile spends 1 ammunition.
-  leto: {
-    id: "leto",
-    name: tx("game.content.leto-missiles"),
-    kind: "missile",
-    power: 1,
-    charge: 9,
-    shots: 1,
-    gap: 0,
-    damage: 1,
-    ion: 0,
-    fire: 0,
-    breach: 0,
-    ammo: true,
-    price: 0,
-    blurb: tx("game.content.ignores-shields-one-damage-spends-one"),
-  },
-  // Ion (Weapons), "Ion Blast Mark II": purchase price 70, power 3, charge 4 seconds, shots 1, ion damage per shot 1.
-  // No hull damage is stated, so damage is 0. Effect: low chance to stun. No percent is published. Stun is not a field.
-  ion2: {
-    id: "ion2",
-    name: tx("game.content.ion-blast-ii"),
-    kind: "ion",
-    power: 3,
-    charge: 4,
-    shots: 1,
-    gap: 0,
-    damage: 0,
-    ion: 1,
-    fire: 0,
-    breach: 0,
-    ammo: false,
-    price: 70,
-    blurb: tx("game.content.no-hull-damage-locks-one-power"),
-  },
-  // Ion (Weapons), "Heavy Ion": purchase price 45, power 2, charge 13 seconds, shots 1, ion damage per shot 2.
-  // No hull damage is stated, so damage is 0. Effect: moderate-low chance to stun. No percent is published. Stun is not a field.
-  heavyion: {
-    id: "heavyion",
-    name: tx("game.content.heavy-ion"),
-    kind: "ion",
-    power: 2,
-    charge: 13,
-    shots: 1,
-    gap: 0,
-    damage: 0,
-    ion: 2,
-    fire: 0,
-    breach: 0,
-    ammo: false,
-    price: 45,
-    blurb: tx("game.content.no-hull-damage-two-ion-if"),
-  },
-  // Ion (Weapons), "Ion Stunner": purchase price 35, power 1, charge 10 seconds, shots 1, ion damage per shot 1.
-  // No hull damage is stated, so damage is 0. Boarding, "Stun effect": the room stun is 5 seconds (sim.ts).
-  stunner: {
-    id: "stunner",
-    name: tx("game.content.ion-stunner"),
-    kind: "ion",
-    power: 1,
-    charge: 10,
-    shots: 1,
-    gap: 0,
-    damage: 0,
-    ion: 1,
-    fire: 0,
-    breach: 0,
-    ammo: false,
-    price: 35,
-    blurb: tx("game.content.no-hull-damage-one-ion-if"),
-  },
-  // Beam (Weapons), "Pike Beam": purchase price 55, power 2, charge 16 seconds, damage 1 per room.
-  // The id `shear` is INVENTED. The display name is the wiki row those numbers match.
-  // Halberd Beam is a different row: 65 scrap, 3 power, 17 seconds, 2 damage. It is registered from weapons-beam.ts.
-  shear: {
-    id: "shear",
-    name: tx("game.content.pike-beam"),
-    kind: "beam",
-    power: 2,
-    charge: 16,
-    shots: 1,
-    gap: 0,
-    damage: 1,
-    ion: 0,
-    fire: 0,
-    breach: 0,
-    ammo: false,
-    price: 55,
-    blurb: tx("game.content.one-evade-roll-for-the-whole"),
-  },
-};
-
-// Wiki page "Flak (Weapons)", section "Flak Gun Mark I", and wiki page "Bomb (Weapons)", section "Fire Bomb".
-for (const extra of ORDNANCE) WEAPONS[extra.id] = extra;
-// Ids already stored are left as they are. The added rows are wiki page "Laser (Weapons)", section "List of Laser weapons"; "Beam (Weapons)", section "List of Beam weapons"; "Ion (Weapons)", section "List of Ion weapons"; "Missile (Weapons)", section "List of Missile weapons"; "Bomb (Weapons)", section "List of Bomb weapons"; "Flak (Weapons)", section "List of Flak weapons"; "Crystal (Weapons)", section "List of Crystal weapons".
-// `pike` is skipped: wiki page "Beam (Weapons)", section "Pike Beam", is already stored as `shear`.
-for (const extra of [
-  ...LASER_WEAPONS,
-  ...BEAM_WEAPONS,
-  ...ION_WEAPONS,
-  ...MISSILE_WEAPONS,
-  ...BOMB_WEAPONS,
-  ...FLAK_CRYSTAL_WEAPONS,
-]) {
-  if (extra.id === "pike" || WEAPONS[extra.id]) continue;
-  WEAPONS[extra.id] = extra;
-}
-// @agent:flagship. Boss Laser and Boss Beam, and the flagship page's Boss Missile breach (wiki/flagship-weapons.ts).
-registerFlagshipWeapons(WEAPONS);
-
-export const SYS_LABEL: Record<SysId, string> = {
-  shields: tx("game.content.shields"),
-  engines: tx("game.content.engines"),
-  oxygen: tx("game.content.oxygen"),
-  medbay: tx("game.content.medbay"),
-  weapons: tx("game.content.weapons"),
-  pilot: tx("game.content.piloting"),
-  sensors: tx("game.content.sensors"),
-  doors: tx("game.content.doors"),
-};
-
-export const MAIN_SYSTEMS: SysId[] = [
-  "shields",
-  "engines",
-  "oxygen",
-  "medbay",
-  "weapons",
-];
+export const MAIN_SYSTEMS: SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons"];
 
 /** Engines, "System Upgrades", Evasion column. Powered levels 1–8 with a working pilot: 5, 10, 15, 20, 25, 28, 31, 35. Index 0 is no engines. Manning is added in the sim. */
 export const EVADE_TABLE = [0, 5, 10, 15, 20, 25, 28, 31, 35];
@@ -321,14 +32,14 @@ export const FTL_MANNED = FTL_SKILL[0];
 
 /** INVENTED strings. Wiki page "Sectors" names different sector types (Civilian, Engi, Mantis, and the rest). The array is not replaced. */
 export const SECTOR_NAMES = [
-  tx("game.content.cinder-reach"),
-  tx("game.content.glass-margin"),
-  tx("game.content.salt-lattice"),
-  tx("game.content.red-kiln"),
-  tx("game.content.quiet-arm"),
-  tx("game.content.broken-mile"),
-  tx("game.content.night-freight"),
-  tx("game.content.shut-gate"),
+  "Cinder Reach",
+  "Glass Margin",
+  "Salt Lattice",
+  "Red Kiln",
+  "Quiet Arm",
+  "Broken Mile",
+  "Night Freight",
+  "Shut Gate",
 ];
 
 /** Template:Scrap rewards (Normal), Medium column, sectors 1–8. Easy and Hard are other templates and are not this array. */
@@ -378,7 +89,12 @@ export function flagshipStageScrap(difficulty: Difficulty): [number, number] {
 
 /** Template:Scrap rewards (Medium), the column for the hangar difficulty. */
 export function mediumScrapBand(difficulty: Difficulty, sector: number): [number, number] {
-  const table = difficulty === "easy" ? SCRAP_MEDIUM_EASY : difficulty === "hard" ? SCRAP_MEDIUM_HARD : SCRAP_MEDIUM;
+  const table =
+    difficulty === "easy"
+      ? SCRAP_MEDIUM_EASY
+      : difficulty === "hard"
+        ? SCRAP_MEDIUM_HARD
+        : SCRAP_MEDIUM;
   return table[Math.min(7, Math.max(0, sector - 1))];
 }
 
@@ -402,16 +118,6 @@ export function skillRank(xp: number, need: number): 0 | 1 | 2 {
   if (xp >= need) return 1;
   return 0;
 }
-
-/** INVENTED personal names. Hangar crew cards repeat the wiki race count and do not use this pool. */
-export const CREW_POOL = [
-  tx("game.content.ada-voss"),
-  tx("game.content.ivo-park"),
-  tx("game.content.nen-hale"),
-  tx("game.content.brin-sol"),
-  tx("game.content.quill-ade"),
-  tx("game.content.mara-kent"),
-];
 
 /** Wiki page "Shields", section "Overview": layers 1–2 restore in 2s, the 3rd in 1.72s, the 4th in 1.5s, the 5th in 1.33s. No later layer is listed, so that 1.33s is reused. INFERRED for a layer past the 5th. */
 export function shieldLayerSeconds(layer: number): number {
@@ -450,28 +156,31 @@ export function hullRepairPerPoint(sector: number): number {
 /** Effect of the level being bought. The argument is the level already owned. */
 export function upgradeBlurb(id: SysId | "reactor", level: number): string {
   const next = level + 1;
-  if (id === "reactor") return tx("game.content.one-reactor-bar-the-cap-is");
+  if (id === "reactor") return "One reactor bar. The cap is 25.";
   // Shields: every 2 system levels adds one bubble. The even level is that layer.
-  if (id === "shields") return next % 2 === 0 ? tx("game.content.adds-a-shield-layer") : tx("game.content.adds-a-power-bar");
+  if (id === "shields") return next % 2 === 0 ? "Adds a shield layer." : "Adds a power bar.";
   if (id === "engines") {
     const evade = EVADE_TABLE[next];
-    return evade != null ? tx("game.content.evasion-with-a-working-pilot", { evade: evade }) : "";
+    return evade != null ? `${evade}% evasion with a working pilot.` : "";
   }
   // Oxygen, "System Upgrades": 4.8% at level 2, 8.4% at level 3.
-  if (id === "oxygen" && level === 1) return tx("game.content.4-8-per-second");
-  if (id === "oxygen" && level === 2) return tx("game.content.8-4-per-second");
+  if (id === "oxygen" && level === 1) return "4.8% per second.";
+  if (id === "oxygen" && level === 2) return "8.4% per second.";
   // Medbay, "System Upgrades": 9.6 HP/s and an airless bay at level 2, 19.2 HP/s at level 3.
-  if (id === "medbay" && level === 1) return tx("game.content.9-6-hp-per-second-crew");
-  if (id === "medbay" && level === 2) return tx("game.content.19-2-hp-per-second");
-  if (id === "weapons" && next <= 8) return tx("game.content.weapon-power", { next: next });
+  if (id === "medbay" && level === 1)
+    return "9.6 HP per second. Crew can heal in an airless medbay.";
+  if (id === "medbay" && level === 2) return "19.2 HP per second.";
+  if (id === "weapons" && next <= 8) return `${next} weapon power.`;
   // Piloting, "System Upgrades": an empty chair keeps 50% at level 2 and 80% at level 3.
-  if (id === "pilot" && level === 1) return tx("game.content.empty-chair-keeps-50-of-engine");
-  if (id === "pilot" && level === 2) return tx("game.content.empty-chair-keeps-80-of-engine");
+  if (id === "pilot" && level === 1) return "Empty chair keeps 50% of engine evasion.";
+  if (id === "pilot" && level === 2) return "Empty chair keeps 80% of engine evasion.";
   // Sensors, "System Upgrades": level 2 sees both ships, level 3 also sees enemy weapon charge.
-  if (id === "sensors" && level === 1) return tx("game.content.see-interior-of-all-rooms-on");
-  if (id === "sensors" && level === 2) return tx("game.content.see-enemy-weapons-charge");
+  if (id === "sensors" && level === 1)
+    return "See interior of all rooms on your ship and the enemy ship.";
+  if (id === "sensors" && level === 2) return "See enemy weapons charge.";
   // Door System, "System Upgrades": blast doors, then improved blast doors. Level 4 is manned only.
-  if (id === "doors" && level === 1) return tx("game.content.blast-doors-slows-fire-between-rooms");
-  if (id === "doors" && level === 2) return tx("game.content.improved-blast-doors-impedes-boarders-more");
+  if (id === "doors" && level === 1)
+    return "Blast doors. Slows fire between rooms and impedes boarders.";
+  if (id === "doors" && level === 2) return "Improved blast doors. Impedes boarders more.";
   return "";
 }

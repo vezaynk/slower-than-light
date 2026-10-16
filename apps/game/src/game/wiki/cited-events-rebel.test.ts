@@ -15,7 +15,10 @@ const TITLES = [
   "Store (Rebel)",
 ];
 
-const SRC = new URL("./cited-events-rebel.ts", import.meta.url);
+const SRC = new URL(
+  "../../../../../packages/catalog/src/wiki/cited-events-rebel.ts",
+  import.meta.url,
+);
 
 function slug(title: string): string {
   return title

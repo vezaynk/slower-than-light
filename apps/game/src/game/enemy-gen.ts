@@ -4,7 +4,6 @@
  * INFERRED fills a gap the pages leave (they print ranges, not how a sector picks inside them).
  * Pure: the caller (sim makeEnemy) turns the spec into rooms, systems, doors, and crew.
  */
-import { tx } from "../i18n/index.ts";
 import "./pack/base.ts";
 import { weaponDef } from "@stl/pack";
 import type { KinId } from "./extras/kin.ts";
@@ -147,7 +146,12 @@ const COMBAT_DRONES = new Set(["striker", "combat2", "beam", "beam2", "fire"]);
  * Drone Control, "Drone Schematics": "Before the start of a ship fight it is impossible to know the exact drones the
  * enemy ship will deploy" — this list stays hidden; swarm.ts deploys it on the first combat tick.
  */
-export function rollDrones(classId: string, level: number, rand: () => number, flagsOpen = false): string[] {
+export function rollDrones(
+  classId: string,
+  level: number,
+  rand: () => number,
+  flagsOpen = false,
+): string[] {
   const row = ENEMY_DRONES[classId];
   if (!row || level <= 0) return [];
   const pool = row.drones.filter((id) => ENEMY_RUNNABLE.has(id));
@@ -195,22 +199,22 @@ const KIT: Partial<Record<EnemySystem, KitId>> = {
 };
 
 const TITLE: Record<EnemySystem, string> = {
-  shields: tx("game.enemy-gen.shields"),
-  engines: tx("game.enemy-gen.engines"),
-  oxygen: tx("game.enemy-gen.oxygen"),
-  weapons: tx("game.enemy-gen.weapons"),
-  pilot: tx("game.enemy-gen.piloting"),
-  medbay: tx("game.enemy-gen.medbay"),
-  doors: tx("game.enemy-gen.doors"),
-  sensors: tx("game.enemy-gen.sensors"),
-  drones: tx("game.enemy-gen.drones"),
-  hacking: tx("game.enemy-gen.hacking"),
-  cloaking: tx("game.enemy-gen.cloaking"),
-  teleporter: tx("game.enemy-gen.teleporter"),
-  clonebay: tx("game.enemy-gen.clone-bay"),
-  mindcontrol: tx("game.enemy-gen.mind-control"),
-  battery: tx("game.enemy-gen.battery"),
-  artillery: tx("game.enemy-gen.artillery"),
+  shields: "Shields",
+  engines: "Engines",
+  oxygen: "Oxygen",
+  weapons: "Weapons",
+  pilot: "Piloting",
+  medbay: "Medbay",
+  doors: "Doors",
+  sensors: "Sensors",
+  drones: "Drones",
+  hacking: "Hacking",
+  cloaking: "Cloaking",
+  teleporter: "Teleporter",
+  clonebay: "Clone Bay",
+  mindcontrol: "Mind Control",
+  battery: "Battery",
+  artillery: "Artillery",
 };
 
 const KIN_OF: Record<string, KinId> = {
@@ -232,10 +236,18 @@ export type PoolContext = { sector: number; sectorName: string; difficulty: Diff
  * Slug Assault class"). requestFor reads it from the fight string by class name ("Mantis Bomber", "Slug Assault pirate
  * ship") or id ("slug-assault").
  */
-export type EnemyRequest = { faction?: EnemyClass["faction"]; pirate?: boolean; event?: string; classId?: string };
+export type EnemyRequest = {
+  faction?: EnemyClass["faction"];
+  pirate?: boolean;
+  event?: string;
+  classId?: string;
+};
 
 function slug(text: string) {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 const FACTION_WORDS: [RegExp, EnemyClass["faction"]][] = [
@@ -256,13 +268,19 @@ export function requestFor(tier: string): EnemyRequest {
   const faction = FACTION_WORDS.find(([re]) => re.test(tier))?.[1];
   // Enemy Ships, "Pirated ships": Federation ships are fought only as pirates "except for the Federation
   // deserters event", which asks for a "Federation ship". So a Federation request takes either.
-  const pirate = /pirate/i.test(tier) ? true : faction && faction !== "federation" ? false : undefined;
+  const pirate = /pirate/i.test(tier)
+    ? true
+    : faction && faction !== "federation"
+      ? false
+      : undefined;
   const classId = classIdFor(tier);
   return classId ? { faction, pirate, classId } : { faction, pirate };
 }
 
 /** Class names longest first, so "Rock Assault (Elite)" wins over "Rock Assault". */
-const CLASS_NAMES = ENEMY_CLASSES.map((c) => ({ id: c.id, name: c.name.toLowerCase() })).sort((a, b) => b.name.length - a.name.length);
+const CLASS_NAMES = ENEMY_CLASSES.map((c) => ({ id: c.id, name: c.name.toLowerCase() })).sort(
+  (a, b) => b.name.length - a.name.length,
+);
 
 /** The ship class a fight string names ("Fight a Mantis Bomber"), by class name or id; undefined for "Mantis ship". */
 export function classIdFor(tier: string): string | undefined {
@@ -301,9 +319,14 @@ export function rangePool(ctx: PoolContext): PoolEntry[] {
     // Mantis Bomber: "normally appears in sectors 5+; in sectors 2-4 can only be encountered in the Mantis Ship-Collectors event".
     if (/normally appears in sectors 5\+/i.test(where) && ctx.sector < 5) continue;
     // Mantis ships: "in sector 8 the non-pirate version can only be encountered in the Battlefield Wreckage event".
-    const regularOk = cls.faction !== "federation" && !(ctx.sector === 8 && /sector 8 the non-pirate version/i.test(where));
+    const regularOk =
+      cls.faction !== "federation" &&
+      !(ctx.sector === 8 && /sector 8 the non-pirate version/i.test(where));
     const sectorOne = ctx.sector === 1;
-    if (regularOk && (!sectorOne || cls.faction === "rebel" || cls.faction === "auto" || cls.faction === "mantis")) {
+    if (
+      regularOk &&
+      (!sectorOne || cls.faction === "rebel" || cls.faction === "auto" || cls.faction === "mantis")
+    ) {
       out.push({ cls, pirate: false });
     }
     if (canBePirate(cls)) out.push({ cls, pirate: true });
@@ -312,7 +335,10 @@ export function rangePool(ctx: PoolContext): PoolEntry[] {
 }
 
 function fitsRequest(e: PoolEntry, want: EnemyRequest): boolean {
-  return (!want.faction || e.cls.faction === want.faction) && (want.pirate == null || e.pirate === want.pirate);
+  return (
+    (!want.faction || e.cls.faction === want.faction) &&
+    (want.pirate == null || e.pirate === want.pirate)
+  );
 }
 
 /**
@@ -355,21 +381,40 @@ function weight(entry: { cls: EnemyClass; pirate: boolean }, sectorName: string)
   if (entry.pirate) return name.includes("pirate") ? 3 : 1;
   const f = entry.cls.faction;
   if (f === "auto") return name.includes("rebel") ? 3 : 1;
-  if (f === "zoltan" || f === "engi" || f === "mantis" || f === "rock" || f === "slug" || f === "rebel" || f === "crystal" || f === "lanius") {
+  if (
+    f === "zoltan" ||
+    f === "engi" ||
+    f === "mantis" ||
+    f === "rock" ||
+    f === "slug" ||
+    f === "rebel" ||
+    f === "crystal" ||
+    f === "lanius"
+  ) {
     return name.includes(f) ? 3 : 1;
   }
   return 1;
 }
 
-export function pickEnemy(ctx: PoolContext, rand: () => number, want: EnemyRequest = {}): { cls: EnemyClass; pirate: boolean } {
+export function pickEnemy(
+  ctx: PoolContext,
+  rand: () => number,
+  want: EnemyRequest = {},
+): { cls: EnemyClass; pirate: boolean } {
   // "Ship unique to the … event": that event fields this class and no other does.
-  const unique = want.event ? ENEMY_CLASSES.find((cls) => cls.uniqueTo && slug(cls.uniqueTo) === want.event) : undefined;
+  const unique = want.event
+    ? ENEMY_CLASSES.find((cls) => cls.uniqueTo && slug(cls.uniqueTo) === want.event)
+    : undefined;
   if (unique) return { cls: unique, pirate: false };
   // A page that names the class ("always a Slug Assault class") gets that class. INFERRED: the page places it, so its
   // sector range and `where` notes do not apply (The Black Raven: "the only event where you fight a Slug Assault in
   // sector 4"). Pirate only when asked and the class has a pirate version; Federation classes are only pirates.
   const named = want.classId ? ENEMY_CLASSES.find((c) => c.id === want.classId) : undefined;
-  if (named) return { cls: named, pirate: named.faction === "federation" || (want.pirate === true && canBePirate(named)) };
+  if (named)
+    return {
+      cls: named,
+      pirate: named.faction === "federation" || (want.pirate === true && canBePirate(named)),
+    };
   const fits = (e: PoolEntry) => fitsRequest(e, want);
   // @agent:sector-hostiles. A fight an event asked for takes any class of that ship in range; a plain hostile beacon
   // draws from the sector's hostile encounter list.
@@ -380,13 +425,18 @@ export function pickEnemy(ctx: PoolContext, rand: () => number, want: EnemyReque
     // ships from any sector rather than swapping in a different faction.
     pool = ENEMY_CLASSES.filter((cls) => !cls.uniqueTo && !fleetOnly(cls))
       .flatMap((cls) => [
-        ...(cls.faction !== "federation" || want.faction === "federation" ? [{ cls, pirate: false }] : []),
+        ...(cls.faction !== "federation" || want.faction === "federation"
+          ? [{ cls, pirate: false }]
+          : []),
         ...(canBePirate(cls) ? [{ cls, pirate: true }] : []),
       ])
       .filter(fits);
   }
-  if (!pool.length) return { cls: ENEMY_CLASSES.find((c) => c.id === "rebel-fighter")!, pirate: false };
-  const weights = (!requested && hostileWeights(pool, ctx.sectorName)) || pool.map((e) => weight(e, ctx.sectorName));
+  if (!pool.length)
+    return { cls: ENEMY_CLASSES.find((c) => c.id === "rebel-fighter")!, pirate: false };
+  const weights =
+    (!requested && hostileWeights(pool, ctx.sectorName)) ||
+    pool.map((e) => weight(e, ctx.sectorName));
   let roll = rand() * weights.reduce((a, b) => a + b, 0);
   for (let i = 0; i < pool.length; i++) {
     roll -= weights[i];
@@ -443,9 +493,36 @@ export function rollMaxLevel(r: Range, ctx: PoolContext, rand: () => number): nu
  * [offensive, defensive, general] for each difficulty.
  */
 export const UPGRADE_BUDGET: Record<Difficulty, [number, number, number][]> = {
-  easy: [[1, 1, 1], [1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 2], [5, 6, 2], [6, 7, 2], [7, 8, 3]],
-  normal: [[1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 2], [5, 6, 2], [6, 7, 2], [7, 8, 3], [8, 9, 3]],
-  hard: [[1, 2, 2], [2, 3, 2], [3, 4, 2], [4, 5, 3], [5, 6, 3], [6, 7, 3], [7, 8, 4], [8, 9, 4]],
+  easy: [
+    [1, 1, 1],
+    [1, 2, 1],
+    [2, 3, 1],
+    [3, 4, 1],
+    [4, 5, 2],
+    [5, 6, 2],
+    [6, 7, 2],
+    [7, 8, 3],
+  ],
+  normal: [
+    [1, 2, 1],
+    [2, 3, 1],
+    [3, 4, 1],
+    [4, 5, 2],
+    [5, 6, 2],
+    [6, 7, 2],
+    [7, 8, 3],
+    [8, 9, 3],
+  ],
+  hard: [
+    [1, 2, 2],
+    [2, 3, 2],
+    [3, 4, 2],
+    [4, 5, 3],
+    [5, 6, 3],
+    [6, 7, 3],
+    [7, 8, 4],
+    [8, 9, 4],
+  ],
 };
 
 /** Mathchamp: "The "offensive" budget can only be spent on weapons, drone control, teleporter, and artillery." */
@@ -469,7 +546,9 @@ function spendBudget(
   let left = bars;
   while (left > 0) {
     // INFERRED: "selected at random" read as uniform among the eligible systems.
-    const ok = [...levels.keys()].filter((id) => (!allowed || allowed.has(id)) && levels.get(id)! < caps.get(id)!);
+    const ok = [...levels.keys()].filter(
+      (id) => (!allowed || allowed.has(id)) && levels.get(id)! < caps.get(id)!,
+    );
     if (!ok.length) break;
     const id = ok[Math.floor(rand() * ok.length) % ok.length];
     levels.set(id, levels.get(id)! + 1);
@@ -550,7 +629,8 @@ export function arm(pool: string[], level: number, rand: () => number): ArmResul
       if (!(p < level || p === 1)) return false;
       if (out.length === 0 && level >= 3 && p < 2) return false;
       if (!(p > 0.25 * left)) return false;
-      if (flags.laser || flags.hull) return (flags.laser && laserFlag(id)) || (flags.hull && hullFlag(id));
+      if (flags.laser || flags.hull)
+        return (flags.laser && laserFlag(id)) || (flags.hull && hullFlag(id));
       return true;
     });
     if (!ok.length) break;
@@ -573,14 +653,31 @@ export function arm(pool: string[], level: number, rand: () => number): ArmResul
  * Two rows, one room per installed system.
  */
 function layout(installed: EnemySystem[]): { rooms: EnemyRoomSpec[]; cols: number; rows: number } {
-  const big = new Set<EnemySystem>(["shields", "weapons", "engines", "medbay", "clonebay", "teleporter", "drones"]);
+  const big = new Set<EnemySystem>([
+    "shields",
+    "weapons",
+    "engines",
+    "medbay",
+    "clonebay",
+    "teleporter",
+    "drones",
+  ]);
   const rooms: EnemyRoomSpec[] = [];
   const rowX = [0, 0];
   installed.forEach((id, i) => {
     const y = i % 2;
     const w = big.has(id) ? 2 : 1;
     const kit = KIT[id];
-    rooms.push({ id: `e-${id}`, title: TITLE[id], system: RUN[id] ?? null, ...(kit ? { kit } : {}), x: rowX[y], y, w, h: 1 });
+    rooms.push({
+      id: `e-${id}`,
+      title: TITLE[id],
+      system: RUN[id] ?? null,
+      ...(kit ? { kit } : {}),
+      x: rowX[y],
+      y,
+      w,
+      h: 1,
+    });
     rowX[y] += w;
   });
   return { rooms, cols: Math.max(rowX[0], rowX[1]), rows: 2 };
@@ -594,7 +691,10 @@ const STEP: Record<DoorMark["side"], [number, number]> = {
 };
 
 /** Rooms linked by an interior bar. The largest set is the hull a crew member can walk. */
-function mainComponent(rooms: { x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] }[], marks: DoorMark[]): Set<number> {
+function mainComponent(
+  rooms: { x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] }[],
+  marks: DoorMark[],
+): Set<number> {
   const parent = rooms.map((_, i) => i);
   const find = (a: number): number => {
     let at = a;
@@ -683,10 +783,16 @@ function seatTrace(
     const system = claim(r.system);
     const omit = r.omit?.length ? r.omit : undefined;
     const box = { x: r.x, y: r.y, w: r.w, h: r.h, ...(omit ? { omit } : {}) };
-    if (!system) return { id: `e-h${hall++}`, title: tx("game.enemy-gen.hall"), system: null, ...box };
+    if (!system) return { id: `e-h${hall++}`, title: "Hall", system: null, ...box };
     taken.add(system);
     const kit = KIT[system];
-    return { id: `e-${system}`, title: TITLE[system], system: RUN[system] ?? null, ...(kit ? { kit } : {}), ...box };
+    return {
+      id: `e-${system}`,
+      title: TITLE[system],
+      system: RUN[system] ?? null,
+      ...(kit ? { kit } : {}),
+      ...box,
+    };
   });
   const main = mainComponent(rooms, laid.marks);
   const empties = rooms
@@ -695,7 +801,12 @@ function seatTrace(
     .sort((a, b) => {
       const ca = main.has(a.index) ? 0 : 1;
       const cb = main.has(b.index) ? 0 : 1;
-      return ca - cb || b.room.w * b.room.h - a.room.w * a.room.h || a.room.y - b.room.y || a.room.x - b.room.x;
+      return (
+        ca - cb ||
+        b.room.w * b.room.h - a.room.w * a.room.h ||
+        a.room.y - b.room.y ||
+        a.room.x - b.room.x
+      );
     });
   let at = 0;
   let cols = laid.cols;
@@ -709,7 +820,16 @@ function seatTrace(
       slot.room.system = RUN[id] ?? null;
       if (kit) slot.room.kit = kit;
     } else {
-      rooms.push({ id: `e-${id}`, title: TITLE[id], system: RUN[id] ?? null, ...(kit ? { kit } : {}), x: cols, y: 0, w: 1, h: 1 });
+      rooms.push({
+        id: `e-${id}`,
+        title: TITLE[id],
+        system: RUN[id] ?? null,
+        ...(kit ? { kit } : {}),
+        x: cols,
+        y: 0,
+        w: 1,
+        h: 1,
+      });
       cols += 1;
     }
     taken.add(id);
@@ -730,12 +850,20 @@ export function optionalChance(sector: number, difficulty: Difficulty = "normal"
 
 const STATION: EnemySystem[] = ["pilot", "weapons", "shields", "engines"];
 
-export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, rand: () => number): EnemySpec {
+export function rollEnemy(
+  cls: EnemyClass,
+  pirate: boolean,
+  ctx: PoolContext,
+  rand: () => number,
+): EnemySpec {
   const automated = cls.faction === "auto";
   // Mathchamp: "First, it rolls a maximum level for each system. Second, it rolls non-starting systems. Finally, it
   // upgrades systems from a limited budget."
   const caps = new Map<EnemySystem, number>();
-  for (const [id, r] of [...Object.entries(cls.systems), ...Object.entries(cls.optional)] as [EnemySystem, Range][]) {
+  for (const [id, r] of [...Object.entries(cls.systems), ...Object.entries(cls.optional)] as [
+    EnemySystem,
+    Range,
+  ][]) {
     caps.set(id, rollMaxLevel(r, ctx, rand));
   }
   const levels = new Map<EnemySystem, number>();
@@ -795,7 +923,7 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
       const n = lo + Math.floor(rand() * (hi - lo + 1));
       for (let i = 0; i < n && races.length < crewSize; i++) races.push(race);
     }
-    while (races.length < crewSize) races.push(cls.crewMix[0]?.[0] ?? tx("game.enemy-gen.human"));
+    while (races.length < crewSize) races.push(cls.crewMix[0]?.[0] ?? "Human");
   }
   const stations = STATION.map((id) => `e-${id}`).filter((id) => rooms.some((r) => r.id === id));
   const others = rooms.map((r) => r.id).filter((id) => !stations.includes(id));
@@ -808,7 +936,7 @@ export function rollEnemy(cls: EnemyClass, pirate: boolean, ctx: PoolContext, ra
   const armed = arm(ENEMY_WEAPON_POOLS[cls.faction] ?? [], weaponLevel, rand);
   const spec: EnemySpec = {
     classId: cls.id,
-    name: pirate ? (cls.pirate ?? tx("game.enemy-gen.pirate", { join: cls.name.split(" ").slice(1).join(" ") })) : cls.name,
+    name: pirate ? (cls.pirate ?? `Pirate ${cls.name.split(" ").slice(1).join(" ")}`) : cls.name,
     pirate,
     automated,
     hull: hullFor(cls, ctx),

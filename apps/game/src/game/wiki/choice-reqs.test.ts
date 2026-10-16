@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { allEvents, eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { ChoiceReq, EventCard } from "@stl/pack";
-import { tx } from "../../i18n/index.ts";
 import { choiceDisabled, createGame } from "../sim.ts";
 import "../pack/base.ts";
 import { missingDisabled } from "./cited-missing.ts";
@@ -60,12 +59,12 @@ describe("choice requirements", () => {
 
   it("refuses with the same sentences, in the same order", () => {
     const plain = createGame(1);
-    const engi = tx("wiki.quests.needs-an-engi-crewmember");
+    const engi = "Needs an Engi crewmember";
     assert.equal(missingDisabled(plain, "c:no-fuel-refugee-trading:engi"), engi);
     assert.equal(choiceDisabled(plain, "c:no-fuel-refugee-trading:engi"), engi);
     assert.equal(fillerChoiceDisabled(plain, "c:no-fuel-refugee-trading:engi"), null);
 
-    const band = tx("wiki.quests.needs-engines-level-3-5");
+    const band = "Needs Engines level 3-5";
     for (const level of [2, 6]) {
       const g = createGame(level);
       g.player.systems.engines.level = level;
@@ -79,23 +78,14 @@ describe("choice requirements", () => {
 
     const broke = createGame(3);
     broke.scrap = 0;
-    assert.equal(
-      fillerChoiceDisabled(broke, "c:refueling-station:0"),
-      tx("wiki.filler-events.need-12-scrap"),
-    );
+    assert.equal(fillerChoiceDisabled(broke, "c:refueling-station:0"), "Need 12 scrap");
     broke.scrap = 12;
     assert.equal(fillerChoiceDisabled(broke, "c:refueling-station:0"), null);
 
     const hub = createGame(5);
     hub.scrap = 0;
-    assert.equal(
-      questChoiceDisabled(hub, "c:zoltan-trade-hub:2"),
-      tx("wiki.quests-a.needs-a-zoltan-crewmember"),
-    );
-    assert.equal(
-      choiceDisabled(hub, "c:zoltan-trade-hub:2"),
-      tx("wiki.cited-events.need-2", { lo: 10, v: "scrap" }),
-    );
+    assert.equal(questChoiceDisabled(hub, "c:zoltan-trade-hub:2"), "Needs a Zoltan crewmember");
+    assert.equal(choiceDisabled(hub, "c:zoltan-trade-hub:2"), `Need ${10} ${"scrap"}`);
   });
 
   it("reads an appended lock and restores the campaign sentence", () => {
@@ -112,7 +102,7 @@ describe("choice requirements", () => {
     resetPackForTests();
     assert.equal(
       missingDisabled(createGame(1), "c:no-fuel-refugee-trading:engi"),
-      tx("wiki.quests.needs-an-engi-crewmember"),
+      "Needs an Engi crewmember",
     );
 
     const ember: ChoiceReq = { k: "crew", id: "shell", text: "Need an Ember engi." };

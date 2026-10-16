@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { ION_GAPS, ION_WEAPONS } from "./weapons-ion.ts";
 
-const src = readFileSync(new URL("./weapons-ion.ts", import.meta.url), "utf8");
+const src = readFileSync(
+  new URL("../../../../../packages/catalog/src/wiki/weapons-ion.ts", import.meta.url),
+  "utf8",
+);
 
 const byId = Object.fromEntries(ION_WEAPONS.map((w) => [w.id, w]));
 

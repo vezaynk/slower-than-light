@@ -3,7 +3,6 @@
  * require every resource before any of them is paid.
  */
 import type { Game } from "../types.ts";
-import { tx } from "../../i18n/index.ts";
 import { stockCount, type StockKind } from "./choice-locks.ts";
 
 function held(g: Game, kind: StockKind): number {
@@ -28,17 +27,17 @@ export function takeStock(g: Game, kind: StockKind, n: number): void {
 }
 
 export function scrapLine(n: number): string {
-  return tx("wiki.quests.scrap-3", { n });
+  return `Scrap: -${n}.`;
 }
 
 export function fuelLine(n: number): string {
-  return tx("wiki.filler-events.fuel-2", { n });
+  return `Fuel: -${n}.`;
 }
 
 export function missileLine(n: number): string {
-  return tx("wiki.filler-events.missiles-2", { missiles: n });
+  return `Missiles: -${n}.`;
 }
 
 export function partsLine(n: number): string {
-  return tx("wiki.quests-b.drone-parts", { PARTS_OWED: n });
+  return `Drone parts: -${n}.`;
 }

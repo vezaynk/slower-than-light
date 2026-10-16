@@ -1,11 +1,17 @@
 import { Kicker } from "@stl/ui";
-import { tx } from "@/i18n";
 import { useEffect, useState } from "react";
 import { ACHIEVEMENTS } from "@/game/wiki/achievements";
 import { earnedIds, isTracked, noteRun } from "@/game/wiki/achievement-track";
 import { lifetimeOf } from "@/game/wiki/achieve-notes";
 import { HULLS } from "@/game/hulls";
-import { UNLOCKS_KEY, emptyUnlocks, isUnlockedIn, parseUnlocks, shipAchievements, type UnlockState } from "@/game/unlocks";
+import {
+  UNLOCKS_KEY,
+  emptyUnlocks,
+  isUnlockedIn,
+  parseUnlocks,
+  shipAchievements,
+  type UnlockState,
+} from "@/game/unlocks";
 import { runScore } from "@/game/sim";
 import { goTitle, verdictRestart } from "@/game/store";
 import type { Game, SectorNode } from "@/game/types";
@@ -35,11 +41,13 @@ const DISTANCE = [
 ];
 
 const ACH_GROUPS: { title: string; ids: string[] }[] = [
-  { title: tx("ui.WikiViews.general-progression-2"), ids: GENERAL },
-  { title: tx("ui.WikiViews.going-the-distance-2"), ids: DISTANCE },
+  { title: "General Progression", ids: GENERAL },
+  { title: "Going the Distance", ids: DISTANCE },
   {
-    title: tx("ui.WikiViews.skill-and-equipment-feats-2"),
-    ids: ACHIEVEMENTS.filter((row) => !row.ship && !GENERAL.includes(row.id) && !DISTANCE.includes(row.id)).map((row) => row.id),
+    title: "Skill and Equipment Feats",
+    ids: ACHIEVEMENTS.filter(
+      (row) => !row.ship && !GENERAL.includes(row.id) && !DISTANCE.includes(row.id),
+    ).map((row) => row.id),
   },
 ];
 
@@ -74,9 +82,9 @@ const HIGH_KEY = "stl-high-score";
 type StatsTab = "records" | "achievements" | "ships";
 type AchFilter = "all" | "earned" | "locked";
 const FILTERS: [AchFilter, string][] = [
-  ["all", tx("ui.WikiViews.all")],
-  ["earned", tx("ui.WikiViews.earned")],
-  ["locked", tx("ui.WikiViews.locked")],
+  ["all", "All"],
+  ["earned", "Earned"],
+  ["locked", "Locked"],
 ];
 
 function savedHigh(): number {
@@ -100,7 +108,8 @@ function savedUnlockState(): UnlockState {
 /** One card per cruiser, in hangar order. The PixelHull stamp is the hull id's first word (kestrel-a: kestrel). */
 const CRUISERS: { cruiser: string; kind: string }[] = [];
 for (const hull of HULLS) {
-  if (!CRUISERS.some((item) => item.cruiser === hull.cruiser)) CRUISERS.push({ cruiser: hull.cruiser, kind: hull.id.split("-")[0] ?? "kestrel" });
+  if (!CRUISERS.some((item) => item.cruiser === hull.cruiser))
+    CRUISERS.push({ cruiser: hull.cruiser, kind: hull.id.split("-")[0] ?? "kestrel" });
 }
 
 /**
@@ -108,13 +117,7 @@ for (const hull of HULLS) {
  * Per the user: reworked onto the ship sheet's tabs (Records, Achievements, Ships), each achievement with its own icon
  * and unlock line. INVENTED layout.
  */
-export function AchievementsScreen({
-  game,
-  onClose,
-}: {
-  game: Game | null;
-  onClose: () => void;
-}) {
+export function AchievementsScreen({ game, onClose }: { game: Game | null; onClose: () => void }) {
   const [tab, setTab] = useState<StatsTab>("records");
   const [filter, setFilter] = useState<AchFilter>("all");
   const [type, setType] = useState<"A" | "B" | "C">("A");
@@ -122,7 +125,8 @@ export function AchievementsScreen({
   const [unlocks, setUnlocks] = useState<UnlockState>(emptyUnlocks);
   const [high, setHigh] = useState(0);
   const [life, setLife] = useState({ scrap: 0, kills: 0 });
-  const finished = !!game && (game.phase === "victory" || game.phase === "defeat") && game.outcome !== "tutorial";
+  const finished =
+    !!game && (game.phase === "victory" || game.phase === "defeat") && game.outcome !== "tutorial";
   useEffect(() => {
     if (game) noteRun(game);
     setEarned(earnedIds());
@@ -143,17 +147,23 @@ export function AchievementsScreen({
   const typeA = HULLS.filter((hull) => hull.layout === "A");
   const shipsOpen = HULLS.filter((hull) => isUnlockedIn(unlocks, hull.id)).length;
   const tabs: [StatsTab, string, string][] = [
-    ["records", tx("ui.WikiViews.records"), ""],
-    ["achievements", tx("ui.WikiViews.achievements-2"), `${got}/${total}`],
-    ["ships", tx("ui.WikiViews.ships"), `${shipsOpen}/${HULLS.length}`],
+    ["records", "Records", ""],
+    ["achievements", "Achievements", `${got}/${total}`],
+    ["ships", "Ships", `${shipsOpen}/${HULLS.length}`],
   ];
   const shown = (ids: string[]) =>
-    rows(ids).filter((row) => filter === "all" || (filter === "earned") === earned.includes(row.id));
+    rows(ids).filter(
+      (row) => filter === "all" || (filter === "earned") === earned.includes(row.id),
+    );
   return (
-    <section className="wiki-screen ach-screen stats-sheet has-x" onClick={(e) => e.stopPropagation()} aria-label={tx("ui.WikiViews.stats")}>
+    <section
+      className="wiki-screen ach-screen stats-sheet has-x"
+      onClick={(e) => e.stopPropagation()}
+      aria-label={"STATS"}
+    >
       <CloseX onClose={onClose} />
       <header className="ship-sheet-head">
-        <Kicker as="h2">{tx("ui.WikiViews.stats")}</Kicker>
+        <Kicker as="h2">{"STATS"}</Kicker>
         <span className="stats-progress">
           <span>
             <b>{got}</b> / {total}
@@ -166,7 +176,7 @@ export function AchievementsScreen({
       <div
         className="ship-tabs"
         role="tablist"
-        aria-label={tx("ui.WikiViews.stats")}
+        aria-label={"STATS"}
         onKeyDown={(e) => {
           if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
           e.preventDefault();
@@ -194,35 +204,68 @@ export function AchievementsScreen({
           </button>
         ))}
       </div>
-      <div key={tab} className="ship-tab-panel stats-panel" id="stats-tab-panel" role="tabpanel" aria-labelledby={`stats-tab-${tab}`}>
+      <div
+        key={tab}
+        className="ship-tab-panel stats-panel"
+        id="stats-tab-panel"
+        role="tabpanel"
+        aria-labelledby={`stats-tab-${tab}`}
+      >
         {tab === "records" ? (
           <>
             <section className="sheet-group">
-              <h3 className="sheet-group-head">{tx("ui.WikiViews.this-run")}</h3>
+              <h3 className="sheet-group-head">{"This Run"}</h3>
               {finished && game ? (
                 <RunStats game={game} />
               ) : (
-                <p className="stats-empty">{tx("ui.WikiViews.finish-a-run-to-see-its")}</p>
+                <p className="stats-empty">{"Finish a run to see its stats here."}</p>
               )}
             </section>
             <section className="sheet-group">
-              <h3 className="sheet-group-head">{tx("ui.WikiViews.all-runs")}</h3>
+              <h3 className="sheet-group-head">{"All Runs"}</h3>
               <div className="stats-tiles">
-                <StatTile icon="target" value={high} label={tx("ui.WikiViews.high-score")} best={high > 0} />
-                <StatTile icon="scrap" value={life.scrap} label={tx("ui.WikiViews.scrap-collected-2")} goal={SCRAP_GOAL} goalName={achName("rule-ten-greed-is-eternal")} />
-                <StatTile icon="ship" value={life.kills} label={tx("ui.WikiViews.ships-defeated-2")} goal={KILL_GOAL} goalName={achName("warlord")} />
-                <StatTile icon="upgrade" value={got} label={tx("ui.WikiViews.achievements-2")} goal={total} />
-                <StatTile icon="jump" value={typeA.filter((hull) => isUnlockedIn(unlocks, hull.id)).length} label={tx("ui.WikiViews.cruisers-unlocked")} goal={typeA.length} />
-                <StatTile icon="missile" value={unlocks.wins.length} label={tx("ui.WikiViews.flagship-victories")} best={unlocks.wins.length > 0} />
+                <StatTile icon="target" value={high} label={"High score"} best={high > 0} />
+                <StatTile
+                  icon="scrap"
+                  value={life.scrap}
+                  label={"Scrap collected"}
+                  goal={SCRAP_GOAL}
+                  goalName={achName("rule-ten-greed-is-eternal")}
+                />
+                <StatTile
+                  icon="ship"
+                  value={life.kills}
+                  label={"Ships defeated"}
+                  goal={KILL_GOAL}
+                  goalName={achName("warlord")}
+                />
+                <StatTile icon="upgrade" value={got} label={"Achievements"} goal={total} />
+                <StatTile
+                  icon="jump"
+                  value={typeA.filter((hull) => isUnlockedIn(unlocks, hull.id)).length}
+                  label={"Cruisers unlocked"}
+                  goal={typeA.length}
+                />
+                <StatTile
+                  icon="missile"
+                  value={unlocks.wins.length}
+                  label={"Flagship victories"}
+                  best={unlocks.wins.length > 0}
+                />
               </div>
             </section>
           </>
         ) : null}
         {tab === "achievements" ? (
           <>
-            <div className="opt-choice stats-filter" role="group" aria-label={tx("ui.WikiViews.achievements")}>
+            <div className="opt-choice stats-filter" role="group" aria-label={"ACHIEVEMENTS"}>
               {FILTERS.map(([id, label]) => (
-                <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)}>
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={filter === id}
+                  onClick={() => setFilter(id)}
+                >
                   {label}
                 </button>
               ))}
@@ -244,11 +287,17 @@ export function AchievementsScreen({
               );
             })}
             {ACHIEVEMENTS.every((row) => !shown([row.id]).length) ? (
-              <p className="stats-empty">{filter === "earned" ? tx("ui.WikiViews.no-achievements-earned-yet") : tx("ui.WikiViews.every-achievement-is-earned")}</p>
+              <p className="stats-empty">
+                {filter === "earned"
+                  ? "No achievements earned yet."
+                  : "Every achievement is earned."}
+              </p>
             ) : null}
           </>
         ) : null}
-        {tab === "ships" ? <ShipBest type={type} onType={setType} unlocks={unlocks} earned={earned} /> : null}
+        {tab === "ships" ? (
+          <ShipBest type={type} onType={setType} unlocks={unlocks} earned={earned} />
+        ) : null}
       </div>
     </section>
   );
@@ -286,7 +335,7 @@ function StatTile({
           <i style={{ width: `${Math.min(100, (value / goal) * 100)}%` }} />
         </span>
       ) : null}
-      {goalName ? <small>{tx("ui.WikiViews.counts-toward", { goalName: goalName })}</small> : null}
+      {goalName ? <small>{`Counts toward ${goalName}`}</small> : null}
     </div>
   );
 }
@@ -301,7 +350,9 @@ function AchievementCards({ ids, earned }: { ids: string[]; earned: string[] }) 
             <AchievementIcon id={row.id} earned={on} size={48} />
             <b className="ach-card-name">{row.name}</b>
             <p className="ach-card-text">{row.requirement}</p>
-            <span className="ach-card-tag">{on ? tx("ui.WikiViews.earned") : isTracked(row.id) ? tx("ui.WikiViews.locked") : tx("ui.WikiViews.not-tracked-yet")}</span>
+            <span className="ach-card-tag">
+              {on ? "Earned" : isTracked(row.id) ? "Locked" : "Not tracked yet"}
+            </span>
           </article>
         );
       })}
@@ -312,10 +363,14 @@ function AchievementCards({ ids, earned }: { ids: string[]; earned: string[] }) 
 function RunStats({ game }: { game: Game }) {
   return (
     <div className="stats-tiles run-stats">
-      <StatTile icon="scrap" value={game.scrapCollected ?? 0} label={tx("ui.WikiViews.scrap-collected-2")} />
-      <StatTile icon="jump" value={game.beaconsVisited ?? 0} label={tx("ui.WikiViews.beacons-visited-2")} />
-      <StatTile icon="ship" value={game.phase === "victory" ? Math.max(0, game.kills - 1) : game.kills} label={tx("ui.WikiViews.ships-defeated-2")} />
-      <StatTile icon="target" value={runScore(game)} label={tx("ui.WikiViews.score-3")} best />
+      <StatTile icon="scrap" value={game.scrapCollected ?? 0} label={"Scrap collected"} />
+      <StatTile icon="jump" value={game.beaconsVisited ?? 0} label={"Beacons visited"} />
+      <StatTile
+        icon="ship"
+        value={game.phase === "victory" ? Math.max(0, game.kills - 1) : game.kills}
+        label={"Ships defeated"}
+      />
+      <StatTile icon="target" value={runScore(game)} label={"Score"} best />
     </div>
   );
 }
@@ -338,11 +393,16 @@ function ShipBest({
   return (
     <section className="sheet-group">
       <h3 className="sheet-group-head">
-        {tx("ui.WikiViews.choose-your-ship")}
+        {"CHOOSE YOUR SHIP"}
         <span className="opt-choice">
           {(["A", "B", "C"] as const).map((item) => (
-            <button key={item} type="button" aria-pressed={type === item} onClick={() => onType(item)}>
-              {tx("ui.WikiViews.type")}
+            <button
+              key={item}
+              type="button"
+              aria-pressed={type === item}
+              onClick={() => onType(item)}
+            >
+              {"TYPE "}
               {item}
             </button>
           ))}
@@ -354,16 +414,24 @@ function ShipBest({
           const open = !!hull && isUnlockedIn(unlocks, hull.id);
           const won = !!hull && unlocks.wins.includes(hull.id);
           return (
-            <article key={cruiser} className={`stats-ship${open ? " is-open" : ""}${won ? " is-won" : ""}`}>
+            <article
+              key={cruiser}
+              className={`stats-ship${open ? " is-open" : ""}${won ? " is-won" : ""}`}
+            >
               <span className="stats-ship-art">
                 <PixelHull kind={kind} />
                 {open ? null : <PixelIcon name="lock" size={32} />}
               </span>
               <b className="stats-ship-name">{hull?.name ?? cruiser}</b>
-              <span className="stats-ship-state">{won ? tx("ui.WikiViews.flagship-defeated") : open ? tx("ui.WikiViews.unlocked") : tx("ui.WikiViews.locked")}</span>
+              <span className="stats-ship-state">
+                {won ? "Flagship defeated" : open ? "Unlocked" : "Locked"}
+              </span>
               <span className="stats-ship-achs">
                 {shipAchievements(cruiser).map((id) => (
-                  <span key={id} title={`${achName(id)}: ${ACHIEVEMENTS.find((row) => row.id === id)?.requirement ?? ""}`}>
+                  <span
+                    key={id}
+                    title={`${achName(id)}: ${ACHIEVEMENTS.find((row) => row.id === id)?.requirement ?? ""}`}
+                  >
                     <AchievementIcon id={id} earned={earned.includes(id)} size={30} />
                   </span>
                 ))}
@@ -379,40 +447,48 @@ function ShipBest({
 /** File:Help screen overlay.png. Opens from TUTORIAL. */
 export function HelpScreen({ onContinue }: { onContinue: () => void }) {
   return (
-    <section className="wiki-screen help-screen" onClick={onContinue} role="button" tabIndex={0} onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") onContinue();
-    }}>
+    <section
+      className="wiki-screen help-screen"
+      onClick={onContinue}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onContinue();
+      }}
+    >
       <div className="help-grid">
         <article>
-          <h2>{tx("ui.WikiViews.crew-control")}</h2>
-          <p>{tx("ui.WikiViews.how-to-give-orders")}</p>
-          <p>{tx("ui.WikiViews.left-click-or-drag-to-select")}</p>
-          <p>{tx("ui.WikiViews.right-click-to-move-selected-crew")}</p>
-          <p>{tx("ui.WikiViews.crew-will-automatically-repair-systems-or")}</p>
+          <h2>{"CREW CONTROL"}</h2>
+          <p>{"How to give orders:"}</p>
+          <p>{"Left Click or Drag to select crew."}</p>
+          <p>{"Right Click to move selected crew."}</p>
+          <p>
+            {"Crew will automatically repair systems or fight intruders in their current room."}
+          </p>
         </article>
         <div className="help-mid">
           <article>
-            <h2>{tx("ui.WikiViews.pausing")}</h2>
-            <p className="help-paused">{tx("ui.WikiViews.paused")}</p>
-            <p>{tx("ui.WikiViews.press-space-to-resume")}</p>
-            <p>{tx("ui.WikiViews.press-the-space-bar-to-pause")}</p>
-            <p>{tx("ui.WikiViews.commands-and-orders-can-still-be")}</p>
+            <h2>{"PAUSING"}</h2>
+            <p className="help-paused">{"PAUSED"}</p>
+            <p>{"Press SPACE to resume"}</p>
+            <p>{"Press the Space Bar to pause."}</p>
+            <p>{"Commands and orders can still be given while paused."}</p>
           </article>
           <article>
-            <h2>{tx("ui.WikiViews.power-distribution")}</h2>
-            <p>{tx("ui.WikiViews.adding-removing-power-to-systems")}</p>
-            <p>{tx("ui.WikiViews.left-click-to-add-power")}</p>
-            <p>{tx("ui.WikiViews.right-click-to-remove-power")}</p>
+            <h2>{"POWER DISTRIBUTION"}</h2>
+            <p>{"Adding/removing power to systems:"}</p>
+            <p>{"Left Click to add power."}</p>
+            <p>{"Right Click to remove power."}</p>
           </article>
         </div>
         <article>
           <h2>WEAPONS/DRONES</h2>
-          <p>{tx("ui.WikiViews.how-to-fire")}</p>
-          <p>{tx("ui.WikiViews.left-click-to-power-a-weapon")}</p>
-          <p>{tx("ui.WikiViews.left-click-again-to-activate")}</p>
-          <p>{tx("ui.WikiViews.left-click-on-an-enemy-ship")}</p>
-          <p>{tx("ui.WikiViews.left-click-and-drag-to-reorder")}</p>
-          <p>{tx("ui.WikiViews.if-the-system-is-damaged-the")}</p>
+          <p>{"How to fire:"}</p>
+          <p>{"Left click to power a weapon."}</p>
+          <p>{"Left click again to activate."}</p>
+          <p>{"Left click on an enemy ship to target it."}</p>
+          <p>{"Left Click and drag to reorder weapons/drones."}</p>
+          <p>{"If the system is damaged, the rightmost item will be depowered first."}</p>
         </article>
       </div>
     </section>
@@ -422,35 +498,35 @@ export function HelpScreen({ onContinue }: { onContinue: () => void }) {
 function verdictCopy(game: Game): { title: string; body: string; score: boolean } {
   if (game.outcome === "victory") {
     return {
-      title: tx("ui.WikiViews.victory"),
-      body: tx("ui.WikiViews.congratulations-you-ve-defeated-the-rebel"),
+      title: "VICTORY!",
+      body: "Congratulations! You've defeated the Rebel Flagship and ensured the victory of the Federation!",
       score: true,
     };
   }
   if (game.outcome === "tutorial") {
     return {
-      title: tx("ui.WikiViews.game-over"),
-      body: tx("ui.WikiViews.somehow-you-ve-died-during-the"),
+      title: "GAME OVER",
+      body: "Somehow you've died during the introduction training exercise. Feel free to try again but this doesn't bode well for your mission.",
       score: false,
     };
   }
   if (game.outcome === "crew") {
     return {
-      title: tx("ui.WikiViews.game-over"),
-      body: tx("ui.WikiViews.all-crew-members-have-died-your"),
+      title: "GAME OVER",
+      body: "All crew members have died. Your ship will continue to drift for eternity, or until looters destroy it.",
       score: true,
     };
   }
   if (game.outcome === "rebel") {
     return {
-      title: tx("ui.WikiViews.game-over"),
-      body: tx("ui.WikiViews.the-rebel-flagship-is-within-range"),
+      title: "GAME OVER",
+      body: "The Rebel Flagship is within range of the Federation Base. All is lost, they've won.",
       score: true,
     };
   }
   return {
-    title: tx("ui.WikiViews.game-over"),
-    body: tx("ui.WikiViews.one-last-explosion-marks-your-fate"),
+    title: "GAME OVER",
+    body: "One last explosion marks your fate as your ship is torn apart.",
     score: true,
   };
 }
@@ -486,14 +562,20 @@ export function Verdict({ game }: { game: Game }) {
   if (step === "cinema") {
     const names = game.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.name);
     const crew =
-      names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+      names.length < 2
+        ? names.join("")
+        : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
     return (
       <button type="button" className="victory-cinema" onClick={() => setStep("card")}>
-        <p>{tx("ui.WikiViews.thanks-to-the-valiant-effort-of")}</p>
+        <p>{"Thanks to the valiant effort of:"}</p>
         <h2>{game.player.name}</h2>
-        <p>{tx("ui.WikiViews.and-her-successful-crew")}</p>
+        <p>{"And her successful crew:"}</p>
         <p className="cinema-crew">{crew}</p>
-        <p>{tx("ui.WikiViews.the-rebel-s-flagship-was-destroyed")}</p>
+        <p>
+          {
+            "The Rebel's flagship was destroyed, throwing their fleet into chaos and ensuring a Federation victory"
+          }
+        </p>
       </button>
     );
   }
@@ -501,26 +583,28 @@ export function Verdict({ game }: { game: Game }) {
     <article className="verdict">
       <h2>{copy.title}</h2>
       <p>{copy.body}</p>
-      {copy.score ? <p className="verdict-score">{tx("ui.WikiViews.score-2")}{score}</p> : null}
-      {copy.score && high ? <p className="verdict-high">{tx("ui.WikiViews.new-high-score")}</p> : null}
+      {copy.score ? (
+        <p className="verdict-score">
+          {"SCORE: "}
+          {score}
+        </p>
+      ) : null}
+      {copy.score && high ? <p className="verdict-high">{"New High Score!"}</p> : null}
       <button type="button" className="verdict-stats" onClick={() => setStats(true)}>
-        {tx("ui.WikiViews.stats")}
+        {"STATS"}
       </button>
       <div className="verdict-row">
-        <button
-          type="button"
-          onClick={() => verdictRestart(game)}
-        >
-          {tx("ui.WikiViews.restart")}
+        <button type="button" onClick={() => verdictRestart(game)}>
+          {"RESTART"}
         </button>
         <button type="button" onClick={() => goTitle("hangar")}>
-          {tx("ui.WikiViews.hangar")}
+          {"HANGAR"}
         </button>
         <button type="button" onClick={() => goTitle("title")}>
-          {tx("ui.WikiViews.main-menu")}
+          {"MAIN MENU"}
         </button>
         <button type="button" onClick={() => goTitle("title")}>
-          {tx("ui.WikiViews.quit")}
+          {"QUIT"}
         </button>
       </div>
     </article>

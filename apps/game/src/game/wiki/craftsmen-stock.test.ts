@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { ChoiceReq, EventDef } from "@stl/pack";
-import { tx } from "../../i18n/index.ts";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
@@ -18,16 +17,25 @@ function holder(): EventDef {
 }
 
 function rewrite(id: string, reqs: ChoiceReq[] | undefined) {
-  loadPack({
-    events: [{
-      ...holder(),
-      choices: holder().choices.map((choice) => (choice.id === id ? { ...choice, reqs } : choice)),
-    }],
-  }, "append");
+  loadPack(
+    {
+      events: [
+        {
+          ...holder(),
+          choices: holder().choices.map((choice) =>
+            choice.id === id ? { ...choice, reqs } : choice,
+          ),
+        },
+      ],
+    },
+    "append",
+  );
 }
 
 function open(g: Game) {
-  const beacon = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+  const beacon = g.beacons.find(
+    (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
+  );
   assert.ok(beacon);
   beacon.flag = "cited:lanius-craftsmen";
   beacon.name = "Lanius craftsmen";
@@ -46,7 +54,7 @@ describe("craftsmen stock", () => {
   });
 
   it("prints and spends a replaced scrap count", () => {
-    const text = tx("wiki.filler-events.need-scrap", { v: 7 });
+    const text = `Need ${7} scrap`;
     rewrite("s:lanius-craftsmen:aug", [{ k: "stock", id: "scrap", n: 7, text }]);
     const g = createGame(1);
     open(g);
@@ -67,7 +75,7 @@ describe("craftsmen stock", () => {
   });
 
   it("spends a replaced discount and nothing when that row is gone", () => {
-    const text = tx("wiki.filler-events.need-scrap", { v: 4 });
+    const text = `Need ${4} scrap`;
     rewrite("s:lanius-craftsmen:help:drone", [{ k: "stock", id: "scrap", n: 4, text }]);
     const paid = createGame(2);
     open(paid);
@@ -75,7 +83,9 @@ describe("craftsmen stock", () => {
     joinCrew(paid, "Lanius");
     choose(paid, "c:lanius-craftsmen:0");
     choose(paid, "s:lanius-craftsmen:help");
-    const drone = paid.event?.choices.find((choice) => choice.id === "s:lanius-craftsmen:help:drone");
+    const drone = paid.event?.choices.find(
+      (choice) => choice.id === "s:lanius-craftsmen:help:drone",
+    );
     assert.equal(drone?.label, "Give 4 scrap to craft a drone schematic.");
     choose(paid, "s:lanius-craftsmen:help:drone");
     assert.equal(paid.scrap, 0);
@@ -88,7 +98,10 @@ describe("craftsmen stock", () => {
     skipped.scrap = 80;
     const augments = skipped.augments.length;
     choose(skipped, "c:lanius-craftsmen:0");
-    assert.equal(skipped.event?.choices.some((choice) => choice.id === "s:lanius-craftsmen:aug"), false);
+    assert.equal(
+      skipped.event?.choices.some((choice) => choice.id === "s:lanius-craftsmen:aug"),
+      false,
+    );
     const body = skipped.event?.body;
     choose(skipped, "s:lanius-craftsmen:aug");
     assert.equal(skipped.scrap, 80);

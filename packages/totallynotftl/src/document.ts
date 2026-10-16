@@ -4,6 +4,7 @@ import {
   type Document as XmlDocument,
   type Element as XmlElement,
 } from "@xmldom/xmldom";
+import { SYS_LABEL } from "@stl/catalog";
 import { allCrew, prettyXml, type CrewDef, type TuneDef } from "@stl/pack";
 import { loadSources, type StandInSources, type SystemRow, type WeaponRow } from "./sources.ts";
 
@@ -111,26 +112,20 @@ function systemFact(listing: SystemRow | undefined, tune: TuneDef | undefined): 
   return bits.join(" ");
 }
 
-function systemName(sources: StandInSources, id: string, listing: SystemRow | undefined): string {
-  const tuneName: Record<string, string> = {
-    engines: sources.tx("game.content.engines"),
-    oxygen: sources.tx("game.content.oxygen"),
-    weapons: sources.tx("game.content.weapons"),
-    pilot: sources.tx("game.content.piloting"),
-  };
-  return listing?.name ?? tuneName[id] ?? id;
+function systemName(id: string, listing: SystemRow | undefined): string {
+  return listing?.name ?? SYS_LABEL[id as keyof typeof SYS_LABEL] ?? id;
 }
 
 function systemElement(
   doc: XmlDocument,
-  sources: StandInSources,
+  _sources: StandInSources,
   id: string,
   listing: SystemRow | undefined,
   tune: TuneDef | undefined,
 ): XmlElement {
   const node = doc.createElement("systemBlueprint");
   node.setAttribute("name", id);
-  leaf(doc, node, "title", systemName(sources, id, listing));
+  leaf(doc, node, "title", systemName(id, listing));
   leaf(doc, node, "desc", systemFact(listing, tune));
   leaf(doc, node, "cost", listing?.cost ?? 0);
   leaf(doc, node, "slot", listing?.slot ?? "sys");

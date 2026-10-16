@@ -11,7 +11,6 @@
  * Hooks in sim.ts (marked @agent:surrender): startCombat sets the plan, step calls surrenderTick before
  * enemyEscapeStep, and choose routes the two offer choices here.
  */
-import { tx } from "../../i18n/index.ts";
 import { CREW_POOL, mediumScrapBand } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { type KinId } from "../extras/kin.ts";
@@ -204,16 +203,15 @@ export const NO_SURRENDER_EVENTS = new Set([
   "fight-in-last-stand",
 ]);
 
-
 /** {{DuplicateEvent|3}} on the goods. The printed OR is the three sentences. INFERRED: equal inside that weight. */
 const CRYSTAL_FIGHT_GOODS = [
   // Wiki citations:
   // > "\"Thank you. I hope our early aggression will not prevent a future accord between our peoples.\" They transfer some goods as a means of compensation." — [[Crystal fight#The ship surrenders]]
   // > "They thank you for sparing them, their extreme aggression quickly changing to a calm acceptance. You're not sure if they're mocking you when they dryly state that \"your species has a knack for warfare\"." — [[Crystal fight#The ship surrenders]]
   // > "\"We would like to apologize for our xenophobia. You have shown that aliens can be compassionate, a fact unwritten in our history records. Please, take this.\"" — [[Crystal fight#The ship surrenders]]
-  tx("wiki.surrender.thank-you-i-hope-our-early"),
-  tx("wiki.surrender.they-thank-you-for-sparing-them"),
-  tx("wiki.surrender.we-would-like-to-apologize-for"),
+  '"Thank you. I hope our early aggression will not prevent a future accord between our peoples." They transfer some goods as a means of compensation.',
+  "They thank you for sparing them, their extreme aggression quickly changing to a calm acceptance. You're not sure if they're mocking you when they dryly state that \"your species has a knack for warfare\".",
+  '"We would like to apologize for our xenophobia. You have shown that aliens can be compassionate, a fact unwritten in our history records. Please, take this."',
 ];
 
 /** {{DuplicateEvent|2}} on nothing. The printed OR is the two sentences. INFERRED: equal inside that weight. */
@@ -221,8 +219,8 @@ const CRYSTAL_FIGHT_NOTHING = [
   // Wiki citations:
   // > "\"Thank you. We have misjudged you and will not forget your kindness.\" They leave without another word." — [[Crystal fight#The ship surrenders]]
   // > "They respond, \"Good. I'm glad to hear that there are still those who value life throughout the galaxy.\" They abruptly cut communications and prepare to jump away." — [[Crystal fight#The ship surrenders]]
-  tx("wiki.surrender.thank-you-we-have-misjudged-you"),
-  tx("wiki.surrender.they-respond-good-i-m-glad"),
+  '"Thank you. We have misjudged you and will not forget your kindness." They leave without another word.',
+  'They respond, "Good. I\'m glad to hear that there are still those who value life throughout the galaxy." They abruptly cut communications and prepare to jump away.',
 ];
 
 /**
@@ -269,14 +267,68 @@ export function surrenderPlan(ctx: SurrenderContext, roll: () => number): Surren
 
 /** Template:Scrap rewards, Low and High columns, sectors 1–8. Medium comes from content.ts. */
 const SCRAP_LOW: Record<Difficulty, [number, number][]> = {
-  easy: [[10, 14], [13, 18], [16, 23], [19, 27], [22, 31], [25, 35], [28, 39], [31, 44]],
-  normal: [[7, 10], [10, 14], [13, 18], [16, 23], [19, 27], [22, 31], [25, 35], [28, 39]],
-  hard: [[7, 10], [7, 10], [10, 14], [13, 18], [16, 23], [19, 27], [22, 31], [25, 35]],
+  easy: [
+    [10, 14],
+    [13, 18],
+    [16, 23],
+    [19, 27],
+    [22, 31],
+    [25, 35],
+    [28, 39],
+    [31, 44],
+  ],
+  normal: [
+    [7, 10],
+    [10, 14],
+    [13, 18],
+    [16, 23],
+    [19, 27],
+    [22, 31],
+    [25, 35],
+    [28, 39],
+  ],
+  hard: [
+    [7, 10],
+    [7, 10],
+    [10, 14],
+    [13, 18],
+    [16, 23],
+    [19, 27],
+    [22, 31],
+    [25, 35],
+  ],
 };
 const SCRAP_HIGH: Record<Difficulty, [number, number][]> = {
-  easy: [[27, 32], [35, 41], [42, 51], [50, 60], [58, 69], [66, 79], [74, 88], [81, 97]],
-  normal: [[19, 23], [27, 32], [35, 41], [42, 51], [50, 60], [58, 69], [66, 79], [74, 88]],
-  hard: [[19, 23], [19, 23], [27, 32], [35, 41], [42, 51], [50, 60], [58, 69], [66, 79]],
+  easy: [
+    [27, 32],
+    [35, 41],
+    [42, 51],
+    [50, 60],
+    [58, 69],
+    [66, 79],
+    [74, 88],
+    [81, 97],
+  ],
+  normal: [
+    [19, 23],
+    [27, 32],
+    [35, 41],
+    [42, 51],
+    [50, 60],
+    [58, 69],
+    [66, 79],
+    [74, 88],
+  ],
+  hard: [
+    [19, 23],
+    [19, 23],
+    [27, 32],
+    [35, 41],
+    [42, 51],
+    [50, 60],
+    [58, 69],
+    [66, 79],
+  ],
 };
 
 export function scrapBand(g: Game, tier: SurrenderTier): [number, number] {
@@ -304,7 +356,11 @@ export function between(g: Game, [lo, hi]: [number, number]): number {
  * INFERRED: "random tier" is low, medium or high with equal odds; the two resources are different ones.
  * The bonus item is drawn by bonus-item.ts rollBonusItem (weapon, augmentation or drone schematic).
  */
-export function rollSurrenderOffer(g: Game, fixed?: SurrenderTier, noBonus = false): SurrenderOffer {
+export function rollSurrenderOffer(
+  g: Game,
+  fixed?: SurrenderTier,
+  noBonus = false,
+): SurrenderOffer {
   // A scripted page can name the tier ("high ... resources with some scrap"); the draw is skipped then.
   const tier = fixed ?? (["low", "medium", "high"] as const)[Math.min(2, Math.floor(rand(g) * 3))];
   const kinds = ["fuel", "missiles", "parts"] as const;
@@ -326,14 +382,14 @@ export function rollSurrenderOffer(g: Game, fixed?: SurrenderTier, noBonus = fal
 
 /** Display race -> kin id for joinCrew. Crew rewards do not draw from this list; an unnamed race is randomRace. */
 const RACES: [string, KinId][] = [
-  [tx("wiki.surrender.human"), "plain"],
-  [tx("wiki.surrender.engi"), "shell"],
-  [tx("wiki.surrender.mantis"), "blade"],
-  [tx("wiki.surrender.slug"), "gel"],
-  [tx("wiki.surrender.rock"), "stone"],
-  [tx("wiki.surrender.zoltan"), "spark"],
-  [tx("wiki.surrender.crystal"), "shard"],
-  [tx("wiki.surrender.lanius"), "voidlung"],
+  ["Human", "plain"],
+  ["Engi", "shell"],
+  ["Mantis", "blade"],
+  ["Slug", "gel"],
+  ["Rock", "stone"],
+  ["Zoltan", "spark"],
+  ["Crystal", "shard"],
+  ["Lanius", "voidlung"],
 ];
 
 /** The kin a surrender's crew race joins as (joinCrew), for the offer card's portrait too. */
@@ -372,42 +428,55 @@ export function rollScriptedOffer(g: Game, s: SurrenderOfferDef): SurrenderOffer
   const r = s.reward;
   if (r.k === "stuff") {
     const offer = rollSurrenderOffer(g, r.tier);
-    offer.note = r.tier ? tx("wiki.surrender.resources-with-some-scrap", { toUpperCase: r.tier[0].toUpperCase(), slice: r.tier.slice(1) }) : tx("wiki.surrender.resources-with-some-scrap-2");
+    offer.note = r.tier
+      ? `${r.tier[0].toUpperCase()}${r.tier.slice(1)} resources with some scrap.`
+      : "Resources with some scrap.";
     return offer;
   }
   if (r.k === "standard") {
     // @agent:surrender. "You receive a Zoltan crewmember and low scrap with resources."
     const offer = rollStandard(g, r.tier);
     if (r.race) offer.crew = r.race;
-    const what = tx("wiki.surrender.scrap-with-resources", { cap: cap(r.tier) });
-    offer.note = r.race ? tx("wiki.surrender.a-crewmember-and-scrap-with-resources", { race: r.race, tier: r.tier }) : what;
+    const what = `${cap(r.tier)} scrap with resources.`;
+    offer.note = r.race ? `A ${r.race} crewmember, and ${r.tier} scrap with resources.` : what;
     if (s.continues) offer.continues = true;
     return offer;
   }
-  const offer: SurrenderOffer = { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0 };
+  const offer: SurrenderOffer = {
+    tier: "low",
+    scrap: 0,
+    eligible: 0,
+    fuel: 0,
+    missiles: 0,
+    parts: 0,
+  };
   if (r.k === "scrap") {
     // @agent:surrender. Rewards, "Scrap only" / "Weapon": T scrap. An unnamed item is drawn when paid (payOffer).
     offer.tier = r.tier;
     offer.eligible = between(g, scrapBand(g, r.tier));
     offer.scrap = adjustScrap(g, offer.eligible);
-    const item = { weapon: "A weapon", augment: "An augmentation", drone: "A drone schematic" } as const;
-    offer.note = r.unnamed ? tx("wiki.surrender.and-scrap", { v: item[r.unnamed], tier: r.tier }) : `${cap(r.tier)} scrap.`;
+    const item = {
+      weapon: "A weapon",
+      augment: "An augmentation",
+      drone: "A drone schematic",
+    } as const;
+    offer.note = r.unnamed ? `${item[r.unnamed]} and ${r.tier} scrap.` : `${cap(r.tier)} scrap.`;
     if (r.unnamed) offer.random = r.unnamed;
   } else if (r.k === "crew") {
     offer.crew = r.race ?? randomRace(g);
-    offer.note = tx("wiki.surrender.a-crewmember", { crew: offer.crew });
+    offer.note = `A ${offer.crew} crewmember.`;
   } else if (r.k === "fuel-repairs") {
     // Rewards, "Fuel": "T fuel & T scrap"; the page's tooltip "low: 1-3 fuel" is Template:Resources rewards' low fuel.
     offer.fuel = between(g, RESOURCES.fuel.low);
     offer.eligible = between(g, scrapBand(g, "low"));
     offer.scrap = adjustScrap(g, offer.eligible);
     offer.repairs = r.repairs;
-    offer.note = tx("wiki.surrender.fuel-scrap-and-hull-repairs", { repairs: r.repairs });
+    offer.note = `Fuel, scrap, and ${r.repairs} hull repairs.`;
   } else if (r.k === "none") {
     // @agent:quests. Nothing is handed over; the page's answer is a quest marker or a follow-up card.
   } else {
     offer.weapon = allWeapons().find((w) => w.name === r.name)?.id;
-    offer.note = tx("wiki.surrender.the", { name: r.name });
+    offer.note = `The ${r.name}.`;
   }
   if (s.continues) offer.continues = true;
   return offer;
@@ -436,9 +505,10 @@ export function joinCrew(g: Game, race: string, name?: string, skills?: Crew["sk
   // one or from the existing crew." The 9th comes aboard; make-room.ts asks who is relieved.
   const kin = raceKin(race);
   const used = new Set(g.crew.map((c) => c.name));
-  const named = name ?? CREW_POOL.find((n) => !used.has(n)) ?? tx("wiki.surrender.rook-vale");
+  const named = name ?? CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";
   const hp = crewDef(kin).hp;
-  const roomId = g.player.rooms.find((x) => x.id === "p-medbay")?.id ?? g.player.rooms[0]?.id ?? "p-medbay";
+  const roomId =
+    g.player.rooms.find((x) => x.id === "p-medbay")?.id ?? g.player.rooms[0]?.id ?? "p-medbay";
   g.uid = (g.uid + 1) >>> 0;
   g.crew.push({
     id: "u" + g.uid.toString(36),
@@ -489,7 +559,10 @@ export function closeFight(g: Game) {
   g.wreck = g.enemy && g.enemy.hull > 0 ? g.enemy : null;
   // Per the user: that ship stays a running ship, now neutral (sim.ts truce): its crew stay aboard and keep working.
   // Per the user: intruders on your ship stay until they are killed. A surrender does not remove them.
-  g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c) || (!!g.wreck && c.aboard === "enemy" && c.hp > 0));
+  g.crew = g.crew.filter(
+    (c) =>
+      c.side === "player" || intruderOnPlayer(c) || (!!g.wreck && c.aboard === "enemy" && c.hp > 0),
+  );
   g.enemy = null;
   g.enemyEscape = null;
   g.enemyFlee = 0;
@@ -522,7 +595,9 @@ function openOffer(g: Game) {
   // A scripted surrender uses its page's hail. A generic offer has no hail on Enemy Ships, so the card
   // uses that page's sentence and two printed choice labels.
   const hail = scripted?.hails?.length
-    ? scripted.hails[Math.min(scripted.hails.length - 1, Math.floor(rand(g) * scripted.hails.length))]!
+    ? scripted.hails[
+        Math.min(scripted.hails.length - 1, Math.floor(rand(g) * scripted.hails.length))
+      ]!
     : scripted?.hail;
   g.event = scripted
     ? {
@@ -542,10 +617,10 @@ function openOffer(g: Game) {
       }
     : {
         title: "Surrender",
-        body: tx("wiki.surrender.enemies-may-also-surrender-after-dropping"),
+        body: "Enemies may also surrender after dropping below a hull threshold.",
         choices: [
-          { id: ACCEPT_ID, label: tx("wiki.surrender.accept-their-surrender") },
-          { id: REFUSE_ID, label: tx("wiki.surrender.refuse-keep-firing") },
+          { id: ACCEPT_ID, label: "Accept their surrender." },
+          { id: REFUSE_ID, label: "Refuse. Keep firing." },
         ],
       };
   g.sfx.push("alarm");
@@ -565,7 +640,10 @@ export function surrenderTick(g: Game, h: number): boolean {
   if (g.enemySurrender === undefined) {
     // Saves from before this module: build the plan from the ship that is already here.
     const boss = here(g)?.kind === "boss";
-    g.enemySurrender = surrenderPlan({ tier: boss ? "boss" : "pool", faction: ship.faction, pirate: ship.pirate }, () => rand(g));
+    g.enemySurrender = surrenderPlan(
+      { tier: boss ? "boss" : "pool", faction: ship.faction, pirate: ship.pirate },
+      () => rand(g),
+    );
   }
   const plan = g.enemySurrender;
   if (plan && plan.chance > 0 && !plan.rolled && ship.hull > 0 && ratio(g) <= plan.threshold) {
@@ -586,7 +664,10 @@ export function surrenderTick(g: Game, h: number): boolean {
 export function stalemateTick(g: Game, h: number): boolean {
   const ship = g.enemy;
   if (!ship || g.phase !== "combat" || here(g)?.kind === "boss") return false;
-  const clock = g.stalemate && g.stalemate.ship === ship.name ? g.stalemate : { ship: ship.name, hull: ship.hull, quiet: 0 };
+  const clock =
+    g.stalemate && g.stalemate.ship === ship.name
+      ? g.stalemate
+      : { ship: ship.name, hull: ship.hull, quiet: 0 };
   g.stalemate = clock;
   if (ship.hull < clock.hull) clock.quiet = 0;
   clock.hull = ship.hull;
@@ -599,8 +680,12 @@ export function stalemateTick(g: Game, h: number): boolean {
   // "the fight will end by granting you 2 fuel." INFERRED: no scrap, and it does not count as a kill.
   closeFight(g);
   g.fuel += STALEMATE_FUEL;
-  log(g, tx("wiki.surrender.a-minute-without-a-hit-the", { STALEMATE_FUEL: STALEMATE_FUEL }));
-  g.reward = { scrap: 0, note: tx("wiki.surrender.neither-ship-can-finish-it-both"), res: { fuel: STALEMATE_FUEL } };
+  log(g, `A minute without a hit. The fight breaks off. +${STALEMATE_FUEL} fuel.`);
+  g.reward = {
+    scrap: 0,
+    note: "Neither ship can finish it. Both crews break off.",
+    res: { fuel: STALEMATE_FUEL },
+  };
   g.phase = "reward";
   g.paused = true;
   g.sfx.push("win");
@@ -608,7 +693,11 @@ export function stalemateTick(g: Game, h: number): boolean {
 }
 
 /** Pays an offer: resources, a weapon, a bonus augmentation or drone schematic, an unnamed (random) item, and the crew and repairs a scripted page names. A full rack asks what to leave behind (make-room.ts). */
-export function payOffer(g: Game, offer: SurrenderOffer, _scripted: boolean): { weaponName?: string; extras: string[] } {
+export function payOffer(
+  g: Game,
+  offer: SurrenderOffer,
+  _scripted: boolean,
+): { weaponName?: string; extras: string[] } {
   g.scrap += offer.scrap;
   g.scrapCollected = (g.scrapCollected ?? 0) + offer.eligible;
   g.fuel += offer.fuel;
@@ -620,14 +709,23 @@ export function payOffer(g: Game, offer: SurrenderOffer, _scripted: boolean): { 
   if (offer.weapon && !g.player.weapons.some((w) => w.defId === offer.weapon)) {
     weaponName = weaponDef(offer.weapon)?.name;
     const got = receiveWeapon(g, offer.weapon);
-    if (got === "cargo") extras.push(tx("wiki.surrender.no-free-weapon-slot-is-stowed", { v: weaponName ?? offer.weapon }));
-    if (got === "queued") extras.push(tx("wiki.surrender.no-room-in-cargo-for-choose", { v: weaponName ?? offer.weapon }));
+    if (got === "cargo")
+      extras.push(`No free weapon slot: ${weaponName ?? offer.weapon} is stowed in cargo.`);
+    if (got === "queued")
+      extras.push(
+        `No room in cargo for ${weaponName ?? offer.weapon}: choose what to leave behind.`,
+      );
   }
   // Scripted surrenders (SCRIPTED_SURRENDERS): a crewmember and hull repairs the page names.
-  if (offer.crew) extras.push(joinCrew(g, offer.crew) ? tx("wiki.surrender.a-crewmember-joins-you", { crew: offer.crew }) : tx("wiki.surrender.there-is-no-room-aboard-for"));
+  if (offer.crew)
+    extras.push(
+      joinCrew(g, offer.crew)
+        ? `A ${offer.crew} crewmember joins you.`
+        : "There is no room aboard for their crewmember.",
+    );
   if (offer.repairs) {
     g.player.hull = Math.min(g.player.hullMax, g.player.hull + offer.repairs);
-    extras.push(tx("wiki.surrender.hull-repairs", { repairs: offer.repairs }));
+    extras.push(`Hull repairs: ${offer.repairs}.`);
   }
   if (offer.augment) extras.push(grantBonusAugment(g, offer.augment));
   if (offer.drone) extras.push(droneLine(g, offer.drone));
@@ -659,10 +757,10 @@ function crystalFightAccept(g: Game) {
     // > "What appears to be a young soldier pushes its way onto the vid screen, \"A captain both able and merciful? I have always wanted to explore beyond our restricted sector... Please, permit me to join your crew?\"" — [[Crystal fight#The ship surrenders]]
     pageCard(
       g,
-      tx("wiki.surrender.what-appears-to-be-a-young"),
+      'What appears to be a young soldier pushes its way onto the vid screen, "A captain both able and merciful? I have always wanted to explore beyond our restricted sector... Please, permit me to join your crew?"',
       [
-        { id: "s:crystal-fight:yes", label: tx("wiki.surrender.yes") },
-        { id: "s:crystal-fight:no", label: tx("wiki.surrender.no") },
+        { id: "s:crystal-fight:yes", label: "Yes." },
+        { id: "s:crystal-fight:no", label: "No." },
       ],
     );
     g.paused = true;
@@ -672,14 +770,25 @@ function crystalFightAccept(g: Game) {
   if (kind === "goods") {
     // Wiki citations:
     // > "You receive a random amount of resources with some scrap." — [[Crystal fight#The ship surrenders]]
-    const line = CRYSTAL_FIGHT_GOODS[Math.min(CRYSTAL_FIGHT_GOODS.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_GOODS.length))]!;
+    const line =
+      CRYSTAL_FIGHT_GOODS[
+        Math.min(CRYSTAL_FIGHT_GOODS.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_GOODS.length))
+      ]!;
     pageResult(g, line, rollStandard(g));
     return;
   }
   // Wiki citations:
   // > "Nothing happens." — [[Crystal fight#The ship surrenders]]
-  const line = CRYSTAL_FIGHT_NOTHING[Math.min(CRYSTAL_FIGHT_NOTHING.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_NOTHING.length))]!;
-  pageResult(g, tx("wiki.surrender.nothing-happens", { line: line }));
+  const line =
+    CRYSTAL_FIGHT_NOTHING[
+      Math.min(CRYSTAL_FIGHT_NOTHING.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_NOTHING.length))
+    ]!;
+  pageResult(
+    g,
+    `${line}
+
+Nothing happens.`,
+  );
 }
 
 /** choose() routes here first. Returns true when the id was a surrender choice. */
@@ -711,18 +820,21 @@ export function surrenderChoose(g: Game, id: string): boolean {
     // Crystal fight with surrender offer (Human crew), Finish them off: the fight continues.
     // Wiki citations:
     // > "You cut off communications and prepare to finish them off." — [[Crystal fight#The ship surrenders]]
-    log(g, plan.event === "crystal-fight"
-      ? tx("wiki.surrender.you-cut-off-communications-and-prepare")
-      : plan.event === "the-black-raven"
-        // Wiki citations:
-        // > "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire." — [[The Black Raven#Fighting the Black Raven]]
-        // > "Continue the fight." — [[The Black Raven#Fighting the Black Raven]]
-        ? tx("wiki.surrender.wait-there-is-no-need-to")
-        : plan.event === "crystal-fight-with-surrender-offer-hull-repairs"
-          ? tx("wiki.surrender.they-wanted-to-pick-a-fight")
-          : plan.event === "crystal-fight-with-surrender-offer-human-crew"
-            ? tx("wiki.surrender.who-knows-how-many-humans-will")
-            : tx("wiki.surrender.offer-refused-they-brace-for-more"));
+    log(
+      g,
+      plan.event === "crystal-fight"
+        ? "You cut off communications and prepare to finish them off."
+        : plan.event === "the-black-raven"
+          ? // Wiki citations:
+            // > "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire." — [[The Black Raven#Fighting the Black Raven]]
+            // > "Continue the fight." — [[The Black Raven#Fighting the Black Raven]]
+            '"Wait! There is no need to be...." You cut off the transmission and prepare to fire.'
+          : plan.event === "crystal-fight-with-surrender-offer-hull-repairs"
+            ? "They wanted to pick a fight with you so that's what they'll get."
+            : plan.event === "crystal-fight-with-surrender-offer-human-crew"
+              ? "Who knows how many humans will be saved if you kill them now."
+              : "Offer refused. They brace for more.",
+    );
     return true;
   }
   // Crystal fight, Accept. Soldier once, goods three times, nothing twice. The reward is not shown before this.
@@ -747,13 +859,16 @@ export function surrenderChoose(g: Game, id: string): boolean {
     g.phase = "combat";
     g.paused = false;
     if (joined && plan.event === "crystal-fight-with-surrender-offer-human-crew") {
-      log(g, tx("wiki.surrender.they-send-one-of-their-prisoners"));
-      log(g, tx("wiki.surrender.you-receive-a-human-crewmember-and"));
+      log(
+        g,
+        "They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free.",
+      );
+      log(g, "You receive a Human crewmember and the fight continues.");
     } else if (joined) {
-      log(g, tx("wiki.surrender.a-crewmember-joins-you-the-fight", { crew: offer.crew }));
+      log(g, `A ${offer.crew} crewmember joins you. The fight continues.`);
     } else {
       // INFERRED: the wiki page does not print this no-room sentence.
-      log(g, tx("wiki.surrender.no-room-aboard-the-fight-continues"));
+      log(g, "No room aboard. The fight continues.");
     }
     return true;
   }
@@ -766,8 +881,8 @@ export function surrenderChoose(g: Game, id: string): boolean {
   const base = page?.result
     ? page.result + (weaponName ? ` ${weaponName}.` : "")
     : weaponName
-      ? tx("wiki.surrender.they-hand-over-their-cargo-and", { weaponName: weaponName })
-      : tx("wiki.surrender.they-hand-over-their-cargo-and-2");
+      ? `They hand over their cargo, and a ${weaponName}.`
+      : "They hand over their cargo and limp away.";
   g.reward = {
     scrap: offer.scrap,
     note: [base, ...extras].join(" "),
@@ -776,7 +891,7 @@ export function surrenderChoose(g: Game, id: string): boolean {
   g.phase = "reward";
   g.paused = true;
   g.sfx.push("win");
-  log(g, tx("wiki.surrender.surrender-accepted"));
+  log(g, "Surrender accepted.");
   return true;
 }
 
@@ -795,15 +910,19 @@ export function pageResult(g: Game, text: string, offer?: SurrenderOffer) {
   if (offer) {
     const { weaponName, extras } = payOffer(g, offer, true);
     const got: string[] = [];
-    if (offer.scrap) got.push(tx("wiki.surrender.scrap", { scrap: offer.scrap }));
-    if (offer.fuel) got.push(tx("wiki.surrender.fuel", { fuel: offer.fuel }));
-    if (offer.missiles) got.push(tx("wiki.surrender.missiles", { missiles: offer.missiles }));
-    if (offer.parts) got.push(tx("wiki.surrender.drone-parts", { parts: offer.parts }));
+    if (offer.scrap) got.push(`Scrap: ${offer.scrap}.`);
+    if (offer.fuel) got.push(`Fuel: ${offer.fuel}.`);
+    if (offer.missiles) got.push(`Missiles: ${offer.missiles}.`);
+    if (offer.parts) got.push(`Drone parts: ${offer.parts}.`);
     if (weaponName) got.push(`${weaponName}.`);
     lines.push([...got, ...extras].join(" "));
     for (const l of got) log(g, l);
   }
-  g.event = { title: here(g)?.name ?? "Event", body: lines.filter(Boolean).join("\n\n"), choices: [{ id: "ack", label: "Continue" }] };
+  g.event = {
+    title: here(g)?.name ?? "Event",
+    body: lines.filter(Boolean).join("\n\n"),
+    choices: [{ id: "ack", label: "Continue" }],
+  };
   g.phase = "event";
 }
 
@@ -814,7 +933,14 @@ export function pageCard(g: Game, body: string, choices: { id: string; label: st
 }
 
 /** Starts the page's fight. `escape` replaces the default escape plan when the page states its own. */
-export function pageFight(g: Game, text: string, tier: string, slug: string, escape?: EscapePlan, asteroid = false) {
+export function pageFight(
+  g: Game,
+  text: string,
+  tier: string,
+  slug: string,
+  escape?: EscapePlan,
+  asteroid = false,
+) {
   log(g, text);
   g.event = null;
   startCombat(g, tier, asteroid, slug);
@@ -831,11 +957,12 @@ export function humanBoarders(g: Game, lo: number, hi: number, line?: string, lu
   const hp = crewDef("plain").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
-    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    const room =
+      rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({
       id: "u" + g.uid.toString(36),
-      name: tx("wiki.surrender.human"),
+      name: "Human",
       side: "enemy",
       aboard: "player",
       hp,
@@ -849,7 +976,7 @@ export function humanBoarders(g: Game, lo: number, hi: number, line?: string, lu
       ...(lungs ? { lungs: true } : {}),
     });
   }
-  log(g, line ? `${n} ${line}` : tx("wiki.surrender.boarders-burst-out-of-the-crates", { n: n }));
+  log(g, line ? `${n} ${line}` : `${n} boarders burst out of the crates.`);
 }
 
 /**
@@ -858,7 +985,7 @@ export function humanBoarders(g: Game, lo: number, hi: number, line?: string, lu
  * beginBoarding opens the crew fight. startCombat would drop the boarders and put a hull on the scope.
  */
 export function plasmaHumanBoarders(g: Game) {
-  humanBoarders(g, 3, 4, tx("wiki.surrender.human-boarders-beam-aboard-your-ship"));
+  humanBoarders(g, 3, 4, "human boarders beam aboard your ship.");
   beginBoarding(g);
 }
 
@@ -873,11 +1000,12 @@ export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
   const hp = crewDef("gel").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
-    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    const room =
+      rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({
       id: "u" + g.uid.toString(36),
-      name: tx("wiki.surrender.slug"),
+      name: "Slug",
       side: "enemy",
       aboard: "player",
       hp,
@@ -890,7 +1018,7 @@ export function slugBoarders(g: Game, lo: number, hi: number, line?: string) {
       kin: "gel",
     });
   }
-  log(g, line ? `${n} ${line}` : tx("wiki.surrender.slug-boarders-beam-aboard", { n: n }));
+  log(g, line ? `${n} ${line}` : `${n} slug boarders beam aboard.`);
 }
 
 /**
@@ -905,11 +1033,12 @@ export function rockBoarders(g: Game, lo: number, hi: number) {
   const hp = crewDef("stone").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
-    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    const room =
+      rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({
       id: "u" + g.uid.toString(36),
-      name: tx("wiki.surrender.rock"),
+      name: "Rock",
       side: "enemy",
       aboard: "player",
       hp,
@@ -922,7 +1051,7 @@ export function rockBoarders(g: Game, lo: number, hi: number) {
       kin: "stone",
     });
   }
-  log(g, tx("wiki.surrender.rock-boarders-beam-aboard-your-ship", { n: n }));
+  log(g, `${n} rock boarders beam aboard your ship.`);
 }
 
 /**
@@ -937,11 +1066,12 @@ export function mantisBoarders(g: Game, lo: number, hi: number) {
   const hp = crewDef("blade").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
-    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    const room =
+      rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({
       id: "u" + g.uid.toString(36),
-      name: tx("wiki.surrender.mantis"),
+      name: "Mantis",
       side: "enemy",
       aboard: "player",
       hp,
@@ -954,7 +1084,7 @@ export function mantisBoarders(g: Game, lo: number, hi: number) {
       kin: "blade",
     });
   }
-  log(g, tx("wiki.surrender.mantis-boarders-beam-aboard-your-ship", { n: n }));
+  log(g, `${n} mantis boarders beam aboard your ship.`);
 }
 
 /**
@@ -969,7 +1099,7 @@ export function allMantisCrew(g: Game) {
     if (c.side !== "enemy" || c.aboard !== "enemy") continue;
     if (c.kin === "blade") continue;
     c.kin = "blade";
-    c.name = tx("wiki.surrender.mantis");
+    c.name = "Mantis";
     c.hp = hp;
     c.maxHp = hp;
   }
@@ -987,11 +1117,12 @@ export function zoltanBoarders(g: Game, lo: number, hi: number) {
   const hp = crewDef("spark").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
-    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    const room =
+      rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({
       id: "u" + g.uid.toString(36),
-      name: tx("wiki.surrender.zoltan"),
+      name: "Zoltan",
       side: "enemy",
       aboard: "player",
       hp,
@@ -1004,7 +1135,7 @@ export function zoltanBoarders(g: Game, lo: number, hi: number) {
       kin: "spark",
     });
   }
-  log(g, tx("wiki.surrender.zoltan-boarders-beam-aboard-your-ship", { n: n }));
+  log(g, `${n} zoltan boarders beam aboard your ship.`);
 }
 
 /**
@@ -1018,11 +1149,12 @@ export function crystalBoarders(g: Game, lo: number, hi: number) {
   const hp = crewDef("shard").hp;
   for (let i = 0; i < n; i++) {
     const rooms = g.player.rooms;
-    const room = rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
+    const room =
+      rooms[Math.min(rooms.length - 1, Math.floor(rand(g) * rooms.length))]?.id ?? "p-medbay";
     g.uid = (g.uid + 1) >>> 0;
     g.crew.push({
       id: "u" + g.uid.toString(36),
-      name: tx("wiki.surrender.crystal"),
+      name: "Crystal",
       side: "enemy",
       aboard: "player",
       hp,
@@ -1035,7 +1167,7 @@ export function crystalBoarders(g: Game, lo: number, hi: number) {
       kin: "shard",
     });
   }
-  log(g, tx("wiki.surrender.crystal-boarders-beam-aboard-your-ship", { n: n }));
+  log(g, `${n} crystal boarders beam aboard your ship.`);
 }
 
 function livingSlug(g: Game): boolean {
@@ -1046,7 +1178,15 @@ function pick<T>(g: Game, items: T[]): T {
   return items[Math.min(items.length - 1, Math.floor(rand(g) * items.length))];
 }
 
-export const NEVER_RUN: EscapePlan = { mode: "never", seconds: 0, chance: 0, threshold: 0, rolled: false, running: false, pursuit: false };
+export const NEVER_RUN: EscapePlan = {
+  mode: "never",
+  seconds: 0,
+  chance: 0,
+  threshold: 0,
+  rolled: false,
+  running: false,
+  pursuit: false,
+};
 
 /**
  * Destroyed cargo ship, "Scan the boxes". Three results and no odds. INFERRED: equal.
@@ -1060,12 +1200,19 @@ function cargoScan(g: Game) {
     // > "You receive Scrap gained: 20-35." — [[Destroyed cargo ship#Scan the boxes]]
     const eligible = rollBand("destroyed-cargo-ship", "scan", "scrap", (lo, hi) => between(g, [lo, hi]));
     if (eligible == null) {
-      pageResult(g, tx("wiki.surrender.the-cargo-appears-to-contain-nothing"));
+      pageResult(
+        g,
+        "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship.",
+      );
       return;
     }
     const offer: SurrenderOffer = { tier: "low", scrap: 0, eligible, fuel: 0, missiles: 0, parts: 0 };
     offer.scrap = adjustScrap(g, eligible);
-    pageResult(g, tx("wiki.surrender.the-cargo-appears-to-contain-nothing"), offer);
+    pageResult(
+      g,
+      "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship.",
+      offer,
+    );
     return;
   }
   if (r === "supplies") {
@@ -1074,7 +1221,7 @@ function cargoScan(g: Game) {
     // > "You receive medium scrap with resources." — [[Destroyed cargo ship#Scan the boxes]]
     pageResult(
       g,
-      tx("wiki.surrender.your-advanced-sensors-are-able-to"),
+      "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use.",
       rollStandard(g, "medium"),
     );
     return;
@@ -1083,10 +1230,17 @@ function cargoScan(g: Game) {
   // > "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush." — [[Destroyed cargo ship#Scan the boxes]]
   // > "Destroy the crates to prevent another ship from falling victim." — [[Destroyed cargo ship#Scan the boxes]]
   // > "Leave it alone and prepare to jump." — [[Destroyed cargo ship#Scan the boxes]]
-  pageCard(g, tx("wiki.surrender.your-advanced-sensors-pick-up-faint"), [
-    { id: "s:destroyed-cargo-ship:destroy", label: tx("wiki.surrender.destroy-the-crates-to-prevent-another") },
-    { id: "s:destroyed-cargo-ship:leave", label: tx("wiki.surrender.leave-it-alone-and-prepare-to") },
-  ]);
+  pageCard(
+    g,
+    "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush.",
+    [
+      {
+        id: "s:destroyed-cargo-ship:destroy",
+        label: "Destroy the crates to prevent another ship from falling victim.",
+      },
+      { id: "s:destroyed-cargo-ship:leave", label: "Leave it alone and prepare to jump." },
+    ],
+  );
 }
 
 export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
@@ -1097,14 +1251,17 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // Wiki citations:
       // > "The Engi seem relieved, and eager to get underway. They set off without saying goodbye." — [[Engi surrender]]
       // > "Nothing happens." — [[Engi surrender]]
-      pageResult(g, tx("wiki.surrender.the-engi-seem-relieved-and-eager"));
+      pageResult(
+        g,
+        "The Engi seem relieved, and eager to get underway. They set off without saying goodbye.",
+      );
     } else {
       // Wiki citations:
       // > "The Engi are satisfied with your explanation. \"Beneficial. Subject goal: long, long journey. Remains compatible with transfer of goods from Engi.\" They send over the gear willingly, and you feel better for it." — [[Engi surrender]]
       // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
       pageResult(
         g,
-        tx("wiki.surrender.the-engi-are-satisfied-with-your"),
+        'The Engi are satisfied with your explanation. "Beneficial. Subject goal: long, long journey. Remains compatible with transfer of goods from Engi." They send over the gear willingly, and you feel better for it.',
         rollStandard(g),
       );
     }
@@ -1114,7 +1271,11 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "The Engi obediently transfer over the goods and get on their way. Money for nothing." — [[Engi surrender]]
     // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
-    pageResult(g, tx("wiki.surrender.the-engi-obediently-transfer-over-the"), rollStandard(g));
+    pageResult(
+      g,
+      "The Engi obediently transfer over the goods and get on their way. Money for nothing.",
+      rollStandard(g),
+    );
   },
 
   // ---- "Destroyed cargo ship", Bring it aboard. Four results on the page, no odds (equal, INFERRED). ----
@@ -1125,18 +1286,36 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // Wiki citations:
       // > "They appear to be filled with military supplies! You take everything you can use and jettison the rest." — [[Destroyed cargo ship]]
       // > "You receive medium scrap with resources." — [[Destroyed cargo ship]]
-      pageResult(g, tx("wiki.surrender.they-appear-to-be-filled-with"), rollStandard(g, "medium"));
+      pageResult(
+        g,
+        "They appear to be filled with military supplies! You take everything you can use and jettison the rest.",
+        rollStandard(g, "medium"),
+      );
     } else if (r === "goods") {
       // Wiki citations:
       // > "The cargo was primarily consumer goods and clothing, nothing particularly useful. You manage to collect some scrap." — [[Destroyed cargo ship]]
       // > "You receive low scrap." — [[Destroyed cargo ship]]
-      const offer: SurrenderOffer = { tier: "low", scrap: 0, eligible: between(g, scrapBand(g, "low")), fuel: 0, missiles: 0, parts: 0 };
+      const offer: SurrenderOffer = {
+        tier: "low",
+        scrap: 0,
+        eligible: between(g, scrapBand(g, "low")),
+        fuel: 0,
+        missiles: 0,
+        parts: 0,
+      };
       offer.scrap = adjustScrap(g, offer.eligible);
-      pageResult(g, tx("wiki.surrender.the-cargo-was-primarily-consumer-goods"), offer);
+      pageResult(
+        g,
+        "The cargo was primarily consumer goods and clothing, nothing particularly useful. You manage to collect some scrap.",
+        offer,
+      );
     } else if (r === "boarders") {
       // Wiki citations:
       // > "Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, \"Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!\" Immediately after this battle-cry your ship is filled with the sound of crates breaking open..." — [[Destroyed cargo ship]]
-      log(g, tx("wiki.surrender.once-you-bring-the-cargo-onto"));
+      log(
+        g,
+        'Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, "Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!" Immediately after this battle-cry your ship is filled with the sound of crates breaking open...',
+      );
       humanBoarders(g, 2, 4);
       beginBoarding(g);
     } else {
@@ -1144,11 +1323,17 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // > "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!" — [[Destroyed cargo ship]]
       // > "2-4 human boarders beam aboard your ship and you fight a Pirate ship (default rewards)." — [[Destroyed cargo ship]]
       // JELLY_PIRATE_WITHBOARDERS: "70% chance for escape attempt at 20-40% hull with 15 seconds countdown timer".
-      const escape: EscapePlan = { ...NEVER_RUN, mode: "hull", seconds: HULL_RUN_SECONDS, chance: 70, threshold: 20 + rand(g) * 20 };
+      const escape: EscapePlan = {
+        ...NEVER_RUN,
+        mode: "hull",
+        seconds: HULL_RUN_SECONDS,
+        chance: 70,
+        threshold: 20 + rand(g) * 20,
+      };
       pageFight(
         g,
-        tx("wiki.surrender.you-bring-the-cargo-aboard-before"),
-        tx("wiki.surrender.pirate-ship"),
+        "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!",
+        "Pirate ship",
         "destroyed-cargo-ship",
         escape,
       );
@@ -1175,8 +1360,8 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // The template's 2-4 and 3-4 are its actual-hull warning, the same reading as the other Pirate rows.
     pageFight(
       g,
-      tx("wiki.surrender.you-fire-on-the-crates-breaking"),
-      tx("wiki.surrender.pirate-ship"),
+      'You fire on the crates, breaking them open and scattering the pirates into empty space. A pirate ship appears out of nowhere with a message, "You will pay for that!"',
+      "Pirate ship",
       "destroyed-cargo-ship-scan",
     );
   },
@@ -1184,7 +1369,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "Nothing happens." — [[Destroyed cargo ship#Scan the boxes]]
     // The page prints no italic before "Nothing happens."
-    pageResult(g, tx("wiki.surrender.nothing-happens-2"));
+    pageResult(g, "Nothing happens.");
   },
 
   // ---- "Settlement mercenary work", Listen to their offer. Two offers on the page. ----
@@ -1194,10 +1379,10 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // > "\"Some of our friends have taken to piracy in the recent chaos of the war. We'd like you to \"convince\" them of their poor decision by severely damaging the ship. We'll pay you well as long as you don't kill them all.\"" — [[Settlement mercenary work]]
       pageCard(
         g,
-        tx("wiki.surrender.some-of-our-friends-have-taken"),
+        '"Some of our friends have taken to piracy in the recent chaos of the war. We\'d like you to "convince" them of their poor decision by severely damaging the ship. We\'ll pay you well as long as you don\'t kill them all."',
         [
-          { id: "s:settlement-mercenary-work:accept", label: tx("wiki.surrender.accept") },
-          { id: "s:settlement-mercenary-work:decline", label: tx("wiki.surrender.decline") },
+          { id: "s:settlement-mercenary-work:accept", label: "Accept." },
+          { id: "s:settlement-mercenary-work:decline", label: "Decline." },
         ],
       );
     } else {
@@ -1207,10 +1392,10 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // > "Agree to rescue the store." — [[Settlement mercenary work]]
       pageCard(
         g,
-        tx("wiki.surrender.a-space-dock-is-under-assault"),
+        "\"A space dock is under assault from the Rebels. Although the dock is... technically... illegal within their laws, it's very important for our trade. We'll pay you in fuel and scrap if you promise to save them.\"",
         [
-          { id: "s:settlement-mercenary-work:dock", label: tx("wiki.surrender.agree-to-rescue-the-store") },
-          { id: "s:settlement-mercenary-work:nodock", label: tx("wiki.surrender.decline") },
+          { id: "s:settlement-mercenary-work:dock", label: "Agree to rescue the store." },
+          { id: "s:settlement-mercenary-work:nodock", label: "Decline." },
         ],
       );
     }
@@ -1223,8 +1408,8 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // > "The \"SQUAT_PIRATE_MERCENARY\" ship from the settlement never runs away." — [[Settlement mercenary work#Trivia]]
     pageFight(
       g,
-      tx("wiki.surrender.just-be-sure-not-to-blow"),
-      tx("wiki.surrender.pirate-ship"),
+      '"Just be sure not to blow them up!" they say nervously as they direct you to a nearby moon. You find the pirate ship docked there. They immediately respond to your appearance with, "Your money or your life!" They must be new to this.',
+      "Pirate ship",
       "settlement-mercenary-work",
       { ...NEVER_RUN },
     );
@@ -1233,20 +1418,28 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "\"Fine. I don't know what we'll do about them though...\" You prepare to jump away from this sector." — [[Settlement mercenary work]]
     // > "Nothing happens." — [[Settlement mercenary work]]
-    pageResult(g, tx("wiki.surrender.fine-i-don-t-know-what"));
+    pageResult(
+      g,
+      "\"Fine. I don't know what we'll do about them though...\" You prepare to jump away from this sector.",
+    );
   },
   // "A quest marker is added to your map." @agent:quests: the space dock rescue (wiki/quests.ts "store-rescue").
   "s:settlement-mercenary-work:dock": (g) => {
     // Wiki citations:
     // > "They transmit the space dock's coordinates." — [[Settlement mercenary work]]
     // > "A quest marker is added to your map." — [[Settlement mercenary work]]
-    pageResult(g, tx("wiki.surrender.they-transmit-the-space-dock-s", { addQuest: addQuest(g, "store-rescue") }));
+    pageResult(
+      g,
+      `They transmit the space dock's coordinates.
+
+${addQuest(g, "store-rescue")}`,
+    );
   },
   "s:settlement-mercenary-work:nodock": (g) => {
     // Wiki citations:
     // > "They regretfully accept your decision." — [[Settlement mercenary work]]
     // > "Nothing happens." — [[Settlement mercenary work]]
-    pageResult(g, tx("wiki.surrender.they-regretfully-accept-your-decision"));
+    pageResult(g, "They regretfully accept your decision.");
   },
 
   // ---- "The Black Raven", No. -> the challenge. Both answers fight the Black Raven. ----
@@ -1257,12 +1450,16 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // > "Accept his challenge." — [[The Black Raven]]
     // > "Decline." — [[The Black Raven]]
     // > "(Slugman Crew) Engage in a duel of the mind." — [[The Black Raven]]
-    pageCard(g, tx("wiki.surrender.well-i-have-heard-of-you"), [
-      { id: "s:the-black-raven:accept", label: tx("wiki.surrender.accept-his-challenge") },
-      { id: "s:the-black-raven:decline", label: tx("wiki.surrender.decline") },
-      // {{Blue Option|Slugman Crew|Engage in a duel of the mind.}}
-      { id: "s:the-black-raven:duel", label: tx("wiki.surrender.engage-in-a-duel-of-the") },
-    ]);
+    pageCard(
+      g,
+      '"Well I have heard of you and I must see if you are as dangerousss as they say. I challenge you!"',
+      [
+        { id: "s:the-black-raven:accept", label: "Accept his challenge." },
+        { id: "s:the-black-raven:decline", label: "Decline." },
+        // {{Blue Option|Slugman Crew|Engage in a duel of the mind.}}
+        { id: "s:the-black-raven:duel", label: "Engage in a duel of the mind." },
+      ],
+    );
   },
   // Two results, no odds. INFERRED: equal odds. The win gives a weapon with high scrap; the weapon is unnamed, so
   // Rewards, "Weapon": "A random weapon & T scrap."
@@ -1276,8 +1473,8 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
       pageFight(
         g,
-        tx("wiki.surrender.your-slug-crewman-s-eyes-glaze"),
-        tx("wiki.surrender.slug-assault-pirate-ship"),
+        "Your Slug crewman's eyes glaze over as the two telepaths concentrate. You can only wonder what is happening. After a short time your comrade grunts in pain and collapses onto the floor, stunned. Nights responds, \"Hah! It'll take more than that to defeat me! Let the real battle begin!\"",
+        "Slug Assault pirate ship",
         "the-black-raven",
       );
       slugBoarders(g, 1, 2);
@@ -1289,8 +1486,18 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       const eligible = between(g, scrapBand(g, "high"));
       pageResult(
         g,
-        tx("wiki.surrender.your-slug-crewman-s-eyes-glaze-2"),
-        { tier: "high", scrap: adjustScrap(g, eligible), eligible, fuel: 0, missiles: 0, parts: 0, random: "weapon" },
+        `Your Slug crewman's eyes glaze over as the two telepaths concentrate. You are powerless to help, but after a short time your comrade shakes off the daze and appears victorious.
+
+His face contorted with pain, Nights concedes his defeat: "If this is the caliber of subordinatesss you keep, there iss no way we can defeat you. Take thisss and let us leave in shame."`,
+        {
+          tier: "high",
+          scrap: adjustScrap(g, eligible),
+          eligible,
+          fuel: 0,
+          missiles: 0,
+          parts: 0,
+          random: "weapon",
+        },
       );
     }
   },
@@ -1299,14 +1506,24 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "Fight the Black Raven." — [[The Black Raven]]
     // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
-    pageFight(g, tx("wiki.surrender.captain-nights-accepts-the-black-raven"), tx("wiki.surrender.slug-assault-pirate-ship"), "the-black-raven");
+    pageFight(
+      g,
+      "Captain Nights accepts. The Black Raven moves in.",
+      "Slug Assault pirate ship",
+      "the-black-raven",
+    );
   },
   "s:the-black-raven:decline": (g) => {
     // Wiki citations:
     // > "\"I sssee... However you have no choice in the matter!\" They move in to attack." — [[The Black Raven]]
     // > "Fight the Black Raven." — [[The Black Raven]]
     // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
-    pageFight(g, tx("wiki.surrender.i-sssee-however-you-have-no"), tx("wiki.surrender.slug-assault-pirate-ship"), "the-black-raven");
+    pageFight(
+      g,
+      '"I sssee... However you have no choice in the matter!" They move in to attack.',
+      "Slug Assault pirate ship",
+      "the-black-raven",
+    );
   },
 
   // Crystal fight, Accept, Yes. A Crystal crewmember. The ship still holds at most 8 (INFERRED: the page prints no ninth).
@@ -1315,12 +1532,16 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // > "\"Great!\" As he brings his few belongings on board, you wonder how a being made of crystal can move with such lightness and enthusiasm." — [[Crystal fight#The ship surrenders]]
     // > "You receive a Crystal crewmember." — [[Crystal fight#The ship surrenders]]
     closeFight(g);
-    const joined = joinCrew(g, tx("wiki.surrender.crystal"));
+    const joined = joinCrew(g, "Crystal");
     pageResult(
       g,
       joined
-        ? tx("wiki.surrender.great-as-he-brings-his-few")
-        : tx("wiki.surrender.great-as-he-brings-his-few-2"),
+        ? `"Great!" As he brings his few belongings on board, you wonder how a being made of crystal can move with such lightness and enthusiasm.
+
+You receive a Crystal crewmember.`
+        : `"Great!" As he brings his few belongings on board, you wonder how a being made of crystal can move with such lightness and enthusiasm.
+
+There is no room aboard for their crewmember.`,
     );
   },
   // Crystal fight, Accept, No. "a random amount of resources with some scrap."
@@ -1329,7 +1550,11 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // > "\"I understand. We did try to kill you...\" They transfer some materials over before leaving." — [[Crystal fight#The ship surrenders]]
     // > "You receive a random amount of resources with some scrap." — [[Crystal fight#The ship surrenders]]
     closeFight(g);
-    pageResult(g, tx("wiki.surrender.i-understand-we-did-try-to"), rollStandard(g));
+    pageResult(
+      g,
+      '"I understand. We did try to kill you..." They transfer some materials over before leaving.',
+      rollStandard(g),
+    );
   },
 
   // ---- "Zoltan ship asks to dock", Dock with them. Two results on the page. ----
@@ -1339,7 +1564,13 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // > "You allow them to approach, but are caught unaware when they open fire!" — [[Zoltan ship asks to dock]]
       // > "Fight a Zoltan ship." — [[Zoltan ship asks to dock]]
       // "Fight a Zoltan ship." "never tries to escape" (Zoltan ships never run in wiki/escape.ts already).
-      pageFight(g, tx("wiki.surrender.you-allow-them-to-approach-but"), tx("wiki.surrender.zoltan-ship"), "zoltan-ship-asks-to-dock", { ...NEVER_RUN });
+      pageFight(
+        g,
+        "You allow them to approach, but are caught unaware when they open fire!",
+        "Zoltan ship",
+        "zoltan-ship-asks-to-dock",
+        { ...NEVER_RUN },
+      );
     } else {
       // Wiki citations:
       // > "We have been studying the relationships between the species and have determined that the 'Federation' still has potential to be a net positive for the galaxy. Please accept this gift to aid your journey." — [[Zoltan ship asks to dock]]
@@ -1347,7 +1578,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // "You receive medium (fuel: 2-4 ; missiles: 2-4 ; drone parts: 1) resources with some scrap." (Rewards#Stuff)
       pageResult(
         g,
-        tx("wiki.surrender.we-have-been-studying-the-relationships"),
+        "We have been studying the relationships between the species and have determined that the 'Federation' still has potential to be a net positive for the galaxy. Please accept this gift to aid your journey.",
         rollSurrenderOffer(g, "medium", true),
       );
     }

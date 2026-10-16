@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 /**
  * Crew skill speed tables and the per-sector crew race lists used for pirate crews.
  */
@@ -36,29 +35,38 @@ export function combatSkillMult(rank: 0 | 1 | 2): number {
  * Hidden Crystal Worlds: "only Crystal crewmembers can be purchased or received as a crew kill reward."
  */
 export const SECTOR_CREW_RACES: Record<string, string[]> = {
-  "Civilian (Starting) Sector": [tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.rock"), tx("wiki.skills.zoltan")],
-  "Civilian Sector": [tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.rock"), tx("wiki.skills.zoltan")],
-  "Engi Controlled Sector": [tx("wiki.skills.engi"), tx("wiki.skills.human"), tx("wiki.skills.zoltan")],
-  "Engi Homeworlds": [tx("wiki.skills.engi"), tx("wiki.skills.human"), tx("wiki.skills.zoltan")],
-  "Zoltan Controlled Sector": [tx("wiki.skills.zoltan"), tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.rock"), tx("wiki.skills.slug")],
-  "Zoltan Homeworlds": [tx("wiki.skills.zoltan"), tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.rock"), tx("wiki.skills.slug")],
-  "Abandoned Sector": [tx("wiki.skills.lanius"), tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.rock"), tx("wiki.skills.zoltan"), tx("wiki.skills.slug")],
-  "Mantis Controlled Sector": [tx("wiki.skills.mantis"), tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.rock")],
-  "Mantis Homeworlds": [tx("wiki.skills.mantis"), tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.rock")],
-  "Pirate Controlled Sector": [tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.rock"), tx("wiki.skills.zoltan")],
-  "Rebel Controlled Sector": [tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.rock"), tx("wiki.skills.zoltan")],
-  "Rebel Stronghold": [tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.rock"), tx("wiki.skills.zoltan")],
-  "Rock Controlled Sector": [tx("wiki.skills.rock"), tx("wiki.skills.human"), tx("wiki.skills.zoltan")],
-  "Rock Homeworlds": [tx("wiki.skills.rock"), tx("wiki.skills.human"), tx("wiki.skills.zoltan")],
-  "Slug Controlled Nebula": [tx("wiki.skills.slug"), tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.zoltan"), tx("wiki.skills.rock")],
-  "Slug Home Nebula": [tx("wiki.skills.slug"), tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.zoltan"), tx("wiki.skills.rock")],
-  "Uncharted Nebula": [tx("wiki.skills.human"), tx("wiki.skills.slug"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.zoltan"), tx("wiki.skills.rock")],
-  "Hidden Crystal Worlds": [tx("wiki.skills.crystal")],
-  "The Last Stand": [tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.rock"), tx("wiki.skills.zoltan")],
+  "Civilian (Starting) Sector": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  "Civilian Sector": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  "Engi Controlled Sector": ["Engi", "Human", "Zoltan"],
+  "Engi Homeworlds": ["Engi", "Human", "Zoltan"],
+  "Zoltan Controlled Sector": ["Zoltan", "Human", "Engi", "Mantis", "Rock", "Slug"],
+  "Zoltan Homeworlds": ["Zoltan", "Human", "Engi", "Mantis", "Rock", "Slug"],
+  "Abandoned Sector": ["Lanius", "Human", "Engi", "Mantis", "Rock", "Zoltan", "Slug"],
+  "Mantis Controlled Sector": ["Mantis", "Human", "Engi", "Rock"],
+  "Mantis Homeworlds": ["Mantis", "Human", "Engi", "Rock"],
+  "Pirate Controlled Sector": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  "Rebel Controlled Sector": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  "Rebel Stronghold": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  "Rock Controlled Sector": ["Rock", "Human", "Zoltan"],
+  "Rock Homeworlds": ["Rock", "Human", "Zoltan"],
+  "Slug Controlled Nebula": ["Slug", "Human", "Engi", "Mantis", "Zoltan", "Rock"],
+  "Slug Home Nebula": ["Slug", "Human", "Engi", "Mantis", "Zoltan", "Rock"],
+  "Uncharted Nebula": ["Human", "Slug", "Engi", "Mantis", "Zoltan", "Rock"],
+  "Hidden Crystal Worlds": ["Crystal"],
+  "The Last Stand": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
 };
 
 /** Every race enemy-gen.ts can crew a ship with; the fallback where a sector has no list. */
-export const ALL_CREW_RACES = [tx("wiki.skills.human"), tx("wiki.skills.engi"), tx("wiki.skills.mantis"), tx("wiki.skills.slug"), tx("wiki.skills.rock"), tx("wiki.skills.zoltan"), tx("wiki.skills.crystal"), tx("wiki.skills.lanius")];
+export const ALL_CREW_RACES = [
+  "Human",
+  "Engi",
+  "Mantis",
+  "Slug",
+  "Rock",
+  "Zoltan",
+  "Crystal",
+  "Lanius",
+];
 
 /**
  * Enemy Ships, "Pirated ships": "Typically pirate crews are randomly chosen from the races that can be encountered in

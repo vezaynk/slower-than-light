@@ -1,8 +1,17 @@
-import { tx } from "../../i18n/index.ts";
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
 import { interiorLinks, mayStand, padCells, roomCapacity } from "../crew-spots.ts";
 import { seatKits } from "../layouts.ts";
-import { cooldownLocksPower, enemyEscapeView, kitBars, kitIonLocked, log, noteZoltanKits, rand, roomById, sparePower } from "../sim.ts";
+import {
+  cooldownLocksPower,
+  enemyEscapeView,
+  kitBars,
+  kitIonLocked,
+  log,
+  noteZoltanKits,
+  rand,
+  roomById,
+  sparePower,
+} from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
@@ -100,7 +109,7 @@ export function installSling(g: Game) {
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.sling = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, tx("extras.sling.teleporter-fitted-to-the-lark"));
+  log(g, "Teleporter fitted to the Lark.");
 }
 
 /** Crew Teleporter wiki, "System Upgrades": pays the next row, 30 then 60. */
@@ -112,7 +121,7 @@ export function upgradeSling(g: Game) {
   g.scrap -= cost;
   kit.level += 1;
   noteAchieve(g, { k: "upgrade" });
-  log(g, tx("extras.sling.sling-raised-to-level", { level: kit.level }));
+  log(g, `Sling raised to level ${kit.level}.`);
 }
 
 /**
@@ -143,30 +152,33 @@ export function sendSling(g: Game, roomId: string) {
   // Zoltans: the Crew Teleporter cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
   if (kitIonLocked(kit)) return;
   if (!canRun(kit) && kit.cool <= 0) {
-    log(g, tx("extras.sling.teleporter-has-no-power"));
+    log(g, "Teleporter has no power.");
     return;
   }
   if (kit.cool > 0) {
-    log(g, tx("extras.sling.teleporter-is-still-cooling"));
+    log(g, "Teleporter is still cooling.");
     return;
   }
   if (g.phase !== "combat" || !g.enemy || !roomById(g.enemy, roomId)) {
-    log(g, tx("extras.sling.no-hull-to-teleport-onto"));
+    log(g, "No hull to teleport onto.");
     return;
   }
   const crew = pickCrew(g);
   if (crew.length < 1) {
-    log(g, tx("extras.sling.no-one-to-teleport"));
+    log(g, "No one to teleport.");
     return;
   }
   // Zoltan Shield: the bubble prevents boarding. Bypass lets crew teleport through and does not spend the bubble.
-  if ((g.enemy.zoltan ?? 0) > 0 && !(g.augments.includes("bypass") && bypassZoltan("crew") === "pass")) {
-    log(g, tx("extras.sling.their-zoltan-shield-blocks-the-teleporter"));
+  if (
+    (g.enemy.zoltan ?? 0) > 0 &&
+    !(g.augments.includes("bypass") && bypassZoltan("crew") === "pass")
+  ) {
+    log(g, "Their Zoltan Shield blocks the teleporter.");
     return;
   }
   // Crew Teleporter: a cloaked enemy ship, or the player's own cloak, blocks the send. Cooldown stays put.
   if (cloakBlocksTeleport(g)) {
-    log(g, tx("extras.sling.cloaking-blocks-the-teleporter"));
+    log(g, "Cloaking blocks the teleporter.");
     return;
   }
   for (const c of crew) {
@@ -181,7 +193,7 @@ export function sendSling(g: Game, roomId: string) {
   }
   arm(kit, roomId);
   noteAchieve(g, { k: "teleport" });
-  log(g, tx("extras.sling.teleporter-sends", { join: crew.map((c) => c.name).join(" and ") }));
+  log(g, `Teleporter sends ${crew.map((c) => c.name).join(" and ")}.`);
 }
 
 /** Squares of floor. Crew Teleporter: a 2-tile room, or a four-person room on Mantis B, Mantis C, and Crystal B. */
@@ -217,21 +229,23 @@ export function recallSling(g: Game) {
   // Zoltans: the Crew Teleporter cannot be activated if it is ionized.
   if (kitIonLocked(kit)) return;
   if (!canRun(kit)) {
-    if (kit.cool <= 0) log(g, tx("extras.sling.teleporter-has-no-power"));
-    else if (kit.cool > 0) log(g, tx("extras.sling.teleporter-is-still-cooling"));
+    if (kit.cool <= 0) log(g, "Teleporter has no power.");
+    else if (kit.cool > 0) log(g, "Teleporter is still cooling.");
     return;
   }
   // Mind Control: "A player cannot teleport own mind-controlled crew from the enemy ship".
-  const away = g.crew.filter((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0 && !heldByEnemy(c));
+  const away = g.crew.filter(
+    (c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0 && !heldByEnemy(c),
+  );
   if (away.length < 1) {
-    log(g, tx("extras.sling.no-one-to-pull-back"));
+    log(g, "No one to pull back.");
     return;
   }
   // Crew Teleporter: "Does not retrieve crew from a cloaked ship" is the hack pulse.
   // Cloaking, Overview: a cloak that is still up after the crew are dead still blocks this retrieve,
   // and "Friendly crew cannot be teleported to or from an enemy ship" during the player's own cloak.
   if (cloakBlocksTeleport(g)) {
-    log(g, tx("extras.sling.cloaking-blocks-the-teleporter"));
+    log(g, "Cloaking blocks the teleporter.");
     return;
   }
   // Crew Teleporter: "Can retrieve up to 4 crew from the enemy ship".
@@ -253,7 +267,7 @@ export function recallSling(g: Game) {
     if (mendOnSend(g)) c.hp = c.maxHp;
   });
   arm(kit, null);
-  log(g, tx("extras.sling.teleporter-pulls-them-back"));
+  log(g, "Teleporter pulls them back.");
 }
 
 /**
@@ -277,7 +291,7 @@ export function relaxSling(g: Game) {
   const kit = sling(g);
   if (!kit || kit.cool <= 0) return;
   kit.cool = 0;
-  log(g, tx("extras.sling.teleporter-is-ready"));
+  log(g, "Teleporter is ready.");
 }
 
 /**
@@ -301,7 +315,7 @@ export function onJumpSling(g: Game) {
   for (const c of g.crew) {
     if (c.side !== "player" || c.aboard !== "enemy" || c.hp <= 0) continue;
     c.hp = 0;
-    log(g, tx("extras.sling.is-lost-on-the-other-hull", { name: c.name }));
+    log(g, `${c.name} is lost on the other hull.`);
   }
 }
 
@@ -363,7 +377,9 @@ function boardingPlan(g: Game, ship: Ship): EnemyBoarding {
   // The Flagship's stage 3 builds its own plan (wiki/flagship-systems.ts). Fill the split on first read.
   if (b.stay == null) {
     b.invasion = !!ship.flagship;
-    const crew = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0).length;
+    const crew = g.crew.filter(
+      (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0,
+    ).length;
     // Crew Teleporter, "Enemy Crew Teleporter": the Flagship "will send all its crew except for 1 or 2 crewmembers". The
     // wiki outranks xftl's 3/4. INFERRED: 1 stays at 3 or fewer crew, 2 at 4 or more.
     b.stay = b.invasion ? (crew >= 4 ? 2 : 1) : crew - Math.floor(crew / 2);
@@ -414,7 +430,8 @@ function walkTo(g: Game, ship: Ship, c: Crew, dest: string) {
   if (c.path.length && c.path[c.path.length - 1] === dest) return;
   const room = ship.rooms.find((r) => r.id === dest);
   const hull = c.aboard === "player" ? "player" : "enemy";
-  if (!room || !mayStand(room, g.crew, c.id, dest, c.aboard, hull, interiorLinks(ship.doors, dest))) return;
+  if (!room || !mayStand(room, g.crew, c.id, dest, c.aboard, hull, interiorLinks(ship.doors, dest)))
+    return;
   const path = route(ship, c.room, dest);
   if (!path) return;
   c.path = path;
@@ -429,8 +446,10 @@ function walkTo(g: Game, ship: Ship, c: Crew, dest: string) {
  */
 export function enemyBrokenSystems(ship: Ship): number {
   let n = 0;
-  for (const sys of Object.values(ship.systems)) if (sys.level > 0 && sys.damage >= sys.level) n += 1;
-  for (const kit of Object.values(ship.kits)) if (kit && kit.level > 0 && (kit.damage ?? 0) >= kit.level) n += 1;
+  for (const sys of Object.values(ship.systems))
+    if (sys.level > 0 && sys.damage >= sys.level) n += 1;
+  for (const kit of Object.values(ship.kits))
+    if (kit && kit.level > 0 && (kit.damage ?? 0) >= kit.level) n += 1;
   return n;
 }
 
@@ -485,7 +504,8 @@ function aliveById(g: Game, id: string): Crew | undefined {
  * they left. The page says the enemy pulls crew back "to heal" only in an editor comment.
  */
 function goHome(g: Game, ship: Ship, b: EnemyBoarding, c: Crew) {
-  const medbay = ship.systems.medbay?.level > 0 ? ship.rooms.find((r) => r.system === "medbay") : undefined;
+  const medbay =
+    ship.systems.medbay?.level > 0 ? ship.rooms.find((r) => r.system === "medbay") : undefined;
   const dest = c.hp < c.maxHp * SEND_HP && medbay ? medbay.id : (b.home[c.id] ?? c.room);
   walkTo(g, ship, c, dest);
 }
@@ -530,13 +550,16 @@ function recallBoarders(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
   }
   b.away = b.away.filter((id) => !pull.some((c) => c.id === id));
   kit.cool = cooldown(kitBars(kit));
-  log(g, pull.length > 1 ? tx("extras.sling.they-pull-their-boarders-back") : tx("extras.sling.they-pull-a-boarder-back"));
+  log(g, pull.length > 1 ? "They pull their boarders back." : "They pull a boarder back.");
 }
 
 /** True while a recall circumstance holds for the whole party, so no new party is sent into it (INFERRED). */
 function recallWeather(g: Game, ship: Ship): boolean {
   const escape = enemyEscapeView(g);
-  return (escape != null && escape.left < RECALL_ESCAPE_SECONDS) || enemyBrokenSystems(ship) >= RECALL_BROKEN;
+  return (
+    (escape != null && escape.left < RECALL_ESCAPE_SECONDS) ||
+    enemyBrokenSystems(ship) >= RECALL_BROKEN
+  );
 }
 
 /**
@@ -550,7 +573,9 @@ function formParty(g: Game, ship: Ship, b: EnemyBoarding) {
   // Crew Teleporter, "Enemy Crew Teleporter": usual hulls stop at 2 trips, elites at 3 or 4.
   // The Flagship's phase 3 prints no trip count. `invasion` is that open send; 1 or 2 stay home.
   if ((!b.invasion && b.sent >= b.limit) || b.away.length > 0 || b.party.length > 0) return;
-  const home = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && !leashed(c));
+  const home = g.crew.filter(
+    (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && !leashed(c),
+  );
   const keep = b.stay ?? 0;
   const padRoom = ship.rooms.find((r) => r.kit === "sling");
   const spots = padRoom ? roomCapacity(padRoom, "enemy", interiorLinks(ship.doors, padRoom.id)) : 1;
@@ -596,7 +621,7 @@ function sendParty(g: Game, ship: Ship, kit: Kit, b: EnemyBoarding) {
   b.party = [];
   b.sent += 1;
   kit.cool = cooldown(kitBars(kit));
-  log(g, tx("extras.sling.boarders-on-the-hull"));
+  log(g, "Boarders on the hull.");
 }
 
 /**
@@ -645,7 +670,7 @@ export function tickEnemyBoarding(g: Game, dt: number) {
         if (c) goHome(g, ship, b, c);
       }
       b.party = [];
-      log(g, tx("extras.sling.the-zoltan-shield-stops-the-boarders"));
+      log(g, "The Zoltan Shield stops the boarders.");
     }
     return;
   }

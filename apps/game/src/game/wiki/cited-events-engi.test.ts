@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
-import { fileURLToPath } from "node:url";
 import { EXTRA_EVENTS, type CitedFx } from "./cited-events-engi.ts";
 import { DUMP } from "@stl/wiki-dump";
 
@@ -36,7 +34,6 @@ const SHIPS = new Set([
   "Engi ship",
   "Crystal ship",
 ]);
-
 
 function slug(title: string): string {
   return title
@@ -104,7 +101,10 @@ function choiceNotes(src: string): Map<string, string> {
 
 describe("cited Engi leftover events", () => {
   const pages = loadPages(new Set(TITLES));
-  const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "cited-events-engi.ts"), "utf8");
+  const src = readFileSync(
+    new URL("../../../../../packages/catalog/src/wiki/cited-events-engi.ts", import.meta.url),
+    "utf8",
+  );
   const notes = choiceNotes(src);
 
   it("exports only these titles, with sectors and numbers taken from the page", () => {
@@ -155,7 +155,8 @@ describe("cited Engi leftover events", () => {
           assert.ok(sentence.toLowerCase().includes(step.tier.toLowerCase()));
         }
       });
-      if (ev.dest !== "Confused Mantis") assert.ok(ev.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
+      if (ev.dest !== "Confused Mantis")
+        assert.ok(ev.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
     }
   });
 });

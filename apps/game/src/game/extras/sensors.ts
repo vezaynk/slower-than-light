@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import { REPAIR_SECONDS, manning, playerSensorsOff, roomWith } from "../sim.ts";
 import type { Game, Ship, SysId } from "../types.ts";
 
@@ -48,10 +47,16 @@ export function sensorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): nu
  * INFERRED: the wiki does not print the tooltip wording. The sentence is system level, powered bars (`shownPower`), ion-point count, seconds left on each ion point, repair percent, sabotage percent.
  * INFERRED: repair percent is fix / REPAIR_SECONDS (the printed 12.5s bar). Sabotage percent is that system's room bar, 0..1, and a missing bar is 0.
  */
-export function sensorSystemDetail(ship: Ship, id: SysId, label: string, shownPower: number): string {
+export function sensorSystemDetail(
+  ship: Ship,
+  id: SysId,
+  label: string,
+  shownPower: number,
+): string {
   const sys = ship.systems[id];
   const sabotage = roomWith(ship, id)?.sabotage ?? 0;
   const repair = sensorPct(REPAIR_SECONDS > 0 ? sys.fix / REPAIR_SECONDS : 0);
-  const cooldown = sys.ion.length === 0 ? "none" : sys.ion.map((s) => `${s.toFixed(1)}s`).join(" / ");
-  return tx("extras.sensors.level-power-of-ion-cooldown-repair", { label: label, level: sys.level, shownPower: shownPower, level2: sys.level, length: sys.ion.length, cooldown: cooldown, repair: repair, sensorPct: sensorPct(sabotage) });
+  const cooldown =
+    sys.ion.length === 0 ? "none" : sys.ion.map((s) => `${s.toFixed(1)}s`).join(" / ");
+  return `${label}: level ${sys.level}, power ${shownPower} of ${sys.level}, ion ${sys.ion.length}, cooldown ${cooldown}, repair ${repair}%, sabotage ${sensorPct(sabotage)}%`;
 }

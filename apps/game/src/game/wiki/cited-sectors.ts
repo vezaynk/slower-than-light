@@ -1,4 +1,3 @@
-import { tx } from "../../i18n/index.ts";
 import "../pack/base.ts";
 import { allSectors, sectorDef } from "@stl/pack";
 import type { Beacon, Game, GameEvent } from "../types.ts";
@@ -13,11 +12,15 @@ import { overtaken, type Danger } from "./sector-map.ts";
  * citedSector only stamps them. lastStandRepairEvent plus the choose case pay them.
  */
 const REPAIR_FLAG = "last-stand-repair";
-const REPAIR_NAME = tx("wiki.cited-sectors.federation-repair-station");
+const REPAIR_NAME = "Federation Repair Station";
 const REPAIR_COUNT = 3;
 
 function nebulaNames(): Set<string> {
-  return new Set(allSectors().filter((sector) => sector.group === "nebula").map((sector) => sector.name));
+  return new Set(
+    allSectors()
+      .filter((sector) => sector.group === "nebula")
+      .map((sector) => sector.name),
+  );
 }
 
 /** True in a nebula sector (Sectors: the nebula group). */
@@ -33,7 +36,8 @@ export function citedSector(g: Game): void {
     if (need <= 0) break;
     // Sectors, "The Last Stand": the Federation base is its own beacon, not a repair station.
     if (b.flag === REPAIR_FLAG || b.flag === "engi-cache" || b.flag === "fed-base") continue;
-    if (b.kind === "start" || b.kind === "exit" || b.kind === "boss" || b.kind === "store") continue;
+    if (b.kind === "start" || b.kind === "exit" || b.kind === "boss" || b.kind === "store")
+      continue;
     b.flag = REPAIR_FLAG;
     b.name = REPAIR_NAME;
     b.kind = "event";
@@ -58,8 +62,8 @@ export function citedBeaconCount(_g: Game): number | null {
 export function lastStandRepairEvent(): GameEvent {
   return {
     title: REPAIR_NAME,
-    body: tx("wiki.cited-sectors.15-hull-22-44-scrap-5"),
-    choices: [{ id: REPAIR_FLAG, label: tx("wiki.cited-sectors.take-the-supplies") }],
+    body: "15 hull, 22–44 scrap, 5 fuel, 4 missiles, and 5 drone parts.",
+    choices: [{ id: REPAIR_FLAG, label: "Take the supplies." }],
   };
 }
 
@@ -121,7 +125,12 @@ function plasmaStormEvent(beacon: Pick<Beacon, "flag" | "name">): boolean {
  * Those plasma-storm fights still storm when the beacon is not a nebula and the fleet has not overtaken it.
  */
 export function ionStormBeacon(
-  beacon: (Pick<Beacon, "kind" | "col" | "row" | "cleared" | "flag" | "name"> & { x?: number; y?: number }) | undefined,
+  beacon:
+    | (Pick<Beacon, "kind" | "col" | "row" | "cleared" | "flag" | "name"> & {
+        x?: number;
+        y?: number;
+      })
+    | undefined,
   fleet: Danger,
 ): boolean {
   if (!beacon || beacon.kind === "exit") return false;

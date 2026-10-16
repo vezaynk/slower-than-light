@@ -12,7 +12,6 @@
  * The choice queues on Game.overflow and stops the clock (sim.ts halted) until it is answered. The new item can always
  * be the one left behind.
  */
-import { tx } from "../../i18n/index.ts";
 import { CREW_CAP, dismissCrew, log, weaponSlotCap } from "../sim.ts";
 import type { CargoItem, Game, Overflow } from "../types.ts";
 import { canFieldDrone, fieldDroneSchematic, fieldedSchematics } from "./cited-stores.ts";
@@ -32,7 +31,14 @@ function stow(g: Game, item: CargoItem): boolean {
 
 function mount(g: Game, defId: string, charge = 0, at = g.player.weapons.length) {
   g.uid = (g.uid + 1) >>> 0;
-  g.player.weapons.splice(at, 0, { uid: "u" + g.uid.toString(36), defId, charge, enabled: false, autofire: false, target: null });
+  g.player.weapons.splice(at, 0, {
+    uid: "u" + g.uid.toString(36),
+    defId,
+    charge,
+    enabled: false,
+    autofire: false,
+    target: null,
+  });
 }
 
 function queue(g: Game, item: Overflow) {
@@ -77,7 +83,12 @@ export function receiveAugment(g: Game, id: string): "fitted" | "queued" {
 /** Ids of every drone schematic the ship holds, fitted or in cargo. */
 export function heldSchematics(g: Game): string[] {
   const kit = g.player.kits.swarm;
-  return [...(kit ? fieldedSchematics(kit) : []), ...cargoOf(g).filter((c) => c.kind === "drone").map((c) => c.id)];
+  return [
+    ...(kit ? fieldedSchematics(kit) : []),
+    ...cargoOf(g)
+      .filter((c) => c.kind === "drone")
+      .map((c) => c.id),
+  ];
 }
 
 /**
@@ -118,7 +129,10 @@ export function stowDrone(g: Game, index: number): boolean {
   const have = fieldedSchematics(kit);
   const ref = have[index];
   if (ref == null) return false;
-  setFielded(kit, have.filter((_, i) => i !== index));
+  setFielded(
+    kit,
+    have.filter((_, i) => i !== index),
+  );
   stow(g, { kind: "drone", id: ref });
   return true;
 }
@@ -139,7 +153,9 @@ export function fitFromCargo(g: Game, index: number): boolean {
 export function canFitFromCargo(g: Game, index: number): boolean {
   const item = cargoOf(g)[index];
   if (!item) return false;
-  return item.kind === "weapon" ? g.player.weapons.length < weaponSlotCap(g) : canFieldDrone(g, item.id);
+  return item.kind === "weapon"
+    ? g.player.weapons.length < weaponSlotCap(g)
+    : canFieldDrone(g, item.id);
 }
 
 function setFielded(kit: NonNullable<Game["player"]["kits"]["swarm"]>, next: string[]) {
@@ -156,7 +172,8 @@ function setFielded(kit: NonNullable<Game["player"]["kits"]["swarm"]>, next: str
 
 /** Called after a crewmember joins: a 9th asks who is relieved. */
 export function checkCrewRoom(g: Game) {
-  if (aboardCrew(g).length > CREW_CAP && !g.overflow?.some((o) => o.kind === "crew")) queue(g, { kind: "crew" });
+  if (aboardCrew(g).length > CREW_CAP && !g.overflow?.some((o) => o.kind === "crew"))
+    queue(g, { kind: "crew" });
 }
 
 /**
@@ -168,7 +185,9 @@ export function keepNewHire(g: Game) {
   const crew = aboardCrew(g);
   const newest = crew[crew.length - 1];
   if (!newest || !g.overflow) return;
-  g.overflow = g.overflow.map((item) => (item.kind === "crew" && !item.keep ? { kind: "crew", keep: newest.id } : item));
+  g.overflow = g.overflow.map((item) =>
+    item.kind === "crew" && !item.keep ? { kind: "crew", keep: newest.id } : item,
+  );
 }
 
 /**
@@ -182,7 +201,7 @@ export function resolveOverflow(g: Game, leave: string): boolean {
     // The newcomer is already aboard, so "new" is just one of the ids here. A paid hire stays.
     if (leave === head.keep || !dismissCrew(g, leave)) return false;
   } else if (leave === "new") {
-    log(g, tx("wiki.make-room.left-behind"));
+    log(g, "Left behind.");
   } else if (/^c:\d+$/.test(leave)) {
     // A cargo item is left behind; the new one takes its cargo slot.
     const index = Number(leave.slice(2));

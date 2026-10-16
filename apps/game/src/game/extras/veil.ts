@@ -1,7 +1,14 @@
-import { tx } from "../../i18n/index.ts";
 import type { Game, Kit, Ship } from "../types.ts";
 import { seatKits } from "../layouts.ts";
-import { kitBars, kitIonLocked, kitPowerDown, kitPowerUp, log, noteZoltanKits, rand } from "../sim.ts";
+import {
+  kitBars,
+  kitIonLocked,
+  kitPowerDown,
+  kitPowerUp,
+  log,
+  noteZoltanKits,
+  rand,
+} from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
@@ -72,7 +79,7 @@ export function installVeil(g: Game) {
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.veil = blankVeil();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
-  log(g, tx("extras.veil.cloaking-fitted"));
+  log(g, "Cloaking fitted.");
 }
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1→2 costs 30, level 2→3 costs 50. Level 3 is the cap. */
@@ -112,18 +119,18 @@ export function startVeil(g: Game) {
   if (kit.on) return;
   // Per the user: C or the CLOAK button says why nothing happened, as the Teleporter does.
   if (kitBars(kit) < 1) {
-    log(g, tx("extras.veil.cloaking-has-no-power"));
+    log(g, "Cloaking has no power.");
     return;
   }
   if (kit.cool > 0) {
-    log(g, tx("extras.veil.cloaking-is-still-cooling-down"));
+    log(g, "Cloaking is still cooling down.");
     return;
   }
   kit.on = true;
   noteAchieve(g, { k: "cloak" });
   kit.left = veilSeconds(kit);
   kit.cool = 0;
-  log(g, tx("extras.veil.cloaking-up"));
+  log(g, "Cloaking up.");
 }
 
 /**

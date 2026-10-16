@@ -16,6 +16,8 @@ import { rollPrice } from "./event-prices.ts";
 import { eventGrade, rollGrade } from "./event-grades.ts";
 import { addQuest, result } from "./quests.ts";
 import { rollFuel } from "./fuel-gifts.ts";
+import { stampStockLabels } from "./stock-labels.ts";
+import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
@@ -621,20 +623,22 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
     // > "Initial scans indicate a network of caves not far underground. You launch a boarding drone and it breaks through the surface into the cavern below." — [[Zoltan odd moon]]
     // > "Your drone discovers a vast cave network and evidence of excavation. Buried deep below you find a Zoltan scientist, still hard at work. He tells you that all his colleagues are long dead. You decide not to ask questions and offer to let him join your crew." — [[Zoltan odd moon]]
     // > "You receive a Zoltan crewmember." — [[Zoltan odd moon]]
-    if (!ownsBoardDrone(g) || g.player.parts < 1) return false;
-    g.player.parts -= 1;
-    ctx.note(tx("wiki.cited-events.drone-parts-1"));
+    const n = affordStock(g, id, "parts");
+    if (!ownsBoardDrone(g) || n == null) return false;
+    takeStock(g, "parts", n);
+    const spent = partsLine(n);
+    ctx.note(spent);
     // Crew: eight is the cap. A ninth is not added. This page does not print that refusal.
     const joined = joinCrew(g, tx("wiki.cited-events.zoltan"));
     const line = joined ? tx("wiki.cited-events.you-receive-a-zoltan-crewmember") : tx("wiki.cited-events.there-is-no-room-aboard-for");
     ctx.note(line);
-    citedResult(g, ZOLTAN_MOON_DRONE, [line, tx("wiki.cited-events.drone-parts-1")]);
+    citedResult(g, ZOLTAN_MOON_DRONE, [line, spent]);
     return true;
   }
   return false;
 }
 
-export function citedEvent(g: Game, b: Beacon): GameEvent | null {
+function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   const ev = matchEvent(b);
   if (!ev) return null;
   const missing = missingCard(g, b, ev);
@@ -1412,6 +1416,13 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   };
 }
 
+export function citedEvent(g: Game, b: Beacon): GameEvent | null {
+  const ev = citedEventRaw(g, b);
+  if (!ev) return null;
+  ev.choices = stampStockLabels(ev.choices);
+  return ev;
+}
+
 /** The fitted schematic is kit.target. A loadout entry counts the same way. */
 function ownsBoardDrone(g: Game): boolean {
   const kit = g.player.kits.swarm;
@@ -1866,11 +1877,12 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // > "(Hull Repair Drone) Offer to help repair their hull. [ Drone parts lost: 1 ]" — [[No fuel: Engi ship repair]]
     // > "They happily accept your offer for help. Once the drone does its work they transfer over some fuel for your trouble." — [[No fuel: Engi ship repair]]
     // > "You receive Fuel gained: 4-6." — [[No fuel: Engi ship repair]]
-    if (!ownsHullRepair(g) || g.player.parts < 1) return false;
-    g.player.parts -= 1;
+    const n = affordStock(g, id, "parts");
+    if (!ownsHullRepair(g) || n == null) return false;
+    takeStock(g, "parts", n);
     const fuel = rollFuel(id, (lo, hi) => roll(ctx, lo, hi));
     g.fuel += fuel;
-    const spent = tx("wiki.cited-events.drone-parts-1");
+    const spent = partsLine(n);
     const got = `${tx("wiki.cited-events.fuel")}: ${fuel}.`;
     ctx.note(spent);
     ctx.note(got);

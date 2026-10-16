@@ -17,6 +17,7 @@ import { enterHiddenCrystal, log, rand } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts";
 import { grantRandomItem } from "./bonus-item.ts";
+import { affordStock, scrapLine, takeStock } from "./stock-spend.ts";
 import {
   addQuest,
   card,
@@ -447,9 +448,10 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "(Zoltan Crew) Present his official documentation and pay the entry fee." — [[Zoltan trade hub]]
     // > "You lose Scrap lost: 10." — [[Zoltan trade hub]]
     // > "They scan ID that declares your crewmember an official citizen" — [[Zoltan trade hub]]
-    if (!hasZoltan(g) || g.scrap < 10) return;
-    g.scrap -= 10;
-    log(g, tx("wiki.quests-a.scrap-10"));
+    const cost = affordStock(g, "c:zoltan-trade-hub:2", "scrap");
+    if (!hasZoltan(g) || cost == null) return;
+    takeStock(g, "scrap", cost);
+    log(g, scrapLine(cost));
     zoltanHub(g, tx("wiki.quests-a.they-scan-id-that-declares-your"));
   },
   "c:zoltan-trade-hub:3": (g) =>

@@ -70,6 +70,8 @@ import {
   type SurrenderTier,
 } from "./surrender.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
+import { stampStockLabels } from "./stock-labels.ts";
+import { affordStock, fuelLine, missileLine, partsLine, scrapLine, takeStock } from "./stock-spend.ts";
 
 /**
  * @agent:quests-a. One quest-opener module (quests-a.ts, quests-b.ts): its quest ids, arrival cards, choices, page wins
@@ -288,16 +290,18 @@ function engiDistressWin(g: Game, deadCrew: boolean) {
 /** Give them 25 scrap. Three results, no odds. INFERRED: equal. The drone schematic is unnamed: Rewards, "Drone": "A
  * random drone schematic & T scrap." The page pays no scrap with it. */
 function engiDistressGift(g: Game) {
-  if (g.scrap < 25) return;
-  g.scrap -= 25;
-  log(g, tx("wiki.quests.scrap-25"));
+  const cost = affordStock(g, "q:engi-distress:scrap", "scrap");
+  if (cost == null) return;
+  takeStock(g, "scrap", cost);
+  const spent = scrapLine(cost);
+  log(g, spent);
   const r = pick(g, ["nothing", "heal", "schematic"] as const);
   if (r === "heal") {
     result(
       g,
       tx("wiki.quests.the-engies-are-grateful-they-don"),
       { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0, weapon: "healburst" },
-      [tx("wiki.quests.scrap-25")],
+      [spent],
     );
     return;
   }
@@ -306,7 +310,7 @@ function engiDistressGift(g: Game) {
       g,
       tx("wiki.quests.the-engies-are-grateful-they-don-2"),
       undefined,
-      [tx("wiki.quests.scrap-25"), grantRandomItem(g, "drone")],
+      [spent, grantRandomItem(g, "drone")],
     );
     return;
   }
@@ -314,7 +318,7 @@ function engiDistressGift(g: Game) {
     g,
     tx("wiki.quests.the-words-they-use-are-need"),
     undefined,
-    [tx("wiki.quests.nothing-else-happens"), tx("wiki.quests.scrap-25")],
+    [tx("wiki.quests.nothing-else-happens"), spent],
   );
 }
 
@@ -334,7 +338,7 @@ export function result(g: Game, text: string, offer?: SurrenderOffer, extras: st
   const tail = [...got, ...extras].filter(Boolean);
   if (tail.length) lines.push(tail.join(" "));
   for (const l of got) log(g, l);
-  g.event = { title: here(g)?.name ?? "Event", body: lines.join("\n\n"), choices };
+  g.event = { title: here(g)?.name ?? "Event", body: lines.join("\n\n"), choices: stampStockLabels(choices) };
   g.phase = "event";
   g.paused = true;
 }
@@ -601,7 +605,7 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       g.event = {
         title: here(g)?.name ?? packed.dest,
         body: packed.body,
-        choices: packed.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+        choices: stampStockLabels(packed.choices.map((choice) => ({ id: choice.id, label: choice.label }))),
       };
       g.phase = "event";
       g.paused = true;
@@ -846,12 +850,14 @@ function zoltanRaftWin(g: Game, deadCrew: boolean) {
 
 /** Offer to hire him for 40 scrap. Two printed results, no odds. INFERRED: equal. */
 function zoltanRaftHire(g: Game) {
-  if (g.scrap < 40) return;
+  const cost = affordStock(g, "s:zoltan-raft:hire", "scrap");
+  if (cost == null) return;
   if (pick(g, ["accept", "refuse"] as const) === "accept") {
-    g.scrap -= 40;
-    log(g, tx("wiki.quests.scrap-40"));
+    takeStock(g, "scrap", cost);
+    const spent = scrapLine(cost);
+    log(g, spent);
     const joined = crew(g, tx("wiki.quests.zoltan"));
-    result(g, tx("wiki.quests.he-responds-defeatedly-i-suppose-i"), undefined, [tx("wiki.quests.scrap-40"), joined]);
+    result(g, tx("wiki.quests.he-responds-defeatedly-i-suppose-i"), undefined, [spent, joined]);
     return;
   }
   result(g, tx("wiki.quests.he-responds-haughtily-you-would-presume"), undefined, [tx("wiki.quests.nothing-happens")]);
@@ -1039,10 +1045,11 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // 40 scrap for a Lanius named Translator. The page prints no skill.
   // At full crew the hire goes ahead and someone already aboard is relieved (make-room.ts keepNewHire).
   "q:lanius-translator:buy": (g) => {
-    if (g.scrap < 40) return;
+    const cost = affordStock(g, "q:lanius-translator:buy", "scrap");
+    if (cost == null) return;
     joinCrew(g, tx("wiki.quests.lanius"), tx("wiki.quests.translator"));
     keepNewHire(g);
-    g.scrap -= 40;
+    takeStock(g, "scrap", cost);
     result(g, tx("wiki.quests.your-ships-dock-and-you-are"), undefined, [tx("wiki.quests.a-lanius-crewmember-named-translator-joins")]);
   },
   "q:lanius-translator:decline": (g) => {
@@ -1163,18 +1170,25 @@ const CHOICES: Record<string, (g: Game) => void> = {
     engiDistressGift(g);
   },
   "q:engi-distress:supplies": (g) => {
-    if (g.scrap < 40 || g.missiles < 2 || g.fuel < 2) return;
-    g.scrap -= 40;
-    g.missiles -= 2;
-    g.fuel -= 2;
-    log(g, tx("wiki.quests.scrap-40"));
-    log(g, tx("wiki.quests.missiles-2"));
-    log(g, tx("wiki.quests.fuel-2"));
+    const id = "q:engi-distress:supplies";
+    const scrap = affordStock(g, id, "scrap");
+    const missiles = affordStock(g, id, "missiles");
+    const fuel = affordStock(g, id, "fuel");
+    if (scrap == null || missiles == null || fuel == null) return;
+    takeStock(g, "scrap", scrap);
+    takeStock(g, "missiles", missiles);
+    takeStock(g, "fuel", fuel);
+    const spentScrap = scrapLine(scrap);
+    const spentMissiles = missileLine(missiles);
+    const spentFuel = fuelLine(fuel);
+    log(g, spentScrap);
+    log(g, spentMissiles);
+    log(g, spentFuel);
     result(
       g,
       tx("wiki.quests.they-wouldn-t-get-more-than"),
       undefined,
-      [grantAug(g, "medbot"), tx("wiki.quests.scrap-40"), tx("wiki.quests.missiles-2"), tx("wiki.quests.fuel-2")],
+      [grantAug(g, "medbot"), spentScrap, spentMissiles, spentFuel],
     );
   },
   "q:engi-distress:nothing": (g) => {
@@ -2200,9 +2214,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Hacking, one drone part. Two results, no odds. INFERRED: equal. The part is spent either way.
   "c:auto-ship-near-storage-station-in-nebula:4": (g) => {
-    if ((g.player.kits.spike?.level ?? 0) <= 0 || g.player.parts < 1) return;
-    g.player.parts -= 1;
-    log(g, tx("wiki.quests.drone-parts-1"));
+    const n = affordStock(g, "c:auto-ship-near-storage-station-in-nebula:4", "parts");
+    if ((g.player.kits.spike?.level ?? 0) <= 0 || n == null) return;
+    takeStock(g, "parts", n);
+    log(g, partsLine(n));
     if (pick(g, ["fight", "station"] as const) === "fight") {
       pageFight(g, tx("wiki.quests.you-send-a-drone-to-hack"), "Auto-ship", "auto-ship-near-storage-station-in-nebula");
       return;
@@ -2211,18 +2226,20 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Improved Hacking, level 2+, one drone part. Always the station.
   "c:auto-ship-near-storage-station-in-nebula:5": (g) => {
-    if ((g.player.kits.spike?.level ?? 0) < 2 || g.player.parts < 1) return;
-    g.player.parts -= 1;
-    log(g, tx("wiki.quests.drone-parts-1"));
+    const n = affordStock(g, "c:auto-ship-near-storage-station-in-nebula:5", "parts");
+    if ((g.player.kits.spike?.level ?? 0) < 2 || n == null) return;
+    takeStock(g, "parts", n);
+    log(g, partsLine(n));
     storageInvestigate(g, tx("wiki.quests.you-successfully-hack-into-the-station-2"));
   },
   // Auto-ship near radar station. {{DuplicateEvent|2}} on the station, once on the fight.
   // The two station sentences have no odds between them. INFERRED: equal. The part is spent either way.
   // The map reveal inside Access the station is not wired.
   "c:auto-ship-near-radar-station:2": (g) => {
-    if (!hasRadarCombat(g) || g.player.parts < 1) return;
-    g.player.parts -= 1;
-    log(g, tx("wiki.quests.drone-parts-1"));
+    const n = affordStock(g, "c:auto-ship-near-radar-station:2", "parts");
+    if (!hasRadarCombat(g) || n == null) return;
+    takeStock(g, "parts", n);
+    log(g, partsLine(n));
     if (weighted(g, [["station", 2], ["fight", 1]] as const) === "fight") {
       pageFight(g, tx("wiki.quests.before-your-drone-has-a-chance"), "Auto-ship", "auto-ship-near-radar-station");
       return;
@@ -2242,9 +2259,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
   // Hacking spends one drone part. The page prints one result: a one-turn fleet delay and a map download.
   // The map reveal is not wired.
   "q:auto-radar:drone": (g) => {
-    if ((g.player.kits.spike?.level ?? 0) <= 0 || g.player.parts < 1) return;
-    g.player.parts -= 1;
-    log(g, tx("wiki.quests.drone-parts-1"));
+    const n = affordStock(g, "q:auto-radar:drone", "parts");
+    if ((g.player.kits.spike?.level ?? 0) <= 0 || n == null) return;
+    takeStock(g, "parts", n);
+    log(g, partsLine(n));
     g.fleet = Math.max(0, g.fleet - 1);
     result(g, tx("wiki.quests.you-successfully-hack-into-their-system"), undefined, [tx("wiki.quests.the-rebel-fleet-is-delayed-for")]);
   },
@@ -2527,13 +2545,15 @@ const CHOICES: Record<string, (g: Game) => void> = {
     }
   },
   "q:war-camp:missile": (g) => {
-    if (g.missiles < 1 || !hasMissileWeapon(g)) return;
-    g.missiles -= 1;
+    const n = affordStock(g, "q:war-camp:missile", "missiles");
+    if (n == null || !hasMissileWeapon(g)) return;
+    takeStock(g, "missiles", n);
     pageFight(g, tx("wiki.quests.you-fire-at-their-fuel-depot"), tx("wiki.quests.mantis-ship"), "quest-mantis-war-camp", { ...NEVER_RUN });
   },
   "q:war-camp:firebomb": (g) => {
-    if (g.missiles < 2) return;
-    g.missiles -= 2;
+    const n = affordStock(g, "q:war-camp:firebomb", "missiles");
+    if (n == null) return;
+    takeStock(g, "missiles", n);
     const joined = crew(g, tx("wiki.quests.engi"));
     result(
       g,
@@ -2603,13 +2623,15 @@ const CHOICES: Record<string, (g: Game) => void> = {
   "q:station:scrapmachines": (g) => result(g, tx("wiki.quests.you-take-what-you-can-and"), scrapOnly(g, "low")),
   "q:station:stay": (g) => result(g, tx("wiki.quests.you-decide-it-s-not-worth")),
   "q:station:fuel4": (g) => {
-    if (g.fuel < 4) return;
-    g.fuel -= 4;
+    const n = affordStock(g, "q:station:fuel4", "fuel");
+    if (n == null) return;
+    takeStock(g, "fuel", n);
     result(g, tx("wiki.quests.great-thank-you-here-s-some"), scrapOnly(g, "medium"));
   },
   "q:station:fuel1": (g) => {
-    if (g.fuel < 1) return;
-    g.fuel -= 1;
+    const n = affordStock(g, "q:station:fuel1", "fuel");
+    if (n == null) return;
+    takeStock(g, "fuel", n);
     result(g, tx("wiki.quests.well-i-suppose-that-s-better"));
   },
   "q:station:none": (g) => result(g, tx("wiki.quests.i-see")),
@@ -2653,11 +2675,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // {{Blue Option|Healing Burst}}. 1 missile. A crewmember with 1 skill in engines, medium scrap, and the Federation base.
   "q:loyalists:heal": (g) => {
-    if (g.missiles < 1 || !g.player.weapons.some((w) => w.defId === "healburst")) return;
-    g.missiles -= 1;
+    const n = affordStock(g, "q:loyalists:heal", "missiles");
+    if (n == null || !g.player.weapons.some((w) => w.defId === "healburst")) return;
+    takeStock(g, "missiles", n);
     const joined = crew(g, randomRace(g), "engines");
     result(g, tx("wiki.quests.you-launch-a-healing-bomb"), scrapOnly(g, "medium"), [
-      tx("wiki.quests.missiles-1"),
+      missileLine(n),
       joined,
       addQuest(g, "fed-base"),
     ]);

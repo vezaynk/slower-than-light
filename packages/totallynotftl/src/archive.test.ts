@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { emitMod } from "@stl/hyperspace";
 import { extractFtlDat } from "@stl/ftldat";
 import { packFromFtl } from "@stl/pack";
-import { standInDat, standInXml } from "./archive.ts";
+import { standInDat, standInMod, standInXml } from "./archive.ts";
 
 describe("totallynotftl.dat", () => {
-  it("rebuilds the committed xml and archive", async () => {
+  it("rebuilds the committed xml, archive, and mod file", async () => {
     const xml = await standInXml();
     const goldenXml = readFileSync(new URL("../totallynotftl.xml", import.meta.url), "utf8");
     assert.equal(xml, goldenXml);
@@ -51,5 +52,11 @@ describe("totallynotftl.dat", () => {
     const golden = readFileSync(new URL("../totallynotftl.dat", import.meta.url));
     assert.equal(built.byteLength, golden.byteLength);
     assert.equal(Buffer.compare(built, golden), 0);
+    const goldenMod = readFileSync(
+      new URL("../totallynotftl.hyperspace.xml", import.meta.url),
+      "utf8",
+    );
+    assert.equal(emitMod(pack), goldenMod);
+    assert.equal(await standInMod(), goldenMod);
   });
 });

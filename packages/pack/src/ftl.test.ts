@@ -207,6 +207,25 @@ describe("packFromFtl", () => {
     assert.equal(pack.systems?.find((row) => row.id === "shields")?.cost, 80);
   });
 
+  it("reads the archive missile type MISSILES", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/blueprints.xml",
+        xml: `<weaponBlueprint name="LETO">
+          <type>MISSILES</type>
+          <title>Leto</title>
+          <damage>1</damage>
+          <shots>1</shots>
+          <missiles>1</missiles>
+          <power>1</power>
+          <cost>20</cost>
+        </weaponBlueprint>`,
+      },
+    ]);
+    assert.equal(pack.weapons?.find((row) => row.id === "LETO")?.kind, "missile");
+    assert.equal(pack.weapons?.find((row) => row.id === "LETO")?.ammo, true);
+  });
+
   it("names the file when the XML is not well-formed", () => {
     assert.throws(
       () => packFromFtl([{ path: "data/blueprints.xml", xml: "<weaponBlueprint>" }]),

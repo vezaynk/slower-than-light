@@ -71,7 +71,43 @@ const pack: ContentPack = {
     },
   ],
   weapons: [laser],
-  tunes: [{ id: "shields", start: 2, costs: [{ level: 1, cost: 100 }] }],
+  systems: [{ id: "shields", name: "Shields", cost: 125, slot: "sys" }],
+  tunes: [
+    { id: "shields", start: 2, costs: [{ level: 1, cost: 100 }] },
+    { id: "engines", start: 1, costs: [{ level: 1, cost: 10 }] },
+  ],
+  stores: [
+    {
+      id: "standard",
+      name: "Store",
+      slot: 1,
+      weapons: 2,
+      sections: ["weapons", "crew", "relics"],
+      lines: [
+        { id: "fuel", kind: "fuel", name: "Fuel", cost: 3, min: 3, max: 7 },
+        { id: "repair", kind: "repair", name: "Hull patch +5", cost: 0, min: 5, max: 5 },
+        { id: "plain", kind: "crew", name: "Human", cost: 45, min: 1, max: 1 },
+        { id: "relic", kind: "", name: "Relic", cost: 9, min: 1, max: 1 },
+      ],
+    },
+  ],
+  rewards: {
+    scaling: [{ baseAmount: 15, sectorAmount: 6, difficultyAmount: 0 }],
+    resources: [{ kind: "fuel", level: "LOW", min: 1, max: 3 }],
+    rewards: [
+      {
+        name: "standard",
+        resources: [
+          { name: "scrap" },
+          { name: "fuel", level: "LOW" },
+        ],
+        minResources: 2,
+        maxResources: 2,
+        bonus: { roll: 100, chance: 3 },
+      },
+    ],
+  },
+  factions: [{ id: "rebel", chance: 50, min: 20, max: 30 }],
   events: [
     {
       id: "ember",
@@ -140,7 +176,11 @@ describe("pack document", () => {
     const back = parsePack(emitPack(pack));
     assert.deepEqual(back.crew, pack.crew);
     assert.deepEqual(back.weapons, pack.weapons);
+    assert.deepEqual(back.systems, pack.systems);
     assert.deepEqual(back.tunes, pack.tunes);
+    assert.deepEqual(back.stores, pack.stores);
+    assert.deepEqual(back.rewards, pack.rewards);
+    assert.deepEqual(back.factions, pack.factions);
     assert.deepEqual(back.events, pack.events);
     assert.deepEqual(back.lists, pack.lists);
     assert.deepEqual(back.empties, pack.empties);
@@ -828,17 +868,80 @@ describe("pack document", () => {
 
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
-      <eventList><event id="orphan" unique="true"/></eventList>
+      <eventList><event name="orphan" unique="true"/></eventList>
       <eventList name="empty"/>
-      <eventList name="ember"><event unique="true"/><event id="kept"/></eventList>
+      <eventList name="ember"><event unique="true"/><event name="kept"/></eventList>
+      <eventList name="retired"><event id="kept" unique="true"/></eventList>
       <emptyBeacon name="quiet"><title>Quiet</title></emptyBeacon>
       <emptyBeacon><title>No name</title><text>Hi</text></emptyBeacon>
       <emptyBeacon name="kept" nebula="true"><title>Kept</title><sector>Ember</sector><text>Still.</text></emptyBeacon>
     </FTL>`);
     assert.deepEqual(back.lists, [{ id: "ember", entries: [{ id: "kept", unique: false }] }]);
+    assert.equal(back.events?.some((row) => row.id === "kept"), false);
     assert.deepEqual(back.empties, [
       { id: "kept", dest: "Kept", sectors: ["Ember"], texts: ["Still."], nebula: true },
     ]);
+  });
+
+  it("does not read a retired store, tune, list id, or surrender spelling", () => {
+    const back = parsePack(`<FTL>
+      <systemTune name="old"><start>2</start></systemTune>
+      <storeBlueprint name="old"><title>Old</title></storeBlueprint>
+      <event name="page" flag="cited:page">
+        <title>Page</title>
+        <text>Hi</text>
+        <surrender chance="10" low="1" high="2">
+          <text>Yield</text>
+          <reward k="weapon" name="Anti-Bio Beam"/>
+          <choice name="surrender-accept"><text>Spare</text></choice>
+        </surrender>
+      </event>
+      <event name="old-reward" flag="cited:old-reward">
+        <title>Old</title>
+        <text>Hi</text>
+        <surrender chance="10" min="1" max="2">
+          <text>Yield</text>
+          <reward k="weapon" name="Anti-Bio Beam"/>
+          <choice name="surrender-accept"><text>Spare</text></choice>
+        </surrender>
+      </event>
+    </FTL>`);
+    assert.deepEqual(back.tunes, []);
+    assert.deepEqual(back.stores, []);
+    assert.equal(back.events?.[0]?.surrender, undefined);
+    assert.deepEqual(back.events?.[1]?.surrender?.reward, { k: "none" });
+  });
+
+  it("round-trips the other surrender rewards", () => {
+    const rewards = [
+      { k: "stuff" as const },
+      { k: "stuff" as const, tier: "high" as const },
+      { k: "standard" as const, tier: "low" as const, race: "Zoltan" },
+      { k: "scrap" as const, tier: "medium" as const, unnamed: "drone" as const },
+      { k: "crew" as const },
+      { k: "crew" as const, race: "Engi" },
+      { k: "fuel-repairs" as const, repairs: 5 },
+      { k: "none" as const },
+    ];
+    const events = rewards.map((reward, index) => ({
+      id: `pay-${index}`,
+      dest: "Pay",
+      flag: `cited:pay-${index}`,
+      aliases: [],
+      sectors: [],
+      body: "Hi",
+      choices: [],
+      surrender: {
+        chance: 10,
+        low: 1,
+        high: 2,
+        reward,
+        hail: "Yield",
+        accept: "Spare",
+        refuse: "",
+      },
+    }));
+    assert.deepEqual(parsePack(emitPack({ events })).events, events);
   });
 
   it("round-trips names that contain markup characters", () => {

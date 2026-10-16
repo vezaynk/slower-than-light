@@ -1,5 +1,4 @@
-import type { Beacon, Difficulty, Game, GameEvent } from "../types.ts";
-import { mediumScrapBand } from "../content.ts";
+import type { Beacon, Game, GameEvent } from "../types.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { allEvents, eventDef } from "@stl/pack";
 import { CITED_EVENT_ROWS } from "./event-catalog.ts";
@@ -20,6 +19,7 @@ import {
   mantisBoarders,
   pageCard,
   plasmaHumanBoarders,
+  scrapBand,
   rockBoarders,
   slugBoarders,
   zoltanBoarders,
@@ -86,7 +86,7 @@ export function citedSystemHalf(
  * Blue options, crew, map reveals, and upgrades are not granted. An unnamed weapon, augmentation or
  * drone schematic is a random one (Rewards; the "item" fx, or grantRandomItem in a handler).
  * Template:Scrap rewards low and high columns are the WIKI-SPEC section 14 table.
- * Medium uses mediumScrapBand.
+ * Medium, low, and high all read the loaded reward table.
  */
 
 type ResId = "scrap" | "fuel" | "missiles" | "parts";
@@ -117,74 +117,6 @@ type EventDef = {
   choices: ChoiceDef[];
 };
 
-/** Template:Scrap rewards, Low column, sectors 1–8. Easy, Normal, Hard. */
-const SCRAP_LOW: Record<Difficulty, [number, number][]> = {
-  easy: [
-    [10, 14],
-    [13, 18],
-    [16, 23],
-    [19, 27],
-    [22, 31],
-    [25, 35],
-    [28, 39],
-    [31, 44],
-  ],
-  normal: [
-    [7, 10],
-    [10, 14],
-    [13, 18],
-    [16, 23],
-    [19, 27],
-    [22, 31],
-    [25, 35],
-    [28, 39],
-  ],
-  hard: [
-    [7, 10],
-    [7, 10],
-    [10, 14],
-    [13, 18],
-    [16, 23],
-    [19, 27],
-    [22, 31],
-    [25, 35],
-  ],
-};
-
-/** Template:Scrap rewards, High column, sectors 1–8. Easy, Normal, Hard. */
-const SCRAP_HIGH: Record<Difficulty, [number, number][]> = {
-  easy: [
-    [27, 32],
-    [35, 41],
-    [42, 51],
-    [50, 60],
-    [58, 69],
-    [66, 79],
-    [74, 88],
-    [81, 97],
-  ],
-  normal: [
-    [19, 23],
-    [27, 32],
-    [35, 41],
-    [42, 51],
-    [50, 60],
-    [58, 69],
-    [66, 79],
-    [74, 88],
-  ],
-  hard: [
-    [19, 23],
-    [19, 23],
-    [27, 32],
-    [35, 41],
-    [42, 51],
-    [50, 60],
-    [58, 69],
-    [66, 79],
-  ],
-};
-
 const RES_WORD: Record<ResId, string> = {
   scrap: "scrap",
   fuel: "fuel",
@@ -209,10 +141,7 @@ function loadedEvents(): EventDef[] {
 }
 
 function band(g: Game, tier: "low" | "medium" | "high"): [number, number] {
-  if (tier === "medium") return mediumScrapBand(g.difficulty, g.sector);
-  const table = tier === "low" ? SCRAP_LOW : SCRAP_HIGH;
-  const row = table[g.difficulty] ?? table.normal;
-  return row[Math.min(7, Math.max(0, g.sector - 1))];
+  return scrapBand(g, tier);
 }
 
 function stock(g: Game, id: ResId): number {

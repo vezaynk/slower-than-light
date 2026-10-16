@@ -19,12 +19,16 @@ import type {
   EventCard,
   EventDef,
   EventEffect,
+  FactionSurrender,
   FillerListDef,
   HullDef,
+  NamedReward,
   OfferRow,
+  RewardTable,
   RollEntry,
   SectorDef,
   StoreDef,
+  StoreLine,
   SurrenderOfferDef,
   SurrenderReward,
   SystemDef,
@@ -47,15 +51,18 @@ const TYPE: Record<WeaponKind, string> = {
 const OXYGEN_DRAIN = -0.5;
 
 const HEADER = `
-  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, tune, event, filler list, and empty beacon records.
+  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, reward, faction, event, filler list, and empty beacon records.
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
-  System tags are the listing id, title, store cost, and install slot.
+  A systemBlueprint with a cost is a store listing. subSystem marks a kit.
+  startPower is the level a purchase installs. upgradeCost is the scrap for the level already owned.
   Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.
+  A shipBlueprint with no layout and a surrender tag is a faction's default offer.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
-  Store tags are the store id, title, section size, weapon shelf, section kinds, and stock lines.
-  Tune tags are the system id, the level a purchase installs, and the scrap cost of each owned level.
+  A customStore holds resource lines, hull repair, and one category per section.
+  Empty blueprint items are the weapon shelf and the other section size.
+  A rewards block is the scrap scaling and the fuel, missile, and drone-part bands.
   An event tag is a page. flag, title, alias, and sector are extra names this sim looks up.
   A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
   A fight is a hostile ship. Its load is the ship name this sim already fights.
@@ -94,9 +101,10 @@ const HEADER = `
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
   A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
-  A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
+  A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
+  An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
   The sim still checks the hull and still hands that reward over.
-  An event list with page ids is drawn in that order. unique means the page can appear once per sector.
+  An event list with page names is drawn in that order. unique means the page can appear once per sector.
   The sim still remembers which unique page already appeared.
   A list with no page ids is an offer table or the printed bands.
   An empty beacon stores the sentences for a quiet jump and the sectors that use them.
@@ -115,11 +123,13 @@ const serializer = new XMLSerializer();
  * sp is shield layers pierced. power is reactor bars.
  * An augment listing is its id, title, description, and store cost.
  * A drone listing is its id, title, and store cost.
- * A system listing is its id, title, store cost, and whether it installs as a system or a kit.
+ * A system listing is its id, title, store cost, and subSystem when it installs as a kit.
+ * startPower and upgradeCost on that same blueprint are the tune.
  * A hull is its id, class, layout letter, name, and starting loadout. Room tiles are not in the document.
+ * A ship with no layout and a surrender tag is a faction row.
  * A sector is its id, title, colour group, and page notes. Depth gates stay in the chart code.
- * A store is its id, title, section size, weapon shelf, section kinds, and stock lines.
- * A tune is its system id, the level a purchase installs, and the scrap cost of each owned level.
+ * A store is a customStore. Empty blueprint items set the shelf sizes.
+ * A rewards block derives scrap and stores the resource bands.
  * Section count, the hull-repair rate, and the reactor formula stay in code.
  */
 export function emitPack(pack: ContentPack): string {
@@ -135,11 +145,18 @@ export function emitPack(pack: ContentPack): string {
   for (const weapon of pack.weapons ?? []) add(root, weaponElement(doc, weapon));
   for (const augment of pack.augments ?? []) add(root, augmentElement(doc, augment));
   for (const drone of pack.drones ?? []) add(root, droneElement(doc, drone));
-  for (const system of pack.systems ?? []) add(root, systemElement(doc, system));
+  const systems = pack.systems ?? [];
+  const tunes = pack.tunes ?? [];
+  const systemById = new Map(systems.map((row) => [row.id, row]));
+  const tuneById = new Map(tunes.map((row) => [row.id, row]));
+  for (const id of mergeIds(systems, tunes)) {
+    add(root, systemElement(doc, systemById.get(id), tuneById.get(id)));
+  }
   for (const hull of pack.hulls ?? []) add(root, hullElement(doc, hull));
+  for (const faction of pack.factions ?? []) add(root, factionElement(doc, faction));
   for (const sector of pack.sectors ?? []) add(root, sectorElement(doc, sector));
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
-  for (const tune of pack.tunes ?? []) add(root, tuneElement(doc, tune));
+  if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const event of pack.events ?? []) add(root, eventElement(doc, event));
   for (const list of pack.lists ?? []) add(root, listElement(doc, list));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
@@ -149,7 +166,7 @@ export function emitPack(pack: ContentPack): string {
 function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
   const node = element(doc, "eventList", { name: list.id });
   for (const entry of list.entries) {
-    add(node, element(doc, "event", { id: entry.id, unique: entry.unique ? "true" : "false" }));
+    add(node, element(doc, "event", { name: entry.id, unique: entry.unique ? "true" : "false" }));
   }
   return node;
 }
@@ -264,8 +281,8 @@ function rollElement(doc: XmlDocument, roll: RollEntry): XmlElement {
 function surrenderElement(doc: XmlDocument, offer: SurrenderOfferDef): XmlElement {
   const attrs: Record<string, string> = {
     chance: num(offer.chance),
-    low: num(offer.low),
-    high: num(offer.high),
+    min: num(offer.low),
+    max: num(offer.high),
   };
   if (offer.continues) attrs.continues = "true";
   if (offer.forced) attrs.forced = "true";
@@ -273,7 +290,7 @@ function surrenderElement(doc: XmlDocument, offer: SurrenderOfferDef): XmlElemen
   const node = element(doc, "surrender", attrs);
   for (const hail of offer.hails?.length ? offer.hails : [offer.hail])
     add(node, leaf(doc, "text", hail));
-  add(node, rewardElement(doc, offer.reward));
+  for (const child of surrenderReward(doc, offer.reward)) add(node, child);
   if (offer.result) add(node, leaf(doc, "result", offer.result));
   add(node, choiceElement(doc, "surrender-accept", offer.accept));
   if (offer.refuse) add(node, choiceElement(doc, "surrender-refuse", offer.refuse));
@@ -399,15 +416,40 @@ function blueprintReq(doc: XmlDocument, tag: string, id: string, text: string): 
   return node;
 }
 
-function rewardElement(doc: XmlDocument, reward: SurrenderReward): XmlElement {
-  const attrs: Record<string, string> = { k: reward.k };
-  if (reward.k === "weapon") attrs.name = reward.name;
-  if (reward.k === "fuel-repairs") attrs.repairs = num(reward.repairs);
-  if (reward.k === "stuff" && reward.tier) attrs.tier = reward.tier;
-  if (reward.k === "standard" || reward.k === "scrap") attrs.tier = reward.tier;
-  if ((reward.k === "crew" || reward.k === "standard") && reward.race) attrs.race = reward.race;
-  if (reward.k === "scrap" && reward.unnamed) attrs.unnamed = reward.unnamed;
-  return element(doc, "reward", attrs);
+const REWARD_LEVEL: Record<"low" | "medium" | "high", string> = {
+  low: "LOW",
+  medium: "MED",
+  high: "HIGH",
+};
+
+function autoReward(doc: XmlDocument, word: string, level?: string): XmlElement {
+  const node = element(doc, "autoReward", level ? { level } : {});
+  node.appendChild(doc.createTextNode(word));
+  return node;
+}
+
+function crewReward(doc: XmlDocument, race?: string): XmlElement {
+  const node = element(doc, "crewMember", {});
+  if (race) node.appendChild(doc.createTextNode(race));
+  return node;
+}
+
+function surrenderReward(doc: XmlDocument, reward: SurrenderReward): XmlElement[] {
+  if (reward.k === "none") return [];
+  if (reward.k === "stuff") return [autoReward(doc, "stuff", reward.tier ? REWARD_LEVEL[reward.tier] : undefined)];
+  if (reward.k === "standard") {
+    const nodes = [autoReward(doc, "standard", REWARD_LEVEL[reward.tier])];
+    if (reward.race) nodes.push(crewReward(doc, reward.race));
+    return nodes;
+  }
+  if (reward.k === "scrap") {
+    const nodes = [autoReward(doc, "scrap_only", REWARD_LEVEL[reward.tier])];
+    if (reward.unnamed) nodes.push(element(doc, reward.unnamed, {}));
+    return nodes;
+  }
+  if (reward.k === "weapon") return [element(doc, "weapon", { name: reward.name })];
+  if (reward.k === "crew") return [crewReward(doc, reward.race)];
+  return [element(doc, "fuelRepairs", { repairs: num(reward.repairs) })];
 }
 
 function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
@@ -446,34 +488,151 @@ function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
   return element(doc, "ship", attrs);
 }
 
-function tuneElement(doc: XmlDocument, tune: TuneDef): XmlElement {
-  const node = element(doc, "systemTune", { name: tune.id });
-  add(node, leaf(doc, "start", tune.start));
-  for (const step of tune.costs) {
-    const upgrade = element(doc, "upgrade", { level: num(step.level) });
-    upgrade.appendChild(doc.createTextNode(num(step.cost)));
-    add(node, upgrade);
+const SHELF: Record<string, string> = {
+  weapons: "WEAPONS",
+  drones: "DRONES",
+  augments: "AUGMENTS",
+  crew: "CREW",
+  systems: "SYSTEMS",
+};
+
+function countElement(doc: XmlDocument, min: number, max: number): XmlElement {
+  return element(doc, "count", { min: num(min), max: num(max) });
+}
+
+function resourceLine(doc: XmlDocument, line: StoreLine): XmlElement {
+  const node = element(doc, "resource", {});
+  add(node, leaf(doc, "type", line.kind === "parts" ? "drones" : line.kind));
+  add(node, countElement(doc, line.min, line.max));
+  add(node, leaf(doc, "price", line.cost));
+  add(node, leaf(doc, "title", line.name));
+  return node;
+}
+
+function repairLine(doc: XmlDocument, line: StoreLine): XmlElement {
+  const node = element(doc, "hullRepair", {});
+  add(node, leaf(doc, "price", line.cost));
+  add(node, countElement(doc, line.min, line.max));
+  add(node, leaf(doc, "title", line.name));
+  return node;
+}
+
+function stockItem(doc: XmlDocument, line: StoreLine, direct: boolean): XmlElement {
+  const item = element(doc, "item", direct ? { kind: line.kind } : {});
+  add(item, leaf(doc, "blueprint", line.id));
+  add(item, leaf(doc, "price", line.cost));
+  add(item, countElement(doc, line.min, line.max));
+  add(item, leaf(doc, "title", line.name));
+  return item;
+}
+
+function emptyItem(doc: XmlDocument): XmlElement {
+  const item = element(doc, "item", {});
+  add(item, element(doc, "blueprint", {}));
+  return item;
+}
+
+function storeElement(doc: XmlDocument, store: StoreDef): XmlElement {
+  const node = element(doc, "customStore", { id: store.id });
+  add(node, leaf(doc, "title", store.name));
+  for (const line of store.lines) {
+    if (line.kind === "fuel" || line.kind === "missiles" || line.kind === "parts") {
+      add(node, resourceLine(doc, line));
+    }
+  }
+  for (const line of store.lines) {
+    if (line.kind === "repair") add(node, repairLine(doc, line));
+  }
+  for (const section of store.sections) {
+    const category = element(doc, "category", { type: SHELF[section] ?? section });
+    const empties = section === "weapons" ? store.weapons : store.slot;
+    for (let i = 0; i < empties; i++) add(category, emptyItem(doc));
+    for (const line of store.lines) {
+      if (line.kind !== section) continue;
+      if (line.kind === "fuel" || line.kind === "missiles" || line.kind === "parts" || line.kind === "repair") {
+        continue;
+      }
+      add(category, stockItem(doc, line, false));
+    }
+    add(node, category);
+  }
+  for (const line of store.lines) {
+    if (line.kind === "fuel" || line.kind === "missiles" || line.kind === "parts" || line.kind === "repair") {
+      continue;
+    }
+    if (store.sections.includes(line.kind)) continue;
+    add(node, stockItem(doc, line, true));
   }
   return node;
 }
 
-function storeElement(doc: XmlDocument, store: StoreDef): XmlElement {
-  const node = element(doc, "storeBlueprint", { name: store.id });
-  add(node, leaf(doc, "title", store.name));
-  add(node, leaf(doc, "slot", store.slot));
-  add(node, leaf(doc, "weapons", store.weapons));
-  for (const section of store.sections) add(node, leaf(doc, "section", section));
-  for (const line of store.lines) {
-    const stock = element(doc, "stock", {
-      id: line.id,
-      kind: line.kind,
-      min: num(line.min),
-      max: num(line.max),
-    });
-    add(stock, leaf(doc, "title", line.name));
-    add(stock, leaf(doc, "cost", line.cost));
-    add(node, stock);
+/** Tune order is the spine. System-only ids land before the next shared system. */
+function mergeIds(systems: SystemDef[], tunes: TuneDef[]): string[] {
+  const index = new Map(systems.map((row, i) => [row.id, i]));
+  const emitted = new Set<string>();
+  const out: string[] = [];
+  const emit = (id: string) => {
+    if (emitted.has(id)) return;
+    emitted.add(id);
+    out.push(id);
+  };
+  for (const tune of tunes) {
+    const at = index.get(tune.id);
+    if (at != null) {
+      for (let i = 0; i < at; i++) emit(systems[i]!.id);
+    }
+    emit(tune.id);
   }
+  for (const system of systems) emit(system.id);
+  return out;
+}
+
+function factionElement(doc: XmlDocument, row: FactionSurrender): XmlElement {
+  const node = element(doc, "shipBlueprint", { name: row.id });
+  add(node, element(doc, "surrender", { chance: num(row.chance), min: num(row.min), max: num(row.max) }));
+  return node;
+}
+
+function rewardsElement(doc: XmlDocument, table: RewardTable): XmlElement {
+  const node = element(doc, "rewards", {});
+  for (const row of table.scaling) {
+    const attrs: Record<string, string> = {};
+    if (row.difficulty !== undefined) attrs.difficulty = num(row.difficulty);
+    const scaling = element(doc, "rewardScaling", attrs);
+    const scrap: Record<string, string> = {
+      baseAmount: num(row.baseAmount),
+      sectorAmount: num(row.sectorAmount),
+    };
+    if (row.difficultyAmount !== 0) scrap.difficultyAmount = num(row.difficultyAmount);
+    add(scaling, element(doc, "scrap", scrap));
+    add(node, scaling);
+  }
+  const resources = element(doc, "resourceRewards", {});
+  for (const row of table.resources) {
+    add(resources, element(doc, row.kind, { level: row.level, min: num(row.min), max: num(row.max) }));
+  }
+  add(node, resources);
+  for (const reward of table.rewards) add(node, namedRewardElement(doc, reward));
+  return node;
+}
+
+function namedRewardElement(doc: XmlDocument, reward: NamedReward): XmlElement {
+  const node = element(doc, "reward", { name: reward.name });
+  const attrs: Record<string, string> = {};
+  if (reward.minResources != null) attrs.minResources = num(reward.minResources);
+  if (reward.maxResources != null) attrs.maxResources = num(reward.maxResources);
+  const body = element(doc, "reward", attrs);
+  for (const resource of reward.resources) {
+    const resourceAttrs: Record<string, string> = { name: resource.name };
+    if (resource.level) resourceAttrs.level = resource.level;
+    add(body, element(doc, "resource", resourceAttrs));
+  }
+  if (reward.bonus) {
+    const bonus = element(doc, "bonus", { roll: num(reward.bonus.roll) });
+    add(bonus, element(doc, "item", { chance: num(reward.bonus.chance) }));
+    add(body, bonus);
+  }
+  add(node, body);
   return node;
 }
 
@@ -542,11 +701,24 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   return node;
 }
 
-function systemElement(doc: XmlDocument, system: SystemDef): XmlElement {
-  const node = element(doc, "systemBlueprint", { name: system.id });
-  add(node, leaf(doc, "title", system.name));
-  add(node, leaf(doc, "cost", system.cost));
-  add(node, leaf(doc, "slot", system.slot));
+function systemElement(doc: XmlDocument, system?: SystemDef, tune?: TuneDef): XmlElement {
+  const id = system?.id ?? tune?.id ?? "";
+  const attrs: Record<string, string> = { name: id };
+  if (system?.slot === "kit") attrs.subSystem = "true";
+  const node = element(doc, "systemBlueprint", attrs);
+  if (system) {
+    add(node, leaf(doc, "title", system.name));
+    add(node, leaf(doc, "cost", system.cost));
+  }
+  if (tune) {
+    add(node, leaf(doc, "startPower", tune.start));
+    for (const step of tune.costs) {
+      const upgrade = element(doc, "upgradeCost", {});
+      add(upgrade, leaf(doc, "level", step.level));
+      add(upgrade, leaf(doc, "cost", step.cost));
+      add(node, upgrade);
+    }
+  }
   return node;
 }
 

@@ -50,6 +50,7 @@ import {
   pageFight,
   randomRace,
   rollStandard,
+  resourceBand,
   rollSurrenderOffer,
   type SurrenderOffer,
 } from "./surrender.ts";
@@ -130,7 +131,7 @@ function doublePursuit(g: Game): string {
 /** Rewards, "Fuel": T fuel & T scrap ("high (3-6 fuel) fuel and scrap", "medium (2-4 fuel) fuel and scrap"). */
 function fuelAndScrap(g: Game, tier: "medium" | "high"): SurrenderOffer {
   const offer = scrapOnly(g, tier);
-  offer.fuel = between(g, tier === "high" ? [3, 6] : [2, 4]);
+  offer.fuel = between(g, resourceBand("fuel", tier));
   return offer;
 }
 

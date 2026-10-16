@@ -200,6 +200,9 @@ function copyEvent(row: EventDef): EventDef {
   if (row.texts && row.texts.length > 1) copy.texts = [...row.texts];
   if (row.offers && row.offers.length > 0) copy.offers = row.offers.map(copyOffer);
   if (row.rolls && row.rolls.length > 0) copy.rolls = row.rolls.map(copyRoll);
+  if (row.bribe?.k === "scrap" && row.bribe.lo <= row.bribe.hi) {
+    copy.bribe = { k: "scrap", lo: row.bribe.lo, hi: row.bribe.hi };
+  }
   if (row.cards && row.cards.length > 0) copy.cards = row.cards.map(copyCard);
   if (row.surrender) copy.surrender = copySurrender(row.surrender);
   return copy;

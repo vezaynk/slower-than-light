@@ -12,6 +12,7 @@ import type {
   CrewDef,
   DroneDef,
   EmptyBeaconDef,
+  EventBribe,
   EventCard,
   EventDef,
   EventEffect,
@@ -65,6 +66,7 @@ const HEADER = `
   A choice is its id, label, effects, req locks, and an optional fuel gift.
   A req is checked in order and its text is the refusal.
   A gift is the fuel the handler pays. A fixed gift has the same ends and does not roll.
+  A bribe tag is the scrap band rolled onto that button when the card opens. A fixed bribe does not roll.
   A quest effect names a marker. A goto effect opens another page.
   An arrival page has an empty sector list and the flag quest: plus the quest id.
   A surrender tag on a fight page stores the chance, the hull band, the hail, and the reward.
@@ -156,6 +158,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   for (const line of lines) add(node, leaf(doc, "text", line), 2);
   for (const offer of event.offers ?? []) add(node, offerElement(doc, offer), 2);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll), 2);
+  if (event.bribe) add(node, bribeElement(doc, event.bribe), 2);
   for (const card of event.cards ?? []) add(node, cardElement(doc, card), 2);
   for (const choice of event.choices) {
     const choiceNode = element(doc, "choice", { name: choice.id });
@@ -276,6 +279,10 @@ function choiceElement(
 
 function giftElement(doc: XmlDocument, gift: ChoiceGift): XmlElement {
   return element(doc, "gift", { k: gift.k, lo: num(gift.lo), hi: num(gift.hi) });
+}
+
+function bribeElement(doc: XmlDocument, bribe: EventBribe): XmlElement {
+  return element(doc, "bribe", { k: bribe.k, lo: num(bribe.lo), hi: num(bribe.hi) });
 }
 
 function reqElement(doc: XmlDocument, req: ChoiceReq): XmlElement {

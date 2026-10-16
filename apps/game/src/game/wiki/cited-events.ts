@@ -12,6 +12,7 @@ import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 // Rock fight with boarders. Called only from citedChoose, after ctx.fight (surrender.ts imports sim.ts).
 import { allMantisCrew, between, closeFight, crystalBoarders, humanBoarders, joinCrew, mantisBoarders, pageCard, plasmaHumanBoarders, rockBoarders, slugBoarders, zoltanBoarders } from "./surrender.ts";
+import { rollBribe } from "./event-bribes.ts";
 import { addQuest, result } from "./quests.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { grantRandomItem } from "./bonus-item.ts";
@@ -1250,20 +1251,22 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:rebel-fight:0", label: tx("wiki.cited-events.fight-a-rebel-ship") }],
     };
   }
-  // Rebel checkpoint. The bribe amount is a whole number from 10 to 15, shown on the button.
+  // Rebel checkpoint. The bribe is the packed scrap band, shown on the button.
   if (ev.slug === "rebel-checkpoint") {
-    const cost = between(g, [10, 15]);
+    const cost = rollBribe(ev.slug, (lo, hi) => between(g, [lo, hi]));
     const body = opening(g, "rebel-checkpoint");
     const labels = hideLabels("rebel-checkpoint");
-    return {
-      title: ev.dest,
-      body,
-      choices: [
-        { id: "c:rebel-checkpoint:0", label: tx("wiki.cited-events.fend-for-yourself-attack-and-escape-2") },
-        { id: `q:rebel-checkpoint:bribe:${cost}`, label: tx("wiki.cited-events.bribe-the-rebels-to-release-the", { cost: cost }) },
-        { id: "c:rebel-checkpoint:1", label: labels[between(g, [0, labels.length - 1])]! },
-      ],
-    };
+    const choices = [
+      { id: "c:rebel-checkpoint:0", label: tx("wiki.cited-events.fend-for-yourself-attack-and-escape-2") },
+    ];
+    if (cost != null) {
+      choices.push({
+        id: `q:rebel-checkpoint:bribe:${cost}`,
+        label: tx("wiki.cited-events.bribe-the-rebels-to-release-the", { cost: cost }),
+      });
+    }
+    choices.push({ id: "c:rebel-checkpoint:1", label: labels[between(g, [0, labels.length - 1])]! });
+    return { title: ev.dest, body, choices };
   }
   // Lanius trader with translator. The printed hail, then the same one shown base trade. No better-band blue option.
   if (ev.slug === "lanius-trader-with-translator") {

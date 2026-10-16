@@ -451,6 +451,35 @@ describe("pack document", () => {
     assert.equal(broken.events?.[0]?.choices[0]?.gift, undefined);
   });
 
+  it("round-trips a scrap bribe and drops a bribe with no band", () => {
+    const events = [
+      {
+        id: "checkpoint",
+        dest: "Checkpoint",
+        flag: "cited:checkpoint",
+        aliases: [],
+        sectors: [],
+        body: "A fleet.",
+        bribe: { k: "scrap" as const, lo: 10, hi: 15 },
+        choices: [{ id: "c:checkpoint:0", label: "Attack", fx: [{ k: "nothing" as const }] }],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.match(xml, /<bribe k="scrap" lo="10" hi="15"\/>/);
+    assert.deepEqual(parsePack(xml).events, events);
+    const broken = parsePack(`<FTL>
+      <eventBlueprint name="broken" flag="cited:broken">
+        <title>Broken</title>
+        <text>Body</text>
+        <bribe k="fuel" lo="10" hi="15"/>
+        <bribe k="scrap" lo="15" hi="10"/>
+        <bribe k="scrap" lo="1.5" hi="2"/>
+        <choice name="c:broken:0"><text>Go</text><effect k="nothing"/></choice>
+      </eventBlueprint>
+    </FTL>`);
+    assert.equal(broken.events?.[0]?.bribe, undefined);
+  });
+
   it("skips a nameless list and an empty beacon with no sentences", () => {
     const back = parsePack(`<FTL>
       <eventList><event id="orphan" unique="true"/></eventList>

@@ -12,6 +12,7 @@ import type {
   CrewDef,
   DroneDef,
   EmptyBeaconDef,
+  EventBribe,
   EventCard,
   EventChoice,
   EventDef,
@@ -539,6 +540,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   const offers: OfferRow[] = [];
   const rolls: RollEntry[] = [];
   const cards: EventCard[] = [];
+  let bribe: EventBribe | undefined;
   let surrender: SurrenderOfferDef | undefined;
   for (const item of elements(node)) {
     if (item.tagName === "text") {
@@ -553,6 +555,10 @@ function readEvent(node: XmlElement): EventDef | undefined {
     if (item.tagName === "roll") {
       const roll = readRoll(item);
       if (roll) rolls.push(roll);
+      continue;
+    }
+    if (item.tagName === "bribe") {
+      bribe ??= readBribe(item);
       continue;
     }
     if (item.tagName === "card") {
@@ -603,6 +609,7 @@ function readEvent(node: XmlElement): EventDef | undefined {
   if (texts) event.texts = texts;
   if (offers.length > 0) event.offers = offers;
   if (rolls.length > 0) event.rolls = rolls;
+  if (bribe) event.bribe = bribe;
   if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
   return event;
@@ -766,6 +773,15 @@ function readNamedChoice(node: XmlElement, name: string): SurrenderChoice | unde
 
 function choiceLabel(node: XmlElement, fallback: string): string {
   return textOf(node, "text") ?? (ownText(node).trim() || fallback);
+}
+
+/** The first scrap bribe. An unknown kind, a bad number, or a backwards band is skipped. */
+function readBribe(node: XmlElement): EventBribe | undefined {
+  if (attr(node, "k")?.trim() !== "scrap") return undefined;
+  const lo = intAttr(node, "lo");
+  const hi = intAttr(node, "hi");
+  if (lo == null || hi == null || lo > hi) return undefined;
+  return { k: "scrap", lo, hi };
 }
 
 /** The first fuel gift. An unknown kind, a bad number, or a backwards band is skipped. */

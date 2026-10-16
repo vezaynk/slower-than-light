@@ -4,7 +4,7 @@ import { tx } from "../../i18n/index.ts";
 /**
  * Lists a beacon page draws when the card opens.
  * The sim still draws one entry with between. A repeated hull is a heavier weight.
- * The bribe band, the answer check, and the penalty stay in the event modules.
+ * The answer check and the penalty stay in the event modules.
  */
 
 /** Printed hull counts from Fight in Last Stand. A repeated name is a heavier weight. */

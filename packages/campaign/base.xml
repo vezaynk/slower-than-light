@@ -34,7 +34,6 @@
   A band tag is a printed range the handler rolls at its existing call site.
   A fixed band does not roll. A missing band pays or grants nothing and does not roll.
   An upgrade row is the same id with a scrap band and a level band.
-  A bribe tag is the scrap price named bribe.
   A trade tag is one scrap band for a specialty and the level already owned.
   The reactor row omits the level. The sim still picks one open specialty and still rolls that band.
   A fixed trade does not roll. The handler still reads the amount from the choice id.

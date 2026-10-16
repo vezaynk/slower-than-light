@@ -244,7 +244,7 @@ describe("pack document", () => {
     assert.match(xml, /k="supply"[^>]*fuel="0-0"/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
-      <eventBlueprint name="broken" flag="cited:broken">
+      <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
         <offer k="trade" pay="parts" cost="1-2" get="fuel"/>
@@ -254,7 +254,7 @@ describe("pack document", () => {
           <text>Nested</text>
           <offer k="trade" pay="fuel" cost="1-1" get="missiles" gain="4-4"/>
         </choice>
-      </eventBlueprint>
+      </event>
     </FTL>`);
     assert.equal(broken.events?.[0]?.offers, undefined);
     assert.equal(broken.events?.[0]?.choices[0]?.label, "Nested");
@@ -282,7 +282,7 @@ describe("pack document", () => {
     assert.equal((xml.match(/k="hull">Auto-Scout<\/roll>/g) ?? []).length, 2);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
-      <eventBlueprint name="broken" flag="cited:broken">
+      <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
         <roll k="hull"></roll>
@@ -293,7 +293,7 @@ describe("pack document", () => {
           <text>Nested</text>
           <roll k="hull">Nested</roll>
         </choice>
-      </eventBlueprint>
+      </event>
     </FTL>`);
     assert.equal(broken.events?.[0]?.rolls, undefined);
     assert.equal(broken.events?.[0]?.choices[0]?.label, "Nested");
@@ -325,7 +325,7 @@ describe("pack document", () => {
     assert.equal((xml.match(/<card>/g) ?? []).length, 2);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
-      <eventBlueprint name="broken" flag="cited:broken">
+      <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text></text>
         <card><text></text><choice name="c:broken:empty"><text>Nope</text></choice></card>
@@ -334,9 +334,9 @@ describe("pack document", () => {
         <choice name="c:broken:0">
           <text>Nested</text>
           <card><text>Hidden</text><choice name="c:broken:hidden"><text>Hidden</text></choice></card>
-          <effect k="nothing"/>
+          <event/>
         </choice>
-      </eventBlueprint>
+      </event>
     </FTL>`);
     assert.equal(broken.events?.[0]?.cards, undefined);
     assert.equal(broken.events?.[0]?.choices[0]?.label, "Nested");
@@ -382,7 +382,7 @@ describe("pack document", () => {
     assert.match(xml, /<req k="band" id="engines" lo="3" hi="5">/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
-      <eventBlueprint name="broken" flag="cited:broken">
+      <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
         <choice name="c:broken:0">
@@ -392,9 +392,9 @@ describe("pack document", () => {
           <req k="band" id="engines" lo="5" hi="3">Backwards.</req>
           <req k="stock" id="scrap" n="1.5">Half.</req>
           <req k="system" id="engines">No level.</req>
-          <effect k="nothing"/>
+          <event/>
         </choice>
-      </eventBlueprint>
+      </event>
     </FTL>`);
     assert.equal(broken.events?.[0]?.choices[0]?.reqs, undefined);
     assert.equal(broken.events?.[0]?.choices[0]?.fx.length, 1);
@@ -436,7 +436,7 @@ describe("pack document", () => {
     assert.match(xml, /<gift k="fuel" lo="3" hi="3"\/>/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
-      <eventBlueprint name="broken" flag="cited:broken">
+      <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
         <choice name="c:broken:0">
@@ -444,14 +444,14 @@ describe("pack document", () => {
           <gift k="scrap" lo="1" hi="2"/>
           <gift k="fuel" lo="6" hi="4"/>
           <gift k="fuel" lo="1.5" hi="2"/>
-          <effect k="nothing"/>
+          <event/>
         </choice>
-      </eventBlueprint>
+      </event>
     </FTL>`);
     assert.equal(broken.events?.[0]?.choices[0]?.gift, undefined);
   });
 
-  it("round-trips named prices and reads a bribe tag as the bribe price", () => {
+  it("round-trips named prices and keeps the first row for an id", () => {
     const events = [
       {
         id: "checkpoint",
@@ -472,24 +472,22 @@ describe("pack document", () => {
     assert.match(xml, /<price id="give" k="fuel" lo="2" hi="4"\/>/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
-      <eventBlueprint name="broken" flag="cited:broken">
+      <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
         <price k="scrap" lo="10" hi="15"/>
         <price id="debt" k="missiles" lo="1" hi="2"/>
         <price id="debt" k="scrap" lo="15" hi="10"/>
         <price id="debt" k="scrap" lo="1.5" hi="2"/>
-        <bribe k="fuel" lo="2" hi="4"/>
-        <bribe k="scrap" lo="8" hi="8"/>
+        <price id="bribe" k="scrap" lo="8" hi="8"/>
         <price id="bribe" k="scrap" lo="20" hi="30"/>
         <price id="scan" k="scrap" lo="15" hi="25"/>
         <choice name="c:broken:0">
           <text>Go</text>
           <price id="nested" k="scrap" lo="1" hi="2"/>
-          <bribe k="scrap" lo="3" hi="4"/>
-          <effect k="nothing"/>
+          <event/>
         </choice>
-      </eventBlueprint>
+      </event>
     </FTL>`);
     assert.deepEqual(broken.events?.[0]?.prices, [
       { id: "bribe", k: "scrap", lo: 8, hi: 8 },
@@ -520,7 +518,7 @@ describe("pack document", () => {
     assert.match(xml, /<band id="scan" k="parts" lo="1" hi="3"\/>/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
-      <eventBlueprint name="broken" flag="cited:broken">
+      <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
         <band k="scrap" lo="15" hi="20"/>
@@ -535,9 +533,9 @@ describe("pack document", () => {
         <choice name="c:broken:0">
           <text>Go</text>
           <band id="nested" k="scrap" lo="1" hi="2"/>
-          <effect k="nothing"/>
+          <event/>
         </choice>
-      </eventBlueprint>
+      </event>
     </FTL>`);
     assert.deepEqual(broken.events?.[0]?.bands, [
       { id: "scan", k: "scrap", lo: 8, hi: 8 },
@@ -568,7 +566,7 @@ describe("pack document", () => {
     assert.match(xml, /<trade id="reactor" lo="15" hi="25"\/>/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
-      <eventBlueprint name="broken" flag="cited:broken">
+      <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
         <trade lo="15" hi="20"/>
@@ -585,9 +583,9 @@ describe("pack document", () => {
         <choice name="c:broken:0">
           <text>Go</text>
           <trade id="nested" level="1" lo="1" hi="2"/>
-          <effect k="nothing"/>
+          <event/>
         </choice>
-      </eventBlueprint>
+      </event>
     </FTL>`);
     assert.deepEqual(broken.events?.[0]?.trades, [
       { id: "oxygen", level: 1, lo: 15, hi: 20 },
@@ -624,7 +622,7 @@ describe("pack document", () => {
     assert.match(xml, /<pay k="parts" lo="1" hi="2"\/>/);
     assert.deepEqual(parsePack(xml).events, events);
     const broken = parsePack(`<FTL>
-      <eventBlueprint name="broken" flag="cited:broken">
+      <event name="broken" flag="cited:broken">
         <title>Broken</title>
         <text>Body</text>
         <grade hire="">
@@ -641,10 +639,10 @@ describe("pack document", () => {
         <choice name="c:broken:0">
           <text>Go</text>
           <grade hire="Slug"><pay k="scrap" lo="1" hi="1"/></grade>
-          <effect k="nothing"/>
+          <event/>
         </choice>
-      </eventBlueprint>
-      <eventBlueprint name="kept" flag="cited:kept">
+      </event>
+      <event name="kept" flag="cited:kept">
         <title>Kept</title>
         <text>Body</text>
         <grade hire="">
@@ -654,8 +652,8 @@ describe("pack document", () => {
           <pay k="scrap" lo="8" hi="8"/>
           <pay k="parts" lo="1" hi="1"/>
         </grade>
-        <choice name="c:kept:0"><text>Go</text><effect k="nothing"/></choice>
-      </eventBlueprint>
+        <choice name="c:kept:0"><text>Go</text><event/></choice>
+      </event>
     </FTL>`);
     assert.equal(broken.events?.[0]?.grade, undefined);
     assert.deepEqual(broken.events?.[1]?.grade, {
@@ -703,19 +701,31 @@ describe("pack document", () => {
     assert.match(xml, /<weapon\/>/);
     assert.doesNotMatch(xml, /<effect k="res"/);
     assert.deepEqual(parsePack(xml).events, events);
-    const legacy = parsePack(`<FTL>
+    const retired = parsePack(`<FTL>
       <event name="pay" flag="cited:pay">
         <title>Pay</title>
         <text>A toll.</text>
+        <bribe k="scrap" lo="1" hi="1"/>
         <choice name="c:pay:0">
           <text>Pay</text>
           <effect k="res" id="scrap" sign="-1" lo="10" hi="15"/>
+          <effect k="fight" tier="pirate"/>
+          <effect k="note">Gone.</effect>
+          <effect k="goto" id="next"/>
+          <effect k="nothing"/>
+          <effect k="hull" n="5"/>
+          <effect k="fleet" n="2"/>
+          <effect k="item" item="weapon"/>
         </choice>
       </event>
+      <eventBlueprint name="old" flag="cited:old">
+        <title>Old</title>
+        <text>Gone.</text>
+      </eventBlueprint>
     </FTL>`);
-    assert.deepEqual(legacy.events?.[0]?.choices[0]?.fx, [
-      { k: "res", id: "scrap", sign: -1, lo: 10, hi: 15 },
-    ]);
+    assert.equal(retired.events?.length, 1);
+    assert.equal(retired.events?.[0]?.prices, undefined);
+    assert.deepEqual(retired.events?.[0]?.choices[0]?.fx, []);
   });
 
   it("skips a nameless list and an empty beacon with no sentences", () => {

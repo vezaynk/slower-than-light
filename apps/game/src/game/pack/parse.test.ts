@@ -192,18 +192,20 @@ const XML = `
 <systemTune>
   <start>4</start>
 </systemTune>
-<eventBlueprint name="ember" flag="cited:ember">
+<event name="ember" flag="cited:ember">
   <title>Ember</title>
   <alias>Ember Page</alias>
   <sector>Civilian Sector</sector>
   <text>A packed beacon.</text>
   <choice name="c:ember:0">
     <text>Take</text>
-    <effect k="res" id="scrap" sign="1" lo="7" hi="7"/>
-    <effect k="fight" tier="pirate" asteroid="true"/>
-    <effect k="note">Hello &amp; co</effect>
+    <item_modify>
+      <item type="scrap" min="7" max="7"/>
+    </item_modify>
+    <ship hostile="true" load="pirate" asteroid="true"/>
+    <event><text>Hello &amp; co</text></event>
     <effect k="quest" id="ember-quest"/>
-    <effect k="goto" id="ember-next"/>
+    <event load="ember-next"/>
     <effect k="close"/>
     <effect k="nope"/>
     <minSector>4</minSector>
@@ -224,16 +226,16 @@ const XML = `
       <choice name="s:ember:go">Go</choice>
     </card>
   </surrender>
-</eventBlueprint>
-<eventBlueprint name="bareevent">
+</event>
+<event name="bareevent">
   <title></title>
   <surrender chance="1" low="1" high="1">
     <reward k="nope"/>
   </surrender>
-</eventBlueprint>
-<eventBlueprint>
+</event>
+<event>
   <title>No name</title>
-</eventBlueprint>
+</event>
 <eventList name="ember-list">
   <event id="large-asteroid-field" unique="true"/>
   <event unique="true"/>

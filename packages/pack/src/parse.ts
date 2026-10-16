@@ -218,8 +218,7 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (speed != null) row.speed = speed;
   const crew = numOf(node, "crewDamage");
   if (crew != null) row.crewDamage = crew;
-  // FTL names shield pierce <sp>. <pierce> is the same field.
-  const pierce = numOf(node, "sp") ?? numOf(node, "pierce");
+  const pierce = numOf(node, "sp");
   if (pierce != null) row.pierce = pierce;
   return row;
 }
@@ -467,7 +466,7 @@ export function parsePack(xml: string): ContentPack {
     const row = readTune(node);
     if (row) tunes.push(row);
   }
-  for (const node of [...tagged(doc, "eventBlueprint"), ...tagged(doc, "event")]) {
+  for (const node of tagged(doc, "event")) {
     const row = readEvent(node);
     if (row) events.push(row);
   }
@@ -566,10 +565,6 @@ function readEvent(node: XmlElement): EventDef | undefined {
     }
     if (item.tagName === "price") {
       keepPrice(prices, readPrice(item));
-      continue;
-    }
-    if (item.tagName === "bribe") {
-      keepPrice(prices, readBribe(item));
       continue;
     }
     if (item.tagName === "band") {
@@ -830,12 +825,6 @@ function readPrice(node: XmlElement): EventPrice | undefined {
   return id ? readBand(node, id) : undefined;
 }
 
-/** A bribe tag is the scrap price named bribe. */
-function readBribe(node: XmlElement): EventPrice | undefined {
-  if (attr(node, "k")?.trim() !== "scrap") return undefined;
-  return readBand(node, "bribe");
-}
-
 /** The first valid band for a specialty and the level already owned. */
 function keepTrade(trades: TradeStep[], step: TradeStep | undefined) {
   if (!step || trades.some((row) => tradeKey(row) === tradeKey(step))) return;
@@ -991,7 +980,7 @@ function isItem(value: string): value is EventItem {
   return value === "weapon" || value === "augment" || value === "drone";
 }
 
-/** Choice results, in document order. Older effect tags still read. */
+/** Choice results, in document order. */
 function readChoiceEffects(node: XmlElement): EventEffect[] {
   const fx: EventEffect[] = [];
   for (const child of elements(node)) {
@@ -1062,27 +1051,6 @@ function readResourceItem(node: XmlElement): EventEffect | undefined {
 
 function readEffect(node: XmlElement): EventEffect | undefined {
   const kind = attr(node, "k");
-  if (kind === "nothing") return { k: "nothing" };
-  if (kind === "note") return { k: "note", text: ownText(node).trim() };
-  if (kind === "item") {
-    const item = attr(node, "item");
-    if (item !== "weapon" && item !== "augment" && item !== "drone") return undefined;
-    return { k: "item", item };
-  }
-  if (kind === "hull") {
-    const n = attrNum(node.getAttribute("n"));
-    if (n == null) return undefined;
-    return { k: "hull", n };
-  }
-  if (kind === "res") {
-    const id = attr(node, "id");
-    if (!isResource(id)) return undefined;
-    const lo = attrNum(node.getAttribute("lo"));
-    const hi = attrNum(node.getAttribute("hi"));
-    if (lo == null || hi == null) return undefined;
-    const sign = attrNum(node.getAttribute("sign"));
-    return { k: "res", id, sign: sign === -1 ? -1 : 1, lo, hi };
-  }
   if (kind === "tier") {
     const tier = attr(node, "tier");
     if (!isTier(tier)) return undefined;
@@ -1091,27 +1059,10 @@ function readEffect(node: XmlElement): EventEffect | undefined {
       effect.resources = node.getAttribute("resources") === "true";
     return effect;
   }
-  if (kind === "fleet") {
-    const n = attrNum(node.getAttribute("n"));
-    if (n == null) return undefined;
-    const effect: EventEffect = { k: "fleet", n };
-    if (node.hasAttribute("double")) effect.double = node.getAttribute("double") === "true";
-    if (node.hasAttribute("faster")) effect.faster = node.getAttribute("faster") === "true";
-    if (node.hasAttribute("lastStand"))
-      effect.lastStand = node.getAttribute("lastStand") === "true";
-    return effect;
-  }
-  if (kind === "fight") {
-    const tier = attr(node, "tier")?.trim();
-    if (!tier) return undefined;
-    const effect: EventEffect = { k: "fight", tier };
-    if (node.hasAttribute("asteroid")) effect.asteroid = node.getAttribute("asteroid") === "true";
-    return effect;
-  }
-  if (kind === "quest" || kind === "goto") {
+  if (kind === "quest") {
     const id = attr(node, "id")?.trim();
     if (!id) return undefined;
-    return { k: kind, id };
+    return { k: "quest", id };
   }
   if (kind === "close") return { k: "close" };
   return undefined;

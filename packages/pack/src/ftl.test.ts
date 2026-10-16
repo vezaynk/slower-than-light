@@ -30,6 +30,7 @@ const BASE = `<?xml version="1.0" encoding="UTF-8"?>
     <length>90</length>
     <speed>3</speed>
     <crewDamage>15</crewDamage>
+    <pierce>9</pierce>
   </weaponBlueprint>
   <weaponBlueprint name="FLAK">
     <type>BURST</type>
@@ -84,10 +85,10 @@ const BASE = `<?xml version="1.0" encoding="UTF-8"?>
     <class>Kestrel</class>
     <title>The Kestrel</title>
   </shipBlueprint>
-  <eventBlueprint name="quiet">
+  <event name="quiet">
     <title>Quiet</title>
     <text>Nothing happens.</text>
-  </eventBlueprint>
+  </event>
 </FTL>
 `;
 
@@ -142,6 +143,7 @@ describe("packFromFtl", () => {
     assert.equal(mini?.lengthTiles, 2);
     assert.equal(mini?.speed, 3);
     assert.equal(mini?.crewDamage, 15);
+    assert.equal(mini?.pierce, undefined);
     assert.equal(mini?.blurb, "A short swipe.");
     assert.equal(pack.weapons?.find((row) => row.id === "FLAK")?.kind, "flak");
     assert.equal(pack.weapons?.find((row) => row.id === "DART")?.ammo, true);

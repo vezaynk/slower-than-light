@@ -5,7 +5,8 @@
   "exports": {
     ".": "./src/archive.ts",
     "./totallynotftl.xml": "./totallynotftl.xml",
-    "./totallynotftl.dat": "./totallynotftl.dat"
+    "./totallynotftl.dat": "./totallynotftl.dat",
+    "./totallynotftl.hyperspace.xml": "./totallynotftl.hyperspace.xml"
   },
   "scripts": {
     "generate": "node --experimental-strip-types src/generate.ts",
@@ -16,6 +17,7 @@
   "dependencies": {
     "@stl/catalog": "workspace:*",
     "@stl/ftldat": "workspace:*",
+    "@stl/hyperspace": "workspace:*",
     "@stl/pack": "workspace:*",
     "@xmldom/xmldom": "^0.9.12"
   },

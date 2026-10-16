@@ -322,6 +322,9 @@ importers:
       '@stl/ftldat':
         specifier: workspace:*
         version: link:../ftldat
+      '@stl/hyperspace':
+        specifier: workspace:*
+        version: link:../hyperspace
       '@stl/pack':
         specifier: workspace:*
         version: link:../pack

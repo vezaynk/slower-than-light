@@ -16,12 +16,18 @@
     },
     "@stl/totallynotftl#generate": {
       "dependsOn": ["^typecheck"],
-      "outputs": ["totallynotftl.xml", "totallynotftl.dat"],
+      "outputs": ["totallynotftl.xml", "totallynotftl.dat", "totallynotftl.hyperspace.xml"],
       "inputs": ["package.json", "src/**"]
     },
     "@stl/totallynotftl#test": {
       "dependsOn": ["^typecheck"],
-      "inputs": ["package.json", "src/**", "totallynotftl.xml", "totallynotftl.dat"]
+      "inputs": [
+        "package.json",
+        "src/**",
+        "totallynotftl.xml",
+        "totallynotftl.dat",
+        "totallynotftl.hyperspace.xml"
+      ]
     },
     "@stl/campaign#test": {
       "dependsOn": ["^typecheck"],

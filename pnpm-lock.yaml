@@ -131,9 +131,18 @@ importers:
       '@stl/catalog':
         specifier: workspace:*
         version: link:../../packages/catalog
+      '@stl/ftldat':
+        specifier: workspace:*
+        version: link:../../packages/ftldat
+      '@stl/hyperspace':
+        specifier: workspace:*
+        version: link:../../packages/hyperspace
       '@stl/pack':
         specifier: workspace:*
         version: link:../../packages/pack
+      '@stl/totallynotftl':
+        specifier: workspace:*
+        version: link:../../packages/totallynotftl
       '@stl/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -323,9 +332,9 @@ importers:
 
   packages/totallynotftl:
     dependencies:
-      '@stl/catalog':
+      '@stl/campaign':
         specifier: workspace:*
-        version: link:../catalog
+        version: link:../campaign
       '@stl/ftldat':
         specifier: workspace:*
         version: link:../ftldat

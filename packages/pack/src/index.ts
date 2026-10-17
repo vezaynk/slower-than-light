@@ -1,4 +1,6 @@
 export { emitPack } from "./emit.ts";
+export type { EmitSlice } from "./emit.ts";
+export { overlayGap } from "./overlay.ts";
 export { prettyXml } from "./format.ts";
 export { packFromFtl } from "./ftl.ts";
 export { fetchPackXml } from "./fetch-pack.ts";

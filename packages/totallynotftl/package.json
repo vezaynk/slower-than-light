@@ -5,8 +5,7 @@
   "exports": {
     ".": "./src/archive.ts",
     "./totallynotftl.xml": "./totallynotftl.xml",
-    "./totallynotftl.dat": "./totallynotftl.dat",
-    "./totallynotftl.hyperspace.xml": "./totallynotftl.hyperspace.xml"
+    "./totallynotftl.dat": "./totallynotftl.dat"
   },
   "scripts": {
     "generate": "node --experimental-strip-types src/generate.ts",
@@ -15,7 +14,7 @@
     "lint": "cd ../.. && ./node_modules/.bin/eslint packages/totallynotftl"
   },
   "dependencies": {
-    "@stl/catalog": "workspace:*",
+    "@stl/campaign": "workspace:*",
     "@stl/ftldat": "workspace:*",
     "@stl/hyperspace": "workspace:*",
     "@stl/pack": "workspace:*",

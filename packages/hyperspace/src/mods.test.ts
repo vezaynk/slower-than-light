@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { FtlExtract } from "@stl/ftldat";
-import { applyFtlMod, loadFtlMods } from "./mods.ts";
+import {
+  emitPack,
+  overlayGap,
+  parsePack,
+  type CrewDef,
+  type HullDef,
+  type WeaponBlueprint,
+} from "@stl/pack";
+import { applyFtlMod, loadFtlMods, packFromExtract } from "./mods.ts";
 
 const BASE_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>
@@ -202,3 +210,176 @@ describe("loadFtlMods", () => {
     );
   });
 });
+
+describe("packFromExtract", () => {
+  it("reads the stand-in as a campaign document", () => {
+    const pack = packFromExtract(
+      extract({
+        documents: [
+          {
+            path: "data/stand-in.xml",
+            xml: `<FTL><race name="human"><title>Human</title><maxHealth>70</maxHealth></race></FTL>`,
+          },
+        ],
+      }),
+    );
+    assert.equal(pack.crew?.[0]?.name, "Human");
+    assert.equal(pack.crew?.[0]?.hp, 70);
+  });
+
+  it("reads any other single file as vanilla XML", () => {
+    const pack = packFromExtract(
+      extract({
+        documents: [
+          {
+            path: "data/blueprints.xml",
+            xml: `<FTL><race name="human"><title>Human</title><maxHealth>70</maxHealth></race></FTL>`,
+          },
+        ],
+      }),
+    );
+    assert.equal(pack.crew, undefined);
+  });
+
+  it("keeps the archive rows and takes combat, colour, and the store from the gap", () => {
+    const archive = packFromExtract(
+      extract({ documents: [{ path: "data/blueprints.xml", xml: VANILLA }] }),
+    );
+    const gap = parseGap();
+    const merged = overlayGap(archive, gap);
+    assert.deepEqual(
+      merged.weapons?.map((row) => row.id),
+      ["LETO", "ONLY"],
+    );
+    assert.equal(merged.weapons?.[0]?.name, "Leto");
+    assert.equal(merged.weapons?.some((row) => row.id === "GAP_GUN"), false);
+    const human = merged.crew?.find((row) => row.id === "human");
+    assert.equal(human?.name, "Human");
+    assert.equal(human?.detail, "The standard crew.");
+    assert.equal(human?.cost, 45);
+    assert.equal(human?.hp, 50);
+    const energy = merged.crew?.find((row) => row.id === "energy");
+    assert.equal(energy?.hp, 70);
+    assert.equal(merged.sectors?.length, 1);
+    assert.equal(merged.sectors?.[0]?.name, "Civilian Sector");
+    assert.equal(merged.sectors?.[0]?.group, "civilian");
+    assert.deepEqual(merged.sectors?.[0]?.notes, ["Quiet."]);
+    assert.deepEqual(merged.sectors?.[0]?.quotas, [{ id: "START", min: 1, max: 2 }]);
+    assert.equal(merged.hulls?.[0]?.layout, "kestral");
+    assert.equal(merged.hulls?.[0]?.name, "The Kestrel");
+    assert.equal(merged.stores?.[0]?.id, "general");
+    assert.equal(merged.facts, undefined);
+  });
+});
+
+const VANILLA = `<FTL>
+  <weaponBlueprint name="LETO">
+    <type>MISSILES</type>
+    <title>Leto</title>
+    <damage>1</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cost>20</cost>
+  </weaponBlueprint>
+  <weaponBlueprint name="ONLY">
+    <type>LASER</type>
+    <title>Archive Only</title>
+    <damage>1</damage>
+  </weaponBlueprint>
+  <crewBlueprint name="human">
+    <title>Human</title>
+    <desc>The standard crew.</desc>
+    <cost>45</cost>
+  </crewBlueprint>
+  <sectorDescription name="civilian">
+    <name>Civilian Sector</name>
+    <event name="START" min="1" max="2"/>
+  </sectorDescription>
+  <shipBlueprint name="PLAYER_SHIP_HARD" layout="kestral" img="kestral">
+    <class>Kestrel</class>
+    <name>The Kestrel</name>
+  </shipBlueprint>
+</FTL>`;
+
+function crew(id: string, name: string, hp: number): CrewDef {
+  return {
+    id,
+    name,
+    hp,
+    move: 1,
+    repair: 1,
+    fight: 1,
+    suffocate: 1,
+    fireTaken: 1,
+    bonusPower: 0,
+    hasDeathExplosion: false,
+    drainsOxygen: false,
+    detectsLifeforms: false,
+    resistsMindControl: false,
+    lockdown: false,
+    lockCooldown: 0,
+    fireRepairMultiplier: 1,
+  };
+}
+
+function parseGap() {
+  const gun: WeaponBlueprint = {
+    id: "GAP_GUN",
+    name: "Should Not Load",
+    kind: "laser",
+    power: 1,
+    charge: 1,
+    shots: 1,
+    gap: 0,
+    damage: 1,
+    ion: 0,
+    fire: 0,
+    breach: 0,
+    ammo: false,
+    price: 1,
+    blurb: "",
+  };
+  const hull: HullDef = {
+    id: "PLAYER_SHIP_HARD",
+    cruiser: "Kestrel",
+    layout: "A",
+    name: "Campaign Kestrel",
+    quote: "",
+    unlock: "",
+    source: "",
+    reactor: 0,
+    fuel: 0,
+    missiles: 0,
+    parts: 0,
+    systems: {},
+    weapons: [],
+    crew: [],
+    kits: {},
+    augments: [],
+    unfitted: [],
+  };
+  return parsePack(
+    emitPack(
+      {
+        crew: [crew("human", "Ignored", 50), crew("energy", "Zoltan", 70)],
+        sectors: [
+          { id: "civilian", name: "Wrong", group: "civilian", notes: ["Quiet."] },
+          { id: "nebula", name: "Nebula", group: "nebula", notes: ["Skip."] },
+        ],
+        stores: [
+          {
+            id: "general",
+            name: "Store",
+            slot: 3,
+            weapons: 2,
+            sections: ["weapons"],
+            lines: [{ id: "fuel", kind: "fuel", name: "Fuel", cost: 3, min: 2, max: 5 }],
+          },
+        ],
+        weapons: [gun],
+        hulls: [hull],
+      },
+      { crew: "stats", sector: "gap" },
+    ),
+  );
+}

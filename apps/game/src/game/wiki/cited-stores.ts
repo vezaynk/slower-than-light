@@ -5,6 +5,7 @@ import {
   allSystems,
   augmentDef,
   droneDef,
+  hullDef,
   storeDef,
   systemDef,
   tuneDef,
@@ -450,12 +451,12 @@ export function fieldedSchematics(kit: Kit): string[] {
 
 /**
  * Drone Control, Overview: most playable ships have 2 schematic slots.
- * All Engi ships and Stealth C have 3. Upgrading powers more drones; it does not add a slot.
+ * The hull's drone bays say otherwise (Engi and Stealth C print 3).
+ * Upgrading powers more drones; it does not add a slot.
+ * A hull with no count keeps 2.
  */
 function schematicCap(g: Game): number {
-  const id = g.hullId ?? "";
-  if (id.startsWith("PLAYER_SHIP_CIRCLE") || id === "PLAYER_SHIP_STEALTH_3") return 3;
-  return 2;
+  return hullDef(g.hullId)?.droneSlots ?? 2;
 }
 
 /** Schematic slots this hull can field. Zero when Drone Control is not installed — there is no slot to draw. */

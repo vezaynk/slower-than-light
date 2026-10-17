@@ -5,8 +5,10 @@ import { playerDroneSlots } from "./extras/swarm.ts";
 import { droneKeyForName, weaponIdForName } from "./gear-look.ts";
 import { HULLS, hullById } from "./hulls.ts";
 import { iconForName } from "./icons.ts";
+import { augmentDef, emitPack, hullDef, parsePack } from "@stl/pack";
 import { createGame, hangarLoadout } from "./sim.ts";
 import { MISSING_AUGMENTS } from "./wiki/augments-missing.ts";
+import { hangarBay } from "./wiki/hangar-bay.ts";
 import { hangarSheet, orderByIds } from "./wiki/hangar-sheet.ts";
 import { CRUISER_PAGES } from "./wiki/layout-pages.ts";
 
@@ -161,5 +163,81 @@ describe("hangar sheet vs run, every layout", () => {
       assert.equal(run.missiles, count(/^(\d+) Missiles$/), `${layout.id} missiles`);
       assert.equal(run.player.parts, count(/^(\d+) Drone parts$/), `${layout.id} parts`);
     }
+  });
+
+  it("stores the page unlock lines and the printed bays on the hull", () => {
+    for (const layout of layouts) {
+      const sheet = hangarSheet(layout);
+      const hull = hullById(layout.id);
+      assert.ok(hull, layout.id);
+      assert.deepEqual(hull.unlock.split("\n"), sheet.unlock, layout.id);
+      assert.equal(hull.weaponSlots, sheet.weaponSlots, layout.id);
+      assert.equal(hull.droneSlots, sheet.droneSlots, layout.id);
+    }
+  });
+});
+
+describe("hangar bay", () => {
+  it("names the run's weapons, drones, systems, and augments from the loaded hull", () => {
+    for (const layout of layouts) {
+      const bay = hangarBay(layout.id);
+      assert.ok(bay, layout.id);
+      const run = createGame(3, layout.id, "normal", picks);
+      assert.deepEqual(
+        bay.weapons.map((weapon) => weapon.id),
+        run.player.weapons.map((weapon) => weapon.defId),
+        layout.id,
+      );
+      const kit = run.player.kits.drones;
+      assert.equal(bay.droneSystem, !!kit, layout.id);
+      assert.deepEqual(
+        bay.drones.filter((drone) => !drone.unfitted).map((drone) => drone.id),
+        playerDroneSlots(kit),
+        layout.id,
+      );
+      assert.deepEqual(
+        bay.drones.filter((drone) => drone.unfitted).map((drone) => drone.name),
+        hullById(layout.id)?.unfitted,
+        layout.id,
+      );
+      if (bay.weaponSlots != null) assert.ok(bay.weapons.length <= bay.weaponSlots, layout.id);
+      const levels = new Map<string, number>();
+      for (const [id, system] of Object.entries(run.player.systems)) if (system.level > 0) levels.set(id, system.level);
+      for (const [id, installed] of Object.entries(run.player.kits)) if (installed && installed.level > 0) levels.set(id, installed.level);
+      assert.deepEqual(
+        Object.fromEntries(bay.systems.map((system) => [system.id, system.level]).sort()),
+        Object.fromEntries([...levels].sort()),
+        layout.id,
+      );
+      const augmentIds = hullById(layout.id)?.augments ?? [];
+      assert.deepEqual(sorted(augmentIds), sorted(run.augments), layout.id);
+      const missing = new Map(MISSING_AUGMENTS.map((row) => [row.id, row.name]));
+      assert.deepEqual(
+        bay.augments,
+        augmentIds.map((id) => augmentDef(id)?.name ?? missing.get(id) ?? id),
+        layout.id,
+      );
+    }
+  });
+
+  it("keeps the Kestrel sentence and both Federation lines through the document", () => {
+    const kestrel = hullDef("PLAYER_SHIP_HARD");
+    const fed = hullDef("PLAYER_SHIP_FED");
+    assert.ok(kestrel && fed);
+    const back = parsePack(emitPack({ hulls: [kestrel, fed] }));
+    const first = back.hulls?.find((hull) => hull.id === "PLAYER_SHIP_HARD");
+    const second = back.hulls?.find((hull) => hull.id === "PLAYER_SHIP_FED");
+    assert.equal(first?.weaponSlots, 4);
+    assert.equal(first?.droneSlots, 2);
+    assert.equal(
+      first?.unlock,
+      "Does not require unlocking (it is the only ship, the cruiser and the layout, available from the very start of the game)",
+    );
+    assert.deepEqual(second?.unlock.split("\n"), [
+      "Defeat the Flagship prototype in the Rebel Stronghold sector to unlock this ship.",
+      "Alternatively, defeat the Rebel Flagship with the Engi Cruiser.",
+    ]);
+    assert.equal(second?.weaponSlots, 4);
+    assert.equal(second?.droneSlots, 2);
   });
 });

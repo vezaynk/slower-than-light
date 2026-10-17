@@ -86,13 +86,80 @@ export type SystemDef = {
   detail?: string;
 };
 
-/** A hangar layout letter. Room tiles stay in the layout tables. */
+/** A hangar layout letter. Room tiles for these letters stay in the layout tables. */
 export type HullLayout = "A" | "B" | "C";
 
 /** One starting crew seat. The kin id is a crew-pack id. */
 export type HullCrewDef = {
   kin: string;
   room: string;
+};
+
+/** One rectangle from a layout file. `id` is the room index the blueprint names. */
+export type HullRoom = {
+  id: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
+/**
+ * One door from a layout file.
+ * `a` and `b` are room indexes. -1 is vacuum.
+ * `vertical` is 1 when the door sits on a vertical wall.
+ */
+export type HullDoor = {
+  x: number;
+  y: number;
+  a: number;
+  b: number;
+  vertical: number;
+};
+
+/** The four ELLIPSE integers, in file order: width, height, x, y. */
+export type HullEllipse = {
+  w: number;
+  h: number;
+  x: number;
+  y: number;
+};
+
+/**
+ * A room grid from `data/<layout>.txt`.
+ * `x` and `y` are the offsets. `vertical` is the VERTICAL integer.
+ * Letter geometry for A, B, and C stays in the layout tables.
+ */
+export type HullGrid = {
+  x?: number;
+  y?: number;
+  vertical?: number;
+  horizontal?: number;
+  ellipse?: HullEllipse;
+  rooms: HullRoom[];
+  doors: HullDoor[];
+};
+
+/**
+ * One system on an archive ship.
+ * The tag is the system id. `power` is the bars. `room` is the layout room index.
+ * An omitted start is fitted. `start` false is a slot the ship can buy.
+ */
+export type HullInstall = {
+  id: string;
+  power: number;
+  room?: number;
+  start: boolean;
+  max?: number;
+  weapon?: string;
+  img?: string;
+};
+
+/** Starting crew from `<crewCount>`. `class` is the race id. There is no seat. */
+export type HullCrewCount = {
+  amount: number;
+  class: string;
+  max?: number;
 };
 
 /**
@@ -111,12 +178,14 @@ export type HullKitDef = {
 
 /**
  * A player hull. Levels and starting cargo are the record.
- * Unlock gates, room geometry, and system effects stay in code.
+ * Unlock gates and system effects stay in code.
+ * `layout` is a hangar letter, or the archive layout file name. It is not coerced.
+ * `systems` is the campaign level and power table. Archive bars live on `installs`.
  */
 export type HullDef = {
   id: string;
   cruiser: string;
-  layout: HullLayout;
+  layout: string;
   name: string;
   quote: string;
   unlock: string;
@@ -131,17 +200,68 @@ export type HullDef = {
   kits: Record<string, HullKitDef>;
   augments: string[];
   unfitted: string[];
+  /** Hull points from `<health amount>`. */
+  health?: number;
+  /** Base image id. Cloak, shield, and floor are the other image ids. */
+  img?: string;
+  cloak?: string;
+  shield?: string;
+  floor?: string;
+  /** Room grid for `layout`, when that text file was passed in. */
+  grid?: HullGrid;
+  /** Systems as the archive lists them. */
+  installs?: HullInstall[];
+  /** Starting crew counts. Seated crew stay in `crew`. */
+  crewCounts?: HullCrewCount[];
+  /** Drone blueprint ids from droneList. */
+  drones?: string[];
+  /** weaponList load id, when the ship names a list instead of each weapon. */
+  weaponLoad?: string;
+  /** droneList load id. */
+  droneLoad?: string;
+  weaponSlots?: number;
+  droneSlots?: number;
+  minSector?: number;
+  maxSector?: number;
+};
+
+/** One beacon quota. `id` is an event or an event list. */
+export type SectorQuota = {
+  id: string;
+  min: number;
+  max: number;
+};
+
+/** One crew race the sector offers, and its rarity. */
+export type SectorRarity = {
+  id: string;
+  rarity: number;
 };
 
 /**
  * A sector on the chart. Depth gates and the once-only ids stay in the chart code.
  * `notes` are the page lines. Beacon odds stay in the mix code.
+ * Archive quotas, tracks, and the starting event are their own fields.
  */
 export type SectorDef = {
   id: string;
   name: string;
   group: string;
   notes: string[];
+  /** Short label, when the archive names one. */
+  short?: string;
+  /** Earliest sector index. */
+  minSector?: number;
+  /** The archive marks this sector once-only. */
+  unique?: boolean;
+  /** Event that opens the sector. */
+  startEvent?: string;
+  /** Music track ids. */
+  tracks?: string[];
+  /** How many beacons draw each event. These are not page lines. */
+  quotas?: SectorQuota[];
+  /** Crew rarities. */
+  rarities?: SectorRarity[];
 };
 
 /**
@@ -358,6 +478,32 @@ export type ChoiceReq =
   | { k: "drone"; id: string; text: string }
   | { k: "stock"; id: string; n: number; text: string };
 
+/** A ship an archive page or choice loads. Omitted hostile is hostile. */
+export type ArchiveShip = {
+  load: string;
+  hostile: boolean;
+};
+
+/** An archive `<autoReward>`. The numeric bands stay in the rewards table. */
+export type ArchiveReward = {
+  level: string;
+  name: string;
+};
+
+/** Archive boarders. `class` is the race id. */
+export type ArchiveBoarders = {
+  min: number;
+  max: number;
+  class?: string;
+};
+
+/** A named blueprint an archive page grants. A nameless weapon, drone, or augment stays an item effect. */
+export type ArchiveGrant = {
+  kind: "weapon" | "drone" | "augment" | "crew";
+  id: string;
+  amount?: number;
+};
+
 /** A button on an event page. The id is what `choose` receives. */
 export type EventChoice = {
   id: string;
@@ -367,6 +513,16 @@ export type EventChoice = {
   reqs?: ChoiceReq[];
   /** Fuel the handler pays. A positive resource effect is a different payment. */
   gift?: ChoiceGift;
+  /** The archive hides this button until its requirement is met. */
+  hidden?: boolean;
+  /** autoReward on the result page. */
+  reward?: ArchiveReward;
+  /** A loaded ship that is not a fight. A hostile ship is a fight effect. */
+  ship?: ArchiveShip;
+  /** Named blueprints the result grants. */
+  grants?: ArchiveGrant[];
+  /** Choices on the result page. */
+  choices?: EventChoice[];
 };
 
 /** What a scripted surrender hands over. The sim still rolls the amounts. */
@@ -508,12 +664,30 @@ export type EventDef = {
   cards?: EventCard[];
   choices: EventChoice[];
   surrender?: SurrenderOfferDef;
+  /**
+   * Page-level results that already have an effect.
+   * A loaded ship, an autoReward, and boarders stay on their own fields.
+   */
+  fx?: EventEffect[];
+  /** The ship this page loads. */
+  ship?: ArchiveShip;
+  /** autoReward on this page. */
+  reward?: ArchiveReward;
+  /** Boarders this page spawns. */
+  boarders?: ArchiveBoarders;
+  /** Named blueprints this page grants. */
+  grants?: ArchiveGrant[];
 };
 
-/** One page on a filler list. `id` is the event slug. `unique` pages appear once per sector. */
+/**
+ * One page on a filler list. `id` is the event slug.
+ * `unique` pages appear once per sector.
+ * An archive list can hold the page inline. `page` is that page.
+ */
 export type FillerEntry = {
   id: string;
   unique: boolean;
+  page?: EventDef;
 };
 
 /**

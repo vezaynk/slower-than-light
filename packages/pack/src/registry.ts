@@ -92,7 +92,11 @@ function copyKit(kit: HullKitDef): HullKitDef {
 }
 
 function copySector(row: SectorDef): SectorDef {
-  return { ...row, notes: [...row.notes] };
+  const copy: SectorDef = { ...row, notes: [...row.notes] };
+  if (row.quotas) copy.quotas = row.quotas.map((quota) => ({ ...quota }));
+  if (row.tracks) copy.tracks = [...row.tracks];
+  if (row.rarities) copy.rarities = row.rarities.map((rarity) => ({ ...rarity }));
+  return copy;
 }
 
 function copyLine(line: StoreLine): StoreLine {
@@ -194,6 +198,11 @@ function copyChoice(choice: EventChoice): EventChoice {
   const copy: EventChoice = { id: choice.id, label: choice.label, fx: choice.fx.map(copyEffect) };
   if (choice.reqs?.length) copy.reqs = choice.reqs.map(copyReq);
   if (choice.gift?.k === "fuel") copy.gift = copyGift(choice.gift);
+  if (choice.hidden) copy.hidden = true;
+  if (choice.reward) copy.reward = { ...choice.reward };
+  if (choice.ship) copy.ship = { ...choice.ship };
+  if (choice.grants?.length) copy.grants = choice.grants.map((grant) => ({ ...grant }));
+  if (choice.choices?.length) copy.choices = choice.choices.map(copyChoice);
   return copy;
 }
 
@@ -225,7 +234,11 @@ function copySurrender(row: SurrenderOfferDef): SurrenderOfferDef {
 function copyList(row: FillerListDef): FillerListDef {
   return {
     id: row.id,
-    entries: row.entries.map((entry) => ({ id: entry.id, unique: entry.unique })),
+    entries: row.entries.map((entry) => {
+      const copy: FillerListDef["entries"][number] = { id: entry.id, unique: entry.unique };
+      if (entry.page) copy.page = copyEvent(entry.page);
+      return copy;
+    }),
   };
 }
 
@@ -306,6 +319,11 @@ function copyEvent(row: EventDef): EventDef {
   }
   if (row.cards && row.cards.length > 0) copy.cards = row.cards.map(copyCard);
   if (row.surrender) copy.surrender = copySurrender(row.surrender);
+  if (row.fx?.length) copy.fx = row.fx.map(copyEffect);
+  if (row.ship) copy.ship = { ...row.ship };
+  if (row.reward) copy.reward = { ...row.reward };
+  if (row.boarders) copy.boarders = { ...row.boarders };
+  if (row.grants?.length) copy.grants = row.grants.map((grant) => ({ ...grant }));
   return copy;
 }
 
@@ -364,12 +382,25 @@ function copyOffer(row: OfferRow): OfferRow {
   };
 }
 
+function copyGrid(grid: NonNullable<HullDef["grid"]>): NonNullable<HullDef["grid"]> {
+  const copy: NonNullable<HullDef["grid"]> = {
+    rooms: grid.rooms.map((room) => ({ ...room })),
+    doors: grid.doors.map((door) => ({ ...door })),
+  };
+  if (grid.x !== undefined) copy.x = grid.x;
+  if (grid.y !== undefined) copy.y = grid.y;
+  if (grid.vertical !== undefined) copy.vertical = grid.vertical;
+  if (grid.horizontal !== undefined) copy.horizontal = grid.horizontal;
+  if (grid.ellipse) copy.ellipse = { ...grid.ellipse };
+  return copy;
+}
+
 function copyHull(row: HullDef): HullDef {
   const systems: Record<string, [number, number]> = {};
   for (const [id, pair] of Object.entries(row.systems)) systems[id] = [pair[0], pair[1]];
   const kits: Record<string, HullKitDef> = {};
   for (const [id, kit] of Object.entries(row.kits)) kits[id] = copyKit(kit);
-  return {
+  const copy: HullDef = {
     ...row,
     systems,
     weapons: [...row.weapons],
@@ -378,6 +409,11 @@ function copyHull(row: HullDef): HullDef {
     augments: [...row.augments],
     unfitted: [...row.unfitted],
   };
+  if (row.grid) copy.grid = copyGrid(row.grid);
+  if (row.installs) copy.installs = row.installs.map((item) => ({ ...item }));
+  if (row.crewCounts) copy.crewCounts = row.crewCounts.map((item) => ({ ...item }));
+  if (row.drones) copy.drones = [...row.drones];
+  return copy;
 }
 
 /** `"base"` replaces the maps. `"append"` adds or overwrites by id. */

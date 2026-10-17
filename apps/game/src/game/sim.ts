@@ -5493,38 +5493,63 @@ function endCheck(g: Game) {
   }
   if (g.enemy && g.enemy.hull <= 0) {
     const boss = g.beacons.find((b) => b.id === g.here)?.kind === "boss";
-    if (boss && g.ramStage < 3) {
-      advanceRam(g);
+    const stage = g.enemy.flagship?.stage ?? 1;
+    if (boss && g.enemy.flagship && stage < 3) {
+      retireFlagship(g);
       return;
     }
     winCombat(g);
   }
 }
 
-function advanceRam(g: Game) {
+/**
+ * A Flagship stage falling ends this battle. Survivors are kept for the next stage, the same scrap band is paid,
+ * and the Flagship jumps one beacon closer. Sitting on the base does not count as one of the three losing turns.
+ * Stage 3 still ends the run.
+ */
+function retireFlagship(g: Game) {
   const enemy = g.enemy;
-  if (!enemy) return;
-  const next: 2 | 3 = g.ramStage === 1 ? 2 : 3;
+  const stage = enemy?.flagship?.stage;
+  if (!enemy || stage == null || stage >= 3) return;
+  const next: 2 | 3 = stage === 1 ? 2 : 3;
+  const old = enemy.rooms;
+  const laid = flagshipRooms(next, g.difficulty === "hard");
+  enemy.rooms = laid.rooms.map((r) => room(r));
+  carryCrew(g, old, enemy);
+  const crew = g.crew
+    .filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0)
+    .map((c) => ({ ...c, path: [], move: 0, think: 0, stun: 0, leashed: 0 }));
+  g.flagshipMemo = { stage: next, crew };
   g.ramStage = next;
-  // "Global behavior": hull and system damage are repaired when the next stage starts.
-  for (const sys of Object.values(enemy.systems)) sys.damage = 0;
-  // @agent:flagship. "At the end of the first and second stage, the Flagship will lose a part of its hull along with
-  // the rooms, systems, and weapons in the corresponding location." New rooms also clear "Breach and fire".
-  flagshipStage(g, enemy, next);
-  citedEnemy(g, "boss", enemy, g.crew);
   // The Rebel Flagship: a high scrap reward at sector 1 value. Stage 3 is the victory path and pays none.
   const band = flagshipStageScrap(g.difficulty);
   const eligible = band[0] + irand(g, band[1] - band[0] + 1);
   const scrap = adjustScrap(g, eligible);
   addScrap(g, scrap, eligible);
-  const wait = rollSurge(next, rand(g));
-  g.bossSurge = wait ?? 25;
-  log(
-    g,
-    next === 2
-      ? "The Flagship brings up the second hull."
-      : "The Flagship brings up its last hull.",
-  );
+  const ram = g.ramId ? g.beacons.find((b) => b.id === g.ramId) : undefined;
+  const base = g.beacons.find((b) => b.flag === "fed-base");
+  const held = !!base && ram?.id === base.id;
+  const moved = hopFlagship(g);
+  if (enemy.hull <= 0) silenceBoarders(g);
+  clearEnemyLeash(g);
+  g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c));
+  g.enemy = null;
+  g.shots = [];
+  g.wreck = null;
+  g.asb = false;
+  g.pulsar = false;
+  g.flare = false;
+  g.boardTimer = 0;
+  const note = moved
+    ? "The Flagship jumps away."
+    : held
+      ? "The Flagship holds the base."
+      : "The Flagship readies the next hull.";
+  g.reward = { scrap, note };
+  g.phase = "reward";
+  g.paused = true;
+  log(g, note);
+  sfx(g, "win");
 }
 
 function lose(g: Game, reason: "hull" | "crew") {
@@ -5833,6 +5858,12 @@ function makeFlagship(g: Game, boss = false): { ship: Ship; crew: Crew[] } {
     flagshipStage(g, ship, memo.stage);
     const kept = resumeCrew(ship, memo);
     citedEnemy(g, "boss", ship, kept);
+    // A stage that resumes with nobody left is already under the AI. The dodge bonus reads that flag before the first tick.
+    if (!kept.some((c) => c.hp > 0)) {
+      ship.automated = true;
+      if (ship.flagship) ship.flagship.ai = true;
+      log(g, "The Flagship's AI has taken control of the ship.");
+    }
     return { ship, crew: kept };
   }
   // @agent:flagship. The placeholder grid above is replaced by the traced stage-1 cutaway and its systems.
@@ -6802,12 +6833,53 @@ export function commitJump(g: Game, id: string) {
   arrive(g, dest);
 }
 
+function manhattan(a: Beacon, b: Beacon) {
+  return Math.abs(a.col - b.col) + Math.abs(a.row - b.row);
+}
+
+// INFERRED: among beacons strictly closer to the base, take the closest, then the column, then the row.
+function closerBeacon(g: Game, ram: Beacon): Beacon | null {
+  const base = g.beacons.find((b) => b.flag === "fed-base");
+  if (!base || ram.id === base.id) return null;
+  const options = ram.links
+    .map((id) => g.beacons.find((b) => b.id === id))
+    .filter((b): b is Beacon => !!b && b.id !== ram.id && manhattan(b, base) < manhattan(ram, base));
+  if (!options.length) return null;
+  return (
+    [...options].sort(
+      (a, b) => manhattan(a, base) - manhattan(b, base) || a.col - b.col || a.row - b.row,
+    )[0] ?? null
+  );
+}
+
+function placeFlagship(g: Game, from: Beacon, next: Beacon) {
+  g.ramAtBase = 0;
+  from.kind = "empty";
+  from.name = "Beacon";
+  from.tier = "";
+  next.kind = "boss";
+  next.name = "Flagship";
+  next.tier = "boss";
+  next.resolved = false;
+  g.ramId = next.id;
+}
+
+/** One hop toward the base after a stage falls. A turn already spent on the base is left alone. */
+function hopFlagship(g: Game): boolean {
+  if (!g.ramId) return false;
+  const ram = g.beacons.find((b) => b.id === g.ramId);
+  if (!ram) return false;
+  const next = closerBeacon(g, ram);
+  if (!next) return false;
+  placeFlagship(g, ram, next);
+  return true;
+}
+
 // Sectors, "The Last Stand": the Flagship jumps every two player jumps, toward the base.
 // The Rebel Flagship: three consecutive turns on the base end the game in a Rebel victory.
 // The beacon it leaves is a plain Beacon again. The Flagship name moves with it.
 function stepRam(g: Game, ram: Beacon) {
   const base = g.beacons.find((b) => b.flag === "fed-base");
-  const span = (a: Beacon, b: Beacon) => Math.abs(a.col - b.col) + Math.abs(a.row - b.row);
   if (base && ram.id === base.id) {
     g.ramAtBase = (g.ramAtBase ?? 0) + 1;
     if (g.ramAtBase >= 3) {
@@ -6821,24 +6893,9 @@ function stepRam(g: Game, ram: Beacon) {
     }
     return;
   }
-  if (!base) return;
-  const options = ram.links
-    .map((id) => g.beacons.find((b) => b.id === id))
-    .filter((b): b is Beacon => !!b && b.id !== ram.id && span(b, base) < span(ram, base));
-  if (!options.length) return;
-  // INFERRED: among beacons strictly closer to the base, take the closest.
-  const next = [...options].sort(
-    (a, b) => span(a, base) - span(b, base) || a.col - b.col || a.row - b.row,
-  )[0];
-  g.ramAtBase = 0;
-  ram.kind = "empty";
-  ram.name = "Beacon";
-  ram.tier = "";
-  next.kind = "boss";
-  next.name = "Flagship";
-  next.tier = "boss";
-  next.resolved = false;
-  g.ramId = next.id;
+  const next = closerBeacon(g, ram);
+  if (!next) return;
+  placeFlagship(g, ram, next);
 }
 
 function arrive(g: Game, b: Beacon) {
@@ -7573,10 +7630,16 @@ function nextSector(g: Game, name?: string) {
 }
 
 export function continueReward(g: Game) {
+  const memo = g.flagshipMemo;
   g.reward = null;
   g.phase = "map";
   g.paused = false;
   const b = hereBeacon(g);
+  // The Flagship is still on this beacon, so dismissing the card opens the next stage.
+  if (memo && b && (b.kind === "boss" || b.id === g.ramId)) {
+    startCombat(g, "boss", false);
+    return;
+  }
   if (b?.kind === "exit" && !b.flag) {
     g.phase = "event";
     g.paused = true;

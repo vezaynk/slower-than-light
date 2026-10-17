@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { tileCount, type Layout } from "../layouts.ts";
-import { flagshipHardLinks, flagshipStage1, flagshipStage2, flagshipStage3 } from "./flagship-layout.ts";
+import "../pack/base.ts";
+import { flagshipHardLinks, flagshipLayout } from "./flagship-layout.ts";
 
 const step = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] } as const;
 
@@ -55,6 +56,10 @@ function assertTraced(layout: Layout, squares: number) {
 }
 
 describe("Rebel Flagship traced layouts", () => {
+  const flagshipStage1 = flagshipLayout(1);
+  const flagshipStage2 = flagshipLayout(2);
+  const flagshipStage3 = flagshipLayout(3);
+
   it("counts the stage pictures and the hard links", () => {
     assertTraced(flagshipStage1, 52);
     assertTraced(flagshipStage2, 42);
@@ -64,6 +69,9 @@ describe("Rebel Flagship traced layouts", () => {
     assert.equal(flagshipStage2.marks?.length, 13);
     assert.equal(flagshipStage3.marks?.length, 11);
     assert.equal(flagshipHardLinks.marks?.length, 4);
+    assert.equal(flagshipStage1.rooms.find((room) => room.id === "f1-pilot")?.title, "Piloting");
+    assert.equal(flagshipStage2.rooms.find((room) => room.id === "f2-drone")?.title, "Drone");
+    assert.equal(flagshipStage3.rooms.find((room) => room.id === "f3-mind")?.title, "Mind Control");
   });
 
   it("keeps the hard links out of the normal stages", () => {

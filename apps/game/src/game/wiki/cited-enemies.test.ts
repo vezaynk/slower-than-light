@@ -105,7 +105,7 @@ describe("cited enemies", () => {
       ["ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
     );
     assert.ok(ship.weapons.every((weapon) => weapon.enabled));
-    // citedEnemy alone does not move crew; the stage swap that drops the Ion room is sim.ts advanceRam.
+    // citedEnemy alone does not move crew. The Ion-room drop happens when that stage's battle ends.
     assert.equal(g.crew.filter((member) => member.side === "enemy").length, 11);
 
     g.ramStage = 3;

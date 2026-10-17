@@ -6327,6 +6327,130 @@
       <room/>
     </roomList>
   </shipBlueprint>
+  <shipBlueprint name="flagship-1" layout="flagship-1">
+    <class/>
+    <title>flagship-1</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="shields" room="2" start="false"/>
+      <system name="doors" room="6" start="false"/>
+      <system name="medbay" room="11" start="false"/>
+      <system name="oxygen" room="18" start="false"/>
+      <system name="engines" room="19" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="12" rows="10">
+      <room name="f1-pilot" title="Piloting"/>
+      <room name="f1-laser" title="Boss Laser"/>
+      <room name="f1-shields" title="Shields"/>
+      <room name="f1-missile" title="Boss Missile"/>
+      <room name="f1-ion" title="Boss Ion"/>
+      <room name="f1-beam" title="Boss Beam"/>
+      <room name="f1-doors" title="Door"/>
+      <room name="f1-hall-a" title="Hall"/>
+      <room name="f1-hall-b" title="Hall"/>
+      <room name="f1-cloak" title="Cloaking"/>
+      <room name="f1-hall-c" title="Hall"/>
+      <room name="f1-medbay" title="Medbay"/>
+      <room name="f1-hall-d" title="Hall"/>
+      <room name="f1-hall-e" title="Hall"/>
+      <room name="f1-hack" title="Hacking"/>
+      <room name="f1-hall-f" title="Hall"/>
+      <room name="f1-hall-g" title="Hall"/>
+      <room name="f1-hall-h" title="Hall"/>
+      <room name="f1-oxygen" title="Oxygen"/>
+      <room name="f1-engines" title="Engines"/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="flagship-2" layout="flagship-2">
+    <class/>
+    <title>flagship-2</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="shields" room="2" start="false"/>
+      <system name="medbay" room="8" start="false"/>
+      <system name="oxygen" room="14" start="false"/>
+      <system name="engines" room="15" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="12" rows="10">
+      <room name="f2-pilot" title="Piloting"/>
+      <room name="f2-laser" title="Boss Laser"/>
+      <room name="f2-shields" title="Shields"/>
+      <room name="f2-missile" title="Boss Missile"/>
+      <room name="f2-beam" title="Boss Beam"/>
+      <room name="f2-hall-a" title="Hall"/>
+      <room name="f2-hall-b" title="Hall"/>
+      <room name="f2-hall-c" title="Hall"/>
+      <room name="f2-medbay" title="Medbay"/>
+      <room name="f2-hall-d" title="Hall"/>
+      <room name="f2-drone" title="Drone"/>
+      <room name="f2-hall-e" title="Hall"/>
+      <room name="f2-hall-f" title="Hall"/>
+      <room name="f2-hall-g" title="Hall"/>
+      <room name="f2-oxygen" title="Oxygen"/>
+      <room name="f2-engines" title="Engines"/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="flagship-3" layout="flagship-3">
+    <class/>
+    <title>flagship-3</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="shields" room="2" start="false"/>
+      <system name="medbay" room="7" start="false"/>
+      <system name="oxygen" room="10" start="false"/>
+      <system name="engines" room="11" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="9" rows="10">
+      <room name="f3-pilot" title="Piloting"/>
+      <room name="f3-laser" title="Boss Laser"/>
+      <room name="f3-shields" title="Shields"/>
+      <room name="f3-missile" title="Boss Missile"/>
+      <room name="f3-hall-a" title="Hall"/>
+      <room name="f3-teleporter" title="Teleporter"/>
+      <room name="f3-mind" title="Mind Control"/>
+      <room name="f3-medbay" title="Medbay"/>
+      <room name="f3-hall-b" title="Hall"/>
+      <room name="f3-hall-c" title="Hall"/>
+      <room name="f3-oxygen" title="Oxygen"/>
+      <room name="f3-engines" title="Engines"/>
+    </roomList>
+  </shipBlueprint>
   <sectorDescription name="civilian-start">
     <title>Civilian (Starting) Sector</title>
   </sectorDescription>

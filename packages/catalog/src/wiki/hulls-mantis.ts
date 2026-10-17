@@ -19,6 +19,7 @@ export const MANTIS_HULLS: HullSpec[] = [
     unlock: "See Legendary Thief KazaaakplethKilik random event.\nAlternatively, defeat The Rebel Flagship with the Zoltan Cruiser.",
     weaponSlots: 3,
     droneSlots: 2,
+    health: 30,
     source: "The Mantis Cruiser, Layout A",
     // Wiki page "The Mantis Cruiser", section "Layout A": Starting Reactor: 7.
     reactor: 7,
@@ -61,6 +62,7 @@ export const MANTIS_HULLS: HullSpec[] = [
     unlock: "Earning two of the three Mantis Cruiser achievements will unlock Layout B.",
     weaponSlots: 3,
     droneSlots: 2,
+    health: 30,
     source: "The Mantis Cruiser, Layout B",
     // Wiki page "The Mantis Cruiser", section "Layout B": Starting Reactor: 11.
     reactor: 11,
@@ -110,6 +112,7 @@ export const MANTIS_HULLS: HullSpec[] = [
     unlock: "Reaching Sector 8 with the Mantis Cruiser B and Advanced Edition Content enabled will unlock layout C.",
     weaponSlots: 3,
     droneSlots: 2,
+    health: 30,
     source: "The Mantis Cruiser, Layout C",
     // Wiki page "The Mantis Cruiser", section "Layout C": Starting Reactor: 8.
     reactor: 8,

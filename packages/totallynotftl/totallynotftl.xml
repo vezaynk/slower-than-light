@@ -1300,6 +1300,7 @@
     <parts>2</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="12">
         <level>2</level>
@@ -1384,6 +1385,7 @@
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="2">
         <level>2</level>
@@ -1469,6 +1471,7 @@
     <parts>3</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="12">
         <level>2</level>
@@ -1560,6 +1563,7 @@
     <parts>15</parts>
     <weaponSlots>3</weaponSlots>
     <droneSlots>3</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="11">
         <level>2</level>
@@ -1650,6 +1654,7 @@
     <parts>6</parts>
     <weaponSlots>3</weaponSlots>
     <droneSlots>3</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="11">
         <level>2</level>
@@ -1742,6 +1747,7 @@
     <parts>25</parts>
     <weaponSlots>3</weaponSlots>
     <droneSlots>3</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="8">
         <level>2</level>
@@ -1843,6 +1849,7 @@ Alternatively, defeat the Rebel Flagship with the Engi Cruiser.</unlock>
     <parts>2</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="8">
         <level>2</level>
@@ -1935,6 +1942,7 @@ Alternatively, defeat the Rebel Flagship with the Engi Cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="14">
         <level>2</level>
@@ -2027,6 +2035,7 @@ Alternatively, defeat the Rebel Flagship with the Engi Cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="15">
         <level>2</level>
@@ -2131,6 +2140,7 @@ Alternatively, defeat The Rebel Flagship with the Federation Cruiser.</unlock>
     <parts>2</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="15">
         <level>2</level>
@@ -2218,6 +2228,7 @@ Alternatively, defeat The Rebel Flagship with the Federation Cruiser.</unlock>
     <parts>2</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="5">
         <level>1</level>
@@ -2303,6 +2314,7 @@ Alternatively, defeat The Rebel Flagship with the Federation Cruiser.</unlock>
     <parts>15</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="1">
         <level>2</level>
@@ -2406,6 +2418,7 @@ Alternatively, defeat The Rebel Flagship with the Mantis Cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="13">
         <level>2</level>
@@ -2490,6 +2503,7 @@ Alternatively, defeat The Rebel Flagship with the Mantis Cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="12">
         <level>2</level>
@@ -2584,6 +2598,7 @@ Alternatively, defeat The Rebel Flagship with the Mantis Cruiser.</unlock>
     <parts>15</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="7">
         <level>2</level>
@@ -2683,6 +2698,7 @@ Alternatively, defeat The Rebel Flagship with the Slug cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="2">
         <level>2</level>
@@ -2770,6 +2786,7 @@ Alternatively, defeat The Rebel Flagship with the Slug cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="2">
         <level>2</level>
@@ -2856,6 +2873,7 @@ Alternatively, defeat The Rebel Flagship with the Slug cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="12">
         <level>2</level>
@@ -2949,6 +2967,7 @@ Alternatively, defeat the Rebel Flagship with the Rock Cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>3</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields">
         <level>0</level>
@@ -3039,6 +3058,7 @@ Alternatively, defeat the Rebel Flagship with the Rock Cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>3</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields">
         <level>0</level>
@@ -3127,6 +3147,7 @@ Alternatively, defeat the Rebel Flagship with the Rock Cruiser.</unlock>
     <parts>16</parts>
     <weaponSlots>3</weaponSlots>
     <droneSlots>3</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields">
         <level>0</level>
@@ -3225,6 +3246,7 @@ Alternatively, defeat the Rebel Flagship with the Rock Cruiser.</unlock>
     <parts>9</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="5">
         <level>2</level>
@@ -3320,6 +3342,7 @@ Alternatively, defeat the Rebel Flagship with the Rock Cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="4">
         <level>2</level>
@@ -3421,6 +3444,7 @@ Alternatively, defeat The Rebel Flagship with the Zoltan Cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>3</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="16">
         <level>2</level>
@@ -3514,6 +3538,7 @@ Alternatively, defeat The Rebel Flagship with the Zoltan Cruiser.</unlock>
     <parts>15</parts>
     <weaponSlots>3</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="7">
         <level>4</level>
@@ -3610,6 +3635,7 @@ Alternatively, defeat The Rebel Flagship with the Zoltan Cruiser.</unlock>
     <parts>0</parts>
     <weaponSlots>3</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="6">
         <level>2</level>
@@ -3708,6 +3734,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="13">
         <level>2</level>
@@ -3797,6 +3824,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <parts>0</parts>
     <weaponSlots>4</weaponSlots>
     <droneSlots>2</droneSlots>
+    <health amount="30"/>
     <systemList>
       <system name="shields" room="1">
         <level>2</level>
@@ -6400,6 +6428,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fuel>0</fuel>
     <missiles>0</missiles>
     <parts>0</parts>
+    <health amount="20"/>
     <systemList>
       <system name="pilot" room="0" start="false"/>
       <system name="shields" room="2" start="false"/>
@@ -6446,6 +6475,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fuel>0</fuel>
     <missiles>0</missiles>
     <parts>0</parts>
+    <health amount="22"/>
     <systemList>
       <system name="pilot" room="0" start="false"/>
       <system name="shields" room="2" start="false"/>
@@ -6487,6 +6517,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fuel>0</fuel>
     <missiles>0</missiles>
     <parts>0</parts>
+    <health amount="20"/>
     <systemList>
       <system name="pilot" room="0" start="false"/>
       <system name="shields" room="2" start="false"/>

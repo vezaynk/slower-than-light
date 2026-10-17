@@ -691,6 +691,7 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   add(node, leaf(doc, "parts", hull.parts));
   if (hull.weaponSlots != null) add(node, leaf(doc, "weaponSlots", hull.weaponSlots));
   if (hull.droneSlots != null) add(node, leaf(doc, "droneSlots", hull.droneSlots));
+  if (hull.health != null) add(node, element(doc, "health", { amount: String(hull.health) }));
 
   const systems = doc.createElement("systemList");
   const reserved = new Set(Object.keys(hull.systems));

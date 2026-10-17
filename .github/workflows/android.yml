@@ -8,6 +8,9 @@ name: Android build (Capacitor)
 #   ANDROID_KEY_ALIAS
 #   ANDROID_KEY_PASSWORD
 # Without them the release bundle is unsigned. The debug APK is always uploaded for sideload.
+# versionName is 1.0.<run number>. The signed bundle then goes to the Play internal testing track
+# (io.knyazev.lighterthanair) with the PLAY_SERVICE_ACCOUNT_JSON secret. It never goes to production,
+# closed, or open testing.
 on:
   workflow_dispatch:
 
@@ -124,3 +127,13 @@ jobs:
           name: android-${{ github.sha }}
           path: out/
           if-no-files-found: error
+
+      # The action's default track is production, so tracks must stay internal.
+      - name: Upload to Play internal testing
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: io.knyazev.lighterthanair
+          releaseFiles: out/SlowerThanLight-release.aab
+          tracks: internal
+          status: completed

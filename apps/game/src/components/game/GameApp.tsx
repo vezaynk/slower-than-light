@@ -4435,7 +4435,7 @@ function TitlePanel({ onClose }: { onClose: () => void }) {
           <h3>{"About"}</h3>
           <p>
             {
-              "STL: Slower Than Light is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games."
+              "LTA: Lighter Than Air is a fan project inspired by FTL: Faster Than Light by Subset Games. It is not affiliated with or endorsed by Subset Games."
             }
           </p>
           <p>

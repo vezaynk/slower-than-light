@@ -145,8 +145,17 @@ describe("content pack", () => {
 
   it("loads the hull catalog in its authored order", () => {
     assert.deepEqual(
-      allHulls().map((row) => row.id),
+      allHulls()
+        .map((row) => row.id)
+        .slice(0, HULLS.length),
       HULLS.map((row) => row.id),
+    );
+    assert.ok(allHulls().length > HULLS.length);
+    assert.equal(
+      allHulls()
+        .slice(0, HULLS.length)
+        .some((row) => row.id === "rebel-fighter"),
+      false,
     );
     const kestrel = HULLS.find((row) => row.id === "PLAYER_SHIP_HARD");
     const packed = hullDef("PLAYER_SHIP_HARD");

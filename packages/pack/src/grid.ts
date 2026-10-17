@@ -78,9 +78,9 @@ export function gridFromLayout(layout: LayoutSource): HullGrid {
       y: room.y,
       w: room.w,
       h: room.h,
-      name: room.id,
-      title: room.title,
     };
+    if (room.id) row.name = room.id;
+    if (room.title) row.title = room.title;
     if (room.system) row.system = room.system;
     if (room.reserve) row.reserve = room.reserve;
     return row;

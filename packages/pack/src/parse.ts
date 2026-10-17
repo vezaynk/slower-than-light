@@ -302,6 +302,7 @@ function readHull(node: XmlElement): HullDef | undefined {
   if (!id || !layout) return undefined;
   const systems: Record<string, [number, number]> = {};
   const placed: { id: string; room: number }[] = [];
+  const pictured: { id: string; room: number }[] = [];
   for (const item of elements(child(node, "systemList"))) {
     if (item.tagName !== "system") continue;
     const sysId = attr(item, "name")?.trim();
@@ -309,7 +310,11 @@ function readHull(node: XmlElement): HullDef | undefined {
     const level = numOf(item, "level");
     const power = numOf(item, "power");
     const room = attrNum(item.getAttribute("room"));
-    if (attr(item, "start") === "false" && level == null && power == null) continue;
+    const slot = attr(item, "start") === "false" && level == null && power == null;
+    if (slot) {
+      if (room != null) pictured.push({ id: sysId, room });
+      continue;
+    }
     systems[sysId] = [level ?? 0, power ?? 0];
     if (room != null) placed.push({ id: sysId, room });
   }
@@ -402,6 +407,10 @@ function readHull(node: XmlElement): HullDef | undefined {
       for (const place of placed) {
         const room = rooms[place.room];
         if (room) room.system = place.id;
+      }
+      for (const place of pictured) {
+        const room = rooms[place.room];
+        if (room && !room.reserve && !room.system) room.system = place.id;
       }
       hull.grid = grid;
     }

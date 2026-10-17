@@ -11,6 +11,7 @@
     "lint": "cd ../.. && ./node_modules/.bin/eslint packages/hyperspace"
   },
   "dependencies": {
+    "@stl/ftldat": "workspace:*",
     "@stl/pack": "workspace:*",
     "@xmldom/xmldom": "^0.9.12"
   },

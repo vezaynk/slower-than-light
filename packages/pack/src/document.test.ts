@@ -12,7 +12,7 @@ import {
   tuneDef,
   weaponDef,
 } from "./registry.ts";
-import type { ContentPack, WeaponBlueprint } from "./types.ts";
+import type { ContentPack, HullDef, WeaponBlueprint } from "./types.ts";
 
 const laser: WeaponBlueprint = {
   id: "ember",
@@ -942,6 +942,57 @@ describe("pack document", () => {
       },
     }));
     assert.deepEqual(parsePack(emitPack({ events })).events, events);
+  });
+
+  it("round-trips weapon bays and a two-line unlock, and leaves a bare hull without them", () => {
+    const counted: HullDef = {
+      id: "slot-ship",
+      cruiser: "",
+      layout: "kestral",
+      name: "Slots",
+      quote: "",
+      unlock: "First line.\nSecond line.",
+      source: "",
+      reactor: 0,
+      fuel: 0,
+      missiles: 0,
+      parts: 0,
+      systems: {},
+      weapons: [],
+      crew: [],
+      kits: {},
+      augments: [],
+      unfitted: [],
+      weaponSlots: 4,
+      droneSlots: 3,
+    };
+    const bare: HullDef = {
+      id: "bare-ship",
+      cruiser: "",
+      layout: "kestral",
+      name: "Bare",
+      quote: "",
+      unlock: "",
+      source: "",
+      reactor: 0,
+      fuel: 0,
+      missiles: 0,
+      parts: 0,
+      systems: {},
+      weapons: [],
+      crew: [],
+      kits: {},
+      augments: [],
+      unfitted: [],
+    };
+    const back = parsePack(emitPack({ hulls: [counted, bare] }));
+    const slots = back.hulls?.find((hull) => hull.id === "slot-ship");
+    const plain = back.hulls?.find((hull) => hull.id === "bare-ship");
+    assert.equal(slots?.weaponSlots, 4);
+    assert.equal(slots?.droneSlots, 3);
+    assert.deepEqual(slots?.unlock.split("\n"), ["First line.", "Second line."]);
+    assert.equal(plain?.weaponSlots, undefined);
+    assert.equal(plain?.droneSlots, undefined);
   });
 
   it("round-trips names that contain markup characters", () => {

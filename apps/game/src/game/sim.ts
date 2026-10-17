@@ -127,7 +127,6 @@ import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
 
-import { printedWeaponSlots } from "./wiki/hangar-sheet.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./wiki/bonus-item.ts";
 import { CARGO_SLOTS, checkCrewRoom, pendingOverflow, receiveWeapon } from "./wiki/make-room.ts";
 import {
@@ -5780,11 +5779,11 @@ function winCombat(g: Game) {
 }
 
 /**
- * Cruiser pages print the count on the layout: "Weapons (N slots)" or "Slots: N Weapon".
- * The Lark is not one of those hulls. INVENTED: three slots when no count is printed.
+ * The ship blueprint's weapon bays.
+ * The Lark is not one of those hulls. INVENTED: three slots when the hull has no count.
  */
 export function weaponSlotCap(g: Game): number {
-  return printedWeaponSlots(g.hullId) ?? 3;
+  return hullDef(g.hullId)?.weaponSlots ?? 3;
 }
 
 /**

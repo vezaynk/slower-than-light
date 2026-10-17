@@ -14,7 +14,18 @@ import { installSling } from "./extras/sling.ts";
 import { installSpike, playerHackView } from "./extras/spike.ts";
 import { installVeil } from "./extras/veil.ts";
 import { seatKits } from "./layouts.ts";
-import { blastHits, createGame, doorHurt, doorLevel, noteDoorArmed, sparePower, startCombat, step, syncShields, zoltanBars } from "./sim.ts";
+import {
+  blastHits,
+  createGame,
+  doorHurt,
+  doorLevel,
+  noteDoorArmed,
+  sparePower,
+  startCombat,
+  step,
+  syncShields,
+  zoltanBars,
+} from "./sim.ts";
 import { useGame } from "./store.ts";
 import type { Beacon, Crew, Door, Game, Kit, Room, Ship, SysId, WeaponInst } from "./types.ts";
 import type { EscapePlan } from "./wiki/escape.ts";
@@ -22,7 +33,7 @@ import type { EscapePlan } from "./wiki/escape.ts";
 export type SceneName = "quiet" | "reading" | "inside" | "stacked" | "flagship";
 
 const SCENE_SEED = 7;
-const GUNS = ["lineburst", "ion2", "halberd", "breach2"] as const;
+const GUNS = ["LASER_BURST_3", "ION_4", "BEAM_2", "BOMB_BREACH_2"] as const;
 
 export type ReelInfo = {
   phase: Game["phase"];
@@ -149,8 +160,19 @@ function weaponsAirlock(g: Game): Door | undefined {
 }
 
 function putBoarder(g: Game) {
-  if (g.crew.some((crew) => crew.side === "enemy" && crew.aboard === "player" && crew.hp > 0 && crew.room === "p-weapons")) return;
-  const donor = g.crew.find((crew) => crew.side === "enemy" && crew.hp > 0 && crew.aboard === "enemy");
+  if (
+    g.crew.some(
+      (crew) =>
+        crew.side === "enemy" &&
+        crew.aboard === "player" &&
+        crew.hp > 0 &&
+        crew.room === "p-weapons",
+    )
+  )
+    return;
+  const donor = g.crew.find(
+    (crew) => crew.side === "enemy" && crew.hp > 0 && crew.aboard === "enemy",
+  );
   if (!donor) return;
   g.crew.push({
     id: `c-board-${g.uid++}`,
@@ -170,7 +192,7 @@ function putBoarder(g: Game) {
 
 function beamAcross(g: Game) {
   const foe = g.enemy;
-  const beam = g.player.weapons.find((weapon) => weapon.defId === "halberd");
+  const beam = g.player.weapons.find((weapon) => weapon.defId === "BEAM_2");
   if (!foe || !beam) return;
   let best: string[] = [];
   let line: { a: { x: number; y: number }; b: { x: number; y: number } } | null = null;
@@ -193,7 +215,7 @@ function beamAcross(g: Game) {
 }
 
 function latchHack(g: Game, systemId: string) {
-  const kit = g.player.kits.spike;
+  const kit = g.player.kits.hacking;
   const foe = g.enemy;
   if (!kit || !foe) return;
   kit.level = Math.max(kit.level, 2);
@@ -264,11 +286,11 @@ function fitCrew(g: Game) {
     weapons.path = [];
   }
   const extra = [
-    body("c-spark", "Zed", "spark", "p-shields"),
-    body("c-blade-a", "Kesh", "blade", "p-tele"),
-    body("c-blade-b", "Vek", "blade", "p-tele"),
-    body("c-cloak", "Ivo", "plain", "p-cloak"),
-    body("c-hack", "Nen", "plain", "p-hack"),
+    body("c-spark", "Zed", "energy", "p-shields"),
+    body("c-blade-a", "Kesh", "mantis", "p-tele"),
+    body("c-blade-b", "Vek", "mantis", "p-tele"),
+    body("c-cloak", "Ivo", "human", "p-cloak"),
+    body("c-hack", "Nen", "human", "p-hack"),
   ];
   for (const crew of extra) {
     if (!g.crew.some((have) => have.id === crew.id)) g.crew.push(crew);
@@ -288,15 +310,15 @@ function installGear(g: Game) {
   installLeash(g);
   installSling(g);
   installCell(g);
-  g.player.kits.swarm = { ...blankKit("swarm", 4, 4), loadout: ["ward", "striker"] };
+  g.player.kits.drones = { ...blankKit("drones", 4, 4), loadout: ["DEFENSE_1", "COMBAT_1"] };
   seatKits(g.player);
   const power: [Kit["id"], number, number][] = [
-    ["veil", 1, 1],
-    ["spike", 2, 1],
-    ["leash", 1, 1],
-    ["sling", 1, 1],
-    ["cell", 1, 0],
-    ["swarm", 4, 4],
+    ["cloaking", 1, 1],
+    ["hacking", 2, 1],
+    ["mind", 1, 1],
+    ["teleporter", 1, 1],
+    ["battery", 1, 0],
+    ["drones", 4, 4],
   ];
   for (const [id, level, bars] of power) {
     const kit = g.player.kits[id];
@@ -329,7 +351,10 @@ function settleFight(g: Game, scene: SceneName, sensors: number) {
   foe.zoltan = 0;
   foe.boards = false;
   foe.systems.shields.level = Math.max(foe.systems.shields.level, 2);
-  foe.systems.shields.power = Math.max(2, Math.min(foe.systems.shields.power, foe.systems.shields.level));
+  foe.systems.shields.power = Math.max(
+    2,
+    Math.min(foe.systems.shields.power, foe.systems.shields.level),
+  );
   foe.shieldNow = 1;
   foe.shieldCharge = 0;
   for (const weapon of foe.weapons) weapon.charge = 0.2;
@@ -371,7 +396,7 @@ function settleFight(g: Game, scene: SceneName, sensors: number) {
 function queueClones(g: Game) {
   const foe = g.enemy;
   if (!foe) return;
-  foe.kits.cradle = blankKit("cradle", 1, 1);
+  foe.kits.clonebay = blankKit("clonebay", 1, 1);
   const room = foe.rooms[0]?.id ?? "e-pilot";
   for (let seq = 1; seq <= 2; seq += 1) {
     g.crew.push({
@@ -386,7 +411,7 @@ function queueClones(g: Game) {
       move: 0,
       think: 0,
       tone: 0,
-      kin: "plain",
+      kin: "human",
       cloneIn: 20,
       cloneSeq: seq,
     });
@@ -396,6 +421,8 @@ function queueClones(g: Game) {
 /**
  * A late Kestrel already in a flagship fight. Both hulls are wounded, the flagship's first
  * volley is almost charged, and its cloak and hack are held off until the reel springs them.
+ * The Flagship already holds the Federation base, so a fallen stage ends this battle and the
+ * reward card opens the next hull.
  */
 function settleFlagship(g: Game) {
   const foe = g.enemy;
@@ -415,49 +442,50 @@ function settleFlagship(g: Game) {
   foe.hullMax = Math.max(foe.hullMax, 20);
   foe.shieldNow = 4;
   foe.ammo = 24;
-  const veil = foe.kits.veil;
+  const veil = foe.kits.cloaking;
   if (veil) {
     veil.on = false;
     veil.left = 0;
     veil.cool = 80;
     veil.power = Math.max(1, veil.power);
   }
-  const spike = foe.kits.spike;
+  const spike = foe.kits.hacking;
   if (spike) spike.cool = 60;
   for (const weapon of foe.weapons) {
-    weapon.charge = weapon.defId === "bosslaser" || weapon.defId === "bossmissile" ? 0.93 : 0.2;
+    weapon.charge =
+      weapon.defId === "ARTILLERY_BOSS_1" || weapon.defId === "ARTILLERY_BOSS_2" ? 0.93 : 0.2;
     weapon.enabled = true;
   }
-  const burst = g.player.weapons.find((weapon) => weapon.defId === "lineburst");
+  const burst = g.player.weapons.find((weapon) => weapon.defId === "LASER_BURST_3");
   if (burst) burst.charge = 1;
-  const ion = g.player.weapons.find((weapon) => weapon.defId === "ion2");
+  const ion = g.player.weapons.find((weapon) => weapon.defId === "ION_4");
   if (ion) ion.charge = 0.35;
-  const beam = g.player.weapons.find((weapon) => weapon.defId === "halberd");
+  const beam = g.player.weapons.find((weapon) => weapon.defId === "BEAM_2");
   if (beam) beam.charge = 0.2;
-  const bomb = g.player.weapons.find((weapon) => weapon.defId === "breach2");
+  const bomb = g.player.weapons.find((weapon) => weapon.defId === "BOMB_BREACH_2");
   if (bomb) bomb.charge = 0.15;
-  const sling = g.player.kits.sling;
+  const sling = g.player.kits.teleporter;
   if (sling) {
     sling.level = 3;
     sling.power = 2;
     sling.cool = 0;
     sling.on = false;
   }
-  const cloak = g.player.kits.veil;
+  const cloak = g.player.kits.cloaking;
   if (cloak) {
     cloak.level = 2;
     cloak.power = 2;
     cloak.cool = 0;
     cloak.on = false;
   }
-  const hack = g.player.kits.spike;
+  const hack = g.player.kits.hacking;
   if (hack) {
     hack.level = 3;
     hack.power = 2;
     hack.cool = 0;
     hack.on = false;
   }
-  const mind = g.player.kits.leash;
+  const mind = g.player.kits.mind;
   if (mind) {
     mind.level = 2;
     mind.power = 1;
@@ -469,7 +497,14 @@ function settleFlagship(g: Game) {
   armWeaponsAirlock(g);
   stampMap(g);
   const here = g.beacons.find((beacon) => beacon.id === g.here);
-  if (here) here.kind = "boss";
+  if (here) {
+    here.kind = "boss";
+    here.name = "Flagship";
+    here.tier = "boss";
+    here.flag = "fed-base";
+  }
+  g.ramId = g.here;
+  g.ramAtBase = 0;
   g.enemySurrender = null;
   g.enemyEscape = null;
   g.tutorial = false;
@@ -485,7 +520,7 @@ function settleFlagship(g: Game) {
 
 /** A paused or live fight with the demonstration's rooms, guns, and crew already in place. */
 export function buildScene(scene: SceneName, sensors = scene === "reading" ? 1 : 4): Game {
-  const g = createGame(SCENE_SEED, "kestrel-a");
+  const g = createGame(SCENE_SEED, "PLAYER_SHIP_HARD");
   installGear(g);
   system(g, "shields", 4, 3);
   system(g, "engines", 4, 4);
@@ -525,7 +560,7 @@ export function buildScene(scene: SceneName, sensors = scene === "reading" ? 1 :
     beamAcross(g);
     const weapons = g.enemy?.systems.weapons;
     if (weapons) weapons.ion = [4];
-    const ionGun = g.player.weapons.find((weapon) => weapon.defId === "ion2");
+    const ionGun = g.player.weapons.find((weapon) => weapon.defId === "ION_4");
     if (ionGun) ionGun.charge = 0.92;
   }
   return g;
@@ -575,7 +610,7 @@ function paintPoster(g: Game) {
   g.player.shieldNow = 1;
   g.player.shieldCharge = 1;
   system(g, "shields", 4, 3);
-  const burst = g.player.weapons.find((weapon) => weapon.defId === "lineburst");
+  const burst = g.player.weapons.find((weapon) => weapon.defId === "LASER_BURST_3");
   if (burst) burst.charge = 1;
 }
 
@@ -650,7 +685,7 @@ function restoreSys(g: Game, id: SysId, minCap: number, wantPower: number) {
  */
 export function steadyShip(g: Game) {
   const ship = g.player;
-  const veil = ship.kits.veil;
+  const veil = ship.kits.cloaking;
   if (veil) {
     const ioned = (veil.ion?.length ?? 0) > 0;
     const broken = (veil.damage ?? 0) >= veil.level || veil.power < 1 || ioned;
@@ -664,7 +699,7 @@ export function steadyShip(g: Game) {
         veil.cool = 0;
       }
       veil.power = feed(ship, veil.power, 2);
-      quenchWhere(ship, (room) => room.id === "p-cloak" || room.kit === "veil");
+      quenchWhere(ship, (room) => room.id === "p-cloak" || room.kit === "cloaking");
     }
   }
   restoreSys(g, "shields", 4, 6);
@@ -694,7 +729,7 @@ export function steadyShip(g: Game) {
     enginesCrew.path = [];
     enginesCrew.move = 0;
   }
-  for (const kitId of ["leash", "sling"] as const) {
+  for (const kitId of ["mind", "teleporter"] as const) {
     const kit = g.enemy?.kits[kitId];
     if (!kit) continue;
     kit.power = 0;
@@ -702,15 +737,15 @@ export function steadyShip(g: Game) {
     kit.left = 0;
     if (kit.cool < 30) kit.cool = 30;
   }
-  const swarm = ship.kits.swarm;
+  const swarm = ship.kits.drones;
   if (swarm && ((swarm.damage ?? 0) > 0 || swarm.power < 1)) {
     swarm.damage = 0;
     swarm.ion = [];
     swarm.level = Math.max(swarm.level, 2);
     swarm.power = feed(ship, swarm.power, Math.max(2, swarm.power));
-    quenchWhere(ship, (room) => room.id === "p-drones" || room.kit === "swarm");
+    quenchWhere(ship, (room) => room.id === "p-drones" || room.kit === "drones");
   }
-  const hack = g.enemy?.kits.spike;
+  const hack = g.enemy?.kits.hacking;
   if (hack && hack.hackFly == null && !hack.hackLatched && hack.cool < 30) hack.cool = 30;
   // Stage 3's laser surge can erase a hull that is already this low. Leave enough to finish the stage.
   if ((g.enemy?.flagship?.stage ?? 0) >= 3 && ship.hull < 6) ship.hull = 9;
@@ -718,127 +753,150 @@ export function steadyShip(g: Game) {
 
 const api: ReelApi = {
   show,
-  play: () => edit((g) => {
-    g.userPaused = false;
-  }),
-  hold: () => edit((g) => {
-    g.userPaused = true;
-  }),
+  play: () =>
+    edit((g) => {
+      g.userPaused = false;
+    }),
+  hold: () =>
+    edit((g) => {
+      g.userPaused = true;
+    }),
   setSensors: (level) => edit((g) => system(g, "sensors", level, level)),
   stallEnemyEngines: () => enemyEngines(0),
   restoreEnemyEngines: () => enemyEngines(2),
-  cutClonePower: () => edit((g) => {
-    const kit = g.enemy?.kits.cradle;
-    if (kit) kit.power = 0;
-  }),
-  setFuel: (fuel) => edit((g) => {
-    g.fuel = fuel;
-  }),
-  readyJump: () => edit((g) => {
-    g.flee = 1;
-    const pilot = g.crew.find((crew) => crew.id === "c-h0");
-    if (pilot) {
-      pilot.room = "p-pilot";
-      pilot.aboard = "player";
-      pilot.path = [];
-      pilot.hp = Math.max(pilot.hp, 1);
-    }
-    system(g, "engines", Math.max(g.player.systems.engines.level, 2), Math.max(g.player.systems.engines.power, 2));
-  }),
-  killEnemy: () => edit((g) => {
-    if (g.enemy) g.enemy.hull = 0;
-    g.userPaused = false;
-    g.menuHold = false;
-    g.paused = false;
-    g.picking = false;
-    g.shipSheet = false;
-    g.manual = false;
-    for (let i = 0; i < 8 && g.phase === "combat"; i += 1) step(g, 0.05);
-  }),
-  freshHack: () => edit((g) => {
-    const kit = g.player.kits.spike;
-    const foe = g.enemy;
-    if (!kit || !foe) return;
-    delete foe.hackDrone;
-    delete foe.hackFlying;
-    kit.on = false;
-    kit.left = 0;
-    kit.cool = 0;
-    kit.target = null;
-    kit.power = Math.max(1, kit.power);
-    delete kit.hackQueued;
-    delete kit.hackFly;
-    delete kit.hackFlyTotal;
-    if (g.player.parts < 1) g.player.parts = 4;
-  }),
-  setEnemyShields: (layers) => edit((g) => {
-    const foe = g.enemy;
-    if (!foe) return;
-    const sys = foe.systems.shields;
-    sys.level = Math.max(sys.level, layers * 2, 2);
-    sys.power = Math.max(layers * 2, 2);
-    sys.damage = 0;
-    sys.ion = [];
-    foe.shieldNow = layers;
-    foe.shieldCharge = 0;
-  }),
-  primeHits: () => edit((g) => {
-    for (const weapon of g.player.weapons) {
-      if (weapon.defId === "lineburst" || weapon.defId === "halberd") weapon.charge = 1;
-      if (weapon.defId === "ion2") weapon.charge = 0.9;
-      if (weapon.defId === "breach2") weapon.charge = 0.85;
-    }
-    g.missiles = Math.max(g.missiles, 6);
-    const foe = g.enemy;
-    if (!foe) return;
-    foe.systems.shields.level = Math.max(foe.systems.shields.level, 4);
-    foe.systems.shields.power = 4;
-    foe.shieldNow = 2;
-    foe.shieldCharge = 0;
-  }),
-  cloakEnemy: () => edit((g) => {
-    const foe = g.enemy;
-    if (!foe) return;
-    foe.kits.veil = { ...blankKit("veil", 1, 1), on: true, left: 12, target: "hold" };
-  }),
-  boardOne: () => edit((g) => {
-    const foe = g.enemy;
-    if (!foe) return;
-    const crew = g.crew.find((body) => body.side === "player" && body.aboard === "player" && body.hp > 0 && body.id !== "c-h0");
-    const room = foe.rooms.find((item) => item.system === "weapons") ?? foe.rooms[0];
-    if (!crew || !room) return;
-    crew.aboard = "enemy";
-    crew.room = room.id;
-    crew.path = [];
-    crew.move = 0;
-    delete crew.pad;
-  }),
-  poster: () => edit((g) => {
-    paintPoster(g);
-    g.userPaused = true;
-    g.paused = false;
-    g.menuHold = false;
-    g.picking = false;
-  }),
-  springEnemyCloak: () => edit((g) => {
-    const kit = g.enemy?.kits.veil;
-    if (!kit) return;
-    kit.on = false;
-    kit.left = 0;
-    kit.cool = 0;
-    kit.power = Math.max(1, kit.power);
-  }),
-  armVolley: () => edit((g) => {
-    for (const weapon of g.enemy?.weapons ?? []) {
-      if (weapon.defId === "bosslaser" || weapon.defId === "bossmissile") weapon.charge = 0.97;
-    }
-    const burst = g.player.weapons.find((weapon) => weapon.defId === "lineburst");
-    if (burst) burst.charge = 1;
-    const ion = g.player.weapons.find((weapon) => weapon.defId === "ion2");
-    if (ion) ion.charge = 0.98;
-    const hack = g.enemy?.kits.spike;
-    if (hack && hack.hackFly == null && !hack.hackLatched) hack.cool = Math.max(hack.cool, 45);
-  }),
+  cutClonePower: () =>
+    edit((g) => {
+      const kit = g.enemy?.kits.clonebay;
+      if (kit) kit.power = 0;
+    }),
+  setFuel: (fuel) =>
+    edit((g) => {
+      g.fuel = fuel;
+    }),
+  readyJump: () =>
+    edit((g) => {
+      g.flee = 1;
+      const pilot = g.crew.find((crew) => crew.id === "c-h0");
+      if (pilot) {
+        pilot.room = "p-pilot";
+        pilot.aboard = "player";
+        pilot.path = [];
+        pilot.hp = Math.max(pilot.hp, 1);
+      }
+      system(
+        g,
+        "engines",
+        Math.max(g.player.systems.engines.level, 2),
+        Math.max(g.player.systems.engines.power, 2),
+      );
+    }),
+  killEnemy: () =>
+    edit((g) => {
+      if (g.enemy) g.enemy.hull = 0;
+      g.userPaused = false;
+      g.menuHold = false;
+      g.paused = false;
+      g.picking = false;
+      g.shipSheet = false;
+      g.manual = false;
+      for (let i = 0; i < 8 && g.phase === "combat"; i += 1) step(g, 0.05);
+    }),
+  freshHack: () =>
+    edit((g) => {
+      const kit = g.player.kits.hacking;
+      const foe = g.enemy;
+      if (!kit || !foe) return;
+      delete foe.hackDrone;
+      delete foe.hackFlying;
+      kit.on = false;
+      kit.left = 0;
+      kit.cool = 0;
+      kit.target = null;
+      kit.power = Math.max(1, kit.power);
+      delete kit.hackQueued;
+      delete kit.hackFly;
+      delete kit.hackFlyTotal;
+      if (g.player.parts < 1) g.player.parts = 4;
+    }),
+  setEnemyShields: (layers) =>
+    edit((g) => {
+      const foe = g.enemy;
+      if (!foe) return;
+      const sys = foe.systems.shields;
+      sys.level = Math.max(sys.level, layers * 2, 2);
+      sys.power = Math.max(layers * 2, 2);
+      sys.damage = 0;
+      sys.ion = [];
+      foe.shieldNow = layers;
+      foe.shieldCharge = 0;
+    }),
+  primeHits: () =>
+    edit((g) => {
+      for (const weapon of g.player.weapons) {
+        if (weapon.defId === "LASER_BURST_3" || weapon.defId === "BEAM_2") weapon.charge = 1;
+        if (weapon.defId === "ION_4") weapon.charge = 0.9;
+        if (weapon.defId === "BOMB_BREACH_2") weapon.charge = 0.85;
+      }
+      g.missiles = Math.max(g.missiles, 6);
+      const foe = g.enemy;
+      if (!foe) return;
+      foe.systems.shields.level = Math.max(foe.systems.shields.level, 4);
+      foe.systems.shields.power = 4;
+      foe.shieldNow = 2;
+      foe.shieldCharge = 0;
+    }),
+  cloakEnemy: () =>
+    edit((g) => {
+      const foe = g.enemy;
+      if (!foe) return;
+      foe.kits.cloaking = { ...blankKit("cloaking", 1, 1), on: true, left: 12, target: "hold" };
+    }),
+  boardOne: () =>
+    edit((g) => {
+      const foe = g.enemy;
+      if (!foe) return;
+      const crew = g.crew.find(
+        (body) =>
+          body.side === "player" && body.aboard === "player" && body.hp > 0 && body.id !== "c-h0",
+      );
+      const room = foe.rooms.find((item) => item.system === "weapons") ?? foe.rooms[0];
+      if (!crew || !room) return;
+      crew.aboard = "enemy";
+      crew.room = room.id;
+      crew.path = [];
+      crew.move = 0;
+      delete crew.pad;
+    }),
+  poster: () =>
+    edit((g) => {
+      paintPoster(g);
+      g.userPaused = true;
+      g.paused = false;
+      g.menuHold = false;
+      g.picking = false;
+    }),
+  springEnemyCloak: () =>
+    edit((g) => {
+      const kit = g.enemy?.kits.cloaking;
+      if (!kit) return;
+      kit.on = false;
+      kit.left = 0;
+      kit.cool = 0;
+      kit.power = Math.max(1, kit.power);
+    }),
+  armVolley: () =>
+    edit((g) => {
+      for (const weapon of g.enemy?.weapons ?? []) {
+        if (weapon.defId === "ARTILLERY_BOSS_1" || weapon.defId === "ARTILLERY_BOSS_2")
+          weapon.charge = 0.97;
+      }
+      const burst = g.player.weapons.find((weapon) => weapon.defId === "LASER_BURST_3");
+      if (burst) burst.charge = 1;
+      const ion = g.player.weapons.find((weapon) => weapon.defId === "ION_4");
+      if (ion) ion.charge = 0.98;
+      const hack = g.enemy?.kits.hacking;
+      if (hack && hack.hackFly == null && !hack.hackLatched) hack.cool = Math.max(hack.cool, 45);
+    }),
   pointGuns: () => {
     clearAims();
     edit((g) => {
@@ -877,14 +935,16 @@ const api: ReelApi = {
       for (const weapon of g.player.weapons) weapon.charge = Math.max(weapon.charge, 0.9);
     });
   },
-  ensureFire: () => edit((g) => {
-    if (g.player.rooms.some((room) => room.fire > 0)) return;
-    const doors = g.player.rooms.find((room) => room.id === "p-doors");
-    if (doors) doors.fire = 1;
-  }),
-  readyCloak: () => edit((g) => {
-    steadyShip(g);
-  }),
+  ensureFire: () =>
+    edit((g) => {
+      if (g.player.rooms.some((room) => room.fire > 0)) return;
+      const doors = g.player.rooms.find((room) => room.id === "p-doors");
+      if (doors) doors.fire = 1;
+    }),
+  readyCloak: () =>
+    edit((g) => {
+      steadyShip(g);
+    }),
   enemyRoom: (systemId) => {
     const foe = current().enemy;
     return foe?.rooms.find((room) => room.system === systemId || room.kit === systemId)?.id ?? null;
@@ -895,8 +955,9 @@ const api: ReelApi = {
     const clone = enemyCloneQueue(g);
     const weapons = g.player.rooms.find((room) => room.id === "p-weapons");
     const hurt = g.crew.find((crew) => crew.id === "c-cloak");
-    const beam = g.player.weapons.find((weapon) => weapon.defId === "halberd");
-    const rooms = g.enemy && beam?.beamLine ? roomsOnSegment(g.enemy, beam.beamLine.a, beam.beamLine.b) : [];
+    const beam = g.player.weapons.find((weapon) => weapon.defId === "BEAM_2");
+    const rooms =
+      g.enemy && beam?.beamLine ? roomsOnSegment(g.enemy, beam.beamLine.a, beam.beamLine.b) : [];
     const escape = g.enemyEscape;
     return {
       phase: g.phase,
@@ -909,11 +970,13 @@ const api: ReelApi = {
       name: g.enemy?.name ?? "",
       flee: g.flee,
       asteroid: g.asteroid,
-      cloakOn: !!g.player.kits.veil?.on,
-      cloakLeft: g.player.kits.veil?.left ?? 0,
+      cloakOn: !!g.player.kits.cloaking?.on,
+      cloakLeft: g.player.kits.cloaking?.left ?? 0,
       hack: hack?.state ?? null,
-      slingCool: g.player.kits.sling?.cool ?? 0,
-      away: g.crew.filter((crew) => crew.side === "player" && crew.aboard === "enemy" && crew.hp > 0).length,
+      slingCool: g.player.kits.teleporter?.cool ?? 0,
+      away: g.crew.filter(
+        (crew) => crew.side === "player" && crew.aboard === "enemy" && crew.hp > 0,
+      ).length,
       doorHurt: !!weaponsAirlock(g) && doorHurt(weaponsAirlock(g)!),
       weaponsVent: !!weapons?.venting,
       weaponsO2: weapons?.o2 ?? 0,
@@ -923,11 +986,11 @@ const api: ReelApi = {
       escapeStalled: !!g.enemy && g.enemy.systems.engines.power <= 0 && !!escape?.running,
       beamRooms: rooms.length,
       enemyWeaponsIon: g.enemy?.systems.weapons.ion.length ?? 0,
-      swarmTarget: g.player.kits.swarm?.target ?? null,
-      swarmPower: g.player.kits.swarm?.power ?? 0,
+      swarmTarget: g.player.kits.drones?.target ?? null,
+      swarmPower: g.player.kits.drones?.power ?? 0,
       enginesPower: g.player.systems.engines.power,
       shieldsPower: g.player.systems.shields.power,
-      batteryOn: !!g.player.kits.cell?.on,
+      batteryOn: !!g.player.kits.battery?.on,
       hurtHp: hurt?.hp ?? null,
       hurtRoom: hurt?.room ?? null,
       shieldsNow: g.player.shieldNow,
@@ -938,7 +1001,7 @@ const api: ReelApi = {
       enemyMax: g.enemy?.hullMax ?? 0,
       stage: g.enemy?.flagship?.stage ?? 0,
       fires: g.player.rooms.filter((room) => room.fire > 0).length,
-      cloakCool: g.player.kits.veil?.on ? 0 : (g.player.kits.veil?.cool ?? 0),
+      cloakCool: g.player.kits.cloaking?.on ? 0 : (g.player.kits.cloaking?.cool ?? 0),
       surge: g.bossSurge ?? -1,
     };
   },

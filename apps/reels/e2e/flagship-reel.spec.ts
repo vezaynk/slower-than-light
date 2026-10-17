@@ -47,10 +47,16 @@ type Reel = {
 function reelOf(page: Page): Reel {
   return new Proxy({} as Reel, {
     get(_target, key: string) {
-      return (...args: unknown[]) => page.evaluate(([method, params]) => {
-        const reel = (window as unknown as { __stlReel: Reel }).__stlReel;
-        return (reel[method as keyof Reel] as (...inner: unknown[]) => unknown)(...(params as unknown[]));
-      }, [key, args] as const);
+      return (...args: unknown[]) =>
+        page.evaluate(
+          ([method, params]) => {
+            const reel = (window as unknown as { __stlReel: Reel }).__stlReel;
+            return (reel[method as keyof Reel] as (...inner: unknown[]) => unknown)(
+              ...(params as unknown[]),
+            );
+          },
+          [key, args] as const,
+        );
     },
   });
 }
@@ -108,7 +114,9 @@ async function waitSlingCool(page: Page, reel: Reel) {
   if ((await reel.info()).slingCool <= 0) return;
   await page.keyboard.press("Backquote");
   try {
-    await expect.poll(async () => (await reel.info()).slingCool, { timeout: 25_000 }).toBeLessThanOrEqual(0);
+    await expect
+      .poll(async () => (await reel.info()).slingCool, { timeout: 25_000 })
+      .toBeLessThanOrEqual(0);
   } finally {
     await page.keyboard.press("Backquote");
   }
@@ -140,11 +148,16 @@ async function ventFires(page: Page, reel: Reel) {
   await beat(page, 400);
   await dismissRadial(page);
   await reel.play();
-  await expect.poll(async () => {
-    const info = await reel.info();
-    if (info.phase !== "combat") return -1;
-    return info.fires;
-  }, { timeout: 25_000 }).toBe(0);
+  await expect
+    .poll(
+      async () => {
+        const info = await reel.info();
+        if (info.phase !== "combat") return -1;
+        return info.fires;
+      },
+      { timeout: 25_000 },
+    )
+    .toBe(0);
   await reel.hold();
   await beat(page, 700);
   await openRadial(page, "p-doors");
@@ -154,6 +167,19 @@ async function ventFires(page: Page, reel: Reel) {
   await dismissRadial(page);
   expect((await reel.info()).fires).toBe(0);
   await beat(page, 500);
+}
+
+/** A fallen stage ends the battle. The card opens the next hull while the Flagship holds the base. */
+async function nextHull(page: Page, reel: Reel) {
+  await reel.hold();
+  const cont = page.getByRole("button", { name: "1. Continue..." });
+  await expect(cont).toBeEnabled({ timeout: 20_000 });
+  await expect(page.getByText("The Flagship holds the base.")).toBeVisible();
+  await beat(page, 900);
+  await cont.click();
+  await expect.poll(async () => (await reel.info()).phase, { timeout: 15_000 }).toBe("combat");
+  await reel.pointGuns();
+  await reel.readyCloak();
 }
 
 /** Keep firing until the flagship's last stage breaks up. */
@@ -187,21 +213,21 @@ async function fightToTheEnd(page: Page, reel: Reel) {
   let cloakTried = 0;
   let hackTried = 0;
   const start = Date.now();
-  while (Date.now() - start < 150_000) {
+  while (Date.now() - start < 210_000) {
     await reel.readyCloak();
     const info = await reel.info();
     if (info.phase === "victory") break;
-    if (info.phase !== "combat") {
-      throw new Error(`fight ended in ${info.phase} at player hull ${info.playerHull}, stage ${info.stage}`);
-    }
-    if (info.stage > stage) {
-      stage = info.stage;
+    if (info.phase === "reward") {
+      await nextHull(page, reel);
+      stage = (await reel.info()).stage;
       seen.add(stage);
-      await reel.hold();
-      await expect(page.locator(".pause-mark")).toBeVisible();
-      await beat(page, 1200);
-      await reel.pointGuns();
       await reel.play();
+      continue;
+    }
+    if (info.phase !== "combat") {
+      throw new Error(
+        `fight ended in ${info.phase} at player hull ${info.playerHull}, stage ${info.stage}`,
+      );
     }
     const surgeSoon = info.stage >= 2 && info.surge >= 0 && info.surge < 7;
     const cloakNow = !info.cloakOn && info.cloakCool <= 0 && (info.shieldsNow <= 1 || surgeSoon);
@@ -211,8 +237,12 @@ async function fightToTheEnd(page: Page, reel: Reel) {
       await page.keyboard.press("c");
       const cloak = page.locator("button.kit-act").filter({ hasText: "CLOAK" });
       if ((await cloak.count()) > 0) {
-        const box = await cloak.first().boundingBox({ timeout: 1000 }).catch(() => null);
-        if (box) await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 10 });
+        const box = await cloak
+          .first()
+          .boundingBox({ timeout: 1000 })
+          .catch(() => null);
+        if (box)
+          await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 10 });
       }
     }
     if (info.hack === "latched" && Date.now() - hackTried > 2500) {
@@ -262,7 +292,9 @@ test("records the flagship fight", async ({ page }) => {
     });
     await page.addScriptTag({ path: rrwebUmd });
     await page.addScriptTag({ path: path.join(here, "reel-boot.js") });
-    await page.waitForFunction(() => ((window as unknown as { __rrwebEvents?: unknown[] }).__rrwebEvents?.length ?? 0) > 0);
+    await page.waitForFunction(
+      () => ((window as unknown as { __rrwebEvents?: unknown[] }).__rrwebEvents?.length ?? 0) > 0,
+    );
     const reel = reelOf(page);
 
     await reel.show("flagship");
@@ -309,15 +341,21 @@ test("records the flagship fight", async ({ page }) => {
     await openRadial(page, "p-hack");
     await act(page, "Hack");
     await expect(page.locator(".radial-shade")).toHaveCount(0);
-    await expect(page.locator(".play.is-hack-targeting, .play-root.is-hack-targeting")).toBeVisible();
+    await expect(
+      page.locator(".play.is-hack-targeting, .play-root.is-hack-targeting"),
+    ).toBeVisible();
     await enemyRoomHit(page, shields!).click({ force: true });
-    await expect.poll(async () => (await reel.info()).hack ?? "", { timeout: 12_000 }).toMatch(/pulse|latched|flying/);
+    await expect
+      .poll(async () => (await reel.info()).hack ?? "", { timeout: 12_000 })
+      .toMatch(/pulse|latched|flying/);
     await beat(page, 700);
     await reel.hold();
 
     await openRadial(page, "p-mind");
     await act(page, "Mind control");
-    await expect(page.locator(".play.is-leash-targeting, .play-root.is-leash-targeting")).toBeVisible();
+    await expect(
+      page.locator(".play.is-leash-targeting, .play-root.is-leash-targeting"),
+    ).toBeVisible();
     const foeCrew = page.locator('.hull[data-ship="enemy"] [data-crew]').first();
     await glide(page, foeCrew);
     await foeCrew.click({ force: true });
@@ -328,7 +366,9 @@ test("records the flagship fight", async ({ page }) => {
     if (mindBox) {
       await page.mouse.move(mindBox.x + mindBox.width / 2, mindBox.y + 4, { steps: 6 });
       await page.mouse.down();
-      await page.mouse.move(mindBox.x + mindBox.width / 2, mindBox.y + mindBox.height + 24, { steps: 12 });
+      await page.mouse.move(mindBox.x + mindBox.width / 2, mindBox.y + mindBox.height + 24, {
+        steps: 12,
+      });
       await page.mouse.up();
     }
     await dismissRadial(page);
@@ -372,17 +412,24 @@ test("records the flagship fight", async ({ page }) => {
     await fightToTheEnd(page, reel);
   } catch (error) {
     failed = error;
-    const message = error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error);
+    const message =
+      error instanceof Error ? `${error.message}\n${error.stack ?? ""}` : String(error);
     fs.writeFileSync(path.join(recordings, "error.txt"), message);
   } finally {
-    const events = await page.evaluate(() => (window as unknown as { __rrwebEvents?: { type: number }[] }).__rrwebEvents ?? []).catch(() => []);
+    const events = await page
+      .evaluate(
+        () => (window as unknown as { __rrwebEvents?: { type: number }[] }).__rrwebEvents ?? [],
+      )
+      .catch(() => []);
     fs.writeFileSync(path.join(recordings, "replay.json"), JSON.stringify(events));
     await page.close();
     const video = page.video();
     if (video) await video.saveAs(path.join(recordings, "video.webm"));
   }
 
-  const saved = JSON.parse(fs.readFileSync(path.join(recordings, "replay.json"), "utf8")) as { type: number }[];
+  const saved = JSON.parse(fs.readFileSync(path.join(recordings, "replay.json"), "utf8")) as {
+    type: number;
+  }[];
   expect(saved.length).toBeGreaterThan(2);
   expect(saved.some((event) => event.type === 2)).toBe(true);
   expect(saved.some((event) => event.type === 4)).toBe(true);

@@ -91,6 +91,7 @@ import {
   type CruiserLayout,
   type WikiLine,
 } from "@/game/wiki/layout-pages";
+import { cruiserArticle } from "@/game/wiki/hangar-bay";
 import { startVeil, upgradeVeil, veilUpgradeCost } from "@/game/extras/veil";
 import { startLeash, UPGRADE_COST as LEASH_UPGRADE, upgradeLeash } from "@/game/extras/leash";
 import {
@@ -4540,7 +4541,7 @@ function CruiserArticle({
         <section key={layout.id} className="layout-block">
           <h2>{layout.heading}</h2>
           <WikiLines
-            lines={layout.lines}
+            lines={cruiserArticle(layout.id) ?? layout.lines}
             onRun={() => {
               if (!isUnlocked(layout.id)) return; // @agent:unlocks. A locked layout does not start from its wiki article.
               unlockAudio();

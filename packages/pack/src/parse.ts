@@ -415,6 +415,8 @@ function readHull(node: XmlElement): HullDef | undefined {
       hull.grid = grid;
     }
   }
+  const img = attr(node, "img")?.trim();
+  if (img) hull.img = img;
   return hull;
 }
 

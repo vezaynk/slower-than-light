@@ -677,7 +677,9 @@ function systemRoom(hull: HullDef, id: string): number | undefined {
 }
 
 function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
-  const node = element(doc, "shipBlueprint", { name: hull.id, layout: hull.layout });
+  const attrs: Record<string, string> = { name: hull.id, layout: hull.layout };
+  if (hull.img) attrs.img = hull.img;
+  const node = element(doc, "shipBlueprint", attrs);
   add(node, leaf(doc, "class", hull.cruiser));
   add(node, leaf(doc, "title", hull.name));
   add(node, leaf(doc, "desc", hull.quote));

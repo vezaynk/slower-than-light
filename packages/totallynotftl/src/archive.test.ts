@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { campaignPack, campaignXml } from "@stl/campaign";
+import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat } from "@stl/ftldat";
 import { packFromExtract } from "@stl/hyperspace";
-import { overlayGap, parsePack } from "@stl/pack";
+import { overlayGap, parsePack, pictureForRooms } from "@stl/pack";
 import { standInDat, standInXml } from "./archive.ts";
 
 describe("totallynotftl.dat", () => {
@@ -20,11 +21,21 @@ describe("totallynotftl.dat", () => {
     assert.equal(xml.includes("<weaponBlueprint"), true);
     const built = await standInDat();
     const extracted = await extractFtlDat(built);
-    assert.equal(extracted.documents.length, 1);
+    const pictures = hullPictureFiles();
+    assert.equal(extracted.documents.length, 1 + pictures.length);
     assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
     assert.equal(extracted.documents[0]?.xml, goldenXml);
-    assert.equal(extracted.assets.size, 0);
+    assert.equal(extracted.assets.size, pictures.length);
+    for (const file of pictures) {
+      assert.equal(extracted.documents.find((doc) => doc.path === file.path)?.xml, file.xml);
+      const blob = extracted.assets.get(`img/ship/${file.stem}_base.png`);
+      assert.equal(blob?.type, "image/png");
+      const bytes = new Uint8Array(await blob!.arrayBuffer());
+      assert.equal(bytes[0], 0x89);
+      assert.equal(bytes[1], 0x50);
+    }
     const layouts = layoutFiles();
+    assert.equal(pictures.length, layouts.length);
     assert.equal(extracted.text.size, layouts.length);
     for (const file of layouts) assert.equal(extracted.text.get(file.path), file.text);
     const parsed = parsePack(xml);
@@ -59,5 +70,9 @@ describe("totallynotftl.dat", () => {
     assert.deepEqual(merged.factions, pack.factions);
     assert.deepEqual(merged.empties, pack.empties);
     assert.equal(merged.facts, undefined);
+    const kestrel = merged.hulls?.find((hull) => hull.id === "PLAYER_SHIP_HARD");
+    assert.equal(kestrel?.img, "kestral");
+    assert.equal(kestrel?.layout, "kestral");
+    assert.deepEqual(kestrel?.picture, pictureForRooms(kestrel?.grid?.rooms ?? []));
   });
 });

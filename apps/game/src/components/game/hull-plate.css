@@ -1,4 +1,5 @@
-.hull-plate {
+.hull-plate,
+.hull-base {
   position: absolute;
   left: 0;
   top: 0;
@@ -7,8 +8,11 @@
   z-index: 0;
   overflow: visible;
   pointer-events: none;
-  shape-rendering: crispEdges;
   image-rendering: pixelated;
+}
+
+.hull-plate {
+  shape-rendering: crispEdges;
 }
 
 .room-grid {

@@ -1,5 +1,11 @@
 import type { FtlDocument, FtlExtract } from "@stl/ftldat";
-import { attachLayoutFiles, packFromFtl, parsePack, type ContentPack } from "@stl/pack";
+import {
+  attachLayoutFiles,
+  attachPictures,
+  packFromFtl,
+  parsePack,
+  type ContentPack,
+} from "@stl/pack";
 
 /** The bundled stand-in is this one campaign document. */
 const STAND_IN = "data/stand-in.xml";
@@ -66,17 +72,18 @@ export function applyFtlMod(base: FtlExtract, mod: FtlExtract): FtlExtract {
 
 /**
  * Reads a catalog from one unpacked archive.
- * The stand-in is a single campaign document at `data/stand-in.xml`.
- * Any other archive is read as vanilla XML.
+ * The stand-in is the campaign document at `data/stand-in.xml`, even when hull
+ * pictures are packed beside it. Any other archive is read as vanilla XML.
  */
 export function packFromExtract(files: FtlExtract): ContentPack {
-  const only = files.documents.length === 1 ? files.documents[0] : undefined;
-  if (only?.path === STAND_IN) {
-    const pack = parsePack(only.xml);
+  const standIn = files.documents.find((doc) => doc.path === STAND_IN);
+  if (standIn) {
+    const pack = parsePack(standIn.xml);
     const layouts = [...files.text]
       .filter(([path]) => path.toLowerCase().endsWith(".txt"))
       .map(([path, text]) => ({ path, text }));
     attachLayoutFiles(pack.hulls, layouts);
+    attachPictures(pack.hulls, files.documents);
     return pack;
   }
   return loadFtlMods(files).pack;
@@ -84,7 +91,7 @@ export function packFromExtract(files: FtlExtract): ContentPack {
 
 /**
  * Applies the dat, then each mod, and reads the catalog.
- * Layout text is passed through. Hull XML and assets stay on `files`.
+ * Layout text and hull picture boxes are read onto the catalog. Image bytes stay on `files`.
  */
 export function loadFtlMods(base: FtlExtract, mods: readonly FtlExtract[] = []): FtlModLoad {
   let files: FtlExtract = {

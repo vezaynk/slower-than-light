@@ -47,7 +47,7 @@ function zip(entries: Record<string, string | Uint8Array>): Uint8Array {
   for (const [path, value] of Object.entries(entries)) {
     files[path] = typeof value === "string" ? encoder.encode(value) : value;
   }
-  return zipSync(files, { level: 0 });
+  return zipSync(files);
 }
 
 describe("extractFtlZip", () => {
@@ -94,6 +94,13 @@ describe("extractFtlZip", () => {
       extracted.documents.map((doc) => doc.path),
       ["data/blueprints.xml.append"],
     );
+    assert.equal(extracted.assets.size, 0);
+  });
+
+  it("reads an empty zip", async () => {
+    const extracted = await extractFtlZip(zip({}));
+    assert.equal(extracted.documents.length, 0);
+    assert.equal(extracted.text.size, 0);
     assert.equal(extracted.assets.size, 0);
   });
 

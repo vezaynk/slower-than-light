@@ -3,7 +3,7 @@ import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "STL: Slower Than Light";
+const APP_NAME = "LTA: Lighter Than Air";
 const BASE = import.meta.env.BASE_URL;
 
 export const Route = createRootRoute({

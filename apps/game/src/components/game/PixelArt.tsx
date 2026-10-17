@@ -405,7 +405,7 @@ export function PixelTitle() {
           ),
         )}
       </g>
-      {blit("STL", 152 - textWidth("STL", 1), 19, 1, "#f4f7f4", "banner")}
+      {blit("LTA", 152 - textWidth("LTA", 1), 19, 1, "#f4f7f4", "banner")}
     </svg>
   );
 }
@@ -595,9 +595,9 @@ function shipPixels(ship: (typeof FLEET)[number]) {
   return rects;
 }
 
-/** Title: planet and fleet on the left, the STL mark, the Slower Than Light subtitle and the menu on the right. */
+/** Title: planet and fleet on the left, the LTA mark, the Lighter Than Air subtitle and the menu on the right. */
 export function PixelMenu({ continueReady }: { continueReady: boolean }) {
-  const subtitle = "SLOWER THAN LIGHT";
+  const subtitle = "LIGHTER THAN AIR";
   const mark = "FAN PROJECT · INSPIRED BY FTL";
   const version = "v. 0.1";
   return (
@@ -624,7 +624,7 @@ export function PixelMenu({ continueReady }: { continueReady: boolean }) {
         />
       ))}
       {FLEET.map((ship) => shipPixels(ship))}
-      {blit("STL", TITLE_VIEW.w - MENU_RIGHT - textWidth("STL", 4), 24, 4, "#f4f7f4", "logo")}
+      {blit("LTA", TITLE_VIEW.w - MENU_RIGHT - textWidth("LTA", 4), 24, 4, "#f4f7f4", "logo")}
       {blit(
         subtitle,
         TITLE_VIEW.w - MENU_RIGHT - textWidth(subtitle, 1),

@@ -10,7 +10,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
  */
 const config: CapacitorConfig = {
   appId: "io.knyazev.lighterthanair",
-  appName: "Slower Than Light",
+  appName: "Lighter Than Air",
   webDir: "dist/client",
   ios: {
     contentInset: "never",

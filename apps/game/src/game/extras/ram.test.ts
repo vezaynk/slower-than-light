@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { PHASE_BANDS, phaseOf, rollSurge, stageHull, surgeSeconds } from "./ram.ts";
-import { createGame, startCombat, step } from "../sim.ts";
+import { continueReward, createGame, startCombat, step } from "../sim.ts";
 
 describe("ram", () => {
   it("does not invent hull bands from the per-stage hull pools", () => {
@@ -44,7 +44,7 @@ describe("ram", () => {
     assert.equal(rollSurge(3, 1), 30);
   });
 
-  it("repairs the Ram onto the next hull instead of ending the fight", () => {
+  it("ends the battle when a stage falls, then the next battle is the next hull", () => {
     const g = createGame(3);
     const boss = g.beacons.find((b) => b.kind === "exit");
     assert.ok(boss);
@@ -57,6 +57,12 @@ describe("ram", () => {
     g.enemy.hull = 0;
     g.enemy.systems.shields.damage = 1;
     step(g, 0.01);
+    assert.equal(g.phase, "reward");
+    const gone = g.enemy;
+    assert.equal(gone, null);
+    assert.equal(g.kills, 0);
+    assert.equal(g.flagshipMemo?.stage, 2);
+    continueReward(g);
     assert.equal(g.phase, "combat");
     assert.equal(g.ramStage, 2);
     assert.equal(g.enemy?.hull, 22);
@@ -64,6 +70,8 @@ describe("ram", () => {
     assert.ok(g.enemy);
     g.enemy.hull = 0;
     step(g, 0.01);
+    assert.equal(g.phase, "reward");
+    continueReward(g);
     assert.equal(g.ramStage, 3);
     assert.equal(g.enemy?.hull, 20);
     assert.ok(g.enemy);

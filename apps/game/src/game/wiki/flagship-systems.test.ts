@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { REPAIR_SECONDS, createGame, evasionPercent, powerMask, startCombat, step } from "../sim.ts";
+import { REPAIR_SECONDS, continueReward, createGame, evasionPercent, powerMask, startCombat, step } from "../sim.ts";
 import { sensorLevel } from "../extras/sensors.ts";
 import type { Game } from "../types.ts";
 import {
@@ -29,10 +29,13 @@ function bossFight(seed: number, difficulty: Game["difficulty"] = "normal"): Gam
   return g;
 }
 
-/** Destroy the current stage's hull and let endCheck advance it. */
+/** Destroy the current stage. The battle ends. Dismissing the card opens the next stage while the Flagship is still here. */
 function nextStage(g: Game) {
   g.enemy!.hull = 0;
   step(g, 0.01);
+  assert.equal(g.phase, "reward");
+  continueReward(g);
+  assert.equal(g.phase, "combat");
 }
 
 function linked(g: Game, id: string): string[] {
@@ -496,7 +499,7 @@ describe("@agent:flagship Rebel Flagship per-room artillery", () => {
     assert.equal(e.flagship!.guns!["e-laser"].damage, 1);
     assert.equal(e.flagship!.guns!["e-missile"].damage, 0);
     nextStage(g);
-    assert.ok(Object.values(e.flagship!.guns!).every((gun) => gun.damage === 0));
+    assert.ok(Object.values(g.enemy!.flagship!.guns!).every((gun) => gun.damage === 0));
   });
 
   it("the AI skips a gun whose room is on fire or breached", () => {

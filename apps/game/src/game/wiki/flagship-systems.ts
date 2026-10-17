@@ -5,7 +5,7 @@
  * Rooms come from the traced cutaways in wiki/flagship-layout.ts. The enemy systems run through the existing
  * modules on `ship.kits`, each in a room with `room.kit`: Hacking (extras/spike.ts), Cloaking (extras/veil.ts),
  * Drone Control (extras/swarm.ts, `kit.loadout`), Teleporter (extras/sling.ts, room "e-teleporter"), and
- * Mind Control (extras/leash.ts). sim.ts makeFlagship / advanceRam / bossThink call into this file.
+ * Mind Control (extras/leash.ts). sim.ts makeFlagship / retireFlagship / bossThink call into this file.
  */
 import type { Crew, DoorMark, Game, Kit, KitId, Room, Ship, SysId, WeaponInst } from "../types.ts";
 import { log, rand } from "../sim.ts";
@@ -15,13 +15,7 @@ import { artilleryChargeSeconds } from "./flagship-weapons.ts";
 import { BEAM1_SPEED, DRONE_LABEL, pickOrbitBearing } from "../extras/swarm.ts";
 import { BEAM_HOLD_S, COMBAT1_SPEED, orbitLegSeconds } from "./cited-combat2.ts";
 import { randomRoom } from "./targeting.ts";
-import {
-  flagshipHardLinks,
-  flagshipStage1,
-  flagshipStage2,
-  flagshipStage3,
-} from "./flagship-layout.ts";
-import type { Layout } from "../layouts.ts";
+import { flagshipHardLinks, flagshipLayout } from "./flagship-layout.ts";
 
 /**
  * One Power Surge drone (stage 2). Not a Drone Control unit: "They are an independent hazard."
@@ -65,12 +59,13 @@ export type FlagshipState = {
 export type ArtilleryGun = { damage: number; ion: number[]; fix: number };
 
 /**
- * What the Lark remembers of the boss fight after jumping away mid-stage (Game.flagshipMemo).
+ * What the Lark remembers of the Flagship between battles (Game.flagshipMemo).
  * "Global behavior": "Hull and system damage of the Rebel Flagship will be repaired on the next stage. Breach and fire
  * will also be cleared. Only the crew is persistent through each stage; crew members killed are not replaced on the
  * next stage. If the player jumps away from the Flagship before completing a stage, the same applies, with one
  * exception: the crew is fully replaced if the player retreats during the first stage."
- * So only the stage and the surviving crew aboard it are kept; hull, systems, fire, and breaches come back fresh.
+ * A defeated stage stores the next stage and the crew who lived through it. Jumping away during stage 2 or 3
+ * stores that same stage. Hull, systems, fire, and breaches come back fresh.
  */
 export type FlagshipMemo = { stage: 2 | 3; crew: Crew[] };
 
@@ -120,12 +115,6 @@ const ROLE: Record<string, { id: string; system: SysId | null; kit?: KitId }> = 
   "missile-link": { id: "e-missile-link", system: null },
 };
 
-const STAGE_LAYOUT: Record<1 | 2 | 3, Layout> = {
-  1: flagshipStage1,
-  2: flagshipStage2,
-  3: flagshipStage3,
-};
-
 /**
  * The stage's rooms and door bars. "Flagship variation": "On Hard mode, two additional rooms link the Laser and
  * Missile ones to the main section of the ship." Every stage keeps the Laser and Missile rooms, so the Hard links
@@ -135,7 +124,7 @@ export function flagshipRooms(
   stage: 1 | 2 | 3,
   hard: boolean,
 ): { rooms: FlagshipRoomSpec[]; marks: DoorMark[]; cols: number; rows: number } {
-  const base = STAGE_LAYOUT[stage];
+  const base = flagshipLayout(stage);
   const layouts = hard ? [base, flagshipHardLinks] : [base];
   const rooms: FlagshipRoomSpec[] = [];
   const marks: DoorMark[] = [];

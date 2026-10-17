@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { onNewSector } from "../extras/augments.ts";
 import { deploy, swarmIntercept } from "../extras/swarm.ts";
-import { applyImpact, commitJump, createGame, startCombat, step, waitHere } from "../sim.ts";
+import { applyImpact, commitJump, continueReward, createGame, startCombat, step, waitHere } from "../sim.ts";
 import { citedPierce } from "./cited-weapons.ts";
 import { fleetToReach } from "./sector-map.ts";
 import type { Shot } from "../types.ts";
@@ -220,8 +220,8 @@ describe("fleet dive fuel", () => {
   });
 });
 
-describe("flagship stages inside the fight", () => {
-  it("applies stage 2 and stage 3 numbers when the hull is destroyed", () => {
+describe("flagship stages are separate battles", () => {
+  it("applies stage 2 and stage 3 numbers when the next battle starts", () => {
     const g = createGame(5);
     const boss = g.beacons.find((beacon) => beacon.kind === "exit");
     assert.ok(boss);
@@ -231,6 +231,10 @@ describe("flagship stages inside the fight", () => {
     assert.ok(g.enemy);
     g.enemy.hull = 0;
     step(g, 0.01);
+    assert.equal(g.phase, "reward");
+    const gone = g.enemy;
+    assert.equal(gone, null);
+    continueReward(g);
     assert.equal(g.ramStage, 2);
     assert.equal(g.enemy?.hull, 22);
     assert.equal(g.enemy?.reactor, 44);
@@ -243,6 +247,8 @@ describe("flagship stages inside the fight", () => {
     assert.equal(g.enemy?.zoltan, undefined);
     g.enemy!.hull = 0;
     step(g, 0.01);
+    assert.equal(g.phase, "reward");
+    continueReward(g);
     assert.equal(g.ramStage, 3);
     assert.equal(g.enemy?.hull, 20);
     assert.equal(g.enemy?.reactor, 32);

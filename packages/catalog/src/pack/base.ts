@@ -25,6 +25,7 @@ import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { ENEMY_LAYOUTS, enemyLayoutFile } from "../enemy-layouts.ts";
+import { FLAGSHIP_LAYOUTS } from "../flagship-layouts.ts";
 import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
 import { gridFromLayout, loadPack } from "@stl/pack";
 import type {
@@ -427,6 +428,45 @@ function enemyHull(id: string): HullDef {
   };
 }
 
+/** One Rebel Flagship stage. Room names stay on the blueprint. The fight reads them back. */
+function flagshipHull(id: string): HullDef {
+  const source = FLAGSHIP_LAYOUTS[id];
+  if (!source) throw new Error(`No flagship interior for ${id}`);
+  return {
+    id,
+    cruiser: "",
+    layout: id,
+    name: id,
+    quote: "",
+    unlock: "",
+    source: "",
+    reactor: 0,
+    fuel: 0,
+    missiles: 0,
+    parts: 0,
+    systems: {},
+    weapons: [],
+    crew: [],
+    kits: {},
+    augments: [],
+    unfitted: [],
+    grid: gridFromLayout({
+      cols: source.cols,
+      rows: source.rows,
+      rooms: source.rooms.map((room) => ({
+        id: room.id,
+        title: room.title,
+        system: room.system,
+        x: room.x,
+        y: room.y,
+        w: room.w,
+        h: room.h,
+      })),
+      marks: source.marks,
+    }),
+  };
+}
+
 function weaponRow(id: string): WeaponBlueprint {
   const row: WeaponBlueprint = { ...WEAPONS[id] };
   if (Object.prototype.hasOwnProperty.call(BEAM_TILES, id)) row.lengthTiles = BEAM_TILES[id];
@@ -459,7 +499,11 @@ export function loadCatalog(): void {
       augments: CATALOG.map(augmentRow),
       drones: CITED_DRONES.map(droneRow),
       systems: CITED_SYSTEMS.map(systemRow),
-      hulls: [...HULLS.map(hullRow), ...Object.keys(ENEMY_LAYOUTS).map(enemyHull)],
+      hulls: [
+        ...HULLS.map(hullRow),
+        ...Object.keys(ENEMY_LAYOUTS).map(enemyHull),
+        ...Object.keys(FLAGSHIP_LAYOUTS).map(flagshipHull),
+      ],
       sectors: SECTOR_TYPES.map(sectorRow),
       stores: STORES.map(storeRow),
       tunes: SYSTEM_TUNES.map(tuneRow),

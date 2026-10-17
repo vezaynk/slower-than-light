@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, startCombat, step } from "../sim.ts";
+import { continueReward, createGame, startCombat, step } from "../sim.ts";
 import { BEAM1_SPEED, DRONE_LABEL } from "../extras/swarm.ts";
 import { COMBAT1_SPEED, orbitLegSeconds } from "./cited-combat2.ts";
 import type { Game } from "../types.ts";
@@ -19,6 +19,8 @@ function stage2Surge(seed: number) {
   const g = bossFight(seed);
   g.enemy!.hull = 0;
   step(g, 0.01);
+  assert.equal(g.phase, "reward");
+  continueReward(g);
   g.bossSurge = 0.01;
   step(g, 0.02);
   const surge = g.enemy!.flagship!.surge;

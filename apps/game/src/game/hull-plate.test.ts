@@ -6,7 +6,7 @@ import { layoutFor } from "./layouts.ts";
 import "./pack/base.ts";
 import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
 import { enemyLayout } from "./wiki/enemy-layouts.ts";
-import { flagshipStage1, flagshipStage2, flagshipStage3 } from "./wiki/flagship-layout.ts";
+import { flagshipLayout } from "./wiki/flagship-layout.ts";
 
 type Box = { x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] };
 
@@ -86,9 +86,9 @@ describe("hull plates", () => {
     offFloor(realCells, real.rooms);
 
     for (const [id, layout] of [
-      ["flagship-1", flagshipStage1],
-      ["flagship-2", flagshipStage2],
-      ["flagship-3", flagshipStage3],
+      ["flagship-1", flagshipLayout(1)],
+      ["flagship-2", flagshipLayout(2)],
+      ["flagship-3", flagshipLayout(3)],
     ] as const) {
       const cells = plateOf({
         id,

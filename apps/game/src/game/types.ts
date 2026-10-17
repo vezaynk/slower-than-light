@@ -897,11 +897,12 @@ export type Game = {
   flareWarned?: boolean;
   boardTimer: number;
   bossSurge: number;
-  /** Gate Ram stage. 1, then 2, then 3. Each stage has its own hull pool. */
+  /** Flagship stage. 1, then 2, then 3. Each stage is its own battle. */
   ramStage: 1 | 2 | 3;
   /**
-   * @agent:flagship. Rebel Flagship stage and surviving crew after the player jumps away mid-fight
-   * (wiki/flagship-systems.ts rememberFlagship). Absent before the first retreat and after a stage-1 retreat.
+   * @agent:flagship. Rebel Flagship stage and surviving crew waiting for the next battle
+   * (wiki/flagship-systems.ts). Set when a stage falls, and when the player jumps away during stage 2 or 3.
+   * Absent before the first of those, and after a stage-1 retreat.
    */
   flagshipMemo?: import("./wiki/flagship-systems.ts").FlagshipMemo;
   flee: number;

@@ -22,15 +22,14 @@ import {
   type CrewPick,
 } from "@/game/crew-look";
 import type { KinId } from "@/game/extras/kin";
-import { droneKeyForName, weaponIdForName } from "@/game/gear-look";
+import { hangarBay } from "@/game/wiki/hangar-bay";
 
 import { factionPaint } from "@/game/hull-plate";
 import { hangarLoadout } from "@/game/sim";
-import { iconForName } from "@/game/icons";
+import type { IconName } from "@/game/icons";
 import { useGame } from "@/game/store";
 import type { Difficulty as RunDifficulty } from "@/game/types";
 import { CRUISER_PAGES } from "@/game/wiki/layout-pages";
-import { hangarSheet, orderByIds } from "@/game/wiki/hangar-sheet";
 import { ACHIEVEMENTS } from "@/game/wiki/achievements";
 import { earnedIds } from "@/game/wiki/achievement-track";
 import { getUnlocks, resetUnlocks, subscribeUnlocks, unlockAll } from "@/game/unlock-store";
@@ -58,40 +57,22 @@ function letterOf(heading: string): Letter {
   return "A";
 }
 
-const RACE_KIN: Record<string, KinId> = {
-  engi: "engi",
-  zoltan: "energy",
-  mantis: "mantis",
-  slug: "slug",
-  rock: "rock",
-  rockman: "rock",
-  rockmen: "rock",
-  lanius: "anaerobic",
-  crystal: "crystal",
-};
-
-/** Seats in the order the run will place them: the hull spec when there is one, else the sheet's race line. */
-function seatsOf(layoutId: string, races: string[]): KinId[] {
+/** Seats in the order the run will place them. */
+function seatsOf(layoutId: string): KinId[] {
   const hull = hullDef(layoutId);
-  if (hull) return hull.crew.map((seat) => seat.kin as KinId);
-  return races.map((race) => RACE_KIN[race.toLowerCase()] ?? "human");
+  if (!hull) return [];
+  return hull.crew.map((seat) => seat.kin as KinId);
 }
 
-function weaponPower(name: string) {
-  const id = weaponIdForName(name);
-  return id ? (weaponDef(id)?.power ?? null) : null;
+function weaponPower(id: string) {
+  return weaponDef(id)?.power ?? null;
 }
 
 /** @agent:unlocks. Server render and first paint: only the start ship. The client store takes over after hydration. */
 const SERVER_UNLOCKS = emptyUnlocks();
 
-function SysMark({ name }: { name: string }) {
-  const icon = iconForName(name);
-  return icon ? (
-    <PixelIcon name={icon} size={20} />
-  ) : (
-    <i className="hangar-sys-blank" aria-hidden="true" />
-  );
+function SysMark({ icon }: { icon: IconName }) {
+  return <PixelIcon name={icon} size={20} />;
 }
 
 /** True when the main pointer is a finger (phones, tablets), so focusing a field would pop up the keyboard. */
@@ -107,7 +88,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
 
   const page = CRUISER_PAGES[pageIndex] ?? CRUISER_PAGES[0];
   const layout = page.layouts.find((item) => letterOf(item.heading) === letter) ?? page.layouts[0];
-  const sheet = hangarSheet(layout);
+  const bay = hangarBay(layout.id);
   const active = letterOf(layout.heading);
   // @agent:unlocks. Ships page, "Layouts": locked layouts are shown but START is off (unlocks.ts).
   const unlocks = useSyncExternalStore(subscribeUnlocks, getUnlocks, () => SERVER_UNLOCKS);
@@ -119,7 +100,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   const shipAch = shipAchievements(cruiser).map((id) => ACHIEVEMENTS.find((row) => row.id === id)!);
   const allOpen = CRUISER_PAGES.every((p) => p.layouts.every((l) => isUnlockedIn(unlocks, l.id)));
 
-  const seats = seatsOf(layout.id, sheet.crew);
+  const seats = seatsOf(layout.id);
   const [picks, setPicks] = useState<CrewPick[]>(() => defaultPicks(seats.length));
   const [editing, setEditing] = useState<number | null>(null);
   const preview = useMemo(() => hangarLoadout(layout.id, picks), [layout.id, picks]);
@@ -142,22 +123,15 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
     useGame.getState().newRun(layout.id, RUN_DIFFICULTY[difficulty], picks);
   }
 
-  // Per the user: weapon cards follow the slot order the run mounts (hulls.ts via hangarLoadout), so the cards and the
-  // guns drawn on the hull agree. hangarSheet already drops the "none" placeholder lines.
-  const weaponNames = orderByIds(
-    sheet.weapons,
-    preview.ship.weapons.map((weapon) => weapon.defId),
-    weaponIdForName,
-  );
-  const droneNames = sheet.drones;
-  // The layout's Systems list decides "system not installed", not the Drones placeholder line.
-  const dronesOut = !sheet.droneSystem;
-  const unfitted = new Set(hull?.unfitted ?? []);
-  const emptyWeapons =
-    sheet.weaponSlots != null ? Math.max(0, sheet.weaponSlots - weaponNames.length) : 0;
-  const emptyDrones =
-    sheet.droneSlots != null ? Math.max(0, sheet.droneSlots - droneNames.length) : 0;
-  const emptyAugments = Math.max(0, 3 - sheet.augments.length);
+  // Weapon cards follow the hull's weapon list, which is the order the run mounts.
+  const weapons = bay?.weapons ?? [];
+  const drones = bay?.drones ?? [];
+  const dronesOut = !bay?.droneSystem;
+  const emptyWeapons = bay?.weaponSlots != null ? Math.max(0, bay.weaponSlots - weapons.length) : 0;
+  const emptyDrones = bay?.droneSlots != null ? Math.max(0, bay.droneSlots - drones.length) : 0;
+  const augments = bay?.augments ?? [];
+  const emptyAugments = Math.max(0, 3 - augments.length);
+  const unlockLines = bay?.unlock.length ? bay.unlock : [lockRule.quote];
 
   return (
     <section className="hangar">
@@ -169,7 +143,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
         <button type="button" className="hangar-menu" onClick={onMenu}>
           {"MENU"}
         </button>
-        <p className="hangar-name">{hull?.name || sheet.defaultName}</p>
+        <p className="hangar-name">{bay?.name ?? ""}</p>
         <div className="hangar-diff">
           <div className="hangar-diff-col">
             {DIFFICULTIES.map((item) => (
@@ -292,19 +266,19 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
               <PixelIcon name="lock" size={20} />
               {" LOCKED"}
             </p>
-            {(sheet.unlock.length ? sheet.unlock : [lockRule.quote]).map((line) => (
+            {unlockLines.map((line) => (
               <p key={line}>{line}</p>
             ))}
           </div>
         ) : null}
         <div className="hangar-bars">
-          {sheet.systems.map((system) => (
+          {(bay?.systems ?? []).map((system) => (
             <span
-              key={system.name}
+              key={system.id}
               className="hangar-bar"
               title={`${system.name} (${system.level})`}
             >
-              <SysMark name={system.name} />
+              <SysMark icon={system.icon} />
               <span className="hangar-pips">
                 {Array.from({ length: system.level }, (_, index) => (
                   <i key={index} />
@@ -361,6 +335,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
                           const itemLetter = letterOf(item.heading);
                           const shut = !isUnlockedIn(unlocks, item.id);
                           const here = index === pageIndex && itemLetter === active;
+                          const itemName = hangarBay(item.id)?.name ?? item.id;
                           return (
                             <button
                               key={item.id}
@@ -370,8 +345,8 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
                                 undefined
                               }
                               aria-pressed={here}
-                              aria-label={`${hangarSheet(item).defaultName}, type ${itemLetter}${shut ? " (locked)" : ""}`}
-                              title={hangarSheet(item).defaultName}
+                              aria-label={`${itemName}, type ${itemLetter}${shut ? " (locked)" : ""}`}
+                              title={itemName}
                               onClick={() => {
                                 setPageIndex(index);
                                 setLetter(itemLetter);
@@ -451,25 +426,21 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
           <section className="hangar-panel">
             <h2>{"WEAPONS"}</h2>
             <div className="hangar-slots">
-              {weaponNames.map((weapon, index) => {
-                const power = weaponPower(weapon);
+              {weapons.map((weapon, index) => {
+                const power = weaponPower(weapon.id);
                 return (
-                  <article key={`${weapon}-${index}`} className="hangar-slot" title={weapon}>
+                  <article key={`${weapon.id}-${index}`} className="hangar-slot" title={weapon.name}>
                     {power != null && power > 0 ? (
                       <span className="hangar-power" aria-hidden="true">
-                        {Array.from({ length: power }, (_, index) => (
-                          <i key={index} />
+                        {Array.from({ length: power }, (_, pip) => (
+                          <i key={pip} />
                         ))}
                       </span>
                     ) : (
                       <span className="hangar-power" />
                     )}
-                    {weaponIdForName(weapon) ? (
-                      <WeaponArt id={weaponIdForName(weapon)!} height={26} />
-                    ) : (
-                      <i className="slot-gun" aria-hidden="true" />
-                    )}
-                    <p>{weapon}</p>
+                    <WeaponArt id={weapon.id} height={26} />
+                    <p>{weapon.name}</p>
                   </article>
                 );
               })}
@@ -484,20 +455,21 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
               <p className="hangar-absent">{"SYSTEM NOT INSTALLED"}</p>
             ) : (
               <div className="hangar-slots">
-                {droneNames.map((drone, index) => {
+                {drones.map((drone, index) => {
                   // hulls.ts `unfitted`: named on the layout, but this build does not fly it (The Engi Cruiser, Layout B:
                   // Anti-Personnel Drone). The card stays, dimmed, so the bay matches what the run can deploy.
-                  const out = unfitted.has(drone);
                   return (
                     <article
-                      key={`${drone}-${index}`}
-                      className={`hangar-slot${out ? " is-unfitted" : ""}`}
+                      key={`${drone.name}-${index}`}
+                      className={`hangar-slot${drone.unfitted ? " is-unfitted" : ""}`}
                       title={
-                        out ? `${drone}: ${"Named on the layout, not fitted in this build"}` : drone
+                        drone.unfitted
+                          ? `${drone.name}: Named on the layout, not fitted in this build`
+                          : drone.name
                       }
                     >
-                      <DroneArt kind={droneKeyForName(drone)} height={32} />
-                      <p>{drone}</p>
+                      <DroneArt kind={drone.kind} height={32} />
+                      <p>{drone.name}</p>
                     </article>
                   );
                 })}
@@ -511,7 +483,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
         <section className="hangar-panel">
           <h2>{"AUGMENTATIONS"}</h2>
           <div className="hangar-augs">
-            {sheet.augments.map((augment) => (
+            {augments.map((augment) => (
               <p key={augment}>{augment}</p>
             ))}
             {Array.from({ length: emptyAugments }, (_, index) => (

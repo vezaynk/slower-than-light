@@ -372,6 +372,8 @@ function hullRow(spec: HullSpec): HullDef {
     name: spec.name,
     quote: spec.quote,
     unlock: spec.unlock,
+    weaponSlots: spec.weaponSlots,
+    droneSlots: spec.droneSlots,
     source: spec.source,
     reactor: spec.reactor,
     fuel: spec.fuel,

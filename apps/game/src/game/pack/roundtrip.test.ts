@@ -5,7 +5,7 @@ import "./base.ts";
 import { allAugments, allCrew, allDrones, allEmptyBeacons, allEvents, allFillerLists, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, emitPack, parsePack, resetPackForTests } from "@stl/pack";
 
 describe("base pack xml", () => {
-  it("round-trips the loaded records and matches the snapshot", () => {
+  it("round-trips the loaded records and reads the gap file", () => {
     resetPackForTests();
     const pack = {
       crew: allCrew(),
@@ -35,7 +35,12 @@ describe("base pack xml", () => {
     assert.deepEqual(back.events, pack.events);
     assert.deepEqual(back.lists, pack.lists);
     assert.deepEqual(back.empties, pack.empties);
-    const golden = readFileSync(new URL("../../../../../packages/campaign/base.xml", import.meta.url), "utf8");
-    assert.equal(xml, golden);
+    const gap = parsePack(
+      readFileSync(new URL("../../../../../packages/campaign/base.xml", import.meta.url), "utf8"),
+    );
+    assert.equal(gap.weapons?.length, 0);
+    assert.equal(gap.events?.length, 0);
+    assert.ok((gap.stores?.length ?? 0) > 0);
+    assert.ok(gap.rewards);
   });
 });

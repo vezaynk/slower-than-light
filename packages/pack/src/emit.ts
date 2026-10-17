@@ -132,7 +132,15 @@ const serializer = new XMLSerializer();
  * A rewards block derives scrap and stores the resource bands.
  * Section count, the hull-repair rate, and the reactor formula stay in code.
  */
-export function emitPack(pack: ContentPack): string {
+/** Which crew and sector fields a document keeps. The default writes both. */
+export type EmitSlice = {
+  crew?: "full" | "identity" | "stats";
+  sector?: "full" | "body" | "gap";
+};
+
+export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
+  const crewPart = slice.crew ?? "full";
+  const sectorPart = slice.sector ?? "full";
   const doc = implementation.createDocument(null, "FTL", null);
   const root = doc.documentElement;
   if (!root) throw new Error("pack document has no root");
@@ -140,7 +148,7 @@ export function emitPack(pack: ContentPack): string {
   doc.insertBefore(doc.createComment(HEADER), root);
 
   const crew = doc.createElement("crew");
-  for (const race of pack.crew ?? []) add(crew, raceElement(doc, race));
+  for (const race of pack.crew ?? []) add(crew, raceElement(doc, race, crewPart));
   add(root, crew);
   for (const weapon of pack.weapons ?? []) add(root, weaponElement(doc, weapon));
   for (const augment of pack.augments ?? []) add(root, augmentElement(doc, augment));
@@ -154,7 +162,7 @@ export function emitPack(pack: ContentPack): string {
   }
   for (const hull of pack.hulls ?? []) add(root, hullElement(doc, hull));
   for (const faction of pack.factions ?? []) add(root, factionElement(doc, faction));
-  for (const sector of pack.sectors ?? []) add(root, sectorElement(doc, sector));
+  for (const sector of pack.sectors ?? []) add(root, sectorElement(doc, sector, sectorPart));
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const event of pack.events ?? []) add(root, eventElement(doc, event));
@@ -636,11 +644,15 @@ function namedRewardElement(doc: XmlDocument, reward: NamedReward): XmlElement {
   return node;
 }
 
-function sectorElement(doc: XmlDocument, sector: SectorDef): XmlElement {
+function sectorElement(
+  doc: XmlDocument,
+  sector: SectorDef,
+  part: NonNullable<EmitSlice["sector"]>,
+): XmlElement {
   const node = element(doc, "sectorDescription", { name: sector.id });
-  add(node, leaf(doc, "title", sector.name));
-  add(node, leaf(doc, "type", sector.group));
-  for (const note of sector.notes) add(node, leaf(doc, "note", note));
+  if (part !== "gap") add(node, leaf(doc, "title", sector.name));
+  if (part !== "body") add(node, leaf(doc, "type", sector.group));
+  if (part !== "body") for (const note of sector.notes) add(node, leaf(doc, "note", note));
   return node;
 }
 
@@ -760,9 +772,18 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint): XmlElement {
   return node;
 }
 
-function raceElement(doc: XmlDocument, race: CrewDef): XmlElement {
+function raceElement(
+  doc: XmlDocument,
+  race: CrewDef,
+  part: NonNullable<EmitSlice["crew"]>,
+): XmlElement {
   const node = element(doc, "race", { name: race.id });
-  add(node, leaf(doc, "title", race.name));
+  if (part !== "stats") {
+    add(node, leaf(doc, "title", race.name));
+    if (race.detail) add(node, leaf(doc, "desc", race.detail));
+    if (race.cost != null) add(node, leaf(doc, "cost", race.cost));
+  }
+  if (part === "identity") return node;
   add(node, leaf(doc, "maxHealth", race.hp));
   add(node, leaf(doc, "moveSpeedMultiplier", race.move));
   add(node, leaf(doc, "repairSpeed", race.repair));

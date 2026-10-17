@@ -15,7 +15,7 @@
     "lint": "cd ../.. && ./node_modules/.bin/eslint packages/totallynotftl"
   },
   "dependencies": {
-    "@stl/catalog": "workspace:*",
+    "@stl/campaign": "workspace:*",
     "@stl/ftldat": "workspace:*",
     "@stl/hyperspace": "workspace:*",
     "@stl/pack": "workspace:*",

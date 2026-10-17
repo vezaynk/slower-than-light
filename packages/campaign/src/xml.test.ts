@@ -1,33 +1,47 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import {
-  allEvents,
-  allFactions,
-  allStores,
-  allSystems,
-  allTunes,
-  parsePack,
-  rewardTable,
-} from "@stl/pack";
-import { campaignXml } from "./xml.ts";
+import { emitPack, overlayGap, parsePack } from "@stl/pack";
+import { campaignPack, campaignXml, splitCampaign } from "./xml.ts";
 
 describe("campaign document", () => {
-  it("matches the committed base.xml", async () => {
+  it("matches the committed base.xml", () => {
     const golden = readFileSync(new URL("../base.xml", import.meta.url), "utf8");
-    assert.equal(await campaignXml(), golden);
+    assert.equal(campaignXml(), golden);
   });
 
-  it("restores the loaded event records", async () => {
-    const parsed = parsePack(await campaignXml());
-    const loaded = allEvents();
-    const events = parsed.events ?? [];
-    assert.equal(events.length, loaded.length);
-    for (let i = 0; i < loaded.length; i++) assert.deepEqual(events[i], loaded[i]);
-    assert.deepEqual(parsed.rewards, rewardTable());
-    assert.deepEqual(parsed.factions, allFactions());
-    assert.deepEqual(parsed.systems, allSystems());
-    assert.deepEqual(parsed.tunes, allTunes());
-    assert.deepEqual(parsed.stores, allStores());
+  it("merges the body and the gap back into the catalog", () => {
+    const pack = campaignPack();
+    const parts = splitCampaign(pack);
+    const merged = overlayGap(
+      parsePack(emitPack(parts.body, { crew: "identity", sector: "body" })),
+      parsePack(emitPack(parts.gap, { crew: "stats", sector: "gap" })),
+    );
+    assert.deepEqual(merged.crew, pack.crew);
+    assert.deepEqual(merged.weapons, pack.weapons);
+    assert.deepEqual(merged.augments, pack.augments);
+    assert.deepEqual(merged.drones, pack.drones);
+    assert.deepEqual(merged.systems, pack.systems);
+    assert.deepEqual(merged.tunes, pack.tunes);
+    assert.deepEqual(merged.hulls, pack.hulls);
+    assert.deepEqual(merged.sectors, pack.sectors);
+    assert.deepEqual(merged.events, pack.events);
+    assert.deepEqual(merged.lists, pack.lists);
+    assert.deepEqual(merged.stores, pack.stores);
+    assert.deepEqual(merged.rewards, pack.rewards);
+    assert.deepEqual(merged.factions, pack.factions);
+    assert.deepEqual(merged.empties, pack.empties);
+    assert.equal(merged.facts, undefined);
+  });
+
+  it("keeps the store and the rewards, and leaves blueprints in the stand-in", () => {
+    const xml = campaignXml();
+    const parsed = parsePack(xml);
+    assert.ok(parsed.rewards);
+    assert.ok((parsed.stores?.length ?? 0) > 0);
+    assert.equal(parsed.weapons?.length, 0);
+    assert.equal(parsed.events?.length, 0);
+    assert.equal(xml.includes("<weaponBlueprint"), false);
+    assert.equal(xml.includes("<event "), false);
   });
 });

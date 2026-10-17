@@ -1,5 +1,8 @@
 import type { FtlDocument, FtlExtract } from "@stl/ftldat";
-import { packFromFtl, type ContentPack } from "@stl/pack";
+import { packFromFtl, parsePack, type ContentPack } from "@stl/pack";
+
+/** The bundled stand-in is this one campaign document. */
+const STAND_IN = "data/stand-in.xml";
 import {
   DOMParser,
   Node,
@@ -59,6 +62,17 @@ export function applyFtlMod(base: FtlExtract, mod: FtlExtract): FtlExtract {
   for (const [path, value] of mod.text) text.set(path, value);
   for (const [path, blob] of mod.assets) assets.set(path, blob);
   return { documents, text, assets };
+}
+
+/**
+ * Reads a catalog from one unpacked archive.
+ * The stand-in is a single campaign document at `data/stand-in.xml`.
+ * Any other archive is read as vanilla XML.
+ */
+export function packFromExtract(files: FtlExtract): ContentPack {
+  const only = files.documents.length === 1 ? files.documents[0] : undefined;
+  if (only?.path === STAND_IN) return parsePack(only.xml);
+  return loadFtlMods(files).pack;
 }
 
 /**

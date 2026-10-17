@@ -1,54 +1,34 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { emitMod } from "@stl/hyperspace";
+import { campaignPack, campaignXml } from "@stl/campaign";
 import { extractFtlDat } from "@stl/ftldat";
-import { packFromFtl } from "@stl/pack";
+import { emitMod, packFromExtract } from "@stl/hyperspace";
+import { overlayGap, parsePack } from "@stl/pack";
 import { standInDat, standInMod, standInXml } from "./archive.ts";
 
 describe("totallynotftl.dat", () => {
   it("rebuilds the committed xml, archive, and mod file", async () => {
-    const xml = await standInXml();
+    const xml = standInXml();
     const goldenXml = readFileSync(new URL("../totallynotftl.xml", import.meta.url), "utf8");
     assert.equal(xml, goldenXml);
+    assert.equal(xml.includes("<facts"), false);
+    assert.equal(xml.includes("<maxHealth"), false);
+    assert.equal(xml.includes("<customStore"), false);
+    assert.equal(xml.includes("<rewards"), false);
+    assert.equal(xml.includes("<weaponBlueprint"), true);
     const built = await standInDat();
     const extracted = await extractFtlDat(built);
     assert.equal(extracted.documents.length, 1);
     assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
     assert.equal(extracted.documents[0]?.xml, goldenXml);
     assert.equal(extracted.assets.size, 0);
-    const pack = packFromFtl(extracted.documents);
-    assert.equal(pack.facts, true);
-    assert.equal(pack.names?.pool.includes("Ada Voss"), true);
-    assert.equal(pack.names?.syllables.includes("ka"), true);
-    const laser = pack.weapons?.find((row) => row.id === "LASER_BURST_3");
-    assert.equal(laser?.kind, "laser");
-    assert.equal(laser?.name, "Burst Laser II");
-    assert.match(laser?.blurb ?? "", /2 power/);
-    assert.match(laser?.blurb ?? "", /Charges in 12 seconds/);
-    assert.match(laser?.blurb ?? "", /3 shots of 1 damage/);
-    assert.match(laser?.blurb ?? "", /Costs 80 scrap/);
-    assert.doesNotMatch(laser?.blurb ?? "", /FTL art/);
-    const beam = pack.weapons?.find((row) => row.id === "BEAM_1");
-    assert.equal(beam?.lengthTiles, 1);
-    assert.match(beam?.blurb ?? "", /Length 1 tile/);
-    assert.match(
-      pack.systems?.find((row) => row.id === "shields")?.detail ?? "",
-      /Store cost 125 scrap/,
-    );
-    assert.equal(pack.systems?.find((row) => row.id === "shields")?.name, "Shields");
-    assert.equal(pack.systems?.find((row) => row.id === "shields")?.slot, "sys");
-    assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.name, "Cloaking");
-    assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.slot, "kit");
-    assert.equal(pack.systems?.find((row) => row.id === "engines")?.name, "Engines");
-    assert.equal(pack.tunes?.find((row) => row.id === "shields")?.start, 2);
-    assert.equal(pack.augments?.find((row) => row.id === "AUTO_COOLDOWN")?.name, "Automated Re-loader");
-    assert.match(pack.augments?.find((row) => row.id === "AUTO_COOLDOWN")?.detail ?? "", /10%/);
-    assert.equal(pack.drones?.find((row) => row.id === "COMBAT_1")?.name, "Combat Drone Mark I");
-    assert.equal(pack.crew?.find((row) => row.id === "human")?.name, "Human");
-    assert.match(pack.crew?.find((row) => row.id === "human")?.detail ?? "", /Health 100/);
-    assert.match(pack.crew?.find((row) => row.id === "energy")?.detail ?? "", /Supplies 1 power/);
-    assert.match(pack.crew?.find((row) => row.id === "anaerobic")?.detail ?? "", /Drains oxygen/);
+    const parsed = parsePack(xml);
+    assert.equal(parsed.facts, undefined);
+    assert.equal(parsed.stores?.length, 0);
+    assert.equal(parsed.rewards, undefined);
+    assert.equal(parsed.weapons?.find((row) => row.id === "LASER_BURST_3")?.name, "Burst Laser II");
+    assert.equal(parsed.crew?.find((row) => row.id === "human")?.name, "Human");
     const golden = readFileSync(new URL("../totallynotftl.dat", import.meta.url));
     assert.equal(built.byteLength, golden.byteLength);
     assert.equal(Buffer.compare(built, golden), 0);
@@ -56,7 +36,30 @@ describe("totallynotftl.dat", () => {
       new URL("../totallynotftl.hyperspace.xml", import.meta.url),
       "utf8",
     );
-    assert.equal(emitMod(pack), goldenMod);
+    assert.equal(emitMod(parsed), goldenMod);
     assert.equal(await standInMod(), goldenMod);
+  });
+
+  it("merges the stand-in archive with the gap file back into the catalog", async () => {
+    const pack = campaignPack();
+    const merged = overlayGap(
+      packFromExtract(await extractFtlDat(await standInDat())),
+      parsePack(campaignXml()),
+    );
+    assert.deepEqual(merged.crew, pack.crew);
+    assert.deepEqual(merged.weapons, pack.weapons);
+    assert.deepEqual(merged.augments, pack.augments);
+    assert.deepEqual(merged.drones, pack.drones);
+    assert.deepEqual(merged.systems, pack.systems);
+    assert.deepEqual(merged.tunes, pack.tunes);
+    assert.deepEqual(merged.hulls, pack.hulls);
+    assert.deepEqual(merged.sectors, pack.sectors);
+    assert.deepEqual(merged.events, pack.events);
+    assert.deepEqual(merged.lists, pack.lists);
+    assert.deepEqual(merged.stores, pack.stores);
+    assert.deepEqual(merged.rewards, pack.rewards);
+    assert.deepEqual(merged.factions, pack.factions);
+    assert.deepEqual(merged.empties, pack.empties);
+    assert.equal(merged.facts, undefined);
   });
 });

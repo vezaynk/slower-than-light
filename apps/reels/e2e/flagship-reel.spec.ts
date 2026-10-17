@@ -174,7 +174,7 @@ async function nextHull(page: Page, reel: Reel) {
   await reel.hold();
   const cont = page.getByRole("button", { name: "1. Continue..." });
   await expect(cont).toBeEnabled({ timeout: 20_000 });
-  await expect(page.getByText("The Flagship holds the base.")).toBeVisible();
+  await expect(page.getByRole("article").getByText("The Flagship holds the base.")).toBeVisible();
   await beat(page, 900);
   await cont.click();
   await expect.poll(async () => (await reel.info()).phase, { timeout: 15_000 }).toBe("combat");

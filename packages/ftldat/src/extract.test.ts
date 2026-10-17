@@ -172,6 +172,18 @@ describe("packFtlDat", () => {
     assert.equal(extracted.assets.size, 0);
   });
 
+  it("packs an image and reads the same bytes back", async () => {
+    const png = Uint8Array.of(0x89, 0x50, 0x4e, 0x47, 1, 2, 3);
+    const extracted = await extractFtlDat(
+      packFtlDat([], [], [{ path: "img/ship/kestral_base.png", bytes: png }]),
+    );
+    assert.equal(extracted.documents.length, 0);
+    assert.equal(extracted.text.size, 0);
+    const blob = extracted.assets.get("img/ship/kestral_base.png");
+    assert.equal(blob?.type, "image/png");
+    assert.deepEqual(new Uint8Array(await blob!.arrayBuffer()), png);
+  });
+
   it("rejects a path the reader could not return", () => {
     assert.throws(() => packFtlDat([{ path: "data/caf\u00e9.xml", xml: "<FTL/>" }]), /not ASCII/);
     assert.throws(() => packFtlDat([{ path: "", xml: "<FTL/>" }]), /empty/);

@@ -1288,7 +1288,7 @@
     <title>Backup Battery</title>
     <cost>35</cost>
   </systemBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_HARD" layout="kestral">
+  <shipBlueprint name="PLAYER_SHIP_HARD" layout="kestral" img="kestral">
     <class>Kestrel Cruiser</class>
     <title>The Kestrel</title>
     <desc>This class of ship was decommissioned from Federation service years ago. After a number of refits and updating, this classic ship is ready for battle.</desc>
@@ -1370,7 +1370,7 @@
       <room name="p-kah2" title="Hall"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_HARD_2" layout="kestral_2">
+  <shipBlueprint name="PLAYER_SHIP_HARD_2" layout="kestral_2" img="kestral_2">
     <class>Kestrel Cruiser</class>
     <title>Red-Tail</title>
     <desc>This modified Kestrel class ship was created by a laser weapon aficionado.</desc>
@@ -1453,7 +1453,7 @@
       <room name="p-hack" title="Hall" reserve="Hacking"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_HARD_3" layout="kestral_3">
+  <shipBlueprint name="PLAYER_SHIP_HARD_3" layout="kestral_3" img="kestral_3">
     <class>Kestrel Cruiser</class>
     <title>The Swallow</title>
     <desc>This model was modified by pirates to utilize newly discovered technology. It can clone lost crewmembers and stun enemies.</desc>
@@ -1542,7 +1542,7 @@
       <room name="p-kch3" title="Hall"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CIRCLE" layout="circle_cruiser">
+  <shipBlueprint name="PLAYER_SHIP_CIRCLE" layout="circle_cruiser" img="circle_cruiser">
     <class>Engi Cruiser</class>
     <title>The Torus</title>
     <desc>Although it may look like a pile of junk loosely held together, this well designed ship relies on drones and ion weaponry.</desc>
@@ -1630,7 +1630,7 @@
       <room name="p-pilot" title="Piloting"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CIRCLE_2" layout="circle_cruiser_2">
+  <shipBlueprint name="PLAYER_SHIP_CIRCLE_2" layout="circle_cruiser_2" img="circle_cruiser_2">
     <class>Engi Cruiser</class>
     <title>The Vortex</title>
     <desc>Heavily understaffed, this ship relies on drones to keep the ship running.</desc>
@@ -1720,7 +1720,7 @@
       <room name="p-pilot" title="Piloting"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CIRCLE_3" layout="circle_cruiser_3">
+  <shipBlueprint name="PLAYER_SHIP_CIRCLE_3" layout="circle_cruiser_3" img="circle_cruiser_3">
     <class>Engi Cruiser</class>
     <title>Tetragon</title>
     <desc>The Engi were quick to adapt to the sudden surge of hacking technology — this ship is the result of their research.</desc>
@@ -1818,7 +1818,7 @@
       <room name="p-doors" title="Doors"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_FED" layout="fed_cruiser">
+  <shipBlueprint name="PLAYER_SHIP_FED" layout="fed_cruiser" img="fed_cruiser">
     <class>Federation Cruiser</class>
     <title>The Osprey</title>
     <desc>This ship features the latest in federation technology: an advanced beam weapon that pierces through shields!</desc>
@@ -1908,7 +1908,7 @@
       <room name="p-artillery" title="Hall" reserve="Artillery"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_FED_2" layout="fed_cruiser_2">
+  <shipBlueprint name="PLAYER_SHIP_FED_2" layout="fed_cruiser_2" img="fed_cruiser_2">
     <class>Federation Cruiser</class>
     <title>Nisos</title>
     <desc>This ship features additional Artillery power, encouraging heavy reliance on the beam.</desc>
@@ -1998,7 +1998,7 @@
       <room name="p-doors" title="Doors"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_FED_3" layout="fed_cruiser_3">
+  <shipBlueprint name="PLAYER_SHIP_FED_3" layout="fed_cruiser_3" img="fed_cruiser_3">
     <class>Federation Cruiser</class>
     <title>The Fregatidae</title>
     <desc>With a Flak Artillery weapon and an improved Clone Bay, only the most suicidal of infantry chooses to fly on this ship.</desc>
@@ -2099,7 +2099,7 @@
       <room name="p-fch3" title="Hall"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ENERGY" layout="energy_cruiser">
+  <shipBlueprint name="PLAYER_SHIP_ENERGY" layout="energy_cruiser" img="energy_cruiser">
     <class>Zoltan Cruiser</class>
     <title>The Adjudicator</title>
     <desc>The Zoltan's advanced shields technology give this ship an edge during each battle.</desc>
@@ -2184,7 +2184,7 @@
       <room name="p-zah3" title="Hall"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ENERGY_2" layout="energy_cruiser_2">
+  <shipBlueprint name="PLAYER_SHIP_ENERGY_2" layout="energy_cruiser_2" img="energy_cruiser_2">
     <class>Zoltan Cruiser</class>
     <title>Noether</title>
     <desc>This ship starts with a weakened Shield system and must rely on its Zoltan shield.</desc>
@@ -2267,7 +2267,7 @@
       <room name="p-pilot" title="Piloting"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ENERGY_3" layout="energy_cruiser_3">
+  <shipBlueprint name="PLAYER_SHIP_ENERGY_3" layout="energy_cruiser_3" img="energy_cruiser_3">
     <class>Zoltan Cruiser</class>
     <title>Cerenkov</title>
     <desc>The designer of this ship was not willing to spend the money for a decent reactor. Instead it relies on its Zoltan crew and Backup Battery.</desc>
@@ -2367,7 +2367,7 @@
       <room name="p-doors" title="Doors"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_JELLY" layout="jelly_cruiser">
+  <shipBlueprint name="PLAYER_SHIP_JELLY" layout="jelly_cruiser" img="jelly_cruiser">
     <class>Slug Cruiser</class>
     <title>Man of War</title>
     <desc>Designed for use inside nebula, this cruiser lacks sensors and relies instead on the guile and cunning of the Slugs.</desc>
@@ -2449,7 +2449,7 @@
       <room name="p-drones" title="Hall" reserve="Drones"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_JELLY_2" layout="jelly_cruiser_2">
+  <shipBlueprint name="PLAYER_SHIP_JELLY_2" layout="jelly_cruiser_2" img="jelly_cruiser_2">
     <class>Slug Cruiser</class>
     <title>The Stormwalker</title>
     <desc>This boarding ship has no medical facilities and must manage its explosives carefully to keep the crew alive.</desc>
@@ -2541,7 +2541,7 @@
       <room name="p-doors" title="Doors"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_JELLY_3" layout="jelly_cruiser_3">
+  <shipBlueprint name="PLAYER_SHIP_JELLY_3" layout="jelly_cruiser_3" img="jelly_cruiser_3">
     <class>Slug Cruiser</class>
     <title>Ariolimax</title>
     <desc>Slugs are often skilled in the arts of misdirection and manipulation. With Hacking and Mind Control systems, this ship capitalizes on that fact.</desc>
@@ -2637,7 +2637,7 @@
       <room name="p-clone" title="Hall" reserve="Clone Bay"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ROCK" layout="rock_cruiser">
+  <shipBlueprint name="PLAYER_SHIP_ROCK" layout="rock_cruiser" img="rock_cruiser">
     <class>Rock Cruiser</class>
     <title>Bulwark</title>
     <desc>Similar to its designers, this super dense behemoth uses brute force to overwhelm its foes.</desc>
@@ -2722,7 +2722,7 @@
       <room name="p-tele" title="Hall" reserve="Teleporter"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ROCK_2" layout="rock_cruiser_2">
+  <shipBlueprint name="PLAYER_SHIP_ROCK_2" layout="rock_cruiser_2" img="rock_cruiser_2">
     <class>Rock Cruiser</class>
     <title>Shivan</title>
     <desc>With no airlocks, this ship must rely entirely on its rock crew to put out fires.</desc>
@@ -2806,7 +2806,7 @@
       <room name="p-doors" title="Hall" reserve="Doors"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ROCK_3" layout="rock_cruiser_3">
+  <shipBlueprint name="PLAYER_SHIP_ROCK_3" layout="rock_cruiser_3" img="rock_cruiser_3">
     <class>Rock Cruiser</class>
     <title>Tektite</title>
     <desc>Contact has been made with the Crystalline race and this cruiser was offered to the Federation as part of diplomatic discussions between the sister species.</desc>
@@ -2896,7 +2896,7 @@
       <room name="p-battery" title="Hall" reserve="Backup Battery"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_STEALTH" layout="stealth">
+  <shipBlueprint name="PLAYER_SHIP_STEALTH" layout="stealth" img="stealth">
     <class>Stealth Cruiser</class>
     <title>The Nesasio</title>
     <desc>Constructed for the Federation by the Engi, this ship is designed to use cloaking technology and speed to get behind enemy lines.</desc>
@@ -2984,7 +2984,7 @@
       <room name="p-doors" title="Doors"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_STEALTH_2" layout="stealth_2">
+  <shipBlueprint name="PLAYER_SHIP_STEALTH_2" layout="stealth_2" img="stealth_2">
     <class>Stealth Cruiser</class>
     <title>DA-SR 12</title>
     <desc>Built like a glass cannon, this ship is hard to handle. If its cloaking can keep it safe long enough to charge its weapon, few cruisers can withstand its might.</desc>
@@ -3070,7 +3070,7 @@
       <room name="p-tele" title="Hall" reserve="Teleporter"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_STEALTH_3" layout="stealth_3">
+  <shipBlueprint name="PLAYER_SHIP_STEALTH_3" layout="stealth_3" img="stealth_3">
     <class>Stealth Cruiser</class>
     <title>Simo-H</title>
     <desc>This ship was part of an Engi experiment to make a power efficient version of the Zoltan shield. Unfortunately this required the removal of the Cloaking system.</desc>
@@ -3166,7 +3166,7 @@
       <room name="p-hack" title="Hall" reserve="Hacking"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC" layout="anaerobic_cruiser">
+  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC" layout="anaerobic_cruiser" img="anaerobic_cruiser">
     <class>Lanius Cruiser</class>
     <title>Kruos</title>
     <desc>The sharp knife-like structures make Lanius ships a sight to behold. This cruiser was adapted to support the other races of the Federation.</desc>
@@ -3259,7 +3259,7 @@
       <room name="p-doors" title="Doors"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC_2" layout="anaerobic_cruiser_2">
+  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC_2" layout="anaerobic_cruiser_2" img="anaerobic_cruiser_2">
     <class>Lanius Cruiser</class>
     <title>The Shrike</title>
     <desc>The racial ability of the Lanius make them fearsome combatants in small quarters. Combine that with a Mind Control system and this ship is a force to be reckoned with.</desc>
@@ -3357,7 +3357,7 @@
       <room name="p-mind" title="Hall" reserve="Mind Control"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_MANTIS" layout="mantis_cruiser">
+  <shipBlueprint name="PLAYER_SHIP_MANTIS" layout="mantis_cruiser" img="mantis_cruiser">
     <class>Mantis Cruiser</class>
     <title>The Gila Monster</title>
     <desc>This warship is designed to enhance its crew for close combat missions.</desc>
@@ -3448,7 +3448,7 @@
       <room name="p-sensors" title="Hall" reserve="Sensors"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_MANTIS_2" layout="mantis_cruiser_2">
+  <shipBlueprint name="PLAYER_SHIP_MANTIS_2" layout="mantis_cruiser_2" img="mantis_cruiser_2">
     <class>Mantis Cruiser</class>
     <title>The Basilisk</title>
     <desc>This warship encourages sending massive boarding parties and keeping strong defense.</desc>
@@ -3542,7 +3542,7 @@
       <room name="p-oxygen" title="Oxygen"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_MANTIS_3" layout="mantis_cruiser_3">
+  <shipBlueprint name="PLAYER_SHIP_MANTIS_3" layout="mantis_cruiser_3" img="mantis_cruiser_3">
     <class>Mantis Cruiser</class>
     <title>The Theseus</title>
     <desc>With a large teleporter and weapons designed to impede enemy crew, this ship is deadly in the hands of a capable boarding party.</desc>
@@ -3637,7 +3637,7 @@
       <room name="p-mch3" title="Hall"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CRYSTAL" layout="crystal_cruiser">
+  <shipBlueprint name="PLAYER_SHIP_CRYSTAL" layout="crystal_cruiser" img="crystal_cruiser">
     <class>Crystal Cruiser</class>
     <title>Bravais</title>
     <desc>This powerful vessel is powered by the secret technologies of the lost Crystalline Beings.</desc>
@@ -3724,7 +3724,7 @@
       <room name="p-cloak" title="Hall" reserve="Cloaking"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CRYSTAL_2" layout="crystal_cruiser_2">
+  <shipBlueprint name="PLAYER_SHIP_CRYSTAL_2" layout="crystal_cruiser_2" img="crystal_cruiser_2">
     <class>Crystal Cruiser</class>
     <title>Carnelian</title>
     <desc>Their unique racial ability makes the Crystal beings very adept at ship boarding. This ship was designed for such raiding parties.</desc>
@@ -3813,7 +3813,7 @@
       <room name="p-pilot" title="Piloting"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-fighter" layout="rebel-fighter">
+  <shipBlueprint name="rebel-fighter" layout="rebel-fighter" img="rebel-fighter">
     <class/>
     <title>rebel-fighter</title>
     <desc/>
@@ -3847,7 +3847,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-fighter:pirate" layout="rebel-fighter-pirate">
+  <shipBlueprint name="rebel-fighter:pirate" layout="rebel-fighter-pirate" img="rebel-fighter-pirate">
     <class/>
     <title>rebel-fighter:pirate</title>
     <desc/>
@@ -3885,7 +3885,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-invader" layout="rebel-invader">
+  <shipBlueprint name="rebel-invader" layout="rebel-invader" img="rebel-invader">
     <class/>
     <title>rebel-invader</title>
     <desc/>
@@ -3919,7 +3919,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-invader:pirate" layout="rebel-invader-pirate">
+  <shipBlueprint name="rebel-invader:pirate" layout="rebel-invader-pirate" img="rebel-invader-pirate">
     <class/>
     <title>rebel-invader:pirate</title>
     <desc/>
@@ -3957,7 +3957,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-rigger" layout="rebel-rigger">
+  <shipBlueprint name="rebel-rigger" layout="rebel-rigger" img="rebel-rigger">
     <class/>
     <title>rebel-rigger</title>
     <desc/>
@@ -3993,7 +3993,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-rigger:pirate" layout="rebel-rigger-pirate">
+  <shipBlueprint name="rebel-rigger:pirate" layout="rebel-rigger-pirate" img="rebel-rigger-pirate">
     <class/>
     <title>rebel-rigger:pirate</title>
     <desc/>
@@ -4029,7 +4029,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-disruptor" layout="rebel-disruptor">
+  <shipBlueprint name="rebel-disruptor" layout="rebel-disruptor" img="rebel-disruptor">
     <class/>
     <title>rebel-disruptor</title>
     <desc/>
@@ -4065,7 +4065,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-disruptor:pirate" layout="rebel-disruptor-pirate">
+  <shipBlueprint name="rebel-disruptor:pirate" layout="rebel-disruptor-pirate" img="rebel-disruptor-pirate">
     <class/>
     <title>rebel-disruptor:pirate</title>
     <desc/>
@@ -4101,7 +4101,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="elite-fighter" layout="elite-fighter">
+  <shipBlueprint name="elite-fighter" layout="elite-fighter" img="elite-fighter">
     <class/>
     <title>elite-fighter</title>
     <desc/>
@@ -4135,7 +4135,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="elite-assault" layout="elite-assault">
+  <shipBlueprint name="elite-assault" layout="elite-assault" img="elite-assault">
     <class/>
     <title>elite-assault</title>
     <desc/>
@@ -4169,7 +4169,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="auto-scout" layout="auto-scout">
+  <shipBlueprint name="auto-scout" layout="auto-scout" img="auto-scout">
     <class/>
     <title>auto-scout</title>
     <desc/>
@@ -4199,7 +4199,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="auto-surveyor" layout="auto-surveyor">
+  <shipBlueprint name="auto-surveyor" layout="auto-surveyor" img="auto-surveyor">
     <class/>
     <title>auto-surveyor</title>
     <desc/>
@@ -4229,7 +4229,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="auto-assault" layout="auto-assault">
+  <shipBlueprint name="auto-assault" layout="auto-assault" img="auto-assault">
     <class/>
     <title>auto-assault</title>
     <desc/>
@@ -4259,7 +4259,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="auto-hacker" layout="auto-hacker">
+  <shipBlueprint name="auto-hacker" layout="auto-hacker" img="auto-hacker">
     <class/>
     <title>auto-hacker</title>
     <desc/>
@@ -4289,7 +4289,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="engi-scout" layout="engi-scout">
+  <shipBlueprint name="engi-scout" layout="engi-scout" img="engi-scout">
     <class/>
     <title>engi-scout</title>
     <desc/>
@@ -4325,7 +4325,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="engi-outrider" layout="engi-outrider">
+  <shipBlueprint name="engi-outrider" layout="engi-outrider" img="engi-outrider">
     <class/>
     <title>engi-outrider</title>
     <desc/>
@@ -4361,7 +4361,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="engi-bomber" layout="engi-bomber">
+  <shipBlueprint name="engi-bomber" layout="engi-bomber" img="engi-bomber">
     <class/>
     <title>engi-bomber</title>
     <desc/>
@@ -4401,7 +4401,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="engi-hacker" layout="engi-hacker">
+  <shipBlueprint name="engi-hacker" layout="engi-hacker" img="engi-hacker">
     <class/>
     <title>engi-hacker</title>
     <desc/>
@@ -4442,7 +4442,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-scout" layout="mantis-scout">
+  <shipBlueprint name="mantis-scout" layout="mantis-scout" img="mantis-scout">
     <class/>
     <title>mantis-scout</title>
     <desc/>
@@ -4478,7 +4478,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-scout:pirate" layout="mantis-scout-pirate">
+  <shipBlueprint name="mantis-scout:pirate" layout="mantis-scout-pirate" img="mantis-scout-pirate">
     <class/>
     <title>mantis-scout:pirate</title>
     <desc/>
@@ -4512,7 +4512,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-interceptor" layout="mantis-interceptor">
+  <shipBlueprint name="mantis-interceptor" layout="mantis-interceptor" img="mantis-interceptor">
     <class/>
     <title>mantis-interceptor</title>
     <desc/>
@@ -4548,7 +4548,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-interceptor:pirate" layout="mantis-interceptor-pirate">
+  <shipBlueprint name="mantis-interceptor:pirate" layout="mantis-interceptor-pirate" img="mantis-interceptor-pirate">
     <class/>
     <title>mantis-interceptor:pirate</title>
     <desc/>
@@ -4582,7 +4582,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-fighter" layout="mantis-fighter">
+  <shipBlueprint name="mantis-fighter" layout="mantis-fighter" img="mantis-fighter">
     <class/>
     <title>mantis-fighter</title>
     <desc/>
@@ -4620,7 +4620,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-fighter:pirate" layout="mantis-fighter-pirate">
+  <shipBlueprint name="mantis-fighter:pirate" layout="mantis-fighter-pirate" img="mantis-fighter-pirate">
     <class/>
     <title>mantis-fighter:pirate</title>
     <desc/>
@@ -4656,7 +4656,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-assault" layout="mantis-assault">
+  <shipBlueprint name="mantis-assault" layout="mantis-assault" img="mantis-assault">
     <class/>
     <title>mantis-assault</title>
     <desc/>
@@ -4694,7 +4694,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-assault:pirate" layout="mantis-assault-pirate">
+  <shipBlueprint name="mantis-assault:pirate" layout="mantis-assault-pirate" img="mantis-assault-pirate">
     <class/>
     <title>mantis-assault:pirate</title>
     <desc/>
@@ -4730,7 +4730,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-bomber" layout="mantis-bomber">
+  <shipBlueprint name="mantis-bomber" layout="mantis-bomber" img="mantis-bomber">
     <class/>
     <title>mantis-bomber</title>
     <desc/>
@@ -4770,7 +4770,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-bomber:pirate" layout="mantis-bomber-pirate">
+  <shipBlueprint name="mantis-bomber:pirate" layout="mantis-bomber-pirate" img="mantis-bomber-pirate">
     <class/>
     <title>mantis-bomber:pirate</title>
     <desc/>
@@ -4810,7 +4810,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-aggressor" layout="mantis-aggressor">
+  <shipBlueprint name="mantis-aggressor" layout="mantis-aggressor" img="mantis-aggressor">
     <class/>
     <title>mantis-aggressor</title>
     <desc/>
@@ -4850,7 +4850,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-aggressor:pirate" layout="mantis-aggressor-pirate">
+  <shipBlueprint name="mantis-aggressor:pirate" layout="mantis-aggressor-pirate" img="mantis-aggressor-pirate">
     <class/>
     <title>mantis-aggressor:pirate</title>
     <desc/>
@@ -4890,7 +4890,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-interceptor" layout="slug-interceptor">
+  <shipBlueprint name="slug-interceptor" layout="slug-interceptor" img="slug-interceptor">
     <class/>
     <title>slug-interceptor</title>
     <desc/>
@@ -4920,7 +4920,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-interceptor:pirate" layout="slug-interceptor-pirate">
+  <shipBlueprint name="slug-interceptor:pirate" layout="slug-interceptor-pirate" img="slug-interceptor-pirate">
     <class/>
     <title>slug-interceptor:pirate</title>
     <desc/>
@@ -4952,7 +4952,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-scout" layout="slug-scout">
+  <shipBlueprint name="slug-scout" layout="slug-scout" img="slug-scout">
     <class/>
     <title>slug-scout</title>
     <desc/>
@@ -4982,7 +4982,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-scout:pirate" layout="slug-scout-pirate">
+  <shipBlueprint name="slug-scout:pirate" layout="slug-scout-pirate" img="slug-scout-pirate">
     <class/>
     <title>slug-scout:pirate</title>
     <desc/>
@@ -5014,7 +5014,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-light-cruiser" layout="slug-light-cruiser">
+  <shipBlueprint name="slug-light-cruiser" layout="slug-light-cruiser" img="slug-light-cruiser">
     <class/>
     <title>slug-light-cruiser</title>
     <desc/>
@@ -5049,7 +5049,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-light-cruiser:pirate" layout="slug-light-cruiser-pirate">
+  <shipBlueprint name="slug-light-cruiser:pirate" layout="slug-light-cruiser-pirate" img="slug-light-cruiser-pirate">
     <class/>
     <title>slug-light-cruiser:pirate</title>
     <desc/>
@@ -5086,7 +5086,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-light-surveyor" layout="slug-light-surveyor">
+  <shipBlueprint name="slug-light-surveyor" layout="slug-light-surveyor" img="slug-light-surveyor">
     <class/>
     <title>slug-light-surveyor</title>
     <desc/>
@@ -5121,7 +5121,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-light-surveyor:pirate" layout="slug-light-surveyor-pirate">
+  <shipBlueprint name="slug-light-surveyor:pirate" layout="slug-light-surveyor-pirate" img="slug-light-surveyor-pirate">
     <class/>
     <title>slug-light-surveyor:pirate</title>
     <desc/>
@@ -5157,7 +5157,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-assault" layout="slug-assault">
+  <shipBlueprint name="slug-assault" layout="slug-assault" img="slug-assault">
     <class/>
     <title>slug-assault</title>
     <desc/>
@@ -5193,7 +5193,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-assault:pirate" layout="slug-assault-pirate">
+  <shipBlueprint name="slug-assault:pirate" layout="slug-assault-pirate" img="slug-assault-pirate">
     <class/>
     <title>slug-assault:pirate</title>
     <desc/>
@@ -5230,7 +5230,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-instigator" layout="slug-instigator">
+  <shipBlueprint name="slug-instigator" layout="slug-instigator" img="slug-instigator">
     <class/>
     <title>slug-instigator</title>
     <desc/>
@@ -5266,7 +5266,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-instigator:pirate" layout="slug-instigator-pirate">
+  <shipBlueprint name="slug-instigator:pirate" layout="slug-instigator-pirate" img="slug-instigator-pirate">
     <class/>
     <title>slug-instigator:pirate</title>
     <desc/>
@@ -5303,7 +5303,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-scout" layout="rock-scout">
+  <shipBlueprint name="rock-scout" layout="rock-scout" img="rock-scout">
     <class/>
     <title>rock-scout</title>
     <desc/>
@@ -5337,7 +5337,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-scout:pirate" layout="rock-scout-pirate">
+  <shipBlueprint name="rock-scout:pirate" layout="rock-scout-pirate" img="rock-scout-pirate">
     <class/>
     <title>rock-scout:pirate</title>
     <desc/>
@@ -5369,7 +5369,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-investigator" layout="rock-investigator">
+  <shipBlueprint name="rock-investigator" layout="rock-investigator" img="rock-investigator">
     <class/>
     <title>rock-investigator</title>
     <desc/>
@@ -5403,7 +5403,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-investigator:pirate" layout="rock-investigator-pirate">
+  <shipBlueprint name="rock-investigator:pirate" layout="rock-investigator-pirate" img="rock-investigator-pirate">
     <class/>
     <title>rock-investigator:pirate</title>
     <desc/>
@@ -5435,7 +5435,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-fighter" layout="rock-fighter">
+  <shipBlueprint name="rock-fighter" layout="rock-fighter" img="rock-fighter">
     <class/>
     <title>rock-fighter</title>
     <desc/>
@@ -5471,7 +5471,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-fighter:pirate" layout="rock-fighter-pirate">
+  <shipBlueprint name="rock-fighter:pirate" layout="rock-fighter-pirate" img="rock-fighter-pirate">
     <class/>
     <title>rock-fighter:pirate</title>
     <desc/>
@@ -5507,7 +5507,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-interceptor" layout="rock-interceptor">
+  <shipBlueprint name="rock-interceptor" layout="rock-interceptor" img="rock-interceptor">
     <class/>
     <title>rock-interceptor</title>
     <desc/>
@@ -5544,7 +5544,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-interceptor:pirate" layout="rock-interceptor-pirate">
+  <shipBlueprint name="rock-interceptor:pirate" layout="rock-interceptor-pirate" img="rock-interceptor-pirate">
     <class/>
     <title>rock-interceptor:pirate</title>
     <desc/>
@@ -5580,7 +5580,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-assault" layout="rock-assault">
+  <shipBlueprint name="rock-assault" layout="rock-assault" img="rock-assault">
     <class/>
     <title>rock-assault</title>
     <desc/>
@@ -5619,7 +5619,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-aggressor" layout="rock-aggressor">
+  <shipBlueprint name="rock-aggressor" layout="rock-aggressor" img="rock-aggressor">
     <class/>
     <title>rock-aggressor</title>
     <desc/>
@@ -5658,7 +5658,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-assault-elite" layout="rock-assault-elite">
+  <shipBlueprint name="rock-assault-elite" layout="rock-assault-elite" img="rock-assault-elite">
     <class/>
     <title>rock-assault-elite</title>
     <desc/>
@@ -5697,7 +5697,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-fighter" layout="energy-fighter">
+  <shipBlueprint name="energy-fighter" layout="energy-fighter" img="energy-fighter">
     <class/>
     <title>energy-fighter</title>
     <desc/>
@@ -5731,7 +5731,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-fighter:pirate" layout="energy-fighter-pirate">
+  <shipBlueprint name="energy-fighter:pirate" layout="energy-fighter-pirate" img="energy-fighter-pirate">
     <class/>
     <title>energy-fighter:pirate</title>
     <desc/>
@@ -5765,7 +5765,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-instigator" layout="energy-instigator">
+  <shipBlueprint name="energy-instigator" layout="energy-instigator" img="energy-instigator">
     <class/>
     <title>energy-instigator</title>
     <desc/>
@@ -5799,7 +5799,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-instigator:pirate" layout="energy-instigator-pirate">
+  <shipBlueprint name="energy-instigator:pirate" layout="energy-instigator-pirate" img="energy-instigator-pirate">
     <class/>
     <title>energy-instigator:pirate</title>
     <desc/>
@@ -5833,7 +5833,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-bomber" layout="energy-bomber">
+  <shipBlueprint name="energy-bomber" layout="energy-bomber" img="energy-bomber">
     <class/>
     <title>energy-bomber</title>
     <desc/>
@@ -5869,7 +5869,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-bomber:pirate" layout="energy-bomber-pirate">
+  <shipBlueprint name="energy-bomber:pirate" layout="energy-bomber-pirate" img="energy-bomber-pirate">
     <class/>
     <title>energy-bomber:pirate</title>
     <desc/>
@@ -5905,7 +5905,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-hacker" layout="energy-hacker">
+  <shipBlueprint name="energy-hacker" layout="energy-hacker" img="energy-hacker">
     <class/>
     <title>energy-hacker</title>
     <desc/>
@@ -5941,7 +5941,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-hacker:pirate" layout="energy-hacker-pirate">
+  <shipBlueprint name="energy-hacker:pirate" layout="energy-hacker-pirate" img="energy-hacker-pirate">
     <class/>
     <title>energy-hacker:pirate</title>
     <desc/>
@@ -5977,7 +5977,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="crystal-scout" layout="crystal-scout">
+  <shipBlueprint name="crystal-scout" layout="crystal-scout" img="crystal-scout">
     <class/>
     <title>crystal-scout</title>
     <desc/>
@@ -6009,7 +6009,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="crystal-outrider" layout="crystal-outrider">
+  <shipBlueprint name="crystal-outrider" layout="crystal-outrider" img="crystal-outrider">
     <class/>
     <title>crystal-outrider</title>
     <desc/>
@@ -6041,7 +6041,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="crystal-bomber" layout="crystal-bomber">
+  <shipBlueprint name="crystal-bomber" layout="crystal-bomber" img="crystal-bomber">
     <class/>
     <title>crystal-bomber</title>
     <desc/>
@@ -6077,7 +6077,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="crystal-instigator" layout="crystal-instigator">
+  <shipBlueprint name="crystal-instigator" layout="crystal-instigator" img="crystal-instigator">
     <class/>
     <title>crystal-instigator</title>
     <desc/>
@@ -6115,7 +6115,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="lanius-scout" layout="lanius-scout">
+  <shipBlueprint name="lanius-scout" layout="lanius-scout" img="lanius-scout">
     <class/>
     <title>lanius-scout</title>
     <desc/>
@@ -6149,7 +6149,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="lanius-bomber" layout="lanius-bomber">
+  <shipBlueprint name="lanius-bomber" layout="lanius-bomber" img="lanius-bomber">
     <class/>
     <title>lanius-bomber</title>
     <desc/>
@@ -6189,7 +6189,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="federation-scout" layout="federation-scout">
+  <shipBlueprint name="federation-scout" layout="federation-scout" img="federation-scout">
     <class/>
     <title>federation-scout</title>
     <desc/>
@@ -6221,7 +6221,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="federation-outrider" layout="federation-outrider">
+  <shipBlueprint name="federation-outrider" layout="federation-outrider" img="federation-outrider">
     <class/>
     <title>federation-outrider</title>
     <desc/>
@@ -6253,7 +6253,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="federation-bomber" layout="federation-bomber">
+  <shipBlueprint name="federation-bomber" layout="federation-bomber" img="federation-bomber">
     <class/>
     <title>federation-bomber</title>
     <desc/>
@@ -6290,7 +6290,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="federation-hacker" layout="federation-hacker">
+  <shipBlueprint name="federation-hacker" layout="federation-hacker" img="federation-hacker">
     <class/>
     <title>federation-hacker</title>
     <desc/>
@@ -6327,7 +6327,7 @@
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="flagship-1" layout="flagship-1">
+  <shipBlueprint name="flagship-1" layout="flagship-1" img="flagship-1">
     <class/>
     <title>flagship-1</title>
     <desc/>
@@ -6373,7 +6373,7 @@
       <room name="f1-engines" title="Engines"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="flagship-2" layout="flagship-2">
+  <shipBlueprint name="flagship-2" layout="flagship-2" img="flagship-2">
     <class/>
     <title>flagship-2</title>
     <desc/>
@@ -6414,7 +6414,7 @@
       <room name="f2-engines" title="Engines"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="flagship-3" layout="flagship-3">
+  <shipBlueprint name="flagship-3" layout="flagship-3" img="flagship-3">
     <class/>
     <title>flagship-3</title>
     <desc/>

@@ -24,6 +24,7 @@ import type {
   TuneStep,
 } from "./types.ts";
 import { cloneGrid, readGrids } from "./grid.ts";
+import { attachPictures } from "./picture.ts";
 import { attr, child, elements, numOf, readAugment, readDocument, readDrone, readWeapon, tagged, textOf } from "./parse.ts";
 
 /**
@@ -50,6 +51,7 @@ export type FtlTextFile = {
  * Stores and the numeric rewards table are not in the archive, and this catalog does not invent them.
  * `layouts` are the `data/*.txt` room grids. A ship keeps its layout file name, and the grid is
  * attached when that file is in the list. Layout text is not inside the XML.
+ * `data/<layout>.xml` contributes the `<img>` box. Image bytes stay off this catalog.
  */
 export function packFromFtl(
   documents: readonly FtlBlueprintFile[],
@@ -136,6 +138,7 @@ export function packFromFtl(
   if (lists.rows.length > 0) pack.lists = lists.rows;
   if (facts) pack.facts = true;
   if (names) pack.names = names;
+  attachPictures(pack.hulls, documents);
   return pack;
 }
 

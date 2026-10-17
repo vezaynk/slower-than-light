@@ -227,6 +227,26 @@ describe("packFromExtract", () => {
     assert.equal(pack.crew?.[0]?.hp, 70);
   });
 
+  it("reads the stand-in when hull pictures are packed beside it", () => {
+    const pack = packFromExtract(
+      extract({
+        documents: [
+          {
+            path: "data/stand-in.xml",
+            xml: `<FTL><shipBlueprint name="PLAYER_SHIP_HARD" layout="kestral" img="kestral"><title>The Kestrel</title></shipBlueprint></FTL>`,
+          },
+          {
+            path: "data/kestral.xml",
+            xml: `<FTL><img x="-35" y="-35" w="140" h="105"/></FTL>`,
+          },
+        ],
+      }),
+    );
+    assert.equal(pack.hulls?.[0]?.name, "The Kestrel");
+    assert.equal(pack.hulls?.[0]?.img, "kestral");
+    assert.deepEqual(pack.hulls?.[0]?.picture, { x: -35, y: -35, w: 140, h: 105 });
+  });
+
   it("reads any other single file as vanilla XML", () => {
     const pack = packFromExtract(
       extract({
@@ -252,7 +272,10 @@ describe("packFromExtract", () => {
       ["LETO", "ONLY"],
     );
     assert.equal(merged.weapons?.[0]?.name, "Leto");
-    assert.equal(merged.weapons?.some((row) => row.id === "GAP_GUN"), false);
+    assert.equal(
+      merged.weapons?.some((row) => row.id === "GAP_GUN"),
+      false,
+    );
     const human = merged.crew?.find((row) => row.id === "human");
     assert.equal(human?.name, "Human");
     assert.equal(human?.detail, "The standard crew.");

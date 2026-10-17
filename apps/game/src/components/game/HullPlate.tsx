@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { factionPaint, plateOf, type HullInk, type HullPaint } from "@/game/hull-plate";
+import { gridPitch } from "./grid-pitch";
 import "./hull-plate.css";
 
 type Room = { x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] };
@@ -55,9 +56,7 @@ export function HullPlate({
       shapeRendering="crispEdges"
       aria-hidden="true"
       style={
-        placed
-          ? { left: box.left, top: box.top, width: box.width, height: box.height }
-          : undefined
+        placed ? { left: box.left, top: box.top, width: box.width, height: box.height } : undefined
       }
     >
       {cells.map((cell) => (
@@ -79,39 +78,13 @@ function fillOf(ink: HullInk, x: number, y: number, paint: HullPaint): string {
   return paint[ink];
 }
 
-function px(value: string): number {
-  const n = parseFloat(value);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function firstTrack(template: string): number {
-  const n = parseFloat(template);
-  return Number.isFinite(n) ? n : 0;
-}
-
 function measure(el: HTMLElement, cols: number, rows: number): Box {
-  const cs = getComputedStyle(el);
-  const padL = px(cs.paddingLeft);
-  const padT = px(cs.paddingTop);
-  const padR = px(cs.paddingRight);
-  const padB = px(cs.paddingBottom);
-  const colGap = px(cs.columnGap);
-  const rowGap = px(cs.rowGap);
-  let tileW = firstTrack(cs.gridTemplateColumns);
-  let tileH = firstTrack(cs.gridTemplateRows);
-  if (!(tileW > 0) || !(tileH > 0)) {
-    const innerW = el.clientWidth - padL - padR;
-    const innerH = el.clientHeight - padT - padB;
-    tileW = cols > 0 ? (innerW - Math.max(0, cols - 1) * colGap) / cols : 0;
-    tileH = rows > 0 ? (innerH - Math.max(0, rows - 1) * rowGap) / rows : 0;
-  }
-  const pitchX = tileW + colGap;
-  const pitchY = tileH + rowGap;
-  if (!(pitchX > 0) || !(pitchY > 0)) return EMPTY;
+  const pitch = gridPitch(el, cols, rows);
+  if (!pitch) return EMPTY;
   return {
-    left: padL - pitchX,
-    top: padT - pitchY,
-    width: (cols + 2) * pitchX,
-    height: (rows + 2) * pitchY,
+    left: pitch.padL - pitch.pitchX,
+    top: pitch.padT - pitch.pitchY,
+    width: (cols + 2) * pitch.pitchX,
+    height: (rows + 2) * pitch.pitchY,
   };
 }

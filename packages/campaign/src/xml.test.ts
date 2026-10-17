@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
-import { attachLayoutFiles, emitPack, overlayGap, parsePack } from "@stl/pack";
+import { attachLayoutFiles, attachPictures, emitPack, overlayGap, parsePack } from "@stl/pack";
 import { campaignPack, campaignXml, splitCampaign } from "./xml.ts";
 
 describe("campaign document", () => {
@@ -16,7 +17,11 @@ describe("campaign document", () => {
     const parts = splitCampaign(pack);
     const body = parsePack(emitPack(parts.body, { crew: "identity", sector: "body" }));
     attachLayoutFiles(body.hulls, layoutFiles());
-    const merged = overlayGap(body, parsePack(emitPack(parts.gap, { crew: "stats", sector: "gap" })));
+    attachPictures(body.hulls, hullPictureFiles());
+    const merged = overlayGap(
+      body,
+      parsePack(emitPack(parts.gap, { crew: "stats", sector: "gap" })),
+    );
     assert.deepEqual(merged.crew, pack.crew);
     assert.deepEqual(merged.weapons, pack.weapons);
     assert.deepEqual(merged.augments, pack.augments);

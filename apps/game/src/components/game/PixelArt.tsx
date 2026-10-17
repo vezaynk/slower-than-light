@@ -16,7 +16,7 @@ const INSTALLABLE_KITS = new Set<string>([
   "artillery",
 ]);
 import { DoorTicks } from "./DoorTicks";
-import { HullPlate } from "./HullPlate";
+import { HullSkin } from "./HullPicture";
 
 /**
  * Original pixel drawings. Wiki bitmaps are not used.
@@ -291,7 +291,7 @@ export function PixelLayout({ id }: { id: string }) {
           }}
           aria-hidden="true"
         >
-          <HullPlate
+          <HullSkin
             id={id}
             faction={id.split("-")[0]}
             facing="right"

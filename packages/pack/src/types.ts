@@ -95,6 +95,14 @@ export type HullCrewDef = {
   room: string;
 };
 
+/** The `<img x y w h>` box from `data/<layout>.xml`, in archive pixels. */
+export type HullPicture = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
 /** One rectangle from a layout file. `id` is the room index the blueprint names. */
 export type HullRoom = {
   id: number;
@@ -214,6 +222,11 @@ export type HullDef = {
   health?: number;
   /** Base image id. Cloak, shield, and floor are the other image ids. */
   img?: string;
+  /**
+   * Exterior box from `data/<layout>.xml`, in archive pixels.
+   * One room cell is 35 pixels. The bytes stay on the path map.
+   */
+  picture?: HullPicture;
   cloak?: string;
   shield?: string;
   floor?: string;

@@ -402,6 +402,7 @@ function copyHull(row: HullDef): HullDef {
     unfitted: [...row.unfitted],
   };
   if (row.grid) copy.grid = copyGrid(row.grid);
+  if (row.picture) copy.picture = { ...row.picture };
   if (row.installs) copy.installs = row.installs.map((item) => ({ ...item }));
   if (row.crewCounts) copy.crewCounts = row.crewCounts.map((item) => ({ ...item }));
   if (row.drones) copy.drones = [...row.drones];

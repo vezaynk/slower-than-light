@@ -4,6 +4,14 @@ export { overlayGap } from "./overlay.ts";
 export { prettyXml } from "./format.ts";
 export { packFromFtl } from "./ftl.ts";
 export {
+  ROOM_PX,
+  attachPictures,
+  pictureForRooms,
+  pictureFrame,
+  pictureXml,
+  readHullPictures,
+} from "./picture.ts";
+export {
   attachLayoutFiles,
   cloneGrid,
   doorsFromMarks,
@@ -101,6 +109,7 @@ export type {
   HullInstall,
   HullKitDef,
   HullLayout,
+  HullPicture,
   HullRoom,
   SectorDef,
   SectorQuota,

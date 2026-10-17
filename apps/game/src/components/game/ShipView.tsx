@@ -30,7 +30,7 @@ import { CrewFace, type CrewPose } from "./CrewSprite";
 import { RoomProp, RoomSeat, WallTerminal } from "./RoomConsole";
 import { DoorLayer, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
-import { HullPlate } from "./HullPlate";
+import { HullSkin } from "./HullPicture";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { PixelIcon } from "./PixelIcon";
 import { RoomRadial } from "./RoomRadial";
@@ -585,7 +585,7 @@ export function ShipView({
         gridTemplateRows: `repeat(${ship.rows}, var(--tile))`,
       }}
     >
-      <HullPlate
+      <HullSkin
         id={plateId ?? "ship"}
         faction={faction ?? "rebel"}
         pirate={pirate}

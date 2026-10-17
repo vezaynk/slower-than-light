@@ -37,15 +37,17 @@ export type FtlExtract = {
   assets: ReadonlyMap<string, Blob>;
 };
 
-/** Packs XML documents, then text files, into an uncompressed FTL 1.6 `ftl.dat`. */
+/** Packs XML documents, then text files, then image and audio bytes, into an uncompressed FTL 1.6 `ftl.dat`. */
 export function packFtlDat(
   documents: readonly FtlDocument[],
   text: readonly { path: string; text: string }[] = [],
+  assets: readonly { path: string; bytes: Uint8Array }[] = [],
 ): Uint8Array {
   const encoder = new TextEncoder();
   return writePkg([
     ...documents.map((doc) => ({ path: doc.path, bytes: encoder.encode(doc.xml) })),
     ...text.map((file) => ({ path: file.path, bytes: encoder.encode(file.text) })),
+    ...assets.map((file) => ({ path: file.path, bytes: file.bytes })),
   ]);
 }
 

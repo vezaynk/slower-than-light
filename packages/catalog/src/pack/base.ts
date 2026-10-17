@@ -27,7 +27,7 @@ import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { ENEMY_LAYOUTS, enemyLayoutFile } from "../enemy-layouts.ts";
 import { FLAGSHIP_LAYOUTS } from "../flagship-layouts.ts";
 import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
-import { gridFromLayout, loadPack } from "@stl/pack";
+import { gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
   AugmentDef,
   ChoiceGift,
@@ -386,6 +386,15 @@ function hullRow(spec: HullSpec): HullDef {
   };
   const source = SHIP_LAYOUTS[spec.id];
   if (source) row.grid = gridFromLayout(source);
+  return paintHull(row, LAYOUT_FILE[spec.id]);
+}
+
+/** The image name is the layout stem. The box is that grid plus one cell. */
+function paintHull(row: HullDef, stem: string | undefined): HullDef {
+  if (!stem) return row;
+  row.img = stem;
+  const picture = row.grid ? pictureForRooms(row.grid.rooms) : undefined;
+  if (picture) row.picture = picture;
   return row;
 }
 
@@ -393,78 +402,85 @@ function hullRow(spec: HullSpec): HullDef {
 function enemyHull(id: string): HullDef {
   const source = ENEMY_LAYOUTS[id];
   if (!source) throw new Error(`No enemy interior for ${id}`);
-  return {
-    id,
-    cruiser: "",
-    layout: enemyLayoutFile(id),
-    name: id,
-    quote: "",
-    unlock: "",
-    source: "",
-    reactor: 0,
-    fuel: 0,
-    missiles: 0,
-    parts: 0,
-    systems: {},
-    weapons: [],
-    crew: [],
-    kits: {},
-    augments: [],
-    unfitted: [],
-    grid: gridFromLayout({
-      cols: source.cols,
-      rows: source.rows,
-      rooms: source.rooms.map((room) => ({
-        id: "",
-        title: "",
-        system: room.system,
-        x: room.x,
-        y: room.y,
-        w: room.w,
-        h: room.h,
-      })),
-      marks: source.marks,
-    }),
-  };
+  const layout = enemyLayoutFile(id);
+  return paintHull(
+    {
+      id,
+      cruiser: "",
+      layout,
+      name: id,
+      quote: "",
+      unlock: "",
+      source: "",
+      reactor: 0,
+      fuel: 0,
+      missiles: 0,
+      parts: 0,
+      systems: {},
+      weapons: [],
+      crew: [],
+      kits: {},
+      augments: [],
+      unfitted: [],
+      grid: gridFromLayout({
+        cols: source.cols,
+        rows: source.rows,
+        rooms: source.rooms.map((room) => ({
+          id: "",
+          title: "",
+          system: room.system,
+          x: room.x,
+          y: room.y,
+          w: room.w,
+          h: room.h,
+        })),
+        marks: source.marks,
+      }),
+    },
+    layout,
+  );
 }
 
 /** One Rebel Flagship stage. Room names stay on the blueprint. The fight reads them back. */
 function flagshipHull(id: string): HullDef {
   const source = FLAGSHIP_LAYOUTS[id];
   if (!source) throw new Error(`No flagship interior for ${id}`);
-  return {
+  return paintHull(
+    {
+      id,
+      cruiser: "",
+      layout: id,
+      name: id,
+      quote: "",
+      unlock: "",
+      source: "",
+      reactor: 0,
+      fuel: 0,
+      missiles: 0,
+      parts: 0,
+      systems: {},
+      weapons: [],
+      crew: [],
+      kits: {},
+      augments: [],
+      unfitted: [],
+      grid: gridFromLayout({
+        cols: source.cols,
+        rows: source.rows,
+        rooms: source.rooms.map((room) => ({
+          id: room.id,
+          title: room.title,
+          system: room.system,
+          x: room.x,
+          y: room.y,
+          w: room.w,
+          h: room.h,
+        })),
+        marks: source.marks,
+      }),
+    },
     id,
-    cruiser: "",
-    layout: id,
-    name: id,
-    quote: "",
-    unlock: "",
-    source: "",
-    reactor: 0,
-    fuel: 0,
-    missiles: 0,
-    parts: 0,
-    systems: {},
-    weapons: [],
-    crew: [],
-    kits: {},
-    augments: [],
-    unfitted: [],
-    grid: gridFromLayout({
-      cols: source.cols,
-      rows: source.rows,
-      rooms: source.rooms.map((room) => ({
-        id: room.id,
-        title: room.title,
-        system: room.system,
-        x: room.x,
-        y: room.y,
-        w: room.w,
-        h: room.h,
-      })),
-      marks: source.marks,
-    }),
-  };
+  );
 }
 
 function weaponRow(id: string): WeaponBlueprint {

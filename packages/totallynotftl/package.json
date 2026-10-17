@@ -5,8 +5,7 @@
   "exports": {
     ".": "./src/archive.ts",
     "./totallynotftl.xml": "./totallynotftl.xml",
-    "./totallynotftl.dat": "./totallynotftl.dat",
-    "./totallynotftl.hyperspace.xml": "./totallynotftl.hyperspace.xml"
+    "./totallynotftl.dat": "./totallynotftl.dat"
   },
   "scripts": {
     "generate": "node --experimental-strip-types src/generate.ts",

@@ -3,12 +3,12 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { campaignPack, campaignXml } from "@stl/campaign";
 import { extractFtlDat } from "@stl/ftldat";
-import { emitMod, packFromExtract } from "@stl/hyperspace";
+import { packFromExtract } from "@stl/hyperspace";
 import { overlayGap, parsePack } from "@stl/pack";
-import { standInDat, standInMod, standInXml } from "./archive.ts";
+import { standInDat, standInXml } from "./archive.ts";
 
 describe("totallynotftl.dat", () => {
-  it("rebuilds the committed xml, archive, and mod file", async () => {
+  it("rebuilds the committed xml and archive", async () => {
     const xml = standInXml();
     const goldenXml = readFileSync(new URL("../totallynotftl.xml", import.meta.url), "utf8");
     assert.equal(xml, goldenXml);
@@ -32,12 +32,6 @@ describe("totallynotftl.dat", () => {
     const golden = readFileSync(new URL("../totallynotftl.dat", import.meta.url));
     assert.equal(built.byteLength, golden.byteLength);
     assert.equal(Buffer.compare(built, golden), 0);
-    const goldenMod = readFileSync(
-      new URL("../totallynotftl.hyperspace.xml", import.meta.url),
-      "utf8",
-    );
-    assert.equal(emitMod(parsed), goldenMod);
-    assert.equal(await standInMod(), goldenMod);
   });
 
   it("merges the stand-in archive with the gap file back into the catalog", async () => {

@@ -16,7 +16,7 @@
     },
     "@stl/totallynotftl#generate": {
       "dependsOn": ["@stl/campaign#generate", "^typecheck"],
-      "outputs": ["totallynotftl.xml", "totallynotftl.dat", "totallynotftl.hyperspace.xml"],
+      "outputs": ["totallynotftl.xml", "totallynotftl.dat"],
       "inputs": ["package.json", "src/**"]
     },
     "@stl/totallynotftl#test": {
@@ -25,8 +25,7 @@
         "package.json",
         "src/**",
         "totallynotftl.xml",
-        "totallynotftl.dat",
-        "totallynotftl.hyperspace.xml"
+        "totallynotftl.dat"
       ]
     },
     "@stl/campaign#test": {

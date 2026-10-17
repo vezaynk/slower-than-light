@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { hullDef } from "@stl/pack";
 import { WEAPONS } from "../content.ts";
 import { createGame, startCombat } from "../sim.ts";
 import { citedEnemy } from "./cited-enemies.ts";
@@ -24,6 +25,9 @@ describe("cited enemies", () => {
     assert.ok(ship);
     assert.equal(g.ramStage, 1);
     assert.equal(ship.name, "Rebel Flagship");
+    assert.equal(hullDef("flagship-1")?.health, 20);
+    assert.equal(hullDef("flagship-2")?.health, 22);
+    assert.equal(hullDef("flagship-3")?.health, 20);
     assert.equal(ship.hull, 20);
     assert.equal(ship.hullMax, 20);
     assert.equal(ship.reactor, 42);

@@ -944,7 +944,7 @@ describe("pack document", () => {
     assert.deepEqual(parsePack(emitPack({ events })).events, events);
   });
 
-  it("round-trips weapon bays and a two-line unlock, and leaves a bare hull without them", () => {
+  it("round-trips weapon bays, hull points, and a two-line unlock, and leaves a bare hull without them", () => {
     const counted: HullDef = {
       id: "slot-ship",
       cruiser: "",
@@ -965,6 +965,7 @@ describe("pack document", () => {
       unfitted: [],
       weaponSlots: 4,
       droneSlots: 3,
+      health: 18,
     };
     const bare: HullDef = {
       id: "bare-ship",
@@ -985,14 +986,19 @@ describe("pack document", () => {
       augments: [],
       unfitted: [],
     };
-    const back = parsePack(emitPack({ hulls: [counted, bare] }));
+    const xml = emitPack({ hulls: [counted, bare] });
+    const back = parsePack(xml);
     const slots = back.hulls?.find((hull) => hull.id === "slot-ship");
     const plain = back.hulls?.find((hull) => hull.id === "bare-ship");
     assert.equal(slots?.weaponSlots, 4);
     assert.equal(slots?.droneSlots, 3);
+    assert.equal(slots?.health, 18);
+    assert.match(xml, /<health amount="18"\/>/);
+    assert.equal((xml.match(/<health\b/g) ?? []).length, 1);
     assert.deepEqual(slots?.unlock.split("\n"), ["First line.", "Second line."]);
     assert.equal(plain?.weaponSlots, undefined);
     assert.equal(plain?.droneSlots, undefined);
+    assert.equal(plain?.health, undefined);
   });
 
   it("round-trips names that contain markup characters", () => {

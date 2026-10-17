@@ -1,5 +1,5 @@
 import type { Crew, Game, Ship, SysId } from "../types.ts";
-import { allWeapons, weaponDef } from "@stl/pack";
+import { allWeapons, hullDef, weaponDef } from "@stl/pack";
 import { FLAGSHIP_PHASES, type FlagshipPhase } from "./flagship.ts";
 import { PHASE_BANDS, phaseOf } from "../extras/ram.ts";
 
@@ -21,13 +21,16 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
     zoltanShipShield(g, ship);
     return;
   }
-  const phase = FLAGSHIP_PHASES.find((row) => row.phase === stageNow(g, ship));
+  const stage = stageNow(g, ship);
+  const phase = FLAGSHIP_PHASES.find((row) => row.phase === stage);
   if (!phase) return;
   // Wiki page "The Rebel Flagship". The page's name, without the article.
   ship.name = "Rebel Flagship";
-  if (phase.hull != null) {
-    ship.hull = phase.hull;
-    ship.hullMax = phase.hull;
+  // The loaded stage carries the hull points. The page number is the fallback.
+  const health = hullDef(`flagship-${stage}`)?.health ?? phase.hull;
+  if (health != null) {
+    ship.hull = health;
+    ship.hullMax = health;
   }
   const reactor = printedReactor(phase);
   if (reactor != null) ship.reactor = reactor;

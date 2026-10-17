@@ -24,6 +24,10 @@ describe("hangar loadout", () => {
       const run = createGame(3, spec.id, "normal", picks);
       assert.equal(preview.ship.cols, run.player.cols, spec.id);
       assert.equal(preview.ship.rows, run.player.rows, spec.id);
+      assert.equal(preview.ship.hull, 30, spec.id);
+      assert.equal(preview.ship.hullMax, 30, spec.id);
+      assert.equal(run.player.hull, 30, spec.id);
+      assert.equal(run.player.hullMax, 30, spec.id);
       assert.deepEqual(
         preview.ship.rooms.map((room) => `${room.id}:${room.x},${room.y},${room.w},${room.h}`),
         run.player.rooms.map((room) => `${room.id}:${room.x},${room.y},${room.w},${room.h}`),
@@ -173,6 +177,7 @@ describe("hangar sheet vs run, every layout", () => {
       assert.deepEqual(hull.unlock.split("\n"), sheet.unlock, layout.id);
       assert.equal(hull.weaponSlots, sheet.weaponSlots, layout.id);
       assert.equal(hull.droneSlots, sheet.droneSlots, layout.id);
+      assert.equal(hull.health, 30, layout.id);
     }
   });
 });
@@ -229,6 +234,7 @@ describe("hangar bay", () => {
     const second = back.hulls?.find((hull) => hull.id === "PLAYER_SHIP_FED");
     assert.equal(first?.weaponSlots, 4);
     assert.equal(first?.droneSlots, 2);
+    assert.equal(first?.health, 30);
     assert.equal(
       first?.unlock,
       "Does not require unlocking (it is the only ship, the cruiser and the layout, available from the very start of the game)",
@@ -239,5 +245,6 @@ describe("hangar bay", () => {
     ]);
     assert.equal(second?.weaponSlots, 4);
     assert.equal(second?.droneSlots, 2);
+    assert.equal(second?.health, 30);
   });
 });

@@ -6511,6 +6511,10 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   // Shared grid from makePlayer. Cruiser pages do not publish tile coordinates.
   const ship = makePlayer();
   ship.name = spec.name;
+  if (spec.health != null) {
+    ship.hull = spec.health;
+    ship.hullMax = spec.health;
+  }
   ship.reactor = spec.reactor;
   ship.systems = systems(spec.systems);
   ship.weapons = spec.weapons.map((defId, i) => ({

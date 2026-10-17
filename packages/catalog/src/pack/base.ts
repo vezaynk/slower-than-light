@@ -374,6 +374,7 @@ function hullRow(spec: HullSpec): HullDef {
     unlock: spec.unlock,
     weaponSlots: spec.weaponSlots,
     droneSlots: spec.droneSlots,
+    health: spec.health,
     source: spec.source,
     reactor: spec.reactor,
     fuel: spec.fuel,
@@ -443,6 +444,13 @@ function enemyHull(id: string): HullDef {
   );
 }
 
+/** Wiki page "The Rebel Flagship": 1st Stage 20, 2nd stage 22, Final stage 20. */
+const FLAGSHIP_HEALTH: Record<string, number> = {
+  "flagship-1": 20,
+  "flagship-2": 22,
+  "flagship-3": 20,
+};
+
 /** One Rebel Flagship stage. Room names stay on the blueprint. The fight reads them back. */
 function flagshipHull(id: string): HullDef {
   const source = FLAGSHIP_LAYOUTS[id];
@@ -460,6 +468,7 @@ function flagshipHull(id: string): HullDef {
       fuel: 0,
       missiles: 0,
       parts: 0,
+      health: FLAGSHIP_HEALTH[id],
       systems: {},
       weapons: [],
       crew: [],

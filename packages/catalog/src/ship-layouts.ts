@@ -1,4 +1,5 @@
 import { gridFromLayout, writeGrid } from "@stl/pack";
+import { enemyLayoutFiles } from "./enemy-layouts.ts";
 
 /**
  * Player ship interiors.
@@ -1649,7 +1650,7 @@ export function layoutFile(id: string): string | undefined {
   return LAYOUT_FILE[id];
 }
 
-/** One `data/<layout>.txt` for every player ship, in hangar order. */
+/** One `data/<layout>.txt` for every player ship, then every traced enemy interior. */
 export function layoutFiles(): { path: string; text: string }[] {
   const files: { path: string; text: string }[] = [];
   for (const [id, layout] of Object.entries(SHIP_LAYOUTS)) {
@@ -1657,5 +1658,5 @@ export function layoutFiles(): { path: string; text: string }[] {
     if (!name) throw new Error(`No layout file for ${id}`);
     files.push({ path: `data/${name}.txt`, text: writeGrid(gridFromLayout(layout)) });
   }
-  return files;
+  return [...files, ...enemyLayoutFiles()];
 }

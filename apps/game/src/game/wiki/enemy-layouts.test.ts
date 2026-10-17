@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { rollEnemy, type PoolContext } from "../enemy-gen.ts";
 import { createGame, startCombat } from "../sim.ts";
-import { ENEMY_LAYOUTS, enemyLayout } from "./enemy-layouts.ts";
+import { hullDef } from "@stl/pack";
+import { enemyLayout } from "./enemy-layouts.ts";
 import { ENEMY_CLASSES } from "./enemy-ships.ts";
 
 const ctx: PoolContext = { sector: 1, sectorName: "Civilian (Starting) Sector", difficulty: "normal" };
@@ -58,9 +59,10 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
     assert.notDeepEqual(pirate, regular);
     assert.equal(pirate.rooms.length, 10);
     assert.equal(pirate.rooms.find((room) => room.system === "doors")?.x, 0);
+    assert.ok(hullDef("rebel-fighter:pirate"));
     // A pirate with the same interior falls back to the regular one.
-    assert.ok(ENEMY_LAYOUTS["federation-scout"]);
-    assert.equal(enemyLayout("federation-scout", true), ENEMY_LAYOUTS["federation-scout"]);
+    assert.equal(hullDef("federation-scout:pirate"), undefined);
+    assert.deepEqual(enemyLayout("federation-scout", true), enemyLayout("federation-scout", false));
     const spec = rollEnemy(cls("rebel-fighter"), true, ctx, () => 0.99);
     assert.equal(spec.rooms.length, 10);
   });

@@ -700,6 +700,10 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
     add(systems, system);
   }
   for (const room of hull.grid?.rooms ?? []) {
+    if (room.system && !reserved.has(room.system)) {
+      reserved.add(room.system);
+      add(systems, element(doc, "system", { name: room.system, room: String(room.id), start: "false" }));
+    }
     if (!room.reserve) continue;
     const id = RESERVE_SYSTEM[room.reserve];
     if (!id || reserved.has(id)) continue;
@@ -743,7 +747,7 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   add(node, unfitted);
 
   const grid = hull.grid;
-  if (grid?.rooms.some((room) => room.name || room.title || room.reserve)) {
+  if (grid && (grid.cols != null || grid.rows != null || grid.rooms.some((room) => room.name || room.title || room.reserve))) {
     const attrs: Record<string, string> = {};
     if (grid.cols != null) attrs.cols = String(grid.cols);
     if (grid.rows != null) attrs.rows = String(grid.rows);

@@ -5,7 +5,7 @@ import { factionPaint, plateOf, type HullCell } from "./hull-plate.ts";
 import { layoutFor } from "./layouts.ts";
 import "./pack/base.ts";
 import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
-import { ENEMY_LAYOUTS } from "./wiki/enemy-layouts.ts";
+import { enemyLayout } from "./wiki/enemy-layouts.ts";
 import { flagshipStage1, flagshipStage2, flagshipStage3 } from "./wiki/flagship-layout.ts";
 
 type Box = { x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] };
@@ -72,7 +72,8 @@ describe("hull plates", () => {
       offFloor(cells, BLOCK);
     }
 
-    const real = ENEMY_LAYOUTS["rebel-fighter"];
+    const real = enemyLayout("rebel-fighter");
+    assert.ok(real);
     const realCells = plateOf({
       id: "rebel-fighter",
       faction: "rebel",

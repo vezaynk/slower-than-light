@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { campaignPack, campaignXml } from "@stl/campaign";
+import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat } from "@stl/ftldat";
 import { packFromExtract } from "@stl/hyperspace";
 import { overlayGap, parsePack } from "@stl/pack";
@@ -23,6 +24,9 @@ describe("totallynotftl.dat", () => {
     assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
     assert.equal(extracted.documents[0]?.xml, goldenXml);
     assert.equal(extracted.assets.size, 0);
+    const layouts = layoutFiles();
+    assert.equal(extracted.text.size, layouts.length);
+    for (const file of layouts) assert.equal(extracted.text.get(file.path), file.text);
     const parsed = parsePack(xml);
     assert.equal(parsed.facts, undefined);
     assert.equal(parsed.stores?.length, 0);

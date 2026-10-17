@@ -57,7 +57,7 @@ const HEADER = `
   Drone tags are the listing id, title, and store cost.
   A systemBlueprint with a cost is a store listing. subSystem marks a kit.
   startPower is the level a purchase installs. upgradeCost is the scrap for the level already owned.
-  Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.
+  Hull tags are the ship id, class, layout file, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms. A system's room attribute is the room index.
   A shipBlueprint with no layout and a surrender tag is a faction's default offer.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
   A customStore holds resource lines, hull repair, and one category per section.
@@ -125,7 +125,7 @@ const serializer = new XMLSerializer();
  * A drone listing is its id, title, and store cost.
  * A system listing is its id, title, store cost, and subSystem when it installs as a kit.
  * startPower and upgradeCost on that same blueprint are the tune.
- * A hull is its id, class, layout letter, name, and starting loadout. Room tiles are not in the document.
+ * A hull is its id, class, layout file, name, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms.
  * A ship with no layout and a surrender tag is a faction row.
  * A sector is its id, title, colour group, and page notes. Depth gates stay in the chart code.
  * A store is a customStore. Empty blueprint items set the shelf sizes.
@@ -656,6 +656,26 @@ function sectorElement(
   return node;
 }
 
+/** Pale hangar labels, and the system id a buyable slot uses. */
+const RESERVE_SYSTEM: Record<string, string> = {
+  Teleporter: "teleporter",
+  Cloaking: "cloaking",
+  Hacking: "hacking",
+  Drones: "drones",
+  "Mind Control": "mind",
+  "Clone Bay": "clonebay",
+  "Backup Battery": "battery",
+  Artillery: "artillery",
+  Shields: "shields",
+  Sensors: "sensors",
+  Doors: "doors",
+  Medbay: "medbay",
+};
+
+function systemRoom(hull: HullDef, id: string): number | undefined {
+  return hull.grid?.rooms.find((room) => room.system === id)?.id;
+}
+
 function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   const node = element(doc, "shipBlueprint", { name: hull.id, layout: hull.layout });
   add(node, leaf(doc, "class", hull.cruiser));
@@ -669,11 +689,22 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   add(node, leaf(doc, "parts", hull.parts));
 
   const systems = doc.createElement("systemList");
+  const reserved = new Set(Object.keys(hull.systems));
   for (const [id, pair] of Object.entries(hull.systems)) {
-    const system = element(doc, "system", { name: id });
+    const attrs: Record<string, string> = { name: id };
+    const room = systemRoom(hull, id);
+    if (room != null) attrs.room = String(room);
+    const system = element(doc, "system", attrs);
     add(system, leaf(doc, "level", pair[0]));
     add(system, leaf(doc, "power", pair[1]));
     add(systems, system);
+  }
+  for (const room of hull.grid?.rooms ?? []) {
+    if (!room.reserve) continue;
+    const id = RESERVE_SYSTEM[room.reserve];
+    if (!id || reserved.has(id)) continue;
+    reserved.add(id);
+    add(systems, element(doc, "system", { name: id, room: String(room.id), start: "false" }));
   }
   add(node, systems);
 
@@ -710,6 +741,22 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   const unfitted = doc.createElement("unfitted");
   for (const label of hull.unfitted) add(unfitted, leaf(doc, "item", label));
   add(node, unfitted);
+
+  const grid = hull.grid;
+  if (grid?.rooms.some((room) => room.name || room.title || room.reserve)) {
+    const attrs: Record<string, string> = {};
+    if (grid.cols != null) attrs.cols = String(grid.cols);
+    if (grid.rows != null) attrs.rows = String(grid.rows);
+    const list = element(doc, "roomList", attrs);
+    for (const room of grid.rooms) {
+      const roomAttrs: Record<string, string> = {};
+      if (room.name) roomAttrs.name = room.name;
+      if (room.title) roomAttrs.title = room.title;
+      if (room.reserve) roomAttrs.reserve = room.reserve;
+      add(list, element(doc, "room", roomAttrs));
+    }
+    add(node, list);
+  }
 
   return node;
 }

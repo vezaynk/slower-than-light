@@ -6,7 +6,7 @@
   Drone tags are the listing id, title, and store cost.
   A systemBlueprint with a cost is a store listing. subSystem marks a kit.
   startPower is the level a purchase installs. upgradeCost is the scrap for the level already owned.
-  Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.
+  Hull tags are the ship id, class, layout file, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms. A system's room attribute is the room index.
   A shipBlueprint with no layout and a surrender tag is a faction's default offer.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
   A customStore holds resource lines, hull repair, and one category per section.
@@ -1288,7 +1288,7 @@
     <title>Backup Battery</title>
     <cost>35</cost>
   </systemBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_HARD" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_HARD" layout="kestral">
     <class>Kestrel Cruiser</class>
     <title>The Kestrel</title>
     <desc>This class of ship was decommissioned from Federation service years ago. After a number of refits and updating, this classic ship is ready for battle.</desc>
@@ -1299,38 +1299,44 @@
     <missiles>8</missiles>
     <parts>2</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="12">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="6">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="1">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="4">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="7">
         <level>3</level>
         <power>3</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="13">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="10">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="8">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="battery" room="2" start="false"/>
+      <system name="mind" room="3" start="false"/>
+      <system name="drones" room="9" start="false"/>
+      <system name="cloaking" room="11" start="false"/>
+      <system name="teleporter" room="14" start="false"/>
+      <system name="hacking" room="15" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_BURST_3</weapon>
@@ -1344,8 +1350,27 @@
     <kitList/>
     <augmentList/>
     <unfitted/>
+    <roomList cols="15" rows="6">
+      <room name="p-kah0" title="Hall"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-kah1" title="Hall"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-kah2" title="Hall"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_HARD_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_HARD_2" layout="kestral_2">
     <class>Kestrel Cruiser</class>
     <title>Red-Tail</title>
     <desc>This modified Kestrel class ship was created by a laser weapon aficionado.</desc>
@@ -1356,38 +1381,44 @@
     <missiles>5</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="2">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="5">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="3">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="0">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="10">
         <level>4</level>
         <power>4</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="11">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="9">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="7">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="mind" room="1" start="false"/>
+      <system name="teleporter" room="4" start="false"/>
+      <system name="battery" room="6" start="false"/>
+      <system name="cloaking" room="12" start="false"/>
+      <system name="drones" room="13" start="false"/>
+      <system name="hacking" room="14" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_BURST_1</weapon>
@@ -1404,8 +1435,25 @@
     <kitList/>
     <augmentList/>
     <unfitted/>
+    <roomList cols="14" rows="7">
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-kbh0" title="Hall"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_HARD_3" layout="C">
+  <shipBlueprint name="PLAYER_SHIP_HARD_3" layout="kestral_3">
     <class>Kestrel Cruiser</class>
     <title>The Swallow</title>
     <desc>This model was modified by pirates to utilize newly discovered technology. It can clone lost crewmembers and stun enemies.</desc>
@@ -1416,15 +1464,15 @@
     <missiles>4</missiles>
     <parts>3</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="12">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="5">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="7">
         <level>1</level>
         <power>1</power>
       </system>
@@ -1432,22 +1480,29 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="2">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="13">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="11">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="10">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="cloaking" room="1" start="false"/>
+      <system name="teleporter" room="4" start="false"/>
+      <system name="drones" room="6" start="false"/>
+      <system name="battery" room="8" start="false"/>
+      <system name="clonebay" room="9" start="false"/>
+      <system name="hacking" room="14" start="false"/>
+      <system name="mind" room="16" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_BURST_2</weapon>
@@ -1466,8 +1521,28 @@
     </kitList>
     <augmentList/>
     <unfitted/>
+    <roomList cols="15" rows="6">
+      <room name="p-kch0" title="Hall"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-kch1" title="Hall"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-kch2" title="Hall"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-kch3" title="Hall"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CIRCLE" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_CIRCLE" layout="circle_cruiser">
     <class>Engi Cruiser</class>
     <title>The Torus</title>
     <desc>Although it may look like a pile of junk loosely held together, this well designed ship relies on drones and ion weaponry.</desc>
@@ -1478,38 +1553,44 @@
     <missiles>0</missiles>
     <parts>15</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="11">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="10">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="3">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="14">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="5">
         <level>3</level>
         <power>3</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="7">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="15">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="13">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="drones" room="0" start="false"/>
+      <system name="cloaking" room="2" start="false"/>
+      <system name="hacking" room="4" start="false"/>
+      <system name="battery" room="6" start="false"/>
+      <system name="teleporter" room="8" start="false"/>
+      <system name="mind" room="12" start="false"/>
     </systemList>
     <weaponList>
       <weapon>ION_4</weapon>
@@ -1530,8 +1611,26 @@
       <augment>NANO_MEDBAY</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="9" rows="7">
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-eah0" title="Hall"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-eah1" title="Hall"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-pilot" title="Piloting"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CIRCLE_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_CIRCLE_2" layout="circle_cruiser_2">
     <class>Engi Cruiser</class>
     <title>The Vortex</title>
     <desc>Heavily understaffed, this ship relies on drones to keep the ship running.</desc>
@@ -1542,23 +1641,23 @@
     <missiles>0</missiles>
     <parts>6</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="11">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="0">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="5">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="6">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="1">
         <level>3</level>
         <power>3</power>
       </system>
@@ -1566,14 +1665,20 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="13">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="8">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="teleporter" room="3" start="false"/>
+      <system name="mind" room="4" start="false"/>
+      <system name="drones" room="7" start="false"/>
+      <system name="hacking" room="9" start="false"/>
+      <system name="battery" room="10" start="false"/>
+      <system name="cloaking" room="12" start="false"/>
     </systemList>
     <weaponList>
       <weapon>ION_2</weapon>
@@ -1598,8 +1703,24 @@
     <unfitted>
       <item>Anti-Personnel Drone</item>
     </unfitted>
+    <roomList cols="9" rows="7">
+      <room name="p-engines" title="Engines"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-sensors" title="Hall" reserve="Sensors"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-pilot" title="Piloting"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CIRCLE_3" layout="C">
+  <shipBlueprint name="PLAYER_SHIP_CIRCLE_3" layout="circle_cruiser_3">
     <class>Engi Cruiser</class>
     <title>Tetragon</title>
     <desc>The Engi were quick to adapt to the sudden surge of hacking technology — this ship is the result of their research.</desc>
@@ -1610,15 +1731,15 @@
     <missiles>0</missiles>
     <parts>25</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="8">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="10">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="0">
         <level>1</level>
         <power>1</power>
       </system>
@@ -1626,22 +1747,29 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="6">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="13">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="14">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="16">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="cloaking" room="1" start="false"/>
+      <system name="battery" room="2" start="false"/>
+      <system name="mind" room="3" start="false"/>
+      <system name="teleporter" room="4" start="false"/>
+      <system name="hacking" room="5" start="false"/>
+      <system name="drones" room="7" start="false"/>
+      <system name="clonebay" room="11" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_BURST_2</weapon>
@@ -1670,8 +1798,27 @@
       <augment>DEFENSE_SCRAMBLER</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="9" rows="7">
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-ech0" title="Hall"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+      <room name="p-ech1" title="Hall"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-ech2" title="Hall"/>
+      <room name="p-doors" title="Doors"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_FED" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_FED" layout="fed_cruiser">
     <class>Federation Cruiser</class>
     <title>The Osprey</title>
     <desc>This ship features the latest in federation technology: an advanced beam weapon that pierces through shields!</desc>
@@ -1682,38 +1829,45 @@
     <missiles>5</missiles>
     <parts>2</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="8">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="5">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="12">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="7">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="4">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="10">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="6">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="3">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="teleporter" room="1" start="false"/>
+      <system name="hacking" room="2" start="false"/>
+      <system name="cloaking" room="9" start="false"/>
+      <system name="battery" room="13" start="false"/>
+      <system name="drones" room="14" start="false"/>
+      <system name="mind" room="15" start="false"/>
+      <system name="artillery" room="17" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_BURST_3</weapon>
@@ -1733,8 +1887,28 @@
     </kitList>
     <augmentList/>
     <unfitted/>
+    <roomList cols="15" rows="8">
+      <room name="p-fah0" title="Hall"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-fah1" title="Hall"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-fah2" title="Hall"/>
+      <room name="p-artillery" title="Hall" reserve="Artillery"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_FED_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_FED_2" layout="fed_cruiser_2">
     <class>Federation Cruiser</class>
     <title>Nisos</title>
     <desc>This ship features additional Artillery power, encouraging heavy reliance on the beam.</desc>
@@ -1745,38 +1919,45 @@
     <missiles>9</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="14">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="15">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="10">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="4">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="0">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="7">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="17">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="drones" room="2" start="false"/>
+      <system name="battery" room="3" start="false"/>
+      <system name="teleporter" room="5" start="false"/>
+      <system name="mind" room="6" start="false"/>
+      <system name="cloaking" room="11" start="false"/>
+      <system name="artillery" room="12" start="false"/>
+      <system name="hacking" room="13" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_BURST_2</weapon>
@@ -1796,8 +1977,28 @@
     </kitList>
     <augmentList/>
     <unfitted/>
+    <roomList cols="13" rows="9">
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-fbh0" title="Hall"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-fbh1" title="Hall"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-artillery" title="Hall" reserve="Artillery"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-fbh2" title="Hall"/>
+      <room name="p-doors" title="Doors"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_FED_3" layout="C">
+  <shipBlueprint name="PLAYER_SHIP_FED_3" layout="fed_cruiser_3">
     <class>Federation Cruiser</class>
     <title>The Fregatidae</title>
     <desc>With a Flak Artillery weapon and an improved Clone Bay, only the most suicidal of infantry chooses to fly on this ship.</desc>
@@ -1808,15 +2009,15 @@
     <missiles>5</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="15">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="5">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="12">
         <level>1</level>
         <power>1</power>
       </system>
@@ -1824,22 +2025,30 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="11">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="10">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="6">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="13">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="clonebay" room="1" start="false"/>
+      <system name="hacking" room="2" start="false"/>
+      <system name="cloaking" room="4" start="false"/>
+      <system name="battery" room="7" start="false"/>
+      <system name="teleporter" room="8" start="false"/>
+      <system name="artillery" room="9" start="false"/>
+      <system name="mind" room="16" start="false"/>
+      <system name="drones" room="17" start="false"/>
     </systemList>
     <weaponList/>
     <crewList>
@@ -1868,8 +2077,29 @@
       <augment>O2_MASKS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="15" rows="8">
+      <room name="p-fch0" title="Hall"/>
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-fch1" title="Hall"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-artillery" title="Hall" reserve="Artillery"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-fch2" title="Hall"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-fch3" title="Hall"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ENERGY" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_ENERGY" layout="energy_cruiser">
     <class>Zoltan Cruiser</class>
     <title>The Adjudicator</title>
     <desc>The Zoltan's advanced shields technology give this ship an edge during each battle.</desc>
@@ -1880,38 +2110,44 @@
     <missiles>12</missiles>
     <parts>2</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="15">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="13">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="4">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="8">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="14">
         <level>3</level>
         <power>1</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="0">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="11">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="10">
         <level>2</level>
         <power>2</power>
       </system>
+      <system name="teleporter" room="2" start="false"/>
+      <system name="mind" room="3" start="false"/>
+      <system name="hacking" room="5" start="false"/>
+      <system name="cloaking" room="6" start="false"/>
+      <system name="battery" room="7" start="false"/>
+      <system name="drones" room="16" start="false"/>
     </systemList>
     <weaponList>
       <weapon>MISSILES_1</weapon>
@@ -1927,8 +2163,28 @@
       <augment>ENERGY_SHIELD</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="13" rows="7">
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-zah0" title="Hall"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-zah1" title="Hall"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-zah2" title="Hall"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-zah3" title="Hall"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ENERGY_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_ENERGY_2" layout="energy_cruiser_2">
     <class>Zoltan Cruiser</class>
     <title>Noether</title>
     <desc>This ship starts with a weakened Shield system and must rely on its Zoltan shield.</desc>
@@ -1939,38 +2195,44 @@
     <missiles>0</missiles>
     <parts>2</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="5">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="3">
         <level>2</level>
         <power>0</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="12">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="0">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="7">
         <level>4</level>
         <power>4</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="13">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="14">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="8">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="mind" room="1" start="false"/>
+      <system name="drones" room="2" start="false"/>
+      <system name="hacking" room="4" start="false"/>
+      <system name="cloaking" room="6" start="false"/>
+      <system name="battery" room="9" start="false"/>
+      <system name="teleporter" room="11" start="false"/>
     </systemList>
     <weaponList>
       <weapon>ION_1</weapon>
@@ -1987,8 +2249,25 @@
       <augment>ENERGY_SHIELD</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="12" rows="6">
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-zbh0" title="Hall"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-pilot" title="Piloting"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ENERGY_3" layout="C">
+  <shipBlueprint name="PLAYER_SHIP_ENERGY_3" layout="energy_cruiser_3">
     <class>Zoltan Cruiser</class>
     <title>Cerenkov</title>
     <desc>The designer of this ship was not willing to spend the money for a decent reactor. Instead it relies on its Zoltan crew and Backup Battery.</desc>
@@ -1999,15 +2278,15 @@
     <missiles>2</missiles>
     <parts>15</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="1">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="0">
         <level>2</level>
         <power>0</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="3">
         <level>1</level>
         <power>0</power>
       </system>
@@ -2015,22 +2294,29 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="2">
         <level>2</level>
         <power>0</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="16">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="17">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="battery" room="4" start="false"/>
+      <system name="hacking" room="6" start="false"/>
+      <system name="cloaking" room="9" start="false"/>
+      <system name="clonebay" room="11" start="false"/>
+      <system name="mind" room="12" start="false"/>
+      <system name="teleporter" room="13" start="false"/>
+      <system name="drones" room="14" start="false"/>
     </systemList>
     <weaponList>
       <weapon>ION_CHARGEGUN</weapon>
@@ -2060,8 +2346,28 @@
       <augment>ENERGY_SHIELD</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="13" rows="7">
+      <room name="p-engines" title="Engines"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-zch0" title="Hall"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-zch1" title="Hall"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-zch2" title="Hall"/>
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-zch3" title="Hall"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-doors" title="Doors"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_JELLY" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_JELLY" layout="jelly_cruiser">
     <class>Slug Cruiser</class>
     <title>Man of War</title>
     <desc>Designed for use inside nebula, this cruiser lacks sensors and relies instead on the guile and cunning of the Slugs.</desc>
@@ -2072,23 +2378,23 @@
     <missiles>15</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="13">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="6">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="4">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="3">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="5">
         <level>3</level>
         <power>3</power>
       </system>
@@ -2096,14 +2402,20 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="1">
         <level>2</level>
         <power>2</power>
       </system>
+      <system name="mind" room="0" start="false"/>
+      <system name="cloaking" room="2" start="false"/>
+      <system name="battery" room="9" start="false"/>
+      <system name="teleporter" room="10" start="false"/>
+      <system name="hacking" room="12" start="false"/>
+      <system name="drones" room="14" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_BURST_2</weapon>
@@ -2119,8 +2431,25 @@
       <augment>SLUG_GEL</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="8" rows="8">
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-sah0" title="Hall"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-sensors" title="Hall" reserve="Sensors"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_JELLY_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_JELLY_2" layout="jelly_cruiser_2">
     <class>Slug Cruiser</class>
     <title>The Stormwalker</title>
     <desc>This boarding ship has no medical facilities and must manage its explosives carefully to keep the crew alive.</desc>
@@ -2131,15 +2460,15 @@
     <missiles>25</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="12">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="2">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="15">
         <level>1</level>
         <power>0</power>
       </system>
@@ -2147,7 +2476,7 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="13">
         <level>2</level>
         <power>2</power>
       </system>
@@ -2155,14 +2484,20 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="11">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="19">
         <level>2</level>
         <power>2</power>
       </system>
+      <system name="teleporter" room="3" start="false"/>
+      <system name="mind" room="4" start="false"/>
+      <system name="cloaking" room="5" start="false"/>
+      <system name="hacking" room="9" start="false"/>
+      <system name="battery" room="14" start="false"/>
+      <system name="drones" room="18" start="false"/>
     </systemList>
     <weaponList>
       <weapon>MISSILES_2_PLAYER</weapon>
@@ -2183,8 +2518,30 @@
       <augment>SLUG_GEL</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="12" rows="10">
+      <room name="p-sensors" title="Hall" reserve="Sensors"/>
+      <room name="p-sbh0" title="Hall"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-sbh1" title="Hall"/>
+      <room name="p-medbay" title="Hall" reserve="Medbay"/>
+      <room name="p-sbh2" title="Hall"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-sbh3" title="Hall"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-sbh4" title="Hall"/>
+      <room name="p-sbh5" title="Hall"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-doors" title="Doors"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_JELLY_3" layout="C">
+  <shipBlueprint name="PLAYER_SHIP_JELLY_3" layout="jelly_cruiser_3">
     <class>Slug Cruiser</class>
     <title>Ariolimax</title>
     <desc>Slugs are often skilled in the arts of misdirection and manipulation. With Hacking and Mind Control systems, this ship capitalizes on that fact.</desc>
@@ -2195,15 +2552,15 @@
     <missiles>1</missiles>
     <parts>15</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="7">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="6">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="3">
         <level>1</level>
         <power>1</power>
       </system>
@@ -2211,7 +2568,7 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="9">
         <level>2</level>
         <power>2</power>
       </system>
@@ -2219,14 +2576,21 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="10">
         <level>2</level>
         <power>2</power>
       </system>
+      <system name="mind" room="0" start="false"/>
+      <system name="cloaking" room="1" start="false"/>
+      <system name="battery" room="4" start="false"/>
+      <system name="teleporter" room="11" start="false"/>
+      <system name="hacking" room="12" start="false"/>
+      <system name="drones" room="13" start="false"/>
+      <system name="clonebay" room="15" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_CHAINGUN</weapon>
@@ -2254,8 +2618,26 @@
       <augment>SLUG_GEL</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="8" rows="8">
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-sch0" title="Hall"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-sensors" title="Hall" reserve="Sensors"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-sch1" title="Hall"/>
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ROCK" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_ROCK" layout="rock_cruiser">
     <class>Rock Cruiser</class>
     <title>Bulwark</title>
     <desc>Similar to its designers, this super dense behemoth uses brute force to overwhelm its foes.</desc>
@@ -2266,38 +2648,44 @@
     <missiles>28</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="2">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="14">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="0">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="16">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="15">
         <level>3</level>
         <power>3</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="12">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="5">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="1">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="cloaking" room="3" start="false"/>
+      <system name="drones" room="4" start="false"/>
+      <system name="mind" room="8" start="false"/>
+      <system name="hacking" room="11" start="false"/>
+      <system name="battery" room="13" start="false"/>
+      <system name="teleporter" room="17" start="false"/>
     </systemList>
     <weaponList>
       <weapon>MISSILES_2_PLAYER</weapon>
@@ -2313,8 +2701,28 @@
       <augment>ROCK_ARMOR</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="9" rows="6">
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-rah0" title="Hall"/>
+      <room name="p-rah1" title="Hall"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-rah2" title="Hall"/>
+      <room name="p-rah3" title="Hall"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ROCK_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_ROCK_2" layout="rock_cruiser_2">
     <class>Rock Cruiser</class>
     <title>Shivan</title>
     <desc>With no airlocks, this ship must rely entirely on its rock crew to put out fires.</desc>
@@ -2325,31 +2733,31 @@
     <missiles>18</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="2">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="0">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="4">
         <level>2</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="1">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="12">
         <level>3</level>
         <power>2</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="3">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="8">
         <level>1</level>
         <power>1</power>
       </system>
@@ -2357,6 +2765,12 @@
         <level>0</level>
         <power>0</power>
       </system>
+      <system name="mind" room="6" start="false"/>
+      <system name="battery" room="7" start="false"/>
+      <system name="teleporter" room="10" start="false"/>
+      <system name="hacking" room="11" start="false"/>
+      <system name="cloaking" room="13" start="false"/>
+      <system name="drones" room="14" start="false"/>
     </systemList>
     <weaponList>
       <weapon>BOMB_FIRE</weapon>
@@ -2373,8 +2787,26 @@
       <augment>ROCK_ARMOR</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="9" rows="7">
+      <room name="p-engines" title="Engines"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-rbh0" title="Hall"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-rbh1" title="Hall"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-doors" title="Hall" reserve="Doors"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ROCK_3" layout="C">
+  <shipBlueprint name="PLAYER_SHIP_ROCK_3" layout="rock_cruiser_3">
     <class>Rock Cruiser</class>
     <title>Tektite</title>
     <desc>Contact has been made with the Crystalline race and this cruiser was offered to the Federation as part of diplomatic discussions between the sister species.</desc>
@@ -2385,15 +2817,15 @@
     <missiles>15</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="12">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="8">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="7">
         <level>1</level>
         <power>1</power>
       </system>
@@ -2401,22 +2833,29 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="0">
         <level>3</level>
         <power>3</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="10">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="4">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="6">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="cloaking" room="2" start="false"/>
+      <system name="mind" room="5" start="false"/>
+      <system name="hacking" room="9" start="false"/>
+      <system name="drones" room="11" start="false"/>
+      <system name="clonebay" room="13" start="false"/>
+      <system name="teleporter" room="15" start="false"/>
+      <system name="battery" room="16" start="false"/>
     </systemList>
     <weaponList>
       <weapon>MISSILE_CHARGEGUN</weapon>
@@ -2437,8 +2876,27 @@
       <augment>ROCK_ARMOR</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="9" rows="6">
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-rch0" title="Hall"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-rch1" title="Hall"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+      <room name="p-rch2" title="Hall"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_STEALTH" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_STEALTH" layout="stealth">
     <class>Stealth Cruiser</class>
     <title>The Nesasio</title>
     <desc>Constructed for the Federation by the Engi, this ship is designed to use cloaking technology and speed to get behind enemy lines.</desc>
@@ -2453,34 +2911,40 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="3">
         <level>4</level>
         <power>4</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="9">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="1">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="8">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="0">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="10">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="14">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="battery" room="2" start="false"/>
+      <system name="drones" room="4" start="false"/>
+      <system name="mind" room="6" start="false"/>
+      <system name="teleporter" room="7" start="false"/>
+      <system name="cloaking" room="12" start="false"/>
+      <system name="hacking" room="13" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_BURST_2</weapon>
@@ -2502,8 +2966,25 @@
       <augment>ADV_SCANNERS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="13" rows="6">
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-shields" title="Hall" reserve="Shields"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-sah0" title="Hall"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-doors" title="Doors"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_STEALTH_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_STEALTH_2" layout="stealth_2">
     <class>Stealth Cruiser</class>
     <title>DA-SR 12</title>
     <desc>Built like a glass cannon, this ship is hard to handle. If its cloaking can keep it safe long enough to charge its weapon, few cruisers can withstand its might.</desc>
@@ -2518,34 +2999,40 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="5">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="4">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="0">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="12">
         <level>4</level>
         <power>4</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="6">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="9">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="13">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="drones" room="1" start="false"/>
+      <system name="battery" room="3" start="false"/>
+      <system name="hacking" room="8" start="false"/>
+      <system name="mind" room="10" start="false"/>
+      <system name="cloaking" room="11" start="false"/>
+      <system name="teleporter" room="14" start="false"/>
     </systemList>
     <weaponList>
       <weapon>BEAM_3</weapon>
@@ -2565,8 +3052,25 @@
       <augment>ADV_SCANNERS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="12" rows="7">
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-shields" title="Hall" reserve="Shields"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-sbh0" title="Hall"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_STEALTH_3" layout="C">
+  <shipBlueprint name="PLAYER_SHIP_STEALTH_3" layout="stealth_3">
     <class>Stealth Cruiser</class>
     <title>Simo-H</title>
     <desc>This ship was part of an Engi experiment to make a power efficient version of the Zoltan shield. Unfortunately this required the removal of the Cloaking system.</desc>
@@ -2581,11 +3085,11 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="5">
         <level>3</level>
         <power>3</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="1">
         <level>1</level>
         <power>1</power>
       </system>
@@ -2593,7 +3097,7 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="3">
         <level>2</level>
         <power>2</power>
       </system>
@@ -2601,14 +3105,21 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="9">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="clonebay" room="0" start="false"/>
+      <system name="battery" room="2" start="false"/>
+      <system name="mind" room="7" start="false"/>
+      <system name="teleporter" room="10" start="false"/>
+      <system name="drones" room="11" start="false"/>
+      <system name="cloaking" room="12" start="false"/>
+      <system name="hacking" room="13" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_CHARGEGUN_PLAYER</weapon>
@@ -2638,8 +3149,24 @@
       <augment>ADV_SCANNERS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="13" rows="6">
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-sensors" title="Hall" reserve="Sensors"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-shields" title="Hall" reserve="Shields"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC" layout="anaerobic_cruiser">
     <class>Lanius Cruiser</class>
     <title>Kruos</title>
     <desc>The sharp knife-like structures make Lanius ships a sight to behold. This cruiser was adapted to support the other races of the Federation.</desc>
@@ -2650,15 +3177,15 @@
     <missiles>3</missiles>
     <parts>9</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="5">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="7">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="2">
         <level>1</level>
         <power>1</power>
       </system>
@@ -2666,22 +3193,29 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="9">
         <level>3</level>
         <power>3</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="14">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="15">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="clonebay" room="0" start="false"/>
+      <system name="teleporter" room="1" start="false"/>
+      <system name="hacking" room="3" start="false"/>
+      <system name="cloaking" room="6" start="false"/>
+      <system name="battery" room="10" start="false"/>
+      <system name="drones" room="11" start="false"/>
+      <system name="mind" room="13" start="false"/>
     </systemList>
     <weaponList>
       <weapon>LASER_CHAINGUN</weapon>
@@ -2706,8 +3240,26 @@
       <augment>O2_MASKS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="8" rows="8">
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-lah0" title="Hall"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-lah1" title="Hall"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-doors" title="Doors"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC_2" layout="anaerobic_cruiser_2">
     <class>Lanius Cruiser</class>
     <title>The Shrike</title>
     <desc>The racial ability of the Lanius make them fearsome combatants in small quarters. Combine that with a Mind Control system and this ship is a force to be reckoned with.</desc>
@@ -2718,15 +3270,15 @@
     <missiles>0</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="4">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="5">
         <level>1</level>
         <power>1</power>
       </system>
@@ -2734,7 +3286,7 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="13">
         <level>1</level>
         <power>1</power>
       </system>
@@ -2742,14 +3294,21 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="9">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="16">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="cloaking" room="1" start="false"/>
+      <system name="drones" room="2" start="false"/>
+      <system name="hacking" room="3" start="false"/>
+      <system name="clonebay" room="11" start="false"/>
+      <system name="teleporter" room="12" start="false"/>
+      <system name="battery" room="15" start="false"/>
+      <system name="mind" room="17" start="false"/>
     </systemList>
     <weaponList>
       <weapon>SHOTGUN_PLAYER</weapon>
@@ -2777,8 +3336,28 @@
       <augment>O2_MASKS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="9" rows="10">
+      <room name="p-sensors" title="Hall" reserve="Sensors"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-lbh0" title="Hall"/>
+      <room name="p-lbh1" title="Hall"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-lbh2" title="Hall"/>
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-lbh3" title="Hall"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_MANTIS" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_MANTIS" layout="mantis_cruiser">
     <class>Mantis Cruiser</class>
     <title>The Gila Monster</title>
     <desc>This warship is designed to enhance its crew for close combat missions.</desc>
@@ -2789,23 +3368,23 @@
     <missiles>16</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="16">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="7">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="14">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="3">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="0">
         <level>1</level>
         <power>1</power>
       </system>
@@ -2813,14 +3392,20 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="9">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="1">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="mind" room="2" start="false"/>
+      <system name="drones" room="5" start="false"/>
+      <system name="cloaking" room="10" start="false"/>
+      <system name="battery" room="11" start="false"/>
+      <system name="hacking" room="12" start="false"/>
+      <system name="teleporter" room="15" start="false"/>
     </systemList>
     <weaponList>
       <weapon>BOMB_1</weapon>
@@ -2842,8 +3427,28 @@
       <augment>CREW_STIMS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="12" rows="10">
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-mah0" title="Hall"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-mah1" title="Hall"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-mah2" title="Hall"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-mah3" title="Hall"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-sensors" title="Hall" reserve="Sensors"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_MANTIS_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_MANTIS_2" layout="mantis_cruiser_2">
     <class>Mantis Cruiser</class>
     <title>The Basilisk</title>
     <desc>This warship encourages sending massive boarding parties and keeping strong defense.</desc>
@@ -2854,38 +3459,44 @@
     <missiles>0</missiles>
     <parts>15</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="7">
         <level>4</level>
         <power>4</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="10">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="16">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="3">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="6">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="1">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="15">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="cloaking" room="0" start="false"/>
+      <system name="battery" room="2" start="false"/>
+      <system name="mind" room="5" start="false"/>
+      <system name="teleporter" room="9" start="false"/>
+      <system name="drones" room="11" start="false"/>
+      <system name="hacking" room="13" start="false"/>
     </systemList>
     <weaponList/>
     <crewList>
@@ -2911,8 +3522,27 @@
       <augment>CREW_STIMS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="11" rows="10">
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-mbh0" title="Hall"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-mbh1" title="Hall"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-mbh2" title="Hall"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-oxygen" title="Oxygen"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_MANTIS_3" layout="C">
+  <shipBlueprint name="PLAYER_SHIP_MANTIS_3" layout="mantis_cruiser_3">
     <class>Mantis Cruiser</class>
     <title>The Theseus</title>
     <desc>With a large teleporter and weapons designed to impede enemy crew, this ship is deadly in the hands of a capable boarding party.</desc>
@@ -2923,15 +3553,15 @@
     <missiles>20</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="6">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="0">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="5">
         <level>1</level>
         <power>1</power>
       </system>
@@ -2939,22 +3569,29 @@
         <level>0</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="12">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="10">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="7">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="9">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="hacking" room="2" start="false"/>
+      <system name="clonebay" room="3" start="false"/>
+      <system name="mind" room="8" start="false"/>
+      <system name="battery" room="11" start="false"/>
+      <system name="cloaking" room="13" start="false"/>
+      <system name="teleporter" room="15" start="false"/>
+      <system name="drones" room="16" start="false"/>
     </systemList>
     <weaponList>
       <weapon>BOMB_LOCK</weapon>
@@ -2979,8 +3616,28 @@
       <augment>CREW_STIMS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="12" rows="10">
+      <room name="p-engines" title="Engines"/>
+      <room name="p-mch0" title="Hall"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-clone" title="Hall" reserve="Clone Bay"/>
+      <room name="p-mch1" title="Hall"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-mch2" title="Hall"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-mch3" title="Hall"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CRYSTAL" layout="A">
+  <shipBlueprint name="PLAYER_SHIP_CRYSTAL" layout="crystal_cruiser">
     <class>Crystal Cruiser</class>
     <title>Bravais</title>
     <desc>This powerful vessel is powered by the secret technologies of the lost Crystalline Beings.</desc>
@@ -2991,38 +3648,44 @@
     <missiles>0</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="13">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="0">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="10">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="14">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="4">
         <level>3</level>
         <power>3</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="2">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="3">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="drones" room="1" start="false"/>
+      <system name="mind" room="5" start="false"/>
+      <system name="teleporter" room="6" start="false"/>
+      <system name="hacking" room="9" start="false"/>
+      <system name="battery" room="17" start="false"/>
+      <system name="cloaking" room="18" start="false"/>
     </systemList>
     <weaponList>
       <weapon>CRYSTAL_BURST_1</weapon>
@@ -3039,8 +3702,29 @@
       <augment>CRYSTAL_SHARDS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="15" rows="8">
+      <room name="p-engines" title="Engines"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-cah0" title="Hall"/>
+      <room name="p-pilot" title="Piloting"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-cah1" title="Hall"/>
+      <room name="p-cah2" title="Hall"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-cah3" title="Hall"/>
+      <room name="p-cah4" title="Hall"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+    </roomList>
   </shipBlueprint>
-  <shipBlueprint name="PLAYER_SHIP_CRYSTAL_2" layout="B">
+  <shipBlueprint name="PLAYER_SHIP_CRYSTAL_2" layout="crystal_cruiser_2">
     <class>Crystal Cruiser</class>
     <title>Carnelian</title>
     <desc>Their unique racial ability makes the Crystal beings very adept at ship boarding. This ship was designed for such raiding parties.</desc>
@@ -3051,38 +3735,44 @@
     <missiles>0</missiles>
     <parts>0</parts>
     <systemList>
-      <system name="shields">
+      <system name="shields" room="1">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="engines">
+      <system name="engines" room="3">
         <level>2</level>
         <power>2</power>
       </system>
-      <system name="oxygen">
+      <system name="oxygen" room="8">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="medbay">
+      <system name="medbay" room="9">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="weapons">
+      <system name="weapons" room="5">
         <level>1</level>
         <power>0</power>
       </system>
-      <system name="pilot">
+      <system name="pilot" room="15">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="sensors">
+      <system name="sensors" room="10">
         <level>1</level>
         <power>1</power>
       </system>
-      <system name="doors">
+      <system name="doors" room="14">
         <level>1</level>
         <power>1</power>
       </system>
+      <system name="mind" room="0" start="false"/>
+      <system name="cloaking" room="2" start="false"/>
+      <system name="teleporter" room="4" start="false"/>
+      <system name="hacking" room="6" start="false"/>
+      <system name="battery" room="12" start="false"/>
+      <system name="drones" room="13" start="false"/>
     </systemList>
     <weaponList/>
     <crewList>
@@ -3104,6 +3794,24 @@
       <augment>CRYSTAL_SHARDS</augment>
     </augmentList>
     <unfitted/>
+    <roomList cols="14" rows="8">
+      <room name="p-mind" title="Hall" reserve="Mind Control"/>
+      <room name="p-shields" title="Shields"/>
+      <room name="p-cloak" title="Hall" reserve="Cloaking"/>
+      <room name="p-engines" title="Engines"/>
+      <room name="p-tele" title="Hall" reserve="Teleporter"/>
+      <room name="p-weapons" title="Weapons"/>
+      <room name="p-hack" title="Hall" reserve="Hacking"/>
+      <room name="p-cbh0" title="Hall"/>
+      <room name="p-oxygen" title="Oxygen"/>
+      <room name="p-medbay" title="Medbay"/>
+      <room name="p-sensors" title="Sensors"/>
+      <room name="p-cbh1" title="Hall"/>
+      <room name="p-battery" title="Hall" reserve="Backup Battery"/>
+      <room name="p-drones" title="Hall" reserve="Drones"/>
+      <room name="p-doors" title="Doors"/>
+      <room name="p-pilot" title="Piloting"/>
+    </roomList>
   </shipBlueprint>
   <sectorDescription name="civilian-start">
     <title>Civilian (Starting) Sector</title>

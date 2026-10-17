@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@stl/campaign": "workspace:*",
+    "@stl/catalog": "workspace:*",
     "@stl/ftldat": "workspace:*",
     "@stl/hyperspace": "workspace:*",
     "@stl/pack": "workspace:*",

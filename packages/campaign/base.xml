@@ -6,7 +6,7 @@
   Drone tags are the listing id, title, and store cost.
   A systemBlueprint with a cost is a store listing. subSystem marks a kit.
   startPower is the level a purchase installs. upgradeCost is the scrap for the level already owned.
-  Hull tags are the ship id, class, layout letter, and starting loadout. Room tiles stay in code.
+  Hull tags are the ship id, class, layout file, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms. A system's room attribute is the room index.
   A shipBlueprint with no layout and a surrender tag is a faction's default offer.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
   A customStore holds resource lines, hull repair, and one category per section.

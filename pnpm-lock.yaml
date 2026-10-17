@@ -335,6 +335,9 @@ importers:
       '@stl/campaign':
         specifier: workspace:*
         version: link:../campaign
+      '@stl/catalog':
+        specifier: workspace:*
+        version: link:../catalog
       '@stl/ftldat':
         specifier: workspace:*
         version: link:../ftldat

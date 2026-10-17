@@ -27,8 +27,9 @@ import type {
   FillerEntry,
   FillerListDef,
   HullDef,
+  HullGrid,
   HullKitDef,
-  HullLayout,
+  HullRoom,
   OfferPay,
   OfferRes,
   OfferRow,
@@ -295,20 +296,22 @@ function readSystemBlueprint(node: XmlElement): { system?: SystemDef; tune?: Tun
   return found;
 }
 
-function hullLayout(value: string | undefined): HullLayout {
-  return value === "B" || value === "C" ? value : "A";
-}
-
 function readHull(node: XmlElement): HullDef | undefined {
   const id = attr(node, "name")?.trim();
   const layout = attr(node, "layout")?.trim();
   if (!id || !layout) return undefined;
   const systems: Record<string, [number, number]> = {};
+  const placed: { id: string; room: number }[] = [];
   for (const item of elements(child(node, "systemList"))) {
     if (item.tagName !== "system") continue;
     const sysId = attr(item, "name")?.trim();
     if (!sysId) continue;
-    systems[sysId] = [numOf(item, "level") ?? 0, numOf(item, "power") ?? 0];
+    const level = numOf(item, "level");
+    const power = numOf(item, "power");
+    const room = attrNum(item.getAttribute("room"));
+    if (attr(item, "start") === "false" && level == null && power == null) continue;
+    systems[sysId] = [level ?? 0, power ?? 0];
+    if (room != null) placed.push({ id: sysId, room });
   }
   const weapons: string[] = [];
   for (const item of elements(child(node, "weaponList"))) {
@@ -357,10 +360,10 @@ function readHull(node: XmlElement): HullDef | undefined {
     const label = ownText(item).trim();
     if (label) unfitted.push(label);
   }
-  return {
+  const hull: HullDef = {
     id,
     cruiser: textOf(node, "class") ?? "",
-    layout: hullLayout(layout),
+    layout,
     name: textOf(node, "title") ?? id,
     quote: textOf(node, "desc") ?? "",
     unlock: textOf(node, "unlock") ?? "",
@@ -376,6 +379,34 @@ function readHull(node: XmlElement): HullDef | undefined {
     augments,
     unfitted,
   };
+  const list = child(node, "roomList");
+  if (list) {
+    const rooms: HullRoom[] = [];
+    for (const item of elements(list)) {
+      if (item.tagName !== "room") continue;
+      const room: HullRoom = { id: rooms.length, x: 0, y: 0, w: 0, h: 0 };
+      const name = attr(item, "name")?.trim();
+      const title = attr(item, "title")?.trim();
+      const reserve = attr(item, "reserve")?.trim();
+      if (name) room.name = name;
+      if (title) room.title = title;
+      if (reserve) room.reserve = reserve;
+      rooms.push(room);
+    }
+    if (rooms.length > 0) {
+      const grid: HullGrid = { rooms, doors: [] };
+      const cols = attrNum(list.getAttribute("cols"));
+      const rows = attrNum(list.getAttribute("rows"));
+      if (cols != null) grid.cols = cols;
+      if (rows != null) grid.rows = rows;
+      for (const place of placed) {
+        const room = rooms[place.room];
+        if (room) room.system = place.id;
+      }
+      hull.grid = grid;
+    }
+  }
+  return hull;
 }
 
 /** A shipBlueprint with no layout and a surrender child is a faction row. */

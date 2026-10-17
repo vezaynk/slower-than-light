@@ -13,11 +13,8 @@ import type {
   FillerListDef,
   HullCrewCount,
   HullDef,
-  HullDoor,
-  HullEllipse,
   HullGrid,
   HullInstall,
-  HullRoom,
   SectorDef,
   SectorQuota,
   SectorRarity,
@@ -26,6 +23,7 @@ import type {
   TuneDef,
   TuneStep,
 } from "./types.ts";
+import { cloneGrid, readGrids } from "./grid.ts";
 import { attr, child, elements, numOf, readAugment, readDocument, readDrone, readWeapon, tagged, textOf } from "./parse.ts";
 
 /**
@@ -239,123 +237,6 @@ function upgradeCosts(node: XmlElement): TuneStep[] {
     level += 1;
   }
   return costs;
-}
-
-const GRID_KEYS = new Set(["X_OFFSET", "Y_OFFSET", "VERTICAL", "HORIZONTAL", "ELLIPSE", "ROOM", "DOOR"]);
-
-function readGrids(layouts: readonly FtlTextFile[]): Map<string, HullGrid> {
-  const grids = new Map<string, HullGrid>();
-  for (const file of layouts) {
-    const grid = readGrid(file.text);
-    if (grid) grids.set(layoutName(file.path), grid);
-  }
-  return grids;
-}
-
-function layoutName(path: string): string {
-  const slash = Math.max(path.lastIndexOf("/"), path.lastIndexOf("\\"));
-  const base = slash === -1 ? path : path.slice(slash + 1);
-  return base.endsWith(".txt") ? base.slice(0, -4) : base;
-}
-
-/** One token per line. ROOM is id, x, y, width, height. DOOR is x, y, room, room, vertical. */
-function readGrid(text: string): HullGrid | undefined {
-  const lines = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-  const rooms: HullRoom[] = [];
-  const doors: HullDoor[] = [];
-  let x: number | undefined;
-  let y: number | undefined;
-  let vertical: number | undefined;
-  let horizontal: number | undefined;
-  let ellipse: HullEllipse | undefined;
-  let i = 0;
-  const take = (count: number): number[] | undefined => {
-    const nums: number[] = [];
-    for (let k = 0; k < count; k++) {
-      const line = lines[i + k];
-      if (line == null || GRID_KEYS.has(line)) return undefined;
-      const value = Number(line);
-      if (!Number.isInteger(value)) return undefined;
-      nums.push(value);
-    }
-    i += count;
-    return nums;
-  };
-  while (i < lines.length) {
-    const key = lines[i];
-    if (!key || !GRID_KEYS.has(key)) {
-      i += 1;
-      continue;
-    }
-    i += 1;
-    if (key === "X_OFFSET") {
-      const nums = take(1);
-      if (nums) x = nums[0];
-      continue;
-    }
-    if (key === "Y_OFFSET") {
-      const nums = take(1);
-      if (nums) y = nums[0];
-      continue;
-    }
-    if (key === "VERTICAL") {
-      const nums = take(1);
-      if (nums) vertical = nums[0];
-      continue;
-    }
-    if (key === "HORIZONTAL") {
-      const nums = take(1);
-      if (nums) horizontal = nums[0];
-      continue;
-    }
-    if (key === "ELLIPSE") {
-      const nums = take(4);
-      if (nums) ellipse = { w: nums[0] ?? 0, h: nums[1] ?? 0, x: nums[2] ?? 0, y: nums[3] ?? 0 };
-      continue;
-    }
-    if (key === "ROOM") {
-      const nums = take(5);
-      if (nums) rooms.push({ id: nums[0] ?? 0, x: nums[1] ?? 0, y: nums[2] ?? 0, w: nums[3] ?? 0, h: nums[4] ?? 0 });
-      continue;
-    }
-    if (key === "DOOR") {
-      const nums = take(5);
-      if (nums)
-        doors.push({
-          x: nums[0] ?? 0,
-          y: nums[1] ?? 0,
-          a: nums[2] ?? 0,
-          b: nums[3] ?? 0,
-          vertical: nums[4] ?? 0,
-        });
-      continue;
-    }
-    while (i < lines.length && !GRID_KEYS.has(lines[i] ?? "")) i += 1;
-  }
-  if (rooms.length === 0) return undefined;
-  const grid: HullGrid = { rooms, doors };
-  if (x !== undefined) grid.x = x;
-  if (y !== undefined) grid.y = y;
-  if (vertical !== undefined) grid.vertical = vertical;
-  if (horizontal !== undefined) grid.horizontal = horizontal;
-  if (ellipse) grid.ellipse = ellipse;
-  return grid;
-}
-
-function cloneGrid(grid: HullGrid): HullGrid {
-  const copy: HullGrid = {
-    rooms: grid.rooms.map((room) => ({ ...room })),
-    doors: grid.doors.map((door) => ({ ...door })),
-  };
-  if (grid.x !== undefined) copy.x = grid.x;
-  if (grid.y !== undefined) copy.y = grid.y;
-  if (grid.vertical !== undefined) copy.vertical = grid.vertical;
-  if (grid.horizontal !== undefined) copy.horizontal = grid.horizontal;
-  if (grid.ellipse) copy.ellipse = { ...grid.ellipse };
-  return copy;
 }
 
 function collectStrings(doc: XmlDocument, strings: Map<string, string>) {

@@ -119,8 +119,8 @@ jobs:
             find app/build/outputs -type f -print >&2
             exit 1
           fi
-          cp "$debug" "$GITHUB_WORKSPACE/out/SlowerThanLight-debug.apk"
-          cp "$aab" "$GITHUB_WORKSPACE/out/SlowerThanLight-release.aab"
+          cp "$debug" "$GITHUB_WORKSPACE/out/LighterThanAir-debug.apk"
+          cp "$aab" "$GITHUB_WORKSPACE/out/LighterThanAir-release.aab"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -134,6 +134,6 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: io.knyazev.lighterthanair
-          releaseFiles: out/SlowerThanLight-release.aab
+          releaseFiles: out/LighterThanAir-release.aab
           tracks: internal
           status: completed

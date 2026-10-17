@@ -1,0 +1,126 @@
+name: Android build (Capacitor)
+
+# Per the user: a Capacitor Android build on demand. Run it from the Actions tab ("Run workflow").
+# The release bundle is what Play Console uploads. versionCode is this workflow's run number.
+# Sign it with the Play upload key by setting these repository secrets:
+#   ANDROID_KEYSTORE_BASE64     base64 of the .jks or .keystore file
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS
+#   ANDROID_KEY_PASSWORD
+# Without them the release bundle is unsigned. The debug APK is always uploaded for sideload.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    # This image has Android SDK 36. ubuntu-latest moves to 26.04 in November 2026.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The game is client-only, so the SPA shell prerenders to dist/client/index.html (as for GitHub Pages).
+      - name: Build static web app
+        run: pnpm --filter @stl/game build:pages
+        env:
+          PAGES_BASE: /
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # Capacitor 8 targets Android 16 (API 36), which Play requires for a new app.
+      - name: Install Android SDK 36
+        run: |
+          set -eu
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          if [ ! -d "$SDK" ]; then
+            echo "Android SDK not found at $SDK" >&2
+            exit 1
+          fi
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          export ANDROID_HOME="$SDK"
+          export ANDROID_SDK_ROOT="$SDK"
+          if command -v sdkmanager >/dev/null 2>&1; then
+            SM=$(command -v sdkmanager)
+          else
+            SM=$(find "$SDK/cmdline-tools" -type f -name sdkmanager | head -1)
+          fi
+          if [ -z "$SM" ]; then
+            echo "sdkmanager not found under $SDK" >&2
+            exit 1
+          fi
+          yes | "$SM" --licenses >/dev/null || true
+          "$SM" "platforms;android-36" "build-tools;35.0.0"
+
+      # The native project is generated here rather than committed.
+      - name: Add and sync the Android platform
+        working-directory: apps/game
+        run: |
+          if [ ! -d android ]; then pnpm exec cap add android; fi
+          pnpm exec cap sync android
+
+      - name: Prepare the Android project
+        working-directory: apps/game
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -eu
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ]; then
+            if [ -z "${ANDROID_KEYSTORE_PASSWORD:-}" ] || [ -z "${ANDROID_KEY_ALIAS:-}" ] || [ -z "${ANDROID_KEY_PASSWORD:-}" ]; then
+              echo "ANDROID_KEYSTORE_BASE64 is set, but the password, alias, or key password is missing." >&2
+              exit 1
+            fi
+            keystore="$RUNNER_TEMP/upload.keystore"
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$keystore"
+            echo "ANDROID_KEYSTORE_PATH=$keystore" >> "$GITHUB_ENV"
+            export ANDROID_KEYSTORE_PATH="$keystore"
+          fi
+          node scripts/prepare-android.mjs
+
+      - name: Build the release bundle and debug APK
+        working-directory: apps/game/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon bundleRelease assembleDebug
+
+      - name: Package
+        working-directory: apps/game/android
+        run: |
+          set -eu
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          debug=$(find app/build/outputs/apk/debug -name '*.apk')
+          aab=$(find app/build/outputs/bundle/release -name '*.aab')
+          if [ -z "$debug" ] || [ -z "$aab" ] || [ "$(printf '%s\n' "$debug" | wc -l)" -ne 1 ] || [ "$(printf '%s\n' "$aab" | wc -l)" -ne 1 ]; then
+            echo "Expected one debug APK and one release bundle." >&2
+            find app/build/outputs -type f -print >&2
+            exit 1
+          fi
+          cp "$debug" "$GITHUB_WORKSPACE/out/SlowerThanLight-debug.apk"
+          cp "$aab" "$GITHUB_WORKSPACE/out/SlowerThanLight-release.aab"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ github.sha }}
+          path: out/
+          if-no-files-found: error

@@ -3,7 +3,7 @@ export { prettyXml } from "./format.ts";
 export { packFromFtl } from "./ftl.ts";
 export { fetchPackXml } from "./fetch-pack.ts";
 export { parsePack } from "./parse.ts";
-export type { FtlBlueprintFile } from "./ftl.ts";
+export type { FtlBlueprintFile, FtlTextFile } from "./ftl.ts";
 export {
   allAugments,
   allCrew,
@@ -75,11 +75,23 @@ export type {
   RewardResource,
   RewardScaling,
   RewardTable,
+  ArchiveBoarders,
+  ArchiveGrant,
+  ArchiveReward,
+  ArchiveShip,
+  HullCrewCount,
   HullCrewDef,
   HullDef,
+  HullDoor,
+  HullEllipse,
+  HullGrid,
+  HullInstall,
   HullKitDef,
   HullLayout,
+  HullRoom,
   SectorDef,
+  SectorQuota,
+  SectorRarity,
   StoreDef,
   StoreLine,
   SystemDef,

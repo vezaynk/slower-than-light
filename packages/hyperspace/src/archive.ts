@@ -47,8 +47,9 @@ export function emitFtlMod(documents: readonly FtlBlueprintFile[]): string {
 
 /**
  * Reads a document written by emitFtlMod.
- * Weapons, augments, drones, systems, tunes, and crew identity come back.
- * Events, ships, sectors, and the other archive tags stay in the document.
+ * Blueprint catalogs, ships, sectors, and events come back.
+ * Layout text is not in the document, so a ship has no room grid until
+ * packFromFtl is called with those files.
  */
 export function packFromFtlMod(xml: string): ContentPack {
   let root: string;

@@ -384,6 +384,10 @@ function readHull(node: XmlElement): HullDef | undefined {
     augments,
     unfitted,
   };
+  const weaponSlots = numOf(node, "weaponSlots");
+  if (weaponSlots != null) hull.weaponSlots = weaponSlots;
+  const droneSlots = numOf(node, "droneSlots");
+  if (droneSlots != null) hull.droneSlots = droneSlots;
   const list = child(node, "roomList");
   if (list) {
     const rooms: HullRoom[] = [];

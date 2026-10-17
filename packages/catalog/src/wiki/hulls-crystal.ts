@@ -23,8 +23,9 @@ export const CRYSTAL_HULLS: HullSpec[] = [
     name: "Bravais",
     quote:
       "This powerful vessel is powered by the secret technologies of the lost Crystalline Beings.",
-    unlock:
-      "See Ancestry (ship achievement) and its linked pages for directions on unlocking the Crystal Cruiser. Alternatively, beat the Flagship with layout A and B of every ship (excluding The Lanius Cruiser).",
+    unlock: "See Ancestry (ship achievement) and its linked pages for directions on unlocking the Crystal Cruiser\nAlternatively, beat the Flagship with layout A and B of every ship (excluding The Lanius Cruiser)",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Crystal Cruiser, Layout A",
     reactor: 8,
     fuel: 16,
@@ -63,7 +64,9 @@ export const CRYSTAL_HULLS: HullSpec[] = [
     name: "Carnelian",
     quote:
       "Their unique racial ability makes the Crystal beings very adept at ship boarding. This ship was designed for such raiding parties.",
-    unlock: "Earn at least two out of three achievements for the Crystal Cruiser.",
+    unlock: "Earn at least two out of three achievements for the Crystal Cruiser",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Crystal Cruiser, Layout B",
     reactor: 8,
     fuel: 16,

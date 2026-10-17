@@ -42,7 +42,15 @@ export type HullSpec = {
   layout: "A" | "B" | "C";
   name: string;
   quote: string;
+  /**
+   * The cruiser page's unlock lines, one paragraph per line.
+   * The hangar lock card shows these. The START gate stays in unlocks.ts.
+   */
   unlock: string;
+  /** Weapon bays printed on the cruiser page. */
+  weaponSlots: number;
+  /** Drone schematic bays printed on the cruiser page. */
+  droneSlots: number;
   /** Wiki page the numbers were taken from. */
   source: string;
   reactor: number;
@@ -76,7 +84,9 @@ export const HULLS: HullSpec[] = [
     name: "The Kestrel",
     quote:
       "This class of ship was decommissioned from Federation service years ago. After a number of refits and updating, this classic ship is ready for battle.",
-    unlock: "Available from the start. It is the only layout that does not need an unlock.",
+    unlock: "Does not require unlocking (it is the only ship, the cruiser and the layout, available from the very start of the game)",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Kestrel Cruiser, Layout A",
     reactor: 8,
     fuel: 16,
@@ -112,7 +122,9 @@ export const HULLS: HullSpec[] = [
     layout: "B",
     name: "Red-Tail",
     quote: "This modified Kestrel class ship was created by a laser weapon aficionado.",
-    unlock: "Earn at least two of the three Kestrel Cruiser achievements.",
+    unlock: "Earn at least two out of three achievements for the Kestrel Cruiser",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Kestrel Cruiser, Layout B",
     reactor: 8,
     fuel: 16,
@@ -151,7 +163,9 @@ export const HULLS: HullSpec[] = [
     name: "The Swallow",
     quote:
       "This model was modified by pirates to utilize newly discovered technology. It can clone lost crewmembers and stun enemies.",
-    unlock: "Reach the final sector with Kestrel layout B, Advanced Edition on.",
+    unlock: "Reach the final sector with the Kestrel Cruiser layout B and Advanced Edition Content enabled",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Kestrel Cruiser, Layout C",
     reactor: 7,
     fuel: 16,
@@ -189,7 +203,9 @@ export const HULLS: HullSpec[] = [
     name: "The Torus",
     quote:
       "Although it may look like a pile of junk loosely held together, this well designed ship relies on drones and ion weaponry.",
-    unlock: "Reach sector 5 with any Kestrel layout.",
+    unlock: "Reaching a sector 5 with any Kestrel Cruiser layout automatically unlocks the Engi Cruiser",
+    weaponSlots: 3,
+    droneSlots: 3,
     source: "The Engi Cruiser, Layout A",
     reactor: 10,
     fuel: 16,
@@ -226,7 +242,9 @@ export const HULLS: HullSpec[] = [
     layout: "B",
     name: "The Vortex",
     quote: "Heavily understaffed, this ship relies on drones to keep the ship running.",
-    unlock: "Earn at least two of the three Engi Cruiser achievements.",
+    unlock: "Earn at least two out of three achievements for the Engi Cruiser",
+    weaponSlots: 3,
+    droneSlots: 3,
     source: "The Engi Cruiser, Layout B",
     reactor: 9,
     fuel: 16,
@@ -263,7 +281,9 @@ export const HULLS: HullSpec[] = [
     name: "Tetragon",
     quote:
       "The Engi were quick to adapt to the sudden surge of hacking technology — this ship is the result of their research.",
-    unlock: "Reach the final sector with Engi layout B, Advanced Edition on.",
+    unlock: "Reach the final sector with the Engi Cruiser layout B and Advanced Edition Content enabled",
+    weaponSlots: 3,
+    droneSlots: 3,
     source: "The Engi Cruiser, Layout C",
     reactor: 9,
     fuel: 16,
@@ -305,8 +325,9 @@ export const HULLS: HullSpec[] = [
     name: "The Osprey",
     quote:
       "This ship features the latest in federation technology: an advanced beam weapon that pierces through shields!",
-    unlock:
-      "Defeat the Flagship prototype in the Rebel Stronghold sector, or defeat the Rebel Flagship with the Engi Cruiser.",
+    unlock: "Defeat the Flagship prototype in the Rebel Stronghold sector to unlock this ship.\nAlternatively, defeat the Rebel Flagship with the Engi Cruiser.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Federation Cruiser, Layout A",
     reactor: 8,
     fuel: 16,
@@ -343,7 +364,9 @@ export const HULLS: HullSpec[] = [
     layout: "B",
     name: "Nisos",
     quote: "This ship features additional Artillery power, encouraging heavy reliance on the beam.",
-    unlock: "Earn two of the three Federation Cruiser achievements.",
+    unlock: "Earning two of the three Federation Cruiser achievements will unlock layout B.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Federation Cruiser, Layout B",
     reactor: 9,
     fuel: 16,
@@ -380,7 +403,9 @@ export const HULLS: HullSpec[] = [
     name: "The Fregatidae",
     quote:
       "With a Flak Artillery weapon and an improved Clone Bay, only the most suicidal of infantry chooses to fly on this ship.",
-    unlock: "Reach sector 8 with Federation layout B, Advanced Edition on.",
+    unlock: "Reaching Sector 8 with The Federation Cruiser B and Advanced Edition content enabled will unlock Layout C.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Federation Cruiser, Layout C",
     reactor: 7,
     fuel: 16,
@@ -423,7 +448,9 @@ export const HULLS: HullSpec[] = [
     layout: "A",
     name: "The Adjudicator",
     quote: "The Zoltan's advanced shields technology give this ship an edge during each battle.",
-    unlock: "See the Unarmed Zoltan Transport, or defeat the Flagship with the Federation Cruiser.",
+    unlock: "See the Unarmed Zoltan Transport.\nAlternatively, defeat The Rebel Flagship with the Federation Cruiser.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Zoltan Cruiser, Layout A",
     reactor: 5,
     fuel: 16,
@@ -465,7 +492,9 @@ export const HULLS: HullSpec[] = [
     layout: "B",
     name: "Noether",
     quote: "This ship starts with a weakened Shield system and must rely on its Zoltan shield.",
-    unlock: "Earn two of the three Zoltan Cruiser achievements.",
+    unlock: "Earning two of the three Zoltan Cruiser achievements will unlock Layout B.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Zoltan Cruiser, Layout B",
     reactor: 5,
     fuel: 16,
@@ -506,7 +535,9 @@ export const HULLS: HullSpec[] = [
     name: "Cerenkov",
     quote:
       "The designer of this ship was not willing to spend the money for a decent reactor. Instead it relies on its Zoltan crew and Backup Battery.",
-    unlock: "Reach sector 8 with Zoltan layout B, Advanced Edition on.",
+    unlock: "Getting to Sector 8 with the The Zoltan Cruiser Type B with Advanced Edition Content enabled will unlock Layout C.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Zoltan Cruiser, Layout C",
     reactor: 2,
     fuel: 16,
@@ -552,8 +583,9 @@ export const HULLS: HullSpec[] = [
     name: "Man of War",
     quote:
       "Designed for use inside nebula, this cruiser lacks sensors and relies instead on the guile and cunning of the Slugs.",
-    unlock:
-      "See the Slug Home Nebula Surrender event, or defeat the Flagship with the Mantis Cruiser.",
+    unlock: "See the Slug Home Nebula Surrender random event.\nAlternatively, defeat The Rebel Flagship with the Mantis Cruiser.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Slug Cruiser, Layout A",
     reactor: 8,
     fuel: 16,
@@ -593,7 +625,9 @@ export const HULLS: HullSpec[] = [
     name: "The Stormwalker",
     quote:
       "This boarding ship has no medical facilities and must manage its explosives carefully to keep the crew alive.",
-    unlock: "Earn two of the three Slug Cruiser achievements.",
+    unlock: "Earning two of the three Slug Cruiser achievements will unlock Layout B.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Slug Cruiser, Layout B",
     reactor: 7,
     fuel: 16,
@@ -635,7 +669,9 @@ export const HULLS: HullSpec[] = [
     name: "Ariolimax",
     quote:
       "Slugs are often skilled in the arts of misdirection and manipulation. With Hacking and Mind Control systems, this ship capitalizes on that fact.",
-    unlock: "Reach sector 8 with Slug layout B, Advanced Edition on.",
+    unlock: "Reaching sector 8 with the Slug Cruiser B on any difficulty with Advanced Edition Content enabled will unlock layout C.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Slug Cruiser, Layout C",
     reactor: 9,
     fuel: 16,
@@ -678,7 +714,9 @@ export const HULLS: HullSpec[] = [
     name: "Bulwark",
     quote:
       "Similar to its designers, this super dense behemoth uses brute force to overwhelm its foes.",
-    unlock: "See the Rock war vessel encounter, or defeat the Flagship with the Slug Cruiser.",
+    unlock: "See the Rock war vessel encounter.\nAlternatively, defeat The Rebel Flagship with the Slug cruiser.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Rock Cruiser, Layout A",
     reactor: 8,
     fuel: 16,
@@ -716,7 +754,9 @@ export const HULLS: HullSpec[] = [
     layout: "B",
     name: "Shivan",
     quote: "With no airlocks, this ship must rely entirely on its rock crew to put out fires.",
-    unlock: "Earn two of the three Rock Cruiser achievements.",
+    unlock: "Earning two of the three Rock Cruiser achievements will unlock Layout B.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Rock Cruiser, Layout B",
     reactor: 8,
     fuel: 16,
@@ -757,7 +797,9 @@ export const HULLS: HullSpec[] = [
     name: "Tektite",
     quote:
       "Contact has been made with the Crystalline race and this cruiser was offered to the Federation as part of diplomatic discussions between the sister species.",
-    unlock: "Reach sector 8 with Rock layout B, Advanced Edition on.",
+    unlock: "Reaching sector 8 with the Rock Cruiser B with Advanced Mode enabled will unlock layout C.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Rock Cruiser, Layout C",
     reactor: 8,
     fuel: 16,
@@ -796,7 +838,9 @@ export const HULLS: HullSpec[] = [
     name: "The Nesasio",
     quote:
       "Constructed for the Federation by the Engi, this ship is designed to use cloaking technology and speed to get behind enemy lines.",
-    unlock: "See the Engi fleet discussion event, or defeat the Flagship with the Rock Cruiser.",
+    unlock: "See the Engi fleet discussion event.\nAlternatively, defeat the Rebel Flagship with the Rock Cruiser.",
+    weaponSlots: 3,
+    droneSlots: 2,
     source: "The Stealth Cruiser, Layout A",
     reactor: 8,
     fuel: 16,
@@ -835,7 +879,9 @@ export const HULLS: HullSpec[] = [
     name: "DA-SR 12",
     quote:
       "Built like a glass cannon, this ship is hard to handle. If its cloaking can keep it safe long enough to charge its weapon, few cruisers can withstand its might.",
-    unlock: "Earn two of the three Stealth Cruiser achievements.",
+    unlock: "Earning two of the three Stealth Cruiser achievements will unlock Layout B.",
+    weaponSlots: 3,
+    droneSlots: 2,
     source: "The Stealth Cruiser, Layout B",
     reactor: 7,
     fuel: 16,
@@ -882,7 +928,9 @@ export const HULLS: HullSpec[] = [
     name: "Simo-H",
     quote:
       "This ship was part of an Engi experiment to make a power efficient version of the Zoltan shield. Unfortunately this required the removal of the Cloaking system.",
-    unlock: "Reach sector 8 with Stealth layout B, Advanced Edition on.",
+    unlock: "Reaching sector 8 with the Stealth Cruiser B and Advanced Mode enabled will unlock layout C.",
+    weaponSlots: 3,
+    droneSlots: 3,
     source: "The Stealth Cruiser, Layout C",
     reactor: 7,
     fuel: 16,
@@ -930,7 +978,9 @@ export const HULLS: HullSpec[] = [
     name: "Kruos",
     quote:
       "The sharp knife-like structures make Lanius ships a sight to behold. This cruiser was adapted to support the other races of the Federation.",
-    unlock: "Unlock 4 ships besides The Kestrel.",
+    unlock: "Unlock 4 ships (Excluding The Kestrel) to unlock this ship.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Lanius Cruiser, Layout A",
     reactor: 8,
     fuel: 16,
@@ -970,7 +1020,9 @@ export const HULLS: HullSpec[] = [
     name: "The Shrike",
     quote:
       "The racial ability of the Lanius make them fearsome combatants in small quarters. Combine that with a Mind Control system and this ship is a force to be reckoned with.",
-    unlock: "Earn two of the three Lanius Cruiser achievements.",
+    unlock: "Earning two of the three Lanius Cruiser achievements will unlock Layout B.",
+    weaponSlots: 4,
+    droneSlots: 2,
     source: "The Lanius Cruiser, Layout B",
     reactor: 8,
     fuel: 16,

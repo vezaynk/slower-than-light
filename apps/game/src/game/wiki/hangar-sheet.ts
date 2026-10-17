@@ -1,12 +1,9 @@
 /**
- * Hangar fields taken from each cruiser layout's own lines.
- * File:KestralASystems.png is the bay: RENAME, the ship name, LIST, LAYOUT,
- * HIDE ROOMS, CREW, WEAPONS, DRONES, AUGMENTATIONS. The words in those panels
- * are the lines under Default name, Crew, Systems, Weapons, Drones,
- * Augmentations, and Unlock. A layout is Advanced Edition when its own lines
- * say so. Crystal and Lanius have no Layout C in the pages, so none is added.
+ * Cruiser-page lines, kept for the article and for checks against the page text.
+ * The hangar bay reads the loaded ship (hangar-bay.ts).
+ * A layout is Advanced Edition when its own lines say so. Crystal and Lanius have no Layout C.
  */
-import { CRUISER_PAGES, type CruiserLayout, type WikiLine } from "./layout-pages.ts";
+import { type CruiserLayout, type WikiLine } from "./layout-pages.ts";
 
 export type HangarSystem = { name: string; level: number };
 
@@ -150,15 +147,4 @@ export function hangarSheet(layout: CruiserLayout): HangarSheet {
     advanced: layoutNeedsAe(layout),
     droneSystem: systemRows.some((system) => /^drone/i.test(system.name)),
   };
-}
-
-const printedSlots = new Map<string, number | null>();
-for (const page of CRUISER_PAGES) {
-  for (const layout of page.layouts) printedSlots.set(layout.id, hangarSheet(layout).weaponSlots);
-}
-
-/** Cruiser layout lines: "Weapons (N slots)" or "Slots: N Weapon". Null when that id is not a layout. */
-export function printedWeaponSlots(hullId: string | undefined): number | null {
-  if (!hullId) return null;
-  return printedSlots.get(hullId) ?? null;
 }

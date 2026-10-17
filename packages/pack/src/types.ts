@@ -86,7 +86,7 @@ export type SystemDef = {
   detail?: string;
 };
 
-/** A hangar layout letter. Room tiles for these letters stay in the layout tables. */
+/** A hangar layout letter. Unlock rules use this letter. A loaded hull names its layout file. */
 export type HullLayout = "A" | "B" | "C";
 
 /** One starting crew seat. The kin id is a crew-pack id. */
@@ -102,6 +102,14 @@ export type HullRoom = {
   y: number;
   w: number;
   h: number;
+  /** Seat id, when the ship names its rooms. */
+  name?: string;
+  /** Hangar label. */
+  title?: string;
+  /** Installed system id. */
+  system?: string;
+  /** Pale hangar icon. The room stays empty until that system is bought. */
+  reserve?: string;
 };
 
 /**
@@ -128,7 +136,7 @@ export type HullEllipse = {
 /**
  * A room grid from `data/<layout>.txt`.
  * `x` and `y` are the offsets. `vertical` is the VERTICAL integer.
- * Letter geometry for A, B, and C stays in the layout tables.
+ * `cols` and `rows` are the hangar grid. That file does not store them.
  */
 export type HullGrid = {
   x?: number;
@@ -136,6 +144,8 @@ export type HullGrid = {
   vertical?: number;
   horizontal?: number;
   ellipse?: HullEllipse;
+  cols?: number;
+  rows?: number;
   rooms: HullRoom[];
   doors: HullDoor[];
 };

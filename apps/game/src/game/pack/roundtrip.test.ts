@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import "./base.ts";
-import { allAugments, allCrew, allDrones, allEmptyBeacons, allEvents, allFillerLists, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, emitPack, parsePack, resetPackForTests } from "@stl/pack";
+import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
+import { allAugments, allCrew, allDrones, allEmptyBeacons, allEvents, allFillerLists, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, attachLayoutFiles, emitPack, parsePack, resetPackForTests } from "@stl/pack";
 
 describe("base pack xml", () => {
   it("round-trips the loaded records and reads the gap file", () => {
@@ -23,6 +24,7 @@ describe("base pack xml", () => {
     };
     const xml = emitPack(pack);
     const back = parsePack(xml);
+    attachLayoutFiles(back.hulls, layoutFiles());
     assert.deepEqual(back.crew, pack.crew);
     assert.deepEqual(back.weapons, pack.weapons);
     assert.deepEqual(back.augments, pack.augments);

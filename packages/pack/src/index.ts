@@ -3,6 +3,17 @@ export type { EmitSlice } from "./emit.ts";
 export { overlayGap } from "./overlay.ts";
 export { prettyXml } from "./format.ts";
 export { packFromFtl } from "./ftl.ts";
+export {
+  attachLayoutFiles,
+  cloneGrid,
+  doorsFromMarks,
+  gridFromLayout,
+  marksFromDoors,
+  readGrid,
+  readGrids,
+  writeGrid,
+} from "./grid.ts";
+export type { GridMark, LayoutSource } from "./grid.ts";
 export { fetchPackXml } from "./fetch-pack.ts";
 export { parsePack } from "./parse.ts";
 export type { FtlBlueprintFile, FtlTextFile } from "./ftl.ts";

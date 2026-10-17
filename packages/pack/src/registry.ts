@@ -1,3 +1,4 @@
+import { cloneGrid } from "./grid.ts";
 import { bonusChance, resourceBounds, scrapBounds, type RewardDifficulty } from "./rewards.ts";
 import type {
   AugmentDef,
@@ -383,16 +384,7 @@ function copyOffer(row: OfferRow): OfferRow {
 }
 
 function copyGrid(grid: NonNullable<HullDef["grid"]>): NonNullable<HullDef["grid"]> {
-  const copy: NonNullable<HullDef["grid"]> = {
-    rooms: grid.rooms.map((room) => ({ ...room })),
-    doors: grid.doors.map((door) => ({ ...door })),
-  };
-  if (grid.x !== undefined) copy.x = grid.x;
-  if (grid.y !== undefined) copy.y = grid.y;
-  if (grid.vertical !== undefined) copy.vertical = grid.vertical;
-  if (grid.horizontal !== undefined) copy.horizontal = grid.horizontal;
-  if (grid.ellipse) copy.ellipse = { ...grid.ellipse };
-  return copy;
+  return cloneGrid(grid);
 }
 
 function copyHull(row: HullDef): HullDef {

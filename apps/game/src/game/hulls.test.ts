@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { LAYOUT_FILE, SHIP_LAYOUTS } from "@stl/catalog/src/ship-layouts.ts";
+import { hullDef } from "@stl/pack";
 import { HULLS } from "./hulls.ts";
-import { LAYOUTS, tileCount } from "./layouts.ts";
+import { layoutFor, tileCount } from "./layouts.ts";
 import {
   aim,
   armWeapon,
@@ -148,9 +150,48 @@ describe("hangar hulls", () => {
     assert.equal(slotAutofire(g, second), true);
   });
 
+  it("reads each traced interior from the loaded ship", () => {
+    for (const [id, authored] of Object.entries(SHIP_LAYOUTS)) {
+      const laid = layoutFor(id);
+      assert.ok(laid, id);
+      assert.equal(laid.cols, authored.cols, id);
+      assert.equal(laid.rows, authored.rows, id);
+      assert.deepEqual(
+        laid.rooms.map((room) => ({
+          id: room.id,
+          title: room.title,
+          system: room.system,
+          x: room.x,
+          y: room.y,
+          w: room.w,
+          h: room.h,
+          reserve: room.reserve,
+        })),
+        authored.rooms.map((room) => ({
+          id: room.id,
+          title: room.title,
+          system: room.system,
+          x: room.x,
+          y: room.y,
+          w: room.w,
+          h: room.h,
+          reserve: room.reserve,
+        })),
+        id,
+      );
+      assert.deepEqual(laid.marks, authored.marks, id);
+      const hull = hullDef(id);
+      assert.equal(hull?.layout, LAYOUT_FILE[id], id);
+      for (const room of authored.rooms) {
+        if (!room.system) continue;
+        assert.ok(hull?.systems[room.system], `${id} ${room.id} ${room.system}`);
+      }
+    }
+  });
+
   it("uses the published square counts and does not overlap", () => {
     for (const [id, squares] of Object.entries(SQUARES)) {
-      const layout = LAYOUTS[id];
+      const layout = layoutFor(id);
       assert.ok(layout, id);
       assert.equal(tileCount(layout), squares, id);
       for (let i = 0; i < layout.rooms.length; i++) {
@@ -171,15 +212,12 @@ describe("hangar hulls", () => {
 
   it("keeps a traced door on a room edge", () => {
     const step = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] } as const;
-    for (const [id, layout] of Object.entries(LAYOUTS)) {
+    for (const [id, layout] of Object.entries(SHIP_LAYOUTS)) {
       if (!layout.marks) continue;
       const at = new Map<string, string>();
       for (const r of layout.rooms) {
         for (let y = r.y; y < r.y + r.h; y++) {
-          for (let x = r.x; x < r.x + r.w; x++) {
-            if (r.omit?.some((cell) => cell.x === x && cell.y === y)) continue;
-            at.set(`${x},${y}`, r.id);
-          }
+          for (let x = r.x; x < r.x + r.w; x++) at.set(`${x},${y}`, r.id);
         }
       }
       const g = createGame(1, id);

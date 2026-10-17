@@ -24,7 +24,8 @@ import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
-import { loadPack } from "@stl/pack";
+import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
+import { gridFromLayout, loadPack } from "@stl/pack";
 import type {
   AugmentDef,
   ChoiceGift,
@@ -362,10 +363,10 @@ function hullRow(spec: HullSpec): HullDef {
     if (kit.weapon) copy.weapon = kit.weapon;
     kits[id] = copy;
   }
-  return {
+  const row: HullDef = {
     id: spec.id,
     cruiser: spec.cruiser,
-    layout: spec.layout,
+    layout: LAYOUT_FILE[spec.id] ?? spec.layout,
     name: spec.name,
     quote: spec.quote,
     unlock: spec.unlock,
@@ -381,6 +382,9 @@ function hullRow(spec: HullSpec): HullDef {
     augments: [...spec.augments],
     unfitted: [...spec.unfitted],
   };
+  const source = SHIP_LAYOUTS[spec.id];
+  if (source) row.grid = gridFromLayout(source);
+  return row;
 }
 
 function weaponRow(id: string): WeaponBlueprint {

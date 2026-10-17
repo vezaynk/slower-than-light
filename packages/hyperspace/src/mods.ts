@@ -1,5 +1,5 @@
 import type { FtlDocument, FtlExtract } from "@stl/ftldat";
-import { packFromFtl, parsePack, type ContentPack } from "@stl/pack";
+import { attachLayoutFiles, packFromFtl, parsePack, type ContentPack } from "@stl/pack";
 
 /** The bundled stand-in is this one campaign document. */
 const STAND_IN = "data/stand-in.xml";
@@ -71,7 +71,14 @@ export function applyFtlMod(base: FtlExtract, mod: FtlExtract): FtlExtract {
  */
 export function packFromExtract(files: FtlExtract): ContentPack {
   const only = files.documents.length === 1 ? files.documents[0] : undefined;
-  if (only?.path === STAND_IN) return parsePack(only.xml);
+  if (only?.path === STAND_IN) {
+    const pack = parsePack(only.xml);
+    const layouts = [...files.text]
+      .filter(([path]) => path.toLowerCase().endsWith(".txt"))
+      .map(([path, text]) => ({ path, text }));
+    attachLayoutFiles(pack.hulls, layouts);
+    return pack;
+  }
   return loadFtlMods(files).pack;
 }
 

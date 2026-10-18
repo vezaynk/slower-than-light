@@ -2,6 +2,7 @@ import { cloneGrid } from "./grid.ts";
 import { bonusChance, resourceBounds, scrapBounds, type RewardDifficulty } from "./rewards.ts";
 import type {
   AugmentDef,
+  BlueprintListDef,
   ChoiceGift,
   ChoiceReq,
   ContentPack,
@@ -45,6 +46,7 @@ const stores = new Map<string, StoreDef>();
 const tunes = new Map<string, TuneDef>();
 const events = new Map<string, EventDef>();
 const lists = new Map<string, FillerListDef>();
+const blueprints = new Map<string, BlueprintListDef>();
 const empties = new Map<string, EmptyBeaconDef>();
 const factions = new Map<string, FactionSurrender>();
 let reward: RewardTable | undefined;
@@ -60,6 +62,7 @@ let baseStores: StoreDef[] = [];
 let baseTunes: TuneDef[] = [];
 let baseEvents: EventDef[] = [];
 let baseLists: FillerListDef[] = [];
+let baseBlueprints: BlueprintListDef[] = [];
 let baseEmpties: EmptyBeaconDef[] = [];
 let baseFactions: FactionSurrender[] = [];
 
@@ -232,6 +235,10 @@ function copySurrender(row: SurrenderOfferDef): SurrenderOfferDef {
     };
   }
   return copy;
+}
+
+function copyBlueprint(row: BlueprintListDef): BlueprintListDef {
+  return { id: row.id, names: [...row.names] };
 }
 
 function copyList(row: FillerListDef): FillerListDef {
@@ -438,6 +445,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     tunes.clear();
     events.clear();
     lists.clear();
+    blueprints.clear();
     empties.clear();
     factions.clear();
     reward = pack.rewards ? copyReward(pack.rewards) : undefined;
@@ -454,6 +462,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseTunes = (pack.tunes ?? []).map(copyTune);
     baseEvents = (pack.events ?? []).map(copyEvent);
     baseLists = (pack.lists ?? []).map(copyList);
+    baseBlueprints = (pack.blueprints ?? []).map(copyBlueprint);
     baseEmpties = (pack.empties ?? []).map(copyEmpty);
   }
   if (mode === "append" && pack.rewards) {
@@ -480,6 +489,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     events.set(row.id, copyEvent(row));
   for (const row of mode === "base" ? baseLists : (pack.lists ?? []))
     lists.set(row.id, copyList(row));
+  for (const row of mode === "base" ? baseBlueprints : (pack.blueprints ?? []))
+    blueprints.set(row.id, copyBlueprint(row));
   for (const row of mode === "base" ? baseEmpties : (pack.empties ?? []))
     empties.set(row.id, copyEmpty(row));
   for (const row of mode === "base" ? baseFactions : (pack.factions ?? []))
@@ -588,6 +599,12 @@ export function allEvents(): EventDef[] {
   return [...events.values()];
 }
 
+/** Names in one `<blueprintList>`. A missing id has no pool. */
+export function blueprintList(id: string | undefined): readonly string[] | undefined {
+  if (!id) return undefined;
+  return blueprints.get(id)?.names;
+}
+
 /** A filler list by id. An append replaces that whole list. A new id sits at the end. */
 export function fillerList(id: string | undefined): FillerListDef | undefined {
   if (!id) return undefined;
@@ -667,6 +684,7 @@ export function resetPackForTests(): void {
   tunes.clear();
   events.clear();
   lists.clear();
+  blueprints.clear();
   empties.clear();
   factions.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
@@ -681,6 +699,7 @@ export function resetPackForTests(): void {
   for (const row of baseTunes) tunes.set(row.id, copyTune(row));
   for (const row of baseEvents) events.set(row.id, copyEvent(row));
   for (const row of baseLists) lists.set(row.id, copyList(row));
+  for (const row of baseBlueprints) blueprints.set(row.id, copyBlueprint(row));
   for (const row of baseEmpties) empties.set(row.id, copyEmpty(row));
   for (const row of baseFactions) factions.set(row.id, copyFaction(row));
 }

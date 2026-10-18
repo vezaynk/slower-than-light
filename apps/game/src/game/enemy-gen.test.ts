@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
+import { hullDef, loadPack, onPackWarning, resetPackForTests } from "@stl/pack";
 import { WEAPONS } from "./content.ts";
 import {
   arm,
@@ -303,6 +305,136 @@ describe("enemy generation by difficulty (Mathchamp, Details on enemy ship gener
     assert.equal(has(2, "normal"), true);
     assert.equal(has(2, "easy"), false);
     assert.equal(has(3, "easy"), true);
+  });
+});
+
+describe("archive loadout", () => {
+  const ctx = { sector: 1, sectorName: "Civilian Sector", difficulty: "normal" as const };
+
+  it("keeps the class table when the blueprint names no lists", () => {
+    const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
+    const hull = hullDef(enemyBlueprintId("rebel-fighter"))!;
+    assert.equal(hull.weaponLoad, undefined);
+    assert.equal(hull.crewCounts, undefined);
+    const spec = rollEnemy(cls, false, ctx, seeded(4));
+    assert.equal(spec.missiles, cls.missiles);
+  });
+
+  it("warns about a blueprint the game cannot fully read, and falls back", () => {
+    const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
+    const hull = hullDef(enemyBlueprintId("rebel-fighter"))!;
+    const plain = rollEnemy(cls, false, ctx, seeded(4));
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    const roll = (patch: Partial<typeof hull>) => {
+      loadPack({ hulls: [{ ...hull, ...patch }] }, "append");
+      try {
+        return rollEnemy(cls, false, ctx, seeded(4));
+      } finally {
+        resetPackForTests();
+      }
+    };
+    try {
+      // A missing list leaves the class table's guns.
+      assert.deepEqual(roll({ weaponLoad: "NO_SUCH_LIST" }).weapons, plain.weapons);
+      // Tags beside a load: the tags are the loadout.
+      assert.deepEqual(roll({ weapons: ["LASER_BURST_1"], weaponLoad: "NO_SUCH_LIST" }).weapons, [
+        "LASER_BURST_1",
+      ]);
+      // FTL never picks an unknown name (its stand-in blueprint has 0 power), so it is skipped.
+      assert.deepEqual(roll({ weapons: ["NOT_A_GUN", "LASER_BURST_1"] }).weapons, [
+        "LASER_BURST_1",
+      ]);
+      // A race with no crew is skipped; nothing left means the class table's crew.
+      assert.deepEqual(
+        roll({ crewCounts: [{ amount: 1, class: "ghost" }] }).crew.map((member) => member.race),
+        plain.crew.map((member) => member.race),
+      );
+      assert.deepEqual(warnings, [
+        `${hull.id}: load="NO_SUCH_LIST" names no blueprintList; the class table is used.`,
+        `${hull.id}: its weaponList has both weapon tags and load="NO_SUCH_LIST"; the tags are used.`,
+        `${hull.id}: its weaponList names "NOT_A_GUN", which is not a weapon; it is skipped.`,
+        `${hull.id}: crewCount class "ghost" is not a race the game has crew for; it is skipped.`,
+      ]);
+    } finally {
+      restore();
+    }
+  });
+
+  it("mounts a repeated blueprint id on two slots", () => {
+    assert.deepEqual(arm(["LASER_BURST_1", "LASER_BURST_1"], 2, seeded(1), 2).weapons, [
+      "LASER_BURST_1",
+      "LASER_BURST_1",
+    ]);
+  });
+
+  it("equips the blueprint crew, weapon list, and drone list", () => {
+    const fighter = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
+    const rigger = ENEMY_CLASSES.find((row) => row.id === "rebel-rigger")!;
+    const fighterHull = hullDef(enemyBlueprintId("rebel-fighter"))!;
+    const riggerHull = hullDef(enemyBlueprintId("rebel-rigger"))!;
+    loadPack(
+      {
+        hulls: [
+          {
+            ...fighterHull,
+            weapons: ["LASER_BURST_3", "LASER_BURST_1", "LASER_BURST_1"],
+            weaponCount: 2,
+            missiles: 4,
+            crewCounts: [
+              { amount: 2, class: "human" },
+              { amount: 1, max: 3, class: "mantis" },
+              { amount: 1, class: "random" },
+            ],
+          },
+          {
+            ...riggerHull,
+            weapons: [],
+            weaponLoad: "WEAPONS_TEST",
+            weaponSlots: 1,
+            drones: [],
+            droneLoad: "DRONES_TEST",
+            droneCount: 1,
+            parts: 5,
+          },
+        ],
+        blueprints: [
+          { id: "WEAPONS_TEST", names: ["LASER_BURST_3"] },
+          { id: "DRONES_TEST", names: ["DEFENSE_1"] },
+        ],
+      },
+      "append",
+    );
+    try {
+      const crystal = { ...ctx, sectorName: "Hidden Crystal Worlds" };
+      const spec = rollEnemy(fighter, false, crystal, seeded(1));
+      // ftl.dat's explicit weaponList is that ship's loadout: mounted in order, up to count.
+      assert.deepEqual(spec.weapons, ["LASER_BURST_3", "LASER_BURST_1"]);
+      assert.equal(spec.missiles, 4);
+      assert.equal(spec.crew.filter((member) => member.race === "Human").length, 2);
+      assert.equal(spec.crew.filter((member) => member.race === "Mantis").length, 1);
+      assert.equal(spec.crew.filter((member) => member.race === "Crystal").length, 1);
+
+      // The class table's interpolation: the printed maximum arrives in sector 8, the last one.
+      const late = rollEnemy(fighter, false, { ...crystal, sector: 8 }, seeded(1));
+      assert.equal(late.crew.filter((member) => member.race === "Mantis").length, 3);
+      const middle = rollEnemy(fighter, false, { ...crystal, sector: 4 }, seeded(1));
+      assert.equal(middle.crew.filter((member) => member.race === "Mantis").length, 2);
+      const delayed = rollEnemy(
+        fighter,
+        false,
+        { ...crystal, sector: 2, difficulty: "easy" },
+        seeded(1),
+      );
+      assert.equal(delayed.crew.filter((member) => member.race === "Mantis").length, 1);
+
+      const armed = rollEnemy(rigger, false, ctx, seeded(2));
+      assert.deepEqual(armed.weapons, ["LASER_BURST_3"]);
+      assert.deepEqual(armed.drones, ["DEFENSE_1"]);
+      assert.equal(armed.parts, 5);
+    } finally {
+      resetPackForTests();
+    }
   });
 });
 

@@ -5,9 +5,11 @@
  * Pure: the caller (sim makeEnemy) turns the spec into rooms, systems, doors, and crew.
  */
 import "./pack/base.ts";
-import { weaponDef } from "@stl/pack";
+import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
+import { blueprintList, hullDef, warnPack, weaponDef } from "@stl/pack";
+import type { HullCrewCount, HullDef } from "@stl/pack";
 import type { KinId } from "./extras/kin.ts";
-import { rollPirateCrew } from "./wiki/skills.ts";
+import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import type { Difficulty, DoorMark, KitId, SysId } from "./types.ts";
 import { enemyLayout } from "./wiki/enemy-layouts.ts";
@@ -151,8 +153,9 @@ export function rollDrones(
   level: number,
   rand: () => number,
   flagsOpen = false,
+  listed?: { drones: string[]; maxDrones: number },
 ): string[] {
-  const row = ENEMY_DRONES[classId];
+  const row = listed ?? ENEMY_DRONES[classId];
   if (!row || level <= 0) return [];
   const pool = row.drones.filter((id) => ENEMY_RUNNABLE.has(id));
   const out: string[] = [];
@@ -226,6 +229,18 @@ const KIN_OF: Record<string, KinId> = {
   Zoltan: "energy",
   Crystal: "crystal",
   Lanius: "anaerobic",
+};
+
+/** `<crewCount class>` ids. A name the class table already prints. */
+const RACE_OF: Record<string, string> = {
+  human: "Human",
+  engi: "Engi",
+  mantis: "Mantis",
+  slug: "Slug",
+  rock: "Rock",
+  energy: "Zoltan",
+  crystal: "Crystal",
+  anaerobic: "Lanius",
 };
 
 export type PoolContext = { sector: number; sectorName: string; difficulty: Difficulty };
@@ -605,6 +620,13 @@ export const ENEMY_WEAPON_SLOTS = 4;
 
 export type ArmResult = { weapons: string[]; flags: { laser: boolean; hull: boolean } };
 
+/** A pool entry is a display name or a blueprint id. */
+function armId(name: string): string | undefined {
+  const titled = weaponIdForName(name);
+  if (titled && weaponDef(titled)) return titled;
+  return weaponDef(name) ? name : undefined;
+}
+
 /**
  * Mathchamp: "random weapons are generated (with equal odds for each entry ...) until either all power is allocated, no
  * slots remain, or there are no eligible weapons". Each pick must:
@@ -614,15 +636,19 @@ export type ArmResult = { weapons: string[]; flags: { laser: boolean; hull: bool
  * - "use greater than (not equal to) 25% of the remaining system power";
  * - while either flag is still set, "satisfy one of the remaining flags".
  * INFERRED: a pool with nothing eligible for a level-1 system still mounts its cheapest gun, so no fight is unarmed.
+ * A pool entry is a display name or a blueprint id.
  */
-export function arm(pool: string[], level: number, rand: () => number): ArmResult {
-  const ids = pool
-    .map((n) => weaponIdForName(n))
-    .filter((id): id is string => !!id && !!weaponDef(id) && enemyMayMount(id));
+export function arm(
+  pool: string[],
+  level: number,
+  rand: () => number,
+  slots = ENEMY_WEAPON_SLOTS,
+): ArmResult {
+  const ids = pool.map(armId).filter((id): id is string => !!id && enemyMayMount(id));
   const flags = { laser: true, hull: true };
   const out: string[] = [];
   let left = level;
-  while (left > 0 && out.length < ENEMY_WEAPON_SLOTS) {
+  while (left > 0 && out.length < slots) {
     const ok = ids.filter((id) => {
       const p = weaponDef(id)!.power;
       if (p > left) return false;
@@ -641,7 +667,7 @@ export function arm(pool: string[], level: number, rand: () => number): ArmResul
     if (hullFlag(id)) flags.hull = false;
   }
   // INFERRED (see above): nothing eligible still mounts the cheapest gun.
-  if (!out.length && ids.length) {
+  if (!out.length && ids.length && slots > 0) {
     const cheapest = [...ids].sort((a, b) => weaponDef(a)!.power - weaponDef(b)!.power)[0];
     out.push(cheapest);
   }
@@ -912,9 +938,17 @@ export function rollEnemy(
   const ids = installed.map(([id]) => id);
   const traced = seatTrace(cls.id, ids, pirate);
   const { rooms, cols, rows } = traced ?? layout(ids);
-  const crewSize = crewCount(cls.crew, ctx);
+  const blueprint = hullDef(enemyBlueprintId(cls.id, pirate));
+  // Rows that were all skipped (warned about in racesFromCounts) leave the class table in charge.
+  const fromBlueprint = blueprint?.crewCounts?.length
+    ? racesFromCounts(blueprint.id, blueprint.crewCounts, ctx, rand)
+    : undefined;
+  const counted = fromBlueprint?.length ? fromBlueprint : undefined;
+  const crewSize = counted ? counted.length : crewCount(cls.crew, ctx);
   const races: string[] = [];
-  if (pirate) {
+  if (counted) {
+    races.push(...counted);
+  } else if (pirate) {
     // Enemy Ships, "Pirated ships": "pirate crews are randomly chosen from the races that can be encountered in that sector".
     // The races are the Sectors page's per-sector "Crewmembers" list (wiki/skills.ts); INFERRED: any race off that list.
     races.push(...rollPirateCrew(ctx.sectorName, crewSize, rand));
@@ -933,7 +967,16 @@ export function rollEnemy(
     room: stations[i] ?? others[(i - stations.length) % Math.max(1, others.length)] ?? rooms[0].id,
   }));
   const weaponLevel = systems.weapons?.[0] ?? 1;
-  const armed = arm(ENEMY_WEAPON_POOLS[cls.faction] ?? [], weaponLevel, rand);
+  const listedWeapons = blueprint ? weaponNames(blueprint) : undefined;
+  const armed =
+    listedWeapons?.fixed && blueprint
+      ? fixedLoadout(listedWeapons.names.slice(0, weaponCap(blueprint)))
+      : arm(
+          listedWeapons?.names ?? ENEMY_WEAPON_POOLS[cls.faction] ?? [],
+          weaponLevel,
+          rand,
+          listedWeapons ? weaponCap(blueprint) : ENEMY_WEAPON_SLOTS,
+        );
   const spec: EnemySpec = {
     classId: cls.id,
     name: pirate ? (cls.pirate ?? `Pirate ${cls.name.split(" ").slice(1).join(" ")}`) : cls.name,
@@ -950,7 +993,7 @@ export function rollEnemy(
     rows,
     ...(traced ? { marks: traced.marks } : {}),
     weapons: armed.weapons,
-    missiles: cls.missiles,
+    missiles: listedWeapons ? (blueprint?.missiles ?? cls.missiles) : cls.missiles,
     crew,
     boards: installed.some(([id]) => id === "teleporter"),
     parts: enemyParts(cls.id, 0),
@@ -959,8 +1002,117 @@ export function rollEnemy(
   // @agent:drones. Mathchamp: drones are generated after weapons and see the weapon flags. Only for a hull with Drone
   // Control.
   if (kits.drones) {
-    spec.drones = rollDrones(cls.id, kits.drones, rand, armed.flags.laser || armed.flags.hull);
-    spec.parts = enemyParts(cls.id, spec.drones.length);
+    const listedDrones = blueprint ? droneNames(blueprint) : undefined;
+    spec.drones = rollDrones(
+      cls.id,
+      kits.drones,
+      rand,
+      armed.flags.laser || armed.flags.hull,
+      listedDrones,
+    );
+    spec.parts = listedDrones ? (blueprint?.parts ?? 0) : enemyParts(cls.id, spec.drones.length);
   }
   return spec;
+}
+
+/**
+ * Mathchamp: crew count is interpolated from the blueprint minimum to its maximum across the sectors, the same way as
+ * the class table (crewCount), so the printed maximum is reached in the last sector. A row with no maximum is that
+ * many of the named race. `random` draws from the sector's crew races.
+ * A race the game has no crew for, or a `random` row with no races to draw from, is skipped with a warning.
+ */
+function racesFromCounts(
+  ship: string,
+  rows: HullCrewCount[],
+  ctx: PoolContext,
+  rand: () => number,
+): string[] {
+  const races: string[] = [];
+  const randomRaces = pirateCrewRaces(ctx.sectorName);
+  for (const row of rows) {
+    const n = row.max == null ? row.amount : crewCount([row.amount, row.max], ctx);
+    if (n <= 0) continue;
+    if (row.class === "random") {
+      if (randomRaces.length === 0) {
+        warnPack(
+          `${ship}: a random crewCount has no races to draw from in ${ctx.sectorName}; it is skipped.`,
+        );
+        continue;
+      }
+      for (let i = 0; i < n; i++) {
+        races.push(randomRaces[Math.floor(rand() * randomRaces.length) % randomRaces.length]!);
+      }
+      continue;
+    }
+    const race = RACE_OF[row.class];
+    if (!race) {
+      warnPack(
+        `${ship}: crewCount class "${row.class}" is not a race the game has crew for; it is skipped.`,
+      );
+      continue;
+    }
+    for (let i = 0; i < n; i++) races.push(race);
+  }
+  return races;
+}
+
+/**
+ * The blueprint's guns. ftl.dat writes either explicit `<weapon>` tags or a `load` list, never both.
+ * Explicit tags are that ship's loadout: every such list has `count` equal to its tags (Long Elite 3 of 3, Ghost Ship
+ * Med 3 of 3), so they are mounted in order. INFERRED: Ghost Ship Hard lists four with count 3; the first three mount.
+ * A `load` list is the pool `arm` draws from.
+ * Both at once keeps the explicit loadout, with a warning.
+ * An unknown name is skipped with a warning. That matches FTL: BlueprintManager::GetWeaponBlueprint answers an unknown
+ * name with a static `dummy` whose power is 0, and ShipGenerator::GetPossibleWeaponList only keeps a gun with more
+ * power than a quarter of what is left, so the dummy is never picked. ftl.dat's own WEAPONS_JELLY list names
+ * BOMB_BREACH, which the archive never defines.
+ */
+function weaponNames(hull: HullDef): { names: string[]; fixed: boolean } | undefined {
+  if (hull.weapons.length > 0 && hull.weaponLoad) {
+    warnPack(
+      `${hull.id}: its weaponList has both weapon tags and load="${hull.weaponLoad}"; the tags are used.`,
+    );
+  }
+  const fixed = hull.weapons.length > 0;
+  const listed = fixed ? [...hull.weapons] : listNames(hull.id, hull.weaponLoad);
+  const names = listed.filter((name) => {
+    if (weaponDef(name) || weaponIdForName(name)) return true;
+    warnPack(`${hull.id}: its weaponList names "${name}", which is not a weapon; it is skipped.`);
+    return false;
+  });
+  if (!names.length) return undefined;
+  return { names: names.map((name) => armId(name) ?? name), fixed };
+}
+
+/** An explicit loadout, with the flags `arm` would have left open for the drones that follow. */
+function fixedLoadout(weapons: string[]): ArmResult {
+  return {
+    weapons,
+    flags: { laser: !weapons.some(laserFlag), hull: !weapons.some(hullFlag) },
+  };
+}
+
+/** Names in a `load` list. A load that names no blueprintList is warned about and treated as empty. */
+function listNames(ship: string, load: string | undefined): string[] {
+  if (!load) return [];
+  const names = blueprintList(load);
+  if (!names) {
+    warnPack(`${ship}: load="${load}" names no blueprintList; the class table is used.`);
+    return [];
+  }
+  return [...names];
+}
+
+function weaponCap(hull: HullDef | undefined): number {
+  const caps = [hull?.weaponCount, hull?.weaponSlots].filter(
+    (n): n is number => n != null && n > 0,
+  );
+  return caps.length ? Math.min(...caps) : ENEMY_WEAPON_SLOTS;
+}
+
+/** Explicit drone tags, then the names in droneList load. The count caps how many are fitted. */
+function droneNames(hull: HullDef): { drones: string[]; maxDrones: number } | undefined {
+  const names = [...(hull.drones ?? []), ...listNames(hull.id, hull.droneLoad)];
+  if (!names.length) return undefined;
+  return { drones: names, maxDrones: hull.droneCount ?? names.length };
 }

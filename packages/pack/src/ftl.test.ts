@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { packFromFtl } from "./ftl.ts";
-import { eventDef, hullDef, loadPack, resetPackForTests, sectorDef } from "./registry.ts";
+import { onPackWarning } from "./warnings.ts";
+import {
+  blueprintList,
+  eventDef,
+  hullDef,
+  loadPack,
+  resetPackForTests,
+  sectorDef,
+} from "./registry.ts";
 
 const BASE = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>
@@ -165,6 +173,9 @@ DOOR
 
 const ARCHIVE = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>
+  <crewBlueprint name="human">
+    <title>Human</title>
+  </crewBlueprint>
   <shipBlueprint name="PLAYER_SHIP_EASY" layout="kestral" img="kestral">
     <class>Kestrel</class>
     <name>The Kestrel</name>
@@ -252,6 +263,10 @@ const ARCHIVE = `<?xml version="1.0" encoding="UTF-8"?>
     <event name="STORE_A" unique="true"/>
     <event name="STORE_B"/>
   </eventList>
+  <blueprintList name="WEAPONS_BOSS">
+    <name>ARTILLERY_BOSS_1</name>
+    <name>ARTILLERY_BOSS_2</name>
+  </blueprintList>
   <eventList name="LONE_SHUTTLE_WAIT">
     <event>
       <text>Unmanned.</text>
@@ -368,6 +383,45 @@ describe("packFromFtl", () => {
     );
   });
 
+  it("warns about a crewCount or droneList the game cannot read, and keeps loading", () => {
+    const ship = (body: string) => [
+      {
+        path: "data/blueprints.xml",
+        xml: `<FTL>
+  <crewBlueprint name="human"><title>Human</title></crewBlueprint>
+  <shipBlueprint name="ODD" layout="odd">${body}</shipBlueprint>
+</FTL>`,
+      },
+    ];
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      // ftl.dat's ghost ships: no crew, no class, nothing to warn about.
+      assert.equal(packFromFtl(ship(`<crewCount amount="0"/>`)).hulls?.[0]?.crewCounts, undefined);
+      assert.deepEqual(warnings, []);
+      assert.equal(packFromFtl(ship(`<crewCount amount="2"/>`)).hulls?.[0]?.crewCounts, undefined);
+      assert.equal(
+        packFromFtl(ship(`<crewCount class="human"/>`)).hulls?.[0]?.crewCounts,
+        undefined,
+      );
+      assert.deepEqual(
+        packFromFtl(ship(`<crewCount amount="1" max="2" class="ghost"/>`)).hulls?.[0]?.crewCounts,
+        [{ amount: 1, max: 2, class: "ghost" }],
+      );
+      assert.equal(packFromFtl(ship(`<droneList load="DRONES_STANDARD"/>`)).hulls?.[0]?.parts, 0);
+      // ftl.dat's BOSS_1: a droneList that names no drones needs no parts.
+      assert.equal(packFromFtl(ship(`<droneList count="0" missiles="2"/>`)).hulls?.[0]?.parts, 0);
+      assert.deepEqual(warnings, [
+        "shipBlueprint ODD: a crewCount of 2 names no class; it is skipped.",
+        "shipBlueprint ODD: a crewCount has no amount; it is skipped.",
+        'shipBlueprint ODD: crewCount class "ghost" is not a crewBlueprint.',
+        "shipBlueprint ODD: its droneList names drones but has no drones (parts) attribute; it carries 0 parts.",
+      ]);
+    } finally {
+      restore();
+    }
+  });
+
   it("reads a crew colorList, one list per layer", () => {
     const pack = packFromFtl([
       {
@@ -450,6 +504,7 @@ describe("packFromFtl", () => {
     assert.equal(kestrel?.parts, 0);
     assert.equal(kestrel?.fuel, 0);
     assert.equal(kestrel?.weaponSlots, 4);
+    assert.equal(kestrel?.weaponCount, 2);
     assert.equal(kestrel?.droneSlots, 2);
     assert.deepEqual(kestrel?.weapons, ["MISSILES_2_PLAYER", "LASER_BURST_3"]);
     assert.deepEqual(kestrel?.systems, {});
@@ -470,6 +525,10 @@ describe("packFromFtl", () => {
     assert.equal(boss?.grid, undefined);
     assert.equal(boss?.cruiser, "Rebel Flagship");
     assert.equal(boss?.weaponLoad, "WEAPONS_BOSS");
+    assert.equal(boss?.weaponCount, undefined);
+    assert.deepEqual(pack.blueprints, [
+      { id: "WEAPONS_BOSS", names: ["ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2"] },
+    ]);
     assert.deepEqual(boss?.augments, ["SLUG_GEL"]);
     assert.equal(boss?.installs?.find((row) => row.id === "artillery")?.weapon, "ARTILLERY_BOSS_1");
     assert.equal(boss?.installs?.find((row) => row.id === "doors")?.start, false);
@@ -594,6 +653,9 @@ describe("packFromFtl", () => {
       assert.equal(sector?.quotas?.[0]?.id, "STORE");
       assert.equal(eventDef("GIFT")?.reward?.name, "weapon");
       assert.equal(eventDef("GIFT")?.choices[0]?.choices?.[0]?.fx[0]?.k, "goto");
+      assert.equal(hull?.weaponCount, 2);
+      assert.deepEqual(blueprintList("WEAPONS_BOSS"), ["ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2"]);
+      assert.equal(blueprintList("NO_SUCH"), undefined);
     } finally {
       resetPackForTests();
     }

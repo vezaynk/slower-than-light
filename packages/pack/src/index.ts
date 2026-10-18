@@ -28,6 +28,7 @@ export type { AnimClip, AnimSheet, AnimationSet, WeaponAnim } from "./anim.ts";
 export { readBitmapFont, writeBitmapFont } from "./bitmap-font.ts";
 export type { BitmapFont, FontGlyph, FontStamp } from "./bitmap-font.ts";
 export { mergeSounds, readSounds } from "./sounds.ts";
+export { onPackWarning, warnPack, type PackWarningListener } from "./warnings.ts";
 export type { MusicTrack, SoundCue, SoundSet } from "./sounds.ts";
 export { parsePack } from "./parse.ts";
 export type { FtlBlueprintFile, FtlTextFile } from "./ftl.ts";
@@ -50,6 +51,7 @@ export {
   droneDef,
   emptyBeacon,
   eventDef,
+  blueprintList,
   fillerList,
   hullDef,
   loadPack,
@@ -107,6 +109,7 @@ export type {
   ArchiveGrant,
   ArchiveReward,
   ArchiveShip,
+  BlueprintListDef,
   HullCrewCount,
   HullCrewDef,
   HullDef,

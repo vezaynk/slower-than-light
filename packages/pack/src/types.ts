@@ -241,6 +241,12 @@ export type HullCrewCount = {
   max?: number;
 };
 
+/** One `<blueprintList>`. A ship names it from weaponList or droneList `load`. */
+export type BlueprintListDef = {
+  id: string;
+  names: string[];
+};
+
 /**
  * A kit fitted at the start of a run.
  * Power and the effect stay in the kit code. An id the ship cannot install is stored and then skipped.
@@ -311,8 +317,12 @@ export type HullDef = {
   drones?: string[];
   /** weaponList load id, when the ship names a list instead of each weapon. */
   weaponLoad?: string;
+  /** weaponList count. The generator stops after this many guns. */
+  weaponCount?: number;
   /** droneList load id. */
   droneLoad?: string;
+  /** droneList count. The generator stops after this many schematics. */
+  droneCount?: number;
   weaponSlots?: number;
   droneSlots?: number;
   minSector?: number;
@@ -818,6 +828,8 @@ export type ContentPack = {
   tunes?: TuneDef[];
   events?: EventDef[];
   lists?: FillerListDef[];
+  /** Named weapon and drone pools from `<blueprintList>`. */
+  blueprints?: BlueprintListDef[];
   empties?: EmptyBeaconDef[];
   /** Shared scrap scaling and resource bands. Absent until a pack loads one. */
   rewards?: RewardTable;

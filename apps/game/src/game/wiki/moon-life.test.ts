@@ -73,10 +73,10 @@ describe("Single life form on moon", () => {
   it("is a card a distress draw can reach", () => {
     assert.equal(pageForRow("Single life form on moon")?.slug, "single-life-form-on-moon");
     const g = createGame(1);
-    assert.deepEqual(open(g).choices.map((c) => c.id), [
-      "c:single-life-form-on-moon:0",
-      "c:single-life-form-on-moon:1",
-    ]);
+    assert.deepEqual(
+      open(g).choices.map((c) => c.id),
+      ["c:single-life-form-on-moon:0", "c:single-life-form-on-moon:1"],
+    );
   });
 
   it("ignoring the signal spends nothing", () => {
@@ -102,11 +102,17 @@ describe("Single life form on moon", () => {
       const body = g.event?.body ?? "";
       if (/lone survivor/.test(body)) {
         colony = true;
-        assert.deepEqual(g.event?.choices.map((c) => c.id), ["s:moon:invite", "s:moon:home"]);
+        assert.deepEqual(
+          g.event?.choices.map((c) => c.id),
+          ["s:moon:invite", "s:moon:home"],
+        );
       } else {
         cave = true;
         assert.match(body, /living alone in a cave/);
-        assert.deepEqual(g.event?.choices.map((c) => c.id), ["s:moon:bring", "s:moon:leave"]);
+        assert.deepEqual(
+          g.event?.choices.map((c) => c.id),
+          ["s:moon:bring", "s:moon:leave"],
+        );
       }
     }
     assert.equal(colony && cave, true);
@@ -137,7 +143,11 @@ describe("Single life form on moon", () => {
       const g = scene(seed, (game) => {
         while (game.crew.filter((c) => c.side === "player").length < 8) {
           const copy = game.crew[0];
-          game.crew.push({ ...copy, id: `fill-${game.crew.length}`, name: `Fill ${game.crew.length}` });
+          game.crew.push({
+            ...copy,
+            id: `fill-${game.crew.length}`,
+            name: `Fill ${game.crew.length}`,
+          });
         }
       });
       assert.ok(g);
@@ -209,7 +219,14 @@ describe("Single life form on moon", () => {
         joined = true;
         assert.match(body, /Charlie joins you/);
         assert.equal(g.crew.length, crew + 1);
-        assert.deepEqual(ranks(g, "Charlie"), { pilot: 0, engines: 0, weapons: 0, shields: 0, repair: 0, combat: 0 });
+        assert.deepEqual(ranks(g, "Charlie"), {
+          pilot: 0,
+          engines: 0,
+          weapons: 0,
+          shields: 0,
+          repair: 0,
+          combat: 0,
+        });
         assert.equal(g.player.hull, hull);
       } else if (/makeshift explosive/.test(body)) {
         blast = true;
@@ -221,7 +238,10 @@ describe("Single life form on moon", () => {
       } else {
         collapsed = true;
         assert.match(body, /collapses on the trip/);
-        assert.deepEqual(g.event?.choices.map((c) => c.id), ["s:moon:collapse-continue"]);
+        assert.deepEqual(
+          g.event?.choices.map((c) => c.id),
+          ["s:moon:collapse-continue"],
+        );
         assert.equal(g.crew.length, crew);
       }
     }
@@ -232,7 +252,16 @@ describe("Single life form on moon", () => {
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = scene(seed, (game) => {
-        game.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+        game.player.kits.clonebay = {
+          id: "clonebay",
+          level: 1,
+          power: 1,
+          left: 0,
+          cool: 0,
+          target: null,
+          on: false,
+          aux: 0,
+        };
       });
       assert.ok(g);
       if (!/living alone in a cave/.test(g.event?.body ?? "")) continue;
@@ -261,12 +290,22 @@ describe("Single life form on moon", () => {
       if (/living alone in a cave/.test(low.event?.body ?? "") && !improved) {
         improved = true;
         assert.ok(low.event?.choices.some((c) => c.id === "s:moon:medbay2"));
-        assert.equal(low.event?.choices.some((c) => c.id === "s:moon:medbay3"), false);
+        assert.equal(
+          low.event?.choices.some((c) => c.id === "s:moon:medbay3"),
+          false,
+        );
         const crew = low.crew.length;
         fillerChoose(low, "s:moon:medbay2");
         assert.match(low.event?.body ?? "", /Charlie joins you/);
         assert.equal(low.crew.length, crew + 1);
-        assert.deepEqual(ranks(low, "Charlie"), { pilot: 0, engines: 0, weapons: 0, shields: 0, repair: 0, combat: 0 });
+        assert.deepEqual(ranks(low, "Charlie"), {
+          pilot: 0,
+          engines: 0,
+          weapons: 0,
+          shields: 0,
+          repair: 0,
+          combat: 0,
+        });
       }
       const high = scene(seed, (game) => {
         game.player.systems.medbay.level = 3;
@@ -280,7 +319,14 @@ describe("Single life form on moon", () => {
         fillerChoose(high, "s:moon:medbay3");
         assert.match(high.event?.body ?? "", /Charlie joins you/);
         assert.equal(high.crew.length, crew + 1);
-        assert.deepEqual(ranks(high, "Charlie"), { pilot: 1, engines: 1, weapons: 1, shields: 1, repair: 1, combat: 1 });
+        assert.deepEqual(ranks(high, "Charlie"), {
+          pilot: 1,
+          engines: 1,
+          weapons: 1,
+          shields: 1,
+          repair: 1,
+          combat: 1,
+        });
       }
     }
     assert.equal(improved && advanced, true);
@@ -324,7 +370,16 @@ describe("Single life form on moon", () => {
       }
       bay = true;
       const cloned = scene(seed, (game) => {
-        game.player.kits.clonebay = { id: "clonebay", level: 2, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+        game.player.kits.clonebay = {
+          id: "clonebay",
+          level: 2,
+          power: 1,
+          left: 0,
+          cool: 0,
+          target: null,
+          on: false,
+          aux: 0,
+        };
       });
       assert.ok(cloned);
       fillerChoose(cloned, "s:moon:bring");
@@ -336,7 +391,10 @@ describe("Single life form on moon", () => {
       assert.equal(cloned.crew.length, crew + 1);
     }
     assert.equal(plain && med && bay, true);
-    assert.equal(choiceDisabled(createGame(1), "s:moon:collapse-clone"), "Needs a level 2 Clone Bay");
+    assert.equal(
+      choiceDisabled(createGame(1), "s:moon:collapse-clone"),
+      "Needs a level 2 Clone Bay",
+    );
   });
 
   it("a Slug assesses him and does not add an unnamed crewmember", () => {
@@ -354,7 +412,10 @@ describe("Single life form on moon", () => {
       fillerChoose(g, "s:moon:slug");
       const body = g.event?.body ?? "";
       assert.equal(g.crew.length, crew);
-      assert.deepEqual(g.crew.map((c) => c.name), names);
+      assert.deepEqual(
+        g.crew.map((c) => c.name),
+        names,
+      );
       assert.equal(g.scrap, 10);
       if (/good intentions/.test(body)) stay = true;
       else {

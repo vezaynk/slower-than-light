@@ -6,8 +6,10 @@ import { citedEvent } from "./cited-events.ts";
 import { fillerChoiceDisabled, fillerChoose, fillerEvent } from "./filler-events.ts";
 import { joinCrew } from "./surrender.ts";
 
-const CURE = "Your advanced medical suite is able to isolate the cause of the problem and administer an antidote. That was a close one.";
-const CLONE = "You stop your crew's clone from forming, knowing that the disease would follow into his next life.";
+const CURE =
+  "Your advanced medical suite is able to isolate the cause of the problem and administer an antidote. That was a close one.";
+const CLONE =
+  "You stop your crew's clone from forming, knowing that the disease would follow into his next life.";
 const SICK = /not going to make it/;
 
 function open(g: Game) {
@@ -45,7 +47,11 @@ function sick(setup?: (g: Game) => void): Game {
 describe("Plagued station", () => {
   it("shows the cure choice on the disease card and refuses it below a level 2 Medbay", () => {
     const g = sick();
-    assert.ok(g.event?.choices.some((c) => c.id === "s:plagued-station:cure" && c.label === "Try to cure the disease."));
+    assert.ok(
+      g.event?.choices.some(
+        (c) => c.id === "s:plagued-station:cure" && c.label === "Try to cure the disease.",
+      ),
+    );
     assert.ok(g.event?.choices.some((c) => c.id === "s:plagued-station:continue"));
     g.player.systems.medbay.level = 1;
     assert.equal(fillerChoiceDisabled(g, "s:plagued-station:cure"), "Needs a level 2 Medbay");
@@ -76,7 +82,10 @@ describe("Plagued station", () => {
     assert.equal(g.event?.body, CURE);
     assert.equal(/Nothing happens/.test(g.event?.body ?? ""), false);
     assert.equal(g.scrap, scrap);
-    assert.deepEqual(players(g).map((c) => c.id), crew);
+    assert.deepEqual(
+      players(g).map((c) => c.id),
+      crew,
+    );
     assert.equal(g.player.weapons.length, weapons);
     assert.deepEqual(g.augments, augments);
   });
@@ -97,7 +106,16 @@ describe("Plagued station", () => {
     assert.equal(plain.scrap, scrap);
 
     const cloned = sick((game) => {
-      game.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      game.player.kits.clonebay = {
+        id: "clonebay",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
     });
     assert.equal(joinCrew(cloned, "Human"), true);
     const crew = players(cloned).length;

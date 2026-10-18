@@ -17,7 +17,14 @@ import {
   shipAchievements,
   type UnlockState,
 } from "./unlocks.ts";
-import { getUnlocks, isUnlocked, noteUnlocks, resetUnlockMemory, resetUnlocks, unlockAll } from "./unlock-store.ts";
+import {
+  getUnlocks,
+  isUnlocked,
+  noteUnlocks,
+  resetUnlockMemory,
+  resetUnlocks,
+  unlockAll,
+} from "./unlock-store.ts";
 import { resetAchievementMemory } from "./wiki/achievement-track.ts";
 
 function run(hull: string, patch: Partial<Game> = {}): Game {
@@ -53,7 +60,8 @@ const start = emptyUnlocks();
 describe("ship unlocks (Ships, Layouts)", () => {
   it("starts with only the Kestrel A", () => {
     assert.deepEqual(start.ships, ["PLAYER_SHIP_HARD"]);
-    for (const hull of HULLS) assert.equal(isUnlockedIn(start, hull.id), hull.id === "PLAYER_SHIP_HARD", hull.id);
+    for (const hull of HULLS)
+      assert.equal(isUnlockedIn(start, hull.id), hull.id === "PLAYER_SHIP_HARD", hull.id);
   });
 
   it("has a rule and a page line for every hull", () => {
@@ -63,15 +71,30 @@ describe("ship unlocks (Ships, Layouts)", () => {
     }
     assert.deepEqual(
       A_RULES.map((r) => r.hull).sort(),
-      HULLS.filter((h) => h.layout === "A").map((h) => h.id).sort(),
+      HULLS.filter((h) => h.layout === "A")
+        .map((h) => h.id)
+        .sort(),
     );
   });
 
   it("unlocks the Engi Cruiser at sector 5 with any Kestrel layout, not before", () => {
     assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_HARD", { sector: 4 }), []), start);
-    assert.ok(deriveUnlocks(start, run("PLAYER_SHIP_HARD", { sector: 5 }), []).ships.includes("PLAYER_SHIP_CIRCLE"));
-    assert.ok(deriveUnlocks(start, run("PLAYER_SHIP_HARD_2", { sector: 5 }), []).ships.includes("PLAYER_SHIP_CIRCLE"));
-    assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_FED", { sector: 5 }), []).ships.includes("PLAYER_SHIP_CIRCLE"), false);
+    assert.ok(
+      deriveUnlocks(start, run("PLAYER_SHIP_HARD", { sector: 5 }), []).ships.includes(
+        "PLAYER_SHIP_CIRCLE",
+      ),
+    );
+    assert.ok(
+      deriveUnlocks(start, run("PLAYER_SHIP_HARD_2", { sector: 5 }), []).ships.includes(
+        "PLAYER_SHIP_CIRCLE",
+      ),
+    );
+    assert.equal(
+      deriveUnlocks(start, run("PLAYER_SHIP_FED", { sector: 5 }), []).ships.includes(
+        "PLAYER_SHIP_CIRCLE",
+      ),
+      false,
+    );
   });
 
   it("ignores the title placeholder", () => {
@@ -95,7 +118,10 @@ describe("ship unlocks (Ships, Layouts)", () => {
       assert.ok(after.wins.includes(hull));
     }
     // The Kestrel's win is not on any event page's parenthetical (sector 8 still passes the Engi's sector 5).
-    assert.deepEqual(deriveUnlocks(start, won("PLAYER_SHIP_HARD"), []).ships, ["PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE"]);
+    assert.deepEqual(deriveUnlocks(start, won("PLAYER_SHIP_HARD"), []).ships, [
+      "PLAYER_SHIP_HARD",
+      "PLAYER_SHIP_CIRCLE",
+    ]);
   });
 
   it("grants Layout A from an event outcome through the run (pure)", () => {
@@ -120,21 +146,53 @@ describe("ship unlocks (Ships, Layouts)", () => {
   it("unlocks Layout B with 2 of the 3 ship achievements", () => {
     const ids = shipAchievements("Kestrel Cruiser");
     assert.equal(ids.length, 3);
-    assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_HARD"), ids.slice(0, 1)).ships.includes("PLAYER_SHIP_HARD_2"), false);
-    assert.ok(deriveUnlocks(start, run("PLAYER_SHIP_HARD"), ids.slice(0, 2)).ships.includes("PLAYER_SHIP_HARD_2"));
+    assert.equal(
+      deriveUnlocks(start, run("PLAYER_SHIP_HARD"), ids.slice(0, 1)).ships.includes(
+        "PLAYER_SHIP_HARD_2",
+      ),
+      false,
+    );
+    assert.ok(
+      deriveUnlocks(start, run("PLAYER_SHIP_HARD"), ids.slice(0, 2)).ships.includes(
+        "PLAYER_SHIP_HARD_2",
+      ),
+    );
   });
 
   it("unlocks Layout C at sector 8 with Layout B only", () => {
-    assert.ok(deriveUnlocks(start, run("PLAYER_SHIP_ENERGY_2", { sector: 8 }), []).ships.includes("PLAYER_SHIP_ENERGY_3"));
-    assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_ENERGY_2", { sector: 7 }), []).ships.includes("PLAYER_SHIP_ENERGY_3"), false);
-    assert.equal(deriveUnlocks(start, run("PLAYER_SHIP_ENERGY", { sector: 8 }), []).ships.includes("PLAYER_SHIP_ENERGY_3"), false);
+    assert.ok(
+      deriveUnlocks(start, run("PLAYER_SHIP_ENERGY_2", { sector: 8 }), []).ships.includes(
+        "PLAYER_SHIP_ENERGY_3",
+      ),
+    );
+    assert.equal(
+      deriveUnlocks(start, run("PLAYER_SHIP_ENERGY_2", { sector: 7 }), []).ships.includes(
+        "PLAYER_SHIP_ENERGY_3",
+      ),
+      false,
+    );
+    assert.equal(
+      deriveUnlocks(start, run("PLAYER_SHIP_ENERGY", { sector: 8 }), []).ships.includes(
+        "PLAYER_SHIP_ENERGY_3",
+      ),
+      false,
+    );
     // Lanius and Crystal have no Layout C.
     const lanius = deriveUnlocks(start, run("PLAYER_SHIP_ANAEROBIC_2", { sector: 8 }), []);
     assert.equal(lanius.ships.includes("PLAYER_SHIP_ANAEROBIC_3"), false);
   });
 
   it("unlocks the Lanius after 4 cruisers besides the Kestrel", () => {
-    const three: UnlockState = { ships: ["PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE", "PLAYER_SHIP_FED", "PLAYER_SHIP_ENERGY", "PLAYER_SHIP_HARD_2"], wins: [] };
+    const three: UnlockState = {
+      ships: [
+        "PLAYER_SHIP_HARD",
+        "PLAYER_SHIP_CIRCLE",
+        "PLAYER_SHIP_FED",
+        "PLAYER_SHIP_ENERGY",
+        "PLAYER_SHIP_HARD_2",
+      ],
+      wins: [],
+    };
     assert.equal(deriveUnlocks(three, run("PLAYER_SHIP_HARD"), []), three);
     const g = run("PLAYER_SHIP_HARD");
     grantUnlock(g, "PLAYER_SHIP_MANTIS");
@@ -145,10 +203,15 @@ describe("ship unlocks (Ships, Layouts)", () => {
     const cruisers = [...new Set(HULLS.map((h) => h.cruiser))].filter(
       (c) => c !== "Lanius Cruiser" && c !== "Crystal Cruiser",
     );
-    const wins = HULLS.filter((h) => cruisers.includes(h.cruiser) && h.layout !== "C").map((h) => h.id);
+    const wins = HULLS.filter((h) => cruisers.includes(h.cruiser) && h.layout !== "C").map(
+      (h) => h.id,
+    );
     const most: UnlockState = { ships: ["PLAYER_SHIP_HARD"], wins: wins.slice(1) };
     const missing = HULLS.find((h) => h.id === wins[0])!;
-    assert.equal(deriveUnlocks(most, run("PLAYER_SHIP_HARD"), []).ships.includes("PLAYER_SHIP_CRYSTAL"), false);
+    assert.equal(
+      deriveUnlocks(most, run("PLAYER_SHIP_HARD"), []).ships.includes("PLAYER_SHIP_CRYSTAL"),
+      false,
+    );
     assert.ok(deriveUnlocks(most, won(missing.id), []).ships.includes("PLAYER_SHIP_CRYSTAL"));
   });
 
@@ -161,14 +224,24 @@ describe("ship unlocks (Ships, Layouts)", () => {
   it("records the difficulty of a Flagship win", () => {
     const easy = deriveUnlocks(
       start,
-      run("PLAYER_SHIP_HARD", { phase: "victory", outcome: "victory", sector: 8, difficulty: "easy" }),
+      run("PLAYER_SHIP_HARD", {
+        phase: "victory",
+        outcome: "victory",
+        sector: 8,
+        difficulty: "easy",
+      }),
       [],
     );
     assert.deepEqual(easy.boss, ["easy"]);
     assert.ok(easy.wins.includes("PLAYER_SHIP_HARD"));
     const both = deriveUnlocks(
       easy,
-      run("PLAYER_SHIP_CIRCLE", { phase: "victory", outcome: "victory", sector: 8, difficulty: "normal" }),
+      run("PLAYER_SHIP_CIRCLE", {
+        phase: "victory",
+        outcome: "victory",
+        sector: 8,
+        difficulty: "normal",
+      }),
       [],
     );
     assert.deepEqual(both.boss, ["easy", "normal"]);
@@ -184,10 +257,13 @@ describe("ship unlocks (Ships, Layouts)", () => {
   it("reads bad storage as the start state", () => {
     assert.deepEqual(parseUnlocks(null), start);
     assert.deepEqual(parseUnlocks("{nope"), start);
-    assert.deepEqual(parseUnlocks(JSON.stringify({ ships: ["PLAYER_SHIP_CIRCLE", "bogus", 4], wins: "x" })), {
-      ships: ["PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE"],
-      wins: [],
-    });
+    assert.deepEqual(
+      parseUnlocks(JSON.stringify({ ships: ["PLAYER_SHIP_CIRCLE", "bogus", 4], wins: "x" })),
+      {
+        ships: ["PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE"],
+        wins: [],
+      },
+    );
   });
 });
 

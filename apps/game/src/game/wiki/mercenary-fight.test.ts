@@ -24,7 +24,11 @@ describe("The Mercenary fight", () => {
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "the-mercenary");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle."));
+    assert.ok(
+      g.log.includes(
+        "Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle.",
+      ),
+    );
   });
 
   it("hiring shows the printed mask sentence and delays the fleet", () => {

@@ -139,7 +139,10 @@ const VENT_SCALE = 100 / (100 - SPACE_O2);
  * A room's own opening to space, as a share of an open airlock: 1 with an airlock open, else BREACH_C / AIRLOCK_C per
  * breach or Lanius (a small hole), at most 1.
  */
-function ownOpening(ship: Pick<Ship, "rooms" | "doors">, lanius?: ReadonlyMap<string, number>): Map<string, number> {
+function ownOpening(
+  ship: Pick<Ship, "rooms" | "doors">,
+  lanius?: ReadonlyMap<string, number>,
+): Map<string, number> {
   const out = new Map<string, number>();
   for (const r of ship.rooms) {
     const holes = r.breach + (lanius?.get(r.id) ?? 0);
@@ -200,10 +203,12 @@ export function stepAir(ship: Ship, input: AirInputs, dt: number): void {
     const v = volume(r);
     r.o2 += refill * dt;
     // Breathing and fire use air that is there: they stop at 0%. Only space drives a room below that.
-    const used = (((input.breathers.get(r.id) ?? 0) * BREATH_PER_CREW + r.fire * FIRE_BURN) * dt) / v;
+    const used =
+      (((input.breathers.get(r.id) ?? 0) * BREATH_PER_CREW + r.fire * FIRE_BURN) * dt) / v;
     if (r.o2 > 0) r.o2 = Math.max(0, r.o2 - used);
     // The hull leak: HULL_LEAK %/s from a full room, toward the room's floor (-50% only while airlock-drained).
-    if (drained.has(r.id)) r.o2 = SPACE_O2 + (r.o2 - SPACE_O2) * Math.exp((-HULL_LEAK / (100 - SPACE_O2)) * dt);
+    if (drained.has(r.id))
+      r.o2 = SPACE_O2 + (r.o2 - SPACE_O2) * Math.exp((-HULL_LEAK / (100 - SPACE_O2)) * dt);
     else r.o2 *= Math.exp((-HULL_LEAK / 100) * dt);
     r.o2 = Math.max(floor(r), Math.min(100, r.o2));
   }

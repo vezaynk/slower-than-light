@@ -16,7 +16,8 @@
  * INFERRED as the encoding only.
  */
 
-export type KinId = "human" | "engi" | "energy" | "mantis" | "slug" | "rock" | "anaerobic" | "crystal";
+export type KinId =
+  "human" | "engi" | "energy" | "mantis" | "slug" | "rock" | "anaerobic" | "crystal";
 
 export type Kin = {
   name: string;

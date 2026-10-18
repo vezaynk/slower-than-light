@@ -24,7 +24,16 @@ import {
 } from "./augments.ts";
 
 /** Sold rows only. medbot, gel, pheromone, booster, vengeance, stasis, and zshield have no purchase price and are not in CATALOG. */
-type CatalogId = Exclude<AugmentId, "NANO_MEDBAY" | "SLUG_GEL" | "CREW_STIMS" | "DRONE_SPEED" | "CRYSTAL_SHARDS" | "STASIS_POD" | "ENERGY_SHIELD">;
+type CatalogId = Exclude<
+  AugmentId,
+  | "NANO_MEDBAY"
+  | "SLUG_GEL"
+  | "CREW_STIMS"
+  | "DRONE_SPEED"
+  | "CRYSTAL_SHARDS"
+  | "STASIS_POD"
+  | "ENERGY_SHIELD"
+>;
 
 const NAMES: Record<CatalogId, string> = {
   AUTO_COOLDOWN: "Automated Re-loader",
@@ -280,7 +289,14 @@ describe("augments", () => {
     assert.equal(scanMark(g, rock).hazard, true);
     assert.equal(scanMark(g, rock).ship, false);
 
-    for (const flag of ["sun", "Red Giant", "PULSAR", "plasma storm", "Ion Storm", "asteroid field"]) {
+    for (const flag of [
+      "sun",
+      "Red Giant",
+      "PULSAR",
+      "plasma storm",
+      "Ion Storm",
+      "asteroid field",
+    ]) {
       const marked = scanMark(g, { kind: "empty", asteroid: false, flag, name: "Beacon" });
       assert.equal(marked.hazard, true, flag);
       assert.equal(marked.ship, false, flag);
@@ -313,9 +329,27 @@ describe("augments", () => {
   it("marks a ship on quest markers whose pages say a ship is there", () => {
     const g = createGame(1);
     const beacon = { kind: "event" as const, asteroid: false, flag: "", name: "Quest" };
-    const ships = ["zoltan-peace", "fed-assist", "capture-ship", "engi-real", "engi-fake", "engi-final", "rock-sun", "rock-shipyard", "mantis-chase"];
-    const dark = ["merchant-delivery", "fed-base", "slug-pirate-trap", "rock-bride", "slug-platform", "space-station"];
-    for (const quest of [...ships, ...dark]) assert.equal(scanMark(g, { ...beacon, quest }).ship, false, quest);
+    const ships = [
+      "zoltan-peace",
+      "fed-assist",
+      "capture-ship",
+      "engi-real",
+      "engi-fake",
+      "engi-final",
+      "rock-sun",
+      "rock-shipyard",
+      "mantis-chase",
+    ];
+    const dark = [
+      "merchant-delivery",
+      "fed-base",
+      "slug-pirate-trap",
+      "rock-bride",
+      "slug-platform",
+      "space-station",
+    ];
+    for (const quest of [...ships, ...dark])
+      assert.equal(scanMark(g, { ...beacon, quest }).ship, false, quest);
     g.augments = ["ADV_SCANNERS"];
     for (const quest of ships) assert.equal(scanMark(g, { ...beacon, quest }).ship, true, quest);
     for (const quest of dark) assert.equal(scanMark(g, { ...beacon, quest }).ship, false, quest);
@@ -421,7 +455,14 @@ describe("augments", () => {
     assert.equal(ivo.hp, before + 1.6);
 
     g.player.kits.clonebay = undefined;
-    const boarder = { ...nen, id: "c-foe", side: "enemy" as const, hp: 10, maxHp: 100, room: "p-weapons" };
+    const boarder = {
+      ...nen,
+      id: "c-foe",
+      side: "enemy" as const,
+      hp: 10,
+      maxHp: 100,
+      room: "p-weapons",
+    };
     g.crew.push(boarder);
     tickSquall(g, 1);
     assert.equal(ivo.hp, before + 1.6 + 1.6);
@@ -636,7 +677,8 @@ describe("Emergency Respirators", () => {
     assert.ok(room && elsewhere);
     const foe = g.crew.filter((c) => c.side === "enemy");
     assert.ok(foe.length >= 2);
-    for (const c of g.crew) if (c !== foe[0] && c !== foe[1] && c.room === room.id) c.room = elsewhere.id;
+    for (const c of g.crew)
+      if (c !== foe[0] && c !== foe[1] && c.room === room.id) c.room = elsewhere.id;
     foe[0].kin = "human";
     foe[1].kin = "human";
     foe[0].lungs = true;

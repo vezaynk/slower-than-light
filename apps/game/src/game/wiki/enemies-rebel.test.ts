@@ -56,7 +56,9 @@ describe("rebel and auto wiki rows", () => {
   it("keeps each pirate twin on the rebel heading that names it", () => {
     const pirates = ["Pirate Fighter", "Pirate Invader", "Pirate Rigger", "Pirate Disruptor"];
     for (const pirate of pirates) {
-      const hits = REBEL_ROWS.filter((row) => row.name.includes(pirate) || row.notes.some((note) => note.includes(pirate)));
+      const hits = REBEL_ROWS.filter(
+        (row) => row.name.includes(pirate) || row.notes.some((note) => note.includes(pirate)),
+      );
       assert.equal(hits.length, 1, pirate);
     }
     assert.equal(

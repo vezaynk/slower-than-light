@@ -66,7 +66,8 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
       ["PLAYER_SHIP_FED", "artillery", "p-artillery"],
       ["PLAYER_SHIP_HARD_3", "clonebay", "p-clone"],
     ];
-    for (const [hull, kit, room] of want) assert.equal(kitRoom(createGame(3, hull), kit)?.id, room, `${hull} ${kit}`);
+    for (const [hull, kit, room] of want)
+      assert.equal(kitRoom(createGame(3, hull), kit)?.id, room, `${hull} ${kit}`);
   });
 
   it("keeps Teleporter rooms at 2 tiles except Mantis B, Mantis C and Crystal B (Crew Teleporter)", () => {
@@ -82,7 +83,8 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     for (const h of HULLS) {
       const laid = seatLayout(layoutFor(h.id)!, Object.keys(h.kits) as KitId[]);
       const g = createGame(3, h.id);
-      for (const r of laid.rooms) assert.equal(g.player.rooms.find((o) => o.id === r.id)?.kit, r.kit, `${h.id} ${r.id}`);
+      for (const r of laid.rooms)
+        assert.equal(g.player.rooms.find((o) => o.id === r.id)?.kit, r.kit, `${h.id} ${r.id}`);
     }
   });
 
@@ -101,12 +103,27 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
   });
 
   it("keeps a room for every system a store sells on every traced hull (Systems: one predetermined room)", () => {
-    const titles = ["Shields", "Sensors", "Doors", "Teleporter", "Cloaking", "Hacking", "Mind Control", "Drones", "Backup Battery"];
+    const titles = [
+      "Shields",
+      "Sensors",
+      "Doors",
+      "Teleporter",
+      "Cloaking",
+      "Hacking",
+      "Mind Control",
+      "Drones",
+      "Backup Battery",
+    ];
     for (const h of HULLS) {
       const rooms = layoutFor(h.id)!.rooms;
       const kept = (r: { title: string; reserve?: string }) => r.reserve ?? r.title;
-      for (const t of titles) assert.equal(rooms.filter((r) => kept(r) === t).length, 1, `${h.id} ${t}`);
-      assert.equal(rooms.filter((r) => kept(r) === "Medbay" || kept(r) === "Clone Bay").length, 1, `${h.id} medical`);
+      for (const t of titles)
+        assert.equal(rooms.filter((r) => kept(r) === t).length, 1, `${h.id} ${t}`);
+      assert.equal(
+        rooms.filter((r) => kept(r) === "Medbay" || kept(r) === "Clone Bay").length,
+        1,
+        `${h.id} medical`,
+      );
     }
   });
 
@@ -160,7 +177,16 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
 
   it("seats a Clone Bay in the pale Medbay room of a hull with no medical system", () => {
     const g = createGame(3, "PLAYER_SHIP_JELLY_2");
-    g.player.kits.clonebay = { id: "clonebay", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.clonebay = {
+      id: "clonebay",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     seatKits(g.player);
     assert.equal(kitRoom(g, "clonebay")?.id, "p-medbay");
   });
@@ -178,7 +204,9 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     assert.ok(g.player.doors.some((d) => d.b === veil.id && d.a === "p-doors"));
     assert.ok(g.player.doors.some((d) => d.a === veil.id && d.b === sling.id));
     assert.ok(g.player.doors.some((d) => d.a === sling.id && d.b === "void"));
-    const grown = g.player.doors.filter((d) => d.a === veil.id || d.b === veil.id || d.a === sling.id || d.b === sling.id);
+    const grown = g.player.doors.filter(
+      (d) => d.a === veil.id || d.b === veil.id || d.a === sling.id || d.b === sling.id,
+    );
     assert.ok(grown.every((d) => !d.open));
   });
 

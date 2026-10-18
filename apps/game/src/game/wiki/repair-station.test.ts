@@ -4,8 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  `You see a small station fitted with hundreds of Repair drones. You receive an automated message, "We don't know who you are and we don't care, but this is the right place for some ship repair!"`;
+const BODY = `You see a small station fitted with hundreds of Repair drones. You receive an automated message, "We don't know who you are and we don't care, but this is the right place for some ship repair!"`;
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -23,7 +22,13 @@ describe("Repair station", () => {
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:repair-station:0"), true);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:repair-station:3"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:repair-station:0"),
+      true,
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:repair-station:3"),
+      true,
+    );
   });
 });

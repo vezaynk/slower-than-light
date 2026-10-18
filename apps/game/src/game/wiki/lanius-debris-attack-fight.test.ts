@@ -24,6 +24,10 @@ describe("Lanius ship in rich debris field attack fight", () => {
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-in-rich-debris-field");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("You go on the offensive and power up your weapons - with any luck, you'll soon have the mineral field all to yourself."));
+    assert.ok(
+      g.log.includes(
+        "You go on the offensive and power up your weapons - with any luck, you'll soon have the mineral field all to yourself.",
+      ),
+    );
   });
 });

@@ -34,7 +34,10 @@ describe("Auto-ship near radar station", () => {
   it("approaching starts an Auto-ship fight, and waiting does nothing", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-near-radar-station:2"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:auto-ship-near-radar-station:2"),
+      true,
+    );
     choose(g, "c:auto-ship-near-radar-station:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-near-radar-station");
@@ -65,7 +68,10 @@ describe("Auto-ship near radar station", () => {
     assert.equal(g.player.weapons.length, guns);
     assert.equal(g.player.parts, 3);
     for (const id of ["q:auto-radar:hack", "q:auto-radar:leave", "q:auto-radar:drone"]) {
-      assert.equal(g.event?.choices.some((c) => c.id === id), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === id),
+        true,
+      );
     }
 
     const killed = createGame(2);
@@ -129,7 +135,10 @@ describe("Auto-ship near radar station", () => {
       const body = g.event?.body ?? "";
       assert.equal(g.scrap, 10);
       assert.equal(g.player.parts, 3);
-      assert.deepEqual(g.beacons.map((b) => b.visited), seenMap);
+      assert.deepEqual(
+        g.beacons.map((b) => b.visited),
+        seenMap,
+      );
       if (body.includes("delayed for 1 turn")) {
         seen.add("delay");
         assert.equal(g.fleet, 4);
@@ -183,6 +192,9 @@ describe("Auto-ship near radar station", () => {
     assert.match(g.event?.body ?? "", /download data about the surrounding beacons/);
     assert.match(g.event?.body ?? "", /delayed for 1 turn/);
     assert.equal(g.scrap, 10);
-    assert.deepEqual(g.beacons.map((b) => b.visited), seenMap);
+    assert.deepEqual(
+      g.beacons.map((b) => b.visited),
+      seenMap,
+    );
   });
 });

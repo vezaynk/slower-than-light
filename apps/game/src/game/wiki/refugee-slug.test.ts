@@ -21,14 +21,18 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Refugee (Slug)", () => {
   it("is a slug nebula card with hail and ignore", () => {
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee (Slug)]]
-    const pages = citedPagesFor("Slug Controlled Nebula").filter((p) => p.dest === "Refugee (Slug)");
+    const pages = citedPagesFor("Slug Controlled Nebula").filter(
+      (p) => p.dest === "Refugee (Slug)",
+    );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["Slug Controlled Nebula", "Slug Home Nebula"]);
     const home = citedPagesFor("Slug Home Nebula").some((p) => p.dest === "Refugee (Slug)");

@@ -18,7 +18,12 @@ describe("Per the user (bug): a powered starting cloak is ready, not cooling", (
   });
 
   it("starts every activated system idle", () => {
-    for (const hull of ["PLAYER_SHIP_MANTIS", "PLAYER_SHIP_JELLY", "PLAYER_SHIP_ANAEROBIC_2", "PLAYER_SHIP_CRYSTAL"]) {
+    for (const hull of [
+      "PLAYER_SHIP_MANTIS",
+      "PLAYER_SHIP_JELLY",
+      "PLAYER_SHIP_ANAEROBIC_2",
+      "PLAYER_SHIP_CRYSTAL",
+    ]) {
       const g = createGame(1, hull);
       for (const id of ["cloaking", "teleporter", "mind", "hacking", "battery"] as const) {
         const kit = g.player.kits[id];

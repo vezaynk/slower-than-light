@@ -77,10 +77,15 @@ function kinds(g: Game) {
 
 describe("cited stores", () => {
   it("offers missing shields at 125 and spends that scrap once", () => {
-    const g = openStore(4, (game) => {
-      game.player.systems.shields.level = 0;
-      game.player.systems.shields.power = 2;
-    }, (stock) => stock.some((item) => item.kind === "drone") && stock.some((item) => item.kind === "system"));
+    const g = openStore(
+      4,
+      (game) => {
+        game.player.systems.shields.level = 0;
+        game.player.systems.shields.power = 2;
+      },
+      (stock) =>
+        stock.some((item) => item.kind === "drone") && stock.some((item) => item.kind === "system"),
+    );
     const fuel = g.stock?.find((item) => item.kind === "fuel");
     const missiles = g.stock?.find((item) => item.kind === "missiles");
     const parts = g.stock?.find((item) => item.kind === "parts");
@@ -131,11 +136,17 @@ describe("cited stores", () => {
     // "A medical system is guaranteed if you don't have one."
     const seen = new Set<string>();
     for (const seed of [6, 16, 26, 36, 46, 56]) {
-      const g = openStore(seed, (game) => {
-        game.player.systems.medbay.level = 0;
-        game.player.systems.medbay.power = 1;
-      }, (stock) => stock.some((item) => item.kind === "system"));
-      const medical = (g.stock ?? []).filter((item) => item.ref === "medbay" || item.ref === "clonebay");
+      const g = openStore(
+        seed,
+        (game) => {
+          game.player.systems.medbay.level = 0;
+          game.player.systems.medbay.power = 1;
+        },
+        (stock) => stock.some((item) => item.kind === "system"),
+      );
+      const medical = (g.stock ?? []).filter(
+        (item) => item.ref === "medbay" || item.ref === "clonebay",
+      );
       assert.equal(medical.length, 1);
       assert.equal(medical[0].cost, 50);
       seen.add(medical[0].ref);
@@ -149,19 +160,28 @@ describe("cited stores", () => {
   });
 
   it("lists the other priced systems only while missing, and not artillery", () => {
-    const g = openStore(7, (game) => {
-      game.player.systems.shields.level = 0;
-      game.player.systems.medbay.level = 0;
-      game.player.systems.sensors.level = 0;
-      game.player.systems.doors.level = 0;
-      game.player.systems.oxygen.level = 0;
-      game.player.systems.weapons.level = 0;
-      game.player.kits = {};
-    }, (stock) => stock.some((item) => item.kind === "system") && !stock.some((item) => item.kind === "drone"));
+    const g = openStore(
+      7,
+      (game) => {
+        game.player.systems.shields.level = 0;
+        game.player.systems.medbay.level = 0;
+        game.player.systems.sensors.level = 0;
+        game.player.systems.doors.level = 0;
+        game.player.systems.oxygen.level = 0;
+        game.player.systems.weapons.level = 0;
+        game.player.kits = {};
+      },
+      (stock) =>
+        stock.some((item) => item.kind === "system") &&
+        !stock.some((item) => item.kind === "drone"),
+    );
     // Piloting, "Overview": a jump needs a pilot and powered engines, so they come off after arriving.
     g.player.systems.engines.level = 0;
     g.player.systems.pilot.level = 0;
-    assert.equal(citedStock(g).some((item) => item.kind === "system" && item.ref === "engines"), false);
+    assert.equal(
+      citedStock(g).some((item) => item.kind === "system" && item.ref === "engines"),
+      false,
+    );
     const systems = (g.stock ?? []).filter((item) => item.kind === "system");
     const byName = Object.fromEntries(systems.map((item) => [item.name, item.cost]));
     // Shields and one medical system are guaranteed. The third is a random missing non-medical system.
@@ -170,7 +190,10 @@ describe("cited stores", () => {
     const medical = systems.filter((item) => item.ref === "medbay" || item.ref === "clonebay");
     assert.equal(medical.length, 1);
     assert.equal(medical[0].cost, 50);
-    assert.equal(systems.some((item) => item.ref === "engines" || item.ref === "artillery"), false);
+    assert.equal(
+      systems.some((item) => item.ref === "engines" || item.ref === "artillery"),
+      false,
+    );
 
     g.scrap = 50;
     buy(g, medical[0].id);
@@ -242,10 +265,34 @@ describe("cited stores", () => {
     assert.equal(BUNDLE_PATCH, 75);
     assert.equal(BUNDLE_OTHER, 85);
     const cases = [
-      { seed: 0, id: "sys-drones-REPAIR", detail: "System Repair Drone", cost: 75, target: "REPAIR" },
-      { seed: 1, id: "sys-drones-DEFENSE_1", detail: "Defense Drone Mark I", cost: 85, target: "DEFENSE_1" },
-      { seed: 2, id: "sys-drones-COMBAT_1", detail: "Combat Drone Mark I", cost: 85, target: "COMBAT_1" },
-      { seed: -1, id: "sys-drones-COMBAT_1", detail: "Combat Drone Mark I", cost: 85, target: "COMBAT_1" },
+      {
+        seed: 0,
+        id: "sys-drones-REPAIR",
+        detail: "System Repair Drone",
+        cost: 75,
+        target: "REPAIR",
+      },
+      {
+        seed: 1,
+        id: "sys-drones-DEFENSE_1",
+        detail: "Defense Drone Mark I",
+        cost: 85,
+        target: "DEFENSE_1",
+      },
+      {
+        seed: 2,
+        id: "sys-drones-COMBAT_1",
+        detail: "Combat Drone Mark I",
+        cost: 85,
+        target: "COMBAT_1",
+      },
+      {
+        seed: -1,
+        id: "sys-drones-COMBAT_1",
+        detail: "Combat Drone Mark I",
+        cost: 85,
+        target: "COMBAT_1",
+      },
     ];
     for (const row of cases) {
       const g = createGame(1);
@@ -307,7 +354,8 @@ describe("cited stores", () => {
       if (sections[0] === "systems") systemsFirst++;
     }
     assert.deepEqual([...counts.keys()].sort(), [2, 3, 4]);
-    for (const n of [2, 3, 4]) assert.ok(Math.abs((counts.get(n) ?? 0) / N - 1 / 3) < 0.05, String(n));
+    for (const n of [2, 3, 4])
+      assert.ok(Math.abs((counts.get(n) ?? 0) / N - 1 / 3) < 0.05, String(n));
     // 50% from the coin, plus a few rolled systems first after a miss.
     assert.ok(systemsFirst / N > 0.5 && systemsFirst / N < 0.65, String(systemsFirst / N));
     const items = citedStock(reseed(g, rolls("systems", "drones", "augments")));
@@ -329,7 +377,9 @@ describe("cited stores", () => {
     const small = createGame(3);
     const big = createGame(3);
     ownEveryPricedSystem(big);
-    const count = Object.values(big.player.systems).filter((x) => x.level > 0).length + Object.keys(big.player.kits).length;
+    const count =
+      Object.values(big.player.systems).filter((x) => x.level > 0).length +
+      Object.keys(big.player.kits).length;
     assert.ok(count >= 11, String(count));
     // Below 11: the coin plus a random first pick (1 in 5). At 11 or more: only the random pick.
     assert.ok(share(small) > 0.5, String(share(small)));
@@ -342,7 +392,8 @@ describe("cited stores", () => {
     for (let i = 0; i < 2000; i++) {
       g.seed = i * 104729 + 3;
       const sections = storeSections(g);
-      if (!sections.includes("systems")) assert.equal(sections.includes("drones"), false, sections.join());
+      if (!sections.includes("systems"))
+        assert.equal(sections.includes("drones"), false, sections.join());
     }
     g.player.kits.drones = kit("drones", 2);
     reseed(g, (x) => storeSections(x).includes("drones") && !storeSections(x).includes("systems"));
@@ -405,10 +456,14 @@ describe("cited stores", () => {
   });
 
   it("replaces medbay with a clone bay and keeps the level, without a new room or power bar", () => {
-    const g = openStore(11, (game) => {
-      game.player.systems.medbay.level = 3;
-      game.player.systems.medbay.power = 2;
-    }, (stock) => stock.some((item) => item.ref === "clonebay"));
+    const g = openStore(
+      11,
+      (game) => {
+        game.player.systems.medbay.level = 3;
+        game.player.systems.medbay.power = 2;
+      },
+      (stock) => stock.some((item) => item.ref === "clonebay"),
+    );
     const rooms = g.player.rooms.length;
     const reactor = g.player.reactor;
     const bay = g.stock?.find((item) => item.ref === "clonebay");
@@ -426,12 +481,16 @@ describe("cited stores", () => {
   });
 
   it("replaces a clone bay with a medbay and keeps the level", () => {
-    const g = openStore(12, (game) => {
-      game.player.systems.medbay.level = 0;
-      game.player.systems.medbay.power = 1;
-      game.player.kits.clonebay = kit("clonebay", 4);
-      game.player.kits.clonebay.power = 2;
-    }, (stock) => stock.some((item) => item.ref === "medbay"));
+    const g = openStore(
+      12,
+      (game) => {
+        game.player.systems.medbay.level = 0;
+        game.player.systems.medbay.power = 1;
+        game.player.kits.clonebay = kit("clonebay", 4);
+        game.player.kits.clonebay.power = 2;
+      },
+      (stock) => stock.some((item) => item.ref === "medbay"),
+    );
     const medbay = g.stock?.find((item) => item.ref === "medbay");
     assert.ok(medbay);
     assert.equal(medbay.cost, 50);
@@ -507,7 +566,11 @@ describe("cited stores", () => {
       mount("ARTILLERY_BOSS_2"),
     ];
     g.augments = ["AUTO_COOLDOWN", "AUTO_COOLDOWN", "CREW_STIMS", "SLUG_GEL"];
-    const scrap = Object.fromEntries(citedSellQuote(g).filter((quote) => quote.kind === "weapon").map((quote) => [quote.ref, quote.scrap]));
+    const scrap = Object.fromEntries(
+      citedSellQuote(g)
+        .filter((quote) => quote.kind === "weapon")
+        .map((quote) => [quote.ref, quote.scrap]),
+    );
     assert.deepEqual(scrap, {
       LASER_BURST_2: 12,
       LASER_HEAVY_1_SP: 27,
@@ -620,7 +683,9 @@ describe("cited stores", () => {
       false,
     );
     assert.equal(
-      citedStock(fitted).some((item) => item.ref === "DRONE_SHIELD_PLAYER" || item.ref === "firedrone"),
+      citedStock(fitted).some(
+        (item) => item.ref === "DRONE_SHIELD_PLAYER" || item.ref === "firedrone",
+      ),
       false,
     );
   });
@@ -683,9 +748,33 @@ describe("cited stores", () => {
     engi.player.kits.drones = kit("drones", 3);
     engi.player.kits.drones.target = "COMBAT_1";
     engi.stock = [
-      { id: "d-beam", kind: "drone", ref: "COMBAT_BEAM", name: "Anti-Ship Beam Drone I", detail: "", cost: 50, amount: 1 },
-      { id: "d-hull", kind: "drone", ref: "SHIP_REPAIR", name: "Hull Repair Drone", detail: "", cost: 85, amount: 1 },
-      { id: "d-board", kind: "drone", ref: "BOARDER", name: "Boarding Drone", detail: "", cost: 70, amount: 1 },
+      {
+        id: "d-beam",
+        kind: "drone",
+        ref: "COMBAT_BEAM",
+        name: "Anti-Ship Beam Drone I",
+        detail: "",
+        cost: 50,
+        amount: 1,
+      },
+      {
+        id: "d-hull",
+        kind: "drone",
+        ref: "SHIP_REPAIR",
+        name: "Hull Repair Drone",
+        detail: "",
+        cost: 85,
+        amount: 1,
+      },
+      {
+        id: "d-board",
+        kind: "drone",
+        ref: "BOARDER",
+        name: "Boarding Drone",
+        detail: "",
+        cost: 70,
+        amount: 1,
+      },
     ];
     engi.scrap = 205;
     buy(engi, "d-beam");
@@ -702,7 +791,15 @@ describe("cited stores", () => {
     vortex.player.kits.drones = kit("drones", 3);
     vortex.player.kits.drones.loadout = ["REPAIR", "REPAIR"];
     vortex.stock = [
-      { id: "d-hull", kind: "drone", ref: "SHIP_REPAIR", name: "Hull Repair Drone", detail: "", cost: 85, amount: 1 },
+      {
+        id: "d-hull",
+        kind: "drone",
+        ref: "SHIP_REPAIR",
+        name: "Hull Repair Drone",
+        detail: "",
+        cost: 85,
+        amount: 1,
+      },
     ];
     vortex.scrap = 85;
     buy(vortex, "d-hull");
@@ -756,11 +853,16 @@ describe("Hidden Crystal Worlds stock", () => {
   const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
 
   it("sells two crystal weapons and only a Crystal crewmember", () => {
-    const g = openStore(8, (game) => {
-      game.sectorName = "Hidden Crystal Worlds";
-      ownEveryPricedSystem(game);
-      game.augments = ["AUTO_COOLDOWN", "EXPLOSIVE_REPLICATOR", "CLOAK_FIRE"];
-    }, (stock) => stock.some((item) => item.kind === "weapon") && stock.some((item) => item.kind === "crew"));
+    const g = openStore(
+      8,
+      (game) => {
+        game.sectorName = "Hidden Crystal Worlds";
+        ownEveryPricedSystem(game);
+        game.augments = ["AUTO_COOLDOWN", "EXPLOSIVE_REPLICATOR", "CLOAK_FIRE"];
+      },
+      (stock) =>
+        stock.some((item) => item.kind === "weapon") && stock.some((item) => item.kind === "crew"),
+    );
     const guns = (g.stock ?? []).filter((item) => item.kind === "weapon");
     assert.deepEqual(
       guns.map((item) => item.ref),

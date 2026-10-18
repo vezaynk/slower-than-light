@@ -60,7 +60,9 @@ describe("hazard backdrop", () => {
     const open = skyScene(sky({ player: { storm: true } }));
     assert.equal(open.storm, true);
     assert.equal(open.planet, true);
-    const swallowed = skyScene(sky({ beacons: [{ id: "a", kind: "nebula" }], player: { storm: true } }));
+    const swallowed = skyScene(
+      sky({ beacons: [{ id: "a", kind: "nebula" }], player: { storm: true } }),
+    );
     assert.equal(swallowed.storm, true);
     assert.equal(swallowed.nebula, true);
     assert.equal(swallowed.planet, false);

@@ -4,10 +4,14 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const DULL = "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship.";
-const SUPPLIES = "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use.";
-const AMBUSH = "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush.";
-const FIRE = "You fire on the crates, breaking them open and scattering the pirates into empty space. A pirate ship appears out of nowhere with a message, \"You will pay for that!\"";
+const DULL =
+  "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship.";
+const SUPPLIES =
+  "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use.";
+const AMBUSH =
+  "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush.";
+const FIRE =
+  'You fire on the crates, breaking them open and scattering the pirates into empty space. A pirate ship appears out of nowhere with a message, "You will pay for that!"';
 const SENSORS = "c:destroyed-cargo-ship:2";
 const SCANNERS = "c:destroyed-cargo-ship:3";
 
@@ -31,8 +35,16 @@ describe("Destroyed cargo ship scan", () => {
     g.player.systems.sensors.level = 1;
     g.augments = g.augments.filter((id) => id !== "ADV_SCANNERS");
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === SENSORS && c.label === "Run an advanced scan on the boxes."));
-    assert.ok(g.event?.choices.some((c) => c.id === SCANNERS && c.label === "Run an advanced scan on the boxes."));
+    assert.ok(
+      g.event?.choices.some(
+        (c) => c.id === SENSORS && c.label === "Run an advanced scan on the boxes.",
+      ),
+    );
+    assert.ok(
+      g.event?.choices.some(
+        (c) => c.id === SCANNERS && c.label === "Run an advanced scan on the boxes.",
+      ),
+    );
     // INFERRED: the refusal lines. The page names the requirement and prints no sentence.
     assert.equal(choiceDisabled(g, SENSORS), "Needs Sensors level 2");
     assert.equal(choiceDisabled(g, SCANNERS), "Needs Long-Ranged Scanners");
@@ -146,9 +158,13 @@ describe("Destroyed cargo ship scan", () => {
     assert.equal(fight.enemy?.pirate, true);
     assert.equal(fight.scrap, 10);
     assert.equal(fight.enemySurrender?.chance, 50);
-    assert.ok((fight.enemySurrender?.threshold ?? 0) >= 30 && (fight.enemySurrender?.threshold ?? 0) <= 40);
+    assert.ok(
+      (fight.enemySurrender?.threshold ?? 0) >= 30 && (fight.enemySurrender?.threshold ?? 0) <= 40,
+    );
     assert.equal(fight.enemyEscape?.chance, 50);
-    assert.ok((fight.enemyEscape?.threshold ?? 0) >= 20 && (fight.enemyEscape?.threshold ?? 0) <= 40);
+    assert.ok(
+      (fight.enemyEscape?.threshold ?? 0) >= 20 && (fight.enemyEscape?.threshold ?? 0) <= 40,
+    );
     assert.equal(fight.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 0);
     assert.ok(left);
     assert.equal(left.event?.body, "Nothing happens.");

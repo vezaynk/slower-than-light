@@ -40,8 +40,14 @@ describe("Crew hiring station", () => {
       const hit = INTROS.find((mark) => body.includes(mark));
       assert.ok(hit, body);
       seen.add(hit);
-      assert.deepEqual(g.event?.choices.map((c) => c.label), ["Don't hire anyone."]);
-      assert.equal(/25|hire a crewmember/i.test(g.event?.choices.map((c) => c.label).join(" ")), false);
+      assert.deepEqual(
+        g.event?.choices.map((c) => c.label),
+        ["Don't hire anyone."],
+      );
+      assert.equal(
+        /25|hire a crewmember/i.test(g.event?.choices.map((c) => c.label).join(" ")),
+        false,
+      );
     }
     assert.equal(seen.size, INTROS.length);
   });

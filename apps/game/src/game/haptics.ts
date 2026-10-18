@@ -57,7 +57,10 @@ let inTouch = false;
 let owedAt = 0;
 
 function canVibrate(): boolean {
-  return typeof navigator !== "undefined" && typeof (navigator as Navigator & { vibrate?: unknown }).vibrate === "function";
+  return (
+    typeof navigator !== "undefined" &&
+    typeof (navigator as Navigator & { vibrate?: unknown }).vibrate === "function"
+  );
 }
 
 if (typeof window !== "undefined") {
@@ -74,8 +77,10 @@ if (typeof window !== "undefined") {
     if (owedAt && performance.now() - owedAt < 1500 && useSettings.getState().haptics) iosTap();
     owedAt = 0;
   };
-  for (const type of ["pointerdown", "click", "touchstart"]) window.addEventListener(type, enter, { capture: true, passive: true });
-  for (const type of ["pointerup", "touchend"]) window.addEventListener(type, release, { capture: true, passive: true });
+  for (const type of ["pointerdown", "click", "touchstart"])
+    window.addEventListener(type, enter, { capture: true, passive: true });
+  for (const type of ["pointerup", "touchend"])
+    window.addEventListener(type, release, { capture: true, passive: true });
 }
 
 /** Buzzes that answer the player's own press. Only these can be felt on iOS (see iosTap). */
@@ -89,7 +94,9 @@ export function buzz(kind: Buzz) {
   lastAt = now;
   if (canVibrate()) {
     try {
-      (navigator as Navigator & { vibrate: (p: number | number[]) => boolean }).vibrate(PATTERN[kind]);
+      (navigator as Navigator & { vibrate: (p: number | number[]) => boolean }).vibrate(
+        PATTERN[kind],
+      );
       return;
     } catch {
       /* blocked: fall through */
@@ -101,7 +108,14 @@ export function buzz(kind: Buzz) {
   else owedAt = now;
 }
 
-type Seen = { game: Game; hull: number; shields: number; crew: number; here: string; phase: Game["phase"] };
+type Seen = {
+  game: Game;
+  hull: number;
+  shields: number;
+  crew: number;
+  here: string;
+  phase: Game["phase"];
+};
 let seen: Seen | null = null;
 
 /**
@@ -110,7 +124,14 @@ let seen: Seen | null = null;
  */
 export function watchHaptics(g: Game) {
   const crew = g.crew.filter((c) => c.side === "player" && c.hp > 0).length;
-  const now: Seen = { game: g, hull: g.player.hull, shields: g.player.shieldNow, crew, here: g.here, phase: g.phase };
+  const now: Seen = {
+    game: g,
+    hull: g.player.hull,
+    shields: g.player.shieldNow,
+    crew,
+    here: g.here,
+    phase: g.phase,
+  };
   const was = seen;
   seen = now;
   if (!was || was.game !== g) return;

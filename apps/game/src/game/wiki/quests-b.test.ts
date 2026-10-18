@@ -82,7 +82,10 @@ function reach(want: string[], body: (seed: number) => string, max = 300) {
 }
 
 function slugOf(title: string): string {
-  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 describe("quests-b: opening cards (cited-events-quests-b.ts)", () => {
@@ -104,20 +107,30 @@ describe("quests-b: opening cards (cited-events-quests-b.ts)", () => {
     assert.equal(pages.size, 6);
     for (const ev of EXTRA_EVENTS) {
       const m = pages.get(ev.dest)!.match(/\{\{Locations\|([^}]+)\}\}/)!;
-      const names = m[1].split("|").map((s) => s.trim()).filter((s) => s && !s.includes("="));
+      const names = m[1]
+        .split("|")
+        .map((s) => s.trim())
+        .filter((s) => s && !s.includes("="));
       assert.deepEqual(ev.sectors, names, ev.dest);
       assert.equal(ev.slug, slugOf(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
       ev.choices.forEach((c, i) => assert.equal(c.id, `c:${ev.slug}:${i}`));
       // Every choice that is not a plain "Nothing happens." runs in quests-b.ts.
-      for (const c of ev.choices) if (c.fx[0].k !== "nothing") assert.ok(PART_B.choices[c.id], c.id);
+      for (const c of ev.choices)
+        if (c.fx[0].k !== "nothing") assert.ok(PART_B.choices[c.id], c.id);
     }
   });
 
   it("classifies as the event lists say (distress / neutral)", () => {
     const cls = Object.fromEntries(EXTRA_EVENTS.map((e) => [e.dest, classifyEvent(e)]));
     assert.equal(cls["Asteroid belt distress"], "distress");
-    for (const d of ["Capture the ship", "Encrypted federation signal", "Merchant's request", "Engi ship attacked by Mantis ship", "Nebula wreckage"]) {
+    for (const d of [
+      "Capture the ship",
+      "Encrypted federation signal",
+      "Merchant's request",
+      "Engi ship attacked by Mantis ship",
+      "Nebula wreckage",
+    ]) {
       assert.equal(cls[d], "neutral", d);
     }
   });
@@ -193,7 +206,11 @@ describe("Asteroid belt distress", () => {
       assert.deepEqual(ids(g2), ["q:asteroid:home"]);
       choose(g2, "q:asteroid:home");
       const body = g2.event!.body;
-      return body.includes("substantial reward") ? "high" : body.includes("modest means") ? "medium" : "repair";
+      return body.includes("substantial reward")
+        ? "high"
+        : body.includes("modest means")
+          ? "medium"
+          : "repair";
     });
   });
 
@@ -235,7 +252,10 @@ describe("Capture the ship", () => {
     choose(g, "ack");
     assert.ok(arrive(g, "capture-ship").includes("WITHOUT destroying the ship"));
     // Capture the ship, Quest Marker: "Fight a Pirate ship."
-    assert.equal(g.event!.choices.find((c) => c.id === "q:capture:fight")?.label, "Fight a Pirate ship.");
+    assert.equal(
+      g.event!.choices.find((c) => c.id === "q:capture:fight")?.label,
+      "Fight a Pirate ship.",
+    );
     choose(g, "q:capture:fight");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "quest-capture-ship");
@@ -311,7 +331,10 @@ describe("Encrypted federation signal", () => {
         if (body.includes("bombarded by an automated drone")) {
           assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
           choose(g, id);
-          assert.equal(g.fightEvent, id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist");
+          assert.equal(
+            g.fightEvent,
+            id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist",
+          );
           assert.equal(g.asb, false);
         } else if (body.includes("using their Anti-Ship Battery")) {
           assert.equal(id, "q:fed-base:assist-asb");
@@ -343,7 +366,11 @@ describe("Engi ship attacked by Mantis ship", () => {
     // > "The Mantis ship breaks apart." — [[Engi ship attacked by Mantis ship]]
     // > "Attempt to contact the Engi." — [[Engi ship attacked by Mantis ship]]
     reach(["mantis", "engi"], (seed) => {
-      const g = atCited(createGame(seed), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
+      const g = atCited(
+        createGame(seed),
+        "Engi Controlled Sector",
+        "Engi ship attacked by Mantis ship",
+      );
       choose(g, "c:engi-ship-attacked-by-mantis-ship:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemySurrender!.chance, 0);
@@ -366,14 +393,26 @@ describe("Engi ship attacked by Mantis ship", () => {
     // > "(Engi Crew) Threat unresolved. Current Mission imperative: Protocol 52.34." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
     // > "You receive a weapon with low scrap, your ship receives 10 repairs and a Hidden Federation Base quest marker is added to your map." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
     reach(["crew", "fuel", "empty", "request"], (seed) => {
-      const g = atCited(createGame(seed), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
+      const g = atCited(
+        createGame(seed),
+        "Engi Controlled Sector",
+        "Engi ship attacked by Mantis ship",
+      );
       choose(g, "q:engi-station:contact");
       const body = g.event!.body;
       if (body.includes("Request suitable reward")) {
-        assert.deepEqual(ids(g).slice(0, 3), ["q:engi-station:fuel", "q:engi-station:weapon", "q:engi-station:drone"]);
+        assert.deepEqual(ids(g).slice(0, 3), [
+          "q:engi-station:fuel",
+          "q:engi-station:weapon",
+          "q:engi-station:drone",
+        ]);
         return "request";
       }
-      return body.includes("welcome him aboard") ? "crew" : body.includes("some fuel") ? "fuel" : "empty";
+      return body.includes("welcome him aboard")
+        ? "crew"
+        : body.includes("some fuel")
+          ? "fuel"
+          : "empty";
     });
     const g = atCited(createGame(2), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
     g.player.hull = 5;
@@ -450,7 +489,10 @@ describe("Merchant's request", () => {
       arrive(g, "merchant-investigation");
       if (ids(g)[0] === "q:merchant:pirate") {
         // Merchant's request, Merchant's Investigation: "Fight a Pirate ship."
-        assert.equal(g.event!.choices.find((c) => c.id === "q:merchant:pirate")?.label, "Fight a Pirate ship.");
+        assert.equal(
+          g.event!.choices.find((c) => c.id === "q:merchant:pirate")?.label,
+          "Fight a Pirate ship.",
+        );
         choose(g, "q:merchant:pirate");
         assert.equal(g.phase, "combat");
         assert.equal(g.enemySurrender!.chance, 0);
@@ -478,7 +520,10 @@ describe("Merchant's request", () => {
       const crew = g.crew.length;
       choose(g, "q:merchant:promise");
       assert.ok(g.crew.length === crew + 1 || g.event!.body.includes("no room aboard"));
-      assert.ok(questBeacons(g, "merchant-station").length === 1 || g.questsNext?.includes("merchant-station"));
+      assert.ok(
+        questBeacons(g, "merchant-station").length === 1 ||
+          g.questsNext?.includes("merchant-station"),
+      );
       return "crew";
     });
   });

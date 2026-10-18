@@ -38,7 +38,10 @@ export function overlayGap(archive: ContentPack, gap: ContentPack): ContentPack 
   return pack;
 }
 
-function mergeCrew(archive: CrewDef[] | undefined, gap: CrewDef[] | undefined): CrewDef[] | undefined {
+function mergeCrew(
+  archive: CrewDef[] | undefined,
+  gap: CrewDef[] | undefined,
+): CrewDef[] | undefined {
   if (!archive?.length && !gap?.length) return undefined;
   const extra = new Map((gap ?? []).map((row) => [row.id, row]));
   const seen = new Set<string>();

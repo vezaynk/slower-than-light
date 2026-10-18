@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
-import { clearEnemyLeash, heldByEnemy, leashedDamageBonus, startLeash, tickLeash } from "./leash.ts";
+import {
+  clearEnemyLeash,
+  heldByEnemy,
+  leashedDamageBonus,
+  startLeash,
+  tickLeash,
+} from "./leash.ts";
 import type { Crew, Game, Kit } from "../types.ts";
 
 // Mind Control, Overview: the hold follows the powered level, so a kit is fully powered unless a test says otherwise.

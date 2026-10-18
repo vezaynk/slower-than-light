@@ -29,7 +29,9 @@ describe("Rebel fight chance Advanced Sensors", () => {
     const g = createGame(1);
     g.player.systems.sensors.level = 2;
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === PIN && c.label === "Pinpoint the Rebel's location."));
+    assert.ok(
+      g.event?.choices.some((c) => c.id === PIN && c.label === "Pinpoint the Rebel's location."),
+    );
     assert.equal(choiceDisabled(g, PIN), "Needs Sensors level 3");
     choose(g, PIN);
     assert.equal(g.phase, "event");

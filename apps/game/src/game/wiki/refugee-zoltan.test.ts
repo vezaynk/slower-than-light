@@ -21,14 +21,18 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Refugee (Zoltan)", () => {
   it("is a Zoltan sector card with hail and ignore", () => {
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee (Zoltan)]]
-    const pages = citedPagesFor("Zoltan Controlled Sector").filter((p) => p.dest === "Refugee (Zoltan)");
+    const pages = citedPagesFor("Zoltan Controlled Sector").filter(
+      (p) => p.dest === "Refugee (Zoltan)",
+    );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["Zoltan Controlled Sector", "Zoltan Homeworlds"]);
     const home = citedPagesFor("Zoltan Homeworlds").some((p) => p.dest === "Refugee (Zoltan)");
@@ -50,7 +54,10 @@ describe("Refugee (Zoltan)", () => {
       open(g);
       choose(g, "c:refugee-zoltan:0");
       const text = `${g.event?.body ?? ""}\n${g.log.join("\n")}`;
-      assert.equal(/pirate ambush|Slug ship jumps|using the refugee ship as bait/i.test(text), false);
+      assert.equal(
+        /pirate ambush|Slug ship jumps|using the refugee ship as bait/i.test(text),
+        false,
+      );
       if (g.phase === "combat") {
         fight = true;
         assert.equal(g.enemyEscape?.mode, "never");
@@ -93,7 +100,10 @@ describe("Refugee (Zoltan)", () => {
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
     assert.equal(resources(body), 2, body);
     assert.equal(destroyed.scrap, before + paid[0]!);
-    assert.deepEqual(destroyed.event?.choices.map((c) => c.label), ["Contact the refugee ship."]);
+    assert.deepEqual(
+      destroyed.event?.choices.map((c) => c.label),
+      ["Contact the refugee ship."],
+    );
     const mid = destroyed.scrap;
     choose(destroyed, "s:refugee-zoltan:contact");
     const thanks = destroyed.event?.body ?? "";

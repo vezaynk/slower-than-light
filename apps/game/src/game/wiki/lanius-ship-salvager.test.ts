@@ -22,7 +22,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 function inBand(n: number, lo: number, hi: number) {
@@ -65,7 +67,10 @@ describe("Lanius ship salvager", () => {
     choose(bare, "c:lanius-ship-salvager:2");
     assert.equal(bare.phase, "event");
     assert.equal(bare.scrap, 10);
-    assert.equal(bare.event?.choices.some((c) => c.id === "c:lanius-ship-salvager:2"), true);
+    assert.equal(
+      bare.event?.choices.some((c) => c.id === "c:lanius-ship-salvager:2"),
+      true,
+    );
 
     const dead = createGame(2);
     open(dead);

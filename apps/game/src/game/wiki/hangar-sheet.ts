@@ -41,7 +41,7 @@ function sectionsOf(lines: WikiLine[]) {
       continue;
     }
     if (!current) continue;
-    if (line.depth === 0 && line.text.startsWith("\"")) continue;
+    if (line.depth === 0 && line.text.startsWith('"')) continue;
     current.items.push(line.text);
   }
   return sections;
@@ -55,7 +55,11 @@ function afterColon(header: string) {
   return header.split(":").slice(1).join(":").trim();
 }
 
-function slotsFor(header: string | undefined, slotsHeader: string | undefined, kind: "Weapon" | "Drone") {
+function slotsFor(
+  header: string | undefined,
+  slotsHeader: string | undefined,
+  kind: "Weapon" | "Drone",
+) {
   const inHeader = header?.match(/(\d+)\s*slots/i);
   if (inHeader) return Number(inHeader[1]);
   const inSlots = slotsHeader?.match(new RegExp(`(\\d+)\\s*${kind}`, "i"));
@@ -102,7 +106,11 @@ function gear(items: string[]): string[] {
  * mounts in hulls.ts), matching each id to the first unused name that resolves to it. Unmatched names keep
  * their wiki order after the matched ones.
  */
-export function orderByIds(names: string[], ids: string[], idOf: (name: string) => string | null): string[] {
+export function orderByIds(
+  names: string[],
+  ids: string[],
+  idOf: (name: string) => string | null,
+): string[] {
   const left = [...names];
   const out: string[] = [];
   for (const id of ids) {

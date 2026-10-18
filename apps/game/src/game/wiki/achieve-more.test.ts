@@ -50,7 +50,16 @@ describe("achievement counters", () => {
 
   it("a miss during a cloak counts that shot's damage as avoided", () => {
     const g = quietMap(1, "PLAYER_SHIP_STEALTH");
-    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     noteAchieve(g, { k: "cloak" });
     noteAchieve(g, { k: "evade", missed: true, damage: 9 });
     assert.equal(earnedNow(g).includes("phase-shift"), true);
@@ -126,7 +135,10 @@ describe("Advanced Edition content", () => {
       beacon.name = "open";
     }
     stampCitedEvents(g);
-    assert.equal(g.beacons.some((beacon) => AE_TITLES.has(beacon.name)), true);
+    assert.equal(
+      g.beacons.some((beacon) => AE_TITLES.has(beacon.name)),
+      true,
+    );
   });
 
   it("still draws an Advanced Edition filler page when an old save says content is off", () => {
@@ -161,5 +173,50 @@ describe("Advanced Edition content", () => {
       if (previous) Object.defineProperty(globalThis, "localStorage", previous);
       else delete (globalThis as { localStorage?: unknown }).localStorage;
     }
+  });
+});
+
+describe("Givin' her all she's got, Captain!", () => {
+  // The page: "a fully upgraded reactor plus 4 Zoltan crewmembers manning systems to provide 29 power".
+  it("counts Zoltan bars toward the 29", () => {
+    const g = quietMap(1, "PLAYER_SHIP_ENERGY");
+    for (const sys of Object.values(g.player.systems)) {
+      sys.power = 0;
+      sys.ion = [];
+      sys.damage = 0;
+    }
+    g.player.kits = {};
+    const { shields, engines, weapons, oxygen, medbay } = g.player.systems;
+    for (const [sys, level, power] of [
+      [shields, 8, 8],
+      [engines, 8, 8],
+      [weapons, 8, 8],
+      [oxygen, 3, 1],
+      [medbay, 3, 0],
+    ] as const) {
+      sys.level = level;
+      sys.power = power;
+    }
+    g.crew = [];
+    assert.equal(earnedNow(g).includes("givin-her-all-shes-got-captain"), false);
+    const room = (id: string) => g.player.rooms.find((r) => r.system === id)!.id;
+    const spark = (id: string, at: string) => ({
+      id,
+      name: id,
+      side: "player" as const,
+      aboard: "player" as const,
+      hp: 70,
+      maxHp: 70,
+      room: room(at),
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 0,
+      kin: "energy",
+    });
+    g.crew.push(spark("a", "medbay"), spark("b", "medbay"), spark("c", "medbay"));
+    assert.equal(earnedNow(g).includes("givin-her-all-shes-got-captain"), false);
+    g.crew.push(spark("d", "oxygen"));
+    assert.equal(earnedNow(g).includes("givin-her-all-shes-got-captain"), true);
   });
 });

@@ -24,6 +24,10 @@ describe("Lanius ship attacking Rock fight", () => {
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-attacking-rock");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("The Rockmen need your help - you target the Lanius ship and grimly prepare for battle."));
+    assert.ok(
+      g.log.includes(
+        "The Rockmen need your help - you target the Lanius ship and grimly prepare for battle.",
+      ),
+    );
   });
 });

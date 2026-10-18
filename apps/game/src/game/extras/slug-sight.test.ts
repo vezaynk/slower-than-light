@@ -63,7 +63,11 @@ describe("Slug vision", () => {
     park(g, "p-engines");
     gel(g, "p-engines");
     g.player.doors = g.player.doors.filter(
-      (d) => !((d.a === "p-engines" && d.b === "p-shields") || (d.b === "p-engines" && d.a === "p-shields")),
+      (d) =>
+        !(
+          (d.a === "p-engines" && d.b === "p-shields") ||
+          (d.b === "p-engines" && d.a === "p-shields")
+        ),
     );
     const sight = shipSight(g);
     assert.equal(sight.interior("player", "p-engines"), true);
@@ -108,7 +112,16 @@ describe("Slug vision", () => {
     assert.ok(foe && g.enemy);
     const open = shipSight(g);
     assert.equal(open.interior("enemy", foe.room), true);
-    g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     const cloaked = shipSight(g);
     assert.equal(cloaked.interior("enemy", foe.room), false);
     assert.equal(cloaked.showCrew(foe), true);

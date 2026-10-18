@@ -65,10 +65,7 @@ const DISTRESS_OFF = [
   { flag: "cited:no-fuel-prepare-to-dock", dest: "No fuel: prepare to dock" },
 ];
 
-const SKIPPED = [
-  "No fuel: wait fail (distress off)",
-  "No fuel: wait fail (distress on)",
-];
+const SKIPPED = ["No fuel: wait fail (distress off)", "No fuel: wait fail (distress on)"];
 
 describe("cited fuel candidates", () => {
   it("lists every distress-on match and does not pick a winner", () => {
@@ -82,7 +79,10 @@ describe("cited fuel candidates", () => {
     assert.deepEqual(citedFuelCandidates(false), citedFuelCandidates(false));
     assert.ok(DISTRESS_OFF.length > 1);
     const both = DISTRESS_ON.filter((row) => DISTRESS_OFF.some((other) => other.flag === row.flag));
-    assert.deepEqual(both.map((row) => row.dest), ["No fuel: explore the system", "No fuel: prepare to dock"]);
+    assert.deepEqual(
+      both.map((row) => row.dest),
+      ["No fuel: explore the system", "No fuel: prepare to dock"],
+    );
   });
 
   it("resolves a flagged out-of-fuel page and does not place one that names no sector", () => {
@@ -94,12 +94,18 @@ describe("cited fuel candidates", () => {
       seen.add(row.flag);
       const ev = citedEvent(g, beacon(row.flag, row.dest));
       assert.equal(ev?.title, row.dest);
-      if (extra.has(row.flag)) assert.equal(g.beacons.some((b) => b.flag === row.flag), false);
+      if (extra.has(row.flag))
+        assert.equal(
+          g.beacons.some((b) => b.flag === row.flag),
+          false,
+        );
     }
   });
 
   it("does not candidate a skipped page and does not invent a sector", () => {
-    const dests = [...citedFuelCandidates(true), ...citedFuelCandidates(false)].map((row) => row.dest);
+    const dests = [...citedFuelCandidates(true), ...citedFuelCandidates(false)].map(
+      (row) => row.dest,
+    );
     for (const title of SKIPPED) assert.equal(dests.includes(title), false);
     assert.deepEqual(
       EXTRA_EVENTS.map((ev) => ev.dest),

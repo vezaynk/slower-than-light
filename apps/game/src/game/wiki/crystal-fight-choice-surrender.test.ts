@@ -7,7 +7,8 @@ describe("Crystal fight choice surrender", () => {
   it("never surrenders; a Crystal ship with no event still can", () => {
     // Crystal fight choice: {{SurrenderEscape(alt)|no|CRYSTAL_SHIP_NO_SURRENDER}}. The page prints no percent.
     assert.equal(
-      surrenderPlan({ tier: "pool", faction: "crystal", event: "crystal-fight-choice" }, () => 0.5).chance,
+      surrenderPlan({ tier: "pool", faction: "crystal", event: "crystal-fight-choice" }, () => 0.5)
+        .chance,
       0,
     );
     assert.ok(surrenderPlan({ tier: "pool", faction: "crystal" }, () => 0.5).chance > 0);

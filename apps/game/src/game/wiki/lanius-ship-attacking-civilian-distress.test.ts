@@ -22,7 +22,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Lanius ship attacking civilian distress", () => {
@@ -53,7 +55,10 @@ describe("Lanius ship attacking civilian distress", () => {
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-      assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),
+        true,
+      );
     }
   });
 
@@ -73,7 +78,10 @@ describe("Lanius ship attacking civilian distress", () => {
   it("a Lanius crewmember starts that fight or powers the ship down, and the button stays shut without one", () => {
     const bare = createGame(1);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:lanius-ship-attacking-civilian-distress:2"), "Needs a Lanius crewmember");
+    assert.equal(
+      choiceDisabled(bare, "c:lanius-ship-attacking-civilian-distress:2"),
+      "Needs a Lanius crewmember",
+    );
     choose(bare, "c:lanius-ship-attacking-civilian-distress:2");
     assert.equal(bare.phase, "event");
     assert.equal(bare.scrap, 10);
@@ -99,7 +107,10 @@ describe("Lanius ship attacking civilian distress", () => {
         assert.match(g.event?.body ?? "", /powers down its weapons/);
         assert.equal(g.event?.body.includes("Scrap:"), false);
         assert.equal(g.scrap, 10);
-        assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"), true);
+        assert.equal(
+          g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),
+          true,
+        );
       }
     }
     assert.equal(fight && peace, true);

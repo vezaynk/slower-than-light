@@ -79,17 +79,35 @@ describe("hangar sheet", () => {
     assert.deepEqual(sheet("PLAYER_SHIP_CRYSTAL_2").weapons, []);
     assert.equal(sheet("PLAYER_SHIP_FED_3").weaponSlots, 4);
     // "The Lanius Cruiser", Layout A: "Unlock" then "Unlock 4 ships (Excluding The Kestrel) to unlock this ship."
-    assert.deepEqual(sheet("PLAYER_SHIP_ANAEROBIC").unlock, ["Unlock 4 ships (Excluding The Kestrel) to unlock this ship."]);
+    assert.deepEqual(sheet("PLAYER_SHIP_ANAEROBIC").unlock, [
+      "Unlock 4 ships (Excluding The Kestrel) to unlock this ship.",
+    ]);
     // "The Mantis Cruiser", Layout C: the "Notes:" line is not an unlock line.
     assert.equal(sheet("PLAYER_SHIP_MANTIS_3").unlock.length, 1);
-    assert.deepEqual(orderByIds(["a1", "b1", "a2"], ["b", "a"], (name) => name[0]), ["b1", "a1", "a2"]);
+    assert.deepEqual(
+      orderByIds(["a1", "b1", "a2"], ["b", "a"], (name) => name[0]),
+      ["b1", "a1", "a2"],
+    );
   });
 
   it("marks Advanced Edition only where that layout's lines say so", () => {
     const marked = layouts.filter(layoutNeedsAe).map((layout) => layout.id);
-    assert.deepEqual(marked, ["PLAYER_SHIP_HARD_3", "PLAYER_SHIP_CIRCLE_3", "PLAYER_SHIP_FED_3", "PLAYER_SHIP_ENERGY_3", "PLAYER_SHIP_JELLY_3", "PLAYER_SHIP_MANTIS_3"]);
-    assert.equal(layouts.some((layout) => layout.id === "crystal-c"), false);
-    assert.equal(layouts.some((layout) => layout.id === "lanius-c"), false);
+    assert.deepEqual(marked, [
+      "PLAYER_SHIP_HARD_3",
+      "PLAYER_SHIP_CIRCLE_3",
+      "PLAYER_SHIP_FED_3",
+      "PLAYER_SHIP_ENERGY_3",
+      "PLAYER_SHIP_JELLY_3",
+      "PLAYER_SHIP_MANTIS_3",
+    ]);
+    assert.equal(
+      layouts.some((layout) => layout.id === "crystal-c"),
+      false,
+    );
+    assert.equal(
+      layouts.some((layout) => layout.id === "lanius-c"),
+      false,
+    );
   });
 
   it("gives every stored layout a name and a system list", () => {

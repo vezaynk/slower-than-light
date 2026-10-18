@@ -73,7 +73,15 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: GUNMETAL,
     glow: RED,
   },
-  LASER_BURST_5: { frame: "block", barrels: 5, reach: 8, mark: 3, body: BONE, trim: SLATE, glow: RED },
+  LASER_BURST_5: {
+    frame: "block",
+    barrels: 5,
+    reach: 8,
+    mark: 3,
+    body: BONE,
+    trim: SLATE,
+    glow: RED,
+  },
   LASER_HEAVY_1: {
     frame: "block",
     barrels: 1,
@@ -272,7 +280,15 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     glow: RED,
   },
   MISSILE_CHARGEGUN: { frame: "tube", barrels: 4, reach: 3, body: STEEL, trim: SLATE, glow: AMBER },
-  MISSILES_BURST: { frame: "tube", barrels: 2, reach: 5, fins: true, body: BONE, trim: SLATE, glow: BLUE },
+  MISSILES_BURST: {
+    frame: "tube",
+    barrels: 2,
+    reach: 5,
+    fins: true,
+    body: BONE,
+    trim: SLATE,
+    glow: BLUE,
+  },
   ARTILLERY_BOSS_2: {
     frame: "tube",
     barrels: 3,

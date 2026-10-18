@@ -22,7 +22,11 @@ describe("Rebel ship warning", () => {
     assert.equal(g.event?.body, "You stumble across a forward scout of the Rebel fleet.");
     assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-warning:0"));
     choose(g, "c:rebel-ship-warning:0");
-    assert.ok(g.log.includes("They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!"));
+    assert.ok(
+      g.log.includes(
+        "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!",
+      ),
+    );
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.enemy?.pirate, false);
@@ -61,6 +65,10 @@ describe("Rebel ship warning", () => {
     assert.equal(g.enemyEscape?.running, true);
     assert.equal(g.enemyEscape?.pursuit, true);
     assert.ok(g.log.includes("You stumble across a forward scout of the Rebel fleet."));
-    assert.ok(g.log.includes("They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!"));
+    assert.ok(
+      g.log.includes(
+        "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!",
+      ),
+    );
   });
 });

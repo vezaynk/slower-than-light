@@ -37,13 +37,7 @@ export function resumeAudio() {
   if (ctx && ctx.state === "suspended") void ctx.resume();
 }
 
-function tone(
-  freq: number,
-  dur: number,
-  type: OscillatorType,
-  gain: number,
-  slide = 0,
-) {
+function tone(freq: number, dur: number, type: OscillatorType, gain: number, slide = 0) {
   if (!ctx || !master || muted) return;
   const t = ctx.currentTime;
   const osc = ctx.createOscillator();

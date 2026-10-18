@@ -32,7 +32,11 @@ describe("Zoltan ship follows Mantis ship help", () => {
     assert.equal(g.scrap, 10);
     const theirs = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(theirs.length > 0);
-    assert.ok(theirs.every((c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
+    assert.ok(
+      theirs.every(
+        (c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp,
+      ),
+    );
     assert.ok(
       g.log.includes(
         "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends.",

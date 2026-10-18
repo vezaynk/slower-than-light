@@ -209,7 +209,10 @@ describe("beam weapons", () => {
     assert.equal(beamSwipeSeconds("BEAM_LONG", BEAM_TILES.BEAM_LONG), (3.8 * 45) / (9 * 16));
     assert.equal(beamSwipeSeconds("BEAM_2", BEAM_TILES.BEAM_2), (1.8 * 45) / (5 * 16));
     assert.equal(beamSwipeSeconds("BEAM_BIO", BEAM_TILES.BEAM_BIO), (3.1 * 45) / (30 * 16));
-    assert.equal(beamSwipeSeconds("ARTILLERY_BOSS_3", BEAM_TILES.ARTILLERY_BOSS_3), (2.2 * 45) / (5 * 16));
+    assert.equal(
+      beamSwipeSeconds("ARTILLERY_BOSS_3", BEAM_TILES.ARTILLERY_BOSS_3),
+      (2.2 * 45) / (5 * 16),
+    );
     assert.equal(artillerySwipeSeconds(), ARTILLERY_BEAM_PX / (13 * 16));
     assert.equal(beamSwipeSeconds("BEAM_FIRE", 0), 0);
     assert.equal(beamSwipeSeconds(undefined, 1), null);

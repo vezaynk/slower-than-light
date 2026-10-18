@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { restSpot, roomConsole, shiftPoint } from "./crew-spots.ts";
-import { createGame, manning, orderCrew, returnToStations, saveStations, startCombat, step } from "./sim.ts";
+import {
+  createGame,
+  manning,
+  orderCrew,
+  returnToStations,
+  saveStations,
+  startCombat,
+  step,
+} from "./sim.ts";
 import { arriveMove, hopLanding, hopSteps, walkCells, walkPoint } from "./walk-path.ts";
 import type { Crew, Game } from "./types.ts";
 
@@ -112,7 +120,10 @@ describe("crew orders outside a fight", () => {
     const stood = restSpot(pilot, g.crew, ivo.id, "player");
     const adaAfter = restSpot(pilot, g.crew, ada.id, "player");
     assert.ok(stood && adaAfter);
-    assert.deepEqual({ x: stood.x, y: stood.y, stack: stood.stack }, { x: goal.x, y: goal.y, stack: goal.stack });
+    assert.deepEqual(
+      { x: stood.x, y: stood.y, stack: stood.stack },
+      { x: goal.x, y: goal.y, stack: goal.stack },
+    );
     assert.deepEqual({ x: adaAfter.x, y: adaAfter.y }, { x: adaBefore.x, y: adaBefore.y });
 
     orderCrew(g, ada.id, "p-engines");
@@ -157,7 +168,10 @@ describe("crew orders outside a fight", () => {
     assert.equal(orderCrew(g, ivo.id, "p-shields"), "ok");
     assert.equal(ivo.room, "p-engines");
     const after = painted(g, ivo);
-    assert.ok(Math.hypot(after.x - before.x, after.y - before.y) < 0.02, `${before.x},${before.y} -> ${after.x},${after.y}`);
+    assert.ok(
+      Math.hypot(after.x - before.x, after.y - before.y) < 0.02,
+      `${before.x},${before.y} -> ${after.x},${after.y}`,
+    );
     assert.notEqual(ivo.path[ivo.path.length - 1], "p-pilot");
     step(g, 0.05);
     const moved = Math.hypot(painted(g, ivo).x - after.x, painted(g, ivo).y - after.y);
@@ -167,7 +181,10 @@ describe("crew orders outside a fight", () => {
     assert.equal(orderCrew(g, ivo.id, "p-weapons"), "ok");
     assert.equal(ivo.path[ivo.path.length - 1], "p-weapons");
     const turned = painted(g, ivo);
-    assert.ok(Math.hypot(turned.x - again.x, turned.y - again.y) < 0.02, `${again.x},${again.y} -> ${turned.x},${turned.y}`);
+    assert.ok(
+      Math.hypot(turned.x - again.x, turned.y - again.y) < 0.02,
+      `${again.x},${again.y} -> ${turned.x},${turned.y}`,
+    );
   });
 
   it("walks to the stand when ordered to stay in the room being crossed", () => {
@@ -185,7 +202,10 @@ describe("crew orders outside a fight", () => {
     assert.equal(ivo.room, "p-engines");
     assert.deepEqual(ivo.path, ["p-engines"]);
     const after = painted(g, ivo);
-    assert.ok(Math.hypot(after.x - before.x, after.y - before.y) < 0.02, `${before.x},${before.y} -> ${after.x},${after.y}`);
+    assert.ok(
+      Math.hypot(after.x - before.x, after.y - before.y) < 0.02,
+      `${before.x},${before.y} -> ${after.x},${after.y}`,
+    );
     for (let i = 0; i < 80 && ivo.path.length > 0; i++) step(g, 0.05);
     assert.deepEqual(ivo.path, []);
     const stood = restSpot(engines, g.crew, ivo.id, "player");
@@ -268,7 +288,10 @@ describe("crew keep their tiles in a shared room (per the user)", () => {
     for (let i = 0; i < 20; i++) {
       step(g, 0.05);
       // Nobody leaves their tile for the terminal while the intruder stands here.
-      assert.deepEqual(others.map((c) => ({ ...c.tile! })), at);
+      assert.deepEqual(
+        others.map((c) => ({ ...c.tile! })),
+        at,
+      );
       assert.equal(manning(g, g.player, "player", "shields"), false);
     }
     assert.ok(foe.hp < foeHp, "the crew fight the intruder");
@@ -296,7 +319,10 @@ describe("crew keep their tiles in a shared room (per the user)", () => {
     for (let i = 0; i < 60 && walker.shift; i++) {
       step(g, 0.05);
       const at = shiftPoint(walker)!;
-      assert.ok(Math.hypot(at.x - last.x, at.y - last.y) < 0.5, `${JSON.stringify(last)} -> ${JSON.stringify(at)}`);
+      assert.ok(
+        Math.hypot(at.x - last.x, at.y - last.y) < 0.5,
+        `${JSON.stringify(last)} -> ${JSON.stringify(at)}`,
+      );
       last = at;
       assert.deepEqual({ ...still.tile! }, stillAt);
     }
@@ -328,10 +354,15 @@ describe("saved stations keep the exact tile (per the user)", () => {
     });
     step(g, 0.05);
     const saved = new Map(crew.map((c) => [c.id, { ...c.tile! }]));
-    assert.deepEqual(crew.map((c) => saved.get(c.id)), crew.map((_, i) => tiles[(i + 1) % tiles.length]));
+    assert.deepEqual(
+      crew.map((c) => saved.get(c.id)),
+      crew.map((_, i) => tiles[(i + 1) % tiles.length]),
+    );
     saveStations(g);
     // Somewhere roomy enough for all three, then back.
-    const away = g.player.rooms.find((r) => r.id !== room.id && r.w * r.h >= 4 && r.system !== "medbay" && !r.kit)!;
+    const away = g.player.rooms.find(
+      (r) => r.id !== room.id && r.w * r.h >= 4 && r.system !== "medbay" && !r.kit,
+    )!;
     for (const c of crew) orderCrew(g, c.id, away.id);
     for (let i = 0; i < 400 && crew.some((c) => c.path.length); i++) step(g, 0.05);
     assert.ok(crew.every((c) => c.room === away.id));

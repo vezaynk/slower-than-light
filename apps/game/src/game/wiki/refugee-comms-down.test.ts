@@ -5,11 +5,22 @@ import type { Game } from "../types.ts";
 import { fillerChoose } from "./filler-events.ts";
 
 const ID = "c:refugee-comms-down:0";
-const CLONE = "Your abandoned crewmember is waiting on the ship when you return, trying not to dwell on the fate of his previous incarnation.";
+const CLONE =
+  "Your abandoned crewmember is waiting on the ship when you return, trying not to dwell on the fate of his previous incarnation.";
 
 function board(seed: number, cradle: boolean): Game {
   const g = createGame(seed);
-  if (cradle) g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  if (cradle)
+    g.player.kits.clonebay = {
+      id: "clonebay",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
   fillerChoose(g, ID);
   return g;
 }

@@ -11,7 +11,10 @@ describe("Rebel Flagship phases", () => {
     );
     assert.equal(FLAGSHIP_PHASES[0]?.source, 'Wiki page "The Rebel Flagship", section "1st Stage"');
     assert.equal(FLAGSHIP_PHASES[1]?.source, 'Wiki page "The Rebel Flagship", section "2nd stage"');
-    assert.equal(FLAGSHIP_PHASES[2]?.source, 'Wiki page "The Rebel Flagship", section "Final stage"');
+    assert.equal(
+      FLAGSHIP_PHASES[2]?.source,
+      'Wiki page "The Rebel Flagship", section "Final stage"',
+    );
   });
 
   it("keeps the printed hull pools of 20, 22, and 20", () => {
@@ -21,7 +24,12 @@ describe("Rebel Flagship phases", () => {
   });
 
   it("names the printed weapons", () => {
-    assert.deepEqual(FLAGSHIP_PHASES[0]?.weapons, ["Boss Ion", "Boss Laser", "Boss Missile", "Boss Beam"]);
+    assert.deepEqual(FLAGSHIP_PHASES[0]?.weapons, [
+      "Boss Ion",
+      "Boss Laser",
+      "Boss Missile",
+      "Boss Beam",
+    ]);
     assert.deepEqual(FLAGSHIP_PHASES[1]?.weapons, ["Boss Laser", "Boss Missile", "Boss Beam"]);
     assert.deepEqual(FLAGSHIP_PHASES[2]?.weapons, ["Boss Laser", "Boss Missile"]);
   });
@@ -91,7 +99,10 @@ describe("Rebel Flagship phases", () => {
     assert.match(first, /Crew 11 Humans/);
     assert.match(first, /Drone parts 10/);
     assert.match(first, /Boss Ion 3, Boss Laser 3, Boss Missile 3, Boss Beam 3/);
-    assert.match(first, /Ion 21 seconds, Laser 15 seconds, Missile 17\.25 seconds, Beam 19\.5 seconds/);
+    assert.match(
+      first,
+      /Ion 21 seconds, Laser 15 seconds, Missile 17\.25 seconds, Beam 19\.5 seconds/,
+    );
     assert.match(first, /base 10%/);
     assert.match(first, /Fully manned 20%/);
     assert.match(first, /piloting room empty 8%/);

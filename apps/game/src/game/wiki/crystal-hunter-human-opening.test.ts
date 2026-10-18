@@ -25,6 +25,8 @@ describe("Crystal fight with surrender offer (Human crew) opening", () => {
     assert.equal(g.event?.body, BODY);
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
-    assert.ok(g.event?.choices.some((c) => c.id === "c:crystal-fight-with-surrender-offer-human-crew:0"));
+    assert.ok(
+      g.event?.choices.some((c) => c.id === "c:crystal-fight-with-surrender-offer-human-crew:0"),
+    );
   });
 });

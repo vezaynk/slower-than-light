@@ -22,7 +22,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 function scrapBand(n: number): "low" | "medium" | "high" | "other" {
@@ -38,7 +40,9 @@ describe("Lanius ship absorbing automated scout", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-absorbing-automated-scout:0");
-    assert.ok(g.log.includes("You power up your weapons, which quickly gets the attention of the ship."));
+    assert.ok(
+      g.log.includes("You power up your weapons, which quickly gets the attention of the ship."),
+    );
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-ship-absorbing-automated-scout");
     assert.equal(g.enemy?.faction, "lanius");
@@ -68,7 +72,10 @@ describe("Lanius ship absorbing automated scout", () => {
       assert.equal(g.fleet, 5);
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-      assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-scout:inspect"), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === "q:lanius-scout:inspect"),
+        true,
+      );
     }
   });
 
@@ -81,7 +88,10 @@ describe("Lanius ship absorbing automated scout", () => {
     assert.equal(g.event?.body?.includes("Scrap:"), false);
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
-    assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-scout:inspect"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "q:lanius-scout:inspect"),
+      true,
+    );
   });
 
   it("inspecting pays random scrap, or that scrap and a one-turn fleet delay", () => {

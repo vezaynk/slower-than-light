@@ -47,7 +47,7 @@ describe("Escort civilians intro", () => {
     choose(g, "c:escort-civilians:1");
     assert.equal(
       g.event?.body,
-      "\"We understand. Not everyone is confident they can survive in these hostile times, let alone take the responsibility of protecting others.\"\n\nNothing happens.",
+      '"We understand. Not everyone is confident they can survive in these hostile times, let alone take the responsibility of protecting others."\n\nNothing happens.',
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

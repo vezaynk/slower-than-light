@@ -77,7 +77,9 @@ function miners(seed: number, missiles: number): Game {
 
 function docked(seed: number): Game {
   const g = createGame(seed);
-  const here = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+  const here = g.beacons.find(
+    (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
+  );
   assert.ok(here);
   here.flag = "cited:refueling-platform-garbled-broadcast";
   here.name = "Refueling platform garbled broadcast";
@@ -107,13 +109,48 @@ function atSensors(seed: number, level: number): Game {
 describe("printed bands", () => {
   it("packs the six ranges and does not roll a fixed or missing band", () => {
     assert.deepEqual(upgradeRows("pirate-ship-selling-drones"), ["low", "mid", "high"]);
-    assert.deepEqual(printedBand("merchant-s-request", "paltry", "scrap"), { id: "paltry", k: "scrap", lo: 20, hi: 30 });
-    assert.deepEqual(printedBand("merchant-s-request", "full", "scrap"), { id: "full", k: "scrap", lo: 40, hi: 55 });
-    assert.deepEqual(printedBand("merchant-s-request", "weapons", "scrap"), { id: "weapons", k: "scrap", lo: 55, hi: 70 });
-    assert.deepEqual(printedBand("asteroid-mining-colony", "thanks", "scrap"), { id: "thanks", k: "scrap", lo: 15, hi: 25 });
-    assert.deepEqual(printedBand("asteroid-mining-colony", "wow", "scrap"), { id: "wow", k: "scrap", lo: 30, hi: 40 });
-    assert.deepEqual(printedBand("destroyed-cargo-ship", "scan", "scrap"), { id: "scan", k: "scrap", lo: 20, hi: 35 });
-    assert.deepEqual(printedBand("slug-drink", "trap", "scrap"), { id: "trap", k: "scrap", lo: 25, hi: 35 });
+    assert.deepEqual(printedBand("merchant-s-request", "paltry", "scrap"), {
+      id: "paltry",
+      k: "scrap",
+      lo: 20,
+      hi: 30,
+    });
+    assert.deepEqual(printedBand("merchant-s-request", "full", "scrap"), {
+      id: "full",
+      k: "scrap",
+      lo: 40,
+      hi: 55,
+    });
+    assert.deepEqual(printedBand("merchant-s-request", "weapons", "scrap"), {
+      id: "weapons",
+      k: "scrap",
+      lo: 55,
+      hi: 70,
+    });
+    assert.deepEqual(printedBand("asteroid-mining-colony", "thanks", "scrap"), {
+      id: "thanks",
+      k: "scrap",
+      lo: 15,
+      hi: 25,
+    });
+    assert.deepEqual(printedBand("asteroid-mining-colony", "wow", "scrap"), {
+      id: "wow",
+      k: "scrap",
+      lo: 30,
+      hi: 40,
+    });
+    assert.deepEqual(printedBand("destroyed-cargo-ship", "scan", "scrap"), {
+      id: "scan",
+      k: "scrap",
+      lo: 20,
+      hi: 35,
+    });
+    assert.deepEqual(printedBand("slug-drink", "trap", "scrap"), {
+      id: "trap",
+      k: "scrap",
+      lo: 25,
+      hi: 35,
+    });
     assert.deepEqual(printedBand("refueling-platform-garbled-broadcast", "sensors3", "parts"), {
       id: "sensors3",
       k: "parts",
@@ -348,7 +385,8 @@ describe("printed bands", () => {
     let rockFight = 0;
     for (let seed = 1; seed <= 40 && (trap === 0 || trust === 0 || rockFight === 0); seed++) {
       const drunk = drink(seed, false);
-      if (trap === 0 && drunk.phase === "event" && (drunk.event?.body ?? "").includes(GULP)) trap = seed;
+      if (trap === 0 && drunk.phase === "event" && (drunk.event?.body ?? "").includes(GULP))
+        trap = seed;
       if (trust === 0 && drunk.phase === "store") trust = seed;
       if (rockFight === 0 && drink(seed, true).phase === "combat") rockFight = seed;
     }
@@ -419,7 +457,10 @@ describe("printed bands", () => {
     assert.ok(fixed.fuel - fixedFuel >= 2 && fixed.fuel - fixedFuel <= 3);
     assert.equal(fixed.seed, gone.seed);
     assert.match(gone.event?.body ?? "", new RegExp(SCAN));
-    assert.equal(gone.log.some((line) => line.startsWith("Drone parts:")), false);
+    assert.equal(
+      gone.log.some((line) => line.startsWith("Drone parts:")),
+      false,
+    );
 
     const holder = eventDef("blue-button-reqs");
     assert.ok(holder);
@@ -428,7 +469,9 @@ describe("printed bands", () => {
         events: [
           {
             ...holder,
-            choices: holder.choices.map((choice) => (choice.id === S3 ? { ...choice, reqs: undefined } : choice)),
+            choices: holder.choices.map((choice) =>
+              choice.id === S3 ? { ...choice, reqs: undefined } : choice,
+            ),
           },
         ],
       },
@@ -579,13 +622,19 @@ describe("printed bands", () => {
       "refugee-slug",
       "refugee-distress-slug",
     ]) {
-      assert.deepEqual((eventDef(id)?.offers ?? []).filter((row) => row.k === "trade"), trade, id);
+      assert.deepEqual(
+        (eventDef(id)?.offers ?? []).filter((row) => row.k === "trade"),
+        trade,
+        id,
+      );
     }
 
     let seed = 0;
     for (let n = 1; n <= 40 && seed === 0; n++) {
       const g = createGame(n);
-      const beacon = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+      const beacon = g.beacons.find(
+        (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
+      );
       assert.ok(beacon);
       beacon.flag = "cited:refugee-zoltan";
       beacon.name = "Refugee (Zoltan)";
@@ -599,7 +648,9 @@ describe("printed bands", () => {
 
     function open(n: number): Game {
       const g = createGame(n);
-      const beacon = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+      const beacon = g.beacons.find(
+        (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
+      );
       assert.ok(beacon);
       beacon.flag = "cited:refugee-zoltan";
       beacon.name = "Refugee (Zoltan)";
@@ -617,7 +668,10 @@ describe("printed bands", () => {
     const opened = empty.seed;
     choose(empty, "c:refugee-zoltan:0");
     assert.equal(empty.event?.body, hail);
-    assert.equal(empty.event?.choices.some((choice) => choice.id === "c:refugee-zoltan:0"), true);
+    assert.equal(
+      empty.event?.choices.some((choice) => choice.id === "c:refugee-zoltan:0"),
+      true,
+    );
     const sibling = open(seed);
     assert.equal(sibling.seed, opened);
     rand(sibling);
@@ -625,10 +679,20 @@ describe("printed bands", () => {
 
     loadPack(
       {
-        events: [{
-          ...row,
-          offers: [{ k: "trade" as const, pay: "parts" as const, cost: [2, 2], get: "fuel" as const, gain: [9, 9] }],
-        }],
+        events: [
+          {
+            ...row,
+            offers: [
+              {
+                k: "trade" as const,
+                pay: "parts" as const,
+                cost: [2, 2],
+                get: "fuel" as const,
+                gain: [9, 9],
+              },
+            ],
+          },
+        ],
       },
       "append",
     );

@@ -174,7 +174,9 @@ export const CITED_LOCKS: Record<string, readonly ChoiceReq[]> = {
   "c:destroyed-cargo-ship:2": [system("sensors", 2, "Needs Sensors level 2")],
   "c:destroyed-cargo-ship:3": [augment("ADV_SCANNERS", "Needs Long-Ranged Scanners")],
   "c:auto-ship-carrying-shield-virus:1": [system("hacking", 1, "Needs a Hacking system")],
-  "c:crystalline-ship-messaging-about-rebels:2": [augment("FLEET_DISTRACTION", "Needs Distraction Buoys")],
+  "c:crystalline-ship-messaging-about-rebels:2": [
+    augment("FLEET_DISTRACTION", "Needs Distraction Buoys"),
+  ],
   "c:remote-settlement:2": [weapon("BEAM_FIRE", "Needs a Fire Beam")],
   "c:remote-settlement:3": [weapon("BOMB_FIRE", "Needs a Fire Bomb")],
 };
@@ -267,9 +269,7 @@ export const QUEST_LOCKS: Record<string, readonly ChoiceReq[]> = {
   "q:merchant:full": [stock("parts", 5, `Need ${5} drone parts`)],
   "q:merchant:weapons": [stock("parts", 5, `Need ${5} drone parts`)],
   "q:research:drone": [drone("BATTLE", "Needs an Anti-Personnel Drone")],
-  "c:research-station-with-no-response:2": [
-    drone("BATTLE", "Needs an Anti-Personnel Drone"),
-  ],
+  "c:research-station-with-no-response:2": [drone("BATTLE", "Needs an Anti-Personnel Drone")],
   "c:research-station-with-no-response:3": [augment("LIFE_SCANNER", "Needs a Lifeform Scanner")],
 };
 

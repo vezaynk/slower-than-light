@@ -56,16 +56,24 @@ describe("Flak I room odds", () => {
 
   it("stays in a 1x2 on the main-room roll and steps onto a long side, a short side, or a corner", () => {
     assert.deepEqual(flak1Landing([narrow, north], "aim", 0.442), { kind: "stay" });
-    assert.deepEqual(flak1Landing([narrow, north], "aim", 0.4421), { kind: "room", roomId: "north" });
+    assert.deepEqual(flak1Landing([narrow, north], "aim", 0.4421), {
+      kind: "room",
+      roomId: "north",
+    });
     // First short-side tile is west of the pair, which is empty here.
     assert.deepEqual(flak1Landing([narrow, north], "aim", 0.4421 + 0.1196 * 4), { kind: "miss" });
     // First corner is also empty.
-    assert.deepEqual(flak1Landing([narrow], "aim", 0.4421 + 0.1196 * 4 + 0.0363 * 2), { kind: "miss" });
+    assert.deepEqual(flak1Landing([narrow], "aim", 0.4421 + 0.1196 * 4 + 0.0363 * 2), {
+      kind: "miss",
+    });
   });
 
   it("stays in a 2x2 on the main-room roll and can leave through a side tile", () => {
     assert.deepEqual(flak1Landing([square, beside], "box", 0.8407), { kind: "stay" });
-    assert.deepEqual(flak1Landing([square, beside], "box", 0.8408), { kind: "room", roomId: "beside" });
+    assert.deepEqual(flak1Landing([square, beside], "box", 0.8408), {
+      kind: "room",
+      roomId: "beside",
+    });
     assert.deepEqual(flak1Landing([square], "box", 0.99), { kind: "miss" });
   });
 });
@@ -85,11 +93,23 @@ describe("Flak I fake flak", () => {
     const base = g.enemy.rooms[0];
     g.enemy.rooms = [
       { ...base, id: "n", x: 1, y: 1, w: 2, h: 1, omit: undefined },
-      { ...base, id: "north", title: "North", system: null, x: 1, y: 0, w: 2, h: 1, omit: undefined },
+      {
+        ...base,
+        id: "north",
+        title: "North",
+        system: null,
+        x: 1,
+        y: 0,
+        w: 2,
+        h: 1,
+        omit: undefined,
+      },
     ];
     g.player.systems.weapons.level = 2;
     g.player.systems.weapons.power = 2;
-    g.player.weapons = [{ uid: "flak", defId: "SHOTGUN", charge: 1, enabled: true, autofire: false, target: "n" }];
+    g.player.weapons = [
+      { uid: "flak", defId: "SHOTGUN", charge: 1, enabled: true, autofire: false, target: "n" },
+    ];
     g.seed = 4;
     const preview = createGame(1);
     preview.seed = 4;
@@ -145,7 +165,16 @@ describe("Flak I fake flak", () => {
     tickSwarm(g, ACQUIRE_S);
     g.player.systems.weapons.level = 2;
     g.player.systems.weapons.power = 2;
-    g.player.weapons = [{ uid: "flak", defId: "SHOTGUN", charge: 1, enabled: true, autofire: false, target: g.enemy.rooms[0]!.id }];
+    g.player.weapons = [
+      {
+        uid: "flak",
+        defId: "SHOTGUN",
+        charge: 1,
+        enabled: true,
+        autofire: false,
+        target: g.enemy.rooms[0]!.id,
+      },
+    ];
     fireReady(g);
     const fake = g.shots.find((shot) => shot.label === FLAK1_FAKE_LABEL);
     assert.ok(fake);

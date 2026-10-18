@@ -21,7 +21,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Auto-ship fight (Crystal)", () => {
@@ -45,7 +47,8 @@ describe("Auto-ship fight (Crystal)", () => {
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
     assert.equal(destroyed.augments.length, augments);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 5, body);
 
     const killed = createGame(2);
@@ -81,6 +84,10 @@ describe("Auto-ship fight (Crystal)", () => {
     assert.equal(g.fightEvent, "auto-ship-fight-crystal");
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes("The Rebels must have sent their automated scouts to find you. One jumps in and immediately moves to attack."));
+    assert.ok(
+      g.log.includes(
+        "The Rebels must have sent their automated scouts to find you. One jumps in and immediately moves to attack.",
+      ),
+    );
   });
 });

@@ -1811,7 +1811,6 @@ export const ENEMY_LAYOUTS: Record<string, EnemyInterior> = {
   },
 };
 
-
 /** Layout file for one traced interior. The ship id keeps the ":pirate" suffix. */
 export function enemyLayoutFile(id: string): string {
   return id.replace(":pirate", "-pirate");

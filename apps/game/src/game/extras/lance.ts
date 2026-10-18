@@ -107,7 +107,13 @@ export function upgradeLance(g: Game): boolean {
  */
 export function raiseLancePower(g: Game): void {
   const kit = g.player.kits.artillery;
-  if (!kit || kit.weapon === "ARTILLERY_FED_C" || kit.power >= powerCap(kit) || sparePower(g.player) < 1) return;
+  if (
+    !kit ||
+    kit.weapon === "ARTILLERY_FED_C" ||
+    kit.power >= powerCap(kit) ||
+    sparePower(g.player) < 1
+  )
+    return;
   kit.power += 1;
   kit.on = true;
 }

@@ -777,7 +777,9 @@ function medbayLevel(g: Game): number {
 function ownsBeamDrone(g: Game): boolean {
   const kit = g.player.kits.drones;
   if (!kit) return false;
-  return [kit.target, ...(kit.loadout ?? [])].some((kind) => kind === "COMBAT_BEAM" || kind === "COMBAT_BEAM_2");
+  return [kit.target, ...(kit.loadout ?? [])].some(
+    (kind) => kind === "COMBAT_BEAM" || kind === "COMBAT_BEAM_2",
+  );
 }
 
 /** The launch offer is a blue option. It is absent without a missile weapon. */
@@ -839,7 +841,9 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
         note ? [note] : [],
       );
     } else {
-      const base = rollBand("asteroid-mining-colony", "thanks", "scrap", (lo, hi) => between(g, [lo, hi]));
+      const base = rollBand("asteroid-mining-colony", "thanks", "scrap", (lo, hi) =>
+        between(g, [lo, hi]),
+      );
       show(
         g,
         "They thank you for your generosity and offer some scrap in exchange.",
@@ -873,7 +877,9 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
       [grantRandomItem(g, "augment")],
     );
   } else {
-    const base = rollBand("asteroid-mining-colony", "wow", "scrap", (lo, hi) => between(g, [lo, hi]));
+    const base = rollBand("asteroid-mining-colony", "wow", "scrap", (lo, hi) =>
+      between(g, [lo, hi]),
+    );
     show(
       g,
       '"Wow. This will help our efforts considerably. Let me see what I can scrounge up to offer you." They deliver some scrap and have their team try to repair part of your hull.',

@@ -67,7 +67,10 @@ describe("Crushed pirate", () => {
     const plain = createGame(1);
     const ev = open(plain);
     assert.match(ev.body, /pirate markings/);
-    assert.deepEqual(ev.choices.map((c) => c.id), ["c:crushed-pirate:0", "c:crushed-pirate:1"]);
+    assert.deepEqual(
+      ev.choices.map((c) => c.id),
+      ["c:crushed-pirate:0", "c:crushed-pirate:1"],
+    );
     assert.equal(choiceDisabled(plain, "c:crushed-pirate:2"), "Needs a beam weapon");
     assert.equal(choiceDisabled(plain, "c:crushed-pirate:3"), "Needs a beam drone");
 
@@ -77,11 +80,17 @@ describe("Crushed pirate", () => {
 
     const fire = createGame(1);
     fire.player.weapons.push(gun("BEAM_FIRE"));
-    assert.equal(open(fire).choices.some((c) => c.id === "c:crushed-pirate:2"), false);
+    assert.equal(
+      open(fire).choices.some((c) => c.id === "c:crushed-pirate:2"),
+      false,
+    );
 
     const anti = createGame(1);
     anti.player.weapons.push(gun("BEAM_BIO"));
-    assert.equal(open(anti).choices.some((c) => c.id === "c:crushed-pirate:2"), false);
+    assert.equal(
+      open(anti).choices.some((c) => c.id === "c:crushed-pirate:2"),
+      false,
+    );
 
     const lance = createGame(1);
     lance.player.kits.artillery = kit("artillery");
@@ -97,7 +106,10 @@ describe("Crushed pirate", () => {
 
     const fired = createGame(1);
     fired.player.kits.drones = kit("drones", { target: "fire" });
-    assert.equal(open(fired).choices.some((c) => c.id === "c:crushed-pirate:3"), false);
+    assert.equal(
+      open(fired).choices.some((c) => c.id === "c:crushed-pirate:3"),
+      false,
+    );
   });
 
   it("shooting the rocks deals 2 hull and 2 system damage with low scrap, or medium scrap", () => {
@@ -191,7 +203,10 @@ describe("Crushed pirate", () => {
         failed = true;
         assert.equal(dry.player.parts, 0);
         assert.equal(dry.player.hull, hull);
-        assert.equal(dry.log.some((line) => line.includes("Repair Arm")), false);
+        assert.equal(
+          dry.log.some((line) => line.includes("Repair Arm")),
+          false,
+        );
       } else kept = true;
 
       const stocked = createGame(seed);

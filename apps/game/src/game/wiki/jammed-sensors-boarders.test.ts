@@ -32,7 +32,16 @@ function boarded(g: Game) {
 }
 
 function fitHacking(g: Game) {
-  g.player.kits.hacking = { id: "hacking", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  g.player.kits.hacking = {
+    id: "hacking",
+    level: 2,
+    power: 2,
+    left: 0,
+    cool: 0,
+    target: null,
+    on: false,
+    aux: 0,
+  };
 }
 
 describe("Boarders: Humans jammed sensors", () => {
@@ -54,7 +63,10 @@ describe("Boarders: Humans jammed sensors", () => {
     const ev = citedEvent(createGame(1), beacon());
     assert.ok(ev);
     assert.ok(ev.body.length <= 240);
-    assert.deepEqual(ev.choices.map((c) => c.id), [CONTINUE, HACK]);
+    assert.deepEqual(
+      ev.choices.map((c) => c.id),
+      [CONTINUE, HACK],
+    );
 
     const bare = createGame(2);
     assert.equal(choiceDisabled(bare, HACK), "Needs a Hacking system");

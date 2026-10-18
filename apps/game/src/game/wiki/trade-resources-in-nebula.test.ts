@@ -7,7 +7,8 @@ import { citedEvent } from "./cited-events.ts";
 const INTRO =
   "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal.";
 
-const TAKE = /^c:trade-resources-in-nebula:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
+const TAKE =
+  /^c:trade-resources-in-nebula:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
 
 const BANDS: Record<string, { cost: [number, number]; gain: [number, number] }> = {
   "parts:fuel": { cost: [1, 2], gain: [5, 10] },
@@ -88,10 +89,31 @@ describe("Trade resources in nebula", () => {
       assert.equal(have(g, pay), 30 - cost);
       assert.equal(have(g, get), 30 + gain);
       assert.equal(have(g, third), 30);
-      assert.ok(g.log.includes(pay === "fuel" ? `Fuel: -${cost}.` : pay === "missiles" ? `Missiles: -${cost}.` : `Drone parts: -${cost}.`));
-      assert.ok(g.log.includes(get === "fuel" ? `Fuel: ${gain}.` : get === "missiles" ? `Missiles: ${gain}.` : `Drone parts: ${gain}.`));
+      assert.ok(
+        g.log.includes(
+          pay === "fuel"
+            ? `Fuel: -${cost}.`
+            : pay === "missiles"
+              ? `Missiles: -${cost}.`
+              : `Drone parts: -${cost}.`,
+        ),
+      );
+      assert.ok(
+        g.log.includes(
+          get === "fuel"
+            ? `Fuel: ${gain}.`
+            : get === "missiles"
+              ? `Missiles: ${gain}.`
+              : `Drone parts: ${gain}.`,
+        ),
+      );
     }
-    assert.deepEqual([...kinds].sort(), ["fuel:missiles", "missiles:fuel", "missiles:parts", "parts:fuel"]);
+    assert.deepEqual([...kinds].sort(), [
+      "fuel:missiles",
+      "missiles:fuel",
+      "missiles:parts",
+      "parts:fuel",
+    ]);
   });
 
   it("Ignore returns to the map and changes nothing", () => {

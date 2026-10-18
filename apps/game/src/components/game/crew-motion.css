@@ -78,40 +78,66 @@
 
 /* Per the user: the radial menu's crew preview keeps animating while the game is paused (the pause rule below is
    scoped to the hull). Walk and fight loop on the same clock there. INVENTED durations. */
-.radial-mate .crew-sprite.is-cycle.is-walk { --pose-dur: 0.5s; }
-.radial-mate .crew-sprite.is-cycle.is-fight { --pose-dur: 0.56s; }
+.radial-mate .crew-sprite.is-cycle.is-walk {
+  --pose-dur: 0.5s;
+}
+.radial-mate .crew-sprite.is-cycle.is-fight {
+  --pose-dur: 0.56s;
+}
 
 @keyframes crew-f0 {
   0%,
-  24.9% { opacity: 1; }
+  24.9% {
+    opacity: 1;
+  }
   25%,
-  100% { opacity: 0; }
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes crew-f1 {
   0%,
-  24.9% { opacity: 0; }
+  24.9% {
+    opacity: 0;
+  }
   25%,
-  49.9% { opacity: 1; }
+  49.9% {
+    opacity: 1;
+  }
   50%,
-  100% { opacity: 0; }
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes crew-f2 {
   0%,
-  49.9% { opacity: 0; }
+  49.9% {
+    opacity: 0;
+  }
   50%,
-  74.9% { opacity: 1; }
+  74.9% {
+    opacity: 1;
+  }
   75%,
-  100% { opacity: 0; }
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes crew-f3 {
   0%,
-  74.9% { opacity: 0; }
+  74.9% {
+    opacity: 0;
+  }
   75%,
-  99.9% { opacity: 1; }
-  100% { opacity: 0; }
+  99.9% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .token.is-stunned .crew-sprite {
@@ -169,15 +195,30 @@
   position: absolute;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(circle, rgba(46, 214, 92, 0.9) 0%, rgba(46, 214, 92, 0.55) 40%, rgba(46, 214, 92, 0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(46, 214, 92, 0.9) 0%,
+    rgba(46, 214, 92, 0.55) 40%,
+    rgba(46, 214, 92, 0) 70%
+  );
   animation: heal-pulse 1.1s ease-in-out infinite;
 }
 
 @keyframes heal-pulse {
-  0%, 100% { opacity: 0.25; transform: scale(0.82); }
-  50% { opacity: 1; transform: scale(1); }
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .crew-walkers .heal-tile { animation: none; opacity: 0.7; }
+  .crew-walkers .heal-tile {
+    animation: none;
+    opacity: 0.7;
+  }
 }

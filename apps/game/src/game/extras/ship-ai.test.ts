@@ -54,7 +54,10 @@ describe("enemy power (xftl doc/ship-ai, CheckPowerLevels)", () => {
     // Oxygen 1 (4 left). Loop 1: the first gun (both at 0 s, and a later one must beat the stored 0), shields 1,
     // engines 1 (1 left). Loop 2: the 2-bar gun does not fit; shields 2. Nothing left.
     assert.equal(e.systems.oxygen.power, 1);
-    assert.deepEqual(e.weapons.map((w) => w.enabled), [true, false]);
+    assert.deepEqual(
+      e.weapons.map((w) => w.enabled),
+      [true, false],
+    );
     assert.equal(e.systems.weapons.power, 1);
     assert.equal(e.systems.shields.power, 2);
     assert.equal(e.systems.engines.power, 1);
@@ -65,7 +68,11 @@ describe("enemy power (xftl doc/ship-ai, CheckPowerLevels)", () => {
     g.enemy!.storm = true;
     checkEnemyPower(g);
     const e = g.enemy!;
-    const used = e.systems.shields.power + e.systems.engines.power + e.systems.oxygen.power + e.systems.weapons.power;
+    const used =
+      e.systems.shields.power +
+      e.systems.engines.power +
+      e.systems.oxygen.power +
+      e.systems.weapons.power;
     assert.equal(used, 5);
   });
 

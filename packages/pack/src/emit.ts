@@ -444,7 +444,8 @@ function crewReward(doc: XmlDocument, race?: string): XmlElement {
 
 function surrenderReward(doc: XmlDocument, reward: SurrenderReward): XmlElement[] {
   if (reward.k === "none") return [];
-  if (reward.k === "stuff") return [autoReward(doc, "stuff", reward.tier ? REWARD_LEVEL[reward.tier] : undefined)];
+  if (reward.k === "stuff")
+    return [autoReward(doc, "stuff", reward.tier ? REWARD_LEVEL[reward.tier] : undefined)];
   if (reward.k === "standard") {
     const nodes = [autoReward(doc, "standard", REWARD_LEVEL[reward.tier])];
     if (reward.race) nodes.push(crewReward(doc, reward.race));
@@ -557,7 +558,12 @@ function storeElement(doc: XmlDocument, store: StoreDef): XmlElement {
     for (let i = 0; i < empties; i++) add(category, emptyItem(doc));
     for (const line of store.lines) {
       if (line.kind !== section) continue;
-      if (line.kind === "fuel" || line.kind === "missiles" || line.kind === "parts" || line.kind === "repair") {
+      if (
+        line.kind === "fuel" ||
+        line.kind === "missiles" ||
+        line.kind === "parts" ||
+        line.kind === "repair"
+      ) {
         continue;
       }
       add(category, stockItem(doc, line, false));
@@ -565,7 +571,12 @@ function storeElement(doc: XmlDocument, store: StoreDef): XmlElement {
     add(node, category);
   }
   for (const line of store.lines) {
-    if (line.kind === "fuel" || line.kind === "missiles" || line.kind === "parts" || line.kind === "repair") {
+    if (
+      line.kind === "fuel" ||
+      line.kind === "missiles" ||
+      line.kind === "parts" ||
+      line.kind === "repair"
+    ) {
       continue;
     }
     if (store.sections.includes(line.kind)) continue;
@@ -597,7 +608,10 @@ function mergeIds(systems: SystemDef[], tunes: TuneDef[]): string[] {
 
 function factionElement(doc: XmlDocument, row: FactionSurrender): XmlElement {
   const node = element(doc, "shipBlueprint", { name: row.id });
-  add(node, element(doc, "surrender", { chance: num(row.chance), min: num(row.min), max: num(row.max) }));
+  add(
+    node,
+    element(doc, "surrender", { chance: num(row.chance), min: num(row.min), max: num(row.max) }),
+  );
   return node;
 }
 
@@ -617,7 +631,10 @@ function rewardsElement(doc: XmlDocument, table: RewardTable): XmlElement {
   }
   const resources = element(doc, "resourceRewards", {});
   for (const row of table.resources) {
-    add(resources, element(doc, row.kind, { level: row.level, min: num(row.min), max: num(row.max) }));
+    add(
+      resources,
+      element(doc, row.kind, { level: row.level, min: num(row.min), max: num(row.max) }),
+    );
   }
   add(node, resources);
   for (const reward of table.rewards) add(node, namedRewardElement(doc, reward));
@@ -707,7 +724,10 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   for (const room of hull.grid?.rooms ?? []) {
     if (room.system && !reserved.has(room.system)) {
       reserved.add(room.system);
-      add(systems, element(doc, "system", { name: room.system, room: String(room.id), start: "false" }));
+      add(
+        systems,
+        element(doc, "system", { name: room.system, room: String(room.id), start: "false" }),
+      );
     }
     if (!room.reserve) continue;
     const id = RESERVE_SYSTEM[room.reserve];
@@ -752,7 +772,12 @@ function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
   add(node, unfitted);
 
   const grid = hull.grid;
-  if (grid && (grid.cols != null || grid.rows != null || grid.rooms.some((room) => room.name || room.title || room.reserve))) {
+  if (
+    grid &&
+    (grid.cols != null ||
+      grid.rows != null ||
+      grid.rooms.some((room) => room.name || room.title || room.reserve))
+  ) {
     const attrs: Record<string, string> = {};
     if (grid.cols != null) attrs.cols = String(grid.cols);
     if (grid.rows != null) attrs.rows = String(grid.rows);

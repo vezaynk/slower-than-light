@@ -4,10 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
 
-const INTROS = [
-  "You look like a military vessel.",
-  "You receive a message from a small convoy.",
-];
+const INTROS = ["You look like a military vessel.", "You receive a message from a small convoy."];
 
 const BUNDLES: { missiles: [number, number]; parts: [number, number]; fuel: [number, number] }[] = [
   { missiles: [3, 5], parts: [0, 2], fuel: [0, 0] },
@@ -57,10 +54,14 @@ describe("Improve reactor for supplies", () => {
       const intro = INTROS.find((text) => row.ev.body.includes(text));
       assert.ok(intro, row.ev.body);
       seenIntro.add(intro);
-      const hit = BUNDLES.findIndex((b) =>
-        row.missiles >= b.missiles[0] && row.missiles <= b.missiles[1]
-        && row.parts >= b.parts[0] && row.parts <= b.parts[1]
-        && row.fuel >= b.fuel[0] && row.fuel <= b.fuel[1],
+      const hit = BUNDLES.findIndex(
+        (b) =>
+          row.missiles >= b.missiles[0] &&
+          row.missiles <= b.missiles[1] &&
+          row.parts >= b.parts[0] &&
+          row.parts <= b.parts[1] &&
+          row.fuel >= b.fuel[0] &&
+          row.fuel <= b.fuel[1],
       );
       assert.ok(hit >= 0, row.id);
       seenBundle.add(hit);
@@ -98,7 +99,12 @@ describe("Improve reactor for supplies", () => {
     g.fuel = 0;
     const reactor = g.player.reactor;
     const row = offer(g);
-    const need = row.missiles > 0 ? `${row.missiles} missiles` : row.parts > 0 ? `${row.parts} drone parts` : `${row.fuel} fuel`;
+    const need =
+      row.missiles > 0
+        ? `${row.missiles} missiles`
+        : row.parts > 0
+          ? `${row.parts} drone parts`
+          : `${row.fuel} fuel`;
     assert.equal(choiceDisabled(g, row.id), `Need ${need}`);
     fillerChoose(g, row.id);
     assert.equal(g.player.reactor, reactor);

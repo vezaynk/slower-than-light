@@ -22,7 +22,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Pirate briber", () => {
@@ -42,7 +44,7 @@ describe("Pirate briber", () => {
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
     assert.equal(resources(body), 2, body);
     assert.equal(g.scrap, 10 + paid[0]!);
-    const gained = (g.fuel - fuel) + (g.missiles - missiles) + (g.player.parts - parts);
+    const gained = g.fuel - fuel + (g.missiles - missiles) + (g.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
     assert.equal(g.player.weapons.length, guns);
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
@@ -72,7 +74,10 @@ describe("Pirate briber", () => {
       const n = scraps(body)[0]!;
       assert.equal(scraps(body).length, 1, body);
       assert.equal(g.scrap, 10 + n);
-      assert.equal(g.event?.choices.some((c) => c.id === "q:pirate-briber:gone"), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === "q:pirate-briber:gone"),
+        true,
+      );
       if (n >= 7 && n <= 10) tiers.add("low");
       else if (n >= 12 && n <= 18) tiers.add("medium");
       else if (n >= 20 && n <= 23) tiers.add("high");
@@ -93,7 +98,8 @@ describe("Pirate briber", () => {
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
     assert.equal(resources(body), 2, body);
     assert.equal(killed.scrap, 10 + paid[0]!);
-    const gained = (killed.fuel - fuel) + (killed.missiles - missiles) + (killed.player.parts - parts);
+    const gained =
+      killed.fuel - fuel + (killed.missiles - missiles) + (killed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
   });
 
@@ -103,7 +109,10 @@ describe("Pirate briber", () => {
     pageGotAway(gone, "pirate-briber");
     assert.match(gone.event?.body ?? "", /abandoned pursuit/);
     assert.equal(gone.scrap, 10);
-    assert.equal(gone.event?.choices.some((c) => c.id === "q:pirate-briber:gone"), true);
+    assert.equal(
+      gone.event?.choices.some((c) => c.id === "q:pirate-briber:gone"),
+      true,
+    );
 
     const seen = new Set<string>();
     let rebelSeed = 0;
@@ -131,8 +140,14 @@ describe("Pirate briber", () => {
         seen.add("rebel");
         rebelSeed = seed;
         assert.equal(g.scrap, scrap);
-        assert.equal(g.event?.choices.some((c) => c.id === "q:pirate-briber:salvage"), true);
-        assert.equal(g.event?.choices.some((c) => c.id === "q:pirate-briber:delay"), true);
+        assert.equal(
+          g.event?.choices.some((c) => c.id === "q:pirate-briber:salvage"),
+          true,
+        );
+        assert.equal(
+          g.event?.choices.some((c) => c.id === "q:pirate-briber:delay"),
+          true,
+        );
       } else if (/hull breach/.test(body)) {
         seen.add("scrap");
         const paid = scraps(body);
@@ -169,7 +184,8 @@ describe("Pirate briber", () => {
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
     assert.equal(resources(body), 2, body);
     assert.equal(salvage.scrap, before + paid[0]!);
-    const gained = (salvage.fuel - fuel) + (salvage.missiles - missiles) + (salvage.player.parts - parts);
+    const gained =
+      salvage.fuel - fuel + (salvage.missiles - missiles) + (salvage.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
 
     const delay = createGame(rebelSeed);

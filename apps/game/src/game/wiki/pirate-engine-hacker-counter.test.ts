@@ -5,7 +5,8 @@ import { choiceDisabled, choose, createGame, evasionPercent, playerHackingOff } 
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const LEAD = "Your Hacking System automatically counters the digital assault and you move in to fight the ship.";
+const LEAD =
+  "Your Hacking System automatically counters the digital assault and you move in to fight the ship.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -22,7 +23,11 @@ describe("Pirate engine hacker hacking counter", () => {
   it("stays closed without Hacking", () => {
     const g = createGame(1);
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === "c:pirate-engine-hacker:1" && c.label === "Counter the remote hacking."));
+    assert.ok(
+      g.event?.choices.some(
+        (c) => c.id === "c:pirate-engine-hacker:1" && c.label === "Counter the remote hacking.",
+      ),
+    );
     assert.equal(choiceDisabled(g, "c:pirate-engine-hacker:1"), "Needs a Hacking system");
     choose(g, "c:pirate-engine-hacker:1");
     assert.equal(g.phase, "event");
@@ -32,7 +37,16 @@ describe("Pirate engine hacker hacking counter", () => {
 
   it("shows the printed counter sentence, takes Hacking offline, and does not cap Engines", () => {
     const g = createGame(2);
-    g.player.kits.hacking = { id: "hacking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.hacking = {
+      id: "hacking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     g.player.parts = 2;
     g.player.systems.engines.level = 5;
     g.player.systems.engines.power = 5;

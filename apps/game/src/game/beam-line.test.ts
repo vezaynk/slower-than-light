@@ -1,8 +1,32 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { beamStroke, cellsOnSegment, clampBeamEnd, clampTargetPoint, clipBeamEnd, pointInRoom, roomAtPoint, roomCenter, roomsOnSegment, targetableSpan, type BeamGrid } from "./beam-line.ts";
+import {
+  beamStroke,
+  cellsOnSegment,
+  clampBeamEnd,
+  clampTargetPoint,
+  clipBeamEnd,
+  pointInRoom,
+  roomAtPoint,
+  roomCenter,
+  roomsOnSegment,
+  targetableSpan,
+  type BeamGrid,
+} from "./beam-line.ts";
 import { beamSwipeSeconds, beamTileLength } from "./wiki/weapons-beam.ts";
-import { aim, applyImpact, armWeapon, cancelTargeting, createGame, evasionPercent, nudgeAim, powerMask, startCombat, step, toggleAutoAll } from "./sim.ts";
+import {
+  aim,
+  applyImpact,
+  armWeapon,
+  cancelTargeting,
+  createGame,
+  evasionPercent,
+  nudgeAim,
+  powerMask,
+  startCombat,
+  step,
+  toggleAutoAll,
+} from "./sim.ts";
 import type { Room, Shot } from "./types.ts";
 
 function grid(rooms: BeamGrid["rooms"], cols: number, rows: number): BeamGrid {
@@ -74,10 +98,16 @@ describe("slider aim", () => {
     const spot = roomCenter(rooms[rooms.length - 1]);
     nudgeAim(g, "point", spot);
     assert.equal(laser.target, rooms[rooms.length - 1].id);
-    assert.equal(g.shots.some((s) => s.defId === laser.defId), false);
+    assert.equal(
+      g.shots.some((s) => s.defId === laser.defId),
+      false,
+    );
     nudgeAim(g, "point", { x: spot.x + 80, y: spot.y - 80 });
     assert.ok(rooms.some((room) => room.id === laser.target));
-    assert.equal(g.shots.some((s) => s.defId === laser.defId), false);
+    assert.equal(
+      g.shots.some((s) => s.defId === laser.defId),
+      false,
+    );
   });
 
   it("sets a beam from two points and will not leave the enemy floor", () => {
@@ -101,7 +131,9 @@ describe("slider aim", () => {
     assert.ok(w.beamLine.b.x >= span.minX - 1e-6 && w.beamLine.b.x <= span.maxX + 1e-6);
     assert.ok(w.beamLine.b.y >= span.minY - 1e-6 && w.beamLine.b.y <= span.maxY + 1e-6);
     const tiles = beamTileLength("BEAM_BIO") ?? 0;
-    assert.ok(Math.hypot(w.beamLine.b.x - w.beamLine.a.x, w.beamLine.b.y - w.beamLine.a.y) <= tiles + 0.05);
+    assert.ok(
+      Math.hypot(w.beamLine.b.x - w.beamLine.a.x, w.beamLine.b.y - w.beamLine.a.y) <= tiles + 0.05,
+    );
     assert.equal(g.shots.length, 0);
     nudgeAim(g, "a", roomCenter(rooms[Math.min(1, rooms.length - 1)]));
     assert.ok(w.beamLine);
@@ -143,20 +175,30 @@ describe("slider aim", () => {
 });
 
 describe("rooms on a beam segment", () => {
-  const row = grid(
-    [cell("a", 0, 0), cell("b", 1, 0), cell("c", 2, 0), cell("d", 3, 0)],
-    4,
-    1,
-  );
+  const row = grid([cell("a", 0, 0), cell("b", 1, 0), cell("c", 2, 0), cell("d", 3, 0)], 4, 1);
 
   it("walks a straight row from the start click to the end click", () => {
-    assert.deepEqual(roomsOnSegment(row, { x: 0.5, y: 0.5 }, { x: 3.5, y: 0.5 }), ["a", "b", "c", "d"]);
-    assert.deepEqual(roomsOnSegment(row, { x: 3.5, y: 0.5 }, { x: 0.5, y: 0.5 }), ["d", "c", "b", "a"]);
+    assert.deepEqual(roomsOnSegment(row, { x: 0.5, y: 0.5 }, { x: 3.5, y: 0.5 }), [
+      "a",
+      "b",
+      "c",
+      "d",
+    ]);
+    assert.deepEqual(roomsOnSegment(row, { x: 3.5, y: 0.5 }, { x: 0.5, y: 0.5 }), [
+      "d",
+      "c",
+      "b",
+      "a",
+    ]);
   });
 
   it("counts a wide room once", () => {
     const ship = grid([cell("a", 0, 0), cell("wide", 1, 0, 2, 1), cell("c", 3, 0)], 4, 1);
-    assert.deepEqual(roomsOnSegment(ship, { x: 0.5, y: 0.5 }, { x: 3.5, y: 0.5 }), ["a", "wide", "c"]);
+    assert.deepEqual(roomsOnSegment(ship, { x: 0.5, y: 0.5 }, { x: 3.5, y: 0.5 }), [
+      "a",
+      "wide",
+      "c",
+    ]);
   });
 
   it("stays in one room when both clicks are in it", () => {
@@ -164,29 +206,22 @@ describe("rooms on a beam segment", () => {
   });
 
   it("counts the side rooms when the segment passes through a corner", () => {
-    const ship = grid(
-      [cell("a", 0, 0), cell("b", 1, 0), cell("d", 0, 1), cell("e", 1, 1)],
-      2,
-      2,
-    );
-    assert.deepEqual(roomsOnSegment(ship, { x: 0.5, y: 0.5 }, { x: 1.5, y: 1.5 }), ["a", "b", "d", "e"]);
+    const ship = grid([cell("a", 0, 0), cell("b", 1, 0), cell("d", 0, 1), cell("e", 1, 1)], 2, 2);
+    assert.deepEqual(roomsOnSegment(ship, { x: 0.5, y: 0.5 }, { x: 1.5, y: 1.5 }), [
+      "a",
+      "b",
+      "d",
+      "e",
+    ]);
   });
 
   it("does not pull in a room the segment misses", () => {
-    const ship = grid(
-      [cell("a", 0, 0), cell("b", 1, 0), cell("d", 0, 1), cell("e", 1, 1)],
-      2,
-      2,
-    );
+    const ship = grid([cell("a", 0, 0), cell("b", 1, 0), cell("d", 0, 1), cell("e", 1, 1)], 2, 2);
     assert.deepEqual(roomsOnSegment(ship, { x: 0.2, y: 0.5 }, { x: 0.8, y: 1.5 }), ["a", "d"]);
   });
 
   it("skips an omitted cell and still hits the room through its floor", () => {
-    const ship = grid(
-      [cell("m", 0, 0, 2, 2, [{ x: 1, y: 1 }]), cell("n", 2, 1)],
-      3,
-      2,
-    );
+    const ship = grid([cell("m", 0, 0, 2, 2, [{ x: 1, y: 1 }]), cell("n", 2, 1)], 3, 2);
     assert.deepEqual(roomsOnSegment(ship, { x: 0.5, y: 0.5 }, { x: 2.5, y: 1.5 }), ["m", "n"]);
     assert.deepEqual(roomsOnSegment(ship, { x: 1.2, y: 1.2 }, { x: 1.8, y: 1.8 }), []);
   });
@@ -202,7 +237,14 @@ describe("rooms on a beam segment", () => {
 
 describe("printed beam length", () => {
   const row = grid(
-    [cell("a", 0, 0), cell("b", 1, 0), cell("c", 2, 0), cell("d", 3, 0), cell("e", 4, 0), cell("f", 5, 0)],
+    [
+      cell("a", 0, 0),
+      cell("b", 1, 0),
+      cell("c", 2, 0),
+      cell("d", 3, 0),
+      cell("e", 4, 0),
+      cell("f", 5, 0),
+    ],
     6,
     1,
   );
@@ -293,7 +335,11 @@ describe("player beam aim", () => {
     assert.equal(g.shots.filter((s) => s.defId === "BEAM_BIO").length, 0);
     assert.equal(g.targeting, false);
     assert.ok(w.beamLine);
-    const end = clipBeamEnd(center(rooms[0]), center(rooms[rooms.length - 1]), beamTileLength("BEAM_BIO") ?? 0);
+    const end = clipBeamEnd(
+      center(rooms[0]),
+      center(rooms[rooms.length - 1]),
+      beamTileLength("BEAM_BIO") ?? 0,
+    );
     assert.equal(w.target, roomsOnSegment(g.enemy!, center(rooms[0]), end)[0]);
   });
 
@@ -347,7 +393,14 @@ describe("enemy beam aim", () => {
     for (const w of g.player.weapons) w.enabled = false;
     const enemy = g.enemy!;
     enemy.weapons = [
-      { uid: "e-beam", defId: "BEAM_1", charge: 1, enabled: true, autofire: true, target: g.player.rooms[0].id },
+      {
+        uid: "e-beam",
+        defId: "BEAM_1",
+        charge: 1,
+        enabled: true,
+        autofire: true,
+        target: g.player.rooms[0].id,
+      },
     ];
     step(g, 0.05);
     const shot = g.shots.find((s) => s.from === "enemy" && s.kind === "beam");
@@ -359,14 +412,17 @@ describe("enemy beam aim", () => {
     const extra = shot.beamRooms[1];
     if (extra) {
       const linked = g.player.doors.some(
-        (d) => (d.a === shot.targetRoom && d.b === extra) || (d.b === shot.targetRoom && d.a === extra),
+        (d) =>
+          (d.a === shot.targetRoom && d.b === extra) || (d.b === shot.targetRoom && d.a === extra),
       );
       assert.equal(linked, true);
     }
     let tiles = 0;
     if (shot.beamRooms.length >= 2) {
       const a = g.player.rooms.find((room) => room.id === shot.beamRooms?.[0]);
-      const b = g.player.rooms.find((room) => room.id === shot.beamRooms?.[shot.beamRooms.length - 1]);
+      const b = g.player.rooms.find(
+        (room) => room.id === shot.beamRooms?.[shot.beamRooms.length - 1],
+      );
       assert.ok(a && b);
       const ca = roomCenter(a);
       const cb = roomCenter(b);
@@ -381,7 +437,14 @@ describe("enemy beam aim", () => {
     for (const w of g.player.weapons) w.enabled = false;
     const enemy = g.enemy!;
     enemy.weapons = [
-      { uid: "e-beam", defId: "ARTILLERY_BOSS_3", charge: 1, enabled: true, autofire: true, target: g.player.rooms[0].id },
+      {
+        uid: "e-beam",
+        defId: "ARTILLERY_BOSS_3",
+        charge: 1,
+        enabled: true,
+        autofire: true,
+        target: g.player.rooms[0].id,
+      },
     ];
     step(g, 0.05);
     const shot = g.shots.find((s) => s.from === "enemy" && s.kind === "beam");
@@ -390,7 +453,9 @@ describe("enemy beam aim", () => {
     let tiles = 0;
     if ((shot.beamRooms?.length ?? 0) >= 2) {
       const a = g.player.rooms.find((room) => room.id === shot.beamRooms?.[0]);
-      const b = g.player.rooms.find((room) => room.id === shot.beamRooms?.[shot.beamRooms.length - 1]);
+      const b = g.player.rooms.find(
+        (room) => room.id === shot.beamRooms?.[shot.beamRooms.length - 1],
+      );
       assert.ok(a && b);
       const ca = roomCenter(a);
       const cb = roomCenter(b);
@@ -402,22 +467,14 @@ describe("enemy beam aim", () => {
 
 describe("cells on a beam segment", () => {
   it("hits the cells a short segment crosses and does not invent extra cells", () => {
-    const row = grid(
-      [cell("a", 0, 0), cell("b", 1, 0), cell("c", 2, 0)],
-      3,
-      1,
-    );
+    const row = grid([cell("a", 0, 0), cell("b", 1, 0), cell("c", 2, 0)], 3, 1);
     assert.deepEqual(cellsOnSegment(row, { x: 0.5, y: 0.5 }, { x: 1.5, y: 0.5 }), [
       { x: 0, y: 0 },
       { x: 1, y: 0 },
     ]);
     assert.deepEqual(cellsOnSegment(row, { x: 0.2, y: 0.2 }, { x: 0.8, y: 0.4 }), [{ x: 0, y: 0 }]);
 
-    const ship = grid(
-      [cell("a", 0, 0), cell("b", 1, 0), cell("d", 0, 1), cell("e", 1, 1)],
-      2,
-      2,
-    );
+    const ship = grid([cell("a", 0, 0), cell("b", 1, 0), cell("d", 0, 1), cell("e", 1, 1)], 2, 2);
     assert.deepEqual(cellsOnSegment(ship, { x: 0.5, y: 0.5 }, { x: 1.5, y: 1.5 }), [
       { x: 0, y: 0 },
       { x: 1, y: 0 },
@@ -440,7 +497,10 @@ function floorCells(room: Room): { x: number; y: number }[] {
 }
 
 /** A segment that stays inside one cell. */
-function across(cell: { x: number; y: number }): { a: { x: number; y: number }; b: { x: number; y: number } } {
+function across(cell: { x: number; y: number }): {
+  a: { x: number; y: number };
+  b: { x: number; y: number };
+} {
   return {
     a: { x: cell.x + 0.25, y: cell.y + 0.5 },
     b: { x: cell.x + 0.75, y: cell.y + 0.5 },
@@ -490,7 +550,12 @@ describe("beam crew standing tile", () => {
     // INFERRED: standing cell is the room's first occupied cell, lowest y then lowest x.
     const line = across(other);
     assert.deepEqual(cellsOnSegment(g.player, line.a, line.b), [other]);
-    assert.equal(cellsOnSegment(g.player, line.a, line.b).some((cell) => cell.x === stand.x && cell.y === stand.y), false);
+    assert.equal(
+      cellsOnSegment(g.player, line.a, line.b).some(
+        (cell) => cell.x === stand.x && cell.y === stand.y,
+      ),
+      false,
+    );
     const hull = g.player.hull;
     const damage = g.player.systems.weapons.damage;
     applyImpact(

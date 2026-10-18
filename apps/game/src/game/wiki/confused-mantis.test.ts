@@ -121,7 +121,16 @@ describe("Confused Mantis", () => {
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = {
+        id: "clonebay",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       const crew = players(g).length;
       listen(g);
       fillerChoose(g, "s:confused-mantis:shuttle");
@@ -197,7 +206,10 @@ describe("Confused Mantis", () => {
     fillerChoose(g, "s:confused-mantis:mantis");
     standard(g.event?.body ?? "", 7, 10);
     assert.equal(players(g).length, crew);
-    assert.equal(players(g).some((c) => c.name === "Robert Smith"), false);
+    assert.equal(
+      players(g).some((c) => c.name === "Robert Smith"),
+      false,
+    );
   });
 
   it("Mind Control pays medium scrap and does not add Robert Smith", () => {
@@ -205,7 +217,16 @@ describe("Confused Mantis", () => {
     // > "You receive medium scrap with resources." — [[Confused Mantis]]
     const g = createGame(5);
     kin(g, "human");
-    g.player.kits.mind = { id: "mind", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.mind = {
+      id: "mind",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     const crew = players(g).length;
     listen(g);
     assert.ok(ids(g).includes("s:confused-mantis:mind"));

@@ -2,10 +2,29 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { mediumScrapBand } from "../content.ts";
 import { kinOf } from "../extras/kin.ts";
-import { choose, chooseSector, closeAllDoors, commitJump, createGame, doorLevel, evasionPercent, openAllDoors, powerMask, startCombat, step, toggleDoor } from "../sim.ts";
+import {
+  choose,
+  chooseSector,
+  closeAllDoors,
+  commitJump,
+  createGame,
+  doorLevel,
+  evasionPercent,
+  openAllDoors,
+  powerMask,
+  startCombat,
+  step,
+  toggleDoor,
+} from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { onCradleDeath } from "../extras/cradle.ts";
-import { citedChoiceDisabled, citedChoose, citedEvent, stampCitedEvents, type CitedChoice } from "./cited-events.ts";
+import {
+  citedChoiceDisabled,
+  citedChoose,
+  citedEvent,
+  stampCitedEvents,
+  type CitedChoice,
+} from "./cited-events.ts";
 import { heldSchematics } from "./make-room.ts";
 
 function beacon(name: string, flag = ""): Beacon {
@@ -86,7 +105,7 @@ describe("cited events", () => {
     assert.equal(g.scrapCollected, 12);
     // The station applies the scrap itself so Scrap Recovery Arm and Repair Arm can change it.
     assert.deepEqual(paid.scrapCalls, []);
-    assert.ok(paid.notes.includes("\"Thank you for your business.\""));
+    assert.ok(paid.notes.includes('"Thank you for your business."'));
     assert.ok(paid.notes.includes("You receive 12 scrap."));
     assert.equal(g.phase, "map");
   });
@@ -97,7 +116,10 @@ describe("cited events", () => {
     g.difficulty = "normal";
     const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
     assert.deepEqual([lo, hi], [12, 19]);
-    const ev = citedEvent(g, beacon("Free scrap with resources", "cited:free-scrap-with-resources"));
+    const ev = citedEvent(
+      g,
+      beacon("Free scrap with resources", "cited:free-scrap-with-resources"),
+    );
     assert.ok(ev);
     assert.notEqual(ev.body, "");
     assert.equal(ev.choices.length, 1);
@@ -141,7 +163,10 @@ describe("cited events", () => {
     assert.ok(g.scrap > 0);
     // Rewards, "Drone": "A random drone schematic & T scrap."
     assert.equal(heldSchematics(g).length, held + 1);
-    assert.ok(run.notes.some((n) => / schematic (fitted|stowed in cargo)\.$/.test(n)), run.notes.join("\n"));
+    assert.ok(
+      run.notes.some((n) => / schematic (fitted|stowed in cargo)\.$/.test(n)),
+      run.notes.join("\n"),
+    );
   });
 
   it("pays Free scrap with resources (Engi) as a standard gift", () => {
@@ -160,11 +185,16 @@ describe("cited events", () => {
     const quiet = createGame(7);
     quiet.sectorName = "Cinder Reach";
     stampCitedEvents(quiet);
-    assert.equal(quiet.beacons.some((b) => b.flag.startsWith("cited:")), false);
+    assert.equal(
+      quiet.beacons.some((b) => b.flag.startsWith("cited:")),
+      false,
+    );
 
     const g = createGame(8);
     g.sectorName = "Civilian Sector";
-    const held = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store");
+    const held = g.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store",
+    );
     assert.ok(held);
     held.flag = "engi-cache";
     held.name = "Engi cache";
@@ -176,7 +206,14 @@ describe("cited events", () => {
     assert.deepEqual(second, first);
     assert.equal(new Set(first).size, first.length);
     assert.equal(held.flag, "engi-cache");
-    assert.equal(g.beacons.some((b) => (b.kind === "exit" || b.kind === "start" || b.kind === "store") && b.flag.startsWith("cited:")), false);
+    assert.equal(
+      g.beacons.some(
+        (b) =>
+          (b.kind === "exit" || b.kind === "start" || b.kind === "store") &&
+          b.flag.startsWith("cited:"),
+      ),
+      false,
+    );
     const marked = g.beacons.find((b) => b.flag.startsWith("cited:"));
     assert.ok(marked);
     assert.equal(marked.kind, "event");
@@ -223,7 +260,10 @@ describe("cited events", () => {
 
   it("places the station when the sector opens and keeps the panel up if the price is short", () => {
     const g = createGame(3, "PLAYER_SHIP_HARD", "normal");
-    assert.equal(g.beacons.some((b) => b.flag.startsWith("cited:")), false);
+    assert.equal(
+      g.beacons.some((b) => b.flag.startsWith("cited:")),
+      false,
+    );
     const start = g.route.find((node) => node.id === g.routeHere);
     assert.ok(start);
     g.phase = "map";
@@ -235,10 +275,15 @@ describe("cited events", () => {
     assert.equal(g.sectorName, dest.name);
     const stamped = g.beacons.filter((b) => b.flag.startsWith("cited:"));
     assert.ok(stamped.length >= 1, dest.name);
-    assert.equal(g.beacons.filter((b) => b.flag === "last-stand-repair").length, dest.name === "The Last Stand" ? 3 : 0);
+    assert.equal(
+      g.beacons.filter((b) => b.flag === "last-stand-repair").length,
+      dest.name === "The Last Stand" ? 3 : 0,
+    );
 
     const shop = createGame(4, "PLAYER_SHIP_HARD", "normal");
-    const sell = shop.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "store");
+    const sell = shop.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "store",
+    );
     assert.ok(sell);
     sell.flag = "cited:sell-drone-parts-for-scrap";
     sell.name = "Sell drone parts for scrap";
@@ -271,7 +316,9 @@ describe("Auto-ship carrying shield virus", () => {
   it("halves player shield bars, rounding down, until that fight ends", () => {
     const g = createGame(31);
     g.sectorName = "Civilian Sector";
-    const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store");
+    const b = g.beacons.find(
+      (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
+    );
     assert.ok(b);
     b.flag = "cited:auto-ship-carrying-shield-virus";
     b.kind = "event";
@@ -325,7 +372,9 @@ describe("Auto-ship carrying shield virus", () => {
 
 function openCited(g: ReturnType<typeof createGame>, sector: string, flag: string, name: string) {
   g.sectorName = sector;
-  const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store");
+  const b = g.beacons.find(
+    (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
+  );
   assert.ok(b);
   b.flag = flag;
   b.kind = "event";
@@ -351,24 +400,48 @@ describe("crew entirely composed of Mantis", () => {
     let followed = false;
     for (let seed = 1; seed <= 40 && (!fighter || !followed); seed++) {
       const g = createGame(seed);
-      openCited(g, "Mantis Controlled Sector", "cited:mantis-ship-collectors", "Mantis ship-collectors");
+      openCited(
+        g,
+        "Mantis Controlled Sector",
+        "cited:mantis-ship-collectors",
+        "Mantis ship-collectors",
+      );
       choose(g, "c:mantis-ship-collectors:0");
       const aboard = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
       assert.ok(aboard.length > 0);
-      assert.ok(aboard.every((c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
-      assert.equal(g.log.some((line) => line.includes("Mantis crew is not applied")), false);
+      assert.ok(
+        aboard.every(
+          (c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp,
+        ),
+      );
+      assert.equal(
+        g.log.some((line) => line.includes("Mantis crew is not applied")),
+        false,
+      );
       fighter = true;
 
       const z = createGame(seed);
-      openCited(z, "Zoltan Controlled Sector", "cited:zoltan-ship-follows-mantis-ship", "Zoltan ship follows Mantis ship");
+      openCited(
+        z,
+        "Zoltan Controlled Sector",
+        "cited:zoltan-ship-follows-mantis-ship",
+        "Zoltan ship follows Mantis ship",
+      );
       choose(z, "c:zoltan-ship-follows-mantis-ship:1");
       assert.equal(z.phase, "combat");
       assert.equal(z.asteroid, true);
       assert.equal(z.enemy?.faction, "mantis");
       const theirs = z.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
       assert.ok(theirs.length > 0);
-      assert.ok(theirs.every((c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
-      assert.equal(z.log.some((line) => line.includes("Mantis crew is not applied")), false);
+      assert.ok(
+        theirs.every(
+          (c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp,
+        ),
+      );
+      assert.equal(
+        z.log.some((line) => line.includes("Mantis crew is not applied")),
+        false,
+      );
       followed = true;
     }
     assert.equal(fighter && followed, true);
@@ -389,26 +462,48 @@ describe("Zoltan border police", () => {
       const augments = [...g.augments];
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(g, "Zoltan Controlled Sector", "cited:zoltan-border-police", "Zoltan border police");
+      openCited(
+        g,
+        "Zoltan Controlled Sector",
+        "cited:zoltan-border-police",
+        "Zoltan border police",
+      );
       choose(g, "c:zoltan-border-police:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "zoltan");
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
       assert.ok(boarders.length >= 3 && boarders.length <= 4, String(boarders.length));
       seen.add(boarders.length);
-      assert.ok(boarders.every((c) => c.name === "Zoltan" && c.kin === "energy" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.ok(
+        boarders.every(
+          (c) =>
+            c.name === "Zoltan" &&
+            c.kin === "energy" &&
+            c.hp === hp &&
+            c.maxHp === hp &&
+            rooms.has(c.room),
+        ),
+      );
       assert.equal(g.scrap, scrap);
       assert.equal(g.fuel, fuel);
       assert.equal(g.missiles, missiles);
       assert.equal(g.player.parts, parts);
-      assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+      assert.deepEqual(
+        g.player.weapons.map((w) => w.defId),
+        weapons,
+      );
       assert.deepEqual(g.augments, augments);
       assert.deepEqual(
         g.crew.filter((c) => c.side === "player").map((c) => c.id),
         crewIds,
       );
-      assert.equal(g.log.some((line) => line.includes("Boarders named on the page are not applied")), false);
-      assert.ok(g.log.some((line) => line === `${boarders.length} zoltan boarders beam aboard your ship.`));
+      assert.equal(
+        g.log.some((line) => line.includes("Boarders named on the page are not applied")),
+        false,
+      );
+      assert.ok(
+        g.log.some((line) => line === `${boarders.length} zoltan boarders beam aboard your ship.`),
+      );
     }
     assert.deepEqual([...seen].sort(), [3, 4]);
   });
@@ -435,7 +530,9 @@ describe("Zoltan border police", () => {
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "zoltan");
-    const zoltan = g.crew.filter((c) => c.side === "enemy" && c.kin === "energy" && c.aboard === "player");
+    const zoltan = g.crew.filter(
+      (c) => c.side === "enemy" && c.kin === "energy" && c.aboard === "player",
+    );
     assert.ok(zoltan.length >= 3 && zoltan.length <= 4, String(zoltan.length));
     assert.ok(g.log.some((line) => line.includes("zoltan boarders beam aboard your ship.")));
   });
@@ -457,7 +554,12 @@ describe("Boarders: Humans in plasma storm", () => {
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const kills = g.kills;
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(g, "Civilian Sector", "cited:boarders-humans-in-plasma-storm", "Boarders: Humans in plasma storm");
+      openCited(
+        g,
+        "Civilian Sector",
+        "cited:boarders-humans-in-plasma-storm",
+        "Boarders: Humans in plasma storm",
+      );
       choose(g, "c:boarders-humans-in-plasma-storm:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy, null);
@@ -466,19 +568,36 @@ describe("Boarders: Humans in plasma storm", () => {
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
       assert.ok(boarders.length >= 3 && boarders.length <= 4, String(boarders.length));
       seen.add(boarders.length);
-      assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "human" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.ok(
+        boarders.every(
+          (c) =>
+            c.name === "Human" &&
+            c.kin === "human" &&
+            c.hp === hp &&
+            c.maxHp === hp &&
+            rooms.has(c.room),
+        ),
+      );
       assert.equal(g.fuel, fuel);
       assert.equal(g.missiles, missiles);
       assert.equal(g.player.parts, parts);
       assert.equal(g.kills, kills);
-      assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+      assert.deepEqual(
+        g.player.weapons.map((w) => w.defId),
+        weapons,
+      );
       assert.deepEqual(g.augments, augments);
       assert.deepEqual(
         g.crew.filter((c) => c.side === "player").map((c) => c.id),
         crewIds,
       );
-      assert.equal(g.log.some((line) => line.includes("Boarders named on the page are not applied")), false);
-      assert.ok(g.log.some((line) => line === `${boarders.length} human boarders beam aboard your ship.`));
+      assert.equal(
+        g.log.some((line) => line.includes("Boarders named on the page are not applied")),
+        false,
+      );
+      assert.ok(
+        g.log.some((line) => line === `${boarders.length} human boarders beam aboard your ship.`),
+      );
       assert.ok(g.log.some((line) => line.startsWith("Medium scrap: ")));
     }
     assert.deepEqual([...seen].sort(), [3, 4]);
@@ -501,26 +620,48 @@ describe("Rebel fight with boarders", () => {
       const augments = [...g.augments];
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(g, "Rebel Controlled Sector", "cited:rebel-fight-with-boarders", "Rebel fight with boarders");
+      openCited(
+        g,
+        "Rebel Controlled Sector",
+        "cited:rebel-fight-with-boarders",
+        "Rebel fight with boarders",
+      );
       choose(g, "c:rebel-fight-with-boarders:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "rebel");
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
       assert.ok(boarders.length >= 2 && boarders.length <= 3, String(boarders.length));
       seen.add(boarders.length);
-      assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "human" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.ok(
+        boarders.every(
+          (c) =>
+            c.name === "Human" &&
+            c.kin === "human" &&
+            c.hp === hp &&
+            c.maxHp === hp &&
+            rooms.has(c.room),
+        ),
+      );
       assert.equal(g.scrap, scrap);
       assert.equal(g.fuel, fuel);
       assert.equal(g.missiles, missiles);
       assert.equal(g.player.parts, parts);
-      assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+      assert.deepEqual(
+        g.player.weapons.map((w) => w.defId),
+        weapons,
+      );
       assert.deepEqual(g.augments, augments);
       assert.deepEqual(
         g.crew.filter((c) => c.side === "player").map((c) => c.id),
         crewIds,
       );
-      assert.equal(g.log.some((line) => line.includes("Boarders named on the page are not applied")), false);
-      assert.ok(g.log.some((line) => line === `${boarders.length} human boarders beam aboard your ship.`));
+      assert.equal(
+        g.log.some((line) => line.includes("Boarders named on the page are not applied")),
+        false,
+      );
+      assert.ok(
+        g.log.some((line) => line === `${boarders.length} human boarders beam aboard your ship.`),
+      );
     }
     assert.deepEqual([...seen].sort(), [2, 3]);
   });
@@ -549,7 +690,9 @@ describe("Rebel fight with boarders", () => {
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
-    const humans = g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
+    const humans = g.crew.filter(
+      (c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player",
+    );
     assert.ok(humans.length >= 2 && humans.length <= 3, String(humans.length));
     assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
   });
@@ -576,19 +719,36 @@ describe("Mantis outcasts", () => {
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
       assert.ok(boarders.length >= 2 && boarders.length <= 3, String(boarders.length));
       seen.add(boarders.length);
-      assert.ok(boarders.every((c) => c.name === "Mantis" && c.kin === "mantis" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+      assert.ok(
+        boarders.every(
+          (c) =>
+            c.name === "Mantis" &&
+            c.kin === "mantis" &&
+            c.hp === hp &&
+            c.maxHp === hp &&
+            rooms.has(c.room),
+        ),
+      );
       assert.equal(g.scrap, scrap);
       assert.equal(g.fuel, fuel);
       assert.equal(g.missiles, missiles);
       assert.equal(g.player.parts, parts);
-      assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+      assert.deepEqual(
+        g.player.weapons.map((w) => w.defId),
+        weapons,
+      );
       assert.deepEqual(g.augments, augments);
       assert.deepEqual(
         g.crew.filter((c) => c.side === "player").map((c) => c.id),
         crewIds,
       );
-      assert.equal(g.log.some((line) => line.includes("Boarders named on the page are not applied")), false);
-      assert.ok(g.log.some((line) => line === `${boarders.length} mantis boarders beam aboard your ship.`));
+      assert.equal(
+        g.log.some((line) => line.includes("Boarders named on the page are not applied")),
+        false,
+      );
+      assert.ok(
+        g.log.some((line) => line === `${boarders.length} mantis boarders beam aboard your ship.`),
+      );
     }
     assert.deepEqual([...seen].sort(), [2, 3]);
   });
@@ -615,7 +775,9 @@ describe("Mantis outcasts", () => {
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
-    const mantis = g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis" && c.aboard === "player");
+    const mantis = g.crew.filter(
+      (c) => c.side === "enemy" && c.kin === "mantis" && c.aboard === "player",
+    );
     assert.ok(mantis.length >= 2 && mantis.length <= 3, String(mantis.length));
     assert.ok(g.log.some((line) => line.includes("mantis boarders beam aboard your ship.")));
   });
@@ -624,7 +786,12 @@ describe("Mantis outcasts", () => {
 describe("Slug hacker (choice)", () => {
   it("halves the chosen system, rounding down, until that fight ends", () => {
     const shields = createGame(41);
-    openCited(shields, "Slug Controlled Nebula", "cited:slug-hacker-choice", "Slug hacker (choice)");
+    openCited(
+      shields,
+      "Slug Controlled Nebula",
+      "cited:slug-hacker-choice",
+      "Slug hacker (choice)",
+    );
     shields.player.systems.shields.level = 4;
     shields.player.systems.shields.power = 4;
     shields.player.systems.shields.damage = 0;
@@ -652,7 +819,9 @@ describe("Slug hacker (choice)", () => {
     choose(air, "c:slug-hacker-choice:1");
     quietEnemy(air);
     // A room nobody breathes in (air.ts), so the change is the refill alone.
-    const room = air.player.rooms.find((r) => !air.crew.some((c) => c.aboard === "player" && c.hp > 0 && c.room === r.id));
+    const room = air.player.rooms.find(
+      (r) => !air.crew.some((c) => c.aboard === "player" && c.hp > 0 && c.room === r.id),
+    );
     assert.ok(room);
     const before = room.o2;
     step(air, 0.05);
@@ -771,7 +940,9 @@ describe("Slug hacker (oxygen)", () => {
       r.breach = 0;
     }
     // A room nobody breathes in (air.ts): with no production it holds its air. Level 2 would add 0.24 per step.
-    const room = g.player.rooms.find((r) => !g.crew.some((c) => c.aboard === "player" && c.hp > 0 && c.room === r.id));
+    const room = g.player.rooms.find(
+      (r) => !g.crew.some((c) => c.aboard === "player" && c.hp > 0 && c.room === r.id),
+    );
     assert.ok(room);
     const before = room.o2;
     step(g, 0.05);
@@ -839,12 +1010,24 @@ describe("Slug hacker (medical)", () => {
     const rooms = new Set(g.player.rooms.map((r) => r.id));
     const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.equal(boarders.length, 2);
-    assert.ok(boarders.every((c) => c.name === "Slug" && c.kin === "slug" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+    assert.ok(
+      boarders.every(
+        (c) =>
+          c.name === "Slug" &&
+          c.kin === "slug" &&
+          c.hp === hp &&
+          c.maxHp === hp &&
+          rooms.has(c.room),
+      ),
+    );
     assert.equal(g.scrap, scrap);
     assert.equal(g.fuel, fuel);
     assert.equal(g.missiles, missiles);
     assert.equal(g.player.parts, parts);
-    assert.equal(g.log.some((line) => line.includes("Boarders named on the page are not applied")), false);
+    assert.equal(
+      g.log.some((line) => line.includes("Boarders named on the page are not applied")),
+      false,
+    );
     assert.ok(g.log.some((line) => line === "2 slug boarders beam aboard your ship."));
     const away = g.player.rooms.find((r) => r.id !== bay.id);
     assert.ok(away);
@@ -890,7 +1073,12 @@ describe("Slug hacker (medical)", () => {
 describe("Lanius fight with friendly ASB support", () => {
   it("fires the Anti-Ship Battery at the other ship", () => {
     const g = createGame(91);
-    openCited(g, "Abandoned Sector", "cited:lanius-fight-with-friendly-asb-support", "Lanius fight with friendly ASB support");
+    openCited(
+      g,
+      "Abandoned Sector",
+      "cited:lanius-fight-with-friendly-asb-support",
+      "Lanius fight with friendly ASB support",
+    );
     choose(g, "c:lanius-fight-with-friendly-asb-support:0");
     assert.equal(g.phase, "combat");
     quietEnemy(g);

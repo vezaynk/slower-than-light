@@ -17,7 +17,12 @@ function here(g: Game): Beacon {
 function atCited(g: Game, sector: string, dest: string): Game {
   g.sectorName = sector;
   const b = g.beacons.find((x) => x.col === 1)!;
-  b.flag = "cited:" + dest.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  b.flag =
+    "cited:" +
+    dest
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
   b.kind = "event";
   b.name = dest;
   g.here = b.id;
@@ -82,7 +87,11 @@ describe("enemy-gen: a fight can ask for one ship class", () => {
     assert.equal(classIdFor("slug-interceptor"), "slug-interceptor");
     assert.equal(classIdFor("Mantis ship"), undefined);
     assert.equal(classIdFor("Rebel Ship"), undefined);
-    assert.deepEqual(requestFor("Slug Assault pirate ship"), { faction: "slug", pirate: true, classId: "slug-assault" });
+    assert.deepEqual(requestFor("Slug Assault pirate ship"), {
+      faction: "slug",
+      pirate: true,
+      classId: "slug-assault",
+    });
     assert.deepEqual(requestFor("Mantis ship"), { faction: "mantis", pirate: false });
   });
 
@@ -128,7 +137,8 @@ describe("quest openers (quests-a)", () => {
       assert.ok(flags("Zoltan Controlled Sector", seed).includes("cited:zoltan-research-facility"));
     }
     assert.ok(citedPagesFor("Rock Controlled Sector").some((e) => e.dest === "Rock bride"));
-    for (const ev of EXTRA_EVENTS) ev.choices.forEach((c, i) => assert.equal(c.id, `c:${ev.slug}:${i}`));
+    for (const ev of EXTRA_EVENTS)
+      ev.choices.forEach((c, i) => assert.equal(c.id, `c:${ev.slug}:${i}`));
   });
 
   it("Rock war vessel encounter: marker -> Rock Assault (Elite) that runs at 32 s -> got away -> shipyard unlocks the Rock Cruiser", () => {
@@ -149,7 +159,10 @@ describe("quest openers (quests-a)", () => {
     assert.deepEqual(ids(g), ["qa:rock-sun:fight"]);
     choose(g, "qa:rock-sun:fight");
     assert.equal(g.enemy!.classId, "rock-assault-elite");
-    assert.deepEqual([g.enemyEscape!.mode, g.enemyEscape!.running, g.enemyEscape!.seconds], ["start", true, 32]);
+    assert.deepEqual(
+      [g.enemyEscape!.mode, g.enemyEscape!.running, g.enemyEscape!.seconds],
+      ["start", true, 32],
+    );
     assert.equal(g.enemySurrender!.chance, 0);
     g.enemyFlee = 1;
     g.enemyEscape!.seconds = 0;
@@ -482,7 +495,8 @@ describe("quest openers (quests-a)", () => {
     // > "Thank you for rescuing us! They held us hostage to ambush unsuspecting passersby. Please, take this." — [[Zoltan research facility]]
     // > "You receive a drone schematic with low resources and scrap." — [[Zoltan research facility]]
     const g0 = atCited(createGame(2), "Zoltan Controlled Sector", "Zoltan research facility");
-    if ((g0.player.systems.medbay?.level ?? 0) < 3) assert.equal(choiceDisabled(g0, "c:zoltan-research-facility:2"), "Needs Medbay level 3");
+    if ((g0.player.systems.medbay?.level ?? 0) < 3)
+      assert.equal(choiceDisabled(g0, "c:zoltan-research-facility:2"), "Needs Medbay level 3");
     const g = seedWhere((x) => {
       atCited(x, "Zoltan Controlled Sector", "Zoltan research facility");
       choose(x, "c:zoltan-research-facility:0");
@@ -497,10 +511,13 @@ describe("quest openers (quests-a)", () => {
     assert.deepEqual(ids(g), ["qa:zrf:thanks"]);
     const scrap = g.scrap;
     choose(g, "qa:zrf:thanks");
-    assert.ok(g.event!.body.startsWith("\"Thank you for rescuing us!"));
+    assert.ok(g.event!.body.startsWith('"Thank you for rescuing us!'));
     assert.ok(g.scrap > scrap);
     // "You receive a drone schematic with low ... resources and scrap." Rewards, "Drone": a random drone schematic.
-    assert.match(g.event!.body, / schematic (fitted|stowed in cargo)\.|choose what to leave behind\./);
+    assert.match(
+      g.event!.body,
+      / schematic (fitted|stowed in cargo)\.|choose what to leave behind\./,
+    );
   });
 
   it("Zoltan trade hub: blue options; the hub opens a store or adds the primitives marker, which shows that page's card", () => {
@@ -519,7 +536,9 @@ describe("quest openers (quests-a)", () => {
       choose(g, "c:zoltan-trade-hub:0");
       if (g.phase === "combat") {
         assert.equal(g.enemy!.faction, "zoltan");
-        const n = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player" && c.kin === "energy").length;
+        const n = g.crew.filter(
+          (c) => c.side === "enemy" && c.aboard === "player" && c.kin === "energy",
+        ).length;
         assert.ok(n >= 2 && n <= 4);
         seen.add("fight");
       } else if (ids(g).includes("q:open-store")) seen.add("store");
@@ -527,7 +546,11 @@ describe("quest openers (quests-a)", () => {
         seen.add("quest");
         choose(g, "ack");
         goToQuest(g, "zoltan-primitives");
-        assert.deepEqual(ids(g), ["c:zoltan-quest-primitives:0", "c:zoltan-quest-primitives:1", "c:zoltan-quest-primitives:2"]);
+        assert.deepEqual(ids(g), [
+          "c:zoltan-quest-primitives:0",
+          "c:zoltan-quest-primitives:1",
+          "c:zoltan-quest-primitives:2",
+        ]);
         choose(g, "c:zoltan-quest-primitives:1");
         assert.equal(g.enemy!.faction, "rebel");
       }
@@ -555,7 +578,10 @@ describe("quest openers (quests-a)", () => {
     const augs = hand.augments.length;
     choose(hand, "qa:bride:hand");
     assert.ok(hand.event!.body.includes("exotic piece of technology"));
-    assert.equal(hand.augments.length + (hand.overflow ?? []).filter((x) => x.kind === "augment").length, augs + 1);
+    assert.equal(
+      hand.augments.length + (hand.overflow ?? []).filter((x) => x.kind === "augment").length,
+      augs + 1,
+    );
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
     choose(g, "qa:bride:refuse");
     assert.ok(g.crew.some((c) => c.name === "Ariadne" && c.kin === "rock"));

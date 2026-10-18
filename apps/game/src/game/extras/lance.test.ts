@@ -37,7 +37,8 @@ function armed(seed: number): Game {
   startCombat(g, "scout");
   assert.ok(g.enemy);
   g.player.kits.artillery = {
-    id: "artillery", weapon: "ARTILLERY_FED",
+    id: "artillery",
+    weapon: "ARTILLERY_FED",
     level: 1,
     power: 1,
     left: 0,
@@ -97,7 +98,8 @@ describe("artillery", () => {
     const line = cutLine(g.enemy, first.id);
     assert.equal(line[0], first);
     const c = (r: (typeof line)[number]) => [r.x + r.w / 2, r.y + r.h / 2];
-    const d = (r: (typeof line)[number]) => Math.hypot(c(r)[0] - c(first)[0], c(r)[1] - c(first)[1]);
+    const d = (r: (typeof line)[number]) =>
+      Math.hypot(c(r)[0] - c(first)[0], c(r)[1] - c(first)[1]);
     assert.equal(d(line[line.length - 1]), Math.max(...g.enemy.rooms.map(d)));
     land(g, 0.1);
     assert.equal(g.enemy.hull, hull - line.length);
@@ -108,7 +110,10 @@ describe("artillery", () => {
     const room = (id: string, x: number, y: number, w = 1, h = 1) =>
       ({ id, x, y, w, h, o2: 100, fire: 0, breach: 0, breachFix: 0, title: id }) as unknown as Room;
     // a b c in a row, d above b. From a, c is farthest; the line a-c crosses b and misses d.
-    const ship = { rooms: [room("a", 0, 0), room("b", 1, 0), room("c", 2, 0), room("d", 1, -1)], doors: [] } as unknown as Ship;
+    const ship = {
+      rooms: [room("a", 0, 0), room("b", 1, 0), room("c", 2, 0), room("d", 1, -1)],
+      doors: [],
+    } as unknown as Ship;
     assert.deepEqual(
       cutLine(ship, "a").map((r) => r.id),
       ["a", "b", "c"],

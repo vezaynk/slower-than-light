@@ -33,9 +33,15 @@ describe("sector listings", () => {
     const route = buildRoute(1);
     assert.equal(route[0]?.name, "Ember Reach");
     assert.equal(route[route.length - 1]?.name, "Ember Gate");
-    assert.equal(SECTOR_TYPES.find((row) => row.id === "civilian-start")?.name, "Civilian (Starting) Sector");
+    assert.equal(
+      SECTOR_TYPES.find((row) => row.id === "civilian-start")?.name,
+      "Civilian (Starting) Sector",
+    );
     assert.equal(SECTOR_TYPES.find((row) => row.id === "last-stand")?.name, "The Last Stand");
-    assert.equal(route.some((node) => node.name === "Hidden Crystal Worlds"), false);
+    assert.equal(
+      route.some((node) => node.name === "Hidden Crystal Worlds"),
+      false,
+    );
   });
 
   it("slows the fleet for a renamed nebula and jumps to a renamed crystal sector", () => {
@@ -58,16 +64,30 @@ describe("sector listings", () => {
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.5);
     enterHiddenCrystal(g);
     assert.equal(g.sectorName, "Ember Worlds");
-    assert.equal(SECTOR_TYPES.find((row) => row.id === "slug-nebula")?.name, "Slug Controlled Nebula");
-    assert.equal(SECTOR_TYPES.find((row) => row.id === "crystal-worlds")?.name, "Hidden Crystal Worlds");
+    assert.equal(
+      SECTOR_TYPES.find((row) => row.id === "slug-nebula")?.name,
+      "Slug Controlled Nebula",
+    );
+    assert.equal(
+      SECTOR_TYPES.find((row) => row.id === "crystal-worlds")?.name,
+      "Hidden Crystal Worlds",
+    );
     assert.equal(seenOnChart("Ember Worlds", 40), false);
   });
 
   it("can place an appended hostile sector and leaves a non-colour group off the chart", () => {
-    const ember: SectorDef = { id: "ember", name: "Ember Reach", group: "hostile", notes: ["A later column."] };
+    const ember: SectorDef = {
+      id: "ember",
+      name: "Ember Reach",
+      group: "hostile",
+      notes: ["A later column."],
+    };
     const vault: SectorDef = { id: "vault", name: "Vault", group: "vault", notes: [] };
     loadPack({ sectors: [ember, vault] }, "append");
-    assert.equal(SECTOR_TYPES.some((row) => row.id === "ember"), false);
+    assert.equal(
+      SECTOR_TYPES.some((row) => row.id === "ember"),
+      false,
+    );
     assert.equal(seenOnChart("Ember Reach"), true);
     assert.equal(seenOnChart("Vault", 80), false);
   });

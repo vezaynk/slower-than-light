@@ -2156,6 +2156,12 @@ button:disabled {
   border-color: #b6ff6a;
 }
 
+/* Zoltans: the same yellow bar as a main-system column, on a kit that takes one. */
+.sub-bars b.is-zoltan {
+  background: #f0d24a;
+  border-color: #ffe9a0;
+}
+
 /* Backup Battery, Overview: bonus power is indicated by power bars with orange borders. */
 .sub-bars b.on.is-battery {
   border-color: #ff7a18;

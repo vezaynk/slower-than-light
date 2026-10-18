@@ -37,7 +37,13 @@ describe("event pages", () => {
             aliases: ["Ember"],
             sectors: ["Civilian Sector"],
             body: "A packed beacon.",
-            choices: [{ id: "c:ember:0", label: "Take", fx: [{ k: "res", id: "scrap", sign: 1, lo: 7, hi: 7 }] }],
+            choices: [
+              {
+                id: "c:ember:0",
+                label: "Take",
+                fx: [{ k: "res", id: "scrap", sign: 1, lo: 7, hi: 7 }],
+              },
+            ],
           },
         ],
       },
@@ -65,7 +71,13 @@ describe("event pages", () => {
             aliases: [],
             sectors: ["Civilian Sector"],
             body: "Fight.",
-            choices: [{ id: "c:ember-fight:0", label: "Fight", fx: [{ k: "fight", tier: "pirate", asteroid: true }] }],
+            choices: [
+              {
+                id: "c:ember-fight:0",
+                label: "Fight",
+                fx: [{ k: "fight", tier: "pirate", asteroid: true }],
+              },
+            ],
           },
         ],
       },

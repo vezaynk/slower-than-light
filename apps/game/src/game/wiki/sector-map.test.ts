@@ -31,7 +31,14 @@ function grid(seed: number): Beacon[] {
   const roll = lcg(seed);
   const beacons = populateGrid(roll).map(
     (c) =>
-      ({ id: `c${c.col}-r${c.row}`, col: c.col, row: c.row, x: c.x, y: c.y, links: [] }) as unknown as Beacon,
+      ({
+        id: `c${c.col}-r${c.row}`,
+        col: c.col,
+        row: c.row,
+        x: c.x,
+        y: c.y,
+        links: [],
+      }) as unknown as Beacon,
   );
   connectGrid(beacons);
   return beacons;
@@ -48,8 +55,13 @@ describe("beacon map (xftl doc/sector-map)", () => {
       cells += grid.length;
       runs += 1;
       for (const c of grid) {
-        assert.ok(c.x >= c.col * CELL_PX + CELL_MARGIN_PX && c.x <= (c.col + 1) * CELL_PX - CELL_MARGIN_PX, `x ${c.x}`);
-        assert.ok(c.y >= c.row * CELL_PX + CELL_MARGIN_PX || (c.row === 0 && c.col >= 4 && c.y >= 30));
+        assert.ok(
+          c.x >= c.col * CELL_PX + CELL_MARGIN_PX && c.x <= (c.col + 1) * CELL_PX - CELL_MARGIN_PX,
+          `x ${c.x}`,
+        );
+        assert.ok(
+          c.y >= c.row * CELL_PX + CELL_MARGIN_PX || (c.row === 0 && c.col >= 4 && c.y >= 30),
+        );
         assert.ok(c.y <= 415);
         if (c.row === 0 && c.col >= 4) assert.ok(c.y >= 30);
       }
@@ -104,14 +116,23 @@ describe("beacon map (xftl doc/sector-map)", () => {
         const roll = lcg(seed * 7 + 1);
         const base = pickFedBase(beacons, start, difficulty, roll);
         assert.ok(base);
-        assert.ok(difficulty === "hard" ? base.col === 3 || base.col === 4 : base.col === 2 || base.col === 3);
+        assert.ok(
+          difficulty === "hard"
+            ? base.col === 3 || base.col === 4
+            : base.col === 2 || base.col === 3,
+        );
         const n = jumpsBetween(beacons, start.id, base.id);
         if (difficulty === "hard" ? n >= 5 && n <= 6 : n === 4) base4 += 1;
         const boss = pickFlagship(beacons, base, roll);
         assert.ok(boss && boss.col >= 4);
         assert.notEqual(boss.id, base.id);
         const m = jumpsBetween(beacons, base.id, boss.id);
-        const can = beacons.some((b) => b.col >= 4 && b.id !== base.id && [3, 4, 5].includes(jumpsBetween(beacons, base.id, b.id)));
+        const can = beacons.some(
+          (b) =>
+            b.col >= 4 &&
+            b.id !== base.id &&
+            [3, 4, 5].includes(jumpsBetween(beacons, base.id, b.id)),
+        );
         if (can) assert.ok(m >= 3 && m <= 5, `${difficulty} ${seed} ${m}`);
         if (m >= 3 && m <= 5) boss35 += 1;
       }
@@ -150,7 +171,10 @@ describe("sector chart (xftl doc/sector-map, AddSectorColumn)", () => {
     const sizes = new Set<number>();
     for (let seed = 1; seed <= 60; seed++) {
       const route = buildRoute(seed);
-      const counts = Array.from({ length: 8 }, (_, col) => route.filter((n) => n.col === col).length);
+      const counts = Array.from(
+        { length: 8 },
+        (_, col) => route.filter((n) => n.col === col).length,
+      );
       assert.equal(counts[0], 1);
       assert.equal(counts[7], 1);
       assert.equal(counts[1], 2);
@@ -171,9 +195,29 @@ describe("sector chart (xftl doc/sector-map, AddSectorColumn)", () => {
   });
 
   it("links 4 to 2 and 2 to 4 as printed, and never crosses", () => {
-    assert.deepEqual(columnLinks(4, 2), [[0, 0], [1, 0], [2, 1], [3, 1]]);
-    assert.deepEqual(columnLinks(2, 4), [[0, 0], [0, 1], [1, 2], [1, 3]]);
-    for (const [p, n] of [[1, 2], [2, 3], [3, 2], [3, 4], [4, 3], [2, 4], [4, 2], [3, 1], [4, 1]]) {
+    assert.deepEqual(columnLinks(4, 2), [
+      [0, 0],
+      [1, 0],
+      [2, 1],
+      [3, 1],
+    ]);
+    assert.deepEqual(columnLinks(2, 4), [
+      [0, 0],
+      [0, 1],
+      [1, 2],
+      [1, 3],
+    ]);
+    for (const [p, n] of [
+      [1, 2],
+      [2, 3],
+      [3, 2],
+      [3, 4],
+      [4, 3],
+      [2, 4],
+      [4, 2],
+      [3, 1],
+      [4, 1],
+    ]) {
       const l = columnLinks(p, n);
       assert.ok(!l.some(([a, b]) => l.some(([c, d]) => a < c && b > d)), `${p}->${n}`);
     }

@@ -6,7 +6,15 @@ const RUNS = Object.fromEntries(
   Object.entries(ICON_ROWS).map(([name, rows]) => [name, pixelRuns(rows)]),
 ) as Record<IconName, ReturnType<typeof pixelRuns>>;
 
-export function PixelIcon({ name, size = 16, className }: { name: IconName; size?: number; className?: string }) {
+export function PixelIcon({
+  name,
+  size = 16,
+  className,
+}: {
+  name: IconName;
+  size?: number;
+  className?: string;
+}) {
   return (
     <svg
       className={className ? `px-icon ${className}` : "px-icon"}
@@ -18,7 +26,14 @@ export function PixelIcon({ name, size = 16, className }: { name: IconName; size
       aria-hidden="true"
     >
       {RUNS[name].map((r) => (
-        <rect key={`${r.x}-${r.y}`} x={r.x} y={r.y} width={r.w} height={1} opacity={r.c === "+" ? 0.45 : 1} />
+        <rect
+          key={`${r.x}-${r.y}`}
+          x={r.x}
+          y={r.y}
+          width={r.w}
+          height={1}
+          opacity={r.c === "+" ? 0.45 : 1}
+        />
       ))}
     </svg>
   );

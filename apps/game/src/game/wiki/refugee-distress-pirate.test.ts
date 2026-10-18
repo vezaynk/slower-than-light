@@ -21,14 +21,18 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Refugee distress (Pirate)", () => {
   it("is a pirate sector card with the distress intro", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee distress (Pirate)]]
-    const pages = citedPagesFor("Pirate Controlled Sector").filter((p) => p.dest === "Refugee distress (Pirate)");
+    const pages = citedPagesFor("Pirate Controlled Sector").filter(
+      (p) => p.dest === "Refugee distress (Pirate)",
+    );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["Pirate Controlled Sector"]);
     const g = createGame(1);

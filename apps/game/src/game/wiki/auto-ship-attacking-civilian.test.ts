@@ -7,7 +7,10 @@ import { pageWin } from "./quests.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
-  return g.player.weapons.length + [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+  return (
+    g.player.weapons.length +
+    [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length
+  );
 }
 
 function open(g: Game) {
@@ -27,14 +30,19 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Auto-ship attacking civilian", () => {
   it("aiding the civilian starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-attacking-civilian:0"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:auto-ship-attacking-civilian:0"),
+      true,
+    );
     choose(g, "c:auto-ship-attacking-civilian:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-attacking-civilian");
@@ -62,9 +70,13 @@ describe("Auto-ship attacking civilian", () => {
     assert.equal(destroyed.fleet, 5);
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
-    assert.equal(destroyed.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"), true);
+    assert.equal(
+      destroyed.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),
+      true,
+    );
 
     const killed = createGame(2);
     open(killed);
@@ -133,7 +145,10 @@ describe("Auto-ship attacking civilian", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:auto-ship-attacking-civilian:1");
-    assert.equal(g.event?.body, "The fight brings them out of your immediate scanning range.\n\nNothing happens.");
+    assert.equal(
+      g.event?.body,
+      "The fight brings them out of your immediate scanning range.\n\nNothing happens.",
+    );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);

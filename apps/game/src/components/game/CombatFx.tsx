@@ -865,12 +865,16 @@ export function CombatFx() {
             `.hull[data-ship="${side}"] [data-def="${CSS.escape(shot.defId)}"]`,
           );
           if (mounts.length) {
-            const m = box(mounts[Math.floor(hash(shot.id) * mounts.length) % mounts.length]);
-            // Player barrels point right. Enemy barrels in the preview point up.
+            const el = mounts[Math.floor(hash(shot.id) * mounts.length) % mounts.length];
+            const mark = el?.querySelector("[data-muzzle]");
+            const m = box(mark ?? el ?? null);
+            // A hardpoint marks its muzzle. Edge guns point right on the player and up on the target.
             if (m)
-              return side === "player"
-                ? { x: m.x + m.w, y: m.y + m.h / 2 }
-                : { x: m.x + m.w / 2, y: m.y };
+              return mark
+                ? { x: m.x, y: m.y }
+                : side === "player"
+                  ? { x: m.x + m.w, y: m.y + m.h / 2 }
+                  : { x: m.x + m.w / 2, y: m.y };
           }
         } else if (shot.label?.startsWith(DRONE_LABEL)) {
           // Enemy drone shots leave from that drone.

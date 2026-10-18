@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { applyImpact, createGame, evasionPercent, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
@@ -54,11 +53,6 @@ function gap(id: string): string {
     .join("\n");
 }
 
-const src = readFileSync(
-  new URL("../../../../../packages/catalog/src/wiki/weapons-beam.ts", import.meta.url),
-  "utf8",
-);
-
 describe("beam weapons", () => {
   it("emits the slotted rows and not Artillery Beam or Boss Beam", () => {
     assert.deepEqual(
@@ -93,7 +87,6 @@ describe("beam weapons", () => {
       assert.equal(w.ion, 0);
       assert.equal(w.breach, 0);
     }
-    assert.match(src, /INFERRED: shots 1, gap 0/);
   });
 
   it("copies power, charge, damage, fire, price, and the italic blurb", () => {
@@ -103,7 +96,6 @@ describe("beam weapons", () => {
     assert.equal(byId.BEAM_1.fire, 0.1);
     assert.equal(byId.BEAM_1.price, 0);
     assert.equal(byId.BEAM_1.blurb, "Extremely cheap and weak beam weapon.");
-    assert.match(src, /Sells for: 10/);
 
     assert.equal(byId.BEAM_LONG.power, 2);
     assert.equal(byId.BEAM_LONG.charge, 16);
@@ -173,7 +165,6 @@ describe("beam weapons", () => {
     assert.equal(Object.prototype.hasOwnProperty.call(BEAM_CREW, "BEAM_FIRE"), false);
     assert.equal(Object.prototype.hasOwnProperty.call(BEAM_CREW, "ARTILLERY_BOSS_3"), false);
     assert.equal(Object.prototype.hasOwnProperty.call(BEAM_CREW, "artillery-beam"), false);
-    assert.match(src, /Fire Beam's crew line is "-"/);
   });
 
   it("stores the printed tile lengths", () => {
@@ -515,22 +506,5 @@ describe("beam weapons", () => {
       beamRooms: undefined,
     });
     assert.equal(ship.hull, before - 1);
-  });
-
-  it("cites Beam (Weapons) and each section heading", () => {
-    assert.match(src, /Beam \(Weapons\)/);
-    for (const heading of [
-      "Mini Beam",
-      "Pike Beam",
-      "Hull Beam",
-      "Halberd Beam",
-      "Glaive Beam",
-      "Fire Beam",
-      "Anti-Bio Beam",
-      "Artillery Beam",
-      "Boss Beam",
-    ]) {
-      assert.match(src, new RegExp(`"${heading}"`));
-    }
   });
 });

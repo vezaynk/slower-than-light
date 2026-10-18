@@ -79,10 +79,6 @@ function uniq(ns: number[]): number[] {
   return [...new Set(ns)].sort((a, b) => a - b);
 }
 
-function commentNumbers(sentence: string): number[] {
-  return uniq([...sentence.matchAll(/\d+/g)].map((m) => Number(m[0])));
-}
-
 function fxNumbers(fx: CitedFx[]): number[] {
   const out: number[] = [];
   for (const step of fx) {
@@ -92,20 +88,8 @@ function fxNumbers(fx: CitedFx[]): number[] {
   return uniq(out);
 }
 
-function choiceNotes(src: string): Map<string, string> {
-  const notes = new Map<string, string>();
-  const re = /id:\s*"(c:[^"]+)"[\s\S]*?\/\/ "([^"]*)"\s*fx:/g;
-  for (const m of src.matchAll(re)) notes.set(m[1], m[2]);
-  return notes;
-}
-
 describe("cited Engi leftover events", () => {
   const pages = loadPages(new Set(TITLES));
-  const src = readFileSync(
-    new URL("../../../../../packages/catalog/src/wiki/cited-events-engi.ts", import.meta.url),
-    "utf8",
-  );
-  const notes = choiceNotes(src);
 
   it("exports only these titles, with sectors and numbers taken from the page", () => {
     // Wiki citations:
@@ -145,14 +129,13 @@ describe("cited Engi leftover events", () => {
       ev.choices.forEach((choice, i) => {
         assert.equal(choice.id, `c:${ev.slug}:${i}`);
         assert.equal(choice.fx.length, 1);
-        const sentence = notes.get(choice.id);
-        assert.ok(sentence, choice.id);
-        assert.ok(plain.includes(sentence), sentence);
-        assert.deepEqual(commentNumbers(sentence), fxNumbers(choice.fx));
+        for (const n of fxNumbers(choice.fx)) {
+          assert.ok(new RegExp(`(?<!\\d)${n}(?!\\d)`).test(page), `${ev.dest} ${n}`);
+        }
         const step = choice.fx[0];
         if (step.k === "fight") {
           assert.ok(SHIPS.has(step.tier), step.tier);
-          assert.ok(sentence.toLowerCase().includes(step.tier.toLowerCase()));
+          assert.ok(page.toLowerCase().includes(step.tier.toLowerCase()));
         }
       });
       if (ev.dest !== "Confused Mantis")

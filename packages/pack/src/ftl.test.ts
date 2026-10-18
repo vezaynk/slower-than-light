@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { packFromFtl } from "./ftl.ts";
-import { eventDef, hullDef, loadPack, resetPackForTests, sectorDef } from "./registry.ts";
+import {
+  blueprintList,
+  eventDef,
+  hullDef,
+  loadPack,
+  resetPackForTests,
+  sectorDef,
+} from "./registry.ts";
 
 const BASE = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>
@@ -252,6 +259,10 @@ const ARCHIVE = `<?xml version="1.0" encoding="UTF-8"?>
     <event name="STORE_A" unique="true"/>
     <event name="STORE_B"/>
   </eventList>
+  <blueprintList name="WEAPONS_BOSS">
+    <name>ARTILLERY_BOSS_1</name>
+    <name>ARTILLERY_BOSS_2</name>
+  </blueprintList>
   <eventList name="LONE_SHUTTLE_WAIT">
     <event>
       <text>Unmanned.</text>
@@ -450,6 +461,7 @@ describe("packFromFtl", () => {
     assert.equal(kestrel?.parts, 0);
     assert.equal(kestrel?.fuel, 0);
     assert.equal(kestrel?.weaponSlots, 4);
+    assert.equal(kestrel?.weaponCount, 2);
     assert.equal(kestrel?.droneSlots, 2);
     assert.deepEqual(kestrel?.weapons, ["MISSILES_2_PLAYER", "LASER_BURST_3"]);
     assert.deepEqual(kestrel?.systems, {});
@@ -470,6 +482,10 @@ describe("packFromFtl", () => {
     assert.equal(boss?.grid, undefined);
     assert.equal(boss?.cruiser, "Rebel Flagship");
     assert.equal(boss?.weaponLoad, "WEAPONS_BOSS");
+    assert.equal(boss?.weaponCount, undefined);
+    assert.deepEqual(pack.blueprints, [
+      { id: "WEAPONS_BOSS", names: ["ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2"] },
+    ]);
     assert.deepEqual(boss?.augments, ["SLUG_GEL"]);
     assert.equal(boss?.installs?.find((row) => row.id === "artillery")?.weapon, "ARTILLERY_BOSS_1");
     assert.equal(boss?.installs?.find((row) => row.id === "doors")?.start, false);
@@ -594,6 +610,9 @@ describe("packFromFtl", () => {
       assert.equal(sector?.quotas?.[0]?.id, "STORE");
       assert.equal(eventDef("GIFT")?.reward?.name, "weapon");
       assert.equal(eventDef("GIFT")?.choices[0]?.choices?.[0]?.fx[0]?.k, "goto");
+      assert.equal(hull?.weaponCount, 2);
+      assert.deepEqual(blueprintList("WEAPONS_BOSS"), ["ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2"]);
+      assert.equal(blueprintList("NO_SUCH"), undefined);
     } finally {
       resetPackForTests();
     }

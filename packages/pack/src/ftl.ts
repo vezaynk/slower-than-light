@@ -12,6 +12,7 @@ import type {
   EventEffect,
   EventResource,
   FillerListDef,
+  BlueprintListDef,
   HullCrewCount,
   HullDef,
   HullGrid,
@@ -87,6 +88,7 @@ export function packFromFtl(
   const sectors = new Catalog<SectorDef>();
   const events = new Catalog<EventDef>();
   const lists = new Catalog<FillerListDef>();
+  const blueprints = new Catalog<BlueprintListDef>();
   const strings = new Map<string, string>();
   const grids = readGrids(layouts);
   let facts = false;
@@ -143,6 +145,10 @@ export function packFromFtl(
       const row = readFtlList(node, strings);
       if (row) lists.put(row);
     }
+    for (const node of tagged(doc, "blueprintList")) {
+      const row = readBlueprintList(node);
+      if (row) blueprints.put(row);
+    }
   }
   const pack: ContentPack = {
     weapons: weapons.rows,
@@ -156,6 +162,7 @@ export function packFromFtl(
   if (sectors.rows.length > 0) pack.sectors = sectors.rows;
   if (events.rows.length > 0) pack.events = events.rows;
   if (lists.rows.length > 0) pack.lists = lists.rows;
+  if (blueprints.rows.length > 0) pack.blueprints = blueprints.rows;
   if (facts) pack.facts = true;
   if (names) pack.names = names;
   attachPictures(pack.hulls, documents);
@@ -175,6 +182,18 @@ function readNames(doc: XmlDocument): ContentPack["names"] | undefined {
   }
   if (!pool.length && !syllables.length) return undefined;
   return { pool, syllables };
+}
+
+function readBlueprintList(node: XmlElement): BlueprintListDef | undefined {
+  const id = attr(node, "name")?.trim();
+  if (!id) return undefined;
+  const names: string[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "name") continue;
+    const name = (item.textContent ?? "").trim();
+    if (name) names.push(name);
+  }
+  return { id, names };
 }
 
 function readFtlCrew(node: XmlElement): CrewDef | undefined {
@@ -390,9 +409,13 @@ function readFtlHull(
   const listedWeapons = child(node, "weaponList");
   const weaponLoad = listedWeapons ? attr(listedWeapons, "load")?.trim() : undefined;
   if (weaponLoad) hull.weaponLoad = weaponLoad;
+  const weaponCount = intAttr(listedWeapons, "count");
+  if (weaponCount != null) hull.weaponCount = weaponCount;
   const listedDrones = child(node, "droneList");
   const droneLoad = listedDrones ? attr(listedDrones, "load")?.trim() : undefined;
   if (droneLoad) hull.droneLoad = droneLoad;
+  const droneCount = intAttr(listedDrones, "count");
+  if (droneCount != null) hull.droneCount = droneCount;
   const weaponSlots = numOf(node, "weaponSlots");
   if (weaponSlots != null) hull.weaponSlots = weaponSlots;
   const droneSlots = numOf(node, "droneSlots");

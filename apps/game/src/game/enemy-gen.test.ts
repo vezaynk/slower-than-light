@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
+import { hullDef, loadPack, resetPackForTests } from "@stl/pack";
 import { WEAPONS } from "./content.ts";
 import {
   arm,
@@ -303,6 +305,102 @@ describe("enemy generation by difficulty (Mathchamp, Details on enemy ship gener
     assert.equal(has(2, "normal"), true);
     assert.equal(has(2, "easy"), false);
     assert.equal(has(3, "easy"), true);
+  });
+});
+
+describe("archive loadout", () => {
+  const ctx = { sector: 1, sectorName: "Civilian Sector", difficulty: "normal" as const };
+
+  it("keeps the class table when the blueprint names no pool", () => {
+    const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
+    const before = rollEnemy(cls, false, ctx, seeded(4));
+    const hull = hullDef(enemyBlueprintId("rebel-fighter"))!;
+    loadPack({ hulls: [{ ...hull, weaponLoad: "NO_SUCH_LIST" }] }, "append");
+    try {
+      const after = rollEnemy(cls, false, ctx, seeded(4));
+      assert.deepEqual(after.weapons, before.weapons);
+      assert.deepEqual(
+        after.crew.map((member) => member.race),
+        before.crew.map((member) => member.race),
+      );
+      assert.equal(after.missiles, before.missiles);
+      assert.equal(after.missiles, cls.missiles);
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("mounts a repeated blueprint id on two slots", () => {
+    assert.deepEqual(arm(["LASER_BURST_1", "LASER_BURST_1"], 2, seeded(1), 2).weapons, [
+      "LASER_BURST_1",
+      "LASER_BURST_1",
+    ]);
+  });
+
+  it("equips the blueprint crew, weapon list, and drone list", () => {
+    const fighter = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
+    const rigger = ENEMY_CLASSES.find((row) => row.id === "rebel-rigger")!;
+    const fighterHull = hullDef(enemyBlueprintId("rebel-fighter"))!;
+    const riggerHull = hullDef(enemyBlueprintId("rebel-rigger"))!;
+    loadPack(
+      {
+        hulls: [
+          {
+            ...fighterHull,
+            weapons: ["LASER_BURST_1", "LASER_BURST_1"],
+            weaponCount: 1,
+            missiles: 4,
+            crewCounts: [
+              { amount: 2, class: "human" },
+              { amount: 1, max: 3, class: "mantis" },
+              { amount: 1, class: "random" },
+              { amount: 1, class: "ghost" },
+            ],
+          },
+          {
+            ...riggerHull,
+            weapons: [],
+            weaponLoad: "WEAPONS_TEST",
+            weaponSlots: 1,
+            drones: [],
+            droneLoad: "DRONES_TEST",
+            droneCount: 1,
+            parts: 5,
+          },
+        ],
+        blueprints: [
+          { id: "WEAPONS_TEST", names: ["LASER_BURST_3"] },
+          { id: "DRONES_TEST", names: ["DEFENSE_1"] },
+        ],
+      },
+      "append",
+    );
+    try {
+      const crystal = { ...ctx, sectorName: "Hidden Crystal Worlds" };
+      const spec = rollEnemy(fighter, false, crystal, seeded(1));
+      assert.deepEqual(spec.weapons, ["LASER_BURST_1"]);
+      assert.equal(spec.missiles, 4);
+      assert.equal(spec.crew.filter((member) => member.race === "Human").length, 3);
+      assert.equal(spec.crew.filter((member) => member.race === "Mantis").length, 1);
+      assert.equal(spec.crew.filter((member) => member.race === "Crystal").length, 1);
+
+      const late = rollEnemy(fighter, false, { ...crystal, sector: 9 }, seeded(1));
+      assert.equal(late.crew.filter((member) => member.race === "Mantis").length, 3);
+      const delayed = rollEnemy(
+        fighter,
+        false,
+        { ...crystal, sector: 2, difficulty: "easy" },
+        seeded(1),
+      );
+      assert.equal(delayed.crew.filter((member) => member.race === "Mantis").length, 1);
+
+      const armed = rollEnemy(rigger, false, ctx, seeded(2));
+      assert.deepEqual(armed.weapons, ["LASER_BURST_3"]);
+      assert.deepEqual(armed.drones, ["DEFENSE_1"]);
+      assert.equal(armed.parts, 5);
+    } finally {
+      resetPackForTests();
+    }
   });
 });
 

@@ -1,12 +1,32 @@
 import { gridFromLayout, writeGrid } from "@stl/pack";
 
 /**
- * Rebel Flagship cutaways. One ship per stage. Square counts are the traced cells.
+ * Rebel Flagship cutaways. One traced interior per stage. Square counts are the traced cells.
  * Stage 1 and stage 3 start at pixel (54, 122). Stage 2 is the same grid shifted to pixel (37, 122).
  * Advanced Edition is on, so cloaking, hacking, and mind control are rooms.
+ * Each stage is three blueprints: BOSS_<stage>_EASY_DLC, BOSS_<stage>_NORMAL_DLC, and BOSS_<stage>_HARD_DLC.
+ * They share data/flagship-<stage>.txt. The blueprint name is the lookup key.
  * The two Hard link rooms stay with the fight. They are not a fourth ship.
  * Room ids such as f1-pilot travel with the rectangles. The fight reads them back.
  */
+
+export type FlagshipDifficulty = "easy" | "normal" | "hard";
+
+const FLAGSHIP_BAND: Record<FlagshipDifficulty, "EASY" | "NORMAL" | "HARD"> = {
+  easy: "EASY",
+  normal: "NORMAL",
+  hard: "HARD",
+};
+
+/** Advanced Edition blueprint for one stage at the run's difficulty. */
+export function flagshipBlueprintId(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): string {
+  return `BOSS_${stage}_${FLAGSHIP_BAND[difficulty]}_DLC`;
+}
+
+/** Traced layout file for one stage. The three difficulty blueprints share it. */
+export function flagshipLayoutStem(stage: 1 | 2 | 3): string {
+  return `flagship-${stage}`;
+}
 export type FlagshipInterior = {
   cols: number;
   rows: number;

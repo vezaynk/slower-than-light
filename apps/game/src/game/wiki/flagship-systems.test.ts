@@ -74,7 +74,7 @@ describe("Rebel Flagship rooms per stage", () => {
 
   it("keeps Hard links on every stage", () => {
     for (const stage of [1, 2, 3] as const) {
-      const { rooms } = flagshipRooms(stage, true);
+      const { rooms } = flagshipRooms(stage, "hard");
       assert.ok(rooms.some((r) => r.id === "e-laser-link"));
       assert.ok(rooms.some((r) => r.id === "e-missile-link"));
     }

@@ -108,7 +108,7 @@ export function plateOf(args: PlateArgs): HullCell[] {
 }
 
 function kindOf(id: string, faction: string): Kind {
-  if (id.startsWith("flagship") || faction.toLowerCase() === "flagship") return "flagship";
+  if (id.startsWith("flagship") || /^BOSS_[123]_/.test(id) || faction.toLowerCase() === "flagship") return "flagship";
   const f = faction.toLowerCase();
   if (f === "federation" || f === "fed") return "fed";
   if (KINDS.has(f)) return f as Exclude<Kind, "flagship">;

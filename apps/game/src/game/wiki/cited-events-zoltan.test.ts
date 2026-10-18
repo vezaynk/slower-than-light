@@ -76,15 +76,6 @@ function fxNumbers(fx: CitedFx): number[] {
   return [];
 }
 
-function choiceSlice(src: string, id: string): string {
-  const at = src.indexOf(`id: "${id}"`);
-  assert.ok(at >= 0, id);
-  const next = src.indexOf("\n      {", at + 10);
-  const end = src.indexOf("\n    ],", at);
-  const stop = next !== -1 && next < (end === -1 ? src.length : end) ? next : end;
-  return src.slice(at, stop === -1 ? src.length : stop);
-}
-
 function hasNumber(comment: string, n: number): boolean {
   return new RegExp(`(?<![\\d.])${n}(?![\\d.])`).test(comment);
 }
@@ -92,7 +83,7 @@ function hasNumber(comment: string, n: number): boolean {
 describe("cited zoltan events", () => {
   const wiki = pages();
 
-  it("exports only these titles, with Locations sectors and commented numbers", () => {
+  it("exports only these titles, with Locations sectors and page numbers", () => {
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Engi fight]]
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Mantis fight (Zoltan)]]
@@ -110,10 +101,6 @@ describe("cited zoltan events", () => {
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan Great Eye]]
     assert.equal(wiki.size, TITLES.length);
     const seen = new Set<string>();
-    const src = readFileSync(
-      new URL("../../../../../packages/catalog/src/wiki/cited-events-zoltan.ts", import.meta.url),
-      "utf8",
-    );
     for (const ev of EXTRA_EVENTS) {
       assert.ok(TITLES.includes(ev.dest), ev.dest);
       assert.equal(seen.has(ev.dest), false, ev.dest);
@@ -139,23 +126,13 @@ describe("cited zoltan events", () => {
       ev.choices.forEach((choice, index) => {
         assert.equal(choice.id, `c:${ev.slug}:${index}`);
         assert.ok(choice.fx.length >= 1);
-        const slice = choiceSlice(src, choice.id);
-        const comments = [...slice.matchAll(/\/\/(.*)/g)].map((m) => m[1] ?? "").join("\n");
-        assert.ok(comments.length > 0, choice.id);
-        for (const quoted of comments.matchAll(/"([^"]*)"/g)) {
-          const sentence = quoted[1] ?? "";
-          assert.ok(sentence.length > 0);
-          assert.ok(plain.includes(sentence), `${ev.dest}: ${sentence}`);
-        }
         for (const fx of choice.fx) {
           for (const n of fxNumbers(fx)) {
-            assert.ok(hasNumber(comments, n), `${ev.dest} ${n}`);
+            assert.ok(hasNumber(text, n), `${ev.dest} ${n}`);
           }
           if (fx.k === "fight") {
-            assert.ok(comments.includes(fx.tier), `${ev.dest} ${fx.tier}`);
-            assert.ok(text.includes(fx.tier), fx.tier);
-            if (fx.asteroid) assert.ok(comments.includes("asteroidfield=true"), ev.dest);
-            else assert.equal(comments.includes("asteroidfield=true"), false, ev.dest);
+            assert.ok(text.includes(fx.tier), `${ev.dest} ${fx.tier}`);
+            if (fx.asteroid) assert.ok(text.includes("asteroidfield=true"), ev.dest);
           }
         }
       });

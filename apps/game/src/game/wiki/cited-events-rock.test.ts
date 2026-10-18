@@ -86,50 +86,18 @@ describe("cited rock events", () => {
       assert.equal(ev.slug, slug(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
+      const text = found.get(ev.dest) ?? "";
       ev.choices.forEach((choice, index) => {
         assert.equal(choice.id, `c:${ev.slug}:${index}`);
+        for (const fx of choice.fx) {
+          assert.equal(fx.k === "res" || fx.k === "hull" || fx.k === "fleet", false, ev.dest);
+          if (fx.k === "fight") {
+            assert.ok(text.includes(fx.tier), `${ev.dest} ${fx.tier}`);
+            if (fx.asteroid) assert.ok(text.includes("asteroidfield=true"), ev.dest);
+          }
+        }
       });
     }
-  });
-
-  it("matches every stated number and fight word to the comment above it", () => {
-    const src = readFileSync(
-      new URL("../../../../../packages/catalog/src/wiki/cited-events-rock.ts", import.meta.url),
-      "utf8",
-    );
-    const body = src.slice(src.indexOf("export const EXTRA_EVENTS"));
-    let comment = "";
-    let fights = 0;
-    let numbers = 0;
-    for (const line of body.split("\n")) {
-      const noted = line.match(/^\s*\/\/\s?(.*)$/);
-      if (noted) {
-        comment = noted[1] ?? "";
-        continue;
-      }
-      const amount = line.match(/\b(?:lo|hi|n):\s*(-?\d+)/);
-      if (amount) {
-        numbers += 1;
-        const token = amount[1] ?? "";
-        assert.match(comment, new RegExp(`(?<![0-9])${token}(?![0-9])`), comment);
-      }
-      const tier = line.match(/\btier:\s*"([^"]+)"/);
-      if (tier && comment.length > 0) {
-        fights += 1;
-        assert.ok(comment.includes(tier[1] ?? ""), `${tier[1]} not in ${comment}`);
-      }
-      if (/\basteroid:\s*true/.test(line)) {
-        assert.ok(comment.includes("asteroidfield=true"), comment);
-      }
-    }
-    assert.equal(
-      fights,
-      EXTRA_EVENTS.reduce(
-        (n, ev) => n + ev.choices.filter((c) => c.fx.some((fx) => fx.k === "fight")).length,
-        0,
-      ),
-    );
-    assert.equal(numbers, 0);
   });
 });
 

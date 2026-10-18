@@ -4215,8 +4215,7 @@ function moveCrew(g: Game, dt: number) {
  * Door System, "Door strength": a broken door stays stuck open for 7 seconds, then its health
  * resets and the player can control it again. Close All while it is stuck shuts it at that moment.
  * Boarding, "Doors": a broken door on an enemy ship stays open. A hacked door that is still hacked
- * when the timer ends is closed by lockHackedDoors. Removing the hacking power closes one that is
- * still broken open (Hacking, "Overview").
+ * when the timer ends is closed by lockHackedDoors. Depowering the hack before then leaves it open.
  */
 function tickDoors(g: Game, ship: Ship, dt: number) {
   for (const d of ship.doors) {

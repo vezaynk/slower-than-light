@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat, step } from "../sim.ts";
-import { aiCrew, jobsOn, manPriority, planCrew, systemPriority, tickEnemyCrewAi } from "./crewai.ts";
+import {
+  aiCrew,
+  jobsOn,
+  manPriority,
+  planCrew,
+  systemPriority,
+  tickEnemyCrewAi,
+} from "./crewai.ts";
 import type { Crew, Game, Room } from "../types.ts";
 
 /** A Rebel hull with a Medbay, no subsystem kits (no teleporter to borrow crew), and 4+ crew. */
@@ -99,7 +106,9 @@ describe("enemy crew AI: intruders", () => {
     board(g, ox);
     board(g, ox);
     tickEnemyCrewAi(g, 0.05);
-    const tasks = Object.values(g.enemy!.crewAi!.task).filter((t) => t.kind === "defend" && t.room === ox);
+    const tasks = Object.values(g.enemy!.crewAi!.task).filter(
+      (t) => t.kind === "defend" && t.room === ox,
+    );
     assert.equal(tasks.length, 2);
     g.crew = g.crew.filter((c) => c.side === "enemy");
     run(g, 8);
@@ -159,7 +168,9 @@ describe("enemy crew AI: fires and repairs", () => {
     const ox = room(g, "oxygen");
     ox.fire = 1;
     tickEnemyCrewAi(g, 0.05);
-    const n = Object.values(g.enemy!.crewAi!.task).filter((t) => t.kind === "fire" && t.room === ox.id).length;
+    const n = Object.values(g.enemy!.crewAi!.task).filter(
+      (t) => t.kind === "fire" && t.room === ox.id,
+    ).length;
     assert.equal(n, 2);
   });
 

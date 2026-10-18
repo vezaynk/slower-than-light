@@ -73,7 +73,9 @@ export function populateGrid(roll: () => number): Cell[] {
 type Placed = Pick<Beacon, "id" | "col" | "row" | "links"> & { x?: number; y?: number };
 
 /** A beacon's map position. INFERRED: a save from before positions uses its cell's centre. */
-export function beaconXY(b: Pick<Beacon, "col" | "row"> & { x?: number; y?: number }): [number, number] {
+export function beaconXY(
+  b: Pick<Beacon, "col" | "row"> & { x?: number; y?: number },
+): [number, number] {
   return [b.x ?? b.col * CELL_PX + CELL_PX / 2, b.y ?? b.row * CELL_PX + CELL_PX / 2];
 }
 
@@ -148,7 +150,12 @@ export function jumpsBetween(beacons: Placed[], from: string, to: string): numbe
  * Tries until `ok` holds, at most 16 times ("The game will try upto 16 times to satisfy these length constraints, but
  * will give up after that"); giving up keeps the last beacon found.
  */
-function pickBeacon<T extends Placed>(beacons: T[], cols: number[], roll: () => number, ok: (b: T) => boolean): T | undefined {
+function pickBeacon<T extends Placed>(
+  beacons: T[],
+  cols: number[],
+  roll: () => number,
+  ok: (b: T) => boolean,
+): T | undefined {
   let last: T | undefined;
   for (let i = 0; i < TRIES; i++) {
     const col = cols[Math.floor(roll() * cols.length)];
@@ -162,15 +169,29 @@ function pickBeacon<T extends Placed>(beacons: T[], cols: number[], roll: () => 
 }
 
 /** The end beacon: columns 4-5, at least five jumps from the start. */
-export function pickExit<T extends Placed>(beacons: T[], start: T, roll: () => number): T | undefined {
-  return pickBeacon(beacons, EXIT_COLS, roll, (b) => jumpsBetween(beacons, start.id, b.id) >= EXIT_MIN_JUMPS);
+export function pickExit<T extends Placed>(
+  beacons: T[],
+  start: T,
+  roll: () => number,
+): T | undefined {
+  return pickBeacon(
+    beacons,
+    EXIT_COLS,
+    roll,
+    (b) => jumpsBetween(beacons, start.id, b.id) >= EXIT_MIN_JUMPS,
+  );
 }
 
 /**
  * The Last Stand: "On easy/normal, the base's x is picked from {2,3} while on hard it's picked from {3,4}. On
  * easy/normal, the path to the base must be 4 jumps long, while on hard it must be between 5-6 jumps (inclusive)."
  */
-export function pickFedBase<T extends Placed>(beacons: T[], start: T, difficulty: Difficulty, roll: () => number): T | undefined {
+export function pickFedBase<T extends Placed>(
+  beacons: T[],
+  start: T,
+  difficulty: Difficulty,
+  roll: () => number,
+): T | undefined {
   const hard = difficulty === "hard";
   const ok = (b: T) => {
     const n = jumpsBetween(beacons, start.id, b.id);
@@ -186,7 +207,11 @@ export function pickFedBase<T extends Placed>(beacons: T[], start: T, difficulty
  * INFERRED: the notes say "must" and name no give-up here, so the pick is uniform among the beacons in those columns
  * that qualify. With none, the farthest of them from the base (never the base itself).
  */
-export function pickFlagship<T extends Placed>(beacons: T[], base: T, roll: () => number): T | undefined {
+export function pickFlagship<T extends Placed>(
+  beacons: T[],
+  base: T,
+  roll: () => number,
+): T | undefined {
   const cols = beacons.filter((b) => EXIT_COLS.includes(b.col) && b.id !== base.id);
   const jumps = (b: T) => jumpsBetween(beacons, base.id, b.id);
   const ok = cols.filter((b) => jumps(b) >= 3 && jumps(b) <= 5);
@@ -203,18 +228,27 @@ export type Danger = { fleet: number; dangerY?: number };
 
 /** The danger circle's centre. INFERRED: a save from before the circle uses the middle of 50-300. */
 export function dangerCentre(d: Danger): [number, number] {
-  return [DANGER_START_X + DANGER_STEP_PX * d.fleet, d.dangerY ?? (DANGER_Y_MIN + DANGER_Y_MAX) / 2];
+  return [
+    DANGER_START_X + DANGER_STEP_PX * d.fleet,
+    d.dangerY ?? (DANGER_Y_MIN + DANGER_Y_MAX) / 2,
+  ];
 }
 
 /** True when the beacon sits inside the danger circle. */
-export function overtaken(d: Danger, b: Pick<Beacon, "col" | "row"> & { x?: number; y?: number }): boolean {
+export function overtaken(
+  d: Danger,
+  b: Pick<Beacon, "col" | "row"> & { x?: number; y?: number },
+): boolean {
   const [cx, cy] = dangerCentre(d);
   const [x, y] = beaconXY(b);
   return Math.hypot(x - cx, y - cy) < DANGER_RADIUS;
 }
 
 /** Fewest whole 64px steps that put this beacon inside the danger circle (for setups and tests). */
-export function fleetToReach(d: Danger, b: Pick<Beacon, "col" | "row"> & { x?: number; y?: number }): number {
+export function fleetToReach(
+  d: Danger,
+  b: Pick<Beacon, "col" | "row"> & { x?: number; y?: number },
+): number {
   for (let n = 0; n < 64; n++) if (overtaken({ fleet: n, dangerY: d.dangerY }, b)) return n;
   return 64;
 }

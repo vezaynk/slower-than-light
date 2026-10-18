@@ -38,7 +38,10 @@ describe("faction pages", () => {
         assert.equal(typeof ship.name, "string");
         assert.ok(ship.name.length > 0);
         assert.ok(Array.isArray(ship.notes));
-        assert.ok(ship.notes.some((note) => /\d/.test(note)), ship.id);
+        assert.ok(
+          ship.notes.some((note) => /\d/.test(note)),
+          ship.id,
+        );
       }
     }
   });

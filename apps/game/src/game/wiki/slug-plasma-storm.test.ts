@@ -57,7 +57,8 @@ describe("Slug fight in plasma storm", () => {
     assert.equal(citedFleetAdvance(g, beacon), 1);
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
     g.player.reactor = 5;
-    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
     g.player.systems.weapons.power = 5;
     syncIonStorm(g);
     assert.equal(g.player.storm, true);

@@ -32,7 +32,9 @@ function assertNoPresence(g: Game) {
     false,
   );
   assert.equal(
-    g.crew.some((c) => c.hp > 0 && c.side === "enemy" && c.aboard === "enemy" && (c.leashed ?? 0) > 0),
+    g.crew.some(
+      (c) => c.hp > 0 && c.side === "enemy" && c.aboard === "enemy" && (c.leashed ?? 0) > 0,
+    ),
     false,
   );
   const swarm = g.player.kits.drones;

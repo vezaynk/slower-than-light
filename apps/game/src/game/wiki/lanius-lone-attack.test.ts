@@ -20,7 +20,11 @@ describe("Lanius lone ship", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-lone-ship:0");
-    assert.ok(g.log.includes("The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight."));
+    assert.ok(
+      g.log.includes(
+        "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.",
+      ),
+    );
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-lone-ship");
     assert.equal(g.enemy?.faction, "lanius");

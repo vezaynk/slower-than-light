@@ -4,7 +4,10 @@ import { applyImpact, createGame } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
 import { LASER_GAPS, LASER_WEAPONS } from "./weapons-laser.ts";
 
-const expected: Record<string, { power: number; charge: number; shots: number; damage: number; price: number }> = {
+const expected: Record<
+  string,
+  { power: number; charge: number; shots: number; damage: number; price: number }
+> = {
   LASER_BURST_2_A: { power: 2, charge: 11, shots: 2, damage: 1, price: 50 },
   LASER_BURST_5: { power: 4, charge: 19, shots: 5, damage: 1, price: 95 },
   LASER_HEAVY_1_SP: { power: 2, charge: 10, shots: 1, damage: 2, price: 0 },
@@ -39,7 +42,12 @@ describe("laser weapons", () => {
 
   it("does not refit lasers that already exist", () => {
     const names = new Set(LASER_WEAPONS.map((weapon) => weapon.name));
-    for (const banned of ["Basic Laser", "Dual Lasers", "Burst Laser Mark II", "Heavy Laser Mark I"]) {
+    for (const banned of [
+      "Basic Laser",
+      "Dual Lasers",
+      "Burst Laser Mark II",
+      "Heavy Laser Mark I",
+    ]) {
       assert.equal(names.has(banned), false);
     }
     assert.deepEqual(
@@ -60,7 +68,10 @@ describe("laser weapons", () => {
   });
 
   it("keeps Boss Laser out of the pool catalog", () => {
-    assert.equal(LASER_WEAPONS.some((weapon) => weapon.id === "ARTILLERY_BOSS_1"), false);
+    assert.equal(
+      LASER_WEAPONS.some((weapon) => weapon.id === "ARTILLERY_BOSS_1"),
+      false,
+    );
     const boss = gap("ARTILLERY_BOSS_1");
     assert.equal(boss.includes("BLOCKED"), false);
     assert.match(boss, /artillery maximum is 4/);
@@ -119,7 +130,10 @@ describe("Heavy Laser fire then breach", () => {
 
   it("still breaches when the fire roll starts nothing", () => {
     const { g, roomId } = bare();
-    applyImpact(g, laserShot({ defId: "LASER_HEAVY_1", targetRoom: roomId, fireChance: 0, breachChance: 1 }));
+    applyImpact(
+      g,
+      laserShot({ defId: "LASER_HEAVY_1", targetRoom: roomId, fireChance: 0, breachChance: 1 }),
+    );
     const hit = marks(g, roomId);
     assert.equal(hit.fire, 0);
     assert.ok(hit.breach > 0);
@@ -131,7 +145,12 @@ describe("Heavy Laser fire then breach", () => {
       trial.g.seed = seed;
       applyImpact(
         trial.g,
-        laserShot({ defId: "LASER_HEAVY_1", targetRoom: trial.roomId, fireChance: 0.3, breachChance: 0.3 }),
+        laserShot({
+          defId: "LASER_HEAVY_1",
+          targetRoom: trial.roomId,
+          fireChance: 0.3,
+          breachChance: 0.3,
+        }),
       );
       const next = marks(trial.g, trial.roomId);
       if (next.fire > 0) {
@@ -145,7 +164,10 @@ describe("Heavy Laser fire then breach", () => {
 
   it("still rolls both effects on a shot that is not a Heavy Laser", () => {
     const { g, roomId } = bare();
-    applyImpact(g, laserShot({ defId: "burst2", targetRoom: roomId, fireChance: 1, breachChance: 1 }));
+    applyImpact(
+      g,
+      laserShot({ defId: "burst2", targetRoom: roomId, fireChance: 1, breachChance: 1 }),
+    );
     const hit = marks(g, roomId);
     assert.ok(hit.fire > 0);
     assert.ok(hit.breach > 0);

@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { commitJump, createGame, evasionPercent, roomWith, sparePower, startCombat, step } from "../sim.ts";
+import {
+  commitJump,
+  createGame,
+  evasionPercent,
+  roomWith,
+  sparePower,
+  startCombat,
+  step,
+} from "../sim.ts";
 import {
   armSpike,
   hackBlocksManning,
@@ -35,7 +43,6 @@ function launchLanded(g: Game): boolean {
   }
   return ok;
 }
-
 
 function kit(id: KitId, level: number, power = level): Kit {
   return { id, level, power, left: 0, cool: 0, target: null, on: false, aux: 0 };
@@ -91,7 +98,12 @@ describe("hacking: artillery drains (Hacking, Artillery Beam / Flak Artillery ro
 
   it("an enemy pulse on Flak Artillery drains one second of charge per second", () => {
     const g = hacked("artillery", true);
-    g.player.kits.artillery = { weapon: "ARTILLERY_FED_C", ...kit("artillery", 1, 1), on: true, aux: 10 };
+    g.player.kits.artillery = {
+      weapon: "ARTILLERY_FED_C",
+      ...kit("artillery", 1, 1),
+      on: true,
+      aux: 10,
+    };
     tickFlak(g, 2);
     assert.ok(Math.abs(g.player.kits.artillery.aux - 8) < 1e-9);
   });
@@ -158,7 +170,8 @@ describe("hacking: passive rules (no manning, half repair)", () => {
     a.path = [];
     b.room = pilot.id;
     b.path = [];
-    for (const c of g.crew) if (c !== a && c !== b && c.side === "player") c.room = roomWith(g.player, "shields")!.id;
+    for (const c of g.crew)
+      if (c !== a && c !== b && c.side === "player") c.room = roomWith(g.player, "shields")!.id;
     const free = evasionPercent(g, g.player, "player");
     const k = g.enemy!.kits.hacking!;
     k.target = "engines";
@@ -183,7 +196,8 @@ describe("hacking: passive rules (no manning, half repair)", () => {
       sys.fix = 0;
       const room = roomWith(g.player, "oxygen")!;
       const fixer = g.crew.find((c) => c.side === "player")!;
-      for (const c of g.crew) if (c.side === "player" && c !== fixer) c.room = roomWith(g.player, "pilot")!.id;
+      for (const c of g.crew)
+        if (c.side === "player" && c !== fixer) c.room = roomWith(g.player, "pilot")!.id;
       fixer.room = room.id;
       fixer.path = [];
       for (let i = 0; i < 40; i++) step(g, 0.05);
@@ -292,7 +306,9 @@ describe("mind control across a jump", () => {
     assert.equal(fireEnemyLeash(g), true);
     const held = g.crew.find((c) => heldByEnemy(c))!;
     // Piloting, "Overview": a mind-controlled body is no pilot, so a free crew member takes the seat.
-    const pilot = g.crew.find((c) => c.side === "player" && c.aboard === "player" && !heldByEnemy(c))!;
+    const pilot = g.crew.find(
+      (c) => c.side === "player" && c.aboard === "player" && !heldByEnemy(c),
+    )!;
     pilot.room = g.player.rooms.find((r) => r.system === "pilot")!.id;
     pilot.path = [];
     const here = g.beacons.find((b) => b.id === g.here)!;

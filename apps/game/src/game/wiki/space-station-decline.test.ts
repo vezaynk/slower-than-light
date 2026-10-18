@@ -29,8 +29,7 @@ describe("Space station under construction decline", () => {
   });
 });
 
-const OFFER =
-  `"Interesting. So this metal man can help us make some of these unique parts out of scrap? That would be a huge help." Your crewmember checks over the blueprints and quickly converts some of their base metal sheets into the specialized parts.\n\n"Amazing! This robot thing could save us a ton of time. Could I buy it off you?"`;
+const OFFER = `"Interesting. So this metal man can help us make some of these unique parts out of scrap? That would be a huge help." Your crewmember checks over the blueprints and quickly converts some of their base metal sheets into the specialized parts.\n\n"Amazing! This robot thing could save us a ton of time. Could I buy it off you?"`;
 const PITY =
   "A pity. In terms of payment, here's some of the scrap metal we don't need, now that we've got the necessary parts.";
 
@@ -38,7 +37,10 @@ describe("Space station under construction Lanius help", () => {
   it("refusing the sale shows the printed pity sentence and pays medium scrap", () => {
     const bare = createGame(1);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:space-station-under-construction:2"), "Needs a Lanius crewmember");
+    assert.equal(
+      choiceDisabled(bare, "c:space-station-under-construction:2"),
+      "Needs a Lanius crewmember",
+    );
     choose(bare, "c:space-station-under-construction:2");
     assert.equal(bare.phase, "event");
     assert.equal(bare.scrap, 10);
@@ -49,7 +51,10 @@ describe("Space station under construction Lanius help", () => {
     const lan = dead.crew.find((c) => c.kin === "anaerobic");
     assert.ok(lan);
     lan.hp = 0;
-    assert.equal(choiceDisabled(dead, "c:space-station-under-construction:2"), "Needs a Lanius crewmember");
+    assert.equal(
+      choiceDisabled(dead, "c:space-station-under-construction:2"),
+      "Needs a Lanius crewmember",
+    );
 
     const g = createGame(3);
     open(g);

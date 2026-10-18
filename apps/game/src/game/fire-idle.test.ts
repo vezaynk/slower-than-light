@@ -132,9 +132,13 @@ describe("Fires outside a fight", () => {
     // Every room under 10%, so no shut door seeps the fire room back over the line (air.ts).
     for (const r of g.player.rooms) r.o2 = 9;
     room.fire = 1;
-    const neighborId = g.player.doors.find((d) => d.b !== "void" && (d.a === room.id || d.b === room.id));
+    const neighborId = g.player.doors.find(
+      (d) => d.b !== "void" && (d.a === room.id || d.b === room.id),
+    );
     assert.ok(neighborId);
-    const neighbor = g.player.rooms.find((r) => r.id === (neighborId.a === room.id ? neighborId.b : neighborId.a));
+    const neighbor = g.player.rooms.find(
+      (r) => r.id === (neighborId.a === room.id ? neighborId.b : neighborId.a),
+    );
     assert.ok(neighbor);
     neighbor.fire = 4;
     // Low air next door too, so the shut door does not seep the room back over 10% (air.ts).
@@ -308,9 +312,7 @@ function airlock(g: Game, roomId: string) {
 }
 
 function between(g: Game, a: string, b: string) {
-  const door = g.player.doors.find(
-    (d) => (d.a === a && d.b === b) || (d.a === b && d.b === a),
-  );
+  const door = g.player.doors.find((d) => (d.a === a && d.b === b) || (d.a === b && d.b === a));
   assert.ok(door);
   door.open = true;
   return door;

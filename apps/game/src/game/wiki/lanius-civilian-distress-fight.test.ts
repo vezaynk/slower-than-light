@@ -24,6 +24,10 @@ describe("Lanius ship attacking civilian distress fight", () => {
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-attacking-civilian-distress");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("You move in to intercept the ship. Detecting a greater threat, the Lanius prepare to fight."));
+    assert.ok(
+      g.log.includes(
+        "You move in to intercept the ship. Detecting a greater threat, the Lanius prepare to fight.",
+      ),
+    );
   });
 });

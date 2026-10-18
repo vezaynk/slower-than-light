@@ -47,7 +47,9 @@ describe("Boarders: Humans in nebula intros", () => {
     const g = createGame(2);
     open(g);
     choose(g, "c:boarders-humans-in-nebula:0");
-    const humans = g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
+    const humans = g.crew.filter(
+      (c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player",
+    );
     assert.ok(humans.length >= 2 && humans.length <= 4, String(humans.length));
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "combat");

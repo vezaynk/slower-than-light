@@ -9,7 +9,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 function crewCount(g: Game): number {
@@ -58,7 +60,10 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
       assert.equal(g.phase, "combat");
       if (kind === "auto") {
         assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
-        assert.equal(g.fightEvent, id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist");
+        assert.equal(
+          g.fightEvent,
+          id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist",
+        );
         assert.equal(g.asb, false);
       } else if (kind === "asb") {
         assert.equal(g.fightEvent, "quest-fed-assist-asb");
@@ -83,9 +88,11 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
       choose(g, id);
       if (kind === "auto") {
         assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
-        assert.equal(g.fightEvent, id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist");
-      }
-      else if (kind === "asb") assert.equal(g.asb, true);
+        assert.equal(
+          g.fightEvent,
+          id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist",
+        );
+      } else if (kind === "asb") assert.equal(g.asb, true);
       else assert.equal(g.fightEvent, "quest-fed-assist-wing");
       seen.add(kind);
     }
@@ -110,14 +117,21 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     assert.equal(resources(body), 2, body);
     assert.equal(g.scrap, 10 + paid[0]!);
     assert.equal(crewCount(g), crew);
-    assert.deepEqual(g.event?.choices.map((c) => c.id), ["q:fed-assist-asb:contact"]);
+    assert.deepEqual(
+      g.event?.choices.map((c) => c.id),
+      ["q:fed-assist-asb:contact"],
+    );
 
     g.player.hull = g.player.hullMax - 10;
     const hull = g.player.hull;
     const before = g.scrap;
     choose(g, "q:fed-assist-asb:contact");
     const contact = g.event?.body ?? "";
-    assert.ok(contact.startsWith("You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\""));
+    assert.ok(
+      contact.startsWith(
+        "You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\"",
+      ),
+    );
     const high = scraps(contact);
     assert.equal(high.length, 1, contact);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, contact);
@@ -185,10 +199,17 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     assert.equal(gone.event?.body, "The Rebel ship jumped away.");
     assert.equal(gone.scrap, 10);
     assert.equal(crewCount(gone), goneCrew);
-    assert.deepEqual(gone.event?.choices.map((c) => c.id), ["q:fed-assist-wing:contact"]);
+    assert.deepEqual(
+      gone.event?.choices.map((c) => c.id),
+      ["q:fed-assist-wing:contact"],
+    );
     choose(gone, "q:fed-assist-wing:contact");
     const contact = gone.event?.body ?? "";
-    assert.ok(contact.startsWith("With the threat gone, you contact the Federation outpost. They respond, \"Our location has been compromised! Take everything you can and please drop our survivors off at the next station.\" One soldier offers to stay and fight."));
+    assert.ok(
+      contact.startsWith(
+        'With the threat gone, you contact the Federation outpost. They respond, "Our location has been compromised! Take everything you can and please drop our survivors off at the next station." One soldier offers to stay and fight.',
+      ),
+    );
     assert.match(contact, /crewmember joins you/);
     assert.equal(gone.scrap, 10);
     assert.equal(crewCount(gone), goneCrew + 1);

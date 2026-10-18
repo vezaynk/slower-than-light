@@ -7,7 +7,7 @@ import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
 
 function seeded(seed: number) {
   let s = seed >>> 0 || 1;
-  return () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
+  return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296;
 }
 const ctx = { sector: 6, sectorName: "Civilian Sector", difficulty: "normal" as const };
 
@@ -18,14 +18,24 @@ describe("enemy subsystems: groundwork", () => {
       for (let i = 0; i < 8; i++) {
         const spec = rollEnemy(cls, false, ctx, seeded(i * 13 + cls.id.length));
         Object.keys(spec.kits).forEach((k) => seen.add(k));
-        assert.deepEqual(spec.unwired.map((u) => u.id).filter((id) => id !== "artillery"), [], cls.id);
+        assert.deepEqual(
+          spec.unwired.map((u) => u.id).filter((id) => id !== "artillery"),
+          [],
+          cls.id,
+        );
       }
     }
-    for (const kit of ["drones", "hacking", "cloaking", "teleporter", "clonebay", "mind"]) assert.ok(seen.has(kit), kit);
+    for (const kit of ["drones", "hacking", "cloaking", "teleporter", "clonebay", "mind"])
+      assert.ok(seen.has(kit), kit);
   });
 
   it("sizes the reactor to the installed capacity", () => {
-    const spec = rollEnemy(ENEMY_CLASSES.find((c) => c.id === "engi-hacker")!, false, ctx, seeded(3));
+    const spec = rollEnemy(
+      ENEMY_CLASSES.find((c) => c.id === "engi-hacker")!,
+      false,
+      ctx,
+      seeded(3),
+    );
     const capacity =
       Object.values(spec.systems).reduce((sum, [level]) => sum + level, 0) +
       Object.values(spec.kits).reduce((sum, level) => sum + (level ?? 0), 0);
@@ -80,7 +90,19 @@ describe("enemy subsystem rooms take damage", () => {
       const before = kitBars(kit);
       g.enemy.shieldNow = 0;
       g.enemy.zoltan = undefined;
-      applyImpact(g, { id: "t", kind: "missile", from: "player", damage: 1, ion: 0, fireChance: 0, breachChance: 0, targetRoom: room.id, wait: 0, t: 1, duration: 1 });
+      applyImpact(g, {
+        id: "t",
+        kind: "missile",
+        from: "player",
+        damage: 1,
+        ion: 0,
+        fireChance: 0,
+        breachChance: 0,
+        targetRoom: room.id,
+        wait: 0,
+        t: 1,
+        duration: 1,
+      });
       if (kitBars(kit) === before) continue; // dodged
       assert.equal(kit.damage, 1);
       return;

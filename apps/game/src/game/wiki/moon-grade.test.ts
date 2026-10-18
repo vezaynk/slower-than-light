@@ -68,7 +68,10 @@ describe("slug moon grade", () => {
 
     const row = eventDef("slug-moons-question");
     assert.ok(row);
-    loadPack({ events: [{ ...row, grade: { hire: "Engi", pays: row.grade?.pays ?? [] } }] }, "append");
+    loadPack(
+      { events: [{ ...row, grade: { hire: "Engi", pays: row.grade?.pays ?? [] } }] },
+      "append",
+    );
     const hired = open(2);
     const gels = hired.crew.filter((c) => c.kin === "slug").length;
     const shells = hired.crew.filter((c) => c.kin === "engi").length;
@@ -147,7 +150,10 @@ describe("slug moon grade", () => {
       assert.ok(fuel >= 5 && fuel <= 7, String(fuel));
       fuels.add(fuel);
     }
-    assert.deepEqual([...fuels].sort((a, b) => a - b), [5, 6, 7]);
+    assert.deepEqual(
+      [...fuels].sort((a, b) => a - b),
+      [5, 6, 7],
+    );
 
     loadPack({ events: [{ ...row, grade: undefined }] }, "append");
     const quiet = open(3);

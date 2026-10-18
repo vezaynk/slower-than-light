@@ -8,7 +8,27 @@ import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import "./base.ts";
-import { allAugments, allDrones, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, augmentDef, crewDef, droneDef, hullDef, loadPack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "@stl/pack";
+import {
+  allAugments,
+  allDrones,
+  allHulls,
+  allSectors,
+  allStores,
+  allSystems,
+  allTunes,
+  allWeapons,
+  augmentDef,
+  crewDef,
+  droneDef,
+  hullDef,
+  loadPack,
+  resetPackForTests,
+  sectorDef,
+  storeDef,
+  systemDef,
+  tuneDef,
+  weaponDef,
+} from "@stl/pack";
 import type { CrewDef, HullDef, WeaponBlueprint } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
@@ -73,7 +93,12 @@ describe("content pack", () => {
 
   it("loads the catalog in its authored order", () => {
     assert.deepEqual(
-      allAugments().map((row) => ({ id: row.id, name: row.name, detail: row.detail, cost: row.cost })),
+      allAugments().map((row) => ({
+        id: row.id,
+        name: row.name,
+        detail: row.detail,
+        cost: row.cost,
+      })),
       CATALOG.map((row) => ({ id: row.id, name: row.name, detail: row.detail, cost: row.cost })),
     );
   });
@@ -98,8 +123,14 @@ describe("content pack", () => {
     assert.equal(allAugments().at(-1)?.id, "spark");
     resetPackForTests();
     assert.equal(augmentDef("spark"), undefined);
-    assert.equal(augmentDef("AUTO_COOLDOWN")?.cost, CATALOG.find((row) => row.id === "AUTO_COOLDOWN")?.cost);
-    assert.equal(augmentDef("AUTO_COOLDOWN")?.name, CATALOG.find((row) => row.id === "AUTO_COOLDOWN")?.name);
+    assert.equal(
+      augmentDef("AUTO_COOLDOWN")?.cost,
+      CATALOG.find((row) => row.id === "AUTO_COOLDOWN")?.cost,
+    );
+    assert.equal(
+      augmentDef("AUTO_COOLDOWN")?.name,
+      CATALOG.find((row) => row.id === "AUTO_COOLDOWN")?.name,
+    );
   });
 
   it("loads the drone catalog in its authored order", () => {
@@ -119,7 +150,10 @@ describe("content pack", () => {
     assert.equal(allDrones().at(-1)?.id, "spark");
     resetPackForTests();
     assert.equal(droneDef("spark"), undefined);
-    assert.equal(allDrones().some((row) => row.id === "spark"), false);
+    assert.equal(
+      allDrones().some((row) => row.id === "spark"),
+      false,
+    );
   });
 
   it("loads the system catalog in its authored order", () => {
@@ -140,7 +174,10 @@ describe("content pack", () => {
     assert.equal(allSystems().at(-1)?.id, "spark");
     resetPackForTests();
     assert.equal(systemDef("spark"), undefined);
-    assert.equal(systemDef("shields")?.cost, CITED_SYSTEMS.find((row) => row.ref === "shields")?.cost);
+    assert.equal(
+      systemDef("shields")?.cost,
+      CITED_SYSTEMS.find((row) => row.ref === "shields")?.cost,
+    );
   });
 
   it("loads the hull catalog in its authored order", () => {
@@ -215,7 +252,10 @@ describe("content pack", () => {
   });
 
   it("keeps a sector id apart from a race, a weapon, an augment, a drone, a system, and a hull", () => {
-    loadPack({ sectors: [{ id: "spark", name: "Not the laser", group: "nebula", notes: ["Later."] }] }, "append");
+    loadPack(
+      { sectors: [{ id: "spark", name: "Not the laser", group: "nebula", notes: ["Later."] }] },
+      "append",
+    );
     assert.equal(sectorDef("spark")?.name, "Not the laser");
     assert.equal(crewDef("energy").name, "Zoltan");
     assert.equal(weaponDef("LASER_BURST_1")?.kind, "laser");
@@ -285,7 +325,10 @@ describe("content pack", () => {
     const shields = SYSTEM_TUNES.find((row) => row.id === "shields");
     assert.equal(tuneDef("shields")?.start, shields?.start);
     assert.deepEqual(tuneDef("shields")?.costs, shields?.costs);
-    assert.equal(allSystems().some((row) => row.id === "engines"), false);
+    assert.equal(
+      allSystems().some((row) => row.id === "engines"),
+      false,
+    );
     assert.equal(tuneDef("engines")?.costs.find((step) => step.level === 1)?.cost, 10);
   });
 
@@ -298,7 +341,10 @@ describe("content pack", () => {
     assert.equal(systemDef("spark"), undefined);
     assert.equal(storeDef("spark"), undefined);
     assert.equal(allTunes().at(-1)?.id, "spark");
-    assert.equal(allSystems().some((row) => row.id === "spark"), false);
+    assert.equal(
+      allSystems().some((row) => row.id === "spark"),
+      false,
+    );
     const shields = SYSTEM_TUNES.find((row) => row.id === "shields");
     resetPackForTests();
     assert.equal(tuneDef("spark"), undefined);

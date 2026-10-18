@@ -4,8 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  `Upon completing your jump, you receive a message from a nearby ship. "Greetings and welcome to our beacon! For a small fee, we'll let you continue on your way."`;
+const BODY = `Upon completing your jump, you receive a message from a nearby ship. "Greetings and welcome to our beacon! For a small fee, we'll let you continue on your way."`;
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -23,8 +22,14 @@ describe("Pirate toll", () => {
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:pirate-toll:0"), true);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:pirate-toll:1"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:pirate-toll:0"),
+      true,
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:pirate-toll:1"),
+      true,
+    );
   });
 
   it("paying logs the printed friend sentence and spends 15 to 25 scrap", () => {

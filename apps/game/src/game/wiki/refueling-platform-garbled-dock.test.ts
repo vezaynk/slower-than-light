@@ -68,13 +68,20 @@ let found: Record<Kind, number> | null = null;
 function seeds(): Record<Kind, number> {
   if (found) return found;
   const got: Partial<Record<Kind, number>> = {};
-  for (let seed = 1; seed <= 400 && (got.abandoned == null || got.trap == null || got.breach == null); seed++) {
+  for (
+    let seed = 1;
+    seed <= 400 && (got.abandoned == null || got.trap == null || got.breach == null);
+    seed++
+  ) {
     const g = docked(seed);
     choose(g, SIGNAL);
     const kind = kindOf(g);
     if (kind && got[kind] == null) got[kind] = seed;
   }
-  assert.ok(got.abandoned != null && got.trap != null && got.breach != null, `missing signal result ${JSON.stringify(got)}`);
+  assert.ok(
+    got.abandoned != null && got.trap != null && got.breach != null,
+    `missing signal result ${JSON.stringify(got)}`,
+  );
   found = got as Record<Kind, number>;
   return found;
 }
@@ -156,14 +163,19 @@ describe("Refueling platform garbled broadcast dock", () => {
     const boarded = docked(breach);
     const hullB = boarded.player.hull;
     const before = boarded.player.rooms.map((r) => r.breach);
-    const systems = (Object.keys(boarded.player.systems) as SysId[]).map((id) => [id, boarded.player.systems[id].damage] as const);
+    const systems = (Object.keys(boarded.player.systems) as SysId[]).map(
+      (id) => [id, boarded.player.systems[id].damage] as const,
+    );
     choose(boarded, SIGNAL);
     assert.ok(boarded.log.includes(BREACH));
     assert.equal(boarded.player.hull, hullB);
     for (const [id, dmg] of systems) assert.equal(boarded.player.systems[id].damage, dmg, id);
     const diffs = boarded.player.rooms.map((r, i) => r.breach - before[i]);
     assert.equal(diffs.filter((d) => d !== 0).length, 1);
-    assert.equal(diffs.reduce((a, b) => a + b, 0), 1);
+    assert.equal(
+      diffs.reduce((a, b) => a + b, 0),
+      1,
+    );
     const boarders = boarded.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.equal(boarders.length, 1);
     assert.equal(boarders[0]?.kin, "anaerobic");
@@ -228,7 +240,11 @@ describe("Refueling platform garbled broadcast dock", () => {
     open(g);
     const fuel = g.fuel;
     choose(g, HAIL);
-    assert.ok(g.log.includes("There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!"));
+    assert.ok(
+      g.log.includes(
+        "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!",
+      ),
+    );
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "refueling-platform-garbled-broadcast");
     assert.equal(g.enemy?.faction, "lanius");
@@ -240,7 +256,10 @@ describe("Refueling platform garbled broadcast dock", () => {
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body.includes(DESTROYED));
     assert.ok(g.event?.body.includes(STATION_FUEL));
-    assert.equal(g.event?.choices.some((c) => /investigate/i.test(c.label)), false);
+    assert.equal(
+      g.event?.choices.some((c) => /investigate/i.test(c.label)),
+      false,
+    );
     const d = g.fuel - fuel;
     assert.ok(d >= 3 && d <= 8, `fuel delta ${d}`);
     assert.ok(g.scrap > 10);

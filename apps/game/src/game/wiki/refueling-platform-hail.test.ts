@@ -20,7 +20,11 @@ describe("Refueling platform garbled broadcast", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:refueling-platform-garbled-broadcast:0");
-    assert.ok(g.log.includes("There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!"));
+    assert.ok(
+      g.log.includes(
+        "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!",
+      ),
+    );
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "refueling-platform-garbled-broadcast");
     assert.equal(g.enemy?.faction, "lanius");

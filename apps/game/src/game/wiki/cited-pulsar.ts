@@ -49,7 +49,10 @@ export type PulsarPick = { id: PulsarId; points: number; powered: boolean };
  * The other is a different system. INFERRED: a ship with fewer than two eligible systems
  * ionizes only what it has.
  */
-export function pickPulsarTargets(systems: readonly PulsarPick[], roll: () => number): PulsarPick[] {
+export function pickPulsarTargets(
+  systems: readonly PulsarPick[],
+  roll: () => number,
+): PulsarPick[] {
   const pool = systems.filter((sys) => sys.points > 0);
   const shields = pool.find((sys) => sys.id === "shields" && sys.powered);
   if (shields) {

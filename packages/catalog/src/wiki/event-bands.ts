@@ -47,7 +47,11 @@ export const PRINTED_BANDS: Record<string, EventBand[]> = {
 
 function legal(band: EventBand): boolean {
   return (
-    (band.k === "scrap" || band.k === "fuel" || band.k === "missiles" || band.k === "parts" || band.k === "level") &&
+    (band.k === "scrap" ||
+      band.k === "fuel" ||
+      band.k === "missiles" ||
+      band.k === "parts" ||
+      band.k === "level") &&
     Number.isInteger(band.lo) &&
     Number.isInteger(band.hi) &&
     band.lo <= band.hi

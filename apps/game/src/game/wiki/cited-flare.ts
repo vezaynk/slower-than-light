@@ -56,7 +56,11 @@ export function flareFireCount(shieldsUp: boolean, roll: number): number {
  * INFERRED: 1 and 2 are an even split.
  * Returns each spawn in order: the room index and its 1 or 2 fires.
  */
-export function placeFlareFires(count: number, rooms: number, roll: () => number): { room: number; fires: number }[] {
+export function placeFlareFires(
+  count: number,
+  rooms: number,
+  roll: () => number,
+): { room: number; fires: number }[] {
   const out: { room: number; fires: number }[] = [];
   if (rooms <= 0) return out;
   let left = Math.max(0, count);

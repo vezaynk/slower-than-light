@@ -59,9 +59,14 @@ describe("Lanius ship absorbing jump beacon", () => {
   it("is one Abandoned Sector card", () => {
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius ship absorbing jump beacon]]
-    const pages = citedPagesFor("Abandoned Sector").filter((e) => e.dest === "Lanius ship absorbing jump beacon");
+    const pages = citedPagesFor("Abandoned Sector").filter(
+      (e) => e.dest === "Lanius ship absorbing jump beacon",
+    );
     assert.equal(pages.length, 1);
-    assert.equal(citedPagesFor("Civilian Sector").some((e) => e.dest === "Lanius ship absorbing jump beacon"), false);
+    assert.equal(
+      citedPagesFor("Civilian Sector").some((e) => e.dest === "Lanius ship absorbing jump beacon"),
+      false,
+    );
   });
 
   it("opens on the printed dock sentence and does not offer the scrap gifts", () => {
@@ -79,7 +84,10 @@ describe("Lanius ship absorbing jump beacon", () => {
         "c:lanius-ship-absorbing-jump-beacon:3",
       ],
     );
-    assert.equal(g.event?.choices.some((c) => /30 scrap|6 missiles|6 drone/.test(c.label)), false);
+    assert.equal(
+      g.event?.choices.some((c) => /30 scrap|6 missiles|6 drone/.test(c.label)),
+      false,
+    );
   });
 
   it("asking starts a Lanius fight or the translator, and leaving then is three nothings to one fight", () => {
@@ -105,7 +113,10 @@ describe("Lanius ship absorbing jump beacon", () => {
         continue;
       }
       assert.match(g.event?.body ?? "", /critical\.\.\. must\.\.\. metal\.\.\./);
-      assert.deepEqual(g.event?.choices.map((c) => c.label), ["Leave."]);
+      assert.deepEqual(
+        g.event?.choices.map((c) => c.label),
+        ["Leave."],
+      );
       choose(g, "s:lanius-beacon-eater:leave");
       // Cast: TypeScript still holds the narrowing from above; choose changes the phase.
       if ((g.phase as Game["phase"]) === "combat") {
@@ -156,10 +167,16 @@ describe("Lanius ship absorbing jump beacon", () => {
     const bare = createGame(1);
     open(bare);
     const before = stock(bare);
-    assert.equal(choiceDisabled(bare, "c:lanius-ship-absorbing-jump-beacon:2"), "Needs a Lanius crewmember");
+    assert.equal(
+      choiceDisabled(bare, "c:lanius-ship-absorbing-jump-beacon:2"),
+      "Needs a Lanius crewmember",
+    );
     choose(bare, "c:lanius-ship-absorbing-jump-beacon:2");
     sameStock(bare, before);
-    assert.equal(bare.event?.choices.some((c) => c.id === "s:lanius-beacon-eater:decline"), false);
+    assert.equal(
+      bare.event?.choices.some((c) => c.id === "s:lanius-beacon-eater:decline"),
+      false,
+    );
 
     const g = createGame(2);
     open(g);
@@ -169,7 +186,10 @@ describe("Lanius ship absorbing jump beacon", () => {
     const held = stock(g);
     choose(g, "c:lanius-ship-absorbing-jump-beacon:2");
     assert.match(g.event?.body ?? "", /lack of metal/);
-    assert.deepEqual(g.event?.choices.map((c) => c.label), ["Decline."]);
+    assert.deepEqual(
+      g.event?.choices.map((c) => c.label),
+      ["Decline."],
+    );
     choose(g, "s:lanius-beacon-eater:decline");
     assert.equal(g.event?.body, "Nothing happens.");
     sameStock(g, held);
@@ -185,7 +205,10 @@ describe("Lanius ship absorbing jump beacon", () => {
     const bare = createGame(1);
     open(bare);
     const before = stock(bare);
-    assert.equal(choiceDisabled(bare, "c:lanius-ship-absorbing-jump-beacon:3"), "Needs a Hull Repair Drone");
+    assert.equal(
+      choiceDisabled(bare, "c:lanius-ship-absorbing-jump-beacon:3"),
+      "Needs a Hull Repair Drone",
+    );
     choose(bare, "c:lanius-ship-absorbing-jump-beacon:3");
     sameStock(bare, before);
     assert.equal(bare.phase, "event");

@@ -113,7 +113,15 @@ describe("zoltan death burst", () => {
     const fragile = drone({ id: "frag", kind: "personnel", hp: 4, room: "p-sensors" });
     swarm.drones = [intruder, boarder, repair, orbiter, fragile];
     g.crew.push(
-      body({ id: "z", name: "Zed", side: "player", room: "p-sensors", kin: "energy", hp: 0, maxHp: 70 }),
+      body({
+        id: "z",
+        name: "Zed",
+        side: "player",
+        room: "p-sensors",
+        kin: "energy",
+        hp: 0,
+        maxHp: 70,
+      }),
     );
     step(g, 0);
     assert.equal(intruder.hp, 117.5);

@@ -22,10 +22,10 @@ function labels(g: Game): string[] {
 }
 
 function marks(g: Game): { fire: number; breach: number } {
-  return g.player.rooms.reduce(
-    (a, r) => ({ fire: a.fire + r.fire, breach: a.breach + r.breach }),
-    { fire: 0, breach: 0 },
-  );
+  return g.player.rooms.reduce((a, r) => ({ fire: a.fire + r.fire, breach: a.breach + r.breach }), {
+    fire: 0,
+    breach: 0,
+  });
 }
 
 describe("Pirate ship selling drones", () => {
@@ -37,14 +37,20 @@ describe("Pirate ship selling drones", () => {
       "Attack him before he can attack!",
       "Quickly prepare to jump away.",
     ]);
-    assert.equal(labels(g).some((l) => /schematic/i.test(l)), false);
+    assert.equal(
+      labels(g).some((l) => /schematic/i.test(l)),
+      false,
+    );
     choose(g, "q:pirate-drones:hail");
     assert.match(g.event?.body ?? "", /extensive stock/);
     assert.equal(choiceDisabled(g, "q:pirate-drones:slug"), "Needs a Slug crewmember");
     assert.equal(choiceDisabled(g, "q:pirate-drones:hack"), "Needs a Hacking system");
     choose(g, "q:pirate-drones:dock");
     assert.match(g.event?.body ?? "", /exquisite suit/);
-    assert.equal(labels(g).some((l) => /schematic/i.test(l)), false);
+    assert.equal(
+      labels(g).some((l) => /schematic/i.test(l)),
+      false,
+    );
     assert.equal(choiceDisabled(g, "c:pirate-ship-selling-drones:0"), "Need 25 scrap");
     assert.equal(choiceDisabled(g, "q:pirate-drones:upgrade"), "Needs Drone Control");
     g.scrap = 25;
@@ -120,7 +126,16 @@ describe("Pirate ship selling drones", () => {
 
     const hack = createGame(6);
     open(hack);
-    hack.player.kits.hacking = { id: "hacking", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    hack.player.kits.hacking = {
+      id: "hacking",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     const fuel = hack.fuel;
     const missiles = hack.missiles;
     const parts = hack.player.parts;
@@ -135,7 +150,16 @@ describe("Pirate ship selling drones", () => {
 
     const broke = createGame(7);
     open(broke);
-    broke.player.kits.drones = { id: "drones", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    broke.player.kits.drones = {
+      id: "drones",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     broke.scrap = 10;
     choose(broke, "q:pirate-drones:hail");
     choose(broke, "q:pirate-drones:dock");
@@ -148,7 +172,16 @@ describe("Pirate ship selling drones", () => {
     for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.drones = { id: "drones", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.drones = {
+        id: "drones",
+        level: 1,
+        power: 0,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       g.scrap = 200;
       choose(g, "q:pirate-drones:hail");
       choose(g, "q:pirate-drones:dock");

@@ -38,7 +38,11 @@ describe("Battlefield wreckage intros", () => {
       const body = g.event?.body ?? "";
       assert.ok(INTROS.includes(body), body);
       const ids = (g.event?.choices ?? []).map((c) => c.id);
-      assert.deepEqual(ids, ["c:battlefield-wreckage:0", "c:battlefield-wreckage:1", "c:battlefield-wreckage:2"]);
+      assert.deepEqual(ids, [
+        "c:battlefield-wreckage:0",
+        "c:battlefield-wreckage:1",
+        "c:battlefield-wreckage:2",
+      ]);
       seen.add(body);
     }
     assert.equal(seen.size, INTROS.length);

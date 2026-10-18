@@ -21,15 +21,23 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Auto-ship near sensor station", () => {
   it("attacking starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-near-sensor-station:2"), true);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-near-sensor-station:3"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:auto-ship-near-sensor-station:2"),
+      true,
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:auto-ship-near-sensor-station:3"),
+      true,
+    );
     choose(g, "c:auto-ship-near-sensor-station:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-near-sensor-station");
@@ -58,7 +66,10 @@ describe("Auto-ship near sensor station", () => {
   it("level 3 sensors start the fight or update the map, and stay shut below that", () => {
     const bare = createGame(1);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:auto-ship-near-sensor-station:2"), "Needs level 3 Sensors");
+    assert.equal(
+      choiceDisabled(bare, "c:auto-ship-near-sensor-station:2"),
+      "Needs level 3 Sensors",
+    );
     choose(bare, "c:auto-ship-near-sensor-station:2");
     assert.equal(bare.phase, "event");
     assert.equal(bare.scrap, 10);
@@ -94,7 +105,16 @@ describe("Auto-ship near sensor station", () => {
 
     const g = createGame(2);
     open(g);
-    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.teleporter = {
+      id: "teleporter",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     assert.equal(choiceDisabled(g, "c:auto-ship-near-sensor-station:3"), null);
     const guns = g.player.weapons.length;
     choose(g, "c:auto-ship-near-sensor-station:3");

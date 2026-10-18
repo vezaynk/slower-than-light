@@ -56,7 +56,9 @@ describe("Boarders: Humans in plasma storm opening", () => {
     assert.equal(g.enemy, null);
     const gained = g.scrap - scrap;
     assert.ok(gained >= lo && gained <= hi, String(gained));
-    const humans = g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
+    const humans = g.crew.filter(
+      (c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player",
+    );
     assert.ok(humans.length >= 3 && humans.length <= 4, String(humans.length));
     assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
     assert.ok(g.log.some((line) => line.startsWith("Medium scrap: ")));

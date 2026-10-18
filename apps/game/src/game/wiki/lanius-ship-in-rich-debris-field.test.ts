@@ -21,7 +21,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 function inBand(n: number, lo: number, hi: number) {
@@ -30,7 +32,10 @@ function inBand(n: number, lo: number, hi: number) {
 
 describe("Lanius ship in rich debris field", () => {
   it("harvesting or attacking starts a Lanius fight", () => {
-    for (const id of ["c:lanius-ship-in-rich-debris-field:0", "c:lanius-ship-in-rich-debris-field:1"]) {
+    for (const id of [
+      "c:lanius-ship-in-rich-debris-field:0",
+      "c:lanius-ship-in-rich-debris-field:1",
+    ]) {
       const g = createGame(1);
       open(g);
       choose(g, id);
@@ -55,7 +60,10 @@ describe("Lanius ship in rich debris field", () => {
       assert.equal(resources(body), 2, body);
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(g.player.weapons.length, guns);
-      assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-debris:investigate"), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === "q:lanius-debris:investigate"),
+        true,
+      );
     }
   });
 
@@ -94,8 +102,14 @@ describe("Lanius ship in rich debris field", () => {
     const low = createGame(1);
     open(low);
     low.player.systems.pilot.level = 1;
-    assert.equal(choiceDisabled(low, "c:lanius-ship-in-rich-debris-field:3"), "Needs level 2 Piloting");
-    assert.equal(choiceDisabled(low, "c:lanius-ship-in-rich-debris-field:4"), "Needs level 3 Piloting");
+    assert.equal(
+      choiceDisabled(low, "c:lanius-ship-in-rich-debris-field:3"),
+      "Needs level 2 Piloting",
+    );
+    assert.equal(
+      choiceDisabled(low, "c:lanius-ship-in-rich-debris-field:4"),
+      "Needs level 3 Piloting",
+    );
     choose(low, "c:lanius-ship-in-rich-debris-field:3");
     assert.equal(low.phase, "event");
     assert.equal(low.scrap, 10);
@@ -105,7 +119,10 @@ describe("Lanius ship in rich debris field", () => {
     mid.player.systems.pilot.level = 2;
     const guns = mid.player.weapons.length;
     assert.equal(choiceDisabled(mid, "c:lanius-ship-in-rich-debris-field:3"), null);
-    assert.equal(choiceDisabled(mid, "c:lanius-ship-in-rich-debris-field:4"), "Needs level 3 Piloting");
+    assert.equal(
+      choiceDisabled(mid, "c:lanius-ship-in-rich-debris-field:4"),
+      "Needs level 3 Piloting",
+    );
     choose(mid, "c:lanius-ship-in-rich-debris-field:3");
     const midBody = mid.event?.body ?? "";
     assert.match(midBody, /gather resources from the debris field/);

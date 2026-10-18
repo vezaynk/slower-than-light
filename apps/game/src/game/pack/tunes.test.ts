@@ -37,7 +37,8 @@ describe("system tunes", () => {
   it("prices each owned level from the pack", () => {
     for (const tune of SYSTEM_TUNES) {
       assert.equal(tuneDef(tune.id)?.start, tune.start);
-      for (const step of tune.costs) assert.equal(upgradeCost(tune.id as SysId, step.level), step.cost);
+      for (const step of tune.costs)
+        assert.equal(upgradeCost(tune.id as SysId, step.level), step.cost);
     }
     assert.equal(upgradeCost("sensors", 3), null);
     assert.equal(upgradeCost("doors", 0), 60);
@@ -53,7 +54,9 @@ describe("system tunes", () => {
         tunes: [
           {
             ...shields,
-            costs: shields.costs.map((step) => (step.level === 1 ? { ...step, cost: 7 } : { ...step })),
+            costs: shields.costs.map((step) =>
+              step.level === 1 ? { ...step, cost: 7 } : { ...step },
+            ),
           },
         ],
       },
@@ -65,7 +68,11 @@ describe("system tunes", () => {
     upgrade(g, "shields");
     assert.equal(g.player.systems.shields.level, 2);
     assert.equal(g.scrap, 33);
-    assert.equal(SYSTEM_TUNES.find((row) => row.id === "shields")?.costs.find((step) => step.level === 1)?.cost, 100);
+    assert.equal(
+      SYSTEM_TUNES.find((row) => row.id === "shields")?.costs.find((step) => step.level === 1)
+        ?.cost,
+      100,
+    );
   });
 
   it("installs shields at the packed start", () => {

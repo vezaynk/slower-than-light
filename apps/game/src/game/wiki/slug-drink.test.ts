@@ -16,7 +16,7 @@ function open(g: Game) {
   assert.equal(g.event?.title, "Slug drink");
   assert.equal(
     g.event?.body,
-    "A Slug captain hails and invites himself aboard your ship to present a flask of something slimy. \"Now, most gracioussss captain, you must join me please in a drink to our alliance!\"",
+    'A Slug captain hails and invites himself aboard your ship to present a flask of something slimy. "Now, most gracioussss captain, you must join me please in a drink to our alliance!"',
   );
 }
 
@@ -43,7 +43,11 @@ describe("Slug drink", () => {
     const fight = createGame(3);
     open(fight);
     choose(fight, "c:slug-drink:0");
-    assert.ok(fight.log.includes("The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire."));
+    assert.ok(
+      fight.log.includes(
+        "The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire.",
+      ),
+    );
     assert.equal(fight.phase, "combat");
     assert.equal(fight.fightEvent, "slug-drink");
     assert.equal(fight.enemy?.faction, "slug");

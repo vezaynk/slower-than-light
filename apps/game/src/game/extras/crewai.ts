@@ -212,7 +212,12 @@ export function enemyCrystalLockdown(g: Game) {
       continue;
     }
     const foe = g.crew.some(
-      (o) => o.id !== c.id && o.hp > 0 && o.aboard === c.aboard && o.room === c.room && sideOf(o) !== "enemy",
+      (o) =>
+        o.id !== c.id &&
+        o.hp > 0 &&
+        o.aboard === c.aboard &&
+        o.room === c.room &&
+        sideOf(o) !== "enemy",
     );
     if (!foe) continue;
     if (lockdown(g, c.id)) coatedRoom.add(key);
@@ -247,7 +252,9 @@ function roomSystem(ship: Ship, r: Room | undefined): System | undefined {
 
 /** INFERRED: "oxygen is below 25%" is the ship's average room oxygen. The notes do not say which oxygen. */
 function shipOxygen(ship: Ship): number {
-  return ship.rooms.length ? ship.rooms.reduce((n, r) => n + airShown(r.o2), 0) / ship.rooms.length : 100;
+  return ship.rooms.length
+    ? ship.rooms.reduce((n, r) => n + airShown(r.o2), 0) / ship.rooms.length
+    : 100;
 }
 
 /**
@@ -261,7 +268,14 @@ function shipOxygen(ship: Ship): number {
  * - Repairs: "PrioritizeSystem + 48. The exception is that if oxygen is below 25%, repairing the oxygen system has
  *   priority 0. Also, shields is always priority 1".
  */
-function taskPriority(g: Game, ship: Ship, ai: CrewAiState, crew: Crew[], c: Crew, t: CrewAiTask): number {
+function taskPriority(
+  g: Game,
+  ship: Ship,
+  ai: CrewAiState,
+  crew: Crew[],
+  c: Crew,
+  t: CrewAiTask,
+): number {
   const r = roomOf(ship, t.room);
   if (t.kind === "heal") return 0;
   if (r && t.kind !== "flee" && unsafe(g, ship, c, r)) return DANGER_PRIORITY;
@@ -292,7 +306,10 @@ function currentPriority(g: Game, ship: Ship, ai: CrewAiState, crew: Crew[], c: 
   const t = ai.task[c.id];
   if (t) return taskPriority(g, ship, ai, crew, c, t);
   if (c.path.length || c.room !== ai.post[c.id]) return IDLE_PRIORITY;
-  const manned = crew.some((o) => o.id !== c.id && o.room === c.room && !ai.task[o.id] && crew.indexOf(o) < crew.indexOf(c));
+  const manned = crew.some(
+    (o) =>
+      o.id !== c.id && o.room === c.room && !ai.task[o.id] && crew.indexOf(o) < crew.indexOf(c),
+  );
   if (manned) return IDLE_PRIORITY;
   return manPriority(roomSystem(ship, roomOf(ship, c.room)), g.difficulty === "hard");
 }
@@ -443,7 +460,8 @@ export function jobsOn(g: Game, ship: Ship): Job[] {
   for (const r of ship.rooms) {
     const foes = hostilesIn(g, r.id);
     if (foes > 0) defend.push({ kind: "defend", room: r.id, slots: foes });
-    if (r.fire > 0 && r.o2 > 10 && !(fullFire(r) && r.breach > 0)) fire.push({ kind: "fire", room: r.id, slots: FIRE_CREW });
+    if (r.fire > 0 && r.o2 > 10 && !(fullFire(r) && r.breach > 0))
+      fire.push({ kind: "fire", room: r.id, slots: FIRE_CREW });
     if (r.breach > 0) breach.push({ kind: "breach", room: r.id, slots: 1 });
     // @agent:flagship. A flagship artillery room's own gun damage (wiki/flagship-systems.ts artilleryGun).
     const sys = artilleryGun(ship, r.id) ?? (r.system ? ship.systems[r.system] : undefined);
@@ -459,7 +477,9 @@ export function jobsOn(g: Game, ship: Ship): Job[] {
 function hostilesIn(g: Game, roomId: string): number {
   // Per the user: a neutral ship (sim.ts truce) has no hostiles aboard.
   if (truce(g)) return 0;
-  let n = g.crew.filter((c) => c.aboard === "enemy" && c.room === roomId && c.hp > 0 && sideOf(c) === "player").length;
+  let n = g.crew.filter(
+    (c) => c.aboard === "enemy" && c.room === roomId && c.hp > 0 && sideOf(c) === "player",
+  ).length;
   const swarm = g.player.kits.drones;
   if (swarm?.target === "BOARDER_ION" && swarm.room === roomId) n += 1;
   return n;
@@ -514,7 +534,12 @@ function medbayFor(g: Game, ship: Ship, c: Crew): Room | undefined {
  */
 function unsafe(g: Game, ship: Ship, c: Crew, r: Room, hackCounts = true): boolean {
   if (ship.doors.some((d) => d.open && d.b === "void" && d.a === r.id)) return true;
-  if (r.o2 < AIR_DANGER_O2 && c.hp < c.maxHp * AIR_FLEE_BELOW && crewDef(c.kin ?? "human").suffocate > 0) return true;
+  if (
+    r.o2 < AIR_DANGER_O2 &&
+    c.hp < c.maxHp * AIR_FLEE_BELOW &&
+    crewDef(c.kin ?? "human").suffocate > 0
+  )
+    return true;
   if (r.fire > 0) {
     if (fullFire(r) && r.breach > 0) return true;
     if (!fireProof(c) && (r.fire >= 4 || c.hp <= c.maxHp * FIRE_FLEE_AT)) return true;
@@ -642,7 +667,8 @@ function walk(g: Game, ship: Ship, c: Crew, dest: string) {
   if (c.path.length && c.path[c.path.length - 1] === dest) return;
   const room = ship.rooms.find((r) => r.id === dest);
   const hull = c.aboard === "player" ? "player" : "enemy";
-  if (!room || !mayStand(room, g.crew, c.id, dest, c.aboard, hull, interiorLinks(ship.doors, dest))) return;
+  if (!room || !mayStand(room, g.crew, c.id, dest, c.aboard, hull, interiorLinks(ship.doors, dest)))
+    return;
   const path = route(ship, c.room, dest);
   if (!path) return;
   c.path = path;

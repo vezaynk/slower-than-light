@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { choose, createGame, startCombat, step, waitHere } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { HULL_RUN_SECONDS, LAST_FUEL_SECONDS, OUT_OF_FUEL_WAIT_SECONDS, escapePlan, eventSlugOf } from "./escape.ts";
+import {
+  HULL_RUN_SECONDS,
+  LAST_FUEL_SECONDS,
+  OUT_OF_FUEL_WAIT_SECONDS,
+  escapePlan,
+  eventSlugOf,
+} from "./escape.ts";
 
 const half = () => 0.5;
 
@@ -13,12 +19,15 @@ function run(g: Game, seconds: number) {
 describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
   it("runs from the start with the event's timer", () => {
     assert.deepEqual(
-      ["auto-ship-warning", "rebel-ship-warning", "rebel-transport-ship", "rock-war-vessel-encounter"].map(
-        (event) => {
-          const p = escapePlan({ tier: "scout", event }, half);
-          return [p.mode, p.seconds, p.pursuit, p.running];
-        },
-      ),
+      [
+        "auto-ship-warning",
+        "rebel-ship-warning",
+        "rebel-transport-ship",
+        "rock-war-vessel-encounter",
+      ].map((event) => {
+        const p = escapePlan({ tier: "scout", event }, half);
+        return [p.mode, p.seconds, p.pursuit, p.running];
+      }),
       [
         ["start", 40, true, true],
         ["start", 40, true, true],
@@ -26,7 +35,10 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
         ["start", 32, false, true],
       ],
     );
-    const slug = escapePlan({ tier: "scout", faction: "slug", event: "slug-home-nebula-surrender" }, half);
+    const slug = escapePlan(
+      { tier: "scout", faction: "slug", event: "slug-home-nebula-surrender" },
+      half,
+    );
     assert.equal(slug.mode, "hull");
     assert.equal(slug.seconds, HULL_RUN_SECONDS);
     assert.equal(slug.chance, 50);
@@ -37,8 +49,14 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
   it("uses 80 s for out-of-fuel events, except the 40 s auto-ship", () => {
     // Wiki citations:
     // > "Unlike the usual 80 seconds escape countdown timer in all other Out-of-fuel events or the 90 seconds escape countdown timer for any hostile ship encountered in other events after depleting your last fuel, the enemy auto-ship has 40 seconds escape countdown timer from the start, similarly to Auto-ship warning and Auto-ship warning in nebula (and Rebel ship warning) events." — [[No fuel: Auto-ship warning#Notes]]
-    assert.equal(escapePlan({ tier: "scout", event: "no-fuel-engi-ship-repair" }, half).seconds, OUT_OF_FUEL_WAIT_SECONDS);
-    assert.equal(escapePlan({ tier: "scout", event: "no-fuel-auto-ship-warning" }, half).seconds, 40);
+    assert.equal(
+      escapePlan({ tier: "scout", event: "no-fuel-engi-ship-repair" }, half).seconds,
+      OUT_OF_FUEL_WAIT_SECONDS,
+    );
+    assert.equal(
+      escapePlan({ tier: "scout", event: "no-fuel-auto-ship-warning" }, half).seconds,
+      40,
+    );
   });
 
   it("never runs for the flagship or a Rebel Elite", () => {
@@ -53,7 +71,10 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
 
   it("otherwise rolls the Rebel row: 50% at 30–40% hull, 15 s", () => {
     const p = escapePlan({ tier: "fighter" }, half);
-    assert.deepEqual([p.mode, p.chance, p.threshold, p.seconds, p.running], ["hull", 50, 35, HULL_RUN_SECONDS, false]);
+    assert.deepEqual(
+      [p.mode, p.chance, p.threshold, p.seconds, p.running],
+      ["hull", 50, 35, HULL_RUN_SECONDS, false],
+    );
   });
 
   it("uses each faction's row, and pirates use the Pirate row", () => {
@@ -65,11 +86,15 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
     assert.deepEqual(row("slug"), ["hull", 50, 30]);
     assert.deepEqual(row("lanius"), ["hull", 80, 20]);
     assert.deepEqual(row("engi", true), ["hull", 50, 20]);
-    for (const f of ["auto", "engi", "mantis", "zoltan", "crystal", "rock"]) assert.equal(row(f)[0], "never", f);
+    for (const f of ["auto", "engi", "mantis", "zoltan", "crystal", "rock"])
+      assert.equal(row(f)[0], "never", f);
   });
 
   it("uses an event page's own hull row (Pirate briber, 60% at 30-40%)", () => {
-    const p = escapePlan({ tier: "pool", faction: "rebel", pirate: true, event: "pirate-briber" }, () => 0);
+    const p = escapePlan(
+      { tier: "pool", faction: "rebel", pirate: true, event: "pirate-briber" },
+      () => 0,
+    );
     assert.deepEqual([p.mode, p.chance, Math.round(p.threshold)], ["hull", 60, 30]);
   });
 

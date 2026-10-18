@@ -26,7 +26,8 @@ function dealt(seed: number, name: string, sector = 4): Game {
   return g;
 }
 
-const middles = (g: Game) => g.beacons.filter((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+const middles = (g: Game) =>
+  g.beacons.filter((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
 const byDest = (dest: string): MixEvent => {
   for (const name of Object.keys(SECTOR_MIX)) {
     const ev = citedPagesFor(name).find((e) => e.dest === dest);
@@ -62,7 +63,11 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       assert.equal(g.beacons.filter((b) => b.kind === "exit").length, 1);
       assert.equal(reachable(g), g.beacons.length);
       assert.ok(g.beacons.every((b) => b.col >= 0 && b.col <= 5 && b.row >= 0 && b.row <= 3));
-      for (let col = 0; col <= 5; col++) assert.ok(g.beacons.some((b) => b.col === col), `${seed} col ${col}`);
+      for (let col = 0; col <= 5; col++)
+        assert.ok(
+          g.beacons.some((b) => b.col === col),
+          `${seed} col ${col}`,
+        );
     }
     assert.ok(counts.size > 1);
   });
@@ -74,7 +79,13 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     const neb = SECTOR_MIX["Slug Controlled Nebula"].find((l) => l.slot === "nebula-hostile");
     assert.deepEqual([neb?.lo, neb?.hi], [5, 7]);
     const start = SECTOR_MIX["Civilian (Starting) Sector"].filter((l) => l.slot === "hostile");
-    assert.deepEqual(start.map((l) => [l.lo, l.hi]), [[4, 6], [2, 2]]);
+    assert.deepEqual(
+      start.map((l) => [l.lo, l.hi]),
+      [
+        [4, 6],
+        [2, 2],
+      ],
+    );
   });
 
   it("classifies from the event lists first, then from the page's own choices", () => {
@@ -92,7 +103,10 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     assert.deepEqual(takeLines([2, 3, 7], 20), [2, 3, 7]);
     assert.deepEqual(takeLines([2, 2, 3, 1, 1, 7, 1, 5], 11), [2, 2, 3, 1, 1, 2, 0, 0]);
     assert.deepEqual(takeLines([0, 10], 5), [0, 5]);
-    assert.equal(takeLines([2, 2, 3, 1, 1, 7, 1, 5], 11).reduce((a, b) => a + b, 0), 11);
+    assert.equal(
+      takeLines([2, 2, 3, 1, 1, 7, 1, 5], 11).reduce((a, b) => a + b, 0),
+      11,
+    );
   });
 
   it("re-deals every free beacon, is deterministic per seed, and leaves start, exit and existing flags", () => {
@@ -127,7 +141,9 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     }
     // A beacon that already has a flag is not a free slot, so the deal leaves it.
     const kept = createGame(3);
-    const mid = kept.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    const mid = kept.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss",
+    );
     if (!mid) throw new Error("no middle beacon");
     mid.flag = "keep-me";
     kept.sectorName = "Civilian Sector";
@@ -142,10 +158,18 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
         const g = dealt(seed, name);
         const lines = SECTOR_MIX[name];
         const mustStore = lines.some((l) => l.slot === "store" && l.lo > 0);
-        if (mustStore) assert.ok(g.beacons.some((b) => b.kind === "store"), `${name} ${seed}`);
+        if (mustStore)
+          assert.ok(
+            g.beacons.some((b) => b.kind === "store"),
+            `${name} ${seed}`,
+          );
         for (const l of lines.filter((x) => x.event)) {
           const page = citedPagesFor(name).find((e) => e.dest === l.event);
-          if (page) assert.ok(g.beacons.some((b) => b.flag === page.flag), `${name} ${l.event}`);
+          if (page)
+            assert.ok(
+              g.beacons.some((b) => b.flag === page.flag),
+              `${name} ${l.event}`,
+            );
         }
         plain += g.beacons.filter((b) => b.kind === "hostile").length;
       }
@@ -205,7 +229,8 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       for (const line of SECTOR_MIX[name]) {
         if (prevMax < minFree && line.hi > 0) {
           if (hostileSlots.has(line.slot)) guaranteed.add("hostile");
-          else if (line.slot === "neutral" || line.slot === "nebula-neutral") guaranteed.add("neutral");
+          else if (line.slot === "neutral" || line.slot === "nebula-neutral")
+            guaranteed.add("neutral");
           else if (line.slot === "distress" || line.slot === "items") guaranteed.add(line.slot);
         }
         prevMax += line.hi;
@@ -227,7 +252,10 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     for (let seed = 1; seed <= 80; seed++) {
       const g = dealt(seed, "Civilian Sector");
       for (const b of g.beacons) {
-        if (b.name === "Rebel ship attacking Federation loyalists" || b.flag === "cited:rebel-ship-attacking-federation-loyalists") {
+        if (
+          b.name === "Rebel ship attacking Federation loyalists" ||
+          b.flag === "cited:rebel-ship-attacking-federation-loyalists"
+        ) {
           assert.notEqual(b.kind, "distress");
         }
         // dealt() clears the flag and kind of a re-stamp but leaves the starting-sector name, so a
@@ -271,12 +299,16 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     // Wiki citations:
     // > "at one beacon per Zoltan sector" — [[Zoltan research facility#Trivia]]
     for (let seed = 1; seed <= 120; seed++) {
-      const n = dealt(seed, "Civilian Sector").beacons.filter((b) => b.flag === "cited:escort-civilians").length;
+      const n = dealt(seed, "Civilian Sector").beacons.filter(
+        (b) => b.flag === "cited:escort-civilians",
+      ).length;
       assert.ok(n <= 2, `Civilian Sector ${seed} ${n}`);
     }
     for (const sector of ["Zoltan Controlled Sector", "Zoltan Homeworlds"]) {
       for (let seed = 1; seed <= 40; seed++) {
-        const n = dealt(seed, sector).beacons.filter((b) => b.flag === "cited:zoltan-research-facility").length;
+        const n = dealt(seed, sector).beacons.filter(
+          (b) => b.flag === "cited:zoltan-research-facility",
+        ).length;
         assert.ok(n <= 2, `${sector} ${seed} ${n}`);
       }
     }

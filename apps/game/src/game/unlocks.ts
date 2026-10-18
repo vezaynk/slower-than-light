@@ -257,7 +257,11 @@ export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly stri
 
   // Lanius: "Unlock 4 ships (Excluding The Kestrel)". Counted last, after every other A rule.
   const cruisers = HULLS.filter(
-    (h) => h.layout === "A" && h.id !== "PLAYER_SHIP_HARD" && h.id !== "PLAYER_SHIP_ANAEROBIC" && ships.has(h.id),
+    (h) =>
+      h.layout === "A" &&
+      h.id !== "PLAYER_SHIP_HARD" &&
+      h.id !== "PLAYER_SHIP_ANAEROBIC" &&
+      ships.has(h.id),
   ).length;
   if (cruisers >= 4) ships.add("PLAYER_SHIP_ANAEROBIC");
 

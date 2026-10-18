@@ -14,10 +14,7 @@ describe("EVENTS_0", () => {
 
   it("lists each slice title once", () => {
     assert.equal(EVENTS_0.length, titles.length);
-    assert.deepEqual(
-      new Set(EVENTS_0.map((row) => row.title)),
-      new Set(titles),
-    );
+    assert.deepEqual(new Set(EVENTS_0.map((row) => row.title)), new Set(titles));
     assert.equal(new Set(EVENTS_0.map((row) => row.title)).size, titles.length);
   });
 

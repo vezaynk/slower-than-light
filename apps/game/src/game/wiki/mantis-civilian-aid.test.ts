@@ -28,6 +28,10 @@ describe("Mantis ship attacking civilian aid", () => {
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "mantis-ship-attacking-civilian");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("You frown, power up the weapons and prepare to engage the Mantis ship. Not today."));
+    assert.ok(
+      g.log.includes(
+        "You frown, power up the weapons and prepare to engage the Mantis ship. Not today.",
+      ),
+    );
   });
 });

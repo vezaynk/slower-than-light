@@ -5,12 +5,30 @@ import { armFlak, tickFlak } from "./extras/flakart.ts";
 import { tickLance } from "./extras/lance.ts";
 import { tickSabotage } from "./extras/sabotage.ts";
 import { tickSwarm } from "./extras/swarm.ts";
-import { aim, applyImpact, createGame, depowerWeapon, evasionPercent, fireReady, MUZZLE_S, repairPace, startCombat, step, toggleWeapon } from "./sim.ts";
+import {
+  aim,
+  applyImpact,
+  createGame,
+  depowerWeapon,
+  evasionPercent,
+  fireReady,
+  MUZZLE_S,
+  repairPace,
+  startCombat,
+  step,
+  toggleWeapon,
+} from "./sim.ts";
 import type { Shot } from "./types.ts";
 import { WEAPONS, XP_NEED, skillRank } from "./content.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import type { SkillName } from "./types.ts";
-import { ALL_CREW_RACES, COMBAT_SKILL_MULT, REPAIR_SKILL_MULT, SECTOR_CREW_RACES, pirateCrewRaces } from "./wiki/skills.ts";
+import {
+  ALL_CREW_RACES,
+  COMBAT_SKILL_MULT,
+  REPAIR_SKILL_MULT,
+  SECTOR_CREW_RACES,
+  pirateCrewRaces,
+} from "./wiki/skills.ts";
 import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
 import type { Crew, Game } from "./types.ts";
 
@@ -29,7 +47,8 @@ function lone(g: Game): { worker: Crew; roomId: string; sys: string } {
   const room = g.player.rooms.find((r) => r.system && r.system !== "oxygen")!;
   const worker = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
   const away = g.player.rooms.find((r) => r.id !== room.id)!;
-  for (const c of g.crew) if (c.side === "player" && c.id !== worker.id && c.room === room.id) c.room = away.id;
+  for (const c of g.crew)
+    if (c.side === "player" && c.id !== worker.id && c.room === room.id) c.room = away.id;
   worker.room = room.id;
   worker.path = [];
   worker.stun = 0;
@@ -627,7 +646,9 @@ describe("Crew skills: which skill costs the most", () => {
     // Crew skills, lead: "The Combat skill requires the least amount of experience for a level up, while the Weapons skill requires the most, and the Piloting and the Engines skills require the same exact amount".
     for (const crew of [{ kin: "human" } as Crew, { kin: "engi" } as Crew]) {
       const need = (skill: SkillName) => xpNeedFor(crew, skill);
-      const values = (["pilot", "engines", "shields", "weapons", "repair", "combat"] as const).map(need);
+      const values = (["pilot", "engines", "shields", "weapons", "repair", "combat"] as const).map(
+        need,
+      );
       assert.equal(need("pilot"), need("engines"));
       assert.equal(need("combat"), Math.min(...values));
       assert.equal(need("weapons"), Math.max(...values));
@@ -692,7 +713,8 @@ describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
     const blow = (xp: number) => {
       const g = createGame(11);
       startCombat(g, "scout");
-      const room = g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms.find((r) => !r.system);
+      const room =
+        g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms.find((r) => !r.system);
       assert.ok(room);
       const away = g.player.rooms.find((r) => r.id !== room.id);
       assert.ok(away);
@@ -855,11 +877,14 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     const burned = createGame(33);
     startCombat(burned, "scout");
     for (const c of burned.crew) c.skills = {};
-    const hot = burned.enemy!.rooms.find((r) => r.system && burned.enemy!.systems[r.system].level > 0)!;
+    const hot = burned.enemy!.rooms.find(
+      (r) => r.system && burned.enemy!.systems[r.system].level > 0,
+    )!;
     burned.enemy!.systems[hot.system!].damage = 0;
     hot.fire = 1;
     hot.sabotage = 0.99;
-    for (const c of burned.crew) if (c.aboard === "enemy" && c.room === hot.id) c.room = burned.player.rooms[0]!.id;
+    for (const c of burned.crew)
+      if (c.aboard === "enemy" && c.room === hot.id) c.room = burned.player.rooms[0]!.id;
     tickSabotage(burned, 0.3);
     assert.equal(burned.enemy!.systems[hot.system!].damage, 1);
     assert.ok(burned.crew.every((c) => (c.skills?.combat ?? 0) === 0));
@@ -875,7 +900,8 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     const turned = g.crew.find((c) => c.side === "player")!;
     for (const c of g.crew) {
       c.skills = {};
-      if (c.id !== turned.id && c.room === room.id) c.room = g.player.rooms.find((r) => r.id !== room.id)!.id;
+      if (c.id !== turned.id && c.room === room.id)
+        c.room = g.player.rooms.find((r) => r.id !== room.id)!.id;
     }
     turned.aboard = "player";
     turned.room = room.id;
@@ -1025,7 +1051,8 @@ describe("Crew skills, Weapons: artillery grants one point", () => {
   it("grants one point when the artillery beam fires, and none while it is still charging", () => {
     const { g, crew } = gunner(41);
     g.player.kits.artillery = {
-      id: "artillery", weapon: "ARTILLERY_FED",
+      id: "artillery",
+      weapon: "ARTILLERY_FED",
       level: 1,
       power: 1,
       left: 0,
@@ -1099,7 +1126,16 @@ describe("Crew skills: a Basic Laser charge", () => {
         crew.skills = { weapons: xpNeedFor(crew, "weapons") * 2 };
         assert.equal(xpNeedFor(crew, "weapons"), 58);
       }
-      g.player.weapons = [{ uid: "gun", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: null }];
+      g.player.weapons = [
+        {
+          uid: "gun",
+          defId: "LASER_BURST_1",
+          charge: 0,
+          enabled: true,
+          autofire: false,
+          target: null,
+        },
+      ];
       assert.equal(WEAPONS.LASER_BURST_1.charge, 10);
       let steps = 0;
       while ((g.player.weapons[0]?.charge ?? 0) < 1 && steps < 250) {
@@ -1194,7 +1230,9 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
     g.player.systems.weapons.power = 4;
     g.player.systems.weapons.damage = 0;
     g.player.systems.weapons.ion = [];
-    g.player.weapons = [{ uid: "gun", defId, charge: 0, enabled: true, autofire: false, target: null }];
+    g.player.weapons = [
+      { uid: "gun", defId, charge: 0, enabled: true, autofire: false, target: null },
+    ];
     g.missiles = 3;
     const target = g.enemy!.rooms[0]!.id;
     g.armed = "gun";
@@ -1291,7 +1329,9 @@ describe("Crew skills, Weapons: a bomb fired at your own ship still trains", () 
     g.player.systems.weapons.power = 4;
     g.player.systems.weapons.damage = 0;
     g.player.systems.weapons.ion = [];
-    g.player.weapons = [{ uid: "gun", defId: "BOMB_1", charge: 0, enabled: true, autofire: false, target: null }];
+    g.player.weapons = [
+      { uid: "gun", defId: "BOMB_1", charge: 0, enabled: true, autofire: false, target: null },
+    ];
     g.missiles = 4;
     g.armed = "gun";
     g.targeting = true;
@@ -1392,7 +1432,16 @@ describe("AI-Controlled Rebel Ships, manning bonuses", () => {
       e.systems.weapons.power = 2;
       e.systems.weapons.damage = damage;
       e.systems.weapons.ion = [];
-      e.weapons = [{ uid: "w", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: "p-pilot" }];
+      e.weapons = [
+        {
+          uid: "w",
+          defId: "LASER_BURST_1",
+          charge: 0,
+          enabled: true,
+          autofire: false,
+          target: "p-pilot",
+        },
+      ];
       if (e.kits.cloaking) {
         e.kits.cloaking.power = 0;
         e.kits.cloaking.on = false;
@@ -1446,7 +1495,16 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     assert.ok(ada && ivo && nen);
     nen.room = "p-shields";
     nen.path = [];
-    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 15, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 15,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     const poke = () => {
       g.player.shieldNow = 1;
       g.player.hull = g.player.hullMax;
@@ -1828,7 +1886,12 @@ describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
   function racesIn(sectorName: string): Set<string> {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 200; seed++) {
-      const spec = rollEnemy(pirateCls, true, { sector: 3, sectorName, difficulty: "normal" }, rng(seed));
+      const spec = rollEnemy(
+        pirateCls,
+        true,
+        { sector: 3, sectorName, difficulty: "normal" },
+        rng(seed),
+      );
       for (const c of spec.crew) seen.add(c.race);
     }
     return seen;
@@ -1855,7 +1918,12 @@ describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
 
   it("non-pirate crews still use the class crew mix", () => {
     const cls = ENEMY_CLASSES.find((c) => c.faction === "rebel" && c.crewMix.length)!;
-    const spec = rollEnemy(cls, false, { sector: 3, sectorName: "Hidden Crystal Worlds", difficulty: "normal" }, rng(4));
+    const spec = rollEnemy(
+      cls,
+      false,
+      { sector: 3, sectorName: "Hidden Crystal Worlds", difficulty: "normal" },
+      rng(4),
+    );
     const mix = new Set(cls.crewMix.map(([race]) => race));
     for (const c of spec.crew) assert.ok(mix.has(c.race) || c.race === cls.crewMix[0][0], c.race);
   });

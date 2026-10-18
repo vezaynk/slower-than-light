@@ -105,9 +105,16 @@ describe("missile weapons", () => {
       MISSILE_WEAPONS.map((weapon) => weapon.id),
       Object.keys(expected),
     );
-    assert.equal(MISSILE_WEAPONS.some((weapon) => weapon.id === "MISSILES_1" || weapon.id === "MISSILES_2_PLAYER"), false);
     assert.equal(
-      MISSILE_WEAPONS.some((weapon) => weapon.name === "Leto Missiles" || weapon.name === "Artemis Missiles"),
+      MISSILE_WEAPONS.some(
+        (weapon) => weapon.id === "MISSILES_1" || weapon.id === "MISSILES_2_PLAYER",
+      ),
+      false,
+    );
+    assert.equal(
+      MISSILE_WEAPONS.some(
+        (weapon) => weapon.name === "Leto Missiles" || weapon.name === "Artemis Missiles",
+      ),
       false,
     );
   });
@@ -215,7 +222,10 @@ describe("Missile fire or breach", () => {
 
   it("breaches only after the fire roll fails", () => {
     const missed = quietRoom(1);
-    applyImpact(missed.g, missileShot({ targetRoom: missed.roomId, fireChance: 0, breachChance: 1 }));
+    applyImpact(
+      missed.g,
+      missileShot({ targetRoom: missed.roomId, fireChance: 0, breachChance: 1 }),
+    );
     const open = missed.g.player.rooms.find((item) => item.id === missed.roomId);
     assert.equal(open?.fire, 0);
     assert.ok((open?.breach ?? 0) > 0);
@@ -240,7 +250,13 @@ describe("Missile fire or breach", () => {
     const { g, roomId } = quietRoom(1);
     applyImpact(
       g,
-      missileShot({ targetRoom: roomId, from: "env", fireChance: 1, breachChance: 1, defId: undefined }),
+      missileShot({
+        targetRoom: roomId,
+        from: "env",
+        fireChance: 1,
+        breachChance: 1,
+        defId: undefined,
+      }),
     );
     const room = g.player.rooms.find((item) => item.id === roomId);
     assert.ok((room?.fire ?? 0) > 0);

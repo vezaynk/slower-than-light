@@ -29,7 +29,9 @@ describe("Rebel fight chance Improved Sensors", () => {
     const g = createGame(1);
     g.player.systems.sensors.level = 1;
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === SCAN && c.label === "Perform a scan of the area."));
+    assert.ok(
+      g.event?.choices.some((c) => c.id === SCAN && c.label === "Perform a scan of the area."),
+    );
     assert.equal(choiceDisabled(g, SCAN), "Needs Sensors level 2");
     choose(g, SCAN);
     assert.equal(g.phase, "event");

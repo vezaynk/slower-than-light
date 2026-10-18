@@ -4,16 +4,7 @@ import "../pack/base.ts";
 import { crewDef } from "@stl/pack";
 import { KIN, kinOf, type KinId } from "./kin.ts";
 
-const IDS: KinId[] = [
-  "human",
-  "engi",
-  "energy",
-  "mantis",
-  "slug",
-  "rock",
-  "anaerobic",
-  "crystal",
-];
+const IDS: KinId[] = ["human", "engi", "energy", "mantis", "slug", "rock", "anaerobic", "crystal"];
 
 describe("kin", () => {
   it("baseline health is the human row, 100, with no special multiplier", () => {

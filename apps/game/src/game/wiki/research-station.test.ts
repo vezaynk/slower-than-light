@@ -29,7 +29,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Research station with no response", () => {
@@ -43,7 +45,9 @@ describe("Research station with no response", () => {
     // > "(Anti-Personnel Drone)" — [[Research station with no response]]
     // > "Run advanced life scans." — [[Research station with no response]]
     // > "(Life Scanner)" — [[Research station with no response]]
-    const pages = citedPagesFor("Pirate Controlled Sector").filter((p) => p.dest === "Research station with no response");
+    const pages = citedPagesFor("Pirate Controlled Sector").filter(
+      (p) => p.dest === "Research station with no response",
+    );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["Pirate Controlled Sector"]);
     const g = createGame(1);

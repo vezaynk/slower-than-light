@@ -22,7 +22,8 @@ function tick(g: Game, seconds: number) {
   for (let i = 0; i < Math.round(seconds * 30); i++) step(g, 1 / 30);
 }
 
-const theirs = (g: Game) => g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0);
+const theirs = (g: Game) =>
+  g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0);
 
 describe("neutral ship (per the user: the target keeps running after a surrender)", () => {
   it("keeps the surrendered ship's crew aboard, and it reads as a truce", () => {
@@ -68,6 +69,9 @@ describe("neutral ship (per the user: the target keeps running after a surrender
     closeFight(g);
     onPlayerJump(g);
     assert.equal(g.wreck, null);
-    assert.equal(g.crew.some((c) => c.side === "enemy"), false);
+    assert.equal(
+      g.crew.some((c) => c.side === "enemy"),
+      false,
+    );
   });
 });

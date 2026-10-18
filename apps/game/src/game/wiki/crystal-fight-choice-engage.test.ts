@@ -23,7 +23,11 @@ describe("Crystal fight choice engage", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:crystal-fight-choice:0");
-    assert.ok(g.log.includes("Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: \"You, you are like these other aliens! You brought them here!\" With that they turn their cannons on you!"));
+    assert.ok(
+      g.log.includes(
+        'Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: "You, you are like these other aliens! You brought them here!" With that they turn their cannons on you!',
+      ),
+    );
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "crystal-fight-choice");
     assert.equal(g.enemy?.faction, "crystal");

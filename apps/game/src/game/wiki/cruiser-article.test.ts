@@ -50,13 +50,22 @@ describe("cruiser article", () => {
     const lines = cruiserArticle("PLAYER_SHIP_FED");
     assert.ok(lines);
     assert.deepEqual(
-      lines.filter((line) => line.depth === 1 && lines.indexOf(line) > lines.findIndex((row) => row.text === "Unlock:")).map((line) => line.text),
+      lines
+        .filter(
+          (line) =>
+            line.depth === 1 &&
+            lines.indexOf(line) > lines.findIndex((row) => row.text === "Unlock:"),
+        )
+        .map((line) => line.text),
       [
         "Defeat the Flagship prototype in the Rebel Stronghold sector to unlock this ship.",
         "Alternatively, defeat the Rebel Flagship with the Engi Cruiser.",
       ],
     );
-    assert.equal(lines.some((line) => line.text === "Augmentations:"), false);
+    assert.equal(
+      lines.some((line) => line.text === "Augmentations:"),
+      false,
+    );
   });
 
   it("lists Engi B schematics, the unfitted drone, and the augment", () => {

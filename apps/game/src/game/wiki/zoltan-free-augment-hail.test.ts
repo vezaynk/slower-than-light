@@ -45,6 +45,9 @@ describe("Zoltan free augment hail", () => {
     // Rewards, "Augment": "A random augmentation & T scrap."
     assert.equal(g.augments.length, augments + 1);
     assert.ok(g.scrap > 10);
-    assert.ok(g.log.some((line) => / fitted\.$/.test(line)), g.log.join("\n"));
+    assert.ok(
+      g.log.some((line) => / fitted\.$/.test(line)),
+      g.log.join("\n"),
+    );
   });
 });

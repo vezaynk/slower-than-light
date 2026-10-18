@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { applyImpact, commitJump, createGame, enterHiddenCrystal, startCombat, step } from "./sim.ts";
+import {
+  applyImpact,
+  commitJump,
+  createGame,
+  enterHiddenCrystal,
+  startCombat,
+  step,
+} from "./sim.ts";
 import type { DroneUnit, Game, Kit, Shot } from "./types.ts";
 import { hurtRoomDrones, roomDroneHp } from "./extras/swarm.ts";
 import { systemUnderBoarders } from "./extras/sabotage.ts";
@@ -124,7 +131,12 @@ describe("boarding drones lose power when that hull is destroyed", () => {
     assert.equal(board.room, "p-weapons");
     assert.equal(ion.room, "p-shields");
     assert.equal(board.alive, true);
-    assert.deepEqual(roomDroneHp(g.player, g).map((mark) => mark.room).sort(), ["p-shields", "p-weapons"]);
+    assert.deepEqual(
+      roomDroneHp(g.player, g)
+        .map((mark) => mark.room)
+        .sort(),
+      ["p-shields", "p-weapons"],
+    );
     assert.equal(systemUnderBoarders(g, g.player, "player", "weapons"), false);
     assert.equal(systemUnderBoarders(g, g.player, "player", "shields"), false);
 
@@ -180,7 +192,10 @@ describe("boarding drones lose power when that hull is destroyed", () => {
     ticks(g, 2);
     assert.equal(board.alive, false);
     assert.equal(g.boarded, undefined);
-    assert.equal(roomDroneHp(g.player, g).some((mark) => mark.room === "p-weapons"), false);
+    assert.equal(
+      roomDroneHp(g.player, g).some((mark) => mark.room === "p-weapons"),
+      false,
+    );
   });
 
   it("still takes a weapon hit and a stun bomb after the ship is gone", () => {
@@ -220,7 +235,10 @@ describe("boarding drones lose power when that hull is destroyed", () => {
     assert.equal(g.enemy == null, false);
     commitJump(g, quietDest(g));
     assert.equal(g.boarded, undefined);
-    assert.equal(roomDroneHp(g.player, g).some((mark) => mark.room === "p-weapons"), false);
+    assert.equal(
+      roomDroneHp(g.player, g).some((mark) => mark.room === "p-weapons"),
+      false,
+    );
   });
 
   it("is removed by the crystal jump too", () => {

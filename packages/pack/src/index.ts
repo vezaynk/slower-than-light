@@ -109,6 +109,8 @@ export type {
   HullInstall,
   HullKitDef,
   HullLayout,
+  HullMount,
+  HullMountSlide,
   HullPicture,
   HullRoom,
   SectorDef,

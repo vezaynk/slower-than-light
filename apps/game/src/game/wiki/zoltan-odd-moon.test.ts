@@ -64,9 +64,14 @@ describe("Zoltan odd moon", () => {
   it("is placed in the two Zoltan sectors", () => {
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan odd moon]]
-    assert.ok(citedPagesFor("Zoltan Controlled Sector").some((ev) => ev.dest === "Zoltan odd moon"));
+    assert.ok(
+      citedPagesFor("Zoltan Controlled Sector").some((ev) => ev.dest === "Zoltan odd moon"),
+    );
     assert.ok(citedPagesFor("Zoltan Homeworlds").some((ev) => ev.dest === "Zoltan odd moon"));
-    assert.equal(citedPagesFor("Civilian Sector").some((ev) => ev.dest === "Zoltan odd moon"), false);
+    assert.equal(
+      citedPagesFor("Civilian Sector").some((ev) => ev.dest === "Zoltan odd moon"),
+      false,
+    );
   });
 
   it("opens on the moon and hides the boarding drone", () => {
@@ -247,7 +252,8 @@ describe("Zoltan odd moon", () => {
     const g = open(7);
     fitBoard(g);
     g.player.parts = 2;
-    while (g.crew.filter((c) => c.side === "player").length < CREW_CAP) assert.equal(joinCrew(g, "Human"), true);
+    while (g.crew.filter((c) => c.side === "player").length < CREW_CAP)
+      assert.equal(joinCrew(g, "Human"), true);
     choose(g, "c:zoltan-odd-moon:drone");
     assert.equal(g.player.parts, 1);
     // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).

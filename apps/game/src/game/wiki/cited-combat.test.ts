@@ -2,7 +2,15 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { onNewSector } from "../extras/augments.ts";
 import { deploy, swarmIntercept } from "../extras/swarm.ts";
-import { applyImpact, commitJump, continueReward, createGame, startCombat, step, waitHere } from "../sim.ts";
+import {
+  applyImpact,
+  commitJump,
+  continueReward,
+  createGame,
+  startCombat,
+  step,
+  waitHere,
+} from "../sim.ts";
 import { citedPierce } from "./cited-weapons.ts";
 import { fleetToReach } from "./sector-map.ts";
 import type { Shot } from "../types.ts";
@@ -40,7 +48,13 @@ describe("one-layer pierce, bombs, and the battery", () => {
     enemy.hull = 10;
     applyImpact(
       g,
-      shot({ kind: "laser", from: "player", damage: 2, defId: "LASER_HEAVY_1_SP", targetRoom: room.id }),
+      shot({
+        kind: "laser",
+        from: "player",
+        damage: 2,
+        defId: "LASER_HEAVY_1_SP",
+        targetRoom: room.id,
+      }),
     );
     assert.equal(enemy.shieldNow, 0);
     assert.equal(enemy.hull, 8);
@@ -49,7 +63,13 @@ describe("one-layer pierce, bombs, and the battery", () => {
     enemy.hull = 10;
     applyImpact(
       g,
-      shot({ kind: "laser", from: "player", damage: 2, defId: "CRYSTAL_BURST_1", targetRoom: room.id }),
+      shot({
+        kind: "laser",
+        from: "player",
+        damage: 2,
+        defId: "CRYSTAL_BURST_1",
+        targetRoom: room.id,
+      }),
     );
     assert.equal(enemy.shieldNow, 1);
     assert.equal(enemy.hull, 10);
@@ -70,14 +90,26 @@ describe("one-layer pierce, bombs, and the battery", () => {
     crew.room = room.id;
     crew.hp = 10;
     crew.maxHp = 100;
-    applyImpact(g, shot({ kind: "bomb", from: "player", damage: 0, defId: "BOMB_HEAL", targetRoom: room.id }));
+    applyImpact(
+      g,
+      shot({ kind: "bomb", from: "player", damage: 0, defId: "BOMB_HEAL", targetRoom: room.id }),
+    );
     assert.equal(crew.hp, 100);
     assert.equal(enemy.zoltan, 5);
 
     enemy.systems[room.system].damage = 3;
     room.fire = 1;
     room.breach = 1;
-    applyImpact(g, shot({ kind: "bomb", from: "player", damage: 0, defId: "BOMB_HEAL_SYSTEM", targetRoom: room.id }));
+    applyImpact(
+      g,
+      shot({
+        kind: "bomb",
+        from: "player",
+        damage: 0,
+        defId: "BOMB_HEAL_SYSTEM",
+        targetRoom: room.id,
+      }),
+    );
     assert.equal(enemy.systems[room.system].damage, 0);
     assert.equal(room.fire, 1);
     assert.equal(room.breach, 1);
@@ -90,7 +122,16 @@ describe("one-layer pierce, bombs, and the battery", () => {
     g.player.systems.engines.power = 0;
     g.player.zoltan = 5;
     g.player.parts = 2;
-    g.player.kits.drones = { id: "drones", level: 3, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.drones = {
+      id: "drones",
+      level: 3,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     assert.equal(deploy(g, "DEFENSE_1"), true);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "env" }), false);
     assert.equal(g.player.kits.drones?.cool, 0);

@@ -21,14 +21,19 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Rock ship in plasma storm", () => {
   it("arming the weapons starts a Rock fight, and leaving spends nothing", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:rock-ship-in-plasma-storm:2"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:rock-ship-in-plasma-storm:2"),
+      true,
+    );
     choose(g, "c:rock-ship-in-plasma-storm:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "rock-ship-in-plasma-storm");
@@ -76,7 +81,7 @@ describe("Rock ship in plasma storm", () => {
     assert.equal(g.scrap, 10 + paid[0]!);
     assert.equal(g.player.weapons.length, guns);
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-    const gained = (g.fuel - fuel) + (g.missiles - missiles) + (g.player.parts - parts);
+    const gained = g.fuel - fuel + (g.missiles - missiles) + (g.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
     assert.equal(g.fleet, 5);
     assert.equal(g.phase, "event");

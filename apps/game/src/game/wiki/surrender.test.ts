@@ -60,8 +60,20 @@ describe("surrender rows (Enemy Ships, Surrender/escape values)", () => {
     }
     assert.equal(surrenderPlan({ tier: "elite", faction: "rebel" }, () => 0.5).chance, 0);
     assert.equal(surrenderPlan({ tier: "boss" }, () => 0.5).chance, 0);
-    assert.equal(surrenderPlan({ tier: "pool", faction: "rebel", event: "rebel-ship-supplying-civilians" }, () => 0.5).chance, 0);
-    assert.equal(surrenderPlan({ tier: "pool", faction: "rock", pirate: true, event: "rock-pirate-fight" }, () => 0.5).chance, 0);
+    assert.equal(
+      surrenderPlan(
+        { tier: "pool", faction: "rebel", event: "rebel-ship-supplying-civilians" },
+        () => 0.5,
+      ).chance,
+      0,
+    );
+    assert.equal(
+      surrenderPlan(
+        { tier: "pool", faction: "rock", pirate: true, event: "rock-pirate-fight" },
+        () => 0.5,
+      ).chance,
+      0,
+    );
   });
 
   it("rolls a Stuff offer: two of fuel / missiles / parts plus scrap", () => {
@@ -116,7 +128,13 @@ describe("surrender in a fight", () => {
 
   it("accept pays the offer and ends the fight", () => {
     const g = quietFight();
-    const before = { scrap: g.scrap, fuel: g.fuel, missiles: g.missiles, parts: g.player.parts, kills: g.kills };
+    const before = {
+      scrap: g.scrap,
+      fuel: g.fuel,
+      missiles: g.missiles,
+      parts: g.player.parts,
+      kills: g.kills,
+    };
     offerNow(g);
     const offer = surrenderOfferView(g)!;
     choose(g, ACCEPT_ID);
@@ -136,14 +154,22 @@ describe("surrender in a fight", () => {
     g.enemyEscape!.chance = 100;
     g.enemyEscape!.threshold = 35;
     offerNow(g);
-    assert.equal(g.enemyEscape!.running, false, "surrender is rolled before the escape on the same tick");
+    assert.equal(
+      g.enemyEscape!.running,
+      false,
+      "surrender is rolled before the escape on the same tick",
+    );
     choose(g, REFUSE_ID);
     assert.equal(g.phase, "combat");
     assert.equal(g.paused, false);
     assert.ok(g.enemy);
     g.enemy!.hull -= 1;
     run(g, 5);
-    assert.equal(g.enemyEscape!.running, false, "Enemies will never start running away if they have already offered a surrender");
+    assert.equal(
+      g.enemyEscape!.running,
+      false,
+      "Enemies will never start running away if they have already offered a surrender",
+    );
     assert.equal(g.phase, "combat");
     // "If you jump away after rejecting ... then return, the enemy will not be present."
     assert.equal(g.beacons.find((b) => b.id === g.here)?.resolved, true);
@@ -214,18 +240,32 @@ describe("scripted surrenders (event pages)", () => {
   }
   function offer(g: Game) {
     g.enemySurrender!.chance = 100;
-    g.enemy!.hull = Math.max(1, Math.floor((g.enemy!.hullMax * (g.enemySurrender!.threshold - 1)) / 100));
+    g.enemy!.hull = Math.max(
+      1,
+      Math.floor((g.enemy!.hullMax * (g.enemySurrender!.threshold - 1)) / 100),
+    );
     run(g, 0.1);
     assert.equal(g.phase, "event");
   }
 
   it("uses the page's chance and hull range instead of the faction row", () => {
     const at = (slug: string, r: number) => {
-      const p = surrenderPlan({ tier: "pool", faction: "crystal", pirate: false, event: slug }, () => r);
+      const p = surrenderPlan(
+        { tier: "pool", faction: "crystal", pirate: false, event: slug },
+        () => r,
+      );
       return [p.chance, Math.round(p.threshold), p.event];
     };
-    assert.deepEqual(at("crystal-fight-with-surrender-offer-human-crew", 0), [50, 30, "crystal-fight-with-surrender-offer-human-crew"]);
-    assert.deepEqual(at("crystal-fight-with-surrender-offer-hull-repairs", 1), [100, 40, "crystal-fight-with-surrender-offer-hull-repairs"]);
+    assert.deepEqual(at("crystal-fight-with-surrender-offer-human-crew", 0), [
+      50,
+      30,
+      "crystal-fight-with-surrender-offer-human-crew",
+    ]);
+    assert.deepEqual(at("crystal-fight-with-surrender-offer-hull-repairs", 1), [
+      100,
+      40,
+      "crystal-fight-with-surrender-offer-hull-repairs",
+    ]);
     assert.deepEqual(at("pirate-briber", 0), [70, 30, "pirate-briber"]);
     assert.deepEqual(at("remote-settlement", 0), [50, 20, "remote-settlement"]);
     assert.deepEqual(at("slaver-hostile", 0), [80, 20, "slaver-hostile"]);
@@ -265,7 +305,10 @@ describe("scripted surrenders (event pages)", () => {
       "append",
     );
     try {
-      const plan = surrenderPlan({ tier: "pool", faction: "rebel", event: "slug-home-nebula-surrender" }, () => 0);
+      const plan = surrenderPlan(
+        { tier: "pool", faction: "rebel", event: "slug-home-nebula-surrender" },
+        () => 0,
+      );
       assert.equal(plan.chance, 15);
       assert.equal(plan.threshold, 10);
       assert.equal(eventDef("slug-home-nebula-surrender")?.surrender?.hail, "A mod hail.");
@@ -275,8 +318,19 @@ describe("scripted surrenders (event pages)", () => {
   });
 
   it("never: the plural Rock pirates slugs, surrenderno pages, and Mantis ship-collectors' first fight", () => {
-    for (const slug of ["rock-pirates-fight", "rock-pirates-fight-near-sun", "rebel-transport-ship", "rebel-ship-warning", "mantis-ship-collectors"]) {
-      assert.equal(surrenderPlan({ tier: "pool", faction: "rebel", pirate: true, event: slug }, () => 0.5).chance, 0, slug);
+    for (const slug of [
+      "rock-pirates-fight",
+      "rock-pirates-fight-near-sun",
+      "rebel-transport-ship",
+      "rebel-ship-warning",
+      "mantis-ship-collectors",
+    ]) {
+      assert.equal(
+        surrenderPlan({ tier: "pool", faction: "rebel", pirate: true, event: slug }, () => 0.5)
+          .chance,
+        0,
+        slug,
+      );
     }
   });
 
@@ -303,7 +357,11 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(mine.length, crew + 1);
     assert.equal(mine.filter((c) => c.kin === "human").length, plain + 1);
     assert.equal(mine[mine.length - 1].kin, "human");
-    assert.ok(g.log.includes("They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free."));
+    assert.ok(
+      g.log.includes(
+        "They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free.",
+      ),
+    );
     assert.ok(g.log.includes("You receive a Human crewmember and the fight continues."));
     g.enemy!.hull -= 1;
     run(g, 0.5);
@@ -323,7 +381,8 @@ describe("scripted surrenders (event pages)", () => {
 
   it("Human crew: a full ship takes them, picks who is relieved, and the fight goes on", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
-    while (g.crew.filter((c) => c.side === "player").length < CREW_CAP) assert.equal(joinCrew(g, "Human"), true);
+    while (g.crew.filter((c) => c.side === "player").length < CREW_CAP)
+      assert.equal(joinCrew(g, "Human"), true);
     offer(g);
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "combat");
@@ -349,7 +408,11 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(g.player.hull, g.player.hullMax - 4);
     assert.equal(g.fuel, fuel + o.fuel);
     const note = g.reward?.note ?? "";
-    assert.ok(note.includes("They accept your explanation and allow you to approach the fleet. It appears they are miners and colonists from a fringe settlement who are fleeing to more protected space after hearing reports of pirate and rebel attacks.\n\nThey apologize for their hasty response to your presence and spend some time refueling and repairing both ships."));
+    assert.ok(
+      note.includes(
+        "They accept your explanation and allow you to approach the fleet. It appears they are miners and colonists from a fringe settlement who are fleeing to more protected space after hearing reports of pirate and rebel attacks.\n\nThey apologize for their hasty response to your presence and spend some time refueling and repairing both ships.",
+      ),
+    );
   });
 
   it("hull repairs: refusing logs their line and the fight continues", () => {
@@ -404,7 +467,11 @@ describe("scripted surrenders (event pages)", () => {
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
     const note = g.reward?.note ?? "";
-    assert.ok(note.includes("This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!"));
+    assert.ok(
+      note.includes(
+        "This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!",
+      ),
+    );
     assert.ok(g.player.weapons.some((w) => w.defId === "BEAM_BIO"));
   });
 
@@ -416,7 +483,10 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(o.crew, undefined);
     assert.equal(o.repairs, undefined);
     // Enemy Ships, "Surrenders and escape attempts": no generic hail is printed.
-    assert.equal(g.event?.body, "Enemies may also surrender after dropping below a hull threshold.");
+    assert.equal(
+      g.event?.body,
+      "Enemies may also surrender after dropping below a hull threshold.",
+    );
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
       ["Accept their surrender.", "Refuse. Keep firing."],
@@ -429,11 +499,20 @@ describe("scripted surrenders (event pages)", () => {
     offer(slaver);
     assert.equal(surrenderOfferView(slaver)!.crew, "Crystal");
 
-    const named = rollScriptedOffer(createGame(4), SCRIPTED_SURRENDERS["crystal-fight-with-surrender-offer-human-crew"]);
+    const named = rollScriptedOffer(
+      createGame(4),
+      SCRIPTED_SURRENDERS["crystal-fight-with-surrender-offer-human-crew"],
+    );
     assert.equal(named.crew, "Human");
     const onCrystal = createGame(4);
     onCrystal.sectorName = "Hidden Crystal Worlds";
-    assert.equal(rollScriptedOffer(onCrystal, SCRIPTED_SURRENDERS["crystal-fight-with-surrender-offer-human-crew"]).crew, "Human");
+    assert.equal(
+      rollScriptedOffer(
+        onCrystal,
+        SCRIPTED_SURRENDERS["crystal-fight-with-surrender-offer-human-crew"],
+      ).crew,
+      "Human",
+    );
   });
 });
 

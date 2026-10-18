@@ -14,7 +14,13 @@ function fight(seed = 7): Game {
   return g;
 }
 
-function body(id: string, side: "player" | "enemy", aboard: "player" | "enemy", room: string, extra: Partial<Crew> = {}): Crew {
+function body(
+  id: string,
+  side: "player" | "enemy",
+  aboard: "player" | "enemy",
+  room: string,
+  extra: Partial<Crew> = {},
+): Crew {
   return {
     id,
     name: id,
@@ -147,7 +153,10 @@ describe("system sabotage by boarders and fires", () => {
     const r = sysRoom(g.player);
     r.fire = 0;
     g.player.systems[r.system!].damage = 0;
-    g.crew.push(body("m", "enemy", "player", r.id, { path: ["x"] }), body("s", "enemy", "player", r.id, { stun: 99 }));
+    g.crew.push(
+      body("m", "enemy", "player", r.id, { path: ["x"] }),
+      body("s", "enemy", "player", r.id, { stun: 99 }),
+    );
     run(g, 20);
     assert.equal(g.player.systems[r.system!].damage, 0);
     assert.equal(r.sabotage ?? 0, 0);
@@ -198,7 +207,16 @@ describe("system sabotage by boarders and fires", () => {
     r.system = null;
     r.kit = "mind";
     r.fire = 0;
-    g.enemy!.kits.mind = { id: "mind", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.enemy!.kits.mind = {
+      id: "mind",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     g.crew.push(body("b", "player", "enemy", r.id));
     run(g, 12.6);
     assert.equal(g.enemy!.kits.mind!.damage, 1);
@@ -217,7 +235,10 @@ describe("system sabotage by boarders and fires", () => {
     const r2 = sysRoom(g2.enemy!);
     g2.enemy!.systems[r2.system!].damage = 0;
     r2.fire = 0;
-    g2.crew.push(body("b", "player", "enemy", r2.id), body("p", "player", "enemy", r2.id, { leashed: 30 }));
+    g2.crew.push(
+      body("b", "player", "enemy", r2.id),
+      body("p", "player", "enemy", r2.id, { leashed: 30 }),
+    );
     run(g2, 20);
     assert.equal(g2.enemy!.systems[r2.system!].damage, 0);
   });

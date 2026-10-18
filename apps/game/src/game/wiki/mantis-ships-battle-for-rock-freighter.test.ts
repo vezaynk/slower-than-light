@@ -25,7 +25,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Mantis ships battle for Rock freighter", () => {
@@ -84,7 +86,10 @@ describe("Mantis ships battle for Rock freighter", () => {
     // > "You receive high scrap with resources." — [[Mantis ships battle for Rock freighter]]
     const bare = createGame(1);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:mantis-ships-battle-for-rock-freighter:2"), "Needs a Repair Drone");
+    assert.equal(
+      choiceDisabled(bare, "c:mantis-ships-battle-for-rock-freighter:2"),
+      "Needs a Repair Drone",
+    );
     choose(bare, "c:mantis-ships-battle-for-rock-freighter:2");
     assert.equal(bare.scrap, 10);
     assert.equal(bare.phase, "event");
@@ -127,7 +132,10 @@ describe("Mantis ships battle for Rock freighter", () => {
     const bare = createGame(1);
     open(bare);
     const parts = bare.player.parts;
-    assert.equal(choiceDisabled(bare, "c:mantis-ships-battle-for-rock-freighter:3"), "Needs a Hull Repair Drone");
+    assert.equal(
+      choiceDisabled(bare, "c:mantis-ships-battle-for-rock-freighter:3"),
+      "Needs a Hull Repair Drone",
+    );
     choose(bare, "c:mantis-ships-battle-for-rock-freighter:3");
     assert.equal(bare.phase, "event");
     assert.equal(bare.player.parts, parts);
@@ -136,7 +144,10 @@ describe("Mantis ships battle for Rock freighter", () => {
     open(broke);
     broke.player.kits.drones = drone("SHIP_REPAIR");
     broke.player.parts = 0;
-    assert.equal(choiceDisabled(broke, "c:mantis-ships-battle-for-rock-freighter:3"), "Need 1 drone part");
+    assert.equal(
+      choiceDisabled(broke, "c:mantis-ships-battle-for-rock-freighter:3"),
+      "Need 1 drone part",
+    );
     choose(broke, "c:mantis-ships-battle-for-rock-freighter:3");
     assert.equal(broke.phase, "event");
     assert.equal(broke.player.parts, 0);

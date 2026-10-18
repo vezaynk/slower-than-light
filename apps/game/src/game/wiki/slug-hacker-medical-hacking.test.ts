@@ -2,11 +2,19 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { armSpike, launchSpike } from "../extras/spike.ts";
 import { kinOf } from "../extras/kin.ts";
-import { choiceDisabled, choose, createGame, playerHackingOff, playerMedicalOff, step } from "../sim.ts";
+import {
+  choiceDisabled,
+  choose,
+  createGame,
+  playerHackingOff,
+  playerMedicalOff,
+  step,
+} from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const LEAD = "You are able to undo the damage of their remote hacking satellite but it's taking everything your hacking system has. Time to take out the enemy the old fashioned way.";
+const LEAD =
+  "You are able to undo the damage of their remote hacking satellite but it's taking everything your hacking system has. Time to take out the enemy the old fashioned way.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -37,7 +45,11 @@ describe("Slug hacker (medical) hacking", () => {
   it("stays closed without Hacking", () => {
     const g = createGame(1);
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === "c:slug-hacker-medical:1" && c.label === "Counter the remote hacking."));
+    assert.ok(
+      g.event?.choices.some(
+        (c) => c.id === "c:slug-hacker-medical:1" && c.label === "Counter the remote hacking.",
+      ),
+    );
     assert.equal(choiceDisabled(g, "c:slug-hacker-medical:1"), "Needs a Hacking system");
     choose(g, "c:slug-hacker-medical:1");
     assert.equal(g.phase, "event");
@@ -83,7 +95,16 @@ describe("Slug hacker (medical) hacking", () => {
     const rooms = new Set(g.player.rooms.map((r) => r.id));
     const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.equal(boarders.length, 2);
-    assert.ok(boarders.every((c) => c.name === "Slug" && c.kin === "slug" && c.hp === hp && c.maxHp === hp && rooms.has(c.room)));
+    assert.ok(
+      boarders.every(
+        (c) =>
+          c.name === "Slug" &&
+          c.kin === "slug" &&
+          c.hp === hp &&
+          c.maxHp === hp &&
+          rooms.has(c.room),
+      ),
+    );
     assert.ok(g.log.includes("2 slug boarders beam aboard your ship."));
     const away = g.player.rooms.find((r) => r.id !== bay.id);
     assert.ok(away);

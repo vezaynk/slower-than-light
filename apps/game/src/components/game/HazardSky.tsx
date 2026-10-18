@@ -10,7 +10,16 @@ import "./hazard-sky.css";
  * The 5s flare and pulsar warnings are the strobe. The flash is the moment that warning ends and the pulse lands.
  */
 
-const ROCKS: { y: string; rest: string; s: number; d: string; delay: string; spin: string; dy: string; tone: number }[] = [
+const ROCKS: {
+  y: string;
+  rest: string;
+  s: number;
+  d: string;
+  delay: string;
+  spin: string;
+  dy: string;
+  tone: number;
+}[] = [
   { y: "6%", rest: "12%", s: 0.55, d: "17s", delay: "-2s", spin: "2.4s", dy: "3cqh", tone: 0 },
   { y: "16%", rest: "70%", s: 1.2, d: "11s", delay: "-6s", spin: "1.5s", dy: "8cqh", tone: 1 },
   { y: "27%", rest: "38%", s: 0.72, d: "22s", delay: "-14s", spin: "3.2s", dy: "-4cqh", tone: 2 },

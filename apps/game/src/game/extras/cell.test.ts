@@ -1,9 +1,27 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { applyImpact, applyPulsarPulse, createGame, settleZoltanPower, sparePower, syncIonStorm, upgrade, waitHere } from "../sim.ts";
+import {
+  applyImpact,
+  applyPulsarPulse,
+  createGame,
+  settleZoltanPower,
+  sparePower,
+  syncIonStorm,
+  upgrade,
+  waitHere,
+} from "../sim.ts";
 import { stormReactor } from "../wiki/cited-sectors.ts";
 import { seatKits } from "../layouts.ts";
-import { batteryPaint, batterySpareBars, cellBonus, installCell, ionOnCell, startCell, tickCell, upgradeCell } from "./cell.ts";
+import {
+  batteryPaint,
+  batterySpareBars,
+  cellBonus,
+  installCell,
+  ionOnCell,
+  startCell,
+  tickCell,
+  upgradeCell,
+} from "./cell.ts";
 import { toggleVeilPower } from "./veil.ts";
 import { onPlayerJump } from "./index.ts";
 import { fleetToReach } from "../wiki/sector-map.ts";
@@ -255,7 +273,8 @@ describe("battery", () => {
   it("pulls the extra bars back when the window ends and ends a cloak or hold that used one", () => {
     const g = createGame(13);
     g.phase = "combat";
-    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
     g.player.reactor = 1;
     g.player.systems.engines.power = 1;
     g.player.kits.battery = pushCell(1);
@@ -280,7 +299,8 @@ describe("battery", () => {
 
     const hold = createGame(14);
     hold.phase = "combat";
-    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) hold.player.systems[id].power = 0;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      hold.player.systems[id].power = 0;
     hold.player.reactor = 1;
     hold.player.systems.engines.power = 1;
     hold.player.kits.battery = pushCell(1);
@@ -319,7 +339,8 @@ describe("battery", () => {
 
     const guns = createGame(15);
     guns.phase = "map";
-    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) guns.player.systems[id].power = 0;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      guns.player.systems[id].power = 0;
     guns.player.reactor = 0;
     guns.player.systems.weapons.power = 2;
     guns.player.kits.battery = pushCell(1);
@@ -333,7 +354,8 @@ describe("battery", () => {
   it("leaves a cooling cloak's cooldown alone when its battery bar is taken back", () => {
     const g = createGame(16);
     g.phase = "combat";
-    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
     g.player.reactor = 1;
     g.player.systems.engines.power = 1;
     g.player.kits.battery = pushCell(1);
@@ -416,7 +438,8 @@ describe("battery", () => {
     g.here = beacon.id;
     g.fleet = fleetToReach(g, beacon) - 1;
     g.player.reactor = 5;
-    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
     g.player.systems.weapons.power = 5;
     syncIonStorm(g);
     assert.equal(g.player.storm, undefined);
@@ -446,7 +469,8 @@ describe("battery", () => {
   it("marks bonus bars after the regular reactor bars", () => {
     const g = createGame(21);
     g.player.reactor = 5;
-    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
     g.player.systems.weapons.power = 5;
     g.player.kits.battery = pushCell(1);
     startCell(g);
@@ -474,7 +498,8 @@ describe("battery", () => {
     g.player.reactor = 25;
     upgrade(g, "reactor");
     assert.equal(g.player.reactor, 25);
-    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
     g.player.systems.shields.power = 8;
     g.player.systems.engines.power = 8;
     g.player.systems.weapons.power = 8;

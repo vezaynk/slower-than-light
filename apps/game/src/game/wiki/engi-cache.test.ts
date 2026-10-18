@@ -30,7 +30,10 @@ describe("Engi cache", () => {
     const civilian = createGame(2);
     civilian.sectorName = "Civilian (Starting) Sector";
     stampEngiCache(civilian);
-    assert.equal(civilian.beacons.some((b) => b.flag === "engi-cache"), false);
+    assert.equal(
+      civilian.beacons.some((b) => b.flag === "engi-cache"),
+      false,
+    );
     const g = createGame(2);
     g.sectorName = "Engi Homeworlds";
     stampEngiCache(g);

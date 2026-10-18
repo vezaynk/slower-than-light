@@ -28,7 +28,6 @@ function launchLanded(g: Game): boolean {
   return ok;
 }
 
-
 function armed(parts = 2) {
   const g = createGame(2);
   g.scrap = 80;

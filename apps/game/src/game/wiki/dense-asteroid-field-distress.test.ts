@@ -83,7 +83,10 @@ describe("Dense asteroid field distress", () => {
         remains = true;
         assert.match(body, /decaying remains/);
         assert.match(body, /stasis pod/);
-        assert.equal(g.event?.choices.map((c) => c.id).join(","), "s:dense-asteroid-field-distress:weapon,s:dense-asteroid-field-distress:pod");
+        assert.equal(
+          g.event?.choices.map((c) => c.id).join(","),
+          "s:dense-asteroid-field-distress:weapon,s:dense-asteroid-field-distress:pod",
+        );
         assert.equal(g.scrap, 10);
         assert.equal(g.player.hull, hull);
         assert.equal(g.player.weapons.length, guns);

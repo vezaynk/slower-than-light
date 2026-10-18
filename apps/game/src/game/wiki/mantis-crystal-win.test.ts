@@ -21,7 +21,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Mantis ship attacking Crystal reward", () => {
@@ -40,7 +42,10 @@ describe("Mantis ship attacking Crystal reward", () => {
     assert.equal(destroyed.scrap, 10 + paid[0]!);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
     assert.equal(destroyed.player.weapons.length, guns);
-    assert.equal(destroyed.event?.choices.some((c) => c.id === "q:crystal-pirate:contact"), true);
+    assert.equal(
+      destroyed.event?.choices.some((c) => c.id === "q:crystal-pirate:contact"),
+      true,
+    );
 
     const killed = createGame(4);
     open(killed);

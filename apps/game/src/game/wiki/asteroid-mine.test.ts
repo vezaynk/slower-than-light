@@ -9,7 +9,11 @@ describe("Large asteroid field mining", () => {
   it("stays closed without a fitted Scrap Recovery Arm", () => {
     const g = createGame(4);
     const page = FILLER_PAGES.find((row) => row.slug === "large-asteroid-field");
-    assert.ok(page?.choices.some((choice) => choice.id === MINE && choice.label === "Attempt to mine the asteroids."));
+    assert.ok(
+      page?.choices.some(
+        (choice) => choice.id === MINE && choice.label === "Attempt to mine the asteroids.",
+      ),
+    );
     assert.equal(choiceDisabled(g, MINE), "Needs a Scrap Recovery Arm");
     const scrap = g.scrap;
     fillerChoose(g, MINE);

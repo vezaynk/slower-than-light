@@ -24,7 +24,10 @@ describe("swarm aim", () => {
 
   it("puts the other 1x2 shots on the four long-side tiles", () => {
     assert.deepEqual(swarmLanding(vertical, "n", SWARM_CUTS[0]), { kind: "room", roomId: "w" });
-    assert.deepEqual(swarmLanding(vertical, "n", bp(6785 + 804 - 1)), { kind: "room", roomId: "w" });
+    assert.deepEqual(swarmLanding(vertical, "n", bp(6785 + 804 - 1)), {
+      kind: "room",
+      roomId: "w",
+    });
     assert.deepEqual(swarmLanding(vertical, "n", SWARM_CUTS[1]), { kind: "miss" });
     assert.deepEqual(swarmLanding(vertical, "n", SWARM_CUTS[2]), { kind: "room", roomId: "e" });
     assert.deepEqual(swarmLanding(vertical, "n", SWARM_CUTS[3]), { kind: "room", roomId: "e" });

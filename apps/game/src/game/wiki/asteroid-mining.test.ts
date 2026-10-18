@@ -35,12 +35,18 @@ describe("Asteroid mining colony", () => {
     bare.missiles = 9;
     const hidden = fillerEvent(bare, beacon());
     assert.ok(hidden);
-    assert.equal(hidden.choices.some((c) => c.id === "c:asteroid-mining-colony:0"), false);
+    assert.equal(
+      hidden.choices.some((c) => c.id === "c:asteroid-mining-colony:0"),
+      false,
+    );
 
     const hull = createGame(2);
     hull.player.weapons = [gun("MISSILES_HULL")];
     const skipped = fillerEvent(hull, beacon());
-    assert.equal(skipped?.choices.some((c) => c.id === "c:asteroid-mining-colony:0"), false);
+    assert.equal(
+      skipped?.choices.some((c) => c.id === "c:asteroid-mining-colony:0"),
+      false,
+    );
 
     const g = createGame(3);
     g.player.weapons = [gun("MISSILES_2_PLAYER")];
@@ -75,7 +81,10 @@ describe("Asteroid mining colony", () => {
     const five = new Set<string>();
     const fifteen = new Set<string>();
     for (let seed = 1; seed < 80 && (five.size < 3 || fifteen.size < 3); seed++) {
-      for (const [n, bag] of [[5, five], [15, fifteen]] as const) {
+      for (const [n, bag] of [
+        [5, five],
+        [15, fifteen],
+      ] as const) {
         const g = createGame(seed);
         g.missiles = n;
         g.scrap = 0;

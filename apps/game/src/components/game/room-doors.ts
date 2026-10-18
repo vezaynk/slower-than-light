@@ -18,7 +18,13 @@ export type RadialDoor = {
 const OPPOSITE: Record<Side, Side> = { n: "s", s: "n", e: "w", w: "e" };
 
 function step(side: Side): { x: number; y: number } {
-  return side === "e" ? { x: 1, y: 0 } : side === "w" ? { x: -1, y: 0 } : side === "s" ? { x: 0, y: 1 } : { x: 0, y: -1 };
+  return side === "e"
+    ? { x: 1, y: 0 }
+    : side === "w"
+      ? { x: -1, y: 0 }
+      : side === "s"
+        ? { x: 0, y: 1 }
+        : { x: 0, y: -1 };
 }
 
 /** Every traced door on this room's walls. A mark is stored once, from either room, so both ends are checked. */
@@ -44,8 +50,18 @@ export function roomDoors(ship: Ship, cells: Map<string, string>, roomId: string
     // Edge midpoint of the door's tile wall.
     const ex = m.x + 0.5 + d.x * 0.5;
     const ey = m.y + 0.5 + d.y * 0.5;
-    const door = ship.doors.find((x) => (x.a === roomId && x.b === other) || (x.a === other && x.b === roomId));
-    out.push({ key: `${m.x},${m.y},${m.side}`, side, dx: ex - cx, dy: ey - cy, room: roomId, other, door });
+    const door = ship.doors.find(
+      (x) => (x.a === roomId && x.b === other) || (x.a === other && x.b === roomId),
+    );
+    out.push({
+      key: `${m.x},${m.y},${m.side}`,
+      side,
+      dx: ex - cx,
+      dy: ey - cy,
+      room: roomId,
+      other,
+      door,
+    });
   }
   return out;
 }

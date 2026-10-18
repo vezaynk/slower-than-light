@@ -19,7 +19,11 @@ function open(g: Game) {
 describe("Slug hacker (oxygen) surrender", () => {
   it("never surrenders; a Slug ship with no event still can", () => {
     // Slug hacker (oxygen): the enemy ship doesn't surrender. The page prints no percent.
-    assert.equal(surrenderPlan({ tier: "pool", faction: "slug", event: "slug-hacker-oxygen" }, () => 0.5).chance, 0);
+    assert.equal(
+      surrenderPlan({ tier: "pool", faction: "slug", event: "slug-hacker-oxygen" }, () => 0.5)
+        .chance,
+      0,
+    );
     assert.equal(surrenderPlan({ tier: "pool", faction: "slug" }, () => 0.5).chance, 50);
 
     const g = createGame(1);

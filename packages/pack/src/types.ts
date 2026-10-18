@@ -103,6 +103,23 @@ export type HullPicture = {
   h: number;
 };
 
+/** Direction a weapon shifts when it is powered. The archive spells these five. */
+export type HullMountSlide = "up" | "down" | "left" | "right" | "no";
+
+/**
+ * One `<mount>` in `data/<layout>.xml`.
+ * `x` and `y` are pixels of that ship's image, from the top left.
+ * `slide` is omitted when the drawing file omits it.
+ */
+export type HullMount = {
+  x: number;
+  y: number;
+  rotate: boolean;
+  mirror: boolean;
+  gib: number;
+  slide?: HullMountSlide;
+};
+
 /** One rectangle from a layout file. `id` is the room index the blueprint names. */
 export type HullRoom = {
   id: number;
@@ -227,6 +244,8 @@ export type HullDef = {
    * One room cell is 35 pixels. The bytes stay on the path map.
    */
   picture?: HullPicture;
+  /** Weapon hardpoints from that same drawing file. */
+  mounts?: HullMount[];
   cloak?: string;
   shield?: string;
   floor?: string;

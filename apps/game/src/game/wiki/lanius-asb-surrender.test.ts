@@ -7,7 +7,10 @@ describe("Lanius fight with friendly ASB support surrender", () => {
   it("never surrenders; a Lanius ship with no event still can", () => {
     // Lanius fight with friendly ASB support: {{SurrenderEscape(alt)|no|LANIUS_BOARDERS_PDS}}. The page prints no percent.
     assert.equal(
-      surrenderPlan({ tier: "pool", faction: "lanius", event: "lanius-fight-with-friendly-asb-support" }, () => 0.5).chance,
+      surrenderPlan(
+        { tier: "pool", faction: "lanius", event: "lanius-fight-with-friendly-asb-support" },
+        () => 0.5,
+      ).chance,
       0,
     );
     assert.equal(surrenderPlan({ tier: "pool", faction: "lanius" }, () => 0.5).chance, 80);

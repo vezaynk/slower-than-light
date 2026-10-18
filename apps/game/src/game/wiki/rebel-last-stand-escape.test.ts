@@ -22,7 +22,10 @@ describe("Rebel ship attacking civilians in Last Stand escape", () => {
       { tier: "pool", faction: "rebel", event: "rebel-ship-attacking-civilians-in-last-stand" },
       () => 0,
     );
-    assert.deepEqual([low.mode, low.chance, low.threshold, low.seconds], ["hull", 50, 40, HULL_RUN_SECONDS]);
+    assert.deepEqual(
+      [low.mode, low.chance, low.threshold, low.seconds],
+      ["hull", 50, 40, HULL_RUN_SECONDS],
+    );
     const high = escapePlan(
       { tier: "pool", faction: "rebel", event: "rebel-ship-attacking-civilians-in-last-stand" },
       () => 1,

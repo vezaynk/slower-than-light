@@ -52,7 +52,16 @@ function systemDamage(g: Game): number {
 }
 
 function repairDrone(): Kit {
-  return { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "REPAIR", on: false, aux: 0 };
+  return {
+    id: "drones",
+    level: 2,
+    power: 2,
+    left: 0,
+    cool: 0,
+    target: "REPAIR",
+    on: false,
+    aux: 0,
+  };
 }
 
 describe("Fire on research station", () => {
@@ -62,11 +71,14 @@ describe("Fire on research station", () => {
 
   it("hides the Rock and repair drone until they are aboard", () => {
     const plain = createGame(1);
-    assert.deepEqual(open(plain).choices.map((c) => c.id), [
-      "c:fire-on-research-station:0",
-      "c:fire-on-research-station:1",
-      "c:fire-on-research-station:2",
-    ]);
+    assert.deepEqual(
+      open(plain).choices.map((c) => c.id),
+      [
+        "c:fire-on-research-station:0",
+        "c:fire-on-research-station:1",
+        "c:fire-on-research-station:2",
+      ],
+    );
     assert.equal(choiceDisabled(plain, "c:fire-on-research-station:3"), "Needs a Rock crewmember");
     assert.equal(choiceDisabled(plain, "c:fire-on-research-station:4"), "Needs a Repair Drone");
 
@@ -107,7 +119,16 @@ describe("Fire on research station", () => {
     let seen = false;
     for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = {
+        id: "clonebay",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:fire-on-research-station:0");

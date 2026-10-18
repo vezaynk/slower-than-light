@@ -64,7 +64,11 @@ function quiet(g: ReturnType<typeof createGame>) {
 
 describe("zoltan shield", () => {
   it("starts Zoltan A, B, and C with 5 points and does not give other hulls one", () => {
-    for (const id of ["PLAYER_SHIP_ENERGY", "PLAYER_SHIP_ENERGY_2", "PLAYER_SHIP_ENERGY_3"] as const) {
+    for (const id of [
+      "PLAYER_SHIP_ENERGY",
+      "PLAYER_SHIP_ENERGY_2",
+      "PLAYER_SHIP_ENERGY_3",
+    ] as const) {
       const g = createGame(1, id);
       assert.ok(g.augments.includes("ENERGY_SHIELD"), id);
       assert.equal(g.player.zoltan, 5, id);
@@ -193,7 +197,8 @@ describe("zoltan shield", () => {
     assert.equal(room?.lock, 12);
     const door = plain.player.doors.find(
       (d) =>
-        (d.a === "p-weapons" && d.b === "p-sensors") || (d.a === "p-sensors" && d.b === "p-weapons"),
+        (d.a === "p-weapons" && d.b === "p-sensors") ||
+        (d.a === "p-sensors" && d.b === "p-weapons"),
     );
     assert.ok(door);
     assert.equal(door.hp, 8);
@@ -261,8 +266,7 @@ describe("crystal lockdown", () => {
     foe.path = [];
 
     const interior = g.player.doors.find(
-      (d) =>
-        (d.a === from && d.b === "p-medbay") || (d.a === "p-medbay" && d.b === from),
+      (d) => (d.a === from && d.b === "p-medbay") || (d.a === "p-medbay" && d.b === from),
     );
     assert.ok(interior);
     interior.open = false;

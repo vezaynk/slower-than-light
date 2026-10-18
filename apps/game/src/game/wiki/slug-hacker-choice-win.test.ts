@@ -10,7 +10,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 function open(g: Game) {
@@ -64,13 +66,7 @@ describe("Slug hacker (choice) reward", () => {
       [12, 19],
       /The Slug ship breaks apart and your shields return to normal/,
     );
-    paid(
-      createGame(2),
-      true,
-      "c:slug-hacker-choice:0",
-      [19, 23],
-      /your shields return to normal/,
-    );
+    paid(createGame(2), true, "c:slug-hacker-choice:0", [19, 23], /your shields return to normal/);
   });
 
   it("oxygen pays medium scrap with resources either way", () => {
@@ -81,13 +77,7 @@ describe("Slug hacker (choice) reward", () => {
       [12, 19],
       /The Slug ship breaks apart and your systems return to normal/,
     );
-    paid(
-      createGame(4),
-      true,
-      "c:slug-hacker-choice:1",
-      [12, 19],
-      /your systems return to normal/,
-    );
+    paid(createGame(4), true, "c:slug-hacker-choice:1", [12, 19], /your systems return to normal/);
   });
 
   it("weapons pays high scrap with resources either way", () => {

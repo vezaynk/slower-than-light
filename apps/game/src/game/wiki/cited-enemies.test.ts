@@ -36,7 +36,10 @@ describe("cited enemies", () => {
       assert.equal(hullDef(flagshipHullId(1, difficulty))?.layout, "flagship-1");
       assert.equal(hullDef(flagshipHullId(1, difficulty))?.img, "flagship-1");
     }
-    assert.deepEqual(hullDef(flagshipHullId(1, "easy"))?.grid, hullDef(flagshipHullId(1, "hard"))?.grid);
+    assert.deepEqual(
+      hullDef(flagshipHullId(1, "easy"))?.grid,
+      hullDef(flagshipHullId(1, "hard"))?.grid,
+    );
     assert.equal(ship.hull, hullDef(flagshipHullId(1, g.difficulty))?.health);
     assert.equal(ship.hull, 20);
     assert.equal(ship.hullMax, 20);
@@ -77,9 +80,26 @@ describe("cited enemies", () => {
     // every mounted gun is armed, the 4-power Boss Missile included.
     assert.ok(ship.weapons.every((weapon) => weapon.enabled));
     // @agent:flagship. Rooms are the traced stage-1 cutaway (wiki/flagship-layout.ts), 52 squares.
-    assert.equal(ship.rooms.reduce((n, room) => n + room.w * room.h, 0), 52);
-    for (const id of ["e-pilot", "e-shields", "e-doors", "e-cloaking", "e-hacking", "e-medbay", "e-ion", "e-laser", "e-missile", "e-beam"]) {
-      assert.ok(ship.rooms.some((room) => room.id === id), id);
+    assert.equal(
+      ship.rooms.reduce((n, room) => n + room.w * room.h, 0),
+      52,
+    );
+    for (const id of [
+      "e-pilot",
+      "e-shields",
+      "e-doors",
+      "e-cloaking",
+      "e-hacking",
+      "e-medbay",
+      "e-ion",
+      "e-laser",
+      "e-missile",
+      "e-beam",
+    ]) {
+      assert.ok(
+        ship.rooms.some((room) => room.id === id),
+        id,
+      );
     }
     const enemy = g.crew.filter((member) => member.side === "enemy");
     assert.equal(enemy.length, 11);

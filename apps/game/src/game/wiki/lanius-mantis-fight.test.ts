@@ -24,6 +24,10 @@ describe("Lanius ship attacking Mantis fight", () => {
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-attacking-mantis");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!"));
+    assert.ok(
+      g.log.includes(
+        "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!",
+      ),
+    );
   });
 });

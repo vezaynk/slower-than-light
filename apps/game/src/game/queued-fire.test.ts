@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { aim, armWeapon, cancelTargeting, createGame, fireReady, startCombat, step, toggleAutoAll } from "./sim.ts";
+import {
+  aim,
+  armWeapon,
+  cancelTargeting,
+  createGame,
+  fireReady,
+  startCombat,
+  step,
+  toggleAutoAll,
+} from "./sim.ts";
 import type { Game } from "./types.ts";
 
 function fight(): Game {

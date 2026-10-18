@@ -33,7 +33,8 @@ function urlFlag(): string | null {
 function write(next: UnlockState) {
   memory = next;
   try {
-    if (typeof localStorage !== "undefined") localStorage.setItem(UNLOCKS_KEY, JSON.stringify(next));
+    if (typeof localStorage !== "undefined")
+      localStorage.setItem(UNLOCKS_KEY, JSON.stringify(next));
   } catch {
     // Storage blocked or full. The in-memory copy holds this session.
   }

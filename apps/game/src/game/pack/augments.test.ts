@@ -29,7 +29,10 @@ describe("augment listings", () => {
   });
 
   it("awards, buys, and sells an appended listing", () => {
-    loadPack({ augments: [{ id: "ember", name: "Ember", detail: "A packed listing.", cost: 15 }] }, "append");
+    loadPack(
+      { augments: [{ id: "ember", name: "Ember", detail: "A packed listing.", cost: 15 }] },
+      "append",
+    );
     const g = createGame(1);
     g.augments = [];
     assert.deepEqual(

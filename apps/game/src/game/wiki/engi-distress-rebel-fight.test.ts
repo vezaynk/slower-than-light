@@ -22,7 +22,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Engi distress Rebel fight", () => {
@@ -36,7 +38,11 @@ describe("Engi distress Rebel fight", () => {
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.enemyEscape?.mode, "never");
     assert.equal(g.enemySurrender?.chance, 0);
-    assert.equal(surrenderPlan({ tier: "pool", event: "engi-distress-rebel-fight", faction: "rebel" }, () => 0).chance, 0);
+    assert.equal(
+      surrenderPlan({ tier: "pool", event: "engi-distress-rebel-fight", faction: "rebel" }, () => 0)
+        .chance,
+      0,
+    );
   });
 
   it("pays low scrap with resources when the ship is destroyed, and medium on a crew kill", () => {
@@ -56,7 +62,10 @@ describe("Engi distress Rebel fight", () => {
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.augments.length, augs);
-      assert.equal(g.event?.choices.map((c) => c.id).join(","), "q:engi-distress:scrap,q:engi-distress:supplies,q:engi-distress:nothing");
+      assert.equal(
+        g.event?.choices.map((c) => c.id).join(","),
+        "q:engi-distress:scrap,q:engi-distress:supplies,q:engi-distress:nothing",
+      );
     }
   });
 
@@ -106,7 +115,10 @@ describe("Engi distress Rebel fight", () => {
         assert.equal(g.player.weapons.length, guns);
       } else if (/med-bot disperser/.test(body)) {
         seen.add("heal");
-        assert.equal(g.player.weapons.some((w) => w.defId === "BOMB_HEAL"), true);
+        assert.equal(
+          g.player.weapons.some((w) => w.defId === "BOMB_HEAL"),
+          true,
+        );
         assert.match(body, /Healing Burst/);
       } else {
         seen.add("schematic");
@@ -141,7 +153,10 @@ describe("Engi distress Rebel fight", () => {
       choose(g, "q:engi-distress:scrap");
       if (/med-bot disperser/.test(g.event?.body ?? "")) {
         blocked = true;
-        assert.equal(g.player.weapons.some((w) => w.defId === "BOMB_HEAL"), false);
+        assert.equal(
+          g.player.weapons.some((w) => w.defId === "BOMB_HEAL"),
+          false,
+        );
         assert.match(g.event?.body ?? "", /No free weapon slot/);
       }
     }

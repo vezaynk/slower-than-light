@@ -94,12 +94,7 @@ const HEADS: Record<KinId, string[]> = {
   ],
 };
 
-const BODY = [
-  "...duuuud...",
-  "..duuuuuud..",
-  ".duuuuuuuud.",
-  ".duuuuuuuud.",
-];
+const BODY = ["...duuuud...", "..duuuuuud..", ".duuuuuuuud.", ".duuuuuuuud."];
 
 /** Slide a body row. Dots stay empty so the head rows above are never touched. */
 function shiftRow(row: string, dx: number): string {
@@ -201,7 +196,9 @@ export function CrewSprite({
   const skin = (KIN_SKIN as Record<string, string>)[id] ?? KIN_SKIN.human;
   const looping = loopAll || (cycle && (pose === "idle" || pose === "work"));
   const frames = looping ? [0, 1, 2, 3] : [frameIndex(frame)];
-  const spriteClass = ["crew-sprite", className, looping ? `is-cycle is-${pose}` : ""].filter(Boolean).join(" ");
+  const spriteClass = ["crew-sprite", className, looping ? `is-cycle is-${pose}` : ""]
+    .filter(Boolean)
+    .join(" ");
   return (
     <svg
       className={spriteClass}

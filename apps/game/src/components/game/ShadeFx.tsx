@@ -59,9 +59,24 @@ type Oval = {
   width: number;
   color: string;
 };
-type CrewSnap = { kin?: string; room: string; aboard: Side; pathEmpty: boolean; move: number; box?: Box | null };
+type CrewSnap = {
+  kin?: string;
+  room: string;
+  aboard: Side;
+  pathEmpty: boolean;
+  move: number;
+  box?: Box | null;
+};
 /** Per the user: a teleport is a column of light. `inward` closes onto an arriving crew member, otherwise it lifts away. */
-type Beam = { x: number; y: number; w: number; h: number; life: number; max: number; inward: boolean };
+type Beam = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  life: number;
+  max: number;
+  inward: boolean;
+};
 type Arrival = { id: string; side: Side; room: string; tries: number };
 
 const ORANGE = ["#ff7a18", "#ffb15a", "#e23a22"];
@@ -157,7 +172,12 @@ export function ShadeFx() {
         if (!el) return null;
         const r = pageRect(el);
         if (r.width < 1 || r.height < 1) return null;
-        return { x: (r.left - base.left) / scale, y: (r.top - base.top) / scale, w: r.width / scale, h: r.height / scale };
+        return {
+          x: (r.left - base.left) / scale,
+          y: (r.top - base.top) / scale,
+          w: r.width / scale,
+          h: r.height / scale,
+        };
       };
       const hullEl = (side: Side) => host.querySelector(`.hull[data-ship="${side}"]`);
       const paintOf = (el: Element): string | null => {
@@ -171,7 +191,10 @@ export function ShadeFx() {
         if (!live || !hull) return;
         cache[side] = live;
         const bits: Piece[] = [];
-        const add = (r: { left: number; top: number; width: number; height: number }, color: string) => {
+        const add = (
+          r: { left: number; top: number; width: number; height: number },
+          color: string,
+        ) => {
           if (r.width < 1 || r.height < 1) return;
           bits.push({
             x: (r.left - base.left) / scale,
@@ -208,7 +231,10 @@ export function ShadeFx() {
           const px = bit.x + bit.w / 2;
           const py = bit.y + bit.h / 2;
           const dist = Math.hypot(px - cx, py - cy);
-          const ang = dist < 8 ? Math.random() * Math.PI * 2 : Math.atan2(py - cy, px - cx) + (Math.random() - 0.5) * 0.35;
+          const ang =
+            dist < 8
+              ? Math.random() * Math.PI * 2
+              : Math.atan2(py - cy, px - cx) + (Math.random() - 0.5) * 0.35;
           const speed = 80 + Math.random() * 150 + dist * 0.4;
           const life = 0.85 + Math.random() * 0.35;
           push({
@@ -258,7 +284,13 @@ export function ShadeFx() {
         return zoltanPad(bubbleRoom(el, b, measure), layers, charging, readShipScale(el));
       };
 
-      const shieldOval = (side: Side, life: number, spread: number, width: number, color: string) => {
+      const shieldOval = (
+        side: Side,
+        life: number,
+        spread: number,
+        width: number,
+        color: string,
+      ) => {
         const b = cache[side];
         if (!b) return;
         const pad = zPad(side, b);
@@ -319,8 +351,16 @@ export function ShadeFx() {
 
       const enemy = g.enemy;
       if (enemy) {
-        if (enemyRef === enemy && seenEnemyHull != null && seenEnemyHull > 0 && enemy.hull <= 0) explode("enemy");
-        else if (enemyRef && enemyRef !== enemy && seenEnemyHull != null && seenEnemyHull > 0 && enemyRef.hull <= 0) explode("enemy");
+        if (enemyRef === enemy && seenEnemyHull != null && seenEnemyHull > 0 && enemy.hull <= 0)
+          explode("enemy");
+        else if (
+          enemyRef &&
+          enemyRef !== enemy &&
+          seenEnemyHull != null &&
+          seenEnemyHull > 0 &&
+          enemyRef.hull <= 0
+        )
+          explode("enemy");
         seenEnemyHull = enemy.hull;
         if (enemy.hull > 0) hullEl("enemy")?.classList.remove("is-gone");
         if (enemyRef === enemy) noteZ("enemy", seenEnemyZ, enemy.zoltan ?? 0);
@@ -328,7 +368,8 @@ export function ShadeFx() {
         seenEnemyZ = enemy.zoltan ?? 0;
         enemyRef = enemy;
       } else {
-        if (enemyRef && seenEnemyHull != null && seenEnemyHull > 0 && enemyRef.hull <= 0) explode("enemy");
+        if (enemyRef && seenEnemyHull != null && seenEnemyHull > 0 && enemyRef.hull <= 0)
+          explode("enemy");
         if (enemyRef && seenEnemyZ > 0 && (enemyRef.zoltan ?? 0) === 0) shatter("enemy");
         seenEnemyHull = null;
         seenEnemyZ = 0;
@@ -351,7 +392,9 @@ export function ShadeFx() {
           const off = (Math.random() - 0.5) * b.w;
           push({
             x: cx + off,
-            y: inward ? b.y - b.h * (0.4 + Math.random() * 0.6) : b.y + b.h * (0.3 + Math.random() * 0.7),
+            y: inward
+              ? b.y - b.h * (0.4 + Math.random() * 0.6)
+              : b.y + b.h * (0.3 + Math.random() * 0.7),
             vx: inward ? -off * 1.2 : off * 0.4,
             vy: inward ? 70 + Math.random() * 40 : -(60 + Math.random() * 50),
             life: 0.45,
@@ -377,7 +420,8 @@ export function ShadeFx() {
             const snapped = prev.room !== c.room && prev.pathEmpty && prev.move === 0;
             if (aboardChanged || snapped) {
               leave(prev);
-              if (prev.aboard !== c.aboard || prev.room !== c.room) arrivals.push({ id: c.id, side: c.aboard, room: c.room, tries: 0 });
+              if (prev.aboard !== c.aboard || prev.room !== c.room)
+                arrivals.push({ id: c.id, side: c.aboard, room: c.room, tries: 0 });
             }
           }
           crew.set(c.id, {
@@ -395,7 +439,8 @@ export function ShadeFx() {
           if (b) {
             const cx = b.x + b.w / 2;
             const cy = b.y + b.h / 2;
-            if (prev.kin === "energy") spray(cx, cy, SPARK, 18, 150, 0.48, 2, Math.min(b.w, b.h) * 0.35);
+            if (prev.kin === "energy")
+              spray(cx, cy, SPARK, 18, 150, 0.48, 2, Math.min(b.w, b.h) * 0.35);
             else spray(cx, cy, ASH, 7, 55, 0.32, 2, Math.min(b.w, b.h) * 0.2);
           }
           crew.delete(id);
@@ -404,7 +449,9 @@ export function ShadeFx() {
         // then fall back to the room.
         for (let i = arrivals.length - 1; i >= 0; i--) {
           const a = arrivals[i]!;
-          const el = host.querySelector(`.hull[data-ship="${a.side}"] [data-crew="${CSS.escape(a.id)}"]`);
+          const el = host.querySelector(
+            `.hull[data-ship="${a.side}"] [data-crew="${CSS.escape(a.id)}"]`,
+          );
           const box = measure(el);
           if (!box && a.tries++ < 10) continue;
           arrivals.splice(i, 1);
@@ -474,7 +521,15 @@ export function ShadeFx() {
         ctx.strokeStyle = o.color;
         ctx.lineWidth = o.width;
         ctx.beginPath();
-        ctx.ellipse(Math.round(o.x), Math.round(o.y), Math.max(1, o.rx + o.spread * k), Math.max(1, o.ry + o.spread * k), 0, 0, Math.PI * 2);
+        ctx.ellipse(
+          Math.round(o.x),
+          Math.round(o.y),
+          Math.max(1, o.rx + o.spread * k),
+          Math.max(1, o.ry + o.spread * k),
+          0,
+          0,
+          Math.PI * 2,
+        );
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
@@ -498,7 +553,8 @@ export function ShadeFx() {
         ctx.fillStyle = "#ff7a4a";
         // Scanlines, two pixels apart, marching with the beam's direction.
         const shift = Math.floor(k * 12) % 4;
-        for (let y = 0; y < tall; y += 4) ctx.fillRect(cx, top + ((y + (b.inward ? shift : 4 - shift)) % tall), cw, 2);
+        for (let y = 0; y < tall; y += 4)
+          ctx.fillRect(cx, top + ((y + (b.inward ? shift : 4 - shift)) % tall), cw, 2);
         ctx.globalAlpha = Math.max(0, alpha);
         ctx.fillStyle = "#fff6ea";
         const core = Math.max(2, Math.round(cw / 4));

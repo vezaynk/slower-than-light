@@ -358,7 +358,12 @@ function armSurgeLeg(g: Game, d: SurgeDrone, speed: number) {
   if (d.bearing == null || !(d.left != null && d.left > 0)) {
     d.bearing = pickOrbitBearing(g, d.heading);
     // xftl doc/combat-drone: the beam surge drone holds 0.5 s after each swipe, like any beam drone.
-    d.left = orbitLegSeconds(d.heading, d.bearing, speed, d.kind === "COMBAT_BEAM" ? BEAM_HOLD_S : 0);
+    d.left = orbitLegSeconds(
+      d.heading,
+      d.bearing,
+      speed,
+      d.kind === "COMBAT_BEAM" ? BEAM_HOLD_S : 0,
+    );
   }
 }
 

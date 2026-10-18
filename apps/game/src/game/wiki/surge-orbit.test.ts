@@ -54,10 +54,16 @@ describe("stage 2 power surge drones", () => {
     // A combat step advances at most 0.05s. Stop one step short of the leg.
     const steps = Math.ceil(leg / 0.05);
     for (let i = 0; i < steps - 1; i++) step(g, 0.05);
-    assert.equal(surge.every((d) => d.shots === 0), true);
+    assert.equal(
+      surge.every((d) => d.shots === 0),
+      true,
+    );
     assert.equal(g.shots.filter((s) => s.label?.startsWith(DRONE_LABEL)).length, 0);
     step(g, 0.05);
-    assert.equal(surge.every((d) => d.shots === 1), true);
+    assert.equal(
+      surge.every((d) => d.shots === 1),
+      true,
+    );
     assert.ok(g.shots.some((s) => (s.label ?? "").startsWith(DRONE_LABEL)));
   });
 
@@ -78,7 +84,10 @@ describe("stage 2 power surge drones", () => {
     };
     const surge = g.enemy!.flagship!.surge;
     for (let i = 0; i < Math.ceil(orbitLegSeconds(0, 90, COMBAT1_SPEED) / 0.05); i++) step(g, 0.05);
-    assert.equal(surge.every((d) => d.shots === 1), true);
+    assert.equal(
+      surge.every((d) => d.shots === 1),
+      true,
+    );
     assert.equal(g.shots.filter((s) => (s.label ?? "").startsWith(DRONE_LABEL)).length, 0);
   });
 });

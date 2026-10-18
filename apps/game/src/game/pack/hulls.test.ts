@@ -55,7 +55,10 @@ describe("hull listings", () => {
       ["LASER_BURST_3", "MISSILES_2_PLAYER"],
     );
     assert.equal(started.crew.filter((member) => member.side === "player").length, 3);
-    assert.deepEqual(hangarLoadout("PLAYER_SHIP_HARD").ship.weapons.map((weapon) => weapon.defId), ["LASER_BURST_3", "MISSILES_2_PLAYER"]);
+    assert.deepEqual(
+      hangarLoadout("PLAYER_SHIP_HARD").ship.weapons.map((weapon) => weapon.defId),
+      ["LASER_BURST_3", "MISSILES_2_PLAYER"],
+    );
     assert.equal(hangarLoadout("PLAYER_SHIP_HARD").ship.name, "Red Lark");
     const rooms = layoutFor("PLAYER_SHIP_HARD")?.rooms.length;
     assert.equal(started.player.rooms.length, rooms);
@@ -67,7 +70,10 @@ describe("hull listings", () => {
         hulls: [
           {
             ...engi,
-            kits: { ...engi.kits, drones: { level: 1, power: engi.kits.drones.power, loadout: ["DEFENSE_1"] } },
+            kits: {
+              ...engi.kits,
+              drones: { level: 1, power: engi.kits.drones.power, loadout: ["DEFENSE_1"] },
+            },
           },
         ],
       },
@@ -114,6 +120,9 @@ describe("hull listings", () => {
     assert.equal(layoutFor("ember"), undefined);
     resetPackForTests();
     assert.equal(hullDef("ember"), undefined);
-    assert.equal(createGame(1, "PLAYER_SHIP_HARD").player.name, HULLS.find((row) => row.id === "PLAYER_SHIP_HARD")?.name);
+    assert.equal(
+      createGame(1, "PLAYER_SHIP_HARD").player.name,
+      HULLS.find((row) => row.id === "PLAYER_SHIP_HARD")?.name,
+    );
   });
 });

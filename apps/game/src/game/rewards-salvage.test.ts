@@ -25,8 +25,14 @@ describe("default fight salvage", () => {
       assert.equal(fuelDraws.length + missileDraws.length + partDraws.length, 2);
       for (const n of fuelDraws) assert.ok(n >= 1 && n <= 3);
       for (const n of missileDraws) assert.ok(n >= 1 && n <= 2);
-      assert.equal(g.fuel - fuel, fuelDraws.reduce((sum, n) => sum + n, 0));
-      assert.equal(g.missiles - missiles, missileDraws.reduce((sum, n) => sum + n, 0));
+      assert.equal(
+        g.fuel - fuel,
+        fuelDraws.reduce((sum, n) => sum + n, 0),
+      );
+      assert.equal(
+        g.missiles - missiles,
+        missileDraws.reduce((sum, n) => sum + n, 0),
+      );
       assert.equal(g.player.parts - parts, partDraws.length);
       if (fuelDraws.length) seen.fuel = true;
       if (missileDraws.length) seen.missiles = true;

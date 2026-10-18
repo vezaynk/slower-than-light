@@ -53,27 +53,40 @@ function standard(body: string, scrap: [number, number]) {
 }
 
 function arm(g: Game, defId: string) {
-  g.player.weapons.push({ uid: defId, defId, charge: 0, enabled: false, autofire: false, target: null });
+  g.player.weapons.push({
+    uid: defId,
+    defId,
+    charge: 0,
+    enabled: false,
+    autofire: false,
+    target: null,
+  });
 }
 
 describe("Malfunctioning defense system", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Malfunctioning defense system")?.slug, "malfunctioning-defense-system");
+    assert.equal(
+      pageForRow("Malfunctioning defense system")?.slug,
+      "malfunctioning-defense-system",
+    );
   });
 
   it("opens on the distress and hides the blue options", () => {
     const g = createGame(1);
     const ev = open(g);
     assert.match(ev.body, /satellite defense system has gone haywire/);
-    assert.deepEqual(ev.choices.map((c) => c.id), [
-      "c:malfunctioning-defense-system:0",
-      "c:malfunctioning-defense-system:1",
-    ]);
+    assert.deepEqual(
+      ev.choices.map((c) => c.id),
+      ["c:malfunctioning-defense-system:0", "c:malfunctioning-defense-system:1"],
+    );
     assert.equal(choiceDisabled(g, "c:malfunctioning-defense-system:3"), "Needs an ion weapon");
     assert.equal(choiceDisabled(g, "c:malfunctioning-defense-system:4"), "Needs Cloaking");
     assert.equal(choiceDisabled(g, "c:malfunctioning-defense-system:5"), "Needs Improved Cloaking");
     assert.equal(choiceDisabled(g, "c:malfunctioning-defense-system:6"), "Needs Advanced Cloaking");
-    assert.equal(choiceDisabled(g, "c:malfunctioning-defense-system:7"), "Needs an Engi crewmember");
+    assert.equal(
+      choiceDisabled(g, "c:malfunctioning-defense-system:7"),
+      "Needs an Engi crewmember",
+    );
   });
 
   it("leaves them alone and spends nothing", () => {
@@ -98,13 +111,19 @@ describe("Malfunctioning defense system", () => {
       open(g);
       fillerChoose(g, "c:malfunctioning-defense-system:0");
       assert.match(g.event?.body ?? "", /consider your options/);
-      assert.deepEqual(g.event?.choices.map((c) => c.id), ["c:malfunctioning-defense-system:2"]);
+      assert.deepEqual(
+        g.event?.choices.map((c) => c.id),
+        ["c:malfunctioning-defense-system:2"],
+      );
       fillerChoose(g, "c:malfunctioning-defense-system:2");
       const body = g.event?.body ?? "";
       assert.match(body, /no match for your weapons/);
       assert.equal(/aren't able to penetrate/.test(body), false);
       assert.equal(g.player.hull, hull);
-      assert.deepEqual(g.player.rooms.map((r) => r.breach), bars);
+      assert.deepEqual(
+        g.player.rooms.map((r) => r.breach),
+        bars,
+      );
       standard(body, [7, 10]);
     }
   });
@@ -145,7 +164,11 @@ describe("Malfunctioning defense system", () => {
     fillerChoose(improved, "c:malfunctioning-defense-system:0");
     assert.deepEqual(
       improved.event?.choices.map((c) => c.id),
-      ["c:malfunctioning-defense-system:2", "c:malfunctioning-defense-system:4", "c:malfunctioning-defense-system:5"],
+      [
+        "c:malfunctioning-defense-system:2",
+        "c:malfunctioning-defense-system:4",
+        "c:malfunctioning-defense-system:5",
+      ],
     );
     fillerChoose(improved, "c:malfunctioning-defense-system:5");
     const mid = improved.event?.body ?? "";

@@ -3,9 +3,9 @@ import { afterEach, describe, it } from "node:test";
 import { emitPack } from "./emit.ts";
 import { packFromFtl } from "./ftl.ts";
 import { parsePack } from "./parse.ts";
-import { pictureForRooms, pictureFrame, pictureXml, ROOM_PX } from "./picture.ts";
+import { attachPictures, pictureForRooms, pictureFrame, pictureXml, ROOM_PX } from "./picture.ts";
 import { hullDef, loadPack, resetPackForTests } from "./registry.ts";
-import type { HullDef } from "./types.ts";
+import type { HullDef, HullMount } from "./types.ts";
 
 afterEach(() => {
   resetPackForTests();
@@ -74,13 +74,34 @@ describe("hull pictures", () => {
     assert.deepEqual(pack.hulls?.[0]?.picture, { x: -10, y: -20, w: 70, h: 35 });
   });
 
+  it("reads weapon mounts, and a later picture leaves a mount list in place", () => {
+    const mounts: HullMount[] = [
+      { x: 268, y: 32, rotate: true, mirror: true, gib: 2, slide: "up" },
+      { x: 134, y: 132, rotate: false, mirror: true, gib: 3 },
+    ];
+    const hull = bareHull("fed_cruiser");
+    attachPictures(
+      [hull],
+      [
+        { path: "data/fed_cruiser.xml", xml: pictureXml({ x: 1, y: 2, w: 30, h: 40 }, mounts) },
+        { path: "extra/fed_cruiser.xml", xml: pictureXml({ x: 4, y: 5, w: 6, h: 7 }) },
+      ],
+    );
+    assert.deepEqual(hull.picture, { x: 4, y: 5, w: 6, h: 7 });
+    assert.deepEqual(hull.mounts, mounts);
+    assert.equal(xmlHasSlide(pictureXml({ x: 1, y: 2, w: 3, h: 4 }, [mounts[1]!])), false);
+  });
+
   it("copies the picture when the pack is installed", () => {
     const hull = parsePack(HULL).hulls?.[0];
     assert.ok(hull);
     hull.picture = { x: 1, y: 2, w: 3, h: 4 };
+    hull.mounts = [{ x: 7, y: 8, rotate: false, mirror: true, gib: 2, slide: "down" }];
     loadPack({ hulls: [hull] }, "base");
     hull.picture.x = 9;
+    hull.mounts[0]!.x = 9;
     assert.equal(hullDef("PLAYER_SHIP_HARD")?.picture?.x, 1);
+    assert.equal(hullDef("PLAYER_SHIP_HARD")?.mounts?.[0]?.x, 7);
     const again = hullDef("PLAYER_SHIP_HARD");
     assert.ok(again);
     const stamped: HullDef = { ...again, picture: { ...again.picture!, x: 8 } };
@@ -88,3 +109,29 @@ describe("hull pictures", () => {
     assert.equal(stamped.picture?.x, 8);
   });
 });
+
+function xmlHasSlide(xml: string): boolean {
+  return xml.includes("slide=");
+}
+
+function bareHull(layout: string): HullDef {
+  return {
+    id: layout,
+    cruiser: "",
+    layout,
+    name: layout,
+    quote: "",
+    unlock: "",
+    source: "",
+    reactor: 0,
+    fuel: 0,
+    missiles: 0,
+    parts: 0,
+    systems: {},
+    weapons: [],
+    crew: [],
+    kits: {},
+    augments: [],
+    unfitted: [],
+  };
+}

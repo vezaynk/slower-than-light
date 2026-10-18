@@ -20,34 +20,34 @@ import { WEAPONS } from "./content.ts";
 
 const SQUARES: Record<string, number> = {
   // Traced cell counts from the hangar pictures. The cruiser pages do not state these.
-  "PLAYER_SHIP_HARD": 48,
-  "PLAYER_SHIP_HARD_2": 42,
-  "PLAYER_SHIP_HARD_3": 46,
-  "PLAYER_SHIP_CIRCLE": 42,
-  "PLAYER_SHIP_CIRCLE_2": 32,
-  "PLAYER_SHIP_CIRCLE_3": 40,
-  "PLAYER_SHIP_FED": 46,
-  "PLAYER_SHIP_FED_2": 44,
-  "PLAYER_SHIP_FED_3": 46,
-  "PLAYER_SHIP_ENERGY": 46,
-  "PLAYER_SHIP_ENERGY_2": 40,
-  "PLAYER_SHIP_ENERGY_3": 46,
-  "PLAYER_SHIP_JELLY": 40,
-  "PLAYER_SHIP_JELLY_2": 54,
-  "PLAYER_SHIP_JELLY_3": 42,
-  "PLAYER_SHIP_ROCK": 48,
-  "PLAYER_SHIP_ROCK_2": 44,
-  "PLAYER_SHIP_ROCK_3": 40,
-  "PLAYER_SHIP_STEALTH": 40,
-  "PLAYER_SHIP_STEALTH_2": 38,
-  "PLAYER_SHIP_STEALTH_3": 40,
-  "PLAYER_SHIP_ANAEROBIC": 42,
-  "PLAYER_SHIP_ANAEROBIC_2": 50,
-  "PLAYER_SHIP_MANTIS": 54,
-  "PLAYER_SHIP_MANTIS_2": 46,
-  "PLAYER_SHIP_MANTIS_3": 56,
-  "PLAYER_SHIP_CRYSTAL": 54,
-  "PLAYER_SHIP_CRYSTAL_2": 46,
+  PLAYER_SHIP_HARD: 48,
+  PLAYER_SHIP_HARD_2: 42,
+  PLAYER_SHIP_HARD_3: 46,
+  PLAYER_SHIP_CIRCLE: 42,
+  PLAYER_SHIP_CIRCLE_2: 32,
+  PLAYER_SHIP_CIRCLE_3: 40,
+  PLAYER_SHIP_FED: 46,
+  PLAYER_SHIP_FED_2: 44,
+  PLAYER_SHIP_FED_3: 46,
+  PLAYER_SHIP_ENERGY: 46,
+  PLAYER_SHIP_ENERGY_2: 40,
+  PLAYER_SHIP_ENERGY_3: 46,
+  PLAYER_SHIP_JELLY: 40,
+  PLAYER_SHIP_JELLY_2: 54,
+  PLAYER_SHIP_JELLY_3: 42,
+  PLAYER_SHIP_ROCK: 48,
+  PLAYER_SHIP_ROCK_2: 44,
+  PLAYER_SHIP_ROCK_3: 40,
+  PLAYER_SHIP_STEALTH: 40,
+  PLAYER_SHIP_STEALTH_2: 38,
+  PLAYER_SHIP_STEALTH_3: 40,
+  PLAYER_SHIP_ANAEROBIC: 42,
+  PLAYER_SHIP_ANAEROBIC_2: 50,
+  PLAYER_SHIP_MANTIS: 54,
+  PLAYER_SHIP_MANTIS_2: 46,
+  PLAYER_SHIP_MANTIS_3: 56,
+  PLAYER_SHIP_CRYSTAL: 54,
+  PLAYER_SHIP_CRYSTAL_2: 46,
 };
 
 describe("hangar hulls", () => {
@@ -94,7 +94,10 @@ describe("hangar hulls", () => {
     assert.equal(b.unfitted.includes("Anti-Personnel Drone"), true);
     assert.equal(b.unfitted.includes("System Repair Drone (second)"), false);
     assert.deepEqual(b.kits.drones?.loadout, ["REPAIR", "REPAIR"]);
-    assert.deepEqual(createGame(1, "PLAYER_SHIP_CIRCLE_2").player.kits.drones?.loadout, ["REPAIR", "REPAIR"]);
+    assert.deepEqual(createGame(1, "PLAYER_SHIP_CIRCLE_2").player.kits.drones?.loadout, [
+      "REPAIR",
+      "REPAIR",
+    ]);
     assert.deepEqual(c.augments, ["DEFENSE_SCRAMBLER"]);
     assert.deepEqual(c.unfitted, []);
     assert.deepEqual(createGame(1, "PLAYER_SHIP_CIRCLE_2").augments, ["DRONE_SPEED"]);
@@ -199,13 +202,17 @@ describe("hangar hulls", () => {
         assert.ok(a.x + a.w <= layout.cols && a.y + a.h <= layout.rows, id + a.id);
         for (let j = i + 1; j < layout.rooms.length; j++) {
           const b = layout.rooms[j];
-          const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+          const apart =
+            a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
           assert.ok(apart, `${id} ${a.id} overlaps ${b.id}`);
         }
       }
       const g = createGame(1, id);
       for (const seat of HULLS.find((h) => h.id === id)?.crew ?? []) {
-        assert.ok(g.player.rooms.some((r) => r.id === seat.room), `${id} ${seat.room}`);
+        assert.ok(
+          g.player.rooms.some((r) => r.id === seat.room),
+          `${id} ${seat.room}`,
+        );
       }
     }
   });
@@ -227,7 +234,7 @@ describe("hangar hulls", () => {
         const [dx, dy] = step[mark.side];
         const other = at.get(`${mark.x + dx},${mark.y + dy}`);
         const door = g.player.doors.find((d) => {
-          if (!other) return d.b === "void" && (d.a === idHere);
+          if (!other) return d.b === "void" && d.a === idHere;
           return (d.a === idHere && d.b === other) || (d.b === idHere && d.a === other);
         });
         assert.ok(door, `${id} missing door ${mark.x},${mark.y} ${mark.side}`);

@@ -21,12 +21,7 @@
     },
     "@stl/totallynotftl#test": {
       "dependsOn": ["^typecheck"],
-      "inputs": [
-        "package.json",
-        "src/**",
-        "totallynotftl.xml",
-        "totallynotftl.dat"
-      ]
+      "inputs": ["package.json", "src/**", "totallynotftl.xml", "totallynotftl.dat"]
     },
     "@stl/campaign#test": {
       "dependsOn": ["^typecheck"],

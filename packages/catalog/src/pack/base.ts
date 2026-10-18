@@ -33,6 +33,7 @@ import {
   type FlagshipDifficulty,
 } from "../flagship-layouts.ts";
 import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
+import { mountsFor } from "../weapon-mounts.ts";
 import { gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
   AugmentDef,
@@ -404,6 +405,8 @@ function paintHull(row: HullDef, stem: string | undefined): HullDef {
   row.img = stem;
   const picture = row.grid ? pictureForRooms(row.grid.rooms) : undefined;
   if (picture) row.picture = picture;
+  const mounts = mountsFor(stem);
+  if (mounts) row.mounts = mounts.map((mount) => ({ ...mount }));
   return row;
 }
 

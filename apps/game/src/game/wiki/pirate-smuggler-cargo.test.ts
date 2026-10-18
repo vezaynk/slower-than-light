@@ -12,13 +12,19 @@ import { pageWin } from "./quests.ts";
 function held(g: Game, kind: "weapon" | "drone"): number {
   const queued = (g.overflow ?? []).filter((x) => x.kind === kind).length;
   if (kind === "drone") return heldSchematics(g).length + queued;
-  return g.player.weapons.length + (g.cargo ?? []).filter((x) => x.kind === "weapon").length + queued;
+  return (
+    g.player.weapons.length + (g.cargo ?? []).filter((x) => x.kind === "weapon").length + queued
+  );
 }
 
 /** The rows whose sentence hands over a weapon / a drone schematic. */
 function gives(text: string, kind: "weapon" | "drone"): number {
   if (kind === "drone") return /military-grade Drone Schematics/.test(text) ? 1 : 0;
-  return /new military-grade weaponry|You find a piece still intact|You find military-grade weaponry/.test(text) ? 1 : 0;
+  return /new military-grade weaponry|You find a piece still intact|You find military-grade weaponry/.test(
+    text,
+  )
+    ? 1
+    : 0;
 }
 
 function open(g: Game) {
@@ -34,7 +40,9 @@ function scraps(body: string): number[] {
 }
 
 function resourceLines(body: string): string[] {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body));
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  );
 }
 
 describe("Pirate smuggler cargo", () => {
@@ -64,7 +72,11 @@ describe("Pirate smuggler cargo", () => {
         assert.deepEqual(lines, ["Drone parts"]);
         assert.equal(g.player.parts, 1);
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
-      } else if (text.startsWith("You detect faint life") || text.startsWith("The ship appears to have been transporting prisoners") || text.startsWith("You search the remains of the ship")) {
+      } else if (
+        text.startsWith("You detect faint life") ||
+        text.startsWith("The ship appears to have been transporting prisoners") ||
+        text.startsWith("You search the remains of the ship")
+      ) {
         assert.equal(lines.length, 2, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
       } else if (text.startsWith("The ship was carrying military supplies")) {
@@ -82,7 +94,10 @@ describe("Pirate smuggler cargo", () => {
       }
     }
     assert.equal(seen.size, 11, [...seen].join(" | "));
-    assert.equal(randomTiers.has("low") && randomTiers.has("medium") && randomTiers.has("high"), true);
+    assert.equal(
+      randomTiers.has("low") && randomTiers.has("medium") && randomTiers.has("high"),
+      true,
+    );
   });
 
   it("a crew kill pays the printed cargo table and grants the unnamed weapon or schematic as a random one", () => {

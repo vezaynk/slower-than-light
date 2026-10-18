@@ -21,7 +21,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Crystal ship attacking Federation loyalists reward", () => {
@@ -45,7 +47,8 @@ describe("Crystal ship attacking Federation loyalists reward", () => {
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
     assert.equal(destroyed.augments.length, augments);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
     assert.ok(destroyed.event?.choices.some((c) => c.id === "q:crystal-loyalists:contact"));
 
@@ -54,7 +57,10 @@ describe("Crystal ship attacking Federation loyalists reward", () => {
     const killedCrew = killed.crew.filter((c) => c.side === "player").length;
     assert.equal(pageWin(killed, "crystal-ship-attacking-federation-loyalists", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(killedBody, /The crew of the enemy ship has been eliminated\. You scrap what you can/);
+    assert.match(
+      killedBody,
+      /The crew of the enemy ship has been eliminated\. You scrap what you can/,
+    );
     const high = scraps(killedBody);
     assert.equal(high.length, 1, killedBody);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, killedBody);

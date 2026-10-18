@@ -60,9 +60,21 @@ describe("cruiser layout pages", () => {
       layouts.find((item) => item.id === "PLAYER_SHIP_HARD")?.figureFile,
       "KestralASystems.png",
     );
-    assert.equal(layouts.find((item) => item.id === "PLAYER_SHIP_HARD_2")?.figureFile, "KestralB.png");
-    assert.equal(layouts.find((item) => item.id === "PLAYER_SHIP_ANAEROBIC_2")?.heading, "Layout B");
-    assert.equal(layouts.some((item) => item.id === "lanius-c"), false);
-    assert.equal(layouts.some((item) => item.id === "crystal-c"), false);
+    assert.equal(
+      layouts.find((item) => item.id === "PLAYER_SHIP_HARD_2")?.figureFile,
+      "KestralB.png",
+    );
+    assert.equal(
+      layouts.find((item) => item.id === "PLAYER_SHIP_ANAEROBIC_2")?.heading,
+      "Layout B",
+    );
+    assert.equal(
+      layouts.some((item) => item.id === "lanius-c"),
+      false,
+    );
+    assert.equal(
+      layouts.some((item) => item.id === "crystal-c"),
+      false,
+    );
   });
 });

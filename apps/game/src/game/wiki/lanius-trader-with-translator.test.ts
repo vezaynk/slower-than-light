@@ -35,7 +35,7 @@ function inBand(n: number, lo: number, hi: number) {
 }
 
 const HAIL =
-  "A Lanius merchant appears to have a significantly improved translator as you clearly understand their message. \"Metal content more than sufficient. Does your ship care to exchange resources for our excess metal?\"";
+  'A Lanius merchant appears to have a significantly improved translator as you clearly understand their message. "Metal content more than sufficient. Does your ship care to exchange resources for our excess metal?"';
 
 describe("Lanius trader with translator", () => {
   it("shows the printed hail, then one base offer, and agreeing pays those amounts", () => {
@@ -86,7 +86,10 @@ describe("Lanius trader with translator", () => {
     assert.equal(choiceDisabled(poor, "q:lanius-translator:buy"), "Need 40 scrap");
     choose(poor, "q:lanius-translator:buy");
     assert.equal(poor.scrap, 10);
-    assert.equal(poor.crew.some((c) => c.name === "Translator"), false);
+    assert.equal(
+      poor.crew.some((c) => c.name === "Translator"),
+      false,
+    );
 
     const g = createGame(2);
     open(g);
@@ -112,7 +115,10 @@ describe("Lanius trader with translator", () => {
     assert.match(again.event?.body ?? "", /translation device has not yet been perfected/);
     assert.match(again.event?.body ?? "", /Nothing happens/);
     assert.equal(again.scrap, 40);
-    assert.equal(again.crew.some((c) => c.name === "Translator"), false);
+    assert.equal(
+      again.crew.some((c) => c.name === "Translator"),
+      false,
+    );
   });
 
   it("a full crew still hires, and someone already aboard is relieved", () => {

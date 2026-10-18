@@ -97,10 +97,7 @@ const pack: ContentPack = {
     rewards: [
       {
         name: "standard",
-        resources: [
-          { name: "scrap" },
-          { name: "fuel", level: "LOW" },
-        ],
+        resources: [{ name: "scrap" }, { name: "fuel", level: "LOW" }],
         minResources: 2,
         maxResources: 2,
         bonus: { roll: 100, chance: 3 },
@@ -877,7 +874,10 @@ describe("pack document", () => {
       <emptyBeacon name="kept" nebula="true"><title>Kept</title><sector>Ember</sector><text>Still.</text></emptyBeacon>
     </FTL>`);
     assert.deepEqual(back.lists, [{ id: "ember", entries: [{ id: "kept", unique: false }] }]);
-    assert.equal(back.events?.some((row) => row.id === "kept"), false);
+    assert.equal(
+      back.events?.some((row) => row.id === "kept"),
+      false,
+    );
     assert.deepEqual(back.empties, [
       { id: "kept", dest: "Kept", sectors: ["Ember"], texts: ["Still."], nebula: true },
     ]);

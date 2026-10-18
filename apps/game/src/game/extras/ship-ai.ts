@@ -26,14 +26,23 @@ import { interruptVeil } from "./veil.ts";
 
 type Slot = { kind: "sys"; id: SysId; box: SystemState } | { kind: "kit"; id: KitId; box: Kit };
 
-const POWERED_KITS: readonly KitId[] = ["teleporter", "clonebay", "drones", "cloaking", "artillery", "mind", "hacking"];
+const POWERED_KITS: readonly KitId[] = [
+  "teleporter",
+  "clonebay",
+  "drones",
+  "cloaking",
+  "artillery",
+  "mind",
+  "hacking",
+];
 
 /**
  * Bars reactor power may fill: the undamaged level less the bars Zoltans in the room supply (Zoltans: one bar per
  * Zoltan; sim.ts zoltanBars for systems, the kit.zoltan stamp for subsystems).
  */
 function capacity(g: Game, ship: Ship, slot: Slot): number {
-  const zoltan = slot.kind === "sys" ? zoltanBars(g.crew, ship, "enemy", slot.id) : (slot.box.zoltan ?? 0);
+  const zoltan =
+    slot.kind === "sys" ? zoltanBars(g.crew, ship, "enemy", slot.id) : (slot.box.zoltan ?? 0);
   return Math.max(0, slot.box.level - (slot.box.damage ?? 0) - zoltan);
 }
 
@@ -149,7 +158,20 @@ export function checkEnemyPower(g: Game): void {
 
   // "Finally ... add as much power to it as possible". INFERRED: weapons stop at the first pick that does not fit, as the
   // same longest-charging pick is made again.
-  for (const id of ["shields", "engines", "oxygen", "weapons", "drones", "medbay", "teleporter", "cloaking", "artillery", "clonebay", "mind", "hacking"] as const) {
+  for (const id of [
+    "shields",
+    "engines",
+    "oxygen",
+    "weapons",
+    "drones",
+    "medbay",
+    "teleporter",
+    "cloaking",
+    "artillery",
+    "clonebay",
+    "mind",
+    "hacking",
+  ] as const) {
     if (id === "weapons") {
       while (addWeapon());
       continue;

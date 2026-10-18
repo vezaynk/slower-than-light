@@ -5,11 +5,11 @@ import type { Game } from "../types.ts";
 import { ACCEPT_ID, REFUSE_ID, surrenderPlan } from "./surrender.ts";
 
 const HAILS = [
-  "\"We yield, aliens. We have no wish to die fighting you.\"",
-  "\"You have bested us! I will no longer underestimate you Outsiders. Please, let us leave in peace.\"",
+  '"We yield, aliens. We have no wish to die fighting you."',
+  '"You have bested us! I will no longer underestimate you Outsiders. Please, let us leave in peace."',
   "They appear to be transmitting the universal signals for surrender. Will you let them go?",
-  "They message you, \"I see now there was a misunderstanding and there is no need for more bloodshed. Will you forgive our lack of discretion?\"",
-  "\"We cannot beat you, we surrender. Surely there is mercy wherever you come from.\"",
+  'They message you, "I see now there was a misunderstanding and there is no need for more bloodshed. Will you forgive our lack of discretion?"',
+  '"We cannot beat you, we surrender. Surely there is mercy wherever you come from."',
 ];
 
 function quiet(seed: number): Game {
@@ -32,8 +32,14 @@ function offer(g: Game) {
 
 describe("Crystal fight surrender", () => {
   it("offers at 40 percent between 30 and 40 hull", () => {
-    const low = surrenderPlan({ tier: "pool", faction: "crystal", event: "crystal-fight" }, () => 0);
-    const high = surrenderPlan({ tier: "pool", faction: "crystal", event: "crystal-fight" }, () => 1);
+    const low = surrenderPlan(
+      { tier: "pool", faction: "crystal", event: "crystal-fight" },
+      () => 0,
+    );
+    const high = surrenderPlan(
+      { tier: "pool", faction: "crystal", event: "crystal-fight" },
+      () => 1,
+    );
     assert.equal(low.chance, 40);
     assert.equal(low.threshold, 30);
     assert.equal(high.chance, 40);
@@ -119,7 +125,11 @@ describe("Crystal fight surrender", () => {
           assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
         }
         assert.equal(g.enemy, null);
-      } else if (/transfer some goods/.test(body) || /knack for warfare/.test(body) || /xenophobia/.test(body)) {
+      } else if (
+        /transfer some goods/.test(body) ||
+        /knack for warfare/.test(body) ||
+        /xenophobia/.test(body)
+      ) {
         seen.add("goods");
         assert.ok(g.scrap > 10);
         assert.equal(g.enemy, null);

@@ -273,11 +273,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
         ) : null}
         <div className="hangar-bars">
           {(bay?.systems ?? []).map((system) => (
-            <span
-              key={system.id}
-              className="hangar-bar"
-              title={`${system.name} (${system.level})`}
-            >
+            <span key={system.id} className="hangar-bar" title={`${system.name} (${system.level})`}>
               <SysMark icon={system.icon} />
               <span className="hangar-pips">
                 {Array.from({ length: system.level }, (_, index) => (
@@ -429,7 +425,11 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
               {weapons.map((weapon, index) => {
                 const power = weaponPower(weapon.id);
                 return (
-                  <article key={`${weapon.id}-${index}`} className="hangar-slot" title={weapon.name}>
+                  <article
+                    key={`${weapon.id}-${index}`}
+                    className="hangar-slot"
+                    title={weapon.name}
+                  >
                     {power != null && power > 0 ? (
                       <span className="hangar-power" aria-hidden="true">
                         {Array.from({ length: power }, (_, pip) => (

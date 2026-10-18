@@ -80,7 +80,9 @@ describe("mind", () => {
     // Mind Control, Overview: duration follows the powered level, so both bars are on.
     pushKit(mid, 2, 2);
     see(mid);
-    const gunner = mid.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-weapons");
+    const gunner = mid.crew.find(
+      (c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-weapons",
+    );
     assert.ok(gunner);
     startLeash(mid, gunner.id);
     assert.equal(gunner.leashed, 20);
@@ -107,7 +109,9 @@ describe("mind", () => {
     startCombat(g, "Rebel ship");
     pushKit(g, 3, 1);
     see(g);
-    const gunner = g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-weapons");
+    const gunner = g.crew.find(
+      (c) => c.side === "enemy" && c.aboard === "enemy" && c.room === "e-weapons",
+    );
     assert.ok(gunner);
     startLeash(g, gunner.id);
     assert.equal(gunner.leashed, 14);
@@ -232,7 +236,9 @@ describe("mind", () => {
     assert.equal(evasionPercent(g, g.enemy, "enemy"), 0);
     const pilot = enemyPilot(g);
     assert.ok(pilot);
-    const other = g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room !== pilot.room);
+    const other = g.crew.find(
+      (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room !== pilot.room,
+    );
     assert.ok(other);
     applyImpact(g, roomBomb(other.room));
     startLeash(g, pilot.id);
@@ -242,7 +248,16 @@ describe("mind", () => {
     startLeash(g, pilot.id);
     assert.equal(pilot.leashed, undefined);
     applyImpact(g, roomBomb(pilot.room));
-    g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     startLeash(g, pilot.id);
     assert.equal(pilot.leashed, 14);
     kit.on = false;
@@ -270,7 +285,9 @@ describe("mind", () => {
     assert.ok(g.enemy);
     forceEnemyEvade(g);
     assert.equal(evasionPercent(g, g.enemy, "enemy"), 100);
-    const crew = g.crew.find((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.kin !== "slug");
+    const crew = g.crew.find(
+      (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.kin !== "slug",
+    );
     assert.ok(crew);
     applyImpact(g, roomBomb(crew.room));
     startLeash(g, crew.id);
@@ -305,7 +322,16 @@ function forceEnemyEvade(g: Game) {
   hull.systems.engines.damage = 0;
   hull.systems.pilot.level = Math.max(1, hull.systems.pilot.level);
   hull.systems.pilot.damage = 0;
-  hull.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+  hull.kits.cloaking = {
+    id: "cloaking",
+    level: 1,
+    power: 1,
+    left: 5,
+    cool: 0,
+    target: null,
+    on: true,
+    aux: 0,
+  };
   const engines = hull.rooms.find((r) => r.system === "engines");
   const pilot = hull.rooms.find((r) => r.system === "pilot");
   const crew = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0);

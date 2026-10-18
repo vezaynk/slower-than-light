@@ -34,12 +34,23 @@ export function missVelocity(
 }
 
 /** True once `p` is `margin` pixels outside `bounds`. */
-export function leftCamera(p: Pt, bounds: { x: number; y: number; w: number; h: number }, margin: number): boolean {
-  return p.x < bounds.x - margin || p.y < bounds.y - margin || p.x > bounds.x + bounds.w + margin || p.y > bounds.y + bounds.h + margin;
+export function leftCamera(
+  p: Pt,
+  bounds: { x: number; y: number; w: number; h: number },
+  margin: number,
+): boolean {
+  return (
+    p.x < bounds.x - margin ||
+    p.y < bounds.y - margin ||
+    p.x > bounds.x + bounds.w + margin ||
+    p.y > bounds.y + bounds.h + margin
+  );
 }
 
 /** Lasers, ions, missiles, flak, and rocks travel. Beams never miss. Bombs appear on the room. */
-export function shotFliesPast(kind: "laser" | "missile" | "ion" | "beam" | "flak" | "bomb"): boolean {
+export function shotFliesPast(
+  kind: "laser" | "missile" | "ion" | "beam" | "flak" | "bomb",
+): boolean {
   return kind !== "bomb" && kind !== "beam";
 }
 

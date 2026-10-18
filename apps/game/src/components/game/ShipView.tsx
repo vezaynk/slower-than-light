@@ -22,14 +22,18 @@ import {
   stationSide,
 } from "@/game/crew-spots";
 import { cellOccupied, roomClip } from "@/game/layouts";
+import { gunHeight, mountImage, mountPose } from "@/game/mount-place";
+import "@/game/pack/base";
 import { powerMask, weaponAccentHot, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
+import { hullDef, ROOM_PX, type HullMount, type HullPicture } from "@stl/pack";
 import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import { RoomProp, RoomSeat, WallTerminal } from "./RoomConsole";
 import { DoorLayer, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
+import { gridPitch } from "./grid-pitch";
 import { HullSkin } from "./HullPicture";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { PixelIcon } from "./PixelIcon";
@@ -226,7 +230,15 @@ function CrewToken({
  * half that faces the other ship. In the target preview every enemy gun sits on the top
  * edge and points up. CombatFx reads data-mount to launch shots from the muzzle.
  */
-function Mounts({ ship, crew, aboard }: { ship: Ship; crew: Crew[]; aboard: "player" | "enemy" }) {
+function EdgeMounts({
+  ship,
+  crew,
+  aboard,
+}: {
+  ship: Ship;
+  crew: Crew[];
+  aboard: "player" | "enemy";
+}) {
   const mask = powerMask(ship, zoltanBars(crew, ship, aboard, "weapons"));
   const foe = aboard === "enemy";
   const perEdge = Math.max(1, foe ? ship.weapons.length : Math.ceil(ship.weapons.length / 2));
@@ -253,6 +265,162 @@ function Mounts({ ship, crew, aboard }: { ship: Ship; crew: Crew[]; aboard: "pla
       })}
     </>
   );
+}
+
+type DrawnGun = {
+  uid: string;
+  defId: string;
+  mount: HullMount;
+  powered: boolean;
+  ready: boolean;
+};
+
+/**
+ * Weapons fill hardpoints in file order. The artillery beam, when this hull has one,
+ * uses the hardpoint after the weapon slots. Extra hardpoints stay empty.
+ */
+function drawnGuns(
+  ship: Ship,
+  crew: Crew[],
+  aboard: "player" | "enemy",
+  mounts: readonly HullMount[],
+  slots: number | undefined,
+): DrawnGun[] {
+  const mask = powerMask(ship, zoltanBars(crew, ship, aboard, "weapons"));
+  const artillery = ship.kits.artillery;
+  const artilleryAt = artillery?.weapon && slots != null && mounts[slots] ? slots : -1;
+  const guns: DrawnGun[] = [];
+  for (let i = 0; i < ship.weapons.length && i < mounts.length; i += 1) {
+    if (i === artilleryAt) continue;
+    const w = ship.weapons[i]!;
+    const powered = mask[i] ?? false;
+    guns.push({
+      uid: w.uid,
+      defId: w.defId,
+      mount: mounts[i]!,
+      powered,
+      ready: powered && weaponAccentHot(w),
+    });
+  }
+  if (artilleryAt >= 0 && artillery?.weapon) {
+    const powered = artillery.power + (artillery.zoltan ?? 0) > 0;
+    guns.push({
+      uid: "artillery",
+      defId: artillery.weapon,
+      mount: mounts[artilleryAt]!,
+      powered,
+      ready: false,
+    });
+  }
+  return guns;
+}
+
+/**
+ * Archive hardpoints. The mount pixel is the rear corner of the gun on the ship image.
+ * A hull with no hardpoints keeps the edge layout.
+ */
+function Hardpoints({
+  ship,
+  crew,
+  aboard,
+  image,
+  mounts,
+  slots,
+  offsetX,
+  offsetY,
+}: {
+  ship: Ship;
+  crew: Crew[];
+  aboard: "player" | "enemy";
+  image: HullPicture;
+  mounts: readonly HullMount[];
+  slots: number | undefined;
+  offsetX: number;
+  offsetY: number;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [pitch, setPitch] = useState<{
+    padL: number;
+    padT: number;
+    pitchX: number;
+    pitchY: number;
+  } | null>(null);
+  useLayoutEffect(() => {
+    const el = ref.current?.parentElement;
+    if (!el) return;
+    const read = () => {
+      const next = gridPitch(el, ship.cols, ship.rows);
+      setPitch(next ?? null);
+    };
+    read();
+    const obs = new ResizeObserver(read);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [ship.cols, ship.rows]);
+  const guns = drawnGuns(ship, crew, aboard, mounts, slots);
+  const height = pitch ? gunHeight(pitch.pitchX) : 0;
+  return (
+    <span ref={ref} className="mount-layer">
+      {pitch
+        ? guns.map((gun) => {
+            const pose = mountPose(image, gun.mount, gun.powered, { x: offsetX, y: offsetY });
+            const scaleX = pitch.pitchX / ROOM_PX;
+            const scaleY = pitch.pitchY / ROOM_PX;
+            return (
+              <span
+                key={gun.uid}
+                className={`mount is-hardpoint${gun.powered ? "" : " is-cold"}${gun.ready ? " is-ready" : ""}`}
+                style={{ left: pitch.padL + pose.x * scaleX, top: pitch.padT + pose.y * scaleY }}
+                data-mount={gun.uid}
+                data-def={gun.defId}
+                aria-hidden="true"
+              >
+                <span
+                  className="mount-turn"
+                  style={{ transform: `rotate(${pose.turn}deg) scaleY(${pose.flip ? -1 : 1})` }}
+                >
+                  <span className="mount-gun" style={{ height, width: (height * 26) / 14 }}>
+                    <WeaponArt id={gun.defId} height={height} />
+                    <i data-muzzle="" />
+                  </span>
+                </span>
+              </span>
+            );
+          })
+        : null}
+    </span>
+  );
+}
+
+function Mounts({
+  ship,
+  crew,
+  aboard,
+  plateId,
+}: {
+  ship: Ship;
+  crew: Crew[];
+  aboard: "player" | "enemy";
+  plateId?: string;
+}) {
+  const hull = hullDef(plateId);
+  const mounts = hull?.mounts;
+  const image = hull ? mountImage(hull.layout, hull.picture, hull.grid?.rooms) : undefined;
+  if (image && mounts && mounts.length > 0) {
+    return (
+      <Hardpoints
+        ship={ship}
+        crew={crew}
+        aboard={aboard}
+        image={image}
+        mounts={mounts}
+        slots={hull?.weaponSlots}
+        offsetX={hull?.grid?.x ?? 0}
+        offsetY={hull?.grid?.y ?? 0}
+      />
+    );
+  }
+  return <EdgeMounts ship={ship} crew={crew} aboard={aboard} />;
 }
 
 type Props = {
@@ -840,7 +1008,7 @@ export function ShipView({
         onToggle={onDoor}
         doorsDead={doorsDead}
       />
-      <Mounts ship={ship} crew={crew} aboard={aboard} />
+      <Mounts ship={ship} crew={crew} aboard={aboard} plateId={plateId} />
       {showCrew ? (
         <div className="crew-walkers" ref={layerRef}>
           {/* Per the user: a green pulse on the floor tile under each crew member the Medbay is healing. INVENTED look. */}

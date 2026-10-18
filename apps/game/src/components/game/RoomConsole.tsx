@@ -40,9 +40,21 @@ const SEAT = [
 
 export function RoomSeat() {
   return (
-    <svg className="room-seat-art" viewBox="0 0 16 16" shapeRendering="crispEdges" aria-hidden="true">
+    <svg
+      className="room-seat-art"
+      viewBox="0 0 16 16"
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+    >
       {pixelRuns(SEAT).map((r) => (
-        <rect key={`${r.y}-${r.x}`} className={INK[r.c] ?? "ink-casing"} x={r.x} y={r.y} width={r.w} height={1} />
+        <rect
+          key={`${r.y}-${r.x}`}
+          className={INK[r.c] ?? "ink-casing"}
+          x={r.x}
+          y={r.y}
+          width={r.w}
+          height={1}
+        />
       ))}
     </svg>
   );
@@ -93,9 +105,22 @@ const PROP: Record<"medbay" | "clonebay", string[]> = {
 
 export function RoomProp({ kind }: { kind: "medbay" | "clonebay" }) {
   return (
-    <svg className="room-prop-art" data-kind={kind} viewBox="0 0 16 16" shapeRendering="crispEdges" aria-hidden="true">
+    <svg
+      className="room-prop-art"
+      data-kind={kind}
+      viewBox="0 0 16 16"
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+    >
       {pixelRuns(PROP[kind]).map((r) => (
-        <rect key={`${r.y}-${r.x}`} className={INK[r.c] ?? "ink-casing"} x={r.x} y={r.y} width={r.w} height={1} />
+        <rect
+          key={`${r.y}-${r.x}`}
+          className={INK[r.c] ?? "ink-casing"}
+          x={r.x}
+          y={r.y}
+          width={r.w}
+          height={1}
+        />
       ))}
     </svg>
   );
@@ -109,7 +134,12 @@ export function RoomProp({ kind }: { kind: "medbay" | "clonebay" }) {
  */
 export function WallTerminal({ kind, on }: { kind: string; on: boolean }) {
   return (
-    <svg className={"room-terminal-art" + (on ? " is-on" : "")} data-kind={kind} viewBox="0 0 16 16" aria-hidden="true">
+    <svg
+      className={"room-terminal-art" + (on ? " is-on" : "")}
+      data-kind={kind}
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+    >
       <rect className="t-mount" x={15.2} y={4.4} width={2} height={7.2} />
       <rect className="t-mount-bolt" x={15.6} y={5} width={0.6} height={0.6} />
       <rect className="t-mount-bolt" x={15.6} y={10.4} width={0.6} height={0.6} />
@@ -129,7 +159,14 @@ function Readout({ kind }: { kind: string }) {
       return (
         <g className="t-readout">
           {[0, 1, 2].map((i) => (
-            <circle key={i} className="t-ring" cx={10.9} cy={8} r={1.6} style={{ animationDelay: `${i * 0.6}s` }} />
+            <circle
+              key={i}
+              className="t-ring"
+              cx={10.9}
+              cy={8}
+              r={1.6}
+              style={{ animationDelay: `${i * 0.6}s` }}
+            />
           ))}
           <circle className="t-core" cx={10.9} cy={8} r={0.6} />
         </g>
@@ -138,7 +175,15 @@ function Readout({ kind }: { kind: string }) {
       return (
         <g className="t-readout">
           {[0, 1, 2, 3].map((i) => (
-            <rect key={i} className="t-bar" x={9.1 + i * 1} y={6} width={0.7} height={6} style={{ animationDelay: `${i * -0.37}s` }} />
+            <rect
+              key={i}
+              className="t-bar"
+              x={9.1 + i * 1}
+              y={6}
+              width={0.7}
+              height={6}
+              style={{ animationDelay: `${i * -0.37}s` }}
+            />
           ))}
         </g>
       );
@@ -162,7 +207,15 @@ function Readout({ kind }: { kind: string }) {
             [12.4, -1.6],
             [9.8, -2.2],
           ].map(([x, d], i) => (
-            <rect key={i} className="t-star" x={x} y={3.6} width={0.4} height={0.8} style={{ animationDelay: `${d}s` }} />
+            <rect
+              key={i}
+              className="t-star"
+              x={x}
+              y={3.6}
+              width={0.4}
+              height={0.8}
+              style={{ animationDelay: `${d}s` }}
+            />
           ))}
           <path className="t-craft" d="M10.9 9.6 L11.9 11.6 L10.9 11.1 L9.9 11.6 Z" />
         </g>

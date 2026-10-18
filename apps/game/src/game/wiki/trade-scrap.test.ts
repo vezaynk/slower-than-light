@@ -104,7 +104,8 @@ describe("Trade scrap for upgrades", () => {
 
   it("offers nothing when every printed specialty is closed", () => {
     const g = quiet(3);
-    for (const id of ["oxygen", "pilot", "doors", "sensors"] as SysId[]) g.player.systems[id].level = 0;
+    for (const id of ["oxygen", "pilot", "doors", "sensors"] as SysId[])
+      g.player.systems[id].level = 0;
     fillerChoose(g, INQUIRE);
     assert.equal(agree(g), null);
     assert.match(g.event?.body ?? "", /prepare to move on/);

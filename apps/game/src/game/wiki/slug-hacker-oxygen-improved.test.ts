@@ -61,7 +61,9 @@ describe("Slug hacker (oxygen) improved oxygen", () => {
       g.enemy.kits.hacking.power = 0;
     }
     // A room nobody breathes in (air.ts), so the change is the refill alone.
-    const room = g.player.rooms.find((r) => !g.crew.some((c) => c.aboard === "player" && c.hp > 0 && c.room === r.id));
+    const room = g.player.rooms.find(
+      (r) => !g.crew.some((c) => c.aboard === "player" && c.hp > 0 && c.room === r.id),
+    );
     assert.ok(room);
     const before = room.o2;
     step(g, 0.05);

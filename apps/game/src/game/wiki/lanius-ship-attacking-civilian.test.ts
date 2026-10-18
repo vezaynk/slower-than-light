@@ -7,7 +7,10 @@ import { pageWin } from "./quests.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
-  return g.player.weapons.length + [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+  return (
+    g.player.weapons.length +
+    [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length
+  );
 }
 
 function open(g: Game) {
@@ -26,7 +29,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Lanius ship attacking civilian", () => {
@@ -56,7 +61,10 @@ describe("Lanius ship attacking civilian", () => {
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-      assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),
+        true,
+      );
     }
   });
 

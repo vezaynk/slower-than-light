@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat, step } from "../sim.ts";
-import { deathAnimSeconds, enemyCloneHolds, enemyCloneQueue, onCradleDeath, tickCradle } from "./cradle.ts";
+import {
+  deathAnimSeconds,
+  enemyCloneHolds,
+  enemyCloneQueue,
+  onCradleDeath,
+  tickCradle,
+} from "./cradle.ts";
 import type { Crew, Game, Kit } from "../types.ts";
 
 /** First seed whose "Rebel ship" rolls a Clone Bay (enemy-gen.ts), so the room is the generated `e-clonebay`. */

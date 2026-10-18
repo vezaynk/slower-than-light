@@ -2,11 +2,16 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { rollEnemy, type PoolContext } from "../enemy-gen.ts";
 import { createGame, startCombat } from "../sim.ts";
+import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import { hullDef } from "@stl/pack";
 import { enemyLayout } from "./enemy-layouts.ts";
 import { ENEMY_CLASSES } from "./enemy-ships.ts";
 
-const ctx: PoolContext = { sector: 1, sectorName: "Civilian (Starting) Sector", difficulty: "normal" };
+const ctx: PoolContext = {
+  sector: 1,
+  sectorName: "Civilian (Starting) Sector",
+  difficulty: "normal",
+};
 
 function cls(id: string) {
   const found = ENEMY_CLASSES.find((row) => row.id === id);
@@ -19,17 +24,28 @@ function at<R extends { x: number; y: number }>(rooms: R[], x: number, y: number
 }
 
 describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
-  it("seats the Rebel Fighter icons: pilot at the nose, teleporter behind it, weapons and shields at the back", () => {
-    // Hard sector 8 fits every optional system (Medbay, Teleporter).
-    const spec = rollEnemy(cls("rebel-fighter"), false, { ...ctx, sector: 8, difficulty: "hard" }, () => 0.5);
+  it("reads the Rebel Fighter from REBEL_SKINNY, the interior the archive keeps for that id", () => {
+    // Hard sector 8 fits every optional system. Fighter and Invader share REBEL_SKINNY.
+    const spec = rollEnemy(
+      cls("rebel-fighter"),
+      false,
+      { ...ctx, sector: 8, difficulty: "hard" },
+      () => 0.5,
+    );
+    assert.equal(enemyBlueprintId("rebel-fighter"), "REBEL_SKINNY");
+    assert.equal(enemyBlueprintId("rebel-invader"), "REBEL_SKINNY");
+    assert.equal(hullDef("REBEL_SKINNY")?.layout, "rebel-invader");
+    assert.equal(hullDef("REBEL_SKINNY")?.health, undefined);
+    assert.equal(hullDef("rebel-fighter"), undefined);
+    assert.equal(hullDef("REBEL_SKINNY_DLC"), undefined);
     assert.equal(spec.cols, 5);
     assert.equal(spec.rows, 7);
     assert.equal(at(spec.rooms, 2, 0)?.id, "e-pilot");
-    assert.equal(at(spec.rooms, 1, 3)?.id, "e-medbay");
-    assert.equal(at(spec.rooms, 3, 3)?.id, "e-oxygen");
-    assert.equal(at(spec.rooms, 0, 5)?.id, "e-weapons");
+    assert.equal(at(spec.rooms, 1, 3)?.id, "e-oxygen");
+    assert.equal(at(spec.rooms, 3, 3)?.id, "e-medbay");
+    assert.equal(at(spec.rooms, 0, 5)?.id, "e-shields");
     assert.equal(at(spec.rooms, 2, 5)?.id, "e-engines");
-    assert.equal(at(spec.rooms, 3, 5)?.id, "e-shields");
+    assert.equal(at(spec.rooms, 3, 5)?.id, "e-weapons");
     assert.equal(at(spec.rooms, 2, 2)?.id, "e-teleporter");
     assert.equal(spec.marks?.length, 8);
     // An optional system that does not roll leaves its room empty.
@@ -59,8 +75,13 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
     assert.notDeepEqual(pirate, regular);
     assert.equal(pirate.rooms.length, 10);
     assert.equal(pirate.rooms.find((room) => room.system === "doors")?.x, 0);
-    assert.ok(hullDef("rebel-fighter:pirate"));
-    // A pirate with the same interior falls back to the regular one.
+    assert.equal(enemyBlueprintId("rebel-fighter", true), "REBEL_SKINNY_P");
+    assert.equal(hullDef("REBEL_SKINNY_P")?.layout, "rebel-fighter-pirate");
+    assert.equal(enemyBlueprintId("rebel-invader", true), "REBEL_SKINNY_P_DLC");
+    assert.equal(hullDef("REBEL_SKINNY_P_DLC")?.layout, "rebel-invader-pirate");
+    assert.equal(hullDef("rebel-fighter:pirate"), undefined);
+    // Federation pirates have no separate picture, so they copy the regular interior.
+    assert.equal(enemyBlueprintId("federation-scout", true), "FED_SCOUT_P");
     assert.equal(hullDef("federation-scout:pirate"), undefined);
     assert.deepEqual(enemyLayout("federation-scout", true), enemyLayout("federation-scout", false));
     const spec = rollEnemy(cls("rebel-fighter"), true, ctx, () => 0.99);
@@ -82,6 +103,11 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
   it("traces all 47 classes and gives every installed system its blueprint room", () => {
     for (const row of ENEMY_CLASSES) {
       for (const pirate of [false, true]) {
+        const id = enemyBlueprintId(row.id, pirate);
+        const hull = hullDef(id);
+        assert.ok(hull, id);
+        assert.equal(hull.health, undefined, id);
+        assert.equal(hullDef(row.id), undefined, row.id);
         const laid = enemyLayout(row.id, pirate);
         assert.ok(laid, row.id);
         const spec = rollEnemy(row, pirate, { ...ctx, sector: 8 }, () => 0);
@@ -89,13 +115,23 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
         assert.equal(new Set(ids).size, ids.length, row.id);
         // Every system has a pictured room: no generated extra rooms past the traced grid.
         assert.equal(spec.rooms.length, laid.rooms.length, `${row.id}${pirate ? " pirate" : ""}`);
-        for (const sys of Object.keys(spec.systems)) assert.ok(spec.rooms.some((room) => room.system === sys), `${row.id} ${sys}`);
-        for (const kit of Object.keys(spec.kits)) assert.ok(spec.rooms.some((room) => room.kit === kit), `${row.id} ${kit}`);
+        for (const sys of Object.keys(spec.systems))
+          assert.ok(
+            spec.rooms.some((room) => room.system === sys),
+            `${row.id} ${sys}`,
+          );
+        for (const kit of Object.keys(spec.kits))
+          assert.ok(
+            spec.rooms.some((room) => room.kit === kit),
+            `${row.id} ${kit}`,
+          );
         const floor = new Set<string>();
         for (const room of spec.rooms) {
-          for (let y = room.y; y < room.y + room.h; y++) for (let x = room.x; x < room.x + room.w; x++) floor.add(`${x},${y}`);
+          for (let y = room.y; y < room.y + room.h; y++)
+            for (let x = room.x; x < room.x + room.w; x++) floor.add(`${x},${y}`);
         }
-        for (const mark of spec.marks ?? []) assert.ok(floor.has(`${mark.x},${mark.y}`), `${row.id} ${mark.x},${mark.y},${mark.side}`);
+        for (const mark of spec.marks ?? [])
+          assert.ok(floor.has(`${mark.x},${mark.y}`), `${row.id} ${mark.x},${mark.y},${mark.side}`);
       }
     }
   });
@@ -108,7 +144,8 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
         if (pads < 0) continue;
         const cell = new Map<string, number>();
         laid.rooms.forEach((room, i) => {
-          for (let y = room.y; y < room.y + room.h; y++) for (let x = room.x; x < room.x + room.w; x++) cell.set(`${x},${y}`, i);
+          for (let y = room.y; y < room.y + room.h; y++)
+            for (let x = room.x; x < room.x + room.w; x++) cell.set(`${x},${y}`, i);
         });
         const step = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] } as const;
         const links = laid.rooms.map(() => new Set<number>());
@@ -130,7 +167,10 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
           }
         }
         const pilot = laid.rooms.findIndex((room) => room.system === "pilot");
-        assert.ok(seen.has(pilot), `${row.id}${pirate ? " pirate" : ""}: the teleporter is walled off`);
+        assert.ok(
+          seen.has(pilot),
+          `${row.id}${pirate ? " pirate" : ""}: the teleporter is walled off`,
+        );
       }
     }
   });

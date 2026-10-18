@@ -1,8 +1,9 @@
 /**
  * The loaded interior for an enemy class. Rectangles and doors come from data/<layout>.txt.
- * A pirate picture that differs is the ship "<class id>:pirate". Otherwise the regular ship is used.
+ * The hull id is the archive blueprint. A pirate fight reads its pirate blueprint.
  * seatTrace still names the rooms and decides which pictured icon is installed.
  */
+import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import { hullDef, marksFromDoors } from "@stl/pack";
 import type { DoorMark } from "../types.ts";
 import type { EnemySystem } from "./enemy-ships.ts";
@@ -23,7 +24,10 @@ export type EnemyLayout = {
   marks: DoorMark[];
 };
 
-function span(rooms: { x: number; y: number; w: number; h: number }[]): { cols: number; rows: number } {
+function span(rooms: { x: number; y: number; w: number; h: number }[]): {
+  cols: number;
+  rows: number;
+} {
   let cols = 1;
   let rows = 1;
   for (const room of rooms) {
@@ -33,9 +37,9 @@ function span(rooms: { x: number; y: number; w: number; h: number }[]): { cols: 
   return { cols, rows };
 }
 
-/** The traced interior for a class, the pirate one when it differs. */
+/** The traced interior for a class, the pirate blueprint when that ship has one. */
 export function enemyLayout(classId: string, pirate = false): EnemyLayout | undefined {
-  const hull = (pirate ? hullDef(`${classId}:pirate`) : undefined) ?? hullDef(classId);
+  const hull = hullDef(enemyBlueprintId(classId, pirate));
   const grid = hull?.grid;
   if (!grid || grid.rooms.length === 0) return undefined;
   if (grid.rooms.every((room) => room.w === 0 && room.h === 0)) return undefined;

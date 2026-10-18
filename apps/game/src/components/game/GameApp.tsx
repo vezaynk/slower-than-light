@@ -143,6 +143,7 @@ import {
 
 import { UNIFORMS } from "@/game/crew-look";
 import { enemySystemClock, ionClock, systemClock } from "@/game/system-clock";
+import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import { flagshipHullId } from "@/game/wiki/flagship-layout";
 import { artilleryGun, artilleryView } from "@/game/wiki/flagship-systems";
 import {
@@ -2102,7 +2103,11 @@ function TargetPanel({
             ship={enemy}
             healing={healingIds(game, enemy, "enemy")}
             plateId={
-              enemy.flagship ? flagshipHullId(enemy.flagship.stage, game.difficulty) : enemy.classId
+              enemy.flagship
+                ? flagshipHullId(enemy.flagship.stage, game.difficulty)
+                : enemy.classId
+                  ? enemyBlueprintId(enemy.classId, enemy.pirate)
+                  : enemy.classId
             }
             faction={enemy.flagship ? "rebel" : enemy.faction}
             pirate={enemy.pirate}

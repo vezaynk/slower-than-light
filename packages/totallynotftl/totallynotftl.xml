@@ -3904,81 +3904,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room name="p-pilot" title="Piloting"/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-fighter" layout="rebel-fighter" img="rebel-fighter">
+  <shipBlueprint name="REBEL_SKINNY" layout="rebel-invader" img="rebel-invader">
     <class/>
-    <title>rebel-fighter</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="teleporter" room="1" start="false"/>
-      <system name="medbay" room="2" start="false"/>
-      <system name="oxygen" room="3" start="false"/>
-      <system name="weapons" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-      <system name="shields" room="6" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="5" rows="7">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rebel-fighter:pirate" layout="rebel-fighter-pirate" img="rebel-fighter-pirate">
-    <class/>
-    <title>rebel-fighter:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="weapons" room="3" start="false"/>
-      <system name="shields" room="4" start="false"/>
-      <system name="doors" room="5" start="false"/>
-      <system name="engines" room="6" start="false"/>
-      <system name="teleporter" room="7" start="false"/>
-      <system name="medbay" room="8" start="false"/>
-      <system name="oxygen" room="9" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="8">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rebel-invader" layout="rebel-invader" img="rebel-invader">
-    <class/>
-    <title>rebel-invader</title>
+    <title>REBEL_SKINNY</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4010,119 +3938,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-invader:pirate" layout="rebel-invader-pirate" img="rebel-invader-pirate">
+  <shipBlueprint name="REBEL_FAT" layout="rebel-disruptor" img="rebel-disruptor">
     <class/>
-    <title>rebel-invader:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="weapons" room="1" start="false"/>
-      <system name="oxygen" room="2" start="false"/>
-      <system name="clonebay" room="3" start="false"/>
-      <system name="teleporter" room="4" start="false"/>
-      <system name="shields" room="5" start="false"/>
-      <system name="doors" room="6" start="false"/>
-      <system name="engines" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="8">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rebel-rigger" layout="rebel-rigger" img="rebel-rigger">
-    <class/>
-    <title>rebel-rigger</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="drones" room="1" start="false"/>
-      <system name="oxygen" room="2" start="false"/>
-      <system name="medbay" room="3" start="false"/>
-      <system name="shields" room="4" start="false"/>
-      <system name="doors" room="5" start="false"/>
-      <system name="weapons" room="6" start="false"/>
-      <system name="engines" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="6" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rebel-rigger:pirate" layout="rebel-rigger-pirate" img="rebel-rigger-pirate">
-    <class/>
-    <title>rebel-rigger:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="oxygen" room="1" start="false"/>
-      <system name="doors" room="2" start="false"/>
-      <system name="weapons" room="3" start="false"/>
-      <system name="drones" room="4" start="false"/>
-      <system name="medbay" room="5" start="false"/>
-      <system name="engines" room="6" start="false"/>
-      <system name="shields" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="6" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rebel-disruptor" layout="rebel-disruptor" img="rebel-disruptor">
-    <class/>
-    <title>rebel-disruptor</title>
+    <title>REBEL_FAT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4156,79 +3974,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rebel-disruptor:pirate" layout="rebel-disruptor-pirate" img="rebel-disruptor-pirate">
+  <shipBlueprint name="REBEL_SKINNY_ELITE" layout="elite-assault" img="elite-assault">
     <class/>
-    <title>rebel-disruptor:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="clonebay" room="1" start="false"/>
-      <system name="oxygen" room="2" start="false"/>
-      <system name="drones" room="3" start="false"/>
-      <system name="hacking" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-      <system name="shields" room="6" start="false"/>
-      <system name="weapons" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="6" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="elite-fighter" layout="elite-fighter" img="elite-fighter">
-    <class/>
-    <title>elite-fighter</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="teleporter" room="1" start="false"/>
-      <system name="medbay" room="2" start="false"/>
-      <system name="oxygen" room="3" start="false"/>
-      <system name="weapons" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-      <system name="shields" room="6" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="5" rows="7">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="elite-assault" layout="elite-assault" img="elite-assault">
-    <class/>
-    <title>elite-assault</title>
+    <title>REBEL_SKINNY_ELITE</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4260,39 +4008,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="auto-scout" layout="auto-scout" img="auto-scout">
+  <shipBlueprint name="AUTO_BASIC" layout="auto-surveyor" img="auto-surveyor">
     <class/>
-    <title>auto-scout</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="cloaking" room="0" start="false"/>
-      <system name="weapons" room="1" start="false"/>
-      <system name="engines" room="2" start="false"/>
-      <system name="pilot" room="3" start="false"/>
-      <system name="shields" room="4" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="3">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="auto-surveyor" layout="auto-surveyor" img="auto-surveyor">
-    <class/>
-    <title>auto-surveyor</title>
+    <title>AUTO_BASIC</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4320,39 +4038,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="auto-assault" layout="auto-assault" img="auto-assault">
+  <shipBlueprint name="AUTO_ASSAULT" layout="auto-hacker" img="auto-hacker">
     <class/>
-    <title>auto-assault</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="weapons" room="0" start="false"/>
-      <system name="pilot" room="1" start="false"/>
-      <system name="shields" room="2" start="false"/>
-      <system name="drones" room="3" start="false"/>
-      <system name="engines" room="4" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="3">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="auto-hacker" layout="auto-hacker" img="auto-hacker">
-    <class/>
-    <title>auto-hacker</title>
+    <title>AUTO_ASSAULT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4380,45 +4068,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="engi-scout" layout="engi-scout" img="engi-scout">
+  <shipBlueprint name="CIRCLE_SCOUT" layout="engi-outrider" img="engi-outrider">
     <class/>
-    <title>engi-scout</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="drones" room="0" start="false"/>
-      <system name="shields" room="1" start="false"/>
-      <system name="doors" room="2" start="false"/>
-      <system name="oxygen" room="3" start="false"/>
-      <system name="engines" room="4" start="false"/>
-      <system name="medbay" room="5" start="false"/>
-      <system name="weapons" room="6" start="false"/>
-      <system name="pilot" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="6" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="engi-outrider" layout="engi-outrider" img="engi-outrider">
-    <class/>
-    <title>engi-outrider</title>
+    <title>CIRCLE_SCOUT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4452,49 +4104,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="engi-bomber" layout="engi-bomber" img="engi-bomber">
+  <shipBlueprint name="CIRCLE_BOMBER" layout="engi-hacker" img="engi-hacker">
     <class/>
-    <title>engi-bomber</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="1" start="false"/>
-      <system name="doors" room="2" start="false"/>
-      <system name="oxygen" room="3" start="false"/>
-      <system name="weapons" room="4" start="false"/>
-      <system name="medbay" room="5" start="false"/>
-      <system name="drones" room="6" start="false"/>
-      <system name="engines" room="9" start="false"/>
-      <system name="shields" room="10" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="6" rows="7">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="engi-hacker" layout="engi-hacker" img="engi-hacker">
-    <class/>
-    <title>engi-hacker</title>
+    <title>CIRCLE_BOMBER</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4533,79 +4145,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-scout" layout="mantis-scout" img="mantis-scout">
+  <shipBlueprint name="MANTIS_SCOUT" layout="mantis-interceptor" img="mantis-interceptor">
     <class/>
-    <title>mantis-scout</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="shields" room="0" start="false"/>
-      <system name="engines" room="1" start="false"/>
-      <system name="pilot" room="2" start="false"/>
-      <system name="weapons" room="3" start="false"/>
-      <system name="oxygen" room="4" start="false"/>
-      <system name="doors" room="5" start="false"/>
-      <system name="medbay" room="6" start="false"/>
-      <system name="teleporter" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="8" rows="4">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="mantis-scout:pirate" layout="mantis-scout-pirate" img="mantis-scout-pirate">
-    <class/>
-    <title>mantis-scout:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="shields" room="0" start="false"/>
-      <system name="weapons" room="1" start="false"/>
-      <system name="engines" room="2" start="false"/>
-      <system name="medbay" room="3" start="false"/>
-      <system name="teleporter" room="4" start="false"/>
-      <system name="pilot" room="5" start="false"/>
-      <system name="oxygen" room="6" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="4">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="mantis-interceptor" layout="mantis-interceptor" img="mantis-interceptor">
-    <class/>
-    <title>mantis-interceptor</title>
+    <title>MANTIS_SCOUT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4639,117 +4181,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-interceptor:pirate" layout="mantis-interceptor-pirate" img="mantis-interceptor-pirate">
+  <shipBlueprint name="MANTIS_FIGHTER" layout="mantis-assault" img="mantis-assault">
     <class/>
-    <title>mantis-interceptor:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="engines" room="0" start="false"/>
-      <system name="clonebay" room="1" start="false"/>
-      <system name="weapons" room="2" start="false"/>
-      <system name="shields" room="3" start="false"/>
-      <system name="oxygen" room="4" start="false"/>
-      <system name="pilot" room="5" start="false"/>
-      <system name="teleporter" room="6" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="4">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="mantis-fighter" layout="mantis-fighter" img="mantis-fighter">
-    <class/>
-    <title>mantis-fighter</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="shields" room="1" start="false"/>
-      <system name="medbay" room="2" start="false"/>
-      <system name="engines" room="3" start="false"/>
-      <system name="weapons" room="5" start="false"/>
-      <system name="oxygen" room="6" start="false"/>
-      <system name="doors" room="7" start="false"/>
-      <system name="teleporter" room="9" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="8" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="mantis-fighter:pirate" layout="mantis-fighter-pirate" img="mantis-fighter-pirate">
-    <class/>
-    <title>mantis-fighter:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="oxygen" room="0" start="false"/>
-      <system name="doors" room="1" start="false"/>
-      <system name="medbay" room="2" start="false"/>
-      <system name="pilot" room="3" start="false"/>
-      <system name="teleporter" room="4" start="false"/>
-      <system name="weapons" room="5" start="false"/>
-      <system name="shields" room="6" start="false"/>
-      <system name="engines" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="mantis-assault" layout="mantis-assault" img="mantis-assault">
-    <class/>
-    <title>mantis-assault</title>
+    <title>MANTIS_FIGHTER</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4785,125 +4219,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-assault:pirate" layout="mantis-assault-pirate" img="mantis-assault-pirate">
+  <shipBlueprint name="MANTIS_BOMBER" layout="mantis-aggressor" img="mantis-aggressor">
     <class/>
-    <title>mantis-assault:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="teleporter" room="0" start="false"/>
-      <system name="oxygen" room="1" start="false"/>
-      <system name="shields" room="2" start="false"/>
-      <system name="pilot" room="3" start="false"/>
-      <system name="weapons" room="4" start="false"/>
-      <system name="clonebay" room="5" start="false"/>
-      <system name="doors" room="6" start="false"/>
-      <system name="engines" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="mantis-bomber" layout="mantis-bomber" img="mantis-bomber">
-    <class/>
-    <title>mantis-bomber</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="shields" room="0" start="false"/>
-      <system name="pilot" room="4" start="false"/>
-      <system name="teleporter" room="5" start="false"/>
-      <system name="doors" room="6" start="false"/>
-      <system name="oxygen" room="8" start="false"/>
-      <system name="medbay" room="9" start="false"/>
-      <system name="weapons" room="10" start="false"/>
-      <system name="engines" room="11" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="8" rows="9">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="mantis-bomber:pirate" layout="mantis-bomber-pirate" img="mantis-bomber-pirate">
-    <class/>
-    <title>mantis-bomber:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="oxygen" room="0" start="false"/>
-      <system name="pilot" room="5" start="false"/>
-      <system name="weapons" room="6" start="false"/>
-      <system name="shields" room="7" start="false"/>
-      <system name="doors" room="8" start="false"/>
-      <system name="teleporter" room="9" start="false"/>
-      <system name="engines" room="10" start="false"/>
-      <system name="medbay" room="11" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="8">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="mantis-aggressor" layout="mantis-aggressor" img="mantis-aggressor">
-    <class/>
-    <title>mantis-aggressor</title>
+    <title>MANTIS_BOMBER</title>
     <desc/>
     <unlock/>
     <source/>
@@ -4941,49 +4259,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="mantis-aggressor:pirate" layout="mantis-aggressor-pirate" img="mantis-aggressor-pirate">
+  <shipBlueprint name="JELLY_BUTTON" layout="slug-scout" img="slug-scout">
     <class/>
-    <title>mantis-aggressor:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="teleporter" room="3" start="false"/>
-      <system name="clonebay" room="4" start="false"/>
-      <system name="oxygen" room="5" start="false"/>
-      <system name="weapons" room="6" start="false"/>
-      <system name="shields" room="7" start="false"/>
-      <system name="doors" room="10" start="false"/>
-      <system name="engines" room="11" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="8">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="slug-interceptor" layout="slug-interceptor" img="slug-interceptor">
-    <class/>
-    <title>slug-interceptor</title>
+    <title>JELLY_BUTTON</title>
     <desc/>
     <unlock/>
     <source/>
@@ -5011,175 +4289,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-interceptor:pirate" layout="slug-interceptor-pirate" img="slug-interceptor-pirate">
+  <shipBlueprint name="JELLY_CROISSANT" layout="slug-light-surveyor" img="slug-light-surveyor">
     <class/>
-    <title>slug-interceptor:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="oxygen" room="1" start="false"/>
-      <system name="doors" room="2" start="false"/>
-      <system name="shields" room="3" start="false"/>
-      <system name="engines" room="4" start="false"/>
-      <system name="weapons" room="5" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="5" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="slug-scout" layout="slug-scout" img="slug-scout">
-    <class/>
-    <title>slug-scout</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="shields" room="1" start="false"/>
-      <system name="weapons" room="2" start="false"/>
-      <system name="oxygen" room="3" start="false"/>
-      <system name="engines" room="4" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="4">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="slug-scout:pirate" layout="slug-scout-pirate" img="slug-scout-pirate">
-    <class/>
-    <title>slug-scout:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="weapons" room="0" start="false"/>
-      <system name="oxygen" room="1" start="false"/>
-      <system name="mindcontrol" room="2" start="false"/>
-      <system name="engines" room="3" start="false"/>
-      <system name="pilot" room="4" start="false"/>
-      <system name="shields" room="5" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="5" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="slug-light-cruiser" layout="slug-light-cruiser" img="slug-light-cruiser">
-    <class/>
-    <title>slug-light-cruiser</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="weapons" room="1" start="false"/>
-      <system name="shields" room="3" start="false"/>
-      <system name="oxygen" room="4" start="false"/>
-      <system name="doors" room="5" start="false"/>
-      <system name="medbay" room="6" start="false"/>
-      <system name="engines" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="8" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="slug-light-cruiser:pirate" layout="slug-light-cruiser-pirate" img="slug-light-cruiser-pirate">
-    <class/>
-    <title>slug-light-cruiser:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="1" start="false"/>
-      <system name="shields" room="2" start="false"/>
-      <system name="weapons" room="3" start="false"/>
-      <system name="medbay" room="4" start="false"/>
-      <system name="doors" room="5" start="false"/>
-      <system name="oxygen" room="6" start="false"/>
-      <system name="cloaking" room="7" start="false"/>
-      <system name="engines" room="8" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="8" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="slug-light-surveyor" layout="slug-light-surveyor" img="slug-light-surveyor">
-    <class/>
-    <title>slug-light-surveyor</title>
+    <title>JELLY_CROISSANT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -5212,118 +4324,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-light-surveyor:pirate" layout="slug-light-surveyor-pirate" img="slug-light-surveyor-pirate">
+  <shipBlueprint name="JELLY_TRUFFLE" layout="slug-instigator" img="slug-instigator">
     <class/>
-    <title>slug-light-surveyor:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="clonebay" room="1" start="false"/>
-      <system name="mindcontrol" room="2" start="false"/>
-      <system name="oxygen" room="3" start="false"/>
-      <system name="shields" room="4" start="false"/>
-      <system name="weapons" room="5" start="false"/>
-      <system name="engines" room="8" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="8" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="slug-assault" layout="slug-assault" img="slug-assault">
-    <class/>
-    <title>slug-assault</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="doors" room="1" start="false"/>
-      <system name="weapons" room="2" start="false"/>
-      <system name="oxygen" room="3" start="false"/>
-      <system name="shields" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-      <system name="cloaking" room="6" start="false"/>
-      <system name="medbay" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="8" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="slug-assault:pirate" layout="slug-assault-pirate" img="slug-assault-pirate">
-    <class/>
-    <title>slug-assault:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="weapons" room="1" start="false"/>
-      <system name="cloaking" room="2" start="false"/>
-      <system name="doors" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-      <system name="shields" room="6" start="false"/>
-      <system name="oxygen" room="7" start="false"/>
-      <system name="medbay" room="8" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="slug-instigator" layout="slug-instigator" img="slug-instigator">
-    <class/>
-    <title>slug-instigator</title>
+    <title>JELLY_TRUFFLE</title>
     <desc/>
     <unlock/>
     <source/>
@@ -5357,112 +4360,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="slug-instigator:pirate" layout="slug-instigator-pirate" img="slug-instigator-pirate">
+  <shipBlueprint name="ROCK_SCOUT" layout="rock-investigator" img="rock-investigator">
     <class/>
-    <title>slug-instigator:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="oxygen" room="1" start="false"/>
-      <system name="doors" room="2" start="false"/>
-      <system name="clonebay" room="3" start="false"/>
-      <system name="weapons" room="4" start="false"/>
-      <system name="mindcontrol" room="5" start="false"/>
-      <system name="shields" room="7" start="false"/>
-      <system name="engines" room="8" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="7" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rock-scout" layout="rock-scout" img="rock-scout">
-    <class/>
-    <title>rock-scout</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="oxygen" room="0" start="false"/>
-      <system name="weapons" room="1" start="false"/>
-      <system name="medbay" room="2" start="false"/>
-      <system name="pilot" room="3" start="false"/>
-      <system name="shields" room="4" start="false"/>
-      <system name="doors" room="5" start="false"/>
-      <system name="engines" room="6" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="3" rows="7">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rock-scout:pirate" layout="rock-scout-pirate" img="rock-scout-pirate">
-    <class/>
-    <title>rock-scout:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="weapons" room="0" start="false"/>
-      <system name="oxygen" room="1" start="false"/>
-      <system name="teleporter" room="2" start="false"/>
-      <system name="pilot" room="3" start="false"/>
-      <system name="shields" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rock-investigator" layout="rock-investigator" img="rock-investigator">
-    <class/>
-    <title>rock-investigator</title>
+    <title>ROCK_SCOUT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -5494,113 +4394,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-investigator:pirate" layout="rock-investigator-pirate" img="rock-investigator-pirate">
+  <shipBlueprint name="ROCK_FIGHT" layout="rock-interceptor" img="rock-interceptor">
     <class/>
-    <title>rock-investigator:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="weapons" room="1" start="false"/>
-      <system name="shields" room="2" start="false"/>
-      <system name="oxygen" room="3" start="false"/>
-      <system name="clonebay" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rock-fighter" layout="rock-fighter" img="rock-fighter">
-    <class/>
-    <title>rock-fighter</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="weapons" room="0" start="false"/>
-      <system name="pilot" room="3" start="false"/>
-      <system name="medbay" room="4" start="false"/>
-      <system name="oxygen" room="5" start="false"/>
-      <system name="shields" room="6" start="false"/>
-      <system name="engines" room="7" start="false"/>
-      <system name="doors" room="8" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="7">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rock-fighter:pirate" layout="rock-fighter-pirate" img="rock-fighter-pirate">
-    <class/>
-    <title>rock-fighter:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="oxygen" room="0" start="false"/>
-      <system name="doors" room="1" start="false"/>
-      <system name="pilot" room="2" start="false"/>
-      <system name="weapons" room="3" start="false"/>
-      <system name="shields" room="4" start="false"/>
-      <system name="cloaking" room="5" start="false"/>
-      <system name="engines" room="6" start="false"/>
-      <system name="medbay" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="5" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rock-interceptor" layout="rock-interceptor" img="rock-interceptor">
-    <class/>
-    <title>rock-interceptor</title>
+    <title>ROCK_FIGHT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -5635,84 +4431,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-interceptor:pirate" layout="rock-interceptor-pirate" img="rock-interceptor-pirate">
+  <shipBlueprint name="ROCK_ASSAULT" layout="rock-aggressor" img="rock-aggressor">
     <class/>
-    <title>rock-interceptor:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="shields" room="0" start="false"/>
-      <system name="weapons" room="1" start="false"/>
-      <system name="clonebay" room="2" start="false"/>
-      <system name="cloaking" room="3" start="false"/>
-      <system name="engines" room="4" start="false"/>
-      <system name="teleporter" room="5" start="false"/>
-      <system name="pilot" room="6" start="false"/>
-      <system name="oxygen" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="5" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rock-assault" layout="rock-assault" img="rock-assault">
-    <class/>
-    <title>rock-assault</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="medbay" room="1" start="false"/>
-      <system name="doors" room="3" start="false"/>
-      <system name="cloaking" room="4" start="false"/>
-      <system name="weapons" room="5" start="false"/>
-      <system name="shields" room="6" start="false"/>
-      <system name="engines" room="7" start="false"/>
-      <system name="teleporter" room="8" start="false"/>
-      <system name="oxygen" room="9" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="6" rows="8">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="rock-aggressor" layout="rock-aggressor" img="rock-aggressor">
-    <class/>
-    <title>rock-aggressor</title>
+    <title>ROCK_ASSAULT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -5749,9 +4470,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="rock-assault-elite" layout="rock-assault-elite" img="rock-assault-elite">
+  <shipBlueprint name="ROCK_ASSAULT_ELITE" layout="rock-assault-elite" img="rock-assault-elite">
     <class/>
-    <title>rock-assault-elite</title>
+    <title>ROCK_ASSAULT_ELITE</title>
     <desc/>
     <unlock/>
     <source/>
@@ -5788,77 +4509,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-fighter" layout="energy-fighter" img="energy-fighter">
+  <shipBlueprint name="ZOLTAN_FIGHTER" layout="energy-instigator" img="energy-instigator">
     <class/>
-    <title>energy-fighter</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="engines" room="0" start="false"/>
-      <system name="shields" room="1" start="false"/>
-      <system name="medbay" room="2" start="false"/>
-      <system name="doors" room="3" start="false"/>
-      <system name="pilot" room="4" start="false"/>
-      <system name="oxygen" room="5" start="false"/>
-      <system name="weapons" room="6" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="5" rows="7">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="energy-fighter:pirate" layout="energy-fighter-pirate" img="energy-fighter-pirate">
-    <class/>
-    <title>energy-fighter:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="medbay" room="0" start="false"/>
-      <system name="pilot" room="1" start="false"/>
-      <system name="shields" room="2" start="false"/>
-      <system name="oxygen" room="3" start="false"/>
-      <system name="doors" room="4" start="false"/>
-      <system name="weapons" room="5" start="false"/>
-      <system name="engines" room="6" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="energy-instigator" layout="energy-instigator" img="energy-instigator">
-    <class/>
-    <title>energy-instigator</title>
+    <title>ZOLTAN_FIGHTER</title>
     <desc/>
     <unlock/>
     <source/>
@@ -5890,115 +4543,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-instigator:pirate" layout="energy-instigator-pirate" img="energy-instigator-pirate">
+  <shipBlueprint name="ZOLTAN_BOMBER" layout="energy-hacker" img="energy-hacker">
     <class/>
-    <title>energy-instigator:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="oxygen" room="1" start="false"/>
-      <system name="shields" room="2" start="false"/>
-      <system name="clonebay" room="3" start="false"/>
-      <system name="mindcontrol" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-      <system name="weapons" room="6" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="energy-bomber" layout="energy-bomber" img="energy-bomber">
-    <class/>
-    <title>energy-bomber</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="drones" room="0" start="false"/>
-      <system name="pilot" room="1" start="false"/>
-      <system name="doors" room="2" start="false"/>
-      <system name="shields" room="3" start="false"/>
-      <system name="weapons" room="4" start="false"/>
-      <system name="oxygen" room="5" start="false"/>
-      <system name="medbay" room="6" start="false"/>
-      <system name="engines" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="9">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="energy-bomber:pirate" layout="energy-bomber-pirate" img="energy-bomber-pirate">
-    <class/>
-    <title>energy-bomber:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="drones" room="1" start="false"/>
-      <system name="medbay" room="2" start="false"/>
-      <system name="shields" room="3" start="false"/>
-      <system name="weapons" room="4" start="false"/>
-      <system name="oxygen" room="5" start="false"/>
-      <system name="doors" room="6" start="false"/>
-      <system name="engines" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="7">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="energy-hacker" layout="energy-hacker" img="energy-hacker">
-    <class/>
-    <title>energy-hacker</title>
+    <title>ZOLTAN_BOMBER</title>
     <desc/>
     <unlock/>
     <source/>
@@ -6032,77 +4579,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="energy-hacker:pirate" layout="energy-hacker-pirate" img="energy-hacker-pirate">
+  <shipBlueprint name="CRYSTAL_SCOUT" layout="crystal-outrider" img="crystal-outrider">
     <class/>
-    <title>energy-hacker:pirate</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="hacking" room="0" start="false"/>
-      <system name="doors" room="1" start="false"/>
-      <system name="pilot" room="2" start="false"/>
-      <system name="shields" room="3" start="false"/>
-      <system name="oxygen" room="4" start="false"/>
-      <system name="weapons" room="5" start="false"/>
-      <system name="engines" room="6" start="false"/>
-      <system name="clonebay" room="7" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="7">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="crystal-scout" layout="crystal-scout" img="crystal-scout">
-    <class/>
-    <title>crystal-scout</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="oxygen" room="0" start="false"/>
-      <system name="shields" room="1" start="false"/>
-      <system name="weapons" room="2" start="false"/>
-      <system name="pilot" room="3" start="false"/>
-      <system name="medbay" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="3" rows="6">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="crystal-outrider" layout="crystal-outrider" img="crystal-outrider">
-    <class/>
-    <title>crystal-outrider</title>
+    <title>CRYSTAL_SCOUT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -6132,45 +4611,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="crystal-bomber" layout="crystal-bomber" img="crystal-bomber">
+  <shipBlueprint name="CRYSTAL_BOMBER" layout="crystal-instigator" img="crystal-instigator">
     <class/>
-    <title>crystal-bomber</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="medbay" room="0" start="false"/>
-      <system name="weapons" room="2" start="false"/>
-      <system name="pilot" room="3" start="false"/>
-      <system name="doors" room="5" start="false"/>
-      <system name="oxygen" room="6" start="false"/>
-      <system name="shields" room="7" start="false"/>
-      <system name="engines" room="8" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="5" rows="8">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="crystal-instigator" layout="crystal-instigator" img="crystal-instigator">
-    <class/>
-    <title>crystal-instigator</title>
+    <title>CRYSTAL_BOMBER</title>
     <desc/>
     <unlock/>
     <source/>
@@ -6206,9 +4649,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="lanius-scout" layout="lanius-scout" img="lanius-scout">
+  <shipBlueprint name="ANAEROBIC_SCOUT" layout="lanius-scout" img="lanius-scout">
     <class/>
-    <title>lanius-scout</title>
+    <title>ANAEROBIC_SCOUT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -6240,9 +4683,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="lanius-bomber" layout="lanius-bomber" img="lanius-bomber">
+  <shipBlueprint name="ANAEROBIC_BOMBER" layout="lanius-bomber" img="lanius-bomber">
     <class/>
-    <title>lanius-bomber</title>
+    <title>ANAEROBIC_BOMBER</title>
     <desc/>
     <unlock/>
     <source/>
@@ -6280,41 +4723,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="federation-scout" layout="federation-scout" img="federation-scout">
+  <shipBlueprint name="FED_SCOUT" layout="federation-outrider" img="federation-outrider">
     <class/>
-    <title>federation-scout</title>
-    <desc/>
-    <unlock/>
-    <source/>
-    <reactor>0</reactor>
-    <fuel>0</fuel>
-    <missiles>0</missiles>
-    <parts>0</parts>
-    <systemList>
-      <system name="pilot" room="0" start="false"/>
-      <system name="shields" room="1" start="false"/>
-      <system name="doors" room="2" start="false"/>
-      <system name="weapons" room="3" start="false"/>
-      <system name="oxygen" room="4" start="false"/>
-      <system name="engines" room="5" start="false"/>
-    </systemList>
-    <weaponList/>
-    <crewList/>
-    <kitList/>
-    <augmentList/>
-    <unfitted/>
-    <roomList cols="4" rows="5">
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-      <room/>
-    </roomList>
-  </shipBlueprint>
-  <shipBlueprint name="federation-outrider" layout="federation-outrider" img="federation-outrider">
-    <class/>
-    <title>federation-outrider</title>
+    <title>FED_SCOUT</title>
     <desc/>
     <unlock/>
     <source/>
@@ -6344,9 +4755,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="federation-bomber" layout="federation-bomber" img="federation-bomber">
+  <shipBlueprint name="FED_BOMBER" layout="federation-hacker" img="federation-hacker">
     <class/>
-    <title>federation-bomber</title>
+    <title>FED_BOMBER</title>
     <desc/>
     <unlock/>
     <source/>
@@ -6356,12 +4767,12 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <parts>0</parts>
     <systemList>
       <system name="pilot" room="0" start="false"/>
-      <system name="shields" room="1" start="false"/>
-      <system name="doors" room="3" start="false"/>
-      <system name="weapons" room="5" start="false"/>
-      <system name="engines" room="7" start="false"/>
+      <system name="weapons" room="1" start="false"/>
+      <system name="hacking" room="3" start="false"/>
+      <system name="engines" room="5" start="false"/>
+      <system name="shields" room="7" start="false"/>
       <system name="oxygen" room="8" start="false"/>
-      <system name="medbay" room="9" start="false"/>
+      <system name="clonebay" room="9" start="false"/>
     </systemList>
     <weaponList/>
     <crewList/>
@@ -6381,9 +4792,965 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <room/>
     </roomList>
   </shipBlueprint>
-  <shipBlueprint name="federation-hacker" layout="federation-hacker" img="federation-hacker">
+  <shipBlueprint name="REBEL_SKINNY_P" layout="rebel-fighter-pirate" img="rebel-fighter-pirate">
     <class/>
-    <title>federation-hacker</title>
+    <title>REBEL_SKINNY_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="weapons" room="3" start="false"/>
+      <system name="shields" room="4" start="false"/>
+      <system name="doors" room="5" start="false"/>
+      <system name="engines" room="6" start="false"/>
+      <system name="teleporter" room="7" start="false"/>
+      <system name="medbay" room="8" start="false"/>
+      <system name="oxygen" room="9" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="8">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_SKINNY_P_DLC" layout="rebel-invader-pirate" img="rebel-invader-pirate">
+    <class/>
+    <title>REBEL_SKINNY_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="weapons" room="1" start="false"/>
+      <system name="oxygen" room="2" start="false"/>
+      <system name="clonebay" room="3" start="false"/>
+      <system name="teleporter" room="4" start="false"/>
+      <system name="shields" room="5" start="false"/>
+      <system name="doors" room="6" start="false"/>
+      <system name="engines" room="7" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="8">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_FAT_P" layout="rebel-rigger-pirate" img="rebel-rigger-pirate">
+    <class/>
+    <title>REBEL_FAT_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="oxygen" room="1" start="false"/>
+      <system name="doors" room="2" start="false"/>
+      <system name="weapons" room="3" start="false"/>
+      <system name="drones" room="4" start="false"/>
+      <system name="medbay" room="5" start="false"/>
+      <system name="engines" room="6" start="false"/>
+      <system name="shields" room="7" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="6" rows="5">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_FAT_P_DLC" layout="rebel-disruptor-pirate" img="rebel-disruptor-pirate">
+    <class/>
+    <title>REBEL_FAT_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="clonebay" room="1" start="false"/>
+      <system name="oxygen" room="2" start="false"/>
+      <system name="drones" room="3" start="false"/>
+      <system name="hacking" room="4" start="false"/>
+      <system name="engines" room="5" start="false"/>
+      <system name="shields" room="6" start="false"/>
+      <system name="weapons" room="7" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="6" rows="5">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_SCOUT_P" layout="mantis-scout-pirate" img="mantis-scout-pirate">
+    <class/>
+    <title>MANTIS_SCOUT_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields" room="0" start="false"/>
+      <system name="weapons" room="1" start="false"/>
+      <system name="engines" room="2" start="false"/>
+      <system name="medbay" room="3" start="false"/>
+      <system name="teleporter" room="4" start="false"/>
+      <system name="pilot" room="5" start="false"/>
+      <system name="oxygen" room="6" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="4">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_SCOUT_P_DLC" layout="mantis-interceptor-pirate" img="mantis-interceptor-pirate">
+    <class/>
+    <title>MANTIS_SCOUT_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="engines" room="0" start="false"/>
+      <system name="clonebay" room="1" start="false"/>
+      <system name="weapons" room="2" start="false"/>
+      <system name="shields" room="3" start="false"/>
+      <system name="oxygen" room="4" start="false"/>
+      <system name="pilot" room="5" start="false"/>
+      <system name="teleporter" room="6" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="4">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_FIGHTER_P" layout="mantis-fighter-pirate" img="mantis-fighter-pirate">
+    <class/>
+    <title>MANTIS_FIGHTER_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="oxygen" room="0" start="false"/>
+      <system name="doors" room="1" start="false"/>
+      <system name="medbay" room="2" start="false"/>
+      <system name="pilot" room="3" start="false"/>
+      <system name="teleporter" room="4" start="false"/>
+      <system name="weapons" room="5" start="false"/>
+      <system name="shields" room="6" start="false"/>
+      <system name="engines" room="7" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="5">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_FIGHTER_P_DLC" layout="mantis-assault-pirate" img="mantis-assault-pirate">
+    <class/>
+    <title>MANTIS_FIGHTER_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="teleporter" room="0" start="false"/>
+      <system name="oxygen" room="1" start="false"/>
+      <system name="shields" room="2" start="false"/>
+      <system name="pilot" room="3" start="false"/>
+      <system name="weapons" room="4" start="false"/>
+      <system name="clonebay" room="5" start="false"/>
+      <system name="doors" room="6" start="false"/>
+      <system name="engines" room="7" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="5">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_BOMBER_P" layout="mantis-bomber-pirate" img="mantis-bomber-pirate">
+    <class/>
+    <title>MANTIS_BOMBER_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="oxygen" room="0" start="false"/>
+      <system name="pilot" room="5" start="false"/>
+      <system name="weapons" room="6" start="false"/>
+      <system name="shields" room="7" start="false"/>
+      <system name="doors" room="8" start="false"/>
+      <system name="teleporter" room="9" start="false"/>
+      <system name="engines" room="10" start="false"/>
+      <system name="medbay" room="11" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="8">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_BOMBER_P_DLC" layout="mantis-aggressor-pirate" img="mantis-aggressor-pirate">
+    <class/>
+    <title>MANTIS_BOMBER_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="teleporter" room="3" start="false"/>
+      <system name="clonebay" room="4" start="false"/>
+      <system name="oxygen" room="5" start="false"/>
+      <system name="weapons" room="6" start="false"/>
+      <system name="shields" room="7" start="false"/>
+      <system name="doors" room="10" start="false"/>
+      <system name="engines" room="11" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="8">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_BUTTON_P" layout="slug-interceptor-pirate" img="slug-interceptor-pirate">
+    <class/>
+    <title>JELLY_BUTTON_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="oxygen" room="1" start="false"/>
+      <system name="doors" room="2" start="false"/>
+      <system name="shields" room="3" start="false"/>
+      <system name="engines" room="4" start="false"/>
+      <system name="weapons" room="5" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="5" rows="5">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_BUTTON_P_DLC" layout="slug-scout-pirate" img="slug-scout-pirate">
+    <class/>
+    <title>JELLY_BUTTON_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="weapons" room="0" start="false"/>
+      <system name="oxygen" room="1" start="false"/>
+      <system name="mindcontrol" room="2" start="false"/>
+      <system name="engines" room="3" start="false"/>
+      <system name="pilot" room="4" start="false"/>
+      <system name="shields" room="5" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="5" rows="5">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_CROISSANT_P" layout="slug-light-cruiser-pirate" img="slug-light-cruiser-pirate">
+    <class/>
+    <title>JELLY_CROISSANT_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="1" start="false"/>
+      <system name="shields" room="2" start="false"/>
+      <system name="weapons" room="3" start="false"/>
+      <system name="medbay" room="4" start="false"/>
+      <system name="doors" room="5" start="false"/>
+      <system name="oxygen" room="6" start="false"/>
+      <system name="cloaking" room="7" start="false"/>
+      <system name="engines" room="8" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="8" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_CROISSANT_P_DLC" layout="slug-light-surveyor-pirate" img="slug-light-surveyor-pirate">
+    <class/>
+    <title>JELLY_CROISSANT_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="clonebay" room="1" start="false"/>
+      <system name="mindcontrol" room="2" start="false"/>
+      <system name="oxygen" room="3" start="false"/>
+      <system name="shields" room="4" start="false"/>
+      <system name="weapons" room="5" start="false"/>
+      <system name="engines" room="8" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="8" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_TRUFFLE_P" layout="slug-assault-pirate" img="slug-assault-pirate">
+    <class/>
+    <title>JELLY_TRUFFLE_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="weapons" room="1" start="false"/>
+      <system name="cloaking" room="2" start="false"/>
+      <system name="doors" room="4" start="false"/>
+      <system name="engines" room="5" start="false"/>
+      <system name="shields" room="6" start="false"/>
+      <system name="oxygen" room="7" start="false"/>
+      <system name="medbay" room="8" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_TRUFFLE_P_DLC" layout="slug-instigator-pirate" img="slug-instigator-pirate">
+    <class/>
+    <title>JELLY_TRUFFLE_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="oxygen" room="1" start="false"/>
+      <system name="doors" room="2" start="false"/>
+      <system name="clonebay" room="3" start="false"/>
+      <system name="weapons" room="4" start="false"/>
+      <system name="mindcontrol" room="5" start="false"/>
+      <system name="shields" room="7" start="false"/>
+      <system name="engines" room="8" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="7" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_SCOUT_P" layout="rock-scout-pirate" img="rock-scout-pirate">
+    <class/>
+    <title>ROCK_SCOUT_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="weapons" room="0" start="false"/>
+      <system name="oxygen" room="1" start="false"/>
+      <system name="teleporter" room="2" start="false"/>
+      <system name="pilot" room="3" start="false"/>
+      <system name="shields" room="4" start="false"/>
+      <system name="engines" room="5" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="4" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_SCOUT_P_DLC" layout="rock-investigator-pirate" img="rock-investigator-pirate">
+    <class/>
+    <title>ROCK_SCOUT_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="weapons" room="1" start="false"/>
+      <system name="shields" room="2" start="false"/>
+      <system name="oxygen" room="3" start="false"/>
+      <system name="clonebay" room="4" start="false"/>
+      <system name="engines" room="5" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="4" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_FIGHT_P" layout="rock-fighter-pirate" img="rock-fighter-pirate">
+    <class/>
+    <title>ROCK_FIGHT_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="oxygen" room="0" start="false"/>
+      <system name="doors" room="1" start="false"/>
+      <system name="pilot" room="2" start="false"/>
+      <system name="weapons" room="3" start="false"/>
+      <system name="shields" room="4" start="false"/>
+      <system name="cloaking" room="5" start="false"/>
+      <system name="engines" room="6" start="false"/>
+      <system name="medbay" room="7" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="5" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_FIGHT_P_DLC" layout="rock-interceptor-pirate" img="rock-interceptor-pirate">
+    <class/>
+    <title>ROCK_FIGHT_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="shields" room="0" start="false"/>
+      <system name="weapons" room="1" start="false"/>
+      <system name="clonebay" room="2" start="false"/>
+      <system name="cloaking" room="3" start="false"/>
+      <system name="engines" room="4" start="false"/>
+      <system name="teleporter" room="5" start="false"/>
+      <system name="pilot" room="6" start="false"/>
+      <system name="oxygen" room="7" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="5" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_FIGHTER_P" layout="energy-fighter-pirate" img="energy-fighter-pirate">
+    <class/>
+    <title>ZOLTAN_FIGHTER_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="medbay" room="0" start="false"/>
+      <system name="pilot" room="1" start="false"/>
+      <system name="shields" room="2" start="false"/>
+      <system name="oxygen" room="3" start="false"/>
+      <system name="doors" room="4" start="false"/>
+      <system name="weapons" room="5" start="false"/>
+      <system name="engines" room="6" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="4" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_FIGHTER_P_DLC" layout="energy-instigator-pirate" img="energy-instigator-pirate">
+    <class/>
+    <title>ZOLTAN_FIGHTER_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="oxygen" room="1" start="false"/>
+      <system name="shields" room="2" start="false"/>
+      <system name="clonebay" room="3" start="false"/>
+      <system name="mindcontrol" room="4" start="false"/>
+      <system name="engines" room="5" start="false"/>
+      <system name="weapons" room="6" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="4" rows="6">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_BOMBER_P" layout="energy-bomber-pirate" img="energy-bomber-pirate">
+    <class/>
+    <title>ZOLTAN_BOMBER_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="drones" room="1" start="false"/>
+      <system name="medbay" room="2" start="false"/>
+      <system name="shields" room="3" start="false"/>
+      <system name="weapons" room="4" start="false"/>
+      <system name="oxygen" room="5" start="false"/>
+      <system name="doors" room="6" start="false"/>
+      <system name="engines" room="7" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="4" rows="7">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_BOMBER_P_DLC" layout="energy-hacker-pirate" img="energy-hacker-pirate">
+    <class/>
+    <title>ZOLTAN_BOMBER_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="hacking" room="0" start="false"/>
+      <system name="doors" room="1" start="false"/>
+      <system name="pilot" room="2" start="false"/>
+      <system name="shields" room="3" start="false"/>
+      <system name="oxygen" room="4" start="false"/>
+      <system name="weapons" room="5" start="false"/>
+      <system name="engines" room="6" start="false"/>
+      <system name="clonebay" room="7" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="4" rows="7">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="FED_SCOUT_P" layout="federation-outrider" img="federation-outrider">
+    <class/>
+    <title>FED_SCOUT_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="weapons" room="1" start="false"/>
+      <system name="hacking" room="2" start="false"/>
+      <system name="shields" room="3" start="false"/>
+      <system name="oxygen" room="4" start="false"/>
+      <system name="engines" room="5" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="4" rows="5">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="FED_SCOUT_P_DLC" layout="federation-outrider" img="federation-outrider">
+    <class/>
+    <title>FED_SCOUT_P_DLC</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="weapons" room="1" start="false"/>
+      <system name="hacking" room="2" start="false"/>
+      <system name="shields" room="3" start="false"/>
+      <system name="oxygen" room="4" start="false"/>
+      <system name="engines" room="5" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="4" rows="5">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="FED_BOMBER_P" layout="federation-hacker" img="federation-hacker">
+    <class/>
+    <title>FED_BOMBER_P</title>
+    <desc/>
+    <unlock/>
+    <source/>
+    <reactor>0</reactor>
+    <fuel>0</fuel>
+    <missiles>0</missiles>
+    <parts>0</parts>
+    <systemList>
+      <system name="pilot" room="0" start="false"/>
+      <system name="weapons" room="1" start="false"/>
+      <system name="hacking" room="3" start="false"/>
+      <system name="engines" room="5" start="false"/>
+      <system name="shields" room="7" start="false"/>
+      <system name="oxygen" room="8" start="false"/>
+      <system name="clonebay" room="9" start="false"/>
+    </systemList>
+    <weaponList/>
+    <crewList/>
+    <kitList/>
+    <augmentList/>
+    <unfitted/>
+    <roomList cols="8" rows="7">
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+      <room/>
+    </roomList>
+  </shipBlueprint>
+  <shipBlueprint name="FED_BOMBER_P_DLC" layout="federation-hacker" img="federation-hacker">
+    <class/>
+    <title>FED_BOMBER_P_DLC</title>
     <desc/>
     <unlock/>
     <source/>

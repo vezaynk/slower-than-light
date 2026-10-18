@@ -61,6 +61,52 @@ describe("enemy hacking: launch and flight", () => {
     assert.ok(seen.size >= 4, [...seen].join(","));
   });
 
+  it("will not launch at a destroyed system or a destroyed kit", () => {
+    // Hacking, "Overview": "A destroyed system cannot be actively hacked".
+    const g = fight(3);
+    const shields = g.player.systems.shields;
+    shields.damage = shields.level;
+    assert.equal(enemyHackTargets(g).includes("shields"), false);
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+      damage: 1,
+    };
+    assert.equal(enemyHackTargets(g).includes("cloaking"), false);
+  });
+
+  it("locks the doors of a fitted kit room", () => {
+    const g = latched("cloaking");
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
+    seatKits(g.player);
+    const room = g.player.rooms.find((r) => r.kit === "cloaking");
+    assert.ok(room);
+    g.enemy!.kits.hacking!.cool = 5;
+    tickEnemySpike(g, 0.01);
+    const doors = g.player.doors.filter(
+      (d) => d.b !== "void" && (d.a === room.id || d.b === room.id),
+    );
+    assert.ok(doors.length > 0);
+    for (const d of doors) assert.equal(d.hacked, true);
+    assert.equal(enemyHackView(g)?.room, room.id);
+    assert.equal(room.hacked, "latched");
+  });
+
   it("caps hacking at level 2 except Lanius Scouts and Engi Hackers", () => {
     const capped = fight(1, 3, "auto-hacker");
     tickEnemySpike(capped, 0.01);

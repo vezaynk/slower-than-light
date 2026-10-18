@@ -110,7 +110,11 @@ export function packFromFtl(
     if (translationFile(source.path)) continue;
     collectStrings(source.doc, strings);
   }
-  for (const { doc } of parsed) {
+  const docs = parsed.map((source) => source.doc);
+  for (const doc of docs) inlineStringIds(doc, strings);
+  const textLists = readTextLists(docs);
+  for (const doc of docs) expandTextLoads(doc, textLists);
+  for (const doc of docs) {
     for (const node of tagged(doc, "weaponBlueprint")) {
       const row = readWeapon(node);
       if (row) weapons.put(row);
@@ -323,6 +327,69 @@ function upgradeCosts(node: XmlElement): TuneStep[] {
 function translationFile(path: string): boolean {
   const name = path.slice(path.lastIndexOf("/") + 1);
   return /^text-[A-Za-z0-9_]+\.xml(?:\.append)?$/.test(name);
+}
+
+/**
+ * ftl.dat writes most player-facing text as a reference: `<title id="weapon_LASER_BURST_1_title"/>`, with the words in
+ * text_blueprints.xml. Every element with an `id` the strings know, and no text or children of its own, gets that text,
+ * so the readers find it where a stand-in or mod writes it inline. The id attribute stays.
+ */
+function inlineStringIds(doc: XmlDocument, strings: Map<string, string>): void {
+  const all = doc.getElementsByTagName("*");
+  for (let i = 0; i < all.length; i++) {
+    const node = all.item(i);
+    if (!node || elements(node).length > 0 || ownText(node).trim()) continue;
+    const key = attr(node, "id")?.trim();
+    const value = key ? strings.get(key) : undefined;
+    if (value) node.appendChild(doc.createTextNode(value));
+  }
+}
+
+/** `<textList name>`: the lines an event's `<text load="name"/>` picks from. */
+function readTextLists(docs: readonly XmlDocument[]): Map<string, string[]> {
+  const lists = new Map<string, string[]>();
+  for (const doc of docs) {
+    for (const node of tagged(doc, "textList")) {
+      const name = attr(node, "name")?.trim();
+      if (!name) continue;
+      const lines = elements(node)
+        .filter((item) => item.tagName === "text")
+        .map((item) => ownText(item).trim())
+        .filter(Boolean);
+      lists.set(name, lines);
+    }
+  }
+  return lists;
+}
+
+/**
+ * `<text load="LIST"/>` becomes one `<text>` per line of that list. FTL picks one each time the event plays; an event
+ * with several text lines keeps them all in `texts`, and the sim picks one the same way.
+ * A list the archive does not define is warned about and leaves no text.
+ */
+function expandTextLoads(doc: XmlDocument, lists: Map<string, string[]>): void {
+  const loads: XmlElement[] = [];
+  const texts = doc.getElementsByTagName("text");
+  for (let i = 0; i < texts.length; i++) {
+    const node = texts.item(i);
+    if (node && attr(node, "load")?.trim() && !ownText(node).trim()) loads.push(node);
+  }
+  for (const node of loads) {
+    const name = attr(node, "load")!.trim();
+    const lines = lists.get(name);
+    const parent = node.parentNode;
+    if (!parent) continue;
+    if (!lines) {
+      warnPack(`<text load="${name}"/> names no textList; that text is left out.`);
+      continue;
+    }
+    for (const line of lines) {
+      const copy = doc.createElement("text");
+      copy.appendChild(doc.createTextNode(line));
+      parent.insertBefore(copy, node);
+    }
+    parent.removeChild(node);
+  }
 }
 
 function collectStrings(doc: XmlDocument, strings: Map<string, string>) {

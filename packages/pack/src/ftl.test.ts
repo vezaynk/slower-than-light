@@ -422,6 +422,54 @@ describe("packFromFtl", () => {
     }
   });
 
+  it("fills id text from the strings, and expands an event's text list", () => {
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const pack = packFromFtl([
+        {
+          path: "data/text_blueprints.xml",
+          xml: `<FTL>
+  <text name="weapon_GUN_title">Burst Laser I</text>
+  <text name="weapon_GUN_desc">Fires two shots.</text>
+  <text name="weapon_GUN_title" language="de">Salvenlaser I</text>
+  <text name="crew_human">Human</text>
+  <text name="calm_1">Nothing stirs.</text>
+  <text name="calm_2">Quiet space.</text>
+</FTL>`,
+        },
+        {
+          path: "data/blueprints.xml",
+          xml: `<FTL>
+  <weaponBlueprint name="GUN"><type>LASER</type><title id="weapon_GUN_title"/><desc id="weapon_GUN_desc"/>
+    <damage>1</damage><shots>2</shots><cooldown>10</cooldown><power>2</power><cost>60</cost></weaponBlueprint>
+  <crewBlueprint name="human"><title id="crew_human"/></crewBlueprint>
+</FTL>`,
+        },
+        {
+          path: "data/events.xml",
+          xml: `<FTL>
+  <textList name="CALM"><text id="calm_1"/><text id="calm_2"/></textList>
+  <event name="QUIET"><text load="CALM"/></event>
+  <event name="LOST"><text load="NO_LIST"/></event>
+</FTL>`,
+        },
+      ]);
+      // English wins; the translated row carries language="de".
+      assert.equal(pack.weapons?.find((row) => row.id === "GUN")?.name, "Burst Laser I");
+      assert.equal(pack.crew?.find((row) => row.id === "human")?.name, "Human");
+      const quiet = pack.events?.find((row) => row.id === "QUIET");
+      assert.equal(quiet?.body, "Nothing stirs.");
+      assert.deepEqual(quiet?.texts, ["Nothing stirs.", "Quiet space."]);
+      assert.equal(pack.events?.find((row) => row.id === "LOST")?.body, "");
+      assert.deepEqual(warnings, [
+        '<text load="NO_LIST"/> names no textList; that text is left out.',
+      ]);
+    } finally {
+      restore();
+    }
+  });
+
   it("reads a crew colorList, one list per layer", () => {
     const pack = packFromFtl([
       {

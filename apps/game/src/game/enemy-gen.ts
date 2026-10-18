@@ -643,6 +643,8 @@ export function arm(
   level: number,
   rand: () => number,
   slots = ENEMY_WEAPON_SLOTS,
+  /** Mount the cheapest gun when nothing is eligible. Off when guns are already mounted. */
+  fallback = true,
 ): ArmResult {
   const ids = pool.map(armId).filter((id): id is string => !!id && enemyMayMount(id));
   const flags = { laser: true, hull: true };
@@ -667,7 +669,7 @@ export function arm(
     if (hullFlag(id)) flags.hull = false;
   }
   // INFERRED (see above): nothing eligible still mounts the cheapest gun.
-  if (!out.length && ids.length && slots > 0) {
+  if (fallback && !out.length && ids.length && slots > 0) {
     const cheapest = [...ids].sort((a, b) => weaponDef(a)!.power - weaponDef(b)!.power)[0];
     out.push(cheapest);
   }
@@ -969,14 +971,9 @@ export function rollEnemy(
   const weaponLevel = systems.weapons?.[0] ?? 1;
   const listedWeapons = blueprint ? weaponNames(blueprint) : undefined;
   const armed =
-    listedWeapons?.fixed && blueprint
-      ? fixedLoadout(listedWeapons.names.slice(0, weaponCap(blueprint)))
-      : arm(
-          listedWeapons?.names ?? ENEMY_WEAPON_POOLS[cls.faction] ?? [],
-          weaponLevel,
-          rand,
-          listedWeapons ? weaponCap(blueprint) : ENEMY_WEAPON_SLOTS,
-        );
+    listedWeapons && blueprint
+      ? blueprintLoadout(blueprint, listedWeapons, weaponLevel, rand)
+      : arm(ENEMY_WEAPON_POOLS[cls.faction] ?? [], weaponLevel, rand, ENEMY_WEAPON_SLOTS);
   const spec: EnemySpec = {
     classId: cls.id,
     name: pirate ? (cls.pirate ?? `Pirate ${cls.name.split(" ").slice(1).join(" ")}`) : cls.name,
@@ -1016,9 +1013,21 @@ export function rollEnemy(
 }
 
 /**
- * Mathchamp: crew count is interpolated from the blueprint minimum to its maximum across the sectors, the same way as
- * the class table (crewCount), so the printed maximum is reached in the last sector. A row with no maximum is that
- * many of the named race. `random` draws from the sector's crew races.
+ * FTL ShipGenerator::CreateShip, read from the executable: the crew is `min + (max − min) × min(1, level × 0.125)`,
+ * truncated. `level` is StarMap's 0-based world level (sector 1 is 0; AdvanceWorldLevel awards ACH_SECTOR_5 on level
+ * 4), one lower on Easy and never below 0. A minimum of 0 is not interpolated. So a 1–3 row is 1 crew through sector 4
+ * and 2 from sector 5; the maximum would only arrive in a ninth sector.
+ * The game reads one crewCount per ship; no ftl.dat enemy has more than one, so each row is counted this way.
+ */
+export function blueprintCrew(min: number, max: number | undefined, ctx: PoolContext): number {
+  if (max == null || min <= 0) return min;
+  const level = genSector(ctx.sector, ctx.difficulty) - 1;
+  return Math.trunc(min + (max - min) * Math.min(1, level * 0.125));
+}
+
+/**
+ * Blueprint crew rows (blueprintCrew). A row with no maximum is that many of the named race. `random` draws from the
+ * sector's crew races.
  * A race the game has no crew for, or a `random` row with no races to draw from, is skipped with a warning.
  */
 function racesFromCounts(
@@ -1030,7 +1039,7 @@ function racesFromCounts(
   const races: string[] = [];
   const randomRaces = pirateCrewRaces(ctx.sectorName);
   for (const row of rows) {
-    const n = row.max == null ? row.amount : crewCount([row.amount, row.max], ctx);
+    const n = blueprintCrew(row.amount, row.max, ctx);
     if (n <= 0) continue;
     if (row.class === "random") {
       if (randomRaces.length === 0) {
@@ -1057,39 +1066,44 @@ function racesFromCounts(
 }
 
 /**
- * The blueprint's guns. ftl.dat writes either explicit `<weapon>` tags or a `load` list, never both.
- * Explicit tags are that ship's loadout: every such list has `count` equal to its tags (Long Elite 3 of 3, Ghost Ship
- * Med 3 of 3), so they are mounted in order. INFERRED: Ghost Ship Hard lists four with count 3; the first three mount.
- * A `load` list is the pool `arm` draws from.
- * Both at once keeps the explicit loadout, with a warning.
+ * The blueprint's guns: explicit `<weapon>` tags, and the names in its `load` list.
  * An unknown name is skipped with a warning. That matches FTL: BlueprintManager::GetWeaponBlueprint answers an unknown
  * name with a static `dummy` whose power is 0, and ShipGenerator::GetPossibleWeaponList only keeps a gun with more
  * power than a quarter of what is left, so the dummy is never picked. ftl.dat's own WEAPONS_JELLY list names
  * BOMB_BREACH, which the archive never defines.
  */
-function weaponNames(hull: HullDef): { names: string[]; fixed: boolean } | undefined {
-  if (hull.weapons.length > 0 && hull.weaponLoad) {
-    warnPack(
-      `${hull.id}: its weaponList has both weapon tags and load="${hull.weaponLoad}"; the tags are used.`,
-    );
-  }
-  const fixed = hull.weapons.length > 0;
-  const listed = fixed ? [...hull.weapons] : listNames(hull.id, hull.weaponLoad);
-  const names = listed.filter((name) => {
+function weaponNames(hull: HullDef): { fixed: string[]; pool: string[] } | undefined {
+  const known = (name: string) => {
     if (weaponDef(name) || weaponIdForName(name)) return true;
     warnPack(`${hull.id}: its weaponList names "${name}", which is not a weapon; it is skipped.`);
     return false;
-  });
-  if (!names.length) return undefined;
-  return { names: names.map((name) => armId(name) ?? name), fixed };
+  };
+  const fixed = hull.weapons.filter(known).map((name) => armId(name) ?? name);
+  const pool = listNames(hull.id, hull.weaponLoad).filter(known);
+  if (!fixed.length && !pool.length) return undefined;
+  return { fixed, pool };
 }
 
-/** An explicit loadout, with the flags `arm` would have left open for the drones that follow. */
-function fixedLoadout(weapons: string[]): ArmResult {
-  return {
-    weapons,
-    flags: { laser: !weapons.some(laserFlag), hull: !weapons.some(hullFlag) },
-  };
+/**
+ * FTL's two steps, read from the executable:
+ * ShipManager::CreateArmory mounts the explicit tags in order, up to the weaponList `count`, with no power check and no
+ * draw. Every explicit list in ftl.dat has `count` equal to its tags except Ghost Ship Hard, which lists four with
+ * count 3, so it mounts the first three.
+ * ShipGenerator::CreateShip then runs GetPossibleWeaponList on the `load` list for the slots and power left. Its flags
+ * start open and only the drawn guns close them, so the explicit tags do not count toward them.
+ */
+function blueprintLoadout(
+  hull: HullDef,
+  listed: { fixed: string[]; pool: string[] },
+  level: number,
+  rand: () => number,
+): ArmResult {
+  const fixed = listed.fixed.slice(0, hull.weaponCount ?? listed.fixed.length);
+  if (!listed.pool.length) return { weapons: fixed, flags: { laser: true, hull: true } };
+  const used = fixed.reduce((sum, id) => sum + (weaponDef(id)?.power ?? 0), 0);
+  const slots = Math.max(0, (hull.weaponSlots ?? ENEMY_WEAPON_SLOTS) - fixed.length);
+  const drawn = arm(listed.pool, Math.max(0, level - used), rand, slots, fixed.length === 0);
+  return { weapons: [...fixed, ...drawn.weapons], flags: drawn.flags };
 }
 
 /** Names in a `load` list. A load that names no blueprintList is warned about and treated as empty. */
@@ -1097,17 +1111,10 @@ function listNames(ship: string, load: string | undefined): string[] {
   if (!load) return [];
   const names = blueprintList(load);
   if (!names) {
-    warnPack(`${ship}: load="${load}" names no blueprintList; the class table is used.`);
+    warnPack(`${ship}: load="${load}" names no blueprintList; it is treated as empty.`);
     return [];
   }
   return [...names];
-}
-
-function weaponCap(hull: HullDef | undefined): number {
-  const caps = [hull?.weaponCount, hull?.weaponSlots].filter(
-    (n): n is number => n != null && n > 0,
-  );
-  return caps.length ? Math.min(...caps) : ENEMY_WEAPON_SLOTS;
 }
 
 /** Explicit drone tags, then the names in droneList load. The count caps how many are fitted. */

@@ -2214,6 +2214,12 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts: rooms,
   - [x] A shot or ion on one artillery room slows only that gun.
   - [x] Depowering a hacked Crew Teleporter stops the enemy pulse from retrieving your crew, unless Zoltans, a cooldown, and spare reactor put a bar back and force them home.
   - [x] A level-1 shield pulse lasts 4 seconds and randomly removes 1 or 2 layers. The even split is INFERRED. One layer still drops every 2 seconds, and a level-2 pulse drops three layers in six seconds.
+  - [x] A shield pulse holds that hull's recharge on either ship.
+  - [x] A pulse on Cloaking keeps either ship from starting a cloak, and the blocked attempt starts no cooldown.
+  - [x] A charger loses only the shot in progress. Its stored shots stay.
+  - [x] The pulse length reads undamaged bars, a Zoltan bar included.
+  - [x] An enemy drone picks only undestroyed systems and kits. A hacked kit room locks its doors.
+  - [x] A door broken under the hack stays broken when the power is removed before its 7 seconds end. A door broken open before the hack is closed, and the power cut leaves it closed at full health.
 
 - [ ] Hacking Stun
   - [x] Title string is in src/.

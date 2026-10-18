@@ -26,16 +26,7 @@ import { hackStuns } from "./moreaugs.ts";
 import { clearEnemyLeash, sideOf } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";
 import { ANTI_STUN_S, REDEPLOY_S, enemyDroneSpot, interceptIncomingDrone } from "./swarm.ts";
-import type {
-  Difficulty,
-  Door,
-  Game,
-  Kit,
-  KitId,
-  Room,
-  Ship,
-  SysId,
-} from "../types.ts";
+import type { Difficulty, Door, Game, Kit, KitId, Room, Ship, SysId } from "../types.ts";
 
 /** Hacking wiki, "System upgrades": level 1 cost is 80. */
 export const SPIKE_COST = 80;

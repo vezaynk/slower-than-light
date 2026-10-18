@@ -22,14 +22,19 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Pirate ship attacking civilian (Lanius)", () => {
   it("attacking the pirate starts a pirate fight", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:pirate-ship-attacking-civilian-lanius:0"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:pirate-ship-attacking-civilian-lanius:0"),
+      true,
+    );
     choose(g, "c:pirate-ship-attacking-civilian-lanius:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "pirate-ship-attacking-civilian-lanius");
@@ -53,7 +58,10 @@ describe("Pirate ship attacking civilian (Lanius)", () => {
     assert.equal(destroyed.scrap, 10 + paid[0]!);
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
-    assert.equal(destroyed.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"), true);
+    assert.equal(
+      destroyed.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),
+      true,
+    );
 
     const killed = createGame(2);
     open(killed);

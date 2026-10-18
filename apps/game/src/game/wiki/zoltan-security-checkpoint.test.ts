@@ -26,11 +26,14 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 function boarders(g: Game): number {
-  return g.crew.filter((c) => c.side === "enemy" && c.aboard === "player" && c.kin === "energy").length;
+  return g.crew.filter((c) => c.side === "enemy" && c.aboard === "player" && c.kin === "energy")
+    .length;
 }
 
 describe("Zoltan security checkpoint", () => {
@@ -192,7 +195,7 @@ describe("Zoltan security checkpoint", () => {
     assert.match(body, /ship checks out/);
     const fuel = Number(body.match(/Fuel: (\d+)/)?.[1]);
     assert.ok(fuel >= 2 && fuel <= 4, body);
-    assert.equal(slug.fuel,  fuel + (createGame(7).fuel));
+    assert.equal(slug.fuel, fuel + createGame(7).fuel);
     assert.equal(slug.scrap, 10);
     assert.equal(slug.missiles, missiles);
     assert.equal(slug.player.parts, parts);

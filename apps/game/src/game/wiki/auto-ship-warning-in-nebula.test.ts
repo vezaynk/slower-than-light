@@ -22,7 +22,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Auto-ship warning in nebula", () => {
@@ -33,7 +35,10 @@ describe("Auto-ship warning in nebula", () => {
       g.event?.body,
       "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.",
     );
-    assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-warning-in-nebula:0"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:auto-ship-warning-in-nebula:0"),
+      true,
+    );
     choose(g, "c:auto-ship-warning-in-nebula:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-warning-in-nebula");
@@ -65,7 +70,8 @@ describe("Auto-ship warning in nebula", () => {
     assert.equal(destroyed.fleet, 5);
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 5, body);
 
     const killed = createGame(2);
@@ -104,6 +110,10 @@ describe("Auto-ship warning in nebula", () => {
     assert.equal(g.enemyEscape?.seconds, 40);
     assert.equal(g.enemyEscape?.running, true);
     assert.equal(g.enemyEscape?.pursuit, true);
-    assert.ok(g.log.includes("It appears that an automated Rebel scout was positioned within the nebula to warn of your passing."));
+    assert.ok(
+      g.log.includes(
+        "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.",
+      ),
+    );
   });
 });

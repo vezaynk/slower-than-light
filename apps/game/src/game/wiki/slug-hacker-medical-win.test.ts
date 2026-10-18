@@ -8,7 +8,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Slug hacker (medical) reward", () => {
@@ -30,7 +32,10 @@ describe("Slug hacker (medical) reward", () => {
     const killed = createGame(2);
     assert.equal(pageWin(killed, "slug-hacker-medical", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, /you quickly shut off their hacking module and your systems return to normal/);
+    assert.match(
+      dead,
+      /you quickly shut off their hacking module and your systems return to normal/,
+    );
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);

@@ -6,7 +6,8 @@ import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:refueling-platform:1";
 const LABEL = "Ignore the refueling platform.";
-const BAIT = "As you prepare to leave the system, a Pirate ship suddenly appears on scanners - it looks like it was attempting to use the platform as bait!";
+const BAIT =
+  "As you prepare to leave the system, a Pirate ship suddenly appears on scanners - it looks like it was attempting to use the platform as bait!";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

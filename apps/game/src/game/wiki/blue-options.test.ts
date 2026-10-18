@@ -63,12 +63,15 @@ describe("Skipped blue options", () => {
   it("nebula lost ship beams a crewmember for medium scrap, or tracks them with scanners", () => {
     const plain = createGame(1);
     const ev = openFiller(plain, "nebula-lost-ship", "Nebula lost ship");
-    assert.deepEqual(ev.choices.map((c) => c.id), [
-      "c:nebula-lost-ship:0",
-      "c:nebula-lost-ship:1",
-      "c:nebula-lost-ship:2",
-      "c:nebula-lost-ship:3",
-    ]);
+    assert.deepEqual(
+      ev.choices.map((c) => c.id),
+      [
+        "c:nebula-lost-ship:0",
+        "c:nebula-lost-ship:1",
+        "c:nebula-lost-ship:2",
+        "c:nebula-lost-ship:3",
+      ],
+    );
     assert.equal(choiceDisabled(plain, "c:nebula-lost-ship:2"), "Needs a Teleporter");
     assert.equal(choiceDisabled(plain, "c:nebula-lost-ship:3"), "Needs Long-Ranged Scanners");
 
@@ -108,7 +111,10 @@ describe("Skipped blue options", () => {
     const plain = createGame(1);
     openFiller(plain, "plasma-storm-incapacitated-ships", "Plasma storm incapacitated ships");
     assert.ok(plain.event?.choices.some((c) => c.id === "c:plasma-storm-incapacitated-ships:2"));
-    assert.equal(choiceDisabled(plain, "c:plasma-storm-incapacitated-ships:2"), "Needs level 2 Piloting");
+    assert.equal(
+      choiceDisabled(plain, "c:plasma-storm-incapacitated-ships:2"),
+      "Needs level 2 Piloting",
+    );
 
     const seen = new Set<string>();
     for (let seed = 1; seed < 200 && seen.size < 4; seed++) {
@@ -232,7 +238,14 @@ describe("Skipped blue options", () => {
   });
 
   it("a healing bomb keeps one Federation engineer and marks the hidden base", () => {
-    const heal = { uid: "heal", defId: "BOMB_HEAL", charge: 0, enabled: false, autofire: false, target: null };
+    const heal = {
+      uid: "heal",
+      defId: "BOMB_HEAL",
+      charge: 0,
+      enabled: false,
+      autofire: false,
+      target: null,
+    };
     let plain: Game | undefined;
     let card: Game | undefined;
     for (let seed = 1; seed < 80 && (!plain || !card); seed++) {
@@ -251,7 +264,10 @@ describe("Skipped blue options", () => {
     }
     assert.ok(plain);
     assert.ok(card);
-    assert.equal(plain.event?.choices.some((c) => c.id === "q:loyalists:heal"), false);
+    assert.equal(
+      plain.event?.choices.some((c) => c.id === "q:loyalists:heal"),
+      false,
+    );
     assert.ok(card.event?.choices.some((c) => c.id === "q:loyalists:heal"));
     assert.equal(choiceDisabled(card, "q:loyalists:heal"), "Need 1 missiles");
     card.missiles = 2;
@@ -263,6 +279,9 @@ describe("Skipped blue options", () => {
     const joined = card.crew.filter((c) => c.side === "player" && !before.has(c.id));
     assert.equal(joined.length, 1);
     assert.equal(skillRank(joined[0].skills?.engines ?? 0, xpNeedFor(joined[0], "engines")), 1);
-    assert.ok(card.beacons.some((b) => b.quest === "fed-base") || (card.questsNext ?? []).includes("fed-base"));
+    assert.ok(
+      card.beacons.some((b) => b.quest === "fed-base") ||
+        (card.questsNext ?? []).includes("fed-base"),
+    );
   });
 });

@@ -97,7 +97,7 @@ export function elements(node: XmlElement | undefined): XmlElement[] {
   return found;
 }
 
-export function child(node: XmlElement, tag: string): XmlElement | undefined {
+export function child(node: XmlElement | undefined, tag: string): XmlElement | undefined {
   return elements(node).find((item) => item.tagName === tag);
 }
 
@@ -601,7 +601,8 @@ function isRewardKind(value: string | undefined): value is RewardKind {
 
 function readScaling(node: XmlElement): RewardScaling | undefined {
   const difficulty = attr(node, "difficulty")?.trim();
-  if (difficulty != null && difficulty !== "" && difficulty !== "0" && difficulty !== "2") return undefined;
+  if (difficulty != null && difficulty !== "" && difficulty !== "0" && difficulty !== "2")
+    return undefined;
   const scrap = child(node, "scrap");
   if (!scrap) return undefined;
   const baseAmount = attrNum(scrap.getAttribute("baseAmount"));
@@ -751,7 +752,9 @@ export function parsePack(xml: string): ContentPack {
     const row = readEmpty(node);
     if (row) empties.push(row);
   }
-  const rewardsNode = elements(doc.documentElement ?? undefined).find((item) => item.tagName === "rewards");
+  const rewardsNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "rewards",
+  );
   const rewards = rewardsNode ? readRewards(rewardsNode) : undefined;
   const pack: ContentPack = {
     crew,
@@ -956,7 +959,13 @@ function tradeRow(items: EventEffect[]): OfferRow | undefined {
   if (!pay || pay.k !== "res" || !gain || gain.k !== "res") return undefined;
   if (pay.sign !== -1 || gain.sign !== 1) return undefined;
   if (!isOfferRes(pay.id) || !isOfferRes(gain.id)) return undefined;
-  return { k: "trade", pay: pay.id, cost: [pay.lo, pay.hi], get: gain.id, gain: [gain.lo, gain.hi] };
+  return {
+    k: "trade",
+    pay: pay.id,
+    cost: [pay.lo, pay.hi],
+    get: gain.id,
+    gain: [gain.lo, gain.hi],
+  };
 }
 
 function fuelRow(band: "high" | "pt2", items: EventEffect[]): OfferRow | undefined {
@@ -990,7 +999,14 @@ function supplyRow(items: EventEffect[]): OfferRow | undefined {
   const missiles = items[0];
   const parts = items[1];
   const fuel = items[2];
-  if (!missiles || missiles.k !== "res" || !parts || parts.k !== "res" || !fuel || fuel.k !== "res") {
+  if (
+    !missiles ||
+    missiles.k !== "res" ||
+    !parts ||
+    parts.k !== "res" ||
+    !fuel ||
+    fuel.k !== "res"
+  ) {
     return undefined;
   }
   if (missiles.sign !== 1 || parts.sign !== 1 || fuel.sign !== 1) return undefined;
@@ -1071,7 +1087,8 @@ function readSurrenderReward(node: XmlElement): SurrenderReward | undefined {
   const augments = elements(node).filter((item) => item.tagName === "augment");
   const crews = elements(node).filter((item) => item.tagName === "crewMember");
   const repairs = elements(node).filter((item) => item.tagName === "fuelRepairs");
-  const present = autos.length + weapons.length + drones.length + augments.length + crews.length + repairs.length;
+  const present =
+    autos.length + weapons.length + drones.length + augments.length + crews.length + repairs.length;
   if (present === 0) return { k: "none" };
   if (autos.length > 0) {
     const text = ownText(autos[0]!).trim();
@@ -1442,7 +1459,12 @@ function readChoiceEffect(node: XmlElement): EventEffect[] | undefined {
     return [effect];
   }
   if (node.tagName === "weapon" || node.tagName === "drone" || node.tagName === "augment") {
-    return [{ k: "item", item: node.tagName === "weapon" ? "weapon" : node.tagName === "drone" ? "drone" : "augment" }];
+    return [
+      {
+        k: "item",
+        item: node.tagName === "weapon" ? "weapon" : node.tagName === "drone" ? "drone" : "augment",
+      },
+    ];
   }
   return undefined;
 }

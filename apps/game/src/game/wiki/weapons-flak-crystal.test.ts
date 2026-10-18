@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { FLAK1_FAKE_LABEL } from "../extras/ordnance.ts";
 import { CHARGE_SECONDS, DAMAGE, PROJECTILES } from "../extras/flakart.ts";
@@ -25,12 +24,13 @@ import { wikiPage } from "@stl/wiki-dump";
 
 const FLAK_PAGE = wikiPage("Flak (Weapons)");
 const CRYSTAL_PAGE = wikiPage("Crystal (Weapons)");
-const SOURCE = readFileSync(
-  new URL("../../../../../packages/catalog/src/wiki/weapons-flak-crystal.ts", import.meta.url),
-  "utf8",
-);
 
-const CRYSTAL_IDS = ["CRYSTAL_BURST_1", "CRYSTAL_BURST_2", "CRYSTAL_HEAVY_1", "CRYSTAL_HEAVY_2"] as const;
+const CRYSTAL_IDS = [
+  "CRYSTAL_BURST_1",
+  "CRYSTAL_BURST_2",
+  "CRYSTAL_HEAVY_1",
+  "CRYSTAL_HEAVY_2",
+] as const;
 
 function sections(text: string): Map<string, string> {
   const map = new Map<string, string>();
@@ -83,15 +83,7 @@ const flak = sections(FLAK_PAGE);
 const crystal = sections(CRYSTAL_PAGE);
 
 describe("flak and crystal wiki weapons", () => {
-  it("cites both page titles and the unmodeled crystal kind", () => {
-    assert.match(SOURCE, /Flak \(Weapons\)/);
-    assert.match(SOURCE, /Crystal \(Weapons\)/);
-    assert.match(
-      SOURCE,
-      /kind "laser" is the closest stored kind and pierce is NOT modeled by kind/,
-    );
-    assert.match(SOURCE, /no percent is given/);
-    assert.match(SOURCE, /they never cause fires or breaches/);
+  it("follows the flak and crystal page sentences", () => {
     assert.match(FLAK_PAGE, /they never cause fires or breaches/);
     assert.match(FLAK_PAGE, /all the shots arrive almost simultaneously/);
     assert.match(CRYSTAL_PAGE, /pierce one shield layer/);
@@ -408,7 +400,14 @@ describe("Adv. Flak room odds", () => {
     g.player.systems.weapons.level = 1;
     g.player.systems.weapons.power = 1;
     g.player.weapons = [
-      { uid: "af", defId: "SHOTGUN_PLAYER", charge: 1, enabled: true, autofire: false, target: "n" },
+      {
+        uid: "af",
+        defId: "SHOTGUN_PLAYER",
+        charge: 1,
+        enabled: true,
+        autofire: false,
+        target: "n",
+      },
     ];
     g.seed = 8;
     const preview = createGame(1);

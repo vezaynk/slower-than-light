@@ -7,7 +7,8 @@ import type { Game, Shot, SysId } from "../types.ts";
 function ionCount(g: Game, side: "player" | "enemy"): number {
   const ship = side === "player" ? g.player : g.enemy;
   if (!ship) return 0;
-  return (Object.keys(ship.systems) as SysId[]).filter((id) => ship.systems[id].ion.length > 0).length;
+  return (Object.keys(ship.systems) as SysId[]).filter((id) => ship.systems[id].ion.length > 0)
+    .length;
 }
 
 function shot(partial: Partial<Shot> & Pick<Shot, "kind" | "damage">): Shot {
@@ -77,7 +78,10 @@ describe("reverse ion field", () => {
     const room = enemy.enemy?.rooms.find((item) => item.system);
     assert.ok(room && enemy.enemy);
     enemy.enemy.zoltan = 5;
-    applyImpact(enemy, shot({ kind: "ion", from: "player", damage: 0, ion: 1, targetRoom: room.id }));
+    applyImpact(
+      enemy,
+      shot({ kind: "ion", from: "player", damage: 0, ion: 1, targetRoom: room.id }),
+    );
     assert.equal(enemy.enemy.zoltan, 3);
   });
 
@@ -119,7 +123,8 @@ describe("reverse ion field", () => {
       g.player.zoltan = 5;
       applyPulsarPulse(g);
       if (g.player.zoltan === 5 && ionCount(g, "player") === 0) clear += 1;
-      if ((g.player.zoltan === 2 || g.player.zoltan === 1) && ionCount(g, "player") === 0) drained += 1;
+      if ((g.player.zoltan === 2 || g.player.zoltan === 1) && ionCount(g, "player") === 0)
+        drained += 1;
     }
     assert.ok(clear > 0);
     assert.ok(drained > 0);
@@ -164,7 +169,9 @@ describe("reverse ion field", () => {
     };
     tickEnemyDrones(g, 0.02);
     assert.equal(g.player.systems.weapons.ion.length, 0);
-    assert.ok(g.crew.some((c) => c.aboard === "player" && c.room === room.id && (c.stun ?? 0) >= 6));
+    assert.ok(
+      g.crew.some((c) => c.aboard === "player" && c.room === room.id && (c.stun ?? 0) >= 6),
+    );
     assert.ok(g.log.includes("Reverse Ion Field shrugged that off."));
   });
 });

@@ -1430,6 +1430,17 @@ function settleDisplace(ship: Ship, box: ZoltanBox, zoltans: number): void {
   const capacity = Math.max(0, box.level - (box.damage ?? 0));
   const ion = box.ion?.length ?? 0;
   let held = box.zoltanHeld ?? 0;
+  if (ion > 0) {
+    // Weapon Control: "Zoltans replace the reactor power from ion-locked Weapon Control system with their zoltan
+    // power and remove the reactor power if they leave the room." Zoltans: the same on entering Drone Control.
+    if (zoltans > held) {
+      const peel = Math.min(box.power, zoltans - held);
+      box.power -= peel;
+      held += peel;
+    }
+    stampHeld(box, Math.min(held, zoltans));
+    return;
+  }
   const base = box.power + held;
   const full = ion === 0 && capacity > 0 && base >= capacity && zoltans > 0;
   if (full) {
@@ -1456,8 +1467,14 @@ function settleDisplace(ship: Ship, box: ZoltanBox, zoltans: number): void {
 /**
  * Wiki page "Zoltans": one Zoltan can fill a shield buffer. Two replace one reactor pair
  * and cannot fill only a buffer. Leaving does not put the peeled pair back.
+ * Under ion, Weapon Control notes Shields "add their power but do not replace the reactor power", and Zoltans
+ * replaces it only when as many Zoltans stay as there are power levels (settleCover).
  */
 function settleShields(sys: SystemState, zoltans: number): void {
+  if (sys.ion.length > 0) {
+    settleCover(sys, zoltans);
+    return;
+  }
   const pairs = Math.floor(zoltans / 2) * 2;
   let held = sys.zoltanHeld ?? 0;
   const want = Math.min(pairs, sys.power + held);
@@ -1472,12 +1489,13 @@ function settleShields(sys: SystemState, zoltans: number): void {
 
 /**
  * Wiki page "Zoltans": Zoltans replace reactor power when as many stay as there are
- * power levels in Engines, Medbay, or Oxygen. Ion still on the system skips this,
- * so the remaining reactor stays and the yellow bars fill the gap. Leaving does not restore.
+ * power levels in Shields, Engines, Medbay, or Oxygen. That line is under the ion-locked rules,
+ * so ion on the system does not skip it. Fewer Zoltans add their bars and leave the reactor in place.
+ * Leaving does not restore.
  */
 function settleCover(sys: SystemState, zoltans: number): void {
   const capacity = Math.max(0, sys.level - sys.damage);
-  const covered = capacity > 0 && zoltans >= capacity && sys.ion.length === 0;
+  const covered = capacity > 0 && zoltans >= capacity;
   let held = sys.zoltanHeld ?? 0;
   if (covered) {
     const want = Math.min(zoltans, sys.power + held);
@@ -3013,6 +3031,18 @@ export function kitBars(kit: Kit | undefined, bonus?: number): number {
   return Math.min(capacity, green + yellow);
 }
 
+/**
+ * Bars a kit's power column should light. Same sum as kitBars, except Backup Battery.
+ * Zoltans: "no effect on subsystems." Systems lists Backup Battery with Piloting, Sensors, and Door System.
+ * Flak Artillery is a main system, beside Artillery Beam, so it takes the yellow bar.
+ */
+export function kitShownBars(kit: Kit | undefined): number {
+  if (!kit) return 0;
+  const capacity = Math.max(0, kit.level - (kit.damage ?? 0));
+  if (kit.id === "battery") return Math.max(0, Math.min(kit.power, capacity));
+  return kitBars(kit);
+}
+
 /** Wiki page "Zoltans": one bar per living Zoltan standing in that kit's room. Writes the stamp kitBars reads. */
 export function noteZoltanKits(g: Game): void {
   stampZoltanKits(g, g.player, "player");
@@ -3030,10 +3060,14 @@ function stampZoltanKits(g: Game, ship: Ship, aboard: "player" | "enemy"): void 
 }
 
 /**
- * Zoltans, lead: Cloaking, Hacking, Crew Teleporter, and Mind Control lock reactor bars
- * during the cooldown after use. Mind Control's usual cooldown is 20 seconds (Systems,
- * "Systems cooldown"); full ion is 25 (leash.ts). The lock applies while kit.cool is counting,
- * including an enemy hold's wait and Hacking's relaunch wait, which share that field.
+ * Zoltans: Cloaking, Hacking, the Crew Teleporter, and Mind Control "require a cooldown period after use that
+ * locks power into that system." Backup Battery: "once these systems enter their cooldown, the reactor power is
+ * locked for the whole duration of the cooldown."
+ * That reservation starts when the ability is exercising, not only after it wears off. An active cloak, a hacking
+ * pulse, and a mind-control hold keep their reactor bars (`on` and time still left) until the run ends and the
+ * cooldown that follows has cleared. The Crew Teleporter starts its cooldown on send, so `cool` covers it.
+ * This is the manual power button only. Adding or removing Zoltan power still changes a running cloak or hold
+ * (Cloaking; Mind Control), and a Backup Battery that ends still pulls bars off those systems (cell.ts).
  */
 const COOLDOWN_LOCK: ReadonlySet<string> = new Set(["cloaking", "hacking", "teleporter", "mind"]);
 
@@ -3070,15 +3104,18 @@ export function setKitBars(g: Game, id: BarKit, next: number) {
   while (kit.power < next && kitPowerUp(g, id));
 }
 
+/** True while this kit is exercising its ability or still in the cooldown that use starts. */
 export function cooldownLocksPower(kit: Kit | undefined): boolean {
-  return !!kit && kit.cool > 0 && COOLDOWN_LOCK.has(kit.id);
+  if (!kit || !COOLDOWN_LOCK.has(kit.id)) return false;
+  if (kit.cool > 0) return true;
+  return kit.on && kit.left > 0;
 }
 
 /**
  * Zoltans, lead: walking a Zoltan into a cooling system turns one locked bar from reactor
  * power into Zoltan power. Leaving empties that bar, so the reactor power stays free.
  * A Zoltan already standing there when the cooldown is first seen does not swap until
- * they leave and come back. One arrival frees one bar.
+ * they leave and come back. Each Zoltan frees at most one bar per cooldown.
  */
 export function swapZoltanCooldown(g: Game): void {
   peelZoltanCooldown(g, g.player, "player");
@@ -3091,6 +3128,7 @@ function peelZoltanCooldown(g: Game, ship: Ship, aboard: "player" | "enemy"): vo
     if (!kit || !COOLDOWN_LOCK.has(kit.id)) continue;
     if (kit.cool <= 0) {
       delete kit.swap;
+      delete kit.peeled;
       continue;
     }
     const room = ship.rooms.find((r) => r.kit === kit.id);
@@ -3104,11 +3142,18 @@ function peelZoltanCooldown(g: Game, ship: Ship, aboard: "player" | "enemy"): vo
       continue;
     }
     const known = new Set(kit.swap);
+    // Zoltans: "2 zoltans can free up only 2 reactor power from a previously fully powered level 3"
+    // system, so a Zoltan who already freed a bar this cooldown does not free another on re-entry.
+    const peeled = new Set(kit.peeled);
     for (const id of here) {
-      if (known.has(id)) continue;
-      if (kit.power > 0) kit.power -= 1;
+      if (known.has(id) || peeled.has(id)) continue;
+      if (kit.power > 0) {
+        kit.power -= 1;
+        peeled.add(id);
+      }
     }
     kit.swap = here;
+    if (peeled.size) kit.peeled = [...peeled];
   }
 }
 
@@ -3623,7 +3668,8 @@ export function applyImpact(g: Game, shot: Shot) {
     // Mind Control, Overview: ion that covers every level starts the 25s cooldown. The hold stays up.
     if (r?.kit === "mind" && ship.kits.mind) ionOnLeash(ship.kits.mind);
     // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
-    if (r?.kit === "battery" && ship.kits.battery) ionOnCell(g, ship.kits.battery, Math.max(1, shot.ion));
+    if (r?.kit === "battery" && ship.kits.battery)
+      ionOnCell(g, ship.kits.battery, Math.max(1, shot.ion));
     if (r?.system) {
       // @agent:flagship. A flagship artillery room ionizes only its own gun (wiki/flagship-systems.ts ionArtillery).
       if (!ionArtillery(ship, r.id, Math.max(1, shot.ion)))
@@ -3810,7 +3856,9 @@ function strikeRoom(
   // A surge laser is hard-coded to 21% breach and has no defId, so it is not this gate.
   // INFERRED: "no fires started" is the fire roll missing, not the room's existing fire count.
   const heavyLaser =
-    shot.defId === "LASER_HEAVY_1" || shot.defId === "LASER_HEAVY_2" || shot.defId === "LASER_HEAVY_1_SP";
+    shot.defId === "LASER_HEAVY_1" ||
+    shot.defId === "LASER_HEAVY_2" ||
+    shot.defId === "LASER_HEAVY_1_SP";
   const missile = shot.kind === "missile" && shot.from !== "env";
   let fireStarted = false;
   if (shot.fireChance > 0 && rand(g) < shot.fireChance) {
@@ -3851,7 +3899,13 @@ function strikeRoom(
  * `shots` on the def is the bank, not one volley of a normal gun.
  * Missile (Weapons), Swarm Missiles: "7 seconds per shot" and "Shots: 1-3".
  */
-const CHARGER_IDS = new Set(["ION_CHARGEGUN", "LASER_CHARGEGUN_PLAYER", "LASER_CHARGEGUN", "LASER_CHARGEGUN_2", "MISSILE_CHARGEGUN"]);
+const CHARGER_IDS = new Set([
+  "ION_CHARGEGUN",
+  "LASER_CHARGEGUN_PLAYER",
+  "LASER_CHARGEGUN",
+  "LASER_CHARGEGUN_2",
+  "MISSILE_CHARGEGUN",
+]);
 
 /** Bank size for a charger, or null when this gun fires its whole volley from one bar. */
 export function chargerCap(defId: string): number | null {
@@ -6846,7 +6900,9 @@ function closerBeacon(g: Game, ram: Beacon): Beacon | null {
   if (!base || ram.id === base.id) return null;
   const options = ram.links
     .map((id) => g.beacons.find((b) => b.id === id))
-    .filter((b): b is Beacon => !!b && b.id !== ram.id && manhattan(b, base) < manhattan(ram, base));
+    .filter(
+      (b): b is Beacon => !!b && b.id !== ram.id && manhattan(b, base) < manhattan(ram, base),
+    );
   if (!options.length) return null;
   return (
     [...options].sort(

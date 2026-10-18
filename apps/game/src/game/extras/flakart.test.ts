@@ -2,7 +2,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { applyImpact, createGame, evasionPercent, rand, sparePower, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
-import { ACQUIRE_S, deploy, enemyDefenseIntercept, shotHitsDrone, swarmIntercept, tickSwarm } from "./swarm.ts";
+import {
+  ACQUIRE_S,
+  deploy,
+  enemyDefenseIntercept,
+  shotHitsDrone,
+  swarmIntercept,
+  tickSwarm,
+} from "./swarm.ts";
 import {
   CHARGE_SECONDS,
   DAMAGE,
@@ -206,7 +213,10 @@ describe("flak burst", () => {
     assert.equal(g.enemy.shieldNow, 8);
     assert.equal(g.enemy.zoltan, 5);
     assert.equal(g.enemy.hull, hull);
-    assert.equal(g.log.slice(before).some((line) => line.toLowerCase().includes("drones")), false);
+    assert.equal(
+      g.log.slice(before).some((line) => line.toLowerCase().includes("drones")),
+      false,
+    );
     g.enemy.zoltan = 0;
     for (const shot of realOf(g.shots)) applyImpact(g, shot);
     assert.equal(g.enemy.shieldNow, 1);
@@ -290,8 +300,6 @@ describe("flak burst", () => {
     const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.power = 1;
-    // A Zoltan stamp is not a reactor bar. One filled bar is still the 50s clock.
-    kit.zoltan = 1;
     tickFlak(g, 20);
     assert.equal(g.shots.length, 0);
     assert.equal(kit.aux, 20);
@@ -300,6 +308,30 @@ describe("flak burst", () => {
     assert.equal(kit.aux, 49);
     tickFlak(g, 1);
     expectBurst(g.shots);
+  });
+
+  it("counts a Zoltan bar as a power level and charges from that bar alone", () => {
+    const paired = fight(23);
+    armFlak(paired, 4);
+    const both = paired.player.kits.artillery;
+    assert.ok(both);
+    both.power = 1;
+    both.zoltan = 1;
+    tickFlak(paired, 40);
+    assert.equal(both.power, 1);
+    expectBurst(paired.shots);
+
+    const alone = fight(24);
+    armFlak(alone, 4);
+    const kit = alone.player.kits.artillery;
+    assert.ok(kit);
+    kit.power = 0;
+    kit.on = false;
+    kit.zoltan = 1;
+    tickFlak(alone, 49);
+    assert.equal(alone.shots.length, 0);
+    tickFlak(alone, 1);
+    expectBurst(alone.shots);
   });
 
   it("stops adding bars at the cap and removes one bar", () => {
@@ -340,7 +372,12 @@ describe("flak burst", () => {
   it("drains a full bar in 2 seconds when off, unpowered, or destroyed", () => {
     // Flak Artillery, Overview: "Powering off drains charge quickly."
     // INFERRED: a full bar of the installed level empties in 2 seconds. The page prints no duration.
-    const emptied = (seed: number, level: 1 | 4, full: number, setup: (kit: NonNullable<Game["player"]["kits"]["artillery"]>) => void) => {
+    const emptied = (
+      seed: number,
+      level: 1 | 4,
+      full: number,
+      setup: (kit: NonNullable<Game["player"]["kits"]["artillery"]>) => void,
+    ) => {
       const g = fight(seed);
       armFlak(g, level);
       const kit = g.player.kits.artillery;
@@ -359,7 +396,7 @@ describe("flak burst", () => {
       kit.on = true;
     });
     emptied(31, 4, 20, (kit) => {
-      kit.power = 4;
+      kit.power = 0;
       kit.on = false;
     });
     emptied(32, 4, 20, (kit) => {
@@ -517,7 +554,15 @@ describe("flak room odds", () => {
     g.seed = 4;
     const preview = createGame(0);
     preview.seed = 4;
-    const rolls = [rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview)];
+    const rolls = [
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+    ];
     tickFlak(g, 0.01);
     const reals = realOf(g.shots);
     assert.equal(reals.length, 7);

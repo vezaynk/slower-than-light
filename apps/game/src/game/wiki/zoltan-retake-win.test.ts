@@ -52,7 +52,10 @@ describe("Zoltan retake the ship reward", () => {
     const dp = won.player.parts - parts;
     assert.equal([df, dm, dp].filter((n) => n > 0).length, 2);
     assert.equal(won.augments.length, augs);
-    assert.equal(won.event?.choices.some((c) => c.id === "s:zoltan-raft:hire"), true);
+    assert.equal(
+      won.event?.choices.some((c) => c.id === "s:zoltan-raft:hire"),
+      true,
+    );
 
     won.scrap = 39;
     assert.equal(choiceDisabled(won, "s:zoltan-raft:hire"), "Need 40 scrap");
@@ -79,13 +82,19 @@ describe("Zoltan retake the ship reward", () => {
         accepted++;
         assert.equal(g.scrap, 40);
         assert.ok(g.event.body.includes("A Zoltan crewmember joins you."));
-        assert.equal(g.crew.filter((c) => c.side === "player" && c.kin === "energy").length, sparks + 1);
+        assert.equal(
+          g.crew.filter((c) => c.side === "player" && c.kin === "energy").length,
+          sparks + 1,
+        );
         assert.equal(g.augments.length, g.augments.length);
       } else if (g.event?.body.includes(REFUSE)) {
         refused++;
         assert.equal(g.scrap, 80);
         assert.ok(g.event.body.includes("Nothing happens."));
-        assert.equal(g.crew.filter((c) => c.side === "player" && c.kin === "energy").length, sparks);
+        assert.equal(
+          g.crew.filter((c) => c.side === "player" && c.kin === "energy").length,
+          sparks,
+        );
       }
     }
     assert.ok(accepted > 0 && refused > 0, `accept ${accepted} refuse ${refused}`);
@@ -99,7 +108,13 @@ describe("Zoltan retake the ship reward", () => {
     assert.ok(high >= hlo && high <= hhi, `high ${high}`);
     assert.equal(killed.scrap, 10 + high);
     // "You receive an augmentation with high scrap." Rewards, "Augment": "A random augmentation & T scrap."
-    assert.equal(killed.augments.length + (killed.overflow ?? []).filter((x) => x.kind === "augment").length, before + 1);
-    assert.equal(killed.event?.choices.some((c) => c.id === "s:zoltan-raft:hire"), false);
+    assert.equal(
+      killed.augments.length + (killed.overflow ?? []).filter((x) => x.kind === "augment").length,
+      before + 1,
+    );
+    assert.equal(
+      killed.event?.choices.some((c) => c.id === "s:zoltan-raft:hire"),
+      false,
+    );
   });
 });

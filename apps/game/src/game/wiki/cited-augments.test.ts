@@ -37,7 +37,8 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
     startCombat(bare, "scout");
     const open = bare.player.rooms[0];
     for (const crew of bare.crew) {
-      if (crew.room === open.id) crew.room = bare.player.rooms.find((item) => item.id !== open.id)!.id;
+      if (crew.room === open.id)
+        crew.room = bare.player.rooms.find((item) => item.id !== open.id)!.id;
     }
     open.breach = 1;
     open.breachFix = REPAIR_SECONDS - 0.03;

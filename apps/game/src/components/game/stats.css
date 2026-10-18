@@ -11,11 +11,19 @@
   padding: 14px 16px 16px;
 }
 
-.title-frame .stats-sheet { width: auto; }
+.title-frame .stats-sheet {
+  width: auto;
+}
 
-.stats-sheet .ship-sheet-head { flex: none; flex-wrap: wrap; margin-bottom: 8px; }
+.stats-sheet .ship-sheet-head {
+  flex: none;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
 
-.stats-sheet .ship-tabs { flex: none; }
+.stats-sheet .ship-tabs {
+  flex: none;
+}
 
 .stats-panel {
   display: flex;
@@ -36,7 +44,10 @@
   color: var(--color-muted);
 }
 
-.stats-progress b { font-weight: 400; color: var(--color-accent); }
+.stats-progress b {
+  font-weight: 400;
+  color: var(--color-accent);
+}
 
 .stats-bar {
   display: block;
@@ -46,12 +57,24 @@
   border: 2px solid var(--color-line-dim);
 }
 
-.stats-bar > i { display: block; height: 100%; background: var(--color-accent); }
+.stats-bar > i {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+}
 
-.stats-sheet .sheet-group-head .mini { margin-left: auto; font-size: 15px; letter-spacing: 0.04em; }
+.stats-sheet .sheet-group-head .mini {
+  margin-left: auto;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
 
 /* Records: number tiles. */
-.stats-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.stats-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
 
 .stats-tile {
   display: grid;
@@ -65,21 +88,67 @@
   border-radius: var(--radius);
 }
 
-.stats-tile .px-icon { grid-row: span 2; color: var(--color-line); }
-.stats-tile b { font-family: var(--font-hud); font-size: 34px; font-weight: 400; line-height: 1; color: var(--color-fg); }
-.stats-tile span { font-family: var(--font-hud); font-size: 17px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-muted); }
-.stats-tile .stats-bar { grid-column: 1 / -1; width: 100%; height: 8px; margin-top: 6px; }
-.stats-tile small { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 13px; color: var(--color-muted); }
-.stats-tile.is-best { border-color: var(--color-accent); }
-.stats-tile.is-best b { color: var(--color-accent); }
+.stats-tile .px-icon {
+  grid-row: span 2;
+  color: var(--color-line);
+}
+.stats-tile b {
+  font-family: var(--font-hud);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-fg);
+}
+.stats-tile span {
+  font-family: var(--font-hud);
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.stats-tile .stats-bar {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 8px;
+  margin-top: 6px;
+}
+.stats-tile small {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-muted);
+}
+.stats-tile.is-best {
+  border-color: var(--color-accent);
+}
+.stats-tile.is-best b {
+  color: var(--color-accent);
+}
 
-.stats-empty { margin: 0; padding: 12px 14px; font-size: 15px; color: var(--color-muted); border: 2px dashed var(--color-line-dim); border-radius: var(--radius); }
+.stats-empty {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 15px;
+  color: var(--color-muted);
+  border: 2px dashed var(--color-line-dim);
+  border-radius: var(--radius);
+}
 
 /* Achievements: filter, then one card per achievement. */
-.stats-filter { display: flex; gap: 6px; flex-wrap: wrap; }
-.stats-filter.opt-choice { justify-content: flex-start; }
+.stats-filter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.stats-filter.opt-choice {
+  justify-content: flex-start;
+}
 
-.ach-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 8px; }
+.ach-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 8px;
+}
 
 .ach-card {
   display: grid;
@@ -94,13 +163,39 @@
   border-radius: var(--radius);
 }
 
-.ach-card.is-earned { border-color: var(--color-accent); background: #1d1a0c; }
-.ach-card .ach-icon { grid-row: span 3; padding: 4px; background: var(--color-panel); border: 2px solid var(--color-line-dim); }
-.ach-card.is-earned .ach-icon { border-color: var(--color-accent); }
+.ach-card.is-earned {
+  border-color: var(--color-accent);
+  background: #1d1a0c;
+}
+.ach-card .ach-icon {
+  grid-row: span 3;
+  padding: 4px;
+  background: var(--color-panel);
+  border: 2px solid var(--color-line-dim);
+}
+.ach-card.is-earned .ach-icon {
+  border-color: var(--color-accent);
+}
 
-.ach-card-name { font-family: var(--font-hud); font-size: 21px; font-weight: 400; line-height: 1.05; letter-spacing: 0.03em; color: var(--color-fg); overflow-wrap: anywhere; }
-.ach-card:not(.is-earned) .ach-card-name { color: var(--color-muted); }
-.ach-card-text { margin: 0; font-family: var(--font-mono); font-size: 14px; line-height: 1.35; color: var(--color-muted); }
+.ach-card-name {
+  font-family: var(--font-hud);
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  color: var(--color-fg);
+  overflow-wrap: anywhere;
+}
+.ach-card:not(.is-earned) .ach-card-name {
+  color: var(--color-muted);
+}
+.ach-card-text {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--color-muted);
+}
 
 .ach-card-tag {
   justify-self: start;
@@ -113,14 +208,32 @@
   border-radius: 99px;
 }
 
-.ach-card.is-earned .ach-card-tag { color: var(--color-ink); background: var(--color-accent); border-color: var(--color-accent); }
+.ach-card.is-earned .ach-card-tag {
+  color: var(--color-ink);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
 
-.ach-icon { flex: none; color: var(--color-fg); image-rendering: pixelated; }
-.ach-icon .ach-icon-gold { fill: var(--color-accent); }
-.ach-icon.is-locked { color: var(--color-line-dim); opacity: 0.85; filter: grayscale(1); }
+.ach-icon {
+  flex: none;
+  color: var(--color-fg);
+  image-rendering: pixelated;
+}
+.ach-icon .ach-icon-gold {
+  fill: var(--color-accent);
+}
+.ach-icon.is-locked {
+  color: var(--color-line-dim);
+  opacity: 0.85;
+  filter: grayscale(1);
+}
 
 /* Ships: one card per cruiser, for the chosen layout. */
-.stats-ships { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.stats-ships {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+}
 
 .stats-ship {
   display: grid;
@@ -132,15 +245,58 @@
   border-radius: var(--radius);
 }
 
-.stats-ship.is-open { border-color: var(--color-line); }
-.stats-ship.is-won { border-color: var(--color-accent); }
-.stats-ship-art { grid-column: 1 / -1; display: grid; place-items: center; height: 76px; background: var(--color-panel); position: relative; }
-.stats-ship-art .pixel-hull { width: 140px; height: 64px; }
-.stats-ship:not(.is-open) .pixel-hull { opacity: 0.25; filter: grayscale(1); }
-.stats-ship-art > .px-icon { position: absolute; color: var(--color-line-dim); }
-.stats-ship-name { font-family: var(--font-hud); font-size: 20px; letter-spacing: 0.04em; line-height: 1.1; }
-.stats-ship-state { align-self: center; font-family: var(--font-hud); font-size: 15px; letter-spacing: 0.08em; color: var(--color-muted); }
-.stats-ship.is-won .stats-ship-state { color: var(--color-accent); }
-.stats-ship-achs { grid-column: 1 / -1; display: flex; gap: 6px; }
-.stats-ship-achs .ach-icon { padding: 2px; background: var(--color-panel); border: 2px solid var(--color-line-dim); }
-.stats-ship-achs .ach-icon.is-earned { border-color: var(--color-accent); }
+.stats-ship.is-open {
+  border-color: var(--color-line);
+}
+.stats-ship.is-won {
+  border-color: var(--color-accent);
+}
+.stats-ship-art {
+  grid-column: 1 / -1;
+  display: grid;
+  place-items: center;
+  height: 76px;
+  background: var(--color-panel);
+  position: relative;
+}
+.stats-ship-art .pixel-hull {
+  width: 140px;
+  height: 64px;
+}
+.stats-ship:not(.is-open) .pixel-hull {
+  opacity: 0.25;
+  filter: grayscale(1);
+}
+.stats-ship-art > .px-icon {
+  position: absolute;
+  color: var(--color-line-dim);
+}
+.stats-ship-name {
+  font-family: var(--font-hud);
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+.stats-ship-state {
+  align-self: center;
+  font-family: var(--font-hud);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+}
+.stats-ship.is-won .stats-ship-state {
+  color: var(--color-accent);
+}
+.stats-ship-achs {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 6px;
+}
+.stats-ship-achs .ach-icon {
+  padding: 2px;
+  background: var(--color-panel);
+  border: 2px solid var(--color-line-dim);
+}
+.stats-ship-achs .ach-icon.is-earned {
+  border-color: var(--color-accent);
+}

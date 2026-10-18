@@ -32,15 +32,30 @@ describe("Mantis cruiser loadouts", () => {
   it("uses the published reactor and stores", () => {
     const byId = Object.fromEntries(MANTIS_HULLS.map((h) => [h.id, h]));
     assert.deepEqual(
-      [byId["PLAYER_SHIP_MANTIS"].reactor, byId["PLAYER_SHIP_MANTIS"].fuel, byId["PLAYER_SHIP_MANTIS"].missiles, byId["PLAYER_SHIP_MANTIS"].parts],
+      [
+        byId["PLAYER_SHIP_MANTIS"].reactor,
+        byId["PLAYER_SHIP_MANTIS"].fuel,
+        byId["PLAYER_SHIP_MANTIS"].missiles,
+        byId["PLAYER_SHIP_MANTIS"].parts,
+      ],
       [7, 16, 16, 0],
     );
     assert.deepEqual(
-      [byId["PLAYER_SHIP_MANTIS_2"].reactor, byId["PLAYER_SHIP_MANTIS_2"].fuel, byId["PLAYER_SHIP_MANTIS_2"].missiles, byId["PLAYER_SHIP_MANTIS_2"].parts],
+      [
+        byId["PLAYER_SHIP_MANTIS_2"].reactor,
+        byId["PLAYER_SHIP_MANTIS_2"].fuel,
+        byId["PLAYER_SHIP_MANTIS_2"].missiles,
+        byId["PLAYER_SHIP_MANTIS_2"].parts,
+      ],
       [11, 16, 0, 15],
     );
     assert.deepEqual(
-      [byId["PLAYER_SHIP_MANTIS_3"].reactor, byId["PLAYER_SHIP_MANTIS_3"].fuel, byId["PLAYER_SHIP_MANTIS_3"].missiles, byId["PLAYER_SHIP_MANTIS_3"].parts],
+      [
+        byId["PLAYER_SHIP_MANTIS_3"].reactor,
+        byId["PLAYER_SHIP_MANTIS_3"].fuel,
+        byId["PLAYER_SHIP_MANTIS_3"].missiles,
+        byId["PLAYER_SHIP_MANTIS_3"].parts,
+      ],
       [8, 16, 20, 0],
     );
   });
@@ -48,15 +63,27 @@ describe("Mantis cruiser loadouts", () => {
   it("counts crew kin and stays inside the reactor", () => {
     const byId = Object.fromEntries(MANTIS_HULLS.map((h) => [h.id, h]));
     assert.deepEqual(
-      [kinCount(byId["PLAYER_SHIP_MANTIS"], "mantis"), kinCount(byId["PLAYER_SHIP_MANTIS"], "engi"), kinCount(byId["PLAYER_SHIP_MANTIS"], "anaerobic")],
+      [
+        kinCount(byId["PLAYER_SHIP_MANTIS"], "mantis"),
+        kinCount(byId["PLAYER_SHIP_MANTIS"], "engi"),
+        kinCount(byId["PLAYER_SHIP_MANTIS"], "anaerobic"),
+      ],
       [3, 1, 0],
     );
     assert.deepEqual(
-      [kinCount(byId["PLAYER_SHIP_MANTIS_2"], "mantis"), kinCount(byId["PLAYER_SHIP_MANTIS_2"], "engi"), kinCount(byId["PLAYER_SHIP_MANTIS_2"], "anaerobic")],
+      [
+        kinCount(byId["PLAYER_SHIP_MANTIS_2"], "mantis"),
+        kinCount(byId["PLAYER_SHIP_MANTIS_2"], "engi"),
+        kinCount(byId["PLAYER_SHIP_MANTIS_2"], "anaerobic"),
+      ],
       [2, 0, 0],
     );
     assert.deepEqual(
-      [kinCount(byId["PLAYER_SHIP_MANTIS_3"], "mantis"), kinCount(byId["PLAYER_SHIP_MANTIS_3"], "engi"), kinCount(byId["PLAYER_SHIP_MANTIS_3"], "anaerobic")],
+      [
+        kinCount(byId["PLAYER_SHIP_MANTIS_3"], "mantis"),
+        kinCount(byId["PLAYER_SHIP_MANTIS_3"], "engi"),
+        kinCount(byId["PLAYER_SHIP_MANTIS_3"], "anaerobic"),
+      ],
       [1, 1, 1],
     );
     for (const hull of MANTIS_HULLS) {

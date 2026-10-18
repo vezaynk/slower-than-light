@@ -10,7 +10,16 @@ describe("scramblerBlocks", () => {
   });
 
   it("is false for other drone kinds and an empty kind", () => {
-    for (const kind of ["COMBAT_1", "COMBAT_BEAM", "BOARDER", "REPAIR", "SHIP_REPAIR", "COMBAT_2", "BOARDER_ION", ""]) {
+    for (const kind of [
+      "COMBAT_1",
+      "COMBAT_BEAM",
+      "BOARDER",
+      "REPAIR",
+      "SHIP_REPAIR",
+      "COMBAT_2",
+      "BOARDER_ION",
+      "",
+    ]) {
       assert.equal(scramblerBlocks(kind), false, kind || "(empty)");
     }
   });

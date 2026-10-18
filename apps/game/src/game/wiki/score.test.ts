@@ -101,7 +101,10 @@ describe("store resources", () => {
     g.scrap = 999;
     for (let i = 1; i < stock; i++) buy(g, parts.id);
     assert.equal(g.player.parts, before + stock);
-    assert.equal(g.stock?.some((item) => item.id === parts.id), false);
+    assert.equal(
+      g.stock?.some((item) => item.id === parts.id),
+      false,
+    );
     buy(g, parts.id);
     assert.equal(g.player.parts, before + stock);
 

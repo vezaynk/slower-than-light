@@ -350,6 +350,8 @@ export type Kit = {
    * A new arrival replaces one locked reactor bar. Absent means this cooldown has not been seen yet.
    */
   swap?: string[];
+  /** Zoltan ids that already freed a locked reactor bar during the current cooldown. */
+  peeled?: string[];
   /**
    * Reactor bars Zoltans have displaced in Drone Control while the system is full.
    * Same stamp as SystemState.zoltanHeld. Leaving restores them from spare.

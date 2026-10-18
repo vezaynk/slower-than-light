@@ -145,21 +145,13 @@ describe("EXTRA_EVENTS slug list", () => {
     }
   });
 
-  it("matches every fx number to a comment on that event", () => {
-    const src = readFileSync(
-      new URL("../../../../../packages/catalog/src/wiki/cited-events-slug.ts", import.meta.url),
-      "utf8",
-    );
+  it("puts each reward and hull number on that page", () => {
     for (const event of EXTRA_EVENTS) {
-      const at = src.indexOf(`dest: "${event.dest}"`);
-      assert.ok(at >= 0, event.dest);
-      const next = src.indexOf("\n  {", at + 1);
-      const block = src.slice(at, next === -1 ? src.length : next);
-      const comments = [...block.matchAll(/\/\/(.*)/g)].map((match) => match[1]);
-      const commentNums = comments.flatMap((comment) => comment.match(/\d+/g) ?? []).map(Number);
+      const text = dump.get(event.dest) ?? "";
       const nums = event.choices.flatMap((choice) => fxNumbers(choice.fx));
-      for (const n of nums) assert.ok(commentNums.includes(n), `${event.dest} ${n}`);
-      for (const n of commentNums) assert.ok(nums.includes(n), `${event.dest} comment ${n}`);
+      for (const n of nums) {
+        assert.ok(new RegExp(`(?<![\\d.])${n}(?!\\d)`).test(text), `${event.dest} ${n}`);
+      }
     }
   });
 });

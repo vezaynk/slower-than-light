@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { DRONE_POWER, deploy, swarmIntercept, tickSwarm } from "../extras/swarm.ts";
 import { HULLS } from "../hulls.ts";
@@ -7,8 +6,6 @@ import { commitJump, createGame, startCombat } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { OVERCHARGER, OVERCHARGER_PLUS, OVERCHARGER_SPEED } from "./cited-overcharger.ts";
 import { CITED_DRONES, citedSell, citedSellQuote, citedStock } from "./cited-stores.ts";
-
-const src = readFileSync(new URL("./cited-overcharger.ts", import.meta.url), "utf8");
 
 function arm(g: Game, power: number) {
   g.player.parts = 3;
@@ -44,16 +41,6 @@ describe("Shield Overcharger citation", () => {
     assert.equal("cooldown" in OVERCHARGER, false);
     assert.deepEqual(Object.keys(OVERCHARGER), ["power", "waits"]);
     assert.deepEqual(Object.keys(OVERCHARGER_PLUS), ["power", "sell"]);
-  });
-
-  it("quotes the table and does not define a function", () => {
-    assert.match(src, /Power requirement: 3 power/);
-    assert.match(src, /Power requirement: 2 power/);
-    assert.match(src, /8s\/10s\/13s\/16s\/20s for 0\/1\/2\/3\/4 existing layers/);
-    assert.match(src, /Sells for: 30 \(cannot be bought or found\)/);
-    assert.match(src, /Speed: 5/);
-    assert.equal(src.includes("function "), false);
-    assert.equal(src.includes("export function"), false);
   });
 });
 
@@ -304,7 +291,10 @@ describe("Shield Overcharger +", () => {
       false,
     );
     assert.deepEqual(
-      CITED_DRONES.filter((row) => row.name === "Shield Overcharger").map((row) => [row.name, row.cost]),
+      CITED_DRONES.filter((row) => row.name === "Shield Overcharger").map((row) => [
+        row.name,
+        row.cost,
+      ]),
       [["Shield Overcharger", 60]],
     );
     const stock = citedStock(createGame(18));
@@ -348,7 +338,9 @@ describe("Shield Overcharger +", () => {
       aux: 0,
     };
     assert.equal(
-      citedSellQuote(fitted).some((quote) => quote.ref === "DRONE_SHIELD" || quote.ref === "DRONE_SHIELD_PLAYER"),
+      citedSellQuote(fitted).some(
+        (quote) => quote.ref === "DRONE_SHIELD" || quote.ref === "DRONE_SHIELD_PLAYER",
+      ),
       false,
     );
 

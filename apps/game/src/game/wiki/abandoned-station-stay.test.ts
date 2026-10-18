@@ -41,7 +41,10 @@ describe("Abandoned station", () => {
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;
     choose(g, "c:abandoned-station:1");
-    assert.equal(g.event?.body, "You decide it's not worth the time to examine.\n\nNothing happens.");
+    assert.equal(
+      g.event?.body,
+      "You decide it's not worth the time to examine.\n\nNothing happens.",
+    );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, fuel);

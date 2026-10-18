@@ -1,7 +1,16 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { WEAPONS } from "./content.ts";
-import { DRONE_LOOKS, WEAPON_LOOKS, droneKeyForName, dronePixels, weaponIdForName, weaponPixels, type DroneKey, type PixelArt } from "./gear-look.ts";
+import {
+  DRONE_LOOKS,
+  WEAPON_LOOKS,
+  droneKeyForName,
+  dronePixels,
+  weaponIdForName,
+  weaponPixels,
+  type DroneKey,
+  type PixelArt,
+} from "./gear-look.ts";
 import { MISSING_DRONES } from "./wiki/drones-missing.ts";
 import { CRUISER_PAGES } from "./wiki/layout-pages.ts";
 import { hangarSheet } from "./wiki/hangar-sheet.ts";
@@ -16,7 +25,10 @@ function shape(art: PixelArt) {
 
 describe("gear art", () => {
   it("gives every fitted weapon its own look", () => {
-    assert.deepEqual(Object.keys(WEAPONS).filter((id) => !WEAPON_LOOKS[id]), []);
+    assert.deepEqual(
+      Object.keys(WEAPONS).filter((id) => !WEAPON_LOOKS[id]),
+      [],
+    );
     const seen = new Map<string, string>();
     for (const id of Object.keys(WEAPONS)) {
       const sig = signature(weaponPixels(id));
@@ -59,8 +71,17 @@ describe("gear art", () => {
         sheet.drones.filter((name) => !/^none\b/i.test(name)).forEach((name) => drones.add(name));
       }
     }
-    assert.deepEqual([...weapons].filter((name) => !weaponIdForName(name)), []);
-    assert.deepEqual([...drones].filter((name) => !droneKeyForName(name)), []);
-    assert.deepEqual(MISSING_DRONES.map((row) => row.name).filter((name) => !droneKeyForName(name)), []);
+    assert.deepEqual(
+      [...weapons].filter((name) => !weaponIdForName(name)),
+      [],
+    );
+    assert.deepEqual(
+      [...drones].filter((name) => !droneKeyForName(name)),
+      [],
+    );
+    assert.deepEqual(
+      MISSING_DRONES.map((row) => row.name).filter((name) => !droneKeyForName(name)),
+      [],
+    );
   });
 });

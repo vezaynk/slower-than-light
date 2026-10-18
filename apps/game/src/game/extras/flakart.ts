@@ -1,4 +1,4 @@
-import { log, noteWeaponManning, rand, sparePower } from "../sim.ts";
+import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { projectileFlightSeconds } from "../wiki/projectile-speed.ts";
@@ -95,7 +95,17 @@ export const POWER_BARS: Record<FlakLevel, number> = {
 const FLIGHT_SECONDS = projectileFlightSeconds("flak-artillery") ?? 0.7;
 
 function blank(level: FlakLevel): Kit {
-  return { id: "artillery", weapon: "ARTILLERY_FED_C", level, power: 0, left: 0, cool: 0, target: null, on: true, aux: 0 };
+  return {
+    id: "artillery",
+    weapon: "ARTILLERY_FED_C",
+    level,
+    power: 0,
+    left: 0,
+    cool: 0,
+    target: null,
+    on: true,
+    aux: 0,
+  };
 }
 
 export function chargeFlakSeconds(level: FlakLevel): number {
@@ -129,7 +139,7 @@ export function upgradeFlak(g: Game): boolean {
   return true;
 }
 
-/** Filled bars cannot pass min(4, level) minus damage. A Zoltan stamp is not part of this cap. */
+/** Filled bars cannot pass min(4, level) minus damage. A Zoltan stamp counts inside that cap. */
 function powerCap(kit: { level: number; damage?: number }): number {
   const level = Math.max(0, Math.min(4, kit.level));
   return Math.max(0, level - (kit.damage ?? 0));
@@ -142,9 +152,12 @@ function asFlakLevel(level: number): FlakLevel {
   return 1;
 }
 
-/** Reactor bars only, capped by level minus damage. Flak Artillery does not read Zoltan bars. */
+/**
+ * Reactor bars plus one yellow bar per living Zoltan, capped by level minus damage.
+ * Zoltans: one bar on an occupied system; subsystems are the exception, and Flak Artillery is a main system.
+ */
 function fedBars(kit: Kit): number {
-  return Math.max(0, Math.min(kit.power, powerCap(kit)));
+  return Math.max(0, Math.min(kitBars(kit), powerCap(kit)));
 }
 
 /**
@@ -153,7 +166,13 @@ function fedBars(kit: Kit): number {
  */
 export function raiseFlakPower(g: Game): void {
   const kit = g.player.kits.artillery;
-  if (!kit || kit.weapon !== "ARTILLERY_FED_C" || kit.power >= powerCap(kit) || sparePower(g.player) < 1) return;
+  if (
+    !kit ||
+    kit.weapon !== "ARTILLERY_FED_C" ||
+    kit.power >= powerCap(kit) ||
+    sparePower(g.player) < 1
+  )
+    return;
   kit.power += 1;
   kit.on = true;
 }
@@ -174,9 +193,9 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
   const fed = fedBars(kit);
   // Systems, "Damaged and destroyed systems": "A system with all its levels damaged is considered destroyed, i.e.
   // completely unfunctional". Flak Artillery, Overview: "Powering off drains charge quickly".
-  // INFERRED: zero reactor bars, kit.on === false, or a destroyed flak drains the same way: a full bar of the
-  // installed level empties in 2 seconds.
-  if (!kit.on || fed < 1 || (kit.damage ?? 0) >= kit.level) {
+  // INFERRED: no working bar, or a destroyed flak, empties a full bar of the installed level in 2 seconds.
+  // A Zoltan bar is a working bar, so powering the reactor off does not drain while one remains.
+  if (fed < 1 || (kit.damage ?? 0) >= kit.level) {
     kit.aux = Math.max(0, kit.aux - (dt * seconds) / 2);
     return;
   }

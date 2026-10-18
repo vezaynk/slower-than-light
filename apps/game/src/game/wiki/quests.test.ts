@@ -4,7 +4,14 @@ import { choiceDisabled, choose, chooseSector, commitJump, createGame, step } fr
 import type { Beacon, Game } from "../types.ts";
 import { EXTRA_EVENTS as SURRENDER_PAGES } from "./cited-events-surrender.ts";
 import { citedEvent } from "./cited-events.ts";
-import { addQuest, placeQueuedQuests, QUEST_ADDED, QUEST_CANCELLED, QUEST_NEXT, QUESTS } from "./quests.ts";
+import {
+  addQuest,
+  placeQueuedQuests,
+  QUEST_ADDED,
+  QUEST_CANCELLED,
+  QUEST_NEXT,
+  QUESTS,
+} from "./quests.ts";
 import { fleetToReach, jumpsBetween } from "./sector-map.ts";
 import { ACCEPT_ID, joinCrew } from "./surrender.ts";
 
@@ -28,7 +35,13 @@ function atCited(g: Game, sector: string, dest: string, ev = citedFlag(dest)): G
 }
 
 function citedFlag(dest: string): string {
-  return "cited:" + dest.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return (
+    "cited:" +
+    dest
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+  );
 }
 
 function questBeacons(g: Game, id?: string): Beacon[] {
@@ -79,7 +92,11 @@ describe("Beacons, Quest (marker) beacon: placement", () => {
 
   it("prefers a beacon-mix quest slot (an unflagged event beacon)", () => {
     const g = createGame(4);
-    for (const b of g.beacons) if (b.col >= 2 && b.kind !== "exit") { b.kind = "hostile"; b.flag = ""; }
+    for (const b of g.beacons)
+      if (b.col >= 2 && b.kind !== "exit") {
+        b.kind = "hostile";
+        b.flag = "";
+      }
     const slot = g.beacons.find((b) => b.col === 3)!;
     slot.kind = "event";
     addQuest(g, "escort");
@@ -166,8 +183,18 @@ describe("Cited events that add a marker", () => {
   it("Mantis war camp, Escort FTL haywire and Space station under construction add their markers", () => {
     const pages: [string, string, string, string][] = [
       ["Civilian Sector", "Mantis war camp", "c:mantis-war-camp:0", "mantis-war-camp"],
-      ["Civilian Sector", "Escort civilians FTL haywire", "c:escort-civilians-ftl-haywire:0", "escort"],
-      ["Civilian Sector", "Space station under construction", "c:space-station-under-construction:0", "space-station"],
+      [
+        "Civilian Sector",
+        "Escort civilians FTL haywire",
+        "c:escort-civilians-ftl-haywire:0",
+        "escort",
+      ],
+      [
+        "Civilian Sector",
+        "Space station under construction",
+        "c:space-station-under-construction:0",
+        "space-station",
+      ],
     ];
     for (const [sector, dest, id, quest] of pages) {
       const g = atCited(createGame(3), sector, dest);
@@ -206,8 +233,20 @@ describe("Cited events that add a marker", () => {
     const g = atCited(createGame(5), "Mantis Controlled Sector", "Mantis ship-collectors");
     choose(g, "c:mantis-ship-collectors:0");
     assert.equal(g.phase, "combat");
-    assert.ok(g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").every((c) => c.kin === "mantis" && c.name === "Mantis"));
-    assert.deepEqual([g.enemyEscape!.mode, g.enemyEscape!.chance, g.enemyEscape!.threshold, g.enemyEscape!.seconds], ["hull", 100, 50, 5]);
+    assert.ok(
+      g.crew
+        .filter((c) => c.side === "enemy" && c.aboard === "enemy")
+        .every((c) => c.kin === "mantis" && c.name === "Mantis"),
+    );
+    assert.deepEqual(
+      [
+        g.enemyEscape!.mode,
+        g.enemyEscape!.chance,
+        g.enemyEscape!.threshold,
+        g.enemyEscape!.seconds,
+      ],
+      ["hull", 100, 50, 5],
+    );
     g.enemyEscape!.running = true;
     g.enemyFlee = 1;
     step(g, 1 / 30);
@@ -219,7 +258,11 @@ describe("Cited events that add a marker", () => {
     jumpTo(g, b);
     choose(g, "q:mantis-chase:fight");
     assert.equal(g.enemy!.faction, "mantis");
-    assert.ok(g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").every((c) => c.kin === "mantis" && c.name === "Mantis"));
+    assert.ok(
+      g.crew
+        .filter((c) => c.side === "enemy" && c.aboard === "enemy")
+        .every((c) => c.kin === "mantis" && c.name === "Mantis"),
+    );
     assert.equal(g.enemySurrender!.chance, 100);
     assert.equal(g.enemyEscape!.threshold, 60);
     winByCrew(g);
@@ -251,7 +294,11 @@ describe("Cited events that add a marker", () => {
   });
 
   it("Rebel ship attacking Federation loyalists: medium reward, then 'Contact the Federation ship'", () => {
-    const g = atCited(createGame(2), "Civilian Sector", "Rebel ship attacking Federation loyalists");
+    const g = atCited(
+      createGame(2),
+      "Civilian Sector",
+      "Rebel ship attacking Federation loyalists",
+    );
     choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
     assert.equal(g.phase, "combat");
     winByHull(g);
@@ -328,8 +375,16 @@ describe("Engi fleet discussion", () => {
     assert.equal(choiceDisabled(g, "c:engi-fleet-discussion:2"), null);
     choose(g, "c:engi-fleet-discussion:2");
     choose(g, "q:engi-fleet:offer");
-    assert.equal(questBeacons(g, "engi-real").length + (g.questsNext ?? []).filter((q) => q === "engi-real").length, 1);
-    assert.equal(questBeacons(g, "engi-fake").length + (g.questsNext ?? []).filter((q) => q === "engi-fake").length, 1);
+    assert.equal(
+      questBeacons(g, "engi-real").length +
+        (g.questsNext ?? []).filter((q) => q === "engi-real").length,
+      1,
+    );
+    assert.equal(
+      questBeacons(g, "engi-fake").length +
+        (g.questsNext ?? []).filter((q) => q === "engi-fake").length,
+      1,
+    );
     assert.equal(g.event!.choices[0].label, "Agree.");
     choose(g, "ack");
     assert.equal(g.phase, "map");
@@ -347,7 +402,10 @@ describe("Engi fleet discussion", () => {
     addQuest(g, "engi-real");
     jumpTo(g, questBeacons(g, "engi-real")[0]);
     choose(g, "q:engi-real:fight");
-    assert.deepEqual([g.enemyEscape!.mode, g.enemyEscape!.running, g.enemyEscape!.seconds], ["start", true, 40]);
+    assert.deepEqual(
+      [g.enemyEscape!.mode, g.enemyEscape!.running, g.enemyEscape!.seconds],
+      ["start", true, 40],
+    );
     assert.equal(g.enemySurrender!.threshold, 50);
     winByCrew(g);
     assert.ok(g.event!.body.startsWith("Once their crew is dead"));
@@ -487,8 +545,20 @@ describe("Other surrender pages with a marker", () => {
 
 describe("Page win rewards (destroyed / crew killed)", () => {
   const cases: [string, string, string, string, string][] = [
-    ["Slug Home Nebula", "The Black Raven", "s:the-black-raven:accept", "\"The Black Raven\" breaks apart", "The once-dreaded pirate Nights"],
-    ["Zoltan Controlled Sector", "Zoltan ship asks to dock", "c:zoltan-ship-asks-to-dock:0", "While you search the debris", "While you scrap their ship"],
+    [
+      "Slug Home Nebula",
+      "The Black Raven",
+      "s:the-black-raven:accept",
+      '"The Black Raven" breaks apart',
+      "The once-dreaded pirate Nights",
+    ],
+    [
+      "Zoltan Controlled Sector",
+      "Zoltan ship asks to dock",
+      "c:zoltan-ship-asks-to-dock:0",
+      "While you search the debris",
+      "While you scrap their ship",
+    ],
   ];
   for (const [sector, dest, fightId, destroyed, killed] of cases) {
     it(`${dest}: the page's own text and scrap with resources replace the default salvage`, () => {
@@ -558,24 +628,46 @@ describe("Rebel defector, Accept his proposal", () => {
       choose(g, "c:rebel-defector:0");
       assert.equal(g.phase, "combat", String(seed));
       assert.equal(g.fightEvent, "rebel-defector");
-      assert.equal(g.beacons.some((b) => b.quest), false);
+      assert.equal(
+        g.beacons.some((b) => b.quest),
+        false,
+      );
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length;
       const left = g.crew.filter((c) => c.side === "player" && c.hp > 0).length;
       const hullLost = hull - g.player.hull;
       const engineHit = g.player.systems.engines!.damage > engines;
       if (left === crew + 1 && hullLost === 0 && boarders === 0 && g.fleet === 4) seen.join++;
-      else if (hullLost === 3 && engineHit && g.fleet === 8 && boarders === 0 && g.player.systems.pilot!.damage === pilot) {
+      else if (
+        hullLost === 3 &&
+        engineHit &&
+        g.fleet === 8 &&
+        boarders === 0 &&
+        g.player.systems.pilot!.damage === pilot
+      ) {
         assert.ok(g.log.some((line) => line === "Rebel Fleet pursuit is doubled."));
         seen.deceive++;
-      } else if (hullLost === 3 && !engineHit && boarders === 2 && g.player.systems.pilot!.damage === pilot && g.fleet === 4) seen.trigger++;
+      } else if (
+        hullLost === 3 &&
+        !engineHit &&
+        boarders === 2 &&
+        g.player.systems.pilot!.damage === pilot &&
+        g.fleet === 4
+      )
+        seen.trigger++;
       else if (hullLost === 0 && boarders === 1 && left === crew - 1) {
         assert.ok(g.log.some((line) => line.endsWith("is gone.")));
         seen.evisc++;
-      } else assert.fail(`${seed} hull ${hullLost} crew ${crew}->${left} boarders ${boarders} fleet ${g.fleet}`);
+      } else
+        assert.fail(
+          `${seed} hull ${hullLost} crew ${crew}->${left} boarders ${boarders} fleet ${g.fleet}`,
+        );
       assert.equal(seen.join + seen.deceive + seen.trigger + seen.evisc, seed);
     }
     assert.ok(seen.deceive > 0 && seen.trigger > 0 && seen.evisc > 0, JSON.stringify(seen));
-    assert.ok(seen.join > seen.deceive && seen.join > seen.trigger && seen.join > seen.evisc, JSON.stringify(seen));
+    assert.ok(
+      seen.join > seen.deceive && seen.join > seen.trigger && seen.join > seen.evisc,
+      JSON.stringify(seen),
+    );
   });
 
   it("a clone bay keeps the eviscerated crewmember, and the last living crewmember is not removed", () => {
@@ -584,7 +676,16 @@ describe("Rebel defector, Accept his proposal", () => {
     let cloned = false;
     for (let seed = 1; seed <= 80 && !cloned; seed++) {
       const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
-      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = {
+        id: "clonebay",
+        level: 1,
+        power: 0,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       const crew = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:rebel-defector:0");
       if (!g.log.some((line) => line.includes("clone launches"))) continue;
@@ -606,7 +707,10 @@ describe("Rebel defector, Accept his proposal", () => {
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length;
       if (boarders !== 1 || g.player.hull !== g.player.hullMax) continue;
       spared = true;
-      assert.equal(g.crew.some((c) => c.id === kept && c.hp > 0), true);
+      assert.equal(
+        g.crew.some((c) => c.id === kept && c.hp > 0),
+        true,
+      );
       assert.equal(g.crew.filter((c) => c.side === "player" && c.hp > 0).length, 1);
     }
     assert.ok(spared);
@@ -617,7 +721,16 @@ describe("Space station under construction, Lanius sale", () => {
   it("pays an augmentation and high scrap, and splices the Lanius out even with a clone bay", () => {
     const g = atCited(createGame(3), "Civilian Sector", "Space station under construction");
     assert.ok(joinCrew(g, "Lanius"));
-    g.player.kits.clonebay = { id: "clonebay", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.clonebay = {
+      id: "clonebay",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     const scrap = g.scrap;
     choose(g, "c:space-station-under-construction:2");
     assert.ok(choiceIds(g).includes("q:station:sale"));
@@ -629,7 +742,10 @@ describe("Space station under construction, Lanius sale", () => {
     assert.equal(/Fuel:|Missiles:|Drone parts:/.test(body), false);
     assert.match(body, /fitted\.|stowed in cargo\./);
     assert.equal(g.scrap, scrap + paid);
-    assert.equal(g.crew.some((c) => c.kin === "anaerobic"), false);
+    assert.equal(
+      g.crew.some((c) => c.kin === "anaerobic"),
+      false,
+    );
   });
 
   it("pays nothing when that Lanius is the last living crewmember", () => {
@@ -642,7 +758,10 @@ describe("Space station under construction, Lanius sale", () => {
     choose(g, "q:station:sale");
     assert.equal(g.scrap, scrap);
     assert.equal(g.augments.length, augs);
-    assert.equal(g.crew.some((c) => c.kin === "anaerobic" && c.hp > 0), true);
+    assert.equal(
+      g.crew.some((c) => c.kin === "anaerobic" && c.hp > 0),
+      true,
+    );
   });
 });
 
@@ -650,7 +769,11 @@ describe("Federation loyalists, Healing Burst", () => {
   it("stays visible with no missiles, then spends one and sends an engineer toward the hidden base", () => {
     let found = false;
     for (let seed = 1; seed <= 80 && !found; seed++) {
-      const g = atCited(createGame(seed), "Civilian Sector", "Rebel ship attacking Federation loyalists");
+      const g = atCited(
+        createGame(seed),
+        "Civilian Sector",
+        "Rebel ship attacking Federation loyalists",
+      );
       choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
       if (g.phase !== "combat") continue;
       winByHull(g);
@@ -707,7 +830,10 @@ describe("Hidden Federation Base scans", () => {
     choose(two, "q:fed-base:scan-2");
     const level2 = two.event!.body;
     assert.ok(level2.startsWith("Your Advanced Sensors pick faint signatures"));
-    assert.equal(["Fuel:", "Missiles:", "Drone parts:"].filter((label) => level2.includes(label)).length, 2);
+    assert.equal(
+      ["Fuel:", "Missiles:", "Drone parts:"].filter((label) => level2.includes(label)).length,
+      2,
+    );
     const mid = Number(level2.match(/Scrap: (\d+)/)?.[1]);
     assert.ok(mid >= 12 && mid <= 19, level2);
 
@@ -732,7 +858,12 @@ describe("Hidden Federation Base scans", () => {
       g.player.systems.sensors!.level = 3;
       if (!g.augments.includes("ADV_SCANNERS")) g.augments.push("ADV_SCANNERS");
     });
-    assert.deepEqual(choiceIds(both), ["ack", "q:fed-base:scan-2", "q:fed-base:scan-3", "q:fed-base:scan-glass"]);
+    assert.deepEqual(choiceIds(both), [
+      "ack",
+      "q:fed-base:scan-2",
+      "q:fed-base:scan-3",
+      "q:fed-base:scan-glass",
+    ]);
   });
 });
 
@@ -786,7 +917,9 @@ describe("Quest markers sit to the right of the ship", () => {
 
     const open = createGame(3);
     const here = park(open, 3);
-    const right = open.beacons.find((b) => b.col > here.col && b.kind !== "exit" && b.kind !== "start" && b.kind !== "boss")!;
+    const right = open.beacons.find(
+      (b) => b.col > here.col && b.kind !== "exit" && b.kind !== "start" && b.kind !== "boss",
+    )!;
     right.kind = "event";
     right.flag = "";
     assert.equal(addQuest(open, "escort"), QUEST_ADDED);

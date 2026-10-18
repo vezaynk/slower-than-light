@@ -103,7 +103,14 @@ function scrapOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
 }
 
 function fuelOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
-  return { tier, scrap: 0, eligible: 0, fuel: between(g, resourceBand("fuel", tier)), missiles: 0, parts: 0 };
+  return {
+    tier,
+    scrap: 0,
+    eligible: 0,
+    fuel: between(g, resourceBand("fuel", tier)),
+    missiles: 0,
+    parts: 0,
+  };
 }
 
 /** Rewards, "Fuel": T fuel and T scrap. No bonus item. */
@@ -1218,7 +1225,8 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       // > "You lose Missiles lost: 2-4 and Scrap lost: 20-35." — [[No fuel: Slug fuel trader]]
       const missiles = Math.min(
         g.missiles,
-        rollBand("no-fuel-slug-fuel-trader", "theft", "missiles", (lo, hi) => span(ctx, lo, hi)) ?? 0,
+        rollBand("no-fuel-slug-fuel-trader", "theft", "missiles", (lo, hi) => span(ctx, lo, hi)) ??
+          0,
       );
       const scrap = Math.min(
         g.scrap,

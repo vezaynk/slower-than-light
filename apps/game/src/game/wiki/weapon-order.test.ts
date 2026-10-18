@@ -27,7 +27,15 @@ import { ENEMY_CLASSES, ENEMY_WEAPON_POOLS } from "./enemy-ships.ts";
 import { SWARM_CUTS, swarmLanding } from "./swarm-aim.ts";
 
 function gun(defId: string, extra: Partial<WeaponInst> = {}): WeaponInst {
-  return { defId, charge: 0, enabled: true, autofire: false, target: null, ...extra, uid: extra.uid ?? defId };
+  return {
+    defId,
+    charge: 0,
+    enabled: true,
+    autofire: false,
+    target: null,
+    ...extra,
+    uid: extra.uid ?? defId,
+  };
 }
 
 function spark(room: string, id: string): Crew {
@@ -113,7 +121,15 @@ function until(g: Game, pred: () => boolean, limit: number): number {
   return n;
 }
 
-function retile(base: Room, id: string, x: number, y: number, w: number, h: number, system: Room["system"]): Room {
+function retile(
+  base: Room,
+  id: string,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  system: Room["system"],
+): Room {
   return { ...base, id, title: id, x, y, w, h, system, omit: undefined, kit: undefined };
 }
 
@@ -135,7 +151,7 @@ function findSeed(pred: (roll: number) => boolean): number {
 
 function seeded(seed: number) {
   let s = seed >>> 0 || 1;
-  return () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
+  return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296;
 }
 
 describe("charger banks", () => {
@@ -309,7 +325,11 @@ describe("weapon power lock and order", () => {
     const room = g.player.rooms.find((r) => r.system === "weapons")!.id;
     g.crew.push(spark(room, "za"), spark(room, "zb"));
     settleZoltanPower(g);
-    assert.deepEqual(powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons")), [false, true, false]);
+    assert.deepEqual(powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons")), [
+      false,
+      true,
+      false,
+    ]);
     reorderWeapons(g, 1, 0);
     assert.equal(g.player.weapons[0].defId, "LASER_BURST_2_A");
     assert.equal(powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"))[0], true);
@@ -327,7 +347,9 @@ describe("weapon power lock and order", () => {
     assert.equal(shotsOf(g, "LASER_BURST_1").length, 1);
   });
 
-  it("holds a banked charger through a hack pulse, and still drains a normal gun", () => {
+  it("keeps a charger's bank through a hack pulse, drains its shot in progress, and drains a normal gun", () => {
+    // Hacking, "Overview" (Weapon Control): "On multiple charge weapons, only the current charge will be drained
+    // (stored charges aren't affected)."
     const g = fight(9);
     parkGunners(g);
     feed(g, 4, 4, ["ION_CHARGEGUN", "LASER_BURST_2_A"]);
@@ -370,7 +392,7 @@ describe("weapon power lock and order", () => {
 
     for (let i = 0; i < 10; i++) step(g, 0.05);
     assert.equal(ion.loaded, 2);
-    assert.equal(ion.charge, 0.4);
+    assert.ok(ion.charge < 0.4);
     assert.ok(burst.charge < 0.5);
     assert.equal(shotsOf(g, "ION_CHARGEGUN").length, 0);
 
@@ -446,7 +468,16 @@ describe("drone order and enemy chargers", () => {
     assert.deepEqual(mismatch.loadout, ["DEFENSE_1", "REPAIR"]);
     assert.equal(mismatch.drones![0].id, "only");
 
-    const single: Kit = { id: "drones", level: 2, power: 0, left: 0, cool: 0, target: "DEFENSE_1", on: false, aux: 0 };
+    const single: Kit = {
+      id: "drones",
+      level: 2,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: "DEFENSE_1",
+      on: false,
+      aux: 0,
+    };
     reorderDroneSlots(single, 0, 1);
     assert.equal(single.target, "DEFENSE_1");
   });
@@ -454,9 +485,15 @@ describe("drone order and enemy chargers", () => {
   it("never mounts Laser Charger (S), and an enemy Laser Charger Mark II fires one shot", () => {
     assert.equal(enemyMayMount("LASER_CHARGEGUN_PLAYER"), false);
     assert.equal(enemyMayMount("LASER_CHARGEGUN_2"), true);
-    for (const names of Object.values(ENEMY_WEAPON_POOLS)) assert.equal(names.includes("Laser Charger (S)"), false);
+    for (const names of Object.values(ENEMY_WEAPON_POOLS))
+      assert.equal(names.includes("Laser Charger (S)"), false);
     for (const cls of ENEMY_CLASSES) {
-      const spec = rollEnemy(cls, false, { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" }, seeded(cls.id.length + 4));
+      const spec = rollEnemy(
+        cls,
+        false,
+        { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" },
+        seeded(cls.id.length + 4),
+      );
       assert.equal(spec.weapons.includes("LASER_CHARGEGUN_PLAYER"), false, cls.id);
     }
 
@@ -598,7 +635,12 @@ describe("swarm missiles", () => {
       assert.equal(names.includes("Pegasus Missile"), false);
     }
     for (const cls of ENEMY_CLASSES) {
-      const spec = rollEnemy(cls, false, { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" }, seeded(cls.id.length + 9));
+      const spec = rollEnemy(
+        cls,
+        false,
+        { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" },
+        seeded(cls.id.length + 9),
+      );
       assert.equal(spec.weapons.includes("MISSILE_CHARGEGUN"), false, cls.id);
       assert.equal(spec.weapons.includes("MISSILES_BURST"), false, cls.id);
     }
@@ -611,7 +653,10 @@ describe("swarm missiles", () => {
     g.missiles = 4;
     const enemy = g.enemy!;
     const base = enemy.rooms[0];
-    enemy.rooms = [retile(base, "box", 0, 0, 2, 2, "shields"), retile(base, "one", 3, 0, 1, 1, "pilot")];
+    enemy.rooms = [
+      retile(base, "box", 0, 0, 2, 2, "shields"),
+      retile(base, "one", 3, 0, 1, 1, "pilot"),
+    ];
     const w = g.player.weapons[0];
     w.loaded = 1;
     const seed = g.seed;
@@ -635,7 +680,10 @@ describe("swarm missiles", () => {
     g.missiles = 2;
     const enemy = g.enemy!;
     const base = enemy.rooms[0];
-    enemy.rooms = [retile(base, "n", 0, 1, 2, 1, "shields"), retile(base, "nl", 0, 0, 1, 1, "pilot")];
+    enemy.rooms = [
+      retile(base, "n", 0, 1, 2, 1, "shields"),
+      retile(base, "nl", 0, 0, 1, 1, "pilot"),
+    ];
     const w = g.player.weapons[0];
     w.loaded = 1;
     const seed = g.seed;

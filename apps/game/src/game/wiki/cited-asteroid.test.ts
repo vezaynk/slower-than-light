@@ -100,7 +100,8 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
       const before = g.player.shieldNow;
       for (let tries = 0; tries < 2 && g.player.shieldNow === before; tries++) {
         rockNow(g);
-        for (let i = 0; i < 40 && g.player.shieldNow === before && g.phase !== "defeat"; i++) step(g, 0.05);
+        for (let i = 0; i < 40 && g.player.shieldNow === before && g.phase !== "defeat"; i++)
+          step(g, 0.05);
       }
     };
     land();
@@ -171,7 +172,10 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
         rockNow(g);
         step(g, 0.05);
         const rock = g.shots.find(
-          (s) => s.label === "Rock" && s.at === "player" && (want === "fire" ? s.fireChance === 1 : s.breachChance === 1),
+          (s) =>
+            s.label === "Rock" &&
+            s.at === "player" &&
+            (want === "fire" ? s.fireChance === 1 : s.breachChance === 1),
         );
         if (!rock) continue;
         const room = g.player.rooms.find((r) => r.id === rock.targetRoom);
@@ -201,7 +205,15 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
     crew.room = pilot.id;
     crew.aboard = "enemy";
     crew.path = [];
-    g.enemyEscape = { mode: "start", seconds: 0.05, chance: 0, threshold: 0, rolled: true, running: true, pursuit: false };
+    g.enemyEscape = {
+      mode: "start",
+      seconds: 0.05,
+      chance: 0,
+      threshold: 0,
+      rolled: true,
+      running: true,
+      pursuit: false,
+    };
     g.enemyFlee = 0;
     step(g, 0.05);
     assert.equal(g.phase, "map");

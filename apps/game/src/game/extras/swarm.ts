@@ -64,7 +64,14 @@ export const BUNDLE_OTHER = 85;
 export const SYSTEM_POWER = 0;
 
 export type SwarmKind =
-  "DEFENSE_1" | "DEFENSE_2" | "ANTI_DRONE" | "COMBAT_1" | "COMBAT_BEAM" | "BOARDER" | "REPAIR" | "SHIP_REPAIR";
+  | "DEFENSE_1"
+  | "DEFENSE_2"
+  | "ANTI_DRONE"
+  | "COMBAT_1"
+  | "COMBAT_BEAM"
+  | "BOARDER"
+  | "REPAIR"
+  | "SHIP_REPAIR";
 
 /** Per-drone power. The system overhead above is separate and is 0. INFERRED, same as SYSTEM_POWER. */
 export const DRONE_POWER: Record<SwarmKind, number> = {
@@ -2720,7 +2727,14 @@ export const DRONE_BLAST_S = 1;
  * External drones that orbit the player's own hull. Defensive Drones (Defense I / II, Anti-Combat, both Overchargers)
  * and Hull Repair Drone ("Moves around and outside of your ship").
  */
-const HOME_ORBIT = new Set(["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE", "DRONE_SHIELD", "DRONE_SHIELD_PLAYER", "SHIP_REPAIR"]);
+const HOME_ORBIT = new Set([
+  "DEFENSE_1",
+  "DEFENSE_2",
+  "ANTI_DRONE",
+  "DRONE_SHIELD",
+  "DRONE_SHIELD_PLAYER",
+  "SHIP_REPAIR",
+]);
 
 type Orbiter = {
   side: "player" | "enemy";

@@ -693,7 +693,8 @@ function arriveFedBase(g: Game) {
     const scan = "Run a second scan pass.";
     if (sensors(g) >= 2) choices.push({ id: "q:fed-base:scan-2", label: scan });
     if (sensors(g) >= 3) choices.push({ id: "q:fed-base:scan-3", label: scan });
-    if (g.augments.includes("ADV_SCANNERS")) choices.push({ id: "q:fed-base:scan-glass", label: scan });
+    if (g.augments.includes("ADV_SCANNERS"))
+      choices.push({ id: "q:fed-base:scan-glass", label: scan });
     card(
       g,
       "You search near the coordinates given to you, but your search yields no results. Perhaps they were mistaken.",
@@ -2171,7 +2172,9 @@ ${laniusTraderOfferText(offer)}`,
   "s:garbled-dock:sensors3": (g) => {
     if (sensors(g) < 3) return;
     const fuel = rollFuel("s:garbled-dock:sensors3", (lo, hi) => between(g, [lo, hi]));
-    const parts = rollBand("refueling-platform-garbled-broadcast", "sensors3", "parts", (lo, hi) => between(g, [lo, hi]));
+    const parts = rollBand("refueling-platform-garbled-broadcast", "sensors3", "parts", (lo, hi) =>
+      between(g, [lo, hi]),
+    );
     g.fuel += fuel;
     if (parts != null) g.player.parts += parts;
     log(g, `Fuel: ${fuel}.`);
@@ -4994,9 +4997,13 @@ function pirateDroneUpgrade(g: Game) {
   const rows = upgradeRows("pirate-ship-selling-drones");
   if (rows.length === 0) return;
   const id = rows.length === 1 ? rows[0] : pick(g, rows);
-  const cost = rollBand("pirate-ship-selling-drones", id, "scrap", (lo, hi) => between(g, [lo, hi]));
+  const cost = rollBand("pirate-ship-selling-drones", id, "scrap", (lo, hi) =>
+    between(g, [lo, hi]),
+  );
   if (cost == null || g.scrap < cost) return;
-  const level = rollBand("pirate-ship-selling-drones", id, "level", (lo, hi) => between(g, [lo, hi]));
+  const level = rollBand("pirate-ship-selling-drones", id, "level", (lo, hi) =>
+    between(g, [lo, hi]),
+  );
   if (level == null) return;
   g.scrap -= cost;
   kit.level = level;

@@ -28,7 +28,10 @@ import {
 } from "./swarm.ts";
 
 /** A 90 degree orbit leg: the flight plus the 0.5 s firing pause (xftl doc/combat-drone). */
-function pinLeg(body: { heading?: number; bearing?: number; left?: number; aux: number }, speed: number) {
+function pinLeg(
+  body: { heading?: number; bearing?: number; left?: number; aux: number },
+  speed: number,
+) {
   body.heading = 0;
   body.bearing = 90;
   body.left = orbitLegSeconds(0, 90, speed);
@@ -163,13 +166,19 @@ describe("drones", () => {
       const g = createGame(11);
       const kit = place(g);
       assert.equal(deploy(g, kind), true);
-      assert.equal(swarmIntercept(g, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }), true);
+      assert.equal(
+        swarmIntercept(g, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }),
+        true,
+      );
       assert.equal(kit.cool, DRONE_COOLDOWN_S[kind]);
     }
     const combat = createGame(12);
     place(combat);
     assert.equal(deploy(combat, "COMBAT_1"), true);
-    assert.equal(swarmIntercept(combat, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }), false);
+    assert.equal(
+      swarmIntercept(combat, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }),
+      false,
+    );
     assert.equal(combat.player.kits.drones?.cool, 0);
   });
 
@@ -282,16 +291,21 @@ describe("drones", () => {
       kit.bearing = 180;
       kit.left = orbitLegSeconds(0, 180, speed);
       kit.aux = 0;
-      g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+      g.enemy.kits.cloaking = {
+        id: "cloaking",
+        level: 1,
+        power: 1,
+        left: 5,
+        cool: 0,
+        target: null,
+        on: true,
+        aux: 0,
+      };
       const heading = kit.heading;
       const bearing = kit.bearing;
       g.shots = [];
       tickSwarm(g, kit.left);
-      assert.equal(
-        g.shots.filter((s) => s.from === "player").length,
-        0,
-        kind,
-      );
+      assert.equal(g.shots.filter((s) => s.from === "player").length, 0, kind);
       assert.equal(swarmCombatShots(g).length, 0, kind);
       assert.notEqual(kit.heading, heading, kind);
       assert.notEqual(kit.bearing, bearing, kind);
@@ -299,11 +313,7 @@ describe("drones", () => {
       const next = kit.left ?? 0;
       assert.ok(next > 0, kind);
       tickSwarm(g, next);
-      assert.equal(
-        g.shots.filter((s) => s.from === "player").length,
-        1,
-        kind,
-      );
+      assert.equal(g.shots.filter((s) => s.from === "player").length, 1, kind);
     }
   });
 
@@ -345,7 +355,10 @@ describe("drones", () => {
       Object.values(g.enemy.systems).reduce((sum, sys) => sum + sys.damage, 0),
       bars,
     );
-    assert.equal(g.enemy.rooms.every((r) => r.fire === 0), true);
+    assert.equal(
+      g.enemy.rooms.every((r) => r.fire === 0),
+      true,
+    );
     assert.equal(swarmCombatShots(g).length, 0);
   });
 
@@ -390,7 +403,16 @@ describe("drones", () => {
     assert.equal(deploy(g, "COMBAT_BEAM"), true);
     const kit = g.player.kits.drones;
     assert.ok(kit);
-    g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     const hull = g.enemy.hull;
     const damage = g.enemy.systems[system].damage;
     pinLeg(kit, BEAM1_SPEED);
@@ -472,7 +494,9 @@ describe("drones", () => {
     const shields = g.enemy.shieldNow;
     const hull = g.enemy.hull;
     const hp = () =>
-      g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").reduce((sum, c) => sum + c.hp, 0);
+      g.crew
+        .filter((c) => c.side === "enemy" && c.aboard === "enemy")
+        .reduce((sum, c) => sum + c.hp, 0);
     const before = hp();
     const bars = Object.values(g.enemy.systems).reduce((sum, sys) => sum + sys.damage, 0);
     tickSwarm(g, 0.5);
@@ -505,11 +529,22 @@ describe("drones", () => {
     assert.equal(deploy(g, "BOARDER"), true);
     const kit = g.player.kits.drones;
     assert.ok(kit);
-    g.enemy.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     const shields = g.enemy.shieldNow;
     const hull = g.enemy.hull;
     const hp = () =>
-      g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").reduce((sum, c) => sum + c.hp, 0);
+      g.crew
+        .filter((c) => c.side === "enemy" && c.aboard === "enemy")
+        .reduce((sum, c) => sum + c.hp, 0);
     const before = hp();
     const breachBefore = g.enemy.rooms.reduce((sum, r) => sum + r.breach, 0);
     tickSwarm(g, 2);
@@ -705,7 +740,9 @@ describe("drones", () => {
     const next = kit.path?.[0];
     assert.ok(next);
     const door = g.player.doors.find(
-      (item) => item.b !== "void" && ((item.a === weapons.id && item.b === next) || (item.b === weapons.id && item.a === next)),
+      (item) =>
+        item.b !== "void" &&
+        ((item.a === weapons.id && item.b === next) || (item.b === weapons.id && item.a === next)),
     );
     assert.ok(door);
     door.open = false;
@@ -752,7 +789,9 @@ describe("drones", () => {
     const next = kit.path?.[0];
     assert.ok(next);
     const door = g.player.doors.find(
-      (item) => item.b !== "void" && ((item.a === weapons.id && item.b === next) || (item.b === weapons.id && item.a === next)),
+      (item) =>
+        item.b !== "void" &&
+        ((item.a === weapons.id && item.b === next) || (item.b === weapons.id && item.a === next)),
     );
     assert.ok(door);
     door.open = false;
@@ -974,7 +1013,9 @@ describe("drones", () => {
     assert.ok(enemy);
     const start = enemy.rooms.find((room) => room.system && room.system !== "doors");
     assert.ok(start?.system);
-    const dest = enemy.rooms.find((room) => room.system && room.id !== start.id && room.system !== "doors");
+    const dest = enemy.rooms.find(
+      (room) => room.system && room.id !== start.id && room.system !== "doors",
+    );
     assert.ok(dest?.system);
     for (const door of enemy.doors) {
       if (door.b !== "void") door.open = true;
@@ -1072,7 +1113,9 @@ describe("drones", () => {
     const enemy = g.enemy;
     assert.ok(enemy);
     const start = enemy.rooms.find((room) => room.system && room.system !== "doors");
-    const dest = enemy.rooms.find((room) => room.system && room.id !== start?.id && room.system !== "doors");
+    const dest = enemy.rooms.find(
+      (room) => room.system && room.id !== start?.id && room.system !== "doors",
+    );
     const burn = enemy.rooms.find((room) => room.id !== start?.id && room.id !== dest?.id);
     assert.ok(start && dest?.system && burn);
     for (const door of enemy.doors) {
@@ -1266,11 +1309,17 @@ describe("Ion Intruder body", () => {
     tickSwarm(g, 0.05);
     assert.equal(kit.room, room.id);
     assert.ok((kit.path ?? []).length > 0);
-    assert.deepEqual(enemy.doors.map((door) => door.hp), doors);
+    assert.deepEqual(
+      enemy.doors.map((door) => door.hp),
+      doors,
+    );
     const next = kit.path?.[0];
     tickSwarm(g, 0.6);
     assert.equal(kit.room, next);
-    assert.deepEqual(enemy.doors.map((door) => door.hp), doors);
+    assert.deepEqual(
+      enemy.doors.map((door) => door.hp),
+      doors,
+    );
   });
 
   it("spends two hits a second on a blast door and skips that cooldown once", () => {
@@ -1303,7 +1352,9 @@ describe("Ion Intruder body", () => {
     const next = kit.path?.[0];
     assert.ok(next);
     const door = enemy.doors.find(
-      (item) => item.b !== "void" && ((item.a === room.id && item.b === next) || (item.b === room.id && item.a === next)),
+      (item) =>
+        item.b !== "void" &&
+        ((item.a === room.id && item.b === next) || (item.b === room.id && item.a === next)),
     );
     assert.ok(door);
     door.open = false;
@@ -1337,7 +1388,10 @@ describe("Ion Intruder body", () => {
     kit.room = room.id;
     tickSwarm(g, 1);
     assert.equal(door.hp, 8);
-    assert.ok(Math.abs((door.coat ?? 0) - (COATED_DOOR_HITS - DRONE_DOOR_HITS_PER_S)) < 1e-9, String(door.coat));
+    assert.ok(
+      Math.abs((door.coat ?? 0) - (COATED_DOOR_HITS - DRONE_DOOR_HITS_PER_S)) < 1e-9,
+      String(door.coat),
+    );
     assert.equal(door.open, false);
     assert.equal(kit.room, room.id);
     assert.equal(enemy.systems[room.system].ion.length, Math.min(5, ion + 3));
@@ -1605,7 +1659,10 @@ describe("Engi B paired System Repair drones", () => {
     assert.equal(g.player.parts, parts - 2);
     const units = kit.drones ?? [];
     assert.equal(units.length, 2);
-    assert.equal(units.every((unit) => unit.alive && unit.kind === "REPAIR"), true);
+    assert.equal(
+      units.every((unit) => unit.alive && unit.kind === "REPAIR"),
+      true,
+    );
     const weapons = g.player.rooms.find((room) => room.system === "weapons");
     const shields = g.player.rooms.find((room) => room.system === "shields");
     assert.ok(weapons && shields);

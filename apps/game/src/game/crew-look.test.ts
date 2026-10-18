@@ -13,16 +13,28 @@ describe("hangar crew picks", () => {
     ];
     const g = createGame(7, "PLAYER_SHIP_HARD", "normal", picks);
     const crew = g.crew.filter((c) => c.side === "player");
-    assert.deepEqual(crew.map((c) => c.name), ["Rhea Moss", defaultPicks(2)[1].name, "Tov"]);
-    assert.deepEqual(crew.map((c) => c.uniform), [3, 1, 0]);
+    assert.deepEqual(
+      crew.map((c) => c.name),
+      ["Rhea Moss", defaultPicks(2)[1].name, "Tov"],
+    );
+    assert.deepEqual(
+      crew.map((c) => c.uniform),
+      [3, 1, 0],
+    );
     assert.equal(uniformOf(crew[0]), UNIFORMS[3]);
   });
 
   it("keep seat order and lineage from the hull spec", () => {
     const g = createGame(7, "PLAYER_SHIP_FED", "normal", defaultPicks(4));
     const crew = g.crew.filter((c) => c.side === "player");
-    assert.deepEqual(crew.map((c) => c.kin), hullById("PLAYER_SHIP_FED")?.crew.map((s) => s.kin));
-    assert.deepEqual(crew.map((c) => c.name), defaultPicks(4).map((p) => p.name));
+    assert.deepEqual(
+      crew.map((c) => c.kin),
+      hullById("PLAYER_SHIP_FED")?.crew.map((s) => s.kin),
+    );
+    assert.deepEqual(
+      crew.map((c) => c.name),
+      defaultPicks(4).map((p) => p.name),
+    );
   });
 
   it("dress enemies in red and old saves by tone", () => {

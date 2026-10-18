@@ -40,9 +40,24 @@ export function toPage(x: number, y: number): { x: number; y: number } {
 }
 
 /** An element's box in page coordinates (quarter turns keep boxes axis-aligned). */
-export function pageRect(el: Element): { left: number; top: number; width: number; height: number; right: number; bottom: number } {
+export function pageRect(el: Element): {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  right: number;
+  bottom: number;
+} {
   const r = el.getBoundingClientRect();
-  if (turn === 0) return { left: r.left, top: r.top, width: r.width, height: r.height, right: r.right, bottom: r.bottom };
+  if (turn === 0)
+    return {
+      left: r.left,
+      top: r.top,
+      width: r.width,
+      height: r.height,
+      right: r.right,
+      bottom: r.bottom,
+    };
   const a = toPage(r.left, r.top);
   const b = toPage(r.right, r.bottom);
   const left = Math.min(a.x, b.x);

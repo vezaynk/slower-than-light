@@ -20,7 +20,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Rebel ship warning reward", () => {
@@ -35,7 +37,10 @@ describe("Rebel ship warning reward", () => {
     const augments = destroyed.augments.length;
     assert.equal(pageWin(destroyed, "rebel-ship-warning", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /Their ship breaks apart and you are relieved to know that you are still one step ahead of the fleet\./);
+    assert.match(
+      body,
+      /Their ship breaks apart and you are relieved to know that you are still one step ahead of the fleet\./,
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -44,14 +49,18 @@ describe("Rebel ship warning reward", () => {
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
     assert.equal(destroyed.augments.length, augments);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 5, body);
 
     const killed = createGame(2);
     open(killed);
     assert.equal(pageWin(killed, "rebel-ship-warning", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(killedBody, /Their ship goes silent and you are relieved to know that you are still one step ahead of the fleet\./);
+    assert.match(
+      killedBody,
+      /Their ship goes silent and you are relieved to know that you are still one step ahead of the fleet\./,
+    );
     const medium = scraps(killedBody);
     assert.equal(medium.length, 1, killedBody);
     assert.ok(medium[0]! >= 12 && medium[0]! <= 19, killedBody);

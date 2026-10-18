@@ -30,7 +30,9 @@ describe("Slug hacker (choice) fight lead-ins", () => {
     assert.equal(shields.fightEvent, "slug-hacker-choice");
     assert.equal(shields.scrap, 10);
     assert.equal(shields.player.shieldNow, 1);
-    assert.ok(shields.log.includes(`"Very good then!" Your shield power suddenly drops and they charge.`));
+    assert.ok(
+      shields.log.includes(`"Very good then!" Your shield power suddenly drops and they charge.`),
+    );
 
     const air = createGame(2);
     open(air);
@@ -39,7 +41,11 @@ describe("Slug hacker (choice) fight lead-ins", () => {
     assert.equal(air.enemy?.faction, "slug");
     assert.equal(air.fightEvent, "slug-hacker-choice");
     assert.equal(air.scrap, 10);
-    assert.ok(air.log.includes(`"A being that would choose sssuffocation? Who am I to judge..." Your life support shuts off and they move in to attack.`));
+    assert.ok(
+      air.log.includes(
+        `"A being that would choose sssuffocation? Who am I to judge..." Your life support shuts off and they move in to attack.`,
+      ),
+    );
 
     const guns = createGame(3);
     open(guns);
@@ -48,6 +54,10 @@ describe("Slug hacker (choice) fight lead-ins", () => {
     assert.equal(guns.enemy?.faction, "slug");
     assert.equal(guns.fightEvent, "slug-hacker-choice");
     assert.equal(guns.scrap, 10);
-    assert.ok(guns.log.includes(`"Your acceptance of death is almosst admirable... Almosst." Your weapons system registers a hacking module. You hardly have time to respond before they attack.`));
+    assert.ok(
+      guns.log.includes(
+        `"Your acceptance of death is almosst admirable... Almosst." Your weapons system registers a hacking module. You hardly have time to respond before they attack.`,
+      ),
+    );
   });
 });

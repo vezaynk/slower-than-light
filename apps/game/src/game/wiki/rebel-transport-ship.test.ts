@@ -13,13 +13,19 @@ import { pageWin } from "./quests.ts";
 function held(g: Game, kind: "weapon" | "drone"): number {
   const queued = (g.overflow ?? []).filter((x) => x.kind === kind).length;
   if (kind === "drone") return heldSchematics(g).length + queued;
-  return g.player.weapons.length + (g.cargo ?? []).filter((x) => x.kind === "weapon").length + queued;
+  return (
+    g.player.weapons.length + (g.cargo ?? []).filter((x) => x.kind === "weapon").length + queued
+  );
 }
 
 /** The rows whose sentence hands over a weapon / a drone schematic. */
 function gives(text: string, kind: "weapon" | "drone"): number {
   if (kind === "drone") return /military-grade Drone Schematics/.test(text) ? 1 : 0;
-  return /new military-grade weaponry|You find a piece still intact|You find military-grade weaponry/.test(text) ? 1 : 0;
+  return /new military-grade weaponry|You find a piece still intact|You find military-grade weaponry/.test(
+    text,
+  )
+    ? 1
+    : 0;
 }
 
 function open(g: Game) {
@@ -92,7 +98,9 @@ describe("Rebel transport ship", () => {
         assert.equal(held(g, "weapon"), guns + gives(text, "weapon"), body);
         assert.equal(held(g, "drone"), kits + gives(text, "drone"), body);
         assert.equal(g.crew.length, people);
-        const resources = ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+        const resources = ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+          new RegExp(`${label}: \\d+`).test(body),
+        ).length;
         if (resources === 0) {
           if (dead) crewOnly = true;
           else hullOnly = true;

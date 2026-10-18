@@ -44,10 +44,15 @@ describe("hangar loadout", () => {
         spec.id,
       );
       assert.ok(preview.ship.doors.length > 0, spec.id);
-      assert.ok(preview.ship.doors.every((d) => !d.open), spec.id);
+      assert.ok(
+        preview.ship.doors.every((d) => !d.open),
+        spec.id,
+      );
       assert.deepEqual(
         preview.crew.map((c) => `${c.name}|${c.kin}|${c.room}|${c.uniform}`),
-        run.crew.filter((c) => c.side === "player").map((c) => `${c.name}|${c.kin}|${c.room}|${c.uniform}`),
+        run.crew
+          .filter((c) => c.side === "player")
+          .map((c) => `${c.name}|${c.kin}|${c.room}|${c.uniform}`),
         spec.id,
       );
     }
@@ -100,8 +105,10 @@ describe("hangar sheet vs run, every layout", () => {
         assert.doesNotMatch(name, /requires system|not installed/i, `${layout.id} ${name}`);
       }
       assert.ok(sheet.unlock.length > 0, `${layout.id} unlock`);
-      for (const line of sheet.unlock) assert.doesNotMatch(line, /^(special )?notes?:/i, `${layout.id} ${line}`);
-      for (const system of sheet.systems) assert.ok(iconForName(system.name), `${layout.id} ${system.name}`);
+      for (const line of sheet.unlock)
+        assert.doesNotMatch(line, /^(special )?notes?:/i, `${layout.id} ${line}`);
+      for (const system of sheet.systems)
+        assert.ok(iconForName(system.name), `${layout.id} ${system.name}`);
     }
   });
 
@@ -110,8 +117,16 @@ describe("hangar sheet vs run, every layout", () => {
       const sheet = hangarSheet(layout);
       const run = createGame(3, layout.id, "normal", picks);
       const ids = run.player.weapons.map((weapon) => weapon.defId);
-      assert.deepEqual(sorted(sheet.weapons.map((name) => weaponIdForName(name) ?? `?${name}`)), sorted(ids), layout.id);
-      assert.deepEqual(orderByIds(sheet.weapons, ids, weaponIdForName).map(weaponIdForName), ids, layout.id);
+      assert.deepEqual(
+        sorted(sheet.weapons.map((name) => weaponIdForName(name) ?? `?${name}`)),
+        sorted(ids),
+        layout.id,
+      );
+      assert.deepEqual(
+        orderByIds(sheet.weapons, ids, weaponIdForName).map(weaponIdForName),
+        ids,
+        layout.id,
+      );
       if (sheet.weaponSlots != null) assert.ok(ids.length <= sheet.weaponSlots, layout.id);
     }
   });
@@ -130,7 +145,8 @@ describe("hangar sheet vs run, every layout", () => {
           return DRONE_KIT_ID[key] ?? key;
         });
       assert.deepEqual(sorted(named), sorted(playerDroneSlots(kit)), layout.id);
-      for (const name of spec.unfitted) assert.ok(sheet.drones.includes(name), `${layout.id} unfitted ${name}`);
+      for (const name of spec.unfitted)
+        assert.ok(sheet.drones.includes(name), `${layout.id} unfitted ${name}`);
     }
   });
 
@@ -139,8 +155,10 @@ describe("hangar sheet vs run, every layout", () => {
       const sheet = hangarSheet(layout);
       const run = createGame(3, layout.id, "normal", picks);
       const levels = new Map<string, number>();
-      for (const [id, system] of Object.entries(run.player.systems)) if (system.level > 0) levels.set(id, system.level);
-      for (const [id, kit] of Object.entries(run.player.kits)) if (kit && kit.level > 0) levels.set(id, kit.level);
+      for (const [id, system] of Object.entries(run.player.systems))
+        if (system.level > 0) levels.set(id, system.level);
+      for (const [id, kit] of Object.entries(run.player.kits))
+        if (kit && kit.level > 0) levels.set(id, kit.level);
       const shown = new Map(
         sheet.systems.map((system) => {
           const icon = iconForName(system.name);
@@ -148,10 +166,20 @@ describe("hangar sheet vs run, every layout", () => {
           return [id as string, system.level];
         }),
       );
-      assert.deepEqual(Object.fromEntries([...shown].sort()), Object.fromEntries([...levels].sort()), layout.id);
+      assert.deepEqual(
+        Object.fromEntries([...shown].sort()),
+        Object.fromEntries([...levels].sort()),
+        layout.id,
+      );
 
-      const kin = run.crew.filter((crew) => crew.side === "player").map((crew) => crew.kin as string);
-      assert.deepEqual(sorted(sheet.crew.map((race) => RACE_KIN[race.toLowerCase()] ?? "human")), sorted(kin), layout.id);
+      const kin = run.crew
+        .filter((crew) => crew.side === "player")
+        .map((crew) => crew.kin as string);
+      assert.deepEqual(
+        sorted(sheet.crew.map((race) => RACE_KIN[race.toLowerCase()] ?? "human")),
+        sorted(kin),
+        layout.id,
+      );
 
       assert.deepEqual(
         sorted(sheet.augments.map((name) => AUGMENT_ID.get(name.toLowerCase()) ?? `?${name}`)),
@@ -207,8 +235,10 @@ describe("hangar bay", () => {
       );
       if (bay.weaponSlots != null) assert.ok(bay.weapons.length <= bay.weaponSlots, layout.id);
       const levels = new Map<string, number>();
-      for (const [id, system] of Object.entries(run.player.systems)) if (system.level > 0) levels.set(id, system.level);
-      for (const [id, installed] of Object.entries(run.player.kits)) if (installed && installed.level > 0) levels.set(id, installed.level);
+      for (const [id, system] of Object.entries(run.player.systems))
+        if (system.level > 0) levels.set(id, system.level);
+      for (const [id, installed] of Object.entries(run.player.kits))
+        if (installed && installed.level > 0) levels.set(id, installed.level);
       assert.deepEqual(
         Object.fromEntries(bay.systems.map((system) => [system.id, system.level]).sort()),
         Object.fromEntries([...levels].sort()),

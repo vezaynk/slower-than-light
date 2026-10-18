@@ -21,7 +21,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Rock and Slug standoff", () => {
@@ -110,7 +112,9 @@ describe("Rock and Slug standoff", () => {
     for (let seed = 1; seed <= 80 && (!pay || !fight || !boom); seed++) {
       const g = createGame(seed);
       const hull = g.player.hull;
-      const damage = Object.fromEntries(Object.entries(g.player.systems).map(([id, sys]) => [id, sys.damage]));
+      const damage = Object.fromEntries(
+        Object.entries(g.player.systems).map(([id, sys]) => [id, sys.damage]),
+      );
       open(g);
       choose(g, "c:rock-and-slug-standoff:0");
       choose(g, "s:rock-slug:demand");
@@ -125,7 +129,9 @@ describe("Rock and Slug standoff", () => {
         boom = true;
         assert.equal(g.player.hull, hull - 5);
         assert.equal(g.scrap, 10);
-        const hit = Object.entries(g.player.systems).filter(([id, sys]) => sys.damage > (damage[id] ?? 0));
+        const hit = Object.entries(g.player.systems).filter(
+          ([id, sys]) => sys.damage > (damage[id] ?? 0),
+        );
         assert.equal(hit.length, 2);
       } else {
         pay = true;

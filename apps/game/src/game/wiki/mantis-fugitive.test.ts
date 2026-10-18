@@ -105,7 +105,10 @@ describe("Mantis fugitive", () => {
         if (/delighted/.test(body)) {
           scrap = true;
           assert.equal(g.player.hull, hull);
-          assert.equal(g.player.rooms.some((r) => r.fire > 0), false);
+          assert.equal(
+            g.player.rooms.some((r) => r.fire > 0),
+            false,
+          );
         } else {
           fire = true;
           assert.match(body, /Fury sparks/);

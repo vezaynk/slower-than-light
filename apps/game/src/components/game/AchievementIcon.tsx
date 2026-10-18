@@ -2,9 +2,19 @@
 import { ACH_ICON_ROWS, ACH_ICON_SIZE } from "@/game/achievement-icons";
 import { pixelRuns } from "@/game/gear-look";
 
-const RUNS = Object.fromEntries(Object.entries(ACH_ICON_ROWS).map(([id, rows]) => [id, pixelRuns(rows)]));
+const RUNS = Object.fromEntries(
+  Object.entries(ACH_ICON_ROWS).map(([id, rows]) => [id, pixelRuns(rows)]),
+);
 
-export function AchievementIcon({ id, earned, size = 32 }: { id: string; earned: boolean; size?: number }) {
+export function AchievementIcon({
+  id,
+  earned,
+  size = 32,
+}: {
+  id: string;
+  earned: boolean;
+  size?: number;
+}) {
   const runs = RUNS[id];
   if (!runs) return null;
   return (

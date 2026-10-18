@@ -51,7 +51,10 @@ describe("Giant alien spiders", () => {
     const plain = createGame(1);
     const ev = open(plain);
     assert.match(ev.body, /giant alien spiders/);
-    assert.deepEqual(ev.choices.map((c) => c.id), ["c:giant-alien-spiders:0", "c:giant-alien-spiders:1"]);
+    assert.deepEqual(
+      ev.choices.map((c) => c.id),
+      ["c:giant-alien-spiders:0", "c:giant-alien-spiders:1"],
+    );
     assert.equal(choiceDisabled(plain, "c:giant-alien-spiders:2"), "Needs an Anti-Personnel Drone");
     assert.equal(choiceDisabled(plain, "c:giant-alien-spiders:3"), "Needs a Boarding Drone");
     assert.equal(choiceDisabled(plain, "c:giant-alien-spiders:4"), "Needs an Anti-Bio Beam");
@@ -59,14 +62,24 @@ describe("Giant alien spiders", () => {
     const personnel = createGame(1);
     personnel.player.kits.drones = swarm("personnel");
     assert.ok(open(personnel).choices.some((c) => c.id === "c:giant-alien-spiders:2"));
-    assert.equal(open(personnel).choices.some((c) => c.id === "c:giant-alien-spiders:3"), false);
+    assert.equal(
+      open(personnel).choices.some((c) => c.id === "c:giant-alien-spiders:3"),
+      false,
+    );
 
     const boarding = createGame(1);
     boarding.player.kits.drones = swarm(null, ["BOARDER"]);
     assert.ok(open(boarding).choices.some((c) => c.id === "c:giant-alien-spiders:3"));
 
     const beam = createGame(1);
-    beam.player.weapons.push({ uid: "COMBAT_BEAM", defId: "BEAM_BIO", charge: 0, enabled: false, autofire: false, target: null });
+    beam.player.weapons.push({
+      uid: "COMBAT_BEAM",
+      defId: "BEAM_BIO",
+      charge: 0,
+      enabled: false,
+      autofire: false,
+      target: null,
+    });
     assert.ok(open(beam).choices.some((c) => c.id === "c:giant-alien-spiders:4"));
   });
 
@@ -121,7 +134,16 @@ describe("Giant alien spiders", () => {
     let seen = false;
     for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = {
+        id: "clonebay",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:giant-alien-spiders:0");
@@ -150,7 +172,10 @@ describe("Giant alien spiders", () => {
         failed = true;
         assert.equal(dry.player.parts, 0);
         assert.equal(dry.player.hull, hull);
-        assert.equal(dry.log.some((line) => line.includes("Repair Arm")), false);
+        assert.equal(
+          dry.log.some((line) => line.includes("Repair Arm")),
+          false,
+        );
         assert.equal(dry.scrap, 10);
       } else {
         kept = true;
@@ -220,7 +245,14 @@ describe("Giant alien spiders", () => {
 
   it("an Anti-Bio Beam pays high resources and spends no drone part", () => {
     const g = createGame(7);
-    g.player.weapons.push({ uid: "COMBAT_BEAM", defId: "BEAM_BIO", charge: 0, enabled: false, autofire: false, target: null });
+    g.player.weapons.push({
+      uid: "COMBAT_BEAM",
+      defId: "BEAM_BIO",
+      charge: 0,
+      enabled: false,
+      autofire: false,
+      target: null,
+    });
     g.player.parts = 3;
     const weapons = g.player.weapons.length;
     open(g);

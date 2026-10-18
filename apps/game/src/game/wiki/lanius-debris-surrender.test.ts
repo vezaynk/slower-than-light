@@ -7,7 +7,10 @@ describe("Lanius ship in rich debris field surrender", () => {
   it("never surrenders; a Lanius ship with no event still can", () => {
     // Lanius ship in rich debris field: {{SurrenderEscape(alt)|no|LANIUS_HARVESTER_SHIP}}. The page prints no percent.
     assert.equal(
-      surrenderPlan({ tier: "pool", faction: "lanius", event: "lanius-ship-in-rich-debris-field" }, () => 0.5).chance,
+      surrenderPlan(
+        { tier: "pool", faction: "lanius", event: "lanius-ship-in-rich-debris-field" },
+        () => 0.5,
+      ).chance,
       0,
     );
     assert.equal(surrenderPlan({ tier: "pool", faction: "lanius" }, () => 0.5).chance, 80);

@@ -7,7 +7,10 @@ import { hackVision, playerSensorLevel } from "./spike.ts";
  * Slugs, lead: rooms that share at least one tile edge, horizontally or vertically.
  * A corner does not count. A door is not required.
  */
-export function shareEdge(a: Pick<Room, "x" | "y" | "w" | "h">, b: Pick<Room, "x" | "y" | "w" | "h">): boolean {
+export function shareEdge(
+  a: Pick<Room, "x" | "y" | "w" | "h">,
+  b: Pick<Room, "x" | "y" | "w" | "h">,
+): boolean {
   const ax2 = a.x + a.w;
   const ay2 = a.y + a.h;
   const bx2 = b.x + b.w;
@@ -20,7 +23,10 @@ export function shareEdge(a: Pick<Room, "x" | "y" | "w" | "h">, b: Pick<Room, "x
 }
 
 function playerSlugs(g: Game, aboard: "player" | "enemy"): Crew[] {
-  return g.crew.filter((c) => c.side === "player" && crewDef(c.kin).detectsLifeforms && c.hp > 0 && c.aboard === aboard);
+  return g.crew.filter(
+    (c) =>
+      c.side === "player" && crewDef(c.kin).detectsLifeforms && c.hp > 0 && c.aboard === aboard,
+  );
 }
 
 /** Rooms a living player Slug occupies or touches on that hull. */
@@ -73,12 +79,20 @@ export function shipSight(g: Game): ShipSight {
   const cloaked = enemyCloaked(g);
   const ownAboard = g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0);
   const life =
-    g.crew.some((c) => c.side === "player" && crewDef(c.kin).detectsLifeforms && c.hp > 0) || g.augments.includes("LIFE_SCANNER");
+    g.crew.some((c) => c.side === "player" && crewDef(c.kin).detectsLifeforms && c.hp > 0) ||
+    g.augments.includes("LIFE_SCANNER");
 
   // A room your own crew stand in is always seen, on either hull. We're in position!: boarding crew give "vision of
   // ... the enemy ship without functioning sensors". INFERRED: the room each crew member stands in.
   const crewed = (aboard: "player" | "enemy", roomId: string) =>
-    g.crew.some((c) => c.side === "player" && c.hp > 0 && c.aboard === aboard && c.room === roomId && !(c.leashed ?? 0));
+    g.crew.some(
+      (c) =>
+        c.side === "player" &&
+        c.hp > 0 &&
+        c.aboard === aboard &&
+        c.room === roomId &&
+        !(c.leashed ?? 0),
+    );
   const interior = (aboard: "player" | "enemy", roomId: string): boolean => {
     if (crewed(aboard, roomId)) return true;
     if (aboard === "player") return sensors >= 1 || own.has(roomId);

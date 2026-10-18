@@ -6,7 +6,9 @@ import { citedFleetAdvance, ionStormBeacon } from "./cited-sectors.ts";
 describe("Rebel fight in plasma storm", () => {
   it("storms a non-nebula beacon and keeps the full fleet step", () => {
     const g = createGame(4);
-    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    const beacon = g.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss",
+    );
     assert.ok(beacon);
     beacon.kind = "event";
     beacon.flag = "cited:rebel-fight-in-plasma-storm";
@@ -20,7 +22,8 @@ describe("Rebel fight in plasma storm", () => {
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
 
     g.player.reactor = 5;
-    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const) g.player.systems[id].power = 0;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
     g.player.systems.weapons.power = 5;
     syncIonStorm(g);
     assert.equal(g.player.storm, true);
@@ -43,7 +46,9 @@ describe("Rebel fight in plasma storm", () => {
 
   it("does not storm a plain event beacon or an exit", () => {
     const g = createGame(5);
-    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    const beacon = g.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss",
+    );
     assert.ok(beacon);
     beacon.kind = "event";
     beacon.flag = "";

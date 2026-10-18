@@ -13,8 +13,10 @@ const FARM = "mostly equipment meant for automated farming";
 const SCRAP = "building construction supplies";
 const TRAP = "The cargo was booby-trapped!";
 const PLAGUE = "vaccinations for a local plague";
-const DESTROYED = "With the Rebel ship destroyed, you take the time to collect what little scrap remains. They had already made the delivery to the civilians.";
-const CREW = "With the Rebel crew dead, you strip their ship for equipment. They had already made their delivery to the civilians.";
+const DESTROYED =
+  "With the Rebel ship destroyed, you take the time to collect what little scrap remains. They had already made the delivery to the civilians.";
+const CREW =
+  "With the Rebel crew dead, you strip their ship for equipment. They had already made their delivery to the civilians.";
 const LEAVE_LINES = [
   "You have doomed us all.",
   "its unlikely they'll live long.",
@@ -73,7 +75,12 @@ describe("Rebel ship supplying civilians supplies", () => {
   it("steals the printed supplies, and a destroyed ship or a crew kill pays before that choice", () => {
     const g0 = createGame(1);
     open(g0);
-    assert.equal(g0.event?.choices.some((c) => c.id === WAIT && c.label === "Wait and steal the supplies from the civilians"), true);
+    assert.equal(
+      g0.event?.choices.some(
+        (c) => c.id === WAIT && c.label === "Wait and steal the supplies from the civilians",
+      ),
+      true,
+    );
 
     const left = createGame(1);
     open(left);
@@ -106,7 +113,13 @@ describe("Rebel ship supplying civilians supplies", () => {
     const boom = createGame(found.trap);
     open(boom);
     const hull = boom.player.hull;
-    const rooms = boom.player.rooms.map((r) => ({ fire: r.fire, breach: r.breach, system: r.system, damage: r.system ? boom.player.systems[r.system].damage : 0, level: r.system ? boom.player.systems[r.system].level : 0 }));
+    const rooms = boom.player.rooms.map((r) => ({
+      fire: r.fire,
+      breach: r.breach,
+      system: r.system,
+      damage: r.system ? boom.player.systems[r.system].damage : 0,
+      level: r.system ? boom.player.systems[r.system].level : 0,
+    }));
     const scrap = boom.scrap;
     choose(boom, WAIT);
     assert.ok(boom.event?.body.includes(TRAP));
@@ -114,16 +127,22 @@ describe("Rebel ship supplying civilians supplies", () => {
     assert.equal(boom.player.hull, hull - 2);
     assert.equal(boom.scrap, scrap);
     assert.equal(boom.enemy, null);
-    const changed = boom.player.rooms.map((r, i) => ({
-      fire: r.fire - rooms[i].fire,
-      breach: r.breach - rooms[i].breach,
-      system: r.system,
-      damage: r.system ? boom.player.systems[r.system].damage - rooms[i].damage : 0,
-      bars: rooms[i].level - rooms[i].damage,
-    })).filter((r) => r.fire !== 0 || r.breach !== 0);
+    const changed = boom.player.rooms
+      .map((r, i) => ({
+        fire: r.fire - rooms[i].fire,
+        breach: r.breach - rooms[i].breach,
+        system: r.system,
+        damage: r.system ? boom.player.systems[r.system].damage - rooms[i].damage : 0,
+        bars: rooms[i].level - rooms[i].damage,
+      }))
+      .filter((r) => r.fire !== 0 || r.breach !== 0);
     assert.equal(changed.length, 1);
     const hit = changed[0];
-    assert.ok((hit.fire === 0 && hit.breach === 1) || ((hit.fire === 1 || hit.fire === 2) && hit.breach === 0), JSON.stringify(hit));
+    assert.ok(
+      (hit.fire === 0 && hit.breach === 1) ||
+        ((hit.fire === 1 || hit.fire === 2) && hit.breach === 0),
+      JSON.stringify(hit),
+    );
     if (hit.system && hit.bars > 0) assert.equal(hit.damage, Math.min(2, hit.bars));
     else assert.equal(hit.damage, 0);
 
@@ -155,10 +174,19 @@ describe("Rebel ship supplying civilians supplies", () => {
     assert.ok(df === 0 || (df >= 1 && df <= 3), `fuel ${df}`);
     assert.ok(dm === 0 || (dm >= 1 && dm <= 2), `missiles ${dm}`);
     assert.ok(dp === 0 || dp === 1, `parts ${dp}`);
-    assert.equal(won.event?.choices.some((c) => c.id === "s:rebel-supply:steal"), true);
-    assert.equal(won.event?.choices.some((c) => c.id === "s:rebel-supply:leave"), true);
+    assert.equal(
+      won.event?.choices.some((c) => c.id === "s:rebel-supply:steal"),
+      true,
+    );
+    assert.equal(
+      won.event?.choices.some((c) => c.id === "s:rebel-supply:leave"),
+      true,
+    );
     choose(won, "s:rebel-supply:leave");
-    assert.ok(LEAVE_LINES.some((line) => won.event?.body.includes(line)), won.event?.body);
+    assert.ok(
+      LEAVE_LINES.some((line) => won.event?.body.includes(line)),
+      won.event?.body,
+    );
     assert.ok(won.event?.body.includes("Nothing happens."));
 
     const killed = createGame(4);

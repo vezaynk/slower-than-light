@@ -11,7 +11,9 @@ import { fillerChoose, fillerEvent } from "./filler-events.ts";
 afterEach(() => resetPackForTests());
 
 function beacon(g: Game): Beacon {
-  const found = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+  const found = g.beacons.find(
+    (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
+  );
   assert.ok(found);
   return found;
 }
@@ -37,26 +39,40 @@ describe("named button prices", () => {
       { id: "debt", k: "scrap", lo: 10, hi: 15 },
       { id: "upgrade", k: "scrap", lo: 10, hi: 15 },
     ]);
-    assert.deepEqual(eventDef("friendly-ship-out-of-fuel")?.prices, [{ id: "give", k: "fuel", lo: 2, hi: 4 }]);
-    assert.deepEqual(eventDef("no-fuel-drifting-debris")?.prices, [{ id: "ransom", k: "scrap", lo: 25, hi: 40 }]);
-    assert.deepEqual(eventDef("terraforming-scan")?.prices, [{ id: "scan", k: "scrap", lo: 15, hi: 25 }]);
+    assert.deepEqual(eventDef("friendly-ship-out-of-fuel")?.prices, [
+      { id: "give", k: "fuel", lo: 2, hi: 4 },
+    ]);
+    assert.deepEqual(eventDef("no-fuel-drifting-debris")?.prices, [
+      { id: "ransom", k: "scrap", lo: 25, hi: 40 },
+    ]);
+    assert.deepEqual(eventDef("terraforming-scan")?.prices, [
+      { id: "scan", k: "scrap", lo: 15, hi: 25 },
+    ]);
   });
 
   it("pays a fixed Rock debt and refuses an amount outside the band", () => {
-    loadPack({
-      events: [{
-        ...row("rock-and-slug-standoff"),
-        prices: [
-          { id: "debt", k: "scrap", lo: 8, hi: 8 },
-          { id: "upgrade", k: "scrap", lo: 10, hi: 15 },
+    loadPack(
+      {
+        events: [
+          {
+            ...row("rock-and-slug-standoff"),
+            prices: [
+              { id: "debt", k: "scrap", lo: 8, hi: 8 },
+              { id: "upgrade", k: "scrap", lo: 10, hi: 15 },
+            ],
+          },
         ],
-      }],
-    }, "append");
+      },
+      "append",
+    );
     const g = createGame(1);
     park(g, "cited:rock-and-slug-standoff", "Rock and Slug standoff");
     g.event = citedEvent(g, beacon(g));
     choose(g, "c:rock-and-slug-standoff:0");
-    assert.equal(g.event?.choices.find((choice) => choice.id.startsWith("s:rock-slug:debt:"))?.id, "s:rock-slug:debt:8");
+    assert.equal(
+      g.event?.choices.find((choice) => choice.id.startsWith("s:rock-slug:debt:"))?.id,
+      "s:rock-slug:debt:8",
+    );
     g.scrap = 40;
     choose(g, "s:rock-slug:debt:8");
     assert.equal(g.scrap, 32);
@@ -74,32 +90,45 @@ describe("named button prices", () => {
   });
 
   it("omits a missing debt and keeps demand and leave", () => {
-    loadPack({
-      events: [{
-        ...row("rock-and-slug-standoff"),
-        prices: [{ id: "upgrade", k: "scrap", lo: 6, hi: 6 }],
-      }],
-    }, "append");
+    loadPack(
+      {
+        events: [
+          {
+            ...row("rock-and-slug-standoff"),
+            prices: [{ id: "upgrade", k: "scrap", lo: 6, hi: 6 }],
+          },
+        ],
+      },
+      "append",
+    );
     const g = createGame(1);
     park(g, "cited:rock-and-slug-standoff", "Rock and Slug standoff");
     g.event = citedEvent(g, beacon(g));
     choose(g, "c:rock-and-slug-standoff:0");
     const ids = g.event?.choices.map((choice) => choice.id) ?? [];
-    assert.equal(ids.some((id) => id.startsWith("s:rock-slug:debt:")), false);
+    assert.equal(
+      ids.some((id) => id.startsWith("s:rock-slug:debt:")),
+      false,
+    );
     assert.ok(ids.includes("s:rock-slug:demand"));
     assert.ok(ids.includes("s:rock-slug:leave"));
   });
 
   it("pays a fixed reactor price and refuses an amount outside the band", () => {
-    loadPack({
-      events: [{
-        ...row("rock-and-slug-standoff"),
-        prices: [
-          { id: "debt", k: "scrap", lo: 8, hi: 8 },
-          { id: "upgrade", k: "scrap", lo: 6, hi: 6 },
+    loadPack(
+      {
+        events: [
+          {
+            ...row("rock-and-slug-standoff"),
+            prices: [
+              { id: "debt", k: "scrap", lo: 8, hi: 8 },
+              { id: "upgrade", k: "scrap", lo: 6, hi: 6 },
+            ],
+          },
         ],
-      }],
-    }, "append");
+      },
+      "append",
+    );
     let paid = false;
     let refused = false;
     for (let seed = 1; seed <= 40 && (!paid || !refused); seed++) {
@@ -110,7 +139,10 @@ describe("named button prices", () => {
       g.scrap = 40;
       choose(g, "s:rock-slug:debt:8");
       if (!/fair' price/.test(g.event?.body ?? "")) continue;
-      assert.equal(g.event?.choices.find((choice) => choice.id.startsWith("s:rock-slug:upgrade:"))?.id, "s:rock-slug:upgrade:6");
+      assert.equal(
+        g.event?.choices.find((choice) => choice.id.startsWith("s:rock-slug:upgrade:"))?.id,
+        "s:rock-slug:upgrade:6",
+      );
       if (!paid) {
         const reactor = g.player.reactor;
         g.scrap = 100;
@@ -133,12 +165,17 @@ describe("named button prices", () => {
   });
 
   it("omits a missing reactor price and keeps the decline", () => {
-    loadPack({
-      events: [{
-        ...row("rock-and-slug-standoff"),
-        prices: [{ id: "debt", k: "scrap", lo: 8, hi: 8 }],
-      }],
-    }, "append");
+    loadPack(
+      {
+        events: [
+          {
+            ...row("rock-and-slug-standoff"),
+            prices: [{ id: "debt", k: "scrap", lo: 8, hi: 8 }],
+          },
+        ],
+      },
+      "append",
+    );
     let seen = false;
     for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = createGame(seed);
@@ -150,7 +187,10 @@ describe("named button prices", () => {
       if (!/fair' price/.test(g.event?.body ?? "")) continue;
       seen = true;
       const ids = g.event?.choices.map((choice) => choice.id) ?? [];
-      assert.equal(ids.some((id) => id.startsWith("s:rock-slug:upgrade:")), false);
+      assert.equal(
+        ids.some((id) => id.startsWith("s:rock-slug:upgrade:")),
+        false,
+      );
       assert.ok(ids.includes("s:rock-slug:decline"));
     }
     assert.equal(seen, true);
@@ -158,7 +198,10 @@ describe("named button prices", () => {
 
   it("gives a fixed fuel amount and keeps the apology when the price is missing", () => {
     const page = row("friendly-ship-out-of-fuel");
-    loadPack({ events: [{ ...page, prices: [{ id: "give", k: "fuel", lo: 3, hi: 3 }] }] }, "append");
+    loadPack(
+      { events: [{ ...page, prices: [{ id: "give", k: "fuel", lo: 3, hi: 3 }] }] },
+      "append",
+    );
     const g = createGame(1);
     const here = park(g, "filler:friendly-ship-out-of-fuel", "Friendly ship out of fuel");
     g.event = fillerEvent(g, here);
@@ -178,7 +221,11 @@ describe("named button prices", () => {
     assert.equal(short.event?.body, shortBody);
 
     const forged = createGame(3);
-    const forgedHere = park(forged, "filler:friendly-ship-out-of-fuel", "Friendly ship out of fuel");
+    const forgedHere = park(
+      forged,
+      "filler:friendly-ship-out-of-fuel",
+      "Friendly ship out of fuel",
+    );
     forged.event = fillerEvent(forged, forgedHere);
     forged.fuel = 20;
     const forgedBody = forged.event?.body;
@@ -190,14 +237,21 @@ describe("named button prices", () => {
     const quiet = createGame(4);
     const quietHere = park(quiet, "filler:friendly-ship-out-of-fuel", "Friendly ship out of fuel");
     quiet.event = fillerEvent(quiet, quietHere);
-    assert.equal(quiet.event?.choices.some((choice) => choice.id.startsWith("s:friendly-ship-out-of-fuel:give:")), false);
+    assert.equal(
+      quiet.event?.choices.some((choice) =>
+        choice.id.startsWith("s:friendly-ship-out-of-fuel:give:"),
+      ),
+      false,
+    );
     assert.equal(quiet.event?.choices[0]?.id, page.choices[1]?.id);
   });
 
   it("rolls one scan price onto both buttons and spends it on the pay path", () => {
     const g = createGame(7);
     fillerChoose(g, "s:terraforming-scan:stop");
-    const bribe = g.event?.choices.find((choice) => choice.id.startsWith("s:terraforming-scan:bribe:"));
+    const bribe = g.event?.choices.find((choice) =>
+      choice.id.startsWith("s:terraforming-scan:bribe:"),
+    );
     const pay = g.event?.choices.find((choice) => choice.id.startsWith("s:terraforming-scan:pay:"));
     assert.ok(bribe && pay);
     const n = Number(bribe.id.split(":").at(-1));
@@ -205,9 +259,14 @@ describe("named button prices", () => {
     assert.equal(pay.id, `s:terraforming-scan:pay:${n}`);
     assert.ok(g.event?.choices.some((choice) => choice.id === "s:terraforming-scan:demand"));
 
-    loadPack({
-      events: [{ ...row("terraforming-scan"), prices: [{ id: "scan", k: "scrap", lo: 20, hi: 20 }] }],
-    }, "append");
+    loadPack(
+      {
+        events: [
+          { ...row("terraforming-scan"), prices: [{ id: "scan", k: "scrap", lo: 20, hi: 20 }] },
+        ],
+      },
+      "append",
+    );
     const fixed = createGame(1);
     fillerChoose(fixed, "s:terraforming-scan:stop");
     assert.deepEqual(
@@ -237,7 +296,10 @@ describe("named button prices", () => {
     loadPack({ events: [{ ...row("terraforming-scan"), prices: undefined }] }, "append");
     const quiet = createGame(4);
     fillerChoose(quiet, "s:terraforming-scan:stop");
-    assert.deepEqual(quiet.event?.choices.map((choice) => choice.id), ["s:terraforming-scan:demand"]);
+    assert.deepEqual(
+      quiet.event?.choices.map((choice) => choice.id),
+      ["s:terraforming-scan:demand"],
+    );
   });
 
   it("pays a fixed ransom and refuses an amount outside the band", () => {
@@ -249,7 +311,8 @@ describe("named button prices", () => {
       choose(g, "c:no-fuel-drifting-debris:report");
       return g;
     };
-    const ransom = (g: Game) => g.event?.choices.find((choice) => choice.id.startsWith("c:no-fuel-drifting-debris:pay:"));
+    const ransom = (g: Game) =>
+      g.event?.choices.find((choice) => choice.id.startsWith("c:no-fuel-drifting-debris:pay:"));
 
     let campaign: Game | undefined;
     for (let seed = 1; seed <= 40 && !campaign; seed++) {
@@ -260,11 +323,21 @@ describe("named button prices", () => {
     assert.ok(campaign && campaignPay);
     const cost = Number(campaignPay.id.split(":").at(-1));
     assert.ok(cost >= 25 && cost <= 40, String(cost));
-    assert.ok(campaign.event?.choices.some((choice) => choice.id === "c:no-fuel-drifting-debris:refuse"));
+    assert.ok(
+      campaign.event?.choices.some((choice) => choice.id === "c:no-fuel-drifting-debris:refuse"),
+    );
 
-    loadPack({
-      events: [{ ...row("no-fuel-drifting-debris"), prices: [{ id: "ransom", k: "scrap", lo: 30, hi: 30 }] }],
-    }, "append");
+    loadPack(
+      {
+        events: [
+          {
+            ...row("no-fuel-drifting-debris"),
+            prices: [{ id: "ransom", k: "scrap", lo: 30, hi: 30 }],
+          },
+        ],
+      },
+      "append",
+    );
     let fixed: Game | undefined;
     for (let seed = 1; seed <= 40 && !fixed; seed++) {
       const g = open(seed);
@@ -295,10 +368,18 @@ describe("named button prices", () => {
       if (/pay a scrap ransom/.test(g.event?.body ?? "")) quiet = g;
     }
     assert.ok(quiet);
-    assert.equal(quiet.event?.choices.some((choice) => choice.id.startsWith("c:no-fuel-drifting-debris:pay:")), false);
-    assert.deepEqual(quiet.event?.choices.map((choice) => choice.id), ["c:no-fuel-drifting-debris:refuse"]);
+    assert.equal(
+      quiet.event?.choices.some((choice) => choice.id.startsWith("c:no-fuel-drifting-debris:pay:")),
+      false,
+    );
+    assert.deepEqual(
+      quiet.event?.choices.map((choice) => choice.id),
+      ["c:no-fuel-drifting-debris:refuse"],
+    );
 
     resetPackForTests();
-    assert.deepEqual(eventDef("no-fuel-drifting-debris")?.prices, [{ id: "ransom", k: "scrap", lo: 25, hi: 40 }]);
+    assert.deepEqual(eventDef("no-fuel-drifting-debris")?.prices, [
+      { id: "ransom", k: "scrap", lo: 25, hi: 40 },
+    ]);
   });
 });

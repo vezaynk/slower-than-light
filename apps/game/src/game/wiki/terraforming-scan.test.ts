@@ -62,7 +62,10 @@ describe("Terraforming scan blue options", () => {
         assert.equal(sensors.enemy!.pirate, true);
       }
       if (sk === "oxygen") assert.equal(sensors.player.systems.oxygen.level, 2);
-      assert.equal(`${sensors.event?.body ?? ""}\n${sensors.log.join("\n")}`.includes("modulate the feedback"), false);
+      assert.equal(
+        `${sensors.event?.body ?? ""}\n${sensors.log.join("\n")}`.includes("modulate the feedback"),
+        false,
+      );
 
       const zoltan = offer(seed + 200);
       zoltan.player.systems.sensors.level = 1;
@@ -75,7 +78,10 @@ describe("Terraforming scan blue options", () => {
       assert.notEqual(zk, "offer");
       seen.zoltan.add(zk);
       if (zk === "oxygen") assert.equal(zoltan.player.systems.oxygen.level, 2);
-      assert.equal(`${zoltan.event?.body ?? ""}\n${zoltan.log.join("\n")}`.includes("modulate the feedback"), false);
+      assert.equal(
+        `${zoltan.event?.body ?? ""}\n${zoltan.log.join("\n")}`.includes("modulate the feedback"),
+        false,
+      );
     }
     assert.deepEqual([...seen.sensors].sort(), ["mold", "oxygen", "pirate"]);
     assert.deepEqual([...seen.zoltan].sort(), ["mold", "oxygen", "pirate"]);

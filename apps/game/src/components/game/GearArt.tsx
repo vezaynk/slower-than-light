@@ -34,7 +34,15 @@ function PixelSvg({ art, height, className }: { art: Art; height: number; classN
           y={r.y}
           width={r.w}
           height={1}
-          fill={r.c === "b" ? body : r.c === "t" ? trim : r.c === "g" ? "var(--accent-ink, var(--gear-glow))" : INK}
+          fill={
+            r.c === "b"
+              ? body
+              : r.c === "t"
+                ? trim
+                : r.c === "g"
+                  ? "var(--accent-ink, var(--gear-glow))"
+                  : INK
+          }
         />
       ))}
     </svg>

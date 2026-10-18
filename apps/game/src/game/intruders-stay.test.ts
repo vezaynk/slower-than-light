@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { commitJump, continueReward, createGame, intruderOnPlayer, startCombat, step } from "./sim.ts";
+import {
+  commitJump,
+  continueReward,
+  createGame,
+  intruderOnPlayer,
+  startCombat,
+  step,
+} from "./sim.ts";
 import type { Crew, Game } from "./types.ts";
 import { closeFight } from "./wiki/surrender.ts";
 
@@ -65,8 +72,14 @@ describe("intruders stay until they die", () => {
     step(g, 0.05);
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "reward");
-    assert.deepEqual(intruders(g).map((c) => c.id), [boarder.id]);
-    assert.equal(g.crew.some((c) => c.side === "enemy" && c.aboard === "enemy"), false);
+    assert.deepEqual(
+      intruders(g).map((c) => c.id),
+      [boarder.id],
+    );
+    assert.equal(
+      g.crew.some((c) => c.side === "enemy" && c.aboard === "enemy"),
+      false,
+    );
   });
 
   it("removes one that is already dead when the hull breaks", () => {
@@ -74,7 +87,10 @@ describe("intruders stay until they die", () => {
     const boarder = plant(g, "p-sensors", 0);
     g.enemy!.hull = 0;
     step(g, 0.05);
-    assert.equal(g.crew.some((c) => c.id === boarder.id), false);
+    assert.equal(
+      g.crew.some((c) => c.id === boarder.id),
+      false,
+    );
     assert.equal(intruders(g).length, 0);
   });
 
@@ -102,13 +118,24 @@ describe("intruders stay until they die", () => {
     assert.ok(stranded);
     stranded.aboard = "enemy";
     stranded.room = g.enemy!.rooms[0]!.id;
-    const theirs = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy").map((c) => c.id);
+    const theirs = g.crew
+      .filter((c) => c.side === "enemy" && c.aboard === "enemy")
+      .map((c) => c.id);
     assert.ok(theirs.length > 0);
     commitJump(g, quietDest(g));
     assert.equal(g.enemy, null);
-    assert.deepEqual(intruders(g).map((c) => c.id), [boarder.id]);
-    assert.equal(g.crew.some((c) => c.id === stranded.id), false);
-    assert.equal(g.crew.some((c) => theirs.includes(c.id)), false);
+    assert.deepEqual(
+      intruders(g).map((c) => c.id),
+      [boarder.id],
+    );
+    assert.equal(
+      g.crew.some((c) => c.id === stranded.id),
+      false,
+    );
+    assert.equal(
+      g.crew.some((c) => theirs.includes(c.id)),
+      false,
+    );
   });
 
   it("is still aboard when the next fight starts", () => {
@@ -116,7 +143,10 @@ describe("intruders stay until they die", () => {
     const boarder = plant(g, "p-sensors");
     startCombat(g, "scout");
     assert.ok(g.enemy);
-    assert.deepEqual(intruders(g).map((c) => c.id), [boarder.id]);
+    assert.deepEqual(
+      intruders(g).map((c) => c.id),
+      [boarder.id],
+    );
     assert.ok(g.crew.some((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0));
   });
 
@@ -152,13 +182,21 @@ describe("intruders stay until they die", () => {
     const g = quietFight();
     for (const c of g.crew) if (c.side === "player") c.room = "p-pilot";
     const boarder = plant(g, "p-weapons");
-    const wreckCrew = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0).length;
+    const wreckCrew = g.crew.filter(
+      (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0,
+    ).length;
     assert.ok(wreckCrew > 0);
     closeFight(g);
     assert.ok(g.wreck);
     assert.equal(g.enemy, null);
-    assert.deepEqual(intruders(g).map((c) => c.id), [boarder.id]);
-    assert.equal(g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0).length, wreckCrew);
+    assert.deepEqual(
+      intruders(g).map((c) => c.id),
+      [boarder.id],
+    );
+    assert.equal(
+      g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0).length,
+      wreckCrew,
+    );
     g.phase = "map";
     g.paused = false;
     const room = g.player.rooms.find((r) => r.id === "p-weapons");
@@ -176,8 +214,14 @@ describe("intruders stay until they die", () => {
     assert.ok(left.length > 0);
     commitJump(g, quietDest(g));
     assert.equal(g.wreck, null);
-    assert.deepEqual(intruders(g).map((c) => c.id), [boarder.id]);
-    assert.equal(g.crew.some((c) => left.includes(c.id)), false);
+    assert.deepEqual(
+      intruders(g).map((c) => c.id),
+      [boarder.id],
+    );
+    assert.equal(
+      g.crew.some((c) => left.includes(c.id)),
+      false,
+    );
   });
 
   it("stays when the enemy jumps away, and your crew on their hull are left behind", () => {
@@ -191,8 +235,17 @@ describe("intruders stay until they die", () => {
     step(g, 0.05);
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "map");
-    assert.deepEqual(intruders(g).map((c) => c.id), [boarder.id]);
-    assert.equal(g.crew.some((c) => c.id === stranded.id), false);
-    assert.equal(g.crew.some((c) => c.side === "enemy" && c.aboard === "enemy"), false);
+    assert.deepEqual(
+      intruders(g).map((c) => c.id),
+      [boarder.id],
+    );
+    assert.equal(
+      g.crew.some((c) => c.id === stranded.id),
+      false,
+    );
+    assert.equal(
+      g.crew.some((c) => c.side === "enemy" && c.aboard === "enemy"),
+      false,
+    );
   });
 });

@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, commitJump, createGame, evasionPercent, powerMask, step, weaponsSealed } from "../sim.ts";
+import {
+  choose,
+  commitJump,
+  createGame,
+  evasionPercent,
+  powerMask,
+  step,
+  weaponsSealed,
+} from "../sim.ts";
 import type { Beacon, Game, Kit } from "../types.ts";
 import { citedChoiceDisabled, citedChoose, citedEvent, type CitedChoice } from "./cited-events.ts";
 import { cacheFuelLoss } from "./cited-missing.ts";
@@ -95,7 +103,10 @@ const HULLS = new Set([
 describe("missing location pages", () => {
   it("closes an empty Lanius distress on the printed nothing", () => {
     const g = createGame(3);
-    const ev = citedEvent(g, beacon("Lanius empty distress beacon 1", "cited:lanius-empty-distress-beacon-1"));
+    const ev = citedEvent(
+      g,
+      beacon("Lanius empty distress beacon 1", "cited:lanius-empty-distress-beacon-1"),
+    );
     assert.ok(ev);
     assert.match(ev.body, /plastic satellite/);
     assert.equal(citedChoose(harness(g, []), ev.choices[0]!.id), true);
@@ -112,7 +123,10 @@ describe("missing location pages", () => {
     assert.match(ev.body, /star charts/);
     assert.match(ev.body, /map is revealed/);
     assert.equal(citedChoose(harness(g, []), ev.choices[0]!.id), true);
-    assert.deepEqual(g.beacons.map((b) => b.visited), visited);
+    assert.deepEqual(
+      g.beacons.map((b) => b.visited),
+      visited,
+    );
     assert.equal(g.sectorMap, chart);
   });
 
@@ -124,7 +138,10 @@ describe("missing location pages", () => {
     g.scrap = 0;
     g.missiles = 0;
     g.player.parts = 0;
-    const ev = citedEvent(g, beacon("No fuel: fuel trader (distress off)", "cited:no-fuel-fuel-trader-distress-off"));
+    const ev = citedEvent(
+      g,
+      beacon("No fuel: fuel trader (distress off)", "cited:no-fuel-fuel-trader-distress-off"),
+    );
     assert.ok(ev);
     const buy = ev.choices.find((c) => c.id.includes(":buy:"));
     assert.ok(buy);

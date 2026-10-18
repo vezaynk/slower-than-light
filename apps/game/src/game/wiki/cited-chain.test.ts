@@ -70,9 +70,14 @@ describe("chain weapon profiles", () => {
   it("stores the printed steps and stays on the last one", () => {
     BURST.forEach((seconds, i) => assert.equal(chainChargeSeconds("LASER_CHAINGUN", i), seconds));
     assert.equal(chainChargeSeconds("LASER_CHAINGUN", 9), 7);
-    VULCAN.forEach((seconds, i) => assert.equal(chainChargeSeconds("LASER_CHAINGUN_2", i), seconds));
+    VULCAN.forEach((seconds, i) =>
+      assert.equal(chainChargeSeconds("LASER_CHAINGUN_2", i), seconds),
+    );
     assert.equal(chainChargeSeconds("LASER_CHAINGUN_2", 9), 1.1);
-    close(VULCAN.slice(0, 5).reduce((sum, n) => sum + n, 0), 35.5);
+    close(
+      VULCAN.slice(0, 5).reduce((sum, n) => sum + n, 0),
+      35.5,
+    );
     ION.forEach((ion, i) => assert.equal(chainIonAmount("ION_CHAINGUN", i), ion));
     assert.equal(chainIonAmount("ION_CHAINGUN", 9), 4);
     assert.equal(chainChargeSeconds("ION_CHAINGUN", 0), null);

@@ -46,9 +46,14 @@ function moons(body: string): number {
 
 describe("Slug moons question", () => {
   it("is placed in the two slug sectors", () => {
-    assert.ok(citedPagesFor("Slug Controlled Nebula").some((ev) => ev.dest === "Slug moons question"));
+    assert.ok(
+      citedPagesFor("Slug Controlled Nebula").some((ev) => ev.dest === "Slug moons question"),
+    );
     assert.ok(citedPagesFor("Slug Home Nebula").some((ev) => ev.dest === "Slug moons question"));
-    assert.equal(citedPagesFor("Civilian Sector").some((ev) => ev.dest === "Slug moons question"), false);
+    assert.equal(
+      citedPagesFor("Civilian Sector").some((ev) => ev.dest === "Slug moons question"),
+      false,
+    );
   });
 
   it("stays a regular beacon until arrival, then the nebula environment is on", () => {
@@ -110,7 +115,8 @@ describe("Slug moons question", () => {
     // Wiki citations:
     // > "That isss... correct. You sssurprise me." — [[Slug moons question#Correct Answer]]
     const g = open(3);
-    while (g.crew.filter((c) => c.side === "player").length < CREW_CAP) assert.equal(joinCrew(g, "Human"), true);
+    while (g.crew.filter((c) => c.side === "player").length < CREW_CAP)
+      assert.equal(joinCrew(g, "Human"), true);
     const n = moons(g.event?.body ?? "");
     choose(g, g.event?.choices[0]?.id ?? "");
     choose(g, `c:slug-moons-question:answer:${n}:${n}`);
@@ -146,8 +152,14 @@ describe("Slug moons question", () => {
       assert.equal(g.crew.filter((c) => c.kin === "slug").length, gels);
       assert.match(g.event?.body ?? "", /That issss\.\.\. incorrect/);
     }
-    assert.deepEqual([...fuels].sort((a, b) => a - b), [2, 3, 4]);
-    assert.deepEqual([...parts].sort((a, b) => a - b), [1, 2]);
+    assert.deepEqual(
+      [...fuels].sort((a, b) => a - b),
+      [2, 3, 4],
+    );
+    assert.deepEqual(
+      [...parts].sort((a, b) => a - b),
+      [1, 2],
+    );
   });
 
   it("a shortfall spends nothing and leaves the question open", () => {

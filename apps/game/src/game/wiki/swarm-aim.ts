@@ -45,7 +45,8 @@ function twoTile(room: SwarmRoom): [Tile, Tile] | null {
   const tiles = floorTiles(room);
   if (tiles.length !== 2) return null;
   const [a, b] = tiles;
-  const straight = (a.x === b.x && Math.abs(a.y - b.y) === 1) || (a.y === b.y && Math.abs(a.x - b.x) === 1);
+  const straight =
+    (a.x === b.x && Math.abs(a.y - b.y) === 1) || (a.y === b.y && Math.abs(a.x - b.x) === 1);
   return straight ? [a, b] : null;
 }
 

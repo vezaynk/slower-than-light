@@ -34,7 +34,10 @@ function share(g: Game, n: number, hit: (room: string | null) => boolean): numbe
 
 describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
   it("Easy and Normal pick from system_targets 20% / 33% of the time, else a random room", () => {
-    for (const [d, chance] of [["easy", 0.2], ["normal", 0.33]] as const) {
+    for (const [d, chance] of [
+      ["easy", 0.2],
+      ["normal", 0.33],
+    ] as const) {
       const g = calm(d);
       const installed = installedSystems(g).length / SYSTEM_TARGETS.length;
       const got = share(g, 20000, (r) => r != null);
@@ -137,7 +140,11 @@ describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
       gun.target = enemyTarget(g, gun);
       // sim.ts launch is internal; a full charge fires on the next tick.
       step(g, 0.001);
-      const rooms = new Set(g.shots.filter((s) => s.from === "enemy" && s.defId === "LASER_BURST_5").map((s) => s.targetRoom));
+      const rooms = new Set(
+        g.shots
+          .filter((s) => s.from === "enemy" && s.defId === "LASER_BURST_5")
+          .map((s) => s.targetRoom),
+      );
       if (rooms.size >= 2) spread++;
     }
     assert.ok(spread > 10, `volleys that split: ${spread} of 20`);

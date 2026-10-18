@@ -34,8 +34,19 @@ export const EVENT_FONT_MAX = 6;
 const KEY = "stl-settings-v1";
 
 function defaults(): Settings {
-  const reduced = typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  return { shake: !reduced, ghosts: true, roomAir: true, muted: false, volume: 1, rotate: "off", haptics: true, eventFont: 0 };
+  const reduced =
+    typeof window !== "undefined" &&
+    !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  return {
+    shake: !reduced,
+    ghosts: true,
+    roomAir: true,
+    muted: false,
+    volume: 1,
+    rotate: "off",
+    haptics: true,
+    eventFont: 0,
+  };
 }
 
 function eventFontOf(n: unknown): number {
@@ -55,7 +66,8 @@ function load(): Settings {
       ghosts: typeof saved.ghosts === "boolean" ? saved.ghosts : base.ghosts,
       roomAir: typeof saved.roomAir === "boolean" ? saved.roomAir : base.roomAir,
       muted: typeof saved.muted === "boolean" ? saved.muted : base.muted,
-      volume: typeof saved.volume === "number" ? Math.max(0, Math.min(1, saved.volume)) : base.volume,
+      volume:
+        typeof saved.volume === "number" ? Math.max(0, Math.min(1, saved.volume)) : base.volume,
       rotate: saved.rotate === "left" || saved.rotate === "right" ? saved.rotate : "off",
       haptics: typeof saved.haptics === "boolean" ? saved.haptics : base.haptics,
       eventFont: eventFontOf(saved.eventFont),
@@ -70,7 +82,8 @@ export const useSettings = create<Settings>(() => load());
 export function setSetting<K extends keyof Settings>(key: K, value: Settings[K]) {
   useSettings.setState({ [key]: value } as Pick<Settings, K>);
   try {
-    if (typeof localStorage !== "undefined") localStorage.setItem(KEY, JSON.stringify(useSettings.getState()));
+    if (typeof localStorage !== "undefined")
+      localStorage.setItem(KEY, JSON.stringify(useSettings.getState()));
   } catch {
     /* storage blocked or full: the choice still holds for this visit */
   }

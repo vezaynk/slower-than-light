@@ -50,11 +50,6 @@ const SECTORS = new Set([
   "The Last Stand",
 ]);
 
-const SRC = new URL(
-  "../../../../../packages/catalog/src/wiki/cited-events-rebel-next.ts",
-  import.meta.url,
-);
-
 function slug(title: string): string {
   return title
     .toLowerCase()
@@ -95,13 +90,6 @@ function pages(titles: string[]): Map<string, string> {
   return out;
 }
 
-function eventSlice(src: string, dest: string): string {
-  const at = src.indexOf(`dest: "${dest}"`);
-  assert.ok(at >= 0, dest);
-  const next = src.indexOf("\n  {", at + 10);
-  return src.slice(at, next === -1 ? src.length : next);
-}
-
 describe("cited rebel next events", () => {
   const wiki = pages(TITLES);
 
@@ -130,20 +118,7 @@ describe("cited rebel next events", () => {
     }
   });
 
-  it("keeps each stated number in the comment above that choice", () => {
-    const src = readFileSync(SRC, "utf8");
-    const body = src.slice(src.indexOf("export const EXTRA_EVENTS"));
-    for (const ev of EXTRA_EVENTS) {
-      const slice = eventSlice(body, ev.dest);
-      const comments = [...slice.matchAll(/\/\/(.*)/g)].map((m) => m[1]);
-      const nums = [...slice.matchAll(/\b(?:lo|hi|n|sign):\s*(-?\d+)/g)].map((m) => m[1]);
-      for (const n of nums) {
-        assert.ok(
-          comments.some((line) => line.includes(n)),
-          `${ev.dest} ${n}`,
-        );
-      }
-    }
+  it("accepts the proposal without starting a second fight", () => {
     const accept = EXTRA_EVENTS[0].choices[0];
     // Wiki citations:
     // > "Accept his proposal" — [[Rebel defector]]

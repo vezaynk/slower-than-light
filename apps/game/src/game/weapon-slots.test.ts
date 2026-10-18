@@ -86,11 +86,27 @@ describe("printed weapon slots", () => {
     // Per the user: make-room.ts. A full rack stows it in cargo; a full cargo hold asks what to leave behind.
     const full = createGame(3, "PLAYER_SHIP_HARD_2");
     assert.equal(full.player.weapons.length, 4);
-    payOffer(full, { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0, weapon: "ION_STUN" }, true);
+    payOffer(
+      full,
+      { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0, weapon: "ION_STUN" },
+      true,
+    );
     assert.equal(full.player.weapons.length, 4);
     assert.deepEqual(full.cargo, [{ kind: "weapon", id: "ION_STUN" }]);
     full.cargo = [0, 1, 2, 3].map(() => ({ kind: "weapon" as const, id: "LASER_BURST_1" }));
-    payOffer(full, { tier: "low", scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0, weapon: "LASER_HEAVY_1" }, true);
+    payOffer(
+      full,
+      {
+        tier: "low",
+        scrap: 0,
+        eligible: 0,
+        fuel: 0,
+        missiles: 0,
+        parts: 0,
+        weapon: "LASER_HEAVY_1",
+      },
+      true,
+    );
     assert.deepEqual(full.overflow, [{ kind: "weapon", id: "LASER_HEAVY_1" }]);
   });
 

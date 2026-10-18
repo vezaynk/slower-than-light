@@ -32,8 +32,12 @@ describe("Rebel ship attacking Federation loyalists intro", () => {
       open(g);
       const body = g.event?.body ?? "";
       assert.ok(INTROS.includes(body), body);
-      assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-attacking-federation-loyalists:0"));
-      assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-attacking-federation-loyalists:1"));
+      assert.ok(
+        g.event?.choices.some((c) => c.id === "c:rebel-ship-attacking-federation-loyalists:0"),
+      );
+      assert.ok(
+        g.event?.choices.some((c) => c.id === "c:rebel-ship-attacking-federation-loyalists:1"),
+      );
       seen.add(body);
     }
     assert.equal(seen.size, INTROS.length);

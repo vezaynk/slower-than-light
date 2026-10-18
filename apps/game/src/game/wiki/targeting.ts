@@ -72,7 +72,16 @@ export const SYSTEM_TARGETS: readonly TargetSystem[] = [
   "hacking",
 ];
 
-const CORE = new Set<string>(["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"]);
+const CORE = new Set<string>([
+  "shields",
+  "engines",
+  "oxygen",
+  "medbay",
+  "weapons",
+  "pilot",
+  "sensors",
+  "doors",
+]);
 
 /** The player room holding that system, or undefined when it is not installed. */
 export function systemRoom(ship: Ship, id: TargetSystem): Room | undefined {
@@ -123,20 +132,28 @@ export function priorityList(g: Game): TargetSystem[] {
   if (averageOxygen(ship) < OXYGEN_LINE) out.push("oxygen");
   // Weapons, Drones: "if any weapon/drone is powered"; Zoltan bars count (reddit 7pmz3j, header). INFERRED: Drone
   // Control with any power counts as a powered drone.
-  if (powerMask(ship, zoltanBars(g.crew, ship, "player", "weapons")).some(Boolean)) out.push("weapons");
+  if (powerMask(ship, zoltanBars(g.crew, ship, "player", "weapons")).some(Boolean))
+    out.push("weapons");
   if (kits.drones && kits.drones.power > 0) out.push("drones");
   // Teleporter: "if the enemy ship has any intruders", i.e. player crew aboard the enemy (Boarding: "when your crew is
   // onboard enemy ship, your Teleporter system will be among the priority targets"). Cloaking: "if not on cooldown,
   // nor active". Artillery: "< 4sec of total charge".
-  if (kits.teleporter && g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0)) out.push("teleporter");
-  if (kits.cloaking && kits.cloaking.cool <= 0 && !(kits.cloaking.on && kits.cloaking.left > 0)) out.push("cloaking");
+  if (
+    kits.teleporter &&
+    g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0)
+  )
+    out.push("teleporter");
+  if (kits.cloaking && kits.cloaking.cool <= 0 && !(kits.cloaking.on && kits.cloaking.left > 0))
+    out.push("cloaking");
   if (kits.artillery && artilleryCharge(g) < ARTILLERY_LINE) out.push("artillery");
   // Clonebay: "if crew is being cloned". INFERRED: a dead player crew member with a clone queued (cloneSeq).
   // Mind control: "if active". Hacking: "if drone launched (flying or landed)". Doors: "if there are any intruders or
   // fires". Backup battery: "if active". Sensors: "never", so it is not checked.
-  if (kits.clonebay && g.crew.some((c) => c.side === "player" && c.hp <= 0 && c.cloneSeq != null)) out.push("clonebay");
+  if (kits.clonebay && g.crew.some((c) => c.side === "player" && c.hp <= 0 && c.cloneSeq != null))
+    out.push("clonebay");
   if (kits.mind && kits.mind.on && kits.mind.left > 0) out.push("mind");
-  if (kits.hacking && g.enemy && (g.enemy.hackDrone != null || g.enemy.hackFlying != null)) out.push("hacking");
+  if (kits.hacking && g.enemy && (g.enemy.hackDrone != null || g.enemy.hackFlying != null))
+    out.push("hacking");
   if (intruders(g) || ship.rooms.some((r) => r.fire > 0)) out.push("doors");
   if (kits.battery && kits.battery.on && kits.battery.left > 0) out.push("battery");
   return out.filter((id) => systemRoom(ship, id));

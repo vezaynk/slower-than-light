@@ -20,7 +20,16 @@ function gun(defId: string): WeaponInst {
 }
 
 function beam(): Kit {
-  return { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "COMBAT_BEAM", on: false, aux: 0 };
+  return {
+    id: "drones",
+    level: 2,
+    power: 2,
+    left: 0,
+    cool: 0,
+    target: "COMBAT_BEAM",
+    on: false,
+    aux: 0,
+  };
 }
 
 function scraps(body: string): number[] {
@@ -66,7 +75,10 @@ describe("Rock live mine", () => {
       } else {
         wires = true;
         assert.match(body, /red wire or the blue/);
-        assert.deepEqual(g.event?.choices.map((c) => c.id), ["s:rock-mine:red", "s:rock-mine:blue"]);
+        assert.deepEqual(
+          g.event?.choices.map((c) => c.id),
+          ["s:rock-mine:red", "s:rock-mine:blue"],
+        );
         assert.equal(g.scrap, 10);
       }
     }
@@ -94,7 +106,17 @@ describe("Rock live mine", () => {
       const hull = g.player.hull;
       const crew = g.crew.length;
       const holes = breaches(g);
-      if (seed % 2 === 0) g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      if (seed % 2 === 0)
+        g.player.kits.clonebay = {
+          id: "clonebay",
+          level: 1,
+          power: 1,
+          left: 0,
+          cool: 0,
+          target: null,
+          on: false,
+          aux: 0,
+        };
       choose(g, seed % 3 === 0 ? "s:rock-mine:blue" : "s:rock-mine:red");
       const body = g.event?.body ?? "";
       if (/You did it/.test(body)) {

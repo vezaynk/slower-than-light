@@ -26,6 +26,10 @@ describe("Refueling platform opening", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, createGame(1).fuel);
-    assert.ok(g.event?.choices.some((c) => c.id === "c:refueling-platform:0" && c.label === "Dock with the refueling platform."));
+    assert.ok(
+      g.event?.choices.some(
+        (c) => c.id === "c:refueling-platform:0" && c.label === "Dock with the refueling platform.",
+      ),
+    );
   });
 });

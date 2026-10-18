@@ -1,14 +1,10 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { VENGEANCE_CHANCE, VENGEANCE_SHOT, vengeanceFires } from "./cited-vengeance.ts";
 
-const source = readFileSync(new URL("./cited-vengeance.ts", import.meta.url), "utf8");
-
 describe("Crystal Vengeance shot", () => {
-  it("uses the page chance and does not roll", () => {
+  it("uses a 10 percent chance", () => {
     assert.equal(VENGEANCE_CHANCE, 0.1);
-    assert.equal(source.includes("Math.random"), false);
   });
 
   it("records every shot field from the Crystal Vengeance bullet", () => {

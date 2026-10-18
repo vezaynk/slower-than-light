@@ -1,6 +1,14 @@
 import type { HullDef, HullDoor, HullEllipse, HullGrid, HullRoom } from "./types.ts";
 
-const GRID_KEYS = new Set(["X_OFFSET", "Y_OFFSET", "VERTICAL", "HORIZONTAL", "ELLIPSE", "ROOM", "DOOR"]);
+const GRID_KEYS = new Set([
+  "X_OFFSET",
+  "Y_OFFSET",
+  "VERTICAL",
+  "HORIZONTAL",
+  "ELLIPSE",
+  "ROOM",
+  "DOOR",
+]);
 
 export type GridMark = {
   x: number;
@@ -97,7 +105,14 @@ export function gridFromLayout(layout: LayoutSource): HullGrid {
 export function writeGrid(grid: HullGrid): string {
   const lines = ["X_OFFSET", "0", "Y_OFFSET", "0", "VERTICAL", "0"];
   for (const room of grid.rooms) {
-    lines.push("ROOM", String(room.id), String(room.x), String(room.y), String(room.w), String(room.h));
+    lines.push(
+      "ROOM",
+      String(room.id),
+      String(room.x),
+      String(room.y),
+      String(room.w),
+      String(room.h),
+    );
   }
   for (const door of grid.doors) {
     lines.push(
@@ -112,7 +127,9 @@ export function writeGrid(grid: HullGrid): string {
   return `${lines.join("\n")}\n`;
 }
 
-export function readGrids(layouts: readonly { path: string; text: string }[]): Map<string, HullGrid> {
+export function readGrids(
+  layouts: readonly { path: string; text: string }[],
+): Map<string, HullGrid> {
   const grids = new Map<string, HullGrid>();
   for (const file of layouts) {
     const grid = readGrid(file.text);
@@ -243,7 +260,14 @@ export function readGrid(text: string): HullGrid | undefined {
     }
     if (key === "ROOM") {
       const nums = take(5);
-      if (nums) rooms.push({ id: nums[0] ?? 0, x: nums[1] ?? 0, y: nums[2] ?? 0, w: nums[3] ?? 0, h: nums[4] ?? 0 });
+      if (nums)
+        rooms.push({
+          id: nums[0] ?? 0,
+          x: nums[1] ?? 0,
+          y: nums[2] ?? 0,
+          w: nums[3] ?? 0,
+          h: nums[4] ?? 0,
+        });
       continue;
     }
     if (key === "DOOR") {

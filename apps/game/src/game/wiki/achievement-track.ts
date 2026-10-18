@@ -5,8 +5,9 @@
  * Anything the paragraphs do not state is marked INFERRED or INVENTED.
  */
 import { HULLS } from "../hulls.ts";
+import { bars, kitShownBars, zoltanBars } from "../sim.ts";
 import { UNLOCKS_KEY, parseUnlocks } from "../unlocks.ts";
-import type { Difficulty, Game } from "../types.ts";
+import type { Difficulty, Game, SysId } from "../types.ts";
 import { bankLifetime, lifetimeOf } from "./achieve-notes.ts";
 import { ACHIEVEMENTS } from "./achievements.ts";
 
@@ -103,13 +104,16 @@ function fullArsenal(g: Game): boolean {
 
 /**
  * @agent:unlocks. "Givin' her all she's got, Captain!" — "With the Zoltan Cruiser, have 29 power in systems at the same
- * time." INFERRED: the power fields of systems and kits; a Zoltan's own bar is counted only where the sim stores it there.
+ * time." The page: "a fully upgraded reactor plus 4 Zoltan crewmembers manning systems to provide 29 power", so the
+ * lit bars count, Zoltan bars included (sim.ts bars and kitShownBars).
  */
 function givinHerAll(g: Game): boolean {
   if (!flying(g, "Zoltan Cruiser")) return false;
-  const sys = Object.values(g.player.systems).reduce((n, s) => n + s.power, 0);
-  const kits = Object.values(g.player.kits).reduce((n, k) => n + (k?.power ?? 0), 0);
-  return sys + kits >= 29;
+  let lit = 0;
+  for (const id of Object.keys(g.player.systems) as SysId[])
+    lit += bars(g.player.systems[id], zoltanBars(g.crew, g.player, "player", id));
+  for (const kit of Object.values(g.player.kits)) lit += kitShownBars(kit);
+  return lit >= 29;
 }
 
 /**

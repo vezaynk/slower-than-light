@@ -66,7 +66,8 @@ export function standCell(room: WalkRoom): WalkCell | null {
 }
 
 function onFloor(room: WalkRoom, cell: WalkCell): boolean {
-  if (cell.x < room.x || cell.y < room.y || cell.x >= room.x + room.w || cell.y >= room.y + room.h) return false;
+  if (cell.x < room.x || cell.y < room.y || cell.x >= room.x + room.w || cell.y >= room.y + room.h)
+    return false;
   return !room.omit?.some((omit) => omit.x === cell.x && omit.y === cell.y);
 }
 
@@ -96,7 +97,11 @@ function markEdges(ship: WalkShip, own: Map<string, string>): Set<string> | null
 }
 
 /** 4-connected tiles. A room change is allowed only between consecutive rooms, and only through a real door. */
-function chainAdj(ship: WalkShip, own: Map<string, string>, sequence: string[]): Map<string, string[]> {
+function chainAdj(
+  ship: WalkShip,
+  own: Map<string, string>,
+  sequence: string[],
+): Map<string, string[]> {
   const index = new Map<string, number>();
   sequence.forEach((id, i) => {
     if (!index.has(id)) index.set(id, i);
@@ -174,7 +179,12 @@ function dist(adj: Map<string, string[]>, start: string, goal: string): number {
   return path ? path.length - 1 : Infinity;
 }
 
-function entries(adj: Map<string, string[]>, own: Map<string, string>, into: string, from: string): string[] {
+function entries(
+  adj: Map<string, string[]>,
+  own: Map<string, string>,
+  into: string,
+  from: string,
+): string[] {
   const found: string[] = [];
   for (const [cell, room] of own) {
     if (room !== into) continue;
@@ -278,7 +288,8 @@ export function hopSteps(cells: WalkCell[] | null, via?: string): number {
   if (!cells?.length) return 1;
   const pts = seamTrack(cells, seam);
   let len = 0;
-  for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i]!.x - pts[i - 1]!.x, pts[i]!.y - pts[i - 1]!.y);
+  for (let i = 1; i < pts.length; i++)
+    len += Math.hypot(pts[i]!.x - pts[i - 1]!.x, pts[i]!.y - pts[i - 1]!.y);
   return Math.max(len, 1e-4);
 }
 
@@ -301,7 +312,11 @@ function seamTrack(cells: WalkCell[], seam: { x: number; y: number }): { x: numb
   return [seam, end];
 }
 
-function sampleSeam(cells: WalkCell[], move: number, seam: { x: number; y: number }): { x: number; y: number } {
+function sampleSeam(
+  cells: WalkCell[],
+  move: number,
+  seam: { x: number; y: number },
+): { x: number; y: number } {
   const pts = seamTrack(cells, seam);
   if (pts.length === 1) return pts[0]!;
   let total = 0;
@@ -399,7 +414,13 @@ export function footVia(
 }
 
 /** Landing tile of the current hop. The walker stores it so the next room starts on the same cell. */
-export function hopLanding(ship: WalkShip, roomId: string, path: string[], via?: string, goal?: WalkCell): WalkCell | null {
+export function hopLanding(
+  ship: WalkShip,
+  roomId: string,
+  path: string[],
+  via?: string,
+  goal?: WalkCell,
+): WalkCell | null {
   const cells = walkCells(ship, roomId, path, via, goal);
   if (!cells?.length) return null;
   return cells[cells.length - 1];

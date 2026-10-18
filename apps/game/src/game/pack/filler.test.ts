@@ -22,12 +22,22 @@ import {
 afterEach(() => resetPackForTests());
 
 function formula(dest: string): string {
-  return dest.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return dest
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 describe("filler lists", () => {
   it("stores each row's page id in authored order", () => {
-    for (const row of [...FILLER, ...NEBULA, ...DISTRESS, ...ITEMS, ...EXIT_NEUTRAL, ...EXIT_ITEMS]) {
+    for (const row of [
+      ...FILLER,
+      ...NEBULA,
+      ...DISTRESS,
+      ...ITEMS,
+      ...EXIT_NEUTRAL,
+      ...EXIT_ITEMS,
+    ]) {
       assert.equal(row.id, pageForRow(row.dest)?.slug ?? formula(row.dest), row.dest);
     }
     assert.equal(fillerList("filler")?.entries.length, FILLER.length);
@@ -37,12 +47,18 @@ describe("filler lists", () => {
     assert.equal(fillerList("items")?.entries.length, ITEMS.length);
     assert.equal(fillerList("exitNeutral")?.entries.length, EXIT_NEUTRAL.length);
     assert.equal(fillerList("exitItems")?.entries.length, EXIT_ITEMS.length);
-    assert.equal(fillerList("exitItems")?.entries.some((entry) => entry.id === "large-trade-station"), true);
+    assert.equal(
+      fillerList("exitItems")?.entries.some((entry) => entry.id === "large-trade-station"),
+      true,
+    );
   });
 
   it("draws an appended list and leaves the campaign list in place", () => {
     const before = fillerList("filler")?.entries.length;
-    loadPack({ lists: [{ id: "ember-list", entries: [{ id: "large-asteroid-field", unique: false }] }] }, "append");
+    loadPack(
+      { lists: [{ id: "ember-list", entries: [{ id: "large-asteroid-field", unique: false }] }] },
+      "append",
+    );
     assert.equal(fillerList("filler")?.entries.length, before);
     const page = drawFiller(createGame(1), "ember-list", []);
     assert.equal(page, pageForRow("Large asteroid field"));
@@ -53,7 +69,10 @@ describe("filler lists", () => {
   });
 
   it("replaces a campaign list when the same id is appended", () => {
-    loadPack({ lists: [{ id: "filler", entries: [{ id: "large-asteroid-field", unique: false }] }] }, "append");
+    loadPack(
+      { lists: [{ id: "filler", entries: [{ id: "large-asteroid-field", unique: false }] }] },
+      "append",
+    );
     assert.equal(fillerList("filler")?.entries.length, 1);
     assert.equal(fillerList("nebula")?.entries.length, NEBULA.length);
     const page = drawFiller(createGame(1), "filler", []);
@@ -85,14 +104,24 @@ describe("filler lists", () => {
   });
 
   it("keeps the cited card when a filler page shares its slug", () => {
-    loadPack({ lists: [{ id: "ember-list", entries: [{ id: "refueling-station", unique: false }] }] }, "append");
+    loadPack(
+      { lists: [{ id: "ember-list", entries: [{ id: "refueling-station", unique: false }] }] },
+      "append",
+    );
     assert.equal(drawFiller(createGame(1), "ember-list", []), pageForRow("Refueling station"));
   });
 
   it("reads an appended empty beacon and falls back to Civilian", () => {
     loadPack(
       {
-        empties: [{ id: "ember-quiet", dest: "Ember quiet", sectors: ["Ember Reach"], texts: ["The reach is still."] }],
+        empties: [
+          {
+            id: "ember-quiet",
+            dest: "Ember quiet",
+            sectors: ["Ember Reach"],
+            texts: ["The reach is still."],
+          },
+        ],
       },
       "append",
     );
@@ -164,7 +193,9 @@ describe("filler lists", () => {
     assert.ok(row);
     loadPack({ events: [{ ...row, texts: ["Ember one.", "Ember two."] }] }, "append");
     const g = createGame(1);
-    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    const beacon = g.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss",
+    );
     assert.ok(beacon);
     beacon.flag = row.flag;
     const body = citedEvent(g, beacon)?.body ?? "";
@@ -179,7 +210,11 @@ describe("filler lists", () => {
     const nebula = eventDef("trade-resources-in-nebula")?.offers ?? [];
     assert.equal(trade.length, 4);
     assert.deepEqual(nebula, trade);
-    for (const id of ["no-fuel-fuel-trader-distress-off", "no-fuel-fuel-trader-distress-on", "no-fuel-prepare-to-dock"]) {
+    for (const id of [
+      "no-fuel-fuel-trader-distress-off",
+      "no-fuel-fuel-trader-distress-on",
+      "no-fuel-prepare-to-dock",
+    ]) {
       const rows = eventDef(id)?.offers ?? [];
       assert.equal(rows.filter((row) => row.k === "fuel" && row.band === "high").length, 3, id);
       assert.equal(rows.filter((row) => row.k === "fuel" && row.band === "pt2").length, 3, id);
@@ -189,24 +224,34 @@ describe("filler lists", () => {
     assert.equal(lanius.filter((row) => row.k === "lanius" && row.band === "better").length, 3);
     const translator = eventDef("lanius-trader-with-translator")?.offers ?? [];
     assert.equal(translator.length, 3);
-    assert.equal(translator.every((row) => row.k === "lanius" && row.band === "base"), true);
+    assert.equal(
+      translator.every((row) => row.k === "lanius" && row.band === "base"),
+      true,
+    );
     const supply = eventDef("improve-reactor-for-supplies")?.offers ?? [];
     assert.equal(supply.length, 3);
-    assert.equal(supply.some((row) => row.k === "supply" && row.fuel[0] === 0 && row.fuel[1] === 0), true);
+    assert.equal(
+      supply.some((row) => row.k === "supply" && row.fuel[0] === 0 && row.fuel[1] === 0),
+      true,
+    );
 
     const row = eventDef("trade-resources");
     assert.ok(row);
     loadPack(
       {
-        events: [{
-          ...row,
-          offers: [{ k: "trade", pay: "parts", cost: [2, 2], get: "fuel", gain: [9, 9] }],
-        }],
+        events: [
+          {
+            ...row,
+            offers: [{ k: "trade", pay: "parts", cost: [2, 2], get: "fuel", gain: [9, 9] }],
+          },
+        ],
       },
       "append",
     );
     const g = createGame(1);
-    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    const beacon = g.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss",
+    );
     assert.ok(beacon);
     beacon.flag = row.flag;
     assert.match(citedEvent(g, beacon)?.body ?? "", /You lose 2 drone parts and receive 9 fuel\./);
@@ -219,12 +264,15 @@ describe("filler lists", () => {
     assert.equal(hulls.length, 12);
     assert.equal(hulls.filter((row) => row.k === "hull" && row.id === "Auto-Scout").length, 2);
     const labels = eventDef("rebel-checkpoint")?.rolls ?? [];
-    assert.deepEqual(labels.map((row) => row.k === "label" ? row.text : ""), [
-      "Fly behind a moon and stay hidden.",
-      "Shut down all non-vital systems and stay hidden.",
-      "Stay quiet and hope they don't notice you.",
-      "Stay out of their way and charge your FTL drive.",
-    ]);
+    assert.deepEqual(
+      labels.map((row) => (row.k === "label" ? row.text : "")),
+      [
+        "Fly behind a moon and stay hidden.",
+        "Shut down all non-vital systems and stay hidden.",
+        "Stay quiet and hope they don't notice you.",
+        "Stay out of their way and charge your FTL drive.",
+      ],
+    );
     const moons = eventDef("slug-moons-question")?.rolls ?? [];
     assert.deepEqual(moons, [
       { k: "count", n: 5, word: "five" },
@@ -237,7 +285,9 @@ describe("filler lists", () => {
     assert.ok(stand);
     loadPack({ events: [{ ...stand, rolls: [{ k: "hull", id: "Ember" }] }] }, "append");
     const g = createGame(1);
-    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    const beacon = g.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss",
+    );
     assert.ok(beacon);
     beacon.flag = stand.flag;
     assert.equal(citedEvent(g, beacon)?.choices[0]?.id, "c:fight-in-last-stand:go:Ember");
@@ -246,10 +296,16 @@ describe("filler lists", () => {
 
     const checkpoint = eventDef("rebel-checkpoint");
     assert.ok(checkpoint);
-    loadPack({ events: [{ ...checkpoint, rolls: [{ k: "label", text: "Ember hide." }] }] }, "append");
+    loadPack(
+      { events: [{ ...checkpoint, rolls: [{ k: "label", text: "Ember hide." }] }] },
+      "append",
+    );
     beacon.flag = checkpoint.flag;
     const card = citedEvent(createGame(1), beacon);
-    assert.equal(card?.choices.find((choice) => choice.id === "c:rebel-checkpoint:1")?.label, "Ember hide.");
+    assert.equal(
+      card?.choices.find((choice) => choice.id === "c:rebel-checkpoint:1")?.label,
+      "Ember hide.",
+    );
     resetPackForTests();
     assert.equal(eventDef("rebel-checkpoint")?.rolls?.length, 4);
 
@@ -267,30 +323,45 @@ describe("filler lists", () => {
   it("stores the refugee trading cards and draws an appended card", () => {
     const cards = eventDef("no-fuel-refugee-trading")?.cards ?? [];
     assert.equal(cards.length, 3);
-    assert.deepEqual(cards.map((card) => card.choices.map((choice) => choice.id)), [
-      ["c:no-fuel-refugee-trading:low"],
+    assert.deepEqual(
+      cards.map((card) => card.choices.map((choice) => choice.id)),
       [
-        "c:no-fuel-refugee-trading:trade",
-        "c:no-fuel-refugee-trading:engi",
-        "c:no-fuel-refugee-trading:refuse",
-        "c:no-fuel-refugee-trading:attack",
+        ["c:no-fuel-refugee-trading:low"],
+        [
+          "c:no-fuel-refugee-trading:trade",
+          "c:no-fuel-refugee-trading:engi",
+          "c:no-fuel-refugee-trading:refuse",
+          "c:no-fuel-refugee-trading:attack",
+        ],
+        ["c:no-fuel-refugee-trading:missiles", "c:no-fuel-refugee-trading:arm-no"],
       ],
-      ["c:no-fuel-refugee-trading:missiles", "c:no-fuel-refugee-trading:arm-no"],
-    ]);
+    );
     assert.match(cards[0]?.body ?? "", /offers to split its remaining fuel/);
     assert.match(cards[1]?.body ?? "", /its hull looks damaged/);
     assert.match(cards[2]?.body ?? "", /bad need of armaments/);
 
     const page = eventDef("no-fuel-refugee-trading");
     assert.ok(page);
-    loadPack({
-      events: [{
-        ...page,
-        cards: [{ body: "Ember offers fuel.", choices: [{ id: "c:no-fuel-refugee-trading:ember", label: "Take it." }] }],
-      }],
-    }, "append");
+    loadPack(
+      {
+        events: [
+          {
+            ...page,
+            cards: [
+              {
+                body: "Ember offers fuel.",
+                choices: [{ id: "c:no-fuel-refugee-trading:ember", label: "Take it." }],
+              },
+            ],
+          },
+        ],
+      },
+      "append",
+    );
     const g = createGame(1);
-    const beacon = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    const beacon = g.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss",
+    );
     assert.ok(beacon);
     beacon.flag = page.flag;
     const card = citedEvent(g, beacon);
@@ -309,7 +380,10 @@ describe("filler lists", () => {
     beacon.flag = "filler:pirate-ship-distress-trap";
     assert.equal(fillerEvent(g, beacon)?.choices[0]?.label, "Fight the pirate ship.");
     beacon.flag = "filler:friendly-ship-out-of-fuel";
-    assert.match(fillerEvent(g, beacon)?.choices[0]?.id ?? "", /^s:friendly-ship-out-of-fuel:give:\d+$/);
+    assert.match(
+      fillerEvent(g, beacon)?.choices[0]?.id ?? "",
+      /^s:friendly-ship-out-of-fuel:give:\d+$/,
+    );
   });
 
   it("stamps the packed nebula sentences onto a quiet nebula beacon", () => {

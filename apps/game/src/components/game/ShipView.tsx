@@ -761,6 +761,7 @@ export function ShipView({
         cols={ship.cols}
         rows={ship.rows}
         rooms={ship.rooms}
+        gone={ship.hull <= 0}
       />
       {ship.rooms.map((room) => {
         const open = seen ? seen(room.id) : true;

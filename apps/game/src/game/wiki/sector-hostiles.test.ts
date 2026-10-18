@@ -59,7 +59,12 @@ describe("hostile encounter lists (wiki/sector-hostiles.ts)", () => {
     close(s.auto, (2 * civ + 6 * h1) / total);
     close(s.rebel, (3 * civ + 3 * h1) / total);
     close(s.mantis, (1 * h1) / total);
-    assert.deepEqual(Object.keys(shares(1, "Civilian (Starting) Sector")).sort(), ["auto", "mantis", "pirate", "rebel"]);
+    assert.deepEqual(Object.keys(shares(1, "Civilian (Starting) Sector")).sort(), [
+      "auto",
+      "mantis",
+      "pirate",
+      "rebel",
+    ]);
   });
 
   it("a faction's own sector fields that faction; others it never lists are left out", () => {
@@ -70,7 +75,12 @@ describe("hostile encounter lists (wiki/sector-hostiles.ts)", () => {
     assert.ok(shares(5, "Zoltan Controlled Sector").zoltan > 0.1);
     assert.ok(shares(5, "Hidden Crystal Worlds").crystal > 0.5);
     assert.ok(shares(5, "Pirate Controlled Sector").pirate > 0.5);
-    for (const name of ["Civilian Sector", "Engi Controlled Sector", "Mantis Controlled Sector", "Rebel Controlled Sector"]) {
+    for (const name of [
+      "Civilian Sector",
+      "Engi Controlled Sector",
+      "Mantis Controlled Sector",
+      "Rebel Controlled Sector",
+    ]) {
       assert.equal(shares(5, name).lanius, undefined, name);
     }
     assert.equal(shares(5, "Rock Controlled Sector").auto, undefined);
@@ -87,6 +97,10 @@ describe("hostile encounter lists (wiki/sector-hostiles.ts)", () => {
   it("an event's own ship request still wins over the sector list", () => {
     const ctx = { sector: 5, sectorName: "The Last Stand", difficulty: "normal" as const };
     assert.equal(pickEnemy(ctx, seeded(3), requestFor("Pirate ship")).pirate, true);
-    assert.equal(pickEnemy({ ...ctx, sectorName: "Civilian Sector" }, seeded(4), requestFor("Lanius ship")).cls.faction, "lanius");
+    assert.equal(
+      pickEnemy({ ...ctx, sectorName: "Civilian Sector" }, seeded(4), requestFor("Lanius ship")).cls
+        .faction,
+      "lanius",
+    );
   });
 });

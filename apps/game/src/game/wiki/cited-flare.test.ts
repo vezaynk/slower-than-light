@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { applyFlarePulse, createGame, startCombat, step } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
-import { eventHasFlare, flareCycleSeconds, flareDamagesRoom, flareFireCount, placeFlareFires } from "./cited-flare.ts";
+import {
+  eventHasFlare,
+  flareCycleSeconds,
+  flareDamagesRoom,
+  flareFireCount,
+  placeFlareFires,
+} from "./cited-flare.ts";
 
 function fires(g: Game, side: "player" | "enemy"): number {
   const ship = side === "player" ? g.player : g.enemy;
@@ -16,7 +22,10 @@ function clearFires(g: Game) {
 }
 
 function systemDamage(g: Game): number {
-  return (Object.keys(g.player.systems) as SysId[]).reduce((sum, id) => sum + g.player.systems[id].damage, 0);
+  return (Object.keys(g.player.systems) as SysId[]).reduce(
+    (sum, id) => sum + g.player.systems[id].damage,
+    0,
+  );
 }
 
 function quietEnemy(g: Game) {
@@ -69,7 +78,10 @@ describe("solar flare", () => {
     assert.equal(g.phase, "combat");
     assert.equal(g.flareWarned, true);
     assert.ok(t >= 1 && t < 1.1);
-    assert.equal(g.log[0], "Solar flares will light the ship on fire. Shields will reduce the effect.");
+    assert.equal(
+      g.log[0],
+      "Solar flares will light the ship on fire. Shields will reduce the effect.",
+    );
     while (g.flareWarned && t < 8) {
       step(g, 0.05);
       t += 0.05;
@@ -102,7 +114,10 @@ describe("solar flare", () => {
     const shielded = fires(g, "player");
     assert.ok(shielded === 1 || shielded === 2);
     assert.equal(g.player.shieldNow, 4);
-    assert.deepEqual(g.crew.map((c) => c.hp), crew);
+    assert.deepEqual(
+      g.crew.map((c) => c.hp),
+      crew,
+    );
 
     clearFires(g);
     g.player.shieldNow = 0;
@@ -125,17 +140,23 @@ describe("solar flare", () => {
     assert.equal(flareDamagesRoom(2, 0.65), true);
     assert.equal(flareDamagesRoom(2, 0.66), false);
     // xftl doc/solar-flares: a room can be picked again, and the last fire left is always a single.
-    assert.deepEqual(placeFlareFires(5, 2, () => 0), [
-      { room: 0, fires: 1 },
-      { room: 0, fires: 1 },
-      { room: 0, fires: 1 },
-      { room: 0, fires: 1 },
-      { room: 0, fires: 1 },
-    ]);
-    assert.deepEqual(placeFlareFires(3, 4, () => 0.75), [
-      { room: 3, fires: 2 },
-      { room: 3, fires: 1 },
-    ]);
+    assert.deepEqual(
+      placeFlareFires(5, 2, () => 0),
+      [
+        { room: 0, fires: 1 },
+        { room: 0, fires: 1 },
+        { room: 0, fires: 1 },
+        { room: 0, fires: 1 },
+        { room: 0, fires: 1 },
+      ],
+    );
+    assert.deepEqual(
+      placeFlareFires(3, 4, () => 0.75),
+      [
+        { room: 3, fires: 2 },
+        { room: 3, fires: 1 },
+      ],
+    );
 
     let hurt = false;
     for (let seed = 1; seed < 40 && !hurt; seed++) {

@@ -56,7 +56,12 @@
   position: absolute;
   inset: -14%;
   border-radius: 50%;
-  background: radial-gradient(circle, transparent 56%, rgba(255, 120, 40, 0.32) 70%, transparent 78%);
+  background: radial-gradient(
+    circle,
+    transparent 56%,
+    rgba(255, 120, 40, 0.32) 70%,
+    transparent 78%
+  );
   animation: sun-corona 3.6s ease-in-out infinite alternate;
 }
 
@@ -73,9 +78,25 @@
 }
 
 /* On the right limb, so the arcs reach into open space beside the star. */
-.sky-sun .p1 { left: 80%; top: 16%; transform-origin: 0% 100%; }
-.sky-sun .p2 { left: 86%; top: 40%; width: 15%; height: 22%; transform-origin: 0% 80%; animation-delay: -2.4s; }
-.sky-sun .p3 { left: 78%; top: 60%; transform-origin: 10% 0%; animation-delay: -4.6s; }
+.sky-sun .p1 {
+  left: 80%;
+  top: 16%;
+  transform-origin: 0% 100%;
+}
+.sky-sun .p2 {
+  left: 86%;
+  top: 40%;
+  width: 15%;
+  height: 22%;
+  transform-origin: 0% 80%;
+  animation-delay: -2.4s;
+}
+.sky-sun .p3 {
+  left: 78%;
+  top: 60%;
+  transform-origin: 10% 0%;
+  animation-delay: -4.6s;
+}
 
 .sky-sun.is-warn {
   animation: sun-strobe 0.48s steps(2, end) infinite;
@@ -89,35 +110,67 @@
   animation: sun-ring 1.15s ease-out infinite;
 }
 
-.sky-sun .warn-ring { inset: -6%; }
+.sky-sun .warn-ring {
+  inset: -6%;
+}
 
 @keyframes sun-breathe {
-  from { scale: 1; }
-  to { scale: 1.035; }
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 1.035;
+  }
 }
 
 @keyframes sun-spots {
-  to { rotate: 1turn; }
+  to {
+    rotate: 1turn;
+  }
 }
 
 @keyframes sun-corona {
-  from { opacity: 0.5; scale: 0.98; }
-  to { opacity: 1; scale: 1.05; }
+  from {
+    opacity: 0.5;
+    scale: 0.98;
+  }
+  to {
+    opacity: 1;
+    scale: 1.05;
+  }
 }
 
 @keyframes prom-rise {
-  0%, 100% { scale: 0.8 0.65; opacity: 0.7; }
-  45% { scale: 1.08 1; opacity: 1; }
-  70% { scale: 0.9 0.8; opacity: 0.8; }
+  0%,
+  100% {
+    scale: 0.8 0.65;
+    opacity: 0.7;
+  }
+  45% {
+    scale: 1.08 1;
+    opacity: 1;
+  }
+  70% {
+    scale: 0.9 0.8;
+    opacity: 0.8;
+  }
 }
 
 @keyframes sun-strobe {
-  50% { filter: brightness(1.4); }
+  50% {
+    filter: brightness(1.4);
+  }
 }
 
 @keyframes sun-ring {
-  from { scale: 0.94; opacity: 0.85; }
-  to { scale: 1.18; opacity: 0; }
+  from {
+    scale: 0.94;
+    opacity: 0.85;
+  }
+  to {
+    scale: 1.18;
+    opacity: 0;
+  }
 }
 
 /* --- Pulsar. Two beams sweep from a point in the upper right. --- */
@@ -199,11 +252,19 @@
 }
 
 @keyframes pulsar-spin {
-  to { rotate: 1turn; }
+  to {
+    rotate: 1turn;
+  }
 }
 
 @keyframes core-blink {
-  50% { filter: brightness(1.9); box-shadow: 0 0 0 4px #fff, 0 0 18px 8px #b9e4ff, 0 0 40px 18px rgba(120, 190, 255, 0.9); }
+  50% {
+    filter: brightness(1.9);
+    box-shadow:
+      0 0 0 4px #fff,
+      0 0 18px 8px #b9e4ff,
+      0 0 40px 18px rgba(120, 190, 255, 0.9);
+  }
 }
 
 /* --- Nebula gas and the ion storm that can sit inside it. --- */
@@ -245,21 +306,41 @@
 }
 
 @keyframes nebula-drift {
-  from { translate: -3% -2%; }
-  to { translate: 4% 3%; }
+  from {
+    translate: -3% -2%;
+  }
+  to {
+    translate: 4% 3%;
+  }
 }
 
 @keyframes storm-roll {
-  from { translate: -2% 0; }
-  to { translate: 3% -2%; }
+  from {
+    translate: -2% 0;
+  }
+  to {
+    translate: 3% -2%;
+  }
 }
 
 @keyframes bolt-flash {
-  0%, 62%, 100% { opacity: 0; }
-  66% { opacity: 1; }
-  70% { opacity: 0.2; }
-  74% { opacity: 0.95; }
-  84% { opacity: 0; }
+  0%,
+  62%,
+  100% {
+    opacity: 0;
+  }
+  66% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.2;
+  }
+  74% {
+    opacity: 0.95;
+  }
+  84% {
+    opacity: 0;
+  }
 }
 
 /* --- Anti-ship battery on the planet's limb. --- */
@@ -289,8 +370,12 @@
   animation: battery-blink 0.32s steps(2, end) infinite;
 }
 
-.planet.is-aiming .battery:nth-child(2) { animation-delay: 0.1s; }
-.planet.is-aiming .battery:nth-child(3) { animation-delay: 0.18s; }
+.planet.is-aiming .battery:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.planet.is-aiming .battery:nth-child(3) {
+  animation-delay: 0.18s;
+}
 
 .planet .sight-beam {
   position: absolute;
@@ -315,16 +400,26 @@
 }
 
 @keyframes battery-blink {
-  50% { filter: brightness(1.7); }
+  50% {
+    filter: brightness(1.7);
+  }
 }
 
 @keyframes sight-wobble {
-  from { translate: -10px 0; opacity: 0.4; }
-  to { translate: 10px 0; opacity: 1; }
+  from {
+    translate: -10px 0;
+    opacity: 0.4;
+  }
+  to {
+    translate: 10px 0;
+    opacity: 1;
+  }
 }
 
 @keyframes aim-flicker {
-  50% { opacity: 0.25; }
+  50% {
+    opacity: 0.25;
+  }
 }
 
 /* --- Asteroid field. Far rocks are smaller and slower. --- */
@@ -379,12 +474,18 @@
 }
 
 @keyframes rock-pass {
-  from { translate: 108cqi 0; }
-  to { translate: -18cqi var(--dy, 8cqh); }
+  from {
+    translate: 108cqi 0;
+  }
+  to {
+    translate: -18cqi var(--dy, 8cqh);
+  }
 }
 
 @keyframes rock-tumble {
-  to { rotate: 1turn; }
+  to {
+    rotate: 1turn;
+  }
 }
 
 /* The pulse itself: one wash when the warning clock runs out. */
@@ -396,24 +497,45 @@
 }
 
 .sky-burst.is-sun {
-  background: radial-gradient(circle at 18% 50%, rgba(255, 250, 230, 0.92), rgba(255, 140, 40, 0.42) 34%, transparent 68%);
+  background: radial-gradient(
+    circle at 18% 50%,
+    rgba(255, 250, 230, 0.92),
+    rgba(255, 140, 40, 0.42) 34%,
+    transparent 68%
+  );
 }
 
 .sky-burst.is-ion {
-  background: radial-gradient(circle at 82% 16%, rgba(244, 252, 255, 0.88), rgba(110, 180, 255, 0.4) 32%, transparent 70%);
+  background: radial-gradient(
+    circle at 82% 16%,
+    rgba(244, 252, 255, 0.88),
+    rgba(110, 180, 255, 0.4) 32%,
+    transparent 70%
+  );
 }
 
 .sky-burst.is-shell {
-  background: radial-gradient(circle at 50% 8%, rgba(255, 220, 160, 0.7), rgba(255, 80, 30, 0.22) 28%, transparent 58%);
+  background: radial-gradient(
+    circle at 50% 8%,
+    rgba(255, 220, 160, 0.7),
+    rgba(255, 80, 30, 0.22) 28%,
+    transparent 58%
+  );
 }
 
 @keyframes sky-flash {
-  0% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .sky:has(.sky-sun, .sky-pulsar, .sky-storm) .sky-log {
-  text-shadow: 0 1px 0 #020308, 0 0 6px #020308;
+  text-shadow:
+    0 1px 0 #020308,
+    0 0 6px #020308;
 }
 
 .is-halted .sky-field,

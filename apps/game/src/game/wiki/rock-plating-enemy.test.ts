@@ -68,7 +68,10 @@ describe("Rock ship plating", () => {
     ship.hull = 20;
     g.log = [];
     applyImpact(g, laser(room.id, 1, "enemy"));
-    assert.equal(g.log.some((line) => line === "Rock Plating held the hull."), false);
+    assert.equal(
+      g.log.some((line) => line === "Rock Plating held the hull."),
+      false,
+    );
     assert.equal(ship.hull, 19);
 
     const pirate = createGame(2);
@@ -97,7 +100,10 @@ describe("Rock ship plating", () => {
       reb.ship.hull = 20;
       rebel.log = [];
       applyImpact(rebel, laser(reb.room.id, 0, "enemy"));
-      assert.equal(rebel.log.some((line) => line === "Rock Plating held the hull."), false);
+      assert.equal(
+        rebel.log.some((line) => line === "Rock Plating held the hull."),
+        false,
+      );
       assert.equal(reb.ship.hull, 19);
     }
 

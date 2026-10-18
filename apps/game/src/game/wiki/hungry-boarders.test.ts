@@ -29,7 +29,9 @@ function boarded(g: Game) {
 
 describe("Boarders: Humans (Abandoned)", () => {
   it("is one Abandoned Sector card and beams 3-4 humans with no ship", () => {
-    const pages = citedPagesFor("Abandoned Sector").filter((e) => e.dest === "Boarders: Humans (Abandoned)");
+    const pages = citedPagesFor("Abandoned Sector").filter(
+      (e) => e.dest === "Boarders: Humans (Abandoned)",
+    );
     assert.equal(pages.length, 1);
     assert.deepEqual([...pages[0].sectors], ["Abandoned Sector"]);
     assert.ok(pages[0].body.length <= 240);
@@ -100,7 +102,11 @@ describe("Boarders: Humans (Abandoned)", () => {
     assert.ok(fresh.length >= 3 && fresh.length <= 4, String(fresh.length));
     assert.ok(fresh.every((c) => c.lungs !== true));
     assert.ok(fresh.every((c) => lungScale(g, c) === 1));
-    assert.ok(later.filter((c) => stayedIds.has(c.id)).every((c) => c.lungs === true && lungScale(g, c) === 0.5));
+    assert.ok(
+      later
+        .filter((c) => stayedIds.has(c.id))
+        .every((c) => c.lungs === true && lungScale(g, c) === 0.5),
+    );
     assert.equal(g.enemy, null);
   });
 });

@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const LEAD =
-  "The two aliens face one another over the vidscreen. \"Cave-dwelling pebble-man!\" yells the furious Mantis captain. \"See, I paint my ship with your companions! I paint my ship with you!\"";
+  'The two aliens face one another over the vidscreen. "Cave-dwelling pebble-man!" yells the furious Mantis captain. "See, I paint my ship with your companions! I paint my ship with you!"';
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -24,8 +24,17 @@ describe("Mantis ship with Rock body parts Rock crew", () => {
     // > "(Rock Crew) Put your Rock crewmember on the comm." — [[Mantis ship with Rock body parts]]
     const g = createGame(1);
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-ship-with-rock-body-parts:2" && c.label === "Put your Rock crewmember on the comm."));
-    assert.equal(choiceDisabled(g, "c:mantis-ship-with-rock-body-parts:2"), "Needs a Rock crewmember");
+    assert.ok(
+      g.event?.choices.some(
+        (c) =>
+          c.id === "c:mantis-ship-with-rock-body-parts:2" &&
+          c.label === "Put your Rock crewmember on the comm.",
+      ),
+    );
+    assert.equal(
+      choiceDisabled(g, "c:mantis-ship-with-rock-body-parts:2"),
+      "Needs a Rock crewmember",
+    );
     choose(g, "c:mantis-ship-with-rock-body-parts:2");
     assert.equal(g.phase, "event");
     assert.equal(g.enemy, null);

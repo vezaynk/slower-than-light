@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { blockedCells, claimPadTile, consoleSpot, floorCells, interiorLinks, medicalLimit, restSpot, roomCapacity, roomConsole } from "./crew-spots.ts";
+import {
+  blockedCells,
+  claimPadTile,
+  consoleSpot,
+  floorCells,
+  interiorLinks,
+  medicalLimit,
+  restSpot,
+  roomCapacity,
+  roomConsole,
+} from "./crew-spots.ts";
 import { installSling, sendSling } from "./extras/sling.ts";
 import { HULLS } from "./hulls.ts";
 import {
@@ -46,14 +56,22 @@ describe("the medical machine's tile", () => {
     assert.deepEqual(blockedCells({ ...wide, w: 2, h: 1 }, "player", 2), []);
     const vat = { id: "c", x: 0, y: 0, w: 2, h: 1, system: null, kit: "clonebay" };
     assert.deepEqual(blockedCells(vat, "player", 2), [{ x: 0, y: 0 }]);
-    assert.deepEqual(blockedCells({ id: "o", x: 0, y: 0, w: 2, h: 2, system: "oxygen" }, "player", 2), []);
+    assert.deepEqual(
+      blockedCells({ id: "o", x: 0, y: 0, w: 2, h: 2, system: "oxygen" }, "player", 2),
+      [],
+    );
   });
 
   it("never stands crew on the blocked tile", () => {
     const g = createGame(6, "PLAYER_SHIP_HARD");
     g.phase = "map";
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
-    const [blocked] = blockedCells(bay, "player", interiorLinks(g.player.doors, bay.id), g.player.doorMarks);
+    const [blocked] = blockedCells(
+      bay,
+      "player",
+      interiorLinks(g.player.doors, bay.id),
+      g.player.doorMarks,
+    );
     assert.ok(blocked, "a 4-tile Kestrel medbay has a machine tile");
     for (const c of g.crew.filter((x) => x.side === "player")) {
       c.room = bay.id;
@@ -79,15 +97,27 @@ describe("furniture keeps clear of doors (per the user)", () => {
         edges.add(`${m.x},${m.y},${m.side}`);
         edges.add(`${m.x + step[m.side]![0]},${m.y + step[m.side]![1]},${opposite[m.side]}`);
       }
-      const touches = (c: { x: number; y: number }) => ["n", "e", "s", "w"].some((side) => edges.has(`${c.x},${c.y},${side}`));
+      const touches = (c: { x: number; y: number }) =>
+        ["n", "e", "s", "w"].some((side) => edges.has(`${c.x},${c.y},${side}`));
       for (const room of ship.rooms) {
         const spot = consoleSpot(room, ship);
-        if (spot) assert.equal(edges.has(`${spot.x},${spot.y},${spot.wall}`), false, `${hull.id} ${room.id} display on a door`);
-        const machine = blockedCells(room, "player", interiorLinks(ship.doors, room.id), ship.doorMarks);
+        if (spot)
+          assert.equal(
+            edges.has(`${spot.x},${spot.y},${spot.wall}`),
+            false,
+            `${hull.id} ${room.id} display on a door`,
+          );
+        const machine = blockedCells(
+          room,
+          "player",
+          interiorLinks(ship.doors, room.id),
+          ship.doorMarks,
+        );
         // Only where the room has enough tiles no door touches (Kestrel C's clone bay has none).
         const clear = floorCells(room).filter((cell) => !touches(cell)).length;
         if (clear >= machine.length) {
-          for (const cell of machine) assert.equal(touches(cell), false, `${hull.id} ${room.id} machine by a door`);
+          for (const cell of machine)
+            assert.equal(touches(cell), false, `${hull.id} ${room.id} machine by a door`);
         }
       }
     }
@@ -474,7 +504,11 @@ describe("manning terminal", () => {
     assert.equal(roomCapacity(engines, "player", interiorLinks(g.player.doors, engines.id)), 4);
 
     const alone = restSpot(engines, g.crew, ivo.id, "player", g.player);
-    assert.deepEqual(alone && { x: alone.x, y: alone.y, stack: alone.stack }, { x: 2, y: 2, stack: 0 });
+    assert.deepEqual(alone && { x: alone.x, y: alone.y, stack: alone.stack }, {
+      x: 2,
+      y: 2,
+      stack: 0,
+    });
 
     ada.room = "p-engines";
     ada.path = [];

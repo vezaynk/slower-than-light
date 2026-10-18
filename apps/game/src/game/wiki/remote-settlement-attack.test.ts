@@ -20,7 +20,9 @@ describe("Remote settlement attack", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:remote-settlement:0");
-    assert.ok(g.log.includes("\"You asked for it!\" They pull away from the planet and move in to engage."));
+    assert.ok(
+      g.log.includes('"You asked for it!" They pull away from the planet and move in to engage.'),
+    );
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "remote-settlement");
     assert.equal(g.enemy?.faction === "pirate" || g.enemy?.pirate === true, true);

@@ -29,7 +29,10 @@ describe("Auto-ship attacking outpost", () => {
   it("intervening starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-attacking-outpost:0"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:auto-ship-attacking-outpost:0"),
+      true,
+    );
     choose(g, "c:auto-ship-attacking-outpost:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-attacking-outpost");
@@ -59,7 +62,8 @@ describe("Auto-ship attacking outpost", () => {
     assert.equal(destroyed.fleet, 5);
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 4 && gained <= 12, body);
 
     const killed = createGame(2);

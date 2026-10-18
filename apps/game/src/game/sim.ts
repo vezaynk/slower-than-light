@@ -3745,14 +3745,17 @@ function beamSpans(ship: Ship, shot: Shot): BeamSpan[] {
   return evenBeamSpans(shot.beamRooms ?? [shot.targetRoom]);
 }
 
-/** The mount that fired this beam is still there, powered, and not held by an artillery hack. */
+/**
+ * The mount that fired this beam is still there and powered.
+ * A hack does not stop it. Hacking, "Overview": Weapon Control "drains the charge of all weapons" and "prevents them
+ * from being fired". A firing beam already spent its charge and was already fired, so it finishes its swipe.
+ */
 function beamSourceLive(g: Game, shot: Shot): boolean {
   if (!shot.weapon || (shot.from !== "player" && shot.from !== "enemy")) return true;
   const ship = shot.from === "player" ? g.player : g.enemy;
   if (!ship) return false;
   const i = ship.weapons.findIndex((w) => w.uid === shot.weapon);
   if (i < 0) return false;
-  if (hackDrainsGun(g, shot.from, ship.weapons[i].defId)) return false;
   return !!powerMask(ship, zoltanBars(g.crew, ship, shot.from, "weapons"))[i];
 }
 

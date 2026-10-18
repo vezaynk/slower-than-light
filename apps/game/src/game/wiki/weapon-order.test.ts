@@ -347,7 +347,9 @@ describe("weapon power lock and order", () => {
     assert.equal(shotsOf(g, "LASER_BURST_1").length, 1);
   });
 
-  it("holds a banked charger through a hack pulse, and still drains a normal gun", () => {
+  it("keeps a charger's bank through a hack pulse, drains its shot in progress, and drains a normal gun", () => {
+    // Hacking, "Overview" (Weapon Control): "On multiple charge weapons, only the current charge will be drained
+    // (stored charges aren't affected)."
     const g = fight(9);
     parkGunners(g);
     feed(g, 4, 4, ["ION_CHARGEGUN", "LASER_BURST_2_A"]);
@@ -390,7 +392,7 @@ describe("weapon power lock and order", () => {
 
     for (let i = 0; i < 10; i++) step(g, 0.05);
     assert.equal(ion.loaded, 2);
-    assert.equal(ion.charge, 0.4);
+    assert.ok(ion.charge < 0.4);
     assert.ok(burst.charge < 0.5);
     assert.equal(shotsOf(g, "ION_CHARGEGUN").length, 0);
 

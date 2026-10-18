@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { blastHits, createGame, startCombat, step } from "../sim.ts";
 import { WEAPONS } from "../content.ts";
-import type { Game } from "../types.ts";
+import type { Game, Kit } from "../types.ts";
+import { startVeil, tickVeil } from "./veil.ts";
 import {
   armSpike,
   hackLocksDoor,
   installSpike,
   launchSpike,
+  playerHackView,
   spikeEvadeZero,
   spikeFreezesFtl,
   tickSpike,
@@ -370,6 +372,43 @@ describe("hacking", () => {
     assert.equal(foe.room, door.a, "powering the hack shuts the door on that crew");
   });
 
+  it("closes a door broken open before the hack, and leaves it closed at full health when power is removed", () => {
+    // Hacking, "Overview": "Doors previously broken open (on the enemy ship) become closed and at full health if
+    // power is removed". Boarding, "Doors": a door broken under the hack (stuck) instead stays broken on depower.
+    const g = armed(2);
+    const enemy = g.enemy!;
+    g.player.weapons = [];
+    enemy.weapons = [];
+    delete enemy.kits.drones;
+    enemy.automated = true;
+    enemy.systems.doors.level = 1;
+    enemy.systems.doors.damage = 0;
+    enemy.systems.doors.ion = [];
+    g.enemyEscape = null;
+    g.enemySurrender = null;
+    g.boardTimer = 0;
+    armSpike(g, "shields");
+    assert.equal(launchLanded(g), true);
+    const room = enemy.rooms.find((r) => r.system === "shields")!;
+    const door = enemy.doors.find((d) => d.b !== "void" && (d.a === room.id || d.b === room.id))!;
+    // Broken open before the drone powered up: an enemy door stays open with its 7 seconds spent.
+    g.player.kits.hacking!.power = 0;
+    step(g, 0.05);
+    door.open = true;
+    door.stuck = 0;
+    door.hp = 0;
+    g.player.kits.hacking!.power = 2;
+    step(g, 0.05);
+    assert.equal(door.hacked, true);
+    assert.equal(door.open, false);
+    door.hp = 1;
+    g.player.kits.hacking!.power = 0;
+    step(g, 0.05);
+    assert.equal(door.hacked, undefined);
+    assert.equal(door.open, false);
+    assert.equal(door.hp, 0);
+  });
+
   it("stuns crew and drones in the hacked room for the rest of the pulse", () => {
     // Augmentations, "Offensive Augmentations", Hacking Stun. Boarding, "Stun effect": the rest of the pulse.
     const bare = armed(2);
@@ -539,5 +578,100 @@ describe("flagship artillery hack", () => {
       if (w.defId === "ARTILLERY_BOSS_1") continue;
       assert.ok(w.charge > (before[w.defId] ?? 0), `${w.defId} ${w.charge}`);
     }
+  });
+});
+
+describe("hacking pulse holds", () => {
+  it("holds the enemy's shield recharge while the player's pulse discharges them", () => {
+    // Hacking, "Overview" (Shields): "discharges shields, requiring 2 seconds to remove 1 shield layer."
+    const g = armed(2);
+    const enemy = g.enemy!;
+    enemy.weapons = [];
+    enemy.systems.shields.level = 4;
+    enemy.systems.shields.power = 4;
+    enemy.systems.shields.damage = 0;
+    enemy.systems.shields.ion = [];
+    enemy.shieldNow = 2;
+    const kit = g.player.kits.hacking!;
+    kit.level = 2;
+    kit.power = 2;
+    armSpike(g, "shields");
+    assert.equal(launchLanded(g), true);
+    assert.equal(kit.left, 7);
+    // Layers drop at 2 and 4 seconds. Without the hold, their 2 second recharge puts them back mid-pulse.
+    for (let i = 0; i < 122; i++) step(g, 0.05);
+    assert.equal(enemy.shieldNow, 0);
+  });
+
+  it("will not let a hacked Cloaking system start a cloak, and starts no cooldown", () => {
+    // Cloaking, "Hacking and Cloaking systems interaction": "Hacking pulse prevents a ship from entering cloak".
+    const g = armed(2);
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
+    const hacker: Kit = {
+      id: "hacking",
+      level: 2,
+      power: 2,
+      left: 7,
+      cool: 0,
+      target: "cloaking",
+      on: true,
+      aux: 0,
+      hackLatched: true,
+    };
+    g.enemy!.kits.hacking = hacker;
+    startVeil(g);
+    assert.equal(g.player.kits.cloaking.on, false);
+    assert.equal(g.player.kits.cloaking.cool, 0);
+    hacker.on = false;
+    hacker.left = 0;
+    startVeil(g);
+    assert.equal(g.player.kits.cloaking.on, true);
+  });
+
+  it("keeps the enemy from cloaking during the player's pulse on their Cloaking", () => {
+    const g = armed(2);
+    const enemy = g.enemy!;
+    enemy.kits.cloaking = {
+      id: "cloaking",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
+    armSpike(g, "cloaking");
+    assert.equal(launchLanded(g), true);
+    tickVeil(g, 0.05);
+    assert.equal(enemy.kits.cloaking.on, false);
+    assert.equal(enemy.kits.cloaking.cool, 0);
+    const kit = g.player.kits.hacking!;
+    kit.on = false;
+    kit.left = 0;
+    tickVeil(g, 0.05);
+    assert.equal(enemy.kits.cloaking.on, true);
+  });
+
+  it("sets the pulse length from undamaged bars, Zoltan bar included", () => {
+    // Hacking, "Overview" (Hacking pulse): "4, 7, or 10 seconds, depending on the amount of power".
+    const g = armed(2);
+    const kit = g.player.kits.hacking!;
+    kit.level = 3;
+    kit.power = 2;
+    kit.damage = 1;
+    kit.zoltan = 1;
+    assert.equal(playerHackView(g)?.pulse, 7);
+    kit.damage = 0;
+    assert.equal(playerHackView(g)?.pulse, 10);
   });
 });

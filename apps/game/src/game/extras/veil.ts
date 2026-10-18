@@ -10,6 +10,7 @@ import {
   rand,
 } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { hackPulseOn } from "./spike.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
 const INSTALL_COST = 150;
@@ -117,6 +118,12 @@ export function startVeil(g: Game) {
   // Zoltans: Cloaking cannot be activated if it is ionized. A Zoltan bar does not clear that lock.
   if (kitIonLocked(kit)) return;
   if (kit.on) return;
+  // Cloaking, "Hacking and Cloaking systems interaction": "Hacking pulse prevents a ship from entering cloak (the
+  // Cloaking system is locked and cannot be activated)". The attempt costs nothing and starts no cooldown.
+  if (hackPulseOn(g, g.player, "cloaking")) {
+    log(g, "Cloaking is locked by their hack.");
+    return;
+  }
   // Per the user: C or the CLOAK button says why nothing happened, as the Teleporter does.
   if (kitBars(kit) < 1) {
     log(g, "Cloaking has no power.");
@@ -148,7 +155,8 @@ export function tickVeil(g: Game, dt: number) {
   tickKit(kit, dt);
   if (!kit || kit.on) return;
   // Zoltans: an ionized Cloaking system cannot be activated.
-  if (kit.power >= 1 && kit.cool <= 0 && !kitIonLocked(kit)) {
+  // Cloaking: "Hacking pulse prevents a ship from entering cloak". The enemy waits; its cooldown is untouched.
+  if (kit.power >= 1 && kit.cool <= 0 && !kitIonLocked(kit) && !hackPulseOn(g, foe, "cloaking")) {
     kit.on = true;
     kit.left = veilSeconds(kit);
     kit.cool = 0;

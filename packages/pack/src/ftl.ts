@@ -69,6 +69,9 @@ export type FtlTextFile = {
 /**
  * Blueprint catalogs, ships, sectors, and events from archive XML.
  * Files are applied in order, and a later record with the same id replaces the earlier one.
+ * String tables stay English. `text-<code>.xml` and its `.append` contribute no strings.
+ * A later English file still replaces the same key. A `<text>` node with a language
+ * attribute is skipped.
  * Crew combat stats stay at neutral defaults. A `<facts/>` marker and a `<names>` list are kept.
  * Stores and the numeric rewards table are not in the archive, and this catalog does not invent them.
  * `layouts` are the `data/*.txt` room grids. A ship keeps its layout file name, and the grid is
@@ -94,17 +97,20 @@ export function packFromFtl(
   const grids = readGrids(layouts);
   let facts = false;
   let names: ContentPack["names"];
-  const parsed: XmlDocument[] = [];
+  const parsed: { path: string; doc: XmlDocument }[] = [];
   for (const source of documents) {
     try {
-      parsed.push(readDocument(source.xml));
+      parsed.push({ path: source.path, doc: readDocument(source.xml) });
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
       throw new Error(`${source.path}: ${detail}`);
     }
   }
-  for (const doc of parsed) collectStrings(doc, strings);
-  for (const doc of parsed) {
+  for (const source of parsed) {
+    if (translationFile(source.path)) continue;
+    collectStrings(source.doc, strings);
+  }
+  for (const { doc } of parsed) {
     for (const node of tagged(doc, "weaponBlueprint")) {
       const row = readWeapon(node);
       if (row) weapons.put(row);
@@ -311,6 +317,12 @@ function upgradeCosts(node: XmlElement): TuneStep[] {
     level += 1;
   }
   return costs;
+}
+
+/** `text-<code>.xml` is a translation. English tables are `text_<kind>.xml`. */
+function translationFile(path: string): boolean {
+  const name = path.slice(path.lastIndexOf("/") + 1);
+  return /^text-[A-Za-z0-9_]+\.xml(?:\.append)?$/.test(name);
 }
 
 function collectStrings(doc: XmlDocument, strings: Map<string, string>) {

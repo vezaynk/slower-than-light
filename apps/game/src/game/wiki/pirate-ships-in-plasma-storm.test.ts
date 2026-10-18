@@ -42,7 +42,10 @@ describe("Pirate ships in plasma storm", () => {
     const fuelBefore = leave.fuel;
     leave.fleet = 5;
     choose(leave, "c:pirate-ships-in-plasma-storm:2");
-    assert.equal(leave.event?.body, "Sometimes discretion is the better part of valor.\n\nNothing happens.");
+    assert.equal(
+      leave.event?.body,
+      "Sometimes discretion is the better part of valor.\n\nNothing happens.",
+    );
     assert.equal(leave.phase, "event");
     assert.equal(leave.scrap, 10);
     assert.equal(leave.fuel, fuelBefore);
@@ -58,9 +61,15 @@ describe("Pirate ships in plasma storm", () => {
     assert.equal(fuel.enemyEscape?.mode, "hull");
     assert.equal(fuel.enemyEscape?.chance, 50);
     assert.equal(fuel.enemyEscape?.seconds, HULL_RUN_SECONDS);
-    assert.ok((fuel.enemyEscape?.threshold ?? -1) >= 20 && (fuel.enemyEscape?.threshold ?? 99) < 40);
+    assert.ok(
+      (fuel.enemyEscape?.threshold ?? -1) >= 20 && (fuel.enemyEscape?.threshold ?? 99) < 40,
+    );
     assert.equal(fuel.enemySurrender?.chance, 0);
-    assert.equal(surrenderPlan({ tier: "pool", event: "pirate-ships-in-plasma-storm", pirate: true }, () => 0).chance, 0);
+    assert.equal(
+      surrenderPlan({ tier: "pool", event: "pirate-ships-in-plasma-storm", pirate: true }, () => 0)
+        .chance,
+      0,
+    );
     assert.equal(fuel.player.storm, undefined);
 
     const ammo = createGame(3);
@@ -71,7 +80,13 @@ describe("Pirate ships in plasma storm", () => {
     assert.equal(ammo.enemy?.pirate, true);
     assert.equal(ammo.enemyEscape?.chance, 50);
     assert.equal(ammo.enemySurrender?.chance, 0);
-    assert.equal(surrenderPlan({ tier: "pool", event: "pirate-ships-in-plasma-storm-ammo", pirate: true }, () => 0).chance, 0);
+    assert.equal(
+      surrenderPlan(
+        { tier: "pool", event: "pirate-ships-in-plasma-storm-ammo", pirate: true },
+        () => 0,
+      ).chance,
+      0,
+    );
   });
 
   it("pays low fuel and scrap when the fuel ship is destroyed, and high fuel and scrap on a crew kill", () => {

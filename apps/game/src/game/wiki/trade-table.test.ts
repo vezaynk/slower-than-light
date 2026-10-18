@@ -128,7 +128,8 @@ describe("trade scrap table", () => {
   it("offers nothing when the only open specialty has no row", () => {
     replace([{ id: "oxygen", level: 1, lo: 15, hi: 20 }]);
     const g = quiet(4);
-    for (const id of ["oxygen", "pilot", "doors", "sensors"] as SysId[]) g.player.systems[id].level = 0;
+    for (const id of ["oxygen", "pilot", "doors", "sensors"] as SysId[])
+      g.player.systems[id].level = 0;
     g.player.reactor = 24;
     fillerChoose(g, INQUIRE);
     assert.equal(agree(g), null);

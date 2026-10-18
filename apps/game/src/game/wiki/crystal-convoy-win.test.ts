@@ -20,7 +20,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Crystal fight with surrender offer (hull repairs) reward", () => {
@@ -34,9 +36,15 @@ describe("Crystal fight with surrender offer (hull repairs) reward", () => {
     const missiles = destroyed.missiles;
     const parts = destroyed.player.parts;
     const augments = destroyed.augments.length;
-    assert.equal(pageWin(destroyed, "crystal-fight-with-surrender-offer-hull-repairs", false), true);
+    assert.equal(
+      pageWin(destroyed, "crystal-fight-with-surrender-offer-hull-repairs", false),
+      true,
+    );
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The Crystalline ship shatters and you pick what you can from the debris\. The rest of the convoy used the time to put a significant amount of distance between you and them\. Nothing left to do but jump\./);
+    assert.match(
+      body,
+      /The Crystalline ship shatters and you pick what you can from the debris\. The rest of the convoy used the time to put a significant amount of distance between you and them\. Nothing left to do but jump\./,
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -46,7 +54,8 @@ describe("Crystal fight with surrender offer (hull repairs) reward", () => {
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
     assert.equal(destroyed.augments.length, augments);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
 
     const killed = createGame(2);
@@ -54,7 +63,10 @@ describe("Crystal fight with surrender offer (hull repairs) reward", () => {
     const killedHull = killed.player.hull;
     assert.equal(pageWin(killed, "crystal-fight-with-surrender-offer-hull-repairs", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(killedBody, /The crew of the enemy ship has been eliminated\. You scrap what you can\. The rest of the convoy used the time to put a significant amount of distance between you and them\. Nothing left to do but jump\./);
+    assert.match(
+      killedBody,
+      /The crew of the enemy ship has been eliminated\. You scrap what you can\. The rest of the convoy used the time to put a significant amount of distance between you and them\. Nothing left to do but jump\./,
+    );
     const medium = scraps(killedBody);
     assert.equal(medium.length, 1, killedBody);
     assert.ok(medium[0]! >= 12 && medium[0]! <= 19, killedBody);

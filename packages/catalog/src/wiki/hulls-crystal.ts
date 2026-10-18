@@ -23,7 +23,8 @@ export const CRYSTAL_HULLS: HullSpec[] = [
     name: "Bravais",
     quote:
       "This powerful vessel is powered by the secret technologies of the lost Crystalline Beings.",
-    unlock: "See Ancestry (ship achievement) and its linked pages for directions on unlocking the Crystal Cruiser\nAlternatively, beat the Flagship with layout A and B of every ship (excluding The Lanius Cruiser)",
+    unlock:
+      "See Ancestry (ship achievement) and its linked pages for directions on unlocking the Crystal Cruiser\nAlternatively, beat the Flagship with layout A and B of every ship (excluding The Lanius Cruiser)",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,

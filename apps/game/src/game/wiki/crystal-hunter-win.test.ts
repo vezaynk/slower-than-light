@@ -20,7 +20,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Crystal fight with surrender offer (Human crew) reward", () => {
@@ -35,7 +37,10 @@ describe("Crystal fight with surrender offer (Human crew) reward", () => {
     const augments = destroyed.augments.length;
     assert.equal(pageWin(destroyed, "crystal-fight-with-surrender-offer-human-crew", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The Crystalline ship shatters and you pick what you can from the debris\. Who knows how many people you've saved by stopping this ship\./);
+    assert.match(
+      body,
+      /The Crystalline ship shatters and you pick what you can from the debris\. Who knows how many people you've saved by stopping this ship\./,
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -44,7 +49,8 @@ describe("Crystal fight with surrender offer (Human crew) reward", () => {
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
     assert.equal(destroyed.augments.length, augments);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
 
     const killed = createGame(2);
@@ -52,7 +58,10 @@ describe("Crystal fight with surrender offer (Human crew) reward", () => {
     const killedCrew = killed.crew.filter((c) => c.side === "player").length;
     assert.equal(pageWin(killed, "crystal-fight-with-surrender-offer-human-crew", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(killedBody, /The crew of the enemy ship has been eliminated\. You scrap what you can\. Who knows how many people you've saved by stopping this ship\./);
+    assert.match(
+      killedBody,
+      /The crew of the enemy ship has been eliminated\. You scrap what you can\. Who knows how many people you've saved by stopping this ship\./,
+    );
     const medium = scraps(killedBody);
     assert.equal(medium.length, 1, killedBody);
     assert.ok(medium[0]! >= 12 && medium[0]! <= 19, killedBody);

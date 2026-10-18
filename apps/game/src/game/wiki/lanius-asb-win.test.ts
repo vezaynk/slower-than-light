@@ -21,7 +21,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Lanius fight with friendly ASB support reward", () => {
@@ -36,7 +38,10 @@ describe("Lanius fight with friendly ASB support reward", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "lanius-fight-with-friendly-asb-support", false), true);
       const body = g.event?.body ?? "";
-      assert.match(body, /The ship breaks apart\. You decide to salvage it when the opportunity arises/);
+      assert.match(
+        body,
+        /The ship breaks apart\. You decide to salvage it when the opportunity arises/,
+      );
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);

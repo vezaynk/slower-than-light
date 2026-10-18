@@ -64,9 +64,14 @@ describe("Engi smashed ships", () => {
     const paid = [...body.matchAll(/Scrap: (\d+)/g)].map((m) => Number(m[1]));
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
-    const kinds = ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body));
+    const kinds = ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+      new RegExp(`${label}: \\d+`).test(body),
+    );
     assert.equal(kinds.length, 2, body);
-    assert.equal([g.fuel - fuel, g.missiles - missiles, g.player.parts - parts].filter((n) => n > 0).length, 2);
+    assert.equal(
+      [g.fuel - fuel, g.missiles - missiles, g.player.parts - parts].filter((n) => n > 0).length,
+      2,
+    );
     assert.equal(g.player.weapons.length, guns);
   });
 });

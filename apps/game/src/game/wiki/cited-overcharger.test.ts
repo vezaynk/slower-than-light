@@ -304,7 +304,10 @@ describe("Shield Overcharger +", () => {
       false,
     );
     assert.deepEqual(
-      CITED_DRONES.filter((row) => row.name === "Shield Overcharger").map((row) => [row.name, row.cost]),
+      CITED_DRONES.filter((row) => row.name === "Shield Overcharger").map((row) => [
+        row.name,
+        row.cost,
+      ]),
       [["Shield Overcharger", 60]],
     );
     const stock = citedStock(createGame(18));
@@ -348,7 +351,9 @@ describe("Shield Overcharger +", () => {
       aux: 0,
     };
     assert.equal(
-      citedSellQuote(fitted).some((quote) => quote.ref === "DRONE_SHIELD" || quote.ref === "DRONE_SHIELD_PLAYER"),
+      citedSellQuote(fitted).some(
+        (quote) => quote.ref === "DRONE_SHIELD" || quote.ref === "DRONE_SHIELD_PLAYER",
+      ),
       false,
     );
 

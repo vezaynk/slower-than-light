@@ -24,7 +24,10 @@ function occupied(layout: Layout): Map<string, string> {
 }
 
 function assertTraced(layout: Layout, squares: number) {
-  const summed = layout.rooms.reduce((n, room) => n + room.w * room.h - (room.omit?.length ?? 0), 0);
+  const summed = layout.rooms.reduce(
+    (n, room) => n + room.w * room.h - (room.omit?.length ?? 0),
+    0,
+  );
   assert.equal(summed, squares);
   assert.equal(tileCount(layout), squares);
   const at = occupied(layout);

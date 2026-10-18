@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { aim, applyImpact, armWeapon, createGame, evasionPercent, fireReady, startCombat, step } from "./sim.ts";
+import {
+  aim,
+  applyImpact,
+  armWeapon,
+  createGame,
+  evasionPercent,
+  fireReady,
+  startCombat,
+  step,
+} from "./sim.ts";
 import type { Game, Shot } from "./types.ts";
 
 function quiet(g: Game) {
@@ -42,7 +51,16 @@ function sureEvade(g: Game, ship: "player" | "enemy") {
   hull.systems.engines.damage = 0;
   hull.systems.pilot.level = Math.max(1, hull.systems.pilot.level);
   hull.systems.pilot.damage = 0;
-  hull.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+  hull.kits.cloaking = {
+    id: "cloaking",
+    level: 1,
+    power: 1,
+    left: 5,
+    cool: 0,
+    target: null,
+    on: true,
+    aux: 0,
+  };
   const engines = hull.rooms.find((r) => r.system === "engines");
   const pilot = hull.rooms.find((r) => r.system === "pilot");
   const crew = g.crew.filter((c) => c.aboard === ship && c.hp > 0);
@@ -132,7 +150,16 @@ describe("bombs aimed at your own ship", () => {
     assert.equal(g.player.systems[bay.system].damage, 2);
     assert.equal(g.player.hull, hull);
 
-    g.player.weapons = [{ uid: "gun", defId: "LASER_BURST_3", charge: 0, enabled: true, autofire: false, target: null }];
+    g.player.weapons = [
+      {
+        uid: "gun",
+        defId: "LASER_BURST_3",
+        charge: 0,
+        enabled: true,
+        autofire: false,
+        target: null,
+      },
+    ];
     g.targeting = true;
     g.armed = "gun";
     armWeapon(g, "gun");
@@ -154,7 +181,8 @@ describe("bombs aimed at your own ship", () => {
     const enemy = g.enemy;
     assert.ok(enemy);
     enemy.systems.engines.power = 0;
-    const room = enemy.rooms.find((r) => r.system === "weapons") ?? enemy.rooms.find((r) => r.system);
+    const room =
+      enemy.rooms.find((r) => r.system === "weapons") ?? enemy.rooms.find((r) => r.system);
     assert.ok(room?.system);
     enemy.systems.shields.level = 4;
     enemy.systems.shields.power = 4;

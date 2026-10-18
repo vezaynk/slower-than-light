@@ -34,7 +34,12 @@ function clamp01(n: number): number {
   return n;
 }
 
-function traced(book: Map<string, Span>, key: string, remaining: number, knownTotal?: number): number {
+function traced(
+  book: Map<string, Span>,
+  key: string,
+  remaining: number,
+  knownTotal?: number,
+): number {
   const prev = book.get(key);
   let total: number;
   if (knownTotal != null && knownTotal > 0) total = knownTotal;

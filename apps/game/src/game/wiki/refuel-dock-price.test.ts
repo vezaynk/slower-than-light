@@ -13,7 +13,9 @@ const OFFER = "The platform makes an offer.";
 afterEach(() => resetPackForTests());
 
 function beacon(g: Game): Beacon {
-  const found = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+  const found = g.beacons.find(
+    (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
+  );
   assert.ok(found);
   return found;
 }
@@ -39,16 +41,29 @@ function offerSeed(): number {
 
 describe("refuel dock price", () => {
   it("packs the offer and pays an appended band", () => {
-    assert.deepEqual(eventDef("refueling-platform")?.prices, [{ id: "offer", k: "scrap", lo: 5, hi: 10 }]);
-    assert.deepEqual(priceBand("refueling-platform", "offer"), { id: "offer", k: "scrap", lo: 5, hi: 10 });
+    assert.deepEqual(eventDef("refueling-platform")?.prices, [
+      { id: "offer", k: "scrap", lo: 5, hi: 10 },
+    ]);
+    assert.deepEqual(priceBand("refueling-platform", "offer"), {
+      id: "offer",
+      k: "scrap",
+      lo: 5,
+      hi: 10,
+    });
 
     const seed = offerSeed();
     const row = eventDef("refueling-platform");
     assert.ok(row);
 
-    loadPack({ events: [{ ...row, prices: [{ id: "offer", k: "scrap", lo: 7, hi: 7 }] }] }, "append");
+    loadPack(
+      { events: [{ ...row, prices: [{ id: "offer", k: "scrap", lo: 7, hi: 7 }] }] },
+      "append",
+    );
     const fixed = docked(seed);
-    assert.equal(fixed.event?.choices.some((choice) => choice.id === "s:refuel-dock:accept"), true);
+    assert.equal(
+      fixed.event?.choices.some((choice) => choice.id === "s:refuel-dock:accept"),
+      true,
+    );
     const fixedScrap = fixed.scrap;
     const fixedFuel = fixed.fuel;
     const fixedSeed = fixed.seed;
@@ -67,7 +82,10 @@ describe("refuel dock price", () => {
     assert.equal(fixed.fuel, shortFuel);
     assert.equal(fixed.seed, shortSeed);
 
-    loadPack({ events: [{ ...row, prices: [{ id: "offer", k: "scrap", lo: 20, hi: 30 }] }] }, "append");
+    loadPack(
+      { events: [{ ...row, prices: [{ id: "offer", k: "scrap", lo: 20, hi: 30 }] }] },
+      "append",
+    );
     const rolled = docked(seed);
     rolled.scrap = 100;
     const fuel = rolled.fuel;
@@ -79,8 +97,14 @@ describe("refuel dock price", () => {
 
     loadPack({ events: [{ ...row, prices: undefined }] }, "append");
     const quiet = docked(seed);
-    assert.equal(quiet.event?.choices.some((choice) => choice.id === "s:refuel-dock:accept"), false);
-    assert.equal(quiet.event?.choices.some((choice) => choice.id === "s:refuel-dock:reject"), true);
+    assert.equal(
+      quiet.event?.choices.some((choice) => choice.id === "s:refuel-dock:accept"),
+      false,
+    );
+    assert.equal(
+      quiet.event?.choices.some((choice) => choice.id === "s:refuel-dock:reject"),
+      true,
+    );
     const held = quiet.scrap;
     const heldFuel = quiet.fuel;
     const heldSeed = quiet.seed;
@@ -91,9 +115,15 @@ describe("refuel dock price", () => {
     assert.equal(quiet.event?.body, OFFER);
     assert.equal(priceBand("refueling-platform", "offer"), null);
 
-    loadPack({ events: [{ ...row, prices: [{ id: "offer", k: "fuel", lo: 5, hi: 10 }] }] }, "append");
+    loadPack(
+      { events: [{ ...row, prices: [{ id: "offer", k: "fuel", lo: 5, hi: 10 }] }] },
+      "append",
+    );
     const fuelPrice = docked(seed);
-    assert.equal(fuelPrice.event?.choices.some((choice) => choice.id === "s:refuel-dock:accept"), false);
+    assert.equal(
+      fuelPrice.event?.choices.some((choice) => choice.id === "s:refuel-dock:accept"),
+      false,
+    );
     const fuelSeed = fuelPrice.seed;
     const fuelScrap = fuelPrice.scrap;
     choose(fuelPrice, "s:refuel-dock:accept");
@@ -101,7 +131,9 @@ describe("refuel dock price", () => {
     assert.equal(fuelPrice.seed, fuelSeed);
 
     resetPackForTests();
-    assert.deepEqual(eventDef("refueling-platform")?.prices, [{ id: "offer", k: "scrap", lo: 5, hi: 10 }]);
+    assert.deepEqual(eventDef("refueling-platform")?.prices, [
+      { id: "offer", k: "scrap", lo: 5, hi: 10 },
+    ]);
     const poor = docked(seed);
     poor.scrap = 4;
     assert.equal(choiceDisabled(poor, "s:refuel-dock:accept"), "Need 5 scrap");
@@ -122,7 +154,10 @@ describe("refuel dock price", () => {
 
     const row = eventDef("refueling-platform");
     assert.ok(row);
-    loadPack({ events: [{ ...row, prices: [{ id: "offer", k: "scrap", lo: 8, hi: 8 }] }] }, "append");
+    loadPack(
+      { events: [{ ...row, prices: [{ id: "offer", k: "scrap", lo: 8, hi: 8 }] }] },
+      "append",
+    );
     calls = 0;
     assert.equal(rollPrice("refueling-platform", "offer", roll), 8);
     assert.equal(calls, 0);

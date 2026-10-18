@@ -44,7 +44,10 @@ describe("Lanius craftsmen", () => {
     // > "This random event occurs in Abandoned Sector." — [[Lanius craftsmen]]
     const pages = citedPagesFor("Abandoned Sector").filter((e) => e.dest === "Lanius craftsmen");
     assert.equal(pages.length, 1);
-    assert.equal(citedPagesFor("Civilian Sector").some((e) => e.dest === "Lanius craftsmen"), false);
+    assert.equal(
+      citedPagesFor("Civilian Sector").some((e) => e.dest === "Lanius craftsmen"),
+      false,
+    );
   });
 
   it("opens on the merchant sentence and does not sell the unnamed crafts", () => {
@@ -55,11 +58,14 @@ describe("Lanius craftsmen", () => {
     const g = createGame(1);
     open(g);
     assert.match(g.event?.body ?? "", /studying the Lanius's ability to reshape metal/);
-    assert.deepEqual(g.event?.choices.map((c) => c.label), [
-      "Inquire about the process.",
-      "Leave them to their research.",
-    ]);
-    assert.equal(g.event?.choices.some((c) => /45|50|40|discount/.test(c.label)), false);
+    assert.deepEqual(
+      g.event?.choices.map((c) => c.label),
+      ["Inquire about the process.", "Leave them to their research."],
+    );
+    assert.equal(
+      g.event?.choices.some((c) => /45|50|40|discount/.test(c.label)),
+      false,
+    );
   });
 
   it("inquiring can be declined, and nothing is spent", () => {
@@ -77,13 +83,16 @@ describe("Lanius craftsmen", () => {
     const before = stock(g);
     choose(g, "c:lanius-craftsmen:0");
     assert.match(g.event?.body ?? "", /foggiest idea how it works/);
-    assert.deepEqual(g.event?.choices.map((c) => c.label), [
-      "Give 45 scrap to craft an augmentation.",
-      "Give 50 scrap to craft a weapon.",
-      "Give 40 scrap to craft a drone schematic.",
-      "Decline their offer.",
-      "Offer to help in the process.",
-    ]);
+    assert.deepEqual(
+      g.event?.choices.map((c) => c.label),
+      [
+        "Give 45 scrap to craft an augmentation.",
+        "Give 50 scrap to craft a weapon.",
+        "Give 40 scrap to craft a drone schematic.",
+        "Decline their offer.",
+        "Offer to help in the process.",
+      ],
+    );
     assert.equal(choiceDisabled(g, "s:lanius-craftsmen:help"), "Needs a Lanius crewmember");
     choose(g, "s:lanius-craftsmen:decline");
     assert.match(g.event?.body ?? "", /thank them for the information/);
@@ -108,12 +117,15 @@ describe("Lanius craftsmen", () => {
     assert.equal(choiceDisabled(g, "s:lanius-craftsmen:aug"), "Need 45 scrap");
     choose(g, "s:lanius-craftsmen:help");
     assert.match(g.event?.body ?? "", /request less scrap/);
-    assert.deepEqual(g.event?.choices.map((c) => c.label), [
-      "Give 35 scrap to craft an augmentation.",
-      "Give 40 scrap to craft a weapon.",
-      "Give 30 scrap to craft a drone schematic.",
-      "Decline their offer.",
-    ]);
+    assert.deepEqual(
+      g.event?.choices.map((c) => c.label),
+      [
+        "Give 35 scrap to craft an augmentation.",
+        "Give 40 scrap to craft a weapon.",
+        "Give 30 scrap to craft a drone schematic.",
+        "Decline their offer.",
+      ],
+    );
     g.scrap = 29;
     assert.equal(choiceDisabled(g, "s:lanius-craftsmen:help:drone"), "Need 30 scrap");
     g.scrap = 30;
@@ -121,7 +133,10 @@ describe("Lanius craftsmen", () => {
     choose(g, "s:lanius-craftsmen:help:drone");
     assert.equal(g.scrap, 0);
     assert.match(g.event?.body ?? "", /construct the schematic/);
-    assert.match(g.event?.body ?? "", /schematic (fitted|stowed in cargo)\.|choose what to leave behind\./);
+    assert.match(
+      g.event?.body ?? "",
+      /schematic (fitted|stowed in cargo)\.|choose what to leave behind\./,
+    );
     assert.ok(g.player.parts >= 0);
     assert.ok(g.augments.length === before);
   });

@@ -26,7 +26,10 @@ describe("Auto-ship near storage station in nebula", () => {
     const g = createGame(1);
     open(g);
     for (const n of [2, 3, 4, 5]) {
-      assert.equal(g.event?.choices.some((c) => c.id === `c:auto-ship-near-storage-station-in-nebula:${n}`), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === `c:auto-ship-near-storage-station-in-nebula:${n}`),
+        true,
+      );
     }
     choose(g, "c:auto-ship-near-storage-station-in-nebula:0");
     assert.equal(g.phase, "combat");
@@ -46,7 +49,10 @@ describe("Auto-ship near storage station in nebula", () => {
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
     assert.equal(g.scrap, 10 + paid[0]!);
     assert.equal(g.player.weapons.length, guns);
-    assert.equal(g.event?.choices.some((c) => c.id === "q:auto-storage:investigate"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "q:auto-storage:investigate"),
+      true,
+    );
     const killed = createGame(2);
     open(killed);
     assert.equal(pageWin(killed, "auto-ship-near-storage-station-in-nebula", true), false);
@@ -55,8 +61,14 @@ describe("Auto-ship near storage station in nebula", () => {
   it("cloaking starts the fight or opens the station, and level 2 always opens it", () => {
     const bare = createGame(1);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:auto-ship-near-storage-station-in-nebula:2"), "Needs Cloaking");
-    assert.equal(choiceDisabled(bare, "c:auto-ship-near-storage-station-in-nebula:3"), "Needs level 2 Cloaking");
+    assert.equal(
+      choiceDisabled(bare, "c:auto-ship-near-storage-station-in-nebula:2"),
+      "Needs Cloaking",
+    );
+    assert.equal(
+      choiceDisabled(bare, "c:auto-ship-near-storage-station-in-nebula:3"),
+      "Needs level 2 Cloaking",
+    );
     choose(bare, "c:auto-ship-near-storage-station-in-nebula:2");
     assert.equal(bare.phase, "event");
 
@@ -65,9 +77,21 @@ describe("Auto-ship near storage station in nebula", () => {
     for (let seed = 1; seed <= 40 && (!fight || !station); seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.cloaking = {
+        id: "cloaking",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       assert.equal(choiceDisabled(g, "c:auto-ship-near-storage-station-in-nebula:2"), null);
-      assert.equal(choiceDisabled(g, "c:auto-ship-near-storage-station-in-nebula:3"), "Needs level 2 Cloaking");
+      assert.equal(
+        choiceDisabled(g, "c:auto-ship-near-storage-station-in-nebula:3"),
+        "Needs level 2 Cloaking",
+      );
       choose(g, "c:auto-ship-near-storage-station-in-nebula:2");
       if (g.phase === "combat") {
         fight = true;
@@ -83,7 +107,16 @@ describe("Auto-ship near storage station in nebula", () => {
 
     const improved = createGame(3);
     open(improved);
-    improved.player.kits.cloaking = { id: "cloaking", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    improved.player.kits.cloaking = {
+      id: "cloaking",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     assert.equal(choiceDisabled(improved, "c:auto-ship-near-storage-station-in-nebula:3"), null);
     choose(improved, "c:auto-ship-near-storage-station-in-nebula:3");
     assert.equal(improved.phase, "event");
@@ -96,14 +129,32 @@ describe("Auto-ship near storage station in nebula", () => {
     const bare = createGame(1);
     open(bare);
     bare.player.parts = 0;
-    assert.equal(choiceDisabled(bare, "c:auto-ship-near-storage-station-in-nebula:4"), "Needs a Hacking system");
-    assert.equal(choiceDisabled(bare, "c:auto-ship-near-storage-station-in-nebula:5"), "Needs level 2 Hacking");
+    assert.equal(
+      choiceDisabled(bare, "c:auto-ship-near-storage-station-in-nebula:4"),
+      "Needs a Hacking system",
+    );
+    assert.equal(
+      choiceDisabled(bare, "c:auto-ship-near-storage-station-in-nebula:5"),
+      "Needs level 2 Hacking",
+    );
 
     const broke = createGame(2);
     open(broke);
     broke.player.parts = 0;
-    broke.player.kits.hacking = { id: "hacking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
-    assert.equal(choiceDisabled(broke, "c:auto-ship-near-storage-station-in-nebula:4"), "Need 1 drone part");
+    broke.player.kits.hacking = {
+      id: "hacking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
+    assert.equal(
+      choiceDisabled(broke, "c:auto-ship-near-storage-station-in-nebula:4"),
+      "Need 1 drone part",
+    );
     choose(broke, "c:auto-ship-near-storage-station-in-nebula:4");
     assert.equal(broke.player.parts, 0);
     assert.equal(broke.phase, "event");
@@ -113,7 +164,16 @@ describe("Auto-ship near storage station in nebula", () => {
     for (let seed = 1; seed <= 40 && (!fight || !station); seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.hacking = { id: "hacking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.hacking = {
+        id: "hacking",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       choose(g, "c:auto-ship-near-storage-station-in-nebula:4");
       assert.equal(g.player.parts, 2);
       if (g.phase === "combat") {
@@ -128,7 +188,16 @@ describe("Auto-ship near storage station in nebula", () => {
 
     const improved = createGame(4);
     open(improved);
-    improved.player.kits.hacking = { id: "hacking", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    improved.player.kits.hacking = {
+      id: "hacking",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     assert.equal(choiceDisabled(improved, "c:auto-ship-near-storage-station-in-nebula:5"), null);
     const guns = improved.player.weapons.length;
     choose(improved, "c:auto-ship-near-storage-station-in-nebula:5");

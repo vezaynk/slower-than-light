@@ -99,10 +99,31 @@ describe("Trade resources", () => {
       assert.equal(have(g, pay), 30 - cost);
       assert.equal(have(g, get), 30 + gain);
       assert.equal(have(g, third), 30);
-      assert.ok(g.log.includes(pay === "fuel" ? `Fuel: -${cost}.` : pay === "missiles" ? `Missiles: -${cost}.` : `Drone parts: -${cost}.`));
-      assert.ok(g.log.includes(get === "fuel" ? `Fuel: ${gain}.` : get === "missiles" ? `Missiles: ${gain}.` : `Drone parts: ${gain}.`));
+      assert.ok(
+        g.log.includes(
+          pay === "fuel"
+            ? `Fuel: -${cost}.`
+            : pay === "missiles"
+              ? `Missiles: -${cost}.`
+              : `Drone parts: -${cost}.`,
+        ),
+      );
+      assert.ok(
+        g.log.includes(
+          get === "fuel"
+            ? `Fuel: ${gain}.`
+            : get === "missiles"
+              ? `Missiles: ${gain}.`
+              : `Drone parts: ${gain}.`,
+        ),
+      );
     }
-    assert.deepEqual([...kinds].sort(), ["fuel:missiles", "missiles:fuel", "missiles:parts", "parts:fuel"]);
+    assert.deepEqual([...kinds].sort(), [
+      "fuel:missiles",
+      "missiles:fuel",
+      "missiles:parts",
+      "parts:fuel",
+    ]);
     assert.equal(intros.size, 6);
     assert.ok(intros.has(INTROS[1]));
   });

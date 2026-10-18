@@ -30,7 +30,9 @@ export function ShieldField({
       const room = frameRoom(frame.clientWidth, frame.clientHeight, w, h);
       const scale = readShipScale(well.querySelector(".hull"));
       setBox((prev) =>
-        prev.w === w && prev.h === h && prev.room === room && prev.scale === scale ? prev : { w, h, room, scale },
+        prev.w === w && prev.h === h && prev.room === room && prev.scale === scale
+          ? prev
+          : { w, h, room, scale },
       );
     };
     read();
@@ -41,9 +43,13 @@ export function ShieldField({
   }, []);
 
   const layout = bubbleLayout(box.room, layers, charge != null, zoltan > 0, box.scale);
-  const visible = box.w > 1 && box.h > 1 && (layout.live.length > 0 || layout.charge != null || layout.zoltan != null);
+  const visible =
+    box.w > 1 &&
+    box.h > 1 &&
+    (layout.live.length > 0 || layout.charge != null || layout.zoltan != null);
   const out =
-    Math.max(layout.live[layout.live.length - 1] ?? 0, layout.charge ?? 0, layout.zoltan ?? 0, 0) + 8 * box.scale;
+    Math.max(layout.live[layout.live.length - 1] ?? 0, layout.charge ?? 0, layout.zoltan ?? 0, 0) +
+    8 * box.scale;
   const vw = Math.max(1, box.w + out * 2);
   const vh = Math.max(1, box.h + out * 2);
   const cx = box.w / 2 + out;

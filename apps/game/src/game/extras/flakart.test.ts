@@ -2,7 +2,14 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { applyImpact, createGame, evasionPercent, rand, sparePower, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
-import { ACQUIRE_S, deploy, enemyDefenseIntercept, shotHitsDrone, swarmIntercept, tickSwarm } from "./swarm.ts";
+import {
+  ACQUIRE_S,
+  deploy,
+  enemyDefenseIntercept,
+  shotHitsDrone,
+  swarmIntercept,
+  tickSwarm,
+} from "./swarm.ts";
 import {
   CHARGE_SECONDS,
   DAMAGE,
@@ -206,7 +213,10 @@ describe("flak burst", () => {
     assert.equal(g.enemy.shieldNow, 8);
     assert.equal(g.enemy.zoltan, 5);
     assert.equal(g.enemy.hull, hull);
-    assert.equal(g.log.slice(before).some((line) => line.toLowerCase().includes("drones")), false);
+    assert.equal(
+      g.log.slice(before).some((line) => line.toLowerCase().includes("drones")),
+      false,
+    );
     g.enemy.zoltan = 0;
     for (const shot of realOf(g.shots)) applyImpact(g, shot);
     assert.equal(g.enemy.shieldNow, 1);
@@ -340,7 +350,12 @@ describe("flak burst", () => {
   it("drains a full bar in 2 seconds when off, unpowered, or destroyed", () => {
     // Flak Artillery, Overview: "Powering off drains charge quickly."
     // INFERRED: a full bar of the installed level empties in 2 seconds. The page prints no duration.
-    const emptied = (seed: number, level: 1 | 4, full: number, setup: (kit: NonNullable<Game["player"]["kits"]["artillery"]>) => void) => {
+    const emptied = (
+      seed: number,
+      level: 1 | 4,
+      full: number,
+      setup: (kit: NonNullable<Game["player"]["kits"]["artillery"]>) => void,
+    ) => {
       const g = fight(seed);
       armFlak(g, level);
       const kit = g.player.kits.artillery;
@@ -517,7 +532,15 @@ describe("flak room odds", () => {
     g.seed = 4;
     const preview = createGame(0);
     preview.seed = 4;
-    const rolls = [rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview), rand(preview)];
+    const rolls = [
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+      rand(preview),
+    ];
     tickFlak(g, 0.01);
     const reals = realOf(g.shots);
     assert.equal(reals.length, 7);

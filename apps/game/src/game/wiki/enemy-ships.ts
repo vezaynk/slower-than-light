@@ -1173,7 +1173,11 @@ export const ENEMY_DRONES: Record<string, EnemyDroneRow> = {
   "engi-bomber": { drones: ENGI_DRONES, maxDrones: 4, parts: 4 },
   "engi-hacker": { drones: ENGI_DRONES, maxDrones: 4, parts: 4 },
   /** Template row "Zoltan Bomber D": Combat Drone Mark I, Beam Drone I and II, Fire Drone. Min 2 parts, max 4. */
-  "energy-bomber": { drones: ["COMBAT_1", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire"], maxDrones: 2, parts: 2 },
+  "energy-bomber": {
+    drones: ["COMBAT_1", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire"],
+    maxDrones: 2,
+    parts: 2,
+  },
   /** Template row "Zoltan Hacker H": "Ships marked only by index H don't have regular drones".
    * Enemy Ships, "Missile and drone stocks": "Zoltan Hacker: 5 parts" (the template row prints "2 / 5 (H)"). */
   "energy-hacker": { drones: [], maxDrones: 0, parts: 5 },

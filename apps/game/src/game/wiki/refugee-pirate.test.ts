@@ -21,14 +21,18 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Refugee (Pirate)", () => {
   it("is a pirate sector card with hail and ignore", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee (Pirate)]]
-    const pages = citedPagesFor("Pirate Controlled Sector").filter((p) => p.dest === "Refugee (Pirate)");
+    const pages = citedPagesFor("Pirate Controlled Sector").filter(
+      (p) => p.dest === "Refugee (Pirate)",
+    );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["Pirate Controlled Sector"]);
     const g = createGame(1);
@@ -91,7 +95,10 @@ describe("Refugee (Pirate)", () => {
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
     assert.equal(resources(body), 2, body);
     assert.equal(destroyed.scrap, before + paid[0]!);
-    assert.deepEqual(destroyed.event?.choices.map((c) => c.label), ["Contact the refugee ship."]);
+    assert.deepEqual(
+      destroyed.event?.choices.map((c) => c.label),
+      ["Contact the refugee ship."],
+    );
     const mid = destroyed.scrap;
     choose(destroyed, "s:refugee-pirate:contact");
     const thanks = destroyed.event?.body ?? "";

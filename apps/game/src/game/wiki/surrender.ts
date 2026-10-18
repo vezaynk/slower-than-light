@@ -1119,7 +1119,9 @@ function cargoScan(g: Game) {
     // Wiki citations:
     // > "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship." — [[Destroyed cargo ship#Scan the boxes]]
     // > "You receive Scrap gained: 20-35." — [[Destroyed cargo ship#Scan the boxes]]
-    const eligible = rollBand("destroyed-cargo-ship", "scan", "scrap", (lo, hi) => between(g, [lo, hi]));
+    const eligible = rollBand("destroyed-cargo-ship", "scan", "scrap", (lo, hi) =>
+      between(g, [lo, hi]),
+    );
     if (eligible == null) {
       pageResult(
         g,
@@ -1127,7 +1129,14 @@ function cargoScan(g: Game) {
       );
       return;
     }
-    const offer: SurrenderOffer = { tier: "low", scrap: 0, eligible, fuel: 0, missiles: 0, parts: 0 };
+    const offer: SurrenderOffer = {
+      tier: "low",
+      scrap: 0,
+      eligible,
+      fuel: 0,
+      missiles: 0,
+      parts: 0,
+    };
     offer.scrap = adjustScrap(g, eligible);
     pageResult(
       g,

@@ -31,14 +31,17 @@ function level(ship: Ship, r: Room): { level: number; damage: number } {
  * (intruderRoomPriority) ranks best from where it stands, so it stays there until the system is destroyed.
  */
 function nearlyBroken(g: Game, ship: Ship, c: Crew): Room {
-  const guarded = (x: Room) => g.crew.some((o) => o.id !== c.id && o.hp > 0 && o.aboard === c.aboard && o.room === x.id);
+  const guarded = (x: Room) =>
+    g.crew.some((o) => o.id !== c.id && o.hp > 0 && o.aboard === c.aboard && o.room === x.id);
   const systems = ship.rooms.filter(
     (x) => x.system && x.system !== "doors" && ship.systems[x.system].level >= 2 && !guarded(x),
   );
   const score = (r: Room) => {
     c.room = r.id;
     const own = intruderRoomPriority(g, c, r, 1);
-    return ship.rooms.every((o) => o.id === r.id || intruderRoomPriority(g, c, o, 1) >= own) ? own : Infinity;
+    return ship.rooms.every((o) => o.id === r.id || intruderRoomPriority(g, c, o, 1) >= own)
+      ? own
+      : Infinity;
   };
   const r = systems.find((x) => score(x) < Infinity)!;
   assert.ok(r, "a system room the boarder AI would stay in");

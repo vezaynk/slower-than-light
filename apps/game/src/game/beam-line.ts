@@ -7,7 +7,14 @@ import type { BeamPoint } from "./types.ts";
  * moment the beam enters a room, and a tiny edge of that room is enough.
  */
 export type BeamGrid = {
-  rooms: { id: string; x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] }[];
+  rooms: {
+    id: string;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    omit?: { x: number; y: number }[];
+  }[];
   cols: number;
   rows: number;
 };
@@ -50,7 +57,9 @@ export function targetableCells(ship: BeamGrid): { x: number; y: number }[] {
 }
 
 /** Inclusive slider range over the targetable cells. The far edge stays inside the last cell. */
-export function targetableSpan(ship: BeamGrid): { minX: number; maxX: number; minY: number; maxY: number } | null {
+export function targetableSpan(
+  ship: BeamGrid,
+): { minX: number; maxX: number; minY: number; maxY: number } | null {
   const cells = targetableCells(ship);
   if (!cells.length) return null;
   let minX = Infinity;
@@ -109,7 +118,12 @@ export function clampTargetPoint(ship: BeamGrid, point: BeamPoint): BeamPoint | 
  * Beam end: stay on targetable floor, and do not run past the printed tile length.
  * A snap back onto a room that would stretch the swipe keeps the clipped point instead.
  */
-export function clampBeamEnd(ship: BeamGrid, start: BeamPoint, toward: BeamPoint, tiles: number | null): BeamPoint | null {
+export function clampBeamEnd(
+  ship: BeamGrid,
+  start: BeamPoint,
+  toward: BeamPoint,
+  tiles: number | null,
+): BeamPoint | null {
   const a = clampTargetPoint(ship, start);
   const b = clampTargetPoint(ship, toward);
   if (!a || !b) return null;
@@ -127,7 +141,11 @@ export function clampBeamEnd(ship: BeamGrid, start: BeamPoint, toward: BeamPoint
  * roomsOnSegment, including the two side cells when it passes through a grid corner.
  * A cell is listed once. A step outside the grid is not a cell.
  */
-export function cellsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): { x: number; y: number }[] {
+export function cellsOnSegment(
+  ship: BeamGrid,
+  a: BeamPoint,
+  b: BeamPoint,
+): { x: number; y: number }[] {
   const cells: { x: number; y: number }[] = [];
   const seen = new Set<string>();
   visitSegment(ship, a, b, (ix, iy) => {
@@ -177,7 +195,12 @@ export function roomsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): stri
  * The stroke while a beam is firing. The leading edge travels from `a` to `b` as `t` goes from 0 to 1.
  * The stroke stays `length` long and trails behind that edge, so the beam is long for the whole swipe.
  */
-export function beamStroke(a: BeamPoint, b: BeamPoint, t: number, length: number): { tail: BeamPoint; head: BeamPoint } {
+export function beamStroke(
+  a: BeamPoint,
+  b: BeamPoint,
+  t: number,
+  length: number,
+): { tail: BeamPoint; head: BeamPoint } {
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const span = Math.hypot(dx, dy);

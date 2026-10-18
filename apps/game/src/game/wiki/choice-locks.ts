@@ -134,7 +134,9 @@ function meetsDrone(g: Game, id: string): boolean {
   }
   if (id === "COMBAT_BEAM") {
     if (!kit) return false;
-    return [kit.target, ...(kit.loadout ?? [])].some((kind) => kind === "COMBAT_BEAM" || kind === "COMBAT_BEAM_2");
+    return [kit.target, ...(kit.loadout ?? [])].some(
+      (kind) => kind === "COMBAT_BEAM" || kind === "COMBAT_BEAM_2",
+    );
   }
   if (id === "mine") {
     if (!kit) return false;

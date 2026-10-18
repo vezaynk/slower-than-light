@@ -3,7 +3,14 @@ import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Kit } from "../types.ts";
 import { CATALOG } from "./augments.ts";
-import { enemyFtlScale, hackStuns, helixHolds, lampSees, mendOnSend, partsBack } from "./moreaugs.ts";
+import {
+  enemyFtlScale,
+  hackStuns,
+  helixHolds,
+  lampSees,
+  mendOnSend,
+  partsBack,
+} from "./moreaugs.ts";
 
 const NAMES = {
   FTL_JAMMER: "FTL Jammer",
@@ -73,7 +80,14 @@ describe("more augments", () => {
       g.player.kits.drones = swarm(2, kind);
       assert.equal(partsBack(g), 0, kind);
     }
-    for (const kind of ["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE", "DRONE_SHIELD", "DRONE_SHIELD_PLAYER", "SHIP_REPAIR"]) {
+    for (const kind of [
+      "DEFENSE_1",
+      "DEFENSE_2",
+      "ANTI_DRONE",
+      "DRONE_SHIELD",
+      "DRONE_SHIELD_PLAYER",
+      "SHIP_REPAIR",
+    ]) {
       g.player.kits.drones = swarm(2, kind);
       assert.equal(partsBack(g), 1, kind);
     }

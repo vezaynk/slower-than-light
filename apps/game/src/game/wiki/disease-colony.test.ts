@@ -50,23 +50,38 @@ function mediumStuff(body: string) {
 
 describe("Unknown disease on mining colony", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Unknown disease on mining colony")?.slug, "unknown-disease-on-mining-colony");
+    assert.equal(
+      pageForRow("Unknown disease on mining colony")?.slug,
+      "unknown-disease-on-mining-colony",
+    );
   });
 
   it("hides the blue options until that crew or medbay is aboard", () => {
     const plain = createGame(1);
-    assert.deepEqual(open(plain).choices.map((c) => c.id), [
-      "c:unknown-disease-on-mining-colony:0",
-      "c:unknown-disease-on-mining-colony:1",
-    ]);
-    assert.equal(choiceDisabled(plain, "c:unknown-disease-on-mining-colony:2"), "Needs a Rock crewmember");
-    assert.equal(choiceDisabled(plain, "c:unknown-disease-on-mining-colony:3"), "Needs an Engi crewmember");
-    assert.equal(choiceDisabled(plain, "c:unknown-disease-on-mining-colony:4"), "Needs a level 2 Medbay");
+    assert.deepEqual(
+      open(plain).choices.map((c) => c.id),
+      ["c:unknown-disease-on-mining-colony:0", "c:unknown-disease-on-mining-colony:1"],
+    );
+    assert.equal(
+      choiceDisabled(plain, "c:unknown-disease-on-mining-colony:2"),
+      "Needs a Rock crewmember",
+    );
+    assert.equal(
+      choiceDisabled(plain, "c:unknown-disease-on-mining-colony:3"),
+      "Needs an Engi crewmember",
+    );
+    assert.equal(
+      choiceDisabled(plain, "c:unknown-disease-on-mining-colony:4"),
+      "Needs a level 2 Medbay",
+    );
 
     const dead = createGame(1);
     dead.crew[0].kin = "rock";
     dead.crew[0].hp = 0;
-    assert.equal(open(dead).choices.some((c) => c.id === "c:unknown-disease-on-mining-colony:2"), false);
+    assert.equal(
+      open(dead).choices.some((c) => c.id === "c:unknown-disease-on-mining-colony:2"),
+      false,
+    );
 
     const rock = createGame(1);
     rock.crew[0].kin = "rock";
@@ -111,7 +126,16 @@ describe("Unknown disease on mining colony", () => {
     let seen = false;
     for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = {
+        id: "clonebay",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:unknown-disease-on-mining-colony:0");
@@ -164,7 +188,10 @@ describe("Unknown disease on mining colony", () => {
     open(g);
     fillerChoose(g, "c:unknown-disease-on-mining-colony:4");
     assert.match(g.event?.body ?? "", /unknown spore/);
-    assert.equal(g.event?.choices.some((c) => c.id === "s:unknown-disease:medbot"), false);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "s:unknown-disease:medbot"),
+      false,
+    );
     fillerChoose(g, "s:unknown-disease:continue");
     mediumStuff(g.event?.body ?? "");
     assert.equal(g.player.weapons.length, weapons);

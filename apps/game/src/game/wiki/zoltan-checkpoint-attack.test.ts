@@ -28,6 +28,8 @@ describe("Zoltan security checkpoint attack", () => {
     assert.equal(g.enemy?.faction, "zoltan");
     assert.equal(g.fightEvent, "zoltan-security-checkpoint");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("Expecting resistance, their Energy Shield is raised and ready for combat."));
+    assert.ok(
+      g.log.includes("Expecting resistance, their Energy Shield is raised and ready for combat."),
+    );
   });
 });

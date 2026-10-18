@@ -6,7 +6,7 @@ import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
 
 const INTROS = [
   "You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!",
-  "\"Haha! I knew someone would fall into our dastardly trap!\" It appears this distress beacon was nothing but a decoy for a pirate ambush.",
+  '"Haha! I knew someone would fall into our dastardly trap!" It appears this distress beacon was nothing but a decoy for a pirate ambush.',
   "Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight.",
   "As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!",
 ];
@@ -41,7 +41,10 @@ describe("Pirate ship distress trap", () => {
   it("is a card a distress draw can reach", () => {
     assert.equal(pageForRow("Pirate ship distress trap")?.slug, "pirate-ship-distress-trap");
     const ev = open(createGame(1));
-    assert.deepEqual(ev.choices.map((c) => c.id), ["c:pirate-ship-distress-trap:0"]);
+    assert.deepEqual(
+      ev.choices.map((c) => c.id),
+      ["c:pirate-ship-distress-trap:0"],
+    );
   });
 
   it("shows one of the four printed intros", () => {

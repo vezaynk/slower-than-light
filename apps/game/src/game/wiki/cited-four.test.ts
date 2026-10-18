@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { installAugment } from "../extras/augments.ts";
 import type { KinId } from "../extras/kin.ts";
-import { DRONE_COOLDOWN_S, deploy, swarmIntercept, tickSwarm, type SwarmKind } from "../extras/swarm.ts";
+import {
+  DRONE_COOLDOWN_S,
+  deploy,
+  swarmIntercept,
+  tickSwarm,
+  type SwarmKind,
+} from "../extras/swarm.ts";
 import { FIRE_FIGHT_SHARE, createGame, startCombat, step } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
 import { crystalExtinguishScale } from "./cited-crystal-fire.ts";
@@ -122,10 +128,7 @@ describe("Rock and Crystal extinguish shares", () => {
     close(burn(crystal, "p-medbay"), SHARE * crystalExtinguishScale());
 
     const both = fight(4);
-    hold(both, "p-medbay", [
-      { id: "c-ada" },
-      { id: "c-ivo", kin: "rock" },
-    ]);
+    hold(both, "p-medbay", [{ id: "c-ada" }, { id: "c-ivo", kin: "rock" }]);
     close(burn(both, "p-medbay"), SHARE + SHARE * rockExtinguishScale());
   });
 
@@ -138,7 +141,10 @@ describe("Rock and Crystal extinguish shares", () => {
     const rock = fight(6);
     rock.augments = ["FIRE_EXTINGUISHERS"];
     hold(rock, "p-medbay", [{ id: "c-ada", kin: "rock" }]);
-    close(burn(rock, "p-medbay"), FIRE_FIGHT_SHARE * crystalExtinguishScale() + SHARE * rockExtinguishScale());
+    close(
+      burn(rock, "p-medbay"),
+      FIRE_FIGHT_SHARE * crystalExtinguishScale() + SHARE * rockExtinguishScale(),
+    );
   });
 });
 
@@ -169,7 +175,9 @@ describe("Defense Scrambler", () => {
     openEnemy(blocked);
     armEnemy(blocked, "DEFENSE_1", 2);
     const before = blocked.enemy!.hull;
-    blocked.shots = [shot({ kind: "missile", from: "player", targetRoom: blocked.enemy!.rooms[0].id })];
+    blocked.shots = [
+      shot({ kind: "missile", from: "player", targetRoom: blocked.enemy!.rooms[0].id }),
+    ];
     step(blocked, 0.05);
     assert.equal(blocked.enemy!.hull, before - 1);
     assert.equal(blocked.enemy!.kits.drones?.cool, 0);
@@ -207,7 +215,9 @@ describe("Defense Scrambler", () => {
     openEnemy(striker);
     armEnemy(striker, "COMBAT_1", 2);
     const hull = striker.enemy!.hull;
-    striker.shots = [shot({ kind: "missile", from: "player", targetRoom: striker.enemy!.rooms[0].id })];
+    striker.shots = [
+      shot({ kind: "missile", from: "player", targetRoom: striker.enemy!.rooms[0].id }),
+    ];
     step(striker, 0.05);
     assert.equal(striker.enemy!.hull, hull - 1);
     assert.equal(striker.enemy!.kits.drones?.cool, 0);
@@ -269,7 +279,15 @@ describe("Drone Reactor Booster", () => {
   });
 
   it("does not speed any other drone, and does not speed the repair itself", () => {
-    const others: SwarmKind[] = ["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE", "COMBAT_1", "COMBAT_BEAM", "BOARDER", "SHIP_REPAIR"];
+    const others: SwarmKind[] = [
+      "DEFENSE_1",
+      "DEFENSE_2",
+      "ANTI_DRONE",
+      "COMBAT_1",
+      "COMBAT_BEAM",
+      "BOARDER",
+      "SHIP_REPAIR",
+    ];
     for (const kind of others) {
       const g = createGame(15);
       g.augments = ["DRONE_SPEED"];

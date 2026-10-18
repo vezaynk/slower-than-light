@@ -20,7 +20,10 @@ describe("Auto-ship fight in asteroid field", () => {
   it("starts the fight inside an asteroid field", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-fight-in-asteroid-field:0"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:auto-ship-fight-in-asteroid-field:0"),
+      true,
+    );
     choose(g, "c:auto-ship-fight-in-asteroid-field:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-fight-in-asteroid-field");
@@ -53,6 +56,10 @@ describe("Auto-ship fight in asteroid field", () => {
     assert.equal(g.asteroid, true);
     assert.equal(g.fightEvent, "auto-ship-fight-in-asteroid-field");
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes("You arrive in an asteroid belt to discover that a Rebel automated-scout has been stationed here. Prepare for a fight!"));
+    assert.ok(
+      g.log.includes(
+        "You arrive in an asteroid belt to discover that a Rebel automated-scout has been stationed here. Prepare for a fight!",
+      ),
+    );
   });
 });

@@ -3,7 +3,16 @@ import { describe, it } from "node:test";
 import { MISSING_DRONES } from "./drones-missing.ts";
 
 /** SwarmKind ids already implemented in swarm.ts. */
-const EXISTING = ["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE", "COMBAT_1", "COMBAT_BEAM", "BOARDER", "REPAIR", "SHIP_REPAIR"];
+const EXISTING = [
+  "DEFENSE_1",
+  "DEFENSE_2",
+  "ANTI_DRONE",
+  "COMBAT_1",
+  "COMBAT_BEAM",
+  "BOARDER",
+  "REPAIR",
+  "SHIP_REPAIR",
+];
 
 describe("missing drone schematics", () => {
   it("does not reuse a SwarmKind id", () => {
@@ -31,8 +40,18 @@ describe("missing drone schematics", () => {
         ["COMBAT_BEAM_2", "Anti-Ship Beam Drone II", 3, null],
         ["firedrone", "Anti-Ship Fire Drone", 3, null],
         ["BATTLE", "Anti-Personnel Drone", 2, null],
-        ["DRONE_SHIELD", "Shield Overcharger", 3, "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers"],
-        ["DRONE_SHIELD_PLAYER", "Shield Overcharger +", 2, "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers"],
+        [
+          "DRONE_SHIELD",
+          "Shield Overcharger",
+          3,
+          "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers",
+        ],
+        [
+          "DRONE_SHIELD_PLAYER",
+          "Shield Overcharger +",
+          2,
+          "8s/10s/13s/16s/20s for 0/1/2/3/4 existing layers",
+        ],
       ],
     );
     for (const row of MISSING_DRONES) {

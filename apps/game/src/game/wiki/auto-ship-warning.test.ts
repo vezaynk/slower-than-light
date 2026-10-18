@@ -22,14 +22,19 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Auto-ship warning", () => {
   it("starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-warning:0"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:auto-ship-warning:0"),
+      true,
+    );
     choose(g, "c:auto-ship-warning:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-warning");
@@ -61,7 +66,8 @@ describe("Auto-ship warning", () => {
     assert.equal(destroyed.fleet, 5);
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 5, body);
 
     const killed = createGame(2);
@@ -102,7 +108,11 @@ describe("Auto-ship warning", () => {
     assert.equal(g.enemyEscape?.seconds, 40);
     assert.equal(g.enemyEscape?.running, true);
     assert.equal(g.enemyEscape?.pursuit, true);
-    assert.ok(g.log.includes("The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!"));
+    assert.ok(
+      g.log.includes(
+        "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!",
+      ),
+    );
     assert.ok(g.log.some((line) => INTROS.includes(line)));
   });
 });

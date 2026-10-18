@@ -10,7 +10,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 function open(g: Game) {
@@ -33,7 +35,10 @@ describe("Rebel ship attacking civilians in Last Stand reward", () => {
     assert.equal(destroyed.fightEvent, "rebel-ship-attacking-civilians-in-last-stand");
     assert.equal(pageWin(destroyed, "rebel-ship-attacking-civilians-in-last-stand", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /With the Rebel ship destroyed you are free to contact their would-be victim/);
+    assert.match(
+      body,
+      /With the Rebel ship destroyed you are free to contact their would-be victim/,
+    );
     assert.ok(destroyed.event?.choices.some((c) => c.id === "q:last-stand-survivors:contact"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);

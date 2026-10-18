@@ -25,13 +25,32 @@ import type {
 } from "./types.ts";
 import { cloneGrid, readGrids } from "./grid.ts";
 import { attachPictures } from "./picture.ts";
-import { attr, child, elements, numOf, readAugment, readDocument, readDrone, readWeapon, tagged, textOf } from "./parse.ts";
+import {
+  attr,
+  child,
+  elements,
+  numOf,
+  readAugment,
+  readDocument,
+  readDrone,
+  readWeapon,
+  tagged,
+  textOf,
+} from "./parse.ts";
 
 /**
  * FTL system ids that install into a kit slot. Artillery ids share that slot.
  * Every other system id installs as a system.
  */
-const KIT_SYSTEMS = new Set(["battery", "cloaking", "clonebay", "drones", "hacking", "mind", "teleporter"]);
+const KIT_SYSTEMS = new Set([
+  "battery",
+  "cloaking",
+  "clonebay",
+  "drones",
+  "hacking",
+  "mind",
+  "teleporter",
+]);
 
 export type FtlBlueprintFile = {
   path: string;
@@ -280,7 +299,11 @@ function resolveText(node: XmlElement, strings: Map<string, string>): string | u
   return strings.get(key) ?? key;
 }
 
-function elementString(node: XmlElement, tag: string, strings: Map<string, string>): string | undefined {
+function elementString(
+  node: XmlElement,
+  tag: string,
+  strings: Map<string, string>,
+): string | undefined {
   const found = child(node, tag);
   return found ? resolveText(found, strings) : undefined;
 }
@@ -389,7 +412,8 @@ function readInstalls(node: XmlElement): HullInstall[] {
     const img = attr(item, "img")?.trim();
     if (img) install.img = img;
     const carried = child(item, "weapon");
-    const weaponId = attr(item, "weapon")?.trim() || (carried ? attr(carried, "name")?.trim() : undefined);
+    const weaponId =
+      attr(item, "weapon")?.trim() || (carried ? attr(carried, "name")?.trim() : undefined);
     if (weaponId) install.weapon = weaponId;
     installs.push(install);
   }
@@ -590,7 +614,8 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
       if (item.tagName === "text") continue;
       takeResultChild(item, choice, fx, grants, strings);
     }
-    if (fx.length === 0 && !choice.reward && !choice.ship && grants.length === 0) fx.push({ k: "nothing" });
+    if (fx.length === 0 && !choice.reward && !choice.ship && grants.length === 0)
+      fx.push({ k: "nothing" });
     choice.fx = fx;
     if (grants.length > 0) choice.grants = grants;
     return choice;
@@ -603,7 +628,14 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
   const nested = readChoices(result, strings);
   if (nested.length > 0) choice.choices = nested;
   const bare = elements(result).length === 0 && !load;
-  if (fx.length === 0 && !choice.reward && !choice.ship && grants.length === 0 && nested.length === 0 && bare)
+  if (
+    fx.length === 0 &&
+    !choice.reward &&
+    !choice.ship &&
+    grants.length === 0 &&
+    nested.length === 0 &&
+    bare
+  )
     fx.push({ k: "nothing" });
   choice.fx = fx;
   if (grants.length > 0) choice.grants = grants;
@@ -674,7 +706,8 @@ function readGrant(node: XmlElement): ArchiveGrant | undefined {
     if (amount != null) grant.amount = amount;
     return grant;
   }
-  if (node.tagName !== "weapon" && node.tagName !== "drone" && node.tagName !== "augment") return undefined;
+  if (node.tagName !== "weapon" && node.tagName !== "drone" && node.tagName !== "augment")
+    return undefined;
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   return { kind: node.tagName, id };

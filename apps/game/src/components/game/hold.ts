@@ -38,7 +38,11 @@ function drop(target: EventTarget, keepFired = false) {
   if (!keepFired || !rec.fired) holds.delete(target);
 }
 
-export function armHold(e: ReactPointerEvent<Element>, onLong: () => void, opts?: { mouse?: boolean }) {
+export function armHold(
+  e: ReactPointerEvent<Element>,
+  onLong: () => void,
+  opts?: { mouse?: boolean },
+) {
   if (e.isPrimary === false) return;
   const mouse = opts?.mouse && e.pointerType !== "touch" && e.button === 0;
   if (e.pointerType !== "touch" && !mouse) return;

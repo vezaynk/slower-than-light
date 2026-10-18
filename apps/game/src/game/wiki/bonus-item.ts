@@ -18,7 +18,13 @@ export type BonusItem =
  * augments.ts header lists: Automated Re-loader, Reverse Ion Field, Shield Charge Booster, FTL Recharge Booster and
  * Scrap Recovery Arm.
  */
-const STACKS: ReadonlySet<string> = new Set(["AUTO_COOLDOWN", "ION_ARMOR", "SHIELD_RECHARGE", "FTL_BOOSTER", "SCRAP_COLLECTOR"]);
+const STACKS: ReadonlySet<string> = new Set([
+  "AUTO_COOLDOWN",
+  "ION_ARMOR",
+  "SHIELD_RECHARGE",
+  "FTL_BOOSTER",
+  "SCRAP_COLLECTOR",
+]);
 
 function pickOne<T>(g: Game, items: readonly T[]): T | undefined {
   return items.length

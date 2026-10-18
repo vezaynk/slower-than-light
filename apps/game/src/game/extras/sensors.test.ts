@@ -10,10 +10,7 @@ describe("sensorLevel", () => {
     assert.equal(g.player.systems.sensors.level, 2);
     assert.equal(g.player.systems.sensors.power, 2);
     const starters = g.crew.filter((c) => c.side === "player");
-    assert.deepEqual(
-      starters.map((c) => c.room).sort(),
-      ["p-engines", "p-pilot", "p-weapons"],
-    );
+    assert.deepEqual(starters.map((c) => c.room).sort(), ["p-engines", "p-pilot", "p-weapons"]);
     assert.equal(sensorLevel(g, g.player, "player"), 2);
 
     const crew = starters[0];

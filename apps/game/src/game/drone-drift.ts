@@ -18,7 +18,13 @@ export type DroneDrift = {
 };
 
 /** Advance one display frame. A halted clock leaves the angle and the speed untouched. */
-export function stepDrift(drift: DroneDrift, dt: number, cruising: boolean, omega: number, halted: boolean): number {
+export function stepDrift(
+  drift: DroneDrift,
+  dt: number,
+  cruising: boolean,
+  omega: number,
+  halted: boolean,
+): number {
   if (halted || !(dt > 0)) return drift.angle;
   const target = cruising ? 1 : 0;
   const k = 1 - Math.exp(-dt / DRIFT_TAU);

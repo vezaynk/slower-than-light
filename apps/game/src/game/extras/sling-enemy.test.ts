@@ -128,7 +128,8 @@ describe("enemy crew teleporter", () => {
     let seenOnPads = false;
     for (let i = 0; i < 1200 && aboard(g).length === 0; i++) {
       step(g, 0.05);
-      if (foes(g).some((c) => c.aboard === "enemy" && c.room === PADS && c.path.length === 0)) seenOnPads = true;
+      if (foes(g).some((c) => c.aboard === "enemy" && c.room === PADS && c.path.length === 0))
+        seenOnPads = true;
     }
     assert.ok(aboard(g).length > 0, "boarders arrive");
     assert.ok(seenOnPads || aboard(g).length > 0);
@@ -183,7 +184,15 @@ describe("enemy crew teleporter", () => {
     assert.equal(plan(g).sent, 6);
 
     const capped = boarder(4);
-    capped.enemy!.boarding = { sent: 0, limit: 0, party: [], away: [], home: {}, stay: 1, invasion: false };
+    capped.enemy!.boarding = {
+      sent: 0,
+      limit: 0,
+      party: [],
+      away: [],
+      home: {},
+      stay: 1,
+      invasion: false,
+    };
     pad(capped).cool = 0;
     capped.boardTimer = 0;
     tickEnemyBoarding(capped, 0.01);
@@ -245,7 +254,8 @@ describe("enemy crew teleporter", () => {
     assert.equal(plan(g).party.length, 0);
     // Anyone with a station elsewhere is walking away from the pads.
     for (const c of party) {
-      if (plan(g).home[c.id] !== PADS) assert.ok(c.path.length > 0 && c.path[c.path.length - 1] !== PADS);
+      if (plan(g).home[c.id] !== PADS)
+        assert.ok(c.path.length > 0 && c.path[c.path.length - 1] !== PADS);
     }
     // They reach their stations, then the shield drops: the order to board comes straight back.
     for (const c of party) {
@@ -327,7 +337,10 @@ describe("enemy crew teleporter", () => {
     assert.equal(party[0].aboard, "player", "26% stays");
     party[0].hp = party[0].maxHp * 0.24;
     tickEnemyBoarding(g, 0.01);
-    assert.ok(party.every((c) => c.aboard === "enemy"), "the whole room comes back");
+    assert.ok(
+      party.every((c) => c.aboard === "enemy"),
+      "the whole room comes back",
+    );
     assert.ok(pad(g).cool > 0);
   });
 
@@ -347,10 +360,21 @@ describe("enemy crew teleporter", () => {
     const g = boarder();
     const party = send(g);
     pad(g).cool = 0;
-    g.enemyEscape = { mode: "start", seconds: 100, chance: 0, threshold: 0, rolled: true, running: true, pursuit: false };
+    g.enemyEscape = {
+      mode: "start",
+      seconds: 100,
+      chance: 0,
+      threshold: 0,
+      rolled: true,
+      running: true,
+      pursuit: false,
+    };
     g.enemyFlee = 0.5;
     tickEnemyBoarding(g, 0.01);
-    assert.ok(party.every((c) => c.aboard === "player"), "50 s left: they stay");
+    assert.ok(
+      party.every((c) => c.aboard === "player"),
+      "50 s left: they stay",
+    );
     g.enemyFlee = 0.9;
     tickEnemyBoarding(g, 0.01);
     assert.ok(party.every((c) => c.aboard === "enemy"));
@@ -365,7 +389,10 @@ describe("enemy crew teleporter", () => {
     for (const s of installed.slice(0, 2)) s.damage = s.level;
     assert.equal(enemyBrokenSystems(g.enemy!), 2);
     tickEnemyBoarding(g, 0.01);
-    assert.ok(party.every((c) => c.aboard === "player"), "two broken: they stay");
+    assert.ok(
+      party.every((c) => c.aboard === "player"),
+      "two broken: they stay",
+    );
     installed[2].damage = installed[2].level;
     tickEnemyBoarding(g, 0.01);
     assert.ok(party.every((c) => c.aboard === "enemy"));
@@ -381,7 +408,10 @@ describe("enemy crew teleporter", () => {
     const party = send(g);
     const home = plan(g).home[party[0].id];
     pad(g).cool = 0;
-    for (const s of Object.values(g.enemy!.systems).filter((s) => s.level > 0).slice(0, 3)) s.damage = s.level;
+    for (const s of Object.values(g.enemy!.systems)
+      .filter((s) => s.level > 0)
+      .slice(0, 3))
+      s.damage = s.level;
     tickEnemyBoarding(g, 0.01);
     assert.equal(party[0].aboard, "enemy");
     if (home === PADS) assert.equal(party[0].room, PADS);

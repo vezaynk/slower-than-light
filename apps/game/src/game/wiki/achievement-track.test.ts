@@ -110,11 +110,17 @@ describe("achievement tracker", () => {
 
   it("keeps earned ids in localStorage and ignores an untracked id", () => {
     memoryStorage();
-    localStorage.setItem("stl-achievements-v1", JSON.stringify(["were-in-position", "just-getting-started"]));
+    localStorage.setItem(
+      "stl-achievements-v1",
+      JSON.stringify(["were-in-position", "just-getting-started"]),
+    );
     resetAchievementMemory();
     assert.deepEqual(earnedIds(), ["just-getting-started"]);
 
-    localStorage.setItem("stl-achievements-v1", JSON.stringify(["warlord", "just-getting-started"]));
+    localStorage.setItem(
+      "stl-achievements-v1",
+      JSON.stringify(["warlord", "just-getting-started"]),
+    );
     resetAchievementMemory();
     const run = createGame(1, "PLAYER_SHIP_ANAEROBIC_2");
     run.phase = "map";

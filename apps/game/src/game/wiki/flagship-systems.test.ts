@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { REPAIR_SECONDS, continueReward, createGame, evasionPercent, powerMask, startCombat, step } from "../sim.ts";
+import {
+  REPAIR_SECONDS,
+  continueReward,
+  createGame,
+  evasionPercent,
+  powerMask,
+  startCombat,
+  step,
+} from "../sim.ts";
 import { sensorLevel } from "../extras/sensors.ts";
 import type { Game } from "../types.ts";
 import {
@@ -39,7 +47,9 @@ function nextStage(g: Game) {
 }
 
 function linked(g: Game, id: string): string[] {
-  return g.enemy!.doors.filter((d) => d.b !== "void" && (d.a === id || d.b === id)).map((d) => (d.a === id ? d.b : d.a));
+  return g
+    .enemy!.doors.filter((d) => d.b !== "void" && (d.a === id || d.b === id))
+    .map((d) => (d.a === id ? d.b : d.a));
 }
 
 function enemyCrew(g: Game) {
@@ -61,9 +71,13 @@ describe("Rebel Flagship rooms per stage", () => {
 
   it("isolates the artillery rooms, except Laser and Missile on Hard", () => {
     const g = bossFight(12);
-    for (const id of ["e-ion", "e-laser", "e-missile", "e-beam"]) assert.deepEqual(linked(g, id), [], id);
+    for (const id of ["e-ion", "e-laser", "e-missile", "e-beam"])
+      assert.deepEqual(linked(g, id), [], id);
     const hard = bossFight(12, "hard");
-    assert.equal(hard.enemy!.rooms.reduce((n, r) => n + r.w * r.h, 0), 56);
+    assert.equal(
+      hard.enemy!.rooms.reduce((n, r) => n + r.w * r.h, 0),
+      56,
+    );
     assert.deepEqual(linked(hard, "e-laser"), ["e-laser-link"]);
     assert.deepEqual(linked(hard, "e-missile"), ["e-missile-link"]);
     assert.deepEqual(linked(hard, "e-ion"), []);
@@ -127,7 +141,11 @@ describe("Rebel Flagship systems per stage", () => {
     assert.ok(!e.rooms.some((r) => r.id === "e-ion"));
     // "The remaining crew from the previous stage (Minus the one in the Ion room if left alive)."
     assert.equal(enemyCrew(g).length, 10);
-    for (const c of enemyCrew(g)) assert.ok(e.rooms.some((r) => r.id === c.room), c.room);
+    for (const c of enemyCrew(g))
+      assert.ok(
+        e.rooms.some((r) => r.id === c.room),
+        c.room,
+      );
     step(g, 0.05);
     const drones = e.kits.drones?.drones ?? [];
     assert.deepEqual(
@@ -183,10 +201,7 @@ describe("Rebel Flagship systems per stage", () => {
 
 describe("Rebel Flagship Power Surge", () => {
   it("stage 2 deploys 4 / 6 / 7 drones with a fixed split, two shots each", () => {
-    assert.deepEqual(
-      (["easy", "normal", "hard"] as const).map(surgeDroneCount),
-      [4, 6, 7],
-    );
+    assert.deepEqual((["easy", "normal", "hard"] as const).map(surgeDroneCount), [4, 6, 7]);
     const g = bossFight(31);
     nextStage(g);
     g.bossSurge = 0.01;
@@ -274,12 +289,24 @@ describe("@agent:flagship Rebel Flagship artillery, retreat, surge stun, AI dodg
   it("each artillery gun charges on its own printed time per stage, outside any power pool", () => {
     // "Weapon cooldowns and status effects": level 3 on stages 1-2, level 4 on the final stage.
     const g = bossFight(31);
-    const secs = () => Object.fromEntries(g.enemy!.weapons.map((w) => [w.defId, flagshipChargeSeconds(g.enemy!, w)]));
-    assert.deepEqual(secs(), { ARTILLERY_BOSS_4: 21, ARTILLERY_BOSS_1: 15, ARTILLERY_BOSS_2: 17.25, ARTILLERY_BOSS_3: 19.5 });
+    const secs = () =>
+      Object.fromEntries(
+        g.enemy!.weapons.map((w) => [w.defId, flagshipChargeSeconds(g.enemy!, w)]),
+      );
+    assert.deepEqual(secs(), {
+      ARTILLERY_BOSS_4: 21,
+      ARTILLERY_BOSS_1: 15,
+      ARTILLERY_BOSS_2: 17.25,
+      ARTILLERY_BOSS_3: 19.5,
+    });
     // The 4-power Boss Missile is armed with only 3 artillery bars (it never fired before).
     assert.ok(g.enemy!.weapons.every((w) => w.enabled));
     nextStage(g);
-    assert.deepEqual(secs(), { ARTILLERY_BOSS_1: 15, ARTILLERY_BOSS_2: 17.25, ARTILLERY_BOSS_3: 19.5 });
+    assert.deepEqual(secs(), {
+      ARTILLERY_BOSS_1: 15,
+      ARTILLERY_BOSS_2: 17.25,
+      ARTILLERY_BOSS_3: 19.5,
+    });
     nextStage(g);
     assert.deepEqual(secs(), { ARTILLERY_BOSS_1: 10, ARTILLERY_BOSS_2: 11.5 });
     // "Damaging the system slows down the weapon": 2 damage on the level-4 Laser room reads its level-2 row; each
@@ -393,7 +420,16 @@ describe("@agent:flagship Rebel Flagship artillery, retreat, surge stun, AI dodg
     step(g, 0.05);
     assert.equal(e.flagship?.ai, true);
     assert.equal(flagshipAiEvade(g, e), 10);
-    g.player.kits.hacking = { id: "hacking", level: 1, power: 1, left: 0, cool: 0, target: "engines", on: false, aux: 0 };
+    g.player.kits.hacking = {
+      id: "hacking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: "engines",
+      on: false,
+      aux: 0,
+    };
     assert.equal(flagshipAiEvade(g, e), 10);
     g.player.kits.hacking.on = true;
     g.player.kits.hacking.left = 3;
@@ -431,14 +467,20 @@ describe("@agent:flagship Rebel Flagship per-room artillery", () => {
       label: "test",
     } as never);
   }
-  const secs = (g: Game) => Object.fromEntries(g.enemy!.weapons.map((w) => [w.defId, flagshipChargeSeconds(g.enemy!, w)]));
+  const secs = (g: Game) =>
+    Object.fromEntries(g.enemy!.weapons.map((w) => [w.defId, flagshipChargeSeconds(g.enemy!, w)]));
 
   it("a hit on one artillery room slows only that gun", () => {
     const g = bossFight(61);
     hit(g, "e-laser", "laser", 1);
     assert.equal(g.enemy!.flagship!.guns!["e-laser"].damage, 1);
     assert.equal(g.enemy!.systems.weapons.damage, 0);
-    assert.deepEqual(secs(g), { ARTILLERY_BOSS_4: 21, ARTILLERY_BOSS_1: 20, ARTILLERY_BOSS_2: 17.25, ARTILLERY_BOSS_3: 19.5 });
+    assert.deepEqual(secs(g), {
+      ARTILLERY_BOSS_4: 21,
+      ARTILLERY_BOSS_1: 20,
+      ARTILLERY_BOSS_2: 17.25,
+      ARTILLERY_BOSS_3: 19.5,
+    });
     hit(g, "e-missile", "laser", 3);
     const mask = flagshipPowerMask(g.enemy!)!;
     const idx = g.enemy!.weapons.findIndex((w) => w.defId === "ARTILLERY_BOSS_2");
@@ -519,7 +561,10 @@ describe("@agent:flagship Rebel Flagship per-room artillery", () => {
     assert.equal(e.flagship!.guns!["e-laser"].fix, 0);
     room.fire = 0;
     for (let i = 0; i < 20; i++) step(g, 0.05);
-    assert.ok(Math.abs(e.flagship!.guns!["e-laser"].fix - 1) < 1e-9, String(e.flagship!.guns!["e-laser"].fix));
+    assert.ok(
+      Math.abs(e.flagship!.guns!["e-laser"].fix - 1) < 1e-9,
+      String(e.flagship!.guns!["e-laser"].fix),
+    );
     const progressed = e.flagship!.guns!["e-laser"].fix;
     room.breach = 1;
     for (let i = 0; i < 20; i++) step(g, 0.05);

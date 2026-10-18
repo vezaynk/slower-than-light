@@ -55,7 +55,10 @@ describe("Boarders with no enemy ship", () => {
     // An unskilled human deals 3 to 7 HP per hit. This boarder had 0.2, so the blow finishes the fight.
     assert.ok(before - boarder.hp >= 3 && before - boarder.hp <= 7);
     assert.equal(g.phase, "map");
-    assert.equal(g.crew.some((c) => c.side === "enemy" && c.hp > 0), false);
+    assert.equal(
+      g.crew.some((c) => c.side === "enemy" && c.hp > 0),
+      false,
+    );
     assert.equal(g.kills, kills);
     assert.equal(g.scrap, scrap);
   });
@@ -92,14 +95,20 @@ describe("Boarders with no enemy ship", () => {
     assert.equal(g.asbPhase, "shot");
     assert.ok(t >= 15 && t < 20.1);
     assert.equal(g.log[0], "Planet-side anti-ship batteries are detected in this system.");
-    assert.equal(g.shots.some((s) => s.label === "Artillery"), false);
+    assert.equal(
+      g.shots.some((s) => s.label === "Artillery"),
+      false,
+    );
     assert.ok(g.asbWait >= 5 && g.asbWait < 10);
     const shotAt = t + g.asbWait;
     while (!g.shots.some((s) => s.label === "Artillery") && t < shotAt + 1) {
       step(g, 0.05);
       t += 0.05;
     }
-    assert.equal(g.shots.some((s) => s.label === "Artillery"), true);
+    assert.equal(
+      g.shots.some((s) => s.label === "Artillery"),
+      true,
+    );
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.asbPhase, "warn");
@@ -172,11 +181,25 @@ describe("Boarders with no enemy ship", () => {
       const ref = createGame(seed + 1000);
       fillerChoose(ref, "c:refugee-comms-down:0");
       const aboard = humans(ref);
-      if (ref.phase === "combat" && !ref.enemy && aboard.length >= 2 && aboard.length <= 4 && !ref.asb) refugee = true;
+      if (
+        ref.phase === "combat" &&
+        !ref.enemy &&
+        aboard.length >= 2 &&
+        aboard.length <= 4 &&
+        !ref.asb
+      )
+        refugee = true;
       const station = createGame(seed + 2000);
       fillerChoose(station, "c:abandoned-station:0");
       const pirates = humans(station);
-      if (station.phase === "combat" && !station.enemy && station.asb && pirates.length >= 2 && pirates.length <= 4) battery = true;
+      if (
+        station.phase === "combat" &&
+        !station.enemy &&
+        station.asb &&
+        pirates.length >= 2 &&
+        pirates.length <= 4
+      )
+        battery = true;
     }
     assert.equal(crazed, true);
     assert.equal(refugee, true);

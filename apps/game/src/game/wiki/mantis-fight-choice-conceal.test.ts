@@ -15,7 +15,16 @@ function open(g: Game) {
 }
 
 function cloak(g: Game) {
-  g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+  g.player.kits.cloaking = {
+    id: "cloaking",
+    level: 1,
+    power: 1,
+    left: 5,
+    cool: 0,
+    target: null,
+    on: true,
+    aux: 0,
+  };
 }
 
 const CONCEAL_FIGHT = [

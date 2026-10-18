@@ -35,14 +35,33 @@ function quiet(seed: number): Game {
 }
 
 function fleet(g: Game, loadout: string[], level = 8) {
-  g.enemy!.kits.drones = { id: "drones", level, power: level, left: 0, cool: 0, target: null, on: false, aux: 0, loadout };
+  g.enemy!.kits.drones = {
+    id: "drones",
+    level,
+    power: level,
+    left: 0,
+    cool: 0,
+    target: null,
+    on: false,
+    aux: 0,
+    loadout,
+  };
   g.enemy!.parts = 8;
   tickSwarm(g, 0.05);
   return g.enemy!.kits.drones.drones!;
 }
 
 function mine(g: Game, kind: string): Kit {
-  g.player.kits.drones = { id: "drones", level: 3, power: 3, left: 0, cool: 0, target: null, on: false, aux: 0 };
+  g.player.kits.drones = {
+    id: "drones",
+    level: 3,
+    power: 3,
+    left: 0,
+    cool: 0,
+    target: null,
+    on: false,
+    aux: 0,
+  };
   g.player.parts = 5;
   assert.equal(deploy(g, kind), true);
   return g.player.kits.drones;
@@ -92,27 +111,66 @@ describe("shots in the line of fire (Drone Control, Overview)", () => {
       assert.equal(g.droneBlasts?.[0]?.result, "down");
     }
     assert.equal(seen, 1);
-    const r = rate(600, (g) => void mine(g, "DEFENSE_1"), (g) => shot(g, { from: "enemy" }));
+    const r = rate(
+      600,
+      (g) => void mine(g, "DEFENSE_1"),
+      (g) => shot(g, { from: "enemy" }),
+    );
     assert.ok(Math.abs(r - LINE_OF_FIRE) < 0.03, String(r));
   });
 
   it("your weapons never hit your own drones", () => {
-    assert.equal(rate(200, (g) => void mine(g, "COMBAT_1"), (g) => shot(g, { from: "player" })), 0);
-    assert.equal(rate(200, (g) => void mine(g, "DEFENSE_1"), (g) => shot(g, { from: "player" })), 0);
+    assert.equal(
+      rate(
+        200,
+        (g) => void mine(g, "COMBAT_1"),
+        (g) => shot(g, { from: "player" }),
+      ),
+      0,
+    );
+    assert.equal(
+      rate(
+        200,
+        (g) => void mine(g, "DEFENSE_1"),
+        (g) => shot(g, { from: "player" }),
+      ),
+      0,
+    );
   });
 
   it("their outgoing shots cross your combat drone orbiting them, and yours cross theirs orbiting you", () => {
-    const r1 = rate(400, (g) => void mine(g, "COMBAT_1"), (g) => shot(g, { from: "enemy" }));
+    const r1 = rate(
+      400,
+      (g) => void mine(g, "COMBAT_1"),
+      (g) => shot(g, { from: "enemy" }),
+    );
     assert.ok(r1 > 0 && r1 < 0.12, String(r1));
-    const r2 = rate(400, (g) => void fleet(g, ["COMBAT_1"], 2), (g) => shot(g, { from: "player" }));
+    const r2 = rate(
+      400,
+      (g) => void fleet(g, ["COMBAT_1"], 2),
+      (g) => shot(g, { from: "player" }),
+    );
     assert.ok(r2 > 0 && r2 < 0.12, String(r2));
   });
 
   it("a drone's own shot starts beside the target, so it never crosses drones round the far hull", () => {
     // Their combat drone orbits the Lark; your striker's laser leaves from orbit round them.
-    assert.equal(rate(300, (g) => void fleet(g, ["COMBAT_1"], 2), (g) => shot(g, { from: "player", label: "drones" })), 0);
+    assert.equal(
+      rate(
+        300,
+        (g) => void fleet(g, ["COMBAT_1"], 2),
+        (g) => shot(g, { from: "player", label: "drones" }),
+      ),
+      0,
+    );
     // Their defense drone round their own hull is in its way.
-    assert.ok(rate(300, (g) => void fleet(g, ["DEFENSE_1"], 2), (g) => shot(g, { from: "player", label: "drones" })) > 0);
+    assert.ok(
+      rate(
+        300,
+        (g) => void fleet(g, ["DEFENSE_1"], 2),
+        (g) => shot(g, { from: "player", label: "drones" }),
+      ) > 0,
+    );
   });
 
   it("beams, bombs, and ASB shots never collide (Weapons, lead)", () => {
@@ -120,9 +178,18 @@ describe("shots in the line of fire (Drone Control, Overview)", () => {
       mine(g, "DEFENSE_1");
       fleet(g, ["COMBAT_1", "DEFENSE_1"]);
     };
-    assert.equal(rate(200, setup, (g) => shot(g, { kind: "beam" })), 0);
-    assert.equal(rate(200, setup, (g) => shot(g, { kind: "bomb" })), 0);
-    assert.equal(rate(200, setup, (g) => shot(g, { kind: "missile", from: "env" })), 0);
+    assert.equal(
+      rate(200, setup, (g) => shot(g, { kind: "beam" })),
+      0,
+    );
+    assert.equal(
+      rate(200, setup, (g) => shot(g, { kind: "bomb" })),
+      0,
+    );
+    assert.equal(
+      rate(200, setup, (g) => shot(g, { kind: "missile", from: "env" })),
+      0,
+    );
   });
 
   it("an ion shot stuns an enemy drone 5 s per ion instead of destroying it", () => {
@@ -182,7 +249,7 @@ describe("shots in the line of fire (Drone Control, Overview)", () => {
   });
 });
 
-describe("asteroids (Drone Control, Overview: \"destroyed by colliding with asteroids\")", () => {
+describe('asteroids (Drone Control, Overview: "destroyed by colliding with asteroids")', () => {
   const rock = (g: Game) => shot(g, { from: "env", label: "Rock" });
 
   it("a rock can smash any drone orbiting the Lark, either side's", () => {
@@ -203,12 +270,18 @@ describe("asteroids (Drone Control, Overview: \"destroyed by colliding with aste
   });
 
   it("rocks fly at the Lark only, so drones round the enemy hull are safe", () => {
-    assert.equal(rate(300, (g) => void mine(g, "COMBAT_1"), rock), 0);
-    assert.equal(rate(300, (g) => void fleet(g, ["DEFENSE_1"], 2), rock), 0);
+    assert.equal(
+      rate(300, (g) => void mine(g, "COMBAT_1"), rock),
+      0,
+    );
+    assert.equal(
+      rate(300, (g) => void fleet(g, ["DEFENSE_1"], 2), rock),
+      0,
+    );
   });
 });
 
-describe("player redeploy delay (Overview: \"10 second delay before it can be deployed again\")", () => {
+describe('player redeploy delay (Overview: "10 second delay before it can be deployed again")', () => {
   it("refuses for 10 s after a loss, then spends another part", () => {
     for (let seed = 1; seed <= 300; seed++) {
       const g = quiet(seed);
@@ -238,7 +311,10 @@ describe("stray defense fire (Combat Drones (offensive drones))", () => {
       const kit = mine(g, "COMBAT_1");
       fleet(g, ["DEFENSE_2"], 3);
       tickSwarm(g, ACQUIRE_S);
-      assert.equal(enemyDefenseIntercept(g, { kind: "laser", from: "player", label: "drones" }), true);
+      assert.equal(
+        enemyDefenseIntercept(g, { kind: "laser", from: "player", label: "drones" }),
+        true,
+      );
       if (!kit.on) {
         killed += 1;
         assert.equal(kit.lost, REDEPLOY_S);

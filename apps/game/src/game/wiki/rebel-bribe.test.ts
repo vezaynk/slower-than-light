@@ -10,7 +10,9 @@ import { priceBand, rollPrice } from "./event-prices.ts";
 afterEach(() => resetPackForTests());
 
 function beacon(g: Game): Beacon {
-  const found = g.beacons.find((item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss");
+  const found = g.beacons.find(
+    (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
+  );
   assert.ok(found);
   return found;
 }
@@ -26,15 +28,27 @@ function open(g: Game) {
 
 describe("rebel bribe band", () => {
   it("packs the checkpoint price and pays an appended band", () => {
-    assert.deepEqual(eventDef("rebel-checkpoint")?.prices, [{ id: "bribe", k: "scrap", lo: 10, hi: 15 }]);
-    assert.deepEqual(priceBand("rebel-checkpoint", "bribe"), { id: "bribe", k: "scrap", lo: 10, hi: 15 });
+    assert.deepEqual(eventDef("rebel-checkpoint")?.prices, [
+      { id: "bribe", k: "scrap", lo: 10, hi: 15 },
+    ]);
+    assert.deepEqual(priceBand("rebel-checkpoint", "bribe"), {
+      id: "bribe",
+      k: "scrap",
+      lo: 10,
+      hi: 15,
+    });
 
     const row = eventDef("rebel-checkpoint");
     assert.ok(row);
-    loadPack({ events: [{ ...row, prices: [{ id: "bribe", k: "scrap", lo: 8, hi: 8 }] }] }, "append");
+    loadPack(
+      { events: [{ ...row, prices: [{ id: "bribe", k: "scrap", lo: 8, hi: 8 }] }] },
+      "append",
+    );
     const fixed = createGame(1);
     open(fixed);
-    const id = fixed.event?.choices.find((choice) => choice.id.startsWith("q:rebel-checkpoint:bribe:"))?.id;
+    const id = fixed.event?.choices.find((choice) =>
+      choice.id.startsWith("q:rebel-checkpoint:bribe:"),
+    )?.id;
     assert.equal(id, "q:rebel-checkpoint:bribe:8");
     fixed.scrap = 40;
     choose(fixed, "q:rebel-checkpoint:bribe:8");
@@ -45,11 +59,17 @@ describe("rebel bribe band", () => {
 
     const wide = eventDef("rebel-checkpoint");
     assert.ok(wide);
-    loadPack({ events: [{ ...wide, prices: [{ id: "bribe", k: "scrap", lo: 20, hi: 30 }] }] }, "append");
+    loadPack(
+      { events: [{ ...wide, prices: [{ id: "bribe", k: "scrap", lo: 20, hi: 30 }] }] },
+      "append",
+    );
     const rolled = createGame(2);
     open(rolled);
     const cost = Number(
-      rolled.event?.choices.find((choice) => choice.id.startsWith("q:rebel-checkpoint:bribe:"))?.id.split(":").at(-1),
+      rolled.event?.choices
+        .find((choice) => choice.id.startsWith("q:rebel-checkpoint:bribe:"))
+        ?.id.split(":")
+        .at(-1),
     );
     assert.ok(cost >= 20 && cost <= 30, String(cost));
     rolled.scrap = 100;
@@ -66,8 +86,15 @@ describe("rebel bribe band", () => {
     assert.equal(priceBand("rebel-checkpoint", "bribe"), null);
 
     resetPackForTests();
-    assert.deepEqual(eventDef("rebel-checkpoint")?.prices, [{ id: "bribe", k: "scrap", lo: 10, hi: 15 }]);
-    assert.deepEqual(priceBand("rebel-checkpoint", "bribe"), { id: "bribe", k: "scrap", lo: 10, hi: 15 });
+    assert.deepEqual(eventDef("rebel-checkpoint")?.prices, [
+      { id: "bribe", k: "scrap", lo: 10, hi: 15 },
+    ]);
+    assert.deepEqual(priceBand("rebel-checkpoint", "bribe"), {
+      id: "bribe",
+      k: "scrap",
+      lo: 10,
+      hi: 15,
+    });
 
     loadPack(
       {
@@ -103,7 +130,10 @@ describe("rebel bribe band", () => {
 
     const row = eventDef("rebel-checkpoint");
     assert.ok(row);
-    loadPack({ events: [{ ...row, prices: [{ id: "bribe", k: "scrap", lo: 8, hi: 8 }] }] }, "append");
+    loadPack(
+      { events: [{ ...row, prices: [{ id: "bribe", k: "scrap", lo: 8, hi: 8 }] }] },
+      "append",
+    );
     calls = 0;
     assert.equal(rollPrice("rebel-checkpoint", "bribe", roll), 8);
     assert.equal(calls, 0);

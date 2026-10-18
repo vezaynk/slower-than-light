@@ -28,6 +28,8 @@ describe("The Engi virus attack", () => {
     assert.equal(g.scrap, 10);
     assert.equal(g.player.systems.engines, engines);
     assert.equal(g.player.systems.shields, shields);
-    assert.ok(g.log.includes("The Engi be damned, no one threatens your ship. You prepare for a fight!"));
+    assert.ok(
+      g.log.includes("The Engi be damned, no one threatens your ship. You prepare for a fight!"),
+    );
   });
 });

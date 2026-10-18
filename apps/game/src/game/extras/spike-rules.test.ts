@@ -43,7 +43,15 @@ function fight(seed = 5, parts = 3): Game {
 /** Adds an enemy room housing kit `id` (as enemy-gen.ts does) and the kit itself. */
 function fit(g: Game, id: KitId, level = 2, extra: Partial<Kit> = {}): Kit {
   const base = g.enemy!.rooms[0];
-  g.enemy!.rooms.push({ ...base, id: `e-${id}`, title: id, system: null, kit: id, x: 20 + g.enemy!.rooms.length, y: 0 });
+  g.enemy!.rooms.push({
+    ...base,
+    id: `e-${id}`,
+    title: id,
+    system: null,
+    kit: id,
+    x: 20 + g.enemy!.rooms.length,
+    y: 0,
+  });
   const k = { ...kit(id, level), ...extra };
   g.enemy!.kits[id] = k;
   return k;
@@ -134,7 +142,9 @@ describe("hack rules: drone flight", () => {
     for (let seed = 1; seed <= 20; seed++) {
       const g = fight(seed);
       const swarm = fit(g, "drones", 2);
-      swarm.drones = [{ id: "cut", kind: "ANTI_DRONE", alive: true, powered: true, aux: 0, cool: 0 }];
+      swarm.drones = [
+        { id: "cut", kind: "ANTI_DRONE", alive: true, powered: true, aux: 0, cool: 0 },
+      ];
       armSpike(g, "weapons");
       launchSpike(g);
       tickSpike(g, 0.05);
@@ -165,7 +175,16 @@ describe("hack rules: drone flight", () => {
     assert.equal(launchSpike(g), true);
     const k = g.player.kits.hacking!;
     const before = k.hackFly;
-    g.enemy!.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.enemy!.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     flyAll(g, 1);
     assert.equal(k.hackFly, before);
     assert.equal(g.enemy!.hackDrone, undefined);
@@ -178,12 +197,30 @@ describe("hack rules: drone flight", () => {
   it("holds an enemy hacking drone while the player is cloaked", () => {
     const g = fight();
     g.enemy!.parts = 3;
-    g.enemy!.kits.hacking = { id: "hacking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.enemy!.kits.hacking = {
+      id: "hacking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     assert.equal(launchEnemySpike(g), true);
     const k = g.enemy!.kits.hacking!;
     const before = k.hackFly;
     assert.ok(before != null && before > 0);
-    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     tickEnemySpike(g, 1);
     assert.equal(k.hackFly, before);
     assert.equal(k.hackLatched, undefined);
@@ -209,8 +246,27 @@ describe("hack rules: every listed target", () => {
   it("Sensors and every fitted subsystem room can be picked; unfitted kits cannot", () => {
     const g = fight();
     assert.equal(armSpike(g, "cloaking"), false);
-    for (const id of ["cloaking", "teleporter", "mind", "drones", "battery", "clonebay", "hacking", "artillery"] as KitId[]) fit(g, id, 1);
-    for (const id of ["cloaking", "teleporter", "mind", "drones", "battery", "clonebay", "hacking", "artillery"]) {
+    for (const id of [
+      "cloaking",
+      "teleporter",
+      "mind",
+      "drones",
+      "battery",
+      "clonebay",
+      "hacking",
+      "artillery",
+    ] as KitId[])
+      fit(g, id, 1);
+    for (const id of [
+      "cloaking",
+      "teleporter",
+      "mind",
+      "drones",
+      "battery",
+      "clonebay",
+      "hacking",
+      "artillery",
+    ]) {
       assert.equal(spikeRoomTargetable(g, `e-${id}`), true, id);
     }
     const sensors = g.enemy!.rooms.find((r) => r.system === "sensors");

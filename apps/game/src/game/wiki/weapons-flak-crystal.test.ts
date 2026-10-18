@@ -30,7 +30,12 @@ const SOURCE = readFileSync(
   "utf8",
 );
 
-const CRYSTAL_IDS = ["CRYSTAL_BURST_1", "CRYSTAL_BURST_2", "CRYSTAL_HEAVY_1", "CRYSTAL_HEAVY_2"] as const;
+const CRYSTAL_IDS = [
+  "CRYSTAL_BURST_1",
+  "CRYSTAL_BURST_2",
+  "CRYSTAL_HEAVY_1",
+  "CRYSTAL_HEAVY_2",
+] as const;
 
 function sections(text: string): Map<string, string> {
   const map = new Map<string, string>();
@@ -408,7 +413,14 @@ describe("Adv. Flak room odds", () => {
     g.player.systems.weapons.level = 1;
     g.player.systems.weapons.power = 1;
     g.player.weapons = [
-      { uid: "af", defId: "SHOTGUN_PLAYER", charge: 1, enabled: true, autofire: false, target: "n" },
+      {
+        uid: "af",
+        defId: "SHOTGUN_PLAYER",
+        charge: 1,
+        enabled: true,
+        autofire: false,
+        target: "n",
+      },
     ];
     g.seed = 8;
     const preview = createGame(1);

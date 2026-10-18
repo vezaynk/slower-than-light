@@ -20,10 +20,16 @@ describe("Pirate engine hacker surrender", () => {
   it("never surrenders; a Pirate ship with no event still can", () => {
     // Pirate engine hacker: the ship ("PIRATE_NO_ESCAPE") doesn't surrender. The page prints no percent.
     assert.equal(
-      surrenderPlan({ tier: "pool", faction: "pirate", pirate: true, event: "pirate-engine-hacker" }, () => 0.5).chance,
+      surrenderPlan(
+        { tier: "pool", faction: "pirate", pirate: true, event: "pirate-engine-hacker" },
+        () => 0.5,
+      ).chance,
       0,
     );
-    assert.equal(surrenderPlan({ tier: "pool", faction: "pirate", pirate: true }, () => 0.5).chance, 50);
+    assert.equal(
+      surrenderPlan({ tier: "pool", faction: "pirate", pirate: true }, () => 0.5).chance,
+      50,
+    );
 
     const g = createGame(1);
     open(g);

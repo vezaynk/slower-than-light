@@ -23,8 +23,14 @@ describe("Refueling platform garbled broadcast", () => {
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:refueling-platform-garbled-broadcast:0"), true);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:refueling-platform-garbled-broadcast:1"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:refueling-platform-garbled-broadcast:0"),
+      true,
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:refueling-platform-garbled-broadcast:1"),
+      true,
+    );
   });
 
   it("ignoring the platform shows the printed jump sentence and nothing happens", () => {
@@ -34,7 +40,10 @@ describe("Refueling platform garbled broadcast", () => {
     open(g);
     g.fleet = 5;
     choose(g, "c:refueling-platform-garbled-broadcast:1");
-    assert.equal(g.event?.body, "You leave the platform alone, and prepare to jump.\n\nNothing happens.");
+    assert.equal(
+      g.event?.body,
+      "You leave the platform alone, and prepare to jump.\n\nNothing happens.",
+    );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, fuel);

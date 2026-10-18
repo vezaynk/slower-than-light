@@ -51,7 +51,10 @@ describe("Slocknog", () => {
     assert.equal(choiceDisabled(short, "c:slocknog:0"), "Need 55 scrap");
     fillerChoose(short, "c:slocknog:0");
     assert.equal(short.scrap, 54);
-    assert.equal(players(short).some((c) => c.name === "Slocknog"), false);
+    assert.equal(
+      players(short).some((c) => c.name === "Slocknog"),
+      false,
+    );
 
     const full = createGame(2);
     full.scrap = 55;
@@ -94,6 +97,9 @@ describe("Slocknog", () => {
     assert.match(left.event?.body ?? "", /find a way off that moon/);
     assert.match(left.event?.body ?? "", /Nothing happens/);
     assert.equal(left.scrap, 10);
-    assert.equal(players(left).some((c) => c.name === "Slocknog"), false);
+    assert.equal(
+      players(left).some((c) => c.name === "Slocknog"),
+      false,
+    );
   });
 });

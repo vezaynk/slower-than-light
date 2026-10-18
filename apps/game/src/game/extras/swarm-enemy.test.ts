@@ -24,9 +24,20 @@ import {
 } from "./swarm.ts";
 import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 
-const OFFENSIVE = ["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire", "BOARDER", "BOARDER_ION"];
+const OFFENSIVE = [
+  "COMBAT_1",
+  "COMBAT_2",
+  "COMBAT_BEAM",
+  "COMBAT_BEAM_2",
+  "fire",
+  "BOARDER",
+  "BOARDER_ION",
+];
 
-function pinLeg(body: { heading?: number; bearing?: number; left?: number; aux: number }, speed: number) {
+function pinLeg(
+  body: { heading?: number; bearing?: number; left?: number; aux: number },
+  speed: number,
+) {
   body.heading = 0;
   body.bearing = 90;
   body.left = orbitLegSeconds(0, 90, speed);
@@ -97,7 +108,17 @@ function quiet(seed: number): Game {
 /** Give the enemy a Drone Control with this hidden loadout, fully powered, nothing deployed yet. */
 function fleet(g: Game, loadout: string[], level = 8, parts = 8) {
   const enemy = g.enemy!;
-  enemy.kits.drones = { id: "drones", level, power: level, left: 0, cool: 0, target: null, on: false, aux: 0, loadout };
+  enemy.kits.drones = {
+    id: "drones",
+    level,
+    power: level,
+    left: 0,
+    cool: 0,
+    target: null,
+    on: false,
+    aux: 0,
+    loadout,
+  };
   enemy.parts = parts;
   return enemy.kits.drones;
 }
@@ -117,7 +138,10 @@ describe("enemy drone allowance (Template:Enemy ships drones)", () => {
     for (const id of ["engi-scout", "engi-outrider", "engi-bomber", "engi-hacker"]) {
       const row = ENEMY_DRONES[id];
       assert.ok(row);
-      assert.deepEqual(row.drones.filter((d) => OFFENSIVE.includes(d)), []);
+      assert.deepEqual(
+        row.drones.filter((d) => OFFENSIVE.includes(d)),
+        [],
+      );
     }
     let seen = 0;
     for (let seed = 1; seed <= 60; seed++) {
@@ -128,7 +152,8 @@ describe("enemy drone allowance (Template:Enemy ships drones)", () => {
       const loadout = g.enemy?.kits.drones?.loadout ?? [];
       if (g.enemy?.faction !== "engi") continue;
       seen += loadout.length;
-      for (const kind of loadout) assert.ok(["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE"].includes(kind), kind);
+      for (const kind of loadout)
+        assert.ok(["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE"].includes(kind), kind);
     }
     assert.ok(seen > 0);
   });
@@ -234,7 +259,8 @@ describe("enemy offensive drones", () => {
     const seen = new Set<string>();
     for (let i = 0; i < 1200; i++) {
       step(g, 0.05);
-      for (const s of g.shots) if (s.label?.startsWith(DRONE_LABEL) && s.from === "enemy") seen.add(s.id);
+      for (const s of g.shots)
+        if (s.label?.startsWith(DRONE_LABEL) && s.from === "enemy") seen.add(s.id);
       g.player.shieldNow = 0;
     }
     assert.ok(seen.size >= 10, `shots ${seen.size}`);
@@ -267,7 +293,16 @@ describe("enemy offensive drones", () => {
     const g = quiet(42);
     fleet(g, ["COMBAT_1"], 2);
     dropPlayerShields(g);
-    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     tickSwarm(g, 0.05);
     const unit = units(g)[0];
     assert.ok(unit);
@@ -279,20 +314,14 @@ describe("enemy offensive drones", () => {
     const heading = unit.heading;
     const bearing = unit.bearing;
     tickSwarm(g, unit.left);
-    assert.equal(
-      g.shots.filter((s) => s.from === "enemy").length,
-      0,
-    );
+    assert.equal(g.shots.filter((s) => s.from === "enemy").length, 0);
     assert.notEqual(unit.heading, heading);
     assert.notEqual(unit.bearing, bearing);
     g.player.kits.cloaking.on = false;
     const next = unit.left ?? 0;
     assert.ok(next > 0);
     tickSwarm(g, next);
-    assert.equal(
-      g.shots.filter((s) => s.from === "enemy").length,
-      1,
-    );
+    assert.equal(g.shots.filter((s) => s.from === "enemy").length, 1);
   });
 
   it("a beam drone does nothing through shields and burns hull without them", () => {
@@ -336,7 +365,16 @@ describe("enemy offensive drones", () => {
     const g = quiet(43);
     dropPlayerShields(g);
     g.player.zoltan = 0;
-    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 8, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 8,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     fleet(g, ["COMBAT_BEAM"], 2);
     const hull = g.player.hull;
     const bars = Object.values(g.player.systems).reduce((sum, sys) => sum + sys.damage, 0);
@@ -347,10 +385,7 @@ describe("enemy offensive drones", () => {
     g.shots = [];
     tickSwarm(g, unit.left ?? 0);
     assert.equal(unit.heading, 90);
-    assert.equal(
-      g.shots.filter((s) => s.from === "enemy").length,
-      0,
-    );
+    assert.equal(g.shots.filter((s) => s.from === "enemy").length, 0);
     assert.equal(g.player.hull, hull);
     assert.equal(g.player.zoltan, 0);
     assert.equal(
@@ -363,10 +398,7 @@ describe("enemy offensive drones", () => {
     tickSwarm(g, unit.left ?? 0);
     assert.equal(g.player.zoltan, 4);
     assert.equal(g.player.hull, hull);
-    assert.equal(
-      g.shots.filter((s) => s.from === "enemy").length,
-      0,
-    );
+    assert.equal(g.shots.filter((s) => s.from === "enemy").length, 0);
     assert.equal(unit.heading, 90);
   });
 
@@ -442,7 +474,16 @@ describe("enemy defensive drones", () => {
     let killed = 0;
     for (let seed = 11; seed < 31; seed++) {
       const g = quiet(seed);
-      g.player.kits.drones = { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.drones = {
+        id: "drones",
+        level: 2,
+        power: 2,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       g.player.parts = 2;
       assert.equal(deploy(g, "COMBAT_1"), true);
       fleet(g, ["ANTI_DRONE"], 1);
@@ -462,7 +503,16 @@ describe("enemy defensive drones", () => {
     let killed = 0;
     for (let seed = 11; seed < 31; seed++) {
       const g = quiet(seed);
-      g.player.kits.drones = { id: "drones", level: bars, power: bars, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.drones = {
+        id: "drones",
+        level: bars,
+        power: bars,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       g.player.parts = 2;
       assert.equal(deploy(g, "BOARDER"), true);
       fleet(g, ["ANTI_DRONE"], 1);
@@ -479,7 +529,16 @@ describe("enemy defensive drones", () => {
     const bars = DRONE_POWER.BOARDER;
     const g = quiet(11);
     g.augments = ["DEFENSE_SCRAMBLER"];
-    g.player.kits.drones = { id: "drones", level: bars, power: bars, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.drones = {
+      id: "drones",
+      level: bars,
+      power: bars,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     g.player.parts = 2;
     assert.equal(deploy(g, "BOARDER"), true);
     fleet(g, ["ANTI_DRONE"], 1);
@@ -498,7 +557,16 @@ describe("enemy defensive drones", () => {
     let killed = 0;
     for (let seed = 11; seed < 31; seed++) {
       const g = quiet(seed);
-      g.player.kits.drones = { id: "drones", level: bars, power: bars, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.drones = {
+        id: "drones",
+        level: bars,
+        power: bars,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       g.player.parts = 2;
       assert.equal(deploy(g, "BOARDER_ION"), true);
       fleet(g, ["ANTI_DRONE"], 1);
@@ -515,7 +583,16 @@ describe("enemy defensive drones", () => {
 describe("enemy boarding drones", () => {
   it("your defense drone shoots one down in flight", () => {
     const g = quiet(12);
-    g.player.kits.drones = { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.drones = {
+      id: "drones",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     g.player.parts = 2;
     assert.equal(deploy(g, "DEFENSE_1"), true);
     fleet(g, ["BOARDER"], 3);
@@ -545,7 +622,9 @@ describe("enemy boarding drones", () => {
     const room = g.player.rooms.find((r) => r.id === unit.room)!;
     assert.ok(room.breach >= 1);
     // Clear the room so the drone works on the system.
-    for (const c of g.crew) if (c.room === room.id && c.aboard === "player") c.room = g.player.rooms.find((r) => r.id !== room.id)!.id;
+    for (const c of g.crew)
+      if (c.room === room.id && c.aboard === "player")
+        c.room = g.player.rooms.find((r) => r.id !== room.id)!.id;
     const bars = () => Object.values(g.player.systems).reduce((sum, s) => sum + s.damage, 0);
     const damage = bars();
     // Crew skills, Combat skill: one bar in 12.5 seconds. The breach tick does not count.
@@ -594,14 +673,32 @@ describe("drone interception API (for the Hacking work)", () => {
     assert.equal(interceptIncomingDrone(none, "player", "hacking"), null);
 
     const ward = quiet(15);
-    ward.player.kits.drones = { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    ward.player.kits.drones = {
+      id: "drones",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     ward.player.parts = 1;
     deploy(ward, "DEFENSE_1");
     assert.equal(interceptIncomingDrone(ward, "player", "hacking"), "down");
     assert.equal(interceptIncomingDrone(ward, "player", "hacking"), null);
 
     const cut = quiet(16);
-    cut.player.kits.drones = { id: "drones", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    cut.player.kits.drones = {
+      id: "drones",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     cut.player.parts = 1;
     deploy(cut, "ANTI_DRONE");
     assert.ok(["down", "stun"].includes(interceptIncomingDrone(cut, "player", "hacking") ?? ""));

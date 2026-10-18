@@ -7,11 +7,7 @@ import type { FactionSurrender, NamedReward, RewardResource, RewardTable } from 
  */
 const SCRAP: RewardResource = { name: "scrap" };
 
-function named(
-  name: string,
-  resources: RewardResource[],
-  bonus?: number,
-): NamedReward {
+function named(name: string, resources: RewardResource[], bonus?: number): NamedReward {
   const row: NamedReward = { name, resources };
   if (bonus != null) {
     row.minResources = 2;
@@ -42,8 +38,26 @@ export const REWARD_TABLE: RewardTable = {
     { kind: "droneparts", level: "HIGH", min: 1, max: 2 },
   ],
   rewards: [
-    named("standard", [SCRAP, { name: "fuel", level: "LOW" }, { name: "missiles", level: "LOW" }, { name: "droneparts", level: "LOW" }], 3),
-    named("stuff", [{ name: "scrap", level: "LOW" }, { name: "fuel" }, { name: "missiles" }, { name: "droneparts" }], 6),
+    named(
+      "standard",
+      [
+        SCRAP,
+        { name: "fuel", level: "LOW" },
+        { name: "missiles", level: "LOW" },
+        { name: "droneparts", level: "LOW" },
+      ],
+      3,
+    ),
+    named(
+      "stuff",
+      [
+        { name: "scrap", level: "LOW" },
+        { name: "fuel" },
+        { name: "missiles" },
+        { name: "droneparts" },
+      ],
+      6,
+    ),
     named("scrap_only", [SCRAP]),
     named("fuel", [SCRAP, { name: "fuel" }]),
     named("missiles", [SCRAP, { name: "missiles" }]),

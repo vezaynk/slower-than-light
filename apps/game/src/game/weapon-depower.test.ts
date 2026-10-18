@@ -1,6 +1,17 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, DEPOWER_DRAIN_S, depowerWeapon, powerDown, powerMask, powerUp, sparePower, startCombat, step, toggleWeapon } from "./sim.ts";
+import {
+  createGame,
+  DEPOWER_DRAIN_S,
+  depowerWeapon,
+  powerDown,
+  powerMask,
+  powerUp,
+  sparePower,
+  startCombat,
+  step,
+  toggleWeapon,
+} from "./sim.ts";
 import type { WeaponInst } from "./types.ts";
 
 describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", () => {
@@ -133,7 +144,10 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
       autofire: false,
       target,
     });
-    g.player.weapons = [gun("LASER_BURST_3", "burst", "keep"), gun("LASER_BURST_1", "laser", "drop")];
+    g.player.weapons = [
+      gun("LASER_BURST_3", "burst", "keep"),
+      gun("LASER_BURST_1", "laser", "drop"),
+    ];
     g.armed = "laser";
     g.targeting = true;
     g.beamAnchor = { x: 1, y: 1 };

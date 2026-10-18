@@ -2,12 +2,19 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { applyPulsarPulse, createGame, pulsarSystemIon, startCombat, step } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
-import { eventHasPulsar, pickPulsarTargets, pulsarMainIon, pulsarShieldSpend, type PulsarPick } from "./cited-pulsar.ts";
+import {
+  eventHasPulsar,
+  pickPulsarTargets,
+  pulsarMainIon,
+  pulsarShieldSpend,
+  type PulsarPick,
+} from "./cited-pulsar.ts";
 
 function ionCount(g: Game, side: "player" | "enemy"): number {
   const ship = side === "player" ? g.player : g.enemy;
   if (!ship) return 0;
-  return (Object.keys(ship.systems) as SysId[]).filter((id) => ship.systems[id].ion.length > 0).length;
+  return (Object.keys(ship.systems) as SysId[]).filter((id) => ship.systems[id].ion.length > 0)
+    .length;
 }
 
 function clearIon(g: Game, side: "player" | "enemy") {

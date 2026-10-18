@@ -260,7 +260,10 @@ export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
     const ship = kit === g.player.kits.battery ? g.player : g.enemy;
     if (ship) shedOverAssigned(g, ship, ship === g.player ? "player" : "enemy");
   }
-  log(g, kit === g.player.kits.battery ? "Backup Battery cooling." : "Their Backup Battery cooling.");
+  log(
+    g,
+    kit === g.player.kits.battery ? "Backup Battery cooling." : "Their Backup Battery cooling.",
+  );
   return true;
 }
 

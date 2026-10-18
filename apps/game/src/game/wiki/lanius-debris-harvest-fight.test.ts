@@ -24,6 +24,10 @@ describe("Lanius ship in rich debris field harvest fight", () => {
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-in-rich-debris-field");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("As you attempt to navigate the debris, you come too close to the Lanius ship - and they proceed to try to harvest you!"));
+    assert.ok(
+      g.log.includes(
+        "As you attempt to navigate the debris, you come too close to the Lanius ship - and they proceed to try to harvest you!",
+      ),
+    );
   });
 });

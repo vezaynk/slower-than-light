@@ -3,7 +3,21 @@ import { afterEach, describe, it } from "node:test";
 import { createGame, step } from "../sim.ts";
 import { citedCrewDamage, citedPierce } from "../wiki/cited-weapons.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./beams.ts";
-import { augmentDef, crewDef, droneDef, eventDef, hullDef, loadPack, parsePack, resetPackForTests, sectorDef, storeDef, systemDef, tuneDef, weaponDef } from "@stl/pack";
+import {
+  augmentDef,
+  crewDef,
+  droneDef,
+  eventDef,
+  hullDef,
+  loadPack,
+  parsePack,
+  resetPackForTests,
+  sectorDef,
+  storeDef,
+  systemDef,
+  tuneDef,
+  weaponDef,
+} from "@stl/pack";
 import type { Shot } from "../types.ts";
 
 const XML = `
@@ -282,7 +296,10 @@ describe("parsePack", () => {
     assert.deepEqual(emberEvent?.aliases, ["Ember Page"]);
     assert.deepEqual(emberEvent?.sectors, ["Civilian Sector"]);
     assert.equal(emberEvent?.body, "A packed beacon.");
-    assert.equal(emberEvent?.choices[0]?.fx[2]?.k === "note" ? emberEvent.choices[0].fx[2].text : "", "Hello & co");
+    assert.equal(
+      emberEvent?.choices[0]?.fx[2]?.k === "note" ? emberEvent.choices[0].fx[2].text : "",
+      "Hello & co",
+    );
     assert.deepEqual(emberEvent?.choices[0]?.fx[3], { k: "quest", id: "ember-quest" });
     assert.deepEqual(emberEvent?.choices[0]?.fx[4], { k: "goto", id: "ember-next" });
     assert.deepEqual(emberEvent?.choices[0]?.fx[5], { k: "close" });
@@ -303,7 +320,9 @@ describe("parsePack", () => {
     assert.equal(pack.events?.[1]?.surrender, undefined);
     assert.equal(pack.events?.[1]?.flag, "cited:bareevent");
     assert.equal(pack.events?.[1]?.dest, "bareevent");
-    assert.deepEqual(pack.lists, [{ id: "ember-list", entries: [{ id: "large-asteroid-field", unique: true }] }]);
+    assert.deepEqual(pack.lists, [
+      { id: "ember-list", entries: [{ id: "large-asteroid-field", unique: true }] },
+    ]);
     assert.equal(pack.empties?.length, 1);
     assert.equal(pack.empties?.[0]?.nebula, true);
     assert.equal(pack.empties?.[0]?.dest, "Ember quiet");

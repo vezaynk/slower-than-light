@@ -30,10 +30,13 @@ describe("layout text", () => {
     assert.deepEqual(marksFromDoors(grid), source.marks);
     const read = readGrid(writeGrid(grid));
     assert.ok(read);
-    assert.deepEqual(read.rooms.map(({ id, x, y, w, h }) => ({ id, x, y, w, h })), [
-      { id: 0, x: 0, y: 0, w: 2, h: 2 },
-      { id: 1, x: 2, y: 0, w: 2, h: 2 },
-    ]);
+    assert.deepEqual(
+      read.rooms.map(({ id, x, y, w, h }) => ({ id, x, y, w, h })),
+      [
+        { id: 0, x: 0, y: 0, w: 2, h: 2 },
+        { id: 1, x: 2, y: 0, w: 2, h: 2 },
+      ],
+    );
     assert.deepEqual(read.doors, grid.doors);
     assert.equal(read.x, 0);
     assert.equal(read.y, 0);

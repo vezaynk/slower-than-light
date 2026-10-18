@@ -1073,7 +1073,14 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
     "q:merchant:weapons": (g) => {
       const parts = payParts(g, "q:merchant:weapons");
       if (!parts) return;
-      const offer = printedScrap(g, "weapons") ?? { tier: "low" as const, scrap: 0, eligible: 0, fuel: 0, missiles: 0, parts: 0 };
+      const offer = printedScrap(g, "weapons") ?? {
+        tier: "low" as const,
+        scrap: 0,
+        eligible: 0,
+        fuel: 0,
+        missiles: 0,
+        parts: 0,
+      };
       offer.fuel = rollFuel("q:merchant:weapons", (lo, hi) => between(g, [lo, hi]));
       result(
         g,

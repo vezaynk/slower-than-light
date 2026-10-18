@@ -31,7 +31,12 @@ const SYSTEM_NAME: Record<string, string> = {
 
 export type BaySystem = { id: string; name: string; icon: IconName; level: number };
 export type BayWeapon = { id: string; name: string };
-export type BayDrone = { id: string | null; name: string; kind: DroneKey | null; unfitted: boolean };
+export type BayDrone = {
+  id: string | null;
+  name: string;
+  kind: DroneKey | null;
+  unfitted: boolean;
+};
 
 export type HangarBay = {
   name: string;
@@ -74,10 +79,19 @@ export function hangarBay(id: string | undefined): HangarBay | undefined {
     });
   }
   const droneKit = hull.kits.drones;
-  const schematicIds = droneKit?.loadout?.length ? droneKit.loadout : droneKit?.target ? [droneKit.target] : [];
+  const schematicIds = droneKit?.loadout?.length
+    ? droneKit.loadout
+    : droneKit?.target
+      ? [droneKit.target]
+      : [];
   const drones: BayDrone[] = schematicIds.map((schematic) => {
     const name = droneDef(schematic)?.name ?? schematic;
-    return { id: schematic, name, kind: droneKeyOf(schematic) ?? droneKeyForName(name), unfitted: false };
+    return {
+      id: schematic,
+      name,
+      kind: droneKeyOf(schematic) ?? droneKeyForName(name),
+      unfitted: false,
+    };
   });
   for (const label of hull.unfitted) {
     drones.push({ id: null, name: label, kind: droneKeyForName(label), unfitted: true });
@@ -86,7 +100,10 @@ export function hangarBay(id: string | undefined): HangarBay | undefined {
     name: hull.name,
     unlock: unlockLines(hull.unlock),
     systems,
-    weapons: hull.weapons.map((weaponId) => ({ id: weaponId, name: weaponDef(weaponId)?.name ?? weaponId })),
+    weapons: hull.weapons.map((weaponId) => ({
+      id: weaponId,
+      name: weaponDef(weaponId)?.name ?? weaponId,
+    })),
     weaponSlots: hull.weaponSlots ?? null,
     drones,
     droneSlots: hull.droneSlots ?? null,
@@ -123,7 +140,8 @@ export function cruiserArticle(id: string | undefined): ArticleLine[] | undefine
   lines.push({ depth: 1, text: "Crew:" });
   for (const seat of countedCrew(hull.crew)) lines.push({ depth: 2, text: seat });
   lines.push({ depth: 1, text: "Systems:" });
-  for (const system of bay.systems) lines.push({ depth: 2, text: `${system.name} (${system.level})` });
+  for (const system of bay.systems)
+    lines.push({ depth: 2, text: `${system.name} (${system.level})` });
   lines.push({ depth: 1, text: slotHeader("Weapons", bay.weaponSlots) });
   for (const weapon of bay.weapons) lines.push({ depth: 2, text: weapon.name });
   lines.push({ depth: 1, text: slotHeader("Drones", bay.droneSlots) });

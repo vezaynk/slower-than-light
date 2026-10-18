@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat, step } from "../sim.ts";
-import { BOMB_FLIGHT_S, LASER_FLIGHT_S, LASER_SPEED, projectileFlightSeconds, shotFlightSeconds } from "./projectile-speed.ts";
+import {
+  BOMB_FLIGHT_S,
+  LASER_FLIGHT_S,
+  LASER_SPEED,
+  projectileFlightSeconds,
+  shotFlightSeconds,
+} from "./projectile-speed.ts";
 
 describe("projectile speed", () => {
   it("keeps a speed-60 laser at 0.7s and scales the other printed speeds", () => {
@@ -41,7 +47,14 @@ describe("projectile speed", () => {
     for (const [defId, duration] of Object.entries(expect)) {
       g.shots = [];
       g.enemy.weapons = [
-        { uid: "gun", defId, charge: 1, enabled: true, autofire: true, target: g.player.rooms[0].id },
+        {
+          uid: "gun",
+          defId,
+          charge: 1,
+          enabled: true,
+          autofire: true,
+          target: g.player.rooms[0].id,
+        },
       ];
       step(g, 0.05);
       const shots = g.shots.filter((shot) => shot.defId === defId);

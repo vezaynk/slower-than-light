@@ -82,7 +82,8 @@ export function plateOf(args: PlateArgs): HullCell[] {
   const nose = (c: Cell) => (facing === "right" ? c.x : -c.x);
   const tail = (c: Cell) => -nose(c);
 
-  if (kind === "mantis" || kind === "lanius") addFlanks(ink, floor, inside, facing, kind === "lanius");
+  if (kind === "mantis" || kind === "lanius")
+    addFlanks(ink, floor, inside, facing, kind === "lanius");
   paintBody(kind, ink, floor, rows, nose, tail);
 
   const h = fnv(args.id);
@@ -108,7 +109,8 @@ export function plateOf(args: PlateArgs): HullCell[] {
 }
 
 function kindOf(id: string, faction: string): Kind {
-  if (id.startsWith("flagship") || /^BOSS_[123]_/.test(id) || faction.toLowerCase() === "flagship") return "flagship";
+  if (id.startsWith("flagship") || /^BOSS_[123]_/.test(id) || faction.toLowerCase() === "flagship")
+    return "flagship";
   const f = faction.toLowerCase();
   if (f === "federation" || f === "fed") return "fed";
   if (KINDS.has(f)) return f as Exclude<Kind, "flagship">;
@@ -164,7 +166,12 @@ function cellsOf(ink: Map<string, HullInk>): Cell[] {
 }
 
 function orthoFloor(x: number, y: number, floor: Set<string>): boolean {
-  return floor.has(key(x + 1, y)) || floor.has(key(x - 1, y)) || floor.has(key(x, y + 1)) || floor.has(key(x, y - 1));
+  return (
+    floor.has(key(x + 1, y)) ||
+    floor.has(key(x - 1, y)) ||
+    floor.has(key(x, y + 1)) ||
+    floor.has(key(x, y - 1))
+  );
 }
 
 function diagFloor(x: number, y: number, floor: Set<string>): boolean {
@@ -205,18 +212,22 @@ function paintBody(
   if (kind === "kestrel") {
     for (const side of ["top", "bottom"] as const) {
       const pool = cells.filter((c) => (side === "top" ? c.y <= mid : c.y >= mid));
-      const block = [...pool].sort((a, b) => tail(b) - tail(a) || (side === "top" ? a.y - b.y : b.y - a.y));
+      const block = [...pool].sort(
+        (a, b) => tail(b) - tail(a) || (side === "top" ? a.y - b.y : b.y - a.y),
+      );
       const first = block[0];
       if (!first) continue;
       ink.set(key(first.x, first.y), "accent");
-      const second = block.find((c) => Math.abs(c.x - first.x) + Math.abs(c.y - first.y) === 1) ?? block[1];
+      const second =
+        block.find((c) => Math.abs(c.x - first.x) + Math.abs(c.y - first.y) === 1) ?? block[1];
       if (second) ink.set(key(second.x, second.y), "accent");
     }
   }
 
   if (kind === "fed") {
     for (const c of cells) {
-      if (!orthoFloor(c.x, c.y, floor) && diagFloor(c.x, c.y, floor)) ink.set(key(c.x, c.y), "edge");
+      if (!orthoFloor(c.x, c.y, floor) && diagFloor(c.x, c.y, floor))
+        ink.set(key(c.x, c.y), "edge");
     }
     chevron(ink, cells, nose, mid);
   }
@@ -238,7 +249,9 @@ function paintBody(
       if (empty >= 2 || (c.x + c.y) % 3 === 0) ink.set(key(c.x, c.y), "edge");
     }
     const bays = cells.filter((c) => ink.get(key(c.x, c.y)) === "skin");
-    const cores = [...bays].sort((a, b) => Math.abs(a.y - mid) + Math.abs(a.x) - (Math.abs(b.y - mid) + Math.abs(b.x)));
+    const cores = [...bays].sort(
+      (a, b) => Math.abs(a.y - mid) + Math.abs(a.x) - (Math.abs(b.y - mid) + Math.abs(b.x)),
+    );
     for (const c of cores.slice(0, 3)) ink.set(key(c.x, c.y), "accent");
   }
 
@@ -246,7 +259,8 @@ function paintBody(
     const max = Math.max(...cells.map(nose));
     for (const c of cells) {
       if (nose(c) === max) ink.set(key(c.x, c.y), "edge");
-      else if (!orthoFloor(c.x, c.y, floor) && diagFloor(c.x, c.y, floor)) ink.set(key(c.x, c.y), "edge");
+      else if (!orthoFloor(c.x, c.y, floor) && diagFloor(c.x, c.y, floor))
+        ink.set(key(c.x, c.y), "edge");
     }
   }
 
@@ -369,7 +383,9 @@ function addFlanks(
       [-1, 0],
       [0, 1],
       [0, -1],
-    ].filter(([dx0, dy0]) => ink.has(key(c.x + dx0, c.y + dy0)) || floor.has(key(c.x + dx0, c.y + dy0))).length;
+    ].filter(
+      ([dx0, dy0]) => ink.has(key(c.x + dx0, c.y + dy0)) || floor.has(key(c.x + dx0, c.y + dy0)),
+    ).length;
     if (mates <= 1) ink.set(id, "edge");
   }
 }
@@ -454,7 +470,7 @@ function applyBand(kind: Kind, ink: Map<string, HullInk>, h: number, rows: numbe
 function panelBreaks(ink: Map<string, HullInk>) {
   for (const c of cellsOf(ink)) {
     const id = key(c.x, c.y);
-    if (ink.get(id) === "skin" && (Math.abs(c.x * 3 + c.y) % 4 === 0)) ink.set(id, "edge");
+    if (ink.get(id) === "skin" && Math.abs(c.x * 3 + c.y) % 4 === 0) ink.set(id, "edge");
   }
 }
 
@@ -471,10 +487,17 @@ function applySlit(ink: Map<string, HullInk>, h: number, nose: (c: Cell) => numb
   const source = pool.length ? pool : cellsOf(ink);
   if (!source.length) return;
   const mid = (rows - 1) / 2;
-  const ranked = [...source].sort((a, b) => nose(b) - nose(a) || Math.abs(a.y - mid) - Math.abs(b.y - mid) || a.x - b.x);
+  const ranked = [...source].sort(
+    (a, b) => nose(b) - nose(a) || Math.abs(a.y - mid) - Math.abs(b.y - mid) || a.x - b.x,
+  );
   const origin = ranked[mix(h, 9) % ranked.length];
   const nearest = [...source].sort(
-    (a, b) => Math.abs(a.x - origin.x) + Math.abs(a.y - origin.y) - (Math.abs(b.x - origin.x) + Math.abs(b.y - origin.y)) || a.x - b.x || a.y - b.y,
+    (a, b) =>
+      Math.abs(a.x - origin.x) +
+        Math.abs(a.y - origin.y) -
+        (Math.abs(b.x - origin.x) + Math.abs(b.y - origin.y)) ||
+      a.x - b.x ||
+      a.y - b.y,
   );
   for (const c of nearest.slice(0, count)) ink.set(key(c.x, c.y), "glow");
 }

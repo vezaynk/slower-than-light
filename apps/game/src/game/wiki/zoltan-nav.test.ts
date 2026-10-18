@@ -49,7 +49,10 @@ describe("Zoltan power bar", () => {
     g.player.systems.shields.power = 2;
     g.player.systems.shields.level = 2;
     g.crew.push(spark("p-shields", "z-shield"));
-    assert.equal(bars(g.player.systems.shields, zoltanBars(g.crew, g.player, "player", "shields")), 2);
+    assert.equal(
+      bars(g.player.systems.shields, zoltanBars(g.crew, g.player, "player", "shields")),
+      2,
+    );
     assert.equal(sparePower(g.player), before);
   });
 
@@ -170,7 +173,8 @@ describe("Adv. FTL Navigation", () => {
     g.fleet = 4;
     assert.equal(canJumpTo(g, dest.id), true);
     const unvisited = g.beacons.find((b) => b.id !== here.id && b.id !== dest.id && !b.visited);
-    if (unvisited && !here.links.includes(unvisited.id)) assert.equal(canJumpTo(g, unvisited.id), false);
+    if (unvisited && !here.links.includes(unvisited.id))
+      assert.equal(canJumpTo(g, unvisited.id), false);
     commitJump(g, dest.id);
     assert.equal(g.here, dest.id);
     assert.equal(g.fuel, fuel - 1);

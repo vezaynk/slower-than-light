@@ -21,14 +21,19 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Lanius ship attacking Slug", () => {
   it("attacking starts a Lanius fight", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.body, "The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating.");
+    assert.equal(
+      g.event?.body,
+      "The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating.",
+    );
     choose(g, "c:lanius-ship-attacking-slug:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-ship-attacking-slug");
@@ -50,7 +55,10 @@ describe("Lanius ship attacking Slug", () => {
       assert.equal(resources(body), 2, body);
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(g.player.weapons.length, guns);
-      assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-slug:contact"), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === "q:lanius-slug:contact"),
+        true,
+      );
     }
   });
 

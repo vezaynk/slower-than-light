@@ -22,7 +22,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 function inBand(n: number, lo: number, hi: number) {
@@ -41,7 +43,10 @@ describe("Lanius powered-down ship", () => {
   it("scanning starts a Lanius fight on default rewards", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.body, "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down.");
+    assert.equal(
+      g.event?.body,
+      "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down.",
+    );
     choose(g, "c:lanius-powered-down-ship:0");
     assertDefaultFight(g);
   });

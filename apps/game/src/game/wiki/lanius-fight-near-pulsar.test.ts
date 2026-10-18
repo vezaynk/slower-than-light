@@ -23,7 +23,10 @@ describe("Lanius fight near pulsar", () => {
   it("shows the printed intro, and the fight choice starts a Lanius combat near a pulsar", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:lanius-fight-near-pulsar:0"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:lanius-fight-near-pulsar:0"),
+      true,
+    );
     choose(g, "c:lanius-fight-near-pulsar:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");

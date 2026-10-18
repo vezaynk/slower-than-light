@@ -161,7 +161,13 @@ describe("teleporter", () => {
       assert.ok(source);
       while (g.crew.filter((c) => c.side === "player" && c.hp > 0).length < 5) {
         const n = g.crew.length;
-        g.crew.push({ ...source, id: `c-pad-${hull}-${n}`, name: `Pad ${n}`, room: source.room, path: [] });
+        g.crew.push({
+          ...source,
+          id: `c-pad-${hull}-${n}`,
+          name: `Pad ${n}`,
+          room: source.room,
+          path: [],
+        });
       }
       stand(g);
       sendSling(g, "e-weapons");
@@ -195,7 +201,16 @@ describe("teleporter", () => {
     const kit = kitOf(g);
     kit.power = 1;
     engage(g);
-    g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.clonebay = {
+      id: "clonebay",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
 
     const ada = g.crew.find((c) => c.id === "c-ada");
     const ivo = g.crew.find((c) => c.id === "c-ivo");
@@ -248,7 +263,10 @@ describe("teleporter", () => {
     assert.ok(pad);
 
     sendSling(g, "e-weapons");
-    assert.equal(g.crew.every((c) => c.aboard === "player"), true);
+    assert.equal(
+      g.crew.every((c) => c.aboard === "player"),
+      true,
+    );
     assert.equal(kit.cool, 0);
 
     const ada = g.crew.find((c) => c.id === "c-ada");
@@ -266,7 +284,10 @@ describe("teleporter", () => {
     nen.pad = claimPadTile(pad, new Set(ivo.pad ? [ivo.pad] : [])) ?? undefined;
     sendSling(g, "e-weapons");
     assert.deepEqual(
-      g.crew.filter((c) => c.aboard === "enemy").map((c) => c.id).sort(),
+      g.crew
+        .filter((c) => c.aboard === "enemy")
+        .map((c) => c.id)
+        .sort(),
       ["c-ivo", "c-nen"],
     );
     assert.equal(ada.aboard, "player");

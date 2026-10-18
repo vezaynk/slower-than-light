@@ -22,14 +22,19 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Pirate ship attacking civilian distress", () => {
   it("aiding the civilian starts a pirate fight, and staying out spends nothing", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:pirate-ship-attacking-civilian-distress:2"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:pirate-ship-attacking-civilian-distress:2"),
+      true,
+    );
     choose(g, "c:pirate-ship-attacking-civilian-distress:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "pirate-ship-attacking-civilian-distress");
@@ -59,7 +64,10 @@ describe("Pirate ship attacking civilian distress", () => {
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
     assert.equal(resources(body), 2, body);
-    assert.equal(destroyed.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"), true);
+    assert.equal(
+      destroyed.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),
+      true,
+    );
 
     const killed = createGame(2);
     open(killed);
@@ -73,7 +81,10 @@ describe("Pirate ship attacking civilian distress", () => {
   it("level 6 weapons starts that fight or sends the pirate away", () => {
     const bare = createGame(1);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:pirate-ship-attacking-civilian-distress:2"), "Needs level 6 Weapons");
+    assert.equal(
+      choiceDisabled(bare, "c:pirate-ship-attacking-civilian-distress:2"),
+      "Needs level 6 Weapons",
+    );
     choose(bare, "c:pirate-ship-attacking-civilian-distress:2");
     assert.equal(bare.phase, "event");
     assert.equal(bare.scrap, 10);
@@ -96,7 +107,10 @@ describe("Pirate ship attacking civilian distress", () => {
         left = true;
         assert.match(g.event?.body ?? "", /wasn't looking for a fight/);
         assert.equal(g.scrap, 10);
-        assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"), true);
+        assert.equal(
+          g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),
+          true,
+        );
         assert.equal(g.phase, "event");
       }
     }

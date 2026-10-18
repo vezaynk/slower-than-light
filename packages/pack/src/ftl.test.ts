@@ -316,7 +316,9 @@ describe("packFromFtl", () => {
     assert.equal(pack.weapons?.find((row) => row.id === "FLAK")?.kind, "flak");
     assert.equal(pack.weapons?.find((row) => row.id === "DART")?.ammo, true);
 
-    assert.deepEqual(pack.augments, [{ id: "FEED", name: "Re-loader", detail: "Weapons charge faster.", cost: 40 }]);
+    assert.deepEqual(pack.augments, [
+      { id: "FEED", name: "Re-loader", detail: "Weapons charge faster.", cost: 40 },
+    ]);
     assert.deepEqual(pack.drones, [{ id: "STRIKER", name: "Striker", cost: 50 }]);
 
     assert.equal(pack.systems?.find((row) => row.id === "shields")?.slot, "sys");
@@ -349,15 +351,21 @@ describe("packFromFtl", () => {
     assert.equal(tagged.crew?.find((row) => row.id === "human")?.name, "Human");
     assert.equal(tagged.crew?.find((row) => row.id === "human")?.detail, "Health 100.");
     assert.equal(tagged.systems?.find((row) => row.id === "cloaking")?.slot, "kit");
-    assert.equal(tagged.systems?.find((row) => row.id === "cloaking")?.detail, "Installs as a kit.");
-    assert.deepEqual(pack.tunes?.find((row) => row.id === "shields"), {
-      id: "shields",
-      start: 2,
-      costs: [
-        { level: 1, cost: 100 },
-        { level: 2, cost: 20 },
-      ],
-    });
+    assert.equal(
+      tagged.systems?.find((row) => row.id === "cloaking")?.detail,
+      "Installs as a kit.",
+    );
+    assert.deepEqual(
+      pack.tunes?.find((row) => row.id === "shields"),
+      {
+        id: "shields",
+        start: 2,
+        costs: [
+          { level: 1, cost: 100 },
+          { level: 2, cost: 20 },
+        ],
+      },
+    );
   });
 
   it("lets a later file replace a blueprint with the same id", () => {
@@ -371,7 +379,9 @@ describe("packFromFtl", () => {
     assert.equal(ember?.name, "Ember II");
     assert.equal(ember?.price, 90);
     assert.equal(pack.systems?.find((row) => row.id === "shields")?.name, "Barrier");
-    assert.deepEqual(pack.tunes?.find((row) => row.id === "shields")?.costs, [{ level: 1, cost: 50 }]);
+    assert.deepEqual(pack.tunes?.find((row) => row.id === "shields")?.costs, [
+      { level: 1, cost: 50 },
+    ]);
     assert.equal(pack.systems?.find((row) => row.id === "shields")?.cost, 80);
   });
 
@@ -453,7 +463,10 @@ describe("packFromFtl", () => {
     assert.deepEqual(sector?.tracks, ["civilian"]);
     assert.deepEqual(sector?.quotas?.[0], { id: "STORE", min: 1, max: 2 });
     assert.deepEqual(sector?.rarities, [{ id: "human", rarity: 3 }]);
-    assert.equal(pack.events?.some((row) => row.id === "STORE"), false);
+    assert.equal(
+      pack.events?.some((row) => row.id === "STORE"),
+      false,
+    );
 
     const untranslated = pack.sectors?.[1];
     assert.equal(untranslated?.name, "sectorname_ROCK");
@@ -486,7 +499,10 @@ describe("packFromFtl", () => {
     assert.deepEqual(stay?.choices?.[0]?.fx, [{ k: "goto", id: "BOARDER_TEST" }]);
     const leave = gift?.choices[1];
     assert.equal(leave?.id, "leave");
-    assert.deepEqual(leave?.fx, [{ k: "goto", id: "BOARDER_TEST" }, { k: "fight", tier: "PIRATE" }]);
+    assert.deepEqual(leave?.fx, [
+      { k: "goto", id: "BOARDER_TEST" },
+      { k: "fight", tier: "PIRATE" },
+    ]);
 
     assert.deepEqual(pack.lists, [
       {
@@ -516,7 +532,10 @@ describe("packFromFtl", () => {
         ],
       },
     ]);
-    assert.equal(pack.events?.some((row) => row.id === "STORE_A"), false);
+    assert.equal(
+      pack.events?.some((row) => row.id === "STORE_A"),
+      false,
+    );
   });
 
   it("lets a later file replace a ship, a sector, and an event", () => {

@@ -17,7 +17,13 @@ import {
   step,
   toggleDoor,
 } from "./sim.ts";
-import { armSpike, installSpike, launchSpike, tickSpike, toggleSpikePower } from "./extras/spike.ts";
+import {
+  armSpike,
+  installSpike,
+  launchSpike,
+  tickSpike,
+  toggleSpikePower,
+} from "./extras/spike.ts";
 import type { Game, Shot } from "./types.ts";
 
 function calm(g: Game) {
@@ -323,7 +329,9 @@ describe("hacked doors", () => {
         for (const r of g.player.rooms) r.o2 = 100;
         g.player.hull = g.player.hullMax;
         // The hack sync clears a mark with no enemy drone behind it, so hold it for this check.
-        if (hacked) for (const d of g.player.doors) if (d.b !== "void" && (d.a === room.id || d.b === room.id)) d.hacked = true;
+        if (hacked)
+          for (const d of g.player.doors)
+            if (d.b !== "void" && (d.a === room.id || d.b === room.id)) d.hacked = true;
         step(g, 0.05);
       }
       return Infinity;

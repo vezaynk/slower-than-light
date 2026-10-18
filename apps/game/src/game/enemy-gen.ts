@@ -940,7 +940,7 @@ export function rollEnemy(
   const { rooms, cols, rows } = traced ?? layout(ids);
   const blueprint = hullDef(enemyBlueprintId(cls.id, pirate));
   const counted = blueprint?.crewCounts?.length
-    ? racesFromCounts(blueprint.crewCounts, ctx, rand)
+    ? racesFromCounts(blueprint.id, blueprint.crewCounts, ctx, rand)
     : undefined;
   const crewSize = counted ? counted.length : crewCount(cls.crew, ctx);
   const races: string[] = [];
@@ -966,12 +966,15 @@ export function rollEnemy(
   }));
   const weaponLevel = systems.weapons?.[0] ?? 1;
   const listedWeapons = blueprint ? weaponNames(blueprint) : undefined;
-  const armed = arm(
-    listedWeapons ?? ENEMY_WEAPON_POOLS[cls.faction] ?? [],
-    weaponLevel,
-    rand,
-    listedWeapons ? weaponCap(blueprint) : ENEMY_WEAPON_SLOTS,
-  );
+  const armed =
+    listedWeapons?.fixed && blueprint
+      ? fixedLoadout(listedWeapons.names.slice(0, weaponCap(blueprint)))
+      : arm(
+          listedWeapons?.names ?? ENEMY_WEAPON_POOLS[cls.faction] ?? [],
+          weaponLevel,
+          rand,
+          listedWeapons ? weaponCap(blueprint) : ENEMY_WEAPON_SLOTS,
+        );
   const spec: EnemySpec = {
     classId: cls.id,
     name: pirate ? (cls.pirate ?? `Pirate ${cls.name.split(" ").slice(1).join(" ")}`) : cls.name,
@@ -1011,36 +1014,88 @@ export function rollEnemy(
 }
 
 /**
- * Mathchamp: crew count is interpolated from the blueprint minimum to its maximum across sectors 1–9, and rounded
- * down. A row with no maximum is that many of the named race. `random` draws from the sector's crew races.
+ * Mathchamp: crew count is interpolated from the blueprint minimum to its maximum across the sectors, the same way as
+ * the class table (crewCount), so the printed maximum is reached in the last sector. A row with no maximum is that
+ * many of the named race. `random` draws from the sector's crew races.
+ * Strict: a race the game has no crew for, or a `random` row with no races to draw from, fails the generation.
  */
-function racesFromCounts(rows: HullCrewCount[], ctx: PoolContext, rand: () => number): string[] {
+function racesFromCounts(
+  ship: string,
+  rows: HullCrewCount[],
+  ctx: PoolContext,
+  rand: () => number,
+): string[] {
   const races: string[] = [];
-  const sector = genSector(ctx.sector, ctx.difficulty);
   const randomRaces = pirateCrewRaces(ctx.sectorName);
   for (const row of rows) {
-    const n =
-      row.max == null
-        ? row.amount
-        : Math.min(row.max, Math.floor(lerp(row.amount, row.max, sector)));
-    for (let i = 0; i < n; i++) {
-      if (row.class !== "random") {
-        races.push(RACE_OF[row.class] ?? "Human");
-        continue;
+    const n = row.max == null ? row.amount : crewCount([row.amount, row.max], ctx);
+    if (n <= 0) continue;
+    if (row.class === "random") {
+      if (randomRaces.length === 0) {
+        throw new Error(
+          `${ship}: a random crewCount has no races to draw from in ${ctx.sectorName}.`,
+        );
       }
-      const picked =
-        randomRaces[Math.floor(rand() * randomRaces.length) % Math.max(1, randomRaces.length)];
-      if (picked) races.push(picked);
+      for (let i = 0; i < n; i++) {
+        races.push(randomRaces[Math.floor(rand() * randomRaces.length) % randomRaces.length]!);
+      }
+      continue;
     }
+    const race = RACE_OF[row.class];
+    if (!race)
+      throw new Error(
+        `${ship}: crewCount class "${row.class}" is not a race the game has crew for.`,
+      );
+    for (let i = 0; i < n; i++) races.push(race);
   }
   return races;
 }
 
-/** Explicit weapon tags, then the names in weaponList load. Absent when the blueprint names neither. */
-function weaponNames(hull: HullDef): string[] | undefined {
-  const names = [...hull.weapons];
-  if (hull.weaponLoad) names.push(...(blueprintList(hull.weaponLoad) ?? []));
-  return names.length ? names : undefined;
+/**
+ * The blueprint's guns. ftl.dat writes either explicit `<weapon>` tags or a `load` list, never both.
+ * Explicit tags are that ship's loadout: every such list has `count` equal to its tags (Long Elite 3 of 3, Ghost Ship
+ * Med 3 of 3), so they are mounted in order. INFERRED: Ghost Ship Hard lists four with count 3; the first three mount.
+ * A `load` list is the pool `arm` draws from. Strict: both at once, a missing list, or an unknown weapon fails.
+ */
+function weaponNames(hull: HullDef): { names: string[]; fixed: boolean } | undefined {
+  if (hull.weapons.length > 0 && hull.weaponLoad) {
+    throw new Error(
+      `${hull.id}: its weaponList has both weapon tags and load="${hull.weaponLoad}".`,
+    );
+  }
+  const fixed = hull.weapons.length > 0;
+  const listed = fixed ? [...hull.weapons] : listNames(hull.id, hull.weaponLoad);
+  const names = listed.filter((name) => !VANILLA_MISSING_WEAPONS.has(name));
+  if (!names.length) return undefined;
+  for (const name of names) {
+    if (!weaponDef(name) && !weaponIdForName(name)) {
+      throw new Error(`${hull.id}: its weaponList names "${name}", which is not a weapon.`);
+    }
+  }
+  return { names: names.map((name) => armId(name) ?? name), fixed };
+}
+
+/** An explicit loadout, with the flags `arm` would have left open for the drones that follow. */
+function fixedLoadout(weapons: string[]): ArmResult {
+  return {
+    weapons,
+    flags: { laser: !weapons.some(laserFlag), hull: !weapons.some(hullFlag) },
+  };
+}
+
+/**
+ * Names ftl.dat's own lists use without defining them. They are skipped; any other unknown name fails.
+ * BOMB_BREACH: autoBlueprints.xml `WEAPONS_JELLY` (the Lanius ships' list) names it, and the archive defines only
+ * BOMB_BREACH_1 and BOMB_BREACH_2.
+ */
+const VANILLA_MISSING_WEAPONS = new Set(["BOMB_BREACH"]);
+
+/** Names in a `load` list. Strict: a load that names no blueprintList fails. */
+function listNames(ship: string, load: string | undefined): string[] {
+  if (!load) return [];
+  const names = blueprintList(load);
+  if (!names) throw new Error(`${ship}: load="${load}" names no blueprintList.`);
+  return [...names];
 }
 
 function weaponCap(hull: HullDef | undefined): number {
@@ -1052,8 +1107,7 @@ function weaponCap(hull: HullDef | undefined): number {
 
 /** Explicit drone tags, then the names in droneList load. The count caps how many are fitted. */
 function droneNames(hull: HullDef): { drones: string[]; maxDrones: number } | undefined {
-  const names = [...(hull.drones ?? [])];
-  if (hull.droneLoad) names.push(...(blueprintList(hull.droneLoad) ?? []));
+  const names = [...(hull.drones ?? []), ...listNames(hull.id, hull.droneLoad)];
   if (!names.length) return undefined;
   return { drones: names, maxDrones: hull.droneCount ?? names.length };
 }

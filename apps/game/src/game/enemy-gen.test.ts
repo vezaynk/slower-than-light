@@ -311,23 +311,42 @@ describe("enemy generation by difficulty (Mathchamp, Details on enemy ship gener
 describe("archive loadout", () => {
   const ctx = { sector: 1, sectorName: "Civilian Sector", difficulty: "normal" as const };
 
-  it("keeps the class table when the blueprint names no pool", () => {
+  it("keeps the class table when the blueprint names no lists", () => {
     const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
-    const before = rollEnemy(cls, false, ctx, seeded(4));
     const hull = hullDef(enemyBlueprintId("rebel-fighter"))!;
-    loadPack({ hulls: [{ ...hull, weaponLoad: "NO_SUCH_LIST" }] }, "append");
-    try {
-      const after = rollEnemy(cls, false, ctx, seeded(4));
-      assert.deepEqual(after.weapons, before.weapons);
-      assert.deepEqual(
-        after.crew.map((member) => member.race),
-        before.crew.map((member) => member.race),
-      );
-      assert.equal(after.missiles, before.missiles);
-      assert.equal(after.missiles, cls.missiles);
-    } finally {
-      resetPackForTests();
-    }
+    assert.equal(hull.weaponLoad, undefined);
+    assert.equal(hull.crewCounts, undefined);
+    const spec = rollEnemy(cls, false, ctx, seeded(4));
+    assert.equal(spec.missiles, cls.missiles);
+  });
+
+  it("fails on a blueprint the game cannot read", () => {
+    const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
+    const hull = hullDef(enemyBlueprintId("rebel-fighter"))!;
+    const roll = (patch: Partial<typeof hull>) => {
+      loadPack({ hulls: [{ ...hull, ...patch }] }, "append");
+      try {
+        return rollEnemy(cls, false, ctx, seeded(4));
+      } finally {
+        resetPackForTests();
+      }
+    };
+    assert.throws(
+      () => roll({ weaponLoad: "NO_SUCH_LIST" }),
+      /load="NO_SUCH_LIST" names no blueprintList/,
+    );
+    assert.throws(
+      () => roll({ weapons: ["LASER_BURST_1"], weaponLoad: "NO_SUCH_LIST" }),
+      /both weapon tags and load="NO_SUCH_LIST"/,
+    );
+    assert.throws(
+      () => roll({ weapons: ["NOT_A_GUN"] }),
+      /names "NOT_A_GUN", which is not a weapon/,
+    );
+    assert.throws(
+      () => roll({ crewCounts: [{ amount: 1, class: "ghost" }] }),
+      /crewCount class "ghost" is not a race the game has crew for/,
+    );
   });
 
   it("mounts a repeated blueprint id on two slots", () => {
@@ -347,14 +366,13 @@ describe("archive loadout", () => {
         hulls: [
           {
             ...fighterHull,
-            weapons: ["LASER_BURST_1", "LASER_BURST_1"],
-            weaponCount: 1,
+            weapons: ["LASER_BURST_3", "LASER_BURST_1", "LASER_BURST_1"],
+            weaponCount: 2,
             missiles: 4,
             crewCounts: [
               { amount: 2, class: "human" },
               { amount: 1, max: 3, class: "mantis" },
               { amount: 1, class: "random" },
-              { amount: 1, class: "ghost" },
             ],
           },
           {
@@ -378,14 +396,18 @@ describe("archive loadout", () => {
     try {
       const crystal = { ...ctx, sectorName: "Hidden Crystal Worlds" };
       const spec = rollEnemy(fighter, false, crystal, seeded(1));
-      assert.deepEqual(spec.weapons, ["LASER_BURST_1"]);
+      // ftl.dat's explicit weaponList is that ship's loadout: mounted in order, up to count.
+      assert.deepEqual(spec.weapons, ["LASER_BURST_3", "LASER_BURST_1"]);
       assert.equal(spec.missiles, 4);
-      assert.equal(spec.crew.filter((member) => member.race === "Human").length, 3);
+      assert.equal(spec.crew.filter((member) => member.race === "Human").length, 2);
       assert.equal(spec.crew.filter((member) => member.race === "Mantis").length, 1);
       assert.equal(spec.crew.filter((member) => member.race === "Crystal").length, 1);
 
-      const late = rollEnemy(fighter, false, { ...crystal, sector: 9 }, seeded(1));
+      // The class table's interpolation: the printed maximum arrives in sector 8, the last one.
+      const late = rollEnemy(fighter, false, { ...crystal, sector: 8 }, seeded(1));
       assert.equal(late.crew.filter((member) => member.race === "Mantis").length, 3);
+      const middle = rollEnemy(fighter, false, { ...crystal, sector: 4 }, seeded(1));
+      assert.equal(middle.crew.filter((member) => member.race === "Mantis").length, 2);
       const delayed = rollEnemy(
         fighter,
         false,

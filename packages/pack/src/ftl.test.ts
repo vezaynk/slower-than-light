@@ -172,6 +172,9 @@ DOOR
 
 const ARCHIVE = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>
+  <crewBlueprint name="human">
+    <title>Human</title>
+  </crewBlueprint>
   <shipBlueprint name="PLAYER_SHIP_EASY" layout="kestral" img="kestral">
     <class>Kestrel</class>
     <name>The Kestrel</name>
@@ -377,6 +380,38 @@ describe("packFromFtl", () => {
         ],
       },
     );
+  });
+
+  it("fails on a crewCount or droneList the game cannot read", () => {
+    const ship = (body: string) => [
+      {
+        path: "data/blueprints.xml",
+        xml: `<FTL>
+  <crewBlueprint name="human"><title>Human</title></crewBlueprint>
+  <shipBlueprint name="ODD" layout="odd">${body}</shipBlueprint>
+</FTL>`,
+      },
+    ];
+    // ftl.dat's ghost ships: no crew, no class.
+    assert.equal(packFromFtl(ship(`<crewCount amount="0"/>`)).hulls?.[0]?.crewCounts, undefined);
+    assert.throws(
+      () => packFromFtl(ship(`<crewCount amount="2"/>`)),
+      /ODD: a crewCount of 2 names no class/,
+    );
+    assert.throws(
+      () => packFromFtl(ship(`<crewCount class="human"/>`)),
+      /ODD: a crewCount has no amount/,
+    );
+    assert.throws(
+      () => packFromFtl(ship(`<crewCount amount="1" max="2" class="ghost"/>`)),
+      /ODD: crewCount class "ghost" is not a crewBlueprint/,
+    );
+    assert.throws(
+      () => packFromFtl(ship(`<droneList load="DRONES_STANDARD"/>`)),
+      /ODD: its droneList names drones but has no drones \(parts\) attribute/,
+    );
+    // ftl.dat's BOSS_1: a droneList that names no drones needs no parts.
+    assert.equal(packFromFtl(ship(`<droneList count="0" missiles="2"/>`)).hulls?.[0]?.parts, 0);
   });
 
   it("reads a crew colorList, one list per layer", () => {

@@ -90,11 +90,43 @@ function noise(dur: number, gain: number) {
   };
 }
 
+/**
+ * The archive cues each game sound plays, from FTL's `data/sounds.xml` names (the list in
+ * hahn-kev/ftl-xml-extension default-sound-waves.ts; xftl SoundManager plays the same names).
+ * A numbered family is picked at random among the variants the archive holds.
+ * INFERRED: which cue stands for each game sound. "click" has no FTL cue, so it keeps the tone.
+ */
+export const SFX_CUES: Record<string, readonly string[]> = {
+  laser: ["lightLaser1", "lightLaser2", "lightLaser3"],
+  missile: ["smallMissile1", "smallMissile2"],
+  ion: ["ionShoot1", "ionShoot2", "ionShoot3"],
+  beam: ["beam1"],
+  COMBAT_BEAM: ["beam1"],
+  shield: ["hitShield1", "hitShield2", "hitShield3"],
+  hit: ["hitHull1", "hitHull2", "hitHull3"],
+  alarm: ["warning"],
+  win: ["victory"],
+  die: ["explosion1", "explosion2", "explosion3", "explosion4"],
+  vent: ["airLoss"],
+};
+
+/** The archive cue for a game sound: a random present variant, or a cue named exactly that. */
+export function cueFor(name: string, pick: () => number = Math.random) {
+  const present = (SFX_CUES[name] ?? []).flatMap((cue) => {
+    const clip = soundCue(cue);
+    return clip ? [clip] : [];
+  });
+  if (present.length > 0) return present[Math.floor(pick() * present.length) % present.length];
+  return soundCue(name);
+}
+
 export function playSfx(name: string) {
   if (muted) return;
-  const cue = soundCue(name);
+  const cue = cueFor(name);
   if (cue) {
-    void playCue(cue.file, cue.blob, cue.volume, cue.loop);
+    // A game sound effect is a one-shot. A cue the archive marks to loop still plays once,
+    // since nothing here would stop it.
+    void playCue(cue.file, cue.blob, cue.volume);
     return;
   }
   const wobble = 0.94 + Math.random() * 0.12;
@@ -113,6 +145,7 @@ export function playSfx(name: string) {
     case "ion":
       tone(420 * wobble, 0.14, "sine", 0.12, 200);
       break;
+    case "beam":
     case "COMBAT_BEAM":
       tone(300, 0.2, "sawtooth", 0.08);
       tone(520, 0.2, "triangle", 0.06);
@@ -158,24 +191,21 @@ function warmCues() {
   for (const cue of soundCues()) void decodeCue(cue.file, cue.blob);
 }
 
-async function playCue(file: string, blob: Blob, volume01: number, loop: boolean) {
+async function playCue(file: string, blob: Blob, volume01: number) {
   if (!ctx || !master) return;
   const buf = await decodeCue(file, blob);
   if (!buf || !ctx || !master || muted) return;
   const src = ctx.createBufferSource();
   src.buffer = buf;
-  src.loop = loop;
   const g = ctx.createGain();
   g.gain.value = Math.max(0.0001, volume01);
   src.connect(g);
   g.connect(master);
   src.start();
-  if (!loop) {
-    src.onended = () => {
-      src.disconnect();
-      g.disconnect();
-    };
-  }
+  src.onended = () => {
+    src.disconnect();
+    g.disconnect();
+  };
 }
 
 function decodeCue(file: string, blob: Blob): Promise<AudioBuffer | undefined> {

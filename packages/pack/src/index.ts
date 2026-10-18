@@ -68,6 +68,7 @@ export {
 export type {
   AugmentDef,
   ContentPack,
+  CrewColor,
   CrewDef,
   DroneDef,
   EmptyBeaconDef,

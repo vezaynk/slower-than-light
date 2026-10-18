@@ -101,7 +101,7 @@ export function child(node: XmlElement | undefined, tag: string): XmlElement | u
   return elements(node).find((item) => item.tagName === tag);
 }
 
-function ownText(node: XmlElement): string {
+export function ownText(node: XmlElement): string {
   let text = "";
   for (let i = 0; i < node.childNodes.length; i++) {
     const item = node.childNodes.item(i);

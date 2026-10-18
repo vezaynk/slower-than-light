@@ -43,7 +43,7 @@ import {
 } from "./miss-flight";
 import "@/game/pack/base";
 import { pageRect } from "./turn";
-import { droneLayerUrl, loadedImage, projectileFrame } from "@/game/pack/media";
+import { droneLayerUrl, loadedImage, projectileBox, projectileFrame } from "@/game/pack/media";
 
 type Box = { x: number; y: number; w: number; h: number };
 type Pt = { x: number; y: number };
@@ -298,10 +298,12 @@ function paintBolt(
   const frame = projectileFrame(defId, kind);
   const img = frame ? loadedImage(frame.url) : undefined;
   if (frame && img) {
+    // xftl AbstractProjectile.render: the picture faces +x, centred on the shot and turned to its heading.
+    // Its own proportions are kept; the long side is 18 px in the main view.
     c.rotate(ang);
     c.imageSmoothingEnabled = false;
-    const size = 18 * scale;
-    c.drawImage(img, frame.sx, frame.sy, frame.fw, frame.fh, -size / 2, -size / 2, size, size);
+    const { w, h } = projectileBox(frame.fw, frame.fh, 18 * scale);
+    c.drawImage(img, frame.sx, frame.sy, frame.fw, frame.fh, -w / 2, -h / 2, w, h);
     c.restore();
     return;
   }
@@ -1234,7 +1236,7 @@ export function CombatFx() {
             const bomb = projectileFrame(shot.defId, "bomb");
             const bombImg = bomb ? loadedImage(bomb.url) : undefined;
             if (bomb && bombImg) {
-              const size = 16 * bombScale;
+              const box = projectileBox(bomb.fw, bomb.fh, 16 * bombScale);
               c.imageSmoothingEnabled = false;
               c.drawImage(
                 bombImg,
@@ -1242,10 +1244,10 @@ export function CombatFx() {
                 bomb.sy,
                 bomb.fw,
                 bomb.fh,
-                Math.round(to.x - size / 2),
-                Math.round(to.y - size / 2),
-                size,
-                size,
+                Math.round(to.x - box.w / 2),
+                Math.round(to.y - box.h / 2),
+                box.w,
+                box.h,
               );
             } else {
               c.fillStyle = color;

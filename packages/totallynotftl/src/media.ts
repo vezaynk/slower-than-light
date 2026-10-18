@@ -21,6 +21,7 @@ type GearModule = {
   weaponPixels: (id: string) => PixelArt;
   dronePixels: (key: string | null) => PixelArt;
   DRONE_LOOKS: Record<string, unknown>;
+  DRONE_BLUEPRINT: Record<string, string | undefined>;
 };
 
 type IconModule = { ICON_ROWS: Record<string, string[]>; ICON_SIZE: number };
@@ -50,13 +51,6 @@ const NOT_ROOM = new Set([
   "fast",
 ]);
 
-const DRONE_ALIAS: Record<string, string> = {
-  COMBAT_2: "striker2",
-  DRONE_SHIELD: "overcharge",
-  BATTLE: "personnel",
-  BOARDER_ION: "intruder",
-};
-
 const SKIN: Record<string, string> = {
   human: "#e8b98a",
   engi: "#9be7c8",
@@ -75,18 +69,21 @@ const CREW_W = 16;
 const CREW_H = 12;
 const POSES = ["fight", "work", "walk"] as const;
 
-const CUES = [
-  "click",
-  "laser",
-  "missile",
-  "ion",
-  "COMBAT_BEAM",
-  "shield",
-  "hit",
-  "alarm",
-  "win",
-  "die",
-  "vent",
+/**
+ * Waves under FTL's own cue names (apps/game/src/game/audio.ts SFX_CUES), each with the tone it is baked from.
+ * One variant per numbered family. "click" has no FTL cue, so the game keeps that tone.
+ */
+const CUES: readonly [cue: string, tone: string][] = [
+  ["lightLaser1", "laser"],
+  ["smallMissile1", "missile"],
+  ["ionShoot1", "ion"],
+  ["beam1", "COMBAT_BEAM"],
+  ["hitShield1", "shield"],
+  ["hitHull1", "hit"],
+  ["warning", "alarm"],
+  ["victory", "win"],
+  ["explosion1", "die"],
+  ["airLoss", "vent"],
 ];
 
 let mediaPromise: Promise<{
@@ -128,12 +125,18 @@ async function buildMedia(): Promise<{
     assets.push({ path: `img/weapons/${kind}_shot.png`, bytes: shotPng(art.palette.glow) });
     clipXml.push(clipXmlFor(`${kind}_shot`, `${kind}_shot`, 8, 8));
   }
+  // Pictures go under the blueprint id, as an archive names them. A look key with a blueprint behind it
+  // (gear-look.ts DRONE_BLUEPRINT) is drawn into that blueprint's files, not files of its own.
+  const lookOf = new Map<string, string>();
+  for (const [key, blueprint] of Object.entries(gear.DRONE_BLUEPRINT)) {
+    if (blueprint) lookOf.set(blueprint, key);
+  }
   const droneIds = new Set<string>([
     ...allDrones().map((drone) => drone.id),
-    ...Object.keys(gear.DRONE_LOOKS),
+    ...Object.keys(gear.DRONE_LOOKS).filter((key) => !gear.DRONE_BLUEPRINT[key]),
   ]);
   for (const id of [...droneIds].sort()) {
-    const key = id in gear.DRONE_LOOKS ? id : (DRONE_ALIAS[id] ?? id);
+    const key = id in gear.DRONE_LOOKS ? id : (lookOf.get(id) ?? id);
     const art = gear.dronePixels(key in gear.DRONE_LOOKS ? key : null);
     assets.push({ path: `img/ship/drones/${id}_base.png`, bytes: artPng(art) });
     assets.push({ path: `img/ship/drones/${id}_on.png`, bytes: artPng(art, true) });
@@ -142,19 +145,23 @@ async function buildMedia(): Promise<{
   const races = [...crew.CREW_KIN, "repair", "battle", "boarder_ion"];
   for (const race of races) {
     const skin = SKIN[race] ?? SKIN.human;
+    const kin = race === "repair" || race === "battle" || race === "boarder_ion" ? "human" : race;
+    // xftl LivingCrew.drawImage: the base sheet untinted, then `<race>_layerN.png` multiplied by a colour.
+    // The uniform pixels are this one layer, painted white so the tint is the uniform colour.
+    assets.push({ path: `img/people/${race}_base.png`, bytes: crewPng(crew, kin, skin, "base") });
     assets.push({
-      path: `img/people/${race}.png`,
-      bytes: crewPng(
-        crew,
-        race === "repair" || race === "battle" || race === "boarder_ion" ? "human" : race,
-        skin,
-      ),
+      path: `img/people/${race}_layer1.png`,
+      bytes: crewPng(crew, kin, skin, "layer"),
     });
     clipXml.push(...crewAnims(race));
   }
   assets.push({
     path: "img/people/female_base.png",
-    bytes: crewPng(crew, "human", "#f3d2b0"),
+    bytes: crewPng(crew, "human", "#f3d2b0", "base"),
+  });
+  assets.push({
+    path: "img/people/female_layer1.png",
+    bytes: crewPng(crew, "human", "#f3d2b0", "layer"),
   });
   assets.push({ path: "img/people/green_destination.png", bytes: markerPng() });
   for (const name of Object.keys(icons.ICON_ROWS).sort()) {
@@ -164,8 +171,8 @@ async function buildMedia(): Promise<{
       bytes: iconPng(icons.ICON_ROWS[name] ?? [], icons.ICON_SIZE),
     });
   }
-  for (const name of CUES) {
-    assets.push({ path: `audio/waves/ui/${name}.wav`, bytes: cueWav(name) });
+  for (const [cue, tone] of CUES) {
+    assets.push({ path: `audio/waves/ui/${cue}.wav`, bytes: cueWav(tone) });
   }
   assets.push({ path: "audio/music/civil_explore.ogg", bytes: toneFile("civil_explore.ogg") });
   assets.push({ path: "audio/music/civil_combat.ogg", bytes: toneFile("civil_combat.ogg") });
@@ -195,7 +202,7 @@ function clipXmlFor(name: string, sheet: string, w: number, h: number): string {
 }
 
 function crewAnims(race: string): string[] {
-  const sheet = `<animSheet name="${race}" w="${CREW_W * 4}" h="${CREW_H * 3}" fw="${CREW_W}" fh="${CREW_H}">people/${race}.png</animSheet>`;
+  const sheet = `<animSheet name="${race}" w="${CREW_W * 4}" h="${CREW_H * 3}" fw="${CREW_W}" fh="${CREW_H}">people/${race}_base.png</animSheet>`;
   const dirs = ["down", "right", "up", "left"];
   const lines = [sheet];
   for (const dir of dirs) lines.push(animTag(`${race}_walk_${dir}`, race, 4, 0));
@@ -212,7 +219,7 @@ function animTag(name: string, sheet: string, length: number, y: number): string
 }
 
 function soundsXml(): string {
-  const cues = CUES.map((name) => `<${name} volume="8">ui/${name}.wav</${name}>`).join("\n");
+  const cues = CUES.map(([cue]) => `<${cue} volume="8">ui/${cue}.wav</${cue}>`).join("\n");
   return `<sounds>\n<music>\n<track><name>civil</name><explore>civil_explore.ogg</explore><combat>civil_combat.ogg</combat></track>\n</music>\n${cues}\n</sounds>\n`;
 }
 
@@ -264,7 +271,8 @@ function shotPng(glow: string): Uint8Array {
   return rgbaPng(size, size, rgba);
 }
 
-function crewPng(crew: CrewModule, kin: string, skin: string): Uint8Array {
+/** "base" is the figure without its uniform; "layer" is only the uniform, in white. */
+function crewPng(crew: CrewModule, kin: string, skin: string, part: "base" | "layer"): Uint8Array {
   const width = CREW_W * 4;
   const height = CREW_H * 3;
   const rgba = new Uint8Array(width * height * 4);
@@ -276,6 +284,7 @@ function crewPng(crew: CrewModule, kin: string, skin: string): Uint8Array {
         if (y >= CREW_H) return;
         [...line].forEach((ch, x) => {
           if (x >= CREW_W || ch === ".") return;
+          if ((ch === "u") !== (part === "layer")) return;
           const colour = ch === "h" ? paint : ch === "u" ? [255, 255, 255] : [26, 18, 12];
           const px = frame * CREW_W + x;
           const py = row * CREW_H + y;

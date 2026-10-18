@@ -3,7 +3,8 @@
  * A cue's text is a path under `audio/waves/`. A track's explore and combat
  * texts are paths under `audio/music/`. `volume` is 0 to 10.
  */
-import { DOMParser, Node, type Element as XmlElement } from "@xmldom/xmldom";
+import type { Element as XmlElement } from "@xmldom/xmldom";
+import { attr as rawAttr, child, elements, ownText as rawText, readDocument } from "./parse.ts";
 
 export type SoundCue = {
   name: string;
@@ -25,14 +26,14 @@ export type SoundSet = {
 };
 
 export function readSounds(xml: string): SoundSet {
-  const doc = new DOMParser().parseFromString(xml, "text/xml");
+  const doc = readDocument(xml);
   const root = doc.documentElement;
   if (!root) return { cues: [], tracks: [] };
   const cues = new Map<string, SoundCue>();
   const tracks = new Map<string, MusicTrack>();
-  const music = children(root).find((node) => node.tagName === "music");
+  const music = elements(root).find((node) => node.tagName === "music");
   if (music) {
-    for (const track of children(music)) {
+    for (const track of elements(music)) {
       if (track.tagName !== "track") continue;
       const name = textChild(track, "name");
       const explore = textChild(track, "explore");
@@ -43,7 +44,7 @@ export function readSounds(xml: string): SoundSet {
       tracks.set(name, row);
     }
   }
-  for (const node of children(root)) {
+  for (const node of elements(root)) {
     if (node.tagName === "music") continue;
     const file = ownText(node);
     if (!file.endsWith(".wav") && !file.endsWith(".ogg")) continue;
@@ -70,29 +71,8 @@ export function mergeSounds(files: readonly string[]): SoundSet {
   return { cues: [...cues.values()], tracks: [...tracks.values()] };
 }
 
-function children(node: XmlElement): XmlElement[] {
-  const out: XmlElement[] = [];
-  for (let i = 0; i < node.childNodes.length; i += 1) {
-    const item = node.childNodes.item(i);
-    if (item && item.nodeType === Node.ELEMENT_NODE) out.push(item as XmlElement);
-  }
-  return out;
-}
-
-function child(node: XmlElement, tag: string): XmlElement | undefined {
-  return children(node).find((item) => item.tagName === tag);
-}
-
 function ownText(node: XmlElement): string {
-  let text = "";
-  for (let i = 0; i < node.childNodes.length; i += 1) {
-    const item = node.childNodes.item(i);
-    if (!item) continue;
-    if (item.nodeType === Node.TEXT_NODE || item.nodeType === Node.CDATA_SECTION_NODE) {
-      text += item.nodeValue ?? "";
-    }
-  }
-  return text.trim();
+  return rawText(node).trim();
 }
 
 function textChild(node: XmlElement, tag: string): string | undefined {
@@ -102,8 +82,7 @@ function textChild(node: XmlElement, tag: string): string | undefined {
 }
 
 function attr(node: XmlElement, name: string): string | undefined {
-  const value = node.getAttribute(name);
-  return value == null ? undefined : value;
+  return rawAttr(node, name);
 }
 
 function intAttr(node: XmlElement, name: string): number | undefined {

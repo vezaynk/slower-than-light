@@ -5,6 +5,7 @@ import type {
   ArchiveReward,
   ArchiveShip,
   ContentPack,
+  CrewColor,
   CrewDef,
   EventChoice,
   EventDef,
@@ -201,7 +202,26 @@ function readFtlCrew(node: XmlElement): CrewDef | undefined {
   if (detail) row.detail = detail;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
+  const colors = readCrewColors(child(node, "colorList"));
+  if (colors.length > 0) row.colors = colors;
   return row;
+}
+
+/** `<colorList><layer><color r g b a/>…</layer>…</colorList>`. A colour missing a channel is skipped. */
+function readCrewColors(list: XmlElement | undefined): CrewColor[][] {
+  const layers: CrewColor[][] = [];
+  for (const layer of elements(list)) {
+    if (layer.tagName !== "layer") continue;
+    const colors: CrewColor[] = [];
+    for (const node of elements(layer)) {
+      if (node.tagName !== "color") continue;
+      const [r, g, b, a] = ["r", "g", "b", "a"].map((name) => Number(attr(node, name) ?? NaN));
+      if (![r, g, b, a].every((value) => Number.isFinite(value))) continue;
+      colors.push({ r: r!, g: g!, b: b!, a: a! });
+    }
+    layers.push(colors);
+  }
+  return layers;
 }
 
 class Catalog<T extends { id: string }> {

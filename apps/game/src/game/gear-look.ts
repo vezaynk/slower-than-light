@@ -529,6 +529,23 @@ export type DroneKey =
   | "overcharge"
   | "overcharge2";
 
+/**
+ * Drone Control blueprint behind a look key that is not itself a blueprint id. An archive names its drone
+ * pictures after the blueprint (`<droneImage>`, or the id), so these keys look the picture up through it.
+ * "fire" and "overcharge2" have no blueprint in the catalog and keep their own names.
+ */
+export const DRONE_BLUEPRINT: Partial<Record<DroneKey, string>> = {
+  striker2: "COMBAT_2",
+  intruder: "BOARDER_ION",
+  personnel: "BATTLE",
+  overcharge: "DRONE_SHIELD",
+};
+
+/** The blueprint id for a look key, or the key itself when it already is one. */
+export function droneBlueprintOf(key: string): string {
+  return (DRONE_BLUEPRINT as Record<string, string | undefined>)[key] ?? key;
+}
+
 export const DRONE_LOOKS: Record<DroneKey, DroneLook> = {
   DEFENSE_1: {
     name: "Defense Drone Mark I",

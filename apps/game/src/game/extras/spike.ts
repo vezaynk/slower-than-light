@@ -969,19 +969,27 @@ function capEnemyLevel(ship: Ship, kit: Kit) {
 
 /**
  * Hacking wiki, "Hacking specifics for enemy ships": "Enemy hacking choice of a system is completely random each time
- * they launch a hacking drone." Candidates: every player system with a room, and every fitted subsystem kit.
- * INFERRED: a kit (Cloaking, Teleporter, …) has no room on the player hulls, but is still a system the page lists.
+ * they launch a hacking drone." Candidates: every undestroyed player system with a room, and every fitted kit that
+ * is not destroyed. Hacking, "Overview": "A destroyed system cannot be actively hacked."
+ * A kit sits in a room (layouts.ts seatKits). The door lock and enemyHackView read that room.
  */
 export function enemyHackTargets(g: Game): string[] {
   const out: string[] = [];
+  const ruined = (level: number, damage: number | undefined) => level > 0 && (damage ?? 0) >= level;
   for (const id of PLAYER_SYSTEMS) {
     const sys = g.player.systems[id];
-    if (sys && sys.level > 0 && roomWith(g.player, id)) out.push(id);
+    if (sys && sys.level > 0 && !ruined(sys.level, sys.damage) && roomWith(g.player, id))
+      out.push(id);
   }
   for (const [id, kit] of Object.entries(g.player.kits)) {
-    if (kit && kit.level > 0) out.push(id);
+    if (kit && kit.level > 0 && !ruined(kit.level, kit.damage)) out.push(id);
   }
   return out;
+}
+
+/** The player room of a system or a fitted kit. roomWith only matches room.system. */
+function playerHackRoom(ship: Ship, id: string): string | undefined {
+  return ship.rooms.find((room) => room.system === id || room.kit === id)?.id;
 }
 
 /** Augmentations, "Zoltan Shield": "Until they are destroyed, Zoltan Shields prevent boarding, hacking, and mind control." */
@@ -1346,7 +1354,8 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
  * drone is attached and Hacking is powered (the hacked room's doors), and "Door System: locks all doors, converting
  * them into temporary enemy level 3 blast doors" during a pulse on Doors. "Hacked doors are equivalent to level 3
  * blast doors; after being broken down they will 'heal' and close automatically in 7 seconds" (sim.ts sets the 7 s
- * `stuck`; once it runs out, a door that is still hacked is closed here). Depowering before that leaves it open.
+ * `stuck`; once it runs out, a door that is still hacked is closed here). Removing the hacking power closes a
+ * door that is still broken open (Hacking, "Overview": it "become[s] closed and at full health").
  * Airlocks are left alone, as in the player's own Doors pulse.
  * INFERRED: hp is cleared on lock and on release, so moveCrew re-arms at level 3, except the printed
  * level-3 cell for this difficulty, or the 4-hit Crystal Lockdown mark, already written this tick.
@@ -1355,7 +1364,7 @@ function syncDoors(g: Game, kit: Kit | undefined) {
   const ship = g.player;
   const live = !!kit && !!kit.hackLatched && operational(kit) && !!g.enemy;
   const all = live && running(kit!) && kit!.target === "doors";
-  const room = live && kit!.target ? roomWith(ship, kit!.target as SysId)?.id : undefined;
+  const room = live && kit!.target ? playerHackRoom(ship, kit!.target) : undefined;
   lockHackedDoors(ship, all, room, g.difficulty);
 }
 
@@ -1398,6 +1407,14 @@ function lockHackedDoors(
       if (d.stuck <= 0) d.open = false;
     } else if (d.hacked) {
       delete d.hacked;
+      // Hacking, "Overview": "Doors previously broken open (on the enemy ship) become closed and at full health
+      // if power is removed from your hacking system, thus, obstructing your crew movement."
+      // hp 0 is a fresh door. The next punch arms it at that door's full health.
+      if (d.stuck > 0) {
+        d.open = false;
+        d.stuck = 0;
+        delete d.seal;
+      }
       d.hp = 0;
     }
   }
@@ -1405,8 +1422,7 @@ function lockHackedDoors(
 
 /** Marks the player's hacked room for ShipView (Room.hacked). */
 function syncRooms(g: Game, kit: Kit | undefined) {
-  const room =
-    kit?.hackLatched && kit.target ? roomWith(g.player, kit.target as SysId)?.id : undefined;
+  const room = kit?.hackLatched && kit.target ? playerHackRoom(g.player, kit.target) : undefined;
   const mark = kit && running(kit) && operational(kit) ? "pulse" : "latched";
   for (const r of g.player.rooms) {
     if (r.id === room) r.hacked = mark;
@@ -1546,7 +1562,7 @@ export function hackLocksDoor(g: Game, ship: Ship, door: Door): boolean {
 
 /**
  * Read-only view for the UI and fx: the enemy hacking drone's phase, flight progress (0..1), target and its
- * player room (null for a kit with no room), and pulse seconds left.
+ * player room, and pulse seconds left.
  */
 export function enemyHackView(g: Game): {
   phase: "flying" | "latched" | "pulse";
@@ -1559,7 +1575,7 @@ export function enemyHackView(g: Game): {
 } | null {
   const kit = enemyKit(g);
   if (!kit || !kit.target) return null;
-  const room = roomWith(g.player, kit.target as SysId)?.id ?? null;
+  const room = kit.target ? (playerHackRoom(g.player, kit.target) ?? null) : null;
   const label = LABEL[kit.target] ?? kit.target;
   if (kit.hackFly != null) {
     const total = kit.hackFlyTotal ?? kit.hackFly;

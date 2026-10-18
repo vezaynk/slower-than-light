@@ -28,7 +28,6 @@ function launchLanded(g: Game): boolean {
   return ok;
 }
 
-
 function armed(parts = 2) {
   const g = createGame(2);
   g.scrap = 80;
@@ -369,6 +368,35 @@ describe("hacking", () => {
     foe.stun = 0;
     for (let i = 0; i < 80; i++) step(g, 0.05);
     assert.equal(foe.room, door.a, "powering the hack shuts the door on that crew");
+  });
+
+  it("closes a broken hacked door at full health when hacking power is removed", () => {
+    // Hacking, "Overview": doors previously broken open become closed and at full health.
+    const g = armed(2);
+    const enemy = g.enemy!;
+    g.player.weapons = [];
+    enemy.weapons = [];
+    delete enemy.kits.drones;
+    enemy.automated = true;
+    enemy.systems.doors.level = 1;
+    enemy.systems.doors.damage = 0;
+    enemy.systems.doors.ion = [];
+    g.enemyEscape = null;
+    g.enemySurrender = null;
+    g.boardTimer = 0;
+    armSpike(g, "shields");
+    assert.equal(launchLanded(g), true);
+    const room = enemy.rooms.find((r) => r.system === "shields")!;
+    const door = enemy.doors.find((d) => d.b !== "void" && (d.a === room.id || d.b === room.id))!;
+    door.open = true;
+    door.stuck = 3;
+    door.hp = 1;
+    g.player.kits.hacking!.power = 0;
+    step(g, 0.05);
+    assert.equal(door.hacked, undefined);
+    assert.equal(door.open, false);
+    assert.equal(door.stuck, 0);
+    assert.equal(door.hp, 0);
   });
 
   it("stuns crew and drones in the hacked room for the rest of the pulse", () => {

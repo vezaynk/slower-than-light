@@ -61,6 +61,52 @@ describe("enemy hacking: launch and flight", () => {
     assert.ok(seen.size >= 4, [...seen].join(","));
   });
 
+  it("will not launch at a destroyed system or a destroyed kit", () => {
+    // Hacking, "Overview": "A destroyed system cannot be actively hacked".
+    const g = fight(3);
+    const shields = g.player.systems.shields;
+    shields.damage = shields.level;
+    assert.equal(enemyHackTargets(g).includes("shields"), false);
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+      damage: 1,
+    };
+    assert.equal(enemyHackTargets(g).includes("cloaking"), false);
+  });
+
+  it("locks the doors of a fitted kit room", () => {
+    const g = latched("cloaking");
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
+    seatKits(g.player);
+    const room = g.player.rooms.find((r) => r.kit === "cloaking");
+    assert.ok(room);
+    g.enemy!.kits.hacking!.cool = 5;
+    tickEnemySpike(g, 0.01);
+    const doors = g.player.doors.filter(
+      (d) => d.b !== "void" && (d.a === room.id || d.b === room.id),
+    );
+    assert.ok(doors.length > 0);
+    for (const d of doors) assert.equal(d.hacked, true);
+    assert.equal(enemyHackView(g)?.room, room.id);
+    assert.equal(room.hacked, "latched");
+  });
+
   it("caps hacking at level 2 except Lanius Scouts and Engi Hackers", () => {
     const capped = fight(1, 3, "auto-hacker");
     tickEnemySpike(capped, 0.01);
@@ -109,7 +155,16 @@ describe("enemy hacking: launch and flight", () => {
     let downed = false;
     for (let seed = 1; seed <= 20 && !downed; seed++) {
       const g = fight(seed);
-      g.player.kits.drones = { id: "drones", level: 3, power: 3, left: 0, cool: 0, target: "DEFENSE_1", on: true, aux: 0 };
+      g.player.kits.drones = {
+        id: "drones",
+        level: 3,
+        power: 3,
+        left: 0,
+        cool: 0,
+        target: "DEFENSE_1",
+        on: true,
+        aux: 0,
+      };
       assert.equal(launchEnemySpike(g), true);
       for (let i = 0; i < 70 && spike(g).hackFly != null; i++) tickEnemySpike(g, 0.05);
       if (!spike(g).hackLatched && spike(g).hackFly == null) {
@@ -283,7 +338,16 @@ describe("enemy hacking: pulse effects", () => {
 
   it("ends the player's cloak and blocks a new one", () => {
     const g = latched("cloaking");
-    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     tickEnemySpike(g, 0.01);
     const veil = g.player.kits.cloaking!;
     assert.equal(veil.on, false);
@@ -299,7 +363,16 @@ describe("enemy hacking: pulse effects", () => {
 
   it("ends the player's own hack and blocks a launch", () => {
     const g = latched("hacking");
-    g.player.kits.hacking = { id: "hacking", level: 1, power: 1, left: 3, cool: 0, target: "shields", on: true, aux: 0 };
+    g.player.kits.hacking = {
+      id: "hacking",
+      level: 1,
+      power: 1,
+      left: 3,
+      cool: 0,
+      target: "shields",
+      on: true,
+      aux: 0,
+    };
     g.player.parts = 2;
     tickEnemySpike(g, 0.01);
     tickEnemySpike(g, 0.1);
@@ -313,7 +386,16 @@ describe("enemy hacking: pulse effects", () => {
 
   it("turns one player crew member and frees enemy crew the player holds; not from automated ships", () => {
     const g = latched("mind");
-    g.player.kits.mind = { id: "mind", level: 1, power: 1, left: 10, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.mind = {
+      id: "mind",
+      level: 1,
+      power: 1,
+      left: 10,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     const foe = g.crew.find((c) => c.side === "enemy")!;
     foe.leashed = 10;
     tickEnemySpike(g, 0.01);
@@ -334,7 +416,16 @@ describe("enemy hacking: pulse effects", () => {
 
   it("recalls the player's boarders and cools the teleporter", () => {
     const g = latched("teleporter");
-    g.player.kits.teleporter = { id: "teleporter", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.teleporter = {
+      id: "teleporter",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     seatKits(g.player);
     const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
@@ -353,7 +444,16 @@ describe("enemy hacking: pulse effects", () => {
     // Crew Teleporter: "Retrieved crew that cannot fit in the teleporter room will be placed in adjacent room(s)."
     // Hacking does not reprint "up to 4", so every hostile boarder comes back.
     const g = latched("teleporter");
-    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.teleporter = {
+      id: "teleporter",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     seatKits(g.player);
     const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
@@ -398,10 +498,23 @@ describe("enemy hacking: pulse effects", () => {
     delete pad.omit;
     const next = foe.rooms.find((r) => r.id !== pad.id);
     assert.ok(next);
-    if (!foe.doors.some((d) => (d.a === pad.id && d.b === next.id) || (d.b === pad.id && d.a === next.id))) {
+    if (
+      !foe.doors.some(
+        (d) => (d.a === pad.id && d.b === next.id) || (d.b === pad.id && d.a === next.id),
+      )
+    ) {
       foe.doors.unshift({ a: pad.id, b: next.id, open: true, hp: 0, stuck: 0 });
     }
-    foe.kits.teleporter = { id: "teleporter", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    foe.kits.teleporter = {
+      id: "teleporter",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     const source = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
     assert.ok(source);
     while (g.crew.filter((c) => c.side === "enemy" && c.hp > 0).length < 3) {
@@ -439,7 +552,16 @@ describe("enemy hacking: pulse effects", () => {
   it("a depowered teleporter does not bring the boarders home", () => {
     // Hacking: "Depowering a hacked Teleporter system will prevent sending your crew back".
     const g = latched("teleporter");
-    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.teleporter = {
+      id: "teleporter",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     seatKits(g.player);
     const crew = g.crew.find((c) => c.side === "player")!;
     crew.aboard = "enemy";
@@ -453,7 +575,16 @@ describe("enemy hacking: pulse effects", () => {
 
   it("a Zoltan in a depowered teleporter does not force the crew home without a cooldown", () => {
     const g = latched("teleporter");
-    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 0, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    g.player.kits.teleporter = {
+      id: "teleporter",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     seatKits(g.player);
     const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
@@ -461,7 +592,15 @@ describe("enemy hacking: pulse effects", () => {
     home.kin = "energy";
     home.aboard = "player";
     home.room = pad.id;
-    const away = { ...home, id: "c-stay", name: "Stay", kin: "human" as const, aboard: "enemy" as const, room: g.enemy!.rooms[0]!.id, path: [] };
+    const away = {
+      ...home,
+      id: "c-stay",
+      name: "Stay",
+      kin: "human" as const,
+      aboard: "enemy" as const,
+      room: g.enemy!.rooms[0]!.id,
+      path: [],
+    };
     g.crew.push(away);
     g.player.reactor += 1;
     tickEnemySpike(g, 0.01);
@@ -474,7 +613,16 @@ describe("enemy hacking: pulse effects", () => {
   it("Zoltans, a cooldown, and spare reactor put one bar back and force the crew home", () => {
     // Hacking: the Teleporter-1 case redistributes spare reactor and forces the crew back.
     const g = latched("teleporter");
-    g.player.kits.teleporter = { id: "teleporter", level: 1, power: 0, left: 0, cool: 8, target: null, on: false, aux: 0 };
+    g.player.kits.teleporter = {
+      id: "teleporter",
+      level: 1,
+      power: 0,
+      left: 0,
+      cool: 8,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     seatKits(g.player);
     const pad = g.player.rooms.find((r) => r.kit === "teleporter");
     assert.ok(pad);
@@ -482,7 +630,15 @@ describe("enemy hacking: pulse effects", () => {
     home.kin = "energy";
     home.aboard = "player";
     home.room = pad.id;
-    const away = { ...home, id: "c-away", name: "Away", kin: "human" as const, aboard: "enemy" as const, room: g.enemy!.rooms[0]!.id, path: [] };
+    const away = {
+      ...home,
+      id: "c-away",
+      name: "Away",
+      kin: "human" as const,
+      aboard: "enemy" as const,
+      room: g.enemy!.rooms[0]!.id,
+      path: [],
+    };
     g.crew.push(away);
     g.player.reactor += 1;
     tickEnemySpike(g, 0.01);
@@ -497,7 +653,16 @@ describe("enemy hacking: pulse effects", () => {
     let killed = 0;
     for (let seed = 1; seed <= 30; seed++) {
       const g = latched("drones", 2, seed);
-      g.player.kits.drones = { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "DEFENSE_1", on: true, aux: 0 };
+      g.player.kits.drones = {
+        id: "drones",
+        level: 2,
+        power: 2,
+        left: 0,
+        cool: 0,
+        target: "DEFENSE_1",
+        on: true,
+        aux: 0,
+      };
       tickEnemySpike(g, 0.01);
       tickEnemySpike(g, 0.5);
       if (seed === 1) assert.ok((g.player.kits.drones!.stun ?? 0) > 0);
@@ -510,7 +675,16 @@ describe("enemy hacking: pulse effects", () => {
 
   it("ends an active backup battery", () => {
     const g = latched("battery");
-    g.player.kits.battery = { id: "battery", level: 1, power: 0, left: 20, cool: 0, target: null, on: true, aux: 2 };
+    g.player.kits.battery = {
+      id: "battery",
+      level: 1,
+      power: 0,
+      left: 20,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 2,
+    };
     tickEnemySpike(g, 0.01);
     tickEnemySpike(g, 0.1);
     assert.equal(g.player.kits.battery!.on, false);

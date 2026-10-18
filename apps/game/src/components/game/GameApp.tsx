@@ -143,6 +143,7 @@ import {
 
 import { UNIFORMS } from "@/game/crew-look";
 import { enemySystemClock, ionClock, systemClock } from "@/game/system-clock";
+import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import { flagshipHullId } from "@/game/wiki/flagship-layout";
 import { artilleryGun, artilleryView } from "@/game/wiki/flagship-systems";
 import {
@@ -679,7 +680,13 @@ export function GameApp() {
         act((game) => startVeil(game));
         return;
       }
-      if (e.code === "KeyT" && plain && g.phase === "combat" && g.enemy && g.player.kits.teleporter) {
+      if (
+        e.code === "KeyT" &&
+        plain &&
+        g.phase === "combat" &&
+        g.enemy &&
+        g.player.kits.teleporter
+      ) {
         e.preventDefault();
         if (useSlingAim.getState().on) {
           setSlingAim(false);
@@ -2094,7 +2101,13 @@ function TargetPanel({
           <ShipView
             ship={enemy}
             healing={healingIds(game, enemy, "enemy")}
-            plateId={enemy.flagship ? flagshipHullId(enemy.flagship.stage, game.difficulty) : enemy.classId}
+            plateId={
+              enemy.flagship
+                ? flagshipHullId(enemy.flagship.stage, game.difficulty)
+                : enemy.classId
+                  ? enemyBlueprintId(enemy.classId, enemy.pirate)
+                  : enemy.classId
+            }
             faction={enemy.flagship ? "rebel" : enemy.faction}
             pirate={enemy.pirate}
             facing="left"
@@ -2410,7 +2423,13 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
             disabled={cloakLocked}
             onClick={() => activateKit(id)}
           >
-            {id === "cloaking" ? "CLOAK" : id === "teleporter" ? (away ? "RETURN" : "SEND") : "MIND"}
+            {id === "cloaking"
+              ? "CLOAK"
+              : id === "teleporter"
+                ? away
+                  ? "RETURN"
+                  : "SEND"
+                : "MIND"}
           </button>
         ) : null}
         {powered ? (
@@ -3261,7 +3280,8 @@ function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
   }
   const kitId = room.kit;
   const kit = kitId ? game.player.kits[kitId] : undefined;
-  if (!kitId || !kit || (kitId !== "cloaking" && kitId !== "teleporter" && kitId !== "mind")) return null;
+  if (!kitId || !kit || (kitId !== "cloaking" && kitId !== "teleporter" && kitId !== "mind"))
+    return null;
   const barKit: BarKit = kitId;
   return (
     <>
@@ -4783,7 +4803,8 @@ function MapScreen({ game }: { game: Game }) {
             const [bx, by] = at(b);
             const isHere = b.id === game.here;
             const linked = here?.links.includes(b.id) ?? false;
-            const open = linked || (game.augments.includes("FTL_JUMPER") && navAllows(b, game.fleet));
+            const open =
+              linked || (game.augments.includes("FTL_JUMPER") && navAllows(b, game.fleet));
             const swallowed = overtaken(game, b);
             const soon = !swallowed && !!warn && overtaken(warn, b);
             // @agent:quests. Beacons, "Quest (marker) beacon": marked 'QUEST', "seen on the map from any distance away".

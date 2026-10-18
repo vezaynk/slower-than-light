@@ -24,6 +24,7 @@ import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
+import { ENEMY_BLUEPRINTS } from "../enemy-blueprints.ts";
 import { ENEMY_LAYOUTS, enemyLayoutFile } from "../enemy-layouts.ts";
 import {
   FLAGSHIP_LAYOUTS,
@@ -406,11 +407,29 @@ function paintHull(row: HullDef, stem: string | undefined): HullDef {
   return row;
 }
 
+/**
+ * One hull per archive blueprint. A shared id keeps the later class's interior.
+ * A pirate picture that differs uses that trace. Otherwise it copies the regular interior.
+ * Enemy hulls omit health. The class table still rolls the hull range.
+ */
+function enemyHulls(): HullDef[] {
+  const regular = new Map<string, string>();
+  for (const row of ENEMY_BLUEPRINTS) regular.set(row.blueprint, row.classId);
+  const plans = new Map<string, string>(regular);
+  for (const row of ENEMY_BLUEPRINTS) {
+    if (!row.pirateBlueprint) continue;
+    const pirateKey = `${row.classId}:pirate`;
+    const shared = regular.get(row.blueprint);
+    plans.set(row.pirateBlueprint, ENEMY_LAYOUTS[pirateKey] ? pirateKey : (shared ?? row.classId));
+  }
+  return [...plans.entries()].map(([id, interior]) => enemyHull(id, interior));
+}
+
 /** A traced enemy interior. The pictured icons are rooms, not a starting loadout. */
-function enemyHull(id: string): HullDef {
-  const source = ENEMY_LAYOUTS[id];
-  if (!source) throw new Error(`No enemy interior for ${id}`);
-  const layout = enemyLayoutFile(id);
+function enemyHull(id: string, interior: string): HullDef {
+  const source = ENEMY_LAYOUTS[interior];
+  if (!source) throw new Error(`No enemy interior for ${interior}`);
+  const layout = enemyLayoutFile(interior);
   return paintHull(
     {
       id,
@@ -457,7 +476,11 @@ const FLAGSHIP_HEALTH: Record<1 | 2 | 3, number> = {
 };
 
 const FLAGSHIP_STAGES = [1, 2, 3] as const;
-const FLAGSHIP_DIFFICULTIES = ["easy", "normal", "hard"] as const satisfies readonly FlagshipDifficulty[];
+const FLAGSHIP_DIFFICULTIES = [
+  "easy",
+  "normal",
+  "hard",
+] as const satisfies readonly FlagshipDifficulty[];
 
 /** One Advanced Edition blueprint. The three difficulties of a stage share its traced interior. */
 function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef {
@@ -538,7 +561,7 @@ export function loadCatalog(): void {
       systems: CITED_SYSTEMS.map(systemRow),
       hulls: [
         ...HULLS.map(hullRow),
-        ...Object.keys(ENEMY_LAYOUTS).map(enemyHull),
+        ...enemyHulls(),
         ...FLAGSHIP_STAGES.flatMap((stage) =>
           FLAGSHIP_DIFFICULTIES.map((difficulty) => flagshipHull(stage, difficulty)),
         ),

@@ -661,6 +661,65 @@ describe("packFromFtl", () => {
     }
   });
 
+  it("keeps English strings and drops translation files", () => {
+    const english = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_STANDARD_SPACE">Federation Space</text>
+  <text name="sectorname_short_STANDARD_SPACE">Fed</text>
+  <text name="only_german" language="de">Tagged German</text>
+</FTL>`;
+    const german = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_STANDARD_SPACE">German Space</text>
+  <text name="sectorname_short_STANDARD_SPACE">Ger</text>
+  <text name="only_german">German Only</text>
+</FTL>`;
+    const han = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_STANDARD_SPACE">Han Space</text>
+  <text name="sectorname_short_STANDARD_SPACE">Han</text>
+</FTL>`;
+    const append = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_STANDARD_SPACE">Civil Space</text>
+</FTL>`;
+    const germanAppend = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_STANDARD_SPACE">Last German</text>
+  <text name="only_german">Still German</text>
+</FTL>`;
+    const short = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_short_STANDARD_SPACE">Home</text>
+</FTL>`;
+    const sectors = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <sectorDescription name="STANDARD_SPACE">
+    <nameList>
+      <name id="sectorname_STANDARD_SPACE" short="sectorname_short_STANDARD_SPACE"/>
+    </nameList>
+  </sectorDescription>
+  <sectorDescription name="ONLY_DE">
+    <nameList>
+      <name id="only_german"/>
+    </nameList>
+  </sectorDescription>
+</FTL>`;
+    const pack = packFromFtl([
+      { path: "data/text-de.xml", xml: german },
+      { path: "data/text_sectorname.xml", xml: english },
+      { path: "data/blueprints.xml", xml: sectors },
+      { path: "data/text-zh_Hans.xml", xml: han },
+      { path: "data/text_sectorname.xml.append", xml: append },
+      { path: "data/text-de.xml.append", xml: germanAppend },
+      { path: "data/events.xml", xml: short },
+    ]);
+    const standard = pack.sectors?.find((row) => row.id === "STANDARD_SPACE");
+    assert.equal(standard?.name, "Civil Space");
+    assert.equal(standard?.short, "Home");
+    assert.equal(pack.sectors?.find((row) => row.id === "ONLY_DE")?.name, "only_german");
+  });
+
   it("names the file when the XML is not well-formed", () => {
     assert.throws(
       () => packFromFtl([{ path: "data/blueprints.xml", xml: "<weaponBlueprint>" }]),

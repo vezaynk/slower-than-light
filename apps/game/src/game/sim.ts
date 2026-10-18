@@ -1430,6 +1430,17 @@ function settleDisplace(ship: Ship, box: ZoltanBox, zoltans: number): void {
   const capacity = Math.max(0, box.level - (box.damage ?? 0));
   const ion = box.ion?.length ?? 0;
   let held = box.zoltanHeld ?? 0;
+  if (ion > 0) {
+    // Weapon Control: "Zoltans replace the reactor power from ion-locked Weapon Control system with their zoltan
+    // power and remove the reactor power if they leave the room." Zoltans: the same on entering Drone Control.
+    if (zoltans > held) {
+      const peel = Math.min(box.power, zoltans - held);
+      box.power -= peel;
+      held += peel;
+    }
+    stampHeld(box, Math.min(held, zoltans));
+    return;
+  }
   const base = box.power + held;
   const full = ion === 0 && capacity > 0 && base >= capacity && zoltans > 0;
   if (full) {
@@ -1456,8 +1467,14 @@ function settleDisplace(ship: Ship, box: ZoltanBox, zoltans: number): void {
 /**
  * Wiki page "Zoltans": one Zoltan can fill a shield buffer. Two replace one reactor pair
  * and cannot fill only a buffer. Leaving does not put the peeled pair back.
+ * Under ion, Weapon Control notes Shields "add their power but do not replace the reactor power", and Zoltans
+ * replaces it only when as many Zoltans stay as there are power levels (settleCover).
  */
 function settleShields(sys: SystemState, zoltans: number): void {
+  if (sys.ion.length > 0) {
+    settleCover(sys, zoltans);
+    return;
+  }
   const pairs = Math.floor(zoltans / 2) * 2;
   let held = sys.zoltanHeld ?? 0;
   const want = Math.min(pairs, sys.power + held);
@@ -1472,12 +1489,13 @@ function settleShields(sys: SystemState, zoltans: number): void {
 
 /**
  * Wiki page "Zoltans": Zoltans replace reactor power when as many stay as there are
- * power levels in Engines, Medbay, or Oxygen. Ion still on the system skips this,
- * so the remaining reactor stays and the yellow bars fill the gap. Leaving does not restore.
+ * power levels in Shields, Engines, Medbay, or Oxygen. That line is under the ion-locked rules,
+ * so ion on the system does not skip it. Fewer Zoltans add their bars and leave the reactor in place.
+ * Leaving does not restore.
  */
 function settleCover(sys: SystemState, zoltans: number): void {
   const capacity = Math.max(0, sys.level - sys.damage);
-  const covered = capacity > 0 && zoltans >= capacity && sys.ion.length === 0;
+  const covered = capacity > 0 && zoltans >= capacity;
   let held = sys.zoltanHeld ?? 0;
   if (covered) {
     const want = Math.min(zoltans, sys.power + held);
@@ -3097,7 +3115,7 @@ export function cooldownLocksPower(kit: Kit | undefined): boolean {
  * Zoltans, lead: walking a Zoltan into a cooling system turns one locked bar from reactor
  * power into Zoltan power. Leaving empties that bar, so the reactor power stays free.
  * A Zoltan already standing there when the cooldown is first seen does not swap until
- * they leave and come back. One arrival frees one bar.
+ * they leave and come back. Each Zoltan frees at most one bar per cooldown.
  */
 export function swapZoltanCooldown(g: Game): void {
   peelZoltanCooldown(g, g.player, "player");
@@ -3110,6 +3128,7 @@ function peelZoltanCooldown(g: Game, ship: Ship, aboard: "player" | "enemy"): vo
     if (!kit || !COOLDOWN_LOCK.has(kit.id)) continue;
     if (kit.cool <= 0) {
       delete kit.swap;
+      delete kit.peeled;
       continue;
     }
     const room = ship.rooms.find((r) => r.kit === kit.id);
@@ -3123,11 +3142,18 @@ function peelZoltanCooldown(g: Game, ship: Ship, aboard: "player" | "enemy"): vo
       continue;
     }
     const known = new Set(kit.swap);
+    // Zoltans: "2 zoltans can free up only 2 reactor power from a previously fully powered level 3"
+    // system, so a Zoltan who already freed a bar this cooldown does not free another on re-entry.
+    const peeled = new Set(kit.peeled);
     for (const id of here) {
-      if (known.has(id)) continue;
-      if (kit.power > 0) kit.power -= 1;
+      if (known.has(id) || peeled.has(id)) continue;
+      if (kit.power > 0) {
+        kit.power -= 1;
+        peeled.add(id);
+      }
     }
     kit.swap = here;
+    if (peeled.size) kit.peeled = [...peeled];
   }
 }
 

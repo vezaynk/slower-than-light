@@ -1737,7 +1737,12 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
           droneHp={roomDroneHp(game.player, game)}
         />
         {game.player.hull > 0 ? (
-          <ShieldField layers={bubbles} charge={charge} zoltan={game.player.zoltan ?? 0} />
+          <ShieldField
+            hullId={game.hullId}
+            layers={bubbles}
+            charge={charge}
+            zoltan={game.player.zoltan ?? 0}
+          />
         ) : null}
       </div>
       {intruders ? (
@@ -1978,6 +1983,11 @@ function TargetPanel({
     0,
   );
   const foeCharge = shieldChargeFraction(game, enemy, "enemy");
+  const foeHullId = enemy.flagship
+    ? flagshipHullId(enemy.flagship.stage, game.difficulty)
+    : enemy.classId
+      ? enemyBlueprintId(enemy.classId, enemy.pirate)
+      : enemy.classId;
   // The panel keeps a margin so the shield ellipses sit inside it, including on the 12×10 flagship.
   // Crew, doors, icons, and mounts are drawn for a 44px tile. --ship-scale shrinks them with the rooms.
   const FOE_TILE_FULL = 44;
@@ -2102,13 +2112,7 @@ function TargetPanel({
           <ShipView
             ship={enemy}
             healing={healingIds(game, enemy, "enemy")}
-            plateId={
-              enemy.flagship
-                ? flagshipHullId(enemy.flagship.stage, game.difficulty)
-                : enemy.classId
-                  ? enemyBlueprintId(enemy.classId, enemy.pirate)
-                  : enemy.classId
-            }
+            plateId={foeHullId}
             faction={enemy.flagship ? "rebel" : enemy.faction}
             pirate={enemy.pirate}
             facing="left"
@@ -2159,7 +2163,12 @@ function TargetPanel({
             droneHp={roomDroneHp(enemy, game)}
           />
           {enemy.hull > 0 ? (
-            <ShieldField layers={foeBubbles} charge={foeCharge} zoltan={enemy.zoltan ?? 0} />
+            <ShieldField
+              hullId={foeHullId}
+              layers={foeBubbles}
+              charge={foeCharge}
+              zoltan={enemy.zoltan ?? 0}
+            />
           ) : null}
         </div>
         {cloaked ? <p className="cloak-tag">{"CLOAKED"}</p> : null}

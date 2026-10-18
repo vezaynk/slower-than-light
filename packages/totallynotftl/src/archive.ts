@@ -1,10 +1,11 @@
 import { standInXml } from "@stl/campaign";
-import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
+import { hullPictureFiles, standInSheet, type HullPictureFile } from "@stl/catalog/src/ship-art.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
+import { mountsFor } from "@stl/catalog/src/weapon-mounts.ts";
 import { packFtlDat } from "@stl/ftldat";
-import { basePng } from "./png.ts";
+import { basePng, cloakPng, floorPng, gibPng, shieldPng } from "./png.ts";
 
-/** The stand-in archive: the campaign document, one layout file, and one base picture per ship. */
+/** The stand-in archive: the campaign document, layouts, drawings, and original ship images. */
 export async function standInDat(): Promise<Uint8Array> {
   const pictures = hullPictureFiles();
   return packFtlDat(
@@ -13,11 +14,41 @@ export async function standInDat(): Promise<Uint8Array> {
       ...pictures.map((file) => ({ path: file.path, xml: file.xml })),
     ],
     layoutFiles(),
-    pictures.map((file) => ({
-      path: `img/ship/${file.stem}_base.png`,
-      bytes: basePng(file.stem, file.picture, file.rooms),
-    })),
+    standInImages(pictures),
   );
+}
+
+/** Base, cloak, floor, shield, and gib pngs for each drawing. Names match a real archive. */
+export function standInImages(
+  files: readonly HullPictureFile[],
+): { path: string; bytes: Uint8Array }[] {
+  const images: { path: string; bytes: Uint8Array }[] = [];
+  for (const file of files) {
+    const gibs = standInSheet(file.picture, mountsFor(file.stem)).gibs ?? [];
+    images.push(
+      {
+        path: `img/ship/${file.stem}_base.png`,
+        bytes: basePng(file.stem, file.picture, file.rooms),
+      },
+      {
+        path: `img/ship/${file.stem}_cloak.png`,
+        bytes: cloakPng(file.stem, file.picture, file.rooms),
+      },
+      {
+        path: `img/ship/${file.stem}_floor.png`,
+        bytes: floorPng(file.stem, file.picture, file.rooms),
+      },
+      {
+        path: `img/ship/${file.stem}_shields1.png`,
+        bytes: shieldPng(file.stem, file.picture, file.rooms),
+      },
+      ...gibs.map((gib, index) => ({
+        path: `img/ship/${file.stem}_gib${gib.id}.png`,
+        bytes: gibPng(file.stem, file.picture, file.rooms, index, gibs.length),
+      })),
+    );
+  }
+  return images;
 }
 
 export { standInXml };

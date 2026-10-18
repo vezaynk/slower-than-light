@@ -5,12 +5,85 @@ const SIG = Uint8Array.of(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
 
 type Room = { x: number; y: number; w: number; h: number };
 
+type Mask = { width: number; height: number; paint: Uint8Array };
+
 /**
  * One pixel per room cell, including the one-cell margin.
  * Cells that are not a room and not a Chebyshev neighbour stay transparent.
  * The colour is a flat tone hashed from the layout stem.
  */
 export function basePng(stem: string, picture: HullPicture, rooms: readonly Room[]): Uint8Array {
+  const mask = hullMask(stem, picture, rooms, true);
+  return paintPng(mask, stemColour(stem, 0.42), 255);
+}
+
+/** A lighter wash of the same silhouette. The cloak file shares the base box. */
+export function cloakPng(stem: string, picture: HullPicture, rooms: readonly Room[]): Uint8Array {
+  const mask = hullMask(stem, picture, rooms, true);
+  return paintPng(mask, stemColour(stem, 0.72), 170);
+}
+
+/** Room cells only, darker than the hull rim. */
+export function floorPng(stem: string, picture: HullPicture, rooms: readonly Room[]): Uint8Array {
+  const mask = hullMask(stem, picture, rooms, false);
+  return paintPng(mask, stemColour(`${stem}:floor`, 0.28), 255);
+}
+
+/** The outer ring of the silhouette. Player shields use this file. */
+export function shieldPng(stem: string, picture: HullPicture, rooms: readonly Room[]): Uint8Array {
+  const mask = hullMask(stem, picture, rooms, true);
+  const ring = new Uint8Array(mask.paint.length);
+  const { width, height, paint } = mask;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const at = y * width + x;
+      if (!paint[at]) continue;
+      const edge =
+        x === 0 ||
+        y === 0 ||
+        x === width - 1 ||
+        y === height - 1 ||
+        !paint[at - 1] ||
+        !paint[at + 1] ||
+        !paint[at - width] ||
+        !paint[at + width];
+      if (edge) ring[at] = 1;
+    }
+  }
+  return paintPng({ width, height, paint: ring }, stemColour(`${stem}:shield`, 0.7), 210);
+}
+
+/** One vertical slice of the silhouette. `index` is the piece's place in `count`. */
+export function gibPng(
+  stem: string,
+  picture: HullPicture,
+  rooms: readonly Room[],
+  index: number,
+  count: number,
+): Uint8Array {
+  const mask = hullMask(stem, picture, rooms, true);
+  const slice = new Uint8Array(mask.paint.length);
+  const start = Math.floor((index * mask.width) / count);
+  const end = Math.floor(((index + 1) * mask.width) / count);
+  for (let y = 0; y < mask.height; y += 1) {
+    for (let x = start; x < end; x += 1) {
+      const at = y * mask.width + x;
+      if (mask.paint[at]) slice[at] = 1;
+    }
+  }
+  return paintPng(
+    { width: mask.width, height: mask.height, paint: slice },
+    stemColour(`${stem}:gib${index}`, 0.5),
+    255,
+  );
+}
+
+function hullMask(
+  stem: string,
+  picture: HullPicture,
+  rooms: readonly Room[],
+  margin: boolean,
+): Mask {
   const width = picture.w / ROOM_PX;
   const height = picture.h / ROOM_PX;
   const originX = picture.x / ROOM_PX;
@@ -19,11 +92,12 @@ export function basePng(stem: string, picture: HullPicture, rooms: readonly Room
     throw new Error(`Picture for ${stem} is not a whole number of rooms`);
   }
   const paint = new Uint8Array(width * height);
+  const reach = margin ? 1 : 0;
   for (const room of rooms) {
     for (let cy = room.y; cy < room.y + room.h; cy += 1) {
       for (let cx = room.x; cx < room.x + room.w; cx += 1) {
-        for (let dy = -1; dy <= 1; dy += 1) {
-          for (let dx = -1; dx <= 1; dx += 1) {
+        for (let dy = -reach; dy <= reach; dy += 1) {
+          for (let dx = -reach; dx <= reach; dx += 1) {
             const px = cx + dx - originX;
             const py = cy + dy - originY;
             if (px >= 0 && py >= 0 && px < width && py < height) paint[py * width + px] = 1;
@@ -32,23 +106,27 @@ export function basePng(stem: string, picture: HullPicture, rooms: readonly Room
       }
     }
   }
-  const [red, green, blue] = stemColour(stem);
+  return { width, height, paint };
+}
+
+function paintPng(mask: Mask, colour: [number, number, number], alpha: number): Uint8Array {
+  const { width, height, paint } = mask;
   const raw = new Uint8Array(height * (1 + width * 4));
   for (let y = 0; y < height; y += 1) {
     const row = y * (1 + width * 4);
     for (let x = 0; x < width; x += 1) {
       if (!paint[y * width + x]) continue;
       const at = row + 1 + x * 4;
-      raw[at] = red;
-      raw[at + 1] = green;
-      raw[at + 2] = blue;
-      raw[at + 3] = 255;
+      raw[at] = colour[0];
+      raw[at + 1] = colour[1];
+      raw[at + 2] = colour[2];
+      raw[at + 3] = alpha;
     }
   }
   return encodePng(width, height, deflateSync(raw));
 }
 
-function stemColour(stem: string): [number, number, number] {
+function stemColour(stem: string, light: number): [number, number, number] {
   let hash = 2166136261;
   for (let i = 0; i < stem.length; i += 1) {
     hash ^= stem.charCodeAt(i);
@@ -56,7 +134,6 @@ function stemColour(stem: string): [number, number, number] {
   }
   const hue = (hash >>> 0) % 360;
   const sat = 0.55;
-  const light = 0.42;
   const chroma = sat * Math.min(light, 1 - light);
   const channel = (n: number) => {
     const k = (n + hue / 30) % 12;

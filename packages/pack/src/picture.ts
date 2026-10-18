@@ -1,6 +1,15 @@
 import type { Element as XmlElement } from "@xmldom/xmldom";
-import type { HullDef, HullMount, HullMountSlide, HullPicture, HullRoom } from "./types.ts";
-import { readDocument } from "./parse.ts";
+import type {
+  HullDef,
+  HullGib,
+  HullMount,
+  HullMountSlide,
+  HullOffset,
+  HullPicture,
+  HullRoom,
+  HullSheet,
+} from "./types.ts";
+import { child, elements, readDocument } from "./parse.ts";
 
 const SLIDES = new Set<HullMountSlide>(["up", "down", "left", "right", "no"]);
 
@@ -58,14 +67,50 @@ export function pictureFrame(
   };
 }
 
-/** One hull drawing document: the `<img>` box, and weapon mounts when that drawing has them. */
-export function pictureXml(picture: HullPicture, mounts?: readonly HullMount[]): string {
+/** One hull drawing document: the image box, mounts, and the other drawing children that are present. */
+export function pictureXml(
+  picture: HullPicture,
+  mounts?: readonly HullMount[],
+  sheet?: HullSheet,
+): string {
   const img = `<img x="${picture.x}" y="${picture.y}" w="${picture.w}" h="${picture.h}"/>`;
+  const glow = sheet?.glow ? `<glowOffset x="${sheet.glow.x}" y="${sheet.glow.y}"/>` : "";
+  const offsets = offsetTags(sheet);
   const hardpoints =
     mounts && mounts.length > 0
       ? `<weaponMounts>${mounts.map(mountTag).join("")}</weaponMounts>`
       : "";
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<FTL>${img}${hardpoints}</FTL>\n`;
+  const explosion =
+    sheet?.gibs && sheet.gibs.length > 0
+      ? `<explosion>${sheet.gibs.map(gibTag).join("")}</explosion>`
+      : "";
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<FTL>${img}${glow}${offsets}${hardpoints}${explosion}</FTL>\n`;
+}
+
+function offsetTags(sheet: HullSheet | undefined): string {
+  if (!sheet?.cloakOffset && !sheet?.floorOffset) return "";
+  const cloak = sheet.cloakOffset ? pointTag("cloak", sheet.cloakOffset) : "";
+  const floor = sheet.floorOffset ? pointTag("floor", sheet.floorOffset) : "";
+  return `<offsets>${cloak}${floor}</offsets>`;
+}
+
+function pointTag(name: string, point: HullOffset): string {
+  return `<${name} x="${point.x}" y="${point.y}"/>`;
+}
+
+function gibTag(gib: HullGib): string {
+  return (
+    `<gib${gib.id}>` +
+    `<x>${gib.x}</x><y>${gib.y}</y>` +
+    `<velocity min="${num(gib.velocityMin)}" max="${num(gib.velocityMax)}"/>` +
+    `<direction min="${num(gib.directionMin)}" max="${num(gib.directionMax)}"/>` +
+    `<angular min="${num(gib.angularMin)}" max="${num(gib.angularMax)}"/>` +
+    `</gib${gib.id}>`
+  );
+}
+
+function num(value: number): string {
+  return String(value);
 }
 
 function mountTag(mount: HullMount): string {
@@ -73,7 +118,7 @@ function mountTag(mount: HullMount): string {
   return `<mount x="${mount.x}" y="${mount.y}" rotate="${mount.rotate}" mirror="${mount.mirror}" gib="${mount.gib}"${slide}/>`;
 }
 
-type Drawing = { picture?: HullPicture; mounts?: HullMount[] };
+type Drawing = HullSheet & { picture?: HullPicture; mounts?: HullMount[] };
 
 /**
  * The first `<img x y w h>` in each drawing file, keyed by the file stem.
@@ -102,6 +147,10 @@ export function attachPictures(
     if (!drawing) continue;
     if (drawing.picture) hull.picture = { ...drawing.picture };
     if (drawing.mounts) hull.mounts = drawing.mounts.map((mount) => ({ ...mount }));
+    if (drawing.glow) hull.glow = { ...drawing.glow };
+    if (drawing.cloakOffset) hull.cloakOffset = { ...drawing.cloakOffset };
+    if (drawing.floorOffset) hull.floorOffset = { ...drawing.floorOffset };
+    if (drawing.gibs) hull.gibs = drawing.gibs.map((gib) => ({ ...gib }));
   }
 }
 
@@ -121,7 +170,20 @@ function readDrawings(documents: readonly { path: string; xml: string }[]): Map<
     const next: Drawing = { ...prev };
     if (found.picture) next.picture = found.picture;
     if (found.mounts) next.mounts = found.mounts;
-    if (next.picture || next.mounts) drawings.set(stem, next);
+    if (found.glow) next.glow = found.glow;
+    if (found.cloakOffset) next.cloakOffset = found.cloakOffset;
+    if (found.floorOffset) next.floorOffset = found.floorOffset;
+    if (found.gibs) next.gibs = found.gibs;
+    if (
+      next.picture ||
+      next.mounts ||
+      next.glow ||
+      next.cloakOffset ||
+      next.floorOffset ||
+      next.gibs
+    ) {
+      drawings.set(stem, next);
+    }
   }
   return drawings;
 }
@@ -144,7 +206,84 @@ function drawingIn(xml: string): Drawing {
     const mount = mountOf(node);
     if (mount) mounts.push(mount);
   }
-  return mounts.length > 0 ? { picture, mounts } : { picture };
+  const drawing: Drawing = {};
+  if (picture) drawing.picture = picture;
+  if (mounts.length > 0) drawing.mounts = mounts;
+  const root = doc.documentElement ?? undefined;
+  const glow = pointOf(child(root, "glowOffset"));
+  if (glow) drawing.glow = glow;
+  const offsets = child(root, "offsets");
+  const cloakOffset = pointOf(child(offsets, "cloak"));
+  const floorOffset = pointOf(child(offsets, "floor"));
+  if (cloakOffset) drawing.cloakOffset = cloakOffset;
+  if (floorOffset) drawing.floorOffset = floorOffset;
+  const gibs = readGibs(child(root, "explosion"));
+  if (gibs.length > 0) drawing.gibs = gibs;
+  return drawing;
+}
+
+function pointOf(node: XmlElement | undefined): HullOffset | undefined {
+  if (!node) return undefined;
+  const x = intAttr(node, "x");
+  const y = intAttr(node, "y");
+  if (x == null || y == null) return undefined;
+  return { x, y };
+}
+
+function readGibs(node: XmlElement | undefined): HullGib[] {
+  if (!node) return [];
+  const gibs: HullGib[] = [];
+  for (const item of elements(node)) {
+    const match = /^gib(\d+)$/i.exec(item.tagName);
+    const id = match ? Number(match[1]) : NaN;
+    if (!Number.isInteger(id) || id < 1) continue;
+    const x = intText(item, "x");
+    const y = intText(item, "y");
+    const velocityMin = rangeAttr(item, "velocity", "min");
+    const velocityMax = rangeAttr(item, "velocity", "max");
+    const directionMin = rangeAttr(item, "direction", "min");
+    const directionMax = rangeAttr(item, "direction", "max");
+    const angularMin = rangeAttr(item, "angular", "min");
+    const angularMax = rangeAttr(item, "angular", "max");
+    if (
+      x == null ||
+      y == null ||
+      velocityMin == null ||
+      velocityMax == null ||
+      directionMin == null ||
+      directionMax == null ||
+      angularMin == null ||
+      angularMax == null
+    ) {
+      continue;
+    }
+    gibs.push({
+      id,
+      x,
+      y,
+      velocityMin,
+      velocityMax,
+      directionMin,
+      directionMax,
+      angularMin,
+      angularMax,
+    });
+  }
+  return gibs;
+}
+
+function intText(node: XmlElement, tag: string): number | undefined {
+  const found = child(node, tag);
+  if (!found) return undefined;
+  const value = Number(found.textContent?.trim());
+  if (!Number.isInteger(value)) return undefined;
+  return value;
+}
+
+function rangeAttr(node: XmlElement, tag: string, name: string): number | undefined {
+  const found = child(node, tag);
+  if (!found) return undefined;
+  return numAttr(found, name);
 }
 
 function mountOf(node: XmlElement): HullMount | undefined {

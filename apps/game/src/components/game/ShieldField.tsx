@@ -1,4 +1,5 @@
-import { useId, useLayoutEffect, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { shipArtGeneration, shipImage, subscribeShipArt } from "@/game/pack/ship-art";
 import { bubbleLayout, frameRoom, readShipScale } from "./shield-bubble";
 
 /**
@@ -6,10 +7,13 @@ import { bubbleLayout, frameRoom, readShipScale } from "./shield-bubble";
  * arc for the layer still charging, and a green ellipse for a Zoltan shield.
  */
 export function ShieldField({
+  hullId,
   layers,
   charge,
   zoltan,
 }: {
+  /** Hull whose `img/ship/<name>_shields1.png` paints the outer bubble. */
+  hullId?: string;
   layers: number;
   /** 0 to 1 while the next layer is charging, otherwise null. */
   charge: number | null;
@@ -17,6 +21,8 @@ export function ShieldField({
 }) {
   const ref = useRef<SVGSVGElement>(null);
   const gradId = `shield-${useId().replace(/:/g, "")}`;
+  const artTick = useSyncExternalStore(subscribeShipArt, shipArtGeneration, () => 0);
+  const shield = hullId && artTick >= 0 ? shipImage(hullId, "shield") : undefined;
   const [box, setBox] = useState({ w: 0, h: 0, room: 56, scale: 1 });
 
   useLayoutEffect(() => {
@@ -92,6 +98,18 @@ export function ShieldField({
             );
           })
         : null}
+      {visible && shield && outer >= 0 ? (
+        <image
+          className="shield-skin"
+          href={shield.url}
+          x={cx - (box.w / 2 + layout.live[outer]!)}
+          y={cy - (box.h / 2 + layout.live[outer]!)}
+          width={(box.w / 2 + layout.live[outer]!) * 2}
+          height={(box.h / 2 + layout.live[outer]!) * 2}
+          preserveAspectRatio="none"
+          opacity={0.55}
+        />
+      ) : null}
       {visible && outer >= 0 ? (
         <ellipse
           className="shield-sheen"

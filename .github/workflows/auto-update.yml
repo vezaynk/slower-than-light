@@ -1,0 +1,46 @@
+name: Update auto-merge PRs
+
+# Master requires a pull request to be up to date before it merges, and auto-merge waits on a branch that is behind.
+# This brings every auto-merge pull request that is behind up to date: when master moves, and when auto-merge is
+# turned on. The update re-runs CI, and auto-merge merges the pull request once it is green.
+#
+# AUTO_UPDATE_TOKEN is a fine-grained token with Contents and Pull requests write on this repository. An update made
+# with GITHUB_TOKEN would not start CI on the pull request, so the required checks would never report.
+
+on:
+  push:
+    branches: [master]
+  # Runs the base branch's copy of this file and never checks out pull request code.
+  pull_request_target:
+    types: [auto_merge_enabled]
+
+permissions: {}
+
+concurrency:
+  group: auto-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bring auto-merge pull requests up to date with master
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -eu
+          if [ -z "$GH_TOKEN" ]; then
+            echo "AUTO_UPDATE_TOKEN is not set. Nothing was updated."
+            exit 0
+          fi
+          gh pr list --base master --state open --limit 100 \
+            --json number,autoMergeRequest,mergeStateStatus \
+            --jq '.[] | select(.autoMergeRequest != null and .mergeStateStatus == "BEHIND") | .number' |
+            while read -r number; do
+              if gh api -X PUT "repos/$GH_REPO/pulls/$number/update-branch" > /dev/null; then
+                echo "Updated #$number."
+              else
+                echo "Could not update #$number. It may conflict with master."
+              fi
+            done

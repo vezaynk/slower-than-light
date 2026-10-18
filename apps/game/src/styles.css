@@ -301,7 +301,11 @@ button:disabled {
   position: relative;
   height: 14.5rem;
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--color-danger) 18%, transparent), transparent 30%),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-danger) 18%, transparent),
+      transparent 30%
+    ),
     var(--color-bg);
 }
 
@@ -484,7 +488,9 @@ button:disabled {
   padding: 0;
   font-size: 0;
   image-rendering: pixelated;
-  box-shadow: inset 3px 2px 0 #1a120c, inset 1px 7px 0 #1a120c;
+  box-shadow:
+    inset 3px 2px 0 #1a120c,
+    inset 1px 7px 0 #1a120c;
 }
 
 .room.is-hot {
@@ -506,14 +512,22 @@ button:disabled {
   inset: calc(-3px * var(--ship-scale, 1));
   pointer-events: none;
   background:
-    linear-gradient(#f4fff8, #f4fff8) top left / calc(4px * var(--ship-scale, 1)) calc(1px * var(--ship-scale, 1)) no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) top left / calc(1px * var(--ship-scale, 1)) calc(4px * var(--ship-scale, 1)) no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) top right / calc(4px * var(--ship-scale, 1)) calc(1px * var(--ship-scale, 1)) no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) top right / calc(1px * var(--ship-scale, 1)) calc(4px * var(--ship-scale, 1)) no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) bottom left / calc(4px * var(--ship-scale, 1)) calc(1px * var(--ship-scale, 1)) no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) bottom left / calc(1px * var(--ship-scale, 1)) calc(4px * var(--ship-scale, 1)) no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) bottom right / calc(4px * var(--ship-scale, 1)) calc(1px * var(--ship-scale, 1)) no-repeat,
-    linear-gradient(#f4fff8, #f4fff8) bottom right / calc(1px * var(--ship-scale, 1)) calc(4px * var(--ship-scale, 1)) no-repeat;
+    linear-gradient(#f4fff8, #f4fff8) top left / calc(4px * var(--ship-scale, 1))
+      calc(1px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) top left / calc(1px * var(--ship-scale, 1))
+      calc(4px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) top right / calc(4px * var(--ship-scale, 1))
+      calc(1px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) top right / calc(1px * var(--ship-scale, 1))
+      calc(4px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom left / calc(4px * var(--ship-scale, 1))
+      calc(1px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom left / calc(1px * var(--ship-scale, 1))
+      calc(4px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom right / calc(4px * var(--ship-scale, 1))
+      calc(1px * var(--ship-scale, 1)) no-repeat,
+    linear-gradient(#f4fff8, #f4fff8) bottom right / calc(1px * var(--ship-scale, 1))
+      calc(4px * var(--ship-scale, 1)) no-repeat;
 }
 
 .crew-hp {
@@ -532,8 +546,12 @@ button:disabled {
   background: #3ecf4a;
 }
 
-.room.is-fire { background: color-mix(in srgb, var(--color-danger) 28%, var(--color-surface)); }
-.room.is-flash { background: color-mix(in srgb, var(--color-fg) 30%, var(--color-surface)); }
+.room.is-fire {
+  background: color-mix(in srgb, var(--color-danger) 28%, var(--color-surface));
+}
+.room.is-flash {
+  background: color-mix(in srgb, var(--color-fg) 30%, var(--color-surface));
+}
 
 .gun {
   padding: 0.45rem 0.5rem 0.35rem;
@@ -826,7 +844,6 @@ button:disabled {
 .title h1 {
   font-size: 4.5rem;
 }
-
 
 @media (prefers-reduced-motion: reduce) {
   .stage {
@@ -1144,9 +1161,18 @@ button:disabled {
   white-space: nowrap;
 }
 
-.hud-beside .hud-class { font-size: 18px; color: var(--color-fg); }
-.hud-beside .hud-relation { font-size: 14px; color: var(--color-muted); }
-.hud-beside .hack-evasion { font-family: var(--font-hud); color: var(--color-ion); }
+.hud-beside .hud-class {
+  font-size: 18px;
+  color: var(--color-fg);
+}
+.hud-beside .hud-relation {
+  font-size: 14px;
+  color: var(--color-muted);
+}
+.hud-beside .hack-evasion {
+  font-family: var(--font-hud);
+  color: var(--color-ion);
+}
 
 .ftl-drive em {
   font-style: normal;
@@ -1410,7 +1436,9 @@ button:disabled {
 }
 
 .shield-field ellipse {
-  transition: rx 180ms linear, ry 180ms linear;
+  transition:
+    rx 180ms linear,
+    ry 180ms linear;
 }
 
 .shield-field .shield-sheen {
@@ -1422,7 +1450,9 @@ button:disabled {
 }
 
 @keyframes shield-orbit {
-  to { stroke-dashoffset: -100; }
+  to {
+    stroke-dashoffset: -100;
+  }
 }
 
 .sky.is-cloaked .shield-field,
@@ -1581,7 +1611,9 @@ button:disabled {
 
 /* Per the user: flat thumbs centered on the panel border, only while aiming.
    Chevrons and a grip mark show the thumb slides along that edge. */
-.target-panel { position: relative; }
+.target-panel {
+  position: relative;
+}
 
 .aim-rails {
   position: absolute;
@@ -1630,7 +1662,9 @@ button:disabled {
   line-height: 0;
 }
 
-.aim-thumb:active { cursor: grabbing; }
+.aim-thumb:active {
+  cursor: grabbing;
+}
 
 .aim-thumb-x {
   top: 0;
@@ -1693,7 +1727,9 @@ button:disabled {
   background: repeating-linear-gradient(to bottom, currentColor 0 2px, transparent 2px 4px);
 }
 
-.aim-thumb.is-end { background: var(--color-ok); }
+.aim-thumb.is-end {
+  background: var(--color-ok);
+}
 
 .target-systems {
   flex-wrap: wrap;
@@ -1875,11 +1911,15 @@ button:disabled {
 
 .sys-orb.is-clock.is-live,
 .sub-orb.is-clock.is-live,
-.target-systems span.is-clock.is-live { --clock: #f4f0c8; }
+.target-systems span.is-clock.is-live {
+  --clock: #f4f0c8;
+}
 
 .sys-orb.is-clock.is-ion,
 .sub-orb.is-clock.is-ion,
-.target-systems span.is-clock.is-ion { --clock: var(--color-ion); }
+.target-systems span.is-clock.is-ion {
+  --clock: var(--color-ion);
+}
 
 .sys-orb.is-clock::before,
 .sub-orb.is-clock::before,
@@ -1906,7 +1946,9 @@ button:disabled {
 @media (prefers-reduced-motion: reduce) {
   .sys-orb.is-clock,
   .sub-orb.is-clock,
-  .target-systems span.is-clock { transition: none; }
+  .target-systems span.is-clock {
+    transition: none;
+  }
 }
 
 /* Per the user: subsystems sit to the right of the weapon tray, so the target panel can use the space below it. */
@@ -1969,7 +2011,9 @@ button:disabled {
 /* Weapons stay lit while ionized or hacked. The bar flash is the lockout; dimming it hid the blue and the purple. */
 
 .gun-slot.is-armed {
-  box-shadow: inset 0 0 0 2px var(--color-accent), 0 0 12px rgba(180, 255, 230, 0.12);
+  box-shadow:
+    inset 0 0 0 2px var(--color-accent),
+    0 0 12px rgba(180, 255, 230, 0.12);
 }
 
 .gun-slot.is-dark {
@@ -2073,7 +2117,9 @@ button:disabled {
 
 .sub-orb.is-on {
   background: #143024;
-  box-shadow: inset 0 0 0 1px var(--color-ok), 0 0 12px rgba(180, 255, 230, 0.12);
+  box-shadow:
+    inset 0 0 0 1px var(--color-ok),
+    0 0 12px rgba(180, 255, 230, 0.12);
 }
 
 .sub-dock {
@@ -2284,7 +2330,9 @@ button.gun-slot {
 }
 
 .gun-slot.is-targeting {
-  box-shadow: inset 0 0 0 2px #fff, 0 0 16px rgba(255, 255, 255, 0.35);
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 0 16px rgba(255, 255, 255, 0.35);
 }
 
 .power-num {
@@ -2469,21 +2517,19 @@ button.gun-slot {
   position: absolute;
   inset: 0;
   background: #241c16;
-  filter:
-    drop-shadow(1px 0 0 #1b1714)
-    drop-shadow(-1px 0 0 #1b1714)
-    drop-shadow(0 1px 0 #1b1714)
-    drop-shadow(0 -1px 0 #1b1714)
-    drop-shadow(2px 0 0 #1b1714)
-    drop-shadow(-2px 0 0 #1b1714)
-    drop-shadow(0 2px 0 #1b1714)
-    drop-shadow(0 -2px 0 #1b1714);
+  filter: drop-shadow(1px 0 0 #1b1714) drop-shadow(-1px 0 0 #1b1714) drop-shadow(0 1px 0 #1b1714)
+    drop-shadow(0 -1px 0 #1b1714) drop-shadow(2px 0 0 #1b1714) drop-shadow(-2px 0 0 #1b1714)
+    drop-shadow(0 2px 0 #1b1714) drop-shadow(0 -2px 0 #1b1714);
 }
 
 /* Clipped floors cover the room box, so the oxygen tint has to paint here too. */
 .play .room.is-thin .pixel-fill,
 .play .room.is-airless .pixel-fill {
-  background-color: color-mix(in srgb, #e25858 calc((100 - var(--air, 100)) * 1%), var(--color-room));
+  background-color: color-mix(
+    in srgb,
+    #e25858 calc((100 - var(--air, 100)) * 1%),
+    var(--color-room)
+  );
 }
 
 .door-tick {
@@ -2507,10 +2553,26 @@ button.gun-slot {
 
 .door-layer .door-tick {
   /* Floors and caps track --ship-scale, so a shrunk enemy hull keeps the same fraction of a tile. At 1 the clamps are unchanged. */
-  --len: clamp(calc(11px * var(--ship-scale, 1)), calc(var(--tile) * 0.46), calc(22px * var(--ship-scale, 1)));
-  --thick: clamp(calc(3px * var(--ship-scale, 1)), calc(var(--tile) * 0.09), calc(4px * var(--ship-scale, 1)));
-  --hit-along: clamp(calc(18px * var(--ship-scale, 1)), calc(var(--tile) * 0.62), calc(28px * var(--ship-scale, 1)));
-  --hit-across: clamp(calc(12px * var(--ship-scale, 1)), calc(var(--tile) * 0.32), calc(16px * var(--ship-scale, 1)));
+  --len: clamp(
+    calc(11px * var(--ship-scale, 1)),
+    calc(var(--tile) * 0.46),
+    calc(22px * var(--ship-scale, 1))
+  );
+  --thick: clamp(
+    calc(3px * var(--ship-scale, 1)),
+    calc(var(--tile) * 0.09),
+    calc(4px * var(--ship-scale, 1))
+  );
+  --hit-along: clamp(
+    calc(18px * var(--ship-scale, 1)),
+    calc(var(--tile) * 0.62),
+    calc(28px * var(--ship-scale, 1))
+  );
+  --hit-across: clamp(
+    calc(12px * var(--ship-scale, 1)),
+    calc(var(--tile) * 0.32),
+    calc(16px * var(--ship-scale, 1))
+  );
   z-index: 2;
   background: transparent;
   min-width: 0;
@@ -2528,7 +2590,9 @@ button.gun-slot {
 }
 
 .door-layer .door-tick.is-e {
-  left: calc((var(--x) + 1) * (var(--tile) + var(--wall)) - var(--wall) / 2 - var(--hit-across) / 2);
+  left: calc(
+    (var(--x) + 1) * (var(--tile) + var(--wall)) - var(--wall) / 2 - var(--hit-across) / 2
+  );
 }
 
 .door-layer .door-tick.is-w {
@@ -2604,18 +2668,30 @@ button.gun-slot {
  * edge. INVENTED look. Broken and dead-system colours below still win.
  */
 .door-layer .door-tick.is-airlock {
-  --thick: clamp(calc(4px * var(--ship-scale, 1)), calc(var(--tile) * 0.13), calc(6px * var(--ship-scale, 1)));
+  --thick: clamp(
+    calc(4px * var(--ship-scale, 1)),
+    calc(var(--tile) * 0.13),
+    calc(6px * var(--ship-scale, 1))
+  );
 }
 
 .door-layer .door-tick.is-airlock.is-e .door-slab,
 .door-layer .door-tick.is-airlock.is-w .door-slab {
-  background: repeating-linear-gradient(45deg, #ffd23a 0 calc(3px * var(--ship-scale, 1)), #26221c calc(3px * var(--ship-scale, 1)) calc(6px * var(--ship-scale, 1)));
+  background: repeating-linear-gradient(
+    45deg,
+    #ffd23a 0 calc(3px * var(--ship-scale, 1)),
+    #26221c calc(3px * var(--ship-scale, 1)) calc(6px * var(--ship-scale, 1))
+  );
   box-shadow: 0 0 0 calc(1px * var(--ship-scale, 1)) #6c737c;
 }
 
 .door-layer .door-tick.is-airlock.is-n .door-slab,
 .door-layer .door-tick.is-airlock.is-s .door-slab {
-  background: repeating-linear-gradient(-45deg, #ffd23a 0 calc(3px * var(--ship-scale, 1)), #26221c calc(3px * var(--ship-scale, 1)) calc(6px * var(--ship-scale, 1)));
+  background: repeating-linear-gradient(
+    -45deg,
+    #ffd23a 0 calc(3px * var(--ship-scale, 1)),
+    #26221c calc(3px * var(--ship-scale, 1)) calc(6px * var(--ship-scale, 1))
+  );
   box-shadow: 0 0 0 calc(1px * var(--ship-scale, 1)) #6c737c;
 }
 
@@ -2633,8 +2709,14 @@ button.gun-slot {
 }
 
 @keyframes door-hurt {
-  0% { background: var(--color-danger); box-shadow: 0 0 calc(6px * var(--ship-scale, 1)) var(--color-danger); }
-  100% { background: #3a1010; box-shadow: none; }
+  0% {
+    background: var(--color-danger);
+    box-shadow: 0 0 calc(6px * var(--ship-scale, 1)) var(--color-danger);
+  }
+  100% {
+    background: #3a1010;
+    box-shadow: none;
+  }
 }
 
 /* Stuck open: the same single leaf, red, with a cross in the clear part of the doorway. */
@@ -2716,9 +2798,15 @@ button.door-tick::before {
   pointer-events: none;
 }
 
-.room-terminal[data-wall="n"] { transform: rotate(-90deg); }
-.room-terminal[data-wall="s"] { transform: rotate(90deg); }
-.room-terminal[data-wall="w"] { transform: scaleX(-1); }
+.room-terminal[data-wall="n"] {
+  transform: rotate(-90deg);
+}
+.room-terminal[data-wall="s"] {
+  transform: rotate(90deg);
+}
+.room-terminal[data-wall="w"] {
+  transform: scaleX(-1);
+}
 
 .room-terminal-art {
   display: block;
@@ -2728,23 +2816,61 @@ button.door-tick::before {
   shape-rendering: crispEdges;
 }
 
-.room-terminal-art .t-mount { fill: #3a3630; }
-.room-terminal-art .t-mount-bolt { fill: #9a9284; }
-.room-terminal-art .t-arm { fill: #4c463e; }
-.room-terminal-art .t-bezel { fill: #5a544a; }
-.room-terminal-art .t-screen { fill: #040506; }
-.room-terminal-art .t-led { fill: #2c2a26; }
+.room-terminal-art .t-mount {
+  fill: #3a3630;
+}
+.room-terminal-art .t-mount-bolt {
+  fill: #9a9284;
+}
+.room-terminal-art .t-arm {
+  fill: #4c463e;
+}
+.room-terminal-art .t-bezel {
+  fill: #5a544a;
+}
+.room-terminal-art .t-screen {
+  fill: #040506;
+}
+.room-terminal-art .t-led {
+  fill: #2c2a26;
+}
 
-.room-terminal-art.is-on { --s1: #3ee56a; --s2: #b6ff9a; }
-.room-terminal-art.is-on[data-kind="shields"] { --s1: #6ec4ff; --s2: #e8f6ff; }
-.room-terminal-art.is-on[data-kind="engines"] { --s1: #ff9b3a; --s2: #ffe2b8; }
-.room-terminal-art.is-on[data-kind="weapons"] { --s1: #ff5a3c; --s2: #ffd25a; }
-.room-terminal-art.is-on[data-kind="pilot"] { --s1: #7dff6a; --s2: #eaffee; }
-.room-terminal-art.is-on[data-kind="sensors"] { --s1: #3ee5a8; --s2: #c8fff0; }
-.room-terminal-art.is-on[data-kind="doors"] { --s1: #ffb15a; --s2: #5a3a1c; }
+.room-terminal-art.is-on {
+  --s1: #3ee56a;
+  --s2: #b6ff9a;
+}
+.room-terminal-art.is-on[data-kind="shields"] {
+  --s1: #6ec4ff;
+  --s2: #e8f6ff;
+}
+.room-terminal-art.is-on[data-kind="engines"] {
+  --s1: #ff9b3a;
+  --s2: #ffe2b8;
+}
+.room-terminal-art.is-on[data-kind="weapons"] {
+  --s1: #ff5a3c;
+  --s2: #ffd25a;
+}
+.room-terminal-art.is-on[data-kind="pilot"] {
+  --s1: #7dff6a;
+  --s2: #eaffee;
+}
+.room-terminal-art.is-on[data-kind="sensors"] {
+  --s1: #3ee5a8;
+  --s2: #c8fff0;
+}
+.room-terminal-art.is-on[data-kind="doors"] {
+  --s1: #ffb15a;
+  --s2: #5a3a1c;
+}
 
-.room-terminal-art.is-on .t-screen { fill: #07110d; }
-.room-terminal-art.is-on .t-led { fill: var(--s1); animation: term-blink 1.2s steps(2) infinite; }
+.room-terminal-art.is-on .t-screen {
+  fill: #07110d;
+}
+.room-terminal-art.is-on .t-led {
+  fill: var(--s1);
+  animation: term-blink 1.2s steps(2) infinite;
+}
 
 .room-terminal-art .t-ring {
   fill: none;
@@ -2754,7 +2880,9 @@ button.door-tick::before {
   transform-origin: center;
   animation: term-ring 1.8s linear infinite;
 }
-.room-terminal-art .t-core { fill: var(--s2); }
+.room-terminal-art .t-core {
+  fill: var(--s2);
+}
 
 .room-terminal-art .t-bar {
   fill: var(--s1);
@@ -2763,9 +2891,19 @@ button.door-tick::before {
   animation: term-bar 0.9s ease-in-out infinite alternate;
 }
 
-.room-terminal-art .t-reticle { fill: none; stroke: var(--s1); stroke-width: 0.3; }
-.room-terminal-art .t-hair { fill: var(--s1); opacity: 0.6; }
-.room-terminal-art .t-lock { fill: var(--s2); animation: term-blink 0.6s steps(2) infinite; }
+.room-terminal-art .t-reticle {
+  fill: none;
+  stroke: var(--s1);
+  stroke-width: 0.3;
+}
+.room-terminal-art .t-hair {
+  fill: var(--s1);
+  opacity: 0.6;
+}
+.room-terminal-art .t-lock {
+  fill: var(--s2);
+  animation: term-blink 0.6s steps(2) infinite;
+}
 .room-terminal-art .t-charge {
   fill: var(--s2);
   transform-box: fill-box;
@@ -2773,30 +2911,92 @@ button.door-tick::before {
   animation: term-charge 1.6s linear infinite;
 }
 
-.room-terminal-art .t-star { fill: var(--s2); animation: term-star 1.1s linear infinite; }
-.room-terminal-art .t-craft { fill: var(--s1); }
+.room-terminal-art .t-star {
+  fill: var(--s2);
+  animation: term-star 1.1s linear infinite;
+}
+.room-terminal-art .t-craft {
+  fill: var(--s1);
+}
 
-.room-terminal-art .t-scope { fill: none; stroke: var(--s1); stroke-width: 0.25; opacity: 0.7; }
+.room-terminal-art .t-scope {
+  fill: none;
+  stroke: var(--s1);
+  stroke-width: 0.25;
+  opacity: 0.7;
+}
 .room-terminal-art .t-sweep {
   fill: var(--s2);
   transform-box: view-box;
   transform-origin: calc(10.9px * var(--ship-scale, 1)) calc(8px * var(--ship-scale, 1));
   animation: term-sweep 2s linear infinite;
 }
-.room-terminal-art .t-blip { fill: var(--s2); animation: term-blink 1s steps(2) infinite; }
+.room-terminal-art .t-blip {
+  fill: var(--s2);
+  animation: term-blink 1s steps(2) infinite;
+}
 
-.room-terminal-art .t-lamp { fill: var(--s1); animation: term-lamp 1.6s steps(2) infinite; }
+.room-terminal-art .t-lamp {
+  fill: var(--s1);
+  animation: term-lamp 1.6s steps(2) infinite;
+}
 
-@keyframes term-blink { 50% { opacity: 0.25; } }
-@keyframes term-ring { from { transform: scale(0.3); opacity: 1; } to { transform: scale(1.35); opacity: 0; } }
-@keyframes term-bar { from { transform: scaleY(0.2); } to { transform: scaleY(1); } }
-@keyframes term-charge { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes term-star { from { transform: translateY(0); opacity: 1; } to { transform: translateY(calc(8.2px * var(--ship-scale, 1))); opacity: 0.2; } }
-@keyframes term-sweep { to { transform: rotate(360deg); } }
-@keyframes term-lamp { 50% { fill: var(--s2); } }
+@keyframes term-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+@keyframes term-ring {
+  from {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+@keyframes term-bar {
+  from {
+    transform: scaleY(0.2);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes term-charge {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes term-star {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(calc(8.2px * var(--ship-scale, 1)));
+    opacity: 0.2;
+  }
+}
+@keyframes term-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes term-lamp {
+  50% {
+    fill: var(--s2);
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .room-terminal-art * { animation: none !important; }
+  .room-terminal-art * {
+    animation: none !important;
+  }
 }
 
 /* Under the operator's sprite (the crew layer sits above the rooms), at the foot of the tile. */
@@ -2811,10 +3011,19 @@ button.door-tick::before {
 }
 
 /* The seat sits back from the wall the monitor hangs on, facing it (ShipView nudges the operator the same way). */
-.room-console[data-wall="e"] .room-seat { left: 32%; }
-.room-console[data-wall="w"] .room-seat { left: 68%; transform: translateX(-50%) scaleX(-1); }
-.room-console[data-wall="n"] .room-seat { bottom: -14%; }
-.room-console[data-wall="s"] .room-seat { bottom: 22%; }
+.room-console[data-wall="e"] .room-seat {
+  left: 32%;
+}
+.room-console[data-wall="w"] .room-seat {
+  left: 68%;
+  transform: translateX(-50%) scaleX(-1);
+}
+.room-console[data-wall="n"] .room-seat {
+  bottom: -14%;
+}
+.room-console[data-wall="s"] .room-seat {
+  bottom: 22%;
+}
 
 .room-seat-art {
   display: block;
@@ -2823,9 +3032,15 @@ button.door-tick::before {
   image-rendering: pixelated;
 }
 
-.room-seat-art .ink-casing { fill: #5a5248; }
-.room-seat-art .ink-casing-d { fill: #2a241e; }
-.room-seat-art .ink-trim { fill: #8a7e70; }
+.room-seat-art .ink-casing {
+  fill: #5a5248;
+}
+.room-seat-art .ink-casing-d {
+  fill: #2a241e;
+}
+.room-seat-art .ink-trim {
+  fill: #8a7e70;
+}
 
 .pad-pip {
   position: absolute;
@@ -3250,19 +3465,48 @@ button.door-tick::before {
   z-index: 0;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.18), transparent 18%),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0 8px, transparent 8px 28px),
-    #4a5056;
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0 8px, transparent 8px 28px), #4a5056;
   pointer-events: none;
 }
 
 .hangar-top,
 .hangar-ship,
 .hangar-stage,
-.hangar-bay { position: relative; z-index: 1; }
-.hangar-top { grid-area: top; display: flex; gap: 8px; align-items: stretch; min-width: 0; }
-.hangar-ship { grid-area: ship; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.hangar-stage { grid-area: stage; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 10px; min-width: 0; min-height: 0; }
-.hangar-bay { grid-area: bay; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr) minmax(0, 0.9fr); gap: 8px; min-width: 0; }
+.hangar-bay {
+  position: relative;
+  z-index: 1;
+}
+.hangar-top {
+  grid-area: top;
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  min-width: 0;
+}
+.hangar-ship {
+  grid-area: ship;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.hangar-stage {
+  grid-area: stage;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+}
+.hangar-bay {
+  grid-area: bay;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr) minmax(0, 0.9fr);
+  gap: 8px;
+  min-width: 0;
+}
 
 .hangar button:not(.room-hit):not(.token),
 .hangar-name,
@@ -3280,7 +3524,10 @@ button.door-tick::before {
   box-shadow: var(--glow);
 }
 
-.hangar button:not(.room-hit):not(.token) { min-height: 36px; padding: 2px 8px; }
+.hangar button:not(.room-hit):not(.token) {
+  min-height: 36px;
+  padding: 2px 8px;
+}
 .hangar button:not(.room-hit):not(.token).is-on,
 .hangar button:not(.room-hit):not(.token)[aria-pressed="true"] {
   background: var(--color-accent);
@@ -3304,20 +3551,65 @@ button.door-tick::before {
   padding: 0 12px;
 }
 
-.hangar-diff { display: flex; gap: 8px; flex: none; }
-.hangar-diff-col { display: flex; flex-direction: column; }
-.hangar-diff-col button { min-height: 28px; padding: 2px 10px; }
-.hangar-start { font-size: 40px; min-width: 132px; padding: 0 16px; }
+.hangar-diff {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+.hangar-diff-col {
+  display: flex;
+  flex-direction: column;
+}
+.hangar-diff-col button {
+  min-height: 28px;
+  padding: 2px 10px;
+}
+.hangar-start {
+  font-size: 40px;
+  min-width: 132px;
+  padding: 0 16px;
+}
 
-.hangar-label { margin: 0; }
-.hangar-list { display: flex; align-items: center; gap: 6px; }
-.hangar-list span { flex: 1; text-align: center; }
-.hangar-list button { width: 44px; padding: 0; display: grid; place-items: center; }
-.hangar-arrow { width: 0; height: 0; border-style: solid; }
-.hangar-arrow.is-prev { border-width: 7px 10px 7px 0; border-color: transparent var(--color-fg) transparent transparent; }
-.hangar-arrow.is-next { border-width: 7px 0 7px 10px; border-color: transparent transparent transparent var(--color-fg); }
-.hangar-letters { display: flex; gap: 6px; }
-.hangar-letters button { flex: 1; font-size: 20px; padding: 2px 4px; }
+.hangar-label {
+  margin: 0;
+}
+.hangar-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hangar-list span {
+  flex: 1;
+  text-align: center;
+}
+.hangar-list button {
+  width: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+.hangar-arrow {
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+.hangar-arrow.is-prev {
+  border-width: 7px 10px 7px 0;
+  border-color: transparent var(--color-fg) transparent transparent;
+}
+.hangar-arrow.is-next {
+  border-width: 7px 0 7px 10px;
+  border-color: transparent transparent transparent var(--color-fg);
+}
+.hangar-letters {
+  display: flex;
+  gap: 6px;
+}
+.hangar-letters button {
+  flex: 1;
+  font-size: 20px;
+  padding: 2px 4px;
+}
 .hangar-achieve {
   padding: 8px;
   font-family: var(--font-mono);
@@ -3325,18 +3617,53 @@ button.door-tick::before {
   letter-spacing: 0;
   line-height: 1.3;
 }
-.hangar-achieve p { margin: 0 0 4px; }
-.hangar-achieve div { display: flex; gap: 10px; margin-top: 8px; color: var(--color-line); }
+.hangar-achieve p {
+  margin: 0 0 4px;
+}
+.hangar-achieve div {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  color: var(--color-line);
+}
 /* @agent:unlocks. Locked layouts, ship achievement locks, developer unlock switch. */
-.hangar-ach { display: inline-grid; color: var(--color-line-dim); }
-.hangar-ach.is-earned { color: var(--color-accent); }
-.hangar-letters button.is-locked:not(.is-on) { color: var(--color-muted); border-color: var(--color-line-dim); }
-.hangar-letters button { position: relative; white-space: nowrap; }
-.hangar-letters button .px-icon { position: absolute; top: 2px; right: 2px; }
-.hangar-stage.is-locked .hangar-figure { filter: brightness(0.45) saturate(0.3); }
-.hangar-dev { display: flex; }
-.hangar-dev button { flex: 1; font-size: 16px; border-style: dashed; color: var(--color-muted); }
-.hangar-start:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.hangar-ach {
+  display: inline-grid;
+  color: var(--color-line-dim);
+}
+.hangar-ach.is-earned {
+  color: var(--color-accent);
+}
+.hangar-letters button.is-locked:not(.is-on) {
+  color: var(--color-muted);
+  border-color: var(--color-line-dim);
+}
+.hangar-letters button {
+  position: relative;
+  white-space: nowrap;
+}
+.hangar-letters button .px-icon {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+.hangar-stage.is-locked .hangar-figure {
+  filter: brightness(0.45) saturate(0.3);
+}
+.hangar-dev {
+  display: flex;
+}
+.hangar-dev button {
+  flex: 1;
+  font-size: 16px;
+  border-style: dashed;
+  color: var(--color-muted);
+}
+.hangar-start:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
 .hangar-locked {
   position: absolute;
   top: 12%;
@@ -3354,10 +3681,33 @@ button.door-tick::before {
   line-height: 1.35;
   text-align: center;
 }
-.hangar-locked p { margin: 0; }
-.hangar-locked-title { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px !important; font-family: var(--font-hud); font-size: 24px; color: var(--color-danger); letter-spacing: 0.06em; }
+.hangar-locked p {
+  margin: 0;
+}
+.hangar-locked-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px !important;
+  font-family: var(--font-hud);
+  font-size: 24px;
+  color: var(--color-danger);
+  letter-spacing: 0.06em;
+}
 
-.hangar .pixel-figure { grid-column: auto; grid-row: auto; align-self: stretch; flex: 1; min-height: 0; width: 100%; margin: 0; container-type: size; display: grid; place-items: center; }
+.hangar .pixel-figure {
+  grid-column: auto;
+  grid-row: auto;
+  align-self: stretch;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin: 0;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
 .hangar-figure {
   align-self: stretch;
   flex: 1;
@@ -3371,7 +3721,11 @@ button.door-tick::before {
   position: relative;
 }
 .hangar-stage .hull {
-  --tile: clamp(4px, min(calc(100cqi / (var(--cols) + 2) - 2px), calc(100cqh / (var(--rows) + 2) - 2px)), 40px);
+  --tile: clamp(
+    4px,
+    min(calc(100cqi / (var(--cols) + 2) - 2px), calc(100cqh / (var(--rows) + 2) - 2px)),
+    40px
+  );
   position: relative;
   z-index: 1;
   background: transparent;
@@ -3410,7 +3764,9 @@ button.door-tick::before {
   height: min(22px, calc(var(--tile) * 0.9));
   width: auto;
 }
-.hangar-stage .pixel-hull { display: none; }
+.hangar-stage .pixel-hull {
+  display: none;
+}
 .hangar .room-grid {
   width: min(100cqw, calc((100cqh - 72px) * var(--ar)), 620px);
   margin: 0 auto;
@@ -3434,7 +3790,16 @@ button.door-tick::before {
   background: #f3f1ea !important;
 }
 
-.hangar-bars { position: relative; z-index: 2; display: flex; justify-content: safe center; gap: 6px; flex: none; overflow-x: auto; padding-bottom: 2px; }
+.hangar-bars {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: safe center;
+  gap: 6px;
+  flex: none;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
 .hangar-bar {
   display: flex;
   flex-direction: column;
@@ -3444,14 +3809,43 @@ button.door-tick::before {
   flex: none;
   color: var(--color-ok);
 }
-.hangar-bar svg { width: 24px; height: 24px; }
-.hangar-pips { display: flex; gap: 2px; min-height: 5px; }
-.hangar-pips i { display: block; width: 8px; height: 4px; background: var(--color-ok); }
+.hangar-bar svg {
+  width: 24px;
+  height: 24px;
+}
+.hangar-pips {
+  display: flex;
+  gap: 2px;
+  min-height: 5px;
+}
+.hangar-pips i {
+  display: block;
+  width: 8px;
+  height: 4px;
+  background: var(--color-ok);
+}
 
-.hangar-panel { min-width: 0; padding: 8px; }
-.hangar-panel h2 { margin: 0 0 8px; font-size: 22px; font-weight: 400; letter-spacing: 0.08em; }
-.hangar-mid { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.hangar-crew { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hangar-panel {
+  min-width: 0;
+  padding: 8px;
+}
+.hangar-panel h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+.hangar-mid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.hangar-crew {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
 .hangar .hangar-crew-card {
   margin: 0;
   min-height: 0;
@@ -3465,15 +3859,47 @@ button.door-tick::before {
   padding: 6px 8px;
   text-align: left;
 }
-.hangar-crew-card .crew-sprite { grid-row: 1 / span 3; }
-.hangar .hangar-crew-card.is-on { background: var(--color-panel); color: var(--color-fg); border-color: var(--color-accent); }
-.hangar-crew-card span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); letter-spacing: 0; }
-.hangar-crew-name { font-size: 13px; }
-.hangar-crew-race { font-size: 12px; color: var(--color-muted); }
-.hangar-crew-cta { font-size: 12px; letter-spacing: 0.06em; color: var(--color-accent); }
+.hangar-crew-card .crew-sprite {
+  grid-row: 1 / span 3;
+}
+.hangar .hangar-crew-card.is-on {
+  background: var(--color-panel);
+  color: var(--color-fg);
+  border-color: var(--color-accent);
+}
+.hangar-crew-card span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+.hangar-crew-name {
+  font-size: 13px;
+}
+.hangar-crew-race {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.hangar-crew-cta {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+}
 .hangar-slot p,
-.hangar-augs p { margin: 0; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0; text-align: center; }
-.crew-sprite { display: block; flex: none; image-rendering: pixelated; }
+.hangar-augs p {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-align: center;
+}
+.crew-sprite {
+  display: block;
+  flex: none;
+  image-rendering: pixelated;
+}
 .hangar-crew-layer {
   position: fixed;
   inset: 0;
@@ -3493,8 +3919,21 @@ button.door-tick::before {
   background: var(--color-panel);
   box-shadow: var(--glow);
 }
-.hangar-crew-fields { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
-.hangar-crew-fields label { display: flex; flex-direction: column; gap: 2px; font-family: var(--font-mono); font-size: 12px; color: var(--color-muted); }
+.hangar-crew-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.hangar-crew-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-muted);
+}
 .hangar-crew-fields input {
   font-family: var(--font-mono);
   font-size: 14px;
@@ -3505,12 +3944,36 @@ button.door-tick::before {
   padding: 4px 6px;
   min-width: 0;
 }
-.hangar-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
-.hangar .hangar-swatches button { width: 28px; min-height: 28px; height: 28px; padding: 0; }
-.hangar .hangar-swatches button[aria-checked="true"] { border-color: var(--color-accent); outline: 2px solid var(--color-accent); outline-offset: 1px; }
-.hangar-crew-actions { display: flex; gap: 6px; }
-.hangar-crew-actions button { flex: 1; font-family: var(--font-hud); font-size: 20px; }
-.hangar-slots { display: flex; gap: 8px; min-height: 78px; }
+.hangar-swatches {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.hangar .hangar-swatches button {
+  width: 28px;
+  min-height: 28px;
+  height: 28px;
+  padding: 0;
+}
+.hangar .hangar-swatches button[aria-checked="true"] {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+.hangar-crew-actions {
+  display: flex;
+  gap: 6px;
+}
+.hangar-crew-actions button {
+  flex: 1;
+  font-family: var(--font-hud);
+  font-size: 20px;
+}
+.hangar-slots {
+  display: flex;
+  gap: 8px;
+  min-height: 78px;
+}
 .hangar-slot {
   flex: 1;
   min-width: 0;
@@ -3523,15 +3986,32 @@ button.door-tick::before {
   gap: 4px;
   padding: 4px;
 }
-.hangar-slot.is-empty { background: var(--color-panel-2); border-color: var(--color-line-dim); box-shadow: none; border-style: dashed; }
+.hangar-slot.is-empty {
+  background: var(--color-panel-2);
+  border-color: var(--color-line-dim);
+  box-shadow: none;
+  border-style: dashed;
+}
 .slot-gun {
   width: 46px;
   height: 16px;
-  background: linear-gradient(#9aa7b0, #9aa7b0) 0 6px / 34px 4px no-repeat, linear-gradient(#c5ced4, #c5ced4) 30px 2px / 12px 12px no-repeat;
+  background:
+    linear-gradient(#9aa7b0, #9aa7b0) 0 6px / 34px 4px no-repeat,
+    linear-gradient(#c5ced4, #c5ced4) 30px 2px / 12px 12px no-repeat;
 }
-.hangar-power { display: flex; gap: 2px; min-height: 6px; }
-.hangar-power i { width: 12px; height: 4px; background: #9aa4aa; }
-.hangar-drones { min-height: 92px; }
+.hangar-power {
+  display: flex;
+  gap: 2px;
+  min-height: 6px;
+}
+.hangar-power i {
+  width: 12px;
+  height: 4px;
+  background: #9aa4aa;
+}
+.hangar-drones {
+  min-height: 92px;
+}
 .hangar-absent {
   margin: 12px 0 4px;
   text-align: center;
@@ -3539,9 +4019,23 @@ button.door-tick::before {
   letter-spacing: 0.12em;
   color: var(--color-line);
 }
-.hangar-augs { display: flex; flex-direction: column; gap: 8px; }
-.hangar-augs p { min-height: 28px; display: flex; align-items: center; justify-content: center; padding: 4px 8px; }
-.hangar-augs p.is-empty { background: var(--color-panel-2); border-style: dashed; border-color: var(--color-line-dim); }
+.hangar-augs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hangar-augs p {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+}
+.hangar-augs p.is-empty {
+  background: var(--color-panel-2);
+  border-style: dashed;
+  border-color: var(--color-line-dim);
+}
 
 /* Beacon map is the in-sector chart. Sector map keeps the mint frame. */
 
@@ -3557,7 +4051,9 @@ button.door-tick::before {
   gap: 18px;
   margin: 0 48px 6px 0;
 }
-.map-head h2 { margin: 0; }
+.map-head h2 {
+  margin: 0;
+}
 .map-fuel {
   display: inline-flex;
   align-items: center;
@@ -3569,10 +4065,18 @@ button.door-tick::before {
   line-height: 1;
   color: var(--color-fg);
 }
-.map-fuel b { font-weight: 400; }
-.map-fuel em { font-style: normal; font-size: 22px; letter-spacing: 0.1em; }
+.map-fuel b {
+  font-weight: 400;
+}
+.map-fuel em {
+  font-style: normal;
+  font-size: 22px;
+  letter-spacing: 0.1em;
+}
 .map-fuel.is-low,
-.map-fuel.is-low em { color: var(--color-danger); }
+.map-fuel.is-low em {
+  color: var(--color-danger);
+}
 
 /* Per the user: a jump that spends the last fuel asks before it leaves. */
 .map-confirm {
@@ -3608,7 +4112,11 @@ button.door-tick::before {
   line-height: 1.45;
   color: var(--color-fg);
 }
-.map-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.map-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
 .map-confirm-actions button {
   font-family: var(--font-hud);
   font-size: 22px;
@@ -3619,7 +4127,10 @@ button.door-tick::before {
   background: var(--color-panel-2);
   color: var(--color-fg);
 }
-.map-confirm-actions button.is-jump { border-color: var(--color-danger); color: var(--color-danger); }
+.map-confirm-actions button.is-jump {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
 
 .stage-slot > .beacon-map {
   position: absolute;
@@ -3652,7 +4163,10 @@ button.door-tick::before {
   color: var(--color-fg);
 }
 
-.map-wait-btn { padding: 8px 12px; font-size: 22px; }
+.map-wait-btn {
+  padding: 8px 12px;
+  font-size: 22px;
+}
 
 .map-distress {
   display: flex;
@@ -3662,9 +4176,17 @@ button.door-tick::before {
   font-size: 14px;
   line-height: 1.1;
 }
-.map-distress b { font-weight: 400; font-size: 18px; color: var(--color-muted); }
-.map-distress.is-on { border-color: var(--color-danger); }
-.map-distress.is-on b { color: var(--color-danger); }
+.map-distress b {
+  font-weight: 400;
+  font-size: 18px;
+  color: var(--color-muted);
+}
+.map-distress.is-on {
+  border-color: var(--color-danger);
+}
+.map-distress.is-on b {
+  color: var(--color-danger);
+}
 
 .beacon-map.sector-map .beacon {
   width: 11px;
@@ -3981,8 +4503,7 @@ button.door-tick::before {
   border: 0;
   background:
     radial-gradient(circle at 20% 30%, rgba(180, 60, 90, 0.35), transparent 40%),
-    radial-gradient(circle at 70% 40%, rgba(40, 60, 120, 0.45), transparent 42%),
-    #07060f;
+    radial-gradient(circle at 70% 40%, rgba(40, 60, 120, 0.45), transparent 42%), #07060f;
   color: var(--color-fg);
   text-align: center;
   cursor: pointer;
@@ -4040,19 +4561,48 @@ button.door-tick::before {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.weapon-row > span { display: block; min-height: 96px; border: 2px dashed var(--color-line-dim); }
+.weapon-row > span {
+  display: block;
+  min-height: 96px;
+  border: 2px dashed var(--color-line-dim);
+}
 
-.weapon-row button { justify-content: center; text-align: center; min-height: 96px; }
+.weapon-row button {
+  justify-content: center;
+  text-align: center;
+  min-height: 96px;
+}
 
-.weapon-row button b, .store-board button b { font-family: var(--font-hud); font-size: 22px; font-weight: 400; color: var(--color-accent); }
+.weapon-row button b,
+.store-board button b {
+  font-family: var(--font-hud);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--color-accent);
+}
 
-.store-note { margin: 4px 0 0; color: var(--color-muted); font-size: 13px; }
+.store-note {
+  margin: 4px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+}
 
-.repair-row { flex-wrap: nowrap; }
+.repair-row {
+  flex-wrap: nowrap;
+}
 
-.ach-body h3, .ship-best-head p { margin: 14px 0 6px; font-family: var(--font-hud); font-size: 24px; font-weight: 400; letter-spacing: 0.08em; }
+.ach-body h3,
+.ship-best-head p {
+  margin: 14px 0 6px;
+  font-family: var(--font-hud);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
 
-.ach-body .store-note { margin: 12px 0 0; }
+.ach-body .store-note {
+  margin: 12px 0 0;
+}
 
 .beacon-map.sector-map .beacon,
 .beacon-map.sector-map .beacon.is-linked:not(:disabled),
@@ -4064,7 +4614,9 @@ button.door-tick::before {
   box-shadow: none;
 }
 
-.beacon-map.sector-map .beacon { transform: translate(-50%, -50%) rotate(45deg); }
+.beacon-map.sector-map .beacon {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
 
 .beacon-map.sector-map .beacon.is-linked:not(:disabled),
 .key-beacon.is-linked {
@@ -4073,67 +4625,202 @@ button.door-tick::before {
 }
 
 .beacon-map.sector-map .beacon.is-visited,
-.key-beacon.is-visited { background: var(--color-line-dim); }
+.key-beacon.is-visited {
+  background: var(--color-line-dim);
+}
 
 .beacon-map.sector-map .beacon.is-over,
-.key-beacon.is-over { background: var(--color-danger); opacity: 1; }
+.key-beacon.is-over {
+  background: var(--color-danger);
+  opacity: 1;
+}
 
-.beacon-map.sector-map .beacon.is-nebula:not(.is-over) { background: #9b6dff; }
+.beacon-map.sector-map .beacon.is-nebula:not(.is-over) {
+  background: #9b6dff;
+}
 
-.sector-map .beacon.is-past { opacity: 0.35; }
+.sector-map .beacon.is-past {
+  opacity: 0.35;
+}
 
-.beacon-legend { display: inline-flex; gap: 16px; margin-left: auto; }
+.beacon-legend {
+  display: inline-flex;
+  gap: 16px;
+  margin-left: auto;
+}
 
-.beacon-legend > span { display: inline-flex; align-items: center; gap: 8px; }
+.beacon-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 
-.key-beacon { display: inline-block; transform: rotate(45deg) scale(0.8); }
+.key-beacon {
+  display: inline-block;
+  transform: rotate(45deg) scale(0.8);
+}
 
-.gun-slot.is-empty { border: 2px dashed var(--color-line-dim); background: rgba(11, 17, 22, 0.5); box-shadow: none; }
+.gun-slot.is-empty {
+  border: 2px dashed var(--color-line-dim);
+  background: rgba(11, 17, 22, 0.5);
+  box-shadow: none;
+}
 
-.sub-orb .px-icon, .sys-orb .px-icon { display: block; }
+.sub-orb .px-icon,
+.sys-orb .px-icon {
+  display: block;
+}
 
-.px-icon { flex: none; image-rendering: pixelated; }
+.px-icon {
+  flex: none;
+  image-rendering: pixelated;
+}
 
-.count-chip .px-icon, .air-readout .px-icon, .scrap-box .px-icon, .loot-chip .px-icon { color: var(--color-line); }
+.count-chip .px-icon,
+.air-readout .px-icon,
+.scrap-box .px-icon,
+.loot-chip .px-icon {
+  color: var(--color-line);
+}
 
-.title-panel .title-panel-body { margin: 6px 0 10px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0; line-height: 1.5; color: var(--color-muted); }
+.title-panel .title-panel-body {
+  margin: 6px 0 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0;
+  line-height: 1.5;
+  color: var(--color-muted);
+}
 
-.wiki-screen h2 { margin: 0 0 8px; font-family: var(--font-hud); font-size: 26px; font-weight: 400; letter-spacing: 0.08em; }
+.wiki-screen h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-hud);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
 
-.controls-screen header h2 { margin: 0 8px 0 0; }
+.controls-screen header h2 {
+  margin: 0 8px 0 0;
+}
 
-.beacon-map.sector-map .beacon.is-linked:not(:disabled) { transform: translate(-50%, -50%) rotate(45deg); }
+.beacon-map.sector-map .beacon.is-linked:not(:disabled) {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
 
-
-
-.controls-cols li { align-items: center; }
+.controls-cols li {
+  align-items: center;
+}
 
 /* Combat effects canvas (CombatFx.tsx): over both ships, under modals. */
 
-.fx-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; image-rendering: pixelated; }
+.fx-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  image-rendering: pixelated;
+}
 
 /* Departure of a player shot, and the arrival of an enemy shot, paint under the target panel. */
-.fx-under { z-index: 2; }
+.fx-under {
+  z-index: 2;
+}
 
-.target-panel .room:not(.is-unseen):not(.is-cut):not(.is-fire):not(.is-vent):not(.is-flash):not(.is-thin):not(.is-airless):not(.is-beam) {
+.target-panel
+  .room:not(.is-unseen):not(.is-cut):not(.is-fire):not(.is-vent):not(.is-flash):not(.is-thin):not(
+    .is-airless
+  ):not(.is-beam) {
   background: color-mix(in srgb, var(--color-room) 52%, transparent);
 }
 
-.target-panel .hull-plate { opacity: 0.4; }
+.target-panel .hull-plate {
+  opacity: 0.4;
+}
 
-.target-panel .pixel-fill { opacity: 0.45; }
+.target-panel .pixel-fill {
+  opacity: 0.45;
+}
 
-.hull.is-gone { visibility: hidden; }
+.hull.is-gone {
+  visibility: hidden;
+}
 
-/* Weapon mounts on the hull edge (ShipView Mounts). Player guns face right. Enemy guns in the target preview face up. */
+/* Weapon mounts. Edge guns (ShipView EdgeMounts) sit on the hull rim: player guns face right, enemy guns in the target preview face up. Archive hardpoints sit on the ship image. */
 
-.mount { position: absolute; z-index: 2; pointer-events: none; line-height: 0; transform: translateX(-50%); }
+.mount {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  line-height: 0;
+  transform: translateX(-50%);
+}
 
-.hull-foe .mount { transform: translateX(50%) rotate(-90deg); transform-origin: left center; }
+.hull-foe .mount {
+  transform: translateX(50%) rotate(-90deg);
+  transform-origin: left center;
+}
 
-.mount.is-top { bottom: 100%; margin-bottom: calc(-3px * var(--ship-scale, 1)); }
+.mount.is-top {
+  bottom: 100%;
+  margin-bottom: calc(-3px * var(--ship-scale, 1));
+}
 
-.mount.is-bottom { top: 100%; margin-top: calc(-3px * var(--ship-scale, 1)); }
+.mount.is-bottom {
+  top: 100%;
+  margin-top: calc(-3px * var(--ship-scale, 1));
+}
+
+/* Out of the room grid. The rear corner is the mount point, under the rooms and over the hull image. */
+.mount-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.mount.is-hardpoint,
+.hull-foe .mount.is-hardpoint {
+  z-index: 0;
+  transform: none;
+  bottom: auto;
+  margin: 0;
+}
+
+.mount-turn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  line-height: 0;
+}
+
+.mount-gun {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translateY(-50%);
+  line-height: 0;
+}
+
+.mount-gun [data-muzzle] {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: 0;
+  height: 0;
+}
+
+.mount.is-hardpoint .gear-art,
+.hangar-stage .mount.is-hardpoint .gear-art {
+  height: 100%;
+  width: auto;
+}
 
 /* Enemy barrels are 16px at a full tile. Width follows the viewBox so the picture does not stretch. */
 .hull-foe .mount .gear-art {
@@ -4142,7 +4829,9 @@ button.door-tick::before {
   max-width: none;
 }
 
-.mount.is-cold { filter: saturate(0.25) brightness(0.6); }
+.mount.is-cold {
+  filter: saturate(0.25) brightness(0.6);
+}
 
 /* Combat weapon art keeps its glow pixels dark until the charge bar is full.
    Store, hangar, and cargo art stay at the designed colour (no --accent-ink). */
@@ -4163,11 +4852,17 @@ button.door-tick::before {
 }
 
 @keyframes weapon-accent {
-  0% { fill: var(--gear-glow); }
-  100% { fill: color-mix(in srgb, var(--gear-glow) 42%, #fff6e0); }
+  0% {
+    fill: var(--gear-glow);
+  }
+  100% {
+    fill: color-mix(in srgb, var(--gear-glow) 42%, #fff6e0);
+  }
 }
 
-.play-root.is-halted .px-accent { animation-play-state: paused; }
+.play-root.is-halted .px-accent {
+  animation-play-state: paused;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .play .mount.is-ready .px-accent,
@@ -4179,30 +4874,86 @@ button.door-tick::before {
 
 /* Queued targets (ShipView aim-marks): numbered reticles on enemy rooms. */
 
-.aim-marks { position: absolute; inset: 0; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0; pointer-events: none; }
+.aim-marks {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  pointer-events: none;
+}
 
-.aim-mark { position: relative; width: calc(26px * var(--ship-scale, 1)); height: calc(26px * var(--ship-scale, 1)); color: var(--color-accent); filter: drop-shadow(0 0 calc(2px * var(--ship-scale, 1)) rgba(0, 0, 0, 0.9)); }
+.aim-mark {
+  position: relative;
+  width: calc(26px * var(--ship-scale, 1));
+  height: calc(26px * var(--ship-scale, 1));
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 calc(2px * var(--ship-scale, 1)) rgba(0, 0, 0, 0.9));
+}
 
-.aim-mark .px-icon { display: block; width: 100%; height: 100%; }
+.aim-mark .px-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
-.aim-mark b { position: absolute; inset: calc(7px * var(--ship-scale, 1)); display: grid; place-items: center; font-family: var(--font-hud); font-size: calc(16px * var(--ship-scale, 1)); font-weight: 400; line-height: 1; color: #1a1408; background: var(--color-accent); }
+.aim-mark b {
+  position: absolute;
+  inset: calc(7px * var(--ship-scale, 1));
+  display: grid;
+  place-items: center;
+  font-family: var(--font-hud);
+  font-size: calc(16px * var(--ship-scale, 1));
+  font-weight: 400;
+  line-height: 1;
+  color: #1a1408;
+  background: var(--color-accent);
+}
 
+.aim-mark.is-charging {
+  opacity: 0.85;
+}
 
+.aim-mark.is-ready {
+  animation: aim-blink 0.3s steps(2, jump-none) infinite;
+}
 
-.aim-mark.is-charging { opacity: 0.85; }
+.aim-mark.is-auto {
+  color: var(--color-line);
+}
 
-.aim-mark.is-ready { animation: aim-blink 0.3s steps(2, jump-none) infinite; }
-
-.aim-mark.is-auto { color: var(--color-line); }
-
-.aim-mark.is-auto b { background: var(--color-line); font-size: calc(13px * var(--ship-scale, 1)); }
+.aim-mark.is-auto b {
+  background: var(--color-line);
+  font-size: calc(13px * var(--ship-scale, 1));
+}
 
 /* Player beam swipe (ShipView BeamOverlay). The segment is the two clicks. */
-.beam-stroke { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; overflow: visible; }
-.beam-stroke line { stroke-linecap: round; }
-.beam-stroke .beam-ink { stroke: #1a1408; stroke-width: calc(5px * var(--ship-scale, 1)); }
-.beam-stroke .beam-hot { stroke: #f2e34a; stroke-width: calc(2px * var(--ship-scale, 1)); }
-.beam-stroke .is-preview { stroke-dasharray: calc(6px * var(--ship-scale, 1)) calc(5px * var(--ship-scale, 1)); }
+.beam-stroke {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+  overflow: visible;
+}
+.beam-stroke line {
+  stroke-linecap: round;
+}
+.beam-stroke .beam-ink {
+  stroke: #1a1408;
+  stroke-width: calc(5px * var(--ship-scale, 1));
+}
+.beam-stroke .beam-hot {
+  stroke: #f2e34a;
+  stroke-width: calc(2px * var(--ship-scale, 1));
+}
+.beam-stroke .is-preview {
+  stroke-dasharray: calc(6px * var(--ship-scale, 1)) calc(5px * var(--ship-scale, 1));
+}
 
 /* Rooms the swipe will hit. The numbered reticle stays on the first room. */
 .play .room.is-beam,
@@ -4223,31 +4974,72 @@ button.door-tick::before {
   background: color-mix(in srgb, #f2e34a 46%, #2b2f36);
   opacity: 1;
 }
-@keyframes aim-blink { 50% { opacity: 0.35; } }
+@keyframes aim-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
 
-.gun-aim { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-hud); font-size: 16px; line-height: 1; color: var(--color-accent); white-space: nowrap; overflow: hidden; }
+.gun-aim {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-hud);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-accent);
+  white-space: nowrap;
+  overflow: hidden;
+}
 
-.gun-slot.is-auto .gun-aim { color: var(--color-line); }
+.gun-slot.is-auto .gun-aim {
+  color: var(--color-line);
+}
 
 /* The title screen's art is positioned against this box. */
 
-.title-shot { position: relative; }
+.title-shot {
+  position: relative;
+}
 
 /* Enemy escape readout (enemyEscapeView): only while they are trying to jump away. */
 
-.target-head .escape-line { margin-top: 4px; font-family: var(--font-hud); font-size: 22px; letter-spacing: 0.06em; color: var(--color-danger); animation: aim-blink 1s steps(2, jump-none) infinite; }
+.target-head .escape-line {
+  margin-top: 4px;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--color-danger);
+  animation: aim-blink 1s steps(2, jump-none) infinite;
+}
 
-.target-head .escape-line.is-stalled { color: var(--color-muted); animation: none; }
+.target-head .escape-line.is-stalled {
+  color: var(--color-muted);
+  animation: none;
+}
 
 /* Enemy cloak (veil.ts): the hull fades and its interior is hidden. */
 
-.target-body { position: relative; }
+.target-body {
+  position: relative;
+}
 
+.cloak-tag {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-family: var(--font-hud);
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  color: var(--color-line);
+  pointer-events: none;
+}
 
-.cloak-tag { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; font-family: var(--font-hud); font-size: 26px; letter-spacing: 0.12em; color: var(--color-line); pointer-events: none; }
-
-.target-systems span.is-on { border-color: var(--color-line); }
-
+.target-systems span.is-on {
+  border-color: var(--color-line);
+}
 
 /* @agent:teleporter — enemy boarding styles go below this line. */
 
@@ -4255,9 +5047,17 @@ button.door-tick::before {
 
 /* Enemy cloning queue readout (enemyCloneQueue): only while a dead enemy waits in their Clone Bay. */
 
-.target-head .clone-line { margin-top: 4px; font-family: var(--font-hud); font-size: 22px; letter-spacing: 0.06em; color: var(--color-ok); }
+.target-head .clone-line {
+  margin-top: 4px;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--color-ok);
+}
 
-.target-head .clone-line.is-offline { color: var(--color-muted); }
+.target-head .clone-line.is-offline {
+  color: var(--color-muted);
+}
 
 /* @agent:mindcontrol — enemy mind control styles go below this line. */
 
@@ -4271,7 +5071,9 @@ button.door-tick::before {
   animation: mind-pulse 1.1s steps(2, end) infinite;
 }
 
-.token.is-leashed.leashed-by-player { outline-style: dashed; }
+.token.is-leashed.leashed-by-player {
+  outline-style: dashed;
+}
 
 .token.is-leashed::after {
   content: "";
@@ -4285,15 +5087,23 @@ button.door-tick::before {
   pointer-events: none;
 }
 
-.token.is-leashed.is-selected { outline-color: var(--color-primary); }
+.token.is-leashed.is-selected {
+  outline-color: var(--color-primary);
+}
 
 @keyframes mind-pulse {
-  0% { outline-color: var(--mind); }
-  100% { outline-color: color-mix(in srgb, var(--mind) 35%, transparent); }
+  0% {
+    outline-color: var(--mind);
+  }
+  100% {
+    outline-color: color-mix(in srgb, var(--mind) 35%, transparent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .token.is-leashed { animation: none; }
+  .token.is-leashed {
+    animation: none;
+  }
 }
 
 /* @agent:drones — enemy drone styles go below this line. */
@@ -4338,12 +5148,18 @@ button.door-tick::before {
 }
 
 @keyframes hack-pulse {
-  0% { opacity: 1; }
-  100% { opacity: 0.45; }
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.45;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .room.is-hacked-pulse .hack-mark { animation: none; }
+  .room.is-hacked-pulse .hack-mark {
+    animation: none;
+  }
 }
 
 /* @agent:surrender */
@@ -4443,12 +5259,18 @@ button.door-tick::before {
 }
 
 @keyframes kit-hack-pulse {
-  0% { opacity: 1; }
-  100% { opacity: 0.35; }
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.35;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sub-orb.is-kit-hacked-pulse::after { animation: none; }
+  .sub-orb.is-kit-hacked-pulse::after {
+    animation: none;
+  }
 }
 
 /* @agent:hack-ui */
@@ -4692,12 +5514,18 @@ button.door-tick::before {
 }
 
 @keyframes hack-ui-blink {
-  0% { opacity: 1; }
-  100% { opacity: 0.55; }
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.55;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hack-reticle.is-pulse .hack-reticle-box { animation: none; }
+  .hack-reticle.is-pulse .hack-reticle-box {
+    animation: none;
+  }
 }
 
 .target-systems span.is-hack-seen {
@@ -4863,7 +5691,6 @@ button.door-tick::before {
   border-style: dashed;
 }
 
-
 /* Rebel Fleet: where the fleet will be after the next jump. Beacons inside it get an orange ring. */
 .map-beacon.is-warn::before {
   box-shadow: 0 0 0 3px #ff8a3d;
@@ -4967,8 +5794,12 @@ button.door-tick::before {
 }
 
 /* Per the user: damaged systems show a yellow icon, destroyed ones red (ShipView iconState). INVENTED shades. */
-.room .room-icon.is-damaged { color: #f2c94c; }
-.room .room-icon.is-destroyed { color: var(--color-danger); }
+.room .room-icon.is-damaged {
+  color: #f2c94c;
+}
+.room .room-icon.is-destroyed {
+  color: var(--color-danger);
+}
 
 .play .room.is-unseen .pixel-fill,
 .target-panel .room.is-unseen .pixel-fill {
@@ -5264,15 +6095,33 @@ button.modal-x.modal-x:focus-visible {
   image-rendering: pixelated;
 }
 
-.room-prop-art .ink-casing { fill: #8a94a0; }
-.room-prop-art .ink-casing-d { fill: #4a525c; }
-.room-prop-art .ink-trim { fill: #b8c2cc; }
-.room-prop-art .ink-screen { fill: #b9d6e6; }
-.room-prop-art .ink-glow { fill: #5fe08a; }
-.room-prop-art .ink-pip { fill: #c8d6e0; }
-.room-prop-art[data-kind="cradle"] .ink-screen { fill: #2c6a58; }
-.room-prop-art[data-kind="cradle"] .ink-glow { fill: #9fe6c8; }
-.room-prop-art[data-kind="cradle"] .ink-pip { fill: #1a3a30; }
+.room-prop-art .ink-casing {
+  fill: #8a94a0;
+}
+.room-prop-art .ink-casing-d {
+  fill: #4a525c;
+}
+.room-prop-art .ink-trim {
+  fill: #b8c2cc;
+}
+.room-prop-art .ink-screen {
+  fill: #b9d6e6;
+}
+.room-prop-art .ink-glow {
+  fill: #5fe08a;
+}
+.room-prop-art .ink-pip {
+  fill: #c8d6e0;
+}
+.room-prop-art[data-kind="cradle"] .ink-screen {
+  fill: #2c6a58;
+}
+.room-prop-art[data-kind="cradle"] .ink-glow {
+  fill: #9fe6c8;
+}
+.room-prop-art[data-kind="cradle"] .ink-pip {
+  fill: #1a3a30;
+}
 
 /* Room radial menu (RoomRadial). Per the user: a long tap or long click on a room. INVENTED look and sizes, kept
    small (the user wants the UI enlarged conservatively): 34px doors on a ring, a 34px crew grid in the middle. */
@@ -5354,27 +6203,53 @@ button.modal-x.modal-x:focus-visible {
   transition: gap 0.12s ease;
 }
 
-.radial-door:disabled { cursor: default; border-color: var(--color-line-dim); }
+.radial-door:disabled {
+  cursor: default;
+  border-color: var(--color-line-dim);
+}
 
 /* The leaf lies along its wall: across for a door in a top or bottom wall, upright for a side wall. Open, it splits. */
 .radial-door.is-e,
-.radial-door.is-w { flex-direction: column; }
+.radial-door.is-w {
+  flex-direction: column;
+}
 
-.radial-slab { background: #e07020; flex: none; }
+.radial-slab {
+  background: #e07020;
+  flex: none;
+}
 .radial-door.is-n .radial-slab,
-.radial-door.is-s .radial-slab { width: 10px; height: 5px; }
+.radial-door.is-s .radial-slab {
+  width: 10px;
+  height: 5px;
+}
 .radial-door.is-e .radial-slab,
-.radial-door.is-w .radial-slab { width: 5px; height: 10px; }
+.radial-door.is-w .radial-slab {
+  width: 5px;
+  height: 10px;
+}
 
-.radial-door.is-open { gap: 10px; }
-.radial-door.is-open .radial-slab { opacity: 0.75; }
+.radial-door.is-open {
+  gap: 10px;
+}
+.radial-door.is-open .radial-slab {
+  opacity: 0.75;
+}
 .radial-door.is-n.is-open .radial-slab,
-.radial-door.is-s.is-open .radial-slab { width: 5px; }
+.radial-door.is-s.is-open .radial-slab {
+  width: 5px;
+}
 .radial-door.is-e.is-open .radial-slab,
-.radial-door.is-w.is-open .radial-slab { height: 5px; }
+.radial-door.is-w.is-open .radial-slab {
+  height: 5px;
+}
 
-.radial-door.is-airlock .radial-slab { background: repeating-linear-gradient(45deg, #ffd23a 0 3px, #26221c 3px 6px); }
-.radial-door.is-dead .radial-slab { background: var(--color-danger); }
+.radial-door.is-airlock .radial-slab {
+  background: repeating-linear-gradient(45deg, #ffd23a 0 3px, #26221c 3px 6px);
+}
+.radial-door.is-dead .radial-slab {
+  background: var(--color-danger);
+}
 .radial-door.is-hurt .radial-slab,
 .radial-door.is-airlock.is-hurt .radial-slab {
   background: var(--color-danger);
@@ -5398,12 +6273,22 @@ button.modal-x.modal-x:focus-visible {
   pointer-events: auto;
 }
 
-.radial-power.is-right { left: calc(50% + var(--reach) + 6px); }
-.radial-power.is-left { right: calc(50% + var(--reach) + 6px); }
+.radial-power.is-right {
+  left: calc(50% + var(--reach) + 6px);
+}
+.radial-power.is-left {
+  right: calc(50% + var(--reach) + 6px);
+}
 
-.radial-power .radial-spare { align-self: center; font-size: 18px; min-width: 0; }
+.radial-power .radial-spare {
+  align-self: center;
+  font-size: 18px;
+  min-width: 0;
+}
 
-.radial-power .power-stack.is-big .power-col { gap: 3px; }
+.radial-power .power-stack.is-big .power-col {
+  gap: 3px;
+}
 
 .radial-power .power-stack.is-big .power-col button {
   width: 24px;
@@ -5411,7 +6296,10 @@ button.modal-x.modal-x:focus-visible {
   border-radius: 0;
 }
 
-.radial-power .power-stack.is-big .sub-power { position: relative; width: 24px; }
+.radial-power .power-stack.is-big .sub-power {
+  position: relative;
+  width: 24px;
+}
 
 .radial-power .power-stack.is-big .sub-bars {
   position: static;
@@ -5419,11 +6307,22 @@ button.modal-x.modal-x:focus-visible {
   gap: 3px;
 }
 
-.radial-power .power-stack.is-big .sub-bars b { width: 24px; height: 14px; }
+.radial-power .power-stack.is-big .sub-bars b {
+  width: 24px;
+  height: 14px;
+}
 
 /* Radial power panel: the bar column with + and - beside it (per the user). INVENTED 30px buttons. */
-.radial-power-row { display: flex; align-items: center; gap: 8px; }
-.radial-steps { display: flex; flex-direction: column; gap: 6px; }
+.radial-power-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.radial-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .radial-power .radial-steps button {
   width: 30px;
   height: 30px;
@@ -5433,13 +6332,22 @@ button.modal-x.modal-x:focus-visible {
   border: 2px solid var(--color-line);
   color: var(--color-line);
 }
-.radial-power .radial-steps button:active { background: var(--color-surface-2); }
+.radial-power .radial-steps button:active {
+  background: var(--color-surface-2);
+}
 
 /* Power columns take a vertical drag (usePowerDrag), so the page must not claim the gesture. */
-.power-col { touch-action: none; }
+.power-col {
+  touch-action: none;
+}
 
 /* Radial panel: the system's own actions (radialActions), under the power control. INVENTED look. */
-.radial-acts { display: flex; flex-direction: column; gap: 6px; align-self: stretch; }
+.radial-acts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: stretch;
+}
 .radial-power .radial-act {
   display: flex;
   align-items: center;
@@ -5455,9 +6363,17 @@ button.modal-x.modal-x:focus-visible {
   text-transform: uppercase;
   white-space: nowrap;
 }
-.radial-power .radial-act.is-on { color: #0b0d10; background: var(--color-line); }
-.radial-power .radial-act:disabled { opacity: 0.45; cursor: default; }
-.radial-power .radial-act svg { flex: none; }
+.radial-power .radial-act.is-on {
+  color: #0b0d10;
+  background: var(--color-line);
+}
+.radial-power .radial-act:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.radial-power .radial-act svg {
+  flex: none;
+}
 
 /* Per the user: the next shield layer's charge, beside the shield count (Hud). INVENTED size and colours. */
 .shield-charge {
@@ -5468,11 +6384,19 @@ button.modal-x.modal-x:focus-visible {
   border: 1px solid #1d3a55;
   background: #071018;
 }
-.shield-charge i { display: block; height: 100%; background: #6cc4ff; }
+.shield-charge i {
+  display: block;
+  height: 100%;
+  background: #6cc4ff;
+}
 
 /* Per the user: the FTL drive names why it cannot jump (no pilot, Piloting down, no engines). */
-.ftl-drive .ftl-state .ftl-blocked { color: var(--color-danger); }
-.ftl-drive.is-blocked .ftl-jump { opacity: 0.45; }
+.ftl-drive .ftl-state .ftl-blocked {
+  color: var(--color-danger);
+}
+.ftl-drive.is-blocked .ftl-jump {
+  opacity: 0.45;
+}
 
 /* Per the user: a damaged bar being repaired fills yellow left to right (GameApp fixStyle sets --fix). */
 .power-col button.is-dmg.is-fixing,
@@ -5524,13 +6448,44 @@ button.modal-x.modal-x:focus-visible {
   font-family: var(--font-hud);
 }
 
-.install-card h2 { font-size: 36px; font-weight: 400; letter-spacing: 0.06em; margin: 0; }
-.install-card h3 { font-size: 26px; font-weight: 400; letter-spacing: 0.05em; margin: 0 0 6px; color: var(--color-accent); }
+.install-card h2 {
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+.install-card h3 {
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  margin: 0 0 6px;
+  color: var(--color-accent);
+}
 .install-card p,
-.install-card li { font-size: 24px; letter-spacing: 0.03em; line-height: 1.35; margin: 0; }
-.install-card ol { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
-.install-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.install-icon { display: inline-block; width: 22px; height: 22px; vertical-align: -4px; }
+.install-card li {
+  font-size: 24px;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+  margin: 0;
+}
+.install-card ol {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.install-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.install-icon {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  vertical-align: -4px;
+}
 
 .install-url {
   padding: 8px 10px;
@@ -5554,7 +6509,11 @@ button.modal-x.modal-x:focus-visible {
   border: 2px solid var(--color-line);
 }
 
-.install-card .install-now { border-color: var(--color-ok); color: var(--color-ok); margin-bottom: 4px; }
+.install-card .install-now {
+  border-color: var(--color-ok);
+  color: var(--color-ok);
+  margin-bottom: 4px;
+}
 
 /* Per the user: the ship sheet's tabbed layout (ShipSheet). A fixed-height sheet: header, folder tabs, one scrolling
    panel, so the size never jumps between tabs. INVENTED look. */
@@ -5573,9 +6532,13 @@ button.modal-x.modal-x:focus-visible {
   margin-bottom: 10px;
 }
 
-.ship-sheet-head .kicker { margin: 0; }
+.ship-sheet-head .kicker {
+  margin: 0;
+}
 
-.ship-sheet .ship-sheet-scrap { margin-left: auto; }
+.ship-sheet .ship-sheet-scrap {
+  margin-left: auto;
+}
 
 .ship-tabs {
   display: flex;
@@ -5603,7 +6566,9 @@ button.modal-x.modal-x:focus-visible {
   border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.ship-tab:hover { color: var(--color-fg); }
+.ship-tab:hover {
+  color: var(--color-fg);
+}
 
 .ship-tab.is-on {
   color: var(--color-accent);
@@ -5613,7 +6578,9 @@ button.modal-x.modal-x:focus-visible {
 }
 
 .ship-tab .px-icon,
-.ship-tab .crew-sprite { flex: none; }
+.ship-tab .crew-sprite {
+  flex: none;
+}
 
 .ship-tab-count {
   font-style: normal;
@@ -5626,7 +6593,9 @@ button.modal-x.modal-x:focus-visible {
   border-radius: 99px;
 }
 
-.ship-tab.is-on .ship-tab-count { background: var(--color-accent); }
+.ship-tab.is-on .ship-tab-count {
+  background: var(--color-accent);
+}
 
 .ship-tab-panel {
   flex: 1;
@@ -5643,9 +6612,15 @@ button.modal-x.modal-x:focus-visible {
 /* Per the user: reworked ship sheet tabs (UpgradeList, CrewManifest, CargoList). INVENTED look throughout. */
 .ship-tab-panel .upgrade-list,
 .ship-tab-panel .manifest,
-.ship-tab-panel .cargo-list { gap: 14px; }
+.ship-tab-panel .cargo-list {
+  gap: 14px;
+}
 
-.sheet-group { display: flex; flex-direction: column; gap: 8px; }
+.sheet-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
 .sheet-group-head {
   display: flex;
@@ -5662,7 +6637,10 @@ button.modal-x.modal-x:focus-visible {
   padding-bottom: 4px;
 }
 
-.sheet-group-head .mini { text-transform: none; font-size: 13px; }
+.sheet-group-head .mini {
+  text-transform: none;
+  font-size: 13px;
+}
 
 /* Upgrades: a grid that fills the panel; the reactor takes two cards' width. */
 .ship-tab-panel .upgrade-cards {
@@ -5671,12 +6649,22 @@ button.modal-x.modal-x:focus-visible {
   gap: 10px;
 }
 
-.ship-tab-panel .upgrade-cards > .reactor-total { width: auto; }
-.ship-tab-panel .upgrade-cards > .reactor-total:not(.upgrade-card) { grid-column: span 2; }
-.ship-tab-panel .upgrade-card { width: auto; }
-.ship-tab-panel .upgrade-card-next { min-height: 4.2em; }
+.ship-tab-panel .upgrade-cards > .reactor-total {
+  width: auto;
+}
+.ship-tab-panel .upgrade-cards > .reactor-total:not(.upgrade-card) {
+  grid-column: span 2;
+}
+.ship-tab-panel .upgrade-card {
+  width: auto;
+}
+.ship-tab-panel .upgrade-card-next {
+  min-height: 4.2em;
+}
 
-.ship-tab-panel .reactor-total-foot { align-items: center; }
+.ship-tab-panel .reactor-total-foot {
+  align-items: center;
+}
 
 .upg-buy {
   display: inline-flex;
@@ -5692,7 +6680,9 @@ button.modal-x.modal-x:focus-visible {
   border-radius: var(--radius);
 }
 
-.upg-buy:not(:disabled):hover { filter: brightness(1.1); }
+.upg-buy:not(:disabled):hover {
+  filter: brightness(1.1);
+}
 
 .upg-buy.is-short {
   color: var(--color-muted);
@@ -5715,9 +6705,16 @@ button.modal-x.modal-x:focus-visible {
   gap: 10px;
 }
 
-.ship-tab-panel .manifest-card { gap: 10px; padding: 10px 12px 12px; }
+.ship-tab-panel .manifest-card {
+  gap: 10px;
+  padding: 10px 12px 12px;
+}
 
-.manifest-head { display: flex; align-items: center; gap: 12px; }
+.manifest-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
 .manifest-face {
   flex: none;
@@ -5729,7 +6726,13 @@ button.modal-x.modal-x:focus-visible {
   border: 2px solid var(--color-line-dim);
 }
 
-.manifest-id { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.manifest-id {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
 .ship-tab-panel .manifest-id input {
   flex: none;
@@ -5758,10 +6761,19 @@ button.modal-x.modal-x:focus-visible {
   background: #3a1d1d;
 }
 
-.manifest-hp i { display: block; height: 100%; background: var(--color-ok); }
-.manifest-hp.is-low i { background: var(--color-danger); }
+.manifest-hp i {
+  display: block;
+  height: 100%;
+  background: var(--color-ok);
+}
+.manifest-hp.is-low i {
+  background: var(--color-danger);
+}
 
-.ship-tab-panel .manifest-dismiss { align-self: flex-start; margin-left: 0; }
+.ship-tab-panel .manifest-dismiss {
+  align-self: flex-start;
+  margin-left: 0;
+}
 
 .ship-tab-panel .skill-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5792,8 +6804,12 @@ button.modal-x.modal-x:focus-visible {
   border-radius: var(--radius);
 }
 
-button.cargo-slot { cursor: grab; }
-button.cargo-slot:hover { border-color: var(--color-line); }
+button.cargo-slot {
+  cursor: grab;
+}
+button.cargo-slot:hover {
+  border-color: var(--color-line);
+}
 
 .cargo-slot-n {
   position: absolute;
@@ -5805,8 +6821,17 @@ button.cargo-slot:hover { border-color: var(--color-line); }
   color: var(--color-muted);
 }
 
-.cargo-art { grid-row: 1 / span 2; display: grid; place-items: center; min-width: 44px; }
-.cargo-name { font-family: var(--font-hud); font-size: 18px; letter-spacing: 0.04em; }
+.cargo-art {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+}
+.cargo-name {
+  font-family: var(--font-hud);
+  font-size: 18px;
+  letter-spacing: 0.04em;
+}
 
 .cargo-stats {
   display: flex;
@@ -5817,7 +6842,11 @@ button.cargo-slot:hover { border-color: var(--color-line); }
   color: var(--color-muted);
 }
 
-.cargo-stats > span { display: inline-flex; align-items: center; gap: 3px; }
+.cargo-stats > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
 
 .cargo-slot.is-empty {
   display: flex;
@@ -5829,13 +6858,27 @@ button.cargo-slot:hover { border-color: var(--color-line); }
   color: var(--color-line-dim);
 }
 
-.cargo-slot.is-aug { grid-template-columns: 1fr; padding-left: 12px; }
-.cargo-detail { font-family: var(--font-mono); font-size: 12px; line-height: 1.35; color: var(--color-muted); }
+.cargo-slot.is-aug {
+  grid-template-columns: 1fr;
+  padding-left: 12px;
+}
+.cargo-detail {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--color-muted);
+}
 
 /* Per the user: the Options screen (OptionsPanel), on the ship sheet's tabs. INVENTED look. */
-.options-sheet { width: min(900px, 100%); }
+.options-sheet {
+  width: min(900px, 100%);
+}
 
-.opt-list { display: flex; flex-direction: column; gap: 10px; }
+.opt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
 .opt-row {
   display: flex;
@@ -5847,9 +6890,21 @@ button.cargo-slot:hover { border-color: var(--color-line); }
   border-radius: var(--radius);
 }
 
-.opt-text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.opt-text b { font-family: var(--font-hud); font-size: 22px; font-weight: 400; letter-spacing: 0.05em; }
-.opt-text .mini { font-size: 13px; }
+.opt-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.opt-text b {
+  font-family: var(--font-hud);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+.opt-text .mini {
+  font-size: 13px;
+}
 
 .opt-switch {
   flex: none;
@@ -5864,16 +6919,52 @@ button.cargo-slot:hover { border-color: var(--color-line); }
   border-radius: var(--radius);
 }
 
-.opt-switch.is-on { color: var(--color-ink); background: var(--color-ok); border-color: #b6ff6a; }
+.opt-switch.is-on {
+  color: var(--color-ink);
+  background: var(--color-ok);
+  border-color: #b6ff6a;
+}
 
-.opt-volume { display: flex; align-items: center; gap: 12px; }
-.opt-volume input { width: 220px; accent-color: var(--color-ok); touch-action: pan-x; }
-.opt-volume b { font-family: var(--font-hud); font-size: 18px; min-width: 3.5ch; text-align: right; }
+.opt-volume {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.opt-volume input {
+  width: 220px;
+  accent-color: var(--color-ok);
+  touch-action: pan-x;
+}
+.opt-volume b {
+  font-family: var(--font-hud);
+  font-size: 18px;
+  min-width: 3.5ch;
+  text-align: right;
+}
 
-.opt-keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px 22px; }
-.opt-key-group dl { margin: 6px 0 0; display: flex; flex-direction: column; gap: 5px; }
-.opt-key-row { display: grid; grid-template-columns: 7rem 1fr; align-items: center; gap: 10px; }
-.opt-key-row dd { margin: 0; font-family: var(--font-mono); font-size: 13px; color: var(--color-fg); }
+.opt-keys {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 14px 22px;
+}
+.opt-key-group dl {
+  margin: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.opt-key-row {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.opt-key-row dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-fg);
+}
 
 .opt-key-row kbd {
   display: inline-block;
@@ -5890,8 +6981,12 @@ button.cargo-slot:hover { border-color: var(--color-line); }
 }
 
 /* Options, Graphics: walk targets and room oxygen bars off. */
-.deck.no-ghosts .crew-ghost { display: none; }
-.deck.no-room-air .room .o2 { display: none; }
+.deck.no-ghosts .crew-ghost {
+  display: none;
+}
+.deck.no-room-air .room .o2 {
+  display: none;
+}
 
 /* Per the user: forced landscape. When the OS cannot lock the orientation (iOS), the whole page turns (Screen.tsx sets
    the class and the physical size; turn.ts maps pointer positions back). Body, so portals (the room menu) turn too. */
@@ -5907,8 +7002,12 @@ body.page-turn-270 {
   overflow: hidden;
   transform-origin: 0 0;
 }
-body.page-turn-90 { transform: rotate(90deg) translateY(-100%); }
-body.page-turn-270 { transform: rotate(-90deg) translateX(-100%); }
+body.page-turn-90 {
+  transform: rotate(90deg) translateY(-100%);
+}
+body.page-turn-270 {
+  transform: rotate(-90deg) translateX(-100%);
+}
 body.page-turn-180 {
   position: fixed;
   inset: 0;
@@ -5918,7 +7017,12 @@ body.page-turn-180 {
 }
 
 /* Options: the landscape choice and the in-game Exit tab. */
-.opt-choice { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.opt-choice {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 .opt-choice button {
   min-height: 38px;
   padding: 2px 12px;
@@ -5930,10 +7034,22 @@ body.page-turn-180 {
   border: 2px solid var(--color-line-dim);
   border-radius: var(--radius);
 }
-.opt-choice button[aria-pressed="true"] { color: var(--color-ink); background: var(--color-ok); border-color: #b6ff6a; }
-.opt-choice button:disabled { opacity: 0.45; cursor: default; }
+.opt-choice button[aria-pressed="true"] {
+  color: var(--color-ink);
+  background: var(--color-ok);
+  border-color: #b6ff6a;
+}
+.opt-choice button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
 
-.opt-exit { display: flex; flex-direction: column; gap: 10px; max-width: 560px; }
+.opt-exit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 560px;
+}
 .opt-exit button {
   display: flex;
   flex-direction: column;
@@ -5946,14 +7062,29 @@ body.page-turn-180 {
   border: 2px solid var(--color-line-dim);
   border-radius: var(--radius);
 }
-.opt-exit button:hover { border-color: var(--color-line); }
-.opt-exit button b { font-family: var(--font-hud); font-size: 24px; font-weight: 400; letter-spacing: 0.06em; }
-.opt-exit button .mini { font-size: 13px; }
-.opt-exit button.is-primary { border-color: var(--color-ok); }
-.opt-exit button.is-primary b { color: var(--color-ok); }
+.opt-exit button:hover {
+  border-color: var(--color-line);
+}
+.opt-exit button b {
+  font-family: var(--font-hud);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+.opt-exit button .mini {
+  font-size: 13px;
+}
+.opt-exit button.is-primary {
+  border-color: var(--color-ok);
+}
+.opt-exit button.is-primary b {
+  color: var(--color-ok);
+}
 
 /* Per the user: the jump, ship menu, and options sit in the top middle. INVENTED size. */
-.hud { position: relative; }
+.hud {
+  position: relative;
+}
 .hud-mid {
   position: absolute;
   left: 50%;
@@ -5964,10 +7095,18 @@ body.page-turn-180 {
   gap: 8px;
   align-items: center;
 }
-.frame-btn.pause-btn { width: 76px; height: 76px; }
+.frame-btn.pause-btn {
+  width: 76px;
+  height: 76px;
+}
 
 /* Per the user: the surrender offer's weapon and crew cards (OfferCards). INVENTED look. */
-.offer-cards { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 6px; }
+.offer-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 6px;
+}
 .offer-card {
   flex: 1 1 220px;
   max-width: 320px;
@@ -5992,15 +7131,46 @@ body.page-turn-180 {
   text-transform: uppercase;
   color: var(--color-accent);
 }
-.offer-art { grid-row: 2 / span 2; display: grid; place-items: center; min-width: 52px; min-height: 48px; }
-.offer-face { background: var(--color-panel-2); border: 2px solid var(--color-line-dim); }
-.offer-name { font-family: var(--font-hud); font-size: 20px; font-weight: 400; letter-spacing: 0.04em; color: var(--color-fg); }
-.offer-note { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 12px; line-height: 1.35; color: var(--color-muted); }
-.offer-warn { grid-column: 1 / -1; font-family: var(--font-mono); font-size: 12px; color: var(--color-danger); }
+.offer-art {
+  grid-row: 2 / span 2;
+  display: grid;
+  place-items: center;
+  min-width: 52px;
+  min-height: 48px;
+}
+.offer-face {
+  background: var(--color-panel-2);
+  border: 2px solid var(--color-line-dim);
+}
+.offer-name {
+  font-family: var(--font-hud);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--color-fg);
+}
+.offer-note {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--color-muted);
+}
+.offer-warn {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-danger);
+}
 
 /* Per the user: the tabbed store (StoreBoard.tsx), on the ship sheet's tabs. INVENTED look. */
-.store-sheet .ship-tabs { overflow-x: auto; scrollbar-width: none; }
-.store-sheet .ship-tab { flex: none; }
+.store-sheet .ship-tabs {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.store-sheet .ship-tab {
+  flex: none;
+}
 
 .store-have {
   display: inline-flex;
@@ -6011,10 +7181,20 @@ body.page-turn-180 {
   color: var(--color-fg);
 }
 
-.store-have > span { display: inline-flex; align-items: center; gap: 4px; }
-.store-sheet .ship-sheet-scrap { margin-left: 0; }
+.store-have > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.store-sheet .ship-sheet-scrap {
+  margin-left: 0;
+}
 
-.store-supplies { display: flex; flex-direction: column; gap: 14px; }
+.store-supplies {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 
 .store-cards {
   display: grid;
@@ -6036,12 +7216,37 @@ body.page-turn-180 {
   min-width: 0;
 }
 
-.store-card-art { grid-row: 1 / 3; display: grid; place-items: center; min-width: 44px; }
-.store-card-name { font-family: var(--font-hud); font-size: 20px; font-weight: 400; letter-spacing: 0.04em; color: var(--color-fg); min-width: 0; }
-.store-card-note { font-size: 12px; color: var(--color-muted); align-self: start; min-width: 0; }
-.store-card .offer-warn { grid-column: 1 / -1; }
-.store-card.is-sold-out { opacity: 0.55; }
-.store-stock { font-style: normal; color: var(--color-accent); margin-left: 4px; }
+.store-card-art {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+}
+.store-card-name {
+  font-family: var(--font-hud);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--color-fg);
+  min-width: 0;
+}
+.store-card-note {
+  font-size: 12px;
+  color: var(--color-muted);
+  align-self: start;
+  min-width: 0;
+}
+.store-card .offer-warn {
+  grid-column: 1 / -1;
+}
+.store-card.is-sold-out {
+  opacity: 0.55;
+}
+.store-stock {
+  font-style: normal;
+  color: var(--color-accent);
+  margin-left: 4px;
+}
 
 .store-price,
 .store-sold {
@@ -6063,14 +7268,40 @@ body.page-turn-180 {
   border: 2px solid var(--color-accent);
 }
 
-.store-price b { font-weight: 400; }
-.store-price:hover:not(:disabled) { background: var(--color-accent); color: var(--color-ink); }
-.store-price:disabled { color: var(--color-muted); border-color: var(--color-line-dim); cursor: not-allowed; }
-.store-price.is-poor:disabled b { color: var(--color-danger); }
-.store-sold { color: var(--color-muted); border: 2px dashed var(--color-line-dim); }
+.store-price b {
+  font-weight: 400;
+}
+.store-price:hover:not(:disabled) {
+  background: var(--color-accent);
+  color: var(--color-ink);
+}
+.store-price:disabled {
+  color: var(--color-muted);
+  border-color: var(--color-line-dim);
+  cursor: not-allowed;
+}
+.store-price.is-poor:disabled b {
+  color: var(--color-danger);
+}
+.store-sold {
+  color: var(--color-muted);
+  border: 2px dashed var(--color-line-dim);
+}
 
-.store-repair { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.store-hull { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-hud); font-size: 22px; margin-right: 6px; }
+.store-repair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.store-hull {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-hud);
+  font-size: 22px;
+  margin-right: 6px;
+}
 
 .store-repair button {
   min-height: 40px;
@@ -6084,9 +7315,19 @@ body.page-turn-180 {
   border-radius: var(--radius);
 }
 
-.store-repair button small { font-size: 15px; color: var(--color-accent); margin-left: 4px; }
-.store-repair button:disabled { color: var(--color-muted); border-color: var(--color-line-dim); cursor: not-allowed; }
-.store-repair button:disabled small { color: inherit; }
+.store-repair button small {
+  font-size: 15px;
+  color: var(--color-accent);
+  margin-left: 4px;
+}
+.store-repair button:disabled {
+  color: var(--color-muted);
+  border-color: var(--color-line-dim);
+  cursor: not-allowed;
+}
+.store-repair button:disabled small {
+  color: inherit;
+}
 
 /* Per the user: a card that opened on its own ignores taps for half a second (useArrivalLock); the choices fade in over
    that time so the wait reads as deliberate. INVENTED look. */
@@ -6096,17 +7337,38 @@ body.page-turn-180 {
 }
 
 @keyframes choice-arm {
-  from { opacity: 0.35; }
-  to { opacity: 1; }
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Per the user: the make-room choice (MakeRoomModal). It sits above every other card. INVENTED look. */
-.make-room-layer { z-index: 7; }
+.make-room-layer {
+  z-index: 7;
+}
 /* The cards scroll inside the card, so the confirm below them is always in reach. */
-.make-room-card { max-width: min(760px, 100%); max-height: 100%; display: flex; flex-direction: column; overflow: hidden; }
-.make-room-card > p { flex: none; }
-.make-room-card .make-room-picks { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
-.make-room-card .make-room-go { flex: none; }
+.make-room-card {
+  max-width: min(760px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.make-room-card > p {
+  flex: none;
+}
+.make-room-card .make-room-picks {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.make-room-card .make-room-go {
+  flex: none;
+}
 
 .make-room-picks {
   display: grid;
@@ -6130,12 +7392,32 @@ body.page-turn-180 {
   text-align: center;
 }
 
-.make-room-pick b { font-family: var(--font-hud); font-size: 18px; font-weight: 400; letter-spacing: 0.04em; }
-.make-room-pick .mini { font-size: 12px; color: var(--color-muted); }
-.make-room-pick.is-new { border-color: var(--color-accent); }
-.make-room-pick.is-on { border-color: var(--color-danger); background: color-mix(in srgb, var(--color-danger) 16%, #14110e); }
-.make-room-pick:disabled { opacity: 0.5; cursor: not-allowed; }
-.make-room-art { display: grid; place-items: center; min-height: 40px; }
+.make-room-pick b {
+  font-family: var(--font-hud);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+.make-room-pick .mini {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.make-room-pick.is-new {
+  border-color: var(--color-accent);
+}
+.make-room-pick.is-on {
+  border-color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 16%, #14110e);
+}
+.make-room-pick:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.make-room-art {
+  display: grid;
+  place-items: center;
+  min-height: 40px;
+}
 
 .make-room-new {
   position: absolute;
@@ -6147,13 +7429,30 @@ body.page-turn-180 {
   color: var(--color-accent);
 }
 
-.make-room-go:not(:disabled) { border-color: var(--color-danger); color: var(--color-danger); }
-.make-room-store { display: flex; flex-direction: column; gap: 8px; }
-.make-room-store .event-lead, .make-room-store p { margin: 0; }
+.make-room-go:not(:disabled) {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.make-room-store {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.make-room-store .event-lead,
+.make-room-store p {
+  margin: 0;
+}
 
 /* Per the user: the cargo hold in the ship sheet's Inventory, and the "To cargo" / "Fit" moves. INVENTED look. */
-.cargo-cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.cargo-cell > .cargo-slot { flex: 1; }
+.cargo-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.cargo-cell > .cargo-slot {
+  flex: 1;
+}
 
 .cargo-move {
   min-height: 32px;
@@ -6167,20 +7466,35 @@ body.page-turn-180 {
   border-radius: var(--radius);
 }
 
-.cargo-move:hover:not(:disabled) { border-color: var(--color-accent); color: var(--color-accent); }
-.cargo-move:disabled { color: var(--color-muted); cursor: not-allowed; font-size: 13px; }
+.cargo-move:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.cargo-move:disabled {
+  color: var(--color-muted);
+  cursor: not-allowed;
+  font-size: 13px;
+}
 
 /* Per the user: every pause (the pause button, the room menu, Options, a make-room choice; sim.ts halted) freezes the
    manned terminals' screens where they are. */
 .is-halted .room-terminal-art,
-.is-halted .room-terminal-art * { animation-play-state: paused; }
+.is-halted .room-terminal-art * {
+  animation-play-state: paused;
+}
 
 /* Per the user: pause and fast forward side by side at the top right; while paused the PAUSED mark takes their
    place (PauseStamp). The slot is the stamp: "Press SPACE or click to resume" at 12px (274px).
    The two buttons sit at the right of that same width. INVENTED sizes. */
 /* The HUD is padded 10px from the edge. The target panel's right border is 16px in, so this
    margin lines the rightmost button's border up with that panel border. */
-.hud-right { display: flex; gap: 8px; align-items: flex-start; justify-content: flex-end; margin-right: 6px; }
+.hud-right {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: flex-end;
+  margin-right: 6px;
+}
 .hud-clock {
   flex: none;
   display: flex;
@@ -6189,7 +7503,11 @@ body.page-turn-180 {
   gap: 8px;
   width: 274px;
 }
-.frame-btn.fast-btn.is-on { color: var(--color-accent); border-color: var(--color-accent); box-shadow: 0 0 12px rgba(255, 210, 90, 0.25); }
+.frame-btn.fast-btn.is-on {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 12px rgba(255, 210, 90, 0.25);
+}
 .hud-right .pause-mark {
   position: static;
   transform: none;
@@ -6207,8 +7525,16 @@ body.page-turn-180 {
   background: var(--color-panel);
   line-height: 1;
 }
-.hud-right .pause-mark strong { font-size: 40px; line-height: 1; }
-.hud-right .pause-mark span { margin-top: 0; font-size: 12px; line-height: 1; white-space: nowrap; }
+.hud-right .pause-mark strong {
+  font-size: 40px;
+  line-height: 1;
+}
+.hud-right .pause-mark span {
+  margin-top: 0;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
 
 /* Per the user: whenever the clock is stopped (any pause; sim.ts halted) the game is slightly dimmed. The PAUSED mark,
    menus and cards stay at full brightness. */
@@ -6217,19 +7543,28 @@ body.page-turn-180 {
 .play-root .play > .target-panel,
 .play-root .play > .dock,
 .play-root .play > .fx-canvas,
-.play-root .hud > :not(.hud-right) { transition: filter 0.15s; }
+.play-root .hud > :not(.hud-right) {
+  transition: filter 0.15s;
+}
 .play-root.is-halted .play > .stage-slot > :not(.sector-map):not(.map-wait),
 .play-root.is-halted .play > .crew-rail,
 .play-root.is-halted .play > .target-panel,
 .play-root.is-halted .play > .dock,
 .play-root.is-halted .play > .fx-canvas,
-.play-root.is-halted .hud > :not(.hud-right) { filter: brightness(0.72); }
+.play-root.is-halted .hud > :not(.hud-right) {
+  filter: brightness(0.72);
+}
 
 /* Per the user: the beacon map is not dimmed, and nothing on the ship shows through it. Animated terminal screens are
    their own compositing layers and iOS drew them over the map; they are hidden while the map is open (they sit under
    it anyway), and the map gets its own layer. */
-.stage-slot > .beacon-map { isolation: isolate; transform: translateZ(0); }
-.stage-slot:has(> .beacon-map) .room-terminal { visibility: hidden; }
+.stage-slot > .beacon-map {
+  isolation: isolate;
+  transform: translateZ(0);
+}
+.stage-slot:has(> .beacon-map) .room-terminal {
+  visibility: hidden;
+}
 
 /* Per the user: the expanded Credits panel (licence notice, about, developer). Scrolls inside the title screen. */
 .title-panel.credits-panel {
@@ -6238,26 +7573,75 @@ body.page-turn-180 {
   display: flex;
   flex-direction: column;
 }
-.credits-body { overflow: auto; min-height: 0; padding-right: 6px; overscroll-behavior: contain; }
-.credits-body section { margin: 8px 0 12px; }
-.credits-body h3 { margin: 0 0 4px; font-size: 18px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent); }
-.credits-body p { margin: 0 0 6px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0; line-height: 1.5; color: var(--color-fg); }
-.credits-body a { color: var(--color-ok); }
-.credits-version { font-size: 16px; color: var(--color-muted); }
+.credits-body {
+  overflow: auto;
+  min-height: 0;
+  padding-right: 6px;
+  overscroll-behavior: contain;
+}
+.credits-body section {
+  margin: 8px 0 12px;
+}
+.credits-body h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.credits-body p {
+  margin: 0 0 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0;
+  line-height: 1.5;
+  color: var(--color-fg);
+}
+.credits-body a {
+  color: var(--color-ok);
+}
+.credits-version {
+  font-size: 16px;
+  color: var(--color-muted);
+}
 
 /* Per the user: fuel beside the FTL Drive, missiles beside WEAPONS, drone parts beside DRONES, and room around the
    shield pips. */
-.hud-mid .hud-fuel { align-self: center; margin-right: 4px; }
-.dock-label { display: inline-flex; align-items: center; gap: 14px; }
-.dock-label .count-chip { font-size: 22px; color: var(--color-fg); }
-.store-row .bubbles { display: inline-flex; gap: 6px; margin-right: 4px; }
-.store-row .shield-charge { margin: 0 8px 0 2px; }
-.store-row .zoltan-pips { margin-left: 4px; }
-.dock-label .count-chip.is-empty { color: #ff4b4b; }
+.hud-mid .hud-fuel {
+  align-self: center;
+  margin-right: 4px;
+}
+.dock-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+.dock-label .count-chip {
+  font-size: 22px;
+  color: var(--color-fg);
+}
+.store-row .bubbles {
+  display: inline-flex;
+  gap: 6px;
+  margin-right: 4px;
+}
+.store-row .shield-charge {
+  margin: 0 8px 0 2px;
+}
+.store-row .zoltan-pips {
+  margin-left: 4px;
+}
+.dock-label .count-chip.is-empty {
+  color: #ff4b4b;
+}
 
 /* Per the user: WEAPONS / DRONES tabs are always there and switch the dock tray. The tray keeps the weapon
    slot size, including an empty drone bay, so nothing jumps. */
-.dock-tabs { justify-content: flex-start; gap: 22px; }
+.dock-tabs {
+  justify-content: flex-start;
+  gap: 22px;
+}
 .dock-tab {
   background: none;
   border: 0;
@@ -6266,11 +7650,24 @@ body.page-turn-180 {
   font-family: inherit;
   opacity: 0.45;
 }
-.dock-tab.is-on { opacity: 1; border-bottom-color: var(--color-line); }
-.dock-tab:hover { opacity: 0.8; }
-.dock-tab.is-on:hover { opacity: 1; }
-.drone-tray.is-tabbed { margin-top: 0; min-height: 94px; }
-.drone-tray.is-tabbed .gun-slot { width: 150px; height: 90px; }
+.dock-tab.is-on {
+  opacity: 1;
+  border-bottom-color: var(--color-line);
+}
+.dock-tab:hover {
+  opacity: 0.8;
+}
+.dock-tab.is-on:hover {
+  opacity: 1;
+}
+.drone-tray.is-tabbed {
+  margin-top: 0;
+  min-height: 94px;
+}
+.drone-tray.is-tabbed .gun-slot {
+  width: 150px;
+  height: 90px;
+}
 /* Per the user: the drone bay explains the missing system instead of drawing slots. It stays inside the reserved width. */
 .drone-need {
   margin: 0;
@@ -6286,20 +7683,40 @@ body.page-turn-180 {
 /* Per the user: the bar about to break fills red left to right with the sabotage progress (GameApp hurtStyle). */
 .power-col button.is-hurting,
 .sub-bars b.is-hurting {
-  background-image: linear-gradient(to right, var(--color-danger) var(--hurt, 0%), transparent var(--hurt, 0%));
+  background-image: linear-gradient(
+    to right,
+    var(--color-danger) var(--hurt, 0%),
+    transparent var(--hurt, 0%)
+  );
 }
 
 /* hulls.ts `unfitted`: a drone the layout names but this build does not fly (Hangar). INVENTED dimming. */
-.hangar-slot.is-unfitted { opacity: 0.45; }
+.hangar-slot.is-unfitted {
+  opacity: 0.45;
+}
 
 /* Per the user: the drone panel keeps one height whatever it holds, so the bay never pushes into the ship column.
    Slot names stay on one line; the full name is the card's tooltip. INVENTED. */
-.hangar-slot p { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hangar-drones .hangar-absent { min-height: 78px; margin: 0; display: flex; align-items: center; justify-content: center; }
+.hangar-slot p {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hangar-drones .hangar-absent {
+  min-height: 78px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* Systems, "Main systems": Cloaking, the Teleporter, Mind Control, Hacking, Drone Control, Clone Bay and Artillery sit
    in the power row with Shields..Weapons, so their orbs match the main-system orb. */
-.power-dock .sub-orb { width: 28px; height: 28px; }
+.power-dock .sub-orb {
+  width: 28px;
+  height: 28px;
+}
 
 /* Per the user: the activation button for Cloaking, the Teleporter and Mind Control, over that system's power bars
    (--lv bars of 10px). The icon underneath manages power. Autofire uses the same button over the weapons column.
@@ -6329,47 +7746,119 @@ body.page-turn-180 {
   text-align: center;
   line-height: 1;
 }
-.kit-act.is-on { color: #0b0d10; background: var(--color-line); }
-.kit-act:disabled { opacity: 0.45; cursor: not-allowed; }
+.kit-act.is-on {
+  color: #0b0d10;
+  background: var(--color-line);
+}
+.kit-act:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 
 /* Lockout (ion, cooldown, a system that cannot take power) flashes blue.
    Boarders in the room flash red, over that blue.
    An active hacking pulse flashes purple and wins over both. */
 @keyframes bar-flash-blue {
-  0% { background-color: var(--color-ion); border-color: #d7ecff; }
-  100% { background-color: #0c2236; border-color: #3d6f99; }
+  0% {
+    background-color: var(--color-ion);
+    border-color: #d7ecff;
+  }
+  100% {
+    background-color: #0c2236;
+    border-color: #3d6f99;
+  }
 }
 @keyframes bar-flash-purple {
-  0% { background-color: #c084fc; border-color: #f3e8ff; }
-  100% { background-color: #2a103c; border-color: #7c3aed; }
+  0% {
+    background-color: #c084fc;
+    border-color: #f3e8ff;
+  }
+  100% {
+    background-color: #2a103c;
+    border-color: #7c3aed;
+  }
 }
 @keyframes bar-flash-red {
-  0% { background-color: var(--color-danger); border-color: #ffd0c8; }
-  100% { background-color: #3a1010; border-color: #8a3030; }
+  0% {
+    background-color: var(--color-danger);
+    border-color: #ffd0c8;
+  }
+  100% {
+    background-color: #3a1010;
+    border-color: #8a3030;
+  }
 }
 @keyframes orb-flash-blue {
-  0% { color: #d7ecff; border-color: var(--color-ion); box-shadow: 0 0 10px var(--color-ion); }
-  100% { color: var(--color-line); border-color: #245078; box-shadow: none; }
+  0% {
+    color: #d7ecff;
+    border-color: var(--color-ion);
+    box-shadow: 0 0 10px var(--color-ion);
+  }
+  100% {
+    color: var(--color-line);
+    border-color: #245078;
+    box-shadow: none;
+  }
 }
 @keyframes orb-flash-purple {
-  0% { color: #f3e8ff; border-color: #c084fc; box-shadow: 0 0 10px #c084fc; }
-  100% { color: var(--color-line); border-color: #5b2a86; box-shadow: none; }
+  0% {
+    color: #f3e8ff;
+    border-color: #c084fc;
+    box-shadow: 0 0 10px #c084fc;
+  }
+  100% {
+    color: var(--color-line);
+    border-color: #5b2a86;
+    box-shadow: none;
+  }
 }
 @keyframes orb-flash-red {
-  0% { color: #ffd0c8; border-color: var(--color-danger); box-shadow: 0 0 10px var(--color-danger); }
-  100% { color: var(--color-line); border-color: #6a2424; box-shadow: none; }
+  0% {
+    color: #ffd0c8;
+    border-color: var(--color-danger);
+    box-shadow: 0 0 10px var(--color-danger);
+  }
+  100% {
+    color: var(--color-line);
+    border-color: #6a2424;
+    box-shadow: none;
+  }
 }
 @keyframes chip-flash-blue {
-  0% { color: var(--color-ion); border-color: var(--color-ion); background-color: #12304a; }
-  100% { color: #7aa4c4; border-color: #245078; background-color: var(--color-panel-2); }
+  0% {
+    color: var(--color-ion);
+    border-color: var(--color-ion);
+    background-color: #12304a;
+  }
+  100% {
+    color: #7aa4c4;
+    border-color: #245078;
+    background-color: var(--color-panel-2);
+  }
 }
 @keyframes chip-flash-purple {
-  0% { color: #e9d5ff; border-color: #c084fc; background-color: #3b1764; }
-  100% { color: #c4a0dc; border-color: #5b2a86; background-color: var(--color-panel-2); }
+  0% {
+    color: #e9d5ff;
+    border-color: #c084fc;
+    background-color: #3b1764;
+  }
+  100% {
+    color: #c4a0dc;
+    border-color: #5b2a86;
+    background-color: var(--color-panel-2);
+  }
 }
 @keyframes chip-flash-red {
-  0% { color: #ffd0c8; border-color: var(--color-danger); background-color: #4a1414; }
-  100% { color: #e07a72; border-color: #6a2424; background-color: var(--color-panel-2); }
+  0% {
+    color: #ffd0c8;
+    border-color: var(--color-danger);
+    background-color: #4a1414;
+  }
+  100% {
+    color: #e07a72;
+    border-color: #6a2424;
+    background-color: var(--color-panel-2);
+  }
 }
 
 .power-col button.is-flash-blue,

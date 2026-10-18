@@ -1,12 +1,14 @@
 /**
  * Weapon hardpoints from each archive drawing file, `data/<layout>.xml`.
  * `x` and `y` are pixels of that ship's image, from the top left.
+ * `MOUNT_IMAGES` is the `<img>` box in that same file. A mount's place on the
+ * room grid is that box's origin plus the mount pixel.
  * `slide` is the direction the weapon shifts when it is powered.
  * A mount with no slide attribute keeps that attribute off.
  * The stand-in writes a row onto a drawing whose layout name matches.
  * A traced file under another name keeps its own picture and carries no mounts.
  */
-import type { HullMount } from "@stl/pack";
+import type { HullMount, HullPicture } from "@stl/pack";
 
 export const WEAPON_MOUNTS: Readonly<Record<string, readonly HullMount[]>> = {
   anaerobic_bomber: [
@@ -472,6 +474,83 @@ export const WEAPON_MOUNTS: Readonly<Record<string, readonly HullMount[]>> = {
     { x: 250, y: 99, rotate: true, mirror: true, gib: 2, slide: "up" },
     { x: 250, y: 340, rotate: true, mirror: false, gib: 6, slide: "down" },
   ],
+};
+
+/**
+ * The `<img x y w h>` box each hardpoint list was measured on.
+ * The stand-in silhouette uses the room box, so drawing reads this when that
+ * placeholder is the hull's picture. A loaded drawing file brings its own box.
+ */
+export const MOUNT_IMAGES: Readonly<Record<string, HullPicture>> = {
+  anaerobic_bomber: { x: -99, y: -44, w: 443, h: 354 },
+  anaerobic_cruiser: { x: -153, y: -164, w: 600, h: 606 },
+  anaerobic_cruiser_2: { x: -153, y: -129, w: 600, h: 606 },
+  anaerobic_scout: { x: -70, y: -55, w: 420, h: 244 },
+  auto_assault: { x: -84, y: -61, w: 414, h: 252 },
+  auto_basic: { x: -68, y: -60, w: 384, h: 227 },
+  boss_1: { x: -73, y: -90, w: 566, h: 511 },
+  boss_1_easy: { x: -73, y: -90, w: 566, h: 511 },
+  boss_2: { x: -178, y: -84, w: 566, h: 511 },
+  boss_2_easy: { x: -178, y: -84, w: 566, h: 511 },
+  boss_3: { x: -136, y: -83, w: 566, h: 511 },
+  boss_3_easy: { x: -136, y: -83, w: 566, h: 511 },
+  circle_bomber: { x: -64, y: -34, w: 324, h: 336 },
+  circle_cruiser: { x: -71, y: -40, w: 440, h: 325 },
+  circle_cruiser_2: { x: -71, y: -40, w: 440, h: 325 },
+  circle_cruiser_3: { x: -71, y: -40, w: 440, h: 325 },
+  circle_scout: { x: -42, y: -47, w: 300, h: 282 },
+  crystal_bomber: { x: -68, y: -97, w: 292, h: 437 },
+  crystal_cruiser: { x: -80, y: -110, w: 721, h: 457 },
+  crystal_cruiser_2: { x: -80, y: -110, w: 721, h: 457 },
+  crystal_scout: { x: -50, y: -95, w: 206, h: 396 },
+  energy_bomber: { x: -30, y: -56, w: 213, h: 453 },
+  energy_bomber_pirate: { x: -35, y: -86, w: 213, h: 453 },
+  energy_cruiser: { x: -96, y: -37, w: 630, h: 348 },
+  energy_cruiser_2: { x: -120, y: -88, w: 630, h: 348 },
+  energy_cruiser_3: { x: -96, y: -37, w: 630, h: 348 },
+  energy_fighter: { x: -30, y: -56, w: 242, h: 389 },
+  energy_fighter_pirate: { x: -60, y: -92, w: 242, h: 389 },
+  fed_bomber: { x: -46, y: -38, w: 372, h: 356 },
+  fed_cruiser: { x: -125, y: -60, w: 710, h: 401 },
+  fed_cruiser_2: { x: -152, y: -43, w: 710, h: 401 },
+  fed_cruiser_3: { x: -125, y: -60, w: 710, h: 401 },
+  fed_scout: { x: -82, y: -55, w: 303, h: 359 },
+  jelly_button: { x: -66, y: -60, w: 271, h: 359 },
+  jelly_button_pirate: { x: -48, y: -50, w: 271, h: 359 },
+  jelly_croissant: { x: -51, y: -60, w: 383, h: 471 },
+  jelly_croissant_pirate: { x: -51, y: -60, w: 383, h: 471 },
+  jelly_cruiser: { x: -216, y: -92, w: 594, h: 463 },
+  jelly_cruiser_2: { x: -124, y: -60, w: 594, h: 463 },
+  jelly_cruiser_3: { x: -216, y: -92, w: 594, h: 463 },
+  jelly_truffle: { x: -64, y: -70, w: 404, h: 389 },
+  jelly_truffle_pirate: { x: -79, y: -64, w: 404, h: 389 },
+  kestral: { x: -59, y: -103, w: 652, h: 418 },
+  kestral_2: { x: -106, y: -100, w: 677, h: 444 },
+  kestral_3: { x: -59, y: -103, w: 652, h: 418 },
+  mantis_bomber: { x: -67, y: -90, w: 414, h: 453 },
+  mantis_bomber_pirate: { x: -84, y: -110, w: 414, h: 453 },
+  mantis_cruiser: { x: -160, y: -60, w: 650, h: 469 },
+  mantis_cruiser_2: { x: -180, y: -60, w: 650, h: 469 },
+  mantis_cruiser_3: { x: -160, y: -60, w: 650, h: 469 },
+  mantis_fighter: { x: -36, y: -105, w: 351, h: 316 },
+  mantis_fighter_pirate: { x: -53, y: -110, w: 351, h: 316 },
+  mantis_scout: { x: -40, y: -105, w: 360, h: 274 },
+  mantis_scout_pirate: { x: -58, y: -105, w: 360, h: 274 },
+  rebel_long: { x: -86, y: -45, w: 346, h: 509 },
+  rebel_long_pirate: { x: -52, y: -45, w: 346, h: 509 },
+  rebel_squat: { x: -80, y: -120, w: 362, h: 363 },
+  rebel_squat_pirate: { x: -80, y: -120, w: 362, h: 363 },
+  rock_assault: { x: -54, y: -68, w: 318, h: 420 },
+  rock_cruiser: { x: -140, y: -94, w: 550, h: 400 },
+  rock_cruiser_2: { x: -150, y: -77, w: 550, h: 400 },
+  rock_cruiser_3: { x: -140, y: -94, w: 550, h: 400 },
+  rock_fight: { x: -60, y: -65, w: 259, h: 391 },
+  rock_fight_pirate: { x: -42, y: -80, w: 259, h: 391 },
+  rock_scout: { x: -78, y: -43, w: 261, h: 344 },
+  rock_scout_pirate: { x: -60, y: -53, w: 261, h: 344 },
+  stealth: { x: -71, y: -116, w: 595, h: 438 },
+  stealth_2: { x: -71, y: -116, w: 595, h: 438 },
+  stealth_3: { x: -71, y: -116, w: 595, h: 438 },
 };
 
 /** Mounts for one archive drawing name. A stem with no row has none. */

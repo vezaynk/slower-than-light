@@ -6,9 +6,11 @@
     "dev": "pnpm --filter @stl/game dev",
     "build": "turbo run build",
     "test": "turbo run test",
+    "test:ci": "turbo run test --filter=!@stl/game && pnpm --filter @stl/game test:src",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "format": "prettier --write .",
+    "format:check": "node scripts/format-changed.mjs",
     "wiki:dump": "pnpm --filter @stl/wiki-dump dump",
     "campaign:xml": "turbo run generate --filter=@stl/campaign",
     "totallynotftl:dat": "turbo run generate --filter=@stl/totallynotftl"

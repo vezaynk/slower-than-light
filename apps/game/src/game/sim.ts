@@ -5512,7 +5512,7 @@ function retireFlagship(g: Game) {
   if (!enemy || stage == null || stage >= 3) return;
   const next: 2 | 3 = stage === 1 ? 2 : 3;
   const old = enemy.rooms;
-  const laid = flagshipRooms(next, g.difficulty === "hard");
+  const laid = flagshipRooms(next, g.difficulty);
   enemy.rooms = laid.rooms.map((r) => room(r));
   carryCrew(g, old, enemy);
   const crew = g.crew
@@ -5882,7 +5882,7 @@ function makeFlagship(g: Game, boss = false): { ship: Ship; crew: Crew[] } {
  * will also be cleared." citedEnemy then sets the printed hull, reactor, and levels.
  */
 function flagshipStage(g: Game, ship: Ship, stage: 1 | 2 | 3) {
-  const laid = flagshipRooms(stage, g.difficulty === "hard");
+  const laid = flagshipRooms(stage, g.difficulty);
   const old = ship.rooms;
   ship.rooms = laid.rooms.map((r) => room(r));
   ship.doors = addDoors(ship.rooms, laid.marks);

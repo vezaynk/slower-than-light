@@ -1,12 +1,24 @@
+import { flagshipBlueprintId, type FlagshipDifficulty } from "@stl/catalog/src/flagship-layouts.ts";
 import { hullDef, marksFromDoors } from "@stl/pack";
 import type { Layout } from "../layouts.ts";
 import type { SysId } from "../types.ts";
 
 /**
- * Rebel Flagship interiors, one ship per stage, read from data/flagship-1.txt and its siblings.
+ * Rebel Flagship interiors, one traced cutaway per stage.
+ * The fight asks for BOSS_<stage>_EASY_DLC, BOSS_<stage>_NORMAL_DLC, or BOSS_<stage>_HARD_DLC.
+ * Those blueprints share data/flagship-<stage>.txt. A missing difficulty reads the normal blueprint.
  * Room names such as f1-pilot travel with the rectangles. The fight maps those names onto artillery rooms.
  * The two Hard link rooms stay here. They are a difficulty overlay, not a fourth battle.
  */
+
+export function flagshipDifficulty(difficulty: string | undefined): FlagshipDifficulty {
+  return difficulty === "easy" || difficulty === "hard" ? difficulty : "normal";
+}
+
+/** Blueprint the fight asks for. Easy, normal, and hard each have their own id. */
+export function flagshipHullId(stage: 1 | 2 | 3, difficulty: string | undefined): string {
+  return flagshipBlueprintId(stage, flagshipDifficulty(difficulty));
+}
 
 function span(rooms: { x: number; y: number; w: number; h: number }[]): { cols: number; rows: number } {
   let cols = 1;
@@ -18,9 +30,9 @@ function span(rooms: { x: number; y: number; w: number; h: number }[]): { cols: 
   return { cols, rows };
 }
 
-/** The traced interior for one Flagship stage. Missing data fails the fight. */
-export function flagshipLayout(stage: 1 | 2 | 3): Layout {
-  const grid = hullDef(`flagship-${stage}`)?.grid;
+/** The traced interior for one Flagship stage at the run's difficulty. Missing data fails the fight. */
+export function flagshipLayout(stage: 1 | 2 | 3, difficulty: string | undefined): Layout {
+  const grid = hullDef(flagshipHullId(stage, difficulty))?.grid;
   if (!grid || grid.rooms.length === 0) throw new Error(`Flagship stage ${stage} has no interior`);
   const box = span(grid.rooms);
   return {

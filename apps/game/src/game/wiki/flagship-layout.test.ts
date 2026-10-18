@@ -56,9 +56,9 @@ function assertTraced(layout: Layout, squares: number) {
 }
 
 describe("Rebel Flagship traced layouts", () => {
-  const flagshipStage1 = flagshipLayout(1);
-  const flagshipStage2 = flagshipLayout(2);
-  const flagshipStage3 = flagshipLayout(3);
+  const flagshipStage1 = flagshipLayout(1, "normal");
+  const flagshipStage2 = flagshipLayout(2, "normal");
+  const flagshipStage3 = flagshipLayout(3, "normal");
 
   it("counts the stage pictures and the hard links", () => {
     assertTraced(flagshipStage1, 52);
@@ -72,6 +72,20 @@ describe("Rebel Flagship traced layouts", () => {
     assert.equal(flagshipStage1.rooms.find((room) => room.id === "f1-pilot")?.title, "Piloting");
     assert.equal(flagshipStage2.rooms.find((room) => room.id === "f2-drone")?.title, "Drone");
     assert.equal(flagshipStage3.rooms.find((room) => room.id === "f3-mind")?.title, "Mind Control");
+    for (const difficulty of ["easy", "hard"] as const) {
+      assert.deepEqual(
+        flagshipLayout(1, difficulty).rooms.map((room) => room.id),
+        flagshipStage1.rooms.map((room) => room.id),
+      );
+      assert.deepEqual(
+        flagshipLayout(2, difficulty).rooms.map((room) => room.id),
+        flagshipStage2.rooms.map((room) => room.id),
+      );
+      assert.deepEqual(
+        flagshipLayout(3, difficulty).rooms.map((room) => room.id),
+        flagshipStage3.rooms.map((room) => room.id),
+      );
+    }
   });
 
   it("keeps the hard links out of the normal stages", () => {

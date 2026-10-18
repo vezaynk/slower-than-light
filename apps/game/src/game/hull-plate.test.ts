@@ -86,9 +86,9 @@ describe("hull plates", () => {
     offFloor(realCells, real.rooms);
 
     for (const [id, layout] of [
-      ["flagship-1", flagshipLayout(1)],
-      ["flagship-2", flagshipLayout(2)],
-      ["flagship-3", flagshipLayout(3)],
+      ["flagship-1", flagshipLayout(1, "normal")],
+      ["flagship-2", flagshipLayout(2, "normal")],
+      ["flagship-3", flagshipLayout(3, "normal")],
     ] as const) {
       const cells = plateOf({
         id,

@@ -122,10 +122,10 @@ const ROLE: Record<string, { id: string; system: SysId | null; kit?: KitId }> = 
  */
 export function flagshipRooms(
   stage: 1 | 2 | 3,
-  hard: boolean,
+  difficulty: string | undefined,
 ): { rooms: FlagshipRoomSpec[]; marks: DoorMark[]; cols: number; rows: number } {
-  const base = flagshipLayout(stage);
-  const layouts = hard ? [base, flagshipHardLinks] : [base];
+  const base = flagshipLayout(stage, difficulty);
+  const layouts = difficulty === "hard" ? [base, flagshipHardLinks] : [base];
   const rooms: FlagshipRoomSpec[] = [];
   const marks: DoorMark[] = [];
   for (const layout of layouts) {

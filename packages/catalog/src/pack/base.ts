@@ -25,7 +25,12 @@ import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { ENEMY_LAYOUTS, enemyLayoutFile } from "../enemy-layouts.ts";
-import { FLAGSHIP_LAYOUTS } from "../flagship-layouts.ts";
+import {
+  FLAGSHIP_LAYOUTS,
+  flagshipBlueprintId,
+  flagshipLayoutStem,
+  type FlagshipDifficulty,
+} from "../flagship-layouts.ts";
 import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
 import { gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
@@ -445,21 +450,26 @@ function enemyHull(id: string): HullDef {
 }
 
 /** Wiki page "The Rebel Flagship": 1st Stage 20, 2nd stage 22, Final stage 20. */
-const FLAGSHIP_HEALTH: Record<string, number> = {
-  "flagship-1": 20,
-  "flagship-2": 22,
-  "flagship-3": 20,
+const FLAGSHIP_HEALTH: Record<1 | 2 | 3, number> = {
+  1: 20,
+  2: 22,
+  3: 20,
 };
 
-/** One Rebel Flagship stage. Room names stay on the blueprint. The fight reads them back. */
-function flagshipHull(id: string): HullDef {
-  const source = FLAGSHIP_LAYOUTS[id];
-  if (!source) throw new Error(`No flagship interior for ${id}`);
+const FLAGSHIP_STAGES = [1, 2, 3] as const;
+const FLAGSHIP_DIFFICULTIES = ["easy", "normal", "hard"] as const satisfies readonly FlagshipDifficulty[];
+
+/** One Advanced Edition blueprint. The three difficulties of a stage share its traced interior. */
+function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef {
+  const layout = flagshipLayoutStem(stage);
+  const source = FLAGSHIP_LAYOUTS[layout];
+  if (!source) throw new Error(`No flagship interior for ${layout}`);
+  const id = flagshipBlueprintId(stage, difficulty);
   return paintHull(
     {
       id,
       cruiser: "",
-      layout: id,
+      layout,
       name: id,
       quote: "",
       unlock: "",
@@ -468,7 +478,7 @@ function flagshipHull(id: string): HullDef {
       fuel: 0,
       missiles: 0,
       parts: 0,
-      health: FLAGSHIP_HEALTH[id],
+      health: FLAGSHIP_HEALTH[stage],
       systems: {},
       weapons: [],
       crew: [],
@@ -490,7 +500,7 @@ function flagshipHull(id: string): HullDef {
         marks: source.marks,
       }),
     },
-    id,
+    layout,
   );
 }
 
@@ -529,7 +539,9 @@ export function loadCatalog(): void {
       hulls: [
         ...HULLS.map(hullRow),
         ...Object.keys(ENEMY_LAYOUTS).map(enemyHull),
-        ...Object.keys(FLAGSHIP_LAYOUTS).map(flagshipHull),
+        ...FLAGSHIP_STAGES.flatMap((stage) =>
+          FLAGSHIP_DIFFICULTIES.map((difficulty) => flagshipHull(stage, difficulty)),
+        ),
       ],
       sectors: SECTOR_TYPES.map(sectorRow),
       stores: STORES.map(storeRow),

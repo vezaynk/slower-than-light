@@ -1,6 +1,7 @@
 import type { Crew, Game, Ship, SysId } from "../types.ts";
 import { allWeapons, hullDef, weaponDef } from "@stl/pack";
 import { FLAGSHIP_PHASES, type FlagshipPhase } from "./flagship.ts";
+import { flagshipHullId } from "./flagship-layout.ts";
 import { PHASE_BANDS, phaseOf } from "../extras/ram.ts";
 
 /**
@@ -26,8 +27,8 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
   if (!phase) return;
   // Wiki page "The Rebel Flagship". The page's name, without the article.
   ship.name = "Rebel Flagship";
-  // The loaded stage carries the hull points. The page number is the fallback.
-  const health = hullDef(`flagship-${stage}`)?.health ?? phase.hull;
+  // The difficulty's blueprint carries the hull points. The page number is the fallback.
+  const health = hullDef(flagshipHullId(stage, g.difficulty))?.health ?? phase.hull;
   if (health != null) {
     ship.hull = health;
     ship.hullMax = health;

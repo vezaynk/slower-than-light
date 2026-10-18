@@ -5,6 +5,7 @@ import { WEAPONS } from "../content.ts";
 import { createGame, startCombat } from "../sim.ts";
 import { citedEnemy } from "./cited-enemies.ts";
 import { ENEMY_CLASSES } from "./enemy-ships.ts";
+import { flagshipHullId } from "./flagship-layout.ts";
 
 describe("cited enemies", () => {
   it("leaves a non-boss hull alone", () => {
@@ -25,9 +26,18 @@ describe("cited enemies", () => {
     assert.ok(ship);
     assert.equal(g.ramStage, 1);
     assert.equal(ship.name, "Rebel Flagship");
-    assert.equal(hullDef("flagship-1")?.health, 20);
-    assert.equal(hullDef("flagship-2")?.health, 22);
-    assert.equal(hullDef("flagship-3")?.health, 20);
+    assert.equal(hullDef("flagship-1"), undefined);
+    assert.equal(hullDef("BOSS_1"), undefined);
+    assert.equal(hullDef("BOSS_1_NORMAL"), undefined);
+    for (const difficulty of ["easy", "normal", "hard"] as const) {
+      assert.equal(hullDef(flagshipHullId(1, difficulty))?.health, 20);
+      assert.equal(hullDef(flagshipHullId(2, difficulty))?.health, 22);
+      assert.equal(hullDef(flagshipHullId(3, difficulty))?.health, 20);
+      assert.equal(hullDef(flagshipHullId(1, difficulty))?.layout, "flagship-1");
+      assert.equal(hullDef(flagshipHullId(1, difficulty))?.img, "flagship-1");
+    }
+    assert.deepEqual(hullDef(flagshipHullId(1, "easy"))?.grid, hullDef(flagshipHullId(1, "hard"))?.grid);
+    assert.equal(ship.hull, hullDef(flagshipHullId(1, g.difficulty))?.health);
     assert.equal(ship.hull, 20);
     assert.equal(ship.hullMax, 20);
     assert.equal(ship.reactor, 42);

@@ -64,17 +64,17 @@ describe("artillery", () => {
     g.enemy.rooms = [room];
     log(g, "mark");
     tickLance(g, 0.1);
-    // Template:Beam weapons: speed 13 over 500px. The cut waits until that swipe finishes.
-    assert.equal(g.enemy.hull, hull);
+    // Template:Beam weapons: speed 13 over 500px. Per the user: the room takes its cut as the swipe touches it.
+    assert.equal(g.enemy.hull, hull - 1);
     assert.equal(g.shots.length, 1);
     assert.equal(g.shots[0]?.label, ARTILLERY_SHOT_LABEL);
     assert.equal(g.shots[0]?.duration, artillerySwipeSeconds());
     assert.equal(g.player.kits.artillery?.aux, 0);
-    assert.equal(g.log[0], "mark");
+    assert.equal(g.log[0], `${DISPLAY_NAME} cuts ${g.enemy.name}.`);
     const left = g.player.kits.artillery?.left ?? 0;
     assert.ok(left > 0);
     tickLance(g, left);
-    assert.ok(g.enemy.hull < hull);
+    assert.equal(g.enemy.hull, hull - 1);
     assert.equal(g.enemy.shieldNow, bubble);
     assert.equal(g.enemy.systems.shields.damage, broken + 1);
     assert.equal(g.shots.length, 0);
@@ -153,18 +153,30 @@ describe("artillery", () => {
     assert.equal(room.fire, Math.min(4, fires));
   });
 
-  it("finishes a swipe that already started after the bars go dark", () => {
-    const g = armed(15);
+  it("lands each room as the swipe reaches it, and stops the swipe when the bars go dark", () => {
+    // Per the user: the cut lands on contact, and powering the system down stops the beam there.
+    const g = armed(18);
     assert.ok(g.enemy);
     const hull = g.enemy.hull;
     tickLance(g, 0.1);
     const kit = g.player.kits.artillery;
     assert.ok(kit && kit.left > 0);
+    const path = kit.path ?? [];
+    assert.ok(path.length >= 3);
+    assert.equal(g.enemy.hull, hull - 1);
     kit.power = 0;
     tickLance(g, kit.left);
-    assert.ok(g.enemy.hull < hull);
+    assert.equal(g.enemy.hull, hull - 1);
     assert.equal(g.shots.length, 0);
+    assert.equal(kit.left, 0);
+    assert.equal(kit.path, undefined);
     assert.equal(kit.aux, 0);
+    assert.equal(g.log[0], `${DISPLAY_NAME} cut out.`);
+
+    const full = armed(18);
+    assert.ok(full.enemy);
+    land(full, 0.1);
+    assert.equal(full.enemy.hull, hull - path.length);
   });
 
   it("does not charge without a reactor bar, and a stored charge drains", () => {
@@ -194,7 +206,8 @@ describe("artillery", () => {
     assert.equal(g.enemy.hull, hull);
     tickLance(g, 25);
     assert.equal(kit.aux, 0);
-    assert.equal(g.enemy.hull, hull);
+    // The first room takes its cut as the swipe starts.
+    assert.equal(g.enemy.hull, hull - 1);
     assert.ok(kit.left > 0);
     tickLance(g, kit.left);
     assert.equal(kit.aux, 0);
@@ -217,7 +230,7 @@ describe("artillery", () => {
     assert.equal(once.enemy.hull, hull);
     assert.ok(kit.aux < 1);
     tickLance(once, 0.1);
-    assert.equal(once.enemy.hull, hull);
+    assert.equal(once.enemy.hull, hull - 1);
     assert.ok(kit.left > 0);
     tickLance(once, kit.left);
     assert.ok(once.enemy.hull < hull);
@@ -233,7 +246,7 @@ describe("artillery", () => {
     tickLance(triple, 50 / 1.3 - 0.05);
     assert.equal(triple.enemy.hull, before);
     tickLance(triple, 0.1);
-    assert.equal(triple.enemy.hull, before);
+    assert.equal(triple.enemy.hull, before - 1);
     assert.ok(fast.left > 0);
     tickLance(triple, fast.left);
     assert.ok(triple.enemy.hull < before);
@@ -312,7 +325,7 @@ describe("artillery", () => {
     four.aux = 0;
     const hull = fast.enemy.hull;
     tickLance(fast, 20);
-    assert.equal(fast.enemy.hull, hull);
+    assert.equal(fast.enemy.hull, hull - 1);
     assert.ok(four.left > 0);
     tickLance(fast, four.left);
     assert.ok(fast.enemy.hull < hull);

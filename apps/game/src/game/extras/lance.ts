@@ -146,8 +146,11 @@ function centre(room: Room): [number, number] {
   return [room.x + room.w / 2, room.y + room.h / 2];
 }
 
-/** Liang-Barsky: does the segment p0-p1 pass through the room's rectangle (not just touch an edge)? */
-function crosses(room: Room, p0: [number, number], p1: [number, number]): boolean {
+/**
+ * Liang-Barsky: the fractions of the segment p0-p1 inside the room's rectangle.
+ * Null when it misses or only touches an edge.
+ */
+function crossing(room: Room, p0: [number, number], p1: [number, number]): [number, number] | null {
   const dx = p1[0] - p0[0];
   const dy = p1[1] - p0[1];
   let t0 = 0;
@@ -160,15 +163,20 @@ function crosses(room: Room, p0: [number, number], p1: [number, number]): boolea
   ];
   for (const [p, q] of edges) {
     if (p === 0) {
-      if (q <= 0) return false;
+      if (q <= 0) return null;
       continue;
     }
     const t = q / p;
     if (p < 0) t0 = Math.max(t0, t);
     else t1 = Math.min(t1, t);
-    if (t0 >= t1) return false;
+    if (t0 >= t1) return null;
   }
-  return true;
+  return [t0, t1];
+}
+
+/** Does the segment p0-p1 pass through the room's rectangle (not just touch an edge)? */
+function crosses(room: Room, p0: [number, number], p1: [number, number]): boolean {
+  return crossing(room, p0, p1) != null;
 }
 
 /**
@@ -233,14 +241,16 @@ function nick(g: Game, ship: Ship, room: Room): void {
  * Working bars are kitBars: reactor power plus a Zoltan bar already stamped on the kit.
  * The Zoltan bar counts as a power level and does not change kit.power.
  * On completion the beam starts its swipe. Template:Beam weapons gives Artillery Beam speed 13 and length 500.
- * Hull and system damage land when that swipe finishes, and shield layers are neither popped nor subtracted.
+ * Per the user: each room takes its hull and system damage the moment the swipe reaches it, and the swipe stops
+ * when the system loses its last bar. Shield layers are neither popped nor subtracted.
  * Artillery Beam "Overview": the beam pierces regular shields.
  * Artillery Beam "Overview": a full charge fires on its own. The swipe still cannot be aimed; a room is chosen when the bar fills.
  * "Overview": powering off drains charge. INFERRED: a full bar empties in 2 seconds.
  * Artillery Beam, Overview: "Deals 1 damage to Zoltan Shield per each of the 2 ticks."
  * Zoltan Shield: Artillery Beam deals 2 damage in total, and that damage does not grow with rooms hit.
  * A bubble that survives both ticks still protects the hull. Beam (Weapons) puts the ticks at 33% and 80%.
- * INFERRED: this swipe has no drawn path, so a bubble that breaks still lets the cut rooms land.
+ * Beam (Weapons), "Beams vs Zoltan Shields": a room the swipe leaves while the bubble holds takes nothing, and a room
+ * it is still inside when the bubble breaks takes the cut.
  * @agent:hacking. Under an enemy Hacking pulse on this kit the charge runs backwards at its own charge speed.
  * Artillery Beam "Overview": "Hacking disruption reduces the charge progress only by 4-7-10 seconds." Hacking wiki,
  * "Overview" (Active effects): "Artillery Beam / Flak Artillery / Rebel Flagship weapons: drains charge (same effect as
@@ -250,23 +260,48 @@ function clearArtilleryShot(g: Game): void {
   g.shots = g.shots.filter((shot) => shot.label !== ARTILLERY_SHOT_LABEL);
 }
 
-/** Artillery Beam, Overview: 1 damage on each of the 2 Zoltan Shield ticks, 2 in total. */
-function landCut(g: Game, ship: Ship, ids: string[]): void {
-  const rooms = ids
+/** Beam (Weapons), "Beams vs Zoltan Shields": the two instances, as fractions of the swipe. */
+const ZOLTAN_TICKS = [0.33, 0.8];
+
+/**
+ * Artillery Beam, Overview: 1 damage on each of the 2 Zoltan Shield ticks, 2 in total.
+ * Rooms the swipe has reached by fraction `f` take their cut. The swipe runs between the first and last room centres.
+ */
+function sweepTo(g: Game, ship: Ship, kit: Kit, f: number): void {
+  const rooms = (kit.path ?? [])
     .map((id) => ship.rooms.find((room) => room.id === id))
     .filter((room): room is Room => !!room);
-  clearArtilleryShot(g);
   if (rooms.length === 0) return;
-  // Zoltan Shield protects the hull until it is depleted. Room hits do not add more bubble damage.
-  const bubble = ship.zoltan ?? 0;
-  if (bubble > 0) ship.zoltan = Math.max(0, bubble - 2);
-  const held = bubble > 2;
-  if (!held) {
-    const shieldNow = ship.shieldNow;
-    for (const room of rooms) nick(g, ship, room);
-    ship.shieldNow = shieldNow;
-    log(g, `${DISPLAY_NAME} cuts ${ship.name}.`);
+  const swipe = (kit.swipe ??= { hit: [], ticks: 0 });
+  while (swipe.ticks < ZOLTAN_TICKS.length && f >= ZOLTAN_TICKS[swipe.ticks]) {
+    swipe.ticks += 1;
+    // Zoltan Shield protects the hull until it is depleted. Room hits do not add more bubble damage.
+    if ((ship.zoltan ?? 0) > 0) ship.zoltan = Math.max(0, (ship.zoltan ?? 0) - 1);
   }
+  const from = centre(rooms[0]);
+  const to = centre(rooms[rooms.length - 1]);
+  const shieldNow = ship.shieldNow;
+  for (const room of rooms) {
+    if (swipe.hit.includes(room.id)) continue;
+    const [enter, exit] = crossing(room, from, to) ?? [0, 1];
+    if (enter > f) continue;
+    if ((ship.zoltan ?? 0) > 0) {
+      if (exit <= f) swipe.hit.push(room.id);
+      continue;
+    }
+    swipe.hit.push(room.id);
+    nick(g, ship, room);
+    if (!swipe.landed) log(g, `${DISPLAY_NAME} cuts ${ship.name}.`);
+    swipe.landed = true;
+  }
+  ship.shieldNow = shieldNow;
+}
+
+function endSwipe(g: Game, kit: Kit): void {
+  kit.left = 0;
+  kit.path = undefined;
+  kit.swipe = undefined;
+  clearArtilleryShot(g);
 }
 
 /** Time still crossing. Returns whatever part of `dt` is left after the swipe. */
@@ -276,11 +311,9 @@ function advanceSwipe(g: Game, dt: number): number {
   if (!kit || !(kit.left > 0) || !kit.path?.length || !enemy) return dt;
   const step = Math.min(dt, kit.left);
   kit.left -= step;
+  sweepTo(g, enemy, kit, kit.left > 0 ? 1 - kit.left / artillerySwipeSeconds() : 1);
   if (kit.left > 0) return 0;
-  const ids = kit.path;
-  kit.left = 0;
-  kit.path = undefined;
-  landCut(g, enemy, ids);
+  endSwipe(g, kit);
   return dt - step;
 }
 
@@ -295,6 +328,7 @@ function beginSwipe(g: Game, enemy: Ship): void {
   kit.target = null;
   kit.aux = 0;
   kit.path = rooms.map((room) => room.id);
+  kit.swipe = { hit: [], ticks: 0 };
   kit.left = artillerySwipeSeconds();
   const from = centre(rooms[0]);
   const to = centre(rooms[rooms.length - 1]);
@@ -320,6 +354,8 @@ function beginSwipe(g: Game, enemy: Ship): void {
   noteArtillery(g);
   // Crew skills, Weapons: one point when an artillery system fires. The swipe is one fire.
   noteWeaponManning(g);
+  // The first room takes its cut as the beam touches it.
+  sweepTo(g, enemy, kit, 0);
 }
 
 export function tickLance(g: Game, dt: number): void {
@@ -330,9 +366,13 @@ export function tickLance(g: Game, dt: number): void {
   if (kit.left > 0 && kit.path?.length) {
     if (g.paused || !!g.menuHold) return;
     if (g.phase !== "combat" || !g.enemy) {
-      kit.left = 0;
-      kit.path = undefined;
-      clearArtilleryShot(g);
+      endSwipe(g, kit);
+      return;
+    }
+    // Per the user: powering the system down stops the swipe. Rooms it has not reached take nothing.
+    if (kitBars(kit) < 1) {
+      endSwipe(g, kit);
+      log(g, `${DISPLAY_NAME} cut out.`);
       return;
     }
     advanceSwipe(g, left);

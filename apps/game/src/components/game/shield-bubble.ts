@@ -92,3 +92,30 @@ export function readShipScale(el: Element | null): number {
   const raw = parseFloat(getComputedStyle(el).getPropertyValue("--ship-scale"));
   return Number.isFinite(raw) && raw > 0 ? raw : 1;
 }
+
+/**
+ * Where the segment from `from` to `to` first crosses into the ellipse at `center` with radii `rx`, `ry`.
+ * A segment that starts inside returns `from`. One that never reaches the ellipse returns null.
+ */
+export function bubbleCrossing(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  center: { x: number; y: number },
+  rx: number,
+  ry: number,
+): { x: number; y: number } | null {
+  if (!(rx > 0) || !(ry > 0)) return null;
+  const px = (from.x - center.x) / rx;
+  const py = (from.y - center.y) / ry;
+  const dx = (to.x - from.x) / rx;
+  const dy = (to.y - from.y) / ry;
+  const c = px * px + py * py - 1;
+  if (c <= 0) return { x: from.x, y: from.y };
+  const a = dx * dx + dy * dy;
+  const b = 2 * (px * dx + py * dy);
+  const disc = b * b - 4 * a * c;
+  if (!(a > 0) || disc < 0) return null;
+  const s = (-b - Math.sqrt(disc)) / (2 * a);
+  if (s < 0 || s > 1) return null;
+  return { x: from.x + (to.x - from.x) * s, y: from.y + (to.y - from.y) * s };
+}

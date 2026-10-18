@@ -186,32 +186,51 @@ export function roomsOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): stri
   return rooms;
 }
 
+/** Where the swipe is inside one room, as fractions of the segment from `a` (0) to `b` (1). */
+export type BeamSpan = { id: string; enter: number; exit: number };
+
+/**
+ * Rooms on the segment, in the order roomsOnSegment lists them, with the fraction where the beam
+ * first enters each room's floor and the fraction where it last leaves it.
+ */
+export function roomSpansOnSegment(ship: BeamGrid, a: BeamPoint, b: BeamPoint): BeamSpan[] {
+  const owner = new Map<string, string>();
+  for (const room of ship.rooms) {
+    for (let y = room.y; y < room.y + room.h; y++) {
+      for (let x = room.x; x < room.x + room.w; x++) {
+        if (!cellOccupied(room, x, y)) continue;
+        owner.set(`${x},${y}`, room.id);
+      }
+    }
+  }
+  const spans: BeamSpan[] = [];
+  const byId = new Map<string, BeamSpan>();
+  visitSegment(ship, a, b, (ix, iy, t0, t1) => {
+    const id = owner.get(`${ix},${iy}`);
+    if (!id) return;
+    const span = byId.get(id);
+    if (span) {
+      span.exit = Math.max(span.exit, t1);
+      return;
+    }
+    const fresh = { id, enter: t0, exit: t1 };
+    byId.set(id, fresh);
+    spans.push(fresh);
+  });
+  return spans;
+}
+
+/** Rooms with no drawn segment: each room is an equal slice of the swipe, in order. */
+export function evenBeamSpans(rooms: string[]): BeamSpan[] {
+  const n = rooms.length;
+  return rooms.map((id, i) => ({ id, enter: i / n, exit: (i + 1) / n }));
+}
+
 /**
  * Beam (Weapons): each row prints a length as "N (X tiles diagonally)".
  * X is the tile length. A second click farther than that stops on the way there.
  * A closer click is the end. This does not stretch a short swipe out to X.
  */
-/**
- * The stroke while a beam is firing. The leading edge travels from `a` to `b` as `t` goes from 0 to 1.
- * The stroke stays `length` long and trails behind that edge, so the beam is long for the whole swipe.
- */
-export function beamStroke(
-  a: BeamPoint,
-  b: BeamPoint,
-  t: number,
-  length: number,
-): { tail: BeamPoint; head: BeamPoint } {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const span = Math.hypot(dx, dy);
-  const ux = span > 1e-4 ? dx / span : 1;
-  const uy = span > 1e-4 ? dy / span : 0;
-  const k = Math.min(1, Math.max(0, t));
-  const head = { x: a.x + dx * k, y: a.y + dy * k };
-  const len = Math.max(0, length);
-  return { tail: { x: head.x - ux * len, y: head.y - uy * len }, head };
-}
-
 export function clipBeamEnd(a: BeamPoint, toward: BeamPoint, tiles: number): BeamPoint {
   const dx = toward.x - a.x;
   const dy = toward.y - a.y;
@@ -221,16 +240,20 @@ export function clipBeamEnd(a: BeamPoint, toward: BeamPoint, tiles: number): Bea
   return { x: a.x + dx * scale, y: a.y + dy * scale };
 }
 
-/** The grid walk roomsOnSegment and cellsOnSegment share. Bounds stay here so both see the same cells. */
+/**
+ * The grid walk roomsOnSegment, cellsOnSegment and roomSpansOnSegment share. Bounds stay here so all see the same cells.
+ * `t0` / `t1` are the fractions of the segment where the walk enters and leaves the cell.
+ * A side cell at a grid corner is touched only at that corner, so both are the corner's fraction.
+ */
 function visitSegment(
   ship: BeamGrid,
   a: BeamPoint,
   b: BeamPoint,
-  visit: (ix: number, iy: number) => void,
+  visit: (ix: number, iy: number, t0: number, t1: number) => void,
 ): void {
-  const add = (ix: number, iy: number) => {
+  const add = (ix: number, iy: number, t0: number, t1: number) => {
     if (ix < 0 || iy < 0 || ix >= ship.cols || iy >= ship.rows) return;
-    visit(ix, iy);
+    visit(ix, iy, Math.min(1, Math.max(0, t0)), Math.min(1, Math.max(0, t1)));
   };
 
   const dx = b.x - a.x;
@@ -241,7 +264,7 @@ function visitSegment(
   if (a.y === ship.rows) iy = ship.rows - 1;
 
   if (!(Math.abs(dx) > 1e-12) && !(Math.abs(dy) > 1e-12)) {
-    add(ix, iy);
+    add(ix, iy, 0, 1);
     return;
   }
 
@@ -251,23 +274,27 @@ function visitSegment(
   const tDeltaY = stepY === 0 ? Number.POSITIVE_INFINITY : Math.abs(1 / dy);
   let tMaxX = stepX === 0 ? Number.POSITIVE_INFINITY : ((stepX > 0 ? ix + 1 : ix) - a.x) / dx;
   let tMaxY = stepY === 0 ? Number.POSITIVE_INFINITY : ((stepY > 0 ? iy + 1 : iy) - a.y) / dy;
+  let tIn = 0;
 
   const limit = (ship.cols + ship.rows + 2) * 3;
   for (let n = 0; n < limit; n++) {
-    add(ix, iy);
+    add(ix, iy, tIn, Math.min(tMaxX, tMaxY));
     if (tMaxX > 1 + 1e-9 && tMaxY > 1 + 1e-9) break;
     if (tMaxX < tMaxY - 1e-9) {
       if (tMaxX > 1 + 1e-9) break;
+      tIn = tMaxX;
       ix += stepX;
       tMaxX += tDeltaX;
     } else if (tMaxY < tMaxX - 1e-9) {
       if (tMaxY > 1 + 1e-9) break;
+      tIn = tMaxY;
       iy += stepY;
       tMaxY += tDeltaY;
     } else {
       if (tMaxX > 1 + 1e-9) break;
-      add(ix + stepX, iy);
-      add(ix, iy + stepY);
+      tIn = tMaxX;
+      add(ix + stepX, iy, tIn, tIn);
+      add(ix, iy + stepY, tIn, tIn);
       ix += stepX;
       iy += stepY;
       tMaxX += tDeltaX;

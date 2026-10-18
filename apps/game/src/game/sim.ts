@@ -132,12 +132,16 @@ import { CARGO_SLOTS, checkCrewRoom, pendingOverflow, receiveWeapon } from "./wi
 import {
   cellsOnSegment,
   clampBeamEnd,
+  evenBeamSpans,
+  roomSpansOnSegment,
+  type BeamSpan,
   clampTargetPoint,
   clipBeamEnd,
   roomAtPoint,
   roomCenter,
   roomsOnSegment,
 } from "./beam-line.ts";
+import { beamTicker } from "./beam-tickers.ts";
 import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
 import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import {
@@ -388,8 +392,8 @@ function sfx(g: Game, name: string) {
   g.sfx.push(name);
 }
 
-function floatAt(g: Game, text: string, x: number, y: number) {
-  g.floaters.push({ id: uid(g), text, life: 0.9, x, y });
+function floatAt(g: Game, text: string, x: number, y: number, beam?: boolean) {
+  g.floaters.push({ id: uid(g), text, life: 0.9, x, y, ...(beam ? { beam: true } : {}) });
   if (g.floaters.length > 12) g.floaters.shift();
 }
 
@@ -2978,6 +2982,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       beamRooms: def.kind === "beam" ? rooms : undefined,
       beamLine: line,
       defId: w.defId,
+      weapon: def.kind === "beam" ? w.uid : undefined,
       own: from === "player" && def.kind === "bomb" && w.own === true ? true : undefined,
       offRoom: offRoom ? true : undefined,
       wait: i * def.gap,
@@ -3344,18 +3349,23 @@ function stunBombRoom(g: Game, roomId: string, aboard: "player" | "enemy") {
   stunRoom(g, roomId, aboard, STUN_BOMB_S);
 }
 
-export function applyImpact(g: Game, shot: Shot) {
+/** Whether the shot lands on the player hull. */
+function shotHitsPlayer(shot: Shot): boolean {
   // Bomb (Weapons), lead: a bomb aimed at your own ship hits that hull. Every other shot hits the other one.
   const ownBomb = shot.kind === "bomb" && shot.own === true;
   // Environmental Hazards, Asteroid Field: the same rock also strikes the enemy ship.
-  const playerTarget =
-    shot.at === "enemy"
-      ? false
-      : shot.at === "player"
-        ? true
-        : ownBomb
-          ? shot.from === "player"
-          : shot.from !== "player";
+  return shot.at === "enemy"
+    ? false
+    : shot.at === "player"
+      ? true
+      : ownBomb
+        ? shot.from === "player"
+        : shot.from !== "player";
+}
+
+export function applyImpact(g: Game, shot: Shot) {
+  const ownBomb = shot.kind === "bomb" && shot.own === true;
+  const playerTarget = shotHitsPlayer(shot);
   const ship = playerTarget ? g.player : g.enemy;
   if (!ship) return;
   // Missile (Weapons), ===Swarm Missiles===: a long-side tile with no room is not a hit.
@@ -3558,19 +3568,9 @@ export function applyImpact(g: Game, shot: Shot) {
     // Beam (Weapons): "even one shield layer is enough to block most beam weapons."
     // Anti-Bio and Fire Beam print damage "-". One regular layer blocks the fire roll and the 60 HP.
     // A damage number, even 1, is still cut by each layer up when the beam enters the room.
-    const dashed = shot.damage <= 0;
     let landed = false;
     for (const id of openRooms) {
-      const room = roomById(ship, id);
-      if (!room) continue;
-      const reduce = ship.shieldNow;
-      if (dashed && reduce > 0) continue;
-      const system = dashed ? 0 : Math.max(0, shot.damage - reduce);
-      const hull = dashed ? 0 : roomHull(shot, room, system, reduce);
-      const roomEffect = dashed && (citedCrewDamage(shot, 0) != null || shot.fireChance > 0);
-      if (system <= 0 && hull <= 0 && !roomEffect) continue;
-      landed = true;
-      strikeRoom(g, ship, aboard, id, system, shot, playerTarget, hull);
+      if (strikeBeamRoom(g, ship, aboard, id, shot, playerTarget)) landed = true;
     }
     if (!landed) {
       log(g, "Beam skids off the shields.");
@@ -3696,6 +3696,115 @@ export function applyImpact(g: Game, shot: Shot) {
       ? roomHull(shot, struck, damage, 0)
       : damage;
   strikeRoom(g, ship, aboard, shot.targetRoom, damage, shot, playerTarget, hull);
+}
+
+/**
+ * One room of a beam swipe, against the shield layers up right now. Returns whether anything landed.
+ * Beam (Weapons), "Beam targeting and damage mechanics": each layer up as the beam enters the room cuts it by 1.
+ * Anti-Bio and Fire Beam print damage "-". One regular layer blocks the fire roll and the 60 HP.
+ */
+function strikeBeamRoom(
+  g: Game,
+  ship: Ship,
+  aboard: "player" | "enemy",
+  id: string,
+  shot: Shot,
+  playerTarget: boolean,
+): boolean {
+  const room = roomById(ship, id);
+  if (!room) return false;
+  const dashed = shot.damage <= 0;
+  const reduce = ship.shieldNow;
+  if (dashed && reduce > 0) return false;
+  const system = dashed ? 0 : Math.max(0, shot.damage - reduce);
+  const hull = dashed ? 0 : roomHull(shot, room, system, reduce);
+  const roomEffect = dashed && (citedCrewDamage(shot, 0) != null || shot.fireChance > 0);
+  if (system <= 0 && hull <= 0 && !roomEffect) return false;
+  strikeRoom(g, ship, aboard, id, system, shot, playerTarget, hull);
+  return true;
+}
+
+/**
+ * The shield layers up right now leave this beam nothing in any room.
+ * Beam (Weapons): "even one shield layer is enough to block most beam weapons."
+ * A systemless figure (Hull Beam) still reaches empty rooms until the layers cover it too.
+ */
+function beamBlocked(ship: Ship, shot: Shot): boolean {
+  const reduce = ship.shieldNow;
+  if (reduce <= 0) return false;
+  if (shot.damage <= 0) return true;
+  return shot.damage - reduce <= 0 && (systemlessHull(shot.defId) ?? 0) - reduce <= 0;
+}
+
+/** Rooms on the swipe with the fractions where the beam enters and leaves each. */
+function beamSpans(ship: Ship, shot: Shot): BeamSpan[] {
+  if (shot.beamLine) {
+    const spans = roomSpansOnSegment(ship, shot.beamLine.a, shot.beamLine.b);
+    if (spans.length > 0) return spans;
+  }
+  return evenBeamSpans(shot.beamRooms ?? [shot.targetRoom]);
+}
+
+/** The mount that fired this beam is still there, powered, and not held by an artillery hack. */
+function beamSourceLive(g: Game, shot: Shot): boolean {
+  if (!shot.weapon || (shot.from !== "player" && shot.from !== "enemy")) return true;
+  const ship = shot.from === "player" ? g.player : g.enemy;
+  if (!ship) return false;
+  const i = ship.weapons.findIndex((w) => w.uid === shot.weapon);
+  if (i < 0) return false;
+  if (hackDrainsGun(g, shot.from, ship.weapons[i].defId)) return false;
+  return !!powerMask(ship, zoltanBars(g.crew, ship, shot.from, "weapons"))[i];
+}
+
+/**
+ * Per the user: a beam fires for its whole swipe and lands on each room the moment it touches it.
+ * Beam (Weapons), "Beam targeting and damage mechanics": "The damage is applied at the first moment that a beam enters a room."
+ * Per the user: shields coming back up enough to block it stop the damage there, and the beam ends on the bubble.
+ * The firing weapon going offline stops the beam. Rooms it has not reached take nothing.
+ * Beam (Weapons), "Beams vs Zoltan Shields": the 33% and 80% instances spend the bubble. A room the beam leaves
+ * while the bubble holds takes nothing. A room it is still inside when the bubble breaks takes the normal hit.
+ * Returns false when the beam stopped firing.
+ */
+function stepBeam(g: Game, shot: Shot): boolean {
+  const playerTarget = shotHitsPlayer(shot);
+  const ship = playerTarget ? g.player : g.enemy;
+  if (!ship) return false;
+  if (!beamSourceLive(g, shot)) {
+    if (shot.from === "player") log(g, "The beam cut out.");
+    return false;
+  }
+  if (shot.beamCut != null) return true;
+  const aboard: "player" | "enemy" = playerTarget ? "player" : "enemy";
+  const t = Math.min(1, Math.max(0, shot.t));
+  const marks =
+    zoltanBeamTicks(shot) === 1 ? [ZOLTAN_BEAM_FIRST] : [ZOLTAN_BEAM_FIRST, ZOLTAN_BEAM_SECOND];
+  let passed = shot.beamZoltan ?? 0;
+  while (passed < marks.length && t >= marks[passed]) {
+    passed += 1;
+    if ((ship.zoltan ?? 0) <= 0) continue;
+    spendZoltan(ship, zoltanBeamInstance(shot));
+    noteZoltan(g, playerTarget);
+  }
+  if (passed > 0) shot.beamZoltan = passed;
+  const bubble = (ship.zoltan ?? 0) > 0;
+  if (!bubble && beamBlocked(ship, shot)) {
+    shot.beamCut = t;
+    log(g, "Beam skids off the shields.");
+    sfx(g, "shield");
+    return true;
+  }
+  const done = shot.beamHit ?? [];
+  for (const span of beamSpans(ship, shot)) {
+    if (span.enter > t || done.includes(span.id)) continue;
+    if (bubble) {
+      if (span.exit <= t) done.push(span.id);
+      continue;
+    }
+    done.push(span.id);
+    strikeBeamRoom(g, ship, aboard, span.id, shot, playerTarget);
+  }
+  if (done.length > 0) shot.beamHit = done;
+  return true;
 }
 
 /**
@@ -3879,7 +3988,7 @@ function strikeRoom(
     }
   }
   const shown = hull > 0 ? hull : damage;
-  floatAt(g, `−${shown}`, playerHurt ? 74 : 26, 30);
+  floatAt(g, `−${shown}`, playerHurt ? 74 : 26, 30, shot.kind === "beam");
   sfx(g, "hit");
   if (playerHurt) {
     // Per the user: shake only when the hull actually drops, not for a hit that leaves it whole.
@@ -7804,16 +7913,23 @@ export function patchAll(g: Game) {
   sfx(g, "click");
 }
 
-function stepShots(g: Game, dt: number) {
+// exported for tests
+export function stepShots(g: Game, dt: number) {
+  const stopped = new Set<string>();
   for (const shot of g.shots) {
     if (shot.wait > 0) {
       shot.wait -= dt;
       continue;
     }
     shot.t += dt / shot.duration;
+    // Artillery Beam's drawn swipe. tickLance lands the cut. This shot is the stroke.
+    if (shot.label === ARTILLERY_SHOT_LABEL) continue;
+    // A beam lands room by room while it fires (stepBeam). Its end is not a separate impact.
+    if (shot.kind === "beam") {
+      if (!(beamTicker(shot.beamOwner) ?? stepBeam)(g, shot)) stopped.add(shot.id);
+      continue;
+    }
     if (shot.t >= 1) {
-      // Artillery Beam's drawn swipe. tickLance lands the cut. This shot is the stroke.
-      if (shot.label === ARTILLERY_SHOT_LABEL) continue;
       // Drone Control, Defense Drone: one incoming shot per cooldown, before it lands.
       // Environmental Hazards, Asteroid Field: a rock aimed at the enemy is their incoming shot.
       const rockAtEnemy = shot.from === "env" && shot.label === "Rock" && shot.at === "enemy";
@@ -7831,7 +7947,7 @@ function stepShots(g: Game, dt: number) {
       applyImpact(g, shot);
     }
   }
-  g.shots = g.shots.filter((s) => s.t < 1);
+  g.shots = g.shots.filter((s) => s.t < 1 && !stopped.has(s.id));
 }
 
 /** A death from fire or from suffocation, with no enemy hull on the tick. */

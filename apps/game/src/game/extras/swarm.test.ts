@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { onPlayerJump } from "./index.ts";
-import { applyImpact, COATED_DOOR_HITS, createGame, REPAIR_SECONDS, startCombat } from "../sim.ts";
+import {
+  applyImpact,
+  COATED_DOOR_HITS,
+  createGame,
+  REPAIR_SECONDS,
+  startCombat,
+  stepShots,
+} from "../sim.ts";
 import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 import type { DroneUnit, Game, Kit, Ship, Shot } from "../types.ts";
 import {
@@ -379,8 +386,11 @@ describe("drones", () => {
     // Beam speed 3 is not the wait. Speed 15 is the flight.
     pinLeg(kit, BEAM1_SPEED);
     tickSwarm(g, (kit.left ?? 0) - 0.01);
+    stepShots(g, 0);
     assert.equal(g.enemy.hull, hull);
     tickSwarm(g, 0.01);
+    // Per the user: the swipe is a beam that lands as it touches the room.
+    stepShots(g, 0);
     assert.equal(g.enemy.hull, hull - 1);
     assert.equal(g.enemy.shieldNow, 0);
     const hurt = g.enemy.rooms.filter((r) => r.system && g.enemy!.systems[r.system].damage === 1);
@@ -417,6 +427,7 @@ describe("drones", () => {
     const damage = g.enemy.systems[system].damage;
     pinLeg(kit, BEAM1_SPEED);
     tickSwarm(g, kit.left ?? 0);
+    stepShots(g, 0);
     assert.equal(g.enemy.zoltan, 2);
     assert.equal(g.enemy.hull, hull);
     assert.equal(g.enemy.systems[system].damage, damage);
@@ -424,6 +435,7 @@ describe("drones", () => {
     g.enemy.zoltan = 0;
     pinLeg(kit, BEAM1_SPEED);
     tickSwarm(g, kit.left ?? 0);
+    stepShots(g, 0);
     assert.equal(g.enemy.hull, hull);
     assert.equal(g.enemy.systems[system].damage, damage);
     assert.equal(g.enemy.zoltan, 0);
@@ -431,6 +443,7 @@ describe("drones", () => {
     g.enemy.kits.cloaking.on = false;
     pinLeg(kit, BEAM1_SPEED);
     tickSwarm(g, kit.left ?? 0);
+    stepShots(g, 0);
     assert.equal(g.enemy.hull, hull - 1);
   });
 
@@ -447,15 +460,78 @@ describe("drones", () => {
     const hull = g.enemy.hull;
     pinLeg(kit, BEAM1_SPEED);
     tickSwarm(g, kit.left ?? 0);
+    stepShots(g, 0);
     assert.equal(g.enemy.zoltan, 1);
     assert.equal(g.enemy.hull, hull);
     pinLeg(kit, BEAM1_SPEED);
     tickSwarm(g, kit.left ?? 0);
+    stepShots(g, 0);
     assert.equal(g.enemy.zoltan, 0);
     assert.equal(g.enemy.hull, hull);
     pinLeg(kit, BEAM1_SPEED);
     tickSwarm(g, kit.left ?? 0);
+    stepShots(g, 0);
     assert.equal(g.enemy.hull, hull - 1);
+  });
+
+  it("a beam drone swipe lands as it touches each room, and stops when the drone loses power or shields come up", () => {
+    // Per the user: the swipe is a beam. A room takes its hit on contact. Powering the drone down,
+    // or shields coming back up, stops it before the next room.
+    const setup = () => {
+      const g = createGame(10);
+      place(g);
+      startCombat(g, "scout");
+      assert.ok(g.enemy);
+      g.enemy.shieldNow = 0;
+      g.enemy.zoltan = 0;
+      assert.equal(deploy(g, "COMBAT_BEAM"), true);
+      const rooms = g.enemy.rooms.filter((r) => r.system).slice(0, 2);
+      assert.equal(rooms.length, 2);
+      const shot: Shot = {
+        id: "swipe",
+        kind: "beam",
+        from: "player",
+        damage: 1,
+        ion: 0,
+        fireChance: 0,
+        breachChance: 0,
+        targetRoom: rooms[0]!.id,
+        beamRooms: rooms.map((r) => r.id),
+        defId: "COMBAT_BEAM",
+        wait: 0,
+        t: 0,
+        duration: 0.5,
+        label: "drones",
+        beamOwner: "drone",
+      };
+      g.shots = [shot];
+      return { g, enemy: g.enemy, hull: g.enemy.hull, shot };
+    };
+
+    const full = setup();
+    stepShots(full.g, 0);
+    assert.equal(full.enemy.hull, full.hull - 1);
+    stepShots(full.g, 0.3);
+    assert.equal(full.enemy.hull, full.hull - 2);
+    stepShots(full.g, 0.3);
+    assert.equal(full.g.shots.length, 0);
+
+    const dark = setup();
+    stepShots(dark.g, 0);
+    assert.equal(depowerDrone(dark.g), true);
+    stepShots(dark.g, 0.3);
+    assert.equal(dark.g.shots.length, 0);
+    assert.equal(dark.enemy.hull, dark.hull - 1);
+
+    const shielded = setup();
+    stepShots(shielded.g, 0);
+    shielded.enemy.shieldNow = 1;
+    stepShots(shielded.g, 0.3);
+    assert.equal(shielded.shot.beamCut != null, true);
+    assert.equal(shielded.g.shots.length, 1);
+    shielded.enemy.shieldNow = 0;
+    stepShots(shielded.g, 0.1);
+    assert.equal(shielded.enemy.hull, shielded.hull - 1);
   });
 
   it("beam fire lands on some swipes and not others", () => {
@@ -465,7 +541,10 @@ describe("drones", () => {
     assert.ok(g.enemy);
     g.enemy.shieldNow = 0;
     deploy(g, "COMBAT_BEAM");
-    tickSwarm(g, 3 * 80);
+    for (let i = 0; i < 3 * 80; i++) {
+      tickSwarm(g, 1);
+      stepShots(g, 1);
+    }
     const fires = g.enemy.rooms.reduce((sum, r) => sum + r.fire, 0);
     assert.ok(fires > 0);
     assert.ok(fires < 80);

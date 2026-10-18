@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { bubbleLayout, frameRoom, struckPad, zoltanPad } from "./shield-bubble.ts";
+import { bubbleCrossing, bubbleLayout, frameRoom, struckPad, zoltanPad } from "./shield-bubble.ts";
 
 describe("shield bubbles", () => {
   it("draws one ellipse per live layer, then the charge, then the Zoltan shield", () => {
@@ -42,5 +42,17 @@ describe("shield bubbles", () => {
     assert.equal(half.zoltan, 20);
     assert.equal(struckPad(80, 1, false, 0.5), 12);
     assert.equal(zoltanPad(80, 2, false, 0.5), 16);
+  });
+
+  it("stops a beam where it first meets the bubble", () => {
+    const hit = bubbleCrossing({ x: -50, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, 20, 10);
+    assert.ok(hit);
+    assert.ok(Math.abs(hit.x - -20) < 1e-9);
+    assert.equal(hit.y, 0);
+    assert.deepEqual(bubbleCrossing({ x: 1, y: 1 }, { x: 0, y: 0 }, { x: 0, y: 0 }, 20, 10), {
+      x: 1,
+      y: 1,
+    });
+    assert.equal(bubbleCrossing({ x: -50, y: 30 }, { x: 50, y: 30 }, { x: 0, y: 0 }, 20, 10), null);
   });
 });

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createReadStream, readFileSync } from "node:fs";
+import { createReadStream } from "node:fs";
 import { createInterface } from "node:readline";
 import { describe, it } from "node:test";
 import { EXTRA_EVENTS, type CitedFx } from "./cited-events-mantis.ts";
@@ -56,7 +56,7 @@ async function pageText(title: string): Promise<string> {
 }
 
 describe("cited mantis events", () => {
-  it("keeps only these titles, their Locations names, and commented numbers", async () => {
+  it("keeps only these titles, their Locations names, and page numbers", async () => {
     // Wiki citations:
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fight near sun]]
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis ship-collectors]]
@@ -64,10 +64,6 @@ describe("cited mantis events", () => {
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Boarders: Mantis]]
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Escape pod]]
     const allowed = new Set<string>(TITLES);
-    const src = readFileSync(
-      new URL("../../../../../packages/catalog/src/wiki/cited-events-mantis.ts", import.meta.url),
-      "utf8",
-    );
     assert.ok(EXTRA_EVENTS.length >= 1);
     for (const ev of EXTRA_EVENTS) {
       assert.ok(allowed.has(ev.dest), ev.dest);
@@ -80,16 +76,12 @@ describe("cited mantis events", () => {
       });
       const text = await pageText(ev.dest);
       assert.deepEqual(ev.sectors, locationNames(text));
-      const start = src.indexOf(`dest: "${ev.dest}"`);
-      assert.ok(start >= 0);
-      const next = src.indexOf("\n  {", start + 1);
-      const slice = src.slice(start, next === -1 ? src.length : next);
-      const comments = [...slice.matchAll(/\/\/([^\n]*)/g)].map((match) => match[1]).join("\n");
       for (const choice of ev.choices) {
         for (const fx of choice.fx) {
           for (const n of fxNumbers(fx)) {
-            assert.match(comments, new RegExp(`(?<![\\d.])${n}(?!\\d)`), `${ev.dest} ${n}`);
+            assert.match(text, new RegExp(`(?<![\\d.])${n}(?!\\d)`), `${ev.dest} ${n}`);
           }
+          if (fx.k === "fight") assert.ok(text.includes(fx.tier), `${ev.dest} ${fx.tier}`);
         }
       }
     }

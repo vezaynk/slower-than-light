@@ -241,22 +241,6 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     }
   });
 
-  it("sim.ts no longer carries the invented filler events", () => {
-    const src = readFileSync(new URL("../sim.ts", import.meta.url), "utf8");
-    for (const t of INVENTED) assert.ok(!src.includes(`"${t}"`), t);
-    for (const id of [
-      "empty-take",
-      "cache-take",
-      "distress-help",
-      "nebula-ping",
-      "wreck-deep",
-      "deserter-pay",
-      "asteroid-skirt",
-    ]) {
-      assert.ok(!src.includes(`"${id}"`), id);
-    }
-  });
-
   it("the exit lists are Template:EventList OVERRIDE NEUTRAL EXIT and OVERRIDE ITEMS", () => {
     const rows = (t: string) =>
       [

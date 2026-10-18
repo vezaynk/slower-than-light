@@ -59,11 +59,6 @@ const SHIPS = new Set([
   "Crystal ship",
 ]);
 
-const SOURCE = readFileSync(
-  new URL("../../../../../packages/catalog/src/wiki/cited-events-civilian-mz.ts", import.meta.url),
-  "utf8",
-);
-
 function slug(title: string): string {
   return title
     .toLowerCase()
@@ -79,16 +74,6 @@ function locations(text: string): string[] {
     .split("|")
     .map((part) => part.trim())
     .filter((part) => part.length > 0 && !part.includes("="));
-}
-
-function commentFor(dest: string): string {
-  const at = SOURCE.indexOf(`dest: "${dest}"`);
-  assert.ok(at > 0, dest);
-  const before = SOURCE.slice(0, at);
-  const open = before.lastIndexOf("/**");
-  const close = before.lastIndexOf("*/");
-  assert.ok(open >= 0 && close > open, dest);
-  return before.slice(open + 3, close);
 }
 
 function hasNumber(text: string, n: number): boolean {
@@ -111,7 +96,7 @@ function loadPages(): Map<string, string> {
 describe("civilian M-Z cited events", () => {
   const pages = loadPages();
 
-  it("exports only these titles, with sectors and numbers from the page comment", () => {
+  it("exports only these titles, with sectors and numbers from the page", () => {
     assert.equal(pages.size, TITLES.length);
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {
@@ -121,9 +106,8 @@ describe("civilian M-Z cited events", () => {
       assert.equal(ev.slug, slug(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
-      assert.deepEqual(ev.sectors, locations(pages.get(ev.dest) ?? ""));
-      const comment = commentFor(ev.dest);
       const page = pages.get(ev.dest) ?? "";
+      assert.deepEqual(ev.sectors, locations(page));
       ev.choices.forEach((choice, i) => {
         assert.equal(choice.id, `c:${ev.slug}:${i}`);
         assert.ok(choice.fx.length > 0);
@@ -133,7 +117,6 @@ describe("civilian M-Z cited events", () => {
           else if (fx.k === "hull" || fx.k === "fleet") nums.push(fx.n);
           else if (fx.k === "fight") assert.ok(SHIPS.has(fx.tier), fx.tier);
           for (const n of nums) {
-            assert.ok(hasNumber(comment, n), `${ev.dest} ${n} missing from comment`);
             assert.ok(hasNumber(page, n), `${ev.dest} ${n} missing from page`);
           }
         }

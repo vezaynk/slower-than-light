@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createReadStream, readFileSync } from "node:fs";
+import { createReadStream } from "node:fs";
 import { createInterface } from "node:readline";
 import { describe, it } from "node:test";
 import { EXTRA_EVENTS, type CitedFx } from "./cited-events-pirate.ts";
@@ -28,23 +28,6 @@ function numbersOf(fx: CitedFx): number[] {
   if (fx.k === "res") return [fx.lo, fx.hi];
   if (fx.k === "hull" || fx.k === "fleet") return [fx.n];
   return [];
-}
-
-function eventSlice(src: string, dest: string): string {
-  const marker = `dest: "${dest}"`;
-  const start = src.indexOf(marker);
-  assert.notEqual(start, -1, dest);
-  const next = src.indexOf("\n  {", start + marker.length);
-  return src.slice(start, next === -1 ? src.length : next);
-}
-
-function commentText(slice: string): string {
-  const lines = slice
-    .split("\n")
-    .filter((line) => line.trimStart().startsWith("//"))
-    .map((line) => line.trimStart().slice(2));
-  const blocks = [...slice.matchAll(/\/\*[\s\S]*?\*\//g)].map((m) => m[0]);
-  return [...lines, ...blocks].join("\n");
 }
 
 function hasNumber(comment: string, n: number): boolean {
@@ -82,10 +65,6 @@ describe("cited pirate events", () => {
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee (Pirate)]]
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee distress (Pirate)]]
     // > "This random event occurs in Pirate Controlled Sector." — [[Research station with no response]]
-    const src = readFileSync(
-      new URL("../../../../../packages/catalog/src/wiki/cited-events-pirate.ts", import.meta.url),
-      "utf8",
-    );
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {
       assert.ok(TITLES.includes(ev.dest), ev.dest);
@@ -100,16 +79,15 @@ describe("cited pirate events", () => {
         assert.ok(choice.fx.length >= 1);
       });
 
-      const names = sectorNames(await pageText(ev.dest));
-      assert.deepEqual(ev.sectors, names);
+      const page = await pageText(ev.dest);
+      assert.deepEqual(ev.sectors, sectorNames(page));
 
-      const comments = commentText(eventSlice(src, ev.dest));
       for (const choice of ev.choices) {
         for (const fx of choice.fx) {
           for (const n of numbersOf(fx)) {
-            assert.ok(hasNumber(comments, n), `${ev.dest} number ${n}`);
+            assert.ok(hasNumber(page, n), `${ev.dest} number ${n}`);
           }
-          if (fx.k === "fight") assert.ok(comments.includes(fx.tier), fx.tier);
+          if (fx.k === "fight") assert.ok(page.includes(fx.tier), fx.tier);
         }
       }
     }

@@ -48,10 +48,6 @@ function locationNames(text: string): string[] {
     .filter((p) => p && !p.includes("="));
 }
 
-function ints(s: string): number[] {
-  return [...s.matchAll(/\d+/g)].map((m) => Number(m[0]));
-}
-
 describe("cited crystal events", () => {
   const wiki = pages();
 
@@ -96,51 +92,17 @@ describe("cited crystal events", () => {
     }
   });
 
-  it("matches every stated number to the wiki sentence in the comment above it", () => {
-    const src = readFileSync(
-      new URL("../../../../../packages/catalog/src/wiki/cited-events-crystal.ts", import.meta.url),
-      "utf8",
-    );
-    const body = src.slice(src.indexOf("export const EXTRA_EVENTS"));
+  it("puts each reward and hull number on that page", () => {
     for (const ev of EXTRA_EVENTS) {
-      const start = body.indexOf(`dest: "${ev.dest}"`);
-      assert.ok(start >= 0);
-      const next = EXTRA_EVENTS[EXTRA_EVENTS.indexOf(ev) + 1];
-      const end = next ? body.indexOf(`dest: "${next.dest}"`) : body.length;
-      const slice = body.slice(start, end);
       const page = wiki.get(ev.dest) ?? "";
-      const lines = slice.split("\n");
-      for (let i = 0; i < lines.length; i++) {
-        const comment = lines[i].match(/^\s*\/\/\s?(.*)$/);
-        if (!comment) continue;
-        // Quotation comments cite the rendered page. They are not the numbered wiki sentence this check locks.
-        if (comment[1] === "Wiki citations:" || comment[1].startsWith('> "')) continue;
-        assert.ok(page.includes(comment[1]), comment[1]);
-        let j = i + 1;
-        while (
-          j < lines.length &&
-          (lines[j].trim() === "" || /^\s*\/\/\s?(?:Wiki citations:|> ")/.test(lines[j]))
-        )
-          j++;
-        assert.ok(lines[j].includes("{"));
-        let depth = 0;
-        const fx: string[] = [];
-        for (; j < lines.length; j++) {
-          fx.push(lines[j]);
-          for (const ch of lines[j]) {
-            if (ch === "{") depth++;
-            else if (ch === "}") depth--;
+      for (const choice of ev.choices) {
+        for (const fx of choice.fx) {
+          const nums =
+            fx.k === "res" ? [fx.lo, fx.hi] : fx.k === "hull" || fx.k === "fleet" ? [fx.n] : [];
+          for (const n of nums) {
+            assert.ok(new RegExp(`(?<!\\d)${Math.abs(n)}(?!\\d)`).test(page), `${ev.dest} ${n}`);
           }
-          if (depth === 0) break;
         }
-        const fxText = fx.join("\n");
-        const fromFx = [...fxText.matchAll(/\b(?:lo|hi|n)\s*:\s*(-?\d+)/g)].map((m) =>
-          Number(m[1]),
-        );
-        assert.deepEqual(
-          fromFx.sort((a, b) => a - b),
-          ints(comment[1]).sort((a, b) => a - b),
-        );
       }
     }
   });

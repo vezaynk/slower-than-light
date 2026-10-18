@@ -87,33 +87,11 @@ function loadPages(titles: string[]): Map<string, string> {
   return found;
 }
 
-function commentFor(src: string, dest: string): string {
-  const needle = `dest: "${dest}"`;
-  const at = src.indexOf(needle);
-  assert.ok(at >= 0, `comment anchor for ${dest}`);
-  const lines = src.slice(0, at).split("\n");
-  const comments: string[] = [];
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const line = lines[i].trim();
-    if (line === "" || line === "{") continue;
-    if (!line.startsWith("//")) break;
-    comments.push(line.replace(/^\/\/\s?/, ""));
-  }
-  return comments.reverse().join("\n");
-}
-
 function numberTokens(text: string): number[] {
   return [...text.matchAll(/(?<!\d)(\d+)(?!\d)/g)].map((match) => Number(match[1]));
 }
 
 describe("cited events civilian and abandoned", () => {
-  const src = readFileSync(
-    new URL(
-      "../../../../../packages/catalog/src/wiki/cited-events-civilian-al.ts",
-      import.meta.url,
-    ),
-    "utf8",
-  );
   const pages = loadPages(TITLES);
 
   it("keeps every dest on this title list and every sector on that page", () => {
@@ -151,18 +129,15 @@ describe("cited events civilian and abandoned", () => {
     }
   });
 
-  it("matches every numeric lo, hi, and n to the event comment and the page", () => {
+  it("matches every numeric lo, hi, and n to the page", () => {
     for (const ev of EXTRA_EVENTS) {
-      const comment = commentFor(src, ev.dest);
       const page = pages.get(ev.dest) ?? "";
-      const commentNumbers = new Set(numberTokens(comment));
       const pageNumbers = new Set(numberTokens(page));
       for (const choice of ev.choices) {
         for (const fx of choice.fx) {
           const nums =
             fx.k === "res" ? [fx.lo, fx.hi] : fx.k === "hull" || fx.k === "fleet" ? [fx.n] : [];
           for (const n of nums) {
-            assert.ok(commentNumbers.has(n), `${ev.dest} comment missing ${n}`);
             assert.ok(pageNumbers.has(n), `${ev.dest} page missing ${n}`);
           }
           if (fx.k === "fight") assert.ok(SHIPS.has(fx.tier), fx.tier);

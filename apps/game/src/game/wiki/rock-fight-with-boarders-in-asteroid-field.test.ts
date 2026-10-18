@@ -33,7 +33,9 @@ describe("Rock fight with boarders in asteroid field", () => {
       open(g);
       const body = g.event?.body ?? "";
       assert.ok(INTROS.includes(body), body);
-      assert.ok(g.event?.choices.some((c) => c.id === "c:rock-fight-with-boarders-in-asteroid-field:0"));
+      assert.ok(
+        g.event?.choices.some((c) => c.id === "c:rock-fight-with-boarders-in-asteroid-field:0"),
+      );
       seen.add(body);
     }
     assert.equal(seen.size, INTROS.length);
@@ -79,7 +81,9 @@ describe("Rock fight with boarders in asteroid field", () => {
     assert.equal(g.enemy?.faction, "rock");
     assert.equal(g.asteroid, true);
     assert.equal(g.fightEvent, "rock-fight-with-boarders-in-asteroid-field");
-    const rocks = g.crew.filter((c) => c.side === "enemy" && c.kin === "rock" && c.aboard === "player");
+    const rocks = g.crew.filter(
+      (c) => c.side === "enemy" && c.kin === "rock" && c.aboard === "player",
+    );
     assert.ok(rocks.length >= 1 && rocks.length <= 2, String(rocks.length));
     assert.ok(g.log.some((line) => line.includes("rock boarders beam aboard your ship.")));
   });

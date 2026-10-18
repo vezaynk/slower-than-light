@@ -17,7 +17,16 @@ import { citedSell, citedSellQuote } from "./wiki/cited-stores.ts";
 import { citedEvent } from "./wiki/cited-events.ts";
 import { FLAGSHIP_PHASES } from "./wiki/flagship.ts";
 import { ACCEPT_ID, joinCrew } from "./wiki/surrender.ts";
-import { augmentDef, crewDef, droneDef, hullDef, sectorDef, storeDef, systemDef, weaponDef } from "@stl/pack";
+import {
+  augmentDef,
+  crewDef,
+  droneDef,
+  hullDef,
+  sectorDef,
+  storeDef,
+  systemDef,
+  weaponDef,
+} from "@stl/pack";
 
 /**
  * The manual checks left open on the pack milestones, played as seeded Kestrel runs.
@@ -70,7 +79,10 @@ describe("a seeded Kestrel run", () => {
     assert.equal(g.missiles, 8);
     assert.equal(g.player.parts, 2);
     assert.equal(g.scrap, 10);
-    assert.deepEqual(g.player.weapons.map((w) => w.defId), ["LASER_BURST_3", "MISSILES_2_PLAYER"]);
+    assert.deepEqual(
+      g.player.weapons.map((w) => w.defId),
+      ["LASER_BURST_3", "MISSILES_2_PLAYER"],
+    );
     assert.deepEqual(
       g.player.weapons.map((w) => weaponDef(w.defId)?.name),
       ["Burst Laser II", "Artemis Missiles"],
@@ -169,7 +181,9 @@ describe("a seeded Kestrel run", () => {
 
   it("hires Robert Smith as a Mantis and accepts the Anti-Bio Beam", () => {
     const hired = kestrel(1);
-    const beacon = hired.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
+    const beacon = hired.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss",
+    );
     assert.ok(beacon);
     beacon.flag = "cited:confused-mantis";
     beacon.name = "Confused Mantis";
@@ -224,8 +238,14 @@ describe("a seeded Kestrel run", () => {
     const scrap = g.scrap;
     assert.equal(citedSell(g, artQuote.id), true);
     assert.equal(g.scrap, scrap + 19);
-    assert.equal(g.player.weapons.some((w) => w.defId === "MISSILES_2_PLAYER"), false);
-    assert.equal(g.player.weapons.some((w) => w.defId === "LASER_BURST_3"), true);
+    assert.equal(
+      g.player.weapons.some((w) => w.defId === "MISSILES_2_PLAYER"),
+      false,
+    );
+    assert.equal(
+      g.player.weapons.some((w) => w.defId === "LASER_BURST_3"),
+      true,
+    );
 
     const fight = kestrel(11);
     const boss = fight.beacons.find((b) => b.kind === "exit");
@@ -303,10 +323,25 @@ describe("a seeded Kestrel run", () => {
     pay(g, "sys-mind", 75);
     assert.equal(g.player.kits.mind?.level, 1);
     assert.equal(g.player.kits.mind?.power, 0);
-    assert.equal(g.stock?.some((row) => row.id === "crew-human"), false);
-    assert.equal(g.stock?.some((row) => row.id === "aug-AUTO_COOLDOWN"), false);
-    assert.equal(g.stock?.some((row) => row.id === "drone-ANTI_DRONE"), false);
-    assert.equal(g.stock?.some((row) => row.id === "sys-drones-DEFENSE_1"), false);
-    assert.equal(g.stock?.some((row) => row.id === "sys-mind"), false);
+    assert.equal(
+      g.stock?.some((row) => row.id === "crew-human"),
+      false,
+    );
+    assert.equal(
+      g.stock?.some((row) => row.id === "aug-AUTO_COOLDOWN"),
+      false,
+    );
+    assert.equal(
+      g.stock?.some((row) => row.id === "drone-ANTI_DRONE"),
+      false,
+    );
+    assert.equal(
+      g.stock?.some((row) => row.id === "sys-drones-DEFENSE_1"),
+      false,
+    );
+    assert.equal(
+      g.stock?.some((row) => row.id === "sys-mind"),
+      false,
+    );
   });
 });

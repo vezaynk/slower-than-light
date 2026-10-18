@@ -84,7 +84,10 @@ describe("Rebel checkpoint", () => {
     const poor = createGame(4);
     open(poor);
     poor.scrap = 9;
-    assert.equal(choiceDisabled(poor, bribeId(poor)), `Need ${bribeId(poor).split(":").at(-1)} scrap`);
+    assert.equal(
+      choiceDisabled(poor, bribeId(poor)),
+      `Need ${bribeId(poor).split(":").at(-1)} scrap`,
+    );
 
     const texts = new Set<string>();
     const ends = new Set<string>();

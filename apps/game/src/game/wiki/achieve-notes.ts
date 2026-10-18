@@ -17,7 +17,16 @@ export type AchieveNote =
   | { k: "store"; repair: boolean }
   | { k: "hull"; before: number; after: number }
   | { k: "jump"; nebula: boolean; hazard: boolean }
-  | { k: "death"; side: "player" | "enemy"; cloned: boolean; fire: boolean; playerThere: boolean; lastEnemy: boolean; lastPlayerAboard: boolean; boarder: boolean }
+  | {
+      k: "death";
+      side: "player" | "enemy";
+      cloned: boolean;
+      fire: boolean;
+      playerThere: boolean;
+      lastEnemy: boolean;
+      lastPlayerAboard: boolean;
+      boarder: boolean;
+    }
   | { k: "win"; deadCrew: boolean; allAboard: boolean; defense: boolean; rock: boolean }
   | { k: "teleport" }
   | { k: "drone"; kind: string; functioning: number }
@@ -115,7 +124,9 @@ function observe(g: Game) {
   if (ioned >= 4) t.ionFour = true;
   for (const room of enemy.rooms) {
     if ((room.lock ?? 0) <= 0) continue;
-    const trapped = g.crew.filter((c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy" && c.room === room.id).length;
+    const trapped = g.crew.filter(
+      (c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy" && c.room === room.id,
+    ).length;
     if (trapped >= 4) t.trapped = true;
   }
   if (t.shieldArmed && (g.player.zoltan ?? 0) <= 0) t.shieldIntact = false;
@@ -124,7 +135,9 @@ function observe(g: Game) {
   const cell = g.player.kits.battery;
   // Ship Achievements, Lanius: "Have Hacking, Mind Control and the Battery all active at once."
   if (hack?.on && mind?.on && cell?.on) t.mastery = true;
-  const functioning = (g.player.kits.drones?.drones ?? []).filter((d) => d.alive && d.powered).length;
+  const functioning = (g.player.kits.drones?.drones ?? []).filter(
+    (d) => d.alive && d.powered,
+  ).length;
   if (functioning > (t.dronePeak ?? 0)) t.dronePeak = functioning;
 }
 
@@ -153,7 +166,11 @@ function onShot(g: Game, ev: Extract<AchieveNote, { k: "shot" }>) {
   }
   if (ev.defId === "BEAM_BIO") {
     const n = ev.rooms.reduce(
-      (sum, id) => sum + g.crew.filter((c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy" && c.room === id).length,
+      (sum, id) =>
+        sum +
+        g.crew.filter(
+          (c) => c.side === "enemy" && c.hp > 0 && c.aboard === "enemy" && c.room === id,
+        ).length,
       0,
     );
     if (n > (t.antiBio ?? 0)) t.antiBio = n;
@@ -187,13 +204,15 @@ function onWin(g: Game, ev: Extract<AchieveNote, { k: "win" }>) {
   if (ev.deadCrew) return;
   const hullKill = !!g.enemy && g.enemy.hull <= 0;
   if (!hullKill) return;
-  if (t.artilleryUsed && !t.otherWeapon && !t.weaponHurt && !t.droneHurt && !t.fightHull) t.artilleryKill = true;
+  if (t.artilleryUsed && !t.otherWeapon && !t.weaponHurt && !t.droneHurt && !t.fightHull)
+    t.artilleryKill = true;
   if (t.droneHurt && !t.weaponHurt && !t.otherWeapon && !t.artilleryUsed) t.droneOnly = true;
   if ((t.missileShots ?? 0) > 0 && !t.otherWeapon && ev.defense) t.missileDefense = true;
   if (t.shieldArmed && t.shieldIntact) t.shieldsHeld = true;
   if (t.cloakPrey && g.player.kits.cloaking?.on) t.bird = true;
   if (ev.rock) t.rockKills = (t.rockKills ?? 0) + 1;
-  if (g.augments.includes("WEAPON_PREIGNITE") && !t.enemyShot && (t.playerShots ?? 0) > 0) t.sawIt = true;
+  if (g.augments.includes("WEAPON_PREIGNITE") && !t.enemyShot && (t.playerShots ?? 0) > 0)
+    t.sawIt = true;
 }
 
 /** Record one printed achievement condition. Safe to call when the tally was absent. */

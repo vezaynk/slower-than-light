@@ -22,14 +22,12 @@ function paintFit(viewport: HTMLElement | null, screen: HTMLElement | null) {
   screen.classList.add("is-fit");
 }
 
-
 function deviceAngle(): number {
   const so = typeof screen !== "undefined" ? screen.orientation : undefined;
   const legacy = (window as Window & { orientation?: number }).orientation;
   const raw = typeof legacy === "number" ? legacy : (so?.angle ?? 0);
   return ((raw % 360) + 360) % 360;
 }
-
 
 /** The CSS turn that shows the page in the chosen landscape, given how the phone is held now. */
 function wantedTurn(rotate: "off" | "left" | "right"): PageTurn {
@@ -112,7 +110,9 @@ export function Screen({ children }: { children: ReactNode }) {
       | (ScreenOrientation & { lock?: (type: string) => Promise<void>; unlock?: () => void })
       | undefined;
     if (rotate !== "off" && canForceLandscape() && orient?.lock) {
-      orient.lock(rotate === "left" ? "landscape-primary" : "landscape-secondary").catch(() => undefined);
+      orient
+        .lock(rotate === "left" ? "landscape-primary" : "landscape-secondary")
+        .catch(() => undefined);
     } else if (rotate === "off") {
       try {
         orient?.unlock?.();
@@ -125,7 +125,9 @@ export function Screen({ children }: { children: ReactNode }) {
 
   return (
     <div className="viewport" ref={viewportRef}>
-      <div className="screen" ref={screenRef} style={{ width: SCREEN_W, height: SCREEN_H }}>{children}</div>
+      <div className="screen" ref={screenRef} style={{ width: SCREEN_W, height: SCREEN_H }}>
+        {children}
+      </div>
     </div>
   );
 }

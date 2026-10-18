@@ -6,12 +6,16 @@ import { citedEvent } from "./cited-events.ts";
 
 const DOCK = "c:refueling-platform:0";
 const OFFER = "The platform makes an offer.";
-const STEAL = "The automated platform seems to be damaged. You can likely steal as much fuel as remains.";
+const STEAL =
+  "The automated platform seems to be damaged. You can likely steal as much fuel as remains.";
 const IGNITE = "The platform seems to be malfunctioning and could ignite at any moment.";
 const STAFF = "You dock and signal the fuel station's staff to begin refueling.";
-const AMBUSH = "The refueling station welcomes you into one of its berths, and as you hail them, there is an explosion from your engine room! While assessing the damage, you detect a Pirate Ship closing fast!";
-const BOOM = "Just as you hook up to refuel, the station ignites and explodes. Your own fuel reserve ignites, losing your precious fuel and damaging your ship.";
-const WAIT = "As you dock with the refueling platform, there is an explosion from your engine room! Warning lights flash in your ship as pirates from the station swarm aboard your vessel!";
+const AMBUSH =
+  "The refueling station welcomes you into one of its berths, and as you hail them, there is an explosion from your engine room! While assessing the damage, you detect a Pirate Ship closing fast!";
+const BOOM =
+  "Just as you hook up to refuel, the station ignites and explodes. Your own fuel reserve ignites, losing your precious fuel and damaging your ship.";
+const WAIT =
+  "As you dock with the refueling platform, there is an explosion from your engine room! Warning lights flash in your ship as pirates from the station swarm aboard your vessel!";
 
 type Kind = "offer" | "steal" | "ignite" | "staff" | "ambush";
 

@@ -15,7 +15,10 @@ describe("Drone Reactor Booster speed", () => {
   });
 
   it("comments both sentences from the section", () => {
-    assert.match(source, /Your shipboard drones have their movement speed increased by 25 percent\./);
+    assert.match(
+      source,
+      /Your shipboard drones have their movement speed increased by 25 percent\./,
+    );
     assert.match(
       source,
       /Increases the speed of crew drones by 25%, however, the actual crew drone speed is increased from 50% of regular crew speed to 62\.5%\./,

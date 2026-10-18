@@ -21,7 +21,14 @@ type Box = {
  * Artillery Beam "does not have a console". Hacking "cannot be manned".
  * Medbay, Clone Bay, Oxygen, and the Crew Teleporter print no manning bonus.
  */
-const MANNED: ReadonlySet<string> = new Set(["shields", "engines", "weapons", "pilot", "sensors", "doors"]);
+const MANNED: ReadonlySet<string> = new Set([
+  "shields",
+  "engines",
+  "weapons",
+  "pilot",
+  "sensors",
+  "doors",
+]);
 
 export function mannableSystem(system: string | null | undefined): boolean {
   return !!system && MANNED.has(system);
@@ -30,7 +37,12 @@ export function mannableSystem(system: string | null | undefined): boolean {
 type DoorSideName = "n" | "e" | "s" | "w";
 type DoorMarks = readonly { x: number; y: number; side: DoorSideName }[] | undefined;
 
-const STEP_SIDE: Record<DoorSideName, [number, number]> = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
+const STEP_SIDE: Record<DoorSideName, [number, number]> = {
+  n: [0, -1],
+  e: [1, 0],
+  s: [0, 1],
+  w: [-1, 0],
+};
 const OPPOSITE: Record<DoorSideName, DoorSideName> = { n: "s", e: "w", s: "n", w: "e" };
 
 /** Every cell edge that holds a door, from both sides of it ("x,y,side"). */
@@ -73,7 +85,8 @@ export function consoleSpot(
       const [dx, dy] = STEP_SIDE[side];
       return !floor.has(`${c.x + dx},${c.y + dy}`);
     });
-  const clearWall = (c: { x: number; y: number }) => walls(c).find((side) => !edges.has(`${c.x},${c.y},${side}`));
+  const clearWall = (c: { x: number; y: number }) =>
+    walls(c).find((side) => !edges.has(`${c.x},${c.y},${side}`));
   for (const c of cells) {
     const wall = touchesDoor(c, edges) ? undefined : clearWall(c);
     if (wall) return { x: c.x, y: c.y, wall };
@@ -98,7 +111,10 @@ export function roomConsole(
  * Mind Control, "Overview": a leashed crew member fights for the other side.
  * Same rule as sideOf in leash.ts. crew-spots cannot import that module.
  */
-export function stationSide(c: { side?: "player" | "enemy"; leashed?: number }): "player" | "enemy" | undefined {
+export function stationSide(c: {
+  side?: "player" | "enemy";
+  leashed?: number;
+}): "player" | "enemy" | undefined {
   if (!c.side) return undefined;
   if ((c.leashed ?? 0) > 0) return c.side === "player" ? "enemy" : "player";
   return c.side;
@@ -201,13 +217,20 @@ export function blockedCells(
 }
 
 /** blockedCells for a room on a hull, when the side and doors are known. */
-function blockedOn(room: Box, aboard: string | undefined, hull: StandHull | undefined): Set<string> {
+function blockedOn(
+  room: Box,
+  aboard: string | undefined,
+  hull: StandHull | undefined,
+): Set<string> {
   if (!hull?.doors || !room.id || (aboard !== "player" && aboard !== "enemy")) return new Set();
-  return new Set(blockedCells(room, aboard, interiorLinks(hull.doors, room.id), hull.doorMarks).map(cellKey));
+  return new Set(
+    blockedCells(room, aboard, interiorLinks(hull.doors, room.id), hull.doorMarks).map(cellKey),
+  );
 }
 
 export function roomCapacity(room: Box, side: "player" | "enemy", interiorDoors: number): number {
-  if (room.system === "medbay" || room.kit === "clonebay") return medicalLimit(room, side, interiorDoors);
+  if (room.system === "medbay" || room.kit === "clonebay")
+    return medicalLimit(room, side, interiorDoors);
   const tiles = floorCells(room).length;
   return tiles > 0 ? tiles : 0;
 }
@@ -235,13 +258,19 @@ type RosterCrew = {
 };
 
 /** The floor tile an idle crew member keeps (settleTiles), or null while walking or before one is stamped. */
-export function heldTile(c: Pick<RosterCrew, "tile" | "path" | "room">): { x: number; y: number } | null {
+export function heldTile(
+  c: Pick<RosterCrew, "tile" | "path" | "room">,
+): { x: number; y: number } | null {
   return c.tile && c.path.length === 0 && c.tile.room === c.room ? c.tile : null;
 }
 
 const cellKey = (cell: { x: number; y: number }) => `${cell.x},${cell.y}`;
 
-type StandHull = { flagship?: unknown; doors?: { a: string; b: string | "void" }[]; doorMarks?: DoorMarks } | null;
+type StandHull = {
+  flagship?: unknown;
+  doors?: { a: string; b: string | "void" }[];
+  doorMarks?: DoorMarks;
+} | null;
 
 /**
  * The crew member who stands at the terminal.
@@ -321,7 +350,8 @@ export function mayStand(
   let held = 0;
   for (const other of crew) {
     if (other.id === id || other.hp <= 0 || other.aboard !== aboard) continue;
-    const there = other.path.length === 0 ? other.room === dest : other.path[other.path.length - 1] === dest;
+    const there =
+      other.path.length === 0 ? other.room === dest : other.path[other.path.length - 1] === dest;
     if (there) held += 1;
   }
   return held < cap;
@@ -340,7 +370,11 @@ export function assignStands(
   const consoleKey = console ? cellKey(console) : null;
   const pads = new Set(padCells(room));
   const blocked = blockedOn(room, opts?.aboard, opts?.hull);
-  const floor = new Set(floorCells(room).map(cellKey).filter((key) => !blocked.has(key)));
+  const floor = new Set(
+    floorCells(room)
+      .map(cellKey)
+      .filter((key) => !blocked.has(key)),
+  );
   const ordered = crew
     .slice()
     .sort((a, b) => (a.file ?? 0) - (b.file ?? 0) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
@@ -484,7 +518,13 @@ export function settleTiles(
       const at = shiftPoint(c);
       if (!at) continue;
       const d = Math.abs(at.x - cell.x) + Math.abs(at.y - cell.y);
-      if (d < bestD || (d === bestD && best && ((c.file ?? 0) < (best.file ?? 0) || ((c.file ?? 0) === (best.file ?? 0) && c.id < best.id)))) {
+      if (
+        d < bestD ||
+        (d === bestD &&
+          best &&
+          ((c.file ?? 0) < (best.file ?? 0) ||
+            ((c.file ?? 0) === (best.file ?? 0) && c.id < best.id)))
+      ) {
         best = c;
         bestD = d;
       }
@@ -492,4 +532,3 @@ export function settleTiles(
     if (best) walkTo(best, room.id, cell);
   }
 }
-

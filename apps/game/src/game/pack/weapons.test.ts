@@ -44,10 +44,19 @@ describe("weapon lookups", () => {
       "append",
     );
     const g = createGame(1);
-    g.player.weapons = [mount("LASER_BURST_3", "w-line"), mount("ember"), mount("LASER_BURST_1"), mount("dart")];
+    g.player.weapons = [
+      mount("LASER_BURST_3", "w-line"),
+      mount("ember"),
+      mount("LASER_BURST_1"),
+      mount("dart"),
+    ];
     g.cargo = [{ kind: "weapon", id: "ember" }];
     const quotes = citedSellQuote(g);
-    const byRef = Object.fromEntries(quotes.filter((quote) => quote.kind === "weapon" && !quote.id.startsWith("c:")).map((quote) => [quote.ref, quote]));
+    const byRef = Object.fromEntries(
+      quotes
+        .filter((quote) => quote.kind === "weapon" && !quote.id.startsWith("c:"))
+        .map((quote) => [quote.ref, quote]),
+    );
     assert.equal(byRef.LASER_BURST_3?.scrap, 45);
     assert.equal(byRef.LASER_BURST_3?.name, "Line");
     assert.equal(byRef.ember?.scrap, 7);

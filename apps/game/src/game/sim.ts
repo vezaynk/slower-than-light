@@ -3623,7 +3623,8 @@ export function applyImpact(g: Game, shot: Shot) {
     // Mind Control, Overview: ion that covers every level starts the 25s cooldown. The hold stays up.
     if (r?.kit === "mind" && ship.kits.mind) ionOnLeash(ship.kits.mind);
     // Backup Battery, Overview: ion that covers every level starts the 25s cooldown.
-    if (r?.kit === "battery" && ship.kits.battery) ionOnCell(g, ship.kits.battery, Math.max(1, shot.ion));
+    if (r?.kit === "battery" && ship.kits.battery)
+      ionOnCell(g, ship.kits.battery, Math.max(1, shot.ion));
     if (r?.system) {
       // @agent:flagship. A flagship artillery room ionizes only its own gun (wiki/flagship-systems.ts ionArtillery).
       if (!ionArtillery(ship, r.id, Math.max(1, shot.ion)))
@@ -3810,7 +3811,9 @@ function strikeRoom(
   // A surge laser is hard-coded to 21% breach and has no defId, so it is not this gate.
   // INFERRED: "no fires started" is the fire roll missing, not the room's existing fire count.
   const heavyLaser =
-    shot.defId === "LASER_HEAVY_1" || shot.defId === "LASER_HEAVY_2" || shot.defId === "LASER_HEAVY_1_SP";
+    shot.defId === "LASER_HEAVY_1" ||
+    shot.defId === "LASER_HEAVY_2" ||
+    shot.defId === "LASER_HEAVY_1_SP";
   const missile = shot.kind === "missile" && shot.from !== "env";
   let fireStarted = false;
   if (shot.fireChance > 0 && rand(g) < shot.fireChance) {
@@ -3851,7 +3854,13 @@ function strikeRoom(
  * `shots` on the def is the bank, not one volley of a normal gun.
  * Missile (Weapons), Swarm Missiles: "7 seconds per shot" and "Shots: 1-3".
  */
-const CHARGER_IDS = new Set(["ION_CHARGEGUN", "LASER_CHARGEGUN_PLAYER", "LASER_CHARGEGUN", "LASER_CHARGEGUN_2", "MISSILE_CHARGEGUN"]);
+const CHARGER_IDS = new Set([
+  "ION_CHARGEGUN",
+  "LASER_CHARGEGUN_PLAYER",
+  "LASER_CHARGEGUN",
+  "LASER_CHARGEGUN_2",
+  "MISSILE_CHARGEGUN",
+]);
 
 /** Bank size for a charger, or null when this gun fires its whole volley from one bar. */
 export function chargerCap(defId: string): number | null {
@@ -6846,7 +6855,9 @@ function closerBeacon(g: Game, ram: Beacon): Beacon | null {
   if (!base || ram.id === base.id) return null;
   const options = ram.links
     .map((id) => g.beacons.find((b) => b.id === id))
-    .filter((b): b is Beacon => !!b && b.id !== ram.id && manhattan(b, base) < manhattan(ram, base));
+    .filter(
+      (b): b is Beacon => !!b && b.id !== ram.id && manhattan(b, base) < manhattan(ram, base),
+    );
   if (!options.length) return null;
   return (
     [...options].sort(

@@ -24,6 +24,8 @@ describe("Pirate briber attack", () => {
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-briber");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("The pirate ship stops its pursuit and locks weapons onto your ship."));
+    assert.ok(
+      g.log.includes("The pirate ship stops its pursuit and locks weapons onto your ship."),
+    );
   });
 });

@@ -28,14 +28,26 @@ describe("citedCrewDamage", () => {
     assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_ION", damage: 0 }), 0), 0);
     assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_STUN", damage: 0 }), 0), 0);
     assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_HEAL", damage: 0 }), 0), 0);
-    assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_HEAL_SYSTEM", damage: 0 }), 0), 0);
+    assert.equal(
+      citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_HEAL_SYSTEM", damage: 0 }), 0),
+      0,
+    );
     assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_LOCK", damage: 0 }), 0), 0);
   });
 
   it("returns null for a normal laser", () => {
-    assert.equal(citedCrewDamage(shot({ kind: "laser", defId: "LASER_BURST_3", damage: 1 }), 1), null);
-    assert.equal(citedCrewDamage(shot({ kind: "laser", defId: "LASER_HEAVY_1", damage: 2 }), 2), null);
-    assert.equal(citedCrewDamage(shot({ kind: "laser", defId: "LASER_HEAVY_1_SP", damage: 2 }), 2), null);
+    assert.equal(
+      citedCrewDamage(shot({ kind: "laser", defId: "LASER_BURST_3", damage: 1 }), 1),
+      null,
+    );
+    assert.equal(
+      citedCrewDamage(shot({ kind: "laser", defId: "LASER_HEAVY_1", damage: 2 }), 2),
+      null,
+    );
+    assert.equal(
+      citedCrewDamage(shot({ kind: "laser", defId: "LASER_HEAVY_1_SP", damage: 2 }), 2),
+      null,
+    );
     assert.equal(citedCrewDamage(shot({ kind: "laser", damage: 1 }), 1), null);
   });
 
@@ -50,9 +62,15 @@ describe("citedCrewDamage", () => {
   });
 
   it("does not invent crew damage for crystal, chain ion, or flak", () => {
-    assert.equal(citedCrewDamage(shot({ kind: "laser", defId: "CRYSTAL_BURST_1", damage: 1 }), 1), null);
+    assert.equal(
+      citedCrewDamage(shot({ kind: "laser", defId: "CRYSTAL_BURST_1", damage: 1 }), 1),
+      null,
+    );
     assert.equal(citedCrewDamage(shot({ kind: "ion", defId: "ION_CHAINGUN", damage: 0 }), 0), null);
-    assert.equal(citedCrewDamage(shot({ kind: "ion", defId: "ARTILLERY_BOSS_4", damage: 0 }), 0), null);
+    assert.equal(
+      citedCrewDamage(shot({ kind: "ion", defId: "ARTILLERY_BOSS_4", damage: 0 }), 0),
+      null,
+    );
     assert.equal(citedCrewDamage(shot({ kind: "flak", defId: "SHOTGUN_2", damage: 1 }), 1), null);
   });
 });

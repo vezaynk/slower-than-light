@@ -33,7 +33,10 @@ describe("Escape pod", () => {
     fillerChoose(g, "c:escape-pod:0");
     assert.match(g.event?.body ?? "", /airlock/);
     assert.equal(g.scrap, 10);
-    assert.deepEqual(g.crew.map((c) => c.name), crew);
+    assert.deepEqual(
+      g.crew.map((c) => c.name),
+      crew,
+    );
     choose(g, "ack");
     assert.equal(g.phase, "map");
   });
@@ -59,16 +62,26 @@ describe("Escape pod", () => {
         assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis").length, 1);
         assert.equal(players(g), crew - 1);
         assert.match(g.log.join(" "), /is lost/);
-        assert.ok(g.log.includes("The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt."));
+        assert.ok(
+          g.log.includes(
+            "The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt.",
+          ),
+        );
       } else if (/god of mercy/.test(g.event?.body ?? "")) {
         mantis = true;
         assert.equal(players(g), crew);
-        assert.deepEqual(g.crew.map((c) => c.name), names);
+        assert.deepEqual(
+          g.crew.map((c) => c.name),
+          names,
+        );
       } else {
         human = true;
         assert.match(g.event?.body ?? "", /Mantis captivity/);
         assert.equal(players(g), crew);
-        assert.deepEqual(g.crew.map((c) => c.name), names);
+        assert.deepEqual(
+          g.crew.map((c) => c.name),
+          names,
+        );
       }
     }
     assert.equal(boarded && mantis && human, true);
@@ -80,7 +93,16 @@ describe("Escape pod", () => {
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = {
+        id: "clonebay",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       const crew = players(g);
       open(g);
       fillerChoose(g, "c:escape-pod:1");

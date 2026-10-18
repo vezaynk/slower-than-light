@@ -29,7 +29,6 @@ function launchLanded(g: Game): boolean {
   return ok;
 }
 
-
 /** A fight with level-2 Hacking powered at 1, no enemy hacking, and `parts` drone parts. */
 function fight(parts = 2): Game {
   const g = createGame(11);
@@ -140,7 +139,16 @@ describe("spike UI", () => {
     assert.equal(z.player.parts, 2, "no part spent at a Zoltan Shield");
 
     const c = fight(2);
-    c.enemy!.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    c.enemy!.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     assert.equal(playerHackView(c)!.state, "cloaked");
     armSpike(c, "shields");
     assert.equal(launchLanded(c), false);

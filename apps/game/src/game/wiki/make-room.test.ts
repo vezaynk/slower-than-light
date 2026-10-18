@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, halted, weaponSlotCap } from "../sim.ts";
-import { CARGO_SLOTS, cargoOf, fitFromCargo, pendingOverflow, receiveAugment, receiveDrone, receiveWeapon, resolveOverflow, stowWeapon } from "./make-room.ts";
+import {
+  CARGO_SLOTS,
+  cargoOf,
+  fitFromCargo,
+  pendingOverflow,
+  receiveAugment,
+  receiveDrone,
+  receiveWeapon,
+  resolveOverflow,
+  stowWeapon,
+} from "./make-room.ts";
 import { joinCrew } from "./surrender.ts";
 
 describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
@@ -39,7 +49,10 @@ describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
     const keep = full();
     const before = keep.player.weapons.map((w) => w.defId);
     resolveOverflow(keep, "new");
-    assert.deepEqual(keep.player.weapons.map((w) => w.defId), before);
+    assert.deepEqual(
+      keep.player.weapons.map((w) => w.defId),
+      before,
+    );
     assert.equal(pendingOverflow(keep), null);
 
     const swap = full();
@@ -86,7 +99,10 @@ describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
     const leaving = g.crew.find((c) => c.side === "player")!.id;
     assert.equal(resolveOverflow(g, leaving), true);
     assert.equal(g.crew.filter((c) => c.side === "player").length, 8);
-    assert.equal(g.crew.some((c) => c.id === leaving), false);
+    assert.equal(
+      g.crew.some((c) => c.id === leaving),
+      false,
+    );
     assert.equal(pendingOverflow(g), null);
   });
 });

@@ -7,7 +7,10 @@ describe("Lanius ship attacking civilian surrender", () => {
   it("never surrenders; a Lanius ship with no event still can", () => {
     // Lanius ship attacking civilian: {{SurrenderEscape(alt)|no|LANIUS_CIVILIAN}}. The page prints no percent.
     assert.equal(
-      surrenderPlan({ tier: "pool", faction: "lanius", event: "lanius-ship-attacking-civilian" }, () => 0.5).chance,
+      surrenderPlan(
+        { tier: "pool", faction: "lanius", event: "lanius-ship-attacking-civilian" },
+        () => 0.5,
+      ).chance,
       0,
     );
     assert.equal(surrenderPlan({ tier: "pool", faction: "lanius" }, () => 0.5).chance, 80);

@@ -3,7 +3,14 @@ import { describe, it } from "node:test";
 import { installLeash } from "../extras/leash.ts";
 import { armSpike, installSpike, launchSpike } from "../extras/spike.ts";
 import { installVeil, startVeil } from "../extras/veil.ts";
-import { createGame, kitBars, noteZoltanKits, sparePower, startCombat, zoltanBars } from "../sim.ts";
+import {
+  createGame,
+  kitBars,
+  noteZoltanKits,
+  sparePower,
+  startCombat,
+  zoltanBars,
+} from "../sim.ts";
 import type { Crew, Game } from "../types.ts";
 
 function spark(room: string, id: string, hp = 70): Crew {
@@ -63,7 +70,12 @@ describe("Zoltan bar on kit systems", () => {
     kit.level = 3;
     kit.power = 0;
     const spare = sparePower(g.player);
-    g.crew.push(spark(room.id, "z1"), spark(room.id, "z2"), spark(room.id, "z3"), spark(room.id, "z4"));
+    g.crew.push(
+      spark(room.id, "z1"),
+      spark(room.id, "z2"),
+      spark(room.id, "z3"),
+      spark(room.id, "z4"),
+    );
     g.crew.push(spark("p-pilot", "z-pilot"));
     noteZoltanKits(g);
     assert.equal(kitBars(kit), 3);

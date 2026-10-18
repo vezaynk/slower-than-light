@@ -32,8 +32,24 @@ function fight() {
   // Room for 2 system damage whatever level the roll gave it.
   enemy.systems[system.system].level = Math.max(3, enemy.systems[system.system].level);
   const src = enemy.rooms[0];
-  const empty: Room = { ...src, id: "e-hold", title: "Hold", system: null, kit: undefined, x: 30, y: 0 };
-  const kitRoom: Room = { ...src, id: "e-kit", title: "Cloak", system: null, kit: "cloaking", x: 32, y: 0 };
+  const empty: Room = {
+    ...src,
+    id: "e-hold",
+    title: "Hold",
+    system: null,
+    kit: undefined,
+    x: 30,
+    y: 0,
+  };
+  const kitRoom: Room = {
+    ...src,
+    id: "e-kit",
+    title: "Cloak",
+    system: null,
+    kit: "cloaking",
+    x: 32,
+    y: 0,
+  };
   enemy.rooms.push(empty, kitRoom);
   const crew = g.crew.find((member) => member.hp > 0);
   assert.ok(crew);
@@ -65,26 +81,56 @@ describe("systemless hull damage", () => {
     assert.ok(sys);
     const before = enemy.systems[sys].damage;
     park(crew, system.id);
-    applyImpact(g, shot({ kind: "laser", from: "player", damage: 1, defId: "LASER_HULL_1", targetRoom: system.id }));
+    applyImpact(
+      g,
+      shot({
+        kind: "laser",
+        from: "player",
+        damage: 1,
+        defId: "LASER_HULL_1",
+        targetRoom: system.id,
+      }),
+    );
     assert.equal(enemy.hull, 29);
     assert.equal(enemy.systems[sys].damage, before + 1);
     assert.equal(crew.hp, 85);
 
     enemy.hull = 30;
     park(crew, empty.id);
-    applyImpact(g, shot({ kind: "laser", from: "player", damage: 1, defId: "LASER_HULL_1", targetRoom: empty.id }));
+    applyImpact(
+      g,
+      shot({
+        kind: "laser",
+        from: "player",
+        damage: 1,
+        defId: "LASER_HULL_1",
+        targetRoom: empty.id,
+      }),
+    );
     assert.equal(enemy.hull, 28);
     assert.equal(crew.hp, 85);
 
     enemy.hull = 30;
     park(crew, empty.id);
-    applyImpact(g, shot({ kind: "laser", from: "player", damage: 1, defId: "LASER_HULL_2", targetRoom: empty.id }));
+    applyImpact(
+      g,
+      shot({
+        kind: "laser",
+        from: "player",
+        damage: 1,
+        defId: "LASER_HULL_2",
+        targetRoom: empty.id,
+      }),
+    );
     assert.equal(enemy.hull, 28);
     assert.equal(crew.hp, 85);
 
     enemy.hull = 30;
     park(crew, empty.id);
-    applyImpact(g, shot({ kind: "laser", from: "player", damage: 1, defId: "burst2", targetRoom: empty.id }));
+    applyImpact(
+      g,
+      shot({ kind: "laser", from: "player", damage: 1, defId: "burst2", targetRoom: empty.id }),
+    );
     assert.equal(enemy.hull, 29);
     assert.equal(crew.hp, 85);
   });
@@ -95,20 +141,47 @@ describe("systemless hull damage", () => {
     assert.ok(sys);
     const before = enemy.systems[sys].damage;
     park(crew, system.id);
-    applyImpact(g, shot({ kind: "missile", from: "player", damage: 2, defId: "MISSILES_HULL", targetRoom: system.id }));
+    applyImpact(
+      g,
+      shot({
+        kind: "missile",
+        from: "player",
+        damage: 2,
+        defId: "MISSILES_HULL",
+        targetRoom: system.id,
+      }),
+    );
     assert.equal(enemy.hull, 28);
     assert.equal(enemy.systems[sys].damage, before + 2);
     assert.equal(crew.hp, 70);
 
     enemy.hull = 30;
     park(crew, empty.id);
-    applyImpact(g, shot({ kind: "missile", from: "player", damage: 2, defId: "MISSILES_HULL", targetRoom: empty.id }));
+    applyImpact(
+      g,
+      shot({
+        kind: "missile",
+        from: "player",
+        damage: 2,
+        defId: "MISSILES_HULL",
+        targetRoom: empty.id,
+      }),
+    );
     assert.equal(enemy.hull, 26);
     assert.equal(crew.hp, 70);
 
     enemy.hull = 30;
     park(crew, kitRoom.id);
-    applyImpact(g, shot({ kind: "missile", from: "player", damage: 2, defId: "MISSILES_HULL", targetRoom: kitRoom.id }));
+    applyImpact(
+      g,
+      shot({
+        kind: "missile",
+        from: "player",
+        damage: 2,
+        defId: "MISSILES_HULL",
+        targetRoom: kitRoom.id,
+      }),
+    );
     assert.equal(enemy.hull, 28);
     assert.equal(crew.hp, 70);
   });

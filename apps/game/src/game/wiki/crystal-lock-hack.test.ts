@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { HACK_COAT_HITS, blastHits, createGame, lockdown, scaleDoorLeft, startCombat, step } from "../sim.ts";
+import {
+  HACK_COAT_HITS,
+  blastHits,
+  createGame,
+  lockdown,
+  scaleDoorLeft,
+  startCombat,
+  step,
+} from "../sim.ts";
 import { HACKED_DOOR_LEVEL } from "../extras/spike.ts";
 import type { Game, Kit, Room } from "../types.ts";
 
@@ -23,7 +31,9 @@ function calm(g: Game) {
 
 function interior(g: Game, ship: "player" | "enemy", room: Room) {
   const hull = ship === "player" ? g.player : g.enemy!;
-  return hull.doors.filter((door) => door.b !== "void" && (door.a === room.id || door.b === room.id));
+  return hull.doors.filter(
+    (door) => door.b !== "void" && (door.a === room.id || door.b === room.id),
+  );
 }
 
 function advance(g: Game, seconds: number) {
@@ -293,7 +303,8 @@ describe("crystal lockdown and a hacking drone", () => {
     const room = g.enemy.rooms.find((r) => r.system === "weapons");
     const crystal = g.crew.find((c) => c.kin === "crystal" && c.hp > 0);
     assert.ok(room && crystal);
-    for (const c of g.crew) if (c.aboard === "enemy" && c.room === room.id) c.room = g.enemy.rooms[0]!.id;
+    for (const c of g.crew)
+      if (c.aboard === "enemy" && c.room === room.id) c.room = g.enemy.rooms[0]!.id;
     crystal.aboard = "enemy";
     crystal.room = room.id;
     crystal.path = [];

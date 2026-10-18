@@ -6,7 +6,8 @@ import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:slaver-hostile:2";
 const LABEL = "Draw straws and send a crew-member over to the slavers.";
-const CLONE = "You briefly consider cloning a replacement, but decide to respect the Federation laws regarding simultaneous duplicates.";
+const CLONE =
+  "You briefly consider cloning a replacement, but decide to respect the Federation laws regarding simultaneous duplicates.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -42,7 +43,16 @@ describe("Slaver (hostile) draw straws", () => {
     assert.equal(plain.player.weapons.length, weapons);
 
     const cloned = createGame(4);
-    cloned.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    cloned.player.kits.clonebay = {
+      id: "clonebay",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     open(cloned);
     const clonedBefore = players(cloned).length;
     choose(cloned, ID);

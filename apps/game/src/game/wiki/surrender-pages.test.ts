@@ -9,10 +9,11 @@ import { citedEvent } from "./cited-events.ts";
 import { ACCEPT_ID, PAGE_CHOICES, REFUSE_ID, SCRIPTED_SURRENDERS } from "./surrender.ts";
 import { DUMP } from "@stl/wiki-dump";
 
-
 /** Weapons held anywhere: rack, cargo, or a make-room choice. Rewards, "Weapon": "A random weapon & T scrap." */
 function weaponsHeld(g: Game): number {
-  const stowed = [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+  const stowed = [...(g.cargo ?? []), ...(g.overflow ?? [])].filter(
+    (x) => x.kind === "weapon",
+  ).length;
   return g.player.weapons.length + stowed;
 }
 
@@ -35,7 +36,9 @@ function arrive(seed: number, sector: string, dest: string): Game {
   g.sectorName = sector;
   const ev = EXTRA_EVENTS.find((e) => e.dest === dest)!;
   assert.ok(ev.sectors.includes(sector));
-  const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store")!;
+  const b = g.beacons.find(
+    (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
+  )!;
   b.flag = ev.flag;
   b.kind = "event";
   b.name = ev.dest;
@@ -47,11 +50,21 @@ function arrive(seed: number, sector: string, dest: string): Game {
 }
 
 function kinds(g0: { fuel: number; missiles: number; parts: number }, g: Game) {
-  return { fuel: g.fuel - g0.fuel, missiles: g.missiles - g0.missiles, parts: g.player.parts - g0.parts };
+  return {
+    fuel: g.fuel - g0.fuel,
+    missiles: g.missiles - g0.missiles,
+    parts: g.player.parts - g0.parts,
+  };
 }
 
 function snap(g: Game) {
-  return { fuel: g.fuel, missiles: g.missiles, parts: g.player.parts, scrap: g.scrap, crew: g.crew.length };
+  return {
+    fuel: g.fuel,
+    missiles: g.missiles,
+    parts: g.player.parts,
+    scrap: g.scrap,
+    crew: g.crew.length,
+  };
 }
 
 /** Hull to 25% (inside every row's range) so the surrender roll fires on the next tick. */
@@ -86,7 +99,10 @@ describe("Ship surrender Events pages: cited table", () => {
       if (text == null) continue;
       const m = text.match(/\{\{Locations\|([^}]+)\}\}/);
       assert.ok(m, ev.dest);
-      const names = m[1].split("|").map((s) => s.trim()).filter((s) => s && !s.includes("="));
+      const names = m[1]
+        .split("|")
+        .map((s) => s.trim())
+        .filter((s) => s && !s.includes("="));
       assert.deepEqual(ev.sectors, names, ev.dest);
       const plain = text.replace(/''/g, "").replace(/\[\[(?:[^\]|]+\|)?([^\]]+)\]\]/g, "$1");
       assert.ok(plain.includes(ev.body), ev.dest);
@@ -96,18 +112,25 @@ describe("Ship surrender Events pages: cited table", () => {
 
   it("routes every random branch to surrender.ts and every page fight to a scripted surrender row", () => {
     const ids = new Set(EXTRA_EVENTS.flatMap((ev) => ev.choices.map((c) => c.id)));
-    for (const id of Object.keys(PAGE_CHOICES).filter((k) => k.startsWith("c:"))) assert.ok(ids.has(id), id);
+    for (const id of Object.keys(PAGE_CHOICES).filter((k) => k.startsWith("c:")))
+      assert.ok(ids.has(id), id);
     // @agent:quests. Slug comm tapping and Engi fleet discussion open quest markers (wiki/quests.ts); their fights are
     // the "quest-*" surrender rows, not a row under the page slug.
     const questPages = new Set(["slug-comm-tapping", "engi-fleet-discussion"]);
     for (const ev of EXTRA_EVENTS) {
       for (const c of ev.choices) {
         if (questPages.has(ev.slug)) continue;
-        if (c.fx.some((f) => f.k === "fight") || c.fx.some((f) => f.k === "note")) assert.ok(PAGE_CHOICES[c.id], c.id);
+        if (c.fx.some((f) => f.k === "fight") || c.fx.some((f) => f.k === "note"))
+          assert.ok(PAGE_CHOICES[c.id], c.id);
       }
-      if (ev.slug !== "engi-surrender" && !questPages.has(ev.slug)) assert.ok(SCRIPTED_SURRENDERS[ev.slug], ev.slug);
+      if (ev.slug !== "engi-surrender" && !questPages.has(ev.slug))
+        assert.ok(SCRIPTED_SURRENDERS[ev.slug], ev.slug);
     }
-    assert.ok(SCRIPTED_SURRENDERS["quest-slug-pirate-trap-engage"] && SCRIPTED_SURRENDERS["quest-engi-real"] && SCRIPTED_SURRENDERS["quest-engi-fake"]);
+    assert.ok(
+      SCRIPTED_SURRENDERS["quest-slug-pirate-trap-engage"] &&
+        SCRIPTED_SURRENDERS["quest-engi-real"] &&
+        SCRIPTED_SURRENDERS["quest-engi-fake"],
+    );
   });
 });
 
@@ -180,13 +203,18 @@ describe("Zoltan ship asks to dock", () => {
         assert.ok(g.enemySurrender!.threshold >= 30 && g.enemySurrender!.threshold <= 40);
         assert.equal(g.enemyEscape!.mode, "never");
         forceOffer(g);
-        assert.deepEqual(g.event!.choices.map((c) => c.id), [ACCEPT_ID]);
+        assert.deepEqual(
+          g.event!.choices.map((c) => c.id),
+          [ACCEPT_ID],
+        );
         const before = snap(g);
         choose(g, REFUSE_ID); // no decline: read as accept
         assert.equal(g.phase, "reward");
         assert.equal(g.enemy, null);
         assert.ok(g.scrap > before.scrap);
-        assert.ok(g.crew.some((c) => c.side === "player" && c.kin === "energy") || before.crew >= 5);
+        assert.ok(
+          g.crew.some((c) => c.side === "player" && c.kin === "energy") || before.crew >= 5,
+        );
       } else {
         seen.add("gift");
         const d = kinds(s0, g);
@@ -215,7 +243,10 @@ describe("Settlement mercenary work", () => {
       choose(g, "c:settlement-mercenary-work:0");
       const ids = g.event!.choices.map((c) => c.id);
       if (!ids.includes("s:settlement-mercenary-work:accept")) {
-        assert.deepEqual(ids, ["s:settlement-mercenary-work:dock", "s:settlement-mercenary-work:nodock"]);
+        assert.deepEqual(ids, [
+          "s:settlement-mercenary-work:dock",
+          "s:settlement-mercenary-work:nodock",
+        ]);
         choose(g, "s:settlement-mercenary-work:dock");
         choose(g, "ack");
         assert.equal(g.phase, "map");
@@ -234,7 +265,11 @@ describe("Settlement mercenary work", () => {
       const before = g.scrap;
       choose(g, ACCEPT_ID);
       // "You receive a weapon with medium scrap." The unnamed weapon is a random one; its line follows the page text.
-      assert.ok(g.reward!.note.startsWith("With the pirates dissuaded from their career path, you return to the settlement. \"Thank you, they returned to us before you did. I don't think we'll need this anymore.\" "));
+      assert.ok(
+        g.reward!.note.startsWith(
+          "With the pirates dissuaded from their career path, you return to the settlement. \"Thank you, they returned to us before you did. I don't think we'll need this anymore.\" ",
+        ),
+      );
       const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
       assert.ok(g.reward!.scrap > 0 && g.scrap - before === g.reward!.scrap);
       assert.ok(g.reward!.scrap >= Math.floor(lo * 0.5) && g.reward!.scrap <= hi * 2);
@@ -257,7 +292,10 @@ describe("The Black Raven", () => {
     // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
     const g = arrive(5, "Slug Home Nebula", "The Black Raven");
     choose(g, "c:the-black-raven:0");
-    assert.deepEqual(g.event!.choices.map((c) => c.id), ["s:the-black-raven:accept", "s:the-black-raven:decline", "s:the-black-raven:duel"]);
+    assert.deepEqual(
+      g.event!.choices.map((c) => c.id),
+      ["s:the-black-raven:accept", "s:the-black-raven:decline", "s:the-black-raven:duel"],
+    );
     choose(g, "s:the-black-raven:decline");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy!.faction, "slug");
@@ -269,7 +307,9 @@ describe("The Black Raven", () => {
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
     // "You receive a weapon with high scrap." The unnamed weapon is a random one.
-    assert.ok(g.reward!.note.startsWith("He transfers over the goods and starts to repair his ship. "));
+    assert.ok(
+      g.reward!.note.startsWith("He transfers over the goods and starts to repair his ship. "),
+    );
     assert.ok(g.reward!.scrap > 0);
     assert.equal(weaponsHeld(g), weapons + 1);
   });

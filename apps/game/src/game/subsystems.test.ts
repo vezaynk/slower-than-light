@@ -1,6 +1,19 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { beginBoarding, commitJump, createGame, evasionPercent, ftlDriveCharging, ftlDriveSeconds, ftlQuietSeconds, ftlSeconds, jumpBlocked, manning, startCombat, step } from "./sim.ts";
+import {
+  beginBoarding,
+  commitJump,
+  createGame,
+  evasionPercent,
+  ftlDriveCharging,
+  ftlDriveSeconds,
+  ftlQuietSeconds,
+  ftlSeconds,
+  jumpBlocked,
+  manning,
+  startCombat,
+  step,
+} from "./sim.ts";
 import { sensorLevel } from "./extras/sensors.ts";
 import type { Crew, Game } from "./types.ts";
 

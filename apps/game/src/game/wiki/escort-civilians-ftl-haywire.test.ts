@@ -21,14 +21,19 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Escort civilians FTL haywire", () => {
   it("leading them pays low scrap and a quest marker, and declining spends nothing", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:escort-civilians-ftl-haywire:2"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:escort-civilians-ftl-haywire:2"),
+      true,
+    );
     const fuel = g.fuel;
     const missiles = g.missiles;
     const parts = g.player.parts;
@@ -42,7 +47,10 @@ describe("Escort civilians FTL haywire", () => {
     assert.equal(g.missiles, missiles);
     assert.equal(g.player.parts, parts);
     assert.match(g.event?.body ?? "", /quest marker/);
-    assert.equal(g.beacons.some((b) => b.quest === "escort"), true);
+    assert.equal(
+      g.beacons.some((b) => b.quest === "escort"),
+      true,
+    );
     assert.equal(g.fleet, 5);
 
     const out = createGame(1);
@@ -54,7 +62,10 @@ describe("Escort civilians FTL haywire", () => {
     );
     assert.equal(out.phase, "event");
     assert.equal(out.scrap, 10);
-    assert.equal(out.beacons.some((b) => b.quest === "escort"), false);
+    assert.equal(
+      out.beacons.some((b) => b.quest === "escort"),
+      false,
+    );
     assert.equal(out.fleet, 5);
     assert.equal(out.enemy, null);
   });
@@ -62,11 +73,17 @@ describe("Escort civilians FTL haywire", () => {
   it("Advanced FTL Navigation pays high scrap with resources and adds no marker", () => {
     const bare = createGame(2);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:escort-civilians-ftl-haywire:2"), "Needs Adv. FTL Navigation");
+    assert.equal(
+      choiceDisabled(bare, "c:escort-civilians-ftl-haywire:2"),
+      "Needs Adv. FTL Navigation",
+    );
     choose(bare, "c:escort-civilians-ftl-haywire:2");
     assert.equal(bare.phase, "event");
     assert.equal(bare.scrap, 10);
-    assert.equal(bare.beacons.some((b) => b.quest === "escort"), false);
+    assert.equal(
+      bare.beacons.some((b) => b.quest === "escort"),
+      false,
+    );
 
     const g = createGame(3);
     open(g);
@@ -87,9 +104,12 @@ describe("Escort civilians FTL haywire", () => {
     assert.equal(g.scrap, 10 + paid[0]!);
     assert.equal(g.player.weapons.length, guns);
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-    const gained = (g.fuel - fuel) + (g.missiles - missiles) + (g.player.parts - parts);
+    const gained = g.fuel - fuel + (g.missiles - missiles) + (g.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
-    assert.equal(g.beacons.some((b) => b.quest === "escort"), false);
+    assert.equal(
+      g.beacons.some((b) => b.quest === "escort"),
+      false,
+    );
     assert.equal(g.questsNext?.length ?? 0, 0);
     assert.equal(g.fleet, 5);
     assert.equal(g.phase, "event");

@@ -39,8 +39,14 @@ describe("automated ship repair", () => {
     enemy.systems.shields.fix = 0;
     step(g, 0.05);
     const slice = 0.05 / 3;
-    assert.ok(Math.abs(enemy.systems.weapons.fix - slice) < 1e-9, String(enemy.systems.weapons.fix));
-    assert.ok(Math.abs(enemy.systems.shields.fix - slice) < 1e-9, String(enemy.systems.shields.fix));
+    assert.ok(
+      Math.abs(enemy.systems.weapons.fix - slice) < 1e-9,
+      String(enemy.systems.weapons.fix),
+    );
+    assert.ok(
+      Math.abs(enemy.systems.shields.fix - slice) < 1e-9,
+      String(enemy.systems.shields.fix),
+    );
 
     enemy.systems.weapons.fix = REPAIR_SECONDS - 0.01;
     step(g, 0.05);

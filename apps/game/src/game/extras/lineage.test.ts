@@ -44,7 +44,8 @@ describe("Lanius oxygen drain (a breach-sized hole, air.ts)", () => {
       const lan = crewOn(g, "player");
       lan.kin = kin;
       const r = roomOf(g, lan);
-      for (const c of g.crew) if (c !== lan && c.room === r.id) c.room = g.player.rooms.find((x) => x.id !== r.id)!.id;
+      for (const c of g.crew)
+        if (c !== lan && c.room === r.id) c.room = g.player.rooms.find((x) => x.id !== r.id)!.id;
       r.o2 = 100;
       settle(g, 1);
       return r.o2;
@@ -97,10 +98,14 @@ describe("Lanius oxygen drain (a breach-sized hole, air.ts)", () => {
     lan.kin = "anaerobic";
     lan.hp = 0;
     const r = roomOf(g, lan);
-    for (const c of g.crew) if (c !== lan && c.room === r.id) c.room = g.player.rooms.find((x) => x.id !== r.id)!.id;
+    for (const c of g.crew)
+      if (c !== lan && c.room === r.id) c.room = g.player.rooms.find((x) => x.id !== r.id)!.id;
     for (const x of g.player.rooms) x.o2 = 80;
     // Another empty room gets the same refill and hull leak (air.ts); a hole would cost several % a second.
-    const twin = g.player.rooms.find((x) => x.id !== r.id && !g.crew.some((c) => c.hp > 0 && c.aboard === "player" && c.room === x.id))!;
+    const twin = g.player.rooms.find(
+      (x) =>
+        x.id !== r.id && !g.crew.some((c) => c.hp > 0 && c.aboard === "player" && c.room === x.id),
+    )!;
     settle(g, 1);
     assert.ok(Math.abs(r.o2 - twin.o2) < 0.05, `${r.o2} ${twin.o2}`);
   });
@@ -111,7 +116,14 @@ describe("Human experience requirements", () => {
     for (const k of Object.keys(XP_NEED) as (keyof typeof XP_NEED)[]) {
       assert.ok(Math.abs(HUMAN_XP_NEED[k] - XP_NEED[k] * 0.9) <= 0.5, k);
     }
-    assert.deepEqual(HUMAN_XP_NEED, { pilot: 13, engines: 13, shields: 50, weapons: 58, repair: 16, combat: 7 });
+    assert.deepEqual(HUMAN_XP_NEED, {
+      pilot: 13,
+      engines: 13,
+      shields: 50,
+      weapons: 58,
+      repair: 16,
+      combat: 7,
+    });
   });
 
   it("humans (plain or no kin) rank up sooner; others use the base table", () => {

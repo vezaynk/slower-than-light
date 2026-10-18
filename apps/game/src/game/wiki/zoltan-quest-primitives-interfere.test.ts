@@ -53,7 +53,11 @@ describe("Zoltan quest primitives interfere", () => {
       const paid = Number(body.match(/Scrap: (\d+)/)?.[1]);
       if (deadCrew) assert.ok(paid >= 7 && paid <= 23, body);
       else assert.ok(paid >= 7 && paid <= 10, body);
-      assert.equal(["Fuel:", "Missiles:", "Drone parts:"].filter((label) => body.includes(label)).length, 2, body);
+      assert.equal(
+        ["Fuel:", "Missiles:", "Drone parts:"].filter((label) => body.includes(label)).length,
+        2,
+        body,
+      );
     }
   });
 });

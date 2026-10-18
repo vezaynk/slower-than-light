@@ -24,9 +24,7 @@ describe("EVENTS_2", () => {
   it("uses only allowed statuses and fact limits", () => {
     for (const row of EVENTS_2) {
       assert.ok(
-        row.status === "mechanic" ||
-          row.status === "no-mechanic" ||
-          row.status === "blocked",
+        row.status === "mechanic" || row.status === "no-mechanic" || row.status === "blocked",
       );
       assert.ok(row.facts.length <= 3);
       for (const fact of row.facts) {

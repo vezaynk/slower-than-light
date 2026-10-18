@@ -40,7 +40,7 @@ function inBand(n: number, lo: number, hi: number) {
 }
 
 const INTROS = [
-  "Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, \"Metal sufficient. Request exchange.\" It appears there are some Lanius who wish sociable interaction with other races.",
+  'Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, "Metal sufficient. Request exchange." It appears there are some Lanius who wish sociable interaction with other races.',
   "A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.",
   "You arrive to find a large Lanius vessel laden with recently collected metal. They are apparently offering to trade for supplies they are lacking.",
 ];

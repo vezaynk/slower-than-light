@@ -243,7 +243,6 @@ const core = (med: "Medbay" | "Clone Bay", medSys: SysId | null): Sized[] => [
   { id: "p-pilot", title: "Piloting", system: "pilot", size: 4 },
 ];
 
-
 // ---------------------------------------------------------------------------------------------
 // Kit rooms on player hulls.
 // Systems, lead: "Each system occupies one predetermined room specific to the ship (the player cannot choose what

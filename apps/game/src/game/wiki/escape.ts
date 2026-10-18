@@ -107,11 +107,23 @@ const HULL_ROWS: Record<string, { chance: number; low: number; high: number }> =
 const NEVER_RUN = new Set(["auto", "engi", "mantis", "zoltan", "crystal", "rock"]);
 
 function plan(mode: EscapeMode, seconds: number, extra: Partial<EscapePlan> = {}): EscapePlan {
-  return { mode, seconds, chance: 0, threshold: 0, rolled: false, running: mode === "start", pursuit: false, ...extra };
+  return {
+    mode,
+    seconds,
+    chance: 0,
+    threshold: 0,
+    rolled: false,
+    running: mode === "start",
+    pursuit: false,
+    ...extra,
+  };
 }
 
 /** Event pages that print their own hull-triggered escape row, keyed by the cited event slug. */
-const EVENT_HULL_ROWS: Record<string, { chance: number; low: number; high: number; seconds?: number }> = {
+const EVENT_HULL_ROWS: Record<
+  string,
+  { chance: number; low: number; high: number; seconds?: number }
+> = {
   // Pirate briber: "has 60% chance to try to escape at 30-40% hull".
   "pirate-briber": { chance: 60, low: 30, high: 40 },
   // "Pirate smuggler", Fight the Pirate ship: "(enemy ship starts to escape at 30-40% hull with 35 seconds countdown timer)".
@@ -126,7 +138,11 @@ export function escapePlan(ctx: EscapeContext, rand: () => number): EscapePlan {
   const scripted = ctx.event ? RUN_FROM_START[ctx.event] : undefined;
   if (scripted) return plan("start", scripted.seconds, { pursuit: scripted.pursuit });
   const own = ctx.event ? EVENT_HULL_ROWS[ctx.event] : undefined;
-  if (own) return plan("hull", own.seconds ?? HULL_RUN_SECONDS, { chance: own.chance, threshold: own.low + rand() * (own.high - own.low) });
+  if (own)
+    return plan("hull", own.seconds ?? HULL_RUN_SECONDS, {
+      chance: own.chance,
+      threshold: own.low + rand() * (own.high - own.low),
+    });
   // Rebel fight among Rebel fleet. The page prints surrenderno+escapeno. Surrender is already listed elsewhere.
   // Wiki citations:
   // > "no surrender offers, no escape attempts" — [[Rebel fight among Rebel fleet]]
@@ -162,7 +178,8 @@ export function escapePlan(ctx: EscapeContext, rand: () => number): EscapePlan {
   // Slug hacker (oxygen). The page prints the ship doesn't try to escape. Surrender is not this line.
   if (ctx.event === "slug-hacker-oxygen") return plan("never", 0);
   // Crystalline men buried and Crystalline research facility: {{SurrenderEscape(alt)|no|CRYSTAL_SHIP_NO_SURRENDER}}.
-  if (ctx.event === "crystalline-men-buried" || ctx.event === "crystalline-research-facility") return plan("never", 0);
+  if (ctx.event === "crystalline-men-buried" || ctx.event === "crystalline-research-facility")
+    return plan("never", 0);
   // Fight in Last Stand: {{SurrenderEscape(alt)|no|REBEL_AND_AUTO}}. No surrender and no escape.
   if (ctx.event === "fight-in-last-stand") return plan("never", 0);
   // Enemy Ships: out of fuel and WAIT, "all ships start running" at 80 seconds. The "No fuel: …" event

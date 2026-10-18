@@ -85,7 +85,10 @@ describe("Zoltan Great Eye", () => {
       } else {
         heal = true;
         assert.match(body, /Healing Burst/);
-        assert.equal(g.player.weapons.some((w) => w.defId === "BOMB_HEAL"), true);
+        assert.equal(
+          g.player.weapons.some((w) => w.defId === "BOMB_HEAL"),
+          true,
+        );
         assert.equal(g.player.weapons.length, guns + 1);
         assert.equal(g.scrap, 10);
         assert.equal(players(g).length, crew);
@@ -100,7 +103,16 @@ describe("Zoltan Great Eye", () => {
     let seen = false;
     for (let seed = 1; seed <= 80 && !seen; seed++) {
       const g = createGame(seed);
-      g.player.kits.clonebay = { id: "clonebay", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.clonebay = {
+        id: "clonebay",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       const crew = players(g).length;
       open(g);
       fillerChoose(g, "c:zoltan-great-eye:0");
@@ -133,7 +145,10 @@ describe("Zoltan Great Eye", () => {
       if (!/medical equipment/.test(g.event?.body ?? "")) continue;
       seen = true;
       assert.equal(g.player.weapons.length, guns);
-      assert.equal(g.player.weapons.some((w) => w.defId === "BOMB_HEAL"), false);
+      assert.equal(
+        g.player.weapons.some((w) => w.defId === "BOMB_HEAL"),
+        false,
+      );
       // Per the user: a full rack stows it in cargo (make-room.ts).
       assert.match(g.event?.body ?? "", /stowed in cargo/);
       assert.deepEqual(g.cargo, [{ kind: "weapon", id: "BOMB_HEAL" }]);

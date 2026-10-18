@@ -25,7 +25,11 @@ describe("Auto-ship warning lead-in", () => {
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "auto-ship-warning");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!"));
+    assert.ok(
+      g.log.includes(
+        "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!",
+      ),
+    );
     assert.equal(g.enemyEscape?.mode, "start");
     assert.equal(g.enemyEscape?.seconds, 40);
     assert.equal(g.enemyEscape?.running, true);

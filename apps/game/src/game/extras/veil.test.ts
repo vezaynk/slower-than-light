@@ -126,9 +126,26 @@ describe("cloaking", () => {
       const g = createGame(1);
       startCombat(g, "scout");
       const room = g.enemy!.rooms[0]!.id;
-      g.player.kits.cloaking = { id: "cloaking", level: 3, power: 3, left: 15, cool: 0, target: null, on: true, aux: 0 };
+      g.player.kits.cloaking = {
+        id: "cloaking",
+        level: 3,
+        power: 3,
+        left: 15,
+        cool: 0,
+        target: null,
+        on: true,
+        aux: 0,
+      };
       g.player.weapons = [
-        { uid: "w-" + id, defId: id, charge: 0, enabled: true, autofire: false, target: room, ...extra },
+        {
+          uid: "w-" + id,
+          defId: id,
+          charge: 0,
+          enabled: true,
+          autofire: false,
+          target: room,
+          ...extra,
+        },
       ];
       g.player.systems.weapons.level = 8;
       g.player.systems.weapons.power = 8;
@@ -136,7 +153,10 @@ describe("cloaking", () => {
       g.player.systems.weapons.ion = [];
       g.autofireAll = false;
       fireReady(g);
-      assert.ok(g.shots.some((s) => s.defId === id), id);
+      assert.ok(
+        g.shots.some((s) => s.defId === id),
+        id,
+      );
       assert.equal(g.player.kits.cloaking.left, left, id);
       assert.equal(g.player.kits.cloaking.on, left > 0, id);
     }
@@ -144,10 +164,27 @@ describe("cloaking", () => {
     const quiet = createGame(2);
     startCombat(quiet, "scout");
     const room = quiet.enemy!.rooms[0]!.id;
-    quiet.player.kits.cloaking = { id: "cloaking", level: 3, power: 3, left: 15, cool: 0, target: null, on: true, aux: 0 };
+    quiet.player.kits.cloaking = {
+      id: "cloaking",
+      level: 3,
+      power: 3,
+      left: 15,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     quiet.augments.push("CLOAK_FIRE");
     quiet.player.weapons = [
-      { uid: "w-ion", defId: "ION_CHARGEGUN", charge: 0, loaded: 3, enabled: true, autofire: false, target: room },
+      {
+        uid: "w-ion",
+        defId: "ION_CHARGEGUN",
+        charge: 0,
+        loaded: 3,
+        enabled: true,
+        autofire: false,
+        target: room,
+      },
     ];
     quiet.player.systems.weapons.level = 8;
     quiet.player.systems.weapons.power = 8;

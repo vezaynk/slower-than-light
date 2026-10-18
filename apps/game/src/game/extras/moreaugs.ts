@@ -24,13 +24,21 @@ export function enemyFtlScale(g: Game): number {
  * Any other jump is after that fight. The same jump clears the drone, so the part is not paid twice.
  */
 const RECOVER_COMBAT = new Set(["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire"]);
-const RECOVER_DEFENSE = new Set(["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE", "DRONE_SHIELD", "DRONE_SHIELD_PLAYER", "SHIP_REPAIR"]);
+const RECOVER_DEFENSE = new Set([
+  "DEFENSE_1",
+  "DEFENSE_2",
+  "ANTI_DRONE",
+  "DRONE_SHIELD",
+  "DRONE_SHIELD_PLAYER",
+  "SHIP_REPAIR",
+]);
 
 export function partsBack(g: Game): number {
   const kit = g.player.kits.drones;
   const target = kit?.target;
   const deployed = typeof target === "string" && target.length > 0 && !!kit?.on;
-  if (!fitted(g, "DRONE_RECOVERY") || !deployed || kit === undefined || kit.power <= 0 || !target) return 0;
+  if (!fitted(g, "DRONE_RECOVERY") || !deployed || kit === undefined || kit.power <= 0 || !target)
+    return 0;
   if (RECOVER_DEFENSE.has(target)) return 1;
   if (RECOVER_COMBAT.has(target) && !(g.phase === "combat" && g.enemy)) return 1;
   return 0;

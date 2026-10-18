@@ -20,7 +20,10 @@ export function flagshipHullId(stage: 1 | 2 | 3, difficulty: string | undefined)
   return flagshipBlueprintId(stage, flagshipDifficulty(difficulty));
 }
 
-function span(rooms: { x: number; y: number; w: number; h: number }[]): { cols: number; rows: number } {
+function span(rooms: { x: number; y: number; w: number; h: number }[]): {
+  cols: number;
+  rows: number;
+} {
   let cols = 1;
   let rows = 1;
   for (const room of rooms) {

@@ -90,8 +90,22 @@ describe("power steps", () => {
     sys.ion = [];
     sys.power = 0;
     g.player.weapons = [
-      { uid: "burst", defId: "LASER_BURST_3", charge: 0, enabled: false, autofire: false, target: null },
-      { uid: "laser", defId: "LASER_BURST_1", charge: 0, enabled: false, autofire: false, target: null },
+      {
+        uid: "burst",
+        defId: "LASER_BURST_3",
+        charge: 0,
+        enabled: false,
+        autofire: false,
+        target: null,
+      },
+      {
+        uid: "laser",
+        defId: "LASER_BURST_1",
+        charge: 0,
+        enabled: false,
+        autofire: false,
+        target: null,
+      },
     ];
     const used = g.player.reactor - sparePower(g.player);
     g.player.reactor = used + 1;

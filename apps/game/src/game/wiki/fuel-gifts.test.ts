@@ -50,7 +50,9 @@ describe("fuel gifts", () => {
     const drone = repair?.choices.find((choice) => choice.id === "c:no-fuel-engi-ship-repair:2");
     assert.equal(paid?.gift, undefined);
     assert.equal(
-      paid?.fx.some((fx) => fx.k === "res" && fx.id === "fuel" && fx.sign === 1 && fx.lo === 4 && fx.hi === 6),
+      paid?.fx.some(
+        (fx) => fx.k === "res" && fx.id === "fuel" && fx.sign === 1 && fx.lo === 4 && fx.hi === 6,
+      ),
       true,
     );
     assert.deepEqual(drone?.gift, { k: "fuel", lo: 4, hi: 6 });
@@ -62,7 +64,9 @@ describe("fuel gifts", () => {
 
     const g = createGame(1);
     assert.equal(
-      g.beacons.some((beacon) => beacon.flag === "gift:fuel-gifts" || beacon.flag === "reqs:blue-button-reqs"),
+      g.beacons.some(
+        (beacon) => beacon.flag === "gift:fuel-gifts" || beacon.flag === "reqs:blue-button-reqs",
+      ),
       false,
     );
   });

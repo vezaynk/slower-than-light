@@ -23,7 +23,8 @@ export function scrapBounds(
   const scaling = scalingFor(table, difficulty);
   const band = resourceFor(table, "scrap", LEVELS[tier]);
   const world = Math.min(7, Math.max(0, sector - 1));
-  const scale = scaling.baseAmount + Math.max(0, world + scaling.difficultyAmount) * scaling.sectorAmount;
+  const scale =
+    scaling.baseAmount + Math.max(0, world + scaling.difficultyAmount) * scaling.sectorAmount;
   return [Math.floor((band.min / 1000) * scale), Math.floor((band.max / 1000) * scale)];
 }
 
@@ -51,7 +52,11 @@ function scalingFor(table: RewardTable, difficulty: RewardDifficulty) {
   return found;
 }
 
-function resourceFor(table: RewardTable, kind: "scrap" | "fuel" | "missiles" | "droneparts", level: RewardLevel) {
+function resourceFor(
+  table: RewardTable,
+  kind: "scrap" | "fuel" | "missiles" | "droneparts",
+  level: RewardLevel,
+) {
   const found = table.resources.find((row) => row.kind === kind && row.level === level);
   if (!found) throw new Error(`reward table has no ${kind} ${level}`);
   return found;

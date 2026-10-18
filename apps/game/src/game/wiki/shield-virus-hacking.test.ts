@@ -1,11 +1,19 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { armSpike, launchSpike } from "../extras/spike.ts";
-import { choiceDisabled, choose, createGame, doorLevel, playerHackingOff, playerMedicalOff } from "../sim.ts";
+import {
+  choiceDisabled,
+  choose,
+  createGame,
+  doorLevel,
+  playerHackingOff,
+  playerMedicalOff,
+} from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const LEAD = "Your hacking system automatically counters the digital assault and you move in to fight the ship.";
+const LEAD =
+  "Your hacking system automatically counters the digital assault and you move in to fight the ship.";
 const BODY =
   "Your arrival is greeted by numerous computer alerts. The nearby automated Rebel scout has deployed a virus and disrupted your shield system. Hopefully it won't cause further problems before you can destroy it.";
 const COUNTER = "c:auto-ship-carrying-shield-virus:1";
@@ -48,7 +56,9 @@ describe("Auto-ship carrying shield virus hacking", () => {
   it("stays closed without Hacking", () => {
     const g = createGame(1);
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === COUNTER && c.label === "Counter the remote hacking."));
+    assert.ok(
+      g.event?.choices.some((c) => c.id === COUNTER && c.label === "Counter the remote hacking."),
+    );
     assert.equal(choiceDisabled(g, COUNTER), "Needs a Hacking system");
     choose(g, COUNTER);
     assert.equal(g.phase, "event");
@@ -80,7 +90,10 @@ describe("Auto-ship carrying shield virus hacking", () => {
     assert.equal(g.player.shieldNow, 2);
     assert.equal(g.player.systems.shields.level, 4);
     assert.equal(g.player.systems.shields.power, 4);
-    assert.equal(g.crew.some((c) => c.side === "enemy" && c.aboard === "player"), false);
+    assert.equal(
+      g.crew.some((c) => c.side === "enemy" && c.aboard === "player"),
+      false,
+    );
     assert.equal(g.player.systems.doors.level, doors);
     assert.ok(doorLevel(g, g.player, "player") > 0);
     assert.equal(g.player.systems.oxygen.level, oxygen);

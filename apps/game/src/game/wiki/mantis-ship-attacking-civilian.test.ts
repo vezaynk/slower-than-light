@@ -7,7 +7,10 @@ import { pageWin } from "./quests.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
-  return g.player.weapons.length + [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+  return (
+    g.player.weapons.length +
+    [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length
+  );
 }
 
 function open(g: Game) {
@@ -27,14 +30,19 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Mantis ship attacking civilian", () => {
   it("aiding the civilian starts a Mantis fight", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:mantis-ship-attacking-civilian:0"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:mantis-ship-attacking-civilian:0"),
+      true,
+    );
     choose(g, "c:mantis-ship-attacking-civilian:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "mantis-ship-attacking-civilian");
@@ -69,9 +77,12 @@ describe("Mantis ship attacking civilian", () => {
       assert.equal(g.fleet, 5);
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-      const gained = (g.fuel - fuel) + (g.missiles - missiles) + (g.player.parts - parts);
+      const gained = g.fuel - fuel + (g.missiles - missiles) + (g.player.parts - parts);
       assert.ok(gained >= 2 && gained <= 6, body);
-      assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),
+        true,
+      );
     }
   });
 

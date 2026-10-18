@@ -50,7 +50,13 @@ export function systemlessHull(defId: string | undefined): number | null {
 }
 
 /** Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer. Other guns print no pierce. */
-const PIERCE_ONE = new Set(["LASER_HEAVY_1_SP", "CRYSTAL_BURST_1", "CRYSTAL_BURST_2", "CRYSTAL_HEAVY_1", "CRYSTAL_HEAVY_2"]);
+const PIERCE_ONE = new Set([
+  "LASER_HEAVY_1_SP",
+  "CRYSTAL_BURST_1",
+  "CRYSTAL_BURST_2",
+  "CRYSTAL_HEAVY_1",
+  "CRYSTAL_HEAVY_2",
+]);
 
 export function citedPierce(defId: string | undefined): number {
   const packed = defId ? weaponDef(defId)?.pierce : undefined;

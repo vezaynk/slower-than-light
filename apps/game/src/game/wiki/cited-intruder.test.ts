@@ -19,7 +19,13 @@ describe("Ion Intruder pulse", () => {
     assert.ok(INTRUDER.pulseMax > INTRUDER.pulseMin);
     assert.equal("pulse" in INTRUDER, false);
     assert.equal("cooldown" in INTRUDER, false);
-    assert.deepEqual(Object.keys(INTRUDER), ["power", "ion", "stunSeconds", "pulseMin", "pulseMax"]);
+    assert.deepEqual(Object.keys(INTRUDER), [
+      "power",
+      "ion",
+      "stunSeconds",
+      "pulseMin",
+      "pulseMax",
+    ]);
   });
 
   it("comments the sentences and does not fire", () => {

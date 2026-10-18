@@ -12,8 +12,7 @@ const DWELLING =
   "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'.";
 const SCHEMATIC = "You receive a drone schematic with high scrap.";
 
-const BODY =
-  `Scans show a remote settlement being blockaded by a pirate ship. The ship hastily messages you, "Stay out of this, or you'll be next!...Concentrate fire on..."`;
+const BODY = `Scans show a remote settlement being blockaded by a pirate ship. The ship hastily messages you, "Stay out of this, or you'll be next!...Concentrate fire on..."`;
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -31,10 +30,22 @@ describe("Remote settlement", () => {
     open(g);
     assert.equal(g.event?.title, "Remote settlement");
     assert.equal(g.event?.body, BODY);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:remote-settlement:0"), true);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:remote-settlement:1"), true);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:remote-settlement:2"), true);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:remote-settlement:3"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:remote-settlement:0"),
+      true,
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:remote-settlement:1"),
+      true,
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:remote-settlement:2"),
+      true,
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:remote-settlement:3"),
+      true,
+    );
     assert.equal(
       g.event?.choices.find((c) => c.id === "c:remote-settlement:2")?.label,
       "Show the pirate how to intimidate settlers: burn their crops!",
@@ -95,7 +106,14 @@ describe("Remote settlement", () => {
   it("a fire beam burns the crops, pays high scrap, and grants a random drone schematic", () => {
     const g = createGame(1);
     open(g);
-    g.player.weapons.push({ uid: "w-fire", defId: "BEAM_FIRE", charge: 0, enabled: false, autofire: false, target: null });
+    g.player.weapons.push({
+      uid: "w-fire",
+      defId: "BEAM_FIRE",
+      charge: 0,
+      enabled: false,
+      autofire: false,
+      target: null,
+    });
     const weapons = g.player.weapons.length;
     const parts = g.player.parts;
     const augments = g.augments.slice();
@@ -124,7 +142,14 @@ describe("Remote settlement", () => {
   it("a fire bomb spends 1 missile, pays high scrap, and grants a random drone schematic", () => {
     const g = createGame(1);
     open(g);
-    g.player.weapons.push({ uid: "w-cask", defId: "BOMB_FIRE", charge: 0, enabled: false, autofire: false, target: null });
+    g.player.weapons.push({
+      uid: "w-cask",
+      defId: "BOMB_FIRE",
+      charge: 0,
+      enabled: false,
+      autofire: false,
+      target: null,
+    });
     g.missiles = 1;
     const weapons = g.player.weapons.length;
     const parts = g.player.parts;
@@ -153,7 +178,14 @@ describe("Remote settlement", () => {
   it("a fire bomb with no missiles is refused and changes nothing", () => {
     const g = createGame(1);
     open(g);
-    g.player.weapons.push({ uid: "w-cask", defId: "BOMB_FIRE", charge: 0, enabled: false, autofire: false, target: null });
+    g.player.weapons.push({
+      uid: "w-cask",
+      defId: "BOMB_FIRE",
+      charge: 0,
+      enabled: false,
+      autofire: false,
+      target: null,
+    });
     g.missiles = 0;
     const body = g.event?.body;
     const weapons = g.player.weapons.length;

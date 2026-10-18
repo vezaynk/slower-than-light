@@ -43,7 +43,8 @@ describe("the ship outside a fight (per the user)", () => {
   it("lets a fire damage its room's system, and crew repair a damaged one", () => {
     const g = map();
     const room = g.player.rooms.find((r) => r.system === "shields")!;
-    for (const c of g.crew) if (c.room === room.id) c.room = g.player.rooms.find((r) => r.system === "pilot")!.id;
+    for (const c of g.crew)
+      if (c.room === room.id) c.room = g.player.rooms.find((r) => r.system === "pilot")!.id;
     room.fire = 1;
     const before = g.player.systems.shields.damage;
     run(g, 20);

@@ -50,7 +50,16 @@ describe("achievement counters", () => {
 
   it("a miss during a cloak counts that shot's damage as avoided", () => {
     const g = quietMap(1, "PLAYER_SHIP_STEALTH");
-    g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
     noteAchieve(g, { k: "cloak" });
     noteAchieve(g, { k: "evade", missed: true, damage: 9 });
     assert.equal(earnedNow(g).includes("phase-shift"), true);
@@ -126,7 +135,10 @@ describe("Advanced Edition content", () => {
       beacon.name = "open";
     }
     stampCitedEvents(g);
-    assert.equal(g.beacons.some((beacon) => AE_TITLES.has(beacon.name)), true);
+    assert.equal(
+      g.beacons.some((beacon) => AE_TITLES.has(beacon.name)),
+      true,
+    );
   });
 
   it("still draws an Advanced Edition filler page when an old save says content is off", () => {

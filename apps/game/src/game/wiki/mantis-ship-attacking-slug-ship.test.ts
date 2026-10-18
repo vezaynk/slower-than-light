@@ -23,7 +23,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Mantis ship attacking Slug ship", () => {
@@ -59,7 +61,13 @@ describe("Mantis ship attacking Slug ship", () => {
     assert.equal(slug.fightEvent, "mantis-ship-attacking-slug-ship-slug");
     assert.equal(slug.enemy?.faction, "slug");
     assert.equal(slug.enemyEscape?.mode, "never");
-    assert.equal(surrenderPlan({ tier: "pool", event: "mantis-ship-attacking-slug-ship-slug", faction: "slug" }, () => 0).chance, 0);
+    assert.equal(
+      surrenderPlan(
+        { tier: "pool", event: "mantis-ship-attacking-slug-ship-slug", faction: "slug" },
+        () => 0,
+      ).chance,
+      0,
+    );
   });
 
   it("saving the Slugs pays medium scrap with resources, then leaving or finishing them", () => {
@@ -89,7 +97,7 @@ describe("Mantis ship attacking Slug ship", () => {
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
     assert.equal(resources(body), 2, body);
     assert.equal(saved.scrap, 10 + paid[0]!);
-    const gained = (saved.fuel - fuel) + (saved.missiles - missiles) + (saved.player.parts - parts);
+    const gained = saved.fuel - fuel + (saved.missiles - missiles) + (saved.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
     assert.equal(saved.player.weapons.length, guns);
     assert.equal(saved.augments.length, augs);
@@ -122,7 +130,10 @@ describe("Mantis ship attacking Slug ship", () => {
       assert.equal(g.player.weapons.length, beforeGuns);
       // "You receive an augmentation with low scrap." Rewards, "Augment": "A random augmentation & T scrap."
       const queued = (g.overflow ?? []).filter((x) => x.kind === "augment").length;
-      assert.equal(g.augments.length + queued, beforeAugs + (/augmentation has already transported/.test(text) ? 1 : 0));
+      assert.equal(
+        g.augments.length + queued,
+        beforeAugs + (/augmentation has already transported/.test(text) ? 1 : 0),
+      );
       const n = scraps(text)[0]!;
       if (/augmentation has already transported/.test(text)) {
         paidLow = true;
@@ -164,10 +175,13 @@ describe("Mantis ship attacking Slug ship", () => {
       assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);
       assert.equal(resources(body), 2, body);
       assert.equal(g.scrap, 10 + paid[0]!);
-      const gained = (g.fuel - fuel) + (g.missiles - missiles) + (g.player.parts - parts);
+      const gained = g.fuel - fuel + (g.missiles - missiles) + (g.player.parts - parts);
       assert.ok(gained >= 2 && gained <= 6, body);
       assert.equal(g.player.weapons.length, guns);
-      assert.equal(g.event?.choices.some((c) => c.id === "q:mantis-slug:finish"), false);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === "q:mantis-slug:finish"),
+        false,
+      );
     }
   });
 });

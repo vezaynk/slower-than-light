@@ -2,7 +2,15 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { lowerCradlePower, raiseCradlePower } from "./extras/cradle.ts";
 import { lowerSwarmPower, raiseSwarmPower } from "./extras/swarm.ts";
-import { createGame, holdAutofire, jumpBlocked, powerDown, powerUp, pressJump, slotAutofire } from "./sim.ts";
+import {
+  createGame,
+  holdAutofire,
+  jumpBlocked,
+  powerDown,
+  powerUp,
+  pressJump,
+  slotAutofire,
+} from "./sim.ts";
 import type { Kit } from "./types.ts";
 
 function cradle(power = 0, level = 1): Kit {

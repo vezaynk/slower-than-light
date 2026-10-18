@@ -20,7 +20,10 @@ describe("Crystal ship attacking Federation loyalists surrender", () => {
   it("never surrenders; a Crystal ship with no event still can", () => {
     // {{SurrenderEscape(alt)|no|CRYSTAL_FED}}. The page prints no percent. Crystal ships already never run.
     assert.equal(
-      surrenderPlan({ tier: "pool", faction: "crystal", event: "crystal-ship-attacking-federation-loyalists" }, () => 0.5).chance,
+      surrenderPlan(
+        { tier: "pool", faction: "crystal", event: "crystal-ship-attacking-federation-loyalists" },
+        () => 0.5,
+      ).chance,
       0,
     );
     assert.equal(surrenderPlan({ tier: "pool", faction: "crystal" }, () => 0.5).chance, 40);

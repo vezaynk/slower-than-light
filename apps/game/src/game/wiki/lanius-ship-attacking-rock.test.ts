@@ -21,7 +21,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Lanius ship attacking Rock", () => {
@@ -49,7 +51,10 @@ describe("Lanius ship attacking Rock", () => {
       assert.equal(resources(body), 2, body);
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(g.player.weapons.length, guns);
-      assert.equal(g.event?.choices.some((c) => c.id === "q:lanius-rock:contact"), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === "q:lanius-rock:contact"),
+        true,
+      );
     }
   });
 

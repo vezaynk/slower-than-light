@@ -15,7 +15,16 @@ function open(g: Game) {
 }
 
 function cloak(g: Game) {
-  g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: null, on: true, aux: 0 };
+  g.player.kits.cloaking = {
+    id: "cloaking",
+    level: 1,
+    power: 1,
+    left: 5,
+    cool: 0,
+    target: null,
+    on: true,
+    aux: 0,
+  };
 }
 
 describe("Rebel fight choice in nebula conceal", () => {
@@ -24,7 +33,11 @@ describe("Rebel fight choice in nebula conceal", () => {
     open(g);
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),
-      ["c:rebel-fight-choice-in-nebula:0", "c:rebel-fight-choice-in-nebula:1", "c:rebel-fight-choice-in-nebula:2"],
+      [
+        "c:rebel-fight-choice-in-nebula:0",
+        "c:rebel-fight-choice-in-nebula:1",
+        "c:rebel-fight-choice-in-nebula:2",
+      ],
     );
     assert.equal(choiceDisabled(g, "c:rebel-fight-choice-in-nebula:2"), "Needs Cloaking");
     const scrap = g.scrap;

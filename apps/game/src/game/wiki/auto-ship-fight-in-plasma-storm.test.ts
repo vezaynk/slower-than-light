@@ -20,9 +20,15 @@ describe("Auto-ship fight in plasma storm", () => {
   it("preparing to fight starts an Auto-ship", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.body, "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack.");
+    assert.equal(
+      g.event?.body,
+      "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack.",
+    );
     for (const n of [1, 2, 3]) {
-      assert.equal(g.event?.choices.some((c) => c.id === `c:auto-ship-fight-in-plasma-storm:${n}`), true);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === `c:auto-ship-fight-in-plasma-storm:${n}`),
+        true,
+      );
     }
     choose(g, "c:auto-ship-fight-in-plasma-storm:0");
     assert.equal(g.phase, "combat");
@@ -36,7 +42,10 @@ describe("Auto-ship fight in plasma storm", () => {
     const low = createGame(1);
     open(low);
     low.player.systems.engines.level = 2;
-    assert.equal(choiceDisabled(low, "c:auto-ship-fight-in-plasma-storm:1"), "Needs Engines level 3-5");
+    assert.equal(
+      choiceDisabled(low, "c:auto-ship-fight-in-plasma-storm:1"),
+      "Needs Engines level 3-5",
+    );
     choose(low, "c:auto-ship-fight-in-plasma-storm:1");
     assert.equal(low.phase, "event");
     assert.equal(low.scrap, 10);
@@ -44,7 +53,10 @@ describe("Auto-ship fight in plasma storm", () => {
     const high = createGame(1);
     open(high);
     high.player.systems.engines.level = 6;
-    assert.equal(choiceDisabled(high, "c:auto-ship-fight-in-plasma-storm:1"), "Needs Engines level 3-5");
+    assert.equal(
+      choiceDisabled(high, "c:auto-ship-fight-in-plasma-storm:1"),
+      "Needs Engines level 3-5",
+    );
 
     let fight = false;
     let lost = false;
@@ -73,7 +85,10 @@ describe("Auto-ship fight in plasma storm", () => {
   it("engines level 6 or higher loses the ship, and cloaking does the same", () => {
     const bare = createGame(1);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:auto-ship-fight-in-plasma-storm:2"), "Needs level 6 Engines");
+    assert.equal(
+      choiceDisabled(bare, "c:auto-ship-fight-in-plasma-storm:2"),
+      "Needs level 6 Engines",
+    );
     assert.equal(choiceDisabled(bare, "c:auto-ship-fight-in-plasma-storm:3"), "Needs Cloaking");
     choose(bare, "c:auto-ship-fight-in-plasma-storm:2");
     assert.equal(bare.phase, "event");
@@ -92,7 +107,16 @@ describe("Auto-ship fight in plasma storm", () => {
 
     const cloaked = createGame(4);
     open(cloaked);
-    cloaked.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+    cloaked.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+    };
     assert.equal(choiceDisabled(cloaked, "c:auto-ship-fight-in-plasma-storm:3"), null);
     choose(cloaked, "c:auto-ship-fight-in-plasma-storm:3");
     assert.match(cloaked.event?.body ?? "", /lose your pursuer in the storm/);

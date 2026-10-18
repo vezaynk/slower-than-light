@@ -11,7 +11,9 @@ function arrive(seed: number): Game {
   const g = createGame(seed);
   g.sectorName = "Slug Home Nebula";
   const ev = EXTRA_EVENTS.find((e) => e.dest === "The Black Raven")!;
-  const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store")!;
+  const b = g.beacons.find(
+    (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
+  )!;
   b.flag = ev.flag;
   b.kind = "event";
   b.name = ev.dest;
@@ -68,9 +70,16 @@ describe("The Black Raven mind duel", () => {
         assert.equal(g.enemy!.faction, "slug");
         assert.ok(g.enemy!.pirate);
         assert.equal(g.fightEvent, "the-black-raven");
-        assert.ok(g.log.some((line) => line.includes("grunts in pain and collapses onto the floor, stunned.")));
+        assert.ok(
+          g.log.some((line) =>
+            line.includes("grunts in pain and collapses onto the floor, stunned."),
+          ),
+        );
         assert.equal(g.scrap, scrap);
-        assert.deepEqual(g.player.weapons.map((w) => w.defId), weapons);
+        assert.deepEqual(
+          g.player.weapons.map((w) => w.defId),
+          weapons,
+        );
       } else {
         paid = true;
         assert.equal(g.phase, "event");
@@ -78,7 +87,9 @@ describe("The Black Raven mind duel", () => {
         assert.equal(slugsAboard(g).length, 0);
         assert.ok(g.scrap > scrap);
         // "You receive a weapon with high scrap." Rewards, "Weapon": "A random weapon & T scrap."
-        const stowed = [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+        const stowed = [...(g.cargo ?? []), ...(g.overflow ?? [])].filter(
+          (x) => x.kind === "weapon",
+        ).length;
         assert.equal(g.player.weapons.length + stowed, weapons.length + 1);
         assert.match(g.event!.body, /shakes off the daze and appears victorious/);
         assert.match(g.event!.body, /concedes his defeat/);

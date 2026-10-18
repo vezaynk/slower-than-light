@@ -3,7 +3,24 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import "./base.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
-import { allAugments, allCrew, allDrones, allEmptyBeacons, allEvents, allFillerLists, allHulls, allSectors, allStores, allSystems, allTunes, allWeapons, attachLayoutFiles, emitPack, parsePack, resetPackForTests } from "@stl/pack";
+import {
+  allAugments,
+  allCrew,
+  allDrones,
+  allEmptyBeacons,
+  allEvents,
+  allFillerLists,
+  allHulls,
+  allSectors,
+  allStores,
+  allSystems,
+  allTunes,
+  allWeapons,
+  attachLayoutFiles,
+  emitPack,
+  parsePack,
+  resetPackForTests,
+} from "@stl/pack";
 
 describe("base pack xml", () => {
   it("round-trips the loaded records and reads the gap file", () => {

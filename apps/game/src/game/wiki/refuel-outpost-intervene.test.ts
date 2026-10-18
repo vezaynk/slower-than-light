@@ -25,6 +25,10 @@ describe("Rebel ship attacking refueling outpost intervene", () => {
     assert.equal(g.fightEvent, "rebel-ship-attacking-refueling-outpost");
     assert.equal(g.scrap, 10);
     assert.equal(g.enemyEscape?.mode, "never");
-    assert.ok(g.log.includes(`The rebel responds to your threat, "I don't know who you are, but no one defies the Rebel Fleet!" They move in to engage.`));
+    assert.ok(
+      g.log.includes(
+        `The rebel responds to your threat, "I don't know who you are, but no one defies the Rebel Fleet!" They move in to engage.`,
+      ),
+    );
   });
 });

@@ -6,7 +6,7 @@ import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:federation-deserters:2";
 const SENTENCE =
-  "You send over some supplies to help them on their way and in return they upload their flight plan to your computer, allowing you to map the sector! \"The Federation fleet's still standing - get there while you can!\"";
+  'You send over some supplies to help them on their way and in return they upload their flight plan to your computer, allowing you to map the sector! "The Federation fleet\'s still standing - get there while you can!"';
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

@@ -148,7 +148,10 @@ describe("reward bounds", () => {
     for (const tier of ["low", "medium", "high"] as const) {
       for (const difficulty of ["easy", "normal", "hard"] as const) {
         for (let sector = 1; sector <= 8; sector++) {
-          assert.deepEqual(scrapRange(difficulty, sector, tier), tables[tier][difficulty][sector - 1]);
+          assert.deepEqual(
+            scrapRange(difficulty, sector, tier),
+            tables[tier][difficulty][sector - 1],
+          );
         }
       }
     }

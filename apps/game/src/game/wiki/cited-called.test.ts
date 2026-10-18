@@ -41,7 +41,9 @@ function park(ship: Game["player"]) {
   ship.zoltan = 0;
 }
 
-function shot(partial: Partial<Shot> & Pick<Shot, "kind" | "from" | "damage" | "targetRoom">): Shot {
+function shot(
+  partial: Partial<Shot> & Pick<Shot, "kind" | "from" | "damage" | "targetRoom">,
+): Shot {
   return {
     id: "probe",
     ion: 0,
@@ -260,7 +262,10 @@ describe("Zoltan Shield Bypass", () => {
         g.crew.filter((c) => c.side === "enemy").reduce((sum, c) => sum + c.hp, 0),
         hp,
       );
-      assert.equal(Object.values(g.enemy!.systems).reduce((sum, sys) => sum + sys.damage, 0), bars);
+      assert.equal(
+        Object.values(g.enemy!.systems).reduce((sum, sys) => sum + sys.damage, 0),
+        bars,
+      );
       assert.equal(g.enemy!.zoltan, 3);
     }
   });
@@ -282,7 +287,8 @@ describe("Zoltan Shield Bypass", () => {
       }
       throw new Error("no Mantis ship with a teleporter");
     }
-    const boarded = (g: Game) => g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
+    const boarded = (g: Game) =>
+      g.crew.some((c) => c.side === "enemy" && c.aboard === "player" && c.hp > 0);
 
     const held = teleporterFight(11);
     held.player.zoltan = 5;
@@ -332,7 +338,10 @@ describe("Zoltan Shield Bypass", () => {
     ion.enemy!.zoltan = 5;
     const ionRoom = ion.enemy!.rooms.find((item) => item.system);
     assert.ok(ionRoom?.system);
-    applyImpact(ion, shot({ kind: "bomb", from: "player", damage: 0, ion: 2, targetRoom: ionRoom.id }));
+    applyImpact(
+      ion,
+      shot({ kind: "bomb", from: "player", damage: 0, ion: 2, targetRoom: ionRoom.id }),
+    );
     assert.equal(ion.enemy!.zoltan, 5);
     assert.equal(ion.enemy!.systems[ionRoom.system].ion.length, 0);
 
@@ -341,7 +350,10 @@ describe("Zoltan Shield Bypass", () => {
     spent.enemy!.zoltan = 5;
     const spentRoom = spent.enemy!.rooms.find((item) => item.system);
     assert.ok(spentRoom);
-    applyImpact(spent, shot({ kind: "bomb", from: "player", damage: 0, ion: 2, targetRoom: spentRoom.id }));
+    applyImpact(
+      spent,
+      shot({ kind: "bomb", from: "player", damage: 0, ion: 2, targetRoom: spentRoom.id }),
+    );
     assert.equal(spent.enemy!.zoltan, 1);
 
     const shrug = fight(17);
@@ -352,7 +364,14 @@ describe("Zoltan Shield Bypass", () => {
     fireRoom.fire = 0;
     applyImpact(
       shrug,
-      shot({ kind: "bomb", from: "player", damage: 0, fireChance: 1, defId: "firebomb", targetRoom: fireRoom.id }),
+      shot({
+        kind: "bomb",
+        from: "player",
+        damage: 0,
+        fireChance: 1,
+        defId: "firebomb",
+        targetRoom: fireRoom.id,
+      }),
     );
     assert.equal(shrug.enemy!.zoltan, 5);
     assert.equal(fireRoom.fire, 0);
@@ -369,7 +388,10 @@ describe("Zoltan Shield Bypass", () => {
     crew.room = bay.id;
     crew.hp = 10;
     crew.maxHp = 100;
-    applyImpact(heal, shot({ kind: "bomb", from: "player", damage: 0, defId: "BOMB_HEAL", targetRoom: bay.id }));
+    applyImpact(
+      heal,
+      shot({ kind: "bomb", from: "player", damage: 0, defId: "BOMB_HEAL", targetRoom: bay.id }),
+    );
     assert.equal(crew.hp, 100);
     assert.equal(heal.enemy!.zoltan, 5);
 
@@ -502,7 +524,10 @@ describe("Crystal Vengeance", () => {
     const own = fight(26);
     swarmKit(own, 2);
     assert.equal(deploy(own, "DEFENSE_1"), true);
-    assert.equal(swarmIntercept(own, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }), true);
+    assert.equal(
+      swarmIntercept(own, { kind: "laser", from: "player", defId: "CRYSTAL_SHARDS" }),
+      true,
+    );
     assert.equal(own.player.kits.drones?.cool, DRONE_COOLDOWN_S.DEFENSE_1);
   });
 

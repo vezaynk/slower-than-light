@@ -21,7 +21,12 @@ export function playerCloneQueue(g: Game): {
     .sort((a, b) => (a.cloneSeq ?? 0) - (b.cloneSeq ?? 0));
   if (!queued.length) return null;
   const shown = queued.length > 3 ? queued.slice(0, 2) : queued;
-  return { shown, more: queued.length - shown.length, seconds: Math.ceil(queued[0].cloneIn ?? 0), count: queued.length };
+  return {
+    shown,
+    more: queued.length - shown.length,
+    seconds: Math.ceil(queued[0].cloneIn ?? 0),
+    count: queued.length,
+  };
 }
 
 /**

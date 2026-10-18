@@ -21,7 +21,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 function visited(g: Game): boolean[] {
@@ -32,9 +34,18 @@ describe("Deactivated Auto-ship", () => {
   it("shows the download, the strip, and the sensors scan", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:deactivated-auto-ship:1"), true);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:deactivated-auto-ship:0"), true);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:deactivated-auto-ship:2"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:deactivated-auto-ship:1"),
+      true,
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:deactivated-auto-ship:0"),
+      true,
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:deactivated-auto-ship:2"),
+      true,
+    );
     assert.match(g.event?.body ?? "", /de-activated/);
   });
 
@@ -89,7 +100,7 @@ describe("Deactivated Auto-ship", () => {
         assert.equal(resources(body), 2, body);
         assert.equal(g.scrap, 10 + paid[0]!);
         assert.equal(g.phase, "event");
-        const gained = (g.fuel - fuel) + (g.missiles - missiles) + (g.player.parts - parts);
+        const gained = g.fuel - fuel + (g.missiles - missiles) + (g.player.parts - parts);
         assert.ok(gained >= 2 && gained <= 6, body);
       }
       assert.equal(g.player.weapons.length, guns);
@@ -134,8 +145,14 @@ describe("Deactivated Auto-ship", () => {
         standby = true;
         assert.match(body, /on standby/);
         assert.equal(g.scrap, 10);
-        assert.equal(g.event?.choices.some((c) => c.id === "q:deactivated-auto:yes"), true);
-        assert.equal(g.event?.choices.some((c) => c.id === "q:deactivated-auto:no"), true);
+        assert.equal(
+          g.event?.choices.some((c) => c.id === "q:deactivated-auto:yes"),
+          true,
+        );
+        assert.equal(
+          g.event?.choices.some((c) => c.id === "q:deactivated-auto:no"),
+          true,
+        );
         const no = createGame(seed);
         open(no);
         no.player.systems.sensors.level = 3;

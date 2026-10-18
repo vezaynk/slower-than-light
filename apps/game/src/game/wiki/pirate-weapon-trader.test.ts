@@ -62,7 +62,10 @@ describe("Pirate ship selling weapon", () => {
         assert.match(body, /takes back his discount/);
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
-        assert.deepEqual(g.event?.choices.map((c) => c.label), ["Decline."]);
+        assert.deepEqual(
+          g.event?.choices.map((c) => c.label),
+          ["Decline."],
+        );
         choose(g, "s:pirate-weapon:decline");
         assert.match(g.event?.body ?? "", /thank him for his offer/);
         assert.match(g.event?.body ?? "", /Nothing happens/);

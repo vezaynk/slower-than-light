@@ -8,7 +8,10 @@ import { pageWin } from "./quests.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
-  return g.player.weapons.length + [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+  return (
+    g.player.weapons.length +
+    [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length
+  );
 }
 
 /** Drone schematics fielded, in cargo, or in a make-room choice. */
@@ -32,15 +35,23 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Auto-ship near storage station", () => {
   it("attacking starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.body, "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods.");
-    assert.equal(g.event?.choices.some((c) => c.id === "c:auto-ship-near-storage-station:2"), true);
+    assert.equal(
+      g.event?.body,
+      "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods.",
+    );
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:auto-ship-near-storage-station:2"),
+      true,
+    );
     choose(g, "c:auto-ship-near-storage-station:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-near-storage-station");
@@ -60,7 +71,10 @@ describe("Auto-ship near storage station", () => {
     assert.equal(resources(body), 0, body);
     assert.equal(g.scrap, 10 + paid[0]!);
     assert.equal(g.player.weapons.length, guns);
-    assert.equal(g.event?.choices.some((c) => c.id === "q:auto-storage:investigate"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "q:auto-storage:investigate"),
+      true,
+    );
 
     const killed = createGame(2);
     open(killed);
@@ -81,7 +95,16 @@ describe("Auto-ship near storage station", () => {
     for (let seed = 1; seed <= 40 && (!fight || !station); seed++) {
       const g = createGame(seed);
       open(g);
-      g.player.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
+      g.player.kits.cloaking = {
+        id: "cloaking",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
       assert.equal(choiceDisabled(g, "c:auto-ship-near-storage-station:2"), null);
       choose(g, "c:auto-ship-near-storage-station:2");
       if (g.phase === "combat") {
@@ -92,7 +115,10 @@ describe("Auto-ship near storage station", () => {
         station = true;
         assert.match(g.event?.body ?? "", /avoiding detection/);
         assert.equal(g.scrap, 10);
-        assert.equal(g.event?.choices.some((c) => c.id === "q:auto-storage:investigate"), true);
+        assert.equal(
+          g.event?.choices.some((c) => c.id === "q:auto-storage:investigate"),
+          true,
+        );
       }
     }
     assert.equal(fight && station, true);

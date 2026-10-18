@@ -25,7 +25,8 @@ describe("pixel icons", () => {
     const missing = new Set<string>();
     for (const page of CRUISER_PAGES) {
       for (const layout of page.layouts) {
-        for (const system of hangarSheet(layout).systems) if (!iconForName(system.name)) missing.add(system.name);
+        for (const system of hangarSheet(layout).systems)
+          if (!iconForName(system.name)) missing.add(system.name);
       }
     }
     assert.deepEqual([...missing], []);

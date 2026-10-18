@@ -1,12 +1,28 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { volume } from "./air.ts";
-import { REPAIR_SECONDS, createGame, evasionPercent, ftlSeconds, startCombat, step } from "./sim.ts";
+import {
+  REPAIR_SECONDS,
+  createGame,
+  evasionPercent,
+  ftlSeconds,
+  startCombat,
+  step,
+} from "./sim.ts";
 import { hackHoldsWeapons } from "./extras/spike.ts";
 import type { Game } from "./types.ts";
 
 function playerHack(g: Game, target: string) {
-  g.player.kits.hacking = { id: "hacking", level: 3, power: 3, left: 5, cool: 0, target, on: true, aux: 0 };
+  g.player.kits.hacking = {
+    id: "hacking",
+    level: 3,
+    power: 3,
+    left: 5,
+    cool: 0,
+    target,
+    on: true,
+    aux: 0,
+  };
 }
 
 describe("rates from the wiki", () => {
@@ -19,7 +35,9 @@ describe("rates from the wiki", () => {
     const run = (fire: number) => {
       const g = createGame(1);
       startCombat(g, "Rebel ship");
-      const room = g.player.rooms.find((r) => !g.crew.some((c) => c.aboard === "player" && c.room === r.id))!;
+      const room = g.player.rooms.find(
+        (r) => !g.crew.some((c) => c.aboard === "player" && c.room === r.id),
+      )!;
       for (const d of g.player.doors) d.open = false;
       room.o2 = 50;
       room.fire = fire;
@@ -27,7 +45,10 @@ describe("rates from the wiki", () => {
       return { o2: room.o2, tiles: volume(room) };
     };
     const lit = run(1);
-    assert.ok(Math.abs(run(0).o2 - lit.o2 - (0.96 * 0.05) / lit.tiles) < 0.002, `${run(0).o2 - lit.o2}`);
+    assert.ok(
+      Math.abs(run(0).o2 - lit.o2 - (0.96 * 0.05) / lit.tiles) < 0.002,
+      `${run(0).o2 - lit.o2}`,
+    );
   });
 });
 
@@ -53,7 +74,16 @@ describe("the player's own hacking", () => {
     startCombat(g, "Rebel ship");
     playerHack(g, "engines");
     assert.equal(evasionPercent(g, g.enemy!, "enemy"), 0);
-    g.enemy!.kits.cloaking = { id: "cloaking", level: 1, power: 1, left: 5, cool: 0, target: "fire", on: true, aux: 0 };
+    g.enemy!.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 5,
+      cool: 0,
+      target: "fire",
+      on: true,
+      aux: 0,
+    };
     assert.ok(evasionPercent(g, g.enemy!, "enemy") > 0);
   });
 });
@@ -62,11 +92,30 @@ describe("drones on an FTL jump (Drone Control, Overview)", () => {
   it("loses a deployed external drone, keeps a crew drone, and keeps the deploy delay", async () => {
     const { onPlayerJump } = await import("./extras/index.ts");
     const g = createGame(5);
-    g.player.kits.drones = { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "COMBAT_1", on: true, aux: 1, lost: 4 };
+    g.player.kits.drones = {
+      id: "drones",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "COMBAT_1",
+      on: true,
+      aux: 1,
+      lost: 4,
+    };
     onPlayerJump(g);
     assert.equal(g.player.kits.drones.on, false);
     assert.equal(g.player.kits.drones.lost, 4);
-    g.player.kits.drones = { id: "drones", level: 2, power: 2, left: 0, cool: 0, target: "REPAIR", on: true, aux: 0 };
+    g.player.kits.drones = {
+      id: "drones",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: "REPAIR",
+      on: true,
+      aux: 0,
+    };
     onPlayerJump(g);
     assert.equal(g.player.kits.drones.on, true);
   });

@@ -18,7 +18,9 @@ function open(g: Game) {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Lanius ship absorbing rebel base", () => {
@@ -83,7 +85,10 @@ describe("Lanius ship absorbing rebel base", () => {
     // > "You receive medium scrap with resources and Rebel Fleet is delayed for 1 turn." — [[Lanius ship absorbing rebel base]]
     const bare = createGame(1);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:lanius-ship-absorbing-rebel-base:2"), "Needs a Lanius crewmember");
+    assert.equal(
+      choiceDisabled(bare, "c:lanius-ship-absorbing-rebel-base:2"),
+      "Needs a Lanius crewmember",
+    );
     choose(bare, "c:lanius-ship-absorbing-rebel-base:2");
     assert.equal(bare.scrap, 10);
     assert.equal(bare.fleet, 5);

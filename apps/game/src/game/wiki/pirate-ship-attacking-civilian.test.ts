@@ -7,7 +7,10 @@ import { pageWin } from "./quests.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
-  return g.player.weapons.length + [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length;
+  return (
+    g.player.weapons.length +
+    [...(g.cargo ?? []), ...(g.overflow ?? [])].filter((x) => x.kind === "weapon").length
+  );
 }
 
 function open(g: Game) {
@@ -27,14 +30,19 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Pirate ship attacking civilian", () => {
   it("aiding the civilian starts a pirate fight", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.some((c) => c.id === "c:pirate-ship-attacking-civilian:0"), true);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:pirate-ship-attacking-civilian:0"),
+      true,
+    );
     choose(g, "c:pirate-ship-attacking-civilian:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "pirate-ship-attacking-civilian");
@@ -61,9 +69,13 @@ describe("Pirate ship attacking civilian", () => {
     assert.equal(destroyed.scrap, 10 + paid[0]!);
     assert.equal(destroyed.player.weapons.length, guns);
     assert.equal(destroyed.crew.filter((c) => c.side === "player").length, crew);
-    const gained = (destroyed.fuel - fuel) + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
+    const gained =
+      destroyed.fuel - fuel + (destroyed.missiles - missiles) + (destroyed.player.parts - parts);
     assert.ok(gained >= 2 && gained <= 6, body);
-    assert.equal(destroyed.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"), true);
+    assert.equal(
+      destroyed.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),
+      true,
+    );
 
     const killed = createGame(2);
     open(killed);
@@ -78,7 +90,8 @@ describe("Pirate ship attacking civilian", () => {
     assert.ok(high[0]! >= 19 && high[0]! <= 23, killedBody);
     assert.equal(resources(killedBody), 2, killedBody);
     assert.equal(killed.scrap, 10 + high[0]!);
-    const kGained = (killed.fuel - kFuel) + (killed.missiles - kMissiles) + (killed.player.parts - kParts);
+    const kGained =
+      killed.fuel - kFuel + (killed.missiles - kMissiles) + (killed.player.parts - kParts);
     assert.ok(kGained >= 2 && kGained <= 6, killedBody);
     assert.equal(killed.fleet, 5);
   });

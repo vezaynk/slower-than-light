@@ -142,13 +142,10 @@ describe("emitFtlMod", () => {
     assert.equal(pack.weapons?.find((row) => row.id === "LASER_BURST_1")?.name, "Second Laser");
     assert.equal(pack.weapons?.find((row) => row.id === "MISSILES_1")?.kind, "missile");
     assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.slot, "kit");
-    assert.deepEqual(
-      pack.tunes?.find((row) => row.id === "cloaking")?.costs,
-      [
-        { level: 1, cost: 30 },
-        { level: 2, cost: 50 },
-      ],
-    );
+    assert.deepEqual(pack.tunes?.find((row) => row.id === "cloaking")?.costs, [
+      { level: 1, cost: 30 },
+      { level: 2, cost: 50 },
+    ]);
     assert.equal(pack.crew?.find((row) => row.id === "human")?.cost, 45);
     assert.equal(pack.facts, undefined);
     assert.equal(pack.names, undefined);

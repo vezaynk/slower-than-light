@@ -5,7 +5,8 @@ import { choiceDisabled, choose, createGame, playerHackingOff, step } from "../s
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const LEAD = "Your hacking system automatically counters the digital assault and you move in to fight the ship.";
+const LEAD =
+  "Your hacking system automatically counters the digital assault and you move in to fight the ship.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -22,7 +23,11 @@ describe("Slug hacker (oxygen) hacking", () => {
   it("stays closed without Hacking", () => {
     const g = createGame(1);
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === "c:slug-hacker-oxygen:2" && c.label === "Counter the remote hacking."));
+    assert.ok(
+      g.event?.choices.some(
+        (c) => c.id === "c:slug-hacker-oxygen:2" && c.label === "Counter the remote hacking.",
+      ),
+    );
     assert.equal(choiceDisabled(g, "c:slug-hacker-oxygen:2"), "Needs a Hacking system");
     choose(g, "c:slug-hacker-oxygen:2");
     assert.equal(g.phase, "event");

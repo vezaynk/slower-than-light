@@ -31,7 +31,8 @@ function sig(cells: HullCell[]): string {
 
 function offFloor(cells: HullCell[], rooms: Box[]) {
   const floor = floorOf(rooms);
-  for (const cell of cells) assert.equal(floor.has(`${cell.x},${cell.y}`), false, `${cell.x},${cell.y}`);
+  for (const cell of cells)
+    assert.equal(floor.has(`${cell.x},${cell.y}`), false, `${cell.x},${cell.y}`);
 }
 
 describe("hull plates", () => {
@@ -109,8 +110,22 @@ describe("hull plates", () => {
     const a = layoutFor("PLAYER_SHIP_HARD");
     const b = layoutFor("PLAYER_SHIP_HARD_2");
     assert.ok(a && b);
-    const plateA = plateOf({ id: "PLAYER_SHIP_HARD", faction: "kestrel", facing: "right", cols: a.cols, rows: a.rows, rooms: a.rooms });
-    const plateB = plateOf({ id: "PLAYER_SHIP_HARD_2", faction: "kestrel", facing: "right", cols: b.cols, rows: b.rows, rooms: b.rooms });
+    const plateA = plateOf({
+      id: "PLAYER_SHIP_HARD",
+      faction: "kestrel",
+      facing: "right",
+      cols: a.cols,
+      rows: a.rows,
+      rooms: a.rooms,
+    });
+    const plateB = plateOf({
+      id: "PLAYER_SHIP_HARD_2",
+      faction: "kestrel",
+      facing: "right",
+      cols: b.cols,
+      rows: b.rows,
+      rooms: b.rooms,
+    });
     assert.equal(factionPaint("kestrel").skin, paint.skin);
     assert.notEqual(sig(plateA), sig(plateB));
   });

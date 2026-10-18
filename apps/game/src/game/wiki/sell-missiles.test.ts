@@ -26,7 +26,7 @@ describe("Sell missiles for scrap", () => {
     const ev = citedEvent(g, beacon());
     assert.equal(
       ev?.body,
-      "There is a black market hub here. You receive a message, \"These are dangerous times. If you have extra military-grade explosives, we'll gladly pay you for them.\"",
+      'There is a black market hub here. You receive a message, "These are dangerous times. If you have extra military-grade explosives, we\'ll gladly pay you for them."',
     );
   });
 

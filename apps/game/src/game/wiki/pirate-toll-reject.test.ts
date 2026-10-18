@@ -24,6 +24,6 @@ describe("Pirate toll reject", () => {
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-toll");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("\"Too bad... You will regret this decision!\""));
+    assert.ok(g.log.includes('"Too bad... You will regret this decision!"'));
   });
 });

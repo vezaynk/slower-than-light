@@ -104,7 +104,10 @@ describe("Zoltan weapon slots", () => {
     toggleWeapon(g, "BEAM_3");
     assert.equal(g.player.weapons[0].enabled, true);
     assert.equal(g.player.systems.weapons.power, 3);
-    assert.equal(g.log.some((line) => line.includes("Not enough power")), false);
+    assert.equal(
+      g.log.some((line) => line.includes("Not enough power")),
+      false,
+    );
     assert.deepEqual(mask(g), [true]);
   });
 
@@ -411,7 +414,17 @@ describe("Zoltan drones, hacking ion, and mind control", () => {
       aux: 3,
       hackHeld: foe.id,
     };
-    g.enemy.kits.battery = { id: "battery", level: 2, power: 2, left: 0, cool: 0, target: null, on: false, aux: 0, drained: 2 };
+    g.enemy.kits.battery = {
+      id: "battery",
+      level: 2,
+      power: 2,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+      drained: 2,
+    };
     ionHitsHack(g, g.player, 1);
     const kit = g.player.kits.hacking;
     assert.equal(kit.on, false);

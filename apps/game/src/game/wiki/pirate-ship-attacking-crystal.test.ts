@@ -21,7 +21,9 @@ function scraps(body: string): number[] {
 }
 
 function resources(body: string): number {
-  return ["Fuel", "Missiles", "Drone parts"].filter((label) => new RegExp(`${label}: \\d+`).test(body)).length;
+  return ["Fuel", "Missiles", "Drone parts"].filter((label) =>
+    new RegExp(`${label}: \\d+`).test(body),
+  ).length;
 }
 
 describe("Pirate ship attacking Crystal", () => {
@@ -61,7 +63,10 @@ describe("Pirate ship attacking Crystal", () => {
     assert.equal(paid.length, 1);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
     assert.equal(resources(body), 2, body);
-    assert.equal(destroyed.event?.choices.some((c) => c.id === "q:crystal-pirate:contact"), true);
+    assert.equal(
+      destroyed.event?.choices.some((c) => c.id === "q:crystal-pirate:contact"),
+      true,
+    );
 
     const killed = createGame(4);
     open(killed);
@@ -79,7 +84,11 @@ describe("Pirate ship attacking Crystal", () => {
     const tiers = new Set<string>();
     let nothing = false;
     let weapon = false;
-    for (let seed = 1; seed <= 80 && (seen.size < 5 || tiers.size < 3 || !nothing || !weapon); seed++) {
+    for (
+      let seed = 1;
+      seed <= 80 && (seen.size < 5 || tiers.size < 3 || !nothing || !weapon);
+      seed++
+    ) {
       const g = createGame(seed);
       open(g);
       pageWin(g, "pirate-ship-attacking-crystal", false);
@@ -106,7 +115,7 @@ describe("Pirate ship attacking Crystal", () => {
         assert.equal(paid.length, 1, body);
         assert.equal(resources(body), 2, body);
         assert.equal(g.scrap, scrap + paid[0]!);
-        const gained = (g.fuel - fuel) + (g.missiles - missiles) + (g.player.parts - parts);
+        const gained = g.fuel - fuel + (g.missiles - missiles) + (g.player.parts - parts);
         assert.ok(gained >= 2 && gained <= 6, body);
         if (paid[0]! >= 7 && paid[0]! <= 10) tiers.add("low");
         else if (paid[0]! >= 12 && paid[0]! <= 18) tiers.add("medium");

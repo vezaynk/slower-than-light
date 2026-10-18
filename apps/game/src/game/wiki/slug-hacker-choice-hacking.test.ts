@@ -5,8 +5,7 @@ import { choiceDisabled, choose, createGame, playerHackingOff } from "../sim.ts"
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const LEAD =
-  `"Sssilence won't protect you. I'll make the choice mysself... Wait. Why isn't this working?" You cut transmission and move in to attack.`;
+const LEAD = `"Sssilence won't protect you. I'll make the choice mysself... Wait. Why isn't this working?" You cut transmission and move in to attack.`;
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -23,7 +22,11 @@ describe("Slug hacker (choice) hacking", () => {
   it("stays closed without Hacking", () => {
     const g = createGame(1);
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === "c:slug-hacker-choice:4" && c.label === "Counter any hack attempt."));
+    assert.ok(
+      g.event?.choices.some(
+        (c) => c.id === "c:slug-hacker-choice:4" && c.label === "Counter any hack attempt.",
+      ),
+    );
     assert.equal(choiceDisabled(g, "c:slug-hacker-choice:4"), "Needs a Hacking system");
     choose(g, "c:slug-hacker-choice:4");
     assert.equal(g.phase, "event");

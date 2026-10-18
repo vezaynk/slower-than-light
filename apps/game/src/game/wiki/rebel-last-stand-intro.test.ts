@@ -31,8 +31,12 @@ describe("Rebel ship attacking civilians in Last Stand", () => {
       open(g);
       const body = g.event?.body ?? "";
       assert.ok(INTROS.includes(body), body);
-      assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-attacking-civilians-in-last-stand:0"));
-      assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-attacking-civilians-in-last-stand:1"));
+      assert.ok(
+        g.event?.choices.some((c) => c.id === "c:rebel-ship-attacking-civilians-in-last-stand:0"),
+      );
+      assert.ok(
+        g.event?.choices.some((c) => c.id === "c:rebel-ship-attacking-civilians-in-last-stand:1"),
+      );
       seen.add(body);
     }
     assert.equal(seen.size, INTROS.length);

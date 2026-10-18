@@ -1,10 +1,26 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { SECTOR_NAMES } from "../content.ts";
-import { choose, chooseSector, commitJump, createGame, runScore, startCombat, step, upgrade, waitHere } from "../sim.ts";
+import {
+  choose,
+  chooseSector,
+  commitJump,
+  createGame,
+  runScore,
+  startCombat,
+  step,
+  upgrade,
+  waitHere,
+} from "../sim.ts";
 import { stampEngiCache } from "./engi-cache.ts";
 import { fleetToReach } from "./sector-map.ts";
-import { citedAsb, citedAsbShot, citedBeaconCount, citedFleetAdvance, citedSector } from "./cited-sectors.ts";
+import {
+  citedAsb,
+  citedAsbShot,
+  citedBeaconCount,
+  citedFleetAdvance,
+  citedSector,
+} from "./cited-sectors.ts";
 
 function enterLastStand(seed = 1) {
   const g = createGame(seed, "PLAYER_SHIP_HARD", "normal");
@@ -42,8 +58,14 @@ describe("Last Stand repair stations", () => {
       assert.equal(b.asteroid, false);
       assert.equal(b.resolved, false);
     }
-    assert.equal(g.beacons.some((b) => b.kind === "store" && b.flag === "last-stand-repair"), false);
-    assert.equal(g.beacons.some((b) => b.kind === "start" && b.flag === "last-stand-repair"), false);
+    assert.equal(
+      g.beacons.some((b) => b.kind === "store" && b.flag === "last-stand-repair"),
+      false,
+    );
+    assert.equal(
+      g.beacons.some((b) => b.kind === "start" && b.flag === "last-stand-repair"),
+      false,
+    );
     assert.ok(g.beacons.some((b) => b.kind === "boss" && b.name === "Flagship"));
     assert.equal(g.beacons.filter((b) => b.kind === "store").length >= 1, true);
 
@@ -56,7 +78,10 @@ describe("Last Stand repair stations", () => {
   it("does not stamp any other sector name, and it leaves an Engi cache in place", () => {
     const g = createGame(2);
     citedSector(g);
-    assert.equal(g.beacons.some((b) => b.flag === "last-stand-repair"), false);
+    assert.equal(
+      g.beacons.some((b) => b.flag === "last-stand-repair"),
+      false,
+    );
     assert.equal(g.sectorName, "Civilian (Starting) Sector");
 
     g.sectorName = "Engi Homeworlds";
@@ -66,13 +91,18 @@ describe("Last Stand repair stations", () => {
     citedSector(g);
     assert.equal(cache.flag, "engi-cache");
     assert.equal(cache.name, "Engi cache");
-    assert.equal(g.beacons.some((b) => b.flag === "last-stand-repair"), false);
+    assert.equal(
+      g.beacons.some((b) => b.flag === "last-stand-repair"),
+      false,
+    );
   });
 
   it("will not overwrite the cache, the exit, or invent a station the map does not have", () => {
     const g = createGame(6);
     g.sectorName = "The Last Stand";
-    const cache = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "store");
+    const cache = g.beacons.find(
+      (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "store",
+    );
     assert.ok(cache);
     cache.flag = "engi-cache";
     const exit = g.beacons.find((b) => b.kind === "exit");
@@ -88,9 +118,14 @@ describe("Last Stand repair stations", () => {
 
     const thin = createGame(6);
     thin.sectorName = "The Last Stand";
-    thin.beacons = thin.beacons.filter((b) => b.kind === "start" || b.kind === "exit" || b.kind === "store");
+    thin.beacons = thin.beacons.filter(
+      (b) => b.kind === "start" || b.kind === "exit" || b.kind === "store",
+    );
     citedSector(thin);
-    assert.equal(thin.beacons.some((b) => b.flag === "last-stand-repair"), false);
+    assert.equal(
+      thin.beacons.some((b) => b.flag === "last-stand-repair"),
+      false,
+    );
   });
 
   it("does not pay the station when the ship jumps there", () => {
@@ -331,7 +366,10 @@ describe("fleet advance and the anti-ship battery", () => {
     assert.ok(t >= 15 && t < 20.1);
     assert.equal(g.log[0], "The Fleet's Anti-Ship Batteries are targeting you.");
     assert.ok(g.asbWait >= 5 && g.asbWait < 10);
-    assert.equal(g.shots.some((s) => s.label === "Artillery"), false);
+    assert.equal(
+      g.shots.some((s) => s.label === "Artillery"),
+      false,
+    );
   });
 });
 

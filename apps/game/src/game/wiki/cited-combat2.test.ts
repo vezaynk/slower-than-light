@@ -28,7 +28,10 @@ describe("Combat Drone Mark II shot", () => {
     close(orbitLegSeconds(0, 180, COMBAT1_SPEED), (2.3 * 21.875) / 15 + 0.5);
     close(orbitLegSeconds(0, 90, COMBAT1_SPEED), (2.3 * Math.SQRT1_2 * 21.875) / 15 + 0.5);
     close(orbitLegSeconds(0, 180, COMBAT2.speed), (2.3 * 21.875) / 28 + 0.5);
-    close(orbitLegSeconds(0, 180, COMBAT1_SPEED, 0.5), orbitLegSeconds(0, 180, COMBAT1_SPEED) + 0.5);
+    close(
+      orbitLegSeconds(0, 180, COMBAT1_SPEED, 0.5),
+      orbitLegSeconds(0, 180, COMBAT1_SPEED) + 0.5,
+    );
     assert.ok(orbitLegSeconds(5, 355, COMBAT2.speed) < orbitLegSeconds(0, 180, COMBAT2.speed));
   });
 

@@ -35,10 +35,19 @@ describe("ship menu upgrades", () => {
   });
 
   it("charges the printed hacking, clone, artillery, and flak steps", () => {
-    assert.deepEqual([spikeUpgradeCost(1), spikeUpgradeCost(2), spikeUpgradeCost(3)], [35, 60, null]);
-    assert.deepEqual([cradleUpgradeCost(1), cradleUpgradeCost(2), cradleUpgradeCost(3)], [35, 45, null]);
+    assert.deepEqual(
+      [spikeUpgradeCost(1), spikeUpgradeCost(2), spikeUpgradeCost(3)],
+      [35, 60, null],
+    );
+    assert.deepEqual(
+      [cradleUpgradeCost(1), cradleUpgradeCost(2), cradleUpgradeCost(3)],
+      [35, 45, null],
+    );
     assert.deepEqual([veilUpgradeCost(1), veilUpgradeCost(2), veilUpgradeCost(3)], [30, 50, null]);
-    assert.deepEqual([slingUpgradeCost(1), slingUpgradeCost(2), slingUpgradeCost(3)], [30, 60, null]);
+    assert.deepEqual(
+      [slingUpgradeCost(1), slingUpgradeCost(2), slingUpgradeCost(3)],
+      [30, 60, null],
+    );
     assert.equal(cellUpgradeCost(1), 50);
     assert.equal(cellUpgradeCost(2), null);
     assert.equal(LEASH_UPGRADE[2], 30);

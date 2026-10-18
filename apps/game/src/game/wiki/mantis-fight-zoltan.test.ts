@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { commitJump, createGame } from "../sim.ts";
 
 const BODY =
-  'You pick up the last broadcast from a rupturing Zoltan freighter: "The Mantis, they\'re here, please-" You\'re interrupted by fire off the port bow!';
+  "You pick up the last broadcast from a rupturing Zoltan freighter: \"The Mantis, they're here, please-\" You're interrupted by fire off the port bow!";
 
 describe("Mantis fight (Zoltan)", () => {
   it("starts the Mantis ship on arrival and leaves no button", () => {

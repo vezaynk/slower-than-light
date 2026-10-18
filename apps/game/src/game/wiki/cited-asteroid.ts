@@ -36,12 +36,20 @@ function within([lo, hi]: Span, roll: number): number {
 }
 
 /** How long a phase lasts. */
-export function asteroidPhaseSeconds(shieldLevel: number, phase: AsteroidPhase, roll: number): number {
+export function asteroidPhaseSeconds(
+  shieldLevel: number,
+  phase: AsteroidPhase,
+  roll: number,
+): number {
   return within(rowFor(shieldLevel)[phase], roll);
 }
 
 /** Seconds between rocks in a wave. */
-export function asteroidSpawnSeconds(shieldLevel: number, phase: "wave1" | "wave2", roll: number): number {
+export function asteroidSpawnSeconds(
+  shieldLevel: number,
+  phase: "wave1" | "wave2",
+  roll: number,
+): number {
   const row = rowFor(shieldLevel);
   return within(phase === "wave1" ? row.spawn1 : row.spawn2, roll);
 }

@@ -23,8 +23,16 @@ describe("Legendary thief KazaaakplethKilik hail", () => {
   it("stays closed without a Mantis crewmember", () => {
     const g = createGame(1);
     open(g);
-    assert.ok(g.event?.choices.some((c) => c.id === "c:legendary-thief-kazaaakplethkilik:1" && c.label === "Attempt to hail him."));
-    assert.equal(choiceDisabled(g, "c:legendary-thief-kazaaakplethkilik:1"), "Needs a Mantis crewmember");
+    assert.ok(
+      g.event?.choices.some(
+        (c) =>
+          c.id === "c:legendary-thief-kazaaakplethkilik:1" && c.label === "Attempt to hail him.",
+      ),
+    );
+    assert.equal(
+      choiceDisabled(g, "c:legendary-thief-kazaaakplethkilik:1"),
+      "Needs a Mantis crewmember",
+    );
     choose(g, "c:legendary-thief-kazaaakplethkilik:1");
     assert.equal(g.phase, "event");
     assert.equal(g.enemy, null);
@@ -47,6 +55,10 @@ describe("Legendary thief KazaaakplethKilik hail", () => {
     assert.equal(g.scrap, 10);
     const theirs = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(theirs.length > 0);
-    assert.ok(theirs.every((c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp));
+    assert.ok(
+      theirs.every(
+        (c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp,
+      ),
+    );
   });
 });

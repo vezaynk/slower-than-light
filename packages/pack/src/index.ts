@@ -23,6 +23,12 @@ export {
 } from "./grid.ts";
 export type { GridMark, LayoutSource } from "./grid.ts";
 export { fetchPackXml } from "./fetch-pack.ts";
+export { mergeAnimations, readAnimations } from "./anim.ts";
+export type { AnimClip, AnimSheet, AnimationSet, WeaponAnim } from "./anim.ts";
+export { readBitmapFont, writeBitmapFont } from "./bitmap-font.ts";
+export type { BitmapFont, FontGlyph, FontStamp } from "./bitmap-font.ts";
+export { mergeSounds, readSounds } from "./sounds.ts";
+export type { MusicTrack, SoundCue, SoundSet } from "./sounds.ts";
 export { parsePack } from "./parse.ts";
 export type { FtlBlueprintFile, FtlTextFile } from "./ftl.ts";
 export {

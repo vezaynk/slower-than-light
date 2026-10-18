@@ -28,6 +28,10 @@ export type WeaponBlueprint = {
   crewDamage?: number;
   /** Shield layers this shot bypasses. Absent means the authored pierce table. */
   pierce?: number;
+  /** `<weaponArt>` name in the animation document. Absent uses the blueprint id. */
+  art?: string;
+  /** `<image>` projectile animation name. `<time>` on that anim is its duration, not the volley gap. */
+  image?: string;
 };
 
 /**
@@ -71,6 +75,8 @@ export type DroneDef = {
   id: string;
   name: string;
   cost: number;
+  /** `<droneImage>` stem. Pictures are `img/ship/drones/<image>_base.png`, `_on.png`, and `_charged.png`. */
+  image?: string;
 };
 
 /** Where a purchased system is installed. Power and the starting level stay in the effect code. */

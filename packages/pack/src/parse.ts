@@ -234,6 +234,10 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (crew != null) row.crewDamage = crew;
   const pierce = numOf(node, "sp");
   if (pierce != null) row.pierce = pierce;
+  const art = textOf(node, "weaponArt");
+  if (art) row.art = art;
+  const image = textOf(node, "image");
+  if (image) row.image = image;
   return row;
 }
 
@@ -251,11 +255,14 @@ export function readAugment(node: XmlElement): AugmentDef | undefined {
 export function readDrone(node: XmlElement): DroneDef | undefined {
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
-  return {
+  const row: DroneDef = {
     id,
     name: textOf(node, "title") ?? id,
     cost: numOf(node, "cost") ?? 0,
   };
+  const image = textOf(node, "droneImage");
+  if (image) row.image = image;
+  return row;
 }
 
 const SHELF_KIND: Record<string, string> = {

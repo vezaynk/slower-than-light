@@ -3,18 +3,21 @@ import { hullPictureFiles, standInSheet, type HullPictureFile } from "@stl/catal
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { mountsFor } from "@stl/catalog/src/weapon-mounts.ts";
 import { packFtlDat } from "@stl/ftldat";
+import { standInMedia } from "./media.ts";
 import { basePng, cloakPng, floorPng, gibPng, shieldPng } from "./png.ts";
 
-/** The stand-in archive: the campaign document, layouts, drawings, and original ship images. */
+/** The stand-in archive: the campaign document, layouts, drawings, and original pictures. */
 export async function standInDat(): Promise<Uint8Array> {
   const pictures = hullPictureFiles();
+  const media = await standInMedia();
   return packFtlDat(
     [
       { path: "data/stand-in.xml", xml: standInXml() },
       ...pictures.map((file) => ({ path: file.path, xml: file.xml })),
+      ...media.documents,
     ],
     layoutFiles(),
-    standInImages(pictures),
+    [...standInImages(pictures), ...media.assets],
   );
 }
 

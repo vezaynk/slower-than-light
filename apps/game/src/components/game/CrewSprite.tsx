@@ -3,123 +3,29 @@
  * shoulders in the uniform colour. Used by the hangar cards, the crew rail,
  * the ship tokens, and the ship sheet so a crew member reads the same everywhere.
  */
-import type { CSSProperties } from "react";
+import { useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { KIN_SKIN, uniformOf } from "@/game/crew-look";
+import { CREW_POSES, crewHead } from "@/game/crew-pixels";
 import type { KinId } from "@/game/extras/kin";
 import { pixelRuns, type PixelRun } from "@/game/gear-look";
+import {
+  archiveGeneration,
+  crewPoseFrame,
+  loadedImage,
+  recolorCrew,
+  subscribeArchive,
+} from "@/game/pack/media";
 import type { Crew } from "@/game/types";
+import "./archive-art.css";
 import "./crew-motion.css";
-
-// h = skin, d = outline, e = eye. 12 wide, 8 tall; the body below is shared.
-const HEADS: Record<KinId, string[]> = {
-  human: [
-    "....dddd....",
-    "...dhhhhd...",
-    "..dhhhhhhd..",
-    "..dhehhehd..",
-    "..dhhhhhhd..",
-    "...dhhhhd...",
-    "....dhhd....",
-    "....dhhd....",
-  ],
-  engi: [
-    ".d........d.",
-    "..d......d..",
-    "..dddddddd..",
-    ".dhhhhhhhhd.",
-    ".dheehheehd.",
-    ".dhhhhhhhhd.",
-    "..dddddddd..",
-    "....dhhd....",
-  ],
-  energy: [
-    "....dddd....",
-    "...dheehd...",
-    "..dhhhhhhd..",
-    "..dhehhehd..",
-    "..dhhhhhhd..",
-    "...dhhhhd...",
-    "....dhhd....",
-    "....dhhd....",
-  ],
-  mantis: [
-    ".d........d.",
-    "..d......d..",
-    "..dddddddd..",
-    ".dheehheehd.",
-    "..dhhhhhhd..",
-    "...dhhhhd...",
-    "....dhhd....",
-    "....dhhd....",
-  ],
-  slug: [
-    "..e......e..",
-    "..d......d..",
-    "..dhhhhhhd..",
-    ".dhhehhehhd.",
-    ".dhhhhhhhhd.",
-    "..dhhhhhhd..",
-    "...dhhhhd...",
-    "....dhhd....",
-  ],
-  rock: [
-    "..dddddddd..",
-    ".dhhhhhhhhd.",
-    ".dhhhhhhhhd.",
-    ".dheehheehd.",
-    ".dhhhhhhhhd.",
-    ".dhhhhhhhhd.",
-    "..dddddddd..",
-    "...dhhhhd...",
-  ],
-  anaerobic: [
-    "...dddddd...",
-    "..dhhhhhhd..",
-    "..dhhhhhhd..",
-    "..deeeeeed..",
-    "..dhhhhhhd..",
-    "..dhhhhhhd..",
-    "...dhhhhd...",
-    "....dhhd....",
-  ],
-  crystal: [
-    ".....dd.....",
-    "....dhhd....",
-    "...dhhhhd...",
-    "..dhehhehd..",
-    ".dhhhhhhhhd.",
-    "..dhhhhhhd..",
-    "...dhhhhd...",
-    "....dhhd....",
-  ],
-};
-
-const BODY = ["...duuuud...", "..duuuuuud..", ".duuuuuuuud.", ".duuuuuuuud."];
-
-/** Slide a body row. Dots stay empty so the head rows above are never touched. */
-function shiftRow(row: string, dx: number): string {
-  if (dx === 0) return row;
-  const out = Array.from({ length: row.length }, () => ".");
-  for (let i = 0; i < row.length; i++) {
-    if (row[i] === ".") continue;
-    const j = i + dx;
-    if (j >= 0 && j < row.length) out[j] = row[i];
-  }
-  return out.join("");
-}
-
-/** Lower two body rows step left, center, or right. The head stays on HEADS. */
-function legPose(dx: number): string[] {
-  return [BODY[0], BODY[1], shiftRow(BODY[2], dx), shiftRow(BODY[3], dx)];
-}
 
 export type CrewPose = "idle" | "walk" | "fight" | "work";
 
+const BODY = ["...duuuud...", "..duuuuuud..", ".duuuuuuuud.", ".duuuuuuuud."];
+
 /**
- * Idle breathes in place. Work taps the console (the right-hand station). Fight is one swing:
- * recover, coil, mid, then the blow. The hit lands as swing wraps, so the long arm is frame 3.
+ * Idle breathes in place. Work and fight and walk are the archive poses.
  * u sleeve, h fist. Rows may run past 12; the sprite overflows so the blow clears the tile.
- * Every frame keeps the same top row, so the figure does not hop.
  */
 const POSE_BODY: Record<CrewPose, string[][]> = {
   idle: [
@@ -128,31 +34,23 @@ const POSE_BODY: Record<CrewPose, string[][]> = {
     ["..duuuuuud..", ".duuuuuuuud.", "duuuuuuuuuud", "duuuuuuuuuud"],
     ["....duud....", "...duuuud...", "..duuuuuud..", "..duuuuuud.."],
   ],
-  walk: [legPose(0), legPose(-1), legPose(0), legPose(1)],
-  fight: [
-    BODY,
-    ["..duuuud....", ".duuuuuhd...", "duuuuuuud...", ".duuuuuud..."],
-    ["...duuuuuud.", "..duuuuuuhd.", ".duuuuuuuud.", "..duuuuuud.."],
-    ["....duuuuuuuuh", "...duuuuuuuuud", "..duuuuuuuud.", "...duuuuud..."],
-  ],
-  work: [
-    BODY,
-    ["...duuuuuhd.", "..duuuuuuud.", ".duuuuuuuud.", ".duuuuuuuud."],
-    ["...duuuud...", "..duuuuud...", ".duuuuuuuud.", ".duuuuuuuud."],
-    ["...duuuuud..", "..duuuuuuhd.", ".duuuuuuuud.", "..duuuuuud.."],
-  ],
+  walk: CREW_POSES.walk,
+  fight: CREW_POSES.fight,
+  work: CREW_POSES.work,
 };
 
 const RUNS = Object.fromEntries(
-  (Object.keys(HEADS) as KinId[]).map((kin) => [
-    kin,
-    Object.fromEntries(
-      (Object.keys(POSE_BODY) as CrewPose[]).map((pose) => [
-        pose,
-        POSE_BODY[pose].map((body) => pixelRuns([...HEADS[kin], ...body])),
-      ]),
-    ),
-  ]),
+  (["human", "engi", "energy", "mantis", "slug", "rock", "anaerobic", "crystal"] as KinId[]).map(
+    (kin) => [
+      kin,
+      Object.fromEntries(
+        (Object.keys(POSE_BODY) as CrewPose[]).map((pose) => [
+          pose,
+          POSE_BODY[pose].map((body) => pixelRuns([...crewHead(kin), ...body])),
+        ]),
+      ),
+    ],
+  ),
 ) as Record<KinId, Record<CrewPose, PixelRun[][]>>;
 
 const INK = "#1a120c";
@@ -195,10 +93,69 @@ export function CrewSprite({
   const id = kin ?? "human";
   const skin = (KIN_SKIN as Record<string, string>)[id] ?? KIN_SKIN.human;
   const looping = loopAll || (cycle && (pose === "idle" || pose === "work"));
-  const frames = looping ? [0, 1, 2, 3] : [frameIndex(frame)];
+  const frames = looping ? [0, 1, 2, 3] : [frameIndex(pose === "idle" ? 0 : frame)];
+  const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
+  const [sheets, setSheets] = useState<string[] | null>(null);
+  useEffect(() => {
+    const slices = frames.map((index) => crewPoseFrame(id, pose, index));
+    if (slices.some((slice) => !slice)) {
+      setSheets(null);
+      return;
+    }
+    const first = slices[0];
+    if (!first) return;
+    let cancel = false;
+    const paint = (img: HTMLImageElement) => {
+      if (cancel) return;
+      setSheets(slices.map((slice) => recolorCrew(img, slice!, uniform)));
+    };
+    const ready = loadedImage(first.url);
+    if (ready) {
+      paint(ready);
+      return () => {
+        cancel = true;
+      };
+    }
+    setSheets(null);
+    const img = new Image();
+    img.onload = () => paint(img);
+    img.onerror = () => {
+      if (!cancel) setSheets(null);
+    };
+    img.src = first.url;
+    return () => {
+      cancel = true;
+    };
+  }, [generation, id, pose, frame, uniform, looping]);
   const spriteClass = ["crew-sprite", className, looping ? `is-cycle is-${pose}` : ""]
     .filter(Boolean)
     .join(" ");
+  if (sheets && sheets.length === frames.length) {
+    const sample = crewPoseFrame(id, pose, frames[0] ?? 0);
+    const width = sample ? Math.max(1, Math.round((size * sample.fw) / sample.fh)) : size;
+    return (
+      <span
+        className={`${spriteClass} is-sheet`}
+        aria-hidden="true"
+        style={
+          {
+            width,
+            height: size,
+            ...(looping ? { "--pose-phase": String(phase) } : {}),
+          } as CSSProperties
+        }
+      >
+        {sheets.map((src, index) => (
+          <img
+            key={`${index}-${src}`}
+            className={looping ? `crew-frame is-f${frames[index] ?? index}` : "crew-frame"}
+            alt=""
+            src={src}
+          />
+        ))}
+      </span>
+    );
+  }
   return (
     <svg
       className={spriteClass}

@@ -259,7 +259,11 @@ function EdgeMounts({
             data-def={w.defId}
             aria-hidden="true"
           >
-            <WeaponArt id={w.defId} height={aboard === "player" ? 22 : 16} />
+            <WeaponArt
+              id={w.defId}
+              height={aboard === "player" ? 22 : 16}
+              phase={(w.muzzle ?? 0) > 0 ? "fire" : ready ? "charged" : "idle"}
+            />
           </span>
         );
       })}
@@ -273,6 +277,7 @@ type DrawnGun = {
   mount: HullMount;
   powered: boolean;
   ready: boolean;
+  phase: "idle" | "charged" | "fire";
 };
 
 /**
@@ -300,6 +305,7 @@ function drawnGuns(
       mount: mounts[i]!,
       powered,
       ready: powered && weaponAccentHot(w),
+      phase: (w.muzzle ?? 0) > 0 ? "fire" : powered && weaponAccentHot(w) ? "charged" : "idle",
     });
   }
   if (artilleryAt >= 0 && artillery?.weapon) {
@@ -310,6 +316,7 @@ function drawnGuns(
       mount: mounts[artilleryAt]!,
       powered,
       ready: false,
+      phase: "idle",
     });
   }
   return guns;
@@ -380,7 +387,7 @@ function Hardpoints({
                   style={{ transform: `rotate(${pose.turn}deg) scaleY(${pose.flip ? -1 : 1})` }}
                 >
                   <span className="mount-gun" style={{ height, width: (height * 26) / 14 }}>
-                    <WeaponArt id={gun.defId} height={height} />
+                    <WeaponArt id={gun.defId} height={height} phase={gun.phase} />
                     <i data-muzzle="" />
                   </span>
                 </span>

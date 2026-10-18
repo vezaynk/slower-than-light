@@ -3,6 +3,7 @@ import packUrl from "../../../../../packages/campaign/base.xml?url";
 import { extractFtlDat } from "@stl/ftldat";
 import { packFromExtract } from "@stl/hyperspace";
 import { fetchPackXml, loadPack, overlayGap, parsePack } from "@stl/pack";
+import { rememberArchive } from "./media";
 import { rememberShipArt } from "./ship-art";
 
 type Listen = (ratio: number) => void;
@@ -58,6 +59,7 @@ async function install(source?: ArrayBuffer | Uint8Array): Promise<void> {
   report(0.95);
   const files = await extractFtlDat(bytes);
   rememberShipArt(files.assets);
+  await rememberArchive(files.documents, files.assets);
   loadPack(overlayGap(packFromExtract(files), parsePack(xml)), "base");
   report(1);
 }

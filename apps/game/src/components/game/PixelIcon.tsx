@@ -1,6 +1,8 @@
-/** One glyph from icons.ts, drawn in currentColor. */
+/** One glyph from icons.ts, drawn in currentColor. A room icon uses the archive mask when it is loaded. */
+import { useSyncExternalStore } from "react";
 import { ICON_ROWS, ICON_SIZE, type IconName } from "@/game/icons";
 import { pixelRuns } from "@/game/gear-look";
+import { archiveGeneration, roomIconUrl, subscribeArchive } from "@/game/pack/media";
 
 const RUNS = Object.fromEntries(
   Object.entries(ICON_ROWS).map(([name, rows]) => [name, pixelRuns(rows)]),
@@ -15,6 +17,30 @@ export function PixelIcon({
   size?: number;
   className?: string;
 }) {
+  const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
+  const mask = generation >= 0 ? roomIconUrl(name) : undefined;
+  if (mask) {
+    const room = /(^|\s)room-icon(\s|$)/.test(className ?? "");
+    return (
+      <span
+        className={className ? `px-icon ${className}` : "px-icon"}
+        aria-hidden="true"
+        style={{
+          display: "inline-block",
+          backgroundColor: "currentColor",
+          maskImage: `url(${mask})`,
+          WebkitMaskImage: `url(${mask})`,
+          maskSize: "contain",
+          WebkitMaskSize: "contain",
+          maskRepeat: "no-repeat",
+          WebkitMaskRepeat: "no-repeat",
+          maskPosition: "center",
+          WebkitMaskPosition: "center",
+          ...(room ? {} : { width: size, height: size }),
+        }}
+      />
+    );
+  }
   return (
     <svg
       className={className ? `px-icon ${className}` : "px-icon"}

@@ -2982,7 +2982,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       beamRooms: def.kind === "beam" ? rooms : undefined,
       beamLine: line,
       defId: w.defId,
-      weapon: def.kind === "beam" ? w.uid : undefined,
+      weapon: w.uid,
       own: from === "player" && def.kind === "bomb" && w.own === true ? true : undefined,
       offRoom: offRoom ? true : undefined,
       wait: i * def.gap,
@@ -4109,6 +4109,7 @@ function tickCharger(
   if (from === "enemy" && !w.target) w.target = enemyTarget(g, w);
   if (frozen) return;
   if ((w.loaded ?? 0) < max && def.charge > 0) w.charge += dt / (def.charge * mult);
+  if (releaseHeld(g, w)) return;
   // Cloaking: a cloaked enemy that holds fire keeps the charge. For a charger that means the bank grows.
   if (from === "enemy" && enemyHoldsFire(g)) {
     absorbCharger(w, max);
@@ -4164,7 +4165,45 @@ function tickCharger(
   if (!w.target && w.charge >= 1) w.charge = 1;
 }
 
+/**
+ * Hacking, "Overview" (Weapon Control): a pulse "drains the charge of all weapons on the ship and prevents them from
+ * being fired", and "a near frame-perfect hack can split a burst laser volley". The volley's shots still waiting to
+ * leave are held on their mount (WeaponInst.held). A flagship artillery pulse holds only the one gun it drains.
+ */
+function holdHackedVolleys(g: Game, ship: Ship, from: "player" | "enemy") {
+  const whole = hackHoldsWeapons(g, from);
+  for (const w of ship.weapons) {
+    if (!whole && !hackDrainsGun(g, from, w.defId)) continue;
+    const waiting = g.shots.filter((s) => s.weapon === w.uid && s.from === from && s.wait > 0);
+    if (waiting.length === 0) continue;
+    const ids = new Set(waiting.map((s) => s.id));
+    g.shots = g.shots.filter((s) => !ids.has(s.id));
+    w.held = [...(w.held ?? []), ...waiting];
+  }
+}
+
+/**
+ * Hacking, "Overview": the rest of a split volley leaves "after the hack, upon charge completion". That full charge
+ * is spent on the held shots, not on a new volley. They keep their spacing and their rooms. Returns true when they left.
+ */
+function releaseHeld(g: Game, w: WeaponInst): boolean {
+  const held = w.held;
+  if (!held?.length || w.charge < 1) return false;
+  const first = Math.min(...held.map((s) => s.wait));
+  for (const s of held) s.wait = Math.max(0, s.wait - first);
+  g.shots.push(...held);
+  delete w.held;
+  w.charge = 0;
+  const kind = held[0]?.kind;
+  sfx(
+    g,
+    kind === "flak" || kind === "laser" ? "laser" : kind === "bomb" ? "missile" : (kind ?? "laser"),
+  );
+  return true;
+}
+
 function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
+  holdHackedVolleys(g, ship, from);
   const mask = powerMask(ship, zoltanBars(g.crew, ship, from, "weapons"));
   const gunner = manningCrew(g, ship, from, "weapons");
   // Crew skills, Weapons skill: charge time ×0.9 / ×0.85 / ×0.8. Level 0 is already 10% faster.
@@ -4251,6 +4290,7 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
     const seconds =
       flagshipChargeSeconds(ship, w) ?? chainChargeSeconds(w.defId, w.chain ?? 0) ?? def.charge;
     w.charge = Math.min(1, w.charge + dt / (seconds * mult));
+    if (releaseHeld(g, w)) return;
     // Weapon Control, Overview: enemy guns always fire when charged. Player autofire is the all-weapons
     // setting, reversed per slot by Ctrl. INVENTED: a player gun aimed while charging fires the moment it is
     // ready, and launch() drops that room afterwards unless the slot is on autofire.

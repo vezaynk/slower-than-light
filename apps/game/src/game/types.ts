@@ -217,6 +217,13 @@ export type WeaponInst = {
    * each shot charges on its own, and a click fires however many are stored.
    */
   loaded?: number;
+  /**
+   * Hacking, "Overview" (Weapon Control): "a near frame-perfect hack can split a burst laser volley (e.g. Burst Laser I
+   * will shoot only 1 laser on the hack start and another one - after the hack, upon charge completion)".
+   * The shots of a volley still waiting to leave when the pulse lands. They leave the moment the charge refills,
+   * in place of a new volley. Absent means none.
+   */
+  held?: Shot[];
   enabled: boolean;
   autofire: boolean;
   /**
@@ -271,8 +278,9 @@ export type Shot = {
   /** Weapon id, when the shot was launched from a mount. Tests may set it. */
   defId?: string;
   /**
-   * WeaponInst uid of the mount that fired this beam. A beam keeps firing only while that mount stays powered.
-   * Absent (tests, and beams another module lands) is never cut off by a mount.
+   * WeaponInst uid of the mount that fired this shot. A beam keeps firing only while that mount stays powered,
+   * and a hacking pulse holds that mount's shots still waiting to leave (WeaponInst.held).
+   * Absent (drones, artillery, the environment, tests) belongs to no mount.
    */
   weapon?: string;
   /**

@@ -104,6 +104,8 @@ export function onPlayerJump(g: Game) {
     w.charge = 0;
     if (w.loaded) w.loaded = 0;
     if (w.chain) w.chain = 0;
+    // A volley held by a hack (WeaponInst.held) was aimed at the last beacon's ship.
+    delete w.held;
   }
   primeWeapons(g);
   // Augmentations, Drone Recovery Arm: defense drones, including a Hull Repair drone still out after 2 repairs,

@@ -284,7 +284,11 @@ function copyEvent(row: EventDef): EventDef {
     const kind = band.k;
     if (
       !id ||
-      (kind !== "scrap" && kind !== "fuel" && kind !== "missiles" && kind !== "parts" && kind !== "level") ||
+      (kind !== "scrap" &&
+        kind !== "fuel" &&
+        kind !== "missiles" &&
+        kind !== "parts" &&
+        kind !== "level") ||
       !Number.isInteger(band.lo) ||
       !Number.isInteger(band.hi) ||
       band.lo > band.hi
@@ -306,7 +310,11 @@ function copyEvent(row: EventDef): EventDef {
     const key = step.level == null ? `${id}:*` : `${id}:${step.level}`;
     if (tradeSeen.has(key)) continue;
     tradeSeen.add(key);
-    const next: { id: string; level?: number; lo: number; hi: number } = { id, lo: step.lo, hi: step.hi };
+    const next: { id: string; level?: number; lo: number; hi: number } = {
+      id,
+      lo: step.lo,
+      hi: step.hi,
+    };
     if (step.level != null) next.level = step.level;
     trades.push(next);
   }
@@ -403,6 +411,7 @@ function copyHull(row: HullDef): HullDef {
   };
   if (row.grid) copy.grid = copyGrid(row.grid);
   if (row.picture) copy.picture = { ...row.picture };
+  if (row.mounts) copy.mounts = row.mounts.map((mount) => ({ ...mount }));
   if (row.installs) copy.installs = row.installs.map((item) => ({ ...item }));
   if (row.crewCounts) copy.crewCounts = row.crewCounts.map((item) => ({ ...item }));
   if (row.drones) copy.drones = [...row.drones];

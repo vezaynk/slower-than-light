@@ -1,6 +1,8 @@
 import type { Element as XmlElement } from "@xmldom/xmldom";
-import type { HullDef, HullPicture, HullRoom } from "./types.ts";
+import type { HullDef, HullMount, HullMountSlide, HullPicture, HullRoom } from "./types.ts";
 import { readDocument } from "./parse.ts";
+
+const SLIDES = new Set<HullMountSlide>(["up", "down", "left", "right", "no"]);
 
 /** One archive room cell is 35 pixels. */
 export const ROOM_PX = 35;
@@ -56,13 +58,22 @@ export function pictureFrame(
   };
 }
 
-/** One hull drawing document: a single `<img>` box. */
-export function pictureXml(picture: HullPicture): string {
-  return (
-    `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<FTL><img x="${picture.x}" y="${picture.y}" w="${picture.w}" h="${picture.h}"/></FTL>\n`
-  );
+/** One hull drawing document: the `<img>` box, and weapon mounts when that drawing has them. */
+export function pictureXml(picture: HullPicture, mounts?: readonly HullMount[]): string {
+  const img = `<img x="${picture.x}" y="${picture.y}" w="${picture.w}" h="${picture.h}"/>`;
+  const hardpoints =
+    mounts && mounts.length > 0
+      ? `<weaponMounts>${mounts.map(mountTag).join("")}</weaponMounts>`
+      : "";
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<FTL>${img}${hardpoints}</FTL>\n`;
 }
+
+function mountTag(mount: HullMount): string {
+  const slide = mount.slide ? ` slide="${mount.slide}"` : "";
+  return `<mount x="${mount.x}" y="${mount.y}" rotate="${mount.rotate}" mirror="${mount.mirror}" gib="${mount.gib}"${slide}/>`;
+}
+
+type Drawing = { picture?: HullPicture; mounts?: HullMount[] };
 
 /**
  * The first `<img x y w h>` in each drawing file, keyed by the file stem.
@@ -73,44 +84,93 @@ export function readHullPictures(
   documents: readonly { path: string; xml: string }[],
 ): Map<string, HullPicture> {
   const pictures = new Map<string, HullPicture>();
-  for (const doc of documents) {
-    const stem = fileStem(doc.path);
-    if (!stem) continue;
-    let picture: HullPicture | undefined;
-    try {
-      picture = pictureIn(doc.xml);
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : String(err);
-      throw new Error(`${doc.path}: ${detail}`);
-    }
-    if (picture) pictures.set(stem, picture);
+  for (const [stem, drawing] of readDrawings(documents)) {
+    if (drawing.picture) pictures.set(stem, drawing.picture);
   }
   return pictures;
 }
 
-/** Copies a matching picture onto each hull. A hull with no drawing file is left as it was. */
+/** Copies a matching picture and its weapon mounts onto each hull. A hull with no drawing file is left as it was. */
 export function attachPictures(
   hulls: HullDef[] | undefined,
   documents: readonly { path: string; xml: string }[],
 ): void {
   if (!hulls?.length || documents.length === 0) return;
-  const pictures = readHullPictures(documents);
+  const drawings = readDrawings(documents);
   for (const hull of hulls) {
-    const picture = pictures.get(hull.layout);
-    if (!picture) continue;
-    hull.picture = { x: picture.x, y: picture.y, w: picture.w, h: picture.h };
+    const drawing = drawings.get(hull.layout);
+    if (!drawing) continue;
+    if (drawing.picture) hull.picture = { ...drawing.picture };
+    if (drawing.mounts) hull.mounts = drawing.mounts.map((mount) => ({ ...mount }));
   }
 }
 
-function pictureIn(xml: string): HullPicture | undefined {
-  const nodes = readDocument(xml).getElementsByTagName("img");
+function readDrawings(documents: readonly { path: string; xml: string }[]): Map<string, Drawing> {
+  const drawings = new Map<string, Drawing>();
+  for (const doc of documents) {
+    const stem = fileStem(doc.path);
+    if (!stem) continue;
+    let found: Drawing;
+    try {
+      found = drawingIn(doc.xml);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      throw new Error(`${doc.path}: ${detail}`);
+    }
+    const prev = drawings.get(stem);
+    const next: Drawing = { ...prev };
+    if (found.picture) next.picture = found.picture;
+    if (found.mounts) next.mounts = found.mounts;
+    if (next.picture || next.mounts) drawings.set(stem, next);
+  }
+  return drawings;
+}
+
+function drawingIn(xml: string): Drawing {
+  const doc = readDocument(xml);
+  const imgs = doc.getElementsByTagName("img");
+  let picture: HullPicture | undefined;
+  for (let i = 0; i < imgs.length; i++) {
+    const node = imgs.item(i);
+    if (!node) continue;
+    picture = boxOf(node);
+    if (picture) break;
+  }
+  const nodes = doc.getElementsByTagName("mount");
+  const mounts: HullMount[] = [];
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes.item(i);
     if (!node) continue;
-    const picture = boxOf(node);
-    if (picture) return picture;
+    const mount = mountOf(node);
+    if (mount) mounts.push(mount);
   }
+  return mounts.length > 0 ? { picture, mounts } : { picture };
+}
+
+function mountOf(node: XmlElement): HullMount | undefined {
+  const x = intAttr(node, "x");
+  const y = intAttr(node, "y");
+  const gib = intAttr(node, "gib");
+  const rotate = flagAttr(node, "rotate");
+  const mirror = flagAttr(node, "mirror");
+  if (x == null || y == null || gib == null || rotate == null || mirror == null) return undefined;
+  const mount: HullMount = { x, y, rotate, mirror, gib };
+  const slide = node.getAttribute("slide")?.trim();
+  if (slide && SLIDES.has(slide as HullMountSlide)) mount.slide = slide as HullMountSlide;
+  return mount;
+}
+
+function flagAttr(node: XmlElement, name: string): boolean | undefined {
+  const raw = node.getAttribute(name);
+  if (raw === "true") return true;
+  if (raw === "false") return false;
   return undefined;
+}
+
+function intAttr(node: XmlElement, name: string): number | undefined {
+  const value = numAttr(node, name);
+  if (value == null || !Number.isInteger(value)) return undefined;
+  return value;
 }
 
 function boxOf(node: XmlElement): HullPicture | undefined {

@@ -1,5 +1,6 @@
 import { pictureForRooms, pictureXml, readGrid, type HullPicture } from "@stl/pack";
 import { layoutFiles } from "./ship-layouts.ts";
+import { mountsFor } from "./weapon-mounts.ts";
 
 /** One drawing file for a layout that already has a room grid. */
 export type HullPictureFile = {
@@ -21,7 +22,7 @@ export function hullPictureFiles(): HullPictureFile[] {
     if (!picture) continue;
     files.push({
       path: `data/${stem}.xml`,
-      xml: pictureXml(picture),
+      xml: pictureXml(picture, mountsFor(stem)),
       stem,
       picture,
       rooms: grid.rooms.map((room) => ({ x: room.x, y: room.y, w: room.w, h: room.h })),

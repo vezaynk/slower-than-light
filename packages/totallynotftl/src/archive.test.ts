@@ -49,8 +49,16 @@ describe("totallynotftl.dat", () => {
     const sounds = readSounds(
       extracted.documents.find((doc) => doc.path === "data/sounds.xml")?.xml ?? "",
     );
-    assert.equal(sounds.cues.find((row) => row.name === "laser")?.file, "audio/waves/ui/laser.wav");
-    assert.equal(sounds.cues.find((row) => row.name === "laser")?.volume, 0.8);
+    // FTL's own cue names, so a real archive and the stand-in are read the same way.
+    assert.equal(
+      sounds.cues.find((row) => row.name === "lightLaser1")?.file,
+      "audio/waves/ui/lightLaser1.wav",
+    );
+    assert.equal(sounds.cues.find((row) => row.name === "lightLaser1")?.volume, 0.8);
+    assert.equal(
+      sounds.cues.find((row) => row.name === "laser"),
+      undefined,
+    );
     assert.equal(sounds.tracks[0]?.name, "civil");
     assert.equal(sounds.tracks[0]?.explore, "audio/music/civil_explore.ogg");
     assert.equal(sounds.tracks[0]?.combat, "audio/music/civil_combat.ogg");
@@ -59,20 +67,26 @@ describe("totallynotftl.dat", () => {
     for (const path of [
       "img/weapons/LASER_BURST_3.png",
       "img/weapons/laser_shot.png",
-      "img/people/human.png",
+      "img/people/human_base.png",
+      "img/people/human_layer1.png",
       "img/people/female_base.png",
+      "img/people/female_layer1.png",
       "img/people/green_destination.png",
       "img/ship/drones/COMBAT_1_base.png",
       "img/ship/drones/COMBAT_1_on.png",
-      "img/ship/drones/striker2_base.png",
+      "img/ship/drones/COMBAT_2_base.png",
       "img/ship/interior/pilot.png",
-      "audio/waves/ui/click.wav",
+      "audio/waves/ui/hitHull1.wav",
       "audio/music/civil_explore.ogg",
       "fonts/JustinFont8.font",
       "fonts/JustinFont10.font",
       "fonts/JustinFont12Bold.font",
     ]) {
       assert.ok(extracted.assets.has(path), path);
+    }
+    // A look key with a blueprint behind it has no files of its own.
+    for (const path of ["img/people/human.png", "img/ship/drones/striker2_base.png"]) {
+      assert.equal(extracted.assets.has(path), false, path);
     }
     for (const [path, blob] of extracted.assets) {
       const bytes = new Uint8Array(await blob.arrayBuffer());

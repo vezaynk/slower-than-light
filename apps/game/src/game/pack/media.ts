@@ -3,6 +3,7 @@
  * A missing file leaves the caller on the drawn fallback.
  */
 import {
+  crewDef,
   droneDef,
   mergeAnimations,
   mergeSounds,
@@ -11,8 +12,10 @@ import {
   type AnimClip,
   type AnimSheet,
   type BitmapFont,
+  type CrewColor,
   type WeaponAnim,
 } from "@stl/pack";
+import { droneBlueprintOf } from "../gear-look.ts";
 import { ttfFromBitmap } from "./bitmap-ttf.ts";
 
 export type WeaponPhase = "idle" | "charged" | "fire";
@@ -35,8 +38,12 @@ export type SoundClip = {
   blob: Blob;
   /** 0 to 1, from the archive volume attribute. */
   volume: number;
+  /** The archive's loop flag. Game sound effects are one-shots, so audio.ts plays it once. */
   loop: boolean;
 };
+
+/** One crew colour layer: the picture for this frame, and the colour it is multiplied by. */
+export type CrewLayer = { url: string; tint: CrewColor };
 
 const KIND_SHOT: Record<string, string> = {
   laser: "laser_shot",
@@ -126,7 +133,8 @@ export async function rememberArchive(
   }
   generation += 1;
   for (const listen of listeners) listen();
-  await installFonts();
+  // Font faces are built off the boot path. The stylesheet font shows until they are ready.
+  void installFonts(generation);
 }
 
 /** One frame of a weapon sheet. `weaponArt` names the anim; a stand-in uses the blueprint id. */
@@ -155,6 +163,12 @@ export function projectileFrame(
     if (frame) return frame;
   }
   return undefined;
+}
+
+/** A projectile frame's drawn size: its own proportions, with the longer side `long` pixels. */
+export function projectileBox(fw: number, fh: number, long: number): { w: number; h: number } {
+  const side = Math.max(1, fw, fh);
+  return { w: (long * Math.max(1, fw)) / side, h: (long * Math.max(1, fh)) / side };
 }
 
 /**
@@ -188,9 +202,13 @@ export function roomIconUrl(name: string): string | undefined {
   return urls.get(`img/ship/interior/${name}.png`.toLowerCase());
 }
 
-/** `img/ship/drones/<image>_<layer>.png`. The blueprint's droneImage wins over the id. */
+/**
+ * `img/ship/drones/<image>_<layer>.png`. The blueprint's droneImage wins over the id.
+ * A look key such as "striker2" is read through its blueprint (gear-look.ts DRONE_BLUEPRINT).
+ */
 export function droneLayerUrl(id: string, layer: "base" | "on" | "charged"): string | undefined {
-  const image = droneDef(id)?.image ?? id;
+  const blueprint = droneBlueprintOf(id);
+  const image = droneDef(blueprint)?.image ?? blueprint;
   return urls.get(`img/ship/drones/${image}_${layer}.png`.toLowerCase());
 }
 
@@ -229,11 +247,50 @@ export function loadedImage(url: string): HTMLImageElement | undefined {
 }
 
 /**
- * Paints one crew frame and replaces the white uniform pixels.
- * The same kin and uniform reuse the previous canvas.
+ * The colour layers over one crew frame, in draw order. xftl LivingCrew.drawImage: the base sheet is drawn
+ * untinted, then each `img/people/<race>_layerN.png` multiplied by a colour from that layer's `<colorList>`.
+ * The race blueprint's colorList says how many layers there are. Without one, every layer the archive holds counts.
+ * INFERRED: the last layer is the uniform, so it takes the crew's uniform colour. Each earlier layer takes its
+ * list's first colour. No page says which layer is clothing.
  */
-export function recolorCrew(image: CanvasImageSource, frame: SheetFrame, uniform: string): string {
-  const key = `${generation}|${frame.url}|${frame.sx}|${frame.sy}|${frame.fw}|${frame.fh}|${uniform}`;
+export function crewLayers(race: string, uniform: string): CrewLayer[] {
+  const colors = crewDef(race)?.colors;
+  const found: { url: string; n: number }[] = [];
+  const count = colors?.length ?? 9;
+  for (let n = 1; n <= count; n += 1) {
+    const url = urls.get(`img/people/${race}_layer${n}.png`.toLowerCase());
+    if (!url) {
+      if (colors) continue;
+      break;
+    }
+    found.push({ url, n });
+  }
+  const [r, g, b] = hexRgb(uniform);
+  const dress: CrewColor = { r, g, b, a: 1 };
+  return found.map(({ url, n }, index) => ({
+    url,
+    tint:
+      index === found.length - 1
+        ? dress
+        : (colors?.[n - 1]?.[0] ?? { r: 255, g: 255, b: 255, a: 1 }),
+  }));
+}
+
+/**
+ * Paints one crew frame: the base untinted, then each layer multiplied by its tint (crewLayers).
+ * `layers` pairs each loaded layer image with its tint, in draw order. The same frame and tints reuse the canvas.
+ */
+export function paintCrew(
+  base: CanvasImageSource,
+  layers: readonly { image: CanvasImageSource; layer: CrewLayer }[],
+  frame: SheetFrame,
+): string {
+  const tints = layers
+    .map(
+      ({ layer }) => `${layer.url}:${layer.tint.r},${layer.tint.g},${layer.tint.b},${layer.tint.a}`,
+    )
+    .join("|");
+  const key = `${generation}|${frame.url}|${frame.sx}|${frame.sy}|${frame.fw}|${frame.fh}|${tints}`;
   const hit = crewPaint.get(key);
   if (hit) return hit;
   if (typeof document === "undefined") return frame.url;
@@ -242,23 +299,32 @@ export function recolorCrew(image: CanvasImageSource, frame: SheetFrame, uniform
   canvas.height = frame.fh;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return frame.url;
-  ctx.drawImage(image, frame.sx, frame.sy, frame.fw, frame.fh, 0, 0, frame.fw, frame.fh);
-  const data = ctx.getImageData(0, 0, frame.fw, frame.fh);
-  const rgb = hexRgb(uniform);
-  for (let i = 0; i < data.data.length; i += 4) {
-    const r = data.data[i] ?? 0;
-    const g = data.data[i + 1] ?? 0;
-    const b = data.data[i + 2] ?? 0;
-    const a = data.data[i + 3] ?? 0;
-    if (a < 200 || r < 250 || g < 250 || b < 250) continue;
-    data.data[i] = rgb[0];
-    data.data[i + 1] = rgb[1];
-    data.data[i + 2] = rgb[2];
+  ctx.drawImage(base, frame.sx, frame.sy, frame.fw, frame.fh, 0, 0, frame.fw, frame.fh);
+  for (const { image, layer } of layers) {
+    const pane = document.createElement("canvas");
+    pane.width = frame.fw;
+    pane.height = frame.fh;
+    const paneCtx = pane.getContext("2d", { willReadFrequently: true });
+    if (!paneCtx) continue;
+    paneCtx.drawImage(image, frame.sx, frame.sy, frame.fw, frame.fh, 0, 0, frame.fw, frame.fh);
+    const data = paneCtx.getImageData(0, 0, frame.fw, frame.fh);
+    tintPixels(data.data, layer.tint);
+    paneCtx.putImageData(data, 0, 0);
+    ctx.drawImage(pane, 0, 0);
   }
-  ctx.putImageData(data, 0, 0);
   const url = canvas.toDataURL();
   crewPaint.set(key, url);
   return url;
+}
+
+/** Multiplies RGBA pixels by a tint: each channel by r/255, g/255, b/255, and alpha by a. */
+export function tintPixels(data: Uint8ClampedArray | Uint8Array, tint: CrewColor): void {
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = Math.round(((data[i] ?? 0) * tint.r) / 255);
+    data[i + 1] = Math.round(((data[i + 1] ?? 0) * tint.g) / 255);
+    data[i + 2] = Math.round(((data[i + 2] ?? 0) * tint.b) / 255);
+    data[i + 3] = Math.round((data[i + 3] ?? 0) * Math.min(1, Math.max(0, tint.a)));
+  }
 }
 
 function frameOf(
@@ -287,7 +353,7 @@ function frameOf(
   };
 }
 
-async function installFonts(): Promise<void> {
+async function installFonts(at: number): Promise<void> {
   if (typeof document === "undefined" || typeof FontFace === "undefined") return;
   const jobs: {
     path: string;
@@ -316,8 +382,9 @@ async function installFonts(): Promise<void> {
     if (!blob) continue;
     try {
       const font = readBitmapFont(new Uint8Array(await blob.arrayBuffer()));
-      if (!font) continue;
-      await applyFace(job.family, font, job.bold ?? false, job.variable, job.fallback);
+      // A newer archive replaced this one while the bytes were read. Its own pass installs its faces.
+      if (!font || at !== generation) continue;
+      await applyFace(at, job.family, font, job.bold ?? false, job.variable, job.fallback);
     } catch {
       // The stylesheet font stays.
     }
@@ -325,6 +392,7 @@ async function installFonts(): Promise<void> {
 }
 
 async function applyFace(
+  at: number,
   family: string,
   font: BitmapFont,
   bold: boolean,
@@ -336,6 +404,7 @@ async function applyFace(
   new Uint8Array(copy).set(bytes);
   const face = new FontFace(family, copy);
   await face.load();
+  if (at !== generation) return;
   document.fonts.add(face);
   faces.push(face);
   if (variable && fallback) {

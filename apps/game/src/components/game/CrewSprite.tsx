@@ -10,9 +10,10 @@ import type { KinId } from "@/game/extras/kin";
 import { pixelRuns, type PixelRun } from "@/game/gear-look";
 import {
   archiveGeneration,
+  crewLayers,
   crewPoseFrame,
   loadedImage,
-  recolorCrew,
+  paintCrew,
   subscribeArchive,
 } from "@/game/pack/media";
 import type { Crew } from "@/game/types";
@@ -102,27 +103,51 @@ export function CrewSprite({
       setSheets(null);
       return;
     }
-    const first = slices[0];
-    if (!first) return;
+    // The base sheet and the race's colour layers (crewLayers). Paint once every picture has loaded.
+    const layers = crewLayers(id, uniform);
+    const wanted = [
+      ...new Set([...slices.map((slice) => slice!.url), ...layers.map((l) => l.url)]),
+    ];
     let cancel = false;
-    const paint = (img: HTMLImageElement) => {
+    const paint = (loaded: Map<string, HTMLImageElement>) => {
       if (cancel) return;
-      setSheets(slices.map((slice) => recolorCrew(img, slice!, uniform)));
+      const tinted = layers.flatMap((layer) => {
+        const image = loaded.get(layer.url);
+        return image ? [{ image, layer }] : [];
+      });
+      setSheets(
+        slices.map((slice) => {
+          const base = loaded.get(slice!.url);
+          return base ? paintCrew(base, tinted, slice!) : slice!.url;
+        }),
+      );
     };
-    const ready = loadedImage(first.url);
-    if (ready) {
-      paint(ready);
+    const loaded = new Map<string, HTMLImageElement>();
+    for (const url of wanted) {
+      const ready = loadedImage(url);
+      if (ready) loaded.set(url, ready);
+    }
+    if (loaded.size === wanted.length) {
+      paint(loaded);
       return () => {
         cancel = true;
       };
     }
     setSheets(null);
-    const img = new Image();
-    img.onload = () => paint(img);
-    img.onerror = () => {
-      if (!cancel) setSheets(null);
-    };
-    img.src = first.url;
+    let pending = wanted.length - loaded.size;
+    for (const url of wanted) {
+      if (loaded.has(url)) continue;
+      const img = new Image();
+      img.onload = () => {
+        loaded.set(url, img);
+        pending -= 1;
+        if (pending === 0) paint(loaded);
+      };
+      img.onerror = () => {
+        if (!cancel) setSheets(null);
+      };
+      img.src = url;
+    }
     return () => {
       cancel = true;
     };

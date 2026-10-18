@@ -3,7 +3,8 @@
  * A later entry with the same name replaces the earlier one.
  * `<time>` is how long the clip plays. It is not the gap between shots.
  */
-import { DOMParser, Node, type Element as XmlElement } from "@xmldom/xmldom";
+import type { Element as XmlElement } from "@xmldom/xmldom";
+import { attr as rawAttr, child, elements, ownText as rawText, readDocument } from "./parse.ts";
 
 export type AnimSheet = {
   name: string;
@@ -44,13 +45,13 @@ export type AnimationSet = {
 };
 
 export function readAnimations(xml: string): AnimationSet {
-  const doc = new DOMParser().parseFromString(xml, "text/xml");
+  const doc = readDocument(xml);
   const sheets = new Map<string, AnimSheet>();
   const clips = new Map<string, AnimClip>();
   const weapons = new Map<string, WeaponAnim>();
   const root = doc.documentElement;
   if (!root) return { sheets: [], clips: [], weapons: [] };
-  for (const node of children(root)) {
+  for (const node of elements(root)) {
     const name = attr(node, "name");
     if (!name) continue;
     if (node.tagName === "animSheet") {
@@ -133,29 +134,8 @@ function readWeaponAnim(node: XmlElement, name: string): WeaponAnim | undefined 
   };
 }
 
-function children(node: XmlElement): XmlElement[] {
-  const out: XmlElement[] = [];
-  for (let i = 0; i < node.childNodes.length; i += 1) {
-    const item = node.childNodes.item(i);
-    if (item && item.nodeType === Node.ELEMENT_NODE) out.push(item as XmlElement);
-  }
-  return out;
-}
-
-function child(node: XmlElement, tag: string): XmlElement | undefined {
-  return children(node).find((item) => item.tagName === tag);
-}
-
 function ownText(node: XmlElement): string {
-  let text = "";
-  for (let i = 0; i < node.childNodes.length; i += 1) {
-    const item = node.childNodes.item(i);
-    if (!item) continue;
-    if (item.nodeType === Node.TEXT_NODE || item.nodeType === Node.CDATA_SECTION_NODE) {
-      text += item.nodeValue ?? "";
-    }
-  }
-  return text.trim();
+  return rawText(node).trim();
 }
 
 function textChild(node: XmlElement, tag: string): string | undefined {
@@ -165,8 +145,8 @@ function textChild(node: XmlElement, tag: string): string | undefined {
 }
 
 function attr(node: XmlElement, name: string): string | undefined {
-  const value = node.getAttribute(name);
-  return value == null || value.trim() === "" ? undefined : value.trim();
+  const value = rawAttr(node, name)?.trim();
+  return value ? value : undefined;
 }
 
 function intAttr(node: XmlElement, name: string): number | undefined {

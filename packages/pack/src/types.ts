@@ -60,7 +60,15 @@ export type CrewDef = {
   detail?: string;
   /** Hire price from an archive crewBlueprint. Absent on a stats-only row. */
   cost?: number;
+  /**
+   * `<colorList>` from an archive crewBlueprint: one list per `<layer>`, in order. Layer N tints
+   * `img/people/<id>_layerN.png`, drawn over the untinted base sheet. Absent on a stats-only row.
+   */
+  colors?: CrewColor[][];
 };
+
+/** One `<color>` of a crew colour layer. r, g, b are 0 to 255; a is 0 to 1. */
+export type CrewColor = { r: number; g: number; b: number; a: number };
 
 /** A store listing. Effect code still switches on the campaign ids. */
 export type AugmentDef = {

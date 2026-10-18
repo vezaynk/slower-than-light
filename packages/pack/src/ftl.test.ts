@@ -368,6 +368,30 @@ describe("packFromFtl", () => {
     );
   });
 
+  it("reads a crew colorList, one list per layer", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/blueprints.xml",
+        xml: `<FTL>
+  <crewBlueprint name="human">
+    <title>Human</title>
+    <colorList>
+      <layer><color r="255" g="214" b="170" a="1"/><color r="141" g="85" b="36" a="1"/></layer>
+      <layer><color r="60" g="90" b="200" a="0.5"/><color r="bad" g="0" b="0" a="1"/></layer>
+    </colorList>
+  </crewBlueprint>
+</FTL>`,
+      },
+    ]);
+    assert.deepEqual(pack.crew?.find((row) => row.id === "human")?.colors, [
+      [
+        { r: 255, g: 214, b: 170, a: 1 },
+        { r: 141, g: 85, b: 36, a: 1 },
+      ],
+      [{ r: 60, g: 90, b: 200, a: 0.5 }],
+    ]);
+  });
+
   it("lets a later file replace a blueprint with the same id", () => {
     const pack = packFromFtl([
       { path: "data/blueprints.xml", xml: BASE },

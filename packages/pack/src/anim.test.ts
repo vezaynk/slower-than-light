@@ -46,4 +46,8 @@ describe("animations", () => {
     assert.equal(set.clips[0]?.time, 0.4);
     assert.equal(set.weapons[0]?.length, 2);
   });
+
+  it("fails on a document that is not well-formed, like the other archive files", () => {
+    assert.throws(() => readAnimations("<FTL><broken></FTL>"), /not well-formed/);
+  });
 });

@@ -64,7 +64,9 @@ let baseEmpties: EmptyBeaconDef[] = [];
 let baseFactions: FactionSurrender[] = [];
 
 function copyCrew(row: CrewDef): CrewDef {
-  return { ...row };
+  const copy = { ...row };
+  if (row.colors) copy.colors = row.colors.map((layer) => layer.map((color) => ({ ...color })));
+  return copy;
 }
 
 function copyWeapon(row: WeaponBlueprint): WeaponBlueprint {

@@ -37,4 +37,8 @@ describe("sounds", () => {
     assert.equal(set.cues.find((cue) => cue.name === "click")?.volume, 0.2);
     assert.equal(set.tracks[0]?.name, "civil");
   });
+
+  it("fails on a document that is not well-formed, like the other archive files", () => {
+    assert.throws(() => readSounds("<FTL><broken></FTL>"), /not well-formed/);
+  });
 });

@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import "./pack/base.ts";
+import { cueFor } from "./audio.ts";
 import {
   archiveGeneration,
+  crewLayers,
   crewPoseFrame,
+  projectileBox,
+  tintPixels,
   musicTrack,
   projectileFrame,
   rememberArchive,
@@ -109,5 +113,56 @@ describe("archive media", () => {
       "blob:media-3",
       "blob:media-4",
     ]);
+  });
+
+  it("reads a real archive's names: drone blueprints, crew layers, and FTL cue names", async () => {
+    URL.createObjectURL = () => {
+      const url = `blob:media-${created.length}`;
+      created.push(url);
+      return url;
+    };
+    URL.revokeObjectURL = () => {};
+    await rememberArchive(
+      [
+        {
+          path: "data/sounds.xml",
+          xml: `<sounds>\n<lightLaser2 volume="5">weapons/lightLaser2.wav</lightLaser2>\n<hitHull1 volume="10" loop="true">hits/hitHull1.wav</hitHull1>\n</sounds>`,
+        },
+      ],
+      new Map([
+        ["img/ship/drones/COMBAT_2_base.png", new Blob([Uint8Array.of(1)])],
+        ["img/people/human_layer1.png", new Blob([Uint8Array.of(2)])],
+        ["img/people/human_layer2.png", new Blob([Uint8Array.of(3)])],
+        ["audio/waves/weapons/lightLaser2.wav", new Blob([Uint8Array.of(4)])],
+        ["audio/waves/hits/hitHull1.wav", new Blob([Uint8Array.of(5)])],
+      ]),
+    );
+    // "striker2" is the game's look for Combat Drone Mark II. Its picture is the blueprint's.
+    assert.equal(droneLayerUrl("striker2", "base"), "blob:media-0");
+    assert.equal(droneLayerUrl("COMBAT_2", "base"), "blob:media-0");
+
+    // The catalog human has no colorList, so every layer the archive holds counts. The last is the uniform.
+    const layers = crewLayers("human", "#336699");
+    assert.deepEqual(
+      layers.map((layer) => layer.url),
+      ["blob:media-1", "blob:media-2"],
+    );
+    assert.deepEqual(layers[0]?.tint, { r: 255, g: 255, b: 255, a: 1 });
+    assert.deepEqual(layers[1]?.tint, { r: 51, g: 102, b: 153, a: 1 });
+    assert.deepEqual(crewLayers("engi", "#336699"), []);
+
+    // The game's "laser" plays FTL's lightLaser family; "click" has no FTL cue.
+    assert.equal(cueFor("laser")?.name, "lightLaser2");
+    assert.equal(cueFor("hit")?.name, "hitHull1");
+    assert.equal(cueFor("hit")?.loop, true);
+    assert.equal(cueFor("click"), undefined);
+  });
+
+  it("multiplies a layer by its tint, and keeps a projectile's proportions", () => {
+    const pixels = Uint8ClampedArray.of(255, 255, 255, 255, 128, 64, 0, 200);
+    tintPixels(pixels, { r: 51, g: 102, b: 153, a: 0.5 });
+    assert.deepEqual([...pixels], [51, 102, 153, 128, 26, 26, 0, 100]);
+    assert.deepEqual(projectileBox(40, 10, 18), { w: 18, h: 4.5 });
+    assert.deepEqual(projectileBox(8, 8, 16), { w: 16, h: 16 });
   });
 });

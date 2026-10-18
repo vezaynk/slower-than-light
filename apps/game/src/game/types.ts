@@ -271,6 +271,27 @@ export type Shot = {
   /** Weapon id, when the shot was launched from a mount. Tests may set it. */
   defId?: string;
   /**
+   * WeaponInst uid of the mount that fired this beam. A beam keeps firing only while that mount stays powered.
+   * Absent (tests, and beams another module lands) is never cut off by a mount.
+   */
+  weapon?: string;
+  /**
+   * The module that lands this beam's swipe (registerBeamTicker in sim.ts), e.g. "drone".
+   * Absent means a mount beam, which sim.ts lands itself.
+   */
+  beamOwner?: string;
+  /** Beam rooms already resolved, struck or passed under a Zoltan Shield. Absent means none yet. */
+  beamHit?: string[];
+  /** Beam, "Beams vs Zoltan Shields": how many of the 33% / 80% instances have passed. Absent means 0. */
+  beamZoltan?: number;
+  /**
+   * Swipe fraction where shields blocked the beam. From then on it deals nothing and ends on the shield bubble.
+   * Absent while the beam still reaches the hull.
+   */
+  beamCut?: number;
+  /** The bubble that stopped the beam. Absent means the regular shields. */
+  beamCutBy?: "zoltan";
+  /**
    * Bomb (Weapons), lead: this bomb was aimed at the shooter's own hull.
    * Absent means the other hull, which is every non-bomb shot.
    */
@@ -332,8 +353,13 @@ export type Kit = {
   want?: number;
   /** System Repair drone's room. Absent until that crew drone is deployed. */
   room?: string;
-  /** Rooms the System Repair drone has not entered yet. */
+  /** Rooms the System Repair drone has not entered yet. The Artillery Beam's swipe rooms while it fires. */
   path?: string[];
+  /**
+   * Artillery Beam swipe in progress: rooms already struck or passed under a Zoltan Shield,
+   * and how many of the 33% / 80% Zoltan ticks have passed. Absent while no swipe is running.
+   */
+  swipe?: { hit: string[]; ticks: number; landed?: boolean };
   /** Progress toward the next room, from 0 to 1. */
   move?: number;
   /**
@@ -690,6 +716,8 @@ export type FloatText = {
   life: number;
   x: number;
   y: number;
+  /** Printed by a beam while it is still firing. The effects layer does not pair it with a landing shot. */
+  beam?: boolean;
 };
 
 export type GameEvent = {

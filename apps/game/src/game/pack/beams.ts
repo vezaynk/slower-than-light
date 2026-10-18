@@ -1,19 +1,11 @@
 import { weaponDef } from "@stl/pack";
-import { beamBodyTiles, beamSwipeSeconds, beamTileLength } from "../wiki/weapons-beam.ts";
+import { beamSwipeSeconds, beamTileLength } from "../wiki/weapons-beam.ts";
 
 /** Aiming length. A blueprint length wins. Artillery stays off this path. */
 export function aimedBeamTiles(defId: string | undefined): number | null {
   const packed = defId ? weaponDef(defId)?.lengthTiles : undefined;
   if (packed != null) return packed;
   return beamTileLength(defId);
-}
-
-/** Drawn stroke length, including the Artillery Beam's fixed pixel length. */
-export function drawnBeamTiles(defId: string | undefined): number | null {
-  if (defId === "artillery-beam") return beamBodyTiles(defId);
-  const packed = defId ? weaponDef(defId)?.lengthTiles : undefined;
-  if (packed != null) return packed;
-  return beamBodyTiles(defId);
 }
 
 /**

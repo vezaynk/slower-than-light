@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { ENEMY_RUNNABLE, SCHEMATIC_POWER, enemyParts, rollDrones } from "../enemy-gen.ts";
-import { createGame, startCombat, step } from "../sim.ts";
+import { createGame, startCombat, step, stepShots } from "../sim.ts";
 import type { DroneUnit, Game, Ship } from "../types.ts";
 import { ENEMY_DRONES } from "../wiki/enemy-ships.ts";
 import {
@@ -353,6 +353,7 @@ describe("enemy offensive drones", () => {
       // One orbit leg. Beam speed is not this wait.
       pinLeg(unit, beamSpeed(kind));
       tickSwarm(g, unit.left ?? 0);
+      stepShots(g, 0);
       assert.equal(g.player.zoltan, left, kind);
       assert.equal(g.player.hull, hull, kind);
     };

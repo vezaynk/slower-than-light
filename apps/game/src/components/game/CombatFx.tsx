@@ -3,9 +3,10 @@
  * impacts, and the MISS / SHIELD / damage floaters. The target panel is a second camera.
  * A player shot leaves its view going straight ahead. An enemy shot leaves the preview
  * going up. The arrival at the other ship uses the fight clock's bearing. Enemy bolts
- * start outside the screen; player bolts enter the preview frame. A beam does not travel
- * that way: the stroke stays on the hull it hits for the whole swipe. One canvas sits under
- * that panel; the other sits over both ships.
+ * start outside the screen; player bolts enter the preview frame. A beam does not travel:
+ * per the user it fires for the whole swipe, from the weapon tip to the one point it hits, on the
+ * same two legs, and that point walks the aimed line. One canvas sits under that panel; the other
+ * sits over both ships.
  * The effect runs its own animation frame and reads the game store directly, so projectiles
  * move at display rate while the React UI keeps its slower refresh. Positions come from the
  * rooms and mounts on screen (data-ship, data-room, data-mount), so layout changes need no edits here.
@@ -14,7 +15,7 @@
  */
 import { useEffect, useRef } from "react";
 import { halted, shieldChargeFraction } from "@/game/sim";
-import { bubbleRoom, readShipScale, struckPad, zoltanPad } from "./shield-bubble";
+import { bubbleCrossing, bubbleRoom, readShipScale, struckPad, zoltanPad } from "./shield-bubble";
 import { animSpeed } from "./speed";
 import {
   DRONE_LOOKS,
@@ -40,8 +41,6 @@ import {
   missVelocity,
   shotFliesPast,
 } from "./miss-flight";
-import { beamStroke } from "@/game/beam-line";
-import { drawnBeamTiles } from "@/game/pack/beams";
 import "@/game/pack/base";
 import { pageRect } from "./turn";
 
@@ -77,8 +76,8 @@ type Mark = {
   width?: number;
   ring?: boolean;
 };
-/** Beam afterimage: the stroke from the last frame it was drawn. */
-type Scorch = { a: Pt; b: Pt; life: number; max: number; color: string };
+/** Beam trail: the stretch the hit point crossed in one frame, fading out. */
+type Trail = { a: Pt; b: Pt; life: number; max: number; color: string; scale: number };
 /** Short white-hot laser streak along the shot angle. */
 type Streak = {
   x: number;
@@ -108,7 +107,6 @@ type Seen = {
   /** Hull the shot is aimed at. Floaters use the same split (x > 50 is the player). */
   side: "player" | "enemy";
   roomId: string;
-  seg?: { a: Pt; b: Pt };
   /** Environmental Hazards, Asteroid Field: an env laser is a rock, not a bolt. */
   rock?: boolean;
   /** Room point the inbound leg was flying toward. */
@@ -122,6 +120,8 @@ type Seen = {
   /** Camera a miss keeps flying in. */
   carryLayer: FxLayer;
   spin: number;
+  /** A beam that shields stopped. It ends on the bubble, so it leaves no hull spark. */
+  cut?: boolean;
 };
 /** A shot that already missed and is still crossing the camera. */
 type Flyby = {
@@ -225,9 +225,6 @@ const ENEMY_DRONE_KEY: Record<string, DroneKey> = {
 function enemyDroneKey(unit: DroneUnit): DroneKey | null {
   return ENEMY_DRONE_KEY[unit.kind] ?? droneKeyOf(unit.kind);
 }
-
-/** Enemy drone kinds whose swipe drains a Zoltan Shield (swarm.ts tickEnemyBeam, SWIPE_ZOLTAN). */
-const SWIPE_KINDS = new Set(["COMBAT_BEAM", "COMBAT_BEAM_2", "fire"]);
 
 /** A @theme colour token from styles.css, read once. The canvas cannot use var() directly. */
 const tokens = new Map<string, string>();
@@ -394,7 +391,11 @@ export function CombatFx() {
     const texts: Text[] = [];
     const rings: Ring[] = [];
     const marks: Mark[] = [];
-    const scorches: Scorch[] = [];
+    const trails: Trail[] = [];
+    /** Last hit point per firing beam, so each frame's trail joins the one before. */
+    const beamHit = new Map<string, Pt>();
+    /** Beams whose shield block already flashed the bubble. */
+    const beamCutSeen = new Set<string>();
     const streaks: Streak[] = [];
     const seen = new Map<string, Seen>();
     const seenFloaters = new Set<string>();
@@ -407,8 +408,6 @@ export function CombatFx() {
     const driftSeen = new Set<string>();
     /** Shot progress as of the last sim tick, to smooth between 30 Hz ticks. */
     const tickT = new Map<string, { t: number; at: number }>();
-    /** Player Zoltan Shield last frame, to spot an enemy beam drone draining it. */
-    let lastZoltan = 0;
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
@@ -793,59 +792,6 @@ export function CombatFx() {
         }
       }
 
-      // Zoltan Shield vs enemy beam drones. Zoltan Shield wiki: "Anti-Ship Beam Drone I and Anti-Ship Fire Drone deal
-      // 1 damage, while Anti-Ship Beam Drone II deals 2 damage" to it. swarm.ts tickEnemyBeam drops g.player.zoltan on a
-      // swipe and resets that drone's `fired`; when both happen this frame, draw the swipe stopping on the bubble and
-      // flash the shield ring in Zoltan green.
-      const zoltanNow = g.player.zoltan ?? 0;
-      if (g.phase === "combat" && zoltanNow < lastZoltan) {
-        const swiper = (g.enemy?.kits.drones?.drones ?? []).find(
-          (u) => u.alive && SWIPE_KINDS.has(u.kind) && (u.fired ?? 99) < 0.25,
-        );
-        const target = hull("player");
-        if (swiper && target) {
-          const green = token("--color-ok", "#3ee56a");
-          const hullNode = host.querySelector('.hull[data-ship="player"]');
-          const scale = readShipScale(hullNode);
-          const pad = zoltanPad(
-            bubbleRoom(hullNode, target, box),
-            g.player.shieldNow,
-            shieldChargeFraction(g, g.player, "player") != null,
-            scale,
-          );
-          rings.push({ box: target, life: 0.45, color: green, pad, scale });
-          const p = enemyDroneAt.get(swiper.id);
-          if (p) {
-            const cx = target.x + target.w / 2;
-            const cy = target.y + target.h / 2;
-            const a = Math.atan2(p.y - cy, p.x - cx);
-            const edge = {
-              x: cx + Math.cos(a) * (target.w / 2 + pad),
-              y: cy + Math.sin(a) * (target.h / 2 + pad),
-            };
-            ctx.strokeStyle = green;
-            ctx.lineWidth = 4 * scale;
-            line(ctx, p, edge);
-            // burst() is declared below; the same spray inline.
-            for (let i = 0; i < 8; i++) {
-              const ang = Math.random() * Math.PI * 2;
-              const v = 70 * (0.3 + Math.random() * 0.7);
-              sparks.push({
-                x: edge.x,
-                y: edge.y,
-                vx: Math.cos(ang) * v,
-                vy: Math.sin(ang) * v,
-                life: 0.5,
-                max: 0.5,
-                color: green,
-                size: 2,
-              });
-            }
-          }
-        }
-      }
-      lastZoltan = zoltanNow;
-
       const panelBox = box(host.querySelector(".target-panel"));
       const stageBox = box(host.querySelector(".stage-slot"));
 
@@ -860,7 +806,14 @@ export function CombatFx() {
           return { x: right, y: target.y + target.h * hash(shot.id) };
         }
         const side = shot.from;
-        if (shot.defId) {
+        // Drone shots leave from that drone, whatever their defId.
+        if (shot.label?.startsWith(DRONE_LABEL)) {
+          const drone = enemyDroneAt.get(shot.label.slice(DRONE_LABEL.length));
+          if (drone) return drone;
+        } else if (side === "player" && (shot.label === "swarm-ready" || shot.label === "drones")) {
+          const drone = [...droneAt.entries()].find(([k]) => OUTBOUND.has(k))?.[1];
+          if (drone) return drone;
+        } else if (shot.defId) {
           const mounts = host.querySelectorAll(
             `.hull[data-ship="${side}"] [data-def="${CSS.escape(shot.defId)}"]`,
           );
@@ -876,13 +829,6 @@ export function CombatFx() {
                   ? { x: m.x + m.w, y: m.y + m.h / 2 }
                   : { x: m.x + m.w / 2, y: m.y };
           }
-        } else if (shot.label?.startsWith(DRONE_LABEL)) {
-          // Enemy drone shots leave from that drone.
-          const drone = enemyDroneAt.get(shot.label.slice(DRONE_LABEL.length));
-          if (drone) return drone;
-        } else if (side === "player" && (shot.label === "swarm-ready" || shot.label === "drones")) {
-          const drone = [...droneAt.entries()].find(([k]) => OUTBOUND.has(k))?.[1];
-          if (drone) return drone;
         }
         const own = hull(side);
         if (!own) return null;
@@ -933,6 +879,14 @@ export function CombatFx() {
       };
       const paintBeam = (layer: Layer, a: Pt, b: Pt, color: string, scale = 1) => {
         drawOn(layer, (c) => {
+          c.save();
+          // A beam in the main view stays out of the target panel, so it never crosses the enemy hull.
+          if (layer === "world" && panelBox) {
+            c.beginPath();
+            c.rect(0, 0, w, h);
+            c.rect(panelBox.x, panelBox.y, panelBox.w, panelBox.h);
+            c.clip("evenodd");
+          }
           c.lineCap = "square";
           c.strokeStyle = color;
           c.globalAlpha = 0.35;
@@ -944,6 +898,7 @@ export function CombatFx() {
           c.strokeStyle = "#ffffff";
           c.lineWidth = 1.5 * scale;
           line(c, a, b);
+          c.restore();
         });
       };
 
@@ -957,7 +912,9 @@ export function CombatFx() {
         const t = Math.min(1, shot.t + (live ? Math.min(since, 1 / 30) / shot.duration : 0));
         const color = shot.from === "env" ? "#c8b49a" : weaponPalette(shot.defId).glow;
         if (shot.kind === "beam") {
-          // The swipe is the shot. The leading edge walks the aim, and the stroke stays the printed length behind it.
+          // Per the user: the beam fires for the whole swipe, from the weapon tip to the one point it hits.
+          // That point walks the aimed line and leaves a short fading trail. A shield block ends the beam on
+          // the bubble and the point stops there.
           const side = targetSide(shot);
           const lineEnds = shot.beamLine;
           let a = lineEnds ? tileOnHull(side, lineEnds.a) : null;
@@ -973,50 +930,142 @@ export function CombatFx() {
             a = pts[0] ?? null;
             b = pts[pts.length - 1] ?? a;
           }
-          const tileDist = lineEnds
-            ? Math.hypot(lineEnds.b.x - lineEnds.a.x, lineEnds.b.y - lineEnds.a.y)
-            : 0;
-          // A one-room swipe has no second point. Cross that room so the long stroke still has a direction.
-          if (a && b && !(tileDist > 0.05) && Math.hypot(b.x - a.x, b.y - a.y) < 1) {
-            const r = room(side, shot.targetRoom);
-            if (r && r.w > 1) {
-              a = { x: r.x, y: r.y + r.h / 2 };
-              b = { x: r.x + r.w, y: r.y + r.h / 2 };
+          const from = muzzle(shot);
+          const target = hull(side);
+          if (!a || !b || !from || !target) continue;
+          const hullEl = host.querySelector(`.hull[data-ship="${side}"]`);
+          const scale = readShipScale(hullEl);
+          const cut = shot.beamCut;
+          const k = cut ?? t;
+          const hit = { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k };
+          // A crossing beam leaves its own camera the way a bolt does, and reaches the target from the
+          // fight-clock bearing, starting off that camera. Drone and own-hull beams are one leg.
+          let source = from;
+          let inLayer: Layer = side === "enemy" && panelBox ? "panel" : "over";
+          let outLayer: Layer = inLayer;
+          let outScale = scale;
+          if (crossesCameras(shot) && panelBox && stageBox) {
+            const out: Layer = shot.from === "player" ? "world" : "panel";
+            outLayer = out;
+            outScale = shot.from === "player" ? 1 : foeScale;
+            const exit =
+              shot.from === "player" ? { x: w + 48, y: from.y } : { x: from.x, y: -OFFSCREEN_PX };
+            paintBeam(out, from, exit, color, shot.from === "player" ? 1 : foeScale);
+            const bounds =
+              shot.from === "player"
+                ? panelBox
+                : {
+                    x: -OFFSCREEN_PX,
+                    y: -OFFSCREEN_PX,
+                    w: w + OFFSCREEN_PX * 2,
+                    h: h + OFFSCREEN_PX * 2,
+                  };
+            const entry = entryPoint(a, approachAngle(g.time, shot), bounds);
+            const ux = entry.x - a.x;
+            const uy = entry.y - a.y;
+            const len = Math.hypot(ux, uy) || 1;
+            source = { x: entry.x + (ux / len) * 48, y: entry.y + (uy / len) * 48 };
+            inLayer = shot.from === "player" ? "panel" : "world";
+          }
+          let end = hit;
+          if (cut != null) {
+            const ship = side === "player" ? g.player : g.enemy;
+            const frame = bubbleRoom(hullEl, target, box);
+            const zoltan = shot.beamCutBy === "zoltan";
+            // A Zoltan Shield takes the slot outside the live layers. A regular block ends on the outer live layer.
+            const pad = zoltan
+              ? zoltanPad(
+                  frame,
+                  ship?.shieldNow ?? 0,
+                  !!ship && shieldChargeFraction(g, ship, side) != null,
+                  scale,
+                )
+              : struckPad(frame, Math.max(0, (ship?.shieldNow ?? 1) - 1), false, scale);
+            const spark = zoltan ? token("--color-ok", "#3ee56a") : "#6cc4ff";
+            const center = { x: target.x + target.w / 2, y: target.y + target.h / 2 };
+            end =
+              bubbleCrossing(source, hit, center, target.w / 2 + pad, target.h / 2 + pad) ?? hit;
+            if (!beamCutSeen.has(shot.id)) {
+              beamCutSeen.add(shot.id);
+              rings.push({
+                box: target,
+                life: 0.45,
+                pad,
+                scale,
+                color: zoltan ? spark : undefined,
+              });
             }
+            if (live && Math.random() < 0.5) burst(end, spark, 1, 50);
           }
-          if (a && b) {
-            const hullEl = host.querySelector(`.hull[data-ship="${side}"]`);
-            const tile = hullEl
-              ? parseFloat(getComputedStyle(hullEl).getPropertyValue("--tile")) || 0
-              : 0;
-            const screenSpan = Math.hypot(b.x - a.x, b.y - a.y);
-            const pxPerTile = tileDist > 0.05 ? screenSpan / tileDist : tile;
-            const body = drawnBeamTiles(shot.defId);
-            const lengthPx =
-              body != null && pxPerTile > 0 ? body * pxPerTile : Math.max(screenSpan, tile || 24);
-            const stroke = beamStroke(a, b, t, lengthPx);
-            const beamLayer: Layer = side === "enemy" && panelBox ? "panel" : "over";
-            const ang = Math.atan2(stroke.head.y - stroke.tail.y, stroke.head.x - stroke.tail.x);
-            // A finished swipe stays on the hull. Beams never continue as a bolt.
-            const rec: Seen = {
-              at: stroke.head,
-              color,
-              kind: "beam",
-              ang,
-              side,
-              roomId: shot.targetRoom,
-              seg: { a: stroke.tail, b: stroke.head },
-              aim: b,
-              approachAng: ang,
-              speed: 0,
-              onArrival: true,
-              carryLayer: beamLayer,
-              spin: hash(shot.id),
-            };
-            seen.set(shot.id, rec);
-            paintBeam(beamLayer, stroke.tail, stroke.head, color, readShipScale(hullEl));
-            if (Math.random() < 0.6) burst(stroke.head, color, 1, 60);
-          }
+          paintBeam(inLayer, source, end, color, inLayer === "world" ? 1 : scale);
+          drawOn(outLayer, (c) => {
+            // Muzzle flare at the weapon tip.
+            const s = outScale * 3;
+            c.globalAlpha = 0.5;
+            c.fillStyle = color;
+            c.fillRect(
+              Math.round(from.x - s * 1.5),
+              Math.round(from.y - s * 1.5),
+              Math.round(s * 3),
+              Math.round(s * 3),
+            );
+            c.globalAlpha = 1;
+            c.fillStyle = "#ffffff";
+            c.fillRect(
+              Math.round(from.x - s / 2),
+              Math.round(from.y - s / 2),
+              Math.round(s),
+              Math.round(s),
+            );
+          });
+          if (cut == null) {
+            const prev = beamHit.get(shot.id);
+            if (live && prev && (prev.x !== hit.x || prev.y !== hit.y))
+              trails.push({ a: prev, b: hit, life: 0.3, max: 0.3, color, scale });
+            beamHit.set(shot.id, hit);
+            drawOn(inLayer, (c) => {
+              const r = 4 * scale;
+              c.globalAlpha = 0.45;
+              c.fillStyle = color;
+              c.fillRect(
+                Math.round(hit.x - r * 1.5),
+                Math.round(hit.y - r * 1.5),
+                Math.round(r * 3),
+                Math.round(r * 3),
+              );
+              c.globalAlpha = 1;
+              c.fillRect(
+                Math.round(hit.x - r),
+                Math.round(hit.y - r),
+                Math.round(r * 2),
+                Math.round(r * 2),
+              );
+              c.fillStyle = "#ffffff";
+              c.fillRect(
+                Math.round(hit.x - r / 2),
+                Math.round(hit.y - r / 2),
+                Math.round(r),
+                Math.round(r),
+              );
+            });
+            if (live && Math.random() < 0.6) burst(hit, color, 1, 60);
+          } else beamHit.delete(shot.id);
+          const ang = Math.atan2(end.y - source.y, end.x - source.x);
+          seen.set(shot.id, {
+            at: end,
+            color,
+            kind: "beam",
+            ang,
+            side,
+            roomId: shot.targetRoom,
+            aim: end,
+            approachAng: ang,
+            speed: 0,
+            onArrival: true,
+            carryLayer: inLayer,
+            spin: hash(shot.id),
+            cut: cut != null,
+          });
           continue;
         }
         const from = muzzle(shot);
@@ -1190,12 +1239,22 @@ export function CombatFx() {
         if (alive.has(id)) continue;
         seen.delete(id);
         tickT.delete(id);
+        beamHit.delete(id);
+        beamCutSeen.delete(id);
         if (g.phase !== "combat") continue;
+        // A beam already printed its numbers while it fired. It takes no landing claim.
+        if (s.kind === "beam") {
+          if (!s.cut) {
+            burst(s.at, s.color, 4, 60);
+            burst(s.at, "#ffffff", 2, 36);
+          }
+          continue;
+        }
         gone.push(s);
       }
       const fresh: Claim[] = [];
       for (const f of g.floaters) {
-        if (seenFloaters.has(f.id)) continue;
+        if (seenFloaters.has(f.id) || f.beam) continue;
         fresh.push({
           text: f.text === "SHIELD" ? "SHIELD" : f.text === "MISS" ? "MISS" : "HIT",
           side: f.x > 50 ? "player" : "enemy",
@@ -1203,18 +1262,7 @@ export function CombatFx() {
       }
       const queues: Record<"player" | "enemy", Claim[]> = { player: [], enemy: [] };
       for (const side of ["player", "enemy"] as const) {
-        const n = gone.filter((s) => s.side === side).length;
-        const q = fresh.filter((c) => c.side === side);
-        // A beam can print several damage numbers. Drop extra HITs so they don't consume the next shot's claim.
-        while (q.length > n) {
-          const hits = q.filter((c) => c.text === "HIT").length;
-          if (hits <= 1) break;
-          q.splice(
-            q.findIndex((c) => c.text === "HIT"),
-            1,
-          );
-        }
-        queues[side] = q;
+        queues[side] = fresh.filter((c) => c.side === side);
       }
       const missPuff = (at: Pt) => {
         for (let i = 0; i < 4; i++) {
@@ -1444,16 +1492,6 @@ export function CombatFx() {
           burst(at, "#ffffff", 4, 50);
           return;
         }
-        if (s.kind === "beam") {
-          const a = s.seg?.a ?? s.at;
-          const b = s.seg?.b ?? s.at;
-          scorches.push({ a, b, life: 0.42, max: 0.42, color: s.color });
-          burst(a, s.color, 5, 70);
-          burst(b, s.color, 5, 70);
-          burst(a, "#ffffff", 2, 36);
-          burst(b, "#ffffff", 2, 36);
-          return;
-        }
         // Flak (the tumbling chunk): square shards that keep their velocity.
         for (let i = 0; i < 7; i++) {
           const a = Math.random() * Math.PI * 2;
@@ -1675,28 +1713,23 @@ export function CombatFx() {
       }
       for (const key of seenBlast) if (!liveBlasts.has(key)) seenBlast.delete(key);
 
-      for (let i = scorches.length - 1; i >= 0; i--) {
-        const s = scorches[i];
+      for (let i = trails.length - 1; i >= 0; i--) {
+        const s = trails[i];
         if (live) s.life -= dt;
         if (s.life <= 0) {
-          scorches.splice(i, 1);
+          trails.splice(i, 1);
           continue;
         }
-        const dx = s.b.x - s.a.x;
-        const dy = s.b.y - s.a.y;
-        const steps = Math.max(1, Math.round(Math.hypot(dx, dy) / 4));
         const alpha = Math.max(0, s.life / s.max);
-        for (let k = 0; k <= steps; k++) {
-          const u = k / steps;
-          const x = Math.round(s.a.x + dx * u);
-          const y = Math.round(s.a.y + dy * u);
-          ctx.globalAlpha = alpha * 0.85;
-          ctx.fillStyle = s.color;
-          ctx.fillRect(x - 2, y - 2, 5, 5);
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(x - 1, y - 1, 2, 2);
-        }
+        ctx.lineCap = "square";
+        ctx.globalAlpha = alpha * 0.85;
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = 4 * s.scale;
+        line(ctx, s.a, s.b);
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5 * s.scale;
+        line(ctx, s.a, s.b);
       }
       ctx.globalAlpha = 1;
 

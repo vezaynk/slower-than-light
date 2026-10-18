@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  beamStroke,
   cellsOnSegment,
+  evenBeamSpans,
+  roomSpansOnSegment,
   clampBeamEnd,
   clampTargetPoint,
   clipBeamEnd,
@@ -37,20 +38,25 @@ function cell(id: string, x: number, y: number, w = 1, h = 1, omit?: { x: number
   return { id, x, y, w, h, omit };
 }
 
-describe("beam stroke", () => {
-  it("keeps the printed length and walks the leading edge along the aim", () => {
-    const start = beamStroke({ x: 0, y: 0 }, { x: 4, y: 0 }, 0, 3.8);
-    assert.deepEqual(start.head, { x: 0, y: 0 });
-    assert.ok(Math.abs(start.tail.x - -3.8) < 1e-9);
-    assert.equal(start.tail.y, 0);
+describe("beam room spans", () => {
+  it("gives each room the fraction where the swipe enters and leaves it", () => {
+    const ship = grid([cell("left", 0, 0, 2, 1), cell("right", 3, 0, 2, 1)], 6, 2);
+    const spans = roomSpansOnSegment(ship, { x: 0.5, y: 0.5 }, { x: 4.5, y: 0.5 });
+    assert.deepEqual(
+      spans.map((s) => s.id),
+      ["left", "right"],
+    );
+    assert.equal(spans[0]!.enter, 0);
+    assert.ok(Math.abs(spans[0]!.exit - 0.375) < 1e-9);
+    assert.ok(Math.abs(spans[1]!.enter - 0.625) < 1e-9);
+    assert.equal(spans[1]!.exit, 1);
+  });
 
-    const mid = beamStroke({ x: 0, y: 0 }, { x: 4, y: 0 }, 0.5, 3.8);
-    assert.equal(mid.head.x, 2);
-    assert.ok(Math.abs(mid.head.x - mid.tail.x - 3.8) < 1e-9);
-
-    const end = beamStroke({ x: 0, y: 0 }, { x: 4, y: 0 }, 1, 3.8);
-    assert.deepEqual(end.head, { x: 4, y: 0 });
-    assert.ok(Math.abs(end.tail.x - 0.2) < 1e-9);
+  it("splits a swipe with no drawn line into equal slices", () => {
+    assert.deepEqual(evenBeamSpans(["a", "b"]), [
+      { id: "a", enter: 0, exit: 0.5 },
+      { id: "b", enter: 0.5, exit: 1 },
+    ]);
   });
 });
 

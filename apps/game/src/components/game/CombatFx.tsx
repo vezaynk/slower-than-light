@@ -43,6 +43,7 @@ import {
 } from "./miss-flight";
 import "@/game/pack/base";
 import { pageRect } from "./turn";
+import { droneLayerUrl, loadedImage, projectileFrame } from "@/game/pack/media";
 
 type Box = { x: number; y: number; w: number; h: number };
 type Pt = { x: number; y: number };
@@ -122,6 +123,7 @@ type Seen = {
   spin: number;
   /** A beam that shields stopped. It ends on the bubble, so it leaves no hull spark. */
   cut?: boolean;
+  defId?: string;
 };
 /** A shot that already missed and is still crossing the camera. */
 type Flyby = {
@@ -135,6 +137,7 @@ type Flyby = {
   layer: FxLayer;
   rock: boolean;
   spin: number;
+  defId?: string;
   age: number;
   /** Draw once at the handoff point before integrating. */
   fresh: boolean;
@@ -282,12 +285,23 @@ function paintBolt(
   spin: number,
   /** 1 in the main view. A rock on the enemy hull uses that hull's scale. */
   scale = 1,
+  defId?: string,
 ) {
   c.save();
   if (rock) {
     c.rotate(tumble);
     c.scale(2 * scale, 2 * scale);
     drawAsteroid(c, spin);
+    c.restore();
+    return;
+  }
+  const frame = projectileFrame(defId, kind);
+  const img = frame ? loadedImage(frame.url) : undefined;
+  if (frame && img) {
+    c.rotate(ang);
+    c.imageSmoothingEnabled = false;
+    const size = 18 * scale;
+    c.drawImage(img, frame.sx, frame.sy, frame.fw, frame.fh, -size / 2, -size / 2, size, size);
     c.restore();
     return;
   }
@@ -344,6 +358,13 @@ function drawAsteroid(ctx: CanvasRenderingContext2D, h: number) {
 }
 
 const droneSprites = new Map<string, HTMLCanvasElement>();
+
+function dronePicture(key: DroneKey, hot: boolean): CanvasImageSource {
+  const url = droneLayerUrl(key, hot ? "on" : "base");
+  const img = url ? loadedImage(url) : undefined;
+  if (img) return img;
+  return droneSprite(key);
+}
 
 function droneSprite(key: DroneKey) {
   const cached = droneSprites.get(key);
@@ -507,7 +528,7 @@ export function CombatFx() {
             y: cy + Math.sin(a) * (around.h / 2 + 18 * s),
           };
           droneAt.set(key, p);
-          const sprite = droneSprite(key);
+          const sprite = dronePicture(key, cruising);
           const size = 27 * s;
           ctx.globalAlpha = cruising ? 1 : 0.4;
           ctx.drawImage(sprite, Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
@@ -583,7 +604,7 @@ export function CombatFx() {
         const stunned = (unit.stun ?? 0) > 0;
         ctx.globalAlpha = !unit.powered ? 0.4 : stunned ? 0.55 + 0.45 * Math.sin(time * 30) : 1;
         ctx.drawImage(
-          droneSprite(ekey),
+          dronePicture(ekey, unit.powered),
           Math.round(p.x - size / 2),
           Math.round(p.y - size / 2),
           size,
@@ -1154,6 +1175,7 @@ export function CombatFx() {
           onArrival: !outbound,
           carryLayer,
           spin,
+          defId: shot.defId,
         };
         seen.set(shot.id, rec);
 
@@ -1162,7 +1184,17 @@ export function CombatFx() {
           drawOn(layer, (c) => {
             c.save();
             c.translate(Math.round(x), Math.round(y));
-            paintBolt(c, shot.kind, color, ang, t * 9 + spin * Math.PI * 2, true, spin, rockScale);
+            paintBolt(
+              c,
+              shot.kind,
+              color,
+              ang,
+              t * 9 + spin * Math.PI * 2,
+              true,
+              spin,
+              rockScale,
+              shot.defId,
+            );
             c.restore();
           });
           if (live && Math.random() < 0.65) {
@@ -1199,13 +1231,31 @@ export function CombatFx() {
               Math.round(r * 2),
             );
             c.globalAlpha = 1;
-            c.fillStyle = color;
-            c.fillRect(
-              Math.round(to.x) - 2 * bombScale,
-              Math.round(to.y) - 2 * bombScale,
-              4 * bombScale,
-              4 * bombScale,
-            );
+            const bomb = projectileFrame(shot.defId, "bomb");
+            const bombImg = bomb ? loadedImage(bomb.url) : undefined;
+            if (bomb && bombImg) {
+              const size = 16 * bombScale;
+              c.imageSmoothingEnabled = false;
+              c.drawImage(
+                bombImg,
+                bomb.sx,
+                bomb.sy,
+                bomb.fw,
+                bomb.fh,
+                Math.round(to.x - size / 2),
+                Math.round(to.y - size / 2),
+                size,
+                size,
+              );
+            } else {
+              c.fillStyle = color;
+              c.fillRect(
+                Math.round(to.x) - 2 * bombScale,
+                Math.round(to.y) - 2 * bombScale,
+                4 * bombScale,
+                4 * bombScale,
+              );
+            }
           });
           continue;
         }
@@ -1213,7 +1263,7 @@ export function CombatFx() {
         drawOn(layer, (c) => {
           c.save();
           c.translate(Math.round(x), Math.round(y));
-          paintBolt(c, shot.kind, color, ang, t * 12, false, spin);
+          paintBolt(c, shot.kind, color, ang, t * 12, false, spin, 1, shot.defId);
           c.restore();
         });
         if (shot.kind === "missile" && live && Math.random() < 0.7) {
@@ -1531,6 +1581,7 @@ export function CombatFx() {
               layer: s.carryLayer,
               rock: !!s.rock,
               spin: s.spin,
+              defId: s.defId,
               age: 0,
               fresh: true,
             });
@@ -1581,6 +1632,7 @@ export function CombatFx() {
             f.rock,
             f.spin,
             f.rock && f.layer === "panel" ? foeScale : 1,
+            f.defId,
           );
           c.restore();
         });

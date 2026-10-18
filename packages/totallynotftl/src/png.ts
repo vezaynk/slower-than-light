@@ -109,6 +109,15 @@ function hullMask(
   return { width, height, paint };
 }
 
+/** RGBA bytes, row major, no filter byte. The ship silhouettes use the mask painter. */
+export function rgbaPng(width: number, height: number, rgba: Uint8Array): Uint8Array {
+  const raw = new Uint8Array(height * (1 + width * 4));
+  for (let y = 0; y < height; y += 1) {
+    raw.set(rgba.subarray(y * width * 4, (y + 1) * width * 4), y * (1 + width * 4) + 1);
+  }
+  return encodePng(width, height, deflateSync(raw));
+}
+
 function paintPng(mask: Mask, colour: [number, number, number], alpha: number): Uint8Array {
   const { width, height, paint } = mask;
   const raw = new Uint8Array(height * (1 + width * 4));

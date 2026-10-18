@@ -1,0 +1,40 @@
+/* Archive sheets sit in a zero-size line box unless the picture keeps its own size. */
+.gear-art.is-sheet,
+.gear-art.is-sheet img,
+.crew-sprite.is-sheet,
+.crew-sprite.is-sheet img {
+  image-rendering: pixelated;
+  max-width: none;
+  max-height: none;
+}
+
+.gear-art.is-sheet {
+  display: inline-block;
+  overflow: hidden;
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.gear-art.is-sheet img {
+  display: block;
+}
+
+.crew-sprite.is-sheet {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  overflow: visible;
+  vertical-align: middle;
+}
+
+.crew-sprite.is-sheet .crew-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.crew-sprite.is-sheet.is-cycle .crew-frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+}

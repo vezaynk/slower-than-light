@@ -1,9 +1,14 @@
-/** INVENTED. No wiki page specifies these tones. */
+/** Archive waves play when that cue is packed. A missing cue keeps the tone. */
+import { archiveGeneration, soundCue, soundCues } from "./pack/media.ts";
+
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let muted = false;
 /** Per the user: the Options screen's master volume, 0 to 1, on top of the INVENTED 0.35 mix level. */
 let volume = 1;
+const decoded = new Map<string, AudioBuffer>();
+const decoding = new Map<string, Promise<AudioBuffer | undefined>>();
+let heard = -1;
 
 function level() {
   return muted ? 0 : 0.35 * volume;
@@ -31,6 +36,7 @@ export function unlockAudio() {
     master.connect(ctx.destination);
   }
   if (ctx.state === "suspended") void ctx.resume();
+  warmCues();
 }
 
 export function resumeAudio() {
@@ -86,6 +92,11 @@ function noise(dur: number, gain: number) {
 
 export function playSfx(name: string) {
   if (muted) return;
+  const cue = soundCue(name);
+  if (cue) {
+    void playCue(cue.file, cue.blob, cue.volume, cue.loop);
+    return;
+  }
   const wobble = 0.94 + Math.random() * 0.12;
   switch (name) {
     case "click":
@@ -132,6 +143,62 @@ export function playSfx(name: string) {
     default:
       tone(400, 0.04, "square", 0.05);
   }
+}
+
+function freshArchive() {
+  const next = archiveGeneration();
+  if (next === heard) return;
+  heard = next;
+  decoded.clear();
+  decoding.clear();
+}
+
+function warmCues() {
+  freshArchive();
+  for (const cue of soundCues()) void decodeCue(cue.file, cue.blob);
+}
+
+async function playCue(file: string, blob: Blob, volume01: number, loop: boolean) {
+  if (!ctx || !master) return;
+  const buf = await decodeCue(file, blob);
+  if (!buf || !ctx || !master || muted) return;
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = loop;
+  const g = ctx.createGain();
+  g.gain.value = Math.max(0.0001, volume01);
+  src.connect(g);
+  g.connect(master);
+  src.start();
+  if (!loop) {
+    src.onended = () => {
+      src.disconnect();
+      g.disconnect();
+    };
+  }
+}
+
+function decodeCue(file: string, blob: Blob): Promise<AudioBuffer | undefined> {
+  freshArchive();
+  if (!ctx) return Promise.resolve(undefined);
+  const hit = decoded.get(file);
+  if (hit) return Promise.resolve(hit);
+  const pending = decoding.get(file);
+  if (pending) return pending;
+  const job = blob
+    .arrayBuffer()
+    .then((raw) => ctx!.decodeAudioData(raw.slice(0)))
+    .then((buf) => {
+      decoded.set(file, buf);
+      decoding.delete(file);
+      return buf;
+    })
+    .catch(() => {
+      decoding.delete(file);
+      return undefined;
+    });
+  decoding.set(file, job);
+  return job;
 }
 
 export function flushSfx(queue: string[]) {

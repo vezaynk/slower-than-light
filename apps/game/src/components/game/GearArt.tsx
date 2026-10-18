@@ -1,8 +1,8 @@
 /**
- * Pixel pictures for weapons and drones, drawn from gear-look.ts.
- * The weapon dock, hangar, store, and drone control all use these.
+ * Pixel pictures for weapons and drones.
+ * An archive sheet replaces the drawn picture when that file is loaded.
  */
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import {
   dronePixels,
   pixelRuns,
@@ -10,6 +10,15 @@ import {
   type DroneKey,
   type PixelArt as Art,
 } from "@/game/gear-look";
+import {
+  archiveGeneration,
+  droneLayerUrl,
+  subscribeArchive,
+  weaponFrame,
+  type SheetFrame,
+  type WeaponPhase,
+} from "@/game/pack/media";
+import "./archive-art.css";
 
 const INK = "#14181d";
 
@@ -49,12 +58,69 @@ function PixelSvg({ art, height, className }: { art: Art; height: number; classN
   );
 }
 
-export function WeaponArt({ id, height = 28 }: { id: string; height?: number }) {
-  const art = useMemo(() => weaponPixels(id), [id]);
+export function WeaponArt({
+  id,
+  height = 28,
+  phase = "idle",
+}: {
+  id: string;
+  height?: number;
+  /** Charged and fire pick those frames. A one-frame sheet looks the same in every phase. */
+  phase?: WeaponPhase;
+}) {
+  const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
+  const frame = useMemo(() => weaponFrame(id, phase), [id, phase, generation]);
+  if (frame)
+    return <SheetImg frame={frame} height={height} className="gear-art is-weapon is-sheet" />;
+  const art = weaponPixels(id);
   return <PixelSvg art={art} height={height} className="gear-art is-weapon" />;
 }
 
-export function DroneArt({ kind, height = 28 }: { kind: DroneKey | null; height?: number }) {
-  const art = useMemo(() => dronePixels(kind), [kind]);
+export function DroneArt({
+  kind,
+  height = 28,
+  powered = false,
+}: {
+  kind: DroneKey | null;
+  height?: number;
+  /** A powered drone uses the `_on` picture. */
+  powered?: boolean;
+}) {
+  const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
+  const url = useMemo(
+    () => (kind ? droneLayerUrl(kind, powered ? "on" : "base") : undefined),
+    [kind, powered, generation],
+  );
+  if (url) {
+    return (
+      <img className="gear-art is-drone is-sheet" alt="" src={url} height={height} width={height} />
+    );
+  }
+  const art = dronePixels(kind);
   return <PixelSvg art={art} height={height} className="gear-art is-drone" />;
+}
+
+function SheetImg({
+  frame,
+  height,
+  className,
+}: {
+  frame: SheetFrame;
+  height: number;
+  className: string;
+}) {
+  const width = Math.max(1, Math.round((height * frame.fw) / frame.fh));
+  const cols = Math.max(1, frame.sheetW / frame.fw);
+  const rows = Math.max(1, frame.sheetH / frame.fh);
+  return (
+    <span className={className} style={{ width, height }}>
+      <img
+        alt=""
+        src={frame.url}
+        width={Math.round(width * cols)}
+        height={Math.round(height * rows)}
+        style={{ marginLeft: -frame.col * width, marginTop: -frame.row * height }}
+      />
+    </span>
+  );
 }

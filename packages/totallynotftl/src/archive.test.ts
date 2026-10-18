@@ -7,8 +7,16 @@ import { WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat } from "@stl/ftldat";
 import { packFromExtract } from "@stl/hyperspace";
-import { overlayGap, parsePack, pictureForRooms } from "@stl/pack";
+import {
+  overlayGap,
+  parsePack,
+  pictureForRooms,
+  readAnimations,
+  readBitmapFont,
+  readSounds,
+} from "@stl/pack";
 import { standInDat, standInImages, standInXml } from "./archive.ts";
+import { standInMedia } from "./media.ts";
 
 describe("totallynotftl.dat", () => {
   it("rebuilds the committed xml and archive", async () => {
@@ -23,21 +31,59 @@ describe("totallynotftl.dat", () => {
     const built = await standInDat();
     const extracted = await extractFtlDat(built);
     const pictures = hullPictureFiles();
-    assert.equal(extracted.documents.length, 1 + pictures.length);
+    const media = await standInMedia();
+    assert.equal(extracted.documents.length, 1 + pictures.length + media.documents.length);
     assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
     assert.equal(extracted.documents[0]?.xml, goldenXml);
-    const images = standInImages(pictures);
-    assert.equal(extracted.assets.size, images.length);
+    assert.equal(goldenXml.includes("<weaponArt>"), false);
+    assert.equal(goldenXml.includes("<droneImage>"), false);
     for (const file of pictures) {
       assert.equal(extracted.documents.find((doc) => doc.path === file.path)?.xml, file.xml);
     }
-    for (const image of images) {
-      const blob = extracted.assets.get(image.path);
-      assert.equal(blob?.type, "image/png", image.path);
-      const bytes = new Uint8Array(await blob!.arrayBuffer());
-      assert.equal(bytes[0], 0x89);
-      assert.equal(bytes[1], 0x50);
+    const anim = readAnimations(
+      extracted.documents.find((doc) => doc.path === "data/animations.xml")?.xml ?? "",
+    );
+    assert.ok(anim.weapons.some((row) => row.name === "LASER_BURST_3"));
+    assert.equal(anim.clips.find((row) => row.name === "LASER_BURST_3_shot")?.time, 1);
+    assert.ok(anim.clips.some((row) => row.name === "human_walk_down"));
+    const sounds = readSounds(
+      extracted.documents.find((doc) => doc.path === "data/sounds.xml")?.xml ?? "",
+    );
+    assert.equal(sounds.cues.find((row) => row.name === "laser")?.file, "audio/waves/ui/laser.wav");
+    assert.equal(sounds.cues.find((row) => row.name === "laser")?.volume, 0.8);
+    assert.equal(sounds.tracks[0]?.name, "civil");
+    assert.equal(sounds.tracks[0]?.explore, "audio/music/civil_explore.ogg");
+    assert.equal(sounds.tracks[0]?.combat, "audio/music/civil_combat.ogg");
+    const images = standInImages(pictures);
+    assert.equal(extracted.assets.size, images.length + media.assets.length);
+    for (const path of [
+      "img/weapons/LASER_BURST_3.png",
+      "img/weapons/laser_shot.png",
+      "img/people/human.png",
+      "img/people/female_base.png",
+      "img/people/green_destination.png",
+      "img/ship/drones/COMBAT_1_base.png",
+      "img/ship/drones/COMBAT_1_on.png",
+      "img/ship/drones/striker2_base.png",
+      "img/ship/interior/pilot.png",
+      "audio/waves/ui/click.wav",
+      "audio/music/civil_explore.ogg",
+      "fonts/JustinFont8.font",
+      "fonts/JustinFont10.font",
+      "fonts/JustinFont12Bold.font",
+    ]) {
+      assert.ok(extracted.assets.has(path), path);
     }
+    for (const [path, blob] of extracted.assets) {
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      assertMagic(path, bytes, blob.type);
+    }
+    const title = readBitmapFont(
+      new Uint8Array(await extracted.assets.get("fonts/JustinFont12Bold.font")!.arrayBuffer()),
+    );
+    assert.equal(title?.lineTop, 12);
+    assert.ok(title?.glyphs.some((glyph) => glyph.ch === 65));
+    assert.ok(title?.glyphs.some((glyph) => glyph.ch === 97));
     const layouts = layoutFiles();
     assert.equal(pictures.length, layouts.length);
     assert.equal(extracted.text.size, layouts.length);
@@ -91,3 +137,29 @@ describe("totallynotftl.dat", () => {
     assert.equal(fighter?.gibs?.length, 1);
   });
 });
+
+function assertMagic(path: string, bytes: Uint8Array, type: string) {
+  const mark = String.fromCharCode(bytes[0] ?? 0, bytes[1] ?? 0, bytes[2] ?? 0, bytes[3] ?? 0);
+  if (path.endsWith(".png")) {
+    assert.equal(type, "image/png", path);
+    assert.equal(bytes[0], 0x89, path);
+    assert.equal(bytes[1], 0x50, path);
+    return;
+  }
+  if (path.endsWith(".wav")) {
+    assert.equal(type, "audio/wav", path);
+    assert.equal(mark, "RIFF", path);
+    return;
+  }
+  if (path.endsWith(".ogg")) {
+    assert.equal(type, "audio/ogg", path);
+    assert.equal(mark, "OggS", path);
+    return;
+  }
+  if (path.endsWith(".font")) {
+    assert.equal(type, "application/octet-stream", path);
+    assert.equal(mark, "FONT", path);
+    return;
+  }
+  assert.fail(path);
+}

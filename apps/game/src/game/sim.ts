@@ -3014,14 +3014,14 @@ export function kitBars(kit: Kit | undefined, bonus?: number): number {
 }
 
 /**
- * Bars a kit's power column should light. Same sum as kitBars, except Backup Battery and Flak Artillery,
- * which do not take a Zoltan bar (Zoltans: subsystems are unaffected; Flak Artillery is not in the kit list).
+ * Bars a kit's power column should light. Same sum as kitBars, except Backup Battery.
+ * Zoltans: "no effect on subsystems." Systems lists Backup Battery with Piloting, Sensors, and Door System.
+ * Flak Artillery is a main system, beside Artillery Beam, so it takes the yellow bar.
  */
 export function kitShownBars(kit: Kit | undefined): number {
   if (!kit) return 0;
   const capacity = Math.max(0, kit.level - (kit.damage ?? 0));
-  if (kit.id === "battery" || (kit.id === "artillery" && kit.weapon === "ARTILLERY_FED_C"))
-    return Math.max(0, Math.min(kit.power, capacity));
+  if (kit.id === "battery") return Math.max(0, Math.min(kit.power, capacity));
   return kitBars(kit);
 }
 

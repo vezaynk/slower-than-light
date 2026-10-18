@@ -137,7 +137,7 @@ describe("Zoltan bar on kit systems", () => {
     assert.equal(found, true);
   });
 
-  it("lights a Zoltan bar on every kit that uses one, and not on the battery or flak", () => {
+  it("lights a Zoltan bar on every kit that uses one, and not on the battery", () => {
     const cloak = {
       id: "cloaking" as const,
       level: 2,
@@ -154,7 +154,7 @@ describe("Zoltan bar on kit systems", () => {
     assert.equal(kitShownBars({ ...cloak, id: "artillery", weapon: "ARTILLERY_FED" }), 1);
     assert.equal(
       kitShownBars({ ...cloak, id: "artillery", weapon: "ARTILLERY_FED_C", power: 1, zoltan: 1 }),
-      1,
+      2,
     );
     assert.equal(kitShownBars({ ...cloak, id: "battery", power: 0, zoltan: 1 }), 0);
   });

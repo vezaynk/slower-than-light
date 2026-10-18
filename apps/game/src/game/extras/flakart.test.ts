@@ -300,8 +300,6 @@ describe("flak burst", () => {
     const kit = g.player.kits.artillery;
     assert.ok(kit);
     kit.power = 1;
-    // A Zoltan stamp is not a reactor bar. One filled bar is still the 50s clock.
-    kit.zoltan = 1;
     tickFlak(g, 20);
     assert.equal(g.shots.length, 0);
     assert.equal(kit.aux, 20);
@@ -310,6 +308,30 @@ describe("flak burst", () => {
     assert.equal(kit.aux, 49);
     tickFlak(g, 1);
     expectBurst(g.shots);
+  });
+
+  it("counts a Zoltan bar as a power level and charges from that bar alone", () => {
+    const paired = fight(23);
+    armFlak(paired, 4);
+    const both = paired.player.kits.artillery;
+    assert.ok(both);
+    both.power = 1;
+    both.zoltan = 1;
+    tickFlak(paired, 40);
+    assert.equal(both.power, 1);
+    expectBurst(paired.shots);
+
+    const alone = fight(24);
+    armFlak(alone, 4);
+    const kit = alone.player.kits.artillery;
+    assert.ok(kit);
+    kit.power = 0;
+    kit.on = false;
+    kit.zoltan = 1;
+    tickFlak(alone, 49);
+    assert.equal(alone.shots.length, 0);
+    tickFlak(alone, 1);
+    expectBurst(alone.shots);
   });
 
   it("stops adding bars at the cap and removes one bar", () => {
@@ -374,7 +396,7 @@ describe("flak burst", () => {
       kit.on = true;
     });
     emptied(31, 4, 20, (kit) => {
-      kit.power = 4;
+      kit.power = 0;
       kit.on = false;
     });
     emptied(32, 4, 20, (kit) => {

@@ -6,6 +6,7 @@ import { installVeil, startVeil } from "../extras/veil.ts";
 import {
   createGame,
   kitBars,
+  kitShownBars,
   noteZoltanKits,
   sparePower,
   startCombat,
@@ -134,5 +135,27 @@ describe("Zoltan bar on kit systems", () => {
       found = true;
     }
     assert.equal(found, true);
+  });
+
+  it("lights a Zoltan bar on every kit that uses one, and not on the battery", () => {
+    const cloak = {
+      id: "cloaking" as const,
+      level: 2,
+      power: 0,
+      left: 0,
+      cool: 0,
+      target: null,
+      on: false,
+      aux: 0,
+      zoltan: 1,
+    };
+    assert.equal(kitShownBars(cloak), 1);
+    assert.equal(kitShownBars({ ...cloak, id: "clonebay", power: 1 }), 2);
+    assert.equal(kitShownBars({ ...cloak, id: "artillery", weapon: "ARTILLERY_FED" }), 1);
+    assert.equal(
+      kitShownBars({ ...cloak, id: "artillery", weapon: "ARTILLERY_FED_C", power: 1, zoltan: 1 }),
+      2,
+    );
+    assert.equal(kitShownBars({ ...cloak, id: "battery", power: 0, zoltan: 1 }), 0);
   });
 });

@@ -108,10 +108,37 @@ describe("Zoltan cooldown swap", () => {
     assert.equal(kitBars(g.player.kits.cloaking), 1);
     assert.equal(sparePower(g.player), spare + 1);
 
+    // Zoltans: "2 zoltans can free up only 2 reactor power from a previously fully powered level 3" system.
     walker.room = "p-sensors";
     swapZoltanCooldown(g);
-    assert.equal(g.player.kits.cloaking!.power, 0);
-    assert.equal(sparePower(g.player), spare + 2);
+    assert.equal(g.player.kits.cloaking!.power, 1);
+    assert.equal(sparePower(g.player), spare + 1);
+  });
+
+  it("frees only two bars of a full level 3 system with two Zoltans walking in and out", () => {
+    const g = createGame(10);
+    cloak(g, 3);
+    swapZoltanCooldown(g);
+    const a = spark("p-sensors", "a");
+    const b = spark("p-sensors", "b");
+    g.crew.push(a, b);
+    for (let i = 0; i < 3; i++) {
+      a.room = b.room = "p-sensors";
+      swapZoltanCooldown(g);
+      a.room = b.room = "p-pilot";
+      swapZoltanCooldown(g);
+    }
+    assert.equal(g.player.kits.cloaking!.power, 1);
+
+    // A new cooldown lets the same Zoltans free bars again.
+    g.player.kits.cloaking!.cool = 0;
+    swapZoltanCooldown(g);
+    g.player.kits.cloaking!.power = 3;
+    g.player.kits.cloaking!.cool = 20;
+    swapZoltanCooldown(g);
+    a.room = "p-sensors";
+    swapZoltanCooldown(g);
+    assert.equal(g.player.kits.cloaking!.power, 2);
   });
 
   it("frees one bar per Zoltan who arrives together", () => {

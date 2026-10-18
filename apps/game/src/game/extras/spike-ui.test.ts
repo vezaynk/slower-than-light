@@ -169,7 +169,17 @@ describe("spike UI", () => {
     assert.ok(seen);
     assert.equal(seen.system, "engines");
     assert.equal(typeof seen.evasion, "number");
+    const kit = g.player.kits.hacking!;
     lowerSpikePower(g);
+    assert.equal(kit.power, 1, "a running pulse reserves its reactor bar");
+    tickSpike(g, 4);
+    assert.ok(kit.cool > 0);
+    lowerSpikePower(g);
+    assert.equal(kit.power, 1, "the cooldown keeps that bar");
+    tickSpike(g, kit.cool);
+    assert.equal(kit.cool, 0);
+    lowerSpikePower(g);
+    assert.equal(kit.power, 0);
     assert.equal(hackVision(g)!.evasion, null, "only while the Hacking system is powered");
   });
 });

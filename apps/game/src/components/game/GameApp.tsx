@@ -185,6 +185,7 @@ import {
   shieldChargeShown,
   kitPowerUp,
   kitBars,
+  kitShownBars,
   kitPowerDown,
   cooldownLocksPower,
   kitIonLocked,
@@ -2993,17 +2994,22 @@ function HackOrb({
         }}
       >
         <i className="sub-bars" aria-hidden="true">
-          {Array.from({ length: Math.max(view.level, 1) }, (_, n) => (
-            <b
-              key={n}
-              className={[
-                kitBarClass(game, "hacking", view.power, n),
-                barFlashClass(game, "hacking", false, false, n < view.power),
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            />
-          ))}
+          {Array.from({ length: Math.max(view.level, 1) }, (_, n) => {
+            const hacking = game.player.kits.hacking;
+            const live = hacking ? kitShownBars(hacking) : view.power;
+            const yellow = n >= view.power && n < live;
+            return (
+              <b
+                key={n}
+                className={[
+                  yellow ? "is-zoltan" : kitBarClass(game, "hacking", view.power, n),
+                  barFlashClass(game, "hacking", false, false, n < live),
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              />
+            );
+          })}
         </i>
         <PixelIcon name="hacking" size={16} />
       </button>
@@ -3017,8 +3023,9 @@ function hackActive(game: Game, id: string): boolean {
 }
 
 /**
- * The whole power column is locked: cooldown (cloak, teleporter, mind control, hacking),
- * ion on an activation kit, or a backup battery sent to cooldown by ion.
+ * The whole power column is locked while an ability is running or cooling down
+ * (cloak, teleporter, mind control, hacking), while ion locks an activation kit,
+ * or while a backup battery was sent to cooldown by ion.
  */
 function columnLocked(game: Game, id: string): boolean {
   const kit = game.player.kits[id as KitId];
@@ -3034,7 +3041,7 @@ function boarded(game: Game, id: string): boolean {
 /**
  * One bar. An active hack pulse flashes every bar purple.
  * Boarders flash the working bars red, over a lockout.
- * Ion flashes the locked bars blue. A cooldown flashes the bars power is stuck in
+ * Ion flashes the locked bars blue. A running ability or its cooldown flashes the bars power is stuck in
  * (and every backup-battery pip, which has no reactor power of its own).
  * Damaged bars stay red unless a hack is pulsing.
  */
@@ -3356,13 +3363,16 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
           const i = slots - 1 - raw;
           const damaged = i >= cap && !!kit.damage;
           const powered = i < kit.power && i < cap;
+          const yellow = !powered && i < cap && i < kitShownBars(kit);
           const cls = powered
             ? kitBarClass(game, id, kit.power, i)
-            : i === cap && kit.damage
-              ? "is-dmg is-fixing"
-              : i >= cap
-                ? "is-dmg"
-                : "";
+            : yellow
+              ? "is-zoltan"
+              : i === cap && kit.damage
+                ? "is-dmg is-fixing"
+                : i >= cap
+                  ? "is-dmg"
+                  : "";
           const hurt = i === cap - 1 ? hurtStyle(game, id) : undefined;
           return (
             <button
@@ -3371,7 +3381,7 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
               className={[
                 cls,
                 hurt ? "is-hurting" : "",
-                barFlashClass(game, id, false, damaged, powered),
+                barFlashClass(game, id, false, damaged, powered || yellow),
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -5891,14 +5901,23 @@ function KitBar({ game, id, kit, n }: { game: Game; id: KitId; kit: Kit; n: numb
   const up = Math.max(0, kit.level - (kit.damage ?? 0));
   const hurt = n === up - 1 ? hurtStyle(game, id) : undefined;
   const damaged = n >= up && n < kit.level;
+  const live = kitShownBars(kit);
   const powered = n < kit.power && n < up;
-  const flash = barFlashClass(game, id, false, damaged, powered);
+  const yellow = !powered && n < live;
+  const flash = barFlashClass(game, id, false, damaged, powered || yellow);
   if (powered)
     return (
       <b
         className={[kitBarClass(game, id, kit.power, n), hurt ? "is-hurting" : "", flash]
           .filter(Boolean)
           .join(" ")}
+        style={hurt}
+      />
+    );
+  if (yellow)
+    return (
+      <b
+        className={["is-zoltan", hurt ? "is-hurting" : "", flash].filter(Boolean).join(" ")}
         style={hurt}
       />
     );

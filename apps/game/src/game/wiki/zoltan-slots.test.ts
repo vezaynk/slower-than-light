@@ -300,10 +300,58 @@ describe("Zoltan shield pairs and system cover", () => {
     engines.power = 2;
     engines.ion = [5];
     delete engines.zoltanHeld;
-    g.crew.push(spark("p-engines", "zi"), spark("p-engines", "zi2"));
+    g.crew.push(spark("p-engines", "zi"));
     settleZoltanPower(g);
     assert.equal(engines.power, 2);
     assert.equal(engines.zoltanHeld, undefined);
+    // Zoltans, ion-locked systems: reactor is replaced "When as many Zoltans enter and stay in the room as there
+    // are power levels in Shields, Engines, Medbay/Clonebay, Oxygen".
+    g.crew.push(spark("p-engines", "zi2"));
+    settleZoltanPower(g);
+    assert.equal(engines.power, 0);
+    assert.equal(engines.zoltanHeld, 2);
+    g.crew = g.crew.filter((c) => c.room !== "p-engines");
+    settleZoltanPower(g);
+    assert.equal(engines.power, 0);
+  });
+
+  it("does not peel a shield pair under ion unless the Zoltans cover every level", () => {
+    const g = createGame(41);
+    g.player.reactor = 30;
+    const shields = g.player.systems.shields;
+    shields.level = 4;
+    shields.power = 3;
+    shields.ion = [5];
+    delete shields.zoltanHeld;
+    g.crew.push(spark("p-shields", "za"), spark("p-shields", "zb"));
+    settleZoltanPower(g);
+    assert.equal(shields.power, 3);
+    assert.equal(shields.zoltanHeld, undefined);
+    g.crew.push(spark("p-shields", "zc"), spark("p-shields", "zd"));
+    settleZoltanPower(g);
+    assert.equal(shields.power, 0);
+    assert.equal(shields.zoltanHeld, 3);
+  });
+
+  it("replaces reactor in ion-locked Weapon Control, and leaving does not put it back", () => {
+    // Weapon Control: Zoltans "replace the reactor power from ion-locked Weapon Control system with their zoltan
+    // power and remove the reactor power if they leave the room."
+    const g = createGame(42);
+    arm(g, 4, 3, ["BEAM_2", "MISSILES_1"]);
+    const sys = g.player.systems.weapons;
+    sys.ion = [5];
+    const spare = sparePower(g.player);
+    g.crew.push(spark("p-weapons", "za"));
+    settleZoltanPower(g);
+    assert.equal(sys.power, 2);
+    assert.equal(sys.zoltanHeld, 1);
+    assert.equal(sparePower(g.player), spare + 1);
+    assert.deepEqual(mask(g), [true, false]);
+    g.crew = g.crew.filter((c) => c.kin !== "energy");
+    settleZoltanPower(g);
+    assert.equal(sys.power, 2);
+    assert.equal(sys.zoltanHeld, undefined);
+    assert.equal(sparePower(g.player), spare + 1);
   });
 });
 

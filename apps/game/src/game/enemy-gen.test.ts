@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
-import { hullDef, loadPack, resetPackForTests } from "@stl/pack";
+import { hullDef, loadPack, onPackWarning, resetPackForTests } from "@stl/pack";
 import { WEAPONS } from "./content.ts";
 import {
   arm,
@@ -320,9 +320,12 @@ describe("archive loadout", () => {
     assert.equal(spec.missiles, cls.missiles);
   });
 
-  it("fails on a blueprint the game cannot read", () => {
+  it("warns about a blueprint the game cannot fully read, and falls back", () => {
     const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
     const hull = hullDef(enemyBlueprintId("rebel-fighter"))!;
+    const plain = rollEnemy(cls, false, ctx, seeded(4));
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
     const roll = (patch: Partial<typeof hull>) => {
       loadPack({ hulls: [{ ...hull, ...patch }] }, "append");
       try {
@@ -331,22 +334,31 @@ describe("archive loadout", () => {
         resetPackForTests();
       }
     };
-    assert.throws(
-      () => roll({ weaponLoad: "NO_SUCH_LIST" }),
-      /load="NO_SUCH_LIST" names no blueprintList/,
-    );
-    assert.throws(
-      () => roll({ weapons: ["LASER_BURST_1"], weaponLoad: "NO_SUCH_LIST" }),
-      /both weapon tags and load="NO_SUCH_LIST"/,
-    );
-    assert.throws(
-      () => roll({ weapons: ["NOT_A_GUN"] }),
-      /names "NOT_A_GUN", which is not a weapon/,
-    );
-    assert.throws(
-      () => roll({ crewCounts: [{ amount: 1, class: "ghost" }] }),
-      /crewCount class "ghost" is not a race the game has crew for/,
-    );
+    try {
+      // A missing list leaves the class table's guns.
+      assert.deepEqual(roll({ weaponLoad: "NO_SUCH_LIST" }).weapons, plain.weapons);
+      // Tags beside a load: the tags are the loadout.
+      assert.deepEqual(roll({ weapons: ["LASER_BURST_1"], weaponLoad: "NO_SUCH_LIST" }).weapons, [
+        "LASER_BURST_1",
+      ]);
+      // FTL never picks an unknown name (its stand-in blueprint has 0 power), so it is skipped.
+      assert.deepEqual(roll({ weapons: ["NOT_A_GUN", "LASER_BURST_1"] }).weapons, [
+        "LASER_BURST_1",
+      ]);
+      // A race with no crew is skipped; nothing left means the class table's crew.
+      assert.deepEqual(
+        roll({ crewCounts: [{ amount: 1, class: "ghost" }] }).crew.map((member) => member.race),
+        plain.crew.map((member) => member.race),
+      );
+      assert.deepEqual(warnings, [
+        `${hull.id}: load="NO_SUCH_LIST" names no blueprintList; the class table is used.`,
+        `${hull.id}: its weaponList has both weapon tags and load="NO_SUCH_LIST"; the tags are used.`,
+        `${hull.id}: its weaponList names "NOT_A_GUN", which is not a weapon; it is skipped.`,
+        `${hull.id}: crewCount class "ghost" is not a race the game has crew for; it is skipped.`,
+      ]);
+    } finally {
+      restore();
+    }
   });
 
   it("mounts a repeated blueprint id on two slots", () => {

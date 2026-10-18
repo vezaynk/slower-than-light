@@ -27,6 +27,7 @@ import type {
 } from "./types.ts";
 import { cloneGrid, readGrids } from "./grid.ts";
 import { attachPictures } from "./picture.ts";
+import { warnPack } from "./warnings.ts";
 import {
   attr,
   child,
@@ -185,15 +186,13 @@ function readNames(doc: XmlDocument): ContentPack["names"] | undefined {
   return { pool, syllables };
 }
 
-/** Strict: every crewCount class is "random" or a crewBlueprint in the same archive. */
+/** Every crewCount class should be "random" or a crewBlueprint in the same archive. Others are warned about. */
 function checkCrewClasses(hulls: readonly HullDef[], crew: readonly CrewDef[]): void {
   const races = new Set(crew.map((row) => row.id));
   for (const hull of hulls) {
     for (const row of hull.crewCounts ?? []) {
       if (row.class === "random" || races.has(row.class)) continue;
-      throw new Error(
-        `shipBlueprint ${hull.id}: crewCount class "${row.class}" is not a crewBlueprint.`,
-      );
+      warnPack(`shipBlueprint ${hull.id}: crewCount class "${row.class}" is not a crewBlueprint.`);
     }
   }
 }
@@ -427,11 +426,11 @@ function readFtlHull(
   if (weaponCount != null) hull.weaponCount = weaponCount;
   const listedDrones = child(node, "droneList");
   const droneLoad = listedDrones ? attr(listedDrones, "load")?.trim() : undefined;
-  // Strict: a droneList that names drones also says how many parts the ship carries. Only BOSS_1 in ftl.dat has a
-  // droneList without `drones`, and it names none.
+  // A droneList that names drones also says how many parts the ship carries. Only BOSS_1 in ftl.dat has a
+  // droneList without `drones`, and it names none. Without it the ship carries 0 parts.
   if (listedDrones && (droneLoad || drones.length > 0) && intAttr(listedDrones, "drones") == null) {
-    throw new Error(
-      `shipBlueprint ${id}: its droneList names drones but has no drones (parts) attribute.`,
+    warnPack(
+      `shipBlueprint ${id}: its droneList names drones but has no drones (parts) attribute; it carries 0 parts.`,
     );
   }
   if (droneLoad) hull.droneLoad = droneLoad;
@@ -485,8 +484,8 @@ function readInstalls(node: XmlElement): HullInstall[] {
 }
 
 /**
- * `<crewCount amount max class>` rows. Strict: a row with no amount fails the load, and so does a row with crew but
- * no class. ftl.dat's ghost ships write `<crewCount amount="0"/>`, which is no crew and needs no class.
+ * `<crewCount amount max class>` rows. A row with no amount, or with crew but no class, is skipped with a warning.
+ * ftl.dat's ghost ships write `<crewCount amount="0"/>`, which is no crew and needs no class.
  */
 function readCrewCounts(node: XmlElement): HullCrewCount[] {
   const rows: HullCrewCount[] = [];
@@ -495,10 +494,15 @@ function readCrewCounts(node: XmlElement): HullCrewCount[] {
     if (item.tagName !== "crewCount") continue;
     const amount = intAttr(item, "amount");
     const kin = attr(item, "class")?.trim();
-    if (amount == null) throw new Error(`shipBlueprint ${ship}: a crewCount has no amount.`);
+    if (amount == null) {
+      warnPack(`shipBlueprint ${ship}: a crewCount has no amount; it is skipped.`);
+      continue;
+    }
     if (!kin) {
-      if (amount === 0) continue;
-      throw new Error(`shipBlueprint ${ship}: a crewCount of ${amount} names no class.`);
+      if (amount !== 0) {
+        warnPack(`shipBlueprint ${ship}: a crewCount of ${amount} names no class; it is skipped.`);
+      }
+      continue;
     }
     const row: HullCrewCount = { amount, class: kin };
     const max = intAttr(item, "max");

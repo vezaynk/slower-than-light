@@ -6,7 +6,7 @@
  */
 import "./pack/base.ts";
 import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
-import { blueprintList, hullDef, weaponDef } from "@stl/pack";
+import { blueprintList, hullDef, warnPack, weaponDef } from "@stl/pack";
 import type { HullCrewCount, HullDef } from "@stl/pack";
 import type { KinId } from "./extras/kin.ts";
 import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
@@ -939,9 +939,11 @@ export function rollEnemy(
   const traced = seatTrace(cls.id, ids, pirate);
   const { rooms, cols, rows } = traced ?? layout(ids);
   const blueprint = hullDef(enemyBlueprintId(cls.id, pirate));
-  const counted = blueprint?.crewCounts?.length
+  // Rows that were all skipped (warned about in racesFromCounts) leave the class table in charge.
+  const fromBlueprint = blueprint?.crewCounts?.length
     ? racesFromCounts(blueprint.id, blueprint.crewCounts, ctx, rand)
     : undefined;
+  const counted = fromBlueprint?.length ? fromBlueprint : undefined;
   const crewSize = counted ? counted.length : crewCount(cls.crew, ctx);
   const races: string[] = [];
   if (counted) {
@@ -1017,7 +1019,7 @@ export function rollEnemy(
  * Mathchamp: crew count is interpolated from the blueprint minimum to its maximum across the sectors, the same way as
  * the class table (crewCount), so the printed maximum is reached in the last sector. A row with no maximum is that
  * many of the named race. `random` draws from the sector's crew races.
- * Strict: a race the game has no crew for, or a `random` row with no races to draw from, fails the generation.
+ * A race the game has no crew for, or a `random` row with no races to draw from, is skipped with a warning.
  */
 function racesFromCounts(
   ship: string,
@@ -1032,9 +1034,10 @@ function racesFromCounts(
     if (n <= 0) continue;
     if (row.class === "random") {
       if (randomRaces.length === 0) {
-        throw new Error(
-          `${ship}: a random crewCount has no races to draw from in ${ctx.sectorName}.`,
+        warnPack(
+          `${ship}: a random crewCount has no races to draw from in ${ctx.sectorName}; it is skipped.`,
         );
+        continue;
       }
       for (let i = 0; i < n; i++) {
         races.push(randomRaces[Math.floor(rand() * randomRaces.length) % randomRaces.length]!);
@@ -1042,10 +1045,12 @@ function racesFromCounts(
       continue;
     }
     const race = RACE_OF[row.class];
-    if (!race)
-      throw new Error(
-        `${ship}: crewCount class "${row.class}" is not a race the game has crew for.`,
+    if (!race) {
+      warnPack(
+        `${ship}: crewCount class "${row.class}" is not a race the game has crew for; it is skipped.`,
       );
+      continue;
+    }
     for (let i = 0; i < n; i++) races.push(race);
   }
   return races;
@@ -1055,23 +1060,27 @@ function racesFromCounts(
  * The blueprint's guns. ftl.dat writes either explicit `<weapon>` tags or a `load` list, never both.
  * Explicit tags are that ship's loadout: every such list has `count` equal to its tags (Long Elite 3 of 3, Ghost Ship
  * Med 3 of 3), so they are mounted in order. INFERRED: Ghost Ship Hard lists four with count 3; the first three mount.
- * A `load` list is the pool `arm` draws from. Strict: both at once, a missing list, or an unknown weapon fails.
+ * A `load` list is the pool `arm` draws from.
+ * Both at once keeps the explicit loadout, with a warning.
+ * An unknown name is skipped with a warning. That matches FTL: BlueprintManager::GetWeaponBlueprint answers an unknown
+ * name with a static `dummy` whose power is 0, and ShipGenerator::GetPossibleWeaponList only keeps a gun with more
+ * power than a quarter of what is left, so the dummy is never picked. ftl.dat's own WEAPONS_JELLY list names
+ * BOMB_BREACH, which the archive never defines.
  */
 function weaponNames(hull: HullDef): { names: string[]; fixed: boolean } | undefined {
   if (hull.weapons.length > 0 && hull.weaponLoad) {
-    throw new Error(
-      `${hull.id}: its weaponList has both weapon tags and load="${hull.weaponLoad}".`,
+    warnPack(
+      `${hull.id}: its weaponList has both weapon tags and load="${hull.weaponLoad}"; the tags are used.`,
     );
   }
   const fixed = hull.weapons.length > 0;
   const listed = fixed ? [...hull.weapons] : listNames(hull.id, hull.weaponLoad);
-  const names = listed.filter((name) => !VANILLA_MISSING_WEAPONS.has(name));
+  const names = listed.filter((name) => {
+    if (weaponDef(name) || weaponIdForName(name)) return true;
+    warnPack(`${hull.id}: its weaponList names "${name}", which is not a weapon; it is skipped.`);
+    return false;
+  });
   if (!names.length) return undefined;
-  for (const name of names) {
-    if (!weaponDef(name) && !weaponIdForName(name)) {
-      throw new Error(`${hull.id}: its weaponList names "${name}", which is not a weapon.`);
-    }
-  }
   return { names: names.map((name) => armId(name) ?? name), fixed };
 }
 
@@ -1083,18 +1092,14 @@ function fixedLoadout(weapons: string[]): ArmResult {
   };
 }
 
-/**
- * Names ftl.dat's own lists use without defining them. They are skipped; any other unknown name fails.
- * BOMB_BREACH: autoBlueprints.xml `WEAPONS_JELLY` (the Lanius ships' list) names it, and the archive defines only
- * BOMB_BREACH_1 and BOMB_BREACH_2.
- */
-const VANILLA_MISSING_WEAPONS = new Set(["BOMB_BREACH"]);
-
-/** Names in a `load` list. Strict: a load that names no blueprintList fails. */
+/** Names in a `load` list. A load that names no blueprintList is warned about and treated as empty. */
 function listNames(ship: string, load: string | undefined): string[] {
   if (!load) return [];
   const names = blueprintList(load);
-  if (!names) throw new Error(`${ship}: load="${load}" names no blueprintList.`);
+  if (!names) {
+    warnPack(`${ship}: load="${load}" names no blueprintList; the class table is used.`);
+    return [];
+  }
   return [...names];
 }
 

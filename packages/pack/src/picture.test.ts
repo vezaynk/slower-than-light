@@ -92,6 +92,44 @@ describe("hull pictures", () => {
     assert.equal(xmlHasSlide(pictureXml({ x: 1, y: 2, w: 3, h: 4 }, [mounts[1]!])), false);
   });
 
+  it("reads cloak, floor, glow, and gibs, and a later picture keeps them", () => {
+    const sheet = {
+      glow: { x: 1, y: -2 },
+      cloakOffset: { x: 3, y: 4 },
+      floorOffset: { x: -5, y: 6 },
+      gibs: [
+        {
+          id: 1,
+          x: 10,
+          y: 20,
+          velocityMin: 0.35,
+          velocityMax: 0.9,
+          directionMin: 150,
+          directionMax: 210,
+          angularMin: -12,
+          angularMax: 12,
+        },
+      ],
+    };
+    const hull = bareHull("kestral");
+    const xml = pictureXml({ x: 1, y: 2, w: 30, h: 40 }, undefined, sheet);
+    assert.match(xml, /<glowOffset x="1" y="-2"\/>/);
+    assert.match(xml, /<offsets><cloak x="3" y="4"\/><floor x="-5" y="6"\/><\/offsets>/);
+    assert.match(xml, /<gib1><x>10<\/x><y>20<\/y>/);
+    attachPictures(
+      [hull],
+      [
+        { path: "data/kestral.xml", xml },
+        { path: "extra/kestral.xml", xml: pictureXml({ x: 8, y: 9, w: 10, h: 11 }) },
+      ],
+    );
+    assert.deepEqual(hull.picture, { x: 8, y: 9, w: 10, h: 11 });
+    assert.deepEqual(hull.glow, sheet.glow);
+    assert.deepEqual(hull.cloakOffset, sheet.cloakOffset);
+    assert.deepEqual(hull.floorOffset, sheet.floorOffset);
+    assert.deepEqual(hull.gibs, sheet.gibs);
+  });
+
   it("copies the picture when the pack is installed", () => {
     const hull = parsePack(HULL).hulls?.[0];
     assert.ok(hull);

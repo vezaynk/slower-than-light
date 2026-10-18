@@ -8,7 +8,7 @@ import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat } from "@stl/ftldat";
 import { packFromExtract } from "@stl/hyperspace";
 import { overlayGap, parsePack, pictureForRooms } from "@stl/pack";
-import { standInDat, standInXml } from "./archive.ts";
+import { standInDat, standInImages, standInXml } from "./archive.ts";
 
 describe("totallynotftl.dat", () => {
   it("rebuilds the committed xml and archive", async () => {
@@ -26,11 +26,14 @@ describe("totallynotftl.dat", () => {
     assert.equal(extracted.documents.length, 1 + pictures.length);
     assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
     assert.equal(extracted.documents[0]?.xml, goldenXml);
-    assert.equal(extracted.assets.size, pictures.length);
+    const images = standInImages(pictures);
+    assert.equal(extracted.assets.size, images.length);
     for (const file of pictures) {
       assert.equal(extracted.documents.find((doc) => doc.path === file.path)?.xml, file.xml);
-      const blob = extracted.assets.get(`img/ship/${file.stem}_base.png`);
-      assert.equal(blob?.type, "image/png");
+    }
+    for (const image of images) {
+      const blob = extracted.assets.get(image.path);
+      assert.equal(blob?.type, "image/png", image.path);
       const bytes = new Uint8Array(await blob!.arrayBuffer());
       assert.equal(bytes[0], 0x89);
       assert.equal(bytes[1], 0x50);
@@ -76,11 +79,15 @@ describe("totallynotftl.dat", () => {
     assert.equal(kestrel?.layout, "kestral");
     assert.deepEqual(kestrel?.picture, pictureForRooms(kestrel?.grid?.rooms ?? []));
     assert.deepEqual(kestrel?.mounts, WEAPON_MOUNTS.kestral);
+    assert.deepEqual(kestrel?.cloakOffset, { x: 0, y: 0 });
+    assert.deepEqual(kestrel?.floorOffset, { x: 0, y: 0 });
+    assert.ok((kestrel?.gibs?.length ?? 0) >= 1);
     const mounts = Object.values(WEAPON_MOUNTS).reduce((count, rows) => count + rows.length, 0);
     assert.equal(Object.keys(WEAPON_MOUNTS).length, 69);
     assert.equal(mounts, 325);
     const fighter = merged.hulls?.find((hull) => hull.id === "REBEL_SKINNY");
     assert.equal(fighter?.layout, "rebel-invader");
     assert.equal(fighter?.mounts, undefined);
+    assert.equal(fighter?.gibs?.length, 1);
   });
 });

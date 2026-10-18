@@ -103,6 +103,36 @@ export type HullPicture = {
   h: number;
 };
 
+/** One x,y pair from a ship drawing: a glow, or a cloak or floor offset. */
+export type HullOffset = {
+  x: number;
+  y: number;
+};
+
+/**
+ * One `<gibN>` inside `<explosion>`.
+ * `x` and `y` are pixels of the ship image. The flight numbers are the drawing's own ranges.
+ */
+export type HullGib = {
+  id: number;
+  x: number;
+  y: number;
+  velocityMin: number;
+  velocityMax: number;
+  directionMin: number;
+  directionMax: number;
+  angularMin: number;
+  angularMax: number;
+};
+
+/** The drawing children besides the image box and the weapon mounts. */
+export type HullSheet = {
+  glow?: HullOffset;
+  cloakOffset?: HullOffset;
+  floorOffset?: HullOffset;
+  gibs?: HullGib[];
+};
+
 /** Direction a weapon shifts when it is powered. The archive spells these five. */
 export type HullMountSlide = "up" | "down" | "left" | "right" | "no";
 
@@ -246,6 +276,14 @@ export type HullDef = {
   picture?: HullPicture;
   /** Weapon hardpoints from that same drawing file. */
   mounts?: HullMount[];
+  /** `<glowOffset>` from that drawing. The iPad build is what uses it. */
+  glow?: HullOffset;
+  /** `<offsets><cloak>` from that drawing, in archive pixels. */
+  cloakOffset?: HullOffset;
+  /** `<offsets><floor>` from that drawing, in archive pixels. */
+  floorOffset?: HullOffset;
+  /** `<explosion>` pieces from that drawing. */
+  gibs?: HullGib[];
   cloak?: string;
   shield?: string;
   floor?: string;

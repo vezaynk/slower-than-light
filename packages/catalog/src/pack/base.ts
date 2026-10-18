@@ -33,6 +33,7 @@ import {
   type FlagshipDifficulty,
 } from "../flagship-layouts.ts";
 import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
+import { standInSheet } from "../ship-art.ts";
 import { mountsFor } from "../weapon-mounts.ts";
 import { gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
@@ -407,6 +408,12 @@ function paintHull(row: HullDef, stem: string | undefined): HullDef {
   if (picture) row.picture = picture;
   const mounts = mountsFor(stem);
   if (mounts) row.mounts = mounts.map((mount) => ({ ...mount }));
+  if (picture) {
+    const sheet = standInSheet(picture, mounts);
+    if (sheet.cloakOffset) row.cloakOffset = { ...sheet.cloakOffset };
+    if (sheet.floorOffset) row.floorOffset = { ...sheet.floorOffset };
+    if (sheet.gibs) row.gibs = sheet.gibs.map((gib) => ({ ...gib }));
+  }
   return row;
 }
 

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { pictureFrame, type HullPicture } from "@stl/pack";
-import { baseImage, shipArtGeneration, subscribeShipArt } from "@/game/pack/ship-art";
+import { gibImages, shipArtGeneration, shipImage, subscribeShipArt } from "@/game/pack/ship-art";
 import { gridPitch } from "./grid-pitch";
 import { HullPlate } from "./HullPlate";
 import "./hull-plate.css";
@@ -21,6 +21,7 @@ export function HullSkin({
   cols,
   rows,
   rooms,
+  gone = false,
 }: {
   id: string;
   faction: string;
@@ -29,19 +30,67 @@ export function HullSkin({
   cols: number;
   rows: number;
   rooms: Room[];
+  /** The hull has blown apart. Gib images replace the base. */
+  gone?: boolean;
 }) {
   const artTick = useSyncExternalStore(subscribeShipArt, shipArtGeneration, () => 0);
-  const art = artTick >= 0 ? baseImage(id) : undefined;
-  if (art) {
+  const base = artTick >= 0 ? shipImage(id, "base") : undefined;
+  const floor = artTick >= 0 ? shipImage(id, "floor") : undefined;
+  const cloak = artTick >= 0 ? shipImage(id, "cloak") : undefined;
+  const gibs = gone && artTick >= 0 ? gibImages(id) : [];
+  if (base || floor || gibs.length > 0) {
     return (
-      <HullBase
-        url={art.url}
-        picture={art.picture}
-        offsetX={art.offsetX}
-        offsetY={art.offsetY}
-        cols={cols}
-        rows={rows}
-      />
+      <>
+        {floor ? (
+          <HullBase
+            className="hull-floor"
+            url={floor.url}
+            picture={floor.picture}
+            offsetX={floor.offsetX}
+            offsetY={floor.offsetY}
+            cols={cols}
+            rows={rows}
+          />
+        ) : null}
+        {base ? (
+          <HullBase
+            className="hull-base"
+            url={base.url}
+            picture={base.picture}
+            offsetX={base.offsetX}
+            offsetY={base.offsetY}
+            cols={cols}
+            rows={rows}
+          />
+        ) : null}
+        {cloak ? (
+          <HullBase
+            className="hull-cloak"
+            url={cloak.url}
+            picture={cloak.picture}
+            offsetX={cloak.offsetX}
+            offsetY={cloak.offsetY}
+            cols={cols}
+            rows={rows}
+          />
+        ) : null}
+        {gibs.length > 0 ? (
+          <span className="hull-gibs">
+            {gibs.map((gib) => (
+              <HullBase
+                key={gib.url}
+                className="hull-gib"
+                url={gib.url}
+                picture={gib.picture}
+                offsetX={gib.offsetX}
+                offsetY={gib.offsetY}
+                cols={cols}
+                rows={rows}
+              />
+            ))}
+          </span>
+        ) : null}
+      </>
     );
   }
   return (
@@ -58,6 +107,7 @@ export function HullSkin({
 }
 
 function HullBase({
+  className,
   url,
   picture,
   offsetX,
@@ -65,6 +115,7 @@ function HullBase({
   cols,
   rows,
 }: {
+  className: string;
   url: string;
   picture: HullPicture;
   offsetX: number;
@@ -76,8 +127,9 @@ function HullBase({
   const [box, setBox] = useState<Box | null>(null);
   useLayoutEffect(() => {
     const img = ref.current;
-    const el = img?.parentElement;
-    if (!el) return;
+    // Gibs sit in a zero-size wrapper so a destroyed hull can show them. The pitch lives on the hull.
+    const el = img?.closest(".hull");
+    if (!(el instanceof HTMLElement)) return;
     const read = () => {
       const pitch = gridPitch(el, cols, rows);
       if (!pitch) {
@@ -105,7 +157,7 @@ function HullBase({
   return (
     <img
       ref={ref}
-      className="hull-base"
+      className={className}
       src={url}
       alt=""
       draggable={false}

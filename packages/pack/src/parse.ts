@@ -97,7 +97,7 @@ export function elements(node: XmlElement | undefined): XmlElement[] {
   return found;
 }
 
-export function child(node: XmlElement, tag: string): XmlElement | undefined {
+export function child(node: XmlElement | undefined, tag: string): XmlElement | undefined {
   return elements(node).find((item) => item.tagName === tag);
 }
 

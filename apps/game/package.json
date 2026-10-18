@@ -1,7 +1,10 @@
 {
   "name": "@stl/game",
   "private": true,
-  "sideEffects": ["**/*.css", "src/game/pack/base.ts"],
+  "sideEffects": [
+    "**/*.css",
+    "src/game/pack/base.ts"
+  ],
   "type": "module",
   "scripts": {
     "dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",
@@ -12,7 +15,8 @@
     "preview:restart": "node scripts/preview.mjs restart",
     "preview:stop": "node scripts/preview.mjs stop",
     "typecheck": "tsc --noEmit",
-    "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/app-data/readiness-schedule.test.ts && node --experimental-strip-types --test src/game/*.test.ts src/game/selftest.ts src/game/extras/*.test.ts src/game/wiki/*.test.ts",
+    "test:src": "node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/app-data/readiness-schedule.test.ts src/game/*.test.ts src/game/selftest.ts src/game/extras/*.test.ts src/game/wiki/*.test.ts",
+    "test": "node --test 'scripts/**/*.test.mjs' && pnpm test:src",
     "lint": "cd ../.. && ./node_modules/.bin/eslint apps/game"
   },
   "dependencies": {

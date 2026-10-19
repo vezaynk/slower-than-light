@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { campaignPack, campaignXml } from "@stl/campaign";
 import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
 import { WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
-import { extractFtlDat } from "@stl/ftldat";
+import { extractFtlDat, readPkg } from "@stl/ftldat";
 import { packFromExtract } from "@stl/hyperspace";
 import {
   overlayGap,
@@ -26,9 +26,29 @@ import { standInMedia } from "./media.ts";
 import { TEXT_LISTS_XML } from "./text-lists.ts";
 
 describe("totallynotftl.dat", () => {
-  it("rebuilds the committed xml and archive", async () => {
+  it("keeps every file of the archive committed under archive/, and nothing else", async () => {
+    const root = new URL("../archive/", import.meta.url);
+    const files = await readPkg(await standInDat());
+    const committed = readdirSync(root, { recursive: true, withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => `${entry.parentPath}/${entry.name}`.slice(root.pathname.length))
+      .sort();
+    assert.deepEqual(committed, files.map((file) => file.path).sort());
+    for (const file of files) {
+      assert.equal(
+        Buffer.compare(readFileSync(new URL(file.path, root)), file.bytes),
+        0,
+        file.path,
+      );
+    }
+  });
+
+  it("rebuilds the committed archive", async () => {
     const xml = standInXml();
-    const goldenXml = readFileSync(new URL("../totallynotftl.xml", import.meta.url), "utf8");
+    const goldenXml = readFileSync(
+      new URL("../archive/data/stand-in.xml", import.meta.url),
+      "utf8",
+    );
     assert.equal(xml, goldenXml);
     assert.equal(xml.includes("<facts"), false);
     assert.equal(xml.includes("<maxHealth"), false);

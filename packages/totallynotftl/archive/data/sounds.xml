@@ -1,0 +1,51 @@
+<sounds>
+<music>
+<track><name>civilian</name><explore>bp_MUS_CivilEXPLORE.ogg</explore><combat>bp_MUS_CivilBATTLE.ogg</combat></track>
+<track><name>milkyway</name><explore>bp_MUS_MilkyWayEXPLORE.ogg</explore><combat>bp_MUS_MilkyWayBATTLE.ogg</combat></track>
+<track><name>wasteland</name><explore>bp_MUS_WastelandEXPLORE.ogg</explore><combat>bp_MUS_WastelandBATTLE.ogg</combat></track>
+<track><name>rock</name><explore>bp_MUS_RockmenEXPLORE.ogg</explore><combat>bp_MUS_RockmenBATTLE.ogg</combat></track>
+<track><name>engi</name><explore>bp_MUS_EngiEXPLORE.ogg</explore><combat>bp_MUS_EngiBATTLE.ogg</combat></track>
+<track><name>debris</name><explore>bp_MUS_DebrisEXPLORE.ogg</explore><combat>bp_MUS_DebrisBATTLE.ogg</combat></track>
+<track><name>mantis</name><explore>bp_MUS_MantisEXPLORE.ogg</explore><combat>bp_MUS_MantisBATTLE.ogg</combat></track>
+<track><name>deepspace</name><explore>bp_MUS_DeepspaceEXPLORE.ogg</explore><combat>bp_MUS_DeepspaceBATTLE.ogg</combat></track>
+<track><name>colonial</name><explore>bp_MUS_ColonialEXPLORE.ogg</explore><combat>bp_MUS_ColonialBATTLE.ogg</combat></track>
+<track><name>void</name><explore>bp_MUS_VoidEXPLORE.ogg</explore><combat>bp_MUS_VoidBATTLE.ogg</combat></track>
+<track><name>zoltan</name><explore>bp_MUS_ZoltanEXPLORE.ogg</explore><combat>bp_MUS_ZoltanBATTLE.ogg</combat></track>
+<track><name>cosmos</name><explore>bp_MUS_CosmosEXPLORE.ogg</explore><combat>bp_MUS_CosmosBATTLE.ogg</combat></track>
+<track><name>title</name><explore>bp_MUS_TitleScreen.ogg</explore></track>
+<track><name>laststand</name><explore>bp_MUS_LastStand.ogg</explore></track>
+<track><name>shrike</name><explore>bp_MUS_ShrikeEXPLORE.ogg</explore><combat>bp_MUS_ShrikeBATTLE.ogg</combat></track>
+<track><name>slug</name><explore>bp_MUS_SlugEXPLORE.ogg</explore><combat>bp_MUS_SlugBATTLE.ogg</combat></track>
+<track><name>lostship</name><explore>bp_MUS_LostShipEXPLORE.ogg</explore><combat>bp_MUS_LostShipBATTLE.ogg</combat></track>
+<track><name>hacking</name><explore>bp_MUS_HackEXPLORE.ogg</explore><combat>bp_MUS_HackBATTLE.ogg</combat></track>
+</music>
+<lightLaser1 volume="8">ui/lightLaser1.wav</lightLaser1>
+<smallMissile1 volume="8">ui/smallMissile1.wav</smallMissile1>
+<ionShoot1 volume="8">ui/ionShoot1.wav</ionShoot1>
+<beam1 volume="8">ui/beam1.wav</beam1>
+<hitShield1 volume="8">ui/hitShield1.wav</hitShield1>
+<hitHull1 volume="8">ui/hitHull1.wav</hitHull1>
+<warning volume="8">ui/warning.wav</warning>
+<victory volume="8">ui/victory.wav</victory>
+<explosion1 volume="8">ui/explosion1.wav</explosion1>
+<airLoss volume="8">ui/airLoss.wav</airLoss>
+<doorOpen volume="8">ui/doorOpen.wav</doorOpen>
+<doorClose volume="8">ui/doorClose.wav</doorClose>
+<teleport volume="8">ui/teleport.wav</teleport>
+<cloak volume="8">ui/cloak.wav</cloak>
+<decloak volume="8">ui/decloak.wav</decloak>
+<death1 volume="8">ui/death1.wav</death1>
+<femaleDeath1 volume="8">ui/femaleDeath1.wav</femaleDeath1>
+<rockDeath volume="8">ui/rockDeath.wav</rockDeath>
+<mantisDeath volume="8">ui/mantisDeath.wav</mantisDeath>
+<crystalDeath volume="8">ui/crystalDeath.wav</crystalDeath>
+<engiDeath volume="8">ui/engiDeath.wav</engiDeath>
+<energyDeath volume="8">ui/energyDeath.wav</energyDeath>
+<levelup volume="8">ui/levelup.wav</levelup>
+<fire volume="8" loop="true">ui/fire.wav</fire>
+<repair volume="8" loop="true">ui/repair.wav</repair>
+<buy volume="8">ui/buy.wav</buy>
+<sell volume="8">ui/sell.wav</sell>
+<jumpLeave volume="8">ui/jumpLeave.wav</jumpLeave>
+<jumpArrive volume="8">ui/jumpArrive.wav</jumpArrive>
+</sounds>

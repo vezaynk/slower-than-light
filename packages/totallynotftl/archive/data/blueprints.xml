@@ -1,0 +1,1894 @@
+<FTL>
+  <shipBlueprint name="PLAYER_SHIP_HARD" layout="kestral" img="kestral">
+    <class>Kestrel Cruiser</class>
+    <name>The Kestrel</name>
+    <unlock>Does not require unlocking (it is the only ship, the cruiser and the layout, available from the very start of the game)</unlock>
+    <desc>This class of ship was decommissioned from Federation service years ago. After a number of refits and updating, this classic ship is ready for battle.</desc>
+    <systemList>
+      <pilot power="1" room="10" start="true"/>
+      <doors power="1" room="8" start="true"/>
+      <sensors power="1" room="13" start="true"/>
+      <medbay power="1" room="4" start="true"/>
+      <clonebay power="0" room="4" start="false"/>
+      <oxygen power="1" room="1" start="true"/>
+      <shields power="2" room="12" start="true"/>
+      <engines power="2" room="6" start="true"/>
+      <weapons power="3" room="7" start="true"/>
+      <drones power="0" room="9" start="false"/>
+      <teleporter power="0" room="14" start="false"/>
+      <cloaking power="0" room="11" start="false"/>
+      <battery power="0" room="2" start="false"/>
+      <mind power="0" room="3" start="false"/>
+      <hacking power="0" room="15" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="8">
+      <weapon name="LASER_BURST_3"/>
+      <weapon name="MISSILES_2_PLAYER"/>
+    </weaponList>
+    <droneList drones="2"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="3" class="human"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_HARD_2" layout="kestral_2" img="kestral_2">
+    <class>Kestrel Cruiser</class>
+    <name>Red-Tail</name>
+    <unlock>Earn at least two out of three achievements for the Kestrel Cruiser</unlock>
+    <desc>This modified Kestrel class ship was created by a laser weapon aficionado.</desc>
+    <systemList>
+      <pilot power="1" room="9" start="true"/>
+      <doors power="1" room="7" start="true"/>
+      <sensors power="1" room="11" start="true"/>
+      <medbay power="1" room="0" start="true"/>
+      <clonebay power="0" room="0" start="false"/>
+      <oxygen power="1" room="3" start="true"/>
+      <shields power="2" room="2" start="true"/>
+      <engines power="2" room="5" start="true"/>
+      <weapons power="4" room="10" start="true"/>
+      <drones power="0" room="13" start="false"/>
+      <teleporter power="0" room="4" start="false"/>
+      <cloaking power="0" room="12" start="false"/>
+      <battery power="0" room="6" start="false"/>
+      <mind power="0" room="1" start="false"/>
+      <hacking power="0" room="14" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="5">
+      <weapon name="LASER_BURST_1"/>
+      <weapon name="LASER_BURST_1"/>
+      <weapon name="LASER_BURST_1"/>
+      <weapon name="LASER_BURST_1"/>
+    </weaponList>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="2" class="human"/>
+    <crewCount amount="1" class="mantis"/>
+    <crewCount amount="1" class="energy"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_HARD_3" layout="kestral_3" img="kestral_3">
+    <class>Kestrel Cruiser</class>
+    <name>The Swallow</name>
+    <unlock>Reach the final sector with the Kestrel Cruiser layout B and Advanced Edition Content enabled</unlock>
+    <desc>This model was modified by pirates to utilize newly discovered technology. It can clone lost crewmembers and stun enemies.</desc>
+    <systemList>
+      <pilot power="1" room="11" start="true"/>
+      <doors power="1" room="10" start="true"/>
+      <sensors power="2" room="13" start="true"/>
+      <medbay power="0" room="9" start="false"/>
+      <clonebay power="1" room="9" start="true"/>
+      <oxygen power="1" room="7" start="true"/>
+      <shields power="2" room="12" start="true"/>
+      <engines power="2" room="5" start="true"/>
+      <weapons power="2" room="2" start="true"/>
+      <drones power="0" room="6" start="false"/>
+      <teleporter power="0" room="4" start="false"/>
+      <cloaking power="0" room="1" start="false"/>
+      <battery power="0" room="8" start="false"/>
+      <mind power="0" room="16" start="false"/>
+      <hacking power="0" room="14" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="4">
+      <weapon name="LASER_BURST_2"/>
+      <weapon name="ION_STUN"/>
+    </weaponList>
+    <droneList drones="3"/>
+    <health amount="30"/>
+    <maxPower amount="7"/>
+    <crewCount amount="2" class="human"/>
+    <crewCount amount="1" class="anaerobic"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_CIRCLE" layout="circle_cruiser" img="circle_cruiser">
+    <class>Engi Cruiser</class>
+    <name>The Torus</name>
+    <unlock>Reaching a sector 5 with any Kestrel Cruiser layout automatically unlocks the Engi Cruiser</unlock>
+    <desc>Although it may look like a pile of junk loosely held together, this well designed ship relies on drones and ion weaponry.</desc>
+    <systemList>
+      <pilot power="1" room="15" start="true"/>
+      <doors power="1" room="13" start="true"/>
+      <sensors power="1" room="7" start="true"/>
+      <medbay power="1" room="14" start="true"/>
+      <clonebay power="0" room="14" start="false"/>
+      <oxygen power="1" room="3" start="true"/>
+      <shields power="2" room="11" start="true"/>
+      <engines power="2" room="10" start="true"/>
+      <weapons power="3" room="5" start="true"/>
+      <drones power="3" room="0" start="true"/>
+      <teleporter power="0" room="8" start="false"/>
+      <cloaking power="0" room="2" start="false"/>
+      <battery power="0" room="6" start="false"/>
+      <mind power="0" room="12" start="false"/>
+      <hacking power="0" room="4" start="false"/>
+    </systemList>
+    <weaponSlots>3</weaponSlots>
+    <droneSlots>3</droneSlots>
+    <weaponList missiles="0">
+      <weapon name="ION_4"/>
+    </weaponList>
+    <droneList drones="15">
+      <drone name="COMBAT_1"/>
+    </droneList>
+    <aug name="NANO_MEDBAY"/>
+    <health amount="30"/>
+    <maxPower amount="10"/>
+    <crewCount amount="2" class="engi"/>
+    <crewCount amount="1" class="human"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_CIRCLE_2" layout="circle_cruiser_2" img="circle_cruiser_2">
+    <class>Engi Cruiser</class>
+    <name>The Vortex</name>
+    <unlock>Earn at least two out of three achievements for the Engi Cruiser</unlock>
+    <desc>Heavily understaffed, this ship relies on drones to keep the ship running.</desc>
+    <systemList>
+      <pilot power="1" room="13" start="true"/>
+      <doors power="1" room="8" start="true"/>
+      <sensors power="0" room="2" start="false"/>
+      <medbay power="1" room="6" start="true"/>
+      <clonebay power="0" room="6" start="false"/>
+      <oxygen power="1" room="5" start="true"/>
+      <shields power="2" room="11" start="true"/>
+      <engines power="1" room="0" start="true"/>
+      <weapons power="3" room="1" start="true"/>
+      <drones power="3" room="7" start="true"/>
+      <teleporter power="0" room="3" start="false"/>
+      <cloaking power="0" room="12" start="false"/>
+      <battery power="0" room="10" start="false"/>
+      <mind power="0" room="4" start="false"/>
+      <hacking power="0" room="9" start="false"/>
+    </systemList>
+    <weaponSlots>3</weaponSlots>
+    <droneSlots>3</droneSlots>
+    <weaponList missiles="0">
+      <weapon name="ION_2"/>
+      <weapon name="LASER_HEAVY_1"/>
+    </weaponList>
+    <droneList drones="6">
+      <drone name="REPAIR"/>
+      <drone name="REPAIR"/>
+      <drone name="BATTLE"/>
+    </droneList>
+    <aug name="DRONE_SPEED"/>
+    <health amount="30"/>
+    <maxPower amount="9"/>
+    <crewCount amount="1" class="engi"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_CIRCLE_3" layout="circle_cruiser_3" img="circle_cruiser_3">
+    <class>Engi Cruiser</class>
+    <name>Tetragon</name>
+    <unlock>Reach the final sector with the Engi Cruiser layout B and Advanced Edition Content enabled</unlock>
+    <desc>The Engi were quick to adapt to the sudden surge of hacking technology — this ship is the result of their research.</desc>
+    <systemList>
+      <pilot power="1" room="14" start="true"/>
+      <doors power="1" room="16" start="true"/>
+      <sensors power="1" room="13" start="true"/>
+      <medbay power="0" room="11" start="false"/>
+      <clonebay power="1" room="11" start="true"/>
+      <oxygen power="1" room="0" start="true"/>
+      <shields power="2" room="8" start="true"/>
+      <engines power="2" room="10" start="true"/>
+      <weapons power="1" room="6" start="true"/>
+      <drones power="2" room="7" start="true"/>
+      <teleporter power="0" room="4" start="false"/>
+      <cloaking power="0" room="1" start="false"/>
+      <battery power="0" room="2" start="false"/>
+      <mind power="0" room="3" start="false"/>
+      <hacking power="1" room="5" start="true"/>
+    </systemList>
+    <weaponSlots>3</weaponSlots>
+    <droneSlots>3</droneSlots>
+    <weaponList missiles="0">
+      <weapon name="LASER_BURST_2"/>
+    </weaponList>
+    <droneList drones="25">
+      <drone name="COMBAT_BEAM"/>
+    </droneList>
+    <aug name="DEFENSE_SCRAMBLER"/>
+    <health amount="30"/>
+    <maxPower amount="9"/>
+    <crewCount amount="1" class="anaerobic"/>
+    <crewCount amount="2" class="engi"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_FED" layout="fed_cruiser" img="fed_cruiser">
+    <class>Federation Cruiser</class>
+    <name>The Osprey</name>
+    <unlock>Defeat the Flagship prototype in the Rebel Stronghold sector to unlock this ship.
+Alternatively, defeat the Rebel Flagship with the Engi Cruiser.</unlock>
+    <desc>This ship features the latest in federation technology: an advanced beam weapon that pierces through shields!</desc>
+    <systemList>
+      <pilot power="1" room="6" start="true"/>
+      <doors power="1" room="3" start="true"/>
+      <sensors power="1" room="10" start="true"/>
+      <medbay power="1" room="7" start="true"/>
+      <clonebay power="0" room="7" start="false"/>
+      <oxygen power="1" room="12" start="true"/>
+      <shields power="2" room="8" start="true"/>
+      <engines power="2" room="5" start="true"/>
+      <weapons power="2" room="4" start="true"/>
+      <drones power="0" room="14" start="false"/>
+      <teleporter power="0" room="1" start="false"/>
+      <cloaking power="0" room="9" start="false"/>
+      <battery power="0" room="13" start="false"/>
+      <mind power="0" room="15" start="false"/>
+      <hacking power="0" room="2" start="false"/>
+      <artillery power="1" room="17" start="true" weapon="ARTILLERY_FED"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="5">
+      <weapon name="LASER_BURST_3"/>
+    </weaponList>
+    <droneList drones="2"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="1" class="human"/>
+    <crewCount amount="1" class="mantis"/>
+    <crewCount amount="1" class="rock"/>
+    <crewCount amount="1" class="engi"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_FED_2" layout="fed_cruiser_2" img="fed_cruiser_2">
+    <class>Federation Cruiser</class>
+    <name>Nisos</name>
+    <unlock>Earning two of the three Federation Cruiser achievements will unlock layout B.</unlock>
+    <desc>This ship features additional Artillery power, encouraging heavy reliance on the beam.</desc>
+    <systemList>
+      <pilot power="1" room="7" start="true"/>
+      <doors power="1" room="17" start="true"/>
+      <sensors power="1" room="0" start="true"/>
+      <medbay power="1" room="10" start="true"/>
+      <clonebay power="0" room="10" start="false"/>
+      <oxygen power="1" room="8" start="true"/>
+      <shields power="2" room="14" start="true"/>
+      <engines power="2" room="15" start="true"/>
+      <weapons power="2" room="4" start="true"/>
+      <drones power="0" room="2" start="false"/>
+      <teleporter power="0" room="5" start="false"/>
+      <cloaking power="0" room="11" start="false"/>
+      <battery power="0" room="3" start="false"/>
+      <mind power="0" room="6" start="false"/>
+      <hacking power="0" room="13" start="false"/>
+      <artillery power="2" room="12" start="true" weapon="ARTILLERY_FED"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="9">
+      <weapon name="LASER_BURST_2"/>
+      <weapon name="MISSILES_1"/>
+    </weaponList>
+    <health amount="30"/>
+    <maxPower amount="9"/>
+    <crewCount amount="1" class="human"/>
+    <crewCount amount="1" class="slug"/>
+    <crewCount amount="1" class="energy"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_FED_3" layout="fed_cruiser_3" img="fed_cruiser_3">
+    <class>Federation Cruiser</class>
+    <name>The Fregatidae</name>
+    <unlock>Reaching Sector 8 with The Federation Cruiser B and Advanced Edition content enabled will unlock Layout C.</unlock>
+    <desc>With a Flak Artillery weapon and an improved Clone Bay, only the most suicidal of infantry chooses to fly on this ship.</desc>
+    <systemList>
+      <pilot power="1" room="6" start="true"/>
+      <doors power="1" room="13" start="true"/>
+      <sensors power="1" room="10" start="true"/>
+      <medbay power="0" room="1" start="false"/>
+      <clonebay power="2" room="1" start="true"/>
+      <oxygen power="1" room="12" start="true"/>
+      <shields power="2" room="15" start="true"/>
+      <engines power="2" room="5" start="true"/>
+      <weapons power="1" room="11" start="true"/>
+      <drones power="0" room="17" start="false"/>
+      <teleporter power="1" room="8" start="true"/>
+      <cloaking power="0" room="4" start="false"/>
+      <battery power="0" room="7" start="false"/>
+      <mind power="0" room="16" start="false"/>
+      <hacking power="0" room="2" start="false"/>
+      <artillery power="1" room="9" start="true" weapon="ARTILLERY_FED_C"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="5"/>
+    <aug name="O2_MASKS"/>
+    <health amount="30"/>
+    <maxPower amount="7"/>
+    <crewCount amount="1" class="human"/>
+    <crewCount amount="2" class="energy"/>
+    <crewCount amount="1" class="mantis"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_ENERGY" layout="energy_cruiser" img="energy_cruiser">
+    <class>Zoltan Cruiser</class>
+    <name>The Adjudicator</name>
+    <unlock>See the Unarmed Zoltan Transport.
+Alternatively, defeat The Rebel Flagship with the Federation Cruiser.</unlock>
+    <desc>The Zoltan's advanced shields technology give this ship an edge during each battle.</desc>
+    <systemList>
+      <pilot power="1" room="11" start="true"/>
+      <doors power="2" room="10" start="true"/>
+      <sensors power="1" room="0" start="true"/>
+      <medbay power="1" room="8" start="true"/>
+      <clonebay power="0" room="8" start="false"/>
+      <oxygen power="1" room="4" start="true"/>
+      <shields power="2" room="15" start="true"/>
+      <engines power="1" room="13" start="true"/>
+      <weapons power="3" room="14" start="true"/>
+      <drones power="0" room="16" start="false"/>
+      <teleporter power="0" room="2" start="false"/>
+      <cloaking power="0" room="6" start="false"/>
+      <battery power="0" room="7" start="false"/>
+      <mind power="0" room="3" start="false"/>
+      <hacking power="0" room="5" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="12">
+      <weapon name="MISSILES_1"/>
+      <weapon name="BEAM_2"/>
+    </weaponList>
+    <droneList drones="2"/>
+    <aug name="ENERGY_SHIELD"/>
+    <health amount="30"/>
+    <maxPower amount="5"/>
+    <crewCount amount="3" class="energy"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_ENERGY_2" layout="energy_cruiser_2" img="energy_cruiser_2">
+    <class>Zoltan Cruiser</class>
+    <name>Noether</name>
+    <unlock>Earning two of the three Zoltan Cruiser achievements will unlock Layout B.</unlock>
+    <desc>This ship starts with a weakened Shield system and must rely on its Zoltan shield.</desc>
+    <systemList>
+      <pilot power="1" room="14" start="true"/>
+      <doors power="1" room="8" start="true"/>
+      <sensors power="1" room="13" start="true"/>
+      <medbay power="1" room="0" start="true"/>
+      <clonebay power="0" room="0" start="false"/>
+      <oxygen power="1" room="12" start="true"/>
+      <shields power="1" room="5" start="true"/>
+      <engines power="2" room="3" start="true"/>
+      <weapons power="4" room="7" start="true"/>
+      <drones power="0" room="2" start="false"/>
+      <teleporter power="0" room="11" start="false"/>
+      <cloaking power="0" room="6" start="false"/>
+      <battery power="0" room="9" start="false"/>
+      <mind power="0" room="1" start="false"/>
+      <hacking power="0" room="4" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="0">
+      <weapon name="ION_1"/>
+      <weapon name="ION_1"/>
+      <weapon name="BEAM_LONG"/>
+    </weaponList>
+    <droneList drones="2"/>
+    <aug name="ENERGY_SHIELD"/>
+    <health amount="30"/>
+    <maxPower amount="5"/>
+    <crewCount amount="3" class="energy"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_ENERGY_3" layout="energy_cruiser_3" img="energy_cruiser_3">
+    <class>Zoltan Cruiser</class>
+    <name>Cerenkov</name>
+    <unlock>Getting to Sector 8 with the The Zoltan Cruiser Type B with Advanced Edition Content enabled will unlock Layout C.</unlock>
+    <desc>The designer of this ship was not willing to spend the money for a decent reactor. Instead it relies on its Zoltan crew and Backup Battery.</desc>
+    <systemList>
+      <pilot power="1" room="8" start="true"/>
+      <doors power="1" room="17" start="true"/>
+      <sensors power="1" room="16" start="true"/>
+      <medbay power="0" room="11" start="false"/>
+      <clonebay power="1" room="11" start="true"/>
+      <oxygen power="1" room="3" start="true"/>
+      <shields power="2" room="1" start="true"/>
+      <engines power="2" room="0" start="true"/>
+      <weapons power="2" room="2" start="true"/>
+      <drones power="3" room="14" start="true"/>
+      <teleporter power="0" room="13" start="false"/>
+      <cloaking power="0" room="9" start="false"/>
+      <battery power="2" room="4" start="true"/>
+      <mind power="0" room="12" start="false"/>
+      <hacking power="0" room="6" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="2">
+      <weapon name="ION_CHARGEGUN"/>
+    </weaponList>
+    <droneList drones="15">
+      <drone name="COMBAT_BEAM"/>
+    </droneList>
+    <aug name="ENERGY_SHIELD"/>
+    <health amount="30"/>
+    <maxPower amount="2"/>
+    <crewCount amount="4" class="energy"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_JELLY" layout="jelly_cruiser" img="jelly_cruiser">
+    <class>Slug Cruiser</class>
+    <name>Man of War</name>
+    <unlock>See the Slug Home Nebula Surrender random event.
+Alternatively, defeat The Rebel Flagship with the Mantis Cruiser.</unlock>
+    <desc>Designed for use inside nebula, this cruiser lacks sensors and relies instead on the guile and cunning of the Slugs.</desc>
+    <systemList>
+      <pilot power="1" room="8" start="true"/>
+      <doors power="2" room="1" start="true"/>
+      <sensors power="0" room="11" start="false"/>
+      <medbay power="1" room="3" start="true"/>
+      <clonebay power="0" room="3" start="false"/>
+      <oxygen power="1" room="4" start="true"/>
+      <shields power="2" room="13" start="true"/>
+      <engines power="2" room="6" start="true"/>
+      <weapons power="3" room="5" start="true"/>
+      <drones power="0" room="14" start="false"/>
+      <teleporter power="0" room="10" start="false"/>
+      <cloaking power="0" room="2" start="false"/>
+      <battery power="0" room="9" start="false"/>
+      <mind power="0" room="0" start="false"/>
+      <hacking power="0" room="12" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="15">
+      <weapon name="LASER_BURST_2"/>
+      <weapon name="BEAM_BIO"/>
+      <weapon name="BOMB_BREACH_1"/>
+    </weaponList>
+    <aug name="SLUG_GEL"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="2" class="slug"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_JELLY_2" layout="jelly_cruiser_2" img="jelly_cruiser_2">
+    <class>Slug Cruiser</class>
+    <name>The Stormwalker</name>
+    <unlock>Earning two of the three Slug Cruiser achievements will unlock Layout B.</unlock>
+    <desc>This boarding ship has no medical facilities and must manage its explosives carefully to keep the crew alive.</desc>
+    <systemList>
+      <pilot power="1" room="11" start="true"/>
+      <doors power="2" room="19" start="true"/>
+      <sensors power="0" room="0" start="false"/>
+      <medbay power="0" room="7" start="false"/>
+      <clonebay power="0" room="7" start="false"/>
+      <oxygen power="1" room="15" start="true"/>
+      <shields power="2" room="12" start="true"/>
+      <engines power="2" room="2" start="true"/>
+      <weapons power="2" room="13" start="true"/>
+      <drones power="0" room="18" start="false"/>
+      <teleporter power="1" room="3" start="true"/>
+      <cloaking power="0" room="5" start="false"/>
+      <battery power="0" room="14" start="false"/>
+      <mind power="0" room="4" start="false"/>
+      <hacking power="0" room="9" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="25">
+      <weapon name="MISSILES_2_PLAYER"/>
+      <weapon name="BOMB_HEAL"/>
+    </weaponList>
+    <aug name="SLUG_GEL"/>
+    <health amount="30"/>
+    <maxPower amount="7"/>
+    <crewCount amount="3" class="slug"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_JELLY_3" layout="jelly_cruiser_3" img="jelly_cruiser_3">
+    <class>Slug Cruiser</class>
+    <name>Ariolimax</name>
+    <unlock>Reaching sector 8 with the Slug Cruiser B on any difficulty with Advanced Edition Content enabled will unlock layout C.</unlock>
+    <desc>Slugs are often skilled in the arts of misdirection and manipulation. With Hacking and Mind Control systems, this ship capitalizes on that fact.</desc>
+    <systemList>
+      <pilot power="1" room="8" start="true"/>
+      <doors power="2" room="10" start="true"/>
+      <sensors power="0" room="5" start="false"/>
+      <medbay power="0" room="15" start="false"/>
+      <clonebay power="1" room="15" start="true"/>
+      <oxygen power="1" room="3" start="true"/>
+      <shields power="2" room="7" start="true"/>
+      <engines power="2" room="6" start="true"/>
+      <weapons power="2" room="9" start="true"/>
+      <drones power="0" room="13" start="false"/>
+      <teleporter power="0" room="11" start="false"/>
+      <cloaking power="0" room="1" start="false"/>
+      <battery power="0" room="4" start="false"/>
+      <mind power="1" room="0" start="true"/>
+      <hacking power="1" room="12" start="true"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="1">
+      <weapon name="LASER_CHAINGUN"/>
+    </weaponList>
+    <droneList drones="15"/>
+    <aug name="SLUG_GEL"/>
+    <health amount="30"/>
+    <maxPower amount="9"/>
+    <crewCount amount="3" class="slug"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_ROCK" layout="rock_cruiser" img="rock_cruiser">
+    <class>Rock Cruiser</class>
+    <name>Bulwark</name>
+    <unlock>See the Rock war vessel encounter.
+Alternatively, defeat The Rebel Flagship with the Slug cruiser.</unlock>
+    <desc>Similar to its designers, this super dense behemoth uses brute force to overwhelm its foes.</desc>
+    <systemList>
+      <pilot power="1" room="5" start="true"/>
+      <doors power="1" room="1" start="true"/>
+      <sensors power="1" room="12" start="true"/>
+      <medbay power="1" room="16" start="true"/>
+      <clonebay power="0" room="16" start="false"/>
+      <oxygen power="1" room="0" start="true"/>
+      <shields power="2" room="2" start="true"/>
+      <engines power="2" room="14" start="true"/>
+      <weapons power="3" room="15" start="true"/>
+      <drones power="0" room="4" start="false"/>
+      <teleporter power="0" room="17" start="false"/>
+      <cloaking power="0" room="3" start="false"/>
+      <battery power="0" room="13" start="false"/>
+      <mind power="0" room="8" start="false"/>
+      <hacking power="0" room="11" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="28">
+      <weapon name="MISSILES_2_PLAYER"/>
+      <weapon name="MISSILES_HULL"/>
+    </weaponList>
+    <aug name="ROCK_ARMOR"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="3" class="rock"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_ROCK_2" layout="rock_cruiser_2" img="rock_cruiser_2">
+    <class>Rock Cruiser</class>
+    <name>Shivan</name>
+    <unlock>Earning two of the three Rock Cruiser achievements will unlock Layout B.</unlock>
+    <desc>With no airlocks, this ship must rely entirely on its rock crew to put out fires.</desc>
+    <systemList>
+      <pilot power="1" room="8" start="true"/>
+      <doors power="0" room="15" start="false"/>
+      <sensors power="1" room="3" start="true"/>
+      <medbay power="1" room="1" start="true"/>
+      <clonebay power="0" room="1" start="false"/>
+      <oxygen power="2" room="4" start="true"/>
+      <shields power="2" room="2" start="true"/>
+      <engines power="2" room="0" start="true"/>
+      <weapons power="3" room="12" start="true"/>
+      <drones power="0" room="14" start="false"/>
+      <teleporter power="0" room="10" start="false"/>
+      <cloaking power="0" room="13" start="false"/>
+      <battery power="0" room="7" start="false"/>
+      <mind power="0" room="6" start="false"/>
+      <hacking power="0" room="11" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="18">
+      <weapon name="BOMB_FIRE"/>
+      <weapon name="LASER_HEAVY_1_SP"/>
+    </weaponList>
+    <aug name="ROCK_ARMOR"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="4" class="rock"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_ROCK_3" layout="rock_cruiser_3" img="rock_cruiser_3">
+    <class>Rock Cruiser</class>
+    <name>Tektite</name>
+    <unlock>Reaching sector 8 with the Rock Cruiser B with Advanced Mode enabled will unlock layout C.</unlock>
+    <desc>Contact has been made with the Crystalline race and this cruiser was offered to the Federation as part of diplomatic discussions between the sister species.</desc>
+    <systemList>
+      <pilot power="1" room="4" start="true"/>
+      <doors power="1" room="6" start="true"/>
+      <sensors power="1" room="10" start="true"/>
+      <medbay power="0" room="13" start="false"/>
+      <clonebay power="1" room="13" start="true"/>
+      <oxygen power="1" room="7" start="true"/>
+      <shields power="2" room="12" start="true"/>
+      <engines power="2" room="8" start="true"/>
+      <weapons power="3" room="0" start="true"/>
+      <drones power="0" room="11" start="false"/>
+      <teleporter power="0" room="15" start="false"/>
+      <cloaking power="0" room="2" start="false"/>
+      <battery power="0" room="16" start="false"/>
+      <mind power="0" room="5" start="false"/>
+      <hacking power="0" room="9" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="15">
+      <weapon name="MISSILE_CHARGEGUN"/>
+      <weapon name="CRYSTAL_HEAVY_1"/>
+    </weaponList>
+    <aug name="ROCK_ARMOR"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="2" class="rock"/>
+    <crewCount amount="1" class="crystal"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_STEALTH" layout="stealth" img="stealth">
+    <class>Stealth Cruiser</class>
+    <name>The Nesasio</name>
+    <unlock>See the Engi fleet discussion event.
+Alternatively, defeat the Rebel Flagship with the Rock Cruiser.</unlock>
+    <desc>Constructed for the Federation by the Engi, this ship is designed to use cloaking technology and speed to get behind enemy lines.</desc>
+    <systemList>
+      <pilot power="1" room="10" start="true"/>
+      <doors power="1" room="14" start="true"/>
+      <sensors power="2" room="0" start="true"/>
+      <medbay power="1" room="1" start="true"/>
+      <clonebay power="0" room="1" start="false"/>
+      <oxygen power="1" room="9" start="true"/>
+      <shields power="0" room="5" start="false"/>
+      <engines power="4" room="3" start="true"/>
+      <weapons power="2" room="8" start="true"/>
+      <drones power="0" room="4" start="false"/>
+      <teleporter power="0" room="7" start="false"/>
+      <cloaking power="1" room="12" start="true"/>
+      <battery power="0" room="2" start="false"/>
+      <mind power="0" room="6" start="false"/>
+      <hacking power="0" room="13" start="false"/>
+    </systemList>
+    <weaponSlots>3</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="0">
+      <weapon name="LASER_BURST_2"/>
+      <weapon name="BEAM_1"/>
+    </weaponList>
+    <aug name="SYSTEM_CASING"/>
+    <aug name="ADV_SCANNERS"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="3" class="human"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_STEALTH_2" layout="stealth_2" img="stealth_2">
+    <class>Stealth Cruiser</class>
+    <name>DA-SR 12</name>
+    <unlock>Earning two of the three Stealth Cruiser achievements will unlock Layout B.</unlock>
+    <desc>Built like a glass cannon, this ship is hard to handle. If its cloaking can keep it safe long enough to charge its weapon, few cruisers can withstand its might.</desc>
+    <systemList>
+      <pilot power="1" room="9" start="true"/>
+      <doors power="1" room="13" start="true"/>
+      <sensors power="2" room="6" start="true"/>
+      <medbay power="1" room="0" start="true"/>
+      <clonebay power="0" room="0" start="false"/>
+      <oxygen power="1" room="4" start="true"/>
+      <shields power="0" room="2" start="false"/>
+      <engines power="2" room="5" start="true"/>
+      <weapons power="4" room="12" start="true"/>
+      <drones power="0" room="1" start="false"/>
+      <teleporter power="0" room="14" start="false"/>
+      <cloaking power="2" room="11" start="true"/>
+      <battery power="0" room="3" start="false"/>
+      <mind power="0" room="10" start="false"/>
+      <hacking power="0" room="8" start="false"/>
+    </systemList>
+    <weaponSlots>3</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="0">
+      <weapon name="BEAM_3"/>
+    </weaponList>
+    <aug name="ADV_SCANNERS"/>
+    <health amount="30"/>
+    <maxPower amount="7"/>
+    <crewCount amount="2" class="human"/>
+    <crewCount amount="1" class="energy"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_STEALTH_3" layout="stealth_3" img="stealth_3">
+    <class>Stealth Cruiser</class>
+    <name>Simo-H</name>
+    <unlock>Reaching sector 8 with the Stealth Cruiser B and Advanced Mode enabled will unlock layout C.</unlock>
+    <desc>This ship was part of an Engi experiment to make a power efficient version of the Zoltan shield. Unfortunately this required the removal of the Cloaking system.</desc>
+    <systemList>
+      <pilot power="1" room="8" start="true"/>
+      <doors power="1" room="9" start="true"/>
+      <sensors power="0" room="4" start="false"/>
+      <medbay power="0" room="0" start="false"/>
+      <clonebay power="1" room="0" start="true"/>
+      <oxygen power="1" room="1" start="true"/>
+      <shields power="0" room="6" start="false"/>
+      <engines power="3" room="5" start="true"/>
+      <weapons power="2" room="3" start="true"/>
+      <drones power="2" room="11" start="true"/>
+      <teleporter power="0" room="10" start="false"/>
+      <cloaking power="0" room="12" start="false"/>
+      <battery power="0" room="2" start="false"/>
+      <mind power="0" room="7" start="false"/>
+      <hacking power="0" room="13" start="false"/>
+    </systemList>
+    <weaponSlots>3</weaponSlots>
+    <droneSlots>3</droneSlots>
+    <weaponList missiles="0">
+      <weapon name="LASER_CHARGEGUN_PLAYER"/>
+      <weapon name="BEAM_1"/>
+    </weaponList>
+    <droneList drones="16">
+      <drone name="DRONE_SHIELD_PLAYER"/>
+      <drone name="ANTI_DRONE"/>
+    </droneList>
+    <aug name="ADV_SCANNERS"/>
+    <health amount="30"/>
+    <maxPower amount="7"/>
+    <crewCount amount="1" class="human"/>
+    <crewCount amount="1" class="rock"/>
+    <crewCount amount="1" class="slug"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC" layout="anaerobic_cruiser" img="anaerobic_cruiser">
+    <class>Lanius Cruiser</class>
+    <name>Kruos</name>
+    <unlock>Unlock 4 ships (Excluding The Kestrel) to unlock this ship.</unlock>
+    <desc>The sharp knife-like structures make Lanius ships a sight to behold. This cruiser was adapted to support the other races of the Federation.</desc>
+    <systemList>
+      <pilot power="1" room="8" start="true"/>
+      <doors power="1" room="15" start="true"/>
+      <sensors power="1" room="14" start="true"/>
+      <medbay power="0" room="0" start="false"/>
+      <clonebay power="1" room="0" start="true"/>
+      <oxygen power="1" room="2" start="true"/>
+      <shields power="2" room="5" start="true"/>
+      <engines power="1" room="7" start="true"/>
+      <weapons power="3" room="9" start="true"/>
+      <drones power="0" room="11" start="false"/>
+      <teleporter power="0" room="1" start="false"/>
+      <cloaking power="0" room="6" start="false"/>
+      <battery power="0" room="10" start="false"/>
+      <mind power="0" room="13" start="false"/>
+      <hacking power="1" room="3" start="true"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="3">
+      <weapon name="LASER_CHAINGUN"/>
+      <weapon name="ION_STUN"/>
+    </weaponList>
+    <droneList drones="9"/>
+    <aug name="O2_MASKS"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="1" class="human"/>
+    <crewCount amount="2" class="anaerobic"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_ANAEROBIC_2" layout="anaerobic_cruiser_2" img="anaerobic_cruiser_2">
+    <class>Lanius Cruiser</class>
+    <name>The Shrike</name>
+    <unlock>Earning two of the three Lanius Cruiser achievements will unlock Layout B.</unlock>
+    <desc>The racial ability of the Lanius make them fearsome combatants in small quarters. Combine that with a Mind Control system and this ship is a force to be reckoned with.</desc>
+    <systemList>
+      <pilot power="1" room="9" start="true"/>
+      <doors power="1" room="16" start="true"/>
+      <sensors power="0" room="0" start="false"/>
+      <medbay power="0" room="11" start="false"/>
+      <clonebay power="1" room="11" start="true"/>
+      <oxygen power="1" room="5" start="true"/>
+      <shields power="2" room="4" start="true"/>
+      <engines power="1" room="8" start="true"/>
+      <weapons power="1" room="13" start="true"/>
+      <drones power="0" room="2" start="false"/>
+      <teleporter power="1" room="12" start="true"/>
+      <cloaking power="0" room="1" start="false"/>
+      <battery power="0" room="15" start="false"/>
+      <mind power="1" room="17" start="true"/>
+      <hacking power="0" room="3" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="0">
+      <weapon name="SHOTGUN_PLAYER"/>
+    </weaponList>
+    <aug name="O2_MASKS"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="1" class="engi"/>
+    <crewCount amount="2" class="anaerobic"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_MANTIS" layout="mantis_cruiser" img="mantis_cruiser">
+    <class>Mantis Cruiser</class>
+    <name>The Gila Monster</name>
+    <unlock>See Legendary Thief KazaaakplethKilik random event.
+Alternatively, defeat The Rebel Flagship with the Zoltan Cruiser.</unlock>
+    <desc>This warship is designed to enhance its crew for close combat missions.</desc>
+    <systemList>
+      <pilot power="1" room="9" start="true"/>
+      <doors power="1" room="1" start="true"/>
+      <sensors power="0" room="17" start="false"/>
+      <medbay power="1" room="3" start="true"/>
+      <clonebay power="0" room="3" start="false"/>
+      <oxygen power="1" room="14" start="true"/>
+      <shields power="2" room="16" start="true"/>
+      <engines power="2" room="7" start="true"/>
+      <weapons power="1" room="0" start="true"/>
+      <drones power="0" room="5" start="false"/>
+      <teleporter power="1" room="15" start="true"/>
+      <cloaking power="0" room="10" start="false"/>
+      <battery power="0" room="11" start="false"/>
+      <mind power="0" room="2" start="false"/>
+      <hacking power="0" room="12" start="false"/>
+    </systemList>
+    <weaponSlots>3</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="16">
+      <weapon name="BOMB_1"/>
+      <weapon name="LASER_BURST_1"/>
+    </weaponList>
+    <aug name="CREW_STIMS"/>
+    <health amount="30"/>
+    <maxPower amount="7"/>
+    <crewCount amount="3" class="mantis"/>
+    <crewCount amount="1" class="engi"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_MANTIS_2" layout="mantis_cruiser_2" img="mantis_cruiser_2">
+    <class>Mantis Cruiser</class>
+    <name>The Basilisk</name>
+    <unlock>Earning two of the three Mantis Cruiser achievements will unlock Layout B.</unlock>
+    <desc>This warship encourages sending massive boarding parties and keeping strong defense.</desc>
+    <systemList>
+      <pilot power="1" room="8" start="true"/>
+      <doors power="1" room="15" start="true"/>
+      <sensors power="1" room="1" start="true"/>
+      <medbay power="1" room="3" start="true"/>
+      <clonebay power="0" room="3" start="false"/>
+      <oxygen power="1" room="16" start="true"/>
+      <shields power="4" room="7" start="true"/>
+      <engines power="1" room="10" start="true"/>
+      <weapons power="1" room="6" start="true"/>
+      <drones power="3" room="11" start="true"/>
+      <teleporter power="1" room="9" start="true"/>
+      <cloaking power="0" room="0" start="false"/>
+      <battery power="0" room="2" start="false"/>
+      <mind power="0" room="5" start="false"/>
+      <hacking power="0" room="13" start="false"/>
+    </systemList>
+    <weaponSlots>3</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="0"/>
+    <droneList drones="15">
+      <drone name="BOARDER"/>
+      <drone name="DEFENSE_1"/>
+    </droneList>
+    <aug name="CREW_STIMS"/>
+    <health amount="30"/>
+    <maxPower amount="11"/>
+    <crewCount amount="2" class="mantis"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_MANTIS_3" layout="mantis_cruiser_3" img="mantis_cruiser_3">
+    <class>Mantis Cruiser</class>
+    <name>The Theseus</name>
+    <unlock>Reaching Sector 8 with the Mantis Cruiser B and Advanced Edition Content enabled will unlock layout C.</unlock>
+    <desc>With a large teleporter and weapons designed to impede enemy crew, this ship is deadly in the hands of a capable boarding party.</desc>
+    <systemList>
+      <pilot power="1" room="7" start="true"/>
+      <doors power="1" room="9" start="true"/>
+      <sensors power="1" room="10" start="true"/>
+      <medbay power="0" room="3" start="false"/>
+      <clonebay power="2" room="3" start="true"/>
+      <oxygen power="1" room="5" start="true"/>
+      <shields power="2" room="6" start="true"/>
+      <engines power="2" room="0" start="true"/>
+      <weapons power="2" room="12" start="true"/>
+      <drones power="0" room="16" start="false"/>
+      <teleporter power="1" room="15" start="true"/>
+      <cloaking power="0" room="13" start="false"/>
+      <battery power="0" room="11" start="false"/>
+      <mind power="0" room="8" start="false"/>
+      <hacking power="0" room="2" start="false"/>
+    </systemList>
+    <weaponSlots>3</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="20">
+      <weapon name="BOMB_LOCK"/>
+      <weapon name="BOMB_STUN"/>
+    </weaponList>
+    <aug name="CREW_STIMS"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="1" class="engi"/>
+    <crewCount amount="1" class="mantis"/>
+    <crewCount amount="1" class="anaerobic"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_CRYSTAL" layout="crystal_cruiser" img="crystal_cruiser">
+    <class>Crystal Cruiser</class>
+    <name>Bravais</name>
+    <unlock>See Ancestry (ship achievement) and its linked pages for directions on unlocking the Crystal Cruiser
+Alternatively, beat the Flagship with layout A and B of every ship (excluding The Lanius Cruiser)</unlock>
+    <desc>This powerful vessel is powered by the secret technologies of the lost Crystalline Beings.</desc>
+    <systemList>
+      <pilot power="1" room="8" start="true"/>
+      <doors power="1" room="3" start="true"/>
+      <sensors power="1" room="2" start="true"/>
+      <medbay power="1" room="14" start="true"/>
+      <clonebay power="0" room="14" start="false"/>
+      <oxygen power="1" room="10" start="true"/>
+      <shields power="2" room="13" start="true"/>
+      <engines power="2" room="0" start="true"/>
+      <weapons power="3" room="4" start="true"/>
+      <drones power="0" room="1" start="false"/>
+      <teleporter power="0" room="6" start="false"/>
+      <cloaking power="0" room="18" start="false"/>
+      <battery power="0" room="17" start="false"/>
+      <mind power="0" room="5" start="false"/>
+      <hacking power="0" room="9" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="0">
+      <weapon name="CRYSTAL_BURST_1"/>
+      <weapon name="CRYSTAL_HEAVY_1"/>
+    </weaponList>
+    <aug name="CRYSTAL_SHARDS"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="2" class="human"/>
+    <crewCount amount="2" class="crystal"/>
+  </shipBlueprint>
+  <shipBlueprint name="PLAYER_SHIP_CRYSTAL_2" layout="crystal_cruiser_2" img="crystal_cruiser_2">
+    <class>Crystal Cruiser</class>
+    <name>Carnelian</name>
+    <unlock>Earn at least two out of three achievements for the Crystal Cruiser</unlock>
+    <desc>Their unique racial ability makes the Crystal beings very adept at ship boarding. This ship was designed for such raiding parties.</desc>
+    <systemList>
+      <pilot power="1" room="15" start="true"/>
+      <doors power="1" room="14" start="true"/>
+      <sensors power="1" room="10" start="true"/>
+      <medbay power="1" room="9" start="true"/>
+      <clonebay power="0" room="9" start="false"/>
+      <oxygen power="1" room="8" start="true"/>
+      <shields power="2" room="1" start="true"/>
+      <engines power="2" room="3" start="true"/>
+      <weapons power="1" room="5" start="true"/>
+      <drones power="0" room="13" start="false"/>
+      <teleporter power="1" room="4" start="true"/>
+      <cloaking power="1" room="2" start="true"/>
+      <battery power="0" room="12" start="false"/>
+      <mind power="0" room="0" start="false"/>
+      <hacking power="0" room="6" start="false"/>
+    </systemList>
+    <weaponSlots>4</weaponSlots>
+    <droneSlots>2</droneSlots>
+    <weaponList missiles="0"/>
+    <aug name="CRYSTAL_SHARDS"/>
+    <health amount="30"/>
+    <maxPower amount="8"/>
+    <crewCount amount="3" class="crystal"/>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_SKINNY" layout="rebel-invader" img="rebel-invader">
+    <name>REBEL_SKINNY</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <teleporter power="1" room="1" start="true"/>
+      <oxygen power="1" room="2" start="true"/>
+      <clonebay power="1" room="3" start="true"/>
+      <shields power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+      <weapons power="1" room="6" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_FAT" layout="rebel-disruptor" img="rebel-disruptor">
+    <name>REBEL_FAT</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <oxygen power="1" room="1" start="true"/>
+      <weapons power="1" room="2" start="true"/>
+      <clonebay power="1" room="3" start="true"/>
+      <drones power="1" room="4" start="true"/>
+      <hacking power="1" room="5" start="true"/>
+      <engines power="1" room="6" start="true"/>
+      <shields power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_SKINNY_ELITE" layout="elite-assault" img="elite-assault">
+    <name>REBEL_SKINNY_ELITE</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <teleporter power="1" room="1" start="true"/>
+      <oxygen power="1" room="2" start="true"/>
+      <clonebay power="1" room="3" start="true"/>
+      <shields power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+      <weapons power="1" room="6" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="AUTO_BASIC" layout="auto-surveyor" img="auto-surveyor">
+    <name>AUTO_BASIC</name>
+    <systemList>
+      <engines power="1" room="0" start="true"/>
+      <mindcontrol power="1" room="1" start="true"/>
+      <shields power="1" room="2" start="true"/>
+      <pilot power="1" room="3" start="true"/>
+      <weapons power="1" room="4" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="AUTO_ASSAULT" layout="auto-hacker" img="auto-hacker">
+    <name>AUTO_ASSAULT</name>
+    <systemList>
+      <shields power="1" room="0" start="true"/>
+      <pilot power="1" room="1" start="true"/>
+      <weapons power="1" room="2" start="true"/>
+      <engines power="1" room="3" start="true"/>
+      <hacking power="1" room="4" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="CIRCLE_SCOUT" layout="engi-outrider" img="engi-outrider">
+    <name>CIRCLE_SCOUT</name>
+    <systemList>
+      <drones power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <hacking power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <oxygen power="1" room="4" start="true"/>
+      <clonebay power="1" room="5" start="true"/>
+      <engines power="1" room="6" start="true"/>
+      <pilot power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="CIRCLE_BOMBER" layout="engi-hacker" img="engi-hacker">
+    <name>CIRCLE_BOMBER</name>
+    <systemList>
+      <pilot power="1" room="1" start="true"/>
+      <doors power="1" room="2" start="true"/>
+      <oxygen power="1" room="3" start="true"/>
+      <shields power="1" room="4" start="true"/>
+      <clonebay power="1" room="5" start="true"/>
+      <drones power="1" room="8" start="true"/>
+      <weapons power="1" room="9" start="true"/>
+      <engines power="1" room="10" start="true"/>
+      <hacking power="1" room="11" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_SCOUT" layout="mantis-interceptor" img="mantis-interceptor">
+    <name>MANTIS_SCOUT</name>
+    <systemList>
+      <clonebay power="1" room="0" start="true"/>
+      <teleporter power="1" room="1" start="true"/>
+      <oxygen power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <pilot power="1" room="4" start="true"/>
+      <doors power="1" room="5" start="true"/>
+      <weapons power="1" room="6" start="true"/>
+      <engines power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_FIGHTER" layout="mantis-assault" img="mantis-assault">
+    <name>MANTIS_FIGHTER</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <clonebay power="1" room="1" start="true"/>
+      <oxygen power="1" room="2" start="true"/>
+      <teleporter power="1" room="3" start="true"/>
+      <shields power="1" room="5" start="true"/>
+      <doors power="1" room="6" start="true"/>
+      <weapons power="1" room="7" start="true"/>
+      <engines power="1" room="9" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_BOMBER" layout="mantis-aggressor" img="mantis-aggressor">
+    <name>MANTIS_BOMBER</name>
+    <systemList>
+      <clonebay power="1" room="0" start="true"/>
+      <pilot power="1" room="4" start="true"/>
+      <teleporter power="1" room="5" start="true"/>
+      <oxygen power="1" room="6" start="true"/>
+      <doors power="1" room="8" start="true"/>
+      <weapons power="1" room="9" start="true"/>
+      <shields power="1" room="10" start="true"/>
+      <engines power="1" room="11" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_BUTTON" layout="slug-scout" img="slug-scout">
+    <name>JELLY_BUTTON</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <shields power="1" room="1" start="true"/>
+      <weapons power="1" room="2" start="true"/>
+      <oxygen power="1" room="3" start="true"/>
+      <engines power="1" room="4" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_CROISSANT" layout="slug-light-surveyor" img="slug-light-surveyor">
+    <name>JELLY_CROISSANT</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <engines power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <oxygen power="1" room="4" start="true"/>
+      <mindcontrol power="1" room="6" start="true"/>
+      <clonebay power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_TRUFFLE" layout="slug-instigator" img="slug-instigator">
+    <name>JELLY_TRUFFLE</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <shields power="1" room="2" start="true"/>
+      <mindcontrol power="1" room="3" start="true"/>
+      <oxygen power="1" room="4" start="true"/>
+      <cloaking power="1" room="5" start="true"/>
+      <clonebay power="1" room="6" start="true"/>
+      <engines power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_SCOUT" layout="rock-investigator" img="rock-investigator">
+    <name>ROCK_SCOUT</name>
+    <systemList>
+      <teleporter power="1" room="0" start="true"/>
+      <engines power="1" room="1" start="true"/>
+      <shields power="1" room="2" start="true"/>
+      <pilot power="1" room="3" start="true"/>
+      <weapons power="1" room="4" start="true"/>
+      <oxygen power="1" room="5" start="true"/>
+      <clonebay power="1" room="6" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_FIGHT" layout="rock-interceptor" img="rock-interceptor">
+    <name>ROCK_FIGHT</name>
+    <systemList>
+      <clonebay power="1" room="0" start="true"/>
+      <cloaking power="1" room="2" start="true"/>
+      <pilot power="1" room="3" start="true"/>
+      <oxygen power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+      <weapons power="1" room="6" start="true"/>
+      <shields power="1" room="7" start="true"/>
+      <teleporter power="1" room="8" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_ASSAULT" layout="rock-aggressor" img="rock-aggressor">
+    <name>ROCK_ASSAULT</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <clonebay power="1" room="1" start="true"/>
+      <doors power="1" room="3" start="true"/>
+      <cloaking power="1" room="4" start="true"/>
+      <weapons power="1" room="5" start="true"/>
+      <shields power="1" room="6" start="true"/>
+      <engines power="1" room="7" start="true"/>
+      <teleporter power="1" room="8" start="true"/>
+      <oxygen power="1" room="9" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_ASSAULT_ELITE" layout="rock-assault-elite" img="rock-assault-elite">
+    <name>ROCK_ASSAULT_ELITE</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <medbay power="1" room="1" start="true"/>
+      <doors power="1" room="3" start="true"/>
+      <cloaking power="1" room="4" start="true"/>
+      <weapons power="1" room="5" start="true"/>
+      <shields power="1" room="6" start="true"/>
+      <engines power="1" room="7" start="true"/>
+      <teleporter power="1" room="8" start="true"/>
+      <oxygen power="1" room="9" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_FIGHTER" layout="energy-instigator" img="energy-instigator">
+    <name>ZOLTAN_FIGHTER</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <mindcontrol power="1" room="1" start="true"/>
+      <clonebay power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <engines power="1" room="4" start="true"/>
+      <weapons power="1" room="5" start="true"/>
+      <oxygen power="1" room="6" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_BOMBER" layout="energy-hacker" img="energy-hacker">
+    <name>ZOLTAN_BOMBER</name>
+    <systemList>
+      <hacking power="1" room="0" start="true"/>
+      <pilot power="1" room="1" start="true"/>
+      <doors power="1" room="2" start="true"/>
+      <weapons power="1" room="3" start="true"/>
+      <shields power="1" room="4" start="true"/>
+      <oxygen power="1" room="5" start="true"/>
+      <engines power="1" room="6" start="true"/>
+      <clonebay power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="CRYSTAL_SCOUT" layout="crystal-outrider" img="crystal-outrider">
+    <name>CRYSTAL_SCOUT</name>
+    <systemList>
+      <oxygen power="1" room="0" start="true"/>
+      <shields power="1" room="1" start="true"/>
+      <weapons power="1" room="2" start="true"/>
+      <pilot power="1" room="3" start="true"/>
+      <clonebay power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="CRYSTAL_BOMBER" layout="crystal-instigator" img="crystal-instigator">
+    <name>CRYSTAL_BOMBER</name>
+    <systemList>
+      <clonebay power="1" room="0" start="true"/>
+      <cloaking power="1" room="1" start="true"/>
+      <weapons power="1" room="2" start="true"/>
+      <pilot power="1" room="3" start="true"/>
+      <teleporter power="1" room="4" start="true"/>
+      <doors power="1" room="5" start="true"/>
+      <oxygen power="1" room="6" start="true"/>
+      <shields power="1" room="7" start="true"/>
+      <engines power="1" room="8" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ANAEROBIC_SCOUT" layout="lanius-scout" img="lanius-scout">
+    <name>ANAEROBIC_SCOUT</name>
+    <systemList>
+      <doors power="1" room="0" start="true"/>
+      <pilot power="1" room="1" start="true"/>
+      <hacking power="1" room="2" start="true"/>
+      <clonebay power="1" room="3" start="true"/>
+      <weapons power="1" room="4" start="true"/>
+      <shields power="1" room="5" start="true"/>
+      <engines power="1" room="6" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ANAEROBIC_BOMBER" layout="lanius-bomber" img="lanius-bomber">
+    <name>ANAEROBIC_BOMBER</name>
+    <systemList>
+      <shields power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <cloaking power="1" room="2" start="true"/>
+      <pilot power="1" room="3" start="true"/>
+      <mindcontrol power="1" room="4" start="true"/>
+      <clonebay power="1" room="7" start="true"/>
+      <teleporter power="1" room="8" start="true"/>
+      <engines power="1" room="9" start="true"/>
+      <doors power="1" room="10" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="FED_SCOUT" layout="federation-outrider" img="federation-outrider">
+    <name>FED_SCOUT</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <hacking power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <oxygen power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="FED_BOMBER" layout="federation-hacker" img="federation-hacker">
+    <name>FED_BOMBER</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <hacking power="1" room="3" start="true"/>
+      <engines power="1" room="5" start="true"/>
+      <shields power="1" room="7" start="true"/>
+      <oxygen power="1" room="8" start="true"/>
+      <clonebay power="1" room="9" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_SKINNY_P" layout="rebel-fighter-pirate" img="rebel-fighter-pirate">
+    <name>REBEL_SKINNY_P</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="3" start="true"/>
+      <shields power="1" room="4" start="true"/>
+      <doors power="1" room="5" start="true"/>
+      <engines power="1" room="6" start="true"/>
+      <teleporter power="1" room="7" start="true"/>
+      <medbay power="1" room="8" start="true"/>
+      <oxygen power="1" room="9" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_SKINNY_P_DLC" layout="rebel-invader-pirate" img="rebel-invader-pirate">
+    <name>REBEL_SKINNY_P_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <oxygen power="1" room="2" start="true"/>
+      <clonebay power="1" room="3" start="true"/>
+      <teleporter power="1" room="4" start="true"/>
+      <shields power="1" room="5" start="true"/>
+      <doors power="1" room="6" start="true"/>
+      <engines power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_FAT_P" layout="rebel-rigger-pirate" img="rebel-rigger-pirate">
+    <name>REBEL_FAT_P</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <oxygen power="1" room="1" start="true"/>
+      <doors power="1" room="2" start="true"/>
+      <weapons power="1" room="3" start="true"/>
+      <drones power="1" room="4" start="true"/>
+      <medbay power="1" room="5" start="true"/>
+      <engines power="1" room="6" start="true"/>
+      <shields power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="REBEL_FAT_P_DLC" layout="rebel-disruptor-pirate" img="rebel-disruptor-pirate">
+    <name>REBEL_FAT_P_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <clonebay power="1" room="1" start="true"/>
+      <oxygen power="1" room="2" start="true"/>
+      <drones power="1" room="3" start="true"/>
+      <hacking power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+      <shields power="1" room="6" start="true"/>
+      <weapons power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_SCOUT_P" layout="mantis-scout-pirate" img="mantis-scout-pirate">
+    <name>MANTIS_SCOUT_P</name>
+    <systemList>
+      <shields power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <engines power="1" room="2" start="true"/>
+      <medbay power="1" room="3" start="true"/>
+      <teleporter power="1" room="4" start="true"/>
+      <pilot power="1" room="5" start="true"/>
+      <oxygen power="1" room="6" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_SCOUT_P_DLC" layout="mantis-interceptor-pirate" img="mantis-interceptor-pirate">
+    <name>MANTIS_SCOUT_P_DLC</name>
+    <systemList>
+      <engines power="1" room="0" start="true"/>
+      <clonebay power="1" room="1" start="true"/>
+      <weapons power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <oxygen power="1" room="4" start="true"/>
+      <pilot power="1" room="5" start="true"/>
+      <teleporter power="1" room="6" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_FIGHTER_P" layout="mantis-fighter-pirate" img="mantis-fighter-pirate">
+    <name>MANTIS_FIGHTER_P</name>
+    <systemList>
+      <oxygen power="1" room="0" start="true"/>
+      <doors power="1" room="1" start="true"/>
+      <medbay power="1" room="2" start="true"/>
+      <pilot power="1" room="3" start="true"/>
+      <teleporter power="1" room="4" start="true"/>
+      <weapons power="1" room="5" start="true"/>
+      <shields power="1" room="6" start="true"/>
+      <engines power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_FIGHTER_P_DLC" layout="mantis-assault-pirate" img="mantis-assault-pirate">
+    <name>MANTIS_FIGHTER_P_DLC</name>
+    <systemList>
+      <teleporter power="1" room="0" start="true"/>
+      <oxygen power="1" room="1" start="true"/>
+      <shields power="1" room="2" start="true"/>
+      <pilot power="1" room="3" start="true"/>
+      <weapons power="1" room="4" start="true"/>
+      <clonebay power="1" room="5" start="true"/>
+      <doors power="1" room="6" start="true"/>
+      <engines power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_BOMBER_P" layout="mantis-bomber-pirate" img="mantis-bomber-pirate">
+    <name>MANTIS_BOMBER_P</name>
+    <systemList>
+      <oxygen power="1" room="0" start="true"/>
+      <pilot power="1" room="5" start="true"/>
+      <weapons power="1" room="6" start="true"/>
+      <shields power="1" room="7" start="true"/>
+      <doors power="1" room="8" start="true"/>
+      <teleporter power="1" room="9" start="true"/>
+      <engines power="1" room="10" start="true"/>
+      <medbay power="1" room="11" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="MANTIS_BOMBER_P_DLC" layout="mantis-aggressor-pirate" img="mantis-aggressor-pirate">
+    <name>MANTIS_BOMBER_P_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <teleporter power="1" room="3" start="true"/>
+      <clonebay power="1" room="4" start="true"/>
+      <oxygen power="1" room="5" start="true"/>
+      <weapons power="1" room="6" start="true"/>
+      <shields power="1" room="7" start="true"/>
+      <doors power="1" room="10" start="true"/>
+      <engines power="1" room="11" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_BUTTON_P" layout="slug-interceptor-pirate" img="slug-interceptor-pirate">
+    <name>JELLY_BUTTON_P</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <oxygen power="1" room="1" start="true"/>
+      <doors power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <engines power="1" room="4" start="true"/>
+      <weapons power="1" room="5" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_BUTTON_P_DLC" layout="slug-scout-pirate" img="slug-scout-pirate">
+    <name>JELLY_BUTTON_P_DLC</name>
+    <systemList>
+      <weapons power="1" room="0" start="true"/>
+      <oxygen power="1" room="1" start="true"/>
+      <mindcontrol power="1" room="2" start="true"/>
+      <engines power="1" room="3" start="true"/>
+      <pilot power="1" room="4" start="true"/>
+      <shields power="1" room="5" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_CROISSANT_P" layout="slug-light-cruiser-pirate" img="slug-light-cruiser-pirate">
+    <name>JELLY_CROISSANT_P</name>
+    <systemList>
+      <pilot power="1" room="1" start="true"/>
+      <shields power="1" room="2" start="true"/>
+      <weapons power="1" room="3" start="true"/>
+      <medbay power="1" room="4" start="true"/>
+      <doors power="1" room="5" start="true"/>
+      <oxygen power="1" room="6" start="true"/>
+      <cloaking power="1" room="7" start="true"/>
+      <engines power="1" room="8" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_CROISSANT_P_DLC" layout="slug-light-surveyor-pirate" img="slug-light-surveyor-pirate">
+    <name>JELLY_CROISSANT_P_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <clonebay power="1" room="1" start="true"/>
+      <mindcontrol power="1" room="2" start="true"/>
+      <oxygen power="1" room="3" start="true"/>
+      <shields power="1" room="4" start="true"/>
+      <weapons power="1" room="5" start="true"/>
+      <engines power="1" room="8" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_TRUFFLE_P" layout="slug-assault-pirate" img="slug-assault-pirate">
+    <name>JELLY_TRUFFLE_P</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <cloaking power="1" room="2" start="true"/>
+      <doors power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+      <shields power="1" room="6" start="true"/>
+      <oxygen power="1" room="7" start="true"/>
+      <medbay power="1" room="8" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="JELLY_TRUFFLE_P_DLC" layout="slug-instigator-pirate" img="slug-instigator-pirate">
+    <name>JELLY_TRUFFLE_P_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <oxygen power="1" room="1" start="true"/>
+      <doors power="1" room="2" start="true"/>
+      <clonebay power="1" room="3" start="true"/>
+      <weapons power="1" room="4" start="true"/>
+      <mindcontrol power="1" room="5" start="true"/>
+      <shields power="1" room="7" start="true"/>
+      <engines power="1" room="8" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_SCOUT_P" layout="rock-scout-pirate" img="rock-scout-pirate">
+    <name>ROCK_SCOUT_P</name>
+    <systemList>
+      <weapons power="1" room="0" start="true"/>
+      <oxygen power="1" room="1" start="true"/>
+      <teleporter power="1" room="2" start="true"/>
+      <pilot power="1" room="3" start="true"/>
+      <shields power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_SCOUT_P_DLC" layout="rock-investigator-pirate" img="rock-investigator-pirate">
+    <name>ROCK_SCOUT_P_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <shields power="1" room="2" start="true"/>
+      <oxygen power="1" room="3" start="true"/>
+      <clonebay power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_FIGHT_P" layout="rock-fighter-pirate" img="rock-fighter-pirate">
+    <name>ROCK_FIGHT_P</name>
+    <systemList>
+      <oxygen power="1" room="0" start="true"/>
+      <doors power="1" room="1" start="true"/>
+      <pilot power="1" room="2" start="true"/>
+      <weapons power="1" room="3" start="true"/>
+      <shields power="1" room="4" start="true"/>
+      <cloaking power="1" room="5" start="true"/>
+      <engines power="1" room="6" start="true"/>
+      <medbay power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_FIGHT_P_DLC" layout="rock-interceptor-pirate" img="rock-interceptor-pirate">
+    <name>ROCK_FIGHT_P_DLC</name>
+    <systemList>
+      <shields power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <clonebay power="1" room="2" start="true"/>
+      <cloaking power="1" room="3" start="true"/>
+      <engines power="1" room="4" start="true"/>
+      <teleporter power="1" room="5" start="true"/>
+      <pilot power="1" room="6" start="true"/>
+      <oxygen power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_FIGHTER_P" layout="energy-fighter-pirate" img="energy-fighter-pirate">
+    <name>ZOLTAN_FIGHTER_P</name>
+    <systemList>
+      <medbay power="1" room="0" start="true"/>
+      <pilot power="1" room="1" start="true"/>
+      <shields power="1" room="2" start="true"/>
+      <oxygen power="1" room="3" start="true"/>
+      <doors power="1" room="4" start="true"/>
+      <weapons power="1" room="5" start="true"/>
+      <engines power="1" room="6" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_FIGHTER_P_DLC" layout="energy-instigator-pirate" img="energy-instigator-pirate">
+    <name>ZOLTAN_FIGHTER_P_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <oxygen power="1" room="1" start="true"/>
+      <shields power="1" room="2" start="true"/>
+      <clonebay power="1" room="3" start="true"/>
+      <mindcontrol power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+      <weapons power="1" room="6" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_BOMBER_P" layout="energy-bomber-pirate" img="energy-bomber-pirate">
+    <name>ZOLTAN_BOMBER_P</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <drones power="1" room="1" start="true"/>
+      <medbay power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <weapons power="1" room="4" start="true"/>
+      <oxygen power="1" room="5" start="true"/>
+      <doors power="1" room="6" start="true"/>
+      <engines power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ZOLTAN_BOMBER_P_DLC" layout="energy-hacker-pirate" img="energy-hacker-pirate">
+    <name>ZOLTAN_BOMBER_P_DLC</name>
+    <systemList>
+      <hacking power="1" room="0" start="true"/>
+      <doors power="1" room="1" start="true"/>
+      <pilot power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <oxygen power="1" room="4" start="true"/>
+      <weapons power="1" room="5" start="true"/>
+      <engines power="1" room="6" start="true"/>
+      <clonebay power="1" room="7" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="FED_SCOUT_P" layout="federation-outrider" img="federation-outrider">
+    <name>FED_SCOUT_P</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <hacking power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <oxygen power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="FED_SCOUT_P_DLC" layout="federation-outrider" img="federation-outrider">
+    <name>FED_SCOUT_P_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <hacking power="1" room="2" start="true"/>
+      <shields power="1" room="3" start="true"/>
+      <oxygen power="1" room="4" start="true"/>
+      <engines power="1" room="5" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="FED_BOMBER_P" layout="federation-hacker" img="federation-hacker">
+    <name>FED_BOMBER_P</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <hacking power="1" room="3" start="true"/>
+      <engines power="1" room="5" start="true"/>
+      <shields power="1" room="7" start="true"/>
+      <oxygen power="1" room="8" start="true"/>
+      <clonebay power="1" room="9" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="FED_BOMBER_P_DLC" layout="federation-hacker" img="federation-hacker">
+    <name>FED_BOMBER_P_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <weapons power="1" room="1" start="true"/>
+      <hacking power="1" room="3" start="true"/>
+      <engines power="1" room="5" start="true"/>
+      <shields power="1" room="7" start="true"/>
+      <oxygen power="1" room="8" start="true"/>
+      <clonebay power="1" room="9" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_1_EASY_DLC" layout="flagship-1" img="flagship-1">
+    <name>BOSS_1_EASY_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="1" room="2" start="true"/>
+      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_4"/>
+      <artillery power="1" room="5" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <doors power="1" room="6" start="true"/>
+      <cloaking power="1" room="9" start="true"/>
+      <medbay power="1" room="11" start="true"/>
+      <hacking power="1" room="14" start="true"/>
+      <oxygen power="1" room="18" start="true"/>
+      <engines power="1" room="19" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <health amount="20"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_1_NORMAL_DLC" layout="flagship-1" img="flagship-1">
+    <name>BOSS_1_NORMAL_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="1" room="2" start="true"/>
+      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_4"/>
+      <artillery power="1" room="5" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <doors power="1" room="6" start="true"/>
+      <cloaking power="1" room="9" start="true"/>
+      <medbay power="1" room="11" start="true"/>
+      <hacking power="1" room="14" start="true"/>
+      <oxygen power="1" room="18" start="true"/>
+      <engines power="1" room="19" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <health amount="20"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_1_HARD_DLC" layout="flagship-1" img="flagship-1">
+    <name>BOSS_1_HARD_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="1" room="2" start="true"/>
+      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_4"/>
+      <artillery power="1" room="5" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <doors power="1" room="6" start="true"/>
+      <cloaking power="1" room="9" start="true"/>
+      <medbay power="1" room="11" start="true"/>
+      <hacking power="1" room="14" start="true"/>
+      <oxygen power="1" room="18" start="true"/>
+      <engines power="1" room="19" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <health amount="20"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_2_EASY_DLC" layout="flagship-2" img="flagship-2">
+    <name>BOSS_2_EASY_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="1" room="2" start="true"/>
+      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <medbay power="1" room="8" start="true"/>
+      <drones power="1" room="10" start="true"/>
+      <oxygen power="1" room="14" start="true"/>
+      <engines power="1" room="15" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <health amount="22"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_2_NORMAL_DLC" layout="flagship-2" img="flagship-2">
+    <name>BOSS_2_NORMAL_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="1" room="2" start="true"/>
+      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <medbay power="1" room="8" start="true"/>
+      <drones power="1" room="10" start="true"/>
+      <oxygen power="1" room="14" start="true"/>
+      <engines power="1" room="15" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <health amount="22"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_2_HARD_DLC" layout="flagship-2" img="flagship-2">
+    <name>BOSS_2_HARD_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="1" room="2" start="true"/>
+      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <medbay power="1" room="8" start="true"/>
+      <drones power="1" room="10" start="true"/>
+      <oxygen power="1" room="14" start="true"/>
+      <engines power="1" room="15" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <health amount="22"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_3_EASY_DLC" layout="flagship-3" img="flagship-3">
+    <name>BOSS_3_EASY_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="1" room="2" start="true"/>
+      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <teleporter power="1" room="5" start="true"/>
+      <mind power="1" room="6" start="true"/>
+      <medbay power="1" room="7" start="true"/>
+      <oxygen power="1" room="10" start="true"/>
+      <engines power="1" room="11" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <health amount="20"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_3_NORMAL_DLC" layout="flagship-3" img="flagship-3">
+    <name>BOSS_3_NORMAL_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="1" room="2" start="true"/>
+      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <teleporter power="1" room="5" start="true"/>
+      <mind power="1" room="6" start="true"/>
+      <medbay power="1" room="7" start="true"/>
+      <oxygen power="1" room="10" start="true"/>
+      <engines power="1" room="11" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <health amount="20"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_3_HARD_DLC" layout="flagship-3" img="flagship-3">
+    <name>BOSS_3_HARD_DLC</name>
+    <systemList>
+      <pilot power="1" room="0" start="true"/>
+      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="1" room="2" start="true"/>
+      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <teleporter power="1" room="5" start="true"/>
+      <mind power="1" room="6" start="true"/>
+      <medbay power="1" room="7" start="true"/>
+      <oxygen power="1" room="10" start="true"/>
+      <engines power="1" room="11" start="true"/>
+    </systemList>
+    <weaponList missiles="0"/>
+    <health amount="20"/>
+    <maxPower amount="0"/>
+  </shipBlueprint>
+</FTL>

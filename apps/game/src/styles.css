@@ -3730,9 +3730,11 @@ button.door-tick::before {
   place-items: center;
   position: relative;
 }
+/* The archive's ship-picker portrait, in the LIST dialog's hull slot (the drawn hull's 56 × 28). */
 .hangar-portrait {
-  width: min(100%, 420px);
-  height: min(46cqh, 280px);
+  display: block;
+  width: 56px;
+  height: 28px;
   object-fit: contain;
   image-rendering: pixelated;
   pointer-events: none;

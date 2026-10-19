@@ -370,7 +370,10 @@ function sceneryAssets(icons: IconModule): {
     [SKY_FILES.storm, [36, 48, 78]],
     [SKY_FILES.battery, [120, 28, 32]],
   ];
-  for (const [path, tone] of skies) assets.push({ path, bytes: skyPng(tone) });
+  for (const [path, tone] of skies) {
+    // ftl.dat's planet_bigblue.png is a planet on a clear background, drawn over the star plate.
+    assets.push({ path, bytes: path === SKY_FILES.planet ? planetPng(tone) : skyPng(tone) });
+  }
   const marks: [string, [number, number, number], "diamond" | "triangle" | "blob"][] = [
     [MAP_FILES.ship, [214, 236, 248], "triangle"],
     [MAP_FILES.store, [232, 196, 48], "diamond"],
@@ -422,21 +425,60 @@ function effectAnim(name: string, frames: number, fw: number, fh: number, folder
   return `<animSheet name="${name}" w="${w}" h="${fh}" fw="${fw}" fh="${fh}">${folder}/${name}.png</animSheet>\n<anim name="${name}"><sheet>${name}</sheet><desc length="${frames}" x="0" y="0"/><time>1</time></anim>`;
 }
 
+/**
+ * A starfield over the plate's tone, at a size the game shows close to 1:1 (it covers the play area). Stars are single
+ * pixels at hashed positions with varied brightness, roughly one in 900 pixels, so the plate reads as distant space.
+ */
 function skyPng(tone: [number, number, number]): Uint8Array {
-  const w = 96;
-  const h = 54;
+  const w = 640;
+  const h = 360;
   const rgba = new Uint8Array(w * h * 4);
   for (let y = 0; y < h; y += 1) {
     for (let x = 0; x < w; x += 1) {
-      const star = (x * 17 + y * 31) % 47 === 0;
       const at = (y * w + x) * 4;
-      rgba[at] = star ? 230 : tone[0];
-      rgba[at + 1] = star ? 236 : tone[1];
-      rgba[at + 2] = star ? 244 : tone[2];
+      const roll = starHash(x, y);
+      const star = roll % 900 === 0;
+      const glow = star ? 0.45 + ((roll >>> 10) % 55) / 100 : 0;
+      rgba[at] = Math.round(tone[0] + (236 - tone[0]) * glow);
+      rgba[at + 1] = Math.round(tone[1] + (240 - tone[1]) * glow);
+      rgba[at + 2] = Math.round(tone[2] + (248 - tone[2]) * glow);
       rgba[at + 3] = 255;
     }
   }
   return rgbaPng(w, h, rgba);
+}
+
+/** A lit pixel-art planet on a clear background: light from the upper left, a dark limb, and faint bands. */
+function planetPng(tone: [number, number, number]): Uint8Array {
+  const size = 128;
+  const r = 58;
+  const c = (size - 1) / 2;
+  const rgba = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const dx = (x - c) / r;
+      const dy = (y - c) / r;
+      const d2 = dx * dx + dy * dy;
+      if (d2 > 1) continue;
+      const dz = Math.sqrt(1 - d2);
+      const light = Math.max(0, -0.55 * dx - 0.55 * dy + 0.63 * dz);
+      const band = 0.06 * Math.sin((dy + 0.15 * dx) * 14);
+      // Three steps of shade keep it reading as pixel art.
+      const shade = Math.min(1.15, Math.round((0.25 + 0.85 * light + band) * 4) / 4);
+      const at = (y * size + x) * 4;
+      rgba[at] = Math.min(255, Math.round(tone[0] * shade));
+      rgba[at + 1] = Math.min(255, Math.round(tone[1] * shade));
+      rgba[at + 2] = Math.min(255, Math.round(tone[2] * shade));
+      rgba[at + 3] = 255;
+    }
+  }
+  return rgbaPng(size, size, rgba);
+}
+
+function starHash(x: number, y: number): number {
+  let n = Math.imul(x, 374761393) ^ Math.imul(y, 668265263);
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return (n ^ (n >>> 16)) >>> 0;
 }
 
 function markPng(

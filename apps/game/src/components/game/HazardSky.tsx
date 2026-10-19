@@ -139,18 +139,20 @@ export function HazardSky({ game }: { game: Game }) {
       data-sky={layers.join(" ")}
       aria-hidden="true"
     >
+      {/* The archive's star plate is only the backdrop. Hazards stay drawn on top: the sun and pulsar warnings,
+          the storm, and the rocks tell the player what is about to happen. */}
       {plate ? <img className="sky-plate" src={plate} alt="" /> : null}
+      {scene.nebula ? <div className="sky-nebula" /> : null}
+      {scene.storm ? <div className="sky-storm" /> : null}
       {world ? <img className="sky-world" src={world} alt="" /> : null}
-      {plate || !scene.nebula ? null : <div className="sky-nebula" />}
-      {plate || !scene.storm ? null : <div className="sky-storm" />}
-      {!plate && scene.planet ? (
+      {!world && scene.planet ? (
         <Planet armed={scene.battery} aiming={scene.batteryAiming} />
       ) : null}
-      {!plate && scene.sun ? <Sun warn={scene.sunWarn} /> : null}
-      {!plate && scene.pulsar ? <Pulsar warn={scene.pulsarWarn} /> : null}
-      {!plate && scene.storm ? <Bolts /> : null}
+      {scene.sun ? <Sun warn={scene.sunWarn} /> : null}
+      {scene.pulsar ? <Pulsar warn={scene.pulsarWarn} /> : null}
+      {scene.storm ? <Bolts /> : null}
       {scene.batteryAiming ? <i className="sky-aim" /> : null}
-      {!plate && scene.rocks
+      {scene.rocks
         ? ROCKS.map((rock, i) => (
             <i
               key={`${rock.y}-${rock.delay}`}

@@ -166,6 +166,8 @@ export function packFromFtl(
   };
   if (crew.rows.length > 0) pack.crew = crew.rows;
   if (hulls.rows.length > 0) pack.hulls = hulls.rows;
+  const colours = readSectorTypes(docs);
+  for (const row of sectors.rows) row.group ||= colours.get(row.id) ?? "";
   if (sectors.rows.length > 0) pack.sectors = sectors.rows;
   if (events.rows.length > 0) pack.events = events.rows;
   if (lists.rows.length > 0) pack.lists = lists.rows;
@@ -700,6 +702,39 @@ function readCrewCounts(node: XmlElement): HullCrewCount[] {
     rows.push(row);
   }
   return rows;
+}
+
+const SECTOR_TYPE_GROUPS: Record<string, string> = {
+  CIVILIAN: "civilian",
+  HOSTILE: "hostile",
+  NEBULA: "nebula",
+};
+
+/**
+ * Sector colour from sector_data.xml's `<sectorType>` lists, which StarMap::GenerateSectorMap draws each column from.
+ * An `OVERRIDE_` list replaces its base list (Advanced Edition adds the Lanius sector to hostile this way). A sector in
+ * none of the three lists (UNKNOWN, Hidden Crystal Worlds, The Last Stand) keeps no group, so the chart never rolls it.
+ */
+function readSectorTypes(docs: readonly XmlDocument[]): Map<string, string> {
+  const lists = new Map<string, string[]>();
+  for (const doc of docs) {
+    for (const node of tagged(doc, "sectorType")) {
+      const name = attr(node, "name")?.trim();
+      if (!name) continue;
+      const ids = elements(node)
+        .filter((item) => item.tagName === "sector")
+        .map((item) => ownText(item).trim())
+        .filter(Boolean);
+      lists.set(name, ids);
+    }
+  }
+  const colours = new Map<string, string>();
+  for (const [type, group] of Object.entries(SECTOR_TYPE_GROUPS)) {
+    for (const id of lists.get(`OVERRIDE_${type}`) ?? lists.get(type) ?? []) {
+      if (!colours.has(id)) colours.set(id, group);
+    }
+  }
+  return colours;
 }
 
 function readFtlSector(node: XmlElement, strings: Map<string, string>): SectorDef | undefined {

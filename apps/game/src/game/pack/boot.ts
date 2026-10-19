@@ -48,12 +48,22 @@ async function fetchBytes(url: string, onProgress: (ratio: number) => void): Pro
   return all;
 }
 
+/**
+ * The archive to boot from: `?dat=<url>` names one (a player's ftl.dat on a local server, for example), otherwise the
+ * bundled stand-in. The URL is fetched like any other, so a server on another origin must allow it (CORS).
+ */
+function archiveUrl(): string {
+  if (typeof location === "undefined") return datUrl;
+  const named = new URLSearchParams(location.search).get("dat")?.trim();
+  return named || datUrl;
+}
+
 async function install(source?: ArrayBuffer | Uint8Array): Promise<void> {
   const bytes = source
     ? source instanceof Uint8Array
       ? source
       : new Uint8Array(source)
-    : await fetchBytes(datUrl, (ratio) => report(ratio * 0.45));
+    : await fetchBytes(archiveUrl(), (ratio) => report(ratio * 0.45));
   if (source) report(0.45);
   const xml = await fetchPackXml(packUrl, (ratio) => report(0.45 + ratio * 0.45));
   report(0.95);

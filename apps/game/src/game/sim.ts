@@ -104,6 +104,7 @@ import {
   sectorDef,
   storeDef,
   weaponDef,
+  warnPack,
 } from "@stl/pack";
 import { xpNeedFor } from "./extras/lineage.ts";
 import { SPACE_O2, stepAir } from "./air.ts";
@@ -6423,6 +6424,35 @@ const ONCE_SECTOR = new Set([
   "slug-home",
 ]);
 
+type SectorRow = ReturnType<typeof allSectors>[number];
+
+/** Once per game: the archive's own `unique`, else the catalog's list (the stand-in sets none). */
+function onceSector(row: SectorRow): boolean {
+  return row.unique ?? ONCE_SECTOR.has(row.id);
+}
+
+/**
+ * Whether the chart may roll this sector at 1-based sector number `sector`.
+ * A real archive's ids are FTL's own (CIVILIAN_SECTOR, ENGI_HOME): its group comes from the `<sectorType>` lists and its
+ * gate from `minSector`, which is 0-based (ENGI_HOME's 2 is the third sector). The catalog gates are the stand-in's.
+ */
+function sectorEligible(row: SectorRow, sector: number, used: ReadonlySet<string>): boolean {
+  if (row.id === "civilian-start" || row.id === "crystal-worlds" || row.id === "last-stand")
+    return false;
+  if (row.group !== "civilian" && row.group !== "hostile" && row.group !== "nebula") return false;
+  if (used.has(row.id)) return false;
+  if (row.minSector != null) return sector - 1 >= row.minSector;
+  // Homeworlds, the Rebel Stronghold, and the Slug nebulae keep the page's sector gates.
+  if (
+    (row.id === "engi-home" || row.id === "zoltan-home" || row.id === "mantis-home") &&
+    sector < 3
+  )
+    return false;
+  if ((row.id === "rebel-stronghold" || row.id === "rock-home") && sector < 5) return false;
+  if ((row.id === "slug-nebula" || row.id === "slug-home") && sector < 4) return false;
+  return true;
+}
+
 function mixSeed(seed: number, salt: number) {
   let x = (Math.imul(seed ^ salt, 0x9e3779b9) ^ (salt * 13)) >>> 0;
   x = Math.imul(x ^ (x >>> 16), 0x7feb352d);
@@ -6516,8 +6546,10 @@ export function columnLinks(prev: number, now: number): [number, number][] {
 export function buildRoute(seed: number): SectorNode[] {
   const used = new Set<string>();
   const rows = allSectors();
-  const start = rows.find((s) => s.id === "civilian-start");
-  const last = rows.find((s) => s.id === "last-stand");
+  // A real archive has no catalog ids: StarMap::GenerateSectorMap opens on CIVILIAN_SECTOR and ends on FINAL.
+  const start =
+    rows.find((s) => s.id === "civilian-start") ?? rows.find((s) => s.id === "CIVILIAN_SECTOR");
+  const last = rows.find((s) => s.id === "last-stand") ?? rows.find((s) => s.id === "FINAL");
   const groupOf = (group: string): SectorNode["group"] =>
     group === "hostile" || group === "nebula" ? group : "civilian";
   const nodes: SectorNode[] = [
@@ -6530,20 +6562,8 @@ export function buildRoute(seed: number): SectorNode[] {
       links: [],
     },
   ];
-  // Homeworlds, the Rebel Stronghold, and the Slug nebulae keep the page's sector gates.
-  // Any other civilian, hostile, or nebula id is eligible in the columns those gates allow.
-  const poolFor = (sector: number) =>
-    allSectors().filter((s) => {
-      if (s.id === "civilian-start" || s.id === "crystal-worlds" || s.id === "last-stand")
-        return false;
-      if (s.group !== "civilian" && s.group !== "hostile" && s.group !== "nebula") return false;
-      if (used.has(s.id)) return false;
-      if ((s.id === "engi-home" || s.id === "zoltan-home" || s.id === "mantis-home") && sector < 3)
-        return false;
-      if ((s.id === "rebel-stronghold" || s.id === "rock-home") && sector < 5) return false;
-      if ((s.id === "slug-nebula" || s.id === "slug-home") && sector < 4) return false;
-      return true;
-    });
+  // Any civilian, hostile, or nebula sector is eligible in the columns its gate allows.
+  const poolFor = (sector: number) => allSectors().filter((s) => sectorEligible(s, sector, used));
   // xftl doc/sector-map, StarMap::AddSectorColumn: "a random number between 2 and 4 inclusive ... It always picks a
   // different number (via re-rolling) than the last column. The exception is the first column, which always has two
   // sectors". GenerateSectorMap "sets up the first and last sectors, and calls AddSectorColumn six times".
@@ -6563,13 +6583,18 @@ export function buildRoute(seed: number): SectorNode[] {
       const colourSalt = sector * 8 + slot * 2;
       const colour = sectorColour(mixSeed(seed, colourSalt) / 4294967296);
       const choices = colourBag(pool, colour);
-      return choices[mixSeed(seed, colourSalt + 1) % choices.length];
+      if (choices.length > 0) return choices[mixSeed(seed, colourSalt + 1) % choices.length];
+      // A pack whose sector lists leave nothing to roll here: repeat a sector, else the opening one, and say so.
+      const fallback = poolFor(sector)[0] ??
+        start ?? { id: "civilian", name: "Civilian Sector", group: "civilian", notes: [] };
+      warnPack(`No sector is eligible for sector ${sector}; the chart uses ${fallback.id}.`);
+      return fallback;
     };
     const col = sector - 1;
     for (let slot = 0; slot < count; slot++) {
       const pick = take(slot);
       picked.add(pick.id);
-      if (ONCE_SECTOR.has(pick.id)) used.add(pick.id);
+      if (onceSector(pick)) used.add(pick.id);
       nodes.push({
         id: `sec-${col}-${slot}`,
         name: pick.name,
@@ -7690,22 +7715,11 @@ function sectorPool(g: Game, sector: number): string[] {
   const rows = allSectors();
   const used = new Set(
     (g.route ?? [])
-      .map((n) => rows.find((s) => s.name === n.name)?.id)
-      .filter((id): id is string => !!id && ONCE_SECTOR.has(id)),
+      .map((n) => rows.find((s) => s.name === n.name))
+      .filter((row): row is SectorRow => !!row && onceSector(row))
+      .map((row) => row.id),
   );
-  return rows
-    .filter((s) => {
-      if (s.id === "civilian-start" || s.id === "crystal-worlds" || s.id === "last-stand")
-        return false;
-      if (s.group !== "civilian" && s.group !== "hostile" && s.group !== "nebula") return false;
-      if (used.has(s.id)) return false;
-      if ((s.id === "engi-home" || s.id === "zoltan-home" || s.id === "mantis-home") && sector < 3)
-        return false;
-      if ((s.id === "rebel-stronghold" || s.id === "rock-home") && sector < 5) return false;
-      if ((s.id === "slug-nebula" || s.id === "slug-home") && sector < 4) return false;
-      return true;
-    })
-    .map((s) => s.name);
+  return rows.filter((s) => sectorEligible(s, sector, used)).map((s) => s.name);
 }
 
 /**

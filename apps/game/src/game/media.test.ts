@@ -210,20 +210,17 @@ describe("archive media", () => {
   });
 
   it("picks the title score, a sector score, and a death cue without a speaker", () => {
-    assert.deepEqual(scorePick({ phase: "title", sectorName: "Civilian Sector", combat: true }), {
+    assert.deepEqual(scorePick({ phase: "title", sectorId: "CIVILIAN_SECTOR", combat: true }), {
       track: "title",
       mode: "explore",
     });
+    assert.equal(scorePick({ phase: "map", sectorId: "ENGI_SECTOR", combat: false }).track, "engi");
     assert.equal(
-      scorePick({ phase: "map", sectorName: "Engi Controlled Sector", combat: false }).track,
-      "engi",
-    );
-    assert.equal(
-      scorePick({ phase: "combat", sectorName: "Engi Controlled Sector", combat: true }).mode,
+      scorePick({ phase: "combat", sectorId: "ENGI_SECTOR", combat: true }).mode,
       "combat",
     );
     assert.equal(
-      scorePick({ phase: "map", sectorName: "No such sector", combat: false }).track,
+      scorePick({ phase: "map", sectorId: "NO_SUCH_SECTOR", combat: false }).track,
       "civilian",
     );
     assert.equal(deathCue("rock"), "rockDeath");

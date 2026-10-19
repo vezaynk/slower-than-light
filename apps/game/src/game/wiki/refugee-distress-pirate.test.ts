@@ -30,11 +30,11 @@ describe("Refugee distress (Pirate)", () => {
   it("is a pirate sector card with the distress intro", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee distress (Pirate)]]
-    const pages = citedPagesFor("Pirate Controlled Sector").filter(
+    const pages = citedPagesFor("PIRATE_SECTOR").filter(
       (p) => p.dest === "Refugee distress (Pirate)",
     );
     assert.equal(pages.length, 1);
-    assert.deepEqual(pages[0]?.sectors, ["Pirate Controlled Sector"]);
+    assert.deepEqual(pages[0]?.sectors, ["PIRATE_SECTOR"]);
     const g = createGame(1);
     open(g);
     assert.match(g.event?.body ?? "", /distress beacon is active/);

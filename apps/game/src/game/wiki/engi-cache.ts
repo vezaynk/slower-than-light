@@ -9,10 +9,10 @@ import type { Game } from "../types.ts";
  * The page does not name the schematic: a random one (Rewards, "Drone": "A random drone schematic & T scrap.").
  * Medium scrap is Template:Scrap rewards (Medium), the column for the hangar difficulty.
  */
-const SECTORS = new Set(["Engi Controlled Sector", "Engi Homeworlds"]);
+const SECTORS = new Set(["ENGI_SECTOR", "ENGI_HOME"]);
 
 export function stampEngiCache(g: Game) {
-  if (!SECTORS.has(g.sectorName)) return;
+  if (!SECTORS.has(g.sectorId)) return;
   if (g.beacons.some((b) => b.flag === "engi-cache")) return;
   const pool = g.beacons.filter(
     (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store",

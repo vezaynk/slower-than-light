@@ -201,6 +201,7 @@ describe("Pirate briber", () => {
     pageWin(last, "pirate-briber", false);
     choose(last, "q:pirate-briber:gone");
     last.sector = 8;
+    last.sectorId = "FINAL";
     last.sectorName = "The Last Stand";
     choose(last, "q:pirate-briber:delay");
     assert.equal(last.fleet, 5);

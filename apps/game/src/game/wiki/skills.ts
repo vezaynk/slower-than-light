@@ -35,25 +35,25 @@ export function combatSkillMult(rank: 0 | 1 | 2): number {
  * Hidden Crystal Worlds: "only Crystal crewmembers can be purchased or received as a crew kill reward."
  */
 export const SECTOR_CREW_RACES: Record<string, string[]> = {
-  "Civilian (Starting) Sector": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
-  "Civilian Sector": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
-  "Engi Controlled Sector": ["Engi", "Human", "Zoltan"],
-  "Engi Homeworlds": ["Engi", "Human", "Zoltan"],
-  "Zoltan Controlled Sector": ["Zoltan", "Human", "Engi", "Mantis", "Rock", "Slug"],
-  "Zoltan Homeworlds": ["Zoltan", "Human", "Engi", "Mantis", "Rock", "Slug"],
-  "Abandoned Sector": ["Lanius", "Human", "Engi", "Mantis", "Rock", "Zoltan", "Slug"],
-  "Mantis Controlled Sector": ["Mantis", "Human", "Engi", "Rock"],
-  "Mantis Homeworlds": ["Mantis", "Human", "Engi", "Rock"],
-  "Pirate Controlled Sector": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
-  "Rebel Controlled Sector": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
-  "Rebel Stronghold": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
-  "Rock Controlled Sector": ["Rock", "Human", "Zoltan"],
-  "Rock Homeworlds": ["Rock", "Human", "Zoltan"],
-  "Slug Controlled Nebula": ["Slug", "Human", "Engi", "Mantis", "Zoltan", "Rock"],
-  "Slug Home Nebula": ["Slug", "Human", "Engi", "Mantis", "Zoltan", "Rock"],
-  "Uncharted Nebula": ["Human", "Slug", "Engi", "Mantis", "Zoltan", "Rock"],
-  "Hidden Crystal Worlds": ["Crystal"],
-  "The Last Stand": ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  STANDARD_SPACE: ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  CIVILIAN_SECTOR: ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  ENGI_SECTOR: ["Engi", "Human", "Zoltan"],
+  ENGI_HOME: ["Engi", "Human", "Zoltan"],
+  ZOLTAN_SECTOR: ["Zoltan", "Human", "Engi", "Mantis", "Rock", "Slug"],
+  ZOLTAN_HOME: ["Zoltan", "Human", "Engi", "Mantis", "Rock", "Slug"],
+  LANIUS_SECTOR: ["Lanius", "Human", "Engi", "Mantis", "Rock", "Zoltan", "Slug"],
+  MANTIS_SECTOR: ["Mantis", "Human", "Engi", "Rock"],
+  MANTIS_HOME: ["Mantis", "Human", "Engi", "Rock"],
+  PIRATE_SECTOR: ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  REBEL_SECTOR: ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  REBEL_SECTOR_MINIBOSS: ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
+  ROCK_SECTOR: ["Rock", "Human", "Zoltan"],
+  ROCK_HOME: ["Rock", "Human", "Zoltan"],
+  SLUG_SECTOR: ["Slug", "Human", "Engi", "Mantis", "Zoltan", "Rock"],
+  SLUG_HOME: ["Slug", "Human", "Engi", "Mantis", "Zoltan", "Rock"],
+  NEBULA_SECTOR: ["Human", "Slug", "Engi", "Mantis", "Zoltan", "Rock"],
+  CRYSTAL_HOME: ["Crystal"],
+  FINAL: ["Human", "Engi", "Mantis", "Rock", "Zoltan"],
 };
 
 /** Every race enemy-gen.ts can crew a ship with; the fallback where a sector has no list. */
@@ -74,12 +74,12 @@ export const ALL_CREW_RACES = [
  * INFERRED: each crew member is an even pick from that list (the printed rarity "only affects the store assortment
  * probability"). INFERRED: a sector name with no list (e.g. the invented content.ts SECTOR_NAMES) draws from every race.
  */
-export function pirateCrewRaces(sectorName: string): string[] {
-  return SECTOR_CREW_RACES[sectorName] ?? ALL_CREW_RACES;
+export function pirateCrewRaces(sectorId: string): string[] {
+  return SECTOR_CREW_RACES[sectorId] ?? ALL_CREW_RACES;
 }
 
-export function rollPirateCrew(sectorName: string, count: number, rand: () => number): string[] {
-  const list = pirateCrewRaces(sectorName);
+export function rollPirateCrew(sectorId: string, count: number, rand: () => number): string[] {
+  const list = pirateCrewRaces(sectorId);
   const out: string[] = [];
   for (let i = 0; i < count; i++) out.push(list[Math.floor(rand() * list.length) % list.length]);
   return out;

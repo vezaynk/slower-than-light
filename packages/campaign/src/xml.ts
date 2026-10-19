@@ -13,6 +13,7 @@ import {
   allSystems,
   allTunes,
   allWeapons,
+  emitFtlSectors,
   emitFtlShips,
   emitPack,
   rewardTable,
@@ -53,7 +54,6 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       drones: pack.drones,
       systems: pack.systems,
       tunes: pack.tunes,
-      sectors: pack.sectors,
       events: pack.events,
       lists: pack.lists,
     },
@@ -73,7 +73,15 @@ export function standInShipsXml(): string {
   return emitFtlShips(campaignPack().hulls ?? []);
 }
 
-/** Campaign records the archive can carry: names, blueprints, sectors, and pages. Ships are in standInShipsXml. */
+/** The catalog's sectors, written as ftl.dat's data/sector_data.xml writes them. */
+export function standInSectorsXml(): string {
+  return emitFtlSectors(campaignPack().sectors ?? []);
+}
+
+/**
+ * Campaign records the archive can carry: names, blueprints, and pages. Ships and sectors are in standInShipsXml and
+ * standInSectorsXml.
+ */
 export function standInXml(): string {
   return emitPack(splitCampaign(campaignPack()).body, { crew: "identity", sector: "body" });
 }

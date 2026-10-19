@@ -1,4 +1,4 @@
-import { standInShipsXml, standInXml } from "@stl/campaign";
+import { standInSectorsXml, standInShipsXml, standInXml } from "@stl/campaign";
 import { hullPictureFiles, standInSheet, type HullPictureFile } from "@stl/catalog/src/ship-art.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { mountsFor } from "@stl/catalog/src/weapon-mounts.ts";
@@ -15,6 +15,7 @@ export async function standInDat(): Promise<Uint8Array> {
     [
       { path: "data/stand-in.xml", xml: standInXml() },
       { path: "data/blueprints.xml", xml: standInShipsXml() },
+      { path: "data/sector_data.xml", xml: standInSectorsXml() },
       { path: "data/text_lists.xml", xml: TEXT_LISTS_XML },
       ...pictures.map((file) => ({ path: file.path, xml: file.xml })),
       ...media.documents,
@@ -65,4 +66,4 @@ export function standInImages(
   return images;
 }
 
-export { standInShipsXml, standInXml };
+export { standInSectorsXml, standInShipsXml, standInXml };

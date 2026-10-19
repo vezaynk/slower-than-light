@@ -1739,7 +1739,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // No effect in The Last Stand.
   "q:pirate-briber:delay": (g) => {
-    if (g.sector === 8 || g.sectorName === "The Last Stand") {
+    if (g.sector === 8 || g.sectorId === "FINAL") {
       result(g, "Hopefully that will buy you more time to get to the next sector.", undefined, [
         "No effect in The Last Stand.",
       ]);

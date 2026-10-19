@@ -290,7 +290,7 @@ describe("packFromExtract", () => {
     assert.equal(pack.crew, undefined);
   });
 
-  it("keeps the archive rows and takes combat, colour, and the store from the gap", () => {
+  it("keeps the archive rows and colour, and takes combat, notes, and the store from the gap", () => {
     const archive = packFromExtract(
       extract({ documents: [{ path: "data/blueprints.xml", xml: VANILLA }] }),
     );
@@ -343,6 +343,7 @@ const VANILLA = `<FTL>
     <desc>The standard crew.</desc>
     <cost>45</cost>
   </crewBlueprint>
+  <sectorType name="CIVILIAN"><sector>civilian</sector></sectorType>
   <sectorDescription name="civilian">
     <name>Civilian Sector</name>
     <event name="START" min="1" max="2"/>

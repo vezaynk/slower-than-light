@@ -29,11 +29,11 @@ function boarded(g: Game) {
 
 describe("Boarders: Humans (Abandoned)", () => {
   it("is one Abandoned Sector card and beams 3-4 humans with no ship", () => {
-    const pages = citedPagesFor("Abandoned Sector").filter(
+    const pages = citedPagesFor("LANIUS_SECTOR").filter(
       (e) => e.dest === "Boarders: Humans (Abandoned)",
     );
     assert.equal(pages.length, 1);
-    assert.deepEqual([...pages[0].sectors], ["Abandoned Sector"]);
+    assert.deepEqual([...pages[0].sectors], ["LANIUS_SECTOR"]);
     assert.ok(pages[0].body.length <= 240);
     const g = createGame(2);
     const ev = citedEvent(g, beacon());

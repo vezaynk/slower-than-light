@@ -102,9 +102,21 @@ function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
   return { id: row.ref, name: row.name, cost: row.cost, slot: row.slot };
 }
 
+/**
+ * A sector as ftl.dat's sector_data.xml carries it. The colour group is the sectorType list it is in; Hidden Crystal
+ * Worlds and The Last Stand are in none.
+ */
 function sectorRow(row: SectorType): SectorDef {
   const track = SECTOR_TRACKS[row.id];
-  const sector: SectorDef = { id: row.id, name: row.name, group: row.group, notes: [...row.notes] };
+  const group = row.group === "hidden" || row.group === "last-stand" ? "" : row.group;
+  const sector: SectorDef = {
+    id: row.id,
+    name: row.name,
+    group,
+    notes: [...row.notes],
+    minSector: row.minSector,
+    unique: row.unique,
+  };
   if (track) sector.tracks = [track];
   return sector;
 }
@@ -156,11 +168,18 @@ function listRow(row: FillerListDef): FillerListDef {
   };
 }
 
+/** The wiki names a page's sectors by heading; the pack keys them by ftl.dat sector id, as sector_data.xml does. */
+const SECTOR_ID = new Map(SECTOR_TYPES.map((row) => [row.name, row.id]));
+
+function sectorIds(names: readonly string[]): string[] {
+  return names.map((name) => SECTOR_ID.get(name) ?? name);
+}
+
 function emptyRow(row: EmptyBeaconDef): EmptyBeaconDef {
   const copy: EmptyBeaconDef = {
     id: row.id,
     dest: row.dest,
-    sectors: [...row.sectors],
+    sectors: sectorIds(row.sectors),
     texts: [...row.texts],
   };
   if (row.nebula) copy.nebula = true;
@@ -173,7 +192,7 @@ function eventRow(row: EventDef): EventDef {
     dest: row.dest,
     flag: row.flag,
     aliases: [...row.aliases],
-    sectors: [...row.sectors],
+    sectors: sectorIds(row.sectors),
     body: row.body,
     choices: row.choices.map((choice) =>
       stampedChoice({

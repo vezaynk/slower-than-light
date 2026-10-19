@@ -30,14 +30,10 @@ describe("Refugee distress (Slug)", () => {
   it("is a slug sector card with the distress intro", () => {
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee distress (Slug)]]
-    const pages = citedPagesFor("Slug Controlled Nebula").filter(
-      (p) => p.dest === "Refugee distress (Slug)",
-    );
+    const pages = citedPagesFor("SLUG_SECTOR").filter((p) => p.dest === "Refugee distress (Slug)");
     assert.equal(pages.length, 1);
-    assert.deepEqual(pages[0]?.sectors, ["Slug Controlled Nebula", "Slug Home Nebula"]);
-    const home = citedPagesFor("Slug Home Nebula").some(
-      (p) => p.dest === "Refugee distress (Slug)",
-    );
+    assert.deepEqual(pages[0]?.sectors, ["SLUG_SECTOR", "SLUG_HOME"]);
+    const home = citedPagesFor("SLUG_HOME").some((p) => p.dest === "Refugee distress (Slug)");
     assert.equal(home, true);
     const g = createGame(1);
     open(g);

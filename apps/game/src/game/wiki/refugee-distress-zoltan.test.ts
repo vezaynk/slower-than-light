@@ -30,14 +30,12 @@ describe("Refugee distress (Zoltan)", () => {
   it("is a Zoltan sector card with the distress intro", () => {
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee distress (Zoltan)]]
-    const pages = citedPagesFor("Zoltan Controlled Sector").filter(
+    const pages = citedPagesFor("ZOLTAN_SECTOR").filter(
       (p) => p.dest === "Refugee distress (Zoltan)",
     );
     assert.equal(pages.length, 1);
-    assert.deepEqual(pages[0]?.sectors, ["Zoltan Controlled Sector", "Zoltan Homeworlds"]);
-    const home = citedPagesFor("Zoltan Homeworlds").some(
-      (p) => p.dest === "Refugee distress (Zoltan)",
-    );
+    assert.deepEqual(pages[0]?.sectors, ["ZOLTAN_SECTOR", "ZOLTAN_HOME"]);
+    const home = citedPagesFor("ZOLTAN_HOME").some((p) => p.dest === "Refugee distress (Zoltan)");
     assert.equal(home, true);
     const g = createGame(1);
     open(g);

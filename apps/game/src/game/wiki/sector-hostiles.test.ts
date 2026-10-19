@@ -9,6 +9,7 @@ import {
   sectorHostiles,
 } from "./sector-hostiles.ts";
 import { SECTOR_TYPES } from "./sectors.ts";
+import { sectorIdNamed } from "../fixtures.ts";
 
 function seeded(seed: number) {
   let s = seed >>> 0 || 1;
@@ -17,8 +18,9 @@ function seeded(seed: number) {
 
 /** Share of the sector's random fights per faction ("pirate" for any pirate), at one sector number. */
 function shares(sector: number, sectorName: string): Record<string, number> {
-  const pool = enemyPool({ sector, sectorName, difficulty: "normal" });
-  const w = hostileWeights(pool, sectorName)!;
+  const sectorId = sectorIdNamed(sectorName);
+  const pool = enemyPool({ sector, sectorId, sectorName, difficulty: "normal" });
+  const w = hostileWeights(pool, sectorId)!;
   const total = w.reduce((a, b) => a + b, 0);
   const out: Record<string, number> = {};
   pool.forEach((e, i) => {
@@ -30,7 +32,7 @@ function shares(sector: number, sectorName: string): Record<string, number> {
 
 describe("hostile encounter lists (wiki/sector-hostiles.ts)", () => {
   it("has a list for every sector type on the Sectors page", () => {
-    for (const t of SECTOR_TYPES) assert.ok(sectorHostiles(t.name)?.length, t.name);
+    for (const t of SECTOR_TYPES) assert.ok(sectorHostiles(t.id)?.length, t.id);
     assert.equal(sectorHostiles("Cinder Reach"), null);
   });
 
@@ -50,7 +52,7 @@ describe("hostile encounter lists (wiki/sector-hostiles.ts)", () => {
   });
 
   it("Civilian sectors: the two templates' draws (5 of 11 and 2 of 12)", () => {
-    const s = shares(3, "Civilian Sector");
+    const s = shares(3, "CIVILIAN_SECTOR");
     const civ = 5 / 11;
     const h1 = 2 / 12;
     const total = 5 + 2;
@@ -75,12 +77,7 @@ describe("hostile encounter lists (wiki/sector-hostiles.ts)", () => {
     assert.ok(shares(5, "Zoltan Controlled Sector").zoltan > 0.1);
     assert.ok(shares(5, "Hidden Crystal Worlds").crystal > 0.5);
     assert.ok(shares(5, "Pirate Controlled Sector").pirate > 0.5);
-    for (const name of [
-      "Civilian Sector",
-      "Engi Controlled Sector",
-      "Mantis Controlled Sector",
-      "Rebel Controlled Sector",
-    ]) {
+    for (const name of ["CIVILIAN_SECTOR", "ENGI_SECTOR", "MANTIS_SECTOR", "REBEL_SECTOR"]) {
       assert.equal(shares(5, name).lanius, undefined, name);
     }
     assert.equal(shares(5, "Rock Controlled Sector").auto, undefined);
@@ -89,17 +86,28 @@ describe("hostile encounter lists (wiki/sector-hostiles.ts)", () => {
   it("The Last Stand: Rebel ships only", () => {
     const r = seeded(11);
     for (let i = 0; i < 60; i++) {
-      const p = pickEnemy({ sector: 8, sectorName: "The Last Stand", difficulty: "normal" }, r);
+      const p = pickEnemy(
+        { sector: 8, sectorId: "FINAL", sectorName: "The Last Stand", difficulty: "normal" },
+        r,
+      );
       assert.deepEqual([p.cls.faction, p.pirate], ["rebel", false]);
     }
   });
 
   it("an event's own ship request still wins over the sector list", () => {
-    const ctx = { sector: 5, sectorName: "The Last Stand", difficulty: "normal" as const };
+    const ctx = {
+      sector: 5,
+      sectorId: "FINAL",
+      sectorName: "The Last Stand",
+      difficulty: "normal" as const,
+    };
     assert.equal(pickEnemy(ctx, seeded(3), requestFor("Pirate ship")).pirate, true);
     assert.equal(
-      pickEnemy({ ...ctx, sectorName: "Civilian Sector" }, seeded(4), requestFor("Lanius ship")).cls
-        .faction,
+      pickEnemy(
+        { ...ctx, sectorId: "CIVILIAN_SECTOR", sectorName: "Civilian Sector" },
+        seeded(4),
+        requestFor("Lanius ship"),
+      ).cls.faction,
       "lanius",
     );
   });

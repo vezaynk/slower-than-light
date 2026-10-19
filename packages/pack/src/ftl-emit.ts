@@ -5,7 +5,7 @@ import {
   type Element as XmlElement,
 } from "@xmldom/xmldom";
 import { prettyXml } from "./format.ts";
-import type { HullDef } from "./types.ts";
+import type { HullDef, SectorDef } from "./types.ts";
 
 /**
  * Writes ship blueprints the way ftl.dat's data/blueprints.xml does, so packFromFtl reads the stand-in with the same
@@ -90,4 +90,61 @@ function shipElement(doc: XmlDocument, hull: HullDef): XmlElement {
   if (hull.cloak) ship.appendChild(leaf(doc, "cloakImage", hull.cloak));
   if (hull.floor) ship.appendChild(leaf(doc, "floorImage", hull.floor));
   return ship;
+}
+
+/** sector_data.xml's colour lists, by the group packFromFtl reads back. */
+const SECTOR_TYPES: [string, string][] = [
+  ["CIVILIAN", "civilian"],
+  ["HOSTILE", "hostile"],
+  ["NEBULA", "nebula"],
+];
+
+/**
+ * Writes sectors the way ftl.dat's data/sector_data.xml does: the <sectorType> lists the chart draws each colour from,
+ * then one <sectorDescription> per sector. A sector in no list (Hidden Crystal Worlds, The Last Stand) is never rolled.
+ */
+export function emitFtlSectors(sectors: readonly SectorDef[]): string {
+  const doc = new DOMImplementation().createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("could not create the FTL root");
+  for (const [type, group] of SECTOR_TYPES) {
+    const list = element(doc, "sectorType", { name: type });
+    for (const sector of sectors) {
+      if (sector.group === group) list.appendChild(leaf(doc, "sector", sector.id));
+    }
+    root.appendChild(list);
+  }
+  for (const sector of sectors) root.appendChild(sectorElement(doc, sector));
+  return prettyXml(new XMLSerializer().serializeToString(doc));
+}
+
+function sectorElement(doc: XmlDocument, sector: SectorDef): XmlElement {
+  const attrs: Record<string, string> = { name: sector.id };
+  if (sector.minSector != null) attrs.minSector = String(sector.minSector);
+  if (sector.unique != null) attrs.unique = sector.unique ? "true" : "false";
+  const node = element(doc, "sectorDescription", attrs);
+  const names = element(doc, "nameList");
+  const name = leaf(doc, "name", sector.name);
+  if (sector.short) name.setAttribute("short", sector.short);
+  names.appendChild(name);
+  node.appendChild(names);
+  if (sector.tracks?.length) {
+    const tracks = element(doc, "trackList");
+    for (const track of sector.tracks) tracks.appendChild(leaf(doc, "track", track));
+    node.appendChild(tracks);
+  }
+  if (sector.startEvent) node.appendChild(leaf(doc, "startEvent", sector.startEvent));
+  for (const quota of sector.quotas ?? []) {
+    node.appendChild(
+      element(doc, "event", { name: quota.id, min: String(quota.min), max: String(quota.max) }),
+    );
+  }
+  if (sector.rarities?.length) {
+    const list = element(doc, "rarityList");
+    for (const row of sector.rarities) {
+      list.appendChild(element(doc, "blueprint", { name: row.id, rarity: String(row.rarity) }));
+    }
+    node.appendChild(list);
+  }
+  return node;
 }

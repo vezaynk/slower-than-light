@@ -20,7 +20,7 @@ const COMBAT: (keyof CrewDef)[] = [
 /**
  * Lays the gap file over an archive pack.
  * Crew keeps the archive name, blurb, and hire cost. Combat fields come from the gap row.
- * A sector keeps the archive name and quotas. Colour and notes come from the gap row.
+ * A sector keeps the archive name, colour (its sectorType list), and quotas. Notes come from the gap row.
  * The store, rewards, faction rows, and empty beacons come from the gap.
  */
 export function overlayGap(archive: ContentPack, gap: ContentPack): ContentPack {
@@ -69,11 +69,7 @@ function mergeSectors(
   const extra = new Map((gap ?? []).map((row) => [row.id, row]));
   return archive.map((row) => {
     const colour = extra.get(row.id);
-    const copy: SectorDef = {
-      ...row,
-      group: colour?.group ?? row.group,
-      notes: [...(colour?.notes ?? row.notes)],
-    };
+    const copy: SectorDef = { ...row, notes: [...(colour?.notes ?? row.notes)] };
     if (row.quotas) copy.quotas = row.quotas.map((quota) => ({ ...quota }));
     if (row.tracks) copy.tracks = [...row.tracks];
     if (row.rarities) copy.rarities = row.rarities.map((rarity) => ({ ...rarity }));

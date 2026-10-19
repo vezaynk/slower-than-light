@@ -128,6 +128,7 @@ describe("civilian M-Z cited events", () => {
 describe("Pirate engine hacker", () => {
   it("limits evasion and the FTL charge to level 1, then restores them when that ship is destroyed", () => {
     const g = createGame(4);
+    g.sectorId = "CIVILIAN_SECTOR";
     g.sectorName = "Civilian Sector";
     const ev = EXTRA_EVENTS.find((e) => e.dest === "Pirate engine hacker");
     assert.ok(ev);

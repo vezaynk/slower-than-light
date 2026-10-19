@@ -495,6 +495,7 @@ describe("scripted surrenders (event pages)", () => {
 
   it("an unnamed crew reward follows the sector list; a named race stays named", () => {
     const slaver = eventFight("Pirate ship", "slaver-hostile");
+    slaver.sectorId = "CRYSTAL_HOME";
     slaver.sectorName = "Hidden Crystal Worlds";
     offer(slaver);
     assert.equal(surrenderOfferView(slaver)!.crew, "Crystal");
@@ -505,6 +506,7 @@ describe("scripted surrenders (event pages)", () => {
     );
     assert.equal(named.crew, "Human");
     const onCrystal = createGame(4);
+    onCrystal.sectorId = "CRYSTAL_HOME";
     onCrystal.sectorName = "Hidden Crystal Worlds";
     assert.equal(
       rollScriptedOffer(
@@ -519,6 +521,7 @@ describe("scripted surrenders (event pages)", () => {
 describe("crew reward races (Category:Crew Rewards)", () => {
   it("Hidden Crystal Worlds draws only Crystal", () => {
     const g = createGame(2);
+    g.sectorId = "CRYSTAL_HOME";
     g.sectorName = "Hidden Crystal Worlds";
     for (let i = 0; i < 24; i++) assert.equal(randomRace(g), "Crystal");
   });
@@ -528,6 +531,7 @@ describe("crew reward races (Category:Crew Rewards)", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40; seed++) {
       const g = createGame(seed);
+      g.sectorId = "ENGI_HOME";
       g.sectorName = "Engi Homeworlds";
       for (let i = 0; i < 6; i++) {
         const race = randomRace(g);

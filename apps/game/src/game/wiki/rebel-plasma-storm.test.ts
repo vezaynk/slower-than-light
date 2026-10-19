@@ -16,6 +16,7 @@ describe("Rebel fight in plasma storm", () => {
     beacon.col = 5;
     g.here = beacon.id;
     g.fleet = 1;
+    g.sectorId = "SLUG_HOME";
     g.sectorName = "Slug Home Nebula";
     assert.equal(ionStormBeacon(beacon, g), true);
     assert.equal(citedFleetAdvance(g, beacon), 1);
@@ -80,6 +81,7 @@ describe("Rebel fight in plasma storm", () => {
     g.fuel = 3;
     g.fleet = 0;
     g.sector = 1;
+    g.sectorId = "SLUG_HOME";
     g.sectorName = "Slug Home Nebula";
     g.phase = "map";
     g.event = null;

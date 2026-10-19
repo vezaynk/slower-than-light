@@ -35,7 +35,7 @@ describe("event pages", () => {
             dest: "Ember",
             flag: "cited:ember",
             aliases: ["Ember"],
-            sectors: ["Civilian Sector"],
+            sectors: ["CIVILIAN_SECTOR"],
             body: "A packed beacon.",
             choices: [
               {
@@ -55,7 +55,7 @@ describe("event pages", () => {
     assert.equal(g.scrap, before + 7);
     assert.equal(allEvents().at(-1)?.id, "ember");
     assert.equal(
-      citedPagesFor("Civilian Sector").some((ev) => ev.slug === "ember"),
+      citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.slug === "ember"),
       false,
     );
   });
@@ -69,7 +69,7 @@ describe("event pages", () => {
             dest: "Ember Fight",
             flag: "cited:ember-fight",
             aliases: [],
-            sectors: ["Civilian Sector"],
+            sectors: ["CIVILIAN_SECTOR"],
             body: "Fight.",
             choices: [
               {
@@ -162,7 +162,7 @@ describe("event pages", () => {
     assert.equal(card?.body, "The platform.");
     assert.equal(card?.choices[0]?.id, "q:ember-quest:go");
     assert.equal(
-      citedPagesFor("Civilian Sector").some((ev) => ev.slug === "arrive-ember-quest"),
+      citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.slug === "arrive-ember-quest"),
       false,
     );
   });

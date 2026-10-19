@@ -4,6 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { SECTOR_MIX, classifyEvent, takeLines, type MixEvent } from "./beacon-mix.ts";
 import { citedPagesFor, stampCitedEvents } from "./cited-events.ts";
+import { placeIn } from "../fixtures.ts";
 
 /**
  * A fresh map dealt as `name`. createGame already stamped the starting sector onto these beacons.
@@ -12,10 +13,10 @@ import { citedPagesFor, stampCitedEvents } from "./cited-events.ts";
 function dealt(seed: number, name: string, sector = 4): Game {
   const g = createGame(seed);
   g.sector = sector;
-  g.sectorName = name;
-  // createGame already stamped Civilian (Starting) Sector onto this map. A later sector is a new
-  // map; clear that stamp. The same name is already the one pass, and a second stamp would no-op.
-  if (name !== "Civilian (Starting) Sector") {
+  placeIn(g, name);
+  // createGame already stamped sector 1 (STANDARD_SPACE) onto this map. A later sector is a new
+  // map; clear that stamp. The same sector is already the one pass, and a second stamp would no-op.
+  if (g.sectorId !== "STANDARD_SPACE") {
     for (const b of g.beacons) {
       if (b.kind === "start" || b.kind === "exit" || b.kind === "boss") continue;
       b.flag = "";
@@ -74,11 +75,11 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
 
   it("lists every sector type the Sectors page gives beacon counts for", () => {
     assert.equal(Object.keys(SECTOR_MIX).length, 19);
-    const civ = SECTOR_MIX["Civilian Sector"].find((l) => l.slot === "hostile");
+    const civ = SECTOR_MIX["CIVILIAN_SECTOR"].find((l) => l.slot === "hostile");
     assert.deepEqual([civ?.lo, civ?.hi, civ?.quote], [6, 8, "6-8 hostile encounters"]);
-    const neb = SECTOR_MIX["Slug Controlled Nebula"].find((l) => l.slot === "nebula-hostile");
+    const neb = SECTOR_MIX["SLUG_SECTOR"].find((l) => l.slot === "nebula-hostile");
     assert.deepEqual([neb?.lo, neb?.hi], [5, 7]);
-    const start = SECTOR_MIX["Civilian (Starting) Sector"].filter((l) => l.slot === "hostile");
+    const start = SECTOR_MIX["STANDARD_SPACE"].filter((l) => l.slot === "hostile");
     assert.deepEqual(
       start.map((l) => [l.lo, l.hi]),
       [
@@ -146,6 +147,7 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     );
     if (!mid) throw new Error("no middle beacon");
     mid.flag = "keep-me";
+    kept.sectorId = "CIVILIAN_SECTOR";
     kept.sectorName = "Civilian Sector";
     stampCitedEvents(kept);
     assert.equal(kept.beacons.find((b) => b.id === mid.id)?.flag, "keep-me");
@@ -209,7 +211,7 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       const g = dealt(seed, "Civilian Sector");
       for (const b of middles(g)) {
         if (b.kind === "hostile") hostile++;
-        const page = citedPagesFor("Civilian Sector").find((e) => e.flag === b.flag);
+        const page = citedPagesFor("CIVILIAN_SECTOR").find((e) => e.flag === b.flag);
         if (page && classifyEvent(page) === "hostile") hostile++;
         if (page && classifyEvent(page) === "neutral") neutral++;
       }
@@ -279,7 +281,7 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       ["cited:nebula-wreckage", "Nebula wreckage"],
     ]);
     const seen = new Set<string>();
-    for (const sector of ["Slug Home Nebula", "Slug Controlled Nebula", "Uncharted Nebula"]) {
+    for (const sector of ["SLUG_HOME", "SLUG_SECTOR", "NEBULA_SECTOR"]) {
       for (let seed = 1; seed <= 80; seed++) {
         for (const b of dealt(seed, sector, 5).beacons) {
           const name = byFlag.get(b.flag);
@@ -304,7 +306,7 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       ).length;
       assert.ok(n <= 2, `Civilian Sector ${seed} ${n}`);
     }
-    for (const sector of ["Zoltan Controlled Sector", "Zoltan Homeworlds"]) {
+    for (const sector of ["ZOLTAN_SECTOR", "ZOLTAN_HOME"]) {
       for (let seed = 1; seed <= 40; seed++) {
         const n = dealt(seed, sector).beacons.filter(
           (b) => b.flag === "cited:zoltan-research-facility",

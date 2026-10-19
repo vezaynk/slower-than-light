@@ -119,14 +119,13 @@ describe("a seeded Kestrel run", () => {
     assert.equal(g.player.systems.doors.power, 1);
   });
 
-  it("opens the chart on Civilian (Starting) Sector", () => {
+  it("opens the chart on STANDARD_SPACE, shown as the Civilian Sector", () => {
     const g = kestrel(3);
-    const start = sectorDef("civilian-start");
-    assert.equal(start?.name, "Civilian (Starting) Sector");
-    assert.equal(g.sectorName, start?.name);
+    assert.equal(g.sectorId, "STANDARD_SPACE");
+    assert.equal(g.sectorName, sectorDef("CIVILIAN_SECTOR")?.name);
     assert.equal(g.routeHere, "sec-0");
     assert.equal(g.route[0]?.id, "sec-0");
-    assert.equal(g.route[0]?.name, start?.name);
+    assert.equal(g.route[0]?.sector, "STANDARD_SPACE");
     const exit = g.beacons.find((b) => b.kind === "exit");
     assert.ok(exit);
     g.here = exit.id;
@@ -137,7 +136,7 @@ describe("a seeded Kestrel run", () => {
     assert.equal(g.phase, "map");
     assert.equal(g.sector, 1);
     assert.equal(g.routeHere, "sec-0");
-    assert.equal(g.route.find((n) => n.id === g.routeHere)?.name, "Civilian (Starting) Sector");
+    assert.equal(g.route.find((n) => n.id === g.routeHere)?.sector, "STANDARD_SPACE");
   });
 
   it("counts one Zoltan bar, coats a Crystal lockdown, and fires the fitted laser", () => {

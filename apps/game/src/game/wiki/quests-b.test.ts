@@ -9,6 +9,7 @@ import { classifyEvent } from "./beacon-mix.ts";
 import { QUEST_ADDED } from "./quests.ts";
 import { PART_B } from "./quests-b.ts";
 import { DUMP } from "@stl/wiki-dump";
+import { placeIn } from "../fixtures.ts";
 
 function here(g: Game): Beacon {
   return g.beacons.find((b) => b.id === g.here)!;
@@ -16,7 +17,7 @@ function here(g: Game): Beacon {
 
 function atCited(g: Game, sector: string, dest: string): Game {
   const ev = EXTRA_EVENTS.find((e) => e.dest === dest)!;
-  g.sectorName = sector;
+  placeIn(g, sector);
   const b = g.beacons.find((x) => x.col === 1)!;
   b.flag = ev.flag;
   b.kind = "event";

@@ -128,6 +128,7 @@ describe("Advanced Edition content", () => {
   it("places tagged event titles even when an old save says content is off", () => {
     const g = quietMap(2);
     (g as { ae?: boolean }).ae = false;
+    g.sectorId = "LANIUS_SECTOR";
     g.sectorName = "Abandoned Sector";
     for (const beacon of g.beacons) {
       if (beacon.kind === "start" || beacon.kind === "exit" || beacon.kind === "boss") continue;

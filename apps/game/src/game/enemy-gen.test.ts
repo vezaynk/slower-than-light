@@ -21,6 +21,7 @@ import {
 import { weaponIdForName } from "./gear-look.ts";
 import { createGame, startCombat } from "./sim.ts";
 import { ENEMY_CLASSES, ENEMY_WEAPON_POOLS } from "./wiki/enemy-ships.ts";
+import { sectorIdNamed } from "./fixtures.ts";
 
 const SECTOR_NAMES = [
   "Civilian Sector",
@@ -62,7 +63,8 @@ describe("documented enemy pool", () => {
     const reachable = new Set<string>();
     for (let sector = 1; sector <= 8; sector++) {
       for (const sectorName of SECTOR_NAMES) {
-        for (const e of enemyPool({ sector, sectorName, difficulty: "normal" }))
+        const sectorId = sectorIdNamed(sectorName);
+        for (const e of enemyPool({ sector, sectorId, sectorName, difficulty: "normal" }))
           reachable.add(e.cls.id);
       }
     }
@@ -72,7 +74,12 @@ describe("documented enemy pool", () => {
       const event = cls.uniqueTo!.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       reachable.add(
         pickEnemy(
-          { sector: 6, sectorName: "Rock Controlled Sector", difficulty: "normal" },
+          {
+            sector: 6,
+            sectorId: "ROCK_SECTOR",
+            sectorName: "Rock Controlled Sector",
+            difficulty: "normal",
+          },
           seeded(1),
           { event },
         ).cls.id,
@@ -87,6 +94,7 @@ describe("documented enemy pool", () => {
   it("follows sector 1's event lists: Rebel, Auto-ship, Mantis, and pirates only", () => {
     const regular = enemyPool({
       sector: 1,
+      sectorId: "STANDARD_SPACE",
       sectorName: "Civilian (Starting) Sector",
       difficulty: "normal",
     }).filter((e) => !e.pirate);
@@ -98,9 +106,12 @@ describe("documented enemy pool", () => {
   });
 
   it("keeps Elites, event-only ships, and Federation (outside Crystal Homeworlds) out of the random pool", () => {
-    const ids = enemyPool({ sector: 5, sectorName: "Civilian Sector", difficulty: "normal" }).map(
-      (e) => e.cls.id,
-    );
+    const ids = enemyPool({
+      sector: 5,
+      sectorId: "CIVILIAN_SECTOR",
+      sectorName: "Civilian Sector",
+      difficulty: "normal",
+    }).map((e) => e.cls.id);
     for (const id of ["elite-fighter", "elite-assault", "rock-assault-elite", "federation-scout"])
       assert.ok(!ids.includes(id), id);
   });
@@ -114,7 +125,12 @@ describe("documented enemy pool", () => {
   });
 
   it("honours the ship an event asks for", () => {
-    const ctx = { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" as const };
+    const ctx = {
+      sector: 3,
+      sectorId: "CIVILIAN_SECTOR",
+      sectorName: "Civilian Sector",
+      difficulty: "normal" as const,
+    };
     assert.equal(pickEnemy(ctx, seeded(2), requestFor("Lanius ship")).cls.faction, "lanius");
     const zp = pickEnemy(ctx, seeded(3), requestFor("Zoltan pirate ship"));
     assert.deepEqual([zp.cls.faction, zp.pirate], ["zoltan", true]);
@@ -126,7 +142,12 @@ describe("rolled ships stay inside the printed numbers", () => {
   it("hull, crew, systems, and weapon power", () => {
     for (const cls of ENEMY_CLASSES) {
       for (let sector = cls.sectors[0]; sector <= cls.sectors[1]; sector++) {
-        const ctx = { sector, sectorName: "Civilian Sector", difficulty: "normal" as const };
+        const ctx = {
+          sector,
+          sectorId: "CIVILIAN_SECTOR",
+          sectorName: "Civilian Sector",
+          difficulty: "normal" as const,
+        };
         const spec = rollEnemy(cls, false, ctx, seeded(sector * 31 + cls.id.length));
         assert.ok(spec.hull >= cls.hull[0] && spec.hull <= cls.hull[1], `${cls.id} hull`);
         assert.ok(
@@ -179,6 +200,7 @@ describe("rolled ships stay inside the printed numbers", () => {
 describe("enemy generation by difficulty (Mathchamp, Details on enemy ship generation)", () => {
   const ctx = (sector: number, difficulty: "easy" | "normal" | "hard" = "normal") => ({
     sector,
+    sectorId: "CIVILIAN_SECTOR",
     sectorName: "Civilian Sector",
     difficulty,
   });
@@ -300,9 +322,12 @@ describe("enemy generation by difficulty (Mathchamp, Details on enemy ship gener
   it("delays which classes appear by a sector on Easy", () => {
     // Mantis Fighter: "Encountered in sectors: 2-8". On Easy it first appears in sector 3.
     const has = (sector: number, d: "easy" | "normal") =>
-      rangePool({ sector, sectorName: "Mantis Controlled Sector", difficulty: d }).some(
-        (e) => e.cls.id === "mantis-fighter",
-      );
+      rangePool({
+        sector,
+        sectorId: "MANTIS_SECTOR",
+        sectorName: "MANTIS_SECTOR",
+        difficulty: d,
+      }).some((e) => e.cls.id === "mantis-fighter");
     assert.equal(has(2, "normal"), true);
     assert.equal(has(2, "easy"), false);
     assert.equal(has(3, "easy"), true);
@@ -310,7 +335,12 @@ describe("enemy generation by difficulty (Mathchamp, Details on enemy ship gener
 });
 
 describe("archive loadout", () => {
-  const ctx = { sector: 1, sectorName: "Civilian Sector", difficulty: "normal" as const };
+  const ctx = {
+    sector: 1,
+    sectorId: "CIVILIAN_SECTOR",
+    sectorName: "Civilian Sector",
+    difficulty: "normal" as const,
+  };
 
   it("keeps the class table when the blueprint names no lists", () => {
     const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
@@ -364,6 +394,7 @@ describe("archive loadout", () => {
   it("counts blueprint crew and mounts blueprint guns the way FTL's generator does", () => {
     const normal = (sector: number) => ({
       sector,
+      sectorId: "CIVILIAN_SECTOR",
       sectorName: "Civilian Sector",
       difficulty: "normal" as const,
     });
@@ -452,7 +483,7 @@ describe("archive loadout", () => {
       "append",
     );
     try {
-      const crystal = { ...ctx, sectorName: "Hidden Crystal Worlds" };
+      const crystal = { ...ctx, sectorId: "CRYSTAL_HOME", sectorName: "Hidden Crystal Worlds" };
       const spec = rollEnemy(fighter, false, crystal, seeded(1));
       // ftl.dat's explicit weaponList is that ship's loadout: mounted in order, up to count.
       assert.deepEqual(spec.weapons, ["LASER_BURST_3", "LASER_BURST_1"]);
@@ -488,7 +519,12 @@ describe("archive loadout", () => {
 
 describe("Federation requests", () => {
   it("field a Federation ship, regular or pirate, wherever the event is", () => {
-    const ctx = { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" as const };
+    const ctx = {
+      sector: 3,
+      sectorId: "CIVILIAN_SECTOR",
+      sectorName: "Civilian Sector",
+      difficulty: "normal" as const,
+    };
     for (let i = 1; i <= 10; i++)
       assert.equal(
         pickEnemy(ctx, seeded(i * 97), requestFor("Federation ship")).cls.faction,

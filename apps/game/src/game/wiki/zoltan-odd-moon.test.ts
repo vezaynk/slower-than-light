@@ -25,6 +25,7 @@ function beacon(): Beacon {
 
 function open(seed: number): Game {
   const g = createGame(seed);
+  g.sectorId = "ZOLTAN_SECTOR";
   g.sectorName = "Zoltan Controlled Sector";
   const b = beacon();
   g.beacons = [b];
@@ -64,12 +65,10 @@ describe("Zoltan odd moon", () => {
   it("is placed in the two Zoltan sectors", () => {
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan odd moon]]
-    assert.ok(
-      citedPagesFor("Zoltan Controlled Sector").some((ev) => ev.dest === "Zoltan odd moon"),
-    );
-    assert.ok(citedPagesFor("Zoltan Homeworlds").some((ev) => ev.dest === "Zoltan odd moon"));
+    assert.ok(citedPagesFor("ZOLTAN_SECTOR").some((ev) => ev.dest === "Zoltan odd moon"));
+    assert.ok(citedPagesFor("ZOLTAN_HOME").some((ev) => ev.dest === "Zoltan odd moon"));
     assert.equal(
-      citedPagesFor("Civilian Sector").some((ev) => ev.dest === "Zoltan odd moon"),
+      citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.dest === "Zoltan odd moon"),
       false,
     );
   });

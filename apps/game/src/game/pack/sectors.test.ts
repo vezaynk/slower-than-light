@@ -18,8 +18,9 @@ function seenOnChart(name: string, seeds = 400): boolean {
 
 describe("sector listings", () => {
   it("names the chart ends from the pack while the authored rows stay", () => {
-    const start = sectorDef("civilian-start");
-    const last = sectorDef("last-stand");
+    // Sector 1 shows CIVILIAN_SECTOR's name (StarMap::GenerateSectorMap); the last column is FINAL.
+    const start = sectorDef("CIVILIAN_SECTOR");
+    const last = sectorDef("FINAL");
     assert.ok(start && last);
     loadPack(
       {
@@ -34,10 +35,10 @@ describe("sector listings", () => {
     assert.equal(route[0]?.name, "Ember Reach");
     assert.equal(route[route.length - 1]?.name, "Ember Gate");
     assert.equal(
-      SECTOR_TYPES.find((row) => row.id === "civilian-start")?.name,
+      SECTOR_TYPES.find((row) => row.id === "STANDARD_SPACE")?.name,
       "Civilian (Starting) Sector",
     );
-    assert.equal(SECTOR_TYPES.find((row) => row.id === "last-stand")?.name, "The Last Stand");
+    assert.equal(SECTOR_TYPES.find((row) => row.id === "FINAL")?.name, "The Last Stand");
     assert.equal(
       route.some((node) => node.name === "Hidden Crystal Worlds"),
       false,
@@ -45,8 +46,8 @@ describe("sector listings", () => {
   });
 
   it("slows the fleet for a renamed nebula and jumps to a renamed crystal sector", () => {
-    const nebula = sectorDef("slug-nebula");
-    const crystal = sectorDef("crystal-worlds");
+    const nebula = sectorDef("SLUG_SECTOR");
+    const crystal = sectorDef("CRYSTAL_HOME");
     assert.ok(nebula && crystal);
     loadPack(
       {
@@ -57,19 +58,21 @@ describe("sector listings", () => {
       },
       "append",
     );
+    // The fleet goes by the sector's id and colour, not its name.
     const g = createGame(1);
+    g.sectorId = "SLUG_SECTOR";
     g.sectorName = "Ember Nebula";
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
-    g.sectorName = "Slug Controlled Nebula";
+    g.sectorId = "CIVILIAN_SECTOR";
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.5);
     enterHiddenCrystal(g);
     assert.equal(g.sectorName, "Ember Worlds");
     assert.equal(
-      SECTOR_TYPES.find((row) => row.id === "slug-nebula")?.name,
+      SECTOR_TYPES.find((row) => row.id === "SLUG_SECTOR")?.name,
       "Slug Controlled Nebula",
     );
     assert.equal(
-      SECTOR_TYPES.find((row) => row.id === "crystal-worlds")?.name,
+      SECTOR_TYPES.find((row) => row.id === "CRYSTAL_HOME")?.name,
       "Hidden Crystal Worlds",
     );
     assert.equal(seenOnChart("Ember Worlds", 40), false);

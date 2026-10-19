@@ -6,7 +6,7 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-rockmen-near-sun:0";
 const DEST = "Boarders: Rockmen near sun";
-const SECTORS = ["Rock Controlled Sector", "Rock Homeworlds"];
+const SECTORS = ["ROCK_SECTOR", "ROCK_HOME"];
 
 function beacon(): Beacon {
   return {

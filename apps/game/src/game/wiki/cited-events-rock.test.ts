@@ -103,6 +103,7 @@ describe("cited rock events", () => {
 
 function arrive(seed: number, dest: string): Game {
   const g = createGame(seed);
+  g.sectorId = "ROCK_SECTOR";
   g.sectorName = "Rock Controlled Sector";
   const ev = EXTRA_EVENTS.find((e) => e.dest === dest)!;
   const b = g.beacons.find(

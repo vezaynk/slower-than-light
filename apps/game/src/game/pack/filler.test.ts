@@ -127,7 +127,7 @@ describe("filler lists", () => {
     );
     assert.equal(emptyPageFor("Ember Reach").dest, "Ember quiet");
     assert.deepEqual(emptyPageFor("Ember Reach").texts, ["The reach is still."]);
-    assert.equal(emptyPageFor("Civilian Sector").dest, "Empty beacon (Civilian)");
+    assert.equal(emptyPageFor("CIVILIAN_SECTOR").dest, "Empty beacon (Civilian)");
     assert.equal(emptyPageFor("Nowhere").dest, "Empty beacon (Civilian)");
     resetPackForTests();
     assert.equal(emptyPageFor("Ember Reach").dest, "Empty beacon (Civilian)");
@@ -390,10 +390,10 @@ describe("filler lists", () => {
     const g = createGame(1);
     const beacon = g.beacons[0];
     assert.ok(beacon);
-    stampEmptyNebula(beacon, "Uncharted Nebula");
+    stampEmptyNebula(beacon, "NEBULA_SECTOR");
     assert.equal(beacon.flag, "filler:empty-nebula-beacon");
     assert.equal(beacon.name, "Empty nebula beacon");
-    stampEmptyNebula(beacon, "Slug Home Nebula");
+    stampEmptyNebula(beacon, "SLUG_HOME");
     assert.equal(beacon.flag, "filler:empty-nebula-beacon-slug");
     assert.equal(beacon.name, "Empty nebula beacon (Slug)");
   });

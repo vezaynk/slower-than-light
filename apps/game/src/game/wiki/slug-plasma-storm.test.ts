@@ -21,6 +21,7 @@ function open(g: Game) {
   b.col = 6;
   g.here = b.id;
   g.fleet = 1;
+  g.sectorId = "SLUG_SECTOR";
   g.sectorName = "Slug Controlled Nebula";
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -90,6 +91,7 @@ describe("Slug fight in plasma storm", () => {
     g.fuel = 3;
     g.fleet = 0;
     g.sector = 1;
+    g.sectorId = "SLUG_HOME";
     g.sectorName = "Slug Home Nebula";
     g.phase = "map";
     g.event = null;

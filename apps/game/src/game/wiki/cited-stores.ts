@@ -338,8 +338,7 @@ function crewItems(g: Game, storeId: string, slot: number): StockItem[] {
   // Sectors, "Hidden Crystal Worlds", "Crewmembers": only Crystal crew can be purchased.
   // Not a random draw. The run RNG is left alone. First hire lines that still fit.
   const rows = (storeDef(storeId)?.lines ?? []).filter((row) => row.kind === "crew");
-  const list =
-    g.sectorName === "Hidden Crystal Worlds" ? rows.filter((row) => row.id === "crystal") : rows;
+  const list = g.sectorId === "CRYSTAL_HOME" ? rows.filter((row) => row.id === "crystal") : rows;
   return list.slice(0, slot).map((row) => {
     const hp = crewHp(row.id);
     return {

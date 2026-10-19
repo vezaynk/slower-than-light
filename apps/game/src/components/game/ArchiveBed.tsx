@@ -32,7 +32,7 @@ export function ArchiveBed() {
     const game = useGame.getState().game;
     const pick = scorePick({
       phase: game.phase,
-      sectorName: game.sectorName,
+      sectorId: game.sectorId,
       combat: game.phase === "combat" && !!game.enemy,
     });
     syncScore({ track: pick.track, combat: pick.mode === "combat", paused: halted(game) });

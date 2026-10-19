@@ -26,6 +26,7 @@ function beacon(): Beacon {
 
 function open(seed: number): Game {
   const g = createGame(seed);
+  g.sectorId = "SLUG_SECTOR";
   g.sectorName = "Slug Controlled Nebula";
   const b = beacon();
   g.beacons = [b];
@@ -46,12 +47,10 @@ function moons(body: string): number {
 
 describe("Slug moons question", () => {
   it("is placed in the two slug sectors", () => {
-    assert.ok(
-      citedPagesFor("Slug Controlled Nebula").some((ev) => ev.dest === "Slug moons question"),
-    );
-    assert.ok(citedPagesFor("Slug Home Nebula").some((ev) => ev.dest === "Slug moons question"));
+    assert.ok(citedPagesFor("SLUG_SECTOR").some((ev) => ev.dest === "Slug moons question"));
+    assert.ok(citedPagesFor("SLUG_HOME").some((ev) => ev.dest === "Slug moons question"));
     assert.equal(
-      citedPagesFor("Civilian Sector").some((ev) => ev.dest === "Slug moons question"),
+      citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.dest === "Slug moons question"),
       false,
     );
   });
@@ -60,6 +59,7 @@ describe("Slug moons question", () => {
     // Wiki citations:
     // > "this event occurs at a regular beacon, but when you arrive there will be a nebula environment." — [[Slug moons question]]
     const g = createGame(4);
+    g.sectorId = "SLUG_HOME";
     g.sectorName = "Slug Home Nebula";
     const b = beacon();
     g.beacons = [b];

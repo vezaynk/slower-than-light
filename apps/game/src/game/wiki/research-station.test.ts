@@ -45,11 +45,11 @@ describe("Research station with no response", () => {
     // > "(Anti-Personnel Drone)" — [[Research station with no response]]
     // > "Run advanced life scans." — [[Research station with no response]]
     // > "(Life Scanner)" — [[Research station with no response]]
-    const pages = citedPagesFor("Pirate Controlled Sector").filter(
+    const pages = citedPagesFor("PIRATE_SECTOR").filter(
       (p) => p.dest === "Research station with no response",
     );
     assert.equal(pages.length, 1);
-    assert.deepEqual(pages[0]?.sectors, ["Pirate Controlled Sector"]);
+    assert.deepEqual(pages[0]?.sectors, ["PIRATE_SECTOR"]);
     const g = createGame(1);
     open(g);
     assert.match(g.event?.body ?? "", /no response to your hails/);

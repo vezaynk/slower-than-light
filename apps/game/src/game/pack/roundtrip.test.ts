@@ -17,9 +17,11 @@ import {
   allSystems,
   allTunes,
   allWeapons,
+  emitFtlSectors,
   emitFtlShips,
   packFromFtl,
   emitPack,
+  overlayGap,
   parsePack,
   resetPackForTests,
 } from "@stl/pack";
@@ -51,6 +53,11 @@ describe("base pack xml", () => {
       ],
       layoutFiles(),
     ).hulls;
+    // Sectors travel as ftl.dat's sector_data.xml; the wiki notes are the gap file's, laid over them.
+    back.sectors = overlayGap(
+      packFromFtl([{ path: "data/sector_data.xml", xml: emitFtlSectors(pack.sectors) }]),
+      parsePack(emitPack({ sectors: pack.sectors }, { sector: "gap" })),
+    ).sectors;
     assert.deepEqual(back.crew, pack.crew);
     assert.deepEqual(back.weapons, pack.weapons);
     assert.deepEqual(back.augments, pack.augments);

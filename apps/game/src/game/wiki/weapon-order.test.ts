@@ -491,7 +491,12 @@ describe("drone order and enemy chargers", () => {
       const spec = rollEnemy(
         cls,
         false,
-        { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" },
+        {
+          sector: 3,
+          sectorId: "CIVILIAN_SECTOR",
+          sectorName: "Civilian Sector",
+          difficulty: "normal",
+        },
         seeded(cls.id.length + 4),
       );
       assert.equal(spec.weapons.includes("LASER_CHARGEGUN_PLAYER"), false, cls.id);
@@ -638,7 +643,12 @@ describe("swarm missiles", () => {
       const spec = rollEnemy(
         cls,
         false,
-        { sector: 3, sectorName: "Civilian Sector", difficulty: "normal" },
+        {
+          sector: 3,
+          sectorId: "CIVILIAN_SECTOR",
+          sectorName: "Civilian Sector",
+          difficulty: "normal",
+        },
         seeded(cls.id.length + 9),
       );
       assert.equal(spec.weapons.includes("MISSILE_CHARGEGUN"), false, cls.id);

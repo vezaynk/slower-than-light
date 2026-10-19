@@ -26,6 +26,7 @@ import {
   type CitedChoice,
 } from "./cited-events.ts";
 import { heldSchematics } from "./make-room.ts";
+import { placeIn } from "../fixtures.ts";
 
 function beacon(name: string, flag = ""): Beacon {
   return {
@@ -191,6 +192,7 @@ describe("cited events", () => {
     );
 
     const g = createGame(8);
+    g.sectorId = "CIVILIAN_SECTOR";
     g.sectorName = "Civilian Sector";
     const held = g.beacons.find(
       (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store",
@@ -223,6 +225,7 @@ describe("cited events", () => {
   it("rolls the mercenary's 10-25 scrap cost and skips the delay in The Last Stand", () => {
     const g = createGame(9);
     g.sector = 3;
+    g.sectorId = "CIVILIAN_SECTOR";
     g.sectorName = "Civilian Sector";
     const ev = citedEvent(g, beacon("The mercenary"));
     assert.ok(ev);
@@ -248,6 +251,7 @@ describe("cited events", () => {
     assert.equal(g.fleet, 4);
 
     g.sector = 8;
+    g.sectorId = "FINAL";
     g.sectorName = "The Last Stand";
     g.scrap = 40;
     g.fleet = 6;
@@ -315,6 +319,7 @@ describe("cited events", () => {
 describe("Auto-ship carrying shield virus", () => {
   it("halves player shield bars, rounding down, until that fight ends", () => {
     const g = createGame(31);
+    g.sectorId = "CIVILIAN_SECTOR";
     g.sectorName = "Civilian Sector";
     const b = g.beacons.find(
       (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
@@ -371,7 +376,7 @@ describe("Auto-ship carrying shield virus", () => {
 });
 
 function openCited(g: ReturnType<typeof createGame>, sector: string, flag: string, name: string) {
-  g.sectorName = sector;
+  placeIn(g, sector);
   const b = g.beacons.find(
     (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
   );

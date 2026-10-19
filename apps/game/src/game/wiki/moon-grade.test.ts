@@ -29,6 +29,7 @@ function beacon(): Beacon {
 
 function open(seed: number): Game {
   const g = createGame(seed);
+  g.sectorId = "SLUG_SECTOR";
   g.sectorName = "Slug Controlled Nebula";
   const b = beacon();
   g.beacons = [b];

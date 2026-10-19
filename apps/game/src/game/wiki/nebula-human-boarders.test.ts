@@ -6,7 +6,7 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-in-nebula:0";
 const DEST = "Boarders: Humans in nebula";
-const SECTORS = ["Civilian Sector", "Pirate Controlled Sector", "Uncharted Nebula"];
+const SECTORS = ["CIVILIAN_SECTOR", "PIRATE_SECTOR", "NEBULA_SECTOR"];
 
 function beacon(): Beacon {
   return {

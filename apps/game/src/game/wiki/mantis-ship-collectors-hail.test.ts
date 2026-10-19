@@ -51,6 +51,7 @@ describe("Mantis ship-collectors hail", () => {
     g.fuel = 3;
     g.fleet = 0;
     g.sector = 1;
+    g.sectorId = "MANTIS_HOME";
     g.sectorName = "Mantis Homeworlds";
     g.phase = "map";
     g.event = null;

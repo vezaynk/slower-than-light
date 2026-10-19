@@ -32,9 +32,9 @@ describe("Boarders: Crystal", () => {
     // Wiki citations:
     // > "This random event occurs in Hidden Crystal Worlds." — [[Boarders: Crystal]]
     // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
-    const pages = citedPagesFor("Hidden Crystal Worlds").filter((e) => e.dest === DEST);
+    const pages = citedPagesFor("CRYSTAL_HOME").filter((e) => e.dest === DEST);
     assert.equal(pages.length, 1);
-    assert.deepEqual([...pages[0].sectors], ["Hidden Crystal Worlds"]);
+    assert.deepEqual([...pages[0].sectors], ["CRYSTAL_HOME"]);
     const ev = citedEvent(createGame(1), beacon());
     assert.ok(ev);
     assert.ok(ev.body.length <= 240);

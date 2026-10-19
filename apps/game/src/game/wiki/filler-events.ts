@@ -99,12 +99,13 @@ export { FILLER_PAGES } from "./filler-pages.ts";
 
 /**
  * The empty-beacon page for a sector. Civilian is the first plain page, so an unlisted sector uses it.
- * A nebula slot uses the Slug page when the sector name starts with Slug, and the other nebula page otherwise.
+ * A nebula slot uses the Slug page in a Slug sector (SLUG_SECTOR, SLUG_HOME), and the other nebula page otherwise.
+ * `sectorId` is the ftl.dat sector id.
  */
-export function emptyPageFor(sectorName: string, nebula = false): EmptyBeaconDef {
+export function emptyPageFor(sectorId: string, nebula = false): EmptyBeaconDef {
   const pages = allEmptyBeacons();
   if (nebula) {
-    const slug = sectorName.startsWith("Slug");
+    const slug = sectorId.startsWith("SLUG_");
     const hit = slug
       ? pages.find((page) => page.nebula && page.id === "empty-nebula-beacon-slug")
       : pages.find((page) => page.nebula && page.id !== "empty-nebula-beacon-slug");
@@ -112,10 +113,10 @@ export function emptyPageFor(sectorName: string, nebula = false): EmptyBeaconDef
     if (any) return any;
   } else {
     const plain = pages.filter((page) => !page.nebula);
-    const hit = plain.find((page) => page.sectors.includes(sectorName)) ?? plain[0];
+    const hit = plain.find((page) => page.sectors.includes(sectorId)) ?? plain[0];
     if (hit) return hit;
   }
-  throw new Error(`empty beacon pack has no page for ${sectorName}`);
+  throw new Error(`empty beacon pack has no page for ${sectorId}`);
 }
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
@@ -256,8 +257,8 @@ export function drawFiller(
 }
 
 /** An "N empty nebula beacons" slot: Empty nebula beacon, or Empty nebula beacon (Slug) in the Slug sectors. */
-export function stampEmptyNebula(b: Beacon, sectorName: string) {
-  const page = emptyPageFor(sectorName, true);
+export function stampEmptyNebula(b: Beacon, sectorId: string) {
+  const page = emptyPageFor(sectorId, true);
   b.flag = FILLER_FLAG + page.id;
   b.name = page.dest;
   b.asteroid = false;
@@ -422,16 +423,16 @@ function cardFor(g: Game, page: Page): GameEvent {
 function fillerEventRaw(g: Game, b: Beacon): GameEvent | null {
   if (b.flag.startsWith(FILLER_FLAG)) {
     const slug = b.flag.slice(FILLER_FLAG.length);
-    if (slug === "empty-nebula-beacon-slug") return emptyCard(g, emptyPageFor(g.sectorName, true));
+    if (slug === "empty-nebula-beacon-slug") return emptyCard(g, emptyPageFor(g.sectorId, true));
     const page = pageBySlug(slug);
-    return page ? cardFor(g, page) : emptyCard(g, emptyPageFor(g.sectorName));
+    return page ? cardFor(g, page) : emptyCard(g, emptyPageFor(g.sectorId));
   }
   if (b.flag) return null;
-  if (b.kind === "empty" || b.kind === "start") return emptyCard(g, emptyPageFor(g.sectorName));
+  if (b.kind === "empty" || b.kind === "start") return emptyCard(g, emptyPageFor(g.sectorId));
   const list = LIST_FOR_KIND[b.kind];
   if (!list) return null;
   const page = drawFiller(g, list, g.beacons);
-  if (!page) return emptyCard(g, emptyPageFor(g.sectorName, b.kind === "nebula"));
+  if (!page) return emptyCard(g, emptyPageFor(g.sectorId, b.kind === "nebula"));
   stampFiller(b, page);
   return cardFor(g, page);
 }
@@ -4634,5 +4635,5 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
 
 /** The sector's "Empty beacon (...)" card ("Nothing happens."), for sim.ts eventFor's last resort. */
 export function emptyEvent(g: Game): GameEvent {
-  return emptyCard(g, emptyPageFor(g.sectorName));
+  return emptyCard(g, emptyPageFor(g.sectorId));
 }

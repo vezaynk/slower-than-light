@@ -9,6 +9,7 @@ import { ENEMY_CLASSES } from "./enemy-ships.ts";
 
 const ctx: PoolContext = {
   sector: 1,
+  sectorId: "STANDARD_SPACE",
   sectorName: "Civilian (Starting) Sector",
   difficulty: "normal",
 };

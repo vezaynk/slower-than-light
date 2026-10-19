@@ -1,4 +1,5 @@
 import {
+  emitFtlSectors,
   emitFtlShips,
   emitPack,
   packFromFtl,
@@ -49,6 +50,8 @@ export function emitMod(pack: ContentPack): string {
   const names = namesElement(doc, pack.names);
   if (names) root.appendChild(names);
   for (const child of elementChildren(source)) {
+    // Sectors are written below in sector_data.xml's shape.
+    if (child.tagName === "sectorDescription") continue;
     if (
       child.tagName === "crew" &&
       !elementChildren(child).some((node) => node.tagName === "race")
@@ -57,11 +60,25 @@ export function emitMod(pack: ContentPack): string {
     }
     root.appendChild(doc.importNode(child, true));
   }
-  // Ships are ftl.dat blueprints, the same <shipBlueprint> a real archive writes.
+  // Ships and sectors are ftl.dat records, the same <shipBlueprint>, <sectorType>, and <sectorDescription> a real
+  // archive writes. A sector's page notes stay as <note> children, which the mod format reads back.
   if (pack.hulls?.length) {
     const ships = readXml(emitFtlShips(pack.hulls)).documentElement;
     if (ships)
       for (const child of elementChildren(ships)) root.appendChild(doc.importNode(child, true));
+  }
+  if (pack.sectors?.length) {
+    const sectors = readXml(emitFtlSectors(pack.sectors)).documentElement;
+    for (const child of sectors ? elementChildren(sectors) : []) {
+      const node = doc.importNode(child, true) as XmlElement;
+      const row = pack.sectors.find((sector) => sector.id === node.getAttribute("name"));
+      for (const note of child.tagName === "sectorDescription" ? (row?.notes ?? []) : []) {
+        const line = doc.createElement("note");
+        line.appendChild(doc.createTextNode(note));
+        node.appendChild(line);
+      }
+      root.appendChild(node);
+    }
   }
   writeCrewIdentity(root, pack.crew, doc);
   writeSystemDetail(root, pack.systems, doc);
@@ -79,8 +96,12 @@ export function packFromMod(xml: string): ContentPack {
   if (!root) throw new Error("Mod XML is not well-formed: the document has no root element.");
   assertPackRoot(root.tagName);
   const parsed = parsePack(xml);
-  const ships = packFromFtl([{ path: "pack.xml", xml }]).hulls;
-  if (ships) parsed.hulls = ships;
+  const ftl = packFromFtl([{ path: "pack.xml", xml }]);
+  if (ftl.hulls) parsed.hulls = ftl.hulls;
+  if (ftl.sectors) {
+    const notes = new Map((parsed.sectors ?? []).map((row) => [row.id, row.notes]));
+    parsed.sectors = ftl.sectors.map((row) => ({ ...row, notes: [...(notes.get(row.id) ?? [])] }));
+  }
   readCrewIdentity(root, parsed.crew);
   readSystemDetail(root, parsed.systems);
   const pack = omitEmpty(parsed);

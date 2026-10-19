@@ -7,13 +7,13 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 const ID = "c:boarders-rebels-in-nebula:0";
 const DEST = "Boarders: rebels in nebula";
 const SECTORS = [
-  "Civilian Sector",
-  "Pirate Controlled Sector",
-  "Rebel Controlled Sector",
-  "Rebel Stronghold",
-  "Uncharted Nebula",
-  "Zoltan Controlled Sector",
-  "Zoltan Homeworlds",
+  "CIVILIAN_SECTOR",
+  "PIRATE_SECTOR",
+  "REBEL_SECTOR",
+  "REBEL_SECTOR_MINIBOSS",
+  "NEBULA_SECTOR",
+  "ZOLTAN_SECTOR",
+  "ZOLTAN_HOME",
 ];
 
 function beacon(): Beacon {

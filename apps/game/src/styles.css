@@ -152,7 +152,7 @@
   border-radius: var(--radius);
   min-height: 40px;
   padding: 0 12px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.06em;
   display: inline-flex;
@@ -691,7 +691,7 @@ button:disabled {
 .reactor-total-title,
 .reactor-total-foot {
   margin: 0;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.08em;
   color: var(--color-fg);
@@ -790,7 +790,7 @@ button:disabled {
 .manual-body h3 {
   margin-top: 0.4rem;
   font-size: 24px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-weight: 400;
   letter-spacing: 0.06em;
 }
@@ -1036,7 +1036,7 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 26px;
   line-height: 1;
   color: var(--color-fg);
@@ -1269,7 +1269,7 @@ button:disabled {
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   color: var(--color-fg);
 }
@@ -1287,7 +1287,7 @@ button:disabled {
 /* Oxygen, Overview: "O2 LOW!" when the ship's total oxygen drops below 25%. */
 .o2-alarm {
   color: var(--color-danger);
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -1553,7 +1553,7 @@ button:disabled {
   z-index: 2;
   margin: 0;
   color: #ff3b3b;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 28px;
   line-height: 0.95;
   letter-spacing: 0.04em;
@@ -1808,7 +1808,7 @@ button:disabled {
 
 .spare-pip {
   align-self: flex-start;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   color: var(--color-ok);
   /* Reactor cap is 25, and a level-2 battery adds 4. Two digits is the widest spare count. */
@@ -2279,7 +2279,7 @@ button:disabled {
 }
 
 .loot-chip b {
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 28px;
   font-weight: 400;
 }
@@ -3244,7 +3244,7 @@ button.door-tick::before {
 
 .title-frame .pack-boot p {
   margin: 0;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   line-height: 1;
   letter-spacing: 0.06em;
@@ -3262,7 +3262,7 @@ button.door-tick::before {
   background: var(--color-panel);
   color: var(--color-fg);
   border: 2px solid var(--color-line);
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 26px;
   letter-spacing: 0.06em;
   line-height: 1.2;
@@ -3307,7 +3307,7 @@ button.door-tick::before {
 
 .sector-map h2 {
   margin: 0 0 6px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 32px;
   font-weight: 400;
   letter-spacing: 0.12em;
@@ -3400,7 +3400,7 @@ button.door-tick::before {
   align-items: center;
   gap: 14px;
   padding: 6px 2px 0;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.04em;
   color: var(--color-fg);
@@ -3462,7 +3462,7 @@ button.door-tick::before {
   overflow: hidden;
   background: #3c4146;
   color: var(--color-fg);
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.04em;
   line-height: 1.05;
@@ -3700,7 +3700,7 @@ button.door-tick::before {
   justify-content: center;
   gap: 8px;
   margin-bottom: 6px !important;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 24px;
   color: var(--color-danger);
   letter-spacing: 0.06em;
@@ -4076,7 +4076,7 @@ button.door-tick::before {
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 28px;
   letter-spacing: 0.06em;
   line-height: 1;
@@ -4115,7 +4115,7 @@ button.door-tick::before {
 }
 .map-confirm-card h3 {
   margin: 0 40px 8px 0;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 26px;
   font-weight: 400;
   letter-spacing: 0.08em;
@@ -4135,7 +4135,7 @@ button.door-tick::before {
   gap: 8px;
 }
 .map-confirm-actions button {
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.06em;
   min-height: 40px;
@@ -4463,7 +4463,7 @@ button.door-tick::before {
 .help-paused {
   font-size: 40px;
   text-align: center;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
 }
 
 .verdict-layer {
@@ -4487,20 +4487,20 @@ button.door-tick::before {
   margin: 0 0 10px;
   font-weight: 400;
   letter-spacing: 0.12em;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 40px;
   line-height: 1;
 }
 
 .verdict-score {
   font-size: 32px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   margin: 10px 0 2px;
 }
 
 .verdict-high {
   color: var(--color-accent);
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
 }
 
@@ -4528,7 +4528,7 @@ button.door-tick::before {
 
 .cinema-crew {
   font-size: 22px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
 }
 
 .store-board {
@@ -4550,7 +4550,7 @@ button.door-tick::before {
   font-size: 26px;
   font-weight: 400;
   letter-spacing: 0.1em;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   margin: 0 0 4px;
 }
 
@@ -4592,7 +4592,7 @@ button.door-tick::before {
 
 .weapon-row button b,
 .store-board button b {
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   font-weight: 400;
   color: var(--color-accent);
@@ -4611,7 +4611,7 @@ button.door-tick::before {
 .ach-body h3,
 .ship-best-head p {
   margin: 14px 0 6px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 24px;
   font-weight: 400;
   letter-spacing: 0.08em;
@@ -4711,7 +4711,7 @@ button.door-tick::before {
 
 .wiki-screen h2 {
   margin: 0 0 8px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 26px;
   font-weight: 400;
   letter-spacing: 0.08em;
@@ -5023,7 +5023,7 @@ button.door-tick::before {
 
 .target-head .escape-line {
   margin-top: 4px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.06em;
   color: var(--color-danger);
@@ -5047,7 +5047,7 @@ button.door-tick::before {
   top: 50%;
   transform: translate(-50%, -50%);
   margin: 0;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 26px;
   letter-spacing: 0.12em;
   color: var(--color-line);
@@ -5066,7 +5066,7 @@ button.door-tick::before {
 
 .target-head .clone-line {
   margin-top: 4px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.06em;
   color: var(--color-ok);
@@ -5384,7 +5384,7 @@ button.door-tick::before {
 }
 
 .hack-card-state {
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   line-height: 1;
   letter-spacing: 0.04em;
@@ -5881,6 +5881,8 @@ button.door-tick::before {
   display: flex;
   align-items: center;
   gap: 6px;
+  /* .reactor-total-title sets the large face at 22px; this card title is smaller. */
+  font-family: var(--font-hud);
   font-size: 16px;
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -5898,6 +5900,8 @@ button.door-tick::before {
 }
 
 .upgrade-card .reactor-total-foot {
+  /* The panel foot uses the large face at 22px; in a card it is smaller. */
+  font-family: var(--font-hud);
   font-size: 18px;
 }
 
@@ -6015,7 +6019,7 @@ button.modal-x.modal-x {
   border: 2px solid var(--color-line);
   background: var(--color-panel);
   color: var(--color-fg);
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 30px;
   line-height: 1;
   text-align: center;
@@ -6409,7 +6413,7 @@ button.modal-x.modal-x:focus-visible {
   border: 2px solid var(--color-line);
   color: var(--color-fg);
   font-family: var(--font-hud);
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -6552,7 +6556,7 @@ button.modal-x.modal-x:focus-visible {
 .install-card .install-close {
   align-self: flex-start;
   padding: 6px 16px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.05em;
   color: var(--color-fg);
@@ -6678,7 +6682,7 @@ button.modal-x.modal-x:focus-visible {
   align-items: baseline;
   gap: 12px;
   margin: 0;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   font-weight: 400;
   letter-spacing: 0.06em;
@@ -6948,7 +6952,7 @@ button.cargo-slot:hover {
   gap: 3px;
 }
 .opt-text b {
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   font-weight: 400;
   letter-spacing: 0.05em;
@@ -7117,7 +7121,7 @@ body.page-turn-180 {
   border-color: var(--color-line);
 }
 .opt-exit button b {
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 24px;
   font-weight: 400;
   letter-spacing: 0.06em;
@@ -7177,7 +7181,7 @@ body.page-turn-180 {
   grid-column: 1 / -1;
   margin: 0;
   font-family: var(--font-hud);
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent);
@@ -7349,7 +7353,7 @@ body.page-turn-180 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   margin-right: 6px;
 }
@@ -7724,7 +7728,7 @@ body.page-turn-180 {
   margin: 0;
   align-self: center;
   min-width: 0;
-  font-family: var(--font-hud);
+  font-family: var(--font-hud-large);
   font-size: 22px;
   letter-spacing: 0.03em;
   line-height: 1.05;
@@ -7780,7 +7784,7 @@ body.page-turn-180 {
   min-height: 0;
   padding: 2px 4px;
   font-family: var(--font-hud);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1;
   letter-spacing: 0.06em;
   white-space: nowrap;

@@ -29,7 +29,40 @@ describe("bitmap ttf", () => {
     const glyf = table(bytes, "glyf");
     assert.ok(glyf && glyf.length > 10);
   });
+
+  it("sizes the em by cap height, sits glyphs on their ascent, and advances by the font's kerning", () => {
+    const solid = (w: number, h: number) => new Uint8Array(w * h).fill(255);
+    const packed = writeBitmapFont(
+      [
+        { ch: 32, w: 1, h: 0, ascent: -3, prekern: 3, postkern: 1 },
+        { ch: 72, w: 6, h: 8, ascent: 8, prekern: 0, postkern: 1, alpha: solid(6, 8) },
+        { ch: 103, w: 6, h: 8, ascent: 6, prekern: 0, postkern: 1, alpha: solid(6, 8) },
+      ],
+      19,
+      12,
+    );
+    const font = readBitmapFont(packed);
+    assert.ok(font);
+    const bytes = ttfFromBitmap(font, "JustinFont8Hud", false, 0.56);
+    const head = table(bytes, "head");
+    assert.ok(head);
+    // An 8-pixel capital at 0.56 em: 8 pixels × 64 units ÷ 0.56.
+    assert.equal(be16(head, 18), Math.round((8 * 64) / 0.56));
+    // "g" hangs two pixels below the baseline (ascent 6, height 8).
+    assert.equal(be16s(head, 38), -2 * 64);
+    assert.equal(be16s(head, 42), 8 * 64);
+    // hmtx follows the glyph order: .notdef, then space, "H", "g". Advance = prekern + width + postkern.
+    const hmtx = table(bytes, "hmtx");
+    assert.ok(hmtx);
+    assert.equal(be16(hmtx, 4), 5 * 64);
+    assert.equal(be16(hmtx, 8), 7 * 64);
+  });
 });
+
+function be16s(bytes: Uint8Array, at: number): number {
+  const n = be16(bytes, at);
+  return n >= 0x8000 ? n - 0x10000 : n;
+}
 
 function table(file: Uint8Array, tag: string): Uint8Array | undefined {
   const count = be16(file, 4);

@@ -193,6 +193,16 @@ export const CURSOR_FILE = "img/mouse/pointerValid.png";
 export type FontFaceJob = {
   path: string;
   family: string;
+  /**
+   * Cap height as a fraction of the em (apps/game pack/bitmap-ttf.ts). It matches the stylesheet font the face
+   * replaces, so CSS sizes keep their height: VT323 0.56, IBM Plex Mono 0.698 (measured in Chromium). Default 0.56.
+   */
+  capRatio?: number;
+  /**
+   * The smallest CSS size the stylesheet sets this face at. A bitmap face drawn with capitals shorter than its own
+   * pixels drops rows ("DANGER!" read "DANBER!"), so the ratio is raised until capitals at this size are at least 1:1.
+   */
+  minPx?: number;
   variable?: string;
   fallback?: string;
   bold?: boolean;
@@ -203,22 +213,42 @@ export type FontFaceJob = {
 /** Latin faces the English UI asks for. Paths are stored lowercased by the archive reader. */
 export const FONT_FACES: readonly FontFaceJob[] = [
   {
+    // Large HUD text: rules that set 21px or more. JustinFont12's 12-pixel capitals drop pixel rows when drawn any
+    // shorter, so only those rules take it.
     path: "fonts/justinfont12bold.font",
     family: "JustinFont12",
-    variable: "--font-hud",
+    capRatio: 0.56,
+    minPx: 21,
+    variable: "--font-hud-large",
     fallback: '"VT323", "IBM Plex Mono", ui-monospace, monospace',
     bold: true,
   },
   {
+    // All other HUD text. Its 8-pixel capitals are only drawn larger than they are, which stays legible, so a size
+    // inherited or overridden elsewhere never breaks a letter. FTL's HUD sets its small labels in this face too.
+    path: "fonts/justinfont8.font",
+    family: "JustinFont8Hud",
+    // A touch above VT323's 0.56, so the 14px labels draw the 8-pixel capitals at least one screen pixel per pixel.
+    capRatio: 0.58,
+    minPx: 14,
+    variable: "--font-hud",
+    fallback: '"VT323", "IBM Plex Mono", ui-monospace, monospace',
+  },
+  {
     path: "fonts/justinfont8.font",
     family: "JustinFont8",
+    capRatio: 0.698,
+    minPx: 12,
     variable: "--font-mono",
     fallback: '"IBM Plex Mono", ui-monospace, monospace',
   },
-  { path: "fonts/justinfont10.font", family: "JustinFont10" },
+  { path: "fonts/justinfont10.font", family: "JustinFont10", capRatio: 0.56 },
   {
     path: "fonts/justinfont11bold.font",
     family: "JustinFont11",
+    // Event text inherits IBM Plex Mono's sizes; the smallest body line is 15px.
+    capRatio: 0.698,
+    minPx: 15,
     variable: "--font-event",
     fallback: "var(--font-hud)",
     bold: true,
@@ -226,12 +256,15 @@ export const FONT_FACES: readonly FontFaceJob[] = [
   {
     path: "fonts/num_font.font",
     family: "NumFont",
+    // The enemy hull number is 18px.
+    minPx: 18,
     variable: "--font-num",
     fallback: "var(--font-hud)",
   },
   {
     path: "fonts/hl1.font",
     family: "HL1",
+    minPx: 28,
     variable: "--font-title",
     fallback: "var(--font-hud)",
   },

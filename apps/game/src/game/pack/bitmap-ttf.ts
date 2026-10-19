@@ -6,9 +6,19 @@ import type { BitmapFont } from "@stl/pack";
 
 const UNIT = 64;
 
-/** Bytes a FontFace can load. The family name is the caller's. */
-export function ttfFromBitmap(font: BitmapFont, family: string, bold = false): Uint8Array {
+/**
+ * Bytes a FontFace can load. The family name is the caller's.
+ * `capRatio` is the cap height as a fraction of the em: the face is scaled so its capitals stand as tall as the
+ * stylesheet font it replaces at the same CSS size. FTL names its faces by that height (JustinFont8's "H" is 8 pixels).
+ */
+export function ttfFromBitmap(
+  font: BitmapFont,
+  family: string,
+  bold = false,
+  capRatio = 0.56,
+): Uint8Array {
   const glyphs = buildGlyphs(font);
+  const unitsPerEm = emUnits(font, capRatio);
   const glyfParts: Uint8Array[] = [];
   const loca: number[] = [0];
   let cursor = 0;
@@ -34,8 +44,10 @@ export function ttfFromBitmap(font: BitmapFont, family: string, bold = false): U
   const yMin = Math.min(0, ...boxes.map((glyph) => glyph.yMin));
   const xMax = Math.max(0, ...boxes.map((glyph) => glyph.xMax));
   const yMax = Math.max(UNIT, ...boxes.map((glyph) => glyph.yMax));
-  const ascender = Math.max(yMax, font.lineSpacing * UNIT);
-  const descender = Math.min(yMin, 0);
+  // The line is the font's own spacing, with the room it adds shared above and below the glyphs.
+  const extra = Math.max(0, font.lineSpacing * UNIT - (yMax - yMin));
+  const ascender = yMax + Math.round(extra / 2);
+  const descender = Math.min(0, yMin - (extra - Math.round(extra / 2)));
   const advanceMax = Math.max(0, ...advances);
   const minLsb = Math.min(0, ...lsbs);
   const minRsb = Math.min(...glyphs.map((glyph) => glyph.advance - glyph.xMax));
@@ -47,7 +59,7 @@ export function ttfFromBitmap(font: BitmapFont, family: string, bold = false): U
   const avg = advances.length
     ? Math.round(advances.reduce((sum, n) => sum + n, 0) / advances.length)
     : UNIT;
-  const head = headTable(xMin, yMin, xMax, yMax, bold);
+  const head = headTable(xMin, yMin, xMax, yMax, bold, unitsPerEm);
   const file = assemble([
     { tag: "OS/2", data: os2Table(avg, ascender, descender, first, last, bold) },
     { tag: "cmap", data: cmapTable(codes) },
@@ -82,8 +94,61 @@ type Built = {
   ch?: number;
 };
 
+/** Height of a capital in bitmap pixels: "H", else "A", else the tallest ascent. */
+export function capPixels(font: BitmapFont): number {
+  const cap =
+    font.glyphs.find((glyph) => glyph.ch === 72) ?? font.glyphs.find((glyph) => glyph.ch === 65);
+  return cap?.ascent || Math.max(1, ...font.glyphs.map((glyph) => glyph.ascent));
+}
+
+/**
+ * The cap ratio for a face used down to `minPx`: the stylesheet font's ratio, raised if needed so a capital at that
+ * size spans at least as many screen pixels as it has bitmap pixels.
+ */
+export function legibleCapRatio(font: BitmapFont, capRatio: number, minPx?: number): number {
+  const base = capRatio > 0 ? capRatio : 0.56;
+  if (!minPx || minPx <= 0) return base;
+  return Math.max(base, capPixels(font) / thinnestFeature(font) / minPx);
+}
+
+/**
+ * The thinnest stroke in the face, in bitmap pixels: the shortest run of ink along any row or column of any glyph. A
+ * stroke drawn narrower than one screen pixel vanishes ("DANGER!" read "DANBER!"); a narrowed gap only closes up.
+ * FTL's own faces have 1-pixel strokes. The stand-in's larger faces are drawn at double size, so theirs are 2.
+ */
+export function thinnestFeature(font: BitmapFont): number {
+  let least = Number.POSITIVE_INFINITY;
+  const runs = (cells: boolean[]) => {
+    let start = 0;
+    for (let i = 1; i <= cells.length; i += 1) {
+      if (i < cells.length && cells[i] === cells[start]) continue;
+      if (cells[start]) least = Math.min(least, i - start);
+      start = i;
+    }
+  };
+  for (const glyph of font.glyphs) {
+    if (glyph.w <= 0 || glyph.h <= 0) continue;
+    const ink = (x: number, y: number) =>
+      (font.alpha[(glyph.y + y) * font.width + glyph.x + x] ?? 0) >= 128;
+    for (let y = 0; y < glyph.h; y += 1) runs(Array.from({ length: glyph.w }, (_, x) => ink(x, y)));
+    for (let x = 0; x < glyph.w; x += 1) runs(Array.from({ length: glyph.h }, (_, y) => ink(x, y)));
+  }
+  return Number.isFinite(least) ? Math.max(1, least) : 1;
+}
+
+/** Font units per em, so a capital stands `capRatio` of the em. One bitmap pixel is UNIT font units. */
+function emUnits(font: BitmapFont, capRatio: number): number {
+  const capPx = capPixels(font);
+  const ratio = capRatio > 0 ? capRatio : 0.56;
+  return Math.min(16384, Math.max(16, Math.round((capPx * UNIT) / ratio)));
+}
+
+/**
+ * Each glyph as the font draws it: shifted right by its prekern, its top `ascent` pixels above the baseline, and the
+ * pen moved on by prekern + width + postkern. A space has no pixels and keeps that same advance.
+ */
 function buildGlyphs(font: BitmapFont): Built[] {
-  const notdef = stampGlyph(boxAlpha(5, 7), 5, 7, 6);
+  const notdef = stampGlyph(boxAlpha(5, 7), 5, 7, 7, 0, 6);
   const glyphs = font.glyphs.map((glyph) => {
     const alpha = new Uint8Array(Math.max(1, glyph.w) * Math.max(1, glyph.h));
     if (glyph.h > 0 && glyph.w > 0) {
@@ -93,15 +158,26 @@ function buildGlyphs(font: BitmapFont): Built[] {
         }
       }
     }
+    const advance = glyph.prekern + glyph.w + glyph.postkern;
     const built =
-      glyph.h > 0 ? stampGlyph(alpha, glyph.w, glyph.h, glyph.w + 1) : emptyGlyph(glyph.w);
+      glyph.h > 0 && glyph.w > 0
+        ? stampGlyph(alpha, glyph.w, glyph.h, glyph.ascent, glyph.prekern, advance)
+        : emptyGlyph(advance);
     built.ch = glyph.ch;
     return built;
   });
   return [notdef, ...glyphs];
 }
 
-function stampGlyph(alpha: Uint8Array, w: number, h: number, advancePx: number): Built {
+function stampGlyph(
+  alpha: Uint8Array,
+  w: number,
+  h: number,
+  ascent: number,
+  prekern: number,
+  advancePx: number,
+): Built {
+  const left = Math.round(prekern * UNIT);
   const contours: number[][] = [];
   for (let y = 0; y < h; y += 1) {
     let x = 0;
@@ -112,15 +188,15 @@ function stampGlyph(alpha: Uint8Array, w: number, h: number, advancePx: number):
       }
       let end = x + 1;
       while (end < w && (alpha[y * w + end] ?? 0) >= 128) end += 1;
-      const bottom = (h - 1 - y) * UNIT;
+      const bottom = (ascent - 1 - y) * UNIT;
       contours.push([
-        x * UNIT,
+        left + x * UNIT,
         bottom,
-        end * UNIT,
+        left + end * UNIT,
         bottom,
-        end * UNIT,
+        left + end * UNIT,
         bottom + UNIT,
-        x * UNIT,
+        left + x * UNIT,
         bottom + UNIT,
       ]);
       x = end;
@@ -153,7 +229,7 @@ function stampGlyph(alpha: Uint8Array, w: number, h: number, advancePx: number):
     bytes,
     points,
     contours: contours.length,
-    advance: Math.max(advancePx * UNIT, xMax),
+    advance: Math.max(Math.round(advancePx * UNIT), xMax),
     lsb: xMin,
     xMin,
     yMin,
@@ -167,7 +243,7 @@ function emptyGlyph(advancePx: number): Built {
     bytes: new Uint8Array(0),
     points: 0,
     contours: 0,
-    advance: Math.max(1, advancePx) * UNIT,
+    advance: Math.round(Math.max(1, advancePx) * UNIT),
     lsb: 0,
     xMin: 0,
     yMin: 0,
@@ -250,6 +326,7 @@ function headTable(
   xMax: number,
   yMax: number,
   bold: boolean,
+  unitsPerEm: number,
 ): Uint8Array {
   const out = new Uint8Array(54);
   set32(out, 0, 0x00010000);
@@ -257,7 +334,7 @@ function headTable(
   set32(out, 8, 0);
   set32(out, 12, 0x5f0f3cf5);
   set16(out, 16, 0x000b);
-  set16(out, 18, 1024);
+  set16(out, 18, unitsPerEm);
   set32(out, 20, 0);
   set32(out, 24, 3850070400);
   set32(out, 28, 0);

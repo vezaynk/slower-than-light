@@ -136,7 +136,9 @@ describe("hyperspace mod", () => {
     assert.match(xml, /<systemBlueprint name="shields">/);
     assert.match(xml, /<startPower>2<\/startPower>/);
     assert.match(xml, /<upgradeCost>/);
-    assert.match(xml, /<systemBlueprint name="cradle" subSystem="true">/);
+    assert.match(xml, /<systemBlueprint name="cradle">/);
+    assert.match(xml, /<slot>kit<\/slot>/);
+    assert.doesNotMatch(xml, /subSystem/);
     assert.doesNotMatch(xml, /<systemTune/);
     assert.match(xml, /<customStore id="store">/);
     assert.doesNotMatch(xml, /<storeBlueprint/);

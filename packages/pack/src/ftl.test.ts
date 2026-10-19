@@ -925,6 +925,41 @@ describe("packFromFtl", () => {
     assert.equal(pack.sectors?.find((row) => row.id === "ONLY_DE")?.name, "only_german");
   });
 
+  it("reads a flagged page, including an offer, from an ordinary document", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/events.xml",
+        xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <event name="stall" flag="market">
+    <title>Stall</title>
+    <text>A counter.</text>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="missiles" min="-2" max="-1"/>
+          <item type="fuel" min="3" max="5"/>
+        </item_modify>
+      </event>
+    </eventList>
+  </event>
+</FTL>`,
+      },
+    ]);
+    assert.deepEqual(pack.events, [
+      {
+        id: "stall",
+        dest: "Stall",
+        flag: "market",
+        aliases: [],
+        sectors: [],
+        body: "A counter.",
+        choices: [],
+        offers: [{ k: "trade", pay: "missiles", cost: [1, 2], get: "fuel", gain: [3, 5] }],
+      },
+    ]);
+  });
+
   it("names the file when the XML is not well-formed", () => {
     assert.throws(
       () => packFromFtl([{ path: "data/blueprints.xml", xml: "<weaponBlueprint>" }]),

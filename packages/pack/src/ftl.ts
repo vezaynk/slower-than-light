@@ -29,7 +29,6 @@ import type {
   SystemSlot,
   TextListDef,
   TuneDef,
-  TuneStep,
 } from "./types.ts";
 import { cloneGrid, readGrids } from "./grid.ts";
 import { attachPictures } from "./picture.ts";
@@ -40,10 +39,12 @@ import {
   elements,
   numOf,
   readAugment,
+  readBlueprintTune,
   readCrewCombat,
   readDocument,
   readDrone,
   readEmpty,
+  readEvent,
   readFaction,
   readRewards,
   readStore,
@@ -141,8 +142,8 @@ export function packFromFtl(
     for (const node of tagged(doc, "systemBlueprint")) {
       const read = readFtlSystem(node);
       if (!read) continue;
-      systems.put(read.system);
-      tunes.put(read.tune);
+      if (read.system) systems.put(read.system);
+      if (read.tune) tunes.put(read.tune);
     }
     for (const node of tagged(doc, "crewBlueprint")) {
       const row = readFtlCrew(node);
@@ -318,9 +319,15 @@ class Catalog<T extends { id: string }> {
   }
 }
 
-function readFtlSystem(node: XmlElement): { system: SystemDef; tune: TuneDef } | undefined {
+function readFtlSystem(node: XmlElement): { system?: SystemDef; tune?: TuneDef } | undefined {
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
+  const tune = readBlueprintTune(node, id);
+  // A blueprint with only startPower and upgradeCost is a tune. A title, cost, description, or slot is a listing.
+  const listed =
+    child(node, "title") || child(node, "cost") || child(node, "desc") || child(node, "slot");
+  if (!listed && !tune) return undefined;
+  if (!listed) return { tune };
   const system: SystemDef = {
     id,
     name: textOf(node, "title") ?? id,
@@ -329,14 +336,7 @@ function readFtlSystem(node: XmlElement): { system: SystemDef; tune: TuneDef } |
   };
   const detail = textOf(node, "desc");
   if (detail) system.detail = detail;
-  return {
-    system,
-    tune: {
-      id,
-      start: numOf(node, "startPower") ?? 1,
-      costs: upgradeCosts(node),
-    },
-  };
+  return tune ? { system, tune } : { system };
 }
 
 function systemSlot(id: string, node: XmlElement): SystemSlot {
@@ -344,20 +344,6 @@ function systemSlot(id: string, node: XmlElement): SystemSlot {
   if (written === "kit" || written === "sys") return written;
   if (KIT_SYSTEMS.has(id) || id.startsWith("artillery")) return "kit";
   return "sys";
-}
-
-/** The first upgradeCost level is the scrap to leave level 1. */
-function upgradeCosts(node: XmlElement): TuneStep[] {
-  const costs: TuneStep[] = [];
-  let level = 1;
-  for (const item of elements(child(node, "upgradeCost"))) {
-    if (item.tagName !== "level") continue;
-    const cost = Number(item.textContent?.trim());
-    if (!Number.isFinite(cost)) continue;
-    costs.push({ level, cost });
-    level += 1;
-  }
-  return costs;
 }
 
 /** `text-<code>.xml` is a translation. English tables are `text_<kind>.xml`. */
@@ -913,6 +899,8 @@ function readFtlEvent(
   if (!rootChild(node)) return undefined;
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
+  // A flag marks a campaign page. Vanilla events keep the id as their flag.
+  if (attr(node, "flag")?.trim()) return readEvent(node);
   return readEventBody(node, id, strings, lists);
 }
 

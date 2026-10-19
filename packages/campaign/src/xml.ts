@@ -71,9 +71,10 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
   };
 }
 
-/** The catalog's ship blueprints, written as ftl.dat's data/blueprints.xml writes them. */
+/** Ship blueprints plus each crew's title, description, and store cost. Combat stays on the append. */
 export function standInShipsXml(): string {
-  return emitFtlShips(campaignPack().hulls ?? []);
+  const pack = campaignPack();
+  return emitFtlShips(pack.hulls ?? [], pack.crew ?? []);
 }
 
 /** The catalog's sectors, written as ftl.dat's data/sector_data.xml writes them. */
@@ -82,22 +83,22 @@ export function standInSectorsXml(): string {
 }
 
 /**
- * Campaign records the archive can carry: names, blueprints, and pages. Ships and sectors are in standInShipsXml and
- * standInSectorsXml.
+ * Campaign records the archive can carry: weapons, augments, drones, systems, pages, and filler lists.
+ * Crew identity is in standInShipsXml. Ships and sectors are in standInShipsXml and standInSectorsXml.
  */
 export function standInXml(): string {
-  return emitPack(splitCampaign(campaignPack()).body, { crew: "identity", sector: "body" });
+  const { body } = splitCampaign(campaignPack());
+  return emitPack({ ...body, crew: undefined }, { sector: "body" });
 }
 
 /**
- * The gap mod. Appends add crew combat and sector notes. `data/gap.xml` adds the store,
- * the rewards block, faction offers, and empty beacons.
+ * The gap mod. The crew append adds combat onto the blueprints. The sector append adds notes.
+ * `data/gap.xml` adds the store, the rewards block, faction offers, and empty beacons.
  */
 export function gapModFiles(): { path: string; xml: string }[] {
   const gap = splitCampaign(campaignPack()).gap;
   return [
     { path: "data/blueprints.xml.append", xml: emitStatAppend(gap.crew ?? [], "crewBlueprint") },
-    { path: "data/stand-in.xml.append", xml: emitStatAppend(gap.crew ?? [], "race") },
     { path: "data/sector_data.xml.append", xml: emitNoteAppend(gap.sectors ?? []) },
     { path: "data/gap.xml", xml: emitGapDocument(gap) },
   ];

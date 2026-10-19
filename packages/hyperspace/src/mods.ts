@@ -1,9 +1,6 @@
 import { ftlPatch, type FtlExtract } from "@stl/ftldat";
-import { attachTextLists, packFromFtl, parsePack, type ContentPack } from "@stl/pack";
+import { packFromFtl, type ContentPack } from "@stl/pack";
 import { patchDocument } from "./patch.ts";
-
-/** The bundled stand-in is this one campaign document. */
-const STAND_IN = "data/stand-in.xml";
 
 /** The merged path map and the catalog read from it. */
 export type FtlModLoad = {
@@ -69,34 +66,9 @@ export function applyFtlMod(
 
 /**
  * Reads a catalog from one unpacked archive.
- * The stand-in is the campaign document at `data/stand-in.xml`, even when hull
- * pictures are packed beside it. Any other archive is read as vanilla XML.
+ * Every document is read the same way. A later file with the same id replaces the earlier one.
  */
 export function packFromExtract(files: FtlExtract): ContentPack {
-  const standIn = files.documents.find((doc) => doc.path === STAND_IN);
-  if (standIn) {
-    const pack = parsePack(standIn.xml);
-    const layouts = [...files.text]
-      .filter(([path]) => path.toLowerCase().endsWith(".txt"))
-      .map(([path, text]) => ({ path, text }));
-    // Ships and sectors are ftl.dat's data/blueprints.xml and data/sector_data.xml, read by the same code as a real
-    // archive.
-    const ftl = packFromFtl(
-      files.documents.filter((doc) => doc.path !== STAND_IN),
-      layouts,
-    );
-    if (ftl.hulls) pack.hulls = ftl.hulls;
-    if (ftl.sectors) pack.sectors = ftl.sectors;
-    if (ftl.stores?.length) pack.stores = ftl.stores;
-    if (ftl.rewards) pack.rewards = ftl.rewards;
-    if (ftl.factions?.length) pack.factions = ftl.factions;
-    if (ftl.empties?.length) pack.empties = ftl.empties;
-    attachTextLists(
-      pack,
-      files.documents.filter((doc) => doc.path !== STAND_IN),
-    );
-    return pack;
-  }
   return loadFtlMods(files).pack;
 }
 

@@ -55,8 +55,8 @@ const HEADER = `
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
-  A systemBlueprint with a cost is a store listing. subSystem marks a kit.
-  startPower is the level a purchase installs. upgradeCost is the scrap for the level already owned.
+  A systemBlueprint with a cost is a store listing. A slot child of kit marks a kit.
+  startPower is the level a purchase installs. One upgradeCost lists the scrap to leave each level. n names a level that is not the next count.
   Hull tags are the ship id, class, layout file, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms. A system's room attribute is the room index.
   A shipBlueprint with no layout and a surrender tag is a faction's default offer.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
@@ -123,8 +123,8 @@ const serializer = new XMLSerializer();
  * sp is shield layers pierced. power is reactor bars.
  * An augment listing is its id, title, description, and store cost.
  * A drone listing is its id, title, and store cost.
- * A system listing is its id, title, store cost, and subSystem when it installs as a kit.
- * startPower and upgradeCost on that same blueprint are the tune.
+ * A system listing is its id, title, store cost, and a slot child of kit when it installs as a kit.
+ * startPower and one upgradeCost list on that same blueprint are the tune.
  * A hull is its id, class, layout file, name, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms.
  * A ship with no layout and a surrender tag is a faction row.
  * A sector is its id, title, colour group, and page notes. Depth gates stay in the chart code.
@@ -747,19 +747,23 @@ function sectorElement(
 
 function systemElement(doc: XmlDocument, system?: SystemDef, tune?: TuneDef): XmlElement {
   const id = system?.id ?? tune?.id ?? "";
-  const attrs: Record<string, string> = { name: id };
-  if (system?.slot === "kit") attrs.subSystem = "true";
-  const node = element(doc, "systemBlueprint", attrs);
+  const node = element(doc, "systemBlueprint", { name: id });
+  if (system?.slot === "kit") add(node, leaf(doc, "slot", "kit"));
   if (system) {
     add(node, leaf(doc, "title", system.name));
     add(node, leaf(doc, "cost", system.cost));
   }
   if (tune) {
     add(node, leaf(doc, "startPower", tune.start));
-    for (const step of tune.costs) {
+    if (tune.costs.length > 0) {
       const upgrade = element(doc, "upgradeCost", {});
-      add(upgrade, leaf(doc, "level", step.level));
-      add(upgrade, leaf(doc, "cost", step.cost));
+      let next = 1;
+      for (const step of tune.costs) {
+        const level = leaf(doc, "level", step.cost);
+        if (step.level !== next) level.setAttribute("n", String(step.level));
+        add(upgrade, level);
+        next = step.level + 1;
+      }
       add(node, upgrade);
     }
   }

@@ -254,13 +254,13 @@ describe("loadFtlMods", () => {
 });
 
 describe("packFromExtract", () => {
-  it("reads the stand-in as a campaign document", () => {
+  it("reads a crew blueprint from a file named stand-in the same way as any other file", () => {
     const pack = packFromExtract(
       extract({
         documents: [
           {
             path: "data/stand-in.xml",
-            xml: `<FTL><race name="human"><title>Human</title><maxHealth>70</maxHealth></race></FTL>`,
+            xml: `<FTL><crewBlueprint name="human"><title>Human</title><maxHealth>70</maxHealth></crewBlueprint></FTL>`,
           },
         ],
       }),
@@ -269,7 +269,7 @@ describe("packFromExtract", () => {
     assert.equal(pack.crew?.[0]?.hp, 70);
   });
 
-  it("attaches sibling text lists without replacing stand-in events", () => {
+  it("lets a later file replace an event and keeps the text lists", () => {
     const pack = packFromExtract(
       extract({
         documents: [
@@ -289,7 +289,7 @@ describe("packFromExtract", () => {
       }),
     );
     assert.equal(pack.events?.length, 1);
-    assert.equal(pack.events?.[0]?.body, "Campaign page.");
+    assert.equal(pack.events?.[0]?.body, "Replaced.");
     assert.deepEqual(
       pack.textLists?.map((row) => row.id),
       ["NEST", "MORE"],

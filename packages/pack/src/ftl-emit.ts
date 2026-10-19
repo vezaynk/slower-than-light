@@ -5,18 +5,27 @@ import {
   type Element as XmlElement,
 } from "@xmldom/xmldom";
 import { prettyXml } from "./format.ts";
-import type { HullDef, SectorDef } from "./types.ts";
+import type { CrewDef, HullDef, SectorDef } from "./types.ts";
 
 /**
  * Writes ship blueprints the way ftl.dat's data/blueprints.xml does, so packFromFtl reads the stand-in with the same
- * code as a real archive. Every field is one ftl.dat carries; nothing here is stand-in only.
+ * code as a real archive. Crew passed here is the identity: title, description, and store cost. Combat stays on an append.
  */
-export function emitFtlShips(hulls: readonly HullDef[]): string {
+export function emitFtlShips(hulls: readonly HullDef[], crew: readonly CrewDef[] = []): string {
   const doc = new DOMImplementation().createDocument(null, "FTL", null);
   const root = doc.documentElement;
   if (!root) throw new Error("could not create the FTL root");
   for (const hull of hulls) root.appendChild(shipElement(doc, hull));
+  for (const row of crew) root.appendChild(crewElement(doc, row));
   return prettyXml(new XMLSerializer().serializeToString(doc));
+}
+
+function crewElement(doc: XmlDocument, row: CrewDef): XmlElement {
+  const node = element(doc, "crewBlueprint", { name: row.id });
+  node.appendChild(leaf(doc, "title", row.name));
+  if (row.detail) node.appendChild(leaf(doc, "desc", row.detail));
+  if (row.cost != null) node.appendChild(leaf(doc, "cost", row.cost));
+  return node;
 }
 
 function element(doc: XmlDocument, tag: string, attrs: Record<string, string> = {}): XmlElement {

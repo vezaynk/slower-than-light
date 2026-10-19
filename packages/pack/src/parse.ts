@@ -280,32 +280,49 @@ const SHELF_KIND: Record<string, string> = {
 
 /**
  * A store listing needs a cost child, so a tune-only blueprint stays a tune.
- * subSystem="true" is a kit. startPower or upgradeCost is the tune.
+ * A slot child of kit is a kit. startPower or one upgradeCost list is the tune.
  */
 function readSystemBlueprint(node: XmlElement): { system?: SystemDef; tune?: TuneDef } {
   const id = attr(node, "name")?.trim();
   if (!id) return {};
   const found: { system?: SystemDef; tune?: TuneDef } = {};
   if (child(node, "cost")) {
+    const written = textOf(node, "slot");
     found.system = {
       id,
       name: textOf(node, "title") ?? id,
       cost: numOf(node, "cost") ?? 0,
-      slot: attr(node, "subSystem") === "true" ? "kit" : "sys",
+      slot: written === "kit" || written === "sys" ? written : "sys",
     };
   }
-  const upgrades = elements(node).filter((item) => item.tagName === "upgradeCost");
-  if (child(node, "startPower") || upgrades.length > 0) {
-    const costs: TuneStep[] = [];
-    for (const item of upgrades) {
-      const level = numOf(item, "level");
-      const cost = numOf(item, "cost");
-      if (level == null || cost == null) continue;
-      costs.push({ level, cost });
-    }
-    found.tune = { id, start: numOf(node, "startPower") ?? 1, costs };
-  }
+  const tune = readBlueprintTune(node, id);
+  if (tune) found.tune = tune;
   return found;
+}
+
+/**
+ * One upgradeCost block. Each level's text is the scrap.
+ * n sets that level. A level without n takes the next count, starting at 1.
+ */
+export function readUpgradeCosts(node: XmlElement): TuneStep[] {
+  const costs: TuneStep[] = [];
+  let next = 1;
+  for (const item of elements(child(node, "upgradeCost"))) {
+    if (item.tagName !== "level") continue;
+    const cost = Number(ownText(item).trim());
+    if (!Number.isFinite(cost)) continue;
+    const named = attrNum(item.getAttribute("n"));
+    const level = named ?? next;
+    costs.push({ level, cost });
+    next = level + 1;
+  }
+  return costs;
+}
+
+/** A tune is startPower or one upgradeCost list. A blueprint with neither is only a listing. */
+export function readBlueprintTune(node: XmlElement, id: string): TuneDef | undefined {
+  if (!child(node, "startPower") && !child(node, "upgradeCost")) return undefined;
+  return { id, start: numOf(node, "startPower") ?? 1, costs: readUpgradeCosts(node) };
 }
 
 export function readFaction(node: XmlElement): FactionSurrender | undefined {
@@ -694,7 +711,7 @@ export function readEmpty(node: XmlElement): EmptyBeaconDef | undefined {
   return page;
 }
 
-function readEvent(node: XmlElement): EventDef | undefined {
+export function readEvent(node: XmlElement): EventDef | undefined {
   const parent = node.parentNode as XmlElement | null;
   if (parent?.tagName === "eventList") return undefined;
   const id = attr(node, "name")?.trim();

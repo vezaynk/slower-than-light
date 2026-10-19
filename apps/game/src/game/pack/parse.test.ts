@@ -99,9 +99,10 @@ const XML = `
   <title>No name</title>
   <cost>4</cost>
 </droneBlueprint>
-<systemBlueprint name="embersys" subSystem="true">
+<systemBlueprint name="embersys">
   <title>Ember</title>
   <cost>15</cost>
+  <slot>kit</slot>
   <maxPower>8</maxPower>
 </systemBlueprint>
 <systemBlueprint name="baresys">
@@ -201,8 +202,10 @@ const XML = `
 </customStore>
 <systemBlueprint name="embertune">
   <startPower>3</startPower>
-  <upgradeCost><level>1</level><cost>7</cost></upgradeCost>
-  <upgradeCost><level>0</level><cost>60</cost></upgradeCost>
+  <upgradeCost>
+    <level>7</level>
+    <level n="0">60</level>
+  </upgradeCost>
   <minSector>4</minSector>
 </systemBlueprint>
 <systemBlueprint name="baretune">

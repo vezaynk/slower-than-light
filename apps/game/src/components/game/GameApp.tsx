@@ -4,6 +4,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
@@ -11,6 +12,7 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
+import { ArchiveBed } from "./ArchiveBed";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
 import { OptionsPanel } from "./OptionsPanel";
@@ -21,7 +23,8 @@ import { SECTOR_NAMES, SYS_LABEL, upgradeBlurb, upgradeCost } from "@/game/conte
 import { aimedBeamTiles } from "@/game/pack/beams";
 import { loadBasePackXml } from "@/game/pack/boot";
 import "@/game/pack/base";
-import { augmentDef, crewDef, weaponDef } from "@stl/pack";
+import { FLEET_FILE, MAP_FILES, augmentDef, beaconPath, crewDef, weaponDef } from "@stl/pack";
+import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import {
@@ -939,6 +942,7 @@ function GameShell({ game, shake }: { game: Game; shake: number }) {
       }
       style={{ ["--event-font" as string]: eventFont }}
     >
+      <ArchiveBed />
       {game.phase === "title" ? <TitleScreen /> : <PlayFrame game={game} shake={shake} />}
       {manual}
       {sheet}
@@ -4658,6 +4662,7 @@ function mapY(row: number) {
 
 /** BEACON MAP: File:NO_FUEL.png. NO FUEL across the chart, WAIT, DISTRESS BEACON, SECTOR. STORE and EXIT labels stay. */
 function MapScreen({ game }: { game: Game }) {
+  const art = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   const here = game.beacons.find((b) => b.id === game.here);
   // Per the user: a jump that spends the last fuel asks first. Fuel above 1 jumps immediately.
   const [lastFuelJump, setLastFuelJump] = useState<string | null>(null);
@@ -4804,19 +4809,31 @@ function MapScreen({ game }: { game: Game }) {
           </svg>
           {warn && warnX > 0.03 ? (
             <span className="fleet-warn-tag" style={{ left: pct(warnX), top: pct(warnY) }}>
+              {art >= 0 && archiveImage(FLEET_FILE) ? (
+                <img className="fleet-ship" src={archiveImage(FLEET_FILE)} alt="" />
+              ) : null}
               {"WARNING"}
             </span>
           ) : null}
           {here ? (
-            <svg
-              className="beacon-ship"
-              viewBox="-14 -8 28 16"
-              style={{ left: pct(at(here)[0]), top: pct(at(here)[1]) }}
-              aria-hidden="true"
-            >
-              <path fill="#d5f1ff" d="M -10 -5 H 2 L 6 -2.6 V 2.6 L 2 5 H -10 Z" />
-              <path fill="#f7fdff" d="M 6 -2.4 L 13 0 L 6 2.4 Z" />
-            </svg>
+            art >= 0 && archiveImage(MAP_FILES.ship) ? (
+              <img
+                className="beacon-ship-img"
+                src={archiveImage(MAP_FILES.ship)}
+                alt=""
+                style={{ left: pct(at(here)[0]), top: pct(at(here)[1]) }}
+              />
+            ) : (
+              <svg
+                className="beacon-ship"
+                viewBox="-14 -8 28 16"
+                style={{ left: pct(at(here)[0]), top: pct(at(here)[1]) }}
+                aria-hidden="true"
+              >
+                <path fill="#d5f1ff" d="M -10 -5 H 2 L 6 -2.6 V 2.6 L 2 5 H -10 Z" />
+                <path fill="#f7fdff" d="M 6 -2.4 L 13 0 L 6 2.4 Z" />
+              </svg>
+            )
           ) : null}
           {game.beacons.map((b) => {
             const [bx, by] = at(b);
@@ -4838,6 +4855,10 @@ function MapScreen({ game }: { game: Game }) {
             const bits = scan
               ? [scan.ship ? "SHIP" : "", scan.hazard ? "HAZARD" : ""].filter(Boolean)
               : [];
+            const markPath = beaconPath(tag ?? "", nebula, soon);
+            const mark = markPath && art >= 0 ? archiveImage(markPath) : undefined;
+            const hazardMark =
+              bits.includes("HAZARD") && art >= 0 ? archiveImage(MAP_FILES.hazard) : undefined;
             // A label sits above its beacon, or below it near the top edge, always centred on it.
             const below = by < 0.22;
             return (
@@ -4845,12 +4866,14 @@ function MapScreen({ game }: { game: Game }) {
                 {isHere ? null : (
                   <button
                     type="button"
-                    className={`map-beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${soon ? " is-warn" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}`}
+                    className={`map-beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${soon ? " is-warn" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}${mark ? " has-mark" : ""}`}
                     disabled={!open || ftlDriveCharging(game)}
                     aria-label={tag || "Beacon"}
+                    style={mark ? { backgroundImage: `url(${mark})` } : undefined}
                     onClick={() => jumpTo(b.id)}
                   />
                 )}
+                {hazardMark ? <img className="beacon-hazard" src={hazardMark} alt="" /> : null}
                 {tag ? (
                   <span
                     className={`beacon-tag${below ? " is-below" : ""}${tag === "QUEST" ? " is-quest" : ""}`}

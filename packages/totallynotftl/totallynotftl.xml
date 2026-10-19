@@ -6168,60 +6168,117 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
   </shipBlueprint>
   <sectorDescription name="civilian-start">
     <title>Civilian (Starting) Sector</title>
+    <trackList>
+      <track>civilian</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="civilian">
     <title>Civilian Sector</title>
+    <trackList>
+      <track>civilian</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="engi">
     <title>Engi Controlled Sector</title>
+    <trackList>
+      <track>engi</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="engi-home">
     <title>Engi Homeworlds</title>
+    <trackList>
+      <track>engi</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="zoltan">
     <title>Zoltan Controlled Sector</title>
+    <trackList>
+      <track>zoltan</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="zoltan-home">
     <title>Zoltan Homeworlds</title>
+    <trackList>
+      <track>zoltan</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="abandoned">
     <title>Abandoned Sector</title>
+    <trackList>
+      <track>lostship</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="mantis">
     <title>Mantis Controlled Sector</title>
+    <trackList>
+      <track>mantis</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="mantis-home">
     <title>Mantis Homeworlds</title>
+    <trackList>
+      <track>mantis</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="pirate">
     <title>Pirate Controlled Sector</title>
+    <trackList>
+      <track>wasteland</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="rebel">
     <title>Rebel Controlled Sector</title>
+    <trackList>
+      <track>milkyway</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="rebel-stronghold">
     <title>Rebel Stronghold</title>
+    <trackList>
+      <track>colonial</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="rock">
     <title>Rock Controlled Sector</title>
+    <trackList>
+      <track>rock</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="rock-home">
     <title>Rock Homeworlds</title>
+    <trackList>
+      <track>rock</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="slug-nebula">
     <title>Slug Controlled Nebula</title>
+    <trackList>
+      <track>slug</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="slug-home">
     <title>Slug Home Nebula</title>
+    <trackList>
+      <track>slug</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="uncharted">
     <title>Uncharted Nebula</title>
+    <trackList>
+      <track>void</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="crystal-worlds">
     <title>Hidden Crystal Worlds</title>
+    <trackList>
+      <track>cosmos</track>
+    </trackList>
   </sectorDescription>
   <sectorDescription name="last-stand">
     <title>The Last Stand</title>
+    <trackList>
+      <track>laststand</track>
+    </trackList>
   </sectorDescription>
   <event name="auto-ship-attacking-civilian" flag="cited:auto-ship-attacking-civilian">
     <title>Auto-ship attacking civilian</title>

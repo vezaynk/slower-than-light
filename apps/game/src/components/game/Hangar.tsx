@@ -11,7 +11,8 @@
  */
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import "@/game/pack/base";
-import { hullDef, weaponDef } from "@stl/pack";
+import { hullDef, shipPreviewPath, weaponDef } from "@stl/pack";
+import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import {
   NAME_MAX,
   PLAYER_UNIFORMS,
@@ -96,6 +97,13 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   const lockRule = ruleFor(layout.id);
   const hull = hullDef(layout.id);
   const cruiser = hull?.cruiser ?? "";
+  const art = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
+  /** The archive's ship-picker portrait (ships_glow, then ships_noglow), for the LIST dialog. */
+  const portraitOf = (layoutId: string | undefined): string | undefined => {
+    const img = layoutId ? hullDef(layoutId)?.img : undefined;
+    if (!img || art < 0) return undefined;
+    return archiveImage(shipPreviewPath(img, true)) ?? archiveImage(shipPreviewPath(img, false));
+  };
   const earned = new Set(unlocks === SERVER_UNLOCKS ? [] : earnedIds());
   const shipAch = shipAchievements(cruiser).map((id) => ACHIEVEMENTS.find((row) => row.id === id)!);
   const allOpen = CRUISER_PAGES.every((p) => p.layouts.every((l) => isUnlockedIn(unlocks, l.id)));
@@ -323,7 +331,15 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
                   {CRUISER_PAGES.map((cruiserPage, index) => (
                     <li key={cruiserPage.page}>
                       <span className="hangar-ship-list-hull">
-                        <PixelHull kind={cruiserPage.layouts[0]?.id.split("-")[0] ?? "kestrel"} />
+                        {portraitOf(cruiserPage.layouts[0]?.id) ? (
+                          <img
+                            className="hangar-portrait"
+                            src={portraitOf(cruiserPage.layouts[0]?.id)}
+                            alt=""
+                          />
+                        ) : (
+                          <PixelHull kind={cruiserPage.layouts[0]?.id.split("-")[0] ?? "kestrel"} />
+                        )}
                       </span>
                       <span className="hangar-ship-list-name">{cruiserPage.page}</span>
                       <span className="hangar-ship-list-types">

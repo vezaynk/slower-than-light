@@ -1,5 +1,6 @@
 /** Archive waves play when that cue is packed. A missing cue keeps the tone. */
-import { archiveGeneration, soundCue, soundCues } from "./pack/media.ts";
+import { allSectors } from "@stl/pack";
+import { archiveGeneration, musicTrack, soundCue, soundCues } from "./pack/media.ts";
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -37,6 +38,7 @@ export function unlockAudio() {
   }
   if (ctx.state === "suspended") void ctx.resume();
   warmCues();
+  if (pendingScore) void startScore(pendingScore);
 }
 
 export function resumeAudio() {
@@ -108,7 +110,29 @@ export const SFX_CUES: Record<string, readonly string[]> = {
   win: ["victory"],
   die: ["explosion1", "explosion2", "explosion3", "explosion4"],
   vent: ["airLoss"],
+  doorOpen: ["doorOpen"],
+  doorClose: ["doorClose"],
+  teleport: ["teleport"],
+  cloak: ["cloak"],
+  decloak: ["decloak"],
+  levelup: ["levelup"],
+  buy: ["buy"],
+  sell: ["sell"],
+  jumpLeave: ["jumpLeave"],
+  jumpArrive: ["jumpArrive"],
+  fire: ["fire"],
+  repair: ["repair"],
 };
+
+/** The death cue for a crew member. A race with its own tag uses that; everyone else uses death1. */
+export function deathCue(kin: string | undefined): string {
+  if (kin === "rock") return "rockDeath";
+  if (kin === "mantis") return "mantisDeath";
+  if (kin === "crystal") return "crystalDeath";
+  if (kin === "engi") return "engiDeath";
+  if (kin === "energy") return "energyDeath";
+  return "death1";
+}
 
 /** The archive cue for a game sound: a random present variant, or a cue named exactly that. */
 export function cueFor(name: string, pick: () => number = Math.random) {
@@ -124,9 +148,9 @@ export function playSfx(name: string) {
   if (muted) return;
   const cue = cueFor(name);
   if (cue) {
-    // A game sound effect is a one-shot. A cue the archive marks to loop still plays once,
-    // since nothing here would stop it.
-    void playCue(cue.file, cue.blob, cue.volume);
+    // Fire and repair are started by syncLoops. Everything else stays a one-shot.
+    if (cue.loop && (name === "fire" || name === "repair")) return;
+    void playCue(cue.file, cue.blob, cue.volume, false);
     return;
   }
   const wobble = 0.94 + Math.random() * 0.12;
@@ -173,7 +197,41 @@ export function playSfx(name: string) {
       noise(0.18, 0.12);
       tone(200, 0.15, "sine", 0.06, -80);
       break;
+    case "doorOpen":
+    case "doorClose":
+      tone(name === "doorOpen" ? 520 : 340, 0.06, "square", 0.07);
+      break;
+    case "teleport":
+      tone(280, 0.16, "sine", 0.1, 240);
+      break;
+    case "cloak":
+    case "decloak":
+      tone(180, 0.2, "triangle", 0.08, name === "cloak" ? -60 : 60);
+      break;
+    case "levelup":
+      tone(660, 0.08, "square", 0.08);
+      break;
+    case "buy":
+    case "sell":
+      tone(name === "buy" ? 880 : 440, 0.07, "square", 0.08);
+      break;
+    case "jumpLeave":
+      tone(220, 0.18, "sawtooth", 0.1, -80);
+      break;
+    case "jumpArrive":
+      tone(140, 0.16, "sine", 0.08, 40);
+      break;
+    case "fire":
+      noise(0.2, 0.08);
+      break;
+    case "repair":
+      tone(300, 0.1, "square", 0.05);
+      break;
     default:
+      if (name.endsWith("Death") || name.startsWith("death") || name.startsWith("femaleDeath")) {
+        tone(160, 0.2, "square", 0.1, -80);
+        break;
+      }
       tone(400, 0.04, "square", 0.05);
   }
 }
@@ -191,21 +249,176 @@ function warmCues() {
   for (const cue of soundCues()) void decodeCue(cue.file, cue.blob);
 }
 
-async function playCue(file: string, blob: Blob, volume01: number) {
+async function playCue(file: string, blob: Blob, volume01: number, loop: boolean) {
   if (!ctx || !master) return;
   const buf = await decodeCue(file, blob);
   if (!buf || !ctx || !master || muted) return;
   const src = ctx.createBufferSource();
   src.buffer = buf;
+  src.loop = loop;
   const g = ctx.createGain();
   g.gain.value = Math.max(0.0001, volume01);
   src.connect(g);
   g.connect(master);
   src.start();
-  src.onended = () => {
-    src.disconnect();
-    g.disconnect();
-  };
+  if (!loop) {
+    src.onended = () => {
+      src.disconnect();
+      g.disconnect();
+    };
+  }
+}
+
+const loops = new Map<string, { src: AudioBufferSourceNode; gain: GainNode }>();
+const loopWanted = new Map<string, boolean>();
+
+/** Starts the fire or repair loop while that work is happening, and stops it when the work stops. */
+export function syncLoops(flags: { fire: boolean; repair: boolean }) {
+  if (typeof window === "undefined" || !ctx || !master) return;
+  void holdLoop("fire", flags.fire);
+  void holdLoop("repair", flags.repair);
+}
+
+async function holdLoop(name: string, on: boolean) {
+  loopWanted.set(name, on);
+  const existing = loops.get(name);
+  if (!on) {
+    if (!existing || !ctx) return;
+    try {
+      existing.src.stop();
+    } catch {
+      /* already stopped */
+    }
+    existing.src.disconnect();
+    existing.gain.disconnect();
+    loops.delete(name);
+    return;
+  }
+  if (existing || muted || !ctx || !master) return;
+  const cue = soundCue(name);
+  if (!cue?.loop) return;
+  const buf = await decodeCue(cue.file, cue.blob);
+  if (!buf || !ctx || !master || !loopWanted.get(name) || loops.has(name)) return;
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  const g = ctx.createGain();
+  g.gain.value = Math.max(0.0001, cue.volume);
+  src.connect(g);
+  g.connect(master);
+  src.start();
+  loops.set(name, { src, gain: g });
+}
+
+export type ScorePick = { track: string; mode: "explore" | "combat" };
+
+/** Title plays the title track. A fight plays combat. The map and a quiet beacon play explore. */
+export function scorePick(input: {
+  phase: string;
+  sectorName: string;
+  combat: boolean;
+}): ScorePick {
+  if (input.phase === "title" || input.phase === "hangar")
+    return { track: "title", mode: "explore" };
+  const named = allSectors().find((row) => row.name === input.sectorName);
+  return { track: named?.tracks?.[0] ?? "civilian", mode: input.combat ? "combat" : "explore" };
+}
+
+type ScoreAsk = { track: string; combat: boolean; paused: boolean };
+type ScoreVoice = {
+  key: string;
+  buffer: AudioBuffer;
+  offset: number;
+  started: number;
+  src: AudioBufferSourceNode;
+  gain: GainNode;
+};
+
+let pendingScore: ScoreAsk | null = null;
+let score: ScoreVoice | null = null;
+let scorePaused = false;
+
+/** One looping track. A pause holds the playhead. A change crossfades. Mute and volume stay on the master gain. */
+export function syncScore(next: ScoreAsk) {
+  pendingScore = next;
+  if (!ctx || !master) return;
+  if (next.paused) {
+    holdScore();
+    return;
+  }
+  void startScore(next);
+}
+
+function holdScore() {
+  if (!score || !ctx || scorePaused) return;
+  const duration = score.buffer.duration || 1;
+  score.offset = (score.offset + (ctx.currentTime - score.started)) % duration;
+  try {
+    score.src.stop();
+  } catch {
+    /* already stopped */
+  }
+  score.src.disconnect();
+  score.gain.disconnect();
+  scorePaused = true;
+}
+
+async function startScore(next: ScoreAsk) {
+  if (!ctx || !master || next.paused) return;
+  const row = musicTrack(next.track);
+  const blob = next.combat ? (row?.combat ?? row?.explore) : row?.explore;
+  const mode = next.combat && row?.combat ? "combat" : "explore";
+  if (!blob) {
+    dropScore();
+    return;
+  }
+  const key = `${next.track}:${mode}`;
+  if (score && score.key === key && !scorePaused) return;
+  const buf = await decodeCue(`music:${key}`, blob);
+  if (!buf || !ctx || !master || pendingScore?.paused) return;
+  const still = pendingScore;
+  if (!still || `${still.track}:${still.combat && row?.combat ? "combat" : "explore"}` !== key)
+    return;
+  const same = score?.key === key;
+  const offset = same ? (score?.offset ?? 0) : 0;
+  const previous = score && !scorePaused ? score : null;
+  const fade = 0.4;
+  if (previous) {
+    previous.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, fade / 3);
+    const old = previous.src;
+    window.setTimeout(() => {
+      try {
+        old.stop();
+      } catch {
+        /* already stopped */
+      }
+      old.disconnect();
+    }, fade * 1000);
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, ctx.currentTime);
+  g.gain.setTargetAtTime(0.7, ctx.currentTime, fade / 3);
+  src.connect(g);
+  g.connect(master);
+  src.start(0, offset % (buf.duration || 1));
+  score = { key, buffer: buf, offset, started: ctx.currentTime, src, gain: g };
+  scorePaused = false;
+}
+
+function dropScore() {
+  if (!score) return;
+  try {
+    score.src.stop();
+  } catch {
+    /* already stopped */
+  }
+  score.src.disconnect();
+  score.gain.disconnect();
+  score = null;
+  scorePaused = false;
 }
 
 function decodeCue(file: string, blob: Blob): Promise<AudioBuffer | undefined> {

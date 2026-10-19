@@ -176,7 +176,7 @@ export function shedOverAssigned(g: Game, ship: Ship, aboard: "player" | "enemy"
     const take = Math.min(other.power, over);
     other.power -= take;
     over -= take;
-    if (other.id === "cloaking") interruptVeil(other);
+    if (other.id === "cloaking") interruptVeil(other, g);
     if (other.id === "mind") interruptLeash(g, other);
   }
   for (const id of ["weapons", "medbay", "oxygen", "engines", "shields"] as const) {

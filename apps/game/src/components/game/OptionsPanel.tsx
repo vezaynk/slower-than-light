@@ -234,6 +234,12 @@ export function OptionsPanel({
                 onChange={set("shake")}
               />
               <Toggle
+                label={"Colourblind pictures"}
+                note={"Use the colourblind pictures when the archive has them."}
+                value={s.colorblind}
+                onChange={set("colorblind")}
+              />
+              <Toggle
                 label={"Walk targets"}
                 note={"A faint copy of each walking crew member where they are headed."}
                 value={s.ghosts}

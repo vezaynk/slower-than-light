@@ -28,6 +28,25 @@ export type { AnimClip, AnimSheet, AnimationSet, WeaponAnim } from "./anim.ts";
 export { readBitmapFont, writeBitmapFont } from "./bitmap-font.ts";
 export type { BitmapFont, FontGlyph, FontStamp } from "./bitmap-font.ts";
 export { mergeSounds, readSounds } from "./sounds.ts";
+export {
+  BED_CUES,
+  CJK_FACES,
+  CURSOR_FILE,
+  EFFECT_CLIPS,
+  FLEET_FILE,
+  FONT_FACES,
+  ICON_FILES,
+  MAP_FILES,
+  MUSIC_TRACKS,
+  SECTOR_TRACKS,
+  SKY_FILES,
+  asteroidClip,
+  beaconPath,
+  imageCandidates,
+  shipPreviewPath,
+  skyPath,
+} from "./archive-names.ts";
+export type { FontFaceJob, ImageVariant, SkyPick } from "./archive-names.ts";
 export { onPackWarning, warnPack, type PackWarningListener } from "./warnings.ts";
 export type { MusicTrack, SoundCue, SoundSet } from "./sounds.ts";
 export { parsePack } from "./parse.ts";

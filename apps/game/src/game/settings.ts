@@ -11,6 +11,8 @@ export type Settings = {
   ghosts: boolean;
   /** The oxygen bar along each room's floor. */
   roomAir: boolean;
+  /** Prefer `img/colorblind/` when the archive has that picture. */
+  colorblind: boolean;
   muted: boolean;
   /** 0 to 1. */
   volume: number;
@@ -41,6 +43,7 @@ function defaults(): Settings {
     shake: !reduced,
     ghosts: true,
     roomAir: true,
+    colorblind: false,
     muted: false,
     volume: 1,
     rotate: "off",
@@ -65,6 +68,7 @@ function load(): Settings {
       shake: typeof saved.shake === "boolean" ? saved.shake : base.shake,
       ghosts: typeof saved.ghosts === "boolean" ? saved.ghosts : base.ghosts,
       roomAir: typeof saved.roomAir === "boolean" ? saved.roomAir : base.roomAir,
+      colorblind: typeof saved.colorblind === "boolean" ? saved.colorblind : base.colorblind,
       muted: typeof saved.muted === "boolean" ? saved.muted : base.muted,
       volume:
         typeof saved.volume === "number" ? Math.max(0, Math.min(1, saved.volume)) : base.volume,

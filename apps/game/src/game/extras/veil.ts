@@ -52,14 +52,19 @@ function endVeil(kit: Kit) {
   kit.cool = COOLDOWN;
 }
 
+function ended(g: Game, before: boolean, kit: Kit | undefined) {
+  if (before && kit && !kit.on) g.sfx.push("decloak");
+}
+
 /**
  * Backup Battery, Overview: losing the bar can end an active cloak and start its cooldown early.
  * A cloak that is already cooling is left on that cooldown.
  */
-export function interruptVeil(kit: Kit) {
+export function interruptVeil(kit: Kit, g?: Game) {
   if (!(kit.on && kit.left > 0)) return;
   if (kitBars(kit) >= 1) return;
   endVeil(kit);
+  if (g) g.sfx.push("decloak");
 }
 
 function tickKit(kit: Kit | undefined, dt: number) {
@@ -134,6 +139,7 @@ export function startVeil(g: Game) {
     return;
   }
   kit.on = true;
+  g.sfx.push("cloak");
   noteAchieve(g, { k: "cloak" });
   kit.left = veilSeconds(kit);
   kit.cool = 0;
@@ -148,16 +154,21 @@ export function tickVeil(g: Game, dt: number) {
   // Cloaking, Zoltan note: removing power shortens a running cloak, down to "a fraction of a second".
   capVeil(g.player.kits.cloaking);
   capVeil(g.enemy?.kits.cloaking);
+  const playerOn = !!g.player.kits.cloaking?.on;
   tickKit(g.player.kits.cloaking, dt);
+  ended(g, playerOn, g.player.kits.cloaking);
   const foe = g.enemy;
   if (!foe) return;
   const kit = foe.kits.cloaking;
+  const foeOn = !!kit?.on;
   tickKit(kit, dt);
+  ended(g, foeOn, kit);
   if (!kit || kit.on) return;
   // Zoltans: an ionized Cloaking system cannot be activated.
   // Cloaking: "Hacking pulse prevents a ship from entering cloak". The enemy waits; its cooldown is untouched.
   if (kit.power >= 1 && kit.cool <= 0 && !kitIonLocked(kit) && !hackPulseOn(g, foe, "cloaking")) {
     kit.on = true;
+    g.sfx.push("cloak");
     kit.left = veilSeconds(kit);
     kit.cool = 0;
     // Cloaking, "Enemy AI and Cloaking": "They will randomly decide whether to fire weapons freely while cloaked,

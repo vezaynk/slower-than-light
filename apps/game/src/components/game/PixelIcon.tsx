@@ -2,7 +2,8 @@
 import { useSyncExternalStore } from "react";
 import { ICON_ROWS, ICON_SIZE, type IconName } from "@/game/icons";
 import { pixelRuns } from "@/game/gear-look";
-import { archiveGeneration, roomIconUrl, subscribeArchive } from "@/game/pack/media";
+import { ICON_FILES } from "@stl/pack";
+import { archiveGeneration, archiveImage, roomIconUrl, subscribeArchive } from "@/game/pack/media";
 
 const RUNS = Object.fromEntries(
   Object.entries(ICON_ROWS).map(([name, rows]) => [name, pixelRuns(rows)]),
@@ -19,6 +20,20 @@ export function PixelIcon({
 }) {
   const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   const mask = generation >= 0 ? roomIconUrl(name) : undefined;
+  const slot = ICON_FILES[name];
+  const picture = !mask && slot && generation >= 0 ? archiveImage(slot) : undefined;
+  if (picture) {
+    return (
+      <img
+        className={className ? `px-icon ${className}` : "px-icon"}
+        src={picture}
+        alt=""
+        width={size}
+        height={size}
+        draggable={false}
+      />
+    );
+  }
   if (mask) {
     const room = /(^|\s)room-icon(\s|$)/.test(className ?? "");
     return (

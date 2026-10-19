@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { SKY_FILES, skyPath } from "@stl/pack";
 import type { Game } from "@/game/types";
+import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { skyScene } from "@/game/sky-scene";
 import { animSpeed } from "./speed";
 import "./hazard-sky.css";
@@ -115,7 +117,10 @@ function Bolts() {
 }
 
 export function HazardSky({ game }: { game: Game }) {
+  const art = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   const scene = skyScene(game);
+  const plate = art >= 0 ? archiveImage(skyPath(scene)) : undefined;
+  const world = scene.planet && art >= 0 ? archiveImage(SKY_FILES.planet) : undefined;
   const sunFlash = useFallingEdge(scene.sunWarn);
   const ionFlash = useFallingEdge(scene.pulsarWarn);
   const shellFlash = useFallingEdge(scene.batteryAiming, 420);
@@ -130,13 +135,19 @@ export function HazardSky({ game }: { game: Game }) {
   ].filter(Boolean);
   return (
     <div
-      className={`sky-field${scene.sunWarn ? " is-sun-warn" : ""}${scene.pulsarWarn ? " is-pulsar-warn" : ""}${scene.rocksQuiet ? " is-quiet" : ""}${scene.batteryAiming ? " is-aiming" : ""}`}
+      className={`sky-field${plate ? " has-plate" : ""}${scene.sunWarn ? " is-sun-warn" : ""}${scene.pulsarWarn ? " is-pulsar-warn" : ""}${scene.rocksQuiet ? " is-quiet" : ""}${scene.batteryAiming ? " is-aiming" : ""}`}
       data-sky={layers.join(" ")}
       aria-hidden="true"
     >
+      {/* The archive's star plate is only the backdrop. Hazards stay drawn on top: the sun and pulsar warnings,
+          the storm, and the rocks tell the player what is about to happen. */}
+      {plate ? <img className="sky-plate" src={plate} alt="" /> : null}
       {scene.nebula ? <div className="sky-nebula" /> : null}
       {scene.storm ? <div className="sky-storm" /> : null}
-      {scene.planet ? <Planet armed={scene.battery} aiming={scene.batteryAiming} /> : null}
+      {world ? <img className="sky-world" src={world} alt="" /> : null}
+      {!world && scene.planet ? (
+        <Planet armed={scene.battery} aiming={scene.batteryAiming} />
+      ) : null}
       {scene.sun ? <Sun warn={scene.sunWarn} /> : null}
       {scene.pulsar ? <Pulsar warn={scene.pulsarWarn} /> : null}
       {scene.storm ? <Bolts /> : null}

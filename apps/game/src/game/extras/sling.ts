@@ -192,6 +192,7 @@ export function sendSling(g: Game, roomId: string) {
     if (mendOnSend(g)) c.hp = c.maxHp;
   }
   arm(kit, roomId);
+  g.sfx.push("teleport");
   noteAchieve(g, { k: "teleport" });
   log(g, `Teleporter sends ${crew.map((c) => c.name).join(" and ")}.`);
 }
@@ -267,6 +268,7 @@ export function recallSling(g: Game) {
     if (mendOnSend(g)) c.hp = c.maxHp;
   });
   arm(kit, null);
+  g.sfx.push("teleport");
   log(g, "Teleporter pulls them back.");
 }
 

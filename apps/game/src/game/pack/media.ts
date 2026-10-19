@@ -3,20 +3,24 @@
  * A missing file leaves the caller on the drawn fallback.
  */
 import {
+  CJK_FACES,
+  FONT_FACES,
   crewDef,
   droneDef,
+  imageCandidates,
   mergeAnimations,
   mergeSounds,
   readBitmapFont,
   weaponDef,
   type AnimClip,
   type AnimSheet,
-  type BitmapFont,
   type CrewColor,
+  type FontFaceJob,
+  type ImageVariant,
   type WeaponAnim,
 } from "@stl/pack";
 import { droneBlueprintOf } from "../gear-look.ts";
-import { ttfFromBitmap } from "./bitmap-ttf.ts";
+import { legibleCapRatio, ttfFromBitmap } from "./bitmap-ttf.ts";
 
 export type WeaponPhase = "idle" | "charged" | "fire";
 
@@ -38,7 +42,7 @@ export type SoundClip = {
   blob: Blob;
   /** 0 to 1, from the archive volume attribute. */
   volume: number;
-  /** The archive's loop flag. Game sound effects are one-shots, so audio.ts plays it once. */
+  /** The archive's loop flag. Fire and repair honour it. Other cues stay one-shots. */
   loop: boolean;
 };
 
@@ -66,6 +70,7 @@ const tracks = new Map<string, { explore: string; combat?: string }>();
 const images = new Map<string, HTMLImageElement>();
 const crewPaint = new Map<string, string>();
 const faces: FontFace[] = [];
+let variant: ImageVariant = { colorblind: false, tablet: false, lang: "en" };
 
 export function subscribeArchive(listen: () => void): () => void {
   listeners.add(listen);
@@ -220,9 +225,52 @@ export function soundCues(): SoundClip[] {
   return [...cues.values()];
 }
 
-/** Explore and combat files for one track. Nothing plays them on its own. */
+/**
+ * Colourblind, tablet, and locale prefixes. Callers keep their drawn fallback when nothing matches.
+ * English stays on the default picture. The stand-in ships that picture only.
+ */
+export function setImageVariant(next: Partial<ImageVariant>): void {
+  const merged: ImageVariant = {
+    colorblind: next.colorblind ?? variant.colorblind,
+    tablet: next.tablet ?? variant.tablet,
+    lang: next.lang ?? variant.lang,
+  };
+  if (
+    merged.colorblind === variant.colorblind &&
+    merged.tablet === variant.tablet &&
+    merged.lang === variant.lang
+  ) {
+    return;
+  }
+  variant = merged;
+  for (const listen of listeners) listen();
+}
+
+/** An object URL for an archive image. The first matching variant wins, then the default path. */
+export function archiveImage(path: string): string | undefined {
+  for (const key of imageCandidates(path, variant)) {
+    const url = urls.get(key);
+    if (url) return url;
+  }
+  return undefined;
+}
+
+/** One frame of a named clip. Weapon, crew, and projectile lookups stay on their own helpers. */
+export function clipFrame(name: string, index: number): SheetFrame | undefined {
+  const clip = clips.get(name);
+  const sheet = clip ? sheets.get(clip.sheet) : undefined;
+  if (!clip || !sheet || clip.length < 1) return undefined;
+  const frame = ((Math.floor(index) % clip.length) + clip.length) % clip.length;
+  return frameOf(sheet, clip.x, clip.y, frame);
+}
+
+export function clipLength(name: string): number {
+  return clips.get(name)?.length ?? 0;
+}
+
+/** Explore and combat files for one track. The score player is what starts them. */
 export function musicTrack(
-  name = "civil",
+  name = "civilian",
 ): { name: string; explore?: Blob; combat?: Blob } | undefined {
   const track = tracks.get(name);
   if (!track) return undefined;
@@ -355,86 +403,36 @@ function frameOf(
 
 async function installFonts(at: number): Promise<void> {
   if (typeof document === "undefined" || typeof FontFace === "undefined") return;
-  // capRatio: the cap height of the stylesheet font each face replaces, measured in Chromium (VT323 0.56 em,
-  // IBM Plex Mono 0.698 em). The stylesheet's sizes were set for those faces, so the capitals keep their height.
-  const jobs: {
-    path: string;
-    family: string;
-    capRatio: number;
-    variable?: string;
-    fallback?: string;
-    bold?: boolean;
-  }[] = [
-    {
-      // Large HUD text: rules that set 21px or more. JustinFont12's 12-pixel capitals drop pixel rows when drawn any
-      // shorter, so only those rules take it.
-      path: "fonts/justinfont12bold.font",
-      family: "JustinFont12",
-      capRatio: 0.56,
-      variable: "--font-hud-large",
-      fallback: '"VT323", "IBM Plex Mono", ui-monospace, monospace',
-      bold: true,
-    },
-    {
-      // All other HUD text. Its 8-pixel capitals are only drawn larger than they are, which stays legible, so a size
-      // inherited or overridden elsewhere never breaks a letter. FTL's HUD sets its small labels in this face too.
-      path: "fonts/justinfont8.font",
-      family: "JustinFont8Hud",
-      // A touch above VT323's 0.56, so the 14px labels draw the 8-pixel capitals at least one screen pixel per pixel.
-      capRatio: 0.58,
-      variable: "--font-hud",
-      fallback: '"VT323", "IBM Plex Mono", ui-monospace, monospace',
-    },
-    {
-      path: "fonts/justinfont8.font",
-      family: "JustinFont8",
-      capRatio: 0.698,
-      variable: "--font-mono",
-      fallback: '"IBM Plex Mono", ui-monospace, monospace',
-    },
-    { path: "fonts/justinfont10.font", family: "JustinFont10", capRatio: 0.56 },
-  ];
-  for (const job of jobs) {
+  for (const job of [...FONT_FACES, ...CJK_FACES]) {
     const blob = blobs.get(job.path);
     if (!blob) continue;
     try {
+      if (job.ttf) {
+        await applyBytes(at, job, await blob.arrayBuffer());
+        continue;
+      }
       const font = readBitmapFont(new Uint8Array(await blob.arrayBuffer()));
       // A newer archive replaced this one while the bytes were read. Its own pass installs its faces.
       if (!font || at !== generation) continue;
-      await applyFace(
-        at,
-        job.family,
-        font,
-        job.bold ?? false,
-        job.capRatio,
-        job.variable,
-        job.fallback,
-      );
+      const ratio = legibleCapRatio(font, job.capRatio ?? 0.56, job.minPx);
+      const bytes = ttfFromBitmap(font, job.family, job.bold ?? false, ratio);
+      const copy = new ArrayBuffer(bytes.byteLength);
+      new Uint8Array(copy).set(bytes);
+      await applyBytes(at, job, copy);
     } catch {
       // The stylesheet font stays.
     }
   }
 }
 
-async function applyFace(
-  at: number,
-  family: string,
-  font: BitmapFont,
-  bold: boolean,
-  capRatio: number,
-  variable: string | undefined,
-  fallback: string | undefined,
-): Promise<void> {
-  const bytes = ttfFromBitmap(font, family, bold, capRatio);
-  const copy = new ArrayBuffer(bytes.byteLength);
-  new Uint8Array(copy).set(bytes);
-  const face = new FontFace(family, copy);
+async function applyBytes(at: number, job: FontFaceJob, bytes: ArrayBuffer): Promise<void> {
+  const face = new FontFace(job.family, bytes);
   await face.load();
   if (at !== generation) return;
   document.fonts.add(face);
   faces.push(face);
-  if (variable && fallback) {
-    document.documentElement.style.setProperty(variable, `"${family}", ${fallback}`);
+  if (job.variable && job.fallback) {
+    document.documentElement.style.setProperty(job.variable, `"${job.family}", ${job.fallback}`);
   }
 }
 

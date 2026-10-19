@@ -94,11 +94,51 @@ type Built = {
   ch?: number;
 };
 
-/** Font units per em, so a capital stands `capRatio` of the em. One bitmap pixel is UNIT font units. */
-function emUnits(font: BitmapFont, capRatio: number): number {
+/** Height of a capital in bitmap pixels: "H", else "A", else the tallest ascent. */
+export function capPixels(font: BitmapFont): number {
   const cap =
     font.glyphs.find((glyph) => glyph.ch === 72) ?? font.glyphs.find((glyph) => glyph.ch === 65);
-  const capPx = cap?.ascent || Math.max(1, ...font.glyphs.map((glyph) => glyph.ascent));
+  return cap?.ascent || Math.max(1, ...font.glyphs.map((glyph) => glyph.ascent));
+}
+
+/**
+ * The cap ratio for a face used down to `minPx`: the stylesheet font's ratio, raised if needed so a capital at that
+ * size spans at least as many screen pixels as it has bitmap pixels.
+ */
+export function legibleCapRatio(font: BitmapFont, capRatio: number, minPx?: number): number {
+  const base = capRatio > 0 ? capRatio : 0.56;
+  if (!minPx || minPx <= 0) return base;
+  return Math.max(base, capPixels(font) / thinnestFeature(font) / minPx);
+}
+
+/**
+ * The thinnest stroke in the face, in bitmap pixels: the shortest run of ink along any row or column of any glyph. A
+ * stroke drawn narrower than one screen pixel vanishes ("DANGER!" read "DANBER!"); a narrowed gap only closes up.
+ * FTL's own faces have 1-pixel strokes. The stand-in's larger faces are drawn at double size, so theirs are 2.
+ */
+export function thinnestFeature(font: BitmapFont): number {
+  let least = Number.POSITIVE_INFINITY;
+  const runs = (cells: boolean[]) => {
+    let start = 0;
+    for (let i = 1; i <= cells.length; i += 1) {
+      if (i < cells.length && cells[i] === cells[start]) continue;
+      if (cells[start]) least = Math.min(least, i - start);
+      start = i;
+    }
+  };
+  for (const glyph of font.glyphs) {
+    if (glyph.w <= 0 || glyph.h <= 0) continue;
+    const ink = (x: number, y: number) =>
+      (font.alpha[(glyph.y + y) * font.width + glyph.x + x] ?? 0) >= 128;
+    for (let y = 0; y < glyph.h; y += 1) runs(Array.from({ length: glyph.w }, (_, x) => ink(x, y)));
+    for (let x = 0; x < glyph.w; x += 1) runs(Array.from({ length: glyph.h }, (_, y) => ink(x, y)));
+  }
+  return Number.isFinite(least) ? Math.max(1, least) : 1;
+}
+
+/** Font units per em, so a capital stands `capRatio` of the em. One bitmap pixel is UNIT font units. */
+function emUnits(font: BitmapFont, capRatio: number): number {
+  const capPx = capPixels(font);
   const ratio = capRatio > 0 ? capRatio : 0.56;
   return Math.min(16384, Math.max(16, Math.round((capPx * UNIT) / ratio)));
 }

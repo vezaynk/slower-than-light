@@ -186,7 +186,7 @@ export function checkEnemyPower(g: Game): void {
   for (const s of slots) {
     const next = power.get(s)!;
     // A cloak or mind control losing its bars ends, as when a battery runs out (extras/cell.ts shedOverAssigned).
-    if (next < s.box.power && s.kind === "kit" && s.id === "cloaking") interruptVeil(s.box);
+    if (next < s.box.power && s.kind === "kit" && s.id === "cloaking") interruptVeil(s.box, g);
     if (next < s.box.power && s.kind === "kit" && s.id === "mind") interruptLeash(g, s.box);
     s.box.power = next;
   }

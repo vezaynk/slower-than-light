@@ -4,7 +4,19 @@
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { allDrones, allWeapons, writeBitmapFont, type FontStamp } from "@stl/pack";
+import {
+  allDrones,
+  allWeapons,
+  BED_CUES,
+  CURSOR_FILE,
+  FLEET_FILE,
+  ICON_FILES,
+  MAP_FILES,
+  MUSIC_TRACKS,
+  SKY_FILES,
+  writeBitmapFont,
+  type FontStamp,
+} from "@stl/pack";
 import type { FtlDocument } from "@stl/ftldat";
 import { FONT_CHARS, glyphAlpha, thicken } from "./font-bits.ts";
 import { rgbaPng } from "./png.ts";
@@ -174,11 +186,27 @@ async function buildMedia(): Promise<{
   for (const [cue, tone] of CUES) {
     assets.push({ path: `audio/waves/ui/${cue}.wav`, bytes: cueWav(tone) });
   }
-  assets.push({ path: "audio/music/civil_explore.ogg", bytes: toneFile("civil_explore.ogg") });
-  assets.push({ path: "audio/music/civil_combat.ogg", bytes: toneFile("civil_combat.ogg") });
+  for (const cue of BED_CUES) {
+    assets.push({ path: `audio/waves/ui/${cue.name}.wav`, bytes: cueWav(cue.tone) });
+  }
+  const exploreTone = toneFile("civil_explore.ogg");
+  const combatTone = toneFile("civil_combat.ogg");
+  for (const track of MUSIC_TRACKS) {
+    assets.push({ path: `audio/music/${track.explore}`, bytes: exploreTone });
+    if (track.combat) assets.push({ path: `audio/music/${track.combat}`, bytes: combatTone });
+  }
   assets.push({ path: "fonts/JustinFont8.font", bytes: fontFile(1, 8, 7) });
   assets.push({ path: "fonts/JustinFont10.font", bytes: fontFile(1, 10, 9) });
   assets.push({ path: "fonts/JustinFont12Bold.font", bytes: fontFile(2, 12, 12, true) });
+  assets.push({ path: "fonts/JustinFont11Bold.font", bytes: fontFile(2, 11, 11, true) });
+  assets.push({ path: "fonts/num_font.font", bytes: fontFile(2, 10, 10) });
+  assets.push({ path: "fonts/HL1.font", bytes: fontFile(3, 16, 16, true) });
+  assets.push({ path: "fonts/HL2.font", bytes: fontFile(2, 14, 14, true) });
+  assets.push({ path: "fonts/c&c.font", bytes: fontFile(2, 12, 12) });
+  assets.push({ path: "fonts/c&cnew.font", bytes: fontFile(2, 12, 12, true) });
+  const scenery = sceneryAssets(icons);
+  assets.push(...scenery.assets);
+  clipXml.push(...scenery.clips);
   const documents: FtlDocument[] = [
     {
       path: "data/animations.xml",
@@ -219,8 +247,18 @@ function animTag(name: string, sheet: string, length: number, y: number): string
 }
 
 function soundsXml(): string {
-  const cues = CUES.map(([cue]) => `<${cue} volume="8">ui/${cue}.wav</${cue}>`).join("\n");
-  return `<sounds>\n<music>\n<track><name>civil</name><explore>civil_explore.ogg</explore><combat>civil_combat.ogg</combat></track>\n</music>\n${cues}\n</sounds>\n`;
+  const cues = [
+    ...CUES.map(([cue]) => `<${cue} volume="8">ui/${cue}.wav</${cue}>`),
+    ...BED_CUES.map(
+      (cue) =>
+        `<${cue.name} volume="8"${cue.loop ? ' loop="true"' : ""}>ui/${cue.name}.wav</${cue.name}>`,
+    ),
+  ].join("\n");
+  const music = MUSIC_TRACKS.map((track) => {
+    const combat = track.combat ? `<combat>${track.combat}</combat>` : "";
+    return `<track><name>${track.name}</name><explore>${track.explore}</explore>${combat}</track>`;
+  }).join("\n");
+  return `<sounds>\n<music>\n${music}\n</music>\n${cues}\n</sounds>\n`;
 }
 
 function artPng(art: PixelArt, hot = false): Uint8Array {
@@ -315,6 +353,269 @@ function iconPng(rows: readonly string[], size: number): Uint8Array {
   return rgbaPng(size, size, rgba);
 }
 
+/** Sky plates, map marks, resource icons, the cursor, and the effect sheets. */
+function sceneryAssets(icons: IconModule): {
+  assets: { path: string; bytes: Uint8Array }[];
+  clips: string[];
+} {
+  const assets: { path: string; bytes: Uint8Array }[] = [];
+  const clips: string[] = [];
+  const skies: [string, [number, number, number]][] = [
+    [SKY_FILES.quiet, [18, 24, 42]],
+    [SKY_FILES.planet, [48, 110, 176]],
+    [SKY_FILES.nebula, [72, 28, 96]],
+    [SKY_FILES.asteroid, [54, 48, 40]],
+    [SKY_FILES.sun, [150, 48, 22]],
+    [SKY_FILES.pulsar, [28, 72, 92]],
+    [SKY_FILES.storm, [36, 48, 78]],
+    [SKY_FILES.battery, [120, 28, 32]],
+  ];
+  for (const [path, tone] of skies) {
+    // ftl.dat's planet_bigblue.png is a planet on a clear background, drawn over the star plate.
+    assets.push({ path, bytes: path === SKY_FILES.planet ? planetPng(tone) : skyPng(tone) });
+  }
+  const marks: [string, [number, number, number], "diamond" | "triangle" | "blob"][] = [
+    [MAP_FILES.ship, [214, 236, 248], "triangle"],
+    [MAP_FILES.store, [232, 196, 48], "diamond"],
+    [MAP_FILES.distress, [196, 48, 42], "triangle"],
+    [MAP_FILES.quest, [64, 140, 220], "diamond"],
+    [MAP_FILES.nebula, [150, 90, 210], "blob"],
+    [MAP_FILES.warning, [240, 140, 48], "diamond"],
+    [MAP_FILES.hazard, [220, 64, 48], "blob"],
+    [MAP_FILES.boss, [180, 32, 36], "diamond"],
+  ];
+  for (const [path, tone, shape] of marks) {
+    assets.push({ path, bytes: markPng(tone, shape) });
+  }
+  assets.push({ path: FLEET_FILE, bytes: fleetPng() });
+  assets.push({ path: CURSOR_FILE, bytes: cursorPng() });
+  for (const [name, path] of Object.entries(ICON_FILES)) {
+    const rows = icons.ICON_ROWS[name];
+    assets.push({
+      path,
+      bytes: rows ? iconPng(rows, icons.ICON_SIZE) : markPng([220, 220, 220], "diamond"),
+    });
+  }
+  const sheets: { name: string; frames: number; fw: number; fh: number; kind: EffectKind }[] = [
+    { name: "fire_large", frames: 4, fw: 16, fh: 16, kind: "fire" },
+    { name: "fire_small", frames: 4, fw: 12, fh: 12, kind: "fire" },
+    { name: "breach", frames: 4, fw: 16, fh: 16, kind: "breach" },
+    { name: "explosion1", frames: 6, fw: 20, fh: 20, kind: "burst" },
+    { name: "explosion_big1", frames: 4, fw: 28, fh: 28, kind: "burst" },
+  ];
+  for (const sheet of sheets) {
+    assets.push({
+      path: `img/effects/${sheet.name}.png`,
+      bytes: effectSheet(sheet.frames, sheet.fw, sheet.fh, sheet.kind),
+    });
+    clips.push(effectAnim(sheet.name, sheet.frames, sheet.fw, sheet.fh, "effects"));
+  }
+  for (let i = 0; i < 10; i += 1) {
+    const name = `asteroid${i}`;
+    assets.push({ path: `img/effects/${name}.png`, bytes: asteroidPng(i) });
+    clips.push(effectAnim(name, 1, 16, 16, "effects"));
+  }
+  return { assets, clips };
+}
+
+type EffectKind = "fire" | "breach" | "burst";
+
+function effectAnim(name: string, frames: number, fw: number, fh: number, folder: string): string {
+  const w = frames * fw;
+  return `<animSheet name="${name}" w="${w}" h="${fh}" fw="${fw}" fh="${fh}">${folder}/${name}.png</animSheet>\n<anim name="${name}"><sheet>${name}</sheet><desc length="${frames}" x="0" y="0"/><time>1</time></anim>`;
+}
+
+/**
+ * A starfield over the plate's tone, at a size the game shows close to 1:1 (it covers the play area). Stars are single
+ * pixels at hashed positions with varied brightness, roughly one in 900 pixels, so the plate reads as distant space.
+ */
+function skyPng(tone: [number, number, number]): Uint8Array {
+  const w = 640;
+  const h = 360;
+  const rgba = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const at = (y * w + x) * 4;
+      const roll = starHash(x, y);
+      const star = roll % 900 === 0;
+      const glow = star ? 0.45 + ((roll >>> 10) % 55) / 100 : 0;
+      rgba[at] = Math.round(tone[0] + (236 - tone[0]) * glow);
+      rgba[at + 1] = Math.round(tone[1] + (240 - tone[1]) * glow);
+      rgba[at + 2] = Math.round(tone[2] + (248 - tone[2]) * glow);
+      rgba[at + 3] = 255;
+    }
+  }
+  return rgbaPng(w, h, rgba);
+}
+
+/** A lit pixel-art planet on a clear background: light from the upper left, a dark limb, and faint bands. */
+function planetPng(tone: [number, number, number]): Uint8Array {
+  const size = 128;
+  const r = 58;
+  const c = (size - 1) / 2;
+  const rgba = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const dx = (x - c) / r;
+      const dy = (y - c) / r;
+      const d2 = dx * dx + dy * dy;
+      if (d2 > 1) continue;
+      const dz = Math.sqrt(1 - d2);
+      const light = Math.max(0, -0.55 * dx - 0.55 * dy + 0.63 * dz);
+      const band = 0.06 * Math.sin((dy + 0.15 * dx) * 14);
+      // Three steps of shade keep it reading as pixel art.
+      const shade = Math.min(1.15, Math.round((0.25 + 0.85 * light + band) * 4) / 4);
+      const at = (y * size + x) * 4;
+      rgba[at] = Math.min(255, Math.round(tone[0] * shade));
+      rgba[at + 1] = Math.min(255, Math.round(tone[1] * shade));
+      rgba[at + 2] = Math.min(255, Math.round(tone[2] * shade));
+      rgba[at + 3] = 255;
+    }
+  }
+  return rgbaPng(size, size, rgba);
+}
+
+function starHash(x: number, y: number): number {
+  let n = Math.imul(x, 374761393) ^ Math.imul(y, 668265263);
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return (n ^ (n >>> 16)) >>> 0;
+}
+
+function markPng(
+  tone: [number, number, number],
+  shape: "diamond" | "triangle" | "blob",
+): Uint8Array {
+  const size = 16;
+  const rgba = new Uint8Array(size * size * 4);
+  const cx = 7.5;
+  const cy = 7.5;
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const dx = Math.abs(x - cx);
+      const dy = Math.abs(y - cy);
+      const on =
+        shape === "diamond"
+          ? dx + dy <= 6
+          : shape === "triangle"
+            ? y >= 3 && y <= 13 && dx <= (y - 2) * 0.55
+            : dx * dx + dy * dy <= 30;
+      if (!on) continue;
+      const at = (y * size + x) * 4;
+      rgba[at] = tone[0];
+      rgba[at + 1] = tone[1];
+      rgba[at + 2] = tone[2];
+      rgba[at + 3] = 255;
+    }
+  }
+  return rgbaPng(size, size, rgba);
+}
+
+function fleetPng(): Uint8Array {
+  const w = 32;
+  const h = 16;
+  const rgba = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const body = x >= 4 && x <= 22 && y >= 4 && y <= 11;
+      const nose = x > 22 && x <= 28 && Math.abs(y - 7.5) <= (28 - x) * 0.7;
+      if (!body && !nose) continue;
+      const at = (y * w + x) * 4;
+      rgba[at] = 240;
+      rgba[at + 1] = 120;
+      rgba[at + 2] = 48;
+      rgba[at + 3] = 255;
+    }
+  }
+  return rgbaPng(w, h, rgba);
+}
+
+function cursorPng(): Uint8Array {
+  const size = 16;
+  const rgba = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x <= y && x < 10 && y < 14; x += 1) {
+      const edge = x === 0 || x === y || y === 13;
+      const at = (y * size + x) * 4;
+      rgba[at] = edge ? 20 : 244;
+      rgba[at + 1] = edge ? 20 : 244;
+      rgba[at + 2] = edge ? 24 : 236;
+      rgba[at + 3] = 255;
+    }
+  }
+  return rgbaPng(size, size, rgba);
+}
+
+function effectSheet(frames: number, fw: number, fh: number, kind: EffectKind): Uint8Array {
+  const w = frames * fw;
+  const rgba = new Uint8Array(w * fh * 4);
+  for (let frame = 0; frame < frames; frame += 1) {
+    for (let y = 0; y < fh; y += 1) {
+      for (let x = 0; x < fw; x += 1) {
+        const colour = effectPixel(kind, frame, frames, x, y, fw, fh);
+        if (!colour) continue;
+        const at = (y * w + frame * fw + x) * 4;
+        rgba[at] = colour[0];
+        rgba[at + 1] = colour[1];
+        rgba[at + 2] = colour[2];
+        rgba[at + 3] = colour[3];
+      }
+    }
+  }
+  return rgbaPng(w, fh, rgba);
+}
+
+function effectPixel(
+  kind: EffectKind,
+  frame: number,
+  frames: number,
+  x: number,
+  y: number,
+  fw: number,
+  fh: number,
+): [number, number, number, number] | null {
+  const cx = (fw - 1) / 2;
+  const cy = (fh - 1) / 2;
+  const dx = x - cx;
+  const dy = y - cy;
+  const dist = Math.hypot(dx, dy);
+  if (kind === "fire") {
+    const rise = (fh - 1 - y) / fh;
+    const spread = fw * (0.18 + frame * 0.06) * (1 - rise * 0.65);
+    if (y < fh * 0.2 || Math.abs(dx) > spread) return null;
+    const hot = y > fh * 0.62;
+    return hot ? [255, 214, 72, 255] : [224, 84, 22, 230];
+  }
+  if (kind === "breach") {
+    const hole = 2 + frame;
+    if (dist > hole + 2) return null;
+    if (dist > hole) return [150, 158, 168, 255];
+    return [8, 10, 16, 255];
+  }
+  const ring = 2 + (frame / Math.max(1, frames - 1)) * (Math.min(fw, fh) / 2 - 2);
+  if (Math.abs(dist - ring) > 1.4) return null;
+  return [255, 186, 64, 255];
+}
+
+function asteroidPng(index: number): Uint8Array {
+  const size = 16;
+  const rgba = new Uint8Array(size * size * 4);
+  const tone = 90 + (index % 5) * 18;
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const dx = x - 7.5;
+      const dy = y - 7.5;
+      const bump = ((index * 3 + x) % 5) - 2;
+      if (dx * dx + dy * dy > 28 + bump) continue;
+      const at = (y * size + x) * 4;
+      rgba[at] = tone;
+      rgba[at + 1] = tone - 8;
+      rgba[at + 2] = tone - 18;
+      rgba[at + 3] = 255;
+    }
+  }
+  return rgbaPng(size, size, rgba);
+}
+
 function markerPng(): Uint8Array {
   const size = 8;
   const rgba = new Uint8Array(size * size * 4);
@@ -333,7 +634,10 @@ function markerPng(): Uint8Array {
 
 function cueWav(name: string): Uint8Array {
   const rate = 22050;
-  const n = Math.floor(rate * (name === "die" ? 0.35 : name === "win" ? 0.4 : 0.16));
+  const n = Math.floor(
+    rate *
+      (name === "die" || name === "fire" || name === "repair" ? 0.4 : name === "win" ? 0.4 : 0.16),
+  );
   const samples = Array.from({ length: n }, (_, i) => {
     const t = i / rate;
     const env = Math.exp(-t * (name === "die" ? 4 : 12));
@@ -360,7 +664,27 @@ function cueWav(name: string): Uint8Array {
                         ? 880 - t * 2000
                         : name === "click"
                           ? 640
-                          : 400;
+                          : name === "door"
+                            ? 360
+                            : name === "teleport"
+                              ? 180 + t * 900
+                              : name === "cloak"
+                                ? 240
+                                : name === "death"
+                                  ? 110
+                                  : name === "level"
+                                    ? ([392, 523, 659][Math.min(2, Math.floor(t / 0.12))] ?? 659)
+                                    : name === "fire"
+                                      ? 90
+                                      : name === "repair"
+                                        ? 480
+                                        : name === "buy"
+                                          ? 660
+                                          : name === "sell"
+                                            ? 330
+                                            : name === "jump"
+                                              ? 220 - t * 80
+                                              : 400;
     const tone = Math.sin(2 * Math.PI * freq * t);
     const noise =
       name === "hit" || name === "missile" || name === "laser" || name === "vent" ? hash(i) : 0;

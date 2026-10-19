@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import "@/game/pack/base";
-import { hullDef } from "@stl/pack";
+import { hullDef, startingFit } from "@stl/pack";
 import { layoutFor, roomClip, seatLayout } from "@/game/layouts";
 import type { KitId } from "@/game/types";
 
@@ -273,7 +273,8 @@ export function PixelLayout({ id }: { id: string }) {
   const kind = id.replace(/-[a-c]$/, "");
   // Kit rooms: the hull's starting kits sit in their rooms (layouts.ts seatLayout), as they do in a fight.
   const raw = layoutFor(id);
-  const kits = Object.keys(hullDef(id)?.kits ?? {}).filter((kit): kit is KitId =>
+  const hull = hullDef(id);
+  const kits = Object.keys(hull ? startingFit(hull).kits : {}).filter((kit): kit is KitId =>
     INSTALLABLE_KITS.has(kit),
   );
   const layout = raw ? seatLayout(raw, kits) : undefined;

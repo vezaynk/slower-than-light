@@ -160,7 +160,6 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   for (const id of mergeIds(systems, tunes)) {
     add(root, systemElement(doc, systemById.get(id), tuneById.get(id)));
   }
-  for (const hull of pack.hulls ?? []) add(root, hullElement(doc, hull));
   for (const faction of pack.factions ?? []) add(root, factionElement(doc, faction));
   for (const sector of pack.sectors ?? []) add(root, sectorElement(doc, sector, sectorPart));
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
@@ -676,128 +675,6 @@ function sectorElement(
     for (const name of sector.tracks) add(list, leaf(doc, "track", name));
     add(node, list);
   }
-  return node;
-}
-
-/** Pale hangar labels, and the system id a buyable slot uses. */
-const RESERVE_SYSTEM: Record<string, string> = {
-  Teleporter: "teleporter",
-  Cloaking: "cloaking",
-  Hacking: "hacking",
-  Drones: "drones",
-  "Mind Control": "mind",
-  "Clone Bay": "clonebay",
-  "Backup Battery": "battery",
-  Artillery: "artillery",
-  Shields: "shields",
-  Sensors: "sensors",
-  Doors: "doors",
-  Medbay: "medbay",
-};
-
-function systemRoom(hull: HullDef, id: string): number | undefined {
-  return hull.grid?.rooms.find((room) => room.system === id)?.id;
-}
-
-function hullElement(doc: XmlDocument, hull: HullDef): XmlElement {
-  const attrs: Record<string, string> = { name: hull.id, layout: hull.layout };
-  if (hull.img) attrs.img = hull.img;
-  const node = element(doc, "shipBlueprint", attrs);
-  add(node, leaf(doc, "class", hull.cruiser));
-  add(node, leaf(doc, "title", hull.name));
-  add(node, leaf(doc, "desc", hull.quote));
-  add(node, leaf(doc, "unlock", hull.unlock));
-  add(node, leaf(doc, "source", hull.source));
-  add(node, leaf(doc, "reactor", hull.reactor));
-  add(node, leaf(doc, "fuel", hull.fuel));
-  add(node, leaf(doc, "missiles", hull.missiles));
-  add(node, leaf(doc, "parts", hull.parts));
-  if (hull.weaponSlots != null) add(node, leaf(doc, "weaponSlots", hull.weaponSlots));
-  if (hull.droneSlots != null) add(node, leaf(doc, "droneSlots", hull.droneSlots));
-  if (hull.health != null) add(node, element(doc, "health", { amount: String(hull.health) }));
-
-  const systems = doc.createElement("systemList");
-  const reserved = new Set(Object.keys(hull.systems));
-  for (const [id, pair] of Object.entries(hull.systems)) {
-    const attrs: Record<string, string> = { name: id };
-    const room = systemRoom(hull, id);
-    if (room != null) attrs.room = String(room);
-    const system = element(doc, "system", attrs);
-    add(system, leaf(doc, "level", pair[0]));
-    add(system, leaf(doc, "power", pair[1]));
-    add(systems, system);
-  }
-  for (const room of hull.grid?.rooms ?? []) {
-    if (room.system && !reserved.has(room.system)) {
-      reserved.add(room.system);
-      add(
-        systems,
-        element(doc, "system", { name: room.system, room: String(room.id), start: "false" }),
-      );
-    }
-    if (!room.reserve) continue;
-    const id = RESERVE_SYSTEM[room.reserve];
-    if (!id || reserved.has(id)) continue;
-    reserved.add(id);
-    add(systems, element(doc, "system", { name: id, room: String(room.id), start: "false" }));
-  }
-  add(node, systems);
-
-  const weapons = doc.createElement("weaponList");
-  for (const id of hull.weapons) add(weapons, leaf(doc, "weapon", id));
-  add(node, weapons);
-
-  const crew = doc.createElement("crewList");
-  for (const seat of hull.crew)
-    add(crew, element(doc, "crewMember", { kin: seat.kin, room: seat.room }));
-  add(node, crew);
-
-  const kits = doc.createElement("kitList");
-  for (const [id, kit] of Object.entries(hull.kits)) {
-    const kitNode = element(doc, "kit", { name: id });
-    add(kitNode, leaf(doc, "level", kit.level));
-    add(kitNode, leaf(doc, "power", kit.power));
-    if (kit.target != null) add(kitNode, leaf(doc, "target", kit.target));
-    if (kit.loadout) {
-      const loadout = doc.createElement("loadout");
-      for (const schematic of kit.loadout) add(loadout, leaf(doc, "schematic", schematic));
-      add(kitNode, loadout);
-    }
-    if (kit.on !== undefined) add(kitNode, leaf(doc, "on", kit.on));
-    if (kit.weapon) add(kitNode, leaf(doc, "weapon", kit.weapon));
-    add(kits, kitNode);
-  }
-  add(node, kits);
-
-  const augments = doc.createElement("augmentList");
-  for (const id of hull.augments) add(augments, leaf(doc, "augment", id));
-  add(node, augments);
-
-  const unfitted = doc.createElement("unfitted");
-  for (const label of hull.unfitted) add(unfitted, leaf(doc, "item", label));
-  add(node, unfitted);
-
-  const grid = hull.grid;
-  if (
-    grid &&
-    (grid.cols != null ||
-      grid.rows != null ||
-      grid.rooms.some((room) => room.name || room.title || room.reserve))
-  ) {
-    const attrs: Record<string, string> = {};
-    if (grid.cols != null) attrs.cols = String(grid.cols);
-    if (grid.rows != null) attrs.rows = String(grid.rows);
-    const list = element(doc, "roomList", attrs);
-    for (const room of grid.rooms) {
-      const roomAttrs: Record<string, string> = {};
-      if (room.name) roomAttrs.name = room.name;
-      if (room.title) roomAttrs.title = room.title;
-      if (room.reserve) roomAttrs.reserve = room.reserve;
-      add(list, element(doc, "room", roomAttrs));
-    }
-    add(node, list);
-  }
-
   return node;
 }
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { LAYOUT_FILE, SHIP_LAYOUTS } from "@stl/catalog/src/ship-layouts.ts";
-import { hullDef } from "@stl/pack";
+import { hullDef, startingFit } from "@stl/pack";
 import { HULLS } from "./hulls.ts";
 import { layoutFor, tileCount } from "./layouts.ts";
 import {
@@ -17,6 +17,7 @@ import {
   toggleWeapon,
 } from "./sim.ts";
 import { WEAPONS } from "./content.ts";
+import { powerGuns } from "./fixtures.ts";
 
 const SQUARES: Record<string, number> = {
   // Traced cell counts from the hangar pictures. The cruiser pages do not state these.
@@ -74,13 +75,15 @@ describe("hangar hulls", () => {
   });
 
   it("powers the Breach Bomb once the Anti-Bio Beam is switched off", () => {
-    const g = createGame(1, "PLAYER_SHIP_JELLY");
+    const g = powerGuns(createGame(1, "PLAYER_SHIP_JELLY"));
     assert.deepEqual(
       g.player.weapons.map((w) => w.defId),
       ["LASER_BURST_2", "BEAM_BIO", "BOMB_BREACH_1"],
     );
+    // Three spare bars: the burst laser and the beam. The bomb has no bar left.
     assert.deepEqual(powerMask(g.player), [true, true, false]);
     toggleWeapon(g, g.player.weapons[1].uid);
+    toggleWeapon(g, g.player.weapons[2].uid);
     assert.deepEqual(powerMask(g.player), [true, false, true]);
   });
 
@@ -159,6 +162,13 @@ describe("hangar hulls", () => {
       assert.ok(laid, id);
       assert.equal(laid.cols, authored.cols, id);
       assert.equal(laid.rows, authored.rows, id);
+      // Room names come from the blueprint (hull-fit roomNames): a system's room keeps its traced name, and a hall is
+      // p-hall<n> in grid order.
+      const halls = authored.rooms
+        .filter((room) => /^p-[a-z]{3}\d+$/.test(room.id))
+        .map((room) => room.id);
+      const named = (traced: string) =>
+        halls.includes(traced) ? `p-hall${halls.indexOf(traced)}` : traced;
       assert.deepEqual(
         laid.rooms.map((room) => ({
           id: room.id,
@@ -171,7 +181,7 @@ describe("hangar hulls", () => {
           reserve: room.reserve,
         })),
         authored.rooms.map((room) => ({
-          id: room.id,
+          id: named(room.id),
           title: room.title,
           system: room.system,
           x: room.x,
@@ -187,7 +197,10 @@ describe("hangar hulls", () => {
       assert.equal(hull?.layout, LAYOUT_FILE[id], id);
       for (const room of authored.rooms) {
         if (!room.system) continue;
-        assert.ok(hull?.systems[room.system], `${id} ${room.id} ${room.system}`);
+        assert.ok(
+          hull && startingFit(hull).systems[room.system],
+          `${id} ${room.id} ${room.system}`,
+        );
       }
     }
   });
@@ -221,13 +234,15 @@ describe("hangar hulls", () => {
     const step = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] } as const;
     for (const [id, layout] of Object.entries(SHIP_LAYOUTS)) {
       if (!layout.marks) continue;
-      const at = new Map<string, string>();
-      for (const r of layout.rooms) {
-        for (let y = r.y; y < r.y + r.h; y++) {
-          for (let x = r.x; x < r.x + r.w; x++) at.set(`${x},${y}`, r.id);
-        }
-      }
       const g = createGame(1, id);
+      // The loaded rooms are the traced ones, in the same order, under the blueprint's names.
+      const loaded = layoutFor(id)?.rooms ?? [];
+      const at = new Map<string, string>();
+      layout.rooms.forEach((r, i) => {
+        for (let y = r.y; y < r.y + r.h; y++) {
+          for (let x = r.x; x < r.x + r.w; x++) at.set(`${x},${y}`, loaded[i]?.id ?? r.id);
+        }
+      });
       for (const mark of layout.marks) {
         const idHere = at.get(`${mark.x},${mark.y}`);
         assert.ok(idHere, `${id} ${mark.x},${mark.y} ${mark.side}`);

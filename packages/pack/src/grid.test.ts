@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { HullDef } from "./types.ts";
-import { attachLayoutFiles, gridFromLayout, marksFromDoors, readGrid, writeGrid } from "./grid.ts";
+import { gridFromLayout, marksFromDoors, readGrid, writeGrid } from "./grid.ts";
 
 describe("layout text", () => {
   const source = {
@@ -41,47 +41,6 @@ describe("layout text", () => {
     assert.equal(read.x, 0);
     assert.equal(read.y, 0);
     assert.equal(read.vertical, 0);
-  });
-
-  it("copies room names onto the layout text and drops the file offsets", () => {
-    const grid = gridFromLayout(source);
-    const hull: HullDef = {
-      id: "demo",
-      cruiser: "Demo",
-      layout: "demo",
-      name: "Demo",
-      quote: "",
-      unlock: "",
-      source: "",
-      reactor: 1,
-      fuel: 0,
-      missiles: 0,
-      parts: 0,
-      systems: {},
-      weapons: [],
-      crew: [],
-      kits: {},
-      augments: [],
-      unfitted: [],
-      grid: {
-        cols: source.cols,
-        rows: source.rows,
-        rooms: grid.rooms.map((room) => ({
-          id: room.id,
-          x: 0,
-          y: 0,
-          w: 0,
-          h: 0,
-          ...(room.name ? { name: room.name } : {}),
-          ...(room.title ? { title: room.title } : {}),
-          ...(room.system ? { system: room.system } : {}),
-          ...(room.reserve ? { reserve: room.reserve } : {}),
-        })),
-        doors: [],
-      },
-    };
-    attachLayoutFiles([hull], [{ path: "data/demo.txt", text: writeGrid(grid) }]);
-    assert.deepEqual(hull.grid, grid);
   });
 
   it("drops a bar whose cell is not inside a room", () => {

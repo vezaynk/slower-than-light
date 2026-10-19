@@ -3,8 +3,8 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
-import { attachLayoutFiles, attachPictures, emitPack, overlayGap, parsePack } from "@stl/pack";
-import { campaignPack, campaignXml, splitCampaign } from "./xml.ts";
+import { emitPack, overlayGap, packFromFtl, parsePack } from "@stl/pack";
+import { campaignPack, campaignXml, splitCampaign, standInShipsXml } from "./xml.ts";
 
 describe("campaign document", () => {
   it("matches the committed base.xml", () => {
@@ -16,8 +16,11 @@ describe("campaign document", () => {
     const pack = campaignPack();
     const parts = splitCampaign(pack);
     const body = parsePack(emitPack(parts.body, { crew: "identity", sector: "body" }));
-    attachLayoutFiles(body.hulls, layoutFiles());
-    attachPictures(body.hulls, hullPictureFiles());
+    // Ships are ftl.dat blueprints, beside their layout text and picture files.
+    body.hulls = packFromFtl(
+      [{ path: "data/blueprints.xml", xml: standInShipsXml() }, ...hullPictureFiles()],
+      layoutFiles(),
+    ).hulls;
     const merged = overlayGap(
       body,
       parsePack(emitPack(parts.gap, { crew: "stats", sector: "gap" })),

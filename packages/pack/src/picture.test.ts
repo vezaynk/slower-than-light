@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { emitPack } from "./emit.ts";
+import { emitFtlShips } from "./ftl-emit.ts";
 import { packFromFtl } from "./ftl.ts";
-import { parsePack } from "./parse.ts";
 import { attachPictures, pictureForRooms, pictureFrame, pictureXml, ROOM_PX } from "./picture.ts";
 import { hullDef, loadPack, resetPackForTests } from "./registry.ts";
 import type { HullDef, HullMount } from "./types.ts";
+
+/** Ships are ftl.dat blueprints, read by packFromFtl. */
+function ships(xml: string) {
+  return packFromFtl([{ path: "data/blueprints.xml", xml }]).hulls;
+}
 
 afterEach(() => {
   resetPackForTests();
@@ -47,17 +51,17 @@ describe("hull pictures", () => {
   });
 
   it("reads the img attribute and writes it back", () => {
-    const parsed = parsePack(HULL);
-    assert.equal(parsed.hulls?.[0]?.img, "kestral");
-    assert.equal(parsed.hulls?.[0]?.picture, undefined);
-    const xml = emitPack({ hulls: parsed.hulls });
+    const parsed = ships(HULL);
+    assert.equal(parsed?.[0]?.img, "kestral");
+    assert.equal(parsed?.[0]?.picture, undefined);
+    const xml = emitFtlShips(parsed ?? []);
     assert.match(xml, /img="kestral"/);
-    assert.equal(parsePack(xml).hulls?.[0]?.img, "kestral");
+    assert.equal(ships(xml)?.[0]?.img, "kestral");
   });
 
   it("leaves a hull with no image name unmarked", () => {
     const bare = HULL.replace(' img="kestral"', "");
-    const xml = emitPack({ hulls: parsePack(bare).hulls });
+    const xml = emitFtlShips(ships(bare) ?? []);
     assert.equal(xml.includes("img="), false);
   });
 
@@ -131,7 +135,7 @@ describe("hull pictures", () => {
   });
 
   it("copies the picture when the pack is installed", () => {
-    const hull = parsePack(HULL).hulls?.[0];
+    const hull = ships(HULL)?.[0];
     assert.ok(hull);
     hull.picture = { x: 1, y: 2, w: 3, h: 4 };
     hull.mounts = [{ x: 7, y: 8, rotate: false, mirror: true, gib: 2, slide: "down" }];
@@ -160,16 +164,10 @@ function bareHull(layout: string): HullDef {
     name: layout,
     quote: "",
     unlock: "",
-    source: "",
     reactor: 0,
-    fuel: 0,
     missiles: 0,
     parts: 0,
-    systems: {},
     weapons: [],
-    crew: [],
-    kits: {},
     augments: [],
-    unfitted: [],
   };
 }

@@ -303,140 +303,6 @@ function readSystemBlueprint(node: XmlElement): { system?: SystemDef; tune?: Tun
   return found;
 }
 
-function readHull(node: XmlElement): HullDef | undefined {
-  const id = attr(node, "name")?.trim();
-  const layout = attr(node, "layout")?.trim();
-  if (!id || !layout) return undefined;
-  const systems: Record<string, [number, number]> = {};
-  const placed: { id: string; room: number }[] = [];
-  const pictured: { id: string; room: number }[] = [];
-  for (const item of elements(child(node, "systemList"))) {
-    if (item.tagName !== "system") continue;
-    const sysId = attr(item, "name")?.trim();
-    if (!sysId) continue;
-    const level = numOf(item, "level");
-    const power = numOf(item, "power");
-    const room = attrNum(item.getAttribute("room"));
-    const slot = attr(item, "start") === "false" && level == null && power == null;
-    if (slot) {
-      if (room != null) pictured.push({ id: sysId, room });
-      continue;
-    }
-    systems[sysId] = [level ?? 0, power ?? 0];
-    if (room != null) placed.push({ id: sysId, room });
-  }
-  const weapons: string[] = [];
-  for (const item of elements(child(node, "weaponList"))) {
-    if (item.tagName !== "weapon") continue;
-    const weaponId = (ownText(item).trim() || attr(item, "name")?.trim()) ?? "";
-    if (weaponId) weapons.push(weaponId);
-  }
-  const crew: HullDef["crew"] = [];
-  for (const item of elements(child(node, "crewList"))) {
-    if (item.tagName !== "crewMember") continue;
-    const kin = attr(item, "kin")?.trim();
-    const room = attr(item, "room")?.trim();
-    if (!kin || !room) continue;
-    crew.push({ kin, room });
-  }
-  const kits: Record<string, HullKitDef> = {};
-  for (const item of elements(child(node, "kitList"))) {
-    if (item.tagName !== "kit") continue;
-    const kitId = attr(item, "name")?.trim();
-    if (!kitId) continue;
-    const kit: HullKitDef = { level: numOf(item, "level") ?? 0, power: numOf(item, "power") ?? 0 };
-    const target = textOf(item, "target");
-    if (target != null) kit.target = target;
-    const loadout = child(item, "loadout");
-    if (loadout) {
-      kit.loadout = elements(loadout)
-        .filter((entry) => entry.tagName === "schematic")
-        .map((entry) => ownText(entry).trim())
-        .filter((entry) => entry.length > 0);
-    }
-    const on = boolOf(item, "on");
-    if (on !== undefined) kit.on = on;
-    const weapon = textOf(item, "weapon");
-    if (weapon) kit.weapon = weapon;
-    kits[kitId] = kit;
-  }
-  const augments: string[] = [];
-  for (const item of elements(child(node, "augmentList"))) {
-    if (item.tagName !== "augment") continue;
-    const augmentId = ownText(item).trim();
-    if (augmentId) augments.push(augmentId);
-  }
-  const unfitted: string[] = [];
-  for (const item of elements(child(node, "unfitted"))) {
-    if (item.tagName !== "item") continue;
-    const label = ownText(item).trim();
-    if (label) unfitted.push(label);
-  }
-  const hull: HullDef = {
-    id,
-    cruiser: textOf(node, "class") ?? "",
-    layout,
-    name: textOf(node, "title") ?? id,
-    quote: textOf(node, "desc") ?? "",
-    unlock: textOf(node, "unlock") ?? "",
-    source: textOf(node, "source") ?? "",
-    reactor: numOf(node, "reactor") ?? 0,
-    fuel: numOf(node, "fuel") ?? 0,
-    missiles: numOf(node, "missiles") ?? 0,
-    parts: numOf(node, "parts") ?? 0,
-    systems,
-    weapons,
-    crew,
-    kits,
-    augments,
-    unfitted,
-  };
-  const weaponSlots = numOf(node, "weaponSlots");
-  if (weaponSlots != null) hull.weaponSlots = weaponSlots;
-  const droneSlots = numOf(node, "droneSlots");
-  if (droneSlots != null) hull.droneSlots = droneSlots;
-  const healthNode = child(node, "health");
-  if (healthNode) {
-    const health = intAttr(healthNode, "amount");
-    if (health != null) hull.health = health;
-  }
-  const list = child(node, "roomList");
-  if (list) {
-    const rooms: HullRoom[] = [];
-    for (const item of elements(list)) {
-      if (item.tagName !== "room") continue;
-      const room: HullRoom = { id: rooms.length, x: 0, y: 0, w: 0, h: 0 };
-      const name = attr(item, "name")?.trim();
-      const title = attr(item, "title")?.trim();
-      const reserve = attr(item, "reserve")?.trim();
-      if (name) room.name = name;
-      if (title) room.title = title;
-      if (reserve) room.reserve = reserve;
-      rooms.push(room);
-    }
-    if (rooms.length > 0) {
-      const grid: HullGrid = { rooms, doors: [] };
-      const cols = attrNum(list.getAttribute("cols"));
-      const rows = attrNum(list.getAttribute("rows"));
-      if (cols != null) grid.cols = cols;
-      if (rows != null) grid.rows = rows;
-      for (const place of placed) {
-        const room = rooms[place.room];
-        if (room) room.system = place.id;
-      }
-      for (const place of pictured) {
-        const room = rooms[place.room];
-        if (room && !room.reserve && !room.system) room.system = place.id;
-      }
-      hull.grid = grid;
-    }
-  }
-  const img = attr(node, "img")?.trim();
-  if (img) hull.img = img;
-  return hull;
-}
-
-/** A shipBlueprint with no layout and a surrender child is a faction row. */
 function readFaction(node: XmlElement): FactionSurrender | undefined {
   const id = attr(node, "name")?.trim();
   if (!id || attr(node, "layout")?.trim()) return undefined;
@@ -709,7 +575,6 @@ export function parsePack(xml: string): ContentPack {
   const augments: AugmentDef[] = [];
   const drones: DroneDef[] = [];
   const systems: SystemDef[] = [];
-  const hulls: HullDef[] = [];
   const factions: FactionSurrender[] = [];
   const sectors: SectorDef[] = [];
   const stores: StoreDef[] = [];
@@ -739,11 +604,6 @@ export function parsePack(xml: string): ContentPack {
     if (row.tune) tunes.push(row.tune);
   }
   for (const node of tagged(doc, "shipBlueprint")) {
-    const hull = readHull(node);
-    if (hull) {
-      hulls.push(hull);
-      continue;
-    }
     const faction = readFaction(node);
     if (faction) factions.push(faction);
   }
@@ -777,7 +637,6 @@ export function parsePack(xml: string): ContentPack {
     augments,
     drones,
     systems,
-    hulls,
     sectors,
     stores,
     tunes,

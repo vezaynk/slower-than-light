@@ -2,9 +2,19 @@
  * Hangar bay and cruiser article taken from the loaded ship.
  * The cruiser pages stay the index. Neither surface reads their lines.
  */
-import { augmentDef, crewDef, droneDef, hullDef, systemDef, weaponDef } from "@stl/pack";
+import {
+  START_FUEL,
+  augmentDef,
+  crewDef,
+  droneDef,
+  hullDef,
+  startingFit,
+  systemDef,
+  weaponDef,
+} from "@stl/pack";
 import { droneKeyForName, droneKeyOf, type DroneKey } from "../gear-look.ts";
 import type { IconName } from "../icons.ts";
+import { canDeploy } from "../extras/swarm.ts";
 import { MISSING_AUGMENTS } from "./augments-missing.ts";
 
 /** Titles for augments that have no blueprint. */
@@ -64,12 +74,13 @@ function systemIcon(id: string, weapon?: string): IconName {
 export function hangarBay(id: string | undefined): HangarBay | undefined {
   const hull = hullDef(id);
   if (!hull) return undefined;
+  const fit = startingFit(hull);
   const systems: BaySystem[] = [];
-  for (const [sysId, pair] of Object.entries(hull.systems)) {
+  for (const [sysId, pair] of Object.entries(fit.systems)) {
     if (!pair || pair[0] <= 0) continue;
     systems.push({ id: sysId, name: systemName(sysId), icon: systemIcon(sysId), level: pair[0] });
   }
-  for (const [kitId, kit] of Object.entries(hull.kits)) {
+  for (const [kitId, kit] of Object.entries(fit.kits)) {
     if (!kit || kit.level <= 0) continue;
     systems.push({
       id: kitId,
@@ -78,24 +89,19 @@ export function hangarBay(id: string | undefined): HangarBay | undefined {
       level: kit.level,
     });
   }
-  const droneKit = hull.kits.drones;
-  const schematicIds = droneKit?.loadout?.length
-    ? droneKit.loadout
-    : droneKit?.target
-      ? [droneKit.target]
-      : [];
-  const drones: BayDrone[] = schematicIds.map((schematic) => {
+  const droneKit = fit.kits.drones;
+  // The blueprint's drone list. A schematic Drone Control cannot fly (The Engi Cruiser, Layout B: the Anti-Personnel
+  // Drone) stays on the card, dimmed.
+  const drones: BayDrone[] = (hull.drones ?? []).map((schematic) => {
     const name = droneDef(schematic)?.name ?? schematic;
+    const flown = canDeploy(schematic);
     return {
-      id: schematic,
+      id: flown ? schematic : null,
       name,
       kind: droneKeyOf(schematic) ?? droneKeyForName(name),
-      unfitted: false,
+      unfitted: !flown,
     };
   });
-  for (const label of hull.unfitted) {
-    drones.push({ id: null, name: label, kind: droneKeyForName(label), unfitted: true });
-  }
   return {
     name: hull.name,
     unlock: unlockLines(hull.unlock),
@@ -138,7 +144,7 @@ export function cruiserArticle(id: string | undefined): ArticleLine[] | undefine
   lines.push({ depth: 1, text: `Default name: ${hull.name}` });
   lines.push({ depth: 1, text: `Reactor: ${hull.reactor}` });
   lines.push({ depth: 1, text: "Crew:" });
-  for (const seat of countedCrew(hull.crew)) lines.push({ depth: 2, text: seat });
+  for (const seat of countedCrew(startingFit(hull).crew)) lines.push({ depth: 2, text: seat });
   lines.push({ depth: 1, text: "Systems:" });
   for (const system of bay.systems)
     lines.push({ depth: 2, text: `${system.name} (${system.level})` });
@@ -155,7 +161,7 @@ export function cruiserArticle(id: string | undefined): ArticleLine[] | undefine
     for (const name of bay.augments) lines.push({ depth: 2, text: name });
   }
   lines.push({ depth: 1, text: "Resources:" });
-  lines.push({ depth: 2, text: `${hull.fuel} Fuel` });
+  lines.push({ depth: 2, text: `${START_FUEL} Fuel` });
   lines.push({ depth: 2, text: `${hull.missiles} Missiles` });
   lines.push({ depth: 2, text: `${hull.parts} Drone parts` });
   lines.push({ depth: 0, text: "Unlock:" });

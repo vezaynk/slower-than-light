@@ -381,19 +381,27 @@ export function activateDroneSlot(g: Game, index: number): boolean {
 }
 
 /**
+ * Schematics player Drone Control can fly: every SwarmKind, plus Combat Drone Mark II, the Ion Intruder, and both Shield
+ * Overchargers, which stay outside SwarmKind (drones-missing.ts still lists them). Anything else, such as the
+ * Anti-Personnel Drone, is a schematic this build does not fly.
+ */
+export function canDeploy(kind: string): boolean {
+  return (
+    isKind(kind) ||
+    kind === "COMBAT_2" ||
+    kind === "BOARDER_ION" ||
+    kind === "DRONE_SHIELD" ||
+    kind === "DRONE_SHIELD_PLAYER"
+  );
+}
+
+/**
  * Spend one drone part and deploy. Same kind already out does not spend again.
  * Power is not taken here; the drone acts only while fed bars cover DRONE_POWER.
  */
 export function deploy(g: Game, kind: string): boolean {
   const kit = g.player.kits.drones;
-  // Combat Drone Mark II, the Ion Intruder, and both Shield Overchargers stay outside SwarmKind.
-  // drones-missing.ts still lists them.
-  const cited =
-    kind === "COMBAT_2" ||
-    kind === "BOARDER_ION" ||
-    kind === "DRONE_SHIELD" ||
-    kind === "DRONE_SHIELD_PLAYER";
-  if (!kit || (!isKind(kind) && !cited)) return false;
+  if (!kit || !canDeploy(kind)) return false;
   if (kit.on && kit.target === kind) {
     delete kit.idle;
     return true;

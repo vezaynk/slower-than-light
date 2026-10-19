@@ -219,8 +219,9 @@ describe("crew room orders", () => {
       c.path = [];
     }
     hurt.hp = 40;
+    // A run starts the medbay on one bar (FTL's starting power), so switch it off first.
+    g.player.systems.medbay.power = 0;
     assert.equal(healingIds(g, g.player, "player").size, 0, "unpowered");
-    g.player.systems.weapons.power -= 1;
     g.player.systems.medbay.power = 1;
     assert.deepEqual([...healingIds(g, g.player, "player")], [hurt.id]);
   });

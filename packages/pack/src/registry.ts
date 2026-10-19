@@ -18,7 +18,6 @@ import type {
   FactionSurrender,
   FillerListDef,
   HullDef,
-  HullKitDef,
   NamedReward,
   OfferRow,
   ResourceReward,
@@ -90,15 +89,6 @@ function copyDrone(row: DroneDef): DroneDef {
 
 function copySystem(row: SystemDef): SystemDef {
   return { ...row };
-}
-
-function copyKit(kit: HullKitDef): HullKitDef {
-  const copy: HullKitDef = { level: kit.level, power: kit.power };
-  if (kit.target !== undefined) copy.target = kit.target;
-  if (kit.loadout) copy.loadout = [...kit.loadout];
-  if (kit.on !== undefined) copy.on = kit.on;
-  if (kit.weapon) copy.weapon = kit.weapon;
-  return copy;
 }
 
 function copySector(row: SectorDef): SectorDef {
@@ -414,18 +404,10 @@ function copyGrid(grid: NonNullable<HullDef["grid"]>): NonNullable<HullDef["grid
 }
 
 function copyHull(row: HullDef): HullDef {
-  const systems: Record<string, [number, number]> = {};
-  for (const [id, pair] of Object.entries(row.systems)) systems[id] = [pair[0], pair[1]];
-  const kits: Record<string, HullKitDef> = {};
-  for (const [id, kit] of Object.entries(row.kits)) kits[id] = copyKit(kit);
   const copy: HullDef = {
     ...row,
-    systems,
     weapons: [...row.weapons],
-    crew: row.crew.map((seat) => ({ kin: seat.kin, room: seat.room })),
-    kits,
     augments: [...row.augments],
-    unfitted: [...row.unfitted],
   };
   if (row.grid) copy.grid = copyGrid(row.grid);
   if (row.picture) copy.picture = { ...row.picture };

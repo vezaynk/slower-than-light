@@ -255,13 +255,14 @@ describe("packFromExtract", () => {
     assert.deepEqual(pack.textLists?.[0]?.lines, [{ text: "Near." }, { load: "MORE" }]);
   });
 
-  it("reads the stand-in when hull pictures are packed beside it", () => {
+  it("reads the stand-in's ships from its ftl.dat blueprints, with hull pictures beside them", () => {
     const pack = packFromExtract(
       extract({
         documents: [
+          { path: "data/stand-in.xml", xml: `<FTL></FTL>` },
           {
-            path: "data/stand-in.xml",
-            xml: `<FTL><shipBlueprint name="PLAYER_SHIP_HARD" layout="kestral" img="kestral"><title>The Kestrel</title></shipBlueprint></FTL>`,
+            path: "data/blueprints.xml",
+            xml: `<FTL><shipBlueprint name="PLAYER_SHIP_HARD" layout="kestral" img="kestral"><name>The Kestrel</name></shipBlueprint></FTL>`,
           },
           {
             path: "data/kestral.xml",
@@ -397,17 +398,11 @@ function parseGap() {
     name: "Campaign Kestrel",
     quote: "",
     unlock: "",
-    source: "",
     reactor: 0,
-    fuel: 0,
     missiles: 0,
     parts: 0,
-    systems: {},
     weapons: [],
-    crew: [],
-    kits: {},
     augments: [],
-    unfitted: [],
   };
   return parsePack(
     emitPack(

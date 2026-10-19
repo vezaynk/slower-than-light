@@ -24,6 +24,7 @@ import {
   loadPack,
   resetPackForTests,
   sectorDef,
+  startingFit,
   storeDef,
   systemDef,
   tuneDef,
@@ -199,9 +200,18 @@ describe("content pack", () => {
     assert.equal(packed?.name, kestrel?.name);
     assert.equal(packed?.reactor, kestrel?.reactor);
     assert.deepEqual(packed?.weapons, kestrel?.weapons);
-    assert.deepEqual(packed?.crew, kestrel?.crew);
-    assert.deepEqual(packed?.systems, kestrel?.systems);
-    assert.deepEqual(packed?.kits, kestrel?.kits);
+    // The blueprint carries levels and crew counts; the run's seats and levels come from them.
+    assert.ok(packed && kestrel);
+    const fit = startingFit(packed);
+    assert.deepEqual(
+      fit.crew.map((seat) => seat.kin),
+      kestrel.crew.map((seat) => seat.kin),
+    );
+    const levels = (rows: Record<string, [number, number] | undefined>) =>
+      Object.fromEntries(
+        Object.entries(rows).flatMap(([id, pair]) => (pair && pair[0] > 0 ? [[id, pair[0]]] : [])),
+      );
+    assert.deepEqual(levels(fit.systems), levels(kestrel.systems));
   });
 
   it("keeps a hull id apart from a race, a weapon, an augment, a drone, and a system", () => {
@@ -212,17 +222,11 @@ describe("content pack", () => {
       name: "Not the laser",
       quote: "",
       unlock: "",
-      source: "",
       reactor: 4,
-      fuel: 1,
       missiles: 0,
       parts: 0,
-      systems: {},
       weapons: [],
-      crew: [],
-      kits: {},
       augments: [],
-      unfitted: [],
     };
     loadPack({ hulls: [ember] }, "append");
     assert.equal(hullDef("spark")?.name, "Not the laser");

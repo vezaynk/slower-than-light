@@ -1,6 +1,16 @@
 export { emitPack } from "./emit.ts";
+export { emitFtlShips } from "./ftl-emit.ts";
 export type { EmitSlice } from "./emit.ts";
 export { overlayGap } from "./overlay.ts";
+export {
+  KIT_SYSTEMS,
+  SEAT_ORDER,
+  SHIP_SYSTEMS,
+  START_FUEL,
+  roomNames,
+  startingFit,
+  type StartingFit,
+} from "./hull-fit.ts";
 export { prettyXml } from "./format.ts";
 export { attachTextLists, packFromFtl, pickOpening } from "./ftl.ts";
 export {
@@ -12,7 +22,6 @@ export {
   readHullPictures,
 } from "./picture.ts";
 export {
-  attachLayoutFiles,
   cloneGrid,
   doorsFromMarks,
   gridFromLayout,
@@ -134,7 +143,6 @@ export type {
   ArchiveShip,
   BlueprintListDef,
   HullCrewCount,
-  HullCrewDef,
   HullDef,
   HullDoor,
   HullEllipse,

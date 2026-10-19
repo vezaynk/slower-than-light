@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import "./pack/base.ts";
-import { cueFor } from "./audio.ts";
+import { cueFor, deathCue, scorePick, syncLoops } from "./audio.ts";
 import {
   archiveGeneration,
+  archiveImage,
+  clipFrame,
   crewLayers,
   crewPoseFrame,
   projectileBox,
@@ -13,6 +15,7 @@ import {
   rememberArchive,
   droneLayerUrl,
   roomIconUrl,
+  setImageVariant,
   soundCue,
   weaponFrame,
 } from "./pack/media.ts";
@@ -41,6 +44,7 @@ describe("archive media", () => {
   const revoke = URL.revokeObjectURL;
 
   afterEach(async () => {
+    setImageVariant({ colorblind: false, tablet: false, lang: "en" });
     await rememberArchive([], new Map());
     created.length = 0;
     revoked.length = 0;
@@ -100,8 +104,9 @@ describe("archive media", () => {
     assert.equal(soundCue("laser")?.volume, 0.8);
     assert.equal(soundCue("laser")?.file, "audio/waves/ui/laser.wav");
     assert.equal(soundCue("click"), undefined);
-    assert.equal(musicTrack()?.explore?.size, 1);
-    assert.equal(musicTrack()?.combat?.size, 1);
+    assert.equal(musicTrack("civil")?.explore?.size, 1);
+    assert.equal(musicTrack("civil")?.combat?.size, 1);
+    assert.equal(musicTrack(), undefined);
     assert.equal(archiveGeneration(), before + 1);
     await rememberArchive([], new Map());
     assert.equal(weaponFrame("LASER_BURST_3"), undefined);
@@ -156,6 +161,76 @@ describe("archive media", () => {
     assert.equal(cueFor("hit")?.name, "hitHull1");
     assert.equal(cueFor("hit")?.loop, true);
     assert.equal(cueFor("click"), undefined);
+  });
+
+  it("frames an effect clip and leaves a missing picture alone", async () => {
+    URL.createObjectURL = () => {
+      const url = `blob:fx-${created.length}`;
+      created.push(url);
+      return url;
+    };
+    URL.revokeObjectURL = () => {};
+    await rememberArchive(
+      [
+        {
+          path: "data/animations.xml",
+          xml: `<animations>
+<animSheet name="fire_large" w="64" h="16" fw="16" fh="16">effects/fire_large.png</animSheet>
+<anim name="fire_large"><sheet>fire_large</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+</animations>`,
+        },
+        {
+          path: "data/sounds.xml",
+          xml: `<sounds><fire volume="8" loop="true">ui/fire.wav</fire><doorOpen volume="8">ui/doorOpen.wav</doorOpen></sounds>`,
+        },
+      ],
+      new Map([
+        ["img/effects/fire_large.png", new Blob([Uint8Array.of(1)])],
+        ["img/stars/bg_dullstars.png", new Blob([Uint8Array.of(2)])],
+        ["img/ships_noglow/kestral_base.png", new Blob([Uint8Array.of(3)])],
+        ["audio/waves/ui/fire.wav", new Blob([Uint8Array.of(4)])],
+        ["audio/waves/ui/doorOpen.wav", new Blob([Uint8Array.of(5)])],
+      ]),
+    );
+    const frame = clipFrame("fire_large", 1);
+    assert.equal(frame?.sx, 16);
+    assert.equal(frame?.fw, 16);
+    assert.equal(clipFrame("fire_large", 4)?.sx, 0);
+    assert.equal(clipFrame("missing", 0), undefined);
+    assert.equal(archiveImage("img/stars/bg_dullstars.png"), "blob:fx-1");
+    assert.equal(archiveImage("img/ships_noglow/kestral_base.png"), "blob:fx-2");
+    assert.equal(archiveImage("img/icons/not-a-real-icon.png"), undefined);
+    assert.equal(soundCue("fire")?.loop, true);
+    assert.equal(soundCue("doorOpen")?.file, "audio/waves/ui/doorOpen.wav");
+    const generation = archiveGeneration();
+    setImageVariant({ colorblind: true });
+    assert.equal(archiveGeneration(), generation);
+    assert.equal(archiveImage("img/stars/bg_dullstars.png"), "blob:fx-1");
+    setImageVariant({ colorblind: false });
+  });
+
+  it("picks the title score, a sector score, and a death cue without a speaker", () => {
+    assert.deepEqual(scorePick({ phase: "title", sectorName: "Civilian Sector", combat: true }), {
+      track: "title",
+      mode: "explore",
+    });
+    assert.equal(
+      scorePick({ phase: "map", sectorName: "Engi Controlled Sector", combat: false }).track,
+      "engi",
+    );
+    assert.equal(
+      scorePick({ phase: "combat", sectorName: "Engi Controlled Sector", combat: true }).mode,
+      "combat",
+    );
+    assert.equal(
+      scorePick({ phase: "map", sectorName: "No such sector", combat: false }).track,
+      "civilian",
+    );
+    assert.equal(deathCue("rock"), "rockDeath");
+    assert.equal(deathCue("mantis"), "mantisDeath");
+    assert.equal(deathCue("human"), "death1");
+    assert.equal(deathCue(undefined), "death1");
+    syncLoops({ fire: true, repair: false });
   });
 
   it("multiplies a layer by its tint, and keeps a projectile's proportions", () => {

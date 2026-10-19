@@ -26,7 +26,8 @@ import { gunHeight, mountImage, mountPose } from "@/game/mount-place";
 import "@/game/pack/base";
 import { powerMask, weaponAccentHot, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
-import { hullDef, ROOM_PX, type HullMount, type HullPicture } from "@stl/pack";
+import { EFFECT_CLIPS, hullDef, ROOM_PX, type HullMount, type HullPicture } from "@stl/pack";
+import { clipLength } from "@/game/pack/media";
 import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
@@ -41,6 +42,7 @@ import { RoomRadial } from "./RoomRadial";
 import { roomDoors } from "./room-doors";
 import { pageRect, toPage } from "./turn";
 import { airShown } from "@/game/air";
+import { ClipSprite } from "./ClipSprite";
 
 /** A player gun's queued room, drawn as a numbered reticle on the enemy ship. */
 export type AimMark = { room: string; slot: number; state: "charging" | "ready" | "auto" };
@@ -775,6 +777,8 @@ export function ShipView({
         const clip = roomClip(room);
         const pick = hackPick ? hackPick(room.id) : null;
         const drone = hackMark && hackMark.room === room.id ? hackMark : null;
+        const fireName = room.fire > 1 ? EFFECT_CLIPS.fireLarge : EFFECT_CLIPS.fireSmall;
+        const fireClip = open && room.fire > 0 && clipLength(fireName) > 0 ? fireName : null;
         return (
           <div
             key={room.id}
@@ -786,6 +790,7 @@ export function ShipView({
               (room.flash > 0 ? " is-flash" : "") +
               // Sensors, "Overview": fire, venting, and air are interior information, so an unseen room shows none of it.
               (open && room.fire > 0 ? " is-fire" : "") +
+              (fireClip ? " has-fire-clip" : "") +
               (open && room.venting ? " is-vent" : "") +
               (!open ? "" : room.o2 <= 5 ? " is-airless" : room.o2 < 100 ? " is-thin" : "") +
               (open && room.o2 <= 10 ? " is-low" : "") +
@@ -807,6 +812,10 @@ export function ShipView({
           >
             {clip ? <i className="pixel-fill" style={{ clipPath: clip }} /> : null}
             {open && room.breach > 0 ? <BreachHoles room={room} /> : null}
+            {fireClip ? <ClipSprite name={fireClip} className="clip-fire" /> : null}
+            {open && room.flash > 0 ? (
+              <ClipSprite name={EFFECT_CLIPS.explosion} className="clip-flash" />
+            ) : null}
             <button
               type="button"
               className="room-hit"
@@ -1156,6 +1165,7 @@ function BreachHoles({ room }: { room: Ship["rooms"][number] }) {
     .map((c, i) => ({ c, k: ((seed ^ (i * 2654435761)) >>> 0) % 997 }))
     .sort((a, b) => a.k - b.k);
   const shown = order.slice(0, Math.min(room.breach, cells.length));
+  const plate = clipLength(EFFECT_CLIPS.breach) > 0;
   return (
     <>
       {shown.map(({ c }, i) => (
@@ -1171,19 +1181,23 @@ function BreachHoles({ room }: { room: Ship["rooms"][number] }) {
             ["--flip" as string]: i % 2 ? -1 : 1,
           }}
         >
-          <svg viewBox="0 0 16 16" shapeRendering="crispEdges">
-            <path
-              fill="#a7adb7"
-              d="M6 1h3v1h2v2h2v1h1v3h1v2h-1v2h-1v1h-2v1H9v1H6v-1H4v-1H3v-1H2V9H1V6h1V4h1V3h2V2h1z"
-            />
-            <path
-              fill="#5b616b"
-              d="M6 3h3v1h2v1h1v2h1v3h-1v1h-1v1H9v1H6v-1H5v-1H4V9H3V6h1V5h1V4h1z"
-            />
-            <path fill="#05060c" d="M7 4h2v1h2v2h1v3h-1v1H9v1H7v-1H5V9H4V7h1V5h2z" />
-            <rect x="7" y="7" width="1" height="1" fill="#f4f1e8" />
-            <rect x="10" y="9" width="1" height="1" fill="#9fb8ff" />
-          </svg>
+          {plate ? (
+            <ClipSprite name={EFFECT_CLIPS.breach} className="clip-breach" />
+          ) : (
+            <svg viewBox="0 0 16 16" shapeRendering="crispEdges">
+              <path
+                fill="#a7adb7"
+                d="M6 1h3v1h2v2h2v1h1v3h1v2h-1v2h-1v1h-2v1H9v1H6v-1H4v-1H3v-1H2V9H1V6h1V4h1V3h2V2h1z"
+              />
+              <path
+                fill="#5b616b"
+                d="M6 3h3v1h2v1h1v2h1v3h-1v1h-1v1H9v1H6v-1H5v-1H4V9H3V6h1V5h1V4h1z"
+              />
+              <path fill="#05060c" d="M7 4h2v1h2v2h1v3h-1v1H9v1H7v-1H5V9H4V7h1V5h2z" />
+              <rect x="7" y="7" width="1" height="1" fill="#f4f1e8" />
+              <rect x="10" y="9" width="1" height="1" fill="#9fb8ff" />
+            </svg>
+          )}
           <b className="breach-air" />
           <b className="breach-air" />
           <b className="breach-air" />

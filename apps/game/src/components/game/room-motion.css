@@ -1,5 +1,10 @@
 /* Room-state motion. Idle rooms are untouched: these rules only run while a state class is present. */
 
+/* An archive flame sheet replaces the drawn blocks. */
+.play .room.has-fire-clip.is-fire::after {
+  content: none;
+}
+
 /* Floor flames. The box is the bottom 30%; only the repeating blocks paint, so crew stay visible in the gaps. */
 .play .room.is-fire::after {
   content: "";

@@ -45,6 +45,14 @@ export function standInImages(
         path: `img/ship/${file.stem}_shields1.png`,
         bytes: shieldPng(file.stem, file.picture, file.rooms),
       },
+      {
+        path: `img/ships_noglow/${file.stem}_base.png`,
+        bytes: basePng(file.stem, file.picture, file.rooms),
+      },
+      {
+        path: `img/ships_glow/${file.stem}_base.png`,
+        bytes: cloakPng(file.stem, file.picture, file.rooms),
+      },
       ...gibs.map((gib, index) => ({
         path: `img/ship/${file.stem}_gib${gib.id}.png`,
         bytes: gibPng(file.stem, file.picture, file.rooms, index, gibs.length),

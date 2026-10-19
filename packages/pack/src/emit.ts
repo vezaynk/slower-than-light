@@ -670,6 +670,12 @@ function sectorElement(
   if (part !== "gap") add(node, leaf(doc, "title", sector.name));
   if (part !== "body") add(node, leaf(doc, "type", sector.group));
   if (part !== "body") for (const note of sector.notes) add(node, leaf(doc, "note", note));
+  // Track names belong on the stand-in body. The gap file (base.xml) leaves them out.
+  if (part !== "gap" && sector.tracks && sector.tracks.length > 0) {
+    const list = element(doc, "trackList", {});
+    for (const name of sector.tracks) add(list, leaf(doc, "track", name));
+    add(node, list);
+  }
   return node;
 }
 

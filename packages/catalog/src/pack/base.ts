@@ -35,7 +35,7 @@ import {
 import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
 import { standInSheet } from "../ship-art.ts";
 import { mountsFor } from "../weapon-mounts.ts";
-import { gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
+import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
   AugmentDef,
   ChoiceGift,
@@ -101,7 +101,10 @@ function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
 }
 
 function sectorRow(row: SectorType): SectorDef {
-  return { id: row.id, name: row.name, group: row.group, notes: [...row.notes] };
+  const track = SECTOR_TRACKS[row.id];
+  const sector: SectorDef = { id: row.id, name: row.name, group: row.group, notes: [...row.notes] };
+  if (track) sector.tracks = [track];
+  return sector;
 }
 
 function storeRow(row: StoreDef): StoreDef {

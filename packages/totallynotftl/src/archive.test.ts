@@ -46,6 +46,9 @@ describe("totallynotftl.dat", () => {
     assert.ok(anim.weapons.some((row) => row.name === "LASER_BURST_3"));
     assert.equal(anim.clips.find((row) => row.name === "LASER_BURST_3_shot")?.time, 1);
     assert.ok(anim.clips.some((row) => row.name === "human_walk_down"));
+    assert.equal(anim.clips.find((row) => row.name === "fire_large")?.length, 4);
+    assert.equal(anim.clips.find((row) => row.name === "asteroid0")?.length, 1);
+    assert.equal(anim.clips.find((row) => row.name === "explosion_big1")?.time, 1);
     const sounds = readSounds(
       extracted.documents.find((doc) => doc.path === "data/sounds.xml")?.xml ?? "",
     );
@@ -59,9 +62,21 @@ describe("totallynotftl.dat", () => {
       sounds.cues.find((row) => row.name === "laser"),
       undefined,
     );
-    assert.equal(sounds.tracks[0]?.name, "civil");
-    assert.equal(sounds.tracks[0]?.explore, "audio/music/civil_explore.ogg");
-    assert.equal(sounds.tracks[0]?.combat, "audio/music/civil_combat.ogg");
+    assert.equal(sounds.tracks.length, 18);
+    assert.equal(sounds.tracks[0]?.name, "civilian");
+    assert.equal(sounds.tracks[0]?.explore, "audio/music/bp_MUS_CivilEXPLORE.ogg");
+    assert.equal(sounds.tracks[0]?.combat, "audio/music/bp_MUS_CivilBATTLE.ogg");
+    assert.equal(
+      sounds.tracks.find((row) => row.name === "title")?.explore,
+      "audio/music/bp_MUS_TitleScreen.ogg",
+    );
+    assert.equal(sounds.tracks.find((row) => row.name === "title")?.combat, undefined);
+    assert.equal(
+      sounds.cues.find((row) => row.name === "doorOpen")?.file,
+      "audio/waves/ui/doorOpen.wav",
+    );
+    assert.equal(sounds.cues.find((row) => row.name === "fire")?.loop, true);
+    assert.equal(sounds.cues.find((row) => row.name === "repair")?.loop, true);
     const images = standInImages(pictures);
     assert.equal(extracted.assets.size, images.length + media.assets.length);
     for (const path of [
@@ -77,10 +92,29 @@ describe("totallynotftl.dat", () => {
       "img/ship/drones/COMBAT_2_base.png",
       "img/ship/interior/pilot.png",
       "audio/waves/ui/hitHull1.wav",
-      "audio/music/civil_explore.ogg",
+      "audio/waves/ui/doorOpen.wav",
+      "audio/waves/ui/fire.wav",
+      "audio/music/bp_MUS_CivilEXPLORE.ogg",
+      "audio/music/bp_MUS_TitleScreen.ogg",
+      "audio/music/bp_MUS_LastStand.ogg",
+      "img/ships_noglow/kestral_base.png",
+      "img/ships_glow/kestral_base.png",
+      "img/stars/bg_dullstars.png",
+      "img/map/map_icon_ship.png",
+      "img/ship/fleet/fleet_1_med_warning.png",
+      "img/effects/fire_large.png",
+      "img/effects/asteroid0.png",
+      "img/ui_icons/icon_scrap.png",
+      "img/mouse/pointerValid.png",
       "fonts/JustinFont8.font",
       "fonts/JustinFont10.font",
       "fonts/JustinFont12Bold.font",
+      "fonts/JustinFont11Bold.font",
+      "fonts/num_font.font",
+      "fonts/HL1.font",
+      "fonts/HL2.font",
+      "fonts/c&c.font",
+      "fonts/c&cnew.font",
     ]) {
       assert.ok(extracted.assets.has(path), path);
     }

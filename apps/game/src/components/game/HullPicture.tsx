@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { pictureFrame, type HullPicture } from "@stl/pack";
+import { EFFECT_CLIPS, pictureFrame, type HullPicture } from "@stl/pack";
 import { gibImages, shipArtGeneration, shipImage, subscribeShipArt } from "@/game/pack/ship-art";
+import { ClipSprite } from "./ClipSprite";
 import { gridPitch } from "./grid-pitch";
 import { HullPlate } from "./HullPlate";
 import "./hull-plate.css";
@@ -38,9 +39,11 @@ export function HullSkin({
   const floor = artTick >= 0 ? shipImage(id, "floor") : undefined;
   const cloak = artTick >= 0 ? shipImage(id, "cloak") : undefined;
   const gibs = gone && artTick >= 0 ? gibImages(id) : [];
+  const boom = gone ? <ClipSprite name={EFFECT_CLIPS.explosionBig} className="clip-boom" /> : null;
   if (base || floor || gibs.length > 0) {
     return (
       <>
+        {boom}
         {floor ? (
           <HullBase
             className="hull-floor"
@@ -94,15 +97,18 @@ export function HullSkin({
     );
   }
   return (
-    <HullPlate
-      id={id}
-      faction={faction}
-      pirate={pirate}
-      facing={facing}
-      cols={cols}
-      rows={rows}
-      rooms={rooms}
-    />
+    <>
+      {boom}
+      <HullPlate
+        id={id}
+        faction={faction}
+        pirate={pirate}
+        facing={facing}
+        cols={cols}
+        rows={rows}
+        rooms={rooms}
+      />
+    </>
   );
 }
 

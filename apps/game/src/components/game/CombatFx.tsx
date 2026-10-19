@@ -43,7 +43,14 @@ import {
 } from "./miss-flight";
 import "@/game/pack/base";
 import { pageRect } from "./turn";
-import { droneLayerUrl, loadedImage, projectileBox, projectileFrame } from "@/game/pack/media";
+import { asteroidClip } from "@stl/pack";
+import {
+  clipFrame,
+  droneLayerUrl,
+  loadedImage,
+  projectileBox,
+  projectileFrame,
+} from "@/game/pack/media";
 
 type Box = { x: number; y: number; w: number; h: number };
 type Pt = { x: number; y: number };
@@ -345,6 +352,23 @@ function paintBolt(
 
 /** Environmental Hazards, Asteroid Field: a tumbling stone. `h` picks one of three silhouettes. */
 function drawAsteroid(ctx: CanvasRenderingContext2D, h: number) {
+  const frame = clipFrame(asteroidClip(Math.floor(h * 10)), 0);
+  const img = frame ? loadedImage(frame.url) : undefined;
+  if (frame && img) {
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(
+      img,
+      frame.sx,
+      frame.sy,
+      frame.fw,
+      frame.fh,
+      -frame.fw / 2,
+      -frame.fh / 2,
+      frame.fw,
+      frame.fh,
+    );
+    return;
+  }
   const body = h > 0.66 ? "#8d8476" : h > 0.33 ? "#6e675c" : "#7a7268";
   ctx.fillStyle = "#3c3832";
   ctx.fillRect(-8, -4, 16, 9);
@@ -761,7 +785,7 @@ export function CombatFx() {
               ctx.globalAlpha = 1;
             }
             // Label tag under the pod, VT323 like the floaters.
-            ctx.font = "18px VT323, monospace";
+            ctx.font = "18px NumFont, VT323, monospace";
             ctx.textAlign = "center";
             const tag = pulse ? `HACK ${Math.ceil(hack.left)}s` : "HACK";
             ctx.fillStyle = "#020308";
@@ -1897,7 +1921,7 @@ export function CombatFx() {
       }
       ctx.globalAlpha = 1;
 
-      ctx.font = "26px VT323, monospace";
+      ctx.font = "26px NumFont, VT323, monospace";
       ctx.textAlign = "center";
       for (let i = texts.length - 1; i >= 0; i--) {
         const t = texts[i];

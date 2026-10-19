@@ -1,4 +1,4 @@
-import { flushSfx } from "./audio.ts";
+import { deathCue, flushSfx, syncLoops } from "./audio.ts";
 import { TILE_WALK_S, footVia, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
 import {
   claimPadTile,
@@ -390,6 +390,31 @@ export function log(g: Game, text: string) {
 
 function sfx(g: Game, name: string) {
   g.sfx.push(name);
+}
+
+/** Fire while any room is burning. Repair while a crew member is sealing or fixing, and not fighting that fire. */
+function syncBed(g: Game) {
+  let fire = false;
+  let repair = false;
+  const hulls: { ship: Ship; aboard: "player" | "enemy" }[] = [
+    { ship: g.player, aboard: "player" },
+  ];
+  if (g.enemy) hulls.push({ ship: g.enemy, aboard: "enemy" });
+  if (g.wreck) hulls.push({ ship: g.wreck, aboard: "enemy" });
+  for (const { ship, aboard } of hulls) {
+    for (const room of ship.rooms) {
+      if (room.fire > 0) fire = true;
+      if (repair || room.fire > 0) continue;
+      const systemHurt = room.system != null && ship.systems[room.system].damage > 0;
+      const kitHurt = room.kit != null && (ship.kits[room.kit]?.damage ?? 0) > 0;
+      if (room.breach <= 0 && !systemHurt && !kitHurt) continue;
+      const standing = g.crew.some(
+        (c) => c.hp > 0 && c.aboard === aboard && c.room === room.id && c.path.length === 0,
+      );
+      if (standing) repair = true;
+    }
+  }
+  syncLoops({ fire, repair });
 }
 
 function floatAt(g: Game, text: string, x: number, y: number, beam?: boolean) {
@@ -2104,7 +2129,7 @@ export function toggleDoor(g: Game, a: string, b: string) {
     const room = roomById(g.player, door.a);
     if (room) room.venting = door.open;
   }
-  sfx(g, door.open ? "vent" : "click");
+  sfx(g, door.open ? "doorOpen" : "doorClose");
 }
 
 export function toggleVent(g: Game, roomId: string) {
@@ -5617,6 +5642,7 @@ function reap(g: Game) {
   if (!dead.length) return;
   for (const c of dead) {
     const cloned = noteDeath(g, c);
+    sfx(g, deathCue(c.kin));
     const hull = c.aboard === "player" ? g.player : g.enemy;
     const room = hull?.rooms.find((r) => r.id === c.room);
     const livingPlayers = g.crew.filter((other) => other.side === "player" && other.hp > 0);
@@ -6954,6 +6980,7 @@ export function commitJump(g: Game, id: string) {
   // Stores, "Fuel": one fuel per jump. Rebel Fleet: half only for a nebula beacon outside a nebula sector.
   g.fuel -= 1;
   g.jumps += 1;
+  sfx(g, "jumpLeave");
   // Score, b: "Visiting a beacon controlled by rebels or about to be controlled by rebels does NOT increase the count."
   // Controlled is inside the danger circle (wiki/sector-map.ts). INFERRED: "about to be" is inside it once this jump's
   // fleet advance lands. Sector 8 has no fleet circle (the Flagship rules there are not modelled here).
@@ -6983,6 +7010,7 @@ export function commitJump(g: Game, id: string) {
   if ((g.buoyDelay ?? 0) > 0) g.buoyDelay -= 1;
   else g.fleet += pursuit(g, citedFleetAdvance(g, dest));
   g.here = dest.id;
+  sfx(g, "jumpArrive");
   dest.visited = true;
   const eventSlug = dest.flag.replace(/^(cited:|filler:)/, "");
   noteAchieve(g, {
@@ -7422,7 +7450,7 @@ export function buy(g: Game, id: string) {
     g.stock = (g.stock ?? []).filter((s) => s.id !== id);
     noteAchieve(g, { k: "store", repair: false });
     if (item.kind === "system") noteAchieve(g, { k: "upgrade" });
-    sfx(g, "click");
+    sfx(g, "buy");
     log(g, `Bought ${item.name}.`);
     return;
   }
@@ -7447,7 +7475,7 @@ export function buy(g: Game, id: string) {
     item.amount -= 1;
     if (item.amount <= 0) g.stock = (g.stock ?? []).filter((s) => s.id !== id);
     noteAchieve(g, { k: "store", repair: false });
-    sfx(g, "click");
+    sfx(g, "buy");
     log(g, `Bought 1 ${item.name.toLowerCase()}.`);
     return;
   }
@@ -7460,7 +7488,7 @@ export function buy(g: Game, id: string) {
   } else noteAchieve(g, { k: "store", repair: false });
   if (item.kind === "weapon") receiveWeapon(g, item.ref);
   g.stock = (g.stock ?? []).filter((s) => s.id !== id);
-  sfx(g, "click");
+  sfx(g, "buy");
   log(g, `Bought ${item.name}.`);
 }
 
@@ -7912,7 +7940,7 @@ export function upgrade(g: Game, id: SysId | "reactor") {
     g.scrap -= cost;
     g.player.reactor += 1;
     noteAchieve(g, { k: "upgrade" });
-    sfx(g, "click");
+    sfx(g, "levelup");
     log(g, `Reactor ${g.player.reactor}.`);
     return;
   }
@@ -7923,7 +7951,7 @@ export function upgrade(g: Game, id: SysId | "reactor") {
   sys.level += 1;
   if (!isMain(id)) sys.power = sys.level;
   noteAchieve(g, { k: "upgrade" });
-  sfx(g, "click");
+  sfx(g, "levelup");
   log(g, `${id} upgraded.`);
 }
 
@@ -8124,6 +8152,7 @@ function neutralShipTick(g: Game, h: number) {
 }
 
 export function step(g: Game, dt: number) {
+  syncBed(g);
   promptExitLane(g);
   // Environmental Hazards: IN DANGER prevents opening the ship info screen.
   // INFERRED: a screen already open closes when that danger starts. The page does not say it stays up.

@@ -11,7 +11,8 @@
  */
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import "@/game/pack/base";
-import { hullDef, weaponDef } from "@stl/pack";
+import { hullDef, shipPreviewPath, weaponDef } from "@stl/pack";
+import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import {
   NAME_MAX,
   PLAYER_UNIFORMS,
@@ -96,6 +97,12 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   const lockRule = ruleFor(layout.id);
   const hull = hullDef(layout.id);
   const cruiser = hull?.cruiser ?? "";
+  const art = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
+  const portrait =
+    hull?.img && art >= 0
+      ? (archiveImage(shipPreviewPath(hull.img, true)) ??
+        archiveImage(shipPreviewPath(hull.img, false)))
+      : undefined;
   const earned = new Set(unlocks === SERVER_UNLOCKS ? [] : earnedIds());
   const shipAch = shipAchievements(cruiser).map((id) => ACHIEVEMENTS.find((row) => row.id === id)!);
   const allOpen = CRUISER_PAGES.every((p) => p.layouts.every((l) => isUnlockedIn(unlocks, l.id)));
@@ -245,20 +252,24 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
             ["--hull-body" as string]: factionPaint(layout.id.split("-")[0]).skin,
           }}
         >
-          <ShipView
-            ship={preview.ship}
-            crew={preview.crew}
-            aboard="player"
-            showCrew
-            selectedId={null}
-            ventMode={false}
-            targetable={false}
-            onRoom={() => {}}
-            onCrew={() => {}}
-            plateId={layout.id}
-            faction={layout.id.split("-")[0]}
-            facing="right"
-          />
+          {portrait ? (
+            <img className="hangar-portrait" src={portrait} alt="" />
+          ) : (
+            <ShipView
+              ship={preview.ship}
+              crew={preview.crew}
+              aboard="player"
+              showCrew
+              selectedId={null}
+              ventMode={false}
+              targetable={false}
+              onRoom={() => {}}
+              onCrew={() => {}}
+              plateId={layout.id}
+              faction={layout.id.split("-")[0]}
+              facing="right"
+            />
+          )}
         </div>
         {locked ? (
           <div className="hangar-locked" role="note">

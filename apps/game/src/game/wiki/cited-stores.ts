@@ -646,6 +646,7 @@ export function citedSell(g: Game, id: string): boolean {
     delete kit.hp;
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
+    g.sfx.push("sell");
     return true;
   }
   if (quote.kind === "weapon" && id.startsWith("c:")) {
@@ -654,6 +655,7 @@ export function citedSell(g: Game, id: string): boolean {
     g.cargo = cargoOf(g).filter((_, i) => i !== index);
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
+    g.sfx.push("sell");
     return true;
   }
   if (quote.kind === "weapon") {
@@ -668,6 +670,7 @@ export function citedSell(g: Game, id: string): boolean {
     }
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
+    g.sfx.push("sell");
     return true;
   }
   const match = /^a:(\d+):(.+)$/.exec(id);
@@ -683,5 +686,6 @@ export function citedSell(g: Game, id: string): boolean {
   }
   g.scrap += quote.scrap;
   g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
+  g.sfx.push("sell");
   return true;
 }

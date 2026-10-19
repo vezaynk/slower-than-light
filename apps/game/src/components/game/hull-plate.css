@@ -35,7 +35,43 @@
   pointer-events: none;
 }
 
-.hull.is-gone .hull-gibs {
+.clip-sprite {
+  display: block;
+  image-rendering: pixelated;
+  pointer-events: none;
+  background-repeat: no-repeat;
+}
+.room > .clip-fire {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 4;
+  transform: translateX(-50%) scale(var(--ship-scale, 1));
+  transform-origin: center bottom;
+}
+.room > .clip-flash {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  z-index: 5;
+  transform: scale(var(--ship-scale, 1));
+}
+.breach-hole .clip-breach {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.clip-boom {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  z-index: 4;
+  transform: translate(-50%, -50%) scale(var(--ship-scale, 1));
+}
+
+.hull.is-gone .hull-gibs,
+.hull.is-gone .clip-boom {
   visibility: visible;
 }
 

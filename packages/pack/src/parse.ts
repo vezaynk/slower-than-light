@@ -580,12 +580,20 @@ function readSector(node: XmlElement): SectorDef | undefined {
     const text = ownText(item).trim();
     if (text) notes.push(text);
   }
-  return {
+  const tracks: string[] = [];
+  for (const item of elements(child(node, "trackList"))) {
+    if (item.tagName !== "track") continue;
+    const text = ownText(item).trim();
+    if (text) tracks.push(text);
+  }
+  const sector: SectorDef = {
     id,
     name: textOf(node, "title") ?? id,
     group: textOf(node, "type") ?? "",
     notes,
   };
+  if (tracks.length > 0) sector.tracks = tracks;
+  return sector;
 }
 
 export function tagged(doc: XmlDocument, tag: string): XmlElement[] {

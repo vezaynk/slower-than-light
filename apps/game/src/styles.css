@@ -5,7 +5,7 @@
 @layer base {
   button:not(:disabled),
   [role="button"]:not(:disabled) {
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
   }
 
   html,
@@ -2225,6 +2225,7 @@ button:disabled {
 }
 
 .ftl-card p {
+  font-family: var(--font-event, inherit);
   font-size: calc(15px + var(--event-font, 0) * 2px);
   line-height: 1.45;
   color: var(--color-fg);
@@ -2233,7 +2234,7 @@ button:disabled {
 .event-lead {
   font-size: calc(28px + var(--event-font, 0) * 2px) !important !important;
   margin-bottom: 14px;
-  font-family: var(--font-hud);
+  font-family: var(--font-event, var(--font-hud));
   letter-spacing: 0.04em;
   line-height: 1;
 }
@@ -2251,6 +2252,7 @@ button:disabled {
   color: var(--color-fg);
   text-align: left;
   font: inherit;
+  font-family: var(--font-event, inherit);
   font-size: calc(15px + var(--event-font, 0) * 2px);
   padding: 8px 12px;
   min-height: 40px;
@@ -3174,6 +3176,7 @@ button.door-tick::before {
   display: grid;
   place-items: center;
   background: #07060d;
+  font-family: var(--font-title, var(--font-hud));
 }
 
 .title-frame {
@@ -3550,6 +3553,7 @@ button.door-tick::before {
   align-items: center;
   background: #05080b;
   border-color: var(--color-line);
+  font-family: var(--font-title, var(--font-hud));
   font-size: 28px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3725,6 +3729,13 @@ button.door-tick::before {
   display: grid;
   place-items: center;
   position: relative;
+}
+.hangar-portrait {
+  width: min(100%, 420px);
+  height: min(46cqh, 280px);
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
 }
 .hangar-stage .hull {
   --tile: clamp(
@@ -5588,13 +5599,18 @@ button.door-tick::before {
   inset: 0;
 }
 
-.beacon-plot svg.beacon-ship {
+.beacon-plot svg.beacon-ship,
+.beacon-ship-img {
   position: absolute;
   width: 34px;
   height: 20px;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 2;
+}
+.beacon-ship-img {
+  object-fit: contain;
+  image-rendering: pixelated;
 }
 
 .beacon-spot {
@@ -5625,6 +5641,15 @@ button.door-tick::before {
   cursor: default;
 }
 
+.map-beacon.has-mark {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 16px 16px;
+  image-rendering: pixelated;
+}
+.map-beacon.has-mark::before {
+  display: none;
+}
 .map-beacon::before {
   content: "";
   position: absolute;
@@ -5717,6 +5742,26 @@ button.door-tick::before {
   white-space: nowrap;
   z-index: 2;
 }
+.fleet-ship {
+  display: block;
+  width: 32px;
+  height: 16px;
+  margin: 0 auto 2px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  transform: rotate(90deg);
+}
+.beacon-hazard {
+  position: absolute;
+  left: 12px;
+  top: -10px;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 3;
+}
 
 /* Enemy hull and shields on the target panel (always shown; not Sensors information). */
 .foe-vitals {
@@ -5743,7 +5788,7 @@ button.door-tick::before {
 }
 
 .foe-hull-num {
-  font-family: var(--font-hud);
+  font-family: var(--font-num, var(--font-hud));
   font-size: 18px;
   color: var(--color-fg);
 }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { readBitmapFont, writeBitmapFont } from "@stl/pack";
-import { ttfFromBitmap } from "./pack/bitmap-ttf.ts";
+import { legibleCapRatio, thinnestFeature, ttfFromBitmap } from "./pack/bitmap-ttf.ts";
 
 describe("bitmap ttf", () => {
   it("builds a face whose checksum matches the font directory", () => {
@@ -56,6 +56,37 @@ describe("bitmap ttf", () => {
     assert.ok(hmtx);
     assert.equal(be16(hmtx, 4), 5 * 64);
     assert.equal(be16(hmtx, 8), 7 * 64);
+  });
+});
+
+describe("legible cap ratio", () => {
+  // An "H" of the given height: two posts and a crossbar, each `stroke` pixels thick.
+  const letterH = (h: number, stroke: number) => {
+    const w = stroke * 3;
+    const alpha = new Uint8Array(w * h);
+    for (let y = 0; y < h; y += 1) {
+      for (let x = 0; x < w; x += 1) {
+        const post = x < stroke || x >= w - stroke;
+        const bar = y >= Math.floor(h / 2) && y < Math.floor(h / 2) + stroke;
+        if (post || bar) alpha[y * w + x] = 255;
+      }
+    }
+    const font = readBitmapFont(writeBitmapFont([{ ch: 72, w, h, ascent: h, alpha }], 19, 12));
+    assert.ok(font);
+    return font;
+  };
+
+  it("raises the ratio only as far as the thinnest stroke needs at the smallest size", () => {
+    // FTL's own faces: 1-pixel strokes. JustinFont11's 11-pixel capitals at 15px need 11/15 of the em.
+    const fine = letterH(11, 1);
+    assert.equal(thinnestFeature(fine), 1);
+    assert.equal(legibleCapRatio(fine, 0.698, 15), 11 / 15);
+    // The stand-in's larger faces are drawn at double size: 14-pixel capitals with 2-pixel strokes keep the base.
+    const doubled = letterH(14, 2);
+    assert.equal(thinnestFeature(doubled), 2);
+    assert.equal(legibleCapRatio(doubled, 0.698, 15), 0.698);
+    // No smallest size leaves the base alone.
+    assert.equal(legibleCapRatio(fine, 0.56), 0.56);
   });
 });
 

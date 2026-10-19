@@ -21,6 +21,8 @@
   --font-sans: "IBM Plex Mono", ui-monospace, monospace;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --font-hud: "VT323", "IBM Plex Mono", ui-monospace, monospace;
+  /* HUD text a rule sets at 21px or more. The archive build gives it the large bitmap face (pack/media.ts). */
+  --font-hud-large: "VT323", "IBM Plex Mono", ui-monospace, monospace;
   --radius: 2px;
   --glow: 0 0 12px rgba(180, 255, 230, 0.12);
   --tile: 22px;

@@ -1,3 +1,4 @@
+import { pickOpening } from "./ftl.ts";
 import { cloneGrid } from "./grid.ts";
 import { bonusChance, resourceBounds, scrapBounds, type RewardDifficulty } from "./rewards.ts";
 import type {
@@ -30,6 +31,7 @@ import type {
   StoreLine,
   SurrenderOfferDef,
   SystemDef,
+  TextListDef,
   TuneDef,
   TuneStep,
   WeaponBlueprint,
@@ -47,6 +49,7 @@ const tunes = new Map<string, TuneDef>();
 const events = new Map<string, EventDef>();
 const lists = new Map<string, FillerListDef>();
 const blueprints = new Map<string, BlueprintListDef>();
+const textLists = new Map<string, TextListDef>();
 const empties = new Map<string, EmptyBeaconDef>();
 const factions = new Map<string, FactionSurrender>();
 let reward: RewardTable | undefined;
@@ -63,6 +66,7 @@ let baseTunes: TuneDef[] = [];
 let baseEvents: EventDef[] = [];
 let baseLists: FillerListDef[] = [];
 let baseBlueprints: BlueprintListDef[] = [];
+let baseTextLists: TextListDef[] = [];
 let baseEmpties: EmptyBeaconDef[] = [];
 let baseFactions: FactionSurrender[] = [];
 
@@ -241,6 +245,10 @@ function copyBlueprint(row: BlueprintListDef): BlueprintListDef {
   return { id: row.id, names: [...row.names] };
 }
 
+function copyTextList(row: TextListDef): TextListDef {
+  return { id: row.id, lines: row.lines.map((line) => ({ ...line })) };
+}
+
 function copyList(row: FillerListDef): FillerListDef {
   return {
     id: row.id,
@@ -274,6 +282,7 @@ function copyEvent(row: EventDef): EventDef {
     choices: row.choices.map(copyChoice),
   };
   if (row.texts && row.texts.length > 1) copy.texts = [...row.texts];
+  if (row.openings?.length) copy.openings = row.openings.map((line) => ({ ...line }));
   if (row.offers && row.offers.length > 0) copy.offers = row.offers.map(copyOffer);
   if (row.rolls && row.rolls.length > 0) copy.rolls = row.rolls.map(copyRoll);
   const prices: EventDef["prices"] = [];
@@ -446,6 +455,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     events.clear();
     lists.clear();
     blueprints.clear();
+    textLists.clear();
     empties.clear();
     factions.clear();
     reward = pack.rewards ? copyReward(pack.rewards) : undefined;
@@ -463,6 +473,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseEvents = (pack.events ?? []).map(copyEvent);
     baseLists = (pack.lists ?? []).map(copyList);
     baseBlueprints = (pack.blueprints ?? []).map(copyBlueprint);
+    baseTextLists = (pack.textLists ?? []).map(copyTextList);
     baseEmpties = (pack.empties ?? []).map(copyEmpty);
   }
   if (mode === "append" && pack.rewards) {
@@ -491,6 +502,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     lists.set(row.id, copyList(row));
   for (const row of mode === "base" ? baseBlueprints : (pack.blueprints ?? []))
     blueprints.set(row.id, copyBlueprint(row));
+  for (const row of mode === "base" ? baseTextLists : (pack.textLists ?? []))
+    textLists.set(row.id, copyTextList(row));
   for (const row of mode === "base" ? baseEmpties : (pack.empties ?? []))
     empties.set(row.id, copyEmpty(row));
   for (const row of mode === "base" ? baseFactions : (pack.factions ?? []))
@@ -594,6 +607,26 @@ export function eventDef(id: string | undefined): EventDef | undefined {
   return events.get(id);
 }
 
+/** One `<textList>`, or undefined when the archive has no list by that name. */
+export function textList(id: string | undefined): TextListDef | undefined {
+  if (!id) return undefined;
+  const row = textLists.get(id);
+  return row ? copyTextList(row) : undefined;
+}
+
+/**
+ * The page's nested opening, drawn one list at a time.
+ * Undefined when the page has ordinary sentences, so the caller keeps that draw.
+ */
+export function openingLine(
+  id: string | undefined,
+  roll: (count: number) => number,
+): string | undefined {
+  const openings = id ? events.get(id)?.openings : undefined;
+  if (!openings?.length) return undefined;
+  return pickOpening(openings, (listId) => textLists.get(listId)?.lines, roll);
+}
+
 /** Page order. An appended id sits at the end, so the campaign pages stay put. */
 export function allEvents(): EventDef[] {
   return [...events.values()];
@@ -685,6 +718,7 @@ export function resetPackForTests(): void {
   events.clear();
   lists.clear();
   blueprints.clear();
+  textLists.clear();
   empties.clear();
   factions.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
@@ -700,6 +734,7 @@ export function resetPackForTests(): void {
   for (const row of baseEvents) events.set(row.id, copyEvent(row));
   for (const row of baseLists) lists.set(row.id, copyList(row));
   for (const row of baseBlueprints) blueprints.set(row.id, copyBlueprint(row));
+  for (const row of baseTextLists) textLists.set(row.id, copyTextList(row));
   for (const row of baseEmpties) empties.set(row.id, copyEmpty(row));
   for (const row of baseFactions) factions.set(row.id, copyFaction(row));
 }

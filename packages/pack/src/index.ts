@@ -2,7 +2,7 @@ export { emitPack } from "./emit.ts";
 export type { EmitSlice } from "./emit.ts";
 export { overlayGap } from "./overlay.ts";
 export { prettyXml } from "./format.ts";
-export { packFromFtl } from "./ftl.ts";
+export { attachTextLists, packFromFtl, pickOpening } from "./ftl.ts";
 export {
   ROOM_PX,
   attachPictures,
@@ -70,6 +70,8 @@ export {
   droneDef,
   emptyBeacon,
   eventDef,
+  openingLine,
+  textList,
   blueprintList,
   fillerList,
   hullDef,
@@ -102,6 +104,8 @@ export type {
   GradePay,
   EventChoice,
   EventDef,
+  OpeningLine,
+  TextListDef,
   OfferPay,
   OfferRes,
   OfferRow,

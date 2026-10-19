@@ -17,11 +17,13 @@ import type {
   HullDef,
   HullGrid,
   HullInstall,
+  OpeningLine,
   SectorDef,
   SectorQuota,
   SectorRarity,
   SystemDef,
   SystemSlot,
+  TextListDef,
   TuneDef,
   TuneStep,
 } from "./types.ts";
@@ -72,6 +74,8 @@ export type FtlTextFile = {
  * String tables stay English. `text-<code>.xml` and its `.append` contribute no strings.
  * A later English file still replaces the same key. A `<text>` node with a language
  * attribute is skipped.
+ * `<textList>` rows are kept. A flat list becomes the event's sentences.
+ * A list entry that loads another list stays one draw, picked when the page is shown.
  * Crew combat stats stay at neutral defaults. A `<facts/>` marker and a `<names>` list are kept.
  * Stores and the numeric rewards table are not in the archive, and this catalog does not invent them.
  * `layouts` are the `data/*.txt` room grids. A ship keeps its layout file name, and the grid is
@@ -97,22 +101,14 @@ export function packFromFtl(
   const grids = readGrids(layouts);
   let facts = false;
   let names: ContentPack["names"];
-  const parsed: { path: string; doc: XmlDocument }[] = [];
-  for (const source of documents) {
-    try {
-      parsed.push({ path: source.path, doc: readDocument(source.xml) });
-    } catch (err) {
-      const detail = err instanceof Error ? err.message : String(err);
-      throw new Error(`${source.path}: ${detail}`);
-    }
-  }
+  const parsed = readSources(documents);
   for (const source of parsed) {
     if (translationFile(source.path)) continue;
     collectStrings(source.doc, strings);
   }
   const docs = parsed.map((source) => source.doc);
   for (const doc of docs) inlineStringIds(doc, strings);
-  const textLists = readTextLists(docs);
+  const textLists = readTextLists(parsed);
   for (const doc of docs) expandTextLoads(doc, textLists);
   for (const doc of docs) {
     for (const node of tagged(doc, "weaponBlueprint")) {
@@ -149,11 +145,11 @@ export function packFromFtl(
       if (row) sectors.put(row);
     }
     for (const node of tagged(doc, "event")) {
-      const row = readFtlEvent(node, strings);
+      const row = readFtlEvent(node, strings, textLists);
       if (row) events.put(row);
     }
     for (const node of tagged(doc, "eventList")) {
-      const row = readFtlList(node, strings);
+      const row = readFtlList(node, strings, textLists);
       if (row) lists.put(row);
     }
     for (const node of tagged(doc, "blueprintList")) {
@@ -174,6 +170,9 @@ export function packFromFtl(
   if (events.rows.length > 0) pack.events = events.rows;
   if (lists.rows.length > 0) pack.lists = lists.rows;
   if (blueprints.rows.length > 0) pack.blueprints = blueprints.rows;
+  if (textLists.size > 0) {
+    pack.textLists = [...textLists.entries()].map(([id, lines]) => ({ id, lines }));
+  }
   checkCrewClasses(hulls.rows, crew.rows);
   if (facts) pack.facts = true;
   if (names) pack.names = names;
@@ -338,58 +337,170 @@ function inlineStringIds(doc: XmlDocument, strings: Map<string, string>): void {
   const all = doc.getElementsByTagName("*");
   for (let i = 0; i < all.length; i++) {
     const node = all.item(i);
-    if (!node || elements(node).length > 0 || ownText(node).trim()) continue;
+    if (!node || attr(node, "load")?.trim()) continue;
+    if (elements(node).length > 0 || ownText(node).trim()) continue;
     const key = attr(node, "id")?.trim();
     const value = key ? strings.get(key) : undefined;
     if (value) node.appendChild(doc.createTextNode(value));
   }
 }
 
-/** `<textList name>`: the lines an event's `<text load="name"/>` picks from. */
-function readTextLists(docs: readonly XmlDocument[]): Map<string, string[]> {
-  const lists = new Map<string, string[]>();
-  for (const doc of docs) {
-    for (const node of tagged(doc, "textList")) {
+/** `<textList name>`: the lines an event's `<text load="name"/>` picks from. A later file replaces the same name. */
+function readTextLists(
+  sources: readonly { path: string; doc: XmlDocument }[],
+): Map<string, OpeningLine[]> {
+  const lists = new Map<string, OpeningLine[]>();
+  for (const source of sources) {
+    if (translationFile(source.path)) continue;
+    for (const node of tagged(source.doc, "textList")) {
       const name = attr(node, "name")?.trim();
       if (!name) continue;
-      const lines = elements(node)
-        .filter((item) => item.tagName === "text")
-        .map((item) => ownText(item).trim())
-        .filter(Boolean);
+      const lines: OpeningLine[] = [];
+      for (const item of elements(node)) {
+        if (item.tagName !== "text") continue;
+        const line = readOpeningLine(item);
+        if (line) lines.push(line);
+      }
       lists.set(name, lines);
     }
   }
   return lists;
 }
 
+function readOpeningLine(item: XmlElement): OpeningLine | undefined {
+  if (attr(item, "language")?.trim()) return undefined;
+  const written = ownText(item).trim();
+  const load = attr(item, "load")?.trim();
+  if (load && !written) return { load };
+  if (written) return { text: written };
+  return undefined;
+}
+
 /**
- * `<text load="LIST"/>` becomes one `<text>` per line of that list. FTL picks one each time the event plays; an event
- * with several text lines keeps them all in `texts`, and the sim picks one the same way.
- * A list the archive does not define is warned about and leaves no text.
+ * A flat `<text load="LIST"/>` becomes one `<text>` per line. The sim picks one when the page is shown.
+ * A list that itself loads another list stays one node, so that load remains one draw.
+ * A load inside a textList stays put for the same reason. A missing list is warned about and left out.
  */
-function expandTextLoads(doc: XmlDocument, lists: Map<string, string[]>): void {
+function expandTextLoads(doc: XmlDocument, lists: Map<string, OpeningLine[]>): void {
   const loads: XmlElement[] = [];
   const texts = doc.getElementsByTagName("text");
   for (let i = 0; i < texts.length; i++) {
     const node = texts.item(i);
-    if (node && attr(node, "load")?.trim() && !ownText(node).trim()) loads.push(node);
+    if (!node || insideTextList(node) || !loadName(node)) continue;
+    loads.push(node);
   }
   for (const node of loads) {
-    const name = attr(node, "load")!.trim();
+    const name = loadName(node)!;
     const lines = lists.get(name);
     const parent = node.parentNode;
     if (!parent) continue;
+    const flat = lines ? flatTexts(lines) : undefined;
     if (!lines) {
       warnPack(`<text load="${name}"/> names no textList; that text is left out.`);
       continue;
     }
-    for (const line of lines) {
+    if (!flat) continue;
+    for (const line of flat) {
       const copy = doc.createElement("text");
       copy.appendChild(doc.createTextNode(line));
       parent.insertBefore(copy, node);
     }
     parent.removeChild(node);
   }
+}
+
+function flatTexts(lines: readonly OpeningLine[]): string[] | undefined {
+  const texts: string[] = [];
+  for (const line of lines) {
+    if ("load" in line) return undefined;
+    if (line.text) texts.push(line.text);
+  }
+  return texts;
+}
+
+function insideTextList(node: XmlElement): boolean {
+  let parent: Node | null = node.parentNode;
+  while (parent) {
+    if (parent.nodeType === Node.ELEMENT_NODE && (parent as XmlElement).tagName === "textList")
+      return true;
+    parent = parent.parentNode;
+  }
+  return false;
+}
+
+function loadName(node: XmlElement): string | undefined {
+  const name = attr(node, "load")?.trim();
+  if (!name || ownText(node).trim()) return undefined;
+  return name;
+}
+
+function nestedList(lines: readonly OpeningLine[] | undefined): boolean {
+  return Boolean(lines?.some((line) => "load" in line));
+}
+
+/**
+ * Draws one line. A `load` spends another draw inside that list.
+ * A list that loads itself leaves the sentence blank.
+ */
+export function pickOpening(
+  lines: readonly OpeningLine[],
+  list: (id: string) => readonly OpeningLine[] | undefined,
+  roll: (count: number) => number,
+  seen = new Set<string>(),
+): string {
+  if (!lines.length) return "";
+  const index = roll(lines.length);
+  const line = lines[Math.min(lines.length - 1, Math.max(0, index))];
+  if (!line || "text" in line) return line?.text ?? "";
+  if (seen.has(line.load)) {
+    warnPack(`textList ${line.load} loads itself; the sentence is left blank.`);
+    return "";
+  }
+  const next = list(line.load);
+  if (!next?.length) {
+    warnPack(`<text load="${line.load}"/> names no textList; that text is left out.`);
+    return "";
+  }
+  seen.add(line.load);
+  return pickOpening(next, list, roll, seen);
+}
+
+/**
+ * Adds text lists from sibling documents. An id the pack already has stays.
+ * Events in those documents are not copied onto the pack.
+ */
+export function attachTextLists(pack: ContentPack, documents: readonly FtlBlueprintFile[]): void {
+  if (!documents.length) return;
+  const found = textListRows(documents);
+  if (!found.length) return;
+  const have = new Set((pack.textLists ?? []).map((row) => row.id));
+  const added = found.filter((row) => !have.has(row.id));
+  if (!added.length) return;
+  pack.textLists = [...(pack.textLists ?? []), ...added];
+}
+
+function textListRows(documents: readonly FtlBlueprintFile[]): TextListDef[] {
+  const parsed = readSources(documents);
+  const strings = new Map<string, string>();
+  for (const source of parsed) {
+    if (translationFile(source.path)) continue;
+    collectStrings(source.doc, strings);
+  }
+  for (const source of parsed) inlineStringIds(source.doc, strings);
+  return [...readTextLists(parsed).entries()].map(([id, lines]) => ({ id, lines }));
+}
+
+function readSources(documents: readonly FtlBlueprintFile[]): { path: string; doc: XmlDocument }[] {
+  const parsed: { path: string; doc: XmlDocument }[] = [];
+  for (const source of documents) {
+    try {
+      parsed.push({ path: source.path, doc: readDocument(source.xml) });
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      throw new Error(`${source.path}: ${detail}`);
+    }
+  }
+  return parsed;
 }
 
 function collectStrings(doc: XmlDocument, strings: Map<string, string>) {
@@ -666,30 +777,94 @@ function readRarities(node: XmlElement): SectorRarity[] {
   return rows;
 }
 
-function readFtlEvent(node: XmlElement, strings: Map<string, string>): EventDef | undefined {
-  if (!rootChild(node)) return undefined;
-  const id = attr(node, "name")?.trim();
-  if (!id) return undefined;
-  return readEventBody(node, id, strings);
+/**
+ * Nested loads stay one slot each. A page whose only text is one nested list
+ * draws among that list's own entries, so the outer name is not an extra roll.
+ */
+function openingLines(
+  textNodes: readonly XmlElement[],
+  strings: Map<string, string>,
+  lists: Map<string, OpeningLine[]>,
+): OpeningLine[] | undefined {
+  const sole = textNodes.length === 1 ? loadName(textNodes[0]!) : undefined;
+  if (sole) {
+    const list = lists.get(sole);
+    if (!list || !nestedList(list)) return undefined;
+    return list.map((line) => ({ ...line }));
+  }
+  const ordered: OpeningLine[] = [];
+  let nested = false;
+  for (const item of textNodes) {
+    const name = loadName(item);
+    if (name) {
+      const list = lists.get(name);
+      if (!list) continue;
+      if (nestedList(list)) {
+        ordered.push({ load: name });
+        nested = true;
+      } else {
+        for (const line of list) if ("text" in line && line.text) ordered.push({ text: line.text });
+      }
+      continue;
+    }
+    const text = resolveText(item, strings);
+    if (text) ordered.push({ text });
+  }
+  if (!nested) return undefined;
+  return ordered;
 }
 
-function readEventBody(node: XmlElement, id: string, strings: Map<string, string>): EventDef {
+function sentenceLines(
+  textNodes: readonly XmlElement[],
+  strings: Map<string, string>,
+  lists: Map<string, OpeningLine[]>,
+): string[] {
   const lines: string[] = [];
-  for (const item of elements(node)) {
-    if (item.tagName !== "text") continue;
+  for (const item of textNodes) {
+    const name = loadName(item);
+    if (name) {
+      const list = lists.get(name);
+      if (!list || nestedList(list)) continue;
+      for (const line of list) if ("text" in line && line.text) lines.push(line.text);
+      continue;
+    }
     const text = resolveText(item, strings);
     if (text) lines.push(text);
   }
+  return lines;
+}
+
+function readFtlEvent(
+  node: XmlElement,
+  strings: Map<string, string>,
+  lists: Map<string, OpeningLine[]>,
+): EventDef | undefined {
+  if (!rootChild(node)) return undefined;
+  const id = attr(node, "name")?.trim();
+  if (!id) return undefined;
+  return readEventBody(node, id, strings, lists);
+}
+
+function readEventBody(
+  node: XmlElement,
+  id: string,
+  strings: Map<string, string>,
+  lists: Map<string, OpeningLine[]>,
+): EventDef {
+  const textNodes = elements(node).filter((item) => item.tagName === "text");
+  const openings = openingLines(textNodes, strings, lists);
+  const lines = openings ? [] : sentenceLines(textNodes, strings, lists);
   const event: EventDef = {
     id,
     dest: textOf(node, "title") ?? id,
     flag: id,
     aliases: [],
     sectors: [],
-    body: lines[0] ?? "",
+    body: openings ? "" : (lines[0] ?? ""),
     choices: readChoices(node, strings),
   };
-  if (lines.length > 1) event.texts = lines;
+  if (!openings && lines.length > 1) event.texts = lines;
+  if (openings?.length) event.openings = openings;
   const fx: EventEffect[] = [];
   const grants: ArchiveGrant[] = [];
   for (const item of elements(node)) {
@@ -721,7 +896,11 @@ function readEventBody(node: XmlElement, id: string, strings: Map<string, string
   return event;
 }
 
-function readFtlList(node: XmlElement, strings: Map<string, string>): FillerListDef | undefined {
+function readFtlList(
+  node: XmlElement,
+  strings: Map<string, string>,
+  lists: Map<string, OpeningLine[]>,
+): FillerListDef | undefined {
   if (!rootChild(node)) return undefined;
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
@@ -736,7 +915,7 @@ function readFtlList(node: XmlElement, strings: Map<string, string>): FillerList
       entries.push({ id: eventId, unique });
     } else {
       const pageId = eventId || `${id}:${index}`;
-      entries.push({ id: pageId, unique, page: readEventBody(item, pageId, strings) });
+      entries.push({ id: pageId, unique, page: readEventBody(item, pageId, strings, lists) });
     }
     index += 1;
   }

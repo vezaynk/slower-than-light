@@ -2,6 +2,7 @@ import type { FtlDocument, FtlExtract } from "@stl/ftldat";
 import {
   attachLayoutFiles,
   attachPictures,
+  attachTextLists,
   packFromFtl,
   parsePack,
   type ContentPack,
@@ -84,6 +85,10 @@ export function packFromExtract(files: FtlExtract): ContentPack {
       .map(([path, text]) => ({ path, text }));
     attachLayoutFiles(pack.hulls, layouts);
     attachPictures(pack.hulls, files.documents);
+    attachTextLists(
+      pack,
+      files.documents.filter((doc) => doc.path !== STAND_IN),
+    );
     return pack;
   }
   return loadFtlMods(files).pack;

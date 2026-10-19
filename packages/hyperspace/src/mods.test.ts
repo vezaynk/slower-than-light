@@ -227,6 +227,34 @@ describe("packFromExtract", () => {
     assert.equal(pack.crew?.[0]?.hp, 70);
   });
 
+  it("attaches sibling text lists without replacing stand-in events", () => {
+    const pack = packFromExtract(
+      extract({
+        documents: [
+          {
+            path: "data/stand-in.xml",
+            xml: `<FTL><event name="HOME"><text>Campaign page.</text></event></FTL>`,
+          },
+          {
+            path: "data/text_lists.xml",
+            xml: `<FTL>
+              <textList name="NEST"><text>Near.</text><text load="MORE"/></textList>
+              <textList name="MORE"><text>Far.</text></textList>
+              <event name="HOME"><text>Replaced.</text></event>
+            </FTL>`,
+          },
+        ],
+      }),
+    );
+    assert.equal(pack.events?.length, 1);
+    assert.equal(pack.events?.[0]?.body, "Campaign page.");
+    assert.deepEqual(
+      pack.textLists?.map((row) => row.id),
+      ["NEST", "MORE"],
+    );
+    assert.deepEqual(pack.textLists?.[0]?.lines, [{ text: "Near." }, { load: "MORE" }]);
+  });
+
   it("reads the stand-in when hull pictures are packed beside it", () => {
     const pack = packFromExtract(
       extract({

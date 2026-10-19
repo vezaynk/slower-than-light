@@ -131,7 +131,7 @@ const XML = `
     </system>
   </systemList>
   <weaponList>
-    <weapon>lineburst</weapon>
+    <weapon>LASER_BURST_3</weapon>
   </weaponList>
   <crewList>
     <crewMember kin="human" room="p-pilot"/>
@@ -142,12 +142,12 @@ const XML = `
       <power>0</power>
       <on>false</on>
       <loadout>
-        <schematic>patch</schematic>
+        <schematic>REPAIR</schematic>
       </loadout>
     </kit>
   </kitList>
   <augmentList>
-    <augment>zshield</augment>
+    <augment>ENERGY_SHIELD</augment>
   </augmentList>
   <unfitted>
     <item>Spare</item>

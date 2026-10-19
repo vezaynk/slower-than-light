@@ -297,6 +297,28 @@ const OVERWRITE_WORLD = `<?xml version="1.0" encoding="UTF-8"?>
 `;
 
 describe("packFromFtl", () => {
+  it("colours sectors from the sectorType lists, with an OVERRIDE_ list replacing its base", () => {
+    const xml = `<FTL>
+  <sectorType name="CIVILIAN"><sector>CALM</sector></sectorType>
+  <sectorType name="HOSTILE"><sector>RAID</sector></sectorType>
+  <sectorType name="OVERRIDE_HOSTILE"><sector>RAID</sector><sector>RUIN</sector></sectorType>
+  <sectorType name="NEBULA"><sector>MIST</sector></sectorType>
+  <sectorType name="UNKNOWN"><sector>VOID</sector><sector>CALM</sector></sectorType>
+  <sectorDescription name="CALM"/>
+  <sectorDescription name="RAID"/>
+  <sectorDescription name="RUIN"/>
+  <sectorDescription name="MIST"/>
+  <sectorDescription name="VOID"/>
+</FTL>`;
+    const pack = packFromFtl([{ path: "data/sector_data.xml", xml }]);
+    const group = (id: string) => pack.sectors?.find((row) => row.id === id)?.group;
+    assert.equal(group("CALM"), "civilian");
+    assert.equal(group("RAID"), "hostile");
+    assert.equal(group("RUIN"), "hostile");
+    assert.equal(group("MIST"), "nebula");
+    assert.equal(group("VOID"), "");
+  });
+
   it("reads the five blueprint catalogs and leaves stores out", () => {
     const pack = packFromFtl([{ path: "data/blueprints.xml", xml: BASE }]);
     assert.equal(pack.crew, undefined);

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import "./base.ts";
+import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import {
   allAugments,
@@ -17,6 +18,7 @@ import {
   allTunes,
   allWeapons,
   attachLayoutFiles,
+  attachPictures,
   emitPack,
   parsePack,
   resetPackForTests,
@@ -42,6 +44,11 @@ describe("base pack xml", () => {
     const xml = emitPack(pack);
     const back = parsePack(xml);
     attachLayoutFiles(back.hulls, layoutFiles());
+    // The drawing boxes, offsets, and gibs ride in each hull's picture file beside the document, as in the dat.
+    attachPictures(
+      back.hulls,
+      hullPictureFiles().map((file) => ({ path: file.path, xml: file.xml })),
+    );
     assert.deepEqual(back.crew, pack.crew);
     assert.deepEqual(back.weapons, pack.weapons);
     assert.deepEqual(back.augments, pack.augments);

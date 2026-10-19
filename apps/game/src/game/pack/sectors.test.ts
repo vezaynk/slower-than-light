@@ -4,7 +4,7 @@ import { buildRoute, createGame, enterHiddenCrystal } from "../sim.ts";
 import { SECTOR_TYPES } from "../wiki/sectors.ts";
 import { citedFleetAdvance } from "../wiki/cited-sectors.ts";
 import "./base.ts";
-import { loadPack, resetPackForTests, sectorDef } from "@stl/pack";
+import { loadPack, onPackWarning, packFromFtl, resetPackForTests, sectorDef } from "@stl/pack";
 import type { SectorDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
@@ -90,5 +90,59 @@ describe("sector listings", () => {
     );
     assert.equal(seenOnChart("Ember Reach"), true);
     assert.equal(seenOnChart("Vault", 80), false);
+  });
+});
+
+describe("a chart from FTL's own sector data", () => {
+  // sector_data.xml's shape: FTL ids, colour from the sectorType lists, a 0-based minSector, and unique.
+  const XML = `<FTL>
+  <sectorType name="CIVILIAN"><sector>CIVILIAN_SECTOR</sector><sector>ENGI_HOME</sector></sectorType>
+  <sectorType name="HOSTILE"><sector>REBEL_SECTOR</sector><sector>REBEL_SECTOR_MINIBOSS</sector></sectorType>
+  <sectorType name="NEBULA"><sector>NEBULA_SECTOR</sector></sectorType>
+  <sectorDescription name="CIVILIAN_SECTOR" minSector="0" unique="false"><nameList><name>Civilian Sector</name></nameList></sectorDescription>
+  <sectorDescription name="ENGI_HOME" minSector="2" unique="true"><nameList><name>Engi Homeworlds</name></nameList></sectorDescription>
+  <sectorDescription name="REBEL_SECTOR" minSector="0" unique="false"><nameList><name>Rebel Controlled Sector</name></nameList></sectorDescription>
+  <sectorDescription name="REBEL_SECTOR_MINIBOSS" minSector="4" unique="true"><nameList><name>Rebel Stronghold</name></nameList></sectorDescription>
+  <sectorDescription name="NEBULA_SECTOR" minSector="0" unique="false"><nameList><name>Uncharted Nebula</name></nameList></sectorDescription>
+  <sectorDescription name="CRYSTAL_HOME" minSector="0" unique="true"><nameList><name>Hidden Crystal Worlds</name></nameList></sectorDescription>
+  <sectorDescription name="FINAL" minSector="7" unique="true"><nameList><name>The Last Stand</name></nameList></sectorDescription>
+</FTL>`;
+
+  it("opens on CIVILIAN_SECTOR, ends on FINAL, and keeps each sector's gate and uniqueness", () => {
+    loadPack(
+      { sectors: packFromFtl([{ path: "data/sector_data.xml", xml: XML }]).sectors },
+      "base",
+    );
+    for (let seed = 1; seed <= 300; seed++) {
+      const route = buildRoute(seed);
+      assert.equal(route[0]?.name, "Civilian Sector");
+      assert.equal(route[route.length - 1]?.name, "The Last Stand");
+      const cols = (name: string) =>
+        route.filter((n) => n.name === name && n.col > 0 && n.col < 7).map((n) => n.col);
+      assert.ok(cols("Engi Homeworlds").length <= 1);
+      assert.ok(cols("Engi Homeworlds").every((col) => col >= 2));
+      assert.ok(cols("Rebel Stronghold").length <= 1);
+      assert.ok(cols("Rebel Stronghold").every((col) => col >= 4));
+      assert.equal(cols("Hidden Crystal Worlds").length, 0);
+    }
+    assert.ok(seenOnChart("Engi Homeworlds") && seenOnChart("Rebel Stronghold"));
+  });
+
+  it("warns and repeats a sector when a column has nothing eligible", () => {
+    const xml = `<FTL>
+  <sectorType name="CIVILIAN"><sector>CIVILIAN_SECTOR</sector><sector>LATE</sector></sectorType>
+  <sectorDescription name="CIVILIAN_SECTOR" minSector="0" unique="true"><nameList><name>Civilian Sector</name></nameList></sectorDescription>
+  <sectorDescription name="LATE" minSector="5" unique="false"><nameList><name>Late Sector</name></nameList></sectorDescription>
+</FTL>`;
+    loadPack({ sectors: packFromFtl([{ path: "data/sector_data.xml", xml }]).sectors }, "base");
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const route = buildRoute(1);
+      assert.equal(route.length, route.filter((n) => n.name).length);
+      assert.ok(warnings.some((line) => line.includes("No sector is eligible")));
+    } finally {
+      restore();
+    }
   });
 });

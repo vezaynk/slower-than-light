@@ -20,7 +20,7 @@ import {
   type WeaponAnim,
 } from "@stl/pack";
 import { droneBlueprintOf } from "../gear-look.ts";
-import { capPixels, legibleCapRatio, ttfFromBitmap } from "./bitmap-ttf.ts";
+import { legibleCapRatio, ttfFromBitmap } from "./bitmap-ttf.ts";
 
 export type WeaponPhase = "idle" | "charged" | "fire";
 
@@ -415,7 +415,6 @@ async function installFonts(at: number): Promise<void> {
       // A newer archive replaced this one while the bytes were read. Its own pass installs its faces.
       if (!font || at !== generation) continue;
       const ratio = legibleCapRatio(font, job.capRatio ?? 0.56, job.minPx);
-      metrics.set(job.family, { capPx: capPixels(font), capRatio: ratio });
       const bytes = ttfFromBitmap(font, job.family, job.bold ?? false, ratio);
       const copy = new ArrayBuffer(bytes.byteLength);
       new Uint8Array(copy).set(bytes);
@@ -437,15 +436,7 @@ async function applyBytes(at: number, job: FontFaceJob, bytes: ArrayBuffer): Pro
   }
 }
 
-/** Installed bitmap faces: capital height in font pixels, and the cap ratio each was built with. */
-const metrics = new Map<string, { capPx: number; capRatio: number }>();
-
-export function installedFaceMetrics(): ReadonlyMap<string, { capPx: number; capRatio: number }> {
-  return metrics;
-}
-
 function dropFaces(): void {
-  metrics.clear();
   if (typeof document === "undefined") return;
   for (const face of faces) document.fonts.delete(face);
   faces.length = 0;

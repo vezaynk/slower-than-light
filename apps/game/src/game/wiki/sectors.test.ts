@@ -81,9 +81,9 @@ describe("sector colour chances", () => {
       const route = buildRoute(seed);
       const start = route.filter((node) => node.col === 0);
       assert.equal(start.length, 1);
-      // StarMap::GenerateSectorMap: sector 1 is STANDARD_SPACE, shown as the Civilian Sector.
+      // Sector 1 is STANDARD_SPACE and shows that sector's own title.
       assert.equal(start[0]?.sector, "STANDARD_SPACE");
-      assert.equal(start[0]?.name, "Civilian Sector");
+      assert.equal(start[0]?.name, "Civilian (Starting) Sector");
       const lastCol = Math.max(...route.map((node) => node.col));
       const last = route.filter((node) => node.col === lastCol);
       assert.ok(last.length > 0);

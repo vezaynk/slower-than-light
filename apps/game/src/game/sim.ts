@@ -20,7 +20,6 @@ import {
   FTL_UNMANNED,
   flagshipStageScrap,
   mediumScrapBand,
-  SECTOR_NAMES,
   hullRepairPerPoint,
   shieldLayerSeconds,
   skillRank,
@@ -98,6 +97,7 @@ import {
   CRYSTAL_SECTOR,
   FINAL_SECTOR,
   START_SECTOR,
+  sectorIdOf,
   sectorTitle,
 } from "./sector-ids.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./pack/beams.ts";
@@ -6534,7 +6534,7 @@ export function buildRoute(seed: number): SectorNode[] {
   const used = new Set<string>();
   const groupOf = (group: string): SectorNode["group"] =>
     group === "hostile" || group === "nebula" ? group : "civilian";
-  // StarMap::GenerateSectorMap: sector 1 is STANDARD_SPACE, shown as the Civilian Sector; the last is FINAL.
+  // Sector 1 is STANDARD_SPACE and the last column is FINAL. Each node shows that sector's own title.
   const nodes: SectorNode[] = [
     {
       id: "sec-0",
@@ -6730,8 +6730,6 @@ function makeMap(g: Game) {
   g.here = start.id;
   g.fleet = 0;
   g.dangerY = rollDangerY(r);
-  // INVENTED: sector name fallback.
-  g.sectorName = SECTOR_NAMES[g.sector - 1] ?? "Reach";
   onNewSector(g);
 }
 
@@ -6872,7 +6870,7 @@ export function createGame(
     paused: false,
     sector: 1,
     sectorId: START_SECTOR,
-    sectorName: SECTOR_NAMES[0],
+    sectorName: sectorTitle(START_SECTOR),
     beacons: [],
     here: "",
     fleet: 0,
@@ -7702,9 +7700,12 @@ export function chooseSector(g: Game, id: string) {
   if (!here?.links.includes(id)) return;
   const next = g.route.find((n) => n.id === id);
   if (!next) return;
+  const sector = next.sector || sectorIdOf(next.name);
+  if (!sector) return;
+  if (!next.sector) next.sector = sector;
   g.routeHere = id;
   g.sectorMap = false;
-  nextSector(g, next.sector);
+  nextSector(g, sector);
 }
 
 /** Chart eligibility for one sector number. The crystal exit is not limited to the two linked nodes. */
@@ -8339,6 +8340,33 @@ export function saveGame(g: Game) {
   }
 }
 
+/**
+ * Older saves stored a title and no sector id. Column 0 is the start id and column 7 is the last.
+ * A crystal restart is sector 1 in the civilian sector id. A middle column takes the archive id of its title.
+ * A title the archive does not carry stays unset.
+ */
+function recallSectors(g: Game): void {
+  for (const node of g.route ?? []) {
+    if (node.sector) continue;
+    const id =
+      node.col === 0 ? START_SECTOR : node.col === 7 ? FINAL_SECTOR : sectorIdOf(node.name);
+    if (!id) continue;
+    node.sector = id;
+    node.name = sectorTitle(id);
+  }
+  if (g.sectorId) return;
+  const here = g.route?.find((n) => n.id === g.routeHere);
+  const id =
+    g.sector <= 1
+      ? g.crystalRestart
+        ? CIVILIAN_SECTOR
+        : START_SECTOR
+      : g.sector >= 8
+        ? FINAL_SECTOR
+        : (sectorIdOf(g.sectorName) ?? here?.sector ?? sectorIdOf(here?.name));
+  if (id) enterSector(g, id);
+}
+
 export function loadGame(): Game | null {
   if (typeof localStorage === "undefined") return null;
   try {
@@ -8379,6 +8407,7 @@ export function loadGame(): Game | null {
       g.route = buildRoute(g.seed || 1);
       g.routeHere = g.route[0]?.id ?? "";
     }
+    recallSectors(g);
     if (g.training == null) g.training = false;
     if (g.shipTab !== "upgrades" && g.shipTab !== "crew" && g.shipTab !== "inventory")
       g.shipTab = "upgrades";

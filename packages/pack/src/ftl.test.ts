@@ -1,14 +1,16 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { packFromFtl } from "./ftl.ts";
+import { attachTextLists, packFromFtl, pickOpening } from "./ftl.ts";
 import { onPackWarning } from "./warnings.ts";
 import {
   blueprintList,
   eventDef,
   hullDef,
   loadPack,
+  openingLine,
   resetPackForTests,
   sectorDef,
+  textList,
 } from "./registry.ts";
 
 const BASE = `<?xml version="1.0" encoding="UTF-8"?>
@@ -454,6 +456,10 @@ describe("packFromFtl", () => {
   <event name="LOST"><text load="NO_LIST"/></event>
 </FTL>`,
         },
+        {
+          path: "data/text-de.xml",
+          xml: `<FTL><textList name="CALM"><text>German line.</text></textList></FTL>`,
+        },
       ]);
       // English wins; the translated row carries language="de".
       assert.equal(pack.weapons?.find((row) => row.id === "GUN")?.name, "Burst Laser I");
@@ -461,6 +467,11 @@ describe("packFromFtl", () => {
       const quiet = pack.events?.find((row) => row.id === "QUIET");
       assert.equal(quiet?.body, "Nothing stirs.");
       assert.deepEqual(quiet?.texts, ["Nothing stirs.", "Quiet space."]);
+      assert.equal(quiet?.openings, undefined);
+      assert.deepEqual(pack.textLists?.find((row) => row.id === "CALM")?.lines, [
+        { text: "Nothing stirs." },
+        { text: "Quiet space." },
+      ]);
       assert.equal(pack.events?.find((row) => row.id === "LOST")?.body, "");
       assert.deepEqual(warnings, [
         '<text load="NO_LIST"/> names no textList; that text is left out.',
@@ -468,6 +479,133 @@ describe("packFromFtl", () => {
     } finally {
       restore();
     }
+  });
+
+  it("keeps a nested text list as one draw, then picks inside it", () => {
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const pack = packFromFtl([
+        {
+          path: "data/events.xml",
+          xml: `<FTL>
+  <textList name="FLAT"><text>A.</text><text>B.</text></textList>
+  <textList name="WRAP"><text load="FLAT"/></textList>
+  <textList name="INNER"><text>Left.</text><text>Right.</text></textList>
+  <textList name="OUTER"><text>Near.</text><text load="INNER"/></textList>
+  <textList name="LOOP"><text load="LOOP"/></textList>
+  <textList name="GONE_REF"><text load="GONE"/></textList>
+  <event name="WRAPPED"><text load="WRAP"/></event>
+  <event name="PAGE"><text load="OUTER"/></event>
+  <event name="MIXED"><text>Literal.</text><text load="OUTER"/></event>
+  <event name="LOOPED"><text load="LOOP"/></event>
+  <event name="MISSING"><text load="GONE_REF"/></event>
+</FTL>`,
+        },
+        {
+          path: "data/dlcEvents.xml",
+          xml: `<FTL><textList name="INNER"><text>Left.</text><text>Later.</text></textList></FTL>`,
+        },
+        {
+          path: "data/text-de.xml",
+          xml: `<FTL><textList name="OUTER"><text>German.</text></textList></FTL>`,
+        },
+      ]);
+      const list = (id: string) => pack.textLists?.find((row) => row.id === id)?.lines;
+      assert.deepEqual(list("WRAP"), [{ load: "FLAT" }]);
+      assert.deepEqual(list("OUTER"), [{ text: "Near." }, { load: "INNER" }]);
+      assert.deepEqual(list("INNER"), [{ text: "Left." }, { text: "Later." }]);
+      const wrapped = pack.events?.find((row) => row.id === "WRAPPED");
+      assert.equal(wrapped?.body, "");
+      assert.equal(wrapped?.texts, undefined);
+      assert.deepEqual(wrapped?.openings, [{ load: "FLAT" }]);
+      const page = pack.events?.find((row) => row.id === "PAGE");
+      assert.deepEqual(page?.openings, [{ text: "Near." }, { load: "INNER" }]);
+      const mixed = pack.events?.find((row) => row.id === "MIXED");
+      assert.deepEqual(mixed?.openings, [{ text: "Literal." }, { load: "OUTER" }]);
+
+      const rolls: number[] = [];
+      const last = (n: number) => {
+        rolls.push(n);
+        return n - 1;
+      };
+      assert.equal(pickOpening(wrapped!.openings!, list, last), "B.");
+      assert.deepEqual(rolls, [1, 2]);
+      rolls.length = 0;
+      assert.equal(pickOpening(page!.openings!, list, last), "Later.");
+      assert.deepEqual(rolls, [2, 2]);
+      rolls.length = 0;
+      assert.equal(
+        pickOpening(mixed!.openings!, list, (n) => {
+          rolls.push(n);
+          return 0;
+        }),
+        "Literal.",
+      );
+      assert.deepEqual(rolls, [2]);
+      rolls.length = 0;
+      assert.equal(pickOpening(mixed!.openings!, list, last), "Later.");
+      assert.deepEqual(rolls, [2, 2, 2]);
+
+      assert.equal(
+        pickOpening(pack.events!.find((row) => row.id === "LOOPED")!.openings!, list, () => 0),
+        "",
+      );
+      assert.equal(
+        pickOpening(pack.events!.find((row) => row.id === "MISSING")!.openings!, list, () => 0),
+        "",
+      );
+      assert.deepEqual(warnings, [
+        "textList LOOP loads itself; the sentence is left blank.",
+        '<text load="GONE"/> names no textList; that text is left out.',
+      ]);
+
+      loadPack(pack, "append");
+      rolls.length = 0;
+      assert.equal(textList("OUTER")?.lines[1] && "load" in textList("OUTER")!.lines[1]!, true);
+      assert.equal(
+        openingLine("PAGE", (n) => {
+          rolls.push(n);
+          return 0;
+        }),
+        "Near.",
+      );
+      assert.deepEqual(rolls, [2]);
+      assert.equal(
+        openingLine("NO_SUCH_PAGE", () => {
+          throw new Error("rolled");
+        }),
+        undefined,
+      );
+    } finally {
+      restore();
+      resetPackForTests();
+    }
+  });
+
+  it("keeps a text list the pack already has", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/events.xml",
+        xml: `<FTL><textList name="KEEP"><text>Ours.</text></textList></FTL>`,
+      },
+    ]);
+    attachTextLists(pack, [
+      {
+        path: "data/text_lists.xml",
+        xml: `<FTL>
+  <textList name="KEEP"><text>Theirs.</text></textList>
+  <textList name="NEW"><text>Added.</text></textList>
+  <event name="HOME"><text>Not attached.</text></event>
+</FTL>`,
+      },
+    ]);
+    assert.deepEqual(pack.textLists?.find((row) => row.id === "KEEP")?.lines, [{ text: "Ours." }]);
+    assert.deepEqual(
+      pack.textLists?.map((row) => row.id),
+      ["KEEP", "NEW"],
+    );
+    assert.equal(pack.events, undefined);
   });
 
   it("reads a crew colorList, one list per layer", () => {

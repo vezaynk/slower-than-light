@@ -17,6 +17,7 @@ import {
 } from "@stl/pack";
 import { standInDat, standInImages, standInXml } from "./archive.ts";
 import { standInMedia } from "./media.ts";
+import { TEXT_LISTS_XML } from "./text-lists.ts";
 
 describe("totallynotftl.dat", () => {
   it("rebuilds the committed xml and archive", async () => {
@@ -32,9 +33,13 @@ describe("totallynotftl.dat", () => {
     const extracted = await extractFtlDat(built);
     const pictures = hullPictureFiles();
     const media = await standInMedia();
-    assert.equal(extracted.documents.length, 1 + pictures.length + media.documents.length);
+    assert.equal(extracted.documents.length, 2 + pictures.length + media.documents.length);
     assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
     assert.equal(extracted.documents[0]?.xml, goldenXml);
+    assert.equal(
+      extracted.documents.find((doc) => doc.path === "data/text_lists.xml")?.xml,
+      TEXT_LISTS_XML,
+    );
     assert.equal(goldenXml.includes("<weaponArt>"), false);
     assert.equal(goldenXml.includes("<droneImage>"), false);
     for (const file of pictures) {
@@ -128,6 +133,18 @@ describe("totallynotftl.dat", () => {
     assert.deepEqual(merged.hulls, pack.hulls);
     assert.deepEqual(merged.sectors, pack.sectors);
     assert.deepEqual(merged.events, pack.events);
+    assert.deepEqual(
+      merged.textLists?.map((row) => row.id),
+      ["STAND_IN_CALM", "STAND_IN_MORE", "STAND_IN_NEST"],
+    );
+    assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_CALM")?.lines, [
+      { text: "Nothing moves." },
+      { text: "The beacon holds still." },
+    ]);
+    assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_NEST")?.lines, [
+      { text: "The near reading." },
+      { load: "STAND_IN_MORE" },
+    ]);
     assert.deepEqual(merged.lists, pack.lists);
     assert.deepEqual(merged.stores, pack.stores);
     assert.deepEqual(merged.rewards, pack.rewards);

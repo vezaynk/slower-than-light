@@ -721,6 +721,15 @@ export type EventGrade = {
  * A fight page can carry a `surrender` offer. Sector depth gates stay in code.
  * The sim still picks the beacon a marker lands on, and still checks the hull.
  */
+/** One line of a `<textList>`. `load` names another list and is drawn when the page is shown. */
+export type OpeningLine = { text: string } | { load: string };
+
+/** A `<textList name>`. Later documents replace the same id. */
+export type TextListDef = {
+  id: string;
+  lines: OpeningLine[];
+};
+
 export type EventDef = {
   id: string;
   dest: string;
@@ -730,6 +739,11 @@ export type EventDef = {
   body: string;
   /** Opening sentences. The sim still picks one. Stored when a page has more than one. */
   texts?: string[];
+  /**
+   * Opening lines when a text list entry is itself a list.
+   * A flat list is expanded into `texts`. Each nested load stays one draw.
+   */
+  openings?: OpeningLine[];
   /** Offer rows. The sim still picks one and still rolls the numbers inside it. */
   offers?: OfferRow[];
   /**
@@ -830,6 +844,8 @@ export type ContentPack = {
   lists?: FillerListDef[];
   /** Named weapon and drone pools from `<blueprintList>`. */
   blueprints?: BlueprintListDef[];
+  /** `<textList>` rows. A page draws one line when it is shown. */
+  textLists?: TextListDef[];
   empties?: EmptyBeaconDef[];
   /** Shared scrap scaling and resource bands. Absent until a pack loads one. */
   rewards?: RewardTable;

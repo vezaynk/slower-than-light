@@ -4,7 +4,7 @@
  * An unnamed weapon, drone schematic, or augmentation is grantRandomItem. A crystal weapon is an even
  * draw of the crystal guns already in the game. Out-of-fuel pages name no sector; they join the wait roll only.
  */
-import { eventDef } from "@stl/pack";
+import { eventDef, openingLine } from "@stl/pack";
 import { EXTRA_EVENTS } from "./cited-missing-pages.ts";
 import { ownedLock } from "./choice-locks.ts";
 import { priced, rollPrice } from "./event-prices.ts";
@@ -386,8 +386,10 @@ function rollHull(g: Game, id: string): string {
   return rows[between(g, [0, rows.length - 1])]!;
 }
 
-/** One opening sentence from the packed page. The draw stays between, over the packed list. */
+/** One opening sentence from the packed page. The draw stays between, over the packed list. A nested list spends one draw per list. */
 function opening(g: Game, id: string): string {
+  const picked = openingLine(id, (n) => between(g, [0, n - 1]));
+  if (picked != null) return picked;
   const texts = eventDef(id)?.texts ?? [];
   const hi = texts.length > 0 ? texts.length - 1 : 0;
   return texts[between(g, [0, hi])] ?? "";

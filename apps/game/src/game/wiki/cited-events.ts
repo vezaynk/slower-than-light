@@ -1,6 +1,6 @@
 import type { Beacon, Game, GameEvent } from "../types.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { allEvents, eventDef } from "@stl/pack";
+import { allEvents, eventDef, openingLine } from "@stl/pack";
 import { CITED_EVENT_ROWS } from "./event-catalog.ts";
 import { missingCard, missingChoose, missingDisabled, missingOwns } from "./cited-missing.ts";
 import { ownedLock } from "./choice-locks.ts";
@@ -187,8 +187,10 @@ function tradeNote(id: TradeRes, n: number): string {
   return `${word}: ${n}.`;
 }
 
-/** One opening sentence from the packed page. The draw stays between, over the packed list. */
+/** One opening sentence from the packed page. The draw stays between, over the packed list. A nested list spends one draw per list. */
 function opening(g: Game, id: string): string {
+  const picked = openingLine(id, (n) => between(g, [0, n - 1]));
+  if (picked != null) return picked;
   const texts = eventDef(id)?.texts ?? [];
   const hi = texts.length > 0 ? texts.length - 1 : 0;
   return texts[between(g, [0, hi])] ?? "";

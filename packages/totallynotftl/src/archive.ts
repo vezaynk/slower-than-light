@@ -4,6 +4,7 @@ import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { mountsFor } from "@stl/catalog/src/weapon-mounts.ts";
 import { packFtlDat } from "@stl/ftldat";
 import { standInMedia } from "./media.ts";
+import { TEXT_LISTS_XML } from "./text-lists.ts";
 import { basePng, cloakPng, floorPng, gibPng, shieldPng } from "./png.ts";
 
 /** The stand-in archive: the campaign document, layouts, drawings, and original pictures. */
@@ -13,6 +14,7 @@ export async function standInDat(): Promise<Uint8Array> {
   return packFtlDat(
     [
       { path: "data/stand-in.xml", xml: standInXml() },
+      { path: "data/text_lists.xml", xml: TEXT_LISTS_XML },
       ...pictures.map((file) => ({ path: file.path, xml: file.xml })),
       ...media.documents,
     ],

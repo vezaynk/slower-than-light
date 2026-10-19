@@ -1,6 +1,14 @@
 import { XP_NEED, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { allEmptyBeacons, allWeapons, crewDef, eventDef, fillerList, weaponDef } from "@stl/pack";
+import {
+  allEmptyBeacons,
+  allWeapons,
+  crewDef,
+  eventDef,
+  fillerList,
+  openingLine,
+  weaponDef,
+} from "@stl/pack";
 import type { EmptyBeaconDef, EventDef } from "@stl/pack";
 import type { FillerList } from "./filler-lists.ts";
 import {
@@ -336,15 +344,19 @@ function tradeOffers(g: Game): TradeOffer[] {
   return out;
 }
 
-/** One packed opening sentence. Filler pages that use rand keep that draw. */
+/** One packed opening sentence. Filler pages that use rand keep that draw. A nested list spends one draw per list. */
 function randOpening(g: Game, id: string): string {
+  const picked = openingLine(id, (n) => Math.min(n - 1, Math.floor(rand(g) * n)));
+  if (picked != null) return picked;
   const texts = eventDef(id)?.texts ?? [];
   if (texts.length === 0) return "";
   return texts[Math.min(texts.length - 1, Math.floor(rand(g) * texts.length))] ?? "";
 }
 
-/** One packed opening sentence. Pages that use between keep that draw. */
+/** One packed opening sentence. Pages that use between keep that draw. A nested list spends one draw per list. */
 function betweenOpening(g: Game, id: string): string {
+  const picked = openingLine(id, (n) => between(g, [0, n - 1]));
+  if (picked != null) return picked;
   const texts = eventDef(id)?.texts ?? [];
   const hi = texts.length > 0 ? texts.length - 1 : 0;
   return texts[between(g, [0, hi])] ?? "";

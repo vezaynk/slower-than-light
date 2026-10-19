@@ -584,17 +584,11 @@ function readFtlHull(
     name: elementString(node, "name", strings) ?? elementString(node, "title", strings) ?? id,
     quote: elementString(node, "desc", strings) ?? "",
     unlock: elementString(node, "unlock", strings) ?? "",
-    source: "",
-    reactor: amountOf(node, "maxPower") ?? numOf(node, "reactor") ?? 0,
-    fuel: numOf(node, "fuel") ?? 0,
-    missiles: intAttr(child(node, "weaponList"), "missiles") ?? numOf(node, "missiles") ?? 0,
-    parts: intAttr(child(node, "droneList"), "drones") ?? numOf(node, "parts") ?? 0,
-    systems: {},
+    reactor: amountOf(node, "maxPower") ?? 0,
+    missiles: intAttr(child(node, "weaponList"), "missiles") ?? 0,
+    parts: intAttr(child(node, "droneList"), "drones") ?? 0,
     weapons,
-    crew: [],
-    kits: {},
     augments,
-    unfitted: [],
   };
   const health = amountOf(node, "health");
   if (health != null) hull.health = health;

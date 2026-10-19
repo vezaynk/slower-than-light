@@ -710,14 +710,10 @@ describe("packFromFtl", () => {
     assert.equal(kestrel?.reactor, 8);
     assert.equal(kestrel?.missiles, 8);
     assert.equal(kestrel?.parts, 0);
-    assert.equal(kestrel?.fuel, 0);
     assert.equal(kestrel?.weaponSlots, 4);
     assert.equal(kestrel?.weaponCount, 2);
     assert.equal(kestrel?.droneSlots, 2);
     assert.deepEqual(kestrel?.weapons, ["MISSILES_2_PLAYER", "LASER_BURST_3"]);
-    assert.deepEqual(kestrel?.systems, {});
-    assert.deepEqual(kestrel?.kits, {});
-    assert.deepEqual(kestrel?.crew, []);
     assert.deepEqual(kestrel?.crewCounts, [{ amount: 3, class: "human" }]);
     assert.deepEqual(kestrel?.installs?.[0], { id: "pilot", power: 1, room: 0, start: true });
     assert.equal(kestrel?.installs?.find((row) => row.id === "drones")?.start, false);
@@ -855,7 +851,6 @@ describe("packFromFtl", () => {
       assert.equal(hull?.layout, "kestral");
       assert.equal(hull?.grid?.rooms.length, 2);
       assert.equal(hull?.installs?.[0]?.id, "pilot");
-      assert.deepEqual(hull?.systems, {});
       const sector = sectorDef("STANDARD_SPACE");
       assert.deepEqual(sector?.notes, []);
       assert.equal(sector?.quotas?.[0]?.id, "STORE");

@@ -82,6 +82,7 @@ import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
 // @agent:drones. Projectiles and asteroids striking orbiting drones (extras/swarm.ts shotHitsDrone).
 import {
+  canDeploy,
   enemyDroneSpot,
   hurtRoomDrones,
   shotHitsDrone,
@@ -104,6 +105,8 @@ import {
   sectorDef,
   storeDef,
   weaponDef,
+  START_FUEL,
+  startingFit,
   warnPack,
 } from "@stl/pack";
 import { xpNeedFor } from "./extras/lineage.ts";
@@ -6772,16 +6775,18 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
     ship.hull = spec.health;
     ship.hullMax = spec.health;
   }
+  // The blueprint carries levels and counts. hull-fit works out the powered bars, kits, and seats as FTL does.
+  const fit = startingFit(spec);
   ship.reactor = spec.reactor;
-  ship.systems = systems(spec.systems);
-  ship.weapons = spec.weapons.map((defId, i) => ({
-    uid: `w-${i}`,
-    defId,
-    charge: 0,
-    enabled: true,
-    autofire: false,
-    target: null,
-  }));
+  ship.systems = systems(fit.systems);
+  // Guns take the weapon system's bars in slot order. FTL starts the weapon system unpowered.
+  let gunBars = fit.systems.weapons?.[1] ?? 0;
+  ship.weapons = spec.weapons.map((defId, i) => {
+    const cost = weaponDef(defId)?.power ?? 1;
+    const enabled = cost <= gunBars;
+    if (enabled) gunBars -= cost;
+    return { uid: `w-${i}`, defId, charge: 0, enabled, autofire: false, target: null };
+  });
   ship.parts = spec.parts;
   const laid = layoutFor(spec.id);
   if (laid) {
@@ -6792,7 +6797,7 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
     ship.rows = laid.rows;
   }
   ship.kits = {};
-  for (const [kitId, kit] of Object.entries(spec.kits)) {
+  for (const [kitId, kit] of Object.entries(fit.kits)) {
     if (!kit || !INSTALLABLE_KITS.has(kitId)) continue;
     const fittedId = kitId as KitId;
     const fitted: Kit = {
@@ -6809,7 +6814,11 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
       aux: 0,
     };
     // The Engi Cruiser, Layout B: two System Repair schematics. A single target cannot hold both.
-    if (kit.loadout?.length) fitted.loadout = [...kit.loadout];
+    // A schematic this build does not fly (Engi B's Anti-Personnel Drone) stays on the hangar card, not on the ship.
+    const flown = kit.loadout?.filter(canDeploy) ?? [];
+    if (flown.length) fitted.loadout = flown;
+    if (kitId === "drones" && kit.target != null && !canDeploy(kit.target))
+      fitted.target = flown[0] ?? null;
     if (kit.weapon) fitted.weapon = kit.weapon;
     ship.kits[fittedId] = fitted;
   }
@@ -6818,7 +6827,7 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   ship.shieldNow = Math.floor(ship.systems.shields.power / 2);
   g.player = ship;
   g.hullId = id;
-  g.fuel = spec.fuel;
+  g.fuel = START_FUEL;
   g.missiles = spec.missiles;
   g.augments = [...spec.augments];
   // Zoltan Shield, lead: "Zoltan Shield is an augmentation" and "Zoltan Shield has 5 points of energy shielding".
@@ -6826,7 +6835,7 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   if (g.augments.includes("ENERGY_SHIELD")) ship.zoltan = 5;
   g.armed = ship.weapons[0]?.uid ?? "";
   g.crew = g.crew.filter((c) => c.side !== "player");
-  spec.crew.forEach((seat, i) => {
+  fit.crew.forEach((seat, i) => {
     const kin = crewDef(seat.kin);
     const pick = picks[i] ?? defaultPick(i);
     g.crew.push({

@@ -1770,7 +1770,9 @@ describe("Engi B paired System Repair drones", () => {
     const g = createGame(4, "PLAYER_SHIP_CIRCLE_2");
     const kit = g.player.kits.drones;
     assert.ok(kit);
-    assert.equal(kit.power, 1);
+    // Drone Control starts unpowered, as in FTL. Feed it one bar.
+    assert.equal(kit.power, 0);
+    kit.power = 1;
     assert.equal(activateDroneSlot(g, 0), true);
     assert.equal(activateDroneSlot(g, 1), true);
     const units = kit.drones ?? [];

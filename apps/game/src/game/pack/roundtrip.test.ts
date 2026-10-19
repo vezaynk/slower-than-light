@@ -17,8 +17,8 @@ import {
   allSystems,
   allTunes,
   allWeapons,
-  attachLayoutFiles,
-  attachPictures,
+  emitFtlShips,
+  packFromFtl,
   emitPack,
   parsePack,
   resetPackForTests,
@@ -43,12 +43,14 @@ describe("base pack xml", () => {
     };
     const xml = emitPack(pack);
     const back = parsePack(xml);
-    attachLayoutFiles(back.hulls, layoutFiles());
-    // The drawing boxes, offsets, and gibs ride in each hull's picture file beside the document, as in the dat.
-    attachPictures(
-      back.hulls,
-      hullPictureFiles().map((file) => ({ path: file.path, xml: file.xml })),
-    );
+    // Ships travel as ftl.dat blueprints, with their layout text and picture files beside them, as in the dat.
+    back.hulls = packFromFtl(
+      [
+        { path: "data/blueprints.xml", xml: emitFtlShips(pack.hulls) },
+        ...hullPictureFiles().map((file) => ({ path: file.path, xml: file.xml })),
+      ],
+      layoutFiles(),
+    ).hulls;
     assert.deepEqual(back.crew, pack.crew);
     assert.deepEqual(back.weapons, pack.weapons);
     assert.deepEqual(back.augments, pack.augments);

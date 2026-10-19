@@ -44,6 +44,9 @@ export function enemyLayout(classId: string, pirate = false): EnemyLayout | unde
   if (!grid || grid.rooms.length === 0) return undefined;
   if (grid.rooms.every((room) => room.w === 0 && room.h === 0)) return undefined;
   const box = span(grid.rooms);
+  // What a room holds is the blueprint's: the system installed there, as ftl.dat's systemList places it.
+  const held = (index: number) =>
+    hull.installs?.find((item) => item.room === index && item.start)?.id ?? null;
   return {
     cols: grid.cols ?? box.cols,
     rows: grid.rows ?? box.rows,
@@ -52,7 +55,7 @@ export function enemyLayout(classId: string, pirate = false): EnemyLayout | unde
       y: room.y,
       w: room.w,
       h: room.h,
-      system: (room.system as EnemySystem | null) ?? null,
+      system: held(room.id) as EnemySystem | null,
     })),
     marks: marksFromDoors(grid),
   };

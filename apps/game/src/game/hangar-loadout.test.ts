@@ -5,7 +5,7 @@ import { playerDroneSlots } from "./extras/swarm.ts";
 import { droneKeyForName, weaponIdForName } from "./gear-look.ts";
 import { HULLS, hullById } from "./hulls.ts";
 import { iconForName } from "./icons.ts";
-import { augmentDef, emitPack, hullDef, parsePack } from "@stl/pack";
+import { augmentDef, emitFtlShips, hullDef, packFromFtl } from "@stl/pack";
 import { createGame, hangarLoadout } from "./sim.ts";
 import { MISSING_AUGMENTS } from "./wiki/augments-missing.ts";
 import { hangarBay } from "./wiki/hangar-bay.ts";
@@ -259,7 +259,7 @@ describe("hangar bay", () => {
     const kestrel = hullDef("PLAYER_SHIP_HARD");
     const fed = hullDef("PLAYER_SHIP_FED");
     assert.ok(kestrel && fed);
-    const back = parsePack(emitPack({ hulls: [kestrel, fed] }));
+    const back = packFromFtl([{ path: "data/blueprints.xml", xml: emitFtlShips([kestrel, fed]) }]);
     const first = back.hulls?.find((hull) => hull.id === "PLAYER_SHIP_HARD");
     const second = back.hulls?.find((hull) => hull.id === "PLAYER_SHIP_FED");
     assert.equal(first?.weaponSlots, 4);

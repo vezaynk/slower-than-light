@@ -11,7 +11,7 @@
  */
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import "@/game/pack/base";
-import { hullDef, shipPreviewPath, weaponDef } from "@stl/pack";
+import { hullDef, shipPreviewPath, startingFit, weaponDef } from "@stl/pack";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import {
   NAME_MAX,
@@ -62,7 +62,7 @@ function letterOf(heading: string): Letter {
 function seatsOf(layoutId: string): KinId[] {
   const hull = hullDef(layoutId);
   if (!hull) return [];
-  return hull.crew.map((seat) => seat.kin as KinId);
+  return startingFit(hull).crew.map((seat) => seat.kin as KinId);
 }
 
 function weaponPower(id: string) {

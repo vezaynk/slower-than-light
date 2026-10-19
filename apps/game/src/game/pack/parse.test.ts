@@ -153,12 +153,6 @@ const XML = `
     <item>Spare</item>
   </unfitted>
 </shipBlueprint>
-<shipBlueprint name="barehull" layout="A">
-  <reactor>0</reactor>
-</shipBlueprint>
-<shipBlueprint>
-  <title>No name</title>
-</shipBlueprint>
 <sectorDescription name="embersector">
   <title>Ember Reach</title>
   <type>hostile</type>
@@ -278,14 +272,14 @@ const XML = `
 afterEach(() => resetPackForTests());
 
 describe("parsePack", () => {
-  it("reads the crew, weapon, augment, drone, system, hull, sector, store, tune, and event tags this milestone stores", () => {
+  it("reads the crew, weapon, augment, drone, system, sector, store, tune, and event tags this milestone stores", () => {
     const pack = parsePack(XML);
     assert.equal(pack.crew?.length, 1);
     assert.equal(pack.weapons?.length, 2);
     assert.equal(pack.augments?.length, 2);
     assert.equal(pack.drones?.length, 2);
     assert.equal(pack.systems?.length, 2);
-    assert.equal(pack.hulls?.length, 2);
+    assert.equal(pack.hulls, undefined);
     assert.equal(pack.sectors?.length, 2);
     assert.equal(pack.stores?.length, 2);
     assert.equal(pack.tunes?.length, 2);
@@ -399,33 +393,8 @@ describe("parsePack", () => {
     assert.equal(bareSys?.slot, "sys");
     assert.equal(systemDef("No name"), undefined);
 
-    const emberHull = hullDef("emberhull");
-    assert.equal(emberHull?.name, "The Ember");
-    assert.equal(emberHull?.cruiser, "Ember Cruiser");
-    assert.equal(emberHull?.layout, "B");
-    assert.equal(emberHull?.quote, "A warm hull.");
-    assert.equal(emberHull?.unlock, "Find it.");
-    assert.equal(emberHull?.source, "Ember page");
-    assert.equal(emberHull?.reactor, 9);
-    assert.equal(emberHull?.fuel, 4);
-    assert.equal(emberHull?.missiles, 1);
-    assert.equal(emberHull?.parts, 3);
-    assert.deepEqual(emberHull?.systems.shields, [2, 1]);
-    assert.deepEqual(emberHull?.weapons, ["LASER_BURST_3"]);
-    assert.deepEqual(emberHull?.crew, [{ kin: "human", room: "p-pilot" }]);
-    assert.equal(emberHull?.kits.cloaking?.level, 1);
-    assert.equal(emberHull?.kits.cloaking?.on, false);
-    assert.deepEqual(emberHull?.kits.cloaking?.loadout, ["REPAIR"]);
-    assert.deepEqual(emberHull?.augments, ["ENERGY_SHIELD"]);
-    assert.deepEqual(emberHull?.unfitted, ["Spare"]);
-    const bareHull = hullDef("barehull");
-    assert.equal(bareHull?.name, "barehull");
-    assert.equal(bareHull?.layout, "A");
-    assert.equal(bareHull?.cruiser, "");
-    assert.equal(bareHull?.reactor, 0);
-    assert.deepEqual(bareHull?.weapons, []);
-    assert.deepEqual(bareHull?.crew, []);
-    assert.equal(hullDef("No name"), undefined);
+    // Ships are ftl.dat blueprints, read by packFromFtl. The pack document's reader leaves a <shipBlueprint> alone.
+    assert.equal(hullDef("emberhull"), undefined);
 
     const emberSector = sectorDef("embersector");
     assert.equal(emberSector?.name, "Ember Reach");

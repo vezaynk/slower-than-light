@@ -87,15 +87,13 @@ export function gridFromLayout(layout: LayoutSource): HullGrid {
       w: room.w,
       h: room.h,
     };
-    if (room.id) row.name = room.id;
-    if (room.title) row.title = room.title;
-    if (room.system) row.system = room.system;
-    if (room.reserve) row.reserve = room.reserve;
     return row;
   });
+  // The same grid a layout file reads back as (readGrids): zero offsets, and the room span is the size.
   return {
-    cols: layout.cols,
-    rows: layout.rows,
+    x: 0,
+    y: 0,
+    vertical: 0,
     rooms,
     doors: doorsFromMarks(rooms, layout.marks ?? []),
   };
@@ -136,36 +134,6 @@ export function readGrids(
     if (grid) grids.set(layoutName(file.path), grid);
   }
   return grids;
-}
-
-/**
- * Copies room rectangles and doors from the layout text onto hulls whose `layout` names that file.
- * Room names, titles, and system placement already read from the ship stay on those rooms.
- */
-export function attachLayoutFiles(
-  hulls: HullDef[] | undefined,
-  files: readonly { path: string; text: string }[],
-): void {
-  if (!hulls?.length || files.length === 0) return;
-  const grids = readGrids(files);
-  for (const hull of hulls) {
-    const geometry = grids.get(hull.layout);
-    if (!geometry) continue;
-    const labels = hull.grid?.rooms ?? [];
-    const rooms = geometry.rooms.map((room) => {
-      const label = labels.find((item) => item.id === room.id);
-      const next: HullRoom = { id: room.id, x: room.x, y: room.y, w: room.w, h: room.h };
-      if (label?.name) next.name = label.name;
-      if (label?.title) next.title = label.title;
-      if (label?.system) next.system = label.system;
-      if (label?.reserve) next.reserve = label.reserve;
-      return next;
-    });
-    const grid: HullGrid = { rooms, doors: geometry.doors.map((door) => ({ ...door })) };
-    if (hull.grid?.cols != null) grid.cols = hull.grid.cols;
-    if (hull.grid?.rows != null) grid.rows = hull.grid.rows;
-    hull.grid = grid;
-  }
 }
 
 export function cloneGrid(grid: HullGrid): HullGrid {

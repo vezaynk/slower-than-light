@@ -1,12 +1,5 @@
 import type { FtlDocument, FtlExtract } from "@stl/ftldat";
-import {
-  attachLayoutFiles,
-  attachPictures,
-  attachTextLists,
-  packFromFtl,
-  parsePack,
-  type ContentPack,
-} from "@stl/pack";
+import { attachTextLists, packFromFtl, parsePack, type ContentPack } from "@stl/pack";
 
 /** The bundled stand-in is this one campaign document. */
 const STAND_IN = "data/stand-in.xml";
@@ -83,8 +76,12 @@ export function packFromExtract(files: FtlExtract): ContentPack {
     const layouts = [...files.text]
       .filter(([path]) => path.toLowerCase().endsWith(".txt"))
       .map(([path, text]) => ({ path, text }));
-    attachLayoutFiles(pack.hulls, layouts);
-    attachPictures(pack.hulls, files.documents);
+    // Ships are ftl.dat blueprints in data/blueprints.xml, read by the same code as a real archive.
+    const ships = packFromFtl(
+      files.documents.filter((doc) => doc.path !== STAND_IN),
+      layouts,
+    ).hulls;
+    if (ships) pack.hulls = ships;
     attachTextLists(
       pack,
       files.documents.filter((doc) => doc.path !== STAND_IN),

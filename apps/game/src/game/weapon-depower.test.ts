@@ -13,10 +13,11 @@ import {
   toggleWeapon,
 } from "./sim.ts";
 import type { WeaponInst } from "./types.ts";
+import { powerGuns } from "./fixtures.ts";
 
 describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", () => {
   it("returns a switched-off weapon's bars to the reactor and draws them back when switched on", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     const sys = g.player.systems.weapons;
     const spare = sparePower(g.player);
     const power = sys.power;
@@ -34,7 +35,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
   });
 
   it("stays off when the reactor has too few spare bars", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     const w = g.player.weapons[0]!;
     depowerWeapon(g, w.uid);
     g.player.reactor -= sparePower(g.player);
@@ -44,7 +45,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
   });
 
   it("drains quickly, not at once, and holds while paused or while the radial menu is open", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     startCombat(g, "scout");
     const w = g.player.weapons[0]!;
     w.charge = 0.9;
@@ -65,7 +66,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
   });
 
   it("drains a gun that loses power to damage, not only one switched off", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     startCombat(g, "scout");
     const w = g.player.weapons[0]!;
     w.charge = 0.5;
@@ -78,7 +79,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
   });
 
   it("enables weapons from the left when power is added, and disables them when it is removed", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     g.player.reactor = 25;
     const sys = g.player.systems.weapons;
     sys.level = 8;
@@ -116,7 +117,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
   });
 
   it("does not retarget weapon power when another system changes", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     const before = g.player.weapons.map((w) => w.enabled);
     const engines = g.player.systems.engines.power;
     if (sparePower(g.player) > 0 && engines < g.player.systems.engines.level) powerUp(g, "engines");
@@ -128,7 +129,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
   });
 
   it("clears the aim of a weapon that is disabled, and leaves the other gun's aim", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     startCombat(g, "scout");
     g.player.reactor = 25;
     const sys = g.player.systems.weapons;
@@ -170,7 +171,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
   });
 
   it("drains an unpowered gun outside a fight too", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     g.phase = "map";
     const w = g.player.weapons[0]!;
     w.charge = 0.5;

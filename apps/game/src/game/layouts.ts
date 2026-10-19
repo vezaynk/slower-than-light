@@ -1,5 +1,5 @@
 import { reserveRooms } from "@stl/catalog/src/ship-layouts.ts";
-import { hullDef, marksFromDoors } from "@stl/pack";
+import { hullDef, marksFromDoors, roomNames } from "@stl/pack";
 import type { Door, DoorMark, KitId, Room, Ship, SysId } from "./types.ts";
 
 /**
@@ -85,31 +85,37 @@ function gridSpan(rooms: { x: number; y: number; w: number; h: number }[]): {
   return { cols, rows };
 }
 
-/** The loaded hull's room grid. A hull with no grid keeps the Lark fallback. */
+/**
+ * The loaded hull's room grid. A hull with no grid keeps the Lark fallback.
+ * Room names, titles, and the rooms kept for a system the ship can buy all come from the blueprint's installs
+ * (hull-fit's roomNames), as ftl.dat's layout files name nothing.
+ */
 export function layoutFor(id: string): Layout | undefined {
   const hull = hullDef(id);
   if (!hull?.grid || hull.grid.rooms.length === 0) return undefined;
   const grid = hull.grid;
   if (grid.rooms.every((room) => room.w === 0 && room.h === 0)) return undefined;
   const span = gridSpan(grid.rooms);
+  const names = roomNames(hull);
   return {
     cols: grid.cols ?? span.cols,
     rows: grid.rows ?? span.rows,
     rooms: grid.rooms.map((room) => {
-      const fitted =
-        room.system ?? hull.installs?.find((item) => item.room === room.id && item.start)?.id;
+      const fitted = hull.installs?.find((item) => item.room === room.id && item.start)?.id;
       const open = hull.installs?.find((item) => item.room === room.id && !item.start)?.id;
       const system = isPlayerSystem(fitted) ? fitted : null;
       const tile: TileRoom = {
-        id: room.name ?? String(room.id),
-        title: room.title ?? (fitted ? SYSTEM_TITLE[fitted] : undefined) ?? "Hall",
+        id: names.get(room.id) ?? String(room.id),
+        title: (system ? SYSTEM_TITLE[system] : undefined) ?? "Hall",
         system,
         x: room.x,
         y: room.y,
         w: room.w,
         h: room.h,
       };
-      const reserve = room.reserve ?? (open ? SYSTEM_TITLE[open] : undefined);
+      // A kit's room is kept for it until seatKits or seatLayout seats it, as is a room for a system the ship can buy.
+      const kept = system ? undefined : (fitted ?? open);
+      const reserve = kept ? SYSTEM_TITLE[kept] : undefined;
       if (reserve) tile.reserve = reserve;
       return tile;
     }),

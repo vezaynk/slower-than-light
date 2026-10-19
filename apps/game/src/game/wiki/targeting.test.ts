@@ -12,6 +12,7 @@ import {
   randomRoom,
   SYSTEM_TARGETS,
 } from "./targeting.ts";
+import { powerGuns } from "../fixtures.ts";
 
 function kit(id: KitId, over: Partial<Kit> = {}): Kit {
   return { id, level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0, ...over };
@@ -63,7 +64,7 @@ describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
     const g = calm("hard");
     g.player.systems.shields.power = 1;
     assert.deepEqual(priorityList(g), ["shields"]);
-    g.player.systems.weapons.power = 1;
+    powerGuns(g);
     assert.deepEqual(priorityList(g), ["shields", "weapons"]);
   });
 

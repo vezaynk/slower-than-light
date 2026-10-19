@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { emitPack } from "./emit.ts";
+import { emitFtlShips } from "./ftl-emit.ts";
+import { packFromFtl } from "./ftl.ts";
 import { parsePack } from "./parse.ts";
 import {
   crewDef,
@@ -952,17 +954,11 @@ describe("pack document", () => {
       name: "Slots",
       quote: "",
       unlock: "First line.\nSecond line.",
-      source: "",
       reactor: 0,
-      fuel: 0,
       missiles: 0,
       parts: 0,
-      systems: {},
       weapons: [],
-      crew: [],
-      kits: {},
       augments: [],
-      unfitted: [],
       weaponSlots: 4,
       droneSlots: 3,
       health: 18,
@@ -974,20 +970,14 @@ describe("pack document", () => {
       name: "Bare",
       quote: "",
       unlock: "",
-      source: "",
       reactor: 0,
-      fuel: 0,
       missiles: 0,
       parts: 0,
-      systems: {},
       weapons: [],
-      crew: [],
-      kits: {},
       augments: [],
-      unfitted: [],
     };
-    const xml = emitPack({ hulls: [counted, bare] });
-    const back = parsePack(xml);
+    const xml = emitFtlShips([counted, bare]);
+    const back = packFromFtl([{ path: "data/blueprints.xml", xml }]);
     const slots = back.hulls?.find((hull) => hull.id === "slot-ship");
     const plain = back.hulls?.find((hull) => hull.id === "bare-ship");
     assert.equal(slots?.weaponSlots, 4);

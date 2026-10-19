@@ -227,7 +227,7 @@ describe("crystal lockdown", () => {
     assert.equal(g.player.rooms.find((r) => r.id === human.room)?.lock ?? 0, 0);
 
     // Crystal A, CrystalASystems.png: the hall at the nose shares a door with the Medbay and has two airlocks.
-    const from = "p-cah1";
+    const from = "p-hall1";
     first.room = from;
     first.path = ["p-medbay"];
     first.move = 0;

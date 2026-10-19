@@ -4,7 +4,7 @@ import { HULLS, hullById } from "../hulls.ts";
 import { layoutFor } from "../layouts.ts";
 import { createGame, hangarLoadout } from "../sim.ts";
 import "./base.ts";
-import { allHulls, crewDef, hullDef, loadPack, resetPackForTests } from "@stl/pack";
+import { START_FUEL, allHulls, crewDef, hullDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { HullDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
@@ -17,22 +17,22 @@ function emberHull(): HullDef {
     name: "The Ember",
     quote: "",
     unlock: "",
-    source: "",
     reactor: 6,
-    fuel: 3,
     missiles: 1,
     parts: 2,
-    systems: { shields: [1, 1], ember: [3, 3] },
     weapons: ["LASER_BURST_3", "no-such-gun"],
-    crew: [
-      { kin: "human", room: "p-pilot" },
-      { kin: "not-a-race", room: "p-engines" },
-    ],
-    kits: {
-      emberkit: { level: 2, power: 1 },
-    },
     augments: ["ENERGY_SHIELD"],
-    unfitted: ["Spare"],
+    installs: [
+      { id: "shields", power: 1, start: true },
+      { id: "ember", power: 3, start: true },
+      { id: "pilot", power: 1, start: true },
+      { id: "engines", power: 1, start: true },
+      { id: "emberkit", power: 2, start: true },
+    ],
+    crewCounts: [
+      { amount: 1, class: "human" },
+      { amount: 1, class: "not-a-race" },
+    ],
   };
 }
 
@@ -63,17 +63,19 @@ describe("hull listings", () => {
     const rooms = layoutFor("PLAYER_SHIP_HARD")?.rooms.length;
     assert.equal(started.player.rooms.length, rooms);
 
+    // A pack that changes Drone Control's level and the drone list changes the run's kit.
     const engi = hullDef("PLAYER_SHIP_CIRCLE_2");
-    assert.ok(engi?.kits.drones);
+    assert.ok(engi?.installs?.some((item) => item.id === "drones" && item.start));
+    assert.ok(engi);
     loadPack(
       {
         hulls: [
           {
             ...engi,
-            kits: {
-              ...engi.kits,
-              drones: { level: 1, power: engi.kits.drones.power, loadout: ["DEFENSE_1"] },
-            },
+            installs: (engi.installs ?? []).map((item) =>
+              item.id === "drones" ? { ...item, power: 1 } : item,
+            ),
+            drones: ["DEFENSE_1"],
           },
         ],
       },
@@ -94,7 +96,7 @@ describe("hull listings", () => {
     assert.equal(started.hullId, "ember");
     assert.equal(started.player.name, "The Ember");
     assert.equal(started.player.reactor, 6);
-    assert.equal(started.fuel, 3);
+    assert.equal(started.fuel, START_FUEL);
     assert.equal(started.missiles, 1);
     assert.equal(started.player.parts, 2);
     assert.equal(started.player.systems.shields.level, 1);

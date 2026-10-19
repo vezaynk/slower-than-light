@@ -103,12 +103,6 @@ export type SystemDef = {
 /** A hangar layout letter. Unlock rules use this letter. A loaded hull names its layout file. */
 export type HullLayout = "A" | "B" | "C";
 
-/** One starting crew seat. The kin id is a crew-pack id. */
-export type HullCrewDef = {
-  kin: string;
-  room: string;
-};
-
 /** The `<img x y w h>` box from `data/<layout>.xml`, in archive pixels. */
 export type HullPicture = {
   x: number;
@@ -165,20 +159,13 @@ export type HullMount = {
 };
 
 /** One rectangle from a layout file. `id` is the room index the blueprint names. */
+/** One room from a layout file: its index and box. What a room holds is on the blueprint's installs. */
 export type HullRoom = {
   id: number;
   x: number;
   y: number;
   w: number;
   h: number;
-  /** Seat id, when the ship names its rooms. */
-  name?: string;
-  /** Hangar label. */
-  title?: string;
-  /** Installed system id. */
-  system?: string;
-  /** Pale hangar icon. The room stays empty until that system is bought. */
-  reserve?: string;
 };
 
 /**
@@ -262,29 +249,28 @@ export type HullKitDef = {
 };
 
 /**
- * A player hull. Levels and starting cargo are the record.
+ * A ship blueprint, as ftl.dat's <shipBlueprint> carries it: levels, counts, and the starting cargo.
+ * Powered bars, kits, crew seats, and room names are not on the record; hull-fit's startingFit works them out.
  * Unlock gates and system effects stay in code.
- * `layout` is a hangar letter, or the archive layout file name. It is not coerced.
- * `systems` is the campaign level and power table. Archive bars live on `installs`.
+ * `layout` is the archive layout file name. It is not coerced.
  */
 export type HullDef = {
   id: string;
+  /** `<class>`. */
   cruiser: string;
   layout: string;
   name: string;
+  /** `<desc>`. */
   quote: string;
   unlock: string;
-  source: string;
+  /** `<maxPower amount>`. */
   reactor: number;
-  fuel: number;
+  /** `<weaponList missiles>`. */
   missiles: number;
+  /** `<droneList drones>`: drone parts. */
   parts: number;
-  systems: Record<string, [number, number]>;
   weapons: string[];
-  crew: HullCrewDef[];
-  kits: Record<string, HullKitDef>;
   augments: string[];
-  unfitted: string[];
   /** Hull points from `<health amount>`. */
   health?: number;
   /** Base image id. Cloak, shield, and floor are the other image ids. */

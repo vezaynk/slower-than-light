@@ -3,11 +3,13 @@ import { describe, it } from "node:test";
 import { createGame, depowerWeapon, powerMask, startCombat, stepShots } from "./sim.ts";
 import { hackHoldsWeapons } from "./extras/spike.ts";
 import type { Shot } from "./types.ts";
+import { powerGuns } from "./fixtures.ts";
 
 /** A player beam across two enemy system rooms, no shields, fired from a powered mount. */
 function sweep() {
   const g = createGame(3, "PLAYER_SHIP_HARD");
   startCombat(g, "scout");
+  powerGuns(g);
   const enemy = g.enemy;
   assert.ok(enemy);
   enemy.shieldNow = 0;
@@ -111,6 +113,7 @@ describe("beam sweep (per the user: damage lands as the beam touches each room)"
     // A beam already firing has spent its charge, so the pulse does not stop it.
     const g = createGame(3, "PLAYER_SHIP_HARD");
     startCombat(g, "scout");
+    powerGuns(g);
     const enemy = g.enemy;
     assert.ok(enemy);
     const w = enemy.weapons.find((_, i) => powerMask(enemy)[i]);

@@ -1,5 +1,7 @@
 import {
+  emitFtlShips,
   emitPack,
+  packFromFtl,
   parsePack,
   prettyXml,
   type ContentPack,
@@ -55,6 +57,12 @@ export function emitMod(pack: ContentPack): string {
     }
     root.appendChild(doc.importNode(child, true));
   }
+  // Ships are ftl.dat blueprints, the same <shipBlueprint> a real archive writes.
+  if (pack.hulls?.length) {
+    const ships = readXml(emitFtlShips(pack.hulls)).documentElement;
+    if (ships)
+      for (const child of elementChildren(ships)) root.appendChild(doc.importNode(child, true));
+  }
   writeCrewIdentity(root, pack.crew, doc);
   writeSystemDetail(root, pack.systems, doc);
   return prettyXml(serializer.serializeToString(doc));
@@ -71,6 +79,8 @@ export function packFromMod(xml: string): ContentPack {
   if (!root) throw new Error("Mod XML is not well-formed: the document has no root element.");
   assertPackRoot(root.tagName);
   const parsed = parsePack(xml);
+  const ships = packFromFtl([{ path: "pack.xml", xml }]).hulls;
+  if (ships) parsed.hulls = ships;
   readCrewIdentity(root, parsed.crew);
   readSystemDetail(root, parsed.systems);
   const pack = omitEmpty(parsed);

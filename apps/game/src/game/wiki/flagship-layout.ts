@@ -7,7 +7,8 @@ import type { SysId } from "../types.ts";
  * Rebel Flagship interiors, one traced cutaway per stage.
  * The fight asks for BOSS_<stage>_EASY_DLC, BOSS_<stage>_NORMAL_DLC, or BOSS_<stage>_HARD_DLC.
  * Those blueprints share data/flagship-<stage>.txt. A missing difficulty reads the normal blueprint.
- * Room names such as f1-pilot travel with the rectangles. The fight maps those names onto artillery rooms.
+ * Room names such as f1-pilot come from the blueprint's installs: a system's room, or an artillery pod named for its
+ * boss weapon. The fight maps those names onto artillery rooms.
  * The two Hard link rooms stay here. They are a difficulty overlay, not a fourth battle.
  */
 
@@ -35,24 +36,51 @@ function span(rooms: { x: number; y: number; w: number; h: number }[]): {
 
 /** The traced interior for one Flagship stage at the run's difficulty. Missing data fails the fight. */
 export function flagshipLayout(stage: 1 | 2 | 3, difficulty: string | undefined): Layout {
-  const grid = hullDef(flagshipHullId(stage, difficulty))?.grid;
+  const hull = hullDef(flagshipHullId(stage, difficulty));
+  const grid = hull?.grid;
   if (!grid || grid.rooms.length === 0) throw new Error(`Flagship stage ${stage} has no interior`);
   const box = span(grid.rooms);
   return {
     cols: grid.cols ?? box.cols,
     rows: grid.rows ?? box.rows,
-    rooms: grid.rooms.map((room) => ({
-      id: room.name ?? "",
-      title: room.title ?? "",
-      system: (room.system as SysId | null) ?? null,
-      x: room.x,
-      y: room.y,
-      w: room.w,
-      h: room.h,
-    })),
+    rooms: grid.rooms.map((room) => {
+      const held = hull?.installs?.find((item) => item.room === room.id && item.start);
+      const role = held ? FLAGSHIP_ROLE[held.weapon ?? held.id] : undefined;
+      return {
+        id: role ? `f${stage}-${role.key}` : `f${stage}-hall-${room.x}-${room.y}`,
+        title: role?.title ?? "Hall",
+        system: role?.system ?? null,
+        x: room.x,
+        y: room.y,
+        w: room.w,
+        h: room.h,
+      };
+    }),
     marks: marksFromDoors(grid),
   };
 }
+
+/**
+ * A flagship room's name, title, and main system, by what is installed there. Artillery pods go by their weapon
+ * (ftl.dat's BOSS_* blueprints: ARTILLERY_BOSS_1 laser, _2 missile, _3 beam, _4 ion).
+ */
+const FLAGSHIP_ROLE: Record<string, { key: string; title: string; system?: SysId }> = {
+  pilot: { key: "pilot", title: "Piloting", system: "pilot" },
+  shields: { key: "shields", title: "Shields", system: "shields" },
+  oxygen: { key: "oxygen", title: "Oxygen", system: "oxygen" },
+  engines: { key: "engines", title: "Engines", system: "engines" },
+  medbay: { key: "medbay", title: "Medbay", system: "medbay" },
+  doors: { key: "doors", title: "Door", system: "doors" },
+  cloaking: { key: "cloak", title: "Cloaking" },
+  hacking: { key: "hack", title: "Hacking" },
+  drones: { key: "drone", title: "Drone" },
+  teleporter: { key: "teleporter", title: "Teleporter" },
+  mind: { key: "mind", title: "Mind Control" },
+  ARTILLERY_BOSS_1: { key: "laser", title: "Boss Laser" },
+  ARTILLERY_BOSS_2: { key: "missile", title: "Boss Missile" },
+  ARTILLERY_BOSS_3: { key: "beam", title: "Boss Beam" },
+  ARTILLERY_BOSS_4: { key: "ion", title: "Boss Ion" },
+};
 
 /** Two Hard link rooms counted on Flagship1stStage.png. The hard screenshot is a full ship and was not the cell count. */
 export const flagshipHardLinks: Layout = {

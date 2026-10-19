@@ -29,6 +29,7 @@ import {
   toggleAutoAll,
 } from "./sim.ts";
 import type { Room, Shot } from "./types.ts";
+import { powerGuns } from "./fixtures.ts";
 
 function grid(rooms: BeamGrid["rooms"], cols: number, rows: number): BeamGrid {
   return { rooms, cols, rows };
@@ -96,6 +97,7 @@ describe("slider aim", () => {
   it("moves a queued laser onto the room under the point and does not fire", () => {
     const g = createGame(1, "PLAYER_SHIP_JELLY");
     startCombat(g, "scout");
+    powerGuns(g);
     const laser = g.player.weapons.find((gun) => gun.defId !== "BEAM_BIO" && gun.enabled);
     assert.ok(laser);
     const rooms = g.enemy!.rooms;
@@ -119,6 +121,7 @@ describe("slider aim", () => {
   it("sets a beam from two points and will not leave the enemy floor", () => {
     const g = createGame(1, "PLAYER_SHIP_JELLY");
     startCombat(g, "scout");
+    powerGuns(g);
     const w = g.player.weapons.find((gun) => gun.defId === "BEAM_BIO");
     assert.ok(w);
     w.charge = 0;
@@ -149,6 +152,7 @@ describe("slider aim", () => {
   it("lets either beam thumb pull the other once the swipe is at full length", () => {
     const g = createGame(1, "PLAYER_SHIP_JELLY");
     startCombat(g, "scout");
+    powerGuns(g);
     const w = g.player.weapons.find((gun) => gun.defId === "BEAM_BIO");
     assert.ok(w);
     w.charge = 0;
@@ -272,6 +276,7 @@ describe("player beam aim", () => {
   function fight() {
     const g = createGame(1, "PLAYER_SHIP_JELLY");
     startCombat(g, "scout");
+    powerGuns(g);
     const w = g.player.weapons.find((gun) => gun.defId === "BEAM_BIO");
     assert.ok(w);
     const index = g.player.weapons.indexOf(w);
@@ -396,6 +401,7 @@ describe("enemy beam aim", () => {
   it("still swipes the aimed room and one door neighbour", () => {
     const g = createGame(4);
     startCombat(g, "scout");
+    powerGuns(g);
     for (const w of g.player.weapons) w.enabled = false;
     const enemy = g.enemy!;
     enemy.weapons = [
@@ -440,6 +446,7 @@ describe("enemy beam aim", () => {
   it("swipes the Boss Beam at the printed speed of 5", () => {
     const g = createGame(4);
     startCombat(g, "scout");
+    powerGuns(g);
     for (const w of g.player.weapons) w.enabled = false;
     const enemy = g.enemy!;
     enemy.weapons = [

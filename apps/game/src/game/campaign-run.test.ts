@@ -99,13 +99,18 @@ describe("a seeded Kestrel run", () => {
     assert.equal(g.player.systems.shields.level, 2);
     assert.equal(g.player.systems.shields.power, 2);
     assert.equal(g.player.systems.engines.level, 2);
-    assert.equal(g.player.systems.engines.power, 2);
+    // FTL's starting power: shields full, one bar for every other reactor system, the weapon system off.
+    assert.equal(g.player.systems.engines.power, 1);
     assert.equal(g.player.systems.oxygen.level, 1);
     assert.equal(g.player.systems.oxygen.power, 1);
     assert.equal(g.player.systems.medbay.level, 1);
-    assert.equal(g.player.systems.medbay.power, 0);
+    assert.equal(g.player.systems.medbay.power, 1);
     assert.equal(g.player.systems.weapons.level, 3);
-    assert.equal(g.player.systems.weapons.power, 3);
+    assert.equal(g.player.systems.weapons.power, 0);
+    assert.deepEqual(
+      g.player.weapons.map((w) => w.enabled),
+      [false, false],
+    );
     assert.equal(g.player.systems.sensors.level, 1);
     assert.equal(g.player.systems.sensors.power, 1);
     assert.equal(g.player.systems.pilot.level, 1);

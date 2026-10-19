@@ -47,7 +47,9 @@ import type {
   EventChoice,
   EventDef,
   FillerListDef,
+  HullCrewCount,
   HullDef,
+  HullInstall,
   HullKitDef,
   OfferRow,
   RollEntry,
@@ -361,21 +363,6 @@ function copyOffer(row: OfferRow): OfferRow {
 }
 
 function hullRow(spec: HullSpec): HullDef {
-  const systems: Record<string, [number, number]> = {};
-  for (const [id, pair] of Object.entries(spec.systems)) {
-    if (!pair) continue;
-    systems[id] = [pair[0], pair[1]];
-  }
-  const kits: Record<string, HullKitDef> = {};
-  for (const [id, kit] of Object.entries(spec.kits)) {
-    if (!kit) continue;
-    const copy: HullKitDef = { level: kit.level, power: kit.power };
-    if (kit.target !== undefined) copy.target = kit.target;
-    if (kit.loadout) copy.loadout = [...kit.loadout];
-    if (kit.on !== undefined) copy.on = kit.on;
-    if (kit.weapon) copy.weapon = kit.weapon;
-    kits[id] = copy;
-  }
   const row: HullDef = {
     id: spec.id,
     cruiser: spec.cruiser,
@@ -386,21 +373,160 @@ function hullRow(spec: HullSpec): HullDef {
     weaponSlots: spec.weaponSlots,
     droneSlots: spec.droneSlots,
     health: spec.health,
-    source: spec.source,
     reactor: spec.reactor,
-    fuel: spec.fuel,
     missiles: spec.missiles,
     parts: spec.parts,
-    systems,
     weapons: [...spec.weapons],
-    crew: spec.crew.map((seat) => ({ kin: seat.kin, room: seat.room })),
-    kits,
     augments: [...spec.augments],
-    unfitted: [...spec.unfitted],
   };
   const source = SHIP_LAYOUTS[spec.id];
   if (source) row.grid = gridFromLayout(source);
+  blueprintFields(row, spec, source?.rooms ?? []);
   return paintHull(row, LAYOUT_FILE[spec.id]);
+}
+
+/** Kits in the order the game seats them (sim.ts applyHull fills ship.kits in this order). */
+const KIT_ORDER = [
+  "cloaking",
+  "teleporter",
+  "hacking",
+  "drones",
+  "mind",
+  "clonebay",
+  "battery",
+  "artillery",
+];
+
+/** Preferred square counts for a kit with no traced room, best first (the game's layouts.ts KIT_SQUARES). */
+const KIT_SQUARES: Record<string, number[]> = {
+  teleporter: [2, 4],
+  clonebay: [4, 2],
+  mind: [4, 2],
+  drones: [4, 2],
+  cloaking: [4, 2],
+  hacking: [4, 2, 1],
+  battery: [2, 4],
+  artillery: [2, 4],
+};
+
+/**
+ * The room for a fitted kit whose traced layout has no room labelled for it, by the game's own seating rule
+ * (layouts.ts kitSeat): Clone Bay takes the medical room when Medbay is not fitted, otherwise the first empty hall
+ * whose square count comes earliest in KIT_SQUARES, then any empty hall.
+ */
+function kitHall(
+  rooms: readonly (TracedRoom & { index: number })[],
+  kit: string,
+  medbayLevel: number,
+  taken: Map<string, number>,
+): number | undefined {
+  const used = new Set(taken.values());
+  if (kit === "clonebay" && medbayLevel <= 0) {
+    const bay = rooms.find(
+      (room) => !used.has(room.index) && (room.system === "medbay" || room.reserve === "Medbay"),
+    );
+    if (bay) return bay.index;
+  }
+  const empty = rooms.filter(
+    (room) =>
+      !used.has(room.index) &&
+      !room.system &&
+      !room.reserve &&
+      (room.title === "Hall" || room.title === "Hold"),
+  );
+  for (const n of KIT_SQUARES[kit] ?? []) {
+    const hit = empty.find((room) => room.w * room.h === n);
+    if (hit) return hit.index;
+  }
+  return empty[0]?.index;
+}
+
+/** A room as the traced layouts label it: the names, titles, and icons are the catalog's, not the layout file's. */
+type TracedRoom = {
+  id: string;
+  title: string;
+  system: string | null;
+  w: number;
+  h: number;
+  reserve?: string;
+};
+
+/** Room name for each system's room in the traced layouts (`p-<slug>`), as hull-fit's roomNames writes it. */
+const ROOM_SLUG: Record<string, string> = {
+  cloaking: "cloak",
+  teleporter: "tele",
+  hacking: "hack",
+  clonebay: "clone",
+};
+
+/** Systems a player hull's rooms can hold. Medbay and clone bay share one room, as in ftl.dat. */
+const ROOM_SYSTEMS = [
+  "pilot",
+  "doors",
+  "sensors",
+  "medbay",
+  "clonebay",
+  "oxygen",
+  "shields",
+  "engines",
+  "weapons",
+  "drones",
+  "teleporter",
+  "cloaking",
+  "battery",
+  "mind",
+  "hacking",
+  "artillery",
+];
+
+/**
+ * The page's fit as an ftl.dat blueprint: each system is an install at its level in its traced room (start false when
+ * the room is only kept for it), the crew are counts per race, and drone control's schematics are the drone list.
+ */
+function blueprintFields(row: HullDef, spec: HullSpec, traced: readonly TracedRoom[]): void {
+  // A traced room's index is its id in the layout file, as the blueprint's room attribute counts.
+  const rooms = traced.map((room, id) => ({ ...room, index: id }));
+  const roomOf = (id: string) =>
+    rooms.find((room) => room.id === `p-${ROOM_SLUG[id] ?? id}`)?.index;
+  const sharedRoom = (id: string) =>
+    id === "medbay" ? roomOf("clonebay") : id === "clonebay" ? roomOf("medbay") : undefined;
+  const levels = new Map<string, number>();
+  for (const [id, pair] of Object.entries(spec.systems))
+    if (pair && pair[0] > 0) levels.set(id, pair[0]);
+  for (const [id, kit] of Object.entries(spec.kits)) if (kit) levels.set(id, kit.level);
+  const seated = new Map<string, number>();
+  for (const id of KIT_ORDER) {
+    if (!spec.kits[id as keyof HullSpec["kits"]] || roomOf(id) != null) continue;
+    const room = kitHall(rooms, id, levels.get("medbay") ?? 0, seated);
+    if (room != null) seated.set(id, room);
+  }
+  const installs: HullInstall[] = [];
+  for (const id of ROOM_SYSTEMS) {
+    const level = levels.get(id);
+    const room = roomOf(id) ?? seated.get(id) ?? sharedRoom(id);
+    if (room == null && level == null) continue;
+    const install: HullInstall = { id, power: level ?? 0, start: level != null };
+    if (room != null) install.room = room;
+    const weapon = id === "artillery" ? spec.kits.artillery?.weapon : undefined;
+    if (weapon) install.weapon = weapon;
+    installs.push(install);
+  }
+  row.installs = installs;
+  const counts: HullCrewCount[] = [];
+  for (const seat of spec.crew) {
+    const last = counts[counts.length - 1];
+    if (last?.class === seat.kin) last.amount += 1;
+    else counts.push({ amount: 1, class: seat.kin });
+  }
+  row.crewCounts = counts;
+  const droneKit = spec.kits.drones;
+  const drones = [...(droneKit?.loadout ?? (droneKit?.target ? [droneKit.target] : []))];
+  // A drone the page names but this build does not fly is still on the blueprint's list (ftl.dat's Engi B lists BATTLE).
+  for (const label of spec.unfitted) {
+    const ref = CITED_DRONES.find((drone) => drone.name === label)?.ref;
+    if (ref) drones.push(ref);
+  }
+  if (drones.length > 0) row.drones = drones;
 }
 
 /** The image name is the layout stem. The box is that grid plus one cell. */
@@ -451,17 +577,15 @@ function enemyHull(id: string, interior: string): HullDef {
       name: id,
       quote: "",
       unlock: "",
-      source: "",
       reactor: 0,
-      fuel: 0,
       missiles: 0,
       parts: 0,
-      systems: {},
       weapons: [],
-      crew: [],
-      kits: {},
       augments: [],
-      unfitted: [],
+      // Each pictured system icon is an install in its room, as an ftl.dat blueprint's systemList places it.
+      installs: source.rooms.flatMap((room, index): HullInstall[] =>
+        room.system ? [{ id: room.system, power: 1, room: index, start: true }] : [],
+      ),
       grid: gridFromLayout({
         cols: source.cols,
         rows: source.rows,
@@ -495,6 +619,35 @@ const FLAGSHIP_DIFFICULTIES = [
   "hard",
 ] as const satisfies readonly FlagshipDifficulty[];
 
+/** Systems a traced flagship room holds, by the room's name. The weapon pods are artillery, as in ftl.dat's BOSS_*. */
+const FLAGSHIP_ROOM: Record<string, { id: string; weapon?: string }> = {
+  pilot: { id: "pilot" },
+  shields: { id: "shields" },
+  oxygen: { id: "oxygen" },
+  engines: { id: "engines" },
+  medbay: { id: "medbay" },
+  doors: { id: "doors" },
+  cloak: { id: "cloaking" },
+  hack: { id: "hacking" },
+  drone: { id: "drones" },
+  teleporter: { id: "teleporter" },
+  mind: { id: "mind" },
+  laser: { id: "artillery", weapon: "ARTILLERY_BOSS_1" },
+  missile: { id: "artillery", weapon: "ARTILLERY_BOSS_2" },
+  beam: { id: "artillery", weapon: "ARTILLERY_BOSS_3" },
+  ion: { id: "artillery", weapon: "ARTILLERY_BOSS_4" },
+};
+
+function flagshipInstalls(rooms: readonly { id: string }[]): HullInstall[] {
+  return rooms.flatMap((room, index): HullInstall[] => {
+    const held = FLAGSHIP_ROOM[room.id.replace(/^f[123]-/, "")];
+    if (!held) return [];
+    const install: HullInstall = { id: held.id, power: 1, room: index, start: true };
+    if (held.weapon) install.weapon = held.weapon;
+    return [install];
+  });
+}
+
 /** One Advanced Edition blueprint. The three difficulties of a stage share its traced interior. */
 function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef {
   const layout = flagshipLayoutStem(stage);
@@ -509,18 +662,13 @@ function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef
       name: id,
       quote: "",
       unlock: "",
-      source: "",
       reactor: 0,
-      fuel: 0,
       missiles: 0,
       parts: 0,
       health: FLAGSHIP_HEALTH[stage],
-      systems: {},
       weapons: [],
-      crew: [],
-      kits: {},
       augments: [],
-      unfitted: [],
+      installs: flagshipInstalls(source.rooms),
       grid: gridFromLayout({
         cols: source.cols,
         rows: source.rows,

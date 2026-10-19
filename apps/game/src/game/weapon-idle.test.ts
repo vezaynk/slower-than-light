@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { onPlayerJump } from "./extras/index.ts";
 import { createGame, startCombat, step } from "./sim.ts";
+import { powerGuns } from "./fixtures.ts";
 
 // Guns do not charge out of a fight (per the user; no wiki line states it), start at zero after a jump, and the Weapon
 // Pre-Igniter primes them (Augmentations, Weapon Pre-Igniter: "Weapons are made immediately available after an FTL
@@ -9,7 +10,7 @@ import { createGame, startCombat, step } from "./sim.ts";
 // arrives at the next beacon").
 describe("weapons out of a fight", () => {
   it("do not charge on the map after a battle, and keep what they had", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     g.phase = "map";
     const w = g.player.weapons[0]!;
     w.charge = 0.4;
@@ -19,7 +20,7 @@ describe("weapons out of a fight", () => {
   });
 
   it("reset to zero on a jump, and keep what they built when a fight starts", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     g.phase = "map";
     const w = g.player.weapons[0]!;
     w.charge = 1;
@@ -31,7 +32,7 @@ describe("weapons out of a fight", () => {
   });
 
   it("are primed by the Weapon Pre-Igniter after the jump's reset", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = powerGuns(createGame(3, "PLAYER_SHIP_HARD"));
     g.augments = ["WEAPON_PREIGNITE"];
     g.player.weapons[0]!.charge = 0.2;
     onPlayerJump(g);

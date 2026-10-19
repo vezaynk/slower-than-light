@@ -355,27 +355,44 @@ function frameOf(
 
 async function installFonts(at: number): Promise<void> {
   if (typeof document === "undefined" || typeof FontFace === "undefined") return;
+  // capRatio: the cap height of the stylesheet font each face replaces, measured in Chromium (VT323 0.56 em,
+  // IBM Plex Mono 0.698 em). The stylesheet's sizes were set for those faces, so the capitals keep their height.
   const jobs: {
     path: string;
     family: string;
+    capRatio: number;
     variable?: string;
     fallback?: string;
     bold?: boolean;
   }[] = [
     {
+      // Large HUD text: rules that set 21px or more. JustinFont12's 12-pixel capitals drop pixel rows when drawn any
+      // shorter, so only those rules take it.
       path: "fonts/justinfont12bold.font",
       family: "JustinFont12",
-      variable: "--font-hud",
+      capRatio: 0.56,
+      variable: "--font-hud-large",
       fallback: '"VT323", "IBM Plex Mono", ui-monospace, monospace',
       bold: true,
     },
     {
+      // All other HUD text. Its 8-pixel capitals are only drawn larger than they are, which stays legible, so a size
+      // inherited or overridden elsewhere never breaks a letter. FTL's HUD sets its small labels in this face too.
+      path: "fonts/justinfont8.font",
+      family: "JustinFont8Hud",
+      // A touch above VT323's 0.56, so the 14px labels draw the 8-pixel capitals at least one screen pixel per pixel.
+      capRatio: 0.58,
+      variable: "--font-hud",
+      fallback: '"VT323", "IBM Plex Mono", ui-monospace, monospace',
+    },
+    {
       path: "fonts/justinfont8.font",
       family: "JustinFont8",
+      capRatio: 0.698,
       variable: "--font-mono",
       fallback: '"IBM Plex Mono", ui-monospace, monospace',
     },
-    { path: "fonts/justinfont10.font", family: "JustinFont10" },
+    { path: "fonts/justinfont10.font", family: "JustinFont10", capRatio: 0.56 },
   ];
   for (const job of jobs) {
     const blob = blobs.get(job.path);
@@ -384,7 +401,15 @@ async function installFonts(at: number): Promise<void> {
       const font = readBitmapFont(new Uint8Array(await blob.arrayBuffer()));
       // A newer archive replaced this one while the bytes were read. Its own pass installs its faces.
       if (!font || at !== generation) continue;
-      await applyFace(at, job.family, font, job.bold ?? false, job.variable, job.fallback);
+      await applyFace(
+        at,
+        job.family,
+        font,
+        job.bold ?? false,
+        job.capRatio,
+        job.variable,
+        job.fallback,
+      );
     } catch {
       // The stylesheet font stays.
     }
@@ -396,10 +421,11 @@ async function applyFace(
   family: string,
   font: BitmapFont,
   bold: boolean,
+  capRatio: number,
   variable: string | undefined,
   fallback: string | undefined,
 ): Promise<void> {
-  const bytes = ttfFromBitmap(font, family, bold);
+  const bytes = ttfFromBitmap(font, family, bold, capRatio);
   const copy = new ArrayBuffer(bytes.byteLength);
   new Uint8Array(copy).set(bytes);
   const face = new FontFace(family, copy);

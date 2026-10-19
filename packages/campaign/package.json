@@ -4,7 +4,7 @@
   "type": "module",
   "exports": {
     ".": "./src/xml.ts",
-    "./base.xml": "./base.xml"
+    "./base.ftl": "./base.ftl"
   },
   "scripts": {
     "generate": "node --experimental-strip-types src/generate.ts",
@@ -14,9 +14,11 @@
   },
   "dependencies": {
     "@stl/catalog": "workspace:*",
+    "@stl/ftldat": "workspace:*",
     "@stl/pack": "workspace:*"
   },
   "devDependencies": {
+    "@stl/hyperspace": "workspace:*",
     "@types/node": "^22.16.5",
     "typescript": "^5.7.0"
   }

@@ -11,7 +11,7 @@
     },
     "@stl/campaign#generate": {
       "dependsOn": ["^typecheck"],
-      "outputs": ["base.xml"],
+      "outputs": ["mod/**", "base.ftl"],
       "inputs": ["package.json", "src/**"]
     },
     "@stl/totallynotftl#generate": {
@@ -25,7 +25,7 @@
     },
     "@stl/campaign#test": {
       "dependsOn": ["^typecheck"],
-      "inputs": ["package.json", "src/**", "base.xml"]
+      "inputs": ["package.json", "src/**", "mod/**", "base.ftl"]
     },
     "dev": {
       "cache": false,

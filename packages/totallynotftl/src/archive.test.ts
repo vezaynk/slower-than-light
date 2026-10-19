@@ -1,20 +1,13 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { campaignPack, campaignXml } from "@stl/campaign";
+import { campaignPack } from "@stl/campaign";
 import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
 import { WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
-import { extractFtlDat, readPkg } from "@stl/ftldat";
-import { packFromExtract } from "@stl/hyperspace";
-import {
-  overlayGap,
-  parsePack,
-  pictureForRooms,
-  readAnimations,
-  readBitmapFont,
-  readSounds,
-} from "@stl/pack";
+import { extractFtlDat, extractFtlZip, readPkg } from "@stl/ftldat";
+import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
+import { parsePack, pictureForRooms, readAnimations, readBitmapFont, readSounds } from "@stl/pack";
 import {
   standInDat,
   standInImages,
@@ -185,12 +178,12 @@ describe("totallynotftl.dat", () => {
     assert.equal(Buffer.compare(built, golden), 0);
   });
 
-  it("merges the stand-in archive with the gap file back into the catalog", async () => {
+  it("merges the stand-in archive with the gap mod back into the catalog", async () => {
     const pack = campaignPack();
-    const merged = overlayGap(
-      packFromExtract(await extractFtlDat(await standInDat())),
-      parsePack(campaignXml()),
+    const gap = await extractFtlZip(
+      readFileSync(new URL("../../campaign/base.ftl", import.meta.url)),
     );
+    const merged = packFromExtract(applyFtlMod(await extractFtlDat(await standInDat()), gap));
     assert.deepEqual(merged.crew, pack.crew);
     assert.deepEqual(merged.weapons, pack.weapons);
     assert.deepEqual(merged.augments, pack.augments);

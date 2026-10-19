@@ -174,6 +174,12 @@ function readCrew(node: XmlElement): CrewDef | undefined {
   if (detail) row.detail = detail;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
+  readCrewCombat(node, row);
+  return row;
+}
+
+/** Copies Hyperspace combat children onto a crew row. Missing children keep the row's current values. */
+export function readCrewCombat(node: XmlElement, row: CrewDef): void {
   const hp = numOf(node, "maxHealth");
   if (hp != null) row.hp = hp;
   const move = numOf(node, "moveSpeedMultiplier");
@@ -203,7 +209,6 @@ function readCrew(node: XmlElement): CrewDef | undefined {
     const cooldown = numOf(power, "cooldown");
     if (cooldown != null) row.lockCooldown = cooldown;
   }
-  return row;
 }
 
 export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
@@ -303,7 +308,7 @@ function readSystemBlueprint(node: XmlElement): { system?: SystemDef; tune?: Tun
   return found;
 }
 
-function readFaction(node: XmlElement): FactionSurrender | undefined {
+export function readFaction(node: XmlElement): FactionSurrender | undefined {
   const id = attr(node, "name")?.trim();
   if (!id || attr(node, "layout")?.trim()) return undefined;
   const offer = child(node, "surrender");
@@ -381,7 +386,7 @@ function emptyBlueprints(node: XmlElement): number {
   return count;
 }
 
-function readStore(node: XmlElement): StoreDef | undefined {
+export function readStore(node: XmlElement): StoreDef | undefined {
   const id = attr(node, "id")?.trim();
   if (!id) return undefined;
   const sections: string[] = [];
@@ -542,7 +547,7 @@ function readNamedReward(node: XmlElement): NamedReward | undefined {
 }
 
 /** Direct children of the root rewards block. A surrender reward is not this tag. */
-function readRewards(node: XmlElement): RewardTable | undefined {
+export function readRewards(node: XmlElement): RewardTable | undefined {
   const scaling: RewardScaling[] = [];
   const resources: ResourceReward[] = [];
   const rewards: NamedReward[] = [];
@@ -663,7 +668,7 @@ function readList(node: XmlElement): FillerListDef | undefined {
   return { id, entries };
 }
 
-function readEmpty(node: XmlElement): EmptyBeaconDef | undefined {
+export function readEmpty(node: XmlElement): EmptyBeaconDef | undefined {
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const sectors: string[] = [];

@@ -150,10 +150,16 @@ importers:
       '@stl/catalog':
         specifier: workspace:*
         version: link:../catalog
+      '@stl/ftldat':
+        specifier: workspace:*
+        version: link:../ftldat
       '@stl/pack':
         specifier: workspace:*
         version: link:../pack
     devDependencies:
+      '@stl/hyperspace':
+        specifier: workspace:*
+        version: link:../hyperspace
       '@types/node':
         specifier: ^22.16.5
         version: 22.20.5

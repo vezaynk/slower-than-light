@@ -170,6 +170,74 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   return prettyXml(serializer.serializeToString(doc));
 }
 
+/**
+ * The gap file: faction offers, stores, the rewards block, and empty beacons.
+ * Crew combat and sector notes are appends, because they edit a record the archive already has.
+ */
+export function emitGapDocument(pack: ContentPack): string {
+  const doc = implementation.createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("pack document has no root");
+  doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
+  for (const faction of pack.factions ?? []) add(root, factionElement(doc, faction));
+  for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
+  if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
+  for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
+  return prettyXml(serializer.serializeToString(doc));
+}
+
+/**
+ * Finds each crew record and appends its combat children.
+ * A second apply appends them again. A missing name is not an error.
+ */
+export function emitStatAppend(crew: readonly CrewDef[], tag: "crewBlueprint" | "race"): string {
+  const doc = implementation.createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("pack document has no root");
+  doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
+  for (const race of crew) add(root, statFind(doc, tag, race));
+  return prettyXml(serializer.serializeToString(doc));
+}
+
+/** Finds each sector that has notes and appends those lines. */
+export function emitNoteAppend(sectors: readonly SectorDef[]): string {
+  const doc = implementation.createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("pack document has no root");
+  doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
+  for (const sector of sectors) {
+    if (sector.notes.length === 0) continue;
+    const find = element(doc, "mod:findName", { type: "sectorDescription", name: sector.id });
+    for (const note of sector.notes) add(find, leaf(doc, "mod-append:note", note));
+    add(root, find);
+  }
+  return prettyXml(serializer.serializeToString(doc));
+}
+
+function statFind(doc: XmlDocument, tag: "crewBlueprint" | "race", race: CrewDef): XmlElement {
+  const find = element(doc, "mod:findName", { type: tag, name: race.id });
+  const append = (name: string, value: string | number | boolean) => {
+    add(find, leaf(doc, `mod-append:${name}`, value));
+  };
+  append("maxHealth", race.hp);
+  append("moveSpeedMultiplier", race.move);
+  append("repairSpeed", race.repair);
+  append("damageMultiplier", race.fight);
+  append("suffocationModifier", race.suffocate);
+  append("fireDamageMultiplier", race.fireTaken);
+  append("fireRepairMultiplier", race.fireRepairMultiplier);
+  append("bonusPower", race.bonusPower);
+  append("hasDeathExplosion", race.hasDeathExplosion);
+  append("oxygenChangeSpeed", race.drainsOxygen ? OXYGEN_DRAIN : 0);
+  append("detectsLifeforms", race.detectsLifeforms);
+  append("resistsMindControl", race.resistsMindControl);
+  const power = element(doc, "mod-append:powerEffect", {});
+  add(power, leaf(doc, "lockdown", race.lockdown));
+  add(power, leaf(doc, "cooldown", race.lockCooldown));
+  add(find, power);
+  return find;
+}
+
 function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
   const node = element(doc, "eventList", { name: list.id });
   for (const entry of list.entries) {
@@ -668,7 +736,7 @@ function sectorElement(
   const node = element(doc, "sectorDescription", { name: sector.id });
   if (part !== "gap") add(node, leaf(doc, "title", sector.name));
   if (part !== "body") for (const note of sector.notes) add(node, leaf(doc, "note", note));
-  // Track names belong on the stand-in body. The gap file (base.xml) leaves them out.
+  // Track names belong on the stand-in body. The gap append leaves them out.
   if (part !== "gap" && sector.tracks && sector.tracks.length > 0) {
     const list = element(doc, "trackList", {});
     for (const name of sector.tracks) add(list, leaf(doc, "track", name));

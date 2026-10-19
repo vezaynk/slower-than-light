@@ -15,7 +15,10 @@ import {
   allWeapons,
   emitFtlSectors,
   emitFtlShips,
+  emitGapDocument,
+  emitNoteAppend,
   emitPack,
+  emitStatAppend,
   rewardTable,
   type ContentPack,
 } from "@stl/pack";
@@ -42,7 +45,7 @@ export function campaignPack(): ContentPack {
 }
 
 /**
- * Body is the stand-in. Gap is base.xml.
+ * Body is the stand-in. Gap is the Slipstream mod.
  * The two halves share the catalog rows. Emit omits the fields each file leaves out.
  */
 export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: ContentPack } {
@@ -86,7 +89,16 @@ export function standInXml(): string {
   return emitPack(splitCampaign(campaignPack()).body, { crew: "identity", sector: "body" });
 }
 
-/** Records the archive does not carry: crew combat, sector colour, the store, and reward bands. */
-export function campaignXml(): string {
-  return emitPack(splitCampaign(campaignPack()).gap, { crew: "stats", sector: "gap" });
+/**
+ * The gap mod. Appends add crew combat and sector notes. `data/gap.xml` adds the store,
+ * the rewards block, faction offers, and empty beacons.
+ */
+export function gapModFiles(): { path: string; xml: string }[] {
+  const gap = splitCampaign(campaignPack()).gap;
+  return [
+    { path: "data/blueprints.xml.append", xml: emitStatAppend(gap.crew ?? [], "crewBlueprint") },
+    { path: "data/stand-in.xml.append", xml: emitStatAppend(gap.crew ?? [], "race") },
+    { path: "data/sector_data.xml.append", xml: emitNoteAppend(gap.sectors ?? []) },
+    { path: "data/gap.xml", xml: emitGapDocument(gap) },
+  ];
 }

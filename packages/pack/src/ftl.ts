@@ -21,6 +21,10 @@ import type {
   SectorDef,
   SectorQuota,
   SectorRarity,
+  EmptyBeaconDef,
+  FactionSurrender,
+  RewardTable,
+  StoreDef,
   SystemDef,
   SystemSlot,
   TextListDef,
@@ -36,8 +40,13 @@ import {
   elements,
   numOf,
   readAugment,
+  readCrewCombat,
   readDocument,
   readDrone,
+  readEmpty,
+  readFaction,
+  readRewards,
+  readStore,
   readWeapon,
   tagged,
   textOf,
@@ -76,8 +85,10 @@ export type FtlTextFile = {
  * attribute is skipped.
  * `<textList>` rows are kept. A flat list becomes the event's sentences.
  * A list entry that loads another list stays one draw, picked when the page is shown.
- * Crew combat stats stay at neutral defaults. A `<facts/>` marker and a `<names>` list are kept.
- * Stores and the numeric rewards table are not in the archive, and this catalog does not invent them.
+ * Crew combat children fill the combat fields. A blueprint without them keeps neutral defaults.
+ * A `<facts/>` marker and a `<names>` list are kept.
+ * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender-only `<shipBlueprint>` is kept.
+ * A `<note>` on a sector is kept. This catalog does not invent a store or a rewards table.
  * `layouts` are the `data/*.txt` room grids. A ship keeps its layout file name, and the grid is
  * attached when that file is in the list. Layout text is not inside the XML.
  * `data/<layout>.xml` contributes the `<img>` box. Image bytes stay off this catalog.
@@ -97,6 +108,10 @@ export function packFromFtl(
   const events = new Catalog<EventDef>();
   const lists = new Catalog<FillerListDef>();
   const blueprints = new Catalog<BlueprintListDef>();
+  const stores = new Catalog<StoreDef>();
+  const factions = new Catalog<FactionSurrender>();
+  const empties = new Catalog<EmptyBeaconDef>();
+  let rewards: RewardTable | undefined;
   const strings = new Map<string, string>();
   const grids = readGrids(layouts);
   let facts = false;
@@ -137,8 +152,24 @@ export function packFromFtl(
     const read = readNames(doc);
     if (read) names = read;
     for (const node of tagged(doc, "shipBlueprint")) {
+      if (!rootChild(node)) continue;
       const row = readFtlHull(node, strings, grids);
       if (row) hulls.put(row);
+      const faction = readFaction(node);
+      if (faction) factions.put(faction);
+    }
+    const root = doc.documentElement;
+    for (const node of elements(root ?? undefined)) {
+      if (node.tagName === "customStore") {
+        const row = readStore(node);
+        if (row) stores.put(row);
+      } else if (node.tagName === "emptyBeacon") {
+        const row = readEmpty(node);
+        if (row) empties.put(row);
+      } else if (node.tagName === "rewards") {
+        const table = readRewards(node);
+        if (table) rewards = table;
+      }
     }
     for (const node of tagged(doc, "sectorDescription")) {
       const row = readFtlSector(node, strings);
@@ -172,6 +203,10 @@ export function packFromFtl(
   if (events.rows.length > 0) pack.events = events.rows;
   if (lists.rows.length > 0) pack.lists = lists.rows;
   if (blueprints.rows.length > 0) pack.blueprints = blueprints.rows;
+  if (stores.rows.length > 0) pack.stores = stores.rows;
+  if (rewards) pack.rewards = rewards;
+  if (factions.rows.length > 0) pack.factions = factions.rows;
+  if (empties.rows.length > 0) pack.empties = empties.rows;
   if (textLists.size > 0) {
     pack.textLists = [...textLists.entries()].map(([id, lines]) => ({ id, lines }));
   }
@@ -247,6 +282,7 @@ function readFtlCrew(node: XmlElement): CrewDef | undefined {
   if (cost != null) row.cost = cost;
   const colors = readCrewColors(child(node, "colorList"));
   if (colors.length > 0) row.colors = colors;
+  readCrewCombat(node, row);
   return row;
 }
 
@@ -736,7 +772,13 @@ function readFtlSector(node: XmlElement, strings: Map<string, string>): SectorDe
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const title = sectorTitle(node, id, strings);
-  const sector: SectorDef = { id, name: title.name, group: "", notes: [] };
+  const notes: string[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "note") continue;
+    const text = ownText(item).trim();
+    if (text) notes.push(text);
+  }
+  const sector: SectorDef = { id, name: title.name, group: "", notes };
   if (title.short) sector.short = title.short;
   const minSector = intAttr(node, "minSector");
   if (minSector != null) sector.minSector = minSector;

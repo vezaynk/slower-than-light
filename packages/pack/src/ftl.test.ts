@@ -698,7 +698,9 @@ describe("packFromFtl", () => {
       ],
       [{ path: "data/kestral.txt", text: KESTRAL }],
     );
-    assert.equal(pack.stores, undefined);
+    assert.deepEqual(pack.stores, [
+      { id: "store", name: "store", slot: 3, weapons: 2, sections: [], lines: [] },
+    ]);
     assert.equal(pack.hulls?.map((row) => row.id).join(","), "PLAYER_SHIP_EASY,BOSS_1_EASY");
 
     const kestrel = pack.hulls?.[0];

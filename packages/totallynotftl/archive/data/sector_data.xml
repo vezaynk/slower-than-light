@@ -1,0 +1,177 @@
+<FTL>
+  <sectorType name="CIVILIAN">
+    <sector>STANDARD_SPACE</sector>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
+  </sectorType>
+  <sectorType name="HOSTILE">
+    <sector>LANIUS_SECTOR</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+  </sectorType>
+  <sectorType name="NEBULA">
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+  </sectorType>
+  <sectorDescription name="STANDARD_SPACE" minSector="0" unique="false">
+    <nameList>
+      <name>Civilian (Starting) Sector</name>
+    </nameList>
+    <trackList>
+      <track>civilian</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="CIVILIAN_SECTOR" minSector="0" unique="false">
+    <nameList>
+      <name>Civilian Sector</name>
+    </nameList>
+    <trackList>
+      <track>civilian</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="ENGI_SECTOR" minSector="0" unique="false">
+    <nameList>
+      <name>Engi Controlled Sector</name>
+    </nameList>
+    <trackList>
+      <track>engi</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="ENGI_HOME" minSector="2" unique="true">
+    <nameList>
+      <name>Engi Homeworlds</name>
+    </nameList>
+    <trackList>
+      <track>engi</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="ZOLTAN_SECTOR" minSector="1" unique="false">
+    <nameList>
+      <name>Zoltan Controlled Sector</name>
+    </nameList>
+    <trackList>
+      <track>zoltan</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="ZOLTAN_HOME" minSector="2" unique="true">
+    <nameList>
+      <name>Zoltan Homeworlds</name>
+    </nameList>
+    <trackList>
+      <track>zoltan</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="LANIUS_SECTOR" minSector="1" unique="false">
+    <nameList>
+      <name>Abandoned Sector</name>
+    </nameList>
+    <trackList>
+      <track>lostship</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="MANTIS_SECTOR" minSector="0" unique="false">
+    <nameList>
+      <name>Mantis Controlled Sector</name>
+    </nameList>
+    <trackList>
+      <track>mantis</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="MANTIS_HOME" minSector="2" unique="true">
+    <nameList>
+      <name>Mantis Homeworlds</name>
+    </nameList>
+    <trackList>
+      <track>mantis</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="PIRATE_SECTOR" minSector="0" unique="false">
+    <nameList>
+      <name>Pirate Controlled Sector</name>
+    </nameList>
+    <trackList>
+      <track>wasteland</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="REBEL_SECTOR" minSector="0" unique="false">
+    <nameList>
+      <name>Rebel Controlled Sector</name>
+    </nameList>
+    <trackList>
+      <track>milkyway</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="REBEL_SECTOR_MINIBOSS" minSector="4" unique="true">
+    <nameList>
+      <name>Rebel Stronghold</name>
+    </nameList>
+    <trackList>
+      <track>colonial</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="ROCK_SECTOR" minSector="1" unique="false">
+    <nameList>
+      <name>Rock Controlled Sector</name>
+    </nameList>
+    <trackList>
+      <track>rock</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="ROCK_HOME" minSector="4" unique="true">
+    <nameList>
+      <name>Rock Homeworlds</name>
+    </nameList>
+    <trackList>
+      <track>rock</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="SLUG_SECTOR" minSector="3" unique="false">
+    <nameList>
+      <name>Slug Controlled Nebula</name>
+    </nameList>
+    <trackList>
+      <track>slug</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="SLUG_HOME" minSector="3" unique="true">
+    <nameList>
+      <name>Slug Home Nebula</name>
+    </nameList>
+    <trackList>
+      <track>slug</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="NEBULA_SECTOR" minSector="0" unique="false">
+    <nameList>
+      <name>Uncharted Nebula</name>
+    </nameList>
+    <trackList>
+      <track>void</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="CRYSTAL_HOME" minSector="0" unique="true">
+    <nameList>
+      <name>Hidden Crystal Worlds</name>
+    </nameList>
+    <trackList>
+      <track>cosmos</track>
+    </trackList>
+  </sectorDescription>
+  <sectorDescription name="FINAL" minSector="7" unique="true">
+    <nameList>
+      <name>The Last Stand</name>
+    </nameList>
+    <trackList>
+      <track>laststand</track>
+    </trackList>
+  </sectorDescription>
+</FTL>

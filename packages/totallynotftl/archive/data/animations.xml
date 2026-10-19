@@ -1,0 +1,446 @@
+<animations>
+<animSheet name="LASER_BURST_3" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_3.png</animSheet>
+<weaponAnim name="LASER_BURST_3"><sheet>LASER_BURST_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_BURST_1" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_1.png</animSheet>
+<weaponAnim name="LASER_BURST_1"><sheet>LASER_BURST_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_BURST_2" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_2.png</animSheet>
+<weaponAnim name="LASER_BURST_2"><sheet>LASER_BURST_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_HEAVY_1" w="26" h="14" fw="26" fh="14">weapons/LASER_HEAVY_1.png</animSheet>
+<weaponAnim name="LASER_HEAVY_1"><sheet>LASER_HEAVY_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="dart" w="26" h="14" fw="26" fh="14">weapons/dart.png</animSheet>
+<weaponAnim name="dart"><sheet>dart</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ION_1" w="26" h="14" fw="26" fh="14">weapons/ION_1.png</animSheet>
+<weaponAnim name="ION_1"><sheet>ION_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="MISSILES_2_PLAYER" w="26" h="14" fw="26" fh="14">weapons/MISSILES_2_PLAYER.png</animSheet>
+<weaponAnim name="MISSILES_2_PLAYER"><sheet>MISSILES_2_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="MISSILES_1" w="26" h="14" fw="26" fh="14">weapons/MISSILES_1.png</animSheet>
+<weaponAnim name="MISSILES_1"><sheet>MISSILES_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ION_4" w="26" h="14" fw="26" fh="14">weapons/ION_4.png</animSheet>
+<weaponAnim name="ION_4"><sheet>ION_4</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ION_2" w="26" h="14" fw="26" fh="14">weapons/ION_2.png</animSheet>
+<weaponAnim name="ION_2"><sheet>ION_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ION_STUN" w="26" h="14" fw="26" fh="14">weapons/ION_STUN.png</animSheet>
+<weaponAnim name="ION_STUN"><sheet>ION_STUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BEAM_LONG" w="26" h="14" fw="26" fh="14">weapons/BEAM_LONG.png</animSheet>
+<weaponAnim name="BEAM_LONG"><sheet>BEAM_LONG</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="SHOTGUN" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN.png</animSheet>
+<weaponAnim name="SHOTGUN"><sheet>SHOTGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BOMB_FIRE" w="26" h="14" fw="26" fh="14">weapons/BOMB_FIRE.png</animSheet>
+<weaponAnim name="BOMB_FIRE"><sheet>BOMB_FIRE</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_BURST_2_A" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_2_A.png</animSheet>
+<weaponAnim name="LASER_BURST_2_A"><sheet>LASER_BURST_2_A</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_BURST_5" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_5.png</animSheet>
+<weaponAnim name="LASER_BURST_5"><sheet>LASER_BURST_5</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_HEAVY_1_SP" w="26" h="14" fw="26" fh="14">weapons/LASER_HEAVY_1_SP.png</animSheet>
+<weaponAnim name="LASER_HEAVY_1_SP"><sheet>LASER_HEAVY_1_SP</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_HEAVY_2" w="26" h="14" fw="26" fh="14">weapons/LASER_HEAVY_2.png</animSheet>
+<weaponAnim name="LASER_HEAVY_2"><sheet>LASER_HEAVY_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_HULL_1" w="26" h="14" fw="26" fh="14">weapons/LASER_HULL_1.png</animSheet>
+<weaponAnim name="LASER_HULL_1"><sheet>LASER_HULL_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_HULL_2" w="26" h="14" fw="26" fh="14">weapons/LASER_HULL_2.png</animSheet>
+<weaponAnim name="LASER_HULL_2"><sheet>LASER_HULL_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_CHAINGUN" w="26" h="14" fw="26" fh="14">weapons/LASER_CHAINGUN.png</animSheet>
+<weaponAnim name="LASER_CHAINGUN"><sheet>LASER_CHAINGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_CHAINGUN_2" w="26" h="14" fw="26" fh="14">weapons/LASER_CHAINGUN_2.png</animSheet>
+<weaponAnim name="LASER_CHAINGUN_2"><sheet>LASER_CHAINGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_CHARGEGUN_PLAYER" w="26" h="14" fw="26" fh="14">weapons/LASER_CHARGEGUN_PLAYER.png</animSheet>
+<weaponAnim name="LASER_CHARGEGUN_PLAYER"><sheet>LASER_CHARGEGUN_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_CHARGEGUN" w="26" h="14" fw="26" fh="14">weapons/LASER_CHARGEGUN.png</animSheet>
+<weaponAnim name="LASER_CHARGEGUN"><sheet>LASER_CHARGEGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_CHARGEGUN_2" w="26" h="14" fw="26" fh="14">weapons/LASER_CHARGEGUN_2.png</animSheet>
+<weaponAnim name="LASER_CHARGEGUN_2"><sheet>LASER_CHARGEGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BEAM_1" w="26" h="14" fw="26" fh="14">weapons/BEAM_1.png</animSheet>
+<weaponAnim name="BEAM_1"><sheet>BEAM_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BEAM_HULL" w="26" h="14" fw="26" fh="14">weapons/BEAM_HULL.png</animSheet>
+<weaponAnim name="BEAM_HULL"><sheet>BEAM_HULL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BEAM_2" w="26" h="14" fw="26" fh="14">weapons/BEAM_2.png</animSheet>
+<weaponAnim name="BEAM_2"><sheet>BEAM_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BEAM_3" w="26" h="14" fw="26" fh="14">weapons/BEAM_3.png</animSheet>
+<weaponAnim name="BEAM_3"><sheet>BEAM_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BEAM_FIRE" w="26" h="14" fw="26" fh="14">weapons/BEAM_FIRE.png</animSheet>
+<weaponAnim name="BEAM_FIRE"><sheet>BEAM_FIRE</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BEAM_BIO" w="26" h="14" fw="26" fh="14">weapons/BEAM_BIO.png</animSheet>
+<weaponAnim name="BEAM_BIO"><sheet>BEAM_BIO</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ION_CHARGEGUN" w="26" h="14" fw="26" fh="14">weapons/ION_CHARGEGUN.png</animSheet>
+<weaponAnim name="ION_CHARGEGUN"><sheet>ION_CHARGEGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ION_CHAINGUN" w="26" h="14" fw="26" fh="14">weapons/ION_CHAINGUN.png</animSheet>
+<weaponAnim name="ION_CHAINGUN"><sheet>ION_CHAINGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ARTILLERY_BOSS_4" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_4.png</animSheet>
+<weaponAnim name="ARTILLERY_BOSS_4"><sheet>ARTILLERY_BOSS_4</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="MISSILES_2" w="26" h="14" fw="26" fh="14">weapons/MISSILES_2.png</animSheet>
+<weaponAnim name="MISSILES_2"><sheet>MISSILES_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="MISSILES_3" w="26" h="14" fw="26" fh="14">weapons/MISSILES_3.png</animSheet>
+<weaponAnim name="MISSILES_3"><sheet>MISSILES_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="MISSILES_BREACH" w="26" h="14" fw="26" fh="14">weapons/MISSILES_BREACH.png</animSheet>
+<weaponAnim name="MISSILES_BREACH"><sheet>MISSILES_BREACH</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="MISSILES_HULL" w="26" h="14" fw="26" fh="14">weapons/MISSILES_HULL.png</animSheet>
+<weaponAnim name="MISSILES_HULL"><sheet>MISSILES_HULL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="MISSILE_CHARGEGUN" w="26" h="14" fw="26" fh="14">weapons/MISSILE_CHARGEGUN.png</animSheet>
+<weaponAnim name="MISSILE_CHARGEGUN"><sheet>MISSILE_CHARGEGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="MISSILES_BURST" w="26" h="14" fw="26" fh="14">weapons/MISSILES_BURST.png</animSheet>
+<weaponAnim name="MISSILES_BURST"><sheet>MISSILES_BURST</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ARTILLERY_BOSS_2" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_2.png</animSheet>
+<weaponAnim name="ARTILLERY_BOSS_2"><sheet>ARTILLERY_BOSS_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BOMB_1" w="26" h="14" fw="26" fh="14">weapons/BOMB_1.png</animSheet>
+<weaponAnim name="BOMB_1"><sheet>BOMB_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BOMB_BREACH_1" w="26" h="14" fw="26" fh="14">weapons/BOMB_BREACH_1.png</animSheet>
+<weaponAnim name="BOMB_BREACH_1"><sheet>BOMB_BREACH_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BOMB_BREACH_2" w="26" h="14" fw="26" fh="14">weapons/BOMB_BREACH_2.png</animSheet>
+<weaponAnim name="BOMB_BREACH_2"><sheet>BOMB_BREACH_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BOMB_ION" w="26" h="14" fw="26" fh="14">weapons/BOMB_ION.png</animSheet>
+<weaponAnim name="BOMB_ION"><sheet>BOMB_ION</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BOMB_STUN" w="26" h="14" fw="26" fh="14">weapons/BOMB_STUN.png</animSheet>
+<weaponAnim name="BOMB_STUN"><sheet>BOMB_STUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BOMB_HEAL" w="26" h="14" fw="26" fh="14">weapons/BOMB_HEAL.png</animSheet>
+<weaponAnim name="BOMB_HEAL"><sheet>BOMB_HEAL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BOMB_HEAL_SYSTEM" w="26" h="14" fw="26" fh="14">weapons/BOMB_HEAL_SYSTEM.png</animSheet>
+<weaponAnim name="BOMB_HEAL_SYSTEM"><sheet>BOMB_HEAL_SYSTEM</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="BOMB_LOCK" w="26" h="14" fw="26" fh="14">weapons/BOMB_LOCK.png</animSheet>
+<weaponAnim name="BOMB_LOCK"><sheet>BOMB_LOCK</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="SHOTGUN_PLAYER" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN_PLAYER.png</animSheet>
+<weaponAnim name="SHOTGUN_PLAYER"><sheet>SHOTGUN_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="SHOTGUN_2" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN_2.png</animSheet>
+<weaponAnim name="SHOTGUN_2"><sheet>SHOTGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="CRYSTAL_BURST_1" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_BURST_1.png</animSheet>
+<weaponAnim name="CRYSTAL_BURST_1"><sheet>CRYSTAL_BURST_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="CRYSTAL_BURST_2" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_BURST_2.png</animSheet>
+<weaponAnim name="CRYSTAL_BURST_2"><sheet>CRYSTAL_BURST_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="CRYSTAL_HEAVY_1" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_HEAVY_1.png</animSheet>
+<weaponAnim name="CRYSTAL_HEAVY_1"><sheet>CRYSTAL_HEAVY_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="CRYSTAL_HEAVY_2" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_HEAVY_2.png</animSheet>
+<weaponAnim name="CRYSTAL_HEAVY_2"><sheet>CRYSTAL_HEAVY_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ARTILLERY_BOSS_1" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_1.png</animSheet>
+<weaponAnim name="ARTILLERY_BOSS_1"><sheet>ARTILLERY_BOSS_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="ARTILLERY_BOSS_3" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_3.png</animSheet>
+<weaponAnim name="ARTILLERY_BOSS_3"><sheet>ARTILLERY_BOSS_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<animSheet name="LASER_BURST_3_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_BURST_3_shot.png</animSheet>
+<anim name="LASER_BURST_3_shot"><sheet>LASER_BURST_3_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_BURST_1_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_BURST_1_shot.png</animSheet>
+<anim name="LASER_BURST_1_shot"><sheet>LASER_BURST_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_BURST_2_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_BURST_2_shot.png</animSheet>
+<anim name="LASER_BURST_2_shot"><sheet>LASER_BURST_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_HEAVY_1_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_HEAVY_1_shot.png</animSheet>
+<anim name="LASER_HEAVY_1_shot"><sheet>LASER_HEAVY_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="dart_shot" w="8" h="8" fw="8" fh="8">weapons/dart_shot.png</animSheet>
+<anim name="dart_shot"><sheet>dart_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ION_1_shot" w="8" h="8" fw="8" fh="8">weapons/ION_1_shot.png</animSheet>
+<anim name="ION_1_shot"><sheet>ION_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="MISSILES_2_PLAYER_shot" w="8" h="8" fw="8" fh="8">weapons/MISSILES_2_PLAYER_shot.png</animSheet>
+<anim name="MISSILES_2_PLAYER_shot"><sheet>MISSILES_2_PLAYER_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="MISSILES_1_shot" w="8" h="8" fw="8" fh="8">weapons/MISSILES_1_shot.png</animSheet>
+<anim name="MISSILES_1_shot"><sheet>MISSILES_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ION_4_shot" w="8" h="8" fw="8" fh="8">weapons/ION_4_shot.png</animSheet>
+<anim name="ION_4_shot"><sheet>ION_4_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ION_2_shot" w="8" h="8" fw="8" fh="8">weapons/ION_2_shot.png</animSheet>
+<anim name="ION_2_shot"><sheet>ION_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ION_STUN_shot" w="8" h="8" fw="8" fh="8">weapons/ION_STUN_shot.png</animSheet>
+<anim name="ION_STUN_shot"><sheet>ION_STUN_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BEAM_LONG_shot" w="8" h="8" fw="8" fh="8">weapons/BEAM_LONG_shot.png</animSheet>
+<anim name="BEAM_LONG_shot"><sheet>BEAM_LONG_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="SHOTGUN_shot" w="8" h="8" fw="8" fh="8">weapons/SHOTGUN_shot.png</animSheet>
+<anim name="SHOTGUN_shot"><sheet>SHOTGUN_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BOMB_FIRE_shot" w="8" h="8" fw="8" fh="8">weapons/BOMB_FIRE_shot.png</animSheet>
+<anim name="BOMB_FIRE_shot"><sheet>BOMB_FIRE_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_BURST_2_A_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_BURST_2_A_shot.png</animSheet>
+<anim name="LASER_BURST_2_A_shot"><sheet>LASER_BURST_2_A_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_BURST_5_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_BURST_5_shot.png</animSheet>
+<anim name="LASER_BURST_5_shot"><sheet>LASER_BURST_5_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_HEAVY_1_SP_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_HEAVY_1_SP_shot.png</animSheet>
+<anim name="LASER_HEAVY_1_SP_shot"><sheet>LASER_HEAVY_1_SP_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_HEAVY_2_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_HEAVY_2_shot.png</animSheet>
+<anim name="LASER_HEAVY_2_shot"><sheet>LASER_HEAVY_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_HULL_1_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_HULL_1_shot.png</animSheet>
+<anim name="LASER_HULL_1_shot"><sheet>LASER_HULL_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_HULL_2_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_HULL_2_shot.png</animSheet>
+<anim name="LASER_HULL_2_shot"><sheet>LASER_HULL_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_CHAINGUN_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_CHAINGUN_shot.png</animSheet>
+<anim name="LASER_CHAINGUN_shot"><sheet>LASER_CHAINGUN_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_CHAINGUN_2_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_CHAINGUN_2_shot.png</animSheet>
+<anim name="LASER_CHAINGUN_2_shot"><sheet>LASER_CHAINGUN_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_CHARGEGUN_PLAYER_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_CHARGEGUN_PLAYER_shot.png</animSheet>
+<anim name="LASER_CHARGEGUN_PLAYER_shot"><sheet>LASER_CHARGEGUN_PLAYER_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_CHARGEGUN_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_CHARGEGUN_shot.png</animSheet>
+<anim name="LASER_CHARGEGUN_shot"><sheet>LASER_CHARGEGUN_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="LASER_CHARGEGUN_2_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_CHARGEGUN_2_shot.png</animSheet>
+<anim name="LASER_CHARGEGUN_2_shot"><sheet>LASER_CHARGEGUN_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BEAM_1_shot" w="8" h="8" fw="8" fh="8">weapons/BEAM_1_shot.png</animSheet>
+<anim name="BEAM_1_shot"><sheet>BEAM_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BEAM_HULL_shot" w="8" h="8" fw="8" fh="8">weapons/BEAM_HULL_shot.png</animSheet>
+<anim name="BEAM_HULL_shot"><sheet>BEAM_HULL_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BEAM_2_shot" w="8" h="8" fw="8" fh="8">weapons/BEAM_2_shot.png</animSheet>
+<anim name="BEAM_2_shot"><sheet>BEAM_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BEAM_3_shot" w="8" h="8" fw="8" fh="8">weapons/BEAM_3_shot.png</animSheet>
+<anim name="BEAM_3_shot"><sheet>BEAM_3_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BEAM_FIRE_shot" w="8" h="8" fw="8" fh="8">weapons/BEAM_FIRE_shot.png</animSheet>
+<anim name="BEAM_FIRE_shot"><sheet>BEAM_FIRE_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BEAM_BIO_shot" w="8" h="8" fw="8" fh="8">weapons/BEAM_BIO_shot.png</animSheet>
+<anim name="BEAM_BIO_shot"><sheet>BEAM_BIO_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ION_CHARGEGUN_shot" w="8" h="8" fw="8" fh="8">weapons/ION_CHARGEGUN_shot.png</animSheet>
+<anim name="ION_CHARGEGUN_shot"><sheet>ION_CHARGEGUN_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ION_CHAINGUN_shot" w="8" h="8" fw="8" fh="8">weapons/ION_CHAINGUN_shot.png</animSheet>
+<anim name="ION_CHAINGUN_shot"><sheet>ION_CHAINGUN_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ARTILLERY_BOSS_4_shot" w="8" h="8" fw="8" fh="8">weapons/ARTILLERY_BOSS_4_shot.png</animSheet>
+<anim name="ARTILLERY_BOSS_4_shot"><sheet>ARTILLERY_BOSS_4_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="MISSILES_2_shot" w="8" h="8" fw="8" fh="8">weapons/MISSILES_2_shot.png</animSheet>
+<anim name="MISSILES_2_shot"><sheet>MISSILES_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="MISSILES_3_shot" w="8" h="8" fw="8" fh="8">weapons/MISSILES_3_shot.png</animSheet>
+<anim name="MISSILES_3_shot"><sheet>MISSILES_3_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="MISSILES_BREACH_shot" w="8" h="8" fw="8" fh="8">weapons/MISSILES_BREACH_shot.png</animSheet>
+<anim name="MISSILES_BREACH_shot"><sheet>MISSILES_BREACH_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="MISSILES_HULL_shot" w="8" h="8" fw="8" fh="8">weapons/MISSILES_HULL_shot.png</animSheet>
+<anim name="MISSILES_HULL_shot"><sheet>MISSILES_HULL_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="MISSILE_CHARGEGUN_shot" w="8" h="8" fw="8" fh="8">weapons/MISSILE_CHARGEGUN_shot.png</animSheet>
+<anim name="MISSILE_CHARGEGUN_shot"><sheet>MISSILE_CHARGEGUN_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="MISSILES_BURST_shot" w="8" h="8" fw="8" fh="8">weapons/MISSILES_BURST_shot.png</animSheet>
+<anim name="MISSILES_BURST_shot"><sheet>MISSILES_BURST_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ARTILLERY_BOSS_2_shot" w="8" h="8" fw="8" fh="8">weapons/ARTILLERY_BOSS_2_shot.png</animSheet>
+<anim name="ARTILLERY_BOSS_2_shot"><sheet>ARTILLERY_BOSS_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BOMB_1_shot" w="8" h="8" fw="8" fh="8">weapons/BOMB_1_shot.png</animSheet>
+<anim name="BOMB_1_shot"><sheet>BOMB_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BOMB_BREACH_1_shot" w="8" h="8" fw="8" fh="8">weapons/BOMB_BREACH_1_shot.png</animSheet>
+<anim name="BOMB_BREACH_1_shot"><sheet>BOMB_BREACH_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BOMB_BREACH_2_shot" w="8" h="8" fw="8" fh="8">weapons/BOMB_BREACH_2_shot.png</animSheet>
+<anim name="BOMB_BREACH_2_shot"><sheet>BOMB_BREACH_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BOMB_ION_shot" w="8" h="8" fw="8" fh="8">weapons/BOMB_ION_shot.png</animSheet>
+<anim name="BOMB_ION_shot"><sheet>BOMB_ION_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BOMB_STUN_shot" w="8" h="8" fw="8" fh="8">weapons/BOMB_STUN_shot.png</animSheet>
+<anim name="BOMB_STUN_shot"><sheet>BOMB_STUN_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BOMB_HEAL_shot" w="8" h="8" fw="8" fh="8">weapons/BOMB_HEAL_shot.png</animSheet>
+<anim name="BOMB_HEAL_shot"><sheet>BOMB_HEAL_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BOMB_HEAL_SYSTEM_shot" w="8" h="8" fw="8" fh="8">weapons/BOMB_HEAL_SYSTEM_shot.png</animSheet>
+<anim name="BOMB_HEAL_SYSTEM_shot"><sheet>BOMB_HEAL_SYSTEM_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="BOMB_LOCK_shot" w="8" h="8" fw="8" fh="8">weapons/BOMB_LOCK_shot.png</animSheet>
+<anim name="BOMB_LOCK_shot"><sheet>BOMB_LOCK_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="SHOTGUN_PLAYER_shot" w="8" h="8" fw="8" fh="8">weapons/SHOTGUN_PLAYER_shot.png</animSheet>
+<anim name="SHOTGUN_PLAYER_shot"><sheet>SHOTGUN_PLAYER_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="SHOTGUN_2_shot" w="8" h="8" fw="8" fh="8">weapons/SHOTGUN_2_shot.png</animSheet>
+<anim name="SHOTGUN_2_shot"><sheet>SHOTGUN_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="CRYSTAL_BURST_1_shot" w="8" h="8" fw="8" fh="8">weapons/CRYSTAL_BURST_1_shot.png</animSheet>
+<anim name="CRYSTAL_BURST_1_shot"><sheet>CRYSTAL_BURST_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="CRYSTAL_BURST_2_shot" w="8" h="8" fw="8" fh="8">weapons/CRYSTAL_BURST_2_shot.png</animSheet>
+<anim name="CRYSTAL_BURST_2_shot"><sheet>CRYSTAL_BURST_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="CRYSTAL_HEAVY_1_shot" w="8" h="8" fw="8" fh="8">weapons/CRYSTAL_HEAVY_1_shot.png</animSheet>
+<anim name="CRYSTAL_HEAVY_1_shot"><sheet>CRYSTAL_HEAVY_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="CRYSTAL_HEAVY_2_shot" w="8" h="8" fw="8" fh="8">weapons/CRYSTAL_HEAVY_2_shot.png</animSheet>
+<anim name="CRYSTAL_HEAVY_2_shot"><sheet>CRYSTAL_HEAVY_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ARTILLERY_BOSS_1_shot" w="8" h="8" fw="8" fh="8">weapons/ARTILLERY_BOSS_1_shot.png</animSheet>
+<anim name="ARTILLERY_BOSS_1_shot"><sheet>ARTILLERY_BOSS_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ARTILLERY_BOSS_3_shot" w="8" h="8" fw="8" fh="8">weapons/ARTILLERY_BOSS_3_shot.png</animSheet>
+<anim name="ARTILLERY_BOSS_3_shot"><sheet>ARTILLERY_BOSS_3_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="laser_shot" w="8" h="8" fw="8" fh="8">weapons/laser_shot.png</animSheet>
+<anim name="laser_shot"><sheet>laser_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="missile_shot" w="8" h="8" fw="8" fh="8">weapons/missile_shot.png</animSheet>
+<anim name="missile_shot"><sheet>missile_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="ion_shot" w="8" h="8" fw="8" fh="8">weapons/ion_shot.png</animSheet>
+<anim name="ion_shot"><sheet>ion_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="flak_shot" w="8" h="8" fw="8" fh="8">weapons/flak_shot.png</animSheet>
+<anim name="flak_shot"><sheet>flak_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="bomb_shot" w="8" h="8" fw="8" fh="8">weapons/bomb_shot.png</animSheet>
+<anim name="bomb_shot"><sheet>bomb_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="human" w="64" h="36" fw="16" fh="12">people/human_base.png</animSheet>
+<anim name="human_walk_down"><sheet>human</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="human_walk_right"><sheet>human</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="human_walk_up"><sheet>human</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="human_walk_left"><sheet>human</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="human_type_down"><sheet>human</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="human_type_right"><sheet>human</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="human_type_up"><sheet>human</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="human_type_left"><sheet>human</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="human_punch_down"><sheet>human</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="human_punch_up"><sheet>human</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="human_fire_down"><sheet>human</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="human_fire_right"><sheet>human</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="human_fire_up"><sheet>human</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="human_fire_left"><sheet>human</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="human_repair"><sheet>human</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="engi" w="64" h="36" fw="16" fh="12">people/engi_base.png</animSheet>
+<anim name="engi_walk_down"><sheet>engi</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="engi_walk_right"><sheet>engi</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="engi_walk_up"><sheet>engi</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="engi_walk_left"><sheet>engi</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="engi_type_down"><sheet>engi</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="engi_type_right"><sheet>engi</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="engi_type_up"><sheet>engi</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="engi_type_left"><sheet>engi</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="engi_punch_down"><sheet>engi</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="engi_punch_up"><sheet>engi</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="engi_fire_down"><sheet>engi</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="engi_fire_right"><sheet>engi</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="engi_fire_up"><sheet>engi</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="engi_fire_left"><sheet>engi</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="engi_repair"><sheet>engi</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="energy" w="64" h="36" fw="16" fh="12">people/energy_base.png</animSheet>
+<anim name="energy_walk_down"><sheet>energy</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="energy_walk_right"><sheet>energy</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="energy_walk_up"><sheet>energy</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="energy_walk_left"><sheet>energy</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="energy_type_down"><sheet>energy</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="energy_type_right"><sheet>energy</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="energy_type_up"><sheet>energy</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="energy_type_left"><sheet>energy</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="energy_punch_down"><sheet>energy</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="energy_punch_up"><sheet>energy</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="energy_fire_down"><sheet>energy</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="energy_fire_right"><sheet>energy</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="energy_fire_up"><sheet>energy</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="energy_fire_left"><sheet>energy</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="energy_repair"><sheet>energy</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="mantis" w="64" h="36" fw="16" fh="12">people/mantis_base.png</animSheet>
+<anim name="mantis_walk_down"><sheet>mantis</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="mantis_walk_right"><sheet>mantis</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="mantis_walk_up"><sheet>mantis</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="mantis_walk_left"><sheet>mantis</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="mantis_type_down"><sheet>mantis</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="mantis_type_right"><sheet>mantis</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="mantis_type_up"><sheet>mantis</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="mantis_type_left"><sheet>mantis</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="mantis_punch_down"><sheet>mantis</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="mantis_punch_up"><sheet>mantis</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="mantis_fire_down"><sheet>mantis</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="mantis_fire_right"><sheet>mantis</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="mantis_fire_up"><sheet>mantis</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="mantis_fire_left"><sheet>mantis</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="mantis_repair"><sheet>mantis</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="slug" w="64" h="36" fw="16" fh="12">people/slug_base.png</animSheet>
+<anim name="slug_walk_down"><sheet>slug</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="slug_walk_right"><sheet>slug</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="slug_walk_up"><sheet>slug</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="slug_walk_left"><sheet>slug</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="slug_type_down"><sheet>slug</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="slug_type_right"><sheet>slug</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="slug_type_up"><sheet>slug</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="slug_type_left"><sheet>slug</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="slug_punch_down"><sheet>slug</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="slug_punch_up"><sheet>slug</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="slug_fire_down"><sheet>slug</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="slug_fire_right"><sheet>slug</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="slug_fire_up"><sheet>slug</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="slug_fire_left"><sheet>slug</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="slug_repair"><sheet>slug</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="rock" w="64" h="36" fw="16" fh="12">people/rock_base.png</animSheet>
+<anim name="rock_walk_down"><sheet>rock</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="rock_walk_right"><sheet>rock</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="rock_walk_up"><sheet>rock</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="rock_walk_left"><sheet>rock</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="rock_type_down"><sheet>rock</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="rock_type_right"><sheet>rock</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="rock_type_up"><sheet>rock</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="rock_type_left"><sheet>rock</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="rock_punch_down"><sheet>rock</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="rock_punch_up"><sheet>rock</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="rock_fire_down"><sheet>rock</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="rock_fire_right"><sheet>rock</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="rock_fire_up"><sheet>rock</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="rock_fire_left"><sheet>rock</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="rock_repair"><sheet>rock</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="anaerobic" w="64" h="36" fw="16" fh="12">people/anaerobic_base.png</animSheet>
+<anim name="anaerobic_walk_down"><sheet>anaerobic</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="anaerobic_walk_right"><sheet>anaerobic</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="anaerobic_walk_up"><sheet>anaerobic</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="anaerobic_walk_left"><sheet>anaerobic</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="anaerobic_type_down"><sheet>anaerobic</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="anaerobic_type_right"><sheet>anaerobic</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="anaerobic_type_up"><sheet>anaerobic</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="anaerobic_type_left"><sheet>anaerobic</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="anaerobic_punch_down"><sheet>anaerobic</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="anaerobic_punch_up"><sheet>anaerobic</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="anaerobic_fire_down"><sheet>anaerobic</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="anaerobic_fire_right"><sheet>anaerobic</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="anaerobic_fire_up"><sheet>anaerobic</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="anaerobic_fire_left"><sheet>anaerobic</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="anaerobic_repair"><sheet>anaerobic</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="crystal" w="64" h="36" fw="16" fh="12">people/crystal_base.png</animSheet>
+<anim name="crystal_walk_down"><sheet>crystal</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="crystal_walk_right"><sheet>crystal</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="crystal_walk_up"><sheet>crystal</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="crystal_walk_left"><sheet>crystal</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="crystal_type_down"><sheet>crystal</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="crystal_type_right"><sheet>crystal</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="crystal_type_up"><sheet>crystal</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="crystal_type_left"><sheet>crystal</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="crystal_punch_down"><sheet>crystal</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="crystal_punch_up"><sheet>crystal</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="crystal_fire_down"><sheet>crystal</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="crystal_fire_right"><sheet>crystal</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="crystal_fire_up"><sheet>crystal</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="crystal_fire_left"><sheet>crystal</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="crystal_repair"><sheet>crystal</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="repair" w="64" h="36" fw="16" fh="12">people/repair_base.png</animSheet>
+<anim name="repair_walk_down"><sheet>repair</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="repair_walk_right"><sheet>repair</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="repair_walk_up"><sheet>repair</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="repair_walk_left"><sheet>repair</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="repair_type_down"><sheet>repair</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="repair_type_right"><sheet>repair</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="repair_type_up"><sheet>repair</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="repair_type_left"><sheet>repair</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="repair_punch_down"><sheet>repair</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="repair_punch_up"><sheet>repair</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="repair_fire_down"><sheet>repair</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="repair_fire_right"><sheet>repair</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="repair_fire_up"><sheet>repair</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="repair_fire_left"><sheet>repair</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="repair_repair"><sheet>repair</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="battle" w="64" h="36" fw="16" fh="12">people/battle_base.png</animSheet>
+<anim name="battle_walk_down"><sheet>battle</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="battle_walk_right"><sheet>battle</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="battle_walk_up"><sheet>battle</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="battle_walk_left"><sheet>battle</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="battle_type_down"><sheet>battle</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="battle_type_right"><sheet>battle</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="battle_type_up"><sheet>battle</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="battle_type_left"><sheet>battle</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="battle_punch_down"><sheet>battle</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="battle_punch_up"><sheet>battle</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="battle_fire_down"><sheet>battle</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="battle_fire_right"><sheet>battle</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="battle_fire_up"><sheet>battle</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="battle_fire_left"><sheet>battle</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="battle_repair"><sheet>battle</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="boarder_ion" w="64" h="36" fw="16" fh="12">people/boarder_ion_base.png</animSheet>
+<anim name="boarder_ion_walk_down"><sheet>boarder_ion</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="boarder_ion_walk_right"><sheet>boarder_ion</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="boarder_ion_walk_up"><sheet>boarder_ion</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="boarder_ion_walk_left"><sheet>boarder_ion</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="boarder_ion_type_down"><sheet>boarder_ion</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="boarder_ion_type_right"><sheet>boarder_ion</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="boarder_ion_type_up"><sheet>boarder_ion</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="boarder_ion_type_left"><sheet>boarder_ion</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
+<anim name="boarder_ion_punch_down"><sheet>boarder_ion</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="boarder_ion_punch_up"><sheet>boarder_ion</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="boarder_ion_fire_down"><sheet>boarder_ion</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="boarder_ion_fire_right"><sheet>boarder_ion</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="boarder_ion_fire_up"><sheet>boarder_ion</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="boarder_ion_fire_left"><sheet>boarder_ion</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="boarder_ion_repair"><sheet>boarder_ion</sheet><desc length="1" x="0" y="1"/><time>1</time></anim>
+<animSheet name="fire_large" w="64" h="16" fw="16" fh="16">effects/fire_large.png</animSheet>
+<anim name="fire_large"><sheet>fire_large</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<animSheet name="fire_small" w="48" h="12" fw="12" fh="12">effects/fire_small.png</animSheet>
+<anim name="fire_small"><sheet>fire_small</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<animSheet name="breach" w="64" h="16" fw="16" fh="16">effects/breach.png</animSheet>
+<anim name="breach"><sheet>breach</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<animSheet name="explosion1" w="120" h="20" fw="20" fh="20">effects/explosion1.png</animSheet>
+<anim name="explosion1"><sheet>explosion1</sheet><desc length="6" x="0" y="0"/><time>1</time></anim>
+<animSheet name="explosion_big1" w="112" h="28" fw="28" fh="28">effects/explosion_big1.png</animSheet>
+<anim name="explosion_big1"><sheet>explosion_big1</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid0" w="16" h="16" fw="16" fh="16">effects/asteroid0.png</animSheet>
+<anim name="asteroid0"><sheet>asteroid0</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid1" w="16" h="16" fw="16" fh="16">effects/asteroid1.png</animSheet>
+<anim name="asteroid1"><sheet>asteroid1</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid2" w="16" h="16" fw="16" fh="16">effects/asteroid2.png</animSheet>
+<anim name="asteroid2"><sheet>asteroid2</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid3" w="16" h="16" fw="16" fh="16">effects/asteroid3.png</animSheet>
+<anim name="asteroid3"><sheet>asteroid3</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid4" w="16" h="16" fw="16" fh="16">effects/asteroid4.png</animSheet>
+<anim name="asteroid4"><sheet>asteroid4</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid5" w="16" h="16" fw="16" fh="16">effects/asteroid5.png</animSheet>
+<anim name="asteroid5"><sheet>asteroid5</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid6" w="16" h="16" fw="16" fh="16">effects/asteroid6.png</animSheet>
+<anim name="asteroid6"><sheet>asteroid6</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid7" w="16" h="16" fw="16" fh="16">effects/asteroid7.png</animSheet>
+<anim name="asteroid7"><sheet>asteroid7</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid8" w="16" h="16" fw="16" fh="16">effects/asteroid8.png</animSheet>
+<anim name="asteroid8"><sheet>asteroid8</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="asteroid9" w="16" h="16" fw="16" fh="16">effects/asteroid9.png</animSheet>
+<anim name="asteroid9"><sheet>asteroid9</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+</animations>

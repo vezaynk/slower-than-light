@@ -1,2 +1,5 @@
 # pnpm owns the lockfile. Prettier rewrites it.
 pnpm-lock.yaml
+
+# Generated: the unpacked stand-in archive (packages/totallynotftl/src/generate.ts).
+packages/totallynotftl/archive/

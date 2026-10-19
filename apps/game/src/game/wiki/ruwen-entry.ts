@@ -29,7 +29,7 @@ export function markRuwenEntry(g: Game): void {
     for (const b of g.beacons) if (b.quest === RUWEN_ENTRY) delete b.quest;
     return;
   }
-  if (g.sectorName !== "Rock Homeworlds") return;
+  if (g.sectorId !== "ROCK_HOME") return;
   // INFERRED: a dead Ruwen does not count as having that crew. The page prints no health check.
   for (const b of g.beacons) {
     // INFERRED: a beacon already visited is not marked again. The page prints no resolved check.

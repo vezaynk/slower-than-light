@@ -14,6 +14,7 @@ import {
 } from "./quests.ts";
 import { fleetToReach, jumpsBetween } from "./sector-map.ts";
 import { ACCEPT_ID, joinCrew } from "./surrender.ts";
+import { placeIn } from "../fixtures.ts";
 
 function here(g: Game): Beacon {
   return g.beacons.find((b) => b.id === g.here)!;
@@ -21,7 +22,7 @@ function here(g: Game): Beacon {
 
 /** Open a cited card (by page title) on a middle beacon, the way stampCitedEvents flags one. */
 function atCited(g: Game, sector: string, dest: string, ev = citedFlag(dest)): Game {
-  g.sectorName = sector;
+  placeIn(g, sector);
   const b = g.beacons.find((x) => x.col === 1)!;
   b.flag = ev;
   b.kind = "event";
@@ -93,7 +94,7 @@ describe("Beacons, Quest (marker) beacon: placement", () => {
   it("prefers a beacon-mix quest slot (an unflagged event beacon)", () => {
     const g = createGame(4);
     for (const b of g.beacons)
-      if (b.col >= 2 && b.kind !== "exit") {
+      if (b.kind !== "start" && b.kind !== "exit") {
         b.kind = "hostile";
         b.flag = "";
       }
@@ -476,6 +477,7 @@ describe("Other surrender pages with a marker", () => {
     // > "This ship starts to escape with 35 seconds countdown timer. It is always a Slug Interceptor class." — [[Slug Home Nebula surrender#Fight the interceptor]]
     // > "You unlock the Slug Cruiser; receive high scrap with resources and Slug Repair Gel augmentation." — [[Slug Home Nebula surrender#Fight the interceptor]]
     const g = createGame(15);
+    g.sectorId = "SLUG_HOME";
     g.sectorName = "Slug Home Nebula";
     g.phase = "map";
     g.here = g.beacons.find((b) => b.col === 1)!.id;
@@ -516,6 +518,7 @@ describe("Other surrender pages with a marker", () => {
     let g: Game | null = null;
     for (let seed = 1; seed < 40 && !g; seed++) {
       const t = createGame(seed);
+      t.sectorId = "CIVILIAN_SECTOR";
       t.sectorName = "Civilian Sector";
       const b = t.beacons.find((x) => x.col === 1)!;
       b.flag = "cited:settlement-mercenary-work";

@@ -30,11 +30,9 @@ describe("Refugee (Pirate)", () => {
   it("is a pirate sector card with hail and ignore", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee (Pirate)]]
-    const pages = citedPagesFor("Pirate Controlled Sector").filter(
-      (p) => p.dest === "Refugee (Pirate)",
-    );
+    const pages = citedPagesFor("PIRATE_SECTOR").filter((p) => p.dest === "Refugee (Pirate)");
     assert.equal(pages.length, 1);
-    assert.deepEqual(pages[0]?.sectors, ["Pirate Controlled Sector"]);
+    assert.deepEqual(pages[0]?.sectors, ["PIRATE_SECTOR"]);
     const g = createGame(1);
     open(g);
     assert.match(g.event?.body ?? "", /refugee ship drifting/);

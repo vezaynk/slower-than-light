@@ -15,7 +15,13 @@ import {
   readBitmapFont,
   readSounds,
 } from "@stl/pack";
-import { standInDat, standInImages, standInShipsXml, standInXml } from "./archive.ts";
+import {
+  standInDat,
+  standInImages,
+  standInSectorsXml,
+  standInShipsXml,
+  standInXml,
+} from "./archive.ts";
 import { standInMedia } from "./media.ts";
 import { TEXT_LISTS_XML } from "./text-lists.ts";
 
@@ -33,12 +39,15 @@ describe("totallynotftl.dat", () => {
     const extracted = await extractFtlDat(built);
     const pictures = hullPictureFiles();
     const media = await standInMedia();
-    assert.equal(extracted.documents.length, 3 + pictures.length + media.documents.length);
+    assert.equal(extracted.documents.length, 4 + pictures.length + media.documents.length);
     assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
     assert.equal(extracted.documents[0]?.xml, goldenXml);
     // Ships are ftl.dat blueprints, as a real archive writes them; the stand-in document carries none.
     assert.equal(extracted.documents[1]?.path, "data/blueprints.xml");
     assert.equal(extracted.documents[1]?.xml, standInShipsXml());
+    assert.equal(extracted.documents[2]?.path, "data/sector_data.xml");
+    assert.equal(extracted.documents[2]?.xml, standInSectorsXml());
+    assert.equal(xml.includes("<sectorDescription"), false);
     assert.equal(xml.includes("<shipBlueprint"), false);
     assert.equal(
       extracted.documents.find((doc) => doc.path === "data/text_lists.xml")?.xml,

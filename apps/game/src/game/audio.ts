@@ -1,5 +1,5 @@
 /** Archive waves play when that cue is packed. A missing cue keeps the tone. */
-import { allSectors } from "@stl/pack";
+import { sectorDef } from "@stl/pack";
 import { archiveGeneration, musicTrack, soundCue, soundCues } from "./pack/media.ts";
 
 let ctx: AudioContext | null = null;
@@ -313,15 +313,12 @@ async function holdLoop(name: string, on: boolean) {
 export type ScorePick = { track: string; mode: "explore" | "combat" };
 
 /** Title plays the title track. A fight plays combat. The map and a quiet beacon play explore. */
-export function scorePick(input: {
-  phase: string;
-  sectorName: string;
-  combat: boolean;
-}): ScorePick {
+export function scorePick(input: { phase: string; sectorId: string; combat: boolean }): ScorePick {
   if (input.phase === "title" || input.phase === "hangar")
     return { track: "title", mode: "explore" };
-  const named = allSectors().find((row) => row.name === input.sectorName);
-  return { track: named?.tracks?.[0] ?? "civilian", mode: input.combat ? "combat" : "explore" };
+  // The sector's trackList (sector_data.xml).
+  const tracks = sectorDef(input.sectorId)?.tracks;
+  return { track: tracks?.[0] ?? "civilian", mode: input.combat ? "combat" : "explore" };
 }
 
 type ScoreAsk = { track: string; combat: boolean; paused: boolean };

@@ -226,116 +226,98 @@
   <shipBlueprint name="rock">
     <surrender chance="30" min="30" max="40"/>
   </shipBlueprint>
-  <sectorDescription name="civilian-start">
-    <type>civilian</type>
+  <sectorDescription name="STANDARD_SPACE">
     <note>Always and only sector 1. It is not the usual Civilian Sector: fewer stores, items, quests, and nebulas.</note>
     <note>The beacon list gives 1-2 stores, 1 quests event, and 0-4 nebula beacons.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="civilian">
-    <type>civilian</type>
+  <sectorDescription name="CIVILIAN_SECTOR">
     <note>Can occur multiple times per game, and it is a different sector from the starting one.</note>
     <note>The beacon list gives 2-3 stores, 0-2 quests, and 0-8 nebula spaces.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="engi">
-    <type>civilian</type>
+  <sectorDescription name="ENGI_SECTOR">
     <note>Can occur multiple times per game.</note>
     <note>The beacon list gives 2-3 stores and 1 quest.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Engi rarity 1, Human 3, Zoltan 4. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="engi-home">
-    <type>civilian</type>
+  <sectorDescription name="ENGI_HOME">
     <note>Only once per game, and only at sector 3 or higher.</note>
     <note>The beacon list places 1 Engi fleet discussion event, 2-3 stores, and 1 quest.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Engi rarity 1, Human 3, Zoltan 4. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="zoltan">
-    <type>civilian</type>
+  <sectorDescription name="ZOLTAN_SECTOR">
     <note>Can occur multiple times per game.</note>
     <note>The beacon list places 1 Zoltan research facility event, 2 stores, 0-1 quests, and 2-6 nebula spaces.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Zoltan rarity 1, Human 2, Engi, Mantis, Rockmen, and Slug 3. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="zoltan-home">
-    <type>civilian</type>
+  <sectorDescription name="ZOLTAN_HOME">
     <note>Only once per game, and only at sector 3 or higher.</note>
     <note>The beacon list places 1 Zoltan research facility event, 1 Unarmed Zoltan transport event, 2 stores, 0-1 quests, and 2-6 nebula spaces.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Zoltan rarity 1, Human 2, Engi, Mantis, Rockmen, and Slug 3. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="abandoned">
-    <type>hostile</type>
+  <sectorDescription name="LANIUS_SECTOR">
     <note>Advanced Edition sector. Can occur multiple times per game.</note>
     <note>The beacon list gives 2 stores and 0-1 quests.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Lanius and Human rarity 2, Engi, Mantis, and Rockmen 3, Zoltan and Slug 4. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="mantis">
-    <type>hostile</type>
+  <sectorDescription name="MANTIS_SECTOR">
     <note>Can occur multiple times per game.</note>
     <note>The beacon list gives 1-2 stores.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Mantis rarity 1, Human 2, Engi 3, Rockmen 4. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="mantis-home">
-    <type>hostile</type>
+  <sectorDescription name="MANTIS_HOME">
     <note>Only once per game, and only at sector 3 or higher.</note>
     <note>The beacon list places 1 Legendary thief KazaaakplethKilik event and 1-2 stores.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Mantis rarity 1, Human 2, Engi 3, Rockmen 4. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="pirate">
-    <type>hostile</type>
+  <sectorDescription name="PIRATE_SECTOR">
     <note>Can occur multiple times per game.</note>
     <note>The beacon list gives 1-2 stores, 0-1 quests, and 0-5 nebula spaces.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="rebel">
-    <type>hostile</type>
+  <sectorDescription name="REBEL_SECTOR">
     <note>Can occur multiple times per game.</note>
     <note>The beacon list gives 1-2 stores, 0-2 quests, and 0-5 nebula spaces.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="rebel-stronghold">
-    <type>hostile</type>
+  <sectorDescription name="REBEL_SECTOR_MINIBOSS">
     <note>Only once per game, and only at sector 5 or higher.</note>
     <note>The beacon list places 1 Rebel shipyard event, 1-2 stores, 0-2 quests, and 0-5 nebula spaces.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="rock">
-    <type>hostile</type>
+  <sectorDescription name="ROCK_SECTOR">
     <note>Can occur multiple times per game.</note>
     <note>Crystal Lockdown Bombs can be found or bought here, at a high rarity (4).</note>
     <note>The beacon list gives 2 stores and 0-1 quests.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Rockmen rarity 1, Human 2, Zoltan 3. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="rock-home">
-    <type>hostile</type>
+  <sectorDescription name="ROCK_HOME">
     <note>Only once per game, and only at sector 5 or higher.</note>
     <note>Crystal Lockdown Bombs can be found or bought here, at an average rarity (2).</note>
     <note>The beacon list places 1 Ancient device event, 1 Rock war vessel encounter event, 2 stores, and 0-1 quests.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Rockmen rarity 1, Human 2, Zoltan 3. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="slug-nebula">
-    <type>nebula</type>
+  <sectorDescription name="SLUG_SECTOR">
     <note>Can occur multiple times per game, and only at sector 4 or higher.</note>
     <note>Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.</note>
     <note>The beacon list gives 0-1 stores and 2 nebula stores.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Slug and Human rarity 2, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="slug-home">
-    <type>nebula</type>
+  <sectorDescription name="SLUG_HOME">
     <note>Only once per game, and only at sector 4 or higher.</note>
     <note>Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.</note>
     <note>The beacon list places 1 Slug Home Nebula surrender event, 0-1 stores, and 2 nebula stores.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Slug and Human rarity 2, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="uncharted">
-    <type>nebula</type>
+  <sectorDescription name="NEBULA_SECTOR">
     <note>Can occur multiple times per game.</note>
     <note>Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.</note>
     <note>In normal circumstances the sector has 1-2 stores. Map generation leaves about 0.8% with no stores at all.</note>
     <note>The beacon list also shows 0-1 stores and 1 nebula store.</note>
     <note>Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Slug 3, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.</note>
   </sectorDescription>
-  <sectorDescription name="crystal-worlds">
-    <type>hidden</type>
+  <sectorDescription name="CRYSTAL_HOME">
     <note>Only once per game, and only through the Ancient device event. It is not technically part of the map.</note>
     <note>It is a standalone sector, separate from Rock Homeworlds. The Rebels keep following you through it.</note>
     <note>Exiting sends you to a random sector after the Rock Homeworlds. That next sector may not be connected to the Rock Homeworlds.</note>
@@ -343,8 +325,7 @@
     <note>The beacon list gives 2-3 stores.</note>
     <note>Restarting while still in this sector drops the run into a Civilian sector. The exit will not open the sector map, so sector 2 is chosen at random.</note>
   </sectorDescription>
-  <sectorDescription name="last-stand">
-    <type>last-stand</type>
+  <sectorDescription name="FINAL">
     <note>Always sector 8. As the final sector, it occurs only once.</note>
     <note>At the start the ship receives 10 repairs and 10 fuel.</note>
     <note>The Rebel Flagship spawns on the right and jumps every two jumps you make. A dotted or solid line shows whether it jumps this turn. Sharing its beacon starts the fight.</note>
@@ -569,7 +550,7 @@
   </rewards>
   <emptyBeacon name="empty-beacon-civilian">
     <title>Empty beacon (Civilian)</title>
-    <sector>Civilian Sector</sector>
+    <sector>CIVILIAN_SECTOR</sector>
     <text>Your jump leads you to nothing but empty space. This Jump Beacon serves no purpose other than as a connection.</text>
     <text>You jump into an unremarkable system. No life signs detected within scanning range.</text>
     <text>Your scans reveal a mining base on a nearby planet long since abandoned. No life signs detected.</text>
@@ -582,7 +563,7 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-crystal">
     <title>Empty beacon (Crystal)</title>
-    <sector>Hidden Crystal Worlds</sector>
+    <sector>CRYSTAL_HOME</sector>
     <text>As soon as you arrive, all of the ships docked at a nearby station scatter and jump away, while the station itself uses some form of cloak technology to disappear. They mustn't like outsiders here...</text>
     <text>No ships are in range, so you take the time to scan the area. It seems like every planet you've seen so far shows signs of highly developed habitation without overpopulation. They must have a very structured and well regulated society.</text>
     <text>There appears to be no one living near this node, a rare sight in this highly developed sector.</text>
@@ -592,8 +573,8 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-engi">
     <title>Empty beacon (Engi)</title>
-    <sector>Engi Controlled Sector</sector>
-    <sector>Engi Homeworlds</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
     <text>The complex arrangements of ship hulls and FTL drive capacitors floating abandoned in space suggest the Engi were here not too long ago; but no longer.</text>
     <text>You arrive at a green planet with great plains and rolling waterfalls. It would be of little interest to the Engi nearby.</text>
     <text>You have arrived near an Engi construction yard. Most Engi maintain their bi-pedal appearance out of habit but here you see a number of Engi hives working together to create massive organic machines adept at building ships. Truly a sight to behold.</text>
@@ -607,7 +588,7 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-lanius">
     <title>Empty beacon (Lanius)</title>
-    <sector>Abandoned Sector</sector>
+    <sector>LANIUS_SECTOR</sector>
     <text>The charts indicate this was the location of a small skirmish over a military facility on a nearby moon. Oddly, scans pick up no signs of debris from either the battle or the station. Yet another area sucked dry by the Lanius.</text>
     <text>Scans show no signs of any ships or settlements nearby. You have no way of knowing if the area was always uninhabited or if it was simply erased by the Lanius.</text>
     <text>A few refugee ships are preparing for the long journey to another sector. They explain how a number of Lanius military ships surrounded them and began to hack their FTL drives. Fortunately the Lanius moved on after briefly scanning the civilian ships, leaving them more than a little shaken up.</text>
@@ -617,7 +598,7 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-last-stand">
     <title>Empty beacon (Last Stand)</title>
-    <sector>The Last Stand</sector>
+    <sector>FINAL</sector>
     <text>You arrive to see a number of Federation forward-carriers and dreadnoughts. This must be a system of high importance to warrant such a fleet.</text>
     <text>There are a few Federation fleets in the nearby area as well as a lot of wreckage. There must have been minor skirmishes in the area.</text>
     <text>A few scattered heavy vessels are left to defend the nearby Federation settlement. They seem to be in the process of evacuation.</text>
@@ -626,8 +607,8 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-mantis">
     <title>Empty beacon (Mantis)</title>
-    <sector>Mantis Controlled Sector</sector>
-    <sector>Mantis Homeworlds</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
     <text>At this point you almost expect a fight with the Mantis, but this beacon appears to be entirely devoid of other ships. You take the time to catch your breath and double check the ship's systems.</text>
     <text>The only thing this beacon offers is a view of deep space and a brief respite from battles. For some this must be a welcome refuge.</text>
     <text>A nearby Mantis mining operation is clearly using heavy Engi slave labor. You briefly consider the possibility of emancipating the slaves, but the Mantis presence is too formidable. You decide to lay low.</text>
@@ -637,7 +618,7 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-pirate">
     <title>Empty beacon (Pirate)</title>
-    <sector>Pirate Controlled Sector</sector>
+    <sector>PIRATE_SECTOR</sector>
     <text>As soon as you arrive, a small ship de-cloaks behind yours. You immediately power up the shields and weapons, but they continue on their trajectory unimpressed. You try to calm your nerves.</text>
     <text>A small pirate ship messages you, "That sure is a shiny ship you got there." You fire a warning shot across their bow and they respond, "Hey! No need for violence! It was just a comment..."</text>
     <text>The only thing within scanning range is an old abandoned mining structure and a resupply station. They appear to have been picked clean by marauders.</text>
@@ -645,8 +626,8 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-rebel">
     <title>Empty beacon (Rebel)</title>
-    <sector>Rebel Controlled Sector</sector>
-    <sector>Rebel Stronghold</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
     <text>You enter a system bustling with Rebel activity. Supply freighters and re-supply stations are dwarfed by a few heavy warships. Luckily, no one seems to be paying attention to small cruisers. No ships are scanning or messaging you.</text>
     <text>You arrive near a small Rebel refueling depot. Your ship is being scanned multiple times so they must recognize you, but there appears to be no combat-ready ships in the vicinity. The only message you receive is a denial to your request to dock at the depot.</text>
     <text>There is not much of interest nearby. A small sun in the distance with a few orbiting planets in nearby space provide little of interest.</text>
@@ -655,8 +636,8 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-rock">
     <title>Empty beacon (Rock)</title>
-    <sector>Rock Controlled Sector</sector>
-    <sector>Rock Homeworlds</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
     <text>You receive a message meant to degrade you as aliens. You half expect an attack but it seems to have come from a small civilian shuttle.</text>
     <text>No one bothers your ship as you float among numerous space stations and mining platforms. The Rock certainly run efficient operations.</text>
     <text>You arrive and detect signs of battle. A few ships are taking passes at each other near a small station. You don't know if it's a territory issue, a contest or a rite of passage but you decide it's best to stay out of it.</text>
@@ -667,8 +648,8 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-slug">
     <title>Empty beacon (Slug)</title>
-    <sector>Slug Controlled Nebula</sector>
-    <sector>Slug Home Nebula</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You arrive at the beacon and are relieved at the sight of open space. Nebulas are terribly claustrophobic.</text>
     <text>This beacon marks a 'small' gap in the nebula. No colonies or ships in scanning distance.</text>
     <text>You are relieved to see your sensors blink back on after the jump. No ships detected.</text>
@@ -677,8 +658,8 @@
   </emptyBeacon>
   <emptyBeacon name="empty-beacon-zoltan">
     <title>Empty beacon (Zoltan)</title>
-    <sector>Zoltan Controlled Sector</sector>
-    <sector>Zoltan Homeworlds</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>There are some mineral-rich asteroids here that the Zoltan have left idle, but you've none of the necessary equipment to mine them.</text>
     <text>You have to admit - Zoltan space is a beautiful and peaceful place indeed. However, re-engaging the FTL and finishing your mission is your priority, not sight-seeing.</text>
     <text>A light asteroid field is entering the atmosphere of a nearby planet - a fireworks show on a galactic scale. There's little for it but to take in the ambience and program the next jump.</text>
@@ -689,13 +670,13 @@
   </emptyBeacon>
   <emptyBeacon name="empty-nebula-beacon" nebula="true">
     <title>Empty nebula beacon</title>
-    <sector>Civilian Sector</sector>
-    <sector>Pirate Controlled Sector</sector>
-    <sector>Rebel Controlled Sector</sector>
-    <sector>Rebel Stronghold</sector>
-    <sector>Uncharted Nebula</sector>
-    <sector>Zoltan Controlled Sector</sector>
-    <sector>Zoltan Homeworlds</sector>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You can't see anything through the thick gases surrounding your ship. Without knowing what is out there, all you can do is wait for your FTL to charge.</text>
     <text>Without active sensors you have no other option but to look out of the view-ports in apprehension. It's eerily quiet.</text>
     <text>As you wait for the FTL drive to charge, you half expect to be ambushed at any moment. However, no attack comes...</text>
@@ -708,8 +689,8 @@
   </emptyBeacon>
   <emptyBeacon name="empty-nebula-beacon-slug" nebula="true">
     <title>Empty nebula beacon (Slug)</title>
-    <sector>Slug Controlled Nebula</sector>
-    <sector>Slug Home Nebula</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>When it comes to Slugs, no news is not necessarily good news. However, if they are watching, they don't seem to want to confront you.</text>
     <text>It's not unusual to feel paranoia in a Slug controlled nebula, but for once, it is unfounded.</text>
     <text>Either this part of Slug space is deserted, or it's too dense for even Slugs to detect your presence. Time to move.</text>

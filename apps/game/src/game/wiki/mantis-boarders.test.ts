@@ -6,7 +6,7 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-mantis:0";
 const DEST = "Boarders: Mantis";
-const SECTORS = ["Mantis Controlled Sector", "Mantis Homeworlds"];
+const SECTORS = ["MANTIS_SECTOR", "MANTIS_HOME"];
 
 function beacon(): Beacon {
   return {

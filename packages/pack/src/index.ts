@@ -1,5 +1,5 @@
 export { emitPack } from "./emit.ts";
-export { emitFtlShips } from "./ftl-emit.ts";
+export { emitFtlSectors, emitFtlShips } from "./ftl-emit.ts";
 export type { EmitSlice } from "./emit.ts";
 export { overlayGap } from "./overlay.ts";
 export {

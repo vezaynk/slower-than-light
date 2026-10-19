@@ -413,7 +413,7 @@ export function rollScriptedOffer(g: Game, s: SurrenderOfferDef): SurrenderOffer
  * @agent:quests. A page that gives "a crewmember" without naming one.
  */
 export function randomRace(g: Game): string {
-  const list = pirateCrewRaces(g.sectorName);
+  const list = pirateCrewRaces(g.sectorId);
   return list[Math.min(list.length - 1, Math.floor(rand(g) * list.length))];
 }
 

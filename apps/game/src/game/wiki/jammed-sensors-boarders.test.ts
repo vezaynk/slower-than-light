@@ -9,7 +9,7 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 const CONTINUE = "c:boarders-humans-jammed-sensors:0";
 const HACK = "c:boarders-humans-jammed-sensors:1";
 const DEST = "Boarders: Humans jammed sensors";
-const SECTORS = ["Pirate Controlled Sector", "Zoltan Controlled Sector", "Zoltan Homeworlds"];
+const SECTORS = ["PIRATE_SECTOR", "ZOLTAN_SECTOR", "ZOLTAN_HOME"];
 
 function beacon(): Beacon {
   return {

@@ -53,7 +53,7 @@ describe("crystal sector restart", () => {
         assert.equal(next.sector, 2);
         assert.equal(next.crystalRestart, false);
         assert.notEqual(next.sectorName, "Hidden Crystal Worlds");
-        assert.notEqual(next.sectorName, "Civilian (Starting) Sector");
+        assert.notEqual(next.sectorId, "STANDARD_SPACE");
         const here = (next.route ?? []).find((node) => node.id === next.routeHere);
         assert.equal(here?.col, 1);
         names.add(next.sectorName);
@@ -67,7 +67,7 @@ describe("crystal sector restart", () => {
       const parked = useGame.getState();
       assert.equal(parked.boot, "hangar");
       assert.equal(parked.game.phase, "title");
-      assert.equal(parked.game.sectorName, "Civilian (Starting) Sector");
+      assert.equal(parked.game.sectorId, "STANDARD_SPACE");
       assert.equal(parked.played, played);
       useGame.getState().newRun("PLAYER_SHIP_HARD");
       const started = useGame.getState().game;
@@ -82,13 +82,13 @@ describe("crystal sector restart", () => {
 
       // A finished run that was not the crystal sector still opens the chart.
       const plain = loseFight(createGame(3));
-      assert.equal(plain.sectorName, "Civilian (Starting) Sector");
+      assert.equal(plain.sectorId, "STANDARD_SPACE");
       useGame.setState({ game: plain, played: null, boot: "title" });
       goTitle("hangar");
       assert.equal(useGame.getState().played, plain);
       useGame.getState().newRun("PLAYER_SHIP_HARD");
       const fresh = useGame.getState().game;
-      assert.equal(fresh.sectorName, "Civilian (Starting) Sector");
+      assert.equal(fresh.sectorId, "STANDARD_SPACE");
       assert.equal(fresh.crystalRestart, undefined);
       leaveExit(fresh);
       assert.equal(fresh.sectorMap, true);
@@ -100,10 +100,10 @@ describe("crystal sector restart", () => {
       goTitle("title");
       assert.equal(useGame.getState().game.phase, "title");
       assert.equal(useGame.getState().played, null);
-      assert.equal(useGame.getState().game.sectorName, "Civilian (Starting) Sector");
+      assert.equal(useGame.getState().game.sectorId, "STANDARD_SPACE");
       useGame.getState().newRun();
       const fromTitle = useGame.getState().game;
-      assert.equal(fromTitle.sectorName, "Civilian (Starting) Sector");
+      assert.equal(fromTitle.sectorId, "STANDARD_SPACE");
       assert.equal(fromTitle.crystalRestart, undefined);
       leaveExit(fromTitle);
       assert.equal(fromTitle.sectorMap, true);

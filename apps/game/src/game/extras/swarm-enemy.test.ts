@@ -147,6 +147,7 @@ describe("enemy drone allowance (Template:Enemy ships drones)", () => {
     for (let seed = 1; seed <= 60; seed++) {
       const g = createGame(seed);
       g.sector = 5;
+      g.sectorId = "ENGI_SECTOR";
       g.sectorName = "Engi Controlled Sector";
       startCombat(g, "Engi ship");
       const loadout = g.enemy?.kits.drones?.loadout ?? [];
@@ -204,6 +205,7 @@ describe("enemy drone parts (Enemy Ships, Missile and drone stocks)", () => {
     for (let seed = 1; seed <= 40; seed++) {
       const g = createGame(seed);
       g.sector = 5;
+      g.sectorId = "REBEL_SECTOR";
       g.sectorName = "Rebel Controlled Sector";
       startCombat(g, "Rebel ship");
       const enemy = g.enemy!;
@@ -220,6 +222,7 @@ describe("enemy drone deployment", () => {
     for (let seed = 1; seed <= 60 && checked < 5; seed++) {
       const g = createGame(seed);
       g.sector = 6;
+      g.sectorId = "REBEL_SECTOR";
       g.sectorName = "Rebel Controlled Sector";
       startCombat(g, "Rebel ship");
       const kit = g.enemy?.kits.drones;

@@ -7,11 +7,11 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 const ID = "c:boarders-humans-near-sun:0";
 const DEST = "Boarders: Humans near sun";
 const SECTORS = [
-  "Mantis Controlled Sector",
-  "Mantis Homeworlds",
-  "Pirate Controlled Sector",
-  "Rebel Controlled Sector",
-  "Rebel Stronghold",
+  "MANTIS_SECTOR",
+  "MANTIS_HOME",
+  "PIRATE_SECTOR",
+  "REBEL_SECTOR",
+  "REBEL_SECTOR_MINIBOSS",
 ];
 
 function beacon(): Beacon {

@@ -20,7 +20,6 @@ import {
   FTL_UNMANNED,
   flagshipStageScrap,
   mediumScrapBand,
-  SECTOR_NAMES,
   hullRepairPerPoint,
   shieldLayerSeconds,
   skillRank,
@@ -93,6 +92,14 @@ import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
 import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
 import "./pack/base.ts";
+import {
+  CIVILIAN_SECTOR,
+  CRYSTAL_SECTOR,
+  FINAL_SECTOR,
+  START_SECTOR,
+  sectorIdOf,
+  sectorTitle,
+} from "./sector-ids.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./pack/beams.ts";
 import type { WeaponBlueprint } from "@stl/pack";
 import {
@@ -5906,7 +5913,7 @@ function winCombat(g: Game) {
       }
       if (standardBonus(g)) {
         const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
-        const crystal = g.sectorName === "Hidden Crystal Worlds";
+        const crystal = g.sectorId === CRYSTAL_SECTOR;
         const item = rollBonusItem(g, crystal ? (id) => allowed.has(id) : undefined);
         if (item?.kind === "weapon") {
           const name = weaponDef(item.id)?.name ?? item.id;
@@ -5990,7 +5997,7 @@ function winCombat(g: Game) {
     // Sectors, "Hidden Crystal Worlds", "Sector specifics": a crew-kill reward is a crystal weapon, including the Lockdown Bomb.
     // A hull kill keeps the priced pool.
     const allowed = new Set<string>(CRYSTAL_SECTOR_WEAPONS);
-    const crystal = deadCrew && g.sectorName === "Hidden Crystal Worlds";
+    const crystal = deadCrew && g.sectorId === CRYSTAL_SECTOR;
     const item = rollBonusItem(g, crystal ? (id) => allowed.has(id) : undefined);
     if (item?.kind === "weapon") {
       const name = weaponDef(item.id)?.name ?? item.id;
@@ -6186,7 +6193,12 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
   // Cited event "second Rebel Flagship" (Rebel shipyard) is the flagship hull as well.
   // @agent:flagship. Only the Last Stand fight resumes a remembered stage (wiki/flagship-systems.ts takeFlagshipMemo).
   if (tier === "boss" || /flagship/i.test(tier)) return makeFlagship(g, tier === "boss");
-  const ctx = { sector: g.sector, sectorName: g.sectorName, difficulty: g.difficulty };
+  const ctx = {
+    sector: g.sector,
+    sectorId: g.sectorId,
+    sectorName: g.sectorName,
+    difficulty: g.difficulty,
+  };
   const r = () => rand(g);
   const picked =
     tier === "elite"
@@ -6418,42 +6430,18 @@ const KINDS: Beacon["kind"][] = [
   "cache",
 ];
 
-const ONCE_SECTOR = new Set([
-  "engi-home",
-  "zoltan-home",
-  "mantis-home",
-  "rebel-stronghold",
-  "rock-home",
-  "slug-home",
-]);
-
 type SectorRow = ReturnType<typeof allSectors>[number];
 
-/** Once per game: the archive's own `unique`, else the catalog's list (the stand-in sets none). */
-function onceSector(row: SectorRow): boolean {
-  return row.unique ?? ONCE_SECTOR.has(row.id);
-}
-
 /**
- * Whether the chart may roll this sector at 1-based sector number `sector`.
- * A real archive's ids are FTL's own (CIVILIAN_SECTOR, ENGI_HOME): its group comes from the `<sectorType>` lists and its
- * gate from `minSector`, which is 0-based (ENGI_HOME's 2 is the third sector). The catalog gates are the stand-in's.
+ * Whether the chart may roll this sector at 1-based sector number `sector`, from sector_data.xml alone: its colour is
+ * the sectorType list it is in (sector 1, Hidden Crystal Worlds, and The Last Stand are in none), `minSector` is
+ * 0-based (ENGI_HOME's 2 is the third sector), and a `unique` sector is rolled once.
  */
 function sectorEligible(row: SectorRow, sector: number, used: ReadonlySet<string>): boolean {
-  if (row.id === "civilian-start" || row.id === "crystal-worlds" || row.id === "last-stand")
-    return false;
+  if (row.id === START_SECTOR || row.id === CRYSTAL_SECTOR || row.id === FINAL_SECTOR) return false;
   if (row.group !== "civilian" && row.group !== "hostile" && row.group !== "nebula") return false;
   if (used.has(row.id)) return false;
-  if (row.minSector != null) return sector - 1 >= row.minSector;
-  // Homeworlds, the Rebel Stronghold, and the Slug nebulae keep the page's sector gates.
-  if (
-    (row.id === "engi-home" || row.id === "zoltan-home" || row.id === "mantis-home") &&
-    sector < 3
-  )
-    return false;
-  if ((row.id === "rebel-stronghold" || row.id === "rock-home") && sector < 5) return false;
-  if ((row.id === "slug-nebula" || row.id === "slug-home") && sector < 4) return false;
-  return true;
+  return sector - 1 >= (row.minSector ?? 0);
 }
 
 function mixSeed(seed: number, salt: number) {
@@ -6489,15 +6477,11 @@ function colourBag<T extends { group: string }>(
  * Sectors lead: colour first, then a uniform sector of that colour.
  * One extra rand(g) versus a single irand over the whole list. The index is irand(g, bag.length).
  */
-function colouredName(g: Game, names: readonly string[]): string {
+function colouredSector(g: Game, ids: readonly string[]): string {
   const colour = sectorColour(rand(g));
-  const rows = allSectors();
-  const pool = names.map((name) => ({
-    name,
-    group: rows.find((sector) => sector.name === name)?.group ?? "",
-  }));
+  const pool = ids.map((id) => ({ id, group: sectorDef(id)?.group ?? "" }));
   const choices = colourBag(pool, colour);
-  return choices[irand(g, choices.length)].name;
+  return choices[irand(g, choices.length)].id;
 }
 
 /** Chart row for slot i of n, centred on the 0-3 band four sectors fill. */
@@ -6548,18 +6532,15 @@ export function columnLinks(prev: number, now: number): [number, number][] {
 /** Sectors page: the chart from the starting sector to The Last Stand. Hidden Crystal Worlds is not on it. */
 export function buildRoute(seed: number): SectorNode[] {
   const used = new Set<string>();
-  const rows = allSectors();
-  // A real archive has no catalog ids: StarMap::GenerateSectorMap opens on CIVILIAN_SECTOR and ends on FINAL.
-  const start =
-    rows.find((s) => s.id === "civilian-start") ?? rows.find((s) => s.id === "CIVILIAN_SECTOR");
-  const last = rows.find((s) => s.id === "last-stand") ?? rows.find((s) => s.id === "FINAL");
   const groupOf = (group: string): SectorNode["group"] =>
     group === "hostile" || group === "nebula" ? group : "civilian";
+  // Sector 1 is STANDARD_SPACE and the last column is FINAL. Each node shows that sector's own title.
   const nodes: SectorNode[] = [
     {
       id: "sec-0",
-      name: start?.name ?? "Civilian (Starting) Sector",
-      group: groupOf(start?.group ?? "civilian"),
+      sector: START_SECTOR,
+      name: sectorTitle(START_SECTOR),
+      group: "civilian",
       col: 0,
       row: 1,
       links: [],
@@ -6587,9 +6568,13 @@ export function buildRoute(seed: number): SectorNode[] {
       const colour = sectorColour(mixSeed(seed, colourSalt) / 4294967296);
       const choices = colourBag(pool, colour);
       if (choices.length > 0) return choices[mixSeed(seed, colourSalt + 1) % choices.length];
-      // A pack whose sector lists leave nothing to roll here: repeat a sector, else the opening one, and say so.
-      const fallback = poolFor(sector)[0] ??
-        start ?? { id: "civilian", name: "Civilian Sector", group: "civilian", notes: [] };
+      // A pack whose sector lists leave nothing to roll here: repeat a sector, else the Civilian Sector, and say so.
+      const fallback = poolFor(sector)[0] ?? {
+        id: CIVILIAN_SECTOR,
+        name: sectorTitle(CIVILIAN_SECTOR),
+        group: "civilian",
+        notes: [],
+      };
       warnPack(`No sector is eligible for sector ${sector}; the chart uses ${fallback.id}.`);
       return fallback;
     };
@@ -6597,9 +6582,10 @@ export function buildRoute(seed: number): SectorNode[] {
     for (let slot = 0; slot < count; slot++) {
       const pick = take(slot);
       picked.add(pick.id);
-      if (onceSector(pick)) used.add(pick.id);
+      if (pick.unique) used.add(pick.id);
       nodes.push({
         id: `sec-${col}-${slot}`,
+        sector: pick.id,
         name: pick.name,
         group: groupOf(pick.group),
         col,
@@ -6611,7 +6597,8 @@ export function buildRoute(seed: number): SectorNode[] {
   }
   nodes.push({
     id: "sec-7",
-    name: last?.name ?? "The Last Stand",
+    sector: FINAL_SECTOR,
+    name: sectorTitle(FINAL_SECTOR),
     group: "last-stand",
     col: 7,
     row: chartRow(0, 1),
@@ -6743,8 +6730,6 @@ function makeMap(g: Game) {
   g.here = start.id;
   g.fleet = 0;
   g.dangerY = rollDangerY(r);
-  // INVENTED: sector name fallback.
-  g.sectorName = SECTOR_NAMES[g.sector - 1] ?? "Reach";
   onNewSector(g);
 }
 
@@ -6884,7 +6869,8 @@ export function createGame(
     phase: "map",
     paused: false,
     sector: 1,
-    sectorName: SECTOR_NAMES[0],
+    sectorId: START_SECTOR,
+    sectorName: sectorTitle(START_SECTOR),
     beacons: [],
     here: "",
     fleet: 0,
@@ -6953,7 +6939,7 @@ export function createGame(
     lowHull: false,
   } as Game;
   makeMap(g);
-  g.sectorName = "Civilian (Starting) Sector";
+  enterSector(g, START_SECTOR);
   // No wired page lists this sector name, so the stamp places nothing here.
   stampCitedEvents(g);
   g.route = buildRoute(seed || 1);
@@ -7356,7 +7342,7 @@ function longRangeExit(
 ): NonNullable<Game["event"]> {
   return {
     title: "Exit beacon",
-    body: nebulaSector(g.sectorName)
+    body: nebulaSector(g.sectorId)
       ? "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector."
       : "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.",
     choices: [{ id: choiceId, label: "Continue..." }],
@@ -7386,7 +7372,7 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
     // events.xml, as transcribed on hugomg.github.io/ftl-cheatsheet) print the arrival text below. An exit the fleet
     // holds never gets here unflagged (the dive fight runs first).
     // INFERRED: a nebula sector's exit is the beacon "contained within a nebula".
-    if (!b.flag && nebulaSector(g.sectorName)) return longRangeExit(g, "exit-leave");
+    if (!b.flag && nebulaSector(g.sectorId)) return longRangeExit(g, "exit-leave");
     if (!b.flag && !overtaken(g, b)) return longRangeExit(g, "exit-continue");
     return longRangeExit(g, "exit-leave");
   }
@@ -7408,7 +7394,7 @@ function rollStock(g: Game, storeId = "standard"): StockItem[] {
   const owned = new Set(g.player.weapons.map((w) => w.defId));
   // Sectors, "Hidden Crystal Worlds", "Sector specifics": the shelf is crystal weapons, including the Lockdown Bomb.
   // The weapon count below is the store record's. Dart stays pinned only outside this sector.
-  const crystal = g.sectorName === "Hidden Crystal Worlds";
+  const crystal = g.sectorId === CRYSTAL_SECTOR;
   const guns = crystal
     ? CRYSTAL_SECTOR_WEAPONS.map((id) => weaponDef(id)).filter(
         (w): w is WeaponBlueprint => !!w && w.price > 0 && !owned.has(w.id),
@@ -7589,7 +7575,7 @@ export function choose(g: Game, id: string) {
     }
     case "exit-leave":
       // Ancient device, Notes: leaving the Hidden Crystal Worlds does not open the sector chart.
-      if (g.sectorName === "Hidden Crystal Worlds") {
+      if (g.sectorId === CRYSTAL_SECTOR) {
         leaveHiddenCrystal(g);
         break;
       }
@@ -7714,21 +7700,22 @@ export function chooseSector(g: Game, id: string) {
   if (!here?.links.includes(id)) return;
   const next = g.route.find((n) => n.id === id);
   if (!next) return;
+  const sector = next.sector || sectorIdOf(next.name);
+  if (!sector) return;
+  if (!next.sector) next.sector = sector;
   g.routeHere = id;
   g.sectorMap = false;
-  nextSector(g, next.name);
+  nextSector(g, sector);
 }
 
 /** Chart eligibility for one sector number. The crystal exit is not limited to the two linked nodes. */
 function sectorPool(g: Game, sector: number): string[] {
-  const rows = allSectors();
   const used = new Set(
-    (g.route ?? [])
-      .map((n) => rows.find((s) => s.name === n.name))
-      .filter((row): row is SectorRow => !!row && onceSector(row))
-      .map((row) => row.id),
+    (g.route ?? []).map((n) => n.sector).filter((id) => sectorDef(id)?.unique === true),
   );
-  return rows.filter((s) => sectorEligible(s, sector, used)).map((s) => s.name);
+  return allSectors()
+    .filter((s) => sectorEligible(s, sector, used))
+    .map((s) => s.id);
 }
 
 /**
@@ -7763,7 +7750,7 @@ export function enterHiddenCrystal(g: Game) {
   g.flare = false;
   armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
   makeMap(g);
-  g.sectorName = sectorDef("crystal-worlds")?.name ?? "Hidden Crystal Worlds";
+  enterSector(g, CRYSTAL_SECTOR);
   stampEngiCache(g);
   stampCitedEvents(g);
   citedSector(g);
@@ -7788,8 +7775,8 @@ export function enterHiddenCrystal(g: Game) {
  * A restart that is not in that sector leaves the new run alone.
  */
 export function dropCrystalRestart(prev: Game, next: Game): void {
-  if (prev.sectorName !== (sectorDef("crystal-worlds")?.name ?? "Hidden Crystal Worlds")) return;
-  next.sectorName = sectorDef("civilian")?.name ?? "Civilian Sector";
+  if (prev.sectorId !== CRYSTAL_SECTOR) return;
+  enterSector(next, CIVILIAN_SECTOR);
   // INFERRED: the starting-sector beacons are cleared so this map is the Civilian sector's list. The page does not say to keep both.
   for (const b of next.beacons) {
     if (b.kind === "start" || b.kind === "exit" || b.kind === "boss") continue;
@@ -7838,10 +7825,10 @@ export function titleHandoff(playedRun: Game): { played: Game | null; title: Gam
 function blindSectorTwo(g: Game) {
   const pool = sectorPool(g, g.sector + 1);
   // One extra rand(g): the colour, then irand(g, bag.length) on that colour's bag.
-  nextSector(g, pool.length ? colouredName(g, pool) : "Civilian Sector");
+  nextSector(g, pool.length ? colouredSector(g, pool) : CIVILIAN_SECTOR);
   const col = g.sector <= 1 ? 0 : g.sector - 1;
   const nodes = (g.route ?? []).filter((n) => n.col === col);
-  const match = nodes.find((n) => n.name === g.sectorName) ?? nodes[0];
+  const match = nodes.find((n) => n.sector === g.sectorId) ?? nodes[0];
   if (match) g.routeHere = match.id;
 }
 
@@ -7850,19 +7837,25 @@ function blindSectorTwo(g: Game) {
  * Homeworlds number, and it may not be a sector connected to the Rock Homeworlds. Sector 8 stays The Last Stand.
  */
 function leaveHiddenCrystal(g: Game) {
-  if (g.sector >= 7) nextSector(g, sectorDef("last-stand")?.name ?? "The Last Stand");
+  if (g.sector >= 7) nextSector(g, FINAL_SECTOR);
   else {
     const pool = sectorPool(g, g.sector + 1);
     // One extra rand(g): the colour, then irand(g, bag.length) on that colour's bag.
-    nextSector(g, pool.length ? colouredName(g, pool) : "Civilian Sector");
+    nextSector(g, pool.length ? colouredSector(g, pool) : CIVILIAN_SECTOR);
   }
   const col = g.sector <= 1 ? 0 : g.sector - 1;
   const nodes = (g.route ?? []).filter((n) => n.col === col);
-  const match = nodes.find((n) => n.name === g.sectorName) ?? nodes[0];
+  const match = nodes.find((n) => n.sector === g.sectorId) ?? nodes[0];
   if (match) g.routeHere = match.id;
 }
 
-function nextSector(g: Game, name?: string) {
+/** The run is now in this sector: its id, and the name it shows. */
+export function enterSector(g: Game, id: string): void {
+  g.sectorId = id;
+  g.sectorName = sectorTitle(id);
+}
+
+function nextSector(g: Game, id?: string) {
   if (g.sector >= 8) {
     g.phase = "map";
     return;
@@ -7876,7 +7869,7 @@ function nextSector(g: Game, name?: string) {
     log(g, "10 hull repairs. 10 fuel.");
   }
   makeMap(g);
-  if (name) g.sectorName = name;
+  if (id) enterSector(g, id);
   stampEngiCache(g);
   stampCitedEvents(g);
   citedSector(g);
@@ -8347,6 +8340,33 @@ export function saveGame(g: Game) {
   }
 }
 
+/**
+ * Older saves stored a title and no sector id. Column 0 is the start id and column 7 is the last.
+ * A crystal restart is sector 1 in the civilian sector id. A middle column takes the archive id of its title.
+ * A title the archive does not carry stays unset.
+ */
+function recallSectors(g: Game): void {
+  for (const node of g.route ?? []) {
+    if (node.sector) continue;
+    const id =
+      node.col === 0 ? START_SECTOR : node.col === 7 ? FINAL_SECTOR : sectorIdOf(node.name);
+    if (!id) continue;
+    node.sector = id;
+    node.name = sectorTitle(id);
+  }
+  if (g.sectorId) return;
+  const here = g.route?.find((n) => n.id === g.routeHere);
+  const id =
+    g.sector <= 1
+      ? g.crystalRestart
+        ? CIVILIAN_SECTOR
+        : START_SECTOR
+      : g.sector >= 8
+        ? FINAL_SECTOR
+        : (sectorIdOf(g.sectorName) ?? here?.sector ?? sectorIdOf(here?.name));
+  if (id) enterSector(g, id);
+}
+
 export function loadGame(): Game | null {
   if (typeof localStorage === "undefined") return null;
   try {
@@ -8387,6 +8407,7 @@ export function loadGame(): Game | null {
       g.route = buildRoute(g.seed || 1);
       g.routeHere = g.route[0]?.id ?? "";
     }
+    recallSectors(g);
     if (g.training == null) g.training = false;
     if (g.shipTab !== "upgrades" && g.shipTab !== "crew" && g.shipTab !== "inventory")
       g.shipTab = "upgrades";

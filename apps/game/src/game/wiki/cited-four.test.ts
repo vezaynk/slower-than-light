@@ -228,6 +228,7 @@ describe("Defense Scrambler", () => {
     for (let seed = 1; seed <= 40; seed++) {
       const g = createGame(seed);
       g.sector = 5;
+      g.sectorId = "REBEL_SECTOR";
       g.sectorName = "Rebel Controlled Sector";
       startCombat(g, "Rebel ship");
       const kit = g.enemy?.kits.drones;

@@ -5,13 +5,19 @@ import {
   armWeapon,
   buy,
   choose,
+  chooseSector,
+  clearSave,
   commitJump,
   createGame,
+  loadGame,
   lockdown,
+  saveGame,
   startCombat,
   step,
   zoltanBars,
 } from "./sim.ts";
+import { SECTOR_NAMES } from "./content.ts";
+import { sectorIdOf } from "./sector-ids.ts";
 import type { Game } from "./types.ts";
 import { citedSell, citedSellQuote } from "./wiki/cited-stores.ts";
 import { citedEvent } from "./wiki/cited-events.ts";
@@ -119,14 +125,17 @@ describe("a seeded Kestrel run", () => {
     assert.equal(g.player.systems.doors.power, 1);
   });
 
-  it("opens the chart on Civilian (Starting) Sector", () => {
+  it("opens the chart on STANDARD_SPACE, under that sector's own title", () => {
     const g = kestrel(3);
-    const start = sectorDef("civilian-start");
-    assert.equal(start?.name, "Civilian (Starting) Sector");
-    assert.equal(g.sectorName, start?.name);
+    assert.equal(g.sectorId, "STANDARD_SPACE");
+    assert.equal(g.sectorName, sectorDef("STANDARD_SPACE")?.name);
+    assert.equal(SECTOR_NAMES.includes(g.sectorName), false);
+    assert.equal(sectorIdOf("Civilian (Starting) Sector"), "STANDARD_SPACE");
+    assert.equal(sectorIdOf("STANDARD_SPACE"), "STANDARD_SPACE");
+    assert.equal(sectorIdOf("Cinder Reach"), undefined);
     assert.equal(g.routeHere, "sec-0");
     assert.equal(g.route[0]?.id, "sec-0");
-    assert.equal(g.route[0]?.name, start?.name);
+    assert.equal(g.route[0]?.sector, "STANDARD_SPACE");
     const exit = g.beacons.find((b) => b.kind === "exit");
     assert.ok(exit);
     g.here = exit.id;
@@ -137,7 +146,106 @@ describe("a seeded Kestrel run", () => {
     assert.equal(g.phase, "map");
     assert.equal(g.sector, 1);
     assert.equal(g.routeHere, "sec-0");
-    assert.equal(g.route.find((n) => n.id === g.routeHere)?.name, "Civilian (Starting) Sector");
+    assert.equal(g.route.find((n) => n.id === g.routeHere)?.sector, "STANDARD_SPACE");
+  });
+
+  it("jumps to a sector id stored as a title, and stays put on an invented name", () => {
+    const g = kestrel(4);
+    const here = g.route.find((n) => n.id === g.routeHere);
+    assert.ok(here);
+    const dest = g.route.find((n) => n.id === here.links[0]);
+    assert.ok(dest);
+    const title = dest.name;
+    const id = dest.sector;
+    dest.sector = "";
+    g.phase = "map";
+    g.sectorMap = true;
+    chooseSector(g, dest.id);
+    assert.equal(g.sector, 2);
+    assert.equal(g.sectorId, id);
+    assert.equal(g.sectorName, title);
+    assert.equal(dest.sector, id);
+    assert.equal(SECTOR_NAMES.includes(g.sectorName), false);
+
+    const stuck = kestrel(5);
+    const stay = stuck.route.find((n) => n.id === stuck.routeHere);
+    assert.ok(stay);
+    const invented = stuck.route.find((n) => n.id === stay.links[0]);
+    assert.ok(invented);
+    invented.sector = "";
+    invented.name = "Cinder Reach";
+    stuck.phase = "map";
+    stuck.sectorMap = true;
+    chooseSector(stuck, invented.id);
+    assert.equal(stuck.sectorMap, true);
+    assert.equal(stuck.sector, 1);
+    assert.equal(stuck.sectorId, "STANDARD_SPACE");
+    assert.equal(stuck.routeHere, stay.id);
+    assert.equal(invented.sector, "");
+  });
+
+  it("fills sector ids from the archive when a save has only titles", () => {
+    const g = kestrel(5);
+    const mids = g.route.filter((n) => n.col === 1);
+    assert.equal(mids.length, 2);
+    const start = g.route.find((n) => n.id === "sec-0");
+    const last = g.route.find((n) => n.id === "sec-7");
+    assert.ok(start && last);
+    g.sector = 3;
+    g.sectorId = "";
+    g.sectorName = "Cinder Reach";
+    g.routeHere = mids[0].id;
+    mids[0].sector = "";
+    mids[0].name = "Engi Homeworlds";
+    mids[1].sector = "";
+    mids[1].name = "Cinder Reach";
+    start.sector = "";
+    start.name = "Civilian Sector";
+    last.sector = "";
+    last.name = "Shut Gate";
+
+    const mem = new Map<string, string>();
+    const previous = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: (key: string) => mem.get(key) ?? null,
+        setItem: (key: string, value: string) => void mem.set(key, value),
+        removeItem: (key: string) => void mem.delete(key),
+      },
+    });
+    try {
+      saveGame(g);
+      const loaded = loadGame();
+      assert.ok(loaded);
+      assert.equal(loaded.sectorId, "ENGI_HOME");
+      assert.equal(loaded.sectorName, "Engi Homeworlds");
+      assert.equal(loaded.route.find((n) => n.id === "sec-0")?.sector, "STANDARD_SPACE");
+      assert.equal(
+        loaded.route.find((n) => n.id === "sec-0")?.name,
+        sectorDef("STANDARD_SPACE")?.name,
+      );
+      assert.equal(loaded.route.find((n) => n.id === "sec-7")?.sector, "FINAL");
+      assert.equal(loaded.route.find((n) => n.id === "sec-7")?.name, "The Last Stand");
+      assert.equal(loaded.route.find((n) => n.id === mids[0].id)?.sector, "ENGI_HOME");
+      assert.equal(loaded.route.find((n) => n.id === mids[1].id)?.sector, "");
+      assert.equal(loaded.route.find((n) => n.id === mids[1].id)?.name, "Cinder Reach");
+
+      clearSave();
+      g.sector = 1;
+      g.sectorId = "";
+      g.sectorName = "Cinder Reach";
+      g.crystalRestart = true;
+      saveGame(g);
+      const restarted = loadGame();
+      assert.ok(restarted);
+      assert.equal(restarted.sectorId, "CIVILIAN_SECTOR");
+      assert.equal(restarted.sectorName, sectorDef("CIVILIAN_SECTOR")?.name);
+    } finally {
+      clearSave();
+      if (previous) Object.defineProperty(globalThis, "localStorage", previous);
+      else delete (globalThis as { localStorage?: Storage }).localStorage;
+    }
   });
 
   it("counts one Zoltan bar, coats a Crystal lockdown, and fires the fitted laser", () => {

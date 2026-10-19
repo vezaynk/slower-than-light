@@ -23,6 +23,7 @@ import {
   pageForRow,
 } from "./filler-events.ts";
 import { DUMP } from "@stl/wiki-dump";
+import { placeIn } from "../fixtures.ts";
 
 function storedCopy(): string {
   const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -86,7 +87,7 @@ function dealt(seed: number, name: string): Game {
   }
   g.beacons = [...g.beacons];
   g.sector = 4;
-  g.sectorName = name;
+  placeIn(g, name);
   stampCitedEvents(g);
   return g;
 }
@@ -265,6 +266,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     const halves = { neutral: 0, items: 0 };
     for (let seed = 1; seed <= 40; seed++) {
       const g = createGame(seed);
+      g.sectorId = "CIVILIAN_SECTOR";
       g.sectorName = "Civilian Sector";
       const exit = g.beacons.find((b) => b.kind === "exit")!;
       const from = g.beacons.find((b) => b.id === g.here)!;
@@ -309,6 +311,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
 
   it("a nebula sector's exit prints FINISH_BEACON_NEBULA and nothing happens", () => {
     const g = createGame(14);
+    g.sectorId = "NEBULA_SECTOR";
     g.sectorName = "Uncharted Nebula";
     const exit = g.beacons.find((b) => b.kind === "exit")!;
     const from = g.beacons.find((b) => b.id === g.here)!;

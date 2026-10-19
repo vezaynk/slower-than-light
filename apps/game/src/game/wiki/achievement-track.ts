@@ -143,7 +143,7 @@ function artilleryMastery(g: Game): boolean {
 
 /** @agent:unlocks. "Ancestry" — "Find the secret sector with the Rock Cruiser." Sectors: "Hidden Crystal Worlds". */
 function ancestry(g: Game): boolean {
-  return !!flying(g, "Rock Cruiser") && g.sectorName === "Hidden Crystal Worlds";
+  return !!flying(g, "Rock Cruiser") && g.sectorId === "CRYSTAL_HOME";
 }
 
 function flag(g: Game, key: keyof NonNullable<Game["tally"]>): boolean {

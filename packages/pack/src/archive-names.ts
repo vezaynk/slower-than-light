@@ -36,29 +36,29 @@ export const MUSIC_TRACKS: readonly { name: string; explore: string; combat?: st
 ];
 
 /**
- * Catalog sector id to the soundtrack a sector of that kind plays.
+ * ftl.dat sector id to the soundtrack a sector of that kind plays.
  * Written on the stand-in body only. A real archive's own trackList wins.
  */
 export const SECTOR_TRACKS: Record<string, string> = {
-  "civilian-start": "civilian",
-  civilian: "civilian",
-  engi: "engi",
-  "engi-home": "engi",
-  zoltan: "zoltan",
-  "zoltan-home": "zoltan",
-  abandoned: "lostship",
-  mantis: "mantis",
-  "mantis-home": "mantis",
-  pirate: "wasteland",
-  rebel: "milkyway",
-  "rebel-stronghold": "colonial",
-  rock: "rock",
-  "rock-home": "rock",
-  "slug-nebula": "slug",
-  "slug-home": "slug",
-  uncharted: "void",
-  "crystal-worlds": "cosmos",
-  "last-stand": "laststand",
+  STANDARD_SPACE: "civilian",
+  CIVILIAN_SECTOR: "civilian",
+  ENGI_SECTOR: "engi",
+  ENGI_HOME: "engi",
+  ZOLTAN_SECTOR: "zoltan",
+  ZOLTAN_HOME: "zoltan",
+  LANIUS_SECTOR: "lostship",
+  MANTIS_SECTOR: "mantis",
+  MANTIS_HOME: "mantis",
+  PIRATE_SECTOR: "wasteland",
+  REBEL_SECTOR: "milkyway",
+  REBEL_SECTOR_MINIBOSS: "colonial",
+  ROCK_SECTOR: "rock",
+  ROCK_HOME: "rock",
+  SLUG_SECTOR: "slug",
+  SLUG_HOME: "slug",
+  NEBULA_SECTOR: "void",
+  CRYSTAL_HOME: "cosmos",
+  FINAL: "laststand",
 };
 
 /** Cues the game now plays, beyond the weapon and impact families. `loop` is honoured for fire and repair. */

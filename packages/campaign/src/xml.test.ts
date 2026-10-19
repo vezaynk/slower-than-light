@@ -4,7 +4,13 @@ import { describe, it } from "node:test";
 import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { emitPack, overlayGap, packFromFtl, parsePack } from "@stl/pack";
-import { campaignPack, campaignXml, splitCampaign, standInShipsXml } from "./xml.ts";
+import {
+  campaignPack,
+  campaignXml,
+  splitCampaign,
+  standInSectorsXml,
+  standInShipsXml,
+} from "./xml.ts";
 
 describe("campaign document", () => {
   it("matches the committed base.xml", () => {
@@ -16,11 +22,17 @@ describe("campaign document", () => {
     const pack = campaignPack();
     const parts = splitCampaign(pack);
     const body = parsePack(emitPack(parts.body, { crew: "identity", sector: "body" }));
-    // Ships are ftl.dat blueprints, beside their layout text and picture files.
-    body.hulls = packFromFtl(
-      [{ path: "data/blueprints.xml", xml: standInShipsXml() }, ...hullPictureFiles()],
+    // Ships and sectors are ftl.dat blueprints and sector_data.xml, beside the layout text and picture files.
+    const ftl = packFromFtl(
+      [
+        { path: "data/blueprints.xml", xml: standInShipsXml() },
+        { path: "data/sector_data.xml", xml: standInSectorsXml() },
+        ...hullPictureFiles(),
+      ],
       layoutFiles(),
-    ).hulls;
+    );
+    body.hulls = ftl.hulls;
+    body.sectors = ftl.sectors;
     const merged = overlayGap(
       body,
       parsePack(emitPack(parts.gap, { crew: "stats", sector: "gap" })),

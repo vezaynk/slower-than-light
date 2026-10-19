@@ -5,25 +5,25 @@ import { SECTOR_ORDER, SECTOR_TYPES } from "./sectors.ts";
 
 /** Wiki page "Sectors": heading order and the group heading each one sits under. */
 const EXPECTED = [
-  ["civilian-start", "Civilian (Starting) Sector", "civilian"],
-  ["civilian", "Civilian Sector", "civilian"],
-  ["engi", "Engi Controlled Sector", "civilian"],
-  ["engi-home", "Engi Homeworlds", "civilian"],
-  ["zoltan", "Zoltan Controlled Sector", "civilian"],
-  ["zoltan-home", "Zoltan Homeworlds", "civilian"],
-  ["abandoned", "Abandoned Sector", "hostile"],
-  ["mantis", "Mantis Controlled Sector", "hostile"],
-  ["mantis-home", "Mantis Homeworlds", "hostile"],
-  ["pirate", "Pirate Controlled Sector", "hostile"],
-  ["rebel", "Rebel Controlled Sector", "hostile"],
-  ["rebel-stronghold", "Rebel Stronghold", "hostile"],
-  ["rock", "Rock Controlled Sector", "hostile"],
-  ["rock-home", "Rock Homeworlds", "hostile"],
-  ["slug-nebula", "Slug Controlled Nebula", "nebula"],
-  ["slug-home", "Slug Home Nebula", "nebula"],
-  ["uncharted", "Uncharted Nebula", "nebula"],
-  ["crystal-worlds", "Hidden Crystal Worlds", "hidden"],
-  ["last-stand", "The Last Stand", "last-stand"],
+  ["STANDARD_SPACE", "Civilian (Starting) Sector", "civilian"],
+  ["CIVILIAN_SECTOR", "Civilian Sector", "civilian"],
+  ["ENGI_SECTOR", "Engi Controlled Sector", "civilian"],
+  ["ENGI_HOME", "Engi Homeworlds", "civilian"],
+  ["ZOLTAN_SECTOR", "Zoltan Controlled Sector", "civilian"],
+  ["ZOLTAN_HOME", "Zoltan Homeworlds", "civilian"],
+  ["LANIUS_SECTOR", "Abandoned Sector", "hostile"],
+  ["MANTIS_SECTOR", "Mantis Controlled Sector", "hostile"],
+  ["MANTIS_HOME", "Mantis Homeworlds", "hostile"],
+  ["PIRATE_SECTOR", "Pirate Controlled Sector", "hostile"],
+  ["REBEL_SECTOR", "Rebel Controlled Sector", "hostile"],
+  ["REBEL_SECTOR_MINIBOSS", "Rebel Stronghold", "hostile"],
+  ["ROCK_SECTOR", "Rock Controlled Sector", "hostile"],
+  ["ROCK_HOME", "Rock Homeworlds", "hostile"],
+  ["SLUG_SECTOR", "Slug Controlled Nebula", "nebula"],
+  ["SLUG_HOME", "Slug Home Nebula", "nebula"],
+  ["NEBULA_SECTOR", "Uncharted Nebula", "nebula"],
+  ["CRYSTAL_HOME", "Hidden Crystal Worlds", "hidden"],
+  ["FINAL", "The Last Stand", "last-stand"],
 ] as const;
 
 describe("SECTOR_TYPES", () => {
@@ -48,24 +48,24 @@ describe("SECTOR_TYPES", () => {
     const text = Object.fromEntries(
       SECTOR_TYPES.map((sector) => [sector.id, sector.notes.join(" ")]),
     );
-    assert.match(text["civilian-start"], /sector 1/);
-    assert.match(text["engi-home"], /sector 3/);
-    assert.match(text["zoltan-home"], /sector 3/);
-    assert.match(text["mantis-home"], /sector 3/);
-    assert.match(text["rebel-stronghold"], /sector 5/);
-    assert.match(text["rock-home"], /sector 5/);
-    assert.match(text["rock"], /rarity \(4\)/);
-    assert.match(text["rock-home"], /rarity \(2\)/);
-    assert.match(text["slug-nebula"], /sector 4/);
-    assert.match(text["slug-nebula"], /20%/);
-    assert.match(text["slug-nebula"], /50%/);
-    assert.match(text["slug-home"], /only once/i);
-    assert.match(text["uncharted"], /0\.8%/);
-    assert.doesNotMatch(text["uncharted"], /sector 4/);
-    assert.match(text["crystal-worlds"], /Ancient device/);
-    assert.match(text["last-stand"], /sector 8/);
-    assert.match(text["last-stand"], /10 repairs/);
-    assert.match(text["last-stand"], /22-44/);
+    assert.match(text["STANDARD_SPACE"], /sector 1/);
+    assert.match(text["ENGI_HOME"], /sector 3/);
+    assert.match(text["ZOLTAN_HOME"], /sector 3/);
+    assert.match(text["MANTIS_HOME"], /sector 3/);
+    assert.match(text["REBEL_SECTOR_MINIBOSS"], /sector 5/);
+    assert.match(text["ROCK_HOME"], /sector 5/);
+    assert.match(text["ROCK_SECTOR"], /rarity \(4\)/);
+    assert.match(text["ROCK_HOME"], /rarity \(2\)/);
+    assert.match(text["SLUG_SECTOR"], /sector 4/);
+    assert.match(text["SLUG_SECTOR"], /20%/);
+    assert.match(text["SLUG_SECTOR"], /50%/);
+    assert.match(text["SLUG_HOME"], /only once/i);
+    assert.match(text["NEBULA_SECTOR"], /0\.8%/);
+    assert.doesNotMatch(text["NEBULA_SECTOR"], /sector 4/);
+    assert.match(text["CRYSTAL_HOME"], /Ancient device/);
+    assert.match(text["FINAL"], /sector 8/);
+    assert.match(text["FINAL"], /10 repairs/);
+    assert.match(text["FINAL"], /22-44/);
     assert.equal(SECTOR_ORDER, null);
   });
 });
@@ -81,6 +81,8 @@ describe("sector colour chances", () => {
       const route = buildRoute(seed);
       const start = route.filter((node) => node.col === 0);
       assert.equal(start.length, 1);
+      // Sector 1 is STANDARD_SPACE and shows that sector's own title.
+      assert.equal(start[0]?.sector, "STANDARD_SPACE");
       assert.equal(start[0]?.name, "Civilian (Starting) Sector");
       const lastCol = Math.max(...route.map((node) => node.col));
       const last = route.filter((node) => node.col === lastCol);
@@ -93,7 +95,7 @@ describe("sector colour chances", () => {
       const sector2 = route.filter((node) => node.col === 1);
       assert.equal(sector2.length, 2);
       for (const node of sector2) {
-        const group = SECTOR_TYPES.find((sector) => sector.name === node.name)?.group;
+        const group = SECTOR_TYPES.find((sector) => sector.id === node.sector)?.group;
         assert.ok(group === "civilian" || group === "hostile" || group === "nebula");
         counts[group] += 1;
       }

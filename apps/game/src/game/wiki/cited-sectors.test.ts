@@ -82,7 +82,9 @@ describe("Last Stand repair stations", () => {
       g.beacons.some((b) => b.flag === "last-stand-repair"),
       false,
     );
-    assert.equal(g.sectorName, "Civilian (Starting) Sector");
+    assert.equal(g.sectorId, "STANDARD_SPACE");
+
+    g.sectorId = "ENGI_HOME";
 
     g.sectorName = "Engi Homeworlds";
     stampEngiCache(g);
@@ -99,6 +101,7 @@ describe("Last Stand repair stations", () => {
 
   it("will not overwrite the cache, the exit, or invent a station the map does not have", () => {
     const g = createGame(6);
+    g.sectorId = "FINAL";
     g.sectorName = "The Last Stand";
     const cache = g.beacons.find(
       (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "store",
@@ -117,6 +120,7 @@ describe("Last Stand repair stations", () => {
     assert.equal(g.beacons.filter((b) => b.flag === "last-stand-repair").length, 3);
 
     const thin = createGame(6);
+    thin.sectorId = "FINAL";
     thin.sectorName = "The Last Stand";
     thin.beacons = thin.beacons.filter(
       (b) => b.kind === "start" || b.kind === "exit" || b.kind === "store",
@@ -203,16 +207,20 @@ describe("fleet advance and the anti-ship battery", () => {
     const g = createGame(1);
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.5);
     assert.equal(citedFleetAdvance(g, { kind: "empty" }), 1);
+    g.sectorId = "SLUG_SECTOR";
     g.sectorName = "Slug Controlled Nebula";
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
+    g.sectorId = "NEBULA_SECTOR";
     g.sectorName = "Uncharted Nebula";
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
+    g.sectorId = "SLUG_HOME";
     g.sectorName = "Slug Home Nebula";
     assert.equal(citedFleetAdvance(g, { kind: "empty" }), 1);
 
     g.fuel = 5;
     g.fleet = 2;
     g.phase = "map";
+    g.sectorId = "CIVILIAN_SECTOR";
     g.sectorName = "Civilian Sector";
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here);
@@ -225,6 +233,7 @@ describe("fleet advance and the anti-ship battery", () => {
     assert.ok(dest);
     dest.kind = "nebula";
     if (!here.links.includes(dest.id)) here.links.push(dest.id);
+    g.sectorId = "SLUG_HOME";
     g.sectorName = "Slug Home Nebula";
     const at = g.fleet;
     commitJump(g, dest.id);

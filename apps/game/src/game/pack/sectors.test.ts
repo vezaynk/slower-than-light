@@ -18,8 +18,9 @@ function seenOnChart(name: string, seeds = 400): boolean {
 
 describe("sector listings", () => {
   it("names the chart ends from the pack while the authored rows stay", () => {
-    const start = sectorDef("civilian-start");
-    const last = sectorDef("last-stand");
+    // Sector 1 shows STANDARD_SPACE's own title; the last column is FINAL.
+    const start = sectorDef("STANDARD_SPACE");
+    const last = sectorDef("FINAL");
     assert.ok(start && last);
     loadPack(
       {
@@ -31,13 +32,14 @@ describe("sector listings", () => {
       "append",
     );
     const route = buildRoute(1);
+    assert.equal(route[0]?.sector, "STANDARD_SPACE");
     assert.equal(route[0]?.name, "Ember Reach");
     assert.equal(route[route.length - 1]?.name, "Ember Gate");
     assert.equal(
-      SECTOR_TYPES.find((row) => row.id === "civilian-start")?.name,
+      SECTOR_TYPES.find((row) => row.id === "STANDARD_SPACE")?.name,
       "Civilian (Starting) Sector",
     );
-    assert.equal(SECTOR_TYPES.find((row) => row.id === "last-stand")?.name, "The Last Stand");
+    assert.equal(SECTOR_TYPES.find((row) => row.id === "FINAL")?.name, "The Last Stand");
     assert.equal(
       route.some((node) => node.name === "Hidden Crystal Worlds"),
       false,
@@ -45,8 +47,8 @@ describe("sector listings", () => {
   });
 
   it("slows the fleet for a renamed nebula and jumps to a renamed crystal sector", () => {
-    const nebula = sectorDef("slug-nebula");
-    const crystal = sectorDef("crystal-worlds");
+    const nebula = sectorDef("SLUG_SECTOR");
+    const crystal = sectorDef("CRYSTAL_HOME");
     assert.ok(nebula && crystal);
     loadPack(
       {
@@ -57,19 +59,21 @@ describe("sector listings", () => {
       },
       "append",
     );
+    // The fleet goes by the sector's id and colour, not its name.
     const g = createGame(1);
+    g.sectorId = "SLUG_SECTOR";
     g.sectorName = "Ember Nebula";
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.8);
-    g.sectorName = "Slug Controlled Nebula";
+    g.sectorId = "CIVILIAN_SECTOR";
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.5);
     enterHiddenCrystal(g);
     assert.equal(g.sectorName, "Ember Worlds");
     assert.equal(
-      SECTOR_TYPES.find((row) => row.id === "slug-nebula")?.name,
+      SECTOR_TYPES.find((row) => row.id === "SLUG_SECTOR")?.name,
       "Slug Controlled Nebula",
     );
     assert.equal(
-      SECTOR_TYPES.find((row) => row.id === "crystal-worlds")?.name,
+      SECTOR_TYPES.find((row) => row.id === "CRYSTAL_HOME")?.name,
       "Hidden Crystal Worlds",
     );
     assert.equal(seenOnChart("Ember Worlds", 40), false);
@@ -99,6 +103,7 @@ describe("a chart from FTL's own sector data", () => {
   <sectorType name="CIVILIAN"><sector>CIVILIAN_SECTOR</sector><sector>ENGI_HOME</sector></sectorType>
   <sectorType name="HOSTILE"><sector>REBEL_SECTOR</sector><sector>REBEL_SECTOR_MINIBOSS</sector></sectorType>
   <sectorType name="NEBULA"><sector>NEBULA_SECTOR</sector></sectorType>
+  <sectorDescription name="STANDARD_SPACE" minSector="0" unique="true"><nameList><name>Civilian (Starting) Sector</name></nameList></sectorDescription>
   <sectorDescription name="CIVILIAN_SECTOR" minSector="0" unique="false"><nameList><name>Civilian Sector</name></nameList></sectorDescription>
   <sectorDescription name="ENGI_HOME" minSector="2" unique="true"><nameList><name>Engi Homeworlds</name></nameList></sectorDescription>
   <sectorDescription name="REBEL_SECTOR" minSector="0" unique="false"><nameList><name>Rebel Controlled Sector</name></nameList></sectorDescription>
@@ -108,14 +113,15 @@ describe("a chart from FTL's own sector data", () => {
   <sectorDescription name="FINAL" minSector="7" unique="true"><nameList><name>The Last Stand</name></nameList></sectorDescription>
 </FTL>`;
 
-  it("opens on CIVILIAN_SECTOR, ends on FINAL, and keeps each sector's gate and uniqueness", () => {
+  it("opens on STANDARD_SPACE's own title, ends on FINAL, and keeps each sector's gate and uniqueness", () => {
     loadPack(
       { sectors: packFromFtl([{ path: "data/sector_data.xml", xml: XML }]).sectors },
       "base",
     );
     for (let seed = 1; seed <= 300; seed++) {
       const route = buildRoute(seed);
-      assert.equal(route[0]?.name, "Civilian Sector");
+      assert.equal(route[0]?.sector, "STANDARD_SPACE");
+      assert.equal(route[0]?.name, "Civilian (Starting) Sector");
       assert.equal(route[route.length - 1]?.name, "The Last Stand");
       const cols = (name: string) =>
         route.filter((n) => n.name === name && n.col > 0 && n.col < 7).map((n) => n.col);

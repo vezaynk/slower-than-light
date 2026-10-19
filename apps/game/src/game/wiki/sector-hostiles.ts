@@ -70,14 +70,14 @@ export const HOSTILE_CIVILIAN_DRAWS = 5;
 export const HOSTILE1_DRAWS = 2;
 
 /** Sectors whose hostile beacons the two templates fill (Sectors, both Civilian headings). */
-export const CIVILIAN_LIST_SECTORS = new Set(["Civilian (Starting) Sector", "Civilian Sector"]);
+export const CIVILIAN_LIST_SECTORS = new Set(["STANDARD_SPACE", "CIVILIAN_SECTOR"]);
 
 /**
  * DERIVED (see the file comment): per sector, the hostile fight events whose {{Locations}} names it.
- * Sector names are the wiki "Sectors" headings, as in wiki/sectors.ts.
+ * Keyed by ftl.dat sector id; the wiki "Sectors" headings are those sectors' names.
  */
 export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
-  "Engi Controlled Sector": [
+  ENGI_SECTOR: [
     "Auto-ship near storage station",
     "Engi distress Rebel fight",
     "Mantis fight (Engi)",
@@ -96,7 +96,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rebel fight (Engi)",
     "Rebel ship warning",
   ],
-  "Engi Homeworlds": [
+  ENGI_HOME: [
     "Auto-ship near storage station",
     "Engi distress Rebel fight",
     "Mantis fight (Engi)",
@@ -115,7 +115,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rebel fight (Engi)",
     "Rebel ship warning",
   ],
-  "Zoltan Controlled Sector": [
+  ZOLTAN_SECTOR: [
     "Auto-ship fight",
     "Auto-ship fight in nebula",
     "Auto-ship fight in plasma storm",
@@ -139,7 +139,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Zoltan fight in asteroid field",
     "Zoltan retake the ship",
   ],
-  "Zoltan Homeworlds": [
+  ZOLTAN_HOME: [
     "Auto-ship fight",
     "Auto-ship fight in nebula",
     "Auto-ship fight in plasma storm",
@@ -163,7 +163,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Zoltan fight in asteroid field",
     "Zoltan retake the ship",
   ],
-  "Abandoned Sector": [
+  LANIUS_SECTOR: [
     "Auto-ship fight",
     "Lanius fight",
     "Lanius fight distress",
@@ -184,7 +184,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rebel fight",
     "Rebel fight (Lanius)",
   ],
-  "Mantis Controlled Sector": [
+  MANTIS_SECTOR: [
     "Auto-ship fight in asteroid field",
     "Auto-ship warning",
     "Mantis fight",
@@ -197,7 +197,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rebel fight near pulsar",
     "Rebel transport ship",
   ],
-  "Mantis Homeworlds": [
+  MANTIS_HOME: [
     "Auto-ship fight in asteroid field",
     "Auto-ship warning",
     "Mantis fight",
@@ -210,7 +210,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rebel fight near pulsar",
     "Rebel transport ship",
   ],
-  "Pirate Controlled Sector": [
+  PIRATE_SECTOR: [
     "Auto-ship fight",
     "Auto-ship fight in asteroid field",
     "Auto-ship fight in nebula",
@@ -232,7 +232,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Slaver (hostile)",
     "The mercenary",
   ],
-  "Rebel Controlled Sector": [
+  REBEL_SECTOR: [
     "Auto-ship fight",
     "Auto-ship fight in asteroid field",
     "Auto-ship fight in nebula",
@@ -254,7 +254,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rebel ship warning",
     "Rebel transport ship",
   ],
-  "Rebel Stronghold": [
+  REBEL_SECTOR_MINIBOSS: [
     "Auto-ship fight",
     "Auto-ship fight in asteroid field",
     "Auto-ship fight in nebula",
@@ -276,7 +276,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rebel ship warning",
     "Rebel transport ship",
   ],
-  "Rock Controlled Sector": [
+  ROCK_SECTOR: [
     "Mantis ship with Rock body parts",
     "Pirate ship distress trap",
     "Rock atheists",
@@ -289,7 +289,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rock pirates fight near sun",
     "The mercenary",
   ],
-  "Rock Homeworlds": [
+  ROCK_HOME: [
     "Mantis ship with Rock body parts",
     "Pirate ship distress trap",
     "Rock atheists",
@@ -303,7 +303,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rock war vessel encounter",
     "The mercenary",
   ],
-  "Slug Controlled Nebula": [
+  SLUG_SECTOR: [
     "Auto-ship attacking outpost",
     "Auto-ship near storage station",
     "Auto-ship near storage station in nebula",
@@ -329,7 +329,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Slug store ship",
     "The mercenary",
   ],
-  "Slug Home Nebula": [
+  SLUG_HOME: [
     "Auto-ship attacking outpost",
     "Auto-ship near storage station",
     "Auto-ship near storage station in nebula",
@@ -355,7 +355,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Slug store ship",
     "The mercenary",
   ],
-  "Uncharted Nebula": [
+  NEBULA_SECTOR: [
     "Auto-ship fight in nebula",
     "Auto-ship fight in plasma storm",
     "Auto-ship near storage station in nebula",
@@ -372,7 +372,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Rebel fight in plasma storm",
     "Rock ship in plasma storm",
   ],
-  "Hidden Crystal Worlds": [
+  CRYSTAL_HOME: [
     "Auto-ship fight (Crystal)",
     "Crystal fight",
     "Crystal fight with surrender offer (Human crew)",
@@ -382,7 +382,7 @@ export const SECTOR_HOSTILE_EVENTS: Record<string, string[]> = {
     "Federation deserters",
     "Rebel fight (Crystal)",
   ],
-  "The Last Stand": [
+  FINAL: [
     "Fight in Last Stand",
     "Rebel fight",
     "Rebel fight among Federation and Rebel fleets",
@@ -497,8 +497,8 @@ export const HOSTILE_SHIP: Record<string, string> = {
 };
 
 /** The weighted hostile encounters of a sector, or null when the dump gives nothing for that name. */
-export function sectorHostiles(sectorName: string): HostileEntry[] | null {
-  if (CIVILIAN_LIST_SECTORS.has(sectorName)) {
+export function sectorHostiles(sectorId: string): HostileEntry[] | null {
+  if (CIVILIAN_LIST_SECTORS.has(sectorId)) {
     return [
       ...HOSTILE_CIVILIAN.map(([event, ship]) => ({
         event,
@@ -512,7 +512,7 @@ export function sectorHostiles(sectorName: string): HostileEntry[] | null {
       })),
     ];
   }
-  const events = SECTOR_HOSTILE_EVENTS[sectorName];
+  const events = SECTOR_HOSTILE_EVENTS[sectorId];
   if (!events?.length) return null;
   return events.map((event) => ({ event, ship: HOSTILE_SHIP[event], weight: 1 }));
 }

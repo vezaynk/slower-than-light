@@ -8,6 +8,7 @@ import { EXTRA_EVENTS } from "./cited-events-surrender.ts";
 import { citedEvent } from "./cited-events.ts";
 import { ACCEPT_ID, PAGE_CHOICES, REFUSE_ID, SCRIPTED_SURRENDERS } from "./surrender.ts";
 import { DUMP } from "@stl/wiki-dump";
+import { placeIn } from "../fixtures.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. Rewards, "Weapon": "A random weapon & T scrap." */
 function weaponsHeld(g: Game): number {
@@ -33,7 +34,7 @@ function pageText(title: string): string | null {
  */
 function arrive(seed: number, sector: string, dest: string): Game {
   const g = createGame(seed);
-  g.sectorName = sector;
+  placeIn(g, sector);
   const ev = EXTRA_EVENTS.find((e) => e.dest === dest)!;
   assert.ok(ev.sectors.includes(sector));
   const b = g.beacons.find(

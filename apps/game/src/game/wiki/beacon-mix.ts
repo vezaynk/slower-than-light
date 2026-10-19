@@ -123,9 +123,9 @@ const SLUG: MixLine[] = [
 ];
 const special = (name: string) => L("special", 1, 1, `1 [[${name}]] event`, name);
 
-/** Keyed by the sector names that g.sectorName carries (wiki/sectors.ts). */
+/** Keyed by the ftl.dat sector id that g.sectorId carries (sector_data.xml). */
 export const SECTOR_MIX: Record<string, MixLine[]> = {
-  "Civilian (Starting) Sector": [
+  STANDARD_SPACE: [
     L("nebula", 0, 4, "0-4 nebula beacons"),
     L("store", 1, 2, "1-2 stores"),
     L("items", 1, 1, "1 items / override_items events"),
@@ -136,21 +136,21 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
     L("quest", 1, 1, "1 quests / override_quests event"),
     L("hostile", 2, 2, "2 hostile1 / override_hostile1 events"),
   ],
-  "Civilian Sector": CIVILIAN,
-  "Engi Controlled Sector": ENGI(L("neutral", 4, 6, "4-6 neutral encounters")),
-  "Engi Homeworlds": [
+  CIVILIAN_SECTOR: CIVILIAN,
+  ENGI_SECTOR: ENGI(L("neutral", 4, 6, "4-6 neutral encounters")),
+  ENGI_HOME: [
     special("Engi fleet discussion"),
     ...ENGI(L("neutral", 5, 7, "5-7 neutral encounters")),
   ],
   // Wiki citations:
   // > "at one beacon per Zoltan sector" — [[Zoltan research facility#Trivia]]
-  "Zoltan Controlled Sector": [special("Zoltan research facility"), ...ZOLTAN],
-  "Zoltan Homeworlds": [
+  ZOLTAN_SECTOR: [special("Zoltan research facility"), ...ZOLTAN],
+  ZOLTAN_HOME: [
     special("Zoltan research facility"),
     special("Unarmed Zoltan transport"),
     ...ZOLTAN,
   ],
-  "Abandoned Sector": [
+  LANIUS_SECTOR: [
     L("store", 2, 2, "2 stores"),
     L("empty", 1, 2, "1-2 empty beacons"),
     L("distress", 1, 2, "1-2 distress beacons"),
@@ -161,16 +161,16 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
     L("quest", 0, 1, "0-1 quests"),
     L("neutral", 5, 6, "5-6 neutral encounters"),
   ],
-  "Mantis Controlled Sector": MANTIS,
-  "Mantis Homeworlds": [special("Legendary thief KazaaakplethKilik"), ...MANTIS],
-  "Pirate Controlled Sector": REBEL(L("quest", 0, 1, "0-1 quests")),
-  "Rebel Controlled Sector": REBEL(L("quest", 0, 2, "0-2 quests")),
-  "Rebel Stronghold": [special("Rebel shipyard"), ...REBEL(L("quest", 0, 2, "0-2 quests"))],
-  "Rock Controlled Sector": ROCK,
-  "Rock Homeworlds": [special("Ancient device"), special("Rock war vessel encounter"), ...ROCK],
-  "Slug Controlled Nebula": SLUG,
-  "Slug Home Nebula": [special("Slug Home Nebula surrender"), ...SLUG],
-  "Uncharted Nebula": [
+  MANTIS_SECTOR: MANTIS,
+  MANTIS_HOME: [special("Legendary thief KazaaakplethKilik"), ...MANTIS],
+  PIRATE_SECTOR: REBEL(L("quest", 0, 1, "0-1 quests")),
+  REBEL_SECTOR: REBEL(L("quest", 0, 2, "0-2 quests")),
+  REBEL_SECTOR_MINIBOSS: [special("Rebel shipyard"), ...REBEL(L("quest", 0, 2, "0-2 quests"))],
+  ROCK_SECTOR: ROCK,
+  ROCK_HOME: [special("Ancient device"), special("Rock war vessel encounter"), ...ROCK],
+  SLUG_SECTOR: SLUG,
+  SLUG_HOME: [special("Slug Home Nebula surrender"), ...SLUG],
+  NEBULA_SECTOR: [
     L("store", 0, 1, "0-1 stores"),
     L("items", 1, 3, "1-3 various items"),
     L("store", 1, 1, "1 nebula store"),
@@ -179,7 +179,7 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
     L("nebula-neutral", 7, 8, "7-8 nebula neutral encounters"),
     L("distress", 1, 3, "1-3 distress beacons"),
   ],
-  "Hidden Crystal Worlds": [
+  CRYSTAL_HOME: [
     L("store", 2, 3, "2-3 stores"),
     L("items", 2, 2, "2 various items"),
     L("empty", 2, 2, "2 empty beacons"),
@@ -187,7 +187,7 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
     L("boarder", 1, 2, "1-2 boarders"),
     L("neutral", 12, 12, "12 neutral encounters"),
   ],
-  "The Last Stand": [
+  FINAL: [
     L("store", 1, 1, "1 store"),
     L("repair", 3, 3, "3 repair stations"),
     L("hostile", 6, 6, "6 hostile encounters"),
@@ -209,8 +209,8 @@ const HOSTILE_SLOTS = new Set<Slot>([
  * The sector's "1-2 boarders" line is that list, so both beacons can be the same event.
  */
 const REPEAT_BOARDERS: Record<string, string> = {
-  "Abandoned Sector": "Boarders: Humans (Abandoned)",
-  "Hidden Crystal Worlds": "Boarders: Crystal",
+  LANIUS_SECTOR: "Boarders: Humans (Abandoned)",
+  CRYSTAL_HOME: "Boarders: Crystal",
 };
 
 // ---- Classification -------------------------------------------------------------------------------------------
@@ -333,13 +333,12 @@ export function classifyEvent(ev: MixEvent): EventClass {
 // ---- Placement ------------------------------------------------------------------------------------------------
 
 /**
- * The deal runs rand() on a shadow state seeded from g.seed, the sector and its name, so g.seed's own rolls
+ * The deal runs rand() on a shadow state seeded from g.seed, the sector and its id, so g.seed's own rolls
  * (combat, stores, events) are the same as before this module existed.
  */
 function dealer(g: Game): Game {
   let h = 2166136261 ^ g.seed ^ Math.imul(g.sector, 0x85ebca6b);
-  for (let i = 0; i < g.sectorName.length; i++)
-    h = Math.imul(h ^ g.sectorName.charCodeAt(i), 16777619);
+  for (let i = 0; i < g.sectorId.length; i++) h = Math.imul(h ^ g.sectorId.charCodeAt(i), 16777619);
   return { seed: h >>> 0 || 1 } as Game;
 }
 
@@ -387,10 +386,10 @@ function setKind(b: Beacon, kind: BeaconKind) {
  * g.sectorName (the caller keeps its old behaviour). Running twice on the same map and sector does nothing.
  */
 export function mixBeacons(g: Game, events: MixEvent[]): boolean {
-  const lines = SECTOR_MIX[g.sectorName];
+  const lines = SECTOR_MIX[g.sectorId];
   if (!lines) return false;
-  if (mixed.get(g.beacons) === g.sectorName) return true;
-  mixed.set(g.beacons, g.sectorName);
+  if (mixed.get(g.beacons) === g.sectorId) return true;
+  mixed.set(g.beacons, g.sectorId);
   const r = dealer(g);
 
   const free = g.beacons.filter(
@@ -441,7 +440,7 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
     )
       continue;
     // unique=false boarder page for this sector. It fills the boarders line, including both beacons, and is not also a one-shot neutral.
-    if (ev.dest === REPEAT_BOARDERS[g.sectorName]) continue;
+    if (ev.dest === REPEAT_BOARDERS[g.sectorId]) continue;
     const c = classifyEvent(ev);
     queue[has(c) ? c : "neutral"].push(ev);
   }
@@ -556,7 +555,7 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
         // sectors"). INFERRED: the same list for the Zoltan and Rebel "nebula spaces" lines.
         if (/empty nebula/i.test(line.quote)) {
           setKind(b, "nebula");
-          return stampEmptyNebula(b, g.sectorName);
+          return stampEmptyNebula(b, g.sectorId);
         }
         return plain(b, "nebula", "nebula");
       case "quest":
@@ -565,7 +564,7 @@ export function mixBeacons(g: Game, events: MixEvent[]): boolean {
         return;
       case "boarder": {
         // "1-2 boarders". A unique=false page fills every beacon of this line.
-        const name = REPEAT_BOARDERS[g.sectorName];
+        const name = REPEAT_BOARDERS[g.sectorId];
         const ev = name ? events.find((e) => e.dest === name) : undefined;
         if (ev) return place(b, ev);
         return hostileBeacon();

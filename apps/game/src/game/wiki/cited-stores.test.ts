@@ -856,6 +856,7 @@ describe("Hidden Crystal Worlds stock", () => {
     const g = openStore(
       8,
       (game) => {
+        game.sectorId = "CRYSTAL_HOME";
         game.sectorName = "Hidden Crystal Worlds";
         ownEveryPricedSystem(game);
         game.augments = ["AUTO_COOLDOWN", "EXPLOSIVE_REPLICATOR", "CLOAK_FIRE"];
@@ -888,6 +889,7 @@ describe("Hidden Crystal Worlds stock", () => {
     for (let seed = 1; seed <= 1600; seed++) {
       for (const mode of ["crew", "hull"] as const) {
         const g = createGame(seed);
+        g.sectorId = "CRYSTAL_HOME";
         g.sectorName = "Hidden Crystal Worlds";
         g.player.weapons = [];
         startCombat(g, "scout");

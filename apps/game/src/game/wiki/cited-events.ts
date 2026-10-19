@@ -1,6 +1,7 @@
 import type { Beacon, Game, GameEvent } from "../types.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { allEvents, eventDef, openingLine } from "@stl/pack";
+import { SECTOR_TYPES } from "@stl/catalog/src/wiki/sectors.ts";
 import { CITED_EVENT_ROWS } from "./event-catalog.ts";
 import { missingCard, missingChoose, missingDisabled, missingOwns } from "./cited-missing.ts";
 import { ownedLock } from "./choice-locks.ts";
@@ -123,9 +124,6 @@ const RES_WORD: Record<ResId, string> = {
   missiles: "missiles",
   parts: "drone parts",
 };
-
-/** Authored page order. Beacon placement and choice payment read the loaded pack instead. */
-const EVENTS: EventDef[] = CITED_EVENT_ROWS;
 
 /** Pack order. An appended page sits at the end until the stamp hash reorders a sector. */
 function loadedEvents(): EventDef[] {
@@ -250,9 +248,15 @@ export function citedOwns(id: string): boolean {
   );
 }
 
-// @agent:beacon-mix. Read-only view for beacon-mix.test.ts: the cited pages that name a sector.
-export function citedPagesFor(sectorName: string): readonly Readonly<EventDef>[] {
-  return EVENTS.filter((ev) => ev.sectors.includes(sectorName));
+/** The wiki names an authored page's sectors by heading; the chart keys sectors by ftl.dat id. */
+const SECTOR_ID = new Map(SECTOR_TYPES.map((row) => [row.name, row.id]));
+
+// @agent:beacon-mix. Read-only view for beacon-mix.test.ts: the authored pages that name a sector (by ftl.dat id).
+export function citedPagesFor(sectorId: string): readonly Readonly<EventDef>[] {
+  return CITED_EVENT_ROWS.map((ev) => ({
+    ...ev,
+    sectors: ev.sectors.map((name) => SECTOR_ID.get(name) ?? name),
+  })).filter((ev) => ev.sectors.includes(sectorId));
 }
 
 function matchEvent(b: Beacon): EventDef | null {
@@ -276,7 +280,7 @@ function stampKey(g: Game, flag: string): number {
 export function stampCitedEvents(g: Game) {
   // Placed in a per-run seeded order rather than table order: in table order the free beacons ran out
   // before most of each sector's list (e.g. 11 of 56 Civilian Sector events), so later events never appeared.
-  const mine = loadedEvents().filter((ev) => ev.sectors.includes(g.sectorName));
+  const mine = loadedEvents().filter((ev) => ev.sectors.includes(g.sectorId));
   mine.sort((a, b) => stampKey(g, a.flag) - stampKey(g, b.flag));
   // @agent:beacon-mix. Sectors, "Beacons:" lists: the free beacons are re-dealt by the sector's counts and
   // this seeded order fills hostile/neutral/distress/items slots (wiki/beacon-mix.ts). The loop below only
@@ -1803,7 +1807,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   for (const fx of choice.fx) {
     if (fx.k !== "fleet") continue;
-    const last = !!fx.lastStand && (g.sector === 8 || g.sectorName === "The Last Stand");
+    const last = !!fx.lastStand && (g.sector === 8 || g.sectorId === "FINAL");
     if (fx.faster) {
       g.fleet += fx.n;
       ctx.note(`Rebel Fleet pursuit is doubled for ${fx.n} ${fx.n === 1 ? "jump" : "jumps"}.`);
@@ -1995,7 +1999,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   // The mercenary. "Hire the mercenary to delay the Rebels." One printed result. Scrap and the 2-turn delay are already applied.
   if (id === "c:the-mercenary:0") {
-    const last = g.sector === 8 || g.sectorName === "The Last Stand";
+    const last = g.sector === 8 || g.sectorId === "FINAL";
     citedResult(
       g,
       "The mercenary ship masks its jump signature to mimic your own and then jumps off in the opposite direction. This should keep the Rebels guessing.",

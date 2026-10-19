@@ -42,10 +42,10 @@ describe("Lanius craftsmen", () => {
   it("is one Abandoned Sector card", () => {
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius craftsmen]]
-    const pages = citedPagesFor("Abandoned Sector").filter((e) => e.dest === "Lanius craftsmen");
+    const pages = citedPagesFor("LANIUS_SECTOR").filter((e) => e.dest === "Lanius craftsmen");
     assert.equal(pages.length, 1);
     assert.equal(
-      citedPagesFor("Civilian Sector").some((e) => e.dest === "Lanius craftsmen"),
+      citedPagesFor("CIVILIAN_SECTOR").some((e) => e.dest === "Lanius craftsmen"),
       false,
     );
   });

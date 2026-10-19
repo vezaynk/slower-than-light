@@ -9,6 +9,7 @@ const DUEL = "s:the-black-raven:duel";
 
 function arrive(seed: number): Game {
   const g = createGame(seed);
+  g.sectorId = "SLUG_HOME";
   g.sectorName = "Slug Home Nebula";
   const ev = EXTRA_EVENTS.find((e) => e.dest === "The Black Raven")!;
   const b = g.beacons.find(

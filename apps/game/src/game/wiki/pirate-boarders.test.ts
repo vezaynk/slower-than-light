@@ -33,9 +33,9 @@ describe("Boarders: Humans (Pirate)", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Boarders: Humans (Pirate)]]
     // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans (Pirate)]]
-    const pages = citedPagesFor("Pirate Controlled Sector").filter((e) => e.dest === DEST);
+    const pages = citedPagesFor("PIRATE_SECTOR").filter((e) => e.dest === DEST);
     assert.equal(pages.length, 1);
-    assert.deepEqual([...pages[0].sectors], ["Pirate Controlled Sector"]);
+    assert.deepEqual([...pages[0].sectors], ["PIRATE_SECTOR"]);
     assert.ok(pages[0].body.length <= 240);
     const ev = citedEvent(createGame(1), beacon());
     assert.ok(ev);

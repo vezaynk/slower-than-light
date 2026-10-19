@@ -30,12 +30,10 @@ describe("Refugee (Zoltan)", () => {
   it("is a Zoltan sector card with hail and ignore", () => {
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee (Zoltan)]]
-    const pages = citedPagesFor("Zoltan Controlled Sector").filter(
-      (p) => p.dest === "Refugee (Zoltan)",
-    );
+    const pages = citedPagesFor("ZOLTAN_SECTOR").filter((p) => p.dest === "Refugee (Zoltan)");
     assert.equal(pages.length, 1);
-    assert.deepEqual(pages[0]?.sectors, ["Zoltan Controlled Sector", "Zoltan Homeworlds"]);
-    const home = citedPagesFor("Zoltan Homeworlds").some((p) => p.dest === "Refugee (Zoltan)");
+    assert.deepEqual(pages[0]?.sectors, ["ZOLTAN_SECTOR", "ZOLTAN_HOME"]);
+    const home = citedPagesFor("ZOLTAN_HOME").some((p) => p.dest === "Refugee (Zoltan)");
     assert.equal(home, true);
     const g = createGame(1);
     open(g);

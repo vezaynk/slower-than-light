@@ -243,7 +243,13 @@ const RACE_OF: Record<string, string> = {
   anaerobic: "Lanius",
 };
 
-export type PoolContext = { sector: number; sectorName: string; difficulty: Difficulty };
+/** `sectorId` is the ftl.dat sector id; `sectorName` is only for messages. */
+export type PoolContext = {
+  sector: number;
+  sectorId: string;
+  sectorName: string;
+  difficulty: Difficulty;
+};
 
 /**
  * What a fight asks for: any ship in the sector pool, or one faction, and/or a pirate.
@@ -330,7 +336,7 @@ export function rangePool(ctx: PoolContext): PoolEntry[] {
     if (at < cls.sectors[0] || at > cls.sectors[1]) continue;
     const where = cls.where ?? "";
     // Federation Ships: "in Crystal Homeworlds only".
-    if (/Crystal Homeworlds only/i.test(where) && !/crystal/i.test(ctx.sectorName)) continue;
+    if (/Crystal Homeworlds only/i.test(where) && ctx.sectorId !== "CRYSTAL_HOME") continue;
     // Mantis Bomber: "normally appears in sectors 5+; in sectors 2-4 can only be encountered in the Mantis Ship-Collectors event".
     if (/normally appears in sectors 5\+/i.test(where) && ctx.sector < 5) continue;
     // Mantis ships: "in sector 8 the non-pirate version can only be encountered in the Battlefield Wreckage event".
@@ -362,8 +368,8 @@ function fitsRequest(e: PoolEntry, want: EnemyRequest): boolean {
  * split evenly over the pool entries that can field its ship. INFERRED: the faction pages give no odds between classes.
  * An entry that no listed event fields weighs 0. Null when the sector name has no list (e.g. the placeholder names).
  */
-export function hostileWeights(pool: PoolEntry[], sectorName: string): number[] | null {
-  const list = sectorHostiles(sectorName);
+export function hostileWeights(pool: PoolEntry[], sectorId: string): number[] | null {
+  const list = sectorHostiles(sectorId);
   if (!list) return null;
   const out = pool.map(() => 0);
   for (const e of list) {
@@ -383,7 +389,7 @@ export function hostileWeights(pool: PoolEntry[], sectorName: string): number[] 
  */
 export function enemyPool(ctx: PoolContext): PoolEntry[] {
   const pool = rangePool(ctx);
-  const w = hostileWeights(pool, ctx.sectorName);
+  const w = hostileWeights(pool, ctx.sectorId);
   return w ? pool.filter((_, i) => w[i] > 0) : pool;
 }
 
@@ -391,8 +397,9 @@ export function enemyPool(ctx: PoolContext): PoolEntry[] {
  * INFERRED fallback, only for a sector name with no hostile list (sector-hostiles.ts) and for a fight an event asked
  * for: a sector named for a faction favours that faction ×3.
  */
-function weight(entry: { cls: EnemyClass; pirate: boolean }, sectorName: string): number {
-  const name = sectorName.toLowerCase();
+/** A faction's own sector triples its weight. The faction is in the sector's ftl.dat id (ENGI_HOME, LANIUS_SECTOR). */
+function weight(entry: { cls: EnemyClass; pirate: boolean }, sectorId: string): number {
+  const name = sectorId.toLowerCase();
   if (entry.pirate) return name.includes("pirate") ? 3 : 1;
   const f = entry.cls.faction;
   if (f === "auto") return name.includes("rebel") ? 3 : 1;
@@ -450,8 +457,7 @@ export function pickEnemy(
   if (!pool.length)
     return { cls: ENEMY_CLASSES.find((c) => c.id === "rebel-fighter")!, pirate: false };
   const weights =
-    (!requested && hostileWeights(pool, ctx.sectorName)) ||
-    pool.map((e) => weight(e, ctx.sectorName));
+    (!requested && hostileWeights(pool, ctx.sectorId)) || pool.map((e) => weight(e, ctx.sectorId));
   let roll = rand() * weights.reduce((a, b) => a + b, 0);
   for (let i = 0; i < pool.length; i++) {
     roll -= weights[i];
@@ -953,7 +959,7 @@ export function rollEnemy(
   } else if (pirate) {
     // Enemy Ships, "Pirated ships": "pirate crews are randomly chosen from the races that can be encountered in that sector".
     // The races are the Sectors page's per-sector "Crewmembers" list (wiki/skills.ts); INFERRED: any race off that list.
-    races.push(...rollPirateCrew(ctx.sectorName, crewSize, rand));
+    races.push(...rollPirateCrew(ctx.sectorId, crewSize, rand));
   } else {
     for (const [race, lo, hi] of cls.crewMix) {
       const n = lo + Math.floor(rand() * (hi - lo + 1));
@@ -1037,7 +1043,7 @@ function racesFromCounts(
   rand: () => number,
 ): string[] {
   const races: string[] = [];
-  const randomRaces = pirateCrewRaces(ctx.sectorName);
+  const randomRaces = pirateCrewRaces(ctx.sectorId);
   for (const row of rows) {
     const n = blueprintCrew(row.amount, row.max, ctx);
     if (n <= 0) continue;

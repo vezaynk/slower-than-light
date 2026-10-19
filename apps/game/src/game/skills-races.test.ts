@@ -31,6 +31,7 @@ import {
 } from "./wiki/skills.ts";
 import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
 import type { Crew, Game } from "./types.ts";
+import { sectorIdNamed } from "./fixtures.ts";
 
 function rng(seed: number) {
   let s = seed >>> 0;
@@ -1889,7 +1890,7 @@ describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
       const spec = rollEnemy(
         pirateCls,
         true,
-        { sector: 3, sectorName, difficulty: "normal" },
+        { sector: 3, sectorId: sectorIdNamed(sectorName), sectorName, difficulty: "normal" },
         rng(seed),
       );
       for (const c of spec.crew) seen.add(c.race);
@@ -1906,7 +1907,7 @@ describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
   it("Hidden Crystal Worlds pirates are Crystal only; Lanius only where listed", () => {
     assert.deepEqual([...racesIn("Hidden Crystal Worlds")], ["Crystal"]);
     for (const [name, list] of Object.entries(SECTOR_CREW_RACES)) {
-      if (name !== "Abandoned Sector") assert.ok(!list.includes("Lanius"), name);
+      if (name !== "LANIUS_SECTOR") assert.ok(!list.includes("Lanius"), name);
     }
     assert.ok(racesIn("Abandoned Sector").has("Lanius"));
   });
@@ -1921,7 +1922,12 @@ describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
     const spec = rollEnemy(
       cls,
       false,
-      { sector: 3, sectorName: "Hidden Crystal Worlds", difficulty: "normal" },
+      {
+        sector: 3,
+        sectorId: "CRYSTAL_HOME",
+        sectorName: "Hidden Crystal Worlds",
+        difficulty: "normal",
+      },
       rng(4),
     );
     const mix = new Set(cls.crewMix.map(([race]) => race));

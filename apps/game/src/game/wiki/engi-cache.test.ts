@@ -4,11 +4,12 @@ import { mediumScrapBand } from "../content.ts";
 import { choose, choiceDisabled, commitJump, createGame } from "../sim.ts";
 import { stampEngiCache } from "./engi-cache.ts";
 import { heldSchematics } from "./make-room.ts";
+import { placeIn } from "../fixtures.ts";
 
 function land(sectorName: string) {
   const g = createGame(3, "PLAYER_SHIP_HARD", "normal");
   g.sector = 3;
-  g.sectorName = sectorName;
+  placeIn(g, sectorName);
   g.fuel = 8;
   g.missiles = 6;
   g.fleet = 4;
@@ -28,6 +29,7 @@ function land(sectorName: string) {
 describe("Engi cache", () => {
   it("is stamped once, and only in the two sectors the page names", () => {
     const civilian = createGame(2);
+    civilian.sectorId = "STANDARD_SPACE";
     civilian.sectorName = "Civilian (Starting) Sector";
     stampEngiCache(civilian);
     assert.equal(
@@ -35,6 +37,7 @@ describe("Engi cache", () => {
       false,
     );
     const g = createGame(2);
+    g.sectorId = "ENGI_HOME";
     g.sectorName = "Engi Homeworlds";
     stampEngiCache(g);
     stampEngiCache(g);

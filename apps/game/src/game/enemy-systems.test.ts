@@ -9,7 +9,12 @@ function seeded(seed: number) {
   let s = seed >>> 0 || 1;
   return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296;
 }
-const ctx = { sector: 6, sectorName: "Civilian Sector", difficulty: "normal" as const };
+const ctx = {
+  sector: 6,
+  sectorId: "CIVILIAN_SECTOR",
+  sectorName: "Civilian Sector",
+  difficulty: "normal" as const,
+};
 
 describe("enemy subsystems: groundwork", () => {
   it("turns drones, hacking, cloaking, teleporter, clone bay, and mind control into kits", () => {

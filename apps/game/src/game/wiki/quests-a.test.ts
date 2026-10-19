@@ -9,13 +9,14 @@ import { addQuest } from "./quests.ts";
 import { EXTRA_EVENTS } from "./quests-a-pages.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 import { joinCrew } from "./surrender.ts";
+import { placeIn } from "../fixtures.ts";
 
 function here(g: Game): Beacon {
   return g.beacons.find((b) => b.id === g.here)!;
 }
 
 function atCited(g: Game, sector: string, dest: string): Game {
-  g.sectorName = sector;
+  placeIn(g, sector);
   const b = g.beacons.find((x) => x.col === 1)!;
   b.flag =
     "cited:" +
@@ -96,7 +97,12 @@ describe("enemy-gen: a fight can ask for one ship class", () => {
   });
 
   it("fields the named class outside its normal sectors (Mantis Bomber in sector 2, Slug Assault in 4)", () => {
-    const ctx = { sector: 2, sectorName: "Civilian Sector", difficulty: "normal" as const };
+    const ctx = {
+      sector: 2,
+      sectorId: "CIVILIAN_SECTOR",
+      sectorName: "CIVILIAN_SECTOR",
+      difficulty: "normal" as const,
+    };
     for (let i = 0; i < 20; i++) {
       const r = () => (i + 0.5) / 20;
       assert.equal(pickEnemy(ctx, r, requestFor("Mantis Bomber")).cls.id, "mantis-bomber");
@@ -125,7 +131,7 @@ describe("quest openers (quests-a)", () => {
     const flags = (name: string, seed: number) => {
       const g = createGame(seed);
       g.sector = 5;
-      g.sectorName = name;
+      placeIn(g, name);
       stampCitedEvents(g);
       return g.beacons.map((b) => b.flag);
     };
@@ -136,7 +142,7 @@ describe("quest openers (quests-a)", () => {
       assert.ok(flags("Zoltan Homeworlds", seed).includes("cited:zoltan-research-facility"));
       assert.ok(flags("Zoltan Controlled Sector", seed).includes("cited:zoltan-research-facility"));
     }
-    assert.ok(citedPagesFor("Rock Controlled Sector").some((e) => e.dest === "Rock bride"));
+    assert.ok(citedPagesFor("ROCK_SECTOR").some((e) => e.dest === "Rock bride"));
     for (const ev of EXTRA_EVENTS)
       ev.choices.forEach((c, i) => assert.equal(c.id, `c:${ev.slug}:${i}`));
   });
@@ -280,6 +286,7 @@ describe("quest openers (quests-a)", () => {
     // > "only the Crystal Crew from the Stasis Pod (Ruwen) will mark the entry beacon as a quest in the Rock Homeworlds sector." — [[Ancient device#Notes]]
     const quiet = createGame(4);
     quiet.sector = 5;
+    quiet.sectorId = "ROCK_HOME";
     quiet.sectorName = "Rock Homeworlds";
     quiet.crew = quiet.crew.filter((c) => c.side === "player").slice(0, 2);
     assert.ok(joinCrew(quiet, "Crystal", "Sera"));
@@ -295,6 +302,7 @@ describe("quest openers (quests-a)", () => {
 
     const dead = createGame(5);
     dead.sector = 5;
+    dead.sectorId = "ROCK_HOME";
     dead.sectorName = "Rock Homeworlds";
     dead.crew = dead.crew.filter((c) => c.side === "player").slice(0, 2);
     assert.ok(joinCrew(dead, "Crystal", "Ruwen"));
@@ -308,6 +316,7 @@ describe("quest openers (quests-a)", () => {
 
     const g = createGame(6);
     g.sector = 5;
+    g.sectorId = "CIVILIAN_SECTOR";
     g.sectorName = "Civilian Sector";
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 2);
     const stray = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit")!;
@@ -315,6 +324,8 @@ describe("quest openers (quests-a)", () => {
     assert.ok(joinCrew(g, "Crystal", "Ruwen"));
     assert.equal(stray.quest, undefined);
     stray.flag = "";
+
+    g.sectorId = "ROCK_HOME";
 
     g.sectorName = "Rock Homeworlds";
     stampCitedEvents(g);

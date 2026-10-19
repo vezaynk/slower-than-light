@@ -81,6 +81,7 @@ describe("Rebel fight among Rebel fleet intro", () => {
     g.fuel = 3;
     g.fleet = 0;
     g.sector = 1;
+    g.sectorId = "FINAL";
     g.sectorName = "The Last Stand";
     g.phase = "map";
     g.event = null;

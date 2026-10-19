@@ -76,12 +76,14 @@ export function packFromExtract(files: FtlExtract): ContentPack {
     const layouts = [...files.text]
       .filter(([path]) => path.toLowerCase().endsWith(".txt"))
       .map(([path, text]) => ({ path, text }));
-    // Ships are ftl.dat blueprints in data/blueprints.xml, read by the same code as a real archive.
-    const ships = packFromFtl(
+    // Ships and sectors are ftl.dat's data/blueprints.xml and data/sector_data.xml, read by the same code as a real
+    // archive.
+    const ftl = packFromFtl(
       files.documents.filter((doc) => doc.path !== STAND_IN),
       layouts,
-    ).hulls;
-    if (ships) pack.hulls = ships;
+    );
+    if (ftl.hulls) pack.hulls = ftl.hulls;
+    if (ftl.sectors) pack.sectors = ftl.sectors;
     attachTextLists(
       pack,
       files.documents.filter((doc) => doc.path !== STAND_IN),

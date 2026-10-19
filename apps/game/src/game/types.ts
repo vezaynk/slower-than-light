@@ -678,6 +678,8 @@ export type Beacon = {
 /** Between-sector chart. Names and colors come from the Sectors page. */
 export type SectorNode = {
   id: string;
+  /** ftl.dat sector id (sector_data.xml's sectorDescription name). */
+  sector: string;
   name: string;
   group: "civilian" | "hostile" | "nebula" | "last-stand";
   col: number;
@@ -839,6 +841,8 @@ export type Game = {
    */
   boarded?: DroneUnit[];
   sector: number;
+  /** ftl.dat sector id. Sector tables key on this, not on the name the sector shows. */
+  sectorId: string;
   sectorName: string;
   beacons: Beacon[];
   here: string;

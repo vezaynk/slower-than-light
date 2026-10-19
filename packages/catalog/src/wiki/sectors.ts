@@ -5,8 +5,13 @@
  */
 
 export type SectorType = {
+  /** ftl.dat's sectorDescription name. */
   id: string;
   name: string;
+  /** Earliest sector, 0-based, as sector_data.xml's minSector (ENGI_HOME's 2 is the third sector). */
+  minSector: number;
+  /** Once per game, as sector_data.xml's unique. */
+  unique: boolean;
   group: "civilian" | "hostile" | "nebula" | "hidden" | "last-stand";
   /** Facts copied from that section. No invented beacon odds. */
   notes: string[];
@@ -15,7 +20,9 @@ export type SectorType = {
 export const SECTOR_TYPES: SectorType[] = [
   // wiki page "Sectors", heading "Civilian (Starting) Sector"
   {
-    id: "civilian-start",
+    id: "STANDARD_SPACE",
+    minSector: 0,
+    unique: false,
     name: "Civilian (Starting) Sector",
     group: "civilian",
     notes: [
@@ -26,7 +33,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Civilian Sector"
   {
-    id: "civilian",
+    id: "CIVILIAN_SECTOR",
+    minSector: 0,
+    unique: false,
     name: "Civilian Sector",
     group: "civilian",
     notes: [
@@ -37,7 +46,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Engi Controlled Sector"
   {
-    id: "engi",
+    id: "ENGI_SECTOR",
+    minSector: 0,
+    unique: false,
     name: "Engi Controlled Sector",
     group: "civilian",
     notes: [
@@ -48,7 +59,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Engi Homeworlds"
   {
-    id: "engi-home",
+    id: "ENGI_HOME",
+    minSector: 2,
+    unique: true,
     name: "Engi Homeworlds",
     group: "civilian",
     notes: [
@@ -59,7 +72,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Zoltan Controlled Sector"
   {
-    id: "zoltan",
+    id: "ZOLTAN_SECTOR",
+    minSector: 1,
+    unique: false,
     name: "Zoltan Controlled Sector",
     group: "civilian",
     notes: [
@@ -70,7 +85,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Zoltan Homeworlds"
   {
-    id: "zoltan-home",
+    id: "ZOLTAN_HOME",
+    minSector: 2,
+    unique: true,
     name: "Zoltan Homeworlds",
     group: "civilian",
     notes: [
@@ -81,7 +98,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Abandoned Sector"
   {
-    id: "abandoned",
+    id: "LANIUS_SECTOR",
+    minSector: 1,
+    unique: false,
     name: "Abandoned Sector",
     group: "hostile",
     notes: [
@@ -92,7 +111,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Mantis Controlled Sector"
   {
-    id: "mantis",
+    id: "MANTIS_SECTOR",
+    minSector: 0,
+    unique: false,
     name: "Mantis Controlled Sector",
     group: "hostile",
     notes: [
@@ -103,7 +124,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Mantis Homeworlds"
   {
-    id: "mantis-home",
+    id: "MANTIS_HOME",
+    minSector: 2,
+    unique: true,
     name: "Mantis Homeworlds",
     group: "hostile",
     notes: [
@@ -114,7 +137,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Pirate Controlled Sector"
   {
-    id: "pirate",
+    id: "PIRATE_SECTOR",
+    minSector: 0,
+    unique: false,
     name: "Pirate Controlled Sector",
     group: "hostile",
     notes: [
@@ -125,7 +150,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Rebel Controlled Sector"
   {
-    id: "rebel",
+    id: "REBEL_SECTOR",
+    minSector: 0,
+    unique: false,
     name: "Rebel Controlled Sector",
     group: "hostile",
     notes: [
@@ -136,7 +163,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Rebel Stronghold"
   {
-    id: "rebel-stronghold",
+    id: "REBEL_SECTOR_MINIBOSS",
+    minSector: 4,
+    unique: true,
     name: "Rebel Stronghold",
     group: "hostile",
     notes: [
@@ -147,7 +176,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Rock Controlled Sector"
   {
-    id: "rock",
+    id: "ROCK_SECTOR",
+    minSector: 1,
+    unique: false,
     name: "Rock Controlled Sector",
     group: "hostile",
     notes: [
@@ -159,7 +190,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Rock Homeworlds"
   {
-    id: "rock-home",
+    id: "ROCK_HOME",
+    minSector: 4,
+    unique: true,
     name: "Rock Homeworlds",
     group: "hostile",
     notes: [
@@ -171,7 +204,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", headings "Nebula Sectors" and "Slug Controlled Nebula"
   {
-    id: "slug-nebula",
+    id: "SLUG_SECTOR",
+    minSector: 3,
+    unique: false,
     name: "Slug Controlled Nebula",
     group: "nebula",
     notes: [
@@ -183,7 +218,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", headings "Nebula Sectors" and "Slug Home Nebula"
   {
-    id: "slug-home",
+    id: "SLUG_HOME",
+    minSector: 3,
+    unique: true,
     name: "Slug Home Nebula",
     group: "nebula",
     notes: [
@@ -195,7 +232,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", headings "Nebula Sectors" and "Uncharted Nebula"
   {
-    id: "uncharted",
+    id: "NEBULA_SECTOR",
+    minSector: 0,
+    unique: false,
     name: "Uncharted Nebula",
     group: "nebula",
     notes: [
@@ -208,7 +247,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "Hidden Crystal Worlds"
   {
-    id: "crystal-worlds",
+    id: "CRYSTAL_HOME",
+    minSector: 0,
+    unique: true,
     name: "Hidden Crystal Worlds",
     group: "hidden",
     notes: [
@@ -222,7 +263,9 @@ export const SECTOR_TYPES: SectorType[] = [
   },
   // wiki page "Sectors", heading "The Last Stand"
   {
-    id: "last-stand",
+    id: "FINAL",
+    minSector: 7,
+    unique: true,
     name: "The Last Stand",
     group: "last-stand",
     notes: [

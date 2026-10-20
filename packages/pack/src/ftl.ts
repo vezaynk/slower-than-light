@@ -1024,7 +1024,7 @@ function readEventBody(
     aliases: [],
     sectors: [],
     body: openings ? "" : (lines[0] ?? ""),
-    choices: readChoices(node, strings),
+    choices: readChoices(node, strings, id),
   };
   if (!openings && lines.length > 1) event.texts = lines;
   if (openings?.length) event.openings = openings;
@@ -1093,15 +1093,26 @@ function readFtlList(
   return { id, entries };
 }
 
-function readChoices(node: XmlElement, strings: Map<string, string>): EventChoice[] {
+function readChoices(node: XmlElement, strings: Map<string, string>, page?: string): EventChoice[] {
   const choices: EventChoice[] = [];
   let index = 0;
   for (const item of elements(node)) {
     if (item.tagName !== "choice") continue;
-    choices.push(readChoice(item, index, strings));
+    const choice = readChoice(item, index, strings);
+    if (page) scopeChoice(choice, page);
+    choices.push(choice);
     index += 1;
   }
   return choices;
+}
+
+/**
+ * ftl.dat choices have no names, so their index is the id. The game finds a choice by id across every page,
+ * so an unnamed choice is `<page>:<index>`, and a nested one `<parent>:<index>`. A named choice keeps its name.
+ */
+function scopeChoice(choice: EventChoice, parent: string): void {
+  if (/^\d+$/.test(choice.id)) choice.id = `${parent}:${choice.id}`;
+  for (const nested of choice.choices ?? []) scopeChoice(nested, choice.id);
 }
 
 function readChoice(node: XmlElement, index: number, strings: Map<string, string>): EventChoice {

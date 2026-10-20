@@ -809,16 +809,18 @@ describe("packFromFtl", () => {
     assert.equal(gift?.reward?.level, "HIGH");
     assert.equal(gift?.reward?.name, "weapon");
     const stay = gift?.choices[0];
-    assert.equal(stay?.id, "0");
+    // Unnamed choices are scoped to their page, and nested ones to their parent.
+    assert.equal(stay?.id, "GIFT:0");
     assert.equal(stay?.hidden, true);
     assert.equal(stay?.label, "Continue...");
     assert.deepEqual(stay?.fx, [{ k: "note", text: "You found it." }]);
     assert.deepEqual(stay?.reward, { level: "LOW", name: "standard" });
     assert.deepEqual(stay?.ship, { load: "STORE", hostile: false });
     assert.equal(stay?.choices?.[0]?.label, "Climb");
+    assert.equal(stay?.choices?.[0]?.id, "GIFT:0:0");
     assert.deepEqual(stay?.choices?.[0]?.fx, [{ k: "goto", id: "BOARDER_TEST" }]);
     const leave = gift?.choices[1];
-    assert.equal(leave?.id, "1");
+    assert.equal(leave?.id, "GIFT:1");
     assert.deepEqual(leave?.fx, [
       { k: "goto", id: "BOARDER_TEST" },
       { k: "fight", tier: "PIRATE" },

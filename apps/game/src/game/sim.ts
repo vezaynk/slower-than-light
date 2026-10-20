@@ -1575,6 +1575,29 @@ function zoltanCount(
 export function settleZoltanPower(g: Game): void {
   settleShipZoltan(g, g.player, "player");
   if (g.enemy) settleShipZoltan(g, g.enemy, "enemy");
+  const was = weaponZoltans.get(g.player);
+  const now = zoltanBars(g.crew, g.player, "player", "weapons");
+  weaponZoltans.set(g.player, now);
+  if (was !== undefined && now < was) releaseDarkWeapons(g);
+}
+
+/** Zoltan bars in the player's Weapon Control at the last settle. */
+const weaponZoltans = new WeakMap<Ship, number>();
+
+/**
+ * Per the user: Weapon Control's bars and each gun's on/off state are the same fact.
+ * A Zoltan leaving turns off the guns its bar carried, and reactor bars no running gun needs go back to spare.
+ * A Zoltan still occupying a full system keeps its slot (settleDisplace), so nothing is released then.
+ */
+function releaseDarkWeapons(g: Game): void {
+  const sys = g.player.systems.weapons;
+  if (weaponsPowerLocked(g) || (sys.zoltanHeld ?? 0) > 0) return;
+  disableUnpoweredWeapons(g);
+  const keep = minReactorForWeapons(
+    g,
+    g.player.weapons.map((w) => w.enabled),
+  );
+  if (keep < sys.power) sys.power = keep;
 }
 
 function settleShipZoltan(g: Game, ship: Ship, aboard: "player" | "enemy"): void {

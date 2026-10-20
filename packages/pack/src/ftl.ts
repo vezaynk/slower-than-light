@@ -27,6 +27,10 @@ import type {
   EmptyBeaconDef,
   FactionSurrender,
   RewardTable,
+  ShipEventChance,
+  ShipEventDef,
+  ShipEventEnding,
+  ShipEventEscape,
   StoreDef,
   SystemDef,
   SystemSlot,
@@ -92,6 +96,7 @@ export type FtlTextFile = {
  * Crew combat children fill the combat fields. A blueprint without them keeps neutral defaults.
  * A `<facts/>` marker and a `<names>` list are kept.
  * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender-only `<shipBlueprint>` is kept.
+ * A root `<ship name>` is a ship event (hull list and endings), not a hull.
  * A `<note>` on a sector is kept. This catalog does not invent a store or a rewards table.
  * `layouts` are the `data/*.txt` room grids. A ship keeps its layout file name, and the grid is
  * attached when that file is in the list. Layout text is not inside the XML.
@@ -110,6 +115,7 @@ export function packFromFtl(
   const hulls = new Catalog<HullDef>();
   const sectors = new Catalog<SectorDef>();
   const events = new Catalog<EventDef>();
+  const ships = new Catalog<ShipEventDef>();
   const lists = new Catalog<FillerListDef>();
   const blueprints = new Catalog<BlueprintListDef>();
   const stores = new Catalog<StoreDef>();
@@ -177,6 +183,9 @@ export function packFromFtl(
       } else if (node.tagName === "rewards") {
         const table = readRewards(node);
         if (table) rewards = table;
+      } else if (node.tagName === "ship") {
+        const row = readShipEvent(node, strings, textLists);
+        if (row) ships.put(row);
       }
     }
     for (const node of tagged(doc, "sectorDescription")) {
@@ -209,6 +218,7 @@ export function packFromFtl(
   for (const row of sectors.rows) row.group ||= colours.get(row.id) ?? "";
   if (sectors.rows.length > 0) pack.sectors = sectors.rows;
   if (events.rows.length > 0) pack.events = events.rows;
+  if (ships.rows.length > 0) pack.shipEvents = ships.rows;
   if (lists.rows.length > 0) pack.lists = lists.rows;
   if (blueprints.rows.length > 0) pack.blueprints = blueprints.rows;
   if (stores.rows.length > 0) pack.stores = stores.rows;
@@ -1204,7 +1214,7 @@ function takeResultChild(
   if (item.tagName === "ship") {
     const ship = readShipLoad(item);
     if (!ship) return;
-    if (ship.hostile) {
+    if (ship.hostile && ship.load) {
       const fight: EventEffect = { k: "fight", tier: ship.load };
       if (ship.asteroid) fight.asteroid = true;
       if (ship.autoBlueprint) fight.autoBlueprint = ship.autoBlueprint;
@@ -1252,13 +1262,86 @@ function readEnvironment(node: XmlElement): ArchiveEnvironment | undefined {
 
 function readShipLoad(node: XmlElement): ArchiveShip | undefined {
   const load = attr(node, "load")?.trim();
-  if (!load) return undefined;
-  const ship: ArchiveShip = { load, hostile: node.getAttribute("hostile") !== "false" };
+  const hostile = node.getAttribute("hostile");
+  if (!load && hostile == null) return undefined;
+  const ship: ArchiveShip = { hostile: hostile !== "false" };
+  if (load) ship.load = load;
   const list = attr(node, "auto_blueprint")?.trim();
   if (list) ship.autoBlueprint = list;
   const asteroid = node.getAttribute("asteroid");
   if (asteroid != null && asteroid !== "false") ship.asteroid = true;
   return ship;
+}
+
+const SHIP_ENDINGS = ["surrender", "escape", "destroyed", "deadCrew", "gotaway"] as const;
+
+function shipEndingTag(tag: string): (typeof SHIP_ENDINGS)[number] | undefined {
+  return SHIP_ENDINGS.find((name) => name === tag);
+}
+
+/** A root `<ship name>`. Crew and weapon overrides stay unread. The first of each ending tag wins. */
+function readShipEvent(
+  node: XmlElement,
+  strings: Map<string, string>,
+  lists: Map<string, OpeningLine[]>,
+): ShipEventDef | undefined {
+  const id = attr(node, "name")?.trim();
+  if (!id) return undefined;
+  const row: ShipEventDef = { id };
+  const list = attr(node, "auto_blueprint")?.trim();
+  if (list) row.autoBlueprint = list;
+  const seen = new Set<string>();
+  for (const item of elements(node)) {
+    const tag = shipEndingTag(item.tagName);
+    if (!tag || seen.has(tag)) continue;
+    seen.add(tag);
+    const ending = readShipEnding(item, id, tag, strings, lists);
+    if (!ending) continue;
+    if (tag === "surrender") row.surrender = ending as ShipEventChance;
+    else if (tag === "escape") row.escape = ending as ShipEventEscape;
+    else if (tag === "destroyed") row.destroyed = ending;
+    else if (tag === "deadCrew") row.deadCrew = ending;
+    else row.gotaway = ending;
+  }
+  return row;
+}
+
+function readShipEnding(
+  node: XmlElement,
+  shipId: string,
+  tag: (typeof SHIP_ENDINGS)[number],
+  strings: Map<string, string>,
+  lists: Map<string, OpeningLine[]>,
+): ShipEventEnding | undefined {
+  const kids = elements(node);
+  const load = attr(node, "load")?.trim();
+  const ending: ShipEventEnding = {};
+  if (kids.length > 0) ending.page = readEventBody(node, `${shipId}:${tag}`, strings, lists);
+  else if (load) ending.load = load;
+  if (tag !== "surrender" && tag !== "escape") {
+    if (!ending.page && !ending.load) return undefined;
+    return ending;
+  }
+  const min = intAttr(node, "min");
+  const max = intAttr(node, "max");
+  if (min == null || max == null) return ending.page || ending.load ? ending : undefined;
+  const band: ShipEventChance = { min, max };
+  if (ending.page) band.page = ending.page;
+  const chance = numberAttr(node, "chance");
+  if (chance != null) band.chance = chance;
+  if (!ending.page && ending.load) band.load = ending.load;
+  if (tag === "surrender") return band;
+  const escape: ShipEventEscape = { ...band };
+  const timer = intAttr(node, "timer");
+  if (timer != null) escape.timer = timer;
+  return escape;
+}
+
+function numberAttr(node: XmlElement, name: string): number | undefined {
+  const raw = node.getAttribute(name);
+  if (raw == null || raw.trim() === "") return undefined;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : undefined;
 }
 
 function readReward(node: XmlElement): ArchiveReward | undefined {

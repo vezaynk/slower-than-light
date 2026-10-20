@@ -101,7 +101,12 @@ import {
   sectorTitle,
 } from "./sector-ids.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./pack/beams.ts";
-import type { ArchiveEnvironment, WeaponBlueprint } from "@stl/pack";
+import type {
+  ArchiveEnvironment,
+  ShipEventChance,
+  ShipEventEscape,
+  WeaponBlueprint,
+} from "@stl/pack";
 import {
   allSectors,
   allWeapons,
@@ -111,6 +116,7 @@ import {
   rewardBonus,
   scrapRange,
   sectorDef,
+  shipEventDef,
   storeDef,
   weaponDef,
   START_FUEL,
@@ -247,7 +253,12 @@ import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
 
-import { escapePlan, eventSlugOf, overtakenArrivalEscape } from "./wiki/escape.ts";
+import {
+  escapePlan,
+  eventSlugOf,
+  HULL_RUN_SECONDS,
+  overtakenArrivalEscape,
+} from "./wiki/escape.ts";
 // @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
 import {
   joinCrew,
@@ -286,7 +297,15 @@ import {
   rollEnemy,
   specFromHull,
 } from "./enemy-gen.ts";
-import { applyChoiceArchive, archiveSnap, showArchiveArrival } from "./archive-pay.ts";
+import {
+  applyChoiceArchive,
+  archiveSnap,
+  openArchiveSurrender,
+  openShipEscapePage,
+  showArchiveArrival,
+  showShipGotAway,
+  showShipVictory,
+} from "./archive-pay.ts";
 import { fightUnlock } from "./unlocks.ts"; // @agent:unlocks
 import type {
   Beacon,
@@ -1276,7 +1295,19 @@ function enemyEscapeStep(g: Game, h: number) {
   const ship = g.enemy;
   const plan = g.enemyEscape;
   if (!ship || !plan || plan.mode === "never") return;
-  if (
+  if (!plan.running && plan.mode === "hull" && !plan.rolled && plan.hullPoints) {
+    if (ship.hull > 0 && ship.hull <= plan.threshold) {
+      plan.rolled = true;
+      if (plan.chance >= 1 || rand(g) < plan.chance) {
+        plan.running = true;
+        openShipEscapePage(g);
+        if (g.phase === "combat") {
+          log(g, "They are powering their FTL drive to escape.");
+          sfx(g, "alarm");
+        }
+      }
+    }
+  } else if (
     !plan.running &&
     plan.mode === "hull" &&
     !plan.rolled &&
@@ -5897,6 +5928,8 @@ function winCombat(g: Game) {
     return;
   }
   fightUnlock(g, g.fightEvent); // @agent:unlocks. A ship-unlocking page's fight won (Rebel shipyard: "You unlock the Federation Cruiser.").
+  // A ship-event destroyed or deadCrew page replaces the wiki win and the default salvage.
+  if (showShipVictory(g, deadCrew)) return;
   // @agent:quests. An event page that prints its own destroyed / crew-killed reward pays that instead of the default
   // salvage below, and may open a follow-up card (wiki/quests.ts PAGE_WINS).
   if (!g.pending && pageWin(g, g.fightEvent, deadCrew)) {
@@ -6353,6 +6386,40 @@ export function armEventEnvironment(g: Game, env: ArchiveEnvironment | undefined
   if (env.type === "nebula") g.eventNebula = true;
 }
 
+function hullThreshold(g: Game, min: number, max: number): number {
+  const lo = Math.min(min, max);
+  const hi = Math.max(min, max);
+  return lo + Math.floor(rand(g) * (hi - lo + 1));
+}
+
+function archiveSurrenderPlan(
+  g: Game,
+  ending: ShipEventChance,
+): NonNullable<Game["enemySurrender"]> {
+  return {
+    chance: ending.chance ?? 1,
+    threshold: hullThreshold(g, ending.min, ending.max),
+    rolled: false,
+    offered: false,
+    refused: false,
+    offer: null,
+    hullPoints: true,
+  };
+}
+
+function archiveEscapePlan(g: Game, ending: ShipEventEscape): NonNullable<Game["enemyEscape"]> {
+  return {
+    mode: "hull",
+    seconds: ending.timer ?? HULL_RUN_SECONDS,
+    chance: ending.chance ?? 1,
+    threshold: hullThreshold(g, ending.min, ending.max),
+    rolled: false,
+    running: false,
+    pursuit: false,
+    hullPoints: true,
+  };
+}
+
 export function startCombat(
   g: Game,
   tier: string,
@@ -6369,7 +6436,9 @@ export function startCombat(
   delete g.asbAim;
   // Mind Control, Overview: a bomb that lands opens that room. INFERRED: the next fight starts with those rooms closed.
   clearBombSight(g);
-  const built = makeEnemy(g, tier, event, autoBlueprint);
+  const shipEvent = shipEventDef(tier);
+  g.fightShip = shipEvent ? tier : null;
+  const built = makeEnemy(g, tier, event, autoBlueprint ?? shipEvent?.autoBlueprint);
   // Enemy Ships, "Surrenders and escape attempts": who runs, when, and for how long. See wiki/escape.ts.
   g.enemyEscape = escapePlan(
     { tier, event, lastFuel: g.fuel <= 0, faction: built.ship.faction, pirate: built.ship.pirate },
@@ -6392,6 +6461,9 @@ export function startCombat(
     { tier, event, faction: built.ship.faction, pirate: built.ship.pirate },
     () => rand(g),
   );
+  // A ship-event child replaces the wiki plan. A missing child keeps it, including an overtaken arrival.
+  if (shipEvent?.escape) g.enemyEscape = archiveEscapePlan(g, shipEvent.escape);
+  if (shipEvent?.surrender) g.enemySurrender = archiveSurrenderPlan(g, shipEvent.surrender);
   // @agent:quests. The page that started this fight, for its own win reward (wiki/quests.ts pageWin).
   g.fightEvent = event ?? null;
   // Boarders: Humans (Abandoned): the last fight's faction. INFERRED: kept until the next fight.
@@ -7736,6 +7808,13 @@ export function choose(g: Game, id: string) {
     case "ack":
       resolve();
       break;
+    case "ship-resume":
+      g.event = null;
+      if (g.enemy) {
+        g.phase = "combat";
+        g.paused = false;
+      } else resolve();
+      break;
     default:
       if (citedOwns(id)) {
         // A price the ship cannot pay leaves the panel open. An unknown id is not this branch.
@@ -8373,6 +8452,8 @@ export function step(g: Game, dt: number) {
   // @agent:surrender. Surrender roll before the escape roll ("Enemies will never start running away if they have
   // already offered a surrender"), then the anti-stalemate clock. True means an offer opened or the fight ended.
   if (surrenderTick(g, h)) {
+    if (g.phase === "combat" && g.enemySurrender?.hullPoints && g.enemySurrender.offered)
+      openArchiveSurrender(g);
     flushSfx(g.sfx);
     return;
   }
@@ -8407,7 +8488,8 @@ export function step(g: Game, dt: number) {
     g.pulsar = false;
     g.flare = false;
     // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).
-    pageGotAway(g, g.fightEvent);
+    // A ship-event gotaway page replaces that card.
+    if (!showShipGotAway(g)) pageGotAway(g, g.fightEvent);
   }
   stepShots(g, h);
   endCheck(g);

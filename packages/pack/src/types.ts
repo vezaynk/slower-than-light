@@ -579,9 +579,12 @@ export type ArchiveEnvironment = {
   target?: "player" | "enemy" | "all";
 };
 
-/** A ship an archive page or choice loads. Omitted hostile is hostile. */
+/**
+ * A ship an archive page or choice loads.
+ * A tag with a load or a hostile attribute is kept. Omitted hostile is hostile.
+ */
 export type ArchiveShip = {
-  load: string;
+  load?: string;
   hostile: boolean;
   /** `<ship auto_blueprint>`: a blueprintList id. */
   autoBlueprint?: string;
@@ -622,7 +625,7 @@ export type EventChoice = {
   hidden?: boolean;
   /** autoReward on the result page. */
   reward?: ArchiveReward;
-  /** A loaded ship that is not a fight. A hostile ship is a fight effect. */
+  /** A ship that is not a fight. A hostile ship with a load is a fight effect. A hostile ship with no load stays here. */
   ship?: ArchiveShip;
   /** Named blueprints the result grants. */
   grants?: ArchiveGrant[];
@@ -806,6 +809,42 @@ export type EventDef = {
   environment?: ArchiveEnvironment;
 };
 
+/** One ending of a root `<ship name>` event. Children are an inline page. A childless load is that event id. */
+export type ShipEventEnding = {
+  page?: EventDef;
+  load?: string;
+};
+
+/**
+ * Surrender or escape hull band.
+ * `chance` is a probability from 0 to 1. Omitted chance is certain and is not stored.
+ * `min` and `max` are hull points.
+ */
+export type ShipEventChance = ShipEventEnding & {
+  chance?: number;
+  min: number;
+  max: number;
+};
+
+/** Escape band. `timer` is seconds, stored only when the attribute is present. */
+export type ShipEventEscape = ShipEventChance & {
+  timer?: number;
+};
+
+/**
+ * Root `<ship name>` in the ship-event file.
+ * `autoBlueprint` is the hull list. Endings are optional.
+ */
+export type ShipEventDef = {
+  id: string;
+  autoBlueprint?: string;
+  surrender?: ShipEventChance;
+  escape?: ShipEventEscape;
+  destroyed?: ShipEventEnding;
+  deadCrew?: ShipEventEnding;
+  gotaway?: ShipEventEnding;
+};
+
 /**
  * One page on a filler list. `id` is the event slug.
  * `unique` pages appear once per sector.
@@ -879,6 +918,8 @@ export type ContentPack = {
   stores?: StoreDef[];
   tunes?: TuneDef[];
   events?: EventDef[];
+  /** Root `<ship name>` events: a hull list and the five endings. */
+  shipEvents?: ShipEventDef[];
   lists?: FillerListDef[];
   /** Named weapon and drone pools from `<blueprintList>`. */
   blueprints?: BlueprintListDef[];

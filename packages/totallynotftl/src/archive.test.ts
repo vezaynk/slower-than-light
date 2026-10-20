@@ -1,20 +1,13 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { campaignPack, campaignXml } from "@stl/campaign";
+import { campaignPack } from "@stl/campaign";
 import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
 import { WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
-import { extractFtlDat, readPkg } from "@stl/ftldat";
-import { packFromExtract } from "@stl/hyperspace";
-import {
-  overlayGap,
-  parsePack,
-  pictureForRooms,
-  readAnimations,
-  readBitmapFont,
-  readSounds,
-} from "@stl/pack";
+import { extractFtlDat, extractFtlZip, readPkg } from "@stl/ftldat";
+import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
+import { parsePack, pictureForRooms, readAnimations, readBitmapFont, readSounds } from "@stl/pack";
 import {
   standInDat,
   standInImages,
@@ -179,18 +172,20 @@ describe("totallynotftl.dat", () => {
     assert.equal(parsed.stores?.length, 0);
     assert.equal(parsed.rewards, undefined);
     assert.equal(parsed.weapons?.find((row) => row.id === "LASER_BURST_3")?.name, "Burst Laser II");
-    assert.equal(parsed.crew?.find((row) => row.id === "human")?.name, "Human");
+    assert.deepEqual(parsed.crew, []);
+    assert.equal(xml.includes("<race"), false);
+    assert.match(standInShipsXml(), /<crewBlueprint name="human">\s*<title>Human<\/title>/);
     const golden = readFileSync(new URL("../totallynotftl.dat", import.meta.url));
     assert.equal(built.byteLength, golden.byteLength);
     assert.equal(Buffer.compare(built, golden), 0);
   });
 
-  it("merges the stand-in archive with the gap file back into the catalog", async () => {
+  it("merges the stand-in archive with the gap mod back into the catalog", async () => {
     const pack = campaignPack();
-    const merged = overlayGap(
-      packFromExtract(await extractFtlDat(await standInDat())),
-      parsePack(campaignXml()),
+    const gap = await extractFtlZip(
+      readFileSync(new URL("../../campaign/base.ftl", import.meta.url)),
     );
+    const merged = packFromExtract(applyFtlMod(await extractFtlDat(await standInDat()), gap));
     assert.deepEqual(merged.crew, pack.crew);
     assert.deepEqual(merged.weapons, pack.weapons);
     assert.deepEqual(merged.augments, pack.augments);
@@ -199,7 +194,37 @@ describe("totallynotftl.dat", () => {
     assert.deepEqual(merged.tunes, pack.tunes);
     assert.deepEqual(merged.hulls, pack.hulls);
     assert.deepEqual(merged.sectors, pack.sectors);
-    assert.deepEqual(merged.events, pack.events);
+    const extra = new Set(["STAND_IN_BEACON", "STAND_IN_NESTED"]);
+    assert.deepEqual(
+      merged.events?.filter((event) => !extra.has(event.id)),
+      pack.events,
+    );
+    assert.deepEqual(
+      merged.events?.find((event) => event.id === "STAND_IN_BEACON"),
+      {
+        id: "STAND_IN_BEACON",
+        dest: "STAND_IN_BEACON",
+        flag: "STAND_IN_BEACON",
+        aliases: [],
+        sectors: [],
+        body: "Nothing moves.",
+        choices: [],
+        texts: ["Nothing moves.", "The beacon holds still."],
+      },
+    );
+    assert.deepEqual(
+      merged.events?.find((event) => event.id === "STAND_IN_NESTED"),
+      {
+        id: "STAND_IN_NESTED",
+        dest: "STAND_IN_NESTED",
+        flag: "STAND_IN_NESTED",
+        aliases: [],
+        sectors: [],
+        body: "",
+        choices: [],
+        openings: [{ text: "The near reading." }, { load: "STAND_IN_MORE" }],
+      },
+    );
     assert.deepEqual(
       merged.textLists?.map((row) => row.id),
       ["STAND_IN_CALM", "STAND_IN_MORE", "STAND_IN_NEST"],

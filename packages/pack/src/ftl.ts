@@ -21,11 +21,14 @@ import type {
   SectorDef,
   SectorQuota,
   SectorRarity,
+  EmptyBeaconDef,
+  FactionSurrender,
+  RewardTable,
+  StoreDef,
   SystemDef,
   SystemSlot,
   TextListDef,
   TuneDef,
-  TuneStep,
 } from "./types.ts";
 import { cloneGrid, readGrids } from "./grid.ts";
 import { attachPictures } from "./picture.ts";
@@ -36,8 +39,15 @@ import {
   elements,
   numOf,
   readAugment,
+  readBlueprintTune,
+  readCrewCombat,
   readDocument,
   readDrone,
+  readEmpty,
+  readEvent,
+  readFaction,
+  readRewards,
+  readStore,
   readWeapon,
   tagged,
   textOf,
@@ -76,8 +86,10 @@ export type FtlTextFile = {
  * attribute is skipped.
  * `<textList>` rows are kept. A flat list becomes the event's sentences.
  * A list entry that loads another list stays one draw, picked when the page is shown.
- * Crew combat stats stay at neutral defaults. A `<facts/>` marker and a `<names>` list are kept.
- * Stores and the numeric rewards table are not in the archive, and this catalog does not invent them.
+ * Crew combat children fill the combat fields. A blueprint without them keeps neutral defaults.
+ * A `<facts/>` marker and a `<names>` list are kept.
+ * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender-only `<shipBlueprint>` is kept.
+ * A `<note>` on a sector is kept. This catalog does not invent a store or a rewards table.
  * `layouts` are the `data/*.txt` room grids. A ship keeps its layout file name, and the grid is
  * attached when that file is in the list. Layout text is not inside the XML.
  * `data/<layout>.xml` contributes the `<img>` box. Image bytes stay off this catalog.
@@ -97,6 +109,10 @@ export function packFromFtl(
   const events = new Catalog<EventDef>();
   const lists = new Catalog<FillerListDef>();
   const blueprints = new Catalog<BlueprintListDef>();
+  const stores = new Catalog<StoreDef>();
+  const factions = new Catalog<FactionSurrender>();
+  const empties = new Catalog<EmptyBeaconDef>();
+  let rewards: RewardTable | undefined;
   const strings = new Map<string, string>();
   const grids = readGrids(layouts);
   let facts = false;
@@ -126,8 +142,8 @@ export function packFromFtl(
     for (const node of tagged(doc, "systemBlueprint")) {
       const read = readFtlSystem(node);
       if (!read) continue;
-      systems.put(read.system);
-      tunes.put(read.tune);
+      if (read.system) systems.put(read.system);
+      if (read.tune) tunes.put(read.tune);
     }
     for (const node of tagged(doc, "crewBlueprint")) {
       const row = readFtlCrew(node);
@@ -137,8 +153,24 @@ export function packFromFtl(
     const read = readNames(doc);
     if (read) names = read;
     for (const node of tagged(doc, "shipBlueprint")) {
+      if (!rootChild(node)) continue;
       const row = readFtlHull(node, strings, grids);
       if (row) hulls.put(row);
+      const faction = readFaction(node);
+      if (faction) factions.put(faction);
+    }
+    const root = doc.documentElement;
+    for (const node of elements(root ?? undefined)) {
+      if (node.tagName === "customStore") {
+        const row = readStore(node);
+        if (row) stores.put(row);
+      } else if (node.tagName === "emptyBeacon") {
+        const row = readEmpty(node);
+        if (row) empties.put(row);
+      } else if (node.tagName === "rewards") {
+        const table = readRewards(node);
+        if (table) rewards = table;
+      }
     }
     for (const node of tagged(doc, "sectorDescription")) {
       const row = readFtlSector(node, strings);
@@ -172,6 +204,10 @@ export function packFromFtl(
   if (events.rows.length > 0) pack.events = events.rows;
   if (lists.rows.length > 0) pack.lists = lists.rows;
   if (blueprints.rows.length > 0) pack.blueprints = blueprints.rows;
+  if (stores.rows.length > 0) pack.stores = stores.rows;
+  if (rewards) pack.rewards = rewards;
+  if (factions.rows.length > 0) pack.factions = factions.rows;
+  if (empties.rows.length > 0) pack.empties = empties.rows;
   if (textLists.size > 0) {
     pack.textLists = [...textLists.entries()].map(([id, lines]) => ({ id, lines }));
   }
@@ -247,6 +283,7 @@ function readFtlCrew(node: XmlElement): CrewDef | undefined {
   if (cost != null) row.cost = cost;
   const colors = readCrewColors(child(node, "colorList"));
   if (colors.length > 0) row.colors = colors;
+  readCrewCombat(node, row);
   return row;
 }
 
@@ -282,9 +319,15 @@ class Catalog<T extends { id: string }> {
   }
 }
 
-function readFtlSystem(node: XmlElement): { system: SystemDef; tune: TuneDef } | undefined {
+function readFtlSystem(node: XmlElement): { system?: SystemDef; tune?: TuneDef } | undefined {
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
+  const tune = readBlueprintTune(node, id);
+  // A blueprint with only startPower and upgradeCost is a tune. A title, cost, description, or slot is a listing.
+  const listed =
+    child(node, "title") || child(node, "cost") || child(node, "desc") || child(node, "slot");
+  if (!listed && !tune) return undefined;
+  if (!listed) return { tune };
   const system: SystemDef = {
     id,
     name: textOf(node, "title") ?? id,
@@ -293,14 +336,7 @@ function readFtlSystem(node: XmlElement): { system: SystemDef; tune: TuneDef } |
   };
   const detail = textOf(node, "desc");
   if (detail) system.detail = detail;
-  return {
-    system,
-    tune: {
-      id,
-      start: numOf(node, "startPower") ?? 1,
-      costs: upgradeCosts(node),
-    },
-  };
+  return tune ? { system, tune } : { system };
 }
 
 function systemSlot(id: string, node: XmlElement): SystemSlot {
@@ -308,20 +344,6 @@ function systemSlot(id: string, node: XmlElement): SystemSlot {
   if (written === "kit" || written === "sys") return written;
   if (KIT_SYSTEMS.has(id) || id.startsWith("artillery")) return "kit";
   return "sys";
-}
-
-/** The first upgradeCost level is the scrap to leave level 1. */
-function upgradeCosts(node: XmlElement): TuneStep[] {
-  const costs: TuneStep[] = [];
-  let level = 1;
-  for (const item of elements(child(node, "upgradeCost"))) {
-    if (item.tagName !== "level") continue;
-    const cost = Number(item.textContent?.trim());
-    if (!Number.isFinite(cost)) continue;
-    costs.push({ level, cost });
-    level += 1;
-  }
-  return costs;
 }
 
 /** `text-<code>.xml` is a translation. English tables are `text_<kind>.xml`. */
@@ -736,7 +758,13 @@ function readFtlSector(node: XmlElement, strings: Map<string, string>): SectorDe
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const title = sectorTitle(node, id, strings);
-  const sector: SectorDef = { id, name: title.name, group: "", notes: [] };
+  const notes: string[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "note") continue;
+    const text = ownText(item).trim();
+    if (text) notes.push(text);
+  }
+  const sector: SectorDef = { id, name: title.name, group: "", notes };
   if (title.short) sector.short = title.short;
   const minSector = intAttr(node, "minSector");
   if (minSector != null) sector.minSector = minSector;
@@ -871,6 +899,8 @@ function readFtlEvent(
   if (!rootChild(node)) return undefined;
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
+  // A flag marks a campaign page. Vanilla events keep the id as their flag.
+  if (attr(node, "flag")?.trim()) return readEvent(node);
   return readEventBody(node, id, strings, lists);
 }
 

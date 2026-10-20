@@ -1891,4 +1891,28 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <health amount="20"/>
     <maxPower amount="0"/>
   </shipBlueprint>
+  <crewBlueprint name="human">
+    <title>Human</title>
+  </crewBlueprint>
+  <crewBlueprint name="engi">
+    <title>Engi</title>
+  </crewBlueprint>
+  <crewBlueprint name="energy">
+    <title>Zoltan</title>
+  </crewBlueprint>
+  <crewBlueprint name="mantis">
+    <title>Mantis</title>
+  </crewBlueprint>
+  <crewBlueprint name="slug">
+    <title>Slug</title>
+  </crewBlueprint>
+  <crewBlueprint name="rock">
+    <title>Rock</title>
+  </crewBlueprint>
+  <crewBlueprint name="anaerobic">
+    <title>Lanius</title>
+  </crewBlueprint>
+  <crewBlueprint name="crystal">
+    <title>Crystal</title>
+  </crewBlueprint>
 </FTL>

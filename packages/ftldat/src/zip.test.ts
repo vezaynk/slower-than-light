@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { zipSync } from "fflate";
-import { extractFtlZip } from "./zip.ts";
+import { packFtlDat } from "./extract.ts";
+import { extractArchive, extractFtlZip, packFtlZip } from "./zip.ts";
 
 const encoder = new TextEncoder();
 
@@ -106,5 +107,62 @@ describe("extractFtlZip", () => {
 
   it("rejects a file that is not a zip", async () => {
     await assert.rejects(() => extractFtlZip(Uint8Array.of(1, 2, 3)), /Mod zip is not readable/);
+  });
+
+  it("keeps a larger first entry ahead of a later small one", async () => {
+    const large = `<FTL>${"<weaponBlueprint name='A'/>".repeat(4000)}</FTL>`;
+    const small = `<FTL><weaponBlueprint name="B"/></FTL>`;
+    const extracted = await extractFtlZip(
+      zip({
+        "data/blueprints.xml": large,
+        "data/dlcBlueprintsOverwrite.xml": small,
+      }),
+    );
+    assert.deepEqual(
+      extracted.documents.map((doc) => doc.path),
+      ["data/blueprints.xml", "data/dlcBlueprintsOverwrite.xml"],
+    );
+    assert.equal(extracted.documents[0]?.xml.length > extracted.documents[1]!.xml.length, true);
+  });
+
+  it("keeps a raw append as a document", async () => {
+    const extracted = await extractFtlZip(
+      zip({
+        "data/misc.xml.rawappend": "<b/>",
+        "data/misc.rawclobber.xml": "<c/>",
+      }),
+    );
+    assert.deepEqual(
+      extracted.documents.map((doc) => doc.path),
+      ["data/misc.xml.rawappend", "data/misc.rawclobber.xml"],
+    );
+    assert.equal(extracted.assets.size, 0);
+  });
+
+  it("rejects a zip with more entries than the format can count", () => {
+    const files = Array.from({ length: 65536 }, () => ({
+      path: "data/a.xml",
+      bytes: new Uint8Array(),
+    }));
+    assert.throws(() => packFtlZip(files), /too many entries: 65536/);
+  });
+
+  it("packs a zip with a fixed timestamp and reads a dat or a zip by its signature", async () => {
+    const files = [
+      { path: "data/a.xml", bytes: encoder.encode(EXTRA) },
+      { path: "data/b.xml", bytes: encoder.encode(APPEND) },
+    ];
+    const packed = packFtlZip(files);
+    assert.equal(Buffer.compare(packed, packFtlZip(files)), 0);
+    const extracted = await extractFtlZip(packed);
+    assert.deepEqual(
+      extracted.documents.map((doc) => doc.path),
+      ["data/a.xml", "data/b.xml"],
+    );
+    const dat = packFtlDat([{ path: "data/a.xml", xml: EXTRA }]);
+    const fromDat = await extractArchive(dat);
+    const fromZip = await extractArchive(packed);
+    assert.equal(fromDat.documents[0]?.xml, EXTRA);
+    assert.equal(fromZip.documents[0]?.path, "data/a.xml");
   });
 });

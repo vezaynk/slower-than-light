@@ -4,8 +4,8 @@
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
-  A systemBlueprint with a cost is a store listing. subSystem marks a kit.
-  startPower is the level a purchase installs. upgradeCost is the scrap for the level already owned.
+  A systemBlueprint with a cost is a store listing. A slot child of kit marks a kit.
+  startPower is the level a purchase installs. One upgradeCost lists the scrap to leave each level. n names a level that is not the next count.
   Hull tags are the ship id, class, layout file, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms. A system's room attribute is the room index.
   A shipBlueprint with no layout and a surrender tag is a faction's default offer.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
@@ -62,32 +62,7 @@
   A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
 -->
 <FTL>
-  <crew>
-    <race name="human">
-      <title>Human</title>
-    </race>
-    <race name="engi">
-      <title>Engi</title>
-    </race>
-    <race name="energy">
-      <title>Zoltan</title>
-    </race>
-    <race name="mantis">
-      <title>Mantis</title>
-    </race>
-    <race name="slug">
-      <title>Slug</title>
-    </race>
-    <race name="rock">
-      <title>Rock</title>
-    </race>
-    <race name="anaerobic">
-      <title>Lanius</title>
-    </race>
-    <race name="crystal">
-      <title>Crystal</title>
-    </race>
-  </crew>
+  <crew/>
   <weaponBlueprint name="LASER_BURST_3">
     <type>LASER</type>
     <title>Burst Laser II</title>
@@ -1109,74 +1084,32 @@
     <cost>125</cost>
     <startPower>2</startPower>
     <upgradeCost>
-      <level>1</level>
-      <cost>100</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>2</level>
-      <cost>20</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>3</level>
-      <cost>30</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>4</level>
-      <cost>40</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>5</level>
-      <cost>60</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>6</level>
-      <cost>80</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>7</level>
-      <cost>100</cost>
+      <level>100</level>
+      <level>20</level>
+      <level>30</level>
+      <level>40</level>
+      <level>60</level>
+      <level>80</level>
+      <level>100</level>
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="engines">
     <startPower>1</startPower>
     <upgradeCost>
-      <level>1</level>
-      <cost>10</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>2</level>
-      <cost>15</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>3</level>
-      <cost>30</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>4</level>
-      <cost>40</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>5</level>
-      <cost>60</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>6</level>
-      <cost>80</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>7</level>
-      <cost>120</cost>
+      <level>10</level>
+      <level>15</level>
+      <level>30</level>
+      <level>40</level>
+      <level>60</level>
+      <level>80</level>
+      <level>120</level>
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="oxygen">
     <startPower>1</startPower>
     <upgradeCost>
-      <level>1</level>
-      <cost>25</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>2</level>
-      <cost>50</cost>
+      <level>25</level>
+      <level>50</level>
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="medbay">
@@ -1184,73 +1117,51 @@
     <cost>50</cost>
     <startPower>1</startPower>
     <upgradeCost>
-      <level>1</level>
-      <cost>35</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>2</level>
-      <cost>45</cost>
+      <level>35</level>
+      <level>45</level>
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="weapons">
     <startPower>1</startPower>
     <upgradeCost>
-      <level>1</level>
-      <cost>40</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>2</level>
-      <cost>25</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>3</level>
-      <cost>35</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>4</level>
-      <cost>50</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>5</level>
-      <cost>75</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>6</level>
-      <cost>90</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>7</level>
-      <cost>100</cost>
+      <level>40</level>
+      <level>25</level>
+      <level>35</level>
+      <level>50</level>
+      <level>75</level>
+      <level>90</level>
+      <level>100</level>
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="pilot">
     <startPower>1</startPower>
     <upgradeCost>
-      <level>1</level>
-      <cost>20</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>2</level>
-      <cost>50</cost>
+      <level>20</level>
+      <level>50</level>
     </upgradeCost>
   </systemBlueprint>
-  <systemBlueprint name="clonebay" subSystem="true">
+  <systemBlueprint name="clonebay">
+    <slot>kit</slot>
     <title>Clone Bay</title>
     <cost>50</cost>
   </systemBlueprint>
-  <systemBlueprint name="teleporter" subSystem="true">
+  <systemBlueprint name="teleporter">
+    <slot>kit</slot>
     <title>Crew Teleporter</title>
     <cost>90</cost>
   </systemBlueprint>
-  <systemBlueprint name="cloaking" subSystem="true">
+  <systemBlueprint name="cloaking">
+    <slot>kit</slot>
     <title>Cloaking</title>
     <cost>150</cost>
   </systemBlueprint>
-  <systemBlueprint name="mind" subSystem="true">
+  <systemBlueprint name="mind">
+    <slot>kit</slot>
     <title>Mind Control</title>
     <cost>75</cost>
   </systemBlueprint>
-  <systemBlueprint name="hacking" subSystem="true">
+  <systemBlueprint name="hacking">
+    <slot>kit</slot>
     <title>Hacking</title>
     <cost>80</cost>
   </systemBlueprint>
@@ -1259,12 +1170,8 @@
     <cost>40</cost>
     <startPower>1</startPower>
     <upgradeCost>
-      <level>1</level>
-      <cost>25</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>2</level>
-      <cost>40</cost>
+      <level>25</level>
+      <level>40</level>
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="doors">
@@ -1272,19 +1179,13 @@
     <cost>60</cost>
     <startPower>1</startPower>
     <upgradeCost>
-      <level>0</level>
-      <cost>60</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>1</level>
-      <cost>35</cost>
-    </upgradeCost>
-    <upgradeCost>
-      <level>2</level>
-      <cost>50</cost>
+      <level n="0">60</level>
+      <level>35</level>
+      <level>50</level>
     </upgradeCost>
   </systemBlueprint>
-  <systemBlueprint name="battery" subSystem="true">
+  <systemBlueprint name="battery">
+    <slot>kit</slot>
     <title>Backup Battery</title>
     <cost>35</cost>
   </systemBlueprint>

@@ -1,14 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { FtlExtract } from "@stl/ftldat";
-import {
-  emitPack,
-  overlayGap,
-  parsePack,
-  type CrewDef,
-  type HullDef,
-  type WeaponBlueprint,
-} from "@stl/pack";
+import { emitGapDocument, emitNoteAppend, emitStatAppend, type CrewDef } from "@stl/pack";
 import { applyFtlMod, loadFtlMods, packFromExtract } from "./mods.ts";
 
 const BASE_XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -185,17 +178,66 @@ describe("loadFtlMods", () => {
     assert.equal(loaded.pack.hulls, undefined);
   });
 
-  it("creates the target file when the append has nothing to extend", () => {
+  it("skips an append whose target file is missing", () => {
     const merged = applyFtlMod(extract({}), {
       documents: [{ path: "data/hyperspace.xml.append", xml: APPEND_XML }],
       text: new Map(),
       assets: new Map(),
     });
+    assert.deepEqual(merged.documents, []);
+  });
+
+  it("patches a file whose path differs only by case", () => {
+    const merged = applyFtlMod(
+      extract({ documents: [{ path: "data/blueprints.xml", xml: BASE_XML }] }),
+      {
+        documents: [{ path: "Data/Blueprints.append.xml", xml: APPEND_XML }],
+        text: new Map(),
+        assets: new Map(),
+      },
+    );
     assert.deepEqual(
       merged.documents.map((doc) => doc.path),
-      ["data/hyperspace.xml"],
+      ["data/blueprints.xml"],
     );
     assert.equal(merged.documents[0]?.xml.includes("SPARK"), true);
+  });
+
+  it("appends the same children again when the mod is applied twice", () => {
+    const append = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <mod:findName type="crewBlueprint" name="human">
+    <mod-append:maxHealth>50</mod-append:maxHealth>
+  </mod:findName>
+</FTL>
+`;
+    const dat = extract({
+      documents: [
+        {
+          path: "data/blueprints.xml",
+          xml: `<FTL><crewBlueprint name="human"><title>Human</title></crewBlueprint></FTL>`,
+        },
+      ],
+    });
+    const mod = extract({ documents: [{ path: "data/blueprints.xml.append", xml: append }] });
+    const twice = applyFtlMod(applyFtlMod(dat, mod), mod);
+    assert.equal((twice.documents[0]?.xml.match(/<maxHealth>/g) ?? []).length, 2);
+  });
+
+  it("creates a file for a raw clobber and skips a raw append with no target", () => {
+    const created = applyFtlMod(extract({}), {
+      documents: [{ path: "data/misc.xml.rawclobber", xml: "<FTL><c/></FTL>" }],
+      text: new Map(),
+      assets: new Map(),
+    });
+    assert.equal(created.documents[0]?.path, "data/misc.xml");
+    assert.equal(created.documents[0]?.xml, "<FTL><c/></FTL>");
+    const skipped = applyFtlMod(extract({}), {
+      documents: [{ path: "data/misc.xml.rawappend", xml: "<b/>" }],
+      text: new Map(),
+      assets: new Map(),
+    });
+    assert.deepEqual(skipped.documents, []);
   });
 
   it("names the append file when it is not well-formed", () => {
@@ -212,13 +254,13 @@ describe("loadFtlMods", () => {
 });
 
 describe("packFromExtract", () => {
-  it("reads the stand-in as a campaign document", () => {
+  it("reads a crew blueprint from a file named stand-in the same way as any other file", () => {
     const pack = packFromExtract(
       extract({
         documents: [
           {
             path: "data/stand-in.xml",
-            xml: `<FTL><race name="human"><title>Human</title><maxHealth>70</maxHealth></race></FTL>`,
+            xml: `<FTL><crewBlueprint name="human"><title>Human</title><maxHealth>70</maxHealth></crewBlueprint></FTL>`,
           },
         ],
       }),
@@ -227,7 +269,7 @@ describe("packFromExtract", () => {
     assert.equal(pack.crew?.[0]?.hp, 70);
   });
 
-  it("attaches sibling text lists without replacing stand-in events", () => {
+  it("lets a later file replace an event and keeps the text lists", () => {
     const pack = packFromExtract(
       extract({
         documents: [
@@ -247,7 +289,7 @@ describe("packFromExtract", () => {
       }),
     );
     assert.equal(pack.events?.length, 1);
-    assert.equal(pack.events?.[0]?.body, "Campaign page.");
+    assert.equal(pack.events?.[0]?.body, "Replaced.");
     assert.deepEqual(
       pack.textLists?.map((row) => row.id),
       ["NEST", "MORE"],
@@ -290,12 +332,85 @@ describe("packFromExtract", () => {
     assert.equal(pack.crew, undefined);
   });
 
+  it("overwrites combat in blueprints.xml and in dlcBlueprints.xml", () => {
+    const human = crew("human", "Human", 50);
+    const lanius = crew("anaerobic", "Lanius", 70);
+    lanius.drainsOxygen = true;
+    const xml = emitStatAppend([human, lanius], "crewBlueprint");
+    const dat = extract({
+      documents: [
+        {
+          path: "data/blueprints.xml",
+          xml: `<FTL><crewBlueprint name="human"><title>Human</title><maxHealth>100</maxHealth></crewBlueprint></FTL>`,
+        },
+        {
+          path: "data/dlcBlueprints.xml",
+          xml: `<FTL><crewBlueprint name="anaerobic"><title>Lanius</title></crewBlueprint></FTL>`,
+        },
+      ],
+    });
+    const mod = extract({
+      documents: [
+        { path: "data/blueprints.xml.append", xml },
+        { path: "data/dlcBlueprints.xml.append", xml },
+      ],
+    });
+    const once = packFromExtract(applyFtlMod(dat, mod));
+    assert.equal(once.crew?.find((row) => row.id === "human")?.hp, 50);
+    assert.equal(once.crew?.find((row) => row.id === "anaerobic")?.hp, 70);
+    assert.equal(once.crew?.find((row) => row.id === "anaerobic")?.drainsOxygen, true);
+    const twice = applyFtlMod(applyFtlMod(dat, mod), mod);
+    const blueprints = twice.documents.find((doc) => doc.path === "data/blueprints.xml")?.xml ?? "";
+    const dlc = twice.documents.find((doc) => doc.path === "data/dlcBlueprints.xml")?.xml ?? "";
+    assert.equal((blueprints.match(/<maxHealth>/g) ?? []).length, 1);
+    assert.equal(blueprints.includes("<maxHealth>50</maxHealth>"), true);
+    assert.equal((dlc.match(/<maxHealth>/g) ?? []).length, 1);
+    assert.equal(dlc.includes("<oxygenChangeSpeed>-0.5</oxygenChangeSpeed>"), true);
+  });
+
   it("keeps the archive rows and colour, and takes combat, notes, and the store from the gap", () => {
-    const archive = packFromExtract(
-      extract({ documents: [{ path: "data/blueprints.xml", xml: VANILLA }] }),
+    const ignored = crew("human", "Ignored", 50);
+    const energyXml = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <crewBlueprint name="energy">
+    <title>Zoltan</title>
+    <maxHealth>70</maxHealth>
+  </crewBlueprint>
+</FTL>
+`;
+    const merged = packFromExtract(
+      applyFtlMod(
+        extract({ documents: [{ path: "data/blueprints.xml", xml: VANILLA }] }),
+        extract({
+          documents: [
+            { path: "data/blueprints.xml.append", xml: emitStatAppend([ignored], "crewBlueprint") },
+            {
+              path: "data/blueprints.xml.append",
+              xml: emitNoteAppend([
+                { id: "civilian", name: "Wrong", group: "civilian", notes: ["Quiet."] },
+                { id: "nebula", name: "Nebula", group: "nebula", notes: ["Skip."] },
+              ]),
+            },
+            {
+              path: "data/gap.xml",
+              xml: emitGapDocument({
+                stores: [
+                  {
+                    id: "general",
+                    name: "Store",
+                    slot: 3,
+                    weapons: 2,
+                    sections: ["weapons"],
+                    lines: [{ id: "fuel", kind: "fuel", name: "Fuel", cost: 3, min: 2, max: 5 }],
+                  },
+                ],
+              }),
+            },
+            { path: "data/energy.xml", xml: energyXml },
+          ],
+        }),
+      ),
     );
-    const gap = parseGap();
-    const merged = overlayGap(archive, gap);
     assert.deepEqual(
       merged.weapons?.map((row) => row.id),
       ["LETO", "ONLY"],
@@ -373,60 +488,4 @@ function crew(id: string, name: string, hp: number): CrewDef {
     lockCooldown: 0,
     fireRepairMultiplier: 1,
   };
-}
-
-function parseGap() {
-  const gun: WeaponBlueprint = {
-    id: "GAP_GUN",
-    name: "Should Not Load",
-    kind: "laser",
-    power: 1,
-    charge: 1,
-    shots: 1,
-    gap: 0,
-    damage: 1,
-    ion: 0,
-    fire: 0,
-    breach: 0,
-    ammo: false,
-    price: 1,
-    blurb: "",
-  };
-  const hull: HullDef = {
-    id: "PLAYER_SHIP_HARD",
-    cruiser: "Kestrel",
-    layout: "A",
-    name: "Campaign Kestrel",
-    quote: "",
-    unlock: "",
-    reactor: 0,
-    missiles: 0,
-    parts: 0,
-    weapons: [],
-    augments: [],
-  };
-  return parsePack(
-    emitPack(
-      {
-        crew: [crew("human", "Ignored", 50), crew("energy", "Zoltan", 70)],
-        sectors: [
-          { id: "civilian", name: "Wrong", group: "civilian", notes: ["Quiet."] },
-          { id: "nebula", name: "Nebula", group: "nebula", notes: ["Skip."] },
-        ],
-        stores: [
-          {
-            id: "general",
-            name: "Store",
-            slot: 3,
-            weapons: 2,
-            sections: ["weapons"],
-            lines: [{ id: "fuel", kind: "fuel", name: "Fuel", cost: 3, min: 2, max: 5 }],
-          },
-        ],
-        weapons: [gun],
-        hulls: [hull],
-      },
-      { crew: "stats", sector: "gap" },
-    ),
-  );
 }

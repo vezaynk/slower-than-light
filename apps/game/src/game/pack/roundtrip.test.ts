@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import "./base.ts";
 import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
+import { applyFtlMod } from "@stl/hyperspace";
 import {
   allAugments,
   allCrew,
@@ -19,9 +20,9 @@ import {
   allWeapons,
   emitFtlSectors,
   emitFtlShips,
+  emitNoteAppend,
   packFromFtl,
   emitPack,
-  overlayGap,
   parsePack,
   resetPackForTests,
 } from "@stl/pack";
@@ -53,11 +54,20 @@ describe("base pack xml", () => {
       ],
       layoutFiles(),
     ).hulls;
-    // Sectors travel as ftl.dat's sector_data.xml; the wiki notes are the gap file's, laid over them.
-    back.sectors = overlayGap(
-      packFromFtl([{ path: "data/sector_data.xml", xml: emitFtlSectors(pack.sectors) }]),
-      parsePack(emitPack({ sectors: pack.sectors }, { sector: "gap" })),
-    ).sectors;
+    // Sectors travel as ftl.dat's sector_data.xml. The wiki notes are appended by the gap mod.
+    const sectors = applyFtlMod(
+      {
+        documents: [{ path: "data/sector_data.xml", xml: emitFtlSectors(pack.sectors) }],
+        text: new Map(),
+        assets: new Map(),
+      },
+      {
+        documents: [{ path: "data/sector_data.xml.append", xml: emitNoteAppend(pack.sectors) }],
+        text: new Map(),
+        assets: new Map(),
+      },
+    );
+    back.sectors = packFromFtl(sectors.documents).sectors;
     assert.deepEqual(back.crew, pack.crew);
     assert.deepEqual(back.weapons, pack.weapons);
     assert.deepEqual(back.augments, pack.augments);
@@ -71,7 +81,10 @@ describe("base pack xml", () => {
     assert.deepEqual(back.lists, pack.lists);
     assert.deepEqual(back.empties, pack.empties);
     const gap = parsePack(
-      readFileSync(new URL("../../../../../packages/campaign/base.xml", import.meta.url), "utf8"),
+      readFileSync(
+        new URL("../../../../../packages/campaign/mod/data/gap.xml", import.meta.url),
+        "utf8",
+      ),
     );
     assert.equal(gap.weapons?.length, 0);
     assert.equal(gap.events?.length, 0);

@@ -55,8 +55,8 @@ const HEADER = `
   Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
   Augment tags are the listing id, title, description, and store cost.
   Drone tags are the listing id, title, and store cost.
-  A systemBlueprint with a cost is a store listing. subSystem marks a kit.
-  startPower is the level a purchase installs. upgradeCost is the scrap for the level already owned.
+  A systemBlueprint with a cost is a store listing. A slot child of kit marks a kit.
+  startPower is the level a purchase installs. One upgradeCost lists the scrap to leave each level. n names a level that is not the next count.
   Hull tags are the ship id, class, layout file, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms. A system's room attribute is the room index.
   A shipBlueprint with no layout and a surrender tag is a faction's default offer.
   Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
@@ -123,8 +123,8 @@ const serializer = new XMLSerializer();
  * sp is shield layers pierced. power is reactor bars.
  * An augment listing is its id, title, description, and store cost.
  * A drone listing is its id, title, and store cost.
- * A system listing is its id, title, store cost, and subSystem when it installs as a kit.
- * startPower and upgradeCost on that same blueprint are the tune.
+ * A system listing is its id, title, store cost, and a slot child of kit when it installs as a kit.
+ * startPower and one upgradeCost list on that same blueprint are the tune.
  * A hull is its id, class, layout file, name, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms.
  * A ship with no layout and a surrender tag is a faction row.
  * A sector is its id, title, colour group, and page notes. Depth gates stay in the chart code.
@@ -168,6 +168,75 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   for (const list of pack.lists ?? []) add(root, listElement(doc, list));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
   return prettyXml(serializer.serializeToString(doc));
+}
+
+/**
+ * The gap file: faction offers, stores, the rewards block, and empty beacons.
+ * Crew combat and sector notes are appends, because they edit a record the archive already has.
+ */
+export function emitGapDocument(pack: ContentPack): string {
+  const doc = implementation.createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("pack document has no root");
+  doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
+  for (const faction of pack.factions ?? []) add(root, factionElement(doc, faction));
+  for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
+  if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
+  for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
+  return prettyXml(serializer.serializeToString(doc));
+}
+
+/**
+ * Finds each crew record and overwrites its combat children.
+ * An existing child of the same tag is replaced. A missing one is added.
+ * A second apply writes the same children again. A missing name is not an error.
+ */
+export function emitStatAppend(crew: readonly CrewDef[], tag: "crewBlueprint" | "race"): string {
+  const doc = implementation.createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("pack document has no root");
+  doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
+  for (const race of crew) add(root, statFind(doc, tag, race));
+  return prettyXml(serializer.serializeToString(doc));
+}
+
+/** Finds each sector that has notes and appends those lines. */
+export function emitNoteAppend(sectors: readonly SectorDef[]): string {
+  const doc = implementation.createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("pack document has no root");
+  doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
+  for (const sector of sectors) {
+    if (sector.notes.length === 0) continue;
+    const find = element(doc, "mod:findName", { type: "sectorDescription", name: sector.id });
+    for (const note of sector.notes) add(find, leaf(doc, "mod-append:note", note));
+    add(root, find);
+  }
+  return prettyXml(serializer.serializeToString(doc));
+}
+
+function statFind(doc: XmlDocument, tag: "crewBlueprint" | "race", race: CrewDef): XmlElement {
+  const find = element(doc, "mod:findName", { type: tag, name: race.id });
+  const overwrite = (name: string, value: string | number | boolean) => {
+    add(find, leaf(doc, `mod-overwrite:${name}`, value));
+  };
+  overwrite("maxHealth", race.hp);
+  overwrite("moveSpeedMultiplier", race.move);
+  overwrite("repairSpeed", race.repair);
+  overwrite("damageMultiplier", race.fight);
+  overwrite("suffocationModifier", race.suffocate);
+  overwrite("fireDamageMultiplier", race.fireTaken);
+  overwrite("fireRepairMultiplier", race.fireRepairMultiplier);
+  overwrite("bonusPower", race.bonusPower);
+  overwrite("hasDeathExplosion", race.hasDeathExplosion);
+  overwrite("oxygenChangeSpeed", race.drainsOxygen ? OXYGEN_DRAIN : 0);
+  overwrite("detectsLifeforms", race.detectsLifeforms);
+  overwrite("resistsMindControl", race.resistsMindControl);
+  const power = element(doc, "mod-overwrite:powerEffect", {});
+  add(power, leaf(doc, "lockdown", race.lockdown));
+  add(power, leaf(doc, "cooldown", race.lockCooldown));
+  add(find, power);
+  return find;
 }
 
 function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
@@ -668,7 +737,7 @@ function sectorElement(
   const node = element(doc, "sectorDescription", { name: sector.id });
   if (part !== "gap") add(node, leaf(doc, "title", sector.name));
   if (part !== "body") for (const note of sector.notes) add(node, leaf(doc, "note", note));
-  // Track names belong on the stand-in body. The gap file (base.xml) leaves them out.
+  // Track names belong on the stand-in body. The gap append leaves them out.
   if (part !== "gap" && sector.tracks && sector.tracks.length > 0) {
     const list = element(doc, "trackList", {});
     for (const name of sector.tracks) add(list, leaf(doc, "track", name));
@@ -679,19 +748,23 @@ function sectorElement(
 
 function systemElement(doc: XmlDocument, system?: SystemDef, tune?: TuneDef): XmlElement {
   const id = system?.id ?? tune?.id ?? "";
-  const attrs: Record<string, string> = { name: id };
-  if (system?.slot === "kit") attrs.subSystem = "true";
-  const node = element(doc, "systemBlueprint", attrs);
+  const node = element(doc, "systemBlueprint", { name: id });
+  if (system?.slot === "kit") add(node, leaf(doc, "slot", "kit"));
   if (system) {
     add(node, leaf(doc, "title", system.name));
     add(node, leaf(doc, "cost", system.cost));
   }
   if (tune) {
     add(node, leaf(doc, "startPower", tune.start));
-    for (const step of tune.costs) {
+    if (tune.costs.length > 0) {
       const upgrade = element(doc, "upgradeCost", {});
-      add(upgrade, leaf(doc, "level", step.level));
-      add(upgrade, leaf(doc, "cost", step.cost));
+      let next = 1;
+      for (const step of tune.costs) {
+        const level = leaf(doc, "level", step.cost);
+        if (step.level !== next) level.setAttribute("n", String(step.level));
+        add(upgrade, level);
+        next = step.level + 1;
+      }
       add(node, upgrade);
     }
   }

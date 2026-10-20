@@ -698,7 +698,9 @@ describe("packFromFtl", () => {
       ],
       [{ path: "data/kestral.txt", text: KESTRAL }],
     );
-    assert.equal(pack.stores, undefined);
+    assert.deepEqual(pack.stores, [
+      { id: "store", name: "store", slot: 3, weapons: 2, sections: [], lines: [] },
+    ]);
     assert.equal(pack.hulls?.map((row) => row.id).join(","), "PLAYER_SHIP_EASY,BOSS_1_EASY");
 
     const kestrel = pack.hulls?.[0];
@@ -921,6 +923,41 @@ describe("packFromFtl", () => {
     assert.equal(standard?.name, "Civil Space");
     assert.equal(standard?.short, "Home");
     assert.equal(pack.sectors?.find((row) => row.id === "ONLY_DE")?.name, "only_german");
+  });
+
+  it("reads a flagged page, including an offer, from an ordinary document", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/events.xml",
+        xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <event name="stall" flag="market">
+    <title>Stall</title>
+    <text>A counter.</text>
+    <eventList name="trade">
+      <event>
+        <item_modify>
+          <item type="missiles" min="-2" max="-1"/>
+          <item type="fuel" min="3" max="5"/>
+        </item_modify>
+      </event>
+    </eventList>
+  </event>
+</FTL>`,
+      },
+    ]);
+    assert.deepEqual(pack.events, [
+      {
+        id: "stall",
+        dest: "Stall",
+        flag: "market",
+        aliases: [],
+        sectors: [],
+        body: "A counter.",
+        choices: [],
+        offers: [{ k: "trade", pay: "missiles", cost: [1, 2], get: "fuel", gain: [3, 5] }],
+      },
+    ]);
   });
 
   it("names the file when the XML is not well-formed", () => {

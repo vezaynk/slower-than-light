@@ -15,7 +15,10 @@ import {
   allWeapons,
   emitFtlSectors,
   emitFtlShips,
+  emitGapDocument,
+  emitNoteAppend,
   emitPack,
+  emitStatAppend,
   rewardTable,
   type ContentPack,
 } from "@stl/pack";
@@ -42,7 +45,7 @@ export function campaignPack(): ContentPack {
 }
 
 /**
- * Body is the stand-in. Gap is base.xml.
+ * Body is the stand-in. Gap is the Slipstream mod.
  * The two halves share the catalog rows. Emit omits the fields each file leaves out.
  */
 export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: ContentPack } {
@@ -68,9 +71,10 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
   };
 }
 
-/** The catalog's ship blueprints, written as ftl.dat's data/blueprints.xml writes them. */
+/** Ship blueprints plus each crew's title, description, and store cost. Combat stays on the append. */
 export function standInShipsXml(): string {
-  return emitFtlShips(campaignPack().hulls ?? []);
+  const pack = campaignPack();
+  return emitFtlShips(pack.hulls ?? [], pack.crew ?? []);
 }
 
 /** The catalog's sectors, written as ftl.dat's data/sector_data.xml writes them. */
@@ -79,14 +83,27 @@ export function standInSectorsXml(): string {
 }
 
 /**
- * Campaign records the archive can carry: names, blueprints, and pages. Ships and sectors are in standInShipsXml and
- * standInSectorsXml.
+ * Campaign records the archive can carry: weapons, augments, drones, systems, pages, and filler lists.
+ * Crew identity is in standInShipsXml. Ships and sectors are in standInShipsXml and standInSectorsXml.
  */
 export function standInXml(): string {
-  return emitPack(splitCampaign(campaignPack()).body, { crew: "identity", sector: "body" });
+  const { body } = splitCampaign(campaignPack());
+  return emitPack({ ...body, crew: undefined }, { sector: "body" });
 }
 
-/** Records the archive does not carry: crew combat, sector colour, the store, and reward bands. */
-export function campaignXml(): string {
-  return emitPack(splitCampaign(campaignPack()).gap, { crew: "stats", sector: "gap" });
+/**
+ * The gap mod. The crew overwrite adds combat onto each blueprint file that can hold a race.
+ * Vanilla keeps Lanius in dlcBlueprints.xml and the other races in blueprints.xml.
+ * A find in a file that has no such blueprint does nothing. The sector append adds notes.
+ * `data/gap.xml` adds the store, the rewards block, faction offers, and empty beacons.
+ */
+export function gapModFiles(): { path: string; xml: string }[] {
+  const gap = splitCampaign(campaignPack()).gap;
+  const crew = emitStatAppend(gap.crew ?? [], "crewBlueprint");
+  return [
+    { path: "data/blueprints.xml.append", xml: crew },
+    { path: "data/dlcBlueprints.xml.append", xml: crew },
+    { path: "data/sector_data.xml.append", xml: emitNoteAppend(gap.sectors ?? []) },
+    { path: "data/gap.xml", xml: emitGapDocument(gap) },
+  ];
 }

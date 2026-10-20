@@ -1,8 +1,8 @@
 import datUrl from "../../../../../packages/totallynotftl/totallynotftl.dat?url";
-import packUrl from "../../../../../packages/campaign/base.xml?url";
-import { extractFtlDat } from "@stl/ftldat";
-import { packFromExtract } from "@stl/hyperspace";
-import { fetchPackXml, loadPack, overlayGap, parsePack } from "@stl/pack";
+import gapUrl from "../../../../../packages/campaign/base.ftl?url";
+import { extractArchive } from "@stl/ftldat";
+import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
+import { loadPack } from "@stl/pack";
 import { rememberArchive } from "./media";
 import { rememberShipArt } from "./ship-art";
 
@@ -49,8 +49,8 @@ async function fetchBytes(url: string, onProgress: (ratio: number) => void): Pro
 }
 
 /**
- * The archive to boot from: `?dat=<url>` names one (a player's ftl.dat on a local server, for example), otherwise the
- * bundled stand-in. The URL is fetched like any other, so a server on another origin must allow it (CORS).
+ * The archive to boot from: `?dat=<url>` names one (a player's ftl.dat or a `.ftl` zip on a local server, for example),
+ * otherwise the bundled stand-in. The URL is fetched like any other, so a server on another origin must allow it (CORS).
  */
 function archiveUrl(): string {
   if (typeof location === "undefined") return datUrl;
@@ -63,18 +63,20 @@ async function install(source?: ArrayBuffer | Uint8Array): Promise<void> {
     ? source instanceof Uint8Array
       ? source
       : new Uint8Array(source)
-    : await fetchBytes(archiveUrl(), (ratio) => report(ratio * 0.45));
-  if (source) report(0.45);
-  const xml = await fetchPackXml(packUrl, (ratio) => report(0.45 + ratio * 0.45));
-  report(0.95);
-  const files = await extractFtlDat(bytes);
+    : await fetchBytes(archiveUrl(), (ratio) => report(ratio * 0.4));
+  if (source) report(0.4);
+  const gapBytes = await fetchBytes(gapUrl, (ratio) => report(0.4 + ratio * 0.4));
+  report(0.85);
+  const archive = await extractArchive(bytes);
+  const gap = await extractArchive(gapBytes);
+  const files = applyFtlMod(archive, gap);
   rememberShipArt(files.assets);
   await rememberArchive(files.documents, files.assets);
-  loadPack(overlayGap(packFromExtract(files), parsePack(xml)), "base");
+  loadPack(packFromExtract(files), "base");
   report(1);
 }
 
-/** Fetches the bundled archive and the gap file, and installs that pack. Later callers share the same load. */
+/** Fetches the bundled archive and the gap mod, and installs that pack. Later callers share the same load. */
 export function loadBasePackXml(onProgress: Listen): Promise<void> {
   listeners.add(onProgress);
   onProgress(latest);
@@ -88,7 +90,7 @@ export function loadBasePackXml(onProgress: Listen): Promise<void> {
 }
 
 /**
- * Installs one archive, then the gap file.
+ * Installs one archive, then the gap mod.
  * A passed-in buffer is the player's ftl.dat. This load does not reuse the bundled one.
  */
 export function loadArchiveThenCampaign(

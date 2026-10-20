@@ -21,6 +21,12 @@ type Row = {
   deflated: boolean;
 };
 
+export function isPkgDat(bytes: Uint8Array): boolean {
+  return (
+    bytes.byteLength >= SIGNATURE.length && SIGNATURE.every((byte, index) => bytes[index] === byte)
+  );
+}
+
 export async function readPkg(bytes: Uint8Array): Promise<PkgFile[]> {
   if (bytes.byteLength < HEADER_SIZE) throw new Error("ftl.dat is too small to be a PKG archive");
   for (let i = 0; i < SIGNATURE.length; i++) {

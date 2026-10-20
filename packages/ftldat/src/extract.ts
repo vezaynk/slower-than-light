@@ -26,10 +26,10 @@ export type FtlDocument = {
 /**
  * One path map. `extractFtlDat` and `extractFtlZip` both return this.
  * `documents` stay in the order the container listed them.
- * A `*.xml.append` path keeps that suffix until a mod is applied.
+ * An append, raw append, or raw clobber path keeps its suffix until a mod is applied.
  */
 export type FtlExtract = {
-  /** XML files in container order, including `*.xml.append` from a zip. */
+  /** XML files in container order, including Slipstream patch files from a zip. */
   documents: readonly FtlDocument[];
   /** Ship layouts and the other non-XML text, keyed by inner path. */
   text: ReadonlyMap<string, string>;
@@ -56,14 +56,45 @@ export async function extractFtlDat(source: FtlDatSource): Promise<FtlExtract> {
   return collectExtract(await readPkg(await sourceBytes(source)));
 }
 
-/** Sorts raw container files into the path map. A `*.xml.append` stays XML. */
+const PATCH_RULES: { suffix: string; kind: FtlPatchKind; replace: string }[] = [
+  { suffix: ".xml.rawappend", kind: "rawappend", replace: ".xml" },
+  { suffix: ".rawappend.xml", kind: "rawappend", replace: ".xml" },
+  { suffix: ".xml.rawclobber", kind: "rawclobber", replace: ".xml" },
+  { suffix: ".rawclobber.xml", kind: "rawclobber", replace: ".xml" },
+  { suffix: ".xml.append", kind: "append", replace: ".xml" },
+  { suffix: ".append.xml", kind: "append", replace: ".xml" },
+];
+
+export type FtlPatchKind = "append" | "rawappend" | "rawclobber";
+
+/**
+ * The Slipstream suffix on a mod path, and the `.xml` file it patches.
+ * `blueprints.xml.append` and `blueprints.append.xml` both patch `blueprints.xml`.
+ * Lookup of the target is case-insensitive.
+ */
+export function ftlPatch(path: string): { target: string; kind: FtlPatchKind } | undefined {
+  const lower = path.toLowerCase();
+  for (const rule of PATCH_RULES) {
+    if (!lower.endsWith(rule.suffix)) continue;
+    const stem = path.slice(0, path.length - rule.suffix.length);
+    if (!stem) return undefined;
+    return { target: `${stem}${rule.replace}`, kind: rule.kind };
+  }
+  return undefined;
+}
+
+function isFtlDocument(path: string): boolean {
+  return path.toLowerCase().endsWith(".xml") || ftlPatch(path) !== undefined;
+}
+
+/** Sorts raw container files into the path map. Append and raw patch files stay XML. */
 export function collectExtract(files: readonly { path: string; bytes: Uint8Array }[]): FtlExtract {
   const documents: FtlDocument[] = [];
   const text = new Map<string, string>();
   const assets = new Map<string, Blob>();
   for (const file of files) {
     const lower = file.path.toLowerCase();
-    if (lower.endsWith(".xml") || lower.endsWith(".xml.append")) {
+    if (isFtlDocument(file.path)) {
       documents.push({ path: file.path, xml: decodeText(file.bytes) });
       continue;
     }

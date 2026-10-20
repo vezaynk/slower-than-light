@@ -488,16 +488,28 @@ export function isMain(id: SysId): boolean {
  * bonus 0 is the reactor count this function used before.
  * settleZoltanPower is what frees reactor bars. This sum does not.
  */
+/** Archive `<status>` limit and divide. Absent fields leave `n` as it is. */
+export function archiveBars(
+  n: number,
+  row?: { archiveLimit?: number; archiveDivide?: number },
+): number {
+  let out = n;
+  if (row?.archiveDivide != null && row.archiveDivide >= 1)
+    out = Math.floor(out / row.archiveDivide);
+  if (row?.archiveLimit != null) out = Math.min(out, row.archiveLimit);
+  return Math.max(0, out);
+}
+
 export function bars(sys: SystemState, bonus = 0): number {
   const capacity = Math.max(0, sys.level - sys.damage);
   const ionLocked = Math.min(Math.max(0, sys.ion.length), capacity);
   const green = Math.max(0, Math.min(sys.power, capacity - ionLocked));
   const yellow = Math.max(0, Math.min(bonus, capacity));
-  return Math.min(capacity, green + yellow);
+  return archiveBars(Math.min(capacity, green + yellow), sys);
 }
 
 export function functional(sys: SystemState): boolean {
-  return sys.level - sys.damage - sys.ion.length > 0;
+  return archiveBars(Math.max(0, sys.level - sys.damage - sys.ion.length), sys) > 0;
 }
 
 export function maxBubbles(ship: Ship, bonus = 0): number {
@@ -979,6 +991,19 @@ function clearEngineLimit(g: Game): void {
   engineLimit.delete(g);
 }
 
+/** Player archive limit and divide last until the jump. Enemy caps live on that ship. */
+function clearArchiveCaps(ship: Ship): void {
+  for (const sys of Object.values(ship.systems)) {
+    delete sys.archiveLimit;
+    delete sys.archiveDivide;
+  }
+  for (const kit of Object.values(ship.kits)) {
+    if (!kit) continue;
+    delete kit.archiveLimit;
+    delete kit.archiveDivide;
+  }
+}
+
 function engineBars(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   let bars = Math.min(8, mainBars(g, ship, aboard, "engines"));
   // The Engi virus: "Engines and Shields systems halved" and "rounds down against you".
@@ -1428,6 +1453,12 @@ export function powerMask(ship: Ship, bonus = 0): boolean[] {
     pool.z = Math.min(pool.z, total);
     pool.r = total - pool.z;
   }
+  const weaponRaw = pool.z + pool.r;
+  const weaponCapped = archiveBars(weaponRaw, sys);
+  if (weaponCapped < weaponRaw) {
+    pool.z = Math.min(pool.z, weaponCapped);
+    pool.r = weaponCapped - pool.z;
+  }
   const walk = (occupy: boolean): boolean[] => {
     const slot = { z: pool.z, r: pool.r, occupy };
     return ship.weapons.map((w) => takePowerSlot(weaponDef(w.defId)?.power ?? 1, w.enabled, slot));
@@ -1849,7 +1880,7 @@ export function doorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): numb
   if (!functional(sys)) return 0;
   let level = Math.max(0, sys.level - sys.damage);
   if (manning(g, ship, aboard, "doors")) level += 1;
-  return Math.min(4, level);
+  return Math.min(4, archiveBars(level, sys));
 }
 
 /**
@@ -3126,7 +3157,7 @@ export function kitBars(kit: Kit | undefined, bonus?: number): number {
   const capacity = Math.max(0, kit.level - (kit.damage ?? 0));
   const green = Math.max(0, Math.min(kit.power, capacity));
   const yellow = Math.max(0, Math.min(bonus ?? kit.zoltan ?? 0, capacity));
-  return Math.min(capacity, green + yellow);
+  return archiveBars(Math.min(capacity, green + yellow), kit);
 }
 
 /**
@@ -7197,6 +7228,7 @@ export function commitJump(g: Game, id: string) {
   onPlayerJump(g);
   // INFERRED: jumping away restores the engines. The page prints the restore on a win.
   clearEngineLimit(g);
+  clearArchiveCaps(g.player);
   // INFERRED: jumping away ends the shield-virus half. The page only prints the half for that fight.
   clearShieldHalf(g);
   clearSystemOff(g);
@@ -7930,6 +7962,7 @@ export function enterHiddenCrystal(g: Game) {
   g.jumps += 1;
   onPlayerJump(g);
   clearEngineLimit(g);
+  clearArchiveCaps(g.player);
   // INFERRED: leaving for the Hidden Crystal Worlds ends the shield-virus half.
   clearShieldHalf(g);
   clearSystemOff(g);

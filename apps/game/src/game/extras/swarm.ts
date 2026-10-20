@@ -7,6 +7,7 @@ import {
   doorLevel,
   FIRE_FIGHT_SHARE,
   isMain,
+  archiveBars,
   kitBars,
   log,
   negateIon,
@@ -1927,7 +1928,7 @@ function unitPower(kind: string): number {
 
 /** Same occupy / add split as sim.ts powerMask. Zero Zoltans keep the old skip-if-short walk. */
 function dronePool(kit: Kit): { z: number; r: number; occupy: boolean } {
-  const capacity = Math.max(0, kit.level - (kit.damage ?? 0));
+  const capacity = archiveBars(Math.max(0, kit.level - (kit.damage ?? 0)), kit);
   const z = kit.zoltan ?? 0;
   const held = kit.zoltanHeld ?? 0;
   const occupy = capacity > 0 && z > 0 && kit.power + held >= capacity;

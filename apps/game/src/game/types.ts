@@ -31,6 +31,13 @@ export type SystemState = {
    * when the Zoltans leave a system that is no longer full.
    */
   zoltanHeld?: number;
+  /**
+   * Archive `<status type="limit">`. Usable bars cannot exceed this. The installed level stays.
+   * Absent means no cap. A player cap lasts until the jump. An enemy cap leaves with that ship.
+   */
+  archiveLimit?: number;
+  /** Archive `<status type="divide">`. Usable bars are floored by this. Replaces `archiveLimit` on the same system. */
+  archiveDivide?: number;
 };
 
 export type Room = {
@@ -391,6 +398,10 @@ export type Kit = {
    * Same stamp as SystemState.zoltanHeld. Leaving restores them from spare.
    */
   zoltanHeld?: number;
+  /** Archive `<status type="limit">` on this kit. Same rule as SystemState.archiveLimit. */
+  archiveLimit?: number;
+  /** Archive `<status type="divide">` on this kit. Same rule as SystemState.archiveDivide. */
+  archiveDivide?: number;
   /**
    * @agent:drones. Enemy Drone Control: the schematics this hull fields this fight (enemy-gen.ts).
    * Absent on the player kit and on hand-built test kits, which keep the single `target` drone.

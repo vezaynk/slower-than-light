@@ -2,7 +2,9 @@
  * Ship, boarders, grants, autoReward, and environment already stored on an archive event.
  * A page or choice that does not carry them is left to its campaign handler.
  */
+import type { KitId, SysId } from "@stl/catalog";
 import type {
+  ArchiveAlter,
   ArchiveBoarders,
   ArchiveGrant,
   ArchiveReward,
@@ -23,10 +25,24 @@ import {
   warnPack,
   weaponDef,
 } from "@stl/pack";
+import { upgradeCost } from "./content.ts";
+import { onCradleDeath, cradleUpgradeCost } from "./extras/cradle.ts";
 import { adjustScrap } from "./extras/index.ts";
 import type { KinId } from "./extras/kin.ts";
-import { armEventEnvironment, beginBoarding, log, rand, startCombat, syncIonStorm } from "./sim.ts";
-import type { Game } from "./types.ts";
+import { spikeUpgradeCost } from "./extras/spike.ts";
+import {
+  armEventEnvironment,
+  beginBoarding,
+  hurtKit,
+  hurtSystem,
+  isMain,
+  log,
+  rand,
+  startCombat,
+  syncIonStorm,
+  syncShields,
+} from "./sim.ts";
+import type { Game, Kit, SystemState } from "./types.ts";
 import { grantRandomItem } from "./wiki/bonus-item.ts";
 import { receiveAugment, receiveDrone, receiveWeapon } from "./wiki/make-room.ts";
 import {
@@ -116,7 +132,11 @@ export function showArchivePage(
     g.event = null;
     return false;
   }
-  if (!pageHasArchive(page) && !page.environment) return false;
+  applyArchiveAlters(g, page.alters, "player");
+  if (!pageHasArchive(page) && !page.environment) {
+    applyArchiveAlters(g, page.alters, "enemy");
+    return false;
+  }
   // This page's environment replaces the one the previous event stored.
   delete g.eventStorm;
   delete g.eventNebula;
@@ -134,6 +154,7 @@ export function showArchivePage(
     );
     if (page.boarders) beamBoarders(g, page.boarders);
     armEventEnvironment(g, page.environment);
+    applyArchiveAlters(g, page.alters, "enemy");
     return true;
   }
   if (page.boarders) {
@@ -142,9 +163,11 @@ export function showArchivePage(
       beginBoarding(g, page.environment?.type === "PDS", page.environment?.type === "sun");
     }
     armEventEnvironment(g, page.environment);
+    applyArchiveAlters(g, page.alters, "enemy");
     return g.phase === "combat";
   }
   armEventEnvironment(g, page.environment);
+  applyArchiveAlters(g, page.alters, "enemy");
   return false;
 }
 
@@ -230,8 +253,12 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
     if (beacon && beacon.kind !== "boss") beacon.resolved = true;
     return;
   }
-  if (!choice || (!choiceHasArchive(choice) && !choice.environment)) return;
+  if (!choice || (!choiceHasArchive(choice) && !choice.environment && !choice.alters?.length))
+    return;
   if (isCampaign(id) && handlerActed(g, before)) return;
+  applyArchiveAlters(g, choice.alters, "player");
+  const enemyPresent = g.enemy != null;
+  if (enemyPresent) applyArchiveAlters(g, choice.alters, "enemy");
   if (choice.ship && !choice.ship.hostile && !choice.ship.load && g.enemy) closeFight(g);
   applyGrants(g, choice.grants);
   if (choice.reward) payAutoReward(g, choice.reward);
@@ -245,6 +272,7 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
       choice.ship.autoBlueprint,
     );
   }
+  if (!enemyPresent) applyArchiveAlters(g, choice.alters, "enemy");
   if (choice.boarders && boarderCount(g) === before.boarders) beamBoarders(g, choice.boarders);
   if (!g.enemy && boarderCount(g) > before.boarders) {
     beginBoarding(g, choice.environment?.type === "PDS", choice.environment?.type === "sun");
@@ -267,7 +295,8 @@ function emptySurrenderResult(choice: EventChoice): boolean {
     choice.reward ||
     choice.grants?.length ||
     choice.boarders ||
-    choice.environment
+    choice.environment ||
+    choice.alters?.length
   )
     return false;
   return !choice.fx.some((fx) => fx.k !== "nothing" && fx.k !== "note");
@@ -321,6 +350,142 @@ function shipPages(): EventDef[] {
     for (const entry of list.entries) if (entry.page) pages.push(entry.page);
   }
   return pages;
+}
+
+const ARCHIVE_SYSTEMS = new Set<SysId>([
+  "shields",
+  "engines",
+  "weapons",
+  "oxygen",
+  "medbay",
+  "pilot",
+  "sensors",
+  "doors",
+]);
+const ARCHIVE_KITS = new Set<KitId>(["hacking", "clonebay", "drones"]);
+
+/** Page and choice alters. Player rows apply as soon as the cost is paid. Enemy rows wait until that ship exists. */
+function applyArchiveAlters(
+  g: Game,
+  alters: readonly ArchiveAlter[] | undefined,
+  side: "player" | "enemy",
+): void {
+  if (!alters?.length) return;
+  if (side === "enemy" && !g.enemy) return;
+  for (const alter of alters) {
+    if (alter.k === "status") {
+      if (alter.target === side) applyStatus(g, alter);
+      continue;
+    }
+    if (side !== "player") continue;
+    if (alter.k === "upgrade") applyUpgrade(g, alter);
+    else if (alter.k === "removeCrew") applyRemoveCrew(g, alter);
+    else applyRemove(g, alter);
+  }
+}
+
+function applyStatus(g: Game, alter: Extract<ArchiveAlter, { k: "status" }>): void {
+  if (alter.type === "divide" && alter.amount < 1) {
+    warnPack(`A <status type="divide" amount="${alter.amount}"> is below 1; it is skipped.`);
+    return;
+  }
+  const ship = alter.target === "player" ? g.player : g.enemy;
+  if (!ship) return;
+  if (ARCHIVE_SYSTEMS.has(alter.system as SysId)) {
+    const id = alter.system as SysId;
+    const sys = ship.systems[id];
+    if (!sys) {
+      warnPack(`A <status system="${alter.system}"> is not on this ship; it is skipped.`);
+      return;
+    }
+    writeStatus(sys, alter.type, alter.amount);
+    if (alter.type === "loss") hurtSystem(ship, id, alter.amount);
+    if (id === "shields") syncShields(ship);
+    return;
+  }
+  if (ARCHIVE_KITS.has(alter.system as KitId)) {
+    const id = alter.system as KitId;
+    const kit = ship.kits[id];
+    if (!kit) {
+      warnPack(`A <status system="${alter.system}"> is not on this ship; it is skipped.`);
+      return;
+    }
+    writeStatus(kit, alter.type, alter.amount);
+    if (alter.type === "loss") hurtKit(ship, id, alter.amount);
+    return;
+  }
+  warnPack(`A <status system="${alter.system}"> is not on this ship; it is skipped.`);
+}
+
+function writeStatus(
+  row: SystemState | Kit,
+  type: "limit" | "divide" | "clear" | "loss",
+  amount: number,
+): void {
+  if (type === "limit") {
+    row.archiveLimit = amount;
+    delete row.archiveDivide;
+  } else if (type === "divide") {
+    row.archiveDivide = amount;
+    delete row.archiveLimit;
+  } else if (type === "clear") {
+    delete row.archiveLimit;
+    delete row.archiveDivide;
+  }
+}
+
+function applyUpgrade(g: Game, alter: Extract<ArchiveAlter, { k: "upgrade" }>): void {
+  const steps = Math.max(0, Math.floor(alter.amount));
+  if (steps === 0) return;
+  const ship = g.player;
+  if (alter.system === "reactor") {
+    for (let i = 0; i < steps; i++) {
+      if (upgradeCost("reactor", ship.reactor) == null) break;
+      ship.reactor += 1;
+    }
+    return;
+  }
+  if (ARCHIVE_SYSTEMS.has(alter.system as SysId)) {
+    const id = alter.system as SysId;
+    const sys = ship.systems[id];
+    if (!sys || sys.level <= 0) return;
+    for (let i = 0; i < steps; i++) {
+      if (upgradeCost(id, sys.level) == null) break;
+      sys.level += 1;
+      if (!isMain(id)) sys.power = sys.level;
+    }
+    return;
+  }
+  if (!ARCHIVE_KITS.has(alter.system as KitId)) return;
+  const id = alter.system as KitId;
+  const kit = ship.kits[id];
+  if (!kit || kit.level <= 0) return;
+  for (let i = 0; i < steps; i++) {
+    if (!kitCanRise(id, kit.level)) break;
+    kit.level += 1;
+  }
+}
+
+function kitCanRise(id: KitId, level: number): boolean {
+  if (id === "hacking") return spikeUpgradeCost(level) != null;
+  if (id === "clonebay") return cradleUpgradeCost(level) != null;
+  // Drone Control fits stop at 3. The store bundle and the hulls both use that top.
+  if (id === "drones") return level < 3;
+  return false;
+}
+
+function applyRemoveCrew(g: Game, alter: Extract<ArchiveAlter, { k: "removeCrew" }>): void {
+  const crew = g.crew.find((c) => c.side === "player" && c.hp > 0 && (c.cloneIn ?? 0) <= 0);
+  if (crew && !(alter.clone && onCradleDeath(g, crew))) {
+    const index = g.crew.indexOf(crew);
+    if (index >= 0) g.crew.splice(index, 1);
+  }
+  if (alter.text) log(g, alter.text);
+}
+
+function applyRemove(g: Game, alter: Extract<ArchiveAlter, { k: "remove" }>): void {
+  const index = g.augments.indexOf(alter.name);
+  if (index >= 0) g.augments.splice(index, 1);
 }
 
 type ResId = "scrap" | "fuel" | "missiles" | "parts";

@@ -14,7 +14,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:mantis-fight-engi";
+  b.flag = "ENGI_MANTIS_FIGHT";
   b.name = "Mantis fight (Engi)";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -60,7 +60,7 @@ describe("Mantis fight (Engi)", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:mantis-fight-engi";
+    dest.flag = "ENGI_MANTIS_FIGHT";
     dest.name = "Mantis fight (Engi)";
     dest.resolved = false;
     dest.tier = "";

@@ -19,7 +19,7 @@ function beacon(): Beacon {
     resolved: false,
     name: DEST,
     tier: "",
-    flag: "cited:boarders-humans-pirate",
+    flag: "BOARDERS",
     asteroid: false,
   };
 }
@@ -79,7 +79,7 @@ describe("Boarders: Humans (Pirate)", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:boarders-humans-pirate";
+    dest.flag = "BOARDERS";
     dest.name = DEST;
     dest.resolved = false;
     dest.tier = "";

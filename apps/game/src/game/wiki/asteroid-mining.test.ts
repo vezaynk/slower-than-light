@@ -26,7 +26,7 @@ function beacon(): Beacon {
 
 describe("Asteroid mining colony", () => {
   it("is a card an items draw can reach", () => {
-    assert.equal(pageForRow("Asteroid mining colony")?.slug, "asteroid-mining-colony");
+    assert.equal(pageForRow("Asteroid mining colony")?.slug, "HELP_MINERS");
   });
 
   it("offers a launch only for a missile weapon, and that launch changes nothing", () => {

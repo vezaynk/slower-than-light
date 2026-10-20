@@ -25,6 +25,7 @@ import {
   weaponDef,
   type SurrenderOfferDef,
 } from "@stl/pack";
+import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
 import { SCRIPTED_SURRENDERS } from "./surrender-offers.ts";
 export { SCRIPTED_SURRENDERS };
 export type { ScriptedReward, ScriptedSurrender } from "./surrender-offers.ts";
@@ -227,7 +228,7 @@ function never(): SurrenderPlan {
 
 /** The fight page's offer, once the pack has loaded it. */
 function scriptedFor(id: string | undefined): SurrenderOfferDef | undefined {
-  return id ? eventDef(id)?.surrender : undefined;
+  return id ? eventDef(storedId(id))?.surrender : undefined;
 }
 
 export function surrenderPlan(ctx: SurrenderContext, roll: () => number): SurrenderPlan {

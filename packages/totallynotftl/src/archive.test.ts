@@ -18,10 +18,10 @@ import {
 import {
   standInAchievementsXml,
   standInDat,
+  standInEventFiles,
   standInImages,
   standInSectorsXml,
   standInShipsXml,
-  standInXml,
 } from "./archive.ts";
 import { standInMedia } from "./media.ts";
 import { TEXT_LISTS_XML } from "./text-lists.ts";
@@ -45,47 +45,59 @@ describe("totallynotftl.dat", () => {
   });
 
   it("rebuilds the committed archive", async () => {
-    const xml = standInXml();
-    const goldenXml = readFileSync(
-      new URL("../archive/data/stand-in.xml", import.meta.url),
-      "utf8",
-    );
-    assert.equal(xml, goldenXml);
-    assert.equal(xml.includes("<facts"), false);
-    assert.equal(xml.includes("<maxHealth"), false);
-    assert.equal(xml.includes("<customStore"), false);
-    assert.equal(xml.includes("<rewards"), false);
-    assert.equal(xml.includes("<event "), true);
-    assert.equal(xml.includes("<weaponBlueprint"), false);
-    assert.equal(xml.includes("<augBlueprint"), false);
-    assert.equal(xml.includes("<droneBlueprint"), false);
-    assert.equal(xml.includes("<systemBlueprint"), false);
-    assert.equal(xml.includes("<crew>"), false);
-    assert.equal(xml.includes("<crew/>"), false);
+    const events = standInEventFiles();
+    assert.ok(events.some((file) => file.xml.includes("<event ")));
+    for (const file of events) {
+      const goldenXml = readFileSync(new URL(`../archive/${file.path}`, import.meta.url), "utf8");
+      assert.equal(file.xml, goldenXml, file.path);
+      assert.equal(file.xml.includes("<facts"), false, file.path);
+      assert.equal(file.xml.includes("<maxHealth"), false, file.path);
+      assert.equal(file.xml.includes("<customStore"), false, file.path);
+      assert.equal(file.xml.includes("<rewards"), false, file.path);
+      assert.equal(file.xml.includes("<weaponBlueprint"), false, file.path);
+      assert.equal(file.xml.includes("<augBlueprint"), false, file.path);
+      assert.equal(file.xml.includes("<droneBlueprint"), false, file.path);
+      assert.equal(file.xml.includes("<systemBlueprint"), false, file.path);
+      assert.equal(file.xml.includes("<crew>"), false, file.path);
+      assert.equal(file.xml.includes("<crew/>"), false, file.path);
+      assert.equal(file.xml.includes("<sectorDescription"), false, file.path);
+      assert.equal(file.xml.includes("<shipBlueprint"), false, file.path);
+      assert.equal(file.xml.includes("<race"), false, file.path);
+      assert.equal(file.xml.includes("<weaponArt>"), false, file.path);
+      assert.equal(file.xml.includes("<droneImage>"), false, file.path);
+    }
+    const eventsXml = events.find((file) => file.path === "data/events.xml")?.xml ?? "";
     const built = await standInDat();
     const extracted = await extractFtlDat(built);
     const pictures = hullPictureFiles();
     const media = await standInMedia();
-    assert.equal(extracted.documents.length, 5 + pictures.length + media.documents.length);
-    assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
-    assert.equal(extracted.documents[0]?.xml, goldenXml);
-    // Ships are ftl.dat blueprints, as a real archive writes them; the stand-in document carries none.
-    assert.equal(extracted.documents[1]?.path, "data/blueprints.xml");
-    assert.equal(extracted.documents[1]?.xml, standInShipsXml());
-    assert.equal(extracted.documents[2]?.path, "data/sector_data.xml");
-    assert.equal(extracted.documents[2]?.xml, standInSectorsXml());
+    assert.equal(
+      extracted.documents.length,
+      events.length + 4 + pictures.length + media.documents.length,
+    );
+    for (const file of events) {
+      assert.equal(extracted.documents.find((doc) => doc.path === file.path)?.xml, file.xml);
+    }
+    // Ships are ftl.dat blueprints, as a real archive writes them; the event files carry none.
+    assert.equal(
+      extracted.documents.find((doc) => doc.path === "data/blueprints.xml")?.xml,
+      standInShipsXml(),
+    );
+    assert.equal(
+      extracted.documents.find((doc) => doc.path === "data/sector_data.xml")?.xml,
+      standInSectorsXml(),
+    );
     // Achievements are ftl.dat's data/achievements.xml; when each is earned is the gap mod's.
-    assert.equal(extracted.documents[3]?.path, "data/achievements.xml");
-    assert.equal(extracted.documents[3]?.xml, standInAchievementsXml());
+    assert.equal(
+      extracted.documents.find((doc) => doc.path === "data/achievements.xml")?.xml,
+      standInAchievementsXml(),
+    );
     assert.equal(standInAchievementsXml().includes("<condition"), false);
-    assert.equal(xml.includes("<sectorDescription"), false);
-    assert.equal(xml.includes("<shipBlueprint"), false);
     assert.equal(
       extracted.documents.find((doc) => doc.path === "data/text_lists.xml")?.xml,
       TEXT_LISTS_XML,
     );
-    assert.equal(goldenXml.includes("<weaponArt>"), false);
-    assert.equal(goldenXml.includes("<droneImage>"), false);
+
     for (const file of pictures) {
       assert.equal(extracted.documents.find((doc) => doc.path === file.path)?.xml, file.xml);
     }
@@ -185,7 +197,7 @@ describe("totallynotftl.dat", () => {
     assert.equal(pictures.length, layouts.length);
     assert.equal(extracted.text.size, layouts.length);
     for (const file of layouts) assert.equal(extracted.text.get(file.path), file.text);
-    const parsed = parsePack(xml);
+    const parsed = parsePack(eventsXml);
     assert.equal(parsed.facts, undefined);
     assert.equal(parsed.stores?.length, 0);
     assert.equal(parsed.rewards, undefined);
@@ -197,7 +209,7 @@ describe("totallynotftl.dat", () => {
     assert.equal(ships.weapons?.find((row) => row.id === "LASER_BURST_3")?.gap, 0);
     assert.equal(shipsXml.includes("<weaponBlueprint"), true);
     assert.equal(shipsXml.includes("<shotGap"), false);
-    assert.equal(xml.includes("<race"), false);
+    assert.equal(eventsXml.includes("<race"), false);
     assert.match(standInShipsXml(), /<crewBlueprint name="human">\s*<title>Human<\/title>/);
     const golden = readFileSync(new URL("../totallynotftl.dat", import.meta.url));
     assert.equal(built.byteLength, golden.byteLength);
@@ -220,9 +232,11 @@ describe("totallynotftl.dat", () => {
     assert.deepEqual(merged.hulls, pack.hulls);
     assert.deepEqual(merged.sectors, pack.sectors);
     const extra = new Set(["STAND_IN_BEACON", "STAND_IN_NESTED"]);
+    const byId = <T extends { id: string }>(rows: T[] | undefined) =>
+      [...(rows ?? [])].sort((a, b) => a.id.localeCompare(b.id));
     assert.deepEqual(
-      merged.events?.filter((event) => !extra.has(event.id)),
-      pack.events,
+      byId(merged.events?.filter((event) => !extra.has(event.id))),
+      byId(pack.events),
     );
     assert.deepEqual(
       merged.events?.find((event) => event.id === "STAND_IN_BEACON"),

@@ -19,7 +19,7 @@ function beacon(): Beacon {
     resolved: false,
     name: DEST,
     tier: "",
-    flag: "cited:boarders-mantis",
+    flag: "MANTIS_BOARDERS",
     asteroid: false,
   };
 }
@@ -77,7 +77,7 @@ describe("Boarders: Mantis", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:boarders-mantis";
+    dest.flag = "MANTIS_BOARDERS";
     dest.name = DEST;
     dest.resolved = false;
     dest.tier = "";

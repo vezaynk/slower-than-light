@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Event pages and filler lists. Weapon, augment, drone, and system blueprints are data/blueprints.xml.
+  shotGap is a gap overwrite on weaponBlueprint. Crew combat is a gap overwrite on crewBlueprint.
+  An event tag is a page. The name is the datafile id. title is the page heading.
+  A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
+  A fight is a hostile ship. Its load is the ship name this sim already fights.
+  An empty nested event is an empty result. A nested event with text is a result sentence. load opens another page.
+  Hull change is damage. A positive amount hurts. A negative amount repairs.
+  A plain fleet delay is modifyPursuit with a negative amount. faster and lastStand are extra.
+  Several text tags are the opening sentences. The first is the page body.
+  An empty first text keeps that body blank. intro="after" means the body is its own sentence and the list follows.
+  The sim still picks one sentence when the card opens.
+  An offer table is an eventList named trade, high, pt2, base, better, or supply.
+  Each row is a nameless event with one item_modify. The sim still picks the row and still rolls its bands.
+  A trade row spends a resource and gains a resource. A fuel row gains fuel, then spends parts, missiles, or scrap.
+  A Lanius row spends a resource and gains scrap. A supply row holds missiles, drone parts, and fuel. A band may be 0-0.
+  high and pt2 are the fuel lists. base and better are the Lanius lists.
+  A roll tag is one entry of a list the card draws. A repeated hull is a heavier weight.
+  A hull entry is a ship id. A label entry is a button sentence. A count entry is a number and its word.
+  A card tag is one whole opening the page draws. The sim still draws one with between.
+  The buttons on that opening stay handlers in code.
+  Filler opening cards use that same event tag. A slug a sector page already uses stays that sector page.
+  A choice is its id, label, effects, req locks, and an optional fuel gift.
+  A req is checked in order. Its text is the refusal. A system lock is req and lvl. A band lock also sets max_lvl.
+  A stock lock is a negative item_modify inside the req. Crew, augment, drone, and weapon locks name that blueprint.
+  A weapon family is an empty weapon tag and the req attribute.
+  A gift is the fuel the handler pays. On a page it sits inside the empty result. On a card it is a fuel item_modify.
+  A fixed gift has the same ends and does not roll.
+  A named price is a direct item_modify. The name is the price. The item is scrap or fuel.
+  A fixed price does not roll. A missing price omits that button and pays nothing.
+  A button that shows the amount still reads it from the choice id.
+  Printed bands are item_modify rows inside a nameless eventList. The name is the row. Level is an item type.
+  A fixed band does not roll. A missing band pays or grants nothing and does not roll.
+  An upgrade row uses the same name twice, once for scrap and once for level.
+  A trade tag is one scrap band for a specialty and the level already owned.
+  The reactor row omits the level. The sim still picks one open specialty and still rolls that band.
+  A fixed trade does not roll. The handler still reads the amount from the choice id.
+  A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
+  A fixed payment does not roll. The handler still compares the two numbers on the choice id.
+  A quest effect names a marker. A goto effect opens another page.
+  An arrival page is named arrive- plus the quest id. The dealer leaves it off the chart.
+  A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
+  An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
+  The sim still checks the hull and still hands that reward over.
+  An event list with page names is drawn in that order. unique means the page can appear once per sector.
+  The sim still remembers which unique page already appeared.
+  A list with no page ids is an offer table or the printed bands.
+  An empty beacon stores the sentences for a quiet jump and the sectors that use them.
+-->
+<FTL>
+  <event name="BOSS_FLEETS_BOTH_FIGHT">
+    <title>Rebel fight among Federation and Rebel fleets</title>
+    <text/>
+    <text>You arrive in the middle of a raging battle. Both sides are taking heavy losses. A small squadron flies past and a fighter breaks off, moving toward your position.</text>
+    <text>Two fleets fight nearby. You try to skirt around the edges of the battle and keep out of weapons range, but a Rebel scout spots you and moves in.</text>
+    <text>It's hard to tell who is winning the nearby battle. Before you have a chance to figure it out, a fighter moves in to attack.</text>
+    <text>The sheer scale of the destruction in the distance is almost breath-taking. Unfortunately, your position as an independent observer doesn't last for long!</text>
+    <text>The destruction in the distance is almost awe-inspiring. However you're dragged back to reality as Sensors indicate you are under attack.</text>
+    <text>You don't have any time to worry about the battle in the distance. The fight is coming to you really quickly!</text>
+    <choice name="c:rebel-fight-among-federation-and-rebel-fleets:0">
+      <text>Fight a Rebel ship</text>
+      <ship hostile="true" load="Rebel ship"/>
+    </choice>
+  </event>
+  <event name="BOSS_SCOUT_RESCUE">
+    <title>Rebel ship attacking civilians in Last Stand</title>
+    <text/>
+    <text>A number of large transports are being pursued by a Rebel bombing squadron. One bomber has managed to slip through the defensive fire, and is poised to wreak among the enormous yet vulnerable transports. There's time for you to advance and take it out!</text>
+    <text>Shots fly by your port windows followed by a Rebel scout in pursuit of a damaged cruiser. Should we move in to engage?</text>
+    <text>There seems to be a small Federation colony under attack by a Rebel forward scout. Will you protect them?</text>
+    <text>A battle rages nearby between small fighters; apparently fighting over a space station. The Federation appears to be losing ships fast. Shall we assist them?</text>
+    <text>A civilian ship is broadcasting a request for assistance on a secure Federation channel. They are being harassed by Rebel scouts. Will you respond?</text>
+    <choice name="c:rebel-ship-attacking-civilians-in-last-stand:0">
+      <text>Prepare to fight the Rebel ship!</text>
+      <ship hostile="true" load="Rebel ship"/>
+    </choice>
+    <choice name="c:rebel-ship-attacking-civilians-in-last-stand:1">
+      <text>There's no time, get ready to jump</text>
+      <event/>
+    </choice>
+  </event>
+  <event name="FLAGSHIP_CONSTRUCTION">
+    <title>Rebel shipyard</title>
+    <text>You arrive at the beacon to find yourself in a huge Rebel shipyard, scaffolding and construction drones filling the sector! The entire system looks devoted to ship construction, the nearby planets and moons ruthlessly mined to harvest resources for a ship of immense size...</text>
+    <choice name="c:rebel-shipyard:0">
+      <text>Look around</text>
+      <ship hostile="true" load="second Rebel Flagship"/>
+    </choice>
+    <choice name="c:rebel-shipyard:1">
+      <text>Leave immediately</text>
+      <event/>
+    </choice>
+  </event>
+  <event name="BOSS_FLEETS_REBEL">
+    <title>Rebel fight among Rebel fleet</title>
+    <text/>
+    <text>Although you were expecting the Rebels, you never imagined their fleet could have grown so fast. Your scanners can hardly register them all before a fighter stationed nearby moves in to attack.</text>
+    <text>This system is flooded with Rebel warships. Luckily your ship's signature is disguised as a civilian transport. Most heavy vessels ignore you but a small fighter is approaching with weapons hot!</text>
+    <text>You arrive to find a Rebel battalion encircling a nearby planet, launching landing parties. A small scout moves toward your position. Prepare for a fight!</text>
+    <text>As soon as you arrive you find yourself in the debris of a fierce battle. However, only Rebel warships remain and you find yourself immediately under attack.</text>
+    <text>Shots fly by and your computer registers multiple weapon locks as soon as you arrive. Evasive action!</text>
+    <text>What was once a great series of space stations is now nothing but a small ring of debris around the nearby moon. There's no time to mourn the dead; an enemy approaches!</text>
+    <text>The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well.</text>
+    <choice name="c:rebel-fight-among-rebel-fleet:0">
+      <text>Fight a Rebel ship</text>
+      <ship hostile="true" load="Rebel ship"/>
+    </choice>
+  </event>
+  <event name="BOSS_SCOUT">
+    <title>Fight in Last Stand</title>
+    <text/>
+    <text>Although this sector is still under Federation control, a small scout has slipped by the fleet. You move in to engage.</text>
+    <text>Long range scanners show this system is empty of any capital ships. Clearly it is not of strategic value. Wait... FTL signatures show a Rebel scout just jumped nearby!</text>
+    <text>Sensors indicate that the Rebels are setting up a forward Jump Beacon behind the nearby planet's moon. More importantly, a number of ships are passing by; prepare for a fight!</text>
+    <text>Federation ships are scarce in this region of space despite a number of civilian space stations. You see a small bomber squadron engaged with some Federation scouts and quickly move in to assist.</text>
+    <text>As soon as you arrive at the beacon, a Rebel scout turns to engage. Power up the weapons!</text>
+    <text>You scan the area, finding signatures for only a small trade vessel. However, as it approaches you see the silhouette of a Rebel scout! You run the scanners again and discover their registration is fake. You move in to attack.</text>
+    <roll k="hull">Auto-Scout</roll>
+    <roll k="hull">Auto-Scout</roll>
+    <roll k="hull">Auto-Surveyor</roll>
+    <roll k="hull">Auto-Assault</roll>
+    <roll k="hull">Auto-Assault</roll>
+    <roll k="hull">Auto-Hacker</roll>
+    <roll k="hull">rebel-rigger</roll>
+    <roll k="hull">rebel-rigger</roll>
+    <roll k="hull">rebel-disruptor</roll>
+    <roll k="hull">rebel-fighter</roll>
+    <roll k="hull">rebel-fighter</roll>
+    <roll k="hull">rebel-invader</roll>
+    <choice name="c:fight-in-last-stand:0">
+      <text>Fight the scout.</text>
+      <ship hostile="true" load="Rebel ship"/>
+    </choice>
+  </event>
+</FTL>

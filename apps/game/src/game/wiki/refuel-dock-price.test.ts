@@ -23,7 +23,7 @@ function beacon(g: Game): Beacon {
 function docked(seed: number): Game {
   const g = createGame(seed);
   const here = beacon(g);
-  here.flag = "cited:refueling-platform";
+  here.flag = "FUELING_STATION";
   here.name = "Refueling platform";
   g.here = here.id;
   g.event = citedEvent(g, here);
@@ -41,7 +41,7 @@ function offerSeed(): number {
 
 describe("refuel dock price", () => {
   it("packs the offer and pays an appended band", () => {
-    assert.deepEqual(eventDef("refueling-platform")?.prices, [
+    assert.deepEqual(eventDef("FUELING_STATION")?.prices, [
       { id: "offer", k: "scrap", lo: 5, hi: 10 },
     ]);
     assert.deepEqual(priceBand("refueling-platform", "offer"), {
@@ -52,7 +52,7 @@ describe("refuel dock price", () => {
     });
 
     const seed = offerSeed();
-    const row = eventDef("refueling-platform");
+    const row = eventDef("FUELING_STATION");
     assert.ok(row);
 
     loadPack(
@@ -131,7 +131,7 @@ describe("refuel dock price", () => {
     assert.equal(fuelPrice.seed, fuelSeed);
 
     resetPackForTests();
-    assert.deepEqual(eventDef("refueling-platform")?.prices, [
+    assert.deepEqual(eventDef("FUELING_STATION")?.prices, [
       { id: "offer", k: "scrap", lo: 5, hi: 10 },
     ]);
     const poor = docked(seed);
@@ -149,22 +149,22 @@ describe("refuel dock price", () => {
       assert.deepEqual([lo, hi], [5, 10]);
       return lo;
     };
-    assert.equal(rollPrice("refueling-platform", "offer", roll), 5);
+    assert.equal(rollPrice("FUELING_STATION", "offer", roll), 5);
     assert.equal(calls, 1);
 
-    const row = eventDef("refueling-platform");
+    const row = eventDef("FUELING_STATION");
     assert.ok(row);
     loadPack(
       { events: [{ ...row, prices: [{ id: "offer", k: "scrap", lo: 8, hi: 8 }] }] },
       "append",
     );
     calls = 0;
-    assert.equal(rollPrice("refueling-platform", "offer", roll), 8);
+    assert.equal(rollPrice("FUELING_STATION", "offer", roll), 8);
     assert.equal(calls, 0);
 
     loadPack({ events: [{ ...row, prices: undefined }] }, "append");
     calls = 0;
-    assert.equal(rollPrice("refueling-platform", "offer", roll), null);
+    assert.equal(rollPrice("FUELING_STATION", "offer", roll), null);
     assert.equal(calls, 0);
   });
 });

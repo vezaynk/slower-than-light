@@ -81,7 +81,7 @@ function docked(seed: number): Game {
     (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
   );
   assert.ok(here);
-  here.flag = "cited:refueling-platform-garbled-broadcast";
+  here.flag = "LANIUS_FUELING_STATION";
   here.name = "Refueling platform garbled broadcast";
   g.here = here.id;
   g.event = citedEvent(g, here);
@@ -610,7 +610,7 @@ describe("printed bands", () => {
   });
 
   it("stamps the refugee trades, and an empty table does not roll the offer", () => {
-    const trade = (eventDef("trade-resources")?.offers ?? []).filter((row) => row.k === "trade");
+    const trade = (eventDef("TRADER_CIV")?.offers ?? []).filter((row) => row.k === "trade");
     assert.equal(trade.length, 4);
     for (const id of [
       "refugee",
@@ -636,7 +636,7 @@ describe("printed bands", () => {
         (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
       );
       assert.ok(beacon);
-      beacon.flag = "cited:refugee-zoltan";
+      beacon.flag = "REFUGEE_NO_DISTRESS_ZOLTAN";
       beacon.name = "Refugee (Zoltan)";
       g.here = beacon.id;
       g.event = citedEvent(g, beacon);
@@ -652,7 +652,7 @@ describe("printed bands", () => {
         (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
       );
       assert.ok(beacon);
-      beacon.flag = "cited:refugee-zoltan";
+      beacon.flag = "REFUGEE_NO_DISTRESS_ZOLTAN";
       beacon.name = "Refugee (Zoltan)";
       g.here = beacon.id;
       g.event = citedEvent(g, beacon);
@@ -660,7 +660,7 @@ describe("printed bands", () => {
       return g;
     }
 
-    const row = eventDef("refugee-zoltan");
+    const row = eventDef("REFUGEE_NO_DISTRESS_ZOLTAN");
     assert.ok(row);
     loadPack({ events: [{ ...row, offers: [] }] }, "append");
     const empty = open(seed);

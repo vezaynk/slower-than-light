@@ -13,7 +13,7 @@ const STAY = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:mantis-ship-attacking-civilian";
+  b.flag = "MANTIS_CIVILIAN";
   b.name = "Mantis ship attacking civilian";
   g.here = b.id;
   g.event = citedEvent(g, b);

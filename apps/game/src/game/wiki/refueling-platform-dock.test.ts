@@ -22,7 +22,7 @@ type Kind = "offer" | "steal" | "ignite" | "staff" | "ambush";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:refueling-platform";
+  b.flag = "FUELING_STATION";
   b.name = "Refueling platform";
   g.here = b.id;
   g.event = citedEvent(g, b);

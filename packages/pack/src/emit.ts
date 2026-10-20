@@ -55,7 +55,7 @@ const OXYGEN_DRAIN = -0.5;
 const HEADER = `
   Event pages and filler lists. Weapon, augment, drone, and system blueprints are data/blueprints.xml.
   shotGap is a gap overwrite on weaponBlueprint. Crew combat is a gap overwrite on crewBlueprint.
-  An event tag is a page. flag, title, alias, and sector are extra names this sim looks up.
+  An event tag is a page. The name is the datafile id. title is the page heading.
   A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
   A fight is a hostile ship. Its load is the ship name this sim already fights.
   An empty nested event is an empty result. A nested event with text is a result sentence. load opens another page.
@@ -92,7 +92,7 @@ const HEADER = `
   A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
   A quest effect names a marker. A goto effect opens another page.
-  An arrival page has an empty sector list and the flag quest: plus the quest id.
+  An arrival page is named arrive- plus the quest id. The dealer leaves it off the chart.
   A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
   An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
   The sim still checks the hull and still hands that reward over.
@@ -319,7 +319,7 @@ function statFind(doc: XmlDocument, tag: "crewBlueprint" | "race", race: CrewDef
 function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
   const node = element(doc, "eventList", { name: list.id });
   for (const entry of list.entries) {
-    add(node, element(doc, "event", { name: entry.id, unique: entry.unique ? "true" : "false" }));
+    add(node, element(doc, "event", { load: entry.id, unique: entry.unique ? "true" : "false" }));
   }
   return node;
 }
@@ -336,15 +336,14 @@ function emptyElement(doc: XmlDocument, page: EmptyBeaconDef): XmlElement {
 
 function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const texts = event.texts ?? [];
-  const attrs: Record<string, string> = { name: event.id, flag: event.flag };
+  const attrs: Record<string, string> = { name: event.id };
   if (texts.length > 1 && event.body !== "" && event.body !== texts[0]) attrs.intro = "after";
   const node = element(doc, "event", attrs);
   add(node, leaf(doc, "title", event.dest));
-  for (const alias of event.aliases) add(node, leaf(doc, "alias", alias));
-  for (const sector of event.sectors) add(node, leaf(doc, "sector", sector));
   const lines =
     texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
   for (const line of lines) add(node, leaf(doc, "text", line));
+  if (event.store) add(node, element(doc, "store", {}));
   for (const list of offerLists(doc, event.offers ?? [])) add(node, list);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll));
   for (const price of event.prices ?? []) add(node, priceElement(doc, price));
@@ -852,6 +851,7 @@ function droneElement(doc: XmlDocument, drone: DroneDef): XmlElement {
   const node = element(doc, "droneBlueprint", { name: drone.id });
   add(node, leaf(doc, "title", drone.name));
   add(node, leaf(doc, "cost", drone.cost));
+  if (drone.image) add(node, leaf(doc, "droneImage", drone.image));
   return node;
 }
 
@@ -882,6 +882,8 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true
   if (weapon.speed != null) add(node, leaf(doc, "speed", weapon.speed));
   if (weapon.crewDamage != null) add(node, leaf(doc, "crewDamage", weapon.crewDamage));
   if (weapon.pierce != null) add(node, leaf(doc, "sp", weapon.pierce));
+  if (weapon.art) add(node, leaf(doc, "weaponArt", weapon.art));
+  if (weapon.image) add(node, leaf(doc, "image", weapon.image));
   return node;
 }
 

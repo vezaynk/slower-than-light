@@ -10,6 +10,7 @@ import {
   weaponDef,
 } from "@stl/pack";
 import type { EmptyBeaconDef, EventDef } from "@stl/pack";
+import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
 import type { FillerList } from "./filler-lists.ts";
 import {
   beginBoarding,
@@ -107,8 +108,8 @@ export function emptyPageFor(sectorId: string, nebula = false): EmptyBeaconDef {
   if (nebula) {
     const slug = sectorId.startsWith("SLUG_");
     const hit = slug
-      ? pages.find((page) => page.nebula && page.id === "empty-nebula-beacon-slug")
-      : pages.find((page) => page.nebula && page.id !== "empty-nebula-beacon-slug");
+      ? pages.find((page) => page.id === "NEBULA_NOTHING_SLUG")
+      : pages.find((page) => page.nebula && page.id !== "NEBULA_NOTHING_SLUG");
     const any = hit ?? pages.find((page) => page.nebula);
     if (any) return any;
   } else {
@@ -274,10 +275,10 @@ export function stampFiller(b: Beacon, page: Page) {
 // ---- Arrival ---------------------------------------------------------------------------------------------------
 
 const LIST_FOR_KIND: Partial<Record<Beacon["kind"], FillerList>> = {
-  event: "filler",
-  distress: "distress",
-  cache: "items",
-  nebula: "nebula",
+  event: "FILLER",
+  distress: "DISTRESS",
+  cache: "ITEMS",
+  nebula: "NEBULA",
 };
 
 function emptyCard(g: Game, page: EmptyBeaconDef): GameEvent {
@@ -292,7 +293,7 @@ function emptyCard(g: Game, page: EmptyBeaconDef): GameEvent {
 
 /** Friendly ship out of fuel: "the requested amount of fuel is shown before you make the choice". */
 function friendlyCard(g: Game, page: Page): GameEvent {
-  const n = rollPrice("friendly-ship-out-of-fuel", "give", (lo, hi) => between(g, [lo, hi]));
+  const n = rollPrice("FRIENDLY_BEACON", "give", (lo, hi) => between(g, [lo, hi]));
   const choices = [];
   if (n != null) {
     choices.push({
@@ -321,7 +322,7 @@ function isTradeId(id: string): id is TradeId {
  * INFERRED: the specialties that can still be bought are equally likely. No odds are printed.
  */
 function tradeOffers(g: Game): TradeOffer[] {
-  const rows = eventDef("trade-scrap-for-upgrades")?.trades ?? [];
+  const rows = eventDef("TRADER_UPGRADES")?.trades ?? [];
   const reactorAt = g.player.reactor;
   const reactorRow =
     rows.find((row) => row.id === "reactor" && row.level === reactorAt) ??
@@ -347,18 +348,20 @@ function tradeOffers(g: Game): TradeOffer[] {
 
 /** One packed opening sentence. Filler pages that use rand keep that draw. A nested list spends one draw per list. */
 function randOpening(g: Game, id: string): string {
-  const picked = openingLine(id, (n) => Math.min(n - 1, Math.floor(rand(g) * n)));
+  const key = storedId(id) ?? id;
+  const picked = openingLine(key, (n) => Math.min(n - 1, Math.floor(rand(g) * n)));
   if (picked != null) return picked;
-  const texts = eventDef(id)?.texts ?? [];
+  const texts = eventDef(key)?.texts ?? [];
   if (texts.length === 0) return "";
   return texts[Math.min(texts.length - 1, Math.floor(rand(g) * texts.length))] ?? "";
 }
 
 /** One packed opening sentence. Pages that use between keep that draw. A nested list spends one draw per list. */
 function betweenOpening(g: Game, id: string): string {
-  const picked = openingLine(id, (n) => between(g, [0, n - 1]));
+  const key = storedId(id) ?? id;
+  const picked = openingLine(key, (n) => between(g, [0, n - 1]));
   if (picked != null) return picked;
-  const texts = eventDef(id)?.texts ?? [];
+  const texts = eventDef(key)?.texts ?? [];
   const hi = texts.length > 0 ? texts.length - 1 : 0;
   return texts[between(g, [0, hi])] ?? "";
 }
@@ -393,21 +396,22 @@ function tradeOfferText(o: TradeOffer): string {
 }
 
 function cardFor(g: Game, page: Page): GameEvent {
-  if (page.slug === "empty-nebula-beacon") return emptyCard(g, emptyPageFor("", true));
-  // The fuel amount is rolled when the card opens. The page may be the packed record, so this keys off the slug.
-  if (page.slug === "friendly-ship-out-of-fuel") return friendlyCard(g, page);
-  if (page.slug === "trade-scrap-for-upgrades") return tradeIntro(g, page);
-  if (page.slug === "crew-hiring-station") return hireCard(g, page);
-  if (page.slug === "asteroid-mining-colony") return miningCard(g, page);
-  if (page.slug === "improve-reactor-for-supplies") return supplyCard(g, page);
-  if (page.slug === "giant-alien-spiders") return spiderCard(g, page);
-  if (page.slug === "crushed-pirate") return pirateCard(g, page);
-  if (page.slug === "unknown-disease-on-mining-colony") return diseaseCard(g, page);
-  if (page.slug === "fire-on-research-station") return fireCard(g, page);
-  if (page.slug === "pirate-ship-distress-trap") return trapCard(g, page);
-  if (page.slug === "abandoned-station") return abandonedStationCard(g, page);
-  if (page.slug === "rebel-fight-chance") return rebelChanceCard(g, page);
-  if (page.slug === "battlefield-wreckage") return wreckageCard(g, page);
+  const slug = storedId(page.slug) ?? page.slug;
+  if (slug === "NEBULA_EMPTY") return emptyCard(g, emptyPageFor("", true));
+  // The fuel amount is rolled when the card opens. The page may be the packed record or the authored card.
+  if (slug === "FRIENDLY_BEACON") return friendlyCard(g, page);
+  if (slug === "TRADER_UPGRADES") return tradeIntro(g, page);
+  if (slug === "TAVERN_HIRE") return hireCard(g, page);
+  if (slug === "HELP_MINERS") return miningCard(g, page);
+  if (slug === "TRADER_UPGRADES_EXCHANGE") return supplyCard(g, page);
+  if (slug === "DISTRESS_INFESTATION") return spiderCard(g, page);
+  if (slug === "DISTRESS_TRAPPED_MINER") return pirateCard(g, page);
+  if (slug === "DISTRESS_STATION_DISEASE") return diseaseCard(g, page);
+  if (slug === "DISTRESS_STATION_FIRE") return fireCard(g, page);
+  if (slug === "TRAP_BEACON") return trapCard(g, page);
+  if (slug === "EMPTY_STATION2") return abandonedStationCard(g, page);
+  if (slug === "ROGUE_REBEL") return rebelChanceCard(g, page);
+  if (slug === "WRECKAGE_EVENT") return wreckageCard(g, page);
   return {
     title: page.dest,
     body: page.body,
@@ -423,7 +427,8 @@ function cardFor(g: Game, page: Page): GameEvent {
 function fillerEventRaw(g: Game, b: Beacon): GameEvent | null {
   if (b.flag.startsWith(FILLER_FLAG)) {
     const slug = b.flag.slice(FILLER_FLAG.length);
-    if (slug === "empty-nebula-beacon-slug") return emptyCard(g, emptyPageFor(g.sectorId, true));
+    const quiet = allEmptyBeacons().find((page) => page.id === slug);
+    if (quiet?.nebula) return emptyCard(g, quiet);
     const page = pageBySlug(slug);
     return page ? cardFor(g, page) : emptyCard(g, emptyPageFor(g.sectorId));
   }
@@ -905,7 +910,7 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
 /** Supply bundles from the packed page. A 0-wide band stays 0. The bundle draw stays rand. */
 function supplyRows(id: string) {
   const rows = [];
-  for (const row of eventDef(id)?.offers ?? []) if (row.k === "supply") rows.push(row);
+  for (const row of eventDef(storedId(id))?.offers ?? []) if (row.k === "supply") rows.push(row);
   return rows;
 }
 
@@ -1330,7 +1335,7 @@ function stock(g: Game, id: "fuel" | "missiles" | "parts"): number {
 /** Packed trade rows. The hail pick already happened. An empty table stays on the hail card. */
 function refugeeOffers(id: string) {
   const rows = [];
-  for (const row of eventDef(id)?.offers ?? []) if (row.k === "trade") rows.push(row);
+  for (const row of eventDef(storedId(id))?.offers ?? []) if (row.k === "trade") rows.push(row);
   return rows;
 }
 
@@ -2361,7 +2366,7 @@ Scrap: ${offer.scrap}.`,
     // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
     // > "Demand the Rock ship pay the agreed upon price." — [[Rock and Slug standoff]]
     // > "You have better things to attend to, leave them." — [[Rock and Slug standoff]]
-    const debt = rollPrice("rock-and-slug-standoff", "debt", (lo, hi) => between(g, [lo, hi]));
+    const debt = rollPrice("ROCK_SLUG_ARGUMENT", "debt", (lo, hi) => between(g, [lo, hi]));
     const choices = [];
     if (debt != null) {
       choices.push({
@@ -3107,7 +3112,7 @@ Scrap: ${offer.scrap}.`,
   },
   "s:terraforming-scan:stop": (g) => {
     // "[ the actual trade offer is shown prior to making the choice ]": 15-25 scrap either way.
-    const n = rollPrice("terraforming-scan", "scan", (lo, hi) => between(g, [lo, hi]));
+    const n = rollPrice("TERRAFORMING_SCAN", "scan", (lo, hi) => between(g, [lo, hi]));
     const choices = [];
     if (n != null) {
       choices.push(
@@ -3736,7 +3741,7 @@ Scrap: ${offer.scrap}.`,
   "c:pirate-ship-distress-trap:0": (g) => {
     fight(
       g,
-      g.event?.body ?? eventDef("pirate-ship-distress-trap")?.texts?.[0] ?? "",
+      g.event?.body ?? eventDef("TRAP_BEACON")?.texts?.[0] ?? "",
       "Pirate ship",
       "pirate-ship-distress-trap",
     );

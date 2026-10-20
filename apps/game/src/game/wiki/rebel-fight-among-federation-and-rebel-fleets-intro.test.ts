@@ -16,7 +16,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rebel-fight-among-federation-and-rebel-fleets";
+  b.flag = "BOSS_FLEETS_BOTH_FIGHT";
   b.name = "Rebel fight among Federation and Rebel fleets";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -59,7 +59,7 @@ describe("Rebel fight among Federation and Rebel fleets intro", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:rebel-fight-among-federation-and-rebel-fleets";
+    dest.flag = "BOSS_FLEETS_BOTH_FIGHT";
     dest.name = "Rebel fight among Federation and Rebel fleets";
     dest.resolved = false;
     dest.tier = "";

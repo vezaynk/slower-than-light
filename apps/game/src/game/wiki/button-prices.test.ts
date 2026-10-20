@@ -35,17 +35,17 @@ function row(id: string): EventDef {
 
 describe("named button prices", () => {
   it("packs the campaign bands", () => {
-    assert.deepEqual(eventDef("rock-and-slug-standoff")?.prices, [
+    assert.deepEqual(eventDef("ROCK_SLUG_ARGUMENT")?.prices, [
       { id: "debt", k: "scrap", lo: 10, hi: 15 },
       { id: "upgrade", k: "scrap", lo: 10, hi: 15 },
     ]);
-    assert.deepEqual(eventDef("friendly-ship-out-of-fuel")?.prices, [
+    assert.deepEqual(eventDef("FRIENDLY_BEACON")?.prices, [
       { id: "give", k: "fuel", lo: 2, hi: 4 },
     ]);
-    assert.deepEqual(eventDef("no-fuel-drifting-debris")?.prices, [
+    assert.deepEqual(eventDef("FUEL_OFF_ROCK_WRECK")?.prices, [
       { id: "ransom", k: "scrap", lo: 25, hi: 40 },
     ]);
-    assert.deepEqual(eventDef("terraforming-scan")?.prices, [
+    assert.deepEqual(eventDef("TERRAFORMING_SCAN")?.prices, [
       { id: "scan", k: "scrap", lo: 15, hi: 25 },
     ]);
   });
@@ -66,7 +66,7 @@ describe("named button prices", () => {
       "append",
     );
     const g = createGame(1);
-    park(g, "cited:rock-and-slug-standoff", "Rock and Slug standoff");
+    park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
     g.event = citedEvent(g, beacon(g));
     choose(g, "c:rock-and-slug-standoff:0");
     assert.equal(
@@ -78,7 +78,7 @@ describe("named button prices", () => {
     assert.equal(g.scrap, 32);
 
     const forged = createGame(2);
-    park(forged, "cited:rock-and-slug-standoff", "Rock and Slug standoff");
+    park(forged, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
     forged.event = citedEvent(forged, beacon(forged));
     choose(forged, "c:rock-and-slug-standoff:0");
     forged.scrap = 100;
@@ -102,7 +102,7 @@ describe("named button prices", () => {
       "append",
     );
     const g = createGame(1);
-    park(g, "cited:rock-and-slug-standoff", "Rock and Slug standoff");
+    park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
     g.event = citedEvent(g, beacon(g));
     choose(g, "c:rock-and-slug-standoff:0");
     const ids = g.event?.choices.map((choice) => choice.id) ?? [];
@@ -133,7 +133,7 @@ describe("named button prices", () => {
     let refused = false;
     for (let seed = 1; seed <= 40 && (!paid || !refused); seed++) {
       const g = createGame(seed);
-      park(g, "cited:rock-and-slug-standoff", "Rock and Slug standoff");
+      park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
       g.event = citedEvent(g, beacon(g));
       choose(g, "c:rock-and-slug-standoff:0");
       g.scrap = 40;
@@ -179,7 +179,7 @@ describe("named button prices", () => {
     let seen = false;
     for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = createGame(seed);
-      park(g, "cited:rock-and-slug-standoff", "Rock and Slug standoff");
+      park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
       g.event = citedEvent(g, beacon(g));
       choose(g, "c:rock-and-slug-standoff:0");
       g.scrap = 40;
@@ -305,7 +305,7 @@ describe("named button prices", () => {
   it("pays a fixed ransom and refuses an amount outside the band", () => {
     const open = (seed: number) => {
       const g = createGame(seed);
-      const here = park(g, "cited:no-fuel-drifting-debris", "No fuel: drifting debris");
+      const here = park(g, "FUEL_OFF_ROCK_WRECK", "No fuel: drifting debris");
       g.event = citedEvent(g, here);
       choose(g, "c:no-fuel-drifting-debris:send");
       choose(g, "c:no-fuel-drifting-debris:report");
@@ -378,7 +378,7 @@ describe("named button prices", () => {
     );
 
     resetPackForTests();
-    assert.deepEqual(eventDef("no-fuel-drifting-debris")?.prices, [
+    assert.deepEqual(eventDef("FUEL_OFF_ROCK_WRECK")?.prices, [
       { id: "ransom", k: "scrap", lo: 25, hi: 40 },
     ]);
   });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { buildRoute } from "../sim.ts";
-import { SECTOR_ORDER, SECTOR_TYPES } from "./sectors.ts";
+import { SECTOR_ORDER, SECTOR_TYPES, sectorRarities } from "./sectors.ts";
 
 /** Wiki page "Sectors": heading order and the group heading each one sits under. */
 const EXPECTED = [
@@ -67,6 +67,68 @@ describe("SECTOR_TYPES", () => {
     assert.match(text["FINAL"], /10 repairs/);
     assert.match(text["FINAL"], /22-44/);
     assert.equal(SECTOR_ORDER, null);
+  });
+
+  it("reads crew rarities, and the Lockdown Bomb rarity, from the notes", () => {
+    const of = (id: string) => sectorRarities(SECTOR_TYPES.find((row) => row.id === id)!.notes);
+    assert.deepEqual(of("STANDARD_SPACE"), [
+      { id: "human", rarity: 1 },
+      { id: "engi", rarity: 2 },
+      { id: "mantis", rarity: 2 },
+      { id: "rock", rarity: 3 },
+      { id: "energy", rarity: 5 },
+    ]);
+    assert.deepEqual(of("ZOLTAN_SECTOR"), [
+      { id: "energy", rarity: 1 },
+      { id: "human", rarity: 2 },
+      { id: "engi", rarity: 3 },
+      { id: "mantis", rarity: 3 },
+      { id: "rock", rarity: 3 },
+      { id: "slug", rarity: 3 },
+    ]);
+    assert.deepEqual(of("LANIUS_SECTOR"), [
+      { id: "anaerobic", rarity: 2 },
+      { id: "human", rarity: 2 },
+      { id: "engi", rarity: 3 },
+      { id: "mantis", rarity: 3 },
+      { id: "rock", rarity: 3 },
+      { id: "energy", rarity: 4 },
+      { id: "slug", rarity: 4 },
+    ]);
+    assert.deepEqual(of("ROCK_SECTOR"), [
+      { id: "BOMB_LOCK", rarity: 4 },
+      { id: "rock", rarity: 1 },
+      { id: "human", rarity: 2 },
+      { id: "energy", rarity: 3 },
+    ]);
+    assert.deepEqual(of("ROCK_HOME"), [
+      { id: "BOMB_LOCK", rarity: 2 },
+      { id: "rock", rarity: 1 },
+      { id: "human", rarity: 2 },
+      { id: "energy", rarity: 3 },
+    ]);
+    assert.deepEqual(of("SLUG_HOME"), [
+      { id: "slug", rarity: 2 },
+      { id: "human", rarity: 2 },
+      { id: "engi", rarity: 4 },
+      { id: "mantis", rarity: 4 },
+      { id: "energy", rarity: 4 },
+      { id: "rock", rarity: 4 },
+    ]);
+    assert.deepEqual(of("NEBULA_SECTOR"), [
+      { id: "human", rarity: 1 },
+      { id: "slug", rarity: 3 },
+      { id: "engi", rarity: 4 },
+      { id: "mantis", rarity: 4 },
+      { id: "energy", rarity: 4 },
+      { id: "rock", rarity: 4 },
+    ]);
+    assert.deepEqual(of("FINAL"), of("STANDARD_SPACE"));
+    assert.deepEqual(of("CRYSTAL_HOME"), []);
+    for (const sector of SECTOR_TYPES) {
+      if (sector.id === "CRYSTAL_HOME") continue;
+      assert.ok(sectorRarities(sector.notes).length > 0, sector.id);
+    }
   });
 });
 

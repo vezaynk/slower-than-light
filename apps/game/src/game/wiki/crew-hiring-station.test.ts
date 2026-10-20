@@ -26,7 +26,7 @@ function open(g: Game): Beacon {
 describe("Crew hiring station", () => {
   it("is an items card", () => {
     const page = pageForRow("Crew hiring station");
-    assert.equal(page?.slug, "crew-hiring-station");
+    assert.equal(page?.slug, "TAVERN_HIRE");
     assert.equal(page?.choices.length, 1);
     assert.equal(page?.choices[0]?.label, "Don't hire anyone.");
   });

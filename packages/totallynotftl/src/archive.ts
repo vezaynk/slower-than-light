@@ -1,8 +1,8 @@
 import {
   standInAchievementsXml,
+  standInEventFiles,
   standInSectorsXml,
   standInShipsXml,
-  standInXml,
 } from "@stl/campaign";
 import { hullPictureFiles, standInSheet, type HullPictureFile } from "@stl/catalog/src/ship-art.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
@@ -18,7 +18,7 @@ export async function standInDat(): Promise<Uint8Array> {
   const media = await standInMedia();
   return packFtlDat(
     [
-      { path: "data/stand-in.xml", xml: standInXml() },
+      ...standInEventFiles(),
       { path: "data/blueprints.xml", xml: standInShipsXml() },
       { path: "data/sector_data.xml", xml: standInSectorsXml() },
       { path: "data/achievements.xml", xml: standInAchievementsXml() },
@@ -72,4 +72,4 @@ export function standInImages(
   return images;
 }
 
-export { standInAchievementsXml, standInSectorsXml, standInShipsXml, standInXml };
+export { standInAchievementsXml, standInEventFiles, standInSectorsXml, standInShipsXml };

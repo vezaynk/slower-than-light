@@ -33,7 +33,7 @@ export function markRuwenEntry(g: Game): void {
   // INFERRED: a dead Ruwen does not count as having that crew. The page prints no health check.
   for (const b of g.beacons) {
     // INFERRED: a beacon already visited is not marked again. The page prints no resolved check.
-    if (b.flag !== "cited:ancient-device" || b.resolved) continue;
+    if (b.flag !== "ROCK_CRYSTAL_BEACON" || b.resolved) continue;
     // INFERRED: a different quest already on this beacon stays. The page does not say to replace one.
     if (b.quest && b.quest !== RUWEN_ENTRY) continue;
     b.quest = RUWEN_ENTRY;

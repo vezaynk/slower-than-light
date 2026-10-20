@@ -60,7 +60,7 @@ function lowPair(got: { fuel: number; missiles: number; parts: number }) {
 
 describe("Crushed pirate", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Crushed pirate")?.slug, "crushed-pirate");
+    assert.equal(pageForRow("Crushed pirate")?.slug, "DISTRESS_TRAPPED_MINER");
   });
 
   it("hides the beam choices until that gear is fitted", () => {

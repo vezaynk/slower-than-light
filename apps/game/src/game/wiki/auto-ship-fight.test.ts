@@ -19,7 +19,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:auto-ship-fight";
+  b.flag = "REBEL_AUTO";
   b.name = "Auto-ship fight";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -60,7 +60,7 @@ describe("Auto-ship fight", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:auto-ship-fight";
+    dest.flag = "REBEL_AUTO";
     dest.name = "Auto-ship fight";
     dest.resolved = false;
     dest.tier = "";

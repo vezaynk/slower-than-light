@@ -103,10 +103,7 @@ const HULLS = new Set([
 describe("missing location pages", () => {
   it("closes an empty Lanius distress on the printed nothing", () => {
     const g = createGame(3);
-    const ev = citedEvent(
-      g,
-      beacon("Lanius empty distress beacon 1", "cited:lanius-empty-distress-beacon-1"),
-    );
+    const ev = citedEvent(g, beacon("Lanius empty distress beacon 1", "LANIUS_DISTRESS_EMPTY"));
     assert.ok(ev);
     assert.match(ev.body, /plastic satellite/);
     assert.equal(citedChoose(harness(g, []), ev.choices[0]!.id), true);
@@ -118,7 +115,7 @@ describe("missing location pages", () => {
     const g = createGame(4);
     const visited = g.beacons.map((b) => b.visited);
     const chart = g.sectorMap;
-    const ev = citedEvent(g, beacon("Zoltan free map", "cited:zoltan-free-map"));
+    const ev = citedEvent(g, beacon("Zoltan free map", "ZOLTAN_FREE_MAP"));
     assert.ok(ev);
     assert.match(ev.body, /star charts/);
     assert.match(ev.body, /map is revealed/);
@@ -138,10 +135,7 @@ describe("missing location pages", () => {
     g.scrap = 0;
     g.missiles = 0;
     g.player.parts = 0;
-    const ev = citedEvent(
-      g,
-      beacon("No fuel: fuel trader (distress off)", "cited:no-fuel-fuel-trader-distress-off"),
-    );
+    const ev = citedEvent(g, beacon("No fuel: fuel trader (distress off)", "FUEL_TRADER"));
     assert.ok(ev);
     const buy = ev.choices.find((c) => c.id.includes(":buy:"));
     assert.ok(buy);
@@ -155,7 +149,7 @@ describe("missing location pages", () => {
 
   it("keeps the Crystal chat blue option until a Crystal is aboard", () => {
     const g = createGame(6);
-    const ev = citedEvent(g, beacon("Crystal chat", "cited:crystal-chat"));
+    const ev = citedEvent(g, beacon("Crystal chat", "CRYSTAL_CHATTY"));
     assert.ok(ev);
     const blue = ev.choices.find((c) => c.id.endsWith(":crystal"));
     assert.ok(blue);
@@ -168,7 +162,7 @@ describe("missing location pages", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 24; seed++) {
       const g = createGame(seed);
-      const ev = citedEvent(g, beacon("Fight in Last Stand", "cited:fight-in-last-stand"));
+      const ev = citedEvent(g, beacon("Fight in Last Stand", "BOSS_SCOUT"));
       assert.ok(ev);
       const hull = ev.choices[0]!.id.split(":").pop() ?? "";
       assert.ok(HULLS.has(hull), hull);
@@ -203,7 +197,7 @@ describe("missing location pages", () => {
     const g = createGame(2);
     g.player.kits.clonebay = cradle();
     const crew = g.crew.filter((c) => c.side === "player").length;
-    open(g, "Crystalline men buried", "cited:crystalline-men-buried");
+    open(g, "Crystalline men buried", "CRYSTAL_HELP_DIG");
     choose(g, "c:crystalline-men-buried:send");
     choose(g, "c:crystalline-men-buried:leave");
     assert.match(g.event?.body ?? "", /remain/);
@@ -217,7 +211,7 @@ describe("missing location pages", () => {
     first.player.systems.engines.level = 4;
     first.player.systems.engines.power = 4;
     const openEvade = evasionPercent(first, first.player, "player");
-    open(first, "Slug repair station", "cited:slug-repair-station");
+    open(first, "Slug repair station", "NEBULA_SLUG_HULLFIX");
     choose(first, "c:slug-repair-station:engines");
     assert.equal(first.phase, "combat");
     assert.equal(here(first).mark, "slug-repair");
@@ -228,7 +222,7 @@ describe("missing location pages", () => {
     again.player.systems.engines.level = 4;
     again.player.systems.engines.power = 4;
     const steady = evasionPercent(again, again.player, "player");
-    const b = open(again, "Slug repair station", "cited:slug-repair-station");
+    const b = open(again, "Slug repair station", "NEBULA_SLUG_HULLFIX");
     b.mark = "slug-repair";
     choose(again, "c:slug-repair-station:engines");
     assert.equal(evasionPercent(again, again.player, "player"), steady);
@@ -238,7 +232,7 @@ describe("missing location pages", () => {
   it("pays the engine-repair win in the printed sentence", () => {
     const g = createGame(11);
     g.scrap = 0;
-    const b = open(g, "Slug repair station", "cited:slug-repair-station");
+    const b = open(g, "Slug repair station", "NEBULA_SLUG_HULLFIX");
     choose(g, "c:slug-repair-station:engines");
     assert.ok(g.enemy);
     g.enemy.hull = 0;
@@ -251,7 +245,7 @@ describe("missing location pages", () => {
 
   it("keeps store-ship weapons offline through the win and clears them on the jump", () => {
     const g = createGame(12);
-    open(g, "Slug store ship", "cited:slug-store-ship");
+    open(g, "Slug store ship", "NEBULA_SLUG_FAKE_STORE");
     choose(g, "c:slug-store-ship:weapons");
     assert.equal(g.phase, "combat");
     assert.equal(weaponsSealed(g.player), true);

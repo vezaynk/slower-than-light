@@ -12,7 +12,7 @@ const LIFE = "c:rebel-fight-chance-in-nebula:4";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rebel-fight-chance-in-nebula";
+  b.flag = "NEBULA_REBEL_CHASE";
   b.name = "Rebel fight chance in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);

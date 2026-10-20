@@ -22,7 +22,7 @@ function heldWeapons(g: Game): number {
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:free-weapon";
+  b.flag = "FIND_WEAPON";
   b.name = "Free weapon";
   g.here = b.id;
   g.event = citedEvent(g, b);

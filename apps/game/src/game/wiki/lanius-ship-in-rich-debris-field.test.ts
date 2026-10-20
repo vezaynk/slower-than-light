@@ -8,7 +8,7 @@ import { pageWin } from "./quests.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:lanius-ship-in-rich-debris-field";
+  b.flag = "LANIUS_HARVESTER";
   b.name = "Lanius ship in rich debris field";
   g.here = b.id;
   g.event = citedEvent(g, b);

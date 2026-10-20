@@ -10,7 +10,7 @@ const HAIL =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:mantis-fight-choice-in-nebula";
+  b.flag = "NEBULA_MANTIS_CHOICE";
   b.name = "Mantis fight choice in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);

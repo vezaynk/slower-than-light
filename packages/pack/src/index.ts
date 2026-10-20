@@ -88,6 +88,8 @@ export {
   droneDef,
   emptyBeacon,
   eventDef,
+  hasEvent,
+  setEventAlias,
   openingLine,
   textList,
   blueprintList,

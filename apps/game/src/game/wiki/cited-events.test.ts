@@ -16,6 +16,7 @@ import {
   step,
   toggleDoor,
 } from "../sim.ts";
+import { eventDef } from "@stl/pack";
 import type { Beacon, Game } from "../types.ts";
 import { onCradleDeath } from "../extras/cradle.ts";
 import {
@@ -27,6 +28,12 @@ import {
 } from "./cited-events.ts";
 import { heldSchematics } from "./make-room.ts";
 import { placeIn } from "../fixtures.ts";
+
+function storyFlags(beacons: readonly { flag: string }[]): string[] {
+  return beacons
+    .map((b) => b.flag)
+    .filter((flag) => flag !== "" && !flag.includes(":") && eventDef(flag) != null);
+}
 
 function beacon(name: string, flag = ""): Beacon {
   return {
@@ -117,10 +124,7 @@ describe("cited events", () => {
     g.difficulty = "normal";
     const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
     assert.deepEqual([lo, hi], [12, 19]);
-    const ev = citedEvent(
-      g,
-      beacon("Free scrap with resources", "cited:free-scrap-with-resources"),
-    );
+    const ev = citedEvent(g, beacon("Free scrap with resources", "FREE_ITEMS"));
     assert.ok(ev);
     assert.notEqual(ev.body, "");
     assert.equal(ev.choices.length, 1);
@@ -154,7 +158,7 @@ describe("cited events", () => {
 
   it("pays Free drone schematic's low scrap and a random drone schematic", () => {
     const g = createGame(5, "PLAYER_SHIP_HARD", "normal");
-    const ev = citedEvent(g, beacon("Free drone schematic", "cited:free-drone-schematic"));
+    const ev = citedEvent(g, beacon("Free drone schematic", "FIND_DRONE"));
     assert.ok(ev);
     assert.equal(ev.choices[0]?.label, "You receive a drone schematic with low scrap");
     const held = heldSchematics(g).length;
@@ -184,16 +188,24 @@ describe("cited events", () => {
 
   it("stamps a named sector once and leaves an existing flag alone", () => {
     const quiet = createGame(7);
+    quiet.sectorId = "CINDER";
     quiet.sectorName = "Cinder Reach";
+    for (const b of quiet.beacons) {
+      if (b.kind === "start" || b.kind === "exit" || b.kind === "boss") continue;
+      b.flag = "";
+      b.kind = "empty";
+    }
     stampCitedEvents(quiet);
-    assert.equal(
-      quiet.beacons.some((b) => b.flag.startsWith("cited:")),
-      false,
-    );
+    assert.deepEqual(storyFlags(quiet.beacons), []);
 
     const g = createGame(8);
     g.sectorId = "CIVILIAN_SECTOR";
     g.sectorName = "Civilian Sector";
+    for (const b of g.beacons) {
+      if (b.kind === "start" || b.kind === "exit" || b.kind === "boss") continue;
+      b.flag = "";
+      b.kind = "empty";
+    }
     const held = g.beacons.find(
       (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store",
     );
@@ -201,9 +213,9 @@ describe("cited events", () => {
     held.flag = "engi-cache";
     held.name = "Engi cache";
     stampCitedEvents(g);
-    const first = g.beacons.filter((b) => b.flag.startsWith("cited:")).map((b) => b.flag);
+    const first = storyFlags(g.beacons);
     stampCitedEvents(g);
-    const second = g.beacons.filter((b) => b.flag.startsWith("cited:")).map((b) => b.flag);
+    const second = storyFlags(g.beacons);
     assert.ok(first.length >= 1);
     assert.deepEqual(second, first);
     assert.equal(new Set(first).size, first.length);
@@ -212,11 +224,11 @@ describe("cited events", () => {
       g.beacons.some(
         (b) =>
           (b.kind === "exit" || b.kind === "start" || b.kind === "store") &&
-          b.flag.startsWith("cited:"),
+          storyFlags([b]).length > 0,
       ),
       false,
     );
-    const marked = g.beacons.find((b) => b.flag.startsWith("cited:"));
+    const marked = g.beacons.find((b) => storyFlags([b]).length > 0);
     assert.ok(marked);
     assert.equal(marked.kind, "event");
     assert.ok(citedEvent(g, marked));
@@ -264,10 +276,6 @@ describe("cited events", () => {
 
   it("places the station when the sector opens and keeps the panel up if the price is short", () => {
     const g = createGame(3, "PLAYER_SHIP_HARD", "normal");
-    assert.equal(
-      g.beacons.some((b) => b.flag.startsWith("cited:")),
-      false,
-    );
     const start = g.route.find((node) => node.id === g.routeHere);
     assert.ok(start);
     g.phase = "map";
@@ -277,10 +285,10 @@ describe("cited events", () => {
     assert.ok(dest);
     chooseSector(g, destId);
     assert.equal(g.sectorName, dest.name);
-    const stamped = g.beacons.filter((b) => b.flag.startsWith("cited:"));
+    const stamped = storyFlags(g.beacons);
     assert.ok(stamped.length >= 1, dest.name);
     assert.equal(
-      g.beacons.filter((b) => b.flag === "last-stand-repair").length,
+      g.beacons.filter((b) => b.flag === "BOSS_REPAIR_STATION").length,
       dest.name === "The Last Stand" ? 3 : 0,
     );
 
@@ -289,7 +297,7 @@ describe("cited events", () => {
       (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "store",
     );
     assert.ok(sell);
-    sell.flag = "cited:sell-drone-parts-for-scrap";
+    sell.flag = "SELL_DRONES_STATION";
     sell.name = "Sell drone parts for scrap";
     sell.kind = "event";
     const here = shop.beacons.find((b) => b.id === shop.here);
@@ -325,7 +333,7 @@ describe("Auto-ship carrying shield virus", () => {
       (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
     );
     assert.ok(b);
-    b.flag = "cited:auto-ship-carrying-shield-virus";
+    b.flag = "AUTO_HACKER";
     b.kind = "event";
     b.name = "Auto-ship carrying shield virus";
     g.here = b.id;
@@ -405,12 +413,7 @@ describe("crew entirely composed of Mantis", () => {
     let followed = false;
     for (let seed = 1; seed <= 40 && (!fighter || !followed); seed++) {
       const g = createGame(seed);
-      openCited(
-        g,
-        "Mantis Controlled Sector",
-        "cited:mantis-ship-collectors",
-        "Mantis ship-collectors",
-      );
+      openCited(g, "Mantis Controlled Sector", "DONOR_MANTIS_CHASE", "Mantis ship-collectors");
       choose(g, "c:mantis-ship-collectors:0");
       const aboard = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
       assert.ok(aboard.length > 0);
@@ -429,7 +432,7 @@ describe("crew entirely composed of Mantis", () => {
       openCited(
         z,
         "Zoltan Controlled Sector",
-        "cited:zoltan-ship-follows-mantis-ship",
+        "ZOLTAN_DISTRESS_MANTIS",
         "Zoltan ship follows Mantis ship",
       );
       choose(z, "c:zoltan-ship-follows-mantis-ship:1");
@@ -467,12 +470,7 @@ describe("Zoltan border police", () => {
       const augments = [...g.augments];
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(
-        g,
-        "Zoltan Controlled Sector",
-        "cited:zoltan-border-police",
-        "Zoltan border police",
-      );
+      openCited(g, "Zoltan Controlled Sector", "ZOLTAN_BOARDERS", "Zoltan border police");
       choose(g, "c:zoltan-border-police:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "zoltan");
@@ -521,7 +519,7 @@ describe("Zoltan border police", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:zoltan-border-police";
+    dest.flag = "ZOLTAN_BOARDERS";
     dest.name = "Zoltan border police";
     dest.resolved = false;
     dest.tier = "";
@@ -559,12 +557,7 @@ describe("Boarders: Humans in plasma storm", () => {
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const kills = g.kills;
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(
-        g,
-        "Civilian Sector",
-        "cited:boarders-humans-in-plasma-storm",
-        "Boarders: Humans in plasma storm",
-      );
+      openCited(g, "Civilian Sector", "STORM_BOARDING", "Boarders: Humans in plasma storm");
       choose(g, "c:boarders-humans-in-plasma-storm:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy, null);
@@ -625,12 +618,7 @@ describe("Rebel fight with boarders", () => {
       const augments = [...g.augments];
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(
-        g,
-        "Rebel Controlled Sector",
-        "cited:rebel-fight-with-boarders",
-        "Rebel fight with boarders",
-      );
+      openCited(g, "Rebel Controlled Sector", "BOARDERS_REBEL_SHIP", "Rebel fight with boarders");
       choose(g, "c:rebel-fight-with-boarders:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "rebel");
@@ -681,7 +669,7 @@ describe("Rebel fight with boarders", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:rebel-fight-with-boarders";
+    dest.flag = "BOARDERS_REBEL_SHIP";
     dest.name = "Rebel fight with boarders";
     dest.resolved = false;
     dest.tier = "";
@@ -717,7 +705,7 @@ describe("Mantis outcasts", () => {
       const augments = [...g.augments];
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(g, "Zoltan Controlled Sector", "cited:mantis-outcasts", "Mantis outcasts");
+      openCited(g, "Zoltan Controlled Sector", "ZOLTAN_BOARDERS_MANTIS", "Mantis outcasts");
       choose(g, "c:mantis-outcasts:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "mantis");
@@ -766,7 +754,7 @@ describe("Mantis outcasts", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:mantis-outcasts";
+    dest.flag = "ZOLTAN_BOARDERS_MANTIS";
     dest.name = "Mantis outcasts";
     dest.resolved = false;
     dest.tier = "";
@@ -794,7 +782,7 @@ describe("Slug hacker (choice)", () => {
     openCited(
       shields,
       "Slug Controlled Nebula",
-      "cited:slug-hacker-choice",
+      "NEBULA_SLUG_CHOOSE_DEATH",
       "Slug hacker (choice)",
     );
     shields.player.systems.shields.level = 4;
@@ -807,7 +795,7 @@ describe("Slug hacker (choice)", () => {
     assert.equal(shields.player.shieldNow, 1);
 
     const air = createGame(42);
-    openCited(air, "Slug Controlled Nebula", "cited:slug-hacker-choice", "Slug hacker (choice)");
+    openCited(air, "Slug Controlled Nebula", "NEBULA_SLUG_CHOOSE_DEATH", "Slug hacker (choice)");
     air.player.systems.oxygen.level = 2;
     air.player.systems.oxygen.power = 2;
     air.player.systems.oxygen.damage = 0;
@@ -834,7 +822,7 @@ describe("Slug hacker (choice)", () => {
     assert.ok(gained > 0.04 && gained < 0.1, String(gained));
 
     const guns = createGame(43);
-    openCited(guns, "Slug Controlled Nebula", "cited:slug-hacker-choice", "Slug hacker (choice)");
+    openCited(guns, "Slug Controlled Nebula", "NEBULA_SLUG_CHOOSE_DEATH", "Slug hacker (choice)");
     guns.player.systems.weapons.level = 2;
     guns.player.systems.weapons.power = 2;
     guns.player.systems.weapons.damage = 0;
@@ -859,7 +847,7 @@ describe("Slug hacker (choice)", () => {
 describe("The Engi virus", () => {
   it("halves Engines and Shields, rounding down, until that fight ends", () => {
     const g = createGame(51);
-    openCited(g, "Engi Controlled Sector", "cited:the-engi-virus", "The Engi virus");
+    openCited(g, "Engi Controlled Sector", "ENGI_VIRUS", "The Engi virus");
     g.player.systems.shields.level = 4;
     g.player.systems.shields.power = 4;
     g.player.systems.shields.damage = 0;
@@ -885,7 +873,7 @@ describe("The Engi virus", () => {
 describe("Slug hacker (doors)", () => {
   it("takes the Door System offline until that fight ends", () => {
     const g = createGame(61);
-    openCited(g, "Slug Controlled Nebula", "cited:slug-hacker-doors", "Slug hacker (doors)");
+    openCited(g, "Slug Controlled Nebula", "NEBULA_SLUG_DOORS", "Slug hacker (doors)");
     g.player.systems.doors.level = 3;
     g.player.systems.doors.damage = 0;
     g.player.systems.doors.ion = [];
@@ -929,7 +917,7 @@ describe("Door System open and close", () => {
 describe("Slug hacker (oxygen)", () => {
   it("takes the Oxygen system offline until that fight ends", () => {
     const g = createGame(71);
-    openCited(g, "Slug Controlled Nebula", "cited:slug-hacker-oxygen", "Slug hacker (oxygen)");
+    openCited(g, "Slug Controlled Nebula", "NEBULA_SLUG_OXYGEN", "Slug hacker (oxygen)");
     g.player.systems.oxygen.level = 2;
     g.player.systems.oxygen.power = 2;
     g.player.systems.oxygen.damage = 0;
@@ -978,7 +966,7 @@ describe("Slug hacker (oxygen)", () => {
 describe("Slug hacker (medical)", () => {
   it("takes the Medbay and Clone Bay offline until that fight ends", () => {
     const g = createGame(81);
-    openCited(g, "Slug Controlled Nebula", "cited:slug-hacker-medical", "Slug hacker (medical)");
+    openCited(g, "Slug Controlled Nebula", "NEBULA_SLUG_MEDBAY", "Slug hacker (medical)");
     g.player.systems.medbay.level = 3;
     g.player.systems.medbay.power = 3;
     g.player.systems.medbay.damage = 0;
@@ -1081,7 +1069,7 @@ describe("Lanius fight with friendly ASB support", () => {
     openCited(
       g,
       "Abandoned Sector",
-      "cited:lanius-fight-with-friendly-asb-support",
+      "LANIUS_NOBOARDERS_PDS",
       "Lanius fight with friendly ASB support",
     );
     choose(g, "c:lanius-fight-with-friendly-asb-support:0");

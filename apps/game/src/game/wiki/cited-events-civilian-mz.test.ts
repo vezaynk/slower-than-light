@@ -181,7 +181,7 @@ describe("Rebel fight choice in nebula", () => {
     const g = createGame(1);
     const b = g.beacons.find((x) => x.kind !== "start");
     assert.ok(b);
-    b.flag = "cited:rebel-fight-choice-in-nebula";
+    b.flag = "NEBULA_REBEL_UNDETECTED";
     b.name = "Rebel fight choice in nebula";
     g.here = b.id;
     g.event = citedEvent(g, b);

@@ -20,7 +20,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Boarders: Rockmen near sun",
     tier: "",
-    flag: "cited:boarders-rockmen-near-sun",
+    flag: "ROCK_BOARDERS_SUN",
     asteroid: false,
   };
 }

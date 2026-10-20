@@ -21,7 +21,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Boarders: Mantis",
     tier: "",
-    flag: "cited:boarders-mantis",
+    flag: "MANTIS_BOARDERS",
     asteroid: false,
   };
 }

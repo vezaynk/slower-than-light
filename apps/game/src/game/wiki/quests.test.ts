@@ -85,7 +85,7 @@ describe("Beacons, Quest (marker) beacon: placement", () => {
       assert.ok(b);
       assert.ok(jumpsBetween(g.beacons, here(g).id, b.id) < fleetToReach(g, b) - g.fleet);
       assert.equal(b.kind, "event");
-      assert.equal(b.flag, "quest:escort");
+      assert.equal(b.flag, "arrive-escort");
       assert.equal(b.name, QUESTS.escort.title);
       assert.equal(b.resolved, false);
     }
@@ -521,7 +521,7 @@ describe("Other surrender pages with a marker", () => {
       t.sectorId = "CIVILIAN_SECTOR";
       t.sectorName = "Civilian Sector";
       const b = t.beacons.find((x) => x.col === 1)!;
-      b.flag = "cited:settlement-mercenary-work";
+      b.flag = "MERCENARY_WORK_START";
       b.kind = "event";
       b.name = "Settlement mercenary work";
       t.here = b.id;

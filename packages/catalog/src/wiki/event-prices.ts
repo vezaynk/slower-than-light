@@ -5,6 +5,7 @@
  */
 import { eventDef } from "@stl/pack";
 import type { EventPrice } from "@stl/pack";
+import { storedId } from "./ftl-slugs.ts";
 
 export const PRICE_BANDS: Record<string, EventPrice[]> = {
   "rebel-checkpoint": [{ id: "bribe", k: "scrap", lo: 10, hi: 15 }],
@@ -22,7 +23,7 @@ export const PRICE_BANDS: Record<string, EventPrice[]> = {
 
 /** The packed band for this button, or null when the page rolls none. */
 export function priceBand(eventId: string, priceId: string): EventPrice | null {
-  const price = eventDef(eventId)?.prices?.find((row) => row.id === priceId);
+  const price = eventDef(storedId(eventId))?.prices?.find((row) => row.id === priceId);
   if (!price) return null;
   if ((price.k !== "scrap" && price.k !== "fuel") || price.lo > price.hi) return null;
   return price;

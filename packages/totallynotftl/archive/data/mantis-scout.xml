@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<FTL><img x="-35" y="-35" w="350" h="210"/><offsets><cloak x="0" y="0"/><floor x="0" y="0"/></offsets><explosion><gib1><x>-35</x><y>-18</y><velocity min="0.35" max="0.9"/><direction min="150" max="210"/><angular min="-12" max="12"/></gib1></explosion></FTL>
+<FTL><img x="-35" y="-35" w="350" h="210"/><glowOffset x="0" y="0"/><offsets><cloak x="0" y="0"/><floor x="0" y="0"/></offsets><explosion><gib1><x>-35</x><y>-18</y><velocity min="0.35" max="0.9"/><direction min="150" max="210"/><angular min="-12" max="12"/></gib1></explosion></FTL>

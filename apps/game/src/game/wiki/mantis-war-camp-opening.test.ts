@@ -10,7 +10,7 @@ const BODY =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:mantis-war-camp";
+  b.flag = "QUEST_MANTIS_INVASION_START";
   b.name = "Mantis war camp";
   g.here = b.id;
   g.event = citedEvent(g, b);

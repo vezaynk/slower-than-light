@@ -229,7 +229,7 @@
       </reward>
     </reward>
   </rewards>
-  <emptyBeacon name="empty-beacon-civilian">
+  <emptyBeacon name="NOTHING">
     <title>Empty beacon (Civilian)</title>
     <sector>CIVILIAN_SECTOR</sector>
     <text>Your jump leads you to nothing but empty space. This Jump Beacon serves no purpose other than as a connection.</text>
@@ -242,7 +242,7 @@
     <text>Your jump leads to a completely unremarkable binary star system. There is nothing else around.</text>
     <text>Your jump leads to a remarkable binary star system. The view is beautiful, but there is nothing else around.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-crystal">
+  <emptyBeacon name="NOTHING_CRYSTAL">
     <title>Empty beacon (Crystal)</title>
     <sector>CRYSTAL_HOME</sector>
     <text>As soon as you arrive, all of the ships docked at a nearby station scatter and jump away, while the station itself uses some form of cloak technology to disappear. They mustn't like outsiders here...</text>
@@ -252,7 +252,7 @@
     <text>A few merchant ships pass nearby but they are either ignoring your hails or their computer isn't designed to work through the same frequencies...</text>
     <text>A number of civilian ships seem to be evacuating a small colony. One ship messages you before jumping away, "Damn you aliens! This is why we closed that Long-range Beacon in the first place!"</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-engi">
+  <emptyBeacon name="NOTHING_ENGI">
     <title>Empty beacon (Engi)</title>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -267,7 +267,7 @@
     <text>The Engi seem to have avoided this particular node, along with every other life-form. You keep your eyes peeled for reasons why, but spin up the FTL without event.</text>
     <text>A cluster of Engi satellites in orbit of a nearby planet are the only clue the mechanical species was ever here. You have other places to be.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-lanius">
+  <emptyBeacon name="NOTHING_LANIUS">
     <title>Empty beacon (Lanius)</title>
     <sector>LANIUS_SECTOR</sector>
     <text>The charts indicate this was the location of a small skirmish over a military facility on a nearby moon. Oddly, scans pick up no signs of debris from either the battle or the station. Yet another area sucked dry by the Lanius.</text>
@@ -277,7 +277,7 @@
     <text>You question a local settlement and they describe a fleet of metal ships wordlessly collecting all of the abandoned metal and debris in the area. When they approached important satellites, the settlements fired a few ASB warning shots. The Lanius moved on despite clearly having the firepower to overwhelm the settlements.</text>
     <text>You come across a human civilian ship preparing to leave the sector. They message you, "We're getting out of here! There was some cult rambling about the spreading of the disease, Humanitis. They forcefully boarded our ship and tried to open all of our airlocks, shouting, "Be purged!" Is nowhere safe anymore?"</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-last-stand">
+  <emptyBeacon name="BOSS_FLEETS_FED">
     <title>Empty beacon (Last Stand)</title>
     <sector>FINAL</sector>
     <text>You arrive to see a number of Federation forward-carriers and dreadnoughts. This must be a system of high importance to warrant such a fleet.</text>
@@ -286,7 +286,7 @@
     <text>A large host of Federation heavy vessels are in formation around the beacon. Sensors run hot with missile locks, but once you transmit your ship signature they leave you alone.</text>
     <text>A battalion of Federation fighters are fighting around a nearby moon with their carriers waiting in the distance. They must have encountered a Rebel scout squadron.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-mantis">
+  <emptyBeacon name="NOTHING_MANTIS">
     <title>Empty beacon (Mantis)</title>
     <sector>MANTIS_SECTOR</sector>
     <sector>MANTIS_HOME</sector>
@@ -297,7 +297,7 @@
     <text>There's nothing here but space debris and some uninhabitable planetoids.</text>
     <text>You fancy you see something moving in the shadow of the beacon, but all remains still.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-pirate">
+  <emptyBeacon name="NOTHING_PIRATE">
     <title>Empty beacon (Pirate)</title>
     <sector>PIRATE_SECTOR</sector>
     <text>As soon as you arrive, a small ship de-cloaks behind yours. You immediately power up the shields and weapons, but they continue on their trajectory unimpressed. You try to calm your nerves.</text>
@@ -305,7 +305,7 @@
     <text>The only thing within scanning range is an old abandoned mining structure and a resupply station. They appear to have been picked clean by marauders.</text>
     <text>You arrive to have a small fleet of Engi ships target you with a message, "Piracy results in negative societal impact. Not permitted." You assure them of your honest intentions and they allow you to pass.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-rebel">
+  <emptyBeacon name="NOTHING_REBEL">
     <title>Empty beacon (Rebel)</title>
     <sector>REBEL_SECTOR</sector>
     <sector>REBEL_SECTOR_MINIBOSS</sector>
@@ -315,7 +315,7 @@
     <text>There are no other ships near this beacon, however you detect a small communication relay. You tap into it without a problem; there is no encryption. Most of the chatter revolves around troop and fleet movements, not particularly interesting.</text>
     <text>There is a small planet nearby with scattered settlements. A small Rebel fleet is in orbit with many ships ferrying back and forth. It must be a more recently 'liberated' planet.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-rock">
+  <emptyBeacon name="NOTHING_ROCK">
     <title>Empty beacon (Rock)</title>
     <sector>ROCK_SECTOR</sector>
     <sector>ROCK_HOME</sector>
@@ -327,7 +327,7 @@
     <text>You see a small trading post and ask about refuelling but they respond, "Go away! We don't serve your kind here."</text>
     <text>You see a Zoltan merchant and ask about his wares. He responds, "Sorry, but it took years to gain their trust. I can't be seen communicating with you. I hope you understand." He cuts communications.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-slug">
+  <emptyBeacon name="NOTHING_SLUG">
     <title>Empty beacon (Slug)</title>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>
@@ -337,7 +337,7 @@
     <text>The Slugs rely heavily on their telepathic powers and are reluctant to give up that advantage by extending beyond nebulas. It's unlikely you'll encounter any this far from the clouds.</text>
     <text>You arrive in an area clear of nebula and quickly check to see if the sensors are working. Everything is fine and no ships are detected in the vicinity.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-beacon-zoltan">
+  <emptyBeacon name="NOTHING_ZOLTAN">
     <title>Empty beacon (Zoltan)</title>
     <sector>ZOLTAN_SECTOR</sector>
     <sector>ZOLTAN_HOME</sector>
@@ -349,7 +349,7 @@
     <text>A Zoltan shipyard is stationed at this beacon. You admire the display of hundreds of glowing Zoltan performing delicate exterior work on a massive transport ship.</text>
     <text>A message broadcast from a nearby planet announces the presence of an ancient Zoltan monastery available for visiting. Likely just a tourist trap, but still too bad you don't have the time to visit.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-nebula-beacon" nebula="true">
+  <emptyBeacon name="NEBULA_EMPTY" nebula="true">
     <title>Empty nebula beacon</title>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>PIRATE_SECTOR</sector>
@@ -368,7 +368,7 @@
     <text>With the sensors down, you spend a good deal of time staring out the window. It is, you must admit, rather beautiful here.</text>
     <text>There's nothing here, save for vast swirls of gas reflecting rays from a distant sun.</text>
   </emptyBeacon>
-  <emptyBeacon name="empty-nebula-beacon-slug" nebula="true">
+  <emptyBeacon name="NEBULA_NOTHING_SLUG" nebula="true">
     <title>Empty nebula beacon (Slug)</title>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>

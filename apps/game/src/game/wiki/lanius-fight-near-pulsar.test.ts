@@ -10,7 +10,7 @@ const BODY =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:lanius-fight-near-pulsar";
+  b.flag = "LANIUS_FIGHT_PULSAR";
   b.name = "Lanius fight near pulsar";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -44,7 +44,7 @@ describe("Lanius fight near pulsar", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:lanius-fight-near-pulsar";
+    dest.flag = "LANIUS_FIGHT_PULSAR";
     dest.name = "Lanius fight near pulsar";
     dest.resolved = false;
     dest.tier = "";

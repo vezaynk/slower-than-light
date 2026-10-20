@@ -17,7 +17,7 @@ describe("Mantis fight (Zoltan)", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:mantis-fight-zoltan";
+    dest.flag = "ZOLTAN_MANTIS";
     dest.name = "Mantis fight (Zoltan)";
     dest.resolved = false;
     dest.tier = "";

@@ -141,16 +141,16 @@ export const QUEST_CANCELLED =
 
 /** Ship-unlocking event pages (Category:Ship Unlocking Events) are not overwritten by a marker. INFERRED (Beacons @to-do). */
 const KEEP_FLAGS = new Set([
-  "cited:engi-fleet-discussion",
-  "cited:legendary-thief-kazaaakplethkilik",
-  "cited:slug-home-nebula-surrender",
+  "ENGI_UNLOCK_1",
+  "MANTIS_NAMED_THIEF",
+  "NEBULA_SLUG_FIGHT_UNLOCK",
   "engi-cache",
-  "last-stand-repair",
+  "BOSS_REPAIR_STATION",
   // @agent:quests-a. Category:Ship Unlocking Events pages wired in quests-a.ts.
-  "cited:ancient-device",
-  "cited:rock-war-vessel-encounter",
-  "cited:unarmed-zoltan-transport",
-  "cited:zoltan-research-facility",
+  "ROCK_CRYSTAL_BEACON",
+  "ROCK_UNLOCK",
+  "ZOLTAN_PEACE_QUEST",
+  "ZOLTAN_CREW_STUDY",
 ]);
 
 /**
@@ -198,7 +198,7 @@ function mark(b: Beacon, id: string) {
   // Wiki citations:
   // > "Note: this event occurs at a regular quest marker beacon, but when you arrive there will be a nebula environment." — [[Slug Home Nebula surrender#Quest Marker]]
   b.kind = id === "slug-pirate-trap" || id === "slug-platform" ? "nebula" : "event";
-  b.flag = `quest:${id}`;
+  b.flag = `arrive-${id}`;
   b.name = QUESTS[id]?.title ?? fromParts("quests", id)?.title ?? "Quest";
   b.asteroid = false;
   b.resolved = false;
@@ -708,9 +708,9 @@ function arriveFedBase(g: Game) {
 /** Builds the card for a quest beacon on arrival, or null when `b` holds no live quest. sim.ts eventFor calls this. */
 export function questEvent(g: Game, b: Beacon): GameEvent | null {
   if (!b.quest || b.resolved) return null;
-  // An arrival page is the event whose flag is quest:<id>. The sim still chose this beacon.
+  // An arrival page is named arrive- plus the quest id. The sim still chose this beacon.
   if (b.quest !== RUWEN_ENTRY) {
-    const packed = allEvents().find((ev) => ev.flag === `quest:${b.quest}`);
+    const packed = allEvents().find((ev) => ev.id === `arrive-${b.quest}`);
     if (packed) {
       g.event = {
         title: here(g)?.name ?? packed.dest,
@@ -2251,7 +2251,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   "s:refuel-dock:accept": (g) => {
     if (!refuelOffer()) return;
-    const n = rollPrice("refueling-platform", "offer", (lo, hi) => between(g, [lo, hi]));
+    const n = rollPrice("FUELING_STATION", "offer", (lo, hi) => between(g, [lo, hi]));
     if (n == null || g.scrap < n) return;
     g.scrap -= n;
     g.fuel += rollFuel("s:refuel-dock:accept", (lo, hi) => between(g, [lo, hi]));
@@ -4511,7 +4511,7 @@ export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []
     // > "The Slug Captain, thankful for your help, offers a reactor upgrade for your ship... for a 'fair' price." — [[Rock and Slug standoff#Slug reward]]
     // > "Agree to the price. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff#Slug reward]]
     // > "Decline the offer." — [[Rock and Slug standoff#Slug reward]]
-    const n = rollPrice("rock-and-slug-standoff", "upgrade", (lo, hi) => between(g, [lo, hi]));
+    const n = rollPrice("ROCK_SLUG_ARGUMENT", "upgrade", (lo, hi) => between(g, [lo, hi]));
     const tail = extras.length ? ` ${extras.join(" ")}` : "";
     const choices = [];
     if (n != null) {

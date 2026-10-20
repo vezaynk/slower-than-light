@@ -46,7 +46,7 @@ describe("Flagship path", () => {
     assert.equal(base.col, 3);
     assert.ok(ram.col > base.col);
     assert.equal(ram.name, "Flagship");
-    assert.equal(g.beacons.filter((b) => b.flag === "last-stand-repair").length, 3);
+    assert.equal(g.beacons.filter((b) => b.flag === "BOSS_REPAIR_STATION").length, 3);
   });
 
   it("jumps to a beacon closer to the base", () => {

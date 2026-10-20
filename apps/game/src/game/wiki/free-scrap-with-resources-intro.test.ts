@@ -16,7 +16,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:free-scrap-with-resources";
+  b.flag = "FREE_ITEMS";
   b.name = "Free scrap with resources";
   g.here = b.id;
   g.event = citedEvent(g, b);

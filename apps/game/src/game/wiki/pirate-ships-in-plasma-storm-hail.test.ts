@@ -11,7 +11,7 @@ const BODY =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:pirate-ships-in-plasma-storm";
+  b.flag = "STORM_ZOLTAN_SUPPLY_CHOICE";
   b.name = "Pirate ships in plasma storm";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -27,7 +27,7 @@ describe("Pirate ships in plasma storm hail", () => {
     // > "Let them leave." — [[Pirate ships in plasma storm]]
     const g = createGame(1);
     open(g);
-    const def = EXTRA_EVENTS.find((ev) => ev.flag === "cited:pirate-ships-in-plasma-storm");
+    const def = EXTRA_EVENTS.find((ev) => ev.slug === "pirate-ships-in-plasma-storm");
     assert.ok(def);
     const ids = g.event?.choices.map((c) => c.id) ?? [];
     assert.equal(g.event?.title, "Pirate ships in plasma storm");

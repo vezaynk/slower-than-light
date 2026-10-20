@@ -147,7 +147,7 @@ describe("Advanced Edition content", () => {
     (g as { ae?: boolean }).ae = false;
     let saw = false;
     for (let i = 0; i < 400 && !saw; i++) {
-      const page = drawFiller(g, "filler", []);
+      const page = drawFiller(g, "FILLER", []);
       if (page?.dest === "Abandoned station") saw = true;
     }
     assert.equal(saw, true);

@@ -9,7 +9,7 @@ const BODY = `You see a small station fitted with hundreds of Repair drones. You
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:repair-station";
+  b.flag = "REPAIR_STATION";
   b.name = "Repair station";
   g.here = b.id;
   g.event = citedEvent(g, b);

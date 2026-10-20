@@ -31,7 +31,7 @@ function gives(text: string, kind: "weapon" | "drone"): number {
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rebel-transport-ship";
+  b.flag = "REBEL_TRANSPORT";
   b.name = "Rebel transport ship";
   g.here = b.id;
   g.event = citedEvent(g, b);

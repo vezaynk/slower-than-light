@@ -14,7 +14,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rebel-fight-with-boarders";
+  b.flag = "BOARDERS_REBEL_SHIP";
   b.name = "Rebel fight with boarders";
   g.here = b.id;
   g.event = citedEvent(g, b);

@@ -7,7 +7,7 @@ import { citedEvent } from "./cited-events.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rebel-fight-choice-in-nebula";
+  b.flag = "NEBULA_REBEL_UNDETECTED";
   b.name = "Rebel fight choice in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);

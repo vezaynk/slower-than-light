@@ -94,9 +94,9 @@ const pack: ContentPack = {
     {
       id: "checkpoint",
       dest: "Checkpoint",
-      flag: "cited:checkpoint",
-      aliases: ["Fleet"],
-      sectors: ["Civilian Sector"],
+      flag: "checkpoint",
+      aliases: [],
+      sectors: [],
       body: "Rock & <Stone>",
       prices: [{ id: "bribe", k: "scrap", lo: 10, hi: 15 }],
       bands: [{ id: "extra", k: "fuel", lo: 3, hi: 5 }],
@@ -144,7 +144,7 @@ describe("hyperspace mod", () => {
     assert.doesNotMatch(xml, /<storeBlueprint/);
     assert.match(xml, /<event name="checkpoint"/);
     assert.doesNotMatch(xml, /<eventBlueprint/);
-    assert.match(xml, /<event name="refugee" unique="true"\/>/);
+    assert.match(xml, /<event load="refugee" unique="true"\/>/);
     assert.match(xml, /<rewards>/);
     assert.match(xml, /<rewardScaling>/);
     assert.match(xml, /<shipBlueprint name="rebel">\s*<surrender chance="50" min="20" max="30"\/>/);

@@ -24,7 +24,7 @@ const CAMPAIGN: TradeStep[] = [
 afterEach(() => resetPackForTests());
 
 function row(): EventDef {
-  const found = eventDef("trade-scrap-for-upgrades");
+  const found = eventDef("TRADER_UPGRADES");
   assert.ok(found);
   return found;
 }
@@ -53,7 +53,7 @@ function agree(g: Game): { id: string; cost: number } | null {
 
 describe("trade scrap table", () => {
   it("packs the nine campaign rows", () => {
-    assert.deepEqual(eventDef("trade-scrap-for-upgrades")?.trades, CAMPAIGN);
+    assert.deepEqual(eventDef("TRADER_UPGRADES")?.trades, CAMPAIGN);
   });
 
   it("pays a fixed oxygen band and refuses a cost outside it", () => {
@@ -178,8 +178,8 @@ describe("trade scrap table", () => {
 
   it("restores the campaign rows", () => {
     replace(undefined);
-    assert.equal(eventDef("trade-scrap-for-upgrades")?.trades, undefined);
+    assert.equal(eventDef("TRADER_UPGRADES")?.trades, undefined);
     resetPackForTests();
-    assert.deepEqual(eventDef("trade-scrap-for-upgrades")?.trades, CAMPAIGN);
+    assert.deepEqual(eventDef("TRADER_UPGRADES")?.trades, CAMPAIGN);
   });
 });

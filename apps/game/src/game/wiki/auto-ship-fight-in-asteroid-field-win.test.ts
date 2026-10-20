@@ -8,7 +8,7 @@ import { pageWin } from "./quests.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:auto-ship-fight-in-asteroid-field";
+  b.flag = "AUTO_ASTEROID";
   b.name = "Auto-ship fight in asteroid field";
   g.here = b.id;
   g.event = citedEvent(g, b);

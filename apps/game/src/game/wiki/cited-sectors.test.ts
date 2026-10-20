@@ -50,7 +50,7 @@ describe("Last Stand repair stations", () => {
     assert.equal(g.player.parts, 2);
     assert.equal(g.scrap, scrap);
 
-    const repairs = g.beacons.filter((b) => b.flag === "last-stand-repair");
+    const repairs = g.beacons.filter((b) => b.flag === "BOSS_REPAIR_STATION");
     assert.equal(repairs.length, 3);
     for (const b of repairs) {
       assert.equal(b.name, "Federation Repair Station");
@@ -59,18 +59,18 @@ describe("Last Stand repair stations", () => {
       assert.equal(b.resolved, false);
     }
     assert.equal(
-      g.beacons.some((b) => b.kind === "store" && b.flag === "last-stand-repair"),
+      g.beacons.some((b) => b.kind === "store" && b.flag === "BOSS_REPAIR_STATION"),
       false,
     );
     assert.equal(
-      g.beacons.some((b) => b.kind === "start" && b.flag === "last-stand-repair"),
+      g.beacons.some((b) => b.kind === "start" && b.flag === "BOSS_REPAIR_STATION"),
       false,
     );
     assert.ok(g.beacons.some((b) => b.kind === "boss" && b.name === "Flagship"));
     assert.equal(g.beacons.filter((b) => b.kind === "store").length >= 1, true);
 
     citedSector(g);
-    assert.equal(g.beacons.filter((b) => b.flag === "last-stand-repair").length, 3);
+    assert.equal(g.beacons.filter((b) => b.flag === "BOSS_REPAIR_STATION").length, 3);
     assert.equal(g.player.hull, 22);
     assert.equal(g.fuel, 14);
   });
@@ -79,7 +79,7 @@ describe("Last Stand repair stations", () => {
     const g = createGame(2);
     citedSector(g);
     assert.equal(
-      g.beacons.some((b) => b.flag === "last-stand-repair"),
+      g.beacons.some((b) => b.flag === "BOSS_REPAIR_STATION"),
       false,
     );
     assert.equal(g.sectorId, "STANDARD_SPACE");
@@ -94,7 +94,7 @@ describe("Last Stand repair stations", () => {
     assert.equal(cache.flag, "engi-cache");
     assert.equal(cache.name, "Engi cache");
     assert.equal(
-      g.beacons.some((b) => b.flag === "last-stand-repair"),
+      g.beacons.some((b) => b.flag === "BOSS_REPAIR_STATION"),
       false,
     );
   });
@@ -114,10 +114,10 @@ describe("Last Stand repair stations", () => {
     citedSector(g);
     assert.equal(cache.flag, "engi-cache");
     assert.equal(exit?.kind, "exit");
-    assert.notEqual(exit?.flag, "last-stand-repair");
-    assert.notEqual(start?.flag, "last-stand-repair");
-    assert.notEqual(store?.flag, "last-stand-repair");
-    assert.equal(g.beacons.filter((b) => b.flag === "last-stand-repair").length, 3);
+    assert.notEqual(exit?.flag, "BOSS_REPAIR_STATION");
+    assert.notEqual(start?.flag, "BOSS_REPAIR_STATION");
+    assert.notEqual(store?.flag, "BOSS_REPAIR_STATION");
+    assert.equal(g.beacons.filter((b) => b.flag === "BOSS_REPAIR_STATION").length, 3);
 
     const thin = createGame(6);
     thin.sectorId = "FINAL";
@@ -127,7 +127,7 @@ describe("Last Stand repair stations", () => {
     );
     citedSector(thin);
     assert.equal(
-      thin.beacons.some((b) => b.flag === "last-stand-repair"),
+      thin.beacons.some((b) => b.flag === "BOSS_REPAIR_STATION"),
       false,
     );
   });
@@ -135,7 +135,7 @@ describe("Last Stand repair stations", () => {
   it("does not pay the station when the ship jumps there", () => {
     const { g } = enterLastStand(8);
     const here = g.beacons.find((b) => b.id === g.here);
-    const dest = g.beacons.find((b) => b.flag === "last-stand-repair");
+    const dest = g.beacons.find((b) => b.flag === "BOSS_REPAIR_STATION");
     assert.ok(here && dest);
     if (!here.links.includes(dest.id)) here.links.push(dest.id);
     const hull = g.player.hull;
@@ -157,7 +157,7 @@ describe("Last Stand repair stations", () => {
   it("pays 15 hull, scrap 22–44, 5 fuel, 4 missiles, and 5 drone parts once", () => {
     const { g } = enterLastStand(8);
     const here = g.beacons.find((b) => b.id === g.here);
-    const dest = g.beacons.find((b) => b.flag === "last-stand-repair");
+    const dest = g.beacons.find((b) => b.flag === "BOSS_REPAIR_STATION");
     assert.ok(here && dest);
     if (!here.links.includes(dest.id)) here.links.push(dest.id);
     g.player.hull = 10;
@@ -166,7 +166,7 @@ describe("Last Stand repair stations", () => {
     const parts = g.player.parts;
     const scrap = g.scrap;
     commitJump(g, dest.id);
-    choose(g, "last-stand-repair");
+    choose(g, "BOSS_REPAIR_STATION");
     assert.equal(g.player.hull, Math.min(g.player.hullMax, 25));
     const gained = g.scrap - scrap;
     assert.ok(gained >= 22 && gained <= 44, String(gained));
@@ -175,7 +175,7 @@ describe("Last Stand repair stations", () => {
     assert.equal(g.player.parts, parts + 5);
     assert.equal(dest.resolved, true);
     assert.equal(g.phase, "map");
-    choose(g, "last-stand-repair");
+    choose(g, "BOSS_REPAIR_STATION");
     assert.equal(g.scrap - scrap, gained);
     assert.equal(g.fuel, fuel - 1 + 5);
     assert.equal(g.player.hull, Math.min(g.player.hullMax, 25));

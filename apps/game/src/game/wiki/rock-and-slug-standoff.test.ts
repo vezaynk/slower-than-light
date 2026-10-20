@@ -8,7 +8,7 @@ import { pageWin } from "./quests.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rock-and-slug-standoff";
+  b.flag = "ROCK_SLUG_ARGUMENT";
   b.name = "Rock and Slug standoff";
   g.here = b.id;
   g.event = citedEvent(g, b);

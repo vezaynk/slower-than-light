@@ -980,9 +980,32 @@ function readFtlEvent(
   if (!rootChild(node)) return undefined;
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
-  // A flag marks a campaign page. Vanilla events keep the id as their flag.
-  if (attr(node, "flag")?.trim()) return readEvent(node);
+  // Campaign pages carry a title, a named choice, or a campaign-only child.
+  // A vanilla choice has no name and often a ship, so a bare choice stays a ship event.
+  if (campaignEvent(node)) return readEvent(node);
   return readEventBody(node, id, strings, lists);
+}
+
+const CAMPAIGN_LISTS = new Set(["trade", "high", "pt2", "base", "better", "supply"]);
+
+function campaignEvent(node: XmlElement): boolean {
+  for (const item of elements(node)) {
+    if (
+      item.tagName === "title" ||
+      item.tagName === "card" ||
+      item.tagName === "roll" ||
+      item.tagName === "trade" ||
+      item.tagName === "grade" ||
+      item.tagName === "surrender"
+    )
+      return true;
+    if (item.tagName === "choice" && attr(item, "name")?.trim()) return true;
+    if (item.tagName === "eventList") {
+      const name = attr(item, "name")?.trim() ?? "";
+      if (!name || CAMPAIGN_LISTS.has(name)) return true;
+    }
+  }
+  return false;
 }
 
 function readEventBody(
@@ -1009,6 +1032,10 @@ function readEventBody(
   const grants: ArchiveGrant[] = [];
   for (const item of elements(node)) {
     if (item.tagName === "text" || item.tagName === "choice") continue;
+    if (item.tagName === "store") {
+      event.store = true;
+      continue;
+    }
     if (item.tagName === "ship") {
       const ship = readShipLoad(item);
       if (ship) event.ship = ship;
@@ -1049,9 +1076,12 @@ function readFtlList(
   for (const item of elements(node)) {
     if (item.tagName !== "event") continue;
     const eventId = attr(item, "name")?.trim();
+    const load = attr(item, "load")?.trim();
     const unique = item.getAttribute("unique") === "true";
-    const inline = elements(item).length > 0 || Boolean(attr(item, "load")?.trim());
-    if (eventId && !inline) {
+    // ftl.dat lists name their pages as <event load="PIRATE"/>. A childless load is that page, not a new one.
+    if (load && elements(item).length === 0) {
+      entries.push({ id: load, unique });
+    } else if (eventId && elements(item).length === 0) {
       entries.push({ id: eventId, unique });
     } else {
       const pageId = eventId || `${id}:${index}`;

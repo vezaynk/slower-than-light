@@ -10,7 +10,7 @@ const LEAD =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:mantis-ship-with-rock-body-parts";
+  b.flag = "ROCK_MANTIS_HUNTER";
   b.name = "Mantis ship with Rock body parts";
   g.here = b.id;
   g.event = citedEvent(g, b);

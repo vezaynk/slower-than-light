@@ -254,7 +254,7 @@ const ARCHIVE = `<?xml version="1.0" encoding="UTF-8"?>
         </choice>
       </event>
     </choice>
-    <choice name="leave">
+    <choice>
       <text>Leave</text>
       <event load="BOARDER_TEST">
         <ship load="PIRATE" hostile="true"/>
@@ -297,6 +297,37 @@ const OVERWRITE_WORLD = `<?xml version="1.0" encoding="UTF-8"?>
 `;
 
 describe("packFromFtl", () => {
+  it("reads a list's <event load> as that page, and a page's <store/>", () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <event name="STORE_ENGI">
+    <text>Engi wares.</text>
+    <store/>
+  </event>
+  <event name="PIRATE">
+    <text>Pirates.</text>
+    <ship load="PIRATE" hostile="true"/>
+  </event>
+  <eventList name="HOSTILE_ENGI">
+    <event load="PIRATE"/>
+    <event load="STORE_ENGI"/>
+  </eventList>
+</FTL>
+`;
+    const pack = packFromFtl([{ path: "data/events.xml", xml }]);
+    assert.deepEqual(pack.lists, [
+      {
+        id: "HOSTILE_ENGI",
+        entries: [
+          { id: "PIRATE", unique: false },
+          { id: "STORE_ENGI", unique: false },
+        ],
+      },
+    ]);
+    assert.equal(pack.events?.find((row) => row.id === "STORE_ENGI")?.store, true);
+    assert.equal(pack.events?.find((row) => row.id === "PIRATE")?.store, undefined);
+  });
+
   it("colours sectors from the sectorType lists, with an OVERRIDE_ list replacing its base", () => {
     const xml = `<FTL>
   <sectorType name="CIVILIAN"><sector>CALM</sector></sectorType>
@@ -787,7 +818,7 @@ describe("packFromFtl", () => {
     assert.equal(stay?.choices?.[0]?.label, "Climb");
     assert.deepEqual(stay?.choices?.[0]?.fx, [{ k: "goto", id: "BOARDER_TEST" }]);
     const leave = gift?.choices[1];
-    assert.equal(leave?.id, "leave");
+    assert.equal(leave?.id, "1");
     assert.deepEqual(leave?.fx, [
       { k: "goto", id: "BOARDER_TEST" },
       { k: "fight", tier: "PIRATE" },
@@ -925,13 +956,13 @@ describe("packFromFtl", () => {
     assert.equal(pack.sectors?.find((row) => row.id === "ONLY_DE")?.name, "only_german");
   });
 
-  it("reads a flagged page, including an offer, from an ordinary document", () => {
+  it("reads an offer from an ordinary document and uses the name as the flag", () => {
     const pack = packFromFtl([
       {
         path: "data/events.xml",
         xml: `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>
-  <event name="stall" flag="market">
+  <event name="stall">
     <title>Stall</title>
     <text>A counter.</text>
     <eventList name="trade">
@@ -950,7 +981,7 @@ describe("packFromFtl", () => {
       {
         id: "stall",
         dest: "Stall",
-        flag: "market",
+        flag: "stall",
         aliases: [],
         sectors: [],
         body: "A counter.",

@@ -11,7 +11,7 @@ const LEAD =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:legendary-thief-kazaaakplethkilik";
+  b.flag = "MANTIS_NAMED_THIEF";
   b.name = "Legendary thief KazaaakplethKilik";
   g.here = b.id;
   g.event = citedEvent(g, b);

@@ -13,7 +13,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:trade-fuel-for-drone-parts";
+  b.flag = "FUEL_FOR_DRONE";
   b.name = "Trade fuel for drone parts";
   g.here = b.id;
   g.event = citedEvent(g, b);

@@ -271,8 +271,8 @@ describe("scripted surrenders (event pages)", () => {
     assert.deepEqual(at("slaver-hostile", 0), [80, 20, "slaver-hostile"]);
     assert.deepEqual(at("slug-home-nebula-surrender", 0), [100, 30, "slug-home-nebula-surrender"]);
     assert.equal(SCRIPTED_SURRENDERS["slaver-friendly"].chance, 80);
-    assert.equal(eventDef("slaver-friendly")?.surrender?.chance, 80);
-    assert.equal(eventDef("slug-home-nebula-surrender")?.surrender?.reward.k, "weapon");
+    assert.equal(eventDef("FRIENDLY_SLAVER")?.surrender?.chance, 80);
+    assert.equal(eventDef("NEBULA_SLUG_FIGHT_UNLOCK")?.surrender?.reward.k, "weapon");
     assert.equal(eventDef("quest-engi-real")?.surrender?.quest, "engi-final");
     assert.deepEqual(eventDef("quest-engi-real")?.sectors, []);
     assert.equal(eventDef("quest-engi-fake")?.surrender?.card?.choices.length, 2);
@@ -283,9 +283,9 @@ describe("scripted surrenders (event pages)", () => {
       {
         events: [
           {
-            id: "slug-home-nebula-surrender",
+            id: "NEBULA_SLUG_FIGHT_UNLOCK",
             dest: "Slug",
-            flag: "cited:slug-home-nebula-surrender",
+            flag: "NEBULA_SLUG_FIGHT_UNLOCK",
             aliases: [],
             sectors: [],
             body: "",
@@ -311,7 +311,7 @@ describe("scripted surrenders (event pages)", () => {
       );
       assert.equal(plan.chance, 15);
       assert.equal(plan.threshold, 10);
-      assert.equal(eventDef("slug-home-nebula-surrender")?.surrender?.hail, "A mod hail.");
+      assert.equal(eventDef("NEBULA_SLUG_FIGHT_UNLOCK")?.surrender?.hail, "A mod hail.");
     } finally {
       resetPackForTests();
     }

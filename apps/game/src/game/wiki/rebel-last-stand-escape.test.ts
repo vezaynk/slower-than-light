@@ -8,7 +8,7 @@ import { escapePlan, HULL_RUN_SECONDS } from "./escape.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rebel-ship-attacking-civilians-in-last-stand";
+  b.flag = "BOSS_SCOUT_RESCUE";
   b.name = "Rebel ship attacking civilians in Last Stand";
   g.here = b.id;
   g.event = citedEvent(g, b);

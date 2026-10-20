@@ -11,7 +11,7 @@ export type PulsarId = SysId | "battery";
 
 /** True when the cited event slug is one of those pulsar fights. */
 export function eventHasPulsar(event: string | undefined): boolean {
-  return !!event && event.includes("pulsar");
+  return !!event && event.toLowerCase().includes("pulsar");
 }
 
 /**

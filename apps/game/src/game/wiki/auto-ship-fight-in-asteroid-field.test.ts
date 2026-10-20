@@ -7,7 +7,7 @@ import { citedEvent } from "./cited-events.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:auto-ship-fight-in-asteroid-field";
+  b.flag = "AUTO_ASTEROID";
   b.name = "Auto-ship fight in asteroid field";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -39,7 +39,7 @@ describe("Auto-ship fight in asteroid field", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:auto-ship-fight-in-asteroid-field";
+    dest.flag = "AUTO_ASTEROID";
     dest.name = "Auto-ship fight in asteroid field";
     dest.resolved = false;
     dest.tier = "";

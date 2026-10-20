@@ -29,7 +29,7 @@ type Kind = "parts" | "scrap" | "trap" | "plague";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rebel-ship-supplying-civilians";
+  b.flag = "REBEL_HELPERS";
   b.name = "Rebel ship supplying civilians";
   g.here = b.id;
   g.event = citedEvent(g, b);

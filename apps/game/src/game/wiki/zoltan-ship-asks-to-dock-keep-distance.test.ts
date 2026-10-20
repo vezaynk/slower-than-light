@@ -7,7 +7,7 @@ import { citedEvent } from "./cited-events.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:zoltan-ship-asks-to-dock";
+  b.flag = "ZOLTAN_SCIENCE_DOCK";
   b.name = "Zoltan ship asks to dock";
   g.here = b.id;
   g.event = citedEvent(g, b);

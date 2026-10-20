@@ -106,6 +106,7 @@ import {
   allSectors,
   allWeapons,
   crewDef,
+  eventDef,
   hullDef,
   rewardBonus,
   scrapRange,
@@ -6940,7 +6941,7 @@ export function createGame(
   } as Game;
   makeMap(g);
   enterSector(g, START_SECTOR);
-  // No wired page lists this sector name, so the stamp places nothing here.
+  // STANDARD_SPACE carries quotas, so the starting map is dealt from them.
   stampCitedEvents(g);
   g.route = buildRoute(seed || 1);
   g.routeHere = g.route[0]?.id ?? "";
@@ -7182,6 +7183,14 @@ function arrive(g: Game, b: Beacon) {
   g.phase = "event";
   g.paused = true;
   g.event = eventFor(g, b);
+  // A ftl.dat page with a hostile <ship> and no choice is a fight. Its text is the hail.
+  const page = eventDef(b.flag.replace(/^filler:/, ""));
+  if (page?.ship?.hostile && page.choices.length === 0 && !g.enemy) {
+    if (g.event?.body) log(g, g.event.body);
+    g.event = null;
+    startCombat(g, b.tier || "pool", false);
+    return;
+  }
   // These pages have no choice. The red line is the outcome, not a button.
   // Boarders: Humans (Abandoned): "3-4 human boarders beam aboard your ship".
   // Boarders: Crystal: "2-3 crystal boarders beam aboard your ship."
@@ -7253,73 +7262,73 @@ function arrive(g: Game, b: Beacon) {
   // Mantis ship-collectors: "Fight a Mantis Fighter with crew entirely composed of Mantis." The printed hail is the card body. unique=true. The quest marker stays after the escape.
   // The printed intro is the card body, logged because the fight replaces the card.
   if (
-    (b.flag === "cited:boarders-humans-abandoned" ||
-      b.flag === "cited:boarders-crystal" ||
-      b.flag === "cited:boarders-mantis" ||
-      b.flag === "cited:boarders-humans-pirate" ||
-      b.flag === "cited:boarders-humans-near-sun" ||
-      b.flag === "cited:boarders-rockmen-near-sun" ||
-      b.flag === "cited:boarders-humans-in-nebula" ||
-      b.flag === "cited:boarders-rebels-in-nebula" ||
-      b.flag === "cited:boarders-humans-in-plasma-storm" ||
-      b.flag === "cited:mantis-outcasts" ||
-      b.flag === "cited:zoltan-border-police" ||
-      b.flag === "cited:rebel-fight-with-boarders" ||
-      b.flag === "cited:rock-fight-with-boarders" ||
-      b.flag === "cited:rock-fight-with-boarders-in-asteroid-field" ||
-      b.flag === "cited:auto-ship-warning" ||
-      b.flag === "cited:rebel-ship-warning" ||
-      b.flag === "cited:auto-ship-warning-in-nebula" ||
-      b.flag === "cited:auto-ship-fight" ||
-      b.flag === "cited:auto-ship-fight-crystal" ||
-      b.flag === "cited:auto-ship-fight-in-asteroid-field" ||
-      b.flag === "cited:auto-ship-fight-in-nebula" ||
-      b.flag === "cited:auto-ship-fight-near-sun" ||
-      b.flag === "cited:engi-fight" ||
-      b.flag === "cited:mantis-fight-zoltan" ||
-      b.flag === "cited:pirate-fight-zoltan" ||
-      b.flag === "cited:crystal-fight" ||
-      b.flag === "cited:zoltan-fight" ||
-      b.flag === "cited:zoltan-fight-in-asteroid-field" ||
-      b.flag === "cited:slug-fight" ||
-      b.flag === "cited:mantis-fight" ||
-      b.flag === "cited:mantis-fight-in-nebula" ||
-      b.flag === "cited:pirate-fight" ||
-      b.flag === "cited:pirate-fight-lanius" ||
-      b.flag === "cited:pirate-fight-in-asteroid-field" ||
-      b.flag === "cited:pirate-fight-near-pulsar" ||
-      b.flag === "cited:pirate-fight-near-sun" ||
-      b.flag === "cited:rebel-fight" ||
-      b.flag === "cited:rebel-fight-lanius" ||
-      b.flag === "cited:rebel-fight-in-nebula" ||
-      b.flag === "cited:rebel-fight-near-pulsar" ||
-      b.flag === "cited:lanius-fight" ||
-      b.flag === "cited:lanius-fight-distress" ||
-      b.flag === "cited:lanius-fight-in-asteroid-field" ||
-      b.flag === "cited:lanius-fight-near-pulsar" ||
-      b.flag === "cited:rock-fight" ||
-      b.flag === "cited:rock-fight-in-asteroid-field" ||
-      b.flag === "cited:rock-pirates-fight" ||
-      b.flag === "cited:rock-pirates-fight-in-asteroid-field" ||
-      b.flag === "cited:rock-pirates-fight-near-sun" ||
-      b.flag === "cited:pirate-fight-in-nebula" ||
-      b.flag === "cited:mantis-fight-near-sun" ||
-      b.flag === "cited:mantis-fight-engi" ||
-      b.flag === "cited:mantis-fight-slug" ||
-      b.flag === "cited:rebel-fight-slug" ||
-      b.flag === "cited:pirate-fight-slug" ||
-      b.flag === "cited:mantis-fight-in-nebula-slug" ||
-      b.flag === "cited:pirate-fight-engi" ||
-      b.flag === "cited:rebel-fight-engi" ||
-      b.flag === "cited:rebel-fight-crystal" ||
-      b.flag === "cited:rock-fight-in-nebula" ||
-      b.flag === "cited:rebel-fight-in-plasma-storm" ||
-      b.flag === "cited:slug-fight-in-nebula" ||
-      b.flag === "cited:slug-fight-in-plasma-storm" ||
-      b.flag === "cited:pirate-ship-distress-trap" ||
-      b.flag === "cited:rebel-fight-among-rebel-fleet" ||
-      b.flag === "cited:rebel-fight-among-federation-and-rebel-fleets" ||
-      b.flag === "cited:mantis-ship-collectors") &&
+    (b.flag === "LANIUS_PIRATE_BOARDERS" ||
+      b.flag === "BOARDERS_CRYSTAL" ||
+      b.flag === "MANTIS_BOARDERS" ||
+      b.flag === "BOARDERS" ||
+      b.flag === "BOARDERS_SUN" ||
+      b.flag === "ROCK_BOARDERS_SUN" ||
+      b.flag === "NEBULA_BOARDING" ||
+      b.flag === "NEBULA_REBEL_BOARDING" ||
+      b.flag === "STORM_BOARDING" ||
+      b.flag === "ZOLTAN_BOARDERS_MANTIS" ||
+      b.flag === "ZOLTAN_BOARDERS" ||
+      b.flag === "BOARDERS_REBEL_SHIP" ||
+      b.flag === "ROCK_BOARDERS_SHIP" ||
+      b.flag === "ROCK_BOARDERS_ASTEROID" ||
+      b.flag === "AUTO_WARNING" ||
+      b.flag === "SQUAT_WARNING" ||
+      b.flag === "NEBULA_AUTO_WARNING" ||
+      b.flag === "REBEL_AUTO" ||
+      b.flag === "CRYSTAL_AUTO" ||
+      b.flag === "AUTO_ASTEROID" ||
+      b.flag === "NEBULA_AUTO" ||
+      b.flag === "AUTO_SUN" ||
+      b.flag === "ZOLTAN_ENGI" ||
+      b.flag === "ZOLTAN_MANTIS" ||
+      b.flag === "ZOLTAN_PIRATE" ||
+      b.flag === "CRYSTAL_FIGHT" ||
+      b.flag === "ZOLTAN_FIGHT" ||
+      b.flag === "ZOLTAN_ASTEROID" ||
+      b.flag === "SLUG_FIGHT" ||
+      b.flag === "MANTIS_FIGHT" ||
+      b.flag === "NEBULA_MANTIS_FIGHT" ||
+      b.flag === "PIRATE" ||
+      b.flag === "LANIUS_PIRATE_FIGHT" ||
+      b.flag === "PIRATE_ASTEROID" ||
+      b.flag === "PIRATE_PULSAR" ||
+      b.flag === "PIRATE_SUN" ||
+      b.flag === "REBEL" ||
+      b.flag === "LANIUS_REBEL_FIGHT" ||
+      b.flag === "NEBULA_REBEL" ||
+      b.flag === "REBEL_PULSAR" ||
+      b.flag === "LANIUS_FIGHT" ||
+      b.flag === "LANIUS_DISTRESS_TRAP" ||
+      b.flag === "LANIUS_FIGHT_ASTEROID" ||
+      b.flag === "LANIUS_FIGHT_PULSAR" ||
+      b.flag === "ROCK_SHIP" ||
+      b.flag === "ROCK_FIGHT_ASTEROID" ||
+      b.flag === "ROCK_PIRATE" ||
+      b.flag === "ROCK_PIRATE_ASTEROID" ||
+      b.flag === "ROCK_PIRATE_SUN" ||
+      b.flag === "NEBULA_PIRATE" ||
+      b.flag === "MANTIS_SUN_FIGHT" ||
+      b.flag === "ENGI_MANTIS_FIGHT" ||
+      b.flag === "SLUG_MANTIS" ||
+      b.flag === "SLUG_REBEL" ||
+      b.flag === "SLUG_PIRATE" ||
+      b.flag === "NEBULA_SLUG_MANTIS" ||
+      b.flag === "ENGI_PIRATE_FIGHT" ||
+      b.flag === "ENGI_REBEL_FIGHT" ||
+      b.flag === "CRYSTAL_REBEL" ||
+      b.flag === "NEBULA_ZOLTAN_ROCK" ||
+      b.flag === "STORM_REBEL" ||
+      b.flag === "NEBULA_SLUG_FIGHT" ||
+      b.flag === "STORM_SLUG_FIGHT" ||
+      b.flag === "TRAP_BEACON" ||
+      b.flag === "BOSS_FLEETS_REBEL" ||
+      b.flag === "BOSS_FLEETS_BOTH_FIGHT" ||
+      b.flag === "DONOR_MANTIS_CHASE") &&
     g.event?.choices[0]
   ) {
     if (g.event.body) log(g, g.event.body);
@@ -7352,7 +7361,7 @@ function longRangeExit(
 // Plain beacons run documented events: wiki/filler-events.ts (Sectors, "Fallback events", and the EventList templates).
 function eventFor(g: Game, b: Beacon): Game["event"] {
   if (b.flag === "engi-cache") return engiCacheEvent();
-  if (b.flag === "last-stand-repair") return lastStandRepairEvent();
+  if (b.flag === "BOSS_REPAIR_STATION") return lastStandRepairEvent();
   // @agent:quests. A quest marker beacon runs its page's "Quest Marker" section (wiki/quests.ts).
   const quest = questEvent(g, b);
   if (quest) return quest;
@@ -7360,7 +7369,7 @@ function eventFor(g: Game, b: Beacon): Game["event"] {
   if (cited) {
     // Slug hacker (doors), Trivia: "Upon jumping to this beacon event, doors will be stuck in a state they were in prior to the jump - unless the hack is countered."
     // Open flags stay. Continue puts the shutdown back after startCombat. Countering does not.
-    if (b.flag === "cited:slug-hacker-doors") shutPlayerDoors(g);
+    if (b.flag === "NEBULA_SLUG_DOORS") shutPlayerDoors(g);
     return cited;
   }
   // @agent:filler. Empty, distress, items, nebula and leftover event beacons: the documented list for the slot type.
@@ -7564,7 +7573,7 @@ export function choose(g: Game, id: string) {
       // INFERRED: a row with no card here, or a unique row already on this map, is skipped within its half.
       const exit = hereBeacon(g);
       const page = exit
-        ? drawFiller(g, rand(g) < 0.5 ? "exitNeutral" : "exitItems", g.beacons)
+        ? drawFiller(g, rand(g) < 0.5 ? "EXIT_NEUTRAL" : "EXIT_ITEMS", g.beacons)
         : null;
       const card =
         exit && page ? (stampFiller(exit, page), (exit.kind = "exit"), fillerEvent(g, exit)) : null;
@@ -7606,13 +7615,13 @@ export function choose(g: Game, id: string) {
       resolve();
       break;
     }
-    case "last-stand-repair": {
+    case "BOSS_REPAIR_STATION": {
       // Beacons, "Repair station beacon": 15 hull, 22–44 scrap, 5 fuel, 4 missiles, 5 drone parts, once.
-      if (!b || b.flag !== "last-stand-repair" || b.resolved) return;
+      if (!b || b.flag !== "BOSS_REPAIR_STATION" || b.resolved) return;
       g.player.hull = Math.min(g.player.hullMax, g.player.hull + 15);
       const n = 22 + irand(g, 23);
       addScrap(g, n);
-      g.fuel += rollFuel("last-stand-repair", (lo, hi) => lo + irand(g, hi - lo + 1));
+      g.fuel += rollFuel("BOSS_REPAIR_STATION", (lo, hi) => lo + irand(g, hi - lo + 1));
       g.missiles += 4;
       g.player.parts += 5;
       log(g, `Federation Repair Station: ${n} scrap.`);

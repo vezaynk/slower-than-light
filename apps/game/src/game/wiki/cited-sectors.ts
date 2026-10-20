@@ -12,7 +12,7 @@ import { overtaken, type Danger } from "./sector-map.ts";
  * Each is 15 hull, 22–44 scrap, 5 fuel, 4 missiles, and 5 drone parts, once.
  * citedSector only stamps them. lastStandRepairEvent plus the choose case pay them.
  */
-const REPAIR_FLAG = "last-stand-repair";
+const REPAIR_FLAG = "BOSS_REPAIR_STATION";
 const REPAIR_NAME = "Federation Repair Station";
 const REPAIR_COUNT = 3;
 
@@ -99,11 +99,11 @@ export function stormReactor(reactor: number): number {
  * Fleet pursuit stays the full non-nebula step because this does not change beacon.kind.
  */
 const PLASMA_STORM_FLAGS = new Set([
-  "cited:rebel-fight-in-plasma-storm",
+  "STORM_REBEL",
   // Wiki citations:
   // > "Note: This event has a plasma storm environment, but the beacon is not inside a nebula." — [[Slug fight in plasma storm]]
   // > "Despite being a plasma storm, this event only occurs at non-nebula beacons. Fleet pursuit will be the full amount, instead of the 80% that you would have when jumping from a nebula beacon in a Slug sector." — [[Slug fight in plasma storm#Trivia]]
-  "cited:slug-fight-in-plasma-storm",
+  "STORM_SLUG_FIGHT",
 ]);
 const PLASMA_STORM_NAMES = new Set(["Rebel fight in plasma storm", "Slug fight in plasma storm"]);
 

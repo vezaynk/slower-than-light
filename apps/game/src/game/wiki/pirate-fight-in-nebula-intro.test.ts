@@ -15,7 +15,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:pirate-fight-in-nebula";
+  b.flag = "NEBULA_PIRATE";
   b.name = "Pirate fight in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -66,7 +66,7 @@ describe("Pirate fight in nebula intro", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:pirate-fight-in-nebula";
+    dest.flag = "NEBULA_PIRATE";
     dest.name = "Pirate fight in nebula";
     dest.resolved = false;
     dest.tier = "";

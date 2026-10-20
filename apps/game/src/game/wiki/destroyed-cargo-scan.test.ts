@@ -18,7 +18,7 @@ const SCANNERS = "c:destroyed-cargo-ship:3";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:destroyed-cargo-ship";
+  b.flag = "FLOATING_CARGO";
   b.name = "Destroyed cargo ship";
   g.here = b.id;
   g.event = citedEvent(g, b);

@@ -289,9 +289,9 @@ describe("parsePack", () => {
     assert.equal(pack.events?.length, 2);
     const emberEvent = pack.events?.[0];
     assert.equal(emberEvent?.dest, "Ember");
-    assert.equal(emberEvent?.flag, "cited:ember");
-    assert.deepEqual(emberEvent?.aliases, ["Ember Page"]);
-    assert.deepEqual(emberEvent?.sectors, ["Civilian Sector"]);
+    assert.equal(emberEvent?.flag, "ember");
+    assert.deepEqual(emberEvent?.aliases, []);
+    assert.deepEqual(emberEvent?.sectors, []);
     assert.equal(emberEvent?.body, "A packed beacon.");
     assert.equal(
       emberEvent?.choices[0]?.fx[2]?.k === "note" ? emberEvent.choices[0].fx[2].text : "",
@@ -315,7 +315,7 @@ describe("parsePack", () => {
     assert.equal(emberEvent?.surrender?.card?.choices[0]?.label, "Go");
     assert.equal(pack.events?.[1]?.id, "bareevent");
     assert.equal(pack.events?.[1]?.surrender, undefined);
-    assert.equal(pack.events?.[1]?.flag, "cited:bareevent");
+    assert.equal(pack.events?.[1]?.flag, "bareevent");
     assert.equal(pack.events?.[1]?.dest, "bareevent");
     assert.deepEqual(pack.lists, [
       { id: "ember-list", entries: [{ id: "large-asteroid-field", unique: true }] },

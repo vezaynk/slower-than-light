@@ -677,7 +677,7 @@ function readList(node: XmlElement): FillerListDef | undefined {
   const entries: FillerEntry[] = [];
   for (const item of elements(node)) {
     if (item.tagName !== "event") continue;
-    const eventId = attr(item, "name")?.trim();
+    const eventId = attr(item, "load")?.trim() || attr(item, "name")?.trim();
     if (!eventId) continue;
     entries.push({ id: eventId, unique: item.getAttribute("unique") === "true" });
   }
@@ -768,16 +768,6 @@ export function readEvent(node: XmlElement): EventDef | undefined {
       surrender = readSurrender(item);
       continue;
     }
-    if (item.tagName === "alias") {
-      const text = ownText(item).trim();
-      if (text) aliases.push(text);
-      continue;
-    }
-    if (item.tagName === "sector") {
-      const text = ownText(item).trim();
-      if (text) sectors.push(text);
-      continue;
-    }
     if (item.tagName !== "choice") continue;
     const choiceId = attr(item, "name")?.trim();
     if (!choiceId) continue;
@@ -792,7 +782,7 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   const event: EventDef = {
     id,
     dest: textOf(node, "title") ?? id,
-    flag: attr(node, "flag")?.trim() || `cited:${id}`,
+    flag: id,
     aliases,
     sectors,
     body: lines[0] ?? "",
@@ -808,6 +798,7 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   if (grade) event.grade = grade;
   if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
+  if (elements(node).some((item) => item.tagName === "store")) event.store = true;
   return event;
 }
 

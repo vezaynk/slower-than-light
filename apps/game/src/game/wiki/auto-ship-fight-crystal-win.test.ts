@@ -8,7 +8,7 @@ import { pageWin } from "./quests.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:auto-ship-fight-crystal";
+  b.flag = "CRYSTAL_AUTO";
   b.name = "Auto-ship fight (Crystal)";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -66,7 +66,7 @@ describe("Auto-ship fight (Crystal)", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:auto-ship-fight-crystal";
+    dest.flag = "CRYSTAL_AUTO";
     dest.name = "Auto-ship fight (Crystal)";
     dest.resolved = false;
     dest.tier = "";

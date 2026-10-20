@@ -40,12 +40,12 @@ describe("fuel gifts", () => {
     const holder = eventDef("fuel-gifts");
     assert.ok(holder);
     assert.deepEqual(holder.sectors, []);
-    assert.equal(holder.flag, "gift:fuel-gifts");
+    assert.equal(holder.flag, "fuel-gifts");
     assert.equal(holder.dest, "fuel-gifts");
     assert.equal(holder.body, "");
     assert.ok(holder.choices.length > 0);
 
-    const repair = eventDef("no-fuel-engi-ship-repair");
+    const repair = eventDef("FUEL_OFF_ENGI_DUBIOUS");
     const paid = repair?.choices.find((choice) => choice.id === "c:no-fuel-engi-ship-repair:0");
     const drone = repair?.choices.find((choice) => choice.id === "c:no-fuel-engi-ship-repair:2");
     assert.equal(paid?.gift, undefined);
@@ -57,7 +57,7 @@ describe("fuel gifts", () => {
     );
     assert.deepEqual(drone?.gift, { k: "fuel", lo: 4, hi: 6 });
 
-    const trade = eventDef("no-fuel-refugee-trading")
+    const trade = eventDef("NO_FUEL_REFUGEE")
       ?.cards?.flatMap((card) => card.choices)
       .find((choice) => choice.id === "c:no-fuel-refugee-trading:trade");
     assert.deepEqual(trade?.gift, { k: "fuel", lo: 3, hi: 3 });

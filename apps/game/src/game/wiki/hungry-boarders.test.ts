@@ -18,7 +18,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Boarders: Humans (Abandoned)",
     tier: "",
-    flag: "cited:boarders-humans-abandoned",
+    flag: "LANIUS_PIRATE_BOARDERS",
     asteroid: false,
   };
 }
@@ -60,7 +60,7 @@ describe("Boarders: Humans (Abandoned)", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:boarders-humans-abandoned";
+    dest.flag = "LANIUS_PIRATE_BOARDERS";
     dest.name = "Boarders: Humans (Abandoned)";
     dest.resolved = false;
     dest.tier = "";

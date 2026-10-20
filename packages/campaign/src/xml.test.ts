@@ -9,9 +9,9 @@ import { parsePack } from "@stl/pack";
 import {
   campaignPack,
   gapModFiles,
+  standInEventFiles,
   standInSectorsXml,
   standInShipsXml,
-  standInXml,
 } from "./xml.ts";
 
 const encoder = new TextEncoder();
@@ -42,7 +42,7 @@ describe("campaign document", () => {
       applyFtlMod(
         {
           documents: [
-            { path: "data/stand-in.xml", xml: standInXml() },
+            ...standInEventFiles(),
             { path: "data/blueprints.xml", xml: standInShipsXml() },
             { path: "data/sector_data.xml", xml: standInSectorsXml() },
             ...hullPictureFiles(),
@@ -65,7 +65,10 @@ describe("campaign document", () => {
     assert.deepEqual(merged.tunes, pack.tunes);
     assert.deepEqual(merged.hulls, pack.hulls);
     assert.deepEqual(merged.sectors, pack.sectors);
-    assert.deepEqual(merged.events, pack.events);
+    // Event files are read in archive order. The catalog keeps authoring order. The records match.
+    const byId = <T extends { id: string }>(rows: T[] | undefined) =>
+      [...(rows ?? [])].sort((a, b) => a.id.localeCompare(b.id));
+    assert.deepEqual(byId(merged.events), byId(pack.events));
     assert.deepEqual(merged.lists, pack.lists);
     assert.deepEqual(merged.stores, pack.stores);
     assert.deepEqual(merged.rewards, pack.rewards);

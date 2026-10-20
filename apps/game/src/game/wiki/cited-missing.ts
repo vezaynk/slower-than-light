@@ -5,6 +5,7 @@
  * draw of the crystal guns already in the game. Out-of-fuel pages name no sector; they join the wait roll only.
  */
 import { eventDef, openingLine } from "@stl/pack";
+import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
 import { EXTRA_EVENTS } from "./cited-missing-pages.ts";
 import { ownedLock } from "./choice-locks.ts";
 import { priced, rollPrice } from "./event-prices.ts";
@@ -43,10 +44,10 @@ type Ctx = {
 };
 
 const NEBULA_ON_ARRIVAL = new Set([
-  "slug-oxygen-malfunction",
-  "slug-repair-station",
-  "slug-store-ship",
-  "slug-and-rock-standoff-in-nebula",
+  "SLUG_DISTRESS_TRICK",
+  "NEBULA_SLUG_HULLFIX",
+  "NEBULA_SLUG_FAKE_STORE",
+  "ROCK_SLUG_ARGUMENT_NEBULA",
 ]);
 
 type PayKind = "parts" | "missiles" | "scrap";
@@ -185,7 +186,7 @@ function offerLine(fuel: number, kind: PayKind, amt: number): string {
 /** Fuel-trader rows of one band. The draw stays between: the row, then the fuel, then the payment. */
 function fuelRows(id: string, band: "high" | "pt2") {
   const rows = [];
-  for (const row of eventDef(id)?.offers ?? [])
+  for (const row of eventDef(storedId(id))?.offers ?? [])
     if (row.k === "fuel" && row.band === band) rows.push(row);
   return rows;
 }
@@ -366,7 +367,7 @@ function pirateFight(ctx: Ctx, slug: string, boarders = false) {
 }
 
 export function missingAutoFight(flag: string): boolean {
-  return flag === "cited:fight-in-last-stand";
+  return flag === "BOSS_SCOUT";
 }
 
 export function missingOwns(id: string): boolean {
@@ -377,7 +378,7 @@ export function missingOwns(id: string): boolean {
 /** Last-stand hulls. A repeated name stays repeated. The draw stays between, before the opening sentence. */
 function hullList(id: string): string[] {
   const rows = [];
-  for (const row of eventDef(id)?.rolls ?? []) if (row.k === "hull") rows.push(row.id);
+  for (const row of eventDef(storedId(id))?.rolls ?? []) if (row.k === "hull") rows.push(row.id);
   return rows;
 }
 
@@ -388,9 +389,10 @@ function rollHull(g: Game, id: string): string {
 
 /** One opening sentence from the packed page. The draw stays between, over the packed list. A nested list spends one draw per list. */
 function opening(g: Game, id: string): string {
-  const picked = openingLine(id, (n) => between(g, [0, n - 1]));
+  const key = storedId(id) ?? id;
+  const picked = openingLine(key, (n) => between(g, [0, n - 1]));
   if (picked != null) return picked;
-  const texts = eventDef(id)?.texts ?? [];
+  const texts = eventDef(key)?.texts ?? [];
   const hi = texts.length > 0 ? texts.length - 1 : 0;
   return texts[between(g, [0, hi])] ?? "";
 }
@@ -401,10 +403,10 @@ export function missingCard(
   ev: { slug: string; dest: string },
 ): GameEvent | null {
   if (NEBULA_ON_ARRIVAL.has(ev.slug)) b.kind = "nebula";
-  if (ev.slug === "free-scrap-with-resources-engi") {
+  if (ev.slug === "ENGI_GIFT") {
     return {
       title: ev.dest,
-      body: opening(g, "free-scrap-with-resources-engi"),
+      body: opening(g, "ENGI_GIFT"),
       choices: [
         {
           id: "c:free-scrap-with-resources-engi:take",
@@ -413,15 +415,15 @@ export function missingCard(
       ],
     };
   }
-  if (ev.slug === "fight-in-last-stand") {
-    const hull = rollHull(g, "fight-in-last-stand");
+  if (ev.slug === "BOSS_SCOUT") {
+    const hull = rollHull(g, "BOSS_SCOUT");
     return {
       title: ev.dest,
-      body: opening(g, "fight-in-last-stand"),
+      body: opening(g, "BOSS_SCOUT"),
       choices: [{ id: `c:fight-in-last-stand:go:${hull}`, label: "Fight the scout." }],
     };
   }
-  if (ev.slug === "no-fuel-slug-fuel-trader") {
+  if (ev.slug === "FUEL_ON_SLUG_CHUCKLE") {
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: Slug fuel trader]]
     // > "A poorly armed Slug ship cruises by and offers assistance. Their captain seems to be chuckling to himself, perhaps at the prices he's charging." — [[No fuel: Slug fuel trader]]
@@ -438,7 +440,7 @@ export function missingCard(
       ],
     };
   }
-  if (ev.slug === "no-fuel-drifting-debris") {
+  if (ev.slug === "FUEL_OFF_ROCK_WRECK") {
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: drifting debris]]
     // > "As you await either salvation or death, your attention is drawn to a sea of debris drifting past the starboard view port. The chunks gliding by grow bigger in size until the stern of a Rock frigate, gutted in some distant war, comes into view." — [[No fuel: drifting debris]]
@@ -455,10 +457,7 @@ export function missingCard(
       ],
     };
   }
-  if (
-    ev.slug === "no-fuel-fuel-trader-distress-off" ||
-    ev.slug === "no-fuel-fuel-trader-distress-on"
-  ) {
+  if (ev.slug === "FUEL_TRADER" || ev.slug === "FUEL_TRADER_DISTRESS") {
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: fuel trader (distress off)]]
     // > "Gladly trade. [ the actual trade offer is shown prior to the exchange ]" — [[No fuel: fuel trader (distress off)]]
@@ -466,18 +465,22 @@ export function missingCard(
     // > "This random event occurs." — [[No fuel: fuel trader (distress on)]]
     // > "Gladly trade. [ the actual trade offer is shown prior to making the choice ]" — [[No fuel: fuel trader (distress on)]]
     // > "Respectfully decline." — [[No fuel: fuel trader (distress on)]]
+    const slug =
+      ev.slug === "FUEL_TRADER_DISTRESS"
+        ? "no-fuel-fuel-trader-distress-on"
+        : "no-fuel-fuel-trader-distress-off";
     const intro = opening(g, ev.slug);
     const offer = rollTrade(g, fuelRows(ev.slug, "high"));
     return {
       title: ev.dest,
       body: `${intro}\n\n${offerLine(offer.fuel, offer.kind, offer.amt)}`,
       choices: [
-        { id: `c:${ev.slug}:buy:${offer.fuel}:${offer.kind}:${offer.amt}`, label: "Gladly trade." },
-        { id: `c:${ev.slug}:decline`, label: "Respectfully decline." },
+        { id: `c:${slug}:buy:${offer.fuel}:${offer.kind}:${offer.amt}`, label: "Gladly trade." },
+        { id: `c:${slug}:decline`, label: "Respectfully decline." },
       ],
     };
   }
-  if (ev.slug === "no-fuel-prepare-to-dock") {
+  if (ev.slug === "FUEL_APPROACH") {
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: prepare to dock]]
     // > "A ship approaches. They hail you saying, \"You need some fuel? We'll prepare to dock to help.\"" — [[No fuel: prepare to dock]]
@@ -502,7 +505,7 @@ export function missingCard(
       ],
     };
   }
-  if (ev.slug === "no-fuel-refugee-trading") {
+  if (ev.slug === "NO_FUEL_REFUGEE") {
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: refugee trading]]
     // > "This event varies, and could be any of the following:" — [[No fuel: refugee trading]]
@@ -967,7 +970,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
   }
 
   if (slug === "fight-in-last-stand") {
-    const hull = name.startsWith("go:") ? name.slice(3) : rollHull(g, "fight-in-last-stand");
+    const hull = name.startsWith("go:") ? name.slice(3) : rollHull(g, "BOSS_SCOUT");
     ctx.fight(hull, undefined, "fight-in-last-stand");
     return true;
   }
@@ -1291,7 +1294,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
         );
         return true;
       }
-      const cost = rollPrice("no-fuel-drifting-debris", "ransom", (lo, hi) => between(g, [lo, hi]));
+      const cost = rollPrice("FUEL_OFF_ROCK_WRECK", "ransom", (lo, hi) => between(g, [lo, hi]));
       // Wiki citations:
       // > "You lose Scrap lost: 25-40." — [[No fuel: drifting debris]]
       const choices = [];

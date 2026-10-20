@@ -10,8 +10,9 @@ import { saveGame } from "@/game/sim";
 import { useGame } from "@/game/store";
 import { canForceLandscape } from "./turn";
 import { CloseX } from "./CloseX";
+import { GameFilesPanel } from "./GameFilesPanel";
 
-type Tab = "exit" | "graphics" | "sound" | "keys";
+type Tab = "exit" | "graphics" | "sound" | "keys" | "files";
 const TABS: [Tab, string][] = [
   ["graphics", "Graphics"],
   ["sound", "Sound"],
@@ -19,6 +20,8 @@ const TABS: [Tab, string][] = [
 ];
 /** Per the user: opened from a run, an Exit tab comes first (and opens first). */
 const GAME_TABS: [Tab, string][] = [["exit", "Exit"], ...TABS];
+/** Per the user: Game files only on the title screen. Changing them restarts the game. */
+const TITLE_TABS: [Tab, string][] = [...TABS, ["files", "Game files"]];
 
 /** Leave the run for the title or the hangar. The run is saved first, so CONTINUE picks it up. */
 function leaveRun(boot: "title" | "hangar") {
@@ -148,7 +151,7 @@ export function OptionsPanel({
   onClose: () => void;
   inGame?: boolean;
 }) {
-  const tabs = inGame ? GAME_TABS : TABS;
+  const tabs = inGame ? GAME_TABS : TITLE_TABS;
   const [tab, setTab] = useState<Tab>(inGame ? "exit" : "graphics");
   const landscapeOk = canForceLandscape();
   const s = useSettings();
@@ -159,7 +162,10 @@ export function OptionsPanel({
   // Esc closes it through CloseX (every panel with an × answers Esc).
   return (
     <div className="overlay options-overlay" onClick={(e) => e.stopPropagation()}>
-      <article className="sheet ftl-sheet ship-sheet options-sheet has-x" aria-label={"Options"}>
+      <article
+        className={`sheet ftl-sheet ship-sheet options-sheet has-x${tab === "files" ? " is-wide" : ""}`}
+        aria-label={"Options"}
+      >
         <CloseX onClose={onClose} />
         <header className="ship-sheet-head">
           <Kicker as="h2">{"Options"}</Kicker>
@@ -319,6 +325,7 @@ export function OptionsPanel({
               </label>
             </div>
           ) : null}
+          {tab === "files" ? <GameFilesPanel /> : null}
           {tab === "keys" ? (
             <div className="opt-keys">
               {KEYS.map(([group, rows]) => (

@@ -1,4 +1,5 @@
 import { loadCatalog } from "@stl/catalog";
+import { eventXmlFile } from "@stl/catalog/src/wiki/beacon-quotas.ts";
 import {
   allAugments,
   allCrew,
@@ -21,6 +22,7 @@ import {
   emitPack,
   rewardTable,
   type ContentPack,
+  type EventDef,
 } from "@stl/pack";
 
 /** The catalog as one pack. */
@@ -91,13 +93,39 @@ export function standInSectorsXml(): string {
   return emitFtlSectors(campaignPack().sectors ?? []);
 }
 
+const EVENT_FILES = [
+  "data/events.xml",
+  "data/events_ships.xml",
+  "data/events_boss.xml",
+  "data/dlcEvents_anaerobic.xml",
+];
+
 /**
- * Event pages and filler lists. Blueprints are in standInShipsXml. Ships and sectors are in
- * standInShipsXml and standInSectorsXml.
+ * Event pages in FTL's event files. Lists sit on events.xml.
+ * An empty group is omitted. Blueprints and sectors are their own files.
  */
-export function standInXml(): string {
+export function standInEventFiles(): { path: string; xml: string }[] {
   const { events, lists } = splitCampaign(campaignPack()).body;
-  return emitPack({ events, lists });
+  const groups = new Map<string, EventDef[]>();
+  for (const event of events ?? []) {
+    const path = eventXmlFile(event);
+    const bag = groups.get(path) ?? [];
+    bag.push(event);
+    groups.set(path, bag);
+  }
+  return EVENT_FILES.flatMap((path) => {
+    const group = groups.get(path) ?? [];
+    if (group.length === 0) return [];
+    return [
+      {
+        path,
+        xml: emitPack({
+          events: group,
+          lists: path === "data/events.xml" ? lists : undefined,
+        }),
+      },
+    ];
+  });
 }
 
 /**

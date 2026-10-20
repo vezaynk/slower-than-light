@@ -111,9 +111,9 @@ const pack: ContentPack = {
     {
       id: "ember",
       dest: "Ember",
-      flag: "cited:ember",
-      aliases: ["Ember Page"],
-      sectors: ["Civilian Sector"],
+      flag: "ember",
+      aliases: [],
+      sectors: [],
       body: "A packed beacon.",
       choices: [
         {
@@ -190,7 +190,7 @@ describe("pack document", () => {
       {
         id: "one",
         dest: "One",
-        flag: "cited:one",
+        flag: "one",
         aliases: [],
         sectors: [],
         body: "Only",
@@ -199,7 +199,7 @@ describe("pack document", () => {
       {
         id: "blank",
         dest: "Blank",
-        flag: "cited:blank",
+        flag: "blank",
         aliases: [],
         sectors: [],
         body: "",
@@ -209,7 +209,7 @@ describe("pack document", () => {
       {
         id: "same",
         dest: "Same",
-        flag: "cited:same",
+        flag: "same",
         aliases: [],
         sectors: [],
         body: "Alpha",
@@ -219,7 +219,7 @@ describe("pack document", () => {
       {
         id: "aside",
         dest: "Aside",
-        flag: "cited:aside",
+        flag: "aside",
         aliases: [],
         sectors: [],
         body: "Static",
@@ -242,7 +242,7 @@ describe("pack document", () => {
       {
         id: "trade",
         dest: "Trade",
-        flag: "cited:trade",
+        flag: "trade",
         aliases: [],
         sectors: [],
         body: "Deal.",
@@ -347,7 +347,7 @@ describe("pack document", () => {
       {
         id: "stand",
         dest: "Stand",
-        flag: "cited:stand",
+        flag: "stand",
         aliases: [],
         sectors: [],
         body: "Fight.",
@@ -386,7 +386,7 @@ describe("pack document", () => {
       {
         id: "refugee",
         dest: "Refugee",
-        flag: "cited:refugee",
+        flag: "refugee",
         aliases: [],
         sectors: [],
         body: "",
@@ -430,7 +430,7 @@ describe("pack document", () => {
       {
         id: "locked",
         dest: "Locked",
-        flag: "cited:locked",
+        flag: "locked",
         aliases: [],
         sectors: [],
         body: "A button.",
@@ -502,7 +502,7 @@ describe("pack document", () => {
       {
         id: "gifted",
         dest: "Gifted",
-        flag: "cited:gifted",
+        flag: "gifted",
         aliases: [],
         sectors: [],
         body: "A button.",
@@ -578,7 +578,7 @@ describe("pack document", () => {
       {
         id: "checkpoint",
         dest: "Checkpoint",
-        flag: "cited:checkpoint",
+        flag: "checkpoint",
         aliases: [],
         sectors: [],
         body: "A fleet.",
@@ -623,7 +623,7 @@ describe("pack document", () => {
       {
         id: "drones",
         dest: "Drones",
-        flag: "cited:drones",
+        flag: "drones",
         aliases: [],
         sectors: [],
         body: "A salesman.",
@@ -678,7 +678,7 @@ describe("pack document", () => {
       {
         id: "traders",
         dest: "Traders",
-        flag: "cited:traders",
+        flag: "traders",
         aliases: [],
         sectors: [],
         body: "A stall.",
@@ -728,7 +728,7 @@ describe("pack document", () => {
       {
         id: "moons",
         dest: "Moons",
-        flag: "cited:moons",
+        flag: "moons",
         aliases: [],
         sectors: [],
         body: "A planet.",
@@ -798,7 +798,7 @@ describe("pack document", () => {
       {
         id: "pay",
         dest: "Pay",
-        flag: "cited:pay",
+        flag: "pay",
         aliases: [],
         sectors: [],
         body: "A toll.",
@@ -928,7 +928,7 @@ describe("pack document", () => {
     const events = rewards.map((reward, index) => ({
       id: `pay-${index}`,
       dest: "Pay",
-      flag: `cited:pay-${index}`,
+      flag: `pay-${index}`,
       aliases: [],
       sectors: [],
       body: "Hi",

@@ -12,7 +12,7 @@ const SCAN = "c:battlefield-wreckage:2";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:battlefield-wreckage";
+  b.flag = "WRECKAGE_EVENT";
   b.name = "Battlefield wreckage";
   g.here = b.id;
   g.event = citedEvent(g, b);

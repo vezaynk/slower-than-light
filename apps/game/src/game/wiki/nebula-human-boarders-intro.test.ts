@@ -21,7 +21,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Boarders: Humans in nebula",
     tier: "",
-    flag: "cited:boarders-humans-in-nebula",
+    flag: "NEBULA_BOARDING",
     asteroid: false,
   };
 }

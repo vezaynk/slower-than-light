@@ -19,7 +19,7 @@ function beacon(g: Game): Beacon {
 
 function open(g: Game) {
   const here = beacon(g);
-  here.flag = "cited:rebel-checkpoint";
+  here.flag = "REBEL_CHECKPOINT";
   here.name = "Rebel checkpoint";
   g.here = here.id;
   g.event = citedEvent(g, here);
@@ -28,7 +28,7 @@ function open(g: Game) {
 
 describe("rebel bribe band", () => {
   it("packs the checkpoint price and pays an appended band", () => {
-    assert.deepEqual(eventDef("rebel-checkpoint")?.prices, [
+    assert.deepEqual(eventDef("REBEL_CHECKPOINT")?.prices, [
       { id: "bribe", k: "scrap", lo: 10, hi: 15 },
     ]);
     assert.deepEqual(priceBand("rebel-checkpoint", "bribe"), {
@@ -38,7 +38,7 @@ describe("rebel bribe band", () => {
       hi: 15,
     });
 
-    const row = eventDef("rebel-checkpoint");
+    const row = eventDef("REBEL_CHECKPOINT");
     assert.ok(row);
     loadPack(
       { events: [{ ...row, prices: [{ id: "bribe", k: "scrap", lo: 8, hi: 8 }] }] },
@@ -57,7 +57,7 @@ describe("rebel bribe band", () => {
     choose(fixed, "q:rebel-checkpoint:bribe:12");
     assert.equal(fixed.scrap, 100);
 
-    const wide = eventDef("rebel-checkpoint");
+    const wide = eventDef("REBEL_CHECKPOINT");
     assert.ok(wide);
     loadPack(
       { events: [{ ...wide, prices: [{ id: "bribe", k: "scrap", lo: 20, hi: 30 }] }] },
@@ -86,7 +86,7 @@ describe("rebel bribe band", () => {
     assert.equal(priceBand("rebel-checkpoint", "bribe"), null);
 
     resetPackForTests();
-    assert.deepEqual(eventDef("rebel-checkpoint")?.prices, [
+    assert.deepEqual(eventDef("REBEL_CHECKPOINT")?.prices, [
       { id: "bribe", k: "scrap", lo: 10, hi: 15 },
     ]);
     assert.deepEqual(priceBand("rebel-checkpoint", "bribe"), {
@@ -125,22 +125,22 @@ describe("rebel bribe band", () => {
       assert.deepEqual([lo, hi], [10, 15]);
       return lo;
     };
-    assert.equal(rollPrice("rebel-checkpoint", "bribe", roll), 10);
+    assert.equal(rollPrice("REBEL_CHECKPOINT", "bribe", roll), 10);
     assert.equal(calls, 1);
 
-    const row = eventDef("rebel-checkpoint");
+    const row = eventDef("REBEL_CHECKPOINT");
     assert.ok(row);
     loadPack(
       { events: [{ ...row, prices: [{ id: "bribe", k: "scrap", lo: 8, hi: 8 }] }] },
       "append",
     );
     calls = 0;
-    assert.equal(rollPrice("rebel-checkpoint", "bribe", roll), 8);
+    assert.equal(rollPrice("REBEL_CHECKPOINT", "bribe", roll), 8);
     assert.equal(calls, 0);
 
     loadPack({ events: [{ ...row, prices: undefined }] }, "append");
     calls = 0;
-    assert.equal(rollPrice("rebel-checkpoint", "bribe", roll), null);
+    assert.equal(rollPrice("REBEL_CHECKPOINT", "bribe", roll), null);
     assert.equal(calls, 0);
   });
 });

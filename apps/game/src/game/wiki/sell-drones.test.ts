@@ -15,7 +15,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Sell drone parts for scrap",
     tier: "",
-    flag: "cited:sell-drone-parts-for-scrap",
+    flag: "SELL_DRONES_STATION",
     asteroid: false,
   };
 }

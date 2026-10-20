@@ -8,7 +8,7 @@ import { fillerChoose } from "./filler-events.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:escape-pod";
+  b.flag = "MANTIS_CREW";
   b.name = "Escape pod";
   g.here = b.id;
   g.event = citedEvent(g, b);

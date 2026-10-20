@@ -22,7 +22,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Slug moons question",
     tier: "",
-    flag: "cited:slug-moons-question",
+    flag: "SLUG_DISTRESS_QUESTION",
     asteroid: false,
   };
 }
@@ -57,7 +57,7 @@ function answer(g: Game, picked: number) {
 
 describe("slug moon grade", () => {
   it("packs the hire and the penalty, and an appended grade replaces both", () => {
-    assert.deepEqual(eventDef("slug-moons-question")?.grade, {
+    assert.deepEqual(eventDef("SLUG_DISTRESS_QUESTION")?.grade, {
       hire: "Slug",
       pays: [
         { k: "scrap", lo: 35, hi: 35 },
@@ -67,7 +67,7 @@ describe("slug moon grade", () => {
     });
     assert.equal(eventGrade("slug-moons-question")?.hire, "Slug");
 
-    const row = eventDef("slug-moons-question");
+    const row = eventDef("SLUG_DISTRESS_QUESTION");
     assert.ok(row);
     loadPack(
       { events: [{ ...row, grade: { hire: "Engi", pays: row.grade?.pays ?? [] } }] },

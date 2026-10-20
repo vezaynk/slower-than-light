@@ -44,7 +44,7 @@ function reward(body: string) {
 
 describe("Giant alien spiders", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Giant alien spiders")?.slug, "giant-alien-spiders");
+    assert.equal(pageForRow("Giant alien spiders")?.slug, "DISTRESS_INFESTATION");
   });
 
   it("hides the blue options until that gear is fitted", () => {

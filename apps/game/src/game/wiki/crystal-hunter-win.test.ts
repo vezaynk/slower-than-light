@@ -8,7 +8,7 @@ import { pageWin } from "./quests.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:crystal-fight-with-surrender-offer-human-crew";
+  b.flag = "CRYSTAL_HUNTER";
   b.name = "Crystal fight with surrender offer (Human crew)";
   g.here = b.id;
   g.event = citedEvent(g, b);

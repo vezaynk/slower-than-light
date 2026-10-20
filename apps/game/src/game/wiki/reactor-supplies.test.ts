@@ -42,7 +42,7 @@ function offer(g: ReturnType<typeof createGame>) {
 
 describe("Improve reactor for supplies", () => {
   it("is a card an items draw can reach", () => {
-    assert.equal(pageForRow("Improve reactor for supplies")?.slug, "improve-reactor-for-supplies");
+    assert.equal(pageForRow("Improve reactor for supplies")?.slug, "TRADER_UPGRADES_EXCHANGE");
   });
 
   it("shows one printed intro and one printed bundle", () => {

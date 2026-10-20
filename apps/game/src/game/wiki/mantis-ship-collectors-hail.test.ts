@@ -10,7 +10,7 @@ const HAIL =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:mantis-ship-collectors";
+  b.flag = "DONOR_MANTIS_CHASE";
   b.name = "Mantis ship-collectors";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -43,7 +43,7 @@ describe("Mantis ship-collectors hail", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:mantis-ship-collectors";
+    dest.flag = "DONOR_MANTIS_CHASE";
     dest.name = "Mantis ship-collectors";
     dest.resolved = false;
     dest.tier = "";

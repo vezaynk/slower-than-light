@@ -10,7 +10,7 @@ const LABEL = "Attempt to out-run the slaver ship.";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:slaver-hostile";
+  b.flag = "PIRATE_SLAVER";
   b.name = "Slaver (hostile)";
   g.here = b.id;
   g.event = citedEvent(g, b);

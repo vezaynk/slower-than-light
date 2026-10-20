@@ -10,7 +10,7 @@ const LEAD =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:slug-hacker-oxygen";
+  b.flag = "NEBULA_SLUG_OXYGEN";
   b.name = "Slug hacker (oxygen)";
   g.here = b.id;
   g.event = citedEvent(g, b);

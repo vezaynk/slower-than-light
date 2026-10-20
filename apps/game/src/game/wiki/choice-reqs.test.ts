@@ -39,20 +39,20 @@ describe("choice requirements", () => {
     const holder = eventDef("blue-button-reqs");
     assert.ok(holder);
     assert.deepEqual(holder.sectors, []);
-    assert.equal(holder.flag, "reqs:blue-button-reqs");
+    assert.equal(holder.flag, "blue-button-reqs");
     assert.equal(holder.body, "");
     assert.equal(
       holder.choices.some((choice) => choice.id === "c:no-fuel-refugee-trading:engi"),
       false,
     );
-    const engi = eventDef("no-fuel-refugee-trading")
+    const engi = eventDef("NO_FUEL_REFUGEE")
       ?.cards?.flatMap((card) => card.choices)
       .find((choice) => choice.id === "c:no-fuel-refugee-trading:engi");
     assert.equal(engi?.reqs?.[0]?.k, "crew");
     assert.equal(engi?.reqs?.[0]?.id, "engi");
     const g = createGame(1);
     assert.equal(
-      g.beacons.some((beacon) => beacon.flag === "reqs:blue-button-reqs"),
+      g.beacons.some((beacon) => beacon.flag === "blue-button-reqs"),
       false,
     );
   });
@@ -89,7 +89,7 @@ describe("choice requirements", () => {
   });
 
   it("reads an appended lock and restores the campaign sentence", () => {
-    const row = eventDef("no-fuel-refugee-trading");
+    const row = eventDef("NO_FUEL_REFUGEE");
     assert.ok(row?.cards);
     const cards = row.cards.map(copyCard);
     const button = cards

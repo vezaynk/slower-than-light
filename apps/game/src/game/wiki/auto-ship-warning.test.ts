@@ -8,7 +8,7 @@ import { pageWin } from "./quests.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:auto-ship-warning";
+  b.flag = "AUTO_WARNING";
   b.name = "Auto-ship warning";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -86,7 +86,7 @@ describe("Auto-ship warning", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:auto-ship-warning";
+    dest.flag = "AUTO_WARNING";
     dest.name = "Auto-ship warning";
     dest.resolved = false;
     dest.tier = "";

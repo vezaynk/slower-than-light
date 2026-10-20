@@ -136,11 +136,11 @@ describe("quest openers (quests-a)", () => {
       return g.beacons.map((b) => b.flag);
     };
     for (let seed = 1; seed <= 10; seed++) {
-      assert.ok(flags("Rock Homeworlds", seed).includes("cited:ancient-device"));
-      assert.ok(flags("Rock Homeworlds", seed).includes("cited:rock-war-vessel-encounter"));
-      assert.ok(flags("Zoltan Homeworlds", seed).includes("cited:unarmed-zoltan-transport"));
-      assert.ok(flags("Zoltan Homeworlds", seed).includes("cited:zoltan-research-facility"));
-      assert.ok(flags("Zoltan Controlled Sector", seed).includes("cited:zoltan-research-facility"));
+      assert.ok(flags("Rock Homeworlds", seed).includes("ROCK_CRYSTAL_BEACON"));
+      assert.ok(flags("Rock Homeworlds", seed).includes("ROCK_UNLOCK"));
+      assert.ok(flags("Zoltan Homeworlds", seed).includes("ZOLTAN_PEACE_QUEST"));
+      assert.ok(flags("Zoltan Homeworlds", seed).includes("ZOLTAN_CREW_STUDY"));
+      assert.ok(flags("Zoltan Controlled Sector", seed).includes("ZOLTAN_CREW_STUDY"));
     }
     assert.ok(citedPagesFor("ROCK_SECTOR").some((e) => e.dest === "Rock bride"));
     for (const ev of EXTRA_EVENTS)
@@ -291,13 +291,13 @@ describe("quest openers (quests-a)", () => {
     quiet.crew = quiet.crew.filter((c) => c.side === "player").slice(0, 2);
     assert.ok(joinCrew(quiet, "Crystal", "Sera"));
     stampCitedEvents(quiet);
-    const plain = quiet.beacons.find((b) => b.flag === "cited:ancient-device");
+    const plain = quiet.beacons.find((b) => b.flag === "ROCK_CRYSTAL_BEACON");
     assert.ok(plain);
     assert.equal(plain.quest, undefined);
     assert.equal(plain.name, "Ancient device");
     assert.ok(joinCrew(quiet, "Crystal", "Ruwen"));
     assert.equal(plain.quest, "ruwen-entry");
-    assert.equal(plain.flag, "cited:ancient-device");
+    assert.equal(plain.flag, "ROCK_CRYSTAL_BEACON");
     assert.equal(plain.name, "Ancient device");
 
     const dead = createGame(5);
@@ -310,7 +310,7 @@ describe("quest openers (quests-a)", () => {
     assert.ok(body);
     body.hp = 0;
     stampCitedEvents(dead);
-    const unmarked = dead.beacons.find((b) => b.flag === "cited:ancient-device");
+    const unmarked = dead.beacons.find((b) => b.flag === "ROCK_CRYSTAL_BEACON");
     assert.ok(unmarked);
     assert.equal(unmarked.quest, undefined);
 
@@ -320,7 +320,7 @@ describe("quest openers (quests-a)", () => {
     g.sectorName = "Civilian Sector";
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 2);
     const stray = g.beacons.find((b) => b.kind !== "start" && b.kind !== "exit")!;
-    stray.flag = "cited:ancient-device";
+    stray.flag = "ROCK_CRYSTAL_BEACON";
     assert.ok(joinCrew(g, "Crystal", "Ruwen"));
     assert.equal(stray.quest, undefined);
     stray.flag = "";
@@ -329,10 +329,10 @@ describe("quest openers (quests-a)", () => {
 
     g.sectorName = "Rock Homeworlds";
     stampCitedEvents(g);
-    const entry = g.beacons.find((b) => b.flag === "cited:ancient-device");
+    const entry = g.beacons.find((b) => b.flag === "ROCK_CRYSTAL_BEACON");
     assert.ok(entry);
     assert.equal(entry.quest, "ruwen-entry");
-    assert.equal(entry.flag, "cited:ancient-device");
+    assert.equal(entry.flag, "ROCK_CRYSTAL_BEACON");
     assert.equal(entry.name, "Ancient device");
 
     const start = g.beacons.find((b) => b.kind === "start")!;

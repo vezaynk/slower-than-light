@@ -18,7 +18,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Zoltan odd moon",
     tier: "",
-    flag: "cited:zoltan-odd-moon",
+    flag: "ZOLTAN_ODD_MOON",
     asteroid: false,
   };
 }

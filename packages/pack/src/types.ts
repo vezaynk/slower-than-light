@@ -702,8 +702,8 @@ export type EventGrade = {
 };
 
 /**
- * A beacon page. `id` is the page slug. `flag` is what a beacon stores.
- * `dest` is the title. An arrival page uses flag `quest:` plus the quest id and an empty sector list.
+ * A beacon page. `id` is the datafile id, and `flag` is that same id.
+ * `dest` is the title. An arrival page uses id `arrive-` plus the quest id.
  * A fight page can carry a `surrender` offer. Sector depth gates stay in code.
  * The sim still picks the beacon a marker lands on, and still checks the hull.
  */

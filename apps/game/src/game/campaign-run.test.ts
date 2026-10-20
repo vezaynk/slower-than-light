@@ -298,7 +298,7 @@ describe("a seeded Kestrel run", () => {
       (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss",
     );
     assert.ok(beacon);
-    beacon.flag = "cited:confused-mantis";
+    beacon.flag = "CONFUSED_MANTIS";
     beacon.name = "Confused Mantis";
     hired.here = beacon.id;
     hired.event = citedEvent(hired, beacon);

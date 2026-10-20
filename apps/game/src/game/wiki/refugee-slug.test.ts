@@ -8,7 +8,7 @@ import { pageWin } from "./quests.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:refugee-slug";
+  b.flag = "REFUGEE_NO_DISTRESS_SLUG";
   b.name = "Refugee (Slug)";
   g.here = b.id;
   g.event = citedEvent(g, b);

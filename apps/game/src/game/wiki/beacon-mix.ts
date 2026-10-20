@@ -1,336 +1,25 @@
 import type { Beacon, BeaconKind, Game } from "../types.ts";
 import { rand } from "../sim.ts";
-// @agent:filler. Documented fallback lists for plain slots (circular import: only used inside mixBeacons).
-import {
-  drawFiller,
-  pageForRow,
-  stampEmptyNebula,
-  stampFiller,
-  type FillerList,
-} from "./filler-events.ts";
+import { allEmptyBeacons, eventDef, fillerList, sectorDef } from "@stl/pack";
+import { CITED_EVENT_ROWS } from "@stl/catalog/src/wiki/event-catalog.ts";
+import { ftlEventId } from "@stl/catalog/src/wiki/ftl-event-ids.ts";
+import { SECTOR_TYPES } from "@stl/catalog/src/wiki/sectors.ts";
+import { drawFiller, stampFiller } from "./filler-events.ts";
 
-/**
- * Wiki page "Sectors": each sector type's "Beacons:" list, and
- * "Technical details of sector generation and events": every line draws a count between its min and max
- * (inclusive), and a sector's specific events (stores, homeworld events) sit at the top so they are always present.
- *
- * makeMap places the 19-24 beacons. Each line is rolled between its minimum and maximum, inclusive, then
- * that many free beacons (everything but the start and the exit) are filled before the next line. Once those
- * beacons are full, later lines are not placed. Nothing is scaled back to feed a later line, and a store roll
- * of 0 stays 0. Beacons left after the list take the neutral fallback.
- */
+export {
+  SECTOR_MIX,
+  classifyEvent,
+  HOSTILE_SLOTS,
+  REPEAT_BOARDERS,
+  REPEAT_DESTS,
+  REPEAT_CAP,
+  type Slot,
+  type MixLine,
+  type EventClass,
+  type MixEvent,
+} from "@stl/catalog/src/wiki/sector-mix.ts";
 
-export type Slot =
-  | "store"
-  | "special"
-  | "repair"
-  | "items"
-  | "neutral"
-  | "empty"
-  | "distress"
-  | "hostile"
-  | "quest"
-  | "nebula"
-  | "nebula-hostile"
-  | "nebula-neutral"
-  | "storm"
-  | "boarder"
-  | "environment";
-
-/** One "Beacons:" bullet. `quote` is the bullet as the page prints it. `event` names a special event's page. */
-export type MixLine = { slot: Slot; lo: number; hi: number; quote: string; event?: string };
-
-const L = (slot: Slot, lo: number, hi: number, quote: string, event?: string): MixLine => ({
-  slot,
-  lo,
-  hi,
-  quote,
-  event,
-});
-
-const CIVILIAN: MixLine[] = [
-  L("store", 2, 3, "2-3 stores"),
-  L("items", 2, 3, "2-3 various items"),
-  L("neutral", 2, 4, "2-4 neutral encounters"),
-  L("empty", 1, 2, "1-2 empty beacons"),
-  L("distress", 1, 2, "1-2 distress beacons"),
-  L("hostile", 6, 8, "6-8 hostile encounters"),
-  L("quest", 0, 2, "0-2 quests"),
-  L("nebula", 0, 8, "0-8 nebula spaces"),
-];
-const ENGI = (neutral: MixLine): MixLine[] => [
-  L("store", 2, 3, "2-3 stores"),
-  L("items", 5, 5, "5 various items"),
-  L("empty", 1, 2, "1-2 empty beacons"),
-  L("distress", 1, 3, "1-3 distress beacons"),
-  L("quest", 1, 1, "1 quest"),
-  neutral,
-  L("hostile", 5, 7, "5-7 hostile encounters"),
-];
-const ZOLTAN: MixLine[] = [
-  L("store", 2, 2, "2 stores"),
-  L("empty", 1, 2, "1-2 empty beacons"),
-  L("distress", 1, 2, "1-2 distress beacons"),
-  L("nebula", 2, 6, "2-6 nebula spaces"),
-  L("hostile", 6, 8, "6-8 hostile encounters"),
-  L("boarder", 1, 2, "1-2 boarders"),
-  L("items", 1, 2, "1-2 various items"),
-  L("quest", 0, 1, "0-1 quests"),
-  L("neutral", 5, 6, "5-6 neutral encounters"),
-];
-const MANTIS: MixLine[] = [
-  L("store", 1, 2, "1-2 stores"),
-  L("empty", 2, 3, "2-3 empty beacons"),
-  L("distress", 1, 3, "1-3 distress beacons"),
-  L("hostile", 6, 7, "6-7 hostile encounters"),
-  L("boarder", 1, 2, "1-2 boarders"),
-  L("items", 1, 2, "1-2 various items"),
-  L("neutral", 6, 7, "6-7 neutral encounters"),
-];
-const REBEL = (quests: MixLine): MixLine[] => [
-  L("store", 1, 2, "1-2 stores"),
-  L("items", 1, 2, "1-2 various items"),
-  L("hostile", 6, 8, "6-8 hostile encounters"),
-  L("boarder", 1, 1, "1 boarder"),
-  L("distress", 1, 2, "1-2 distress beacons"),
-  L("nebula", 0, 5, "0-5 nebula spaces"),
-  L("empty", 1, 2, "1-2 empty beacons"),
-  quests,
-  L("neutral", 5, 6, "5-6 neutral encounters"),
-];
-const ROCK: MixLine[] = [
-  L("store", 2, 2, "2 stores"),
-  L("empty", 2, 3, "2-3 empty beacons"),
-  L("distress", 1, 2, "1-2 distress beacons"),
-  L("hostile", 6, 8, "6-8 hostile encounters"),
-  L("boarder", 1, 2, "1-2 boarders"),
-  L("items", 1, 2, "1-2 various items"),
-  L("quest", 0, 1, "0-1 quests"),
-  L("neutral", 7, 8, "7-8 neutral encounters"),
-];
-const SLUG: MixLine[] = [
-  L("store", 0, 1, "0-1 stores"),
-  L("store", 2, 2, "2 nebula stores"),
-  L("items", 0, 2, "0-2 various items"),
-  L("empty", 0, 2, "0-2 empty beacons"),
-  L("hostile", 1, 2, "1-2 hostile encounters"),
-  L("distress", 3, 4, "3-4 distress beacons"),
-  L("nebula", 2, 4, "2-4 empty nebula beacons"),
-  L("nebula-hostile", 5, 7, "5-7 nebula hostile encounters"),
-  L("storm", 1, 3, "1-3 storms"),
-  L("nebula-neutral", 3, 5, "3-5 nebula neutral encounters"),
-  L("neutral", 1, 2, "1-2 neutral encounters"),
-];
-const special = (name: string) => L("special", 1, 1, `1 [[${name}]] event`, name);
-
-/** Keyed by the ftl.dat sector id that g.sectorId carries (sector_data.xml). */
-export const SECTOR_MIX: Record<string, MixLine[]> = {
-  STANDARD_SPACE: [
-    L("nebula", 0, 4, "0-4 nebula beacons"),
-    L("store", 1, 2, "1-2 stores"),
-    L("items", 1, 1, "1 items / override_items events"),
-    L("neutral", 2, 4, "2-4 neutral_civilian events"),
-    L("empty", 1, 2, "1-2 empty beacons"),
-    L("distress", 1, 2, "1-2 distress_beacon events"),
-    L("hostile", 4, 6, "4-6 hostile_civilian events"),
-    L("quest", 1, 1, "1 quests / override_quests event"),
-    L("hostile", 2, 2, "2 hostile1 / override_hostile1 events"),
-  ],
-  CIVILIAN_SECTOR: CIVILIAN,
-  ENGI_SECTOR: ENGI(L("neutral", 4, 6, "4-6 neutral encounters")),
-  ENGI_HOME: [
-    special("Engi fleet discussion"),
-    ...ENGI(L("neutral", 5, 7, "5-7 neutral encounters")),
-  ],
-  // Wiki citations:
-  // > "at one beacon per Zoltan sector" — [[Zoltan research facility#Trivia]]
-  ZOLTAN_SECTOR: [special("Zoltan research facility"), ...ZOLTAN],
-  ZOLTAN_HOME: [
-    special("Zoltan research facility"),
-    special("Unarmed Zoltan transport"),
-    ...ZOLTAN,
-  ],
-  LANIUS_SECTOR: [
-    L("store", 2, 2, "2 stores"),
-    L("empty", 1, 2, "1-2 empty beacons"),
-    L("distress", 1, 2, "1-2 distress beacons"),
-    L("hostile", 5, 6, "5-6 hostile encounters"),
-    L("environment", 1, 2, "1-2 hostile environment"),
-    L("boarder", 1, 2, "1-2 boarders"),
-    L("items", 2, 4, "2-4 various items"),
-    L("quest", 0, 1, "0-1 quests"),
-    L("neutral", 5, 6, "5-6 neutral encounters"),
-  ],
-  MANTIS_SECTOR: MANTIS,
-  MANTIS_HOME: [special("Legendary thief KazaaakplethKilik"), ...MANTIS],
-  PIRATE_SECTOR: REBEL(L("quest", 0, 1, "0-1 quests")),
-  REBEL_SECTOR: REBEL(L("quest", 0, 2, "0-2 quests")),
-  REBEL_SECTOR_MINIBOSS: [special("Rebel shipyard"), ...REBEL(L("quest", 0, 2, "0-2 quests"))],
-  ROCK_SECTOR: ROCK,
-  ROCK_HOME: [special("Ancient device"), special("Rock war vessel encounter"), ...ROCK],
-  SLUG_SECTOR: SLUG,
-  SLUG_HOME: [special("Slug Home Nebula surrender"), ...SLUG],
-  NEBULA_SECTOR: [
-    L("store", 0, 1, "0-1 stores"),
-    L("items", 1, 3, "1-3 various items"),
-    L("store", 1, 1, "1 nebula store"),
-    L("nebula", 4, 4, "4 empty nebula beacons"),
-    L("nebula-hostile", 5, 6, "5-6 nebula hostile encounters"),
-    L("nebula-neutral", 7, 8, "7-8 nebula neutral encounters"),
-    L("distress", 1, 3, "1-3 distress beacons"),
-  ],
-  CRYSTAL_HOME: [
-    L("store", 2, 3, "2-3 stores"),
-    L("items", 2, 2, "2 various items"),
-    L("empty", 2, 2, "2 empty beacons"),
-    L("hostile", 6, 10, "6-10 hostile encounters"),
-    L("boarder", 1, 2, "1-2 boarders"),
-    L("neutral", 12, 12, "12 neutral encounters"),
-  ],
-  FINAL: [
-    L("store", 1, 1, "1 store"),
-    L("repair", 3, 3, "3 repair stations"),
-    L("hostile", 6, 6, "6 hostile encounters"),
-    L("neutral", 7, 10, "7-10 neutral encounters"),
-  ],
-};
-
-/** Hostile-group slots: a hostile cited event or a plain hostile beacon (sector-hostiles via enemy-gen). */
-const HOSTILE_SLOTS = new Set<Slot>([
-  "hostile",
-  "nebula-hostile",
-  "storm",
-  "boarder",
-  "environment",
-]);
-
-/**
- * unique=false boarder pages. Template:Locations: "This event can occur multiple times per sector."
- * The sector's "1-2 boarders" line is that list, so both beacons can be the same event.
- */
-const REPEAT_BOARDERS: Record<string, string> = {
-  LANIUS_SECTOR: "Boarders: Humans (Abandoned)",
-  CRYSTAL_HOME: "Boarders: Crystal",
-};
-
-// ---- Classification -------------------------------------------------------------------------------------------
-
-export type EventClass = "hostile" | "neutral" | "distress" | "items";
-
-/** Template:EventList HOSTILE CIVILIAN and Template:EventList HOSTILE1 (and OVERRIDE_HOSTILE1, same rows). */
-const LIST_HOSTILE = [
-  "Auto-ship attacking outpost",
-  "Auto-ship fight near sun",
-  "Pirate fight",
-  "Pirate fight in asteroid field",
-  "Pirate toll",
-  "Pirate engine hacker",
-  "Slaver (hostile)",
-  "Pirate fight near sun",
-  "Rebel fight",
-  "Rebel ship attacking refueling outpost",
-  "Rebel ship warning",
-  "Auto-ship fight in asteroid field",
-  "Auto-ship attacking civilian",
-  "Auto-ship carrying shield virus",
-  "Auto-ship warning",
-  "Auto-ship fight",
-];
-/** Template:EventList NEUTRAL CIVILIAN, NEUTRAL EXIT and QUESTS. */
-const LIST_NEUTRAL = [
-  "Large asteroid field",
-  "Auto-ship near storage station",
-  "Auto-ship near sensor station",
-  "Slaver (friendly)",
-  "The mercenary",
-  "Pirate briber",
-  "Pirate ship attacking civilian",
-  "Remote settlement",
-  "Rebel transport ship",
-  "Plagued station",
-  "Intelligent ponies",
-  "Refueling platform",
-  "Pirate ship selling drones",
-  "Rebel checkpoint",
-  "Rebel ship supplying civilians",
-  "Refugee",
-  "Rebel fight chance",
-  "Battlefield wreckage",
-  "Encrypted federation signal",
-  "Settlement mercenary work",
-  "Merchant's request",
-  "Capture the ship",
-  "Escort civilians",
-  "Mantis war camp",
-];
-/** Template:EventList DISTRESS BEACON. */
-const LIST_DISTRESS = [
-  "Asteroid belt distress",
-  "Giant alien spiders",
-  "Malfunctioning defense system",
-  "Unknown disease on mining colony",
-  "Fire on research station",
-  "Crushed pirate",
-  "Escort civilians FTL haywire",
-  "Friendly ship out of fuel",
-  "Pirate ship attacking civilian distress",
-  "Refugee distress",
-  "Refugee comms down",
-  "Single life form on moon",
-  "Pirate ship distress trap",
-  "Slug ship boarding Rock ship",
-  "Lanius empty distress beacon 1",
-  "Lanius empty distress beacon 2",
-  "Free scrap with resources (Zoltan)",
-  "Engi research station",
-];
-/** Template:EventList ITEMS (and OVERRIDE_ITEMS, same rows). */
-const LIST_ITEMS = [
-  "Free drone schematic",
-  "Free weapon",
-  "Free scrap with resources",
-  "Trade fuel for drone parts",
-  "Asteroid mining colony",
-  "Refueling station",
-  "Repair station",
-  "Sell drone parts for scrap",
-  "Sell missiles for scrap",
-  "Crew hiring station",
-  "Trade resources",
-  "Trade scrap for upgrades",
-  "Improve reactor for supplies",
-];
-
-/** The shape of a cited-events table row this module reads. */
-export type MixEvent = {
-  dest: string;
-  flag: string;
-  aliases: string[];
-  choices: { fx: { k: string; sign?: number; n?: number }[] }[];
-};
-
-/**
- * 1. A wiki event list that names the page decides (hostile lists first: Auto-ship attacking outpost is also in
- *    NEUTRAL_EXIT, which is the exit list, not a sector list).
- * 2. Otherwise the page's own choices (INFERRED rule): no choice fights → neutral; every choice fights → hostile;
- *    some fight → hostile only when every other choice costs a resource or hull (a toll), else neutral.
- */
-export function classifyEvent(ev: MixEvent): EventClass {
-  const names = [ev.dest, ...ev.aliases];
-  const listed = (list: string[]) => names.some((n) => list.includes(n));
-  if (listed(LIST_HOSTILE)) return "hostile";
-  if (listed(LIST_DISTRESS)) return "distress";
-  if (listed(LIST_ITEMS)) return "items";
-  if (listed(LIST_NEUTRAL)) return "neutral";
-  const fights = ev.choices.map((c) => c.fx.some((f) => f.k === "fight"));
-  if (!fights.some(Boolean)) return "neutral";
-  const exits = ev.choices.filter((_, i) => !fights[i]);
-  const costly = (c: MixEvent["choices"][number]) =>
-    c.fx.some((f) => (f.k === "res" && f.sign === -1) || (f.k === "hull" && (f.n ?? 0) < 0));
-  return exits.every(costly) ? "hostile" : "neutral";
-}
-
-// ---- Placement ------------------------------------------------------------------------------------------------
+import { REPEAT_CAP } from "@stl/catalog/src/wiki/sector-mix.ts";
 
 /**
  * The deal runs rand() on a shadow state seeded from g.seed, the sector and its id, so g.seed's own rolls
@@ -362,17 +51,24 @@ export function takeLines(rolls: number[], room: number): number[] {
   return out;
 }
 
-/** @agent:quests-a. A Sectors-page special line ("1 [[Ancient device]] event") names this cited page. */
-function specialMatch(ev: MixEvent, name: string): boolean {
-  if (!name) return false;
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return ev.dest === name || ev.aliases.includes(name) || ev.flag === `cited:${slug}`;
-}
-
 const mixed = new WeakMap<Beacon[], string>();
+
+const NEBULA_OPENERS = new Set([
+  "Slug comm tapping",
+  "Slug Home Nebula surrender",
+  "Nebula wreckage",
+]);
+
+const SHARED_LISTS = new Set([
+  "FILLER",
+  "NEBULA",
+  "DISTRESS",
+  "ITEMS",
+  "EXIT_NEUTRAL",
+  "EXIT_ITEMS",
+]);
+
+const SECTOR_OF = new Map(SECTOR_TYPES.map((row) => [row.name, row.id]));
 
 function setKind(b: Beacon, kind: BeaconKind) {
   b.kind = kind;
@@ -380,205 +76,183 @@ function setKind(b: Beacon, kind: BeaconKind) {
   b.tier = kind === "hostile" || kind === "distress" ? "pool" : b.tier;
 }
 
+function storyIds(sectorId: string): Set<string> {
+  const ids = new Set<string>();
+  for (const event of CITED_EVENT_ROWS) {
+    if (event.slug.startsWith("arrive-")) continue;
+    const sectors = event.sectors.map((name) => SECTOR_OF.get(name) ?? name);
+    if (!sectors.includes(sectorId)) continue;
+    ids.add(ftlEventId(event.dest) ?? event.slug);
+  }
+  return ids;
+}
+
+function slotOf(id: string): string | undefined {
+  const parts = id.split("__");
+  if (parts.length !== 3) return undefined;
+  return parts[1];
+}
+
+function placeStory(b: Beacon, id: string, kind: BeaconKind) {
+  const event = eventDef(id);
+  const dest = event?.dest ?? id;
+  setKind(b, NEBULA_OPENERS.has(dest) ? "nebula" : kind);
+  b.flag = id;
+  b.name = dest;
+}
+
+function placeFiller(b: Beacon, id: string, kind: BeaconKind) {
+  const event = eventDef(id);
+  setKind(b, kind);
+  b.flag = `filler:${id}`;
+  b.name = event?.dest ?? id;
+}
+
 /**
- * Re-deals the free beacons (not start/exit/boss, no flag) of the current sector by its "Beacons:" list.
- * `events` is this sector's cited pages in their seeded order. Returns false when the page lists no beacons for
- * g.sectorName (the caller keeps its old behaviour). Running twice on the same map and sector does nothing.
+ * Re-deals the free beacons of the current sector from its loaded quotas.
+ * Returns false when the sector has no quotas. Running twice on the same map and sector does nothing.
+ * `events` is ignored: membership is the quota lists.
  */
-export function mixBeacons(g: Game, events: MixEvent[]): boolean {
-  const lines = SECTOR_MIX[g.sectorId];
-  if (!lines) return false;
+export function mixBeacons(g: Game, _events?: unknown): boolean {
+  const quotas = sectorDef(g.sectorId)?.quotas;
+  if (!quotas?.length) return false;
   if (mixed.get(g.beacons) === g.sectorId) return true;
   mixed.set(g.beacons, g.sectorId);
   const r = dealer(g);
+  const story = storyIds(g.sectorId);
+  const used = new Set<string>();
 
   const free = g.beacons.filter(
     (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && !b.flag,
   );
-  // Shuffle so slot kinds land anywhere on the map (Fisher-Yates on rand(g)).
   for (let i = free.length - 1; i > 0; i--) {
     const j = irand(r, i + 1);
-    [free[i], free[j]] = [free[j], free[i]];
+    const swap = free[i];
+    free[i] = free[j]!;
+    free[j] = swap!;
   }
-  // Each line is chosen, then filled, before the next. A full map does not roll the lines after it.
-  const rolls: number[] = [];
-  let preview = free.length;
-  for (const l of lines) {
-    if (preview <= 0) break;
-    const n = l.lo + irand(r, l.hi - l.lo + 1);
-    rolls.push(n);
-    preview -= Math.min(n, preview);
-  }
-  const counts = takeLines(rolls, free.length);
-  while (counts.length < lines.length) counts.push(0);
-
-  // Classify this sector's cited pages; a class with no slot here falls back to neutral (INFERRED).
-  const slotsHere = new Set(lines.map((l, i) => (counts[i] > 0 ? l.slot : null)));
-  const has = (c: EventClass) =>
-    c === "hostile"
-      ? [...HOSTILE_SLOTS].some((s) => slotsHere.has(s))
-      : c === "neutral"
-        ? slotsHere.has("neutral") || slotsHere.has("nebula-neutral")
-        : slotsHere.has(c);
-  const queue: Record<EventClass, MixEvent[]> = {
-    hostile: [],
-    neutral: [],
-    distress: [],
-    items: [],
-  };
-  const specials = lines.flatMap((l) => (l.event ? [l.event] : []));
-  // Wiki citations:
-  // > "It is unique." — [[Ancient device]]
-  // > "It is unique." — [[Rock war vessel encounter]]
-  // > "It is unique." — [[Unarmed Zoltan transport]]
-  // > "It is unique." — [[Zoltan trade hub]]
-  // > "It is unique." — [[Rock bride]]
-  for (const ev of events) {
-    if (
-      specials.some((name) => specialMatch(ev, name)) ||
-      g.beacons.some((b) => b.flag === ev.flag)
-    )
-      continue;
-    // unique=false boarder page for this sector. It fills the boarders line, including both beacons, and is not also a one-shot neutral.
-    if (ev.dest === REPEAT_BOARDERS[g.sectorId]) continue;
-    const c = classifyEvent(ev);
-    queue[has(c) ? c : "neutral"].push(ev);
-  }
-  // These openers print nebula=true. The marker for the first two is marked separately in quests.ts.
-  const NEBULA_OPENERS = new Set([
-    "Slug comm tapping",
-    "Slug Home Nebula surrender",
-    "Nebula wreckage",
-  ]);
-  // unique=false openers. After the first copy, one extra candidate on later leftover slots of the same class.
-  // A sector that forces Zoltan research as a special does not also draw a leftover copy.
-  // Wiki citations:
-  // > "This event can occur multiple times per game" — [[Zoltan research facility#Trivia]]
-  const REPEAT_DESTS = new Set([
-    "Escort civilians",
-    "Engi ship attacked by Mantis ship",
-    "Zoltan research facility",
-  ]);
-  const place = (b: Beacon, ev: MixEvent, kind: BeaconKind = "event") => {
-    setKind(b, NEBULA_OPENERS.has(ev.dest) ? "nebula" : kind);
-    b.flag = ev.flag;
-    b.name = ev.dest;
-  };
-  const repeatExtras = (queuedAs: EventClass) => {
-    const out = [];
-    for (const ev of events) {
-      if (!REPEAT_DESTS.has(ev.dest) || classifyEvent(ev) !== queuedAs) continue;
-      if (lines.some((l) => l.slot === "special" && specialMatch(ev, l.event ?? ""))) continue;
-      // Wiki citations:
-      // > "at one or two beacons per Engi sector." — [[Zoltan research facility#Trivia]]
-      const cap = ev.dest === "Zoltan research facility" ? 2 : Number.POSITIVE_INFINITY;
-      const placed = g.beacons.filter((x) => x.flag === ev.flag).length;
-      if (placed < 1 || placed >= cap) continue;
-      const page = pageForRow(ev.dest);
-      if (page) out.push(page);
-    }
-    return out;
-  };
-  const take = (c: EventClass) => queue[c].shift();
-  // @agent:filler. A plain slot left when this sector's pages run out draws from the documented list for its slot
-  // type (wiki/filler-events.ts). Unique rows skip this sector's own pages, which the queue may still place.
-  const reserved = new Set(events.map((e) => e.flag));
-  const plain = (b: Beacon, kind: BeaconKind, list: FillerList, queuedAs?: EventClass) => {
-    setKind(b, kind);
-    const extras = queuedAs ? repeatExtras(queuedAs) : [];
-    const page = drawFiller(r, list, g.beacons, reserved, extras);
-    if (!page) return;
-    if (extras.some((extra) => extra.flag === page.flag)) {
-      b.flag = page.flag;
-      b.name = page.dest;
-      if (NEBULA_OPENERS.has(page.dest)) setKind(b, "nebula");
-      return;
-    }
-    stampFiller(b, page);
-  };
 
   let at = 0;
-  const hostileSeen = { n: 0 };
-  lines.forEach((line, i) => {
-    for (let k = 0; k < counts[i]; k++) {
-      const b = free[at++];
-      if (!b) return;
-      fill(b, line);
-    }
-  });
-  // Fallback events: a beacon still empty after the sector list takes the NEUTRAL list.
-  while (at < free.length) plain(free[at++], "event", "filler");
-
-  function fill(b: Beacon, line: MixLine) {
-    switch (line.slot) {
-      case "store":
-        setKind(b, "store");
-        return;
-      case "special": {
-        // @agent:quests-a. The special line names the page; a wired page matches by dest, an alias, or its cited flag.
-        const ev = events.find((e) => specialMatch(e, line.event ?? ""));
-        if (ev && !g.beacons.some((x) => x.flag === ev.flag)) return place(b, ev);
-        // INFERRED: a special event with no wired page becomes a neutral slot.
-        const n = take("neutral");
-        return n ? place(b, n) : setKind(b, "event");
-      }
-      case "repair":
-        // The Last Stand: citedSector (cited-sectors.ts) counts these flags and only tops up the missing ones.
-        setKind(b, "event");
-        b.flag = "last-stand-repair";
-        b.name = "Federation Repair Station";
-        return;
-      case "items": {
-        const ev = take("items");
-        return ev ? place(b, ev) : plain(b, "cache", "items");
-      }
-      case "distress": {
-        const ev = take("distress");
-        return ev ? place(b, ev, "distress") : plain(b, "distress", "distress", "distress");
-      }
-      case "neutral": {
-        const ev = take("neutral");
-        // Sectors, "Fallback events": leftover beacons take the NEUTRAL (OVERRIDE_NEUTRAL) list.
-        return ev ? place(b, ev) : plain(b, "event", "filler", "neutral");
-      }
-      case "nebula-neutral": {
-        const ev = take("neutral");
-        return ev ? place(b, ev) : plain(b, "nebula", "nebula", "neutral");
-      }
-      case "empty":
-        // The sector's "Empty beacon (...)" page runs on arrival (filler-events.ts fillerEvent).
-        setKind(b, "empty");
-        return;
-      case "nebula":
-        // @agent:filler. "N empty nebula beacons" is the Empty nebula beacon page. Other nebula lines draw the
-        // default NEBULA list (Category:Nebula Filler Events: "used to populate all the nebula beacons in Civilian
-        // sectors"). INFERRED: the same list for the Zoltan and Rebel "nebula spaces" lines.
-        if (/empty nebula/i.test(line.quote)) {
-          setKind(b, "nebula");
-          return stampEmptyNebula(b, g.sectorId);
-        }
-        return plain(b, "nebula", "nebula");
-      case "quest":
-        // Left as an unflagged event beacon: the quest stamp that runs after stampCitedEvents may claim it.
-        setKind(b, "event");
-        return;
-      case "boarder": {
-        // "1-2 boarders". A unique=false page fills every beacon of this line.
-        const name = REPEAT_BOARDERS[g.sectorId];
-        const ev = name ? events.find((e) => e.dest === name) : undefined;
-        if (ev) return place(b, ev);
-        return hostileBeacon();
-      }
-      default:
-        return hostileBeacon();
-    }
-    function hostileBeacon() {
-      // Hostile group. INFERRED split: every other hostile slot (the 1st, 3rd, ...) takes a hostile cited page,
-      // the rest are plain hostile beacons whose ship comes from the sector's hostile list (enemy-gen.ts).
-      const cited = hostileSeen.n++ % 2 === 0 ? take("hostile") : undefined;
-      if (cited) return place(b, cited);
-      setKind(b, "hostile");
+  for (const quota of quotas) {
+    if (at >= free.length) break;
+    const n = quota.min + irand(r, quota.max - quota.min + 1);
+    const take = Math.min(Math.max(0, n), free.length - at);
+    for (let k = 0; k < take; k++) {
+      const beacon = free[at++];
+      if (!beacon) return true;
+      placeQuota(beacon, quota.id, g, r, story, used);
     }
   }
+  while (at < free.length) {
+    const beacon = free[at++];
+    if (!beacon) break;
+    placeShared(beacon, "FILLER", g, r, "event");
+  }
   return true;
+}
+
+function placeQuota(
+  b: Beacon,
+  id: string,
+  g: Game,
+  r: Game,
+  story: Set<string>,
+  used: Set<string>,
+) {
+  if (id === "STORE") {
+    setKind(b, "store");
+    return;
+  }
+  if (id === "QUEST") {
+    setKind(b, "event");
+    return;
+  }
+  if (id === "BOSS_REPAIR_STATION") {
+    setKind(b, "event");
+    b.flag = id;
+    b.name = "Federation Repair Station";
+    return;
+  }
+  const empty = allEmptyBeacons().find((page) => page.id === id);
+  if (empty) {
+    setKind(b, empty.nebula ? "nebula" : "empty");
+    b.name = empty.dest;
+    if (empty.nebula) b.flag = `filler:${empty.id}`;
+    return;
+  }
+  if (SHARED_LISTS.has(id)) {
+    const kind: BeaconKind =
+      id === "NEBULA"
+        ? "nebula"
+        : id === "DISTRESS"
+          ? "distress"
+          : id === "ITEMS"
+            ? "cache"
+            : "event";
+    placeShared(b, id, g, r, kind);
+    return;
+  }
+  if (fillerList(id)) {
+    placeFromList(b, id, g, r, story, used);
+    return;
+  }
+  placeStory(b, id, "event");
+}
+
+function placeShared(b: Beacon, id: string, g: Game, r: Game, kind: BeaconKind) {
+  const page = drawFiller(r, id, g.beacons);
+  if (!page) {
+    setKind(b, kind);
+    return;
+  }
+  setKind(b, kind);
+  stampFiller(b, page);
+}
+
+function placeFromList(
+  b: Beacon,
+  id: string,
+  g: Game,
+  r: Game,
+  story: Set<string>,
+  used: Set<string>,
+) {
+  const list = fillerList(id);
+  if (!list) return;
+  const slot = slotOf(id);
+  const entries = list.entries.filter((entry) => {
+    if (entry.id.endsWith("__HOSTILE_SHIP")) return true;
+    const dest = eventDef(entry.id)?.dest;
+    const cap = dest ? REPEAT_CAP[dest] : undefined;
+    if (cap != null) return g.beacons.filter((beacon) => beacon.flag === entry.id).length < cap;
+    if (!entry.unique) return true;
+    if (used.has(entry.id)) return false;
+    return !g.beacons.some(
+      (beacon) => beacon.flag === entry.id || beacon.flag === `filler:${entry.id}`,
+    );
+  });
+  if (entries.length === 0) {
+    setKind(b, slot === "distress" ? "distress" : "event");
+    return;
+  }
+  const entry = entries[irand(r, entries.length)]!;
+  if (entry.unique) used.add(entry.id);
+  if (entry.id.endsWith("__HOSTILE_SHIP")) {
+    setKind(b, "hostile");
+    return;
+  }
+  if (!story.has(entry.id)) {
+    const kind: BeaconKind =
+      slot === "distress"
+        ? "distress"
+        : slot === "items"
+          ? "cache"
+          : slot === "nebula-neutral"
+            ? "nebula"
+            : "event";
+    placeFiller(b, entry.id, kind);
+    return;
+  }
+  const kind: BeaconKind = slot === "distress" ? "distress" : "event";
+  placeStory(b, entry.id, kind);
 }

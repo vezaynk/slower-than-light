@@ -42,8 +42,9 @@ export function hullPictureFiles(): HullPictureFile[] {
 }
 
 /**
- * Original cloak, floor, and gib placement for a stand-in drawing.
- * The image box is shared. Pieces step away from the centre. A drawing with no mounts still has gib 1.
+ * Original glow, cloak, floor, and gib placement for a stand-in drawing.
+ * The silhouette has no glow shift. The image box is shared. Pieces step away from the centre.
+ * A drawing with no mounts still has gib 1.
  */
 export function standInSheet(picture: HullPicture, mounts?: readonly HullMount[]): HullSheet {
   const ids = gibIds(mounts);
@@ -62,6 +63,7 @@ export function standInSheet(picture: HullPicture, mounts?: readonly HullMount[]
     };
   });
   return {
+    glow: { x: 0, y: 0 },
     cloakOffset: { x: 0, y: 0 },
     floorOffset: { x: 0, y: 0 },
     gibs,

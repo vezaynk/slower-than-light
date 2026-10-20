@@ -21,7 +21,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Boarders: Crystal",
     tier: "",
-    flag: "cited:boarders-crystal",
+    flag: "BOARDERS_CRYSTAL",
     asteroid: false,
   };
 }

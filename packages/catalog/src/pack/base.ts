@@ -5,7 +5,7 @@ import { HULLS, type HullSpec } from "../hulls.ts";
 import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "../wiki/cited-rock-fire.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
-import { SECTOR_TYPES, type SectorType } from "../wiki/sectors.ts";
+import { SECTOR_TYPES, sectorRarities, type SectorType } from "../wiki/sectors.ts";
 import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { citedEventRecords } from "../wiki/event-catalog.ts";
@@ -21,6 +21,8 @@ import { CHOICE_REQS } from "../wiki/choice-reqs.ts";
 import { FUEL_GIFTS } from "../wiki/fuel-gifts.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
+import { ftlEventId } from "../wiki/ftl-event-ids.ts";
+import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
@@ -69,7 +71,10 @@ import type {
  */
 function crewRow(id: KinId): CrewDef {
   const kin = KIN[id];
-  return {
+  const hire = STORES.flatMap((store) => store.lines).find(
+    (line) => line.kind === "crew" && line.id === id,
+  );
+  const row: CrewDef = {
     id,
     name: kin.name,
     hp: kin.hp,
@@ -88,6 +93,8 @@ function crewRow(id: KinId): CrewDef {
     fireRepairMultiplier:
       id === "rock" ? rockExtinguishScale() : id === "crystal" ? crystalExtinguishScale() : 1,
   };
+  if (hire) row.cost = hire.cost;
+  return row;
 }
 
 function augmentRow(row: (typeof CATALOG)[number]): AugmentDef {
@@ -95,7 +102,7 @@ function augmentRow(row: (typeof CATALOG)[number]): AugmentDef {
 }
 
 function droneRow(row: (typeof CITED_DRONES)[number]): DroneDef {
-  return { id: row.ref, name: row.name, cost: row.cost };
+  return { id: row.ref, name: row.name, cost: row.cost, image: row.ref };
 }
 
 function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
@@ -118,6 +125,8 @@ function sectorRow(row: SectorType): SectorDef {
     unique: row.unique,
   };
   if (track) sector.tracks = [track];
+  const rarities = sectorRarities(row.notes);
+  if (rarities.length > 0) sector.rarities = rarities;
   return sector;
 }
 
@@ -552,12 +561,17 @@ function blueprintFields(row: HullDef, spec: HullSpec, traced: readonly TracedRo
 function paintHull(row: HullDef, stem: string | undefined): HullDef {
   if (!stem) return row;
   row.img = stem;
+  // Cloak, floor, and shield files are `<stem>_cloak.png`, `_floor.png`, and `_shields1.png`.
+  row.cloak = stem;
+  row.floor = stem;
+  row.shield = stem;
   const picture = row.grid ? pictureForRooms(row.grid.rooms) : undefined;
   if (picture) row.picture = picture;
   const mounts = mountsFor(stem);
   if (mounts) row.mounts = mounts.map((mount) => ({ ...mount }));
   if (picture) {
     const sheet = standInSheet(picture, mounts);
+    if (sheet.glow) row.glow = { ...sheet.glow };
     if (sheet.cloakOffset) row.cloakOffset = { ...sheet.cloakOffset };
     if (sheet.floorOffset) row.floorOffset = { ...sheet.floorOffset };
     if (sheet.gibs) row.gibs = sheet.gibs.map((gib) => ({ ...gib }));
@@ -707,8 +721,21 @@ function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef
   );
 }
 
+/** Shield layers the weapon pages print. Other guns print no pierce. */
+const PIERCE_ONE: Record<string, number> = {
+  LASER_HEAVY_1_SP: 1,
+  CRYSTAL_BURST_1: 1,
+  CRYSTAL_BURST_2: 1,
+  CRYSTAL_HEAVY_1: 1,
+  CRYSTAL_HEAVY_2: 1,
+};
+
 function weaponRow(id: string): WeaponBlueprint {
   const row: WeaponBlueprint = { ...WEAPONS[id] };
+  // The stand-in sheet is named with the blueprint id. The projectile clip is `<id>_shot`.
+  row.art = id;
+  row.image = `${id}_shot`;
+  if (Object.prototype.hasOwnProperty.call(PIERCE_ONE, id)) row.pierce = PIERCE_ONE[id];
   if (Object.prototype.hasOwnProperty.call(BEAM_TILES, id)) row.lengthTiles = BEAM_TILES[id];
   if (Object.prototype.hasOwnProperty.call(BEAM_SPEED, id)) row.speed = BEAM_SPEED[id];
   if (id === "BEAM_LONG") row.crewDamage = BEAM_CREW.BEAM_LONG;
@@ -716,22 +743,69 @@ function weaponRow(id: string): WeaponBlueprint {
   return row;
 }
 
-const citedEvents = citedEventRecords().map(eventRow);
-const takenEventIds = new Set(citedEvents.map((row) => row.id));
-// A filler card whose slug is already a sector page stays that page.
-const fillerEvents = fillerPageRecords()
-  .filter((row) => !takenEventIds.has(row.id))
-  .map(eventRow);
-const reqEvents = reqHolder(takenReqIds([...citedEvents, ...fillerEvents]));
-const giftEvents = fuelHolder(choiceIds([...citedEvents, ...fillerEvents, reqEvents]));
-const campaignEvents = [
-  ...citedEvents,
-  ...fillerEvents,
-  reqEvents,
-  ...(giftEvents.choices.length > 0 ? [giftEvents] : []),
-];
+/** Quest arrivals and surrender-only holders keep their ids. Every other page takes the datafile id. */
+function ftlIdFor(event: EventDef): string {
+  if (
+    event.id.startsWith("arrive-") ||
+    event.flag.startsWith("quest:") ||
+    event.flag.startsWith("surrender:")
+  )
+    return event.id;
+  if (event.id === "blue-button-reqs" || event.id === "fuel-gifts") return event.id;
+  return ftlEventId(event.dest) ?? event.id;
+}
+
+function mapGoto(fx: EventDef["choices"][number]["fx"][number], ids: Map<string, string>) {
+  if (fx.k !== "goto") return fx;
+  return { k: "goto" as const, id: ids.get(fx.id) ?? fx.id };
+}
+
+function mapChoices(choices: EventChoice[], ids: Map<string, string>): EventChoice[] {
+  return choices.map((choice) => {
+    const next: EventChoice = { ...choice, fx: choice.fx.map((fx) => mapGoto(fx, ids)) };
+    if (choice.choices) next.choices = mapChoices(choice.choices, ids);
+    return next;
+  });
+}
+
+function renameEvent(event: EventDef, ids: Map<string, string>): EventDef {
+  const id = ids.get(event.id) ?? event.id;
+  return { ...event, id, flag: id, choices: mapChoices(event.choices, ids) };
+}
+
+/** Sector lists are quotas now. Alias and sector tags are not written, so the pack does not keep them. */
+function storedEvent(event: EventDef): EventDef {
+  return { ...event, aliases: [], sectors: [] };
+}
+
+function campaignEvents(): EventDef[] {
+  const cited = citedEventRecords().map(eventRow);
+  const taken = new Set(cited.map((row) => row.id));
+  const takenFtl = new Set(cited.map((row) => ftlIdFor(row)));
+  // A filler card whose slug or datafile id is already a sector page stays that page.
+  const filler = fillerPageRecords()
+    .filter((row) => !taken.has(row.id) && !takenFtl.has(ftlIdFor(row)))
+    .map(eventRow);
+  const reqs = reqHolder(takenReqIds([...cited, ...filler]));
+  const gifts = fuelHolder(choiceIds([...cited, ...filler, reqs]));
+  const rows = [...cited, ...filler, reqs, ...(gifts.choices.length > 0 ? [gifts] : [])];
+  const ids = new Map(rows.map((row) => [row.id, ftlIdFor(row)]));
+  const seen = new Set<string>();
+  const named: EventDef[] = [];
+  for (const row of rows) {
+    const event = renameEvent(row, ids);
+    if (seen.has(event.id)) continue;
+    seen.add(event.id);
+    named.push(event);
+  }
+  return named;
+}
 
 export function loadCatalog(): void {
+  const named = campaignEvents();
+  const empties = emptyBeaconRecords().map(emptyRow);
+  const { quotas, lists } = sectorQuotaPack(named, empties);
+  const events = named.map(storedEvent);
   loadPack(
     {
       crew: (Object.keys(KIN) as KinId[]).map(crewRow),
@@ -746,14 +820,19 @@ export function loadCatalog(): void {
           FLAGSHIP_DIFFICULTIES.map((difficulty) => flagshipHull(stage, difficulty)),
         ),
       ],
-      sectors: SECTOR_TYPES.map(sectorRow),
+      sectors: SECTOR_TYPES.map((row) => {
+        const sector = sectorRow(row);
+        const quota = quotas.get(sector.id);
+        if (quota) sector.quotas = quota;
+        return sector;
+      }),
       stores: STORES.map(storeRow),
       tunes: SYSTEM_TUNES.map(tuneRow),
       rewards: REWARD_TABLE,
       factions: FACTION_SURRENDER.map((row) => ({ ...row })),
-      events: campaignEvents,
-      lists: fillerListRecords().map(listRow),
-      empties: emptyBeaconRecords().map(emptyRow),
+      events,
+      lists: [...fillerListRecords().map(listRow), ...lists],
+      empties,
     },
     "base",
   );

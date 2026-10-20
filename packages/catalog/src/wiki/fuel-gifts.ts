@@ -41,7 +41,7 @@ export const FUEL_GIFTS: Record<string, ChoiceGift> = {
   "q:loyalists:medbot": fuel(3, 6),
   "q:merchant:weapons": fuel(2, 5),
   "q:engi-station:contact": fuel(2, 4),
-  "last-stand-repair": fuel(5, 5),
+  BOSS_REPAIR_STATION: fuel(5, 5),
 };
 
 function giftOn(ev: EventDef, id: string): ChoiceGift | undefined {

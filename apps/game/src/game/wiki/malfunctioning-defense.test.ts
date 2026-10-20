@@ -65,10 +65,7 @@ function arm(g: Game, defId: string) {
 
 describe("Malfunctioning defense system", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(
-      pageForRow("Malfunctioning defense system")?.slug,
-      "malfunctioning-defense-system",
-    );
+    assert.equal(pageForRow("Malfunctioning defense system")?.slug, "DISTRESS_SATELLITE_DEFENSE");
   });
 
   it("opens on the distress and hides the blue options", () => {

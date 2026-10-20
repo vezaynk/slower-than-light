@@ -12,7 +12,7 @@ const SCAN = "c:research-station-with-no-response:3";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:research-station-with-no-response";
+  b.flag = "STATION_SICK";
   b.name = "Research station with no response";
   g.here = b.id;
   g.event = citedEvent(g, b);

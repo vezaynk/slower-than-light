@@ -10,7 +10,7 @@ const BODY =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:free-scrap-with-resources-lanius";
+  b.flag = "LANIUS_FREE_STUFF";
   b.name = "Free scrap with resources (Lanius)";
   g.here = b.id;
   g.event = citedEvent(g, b);

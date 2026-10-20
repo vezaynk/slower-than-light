@@ -98,7 +98,7 @@ describe("event pages", () => {
   });
 
   it("shows an overwritten page from the pack", () => {
-    const page = eventDef("auto-ship-attacking-civilian");
+    const page = eventDef("AUTO_CIVILIAN");
     assert.ok(page);
     loadPack({ events: [{ ...page, body: "Packed page." }] }, "append");
     const g = createGame(1);
@@ -156,7 +156,7 @@ describe("event pages", () => {
     assert.match(g.event?.body ?? "", /Coordinates received/);
     const spot = g.beacons.find((b) => b.quest === "ember-quest");
     assert.ok(spot);
-    assert.equal(spot.flag, "quest:ember-quest");
+    assert.equal(spot.flag, "arrive-ember-quest");
     g.here = spot.id;
     const card = questEvent(g, spot);
     assert.equal(card?.body, "The platform.");

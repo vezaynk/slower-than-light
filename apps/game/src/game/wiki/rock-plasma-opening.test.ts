@@ -10,7 +10,7 @@ const BODY =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rock-ship-in-plasma-storm";
+  b.flag = "NEBULA_ROCK_RACIST";
   b.name = "Rock ship in plasma storm";
   g.here = b.id;
   g.event = citedEvent(g, b);

@@ -768,16 +768,6 @@ export function readEvent(node: XmlElement): EventDef | undefined {
       surrender = readSurrender(item);
       continue;
     }
-    if (item.tagName === "alias") {
-      const text = ownText(item).trim();
-      if (text) aliases.push(text);
-      continue;
-    }
-    if (item.tagName === "sector") {
-      const text = ownText(item).trim();
-      if (text) sectors.push(text);
-      continue;
-    }
     if (item.tagName !== "choice") continue;
     const choiceId = attr(item, "name")?.trim();
     if (!choiceId) continue;
@@ -792,7 +782,7 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   const event: EventDef = {
     id,
     dest: textOf(node, "title") ?? id,
-    flag: attr(node, "flag")?.trim() || `cited:${id}`,
+    flag: id,
     aliases,
     sectors,
     body: lines[0] ?? "",

@@ -27,7 +27,7 @@ function beacon(): Beacon {
     resolved: false,
     name: DEST,
     tier: "",
-    flag: "cited:boarders-rebels-in-nebula",
+    flag: "NEBULA_REBEL_BOARDING",
     asteroid: false,
   };
 }
@@ -82,7 +82,7 @@ describe("Boarders: rebels in nebula", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:boarders-rebels-in-nebula";
+    dest.flag = "NEBULA_REBEL_BOARDING";
     dest.name = DEST;
     dest.resolved = false;
     dest.tier = "";

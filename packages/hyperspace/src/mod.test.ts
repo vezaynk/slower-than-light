@@ -94,9 +94,9 @@ const pack: ContentPack = {
     {
       id: "checkpoint",
       dest: "Checkpoint",
-      flag: "cited:checkpoint",
-      aliases: ["Fleet"],
-      sectors: ["Civilian Sector"],
+      flag: "checkpoint",
+      aliases: [],
+      sectors: [],
       body: "Rock & <Stone>",
       prices: [{ id: "bribe", k: "scrap", lo: 10, hi: 15 }],
       bands: [{ id: "extra", k: "fuel", lo: 3, hi: 5 }],

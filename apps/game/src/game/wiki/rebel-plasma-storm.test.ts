@@ -11,7 +11,7 @@ describe("Rebel fight in plasma storm", () => {
     );
     assert.ok(beacon);
     beacon.kind = "event";
-    beacon.flag = "cited:rebel-fight-in-plasma-storm";
+    beacon.flag = "STORM_REBEL";
     beacon.name = "Rebel fight in plasma storm";
     beacon.col = 5;
     g.here = beacon.id;
@@ -58,7 +58,7 @@ describe("Rebel fight in plasma storm", () => {
     g.fleet = 4;
     assert.equal(ionStormBeacon(beacon, g), false);
     beacon.kind = "exit";
-    beacon.flag = "cited:rebel-fight-in-plasma-storm";
+    beacon.flag = "STORM_REBEL";
     beacon.name = "Rebel fight in plasma storm";
     assert.equal(ionStormBeacon(beacon, g), false);
   });
@@ -73,7 +73,7 @@ describe("Rebel fight in plasma storm", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:rebel-fight-in-plasma-storm";
+    dest.flag = "STORM_REBEL";
     dest.name = "Rebel fight in plasma storm";
     dest.resolved = false;
     dest.tier = "";

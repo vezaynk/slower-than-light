@@ -22,7 +22,7 @@ function beacon(): Beacon {
     resolved: false,
     name: DEST,
     tier: "",
-    flag: "cited:boarders-humans-jammed-sensors",
+    flag: "BOARDERS_HACKING",
     asteroid: false,
   };
 }

@@ -288,3 +288,41 @@ export const SECTOR_TYPES: SectorType[] = [
  * Per-heading depth gates are on each sector above; they are not a path.
  */
 export const SECTOR_ORDER: null = null;
+
+/** Crew names in a Sectors rarity sentence, spelled as this campaign's crew blueprint ids. */
+const CREW_ID: Record<string, string> = {
+  Human: "human",
+  Engi: "engi",
+  Mantis: "mantis",
+  Rockmen: "rock",
+  Zoltan: "energy",
+  Slug: "slug",
+  Lanius: "anaerobic",
+  Crystal: "crystal",
+};
+
+/**
+ * Crew rarities, and the Lockdown Bomb rarity, copied out of the sector notes.
+ * A heading with no number stays empty. Hidden Crystal Worlds names Crystal crew and gives no rarity.
+ */
+export function sectorRarities(notes: readonly string[]): { id: string; rarity: number }[] {
+  const rows: { id: string; rarity: number }[] = [];
+  for (const note of notes) {
+    const bomb = note.match(
+      /Crystal Lockdown Bombs can be found or bought here, at an? \w+ rarity \((\d+)\)/,
+    );
+    if (bomb) rows.push({ id: "BOMB_LOCK", rarity: Number(bomb[1]) });
+    const crew = note.match(/common to rare:\s*(.+?)\.\s*Rarity only/);
+    if (!crew?.[1]) continue;
+    const group = /((?:[A-Z][a-z]+)(?:(?:,?\s+and\s+|,\s+)[A-Z][a-z]+)*)\s+(?:rarity\s+)?(\d+)/g;
+    for (const match of crew[1].matchAll(group)) {
+      const rarity = Number(match[2]);
+      for (const name of match[1].split(/,?\s+and\s+|,\s+/)) {
+        const id = CREW_ID[name];
+        if (!id) throw new Error(`Unknown crew name in a sector rarity note: ${name}`);
+        rows.push({ id, rarity });
+      }
+    }
+  }
+  return rows;
+}

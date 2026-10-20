@@ -584,9 +584,30 @@ export function allTunes(): TuneDef[] {
   return [...tunes.values()];
 }
 
+/** Authoring slug to the id this pack stored. Unset until the catalog registers one. */
+let eventAlias: ((id: string) => string | undefined) | undefined;
+
+/** The catalog registers this. A stored id still wins inside eventDef. */
+export function setEventAlias(resolve: (id: string) => string | undefined): void {
+  eventAlias = resolve;
+}
+
+/** True when the pack stored this id. An authoring slug is not a stored id. */
+export function hasEvent(id: string | undefined): boolean {
+  return !!id && events.has(id);
+}
+
+function storedEvent(id: string): EventDef | undefined {
+  const direct = events.get(id);
+  if (direct) return direct;
+  const alias = eventAlias?.(id);
+  if (!alias || alias === id) return undefined;
+  return events.get(alias);
+}
+
 export function eventDef(id: string | undefined): EventDef | undefined {
   if (!id) return undefined;
-  return events.get(id);
+  return storedEvent(id);
 }
 
 /** One `<textList>`, or undefined when the archive has no list by that name. */
@@ -604,7 +625,7 @@ export function openingLine(
   id: string | undefined,
   roll: (count: number) => number,
 ): string | undefined {
-  const openings = id ? events.get(id)?.openings : undefined;
+  const openings = id ? storedEvent(id)?.openings : undefined;
   if (!openings?.length) return undefined;
   return pickOpening(openings, (listId) => textLists.get(listId)?.lines, roll);
 }

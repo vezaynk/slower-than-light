@@ -8,7 +8,7 @@ import { pageWin } from "./quests.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:auto-ship-near-storage-station-in-nebula";
+  b.flag = "NEBULA_AUTO_DEFENSE_ITEM";
   b.name = "Auto-ship near storage station in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);

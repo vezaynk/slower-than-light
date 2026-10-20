@@ -15,7 +15,7 @@ const SICK = /not going to make it/;
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:plagued-station";
+  b.flag = "DONOR_PLAGUE";
   b.name = "Plagued station";
   g.here = b.id;
   g.event = citedEvent(g, b);

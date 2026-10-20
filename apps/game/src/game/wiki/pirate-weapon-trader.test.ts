@@ -10,7 +10,7 @@ const MIND = "c:pirate-ship-selling-weapon:2";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:pirate-ship-selling-weapon";
+  b.flag = "NEBULA_WEAPONS_TRADER";
   b.name = "Pirate ship selling weapon";
   g.here = b.id;
   g.event = citedEvent(g, b);

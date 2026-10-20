@@ -34,7 +34,7 @@ const HIDDEN = [S2, S3, DOORS];
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:refueling-platform-garbled-broadcast";
+  b.flag = "LANIUS_FUELING_STATION";
   b.name = "Refueling platform garbled broadcast";
   g.here = b.id;
   g.event = citedEvent(g, b);

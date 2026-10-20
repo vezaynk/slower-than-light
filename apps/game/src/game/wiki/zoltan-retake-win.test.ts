@@ -16,7 +16,7 @@ const REFUSE = "I must decline.";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:zoltan-retake-the-ship";
+  b.flag = "ZOLTAN_LIFERAFT";
   b.name = "Zoltan retake the ship";
   g.here = b.id;
   g.event = citedEvent(g, b);

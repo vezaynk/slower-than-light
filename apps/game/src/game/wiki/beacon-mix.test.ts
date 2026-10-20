@@ -1,10 +1,37 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { ftlEventId } from "@stl/catalog/src/wiki/ftl-event-ids.ts";
+import { eventDef } from "@stl/pack";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { SECTOR_MIX, classifyEvent, takeLines, type MixEvent } from "./beacon-mix.ts";
+import {
+  HOSTILE_SLOTS,
+  SECTOR_MIX,
+  classifyEvent,
+  takeLines,
+  type MixEvent,
+  type MixLine,
+} from "./beacon-mix.ts";
 import { citedPagesFor, stampCitedEvents } from "./cited-events.ts";
 import { placeIn } from "../fixtures.ts";
+
+function pageId(dest: string): string {
+  return ftlEventId(dest) ?? dest;
+}
+
+function storyFlag(flag: string): boolean {
+  return flag !== "" && !flag.includes(":") && eventDef(flag) != null;
+}
+
+/** Earlier lines whose maximums already cover a 19-beacon map leave the ship line unplaced. */
+function earlierMaxFillsMap(lines: MixLine[]): boolean {
+  let used = 0;
+  for (const line of lines) {
+    if (HOSTILE_SLOTS.has(line.slot)) return used >= 17;
+    used += line.hi;
+  }
+  return true;
+}
 
 /**
  * A fresh map dealt as `name`. createGame already stamped the starting sector onto these beacons.
@@ -121,18 +148,18 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
           name,
         );
         assert.equal(a.beacons.filter((x) => x.kind === "start").length, 1);
-        const flags = a.beacons.map((x) => x.flag).filter((f) => f.startsWith("cited:"));
+        const flags = a.beacons.map((x) => x.flag).filter(storyFlag);
         // unique=false boarder pages may stamp the same flag on both beacons of the 1-2 line.
         // unique=false openers (escorts, the Engi distress, Zoltan research) may share a flag. Zoltan research stops at two.
         const repeatable = new Set([
-          "cited:boarders-humans-abandoned",
-          "cited:boarders-crystal",
-          "cited:escort-civilians",
-          "cited:engi-ship-attacked-by-mantis-ship",
-          "cited:zoltan-research-facility",
+          "LANIUS_PIRATE_BOARDERS",
+          "BOARDERS_CRYSTAL",
+          "QUEST_ESCORT",
+          "ENGI_STATION_DISTRESS",
+          "ZOLTAN_CREW_STUDY",
         ]);
         const once = flags.filter((f) => !repeatable.has(f));
-        assert.ok(flags.filter((f) => f === "cited:zoltan-research-facility").length <= 2, name);
+        assert.ok(flags.filter((f) => f === "ZOLTAN_CREW_STUDY").length <= 2, name);
         assert.equal(new Set(once).size, once.length, name);
         // Running the stamp again does not re-deal.
         const before = JSON.stringify(a.beacons);
@@ -156,9 +183,9 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
   it("keeps a store, the special events, and plain hostile beacons for the sector's ship list", () => {
     for (const name of Object.keys(SECTOR_MIX)) {
       let plain = 0;
+      const lines = SECTOR_MIX[name];
       for (let seed = 1; seed <= 40; seed++) {
         const g = dealt(seed, name);
-        const lines = SECTOR_MIX[name];
         const mustStore = lines.some((l) => l.slot === "store" && l.lo > 0);
         if (mustStore)
           assert.ok(
@@ -169,13 +196,15 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
           const page = citedPagesFor(name).find((e) => e.dest === l.event);
           if (page)
             assert.ok(
-              g.beacons.some((b) => b.flag === page.flag),
+              g.beacons.some((b) => b.flag === pageId(page.dest)),
               `${name} ${l.event}`,
             );
         }
         plain += g.beacons.filter((b) => b.kind === "hostile").length;
       }
-      assert.ok(plain > 0, name);
+      // A 19-beacon map keeps the start and the exit, so 17 beacons are free.
+      // Engi Homeworlds puts the ship line last, after lines whose maximums already fill that map.
+      if (!earlierMaxFillsMap(lines)) assert.ok(plain > 0, name);
     }
   });
 
@@ -183,8 +212,8 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     // Template:Locations unique=false: "This event can occur multiple times per sector."
     // Abandoned Sector and Hidden Crystal Worlds, Beacons: "1-2 boarders".
     const cases = [
-      ["Abandoned Sector", "cited:boarders-humans-abandoned", 1],
-      ["Hidden Crystal Worlds", "cited:boarders-crystal", 0],
+      ["Abandoned Sector", "LANIUS_PIRATE_BOARDERS", 1],
+      ["Hidden Crystal Worlds", "BOARDERS_CRYSTAL", 0],
     ] as const;
     for (const [sector, flag, floor] of cases) {
       let twice = 0;
@@ -200,7 +229,7 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
 
   it("gives The Last Stand its 3 repair stations and 1 store", () => {
     const g = dealt(5, "The Last Stand", 8);
-    assert.equal(g.beacons.filter((b) => b.flag === "last-stand-repair").length, 3);
+    assert.equal(g.beacons.filter((b) => b.flag === "BOSS_REPAIR_STATION").length, 3);
     assert.equal(g.beacons.filter((b) => b.kind === "store").length, 1);
   });
 
@@ -211,7 +240,7 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       const g = dealt(seed, "Civilian Sector");
       for (const b of middles(g)) {
         if (b.kind === "hostile") hostile++;
-        const page = citedPagesFor("CIVILIAN_SECTOR").find((e) => e.flag === b.flag);
+        const page = citedPagesFor("CIVILIAN_SECTOR").find((e) => pageId(e.dest) === b.flag);
         if (page && classifyEvent(page) === "hostile") hostile++;
         if (page && classifyEvent(page) === "neutral") neutral++;
       }
@@ -238,12 +267,12 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
         prevMax += line.hi;
       }
       const pages = citedPagesFor(name).filter((p) => guaranteed.has(classifyEvent(p)));
-      const want = new Set(pages.map((p) => p.flag));
+      const want = new Set(pages.map((p) => pageId(p.dest)));
       const seen = new Set<string>();
       for (let seed = 1; seed <= 200 && seen.size < want.size; seed++) {
         for (const b of dealt(seed, name).beacons) if (want.has(b.flag)) seen.add(b.flag);
       }
-      const missing = pages.filter((p) => !seen.has(p.flag)).map((p) => p.dest);
+      const missing = pages.filter((p) => !seen.has(pageId(p.dest))).map((p) => p.dest);
       assert.deepEqual(missing, [], name);
     }
   });
@@ -256,16 +285,13 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       for (const b of g.beacons) {
         if (
           b.name === "Rebel ship attacking Federation loyalists" ||
-          b.flag === "cited:rebel-ship-attacking-federation-loyalists"
+          b.flag === "REBEL_VS_FEDERATION"
         ) {
           assert.notEqual(b.kind, "distress");
         }
         // dealt() clears the flag and kind of a re-stamp but leaves the starting-sector name, so a
         // hostile beacon can still be named haywire. Only a stamped haywire flag is this page.
-        if (
-          b.flag === "cited:escort-civilians-ftl-haywire" ||
-          b.flag === "filler:escort-civilians-ftl-haywire"
-        ) {
+        if (b.flag === "ESCORT_BEACON" || b.flag === "filler:escort-civilians-ftl-haywire") {
           assert.equal(b.kind, "distress", b.flag);
           haywire++;
         }
@@ -276,9 +302,9 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
 
   it("puts nebula openers on nebula beacons", () => {
     const byFlag = new Map([
-      ["cited:slug-comm-tapping", "Slug comm tapping"],
-      ["cited:slug-home-nebula-surrender", "Slug Home Nebula surrender"],
-      ["cited:nebula-wreckage", "Nebula wreckage"],
+      ["QUEST_SLUG_PIRATE_TRAP", "Slug comm tapping"],
+      ["NEBULA_SLUG_FIGHT_UNLOCK", "Slug Home Nebula surrender"],
+      ["NEBULA_BATTLEFIELD", "Nebula wreckage"],
     ]);
     const seen = new Set<string>();
     for (const sector of ["SLUG_HOME", "SLUG_SECTOR", "NEBULA_SECTOR"]) {
@@ -293,8 +319,8 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       }
     }
     // Slug comm tapping shares the last neutral line and is often never drawn. The two that do land are nebulae.
-    assert.ok(seen.has("cited:slug-home-nebula-surrender"));
-    assert.ok(seen.has("cited:nebula-wreckage"));
+    assert.ok(seen.has("NEBULA_SLUG_FIGHT_UNLOCK"));
+    assert.ok(seen.has("NEBULA_BATTLEFIELD"));
   });
 
   it("never places a third escort or a third Zoltan research facility", () => {
@@ -302,15 +328,13 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     // > "at one beacon per Zoltan sector" — [[Zoltan research facility#Trivia]]
     for (let seed = 1; seed <= 120; seed++) {
       const n = dealt(seed, "Civilian Sector").beacons.filter(
-        (b) => b.flag === "cited:escort-civilians",
+        (b) => b.flag === "QUEST_ESCORT",
       ).length;
       assert.ok(n <= 2, `Civilian Sector ${seed} ${n}`);
     }
     for (const sector of ["ZOLTAN_SECTOR", "ZOLTAN_HOME"]) {
       for (let seed = 1; seed <= 40; seed++) {
-        const n = dealt(seed, sector).beacons.filter(
-          (b) => b.flag === "cited:zoltan-research-facility",
-        ).length;
+        const n = dealt(seed, sector).beacons.filter((b) => b.flag === "ZOLTAN_CREW_STUDY").length;
         assert.ok(n <= 2, `${sector} ${seed} ${n}`);
       }
     }

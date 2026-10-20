@@ -13,18 +13,23 @@
  * INFERRED: that fight's existing event slug is "quest-rock-sun". The wiki does not print the slug.
  */
 
+import { packId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
+
 const FLARE_EVENTS = new Set([
-  "auto-ship-fight-near-sun",
-  "mantis-fight-near-sun",
-  "pirate-fight-near-sun",
-  "rock-pirates-fight-near-sun",
+  "AUTO_SUN",
+  "MANTIS_SUN_FIGHT",
+  "PIRATE_SUN",
+  "ROCK_PIRATE_SUN",
   // INFERRED: Sun Quest Marker slug. The wiki prints shipdetected=ship+redgiant, not this id.
   "quest-rock-sun",
 ]);
 
-/** True when the cited event slug is one of those red-giant fights. */
+/** True when the fight is one of those red-giant pages. startCombat passes the authoring slug. */
 export function eventHasFlare(event: string | undefined): boolean {
-  return !!event && FLARE_EVENTS.has(event);
+  if (!event) return false;
+  if (FLARE_EVENTS.has(event)) return true;
+  const id = packId(event);
+  return !!id && id !== event && FLARE_EVENTS.has(id);
 }
 
 /**

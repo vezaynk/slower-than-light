@@ -17,7 +17,7 @@ describe("Slug fight", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:slug-fight";
+    dest.flag = "SLUG_FIGHT";
     dest.name = "Slug fight";
     dest.resolved = false;
     dest.tier = "";

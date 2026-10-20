@@ -13,7 +13,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rebel-fight-near-pulsar";
+  b.flag = "REBEL_PULSAR";
   b.name = "Rebel fight near pulsar";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -53,7 +53,7 @@ describe("Rebel fight near pulsar", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:rebel-fight-near-pulsar";
+    dest.flag = "REBEL_PULSAR";
     dest.name = "Rebel fight near pulsar";
     dest.resolved = false;
     dest.tier = "";

@@ -38,7 +38,7 @@ function jumpTo(g: Game, flag: string, name: string): boolean[] {
 describe("Slug hacker (doors) stuck on arrival", () => {
   it("freezes doors in the state they had before the jump", () => {
     const g = createGame(1);
-    const open = jumpTo(g, "cited:slug-hacker-doors", "Slug hacker (doors)");
+    const open = jumpTo(g, "NEBULA_SLUG_DOORS", "Slug hacker (doors)");
     assert.equal(g.event?.title, "Slug hacker (doors)");
     assert.equal(doorLevel(g, g.player, "player"), 0);
     assert.deepEqual(
@@ -50,7 +50,7 @@ describe("Slug hacker (doors) stuck on arrival", () => {
   it("leaves the Door System online when the hack is countered", () => {
     const g = createGame(2);
     fitHacking(g);
-    jumpTo(g, "cited:slug-hacker-doors", "Slug hacker (doors)");
+    jumpTo(g, "NEBULA_SLUG_DOORS", "Slug hacker (doors)");
     assert.equal(doorLevel(g, g.player, "player"), 0);
     choose(g, "c:slug-hacker-doors:1");
     assert.ok(doorLevel(g, g.player, "player") >= 2);
@@ -59,14 +59,14 @@ describe("Slug hacker (doors) stuck on arrival", () => {
 
   it("keeps the Door System offline on Continue", () => {
     const g = createGame(3);
-    jumpTo(g, "cited:slug-hacker-doors", "Slug hacker (doors)");
+    jumpTo(g, "NEBULA_SLUG_DOORS", "Slug hacker (doors)");
     choose(g, "c:slug-hacker-doors:0");
     assert.equal(doorLevel(g, g.player, "player"), 0);
   });
 
   it("does not take the Door System offline at a different cited event", () => {
     const g = createGame(4);
-    jumpTo(g, "cited:slug-hacker-oxygen", "Slug hacker (oxygen)");
+    jumpTo(g, "NEBULA_SLUG_OXYGEN", "Slug hacker (oxygen)");
     assert.equal(g.event?.title, "Slug hacker (oxygen)");
     assert.ok(doorLevel(g, g.player, "player") > 0);
   });

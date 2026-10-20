@@ -16,7 +16,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.kind = "event";
-  b.flag = "cited:slug-fight-in-plasma-storm";
+  b.flag = "STORM_SLUG_FIGHT";
   b.name = "Slug fight in plasma storm";
   b.col = 6;
   g.here = b.id;
@@ -83,7 +83,7 @@ describe("Slug fight in plasma storm", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:slug-fight-in-plasma-storm";
+    dest.flag = "STORM_SLUG_FIGHT";
     dest.name = "Slug fight in plasma storm";
     dest.resolved = false;
     dest.tier = "";

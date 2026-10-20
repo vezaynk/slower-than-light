@@ -16,7 +16,7 @@ function weaponsHeld(g: Game): number {
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:lanius-ship-attacking-civilian";
+  b.flag = "LANIUS_CIVILIAN";
   b.name = "Lanius ship attacking civilian";
   g.here = b.id;
   g.event = citedEvent(g, b);

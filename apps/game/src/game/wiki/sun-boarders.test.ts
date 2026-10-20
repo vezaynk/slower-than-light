@@ -25,7 +25,7 @@ function beacon(): Beacon {
     resolved: false,
     name: DEST,
     tier: "",
-    flag: "cited:boarders-humans-near-sun",
+    flag: "BOARDERS_SUN",
     asteroid: false,
   };
 }
@@ -85,7 +85,7 @@ describe("Boarders: Humans near sun", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:boarders-humans-near-sun";
+    dest.flag = "BOARDERS_SUN";
     dest.name = DEST;
     dest.resolved = false;
     dest.tier = "";

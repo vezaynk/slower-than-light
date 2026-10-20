@@ -12,7 +12,7 @@ import { fillerChoose } from "./filler-events.ts";
 afterEach(() => resetPackForTests());
 
 function page(): EventDef {
-  const found = eventDef("slocknog");
+  const found = eventDef("SLUG_DISTRESS_RESCUE");
   assert.ok(found);
   return found;
 }
@@ -38,7 +38,7 @@ function open(g: Game) {
     (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
   );
   assert.ok(beacon);
-  beacon.flag = "cited:slocknog";
+  beacon.flag = "SLUG_DISTRESS_RESCUE";
   beacon.name = "Slocknog";
   g.here = beacon.id;
   g.event = citedEvent(g, beacon);

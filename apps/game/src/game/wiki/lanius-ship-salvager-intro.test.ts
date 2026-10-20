@@ -15,7 +15,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:lanius-ship-salvager";
+  b.flag = "LANIUS_SOLO_SALVAGE";
   b.name = "Lanius ship salvager";
   g.here = b.id;
   g.event = citedEvent(g, b);

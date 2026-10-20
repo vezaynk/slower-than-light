@@ -899,9 +899,32 @@ function readFtlEvent(
   if (!rootChild(node)) return undefined;
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
-  // A flag marks a campaign page. Vanilla events keep the id as their flag.
-  if (attr(node, "flag")?.trim()) return readEvent(node);
+  // Campaign pages carry a title, a named choice, or a campaign-only child.
+  // A vanilla choice has no name and often a ship, so a bare choice stays a ship event.
+  if (campaignEvent(node)) return readEvent(node);
   return readEventBody(node, id, strings, lists);
+}
+
+const CAMPAIGN_LISTS = new Set(["trade", "high", "pt2", "base", "better", "supply"]);
+
+function campaignEvent(node: XmlElement): boolean {
+  for (const item of elements(node)) {
+    if (
+      item.tagName === "title" ||
+      item.tagName === "card" ||
+      item.tagName === "roll" ||
+      item.tagName === "trade" ||
+      item.tagName === "grade" ||
+      item.tagName === "surrender"
+    )
+      return true;
+    if (item.tagName === "choice" && attr(item, "name")?.trim()) return true;
+    if (item.tagName === "eventList") {
+      const name = attr(item, "name")?.trim() ?? "";
+      if (!name || CAMPAIGN_LISTS.has(name)) return true;
+    }
+  }
+  return false;
 }
 
 function readEventBody(

@@ -18,7 +18,7 @@ function beacon(): Beacon {
     resolved: false,
     name: DEST,
     tier: "",
-    flag: "cited:boarders-crystal",
+    flag: "BOARDERS_CRYSTAL",
     asteroid: false,
   };
 }
@@ -77,7 +77,7 @@ describe("Boarders: Crystal", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:boarders-crystal";
+    dest.flag = "BOARDERS_CRYSTAL";
     dest.name = DEST;
     dest.resolved = false;
     dest.tier = "";

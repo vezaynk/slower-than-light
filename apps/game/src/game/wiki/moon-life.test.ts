@@ -71,7 +71,7 @@ function scene(seed: number, setup?: (g: Game) => void): Game | null {
 
 describe("Single life form on moon", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Single life form on moon")?.slug, "single-life-form-on-moon");
+    assert.equal(pageForRow("Single life form on moon")?.slug, "STRANDED_BEACON");
     const g = createGame(1);
     assert.deepEqual(
       open(g).choices.map((c) => c.id),

@@ -267,14 +267,14 @@ describe("stock spends", () => {
       labelOf(fillerEvent(g, beacon)?.choices, "c:refueling-station:0"),
       "Buy 6 Fuel for 12 Scrap.",
     );
-    assert.equal(eventDef("refueling-station")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
+    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
 
     rewriteStock("c:refueling-station:0", [stock("scrap", 4)]);
     assert.equal(
       labelOf(fillerEvent(g, beacon)?.choices, "c:refueling-station:0"),
       "Buy 6 Fuel for 4 Scrap.",
     );
-    assert.equal(eventDef("refueling-station")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
+    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
     const had = g.fuel;
     g.scrap = 3;
     const short = g.seed;
@@ -425,7 +425,7 @@ describe("stock spends", () => {
   it("buys the translator for the packed scrap and hires nobody when the row is gone", () => {
     const shown = createGame(1);
     const beacon = spot(shown);
-    beacon.flag = "cited:lanius-trader-with-translator";
+    beacon.flag = "LANIUS_TRADER_TRANSLATOR";
     beacon.name = "Lanius trader with translator";
     shown.here = beacon.id;
     shown.event = citedEvent(shown, beacon);
@@ -438,7 +438,7 @@ describe("stock spends", () => {
     rewriteStock("q:lanius-translator:buy", [stock("scrap", 7)]);
     const renamed = createGame(2);
     const next = spot(renamed);
-    next.flag = "cited:lanius-trader-with-translator";
+    next.flag = "LANIUS_TRADER_TRANSLATOR";
     next.name = "Lanius trader with translator";
     renamed.here = next.id;
     renamed.event = citedEvent(renamed, next);
@@ -461,7 +461,7 @@ describe("stock spends", () => {
     rewriteStock("q:lanius-translator:buy", undefined);
     const skipped = createGame(4);
     const quiet = spot(skipped);
-    quiet.flag = "cited:lanius-trader-with-translator";
+    quiet.flag = "LANIUS_TRADER_TRANSLATOR";
     quiet.name = "Lanius trader with translator";
     skipped.here = quiet.id;
     skipped.event = citedEvent(skipped, quiet);
@@ -540,7 +540,7 @@ describe("stock spends", () => {
   it("buys the slug's fuel for the packed scrap and leaves the slug button's sentence alone", () => {
     const g = createGame(1);
     const beacon = spot(g);
-    beacon.flag = "cited:no-fuel-slug-fuel-trader";
+    beacon.flag = "FUEL_ON_SLUG_CHUCKLE";
     beacon.name = "No fuel: Slug fuel trader";
     const card = citedEvent(g, beacon);
     assert.equal(
@@ -584,7 +584,7 @@ describe("stock spends", () => {
     rewriteStock("c:no-fuel-slug-fuel-trader:pay", undefined);
     const quiet = createGame(4);
     const quietBeacon = spot(quiet);
-    quietBeacon.flag = "cited:no-fuel-slug-fuel-trader";
+    quietBeacon.flag = "FUEL_ON_SLUG_CHUCKLE";
     quietBeacon.name = "No fuel: Slug fuel trader";
     const quietCard = citedEvent(quiet, quietBeacon);
     assert.equal(

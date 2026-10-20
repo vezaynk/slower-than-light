@@ -10,7 +10,7 @@ const BODY =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:boarders-humans-near-sun";
+  b.flag = "BOARDERS_SUN";
   b.name = "Boarders: Humans near sun";
   g.here = b.id;
   g.event = citedEvent(g, b);

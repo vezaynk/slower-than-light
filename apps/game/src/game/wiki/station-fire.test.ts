@@ -66,7 +66,7 @@ function repairDrone(): Kit {
 
 describe("Fire on research station", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Fire on research station")?.slug, "fire-on-research-station");
+    assert.equal(pageForRow("Fire on research station")?.slug, "DISTRESS_STATION_FIRE");
   });
 
   it("hides the Rock and repair drone until they are aboard", () => {

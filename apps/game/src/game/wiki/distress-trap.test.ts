@@ -80,7 +80,7 @@ describe("Pirate ship distress trap", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:pirate-ship-distress-trap";
+    dest.flag = "TRAP_BEACON";
     dest.name = "Pirate ship distress trap";
     dest.resolved = false;
     dest.tier = "";

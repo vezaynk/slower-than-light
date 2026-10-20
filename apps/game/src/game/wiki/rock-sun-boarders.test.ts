@@ -19,7 +19,7 @@ function beacon(): Beacon {
     resolved: false,
     name: DEST,
     tier: "",
-    flag: "cited:boarders-rockmen-near-sun",
+    flag: "ROCK_BOARDERS_SUN",
     asteroid: false,
   };
 }
@@ -78,7 +78,7 @@ describe("Boarders: Rockmen near sun", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:boarders-rockmen-near-sun";
+    dest.flag = "ROCK_BOARDERS_SUN";
     dest.name = DEST;
     dest.resolved = false;
     dest.tier = "";

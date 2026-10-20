@@ -12,7 +12,7 @@ const PIN = "c:rebel-fight-chance:3";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rebel-fight-chance";
+  b.flag = "ROGUE_REBEL";
   b.name = "Rebel fight chance";
   g.here = b.id;
   g.event = citedEvent(g, b);

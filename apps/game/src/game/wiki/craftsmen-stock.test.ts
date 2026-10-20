@@ -37,7 +37,7 @@ function open(g: Game) {
     (item) => item.kind !== "start" && item.kind !== "exit" && item.kind !== "boss",
   );
   assert.ok(beacon);
-  beacon.flag = "cited:lanius-craftsmen";
+  beacon.flag = "LANIUS_RESEARCHER_CRAFT";
   beacon.name = "Lanius craftsmen";
   g.here = beacon.id;
   g.phase = "event";

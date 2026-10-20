@@ -23,7 +23,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Boarders: Humans (Pirate)",
     tier: "",
-    flag: "cited:boarders-humans-pirate",
+    flag: "BOARDERS",
     asteroid: false,
   };
 }

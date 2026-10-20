@@ -18,7 +18,7 @@ function resources(body: string): number {
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:slug-hacker-doors";
+  b.flag = "NEBULA_SLUG_DOORS";
   b.name = "Slug hacker (doors)";
   g.here = b.id;
   g.event = citedEvent(g, b);

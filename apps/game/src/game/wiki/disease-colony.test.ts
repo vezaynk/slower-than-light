@@ -50,10 +50,7 @@ function mediumStuff(body: string) {
 
 describe("Unknown disease on mining colony", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(
-      pageForRow("Unknown disease on mining colony")?.slug,
-      "unknown-disease-on-mining-colony",
-    );
+    assert.equal(pageForRow("Unknown disease on mining colony")?.slug, "DISTRESS_STATION_DISEASE");
   });
 
   it("hides the blue options until that crew or medbay is aboard", () => {

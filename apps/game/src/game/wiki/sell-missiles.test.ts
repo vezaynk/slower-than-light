@@ -15,7 +15,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Sell missiles for scrap",
     tier: "",
-    flag: "cited:sell-missiles-for-scrap",
+    flag: "SELL_MISSILES_STATION",
     asteroid: false,
   };
 }

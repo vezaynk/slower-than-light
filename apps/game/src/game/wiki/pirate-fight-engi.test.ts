@@ -10,7 +10,7 @@ const BODY =
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:pirate-fight-engi";
+  b.flag = "ENGI_PIRATE_FIGHT";
   b.name = "Pirate fight (Engi)";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -42,7 +42,7 @@ describe("Pirate fight (Engi)", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:pirate-fight-engi";
+    dest.flag = "ENGI_PIRATE_FIGHT";
     dest.name = "Pirate fight (Engi)";
     dest.resolved = false;
     dest.tier = "";

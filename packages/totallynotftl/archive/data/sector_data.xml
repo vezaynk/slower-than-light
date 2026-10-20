@@ -29,6 +29,22 @@
     <trackList>
       <track>civilian</track>
     </trackList>
+    <event name="NEBULA" min="0" max="4"/>
+    <event name="STORE" min="1" max="2"/>
+    <event name="STANDARD_SPACE__items__2" min="1" max="1"/>
+    <event name="STANDARD_SPACE__neutral__3" min="2" max="4"/>
+    <event name="NOTHING" min="1" max="2"/>
+    <event name="STANDARD_SPACE__distress__5" min="1" max="2"/>
+    <event name="STANDARD_SPACE__hostile__6" min="4" max="6"/>
+    <event name="QUEST" min="1" max="1"/>
+    <event name="STANDARD_SPACE__hostile__8" min="2" max="2"/>
+    <rarityList>
+      <blueprint name="human" rarity="1"/>
+      <blueprint name="engi" rarity="2"/>
+      <blueprint name="mantis" rarity="2"/>
+      <blueprint name="rock" rarity="3"/>
+      <blueprint name="energy" rarity="5"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="CIVILIAN_SECTOR" minSector="0" unique="false">
     <nameList>
@@ -37,6 +53,21 @@
     <trackList>
       <track>civilian</track>
     </trackList>
+    <event name="STORE" min="2" max="3"/>
+    <event name="CIVILIAN_SECTOR__items__1" min="2" max="3"/>
+    <event name="CIVILIAN_SECTOR__neutral__2" min="2" max="4"/>
+    <event name="NOTHING" min="1" max="2"/>
+    <event name="CIVILIAN_SECTOR__distress__4" min="1" max="2"/>
+    <event name="CIVILIAN_SECTOR__hostile__5" min="6" max="8"/>
+    <event name="QUEST" min="0" max="2"/>
+    <event name="NEBULA" min="0" max="8"/>
+    <rarityList>
+      <blueprint name="human" rarity="1"/>
+      <blueprint name="engi" rarity="2"/>
+      <blueprint name="mantis" rarity="2"/>
+      <blueprint name="rock" rarity="3"/>
+      <blueprint name="energy" rarity="5"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="ENGI_SECTOR" minSector="0" unique="false">
     <nameList>
@@ -45,6 +76,18 @@
     <trackList>
       <track>engi</track>
     </trackList>
+    <event name="STORE" min="2" max="3"/>
+    <event name="ENGI_SECTOR__items__1" min="5" max="5"/>
+    <event name="NOTHING_ENGI" min="1" max="2"/>
+    <event name="ENGI_SECTOR__distress__3" min="1" max="3"/>
+    <event name="QUEST" min="1" max="1"/>
+    <event name="ENGI_SECTOR__neutral__5" min="4" max="6"/>
+    <event name="ENGI_SECTOR__hostile__6" min="5" max="7"/>
+    <rarityList>
+      <blueprint name="engi" rarity="1"/>
+      <blueprint name="human" rarity="3"/>
+      <blueprint name="energy" rarity="4"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="ENGI_HOME" minSector="2" unique="true">
     <nameList>
@@ -53,6 +96,19 @@
     <trackList>
       <track>engi</track>
     </trackList>
+    <event name="ENGI_UNLOCK_1" min="1" max="1"/>
+    <event name="STORE" min="2" max="3"/>
+    <event name="ENGI_HOME__items__2" min="5" max="5"/>
+    <event name="NOTHING_ENGI" min="1" max="2"/>
+    <event name="ENGI_HOME__distress__4" min="1" max="3"/>
+    <event name="QUEST" min="1" max="1"/>
+    <event name="ENGI_HOME__neutral__6" min="5" max="7"/>
+    <event name="ENGI_HOME__hostile__7" min="5" max="7"/>
+    <rarityList>
+      <blueprint name="engi" rarity="1"/>
+      <blueprint name="human" rarity="3"/>
+      <blueprint name="energy" rarity="4"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="ZOLTAN_SECTOR" minSector="1" unique="false">
     <nameList>
@@ -61,6 +117,24 @@
     <trackList>
       <track>zoltan</track>
     </trackList>
+    <event name="ZOLTAN_CREW_STUDY" min="1" max="1"/>
+    <event name="STORE" min="2" max="2"/>
+    <event name="NOTHING_ZOLTAN" min="1" max="2"/>
+    <event name="ZOLTAN_SECTOR__distress__3" min="1" max="2"/>
+    <event name="NEBULA" min="2" max="6"/>
+    <event name="ZOLTAN_SECTOR__hostile__5" min="6" max="8"/>
+    <event name="ZOLTAN_SECTOR__boarder__6" min="1" max="2"/>
+    <event name="ZOLTAN_SECTOR__items__7" min="1" max="2"/>
+    <event name="QUEST" min="0" max="1"/>
+    <event name="ZOLTAN_SECTOR__neutral__9" min="5" max="6"/>
+    <rarityList>
+      <blueprint name="energy" rarity="1"/>
+      <blueprint name="human" rarity="2"/>
+      <blueprint name="engi" rarity="3"/>
+      <blueprint name="mantis" rarity="3"/>
+      <blueprint name="rock" rarity="3"/>
+      <blueprint name="slug" rarity="3"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="ZOLTAN_HOME" minSector="2" unique="true">
     <nameList>
@@ -69,6 +143,25 @@
     <trackList>
       <track>zoltan</track>
     </trackList>
+    <event name="ZOLTAN_CREW_STUDY" min="1" max="1"/>
+    <event name="ZOLTAN_PEACE_QUEST" min="1" max="1"/>
+    <event name="STORE" min="2" max="2"/>
+    <event name="NOTHING_ZOLTAN" min="1" max="2"/>
+    <event name="ZOLTAN_HOME__distress__4" min="1" max="2"/>
+    <event name="NEBULA" min="2" max="6"/>
+    <event name="ZOLTAN_HOME__hostile__6" min="6" max="8"/>
+    <event name="ZOLTAN_HOME__boarder__7" min="1" max="2"/>
+    <event name="ZOLTAN_HOME__items__8" min="1" max="2"/>
+    <event name="QUEST" min="0" max="1"/>
+    <event name="ZOLTAN_HOME__neutral__10" min="5" max="6"/>
+    <rarityList>
+      <blueprint name="energy" rarity="1"/>
+      <blueprint name="human" rarity="2"/>
+      <blueprint name="engi" rarity="3"/>
+      <blueprint name="mantis" rarity="3"/>
+      <blueprint name="rock" rarity="3"/>
+      <blueprint name="slug" rarity="3"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="LANIUS_SECTOR" minSector="1" unique="false">
     <nameList>
@@ -77,6 +170,24 @@
     <trackList>
       <track>lostship</track>
     </trackList>
+    <event name="STORE" min="2" max="2"/>
+    <event name="NOTHING_LANIUS" min="1" max="2"/>
+    <event name="LANIUS_SECTOR__distress__2" min="1" max="2"/>
+    <event name="LANIUS_SECTOR__hostile__3" min="5" max="6"/>
+    <event name="LANIUS_SECTOR__environment__4" min="1" max="2"/>
+    <event name="LANIUS_PIRATE_BOARDERS" min="1" max="2"/>
+    <event name="LANIUS_SECTOR__items__6" min="2" max="4"/>
+    <event name="QUEST" min="0" max="1"/>
+    <event name="LANIUS_SECTOR__neutral__8" min="5" max="6"/>
+    <rarityList>
+      <blueprint name="anaerobic" rarity="2"/>
+      <blueprint name="human" rarity="2"/>
+      <blueprint name="engi" rarity="3"/>
+      <blueprint name="mantis" rarity="3"/>
+      <blueprint name="rock" rarity="3"/>
+      <blueprint name="energy" rarity="4"/>
+      <blueprint name="slug" rarity="4"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="MANTIS_SECTOR" minSector="0" unique="false">
     <nameList>
@@ -85,6 +196,19 @@
     <trackList>
       <track>mantis</track>
     </trackList>
+    <event name="STORE" min="1" max="2"/>
+    <event name="NOTHING_MANTIS" min="2" max="3"/>
+    <event name="MANTIS_SECTOR__distress__2" min="1" max="3"/>
+    <event name="MANTIS_SECTOR__hostile__3" min="6" max="7"/>
+    <event name="MANTIS_SECTOR__boarder__4" min="1" max="2"/>
+    <event name="MANTIS_SECTOR__items__5" min="1" max="2"/>
+    <event name="MANTIS_SECTOR__neutral__6" min="6" max="7"/>
+    <rarityList>
+      <blueprint name="mantis" rarity="1"/>
+      <blueprint name="human" rarity="2"/>
+      <blueprint name="engi" rarity="3"/>
+      <blueprint name="rock" rarity="4"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="MANTIS_HOME" minSector="2" unique="true">
     <nameList>
@@ -93,6 +217,20 @@
     <trackList>
       <track>mantis</track>
     </trackList>
+    <event name="MANTIS_NAMED_THIEF" min="1" max="1"/>
+    <event name="STORE" min="1" max="2"/>
+    <event name="NOTHING_MANTIS" min="2" max="3"/>
+    <event name="MANTIS_HOME__distress__3" min="1" max="3"/>
+    <event name="MANTIS_HOME__hostile__4" min="6" max="7"/>
+    <event name="MANTIS_HOME__boarder__5" min="1" max="2"/>
+    <event name="MANTIS_HOME__items__6" min="1" max="2"/>
+    <event name="MANTIS_HOME__neutral__7" min="6" max="7"/>
+    <rarityList>
+      <blueprint name="mantis" rarity="1"/>
+      <blueprint name="human" rarity="2"/>
+      <blueprint name="engi" rarity="3"/>
+      <blueprint name="rock" rarity="4"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="PIRATE_SECTOR" minSector="0" unique="false">
     <nameList>
@@ -101,6 +239,22 @@
     <trackList>
       <track>wasteland</track>
     </trackList>
+    <event name="STORE" min="1" max="2"/>
+    <event name="PIRATE_SECTOR__items__1" min="1" max="2"/>
+    <event name="PIRATE_SECTOR__hostile__2" min="6" max="8"/>
+    <event name="PIRATE_SECTOR__boarder__3" min="1" max="1"/>
+    <event name="PIRATE_SECTOR__distress__4" min="1" max="2"/>
+    <event name="NEBULA" min="0" max="5"/>
+    <event name="NOTHING_PIRATE" min="1" max="2"/>
+    <event name="QUEST" min="0" max="1"/>
+    <event name="PIRATE_SECTOR__neutral__8" min="5" max="6"/>
+    <rarityList>
+      <blueprint name="human" rarity="1"/>
+      <blueprint name="engi" rarity="2"/>
+      <blueprint name="mantis" rarity="2"/>
+      <blueprint name="rock" rarity="3"/>
+      <blueprint name="energy" rarity="5"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="REBEL_SECTOR" minSector="0" unique="false">
     <nameList>
@@ -109,6 +263,22 @@
     <trackList>
       <track>milkyway</track>
     </trackList>
+    <event name="STORE" min="1" max="2"/>
+    <event name="REBEL_SECTOR__items__1" min="1" max="2"/>
+    <event name="REBEL_SECTOR__hostile__2" min="6" max="8"/>
+    <event name="REBEL_SECTOR__boarder__3" min="1" max="1"/>
+    <event name="REBEL_SECTOR__distress__4" min="1" max="2"/>
+    <event name="NEBULA" min="0" max="5"/>
+    <event name="NOTHING_REBEL" min="1" max="2"/>
+    <event name="QUEST" min="0" max="2"/>
+    <event name="REBEL_SECTOR__neutral__8" min="5" max="6"/>
+    <rarityList>
+      <blueprint name="human" rarity="1"/>
+      <blueprint name="engi" rarity="2"/>
+      <blueprint name="mantis" rarity="2"/>
+      <blueprint name="rock" rarity="3"/>
+      <blueprint name="energy" rarity="5"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="REBEL_SECTOR_MINIBOSS" minSector="4" unique="true">
     <nameList>
@@ -117,6 +287,23 @@
     <trackList>
       <track>colonial</track>
     </trackList>
+    <event name="FLAGSHIP_CONSTRUCTION" min="1" max="1"/>
+    <event name="STORE" min="1" max="2"/>
+    <event name="REBEL_SECTOR_MINIBOSS__items__2" min="1" max="2"/>
+    <event name="REBEL_SECTOR_MINIBOSS__hostile__3" min="6" max="8"/>
+    <event name="REBEL_SECTOR_MINIBOSS__boarder__4" min="1" max="1"/>
+    <event name="REBEL_SECTOR_MINIBOSS__distress__5" min="1" max="2"/>
+    <event name="NEBULA" min="0" max="5"/>
+    <event name="NOTHING_REBEL" min="1" max="2"/>
+    <event name="QUEST" min="0" max="2"/>
+    <event name="REBEL_SECTOR_MINIBOSS__neutral__9" min="5" max="6"/>
+    <rarityList>
+      <blueprint name="human" rarity="1"/>
+      <blueprint name="engi" rarity="2"/>
+      <blueprint name="mantis" rarity="2"/>
+      <blueprint name="rock" rarity="3"/>
+      <blueprint name="energy" rarity="5"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="ROCK_SECTOR" minSector="1" unique="false">
     <nameList>
@@ -125,6 +312,20 @@
     <trackList>
       <track>rock</track>
     </trackList>
+    <event name="STORE" min="2" max="2"/>
+    <event name="NOTHING_ROCK" min="2" max="3"/>
+    <event name="ROCK_SECTOR__distress__2" min="1" max="2"/>
+    <event name="ROCK_SECTOR__hostile__3" min="6" max="8"/>
+    <event name="ROCK_SECTOR__boarder__4" min="1" max="2"/>
+    <event name="ROCK_SECTOR__items__5" min="1" max="2"/>
+    <event name="QUEST" min="0" max="1"/>
+    <event name="ROCK_SECTOR__neutral__7" min="7" max="8"/>
+    <rarityList>
+      <blueprint name="BOMB_LOCK" rarity="4"/>
+      <blueprint name="rock" rarity="1"/>
+      <blueprint name="human" rarity="2"/>
+      <blueprint name="energy" rarity="3"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="ROCK_HOME" minSector="4" unique="true">
     <nameList>
@@ -133,6 +334,22 @@
     <trackList>
       <track>rock</track>
     </trackList>
+    <event name="ROCK_CRYSTAL_BEACON" min="1" max="1"/>
+    <event name="ROCK_UNLOCK" min="1" max="1"/>
+    <event name="STORE" min="2" max="2"/>
+    <event name="NOTHING_ROCK" min="2" max="3"/>
+    <event name="ROCK_HOME__distress__4" min="1" max="2"/>
+    <event name="ROCK_HOME__hostile__5" min="6" max="8"/>
+    <event name="ROCK_HOME__boarder__6" min="1" max="2"/>
+    <event name="ROCK_HOME__items__7" min="1" max="2"/>
+    <event name="QUEST" min="0" max="1"/>
+    <event name="ROCK_HOME__neutral__9" min="7" max="8"/>
+    <rarityList>
+      <blueprint name="BOMB_LOCK" rarity="2"/>
+      <blueprint name="rock" rarity="1"/>
+      <blueprint name="human" rarity="2"/>
+      <blueprint name="energy" rarity="3"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="SLUG_SECTOR" minSector="3" unique="false">
     <nameList>
@@ -141,6 +358,25 @@
     <trackList>
       <track>slug</track>
     </trackList>
+    <event name="STORE" min="0" max="1"/>
+    <event name="STORE" min="2" max="2"/>
+    <event name="SLUG_SECTOR__items__2" min="0" max="2"/>
+    <event name="NOTHING_SLUG" min="0" max="2"/>
+    <event name="SLUG_SECTOR__hostile__4" min="1" max="2"/>
+    <event name="SLUG_SECTOR__distress__5" min="3" max="4"/>
+    <event name="NEBULA_NOTHING_SLUG" min="2" max="4"/>
+    <event name="SLUG_SECTOR__nebula-hostile__7" min="5" max="7"/>
+    <event name="SLUG_SECTOR__storm__8" min="1" max="3"/>
+    <event name="SLUG_SECTOR__nebula-neutral__9" min="3" max="5"/>
+    <event name="SLUG_SECTOR__neutral__10" min="1" max="2"/>
+    <rarityList>
+      <blueprint name="slug" rarity="2"/>
+      <blueprint name="human" rarity="2"/>
+      <blueprint name="engi" rarity="4"/>
+      <blueprint name="mantis" rarity="4"/>
+      <blueprint name="energy" rarity="4"/>
+      <blueprint name="rock" rarity="4"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="SLUG_HOME" minSector="3" unique="true">
     <nameList>
@@ -149,6 +385,26 @@
     <trackList>
       <track>slug</track>
     </trackList>
+    <event name="NEBULA_SLUG_FIGHT_UNLOCK" min="1" max="1"/>
+    <event name="STORE" min="0" max="1"/>
+    <event name="STORE" min="2" max="2"/>
+    <event name="SLUG_HOME__items__3" min="0" max="2"/>
+    <event name="NOTHING_SLUG" min="0" max="2"/>
+    <event name="SLUG_HOME__hostile__5" min="1" max="2"/>
+    <event name="SLUG_HOME__distress__6" min="3" max="4"/>
+    <event name="NEBULA_NOTHING_SLUG" min="2" max="4"/>
+    <event name="SLUG_HOME__nebula-hostile__8" min="5" max="7"/>
+    <event name="SLUG_HOME__storm__9" min="1" max="3"/>
+    <event name="SLUG_HOME__nebula-neutral__10" min="3" max="5"/>
+    <event name="SLUG_HOME__neutral__11" min="1" max="2"/>
+    <rarityList>
+      <blueprint name="slug" rarity="2"/>
+      <blueprint name="human" rarity="2"/>
+      <blueprint name="engi" rarity="4"/>
+      <blueprint name="mantis" rarity="4"/>
+      <blueprint name="energy" rarity="4"/>
+      <blueprint name="rock" rarity="4"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="NEBULA_SECTOR" minSector="0" unique="false">
     <nameList>
@@ -157,6 +413,21 @@
     <trackList>
       <track>void</track>
     </trackList>
+    <event name="STORE" min="0" max="1"/>
+    <event name="NEBULA_SECTOR__items__1" min="1" max="3"/>
+    <event name="STORE" min="1" max="1"/>
+    <event name="NEBULA_EMPTY" min="4" max="4"/>
+    <event name="NEBULA_SECTOR__nebula-hostile__4" min="5" max="6"/>
+    <event name="NEBULA_SECTOR__nebula-neutral__5" min="7" max="8"/>
+    <event name="NEBULA_SECTOR__distress__6" min="1" max="3"/>
+    <rarityList>
+      <blueprint name="human" rarity="1"/>
+      <blueprint name="slug" rarity="3"/>
+      <blueprint name="engi" rarity="4"/>
+      <blueprint name="mantis" rarity="4"/>
+      <blueprint name="energy" rarity="4"/>
+      <blueprint name="rock" rarity="4"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="CRYSTAL_HOME" minSector="0" unique="true">
     <nameList>
@@ -165,6 +436,12 @@
     <trackList>
       <track>cosmos</track>
     </trackList>
+    <event name="STORE" min="2" max="3"/>
+    <event name="CRYSTAL_HOME__items__1" min="2" max="2"/>
+    <event name="NOTHING_CRYSTAL" min="2" max="2"/>
+    <event name="CRYSTAL_HOME__hostile__3" min="6" max="10"/>
+    <event name="BOARDERS_CRYSTAL" min="1" max="2"/>
+    <event name="CRYSTAL_HOME__neutral__5" min="12" max="12"/>
   </sectorDescription>
   <sectorDescription name="FINAL" minSector="7" unique="true">
     <nameList>
@@ -173,5 +450,16 @@
     <trackList>
       <track>laststand</track>
     </trackList>
+    <event name="STORE" min="1" max="1"/>
+    <event name="BOSS_REPAIR_STATION" min="3" max="3"/>
+    <event name="FINAL__hostile__2" min="6" max="6"/>
+    <event name="FINAL__neutral__3" min="7" max="10"/>
+    <rarityList>
+      <blueprint name="human" rarity="1"/>
+      <blueprint name="engi" rarity="2"/>
+      <blueprint name="mantis" rarity="2"/>
+      <blueprint name="rock" rarity="3"/>
+      <blueprint name="energy" rarity="5"/>
+    </rarityList>
   </sectorDescription>
 </FTL>

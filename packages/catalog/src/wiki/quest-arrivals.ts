@@ -1,7 +1,7 @@
 /**
  * Quest arrivals and the choices that place a marker.
- * An arrival has an empty sector list and flag `quest:` plus the quest id, so the stamp leaves it off the chart.
- * `questEvent` loads that flag. Fight, win, and escape buttons stay procedures under the same choice ids.
+ * An arrival is named `arrive-` plus the quest id and lists no sector, so the stamp leaves it off the chart.
+ * `questEvent` loads that id. Fight, win, and escape buttons stay procedures under the same choice ids.
  */
 import type { EventChoice, EventEffect } from "@stl/pack";
 import { EXTRA_EVENTS as ZOLTAN_PAGES } from "./cited-events-zoltan.ts";
@@ -24,7 +24,7 @@ function arrival(id: string, dest: string, body: string, choices: EventChoice[])
   return {
     dest,
     slug: `arrive-${id}`,
-    flag: `quest:${id}`,
+    flag: `arrive-${id}`,
     aliases: [],
     sectors: [],
     body,

@@ -19,7 +19,7 @@ function beacon(): Beacon {
     resolved: false,
     name: "Slug moons question",
     tier: "",
-    flag: "cited:slug-moons-question",
+    flag: "SLUG_DISTRESS_QUESTION",
     asteroid: false,
   };
 }

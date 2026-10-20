@@ -18,7 +18,7 @@ const INTROS = [
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:rock-fight";
+  b.flag = "ROCK_SHIP";
   b.name = "Rock fight";
   g.here = b.id;
   g.event = citedEvent(g, b);
@@ -70,7 +70,7 @@ describe("Rock fight", () => {
     const dest = g.beacons.find((b) => b.id === here!.links[0]);
     assert.ok(dest);
     dest.kind = "event";
-    dest.flag = "cited:rock-fight";
+    dest.flag = "ROCK_SHIP";
     dest.name = "Rock fight";
     dest.resolved = false;
     dest.tier = "";

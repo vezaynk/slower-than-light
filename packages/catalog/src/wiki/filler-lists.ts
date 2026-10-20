@@ -1,10 +1,12 @@
 import type { EmptyBeaconDef, FillerListDef } from "@stl/pack";
+import { ftlEventId } from "./ftl-event-ids.ts";
 
 /**
  * Filler lists and the sentences for a quiet beacon.
  * `base.ts` loads these records. This file does not import the sim.
- * A row id is the page slug the draw already resolves. Large trade station has no card;
- * its id is that same slug, and a draw skips it until a page with that id exists.
+ * A packed row id is the datafile id of that page. The authored `id` stays the slug
+ * choice handlers already use. Large trade station has no card; a draw skips it
+ * until a page with that id exists.
  * Choice handlers stay in filler-events.ts. Remembering a unique page stays in the sim.
  */
 
@@ -146,7 +148,7 @@ export const EXIT_ITEMS: FillerRow[] = [
   { id: "improve-reactor-for-supplies", dest: "Improve reactor for supplies", unique: true },
 ];
 
-export type FillerList = "filler" | "nebula" | "distress" | "items" | "exitNeutral" | "exitItems";
+export type FillerList = "FILLER" | "NEBULA" | "DISTRESS" | "ITEMS" | "EXIT_NEUTRAL" | "EXIT_ITEMS";
 
 /** "Empty beacon (...)" pages: {{Locations}} sectors and the intro texts. Every one ends "Nothing happens." */
 export type EmptyPage = {
@@ -348,18 +350,18 @@ export const EMPTY_PAGES: EmptyPage[] = [
 ];
 
 function listEntry(row: FillerRow): { id: string; unique: boolean } {
-  return { id: row.id, unique: row.unique };
+  return { id: ftlEventId(row.dest) ?? row.id, unique: row.unique };
 }
 
 /** The six lists, in authored order. A draw walks that order. */
 export function fillerListRecords(): FillerListDef[] {
   return [
-    { id: "filler", entries: FILLER.map(listEntry) },
-    { id: "nebula", entries: NEBULA.map(listEntry) },
-    { id: "distress", entries: DISTRESS.map(listEntry) },
-    { id: "items", entries: ITEMS.map(listEntry) },
-    { id: "exitNeutral", entries: EXIT_NEUTRAL.map(listEntry) },
-    { id: "exitItems", entries: EXIT_ITEMS.map(listEntry) },
+    { id: "FILLER", entries: FILLER.map(listEntry) },
+    { id: "NEBULA", entries: NEBULA.map(listEntry) },
+    { id: "DISTRESS", entries: DISTRESS.map(listEntry) },
+    { id: "ITEMS", entries: ITEMS.map(listEntry) },
+    { id: "EXIT_NEUTRAL", entries: EXIT_NEUTRAL.map(listEntry) },
+    { id: "EXIT_ITEMS", entries: EXIT_ITEMS.map(listEntry) },
   ];
 }
 
@@ -367,7 +369,7 @@ export function fillerListRecords(): FillerListDef[] {
 export function emptyBeaconRecords(): EmptyBeaconDef[] {
   return EMPTY_PAGES.map((page) => {
     const copy: EmptyBeaconDef = {
-      id: page.id,
+      id: ftlEventId(page.dest) ?? page.id,
       dest: page.dest,
       sectors: [...page.sectors],
       texts: [...page.texts],

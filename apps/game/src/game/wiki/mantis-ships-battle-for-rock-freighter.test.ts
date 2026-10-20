@@ -8,7 +8,7 @@ import { pageWin } from "./quests.ts";
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
-  b.flag = "cited:mantis-ships-battle-for-rock-freighter";
+  b.flag = "ROCK_MANTIS_FREIGHTER";
   b.name = "Mantis ships battle for Rock freighter";
   g.here = b.id;
   g.event = citedEvent(g, b);

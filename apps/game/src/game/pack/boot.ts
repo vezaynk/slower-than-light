@@ -1,8 +1,9 @@
 import datUrl from "../../../../../packages/totallynotftl/totallynotftl.dat?url";
 import gapUrl from "../../../../../packages/campaign/base.ftl?url";
-import { extractArchive } from "@stl/ftldat";
+import { extractArchive, type FtlExtract } from "@stl/ftldat";
 import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
-import { loadPack } from "@stl/pack";
+import { loadPack, warnPack } from "@stl/pack";
+import { STAND_IN_ID, fileBlob, loadOrder, orderKey } from "./archive-list";
 import { rememberArchive } from "./media";
 import { rememberShipArt } from "./ship-art";
 
@@ -17,7 +18,10 @@ function report(ratio: number) {
   for (const listen of listeners) listen(ratio);
 }
 
-async function fetchBytes(url: string, onProgress: (ratio: number) => void): Promise<Uint8Array> {
+export async function fetchBytes(
+  url: string,
+  onProgress: (ratio: number) => void,
+): Promise<Uint8Array> {
   onProgress(0);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`pack ${res.status}`);
@@ -49,25 +53,95 @@ async function fetchBytes(url: string, onProgress: (ratio: number) => void): Pro
 }
 
 /**
- * The archive to boot from: `?dat=<url>` names one (a player's ftl.dat or a `.ftl` zip on a local server, for example),
- * otherwise the bundled stand-in. The URL is fetched like any other, so a server on another origin must allow it (CORS).
+ * `?dat=<url>` names one archive to boot from (a player's ftl.dat or a `.ftl` zip on a local server, for example).
+ * It overrides the Game files order. The URL is fetched like any other, so a server on another origin must allow it (CORS).
  */
-function archiveUrl(): string {
-  if (typeof location === "undefined") return datUrl;
-  const named = new URLSearchParams(location.search).get("dat")?.trim();
-  return named || datUrl;
+export function urlArchive(): string | undefined {
+  if (typeof location === "undefined") return undefined;
+  return new URLSearchParams(location.search).get("dat")?.trim() || undefined;
+}
+
+/** What the running pack was built from: the Game files order key, or "url". Undefined before boot finishes. */
+let booted: string | undefined;
+/** Files the last boot skipped, with the reason. */
+const skipped: { name: string; reason: string }[] = [];
+
+export function bootedOrderKey(): string | undefined {
+  return booted;
+}
+
+export function bootSkipped(): readonly { name: string; reason: string }[] {
+  return skipped;
+}
+
+/** A file that does not read is skipped with a warning, so one bad upload cannot stop the game from starting. */
+async function readArchive(name: string, bytes: Uint8Array): Promise<FtlExtract | undefined> {
+  try {
+    return await extractArchive(bytes);
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    skipped.push({ name, reason });
+    warnPack(`${name} is not an ftl.dat or .ftl/.zip archive (${reason}); it is skipped.`);
+    return undefined;
+  }
+}
+
+/** The Game files order: the first enabled file is the base, each later one is applied over it. */
+async function orderedArchive(onProgress: (ratio: number) => void): Promise<FtlExtract> {
+  const order = await loadOrder();
+  const enabled = order.filter((row) => row.enabled);
+  booted = orderKey(order);
+  let files: FtlExtract | undefined;
+  for (const [at, row] of enabled.entries()) {
+    const part = (ratio: number) => onProgress((at + ratio) / enabled.length);
+    let bytes: Uint8Array | undefined;
+    if (row.id === STAND_IN_ID) bytes = await fetchBytes(datUrl, part);
+    else {
+      const blob = await fileBlob(row.id).catch(() => undefined);
+      if (blob) bytes = new Uint8Array(await blob.arrayBuffer());
+      else {
+        skipped.push({ name: row.name, reason: "the browser no longer has this file" });
+        warnPack(`${row.name} is no longer stored in this browser; it is skipped.`);
+      }
+      part(1);
+    }
+    if (!bytes) continue;
+    const read = await readArchive(row.name, bytes);
+    if (!read) continue;
+    if (!files) {
+      files = read;
+      continue;
+    }
+    try {
+      files = applyFtlMod(files, read);
+    } catch (err) {
+      // A patch that does not apply leaves the archive as it was, so the game still starts.
+      const reason = err instanceof Error ? err.message : String(err);
+      skipped.push({ name: row.name, reason });
+      warnPack(`${row.name} could not be applied (${reason}); it is skipped.`);
+    }
+  }
+  if (files) return files;
+  // Nothing enabled, or nothing read: the stand-in, so the title screen still opens.
+  if (enabled.length > 0) warnPack("No game file could be read; the stand-in archive is used.");
+  return extractArchive(await fetchBytes(datUrl, onProgress));
 }
 
 async function install(source?: ArrayBuffer | Uint8Array): Promise<void> {
-  const bytes = source
-    ? source instanceof Uint8Array
-      ? source
-      : new Uint8Array(source)
-    : await fetchBytes(archiveUrl(), (ratio) => report(ratio * 0.4));
-  if (source) report(0.4);
+  skipped.length = 0;
+  const named = urlArchive();
+  let archive: FtlExtract;
+  if (source) {
+    archive = await extractArchive(source instanceof Uint8Array ? source : new Uint8Array(source));
+    report(0.4);
+  } else if (named) {
+    booted = "url";
+    archive = await extractArchive(await fetchBytes(named, (ratio) => report(ratio * 0.4)));
+  } else {
+    archive = await orderedArchive((ratio) => report(ratio * 0.4));
+  }
   const gapBytes = await fetchBytes(gapUrl, (ratio) => report(0.4 + ratio * 0.4));
   report(0.85);
-  const archive = await extractArchive(bytes);
   const gap = await extractArchive(gapBytes);
   const files = applyFtlMod(archive, gap);
   await rememberShipArt(files.assets);
@@ -103,3 +177,7 @@ export function loadArchiveThenCampaign(
     listeners.delete(onProgress);
   });
 }
+
+/** The bundled stand-in and campaign rules, for the Game files inspector (pack/archive-reader.ts). */
+export const STAND_IN_URL = datUrl;
+export const CAMPAIGN_URL = gapUrl;

@@ -4,18 +4,25 @@ import {
   type Document as XmlDocument,
   type Element as XmlElement,
 } from "@xmldom/xmldom";
+import { appendFtlListings, type FtlListings } from "./emit.ts";
 import { prettyXml } from "./format.ts";
 import type { CrewDef, HullDef, SectorDef } from "./types.ts";
 
 /**
  * Writes ship blueprints the way ftl.dat's data/blueprints.xml does, so packFromFtl reads the stand-in with the same
  * code as a real archive. Crew passed here is the identity: title, description, and store cost. Combat stays on an append.
+ * Listings are the weapon, augment, drone, and system blueprints. shotGap stays off those elements.
  */
-export function emitFtlShips(hulls: readonly HullDef[], crew: readonly CrewDef[] = []): string {
+export function emitFtlShips(
+  hulls: readonly HullDef[],
+  crew: readonly CrewDef[] = [],
+  listings: FtlListings = {},
+): string {
   const doc = new DOMImplementation().createDocument(null, "FTL", null);
   const root = doc.documentElement;
   if (!root) throw new Error("could not create the FTL root");
   for (const hull of hulls) root.appendChild(shipElement(doc, hull));
+  appendFtlListings(doc, root, listings);
   for (const row of crew) root.appendChild(crewElement(doc, row));
   return prettyXml(new XMLSerializer().serializeToString(doc));
 }

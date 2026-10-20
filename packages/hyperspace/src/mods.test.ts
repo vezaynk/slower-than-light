@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { FtlExtract } from "@stl/ftldat";
-import { emitGapDocument, emitNoteAppend, emitStatAppend, type CrewDef } from "@stl/pack";
+import {
+  emitBlueprintAppend,
+  emitGapDocument,
+  emitNoteAppend,
+  emitStatAppend,
+  type CrewDef,
+} from "@stl/pack";
 import { applyFtlMod, loadFtlMods, packFromExtract } from "./mods.ts";
 
 const BASE_XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -366,6 +372,37 @@ describe("packFromExtract", () => {
     assert.equal(blueprints.includes("<maxHealth>50</maxHealth>"), true);
     assert.equal((dlc.match(/<maxHealth>/g) ?? []).length, 1);
     assert.equal(dlc.includes("<oxygenChangeSpeed>-0.5</oxygenChangeSpeed>"), true);
+  });
+
+  it("overwrites shotGap in blueprints.xml and in dlcBlueprints.xml", () => {
+    const xml = emitBlueprintAppend([], [{ id: "LASER_BURST_3", gap: 0.28 }]);
+    const dat = extract({
+      documents: [
+        {
+          path: "data/blueprints.xml",
+          xml: `<FTL><weaponBlueprint name="LASER_BURST_3"><type>LASER</type><title>Burst</title><shotGap>1</shotGap></weaponBlueprint></FTL>`,
+        },
+        {
+          path: "data/dlcBlueprints.xml",
+          xml: `<FTL><weaponBlueprint name="LASER_BURST_3"><type>LASER</type><title>Burst</title></weaponBlueprint></FTL>`,
+        },
+      ],
+    });
+    const mod = extract({
+      documents: [
+        { path: "data/blueprints.xml.append", xml },
+        { path: "data/dlcBlueprints.xml.append", xml },
+      ],
+    });
+    const once = packFromExtract(applyFtlMod(dat, mod));
+    assert.equal(once.weapons?.find((row) => row.id === "LASER_BURST_3")?.gap, 0.28);
+    const twice = applyFtlMod(applyFtlMod(dat, mod), mod);
+    const blueprints = twice.documents.find((doc) => doc.path === "data/blueprints.xml")?.xml ?? "";
+    const dlc = twice.documents.find((doc) => doc.path === "data/dlcBlueprints.xml")?.xml ?? "";
+    assert.equal((blueprints.match(/<shotGap>/g) ?? []).length, 1);
+    assert.equal(blueprints.includes("<shotGap>0.28</shotGap>"), true);
+    assert.equal((dlc.match(/<shotGap>/g) ?? []).length, 1);
+    assert.equal(dlc.includes("<shotGap>0.28</shotGap>"), true);
   });
 
   it("keeps the archive rows and colour, and takes combat, notes, and the store from the gap", () => {

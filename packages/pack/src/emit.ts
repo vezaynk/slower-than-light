@@ -51,18 +51,8 @@ const TYPE: Record<WeaponKind, string> = {
 const OXYGEN_DRAIN = -0.5;
 
 const HEADER = `
-  Base pack written from the loaded crew, weapon, augment, drone, system, hull, sector, store, reward, faction, event, filler list, and empty beacon records.
-  Race tags are Hyperspace names. Weapon tags are FTL blueprint names.
-  Augment tags are the listing id, title, description, and store cost.
-  Drone tags are the listing id, title, and store cost.
-  A systemBlueprint with a cost is a store listing. A slot child of kit marks a kit.
-  startPower is the level a purchase installs. One upgradeCost lists the scrap to leave each level. n names a level that is not the next count.
-  Hull tags are the ship id, class, layout file, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms. A system's room attribute is the room index.
-  A shipBlueprint with no layout and a surrender tag is a faction's default offer.
-  Sector tags are the sector id, title, colour group, and page notes. Depth gates stay in code.
-  A customStore holds resource lines, hull repair, and one category per section.
-  Empty blueprint items are the weapon shelf and the other section size.
-  A rewards block is the scrap scaling and the fuel, missile, and drone-part bands.
+  Event pages and filler lists. Weapon, augment, drone, and system blueprints are data/blueprints.xml.
+  shotGap is a gap overwrite on weaponBlueprint. Crew combat is a gap overwrite on crewBlueprint.
   An event tag is a page. flag, title, alias, and sector are extra names this sim looks up.
   A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
   A fight is a hostile ship. Its load is the ship name this sim already fights.
@@ -108,9 +98,6 @@ const HEADER = `
   The sim still remembers which unique page already appeared.
   A list with no page ids is an offer table or the printed bands.
   An empty beacon stores the sentences for a quiet jump and the sectors that use them.
-  sp is shield layers pierced. power is reactor bars.
-  shotGap is the seconds between shots in one volley. FTL keeps that delay in the animation.
-  A negative oxygenChangeSpeed means the race drains air. The air model does not use the magnitude.
 `;
 
 const implementation = new DOMImplementation();
@@ -147,9 +134,12 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
   doc.insertBefore(doc.createComment(HEADER), root);
 
-  const crew = doc.createElement("crew");
-  for (const race of pack.crew ?? []) add(crew, raceElement(doc, race, crewPart));
-  add(root, crew);
+  const races = pack.crew ?? [];
+  if (races.length > 0) {
+    const crew = doc.createElement("crew");
+    for (const race of races) add(crew, raceElement(doc, race, crewPart));
+    add(root, crew);
+  }
   for (const weapon of pack.weapons ?? []) add(root, weaponElement(doc, weapon));
   for (const augment of pack.augments ?? []) add(root, augmentElement(doc, augment));
   for (const drone of pack.drones ?? []) add(root, droneElement(doc, drone));
@@ -198,6 +188,52 @@ export function emitStatAppend(crew: readonly CrewDef[], tag: "crewBlueprint" | 
   doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
   for (const race of crew) add(root, statFind(doc, tag, race));
   return prettyXml(serializer.serializeToString(doc));
+}
+
+/**
+ * Crew combat and weapon shotGap, written into both blueprint append files.
+ * shotGap overwrites the first child of that tag, or adds one. A gap of 0 is written.
+ * A find that names a blueprint the file does not have does nothing.
+ */
+export function emitBlueprintAppend(
+  crew: readonly CrewDef[],
+  weapons: readonly { id: string; gap: number }[],
+): string {
+  const doc = implementation.createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("pack document has no root");
+  doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
+  for (const race of crew) add(root, statFind(doc, "crewBlueprint", race));
+  for (const weapon of weapons) add(root, shotGapFind(doc, weapon));
+  return prettyXml(serializer.serializeToString(doc));
+}
+
+/** Weapon, augment, drone, and system blueprints. shotGap stays off these elements. */
+export function appendFtlListings(doc: XmlDocument, root: XmlElement, listings: FtlListings): void {
+  for (const weapon of listings.weapons ?? []) add(root, weaponElement(doc, weapon, false));
+  for (const augment of listings.augments ?? []) add(root, augmentElement(doc, augment));
+  for (const drone of listings.drones ?? []) add(root, droneElement(doc, drone));
+  const systems = [...(listings.systems ?? [])];
+  const tunes = [...(listings.tunes ?? [])];
+  const systemById = new Map(systems.map((row) => [row.id, row]));
+  const tuneById = new Map(tunes.map((row) => [row.id, row]));
+  for (const id of mergeIds(systems, tunes)) {
+    add(root, systemElement(doc, systemById.get(id), tuneById.get(id)));
+  }
+}
+
+export type FtlListings = {
+  weapons?: readonly WeaponBlueprint[];
+  augments?: readonly AugmentDef[];
+  drones?: readonly DroneDef[];
+  systems?: readonly SystemDef[];
+  tunes?: readonly TuneDef[];
+};
+
+function shotGapFind(doc: XmlDocument, weapon: { id: string; gap: number }): XmlElement {
+  const find = element(doc, "mod:findName", { type: "weaponBlueprint", name: weapon.id });
+  add(find, leaf(doc, "mod-overwrite:shotGap", weapon.gap));
+  return find;
 }
 
 /** Finds each sector that has notes and appends those lines. */
@@ -786,7 +822,7 @@ function augmentElement(doc: XmlDocument, augment: AugmentDef): XmlElement {
   return node;
 }
 
-function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint): XmlElement {
+function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true): XmlElement {
   const node = element(doc, "weaponBlueprint", { name: weapon.id });
   add(node, leaf(doc, "type", TYPE[weapon.kind]));
   add(node, leaf(doc, "title", weapon.name));
@@ -799,7 +835,7 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint): XmlElement {
   add(node, leaf(doc, "fireChance", tenths(weapon.fire)));
   add(node, leaf(doc, "breachChance", tenths(weapon.breach)));
   add(node, leaf(doc, "ion", weapon.ion));
-  add(node, leaf(doc, "shotGap", weapon.gap));
+  if (shotGap) add(node, leaf(doc, "shotGap", weapon.gap));
   if (weapon.ammo) add(node, leaf(doc, "missiles", 1));
   if (weapon.lengthTiles != null) add(node, leaf(doc, "length", scaled(weapon.lengthTiles, 45)));
   if (weapon.speed != null) add(node, leaf(doc, "speed", weapon.speed));

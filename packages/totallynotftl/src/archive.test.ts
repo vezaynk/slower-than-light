@@ -7,7 +7,14 @@ import { WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat, extractFtlZip, readPkg } from "@stl/ftldat";
 import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
-import { parsePack, pictureForRooms, readAnimations, readBitmapFont, readSounds } from "@stl/pack";
+import {
+  packFromFtl,
+  parsePack,
+  pictureForRooms,
+  readAnimations,
+  readBitmapFont,
+  readSounds,
+} from "@stl/pack";
 import {
   standInDat,
   standInImages,
@@ -47,7 +54,13 @@ describe("totallynotftl.dat", () => {
     assert.equal(xml.includes("<maxHealth"), false);
     assert.equal(xml.includes("<customStore"), false);
     assert.equal(xml.includes("<rewards"), false);
-    assert.equal(xml.includes("<weaponBlueprint"), true);
+    assert.equal(xml.includes("<event "), true);
+    assert.equal(xml.includes("<weaponBlueprint"), false);
+    assert.equal(xml.includes("<augBlueprint"), false);
+    assert.equal(xml.includes("<droneBlueprint"), false);
+    assert.equal(xml.includes("<systemBlueprint"), false);
+    assert.equal(xml.includes("<crew>"), false);
+    assert.equal(xml.includes("<crew/>"), false);
     const built = await standInDat();
     const extracted = await extractFtlDat(built);
     const pictures = hullPictureFiles();
@@ -171,8 +184,14 @@ describe("totallynotftl.dat", () => {
     assert.equal(parsed.facts, undefined);
     assert.equal(parsed.stores?.length, 0);
     assert.equal(parsed.rewards, undefined);
-    assert.equal(parsed.weapons?.find((row) => row.id === "LASER_BURST_3")?.name, "Burst Laser II");
+    assert.equal(parsed.weapons?.length, 0);
     assert.deepEqual(parsed.crew, []);
+    const shipsXml = standInShipsXml();
+    const ships = packFromFtl([{ path: "data/blueprints.xml", xml: shipsXml }]);
+    assert.equal(ships.weapons?.find((row) => row.id === "LASER_BURST_3")?.name, "Burst Laser II");
+    assert.equal(ships.weapons?.find((row) => row.id === "LASER_BURST_3")?.gap, 0);
+    assert.equal(shipsXml.includes("<weaponBlueprint"), true);
+    assert.equal(shipsXml.includes("<shotGap"), false);
     assert.equal(xml.includes("<race"), false);
     assert.match(standInShipsXml(), /<crewBlueprint name="human">\s*<title>Human<\/title>/);
     const golden = readFileSync(new URL("../totallynotftl.dat", import.meta.url));

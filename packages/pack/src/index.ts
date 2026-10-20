@@ -1,4 +1,11 @@
-export { emitGapDocument, emitNoteAppend, emitPack, emitStatAppend } from "./emit.ts";
+export {
+  emitBlueprintAppend,
+  emitGapDocument,
+  emitNoteAppend,
+  emitPack,
+  emitStatAppend,
+} from "./emit.ts";
+export type { FtlListings } from "./emit.ts";
 export { emitFtlSectors, emitFtlShips } from "./ftl-emit.ts";
 export type { EmitSlice } from "./emit.ts";
 export {

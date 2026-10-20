@@ -13,10 +13,13 @@ import {
   allSystems,
   allTunes,
   allWeapons,
+  allAchievements,
   emitBlueprintAppend,
   emitFtlSectors,
   emitFtlShips,
   emitGapDocument,
+  emitConditionAppend,
+  emitFtlAchievements,
   emitNoteAppend,
   emitPack,
   rewardTable,
@@ -41,7 +44,13 @@ export function campaignPack(): ContentPack {
     events: allEvents(),
     lists: allFillerLists(),
     empties: allEmptyBeacons(),
+    achievements: allAchievements(),
   };
+}
+
+/** The catalog's achievements, written as ftl.dat's data/achievements.xml writes them. Conditions are the gap's. */
+export function standInAchievementsXml(): string {
+  return emitFtlAchievements(campaignPack().achievements ?? []);
 }
 
 /**
@@ -115,6 +124,7 @@ export function gapModFiles(): { path: string; xml: string }[] {
     { path: "data/blueprints.xml.append", xml: blueprints },
     { path: "data/dlcBlueprints.xml.append", xml: blueprints },
     { path: "data/sector_data.xml.append", xml: emitNoteAppend(gap.sectors ?? []) },
+    { path: "data/achievements.xml.append", xml: emitConditionAppend(pack.achievements ?? []) },
     { path: "data/gap.xml", xml: emitGapDocument(gap) },
   ];
 }

@@ -17,7 +17,7 @@
  */
 import { HULLS, type HullSpec } from "./hulls.ts";
 import type { Difficulty, Game } from "./types.ts";
-import { ACHIEVEMENTS } from "./wiki/achievements.ts";
+import { allAchievements } from "@stl/pack";
 
 export const UNLOCKS_KEY = "stl:unlocks";
 
@@ -151,9 +151,16 @@ export function ruleFor(hullId: string): UnlockRule {
   return { hull: hullId, quote: C_QUOTE, inferred };
 }
 
-/** Ship achievement ids for one cruiser ("Ship Achievements"). */
+/**
+ * Ship achievement ids for one cruiser ("Ship Achievements"): the archive's achievements whose `<ship>` is that cruiser's
+ * ship blueprint (its Layout A id, which data/achievements.xml names for every layout).
+ */
 export function shipAchievements(cruiser: string): string[] {
-  return ACHIEVEMENTS.filter((row) => row.ship === cruiser).map((row) => row.id);
+  const ship = HULLS.find((hull) => hull.cruiser === cruiser && hull.layout === "A")?.id;
+  if (!ship) return [];
+  return allAchievements()
+    .filter((row) => row.ship === ship)
+    .map((row) => row.id);
 }
 
 export function emptyUnlocks(): UnlockState {

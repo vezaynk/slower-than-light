@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_SECTOR_5"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="5"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_SECTOR_8"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="8"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_WIN_EASY"/>
+    <mod-overwrite:condition>
+      <value name="victory.easy"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_WIN_NORMAL"/>
+    <mod-overwrite:condition>
+      <value name="victory.normal"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_UNLOCK_ALL"/>
+    <mod-overwrite:condition>
+      <value name="gauge.typeAUnlocked"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_SCRAP"/>
+    <mod-overwrite:condition>
+      <value name="lifetime.scrap" min="10000"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_SHIPS"/>
+    <mod-overwrite:condition>
+      <value name="lifetime.kills" min="1000"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_PACIFIST"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="5"/>
+      <not>
+        <any>
+          <value name="tally.shot"/>
+          <value name="tally.offensiveDrone"/>
+          <value name="tally.teleported"/>
+        </any>
+      </not>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_NO_UPGRADES"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="5"/>
+      <not>
+        <value name="tally.upgraded"/>
+      </not>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_NO_REPAIR"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="5"/>
+      <not>
+        <value name="tally.storeRepair"/>
+      </not>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_NO_MISSILES"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="8"/>
+      <not>
+        <value name="tally.missileOrBomb"/>
+      </not>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_NO_DRONES"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="8"/>
+      <not>
+        <value name="tally.usedDrone"/>
+      </not>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_NO_BUYING"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="8"/>
+      <not>
+        <value name="tally.storeBuy"/>
+      </not>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_NO_DEATH"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="8"/>
+      <not>
+        <value name="tally.lostCrew"/>
+      </not>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_BURNING"/>
+    <mod-overwrite:condition>
+      <value name="tally.burnedAll"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_BAD_DODGING"/>
+    <mod-overwrite:condition>
+      <value name="tally.evadeBest" min="5"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_BOARDING_DRONE"/>
+    <mod-overwrite:condition>
+      <value name="tally.boardBest" min="4"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_ONE_VOLLEY"/>
+    <mod-overwrite:condition>
+      <value name="tally.sawIt"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_INVADE_SHIP"/>
+    <mod-overwrite:condition>
+      <value name="tally.allAboard"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_SLICE_DICE"/>
+    <mod-overwrite:condition>
+      <value name="tally.sliced"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_SUFFOCATE"/>
+    <mod-overwrite:condition>
+      <value name="tally.asphyxia"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_UNITED_FEDERATION"/>
+    <mod-overwrite:condition>
+      <value name="gauge.crewRaces" min="6"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_FULL_ARSENAL"/>
+    <mod-overwrite:condition>
+      <value name="gauge.systemsInstalled" min="11"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_TOUGH_SHIP"/>
+    <mod-overwrite:condition>
+      <value name="tally.fromOne"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_STEALTH_DESTROY"/>
+    <mod-overwrite:condition>
+      <value name="tally.bird"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_STEALTH_AVOID"/>
+    <mod-overwrite:condition>
+      <value name="tally.phaseShift"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_STEALTH_TACTICAL"/>
+    <mod-overwrite:condition>
+      <value name="tally.reachedClean"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_MANTIS_CREW_DEAD"/>
+    <mod-overwrite:condition>
+      <value name="tally.crewKillShips" min="20"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_MANTIS_SLAUGHTER"/>
+    <mod-overwrite:condition>
+      <value name="tally.avast"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_MANTIS_SURVIVOR"/>
+    <mod-overwrite:condition>
+      <value name="tally.lastStand"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_ROBOTIC"/>
+    <mod-overwrite:condition>
+      <value name="tally.dronePeak" min="3"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_ONLY_DRONES"/>
+    <mod-overwrite:condition>
+      <value name="tally.droneOnly"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_IONED"/>
+    <mod-overwrite:condition>
+      <value name="tally.ionFour"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_FED_PATIENCE"/>
+    <mod-overwrite:condition>
+      <value name="tally.artilleryKill"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_FED_UPGRADE"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="5"/>
+      <value name="gauge.weaponsUpgrades" max="0"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_SLUG_NEBULA"/>
+    <mod-overwrite:condition>
+      <value name="sector" max="7"/>
+      <value name="tally.nebulaJumps" min="30"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_SLUG_BIO"/>
+    <mod-overwrite:condition>
+      <value name="tally.antiBio" min="3"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_ROCK_FIRE"/>
+    <mod-overwrite:condition>
+      <value name="tally.warmKill"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_ROCK_MISSILES"/>
+    <mod-overwrite:condition>
+      <value name="tally.missileDefense"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_ROCK_CRYSTAL"/>
+    <mod-overwrite:condition>
+      <value name="sectorId.CRYSTAL_HOME"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_ENERGY_SHIELDS"/>
+    <mod-overwrite:condition>
+      <value name="tally.shieldsHeld"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_ENERGY_POWER"/>
+    <mod-overwrite:condition>
+      <value name="gauge.poweredBars" min="29"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_ENERGY_MANPOWER"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="5"/>
+      <value name="gauge.reactorUpgrades" max="0"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_CRYSTAL_SHARD"/>
+    <mod-overwrite:condition>
+      <value name="tally.vengeance"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_CRYSTAL_LOCKDOWN"/>
+    <mod-overwrite:condition>
+      <value name="tally.trapped"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_CRYSTAL_CLASH"/>
+    <mod-overwrite:condition>
+      <value name="tally.rockKills" min="10"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_LANIUS_ADVANCED"/>
+    <mod-overwrite:condition>
+      <value name="tally.mastery"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_LANIUS_SCRAP"/>
+    <mod-overwrite:condition>
+      <value name="scrap" min="600"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_LANIUS_OXYGEN"/>
+    <mod-overwrite:condition>
+      <value name="sector" min="8"/>
+      <value name="jumps" min="1"/>
+      <not>
+        <value name="tally.o2Broke"/>
+      </not>
+    </mod-overwrite:condition>
+  </mod:findLike>
+</FTL>

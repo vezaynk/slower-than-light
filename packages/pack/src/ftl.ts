@@ -1,5 +1,7 @@
 import { Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
 import type {
+  AchievementCondition,
+  AchievementDef,
   ArchiveBoarders,
   ArchiveGrant,
   ArchiveReward,
@@ -110,6 +112,7 @@ export function packFromFtl(
   const lists = new Catalog<FillerListDef>();
   const blueprints = new Catalog<BlueprintListDef>();
   const stores = new Catalog<StoreDef>();
+  const achievements = new Catalog<AchievementDef>();
   const factions = new Catalog<FactionSurrender>();
   const empties = new Catalog<EmptyBeaconDef>();
   let rewards: RewardTable | undefined;
@@ -161,7 +164,10 @@ export function packFromFtl(
     }
     const root = doc.documentElement;
     for (const node of elements(root ?? undefined)) {
-      if (node.tagName === "customStore") {
+      if (node.tagName === "achievement") {
+        const row = readAchievement(node, strings);
+        if (row) achievements.put(row);
+      } else if (node.tagName === "customStore") {
         const row = readStore(node);
         if (row) stores.put(row);
       } else if (node.tagName === "emptyBeacon") {
@@ -205,6 +211,7 @@ export function packFromFtl(
   if (lists.rows.length > 0) pack.lists = lists.rows;
   if (blueprints.rows.length > 0) pack.blueprints = blueprints.rows;
   if (stores.rows.length > 0) pack.stores = stores.rows;
+  if (achievements.rows.length > 0) pack.achievements = achievements.rows;
   if (rewards) pack.rewards = rewards;
   if (factions.rows.length > 0) pack.factions = factions.rows;
   if (empties.rows.length > 0) pack.empties = empties.rows;
@@ -751,6 +758,80 @@ function readSectorTypes(docs: readonly XmlDocument[]): Map<string, string> {
     }
   }
   return colours;
+}
+
+/**
+ * `<achievement id>` from data/achievements.xml: name and description (written text or a string id), the `<ship>` it
+ * belongs to, `<multiDifficulty>`, `<img>`, and the gap mod's `<condition>`.
+ */
+function readAchievement(
+  node: XmlElement,
+  strings: Map<string, string>,
+): AchievementDef | undefined {
+  const id = attr(node, "id")?.trim();
+  if (!id) return undefined;
+  const row: AchievementDef = {
+    id,
+    name: elementString(node, "name", strings) ?? id,
+    desc: elementString(node, "desc", strings) ?? "",
+  };
+  const ship = textOf(node, "ship");
+  if (ship) row.ship = ship;
+  const multi = textOf(node, "multiDifficulty");
+  if (multi === "1" || multi === "true") row.multiDifficulty = true;
+  const img = textOf(node, "img");
+  if (img) row.img = img;
+  const condition = child(node, "condition");
+  if (condition) {
+    const read = readConditionList(condition, id);
+    if (read.length > 0) row.condition = read.length === 1 ? read[0]! : { all: read };
+  }
+  return row;
+}
+
+/** The children of `<condition>`, `<all>`, or `<any>`. An unknown tag is warned about and dropped. */
+function readConditionList(node: XmlElement, id: string): AchievementCondition[] {
+  const rows: AchievementCondition[] = [];
+  for (const item of elements(node)) {
+    const row = readCondition(item, id);
+    if (row) rows.push(row);
+  }
+  return rows;
+}
+
+function readCondition(node: XmlElement, id: string): AchievementCondition | undefined {
+  if (node.tagName === "all") return { all: readConditionList(node, id) };
+  if (node.tagName === "any") return { any: readConditionList(node, id) };
+  if (node.tagName === "not") {
+    const inner = readConditionList(node, id);
+    if (inner.length === 0) {
+      warnPack(`achievement ${id}: an empty <not> is skipped.`);
+      return undefined;
+    }
+    return { not: inner.length === 1 ? inner[0]! : { all: inner } };
+  }
+  if (node.tagName === "value") {
+    const name = attr(node, "name")?.trim();
+    if (!name) {
+      warnPack(`achievement ${id}: a <value> has no name; it is skipped.`);
+      return undefined;
+    }
+    const row: AchievementCondition = { value: name };
+    const min = numAttr(node, "min");
+    if (min != null) row.min = min;
+    const max = numAttr(node, "max");
+    if (max != null) row.max = max;
+    return row;
+  }
+  warnPack(`achievement ${id}: <${node.tagName}> is not a condition tag; it is skipped.`);
+  return undefined;
+}
+
+function numAttr(node: XmlElement, name: string): number | undefined {
+  const raw = node.getAttribute(name);
+  if (raw == null || raw.trim() === "") return undefined;
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : undefined;
 }
 
 function readFtlSector(node: XmlElement, strings: Map<string, string>): SectorDef | undefined {

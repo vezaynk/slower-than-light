@@ -11,7 +11,7 @@
  */
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import "@/game/pack/base";
-import { hullDef, shipPreviewPath, startingFit, weaponDef } from "@stl/pack";
+import { achievementDef, hullDef, shipPreviewPath, startingFit, weaponDef } from "@stl/pack";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import {
   NAME_MAX,
@@ -31,7 +31,6 @@ import type { IconName } from "@/game/icons";
 import { useGame } from "@/game/store";
 import type { Difficulty as RunDifficulty } from "@/game/types";
 import { CRUISER_PAGES } from "@/game/wiki/layout-pages";
-import { ACHIEVEMENTS } from "@/game/wiki/achievements";
 import { earnedIds } from "@/game/wiki/achievement-track";
 import { getUnlocks, resetUnlocks, subscribeUnlocks, unlockAll } from "@/game/unlock-store";
 import { emptyUnlocks, isUnlockedIn, ruleFor, shipAchievements } from "@/game/unlocks";
@@ -105,7 +104,10 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
     return archiveImage(shipPreviewPath(img, true)) ?? archiveImage(shipPreviewPath(img, false));
   };
   const earned = new Set(unlocks === SERVER_UNLOCKS ? [] : earnedIds());
-  const shipAch = shipAchievements(cruiser).map((id) => ACHIEVEMENTS.find((row) => row.id === id)!);
+  const shipAch = shipAchievements(cruiser).flatMap((id) => {
+    const row = achievementDef(id);
+    return row ? [row] : [];
+  });
   const allOpen = CRUISER_PAGES.every((p) => p.layouts.every((l) => isUnlockedIn(unlocks, l.id)));
 
   const seats = seatsOf(layout.id);
@@ -230,7 +232,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
               <span
                 key={row.id}
                 className={`hangar-ach${earned.has(row.id) ? " is-earned" : ""}`}
-                title={`${row.name}: ${row.requirement}${earned.has(row.id) ? " (earned)" : ""}`}
+                title={`${row.name}: ${row.desc}${earned.has(row.id) ? " (earned)" : ""}`}
               >
                 <PixelIcon name="lock" size={24} />
               </span>

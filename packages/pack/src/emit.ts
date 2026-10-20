@@ -5,6 +5,8 @@ import {
   type Element as XmlElement,
 } from "@xmldom/xmldom";
 import type {
+  AchievementCondition,
+  AchievementDef,
   AugmentDef,
   ChoiceGift,
   ChoiceReq,
@@ -234,6 +236,45 @@ function shotGapFind(doc: XmlDocument, weapon: { id: string; gap: number }): Xml
   const find = element(doc, "mod:findName", { type: "weaponBlueprint", name: weapon.id });
   add(find, leaf(doc, "mod-overwrite:shotGap", weapon.gap));
   return find;
+}
+
+/**
+ * Each achievement's condition, overwritten onto data/achievements.xml. ftl.dat keys an achievement by its `id`
+ * attribute, so the find is a findLike on that attribute. An achievement with no condition is left out.
+ */
+export function emitConditionAppend(rows: readonly AchievementDef[]): string {
+  const doc = implementation.createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("pack document has no root");
+  doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
+  for (const row of rows) {
+    if (!row.condition) continue;
+    const find = element(doc, "mod:findLike", { type: "achievement" });
+    add(find, element(doc, "mod:selector", { id: row.id }));
+    const condition = element(doc, "mod-overwrite:condition", {});
+    const top = "all" in row.condition ? row.condition.all : [row.condition];
+    for (const part of top) add(condition, conditionElement(doc, part));
+    add(find, condition);
+    add(root, find);
+  }
+  return prettyXml(serializer.serializeToString(doc));
+}
+
+function conditionElement(doc: XmlDocument, row: AchievementCondition): XmlElement {
+  if ("all" in row || "any" in row) {
+    const node = element(doc, "all" in row ? "all" : "any", {});
+    for (const part of "all" in row ? row.all : row.any) add(node, conditionElement(doc, part));
+    return node;
+  }
+  if ("not" in row) {
+    const node = element(doc, "not", {});
+    add(node, conditionElement(doc, row.not));
+    return node;
+  }
+  const attrs: Record<string, string> = { name: row.value };
+  if (row.min != null) attrs.min = String(row.min);
+  if (row.max != null) attrs.max = String(row.max);
+  return element(doc, "value", attrs);
 }
 
 /** Finds each sector that has notes and appends those lines. */

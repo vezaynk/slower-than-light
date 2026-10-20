@@ -313,6 +313,8 @@ export type HullDef = {
   droneSlots?: number;
   minSector?: number;
   maxSector?: number;
+  /** `<boardingAI>`. Sabotage or invasion. Unset when the tag is absent or not one of those. */
+  boardingAI?: "sabotage" | "invasion";
 };
 
 /** One beacon quota. `id` is an event or an event list. */

@@ -660,6 +660,12 @@ function readFtlHull(
   if (minSector != null) hull.minSector = minSector;
   const maxSector = numOf(node, "maxSector");
   if (maxSector != null) hull.maxSector = maxSector;
+  const boardingAI = textOf(node, "boardingAI");
+  if (boardingAI === "sabotage" || boardingAI === "invasion") hull.boardingAI = boardingAI;
+  else if (boardingAI)
+    warnPack(
+      `shipBlueprint ${id}: boardingAI "${boardingAI}" is not sabotage or invasion; it is left unset.`,
+    );
   const grid = grids.get(layout);
   if (grid) hull.grid = cloneGrid(grid);
   return hull;

@@ -290,7 +290,9 @@ import {
   questEvent,
 } from "./wiki/quests.ts";
 import {
+  applyCrewMix,
   fightHull,
+  overrideWeaponIds,
   pickElite,
   pickEnemy,
   requestFor,
@@ -6342,9 +6344,16 @@ function makeEnemy(
     difficulty: g.difficulty,
   };
   const r = () => rand(g);
+  const shipEvent = shipEventDef(tier);
   const hull = fightHull(tier, autoBlueprint, r);
   if (hull) {
-    const built = shipFromSpec(g, specFromHull(hull, ctx, r), undefined);
+    const spec = specFromHull(hull, ctx, r);
+    // The crew block replaces each blueprint seat's race. The weapon override replaces the blueprint guns.
+    if (shipEvent?.crew?.length) applyCrewMix(spec, shipEvent.crew, r, tier);
+    if (shipEvent?.weaponOverride) {
+      spec.weapons = overrideWeaponIds(shipEvent.weaponOverride, r, tier);
+    }
+    const built = shipFromSpec(g, spec, undefined);
     citedEnemy(g, tier, built.ship, built.crew);
     return built;
   }
@@ -6353,14 +6362,19 @@ function makeEnemy(
       ? { cls: pickElite(r), pirate: false }
       : pickEnemy(ctx, r, { ...requestFor(tier), event });
   const spec = rollEnemy(picked.cls, picked.pirate, ctx, r);
+  if (shipEvent?.crew?.length) applyCrewMix(spec, shipEvent.crew, r, tier);
+  if (shipEvent?.weaponOverride) {
+    spec.weapons = overrideWeaponIds(shipEvent.weaponOverride, r, tier);
+  }
   const built = shipFromSpec(g, spec, picked.cls.faction);
   citedEnemy(g, tier, built.ship, built.crew);
   // Slug hacker (oxygen) and Slug hacker (doors): "Note: The enemy ship will have at least one Fire Beam or Fire Bomb."
   // The page prints no odds between the two guns. INFERRED: equal, one rand(g). Under 0.5 is firebeam, otherwise cask.
   // INFERRED: replace the first already-fitted gun's defId. A ship with no guns gets one via enemyGun.
-  // An explicit hull keeps the guns its blueprint named.
+  // An explicit hull keeps the guns its blueprint named. A weapon override already chose the guns.
   if (
     (event === "slug-hacker-oxygen" || event === "slug-hacker-doors") &&
+    !shipEvent?.weaponOverride &&
     !built.ship.weapons.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE")
   ) {
     const defId = rand(g) < 0.5 ? "BEAM_FIRE" : "BOMB_FIRE";

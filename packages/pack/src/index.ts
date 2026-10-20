@@ -129,6 +129,8 @@ export type {
   EventChoice,
   EventDef,
   ShipEventDef,
+  ShipCrewRow,
+  ShipWeaponOverride,
   ShipEventEnding,
   ShipEventChance,
   ShipEventEscape,

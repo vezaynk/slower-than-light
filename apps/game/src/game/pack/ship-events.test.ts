@@ -4,6 +4,7 @@ import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import { hullDef, loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 import type { HullDef } from "@stl/pack";
 import { openArchiveSurrender } from "../archive-pay.ts";
+import { mixCrewRaces } from "../enemy-gen.ts";
 import { choose, commitJump, createGame, rand, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { overtaken } from "../wiki/sector-map.ts";
@@ -65,6 +66,19 @@ const XML = `<?xml version="1.0" encoding="UTF-8"?>
       <autoReward level="LOW">scrap_only</autoReward>
     </event>
   </eventList>
+  <blueprintList name="SHIPS_JELLY">
+    <name>JELLY_HULL</name>
+  </blueprintList>
+  <ship name="JELLY_STATUS" auto_blueprint="SHIPS_JELLY">
+    <crew>
+      <crewMember type="mantis" prop="0.8"/>
+      <crewMember class="engi" prop="0.2"/>
+    </crew>
+    <weaponOverride count="1">
+      <name>BEAM_FIRE</name>
+      <name>BOMB_FIRE</name>
+    </weaponOverride>
+  </ship>
   <event name="PIRATE_FIGHT">
     <text>A pirate.</text>
     <ship load="PIRATE" hostile="true"/>
@@ -101,11 +115,19 @@ afterEach(() => resetPackForTests());
 
 beforeEach(() => {
   const pack = packFromFtl([{ path: "data/events_ships.xml", xml: XML }]);
-  pack.hulls = [emberHull("PIRATE_HULL", "Pirate Hull", "LASER_BURST_3")];
+  pack.hulls = [
+    emberHull("PIRATE_HULL", "Pirate Hull", "LASER_BURST_3"),
+    emberHull("JELLY_HULL", "Jelly Hull", "LASER_BURST_3", [{ amount: 5, class: "human" }]),
+  ];
   loadPack(pack, "append");
 });
 
-function emberHull(id: string, name: string, weapon: string): HullDef {
+function emberHull(
+  id: string,
+  name: string,
+  weapon: string,
+  crewCounts: HullDef["crewCounts"] = [{ amount: 2, class: "mantis" }],
+): HullDef {
   const base = hullDef(enemyBlueprintId("rebel-fighter"));
   assert.ok(base);
   return {
@@ -115,7 +137,7 @@ function emberHull(id: string, name: string, weapon: string): HullDef {
     weapons: [weapon],
     weaponLoad: undefined,
     weaponCount: 1,
-    crewCounts: [{ amount: 2, class: "mantis" }],
+    crewCounts,
     augments: [],
   };
 }
@@ -174,6 +196,49 @@ describe("ship events", () => {
     const campaign = quiet("pirate", 5);
     assert.equal(campaign.fightShip, null);
     assert.notEqual(campaign.enemySurrender?.hullPoints, true);
+  });
+
+  it("rolls the ship event crew weights across the blueprint seats", () => {
+    const g = createGame(21);
+    startCombat(g, "JELLY_STATUS");
+    const crew = g.crew.filter((member) => member.side === "enemy");
+    assert.equal(crew.length, 5);
+    for (const member of crew) {
+      assert.ok(member.name === "Mantis" || member.name === "Engi");
+      assert.ok(member.kin === "mantis" || member.kin === "engi");
+    }
+  });
+
+  it("a zero roll of the crew weights picks the first race", () => {
+    assert.deepEqual(
+      mixCrewRaces(
+        [
+          { race: "mantis", prop: 0.8 },
+          { race: "engi", prop: 0.2 },
+        ],
+        5,
+        () => 0,
+        "JELLY_STATUS",
+      ),
+      ["Mantis", "Mantis", "Mantis", "Mantis", "Mantis"],
+    );
+  });
+
+  it("mounts one weapon from the override and leaves the blueprint guns off", () => {
+    const g = createGame(22);
+    startCombat(g, "JELLY_STATUS");
+    const guns = g.enemy?.weapons.map((weapon) => weapon.defId) ?? [];
+    assert.equal(guns.length, 1);
+    assert.ok(guns[0] === "BEAM_FIRE" || guns[0] === "BOMB_FIRE");
+  });
+
+  it("a ship event with no weapon override keeps the blueprint loadout", () => {
+    const g = createGame(23);
+    startCombat(g, "PIRATE");
+    assert.deepEqual(
+      g.enemy?.weapons.map((weapon) => weapon.defId),
+      ["LASER_BURST_3"],
+    );
   });
 
   it("draws a hull-point surrender threshold and opens on the hull, not a percent", () => {

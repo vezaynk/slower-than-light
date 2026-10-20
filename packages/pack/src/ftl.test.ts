@@ -1058,6 +1058,8 @@ describe("packFromFtl", () => {
       ]);
       const pirate = pack.shipEvents?.find((row) => row.id === "PIRATE");
       assert.equal(pirate?.autoBlueprint, "SHIPS_PIRATE");
+      assert.equal(pirate?.crew, undefined);
+      assert.equal(pirate?.weaponOverride, undefined);
       assert.equal(pirate?.surrender?.chance, 0.5);
       assert.equal(pirate?.surrender?.min, 3);
       assert.equal(pirate?.surrender?.max, 4);
@@ -1121,6 +1123,75 @@ describe("packFromFtl", () => {
         resetPackForTests();
       }
       assert.equal(shipEventDef("PIRATE"), undefined);
+    } finally {
+      restore();
+    }
+  });
+
+  it("keeps the first crew block and the first weapon override", () => {
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const pack = packFromFtl([
+        {
+          path: "data/events_ships.xml",
+          xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <ship name="JELLY_STATUS">
+    <crew>
+      <crewMember type="mantis" prop="0.8"/>
+      <crewMember class="engi" prop="0.2"/>
+    </crew>
+    <crew>
+      <crewMember type="human" prop="1"/>
+    </crew>
+    <weaponOverride count="1">
+      <name>BEAM_FIRE</name>
+      <name>BOMB_FIRE</name>
+    </weaponOverride>
+    <weaponOverride count="3">
+      <name>LASER_BURST_3</name>
+    </weaponOverride>
+  </ship>
+  <ship name="JELLY_BAD">
+    <crew>
+      <crewMember prop="1"/>
+    </crew>
+    <weaponOverride count="nope">
+      <name>BEAM_FIRE</name>
+    </weaponOverride>
+  </ship>
+</FTL>`,
+        },
+      ]);
+      const jelly = pack.shipEvents?.find((row) => row.id === "JELLY_STATUS");
+      assert.deepEqual(jelly?.crew, [
+        { race: "mantis", prop: 0.8 },
+        { race: "engi", prop: 0.2 },
+      ]);
+      assert.deepEqual(jelly?.weaponOverride, { count: 1, names: ["BEAM_FIRE", "BOMB_FIRE"] });
+      const bad = pack.shipEvents?.find((row) => row.id === "JELLY_BAD");
+      assert.equal(bad?.crew, undefined);
+      assert.equal(bad?.weaponOverride, undefined);
+      assert.deepEqual(warnings, [
+        "A <crewMember> needs a type and a prop; it is skipped.",
+        "A <weaponOverride> count is not a whole number above 0; it is skipped.",
+      ]);
+      loadPack({ shipEvents: pack.shipEvents }, "append");
+      try {
+        const stored = shipEventDef("JELLY_STATUS");
+        assert.equal(stored?.crew?.[0]?.race, "mantis");
+        stored!.crew![0]!.race = "human";
+        stored!.weaponOverride!.names.push("LASER_BURST_3");
+        loadPack({ shipEvents: pack.shipEvents }, "append");
+        assert.equal(shipEventDef("JELLY_STATUS")?.crew?.[0]?.race, "mantis");
+        assert.deepEqual(shipEventDef("JELLY_STATUS")?.weaponOverride?.names, [
+          "BEAM_FIRE",
+          "BOMB_FIRE",
+        ]);
+      } finally {
+        resetPackForTests();
+      }
     } finally {
       restore();
     }

@@ -17,8 +17,13 @@ export type EscapePlan = {
   seconds: number;
   /** Hull-triggered only: percent chance of a run, rolled once when hull first drops to `threshold`. */
   chance: number;
-  /** Hull-triggered only: percent of max hull. */
+  /** Hull-triggered only: percent of max hull. Hull points when `hullPoints` is set. */
   threshold: number;
+  /**
+   * Archive ship event. `threshold` is hull points and `chance` is a probability.
+   * Omitted chance on the definition is stored here as 1. Absent on the wiki percent path.
+   */
+  hullPoints?: boolean;
   /** The one roll has happened. */
   rolled: boolean;
   /** The ship is charging its escape. */

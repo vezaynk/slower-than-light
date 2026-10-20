@@ -683,6 +683,8 @@ export type SectorNode = {
   /** ftl.dat sector id (sector_data.xml's sectorDescription name). */
   sector: string;
   name: string;
+  /** Short chart label, when the sector stored one. The HUD keeps `name`. */
+  short?: string;
   group: "civilian" | "hostile" | "nebula" | "last-stand";
   col: number;
   row: number;
@@ -1039,6 +1041,8 @@ export type Game = {
   questsNext?: string[];
   /** @agent:quests. Slug of the event page that started the current fight (startCombat's `event`), for page win rewards. */
   fightEvent?: string | null;
+  /** Root `<ship name>` id when this fight's tier is a ship event. Cleared when the tier is not one. */
+  fightShip?: string | null;
   /**
    * Boarders: Humans (Abandoned): faction of the last fight.
    * A hungry-human beacon after a Lanius ship gives those boarders Emergency Respirators.

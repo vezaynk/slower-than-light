@@ -10,6 +10,7 @@ import {
   openingLine,
   resetPackForTests,
   sectorDef,
+  shipEventDef,
   textList,
 } from "./registry.ts";
 
@@ -471,6 +472,38 @@ describe("packFromFtl", () => {
         "shipBlueprint ODD: a crewCount has no amount; it is skipped.",
         'shipBlueprint ODD: crewCount class "ghost" is not a crewBlueprint.',
         "shipBlueprint ODD: its droneList names drones but has no drones (parts) attribute; it carries 0 parts.",
+      ]);
+    } finally {
+      restore();
+    }
+  });
+
+  it("reads boardingAI as sabotage or invasion, and warns on anything else", () => {
+    const ship = (body: string) => [
+      {
+        path: "data/blueprints.xml",
+        xml: `<FTL><shipBlueprint name="ODD" layout="odd">${body}</shipBlueprint></FTL>`,
+      },
+    ];
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      assert.equal(
+        packFromFtl(ship(`<boardingAI>sabotage</boardingAI>`)).hulls?.[0]?.boardingAI,
+        "sabotage",
+      );
+      assert.equal(
+        packFromFtl(ship(`<boardingAI>invasion</boardingAI>`)).hulls?.[0]?.boardingAI,
+        "invasion",
+      );
+      const raid = packFromFtl(ship(`<boardingAI>raid</boardingAI>`)).hulls?.[0];
+      assert.ok(raid);
+      assert.equal(raid.boardingAI, undefined);
+      const plain = packFromFtl(ship(``)).hulls?.[0];
+      assert.ok(plain);
+      assert.equal(plain.boardingAI, undefined);
+      assert.deepEqual(warnings, [
+        `shipBlueprint ODD: boardingAI "raid" is not sabotage or invasion; it is left unset.`,
       ]);
     } finally {
       restore();
@@ -958,6 +991,131 @@ describe("packFromFtl", () => {
     assert.deepEqual(field?.choices[3]?.fx, [{ k: "fight", tier: "PIRATE" }]);
   });
 
+  it("stores a root ship event and a hostile ship that has no load", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/events_ships.xml",
+        xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <ship name="PIRATE" auto_blueprint="SHIPS_PIRATE">
+    <crew count="2"/>
+    <weaponOverride count="1"/>
+    <surrender chance="0.5" min="3" max="4">
+      <text>Hail.</text>
+      <choice>
+        <text>Take</text>
+        <event>
+          <text>Paid.</text>
+          <ship hostile="false"/>
+        </event>
+      </choice>
+    </surrender>
+    <escape min="4" max="6" timer="2000">
+      <text>Running.</text>
+    </escape>
+    <destroyed load="DESTROYED_DEFAULT"/>
+    <deadCrew>
+      <text>Crew gone.</text>
+      <status>ignored</status>
+    </deadCrew>
+    <gotaway load="GONE">
+      <text>Inline wins.</text>
+    </gotaway>
+  </ship>
+  <ship auto_blueprint="NO_NAME"/>
+  <ship name="  "/>
+  <ship name="BARE"/>
+  <ship name="PIRATE_BARE_ESCAPE">
+    <escape min="1" max="2"/>
+  </ship>
+  <event name="NOLOAD">
+    <text>No load.</text>
+    <ship hostile="true"/>
+    <choice>
+      <text>Quiet</text>
+      <event>
+        <ship hostile="false"/>
+      </event>
+    </choice>
+    <choice>
+      <text>Yell</text>
+      <event>
+        <ship hostile="true"/>
+      </event>
+    </choice>
+    <choice>
+      <text>Drop</text>
+      <event>
+        <ship/>
+      </event>
+    </choice>
+  </event>
+</FTL>`,
+      },
+    ]);
+    const pirate = pack.shipEvents?.find((row) => row.id === "PIRATE");
+    assert.equal(pirate?.autoBlueprint, "SHIPS_PIRATE");
+    assert.equal(pirate?.surrender?.chance, 0.5);
+    assert.equal(pirate?.surrender?.min, 3);
+    assert.equal(pirate?.surrender?.max, 4);
+    assert.equal(pirate?.surrender?.page?.id, "PIRATE:surrender");
+    assert.equal(pirate?.surrender?.page?.body, "Hail.");
+    assert.equal(pirate?.surrender?.page?.choices[0]?.id, "PIRATE:surrender:0");
+    assert.deepEqual(pirate?.surrender?.page?.choices[0]?.ship, { hostile: false });
+    assert.equal(pirate?.surrender?.load, undefined);
+    assert.equal(pirate?.escape?.chance, undefined);
+    assert.equal(pirate?.escape?.timer, 2000);
+    assert.equal(pirate?.escape?.min, 4);
+    assert.equal(pirate?.escape?.max, 6);
+    assert.equal(pirate?.escape?.page?.body, "Running.");
+    assert.equal(pirate?.escape?.load, undefined);
+    assert.equal(pirate?.destroyed?.load, "DESTROYED_DEFAULT");
+    assert.equal(pirate?.destroyed?.page, undefined);
+    assert.equal(pirate?.deadCrew?.page?.body, "Crew gone.");
+    assert.equal(pirate?.deadCrew?.page?.fx, undefined);
+    assert.equal(pirate?.deadCrew?.load, undefined);
+    assert.equal(pirate?.gotaway?.page?.body, "Inline wins.");
+    assert.equal(pirate?.gotaway?.load, undefined);
+    assert.deepEqual(
+      pack.shipEvents?.map((row) => row.id),
+      ["PIRATE", "BARE", "PIRATE_BARE_ESCAPE"],
+    );
+    assert.equal(pack.shipEvents?.find((row) => row.id === "BARE")?.autoBlueprint, undefined);
+    assert.equal(
+      pack.shipEvents?.find((row) => row.id === "PIRATE_BARE_ESCAPE")?.escape?.timer,
+      undefined,
+    );
+    assert.equal(
+      pack.shipEvents?.find((row) => row.id === "PIRATE_BARE_ESCAPE")?.escape?.chance,
+      undefined,
+    );
+    assert.equal(
+      pack.hulls?.find((row) => row.id === "PIRATE"),
+      undefined,
+    );
+    const noload = pack.events?.find((row) => row.id === "NOLOAD");
+    assert.deepEqual(noload?.ship, { hostile: true });
+    assert.deepEqual(noload?.choices[0]?.ship, { hostile: false });
+    assert.deepEqual(noload?.choices[0]?.fx, []);
+    assert.deepEqual(noload?.choices[1]?.ship, { hostile: true });
+    assert.deepEqual(noload?.choices[1]?.fx, []);
+    assert.equal(noload?.choices[2]?.ship, undefined);
+    assert.deepEqual(noload?.choices[2]?.fx, []);
+    loadPack({ shipEvents: pack.shipEvents }, "append");
+    try {
+      const stored = shipEventDef("PIRATE");
+      assert.equal(stored?.autoBlueprint, "SHIPS_PIRATE");
+      assert.equal(stored?.surrender?.page?.body, "Hail.");
+      stored!.surrender!.page!.body = "mutated";
+      loadPack({ shipEvents: pack.shipEvents }, "append");
+      assert.equal(shipEventDef("PIRATE")?.surrender?.page?.body, "Hail.");
+      assert.notEqual(shipEventDef("PIRATE")?.surrender?.page, pirate?.surrender?.page);
+    } finally {
+      resetPackForTests();
+    }
+    assert.equal(shipEventDef("PIRATE"), undefined);
+  });
+
   it("reads an event environment, including which ship a battery shoots", () => {
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));
@@ -1069,6 +1227,41 @@ describe("packFromFtl", () => {
     assert.equal(standard?.name, "Civil Space");
     assert.equal(standard?.short, "Home");
     assert.equal(pack.sectors?.find((row) => row.id === "ONLY_DE")?.name, "only_german");
+  });
+
+  it("keeps the civilian column title from the English string table", () => {
+    const english = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_CIVILIAN_SECTOR">Civilian Sector</text>
+  <text name="sectorname_short_ENGI_SECTOR">Engi Controlled</text>
+</FTL>`;
+    const han = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_CIVILIAN_SECTOR">平民星区</text>
+  <text name="sectorname_short_ENGI_SECTOR">被控制</text>
+</FTL>`;
+    const sectors = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <sectorDescription name="STANDARD_SPACE">
+    <nameList><name>Civilian (Starting) Sector</name></nameList>
+  </sectorDescription>
+  <sectorDescription name="ENGI_SECTOR">
+    <nameList>
+      <name id="sectorname_ENGI_SECTOR" short="sectorname_short_ENGI_SECTOR">Engi Controlled Sector</name>
+    </nameList>
+  </sectorDescription>
+</FTL>`;
+    const pack = packFromFtl([
+      { path: "data/text-zh_Hans.xml", xml: han },
+      { path: "data/text_sectorname.xml", xml: english },
+      { path: "data/sector_data.xml", xml: sectors },
+    ]);
+    const standard = pack.sectors?.find((row) => row.id === "STANDARD_SPACE");
+    const engi = pack.sectors?.find((row) => row.id === "ENGI_SECTOR");
+    assert.equal(pack.civilianSectorTitle, "Civilian Sector");
+    assert.equal(standard?.name, "Civilian (Starting) Sector");
+    assert.equal(engi?.name, "Engi Controlled Sector");
+    assert.equal(engi?.short, "Engi Controlled");
   });
 
   it("reads an offer from an ordinary document and uses the name as the flag", () => {

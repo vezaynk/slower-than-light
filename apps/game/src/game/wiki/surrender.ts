@@ -77,7 +77,7 @@ export type SurrenderOffer = {
 export type SurrenderPlan = {
   /** Percent chance of an offer, rolled once when hull first drops to `threshold`. 0 means never. */
   chance: number;
-  /** Percent of max hull. */
+  /** Percent of max hull. Hull points when `hullPoints` is set. */
   threshold: number;
   rolled: boolean;
   /** The offer is on screen, or was made and answered. */
@@ -85,6 +85,11 @@ export type SurrenderPlan = {
   /** The player said no. The fight goes on. */
   refused: boolean;
   offer: SurrenderOffer | null;
+  /**
+   * Archive ship event. `threshold` is hull points and `chance` is a probability.
+   * Omitted chance on the definition is stored here as 1. Absent on the wiki percent path.
+   */
+  hullPoints?: boolean;
   /** Slug of the event page whose scripted surrender this fight uses (SCRIPTED_SURRENDERS). */
   event?: string;
   /** A "continues" surrender was accepted: its reward is paid and the fight goes on. */
@@ -568,6 +573,18 @@ export function surrenderTick(g: Game, h: number): boolean {
     );
   }
   const plan = g.enemySurrender;
+  if (plan?.hullPoints) {
+    if (!plan.rolled && ship.hull > 0 && ship.hull <= plan.threshold) {
+      plan.rolled = true;
+      if (plan.chance >= 1 || rand(g) < plan.chance) {
+        plan.offered = true;
+        // Same hold as openOffer: an offer on screen spends a hull escape that has not started.
+        if (g.enemyEscape && !g.enemyEscape.running) g.enemyEscape.rolled = true;
+        return true;
+      }
+    }
+    return stalemateTick(g, h);
+  }
   if (plan && plan.chance > 0 && !plan.rolled && ship.hull > 0 && ratio(g) <= plan.threshold) {
     // Enemy Ships: "it's often just a chance". One roll, the first time hull drops that low.
     plan.rolled = true;

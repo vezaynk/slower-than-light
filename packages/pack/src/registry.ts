@@ -28,6 +28,10 @@ import type {
   RewardTable,
   RollEntry,
   SectorDef,
+  ShipEventChance,
+  ShipEventDef,
+  ShipEventEnding,
+  ShipEventEscape,
   StoreDef,
   StoreLine,
   SurrenderOfferDef,
@@ -48,6 +52,7 @@ const sectors = new Map<string, SectorDef>();
 const stores = new Map<string, StoreDef>();
 const tunes = new Map<string, TuneDef>();
 const events = new Map<string, EventDef>();
+const shipEvents = new Map<string, ShipEventDef>();
 const lists = new Map<string, FillerListDef>();
 const blueprints = new Map<string, BlueprintListDef>();
 const textLists = new Map<string, TextListDef>();
@@ -56,6 +61,8 @@ const achievements = new Map<string, AchievementDef>();
 const factions = new Map<string, FactionSurrender>();
 let reward: RewardTable | undefined;
 let baseReward: RewardTable | undefined;
+let civilianSectorTitleValue: string | undefined;
+let baseCivilianSectorTitle: string | undefined;
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
 let baseAugments: AugmentDef[] = [];
@@ -66,6 +73,7 @@ let baseSectors: SectorDef[] = [];
 let baseStores: StoreDef[] = [];
 let baseTunes: TuneDef[] = [];
 let baseEvents: EventDef[] = [];
+let baseShipEvents: ShipEventDef[] = [];
 let baseLists: FillerListDef[] = [];
 let baseBlueprints: BlueprintListDef[] = [];
 let baseTextLists: TextListDef[] = [];
@@ -366,6 +374,36 @@ function copyEvent(row: EventDef): EventDef {
   return copy;
 }
 
+function copyEnding(row: ShipEventEnding): ShipEventEnding {
+  const copy: ShipEventEnding = {};
+  if (row.page) copy.page = copyEvent(row.page);
+  if (row.load) copy.load = row.load;
+  return copy;
+}
+
+function copyChance(row: ShipEventChance): ShipEventChance {
+  const copy: ShipEventChance = { ...copyEnding(row), min: row.min, max: row.max };
+  if (row.chance != null) copy.chance = row.chance;
+  return copy;
+}
+
+function copyShipEscape(row: ShipEventEscape): ShipEventEscape {
+  const copy: ShipEventEscape = { ...copyChance(row) };
+  if (row.timer != null) copy.timer = row.timer;
+  return copy;
+}
+
+function copyShipEvent(row: ShipEventDef): ShipEventDef {
+  const copy: ShipEventDef = { id: row.id };
+  if (row.autoBlueprint) copy.autoBlueprint = row.autoBlueprint;
+  if (row.surrender) copy.surrender = copyChance(row.surrender);
+  if (row.escape) copy.escape = copyShipEscape(row.escape);
+  if (row.destroyed) copy.destroyed = copyEnding(row.destroyed);
+  if (row.deadCrew) copy.deadCrew = copyEnding(row.deadCrew);
+  if (row.gotaway) copy.gotaway = copyEnding(row.gotaway);
+  return copy;
+}
+
 function copyBand(band: [number, number]): [number, number] {
   return [band[0], band[1]];
 }
@@ -457,6 +495,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     stores.clear();
     tunes.clear();
     events.clear();
+    shipEvents.clear();
     lists.clear();
     blueprints.clear();
     textLists.clear();
@@ -465,6 +504,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     factions.clear();
     reward = pack.rewards ? copyReward(pack.rewards) : undefined;
     baseReward = reward ? copyReward(reward) : undefined;
+    civilianSectorTitleValue = pack.civilianSectorTitle;
+    baseCivilianSectorTitle = pack.civilianSectorTitle;
     baseFactions = (pack.factions ?? []).map(copyFaction);
     baseCrew = (pack.crew ?? []).map(copyCrew);
     baseWeapons = (pack.weapons ?? []).map(copyWeapon);
@@ -476,6 +517,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseStores = (pack.stores ?? []).map(copyStore);
     baseTunes = (pack.tunes ?? []).map(copyTune);
     baseEvents = (pack.events ?? []).map(copyEvent);
+    baseShipEvents = (pack.shipEvents ?? []).map(copyShipEvent);
     baseLists = (pack.lists ?? []).map(copyList);
     baseBlueprints = (pack.blueprints ?? []).map(copyBlueprint);
     baseTextLists = (pack.textLists ?? []).map(copyTextList);
@@ -485,6 +527,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   if (mode === "append" && pack.rewards) {
     reward = copyReward(pack.rewards);
   }
+  if (mode === "append" && pack.civilianSectorTitle)
+    civilianSectorTitleValue = pack.civilianSectorTitle;
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
     weapons.set(row.id, copyWeapon(row));
@@ -504,6 +548,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     tunes.set(row.id, copyTune(row));
   for (const row of mode === "base" ? baseEvents : (pack.events ?? []))
     events.set(row.id, copyEvent(row));
+  for (const row of mode === "base" ? baseShipEvents : (pack.shipEvents ?? []))
+    shipEvents.set(row.id, copyShipEvent(row));
   for (const row of mode === "base" ? baseLists : (pack.lists ?? []))
     lists.set(row.id, copyList(row));
   for (const row of mode === "base" ? baseBlueprints : (pack.blueprints ?? []))
@@ -585,6 +631,11 @@ export function sectorDef(id: string | undefined): SectorDef | undefined {
   return sectors.get(id);
 }
 
+/** English `sectorname_CIVILIAN_SECTOR`, when this pack stored it. */
+export function civilianSectorTitle(): string | undefined {
+  return civilianSectorTitleValue;
+}
+
 /** Page order. An appended id sits at the end, so the campaign chart rows stay put. */
 export function allSectors(): SectorDef[] {
   return [...sectors.values()];
@@ -634,6 +685,36 @@ function storedEvent(id: string): EventDef | undefined {
 export function eventDef(id: string | undefined): EventDef | undefined {
   if (!id) return undefined;
   return storedEvent(id);
+}
+
+/** One root `<ship name>` event. A campaign tier such as "pirate" does not match "PIRATE". */
+export function shipEventDef(id: string | undefined): ShipEventDef | undefined {
+  if (!id) return undefined;
+  return shipEvents.get(id);
+}
+
+/** Catalog order. An appended id sits at the end. */
+export function allShipEvents(): ShipEventDef[] {
+  return [...shipEvents.values()];
+}
+
+/**
+ * The inline page, the named event, or one drawn filler-list entry.
+ * A list entry's own page wins over a later event id.
+ */
+export function shipEndingPage(
+  ending: ShipEventEnding | undefined,
+  roll: (count: number) => number,
+): EventDef | undefined {
+  if (!ending) return undefined;
+  if (ending.page) return ending.page;
+  if (!ending.load) return undefined;
+  const direct = storedEvent(ending.load);
+  if (direct) return direct;
+  const entries = lists.get(ending.load)?.entries ?? [];
+  if (entries.length === 0) return undefined;
+  const entry = entries[Math.min(entries.length - 1, Math.max(0, roll(entries.length)))]!;
+  return entry.page ?? (entry.id ? storedEvent(entry.id) : undefined);
 }
 
 /** One `<textList>`, or undefined when the archive has no list by that name. */
@@ -756,6 +837,7 @@ export function resetPackForTests(): void {
   stores.clear();
   tunes.clear();
   events.clear();
+  shipEvents.clear();
   lists.clear();
   blueprints.clear();
   textLists.clear();
@@ -763,6 +845,7 @@ export function resetPackForTests(): void {
   achievements.clear();
   factions.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
+  civilianSectorTitleValue = baseCivilianSectorTitle;
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));
   for (const row of baseAugments) augments.set(row.id, copyAugment(row));
@@ -773,6 +856,7 @@ export function resetPackForTests(): void {
   for (const row of baseStores) stores.set(row.id, copyStore(row));
   for (const row of baseTunes) tunes.set(row.id, copyTune(row));
   for (const row of baseEvents) events.set(row.id, copyEvent(row));
+  for (const row of baseShipEvents) shipEvents.set(row.id, copyShipEvent(row));
   for (const row of baseLists) lists.set(row.id, copyList(row));
   for (const row of baseBlueprints) blueprints.set(row.id, copyBlueprint(row));
   for (const row of baseTextLists) textLists.set(row.id, copyTextList(row));

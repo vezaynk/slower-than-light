@@ -1,6 +1,14 @@
 import type { Beacon, Game, GameEvent } from "../types.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { allEvents, allFillerLists, eventDef, fillerList, openingLine, warnPack } from "@stl/pack";
+import {
+  allEvents,
+  allFillerLists,
+  allShipEvents,
+  eventDef,
+  fillerList,
+  openingLine,
+  warnPack,
+} from "@stl/pack";
 import type { EventDef as PackEvent } from "@stl/pack";
 import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
 import { SECTOR_TYPES } from "@stl/catalog/src/wiki/sectors.ts";
@@ -167,6 +175,18 @@ function findChoice(id: string): ChoiceDef | null {
   for (const list of allFillerLists()) {
     for (const entry of list.entries) {
       for (const c of entry.page?.choices ?? []) if (c.id === id) return c;
+    }
+  }
+  // Top-level choices on a ship-event ending. Nested choices stay on the page that owns them.
+  for (const ship of allShipEvents()) {
+    for (const ending of [
+      ship.surrender,
+      ship.escape,
+      ship.destroyed,
+      ship.deadCrew,
+      ship.gotaway,
+    ]) {
+      for (const c of ending?.page?.choices ?? []) if (c.id === id) return c;
     }
   }
   return null;
@@ -2136,13 +2156,12 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (gotoFx && gotoFx.k === "goto") {
     const page = gotoPage(ctx, gotoFx.id);
     if (!page) return false;
-    // An ftl.dat result page pays its own item_modify. With no choice of its own, that is the result card.
+    // The destination pays its own item_modify inside showArchivePage. The button's fx already ran above.
     const lines: string[] = [];
-    const note = (line: string) => {
-      lines.push(line);
-      ctx.note(line);
-    };
-    if (!payRes(ctx, (page.fx ?? []) as Fx[], gotoFx.id, note, true)) return false;
+    const shown = showArchivePage(g, page, lines);
+    if (shown === "unpaid") return false;
+    if (g.phase === "defeat") return true;
+    if (shown === true) return true;
     if (lines.length > 0 && page.choices.length === 0) {
       result(g, page.body || lines.join(" "), undefined, page.body ? lines : []);
       g.paused = true;
@@ -2153,7 +2172,6 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
       page.body,
       page.choices.map((next) => ({ id: next.id, label: next.label })),
     );
-    showArchivePage(g, page);
     if (g.phase === "event") g.paused = true;
     return true;
   }

@@ -159,7 +159,8 @@ function placeQuota(
   story: Set<string>,
   used: Set<string>,
 ) {
-  if (id === "STORE") {
+  // STORE, STORE_ENGI, STORE_MANTIS…: a page with <store/> is a store beacon.
+  if (eventDef(id)?.store) {
     setKind(b, "store");
     return;
   }

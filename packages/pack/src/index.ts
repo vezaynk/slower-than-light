@@ -1,12 +1,13 @@
 export {
   emitBlueprintAppend,
+  emitConditionAppend,
   emitGapDocument,
   emitNoteAppend,
   emitPack,
   emitStatAppend,
 } from "./emit.ts";
 export type { FtlListings } from "./emit.ts";
-export { emitFtlSectors, emitFtlShips } from "./ftl-emit.ts";
+export { emitFtlAchievements, emitFtlSectors, emitFtlShips } from "./ftl-emit.ts";
 export type { EmitSlice } from "./emit.ts";
 export {
   KIT_SYSTEMS,
@@ -67,6 +68,8 @@ export type { MusicTrack, SoundCue, SoundSet } from "./sounds.ts";
 export { parsePack } from "./parse.ts";
 export type { FtlBlueprintFile, FtlTextFile } from "./ftl.ts";
 export {
+  achievementDef,
+  allAchievements,
   allAugments,
   allCrew,
   allDrones,
@@ -151,6 +154,8 @@ export type {
   ArchiveShip,
   BlueprintListDef,
   HullCrewCount,
+  AchievementCondition,
+  AchievementDef,
   HullDef,
   HullDoor,
   HullEllipse,

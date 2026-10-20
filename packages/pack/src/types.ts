@@ -781,6 +781,8 @@ export type EventDef = {
   boarders?: ArchiveBoarders;
   /** Named blueprints this page grants. */
   grants?: ArchiveGrant[];
+  /** `<store/>` on this page. Arriving opens a store. */
+  store?: boolean;
 };
 
 /**
@@ -816,7 +818,36 @@ export type EmptyBeaconDef = {
   nebula?: boolean;
 };
 
+/**
+ * When an achievement is earned, as the gap mod's private `<condition>` writes it. ftl.dat carries no conditions; FTL
+ * keeps them in the executable. `value` names a reading the game takes (the sector number, a tally the run kept, a gauge
+ * of the ship); with no bound it must be true or above 0, with `min` and `max` it must sit in that range.
+ */
+export type AchievementCondition =
+  | { all: AchievementCondition[] }
+  | { any: AchievementCondition[] }
+  | { not: AchievementCondition }
+  | { value: string; min?: number; max?: number };
+
+/** One `<achievement>` from data/achievements.xml, plus the gap mod's condition. */
+export type AchievementDef = {
+  /** `<achievement id>`, such as ACH_SECTOR_5. */
+  id: string;
+  name: string;
+  desc: string;
+  /** `<ship>`: the ship blueprint (any of its layouts) the achievement can only be earned with. */
+  ship?: string;
+  /** `<multiDifficulty>`: the stats screen shows the difficulty it was earned on. */
+  multiDifficulty?: boolean;
+  /** `<img>`, an archive image path. */
+  img?: string;
+  /** Absent: the game has no way to tell when this one is earned. */
+  condition?: AchievementCondition;
+};
+
 export type ContentPack = {
+  /** data/achievements.xml. */
+  achievements?: AchievementDef[];
   crew?: CrewDef[];
   weapons?: WeaponBlueprint[];
   augments?: AugmentDef[];

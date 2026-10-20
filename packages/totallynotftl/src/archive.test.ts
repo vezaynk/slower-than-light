@@ -16,6 +16,7 @@ import {
   readSounds,
 } from "@stl/pack";
 import {
+  standInAchievementsXml,
   standInDat,
   standInEventFiles,
   standInImages,
@@ -72,7 +73,7 @@ describe("totallynotftl.dat", () => {
     const media = await standInMedia();
     assert.equal(
       extracted.documents.length,
-      events.length + 3 + pictures.length + media.documents.length,
+      events.length + 4 + pictures.length + media.documents.length,
     );
     for (const file of events) {
       assert.equal(extracted.documents.find((doc) => doc.path === file.path)?.xml, file.xml);
@@ -86,6 +87,12 @@ describe("totallynotftl.dat", () => {
       extracted.documents.find((doc) => doc.path === "data/sector_data.xml")?.xml,
       standInSectorsXml(),
     );
+    // Achievements are ftl.dat's data/achievements.xml; when each is earned is the gap mod's.
+    assert.equal(
+      extracted.documents.find((doc) => doc.path === "data/achievements.xml")?.xml,
+      standInAchievementsXml(),
+    );
+    assert.equal(standInAchievementsXml().includes("<condition"), false);
     assert.equal(
       extracted.documents.find((doc) => doc.path === "data/text_lists.xml")?.xml,
       TEXT_LISTS_XML,
@@ -216,6 +223,7 @@ describe("totallynotftl.dat", () => {
     );
     const merged = packFromExtract(applyFtlMod(await extractFtlDat(await standInDat()), gap));
     assert.deepEqual(merged.crew, pack.crew);
+    assert.deepEqual(merged.achievements, pack.achievements);
     assert.deepEqual(merged.weapons, pack.weapons);
     assert.deepEqual(merged.augments, pack.augments);
     assert.deepEqual(merged.drones, pack.drones);

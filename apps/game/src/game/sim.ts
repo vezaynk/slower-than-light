@@ -106,6 +106,7 @@ import {
   allSectors,
   allWeapons,
   crewDef,
+  eventDef,
   hullDef,
   rewardBonus,
   scrapRange,
@@ -7182,6 +7183,14 @@ function arrive(g: Game, b: Beacon) {
   g.phase = "event";
   g.paused = true;
   g.event = eventFor(g, b);
+  // A ftl.dat page with a hostile <ship> and no choice is a fight. Its text is the hail.
+  const page = eventDef(b.flag.replace(/^filler:/, ""));
+  if (page?.ship?.hostile && page.choices.length === 0 && !g.enemy) {
+    if (g.event?.body) log(g, g.event.body);
+    g.event = null;
+    startCombat(g, b.tier || "pool", false);
+    return;
+  }
   // These pages have no choice. The red line is the outcome, not a button.
   // Boarders: Humans (Abandoned): "3-4 human boarders beam aboard your ship".
   // Boarders: Crystal: "2-3 crystal boarders beam aboard your ship."

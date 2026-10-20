@@ -1,38 +1,31 @@
 /**
  * Wiki pages "Achievements" and "Ship Achievements".
- * A tile is earned from a field the run stores, or from a counter in g.tally (wiki/achieve-notes.ts).
- * Earned ids are kept in localStorage. Two lines stay untracked: slug vision of every room, and four blue events.
- * Anything the paragraphs do not state is marked INFERRED or INVENTED.
+ * The list, names, and ship of each achievement are the archive's data/achievements.xml; when one is earned is the gap
+ * mod's `<condition>` on it. A condition reads named values (achievementReading below): the sector, the run's stored
+ * fields, the counters in g.tally (wiki/achieve-notes.ts), and a few gauges of the ship. Those readings are the game's
+ * sensors, as FTL keeps its own in the executable. An achievement with no condition is not tracked.
+ * Earned ids are kept in localStorage. Anything the paragraphs do not state is marked INFERRED or INVENTED.
  */
+import { ACHIEVEMENTS as CATALOG_ACHIEVEMENTS } from "@stl/catalog/src/wiki/achievements.ts";
+import {
+  achievementDef,
+  allAchievements,
+  hullDef,
+  startingFit,
+  warnPack,
+  type AchievementCondition,
+  type AchievementDef,
+} from "@stl/pack";
 import { HULLS } from "../hulls.ts";
 import { bars, kitShownBars, zoltanBars } from "../sim.ts";
 import { UNLOCKS_KEY, parseUnlocks } from "../unlocks.ts";
-import type { Difficulty, Game, SysId } from "../types.ts";
+import type { AchieveTally, Difficulty, Game, SysId } from "../types.ts";
 import { bankLifetime, lifetimeOf } from "./achieve-notes.ts";
-import { ACHIEVEMENTS } from "./achievements.ts";
 
 const STORAGE_KEY = "stl-achievements-v1";
 
-type Rule = {
-  id: string;
-  met: (g: Game) => boolean;
-};
-
-/**
- * Achievements, "General Progression": "Just Getting Started" — "Get to sector 5."
- * The run stores the sector number. 5 or later is that sector.
- */
-function sectorFive(g: Game): boolean {
-  return g.sector >= 5;
-}
-
-/**
- * Achievements, "General Progression": "Federation Base in Range" — "Get to sector 8."
- * The run stores the sector number. 8 or later is that sector.
- */
-function sectorEight(g: Game): boolean {
-  return g.sector >= 8;
-}
+/** Earned achievements saved before the archive ids: the wiki slug each one was saved under. */
+const SLUG_ID = new Map(CATALOG_ACHIEVEMENTS.map((row) => [row.slug, row.id]));
 
 function savedUnlocks() {
   try {
@@ -57,63 +50,10 @@ function beatBoss(g: Game, difficulty: Difficulty): boolean {
  * Achievements, "General Progression": "Your Own Fleet" — "Unlock the Type A layout for every playable ship."
  * The saved unlock list is that set. Layout B and Layout C are not part of the line.
  */
-function yourOwnFleet(): boolean {
+function typeAUnlocked(): boolean {
   const ships = new Set(savedUnlocks()?.ships ?? []);
   const typeA = HULLS.filter((hull) => hull.layout === "A");
   return typeA.length > 0 && typeA.every((hull) => ships.has(hull.id));
-}
-
-/**
- * Ship Achievements, "The Lanius Cruiser": "Scrap Hoarder" — "Have at least 600 scrap in your ship storage."
- * Ship Achievements, lead: a ship achievement "cannot be earned while flying another ship."
- * The same page says a ship achievement can be earned on Type A, B, or C. The stored scrap wallet is the storage.
- * Cruiser identity is the hangar hull id, not a new counter.
- */
-function scrapHoarder(g: Game): boolean {
-  const ship = ACHIEVEMENTS.find((row) => row.id === "scrap-hoarder")?.ship;
-  if (!ship || !g.hullId) return false;
-  const cruiser = HULLS.find((hull) => hull.id === g.hullId)?.cruiser;
-  return cruiser === ship && g.scrap >= 600;
-}
-
-/** @agent:unlocks. The hangar hull's cruiser and Layout A spec (start levels), for the ship achievements below. */
-function flying(g: Game, cruiser: string) {
-  const hull = g.hullId ? HULLS.find((h) => h.id === g.hullId) : undefined;
-  return hull?.cruiser === cruiser ? hull : undefined;
-}
-
-/**
- * @agent:unlocks. Ship Achievements, "Kestrel Cruiser": "The United Federation" — "Have six unique aliens on the Kestrel
- * Cruiser simultaneously." Page "The United Federation": "One human does count toward this achievement."
- */
-function unitedFederation(g: Game): boolean {
-  if (!flying(g, "Kestrel Cruiser")) return false;
-  return new Set(g.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.kin)).size >= 6;
-}
-
-/**
- * @agent:unlocks. "Full Arsenal" — "Have 11 systems installed on the Kestrel Cruiser at one time." Page note: "primary
- * systems" and "subsystems" are not distinguished. INFERRED: every system level above 0 and every kit fitted counts.
- */
-function fullArsenal(g: Game): boolean {
-  if (!flying(g, "Kestrel Cruiser")) return false;
-  const systems = Object.values(g.player.systems).filter((s) => s.level > 0).length;
-  const kits = Object.values(g.player.kits).filter((k) => k && k.level > 0).length;
-  return systems + kits >= 11;
-}
-
-/**
- * @agent:unlocks. "Givin' her all she's got, Captain!" — "With the Zoltan Cruiser, have 29 power in systems at the same
- * time." The page: "a fully upgraded reactor plus 4 Zoltan crewmembers manning systems to provide 29 power", so the
- * lit bars count, Zoltan bars included (sim.ts bars and kitShownBars).
- */
-function givinHerAll(g: Game): boolean {
-  if (!flying(g, "Zoltan Cruiser")) return false;
-  let lit = 0;
-  for (const id of Object.keys(g.player.systems) as SysId[])
-    lit += bars(g.player.systems[id], zoltanBars(g.crew, g.player, "player", id));
-  for (const kit of Object.values(g.player.kits)) lit += kitShownBars(kit);
-  return lit >= 29;
 }
 
 /**
@@ -125,141 +65,121 @@ export function noteReactorEvent(g: Game): void {
   g.reactorEvent = (g.reactorEvent ?? 0) + 1;
 }
 
-function manpower(g: Game): boolean {
-  const hull = flying(g, "Zoltan Cruiser");
-  if (!hull || g.sector < 5) return false;
-  return g.player.reactor - (g.reactorEvent ?? 0) <= hull.reactor;
+/**
+ * The ship blueprint a hull is a layout of. ftl.dat names a ship's layouts PLAYER_SHIP_HARD, PLAYER_SHIP_HARD_2, and
+ * PLAYER_SHIP_HARD_3; an achievement's `<ship>` names the first.
+ */
+export function shipFamily(hullId: string | undefined): string | undefined {
+  return hullId?.replace(/_\d+$/, "");
 }
 
 /**
- * @agent:unlocks. "Artillery Mastery" — "Get to sector 5 with the Federation Cruiser without upgrading your weapons
- * system." INFERRED: weapons level at or below the layout's start level.
+ * Gauges of the ship that no single field stores.
+ * - crewRaces: "The United Federation", "Have six unique aliens ... simultaneously." Page "The United Federation": "One
+ *   human does count toward this achievement." Living crew of the player's side.
+ * - systemsInstalled: "Full Arsenal", "Have 11 systems installed ... at one time." Page note: "primary systems" and
+ *   "subsystems" are not distinguished. INFERRED: every system level above 0 and every kit fitted counts.
+ * - poweredBars: "Givin' her all she's got, Captain!", "have 29 power in systems at the same time." The page: "a fully
+ *   upgraded reactor plus 4 Zoltan crewmembers manning systems to provide 29 power", so the lit bars count, Zoltan bars
+ *   included (sim.ts bars and kitShownBars).
+ * - reactorUpgrades: reactor bars bought above the blueprint's, not counting the ones reactor offers in events added.
+ * - weaponsUpgrades: "Artillery Mastery", "without upgrading your weapons system." INFERRED: levels above the start.
+ * - typeAUnlocked: "Your Own Fleet".
  */
-function artilleryMastery(g: Game): boolean {
-  const hull = flying(g, "Federation Cruiser");
-  const start = hull?.systems.weapons?.[0] ?? 0;
-  return !!hull && g.sector >= 5 && g.player.systems.weapons.level <= start;
-}
+const GAUGES: Record<string, (g: Game) => number | boolean> = {
+  crewRaces: (g) =>
+    new Set(g.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.kin)).size,
+  systemsInstalled: (g) =>
+    Object.values(g.player.systems).filter((s) => s.level > 0).length +
+    Object.values(g.player.kits).filter((k) => k && k.level > 0).length,
+  poweredBars: (g) => {
+    let lit = 0;
+    for (const id of Object.keys(g.player.systems) as SysId[])
+      lit += bars(g.player.systems[id], zoltanBars(g.crew, g.player, "player", id));
+    for (const kit of Object.values(g.player.kits)) lit += kitShownBars(kit);
+    return lit;
+  },
+  reactorUpgrades: (g) => {
+    const hull = hullDef(g.hullId);
+    return hull ? g.player.reactor - (g.reactorEvent ?? 0) - hull.reactor : 0;
+  },
+  weaponsUpgrades: (g) => {
+    const hull = hullDef(g.hullId);
+    const start = hull ? (startingFit(hull).systems.weapons?.[0] ?? 0) : 0;
+    return g.player.systems.weapons.level - start;
+  },
+  typeAUnlocked: () => typeAUnlocked(),
+};
 
-/** @agent:unlocks. "Ancestry" — "Find the secret sector with the Rock Cruiser." Sectors: "Hidden Crystal Worlds". */
-function ancestry(g: Game): boolean {
-  return !!flying(g, "Rock Cruiser") && g.sectorId === "CRYSTAL_HOME";
-}
-
-function flag(g: Game, key: keyof NonNullable<Game["tally"]>): boolean {
-  return g.tally?.[key] === true;
-}
-
-function atLeast(g: Game, key: keyof NonNullable<Game["tally"]>, n: number): boolean {
-  const value = g.tally?.[key];
-  return typeof value === "number" && value >= n;
-}
-
-const RULES: Rule[] = [
-  { id: "just-getting-started", met: sectorFive },
-  { id: "federation-base-in-range", met: sectorEight },
-  { id: "federation-victory-easy", met: (g) => beatBoss(g, "easy") },
-  { id: "federation-victory-normal", met: (g) => beatBoss(g, "normal") },
-  { id: "your-own-fleet", met: () => yourOwnFleet() },
-  { id: "the-united-federation", met: unitedFederation },
-  { id: "full-arsenal", met: fullArsenal },
-  { id: "artillery-mastery", met: artilleryMastery },
-  { id: "ancestry", met: ancestry },
-  { id: "givin-her-all-shes-got-captain", met: givinHerAll },
-  { id: "manpower", met: manpower },
-  { id: "scrap-hoarder", met: scrapHoarder },
-  // Achievements, General Progression. The cross-game totals live beside the earned ids.
-  { id: "rule-ten-greed-is-eternal", met: (g) => lifetimeOf(g).scrap >= 10000 },
-  { id: "warlord", met: (g) => lifetimeOf(g).kills >= 1000 },
-  // Achievements, Going the Distance. An absent tally flag means that action has not happened.
-  {
-    id: "coming-in-for-my-pacifism-run",
-    met: (g) =>
-      g.sector >= 5 && !flag(g, "shot") && !flag(g, "offensiveDrone") && !flag(g, "teleported"),
-  },
-  { id: "i-dont-need-no-stinkin-upgrades", met: (g) => g.sector >= 5 && !flag(g, "upgraded") },
-  { id: "on-a-wing-and-a-prayer", met: (g) => g.sector >= 5 && !flag(g, "storeRepair") },
-  { id: "ballistophobia", met: (g) => g.sector >= 8 && !flag(g, "missileOrBomb") },
-  { id: "technophobia", met: (g) => g.sector >= 8 && !flag(g, "usedDrone") },
-  { id: "living-off-the-land", met: (g) => g.sector >= 8 && !flag(g, "storeBuy") },
-  { id: "no-redshirts-here", met: (g) => g.sector >= 8 && !flag(g, "lostCrew") },
-  // Achievements, Skill and Equipment Feats.
-  { id: "some-people-just-like-to-watch-ships-burn", met: (g) => flag(g, "burnedAll") },
-  { id: "astronomically-low-odds", met: (g) => atLeast(g, "evadeBest", 5) },
-  { id: "boarding-objective-successful", met: (g) => atLeast(g, "boardBest", 4) },
-  { id: "they-never-saw-it-coming", met: (g) => flag(g, "sawIt") },
-  { id: "trustworthy-auto-pilot", met: (g) => flag(g, "allAboard") },
-  { id: "slice-and-dice", met: (g) => flag(g, "sliced") },
-  { id: "victory-through-asphyxiation", met: (g) => flag(g, "asphyxia") },
-  // Ship Achievements. The cruiser check is the same one the earlier rules use.
-  { id: "tough-little-ship", met: (g) => !!flying(g, "Kestrel Cruiser") && flag(g, "fromOne") },
-  { id: "bird-of-prey", met: (g) => !!flying(g, "Stealth Cruiser") && flag(g, "bird") },
-  { id: "phase-shift", met: (g) => !!flying(g, "Stealth Cruiser") && flag(g, "phaseShift") },
-  {
-    id: "tactical-approach",
-    met: (g) => !!flying(g, "Stealth Cruiser") && flag(g, "reachedClean"),
-  },
-  {
-    id: "take-no-prisoners",
-    met: (g) => !!flying(g, "Mantis Cruiser") && atLeast(g, "crewKillShips", 20),
-  },
-  { id: "avast-ye-scurvy-dogs", met: (g) => !!flying(g, "Mantis Cruiser") && flag(g, "avast") },
-  { id: "battle-royale", met: (g) => !!flying(g, "Mantis Cruiser") && flag(g, "lastStand") },
-  { id: "robotic-warfare", met: (g) => !!flying(g, "Engi Cruiser") && atLeast(g, "dronePeak", 3) },
-  {
-    id: "i-hardly-lifted-a-finger",
-    met: (g) => !!flying(g, "Engi Cruiser") && flag(g, "droneOnly"),
-  },
-  { id: "the-guns-theyve-stopped", met: (g) => !!flying(g, "Engi Cruiser") && flag(g, "ionFour") },
-  {
-    id: "master-of-patience",
-    met: (g) => !!flying(g, "Federation Cruiser") && flag(g, "artilleryKill"),
-  },
-  {
-    id: "home-sweet-home",
-    met: (g) => !!flying(g, "Slug Cruiser") && g.sector < 8 && atLeast(g, "nebulaJumps", 30),
-  },
-  { id: "disintegration-ray", met: (g) => !!flying(g, "Slug Cruiser") && atLeast(g, "antiBio", 3) },
-  { id: "is-it-warm-in-here", met: (g) => !!flying(g, "Rock Cruiser") && flag(g, "warmKill") },
-  {
-    id: "defense-drones-dont-do-danything",
-    met: (g) => !!flying(g, "Rock Cruiser") && flag(g, "missileDefense"),
-  },
-  { id: "shields-holding", met: (g) => !!flying(g, "Zoltan Cruiser") && flag(g, "shieldsHeld") },
-  { id: "sweet-revenge", met: (g) => !!flying(g, "Crystal Cruiser") && flag(g, "vengeance") },
-  { id: "no-escape", met: (g) => !!flying(g, "Crystal Cruiser") && flag(g, "trapped") },
-  {
-    id: "clash-of-the-titans",
-    met: (g) => !!flying(g, "Crystal Cruiser") && atLeast(g, "rockKills", 10),
-  },
-  { id: "advanced-mastery", met: (g) => !!flying(g, "Lanius Cruiser") && flag(g, "mastery") },
-  {
-    id: "loss-of-cabin-pressure",
-    met: (g) =>
-      !!flying(g, "Lanius Cruiser") && g.sector >= 8 && (g.jumps ?? 0) > 0 && !flag(g, "o2Broke"),
-  },
-];
+const warnedReadings = new Set<string>();
 
 /**
- * Still no counter. The sim does not record slug room-vision or which choices were blue options.
- * Ship Achievements, Slug: "have vision of every room on the enemy ship without functioning sensors."
- * Ship Achievements, Federation: "use your crew in four special blue events by sector 5."
+ * One named value a condition reads, or undefined for a name the game does not know.
+ * `sector`, `scrap`, `jumps`: the run's fields. `sectorId.<id>`: in that sector. `victory.<difficulty>`: the boss beaten
+ * on it, this run or before. `lifetime.scrap` and `lifetime.kills`: across games. `tally.<key>`: a counter or flag the
+ * run kept. `gauge.<name>`: GAUGES above.
  */
-const UNTRACKED = new Set(["were-in-position", "diplomatic-immunity"]);
+export function achievementReading(g: Game, name: string): number | boolean | undefined {
+  if (name === "sector") return g.sector;
+  if (name === "scrap") return g.scrap;
+  if (name === "jumps") return g.jumps ?? 0;
+  const dot = name.indexOf(".");
+  const kind = dot < 0 ? name : name.slice(0, dot);
+  const key = dot < 0 ? "" : name.slice(dot + 1);
+  if (kind === "sectorId") return g.sectorId === key;
+  if (kind === "victory") return beatBoss(g, key as Difficulty);
+  if (kind === "lifetime" && (key === "scrap" || key === "kills")) return lifetimeOf(g)[key];
+  if (kind === "tally") {
+    const value = g.tally?.[key as keyof AchieveTally];
+    return typeof value === "number" || typeof value === "boolean" ? value : false;
+  }
+  if (kind === "gauge" && GAUGES[key]) return GAUGES[key](g);
+  if (!warnedReadings.has(name)) {
+    warnedReadings.add(name);
+    warnPack(
+      `An achievement condition reads "${name}", which the game does not know; it is false.`,
+    );
+  }
+  return undefined;
+}
 
-const TRACKED = new Set(RULES.map((rule) => rule.id));
+/** A condition against this run. A value with no bound must be true or above 0. */
+export function conditionMet(g: Game, row: AchievementCondition): boolean {
+  if ("all" in row) return row.all.every((part) => conditionMet(g, part));
+  if ("any" in row) return row.any.some((part) => conditionMet(g, part));
+  if ("not" in row) return !conditionMet(g, row.not);
+  const value = achievementReading(g, row.value);
+  if (value === undefined) return false;
+  if (row.min == null && row.max == null)
+    return value === true || (typeof value === "number" && value > 0);
+  const n = typeof value === "number" ? value : value ? 1 : 0;
+  return (row.min == null || n >= row.min) && (row.max == null || n <= row.max);
+}
+
+/**
+ * Ship Achievements, lead: a ship achievement "cannot be earned while flying another ship." The same page says it can
+ * be earned on Type A, B, or C, so any layout of the `<ship>` counts.
+ */
+function earnedBy(g: Game, row: AchievementDef): boolean {
+  if (!row.condition) return false;
+  if (row.ship && shipFamily(g.hullId) !== row.ship) return false;
+  return conditionMet(g, row.condition);
+}
 
 let memory: Set<string> | null = null;
 
+/** True when the game can tell this achievement was earned: it has a condition. */
 export function isTracked(id: string): boolean {
-  return TRACKED.has(id);
+  return !!achievementDef(id)?.condition;
 }
 
 /** Ids the current run meets. Does not read or write storage. */
 export function earnedNow(g: Game): string[] {
   // INFERRED: the title placeholder is not a playthrough. Its sector and scrap do not count.
   if (g.phase === "title") return [];
-  return RULES.filter((rule) => rule.met(g)).map((rule) => rule.id);
+  return allAchievements()
+    .filter((row) => earnedBy(g, row))
+    .map((row) => row.id);
 }
 
 function read(): Set<string> {
@@ -272,8 +192,11 @@ function read(): Set<string> {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(parsed)) return next;
-    for (const id of parsed) {
-      if (typeof id === "string" && TRACKED.has(id)) next.add(id);
+    // An id saved before the archive ids is the wiki slug; it is read as that achievement's archive id.
+    for (const saved of parsed) {
+      if (typeof saved !== "string") continue;
+      const id = SLUG_ID.get(saved) ?? saved;
+      if (isTracked(id)) next.add(id);
     }
   } catch {
     // A bad saved value is not an earned id.
@@ -315,6 +238,9 @@ export function resetAchievementMemory(): void {
   memory = null;
 }
 
+/** Achievements the archive lists that have no condition: slug room-vision and the four blue events, in vanilla. */
 export function untrackedIds(): string[] {
-  return [...UNTRACKED];
+  return allAchievements()
+    .filter((row) => !row.condition)
+    .map((row) => row.id);
 }

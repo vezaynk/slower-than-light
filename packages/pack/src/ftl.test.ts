@@ -297,6 +297,37 @@ const OVERWRITE_WORLD = `<?xml version="1.0" encoding="UTF-8"?>
 `;
 
 describe("packFromFtl", () => {
+  it("reads a list's <event load> as that page, and a page's <store/>", () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <event name="STORE_ENGI">
+    <text>Engi wares.</text>
+    <store/>
+  </event>
+  <event name="PIRATE">
+    <text>Pirates.</text>
+    <ship load="PIRATE" hostile="true"/>
+  </event>
+  <eventList name="HOSTILE_ENGI">
+    <event load="PIRATE"/>
+    <event load="STORE_ENGI"/>
+  </eventList>
+</FTL>
+`;
+    const pack = packFromFtl([{ path: "data/events.xml", xml }]);
+    assert.deepEqual(pack.lists, [
+      {
+        id: "HOSTILE_ENGI",
+        entries: [
+          { id: "PIRATE", unique: false },
+          { id: "STORE_ENGI", unique: false },
+        ],
+      },
+    ]);
+    assert.equal(pack.events?.find((row) => row.id === "STORE_ENGI")?.store, true);
+    assert.equal(pack.events?.find((row) => row.id === "PIRATE")?.store, undefined);
+  });
+
   it("colours sectors from the sectorType lists, with an OVERRIDE_ list replacing its base", () => {
     const xml = `<FTL>
   <sectorType name="CIVILIAN"><sector>CALM</sector></sectorType>

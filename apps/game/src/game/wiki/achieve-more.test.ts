@@ -17,19 +17,19 @@ describe("achievement counters", () => {
   it("a shot, an upgrade, and a boarding drone end the quiet sector-5 lines", () => {
     const shot = quietMap();
     shot.sector = 5;
-    assert.equal(earnedNow(shot).includes("coming-in-for-my-pacifism-run"), true);
+    assert.equal(earnedNow(shot).includes("ACH_PACIFIST"), true);
     noteAchieve(shot, { k: "shot", from: "player", kind: "laser", defId: "burst2", rooms: ["a"] });
-    assert.equal(earnedNow(shot).includes("coming-in-for-my-pacifism-run"), false);
+    assert.equal(earnedNow(shot).includes("ACH_PACIFIST"), false);
 
     const raised = quietMap();
     raised.sector = 5;
     noteAchieve(raised, { k: "upgrade" });
-    assert.equal(earnedNow(raised).includes("i-dont-need-no-stinkin-upgrades"), false);
+    assert.equal(earnedNow(raised).includes("ACH_NO_UPGRADES"), false);
 
     const drone = quietMap();
     drone.sector = 5;
     noteAchieve(drone, { k: "drone", kind: "COMBAT_1", functioning: 1 });
-    assert.equal(earnedNow(drone).includes("coming-in-for-my-pacifism-run"), false);
+    assert.equal(earnedNow(drone).includes("ACH_PACIFIST"), false);
     assert.equal(drone.tally?.droneHurt, undefined);
   });
 
@@ -42,10 +42,10 @@ describe("achievement counters", () => {
     engines.ion = [];
     noteAchieve(g, { k: "fight" });
     for (let i = 0; i < 5; i++) noteAchieve(g, { k: "evade", missed: false });
-    assert.equal(earnedNow(g).includes("astronomically-low-odds"), true);
+    assert.equal(earnedNow(g).includes("ACH_BAD_DODGING"), true);
     noteAchieve(g, { k: "evade", missed: true, damage: 1 });
     assert.equal(g.tally?.evadeStreak, 0);
-    assert.equal(earnedNow(g).includes("astronomically-low-odds"), true);
+    assert.equal(earnedNow(g).includes("ACH_BAD_DODGING"), true);
   });
 
   it("a miss during a cloak counts that shot's damage as avoided", () => {
@@ -62,13 +62,13 @@ describe("achievement counters", () => {
     };
     noteAchieve(g, { k: "cloak" });
     noteAchieve(g, { k: "evade", missed: true, damage: 9 });
-    assert.equal(earnedNow(g).includes("phase-shift"), true);
+    assert.equal(earnedNow(g).includes("ACH_STEALTH_AVOID"), true);
   });
 
   it("repair from 1 hull to full latches Tough Little Ship on the Kestrel", () => {
     const g = quietMap(1, "PLAYER_SHIP_HARD");
     noteAchieve(g, { k: "hull", before: 1, after: g.player.hullMax });
-    assert.equal(earnedNow(g).includes("tough-little-ship"), true);
+    assert.equal(earnedNow(g).includes("ACH_TOUGH_SHIP"), true);
   });
 
   it("a fire in every enemy room latches the burn line", () => {
@@ -77,7 +77,7 @@ describe("achievement counters", () => {
     assert.ok(g.enemy);
     for (const room of g.enemy.rooms) room.fire = 1;
     noteAchieve(g, { k: "tick" });
-    assert.equal(earnedNow(g).includes("some-people-just-like-to-watch-ships-burn"), true);
+    assert.equal(earnedNow(g).includes("ACH_BURNING"), true);
   });
 
   it("sector 8 with no jump does not earn loss of cabin pressure", () => {
@@ -85,7 +85,7 @@ describe("achievement counters", () => {
     g.sector = 8;
     g.jumps = 0;
     noteAchieve(g, { k: "tick" });
-    assert.equal(earnedNow(g).includes("loss-of-cabin-pressure"), false);
+    assert.equal(earnedNow(g).includes("ACH_LANIUS_OXYGEN"), false);
   });
 });
 
@@ -199,7 +199,7 @@ describe("Givin' her all she's got, Captain!", () => {
       sys.power = power;
     }
     g.crew = [];
-    assert.equal(earnedNow(g).includes("givin-her-all-shes-got-captain"), false);
+    assert.equal(earnedNow(g).includes("ACH_ENERGY_POWER"), false);
     const room = (id: string) => g.player.rooms.find((r) => r.system === id)!.id;
     const spark = (id: string, at: string) => ({
       id,
@@ -216,8 +216,8 @@ describe("Givin' her all she's got, Captain!", () => {
       kin: "energy",
     });
     g.crew.push(spark("a", "medbay"), spark("b", "medbay"), spark("c", "medbay"));
-    assert.equal(earnedNow(g).includes("givin-her-all-shes-got-captain"), false);
+    assert.equal(earnedNow(g).includes("ACH_ENERGY_POWER"), false);
     g.crew.push(spark("d", "oxygen"));
-    assert.equal(earnedNow(g).includes("givin-her-all-shes-got-captain"), true);
+    assert.equal(earnedNow(g).includes("ACH_ENERGY_POWER"), true);
   });
 });

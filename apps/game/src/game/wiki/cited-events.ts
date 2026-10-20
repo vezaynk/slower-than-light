@@ -1,6 +1,6 @@
 import type { Beacon, Game, GameEvent } from "../types.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { allEvents, eventDef, openingLine } from "@stl/pack";
+import { allEvents, eventDef, openingLine, warnPack } from "@stl/pack";
 import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
 import { SECTOR_TYPES } from "@stl/catalog/src/wiki/sectors.ts";
 import { CITED_EVENT_ROWS } from "./event-catalog.ts";
@@ -675,9 +675,36 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
   return false;
 }
 
+/** Cards that roll a row off a campaign table on their own page, by the row kind they roll. */
+const ROW_CARDS: Record<string, string> = {
+  TRADER_CIV: "trade",
+  NEBULA_TRADER: "trade",
+  LANIUS_TRADER: "lanius",
+  LANIUS_TRADER_TRANSLATOR: "lanius",
+  FUEL_TRADER: "fuel",
+  FUEL_TRADER_DISTRESS: "fuel",
+  SLUG_DISTRESS_QUESTION: "count",
+};
+const warnedRows = new Set<string>();
+
+/** A ftl.dat page under a campaign card's id carries no such table. It shows as the archive wrote it. */
+function lacksRows(slug: string): boolean {
+  const kind = ROW_CARDS[slug];
+  if (!kind) return false;
+  const page = eventDef(storedId(slug));
+  const rows: { k: string }[] = [...(page?.offers ?? []), ...(page?.rolls ?? [])];
+  if (rows.some((row) => row.k === kind)) return false;
+  if (!warnedRows.has(slug)) {
+    warnedRows.add(slug);
+    warnPack(`Event ${slug} has no ${kind} rows; its page shows as written.`);
+  }
+  return true;
+}
+
 function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   const ev = matchEvent(b);
   if (!ev) return null;
+  if (lacksRows(ev.slug)) return null;
   const missing = missingCard(g, b, ev);
   if (missing) return missing;
   if (ev.slug === "SLUG_DISTRESS_QUESTION") return slugMoonsCard(g, b, ev.dest);

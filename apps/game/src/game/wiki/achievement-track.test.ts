@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { HULLS } from "../hulls.ts";
 import { createGame } from "../sim.ts";
 import { UNLOCKS_KEY } from "../unlocks.ts";
-import { ACHIEVEMENTS } from "./achievements.ts";
+import { ACHIEVEMENTS } from "@stl/catalog/src/wiki/achievements.ts";
 import {
   earnedIds,
   earnedNow,
@@ -51,10 +51,10 @@ describe("achievement tracker", () => {
     five.phase = "map";
     five.sector = 5;
     assert.deepEqual(earnedNow(five), [
-      "just-getting-started",
-      "coming-in-for-my-pacifism-run",
-      "i-dont-need-no-stinkin-upgrades",
-      "on-a-wing-and-a-prayer",
+      "ACH_SECTOR_5",
+      "ACH_PACIFIST",
+      "ACH_NO_UPGRADES",
+      "ACH_NO_REPAIR",
     ]);
 
     const eight = createGame(1);
@@ -69,37 +69,37 @@ describe("achievement tracker", () => {
     eight.outcome = "victory";
     eight.difficulty = "easy";
     assert.deepEqual(earnedNow(eight), [
-      "just-getting-started",
-      "federation-base-in-range",
-      "federation-victory-easy",
-      "rule-ten-greed-is-eternal",
-      "warlord",
-      "coming-in-for-my-pacifism-run",
-      "i-dont-need-no-stinkin-upgrades",
-      "on-a-wing-and-a-prayer",
-      "ballistophobia",
-      "technophobia",
-      "living-off-the-land",
-      "no-redshirts-here",
+      "ACH_SECTOR_5",
+      "ACH_SECTOR_8",
+      "ACH_WIN_EASY",
+      "ACH_SCRAP",
+      "ACH_SHIPS",
+      "ACH_PACIFIST",
+      "ACH_NO_UPGRADES",
+      "ACH_NO_REPAIR",
+      "ACH_NO_MISSILES",
+      "ACH_NO_DRONES",
+      "ACH_NO_BUYING",
+      "ACH_NO_DEATH",
     ]);
     eight.difficulty = "normal";
-    assert.ok(earnedNow(eight).includes("federation-victory-normal"));
-    assert.equal(earnedNow(eight).includes("federation-victory-easy"), false);
+    assert.ok(earnedNow(eight).includes("ACH_WIN_NORMAL"));
+    assert.equal(earnedNow(eight).includes("ACH_WIN_EASY"), false);
     eight.difficulty = "hard";
-    assert.equal(earnedNow(eight).includes("federation-victory-easy"), false);
-    assert.equal(earnedNow(eight).includes("federation-victory-normal"), false);
+    assert.equal(earnedNow(eight).includes("ACH_WIN_EASY"), false);
+    assert.equal(earnedNow(eight).includes("ACH_WIN_NORMAL"), false);
 
     const short = createGame(1, "PLAYER_SHIP_ANAEROBIC");
     short.phase = "map";
     short.scrap = 599;
-    assert.equal(earnedNow(short).includes("scrap-hoarder"), false);
+    assert.equal(earnedNow(short).includes("ACH_LANIUS_SCRAP"), false);
     short.scrap = 600;
-    assert.deepEqual(earnedNow(short), ["scrap-hoarder"]);
+    assert.deepEqual(earnedNow(short), ["ACH_LANIUS_SCRAP"]);
 
     const other = createGame(1, "PLAYER_SHIP_HARD");
     other.phase = "map";
     other.scrap = 600;
-    assert.equal(earnedNow(other).includes("scrap-hoarder"), false);
+    assert.equal(earnedNow(other).includes("ACH_LANIUS_SCRAP"), false);
 
     const title = createGame(1, "PLAYER_SHIP_ANAEROBIC");
     title.phase = "title";
@@ -108,52 +108,65 @@ describe("achievement tracker", () => {
     assert.deepEqual(earnedNow(title), []);
   });
 
+  it("reads achievements saved under the old wiki slugs as their archive ids", () => {
+    memoryStorage();
+    localStorage.setItem(
+      "stl-achievements-v1",
+      JSON.stringify(["just-getting-started", "scrap-hoarder", "were-in-position", "ACH_SECTOR_8"]),
+    );
+    resetAchievementMemory();
+    assert.deepEqual(earnedIds().sort(), ["ACH_LANIUS_SCRAP", "ACH_SECTOR_5", "ACH_SECTOR_8"]);
+  });
+
   it("keeps earned ids in localStorage and ignores an untracked id", () => {
     memoryStorage();
     localStorage.setItem(
       "stl-achievements-v1",
-      JSON.stringify(["were-in-position", "just-getting-started"]),
+      JSON.stringify(["ACH_SLUG_VISION", "ACH_SECTOR_5"]),
     );
     resetAchievementMemory();
-    assert.deepEqual(earnedIds(), ["just-getting-started"]);
+    assert.deepEqual(earnedIds(), ["ACH_SECTOR_5"]);
 
-    localStorage.setItem(
-      "stl-achievements-v1",
-      JSON.stringify(["warlord", "just-getting-started"]),
-    );
+    localStorage.setItem("stl-achievements-v1", JSON.stringify(["ACH_SHIPS", "ACH_SECTOR_5"]));
     resetAchievementMemory();
     const run = createGame(1, "PLAYER_SHIP_ANAEROBIC_2");
     run.phase = "map";
     run.sector = 8;
     run.scrap = 600;
-    assert.deepEqual(noteRun(run).sort(), [
-      "ballistophobia",
-      "coming-in-for-my-pacifism-run",
-      "federation-base-in-range",
-      "i-dont-need-no-stinkin-upgrades",
-      "just-getting-started",
-      "living-off-the-land",
-      "no-redshirts-here",
-      "on-a-wing-and-a-prayer",
-      "scrap-hoarder",
-      "technophobia",
-      "warlord",
-    ]);
+    assert.deepEqual(
+      noteRun(run).sort(),
+      [
+        "ACH_NO_MISSILES",
+        "ACH_PACIFIST",
+        "ACH_SECTOR_8",
+        "ACH_NO_UPGRADES",
+        "ACH_SECTOR_5",
+        "ACH_NO_BUYING",
+        "ACH_NO_DEATH",
+        "ACH_NO_REPAIR",
+        "ACH_LANIUS_SCRAP",
+        "ACH_NO_DRONES",
+        "ACH_SHIPS",
+      ].sort(),
+    );
     const quiet = createGame(1);
     quiet.phase = "map";
-    assert.deepEqual(noteRun(quiet).sort(), [
-      "ballistophobia",
-      "coming-in-for-my-pacifism-run",
-      "federation-base-in-range",
-      "i-dont-need-no-stinkin-upgrades",
-      "just-getting-started",
-      "living-off-the-land",
-      "no-redshirts-here",
-      "on-a-wing-and-a-prayer",
-      "scrap-hoarder",
-      "technophobia",
-      "warlord",
-    ]);
+    assert.deepEqual(
+      noteRun(quiet).sort(),
+      [
+        "ACH_NO_MISSILES",
+        "ACH_PACIFIST",
+        "ACH_SECTOR_8",
+        "ACH_NO_UPGRADES",
+        "ACH_SECTOR_5",
+        "ACH_NO_BUYING",
+        "ACH_NO_DEATH",
+        "ACH_NO_REPAIR",
+        "ACH_LANIUS_SCRAP",
+        "ACH_NO_DRONES",
+        "ACH_SHIPS",
+      ].sort(),
+    );
   });
 
   it("reads Your Own Fleet from the saved Type A unlocks", () => {
@@ -163,29 +176,29 @@ describe("achievement tracker", () => {
     resetAchievementMemory();
     const shy = createGame(2);
     shy.phase = "map";
-    assert.equal(earnedNow(shy).includes("your-own-fleet"), false);
+    assert.equal(earnedNow(shy).includes("ACH_UNLOCK_ALL"), false);
     localStorage.setItem(UNLOCKS_KEY, JSON.stringify({ ships: typeA, wins: [], boss: ["easy"] }));
     resetAchievementMemory();
     const fleet = createGame(3);
     fleet.phase = "map";
-    assert.ok(earnedNow(fleet).includes("your-own-fleet"));
-    assert.ok(earnedNow(fleet).includes("federation-victory-easy"));
-    assert.equal(earnedNow(fleet).includes("federation-victory-normal"), false);
+    assert.ok(earnedNow(fleet).includes("ACH_UNLOCK_ALL"));
+    assert.ok(earnedNow(fleet).includes("ACH_WIN_EASY"));
+    assert.equal(earnedNow(fleet).includes("ACH_WIN_NORMAL"), false);
   });
 
   it("Manpower ignores an event reactor bar and counts an upgrades-tab bar", () => {
     const g = createGame(1, "PLAYER_SHIP_ENERGY");
     g.sector = 5;
-    assert.equal(earnedNow(g).includes("manpower"), true);
+    assert.equal(earnedNow(g).includes("ACH_ENERGY_MANPOWER"), true);
     g.player.reactor += 1;
     noteReactorEvent(g);
-    assert.equal(earnedNow(g).includes("manpower"), true);
+    assert.equal(earnedNow(g).includes("ACH_ENERGY_MANPOWER"), true);
     g.player.reactor += 1;
-    assert.equal(earnedNow(g).includes("manpower"), false);
+    assert.equal(earnedNow(g).includes("ACH_ENERGY_MANPOWER"), false);
   });
 
   it("tracks every named achievement except slug vision and the four blue events", () => {
-    const open = ["diplomatic-immunity", "were-in-position"];
+    const open = ["ACH_FED_DIPLOMACY", "ACH_SLUG_VISION"];
     const tracked = ACHIEVEMENTS.filter((row) => isTracked(row.id)).map((row) => row.id);
     assert.deepEqual(
       tracked,

@@ -677,7 +677,7 @@ function readList(node: XmlElement): FillerListDef | undefined {
   const entries: FillerEntry[] = [];
   for (const item of elements(node)) {
     if (item.tagName !== "event") continue;
-    const eventId = attr(item, "name")?.trim();
+    const eventId = attr(item, "load")?.trim() || attr(item, "name")?.trim();
     if (!eventId) continue;
     entries.push({ id: eventId, unique: item.getAttribute("unique") === "true" });
   }
@@ -798,6 +798,7 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   if (grade) event.grade = grade;
   if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
+  if (elements(node).some((item) => item.tagName === "store")) event.store = true;
   return event;
 }
 

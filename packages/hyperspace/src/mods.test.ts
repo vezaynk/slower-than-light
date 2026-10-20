@@ -3,9 +3,12 @@ import { describe, it } from "node:test";
 import type { FtlExtract } from "@stl/ftldat";
 import {
   emitBlueprintAppend,
+  emitConditionAppend,
+  emitFtlAchievements,
   emitGapDocument,
   emitNoteAppend,
   emitStatAppend,
+  type AchievementDef,
   type CrewDef,
 } from "@stl/pack";
 import { applyFtlMod, loadFtlMods, packFromExtract } from "./mods.ts";
@@ -526,3 +529,46 @@ function crew(id: string, name: string, hp: number): CrewDef {
     fireRepairMultiplier: 1,
   };
 }
+
+describe("achievements", () => {
+  it("reads data/achievements.xml and the gap mod's conditions on it", () => {
+    const rows: AchievementDef[] = [
+      {
+        id: "ACH_SECTOR_5",
+        name: "Just Getting Started",
+        desc: "Get to sector 5.",
+        multiDifficulty: true,
+      },
+      {
+        id: "ACH_NO_DEATH",
+        name: "No Redshirts Here",
+        desc: "Get to sector 8 without losing a crewmember.",
+        multiDifficulty: true,
+        condition: {
+          all: [{ value: "sector", min: 8 }, { not: { value: "tally.lostCrew" } }],
+        },
+      },
+      {
+        id: "ACH_ROCK_CRYSTAL",
+        name: "Ancestry",
+        desc: "Find the secret sector with the Rock Cruiser.",
+        ship: "PLAYER_SHIP_ROCK",
+        condition: { value: "sectorId.CRYSTAL_HOME" },
+      },
+    ];
+    const dat = extract({
+      documents: [{ path: "data/achievements.xml", xml: emitFtlAchievements(rows) }],
+    });
+    // The archive file carries no condition: ftl.dat has none.
+    assert.equal(dat.documents[0]?.xml.includes("<condition"), false);
+    const mod = extract({
+      documents: [{ path: "data/achievements.xml.append", xml: emitConditionAppend(rows) }],
+    });
+    const once = packFromExtract(applyFtlMod(dat, mod));
+    assert.deepEqual(once.achievements, rows);
+    // The condition is an overwrite, so applying the gap twice leaves one.
+    const twice = applyFtlMod(applyFtlMod(dat, mod), mod);
+    assert.equal((twice.documents[0]?.xml.match(/<condition>/g) ?? []).length, 2);
+    assert.deepEqual(packFromExtract(twice).achievements, rows);
+  });
+});

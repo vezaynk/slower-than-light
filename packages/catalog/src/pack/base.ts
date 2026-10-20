@@ -6,6 +6,7 @@ import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "../wiki/cited-rock-fire.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import { SECTOR_TYPES, sectorRarities, type SectorType } from "../wiki/sectors.ts";
+import { ACHIEVEMENTS, type AchievementRow } from "../wiki/achievements.ts";
 import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { citedEventRecords } from "../wiki/event-catalog.ts";
@@ -39,6 +40,7 @@ import { standInSheet } from "../ship-art.ts";
 import { mountsFor } from "../weapon-mounts.ts";
 import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
+  AchievementDef,
   AugmentDef,
   ChoiceGift,
   ChoiceReq,
@@ -128,6 +130,15 @@ function sectorRow(row: SectorType): SectorDef {
   const rarities = sectorRarities(row.notes);
   if (rarities.length > 0) sector.rarities = rarities;
   return sector;
+}
+
+/** An achievement as data/achievements.xml carries it, with the gap mod's condition. The old slug stays off. */
+function achievementRow(row: AchievementRow): AchievementDef {
+  const def: AchievementDef = { id: row.id, name: row.name, desc: row.desc };
+  if (row.ship) def.ship = row.ship;
+  if (row.multiDifficulty) def.multiDifficulty = true;
+  if (row.condition) def.condition = structuredClone(row.condition);
+  return def;
 }
 
 function storeRow(row: StoreDef): StoreDef {
@@ -773,6 +784,17 @@ function renameEvent(event: EventDef, ids: Map<string, string>): EventDef {
   return { ...event, id, flag: id, choices: mapChoices(event.choices, ids) };
 }
 
+const STORE_PAGE: EventDef = {
+  id: "STORE",
+  dest: "Store",
+  flag: "STORE",
+  aliases: [],
+  sectors: [],
+  body: "A trading post hangs at this beacon, open for business.",
+  choices: [],
+  store: true,
+};
+
 /** Sector lists are quotas now. Alias and sector tags are not written, so the pack does not keep them. */
 function storedEvent(event: EventDef): EventDef {
   return { ...event, aliases: [], sectors: [] };
@@ -806,6 +828,8 @@ export function loadCatalog(): void {
   const empties = emptyBeaconRecords().map(emptyRow);
   const { quotas, lists } = sectorQuotaPack(named, empties);
   const events = named.map(storedEvent);
+  // The STORE quota names a page, as in ftl.dat. Its <store/> opens the shop.
+  if (!events.some((event) => event.id === "STORE")) events.push(STORE_PAGE);
   loadPack(
     {
       crew: (Object.keys(KIN) as KinId[]).map(crewRow),
@@ -826,6 +850,7 @@ export function loadCatalog(): void {
         if (quota) sector.quotas = quota;
         return sector;
       }),
+      achievements: ACHIEVEMENTS.map(achievementRow),
       stores: STORES.map(storeRow),
       tunes: SYSTEM_TUNES.map(tuneRow),
       rewards: REWARD_TABLE,

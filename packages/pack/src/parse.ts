@@ -1321,6 +1321,8 @@ function readChoiceEffect(node: XmlElement): EventEffect[] | undefined {
     if (!tier) return undefined;
     const effect: EventEffect = { k: "fight", tier };
     if (node.getAttribute("asteroid") === "true") effect.asteroid = true;
+    const list = attr(node, "auto_blueprint")?.trim();
+    if (list) effect.autoBlueprint = list;
     return [effect];
   }
   if (node.tagName === "event") {

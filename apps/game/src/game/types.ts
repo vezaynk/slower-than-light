@@ -580,6 +580,8 @@ export type Ship = {
    * PARTIAL: points added onto an existing bubble are not subtracted. The page gives no ledger.
    */
   zoltanOver?: boolean;
+  /** Augment ids on an explicit enemy hull. The player's rack is `Game.augments`. */
+  augments?: string[];
   /** Enemy hulls: the wiki class this ship was rolled from (wiki/enemy-ships.ts). */
   classId?: string;
   /** Faction page the class comes from, and whether this is the pirate version. */
@@ -895,6 +897,21 @@ export type Game = {
   time: number;
   asteroid: boolean;
   asb: boolean;
+  /**
+   * `<environment type="PDS" target>`. Absent means the battery aims at this ship.
+   * "enemy" aims at the other hull. "all" fires at both.
+   */
+  asbAim?: "player" | "enemy" | "all";
+  /**
+   * `<environment type="nebula">` on the event being played.
+   * A wait here uses the nebula fleet step. A jump clears it.
+   */
+  eventNebula?: boolean;
+  /**
+   * `<environment type="storm">` on the event being played.
+   * The ion storm stays until the jump, including on a beacon that is not a nebula.
+   */
+  eventStorm?: boolean;
   asteroidT: number;
   /**
    * Environmental Hazards, Asteroid Field: seconds until the next rock in a wave (wiki/cited-asteroid.ts).

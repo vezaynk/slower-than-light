@@ -6,7 +6,7 @@
  */
 import "./pack/base.ts";
 import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
-import { blueprintList, hullDef, warnPack, weaponDef } from "@stl/pack";
+import { blueprintList, hullDef, marksFromDoors, warnPack, weaponDef } from "@stl/pack";
 import type { HullCrewCount, HullDef } from "@stl/pack";
 import type { KinId } from "./extras/kin.ts";
 import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
@@ -65,6 +65,8 @@ export type EnemySpec = {
   parts: number;
   /** @agent:drones. Drone schematics this hull fields this fight, in power order. Empty without Drone Control. */
   drones: string[];
+  /** Augment ids copied from an explicit hull. Absent on a class roll. */
+  augments?: string[];
 };
 
 /**
@@ -229,6 +231,27 @@ const KIN_OF: Record<string, KinId> = {
   Zoltan: "energy",
   Crystal: "crystal",
   Lanius: "anaerobic",
+};
+
+/** Archive `<systemList>` ids. Mind control's tag is `mind`. */
+const FROM_INSTALL: Record<string, EnemySystem> = {
+  shields: "shields",
+  engines: "engines",
+  oxygen: "oxygen",
+  weapons: "weapons",
+  pilot: "pilot",
+  medbay: "medbay",
+  doors: "doors",
+  sensors: "sensors",
+  drones: "drones",
+  hacking: "hacking",
+  cloaking: "cloaking",
+  teleporter: "teleporter",
+  clonebay: "clonebay",
+  mind: "mindcontrol",
+  mindcontrol: "mindcontrol",
+  battery: "battery",
+  artillery: "artillery",
 };
 
 /** `<crewCount class>` ids. A name the class table already prints. */
@@ -1128,4 +1151,182 @@ function droneNames(hull: HullDef): { drones: string[]; maxDrones: number } | un
   const names = [...(hull.drones ?? []), ...listNames(hull.id, hull.droneLoad)];
   if (!names.length) return undefined;
   return { drones: names, maxDrones: hull.droneCount ?? names.length };
+}
+
+/**
+ * The hull a fight should build instead of rolling a class.
+ * A tier that is itself a hull wins. Otherwise one id is drawn from `autoBlueprint`'s list.
+ * A list that is missing, or a drawn id that is not a hull, leaves the class roll in charge.
+ */
+export function fightHull(
+  tier: string,
+  autoBlueprint: string | undefined,
+  rand: () => number,
+): HullDef | undefined {
+  const named = hullDef(tier);
+  if (named) return named;
+  if (!autoBlueprint) return undefined;
+  const names = blueprintList(autoBlueprint);
+  if (!names) {
+    warnPack(`auto_blueprint="${autoBlueprint}" names no blueprintList; the fight rolls a class.`);
+    return undefined;
+  }
+  if (names.length === 0) return undefined;
+  const id = names[Math.floor(rand() * names.length) % names.length]!;
+  return hullDef(id);
+}
+
+/** Systems the blueprint fits at the start. A slot with `start` false is left empty. */
+function installedSystems(hull: HullDef): [EnemySystem, number][] {
+  const levels = new Map<EnemySystem, number>();
+  for (const item of hull.installs ?? []) {
+    if (!item.start || item.power < 1) continue;
+    const id = FROM_INSTALL[item.id];
+    if (!id) {
+      warnPack(`${hull.id}: system "${item.id}" is not a system this fight runs; it is skipped.`);
+      continue;
+    }
+    levels.set(id, Math.max(levels.get(id) ?? 0, item.power));
+  }
+  if (levels.has("clonebay")) levels.delete("medbay");
+  const installed = [...levels.entries()];
+  const rank = (id: EnemySystem) => (STATION.includes(id) ? STATION.indexOf(id) : STATION.length);
+  installed.sort((a, b) => rank(a[0]) - rank(b[0]));
+  return installed;
+}
+
+function systemInRoom(hull: HullDef, index: number): EnemySystem | null {
+  const item = hull.installs?.find((row) => row.room === index && row.start && row.power >= 1);
+  if (!item) return null;
+  return FROM_INSTALL[item.id] ?? null;
+}
+
+function emptyHall(): { rooms: EnemyRoomSpec[]; cols: number; rows: number } {
+  return {
+    rooms: [{ id: "e-h0", title: "Hall", system: null, x: 0, y: 0, w: 1, h: 1 }],
+    cols: 1,
+    rows: 1,
+  };
+}
+
+/** The blueprint's own rooms. A hull with no grid uses the same fallback as a class with no interior. */
+function seatHull(
+  hull: HullDef,
+  installed: [EnemySystem, number][],
+): { rooms: EnemyRoomSpec[]; cols: number; rows: number; marks?: DoorMark[] } {
+  const ids = installed.map(([id]) => id);
+  const grid = hull.grid;
+  const boxes = grid?.rooms.filter((room) => room.w > 0 || room.h > 0) ?? [];
+  if (!grid || boxes.length === 0) return ids.length ? layout(ids) : emptyHall();
+  const have = new Set(ids);
+  const taken = new Set<EnemySystem>();
+  let hall = 0;
+  const rooms: EnemyRoomSpec[] = boxes.map((room) => {
+    const pictured = systemInRoom(hull, room.id);
+    const system = pictured && have.has(pictured) && !taken.has(pictured) ? pictured : null;
+    const box = { x: room.x, y: room.y, w: Math.max(1, room.w), h: Math.max(1, room.h) };
+    if (!system) return { id: `e-h${hall++}`, title: "Hall", system: null, ...box };
+    taken.add(system);
+    const kit = KIT[system];
+    return {
+      id: `e-${system}`,
+      title: TITLE[system],
+      system: RUN[system] ?? null,
+      ...(kit ? { kit } : {}),
+      ...box,
+    };
+  });
+  let cols = grid.cols ?? 1;
+  let rows = grid.rows ?? 1;
+  for (const room of rooms) {
+    cols = Math.max(cols, room.x + room.w);
+    rows = Math.max(rows, room.y + room.h);
+  }
+  for (const id of ids) {
+    if (taken.has(id)) continue;
+    const kit = KIT[id];
+    rooms.push({
+      id: `e-${id}`,
+      title: TITLE[id],
+      system: RUN[id] ?? null,
+      ...(kit ? { kit } : {}),
+      x: cols,
+      y: 0,
+      w: 1,
+      h: 1,
+    });
+    cols += 1;
+  }
+  if (rooms.length === 0) return emptyHall();
+  const marks = grid.doors.length > 0 ? marksFromDoors(grid) : undefined;
+  return { rooms, cols, rows, ...(marks ? { marks } : {}) };
+}
+
+/**
+ * One explicit hull: its weapons, drones, crew counts, augments, and installed systems.
+ * This does not roll a class on top. An empty crew is an automated ship.
+ */
+export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number): EnemySpec {
+  const installed = installedSystems(hull);
+  const seated = seatHull(hull, installed);
+  const systems: EnemySpec["systems"] = {};
+  const kits: EnemySpec["kits"] = {};
+  const unwired: EnemySpec["unwired"] = [];
+  let reactor = 0;
+  for (const [id, level] of installed) {
+    reactor += level;
+    const run = RUN[id];
+    const kit = KIT[id];
+    if (run) systems[run] = [level, level];
+    else if (kit) kits[kit] = level;
+    else unwired.push({ id, level });
+  }
+  const races = hull.crewCounts?.length ? racesFromCounts(hull.id, hull.crewCounts, ctx, rand) : [];
+  const rooms = seated.rooms;
+  const stations = STATION.map((id) => `e-${id}`).filter((id) =>
+    rooms.some((room) => room.id === id),
+  );
+  const others = rooms.map((room) => room.id).filter((id) => !stations.includes(id));
+  const crew = races.map((race, i) => ({
+    kin: KIN_OF[race] ?? "human",
+    race,
+    room: stations[i] ?? others[(i - stations.length) % Math.max(1, others.length)] ?? rooms[0]!.id,
+  }));
+  const listed = weaponNames(hull);
+  const weaponLevel = systems.weapons?.[0] ?? 1;
+  const armed = listed
+    ? blueprintLoadout(hull, listed, weaponLevel, rand)
+    : { weapons: [] as string[], flags: { laser: true, hull: true } };
+  const spec: EnemySpec = {
+    classId: hull.id,
+    name: hull.name.trim() || hull.id,
+    pirate: false,
+    automated: crew.length === 0,
+    hull: hull.health != null && hull.health > 0 ? hull.health : 1,
+    systems,
+    kits,
+    unwired,
+    reactor,
+    rooms,
+    cols: seated.cols,
+    rows: seated.rows,
+    ...(seated.marks ? { marks: seated.marks } : {}),
+    weapons: armed.weapons,
+    missiles: hull.missiles,
+    crew,
+    boards: installed.some(([id]) => id === "teleporter"),
+    parts: hull.parts,
+    drones: [],
+    ...(hull.augments.length ? { augments: [...hull.augments] } : {}),
+  };
+  if (kits.drones) {
+    spec.drones = rollDrones(
+      hull.id,
+      kits.drones,
+      rand,
+      armed.flags.laser || armed.flags.hull,
+      droneNames(hull),
+    );
+  }
+  return spec;
 }

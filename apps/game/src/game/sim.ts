@@ -101,7 +101,7 @@ import {
   sectorTitle,
 } from "./sector-ids.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./pack/beams.ts";
-import type { WeaponBlueprint } from "@stl/pack";
+import type { ArchiveEnvironment, WeaponBlueprint } from "@stl/pack";
 import {
   allSectors,
   allWeapons,
@@ -278,7 +278,15 @@ import {
   questChoiceDisabled,
   questEvent,
 } from "./wiki/quests.ts";
-import { pickElite, pickEnemy, requestFor, rollEnemy } from "./enemy-gen.ts";
+import {
+  fightHull,
+  pickElite,
+  pickEnemy,
+  requestFor,
+  rollEnemy,
+  specFromHull,
+} from "./enemy-gen.ts";
+import { applyChoiceArchive, archiveSnap, showArchiveArrival } from "./archive-pay.ts";
 import { fightUnlock } from "./unlocks.ts"; // @agent:unlocks
 import type {
   Beacon,
@@ -1429,7 +1437,8 @@ export function sparePower(ship: Ship): number {
  * INFERRED: only the always-overtaken nebula case. The page does not say which other nebula beacons have a storm.
  */
 export function syncIonStorm(g: Game) {
-  const on = ionStormBeacon(hereBeacon(g), g);
+  // An event `<environment type="storm">` keeps the ion storm until the jump.
+  const on = ionStormBeacon(hereBeacon(g), g) || g.eventStorm === true;
   const was = !!g.player.storm;
   if (on) g.player.storm = true;
   else delete g.player.storm;
@@ -5392,9 +5401,10 @@ function environment(g: Game, dt: number) {
         // INFERRED: the page prints these two lines beside the hazard art. Which one is the
         // 15--20s warning is not stated. A hull already on the scope uses the fleet line.
         // Lanius fight with friendly ASB support: the ally line is INFERRED. The event does not print it.
+        const aim = g.asbAim ?? (friendlyAsb.has(g) ? "enemy" : "player");
         log(
           g,
-          friendlyAsb.has(g)
+          aim === "enemy"
             ? "The planetary battery is aiming at the other ship."
             : g.enemy
               ? "The Fleet's Anti-Ship Batteries are targeting you."
@@ -5405,9 +5415,13 @@ function environment(g: Game, dt: number) {
       } else {
         const asb = citedAsbShot();
         // Lanius fight with friendly ASB support: the same shot hits the other ship.
-        const helping = friendlyAsb.has(g) && !!g.enemy;
-        const hull = helping ? g.enemy : g.player;
-        if (hull) {
+        // `<environment type="PDS" target="all">` fires that shot at both hulls.
+        const aim = g.asbAim ?? (friendlyAsb.has(g) ? "enemy" : "player");
+        const sides: Array<"player" | "enemy"> =
+          aim === "all" ? ["player", "enemy"] : aim === "enemy" ? ["enemy"] : ["player"];
+        for (const at of sides) {
+          const hull = at === "enemy" ? g.enemy : g.player;
+          if (!hull) continue;
           g.shots.push({
             id: uid(g),
             kind: "missile",
@@ -5418,7 +5432,7 @@ function environment(g: Game, dt: number) {
             breachChance: asb.breachChance,
             // Environmental Hazards, Anti-Ship Batteries: "hitting a random room" (wiki/targeting.ts).
             targetRoom: randomRoom(g, hull),
-            ...(helping ? { at: "enemy" as const } : {}),
+            ...(at === "enemy" ? { at: "enemy" as const } : {}),
             wait: 0.15,
             t: 0,
             duration: 1.1,
@@ -5791,6 +5805,7 @@ function retireFlagship(g: Game) {
   g.shots = [];
   g.wreck = null;
   g.asb = false;
+  delete g.asbAim;
   g.pulsar = false;
   g.flare = false;
   g.boardTimer = 0;
@@ -5856,6 +5871,7 @@ function winCombat(g: Game) {
   g.shots = [];
   // Environmental Hazards, Asteroid Field: the rocks keep coming after the battle. A jump leaves the beacon.
   g.asb = false;
+  delete g.asbAim;
   g.pulsar = false;
   g.flare = false;
   g.boardTimer = 0;
@@ -6197,26 +6213,11 @@ function enemyCrew(g: Game, kin: string, race: string, roomId: string): Crew {
   };
 }
 
-/**
- * Every other fight: a documented class from the faction pages (enemy-gen.ts, wiki/enemy-ships.ts).
- * "elite" is a Rebel Elite (fleet-overtaken beacons). Any other tier string draws from the sector pool.
- */
-function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: Crew[] } {
-  // Cited event "second Rebel Flagship" (Rebel shipyard) is the flagship hull as well.
-  // @agent:flagship. Only the Last Stand fight resumes a remembered stage (wiki/flagship-systems.ts takeFlagshipMemo).
-  if (tier === "boss" || /flagship/i.test(tier)) return makeFlagship(g, tier === "boss");
-  const ctx = {
-    sector: g.sector,
-    sectorId: g.sectorId,
-    sectorName: g.sectorName,
-    difficulty: g.difficulty,
-  };
-  const r = () => rand(g);
-  const picked =
-    tier === "elite"
-      ? { cls: pickElite(r), pirate: false }
-      : pickEnemy(ctx, r, { ...requestFor(tier), event });
-  const spec = rollEnemy(picked.cls, picked.pirate, ctx, r);
+function shipFromSpec(
+  g: Game,
+  spec: ReturnType<typeof rollEnemy>,
+  faction: string | undefined,
+): { ship: Ship; crew: Crew[] } {
   const rooms = spec.rooms.map((x) => room(x));
   const shields = spec.systems.shields?.[1] ?? 0;
   const ship: Ship = {
@@ -6239,41 +6240,136 @@ function makeEnemy(g: Game, tier: string, event?: string): { ship: Ship; crew: C
     // @agent:drones. Enemy Ships, "Missile and drone stocks" (enemy-gen.ts enemyParts).
     parts: spec.parts ?? 0,
     classId: spec.classId,
-    faction: picked.cls.faction,
+    faction,
     pirate: spec.pirate,
     automated: spec.automated,
     unwired: spec.unwired,
     boards: spec.boards,
   };
   if (spec.marks) ship.doorMarks = spec.marks;
+  if (spec.augments?.length) ship.augments = [...spec.augments];
   // @agent:drones. Hidden drone loadout. extras/swarm.ts deploys it on the first combat tick.
   if (ship.kits.drones && spec.drones?.length) ship.kits.drones.loadout = [...spec.drones];
   const crew = spec.crew.map((c) => enemyCrew(g, c.kin, c.race, c.room));
-  citedEnemy(g, tier, ship, crew);
-  // Slug hacker (oxygen) and Slug hacker (doors): "Note: The enemy ship will have at least one Fire Beam or Fire Bomb."
-  // The page prints no odds between the two guns. INFERRED: equal, one rand(g). Under 0.5 is firebeam, otherwise cask.
-  // INFERRED: replace the first already-fitted gun's defId. A ship with no guns gets one via enemyGun.
-  if (
-    (event === "slug-hacker-oxygen" || event === "slug-hacker-doors") &&
-    !ship.weapons.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE")
-  ) {
-    const defId = rand(g) < 0.5 ? "BEAM_FIRE" : "BOMB_FIRE";
-    if (ship.weapons.length > 0) ship.weapons[0].defId = defId;
-    else ship.weapons.push(enemyGun(g, defId));
-  }
   return { ship, crew };
 }
 
-export function startCombat(g: Game, tier: string, asteroid = false, event?: string) {
+/**
+ * Every other fight: a documented class from the faction pages (enemy-gen.ts, wiki/enemy-ships.ts).
+ * "elite" is a Rebel Elite (fleet-overtaken beacons). Any other tier string draws from the sector pool.
+ * A tier that is a hull id, or an auto_blueprint list that draws a hull, builds that hull instead.
+ */
+function makeEnemy(
+  g: Game,
+  tier: string,
+  event?: string,
+  autoBlueprint?: string,
+): { ship: Ship; crew: Crew[] } {
+  // Cited event "second Rebel Flagship" (Rebel shipyard) is the flagship hull as well.
+  // @agent:flagship. Only the Last Stand fight resumes a remembered stage (wiki/flagship-systems.ts takeFlagshipMemo).
+  if (tier === "boss" || /flagship/i.test(tier)) return makeFlagship(g, tier === "boss");
+  const ctx = {
+    sector: g.sector,
+    sectorId: g.sectorId,
+    sectorName: g.sectorName,
+    difficulty: g.difficulty,
+  };
+  const r = () => rand(g);
+  const hull = fightHull(tier, autoBlueprint, r);
+  if (hull) {
+    const built = shipFromSpec(g, specFromHull(hull, ctx, r), undefined);
+    citedEnemy(g, tier, built.ship, built.crew);
+    return built;
+  }
+  const picked =
+    tier === "elite"
+      ? { cls: pickElite(r), pirate: false }
+      : pickEnemy(ctx, r, { ...requestFor(tier), event });
+  const spec = rollEnemy(picked.cls, picked.pirate, ctx, r);
+  const built = shipFromSpec(g, spec, picked.cls.faction);
+  citedEnemy(g, tier, built.ship, built.crew);
+  // Slug hacker (oxygen) and Slug hacker (doors): "Note: The enemy ship will have at least one Fire Beam or Fire Bomb."
+  // The page prints no odds between the two guns. INFERRED: equal, one rand(g). Under 0.5 is firebeam, otherwise cask.
+  // INFERRED: replace the first already-fitted gun's defId. A ship with no guns gets one via enemyGun.
+  // An explicit hull keeps the guns its blueprint named.
+  if (
+    (event === "slug-hacker-oxygen" || event === "slug-hacker-doors") &&
+    !built.ship.weapons.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE")
+  ) {
+    const defId = rand(g) < 0.5 ? "BEAM_FIRE" : "BOMB_FIRE";
+    if (built.ship.weapons.length > 0) built.ship.weapons[0].defId = defId;
+    else built.ship.weapons.push(enemyGun(g, defId));
+  }
+  return built;
+}
+
+/**
+ * Plays `<environment>` on the event already open.
+ * Asteroid, pulsar, sun, and PDS arm the fight clocks. Storm halves the reactor until the jump.
+ * Nebula slows a later wait. A clock this fight already armed is left running.
+ */
+export function armEventEnvironment(g: Game, env: ArchiveEnvironment | undefined): void {
+  if (!env) return;
+  if (env.type === "asteroid") {
+    if (g.asteroid) return;
+    g.asteroid = true;
+    g.asteroidT = 0;
+    g.asteroidWait = 0;
+    g.asteroidEnemyNext = false;
+    delete g.asteroidPhase;
+    delete g.asteroidPhaseLeft;
+    armAsteroid(g);
+    return;
+  }
+  if (env.type === "pulsar") {
+    if (g.pulsar) return;
+    g.pulsar = true;
+    g.pulsarT = 0;
+    g.pulsarWarned = false;
+    g.pulsarWait = 0;
+    armPulsar(g);
+    return;
+  }
+  if (env.type === "sun") {
+    if (g.flare) return;
+    g.flare = true;
+    g.flareT = 0;
+    g.flareWarned = false;
+    g.flareWait = 0;
+    armFlare(g);
+    return;
+  }
+  if (env.type === "PDS") {
+    g.asbAim = env.target ?? "player";
+    g.asb = true;
+    if (!(g.asbWait > 0)) armAsbClock(g, "warn");
+    return;
+  }
+  if (env.type === "storm") {
+    g.eventStorm = true;
+    syncIonStorm(g);
+    return;
+  }
+  if (env.type === "nebula") g.eventNebula = true;
+}
+
+export function startCombat(
+  g: Game,
+  tier: string,
+  asteroid = false,
+  event?: string,
+  autoBlueprint?: string,
+) {
   // A later fight does not keep the pirate's engine cap. The choice sets it again after this returns.
   clearEngineLimit(g);
   // A later fight does not keep the shield-virus half. The choice sets it again after this returns.
   clearShieldHalf(g);
   clearSystemOff(g);
   clearFriendlyAsb(g);
+  delete g.asbAim;
   // Mind Control, Overview: a bomb that lands opens that room. INFERRED: the next fight starts with those rooms closed.
   clearBombSight(g);
-  const built = makeEnemy(g, tier, event);
+  const built = makeEnemy(g, tier, event, autoBlueprint);
   // Enemy Ships, "Surrenders and escape attempts": who runs, when, and for how long. See wiki/escape.ts.
   g.enemyEscape = escapePlan(
     { tier, event, lastFuel: g.fuel <= 0, faction: built.ship.faction, pirate: built.ship.pirate },
@@ -6395,6 +6491,7 @@ function enemyAboard(g: Game): boolean {
  */
 export function beginBoarding(g: Game, asb = false, flare = false) {
   if (!enemyAboard(g)) return;
+  delete g.asbAim;
   g.enemy = null;
   g.shots = [];
   g.phase = "combat";
@@ -7066,6 +7163,9 @@ export function commitJump(g: Game, id: string) {
   g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c));
   g.asteroid = false;
   g.asb = false;
+  delete g.asbAim;
+  delete g.eventNebula;
+  delete g.eventStorm;
   g.pulsar = false;
   g.flare = false;
   armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
@@ -7194,14 +7294,8 @@ function arrive(g: Game, b: Beacon) {
   g.phase = "event";
   g.paused = true;
   g.event = eventFor(g, b);
-  // A ftl.dat page with a hostile <ship> and no choice is a fight. Its text is the hail.
-  const page = eventDef(b.flag.replace(/^filler:/, ""));
-  if (page?.ship?.hostile && page.choices.length === 0 && !g.enemy) {
-    if (g.event?.body) log(g, g.event.body);
-    g.event = null;
-    startCombat(g, b.tier || "pool", false);
-    return;
-  }
+  // An archive page's hostile ship, boarders, grants, and reward. A page without them is unchanged.
+  if (showArchiveArrival(g, b.flag)) return;
   // These pages have no choice. The red line is the outcome, not a button.
   // Boarders: Humans (Abandoned): "3-4 human boarders beam aboard your ship".
   // Boarders: Crystal: "2-3 crystal boarders beam aboard your ship."
@@ -7645,16 +7739,17 @@ export function choose(g: Game, id: string) {
     default:
       if (citedOwns(id)) {
         // A price the ship cannot pay leaves the panel open. An unknown id is not this branch.
+        const before = archiveSnap(g);
         const applied = citedChoose(
           {
             g,
             resolve,
-            fight: (tier, asteroid, slug) => {
+            fight: (tier, asteroid, slug, autoBlueprint) => {
               g.event = null;
               // The event page that started the fight picks the escape rule (wiki/escape.ts).
               // A passed slug is that page's own fight (repair caps, the sealed store ship, a fuel timer).
               const event = slug ?? eventSlugOf(id);
-              startCombat(g, tier, asteroid, event);
+              startCombat(g, tier, asteroid, event, autoBlueprint);
               const capId = slug ? `c:${slug}:fight` : id;
               const here = g.beacons.find((x) => x.id === g.here);
               // Slug repair station, Trivia: a return visit drops the malfunction. The reward table stays.
@@ -7696,6 +7791,8 @@ export function choose(g: Game, id: string) {
         );
         // @agent:quests. A choice whose page adds a quest marker (wiki/quests.ts questAfterCited).
         if (applied) questAfterCited(g, id);
+        // Archive fields on the same result. A handler that already fought, paid, or beamed skips them.
+        if (applied) applyChoiceArchive(g, id, before);
         break;
       }
       resolve();
@@ -7766,10 +7863,14 @@ export function enterHiddenCrystal(g: Game) {
   g.shots = [];
   g.asteroid = false;
   g.asb = false;
+  delete g.asbAim;
+  delete g.eventNebula;
+  delete g.eventStorm;
   g.pulsar = false;
   g.flare = false;
   armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
   makeMap(g);
+  syncIonStorm(g);
   enterSector(g, CRYSTAL_SECTOR);
   stampEngiCache(g);
   stampCitedEvents(g);
@@ -7930,7 +8031,8 @@ export function waitHere(g: Game) {
   // Stores, "Fuel": waiting advances the rebels like a jump, slower in a nebula.
   const wasPast = !!b && overtaken(g, b);
   if ((g.buoyDelay ?? 0) > 0) g.buoyDelay -= 1;
-  else g.fleet += pursuit(g, b ? citedFleetAdvance(g, b) : 1);
+  // `<environment type="nebula">` slows this wait the same way a nebula beacon does.
+  else g.fleet += pursuit(g, b ? citedFleetAdvance(g, g.eventNebula ? { kind: "nebula" } : b) : 1);
   // Environmental Hazards, Anti-Ship Battery: waiting out of fuel when the fleet overtakes a nebula removes that environment.
   // A fueled wait keeps the ion storm. A jump is a different path and does not clear it.
   if (b && !wasPast && overtaken(g, b) && g.fuel <= 0 && b.kind === "nebula") b.cleared = true;
@@ -8124,6 +8226,7 @@ function tickBoarding(g: Game, dt: number) {
   g.crew = g.crew.filter((c) => c.side === "player" || (c.cloneIn ?? 0) > 0);
   g.shots = [];
   g.asb = false;
+  delete g.asbAim;
   g.phase = "map";
   // The same sentence: with the boarders gone, only a remaining hazard keeps the clock.
   // Asteroid Field stays until the jump. A sun or a pulsar can too. No hazard charges instantly.
@@ -8300,6 +8403,7 @@ export function step(g: Game, dt: number) {
     g.phase = "map";
     // Environmental Hazards, Asteroid Field: an escape does not stop the field. A jump does.
     g.asb = false;
+    delete g.asbAim;
     g.pulsar = false;
     g.flare = false;
     // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).

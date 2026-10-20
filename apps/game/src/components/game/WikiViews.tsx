@@ -1,6 +1,6 @@
 import { Kicker } from "@stl/ui";
 import { useEffect, useState } from "react";
-import { ACHIEVEMENTS } from "@/game/wiki/achievements";
+import { allAchievements, hullDef } from "@stl/pack";
 import { earnedIds, isTracked, noteRun } from "@/game/wiki/achievement-track";
 import { lifetimeOf } from "@/game/wiki/achieve-notes";
 import { HULLS } from "@/game/hulls";
@@ -22,54 +22,62 @@ import { AchievementIcon } from "./AchievementIcon";
 import "./stats.css";
 
 const GENERAL = [
-  "just-getting-started",
-  "federation-base-in-range",
-  "federation-victory-easy",
-  "federation-victory-normal",
-  "your-own-fleet",
-  "rule-ten-greed-is-eternal",
-  "warlord",
+  "ACH_SECTOR_5",
+  "ACH_SECTOR_8",
+  "ACH_WIN_EASY",
+  "ACH_WIN_NORMAL",
+  "ACH_UNLOCK_ALL",
+  "ACH_SCRAP",
+  "ACH_SHIPS",
 ];
 const DISTANCE = [
-  "coming-in-for-my-pacifism-run",
-  "i-dont-need-no-stinkin-upgrades",
-  "on-a-wing-and-a-prayer",
-  "ballistophobia",
-  "technophobia",
-  "living-off-the-land",
-  "no-redshirts-here",
+  "ACH_PACIFIST",
+  "ACH_NO_UPGRADES",
+  "ACH_NO_REPAIR",
+  "ACH_NO_MISSILES",
+  "ACH_NO_DRONES",
+  "ACH_NO_BUYING",
+  "ACH_NO_DEATH",
 ];
 
-const ACH_GROUPS: { title: string; ids: string[] }[] = [
-  { title: "General Progression", ids: GENERAL },
-  { title: "Going the Distance", ids: DISTANCE },
-  {
-    title: "Skill and Equipment Feats",
-    ids: ACHIEVEMENTS.filter(
-      (row) => !row.ship && !GENERAL.includes(row.id) && !DISTANCE.includes(row.id),
-    ).map((row) => row.id),
-  },
-];
+/** The three Achievements categories, over the loaded archive's achievements. */
+function achGroups(): { title: string; ids: string[] }[] {
+  return [
+    { title: "General Progression", ids: GENERAL },
+    { title: "Going the Distance", ids: DISTANCE },
+    {
+      title: "Skill and Equipment Feats",
+      ids: allAchievements()
+        .filter((row) => !row.ship && !GENERAL.includes(row.id) && !DISTANCE.includes(row.id))
+        .map((row) => row.id),
+    },
+  ];
+}
 
 /**
  * Ship Achievements lists three names under each cruiser heading.
  * INFERRED: those names are on this screen, under the three Achievements categories.
  * The Achievements page does not put them in those categories, and this does not lock a layout.
+ * The heading is the ship blueprint's class.
  */
-const SHIP_GROUPS: { title: string; ids: string[] }[] = [];
-for (const row of ACHIEVEMENTS) {
-  if (!row.ship) continue;
-  let group = SHIP_GROUPS.find((item) => item.title === row.ship);
-  if (!group) {
-    group = { title: row.ship, ids: [] };
-    SHIP_GROUPS.push(group);
+function shipGroups(): { title: string; ids: string[] }[] {
+  const groups: { title: string; ids: string[] }[] = [];
+  for (const row of allAchievements()) {
+    if (!row.ship) continue;
+    const title = hullDef(row.ship)?.cruiser || row.ship;
+    let group = groups.find((item) => item.title === title);
+    if (!group) {
+      group = { title, ids: [] };
+      groups.push(group);
+    }
+    group.ids.push(row.id);
   }
-  group.ids.push(row.id);
+  return groups;
 }
 
 function rows(ids: string[]) {
   return ids.flatMap((id) => {
-    const row = ACHIEVEMENTS.find((item) => item.id === id);
+    const row = allAchievements().find((item) => item.id === id);
     return row ? [row] : [];
   });
 }
@@ -142,8 +150,8 @@ export function AchievementsScreen({ game, onClose }: { game: Game | null; onClo
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, [onClose]);
-  const total = ACHIEVEMENTS.length;
-  const got = ACHIEVEMENTS.filter((row) => earned.includes(row.id)).length;
+  const total = allAchievements().length;
+  const got = allAchievements().filter((row) => earned.includes(row.id)).length;
   const typeA = HULLS.filter((hull) => hull.layout === "A");
   const shipsOpen = HULLS.filter((hull) => isUnlockedIn(unlocks, hull.id)).length;
   const tabs: [StatsTab, string, string][] = [
@@ -270,7 +278,7 @@ export function AchievementsScreen({ game, onClose }: { game: Game | null; onClo
                 </button>
               ))}
             </div>
-            {[...ACH_GROUPS, ...SHIP_GROUPS].map((group) => {
+            {[...achGroups(), ...shipGroups()].map((group) => {
               const list = shown(group.ids);
               if (!list.length) return null;
               const have = group.ids.filter((id) => earned.includes(id)).length;
@@ -286,7 +294,7 @@ export function AchievementsScreen({ game, onClose }: { game: Game | null; onClo
                 </section>
               );
             })}
-            {ACHIEVEMENTS.every((row) => !shown([row.id]).length) ? (
+            {allAchievements().every((row) => !shown([row.id]).length) ? (
               <p className="stats-empty">
                 {filter === "earned"
                   ? "No achievements earned yet."
@@ -304,7 +312,7 @@ export function AchievementsScreen({ game, onClose }: { game: Game | null; onClo
 }
 
 function achName(id: string): string {
-  return ACHIEVEMENTS.find((row) => row.id === id)?.name ?? id;
+  return allAchievements().find((row) => row.id === id)?.name ?? id;
 }
 
 function StatTile({
@@ -349,7 +357,7 @@ function AchievementCards({ ids, earned }: { ids: string[]; earned: string[] }) 
           <article key={row.id} className={on ? "ach-card is-earned" : "ach-card"}>
             <AchievementIcon id={row.id} earned={on} size={48} />
             <b className="ach-card-name">{row.name}</b>
-            <p className="ach-card-text">{row.requirement}</p>
+            <p className="ach-card-text">{row.desc}</p>
             <span className="ach-card-tag">
               {on ? "Earned" : isTracked(row.id) ? "Locked" : "Not tracked yet"}
             </span>
@@ -430,7 +438,7 @@ function ShipBest({
                 {shipAchievements(cruiser).map((id) => (
                   <span
                     key={id}
-                    title={`${achName(id)}: ${ACHIEVEMENTS.find((row) => row.id === id)?.requirement ?? ""}`}
+                    title={`${achName(id)}: ${allAchievements().find((row) => row.id === id)?.desc ?? ""}`}
                   >
                     <AchievementIcon id={id} earned={earned.includes(id)} size={30} />
                   </span>

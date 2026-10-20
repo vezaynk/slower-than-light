@@ -16,6 +16,7 @@ import {
   readSounds,
 } from "@stl/pack";
 import {
+  standInAchievementsXml,
   standInDat,
   standInImages,
   standInSectorsXml,
@@ -65,7 +66,7 @@ describe("totallynotftl.dat", () => {
     const extracted = await extractFtlDat(built);
     const pictures = hullPictureFiles();
     const media = await standInMedia();
-    assert.equal(extracted.documents.length, 4 + pictures.length + media.documents.length);
+    assert.equal(extracted.documents.length, 5 + pictures.length + media.documents.length);
     assert.equal(extracted.documents[0]?.path, "data/stand-in.xml");
     assert.equal(extracted.documents[0]?.xml, goldenXml);
     // Ships are ftl.dat blueprints, as a real archive writes them; the stand-in document carries none.
@@ -73,6 +74,10 @@ describe("totallynotftl.dat", () => {
     assert.equal(extracted.documents[1]?.xml, standInShipsXml());
     assert.equal(extracted.documents[2]?.path, "data/sector_data.xml");
     assert.equal(extracted.documents[2]?.xml, standInSectorsXml());
+    // Achievements are ftl.dat's data/achievements.xml; when each is earned is the gap mod's.
+    assert.equal(extracted.documents[3]?.path, "data/achievements.xml");
+    assert.equal(extracted.documents[3]?.xml, standInAchievementsXml());
+    assert.equal(standInAchievementsXml().includes("<condition"), false);
     assert.equal(xml.includes("<sectorDescription"), false);
     assert.equal(xml.includes("<shipBlueprint"), false);
     assert.equal(
@@ -206,6 +211,7 @@ describe("totallynotftl.dat", () => {
     );
     const merged = packFromExtract(applyFtlMod(await extractFtlDat(await standInDat()), gap));
     assert.deepEqual(merged.crew, pack.crew);
+    assert.deepEqual(merged.achievements, pack.achievements);
     assert.deepEqual(merged.weapons, pack.weapons);
     assert.deepEqual(merged.augments, pack.augments);
     assert.deepEqual(merged.drones, pack.drones);

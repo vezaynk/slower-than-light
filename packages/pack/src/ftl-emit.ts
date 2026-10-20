@@ -6,7 +6,7 @@ import {
 } from "@xmldom/xmldom";
 import { appendFtlListings, type FtlListings } from "./emit.ts";
 import { prettyXml } from "./format.ts";
-import type { CrewDef, HullDef, SectorDef } from "./types.ts";
+import type { AchievementDef, CrewDef, HullDef, SectorDef } from "./types.ts";
 
 /**
  * Writes ship blueprints the way ftl.dat's data/blueprints.xml does, so packFromFtl reads the stand-in with the same
@@ -163,4 +163,24 @@ function sectorElement(doc: XmlDocument, sector: SectorDef): XmlElement {
     node.appendChild(list);
   }
   return node;
+}
+
+/**
+ * Writes achievements the way ftl.dat's data/achievements.xml does: id, name, description, image, multiDifficulty, and
+ * the ship an achievement belongs to. Conditions are not ftl.dat data; the gap mod adds them.
+ */
+export function emitFtlAchievements(rows: readonly AchievementDef[]): string {
+  const doc = new DOMImplementation().createDocument(null, "FTL", null);
+  const root = doc.documentElement;
+  if (!root) throw new Error("could not create the FTL root");
+  for (const row of rows) {
+    const node = element(doc, "achievement", { id: row.id });
+    node.appendChild(leaf(doc, "name", row.name));
+    node.appendChild(leaf(doc, "desc", row.desc));
+    if (row.img) node.appendChild(leaf(doc, "img", row.img));
+    if (row.multiDifficulty) node.appendChild(leaf(doc, "multiDifficulty", 1));
+    if (row.ship) node.appendChild(leaf(doc, "ship", row.ship));
+    root.appendChild(node);
+  }
+  return prettyXml(new XMLSerializer().serializeToString(doc));
 }

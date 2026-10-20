@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { ACH_ICON_ROWS, ACH_ICON_SIZE } from "./achievement-icons.ts";
-import { ACHIEVEMENTS } from "./wiki/achievements.ts";
+import { ACHIEVEMENTS } from "@stl/catalog/src/wiki/achievements.ts";
 
 describe("achievement icons", () => {
   it("draw every achievement, and nothing else", () => {

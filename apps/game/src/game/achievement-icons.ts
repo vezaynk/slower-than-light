@@ -7,7 +7,7 @@ export const ACH_ICON_SIZE = 16;
 
 export const ACH_ICON_ROWS: Record<string, string[]> = {
   // "Get to sector 5." A rocket on its way out.
-  "just-getting-started": [
+  ACH_SECTOR_5: [
     ".......##.......",
     "......####......",
     "......#**#......",
@@ -26,7 +26,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     ".......+........",
   ],
   // "Get to sector 8." The Federation base, in sensor range.
-  "federation-base-in-range": [
+  ACH_SECTOR_8: [
     "....+......+....",
     ".....+.##.+.....",
     "......+##+......",
@@ -45,7 +45,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Beat the boss on Easy." A medal with one star.
-  "federation-victory-easy": [
+  ACH_WIN_EASY: [
     "..##........##..",
     "..+##......##+..",
     "...+##....##+...",
@@ -64,7 +64,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Beat the boss on Normal." The trophy.
-  "federation-victory-normal": [
+  ACH_WIN_NORMAL: [
     "...##########...",
     "##.##******##.##",
     "#..##**##**##..#",
@@ -83,7 +83,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "....########....",
   ],
   // "Unlock the Type A layout for every playable ship." Three hulls in formation.
-  "your-own-fleet": [
+  ACH_UNLOCK_ALL: [
     "................",
     "......##........",
     "......####......",
@@ -102,7 +102,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Collect 10,000 scrap across all games." A heap of scrap coins.
-  "rule-ten-greed-is-eternal": [
+  ACH_SCRAP: [
     "...........*....",
     "..........***...",
     "...........*....",
@@ -121,7 +121,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Defeat 1000 ships across all playthroughs." The warlord's skull.
-  warlord: [
+  ACH_SHIPS: [
     "................",
     ".....######.....",
     "...##########...",
@@ -140,7 +140,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...without firing a shot, using an offensive drone, or teleporting." A peace sign.
-  "coming-in-for-my-pacifism-run": [
+  ACH_PACIFIST: [
     ".....######.....",
     "...##..##..##...",
     "..#....##....#..",
@@ -159,7 +159,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...with no system/reactor upgrades." The upgrade arrow, barred.
-  "i-dont-need-no-stinkin-upgrades": [
+  ACH_NO_UPGRADES: [
     ".....######.....",
     "...##......##...",
     "..#....++....#..",
@@ -178,7 +178,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     ".....######.....",
   ],
   // "...without repairing at a store." One wing.
-  "on-a-wing-and-a-prayer": [
+  ACH_NO_REPAIR: [
     "................",
     "..............##",
     "...........#####",
@@ -197,7 +197,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...without using missiles/bombs." A missile, barred.
-  ballistophobia: [
+  ACH_NO_MISSILES: [
     ".....######.....",
     "...##......##...",
     "..#..........#..",
@@ -216,7 +216,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     ".....######.....",
   ],
   // "...without using drones." A drone, barred.
-  technophobia: [
+  ACH_NO_DRONES: [
     ".....######.....",
     "...##......##...",
     "..#...+..+...#..",
@@ -235,7 +235,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     ".....######.....",
   ],
   // "...without buying at a store." A sprout.
-  "living-off-the-land": [
+  ACH_NO_BUYING: [
     "................",
     "..........####..",
     "........######..",
@@ -254,7 +254,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...without losing a crewmember." The uniform shirt.
-  "no-redshirts-here": [
+  ACH_NO_DEATH: [
     "................",
     "....###..###....",
     "..####*##*####..",
@@ -273,7 +273,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Have every square of an enemy ship on fire simultaneously." A flame.
-  "some-people-just-like-to-watch-ships-burn": [
+  ACH_BURNING: [
     ".......#........",
     ".......##.......",
     "......###.......",
@@ -292,7 +292,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Fail to evade 5 shots in a row..." Two dice.
-  "astronomically-low-odds": [
+  ACH_BAD_DODGING: [
     "................",
     ".#######........",
     ".#######........",
@@ -311,7 +311,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Have a single boarding drone kill 4 crewmembers on one ship." The pod and four tallies.
-  "boarding-objective-successful": [
+  ACH_BOARDING_DRONE: [
     "................",
     "....##..........",
     "...####.........",
@@ -330,7 +330,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "..........*.*.*.",
   ],
   // "Use the Weapon Pre-Igniter... before the enemy can get a single shot off." A lightning strike.
-  "they-never-saw-it-coming": [
+  ACH_ONE_VOLLEY: [
     ".........#####..",
     "........#####...",
     ".......#####....",
@@ -349,7 +349,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Defeat an enemy ship with all of your crew aboard it." The helm wheel, left to itself.
-  "trustworthy-auto-pilot": [
+  ACH_INVADE_SHIP: [
     ".......##.......",
     ".......##.......",
     ".##..######..##.",
@@ -368,7 +368,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     ".......##.......",
   ],
   // "Hit every room of a ship with at least one beam in under 5 seconds." A beam cut across the rooms.
-  "slice-and-dice": [
+  ACH_SLICE_DICE: [
     "*...............",
     ".**.............",
     "..**############",
@@ -387,7 +387,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Empty the oxygen (Net level less than 5 percent)..." The O2 gauge, on empty.
-  "victory-through-asphyxiation": [
+  ACH_SUFFOCATE: [
     "..........++....",
     ".........+..+...",
     ".........+..+...",
@@ -406,7 +406,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "..#####.........",
   ],
   // "Have six unique aliens on the Kestrel Cruiser simultaneously." Six around one hull.
-  "the-united-federation": [
+  ACH_UNITED_FEDERATION: [
     "......####......",
     "......####......",
     ".##...####...##.",
@@ -425,7 +425,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "......####......",
   ],
   // "Have eleven systems installed on the Kestrel Cruiser at one time." Eleven of twelve slots lit.
-  "full-arsenal": [
+  ACH_FULL_ARSENAL: [
     "................",
     ".###.###.###.###",
     ".#*#.#*#.#*#.#*#",
@@ -444,7 +444,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...repair back to full health when it only has 1 HP remaining." A heart, mended.
-  "tough-little-ship": [
+  ACH_TOUGH_SHIP: [
     "................",
     "..####....####..",
     ".######..######.",
@@ -463,7 +463,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Destroy a ship at full health during a single cloak." The bird of prey.
-  "bird-of-prey": [
+  ACH_STEALTH_DESTROY: [
     "................",
     "................",
     "#..............#",
@@ -482,7 +482,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...avoid 9 points of damage during a single cloak." A hull and its cloaked ghost.
-  "phase-shift": [
+  ACH_STEALTH_AVOID: [
     "................",
     "+++++++.........",
     "+++++++++.......",
@@ -501,7 +501,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...get to sector 8 without jumping to a beacon with an environmental danger." The route around the hazard.
-  "tactical-approach": [
+  ACH_STEALTH_TACTICAL: [
     "............##..",
     "...........####.",
     "............##..",
@@ -520,7 +520,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     ".............##.",
   ],
   // "Kill the crew of 20 ships by sector 6 in the Mantis Cruiser." Crossed blades.
-  "take-no-prisoners": [
+  ACH_MANTIS_CREW_DEAD: [
     "##............##",
     "###..........###",
     ".###........###.",
@@ -539,7 +539,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Kill 5 enemy crew in a fight without taking hull damage..." The pirate hat.
-  "avast-ye-scurvy-dogs": [
+  ACH_MANTIS_SLAUGHTER: [
     "................",
     "................",
     "......####......",
@@ -558,7 +558,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...kill the last enemy with your last crew member on their ship." The last one standing wears the crown.
-  "battle-royale": [
+  ACH_MANTIS_SURVIVOR: [
     "................",
     "................",
     "*......*.......*",
@@ -577,7 +577,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "With the Engi Cruiser, have 3 drones functioning at the same time." The robot.
-  "robotic-warfare": [
+  ACH_ROBOTIC: [
     ".......*........",
     ".......#........",
     "....#######.....",
@@ -596,7 +596,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...destroy an enemy ship using only drones." A hand, one finger up.
-  "i-hardly-lifted-a-finger": [
+  ACH_ONLY_DRONES: [
     "......##........",
     ".....#**#.......",
     ".....#**#.......",
@@ -615,7 +615,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Have 4 enemy systems or subsystems ioned at the same time..." A gun, ion sparks on it.
-  "the-guns-theyve-stopped": [
+  ACH_IONED: [
     "..*...*.........",
     "...*.*..........",
     ".*..*..*........",
@@ -634,7 +634,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Use only the Artillery Beam to destroy an enemy ship while taking no hull damage." The hourglass.
-  "master-of-patience": [
+  ACH_FED_PATIENCE: [
     "..############..",
     "...##########...",
     "...#++++++++#...",
@@ -653,7 +653,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...use your crew in four special blue events by sector 5." A sealed letter of passage.
-  "diplomatic-immunity": [
+  ACH_FED_DIPLOMACY: [
     "................",
     "..############..",
     ".#++++++++++++#.",
@@ -672,7 +672,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "..........*...*.",
   ],
   // "...without upgrading your weapons system." The artillery cannon, firing.
-  "artillery-mastery": [
+  ACH_FED_UPGRADE: [
     "................",
     "...........*....",
     "..........*.....",
@@ -691,7 +691,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...have vision of every room on the enemy ship without functioning sensors." The eye.
-  "were-in-position": [
+  ACH_SLUG_VISION: [
     "................",
     "................",
     "................",
@@ -710,7 +710,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Jump to 30 nebula locations before sector 8." Home, in a nebula haze.
-  "home-sweet-home": [
+  ACH_SLUG_NEBULA: [
     "+++.........++++",
     "++.....##....+++",
     "+.....####.....+",
@@ -729,7 +729,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "+++++....+++++++",
   ],
   // "...kill 3 enemy crew members with one shot from the Anti-Bio Beam." The ray gun.
-  "disintegration-ray": [
+  ACH_SLUG_BIO: [
     "................",
     "................",
     "................",
@@ -748,7 +748,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Have your crew kill a burning enemy on their ship..." The thermometer.
-  "is-it-warm-in-here": [
+  ACH_ROCK_FIRE: [
     "......###.......",
     ".....#...#.###..",
     ".....#.*.#......",
@@ -767,7 +767,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...destroy an enemy ship which has a defense drone deployed using only missiles." A defense drone, cracked.
-  "defense-drones-dont-do-danything": [
+  ACH_ROCK_MISSILES: [
     "*...............",
     ".**.............",
     ".***...######...",
@@ -786,7 +786,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Find the secret sector with the Rock Cruiser." The crystal the rock people came from.
-  ancestry: [
+  ACH_ROCK_CRYSTAL: [
     "................",
     "....########....",
     "...#*#****#*#...",
@@ -805,7 +805,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Destroy a ship before it gets through the Zoltan Shield." A ship inside its bubble.
-  "shields-holding": [
+  ACH_ENERGY_SHIELDS: [
     "....++++++++....",
     "..++........++..",
     ".+............+.",
@@ -824,7 +824,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...have 29 power in systems at the same time." Every power bar lit.
-  "givin-her-all-shes-got-captain": [
+  ACH_ENERGY_POWER: [
     "..............**",
     "..............**",
     "...........**.**",
@@ -843,7 +843,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Get to sector 5 without upgrading your reactor..." Crew muscle instead: the dumbbell.
-  manpower: [
+  ACH_ENERGY_MANPOWER: [
     "................",
     "................",
     "................",
@@ -862,7 +862,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Destroy an enemy ship with a shard from the Crystal Vengeance augment." Shards flying out.
-  "sweet-revenge": [
+  ACH_CRYSTAL_SHARD: [
     "*.......*......*",
     ".**.....*.....*.",
     ".***....*....**.",
@@ -881,7 +881,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "...trap 4 enemy crew inside a single room..." A locked cell.
-  "no-escape": [
+  ACH_CRYSTAL_LOCKDOWN: [
     "################",
     "#..#..#..#..#..#",
     "#..#..#..#..#..#",
@@ -900,7 +900,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Destroy 10 Rock ships using the Crystal Cruiser." Rock meets crystal.
-  "clash-of-the-titans": [
+  ACH_CRYSTAL_CLASH: [
     "................",
     "......*.........",
     "....*.*.*.......",
@@ -919,7 +919,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Have Hacking, Mind Control and the Battery all active at once." The brain.
-  "advanced-mastery": [
+  ACH_LANIUS_ADVANCED: [
     "................",
     "....###..###....",
     "..####*##*####..",
@@ -938,7 +938,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Have at least 600 scrap in your ship storage." The treasure chest.
-  "scrap-hoarder": [
+  ACH_LANIUS_SCRAP: [
     "................",
     "...*..*...*.....",
     "..*.*.**.*.*....",
@@ -957,7 +957,7 @@ export const ACH_ICON_ROWS: Record<string, string[]> = {
     "................",
   ],
   // "Get to sector 8 without your ship's net oxygen levels exceeding 20 percent." An open airlock venting.
-  "loss-of-cabin-pressure": [
+  ACH_LANIUS_OXYGEN: [
     "#######.........",
     "#+++++#..+......",
     "#+###+#...+.....",

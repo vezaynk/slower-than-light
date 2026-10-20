@@ -6,6 +6,7 @@ import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "../wiki/cited-rock-fire.ts";
 import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import { SECTOR_TYPES, type SectorType } from "../wiki/sectors.ts";
+import { ACHIEVEMENTS, type AchievementRow } from "../wiki/achievements.ts";
 import { STORES } from "../wiki/store-catalog.ts";
 import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import { citedEventRecords } from "../wiki/event-catalog.ts";
@@ -37,6 +38,7 @@ import { standInSheet } from "../ship-art.ts";
 import { mountsFor } from "../weapon-mounts.ts";
 import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
+  AchievementDef,
   AugmentDef,
   ChoiceGift,
   ChoiceReq,
@@ -119,6 +121,15 @@ function sectorRow(row: SectorType): SectorDef {
   };
   if (track) sector.tracks = [track];
   return sector;
+}
+
+/** An achievement as data/achievements.xml carries it, with the gap mod's condition. The old slug stays off. */
+function achievementRow(row: AchievementRow): AchievementDef {
+  const def: AchievementDef = { id: row.id, name: row.name, desc: row.desc };
+  if (row.ship) def.ship = row.ship;
+  if (row.multiDifficulty) def.multiDifficulty = true;
+  if (row.condition) def.condition = structuredClone(row.condition);
+  return def;
 }
 
 function storeRow(row: StoreDef): StoreDef {
@@ -747,6 +758,7 @@ export function loadCatalog(): void {
         ),
       ],
       sectors: SECTOR_TYPES.map(sectorRow),
+      achievements: ACHIEVEMENTS.map(achievementRow),
       stores: STORES.map(storeRow),
       tunes: SYSTEM_TUNES.map(tuneRow),
       rewards: REWARD_TABLE,

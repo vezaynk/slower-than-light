@@ -9,6 +9,8 @@ import type {
   ContentPack,
   CrewDef,
   DroneDef,
+  AchievementCondition,
+  AchievementDef,
   EmptyBeaconDef,
   EventCard,
   EventChoice,
@@ -50,6 +52,7 @@ const lists = new Map<string, FillerListDef>();
 const blueprints = new Map<string, BlueprintListDef>();
 const textLists = new Map<string, TextListDef>();
 const empties = new Map<string, EmptyBeaconDef>();
+const achievements = new Map<string, AchievementDef>();
 const factions = new Map<string, FactionSurrender>();
 let reward: RewardTable | undefined;
 let baseReward: RewardTable | undefined;
@@ -67,6 +70,7 @@ let baseLists: FillerListDef[] = [];
 let baseBlueprints: BlueprintListDef[] = [];
 let baseTextLists: TextListDef[] = [];
 let baseEmpties: EmptyBeaconDef[] = [];
+let baseAchievements: AchievementDef[] = [];
 let baseFactions: FactionSurrender[] = [];
 
 function copyCrew(row: CrewDef): CrewDef {
@@ -248,6 +252,19 @@ function copyList(row: FillerListDef): FillerListDef {
       return copy;
     }),
   };
+}
+
+function copyCondition(row: AchievementCondition): AchievementCondition {
+  if ("all" in row) return { all: row.all.map(copyCondition) };
+  if ("any" in row) return { any: row.any.map(copyCondition) };
+  if ("not" in row) return { not: copyCondition(row.not) };
+  return { ...row };
+}
+
+function copyAchievement(row: AchievementDef): AchievementDef {
+  const copy: AchievementDef = { ...row };
+  if (row.condition) copy.condition = copyCondition(row.condition);
+  return copy;
 }
 
 function copyEmpty(row: EmptyBeaconDef): EmptyBeaconDef {
@@ -439,6 +456,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     blueprints.clear();
     textLists.clear();
     empties.clear();
+    achievements.clear();
     factions.clear();
     reward = pack.rewards ? copyReward(pack.rewards) : undefined;
     baseReward = reward ? copyReward(reward) : undefined;
@@ -457,6 +475,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseBlueprints = (pack.blueprints ?? []).map(copyBlueprint);
     baseTextLists = (pack.textLists ?? []).map(copyTextList);
     baseEmpties = (pack.empties ?? []).map(copyEmpty);
+    baseAchievements = (pack.achievements ?? []).map(copyAchievement);
   }
   if (mode === "append" && pack.rewards) {
     reward = copyReward(pack.rewards);
@@ -488,6 +507,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     textLists.set(row.id, copyTextList(row));
   for (const row of mode === "base" ? baseEmpties : (pack.empties ?? []))
     empties.set(row.id, copyEmpty(row));
+  for (const row of mode === "base" ? baseAchievements : (pack.achievements ?? []))
+    achievements.set(row.id, copyAchievement(row));
   for (const row of mode === "base" ? baseFactions : (pack.factions ?? []))
     factions.set(row.id, copyFaction(row));
 }
@@ -682,6 +703,17 @@ export function emptyBeacon(id: string | undefined): EmptyBeaconDef | undefined 
 }
 
 /** Page order. Civilian stays first. An appended id sits at the end. */
+/** One `<achievement>` by id (ACH_SECTOR_5). */
+export function achievementDef(id: string | undefined): AchievementDef | undefined {
+  if (!id) return undefined;
+  return achievements.get(id);
+}
+
+/** Every loaded achievement, in archive order. */
+export function allAchievements(): AchievementDef[] {
+  return [...achievements.values()];
+}
+
 export function allEmptyBeacons(): EmptyBeaconDef[] {
   return [...empties.values()];
 }
@@ -702,6 +734,7 @@ export function resetPackForTests(): void {
   blueprints.clear();
   textLists.clear();
   empties.clear();
+  achievements.clear();
   factions.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
@@ -718,5 +751,6 @@ export function resetPackForTests(): void {
   for (const row of baseBlueprints) blueprints.set(row.id, copyBlueprint(row));
   for (const row of baseTextLists) textLists.set(row.id, copyTextList(row));
   for (const row of baseEmpties) empties.set(row.id, copyEmpty(row));
+  for (const row of baseAchievements) achievements.set(row.id, copyAchievement(row));
   for (const row of baseFactions) factions.set(row.id, copyFaction(row));
 }

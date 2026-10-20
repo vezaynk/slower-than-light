@@ -1119,7 +1119,13 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
       if (item.tagName === "text") continue;
       takeResultChild(item, choice, fx, grants, strings);
     }
-    if (fx.length === 0 && !choice.reward && !choice.ship && grants.length === 0)
+    if (
+      fx.length === 0 &&
+      !choice.reward &&
+      !choice.ship &&
+      grants.length === 0 &&
+      !choice.boarders
+    )
       fx.push({ k: "nothing" });
     choice.fx = fx;
     if (grants.length > 0) choice.grants = grants;
@@ -1138,6 +1144,7 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
     !choice.reward &&
     !choice.ship &&
     grants.length === 0 &&
+    !choice.boarders &&
     nested.length === 0 &&
     bare
   )
@@ -1165,11 +1172,20 @@ function takeResultChild(
     if (reward) choice.reward = reward;
     return;
   }
+  if (item.tagName === "boarders") {
+    const boarders = readBoarders(item);
+    if (boarders) choice.boarders = boarders;
+    return;
+  }
   if (item.tagName === "ship") {
     const ship = readShipLoad(item);
     if (!ship) return;
-    if (ship.hostile) fx.push({ k: "fight", tier: ship.load });
-    else choice.ship = ship;
+    if (ship.hostile) {
+      const fight: EventEffect = { k: "fight", tier: ship.load };
+      if (ship.asteroid) fight.asteroid = true;
+      if (ship.autoBlueprint) fight.autoBlueprint = ship.autoBlueprint;
+      fx.push(fight);
+    } else choice.ship = ship;
     return;
   }
   const grant = readGrant(item);
@@ -1183,7 +1199,12 @@ function takeResultChild(
 function readShipLoad(node: XmlElement): ArchiveShip | undefined {
   const load = attr(node, "load")?.trim();
   if (!load) return undefined;
-  return { load, hostile: node.getAttribute("hostile") !== "false" };
+  const ship: ArchiveShip = { load, hostile: node.getAttribute("hostile") !== "false" };
+  const list = attr(node, "auto_blueprint")?.trim();
+  if (list) ship.autoBlueprint = list;
+  const asteroid = node.getAttribute("asteroid");
+  if (asteroid != null && asteroid !== "false") ship.asteroid = true;
+  return ship;
 }
 
 function readReward(node: XmlElement): ArchiveReward | undefined {

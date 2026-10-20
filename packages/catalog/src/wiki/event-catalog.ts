@@ -61,6 +61,7 @@ function copyEffect(fx: EventEffect): EventEffect {
   if (fx.k === "fight") {
     const copy: EventEffect = { k: "fight", tier: fx.tier };
     if (fx.asteroid !== undefined) copy.asteroid = fx.asteroid;
+    if (fx.autoBlueprint !== undefined) copy.autoBlueprint = fx.autoBlueprint;
     return copy;
   }
   if (fx.k === "note") return { k: "note", text: fx.text };

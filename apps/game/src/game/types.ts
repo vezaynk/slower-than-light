@@ -580,6 +580,8 @@ export type Ship = {
    * PARTIAL: points added onto an existing bubble are not subtracted. The page gives no ledger.
    */
   zoltanOver?: boolean;
+  /** Augment ids on an explicit enemy hull. The player's rack is `Game.augments`. */
+  augments?: string[];
   /** Enemy hulls: the wiki class this ship was rolled from (wiki/enemy-ships.ts). */
   classId?: string;
   /** Faction page the class comes from, and whether this is the pirate version. */

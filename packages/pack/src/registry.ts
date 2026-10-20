@@ -177,6 +177,7 @@ function copyEffect(fx: EventEffect): EventEffect {
   if (fx.k === "fight") {
     const copy: EventEffect = { k: "fight", tier: fx.tier };
     if (fx.asteroid !== undefined) copy.asteroid = fx.asteroid;
+    if (fx.autoBlueprint !== undefined) copy.autoBlueprint = fx.autoBlueprint;
     return copy;
   }
   if (fx.k === "note") return { k: "note", text: fx.text };
@@ -206,6 +207,7 @@ function copyChoice(choice: EventChoice): EventChoice {
   if (choice.reward) copy.reward = { ...choice.reward };
   if (choice.ship) copy.ship = { ...choice.ship };
   if (choice.grants?.length) copy.grants = choice.grants.map((grant) => ({ ...grant }));
+  if (choice.boarders) copy.boarders = { ...choice.boarders };
   if (choice.choices?.length) copy.choices = choice.choices.map(copyChoice);
   return copy;
 }

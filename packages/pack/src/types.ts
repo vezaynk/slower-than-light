@@ -486,7 +486,7 @@ export type EventEffect =
   | { k: "tier"; tier: EventTier; resources?: boolean }
   | { k: "hull"; n: number }
   | { k: "fleet"; n: number; double?: boolean; faster?: boolean; lastStand?: boolean }
-  | { k: "fight"; tier: string; asteroid?: boolean }
+  | { k: "fight"; tier: string; asteroid?: boolean; autoBlueprint?: string }
   | { k: "note"; text: string }
   | { k: "item"; item: EventItem }
   | { k: "quest"; id: string }
@@ -572,6 +572,10 @@ export type ChoiceReq =
 export type ArchiveShip = {
   load: string;
   hostile: boolean;
+  /** `<ship auto_blueprint>`: a blueprintList id. */
+  autoBlueprint?: string;
+  /** `<ship asteroid>`: the fight opens in an asteroid field. */
+  asteroid?: boolean;
 };
 
 /** An archive `<autoReward>`. The numeric bands stay in the rewards table. */
@@ -611,6 +615,8 @@ export type EventChoice = {
   ship?: ArchiveShip;
   /** Named blueprints the result grants. */
   grants?: ArchiveGrant[];
+  /** Boarders the result beams aboard. */
+  boarders?: ArchiveBoarders;
   /** Choices on the result page. */
   choices?: EventChoice[];
 };

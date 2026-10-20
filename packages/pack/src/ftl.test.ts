@@ -897,6 +897,65 @@ describe("packFromFtl", () => {
     }
   });
 
+  it("keeps auto_blueprint, asteroid, and choice boarders", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/events.xml",
+        xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <event name="FIELD">
+    <text>Field.</text>
+    <ship load="PIRATE" auto_blueprint="LIST_A" asteroid="true"/>
+    <choice>
+      <text>Stay</text>
+      <event>
+        <boarders min="1" max="2" class="mantis"/>
+        <ship load="STORE" hostile="false" auto_blueprint="LIST_B"/>
+      </event>
+    </choice>
+    <choice>
+      <text>Fight</text>
+      <event>
+        <ship load="PIRATE" hostile="true" auto_blueprint="LIST_A" asteroid="true"/>
+      </event>
+    </choice>
+    <choice>
+      <text>Quiet</text>
+      <event>
+        <boarders min="2" max="2"/>
+      </event>
+    </choice>
+    <choice>
+      <text>Plain</text>
+      <event>
+        <ship load="PIRATE" asteroid="false"/>
+      </event>
+    </choice>
+  </event>
+</FTL>`,
+      },
+    ]);
+    const field = pack.events?.find((row) => row.id === "FIELD");
+    assert.deepEqual(field?.ship, {
+      load: "PIRATE",
+      hostile: true,
+      autoBlueprint: "LIST_A",
+      asteroid: true,
+    });
+    assert.deepEqual(field?.choices[0]?.boarders, { min: 1, max: 2, class: "mantis" });
+    assert.deepEqual(field?.choices[0]?.ship, {
+      load: "STORE",
+      hostile: false,
+      autoBlueprint: "LIST_B",
+    });
+    assert.deepEqual(field?.choices[1]?.fx, [
+      { k: "fight", tier: "PIRATE", asteroid: true, autoBlueprint: "LIST_A" },
+    ]);
+    assert.deepEqual(field?.choices[2]?.boarders, { min: 2, max: 2 });
+    assert.deepEqual(field?.choices[2]?.fx, []);
+    assert.deepEqual(field?.choices[3]?.fx, [{ k: "fight", tier: "PIRATE" }]);
+  });
+
   it("keeps English strings and drops translation files", () => {
     const english = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>

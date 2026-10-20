@@ -33,6 +33,7 @@ import { rollFuel } from "./fuel-gifts.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
 import { grantRandomItem } from "./bonus-item.ts";
+import { showArchivePage } from "../archive-pay.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -98,7 +99,7 @@ type Fx =
   | { k: "tier"; tier: "low" | "medium" | "high"; resources?: boolean }
   | { k: "hull"; n: number }
   | { k: "fleet"; n: number; double?: boolean; faster?: boolean; lastStand?: boolean }
-  | { k: "fight"; tier: string; asteroid?: boolean }
+  | { k: "fight"; tier: string; asteroid?: boolean; autoBlueprint?: string }
   | { k: "note"; text: string }
   /** Rewards, "Weapon" / "Augment" / "Drone": a random one the page does not name (bonus-item.ts grantRandomItem). */
   | { k: "item"; item: "weapon" | "augment" | "drone" }
@@ -1613,7 +1614,7 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
 export type CitedChoice = {
   g: Game;
   resolve: () => void;
-  fight: (tier: string, asteroid?: boolean, slug?: string) => void;
+  fight: (tier: string, asteroid?: boolean, slug?: string, autoBlueprint?: string) => void;
   scrap: (n: number) => void;
   note: (text: string) => void;
   irand: (n: number) => number;
@@ -1966,7 +1967,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     );
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
-    ctx.fight(fight.tier, fight.asteroid ? true : undefined);
+    ctx.fight(fight.tier, fight.asteroid ? true : undefined, undefined, fight.autoBlueprint);
     // Rock fight with boarders has no choice. Arrival calls this id.
     // "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
     // Rock fight with boarders in asteroid field has no choice. Arrival calls this id.
@@ -2102,7 +2103,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
       page.body,
       page.choices.map((next) => ({ id: next.id, label: next.label })),
     );
-    g.paused = true;
+    showArchivePage(g, page);
+    if (g.phase === "event") g.paused = true;
     return true;
   }
   ctx.resolve();

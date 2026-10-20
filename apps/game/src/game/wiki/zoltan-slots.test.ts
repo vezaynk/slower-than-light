@@ -8,6 +8,7 @@ import {
   createGame,
   kitBars,
   powerMask,
+  powerUp,
   settleZoltanPower,
   sparePower,
   startCombat,
@@ -111,6 +112,33 @@ describe("Zoltan weapon slots", () => {
     assert.deepEqual(mask(g), [true]);
   });
 
+  it("turns the gun off and frees its reactor bars when the Zoltan leaves", () => {
+    for (const power of [3, 4]) {
+      const g = createGame(40);
+      arm(g, 4, power, ["BEAM_3"]);
+      const room = g.player.rooms.find((r) => r.system === "weapons")!.id;
+      const other = g.player.rooms.find((r) => r.id !== room)!.id;
+      const zoltan = spark(room, "za");
+      g.crew.push(zoltan);
+      settleZoltanPower(g);
+      assert.equal(g.player.systems.weapons.power, 3);
+      g.player.reactor -= sparePower(g.player);
+      assert.deepEqual(mask(g), [true]);
+
+      zoltan.room = other;
+      settleZoltanPower(g);
+      assert.equal(g.player.weapons[0].enabled, false, `power ${power}`);
+      assert.equal(g.player.systems.weapons.power, 0);
+      assert.equal(sparePower(g.player), 3);
+
+      g.player.reactor += 1;
+      powerUp(g, "weapons");
+      assert.equal(g.player.systems.weapons.power, 4);
+      assert.equal(g.player.weapons[0].enabled, true);
+      assert.deepEqual(mask(g), [true]);
+    }
+  });
+
   it("powers a Burst Laser II from one Zoltan plus one reactor bar", () => {
     const g = createGame(33);
     arm(g, 3, 1, ["LASER_BURST_3"]);
@@ -152,7 +180,13 @@ describe("Zoltan weapon slots", () => {
     settleZoltanPower(g);
     assert.equal(g.player.systems.weapons.power, 4);
     assert.equal(g.player.systems.weapons.zoltanHeld, undefined);
+    // The restored bars run the Vulcan. The lasers they no longer cover are off, not dark.
+    assert.deepEqual(
+      g.player.weapons.map((w) => w.enabled),
+      [true, false, false],
+    );
 
+    for (const w of g.player.weapons) w.enabled = true;
     g.crew.push(spark("p-weapons", "za"), spark("p-weapons", "zb"));
     settleZoltanPower(g);
     assert.equal(g.player.systems.weapons.power, 2);

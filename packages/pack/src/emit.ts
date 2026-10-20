@@ -187,8 +187,9 @@ export function emitGapDocument(pack: ContentPack): string {
 }
 
 /**
- * Finds each crew record and appends its combat children.
- * A second apply appends them again. A missing name is not an error.
+ * Finds each crew record and overwrites its combat children.
+ * An existing child of the same tag is replaced. A missing one is added.
+ * A second apply writes the same children again. A missing name is not an error.
  */
 export function emitStatAppend(crew: readonly CrewDef[], tag: "crewBlueprint" | "race"): string {
   const doc = implementation.createDocument(null, "FTL", null);
@@ -216,22 +217,22 @@ export function emitNoteAppend(sectors: readonly SectorDef[]): string {
 
 function statFind(doc: XmlDocument, tag: "crewBlueprint" | "race", race: CrewDef): XmlElement {
   const find = element(doc, "mod:findName", { type: tag, name: race.id });
-  const append = (name: string, value: string | number | boolean) => {
-    add(find, leaf(doc, `mod-append:${name}`, value));
+  const overwrite = (name: string, value: string | number | boolean) => {
+    add(find, leaf(doc, `mod-overwrite:${name}`, value));
   };
-  append("maxHealth", race.hp);
-  append("moveSpeedMultiplier", race.move);
-  append("repairSpeed", race.repair);
-  append("damageMultiplier", race.fight);
-  append("suffocationModifier", race.suffocate);
-  append("fireDamageMultiplier", race.fireTaken);
-  append("fireRepairMultiplier", race.fireRepairMultiplier);
-  append("bonusPower", race.bonusPower);
-  append("hasDeathExplosion", race.hasDeathExplosion);
-  append("oxygenChangeSpeed", race.drainsOxygen ? OXYGEN_DRAIN : 0);
-  append("detectsLifeforms", race.detectsLifeforms);
-  append("resistsMindControl", race.resistsMindControl);
-  const power = element(doc, "mod-append:powerEffect", {});
+  overwrite("maxHealth", race.hp);
+  overwrite("moveSpeedMultiplier", race.move);
+  overwrite("repairSpeed", race.repair);
+  overwrite("damageMultiplier", race.fight);
+  overwrite("suffocationModifier", race.suffocate);
+  overwrite("fireDamageMultiplier", race.fireTaken);
+  overwrite("fireRepairMultiplier", race.fireRepairMultiplier);
+  overwrite("bonusPower", race.bonusPower);
+  overwrite("hasDeathExplosion", race.hasDeathExplosion);
+  overwrite("oxygenChangeSpeed", race.drainsOxygen ? OXYGEN_DRAIN : 0);
+  overwrite("detectsLifeforms", race.detectsLifeforms);
+  overwrite("resistsMindControl", race.resistsMindControl);
+  const power = element(doc, "mod-overwrite:powerEffect", {});
   add(power, leaf(doc, "lockdown", race.lockdown));
   add(power, leaf(doc, "cooldown", race.lockCooldown));
   add(find, power);

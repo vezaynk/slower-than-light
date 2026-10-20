@@ -164,7 +164,9 @@ function evalPar(
   globalPanic: boolean,
   path: string,
 ): XmlElement[] {
-  const op = (par.getAttribute("op") ?? "OR").toUpperCase();
+  const written = par.getAttribute("op");
+  if (written == null || written.trim() === "") throw new Error(`${path}: mod:par needs an op`);
+  const op = written.toUpperCase();
   if (op !== "AND" && op !== "OR") throw new Error(`${path}: unknown par op "${op}"`);
   const parts: XmlElement[][] = [];
   for (const child of elementChildren(par)) {
@@ -177,6 +179,8 @@ function evalPar(
     parts.push(choose(child, kind, scope, globalPanic, path));
   }
   if (parts.length === 0) return [];
+  // An empty first list intersects to nothing. Slipstream adds the next criterion's
+  // matches in that case. This keeps the intersection.
   if (op === "AND") {
     const rest = parts.slice(1).map((list) => new Set(list));
     return (parts[0] ?? []).filter((item) => rest.every((set) => set.has(item)));
@@ -229,7 +233,7 @@ function applyCommand(
 ): boolean {
   const kind = findKind(command.tagName);
   if (kind) {
-    runFind(command, kind, descendants(match), globalPanic, path);
+    runFind(command, kind, elementChildren(match), globalPanic, path);
     return true;
   }
   const tag = command.tagName;
@@ -237,7 +241,7 @@ function applyCommand(
     const doc = match.ownerDocument;
     if (!doc) return true;
     while (match.firstChild) match.removeChild(match.firstChild);
-    match.appendChild(doc.createTextNode(command.textContent ?? ""));
+    match.appendChild(doc.createTextNode((command.textContent ?? "").trim()));
     return true;
   }
   if (tag === "mod:setAttributes") {
@@ -315,18 +319,9 @@ function commandNodes(node: XmlElement): XmlElement[] {
   );
 }
 
+/** Slipstream's getContent returns the context node's element children. The top-level context is the document root. */
 function searchScope(root: XmlElement): XmlElement[] {
-  if (root.tagName === "FTL") return descendants(root);
-  return [root, ...descendants(root)];
-}
-
-function descendants(node: XmlElement): XmlElement[] {
-  const found: XmlElement[] = [];
-  for (const child of elementChildren(node)) {
-    found.push(child);
-    found.push(...descendants(child));
-  }
-  return found;
+  return elementChildren(root);
 }
 
 function findKind(tag: string): FindKind | undefined {

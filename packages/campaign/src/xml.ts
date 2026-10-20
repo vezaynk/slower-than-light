@@ -92,13 +92,17 @@ export function standInXml(): string {
 }
 
 /**
- * The gap mod. The crew append adds combat onto the blueprints. The sector append adds notes.
+ * The gap mod. The crew overwrite adds combat onto each blueprint file that can hold a race.
+ * Vanilla keeps Lanius in dlcBlueprints.xml and the other races in blueprints.xml.
+ * A find in a file that has no such blueprint does nothing. The sector append adds notes.
  * `data/gap.xml` adds the store, the rewards block, faction offers, and empty beacons.
  */
 export function gapModFiles(): { path: string; xml: string }[] {
   const gap = splitCampaign(campaignPack()).gap;
+  const crew = emitStatAppend(gap.crew ?? [], "crewBlueprint");
   return [
-    { path: "data/blueprints.xml.append", xml: emitStatAppend(gap.crew ?? [], "crewBlueprint") },
+    { path: "data/blueprints.xml.append", xml: crew },
+    { path: "data/dlcBlueprints.xml.append", xml: crew },
     { path: "data/sector_data.xml.append", xml: emitNoteAppend(gap.sectors ?? []) },
     { path: "data/gap.xml", xml: emitGapDocument(gap) },
   ];

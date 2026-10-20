@@ -139,6 +139,14 @@ describe("extractFtlZip", () => {
     assert.equal(extracted.assets.size, 0);
   });
 
+  it("rejects a zip with more entries than the format can count", () => {
+    const files = Array.from({ length: 65536 }, () => ({
+      path: "data/a.xml",
+      bytes: new Uint8Array(),
+    }));
+    assert.throws(() => packFtlZip(files), /too many entries: 65536/);
+  });
+
   it("packs a zip with a fixed timestamp and reads a dat or a zip by its signature", async () => {
     const files = [
       { path: "data/a.xml", bytes: encoder.encode(EXTRA) },

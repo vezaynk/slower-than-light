@@ -68,11 +68,11 @@ describe("patchDocument", () => {
     const xml = patchDocument(
       BASE,
       `<FTL>
-        <mod:findLike type="title">
-          <mod:selector>Spark</mod:selector>
-          <mod:setValue>Flare</mod:setValue>
-        </mod:findLike>
         <mod:findName type="weaponBlueprint" name="SPARK" reverse="false">
+          <mod:findLike type="title">
+            <mod:selector>Spark</mod:selector>
+            <mod:setValue>  Flare  </mod:setValue>
+          </mod:findLike>
           <mod-overwrite:type>LASER</mod-overwrite:type>
           <mod:setAttributes img="spark"/>
           <mod:removeAttributes name=""/>
@@ -84,7 +84,7 @@ describe("patchDocument", () => {
       </FTL>`,
       "append",
     );
-    assert.equal(xml.includes("Flare"), true);
+    assert.equal(xml.includes(">Flare<"), true);
     assert.equal(xml.includes(">Spark<"), false);
     assert.equal(xml.includes('img="spark"'), true);
     assert.equal(xml.includes('name="SPARK"'), false);
@@ -108,8 +108,8 @@ describe("patchDocument", () => {
         </mod:findComposite>
         <mod:findComposite>
           <mod:par op="OR">
-            <mod:findName type="title" name="none"/>
-            <mod:findLike type="title"><mod:selector>First</mod:selector></mod:findLike>
+            <mod:findName type="weaponBlueprint" name="none"/>
+            <mod:findLike type="weaponBlueprint"><mod:selector name="SPARK"/></mod:findLike>
           </mod:par>
           <mod:setAttributes short="yes"/>
         </mod:findComposite>
@@ -119,6 +119,60 @@ describe("patchDocument", () => {
     assert.equal((xml.match(/<cost>4<\/cost>/g) ?? []).length, 1);
     assert.equal(xml.includes("ignored"), false);
     assert.equal(xml.includes('short="yes"'), true);
+  });
+
+  it("matches only the context's direct children", () => {
+    const events = `<FTL>
+      <event name="ROOT">
+        <text>Top</text>
+        <choice name="go"><text>Go</text></choice>
+      </event>
+      <eventList name="LIST">
+        <event name="NESTED"><text>Inside</text></event>
+        <event load="A"/>
+      </eventList>
+      <choice name="decoy"><text>No</text></choice>
+    </FTL>`;
+    const top = patchDocument(
+      events,
+      `<FTL>
+        <mod:findLike type="choice"><mod:setAttributes patched="yes"/></mod:findLike>
+        <mod:findLike type="event"><mod-append:seen/></mod:findLike>
+      </FTL>`,
+      "append",
+    );
+    assert.equal(top.includes('<choice name="decoy" patched="yes">'), true);
+    assert.equal(top.includes('name="go" patched="yes"'), false);
+    const listAt = top.indexOf("<eventList");
+    assert.equal(top.slice(0, listAt).includes("<seen"), true);
+    assert.equal(top.slice(listAt).includes("<seen"), false);
+    const nested = patchDocument(
+      events,
+      `<FTL>
+        <mod:findName type="event" name="ROOT">
+          <mod:findLike type="text"><mod:setValue>Changed</mod:setValue></mod:findLike>
+        </mod:findName>
+        <mod:findName type="eventList" name="LIST">
+          <mod:findLike type="event"><mod-append:seen/></mod:findLike>
+        </mod:findName>
+      </FTL>`,
+      "append",
+    );
+    assert.equal(nested.includes("<text>Changed</text>"), true);
+    assert.equal(nested.includes("<text>Go</text>"), true);
+    assert.equal((nested.match(/<seen\/>/g) ?? []).length, 2);
+  });
+
+  it("throws when a par has no op", () => {
+    assert.throws(
+      () =>
+        patchDocument(
+          BASE,
+          `<FTL><mod:findComposite><mod:par><mod:findName type="weaponBlueprint" name="EMBER"/></mod:par></mod:findComposite></FTL>`,
+          "append",
+        ),
+      /mod:par needs an op/,
+    );
   });
 
   it("searches inside the current match and leaves a nested command literal", () => {

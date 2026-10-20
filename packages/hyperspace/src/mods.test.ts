@@ -332,6 +332,42 @@ describe("packFromExtract", () => {
     assert.equal(pack.crew, undefined);
   });
 
+  it("overwrites combat in blueprints.xml and in dlcBlueprints.xml", () => {
+    const human = crew("human", "Human", 50);
+    const lanius = crew("anaerobic", "Lanius", 70);
+    lanius.drainsOxygen = true;
+    const xml = emitStatAppend([human, lanius], "crewBlueprint");
+    const dat = extract({
+      documents: [
+        {
+          path: "data/blueprints.xml",
+          xml: `<FTL><crewBlueprint name="human"><title>Human</title><maxHealth>100</maxHealth></crewBlueprint></FTL>`,
+        },
+        {
+          path: "data/dlcBlueprints.xml",
+          xml: `<FTL><crewBlueprint name="anaerobic"><title>Lanius</title></crewBlueprint></FTL>`,
+        },
+      ],
+    });
+    const mod = extract({
+      documents: [
+        { path: "data/blueprints.xml.append", xml },
+        { path: "data/dlcBlueprints.xml.append", xml },
+      ],
+    });
+    const once = packFromExtract(applyFtlMod(dat, mod));
+    assert.equal(once.crew?.find((row) => row.id === "human")?.hp, 50);
+    assert.equal(once.crew?.find((row) => row.id === "anaerobic")?.hp, 70);
+    assert.equal(once.crew?.find((row) => row.id === "anaerobic")?.drainsOxygen, true);
+    const twice = applyFtlMod(applyFtlMod(dat, mod), mod);
+    const blueprints = twice.documents.find((doc) => doc.path === "data/blueprints.xml")?.xml ?? "";
+    const dlc = twice.documents.find((doc) => doc.path === "data/dlcBlueprints.xml")?.xml ?? "";
+    assert.equal((blueprints.match(/<maxHealth>/g) ?? []).length, 1);
+    assert.equal(blueprints.includes("<maxHealth>50</maxHealth>"), true);
+    assert.equal((dlc.match(/<maxHealth>/g) ?? []).length, 1);
+    assert.equal(dlc.includes("<oxygenChangeSpeed>-0.5</oxygenChangeSpeed>"), true);
+  });
+
   it("keeps the archive rows and colour, and takes combat, notes, and the store from the gap", () => {
     const ignored = crew("human", "Ignored", 50);
     const energyXml = `<?xml version="1.0" encoding="UTF-8"?>

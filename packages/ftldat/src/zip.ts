@@ -190,18 +190,24 @@ export async function extractArchive(source: FtlDatSource): Promise<FtlExtract> 
 const DOS_TIME = 0;
 const DOS_DATE = 0x0021;
 
+const ZIP_U32 = 0xffffffff;
+const ZIP_ENTRIES = 0xffff;
+
 /**
  * Packs files into a stored `.ftl` zip.
  * The DOS timestamp is 1980-01-01 and the entry order is the order given, so the bytes
  * do not depend on the clock or the timezone.
+ * A zip without zip64 holds at most 65,535 entries and 4 GB.
  */
 export function packFtlZip(files: readonly { path: string; bytes: Uint8Array }[]): Uint8Array {
+  if (files.length > ZIP_ENTRIES) throw new Error(`ftl zip has too many entries: ${files.length}`);
   const encoder = new TextEncoder();
   const chunks: Uint8Array[] = [];
   const central: Uint8Array[] = [];
   let offset = 0;
   for (const file of files) {
-    if (file.bytes.byteLength > 0xffffffff)
+    if (offset > ZIP_U32) throw new Error(`ftl zip is too large: ${file.path}`);
+    if (file.bytes.byteLength > ZIP_U32)
       throw new Error(`ftl zip entry is too large: ${file.path}`);
     const path = encoder.encode(file.path);
     for (const byte of path) {
@@ -219,6 +225,7 @@ export function packFtlZip(files: readonly { path: string; bytes: Uint8Array }[]
     chunks.push(header);
     cdSize += header.byteLength;
   }
+  if (cdStart > ZIP_U32 || cdSize > ZIP_U32) throw new Error("ftl zip is too large");
   chunks.push(endOfCentral(files.length, cdSize, cdStart));
   const out = new Uint8Array(offset + cdSize + 22);
   let at = 0;

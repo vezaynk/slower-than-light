@@ -1,5 +1,5 @@
 /**
- * Ship, boarders, grants, and autoReward already stored on an archive event.
+ * Ship, boarders, grants, autoReward, and environment already stored on an archive event.
  * A page or choice that does not carry them is left to its campaign handler.
  */
 import type {
@@ -12,7 +12,7 @@ import type {
 import { allEvents, augmentDef, crewDef, droneDef, eventDef, warnPack, weaponDef } from "@stl/pack";
 import { adjustScrap } from "./extras/index.ts";
 import type { KinId } from "./extras/kin.ts";
-import { beginBoarding, log, rand, startCombat } from "./sim.ts";
+import { armEventEnvironment, beginBoarding, log, rand, startCombat, syncIonStorm } from "./sim.ts";
 import type { Game } from "./types.ts";
 import { receiveAugment, receiveDrone, receiveWeapon } from "./wiki/make-room.ts";
 import {
@@ -83,20 +83,35 @@ export function showArchiveArrival(g: Game, flag: string): boolean {
  * False when the card should stay up. A page with none of these fields is false and changes nothing.
  */
 export function showArchivePage(g: Game, page: EventDef): boolean {
-  if (!pageHasArchive(page)) return false;
+  if (!pageHasArchive(page) && !page.environment) return false;
+  // This page's environment replaces the one the previous event stored.
+  delete g.eventStorm;
+  delete g.eventNebula;
+  syncIonStorm(g);
   applyGrants(g, page.grants);
   if (page.reward) payAutoReward(g, page.reward);
   if (page.ship?.hostile) {
     if (g.event?.body) log(g, g.event.body);
-    startCombat(g, page.ship.load, page.ship.asteroid === true, page.id, page.ship.autoBlueprint);
+    startCombat(
+      g,
+      page.ship.load,
+      page.ship.asteroid === true || page.environment?.type === "asteroid",
+      page.id,
+      page.ship.autoBlueprint,
+    );
     if (page.boarders) beamBoarders(g, page.boarders);
+    armEventEnvironment(g, page.environment);
     return true;
   }
   if (page.boarders) {
     beamBoarders(g, page.boarders);
-    if (!g.enemy) beginBoarding(g);
+    if (!g.enemy) {
+      beginBoarding(g, page.environment?.type === "PDS", page.environment?.type === "sun");
+    }
+    armEventEnvironment(g, page.environment);
     return g.phase === "combat";
   }
+  armEventEnvironment(g, page.environment);
   return false;
 }
 
@@ -107,7 +122,7 @@ export function showArchivePage(g: Game, page: EventDef): boolean {
  */
 export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): void {
   const choice = findArchiveChoice(id);
-  if (!choice || !choiceHasArchive(choice)) return;
+  if (!choice || (!choiceHasArchive(choice) && !choice.environment)) return;
   if (isCampaign(id) && handlerActed(g, before)) return;
   applyGrants(g, choice.grants);
   if (choice.reward) payAutoReward(g, choice.reward);
@@ -116,13 +131,16 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
     startCombat(
       g,
       choice.ship.load,
-      choice.ship.asteroid === true,
+      choice.ship.asteroid === true || choice.environment?.type === "asteroid",
       undefined,
       choice.ship.autoBlueprint,
     );
   }
   if (choice.boarders && boarderCount(g) === before.boarders) beamBoarders(g, choice.boarders);
-  if (!g.enemy && boarderCount(g) > before.boarders) beginBoarding(g);
+  if (!g.enemy && boarderCount(g) > before.boarders) {
+    beginBoarding(g, choice.environment?.type === "PDS", choice.environment?.type === "sun");
+  }
+  armEventEnvironment(g, choice.environment);
 }
 
 function pageHasArchive(page: EventDef): boolean {

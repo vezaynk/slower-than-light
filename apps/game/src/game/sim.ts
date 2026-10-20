@@ -101,7 +101,7 @@ import {
   sectorTitle,
 } from "./sector-ids.ts";
 import { aimedBeamTiles, packBeamSeconds } from "./pack/beams.ts";
-import type { WeaponBlueprint } from "@stl/pack";
+import type { ArchiveEnvironment, WeaponBlueprint } from "@stl/pack";
 import {
   allSectors,
   allWeapons,
@@ -1437,7 +1437,8 @@ export function sparePower(ship: Ship): number {
  * INFERRED: only the always-overtaken nebula case. The page does not say which other nebula beacons have a storm.
  */
 export function syncIonStorm(g: Game) {
-  const on = ionStormBeacon(hereBeacon(g), g);
+  // An event `<environment type="storm">` keeps the ion storm until the jump.
+  const on = ionStormBeacon(hereBeacon(g), g) || g.eventStorm === true;
   const was = !!g.player.storm;
   if (on) g.player.storm = true;
   else delete g.player.storm;
@@ -5400,9 +5401,10 @@ function environment(g: Game, dt: number) {
         // INFERRED: the page prints these two lines beside the hazard art. Which one is the
         // 15--20s warning is not stated. A hull already on the scope uses the fleet line.
         // Lanius fight with friendly ASB support: the ally line is INFERRED. The event does not print it.
+        const aim = g.asbAim ?? (friendlyAsb.has(g) ? "enemy" : "player");
         log(
           g,
-          friendlyAsb.has(g)
+          aim === "enemy"
             ? "The planetary battery is aiming at the other ship."
             : g.enemy
               ? "The Fleet's Anti-Ship Batteries are targeting you."
@@ -5413,9 +5415,13 @@ function environment(g: Game, dt: number) {
       } else {
         const asb = citedAsbShot();
         // Lanius fight with friendly ASB support: the same shot hits the other ship.
-        const helping = friendlyAsb.has(g) && !!g.enemy;
-        const hull = helping ? g.enemy : g.player;
-        if (hull) {
+        // `<environment type="PDS" target="all">` fires that shot at both hulls.
+        const aim = g.asbAim ?? (friendlyAsb.has(g) ? "enemy" : "player");
+        const sides: Array<"player" | "enemy"> =
+          aim === "all" ? ["player", "enemy"] : aim === "enemy" ? ["enemy"] : ["player"];
+        for (const at of sides) {
+          const hull = at === "enemy" ? g.enemy : g.player;
+          if (!hull) continue;
           g.shots.push({
             id: uid(g),
             kind: "missile",
@@ -5426,7 +5432,7 @@ function environment(g: Game, dt: number) {
             breachChance: asb.breachChance,
             // Environmental Hazards, Anti-Ship Batteries: "hitting a random room" (wiki/targeting.ts).
             targetRoom: randomRoom(g, hull),
-            ...(helping ? { at: "enemy" as const } : {}),
+            ...(at === "enemy" ? { at: "enemy" as const } : {}),
             wait: 0.15,
             t: 0,
             duration: 1.1,
@@ -5799,6 +5805,7 @@ function retireFlagship(g: Game) {
   g.shots = [];
   g.wreck = null;
   g.asb = false;
+  delete g.asbAim;
   g.pulsar = false;
   g.flare = false;
   g.boardTimer = 0;
@@ -5864,6 +5871,7 @@ function winCombat(g: Game) {
   g.shots = [];
   // Environmental Hazards, Asteroid Field: the rocks keep coming after the battle. A jump leaves the beacon.
   g.asb = false;
+  delete g.asbAim;
   g.pulsar = false;
   g.flare = false;
   g.boardTimer = 0;
@@ -6295,6 +6303,56 @@ function makeEnemy(
   return built;
 }
 
+/**
+ * Plays `<environment>` on the event already open.
+ * Asteroid, pulsar, sun, and PDS arm the fight clocks. Storm halves the reactor until the jump.
+ * Nebula slows a later wait. A clock this fight already armed is left running.
+ */
+export function armEventEnvironment(g: Game, env: ArchiveEnvironment | undefined): void {
+  if (!env) return;
+  if (env.type === "asteroid") {
+    if (g.asteroid) return;
+    g.asteroid = true;
+    g.asteroidT = 0;
+    g.asteroidWait = 0;
+    g.asteroidEnemyNext = false;
+    delete g.asteroidPhase;
+    delete g.asteroidPhaseLeft;
+    armAsteroid(g);
+    return;
+  }
+  if (env.type === "pulsar") {
+    if (g.pulsar) return;
+    g.pulsar = true;
+    g.pulsarT = 0;
+    g.pulsarWarned = false;
+    g.pulsarWait = 0;
+    armPulsar(g);
+    return;
+  }
+  if (env.type === "sun") {
+    if (g.flare) return;
+    g.flare = true;
+    g.flareT = 0;
+    g.flareWarned = false;
+    g.flareWait = 0;
+    armFlare(g);
+    return;
+  }
+  if (env.type === "PDS") {
+    g.asbAim = env.target ?? "player";
+    g.asb = true;
+    if (!(g.asbWait > 0)) armAsbClock(g, "warn");
+    return;
+  }
+  if (env.type === "storm") {
+    g.eventStorm = true;
+    syncIonStorm(g);
+    return;
+  }
+  if (env.type === "nebula") g.eventNebula = true;
+}
+
 export function startCombat(
   g: Game,
   tier: string,
@@ -6308,6 +6366,7 @@ export function startCombat(
   clearShieldHalf(g);
   clearSystemOff(g);
   clearFriendlyAsb(g);
+  delete g.asbAim;
   // Mind Control, Overview: a bomb that lands opens that room. INFERRED: the next fight starts with those rooms closed.
   clearBombSight(g);
   const built = makeEnemy(g, tier, event, autoBlueprint);
@@ -6432,6 +6491,7 @@ function enemyAboard(g: Game): boolean {
  */
 export function beginBoarding(g: Game, asb = false, flare = false) {
   if (!enemyAboard(g)) return;
+  delete g.asbAim;
   g.enemy = null;
   g.shots = [];
   g.phase = "combat";
@@ -7103,6 +7163,9 @@ export function commitJump(g: Game, id: string) {
   g.crew = g.crew.filter((c) => c.side === "player" || intruderOnPlayer(c));
   g.asteroid = false;
   g.asb = false;
+  delete g.asbAim;
+  delete g.eventNebula;
+  delete g.eventStorm;
   g.pulsar = false;
   g.flare = false;
   armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
@@ -7800,10 +7863,14 @@ export function enterHiddenCrystal(g: Game) {
   g.shots = [];
   g.asteroid = false;
   g.asb = false;
+  delete g.asbAim;
+  delete g.eventNebula;
+  delete g.eventStorm;
   g.pulsar = false;
   g.flare = false;
   armDoors(g.player, doorLevel(g, g.player, "player"), g.difficulty);
   makeMap(g);
+  syncIonStorm(g);
   enterSector(g, CRYSTAL_SECTOR);
   stampEngiCache(g);
   stampCitedEvents(g);
@@ -7964,7 +8031,8 @@ export function waitHere(g: Game) {
   // Stores, "Fuel": waiting advances the rebels like a jump, slower in a nebula.
   const wasPast = !!b && overtaken(g, b);
   if ((g.buoyDelay ?? 0) > 0) g.buoyDelay -= 1;
-  else g.fleet += pursuit(g, b ? citedFleetAdvance(g, b) : 1);
+  // `<environment type="nebula">` slows this wait the same way a nebula beacon does.
+  else g.fleet += pursuit(g, b ? citedFleetAdvance(g, g.eventNebula ? { kind: "nebula" } : b) : 1);
   // Environmental Hazards, Anti-Ship Battery: waiting out of fuel when the fleet overtakes a nebula removes that environment.
   // A fueled wait keeps the ion storm. A jump is a different path and does not clear it.
   if (b && !wasPast && overtaken(g, b) && g.fuel <= 0 && b.kind === "nebula") b.cleared = true;
@@ -8158,6 +8226,7 @@ function tickBoarding(g: Game, dt: number) {
   g.crew = g.crew.filter((c) => c.side === "player" || (c.cloneIn ?? 0) > 0);
   g.shots = [];
   g.asb = false;
+  delete g.asbAim;
   g.phase = "map";
   // The same sentence: with the boarders gone, only a remaining hazard keeps the clock.
   // Asteroid Field stays until the jump. A sun or a pulsar can too. No hazard charges instantly.
@@ -8334,6 +8403,7 @@ export function step(g: Game, dt: number) {
     g.phase = "map";
     // Environmental Hazards, Asteroid Field: an escape does not stop the field. A jump does.
     g.asb = false;
+    delete g.asbAim;
     g.pulsar = false;
     g.flare = false;
     // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).

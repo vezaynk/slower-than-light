@@ -149,6 +149,7 @@ export type {
   RewardScaling,
   RewardTable,
   ArchiveBoarders,
+  ArchiveEnvironment,
   ArchiveGrant,
   ArchiveReward,
   ArchiveShip,

@@ -208,6 +208,7 @@ function copyChoice(choice: EventChoice): EventChoice {
   if (choice.ship) copy.ship = { ...choice.ship };
   if (choice.grants?.length) copy.grants = choice.grants.map((grant) => ({ ...grant }));
   if (choice.boarders) copy.boarders = { ...choice.boarders };
+  if (choice.environment) copy.environment = { ...choice.environment };
   if (choice.choices?.length) copy.choices = choice.choices.map(copyChoice);
   return copy;
 }
@@ -361,6 +362,7 @@ function copyEvent(row: EventDef): EventDef {
   if (row.reward) copy.reward = { ...row.reward };
   if (row.boarders) copy.boarders = { ...row.boarders };
   if (row.grants?.length) copy.grants = row.grants.map((grant) => ({ ...grant }));
+  if (row.environment) copy.environment = { ...row.environment };
   return copy;
 }
 

@@ -3,6 +3,7 @@ import type {
   AchievementCondition,
   AchievementDef,
   ArchiveBoarders,
+  ArchiveEnvironment,
   ArchiveGrant,
   ArchiveReward,
   ArchiveShip,
@@ -1051,6 +1052,7 @@ function readEventBody(
       if (boarders) event.boarders = boarders;
       continue;
     }
+    if (item.tagName === "environment") continue;
     const grant = readGrant(item);
     if (grant) {
       grants.push(grant);
@@ -1060,6 +1062,8 @@ function readEventBody(
   }
   if (fx.length > 0) event.fx = fx;
   if (grants.length > 0) event.grants = grants;
+  const environment = readEnvironment(node);
+  if (environment) event.environment = environment;
   return event;
 }
 
@@ -1123,6 +1127,8 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
   };
   if (node.getAttribute("hidden") === "true") choice.hidden = true;
   const result = elements(node).find((item) => item.tagName === "event");
+  const environment = readEnvironment(result ?? node);
+  if (environment) choice.environment = environment;
   if (!result) {
     const fx: EventEffect[] = [];
     const grants: ArchiveGrant[] = [];
@@ -1188,6 +1194,7 @@ function takeResultChild(
     if (boarders) choice.boarders = boarders;
     return;
   }
+  if (item.tagName === "environment") return;
   if (item.tagName === "ship") {
     const ship = readShipLoad(item);
     if (!ship) return;
@@ -1205,6 +1212,36 @@ function takeResultChild(
     return;
   }
   pushEffects(fx, item);
+}
+
+const ENVIRONMENT_TYPES = new Set(["asteroid", "nebula", "pulsar", "sun", "storm", "PDS"]);
+const PDS_TARGETS = new Set(["player", "enemy", "all"]);
+
+/** The first `<environment type>` on this event. A type this game does not play is skipped. */
+function readEnvironment(node: XmlElement): ArchiveEnvironment | undefined {
+  for (const item of elements(node)) {
+    if (item.tagName !== "environment") continue;
+    const type = attr(item, "type")?.trim();
+    if (!type || !ENVIRONMENT_TYPES.has(type)) {
+      warnPack(
+        `An <environment> type "${type ?? ""}" is not asteroid, nebula, pulsar, sun, storm, or PDS; it is skipped.`,
+      );
+      return undefined;
+    }
+    const environment: ArchiveEnvironment = { type: type as ArchiveEnvironment["type"] };
+    if (type !== "PDS") return environment;
+    const target = item.getAttribute("target")?.trim();
+    if (!target) return environment;
+    if (!PDS_TARGETS.has(target)) {
+      warnPack(
+        `An <environment type="PDS"> target "${target}" is not player, enemy, or all; it is skipped.`,
+      );
+      return undefined;
+    }
+    environment.target = target as "player" | "enemy" | "all";
+    return environment;
+  }
+  return undefined;
 }
 
 function readShipLoad(node: XmlElement): ArchiveShip | undefined {

@@ -897,6 +897,21 @@ export type Game = {
   time: number;
   asteroid: boolean;
   asb: boolean;
+  /**
+   * `<environment type="PDS" target>`. Absent means the battery aims at this ship.
+   * "enemy" aims at the other hull. "all" fires at both.
+   */
+  asbAim?: "player" | "enemy" | "all";
+  /**
+   * `<environment type="nebula">` on the event being played.
+   * A wait here uses the nebula fleet step. A jump clears it.
+   */
+  eventNebula?: boolean;
+  /**
+   * `<environment type="storm">` on the event being played.
+   * The ion storm stays until the jump, including on a beacon that is not a nebula.
+   */
+  eventStorm?: boolean;
   asteroidT: number;
   /**
    * Environmental Hazards, Asteroid Field: seconds until the next rock in a wave (wiki/cited-asteroid.ts).

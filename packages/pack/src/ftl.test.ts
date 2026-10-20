@@ -958,6 +958,60 @@ describe("packFromFtl", () => {
     assert.deepEqual(field?.choices[3]?.fx, [{ k: "fight", tier: "PIRATE" }]);
   });
 
+  it("reads an event environment, including which ship a battery shoots", () => {
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const pack = packFromFtl([
+        {
+          path: "data/events.xml",
+          xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <event name="FIELD">
+    <text>Field.</text>
+    <environment type="asteroid"/>
+    <ship load="PIRATE" hostile="true"/>
+    <choice>
+      <text>Stay</text>
+      <event>
+        <environment type="sun"/>
+        <boarders min="1" max="1" class="human"/>
+      </event>
+    </choice>
+    <choice>
+      <text>Battery</text>
+      <event>
+        <environment type="PDS" target="all"/>
+        <ship load="PIRATE" hostile="true"/>
+      </event>
+    </choice>
+  </event>
+  <event name="ODD">
+    <text>Odd.</text>
+    <environment type="vortex"/>
+  </event>
+  <event name="AIM">
+    <text>Aim.</text>
+    <environment type="PDS" target="station"/>
+  </event>
+</FTL>`,
+        },
+      ]);
+      const field = pack.events?.find((row) => row.id === "FIELD");
+      assert.deepEqual(field?.environment, { type: "asteroid" });
+      assert.deepEqual(field?.choices[0]?.environment, { type: "sun" });
+      assert.deepEqual(field?.choices[1]?.environment, { type: "PDS", target: "all" });
+      assert.equal(pack.events?.find((row) => row.id === "ODD")?.environment, undefined);
+      assert.equal(pack.events?.find((row) => row.id === "AIM")?.environment, undefined);
+      assert.deepEqual(warnings, [
+        'An <environment> type "vortex" is not asteroid, nebula, pulsar, sun, storm, or PDS; it is skipped.',
+        'An <environment type="PDS"> target "station" is not player, enemy, or all; it is skipped.',
+      ]);
+    } finally {
+      restore();
+    }
+  });
+
   it("keeps English strings and drops translation files", () => {
     const english = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>

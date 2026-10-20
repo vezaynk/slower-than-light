@@ -3,8 +3,9 @@ import { afterEach, describe, it } from "node:test";
 import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import { hullDef, loadPack, onPackWarning, resetPackForTests, scrapRange } from "@stl/pack";
 import type { HullDef } from "@stl/pack";
-import { choose, commitJump, createGame } from "../sim.ts";
+import { choose, commitJump, createGame, waitHere } from "../sim.ts";
 import { overtaken } from "../wiki/sector-map.ts";
+import { citedFleetAdvance } from "../wiki/cited-sectors.ts";
 import type { Game } from "../types.ts";
 
 afterEach(() => resetPackForTests());
@@ -383,5 +384,106 @@ describe("archive event payoffs", () => {
     assert.equal(store.phase, "event");
     assert.equal(store.enemy, null);
     assert.equal(store.event?.body, "They are not hostile.");
+  });
+
+  it("plays the environment tag on the fight and slows a nebula wait", () => {
+    const page = (
+      id: string,
+      environment: {
+        type: "asteroid" | "sun" | "pulsar" | "storm" | "nebula" | "PDS";
+        target?: "all" | "enemy";
+      },
+      ship: boolean,
+    ) => ({
+      id,
+      dest: id,
+      flag: `cited:${id}`,
+      aliases: [] as string[],
+      sectors: [] as string[],
+      body: id,
+      environment,
+      ...(ship ? { ship: { load: "EMBER_HULL", hostile: true as const } } : {}),
+      choices: ship ? [] : [{ id: `c:${id}:0`, label: "Leave", fx: [{ k: "nothing" as const }] }],
+    });
+    loadPack(
+      {
+        hulls: [emberHull("EMBER_HULL", "Ember Hull", "LASER_BURST_3")],
+        events: [
+          page("ember-field", { type: "asteroid" }, true),
+          page("ember-sun", { type: "sun" }, true),
+          page("ember-wave", { type: "pulsar" }, true),
+          page("ember-battery", { type: "PDS", target: "all" }, true),
+          page("ember-cover", { type: "PDS", target: "enemy" }, true),
+          page("ember-storm", { type: "storm" }, false),
+          page("ember-nebula", { type: "nebula" }, false),
+          {
+            id: "ember-choice-sun",
+            dest: "Choice sun",
+            flag: "cited:ember-choice-sun",
+            aliases: [],
+            sectors: [],
+            body: "Choose.",
+            choices: [
+              {
+                id: "ember-choice-sun",
+                label: "Fight",
+                fx: [{ k: "fight", tier: "EMBER_HULL" }],
+                environment: { type: "sun" },
+              },
+            ],
+          },
+        ],
+      },
+      "append",
+    );
+
+    const field = createGame(20);
+    jumpTo(field, "cited:ember-field");
+    assert.equal(field.phase, "combat");
+    assert.equal(field.asteroid, true);
+    assert.equal(field.enemy?.name, "Ember Hull");
+
+    const sun = createGame(21);
+    jumpTo(sun, "cited:ember-sun");
+    assert.equal(sun.flare, true);
+    assert.ok((sun.flareWait ?? 0) > 0);
+
+    const wave = createGame(22);
+    jumpTo(wave, "cited:ember-wave");
+    assert.equal(wave.pulsar, true);
+    assert.ok((wave.pulsarWait ?? 0) > 0);
+
+    const battery = createGame(23);
+    jumpTo(battery, "cited:ember-battery");
+    assert.equal(battery.asb, true);
+    assert.equal(battery.asbAim, "all");
+    assert.ok(battery.asbWait > 0);
+
+    const cover = createGame(24);
+    jumpTo(cover, "cited:ember-cover");
+    assert.equal(cover.asb, true);
+    assert.equal(cover.asbAim, "enemy");
+
+    const storm = createGame(25);
+    jumpTo(storm, "cited:ember-storm");
+    assert.equal(storm.phase, "event");
+    assert.equal(storm.player.storm, true);
+    assert.equal(storm.eventStorm, true);
+    assert.equal(storm.enemy, null);
+
+    const nebula = createGame(26);
+    jumpTo(nebula, "cited:ember-nebula");
+    assert.equal(nebula.eventNebula, true);
+    nebula.phase = "map";
+    nebula.paused = false;
+    const fleet = nebula.fleet;
+    waitHere(nebula);
+    assert.equal(nebula.fleet - fleet, citedFleetAdvance(nebula, { kind: "nebula" }));
+
+    const choice = createGame(27);
+    choose(choice, "ember-choice-sun");
+    assert.equal(choice.phase, "combat");
+    assert.equal(choice.flare, true);
+    assert.equal(choice.enemy?.name, "Ember Hull");
   });
 });

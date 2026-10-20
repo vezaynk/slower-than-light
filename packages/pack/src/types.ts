@@ -568,6 +568,15 @@ export type ChoiceReq =
   | { k: "drone"; id: string; text: string }
   | { k: "stock"; id: string; n: number; text: string };
 
+/**
+ * `<environment type>` on an archive event.
+ * PDS `target` is who the battery shoots. Omitted target shoots this ship.
+ */
+export type ArchiveEnvironment = {
+  type: "asteroid" | "nebula" | "pulsar" | "sun" | "storm" | "PDS";
+  target?: "player" | "enemy" | "all";
+};
+
 /** A ship an archive page or choice loads. Omitted hostile is hostile. */
 export type ArchiveShip = {
   load: string;
@@ -617,6 +626,8 @@ export type EventChoice = {
   grants?: ArchiveGrant[];
   /** Boarders the result beams aboard. */
   boarders?: ArchiveBoarders;
+  /** `<environment>` on the result. */
+  environment?: ArchiveEnvironment;
   /** Choices on the result page. */
   choices?: EventChoice[];
 };
@@ -789,6 +800,8 @@ export type EventDef = {
   grants?: ArchiveGrant[];
   /** `<store/>` on this page. Arriving opens a store. */
   store?: boolean;
+  /** `<environment>` on this page. */
+  environment?: ArchiveEnvironment;
 };
 
 /**

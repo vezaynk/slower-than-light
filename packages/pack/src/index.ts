@@ -105,6 +105,7 @@ export {
   rewardTable,
   scrapRange,
   sectorDef,
+  civilianSectorTitle,
   storeDef,
   systemDef,
   tuneDef,

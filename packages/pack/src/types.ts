@@ -937,4 +937,9 @@ export type ContentPack = {
   facts?: boolean;
   /** Crew name pool and the syllables the name generator joins. */
   names?: { pool: string[]; syllables: string[] };
+  /**
+   * English `sectorname_CIVILIAN_SECTOR`.
+   * Column 0 shows this while `STANDARD_SPACE` keeps its stored name.
+   */
+  civilianSectorTitle?: string;
 };

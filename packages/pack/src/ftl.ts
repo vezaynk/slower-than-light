@@ -232,6 +232,8 @@ export function packFromFtl(
   checkCrewClasses(hulls.rows, crew.rows);
   if (facts) pack.facts = true;
   if (names) pack.names = names;
+  const civilianSectorTitle = strings.get("sectorname_CIVILIAN_SECTOR");
+  if (civilianSectorTitle) pack.civilianSectorTitle = civilianSectorTitle;
   attachPictures(pack.hulls, documents);
   return pack;
 }

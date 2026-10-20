@@ -20,6 +20,7 @@ import { HOLD_MS, momentDown, momentLive, momentMarkHeld, momentUp, type Moment 
 import { animSpeed, applyCssSpeed, FAST_SPEED, useFast } from "./speed";
 import { pageRect, toPage } from "./turn";
 import { SECTOR_NAMES, SYS_LABEL, upgradeBlurb, upgradeCost } from "@/game/content";
+import { sectorTag } from "@/game/sector-ids";
 import { aimedBeamTiles } from "@/game/pack/beams";
 import { loadBasePackXml } from "@/game/pack/boot";
 import "@/game/pack/base";
@@ -5010,7 +5011,7 @@ function SectorChart({ game }: { game: Game }) {
                 className={`beacon is-${sectorTone(b.group)}${linked ? " is-linked" : ""}${past ? " is-past" : ""}`}
                 style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}
                 disabled={!linked}
-                aria-label={b.name}
+                aria-label={sectorTag(b)}
                 onClick={() => act((g) => chooseSector(g, b.id))}
               />
             );
@@ -5021,7 +5022,7 @@ function SectorChart({ game }: { game: Game }) {
               className="jump-tag"
               style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}
             >
-              {i + 1}. {b.name}
+              {i + 1}. {sectorTag(b)}
             </span>
           ))}
         </div>
@@ -5043,7 +5044,7 @@ function SectorChart({ game }: { game: Game }) {
       <div className="sector-picks">
         {next.map((b, i) => (
           <button key={b.id} type="button" onClick={() => act((g) => chooseSector(g, b.id))}>
-            {i + 1}. {b.name}
+            {i + 1}. {sectorTag(b)}
           </button>
         ))}
       </div>

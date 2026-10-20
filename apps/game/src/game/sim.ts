@@ -303,6 +303,7 @@ import {
   openArchiveSurrender,
   openShipEscapePage,
   showArchiveArrival,
+  showArchivePage,
   showShipGotAway,
   showShipVictory,
 } from "./archive-pay.ts";
@@ -6710,22 +6711,29 @@ export function columnLinks(prev: number, now: number): [number, number][] {
   return out;
 }
 
+function chartNode(
+  id: string,
+  sector: string,
+  name: string,
+  group: SectorNode["group"],
+  col: number,
+  row: number,
+  short?: string,
+): SectorNode {
+  const node: SectorNode = { id, sector, name, group, col, row, links: [] };
+  const label = short ?? sectorDef(sector)?.short;
+  if (label) node.short = label;
+  return node;
+}
+
 /** Sectors page: the chart from the starting sector to The Last Stand. Hidden Crystal Worlds is not on it. */
 export function buildRoute(seed: number): SectorNode[] {
   const used = new Set<string>();
   const groupOf = (group: string): SectorNode["group"] =>
     group === "hostile" || group === "nebula" ? group : "civilian";
-  // Sector 1 is STANDARD_SPACE and the last column is FINAL. Each node shows that sector's own title.
+  // Sector 1 is STANDARD_SPACE and the last column is FINAL. Column 0 uses the civilian title when the pack captured it.
   const nodes: SectorNode[] = [
-    {
-      id: "sec-0",
-      sector: START_SECTOR,
-      name: sectorTitle(START_SECTOR),
-      group: "civilian",
-      col: 0,
-      row: 1,
-      links: [],
-    },
+    chartNode("sec-0", START_SECTOR, sectorTitle(START_SECTOR), "civilian", 0, 1),
   ];
   // Any civilian, hostile, or nebula sector is eligible in the columns its gate allows.
   const poolFor = (sector: number) => allSectors().filter((s) => sectorEligible(s, sector, used));
@@ -6764,27 +6772,22 @@ export function buildRoute(seed: number): SectorNode[] {
       const pick = take(slot);
       picked.add(pick.id);
       if (pick.unique) used.add(pick.id);
-      nodes.push({
-        id: `sec-${col}-${slot}`,
-        sector: pick.id,
-        name: pick.name,
-        group: groupOf(pick.group),
-        col,
-        row: chartRow(slot, count),
-        links: [],
-      });
+      nodes.push(
+        chartNode(
+          `sec-${col}-${slot}`,
+          pick.id,
+          pick.name,
+          groupOf(pick.group),
+          col,
+          chartRow(slot, count),
+        ),
+      );
     }
     prevCount = count;
   }
-  nodes.push({
-    id: "sec-7",
-    sector: FINAL_SECTOR,
-    name: sectorTitle(FINAL_SECTOR),
-    group: "last-stand",
-    col: 7,
-    row: chartRow(0, 1),
-    links: [],
-  });
+  nodes.push(
+    chartNode("sec-7", FINAL_SECTOR, sectorTitle(FINAL_SECTOR), "last-stand", 7, chartRow(0, 1)),
+  );
   for (let col = 0; col < 7; col++) {
     const from = nodes.filter((n) => n.col === col);
     const to = nodes.filter((n) => n.col === col + 1);
@@ -7127,6 +7130,7 @@ export function createGame(
   g.routeHere = g.route[0]?.id ?? "";
   if (hullId) applyHull(g, hullId, picks);
   seedStations(g);
+  openSectorStart(g);
   return g;
 }
 
@@ -8082,6 +8086,27 @@ function nextSector(g: Game, id?: string) {
   g.sectorMap = false;
   log(g, g.sectorName);
   sfx(g, "click");
+  openSectorStart(g);
+}
+
+/** The sector's stored start event, after the map stamps. A missing id leaves the resolved start beacon. */
+function openSectorStart(g: Game): void {
+  const id = sectorDef(g.sectorId)?.startEvent;
+  if (!id) return;
+  const page = eventDef(id);
+  if (!page) return;
+  const shown = showArchivePage(g, page);
+  if (shown === "unpaid" || shown === true || g.phase === "defeat" || g.phase === "combat") return;
+  const choices = page.choices.map((choice) => ({ id: choice.id, label: choice.label }));
+  if (choices.length === 0) choices.push({ id: "ack", label: "Continue" });
+  const here = g.beacons.find((beacon) => beacon.id === g.here);
+  g.event = {
+    title: here && here.name !== "Beacon" ? here.name : g.sectorName,
+    body: page.body,
+    choices,
+  };
+  g.phase = "event";
+  g.paused = true;
 }
 
 export function continueReward(g: Game) {
@@ -8559,6 +8584,11 @@ function recallSectors(g: Game): void {
     if (!id) continue;
     node.sector = id;
     node.name = sectorTitle(id);
+  }
+  for (const node of g.route ?? []) {
+    if (node.short || !node.sector) continue;
+    const short = sectorDef(node.sector)?.short;
+    if (short) node.short = short;
   }
   if (g.sectorId) return;
   const here = g.route?.find((n) => n.id === g.routeHere);

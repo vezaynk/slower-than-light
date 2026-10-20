@@ -61,6 +61,8 @@ const achievements = new Map<string, AchievementDef>();
 const factions = new Map<string, FactionSurrender>();
 let reward: RewardTable | undefined;
 let baseReward: RewardTable | undefined;
+let civilianSectorTitleValue: string | undefined;
+let baseCivilianSectorTitle: string | undefined;
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
 let baseAugments: AugmentDef[] = [];
@@ -502,6 +504,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     factions.clear();
     reward = pack.rewards ? copyReward(pack.rewards) : undefined;
     baseReward = reward ? copyReward(reward) : undefined;
+    civilianSectorTitleValue = pack.civilianSectorTitle;
+    baseCivilianSectorTitle = pack.civilianSectorTitle;
     baseFactions = (pack.factions ?? []).map(copyFaction);
     baseCrew = (pack.crew ?? []).map(copyCrew);
     baseWeapons = (pack.weapons ?? []).map(copyWeapon);
@@ -523,6 +527,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   if (mode === "append" && pack.rewards) {
     reward = copyReward(pack.rewards);
   }
+  if (mode === "append" && pack.civilianSectorTitle)
+    civilianSectorTitleValue = pack.civilianSectorTitle;
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
     weapons.set(row.id, copyWeapon(row));
@@ -623,6 +629,11 @@ export function allHulls(): HullDef[] {
 export function sectorDef(id: string | undefined): SectorDef | undefined {
   if (!id) return undefined;
   return sectors.get(id);
+}
+
+/** English `sectorname_CIVILIAN_SECTOR`, when this pack stored it. */
+export function civilianSectorTitle(): string | undefined {
+  return civilianSectorTitleValue;
 }
 
 /** Page order. An appended id sits at the end, so the campaign chart rows stay put. */
@@ -834,6 +845,7 @@ export function resetPackForTests(): void {
   achievements.clear();
   factions.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
+  civilianSectorTitleValue = baseCivilianSectorTitle;
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));
   for (const row of baseAugments) augments.set(row.id, copyAugment(row));

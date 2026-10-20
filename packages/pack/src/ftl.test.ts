@@ -1229,6 +1229,41 @@ describe("packFromFtl", () => {
     assert.equal(pack.sectors?.find((row) => row.id === "ONLY_DE")?.name, "only_german");
   });
 
+  it("keeps the civilian column title from the English string table", () => {
+    const english = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_CIVILIAN_SECTOR">Civilian Sector</text>
+  <text name="sectorname_short_ENGI_SECTOR">Engi Controlled</text>
+</FTL>`;
+    const han = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_CIVILIAN_SECTOR">平民星区</text>
+  <text name="sectorname_short_ENGI_SECTOR">被控制</text>
+</FTL>`;
+    const sectors = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <sectorDescription name="STANDARD_SPACE">
+    <nameList><name>Civilian (Starting) Sector</name></nameList>
+  </sectorDescription>
+  <sectorDescription name="ENGI_SECTOR">
+    <nameList>
+      <name id="sectorname_ENGI_SECTOR" short="sectorname_short_ENGI_SECTOR">Engi Controlled Sector</name>
+    </nameList>
+  </sectorDescription>
+</FTL>`;
+    const pack = packFromFtl([
+      { path: "data/text-zh_Hans.xml", xml: han },
+      { path: "data/text_sectorname.xml", xml: english },
+      { path: "data/sector_data.xml", xml: sectors },
+    ]);
+    const standard = pack.sectors?.find((row) => row.id === "STANDARD_SPACE");
+    const engi = pack.sectors?.find((row) => row.id === "ENGI_SECTOR");
+    assert.equal(pack.civilianSectorTitle, "Civilian Sector");
+    assert.equal(standard?.name, "Civilian (Starting) Sector");
+    assert.equal(engi?.name, "Engi Controlled Sector");
+    assert.equal(engi?.short, "Engi Controlled");
+  });
+
   it("reads an offer from an ordinary document and uses the name as the flag", () => {
     const pack = packFromFtl([
       {

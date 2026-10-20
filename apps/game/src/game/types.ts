@@ -683,6 +683,8 @@ export type SectorNode = {
   /** ftl.dat sector id (sector_data.xml's sectorDescription name). */
   sector: string;
   name: string;
+  /** Short chart label, when the sector stored one. The HUD keeps `name`. */
+  short?: string;
   group: "civilian" | "hostile" | "nebula" | "last-stand";
   col: number;
   row: number;

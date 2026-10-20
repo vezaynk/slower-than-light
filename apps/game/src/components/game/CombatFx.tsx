@@ -43,13 +43,16 @@ import {
 } from "./miss-flight";
 import "@/game/pack/base";
 import { pageRect } from "./turn";
-import { asteroidClip } from "@stl/pack";
+import { asteroidClip, ROOM_PX } from "@stl/pack";
+import { muzzlePoint } from "@/game/mount-place";
+import { gridPitch } from "./grid-pitch";
 import {
   clipFrame,
   droneLayerUrl,
   loadedImage,
   projectileBox,
   projectileFrame,
+  weaponMuzzle,
 } from "@/game/pack/media";
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -842,6 +845,21 @@ export function CombatFx() {
       const panelBox = box(host.querySelector(".target-panel"));
       const stageBox = box(host.querySelector(".stage-slot"));
 
+      const gridScale = new Map<"player" | "enemy", { x: number; y: number }>();
+      const archivePx = (side: "player" | "enemy") => {
+        const cached = gridScale.get(side);
+        if (cached) return cached;
+        const el = host.querySelector(`.hull[data-ship="${side}"]`);
+        const ship = side === "player" ? g.player : g.enemy;
+        const pitch =
+          el instanceof HTMLElement && ship ? gridPitch(el, ship.cols, ship.rows) : undefined;
+        const next = pitch
+          ? { x: pitch.pitchX / ROOM_PX, y: pitch.pitchY / ROOM_PX }
+          : { x: 1, y: 1 };
+        gridScale.set(side, next);
+        return next;
+      };
+
       const muzzle = (shot: Shot): Pt | null => {
         if (shot.from === "env") {
           const side = targetSide(shot);
@@ -866,6 +884,26 @@ export function CombatFx() {
           );
           if (mounts.length) {
             const el = mounts[Math.floor(hash(shot.id) * mounts.length) % mounts.length];
+            // A packed fire point leaves from the hardpoint, turned with the gun.
+            // No fire point, and every edge gun, keeps the drawn tip.
+            const packed = el?.classList.contains("is-hardpoint")
+              ? weaponMuzzle(shot.defId)
+              : undefined;
+            const hard = packed ? box(el?.querySelector("[data-hardpoint]") ?? el ?? null) : null;
+            if (packed && hard) {
+              const turn = Number(el?.getAttribute("data-turn"));
+              const fromFire = muzzlePoint(
+                hard,
+                {
+                  turn: Number.isFinite(turn) ? turn : 0,
+                  flip: el?.getAttribute("data-flip") === "1",
+                },
+                { x: packed.fireX, y: packed.fireY },
+                { x: packed.mountX, y: packed.mountY },
+                archivePx(side),
+              );
+              if (fromFire) return fromFire;
+            }
             const mark = el?.querySelector("[data-muzzle]");
             const m = box(mark ?? el ?? null);
             // A hardpoint marks its muzzle. Edge guns point right on the player and up on the target.

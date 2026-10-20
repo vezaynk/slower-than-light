@@ -14,6 +14,7 @@ import {
   archiveGeneration,
   droneLayerUrl,
   subscribeArchive,
+  weaponChargeFrame,
   weaponFrame,
   type SheetFrame,
   type WeaponPhase,
@@ -70,6 +71,20 @@ export function WeaponArt({
 }) {
   const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   const frame = useMemo(() => weaponFrame(id, phase), [id, phase, generation]);
+  const charge = useMemo(
+    () => (phase === "charged" ? weaponChargeFrame(id) : undefined),
+    [id, phase, generation],
+  );
+  if (frame && charge) {
+    const width = Math.max(1, Math.round((height * frame.fw) / frame.fh));
+    const chargeHeight = Math.max(1, Math.round((height * charge.fh) / frame.fh));
+    return (
+      <span className="gear-art is-weapon is-sheet is-charged" style={{ width, height }}>
+        <SheetImg frame={frame} height={height} className="sheet-frame" />
+        <SheetImg frame={charge} height={chargeHeight} className="gear-charge" />
+      </span>
+    );
+  }
   if (frame)
     return <SheetImg frame={frame} height={height} className="gear-art is-weapon is-sheet" />;
   const art = weaponPixels(id);

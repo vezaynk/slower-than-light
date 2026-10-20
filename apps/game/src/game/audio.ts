@@ -1,6 +1,12 @@
 /** Archive waves play when that cue is packed. A missing cue keeps the tone. */
 import { sectorDef } from "@stl/pack";
-import { archiveGeneration, musicTrack, soundCue, soundCues } from "./pack/media.ts";
+import {
+  archiveGeneration,
+  musicTrack,
+  soundCue,
+  soundCues,
+  weaponFireSounds,
+} from "./pack/media.ts";
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -132,6 +138,36 @@ export function deathCue(kin: string | undefined): string {
   if (kin === "engi") return "engiDeath";
   if (kin === "energy") return "energyDeath";
   return "death1";
+}
+
+/**
+ * The cue a weapon plays when it fires.
+ * Packed fire-sound names are one family: one of them, at random, the way `cueFor` picks `SFX_CUES`.
+ * None listed, or none packed, keeps the kind cue. Flak and laser share "laser". A bomb uses "missile".
+ */
+export function launchCue(
+  kind: string | undefined,
+  fireSounds: readonly string[] | undefined,
+  packed: (name: string) => boolean,
+  pick: () => number = Math.random,
+): string {
+  const present = (fireSounds ?? []).filter((name) => name.length > 0 && packed(name));
+  if (present.length > 0) {
+    const index = Math.floor(pick() * present.length) % present.length;
+    return present[index] ?? present[0]!;
+  }
+  if (kind === "flak" || kind === "laser") return "laser";
+  if (kind === "bomb") return "missile";
+  return kind ?? "laser";
+}
+
+/** `launchCue` for the weapon anim loaded from the archive. */
+export function weaponLaunchCue(
+  defId: string,
+  kind: string | undefined,
+  pick: () => number = Math.random,
+): string {
+  return launchCue(kind, weaponFireSounds(defId), (name) => soundCue(name) != null, pick);
 }
 
 /** The archive cue for a game sound: a random present variant, or a cue named exactly that. */

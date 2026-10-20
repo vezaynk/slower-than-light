@@ -382,8 +382,11 @@ function Hardpoints({
                 style={{ left: pitch.padL + pose.x * scaleX, top: pitch.padT + pose.y * scaleY }}
                 data-mount={gun.uid}
                 data-def={gun.defId}
+                data-turn={pose.turn}
+                data-flip={pose.flip ? "1" : "0"}
                 aria-hidden="true"
               >
+                <i data-hardpoint="" />
                 <span
                   className="mount-turn"
                   style={{ transform: `rotate(${pose.turn}deg) scaleY(${pose.flip ? -1 : 1})` }}

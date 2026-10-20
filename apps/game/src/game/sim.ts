@@ -1,4 +1,4 @@
-import { deathCue, flushSfx, syncLoops } from "./audio.ts";
+import { deathCue, flushSfx, syncLoops, weaponLaunchCue } from "./audio.ts";
 import { TILE_WALK_S, footVia, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
 import {
   claimPadTile,
@@ -3066,15 +3066,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   // INVENTED: a manual gun fires its queued room once and then needs a new target. Autofire keeps the room.
   // INFERRED: autofire repeats the drawn beam segment. A manual beam needs a new line.
   if (from === "player" && !slotAutofire(g, w)) dropQueued(w);
-  const sound =
-    def.kind === "flak"
-      ? "laser"
-      : def.kind === "bomb"
-        ? "missile"
-        : def.kind === "laser"
-          ? "laser"
-          : def.kind;
-  sfx(g, sound);
+  sfx(g, weaponLaunchCue(w.defId, def.kind));
   // Cloaking, Overview: one cut per volley. Ion Charger and Charger Laser I cut once per shot.
   // Laser Charger II cuts once, with the volley. These chargers print no gap, so the last shot leaves with the rest.
   const cuts = cloakVolleyCuts(w.defId, count);
@@ -4262,11 +4254,7 @@ function releaseHeld(g: Game, w: WeaponInst): boolean {
   g.shots.push(...held);
   delete w.held;
   w.charge = 0;
-  const kind = held[0]?.kind;
-  sfx(
-    g,
-    kind === "flak" || kind === "laser" ? "laser" : kind === "bomb" ? "missile" : (kind ?? "laser"),
-  );
+  sfx(g, weaponLaunchCue(w.defId, held[0]?.kind));
   return true;
 }
 

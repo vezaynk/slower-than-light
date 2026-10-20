@@ -17,6 +17,7 @@ import {
   roomIconUrl,
   setImageVariant,
   soundCue,
+  weaponChargeFrame,
   weaponFrame,
 } from "./pack/media.ts";
 
@@ -161,6 +162,40 @@ describe("archive media", () => {
     assert.equal(cueFor("hit")?.name, "hitHull1");
     assert.equal(cueFor("hit")?.loop, true);
     assert.equal(cueFor("click"), undefined);
+  });
+
+  it("draws a charge image only when that clip and its sheet are packed", async () => {
+    URL.createObjectURL = () => {
+      const url = `blob:charge-${created.length}`;
+      created.push(url);
+      return url;
+    };
+    URL.revokeObjectURL = () => {};
+    await rememberArchive(
+      [
+        {
+          path: "data/animations.xml",
+          xml: `<animations>
+<animSheet name="LASER_BURST_3" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_3.png</animSheet>
+<weaponAnim name="LASER_BURST_3"><sheet>LASER_BURST_3</sheet><desc length="1" x="0" y="0"/><chargeImage>laser_glow</chargeImage></weaponAnim>
+<animSheet name="laser_glow" w="26" h="14" fw="26" fh="14">weapons/laser_glow.png</animSheet>
+<anim name="laser_glow"><sheet>laser_glow</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<weaponAnim name="ION_1"><sheet>missing</sheet><desc length="1" x="0" y="0"/><chargeImage>no_glow</chargeImage></weaponAnim>
+<animSheet name="ghost" w="8" h="8" fw="8" fh="8">weapons/ghost.png</animSheet>
+<anim name="ghost"><sheet>ghost</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<weaponAnim name="BEAM_1"><sheet>ghost</sheet><desc length="1" x="0" y="0"/><chargeImage>ghost</chargeImage></weaponAnim>
+</animations>`,
+        },
+      ],
+      new Map([
+        ["img/weapons/LASER_BURST_3.png", new Blob([Uint8Array.of(1)])],
+        ["img/weapons/laser_glow.png", new Blob([Uint8Array.of(2)])],
+      ]),
+    );
+    assert.equal(weaponChargeFrame("LASER_BURST_3")?.url, "blob:charge-1");
+    assert.equal(weaponChargeFrame("ION_1"), undefined);
+    assert.equal(weaponChargeFrame("BEAM_1"), undefined);
+    assert.equal(weaponChargeFrame("LASER_BURST_1"), undefined);
   });
 
   it("frames an effect clip and leaves a missing picture alone", async () => {

@@ -1197,6 +1197,32 @@ describe("packFromFtl", () => {
     }
   });
 
+  it("stores NOLOC when the drone blueprint carries the attribute", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/blueprints.xml",
+        xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <droneBlueprint name="QUIET" NOLOC="1">
+    <title>Quiet</title>
+    <cost>1</cost>
+  </droneBlueprint>
+  <droneBlueprint name="LOUD">
+    <title>Loud</title>
+    <cost>1</cost>
+  </droneBlueprint>
+  <droneBlueprint name="ZERO" NOLOC="0">
+    <title>Zero</title>
+    <cost>1</cost>
+  </droneBlueprint>
+</FTL>`,
+      },
+    ]);
+    assert.equal(pack.drones?.find((row) => row.id === "QUIET")?.noloc, true);
+    assert.equal(pack.drones?.find((row) => row.id === "LOUD")?.noloc, undefined);
+    assert.equal(pack.drones?.find((row) => row.id === "ZERO")?.noloc, true);
+  });
+
   it("reads an event environment, including which ship a battery shoots", () => {
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));

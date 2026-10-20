@@ -1247,12 +1247,21 @@ function droneNames(hull: HullDef): { drones: string[]; maxDrones: number } | un
 /**
  * The hull a fight should build instead of rolling a class.
  * A tier that is itself a hull wins. Otherwise one id is drawn from `autoBlueprint`'s list.
- * A list that is missing, or a drawn id that is not a hull, leaves the class roll in charge.
+ * A list that is missing, a drawn id that is not a hull, or a drawn hull whose minSector or
+ * maxSector excludes `level`, leaves the class roll in charge. `level` is
+ * `genSector(sector, difficulty) - 1`. Both gates are inclusive. A hull with neither stays eligible.
  */
+function hullInSector(hull: HullDef, level: number): boolean {
+  if (hull.minSector != null && level < hull.minSector) return false;
+  if (hull.maxSector != null && level > hull.maxSector) return false;
+  return true;
+}
+
 export function fightHull(
   tier: string,
   autoBlueprint: string | undefined,
   rand: () => number,
+  level: number,
 ): HullDef | undefined {
   const named = hullDef(tier);
   if (named) return named;
@@ -1264,7 +1273,9 @@ export function fightHull(
   }
   if (names.length === 0) return undefined;
   const id = names[Math.floor(rand() * names.length) % names.length]!;
-  return hullDef(id);
+  const hull = hullDef(id);
+  if (!hull || !hullInSector(hull, level)) return undefined;
+  return hull;
 }
 
 /** Systems the blueprint fits at the start. A slot with `start` false is left empty. */

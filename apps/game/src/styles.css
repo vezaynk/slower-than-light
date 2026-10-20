@@ -2231,6 +2231,13 @@ button:disabled {
   color: var(--color-fg);
 }
 
+.event-img {
+  display: block;
+  width: min(100%, 360px);
+  height: auto;
+  margin: 0 0 14px;
+}
+
 .event-lead {
   font-size: calc(28px + var(--event-font, 0) * 2px) !important !important;
   margin-bottom: 14px;

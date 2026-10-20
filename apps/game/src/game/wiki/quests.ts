@@ -30,7 +30,8 @@
  */
 import { upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { allEvents, crewDef, weaponDef } from "@stl/pack";
+import { allEvents, crewDef, eventDef, fillerList, warnPack, weaponDef } from "@stl/pack";
+import type { EventDef } from "@stl/pack";
 import { xpNeedFor } from "../extras/lineage.ts";
 import {
   aidPlayerAsb,
@@ -227,6 +228,29 @@ export function addQuest(g: Game, id: string): string {
   (g.questsNext ??= []).push(id);
   log(g, QUEST_NEXT);
   return QUEST_NEXT;
+}
+
+/**
+ * Archive `<quest event>`. Placement follows addQuest. The id is an event or an event list,
+ * and arrival plays that page. A missing id places nothing.
+ */
+export function addArchiveQuest(g: Game, eventId: string): void {
+  if (!eventDef(eventId) && !(fillerList(eventId)?.entries.length ?? 0)) {
+    warnPack(`A <quest event="${eventId}"> is not an event or an event list; it places nothing.`);
+    return;
+  }
+  addQuest(g, eventId);
+}
+
+/** The archive page a quest marker plays, when the id is not a campaign quest slug. */
+function archiveQuestPage(g: Game, id: string): EventDef | undefined {
+  if (QUESTS[id] || fromParts("quests", id) || fromParts("arrive", id)) return undefined;
+  const direct = eventDef(id);
+  if (direct) return direct;
+  const list = fillerList(id);
+  if (!list?.entries.length) return undefined;
+  const entry = list.entries[Math.floor(rand(g) * list.entries.length) % list.entries.length];
+  return entry.page ?? eventDef(entry.id);
 }
 
 /** sim.ts nextSector, after the sector's events are stamped: "it will appear regardless of which sector you choose". */
@@ -721,6 +745,20 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       };
       g.phase = "event";
       g.paused = true;
+      return g.event;
+    }
+    const archive = archiveQuestPage(g, b.quest);
+    if (archive) {
+      const choices = archive.choices.map((choice) => ({ id: choice.id, label: choice.label }));
+      if (choices.length === 0) choices.push({ id: "ack", label: "Continue" });
+      g.event = {
+        title: here(g)?.name ?? archive.dest,
+        body: archive.body,
+        choices: stampStockLabels(choices),
+      };
+      g.phase = "event";
+      g.paused = true;
+      b.flag = archive.id;
       return g.event;
     }
   }

@@ -306,6 +306,7 @@ import {
   showArchivePage,
   showShipGotAway,
   showShipVictory,
+  stampArchiveImage,
 } from "./archive-pay.ts";
 import { fightUnlock } from "./unlocks.ts"; // @agent:unlocks
 import type {
@@ -5885,6 +5886,7 @@ function retireFlagship(g: Game) {
 }
 
 function lose(g: Game, reason: "hull" | "crew") {
+  g.secretSector = false;
   g.phase = "defeat";
   g.outcome = g.training ? "tutorial" : reason;
   g.paused = true;
@@ -7229,6 +7231,8 @@ export function commitJump(g: Game, id: string) {
   // INFERRED: jumping away restores the engines. The page prints the restore on a win.
   clearEngineLimit(g);
   clearArchiveCaps(g.player);
+  // A jump away is not the secret-sector jump. The stored tag ends here.
+  g.secretSector = false;
   // INFERRED: jumping away ends the shield-virus half. The page only prints the half for that fight.
   clearShieldHalf(g);
   clearSystemOff(g);
@@ -7765,6 +7769,7 @@ export function choose(g: Game, id: string) {
   const resolve = () => {
     if (b) b.resolved = true;
     g.event = null;
+    if (openSecretSector(g)) return;
     g.phase = "map";
     g.paused = false;
   };
@@ -7955,7 +7960,18 @@ function sectorPool(g: Game, sector: number): string[] {
  * Sectors: the sector is not on the chart, the Rebels still follow, and enemy strength stays the Rock Homeworlds number.
  * The page gives 1 fuel and then spends that 1 fuel on the jump.
  */
+/**
+ * The secret-sector tag, once the fight that stored it has ended.
+ * A flee clears the flag in commitJump, and a defeat clears it in lose.
+ */
+function openSecretSector(g: Game): boolean {
+  if (!g.secretSector || g.enemy || g.phase === "defeat") return false;
+  enterHiddenCrystal(g);
+  return true;
+}
+
 export function enterHiddenCrystal(g: Game) {
+  g.secretSector = false;
   g.fuel += 1;
   g.fuel = Math.max(0, g.fuel - 1);
   g.player.shieldCharge = 0;
@@ -8138,6 +8154,7 @@ function openSectorStart(g: Game): void {
     body: page.body,
     choices,
   };
+  stampArchiveImage(g, page.img);
   g.phase = "event";
   g.paused = true;
 }
@@ -8153,6 +8170,7 @@ export function continueReward(g: Game) {
     startCombat(g, "boss", false);
     return;
   }
+  if (openSecretSector(g)) return;
   if (b?.kind === "exit" && !b.flag) {
     g.phase = "event";
     g.paused = true;
@@ -8364,6 +8382,7 @@ function tickBoarding(g: Game, dt: number) {
   g.shots = [];
   g.asb = false;
   delete g.asbAim;
+  if (openSecretSector(g)) return;
   g.phase = "map";
   // The same sentence: with the boarders gone, only a remaining hazard keeps the clock.
   // Asteroid Field stays until the jump. A sun or a pulsar can too. No hazard charges instantly.
@@ -8545,9 +8564,12 @@ export function step(g: Game, dt: number) {
     delete g.asbAim;
     g.pulsar = false;
     g.flare = false;
-    // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).
-    // A ship-event gotaway page replaces that card.
-    if (!showShipGotAway(g)) pageGotAway(g, g.fightEvent);
+    // A secret-sector tag stored on this fight jumps before the map card.
+    if (!openSecretSector(g)) {
+      // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).
+      // A ship-event gotaway page replaces that card.
+      if (!showShipGotAway(g)) pageGotAway(g, g.fightEvent);
+    }
   }
   stepShots(g, h);
   endCheck(g);

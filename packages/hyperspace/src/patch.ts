@@ -60,12 +60,23 @@ export function patchDocument(
   const base = readXml(baseXml, path);
   const root = base.documentElement;
   if (!root) throw new Error(`${path}: the document has no root element.`);
-  const extra = readXml(patch, path).documentElement;
-  if (!extra) throw new Error(`${path}: the document has no root element.`);
-  const ops = extra.tagName === "FTL" ? elementChildren(extra) : [extra];
+  const ops = patchOps(patch, path);
   for (const op of ops) applyTop(base, root, op, options.panic === true, path);
   const xml = serializer.serializeToString(base);
   return xml.endsWith("\n") ? xml : `${xml}\n`;
+}
+
+/**
+ * The top-level operations of an append file. Slipstream wraps the file in a root before parsing, so most mods
+ * write several top-level elements with no root of their own. An <FTL> root inside it is unwrapped as well.
+ */
+function patchOps(patch: string, path: string): XmlElement[] {
+  const body = patch.replace(/^\uFEFF?\s*<\?xml[^>]*\?>/, "");
+  const wrapper = readXml(`<wrapper>${body}</wrapper>`, path).documentElement;
+  if (!wrapper) throw new Error(`${path}: the document has no root element.`);
+  const top = elementChildren(wrapper);
+  if (top.length === 1 && top[0]!.tagName === "FTL") return elementChildren(top[0]!);
+  return top;
 }
 
 function rawAppend(baseXml: string, patch: string): string {

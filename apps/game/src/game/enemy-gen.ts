@@ -7,7 +7,7 @@
 import "./pack/base.ts";
 import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import { blueprintList, hullDef, marksFromDoors, warnPack, weaponDef } from "@stl/pack";
-import type { HullCrewCount, HullDef } from "@stl/pack";
+import type { HullCrewCount, HullDef, ShipCrewRow, ShipWeaponOverride } from "@stl/pack";
 import type { KinId } from "./extras/kin.ts";
 import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
@@ -654,6 +654,97 @@ function armId(name: string): string | undefined {
   const titled = weaponIdForName(name);
   if (titled && weaponDef(titled)) return titled;
   return weaponDef(name) ? name : undefined;
+}
+
+/**
+ * Each seat the blueprint already counted rolls one race from the ship event's crew weights.
+ * A race this game cannot spawn is dropped from the roll. Weights are normalized.
+ * Returns the display races, or undefined when nothing remains to roll.
+ */
+export function mixCrewRaces(
+  rows: readonly ShipCrewRow[],
+  count: number,
+  rand: () => number,
+  ship: string,
+): string[] | undefined {
+  const usable: { race: string; prop: number }[] = [];
+  for (const row of rows) {
+    const race = RACE_OF[row.race];
+    if (!race) {
+      warnPack(
+        `${ship}: crew type "${row.race}" is not a race the game can spawn; it is dropped from the roll.`,
+      );
+      continue;
+    }
+    if (!(row.prop > 0)) {
+      warnPack(
+        `${ship}: crew type "${row.race}" has no positive weight; it is dropped from the roll.`,
+      );
+      continue;
+    }
+    usable.push({ race, prop: row.prop });
+  }
+  if (count <= 0 || usable.length === 0) return undefined;
+  const total = usable.reduce((sum, row) => sum + row.prop, 0);
+  const races: string[] = [];
+  for (let i = 0; i < count; i++) {
+    let roll = rand() * total;
+    let picked = usable[usable.length - 1]!.race;
+    for (const row of usable) {
+      roll -= row.prop;
+      if (roll < 0) {
+        picked = row.race;
+        break;
+      }
+    }
+    races.push(picked);
+  }
+  return races;
+}
+
+/** Replace the seats' races. The seat count and rooms stay. Blueprint races are not added again. */
+export function applyCrewMix(
+  spec: EnemySpec,
+  rows: readonly ShipCrewRow[],
+  rand: () => number,
+  ship: string,
+): void {
+  const races = mixCrewRaces(rows, spec.crew.length, rand, ship);
+  if (!races) return;
+  spec.crew = spec.crew.map((seat, i) => {
+    const race = races[i] ?? seat.race;
+    return { kin: KIN_OF[race] ?? seat.kin, race, room: seat.room };
+  });
+}
+
+/**
+ * Mount `count` weapons from the override names.
+ * Extra names past that count are a draw of that many. Blueprint guns are left off this list.
+ */
+export function overrideWeaponIds(
+  override: ShipWeaponOverride,
+  rand: () => number,
+  ship: string,
+): string[] {
+  const known: string[] = [];
+  for (const name of override.names) {
+    const id = armId(name);
+    if (!id) {
+      warnPack(`${ship}: weaponOverride names "${name}", which is not a weapon; it is skipped.`);
+      continue;
+    }
+    known.push(id);
+  }
+  if (known.length === 0 || override.count < 1) return [];
+  if (known.length <= override.count) return known;
+  const pool = [...known];
+  const picked: string[] = [];
+  while (picked.length < override.count && pool.length > 0) {
+    const index = Math.floor(rand() * pool.length) % pool.length;
+    const [id] = pool.splice(index, 1);
+    if (id) picked.push(id);
+  }
+  return picked;
 }
 
 /**

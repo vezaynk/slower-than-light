@@ -873,9 +873,22 @@ export type ShipEventEscape = ShipEventChance & {
   timer?: number;
 };
 
+/** One weighted race inside a ship event's `<crew>` block. `prop` is a weight. */
+export type ShipCrewRow = {
+  race: string;
+  prop: number;
+};
+
+/** `<weaponOverride count>`. `names` stay in document order. */
+export type ShipWeaponOverride = {
+  count: number;
+  names: string[];
+};
+
 /**
  * Root `<ship name>` in the ship-event file.
  * `autoBlueprint` is the hull list. Endings are optional.
+ * The first `<crew>` block and the first `<weaponOverride>` win.
  */
 export type ShipEventDef = {
   id: string;
@@ -885,6 +898,8 @@ export type ShipEventDef = {
   destroyed?: ShipEventEnding;
   deadCrew?: ShipEventEnding;
   gotaway?: ShipEventEnding;
+  crew?: ShipCrewRow[];
+  weaponOverride?: ShipWeaponOverride;
 };
 
 /**

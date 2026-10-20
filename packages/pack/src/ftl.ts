@@ -29,10 +29,12 @@ import type {
   EmptyBeaconDef,
   FactionSurrender,
   RewardTable,
+  ShipCrewRow,
   ShipEventChance,
   ShipEventDef,
   ShipEventEnding,
   ShipEventEscape,
+  ShipWeaponOverride,
   StoreDef,
   SystemDef,
   SystemSlot,
@@ -1445,7 +1447,7 @@ function shipEndingTag(tag: string): (typeof SHIP_ENDINGS)[number] | undefined {
   return SHIP_ENDINGS.find((name) => name === tag);
 }
 
-/** A root `<ship name>`. Crew and weapon overrides stay unread. The first of each ending tag wins. */
+/** A root `<ship name>`. The first of each ending, crew block, and weapon override wins. */
 function readShipEvent(
   node: XmlElement,
   strings: Map<string, string>,
@@ -1457,7 +1459,23 @@ function readShipEvent(
   const list = attr(node, "auto_blueprint")?.trim();
   if (list) row.autoBlueprint = list;
   const seen = new Set<string>();
+  let crewSeen = false;
+  let weaponsSeen = false;
   for (const item of elements(node)) {
+    if (item.tagName === "crew") {
+      if (crewSeen) continue;
+      crewSeen = true;
+      const crew = readShipCrew(item);
+      if (crew.length > 0) row.crew = crew;
+      continue;
+    }
+    if (item.tagName === "weaponOverride") {
+      if (weaponsSeen) continue;
+      weaponsSeen = true;
+      const override = readWeaponOverride(item);
+      if (override) row.weaponOverride = override;
+      continue;
+    }
     const tag = shipEndingTag(item.tagName);
     if (!tag || seen.has(tag)) continue;
     seen.add(tag);
@@ -1470,6 +1488,39 @@ function readShipEvent(
     else row.gotaway = ending;
   }
   return row;
+}
+
+/** `<crewMember type>` or `class`, plus `prop`. A row without a race or a weight is skipped. */
+function readShipCrew(node: XmlElement): ShipCrewRow[] {
+  const rows: ShipCrewRow[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "crewMember") continue;
+    const race = attr(item, "type")?.trim() || attr(item, "class")?.trim() || "";
+    const prop = numberAttr(item, "prop");
+    if (!race || prop == null) {
+      warnPack("A <crewMember> needs a type and a prop; it is skipped.");
+      continue;
+    }
+    rows.push({ race, prop });
+  }
+  return rows;
+}
+
+/** `<weaponOverride count>` and its `<name>` children, in order. A missing count is skipped. */
+function readWeaponOverride(node: XmlElement): ShipWeaponOverride | undefined {
+  const count = intAttr(node, "count");
+  if (count == null || count < 1) {
+    warnPack("A <weaponOverride> count is not a whole number above 0; it is skipped.");
+    return undefined;
+  }
+  const names: string[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "name") continue;
+    const name = ownText(item).trim();
+    if (name) names.push(name);
+  }
+  if (names.length === 0) return undefined;
+  return { count, names };
 }
 
 function readShipEnding(

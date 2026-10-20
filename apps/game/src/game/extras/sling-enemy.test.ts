@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
+import { hullDef, loadPack, resetPackForTests, type HullDef } from "@stl/pack";
 import { createGame, startCombat, step } from "../sim.ts";
 import { enemyBrokenSystems, tickEnemyBoarding } from "./sling.ts";
 import type { Crew, EnemyBoarding, Game, Kit } from "../types.ts";
@@ -416,5 +417,75 @@ describe("enemy crew teleporter", () => {
     assert.equal(party[0].aboard, "enemy");
     if (home === PADS) assert.equal(party[0].room, PADS);
     else assert.equal(party[0].path[party[0].path.length - 1], home);
+  });
+});
+
+describe("boardingAI plan", () => {
+  afterEach(() => resetPackForTests());
+
+  let hulls = 0;
+
+  /** A hull whose id is this ship's classId, so boardingPlan reads its boardingAI. */
+  function useHull(g: Game, boardingAI?: HullDef["boardingAI"]) {
+    const id = `BOARD_AI_${hulls++}`;
+    g.enemy!.classId = id;
+    const hull: HullDef = {
+      id,
+      cruiser: "Test",
+      layout: "test",
+      name: "Test",
+      quote: "",
+      unlock: "",
+      reactor: 0,
+      missiles: 0,
+      parts: 0,
+      weapons: [],
+      augments: [],
+    };
+    if (boardingAI) hull.boardingAI = boardingAI;
+    loadPack({ hulls: [hull] }, "append");
+    return id;
+  }
+
+  function trim(g: Game, n: number) {
+    for (const c of foes(g).slice(n)) g.crew = g.crew.filter((x) => x.id !== c.id);
+  }
+
+  it("a sabotage tag on a flagship keeps half the crew home and the trip cap", () => {
+    for (const n of [3, 5]) {
+      const g = boarder(n);
+      trim(g, n);
+      g.enemy!.flagship = { stage: 3 } as never;
+      const id = useHull(g, "sabotage");
+      assert.equal(hullDef(id)?.boardingAI, "sabotage");
+      form(g);
+      assert.equal(plan(g).invasion, false, String(n));
+      assert.equal(plan(g).stay, n - Math.floor(n / 2), String(n));
+    }
+  });
+
+  it("an invasion tag on a non-flagship keeps 1 home at 3 crew and 2 at 4", () => {
+    for (const n of [3, 4]) {
+      const g = boarder(n);
+      trim(g, n);
+      assert.equal(g.enemy!.flagship, undefined);
+      useHull(g, "invasion");
+      form(g);
+      assert.equal(plan(g).invasion, true, String(n));
+      assert.equal(plan(g).stay, n >= 4 ? 2 : 1, String(n));
+    }
+  });
+
+  it("a flagship with no boardingAI tag still keeps 1 or 2 crew home", () => {
+    for (const n of [3, 4]) {
+      const g = boarder(n);
+      trim(g, n);
+      g.enemy!.flagship = { stage: 3 } as never;
+      const id = useHull(g);
+      assert.equal(hullDef(id)?.boardingAI, undefined);
+      form(g);
+      assert.equal(plan(g).invasion, true, String(n));
+      assert.equal(plan(g).stay, n >= 4 ? 2 : 1, String(n));
+    }
   });
 });

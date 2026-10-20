@@ -477,6 +477,38 @@ describe("packFromFtl", () => {
     }
   });
 
+  it("reads boardingAI as sabotage or invasion, and warns on anything else", () => {
+    const ship = (body: string) => [
+      {
+        path: "data/blueprints.xml",
+        xml: `<FTL><shipBlueprint name="ODD" layout="odd">${body}</shipBlueprint></FTL>`,
+      },
+    ];
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      assert.equal(
+        packFromFtl(ship(`<boardingAI>sabotage</boardingAI>`)).hulls?.[0]?.boardingAI,
+        "sabotage",
+      );
+      assert.equal(
+        packFromFtl(ship(`<boardingAI>invasion</boardingAI>`)).hulls?.[0]?.boardingAI,
+        "invasion",
+      );
+      const raid = packFromFtl(ship(`<boardingAI>raid</boardingAI>`)).hulls?.[0];
+      assert.ok(raid);
+      assert.equal(raid.boardingAI, undefined);
+      const plain = packFromFtl(ship(``)).hulls?.[0];
+      assert.ok(plain);
+      assert.equal(plain.boardingAI, undefined);
+      assert.deepEqual(warnings, [
+        `shipBlueprint ODD: boardingAI "raid" is not sabotage or invasion; it is left unset.`,
+      ]);
+    } finally {
+      restore();
+    }
+  });
+
   it("fills id text from the strings, and expands an event's text list", () => {
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));

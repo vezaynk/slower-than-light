@@ -1,118 +1,118 @@
 <animations>
 <animSheet name="LASER_BURST_3" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_3.png</animSheet>
-<weaponAnim name="LASER_BURST_3"><sheet>LASER_BURST_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_BURST_3"><sheet>LASER_BURST_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_BURST_1" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_1.png</animSheet>
-<weaponAnim name="LASER_BURST_1"><sheet>LASER_BURST_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_BURST_1"><sheet>LASER_BURST_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_BURST_2" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_2.png</animSheet>
-<weaponAnim name="LASER_BURST_2"><sheet>LASER_BURST_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_BURST_2"><sheet>LASER_BURST_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_HEAVY_1" w="26" h="14" fw="26" fh="14">weapons/LASER_HEAVY_1.png</animSheet>
-<weaponAnim name="LASER_HEAVY_1"><sheet>LASER_HEAVY_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_HEAVY_1"><sheet>LASER_HEAVY_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="dart" w="26" h="14" fw="26" fh="14">weapons/dart.png</animSheet>
-<weaponAnim name="dart"><sheet>dart</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="dart"><sheet>dart</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="ION_1" w="26" h="14" fw="26" fh="14">weapons/ION_1.png</animSheet>
-<weaponAnim name="ION_1"><sheet>ION_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ION_1"><sheet>ION_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>ionShoot1</fireSound></weaponAnim>
 <animSheet name="MISSILES_2_PLAYER" w="26" h="14" fw="26" fh="14">weapons/MISSILES_2_PLAYER.png</animSheet>
-<weaponAnim name="MISSILES_2_PLAYER"><sheet>MISSILES_2_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="MISSILES_2_PLAYER"><sheet>MISSILES_2_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="MISSILES_1" w="26" h="14" fw="26" fh="14">weapons/MISSILES_1.png</animSheet>
-<weaponAnim name="MISSILES_1"><sheet>MISSILES_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="MISSILES_1"><sheet>MISSILES_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="ION_4" w="26" h="14" fw="26" fh="14">weapons/ION_4.png</animSheet>
-<weaponAnim name="ION_4"><sheet>ION_4</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ION_4"><sheet>ION_4</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>ionShoot1</fireSound></weaponAnim>
 <animSheet name="ION_2" w="26" h="14" fw="26" fh="14">weapons/ION_2.png</animSheet>
-<weaponAnim name="ION_2"><sheet>ION_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ION_2"><sheet>ION_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>ionShoot1</fireSound></weaponAnim>
 <animSheet name="ION_STUN" w="26" h="14" fw="26" fh="14">weapons/ION_STUN.png</animSheet>
-<weaponAnim name="ION_STUN"><sheet>ION_STUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ION_STUN"><sheet>ION_STUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>ionShoot1</fireSound></weaponAnim>
 <animSheet name="BEAM_LONG" w="26" h="14" fw="26" fh="14">weapons/BEAM_LONG.png</animSheet>
-<weaponAnim name="BEAM_LONG"><sheet>BEAM_LONG</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BEAM_LONG"><sheet>BEAM_LONG</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>beam1</fireSound></weaponAnim>
 <animSheet name="SHOTGUN" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN.png</animSheet>
-<weaponAnim name="SHOTGUN"><sheet>SHOTGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="SHOTGUN"><sheet>SHOTGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="BOMB_FIRE" w="26" h="14" fw="26" fh="14">weapons/BOMB_FIRE.png</animSheet>
-<weaponAnim name="BOMB_FIRE"><sheet>BOMB_FIRE</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BOMB_FIRE"><sheet>BOMB_FIRE</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="LASER_BURST_2_A" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_2_A.png</animSheet>
-<weaponAnim name="LASER_BURST_2_A"><sheet>LASER_BURST_2_A</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_BURST_2_A"><sheet>LASER_BURST_2_A</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_BURST_5" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_5.png</animSheet>
-<weaponAnim name="LASER_BURST_5"><sheet>LASER_BURST_5</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_BURST_5"><sheet>LASER_BURST_5</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_HEAVY_1_SP" w="26" h="14" fw="26" fh="14">weapons/LASER_HEAVY_1_SP.png</animSheet>
-<weaponAnim name="LASER_HEAVY_1_SP"><sheet>LASER_HEAVY_1_SP</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_HEAVY_1_SP"><sheet>LASER_HEAVY_1_SP</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_HEAVY_2" w="26" h="14" fw="26" fh="14">weapons/LASER_HEAVY_2.png</animSheet>
-<weaponAnim name="LASER_HEAVY_2"><sheet>LASER_HEAVY_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_HEAVY_2"><sheet>LASER_HEAVY_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_HULL_1" w="26" h="14" fw="26" fh="14">weapons/LASER_HULL_1.png</animSheet>
-<weaponAnim name="LASER_HULL_1"><sheet>LASER_HULL_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_HULL_1"><sheet>LASER_HULL_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_HULL_2" w="26" h="14" fw="26" fh="14">weapons/LASER_HULL_2.png</animSheet>
-<weaponAnim name="LASER_HULL_2"><sheet>LASER_HULL_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_HULL_2"><sheet>LASER_HULL_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_CHAINGUN" w="26" h="14" fw="26" fh="14">weapons/LASER_CHAINGUN.png</animSheet>
-<weaponAnim name="LASER_CHAINGUN"><sheet>LASER_CHAINGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_CHAINGUN"><sheet>LASER_CHAINGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_CHAINGUN_2" w="26" h="14" fw="26" fh="14">weapons/LASER_CHAINGUN_2.png</animSheet>
-<weaponAnim name="LASER_CHAINGUN_2"><sheet>LASER_CHAINGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_CHAINGUN_2"><sheet>LASER_CHAINGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_CHARGEGUN_PLAYER" w="26" h="14" fw="26" fh="14">weapons/LASER_CHARGEGUN_PLAYER.png</animSheet>
-<weaponAnim name="LASER_CHARGEGUN_PLAYER"><sheet>LASER_CHARGEGUN_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_CHARGEGUN_PLAYER"><sheet>LASER_CHARGEGUN_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_CHARGEGUN" w="26" h="14" fw="26" fh="14">weapons/LASER_CHARGEGUN.png</animSheet>
-<weaponAnim name="LASER_CHARGEGUN"><sheet>LASER_CHARGEGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_CHARGEGUN"><sheet>LASER_CHARGEGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_CHARGEGUN_2" w="26" h="14" fw="26" fh="14">weapons/LASER_CHARGEGUN_2.png</animSheet>
-<weaponAnim name="LASER_CHARGEGUN_2"><sheet>LASER_CHARGEGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="LASER_CHARGEGUN_2"><sheet>LASER_CHARGEGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="BEAM_1" w="26" h="14" fw="26" fh="14">weapons/BEAM_1.png</animSheet>
-<weaponAnim name="BEAM_1"><sheet>BEAM_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BEAM_1"><sheet>BEAM_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>beam1</fireSound></weaponAnim>
 <animSheet name="BEAM_HULL" w="26" h="14" fw="26" fh="14">weapons/BEAM_HULL.png</animSheet>
-<weaponAnim name="BEAM_HULL"><sheet>BEAM_HULL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BEAM_HULL"><sheet>BEAM_HULL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>beam1</fireSound></weaponAnim>
 <animSheet name="BEAM_2" w="26" h="14" fw="26" fh="14">weapons/BEAM_2.png</animSheet>
-<weaponAnim name="BEAM_2"><sheet>BEAM_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BEAM_2"><sheet>BEAM_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>beam1</fireSound></weaponAnim>
 <animSheet name="BEAM_3" w="26" h="14" fw="26" fh="14">weapons/BEAM_3.png</animSheet>
-<weaponAnim name="BEAM_3"><sheet>BEAM_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BEAM_3"><sheet>BEAM_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>beam1</fireSound></weaponAnim>
 <animSheet name="BEAM_FIRE" w="26" h="14" fw="26" fh="14">weapons/BEAM_FIRE.png</animSheet>
-<weaponAnim name="BEAM_FIRE"><sheet>BEAM_FIRE</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BEAM_FIRE"><sheet>BEAM_FIRE</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>beam1</fireSound></weaponAnim>
 <animSheet name="BEAM_BIO" w="26" h="14" fw="26" fh="14">weapons/BEAM_BIO.png</animSheet>
-<weaponAnim name="BEAM_BIO"><sheet>BEAM_BIO</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BEAM_BIO"><sheet>BEAM_BIO</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>beam1</fireSound></weaponAnim>
 <animSheet name="ION_CHARGEGUN" w="26" h="14" fw="26" fh="14">weapons/ION_CHARGEGUN.png</animSheet>
-<weaponAnim name="ION_CHARGEGUN"><sheet>ION_CHARGEGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ION_CHARGEGUN"><sheet>ION_CHARGEGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>ionShoot1</fireSound></weaponAnim>
 <animSheet name="ION_CHAINGUN" w="26" h="14" fw="26" fh="14">weapons/ION_CHAINGUN.png</animSheet>
-<weaponAnim name="ION_CHAINGUN"><sheet>ION_CHAINGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ION_CHAINGUN"><sheet>ION_CHAINGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>ionShoot1</fireSound></weaponAnim>
 <animSheet name="ARTILLERY_BOSS_4" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_4.png</animSheet>
-<weaponAnim name="ARTILLERY_BOSS_4"><sheet>ARTILLERY_BOSS_4</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ARTILLERY_BOSS_4"><sheet>ARTILLERY_BOSS_4</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>ionShoot1</fireSound></weaponAnim>
 <animSheet name="MISSILES_2" w="26" h="14" fw="26" fh="14">weapons/MISSILES_2.png</animSheet>
-<weaponAnim name="MISSILES_2"><sheet>MISSILES_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="MISSILES_2"><sheet>MISSILES_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="MISSILES_3" w="26" h="14" fw="26" fh="14">weapons/MISSILES_3.png</animSheet>
-<weaponAnim name="MISSILES_3"><sheet>MISSILES_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="MISSILES_3"><sheet>MISSILES_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="MISSILES_BREACH" w="26" h="14" fw="26" fh="14">weapons/MISSILES_BREACH.png</animSheet>
-<weaponAnim name="MISSILES_BREACH"><sheet>MISSILES_BREACH</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="MISSILES_BREACH"><sheet>MISSILES_BREACH</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="MISSILES_HULL" w="26" h="14" fw="26" fh="14">weapons/MISSILES_HULL.png</animSheet>
-<weaponAnim name="MISSILES_HULL"><sheet>MISSILES_HULL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="MISSILES_HULL"><sheet>MISSILES_HULL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="MISSILE_CHARGEGUN" w="26" h="14" fw="26" fh="14">weapons/MISSILE_CHARGEGUN.png</animSheet>
-<weaponAnim name="MISSILE_CHARGEGUN"><sheet>MISSILE_CHARGEGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="MISSILE_CHARGEGUN"><sheet>MISSILE_CHARGEGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="MISSILES_BURST" w="26" h="14" fw="26" fh="14">weapons/MISSILES_BURST.png</animSheet>
-<weaponAnim name="MISSILES_BURST"><sheet>MISSILES_BURST</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="MISSILES_BURST"><sheet>MISSILES_BURST</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="ARTILLERY_BOSS_2" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_2.png</animSheet>
-<weaponAnim name="ARTILLERY_BOSS_2"><sheet>ARTILLERY_BOSS_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ARTILLERY_BOSS_2"><sheet>ARTILLERY_BOSS_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="BOMB_1" w="26" h="14" fw="26" fh="14">weapons/BOMB_1.png</animSheet>
-<weaponAnim name="BOMB_1"><sheet>BOMB_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BOMB_1"><sheet>BOMB_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="BOMB_BREACH_1" w="26" h="14" fw="26" fh="14">weapons/BOMB_BREACH_1.png</animSheet>
-<weaponAnim name="BOMB_BREACH_1"><sheet>BOMB_BREACH_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BOMB_BREACH_1"><sheet>BOMB_BREACH_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="BOMB_BREACH_2" w="26" h="14" fw="26" fh="14">weapons/BOMB_BREACH_2.png</animSheet>
-<weaponAnim name="BOMB_BREACH_2"><sheet>BOMB_BREACH_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BOMB_BREACH_2"><sheet>BOMB_BREACH_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="BOMB_ION" w="26" h="14" fw="26" fh="14">weapons/BOMB_ION.png</animSheet>
-<weaponAnim name="BOMB_ION"><sheet>BOMB_ION</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BOMB_ION"><sheet>BOMB_ION</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="BOMB_STUN" w="26" h="14" fw="26" fh="14">weapons/BOMB_STUN.png</animSheet>
-<weaponAnim name="BOMB_STUN"><sheet>BOMB_STUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BOMB_STUN"><sheet>BOMB_STUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="BOMB_HEAL" w="26" h="14" fw="26" fh="14">weapons/BOMB_HEAL.png</animSheet>
-<weaponAnim name="BOMB_HEAL"><sheet>BOMB_HEAL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BOMB_HEAL"><sheet>BOMB_HEAL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="BOMB_HEAL_SYSTEM" w="26" h="14" fw="26" fh="14">weapons/BOMB_HEAL_SYSTEM.png</animSheet>
-<weaponAnim name="BOMB_HEAL_SYSTEM"><sheet>BOMB_HEAL_SYSTEM</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BOMB_HEAL_SYSTEM"><sheet>BOMB_HEAL_SYSTEM</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="BOMB_LOCK" w="26" h="14" fw="26" fh="14">weapons/BOMB_LOCK.png</animSheet>
-<weaponAnim name="BOMB_LOCK"><sheet>BOMB_LOCK</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="BOMB_LOCK"><sheet>BOMB_LOCK</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="SHOTGUN_PLAYER" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN_PLAYER.png</animSheet>
-<weaponAnim name="SHOTGUN_PLAYER"><sheet>SHOTGUN_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="SHOTGUN_PLAYER"><sheet>SHOTGUN_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="SHOTGUN_2" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN_2.png</animSheet>
-<weaponAnim name="SHOTGUN_2"><sheet>SHOTGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="SHOTGUN_2"><sheet>SHOTGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="CRYSTAL_BURST_1" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_BURST_1.png</animSheet>
-<weaponAnim name="CRYSTAL_BURST_1"><sheet>CRYSTAL_BURST_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="CRYSTAL_BURST_1"><sheet>CRYSTAL_BURST_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="CRYSTAL_BURST_2" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_BURST_2.png</animSheet>
-<weaponAnim name="CRYSTAL_BURST_2"><sheet>CRYSTAL_BURST_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="CRYSTAL_BURST_2"><sheet>CRYSTAL_BURST_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="CRYSTAL_HEAVY_1" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_HEAVY_1.png</animSheet>
-<weaponAnim name="CRYSTAL_HEAVY_1"><sheet>CRYSTAL_HEAVY_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="CRYSTAL_HEAVY_1"><sheet>CRYSTAL_HEAVY_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="CRYSTAL_HEAVY_2" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_HEAVY_2.png</animSheet>
-<weaponAnim name="CRYSTAL_HEAVY_2"><sheet>CRYSTAL_HEAVY_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="CRYSTAL_HEAVY_2"><sheet>CRYSTAL_HEAVY_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="ARTILLERY_BOSS_1" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_1.png</animSheet>
-<weaponAnim name="ARTILLERY_BOSS_1"><sheet>ARTILLERY_BOSS_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ARTILLERY_BOSS_1"><sheet>ARTILLERY_BOSS_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="ARTILLERY_BOSS_3" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_3.png</animSheet>
-<weaponAnim name="ARTILLERY_BOSS_3"><sheet>ARTILLERY_BOSS_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/></weaponAnim>
+<weaponAnim name="ARTILLERY_BOSS_3"><sheet>ARTILLERY_BOSS_3</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>beam1</fireSound></weaponAnim>
 <animSheet name="LASER_BURST_3_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_BURST_3_shot.png</animSheet>
 <anim name="LASER_BURST_3_shot"><sheet>LASER_BURST_3_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
 <animSheet name="LASER_BURST_1_shot" w="8" h="8" fw="8" fh="8">weapons/LASER_BURST_1_shot.png</animSheet>

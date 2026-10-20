@@ -33,6 +33,9 @@ describe("animations", () => {
     assert.equal(set.weapons[0]?.chargedFrame, 1);
     assert.equal(set.weapons[0]?.mountX, 3);
     assert.equal(set.weapons[0]?.mountY, 4);
+    assert.equal(set.weapons[0]?.firePoint, undefined);
+    assert.deepEqual(set.weapons[0]?.fireSounds, []);
+    assert.equal(set.weapons[0]?.chargeImage, undefined);
     assert.equal(set.clips[0]?.time, 1);
     assert.equal(set.clips[0]?.name, "bolt");
   });
@@ -45,6 +48,31 @@ describe("animations", () => {
     assert.equal(set.clips[0]?.length, 1);
     assert.equal(set.clips[0]?.time, 0.4);
     assert.equal(set.weapons[0]?.length, 2);
+  });
+
+  it("reads the fire point, every fire sound, and the charge image", () => {
+    const set = readAnimations(`<animations>
+<weaponAnim name="gun">
+<sheet>gun</sheet>
+<desc length="1" x="0" y="0"/>
+<firePoint x="8" y="5"/>
+<fireSound>heavy1</fireSound>
+<fireSound>heavy2</fireSound>
+<chargeImage>gun_glow</chargeImage>
+</weaponAnim>
+<weaponAnim name="plain">
+<sheet>gun</sheet>
+<desc length="1" x="0" y="0"/>
+<firePoint x="0" y="0"/>
+<fireSound> </fireSound>
+</weaponAnim>
+</animations>`);
+    assert.deepEqual(set.weapons[0]?.firePoint, { x: 8, y: 5 });
+    assert.deepEqual(set.weapons[0]?.fireSounds, ["heavy1", "heavy2"]);
+    assert.equal(set.weapons[0]?.chargeImage, "gun_glow");
+    assert.deepEqual(set.weapons[1]?.firePoint, { x: 0, y: 0 });
+    assert.deepEqual(set.weapons[1]?.fireSounds, []);
+    assert.equal(set.weapons[1]?.chargeImage, undefined);
   });
 
   it("fails on a document that is not well-formed, like the other archive files", () => {

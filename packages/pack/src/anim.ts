@@ -36,6 +36,12 @@ export type WeaponAnim = {
   fireFrame: number;
   mountX: number;
   mountY: number;
+  /** `<firePoint>`. Absent when the tag is missing. */
+  firePoint?: { x: number; y: number };
+  /** `<fireSound>` names, in file order. A weapon may repeat the tag. */
+  fireSounds: string[];
+  /** `<chargeImage>` anim name. Absent when the tag is missing. */
+  chargeImage?: string;
 };
 
 export type AnimationSet = {
@@ -121,7 +127,13 @@ function readWeaponAnim(node: XmlElement, name: string): WeaponAnim | undefined 
   const length = desc ? intAttr(desc, "length") : undefined;
   if (!sheet || length == null || length < 1) return undefined;
   const mount = child(node, "mountPoint");
-  return {
+  const fire = child(node, "firePoint");
+  const chargeImage = textChild(node, "chargeImage");
+  const fireSounds = elements(node)
+    .filter((item) => item.tagName === "fireSound")
+    .map((item) => ownText(item))
+    .filter((name) => name.length > 0);
+  const anim: WeaponAnim = {
     name,
     sheet,
     length,
@@ -131,7 +143,11 @@ function readWeaponAnim(node: XmlElement, name: string): WeaponAnim | undefined 
     fireFrame: intText(node, "fireFrame") ?? 0,
     mountX: (mount && intAttr(mount, "x")) || 0,
     mountY: (mount && intAttr(mount, "y")) || 0,
+    fireSounds,
   };
+  if (fire) anim.firePoint = { x: intAttr(fire, "x") ?? 0, y: intAttr(fire, "y") ?? 0 };
+  if (chargeImage) anim.chargeImage = chargeImage;
+  return anim;
 }
 
 function ownText(node: XmlElement): string {

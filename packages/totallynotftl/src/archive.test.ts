@@ -104,7 +104,18 @@ describe("totallynotftl.dat", () => {
     const anim = readAnimations(
       extracted.documents.find((doc) => doc.path === "data/animations.xml")?.xml ?? "",
     );
-    assert.ok(anim.weapons.some((row) => row.name === "LASER_BURST_3"));
+    const laser = anim.weapons.find((row) => row.name === "LASER_BURST_3");
+    assert.equal(laser?.fireSounds[0], "lightLaser1");
+    assert.deepEqual(laser?.firePoint, { x: laser?.mountX, y: laser?.mountY });
+    assert.equal(laser?.chargeImage, undefined);
+    assert.equal(anim.weapons.find((row) => row.name === "SHOTGUN")?.fireSounds[0], "lightLaser1");
+    assert.equal(
+      anim.weapons.find((row) => row.name === "MISSILES_1")?.fireSounds[0],
+      "smallMissile1",
+    );
+    assert.equal(anim.weapons.find((row) => row.name === "BOMB_1")?.fireSounds[0], "smallMissile1");
+    assert.equal(anim.weapons.find((row) => row.name === "BEAM_1")?.fireSounds[0], "beam1");
+    assert.equal(anim.weapons.find((row) => row.name === "ION_1")?.fireSounds[0], "ionShoot1");
     assert.equal(anim.clips.find((row) => row.name === "LASER_BURST_3_shot")?.time, 1);
     assert.ok(anim.clips.some((row) => row.name === "human_walk_down"));
     assert.equal(anim.clips.find((row) => row.name === "fire_large")?.length, 4);

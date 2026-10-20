@@ -4,7 +4,15 @@ import { MOUNT_IMAGES, WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
 import { SHIP_LAYOUTS } from "@stl/catalog/src/ship-layouts.ts";
 import { pictureForRooms, ROOM_PX } from "@stl/pack";
 import { weaponPixels } from "./gear-look.ts";
-import { GUN_ART, GUN_PX, SLIDE_PX, gunHeight, mountImage, mountPose } from "./mount-place.ts";
+import {
+  GUN_ART,
+  GUN_PX,
+  SLIDE_PX,
+  gunHeight,
+  mountImage,
+  mountPose,
+  muzzlePoint,
+} from "./mount-place.ts";
 
 describe("archive weapon hardpoints", () => {
   it("keeps an image box for every mount list", () => {
@@ -45,6 +53,32 @@ describe("archive weapon hardpoints", () => {
     assert.deepEqual(mountPose(image, still, false), { x: 40, y: 50, turn: -90, flip: false });
     const fixed = { ...still, slide: "no" as const };
     assert.equal(mountPose(image, fixed, false).y, 50);
+  });
+
+  it("starts a drawn shot at the hardpoint plus the fire point", () => {
+    const hard = { x: 100, y: 200 };
+    const mount = { x: 2, y: 4 };
+    const pose = { turn: 0, flip: false };
+    assert.equal(muzzlePoint(hard, pose, undefined, mount), undefined);
+    // The stand-in fire point sits on the mount point, so the shot leaves the hardpoint.
+    assert.deepEqual(muzzlePoint(hard, pose, { x: 2, y: 4 }, mount), hard);
+    assert.deepEqual(muzzlePoint(hard, pose, { x: 12, y: 7 }, mount), { x: 110, y: 203 });
+    assert.deepEqual(muzzlePoint(hard, { turn: 0, flip: true }, { x: 12, y: 7 }, mount), {
+      x: 110,
+      y: 197,
+    });
+    const up = muzzlePoint(hard, { turn: -90, flip: false }, { x: 12, y: 4 }, mount);
+    assert.ok(up);
+    assert.ok(Math.abs(up.x - 100) < 1e-9);
+    assert.ok(Math.abs(up.y - 190) < 1e-9);
+    const flippedUp = muzzlePoint(hard, { turn: -90, flip: true }, { x: 2, y: 8 }, mount);
+    assert.ok(flippedUp);
+    assert.ok(Math.abs(flippedUp.x - 96) < 1e-9);
+    assert.ok(Math.abs(flippedUp.y - 200) < 1e-9);
+    assert.deepEqual(muzzlePoint(hard, pose, { x: 12, y: 7 }, mount, { x: 2, y: 3 }), {
+      x: 120,
+      y: 209,
+    });
   });
 
   it("sizes the procedural barrel from the grid pitch", () => {

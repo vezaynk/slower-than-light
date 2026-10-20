@@ -130,13 +130,15 @@ describe("ship art", () => {
     try {
       await rememberShipArt(
         new Map([
-          ["img/ship/kestral_base.png", png(16, 16)],
-          ["img/ship/kestral_floor.png", png(16, 16)],
-          ["img/ship/kestral_cloak.png", png(16, 16)],
+          // The stand-in draws floor and cloak at the base size, which is the picture box.
+          ["img/ship/kestral_base.png", png(standIn.picture.w, standIn.picture.h)],
+          ["img/ship/kestral_floor.png", png(standIn.picture.w, standIn.picture.h)],
+          ["img/ship/kestral_cloak.png", png(standIn.picture.w, standIn.picture.h)],
           ["img/ship/kestral_gib5.png", png(16, 16)],
-          ["img/ship/offset_ship_base.png", png(16, 16)],
-          ["img/ship/offset_ship_floor.png", png(16, 16)],
-          ["img/ship/offset_ship_cloak.png", png(16, 16)],
+          ["img/ship/offset_ship_base.png", png(picture.w, picture.h)],
+          // A vanilla floor is smaller than the hull box.
+          ["img/ship/offset_ship_floor.png", png(30, 20)],
+          ["img/ship/offset_ship_cloak.png", png(picture.w, picture.h)],
           ["img/ship/offset_ship_gib1.png", png(16, 16)],
         ]),
       );
@@ -170,6 +172,9 @@ describe("ship art", () => {
       assert.equal(floorBox.top, picture.y - floor.offsetY);
       assert.equal(floorBox.left, baseBox.left + floorOffset.x);
       assert.equal(floorBox.top, baseBox.top + floorOffset.y);
+      // Drawn at its own size from the offset, not stretched to the hull box.
+      assert.equal(floorBox.width, 30);
+      assert.equal(floorBox.height, 20);
       assert.equal(cloak.offsetX, layout.x - cloakOffset.x);
       assert.equal(cloak.offsetY, layout.y - cloakOffset.y);
       assert.equal(cloakBox.left, baseBox.left + cloakOffset.x);
@@ -181,12 +186,14 @@ describe("ship art", () => {
       assert.equal(piece.offsetY, layout.y - gib.y);
       assert.equal(pieceBox.left, baseBox.left + gib.x);
       assert.equal(pieceBox.top, baseBox.top + gib.y);
+      assert.equal(pieceBox.width, 16);
+      assert.equal(pieceBox.height, 16);
 
       await rememberShipArt(
         new Map([
-          ["img/ship/offset_ship_base.png", png(16, 16)],
-          ["img/ship/offset_ship_floor.png", png(16, 16)],
-          ["img/ship/offset_ship_cloak.png", png(36, 36)],
+          ["img/ship/offset_ship_base.png", png(picture.w, picture.h)],
+          ["img/ship/offset_ship_floor.png", png(30, 20)],
+          ["img/ship/offset_ship_cloak.png", png(picture.w + 20, picture.h + 20)],
           ["img/ship/offset_ship_gib1.png", png(16, 16)],
         ]),
       );
@@ -202,16 +209,17 @@ describe("ship art", () => {
 
       await rememberShipArt(
         new Map([
-          ["img/ship/offset_ship_base.png", png(16, 16)],
-          ["img/ship/offset_ship_cloak.png", png(36, 16)],
+          ["img/ship/offset_ship_base.png", png(picture.w, picture.h)],
+          ["img/ship/offset_ship_cloak.png", png(picture.w + 20, picture.h)],
         ]),
       );
+      // Not the outline shape: placed by its offset at its own size.
       const wideOnly = shipImage("OFFSET_SHIP", "cloak");
       assert.ok(wideOnly);
       const wideBox = placed(wideOnly);
       assert.equal(wideBox.left, baseBox.left + cloakOffset.x);
       assert.equal(wideBox.top, baseBox.top + cloakOffset.y);
-      assert.equal(wideBox.width, picture.w);
+      assert.equal(wideBox.width, picture.w + 20);
       assert.equal(wideBox.height, picture.h);
     } finally {
       resetPackForTests();

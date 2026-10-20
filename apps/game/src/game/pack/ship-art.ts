@@ -79,6 +79,8 @@ export function shipImage(id: string, layer: ShipLayer): ShipFrame | undefined {
   const placed = frame(url, hull.picture, hull.grid?.x, hull.grid?.y, extra);
   if (layer === "cloak" && hull.img && cloakOutline(hull.img, file))
     return withCloakOutline(placed);
+  // FTL draws the floor and cloak at their own size from their offset. The base and shield fill the hull box.
+  if (layer === "floor" || layer === "cloak") return ownSize(placed, file);
   return placed;
 }
 
@@ -101,7 +103,10 @@ export function gibImage(id: string, gibId: number): ShipFrame | undefined {
   if (!hull?.img || !hull.picture || !gib) return undefined;
   const url = urls.get(shipPath(`${hull.img}_gib${gib.id}`));
   if (!url) return undefined;
-  return frame(url, hull.picture, hull.grid?.x, hull.grid?.y, gib);
+  return ownSize(
+    frame(url, hull.picture, hull.grid?.x, hull.grid?.y, gib),
+    `${hull.img}_gib${gib.id}`,
+  );
 }
 
 type ShipFrame = {
@@ -113,6 +118,16 @@ type ShipFrame = {
 
 function shipPath(file: string): string {
   return `img/ship/${file}.png`.toLowerCase();
+}
+
+/**
+ * The png's own width and height, when it was read. The kestrel floor is 552x235 inside a 652x418 hull box;
+ * stretched to the box it hung past the hull. A same-size stand-in png does not change.
+ */
+function ownSize(placed: ShipFrame, file: string): ShipFrame {
+  const size = pixels.get(shipPath(file));
+  if (!size) return placed;
+  return { ...placed, picture: { ...placed.picture, w: size.w, h: size.h } };
 }
 
 /**

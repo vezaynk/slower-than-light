@@ -1,4 +1,4 @@
-import { REPAIR_SECONDS, manning, playerSensorsOff, roomWith } from "../sim.ts";
+import { REPAIR_SECONDS, archiveBars, manning, playerSensorsOff, roomWith } from "../sim.ts";
 import type { Game, Ship, SysId } from "../types.ts";
 
 /**
@@ -35,7 +35,7 @@ export function sensorLevel(g: Game, ship: Ship, aboard: "player" | "enemy"): nu
   if (!manned) level = Math.min(level, 3);
   // @agent:flagship. The Rebel Flagship: "limits Sensors functionality capping them at level 2" (player's sensors).
   if (aboard === "player" && g.phase === "combat" && g.enemy?.flagship) level = Math.min(level, 2);
-  return Math.max(0, Math.min(4, level));
+  return archiveBars(Math.max(0, Math.min(4, level)), sys);
 }
 
 /**

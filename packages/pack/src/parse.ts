@@ -89,10 +89,13 @@ export function readDocument(xml: string): XmlDocument {
 
 export function elements(node: XmlElement | undefined): XmlElement[] {
   if (!node) return [];
+  // childNodes, read once. xmldom's `children` builds a new live list on every access, so indexing it in a loop
+  // copied a root's thousands of children per step: over 100 s to read a real ftl.dat.
+  const kids = node.childNodes;
   const found: XmlElement[] = [];
-  for (let i = 0; i < node.children.length; i++) {
-    const child = node.children.item(i);
-    if (child) found.push(child);
+  for (let i = 0, n = kids.length; i < n; i++) {
+    const child = kids.item(i);
+    if (child?.nodeType === Node.ELEMENT_NODE) found.push(child as XmlElement);
   }
   return found;
 }

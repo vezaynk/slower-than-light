@@ -70,7 +70,7 @@ async function install(source?: ArrayBuffer | Uint8Array): Promise<void> {
   const archive = await extractArchive(bytes);
   const gap = await extractArchive(gapBytes);
   const files = applyFtlMod(archive, gap);
-  rememberShipArt(files.assets);
+  await rememberShipArt(files.assets);
   await rememberArchive(files.documents, files.assets);
   loadPack(packFromExtract(files), "base");
   report(1);

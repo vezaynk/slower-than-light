@@ -1,6 +1,7 @@
 import type { Beacon, Game, GameEvent } from "../types.ts";
 import { adjustScrap } from "../extras/index.ts";
-import { allEvents, eventDef, openingLine, warnPack } from "@stl/pack";
+import { allEvents, allFillerLists, eventDef, fillerList, openingLine, warnPack } from "@stl/pack";
+import type { EventDef as PackEvent } from "@stl/pack";
 import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
 import { SECTOR_TYPES } from "@stl/catalog/src/wiki/sectors.ts";
 import { CITED_EVENT_ROWS } from "./event-catalog.ts";
@@ -161,7 +162,23 @@ function findChoice(id: string): ChoiceDef | null {
   for (const ev of loadedEvents()) {
     for (const c of ev.choices) if (c.id === id) return c;
   }
+  // A page written inside an ftl.dat list (goto TRADER_LIST) keeps its choices on the list entry.
+  for (const list of allFillerLists()) {
+    for (const entry of list.entries) {
+      for (const c of entry.page?.choices ?? []) if (c.id === id) return c;
+    }
+  }
   return null;
+}
+
+/** A goto names a page, or an ftl.dat eventList whose one page is drawn, as FTL draws it. */
+function gotoPage(ctx: CitedChoice, id: string): PackEvent | undefined {
+  const page = eventDef(id);
+  if (page) return page;
+  const entries = fillerList(id)?.entries ?? [];
+  if (entries.length === 0) return undefined;
+  const entry = entries[ctx.irand(entries.length)]!;
+  return entry.page ?? eventDef(entry.id);
 }
 
 type TradeRes = "fuel" | "missiles" | "parts";
@@ -704,7 +721,8 @@ function lacksRows(slug: string): boolean {
 function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   const ev = matchEvent(b);
   if (!ev) return null;
-  if (lacksRows(ev.slug)) return null;
+  // The beacon holds the bare id, so a null card would fall through to the empty-beacon page.
+  if (lacksRows(ev.slug)) return asWritten(ev);
   const missing = missingCard(g, b, ev);
   if (missing) return missing;
   if (ev.slug === "SLUG_DISTRESS_QUESTION") return slugMoonsCard(g, b, ev.dest);
@@ -1541,6 +1559,11 @@ ${laniusTraderOfferText(offer)}`,
       ],
     };
   }
+  return asWritten(ev);
+}
+
+/** The page's own text and choices. */
+function asWritten(ev: EventDef): GameEvent {
   return {
     title: ev.dest,
     body: ev.body,
@@ -1618,6 +1641,56 @@ export type CitedChoice = {
   note: (text: string) => void;
   irand: (n: number) => number;
 };
+
+const RES_LABEL: Record<ResId, string> = {
+  scrap: "Scrap",
+  fuel: "Fuel",
+  missiles: "Missiles",
+  parts: "Drone parts",
+};
+
+/** Rolls and pays a choice's or page's res effects. False, and nothing paid, when a cost is more than the ship holds. */
+function payRes(
+  ctx: CitedChoice,
+  fxs: readonly Fx[],
+  id: string,
+  note: (text: string) => void,
+  costLines = false,
+): boolean {
+  const g = ctx.g;
+  const costs: { id: ResId; n: number }[] = [];
+  const gains: { id: ResId; n: number }[] = [];
+  for (const fx of fxs) {
+    if (fx.k !== "res") continue;
+    const n = roll(ctx, fx.lo, fx.hi);
+    if (fx.sign < 0) {
+      if (stock(g, fx.id) < n) return false;
+      costs.push({ id: fx.id, n });
+    } else gains.push({ id: fx.id, n });
+  }
+  for (const c of costs) {
+    spend(g, c.id, c.n);
+    if (costLines) note(`${RES_LABEL[c.id]}: -${c.n}.`);
+  }
+  for (const gn of gains) {
+    const thanks = gn.id === "scrap" ? sellStationThanks(id) : null;
+    if (thanks) {
+      // Score: Scrap Recovery Arm's bonus is not eligible. Repair Arm's cut stays in the eligible amount.
+      const got = adjustScrap(g, gn.n);
+      if (got > 0) g.scrap += got;
+      if (gn.n > 0) g.scrapCollected = (g.scrapCollected ?? 0) + gn.n;
+      note(thanks);
+      note(`You receive ${got} scrap.`);
+      continue;
+    }
+    if (gn.id === "scrap") ctx.scrap(gn.n);
+    else if (gn.id === "fuel") g.fuel += gn.n;
+    else if (gn.id === "missiles") g.missiles += gn.n;
+    else g.player.parts += gn.n;
+    note(`${RES_LABEL[gn.id]}: ${gn.n}.`);
+  }
+  return true;
+}
 
 function roll(ctx: CitedChoice, lo: number, hi: number): number {
   if (hi <= lo) return lo;
@@ -1783,42 +1856,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   // Before the generic fleet/tier loops, so the old :0 rows are not applied twice.
   const crystalPlans = crystallineRebelPlans(ctx, id);
   if (crystalPlans !== null) return crystalPlans;
-  const costs: { id: ResId; n: number }[] = [];
-  const gains: { id: ResId; n: number }[] = [];
-  for (const fx of choice.fx) {
-    if (fx.k !== "res") continue;
-    const n = roll(ctx, fx.lo, fx.hi);
-    if (fx.sign < 0) {
-      if (stock(g, fx.id) < n) return false;
-      costs.push({ id: fx.id, n });
-    } else gains.push({ id: fx.id, n });
-  }
-  for (const c of costs) spend(g, c.id, c.n);
-  for (const gn of gains) {
-    const thanks = gn.id === "scrap" ? sellStationThanks(id) : null;
-    if (thanks) {
-      // Score: Scrap Recovery Arm's bonus is not eligible. Repair Arm's cut stays in the eligible amount.
-      const got = adjustScrap(g, gn.n);
-      if (got > 0) g.scrap += got;
-      if (gn.n > 0) g.scrapCollected = (g.scrapCollected ?? 0) + gn.n;
-      ctx.note(thanks);
-      ctx.note(`You receive ${got} scrap.`);
-      continue;
-    }
-    if (gn.id === "scrap") ctx.scrap(gn.n);
-    else if (gn.id === "fuel") g.fuel += gn.n;
-    else if (gn.id === "missiles") g.missiles += gn.n;
-    else g.player.parts += gn.n;
-    const word =
-      gn.id === "scrap"
-        ? "Scrap"
-        : gn.id === "fuel"
-          ? "Fuel"
-          : gn.id === "missiles"
-            ? "Missiles"
-            : "Drone parts";
-    ctx.note(`${word}: ${gn.n}.`);
-  }
+  if (!payRes(ctx, choice.fx, id, ctx.note)) return false;
   for (const fx of choice.fx) {
     if (fx.k !== "tier") continue;
     const [lo, hi] = band(g, fx.tier);
@@ -2095,8 +2133,20 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   const gotoFx = choice.fx.find((fx) => fx.k === "goto");
   if (gotoFx && gotoFx.k === "goto") {
-    const page = eventDef(gotoFx.id);
+    const page = gotoPage(ctx, gotoFx.id);
     if (!page) return false;
+    // An ftl.dat result page pays its own item_modify. With no choice of its own, that is the result card.
+    const lines: string[] = [];
+    const note = (line: string) => {
+      lines.push(line);
+      ctx.note(line);
+    };
+    if (!payRes(ctx, (page.fx ?? []) as Fx[], gotoFx.id, note, true)) return false;
+    if (lines.length > 0 && page.choices.length === 0) {
+      result(g, page.body || lines.join(" "), undefined, page.body ? lines : []);
+      g.paused = true;
+      return true;
+    }
     pageCard(
       g,
       page.body,

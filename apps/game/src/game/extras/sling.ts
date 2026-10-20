@@ -1,4 +1,5 @@
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
+import { hullDef } from "@stl/pack";
 import { interiorLinks, mayStand, padCells, roomCapacity } from "../crew-spots.ts";
 import { seatKits } from "../layouts.ts";
 import {
@@ -371,6 +372,7 @@ function boardingLimit(g: Game, ship: Ship): number {
  * stay behind is then calculated from this number." Its invasion mode ("used by the flagship") sends 3/4 with no
  * minimum health; the wiki outranks both for the Flagship: it keeps "1 or 2 crewmembers" home, and the wiki's 25%
  * recall line names no exception.
+ * A hull `<boardingAI>` of sabotage or invasion wins over the Flagship flag. No tag keeps today's split.
  * INFERRED: the crew count is the enemy crew aboard their own hull when the plan is first made.
  */
 function boardingPlan(g: Game, ship: Ship): EnemyBoarding {
@@ -378,7 +380,11 @@ function boardingPlan(g: Game, ship: Ship): EnemyBoarding {
   const b = ship.boarding;
   // The Flagship's stage 3 builds its own plan (wiki/flagship-systems.ts). Fill the split on first read.
   if (b.stay == null) {
-    b.invasion = !!ship.flagship;
+    const mode = hullDef(ship.classId)?.boardingAI;
+    // A tag wins. Otherwise the Flagship invades and every other hull sabotages.
+    if (mode === "sabotage") b.invasion = false;
+    else if (mode === "invasion") b.invasion = true;
+    else b.invasion = !!ship.flagship;
     const crew = g.crew.filter(
       (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0,
     ).length;

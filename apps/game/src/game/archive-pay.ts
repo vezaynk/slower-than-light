@@ -8,15 +8,30 @@ import type {
   ArchiveReward,
   EventChoice,
   EventDef,
+  EventEffect,
 } from "@stl/pack";
-import { allEvents, augmentDef, crewDef, droneDef, eventDef, warnPack, weaponDef } from "@stl/pack";
+import {
+  allEvents,
+  allFillerLists,
+  allShipEvents,
+  augmentDef,
+  crewDef,
+  droneDef,
+  eventDef,
+  shipEndingPage,
+  shipEventDef,
+  warnPack,
+  weaponDef,
+} from "@stl/pack";
 import { adjustScrap } from "./extras/index.ts";
 import type { KinId } from "./extras/kin.ts";
 import { armEventEnvironment, beginBoarding, log, rand, startCombat, syncIonStorm } from "./sim.ts";
 import type { Game } from "./types.ts";
+import { grantRandomItem } from "./wiki/bonus-item.ts";
 import { receiveAugment, receiveDrone, receiveWeapon } from "./wiki/make-room.ts";
 import {
   between,
+  closeFight,
   joinCrew,
   payOffer,
   resourceBand,
@@ -75,14 +90,32 @@ export function showArchiveArrival(g: Game, flag: string): boolean {
   const page =
     eventDef(id) ?? allEvents().find((ev) => ev.flag === flag || ev.flag === id || ev.id === id);
   if (!page) return false;
-  return showArchivePage(g, page);
+  return showArchivePage(g, page) === true;
 }
 
 /**
- * Applies a page's grants and reward, and starts its hostile ship or its boarders.
- * False when the card should stay up. A page with none of these fields is false and changes nothing.
+ * Applies a page's effects, grants, and reward, and starts its hostile ship or its boarders.
+ * True when a fight or boarding started. "unpaid" when a cost is more than the ship holds: nothing is paid.
+ * False when the card should stay up. Paying effects does not by itself return true.
  */
-export function showArchivePage(g: Game, page: EventDef): boolean {
+export function showArchivePage(
+  g: Game,
+  page: EventDef,
+  notes?: string[],
+): true | false | "unpaid" {
+  const lines: string[] = [];
+  if (!payPageFx(g, page.fx, lines)) return "unpaid";
+  for (const line of lines) {
+    log(g, line);
+    notes?.push(line);
+  }
+  if (g.player.hull <= 0) {
+    g.phase = "defeat";
+    g.outcome = g.training ? "tutorial" : "hull";
+    g.paused = true;
+    g.event = null;
+    return false;
+  }
   if (!pageHasArchive(page) && !page.environment) return false;
   // This page's environment replaces the one the previous event stored.
   delete g.eventStorm;
@@ -90,7 +123,7 @@ export function showArchivePage(g: Game, page: EventDef): boolean {
   syncIonStorm(g);
   applyGrants(g, page.grants);
   if (page.reward) payAutoReward(g, page.reward);
-  if (page.ship?.hostile) {
+  if (page.ship?.hostile && page.ship.load) {
     if (g.event?.body) log(g, g.event.body);
     startCombat(
       g,
@@ -115,6 +148,65 @@ export function showArchivePage(g: Game, page: EventDef): boolean {
   return false;
 }
 
+/** The surrender page for the offer surrenderTick just marked. The enemy stays. */
+export function openArchiveSurrender(g: Game): void {
+  const page = shipEndingPage(shipEventDef(g.fightShip ?? undefined)?.surrender, (n) =>
+    Math.floor(rand(g) * n),
+  );
+  presentShipPage(g, page, false);
+}
+
+/** The escape announcement, when that ending has a page. A ship with no load does not build a hull. */
+export function openShipEscapePage(g: Game): void {
+  const page = shipEndingPage(shipEventDef(g.fightShip ?? undefined)?.escape, (n) =>
+    Math.floor(rand(g) * n),
+  );
+  if (!page) return;
+  presentShipPage(g, page, true);
+}
+
+/** Destroyed or dead-crew ending. True when that child exists and its page resolved, so default salvage stays off. */
+export function showShipVictory(g: Game, deadCrew: boolean): boolean {
+  const def = shipEventDef(g.fightShip ?? undefined);
+  if (!def) return false;
+  const ending = deadCrew ? def.deadCrew : def.destroyed;
+  if (!ending) return false;
+  const page = shipEndingPage(ending, (n) => Math.floor(rand(g) * n));
+  if (!page) return false;
+  presentShipPage(g, page, false);
+  const won = g.beacons.find((beacon) => beacon.id === g.here);
+  if (won) won.resolved = true;
+  g.fightEvent = null;
+  return true;
+}
+
+/** Archive gotaway. True when the definition has that child, so the wiki gotaway card stays off. */
+export function showShipGotAway(g: Game): boolean {
+  const ending = shipEventDef(g.fightShip ?? undefined)?.gotaway;
+  if (!ending) return false;
+  const page = shipEndingPage(ending, (n) => Math.floor(rand(g) * n));
+  if (page) presentShipPage(g, page, false);
+  const beacon = g.beacons.find((item) => item.id === g.here);
+  if (beacon) beacon.resolved = true;
+  return true;
+}
+
+function presentShipPage(g: Game, page: EventDef | undefined, resume: boolean): void {
+  if (!page) return;
+  const choices = page.choices.map((choice) => ({ id: choice.id, label: choice.label }));
+  if (choices.length === 0) {
+    choices.push({ id: resume ? "ship-resume" : "ack", label: "Continue" });
+  }
+  const title = g.beacons.find((beacon) => beacon.id === g.here)?.name ?? "Event";
+  g.event = { title, body: page.body, choices };
+  g.targeting = false;
+  g.beamAnchor = null;
+  const shown = showArchivePage(g, page);
+  if (shown === true || g.phase === "defeat") return;
+  g.phase = "event";
+  g.paused = true;
+}
+
 /**
  * Grants, reward, and boarders on the chosen result.
  * A campaign id whose handler already fought, paid, or beamed does not apply them again.
@@ -122,12 +214,29 @@ export function showArchivePage(g: Game, page: EventDef): boolean {
  */
 export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): void {
   const choice = findArchiveChoice(id);
+  // An empty archive surrender result goes back to the fight. resolve() already sent the phase to the map.
+  if (
+    choice &&
+    emptySurrenderResult(choice) &&
+    g.enemy &&
+    g.enemySurrender?.hullPoints &&
+    g.enemySurrender.offered &&
+    !g.enemySurrender.refused
+  ) {
+    g.enemySurrender.refused = true;
+    g.phase = "combat";
+    g.paused = false;
+    const beacon = g.beacons.find((item) => item.id === g.here);
+    if (beacon && beacon.kind !== "boss") beacon.resolved = true;
+    return;
+  }
   if (!choice || (!choiceHasArchive(choice) && !choice.environment)) return;
   if (isCampaign(id) && handlerActed(g, before)) return;
+  if (choice.ship && !choice.ship.hostile && !choice.ship.load && g.enemy) closeFight(g);
   applyGrants(g, choice.grants);
   if (choice.reward) payAutoReward(g, choice.reward);
   const fought = g.enemy != null || g.phase === "combat";
-  if (!fought && choice.ship?.hostile) {
+  if (!fought && choice.ship?.hostile && choice.ship.load) {
     startCombat(
       g,
       choice.ship.load,
@@ -151,6 +260,19 @@ function choiceHasArchive(choice: EventChoice): boolean {
   return Boolean(choice.ship || choice.boarders || choice.reward || choice.grants?.length);
 }
 
+/** Refuse, an empty event, or a result with no ship, reward, grants, boarders, or environment. */
+function emptySurrenderResult(choice: EventChoice): boolean {
+  if (
+    choice.ship ||
+    choice.reward ||
+    choice.grants?.length ||
+    choice.boarders ||
+    choice.environment
+  )
+    return false;
+  return !choice.fx.some((fx) => fx.k !== "nothing" && fx.k !== "note");
+}
+
 function isCampaign(id: string): boolean {
   return id.startsWith("c:") || id.startsWith("q:");
 }
@@ -170,7 +292,7 @@ function handlerActed(g: Game, before: ArchiveSnap): boolean {
 }
 
 function findArchiveChoice(id: string): EventChoice | undefined {
-  const events = allEvents();
+  const events = [...allEvents(), ...shipPages()];
   for (const ev of events) {
     const top = ev.choices.find((choice) => choice.id === id);
     if (top) return top;
@@ -180,6 +302,108 @@ function findArchiveChoice(id: string): EventChoice | undefined {
     if (nested) return nested;
   }
   return undefined;
+}
+
+function shipPages(): EventDef[] {
+  const pages: EventDef[] = [];
+  for (const ship of allShipEvents()) {
+    for (const ending of [
+      ship.surrender,
+      ship.escape,
+      ship.destroyed,
+      ship.deadCrew,
+      ship.gotaway,
+    ]) {
+      if (ending?.page) pages.push(ending.page);
+    }
+  }
+  for (const list of allFillerLists()) {
+    for (const entry of list.entries) if (entry.page) pages.push(entry.page);
+  }
+  return pages;
+}
+
+type ResId = "scrap" | "fuel" | "missiles" | "parts";
+
+const RES_LABEL: Record<ResId, string> = {
+  scrap: "Scrap",
+  fuel: "Fuel",
+  missiles: "Missiles",
+  parts: "Drone parts",
+};
+
+/** Page item_modify, hull, pursuit, and a nameless item. False, and nothing paid, when a cost is short. */
+function payPageFx(g: Game, fxs: readonly EventEffect[] | undefined, notes: string[]): boolean {
+  const costs: { id: ResId; n: number }[] = [];
+  const gains: { id: ResId; n: number }[] = [];
+  for (const fx of fxs ?? []) {
+    if (fx.k !== "res") continue;
+    const n = rollRange(g, fx.lo, fx.hi);
+    if (fx.sign < 0) {
+      if (stock(g, fx.id) < n) return false;
+      costs.push({ id: fx.id, n });
+    } else gains.push({ id: fx.id, n });
+  }
+  for (const cost of costs) {
+    spend(g, cost.id, cost.n);
+    notes.push(`${RES_LABEL[cost.id]}: -${cost.n}.`);
+  }
+  for (const gain of gains) {
+    if (gain.id === "scrap") {
+      if (gain.n > 0) {
+        g.scrap += gain.n;
+        g.scrapCollected = (g.scrapCollected ?? 0) + gain.n;
+      }
+    } else if (gain.id === "fuel") g.fuel += gain.n;
+    else if (gain.id === "missiles") g.missiles += gain.n;
+    else g.player.parts += gain.n;
+    notes.push(`${RES_LABEL[gain.id]}: ${gain.n}.`);
+  }
+  for (const fx of fxs ?? []) {
+    if (fx.k !== "hull") continue;
+    if (fx.n >= 0) g.player.hull = Math.min(g.player.hullMax, g.player.hull + fx.n);
+    else g.player.hull = Math.max(0, g.player.hull + fx.n);
+    notes.push(fx.n >= 0 ? `Hull repairs: ${fx.n}.` : `Hull damage: ${-fx.n}.`);
+  }
+  for (const fx of fxs ?? []) {
+    if (fx.k !== "fleet") continue;
+    const last = !!fx.lastStand && (g.sector === 8 || g.sectorId === "FINAL");
+    if (fx.faster) {
+      g.fleet += fx.n;
+      notes.push(`Rebel Fleet pursuit is doubled for ${fx.n} ${fx.n === 1 ? "jump" : "jumps"}.`);
+    } else if (fx.double) {
+      g.fleet *= 2;
+      notes.push("Rebel Fleet pursuit is doubled.");
+    } else if (last) {
+      notes.push("No effect in The Last Stand.");
+    } else {
+      g.fleet = Math.max(0, g.fleet - fx.n);
+      notes.push(`Rebel Fleet is delayed for ${fx.n} turns.`);
+    }
+  }
+  for (const fx of fxs ?? []) {
+    if (fx.k === "item") notes.push(grantRandomItem(g, fx.item));
+  }
+  return true;
+}
+
+function rollRange(g: Game, lo: number, hi: number): number {
+  if (hi <= lo) return lo;
+  return lo + Math.floor(rand(g) * (hi - lo + 1));
+}
+
+function stock(g: Game, id: ResId): number {
+  if (id === "scrap") return g.scrap;
+  if (id === "fuel") return g.fuel;
+  if (id === "missiles") return g.missiles;
+  return g.player.parts;
+}
+
+function spend(g: Game, id: ResId, n: number): void {
+  if (id === "scrap") g.scrap -= n;
+  else if (id === "fuel") g.fuel -= n;
+  else if (id === "missiles") g.missiles -= n;
+  else g.player.parts -= n;
 }
 
 function findNested(choices: EventChoice[], id: string): EventChoice | undefined {

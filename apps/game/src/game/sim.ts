@@ -292,6 +292,7 @@ import {
 import {
   applyCrewMix,
   fightHull,
+  genSector,
   overrideWeaponIds,
   pickElite,
   pickEnemy,
@@ -6345,7 +6346,7 @@ function makeEnemy(
   };
   const r = () => rand(g);
   const shipEvent = shipEventDef(tier);
-  const hull = fightHull(tier, autoBlueprint, r);
+  const hull = fightHull(tier, autoBlueprint, r, genSector(ctx.sector, ctx.difficulty) - 1);
   if (hull) {
     const spec = specFromHull(hull, ctx, r);
     // The crew block replaces each blueprint seat's race. The weapon override replaces the blueprint guns.

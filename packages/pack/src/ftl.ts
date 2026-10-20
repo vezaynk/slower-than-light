@@ -151,7 +151,10 @@ export function packFromFtl(
     }
     for (const node of tagged(doc, "droneBlueprint")) {
       const row = readDrone(node);
-      if (row) drones.put(row);
+      if (!row) continue;
+      // The attribute's presence is the flag. Stand-in drones omit it, so their rooms stay visible.
+      if (node.getAttribute("NOLOC") != null) row.noloc = true;
+      drones.put(row);
     }
     for (const node of tagged(doc, "systemBlueprint")) {
       const read = readFtlSystem(node);

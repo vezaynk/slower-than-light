@@ -8,6 +8,7 @@ import {
   blueprintCrew,
   crewCount,
   enemyPool,
+  fightHull,
   hullFor,
   optionalChance,
   pickElite,
@@ -511,6 +512,62 @@ describe("archive loadout", () => {
       assert.deepEqual(armed.weapons, ["LASER_BURST_3"]);
       assert.deepEqual(armed.drones, ["DEFENSE_1"]);
       assert.equal(armed.parts, 5);
+    } finally {
+      resetPackForTests();
+    }
+  });
+});
+
+describe("blueprint sector range", () => {
+  function gated(id: string, gate: { minSector?: number; maxSector?: number } = {}) {
+    const base = hullDef(enemyBlueprintId("rebel-fighter"));
+    assert.ok(base);
+    return { ...base, id, name: id, ...gate };
+  }
+
+  it("skips a hull outside the world level and builds one inside it", () => {
+    loadPack(
+      {
+        blueprints: [{ id: "SHIPS_LATE", names: ["LATE_HULL"] }],
+        hulls: [gated("LATE_HULL", { minSector: 4 }), gated("OPEN_HULL")],
+      },
+      "append",
+    );
+    try {
+      assert.equal(
+        fightHull("pirate", "SHIPS_LATE", () => 0, 0),
+        undefined,
+      );
+      assert.equal(fightHull("pirate", "SHIPS_LATE", () => 0, 4)?.id, "LATE_HULL");
+      loadPack({ blueprints: [{ id: "SHIPS_OPEN", names: ["OPEN_HULL"] }] }, "append");
+      assert.equal(fightHull("pirate", "SHIPS_OPEN", () => 0, 0)?.id, "OPEN_HULL");
+      assert.equal(fightHull("LATE_HULL", undefined, () => 0, 0)?.id, "LATE_HULL");
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("startCombat consults that world level", () => {
+    loadPack(
+      {
+        blueprints: [{ id: "SHIPS_LATE", names: ["LATE_HULL"] }],
+        hulls: [gated("LATE_HULL", { minSector: 4 })],
+        shipEvents: [{ id: "LATE", autoBlueprint: "SHIPS_LATE" }],
+      },
+      "append",
+    );
+    try {
+      const early = createGame(3);
+      early.sector = 1;
+      early.difficulty = "normal";
+      startCombat(early, "LATE");
+      assert.notEqual(early.enemy?.name, "LATE_HULL");
+
+      const late = createGame(4);
+      late.sector = 5;
+      late.difficulty = "normal";
+      startCombat(late, "LATE");
+      assert.equal(late.enemy?.name, "LATE_HULL");
     } finally {
       resetPackForTests();
     }

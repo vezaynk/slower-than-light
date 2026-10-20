@@ -1,5 +1,5 @@
 import "../pack/base.ts";
-import { crewDef } from "@stl/pack";
+import { crewDef, droneDef } from "@stl/pack";
 import type { Crew, Game, Room } from "../types.ts";
 import { hackVision, playerSensorLevel } from "./spike.ts";
 
@@ -45,6 +45,13 @@ function slugRooms(g: Game, aboard: "player" | "enemy"): Set<string> {
   return seen;
 }
 
+/** A player drone standing in this enemy room opens it, unless that blueprint carries `NOLOC`. */
+function droneOpensRoom(g: Game, roomId: string): boolean {
+  const kit = g.player.kits.drones;
+  if (!kit?.on || kit.room !== roomId || !kit.target) return false;
+  return droneDef(kit.target)?.noloc !== true;
+}
+
 function enemyCloaked(g: Game): boolean {
   const veil = g.enemy?.kits.cloaking;
   return !!veil?.on && (veil.left ?? 0) > 0;
@@ -84,6 +91,8 @@ export function shipSight(g: Game): ShipSight {
 
   // A room your own crew stand in is always seen, on either hull. We're in position!: boarding crew give "vision of
   // ... the enemy ship without functioning sensors". INFERRED: the room each crew member stands in.
+  // A deployed drone opens the enemy room it occupies, the same way. `NOLOC` leaves that room hidden.
+  // The hacking drone's icon is the hack (hackVision), so that reticle stays up either way.
   const crewed = (aboard: "player" | "enemy", roomId: string) =>
     g.crew.some(
       (c) =>
@@ -97,6 +106,7 @@ export function shipSight(g: Game): ShipSight {
     if (crewed(aboard, roomId)) return true;
     if (aboard === "player") return sensors >= 1 || own.has(roomId);
     if (foe.has(roomId) || hack === roomId) return true;
+    if (droneOpensRoom(g, roomId)) return true;
     if (cloaked) return ownAboard;
     return sensors >= 2;
   };

@@ -85,6 +85,8 @@ export type DroneDef = {
   cost: number;
   /** `<droneImage>` stem. Pictures are `img/ship/drones/<image>_base.png`, `_on.png`, and `_charged.png`. */
   image?: string;
+  /** The blueprint carries `NOLOC`. That drone's room stays hidden from the other ship. */
+  noloc?: boolean;
 };
 
 /** Where a purchased system is installed. Power and the starting level stay in the effect code. */

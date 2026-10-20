@@ -992,10 +992,13 @@ describe("packFromFtl", () => {
   });
 
   it("stores a root ship event and a hostile ship that has no load", () => {
-    const pack = packFromFtl([
-      {
-        path: "data/events_ships.xml",
-        xml: `<?xml version="1.0" encoding="UTF-8"?>
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const pack = packFromFtl([
+        {
+          path: "data/events_ships.xml",
+          xml: `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>
   <ship name="PIRATE" auto_blueprint="SHIPS_PIRATE">
     <crew count="2"/>
@@ -1051,69 +1054,76 @@ describe("packFromFtl", () => {
     </choice>
   </event>
 </FTL>`,
-      },
-    ]);
-    const pirate = pack.shipEvents?.find((row) => row.id === "PIRATE");
-    assert.equal(pirate?.autoBlueprint, "SHIPS_PIRATE");
-    assert.equal(pirate?.surrender?.chance, 0.5);
-    assert.equal(pirate?.surrender?.min, 3);
-    assert.equal(pirate?.surrender?.max, 4);
-    assert.equal(pirate?.surrender?.page?.id, "PIRATE:surrender");
-    assert.equal(pirate?.surrender?.page?.body, "Hail.");
-    assert.equal(pirate?.surrender?.page?.choices[0]?.id, "PIRATE:surrender:0");
-    assert.deepEqual(pirate?.surrender?.page?.choices[0]?.ship, { hostile: false });
-    assert.equal(pirate?.surrender?.load, undefined);
-    assert.equal(pirate?.escape?.chance, undefined);
-    assert.equal(pirate?.escape?.timer, 2000);
-    assert.equal(pirate?.escape?.min, 4);
-    assert.equal(pirate?.escape?.max, 6);
-    assert.equal(pirate?.escape?.page?.body, "Running.");
-    assert.equal(pirate?.escape?.load, undefined);
-    assert.equal(pirate?.destroyed?.load, "DESTROYED_DEFAULT");
-    assert.equal(pirate?.destroyed?.page, undefined);
-    assert.equal(pirate?.deadCrew?.page?.body, "Crew gone.");
-    assert.equal(pirate?.deadCrew?.page?.fx, undefined);
-    assert.equal(pirate?.deadCrew?.load, undefined);
-    assert.equal(pirate?.gotaway?.page?.body, "Inline wins.");
-    assert.equal(pirate?.gotaway?.load, undefined);
-    assert.deepEqual(
-      pack.shipEvents?.map((row) => row.id),
-      ["PIRATE", "BARE", "PIRATE_BARE_ESCAPE"],
-    );
-    assert.equal(pack.shipEvents?.find((row) => row.id === "BARE")?.autoBlueprint, undefined);
-    assert.equal(
-      pack.shipEvents?.find((row) => row.id === "PIRATE_BARE_ESCAPE")?.escape?.timer,
-      undefined,
-    );
-    assert.equal(
-      pack.shipEvents?.find((row) => row.id === "PIRATE_BARE_ESCAPE")?.escape?.chance,
-      undefined,
-    );
-    assert.equal(
-      pack.hulls?.find((row) => row.id === "PIRATE"),
-      undefined,
-    );
-    const noload = pack.events?.find((row) => row.id === "NOLOAD");
-    assert.deepEqual(noload?.ship, { hostile: true });
-    assert.deepEqual(noload?.choices[0]?.ship, { hostile: false });
-    assert.deepEqual(noload?.choices[0]?.fx, []);
-    assert.deepEqual(noload?.choices[1]?.ship, { hostile: true });
-    assert.deepEqual(noload?.choices[1]?.fx, []);
-    assert.equal(noload?.choices[2]?.ship, undefined);
-    assert.deepEqual(noload?.choices[2]?.fx, []);
-    loadPack({ shipEvents: pack.shipEvents }, "append");
-    try {
-      const stored = shipEventDef("PIRATE");
-      assert.equal(stored?.autoBlueprint, "SHIPS_PIRATE");
-      assert.equal(stored?.surrender?.page?.body, "Hail.");
-      stored!.surrender!.page!.body = "mutated";
+        },
+      ]);
+      const pirate = pack.shipEvents?.find((row) => row.id === "PIRATE");
+      assert.equal(pirate?.autoBlueprint, "SHIPS_PIRATE");
+      assert.equal(pirate?.surrender?.chance, 0.5);
+      assert.equal(pirate?.surrender?.min, 3);
+      assert.equal(pirate?.surrender?.max, 4);
+      assert.equal(pirate?.surrender?.page?.id, "PIRATE:surrender");
+      assert.equal(pirate?.surrender?.page?.body, "Hail.");
+      assert.equal(pirate?.surrender?.page?.choices[0]?.id, "PIRATE:surrender:0");
+      assert.deepEqual(pirate?.surrender?.page?.choices[0]?.ship, { hostile: false });
+      assert.equal(pirate?.surrender?.load, undefined);
+      assert.equal(pirate?.escape?.chance, undefined);
+      assert.equal(pirate?.escape?.timer, 2000);
+      assert.equal(pirate?.escape?.min, 4);
+      assert.equal(pirate?.escape?.max, 6);
+      assert.equal(pirate?.escape?.page?.body, "Running.");
+      assert.equal(pirate?.escape?.load, undefined);
+      assert.equal(pirate?.destroyed?.load, "DESTROYED_DEFAULT");
+      assert.equal(pirate?.destroyed?.page, undefined);
+      assert.equal(pirate?.deadCrew?.page?.body, "Crew gone.");
+      assert.equal(pirate?.deadCrew?.page?.fx, undefined);
+      assert.equal(pirate?.deadCrew?.page?.alters, undefined);
+      assert.equal(pirate?.deadCrew?.load, undefined);
+      assert.deepEqual(warnings, [
+        'A <status> type "" is not limit, divide, clear, or loss; it is skipped.',
+      ]);
+      assert.equal(pirate?.gotaway?.page?.body, "Inline wins.");
+      assert.equal(pirate?.gotaway?.load, undefined);
+      assert.deepEqual(
+        pack.shipEvents?.map((row) => row.id),
+        ["PIRATE", "BARE", "PIRATE_BARE_ESCAPE"],
+      );
+      assert.equal(pack.shipEvents?.find((row) => row.id === "BARE")?.autoBlueprint, undefined);
+      assert.equal(
+        pack.shipEvents?.find((row) => row.id === "PIRATE_BARE_ESCAPE")?.escape?.timer,
+        undefined,
+      );
+      assert.equal(
+        pack.shipEvents?.find((row) => row.id === "PIRATE_BARE_ESCAPE")?.escape?.chance,
+        undefined,
+      );
+      assert.equal(
+        pack.hulls?.find((row) => row.id === "PIRATE"),
+        undefined,
+      );
+      const noload = pack.events?.find((row) => row.id === "NOLOAD");
+      assert.deepEqual(noload?.ship, { hostile: true });
+      assert.deepEqual(noload?.choices[0]?.ship, { hostile: false });
+      assert.deepEqual(noload?.choices[0]?.fx, []);
+      assert.deepEqual(noload?.choices[1]?.ship, { hostile: true });
+      assert.deepEqual(noload?.choices[1]?.fx, []);
+      assert.equal(noload?.choices[2]?.ship, undefined);
+      assert.deepEqual(noload?.choices[2]?.fx, []);
       loadPack({ shipEvents: pack.shipEvents }, "append");
-      assert.equal(shipEventDef("PIRATE")?.surrender?.page?.body, "Hail.");
-      assert.notEqual(shipEventDef("PIRATE")?.surrender?.page, pirate?.surrender?.page);
+      try {
+        const stored = shipEventDef("PIRATE");
+        assert.equal(stored?.autoBlueprint, "SHIPS_PIRATE");
+        assert.equal(stored?.surrender?.page?.body, "Hail.");
+        stored!.surrender!.page!.body = "mutated";
+        loadPack({ shipEvents: pack.shipEvents }, "append");
+        assert.equal(shipEventDef("PIRATE")?.surrender?.page?.body, "Hail.");
+        assert.notEqual(shipEventDef("PIRATE")?.surrender?.page, pirate?.surrender?.page);
+      } finally {
+        resetPackForTests();
+      }
+      assert.equal(shipEventDef("PIRATE"), undefined);
     } finally {
-      resetPackForTests();
+      restore();
     }
-    assert.equal(shipEventDef("PIRATE"), undefined);
   });
 
   it("reads an event environment, including which ship a battery shoots", () => {
@@ -1167,6 +1177,69 @@ describe("packFromFtl", () => {
       ]);
     } finally {
       restore();
+    }
+  });
+
+  it("keeps status, upgrade, crew loss, and augment removal in document order", () => {
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const pack = packFromFtl([
+        {
+          path: "data/events.xml",
+          xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <event name="CAP">
+    <text>Cap.</text>
+    <status type="limit" target="player" system="engines" amount="1"/>
+    <status type="loss" target="enemy" system="weapons" amount="2"/>
+    <status type="clear" target="player" system="engines" amount="100"/>
+    <upgrade amount="1" system="reactor"/>
+    <removeCrew>
+      <clone>false</clone>
+      <text>Gone.</text>
+    </removeCrew>
+    <remove name="STASIS_POD"/>
+    <choice>
+      <text>Half</text>
+      <event>
+        <status type="divide" target="player" system="shields" amount="2"/>
+      </event>
+    </choice>
+  </event>
+  <event name="MELT">
+    <text>Melt.</text>
+    <status type="melt" target="player" system="engines" amount="1"/>
+    <status type="limit" target="station" system="engines" amount="1"/>
+    <status type="limit" target="player" system="engine" amount="1"/>
+  </event>
+</FTL>`,
+        },
+      ]);
+      const cap = pack.events?.find((row) => row.id === "CAP");
+      assert.deepEqual(cap?.alters, [
+        { k: "status", type: "limit", target: "player", system: "engines", amount: 1 },
+        { k: "status", type: "loss", target: "enemy", system: "weapons", amount: 2 },
+        { k: "status", type: "clear", target: "player", system: "engines", amount: 100 },
+        { k: "upgrade", system: "reactor", amount: 1 },
+        { k: "removeCrew", clone: false, text: "Gone." },
+        { k: "remove", name: "STASIS_POD" },
+      ]);
+      assert.deepEqual(cap?.choices[0]?.alters, [
+        { k: "status", type: "divide", target: "player", system: "shields", amount: 2 },
+      ]);
+      assert.equal(pack.events?.find((row) => row.id === "MELT")?.alters, undefined);
+      assert.deepEqual(warnings, [
+        'A <status> type "melt" is not limit, divide, clear, or loss; it is skipped.',
+        'A <status> target "station" is not player or enemy; it is skipped.',
+        'A <status> system "engine" is not one this ship uses; it is skipped.',
+      ]);
+      loadPack({ events: pack.events }, "append");
+      assert.deepEqual(eventDef("CAP")?.alters, cap?.alters);
+      assert.deepEqual(eventDef("CAP")?.choices[0]?.alters, cap?.choices[0]?.alters);
+    } finally {
+      restore();
+      resetPackForTests();
     }
   });
 

@@ -612,6 +612,22 @@ export type ArchiveGrant = {
   amount?: number;
 };
 
+/**
+ * One `<status>`, `<upgrade>`, `<removeCrew>`, or `<remove>`, in document order.
+ * `status.system` is the archive system id. `upgrade.system` may also be `reactor`.
+ */
+export type ArchiveAlter =
+  | {
+      k: "status";
+      type: "limit" | "divide" | "clear" | "loss";
+      target: "player" | "enemy";
+      system: string;
+      amount: number;
+    }
+  | { k: "upgrade"; system: string; amount: number }
+  | { k: "removeCrew"; clone: boolean; text?: string }
+  | { k: "remove"; name: string };
+
 /** A button on an event page. The id is what `choose` receives. */
 export type EventChoice = {
   id: string;
@@ -633,6 +649,8 @@ export type EventChoice = {
   boarders?: ArchiveBoarders;
   /** `<environment>` on the result. */
   environment?: ArchiveEnvironment;
+  /** `<status>`, `<upgrade>`, `<removeCrew>`, and `<remove>`, in document order. */
+  alters?: ArchiveAlter[];
   /** Choices on the result page. */
   choices?: EventChoice[];
 };
@@ -807,6 +825,8 @@ export type EventDef = {
   store?: boolean;
   /** `<environment>` on this page. */
   environment?: ArchiveEnvironment;
+  /** `<status>`, `<upgrade>`, `<removeCrew>`, and `<remove>`, in document order. */
+  alters?: ArchiveAlter[];
 };
 
 /** One ending of a root `<ship name>` event. Children are an inline page. A childless load is that event id. */

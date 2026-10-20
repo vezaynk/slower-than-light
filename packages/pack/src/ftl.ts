@@ -2,6 +2,7 @@ import { Node, type Document as XmlDocument, type Element as XmlElement } from "
 import type {
   AchievementCondition,
   AchievementDef,
+  ArchiveAlter,
   ArchiveBoarders,
   ArchiveEnvironment,
   ArchiveGrant,
@@ -1055,6 +1056,7 @@ function readEventBody(
   if (openings?.length) event.openings = openings;
   const fx: EventEffect[] = [];
   const grants: ArchiveGrant[] = [];
+  const alters: ArchiveAlter[] = [];
   for (const item of elements(node)) {
     if (item.tagName === "text" || item.tagName === "choice") continue;
     if (item.tagName === "store") {
@@ -1077,6 +1079,12 @@ function readEventBody(
       continue;
     }
     if (item.tagName === "environment") continue;
+    const alter = readAlter(item, strings);
+    if (alter === "skip") continue;
+    if (alter) {
+      alters.push(alter);
+      continue;
+    }
     const grant = readGrant(item);
     if (grant) {
       grants.push(grant);
@@ -1086,6 +1094,7 @@ function readEventBody(
   }
   if (fx.length > 0) event.fx = fx;
   if (grants.length > 0) event.grants = grants;
+  if (alters.length > 0) event.alters = alters;
   const environment = readEnvironment(node);
   if (environment) event.environment = environment;
   return event;
@@ -1156,10 +1165,12 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
   if (!result) {
     const fx: EventEffect[] = [];
     const grants: ArchiveGrant[] = [];
+    const alters: ArchiveAlter[] = [];
     for (const item of elements(node)) {
       if (item.tagName === "text") continue;
-      takeResultChild(item, choice, fx, grants, strings);
+      takeResultChild(item, choice, fx, grants, alters, strings);
     }
+    if (alters.length > 0) choice.alters = alters;
     if (
       fx.length === 0 &&
       !choice.reward &&
@@ -1174,9 +1185,11 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
   }
   const fx: EventEffect[] = [];
   const grants: ArchiveGrant[] = [];
+  const alters: ArchiveAlter[] = [];
   const load = attr(result, "load")?.trim();
   if (load) fx.push({ k: "goto", id: load });
-  for (const item of elements(result)) takeResultChild(item, choice, fx, grants, strings);
+  for (const item of elements(result)) takeResultChild(item, choice, fx, grants, alters, strings);
+  if (alters.length > 0) choice.alters = alters;
   const nested = readChoices(result, strings);
   if (nested.length > 0) choice.choices = nested;
   const bare = elements(result).length === 0 && !load;
@@ -1200,6 +1213,7 @@ function takeResultChild(
   choice: EventChoice,
   fx: EventEffect[],
   grants: ArchiveGrant[],
+  alters: ArchiveAlter[],
   strings: Map<string, string>,
 ) {
   if (item.tagName === "text") {
@@ -1208,6 +1222,12 @@ function takeResultChild(
     return;
   }
   if (item.tagName === "choice") return;
+  const alter = readAlter(item, strings);
+  if (alter === "skip") return;
+  if (alter) {
+    alters.push(alter);
+    return;
+  }
   if (item.tagName === "autoReward") {
     const reward = readReward(item);
     if (reward) choice.reward = reward;
@@ -1236,6 +1256,87 @@ function takeResultChild(
     return;
   }
   pushEffects(fx, item);
+}
+
+const STATUS_TYPES = new Set(["limit", "divide", "clear", "loss"]);
+const STATUS_TARGETS = new Set(["player", "enemy"]);
+const STATUS_SYSTEMS = new Set([
+  "shields",
+  "engines",
+  "weapons",
+  "oxygen",
+  "hacking",
+  "doors",
+  "medbay",
+  "clonebay",
+  "sensors",
+  "drones",
+  "pilot",
+]);
+
+/** `<status>`, `<upgrade>`, `<removeCrew>`, or `<remove>`. `"skip"` is one of those tags that does not apply. */
+function readAlter(
+  item: XmlElement,
+  strings: Map<string, string>,
+): ArchiveAlter | "skip" | undefined {
+  if (item.tagName === "status") {
+    const type = attr(item, "type")?.trim() ?? "";
+    const target = attr(item, "target")?.trim() ?? "";
+    const system = attr(item, "system")?.trim() ?? "";
+    const amount = intAttr(item, "amount");
+    if (!STATUS_TYPES.has(type)) {
+      warnPack(`A <status> type "${type}" is not limit, divide, clear, or loss; it is skipped.`);
+      return "skip";
+    }
+    if (!STATUS_TARGETS.has(target)) {
+      warnPack(`A <status> target "${target}" is not player or enemy; it is skipped.`);
+      return "skip";
+    }
+    if (!STATUS_SYSTEMS.has(system)) {
+      warnPack(`A <status> system "${system}" is not one this ship uses; it is skipped.`);
+      return "skip";
+    }
+    if (amount == null) {
+      warnPack(`A <status> on ${system} has no whole-number amount; it is skipped.`);
+      return "skip";
+    }
+    return {
+      k: "status",
+      type: type as "limit" | "divide" | "clear" | "loss",
+      target: target as "player" | "enemy",
+      system,
+      amount,
+    };
+  }
+  if (item.tagName === "upgrade") {
+    const system = attr(item, "system")?.trim() ?? "";
+    const amount = intAttr(item, "amount");
+    if (!system || amount == null) {
+      warnPack("An <upgrade> needs a system and a whole-number amount; it is skipped.");
+      return "skip";
+    }
+    return { k: "upgrade", system, amount };
+  }
+  if (item.tagName === "removeCrew") {
+    const clone = textOf(item, "clone");
+    if (clone !== "true" && clone !== "false") {
+      warnPack("A <removeCrew> clone is not true or false; it is skipped.");
+      return "skip";
+    }
+    const text = elementString(item, "text", strings);
+    return text
+      ? { k: "removeCrew", clone: clone === "true", text }
+      : { k: "removeCrew", clone: clone === "true" };
+  }
+  if (item.tagName === "remove") {
+    const name = attr(item, "name")?.trim() ?? "";
+    if (!name) {
+      warnPack("A <remove> has no name; it is skipped.");
+      return "skip";
+    }
+    return { k: "remove", name };
+  }
+  return undefined;
 }
 
 const ENVIRONMENT_TYPES = new Set(["asteroid", "nebula", "pulsar", "sun", "storm", "PDS"]);

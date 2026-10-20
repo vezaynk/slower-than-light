@@ -19,6 +19,26 @@
   display: block;
 }
 
+/* A charged weapon draws its charge image over the weapon frame, at the same pixel scale. */
+.gear-art.is-sheet.is-charged {
+  position: relative;
+  overflow: visible;
+}
+
+.gear-art.is-charged .sheet-frame,
+.gear-art.is-charged .gear-charge {
+  display: block;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.gear-art.is-charged .gear-charge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
 .crew-sprite.is-sheet {
   position: relative;
   display: inline-block;

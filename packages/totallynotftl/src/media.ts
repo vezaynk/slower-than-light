@@ -129,7 +129,7 @@ async function buildMedia(): Promise<{
       path: `img/weapons/${weapon.id}_shot.png`,
       bytes: shotPng(art.palette.glow),
     });
-    weaponXml.push(weaponAnimXml(weapon.id, art.w, art.h));
+    weaponXml.push(weaponAnimXml(weapon.id, weapon.kind, art.w, art.h));
     clipXml.push(clipXmlFor(`${weapon.id}_shot`, `${weapon.id}_shot`, 8, 8));
   }
   for (const kind of ["laser", "missile", "ion", "flak", "bomb"]) {
@@ -219,9 +219,33 @@ async function buildMedia(): Promise<{
   return { documents, assets };
 }
 
-function weaponAnimXml(id: string, w: number, h: number): string {
+/**
+ * The first cue of the family the game already plays for this kind.
+ * Only a name `CUES` already ships. A kind with no wave keeps the kind fallback.
+ */
+function standInFireCue(kind: string): string | undefined {
+  const cue =
+    kind === "laser" || kind === "flak"
+      ? "lightLaser1"
+      : kind === "missile" || kind === "bomb"
+        ? "smallMissile1"
+        : kind === "beam"
+          ? "beam1"
+          : kind === "ion"
+            ? "ionShoot1"
+            : undefined;
+  return cue && CUES.some(([name]) => name === cue) ? cue : undefined;
+}
+
+function weaponAnimXml(id: string, kind: string, w: number, h: number): string {
   const sheet = `<animSheet name="${id}" w="${w}" h="${h}" fw="${w}" fh="${h}">weapons/${id}.png</animSheet>`;
-  const anim = `<weaponAnim name="${id}"><sheet>${id}</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="${Math.floor(h / 2)}"/></weaponAnim>`;
+  const y = Math.floor(h / 2);
+  const cue = standInFireCue(kind);
+  const sound = cue ? `<fireSound>${cue}</fireSound>` : "";
+  const anim =
+    `<weaponAnim name="${id}"><sheet>${id}</sheet><desc length="1" x="0" y="0"/>` +
+    `<chargedFrame>0</chargedFrame><fireFrame>0</fireFrame>` +
+    `<mountPoint x="0" y="${y}"/><firePoint x="0" y="${y}"/>${sound}</weaponAnim>`;
   return `${sheet}\n${anim}`;
 }
 

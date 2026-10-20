@@ -59,6 +59,33 @@ export function mountPose(
   return { x, y, turn: mount.rotate ? 0 : -90, flip: mount.mirror };
 }
 
+/**
+ * Where a drawn shot leaves. The hardpoint is the mount.
+ * `fire` and `mount` are weapon-image pixels, so the offset is fire minus mount,
+ * then turned and mirrored the same way `mountPose` turns the gun.
+ * Scale is screen pixels per archive pixel, applied before that turn.
+ * No fire point returns undefined so the caller keeps the drawn tip.
+ */
+export function muzzlePoint(
+  hardpoint: { x: number; y: number },
+  pose: Pick<MountPose, "turn" | "flip">,
+  fire: { x: number; y: number } | undefined,
+  mount: { x: number; y: number },
+  scale: { x: number; y: number } = { x: 1, y: 1 },
+): { x: number; y: number } | undefined {
+  if (!fire) return undefined;
+  const dx = (fire.x - mount.x) * scale.x;
+  const dy = (fire.y - mount.y) * scale.y;
+  const y = pose.flip ? -dy : dy;
+  const rad = (pose.turn * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  return {
+    x: hardpoint.x + dx * cos - y * sin,
+    y: hardpoint.y + dx * sin + y * cos,
+  };
+}
+
 /** Screen height of the procedural gun at one grid pitch. */
 export function gunHeight(pitch: number): number {
   return (GUN_ART.h / GUN_ART.w) * GUN_PX * (pitch / ROOM_PX);

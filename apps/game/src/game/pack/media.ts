@@ -142,14 +142,50 @@ export async function rememberArchive(
   void installFonts(generation);
 }
 
+function weaponAnimOf(id: string): WeaponAnim | undefined {
+  return weapons.get(weaponDef(id)?.art ?? id);
+}
+
 /** One frame of a weapon sheet. `weaponArt` names the anim; a stand-in uses the blueprint id. */
 export function weaponFrame(id: string, phase: WeaponPhase = "idle"): SheetFrame | undefined {
-  const anim = weapons.get(weaponDef(id)?.art ?? id);
+  const anim = weaponAnimOf(id);
   if (!anim) return undefined;
   const sheet = sheets.get(anim.sheet);
   if (!sheet) return undefined;
   const index = phase === "fire" ? anim.fireFrame : phase === "charged" ? anim.chargedFrame : 0;
   return frameOf(sheet, anim.x, anim.y, index);
+}
+
+/**
+ * The charge overlay for a charged weapon.
+ * The name is an anim. It is drawn only when that clip and its sheet are packed.
+ */
+export function weaponChargeFrame(id: string): SheetFrame | undefined {
+  const name = weaponAnimOf(id)?.chargeImage;
+  if (!name) return undefined;
+  const clip = clips.get(name);
+  const sheet = clip ? sheets.get(clip.sheet) : undefined;
+  if (!clip || !sheet) return undefined;
+  return frameOf(sheet, clip.x, clip.y, 0);
+}
+
+/** `<fireSound>` names for this weapon, in file order. */
+export function weaponFireSounds(id: string): readonly string[] {
+  return weaponAnimOf(id)?.fireSounds ?? [];
+}
+
+/** Fire point and mount point, in weapon-image pixels. Absent when the anim has no fire point. */
+export function weaponMuzzle(
+  id: string,
+): { fireX: number; fireY: number; mountX: number; mountY: number } | undefined {
+  const anim = weaponAnimOf(id);
+  if (!anim?.firePoint) return undefined;
+  return {
+    fireX: anim.firePoint.x,
+    fireY: anim.firePoint.y,
+    mountX: anim.mountX,
+    mountY: anim.mountY,
+  };
 }
 
 /** The projectile picture. `<image>` wins, then `<id>_shot`, then the kind's shot. */

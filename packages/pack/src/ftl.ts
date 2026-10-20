@@ -379,9 +379,15 @@ function translationFile(path: string): boolean {
  * so the readers find it where a stand-in or mod writes it inline. The id attribute stays.
  */
 function inlineStringIds(doc: XmlDocument, strings: Map<string, string>): void {
-  const all = doc.getElementsByTagName("*");
-  for (let i = 0; i < all.length; i++) {
-    const node = all.item(i);
+  // A snapshot. Appending a text node bumps xmldom's revision, and a live list then re-walks the whole document on
+  // every read: 106 s for a real ftl.dat instead of well under one.
+  const live = doc.getElementsByTagName("*");
+  const all: XmlElement[] = [];
+  for (let i = 0, n = live.length; i < n; i++) {
+    const node = live.item(i);
+    if (node) all.push(node);
+  }
+  for (const node of all) {
     if (!node || attr(node, "load")?.trim()) continue;
     if (elements(node).length > 0 || ownText(node).trim()) continue;
     const key = attr(node, "id")?.trim();

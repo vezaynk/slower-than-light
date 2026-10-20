@@ -50,6 +50,23 @@ describe("patchDocument", () => {
     assert.equal(xml.includes("<title>Last</title>"), true);
   });
 
+  it("reads an append with several top-level elements and no root, as Slipstream wraps it", () => {
+    const xml = patchDocument(
+      BASE,
+      `<?xml version="1.0" encoding="UTF-8"?>
+<weaponBlueprint name="NOVA">
+  <type>BEAM</type>
+  <title>Nova</title>
+</weaponBlueprint>
+<mod:findName type="weaponBlueprint" name="SPARK">
+  <mod-overwrite:title>Spark II</mod-overwrite:title>
+</mod:findName>`,
+      "append",
+      { path: "data/blueprints.xml.append" },
+    );
+    assert.deepEqual(texts(xml, "title"), ["First", "Last", "Spark II", "Human", "Nova"]);
+  });
+
   it("throws when panic is set and a find matches nothing", () => {
     const patch = `<FTL><mod:findName type="crewBlueprint" name="missing" panic="true"><mod-append:maxHealth>1</mod-append:maxHealth></mod:findName></FTL>`;
     assert.throws(

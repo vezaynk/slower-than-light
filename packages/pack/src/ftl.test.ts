@@ -1243,6 +1243,69 @@ describe("packFromFtl", () => {
     }
   });
 
+  it("keeps quest, secret sector, and map marks in document order", () => {
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const pack = packFromFtl([
+        {
+          path: "data/events.xml",
+          xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <event name="MARKS">
+    <text>Marks.</text>
+    <img>map.png</img>
+    <quest event="STASH"/>
+    <distressBeacon/>
+    <secretSector/>
+    <repair/>
+    <fleet/>
+    <reveal_map/>
+    <unlockShip id="1"/>
+    <img>later.png</img>
+    <choice>
+      <text>Enter</text>
+      <event>
+        <secretSector/>
+        <unlockShip id="0"/>
+      </event>
+    </choice>
+  </event>
+  <event name="BLANK">
+    <text>Blank.</text>
+    <quest/>
+    <unlockShip id="-1"/>
+    <unlockShip id="nope"/>
+  </event>
+</FTL>`,
+        },
+      ]);
+      const marks = pack.events?.find((row) => row.id === "MARKS");
+      assert.equal(marks?.img, "map.png");
+      assert.deepEqual(marks?.marks, [
+        { k: "quest", event: "STASH" },
+        { k: "distressBeacon" },
+        { k: "secretSector" },
+        { k: "repair" },
+        { k: "fleet" },
+        { k: "revealMap" },
+        { k: "unlockShip", id: 1 },
+      ]);
+      assert.deepEqual(marks?.choices[0]?.marks, [
+        { k: "secretSector" },
+        { k: "unlockShip", id: 0 },
+      ]);
+      assert.equal(pack.events?.find((row) => row.id === "BLANK")?.marks, undefined);
+      assert.deepEqual(warnings, [
+        "A <quest> has no event; it places nothing.",
+        "An <unlockShip> id is not a whole number; it grants nothing.",
+      ]);
+    } finally {
+      restore();
+      resetPackForTests();
+    }
+  });
+
   it("keeps English strings and drops translation files", () => {
     const english = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>

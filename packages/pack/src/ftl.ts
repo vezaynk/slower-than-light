@@ -3,6 +3,7 @@ import type {
   AchievementCondition,
   AchievementDef,
   ArchiveAlter,
+  ArchiveMark,
   ArchiveBoarders,
   ArchiveEnvironment,
   ArchiveGrant,
@@ -1057,8 +1058,14 @@ function readEventBody(
   const fx: EventEffect[] = [];
   const grants: ArchiveGrant[] = [];
   const alters: ArchiveAlter[] = [];
+  const marks: ArchiveMark[] = [];
   for (const item of elements(node)) {
     if (item.tagName === "text" || item.tagName === "choice") continue;
+    if (item.tagName === "img") {
+      const name = resolveText(item, strings)?.trim();
+      if (name && !event.img) event.img = name;
+      continue;
+    }
     if (item.tagName === "store") {
       event.store = true;
       continue;
@@ -1085,6 +1092,12 @@ function readEventBody(
       alters.push(alter);
       continue;
     }
+    const mark = readMark(item);
+    if (mark === "skip") continue;
+    if (mark) {
+      marks.push(mark);
+      continue;
+    }
     const grant = readGrant(item);
     if (grant) {
       grants.push(grant);
@@ -1095,6 +1108,7 @@ function readEventBody(
   if (fx.length > 0) event.fx = fx;
   if (grants.length > 0) event.grants = grants;
   if (alters.length > 0) event.alters = alters;
+  if (marks.length > 0) event.marks = marks;
   const environment = readEnvironment(node);
   if (environment) event.environment = environment;
   return event;
@@ -1166,11 +1180,13 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
     const fx: EventEffect[] = [];
     const grants: ArchiveGrant[] = [];
     const alters: ArchiveAlter[] = [];
+    const marks: ArchiveMark[] = [];
     for (const item of elements(node)) {
       if (item.tagName === "text") continue;
-      takeResultChild(item, choice, fx, grants, alters, strings);
+      takeResultChild(item, choice, fx, grants, alters, marks, strings);
     }
     if (alters.length > 0) choice.alters = alters;
+    if (marks.length > 0) choice.marks = marks;
     if (
       fx.length === 0 &&
       !choice.reward &&
@@ -1186,10 +1202,13 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
   const fx: EventEffect[] = [];
   const grants: ArchiveGrant[] = [];
   const alters: ArchiveAlter[] = [];
+  const marks: ArchiveMark[] = [];
   const load = attr(result, "load")?.trim();
   if (load) fx.push({ k: "goto", id: load });
-  for (const item of elements(result)) takeResultChild(item, choice, fx, grants, alters, strings);
+  for (const item of elements(result))
+    takeResultChild(item, choice, fx, grants, alters, marks, strings);
   if (alters.length > 0) choice.alters = alters;
+  if (marks.length > 0) choice.marks = marks;
   const nested = readChoices(result, strings);
   if (nested.length > 0) choice.choices = nested;
   const bare = elements(result).length === 0 && !load;
@@ -1214,6 +1233,7 @@ function takeResultChild(
   fx: EventEffect[],
   grants: ArchiveGrant[],
   alters: ArchiveAlter[],
+  marks: ArchiveMark[],
   strings: Map<string, string>,
 ) {
   if (item.tagName === "text") {
@@ -1222,10 +1242,21 @@ function takeResultChild(
     return;
   }
   if (item.tagName === "choice") return;
+  if (item.tagName === "img") {
+    const name = resolveText(item, strings)?.trim();
+    if (name && !choice.img) choice.img = name;
+    return;
+  }
   const alter = readAlter(item, strings);
   if (alter === "skip") return;
   if (alter) {
     alters.push(alter);
+    return;
+  }
+  const mark = readMark(item);
+  if (mark === "skip") return;
+  if (mark) {
+    marks.push(mark);
     return;
   }
   if (item.tagName === "autoReward") {
@@ -1335,6 +1366,32 @@ function readAlter(
       return "skip";
     }
     return { k: "remove", name };
+  }
+  return undefined;
+}
+
+/** Quest, secret sector, and map marks. A quest with no event, or an unlock id that is not a whole number, is skipped. */
+function readMark(item: XmlElement): ArchiveMark | "skip" | undefined {
+  if (item.tagName === "quest") {
+    const event = attr(item, "event")?.trim() ?? "";
+    if (!event) {
+      warnPack("A <quest> has no event; it places nothing.");
+      return "skip";
+    }
+    return { k: "quest", event };
+  }
+  if (item.tagName === "secretSector") return { k: "secretSector" };
+  if (item.tagName === "distressBeacon") return { k: "distressBeacon" };
+  if (item.tagName === "repair") return { k: "repair" };
+  if (item.tagName === "fleet") return { k: "fleet" };
+  if (item.tagName === "reveal_map") return { k: "revealMap" };
+  if (item.tagName === "unlockShip") {
+    const id = intAttr(item, "id");
+    if (id == null || id < 0) {
+      warnPack("An <unlockShip> id is not a whole number; it grants nothing.");
+      return "skip";
+    }
+    return { k: "unlockShip", id };
   }
   return undefined;
 }

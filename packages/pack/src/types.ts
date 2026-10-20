@@ -628,6 +628,20 @@ export type ArchiveAlter =
   | { k: "removeCrew"; clone: boolean; text?: string }
   | { k: "remove"; name: string };
 
+/**
+ * One `<quest>`, `<secretSector>`, `<distressBeacon>`, `<repair>`, `<fleet>`,
+ * `<reveal_map>`, or `<unlockShip>`, in document order.
+ * `unlockShip.id` is an index into the loaded pack's player ship blueprints.
+ */
+export type ArchiveMark =
+  | { k: "quest"; event: string }
+  | { k: "secretSector" }
+  | { k: "distressBeacon" }
+  | { k: "repair" }
+  | { k: "fleet" }
+  | { k: "revealMap" }
+  | { k: "unlockShip"; id: number };
+
 /** A button on an event page. The id is what `choose` receives. */
 export type EventChoice = {
   id: string;
@@ -651,6 +665,10 @@ export type EventChoice = {
   environment?: ArchiveEnvironment;
   /** `<status>`, `<upgrade>`, `<removeCrew>`, and `<remove>`, in document order. */
   alters?: ArchiveAlter[];
+  /** Quest, secret sector, and map marks, in document order. */
+  marks?: ArchiveMark[];
+  /** `<img>` text. The event card shows that file when the pack has it. */
+  img?: string;
   /** Choices on the result page. */
   choices?: EventChoice[];
 };
@@ -827,6 +845,10 @@ export type EventDef = {
   environment?: ArchiveEnvironment;
   /** `<status>`, `<upgrade>`, `<removeCrew>`, and `<remove>`, in document order. */
   alters?: ArchiveAlter[];
+  /** Quest, secret sector, and map marks, in document order. */
+  marks?: ArchiveMark[];
+  /** `<img>` text. The event card shows that file when the pack has it. */
+  img?: string;
 };
 
 /** One ending of a root `<ship name>` event. Children are an inline page. A childless load is that event id. */

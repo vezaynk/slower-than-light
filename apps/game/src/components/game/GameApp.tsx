@@ -26,6 +26,7 @@ import { loadBasePackXml } from "@/game/pack/boot";
 import "@/game/pack/base";
 import { FLEET_FILE, MAP_FILES, augmentDef, beaconPath, crewDef, weaponDef } from "@stl/pack";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
+import { beaconMark } from "@/game/beacon-mark";
 import { scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import {
@@ -3698,6 +3699,7 @@ function EventCard({ game }: { game: Game }) {
     <div className="modal-layer">
       <article className={`ftl-card${offer ? " surrender-card" : ""}`}>
         {event.title ? <p className="event-lead">{event.title}</p> : null}
+        {event.img ? <img className="event-img" src={event.img} alt="" /> : null}
         <p>{event.body}</p>
         {offer ? (
           <>
@@ -4639,20 +4641,6 @@ function WikiLines({ lines, onRun }: { lines: WikiLine[]; onRun: () => void }) {
   return <>{blocks}</>;
 }
 
-function beaconMark(b: {
-  quest?: string;
-  resolved: boolean;
-  kind: string;
-  name: string;
-  flag: string;
-}): string {
-  if (b.quest && !b.resolved) return "QUEST";
-  if (b.kind === "store") return "STORE";
-  if (b.kind === "exit") return "EXIT";
-  if (b.kind === "distress" || /distress/i.test(`${b.name} ${b.flag}`)) return "DISTRESS";
-  return "";
-}
-
 function mapX(col: number) {
   return col === 0 ? 40 : 210 + (col - 1) * 82;
 }
@@ -4844,8 +4832,20 @@ function MapScreen({ game }: { game: Game }) {
               linked || (game.augments.includes("FTL_JUMPER") && navAllows(b, game.fleet));
             const swallowed = overtaken(game, b);
             const soon = !swallowed && !!warn && overtaken(warn, b);
-            // @agent:quests. Beacons, "Quest (marker) beacon": marked 'QUEST', "seen on the map from any distance away".
-            const tag = isHere ? null : beaconMark(b);
+            // Quest marks stay visible from any distance. A known beacon draws the mark it already
+            // has. Store, exit, distress, and repair stay labeled, and an unlinked beacon stays closed.
+            const stored = isHere ? "" : beaconMark(b);
+            const tag =
+              stored &&
+              (stored === "QUEST" ||
+                stored === "STORE" ||
+                stored === "EXIT" ||
+                stored === "DISTRESS" ||
+                stored === "REPAIR" ||
+                b.known ||
+                b.visited)
+                ? stored
+                : null;
             const nebula = b.kind === "nebula" && !b.cleared;
             // Augmentations, Long-Ranged Scanners: adjacent beacons only, including ones left behind.
             // Not the current beacon. Live from the fitted scanners; selling them hides the marks.

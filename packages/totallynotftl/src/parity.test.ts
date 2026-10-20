@@ -11,14 +11,15 @@ import { standInDat } from "./archive.ts";
  * Writing one would invent a sentence, a palette, a short label, a start event, or a gun list.
  * A gun list or a slot count would also change which weapons a ship mounts.
  * Picture names, shield pierce, hire prices, crew rarities, and beacon quotas are written.
- * Campaign fights stay on choice effects, so an event does not grow a ship, a grant, or a boarder tag.
+ * Campaign fights stay on choice effects, so an event does not grow a ship, a grant, a boarder tag,
+ * or an environment. A campaign fight's hazard is its own fight effect.
  */
 const UNPLAYED: Partial<Record<keyof ContentPack, readonly string[]>> = {
   systems: ["detail"],
   crew: ["colors", "detail"],
   hulls: ["droneCount", "droneLoad", "maxSector", "minSector", "weaponCount", "weaponLoad"],
   sectors: ["short", "startEvent"],
-  events: ["boarders", "fx", "grants", "reward", "ship"],
+  events: ["boarders", "environment", "fx", "grants", "reward", "ship"],
 };
 
 const RECORD_LISTS = [

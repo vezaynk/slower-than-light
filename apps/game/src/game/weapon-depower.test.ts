@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  applyIon,
+  armWeapon,
   createGame,
   DEPOWER_DRAIN_S,
   depowerWeapon,
@@ -11,8 +13,9 @@ import {
   startCombat,
   step,
   toggleWeapon,
+  zoltanBars,
 } from "./sim.ts";
-import type { WeaponInst } from "./types.ts";
+import type { Crew, WeaponInst } from "./types.ts";
 import { powerGuns } from "./fixtures.ts";
 
 describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", () => {
@@ -179,4 +182,176 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
     for (let i = 0; i < 4; i++) step(g, 0.05);
     assert.ok(w.charge < 0.35 && w.charge > 0.25, `${w.charge}`);
   });
+
+  it("adds the missing reactor bar to a flagged-on weapon beside a Zoltan", () => {
+    const g = shortWeapons(2, ["BEAM_3"]);
+    const room = g.player.rooms.find((r) => r.system === "weapons");
+    assert.ok(room);
+    g.crew.push(spark(room.id));
+    assert.equal(zoltanBars(g.crew, g.player, "player", "weapons"), 1);
+    assert.deepEqual(fed(g), [false]);
+    powerUp(g, "weapons");
+    assert.equal(g.player.systems.weapons.power, 3);
+    assert.equal(g.player.weapons[0]!.enabled, true);
+    assert.deepEqual(fed(g), [true]);
+  });
+
+  it("keeps a running weapon while restoring a short one to its left", () => {
+    const g = shortWeapons(1, ["BEAM_3", "LASER_BURST_1"]);
+    assert.deepEqual(fed(g), [false, true]);
+    powerUp(g, "weapons");
+    assert.equal(g.player.systems.weapons.power, 5);
+    assert.deepEqual(
+      g.player.weapons.map((w) => w.enabled),
+      [true, true],
+    );
+    assert.deepEqual(fed(g), [true, true]);
+  });
+
+  it("powers a weapon back up after ion has removed every bar", () => {
+    const g = shortWeapons(4, ["BEAM_3"]);
+    const sys = g.player.systems.weapons;
+    sys.level = 4;
+    assert.deepEqual(fed(g), [true]);
+    applyIon(g.player, "weapons", 4);
+    assert.equal(sys.power, 0);
+    assert.equal(g.player.weapons[0]!.enabled, true);
+    assert.deepEqual(fed(g), [false]);
+    powerUp(g, "weapons");
+    assert.equal(sys.power, 0);
+    sys.ion = [];
+    powerUp(g, "weapons");
+    assert.equal(sys.power, 4);
+    assert.equal(g.player.weapons[0]!.enabled, true);
+    assert.deepEqual(fed(g), [true]);
+  });
+
+  it("draws bars when a dark weapon that is still flagged on is tapped", () => {
+    const g = shortWeapons(0, ["LASER_BURST_3"]);
+    assert.equal(g.player.weapons[0]!.enabled, true);
+    assert.deepEqual(fed(g), [false]);
+    toggleWeapon(g, "burst");
+    assert.equal(g.player.systems.weapons.power, 2);
+    assert.deepEqual(fed(g), [true]);
+    g.player.systems.weapons.power = 0;
+    g.phase = "combat";
+    g.enemy = g.player;
+    assert.deepEqual(fed(g), [false]);
+    armWeapon(g, "burst");
+    assert.equal(g.player.systems.weapons.power, 2);
+    assert.equal(g.targeting, true);
+    assert.deepEqual(fed(g), [true]);
+  });
+
+  it("leaves a flagged-on weapon flagged on when the reactor cannot cover it", () => {
+    const g = shortWeapons(2, ["BEAM_3"]);
+    g.player.reactor -= sparePower(g.player);
+    assert.equal(sparePower(g.player), 0);
+    toggleWeapon(g, "glaive");
+    assert.equal(g.player.weapons[0]!.enabled, true);
+    assert.equal(g.player.systems.weapons.power, 2);
+    assert.deepEqual(fed(g), [false]);
+  });
+
+  it("turns off a weapon a Zoltan is feeding when the reactor bars are only surplus", () => {
+    const g = shortWeapons(1, ["LASER_BURST_1"]);
+    const room = g.player.rooms.find((r) => r.system === "weapons");
+    assert.ok(room);
+    g.crew.push(spark(room.id));
+    assert.deepEqual(fed(g), [true]);
+    powerDown(g, "weapons");
+    assert.equal(g.player.weapons[0]!.enabled, false);
+    assert.equal(g.player.systems.weapons.power, 0);
+    assert.deepEqual(fed(g), [false]);
+  });
+
+  it("turns off the rightmost weapon when only Zoltan bars are feeding the system", () => {
+    const g = shortWeapons(0, ["LASER_BURST_1", "LASER_BURST_1"]);
+    g.player.weapons[0]!.uid = "a";
+    g.player.weapons[1]!.uid = "b";
+    const room = g.player.rooms.find((r) => r.system === "weapons");
+    assert.ok(room);
+    g.crew.push(spark(room.id, "za"), spark(room.id, "zb"));
+    assert.deepEqual(fed(g), [true, true]);
+    powerDown(g, "weapons");
+    assert.equal(g.player.systems.weapons.power, 0);
+    assert.equal(g.player.weapons[1]!.enabled, false);
+    assert.equal(g.player.weapons[0]!.enabled, true);
+    assert.deepEqual(fed(g), [true, false]);
+  });
+
+  it("hands a freed Zoltan bar to the weapon that was waiting on the right", () => {
+    const g = shortWeapons(0, ["LASER_BURST_1", "LASER_BURST_1"]);
+    g.player.weapons[0]!.uid = "a";
+    g.player.weapons[1]!.uid = "b";
+    const room = g.player.rooms.find((r) => r.system === "weapons");
+    assert.ok(room);
+    g.crew.push(spark(room.id));
+    assert.deepEqual(fed(g), [true, false]);
+    powerDown(g, "weapons");
+    assert.equal(g.player.systems.weapons.power, 0);
+    assert.equal(g.player.weapons[0]!.enabled, false);
+    assert.equal(g.player.weapons[1]!.enabled, true);
+    assert.deepEqual(fed(g), [false, true]);
+  });
+
+  it("lets a flagged-on Glaive take the bars when the laser beside it powers down", () => {
+    const g = shortWeapons(4, ["BEAM_3", "LASER_BURST_1"]);
+    const sys = g.player.systems.weapons;
+    sys.level = 4;
+    const room = g.player.rooms.find((r) => r.system === "weapons");
+    assert.ok(room);
+    g.crew.push(spark(room.id));
+    assert.deepEqual(fed(g), [false, true]);
+    powerDown(g, "weapons");
+    assert.equal(g.player.weapons[1]!.enabled, false);
+    assert.equal(g.player.weapons[0]!.enabled, true);
+    assert.equal(sys.power, 3);
+    assert.deepEqual(fed(g), [true, false]);
+  });
 });
+
+function spark(room: string, id = "z"): Crew {
+  return {
+    id,
+    name: id,
+    side: "player",
+    aboard: "player",
+    hp: 70,
+    maxHp: 70,
+    room,
+    path: [],
+    move: 0,
+    think: 0,
+    tone: 0,
+    kin: "energy",
+  };
+}
+
+function gun(defId: string): WeaponInst {
+  return {
+    uid: defId === "LASER_BURST_3" ? "burst" : defId === "BEAM_3" ? "glaive" : defId,
+    defId,
+    charge: 0,
+    enabled: true,
+    autofire: false,
+    target: null,
+  };
+}
+
+/** Weapon Control with the listed guns flagged on and `power` reactor bars already assigned. */
+function shortWeapons(power: number, ids: string[]) {
+  const g = createGame(3, "PLAYER_SHIP_HARD");
+  g.player.reactor = 30;
+  const sys = g.player.systems.weapons;
+  sys.level = 8;
+  sys.damage = 0;
+  sys.ion = [];
+  sys.power = power;
+  g.player.weapons = ids.map(gun);
+  return g;
+}
+
+function fed(g: ReturnType<typeof shortWeapons>): boolean[] {
+  return powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
+}

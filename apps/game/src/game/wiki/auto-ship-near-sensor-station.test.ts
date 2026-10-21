@@ -82,10 +82,22 @@ describe("Auto-ship near sensor station", () => {
       g.player.systems.sensors.level = 3;
       assert.equal(choiceDisabled(g, "c:auto-ship-near-sensor-station:2"), null);
       choose(g, "c:auto-ship-near-sensor-station:2");
-      if (g.phase === "combat") {
+      const charging =
+        g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume";
+      if (charging) {
         fight = true;
+        assert.equal(
+          g.event?.body,
+          "The automated ship must be remotely connected to the station; as soon as you attempt to log on, the ship activates and charges you.",
+        );
+        assert.equal(
+          g.log.some((line) => line.includes("remotely connected")),
+          false,
+        );
         assert.equal(g.fightEvent, "auto-ship-near-sensor-station");
         assert.equal(g.scrap, 10);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
       } else {
         map = true;
         assert.match(g.event?.body ?? "", /local map data/);

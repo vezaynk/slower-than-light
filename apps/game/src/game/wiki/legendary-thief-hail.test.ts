@@ -48,7 +48,11 @@ describe("Legendary thief KazaaakplethKilik hail", () => {
     open(g);
     assert.equal(choiceDisabled(g, "c:legendary-thief-kazaaakplethkilik:1"), null);
     choose(g, "c:legendary-thief-kazaaakplethkilik:1");
-    assert.ok(g.log.includes(LEAD));
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, LEAD);
+    assert.equal(g.log.includes(LEAD), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "legendary-thief-kazaaakplethkilik");
     assert.equal(g.enemy?.faction, "mantis");

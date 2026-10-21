@@ -189,10 +189,19 @@ describe("ship events", () => {
   it("fights the definition's blueprint list when an event loads the ship", () => {
     const g = createGame(3);
     jumpTo(g, "PIRATE_FIGHT");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, "A pirate.");
+    assert.equal(g.log.includes("A pirate."), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.fightShip, "PIRATE");
+    assert.equal(g.enemy?.name, "Pirate Hull");
+    assert.ok(g.log.some((line) => line.includes("Pirate Hull on the scope.")));
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightShip, "PIRATE");
     assert.equal(g.enemy?.name, "Pirate Hull");
     assert.equal(g.enemySurrender?.hullPoints, true);
+    assert.equal(g.log.includes("A pirate."), false);
     const campaign = quiet("pirate", 5);
     assert.equal(campaign.fightShip, null);
     assert.notEqual(campaign.enemySurrender?.hullPoints, true);

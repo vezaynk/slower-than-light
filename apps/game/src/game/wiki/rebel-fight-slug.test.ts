@@ -50,7 +50,7 @@ describe("Rebel fight (Slug)", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Rebel ship on arrival and leaves no button", () => {
+  it("shows the slug card, then the Rebel fight", () => {
     // Wiki citations:
     // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Slug)]]
     // The page has no choice. One of the three printed intros, then "Fight a Rebel ship." unique=false.
@@ -71,13 +71,20 @@ describe("Rebel fight (Slug)", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
+    const body = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rebel-fight-slug:0");
+    assert.equal(g.fleet, 1);
+    choose(g, "c:rebel-fight-slug:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "rebel-fight-slug");
     assert.equal(g.flare, false);
-    assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(body), false);
   });
 });

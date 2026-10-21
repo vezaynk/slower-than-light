@@ -42,11 +42,19 @@ describe("Lanius ship salvager intro", () => {
 
     const g = createGame(1);
     open(g);
+    const lead =
+      "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.";
     choose(g, "c:lanius-ship-salvager:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "lanius-ship-salvager");
     assert.equal(g.scrap, 10);
+    assert.equal(g.log.includes(lead), false);
   });
 });

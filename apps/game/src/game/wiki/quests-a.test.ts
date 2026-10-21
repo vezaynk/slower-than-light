@@ -166,12 +166,19 @@ describe("quest openers (quests-a)", () => {
     goToQuest(g, "rock-sun");
     assert.deepEqual(ids(g), ["qa:rock-sun:fight"]);
     choose(g, "qa:rock-sun:fight");
+    const sun =
+      "The Rock ship starts to power up their FTL drive. If we're going to earn their trust we must endure the heat for as long as they can!";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, sun);
+    assert.equal(g.log.includes(sun), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.enemy!.classId, "rock-assault-elite");
     assert.deepEqual(
       [g.enemyEscape!.mode, g.enemyEscape!.running, g.enemyEscape!.seconds],
       ["start", true, 32],
     );
     assert.equal(g.enemySurrender!.chance, 0);
+    choose(g, "ship-resume");
     g.enemyFlee = 1;
     g.enemyEscape!.seconds = 0;
     for (let i = 0; i < 5 && g.phase === "combat"; i++) step(g, 1 / 30);
@@ -193,6 +200,13 @@ describe("quest openers (quests-a)", () => {
     addQuest(g, "rock-sun");
     goToQuest(g, "rock-sun");
     choose(g, "qa:rock-sun:fight");
+    const sun =
+      "The Rock ship starts to power up their FTL drive. If we're going to earn their trust we must endure the heat for as long as they can!";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, sun);
+    assert.equal(g.log.includes(sun), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     winByHull(g);
     assert.ok(g.event!.body.startsWith("Their ship breaks apart"));
     assert.equal(questBeacon(g, "rock-shipyard"), undefined);
@@ -401,7 +415,10 @@ describe("quest openers (quests-a)", () => {
     for (let seed = 1; seed < 40 && seen.size < 2; seed++) {
       const g = atCited(createGame(seed), "Rock Homeworlds", "Ancient device");
       choose(g, "c:ancient-device:0");
-      seen.add(g.phase === "combat" ? `fight:${g.enemy!.faction}` : "scrap");
+      const fight =
+        g.enemy != null &&
+        (g.phase === "combat" || g.event?.choices.some((c) => c.id === "ship-resume") === true);
+      seen.add(fight ? `fight:${g.enemy!.faction}` : "scrap");
     }
     assert.deepEqual([...seen].sort(), ["fight:rock", "scrap"]);
   });
@@ -415,7 +432,7 @@ describe("quest openers (quests-a)", () => {
     const g = seedWhere((x) => {
       atCited(x, "Zoltan Homeworlds", "Unarmed Zoltan transport");
       choose(x, "c:unarmed-zoltan-transport:0");
-      return x.phase === "event";
+      return x.event?.choices.some((c) => c.id === "qa:uzt:go") === true;
     });
     assert.equal(g.enemy!.faction, "zoltan");
     assert.equal(g.enemy!.weapons.length, 0);
@@ -494,6 +511,12 @@ describe("quest openers (quests-a)", () => {
     addQuest(g, "zoltan-peace");
     goToQuest(g, "zoltan-peace");
     choose(g, "qa:peace:attack");
+    const lead = "You power your weapons and prepare to fight.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy!.faction, "rebel");
     assert.equal(g.fightEvent, "quest-zoltan-peace");
@@ -513,8 +536,13 @@ describe("quest openers (quests-a)", () => {
     const g = seedWhere((x) => {
       atCited(x, "Zoltan Controlled Sector", "Zoltan research facility");
       choose(x, "c:zoltan-research-facility:0");
-      return x.phase === "combat";
+      return x.phase === "event" && x.enemy != null && x.event?.choices[0]?.id === "ship-resume";
     });
+    const lead =
+      'As soon as you dock, pirates burst on board and a hostile ship appears on the radar. You hear the Zoltans yell in the distance, "We\'re being held hostage!"';
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.enemy!.pirate, true);
     assert.equal(g.enemySurrender!.chance, 0);
     assert.equal(g.enemyEscape!.mode, "never");
@@ -547,7 +575,10 @@ describe("quest openers (quests-a)", () => {
       const g = atCited(createGame(seed), "Zoltan Controlled Sector", "Zoltan trade hub");
       g.sector = 4;
       choose(g, "c:zoltan-trade-hub:0");
-      if (g.phase === "combat") {
+      const fight =
+        g.enemy != null &&
+        (g.phase === "combat" || g.event?.choices.some((c) => c.id === "ship-resume") === true);
+      if (fight) {
         assert.equal(g.enemy!.faction, "zoltan");
         const n = g.crew.filter(
           (c) => c.side === "enemy" && c.aboard === "player" && c.kin === "energy",
@@ -597,8 +628,15 @@ describe("quest openers (quests-a)", () => {
     );
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
     choose(g, "qa:bride:refuse");
+    const lead =
+      "\"I was led to believe your kind did not know mercy. I will join you. But quickly, we must jump away - they will not tolerate...\" She's interrupted by weapons fire from the Basilisk's escort!";
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body.includes(lead), g.event?.body);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.ok(g.crew.some((c) => c.name === "Ariadne" && c.kin === "rock"));
     assert.equal(g.enemy!.faction, "rock");
+    choose(g, "ship-resume");
     winByHull(g);
     assert.ok(g.event!.body.startsWith("His escort eliminated"));
   });

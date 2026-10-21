@@ -6,6 +6,8 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-abandoned:0";
+const BODY =
+  'An image of some weak and hungry humans comes onto your screen. "Those metal bastards think they can just absorb half of our engines and leave us here to die? I hope you understand the need to take your ship by force."';
 
 function beacon(): Beacon {
   return {
@@ -52,8 +54,8 @@ describe("Boarders: Humans (Abandoned)", () => {
     assert.equal(g.augments.includes("O2_MASKS"), false);
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
-    // The page has no choice. "3-4 human boarders beam aboard your ship."
+  it("shows the hungry humans card on arrival, then beams them aboard", () => {
+    // The arrival card stays up. "3-4 human boarders beam aboard your ship."
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -71,11 +73,16 @@ describe("Boarders: Humans (Abandoned)", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, ID);
+    choose(g, ID);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
     const humans = boarded(g);
     assert.ok(humans.length >= 3 && humans.length <= 4, String(humans.length));
+    assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
   });
 
   it("gives Emergency Respirators after a Lanius fight, including a repeat before another fight", () => {

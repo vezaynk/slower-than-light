@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame } from "../sim.ts";
+import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerChoose } from "./filler-events.ts";
@@ -46,25 +46,38 @@ describe("Mantis fugitive", () => {
       const crew = players(g).length;
       open(g);
       fillerChoose(g, "c:mantis-fugitive:0");
-      assert.equal(g.phase, "combat");
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
       assert.equal(g.enemy?.faction, "engi");
       assert.equal(g.enemy?.pirate, false);
       assert.equal(g.scrap, 10);
       assert.equal(players(g).length, crew);
       const aboard = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
       assert.ok(aboard.length > 0);
+      const body = g.event?.body ?? "";
       if (g.player.hull === hull - 5) {
         trap = true;
         assert.ok(systemDamage(g) >= 1);
         assert.ok(aboard.every((c) => c.kin === "mantis"));
-        assert.ok(g.log.some((line) => line.includes("sabotages your ship")));
+        assert.ok(body.includes("sabotages your ship"));
+        assert.equal(
+          g.log.some((line) => line.includes("sabotages your ship")),
+          false,
+        );
+        assert.ok(g.log.includes("Hull damage: 5."));
       } else {
         thanks = true;
         assert.equal(g.player.hull, hull);
         assert.equal(systemDamage(g), 0);
         assert.ok(aboard.some((c) => c.kin === "engi"));
-        assert.ok(g.log.some((line) => line.includes("expresses his thanks")));
+        assert.ok(body.includes("expresses his thanks"));
+        assert.equal(
+          g.log.some((line) => line.includes("expresses his thanks")),
+          false,
+        );
       }
+      choose(g, "ship-resume");
+      assert.equal(g.phase, "combat");
     }
     assert.equal(trap && thanks, true);
   });
@@ -83,7 +96,10 @@ describe("Mantis fugitive", () => {
       const crew = players(g).length;
       open(g);
       fillerChoose(g, "c:mantis-fugitive:1");
-      if (g.phase === "combat") {
+      const fighting =
+        g.phase === "combat" ||
+        (g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume"));
+      if (fighting) {
         trap = true;
         assert.equal(g.enemy?.faction, "engi");
         assert.equal(g.scrap, 10);
@@ -94,6 +110,9 @@ describe("Mantis fugitive", () => {
         assert.equal(boarders[0]?.kin, "mantis");
         const aboard = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
         assert.ok(aboard.every((c) => c.kin === "mantis"));
+        assert.ok(g.log.some((line) => line.includes("mantis boarders beam aboard")));
+        if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
       } else {
         const body = g.event?.body ?? "";
         const got = reward(body);

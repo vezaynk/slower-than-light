@@ -32,10 +32,18 @@ describe("Pirate ship attacking Crystal hail", () => {
       ["c:pirate-ship-attacking-crystal:0", "c:pirate-ship-attacking-crystal:1"],
     );
     choose(g, "c:pirate-ship-attacking-crystal:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    const told = g.event?.body ?? "";
+    assert.equal(told.length > 0, true);
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.enemy?.pirate, true);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-ship-attacking-crystal");
     assert.equal(g.scrap, 10);
+    assert.equal(g.log.includes(told), false);
 
     const leave = createGame(2);
     open(leave);

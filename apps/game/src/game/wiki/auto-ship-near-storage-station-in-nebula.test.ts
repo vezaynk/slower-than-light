@@ -93,8 +93,16 @@ describe("Auto-ship near storage station in nebula", () => {
         "Needs level 2 Cloaking",
       );
       choose(g, "c:auto-ship-near-storage-station-in-nebula:2");
-      if (g.phase === "combat") {
+      const attack =
+        g.enemy != null && (g.phase === "combat" || g.event?.choices[0]?.id === "ship-resume");
+      if (attack) {
         fight = true;
+        const lead = "You try to sneak past the automated ship but it quickly turns and attacks!";
+        assert.ok(g.event?.body.includes(lead) || g.phase === "combat");
+        if (g.phase === "event") {
+          assert.equal(g.event?.body, lead);
+          assert.equal(g.log.includes(lead), false);
+        }
         assert.equal(g.fightEvent, "auto-ship-near-storage-station-in-nebula");
         assert.equal(g.player.parts, 3);
       } else {
@@ -176,8 +184,16 @@ describe("Auto-ship near storage station in nebula", () => {
       };
       choose(g, "c:auto-ship-near-storage-station-in-nebula:4");
       assert.equal(g.player.parts, 2);
-      if (g.phase === "combat") {
+      const attack =
+        g.enemy != null && (g.phase === "combat" || g.event?.choices[0]?.id === "ship-resume");
+      if (attack) {
         fight = true;
+        const lead =
+          "You send a drone to hack the station but the automated ship notices and turns to attack!";
+        assert.ok((g.event?.body ?? "").includes(lead));
+        assert.ok((g.event?.body ?? "").includes("Drone parts: -1."));
+        assert.equal(g.log.includes(lead), false);
+        assert.equal(g.log.includes("Drone parts: -1."), false);
         assert.equal(g.fightEvent, "auto-ship-near-storage-station-in-nebula");
       } else {
         station = true;

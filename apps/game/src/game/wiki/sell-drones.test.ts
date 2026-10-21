@@ -54,9 +54,19 @@ describe("Sell drone parts for scrap", () => {
       assert.equal(g.player.parts, 0);
       assert.equal(g.scrap, 40 + scrap);
       assert.equal(g.scrapCollected ?? 0, collected + scrap);
+      assert.equal(g.phase, "event");
+      assert.ok(g.event?.body?.includes("Thank you for your business."));
+      assert.ok(g.event?.body?.includes(`You receive ${scrap} scrap.`));
+      assert.equal(
+        g.log.some((line) => line.includes("Thank you for your business.")),
+        false,
+      );
+      assert.equal(
+        g.log.some((line) => line === `You receive ${scrap} scrap.`),
+        false,
+      );
+      choose(g, "ack");
       assert.equal(g.phase, "map");
-      assert.ok(g.log.some((line) => line.includes("Thank you for your business.")));
-      assert.ok(g.log.some((line) => line === `You receive ${scrap} scrap.`));
     }
   });
 
@@ -70,7 +80,11 @@ describe("Sell drone parts for scrap", () => {
     assert.equal(hook.player.parts, 0);
     assert.equal(hook.scrap, 13);
     assert.equal(hook.scrapCollected, 12);
-    assert.ok(hook.log.some((line) => line === "You receive 13 scrap."));
+    assert.ok(hook.event?.body?.includes("You receive 13 scrap."));
+    assert.equal(
+      hook.log.some((line) => line === "You receive 13 scrap."),
+      false,
+    );
 
     const weld = createGame(3);
     weld.player.parts = 3;

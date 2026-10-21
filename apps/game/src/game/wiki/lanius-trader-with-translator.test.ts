@@ -54,6 +54,14 @@ describe("Lanius trader with translator", () => {
       );
       const fuel = g.fuel;
       choose(g, g.event!.choices[0]!.id);
+      assert.equal(g.phase, "event");
+      assert.equal(
+        g.event?.body,
+        `After the exchange is complete they leave without a word.\n\nScrap: ${got.scrap}.`,
+      );
+      assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
+      assert.equal(g.event?.choices[0]?.id, "ack");
+      choose(g, "ack");
       assert.equal(g.phase, "map");
       assert.equal(g.scrap, 10 + got.scrap);
       if (got.res === "fuel") assert.equal(g.fuel, fuel - got.cost);

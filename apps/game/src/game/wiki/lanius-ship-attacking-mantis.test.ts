@@ -30,10 +30,17 @@ describe("Lanius ship attacking Mantis", () => {
   it("attacking starts a Lanius fight", () => {
     const g = createGame(1);
     open(g);
+    const lead =
+      "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!";
     choose(g, "c:lanius-ship-attacking-mantis:0");
-    assert.equal(g.phase, "combat");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.fightEvent, "lanius-ship-attacking-mantis");
     assert.equal(g.scrap, 10);
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
   });
 
   it("winning either ending pays medium scrap, then contact", () => {

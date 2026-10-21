@@ -47,8 +47,13 @@ describe("Rebel transport ship", () => {
   it("demanding the cargo starts a Rebel ship that is already running and does not surrender", () => {
     const g = createGame(1);
     open(g);
+    const lead = "You prepare to secure their cargo by force.";
     choose(g, "c:rebel-transport-ship:0");
-    assert.ok(g.log.includes("You prepare to secure their cargo by force."));
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "rebel-transport-ship");
     assert.equal(g.enemy?.pirate, false);

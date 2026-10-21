@@ -53,13 +53,25 @@ describe("Lanius ship absorbing rebel base", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:lanius-ship-absorbing-rebel-base:0");
-      if (g.phase === "combat") {
+      if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
+        assert.match(g.event?.body ?? "", /scoff/);
+        assert.equal(
+          g.log.some((line) => line.includes("scoff")),
+          false,
+        );
+        assert.equal(g.scrap, 10);
+        assert.equal(g.fleet, 5);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.enemy?.faction, "lanius");
         assert.equal(g.enemy?.pirate, false);
         assert.equal(g.scrap, 10);
         assert.equal(g.fleet, 5);
-        assert.ok(g.log.some((line) => line.includes("scoff")));
+        assert.equal(
+          g.log.some((line) => line.includes("scoff")),
+          false,
+        );
       } else if (/delayed for 1 turn/.test(g.event?.body ?? "")) {
         delay = true;
         assert.equal(g.fleet, 4);

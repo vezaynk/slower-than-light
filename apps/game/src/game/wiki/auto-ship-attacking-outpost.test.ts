@@ -33,7 +33,13 @@ describe("Auto-ship attacking outpost", () => {
       g.event?.choices.some((c) => c.id === "c:auto-ship-attacking-outpost:0"),
       true,
     );
+    const lead = "Detecting the higher threat, the automated ship moves in to engage your ship.";
     choose(g, "c:auto-ship-attacking-outpost:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-attacking-outpost");
     assert.equal(g.enemy?.faction, "auto");

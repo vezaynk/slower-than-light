@@ -47,7 +47,11 @@ describe("Mantis ship with Rock body parts Rock Plating ram", () => {
     assert.equal(choiceDisabled(g, "c:mantis-ship-with-rock-body-parts:3"), null);
     const hull = g.player.hull;
     choose(g, "c:mantis-ship-with-rock-body-parts:3");
-    assert.ok(g.log.includes(LEAD));
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, LEAD);
+    assert.equal(g.log.includes(LEAD), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "mantis-ship-with-rock-body-parts");
     assert.equal(g.enemy?.faction, "mantis");

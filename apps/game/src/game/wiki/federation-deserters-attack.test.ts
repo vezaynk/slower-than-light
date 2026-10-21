@@ -16,19 +16,21 @@ function open(g: Game) {
 }
 
 describe("Federation deserters attack", () => {
-  it("attacking logs the printed cowards sentence and fights a Federation ship", () => {
+  it("attacking shows the printed cowards sentence on the card and fights a Federation ship", () => {
     const g = createGame(1);
     open(g);
+    const lead =
+      "Deserters cannot be tolerated. You open fire on the cowards - though it doesn't please you to do so. The Federation needs every soldier it can get.";
     choose(g, "c:federation-deserters:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "federation");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "federation-deserters");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes(
-        "Deserters cannot be tolerated. You open fire on the cowards - though it doesn't please you to do so. The Federation needs every soldier it can get.",
-      ),
-    );
   });
 });

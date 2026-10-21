@@ -173,6 +173,11 @@ describe("Last Stand repair stations", () => {
     assert.equal(g.fuel, fuel - 1 + 5);
     assert.equal(g.missiles, missiles + 4);
     assert.equal(g.player.parts, parts + 5);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ack");
+    assert.equal(g.event?.body, `Federation Repair Station: ${gained} scrap.`);
+    assert.equal(g.log.includes(`Federation Repair Station: ${gained} scrap.`), false);
+    choose(g, "ack");
     assert.equal(dest.resolved, true);
     assert.equal(g.phase, "map");
     choose(g, "BOSS_REPAIR_STATION");

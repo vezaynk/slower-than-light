@@ -81,7 +81,11 @@ describe("Auto-ship carrying shield virus hacking", () => {
     open(g);
     assert.equal(choiceDisabled(g, COUNTER), null);
     choose(g, COUNTER);
-    assert.ok(g.log.includes(LEAD));
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, LEAD);
+    assert.equal(g.log.includes(LEAD), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-carrying-shield-virus");
     assert.equal(g.scrap, 10);

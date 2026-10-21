@@ -32,7 +32,7 @@ describe("Mantis ship-collectors hail", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Mantis Fighter on arrival and leaves no button", () => {
+  it("shows the hail card, then the Mantis Fighter", () => {
     // Wiki citations:
     // > "You are immediately hailed by an impressive-looking Mantis ship, \"Your ship would make a mighty fine prize. Prepare for battle!\"" — [[Mantis ship-collectors]]
     // > "Fight a Mantis Fighter with crew entirely composed of Mantis." — [[Mantis ship-collectors]]
@@ -56,13 +56,19 @@ describe("Mantis ship-collectors hail", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, HAIL);
+    assert.equal(g.log.includes(HAIL), false);
+    assert.equal(g.event?.choices[0]?.id, "c:mantis-ship-collectors:0");
+    assert.equal(g.fleet, 1);
+    choose(g, "c:mantis-ship-collectors:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.fightEvent, "mantis-ship-collectors");
     assert.equal(g.flare, false);
-    assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(HAIL));
+    assert.equal(g.log.includes(HAIL), false);
     const enemyCrew = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(enemyCrew.length > 0);
     assert.ok(enemyCrew.every((c) => c.kin === "mantis"));

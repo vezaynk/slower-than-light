@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { commitJump, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { mediumScrapBand } from "../content.ts";
 import { citedEvent } from "./cited-events.ts";
@@ -29,7 +29,7 @@ describe("Boarders: Humans in plasma storm opening", () => {
     assert.ok(g.event?.choices.some((c) => c.id === "c:boarders-humans-in-plasma-storm:0"));
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
+  it("shows the boarding card, then the scrap and the boarders", () => {
     // The page has no choice. Medium scrap with resources, and "3-4 human boarders beam aboard your ship."
     // Resource amounts are not stated.
     const g = createGame(4);
@@ -51,16 +51,29 @@ describe("Boarders: Humans in plasma storm opening", () => {
     const scrap = g.scrap;
     const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
     commitJump(g, dest.id);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:boarders-humans-in-plasma-storm:0");
+    choose(g, "c:boarders-humans-in-plasma-storm:0");
+    assert.equal(g.phase, "event");
+    assert.match(g.event?.body ?? "", /^Medium scrap: \d+\.\n\nResource amounts are not stated\.$/);
+    assert.equal(
+      g.log.some((line) => line.startsWith("Medium scrap: ")),
+      false,
+    );
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
+    const gained = g.scrap - scrap;
+    assert.ok(gained >= lo && gained <= hi, String(gained));
+    choose(g, "ship-resume");
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
-    const gained = g.scrap - scrap;
-    assert.ok(gained >= lo && gained <= hi, String(gained));
     const humans = g.crew.filter(
       (c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player",
     );
     assert.ok(humans.length >= 3 && humans.length <= 4, String(humans.length));
-    assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
-    assert.ok(g.log.some((line) => line.startsWith("Medium scrap: ")));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

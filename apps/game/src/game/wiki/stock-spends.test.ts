@@ -525,7 +525,8 @@ describe("stock spends", () => {
     paid.scrap = 10;
     choose(paid, "c:zoltan-trade-hub:2");
     assert.equal(paid.scrap, 0);
-    assert.match(paid.log.join("\n"), /Scrap: -10\./);
+    assert.match(paid.event?.body ?? "", /Scrap: -10\./);
+    assert.equal(/Scrap: -10\./.test(paid.log.join("\n")), false);
 
     rewriteStock("c:zoltan-trade-hub:2", undefined);
     const gone = createGame(3);
@@ -766,6 +767,14 @@ describe("stock spends", () => {
     paid.missiles = 1;
     choose(paid, "q:war-camp:missile");
     assert.equal(paid.missiles, 0);
+    const lead =
+      "You fire at their fuel depot, but a shot from the surface rips the missile to shreds. They must have a planetary defense system set up already! You try to get away but a nearby patrol ship moves in to attack.";
+    assert.equal(paid.phase, "event");
+    assert.equal(paid.event?.choices[0]?.id, "ship-resume");
+    assert.equal(paid.event?.body, lead);
+    assert.equal(paid.log.includes(lead), false);
+    assert.ok(paid.enemy);
+    choose(paid, "ship-resume");
     assert.equal(paid.phase, "combat");
   });
 
@@ -824,7 +833,8 @@ describe("stock spends", () => {
     const before = paid.seed;
     choose(paid, "c:crystalline-cache:breach");
     assert.equal(paid.missiles, 0);
-    assert.match(paid.log.join("\n"), /Breach warheads/);
+    assert.match(paid.event?.body ?? "", /Breach warheads/);
+    assert.equal(/Breach warheads/.test(paid.log.join("\n")), false);
     assert.notEqual(paid.seed, before);
 
     rewriteStock("c:crystalline-cache:breach", undefined);
@@ -861,7 +871,8 @@ describe("stock spends", () => {
     radar.player.parts = 1;
     choose(radar, "c:auto-ship-near-radar-station:2");
     assert.equal(radar.player.parts, 0);
-    assert.match(radar.log.join("\n"), /Drone parts: -1\./);
+    assert.match(radar.event?.body ?? "", /Drone parts: -1\./);
+    assert.equal(/Drone parts: -1\./.test(radar.log.join("\n")), false);
 
     const fleet = createGame(4);
     fleet.player.kits.hacking = kit("hacking", 1);
@@ -881,6 +892,16 @@ describe("stock spends", () => {
     freighter.player.parts = 1;
     choose(freighter, "c:mantis-ships-battle-for-rock-freighter:3");
     assert.equal(freighter.player.parts, 0);
+    const lead =
+      "While the two Mantis fight you approach the Rock ship and use a drone to fix up the ship. Once the breaches are fixed the life support flickers back on. In a matter of moments they are already in pursuit of one of the Mantis ships. Meanwhile the second Mantis turns toward you.";
+    assert.equal(freighter.phase, "event");
+    assert.equal(freighter.event?.choices[0]?.id, "ship-resume");
+    assert.ok(freighter.event?.body?.includes(lead));
+    assert.match(freighter.event?.body ?? "", /Drone parts: -1\./);
+    assert.equal(freighter.log.includes(lead), false);
+    assert.equal(/Drone parts: -1\./.test(freighter.log.join("\n")), false);
+    assert.ok(freighter.enemy);
+    choose(freighter, "ship-resume");
     assert.equal(freighter.phase, "combat");
     assert.equal(stockCount("c:mantis-ships-battle-for-rock-freighter:2", "parts"), null);
 

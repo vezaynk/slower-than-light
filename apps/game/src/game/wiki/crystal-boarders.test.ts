@@ -6,6 +6,11 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-crystal:0";
 const DEST = "Boarders: Crystal";
+const INTROS = [
+  "You detect a heavily armed Crystalline ship escorting some sort of prison vessel. Scans indicate there are a number of non-Crystal based life forms aboard; they must be rounding up all of the intruders in their space! Before you can react, you hear the telltale sounds of a teleporter going off.",
+  "You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!",
+  `You pick up chatter from a nearby ship, "Yes... Here are some interesting specimens. Try to take them alive this time, there's a lot of money to be had on aliens." Scanners indicate a remote teleporter was just used.`,
+];
 
 function beacon(): Beacon {
   return {
@@ -67,7 +72,7 @@ describe("Boarders: Crystal", () => {
     assert.ok(seen.has(2) && seen.has(3), [...seen].sort().join(","));
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
+  it("shows the boarding card, then beams the crystals", () => {
     // Wiki citations:
     // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
     // The page has no choice. "2-3 crystal boarders beam aboard your ship."
@@ -88,9 +93,17 @@ describe("Boarders: Crystal", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
+    const body = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, ID);
+    choose(g, ID);
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
+    assert.equal(g.log.includes(body), false);
     const crystals = boarded(g);
     assert.ok(crystals.length >= 2 && crystals.length <= 3, String(crystals.length));
     assert.ok(crystals.every((c) => c.name === "Crystal"));

@@ -12,7 +12,7 @@
  */
 import { crewDef } from "@stl/pack";
 import { xpNeedFor } from "../extras/lineage.ts";
-import { enterHiddenCrystal, log, rand } from "../sim.ts";
+import { enterHiddenCrystal, log, rand, showEventLines } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts";
 import { grantRandomItem } from "./bonus-item.ts";
@@ -118,12 +118,10 @@ function zoltanShield(g: Game): string {
   return line;
 }
 
-/** Back to the fight after a card shown mid-combat. */
+/** The mid-combat line stays on a card until Continue. */
 function resume(g: Game, line: string) {
   g.event = null;
-  g.phase = g.enemy ? "combat" : "map";
-  g.paused = false;
-  log(g, line);
+  showEventLines(g, [line]);
 }
 
 const CONTINUE: Choice[] = [{ id: "qa:zrf:thanks", label: "Continue." }];
@@ -636,10 +634,11 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     const cost = affordStock(g, "c:zoltan-trade-hub:2", "scrap");
     if (!hasZoltan(g) || cost == null) return;
     takeStock(g, "scrap", cost);
-    log(g, scrapLine(cost));
     zoltanHub(
       g,
-      "They scan ID that declares your crewmember an official citizen, collect their fee, and let you pass.",
+      `They scan ID that declares your crewmember an official citizen, collect their fee, and let you pass.
+
+${scrapLine(cost)}`,
     );
   },
   "c:zoltan-trade-hub:3": (g) =>
@@ -677,13 +676,13 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     // > "Refuse to comply." — [[Rock bride#Quest Marker]]
     // > "You receive a Rockman crewmember named Ariadne and fight a Rock ship." — [[Rock bride#Quest Marker]]
     const joined = crew(g, "Rock", undefined, "Ariadne");
-    log(g, joined);
     pageFight(
       g,
       "\"I was led to believe your kind did not know mercy. I will join you. But quickly, we must jump away - they will not tolerate...\" She's interrupted by weapons fire from the Basilisk's escort!",
       "Rock ship",
       "quest-rock-bride",
     );
+    showEventLines(g, [joined]);
   },
 };
 
@@ -756,7 +755,6 @@ const WINS_A: QuestPart["wins"] = {
   // Interfere. "pursuit is doubled for 1 jump". Destroyed is low scrap with resources. A crew kill is a random amount.
   "zoltan-quest-primitives-interfere": (g, deadCrew) => {
     g.pursuitDouble = true;
-    log(g, "Rebel Fleet pursuit is doubled for 1 jump.");
     if (deadCrew) {
       // Wiki citations:
       // > "After killing enemy crew The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship." — [[Zoltan quest primitives]]

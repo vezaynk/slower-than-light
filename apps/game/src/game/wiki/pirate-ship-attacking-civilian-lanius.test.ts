@@ -35,12 +35,18 @@ describe("Pirate ship attacking civilian (Lanius)", () => {
       g.event?.choices.some((c) => c.id === "c:pirate-ship-attacking-civilian-lanius:0"),
       true,
     );
+    const lead = "You charge the weapons, which quickly gets the pirate ship's attention.";
     choose(g, "c:pirate-ship-attacking-civilian-lanius:0");
-    assert.equal(g.phase, "combat");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.fightEvent, "pirate-ship-attacking-civilian-lanius");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
   });
 
   it("a destroyed ship pays medium scrap, and a crew kill pays high, then the contact", () => {

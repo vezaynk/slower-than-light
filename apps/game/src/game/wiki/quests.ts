@@ -41,6 +41,7 @@ import {
   log,
   openStoreHere,
   rand,
+  showEventLines,
   shutPlayerHacking,
 } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
@@ -341,7 +342,6 @@ function engiDistressGift(g: Game) {
   if (cost == null) return;
   takeStock(g, "scrap", cost);
   const spent = scrapLine(cost);
-  log(g, spent);
   const r = pick(g, ["nothing", "heal", "schematic"] as const);
   if (r === "heal") {
     result(
@@ -390,7 +390,6 @@ export function result(
   }
   const tail = [...got, ...extras].filter(Boolean);
   if (tail.length) lines.push(tail.join(" "));
-  for (const l of got) log(g, l);
   g.event = {
     title: here(g)?.name ?? "Event",
     body: lines.join("\n\n"),
@@ -472,14 +471,15 @@ function hasRock(g: Game): boolean {
 function slugDrink(g: Game, rock: boolean) {
   if (pick(g, ["trust", "trap"] as const) === "trust") {
     const note = repair(g, 10);
-    log(
+    result(
       g,
       rock
         ? "Even if there was something malicious in the drink, you doubt it would affect the Rock digestive system. The Slug casually celebrates your newfound trust by repairing part of your ship and offering to sell you his wares."
         : "You take a cautious gulp. It's foul, but doesn't do any lasting damage. It's a thousand to one chance, but this Slug actually seems to be trustworthy. He casually celebrates your newfound trust by repairing part of your ship and offering to sell you his wares.",
+      undefined,
+      [note],
+      [{ id: "q:open-store", label: "Continue" }],
     );
-    log(g, note);
-    openStoreHere(g);
     return;
   }
   if (rock) {
@@ -502,7 +502,6 @@ function slugDrink(g: Game, rock: boolean) {
   }
   const lost = Math.min(g.scrap, n);
   g.scrap -= lost;
-  log(g, `Scrap: -${lost}.`);
   result(
     g,
     "You take one gulp and wake up with the rest of the crew in the cargo hold... which contains noticeably less scrap than before.",
@@ -993,9 +992,7 @@ function rebelSupplyRoom(g: Game): string {
     room.breach += 1;
     bits.push(`A breach opens in ${room.title}.`);
   }
-  const line = bits.join(" ");
-  if (line) log(g, line);
-  return line;
+  return bits.join(" ");
 }
 
 /** Steal the civilian supplies. Four printed results, no odds. INFERRED: equal. */
@@ -1023,7 +1020,6 @@ function rebelSupplySteal(g: Game) {
   if (kind === "trap") {
     const text =
       "The colonists willingly give up their supplies. But as you make to jump away, an explosion rocks your ship. The cargo was booby-trapped!";
-    log(g, text);
     if (damageHull(g, 2)) return;
     const room = rebelSupplyRoom(g);
     result(g, text, undefined, ["Hull damage: 2.", room].filter(Boolean));
@@ -1086,7 +1082,6 @@ function zoltanRaftHire(g: Game) {
   if (pick(g, ["accept", "refuse"] as const) === "accept") {
     takeStock(g, "scrap", cost);
     const spent = scrapLine(cost);
-    log(g, spent);
     const joined = crew(g, "Zoltan");
     result(
       g,
@@ -1630,9 +1625,6 @@ ${laniusTraderOfferText(offer)}`,
     const spentScrap = scrapLine(scrap);
     const spentMissiles = missileLine(missiles);
     const spentFuel = fuelLine(fuel);
-    log(g, spentScrap);
-    log(g, spentMissiles);
-    log(g, spentFuel);
     result(
       g,
       'They wouldn\'t get more than a few jumps with that load-out. You provide them with all the munitions and supplies they should need for the journey home. "Generosity magnitude unpredicted. Well-being syntax error [value too high]. Accept this token."',
@@ -1805,7 +1797,6 @@ ${laniusTraderOfferText(offer)}`,
     }
     if (r === "chase") {
       g.fleet += 1;
-      log(g, "Rebel Fleet pursuit is doubled for 1 jump.");
       result(
         g,
         "The ship spots you and gives chase. After some quick maneuvering you were able to lose your pursuers in the clouds. You expect they warned the fleet of your position, however.",
@@ -2129,10 +2120,11 @@ ${laniusTraderOfferText(offer)}`,
     if (kind === "abandoned") {
       const n = rollFuel("s:garbled-dock:signal", (lo, hi) => between(g, [lo, hi]));
       g.fuel += n;
-      log(g, `Fuel: ${n}.`);
       card(
         g,
-        "No one answers your hails. You run some scans and discover that the station has been recently abandoned, no doubt due to the threat of the Lanius. You empty their fuel reserves before leaving.",
+        `No one answers your hails. You run some scans and discover that the station has been recently abandoned, no doubt due to the threat of the Lanius. You empty their fuel reserves before leaving.
+
+Fuel: ${n}.`,
         [
           { id: "s:garbled-dock:continue", label: "Continue..." },
           { id: "s:garbled-dock:sensors2", label: "Run another scan at maximum sensitivity." },
@@ -2185,10 +2177,11 @@ ${laniusTraderOfferText(offer)}`,
   "s:garbled-dock:doors": (g) => {
     if ((g.player.systems.doors?.level ?? 0) < 2) return;
     g.fuel += rollFuel("s:garbled-dock:doors", (lo, hi) => between(g, [lo, hi]));
-    log(g, "Fuel: 5.");
     result(
       g,
       "Your reinforced doors save you from an attempted ambush by the Lanius, who cluster around the doors and hull, attempting to consume your ship. Coldly, you wipe them out one by one with your weapon array, then take control of the station and take its fuel reserves.",
+      undefined,
+      ["Fuel: 5."],
     );
   },
   // Abandoned follow-up. The page prints no italic before this line.
@@ -2200,10 +2193,11 @@ ${laniusTraderOfferText(offer)}`,
     if (sensors(g) < 2) return;
     const n = rollFuel("s:garbled-dock:sensors2", (lo, hi) => between(g, [lo, hi]));
     g.fuel += n;
-    log(g, `Fuel: ${n}.`);
     result(
       g,
       "You run an additional more focused scan and find one of the auxiliary refueling platforms has some unclaimed fuel.",
+      undefined,
+      [`Fuel: ${n}.`],
     );
   },
   // Advanced Sensors, level 3. Same label as the level-2 scan. A level-3 ship may take either; neither is picked for it.
@@ -2215,11 +2209,11 @@ ${laniusTraderOfferText(offer)}`,
     );
     g.fuel += fuel;
     if (parts != null) g.player.parts += parts;
-    log(g, `Fuel: ${fuel}.`);
-    if (parts != null) log(g, `Drone parts: ${parts}.`);
     result(
       g,
       "You run an additional more focused scan and find one of the auxiliary refueling platforms has some unclaimed fuel and drone parts.",
+      undefined,
+      [`Fuel: ${fuel}.`, parts != null ? `Drone parts: ${parts}.` : ""].filter(Boolean),
     );
   },
   // Refueling platform. "Ignore the refueling platform."
@@ -2293,8 +2287,6 @@ ${laniusTraderOfferText(offer)}`,
     if (n == null || g.scrap < n) return;
     g.scrap -= n;
     g.fuel += rollFuel("s:refuel-dock:accept", (lo, hi) => between(g, [lo, hi]));
-    log(g, `Scrap: -${n}.`);
-    log(g, "Fuel: 5.");
     result(g, "You receive 5 fuel.", undefined, [`Scrap: -${n}.`, "Fuel: 5."]);
   },
   "s:refuel-dock:reject": (g) => {
@@ -2303,7 +2295,6 @@ ${laniusTraderOfferText(offer)}`,
   "s:refuel-dock:steal": (g) => {
     const n = rollFuel("s:refuel-dock:steal", (lo, hi) => between(g, [lo, hi]));
     g.fuel += n;
-    log(g, `Fuel: ${n}.`);
     result(
       g,
       "If you take the fuel at least it won't fall into the hands of the Rebels. You breach the containment and access what remains of the fuel reserves.",
@@ -2318,7 +2309,6 @@ ${laniusTraderOfferText(offer)}`,
   "s:refuel-dock:quick": (g) => {
     if (pick(g, ["safe", "boom"] as const) === "safe") {
       g.fuel += rollFuel("s:refuel-dock:quick", (lo, hi) => between(g, [lo, hi]));
-      log(g, "Fuel: 5.");
       result(
         g,
         "You're able to safely refuel and get clear before the station explodes.",
@@ -2329,13 +2319,11 @@ ${laniusTraderOfferText(offer)}`,
     }
     const text =
       "Just as you hook up to refuel, the station ignites and explodes. Your own fuel reserve ignites, losing your precious fuel and damaging your ship.";
-    log(g, text);
     if (damageHull(g, 3)) return;
     refuelEngines(g, true);
     // The page says lose 3 fuel. INFERRED: fuel does not go below zero.
     const lost = Math.min(g.fuel, 3);
     g.fuel -= lost;
-    log(g, `Fuel: -${lost}.`);
     result(g, text, undefined, [`Fuel: -${lost}.`]);
   },
   "s:refuel-dock:berth": (g) => {
@@ -2347,20 +2335,18 @@ ${laniusTraderOfferText(offer)}`,
     );
   },
   "s:refuel-dock:wait": (g) => {
-    log(
-      g,
-      "As you dock with the refueling platform, there is an explosion from your engine room! Warning lights flash in your ship as pirates from the station swarm aboard your vessel!",
-    );
+    const text =
+      "As you dock with the refueling platform, there is an explosion from your engine room! Warning lights flash in your ship as pirates from the station swarm aboard your vessel!";
     if (damageHull(g, 3)) return;
     hurtSystem(g.player, "engines", 3);
     // "2-4 boarders". The race is not named. INFERRED: human, the same as the pirate burst on Abandoned station.
     humanBoarders(g, 2, 4, "boarders beam aboard your ship.");
     beginBoarding(g);
+    showEventLines(g, [text]);
   },
   "s:refuel-dock:doors": (g) => {
     if ((g.player.systems.doors?.level ?? 0) < 2) return;
     g.fuel += rollFuel("s:refuel-dock:doors", (lo, hi) => between(g, [lo, hi]));
-    log(g, "Fuel: 5.");
     result(
       g,
       "Pirates hidden on the station are confounded by your security locks, turning an attempted ambush into a fish-in-a-barrel firefight. You take control of the station and take its fuel reserves.",
@@ -2520,12 +2506,11 @@ ${laniusTraderOfferText(offer)}`,
     // The project does not remove the last living crewmember. A clone bay does not bring a sold Lanius back.
     if (!sold || living.length < 2) return;
     g.crew = g.crew.filter((c) => c.id !== sold.id);
-    log(g, `${sold.name} is gone.`);
     result(
       g,
       "Once your Lanius crewmember understands the situation, it appears to like the idea of assisting with construction in deep space. Much less dangerous. They offer you some goods in exchange.",
       scrapOnly(g, "high"),
-      [grantRandomItem(g, "augment")],
+      [`${sold.name} is gone.`, grantRandomItem(g, "augment")],
     );
   },
   "q:station:nosale": (g) => {
@@ -3193,7 +3178,7 @@ ${laniusTraderOfferText(offer)}`,
     const n = affordStock(g, "c:auto-ship-near-storage-station-in-nebula:4", "parts");
     if ((g.player.kits.hacking?.level ?? 0) <= 0 || n == null) return;
     takeStock(g, "parts", n);
-    log(g, partsLine(n));
+    const spent = partsLine(n);
     if (pick(g, ["fight", "station"] as const) === "fight") {
       pageFight(
         g,
@@ -3201,23 +3186,26 @@ ${laniusTraderOfferText(offer)}`,
         "Auto-ship",
         "auto-ship-near-storage-station-in-nebula",
       );
+      showEventLines(g, [spent]);
       return;
     }
     storageInvestigate(
       g,
       "You successfully hack into the station and sever the connection to the automated ship. You access the station undetected.",
     );
+    showEventLines(g, [spent]);
   },
   // Improved Hacking, level 2+, one drone part. Always the station.
   "c:auto-ship-near-storage-station-in-nebula:5": (g) => {
     const n = affordStock(g, "c:auto-ship-near-storage-station-in-nebula:5", "parts");
     if ((g.player.kits.hacking?.level ?? 0) < 2 || n == null) return;
     takeStock(g, "parts", n);
-    log(g, partsLine(n));
+    const spent = partsLine(n);
     storageInvestigate(
       g,
       "You successfully hack into the station and sever the connection to the automated ship, accessing the station completely undetected.",
     );
+    showEventLines(g, [spent]);
   },
   // Auto-ship near radar station. {{DuplicateEvent|2}} on the station, once on the fight.
   // The two station sentences have no odds between them. INFERRED: equal. The part is spent either way.
@@ -3226,7 +3214,7 @@ ${laniusTraderOfferText(offer)}`,
     const n = affordStock(g, "c:auto-ship-near-radar-station:2", "parts");
     if (!hasRadarCombat(g) || n == null) return;
     takeStock(g, "parts", n);
-    log(g, partsLine(n));
+    const spent = partsLine(n);
     if (
       weighted(g, [
         ["station", 2],
@@ -3239,6 +3227,7 @@ ${laniusTraderOfferText(offer)}`,
         "Auto-ship",
         "auto-ship-near-radar-station",
       );
+      showEventLines(g, [spent]);
       return;
     }
     const lead = pick(g, [
@@ -3246,6 +3235,7 @@ ${laniusTraderOfferText(offer)}`,
       "Your combat drone repeatedly fires at the automated ship. It can't break through its shields, but is at least enough of a distraction to allow you to access the radar station.",
     ] as const);
     autoRadarAccess(g, lead);
+    showEventLines(g, [spent]);
   },
   "q:auto-radar:hack": (g) => {
     autoRadarAccess(g);
@@ -3259,13 +3249,12 @@ ${laniusTraderOfferText(offer)}`,
     const n = affordStock(g, "q:auto-radar:drone", "parts");
     if ((g.player.kits.hacking?.level ?? 0) <= 0 || n == null) return;
     takeStock(g, "parts", n);
-    log(g, partsLine(n));
     g.fleet = Math.max(0, g.fleet - 1);
     result(
       g,
       "You successfully hack into their system and transmit false information about your location. That should hold off the fleet for at least a little while. You also are able to download data about the surrounding beacons.",
       undefined,
-      ["The Rebel Fleet is delayed for 1 turn."],
+      [partsLine(n), "The Rebel Fleet is delayed for 1 turn."],
     );
   },
   // Template:Investigate the station. Four results, no odds. INFERRED: equal.
@@ -3347,11 +3336,13 @@ ${laniusTraderOfferText(offer)}`,
       ["nothing", 1],
     ] as const);
     if (kind === "store") {
-      log(
+      result(
         g,
         'You ask what they want and the translator chirps their response, "Explore. Assess trade potential." It appears to be a merchant ship attempting to make connections with the other races. The civilian must have simply been too scared to ask. You check what they have to sell at the moment.',
+        undefined,
+        [],
+        [{ id: "q:open-store", label: "Continue" }],
       );
-      openStoreHere(g);
       return;
     }
     if (kind === "fight") {
@@ -3373,11 +3364,13 @@ ${laniusTraderOfferText(offer)}`,
   // {{Blue Option|Lanius Crew|Try to contact the ship.}} A dead Lanius does not count.
   "c:lanius-lone-ship:3": (g) => {
     if (!hasLanius(g)) return;
-    log(
+    result(
       g,
       "Your crewmember opens a channel with them. It seems they are scouting for a merchant's guild which is seeking to establish connections with other sentient races. You suggest they invest research time into developing better translators and ask to see if they are selling anything at the moment.",
+      undefined,
+      [],
+      [{ id: "q:open-store", label: "Continue" }],
     );
-    openStoreHere(g);
   },
   // Lanius powered-down ship. Fights stay on default Lanius rewards: no PAGE_WINS row.
   // Power weapons: two results, no odds. INFERRED: equal.
@@ -3529,20 +3522,20 @@ ${second}`,
     ] as ["join" | "deceive" | "trigger" | "evisc", number][]);
     if (r === "join") {
       const joined = crew(g, "Human");
-      log(g, joined);
       defectorFight(
         g,
         "Relieved and light-headed, your new crew member gets to work as the Rebel ship attacks.",
       );
+      showEventLines(g, [joined]);
     } else if (r === "deceive") {
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "engines", 1);
       g.fleet *= 2;
-      log(g, "Rebel Fleet pursuit is doubled.");
       defectorFight(
         g,
         "The dishonorable Rebel has deceived you. He damages your ship and steals ship information before teleporting away. The fleet will be able to track you with ease. If they can't kill you now, that is!",
       );
+      showEventLines(g, ["Rebel Fleet pursuit is doubled."]);
     } else if (r === "trigger") {
       if (damageHull(g, 3)) return;
       defectorFight(
@@ -3553,21 +3546,21 @@ ${second}`,
     } else {
       // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). Never the last living crewmember.
       const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
+      let extra = "";
       if (g.player.kits.clonebay)
-        log(
-          g,
-          "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge.",
-        );
+        extra =
+          "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge.";
       else if (mine.length > 1) {
         const lost = pick(g, mine);
         g.crew = g.crew.filter((c) => c.id !== lost.id);
-        log(g, `${lost.name} is gone.`);
+        extra = `${lost.name} is gone.`;
       }
       defectorFight(
         g,
         "The Rebel makes to take his assigned station, then suddenly turns and eviscerates the nearest crew-member. Red Alert!",
       );
       humanBoarders(g, 1, 1);
+      if (extra) showEventLines(g, [extra]);
     }
   },
   // Rebel defector, "Reject his offer. You can never trust these Rebels." Three results.
@@ -3624,22 +3617,21 @@ ${second}`,
     if (r === "join") {
       const joined = crew(g, "Human");
       const line = addQuest(g, "defector-cache");
-      log(g, joined);
       defectorFight(
         g,
         "Relieved and light-headed, your new crew member gets to work as the Rebel ship attacks.",
       );
-      log(g, line);
+      showEventLines(g, [joined, line]);
     } else if (r === "deceive") {
       // "3 hull damage, 1 damage to engines; Rebel Fleet pursuit is doubled". Doubling as cited-events.ts fx "double".
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "engines", 1);
       g.fleet *= 2;
-      log(g, "Rebel Fleet pursuit is doubled.");
       defectorFight(
         g,
         "The dishonorable Rebel has deceived you. He damages your ship and steals ship information before teleporting away. The fleet will be able to track you with ease. If they can't kill you now, that is!",
       );
+      showEventLines(g, ["Rebel Fleet pursuit is doubled."]);
     } else if (r === "trigger") {
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "pilot", 1);
@@ -3651,21 +3643,21 @@ ${second}`,
     } else {
       // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). INFERRED: never the last crewmember.
       const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
+      let extra = "";
       if (g.player.kits.clonebay)
-        log(
-          g,
-          "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge.",
-        );
+        extra =
+          "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge.";
       else if (mine.length > 1) {
         const lost = pick(g, mine);
         g.crew = g.crew.filter((c) => c.id !== lost.id);
-        log(g, `${lost.name} is gone.`);
+        extra = `${lost.name} is gone.`;
       }
       defectorFight(
         g,
         "The Rebel makes to take his assigned station, then suddenly turns and eviscerates the nearest crew-member. Red Alert!",
       );
       humanBoarders(g, 1, 1);
+      if (extra) showEventLines(g, [extra]);
     }
   },
   "q:defector:execute": (g) => {
@@ -3784,12 +3776,11 @@ With most of their ships and forces focused on the chaos, you slip undetected to
       );
       humanBoarders(g, 2, 2);
     } else if (r === "battery") {
-      log(
-        g,
-        "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile multiple warning signals go off on the bridge. The pirates have activated a remote planetary defense system and it's locking onto your ship!",
-      );
       humanBoarders(g, 2, 4, "boarders beam aboard.");
       beginBoarding(g, true);
+      showEventLines(g, [
+        "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile multiple warning signals go off on the bridge. The pirates have activated a remote planetary defense system and it's locking onto your ship!",
+      ]);
     } else if (r === "clone") {
       const choices: Choice[] = [{ id: "q:station:scrapmachines", label: "Scrap the machinery." }];
       if (g.player.kits.clonebay)
@@ -3817,12 +3808,11 @@ With most of their ships and forces focused on the chaos, you slip undetected to
         ["crazed", 1],
       ] as ["calm" | "crazed", number][]) === "crazed"
     ) {
-      log(
-        g,
-        `${rebuilt} The clone emerges in a crazed frenzy and refuses to calm down. You have no choice but to fight.`,
-      );
       humanBoarders(g, 1, 1, "boarder beams aboard.");
       beginBoarding(g);
+      showEventLines(g, [
+        `${rebuilt} The clone emerges in a crazed frenzy and refuses to calm down. You have no choice but to fight.`,
+      ]);
       return;
     }
     // DuplicateEvent|2: calms down, or seems to accept. INFERRED: equal.
@@ -4148,9 +4138,7 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
     const plan = g.enemySurrender;
     if (plan) plan.refused = true;
     g.event = null;
-    g.phase = g.enemy ? "combat" : "map";
-    g.paused = false;
-    log(g, '"No, wait..." You cut the transmission and continue the assault.');
+    showEventLines(g, ['"No, wait..." You cut the transmission and continue the assault.']);
   },
   // MANTIS_ENGI_UNLOCK_3: "Fight the Mantis Ship controlled by Humans", {{SurrenderEscape(alt)|no|...}}.
   "q:engi-final:fight": (g) => {
@@ -4307,13 +4295,11 @@ function payLaniusTrader(g: Game, id: string) {
   else g.player.parts -= cost;
   g.scrap += scrap;
   g.scrapCollected = (g.scrapCollected ?? 0) + scrap;
-  log(g, "After the exchange is complete they leave without a word.");
-  log(g, `Scrap: ${scrap}.`);
   const b = here(g);
   if (b) b.resolved = true;
-  g.event = null;
-  g.phase = "map";
-  g.paused = false;
+  result(g, "After the exchange is complete they leave without a word.", undefined, [
+    `Scrap: ${scrap}.`,
+  ]);
 }
 
 /** surrender.ts surrenderChoose calls this first. True when the id was a quest choice. */
@@ -4520,7 +4506,6 @@ function offerLines(g: Game, offer: SurrenderOffer): string[] {
   if (offer.parts) got.push(`Drone parts: ${offer.parts}.`);
   if (paid.weaponName) got.push(`${paid.weaponName}.`);
   got.push(...paid.extras);
-  for (const line of got) log(g, line);
   return got;
 }
 
@@ -4578,7 +4563,6 @@ export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []
 export function rockSlugPay(g: Game, kind: "debt" | "upgrade", n: number): boolean {
   if (!priced("rock-and-slug-standoff", kind, n, "scrap") || g.scrap < n) return true;
   g.scrap -= n;
-  log(g, `Scrap: -${n}.`);
   if (kind === "debt") {
     // Wiki citations:
     // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
@@ -5046,7 +5030,6 @@ function pirateDroneUpgrade(g: Game) {
   g.scrap -= cost;
   kit.level = level;
   if (kit.power > kit.level) kit.power = kit.level;
-  log(g, `Scrap: -${cost}.`);
   result(g, `Drone Control at level ${level}.`, undefined, [`Scrap: -${cost}.`]);
 }
 
@@ -5061,7 +5044,6 @@ const REBEL_CHECKPOINT_BRIBE = [
 function rebelCheckpointBribe(g: Game, n: number) {
   if (!priced("rebel-checkpoint", "bribe", n, "scrap") || g.scrap < n) return;
   g.scrap -= n;
-  log(g, `Scrap: -${n}.`);
   const text = pick(g, REBEL_CHECKPOINT_BRIBE);
   card(
     g,
@@ -5176,7 +5158,6 @@ function mantisSlugFinish(g: Game) {
 function zoltanCheckpointFuel(g: Game, id: string, text: string) {
   const n = rollFuel(id, (lo, hi) => between(g, [lo, hi]));
   g.fuel += n;
-  log(g, `Fuel: ${n}.`);
   result(g, text, undefined, [`Fuel: ${n}.`]);
 }
 
@@ -5184,11 +5165,13 @@ function zoltanCheckpointFuel(g: Game, id: string, text: string) {
 function pirateGone(g: Game) {
   const kind = pick(g, ["store", "repair", "rebel", "scrap", "nothing"] as const);
   if (kind === "store") {
-    log(
+    result(
       g,
       "Thank you for the aid! I'm an arms dealer that usually only works with rebels, but considering the circumstances I'll make an exception.",
+      undefined,
+      [],
+      [{ id: "q:open-store", label: "Continue" }],
     );
-    openStoreHere(g);
     return;
   }
   if (kind === "repair") {
@@ -5252,7 +5235,6 @@ It looks as if the Lanius were uninterested in the fuel reserves on the station,
   const line = `Fuel: ${extra}.`;
   g.fuel += extra;
   result(g, station, offer, [line]);
-  log(g, line);
 }
 
 /** Refugee (Zoltan) and Refugee distress (Zoltan). Destroyed pays medium scrap with resources. A crew kill pays high. */
@@ -5396,7 +5378,6 @@ export const PAGE_WINS: Record<string, Win> = {
       if (more.fuel) extras.push(`Fuel: ${more.fuel}.`);
       if (more.missiles) extras.push(`Missiles: ${more.missiles}.`);
       if (more.parts) extras.push(`Drone parts: ${more.parts}.`);
-      for (const line of extras.slice(1)) log(g, line);
     } else {
       // Wiki citations:
       // > "2× It appears that the Rock ship left during your battle. You doubt they could have been more ungrateful for your assistance. OR After the battle the Rock ship hails you. Their captain simply says, \"Thanks.\" and jumps away. That's pretty gracious of them, considering the Rockmen's reputation." — [[Slug ship boarding Rock ship]]

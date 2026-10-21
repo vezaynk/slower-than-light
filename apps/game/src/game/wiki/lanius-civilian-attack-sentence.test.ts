@@ -18,13 +18,19 @@ function open(g: Game) {
 }
 
 describe("Lanius ship attacking civilian attack sentence", () => {
-  it("attacking logs the printed lead-in and fights a Lanius ship", () => {
+  it("attacking shows the printed lead-in on the card and fights a Lanius ship", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-civilian:0");
-    assert.ok(g.log.includes(SENTENCE));
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(SENTENCE));
+    assert.equal(g.log.includes(SENTENCE), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.faction, "lanius");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-attacking-civilian");
+    assert.equal(g.log.includes(SENTENCE), false);
   });
 });

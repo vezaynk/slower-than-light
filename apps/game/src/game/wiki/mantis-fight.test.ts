@@ -65,8 +65,8 @@ describe("Mantis fight", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Mantis ship on arrival and leaves no button", () => {
-    // The page has no choice. One of the twenty printed intros, then "Fight a Mantis ship."
+  it("shows the intro card on arrival, then the fight button starts the Mantis ship", () => {
+    // One of the twenty printed intros stays on the card. "Fight a Mantis ship." starts the fight.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -84,13 +84,19 @@ describe("Mantis fight", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    const body = g.event?.body ?? "";
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:mantis-fight:0");
+    choose(g, "c:mantis-fight:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "mantis-fight");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(body), false);
   });
 });

@@ -54,7 +54,11 @@ describe("Pirate engine hacker hacking counter", () => {
     open(g);
     assert.equal(choiceDisabled(g, "c:pirate-engine-hacker:1"), null);
     choose(g, "c:pirate-engine-hacker:1");
-    assert.ok(g.log.includes(LEAD));
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, LEAD);
+    assert.equal(g.log.includes(LEAD), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "pirate-engine-hacker");
     assert.equal(g.enemy?.pirate, true);

@@ -45,11 +45,12 @@ describe("Mantis ships battle for Rock freighter", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:mantis-ships-battle-for-rock-freighter:0");
-      assert.equal(g.phase, "combat");
-      assert.equal(g.fightEvent, "mantis-ships-battle-for-rock-freighter");
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
+      const text = g.event?.body ?? "";
+      assert.equal(/blown a fuse|one mind/.test(g.log.join(" ")), false);
       const guns = g.enemy?.systems.weapons;
       assert.ok(guns);
-      const text = g.log.join(" ");
       if (/blown a fuse/.test(text)) {
         weak = true;
         assert.equal(guns.damage, Math.min(2, guns.level));
@@ -60,6 +61,10 @@ describe("Mantis ships battle for Rock freighter", () => {
         assert.match(text, /one mind/);
         assert.equal(guns.damage, 0);
       }
+      choose(g, "ship-resume");
+      assert.equal(g.phase, "combat");
+      assert.equal(g.fightEvent, "mantis-ships-battle-for-rock-freighter");
+      assert.equal(/blown a fuse|one mind/.test(g.log.join(" ")), false);
     }
     assert.equal(weak, true);
     assert.equal(full, true);
@@ -158,11 +163,16 @@ describe("Mantis ships battle for Rock freighter", () => {
     g.player.parts = 2;
     assert.equal(choiceDisabled(g, "c:mantis-ships-battle-for-rock-freighter:3"), null);
     choose(g, "c:mantis-ships-battle-for-rock-freighter:3");
-    assert.equal(g.phase, "combat");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.player.parts, 1);
+    assert.match(g.event?.body ?? "", /second Mantis/);
+    assert.equal(/second Mantis/.test(g.log.join(" ")), false);
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "mantis-ships-battle-for-rock-freighter");
     assert.equal(g.enemy?.systems.weapons.damage, 0);
-    assert.match(g.log.join(" "), /second Mantis/);
+    assert.equal(/second Mantis/.test(g.log.join(" ")), false);
   });
 
   it("winning either ending pays medium scrap", () => {

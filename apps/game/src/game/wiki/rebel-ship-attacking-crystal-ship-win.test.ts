@@ -62,10 +62,18 @@ describe("Rebel ship attacking Crystal ship reward", () => {
   it("attacking the Crystalline ship stays on default rewards", () => {
     const g = createGame(3);
     open(g);
+    const lead =
+      "You move in to intercept the Crystalline ship. As soon as the Rebel scans your ship it takes the opportunity to jump. You have the sneaking suspicion they will inform the fleet of your position, but that's the least of your current concerns.";
     choose(g, "c:rebel-ship-attacking-crystal-ship:1");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.ok(g.event?.body?.includes(lead));
+    assert.equal(g.log.includes(lead), false);
     assert.equal(g.enemy?.faction, "crystal");
     assert.equal(pageWin(g, "rebel-ship-attacking-crystal-ship", false), false);
     assert.equal(g.scrap, 10);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.log.includes(lead), false);
   });
 });

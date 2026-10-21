@@ -30,20 +30,25 @@ describe("Refueling platform ignore", () => {
       assert.ok(g.event?.choices.some((c) => c.id === ID && c.label === LABEL));
       const fuel = g.fuel;
       choose(g, ID);
-      if (g.phase === "event") {
-        nothing += 1;
-        assert.equal(g.event?.body, "Nothing happens.");
-        assert.equal(g.enemy, null);
-        assert.equal(g.scrap, 10);
-        assert.equal(g.fuel, fuel);
-      } else {
+      const fighting =
+        g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+      if (fighting) {
         fought += 1;
+        assert.equal(g.event?.body, BAIT);
+        assert.equal(g.log.includes(BAIT), false);
+        choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "refueling-platform");
         assert.equal(g.enemy?.pirate, true);
         assert.equal(g.scrap, 10);
         assert.equal(g.fuel, fuel);
-        assert.ok(g.log.includes(BAIT));
+      } else {
+        nothing += 1;
+        assert.equal(g.phase, "event");
+        assert.equal(g.event?.body, "Nothing happens.");
+        assert.equal(g.enemy, null);
+        assert.equal(g.scrap, 10);
+        assert.equal(g.fuel, fuel);
       }
     }
     assert.ok(nothing > 0);

@@ -25,7 +25,14 @@ describe("Lanius lone ship", () => {
       g.event?.body,
       `You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, "Help! The metal monsters are coming to melt down our ship!" Strangely, no active weapon signatures are detected.`,
     );
+    const lead =
+      "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.";
     choose(g, "c:lanius-lone-ship:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-lone-ship");
     assert.equal(pageWin(g, "lanius-lone-ship", false), false);
@@ -57,16 +64,26 @@ describe("Lanius lone ship", () => {
       assert.match(g.event?.body ?? "", /Don't go any closer/);
       assert.equal(g.scrap, 10);
       choose(g, "q:lanius-lone:continue");
-      if (g.phase === "store") {
+      const body = g.event?.body ?? "";
+      const store = g.event?.choices.some((c) => c.id === "q:open-store") === true;
+      const fight =
+        g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+      if (store) {
+        assert.match(body, /trade potential/);
+        assert.equal(/trade potential/.test(g.log.join("\n")), false);
+        choose(g, "q:open-store");
+        assert.equal(g.phase, "store");
         assert.ok(g.stock && g.stock.length > 0);
         assert.equal(g.scrap, 10);
-        assert.match(g.log.join("\n"), /trade potential/);
         seen.add("store");
-      } else if (g.phase === "combat") {
+      } else if (fight) {
+        assert.match(body, /enraged/);
+        assert.equal(/enraged/.test(g.log.join("\n")), false);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "lanius-lone-ship");
         assert.equal(pageWin(g, "lanius-lone-ship", false), false);
         assert.equal(g.scrap, 10);
-        assert.match(g.log.join("\n"), /enraged/);
         seen.add("fight");
       } else {
         assert.match(g.event?.body ?? "", /Expunge/);
@@ -99,9 +116,13 @@ describe("Lanius lone ship", () => {
     assert.equal(joinCrew(g, "Lanius"), true);
     assert.equal(choiceDisabled(g, "c:lanius-lone-ship:3"), null);
     choose(g, "c:lanius-lone-ship:3");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "q:open-store");
+    assert.match(g.event?.body ?? "", /merchant's guild/);
+    assert.equal(/merchant's guild/.test(g.log.join("\n")), false);
+    choose(g, "q:open-store");
     assert.equal(g.phase, "store");
     assert.ok(g.stock && g.stock.length > 0);
     assert.equal(g.scrap, 10);
-    assert.match(g.log.join("\n"), /merchant's guild/);
   });
 });

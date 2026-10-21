@@ -36,7 +36,7 @@ describe("Engi fight", () => {
     assert.equal(g.crew.filter((c) => c.side === "player").length, before);
   });
 
-  it("starts the Engi ship on arrival and leaves no button", () => {
+  it("starts the Engi ship on arrival from the intro card", () => {
     // Wiki citations:
     // > "Fight an Engi ship (default rewards)." — [[Engi fight]]
     // The page has no choice. "Fight an Engi ship (default rewards)."
@@ -57,13 +57,18 @@ describe("Engi fight", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:engi-fight:0");
+    choose(g, "c:engi-fight:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "engi");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "engi-fight");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

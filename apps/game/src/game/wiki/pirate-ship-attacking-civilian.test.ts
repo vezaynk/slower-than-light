@@ -44,6 +44,12 @@ describe("Pirate ship attacking civilian", () => {
       true,
     );
     choose(g, "c:pirate-ship-attacking-civilian:0");
+    const lead = "You power up your weapons and engage the pirate ship.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "pirate-ship-attacking-civilian");
     assert.equal(g.enemy?.pirate, true);

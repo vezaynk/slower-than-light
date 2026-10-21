@@ -28,15 +28,22 @@ describe("Rock atheists", () => {
       open(g);
       const crew = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:rock-atheists:0");
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
+      const line = g.event?.body ?? "";
+      assert.ok(line.includes("lies") || line.includes("Traitors"), line);
+      assert.equal(
+        g.log.some((l) => l.includes("lies") || l.includes("Traitors")),
+        false,
+      );
+      seen.add(line);
+      choose(g, "ship-resume");
       assert.equal(g.phase, "combat");
       assert.equal(g.fightEvent, "rock-atheists");
       assert.equal(g.enemy?.faction, "rock");
       assert.equal(g.enemy?.pirate, false);
       assert.equal(g.scrap, 10);
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-      const line = g.log.find((l) => l.includes("lies") || l.includes("Traitors")) ?? "";
-      assert.ok(line.length > 0, g.log.join(" | "));
-      seen.add(line);
     }
     assert.equal(seen.size, 2);
     const g = createGame(1);

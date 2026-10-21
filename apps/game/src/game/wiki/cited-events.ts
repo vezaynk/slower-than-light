@@ -2167,9 +2167,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
       g.paused = true;
       return true;
     }
+    const extra = lines.filter((line) => line.trim() && !(page.body ?? "").includes(line.trim()));
     pageCard(
       g,
-      page.body,
+      [page.body, ...extra].filter(Boolean).join("\n\n"),
       page.choices.map((next) => ({ id: next.id, label: next.label })),
     );
     if (g.phase === "event") g.paused = true;

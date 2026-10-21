@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { commitJump, createGame, sparePower, startCombat, syncIonStorm } from "../sim.ts";
+import { choose, commitJump, createGame, sparePower, startCombat, syncIonStorm } from "../sim.ts";
 import { citedFleetAdvance, ionStormBeacon } from "./cited-sectors.ts";
 
 describe("Rebel fight in plasma storm", () => {
@@ -63,7 +63,7 @@ describe("Rebel fight in plasma storm", () => {
     assert.equal(ionStormBeacon(beacon, g), false);
   });
 
-  it("starts the Rebel ship on arrival and leaves no button", () => {
+  it("starts the Rebel ship on arrival from the intro card", () => {
     // The page has no choice. The printed sentence, then "Fight a Rebel ship." plasmastorm=true. unique=true.
     const BODY =
       "You arrive in the middle of a plasma storm. Despite the harsh conditions, a Rebel scout seems to be waiting for you.";
@@ -86,8 +86,17 @@ describe("Rebel fight in plasma storm", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const storm =
+      "This section of the nebula is experiencing a plasma storm. Your main reactor can only function at half capacity.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.ok(g.log.includes(storm));
+    assert.equal(g.player.storm, true);
+    assert.equal(g.event?.choices[0]?.id, "c:rebel-fight-in-plasma-storm:0");
+    choose(g, "c:rebel-fight-in-plasma-storm:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "rebel-fight-in-plasma-storm");
@@ -95,6 +104,7 @@ describe("Rebel fight in plasma storm", () => {
     assert.equal(g.enemy?.storm, true);
     assert.equal(dest.kind, "event");
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
+    assert.ok(g.log.includes(storm));
   });
 });

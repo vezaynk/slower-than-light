@@ -32,7 +32,8 @@ describe("Repair station thanks", () => {
       g.scrap = 40;
       const beforeHull = g.player.hull;
       choose(g, id);
-      assert.ok(g.log.includes(THANKS));
+      assert.ok(g.event?.body.includes(THANKS));
+      assert.equal(g.log.includes(THANKS), false);
       assert.equal(g.scrap, 40 - scrap);
       assert.equal(g.player.hull, beforeHull + hull);
       assert.ok(g.player.hull <= g.player.hullMax);

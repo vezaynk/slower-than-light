@@ -81,8 +81,8 @@ describe("Auto-ship warning in nebula", () => {
     assert.equal(killed.phase, "event");
   });
 
-  it("starts the running Auto-ship on arrival and leaves no button", () => {
-    // The page has no choice. "Fight an Auto-ship that is running away."
+  it("shows the intro card on arrival, then the fight button starts the running Auto-ship", () => {
+    // The printed intro stays on the card. The fight button starts the running Auto-ship.
     // The red line doubles pursuit only if the scout gets away.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -101,7 +101,15 @@ describe("Auto-ship warning in nebula", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const body =
+      "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:auto-ship-warning-in-nebula:0");
+    assert.equal(g.fleet, 1);
+    choose(g, "c:auto-ship-warning-in-nebula:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "auto");
     assert.equal(g.fightEvent, "auto-ship-warning-in-nebula");
@@ -110,10 +118,6 @@ describe("Auto-ship warning in nebula", () => {
     assert.equal(g.enemyEscape?.seconds, 40);
     assert.equal(g.enemyEscape?.running, true);
     assert.equal(g.enemyEscape?.pursuit, true);
-    assert.ok(
-      g.log.includes(
-        "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.",
-      ),
-    );
+    assert.equal(g.log.includes(body), false);
   });
 });

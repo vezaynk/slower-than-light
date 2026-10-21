@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, weaponSlotCap } from "../sim.ts";
+import { choose, createGame, weaponSlotCap } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerChoose } from "./filler-events.ts";
@@ -64,9 +64,14 @@ describe("Zoltan Great Eye", () => {
       open(g);
       fillerChoose(g, "c:zoltan-great-eye:0");
       const body = g.event?.body ?? "";
-      if (g.phase === "combat") {
+      const fighting =
+        g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+      if (fighting) {
         fight = true;
-        assert.match(g.log.join(" "), /monolith speaks/);
+        assert.match(body, /monolith speaks/);
+        assert.equal(/monolith speaks/.test(g.log.join(" ")), false);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.scrap, 10);
         assert.equal(players(g).length, crew);
       } else if (/kaleidoscope/.test(body)) {

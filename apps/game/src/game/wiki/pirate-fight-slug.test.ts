@@ -49,7 +49,7 @@ describe("Pirate fight (Slug)", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Pirate ship on arrival and leaves no button", () => {
+  it("starts the Pirate ship on arrival from the intro card", () => {
     // Wiki citations:
     // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Slug)]]
     // The page has no choice. One of the three printed intros, then "Fight a Pirate ship." unique=false.
@@ -70,12 +70,18 @@ describe("Pirate fight (Slug)", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const intro = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, "c:pirate-fight-slug:0");
+    choose(g, "c:pirate-fight-slug:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-fight-slug");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(intro), false);
   });
 });

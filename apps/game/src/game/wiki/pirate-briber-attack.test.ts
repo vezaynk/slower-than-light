@@ -16,16 +16,19 @@ function open(g: Game) {
 }
 
 describe("Pirate briber attack", () => {
-  it("attacking the pirate logs the printed lead-in and starts a pirate fight", () => {
+  it("attacking the pirate shows the printed lead-in and starts a pirate fight", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:pirate-briber:1");
+    const lead = "The pirate ship stops its pursuit and locks weapons onto your ship.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-briber");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes("The pirate ship stops its pursuit and locks weapons onto your ship."),
-    );
   });
 });

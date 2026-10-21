@@ -41,6 +41,7 @@ import {
   isMain,
   log,
   rand,
+  showEventLines,
   startCombat,
   syncIonStorm,
   syncShields,
@@ -127,10 +128,7 @@ export function showArchivePage(
 ): true | false | "unpaid" {
   const lines: string[] = [];
   if (!payPageFx(g, page.fx, lines)) return "unpaid";
-  for (const line of lines) {
-    log(g, line);
-    notes?.push(line);
-  }
+  for (const line of lines) notes?.push(line);
   if (g.player.hull <= 0) {
     g.phase = "defeat";
     g.outcome = g.training ? "tutorial" : "hull";
@@ -138,12 +136,13 @@ export function showArchivePage(
     g.event = null;
     return false;
   }
-  applyArchiveAlters(g, page.alters, "player");
+  applyArchiveAlters(g, page.alters, "player", lines);
   stampArchiveImage(g, page.img);
   const secret = applyArchiveMarks(g, page.marks);
   if (!pageHasArchive(page) && !page.environment) {
-    applyArchiveAlters(g, page.alters, "enemy");
+    applyArchiveAlters(g, page.alters, "enemy", lines);
     if (finishSecret(g, secret)) return true;
+    showEventLines(g, lines);
     return false;
   }
   // This page's environment replaces the one the previous event stored.
@@ -153,7 +152,7 @@ export function showArchivePage(
   applyGrants(g, page.grants);
   if (page.reward) payAutoReward(g, page.reward);
   if (page.ship?.hostile && page.ship.load) {
-    if (g.event?.body) log(g, g.event.body);
+    const told = g.event?.body ?? "";
     startCombat(
       g,
       page.ship.load,
@@ -163,23 +162,28 @@ export function showArchivePage(
     );
     if (page.boarders) beamBoarders(g, page.boarders);
     armEventEnvironment(g, page.environment);
-    applyArchiveAlters(g, page.alters, "enemy");
+    applyArchiveAlters(g, page.alters, "enemy", lines);
     if (finishSecret(g, secret)) return true;
+    showEventLines(g, [told, ...lines]);
     return true;
   }
   if (page.boarders) {
+    const told = g.event?.body ?? "";
     beamBoarders(g, page.boarders);
     if (!g.enemy) {
       beginBoarding(g, page.environment?.type === "PDS", page.environment?.type === "sun");
     }
     armEventEnvironment(g, page.environment);
-    applyArchiveAlters(g, page.alters, "enemy");
+    applyArchiveAlters(g, page.alters, "enemy", lines);
     if (finishSecret(g, secret)) return true;
-    return g.phase === "combat";
+    const started = g.phase === "combat";
+    showEventLines(g, started ? [told, ...lines] : lines);
+    return started;
   }
   armEventEnvironment(g, page.environment);
-  applyArchiveAlters(g, page.alters, "enemy");
+  applyArchiveAlters(g, page.alters, "enemy", lines);
   if (finishSecret(g, secret)) return true;
+  showEventLines(g, lines);
   return false;
 }
 
@@ -275,9 +279,10 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
   )
     return;
   if (isCampaign(id) && handlerActed(g, before)) return;
-  applyArchiveAlters(g, choice.alters, "player");
+  const lines: string[] = [];
+  applyArchiveAlters(g, choice.alters, "player", lines);
   const enemyPresent = g.enemy != null;
-  if (enemyPresent) applyArchiveAlters(g, choice.alters, "enemy");
+  if (enemyPresent) applyArchiveAlters(g, choice.alters, "enemy", lines);
   if (choice.ship && !choice.ship.hostile && !choice.ship.load && g.enemy) closeFight(g);
   applyGrants(g, choice.grants);
   if (choice.reward) payAutoReward(g, choice.reward);
@@ -291,14 +296,15 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
       choice.ship.autoBlueprint,
     );
   }
-  if (!enemyPresent) applyArchiveAlters(g, choice.alters, "enemy");
+  if (!enemyPresent) applyArchiveAlters(g, choice.alters, "enemy", lines);
   if (choice.boarders && boarderCount(g) === before.boarders) beamBoarders(g, choice.boarders);
   if (!g.enemy && boarderCount(g) > before.boarders) {
     beginBoarding(g, choice.environment?.type === "PDS", choice.environment?.type === "sun");
   }
   armEventEnvironment(g, choice.environment);
   stampArchiveImage(g, choice.img);
-  finishSecret(g, applyArchiveMarks(g, choice.marks));
+  if (finishSecret(g, applyArchiveMarks(g, choice.marks))) return;
+  showEventLines(g, lines);
 }
 
 function pageHasArchive(page: EventDef): boolean {
@@ -470,6 +476,7 @@ function applyArchiveAlters(
   g: Game,
   alters: readonly ArchiveAlter[] | undefined,
   side: "player" | "enemy",
+  notes: string[],
 ): void {
   if (!alters?.length) return;
   if (side === "enemy" && !g.enemy) return;
@@ -480,7 +487,7 @@ function applyArchiveAlters(
     }
     if (side !== "player") continue;
     if (alter.k === "upgrade") applyUpgrade(g, alter);
-    else if (alter.k === "removeCrew") applyRemoveCrew(g, alter);
+    else if (alter.k === "removeCrew") applyRemoveCrew(g, alter, notes);
     else applyRemove(g, alter);
   }
 }
@@ -575,13 +582,17 @@ function kitCanRise(id: KitId, level: number): boolean {
   return false;
 }
 
-function applyRemoveCrew(g: Game, alter: Extract<ArchiveAlter, { k: "removeCrew" }>): void {
+function applyRemoveCrew(
+  g: Game,
+  alter: Extract<ArchiveAlter, { k: "removeCrew" }>,
+  notes: string[],
+): void {
   const crew = g.crew.find((c) => c.side === "player" && c.hp > 0 && (c.cloneIn ?? 0) <= 0);
   if (crew && !(alter.clone && onCradleDeath(g, crew))) {
     const index = g.crew.indexOf(crew);
     if (index >= 0) g.crew.splice(index, 1);
   }
-  if (alter.text) log(g, alter.text);
+  if (alter.text) notes.push(alter.text);
 }
 
 function applyRemove(g: Game, alter: Extract<ArchiveAlter, { k: "remove" }>): void {

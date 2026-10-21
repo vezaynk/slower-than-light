@@ -39,9 +39,17 @@ describe("Lanius ship in rich debris field", () => {
       const g = createGame(1);
       open(g);
       choose(g, id);
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
+      const told = g.event?.body ?? "";
+      assert.equal(told.length > 0, true);
+      assert.equal(g.log.includes(told), false);
+      assert.equal(g.fightEvent, "lanius-ship-in-rich-debris-field");
+      choose(g, "ship-resume");
       assert.equal(g.phase, "combat");
       assert.equal(g.fightEvent, "lanius-ship-in-rich-debris-field");
       assert.equal(g.scrap, 10);
+      assert.equal(g.log.includes(told), false);
     }
   });
 

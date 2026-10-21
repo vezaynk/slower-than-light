@@ -19,13 +19,16 @@ describe("Mantis ship attacking Crystal", () => {
   it("attacking the Mantis prints the lead-in and starts a Mantis ship fight", () => {
     const g = createGame(1);
     open(g);
+    const told =
+      "You activate your impulse engines and fly between the Mantis and their prey, weapons charging. You appear to have their full attention.";
     choose(g, "c:mantis-ship-attacking-crystal:0");
-    assert.ok(
-      g.log.includes(
-        "You activate your impulse engines and fly between the Mantis and their prey, weapons charging. You appear to have their full attention.",
-      ),
-    );
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(told));
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.log.includes(told), false);
     assert.equal(g.fightEvent, "mantis-ship-attacking-crystal");
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.scrap, 10);

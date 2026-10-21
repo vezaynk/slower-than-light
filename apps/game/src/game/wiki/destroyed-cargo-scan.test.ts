@@ -152,8 +152,12 @@ describe("Destroyed cargo ship scan", () => {
       }
     }
     assert.ok(fight);
+    assert.equal(fight.phase, "event");
+    assert.equal(fight.event?.body, FIRE);
+    assert.equal(fight.log.includes(FIRE), false);
+    assert.equal(fight.event?.choices[0]?.id, "ship-resume");
+    choose(fight, "ship-resume");
     assert.equal(fight.phase, "combat");
-    assert.ok(fight.log.includes(FIRE));
     assert.equal(fight.fightEvent, "destroyed-cargo-ship-scan");
     assert.equal(fight.enemy?.pirate, true);
     assert.equal(fight.scrap, 10);

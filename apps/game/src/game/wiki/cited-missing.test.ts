@@ -213,6 +213,14 @@ describe("missing location pages", () => {
     const openEvade = evasionPercent(first, first.player, "player");
     open(first, "Slug repair station", "NEBULA_SLUG_HULLFIX");
     choose(first, "c:slug-repair-station:engines");
+    const dock =
+      "As you dock with the station your readings go haywire. An EMP blast resonates throughout the ship and your engines shut down. You're a sitting duck as a ship reveals itself and silently moves in to attack!";
+    assert.equal(first.phase, "event");
+    assert.equal(first.event?.choices[0]?.id, "ship-resume");
+    assert.equal(first.event?.body, dock);
+    assert.equal(first.log.includes(dock), false);
+    assert.ok(first.enemy);
+    choose(first, "ship-resume");
     assert.equal(first.phase, "combat");
     assert.equal(here(first).mark, "slug-repair");
     assert.ok(evasionPercent(first, first.player, "player") < openEvade);
@@ -234,6 +242,11 @@ describe("missing location pages", () => {
     g.scrap = 0;
     const b = open(g, "Slug repair station", "NEBULA_SLUG_HULLFIX");
     choose(g, "c:slug-repair-station:engines");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.match(g.event?.body ?? "", /sitting duck/);
+    assert.equal(g.log.join("\n").includes("sitting duck"), false);
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
     assert.ok(g.enemy);
     g.enemy.hull = 0;
     step(g, 0.05);
@@ -247,6 +260,14 @@ describe("missing location pages", () => {
     const g = createGame(12);
     open(g, "Slug store ship", "NEBULA_SLUG_FAKE_STORE");
     choose(g, "c:slug-store-ship:weapons");
+    const sealed =
+      '"During our discussion, my man hass taken the liberty of disabling your weaponss to prevent any complications while completing our... transssaction..." You suddenly register multiple weapon locks, but your own weapons are not responding. Get out of there!';
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, sealed);
+    assert.equal(g.log.includes(sealed), false);
+    assert.ok(g.enemy);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(weaponsSealed(g.player), true);
     assert.ok(g.player.weapons.length > 0);

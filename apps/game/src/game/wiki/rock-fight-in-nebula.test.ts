@@ -35,7 +35,7 @@ describe("Rock fight in nebula", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Rock ship on arrival and leaves no button", () => {
+  it("shows the nebula intro card on arrival, then the Rock fight", () => {
     // Wiki citations:
     // > "Fight a Rock ship (default rewards)." — [[Rock fight in nebula]]
     // The page has no choice. The printed sentence, then "Fight a Rock ship." nebula=true. unique=true.
@@ -56,13 +56,19 @@ describe("Rock fight in nebula", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rock-fight-in-nebula:0");
+    choose(g, "c:rock-fight-in-nebula:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "rock");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "rock-fight-in-nebula");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

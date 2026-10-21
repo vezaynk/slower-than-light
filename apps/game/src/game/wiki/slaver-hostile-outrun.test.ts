@@ -55,11 +55,19 @@ describe("Slaver (hostile) Engines out-run", () => {
         assert.equal(body.includes("Nothing happens."), false);
       } else {
         fought = true;
+        assert.equal(g.phase, "event");
+        assert.equal(g.event?.choices[0]?.id, "ship-resume");
+        assert.ok((g.event?.body ?? "").includes("power up their weapons."));
+        assert.equal(
+          g.log.some((line) => line.includes("power up their weapons.")),
+          false,
+        );
+        assert.equal(g.enemy?.pirate, true);
+        choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "slaver-hostile");
         assert.equal(g.enemy?.pirate, true);
         assert.equal(g.scrap, 10);
-        assert.ok(g.log.some((line) => line.includes("power up their weapons.")));
       }
     }
     assert.equal(divert, true);

@@ -36,7 +36,7 @@ describe("Lanius fight in asteroid field", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Lanius ship inside an asteroid field on arrival and leaves no button", () => {
+  it("shows the mining card, then the Lanius fight in the asteroid field", () => {
     // The page has no choice. The printed sentence, then "Fight a Lanius ship." asteroidfield=true. unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -55,6 +55,13 @@ describe("Lanius fight in asteroid field", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:lanius-fight-in-asteroid-field:0");
+    assert.equal(g.fleet, 1);
+    choose(g, "c:lanius-fight-in-asteroid-field:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
@@ -62,7 +69,6 @@ describe("Lanius fight in asteroid field", () => {
     assert.equal(g.asteroid, true);
     assert.equal(g.flare, false);
     assert.equal(g.fightEvent, "lanius-fight-in-asteroid-field");
-    assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

@@ -36,7 +36,7 @@ describe("Zoltan fight in asteroid field", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Zoltan ship in an asteroid field on arrival and leaves no button", () => {
+  it("starts the Zoltan ship in an asteroid field on arrival from the intro card", () => {
     // Wiki citations:
     // > "Fight a Zoltan ship (default rewards)." — [[Zoltan fight in asteroid field]]
     // The page has no choice. "Fight a Zoltan ship (default rewards)." asteroidfield=true.
@@ -57,14 +57,19 @@ describe("Zoltan fight in asteroid field", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:zoltan-fight-in-asteroid-field:0");
+    choose(g, "c:zoltan-fight-in-asteroid-field:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "zoltan");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.asteroid, true);
     assert.equal(g.flare, false);
     assert.equal(g.fightEvent, "zoltan-fight-in-asteroid-field");
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

@@ -22,12 +22,14 @@ describe("Crystal fight choice engage", () => {
     // > "Fight a Crystal ship (default rewards)." — [[Crystal fight choice]]
     const g = createGame(1);
     open(g);
+    const lead =
+      'Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: "You, you are like these other aliens! You brought them here!" With that they turn their cannons on you!';
     choose(g, "c:crystal-fight-choice:0");
-    assert.ok(
-      g.log.includes(
-        'Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: "You, you are like these other aliens! You brought them here!" With that they turn their cannons on you!',
-      ),
-    );
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "crystal-fight-choice");
     assert.equal(g.enemy?.faction, "crystal");

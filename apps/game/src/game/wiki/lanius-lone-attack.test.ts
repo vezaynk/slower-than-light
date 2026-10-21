@@ -16,15 +16,17 @@ function open(g: Game) {
 }
 
 describe("Lanius lone ship", () => {
-  it("attacking prints the lead-in and starts a Lanius ship fight", () => {
+  it("attacking shows the lead-in card and starts a Lanius ship fight", () => {
+    const lead =
+      "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.";
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-lone-ship:0");
-    assert.ok(
-      g.log.includes(
-        "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.",
-      ),
-    );
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-lone-ship");
     assert.equal(g.enemy?.faction, "lanius");

@@ -44,11 +44,19 @@ describe("Mantis ship attacking civilian", () => {
       true,
     );
     choose(g, "c:mantis-ship-attacking-civilian:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    const told = g.event?.body ?? "";
+    assert.equal(told.length > 0, true);
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.enemy?.faction, "mantis");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "mantis-ship-attacking-civilian");
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
+    assert.equal(g.log.includes(told), false);
   });
 
   it("a destroyed ship or a crew kill pays medium scrap with resources, then the contact", () => {

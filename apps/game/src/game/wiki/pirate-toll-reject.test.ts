@@ -16,14 +16,21 @@ function open(g: Game) {
 }
 
 describe("Pirate toll reject", () => {
-  it("rejecting logs the printed lead-in and fights a pirate ship", () => {
+  it("rejecting shows the printed lead-in on the card and fights a pirate ship", () => {
     const g = createGame(1);
     open(g);
+    const told = '"Too bad... You will regret this decision!"';
     choose(g, "c:pirate-toll:1");
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(told));
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.pirate, true);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-toll");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes('"Too bad... You will regret this decision!"'));
+    assert.equal(g.log.includes(told), false);
   });
 });

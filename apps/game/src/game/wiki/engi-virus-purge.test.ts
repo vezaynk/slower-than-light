@@ -28,16 +28,20 @@ describe("The Engi virus purge", () => {
     g.player.systems.engines.power = 6;
     g.player.systems.engines.damage = 0;
     g.player.systems.engines.ion = [];
+    const lead =
+      "Wiping your engine core and shields proves useless... eventually you trap the virus in the weapons systems to purge it, but before you do, the Engi grow restless and attack!";
     choose(g, "c:the-engi-virus:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.player.shieldNow, 1);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "engi");
     assert.equal(g.fightEvent, "the-engi-virus");
     assert.equal(g.scrap, 10);
     assert.equal(g.player.shieldNow, 1);
-    assert.ok(
-      g.log.includes(
-        "Wiping your engine core and shields proves useless... eventually you trap the virus in the weapons systems to purge it, but before you do, the Engi grow restless and attack!",
-      ),
-    );
+    assert.equal(g.log.includes(lead), false);
   });
 });

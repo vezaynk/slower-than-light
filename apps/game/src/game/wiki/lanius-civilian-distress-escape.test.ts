@@ -19,10 +19,18 @@ describe("Lanius ship attacking civilian distress escape", () => {
   it("fights a Lanius ship that never escapes", () => {
     const g = createGame(1);
     open(g);
+    const lead =
+      "You move in to intercept the ship. Detecting a greater threat, the Lanius prepare to fight.";
     choose(g, "c:lanius-ship-attacking-civilian-distress:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-attacking-civilian-distress");
     assert.equal(g.enemyEscape?.mode, "never");
+    assert.equal(g.log.includes(lead), false);
   });
 });

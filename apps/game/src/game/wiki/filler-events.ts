@@ -18,6 +18,7 @@ import {
   log,
   rand,
   restorePlayerSensors,
+  showEventLines,
   shutPlayerSensors,
   startCombat,
 } from "../sim.ts";
@@ -472,7 +473,6 @@ function show(g: Game, text: string, offer?: SurrenderOffer, extras: string[] = 
     if (paid.weaponName) got.push(`${paid.weaponName}.`);
     got.push(...paid.extras);
   }
-  for (const l of got) log(g, l);
   const tail = [...got, ...extras].filter(Boolean).join(" ");
   g.event = {
     title: here(g)?.name ?? "Event",
@@ -496,11 +496,11 @@ function fight(
   slug: string,
   opts: { asteroid?: boolean; never?: boolean } = {},
 ) {
-  log(g, text);
   g.event = null;
   startCombat(g, tier, !!opts.asteroid, slug);
   // "doesn't surrender nor tries to escape" (Template:Drifting Refugee Ship ambushers).
   if (opts.never) g.enemyEscape = { ...NEVER_RUN };
+  if (text.trim()) showEventLines(g, [text]);
 }
 
 /** Rewards, "Scrap only": T scrap. No tier given ("a random amount") = one of the three, equal odds (INFERRED). */
@@ -632,7 +632,6 @@ function mantisControlled(g: Game) {
 function delayFleetOne(g: Game) {
   // INFERRED: a fleet already at column 0 stays there.
   g.fleet = Math.max(0, g.fleet - 1);
-  log(g, "Rebel Fleet is delayed for 1 turn.");
 }
 
 /** Rock and Slug standoff: "1 damage to each of 2 random systems".
@@ -649,7 +648,6 @@ function twoSystems(g: Game): string {
     const id = pool.splice(i, 1)[0]!;
     hurtSystem(g.player, id, 1);
     lines.push(`1 damage to ${id}.`);
-    log(g, `1 damage to ${id}.`);
   }
   return lines.join(" ");
 }
@@ -1562,7 +1560,6 @@ function craftItem(g: Game, id: string, kind: "augment" | "weapon" | "drone", st
   if (cost == null || g.scrap < cost) return;
   g.scrap -= cost;
   const spent = `Scrap: -${cost}.`;
-  log(g, spent);
   show(g, story, undefined, [spent, grantRandomItem(g, kind)]);
 }
 
@@ -1784,13 +1781,13 @@ Scrap: ${offer.scrap}.`,
     else if (r === "slow") {
       // "Rebel Fleet pursuit is doubled for 1 jump" (citedChoose `faster`: one extra step).
       g.fleet += 1;
-      log(g, "Rebel Fleet pursuit is doubled for 1 jump.");
       fight(
         g,
         "After far too much time spent searching, you are finally able to track him down. You go into the fight pondering just how much of a head start you've lost on the Rebel Fleet...",
         "Rebel ship",
         "rebel-fight-chance",
       );
+      showEventLines(g, ["Rebel Fleet pursuit is doubled for 1 jump."]);
     } else
       show(
         g,
@@ -2155,13 +2152,14 @@ Scrap: ${offer.scrap}.`,
       // > "You receive a random amount of scrap with resources." — [[Disabled Rock ship]]
       // > "Fight a Rock Ship (default rewards)." — [[Disabled Rock ship]]
       payOffer(g, offer, true);
-      for (const line of standardLines(offer)) log(g, line);
+      const paid = standardLines(offer);
       fight(
         g,
         'A Rock patrol ship jumps in while you are salvaging the ship. They message you, "Filthy pirates! Prepare to die!" You doubt explaining your mission will convince them of your need.',
         "Rock ship",
         "disabled-rock-ship",
       );
+      showEventLines(g, paid);
       return;
     }
     // Wiki citations:
@@ -2237,7 +2235,6 @@ Scrap: ${offer.scrap}.`,
     ) {
       if (hurt(g, 5)) return;
       const lines = ["Hull damage: 5.", hurtRandomSystem(g), roomBar(g)].filter(Boolean);
-      for (const line of lines) log(g, line);
       fight(
         g,
         "It was a trap! The Mantis sabotages your ship before teleporting away.",
@@ -2245,6 +2242,7 @@ Scrap: ${offer.scrap}.`,
         "mantis-fugitive",
       );
       mantisControlled(g);
+      showEventLines(g, lines);
       return;
     }
     fight(
@@ -2509,13 +2507,14 @@ Scrap: ${offer.scrap}.`,
     const n = affordStock(g, "c:mantis-ships-battle-for-rock-freighter:3", "parts");
     if (!ownsDrone(g, "SHIP_REPAIR") || n == null) return;
     takeStock(g, "parts", n);
-    log(g, partsLine(n));
+    const spent = partsLine(n);
     fight(
       g,
       "While the two Mantis fight you approach the Rock ship and use a drone to fix up the ship. Once the breaches are fixed the life support flickers back on. In a matter of moments they are already in pursuit of one of the Mantis ships. Meanwhile the second Mantis turns toward you.",
       "Mantis ship",
       "mantis-ships-battle-for-rock-freighter",
     );
+    showEventLines(g, [spent]);
   },
 
   // Rock live mine. The turning circle always fails. The defuse lists two results and prints no odds. INFERRED: equal.
@@ -2617,7 +2616,6 @@ Scrap: ${offer.scrap}.`,
     if (!ownsMineBeam(g) || n == null) return;
     takeStock(g, "parts", n);
     const spent = partsLine(n);
-    log(g, spent);
     show(
       g,
       "Carefully guided from the bridge, your beam drone removes the mine's grappling arms and sends it drifting off into space, where you shoot at it until it detonates at a safe distance.",
@@ -3016,12 +3014,11 @@ Scrap: ${offer.scrap}.`,
       // "2 boarders beam aboard your ship" (surrender.ts humanBoarders, the same intruder kit).
       humanBoarders(g, 2, 2);
     } else if (r === "battery") {
-      log(
-        g,
-        "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile multiple warning signals go off on the bridge. The pirates have activated a remote planetary defense system and it's locking onto your ship!",
-      );
       humanBoarders(g, 2, 4, "boarders beam aboard.");
       beginBoarding(g, true);
+      showEventLines(g, [
+        "You dock with the station to take a look inside. However no sooner do you open the airlock than pirates burst in. Meanwhile multiple warning signals go off on the bridge. The pirates have activated a remote planetary defense system and it's locking onto your ship!",
+      ]);
     } else if (r === "clone") {
       // {{Blue Option|Clonebay|Search for a surviving DNA bank.}} The button stays visible.
       card(
@@ -3052,12 +3049,11 @@ Scrap: ${offer.scrap}.`,
         ["crazed", 1],
       ] as const) === "crazed"
     ) {
-      log(
-        g,
-        `${rebuilt} The clone emerges in a crazed frenzy and refuses to calm down. You have no choice but to fight.`,
-      );
       humanBoarders(g, 1, 1, "boarder beams aboard.");
       beginBoarding(g);
+      showEventLines(g, [
+        `${rebuilt} The clone emerges in a crazed frenzy and refuses to calm down. You have no choice but to fight.`,
+      ]);
       return;
     }
     const calm =
@@ -3327,12 +3323,11 @@ Scrap: ${offer.scrap}.`,
         resource(g, "missiles", "medium", "medium"),
       );
     else if (r === "boarders") {
-      log(
-        g,
-        "As you approach the ship, the other ship's transporters suddenly power up, and your decks swarm with now-cannibalistic refugees! Driven mad by lack of food, they have turned to feeding on each other - and now your crew is next!",
-      );
       humanBoarders(g, 2, 4, "human boarders beam aboard.");
       beginBoarding(g);
+      showEventLines(g, [
+        "As you approach the ship, the other ship's transporters suddenly power up, and your decks swarm with now-cannibalistic refugees! Driven mad by lack of food, they have turned to feeding on each other - and now your crew is next!",
+      ]);
     } else
       show(
         g,
@@ -3427,13 +3422,12 @@ Scrap: ${offer.scrap}.`,
     // > "Until you are able to jump away from the hostile space station, your sensors will be disabled. You should deal with these boarders first though!" — [[Boarders: Humans jammed sensors]]
     // > "3-5 human boarders beam aboard your ship, and your Sensors are disabled." — [[Boarders: Humans jammed sensors]]
     // > "If you don't counter the jam, the Sensors functionality is not restored till you jump to another beacon." — [[Boarders: Humans jammed sensors#Notes]]
-    log(
-      g,
-      "Until you are able to jump away from the hostile space station, your sensors will be disabled. You should deal with these boarders first though!",
-    );
     shutPlayerSensors(g);
     humanBoarders(g, 3, 5, "human boarders beam aboard your ship.");
     beginBoarding(g);
+    showEventLines(g, [
+      "Until you are able to jump away from the hostile space station, your sensors will be disabled. You should deal with these boarders first though!",
+    ]);
   },
 
   // Refueling station. "Buy 6 Fuel for 12 Scrap", "Buy 3 Fuel for 6 Scrap", "Buy 1 Fuel for 2 Scrap".
@@ -3827,14 +3821,16 @@ Scrap: ${offer.scrap}.`,
       ["human", 1],
     ] as const);
     if (r === "boarder") {
-      log(
-        g,
-        "The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt.",
-      );
       const note = loseCrew(g);
-      if (note) log(g, note);
       mantisBoarders(g, 1, 1);
       beginBoarding(g);
+      showEventLines(
+        g,
+        [
+          "The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt.",
+          note,
+        ].filter((line): line is string => !!line),
+      );
       return;
     }
     if (r === "mantis") {
@@ -3894,13 +3890,12 @@ Scrap: ${offer.scrap}.`,
     // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans jammed sensors]]
     // > "If you counter the jam, the Hacking system is not disabled." — [[Boarders: Humans jammed sensors#Notes]]
     if ((g.player.kits.hacking?.level ?? 0) <= 0) return;
-    log(
-      g,
-      "Your hacking system automatically counters the digital assault. Your Sensors flicker back on and you prepare to fight the boarders.",
-    );
     restorePlayerSensors(g);
     humanBoarders(g, 3, 5, "human boarders beam aboard your ship.");
     beginBoarding(g);
+    showEventLines(g, [
+      "Your hacking system automatically counters the digital assault. Your Sensors flicker back on and you prepare to fight the boarders.",
+    ]);
   },
 
   // Slaver (hostile). "Draw straws and send a crew-member over to the slavers."
@@ -3975,7 +3970,7 @@ function chooseRolled(g: Game, id: string): boolean {
     const n = Number(m[1]);
     if (!priced("friendly-ship-out-of-fuel", "give", n, "fuel") || g.fuel < n) return true;
     g.fuel -= n;
-    log(g, `Fuel: -${n}.`);
+    const spent = `Fuel: -${n}.`;
     const r = weighted(g, [
       ["scrap", 2],
       ["weapon", 1],
@@ -3987,6 +3982,7 @@ function chooseRolled(g: Game, id: string): boolean {
         g,
         'You give them the fuel. "Thank you. Here, have this extra scrap as payment."',
         scrapOnly(g, "high"),
+        [spent],
       );
     else if (r === "weapon") {
       const offer = weaponOffer(g, "low");
@@ -3996,12 +3992,15 @@ function chooseRolled(g: Game, id: string): boolean {
         g,
         "You give them the fuel. \"Thank the Gods. We can finally get out of here! We're jumping straight home so take this extra weapon. We won't need it, hopefully.\"",
         offer,
+        [spent],
       );
     } else if (r === "map") {
       // "The current sector map is revealed." Not wired: this game has no map reveal.
       show(
         g,
         'You give them the fuel. "Thank you so much! We don\'t have much to offer, but have a look at the sector scans we took." Your map is updated.',
+        undefined,
+        [spent],
       );
     } else {
       // "If your ship reactor was already fully upgraded ... "Could not upgrade the Reactor, it's maxed""
@@ -4016,7 +4015,7 @@ function chooseRolled(g: Game, id: string): boolean {
         g,
         'You give them the fuel. "Thank you. Perhaps as payment our engineer can try to optimize your ship\'s reactor output?"',
         undefined,
-        [note],
+        [spent, note],
       );
     }
     return true;

@@ -22,12 +22,14 @@ describe("Mantis ship with Rock body parts", () => {
     // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
     const g = createGame(1);
     open(g);
+    const lead =
+      "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!";
     choose(g, "c:mantis-ship-with-rock-body-parts:0");
-    assert.ok(
-      g.log.includes(
-        "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!",
-      ),
-    );
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "mantis-ship-with-rock-body-parts");
     assert.equal(g.enemy?.faction, "mantis");

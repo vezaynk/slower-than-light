@@ -15,19 +15,23 @@ function open(g: Game) {
   assert.equal(g.event?.title, "Engi smashed ships");
 }
 
+const LEAD =
+  "To your surprise, one of the Engi vessels attacks! One ship detaches itself, surprisingly still quite whole, and opens fire - it looks like it's somehow identified you as hostile!";
+
 describe("Engi smashed ships pry", () => {
-  it("prints the hostile sentence and fights an Engi ship", () => {
+  it("shows the hostile sentence on the continue card and fights an Engi ship", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:engi-smashed-ships:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, LEAD);
+    assert.equal(g.log.includes(LEAD), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.faction, "engi");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "engi");
     assert.equal(g.fightEvent, "engi-smashed-ships");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes(
-        "To your surprise, one of the Engi vessels attacks! One ship detaches itself, surprisingly still quite whole, and opens fire - it looks like it's somehow identified you as hostile!",
-      ),
-    );
   });
 });

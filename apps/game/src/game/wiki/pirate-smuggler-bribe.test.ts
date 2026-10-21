@@ -57,6 +57,12 @@ describe("Pirate smuggler weapons", () => {
     g.player.systems.weapons.level = 6;
     choose(g, "c:pirate-smuggler:2");
     choose(g, "q:pirate-smuggler:attack");
+    const lead = "You power up your weapons and move in to engage.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "pirate-smuggler");
     assert.equal(g.enemy?.pirate, true);

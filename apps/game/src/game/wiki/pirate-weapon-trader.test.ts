@@ -56,9 +56,22 @@ describe("Pirate ship selling weapon", () => {
       const scrap = g.scrap;
       const guns = g.player.weapons.length;
       choose(g, MIND);
-      const body = g.event?.body ?? g.log.join(" ");
-      if (g.phase === "event") {
+      const body = g.event?.body ?? "";
+      if (g.event?.choices.some((c) => c.id === "ship-resume")) {
+        lie = true;
+        assert.match(body, /planned to attack your ship/);
+        assert.equal(/planned to attack your ship/.test(g.log.join(" ")), false);
+        assert.equal(g.scrap, scrap);
+        assert.equal(g.player.weapons.length, guns);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
+        assert.equal(g.fightEvent, "pirate-ship-selling-weapon");
+        assert.equal(g.scrap, scrap);
+        assert.equal(g.player.weapons.length, guns);
+        assert.equal(/planned to attack your ship/.test(g.log.join(" ")), false);
+      } else {
         deal = true;
+        assert.equal(g.phase, "event");
         assert.match(body, /takes back his discount/);
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
@@ -72,13 +85,6 @@ describe("Pirate ship selling weapon", () => {
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
         assert.equal(g.phase, "event");
-      } else {
-        lie = true;
-        assert.equal(g.phase, "combat");
-        assert.equal(g.fightEvent, "pirate-ship-selling-weapon");
-        assert.match(g.log.join(" "), /planned to attack your ship/);
-        assert.equal(g.scrap, scrap);
-        assert.equal(g.player.weapons.length, guns);
       }
     }
     assert.equal(deal, true);

@@ -54,9 +54,20 @@ describe("Sell missiles for scrap", () => {
       assert.equal(g.missiles, 0);
       assert.equal(g.scrap, 40 + scrap);
       assert.equal(g.scrapCollected ?? 0, collected + scrap);
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.choices[0]?.id, "ack");
+      assert.match(g.event?.body ?? "", /Thank you, this will help greatly/);
+      assert.match(g.event?.body ?? "", new RegExp(`You receive ${scrap} scrap\\.`));
+      assert.equal(
+        g.log.some((line) => line.includes("Thank you, this will help greatly.")),
+        false,
+      );
+      assert.equal(
+        g.log.some((line) => line === `You receive ${scrap} scrap.`),
+        false,
+      );
+      choose(g, "ack");
       assert.equal(g.phase, "map");
-      assert.ok(g.log.some((line) => line.includes("Thank you, this will help greatly.")));
-      assert.ok(g.log.some((line) => line === `You receive ${scrap} scrap.`));
     }
   });
 
@@ -70,7 +81,14 @@ describe("Sell missiles for scrap", () => {
     assert.equal(hook.missiles, 0);
     assert.equal(hook.scrap, 16);
     assert.equal(hook.scrapCollected, 15);
-    assert.ok(hook.log.some((line) => line === "You receive 16 scrap."));
+    assert.match(hook.event?.body ?? "", /You receive 16 scrap\./);
+    assert.equal(
+      hook.log.some((line) => line === "You receive 16 scrap."),
+      false,
+    );
+    assert.equal(hook.event?.choices[0]?.id, "ack");
+    choose(hook, "ack");
+    assert.equal(hook.phase, "map");
 
     const weld = createGame(3);
     weld.missiles = 5;

@@ -16,19 +16,21 @@ function open(g: Game) {
 }
 
 describe("The Mercenary fight", () => {
-  it("fighting logs the printed lead-in and fights a pirate ship", () => {
+  it("fighting shows the printed lead-in on the card and fights a pirate ship", () => {
     const g = createGame(1);
     open(g);
+    const lead =
+      "Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle.";
     choose(g, "c:the-mercenary:1");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "the-mercenary");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes(
-        "Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle.",
-      ),
-    );
   });
 
   it("hiring shows the printed mask sentence and delays the fleet", () => {

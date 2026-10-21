@@ -19,11 +19,16 @@ describe("Pirate smuggler attack", () => {
   it("attacking prints the engage sentence and starts a Pirate ship fight", () => {
     const g = createGame(1);
     open(g);
+    const lead = "You power up your weapons and move in to engage.";
     choose(g, "c:pirate-smuggler:0");
-    assert.ok(g.log.includes("You power up your weapons and move in to engage."));
-    assert.equal(g.phase, "combat");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.fightEvent, "pirate-smuggler");
     assert.equal(g.enemy?.faction === "pirate" || g.enemy?.pirate === true, true);
     assert.equal(g.scrap, 10);
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
   });
 });

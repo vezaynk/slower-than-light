@@ -66,11 +66,18 @@ describe("Auto-ship fight in plasma storm", () => {
       g.player.systems.engines.level = 4;
       assert.equal(choiceDisabled(g, "c:auto-ship-fight-in-plasma-storm:1"), null);
       choose(g, "c:auto-ship-fight-in-plasma-storm:1");
-      if (g.phase === "combat") {
+      const fightLead =
+        "Despite your advanced engines you are unable to shake them; you turn and prepare for a fight.";
+      if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
+        assert.equal(g.event?.body, fightLead);
+        assert.equal(g.log.includes(fightLead), false);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "auto-ship-fight-in-plasma-storm");
         assert.equal(g.enemy?.faction, "auto");
         assert.equal(g.scrap, 10);
+        assert.equal(g.log.includes(fightLead), false);
       } else {
         lost = true;
         assert.match(g.event?.body ?? "", /lose the ship in the storm/);

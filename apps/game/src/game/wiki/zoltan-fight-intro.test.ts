@@ -62,10 +62,10 @@ describe("Zoltan fight intro", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Zoltan ship on arrival and leaves no button", () => {
+  it("starts the Zoltan ship from the arrival card", () => {
     // Wiki citations:
     // > "Fight a Zoltan ship (default rewards)." — [[Zoltan fight]]
-    // The page has no choice. One of the seven printed intros, then "Fight a Zoltan ship."
+    // The arrival card stays up. One of the seven printed intros, then "Fight a Zoltan ship."
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -83,12 +83,16 @@ describe("Zoltan fight intro", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const body = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:zoltan-fight:0");
+    choose(g, "c:zoltan-fight:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "zoltan");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "zoltan-fight");
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
   });
 });

@@ -48,7 +48,7 @@ describe("Mantis fight in nebula", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Mantis ship on arrival and leaves no button", () => {
+  it("shows the nebula card, then the Mantis fight", () => {
     // The page has no choice. One of the five printed intros, then "Fight a Mantis ship." nebula=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -67,13 +67,20 @@ describe("Mantis fight in nebula", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
+    const body = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:mantis-fight-in-nebula:0");
+    assert.equal(g.fleet, 1);
+    choose(g, "c:mantis-fight-in-nebula:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "mantis-fight-in-nebula");
     assert.equal(g.flare, false);
-    assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(body), false);
   });
 });

@@ -5,6 +5,8 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-near-sun:0";
+const BODY =
+  "You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, \"I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours.\" Hostiles detected on board our ship!";
 const DEST = "Boarders: Humans near sun";
 const SECTORS = [
   "MANTIS_SECTOR",
@@ -75,10 +77,10 @@ describe("Boarders: Humans near sun", () => {
     assert.ok(seen.has(2) && seen.has(4), [...seen].sort().join(","));
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
+  it("shows the star card on arrival, then beams the humans aboard", () => {
     // Wiki citations:
     // > "2-4 human boarders beam aboard your ship." — [[Boarders: Humans near sun]]
-    // The page has no choice. "2-4 human boarders beam aboard your ship." redgiant=true.
+    // The arrival card stays up. "2-4 human boarders beam aboard your ship." redgiant=true.
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -96,7 +98,11 @@ describe("Boarders: Humans near sun", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, ID);
+    choose(g, ID);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
     assert.equal(g.flare, true);

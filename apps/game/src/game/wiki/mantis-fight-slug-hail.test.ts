@@ -37,7 +37,7 @@ describe("Mantis fight (Slug) hail", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Mantis ship on arrival and leaves no button", () => {
+  it("starts the Mantis ship on arrival from the intro card", () => {
     // Wiki citations:
     // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Slug)]]
     // The page has no choice. The printed sentence, then "Fight a Mantis ship." unique=true.
@@ -58,13 +58,18 @@ describe("Mantis fight (Slug) hail", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:mantis-fight-slug:0");
+    choose(g, "c:mantis-fight-slug:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "mantis-fight-slug");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

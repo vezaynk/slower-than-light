@@ -94,29 +94,30 @@ describe("Trade resources", () => {
       const scrap = g.scrap;
       assert.equal(choiceDisabled(g, take.id), null);
       choose(g, take.id);
+      const spent =
+        pay === "fuel"
+          ? `Fuel: -${cost}.`
+          : pay === "missiles"
+            ? `Missiles: -${cost}.`
+            : `Drone parts: -${cost}.`;
+      const gained =
+        get === "fuel"
+          ? `Fuel: ${gain}.`
+          : get === "missiles"
+            ? `Missiles: ${gain}.`
+            : `Drone parts: ${gain}.`;
+      assert.equal(g.phase, "event");
+      assert.ok(g.event?.body.includes(spent), g.event?.body);
+      assert.ok(g.event?.body.includes(gained), g.event?.body);
+      assert.equal(g.log.includes(spent), false);
+      assert.equal(g.log.includes(gained), false);
+      assert.equal(g.event?.choices[0]?.id, "ack");
+      choose(g, "ack");
       assert.equal(g.phase, "map");
       assert.equal(g.scrap, scrap);
       assert.equal(have(g, pay), 30 - cost);
       assert.equal(have(g, get), 30 + gain);
       assert.equal(have(g, third), 30);
-      assert.ok(
-        g.log.includes(
-          pay === "fuel"
-            ? `Fuel: -${cost}.`
-            : pay === "missiles"
-              ? `Missiles: -${cost}.`
-              : `Drone parts: -${cost}.`,
-        ),
-      );
-      assert.ok(
-        g.log.includes(
-          get === "fuel"
-            ? `Fuel: ${gain}.`
-            : get === "missiles"
-              ? `Missiles: ${gain}.`
-              : `Drone parts: ${gain}.`,
-        ),
-      );
     }
     assert.deepEqual([...kinds].sort(), [
       "fuel:missiles",

@@ -55,7 +55,7 @@ describe("Pirate fight in nebula intro", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Pirate ship on arrival and leaves no button", () => {
+  it("shows the intro card on arrival, then the fight button starts the Pirate ship", () => {
     // The page has no choice. One of the five printed intros, then "Fight a Pirate ship." nebula=true. unique=false. No nebula environment is added.
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
@@ -77,12 +77,18 @@ describe("Pirate fight in nebula intro", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    const body = g.event?.body ?? "";
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:pirate-fight-in-nebula:0");
+    choose(g, "c:pirate-fight-in-nebula:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-fight-in-nebula");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(body), false);
   });
 });

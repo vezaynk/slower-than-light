@@ -51,11 +51,15 @@ describe("Refugee (Pirate)", () => {
       choose(g, "c:refugee-pirate:0");
       const text = `${g.event?.body ?? ""}\n${g.log.join("\n")}`;
       assert.equal(/Zoltan ship suddenly jumps|Slug ship jumps|pirate ambush/i.test(text), false);
-      if (g.phase === "combat") {
+      if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
+        assert.match(g.event?.body ?? "", /using the refugee ship as bait/);
+        assert.equal(/using the refugee ship as bait/.test(g.log.join("\n")), false);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.enemyEscape?.mode, "never");
         assert.equal(g.fightEvent, "refugee-pirate");
-        assert.match(g.log.join("\n"), /using the refugee ship as bait/);
+        assert.equal(/using the refugee ship as bait/.test(g.log.join("\n")), false);
       } else {
         trade = true;
         assert.match(g.event?.body ?? "", /running low on supplies/);

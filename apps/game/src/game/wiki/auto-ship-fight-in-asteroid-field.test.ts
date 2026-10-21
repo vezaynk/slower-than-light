@@ -16,6 +16,9 @@ function open(g: Game) {
   assert.equal(g.event?.title, "Auto-ship fight in asteroid field");
 }
 
+const BODY =
+  "You arrive in an asteroid belt to discover that a Rebel automated-scout has been stationed here. Prepare for a fight!";
+
 describe("Auto-ship fight in asteroid field", () => {
   it("starts the fight inside an asteroid field", () => {
     const g = createGame(1);
@@ -31,8 +34,8 @@ describe("Auto-ship fight in asteroid field", () => {
     assert.equal(g.asteroid, true);
   });
 
-  it("starts the Auto-ship in an asteroid field on arrival and leaves no button", () => {
-    // The page has no choice. "Fight an Auto-ship." asteroidfield=true.
+  it("starts the Auto-ship in an asteroid field from the arrival card", () => {
+    // The arrival card stays up. "Fight an Auto-ship." asteroidfield=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -50,16 +53,15 @@ describe("Auto-ship fight in asteroid field", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:auto-ship-fight-in-asteroid-field:0");
+    choose(g, "c:auto-ship-fight-in-asteroid-field:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "auto");
     assert.equal(g.asteroid, true);
     assert.equal(g.fightEvent, "auto-ship-fight-in-asteroid-field");
     assert.equal(g.fleet, 1);
-    assert.ok(
-      g.log.includes(
-        "You arrive in an asteroid belt to discover that a Rebel automated-scout has been stationed here. Prepare for a fight!",
-      ),
-    );
   });
 });

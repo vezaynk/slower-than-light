@@ -43,6 +43,13 @@ describe("Mantis ship attacking civilian intro", () => {
     const before = g.crew.filter((c) => c.side === "player").length;
     open(g);
     choose(g, "c:mantis-ship-attacking-civilian:0");
+    const lead =
+      "You frown, power up the weapons and prepare to engage the Mantis ship. Not today.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.enemy?.pirate, false);

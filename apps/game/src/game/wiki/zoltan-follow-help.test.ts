@@ -17,29 +17,34 @@ function open(g: Game) {
 }
 
 describe("Zoltan ship follows Mantis ship help", () => {
-  it("helping the Zoltan logs the printed friends sentence and fights an all-Mantis ship in the asteroid field", () => {
+  it("helping the Zoltan shows the printed friends sentence on the card and fights an all-Mantis ship in the asteroid field", () => {
     // Wiki citations:
     // > "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends." — [[Zoltan ship follows Mantis ship]]
     // > "Fight a Mantis ship with crew entirely composed of Mantis." — [[Zoltan ship follows Mantis ship]]
     const hp = kinOf("mantis").hp;
     const g = createGame(1);
     open(g);
+    const told =
+      "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends.";
     choose(g, "c:zoltan-ship-follows-mantis-ship:1");
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(told));
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.faction, "mantis");
+    assert.equal(g.asteroid, true);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.fightEvent, "zoltan-ship-follows-mantis-ship");
     assert.equal(g.asteroid, true);
     assert.equal(g.scrap, 10);
+    assert.equal(g.log.includes(told), false);
     const theirs = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(theirs.length > 0);
     assert.ok(
       theirs.every(
         (c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp,
-      ),
-    );
-    assert.ok(
-      g.log.includes(
-        "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends.",
       ),
     );
   });

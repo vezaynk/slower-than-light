@@ -686,6 +686,13 @@ export type Beacon = {
    * Set when that fight's engine cap or weapon half is applied. Absent on every other beacon.
    */
   mark?: string;
+  /**
+   * Archive `<reveal_map>`: this beacon's store, distress, quest, exit, or repair mark is drawn.
+   * Visiting and the score stay as they were.
+   */
+  known?: boolean;
+  /** Archive `<repair>`: the map draws REPAIR. This is not the Last Stand repair station. */
+  repair?: boolean;
 };
 
 /** Between-sector chart. Names and colors come from the Sectors page. */
@@ -749,6 +756,8 @@ export type GameEvent = {
   title: string;
   body: string;
   choices: { id: string; label: string }[];
+  /** Archive `<img>` when the loaded pack has that file. */
+  img?: string;
 };
 
 /**
@@ -862,6 +871,11 @@ export type Game = {
   beacons: Beacon[];
   here: string;
   fleet: number;
+  /**
+   * Archive `<secretSector>` armed a jump to the Hidden Crystal Worlds.
+   * The jump waits until the fight that armed it ends, and it is cleared if the player jumps away first.
+   */
+  secretSector?: boolean;
   /**
    * xftl doc/sector-map: the danger zone's centre height, "picked at random in the range of 50-300" per sector
    * (wiki/sector-map.ts). Absent in old saves.

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { afterEach, describe, it } from "node:test";
+import { loadPack, resetPackForTests } from "@stl/pack";
 import { createGame, startCombat } from "../sim.ts";
-import { playerSensorLevel } from "./spike.ts";
+import { hackVision, playerSensorLevel } from "./spike.ts";
 import { shipSight } from "./slug-sight.ts";
-import type { Crew, Game } from "../types.ts";
+import type { Crew, Game, Kit } from "../types.ts";
 
 function gel(g: Game, room: string, id = "slug"): Crew {
   const crew: Crew = {
@@ -54,6 +55,51 @@ function blindScout(seed: number): { g: Game; foe: Crew } {
   assert.equal(playerSensorLevel(g), 0);
   return { g, foe };
 }
+
+function droneKit(target: string, room: string): Kit {
+  return {
+    id: "drones",
+    level: 2,
+    power: 2,
+    left: 0,
+    cool: 0,
+    target,
+    on: true,
+    aux: 0,
+    room,
+  };
+}
+
+describe("drone room vision", () => {
+  afterEach(() => resetPackForTests());
+
+  it("a drone without NOLOC reveals its room, and a NOLOC drone leaves that room hidden", () => {
+    loadPack(
+      {
+        drones: [
+          { id: "PLAIN_DRONE", name: "Plain", cost: 1 },
+          { id: "QUIET_DRONE", name: "Quiet", cost: 1, noloc: true },
+        ],
+      },
+      "append",
+    );
+    const { g, foe } = blindScout(30);
+    assert.equal(shipSight(g).interior("enemy", foe.room), false);
+
+    g.player.kits.drones = droneKit("PLAIN_DRONE", foe.room);
+    assert.equal(shipSight(g).interior("enemy", foe.room), true);
+
+    g.player.kits.drones = droneKit("QUIET_DRONE", foe.room);
+    assert.equal(shipSight(g).interior("enemy", foe.room), false);
+
+    const hacked = g.enemy?.rooms.find((room) => room.system && room.id !== foe.room);
+    assert.ok(hacked?.system);
+    g.enemy!.hackDrone = hacked.system;
+    assert.equal(shipSight(g).interior("enemy", hacked.id), true);
+    assert.equal(hackVision(g)?.room, hacked.id);
+    assert.equal(shipSight(g).interior("enemy", foe.room), false);
+  });
+});
 
 describe("Slug vision", () => {
   it("opens rooms that share an edge with the Slug, including a room whose door was removed", () => {

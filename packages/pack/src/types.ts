@@ -85,6 +85,8 @@ export type DroneDef = {
   cost: number;
   /** `<droneImage>` stem. Pictures are `img/ship/drones/<image>_base.png`, `_on.png`, and `_charged.png`. */
   image?: string;
+  /** The blueprint carries `NOLOC`. That drone's room stays hidden from the other ship. */
+  noloc?: boolean;
 };
 
 /** Where a purchased system is installed. Power and the starting level stay in the effect code. */
@@ -628,6 +630,20 @@ export type ArchiveAlter =
   | { k: "removeCrew"; clone: boolean; text?: string }
   | { k: "remove"; name: string };
 
+/**
+ * One `<quest>`, `<secretSector>`, `<distressBeacon>`, `<repair>`, `<fleet>`,
+ * `<reveal_map>`, or `<unlockShip>`, in document order.
+ * `unlockShip.id` is an index into the loaded pack's player ship blueprints.
+ */
+export type ArchiveMark =
+  | { k: "quest"; event: string }
+  | { k: "secretSector" }
+  | { k: "distressBeacon" }
+  | { k: "repair" }
+  | { k: "fleet" }
+  | { k: "revealMap" }
+  | { k: "unlockShip"; id: number };
+
 /** A button on an event page. The id is what `choose` receives. */
 export type EventChoice = {
   id: string;
@@ -651,6 +667,10 @@ export type EventChoice = {
   environment?: ArchiveEnvironment;
   /** `<status>`, `<upgrade>`, `<removeCrew>`, and `<remove>`, in document order. */
   alters?: ArchiveAlter[];
+  /** Quest, secret sector, and map marks, in document order. */
+  marks?: ArchiveMark[];
+  /** `<img>` text. The event card shows that file when the pack has it. */
+  img?: string;
   /** Choices on the result page. */
   choices?: EventChoice[];
 };
@@ -827,6 +847,10 @@ export type EventDef = {
   environment?: ArchiveEnvironment;
   /** `<status>`, `<upgrade>`, `<removeCrew>`, and `<remove>`, in document order. */
   alters?: ArchiveAlter[];
+  /** Quest, secret sector, and map marks, in document order. */
+  marks?: ArchiveMark[];
+  /** `<img>` text. The event card shows that file when the pack has it. */
+  img?: string;
 };
 
 /** One ending of a root `<ship name>` event. Children are an inline page. A childless load is that event id. */
@@ -851,9 +875,22 @@ export type ShipEventEscape = ShipEventChance & {
   timer?: number;
 };
 
+/** One weighted race inside a ship event's `<crew>` block. `prop` is a weight. */
+export type ShipCrewRow = {
+  race: string;
+  prop: number;
+};
+
+/** `<weaponOverride count>`. `names` stay in document order. */
+export type ShipWeaponOverride = {
+  count: number;
+  names: string[];
+};
+
 /**
  * Root `<ship name>` in the ship-event file.
  * `autoBlueprint` is the hull list. Endings are optional.
+ * The first `<crew>` block and the first `<weaponOverride>` win.
  */
 export type ShipEventDef = {
   id: string;
@@ -863,6 +900,8 @@ export type ShipEventDef = {
   destroyed?: ShipEventEnding;
   deadCrew?: ShipEventEnding;
   gotaway?: ShipEventEnding;
+  crew?: ShipCrewRow[];
+  weaponOverride?: ShipWeaponOverride;
 };
 
 /**

@@ -7,6 +7,7 @@ import type {
   ArchiveAlter,
   ArchiveBoarders,
   ArchiveGrant,
+  ArchiveMark,
   ArchiveReward,
   EventChoice,
   EventDef,
@@ -30,9 +31,11 @@ import { onCradleDeath, cradleUpgradeCost } from "./extras/cradle.ts";
 import { adjustScrap } from "./extras/index.ts";
 import type { KinId } from "./extras/kin.ts";
 import { spikeUpgradeCost } from "./extras/spike.ts";
+import { archiveImage } from "./pack/media.ts";
 import {
   armEventEnvironment,
   beginBoarding,
+  enterHiddenCrystal,
   hurtKit,
   hurtSystem,
   isMain,
@@ -43,7 +46,10 @@ import {
   syncShields,
 } from "./sim.ts";
 import type { Game, Kit, SystemState } from "./types.ts";
+import { grantUnlockAt } from "./unlocks.ts";
 import { grantRandomItem } from "./wiki/bonus-item.ts";
+import { addArchiveQuest } from "./wiki/quests.ts";
+import { fleetToReach } from "./wiki/sector-map.ts";
 import { receiveAugment, receiveDrone, receiveWeapon } from "./wiki/make-room.ts";
 import {
   between,
@@ -133,8 +139,11 @@ export function showArchivePage(
     return false;
   }
   applyArchiveAlters(g, page.alters, "player");
+  stampArchiveImage(g, page.img);
+  const secret = applyArchiveMarks(g, page.marks);
   if (!pageHasArchive(page) && !page.environment) {
     applyArchiveAlters(g, page.alters, "enemy");
+    if (finishSecret(g, secret)) return true;
     return false;
   }
   // This page's environment replaces the one the previous event stored.
@@ -155,6 +164,7 @@ export function showArchivePage(
     if (page.boarders) beamBoarders(g, page.boarders);
     armEventEnvironment(g, page.environment);
     applyArchiveAlters(g, page.alters, "enemy");
+    if (finishSecret(g, secret)) return true;
     return true;
   }
   if (page.boarders) {
@@ -164,10 +174,12 @@ export function showArchivePage(
     }
     armEventEnvironment(g, page.environment);
     applyArchiveAlters(g, page.alters, "enemy");
+    if (finishSecret(g, secret)) return true;
     return g.phase === "combat";
   }
   armEventEnvironment(g, page.environment);
   applyArchiveAlters(g, page.alters, "enemy");
+  if (finishSecret(g, secret)) return true;
   return false;
 }
 
@@ -253,7 +265,14 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
     if (beacon && beacon.kind !== "boss") beacon.resolved = true;
     return;
   }
-  if (!choice || (!choiceHasArchive(choice) && !choice.environment && !choice.alters?.length))
+  if (
+    !choice ||
+    (!choiceHasArchive(choice) &&
+      !choice.environment &&
+      !choice.alters?.length &&
+      !choice.marks?.length &&
+      !choice.img)
+  )
     return;
   if (isCampaign(id) && handlerActed(g, before)) return;
   applyArchiveAlters(g, choice.alters, "player");
@@ -278,6 +297,8 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
     beginBoarding(g, choice.environment?.type === "PDS", choice.environment?.type === "sun");
   }
   armEventEnvironment(g, choice.environment);
+  stampArchiveImage(g, choice.img);
+  finishSecret(g, applyArchiveMarks(g, choice.marks));
 }
 
 function pageHasArchive(page: EventDef): boolean {
@@ -296,7 +317,9 @@ function emptySurrenderResult(choice: EventChoice): boolean {
     choice.grants?.length ||
     choice.boarders ||
     choice.environment ||
-    choice.alters?.length
+    choice.alters?.length ||
+    choice.marks?.length ||
+    choice.img
   )
     return false;
   return !choice.fx.some((fx) => fx.k !== "nothing" && fx.k !== "note");
@@ -363,6 +386,84 @@ const ARCHIVE_SYSTEMS = new Set<SysId>([
   "doors",
 ]);
 const ARCHIVE_KITS = new Set<KitId>(["hacking", "clonebay", "drones"]);
+
+/**
+ * Quest, secret sector, and map marks, in document order.
+ * True when a secret-sector jump was stored and still has to wait out a fight.
+ */
+function applyArchiveMarks(g: Game, marks: readonly ArchiveMark[] | undefined): boolean {
+  let secret = false;
+  for (const mark of marks ?? []) {
+    switch (mark.k) {
+      case "quest":
+        addArchiveQuest(g, mark.event);
+        break;
+      case "secretSector":
+        secret = true;
+        break;
+      case "distressBeacon":
+        markDistress(g);
+        break;
+      case "repair":
+        markRepair(g);
+        break;
+      case "fleet":
+        advanceFleet(g);
+        break;
+      case "revealMap":
+        for (const beacon of g.beacons) beacon.known = true;
+        break;
+      case "unlockShip":
+        grantUnlockAt(g, mark.id);
+        break;
+    }
+  }
+  return secret;
+}
+
+/** Start, exit, and boss beacons keep their kind. Every other beacon becomes a distress beacon. */
+function markDistress(g: Game): void {
+  const here = g.beacons.find((beacon) => beacon.id === g.here);
+  if (!here) return;
+  if (here.kind === "start" || here.kind === "exit" || here.kind === "boss") return;
+  here.kind = "distress";
+}
+
+/** The map draws REPAIR. The Last Stand repair station is a different flag and stays untouched. */
+function markRepair(g: Game): void {
+  const here = g.beacons.find((beacon) => beacon.id === g.here);
+  if (!here) return;
+  here.repair = true;
+}
+
+/** Move the rebel circle forward until it covers this beacon. The ship stays where it is. */
+function advanceFleet(g: Game): void {
+  const here = g.beacons.find((beacon) => beacon.id === g.here);
+  if (!here) return;
+  g.fleet = Math.max(g.fleet, fleetToReach(g, here));
+}
+
+/**
+ * A secret-sector tag jumps once this page or choice has finished and no fight is open.
+ * A fight that is still open stores the jump for when that fight ends.
+ * True when the jump happened, so the caller leaves the event card down.
+ */
+function finishSecret(g: Game, secret: boolean): boolean {
+  if (!secret || g.phase === "defeat") return false;
+  if (g.enemy || g.phase === "combat") {
+    g.secretSector = true;
+    return false;
+  }
+  enterHiddenCrystal(g);
+  return true;
+}
+
+/** The event card shows the archive image when that file is in the loaded pack. */
+export function stampArchiveImage(g: Game, name: string | undefined): void {
+  if (!name || !g.event || g.event.img) return;
+  const src = archiveImage(name);
+  if (src) g.event.img = src;
+}
 
 /** Page and choice alters. Player rows apply as soon as the cost is paid. Enemy rows wait until that ship exists. */
 function applyArchiveAlters(

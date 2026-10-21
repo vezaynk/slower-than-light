@@ -290,7 +290,10 @@ import {
   questEvent,
 } from "./wiki/quests.ts";
 import {
+  applyCrewMix,
   fightHull,
+  genSector,
+  overrideWeaponIds,
   pickElite,
   pickEnemy,
   requestFor,
@@ -306,6 +309,7 @@ import {
   showArchivePage,
   showShipGotAway,
   showShipVictory,
+  stampArchiveImage,
 } from "./archive-pay.ts";
 import { fightUnlock } from "./unlocks.ts"; // @agent:unlocks
 import type {
@@ -5885,6 +5889,7 @@ function retireFlagship(g: Game) {
 }
 
 function lose(g: Game, reason: "hull" | "crew") {
+  g.secretSector = false;
   g.phase = "defeat";
   g.outcome = g.training ? "tutorial" : reason;
   g.paused = true;
@@ -6340,9 +6345,16 @@ function makeEnemy(
     difficulty: g.difficulty,
   };
   const r = () => rand(g);
-  const hull = fightHull(tier, autoBlueprint, r);
+  const shipEvent = shipEventDef(tier);
+  const hull = fightHull(tier, autoBlueprint, r, genSector(ctx.sector, ctx.difficulty) - 1);
   if (hull) {
-    const built = shipFromSpec(g, specFromHull(hull, ctx, r), undefined);
+    const spec = specFromHull(hull, ctx, r);
+    // The crew block replaces each blueprint seat's race. The weapon override replaces the blueprint guns.
+    if (shipEvent?.crew?.length) applyCrewMix(spec, shipEvent.crew, r, tier);
+    if (shipEvent?.weaponOverride) {
+      spec.weapons = overrideWeaponIds(shipEvent.weaponOverride, r, tier);
+    }
+    const built = shipFromSpec(g, spec, undefined);
     citedEnemy(g, tier, built.ship, built.crew);
     return built;
   }
@@ -6351,14 +6363,19 @@ function makeEnemy(
       ? { cls: pickElite(r), pirate: false }
       : pickEnemy(ctx, r, { ...requestFor(tier), event });
   const spec = rollEnemy(picked.cls, picked.pirate, ctx, r);
+  if (shipEvent?.crew?.length) applyCrewMix(spec, shipEvent.crew, r, tier);
+  if (shipEvent?.weaponOverride) {
+    spec.weapons = overrideWeaponIds(shipEvent.weaponOverride, r, tier);
+  }
   const built = shipFromSpec(g, spec, picked.cls.faction);
   citedEnemy(g, tier, built.ship, built.crew);
   // Slug hacker (oxygen) and Slug hacker (doors): "Note: The enemy ship will have at least one Fire Beam or Fire Bomb."
   // The page prints no odds between the two guns. INFERRED: equal, one rand(g). Under 0.5 is firebeam, otherwise cask.
   // INFERRED: replace the first already-fitted gun's defId. A ship with no guns gets one via enemyGun.
-  // An explicit hull keeps the guns its blueprint named.
+  // An explicit hull keeps the guns its blueprint named. A weapon override already chose the guns.
   if (
     (event === "slug-hacker-oxygen" || event === "slug-hacker-doors") &&
+    !shipEvent?.weaponOverride &&
     !built.ship.weapons.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE")
   ) {
     const defId = rand(g) < 0.5 ? "BEAM_FIRE" : "BOMB_FIRE";
@@ -7229,6 +7246,8 @@ export function commitJump(g: Game, id: string) {
   // INFERRED: jumping away restores the engines. The page prints the restore on a win.
   clearEngineLimit(g);
   clearArchiveCaps(g.player);
+  // A jump away is not the secret-sector jump. The stored tag ends here.
+  g.secretSector = false;
   // INFERRED: jumping away ends the shield-virus half. The page only prints the half for that fight.
   clearShieldHalf(g);
   clearSystemOff(g);
@@ -7765,6 +7784,7 @@ export function choose(g: Game, id: string) {
   const resolve = () => {
     if (b) b.resolved = true;
     g.event = null;
+    if (openSecretSector(g)) return;
     g.phase = "map";
     g.paused = false;
   };
@@ -7955,7 +7975,18 @@ function sectorPool(g: Game, sector: number): string[] {
  * Sectors: the sector is not on the chart, the Rebels still follow, and enemy strength stays the Rock Homeworlds number.
  * The page gives 1 fuel and then spends that 1 fuel on the jump.
  */
+/**
+ * The secret-sector tag, once the fight that stored it has ended.
+ * A flee clears the flag in commitJump, and a defeat clears it in lose.
+ */
+function openSecretSector(g: Game): boolean {
+  if (!g.secretSector || g.enemy || g.phase === "defeat") return false;
+  enterHiddenCrystal(g);
+  return true;
+}
+
 export function enterHiddenCrystal(g: Game) {
+  g.secretSector = false;
   g.fuel += 1;
   g.fuel = Math.max(0, g.fuel - 1);
   g.player.shieldCharge = 0;
@@ -8138,6 +8169,7 @@ function openSectorStart(g: Game): void {
     body: page.body,
     choices,
   };
+  stampArchiveImage(g, page.img);
   g.phase = "event";
   g.paused = true;
 }
@@ -8153,6 +8185,7 @@ export function continueReward(g: Game) {
     startCombat(g, "boss", false);
     return;
   }
+  if (openSecretSector(g)) return;
   if (b?.kind === "exit" && !b.flag) {
     g.phase = "event";
     g.paused = true;
@@ -8364,6 +8397,7 @@ function tickBoarding(g: Game, dt: number) {
   g.shots = [];
   g.asb = false;
   delete g.asbAim;
+  if (openSecretSector(g)) return;
   g.phase = "map";
   // The same sentence: with the boarders gone, only a remaining hazard keeps the clock.
   // Asteroid Field stays until the jump. A sun or a pulsar can too. No hazard charges instantly.
@@ -8545,9 +8579,12 @@ export function step(g: Game, dt: number) {
     delete g.asbAim;
     g.pulsar = false;
     g.flare = false;
-    // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).
-    // A ship-event gotaway page replaces that card.
-    if (!showShipGotAway(g)) pageGotAway(g, g.fightEvent);
+    // A secret-sector tag stored on this fight jumps before the map card.
+    if (!openSecretSector(g)) {
+      // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).
+      // A ship-event gotaway page replaces that card.
+      if (!showShipGotAway(g)) pageGotAway(g, g.fightEvent);
+    }
   }
   stepShots(g, h);
   endCheck(g);

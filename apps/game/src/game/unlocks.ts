@@ -17,7 +17,7 @@
  */
 import { HULLS, type HullSpec } from "./hulls.ts";
 import type { Difficulty, Game } from "./types.ts";
-import { allAchievements } from "@stl/pack";
+import { allAchievements, allHulls, warnPack } from "@stl/pack";
 
 export const UNLOCKS_KEY = "stl:unlocks";
 
@@ -181,6 +181,26 @@ export function isUnlockedIn(state: UnlockState, hullId: string): boolean {
  * Pure: an event outcome unlocks a cruiser's Layout A. Writes only the run (`g.unlocked`) and its log.
  * The store copies `g.unlocked` into storage (noteUnlocks). Returns the line for a result card.
  */
+/** Player ship blueprints in the order the loaded pack lists them. */
+export function playerShipIds(): string[] {
+  const player = new Set(HULLS.map((hull) => hull.id));
+  return allHulls()
+    .filter((hull) => player.has(hull.id))
+    .map((hull) => hull.id);
+}
+
+/**
+ * Archive `<unlockShip id>`. The id is an index into playerShipIds. An index past that list grants nothing.
+ */
+export function grantUnlockAt(g: Game, index: number): void {
+  const hullId = playerShipIds()[index];
+  if (!hullId) {
+    warnPack(`An <unlockShip id="${index}"> is past the player ship list; it grants nothing.`);
+    return;
+  }
+  grantUnlock(g, hullId);
+}
+
 export function grantUnlock(g: Game, hullId: string): string {
   const hull = cruiserOf(hullId);
   if (!hull) return "";

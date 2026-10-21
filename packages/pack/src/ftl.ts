@@ -3,6 +3,7 @@ import type {
   AchievementCondition,
   AchievementDef,
   ArchiveAlter,
+  ArchiveMark,
   ArchiveBoarders,
   ArchiveEnvironment,
   ArchiveGrant,
@@ -28,10 +29,12 @@ import type {
   EmptyBeaconDef,
   FactionSurrender,
   RewardTable,
+  ShipCrewRow,
   ShipEventChance,
   ShipEventDef,
   ShipEventEnding,
   ShipEventEscape,
+  ShipWeaponOverride,
   StoreDef,
   SystemDef,
   SystemSlot,
@@ -148,7 +151,10 @@ export function packFromFtl(
     }
     for (const node of tagged(doc, "droneBlueprint")) {
       const row = readDrone(node);
-      if (row) drones.put(row);
+      if (!row) continue;
+      // The attribute's presence is the flag. Stand-in drones omit it, so their rooms stay visible.
+      if (node.getAttribute("NOLOC") != null) row.noloc = true;
+      drones.put(row);
     }
     for (const node of tagged(doc, "systemBlueprint")) {
       const read = readFtlSystem(node);
@@ -1057,8 +1063,14 @@ function readEventBody(
   const fx: EventEffect[] = [];
   const grants: ArchiveGrant[] = [];
   const alters: ArchiveAlter[] = [];
+  const marks: ArchiveMark[] = [];
   for (const item of elements(node)) {
     if (item.tagName === "text" || item.tagName === "choice") continue;
+    if (item.tagName === "img") {
+      const name = resolveText(item, strings)?.trim();
+      if (name && !event.img) event.img = name;
+      continue;
+    }
     if (item.tagName === "store") {
       event.store = true;
       continue;
@@ -1085,6 +1097,12 @@ function readEventBody(
       alters.push(alter);
       continue;
     }
+    const mark = readMark(item);
+    if (mark === "skip") continue;
+    if (mark) {
+      marks.push(mark);
+      continue;
+    }
     const grant = readGrant(item);
     if (grant) {
       grants.push(grant);
@@ -1095,6 +1113,7 @@ function readEventBody(
   if (fx.length > 0) event.fx = fx;
   if (grants.length > 0) event.grants = grants;
   if (alters.length > 0) event.alters = alters;
+  if (marks.length > 0) event.marks = marks;
   const environment = readEnvironment(node);
   if (environment) event.environment = environment;
   return event;
@@ -1166,11 +1185,13 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
     const fx: EventEffect[] = [];
     const grants: ArchiveGrant[] = [];
     const alters: ArchiveAlter[] = [];
+    const marks: ArchiveMark[] = [];
     for (const item of elements(node)) {
       if (item.tagName === "text") continue;
-      takeResultChild(item, choice, fx, grants, alters, strings);
+      takeResultChild(item, choice, fx, grants, alters, marks, strings);
     }
     if (alters.length > 0) choice.alters = alters;
+    if (marks.length > 0) choice.marks = marks;
     if (
       fx.length === 0 &&
       !choice.reward &&
@@ -1186,10 +1207,13 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
   const fx: EventEffect[] = [];
   const grants: ArchiveGrant[] = [];
   const alters: ArchiveAlter[] = [];
+  const marks: ArchiveMark[] = [];
   const load = attr(result, "load")?.trim();
   if (load) fx.push({ k: "goto", id: load });
-  for (const item of elements(result)) takeResultChild(item, choice, fx, grants, alters, strings);
+  for (const item of elements(result))
+    takeResultChild(item, choice, fx, grants, alters, marks, strings);
   if (alters.length > 0) choice.alters = alters;
+  if (marks.length > 0) choice.marks = marks;
   const nested = readChoices(result, strings);
   if (nested.length > 0) choice.choices = nested;
   const bare = elements(result).length === 0 && !load;
@@ -1214,6 +1238,7 @@ function takeResultChild(
   fx: EventEffect[],
   grants: ArchiveGrant[],
   alters: ArchiveAlter[],
+  marks: ArchiveMark[],
   strings: Map<string, string>,
 ) {
   if (item.tagName === "text") {
@@ -1222,10 +1247,21 @@ function takeResultChild(
     return;
   }
   if (item.tagName === "choice") return;
+  if (item.tagName === "img") {
+    const name = resolveText(item, strings)?.trim();
+    if (name && !choice.img) choice.img = name;
+    return;
+  }
   const alter = readAlter(item, strings);
   if (alter === "skip") return;
   if (alter) {
     alters.push(alter);
+    return;
+  }
+  const mark = readMark(item);
+  if (mark === "skip") return;
+  if (mark) {
+    marks.push(mark);
     return;
   }
   if (item.tagName === "autoReward") {
@@ -1339,6 +1375,32 @@ function readAlter(
   return undefined;
 }
 
+/** Quest, secret sector, and map marks. A quest with no event, or an unlock id that is not a whole number, is skipped. */
+function readMark(item: XmlElement): ArchiveMark | "skip" | undefined {
+  if (item.tagName === "quest") {
+    const event = attr(item, "event")?.trim() ?? "";
+    if (!event) {
+      warnPack("A <quest> has no event; it places nothing.");
+      return "skip";
+    }
+    return { k: "quest", event };
+  }
+  if (item.tagName === "secretSector") return { k: "secretSector" };
+  if (item.tagName === "distressBeacon") return { k: "distressBeacon" };
+  if (item.tagName === "repair") return { k: "repair" };
+  if (item.tagName === "fleet") return { k: "fleet" };
+  if (item.tagName === "reveal_map") return { k: "revealMap" };
+  if (item.tagName === "unlockShip") {
+    const id = intAttr(item, "id");
+    if (id == null || id < 0) {
+      warnPack("An <unlockShip> id is not a whole number; it grants nothing.");
+      return "skip";
+    }
+    return { k: "unlockShip", id };
+  }
+  return undefined;
+}
+
 const ENVIRONMENT_TYPES = new Set(["asteroid", "nebula", "pulsar", "sun", "storm", "PDS"]);
 const PDS_TARGETS = new Set(["player", "enemy", "all"]);
 
@@ -1388,7 +1450,7 @@ function shipEndingTag(tag: string): (typeof SHIP_ENDINGS)[number] | undefined {
   return SHIP_ENDINGS.find((name) => name === tag);
 }
 
-/** A root `<ship name>`. Crew and weapon overrides stay unread. The first of each ending tag wins. */
+/** A root `<ship name>`. The first of each ending, crew block, and weapon override wins. */
 function readShipEvent(
   node: XmlElement,
   strings: Map<string, string>,
@@ -1400,7 +1462,23 @@ function readShipEvent(
   const list = attr(node, "auto_blueprint")?.trim();
   if (list) row.autoBlueprint = list;
   const seen = new Set<string>();
+  let crewSeen = false;
+  let weaponsSeen = false;
   for (const item of elements(node)) {
+    if (item.tagName === "crew") {
+      if (crewSeen) continue;
+      crewSeen = true;
+      const crew = readShipCrew(item);
+      if (crew.length > 0) row.crew = crew;
+      continue;
+    }
+    if (item.tagName === "weaponOverride") {
+      if (weaponsSeen) continue;
+      weaponsSeen = true;
+      const override = readWeaponOverride(item);
+      if (override) row.weaponOverride = override;
+      continue;
+    }
     const tag = shipEndingTag(item.tagName);
     if (!tag || seen.has(tag)) continue;
     seen.add(tag);
@@ -1413,6 +1491,39 @@ function readShipEvent(
     else row.gotaway = ending;
   }
   return row;
+}
+
+/** `<crewMember type>` or `class`, plus `prop`. A row without a race or a weight is skipped. */
+function readShipCrew(node: XmlElement): ShipCrewRow[] {
+  const rows: ShipCrewRow[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "crewMember") continue;
+    const race = attr(item, "type")?.trim() || attr(item, "class")?.trim() || "";
+    const prop = numberAttr(item, "prop");
+    if (!race || prop == null) {
+      warnPack("A <crewMember> needs a type and a prop; it is skipped.");
+      continue;
+    }
+    rows.push({ race, prop });
+  }
+  return rows;
+}
+
+/** `<weaponOverride count>` and its `<name>` children, in order. A missing count is skipped. */
+function readWeaponOverride(node: XmlElement): ShipWeaponOverride | undefined {
+  const count = intAttr(node, "count");
+  if (count == null || count < 1) {
+    warnPack("A <weaponOverride> count is not a whole number above 0; it is skipped.");
+    return undefined;
+  }
+  const names: string[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "name") continue;
+    const name = ownText(item).trim();
+    if (name) names.push(name);
+  }
+  if (names.length === 0) return undefined;
+  return { count, names };
 }
 
 function readShipEnding(

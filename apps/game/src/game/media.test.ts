@@ -31,6 +31,8 @@ const ANIM = `<animations>
 <anim name="laser_shot"><sheet>laser_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
 <animSheet name="human" w="64" h="36" fw="16" fh="12">people/human.png</animSheet>
 <anim name="human_walk_down"><sheet>human</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
+<anim name="human_walk_left"><sheet>human</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
+<anim name="slug_walk_down"><sheet>human</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
 <anim name="human_type_down"><sheet>human</sheet><desc length="4" x="0" y="1"/><time>1</time></anim>
 <anim name="human_punch_down"><sheet>human</sheet><desc length="4" x="0" y="2"/><time>1</time></anim>
 </animations>`;
@@ -100,6 +102,14 @@ describe("archive media", () => {
     assert.equal(crewPoseFrame("human", "work", 0)?.row, 1);
     assert.equal(crewPoseFrame("human", "fight", 2)?.row, 0);
     assert.equal(crewPoseFrame("human", "fight", 2)?.sy, 0);
+    const left = crewPoseFrame("human", "walk", 0, "left");
+    assert.equal(left?.row, 0);
+    assert.equal(left?.mirror, false);
+    assert.equal(crewPoseFrame("human", "walk", 0, "up")?.row, 2);
+    assert.equal(crewPoseFrame("human", "walk", 0, "up")?.mirror, false);
+    const flipped = crewPoseFrame("slug", "walk", 0, "left");
+    assert.equal(flipped?.row, 2);
+    assert.equal(flipped?.mirror, true);
     assert.equal(roomIconUrl("pilot"), "blob:media-3");
     assert.equal(droneLayerUrl("COMBAT_1", "on"), "blob:media-4");
     assert.equal(soundCue("laser")?.volume, 0.8);

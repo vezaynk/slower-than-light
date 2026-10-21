@@ -30,18 +30,17 @@ describe("archive sprite scale", () => {
     });
   });
 
-  it("turns a tall weapon sheet so the barrel matches the stand-in length", () => {
+  it("turns a tall weapon sheet so its thickness matches the stand-in", () => {
     const height = 24;
     const standIn = weaponSlotBox(GUN_ART.w, GUN_ART.h, height);
     assert.equal(standIn.turned, false);
     assert.equal(standIn.h, height);
     assert.equal(standIn.w, (height * GUN_ART.w) / GUN_ART.h);
-    // Burst Laser I is a 16×60 sheet and points up. The barrel matches the stand-in length.
+    // Burst Laser I is a 16×60 sheet and points up. The barrel stays that thin shape, at the stand-in thickness.
     const laser = weaponSlotBox(16, 60, height);
     assert.equal(laser.turned, true);
-    assert.equal(laser.w, standIn.w);
-    assert.ok(laser.h < height);
-    assert.ok(laser.h > 8);
+    assert.equal(laser.h, height);
+    assert.equal(laser.w, (height * 60) / 16);
   });
 
   it("sends a right-pointing hardpoint's shot out of the muzzle", () => {

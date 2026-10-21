@@ -426,6 +426,26 @@ export function hopLanding(
   return cells[cells.length - 1];
 }
 
+/** Which way a walker is heading. Grid y grows downward, so a negative dy faces up. */
+export type CrewDir = "down" | "up" | "left" | "right";
+
+export function dirOf(dx: number, dy: number): CrewDir {
+  if (Math.abs(dx) >= Math.abs(dy) && dx !== 0) return dx < 0 ? "left" : "right";
+  if (dy < 0) return "up";
+  if (dy > 0) return "down";
+  return "down";
+}
+
+/** Direction of the segment the walker is on. A one-cell path faces down. */
+function segmentDir(cells: WalkCell[], move: number): CrewDir {
+  if (cells.length < 2) return "down";
+  const along = clamp01(move) * (cells.length - 1);
+  const i = Math.min(cells.length - 2, Math.max(0, Math.floor(along + 1e-6)));
+  const a = cells[i]!;
+  const b = cells[i + 1]!;
+  return dirOf(b.x - a.x, b.y - a.y);
+}
+
 export function walkPose(
   ship: WalkShip,
   roomId: string,
@@ -433,28 +453,29 @@ export function walkPose(
   via: string | undefined,
   move: number,
   goal?: WalkCell,
-): { x: number; y: number; faceLeft: boolean } | null {
+): { x: number; y: number; faceLeft: boolean; dir: CrewDir } | null {
   const cells = walkCells(ship, roomId, path, via, goal);
   if (!cells?.length) return null;
   const seam = viaSeam(via);
   const at = seam ? sampleSeam(cells, move, seam) : sample(cells, move);
+  const dir = segmentDir(cells, move);
   if (seam) {
     const ahead = sampleSeam(cells, Math.min(1, clamp01(move) + 1e-3), seam);
-    if (ahead.x < at.x - 0.01) return { ...at, faceLeft: true };
-    if (ahead.x > at.x + 0.01) return { ...at, faceLeft: false };
+    if (ahead.x < at.x - 0.01) return { ...at, faceLeft: true, dir };
+    if (ahead.x > at.x + 0.01) return { ...at, faceLeft: false, dir };
   }
   const steps = cells.length - 1;
   const along = clamp01(move) * steps;
   const begin = Math.min(cells.length - 1, Math.ceil(along - 1e-6));
   for (let i = begin; i < cells.length; i++) {
     const cx = cells[i]!.x + 0.5;
-    if (cx < at.x - 0.01) return { ...at, faceLeft: true };
-    if (cx > at.x + 0.01) return { ...at, faceLeft: false };
+    if (cx < at.x - 0.01) return { ...at, faceLeft: true, dir };
+    if (cx > at.x + 0.01) return { ...at, faceLeft: false, dir };
   }
   if (cells.length >= 2) {
     const prev = cells[cells.length - 2]!;
     const last = cells[cells.length - 1]!;
-    if (prev.x !== last.x) return { ...at, faceLeft: prev.x > last.x };
+    if (prev.x !== last.x) return { ...at, faceLeft: prev.x > last.x, dir };
   }
-  return { ...at, faceLeft: false };
+  return { ...at, faceLeft: false, dir };
 }

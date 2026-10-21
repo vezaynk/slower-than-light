@@ -145,6 +145,10 @@
   animation: crew-stun-wobble 0.32s steps(2, end) infinite;
 }
 
+.token.is-stunned .crew-sprite.is-mirror {
+  animation-name: crew-stun-wobble-left;
+}
+
 .token.is-stunned .crew-sprite.is-cycle .crew-frame {
   animation: none;
   opacity: 0;
@@ -167,8 +171,18 @@
   }
 }
 
+@keyframes crew-stun-wobble-left {
+  from {
+    transform: translateX(calc(-1px * var(--ship-scale, 1))) rotate(-7deg) scaleX(-1);
+  }
+  to {
+    transform: translateX(calc(1px * var(--ship-scale, 1))) rotate(7deg) scaleX(-1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .token.is-stunned .crew-sprite {
+  .token.is-stunned .crew-sprite,
+  .token.is-stunned .crew-sprite.is-mirror {
     animation: none;
   }
 

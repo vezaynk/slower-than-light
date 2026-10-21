@@ -10,11 +10,14 @@ import type { KinId } from "@/game/extras/kin";
 import { pixelRuns, type PixelRun } from "@/game/gear-look";
 import {
   archiveGeneration,
+  crewBody,
   crewLayers,
   crewPoseFrame,
   loadedImage,
   paintCrew,
   subscribeArchive,
+  type CrewDir,
+  type SpriteBody,
 } from "@/game/pack/media";
 import type { Crew } from "@/game/types";
 import "./archive-art.css";
@@ -78,6 +81,7 @@ export function CrewSprite({
   cycle = false,
   loopAll = false,
   phase = 0,
+  dir = "down",
 }: {
   kin: string | undefined;
   uniform: string;
@@ -90,6 +94,8 @@ export function CrewSprite({
   /** Every pose plays its four frames on the CSS clock, walk and fight too (the radial menu preview). */
   loopAll?: boolean;
   phase?: number;
+  /** Archive sheet direction. A missing left clip is flipped in CSS. */
+  dir?: CrewDir;
 }) {
   const id = kin ?? "human";
   const skin = (KIN_SKIN as Record<string, string>)[id] ?? KIN_SKIN.human;
@@ -98,7 +104,7 @@ export function CrewSprite({
   const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   const [sheets, setSheets] = useState<string[] | null>(null);
   useEffect(() => {
-    const slices = frames.map((index) => crewPoseFrame(id, pose, index));
+    const slices = frames.map((index) => crewPoseFrame(id, pose, index, dir));
     if (slices.some((slice) => !slice)) {
       setSheets(null);
       return;
@@ -151,12 +157,18 @@ export function CrewSprite({
     return () => {
       cancel = true;
     };
-  }, [generation, id, pose, frame, uniform, looping]);
-  const spriteClass = ["crew-sprite", className, looping ? `is-cycle is-${pose}` : ""]
+  }, [generation, id, pose, frame, uniform, looping, dir]);
+  const sample = crewPoseFrame(id, pose, frames[0] ?? 0, dir);
+  const spriteClass = [
+    "crew-sprite",
+    className,
+    looping ? `is-cycle is-${pose}` : "",
+    sample?.mirror ? "is-mirror" : "",
+  ]
     .filter(Boolean)
     .join(" ");
   if (sheets && sheets.length === frames.length) {
-    const sample = crewPoseFrame(id, pose, frames[0] ?? 0);
+    const body = unionBody(sheets);
     return (
       <span
         className={`${spriteClass} is-sheet`}
@@ -166,6 +178,14 @@ export function CrewSprite({
             ["--frame-w" as string]: String(sample?.fw ?? size),
             ["--frame-h" as string]: String(sample?.fh ?? size),
             ["--sprite-size" as string]: `${size}px`,
+            ...(body
+              ? {
+                  ["--body-x" as string]: String(body.x),
+                  ["--body-y" as string]: String(body.y),
+                  ["--body-w" as string]: String(body.w),
+                  ["--body-h" as string]: String(body.h),
+                }
+              : {}),
             ...(looping ? { "--pose-phase": String(phase) } : {}),
           } as CSSProperties
         }
@@ -219,6 +239,7 @@ export function CrewFace({
   frame = 0,
   cycle = false,
   loopAll = false,
+  dir = "down",
 }: {
   crew: Crew;
   size?: number;
@@ -227,6 +248,7 @@ export function CrewFace({
   frame?: number;
   cycle?: boolean;
   loopAll?: boolean;
+  dir?: CrewDir;
 }) {
   return (
     <CrewSprite
@@ -238,7 +260,27 @@ export function CrewFace({
       frame={frame}
       cycle={cycle}
       loopAll={loopAll}
+      dir={dir}
       phase={posePhase(crew.id)}
     />
   );
+}
+
+/** One box around every painted frame, so a cycle does not change size as a limb moves. */
+function unionBody(urls: string[]): SpriteBody | undefined {
+  let box: SpriteBody | undefined;
+  for (const url of urls) {
+    const body = crewBody(url);
+    if (!body) continue;
+    if (!box) {
+      box = { ...body };
+      continue;
+    }
+    const x = Math.min(box.x, body.x);
+    const y = Math.min(box.y, body.y);
+    const right = Math.max(box.x + box.w, body.x + body.w);
+    const bottom = Math.max(box.y + body.h, body.y + body.h);
+    box = { x, y, w: right - x, h: bottom - y };
+  }
+  return box;
 }

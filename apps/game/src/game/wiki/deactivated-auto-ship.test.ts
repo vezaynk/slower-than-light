@@ -57,10 +57,14 @@ describe("Deactivated Auto-ship", () => {
     const parts = g.player.parts;
     const seen = visited(g);
     choose(g, "c:deactivated-auto-ship:0");
-    assert.equal(g.phase, "map");
-    assert.equal(g.event, null);
-    const note = g.log.find((line) => line.startsWith("Low scrap:"));
-    assert.ok(note, g.log.join(" | "));
+    assert.equal(g.phase, "event");
+    const note = g.event?.body ?? "";
+    assert.match(note, /^Low scrap: \d+\.$/);
+    assert.equal(
+      g.log.some((line) => line.startsWith("Low scrap:")),
+      false,
+    );
+    assert.equal(g.event?.choices[0]?.id, "ack");
     const n = Number(note.slice("Low scrap: ".length).replace(".", ""));
     assert.ok(n >= 7 && n <= 10, note);
     assert.equal(g.scrap, 10 + n);
@@ -69,6 +73,9 @@ describe("Deactivated Auto-ship", () => {
     assert.equal(g.player.parts, parts);
     assert.equal(g.fleet, 5);
     assert.deepEqual(visited(g), seen);
+    choose(g, "ack");
+    assert.equal(g.phase, "map");
+    assert.equal(g.event, null);
   });
 
   it("downloading the data pays low scrap with resources or starts an Auto-ship fight", () => {
@@ -84,12 +91,22 @@ describe("Deactivated Auto-ship", () => {
       const parts = g.player.parts;
       const seen = visited(g);
       choose(g, "c:deactivated-auto-ship:1");
-      if (g.phase === "combat") {
+      const reactivate =
+        "You accidentally reactivate the ships AI. Its weapons and shields immediately go online; prepare for a fight!";
+      const armed =
+        g.phase === "combat" ||
+        (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
+      if (armed) {
         fight = true;
+        if (g.phase === "event") {
+          assert.equal(g.event?.body, reactivate);
+          assert.equal(g.log.includes(reactivate), false);
+          choose(g, "ship-resume");
+        }
+        assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "deactivated-auto-ship");
         assert.equal(g.enemy?.faction, "auto");
         assert.equal(g.scrap, 10);
-        assert.match(g.log.join("\n"), /reactivate the ships AI/);
       } else {
         data = true;
         const body = g.event?.body ?? "";
@@ -164,8 +181,19 @@ describe("Deactivated Auto-ship", () => {
         assert.equal(no.fleet, 5);
         assert.equal(no.phase, "event");
         choose(g, "q:deactivated-auto:yes");
-        if (g.phase === "combat") {
+        const reactivate =
+          "You accidentally reactivate the ships AI. Its weapons and shields immediately go online; prepare for a fight!";
+        const armed =
+          g.phase === "combat" ||
+          (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
+        if (armed) {
           yesFight = true;
+          if (g.phase === "event") {
+            assert.equal(g.event?.body, reactivate);
+            assert.equal(g.log.includes(reactivate), false);
+            choose(g, "ship-resume");
+          }
+          assert.equal(g.phase, "combat");
           assert.equal(g.fightEvent, "deactivated-auto-ship");
           assert.equal(g.enemy?.faction, "auto");
           assert.equal(g.scrap, 10);

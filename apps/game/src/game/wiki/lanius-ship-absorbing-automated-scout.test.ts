@@ -39,11 +39,15 @@ describe("Lanius ship absorbing automated scout", () => {
   it("fighting starts a Lanius escape with no surrender offer", () => {
     const g = createGame(1);
     open(g);
+    const told = "You power up your weapons, which quickly gets the attention of the ship.";
     choose(g, "c:lanius-ship-absorbing-automated-scout:0");
-    assert.ok(
-      g.log.includes("You power up your weapons, which quickly gets the attention of the ship."),
-    );
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(told));
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.log.includes(told), false);
     assert.equal(g.fightEvent, "lanius-ship-absorbing-automated-scout");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.scrap, 10);

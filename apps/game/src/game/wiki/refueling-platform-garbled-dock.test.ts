@@ -56,10 +56,10 @@ function hasId(g: Game, id: string): boolean {
 type Kind = "abandoned" | "trap" | "breach";
 
 function kindOf(g: Game): Kind | null {
-  if (g.event?.body === ABANDONED) return "abandoned";
-  const text = g.log.join("\n");
-  if (text.includes(TRAP)) return "trap";
-  if (text.includes(BREACH)) return "breach";
+  const body = g.event?.body ?? "";
+  if (body.startsWith(ABANDONED)) return "abandoned";
+  if (body.includes(TRAP)) return "trap";
+  if (body.includes(BREACH)) return "breach";
   return null;
 }
 
@@ -120,7 +120,8 @@ describe("Refueling platform garbled broadcast dock", () => {
     const hull2 = g.player.hull;
     assert.equal(choiceDisabled(g, DOORS), null);
     choose(g, DOORS);
-    assert.equal(g.event?.body, DOORS_TEXT);
+    assert.equal(g.event?.body, `${DOORS_TEXT}\n\nFuel: 5.`);
+    assert.equal(g.log.includes("Fuel: 5."), false);
     assert.equal(g.fuel, before + 5);
     assert.equal(g.phase, "event");
     assert.equal(g.enemy, null);
@@ -135,7 +136,8 @@ describe("Refueling platform garbled broadcast dock", () => {
     choose(left, SIGNAL);
     const gained = left.fuel - fuel;
     assert.ok(gained >= 3 && gained <= 5, `abandoned fuel ${gained}`);
-    assert.equal(left.event?.body, ABANDONED);
+    assert.equal(left.event?.body, `${ABANDONED}\n\nFuel: ${gained}.`);
+    assert.equal(left.log.includes(`Fuel: ${gained}.`), false);
     assert.equal(left.phase, "event");
     assert.equal(hasId(left, CONT), true);
     assert.equal(hasId(left, S2), true);
@@ -152,12 +154,18 @@ describe("Refueling platform garbled broadcast dock", () => {
     const damage = eng.damage;
     const bars = eng.level - eng.damage;
     choose(sprung, SIGNAL);
-    assert.ok(sprung.log.includes(TRAP));
+    assert.equal(sprung.phase, "event");
+    assert.equal(sprung.event?.choices[0]?.id, "ship-resume");
+    assert.equal(sprung.event?.body, TRAP);
+    assert.equal(sprung.log.includes(TRAP), false);
     assert.equal(sprung.player.hull, hull - 3);
     assert.equal(sprung.player.systems.engines.damage, damage + Math.min(3, bars));
+    assert.equal(sprung.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 0);
+    choose(sprung, "ship-resume");
     assert.equal(sprung.phase, "combat");
     assert.equal(sprung.enemy?.faction, "lanius");
     assert.equal(sprung.fightEvent, "refueling-platform-garbled-broadcast");
+    assert.equal(sprung.log.includes(TRAP), false);
     assert.equal(sprung.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 0);
 
     const boarded = docked(breach);
@@ -167,7 +175,10 @@ describe("Refueling platform garbled broadcast dock", () => {
       (id) => [id, boarded.player.systems[id].damage] as const,
     );
     choose(boarded, SIGNAL);
-    assert.ok(boarded.log.includes(BREACH));
+    assert.equal(boarded.phase, "event");
+    assert.equal(boarded.event?.choices[0]?.id, "ship-resume");
+    assert.equal(boarded.event?.body, BREACH);
+    assert.equal(boarded.log.includes(BREACH), false);
     assert.equal(boarded.player.hull, hullB);
     for (const [id, dmg] of systems) assert.equal(boarded.player.systems[id].damage, dmg, id);
     const diffs = boarded.player.rooms.map((r, i) => r.breach - before[i]);
@@ -180,8 +191,12 @@ describe("Refueling platform garbled broadcast dock", () => {
     assert.equal(boarders.length, 1);
     assert.equal(boarders[0]?.kin, "anaerobic");
     assert.equal(boarders[0]?.name, "Lanius");
+    assert.ok(boarded.log.includes("1 lanius boarder beams aboard your ship."));
+    choose(boarded, "ship-resume");
     assert.equal(boarded.phase, "combat");
     assert.equal(boarded.fightEvent, "refueling-platform-garbled-broadcast");
+    assert.equal(boarded.log.includes(BREACH), false);
+    assert.equal(boarded.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 1);
   });
 
   it("keeps the sensor scans off until the station is abandoned, then gates them by level", () => {
@@ -199,7 +214,12 @@ describe("Refueling platform garbled broadcast dock", () => {
     assert.equal(bare.player.parts, parts);
     assert.equal(bare.phase, "event");
     assert.equal(bare.enemy, null);
-    assert.equal(bare.event?.body, ABANDONED);
+    assert.ok(bare.event?.body?.startsWith(ABANDONED));
+    assert.match(bare.event?.body ?? "", /\n\nFuel: [3-5]\./);
+    assert.equal(
+      bare.log.some((line) => /^Fuel: [3-5]\.$/.test(line)),
+      false,
+    );
 
     const mid = docked(abandoned);
     choose(mid, SIGNAL);
@@ -211,7 +231,8 @@ describe("Refueling platform garbled broadcast dock", () => {
     choose(mid, S2);
     const df = mid.fuel - midFuel;
     assert.ok(df >= 1 && df <= 3, `sensors2 fuel ${df}`);
-    assert.equal(mid.event?.body, SCAN_FUEL);
+    assert.equal(mid.event?.body, `${SCAN_FUEL}\n\nFuel: ${df}.`);
+    assert.equal(mid.log.includes(`Fuel: ${df}.`), false);
     assert.equal(mid.player.parts, midParts);
     assert.equal(mid.phase, "event");
     assert.equal(mid.enemy, null);
@@ -230,7 +251,9 @@ describe("Refueling platform garbled broadcast dock", () => {
     const dp = high.player.parts - highParts;
     assert.ok(df3 >= 2 && df3 <= 3, `sensors3 fuel ${df3}`);
     assert.ok(dp >= 1 && dp <= 3, `sensors3 parts ${dp}`);
-    assert.equal(high.event?.body, SCAN_PARTS);
+    assert.equal(high.event?.body, `${SCAN_PARTS}\n\nFuel: ${df3}. Drone parts: ${dp}.`);
+    assert.equal(high.log.includes(`Fuel: ${df3}.`), false);
+    assert.equal(high.log.includes(`Drone parts: ${dp}.`), false);
     assert.equal(high.phase, "event");
     assert.equal(high.enemy, null);
   });
@@ -239,13 +262,16 @@ describe("Refueling platform garbled broadcast dock", () => {
     const g = createGame(1);
     open(g);
     const fuel = g.fuel;
+    const screech =
+      "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!";
     choose(g, HAIL);
-    assert.ok(
-      g.log.includes(
-        "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!",
-      ),
-    );
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.ok(g.event?.body?.includes(screech));
+    assert.equal(g.log.includes(screech), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.log.includes(screech), false);
     assert.equal(g.fightEvent, "refueling-platform-garbled-broadcast");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.scrap, 10);
@@ -263,6 +289,10 @@ describe("Refueling platform garbled broadcast dock", () => {
     const d = g.fuel - fuel;
     assert.ok(d >= 3 && d <= 8, `fuel delta ${d}`);
     assert.ok(g.scrap > 10);
-    assert.ok(g.log.some((line) => /^Fuel: [3-5]\.$/.test(line)));
+    assert.match(g.event?.body ?? "", /Fuel: [3-5]\./);
+    assert.equal(
+      g.log.some((line) => /^Fuel: [3-5]\.$/.test(line)),
+      false,
+    );
   });
 });

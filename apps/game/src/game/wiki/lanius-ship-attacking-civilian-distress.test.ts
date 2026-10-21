@@ -31,7 +31,14 @@ describe("Lanius ship attacking civilian distress", () => {
   it("fighting starts a Lanius fight", () => {
     const g = createGame(1);
     open(g);
+    const lead =
+      "You move in to intercept the ship. Detecting a greater threat, the Lanius prepare to fight.";
     choose(g, "c:lanius-ship-attacking-civilian-distress:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-ship-attacking-civilian-distress");
     assert.equal(g.enemy?.faction, "lanius");
@@ -96,12 +103,20 @@ describe("Lanius ship attacking civilian distress", () => {
       const crew = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:lanius-ship-attacking-civilian-distress:2");
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-      if (g.phase === "combat") {
+      const rogue =
+        g.event?.choices.some((c) => c.id === "ship-resume") === true && g.enemy != null;
+      if (rogue) {
         fight = true;
+        assert.match(g.event?.body ?? "", /gone completely rogue/);
+        assert.equal(
+          g.log.some((line) => line.includes("gone completely rogue")),
+          false,
+        );
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "lanius-ship-attacking-civilian-distress");
         assert.equal(g.enemy?.faction, "lanius");
         assert.equal(g.scrap, 10);
-        assert.ok(g.log.some((line) => line.includes("gone completely rogue")));
       } else {
         peace = true;
         assert.match(g.event?.body ?? "", /powers down its weapons/);

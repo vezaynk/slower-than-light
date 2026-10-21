@@ -35,7 +35,7 @@ describe("Rebel fight (Crystal)", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Rebel ship on arrival and leaves no button", () => {
+  it("shows the Rebel intro card on arrival", () => {
     // Wiki citations:
     // > "As soon as you arrive, a Rebel ship jumps in after you; they must be really hot on your tail." — [[Rebel fight (Crystal)]]
     // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Crystal)]]
@@ -57,13 +57,19 @@ describe("Rebel fight (Crystal)", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rebel-fight-crystal:0");
+    choose(g, "c:rebel-fight-crystal:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "rebel-fight-crystal");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

@@ -52,8 +52,8 @@ describe("Auto-ship fight", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Auto-ship on arrival and leaves no button", () => {
-    // The page has no choice. "Fight an Auto-ship."
+  it("shows the Auto-ship intro card on arrival", () => {
+    // The page has no choice. "Fight an Auto-ship." The intro stays on the card until that button.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -71,13 +71,20 @@ describe("Auto-ship fight", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    const intro = g.event?.body ?? "";
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, "c:auto-ship-fight:0");
+    choose(g, "c:auto-ship-fight:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "auto");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "auto-ship-fight");
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.some((line) => INTROS.includes(line)));
+    assert.equal(g.log.includes(intro), false);
   });
 });

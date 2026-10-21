@@ -19,16 +19,19 @@ describe("Rebel ship attacking refueling outpost intervene", () => {
   it("prints the defy sentence and fights a Rebel ship that never escapes", () => {
     const g = createGame(1);
     open(g);
+    const told = `The rebel responds to your threat, "I don't know who you are, but no one defies the Rebel Fleet!" They move in to engage.`;
     choose(g, "c:rebel-ship-attacking-refueling-outpost:0");
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(told));
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.faction, "rebel");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.fightEvent, "rebel-ship-attacking-refueling-outpost");
     assert.equal(g.scrap, 10);
     assert.equal(g.enemyEscape?.mode, "never");
-    assert.ok(
-      g.log.includes(
-        `The rebel responds to your threat, "I don't know who you are, but no one defies the Rebel Fleet!" They move in to engage.`,
-      ),
-    );
+    assert.equal(g.log.includes(told), false);
   });
 });

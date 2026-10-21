@@ -199,8 +199,18 @@ describe("Skipped blue options", () => {
       } else if (body.includes("calms down")) {
         seen.add("calm");
         assert.equal(run.crew.filter((c) => c.side === "player").length, crew + 1);
-      } else if (run.phase === "combat" && !run.enemy) {
+      } else if ((run.event?.body ?? "").includes("crazed frenzy")) {
         seen.add("crazed");
+        assert.equal(
+          run.log.some((line) => line.includes("crazed frenzy")),
+          false,
+        );
+        assert.ok(run.log.some((line) => line.includes("boarder beams aboard")));
+        assert.equal(run.event?.choices[0]?.id, "ship-resume");
+        assert.equal(run.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 1);
+        choose(run, "ship-resume");
+        assert.equal(run.phase, "combat");
+        assert.equal(run.enemy, null);
         assert.equal(run.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 1);
       }
     }

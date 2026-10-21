@@ -30,7 +30,7 @@ import { SCRIPTED_SURRENDERS } from "./surrender-offers.ts";
 export { SCRIPTED_SURRENDERS };
 export type { ScriptedReward, ScriptedSurrender } from "./surrender-offers.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
-import { beginBoarding, intruderOnPlayer, log, rand, startCombat } from "../sim.ts";
+import { beginBoarding, intruderOnPlayer, log, rand, showEventLines, startCombat } from "../sim.ts";
 import type { Crew, Game } from "../types.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./bonus-item.ts";
 import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
@@ -759,8 +759,7 @@ export function surrenderChoose(g: Game, id: string): boolean {
     // Crystal fight with surrender offer (Human crew), Finish them off: the fight continues.
     // Wiki citations:
     // > "You cut off communications and prepare to finish them off." — [[Crystal fight#The ship surrenders]]
-    log(
-      g,
+    showEventLines(g, [
       plan.event === "crystal-fight"
         ? "You cut off communications and prepare to finish them off."
         : plan.event === "the-black-raven"
@@ -773,7 +772,7 @@ export function surrenderChoose(g: Game, id: string): boolean {
             : plan.event === "crystal-fight-with-surrender-offer-human-crew"
               ? "Who knows how many humans will be saved if you kill them now."
               : "Offer refused. They brace for more.",
-    );
+    ]);
     return true;
   }
   // Crystal fight, Accept. Soldier once, goods three times, nothing twice. The reward is not shown before this.
@@ -855,7 +854,6 @@ export function pageResult(g: Game, text: string, offer?: SurrenderOffer) {
     if (offer.parts) got.push(`Drone parts: ${offer.parts}.`);
     if (weaponName) got.push(`${weaponName}.`);
     lines.push([...got, ...extras].join(" "));
-    for (const l of got) log(g, l);
   }
   g.event = {
     title: here(g)?.name ?? "Event",
@@ -880,10 +878,10 @@ export function pageFight(
   escape?: EscapePlan,
   asteroid = false,
 ) {
-  log(g, text);
   g.event = null;
   startCombat(g, tier, asteroid, slug);
   if (escape) g.enemyEscape = escape;
+  if (text.trim()) showEventLines(g, [text]);
 }
 
 /**
@@ -1260,12 +1258,11 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     } else if (r === "boarders") {
       // Wiki citations:
       // > "Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, \"Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!\" Immediately after this battle-cry your ship is filled with the sound of crates breaking open..." — [[Destroyed cargo ship]]
-      log(
-        g,
-        'Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, "Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!" Immediately after this battle-cry your ship is filled with the sound of crates breaking open...',
-      );
       humanBoarders(g, 2, 4);
       beginBoarding(g);
+      showEventLines(g, [
+        'Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, "Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!" Immediately after this battle-cry your ship is filled with the sound of crates breaking open...',
+      ]);
     } else {
       // Wiki citations:
       // > "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!" — [[Destroyed cargo ship]]

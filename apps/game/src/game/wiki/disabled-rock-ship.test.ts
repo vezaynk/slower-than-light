@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choiceDisabled, createGame } from "../sim.ts";
+import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerChoose } from "./filler-events.ts";
@@ -47,13 +47,21 @@ describe("Disabled Rock ship", () => {
       const guns = g.player.weapons.length;
       open(g);
       fillerChoose(g, "c:disabled-rock-ship:0");
-      if (g.phase === "combat") {
+      const fighting =
+        g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+      if (fighting) {
         patrol = true;
+        assert.match(g.event?.body ?? "", /Filthy pirates/);
+        assert.equal(
+          g.log.some((line) => line.includes("Filthy pirates")),
+          false,
+        );
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.enemy?.faction, "rock");
         assert.equal(g.enemy?.pirate, false);
         assert.ok(g.scrap - 10 >= 7 && g.scrap - 10 <= 23);
         assert.equal(raised(g, fuel, missiles, parts), 2);
-        assert.ok(g.log.some((line) => line.includes("Filthy pirates")));
         assert.equal(g.player.weapons.length, guns);
       } else {
         quiet = true;
@@ -81,11 +89,19 @@ describe("Disabled Rock ship", () => {
       const g = createGame(seed);
       open(g);
       fillerChoose(g, "c:disabled-rock-ship:1");
-      if (g.phase === "combat") {
+      const fighting =
+        g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+      if (fighting) {
         fight += 1;
+        assert.match(g.event?.body ?? "", /killing spree/);
+        assert.equal(
+          g.log.some((line) => line.includes("killing spree")),
+          false,
+        );
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.scrap, 10);
         assert.equal(g.enemy?.faction, "rock");
-        assert.ok(g.log.some((line) => line.includes("killing spree")));
       } else {
         nothing += 1;
         assert.match(g.event?.body ?? "", /hasten to leave/);

@@ -59,7 +59,11 @@ describe("Slug hacker (doors) hacking", () => {
     open(g);
     assert.equal(choiceDisabled(g, "c:slug-hacker-doors:1"), null);
     choose(g, "c:slug-hacker-doors:1");
-    assert.ok(g.log.includes(LEAD));
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, LEAD);
+    assert.equal(g.log.includes(LEAD), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "slug-hacker-doors");
     assert.equal(g.enemy?.faction, "slug");

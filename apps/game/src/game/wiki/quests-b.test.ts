@@ -56,12 +56,19 @@ function arrive(g: Game, id: string, fight = false): string {
   return g.event!.body;
 }
 
+/** A fight lead-in stays on the card until Continue. Absent once combat, or a win card, is up. */
+function resumeFight(g: Game) {
+  if (g.event?.choices.some((c) => c.id === "ship-resume")) choose(g, "ship-resume");
+}
+
 function winByHull(g: Game) {
+  resumeFight(g);
   g.enemy!.hull = 0;
   for (let i = 0; i < 3 && g.phase === "combat"; i++) step(g, 1 / 30);
 }
 
 function winByCrew(g: Game) {
+  resumeFight(g);
   for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
   for (let i = 0; i < 3 && g.phase === "combat"; i++) step(g, 1 / 30);
 }
@@ -260,6 +267,11 @@ describe("Capture the ship", () => {
       "Fight a Pirate ship.",
     );
     choose(g, "q:capture:fight");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, "The pirate ship moves to engage.");
+    assert.equal(g.log.includes("The pirate ship moves to engage."), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "quest-capture-ship");
     assert.equal(g.enemy!.pirate, true);
@@ -314,7 +326,14 @@ describe("Encrypted federation signal", () => {
     reach(["base", "assist", "cache", "trap", "empty"], (seed) => {
       const g = atCited(createGame(seed), "Civilian Sector", "Encrypted federation signal");
       choose(g, "c:encrypted-federation-signal:0");
-      if (g.phase === "combat") {
+      const trap = g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+      if (trap) {
+        const lead =
+          'As you approach the signal you receive a message on a Rebel channel, "I knew we\'d catch some Federation fish with this signal. Prepare to be boarded, scum!"';
+        assert.equal(g.event?.body, lead);
+        assert.equal(g.log.includes(lead), false);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "encrypted-federation-signal");
         assert.equal(g.enemy!.faction, "rebel");
         const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length;
@@ -331,26 +350,35 @@ describe("Encrypted federation signal", () => {
         choose(g, "ack");
         const body = arrive(g, "fed-assist");
         const id = g.event!.choices[0]!.id;
+        let fightEvent: string;
+        let asb: boolean;
+        let lead: string;
         if (body.includes("bombarded by an automated drone")) {
           assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
-          choose(g, id);
-          assert.equal(
-            g.fightEvent,
-            id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist",
-          );
-          assert.equal(g.asb, false);
+          fightEvent =
+            id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist";
+          asb = false;
+          lead = "The automated drone turns on you.";
         } else if (body.includes("using their Anti-Ship Battery")) {
           assert.equal(id, "q:fed-base:assist-asb");
-          choose(g, id);
-          assert.equal(g.fightEvent, "quest-fed-assist-asb");
-          assert.equal(g.asb, true);
+          fightEvent = "quest-fed-assist-asb";
+          asb = true;
+          lead = "You move in to assist.";
         } else {
           assert.ok(body.includes("taking down the wing leader"));
           assert.equal(id, "q:fed-base:assist-wing");
-          choose(g, id);
-          assert.equal(g.fightEvent, "quest-fed-assist-wing");
-          assert.equal(g.asb, true);
+          fightEvent = "quest-fed-assist-wing";
+          asb = true;
+          lead = "You swoop in to assist, taking down the wing leader.";
         }
+        choose(g, id);
+        assert.equal(g.phase, "event");
+        assert.equal(g.event?.choices[0]?.id, "ship-resume");
+        assert.equal(g.event?.body, lead);
+        assert.equal(g.log.includes(lead), false);
+        choose(g, "ship-resume");
+        assert.equal(g.fightEvent, fightEvent);
+        assert.equal(g.asb, asb);
         assert.equal(g.phase, "combat");
         return "assist";
       }
@@ -375,6 +403,16 @@ describe("Engi ship attacked by Mantis ship", () => {
         "Engi ship attacked by Mantis ship",
       );
       choose(g, "c:engi-ship-attacked-by-mantis-ship:0");
+      const mantisLead =
+        "You approach to find a Mantis ship assaulting a small Engi space station. You prepare for a fight!";
+      const engiLead =
+        'You receive another message from the ship, this time with a Mantis at the comm-log. "Foolish meatsacks," he yells. Sensors indicate the ship is moving in to attack and boarders teleport from the station.';
+      const lead = g.enemy!.faction === "engi" ? engiLead : mantisLead;
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
+      assert.equal(g.event?.body, lead);
+      assert.equal(g.log.includes(lead), false);
+      choose(g, "ship-resume");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemySurrender!.chance, 0);
       assert.equal(g.enemyEscape!.mode, "never");
@@ -497,6 +535,11 @@ describe("Merchant's request", () => {
           "Fight a Pirate ship.",
         );
         choose(g, "q:merchant:pirate");
+        assert.equal(g.phase, "event");
+        assert.equal(g.event?.choices[0]?.id, "ship-resume");
+        assert.equal(g.event?.body, "The pirate turns on you.");
+        assert.equal(g.log.includes("The pirate turns on you."), false);
+        choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.enemySurrender!.chance, 0);
         assert.equal(g.fightEvent, "quest-merchant-pirate");
@@ -580,7 +623,15 @@ describe("Nebula wreckage", () => {
     const b = setup(4);
     choose(b, "q:abadoth:slug");
     choose(b, "q:abadoth:anodyne");
+    const zoltanLead =
+      "There is a moment of silence, and suddenly the Zoltan ship cloaks - must have been the wrong word to use... now you've got a fight on your hands!";
+    assert.equal(b.phase, "event");
+    assert.equal(b.event?.choices[0]?.id, "ship-resume");
+    assert.equal(b.event?.body, zoltanLead);
+    assert.equal(b.log.includes(zoltanLead), false);
+    choose(b, "ship-resume");
     assert.equal(b.phase, "combat");
     assert.equal(b.enemy!.faction, "zoltan");
+    assert.equal(b.fightEvent, "quest-abadoth-zoltan");
   });
 });

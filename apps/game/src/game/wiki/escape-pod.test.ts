@@ -57,16 +57,23 @@ describe("Escape pod", () => {
       const names = g.crew.map((c) => c.name);
       open(g);
       fillerChoose(g, "c:escape-pod:1");
-      if (g.phase === "combat") {
+      const furious =
+        "The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt.";
+      const mantisAboard = g.crew.some((c) => c.side === "enemy" && c.kin === "mantis");
+      const boardedCard =
+        mantisAboard &&
+        (g.phase === "combat" ||
+          (g.phase === "event" && g.event?.choices[0]?.id === "ship-resume"));
+      if (boardedCard) {
         boarded = true;
+        assert.ok(g.event?.body.includes(furious));
+        assert.equal(g.log.includes(furious), false);
+        assert.match(g.event?.body ?? "", /is lost/);
         assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis").length, 1);
         assert.equal(players(g), crew - 1);
-        assert.match(g.log.join(" "), /is lost/);
-        assert.ok(
-          g.log.includes(
-            "The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt.",
-          ),
-        );
+        if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
+        assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis").length, 1);
       } else if (/god of mercy/.test(g.event?.body ?? "")) {
         mantis = true;
         assert.equal(players(g), crew);
@@ -106,10 +113,19 @@ describe("Escape pod", () => {
       const crew = players(g);
       open(g);
       fillerChoose(g, "c:escape-pod:1");
-      if (g.phase !== "combat") continue;
+      const mantisAboard = g.crew.some((c) => c.side === "enemy" && c.kin === "mantis");
+      const kill =
+        mantisAboard &&
+        (g.phase === "combat" ||
+          (g.phase === "event" && g.event?.choices[0]?.id === "ship-resume"));
+      if (!kill) continue;
       seen = true;
       assert.equal(players(g), crew);
-      assert.match(g.log.join(" "), /revived/);
+      assert.match(g.event?.body ?? "", /revived/);
+      assert.equal(/revived/.test(g.log.join(" ")), false);
+      assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis").length, 1);
+      if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
+      assert.equal(g.phase, "combat");
       assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis").length, 1);
     }
     assert.equal(seen, true);

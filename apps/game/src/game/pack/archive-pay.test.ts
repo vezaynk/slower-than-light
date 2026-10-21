@@ -371,6 +371,11 @@ describe("archive event payoffs", () => {
 
     const ambush = createGame(9);
     jumpTo(ambush, "cited:ember-ambush");
+    assert.equal(ambush.phase, "event");
+    assert.ok(ambush.event?.body.includes("A hull drops in."));
+    assert.equal(ambush.log.includes("A hull drops in."), false);
+    assert.equal(ambush.event?.choices[0]?.id, "ship-resume");
+    choose(ambush, "ship-resume");
     assert.equal(ambush.phase, "combat");
     assert.equal(ambush.asteroid, true);
     assert.equal(ambush.enemy?.name, "Ember Hull");
@@ -439,28 +444,53 @@ describe("archive event payoffs", () => {
 
     const field = createGame(20);
     jumpTo(field, "cited:ember-field");
+    assert.equal(field.phase, "event");
+    assert.ok(field.event?.body.includes("ember-field"));
+    assert.equal(field.log.includes("ember-field"), false);
+    assert.equal(field.event?.choices[0]?.id, "ship-resume");
+    choose(field, "ship-resume");
     assert.equal(field.phase, "combat");
     assert.equal(field.asteroid, true);
     assert.equal(field.enemy?.name, "Ember Hull");
 
     const sun = createGame(21);
     jumpTo(sun, "cited:ember-sun");
+    assert.equal(sun.phase, "event");
+    assert.ok(sun.event?.body.includes("ember-sun"));
+    assert.equal(sun.log.includes("ember-sun"), false);
+    choose(sun, "ship-resume");
+    assert.equal(sun.phase, "combat");
     assert.equal(sun.flare, true);
     assert.ok((sun.flareWait ?? 0) > 0);
 
     const wave = createGame(22);
     jumpTo(wave, "cited:ember-wave");
+    assert.equal(wave.phase, "event");
+    assert.ok(wave.event?.body.includes("ember-wave"));
+    assert.equal(wave.log.includes("ember-wave"), false);
+    choose(wave, "ship-resume");
+    assert.equal(wave.phase, "combat");
     assert.equal(wave.pulsar, true);
     assert.ok((wave.pulsarWait ?? 0) > 0);
 
     const battery = createGame(23);
     jumpTo(battery, "cited:ember-battery");
+    assert.equal(battery.phase, "event");
+    assert.ok(battery.event?.body.includes("ember-battery"));
+    assert.equal(battery.log.includes("ember-battery"), false);
+    choose(battery, "ship-resume");
+    assert.equal(battery.phase, "combat");
     assert.equal(battery.asb, true);
     assert.equal(battery.asbAim, "all");
     assert.ok(battery.asbWait > 0);
 
     const cover = createGame(24);
     jumpTo(cover, "cited:ember-cover");
+    assert.equal(cover.phase, "event");
+    assert.ok(cover.event?.body.includes("ember-cover"));
+    assert.equal(cover.log.includes("ember-cover"), false);
+    choose(cover, "ship-resume");
+    assert.equal(cover.phase, "combat");
     assert.equal(cover.asb, true);
     assert.equal(cover.asbAim, "enemy");
 

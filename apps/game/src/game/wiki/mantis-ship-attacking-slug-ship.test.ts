@@ -45,22 +45,36 @@ describe("Mantis ship attacking Slug ship", () => {
     assert.equal(out.phase, "map");
     assert.equal(out.scrap, 10);
 
+    const mantisLead = "You lock onto the Mantis ship and engage.";
     const mantis = createGame(2);
     open(mantis);
     choose(mantis, "c:mantis-ship-attacking-slug-ship:0");
+    assert.equal(mantis.phase, "event");
+    assert.equal(mantis.event?.choices[0]?.id, "ship-resume");
+    assert.equal(mantis.event?.body, mantisLead);
+    assert.equal(mantis.log.includes(mantisLead), false);
+    choose(mantis, "ship-resume");
     assert.equal(mantis.phase, "combat");
     assert.equal(mantis.fightEvent, "mantis-ship-attacking-slug-ship");
     assert.equal(mantis.enemy?.faction, "mantis");
     assert.equal(mantis.enemyEscape?.mode, "never");
     assert.equal(mantis.scrap, 10);
+    assert.equal(mantis.log.includes(mantisLead), false);
 
+    const slugLead = "You move to finish what the Mantis have started.";
     const slug = createGame(3);
     open(slug);
     choose(slug, "c:mantis-ship-attacking-slug-ship:1");
+    assert.equal(slug.phase, "event");
+    assert.equal(slug.event?.choices[0]?.id, "ship-resume");
+    assert.equal(slug.event?.body, slugLead);
+    assert.equal(slug.log.includes(slugLead), false);
+    choose(slug, "ship-resume");
     assert.equal(slug.phase, "combat");
     assert.equal(slug.fightEvent, "mantis-ship-attacking-slug-ship-slug");
     assert.equal(slug.enemy?.faction, "slug");
     assert.equal(slug.enemyEscape?.mode, "never");
+    assert.equal(slug.log.includes(slugLead), false);
     assert.equal(
       surrenderPlan(
         { tier: "pool", event: "mantis-ship-attacking-slug-ship-slug", faction: "slug" },

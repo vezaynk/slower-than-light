@@ -19,10 +19,17 @@ describe("Pirate ship attacking civilian escape", () => {
   it("fights a Pirate ship that never escapes", () => {
     const g = createGame(1);
     open(g);
+    const lead = "You power up your weapons and engage the pirate ship.";
     choose(g, "c:pirate-ship-attacking-civilian:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-ship-attacking-civilian");
     assert.equal(g.enemyEscape?.mode, "never");
+    assert.equal(g.log.includes(lead), false);
   });
 });

@@ -38,7 +38,7 @@ describe("Mantis fight in nebula (Slug)", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Mantis ship on arrival and leaves no button", () => {
+  it("shows the intro card on arrival, then the fight button starts the Mantis ship", () => {
     // Wiki citations:
     // > "Fight a Mantis ship (default rewards)." — [[Mantis fight in nebula (Slug)]]
     // The page has no choice. The printed sentence, then "Fight a Mantis ship." nebula=true. unique=true.
@@ -59,13 +59,18 @@ describe("Mantis fight in nebula (Slug)", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:mantis-fight-in-nebula-slug:0");
+    choose(g, "c:mantis-fight-in-nebula-slug:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "mantis-fight-in-nebula-slug");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

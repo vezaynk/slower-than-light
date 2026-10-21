@@ -54,10 +54,16 @@ describe("Pirate briber", () => {
     const fight = createGame(2);
     open(fight);
     choose(fight, "c:pirate-briber:1");
-    assert.equal(fight.phase, "combat");
+    const lead = "The pirate ship stops its pursuit and locks weapons onto your ship.";
+    assert.equal(fight.phase, "event");
+    assert.equal(fight.event?.body, lead);
+    assert.equal(fight.log.includes(lead), false);
+    assert.equal(fight.event?.choices[0]?.id, "ship-resume");
     assert.equal(fight.fightEvent, "pirate-briber");
     assert.equal(fight.enemy?.pirate, true);
     assert.equal(fight.scrap, 10);
+    choose(fight, "ship-resume");
+    assert.equal(fight.phase, "combat");
   });
 
   it("a destroyed ship pays random scrap only, and a crew kill pays medium scrap with resources", () => {
@@ -128,10 +134,16 @@ describe("Pirate briber", () => {
       const hull = g.player.hull;
       choose(g, "q:pirate-briber:gone");
       const body = g.event?.body ?? "";
-      if (g.phase === "store") {
+      if (g.event?.choices.some((c) => c.id === "q:open-store")) {
         seen.add("store");
+        assert.match(body, /arms dealer/);
+        assert.equal(
+          g.log.some((line) => /arms dealer/.test(line)),
+          false,
+        );
         assert.equal(g.scrap, scrap);
-        assert.ok(g.log.some((line) => /arms dealer/.test(line)));
+        choose(g, "q:open-store");
+        assert.equal(g.phase, "store");
       } else if (/patch your ship/.test(body)) {
         seen.add("repair");
         assert.equal(g.player.hull, hull + 15);

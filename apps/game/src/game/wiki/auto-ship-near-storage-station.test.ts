@@ -107,8 +107,19 @@ describe("Auto-ship near storage station", () => {
       };
       assert.equal(choiceDisabled(g, "c:auto-ship-near-storage-station:2"), null);
       choose(g, "c:auto-ship-near-storage-station:2");
-      if (g.phase === "combat") {
+      const detected =
+        "Before you can get close enough to scan the station, the automated ship detects you and moves in to attack!";
+      const fightCard =
+        g.phase === "combat" ||
+        (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
+      if (fightCard) {
         fight = true;
+        if (g.phase === "event") {
+          assert.equal(g.event?.body, detected);
+          assert.equal(g.log.includes(detected), false);
+          choose(g, "ship-resume");
+        }
+        assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "auto-ship-near-storage-station");
         assert.equal(g.scrap, 10);
       } else {

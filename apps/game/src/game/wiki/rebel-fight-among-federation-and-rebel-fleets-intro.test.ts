@@ -51,7 +51,7 @@ describe("Rebel fight among Federation and Rebel fleets intro", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Rebel ship on arrival and leaves no button", () => {
+  it("starts the Rebel ship on arrival from the intro card", () => {
     // The page has no choice. One of the six printed intros, then "Fight a Rebel ship." unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -72,13 +72,19 @@ describe("Rebel fight among Federation and Rebel fleets intro", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const intro = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rebel-fight-among-federation-and-rebel-fleets:0");
+    choose(g, "c:rebel-fight-among-federation-and-rebel-fleets:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "rebel-fight-among-federation-and-rebel-fleets");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(intro), false);
   });
 });

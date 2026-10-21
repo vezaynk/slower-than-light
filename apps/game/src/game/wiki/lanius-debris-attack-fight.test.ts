@@ -16,18 +16,20 @@ function open(g: Game) {
 }
 
 describe("Lanius ship in rich debris field attack fight", () => {
-  it("attacking logs the printed lead-in and fights a Lanius ship", () => {
+  it("attacking shows the printed lead-in on the card and fights a Lanius ship", () => {
     const g = createGame(1);
     open(g);
+    const lead =
+      "You go on the offensive and power up your weapons - with any luck, you'll soon have the mineral field all to yourself.";
     choose(g, "c:lanius-ship-in-rich-debris-field:1");
-    assert.equal(g.phase, "combat");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-in-rich-debris-field");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes(
-        "You go on the offensive and power up your weapons - with any luck, you'll soon have the mineral field all to yourself.",
-      ),
-    );
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
   });
 });

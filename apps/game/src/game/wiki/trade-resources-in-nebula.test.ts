@@ -84,29 +84,29 @@ describe("Trade resources in nebula", () => {
       const scrap = g.scrap;
       assert.equal(choiceDisabled(g, take.id), null);
       choose(g, take.id);
-      assert.equal(g.phase, "map");
+      const spent =
+        pay === "fuel"
+          ? `Fuel: -${cost}.`
+          : pay === "missiles"
+            ? `Missiles: -${cost}.`
+            : `Drone parts: -${cost}.`;
+      const gainedLine =
+        get === "fuel"
+          ? `Fuel: ${gain}.`
+          : get === "missiles"
+            ? `Missiles: ${gain}.`
+            : `Drone parts: ${gain}.`;
+      assert.equal(g.phase, "event");
+      assert.ok(g.event?.body?.includes(spent));
+      assert.ok(g.event?.body?.includes(gainedLine));
+      assert.equal(g.log.includes(spent), false);
+      assert.equal(g.log.includes(gainedLine), false);
       assert.equal(g.scrap, scrap);
       assert.equal(have(g, pay), 30 - cost);
       assert.equal(have(g, get), 30 + gain);
       assert.equal(have(g, third), 30);
-      assert.ok(
-        g.log.includes(
-          pay === "fuel"
-            ? `Fuel: -${cost}.`
-            : pay === "missiles"
-              ? `Missiles: -${cost}.`
-              : `Drone parts: -${cost}.`,
-        ),
-      );
-      assert.ok(
-        g.log.includes(
-          get === "fuel"
-            ? `Fuel: ${gain}.`
-            : get === "missiles"
-              ? `Missiles: ${gain}.`
-              : `Drone parts: ${gain}.`,
-        ),
-      );
+      choose(g, "ack");
+      assert.equal(g.phase, "map");
     }
     assert.deepEqual([...kinds].sort(), [
       "fuel:missiles",

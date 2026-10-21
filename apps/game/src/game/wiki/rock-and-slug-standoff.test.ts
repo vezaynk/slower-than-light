@@ -118,13 +118,22 @@ describe("Rock and Slug standoff", () => {
       open(g);
       choose(g, "c:rock-and-slug-standoff:0");
       choose(g, "s:rock-slug:demand");
-      if (g.phase === "combat") {
+      const fighting =
+        g.phase === "combat" ||
+        (g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume"));
+      if (fighting) {
         fight = true;
         assert.equal(g.scrap, 10);
         assert.equal(g.enemy?.faction, "rock");
         assert.equal(g.enemy?.pirate, false);
         assert.equal(g.player.hull, hull);
-        assert.ok(g.log.some((line) => line.includes("slime balls")));
+        assert.ok((g.event?.body ?? "").includes("slime balls"));
+        assert.equal(
+          g.log.some((line) => line.includes("slime balls")),
+          false,
+        );
+        if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
       } else if (/massive explosion/.test(g.event?.body ?? "")) {
         boom = true;
         assert.equal(g.player.hull, hull - 5);

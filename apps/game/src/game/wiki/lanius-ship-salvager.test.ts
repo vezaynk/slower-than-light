@@ -43,11 +43,18 @@ describe("Lanius ship salvager", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-salvager:0");
-    assert.equal(g.phase, "combat");
+    const lead =
+      "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.fightEvent, "lanius-ship-salvager");
+    assert.equal(g.scrap, 10);
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
     assert.equal(pageWin(g, "lanius-ship-salvager", false), false);
     assert.equal(pageWin(g, "lanius-ship-salvager", true), false);
-    assert.equal(g.scrap, 10);
   });
 
   it("leaving shows the printed jump sentence and nothing happens", () => {
@@ -136,12 +143,19 @@ describe("Lanius ship salvager", () => {
     assert.ok(leave);
     const fuel = fight.fuel;
     choose(fight, "q:lanius-salvager:attack");
-    assert.equal(fight.phase, "combat");
+    const lead =
+      "You move in and power up your weapons. Detecting the threat, they stop what they were doing and prepare for a fight.";
+    assert.equal(fight.phase, "event");
+    assert.equal(fight.event?.body, lead);
+    assert.equal(fight.log.includes(lead), false);
+    assert.equal(fight.event?.choices[0]?.id, "ship-resume");
     assert.equal(fight.fightEvent, "lanius-ship-salvager");
-    assert.equal(pageWin(fight, "lanius-ship-salvager", false), false);
-    assert.equal(pageWin(fight, "lanius-ship-salvager", true), false);
     assert.equal(fight.scrap, 10);
     assert.equal(fight.fuel, fuel);
+    choose(fight, "ship-resume");
+    assert.equal(fight.phase, "combat");
+    assert.equal(pageWin(fight, "lanius-ship-salvager", false), false);
+    assert.equal(pageWin(fight, "lanius-ship-salvager", true), false);
 
     choose(leave, "q:lanius-salvager:leave");
     assert.match(leave.event?.body ?? "", /derisive tone/);

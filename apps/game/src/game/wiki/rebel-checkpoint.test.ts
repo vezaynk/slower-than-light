@@ -109,7 +109,13 @@ describe("Rebel checkpoint", () => {
       assert.ok(text, body);
       texts.add(text);
       choose(g, "q:rebel-checkpoint:contact");
-      if (g.phase === "combat") {
+      const fighting =
+        g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+      if (fighting) {
+        assert.match(g.event?.body ?? "", /eavesdropping Rebel/);
+        assert.equal(/eavesdropping Rebel/.test(g.log.join("\n")), false);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.enemy?.faction, "rebel");
         assert.equal(g.enemy?.pirate, false);
         assert.equal(g.fightEvent, "rebel-checkpoint");

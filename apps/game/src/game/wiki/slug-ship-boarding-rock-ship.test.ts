@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame } from "../sim.ts";
+import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerChoose } from "./filler-events.ts";
@@ -35,11 +35,22 @@ describe("Slug ship boarding Rock ship", () => {
       const g = createGame(seed);
       open(g);
       fillerChoose(g, "c:slug-ship-boarding-rock-ship:0");
-      if (g.phase === "combat") {
+      const charging =
+        g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume";
+      if (charging) {
         fight = true;
         assert.equal(g.enemy?.faction, "slug");
         assert.equal(g.scrap, 10);
-        assert.ok(g.log.some((line) => line.includes("change course")));
+        assert.match(
+          g.event?.body ?? "",
+          /You charge weapons and the Slugs quickly change course to meet your charge/,
+        );
+        assert.equal(
+          g.log.some((line) => line.includes("change course")),
+          false,
+        );
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
       } else {
         down = true;
         assert.match(g.event?.body ?? "", /back down/);
@@ -63,11 +74,19 @@ describe("Slug ship boarding Rock ship", () => {
       const g = createGame(seed);
       open(g);
       fillerChoose(g, "c:slug-ship-boarding-rock-ship:1");
-      if (g.phase === "combat") {
+      const charging =
+        g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume";
+      if (charging) {
         fight += 1;
         assert.equal(g.enemy?.faction, "rock");
         assert.equal(g.scrap, 10);
-        assert.ok(g.log.some((line) => line.includes("don't deserve to live")));
+        assert.match(g.event?.body ?? "", /don't deserve to live/);
+        assert.equal(
+          g.log.some((line) => line.includes("don't deserve to live")),
+          false,
+        );
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
       } else {
         nothing += 1;
         assert.match(g.event?.body ?? "", /leave them alone/);

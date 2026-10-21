@@ -74,15 +74,20 @@ describe("Crystal fight surrender", () => {
     assert.equal(seen.size, HAILS.length);
   });
 
-  it("ignoring them keeps the fight going", () => {
+  it("ignoring them shows the cut-off card and the fight continues", () => {
     // Wiki citations:
     // > "You cut off communications and prepare to finish them off." — [[Crystal fight#The ship surrenders]]
+    const cut = "You cut off communications and prepare to finish them off.";
     const g = quiet(4);
     offer(g);
     choose(g, REFUSE_ID);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, cut);
+    assert.equal(g.log.includes(cut), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "crystal");
-    assert.ok(g.log.some((row) => /cut off communications/.test(row)));
     assert.equal(g.scrap, 10);
   });
 

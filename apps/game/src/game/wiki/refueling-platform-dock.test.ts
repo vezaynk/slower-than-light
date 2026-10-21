@@ -41,7 +41,7 @@ function kindOf(g: Game): Kind | null {
   if (g.event?.body === STEAL) return "steal";
   if (g.event?.body === IGNITE) return "ignite";
   if (g.event?.body === STAFF) return "staff";
-  if (g.phase === "combat" && g.log.includes(AMBUSH)) return "ambush";
+  if (g.event?.body?.includes(AMBUSH)) return "ambush";
   return null;
 }
 
@@ -132,14 +132,21 @@ describe("Refueling platform dock", () => {
     const sprungEng = sprung.player.systems.engines.damage;
     const sprungBars = sprung.player.systems.engines.level - sprungEng;
     choose(sprung, "s:refuel-dock:wait");
-    assert.ok(sprung.log.includes(WAIT));
+    assert.equal(sprung.phase, "event");
+    assert.equal(sprung.event?.choices[0]?.id, "ship-resume");
+    assert.equal(sprung.event?.body, WAIT);
+    assert.equal(sprung.log.includes(WAIT), false);
+    assert.equal(sprung.enemy, null);
     assert.equal(sprung.player.hull, sprungHull - 3);
     assert.equal(sprung.player.systems.engines.damage, sprungEng + Math.min(3, sprungBars));
     const boarders = sprung.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.ok(boarders.length >= 2 && boarders.length <= 4, `boarders ${boarders.length}`);
     assert.ok(boarders.every((c) => c.kin === "human"));
+    assert.ok(sprung.log.some((line) => /boarders beam aboard/.test(line)));
+    choose(sprung, "ship-resume");
     assert.equal(sprung.phase, "combat");
     assert.equal(sprung.enemy, null);
+    assert.equal(sprung.log.includes(WAIT), false);
 
     const sealed = docked(found.staff);
     sealed.player.systems.doors.level = 2;
@@ -153,11 +160,16 @@ describe("Refueling platform dock", () => {
     assert.ok(sealed.event?.body.includes("fish-in-a-barrel"));
 
     const pirate = docked(found.ambush);
+    assert.equal(pirate.phase, "event");
+    assert.equal(pirate.event?.choices[0]?.id, "ship-resume");
+    assert.equal(pirate.event?.body, AMBUSH);
+    assert.equal(pirate.log.includes(AMBUSH), false);
+    choose(pirate, "ship-resume");
     assert.equal(pirate.phase, "combat");
     assert.equal(pirate.fightEvent, "refueling-platform");
     assert.equal(pirate.enemy?.pirate, true);
     assert.equal(pirate.scrap, 10);
-    assert.ok(pirate.log.includes(AMBUSH));
+    assert.equal(pirate.log.includes(AMBUSH), false);
     assert.equal(pirate.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 0);
   });
 });

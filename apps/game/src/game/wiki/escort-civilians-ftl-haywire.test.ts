@@ -38,8 +38,12 @@ describe("Escort civilians FTL haywire", () => {
     const missiles = g.missiles;
     const parts = g.player.parts;
     choose(g, "c:escort-civilians-ftl-haywire:0");
-    const paid = g.log.map((line) => line.match(/^Low scrap: (\d+)\.$/)).find(Boolean);
-    assert.ok(paid);
+    const paid = (g.event?.body ?? "").match(/Low scrap: (\d+)\./);
+    assert.ok(paid, g.event?.body);
+    assert.equal(
+      g.log.some((line) => /^Low scrap: \d+\.$/.test(line)),
+      false,
+    );
     const n = Number(paid[1]);
     assert.ok(n >= 7 && n <= 10);
     assert.equal(g.scrap, 10 + n);

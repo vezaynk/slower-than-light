@@ -6,6 +6,10 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-rockmen-near-sun:0";
 const DEST = "Boarders: Rockmen near sun";
+const INTROS = [
+  'As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, "Prepare to burn, fleshy meat-sack aliens!"',
+  "With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement.",
+];
 const SECTORS = ["ROCK_SECTOR", "ROCK_HOME"];
 
 function beacon(): Beacon {
@@ -68,7 +72,7 @@ describe("Boarders: Rockmen near sun", () => {
     assert.ok(seen.has(2) && seen.has(3), [...seen].sort().join(","));
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
+  it("shows the intro card on arrival, then applies the red line", () => {
     // Wiki citations:
     // > "2-3 rock boarders beam aboard your ship." — [[Boarders: Rockmen near sun]]
     // The page has no choice. "2-3 rock boarders beam aboard your ship." redgiant=true.
@@ -89,13 +93,20 @@ describe("Boarders: Rockmen near sun", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const intro = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, ID);
+    choose(g, ID);
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy, null);
     assert.equal(g.flare, true);
     assert.ok((g.flareWait ?? 0) >= 28 && (g.flareWait ?? 0) < 34);
     const rocks = boarded(g);
     assert.ok(rocks.length >= 2 && rocks.length <= 3, String(rocks.length));
     assert.ok(g.log.some((line) => line.includes("rock boarders beam aboard your ship.")));
+    assert.equal(g.log.includes(intro), false);
   });
 });

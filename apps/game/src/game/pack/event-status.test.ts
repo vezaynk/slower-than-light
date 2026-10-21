@@ -194,7 +194,8 @@ describe("archive status, upgrade, crew loss, and augment removal", () => {
       g.crew.some((c) => (c.cloneIn ?? 0) > 0),
       false,
     );
-    assert.ok(g.log.includes("The bay stays dark."));
+    assert.ok(g.event?.body.includes("The bay stays dark."));
+    assert.equal(g.log.includes("The bay stays dark."), false);
   });
 
   it("drops one fitted augment", () => {

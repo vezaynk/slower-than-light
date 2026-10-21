@@ -62,8 +62,8 @@ describe("Rebel fight among Rebel fleet intro", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Rebel ship on arrival and leaves no button", () => {
-    // The page has no choice. One of the seven printed intros, then "Fight a Rebel ship." unique=false.
+  it("starts the Rebel ship from the arrival card", () => {
+    // The arrival card stays up. One of the seven printed intros, then "Fight a Rebel ship." unique=false.
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight among Rebel fleet]]
     // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
@@ -86,13 +86,17 @@ describe("Rebel fight among Rebel fleet intro", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const body = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rebel-fight-among-rebel-fleet:0");
+    choose(g, "c:rebel-fight-among-rebel-fleet:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "rebel-fight-among-rebel-fleet");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
   });
 });

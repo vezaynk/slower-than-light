@@ -33,11 +33,19 @@ describe("Pirate ship attacking Crystal", () => {
     // > "Nothing happens." — [[Pirate ship attacking Crystal]]
     const g = createGame(1);
     open(g);
+    const lead =
+      "You chase down the pirate before it has a chance to engage the civilian ship. When it detects the real threat, it turns to face you.";
     choose(g, "c:pirate-ship-attacking-crystal:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "pirate-ship-attacking-crystal");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.scrap, 10);
+    assert.equal(g.log.includes(lead), false);
 
     const leave = createGame(2);
     open(leave);

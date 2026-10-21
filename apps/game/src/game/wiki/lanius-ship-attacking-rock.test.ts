@@ -27,10 +27,17 @@ function resources(body: string): number {
 }
 
 describe("Lanius ship attacking Rock", () => {
-  it("attacking starts a Lanius fight", () => {
+  it("attacking shows the Rock distress card and starts a Lanius fight", () => {
+    const lead =
+      "The Rockmen need your help - you target the Lanius ship and grimly prepare for battle.";
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-rock:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-ship-attacking-rock");
     assert.equal(g.scrap, 10);

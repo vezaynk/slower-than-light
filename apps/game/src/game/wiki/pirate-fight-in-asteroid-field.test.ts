@@ -32,8 +32,8 @@ describe("Pirate fight in asteroid field", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Pirate ship in an asteroid field on arrival and leaves no button", () => {
-    // The page has no choice. "Fight a Pirate ship." asteroidfield=true. unique=false.
+  it("starts the Pirate ship in an asteroid field from the arrival card", () => {
+    // The arrival card stays up. "Fight a Pirate ship." asteroidfield=true. unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -51,12 +51,15 @@ describe("Pirate fight in asteroid field", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:pirate-fight-in-asteroid-field:0");
+    choose(g, "c:pirate-fight-in-asteroid-field:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.asteroid, true);
     assert.equal(g.fightEvent, "pirate-fight-in-asteroid-field");
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
   });
 });

@@ -60,7 +60,9 @@ describe("sector short names and start events", () => {
     assert.equal(g.route[0]?.sector, "STANDARD_SPACE");
     assert.equal(g.tutorial, true);
     assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, "Welcome to a new sector!");
+    assert.equal(g.event?.body, "Welcome to a new sector!\n\nScrap: 7.");
+    assert.equal(g.log.includes("Welcome to a new sector!"), false);
+    assert.equal(g.log.includes("Scrap: 7."), false);
     assert.equal(g.scrap, 17);
     assert.equal(g.beacons.find((beacon) => beacon.kind === "start")?.resolved, true);
 
@@ -110,6 +112,12 @@ describe("sector short names and start events", () => {
   it("stays in the fight a start event begins", () => {
     install("START_FIGHT");
     const g = createGame(4);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, "A patrol.");
+    assert.equal(g.log.includes("A patrol."), false);
+    assert.ok(g.enemy);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.ok(g.enemy);
     assert.equal(g.event, null);
@@ -135,7 +143,9 @@ describe("sector short names and start events", () => {
     assert.equal(g.fuel, fuel + 10);
     assert.equal(g.player.hull, Math.min(g.player.hullMax, hull + 10));
     assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, "Welcome to a new sector!");
+    assert.equal(g.event?.body, "Welcome to a new sector!\n\nScrap: 7.");
+    assert.equal(g.log.includes("Welcome to a new sector!"), false);
+    assert.equal(g.log.includes("Scrap: 7."), false);
     assert.ok(g.beacons.some((beacon) => beacon.flag === "BOSS_REPAIR_STATION"));
   });
 });

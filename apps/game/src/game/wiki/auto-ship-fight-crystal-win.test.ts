@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { commitJump, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
@@ -58,7 +58,7 @@ describe("Auto-ship fight (Crystal)", () => {
     assert.equal(killed.phase, "event");
   });
 
-  it("starts the Auto-ship on arrival and leaves no button", () => {
+  it("starts the Auto-ship on arrival from the intro card", () => {
     // The page has no choice. "Fight an Auto-ship."
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -77,17 +77,20 @@ describe("Auto-ship fight (Crystal)", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const intro =
+      "The Rebels must have sent their automated scouts to find you. One jumps in and immediately moves to attack.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, "c:auto-ship-fight-crystal:0");
+    choose(g, "c:auto-ship-fight-crystal:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "auto");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "auto-ship-fight-crystal");
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 1);
-    assert.ok(
-      g.log.includes(
-        "The Rebels must have sent their automated scouts to find you. One jumps in and immediately moves to attack.",
-      ),
-    );
+    assert.equal(g.log.includes(intro), false);
   });
 });

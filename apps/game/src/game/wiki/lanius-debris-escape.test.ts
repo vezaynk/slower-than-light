@@ -20,6 +20,13 @@ describe("Lanius ship in rich debris field escape", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-in-rich-debris-field:1");
+    const lead =
+      "You go on the offensive and power up your weapons - with any luck, you'll soon have the mineral field all to yourself.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-in-rich-debris-field");

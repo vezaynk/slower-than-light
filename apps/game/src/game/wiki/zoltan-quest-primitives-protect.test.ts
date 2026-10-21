@@ -28,7 +28,11 @@ describe("Zoltan quest primitives protect", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:zoltan-quest-primitives:1");
-    assert.ok(g.log.includes(LEAD));
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, LEAD);
+    assert.equal(g.log.includes(LEAD), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "zoltan-quest-primitives-protect");
     assert.equal(g.enemy?.faction, "rebel");

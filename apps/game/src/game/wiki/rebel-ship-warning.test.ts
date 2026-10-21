@@ -21,21 +21,25 @@ describe("Rebel ship warning", () => {
     open(g);
     assert.equal(g.event?.body, "You stumble across a forward scout of the Rebel fleet.");
     assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-warning:0"));
+    const told =
+      "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!";
     choose(g, "c:rebel-ship-warning:0");
-    assert.ok(
-      g.log.includes(
-        "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!",
-      ),
-    );
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(told));
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.faction, "rebel");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "rebel-ship-warning");
     assert.equal(g.scrap, 10);
+    assert.equal(g.log.includes(told), false);
   });
 
-  it("starts the running Rebel ship on arrival and leaves no button", () => {
-    // The page has no choice. "Fight a Rebel ship that is running away."
+  it("shows the scout card on arrival, then the fight button starts the running Rebel ship", () => {
+    // The scout sentence stays on the card. "Fight a Rebel ship that is running away." starts the fight.
     // The red line doubles pursuit only if the scout gets away.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -53,8 +57,22 @@ describe("Rebel ship warning", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
+    const scout = "You stumble across a forward scout of the Rebel fleet.";
+    const told =
+      "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!";
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, scout);
+    assert.equal(g.log.includes(scout), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rebel-ship-warning:0");
+    assert.equal(g.fleet, 1);
+    choose(g, "c:rebel-ship-warning:0");
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(told));
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.log.includes(scout), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.enemy?.pirate, false);
@@ -64,11 +82,7 @@ describe("Rebel ship warning", () => {
     assert.equal(g.enemyEscape?.seconds, 40);
     assert.equal(g.enemyEscape?.running, true);
     assert.equal(g.enemyEscape?.pursuit, true);
-    assert.ok(g.log.includes("You stumble across a forward scout of the Rebel fleet."));
-    assert.ok(
-      g.log.includes(
-        "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!",
-      ),
-    );
+    assert.equal(g.log.includes(scout), false);
+    assert.equal(g.log.includes(told), false);
   });
 });

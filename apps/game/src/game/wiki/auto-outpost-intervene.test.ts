@@ -18,15 +18,20 @@ function open(g: Game) {
 }
 
 describe("Auto-ship attacking outpost intervene", () => {
-  it("prints the higher-threat sentence and fights an Auto-ship", () => {
+  it("shows the higher-threat sentence on the card and fights an Auto-ship", () => {
     const g = createGame(1);
     open(g);
     assert.equal(g.scrap, 10);
     choose(g, "c:auto-ship-attacking-outpost:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, LEAD);
+    assert.equal(g.log.includes(LEAD), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-attacking-outpost");
     assert.equal(g.enemy?.faction, "auto");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes(LEAD));
+    assert.equal(g.log.includes(LEAD), false);
   });
 });

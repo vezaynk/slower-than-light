@@ -30,10 +30,18 @@ describe("Crystal ship attacking Federation loyalists surrender", () => {
 
     const g = createGame(1);
     open(g);
+    const lead =
+      "It doesn't look like the Fed ship can stand much more pressure. You fly in and intercept the Crystalline ship.";
     choose(g, "c:crystal-ship-attacking-federation-loyalists:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "crystal");
     assert.equal(g.fightEvent, "crystal-ship-attacking-federation-loyalists");
     assert.equal(g.enemySurrender?.chance, 0);
+    assert.equal(g.log.includes(lead), false);
   });
 });

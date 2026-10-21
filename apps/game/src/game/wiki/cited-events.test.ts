@@ -318,9 +318,15 @@ describe("cited events", () => {
     shop.player.parts = 3;
     const scrap = shop.scrap;
     choose(shop, choice.id);
-    assert.equal(shop.phase, "map");
+    assert.equal(shop.phase, "event");
+    assert.ok(shop.event?.body?.includes('"Thank you for your business."'));
+    assert.ok(shop.event?.body?.includes("You receive 12 scrap."));
+    assert.equal(shop.log.includes('"Thank you for your business."'), false);
+    assert.equal(shop.log.includes("You receive 12 scrap."), false);
     assert.equal(shop.player.parts, 0);
     assert.equal(shop.scrap, scrap + 12);
+    choose(shop, "ack");
+    assert.equal(shop.phase, "map");
   });
 });
 
@@ -435,10 +441,13 @@ describe("crew entirely composed of Mantis", () => {
         "ZOLTAN_DISTRESS_MANTIS",
         "Zoltan ship follows Mantis ship",
       );
+      const lead =
+        "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends.";
       choose(z, "c:zoltan-ship-follows-mantis-ship:1");
-      assert.equal(z.phase, "combat");
-      assert.equal(z.asteroid, true);
-      assert.equal(z.enemy?.faction, "mantis");
+      assert.equal(z.phase, "event");
+      assert.equal(z.event?.choices[0]?.id, "ship-resume");
+      assert.equal(z.event?.body, lead);
+      assert.equal(z.log.includes(lead), false);
       const theirs = z.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
       assert.ok(theirs.length > 0);
       assert.ok(
@@ -450,6 +459,11 @@ describe("crew entirely composed of Mantis", () => {
         z.log.some((line) => line.includes("Mantis crew is not applied")),
         false,
       );
+      choose(z, "ship-resume");
+      assert.equal(z.phase, "combat");
+      assert.equal(z.asteroid, true);
+      assert.equal(z.enemy?.faction, "mantis");
+      assert.equal(z.log.includes(lead), false);
       followed = true;
     }
     assert.equal(fighter && followed, true);
@@ -511,8 +525,8 @@ describe("Zoltan border police", () => {
     assert.deepEqual([...seen].sort(), [3, 4]);
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
-    // The page has no choice. "3-4 zoltan boarders beam aboard your ship" and a Zoltan ship.
+  it("shows the intro card on arrival, then the button starts the Zoltan boarders", () => {
+    // The printed intro stays on the card. The button beams 3-4 zoltan boarders and starts the Zoltan ship.
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -530,7 +544,14 @@ describe("Zoltan border police", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const body =
+      "There are few more zealous in their customs checks than the Zoltan. A team of border police beam on board. There's just a little confusion over your weapons licences, but things escalate rapidly from heated discussion to gunfire!";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:zoltan-border-police:0");
+    choose(g, "c:zoltan-border-police:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "zoltan");
     const zoltan = g.crew.filter(
@@ -538,6 +559,7 @@ describe("Zoltan border police", () => {
     );
     assert.ok(zoltan.length >= 3 && zoltan.length <= 4, String(zoltan.length));
     assert.ok(g.log.some((line) => line.includes("zoltan boarders beam aboard your ship.")));
+    assert.equal(g.log.includes(body), false);
   });
 });
 
@@ -559,8 +581,9 @@ describe("Boarders: Humans in plasma storm", () => {
       const rooms = new Set(g.player.rooms.map((r) => r.id));
       openCited(g, "Civilian Sector", "STORM_BOARDING", "Boarders: Humans in plasma storm");
       choose(g, "c:boarders-humans-in-plasma-storm:0");
-      assert.equal(g.phase, "combat");
+      assert.equal(g.phase, "event");
       assert.equal(g.enemy, null);
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
       const gained = g.scrap - scrap;
       assert.ok(gained >= lo && gained <= hi, String(gained));
       const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
@@ -596,7 +619,14 @@ describe("Boarders: Humans in plasma storm", () => {
       assert.ok(
         g.log.some((line) => line === `${boarders.length} human boarders beam aboard your ship.`),
       );
-      assert.ok(g.log.some((line) => line.startsWith("Medium scrap: ")));
+      assert.ok(g.event?.body?.includes("Medium scrap:"));
+      assert.equal(
+        g.log.some((line) => line.startsWith("Medium scrap: ")),
+        false,
+      );
+      choose(g, "ship-resume");
+      assert.equal(g.phase, "combat");
+      assert.equal(g.enemy, null);
     }
     assert.deepEqual([...seen].sort(), [3, 4]);
   });
@@ -659,8 +689,8 @@ describe("Rebel fight with boarders", () => {
     assert.deepEqual([...seen].sort(), [2, 3]);
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
-    // The page has no choice.
+  it("shows the intro card on arrival, then the button starts the Rebel boarders", () => {
+    // The printed intro stays on the card. The button beams 2-3 human boarders and starts the Rebel ship.
     // Wiki citations:
     // > "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)." — [[Rebel fight with boarders]]
     const g = createGame(4);
@@ -679,8 +709,20 @@ describe("Rebel fight with boarders", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
+    const intros = [
+      'You receive a message from a nearby Rebel station, "You have a lot of guts passing through our space, I\'ll give you that." He turns giving an order, "Kill their crew, I want that ship intact."',
+      'Your sensors warn of an incoming Rebel ship at the same time as you hear the telltale signs of a teleporter. You hear someone taunt from within the ship, "Ready to die? I sure am ready to get a promotion!"',
+      'Incoming message, "Hello Captain," says a Rebel in an officer\'s garb. "How very generous of you to turn yourself in. Prepare to be boarded. Come quietly and we may be lenient."',
+      'You receive a message on a low-band channel. "You\'re surrounded, just like the last of your Federation friends. Just die already." The enemy has teleported onto your ship!',
+    ];
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    const body = g.event?.body ?? "";
+    assert.ok(intros.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rebel-fight-with-boarders:0");
+    choose(g, "c:rebel-fight-with-boarders:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     const humans = g.crew.filter(
@@ -688,6 +730,7 @@ describe("Rebel fight with boarders", () => {
     );
     assert.ok(humans.length >= 2 && humans.length <= 3, String(humans.length));
     assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
+    assert.equal(g.log.includes(body), false);
   });
 });
 
@@ -746,8 +789,8 @@ describe("Mantis outcasts", () => {
     assert.deepEqual([...seen].sort(), [2, 3]);
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
-    // The page has no choice. "2-3 mantis boarders beam aboard your ship" and a Mantis ship.
+  it("shows the intro card on arrival, then the button starts the Mantis outcasts", () => {
+    // The printed intro stays on the card. The button beams 2-3 mantis boarders and starts the Mantis ship.
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -764,8 +807,15 @@ describe("Mantis outcasts", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
+    const body =
+      "The Mantis outcasts sometimes make the mistake of taking the Zoltan for easy game. A scout moves in to attack while a boarding party beams aboard from a nearby transport!";
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:mantis-outcasts:0");
+    choose(g, "c:mantis-outcasts:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
     const mantis = g.crew.filter(
@@ -773,6 +823,7 @@ describe("Mantis outcasts", () => {
     );
     assert.ok(mantis.length >= 2 && mantis.length <= 3, String(mantis.length));
     assert.ok(g.log.some((line) => line.includes("mantis boarders beam aboard your ship.")));
+    assert.equal(g.log.includes(body), false);
   });
 });
 
@@ -790,7 +841,14 @@ describe("Slug hacker (choice)", () => {
     shields.player.systems.shields.damage = 0;
     shields.player.systems.shields.ion = [];
     shields.player.shieldNow = 2;
+    const shieldsLead = `"Very good then!" Your shield power suddenly drops and they charge.`;
     choose(shields, "c:slug-hacker-choice:0");
+    assert.equal(shields.phase, "event");
+    assert.equal(shields.event?.choices[0]?.id, "ship-resume");
+    assert.equal(shields.event?.body, shieldsLead);
+    assert.equal(shields.log.includes(shieldsLead), false);
+    assert.equal(shields.player.shieldNow, 1);
+    choose(shields, "ship-resume");
     assert.equal(shields.phase, "combat");
     assert.equal(shields.player.shieldNow, 1);
 
@@ -809,8 +867,15 @@ describe("Slug hacker (choice)", () => {
       r.fire = 0;
       r.breach = 0;
     }
+    const airLead = `"A being that would choose sssuffocation? Who am I to judge..." Your life support shuts off and they move in to attack.`;
     choose(air, "c:slug-hacker-choice:1");
+    assert.equal(air.phase, "event");
+    assert.equal(air.event?.choices[0]?.id, "ship-resume");
+    assert.equal(air.event?.body, airLead);
+    assert.equal(air.log.includes(airLead), false);
     quietEnemy(air);
+    choose(air, "ship-resume");
+    assert.equal(air.phase, "combat");
     // A room nobody breathes in (air.ts), so the change is the refill alone.
     const room = air.player.rooms.find(
       (r) => !air.crew.some((c) => c.aboard === "player" && c.hp > 0 && c.room === r.id),
@@ -831,7 +896,14 @@ describe("Slug hacker (choice)", () => {
       { uid: "a", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: null },
       { uid: "b", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: null },
     ];
+    const gunsLead = `"Your acceptance of death is almosst admirable... Almosst." Your weapons system registers a hacking module. You hardly have time to respond before they attack.`;
     choose(guns, "c:slug-hacker-choice:2");
+    assert.equal(guns.phase, "event");
+    assert.equal(guns.event?.choices[0]?.id, "ship-resume");
+    assert.equal(guns.event?.body, gunsLead);
+    assert.equal(guns.log.includes(gunsLead), false);
+    assert.deepEqual(powerMask(guns.player), [true, false]);
+    choose(guns, "ship-resume");
     assert.equal(guns.phase, "combat");
     assert.deepEqual(powerMask(guns.player), [true, false]);
     quietEnemy(guns);
@@ -857,7 +929,14 @@ describe("The Engi virus", () => {
     g.player.systems.engines.power = 6;
     g.player.systems.engines.damage = 0;
     g.player.systems.engines.ion = [];
+    const wipe =
+      "Wiping your engine core and shields proves useless... eventually you trap the virus in the weapons systems to purge it, but before you do, the Engi grow restless and attack!";
     choose(g, "c:the-engi-virus:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, wipe);
+    assert.equal(g.log.includes(wipe), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     quietEnemy(g);
     assert.equal(g.player.shieldNow, 1);

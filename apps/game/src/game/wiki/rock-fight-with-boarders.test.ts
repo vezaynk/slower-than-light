@@ -52,10 +52,10 @@ describe("Rock fight with boarders", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
+  it("shows the station card on arrival, then beams the Rock boarders", () => {
     // Wiki citations:
     // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
-    // The page has no choice. "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
+    // The arrival card stays up. "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -73,7 +73,12 @@ describe("Rock fight with boarders", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const body = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rock-fight-with-boarders:0");
+    choose(g, "c:rock-fight-with-boarders:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rock");
     assert.equal(g.fightEvent, "rock-fight-with-boarders");

@@ -40,6 +40,12 @@ describe("Lanius ship attacking civilian intro", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-civilian:0");
+    const lead = "You charge your weapons, which quickly gets the Lanius ship's attention.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.enemy?.pirate, false);

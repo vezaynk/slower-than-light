@@ -20,6 +20,12 @@ describe("Rebel ship attacking refueling outpost escape", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:rebel-ship-attacking-refueling-outpost:0");
+    const lead = `The rebel responds to your threat, "I don't know who you are, but no one defies the Rebel Fleet!" They move in to engage.`;
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.fightEvent, "rebel-ship-attacking-refueling-outpost");

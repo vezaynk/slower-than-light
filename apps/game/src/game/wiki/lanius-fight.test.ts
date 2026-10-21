@@ -59,7 +59,7 @@ describe("Lanius fight", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Lanius ship on arrival and leaves no button", () => {
+  it("starts the Lanius ship on arrival from the intro card", () => {
     // The page has no choice. One of the eleven printed intros, including the repeated line, then "Fight a Lanius ship." unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -78,13 +78,19 @@ describe("Lanius fight", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const intro = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, "c:lanius-fight:0");
+    choose(g, "c:lanius-fight:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "lanius-fight");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(intro), false);
   });
 });

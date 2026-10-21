@@ -73,7 +73,7 @@ describe("Slug fight in plasma storm", () => {
     assert.equal(beacon.kind, "event");
   });
 
-  it("starts the Slug ship on arrival and leaves no button", () => {
+  it("starts the Slug ship on arrival from the intro card", () => {
     // Wiki citations:
     // > "Fight a Slug ship (default rewards)." — [[Slug fight in plasma storm]]
     // The page has no choice. One of the four printed intros, then "Fight a Slug ship." plasmastorm=true. unique=false.
@@ -96,8 +96,18 @@ describe("Slug fight in plasma storm", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const intro = g.event?.body ?? "";
+    const storm =
+      "This section of the nebula is experiencing a plasma storm. Your main reactor can only function at half capacity.";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.ok(g.log.includes(storm));
+    assert.equal(g.player.storm, true);
+    assert.equal(g.event?.choices[0]?.id, "c:slug-fight-in-plasma-storm:0");
+    choose(g, "c:slug-fight-in-plasma-storm:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "slug");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "slug-fight-in-plasma-storm");
@@ -106,6 +116,7 @@ describe("Slug fight in plasma storm", () => {
     assert.equal(dest.kind, "event");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(intro), false);
+    assert.ok(g.log.includes(storm));
   });
 });

@@ -31,6 +31,10 @@ function inBand(n: number, lo: number, hi: number) {
   assert.ok(n >= lo && n <= hi, `${n} not in ${lo}-${hi}`);
 }
 
+function fightCard(g: Game): boolean {
+  return g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+}
+
 function assertDefaultFight(g: Game) {
   assert.equal(g.phase, "combat");
   assert.equal(g.fightEvent, "lanius-powered-down-ship");
@@ -47,7 +51,14 @@ describe("Lanius powered-down ship", () => {
       g.event?.body,
       "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down.",
     );
+    const lead =
+      "As you scan the vessel, the scan frequencies awaken the Lanius from hibernation - and they're hungry for raw materials!";
     choose(g, "c:lanius-powered-down-ship:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assertDefaultFight(g);
   });
 
@@ -57,9 +68,11 @@ describe("Lanius powered-down ship", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:lanius-powered-down-ship:1");
-      if (g.phase === "combat") {
+      if (fightCard(g)) {
+        assert.match(g.event?.body ?? "", /does the same/);
+        assert.equal(/does the same/.test(g.log.join("\n")), false);
+        choose(g, "ship-resume");
         assertDefaultFight(g);
-        assert.match(g.log.join("\n"), /does the same/);
         seen.add("fight");
       } else {
         assert.match(g.event?.body ?? "", /don't get a response/);
@@ -80,12 +93,15 @@ describe("Lanius powered-down ship", () => {
       const next = createGame(seed);
       open(next);
       choose(next, "c:lanius-powered-down-ship:1");
-      if (next.phase === "event") g = next;
+      if (next.event?.choices.some((c) => c.id === "q:lanius-dormant:destroy")) g = next;
     }
     assert.ok(g);
     choose(g, "q:lanius-dormant:destroy");
+    assert.match(g.event?.body ?? "", /hibernation/);
+    assert.equal(/hibernation/.test(g.log.join("\n")), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assertDefaultFight(g);
-    assert.match(g.log.join("\n"), /hibernation/);
   });
 
   it("stripping the hull fights or pays low scrap only", () => {
@@ -97,7 +113,10 @@ describe("Lanius powered-down ship", () => {
       choose(g, "c:lanius-powered-down-ship:2");
       assert.match(g.event?.body ?? "", /dormant/);
       choose(g, "q:lanius-dormant:navigate");
-      if (g.phase === "combat") {
+      if (fightCard(g)) {
+        assert.match(g.event?.body ?? "", /hungry for raw materials/);
+        assert.equal(/hungry for raw materials/.test(g.log.join("\n")), false);
+        choose(g, "ship-resume");
         assertDefaultFight(g);
         seen.add("fight");
       } else {

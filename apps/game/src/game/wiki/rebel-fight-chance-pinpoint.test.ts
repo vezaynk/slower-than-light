@@ -45,8 +45,13 @@ describe("Rebel fight chance Advanced Sensors", () => {
     open(g);
     assert.equal(choiceDisabled(g, PIN), null);
     choose(g, PIN);
-    assert.ok(g.log.includes(LEAD));
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(LEAD));
+    assert.equal(g.log.includes(LEAD), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.log.includes(LEAD), false);
     assert.equal(g.fightEvent, "rebel-fight-chance");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.scrap, 10);

@@ -74,8 +74,8 @@ describe("Boarders: rebels in nebula", () => {
     assert.ok(seen.has(3) && seen.has(4), [...seen].sort().join(","));
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
-    // The page has no choice. "3-4 human boarders beam aboard your ship."
+  it("shows the boarding card on arrival, then the button beams the rebels", () => {
+    // The boarding sentence stays on the card. The button beams 3-4 humans.
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -92,13 +92,21 @@ describe("Boarders: rebels in nebula", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
+    const intro =
+      "There appear to be a number of small stations nearby. Before you have time to scan them, warnings go off. A Rebel teleporter was used in one of the stations. You've been boarded!";
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, ID);
+    choose(g, ID);
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
     assert.equal(g.flare, false);
     const humans = boarded(g);
     assert.ok(humans.length >= 3 && humans.length <= 4, String(humans.length));
     assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
+    assert.equal(g.log.includes(intro), false);
   });
 });

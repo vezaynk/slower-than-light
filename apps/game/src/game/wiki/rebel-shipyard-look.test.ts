@@ -18,13 +18,17 @@ function open(g: Game) {
 }
 
 describe("Rebel shipyard look around", () => {
-  it("logs the printed warning and fights the second Flagship", () => {
+  it("shows the printed warning and fights the second Flagship", () => {
     const g = createGame(1);
     open(g);
     const scrap = g.scrap;
     choose(g, "c:rebel-shipyard:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, WARNING);
+    assert.equal(g.log.includes(WARNING), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
-    assert.ok(g.log.includes(WARNING));
     assert.ok(g.enemy?.flagship);
     assert.equal(g.fightEvent, "rebel-shipyard");
     assert.equal(g.scrap, scrap);

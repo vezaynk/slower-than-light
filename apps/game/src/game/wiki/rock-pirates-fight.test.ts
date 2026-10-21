@@ -50,7 +50,7 @@ describe("Rock pirates fight", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Rock pirate ship on arrival and leaves no button", () => {
+  it("shows the Rock pirate intro card on arrival", () => {
     // Wiki citations:
     // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight]]
     // The page has no choice. One of the three printed intros, then "Fight a Rock pirate ship." unique=false.
@@ -71,13 +71,20 @@ describe("Rock pirates fight", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    const intro = g.event?.body ?? "";
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rock-pirates-fight:0");
+    choose(g, "c:rock-pirates-fight:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "rock");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "rock-pirates-fight");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(intro), false);
   });
 });

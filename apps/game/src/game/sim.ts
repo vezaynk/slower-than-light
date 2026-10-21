@@ -174,7 +174,7 @@ import {
   citedSystemOff,
   stampCitedEvents,
 } from "./wiki/cited-events.ts";
-import { missingAutoFight, missingPageWin } from "./wiki/cited-missing.ts";
+import { missingPageWin } from "./wiki/cited-missing.ts";
 import { rollFuelWait } from "./wiki/cited-fuel.ts";
 import { rollFuel } from "./wiki/fuel-gifts.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
@@ -430,6 +430,47 @@ function uid(g: Game): string {
 export function log(g: Game, text: string) {
   g.log.unshift(text);
   if (g.log.length > 5) g.log.length = 5;
+}
+
+/**
+ * Event results stay on the event card. The sky log is the ship's ticker
+ * (shots, power, boarders), so these lines are not written there.
+ * A fight that is already underway keeps the card up until Continue.
+ */
+export function showEventLines(g: Game, lines: readonly string[]) {
+  const fresh: string[] = [];
+  const body = g.event?.body ?? "";
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (body.includes(trimmed) || fresh.some((kept) => kept.includes(trimmed))) continue;
+    fresh.push(trimmed);
+  }
+  if (fresh.length === 0) return;
+  if (g.phase === "defeat" || g.phase === "victory" || g.phase === "reward") return;
+  const addition = fresh.join("\n\n");
+  if (g.event) {
+    g.event = {
+      ...g.event,
+      body: g.event.body ? `${g.event.body}\n\n${addition}` : addition,
+    };
+    g.phase = "event";
+    g.paused = true;
+    g.targeting = false;
+    g.beamAnchor = null;
+    return;
+  }
+  const title = g.beacons.find((beacon) => beacon.id === g.here)?.name ?? "Event";
+  const resume = g.enemy != null || g.phase === "combat";
+  g.event = {
+    title,
+    body: addition,
+    choices: [{ id: resume ? "ship-resume" : "ack", label: "Continue" }],
+  };
+  g.phase = "event";
+  g.paused = true;
+  g.targeting = false;
+  g.beamAnchor = null;
 }
 
 function sfx(g: Game, name: string) {
@@ -7465,154 +7506,8 @@ function arrive(g: Game, b: Beacon) {
   g.event = eventFor(g, b);
   // An archive page's hostile ship, boarders, grants, and reward. A page without them is unchanged.
   if (showArchiveArrival(g, b.flag)) return;
-  // These pages have no choice. The red line is the outcome, not a button.
-  // Boarders: Humans (Abandoned): "3-4 human boarders beam aboard your ship".
-  // Boarders: Crystal: "2-3 crystal boarders beam aboard your ship."
-  // Boarders: Mantis: "2-4 mantis boarders beam aboard your ship."
-  // Boarders: Humans (Pirate): "3-5 human boarders beam aboard your ship."
-  // Boarders: Humans near sun: "2-4 human boarders beam aboard your ship." redgiant=true.
-  // Boarders: Rockmen near sun: "2-3 rock boarders beam aboard your ship." redgiant=true.
-  // Boarders: Humans in nebula: "2-4 human boarders beam aboard your ship."
-  // Boarders: rebels in nebula: "3-4 human boarders beam aboard your ship."
-  // Boarders: Humans in plasma storm: medium scrap with resources, and "3-4 human boarders beam aboard your ship."
-  // Resource amounts are not stated, so the existing tier note still withholds them.
-  // Mantis outcasts: "2-3 mantis boarders beam aboard your ship" and a Mantis ship (default rewards).
-  // Zoltan border police: "3-4 zoltan boarders beam aboard your ship" and a Zoltan ship (default rewards).
-  // Rebel fight with boarders: "2-3 human boarders beam aboard your ship" and a Rebel ship (default rewards).
-  // Rock fight with boarders: "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)."
-  // Rock fight with boarders in asteroid field: "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." asteroidfield=true.
-  // Auto-ship warning: "Fight an Auto-ship that is running away." The red line is the escape, "Rebel Fleet pursuit is doubled," not this arrival.
-  // Rebel ship warning: "Fight a Rebel ship that is running away." The red line is the escape, "Rebel Fleet pursuit is doubled," not this arrival.
-  // Auto-ship warning in nebula: "Fight an Auto-ship that is running away." The red line is the escape, "Rebel Fleet pursuit is doubled," not this arrival. nebula=true.
-  // Auto-ship fight: "Fight an Auto-ship." Destroying it pays medium scrap with resources. unique=false.
-  // Auto-ship fight (Crystal): "Fight an Auto-ship." The scout sentence is the card body. unique=true.
-  // Auto-ship fight in asteroid field: "Fight an Auto-ship." asteroidfield=true. unique=false.
-  // Auto-ship fight in nebula: "Fight an Auto-ship." One of the five printed intros. nebula=true. unique=false.
-  // Auto-ship fight near sun: "Fight an Auto-ship." redgiant=true. unique=true.
-  // Engi fight: "Fight an Engi ship (default rewards)." unique=true.
-  // Mantis fight (Zoltan): "Fight a Mantis ship (default rewards)." unique=true.
-  // Pirate fight (Zoltan): "Fight a Pirate ship (default rewards)." One of the five printed intros. unique=false.
-  // Crystal fight: "Fight a Crystal ship (default rewards)." One of the seven printed intros. unique=false.
-  // Zoltan fight: "Fight a Zoltan ship (default rewards)." One of the seven printed intros. unique=false.
-  // Zoltan fight in asteroid field: "Fight a Zoltan ship (default rewards)." asteroidfield=true. unique=true.
-  // Slug fight: "Fight a Slug ship (default rewards)." unique=true.
-  // Mantis fight: "Fight a Mantis ship (default rewards)." One of the twenty printed intros. unique=false.
-  // Mantis fight in nebula: "Fight a Mantis ship (default rewards)." One of the five printed intros. nebula=true. unique=false.
-  // Pirate fight: "Fight a Pirate ship (default rewards)." One of the five printed intros. unique=false.
-  // Pirate fight (Lanius): "Fight a Pirate ship (default rewards)." One of the five printed intros. unique=false.
-  // Pirate fight in asteroid field: "Fight a Pirate ship (default rewards)." The wait sentence is the card body. asteroidfield=true. unique=false.
-  // Pirate fight near pulsar: "Fight a Pirate ship (default rewards)." One of the three printed intros. pulsar=true. unique=true.
-  // Pirate fight near sun: "Fight a Pirate ship (default rewards)." The star warning is the card body. redgiant=true. unique=true.
-  // Rebel fight: "Fight a Rebel ship (default rewards)." One of the ten printed intros. unique=false.
-  // Rebel fight (Lanius): "Fight a Rebel ship (default rewards)." One of the six printed intros. unique=false.
-  // Rebel fight in nebula: "Fight a Rebel ship (default rewards)." One of the seven printed intros. nebula=true. unique=false.
-  // Rebel fight near pulsar: "Fight a Rebel ship (default rewards)." One of the three printed intros. pulsar=true. unique=true.
-  // Lanius fight: "Fight a Lanius ship (default Lanius rewards)." One of the eleven printed intros, including the repeated line. unique=false.
-  // Lanius fight distress: "Fight a Lanius ship (default Lanius rewards)." The printed sentence is the card body. distress=true. unique=true.
-  // Lanius fight in asteroid field: "Fight a Lanius ship (default Lanius rewards)." The printed sentence is the card body. asteroidfield=true. unique=true.
-  // Lanius fight near pulsar: "Fight a Lanius ship (default Lanius rewards)." The printed sentence is the card body. pulsar=true. unique=true.
-  // Rock fight: "Fight a Rock ship (default rewards)." One of the eight printed intros. unique=false.
-  // Rock fight in asteroid field: "Fight a Rock ship (default rewards)." One of the three printed intros. asteroidfield=true. unique=true.
-  // Rock pirates fight: "Fight a Rock pirate ship (default rewards)." One of the three printed intros. unique=false.
-  // Rock pirates fight in asteroid field: "Fight a Rock pirate ship (default rewards)." One of the two printed intros. asteroidfield=true. unique=true.
-  // Rock pirates fight near sun: "Fight a Rock pirate ship (default rewards)." One of the two printed intros. redgiant=true. unique=true.
-  // Pirate fight in nebula: "Fight a Pirate ship (default rewards)." One of the five printed intros. nebula=true. unique=false. No nebula environment is added.
-  // Mantis fight near sun: "Fight a Mantis ship (default rewards)." The printed sentence is the card body. redgiant=true. unique=false.
-  // Mantis fight (Engi): "Fight a Mantis ship (default rewards)." One of the four printed intros. unique=false.
-  // Mantis fight (Slug): "Fight a Mantis ship (default rewards)." The printed sentence is the card body. unique=true.
-  // Rebel fight (Slug): "Fight a Rebel ship (default rewards)." One of the three printed intros. unique=false.
-  // Pirate fight (Slug): "Fight a Pirate ship (default rewards)." One of the three printed intros. unique=false.
-  // Mantis fight in nebula (Slug): "Fight a Mantis ship (default rewards)." The printed sentence is the card body. nebula=true. unique=true. No nebula environment is added.
-  // Pirate fight (Engi): "Fight a Pirate ship (default rewards)." The printed sentence is the card body. unique=false.
-  // Rebel fight (Engi): "Fight a Rebel ship (default rewards)." The printed sentence is the card body. unique=false.
-  // Rebel fight (Crystal): "Fight a Rebel ship (default rewards)." The printed sentence is the card body. unique=false.
-  // Rock fight in nebula: "Fight a Rock ship (default rewards)." The printed sentence is the card body. nebula=true. unique=true. No nebula environment is added.
-  // Rebel fight in plasma storm: "Fight a Rebel ship (default rewards)." The printed sentence is the card body. plasmastorm=true. unique=true. The beacon stays outside a nebula, so the storm and the full fleet step stay as already applied.
-  // Slug fight in nebula: "Fight a Slug ship (default rewards)." One of the five printed intros. nebula=true. unique=false. No nebula environment is added. Surrender stays the Slug row.
-  // Slug fight in plasma storm: "Fight a Slug ship (default rewards)." One of the four printed intros. plasmastorm=true. unique=false. The beacon stays outside a nebula, so the storm and the full fleet step stay as already applied. Surrender stays the Slug row.
-  // Pirate ship distress trap: "Fight a Pirate ship (default rewards)." One of the four printed intros. distress=true. unique=true.
-  // Rebel fight among Rebel fleet: "Fight a Rebel ship." One of the seven printed intros. unique=false. The low scrap and medium scrap payouts stay the winning results.
-  // Rebel fight among Federation and Rebel fleets: "Fight a Rebel ship." One of the six printed intros. unique=false. The low scrap and medium scrap payouts stay the winning results.
-  // Mantis ship-collectors: "Fight a Mantis Fighter with crew entirely composed of Mantis." The printed hail is the card body. unique=true. The quest marker stays after the escape.
-  // The printed intro is the card body, logged because the fight replaces the card.
-  if (
-    (b.flag === "LANIUS_PIRATE_BOARDERS" ||
-      b.flag === "BOARDERS_CRYSTAL" ||
-      b.flag === "MANTIS_BOARDERS" ||
-      b.flag === "BOARDERS" ||
-      b.flag === "BOARDERS_SUN" ||
-      b.flag === "ROCK_BOARDERS_SUN" ||
-      b.flag === "NEBULA_BOARDING" ||
-      b.flag === "NEBULA_REBEL_BOARDING" ||
-      b.flag === "STORM_BOARDING" ||
-      b.flag === "ZOLTAN_BOARDERS_MANTIS" ||
-      b.flag === "ZOLTAN_BOARDERS" ||
-      b.flag === "BOARDERS_REBEL_SHIP" ||
-      b.flag === "ROCK_BOARDERS_SHIP" ||
-      b.flag === "ROCK_BOARDERS_ASTEROID" ||
-      b.flag === "AUTO_WARNING" ||
-      b.flag === "SQUAT_WARNING" ||
-      b.flag === "NEBULA_AUTO_WARNING" ||
-      b.flag === "REBEL_AUTO" ||
-      b.flag === "CRYSTAL_AUTO" ||
-      b.flag === "AUTO_ASTEROID" ||
-      b.flag === "NEBULA_AUTO" ||
-      b.flag === "AUTO_SUN" ||
-      b.flag === "ZOLTAN_ENGI" ||
-      b.flag === "ZOLTAN_MANTIS" ||
-      b.flag === "ZOLTAN_PIRATE" ||
-      b.flag === "CRYSTAL_FIGHT" ||
-      b.flag === "ZOLTAN_FIGHT" ||
-      b.flag === "ZOLTAN_ASTEROID" ||
-      b.flag === "SLUG_FIGHT" ||
-      b.flag === "MANTIS_FIGHT" ||
-      b.flag === "NEBULA_MANTIS_FIGHT" ||
-      b.flag === "PIRATE" ||
-      b.flag === "LANIUS_PIRATE_FIGHT" ||
-      b.flag === "PIRATE_ASTEROID" ||
-      b.flag === "PIRATE_PULSAR" ||
-      b.flag === "PIRATE_SUN" ||
-      b.flag === "REBEL" ||
-      b.flag === "LANIUS_REBEL_FIGHT" ||
-      b.flag === "NEBULA_REBEL" ||
-      b.flag === "REBEL_PULSAR" ||
-      b.flag === "LANIUS_FIGHT" ||
-      b.flag === "LANIUS_DISTRESS_TRAP" ||
-      b.flag === "LANIUS_FIGHT_ASTEROID" ||
-      b.flag === "LANIUS_FIGHT_PULSAR" ||
-      b.flag === "ROCK_SHIP" ||
-      b.flag === "ROCK_FIGHT_ASTEROID" ||
-      b.flag === "ROCK_PIRATE" ||
-      b.flag === "ROCK_PIRATE_ASTEROID" ||
-      b.flag === "ROCK_PIRATE_SUN" ||
-      b.flag === "NEBULA_PIRATE" ||
-      b.flag === "MANTIS_SUN_FIGHT" ||
-      b.flag === "ENGI_MANTIS_FIGHT" ||
-      b.flag === "SLUG_MANTIS" ||
-      b.flag === "SLUG_REBEL" ||
-      b.flag === "SLUG_PIRATE" ||
-      b.flag === "NEBULA_SLUG_MANTIS" ||
-      b.flag === "ENGI_PIRATE_FIGHT" ||
-      b.flag === "ENGI_REBEL_FIGHT" ||
-      b.flag === "CRYSTAL_REBEL" ||
-      b.flag === "NEBULA_ZOLTAN_ROCK" ||
-      b.flag === "STORM_REBEL" ||
-      b.flag === "NEBULA_SLUG_FIGHT" ||
-      b.flag === "STORM_SLUG_FIGHT" ||
-      b.flag === "TRAP_BEACON" ||
-      b.flag === "BOSS_FLEETS_REBEL" ||
-      b.flag === "BOSS_FLEETS_BOTH_FIGHT" ||
-      b.flag === "DONOR_MANTIS_CHASE") &&
-    g.event?.choices[0]
-  ) {
-    if (g.event.body) log(g, g.event.body);
-    choose(g, g.event.choices[0].id);
-  }
-  // Fight in Last Stand has no printed choice. Arrival starts the scout.
-  if (missingAutoFight(b.flag) && g.event?.choices[0]) {
-    if (g.event.body) log(g, g.event.body);
-    choose(g, g.event.choices[0].id);
-  }
+  // The printed intro stays on the event card. The sky log does not repeat it.
+  // A page whose only outcome is a fight still shows that card. The button starts the fight.
 }
 
 /**
@@ -7876,8 +7771,8 @@ export function choose(g: Game, id: string) {
       if (g.missiles < 2) return;
       g.missiles -= 2;
       g.fleet = Math.max(0, g.fleet - 2);
-      log(g, "Rebel Fleet is delayed for 2 turns.");
-      resolve();
+      g.event = null;
+      showEventLines(g, ["Rebel Fleet is delayed for 2 turns."]);
       break;
     case "engi-cache-secure": {
       // Wiki page "Engi cache": a drone schematic with medium scrap. Rewards, "Drone": "A random drone schematic & T
@@ -7885,9 +7780,8 @@ export function choose(g: Game, id: string) {
       const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
       const n = lo + irand(g, hi - lo + 1);
       addScrap(g, n);
-      log(g, `Medium scrap: ${n}.`);
-      log(g, grantRandomItem(g, "drone"));
-      resolve();
+      g.event = null;
+      showEventLines(g, [`Medium scrap: ${n}.`, grantRandomItem(g, "drone")]);
       break;
     }
     case "BOSS_REPAIR_STATION": {
@@ -7899,8 +7793,8 @@ export function choose(g: Game, id: string) {
       g.fuel += rollFuel("BOSS_REPAIR_STATION", (lo, hi) => lo + irand(g, hi - lo + 1));
       g.missiles += 4;
       g.player.parts += 5;
-      log(g, `Federation Repair Station: ${n} scrap.`);
-      resolve();
+      g.event = null;
+      showEventLines(g, [`Federation Repair Station: ${n} scrap.`]);
       break;
     }
     case "ack":
@@ -7908,7 +7802,8 @@ export function choose(g: Game, id: string) {
       break;
     case "ship-resume":
       g.event = null;
-      if (g.enemy) {
+      // A hull fight and a shipless boarding both continue. Continue on an empty beacon returns to the map.
+      if (g.enemy || enemyAboard(g)) {
         g.phase = "combat";
         g.paused = false;
       } else resolve();
@@ -7917,6 +7812,7 @@ export function choose(g: Game, id: string) {
       if (citedOwns(id)) {
         // A price the ship cannot pay leaves the panel open. An unknown id is not this branch.
         const before = archiveSnap(g);
+        const notes: string[] = [];
         const applied = citedChoose(
           {
             g,
@@ -7961,7 +7857,9 @@ export function choose(g: Game, id: string) {
               if (slug === "slug-store-weapons") sealPlayerWeapons(g.player);
             },
             scrap: (n) => addScrap(g, n),
-            note: (text) => log(g, text),
+            note: (text) => {
+              if (text) notes.push(text);
+            },
             irand: (n) => irand(g, n),
           },
           id,
@@ -7970,6 +7868,7 @@ export function choose(g: Game, id: string) {
         if (applied) questAfterCited(g, id);
         // Archive fields on the same result. A handler that already fought, paid, or beamed skips them.
         if (applied) applyChoiceArchive(g, id, before);
+        if (applied) showEventLines(g, notes);
         break;
       }
       resolve();
@@ -8201,8 +8100,6 @@ function openSectorStart(g: Game): void {
   if (!id) return;
   const page = eventDef(id);
   if (!page) return;
-  const shown = showArchivePage(g, page);
-  if (shown === "unpaid" || shown === true || g.phase === "defeat" || g.phase === "combat") return;
   const choices = page.choices.map((choice) => ({ id: choice.id, label: choice.label }));
   if (choices.length === 0) choices.push({ id: "ack", label: "Continue" });
   const here = g.beacons.find((beacon) => beacon.id === g.here);
@@ -8212,6 +8109,16 @@ function openSectorStart(g: Game): void {
     choices,
   };
   stampArchiveImage(g, page.img);
+  g.phase = "event";
+  g.paused = true;
+  const shown = showArchivePage(g, page);
+  if (shown === "unpaid") {
+    g.event = null;
+    g.phase = "map";
+    g.paused = false;
+    return;
+  }
+  if (shown === true || g.phase === "defeat") return;
   g.phase = "event";
   g.paused = true;
 }

@@ -6,6 +6,11 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-mantis:0";
 const DEST = "Boarders: Mantis";
+const INTROS = [
+  "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!",
+  "Your world, all of a sudden, changes. The Mantis are on board your ship.",
+  "You hear a grating rattle and a soft clicking. You reach for your pistol.",
+];
 const SECTORS = ["MANTIS_SECTOR", "MANTIS_HOME"];
 
 function beacon(): Beacon {
@@ -67,7 +72,7 @@ describe("Boarders: Mantis", () => {
     assert.ok(seen.has(2) && seen.has(4), [...seen].sort().join(","));
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
+  it("shows the intro card on arrival, then applies the red line", () => {
     // Wiki citations:
     // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
     // The page has no choice. "2-4 mantis boarders beam aboard your ship."
@@ -88,12 +93,19 @@ describe("Boarders: Mantis", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const intro = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, ID);
+    choose(g, ID);
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy, null);
     const mantis = boarded(g);
     assert.ok(mantis.length >= 2 && mantis.length <= 4, String(mantis.length));
     assert.ok(mantis.every((c) => c.name === "Mantis"));
     assert.ok(g.log.some((line) => line.includes("mantis boarders beam aboard your ship.")));
+    assert.equal(g.log.includes(intro), false);
   });
 });

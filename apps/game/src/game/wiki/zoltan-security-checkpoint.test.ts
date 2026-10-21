@@ -58,6 +58,12 @@ describe("Zoltan security checkpoint", () => {
     assert.equal(choiceDisabled(g, "c:zoltan-security-checkpoint:2"), "Needs a Slug crewmember");
     assert.equal(choiceDisabled(g, "c:zoltan-security-checkpoint:3"), "Needs Mind Control");
     choose(g, "c:zoltan-security-checkpoint:0");
+    const lead = "Expecting resistance, their Energy Shield is raised and ready for combat.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "zoltan-security-checkpoint");
     assert.equal(g.enemy?.faction, "zoltan");
@@ -147,6 +153,13 @@ describe("Zoltan security checkpoint", () => {
       fought = true;
       assert.equal(powerMask(g.player).some(Boolean), true);
       choose(g, "q:zoltan-checkpoint:fight");
+      const lead =
+        "You're not going to leave anyone behind. You pull away from the station with the enemy guards on board. Unfortunately, they are able to sabotage your weapon system in the chaos. It's time to leave!";
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.body, lead);
+      assert.equal(g.log.includes(lead), false);
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
+      choose(g, "ship-resume");
       assert.equal(g.phase, "combat");
       assert.equal(g.fightEvent, "zoltan-security-checkpoint-scan");
       assert.equal(g.enemy?.faction, "zoltan");

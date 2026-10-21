@@ -36,6 +36,12 @@ describe("Pirate ship attacking civilian distress", () => {
       true,
     );
     choose(g, "c:pirate-ship-attacking-civilian-distress:0");
+    const lead = "You power up your weapons and engage the pirate ship.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "pirate-ship-attacking-civilian-distress");
     assert.equal(g.enemy?.pirate, true);
@@ -97,12 +103,17 @@ describe("Pirate ship attacking civilian distress", () => {
       g.player.systems.weapons.level = 6;
       assert.equal(choiceDisabled(g, "c:pirate-ship-attacking-civilian-distress:2"), null);
       choose(g, "c:pirate-ship-attacking-civilian-distress:2");
-      if (g.phase === "combat") {
+      const attack =
+        g.enemy != null && (g.phase === "combat" || g.event?.choices[0]?.id === "ship-resume");
+      if (attack) {
         fight = true;
+        const lead =
+          "Detecting the greater threat (and potential reward), they turn and engage your ship.";
+        assert.equal(g.event?.body, lead);
+        assert.equal(g.log.includes(lead), false);
         assert.equal(g.fightEvent, "pirate-ship-attacking-civilian-distress");
         assert.equal(g.enemy?.pirate, true);
         assert.equal(g.scrap, 10);
-        assert.match(g.log.join("\n"), /greater threat/);
       } else {
         left = true;
         assert.match(g.event?.body ?? "", /wasn't looking for a fight/);

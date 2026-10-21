@@ -44,9 +44,17 @@ describe("Rebel ship attacking civilians in Last Stand", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:rebel-ship-attacking-civilians-in-last-stand:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    const told = g.event?.body ?? "";
+    assert.equal(told.length > 0, true);
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.enemy?.faction, "rebel");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.fightEvent, "rebel-ship-attacking-civilians-in-last-stand");
     assert.equal(g.scrap, 10);
+    assert.equal(g.log.includes(told), false);
   });
 });

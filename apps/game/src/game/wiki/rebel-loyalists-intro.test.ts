@@ -45,6 +45,12 @@ describe("Rebel ship attacking Federation loyalists intro", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
+    const lead = "You power up your weapons and engage the Rebel ship.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.enemy?.pirate, false);

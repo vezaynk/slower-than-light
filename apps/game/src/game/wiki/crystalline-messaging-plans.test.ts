@@ -74,8 +74,8 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
     assert.equal(g.enemy, null);
     assert.deepEqual(g.event?.choices, [{ id: "ack", label: "Continue" }]);
     assert.equal(g.event?.body.includes("Resource amounts are not stated."), false);
-    assert.ok(g.log.includes(`High scrap: ${gained}.`));
-    assert.ok(g.log.includes("Rebel Fleet pursuit is doubled for 1 jump."));
+    assert.equal(g.log.includes(`High scrap: ${gained}.`), false);
+    assert.equal(g.log.includes("Rebel Fleet pursuit is doubled for 1 jump."), false);
   });
 
   it("false plans either delay the fleet or start a crystal fight with boarders", () => {
@@ -89,7 +89,30 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
       const held = gear(g);
       const players = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       choose(g, `${PLANS}:1`);
-      if (g.phase === "event") {
+      if (g.event?.choices.some((c) => c.id === "ship-resume")) {
+        attack = true;
+        assert.equal(g.phase, "event");
+        assert.ok(g.event?.body?.includes(LIE));
+        assert.equal(g.log.includes(LIE), false);
+        const boarders = g.crew.filter(
+          (c) => c.side === "enemy" && c.kin === "crystal" && c.aboard === "player",
+        );
+        assert.ok(boarders.length === 1 || boarders.length === 2, String(boarders.length));
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
+        assert.equal(g.fightEvent, "crystalline-ship-messaging-about-rebels");
+        assert.equal(g.event, null);
+        assert.equal(g.log.includes(LIE), false);
+        assert.deepEqual(
+          g.crew.filter((c) => c.side === "player").map((c) => c.id),
+          players,
+        );
+        assert.deepEqual(g.augments, []);
+        assert.equal(g.scrap, start);
+        assert.equal(g.fuel, held.fuel);
+        assert.equal(g.missiles, held.missiles);
+        assert.equal(g.player.parts, held.parts);
+      } else {
         cruise = true;
         const gained = g.scrap - start;
         assert.ok(gained >= 19 && gained <= 23, String(gained));
@@ -106,26 +129,7 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
           false,
         );
         assert.equal(g.phase, "event");
-        assert.ok(g.log.includes("Rebel Fleet pursuit is delayed for 1 jump."));
-      } else {
-        attack = true;
-        assert.equal(g.phase, "combat");
-        assert.equal(g.fightEvent, "crystalline-ship-messaging-about-rebels");
-        assert.equal(g.event, null);
-        assert.ok(g.log.includes(LIE));
-        const boarders = g.crew.filter(
-          (c) => c.side === "enemy" && c.kin === "crystal" && c.aboard === "player",
-        );
-        assert.ok(boarders.length === 1 || boarders.length === 2, String(boarders.length));
-        assert.deepEqual(
-          g.crew.filter((c) => c.side === "player").map((c) => c.id),
-          players,
-        );
-        assert.deepEqual(g.augments, []);
-        assert.equal(g.scrap, start);
-        assert.equal(g.fuel, held.fuel);
-        assert.equal(g.missiles, held.missiles);
-        assert.equal(g.player.parts, held.parts);
+        assert.equal(g.log.includes("Rebel Fleet pursuit is delayed for 1 jump."), false);
       }
     }
     assert.ok(cruise, "cruise branch");

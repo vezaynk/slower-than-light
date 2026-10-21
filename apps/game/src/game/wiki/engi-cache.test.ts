@@ -57,6 +57,11 @@ describe("Engi cache", () => {
     assert.equal(g.missiles, missiles - 2);
     assert.equal(g.fleet, Math.max(0, fleet - 2));
     assert.equal(jumped, 1);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, "Rebel Fleet is delayed for 2 turns.");
+    assert.equal(g.log.includes("Rebel Fleet is delayed for 2 turns."), false);
+    assert.equal(g.event?.choices[0]?.id, "ack");
+    choose(g, "ack");
     assert.equal(g.phase, "map");
     assert.equal(g.event, null);
   });
@@ -74,7 +79,19 @@ describe("Engi cache", () => {
     assert.ok(gained >= lo && gained <= hi, `${gained} not in ${lo}-${hi}`);
     assert.equal(g.player.weapons.map((w) => w.defId).join(","), weapons);
     assert.equal(heldSchematics(g).length, held + 1);
-    assert.ok(g.log.some((l) => /schematic (fitted|stowed in cargo)\./.test(l)));
+    const body = g.event?.body ?? "";
+    assert.match(body, /^Medium scrap: \d+\./);
+    assert.match(body, /schematic (fitted|stowed in cargo)\./);
+    assert.equal(
+      g.log.some((l) => l.startsWith("Medium scrap:")),
+      false,
+    );
+    assert.equal(
+      g.log.some((l) => /schematic (fitted|stowed in cargo)\./.test(l)),
+      false,
+    );
+    assert.equal(g.event?.choices[0]?.id, "ack");
+    choose(g, "ack");
     assert.equal(g.player.parts, parts);
     assert.equal(g.phase, "map");
   });

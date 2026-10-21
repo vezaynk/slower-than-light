@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choiceDisabled, createGame } from "../sim.ts";
+import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerChoose } from "./filler-events.ts";
@@ -54,10 +54,15 @@ describe("Rebel fight chance in nebula", () => {
       g.fleet = 4;
       open(g);
       fillerChoose(g, "c:rebel-fight-chance-in-nebula:1");
-      if (g.phase === "combat") {
+      const fighting =
+        g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+      if (fighting) {
         fight = true;
+        assert.match(g.event?.body ?? "", /vapour trails/);
+        assert.equal(/vapour trails/.test(g.log.join(" ")), false);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.scrap, 10);
-        assert.match(g.log.join(" "), /vapour trails/);
         assert.equal(g.fleet, 4);
       } else if (/disoriented/.test(g.event?.body ?? "")) {
         doubled = true;
@@ -94,8 +99,12 @@ describe("Rebel fight chance in nebula", () => {
     open(sensors);
     assert.equal(choiceDisabled(sensors, SENSORS), null);
     fillerChoose(sensors, SENSORS);
+    assert.equal(sensors.phase, "event");
+    assert.equal(sensors.event?.choices[0]?.id, "ship-resume");
+    assert.match(sensors.event?.body ?? "", /malfunctioning sensors/);
+    assert.equal(/malfunctioning sensors/.test(sensors.log.join(" ")), false);
+    choose(sensors, "ship-resume");
     assert.equal(sensors.phase, "combat");
-    assert.match(sensors.log.join(" "), /malfunctioning sensors/);
     assert.equal(sensors.scrap, 10);
 
     const glass = createGame(3);
@@ -103,16 +112,24 @@ describe("Rebel fight chance in nebula", () => {
     open(glass);
     assert.equal(choiceDisabled(glass, SCANNERS), null);
     fillerChoose(glass, SCANNERS);
+    assert.equal(glass.phase, "event");
+    assert.equal(glass.event?.choices[0]?.id, "ship-resume");
+    assert.match(glass.event?.body ?? "", /malfunctioning sensors/);
+    assert.equal(/malfunctioning sensors/.test(glass.log.join(" ")), false);
+    choose(glass, "ship-resume");
     assert.equal(glass.phase, "combat");
-    assert.match(glass.log.join(" "), /malfunctioning sensors/);
 
     const life = createGame(4);
     life.augments = ["LIFE_SCANNER"];
     open(life);
     assert.equal(choiceDisabled(life, LIFE), null);
     fillerChoose(life, LIFE);
+    assert.equal(life.phase, "event");
+    assert.equal(life.event?.choices[0]?.id, "ship-resume");
+    assert.match(life.event?.body ?? "", /life signatures/);
+    assert.equal(/life signatures/.test(life.log.join(" ")), false);
+    choose(life, "ship-resume");
     assert.equal(life.phase, "combat");
-    assert.match(life.log.join(" "), /life signatures/);
     assert.equal(life.scrap, 10);
   });
 });

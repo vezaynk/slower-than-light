@@ -57,6 +57,17 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
       assert.ok(kind, g.event!.body);
       const id = g.event!.choices[0]!.id;
       choose(g, id);
+      const lead =
+        kind === "asb"
+          ? "You move in to assist."
+          : kind === "wing"
+            ? "You swoop in to assist, taking down the wing leader."
+            : "The automated drone turns on you.";
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.body, lead);
+      assert.equal(g.log.includes(lead), false);
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
+      choose(g, "ship-resume");
       assert.equal(g.phase, "combat");
       if (kind === "auto") {
         assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
@@ -104,6 +115,11 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const crew = crewCount(g);
     const guns = g.player.weapons.length;
     choose(g, "q:fed-base:assist-asb");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, "You move in to assist.");
+    assert.equal(g.log.includes("You move in to assist."), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "quest-fed-assist-asb");
     assert.equal(g.asb, true);
@@ -160,6 +176,14 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const destroyed = createGame(3);
     const crew = crewCount(destroyed);
     choose(destroyed, "q:fed-base:assist-wing");
+    assert.equal(destroyed.phase, "event");
+    assert.equal(destroyed.event?.body, "You swoop in to assist, taking down the wing leader.");
+    assert.equal(
+      destroyed.log.includes("You swoop in to assist, taking down the wing leader."),
+      false,
+    );
+    assert.equal(destroyed.event?.choices[0]?.id, "ship-resume");
+    choose(destroyed, "ship-resume");
     assert.equal(destroyed.phase, "combat");
     assert.equal(destroyed.fightEvent, "quest-fed-assist-wing");
     assert.equal(destroyed.asb, true);
@@ -219,6 +243,12 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
   it("steps the friendly battery once across the warn boundary", () => {
     const g = createGame(6);
     choose(g, "q:fed-base:assist-asb");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, "You move in to assist.");
+    assert.equal(g.log.includes("You move in to assist."), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
     assert.equal(g.asb, true);
     assert.equal(g.asbPhase, "warn");
     assert.ok(g.asbWait >= 15 && g.asbWait < 20);

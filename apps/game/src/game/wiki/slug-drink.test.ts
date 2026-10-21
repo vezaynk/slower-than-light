@@ -42,17 +42,20 @@ describe("Slug drink", () => {
 
     const fight = createGame(3);
     open(fight);
+    const refused =
+      "The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire.";
     choose(fight, "c:slug-drink:0");
-    assert.ok(
-      fight.log.includes(
-        "The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire.",
-      ),
-    );
+    assert.equal(fight.phase, "event");
+    assert.equal(fight.event?.choices[0]?.id, "ship-resume");
+    assert.ok(fight.event?.body?.includes(refused));
+    assert.equal(fight.log.includes(refused), false);
+    choose(fight, "ship-resume");
     assert.equal(fight.phase, "combat");
     assert.equal(fight.fightEvent, "slug-drink");
     assert.equal(fight.enemy?.faction, "slug");
     assert.equal(fight.scrap, 10);
     assert.equal(fight.fleet, 5);
+    assert.equal(fight.log.includes(refused), false);
   });
 
   it("drinking repairs 10 and opens a store, or loses 25-35 scrap", () => {
@@ -70,12 +73,20 @@ describe("Slug drink", () => {
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.fleet, 5);
-      if (g.phase === "store") {
+      if (g.event?.choices.some((c) => c.id === "q:open-store")) {
         trust = true;
+        assert.equal(g.phase, "event");
         assert.equal(g.player.hull, hull + 10);
         assert.equal(g.scrap, 100);
-        assert.ok(g.log.includes("Hull repairs: 10."));
-        assert.ok(g.log.some((line) => /trustworthy/.test(line)));
+        assert.ok(g.event?.body?.includes("Hull repairs: 10."));
+        assert.equal(g.log.includes("Hull repairs: 10."), false);
+        assert.ok(/trustworthy/.test(g.event?.body ?? ""));
+        assert.equal(
+          g.log.some((line) => /trustworthy/.test(line)),
+          false,
+        );
+        choose(g, "q:open-store");
+        assert.equal(g.phase, "store");
         assert.ok((g.stock?.length ?? 0) > 0);
         assert.equal(g.beacons.find((b) => b.id === g.here)?.kind, "store");
       } else {
@@ -107,13 +118,37 @@ describe("Slug drink", () => {
       assert.equal(choiceDisabled(g, "c:slug-drink:2"), null);
       choose(g, "c:slug-drink:2");
       assert.equal(g.fleet, 5);
-      if (g.phase === "store") {
+      if (g.event?.choices.some((c) => c.id === "q:open-store")) {
         trust = true;
+        assert.equal(g.phase, "event");
         assert.equal(g.player.hull, hull + 10);
         assert.equal(g.scrap, 80);
-        assert.ok(g.log.includes("Hull repairs: 10."));
-        assert.ok(g.log.some((line) => /Rock digestive system/.test(line)));
+        assert.ok(g.event?.body?.includes("Hull repairs: 10."));
+        assert.equal(g.log.includes("Hull repairs: 10."), false);
+        assert.ok(/Rock digestive system/.test(g.event?.body ?? ""));
+        assert.equal(
+          g.log.some((line) => /Rock digestive system/.test(line)),
+          false,
+        );
+        choose(g, "q:open-store");
+        assert.equal(g.phase, "store");
         assert.equal(g.beacons.find((b) => b.id === g.here)?.kind, "store");
+      } else if (g.event?.choices.some((c) => c.id === "ship-resume")) {
+        trap = true;
+        assert.equal(g.phase, "event");
+        assert.ok(/anaesthetic/.test(g.event?.body ?? ""));
+        assert.equal(
+          g.log.some((line) => /anaesthetic/.test(line)),
+          false,
+        );
+        assert.equal(g.scrap, 80);
+        assert.equal(g.player.hull, hull);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
+        assert.equal(g.fightEvent, "slug-drink");
+        assert.equal(g.enemy?.faction, "slug");
+        assert.equal(g.scrap, 80);
+        assert.equal(g.player.hull, hull);
       } else {
         trap = true;
         assert.equal(g.phase, "combat");

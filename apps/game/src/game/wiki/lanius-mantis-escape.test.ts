@@ -20,9 +20,17 @@ describe("Lanius ship attacking Mantis escape", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-mantis:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.faction, "lanius");
+    const told = g.event?.body ?? "";
+    assert.equal(told.length > 0, true);
+    assert.equal(g.log.includes(told), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-attacking-mantis");
     assert.equal(g.enemyEscape?.mode, "never");
+    assert.equal(g.log.includes(told), false);
   });
 });

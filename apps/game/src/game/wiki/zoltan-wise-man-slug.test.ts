@@ -20,14 +20,15 @@ describe("Zoltan wise man Slug", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:zoltan-wise-man:1");
+    const lead = `"Do not be fooled, Federation, by a soft underbelly." You detect a wormhole opening up, and seconds later a Slug ship is attacking from the other direction!`;
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "slug");
     assert.equal(g.fightEvent, "zoltan-wise-man");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes(
-        `"Do not be fooled, Federation, by a soft underbelly." You detect a wormhole opening up, and seconds later a Slug ship is attacking from the other direction!`,
-      ),
-    );
   });
 });

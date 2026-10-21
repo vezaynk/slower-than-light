@@ -27,8 +27,11 @@ function resources(body: string): number {
   ).length;
 }
 
+const FTL =
+  "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!";
+
 describe("Auto-ship warning", () => {
-  it("starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
+  it("shows the FTL warning, then starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
     const g = createGame(1);
     open(g);
     assert.equal(
@@ -36,6 +39,12 @@ describe("Auto-ship warning", () => {
       true,
     );
     choose(g, "c:auto-ship-warning:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, FTL);
+    assert.equal(g.log.includes(FTL), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.faction, "auto");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-warning");
     assert.equal(g.enemy?.faction, "auto");
@@ -77,8 +86,8 @@ describe("Auto-ship warning", () => {
     assert.equal(killed.phase, "event");
   });
 
-  it("starts the running Auto-ship on arrival and leaves no button", () => {
-    // The page has no choice. "Fight an Auto-ship that is running away."
+  it("starts the running Auto-ship from the arrival card", () => {
+    // The arrival card stays up. "Fight an Auto-ship that is running away."
     // The red line doubles pursuit only if the scout gets away.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -97,7 +106,17 @@ describe("Auto-ship warning", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const body = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:auto-ship-warning:0");
+    choose(g, "c:auto-ship-warning:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, FTL);
+    assert.equal(g.log.includes(FTL), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "auto");
     assert.equal(g.enemy?.pirate, false);
@@ -108,12 +127,6 @@ describe("Auto-ship warning", () => {
     assert.equal(g.enemyEscape?.seconds, 40);
     assert.equal(g.enemyEscape?.running, true);
     assert.equal(g.enemyEscape?.pursuit, true);
-    assert.ok(
-      g.log.includes(
-        "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!",
-      ),
-    );
-    assert.ok(g.log.some((line) => INTROS.includes(line)));
   });
 });
 

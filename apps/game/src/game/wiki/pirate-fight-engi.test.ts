@@ -34,7 +34,7 @@ describe("Pirate fight (Engi)", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Pirate ship on arrival and leaves no button", () => {
+  it("starts the Pirate ship on arrival from the intro card", () => {
     // The page has no choice. The printed sentence, then "Fight a Pirate ship." unique=false.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -53,12 +53,17 @@ describe("Pirate fight (Engi)", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:pirate-fight-engi:0");
+    choose(g, "c:pirate-fight-engi:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-fight-engi");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

@@ -5,6 +5,8 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-in-nebula:0";
+const BODY =
+  "You see a small station nearby and feel the shudder of shots ringing through the ship. You can't be sure without sensors, but it seems there may be intruders on the ship!";
 const DEST = "Boarders: Humans in nebula";
 const SECTORS = ["CIVILIAN_SECTOR", "PIRATE_SECTOR", "NEBULA_SECTOR"];
 
@@ -66,8 +68,8 @@ describe("Boarders: Humans in nebula", () => {
     assert.ok(seen.has(2) && seen.has(4), [...seen].sort().join(","));
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
-    // The page has no choice. "2-4 human boarders beam aboard your ship."
+  it("shows the station card on arrival, then beams the humans aboard", () => {
+    // The arrival card stays up. "2-4 human boarders beam aboard your ship."
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -85,7 +87,11 @@ describe("Boarders: Humans in nebula", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, ID);
+    choose(g, ID);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
     assert.equal(g.flare, false);

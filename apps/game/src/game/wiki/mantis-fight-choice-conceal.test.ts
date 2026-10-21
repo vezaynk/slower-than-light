@@ -65,15 +65,21 @@ describe("Mantis fight choice conceal", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:mantis-fight-choice:1");
-      if (g.phase === "combat") {
+      const fightCard =
+        g.phase === "combat" ||
+        (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
+      if (fightCard) {
         fights += 1;
+        const line = CONCEAL_FIGHT.find((row) => g.event?.body === row);
+        assert.ok(line, g.event?.body ?? "");
+        assert.equal(g.log.includes(line), false);
+        lines.add(line);
+        if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.enemy?.faction, "mantis");
         assert.equal(g.enemy?.pirate, false);
         assert.equal(g.fightEvent, "mantis-fight-choice");
         assert.equal(g.scrap, 10);
-        const line = g.log.find((row) => CONCEAL_FIGHT.includes(row));
-        assert.ok(line, g.log.join(" | "));
-        lines.add(line);
       } else {
         hidden += 1;
         assert.match(g.event?.body ?? "", /failed to notice your ship/);
@@ -102,12 +108,20 @@ describe("Mantis fight choice conceal", () => {
       cloak(g);
       assert.equal(choiceDisabled(g, "c:mantis-fight-choice:2"), null);
       choose(g, "c:mantis-fight-choice:2");
-      if (g.phase === "combat") {
+      const spotted =
+        "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage.";
+      const fightCard =
+        g.phase === "combat" ||
+        (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
+      if (fightCard) {
         fights += 1;
+        assert.equal(g.event?.body, spotted);
+        assert.equal(g.log.includes(spotted), false);
+        if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.enemy?.faction, "mantis");
         assert.equal(g.fightEvent, "mantis-fight-choice");
         assert.equal(g.scrap, 10);
-        assert.ok(g.log.some((row) => /not quickly enough/.test(row)));
       } else {
         away += 1;
         const body = g.event?.body ?? "";

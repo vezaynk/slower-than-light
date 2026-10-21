@@ -16,14 +16,19 @@ function open(g: Game) {
 }
 
 describe("Pirate ship attacking civilian aid", () => {
-  it("aiding the civilian logs the printed lead-in and fights a pirate ship", () => {
+  it("aiding the civilian shows the printed lead-in on the card and fights a pirate ship", () => {
     const g = createGame(1);
     open(g);
+    const lead = "You power up your weapons and engage the pirate ship.";
     choose(g, "c:pirate-ship-attacking-civilian:0");
-    assert.equal(g.phase, "combat");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-ship-attacking-civilian");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("You power up your weapons and engage the pirate ship."));
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
   });
 });

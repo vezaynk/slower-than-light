@@ -125,6 +125,12 @@ describe("Rebel fight choice in nebula conceal", () => {
       choose(g, "c:rebel-fight-choice-in-nebula:1");
       if (!/not quickly enough/.test(g.event?.body ?? "")) continue;
       choose(g, "q:rebel-nebula:fight");
+      const lead = "Prepare to fight.";
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.body, lead);
+      assert.equal(g.log.includes(lead), false);
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
+      choose(g, "ship-resume");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "rebel");
       assert.equal(g.enemy?.pirate, false);

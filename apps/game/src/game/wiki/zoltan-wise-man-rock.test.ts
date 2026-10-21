@@ -19,15 +19,17 @@ describe("Zoltan wise man Rockmen", () => {
   it("prints the veteran sentence and fights a Rock ship", () => {
     const g = createGame(1);
     open(g);
+    const lead = `"A hardened foe for a hardened veteran." You detect a wormhole opening up, and a Rock ship appears with guns blazing. It appears they were in combat when they were thrust across space-time.`;
     choose(g, "c:zoltan-wise-man:2");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rock");
     assert.equal(g.fightEvent, "zoltan-wise-man");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes(
-        `"A hardened foe for a hardened veteran." You detect a wormhole opening up, and a Rock ship appears with guns blazing. It appears they were in combat when they were thrust across space-time.`,
-      ),
-    );
+    assert.equal(g.log.includes(lead), false);
   });
 });

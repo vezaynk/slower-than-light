@@ -20,9 +20,17 @@ describe("Pirate ship attacking civilian distress escape", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:pirate-ship-attacking-civilian-distress:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    const told = g.event?.body ?? "";
+    assert.equal(told.length > 0, true);
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.enemy?.pirate, true);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-ship-attacking-civilian-distress");
     assert.equal(g.enemyEscape?.mode, "never");
+    assert.equal(g.log.includes(told), false);
   });
 });

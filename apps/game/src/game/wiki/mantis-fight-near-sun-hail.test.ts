@@ -35,7 +35,7 @@ describe("Mantis fight near sun", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Mantis ship beside a red giant on arrival and leaves no button", () => {
+  it("shows the sun intro card on arrival, then the Mantis fight", () => {
     // Wiki citations:
     // > "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?" — [[Mantis fight near sun]]
     // > "Fight a Mantis ship (default rewards)." — [[Mantis fight near sun]]
@@ -57,13 +57,19 @@ describe("Mantis fight near sun", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:mantis-fight-near-sun:0");
+    choose(g, "c:mantis-fight-near-sun:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.flare, true);
     assert.equal(g.fightEvent, "mantis-fight-near-sun");
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

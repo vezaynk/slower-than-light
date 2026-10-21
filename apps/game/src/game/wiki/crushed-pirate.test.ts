@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choiceDisabled, createGame } from "../sim.ts";
+import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game, Kit } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
 
@@ -153,11 +153,16 @@ describe("Crushed pirate", () => {
       const hull = g.player.hull;
       open(g);
       fillerChoose(g, "c:crushed-pirate:1");
-      if (g.phase === "combat") {
+      if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
+        assert.match(g.event?.body ?? "", /charging weapons/);
+        assert.equal(/charging weapons/.test(g.log.join(" ")), false);
+        assert.equal(g.player.hull, hull);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.ok(g.enemy);
         assert.equal(g.player.hull, hull);
-        assert.match(g.log.join(" "), /charging weapons/);
+        assert.equal(/charging weapons/.test(g.log.join(" ")), false);
       } else {
         loot = true;
         assert.match(g.event?.body ?? "", /loot the remains/);

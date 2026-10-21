@@ -40,7 +40,13 @@ describe("Pirate briber intro", () => {
 
     const g = createGame(1);
     open(g);
+    const lead = "The pirate ship stops its pursuit and locks weapons onto your ship.";
     choose(g, "c:pirate-briber:1");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-briber");

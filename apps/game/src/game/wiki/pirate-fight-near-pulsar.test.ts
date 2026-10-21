@@ -44,7 +44,7 @@ describe("Pirate fight near pulsar", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Pirate ship beside a pulsar on arrival and leaves no button", () => {
+  it("shows the pulsar card, then the Pirate fight", () => {
     // The page has no choice. One of the three printed intros, then "Fight a Pirate ship." pulsar=true. unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -63,13 +63,20 @@ describe("Pirate fight near pulsar", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
+    const body = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:pirate-fight-near-pulsar:0");
+    assert.equal(g.fleet, 1);
+    choose(g, "c:pirate-fight-near-pulsar:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.pulsar, true);
     assert.equal(g.flare, false);
     assert.equal(g.fightEvent, "pirate-fight-near-pulsar");
-    assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(body), false);
   });
 });

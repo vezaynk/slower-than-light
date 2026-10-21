@@ -7,6 +7,13 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-pirate:0";
 const DEST = "Boarders: Humans (Pirate)";
+const INTROS = [
+  `What appears to be a civilian ship sends a friendly hail. As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!"`,
+  `A heavily damaged ship is drifting near this beacon. You receive a communication: "Hello! Nice of you to drop by. As you can see, our ship has seen better days. Yours is looking quite nice, I think we might be taking it from you now." Intruders beam aboard.`,
+  "You detect life-signs actually on the beacon itself! A teleporter signal warns you but it's too late, they've beamed from the beacon onto your ship and seem intent on taking it over.",
+  "Your ship detects a faint distress signal on a nearby moon. As you approach the rock, warning lights flash as hostiles beam aboard the ship from some hidden location.",
+  "As you arrive, you become aware of a small Rebel outpost near the beacon. You are hardly able to bark an order before a small team is beamed aboard your ship. They must have been expecting you...",
+];
 
 function beacon(): Beacon {
   return {
@@ -69,10 +76,10 @@ describe("Boarders: Humans (Pirate)", () => {
     assert.ok(seen.has(3) && seen.has(5), [...seen].sort().join(","));
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
+  it("shows the intro card on arrival, then the button beams the human boarders", () => {
     // Wiki citations:
     // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans (Pirate)]]
-    // The page has no choice. "3-5 human boarders beam aboard your ship."
+    // The printed intro stays on the card. The button beams 3-5 human boarders.
     const g = createGame(4);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -90,11 +97,19 @@ describe("Boarders: Humans (Pirate)", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    const body = g.event?.body ?? "";
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, ID);
+    assert.equal(g.enemy, null);
+    choose(g, ID);
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
     const humans = boarded(g);
     assert.ok(humans.length >= 3 && humans.length <= 5, String(humans.length));
     assert.ok(g.log.some((line) => line.includes("human boarders beam aboard your ship.")));
+    assert.equal(g.log.includes(body), false);
   });
 });

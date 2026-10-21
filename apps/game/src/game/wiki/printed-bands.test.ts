@@ -387,8 +387,15 @@ describe("printed bands", () => {
       const drunk = drink(seed, false);
       if (trap === 0 && drunk.phase === "event" && (drunk.event?.body ?? "").includes(GULP))
         trap = seed;
-      if (trust === 0 && drunk.phase === "store") trust = seed;
-      if (rockFight === 0 && drink(seed, true).phase === "combat") rockFight = seed;
+      if (trust === 0 && drunk.event?.choices[0]?.id === "q:open-store") trust = seed;
+      const rocked = drink(seed, true);
+      if (
+        rockFight === 0 &&
+        rocked.phase === "event" &&
+        rocked.enemy != null &&
+        rocked.event?.choices[0]?.id === "ship-resume"
+      )
+        rockFight = seed;
     }
     assert.ok(trap > 0 && trust > 0 && rockFight > 0);
 
@@ -412,6 +419,12 @@ describe("printed bands", () => {
     const rock = drink(rockFight, true);
     rewrite("slug-drink", undefined);
     const rockGone = drink(rockFight, true);
+    assert.equal(rock.event?.choices[0]?.id, "ship-resume");
+    assert.equal(rockGone.event?.choices[0]?.id, "ship-resume");
+    assert.equal(rock.scrap, 80);
+    assert.equal(rockGone.scrap, 80);
+    choose(rock, "ship-resume");
+    choose(rockGone, "ship-resume");
     assert.equal(rock.phase, "combat");
     assert.equal(rockGone.phase, "combat");
     assert.equal(rock.scrap, 80);
@@ -422,6 +435,12 @@ describe("printed bands", () => {
     const sold = drink(trust, false);
     rewrite("slug-drink", undefined);
     const soldGone = drink(trust, false);
+    assert.equal(sold.event?.choices[0]?.id, "q:open-store");
+    assert.equal(soldGone.event?.choices[0]?.id, "q:open-store");
+    assert.equal(sold.scrap, 100);
+    assert.equal(soldGone.scrap, 100);
+    choose(sold, "q:open-store");
+    choose(soldGone, "q:open-store");
     assert.equal(sold.phase, "store");
     assert.equal(soldGone.phase, "store");
     assert.equal(sold.scrap, 100);
@@ -506,9 +525,10 @@ describe("printed bands", () => {
       assert.equal(campaign.missiles, gone.missiles);
       assert.equal(campaign.player.parts, gone.player.parts);
       assert.notEqual(campaign.seed, gone.seed);
-      assert.equal(fuelLines(campaign.log), fuelLines(gone.log) + 1);
+      assert.equal(fuelLines(campaign.log), fuelLines(gone.log));
       assert.equal(fuelMarks(campaign.event?.body ?? ""), fuelMarks(gone.event?.body ?? "") + 1);
-      assert.ok(campaign.log.includes(`Fuel: ${extra}.`));
+      assert.ok((campaign.event?.body ?? "").includes(`Fuel: ${extra}.`));
+      assert.equal(campaign.log.includes(`Fuel: ${extra}.`), false);
       assert.match(campaign.event?.body ?? "", /fuel reserves on the station/);
       assert.match(gone.event?.body ?? "", /fuel reserves on the station/);
       assert.match(
@@ -531,7 +551,8 @@ describe("printed bands", () => {
       assert.equal(pageWin(quiet, eventId, dead), true);
       assert.equal(fixed.seed, quiet.seed);
       assert.equal(fixed.fuel - quiet.fuel, 7);
-      assert.ok(fixed.log.includes("Fuel: 7."));
+      assert.ok((fixed.event?.body ?? "").includes("Fuel: 7."));
+      assert.equal(fixed.log.includes("Fuel: 7."), false);
       assert.equal(quiet.log.includes("Fuel: 7."), false);
       assert.match(quiet.event?.body ?? "", /fuel reserves on the station/);
       assert.equal((quiet.event?.body ?? "").includes("Fuel: 7."), false);

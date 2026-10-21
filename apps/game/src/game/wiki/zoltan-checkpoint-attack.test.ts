@@ -16,20 +16,23 @@ function open(g: Game) {
 }
 
 describe("Zoltan security checkpoint attack", () => {
-  it("attacking logs the printed lead-in and fights a Zoltan ship", () => {
+  it("attacking shows the printed lead-in on the card and fights a Zoltan ship", () => {
     // Wiki citations:
     // > "You don't have time for this nonsense. Attack!" — [[Zoltan security checkpoint]]
     // > "Expecting resistance, their Energy Shield is raised and ready for combat." — [[Zoltan security checkpoint]]
     // > "Fight a Zoltan ship (default rewards)." — [[Zoltan security checkpoint]]
     const g = createGame(1);
     open(g);
+    const lead = "Expecting resistance, their Energy Shield is raised and ready for combat.";
     choose(g, "c:zoltan-security-checkpoint:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "zoltan");
     assert.equal(g.fightEvent, "zoltan-security-checkpoint");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes("Expecting resistance, their Energy Shield is raised and ready for combat."),
-    );
   });
 });

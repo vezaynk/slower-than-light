@@ -72,7 +72,8 @@ describe("refuel dock price", () => {
     assert.equal(fixed.fuel, fixedFuel + 5);
     assert.equal(fixed.seed, fixedSeed);
     assert.match(fixed.event?.body ?? "", /You receive 5 fuel/);
-    assert.match(fixed.log.join("\n"), /Scrap: -7\./);
+    assert.match(fixed.event?.body ?? "", /Scrap: -7\./);
+    assert.equal(fixed.log.join("\n").includes("Scrap: -7."), false);
 
     fixed.scrap = 6;
     const shortSeed = fixed.seed;

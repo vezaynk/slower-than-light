@@ -197,8 +197,18 @@ describe("Zoltan ship asks to dock", () => {
       const g = arrive(seed, "Zoltan Controlled Sector", "Zoltan ship asks to dock");
       const s0 = snap(g);
       choose(g, "c:zoltan-ship-asks-to-dock:0");
-      if (g.phase === "combat") {
+      const dockLead = "You allow them to approach, but are caught unaware when they open fire!";
+      const dockFight =
+        g.phase === "combat" ||
+        (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
+      if (dockFight) {
         seen.add("fight");
+        if (g.phase === "event") {
+          assert.equal(g.event?.body, dockLead);
+          assert.equal(g.log.includes(dockLead), false);
+          choose(g, "ship-resume");
+        }
+        assert.equal(g.phase, "combat");
         assert.equal(g.enemy!.faction, "zoltan");
         assert.equal(g.enemySurrender!.chance, 50);
         assert.ok(g.enemySurrender!.threshold >= 30 && g.enemySurrender!.threshold <= 40);
@@ -254,6 +264,13 @@ describe("Settlement mercenary work", () => {
         continue;
       }
       choose(g, "s:settlement-mercenary-work:accept");
+      const job =
+        '"Just be sure not to blow them up!" they say nervously as they direct you to a nearby moon. You find the pirate ship docked there. They immediately respond to your appearance with, "Your money or your life!" They must be new to this.';
+      assert.equal(g.phase, "event");
+      assert.equal(g.event?.body, job);
+      assert.equal(g.log.includes(job), false);
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
+      choose(g, "ship-resume");
       assert.equal(g.phase, "combat");
       assert.ok(g.enemy!.pirate);
       assert.equal(g.enemyEscape!.mode, "never");
@@ -298,6 +315,13 @@ describe("The Black Raven", () => {
       ["s:the-black-raven:accept", "s:the-black-raven:decline", "s:the-black-raven:duel"],
     );
     choose(g, "s:the-black-raven:decline");
+    const challenge =
+      '"I sssee... However you have no choice in the matter!" They move in to attack.';
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, challenge);
+    assert.equal(g.log.includes(challenge), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy!.faction, "slug");
     assert.ok(g.enemy!.pirate);
@@ -315,18 +339,26 @@ describe("The Black Raven", () => {
     assert.equal(weaponsHeld(g), weapons + 1);
   });
 
-  it("ignoring his surrender logs the printed cut-off sentence and the fight continues", () => {
+  it("ignoring his surrender shows the printed cut-off card and the fight continues", () => {
     // Wiki citations:
     // > "Ignore him and attack." — [[The Black Raven#Fighting the Black Raven]]
     // > "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire." — [[The Black Raven#Fighting the Black Raven]]
     // > "Continue the fight." — [[The Black Raven#Fighting the Black Raven]]
+    const cut =
+      '"Wait! There is no need to be...." You cut off the transmission and prepare to fire.';
     const g = arrive(5, "Slug Home Nebula", "The Black Raven");
     choose(g, "c:the-black-raven:0");
     choose(g, "s:the-black-raven:decline");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     forceOffer(g);
     choose(g, REFUSE_ID);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, cut);
+    assert.equal(g.log.includes(cut), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
-    assert.ok(g.log.some((line) => line.includes("There is no need to be....")));
     assert.equal(g.enemy!.faction, "slug");
   });
 });
@@ -348,23 +380,42 @@ describe("Destroyed cargo ship", () => {
       const s0 = snap(g);
       const kills = g.kills;
       choose(g, "c:destroyed-cargo-ship:0");
-      if (g.phase === "combat" && g.enemy) {
+      const resume = g.phase === "event" && g.event?.choices[0]?.id === "ship-resume";
+      const ambushText =
+        "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!";
+      const crateText =
+        'Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, "Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!" Immediately after this battle-cry your ship is filled with the sound of crates breaking open...';
+      if ((g.phase === "combat" || resume) && g.enemy) {
         seen.add("ambush");
+        assert.equal(g.event?.body, ambushText);
+        assert.equal(g.log.includes(ambushText), false);
         const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
         assert.ok(boarders.length >= 2 && boarders.length <= 4);
         assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "human"));
         assert.equal(g.enemyEscape!.chance, 70);
         assert.equal(g.enemySurrender!.chance, 100);
         assert.ok(g.enemySurrender!.threshold >= 0 && g.enemySurrender!.threshold <= 50);
+        if (resume) choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         for (let i = 0; i < 300 && g.phase === "combat"; i++) step(g, 1 / 30);
-      } else if (g.phase === "combat" && !g.enemy) {
+      } else if ((g.phase === "combat" || resume) && !g.enemy) {
         seen.add("boarders");
+        assert.equal(g.event?.body, crateText);
+        assert.equal(g.log.includes(crateText), false);
         const boarders = g.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
         assert.ok(boarders.length >= 2 && boarders.length <= 4);
         assert.ok(boarders.every((c) => c.name === "Human" && c.kin === "human"));
         assert.equal(g.kills, kills);
         assert.equal(g.scrap, s0.scrap);
         assert.equal(g.asb, false);
+        if (resume) choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
+        assert.equal(
+          g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length,
+          boarders.length,
+        );
+        assert.equal(g.kills, kills);
+        assert.equal(g.scrap, s0.scrap);
       } else if (g.event!.body.startsWith("They appear to be filled")) {
         seen.add("supplies");
         const d = kinds(s0, g);

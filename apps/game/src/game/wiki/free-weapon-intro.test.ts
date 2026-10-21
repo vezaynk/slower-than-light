@@ -50,9 +50,10 @@ describe("Free weapon intro", () => {
       assert.ok(g.scrap > 10);
       // Rewards, "Weapon": "A random weapon & T scrap."
       assert.equal(heldWeapons(g), weapons + 1);
-      assert.ok(
+      assert.match(g.event?.body ?? "", /(mounted|stowed in cargo)\.$/);
+      assert.equal(
         g.log.some((line) => /(mounted|stowed in cargo)\.$/.test(line)),
-        g.log.join("\n"),
+        false,
       );
     }
     assert.equal(seen.size, INTROS.length);

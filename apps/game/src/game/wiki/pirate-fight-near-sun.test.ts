@@ -32,7 +32,7 @@ describe("Pirate fight near sun", () => {
     assert.equal(g.scrap, scrap);
   });
 
-  it("starts the Pirate ship beside the star on arrival and leaves no button", () => {
+  it("shows the sun intro card on arrival, then the pirate fight", () => {
     // The page has no choice. The star warning, then "Fight a Pirate ship." redgiant=true. unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -51,13 +51,19 @@ describe("Pirate fight near sun", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:pirate-fight-near-sun:0");
+    choose(g, "c:pirate-fight-near-sun:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.flare, true);
     assert.equal(g.pulsar, false);
     assert.equal(g.fightEvent, "pirate-fight-near-sun");
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

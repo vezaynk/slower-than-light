@@ -31,7 +31,14 @@ describe("Engi distress Rebel fight", () => {
   it("fights a Rebel ship that never runs and never surrenders", () => {
     const g = createGame(1);
     open(g);
+    const lead =
+      "The distress signal originates at a small Engi ship under attack by a rebel fighter - but when they see Federation markings they turn to attack!";
     choose(g, "c:engi-distress-rebel-fight:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "engi-distress-rebel-fight");
     assert.equal(g.enemy?.faction, "rebel");

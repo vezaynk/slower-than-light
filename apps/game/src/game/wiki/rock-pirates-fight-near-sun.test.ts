@@ -49,7 +49,7 @@ describe("Rock pirates fight near sun", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Rock pirate ship beside a red giant on arrival and leaves no button", () => {
+  it("shows the sun card, then the Rock pirate fight", () => {
     // Wiki citations:
     // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight near sun]]
     // The page has no choice. One of the two printed intros, then "Fight a Rock pirate ship." redgiant=true. unique=true.
@@ -70,13 +70,20 @@ describe("Rock pirates fight near sun", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
+    const body = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rock-pirates-fight-near-sun:0");
+    assert.equal(g.fleet, 1);
+    choose(g, "c:rock-pirates-fight-near-sun:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rock");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.flare, true);
     assert.equal(g.fightEvent, "rock-pirates-fight-near-sun");
-    assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(body), false);
   });
 });

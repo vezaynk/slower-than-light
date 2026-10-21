@@ -16,18 +16,20 @@ function open(g: Game) {
 }
 
 describe("Lanius ship salvager attack", () => {
-  it("attacking logs the printed weapons sentence and fights a Lanius ship", () => {
+  it("attacking shows the printed weapons sentence and fights a Lanius ship", () => {
+    const lead =
+      "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.";
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-salvager:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-salvager");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes(
-        "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.",
-      ),
-    );
   });
 });

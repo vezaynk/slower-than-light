@@ -61,6 +61,12 @@ describe("Remote settlement", () => {
     open(g);
     const crew = g.crew.filter((c) => c.side === "player").length;
     choose(g, "c:remote-settlement:0");
+    const lead = '"You asked for it!" They pull away from the planet and move in to engage.';
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.ok(g.enemy);
     assert.equal(g.enemy.faction === "pirate" || g.enemy.pirate === true, true);
@@ -123,7 +129,16 @@ describe("Remote settlement", () => {
     choose(g, "c:remote-settlement:2");
     // Rewards, "Drone": "A random drone schematic & T scrap."
     assert.ok(g.event?.body.startsWith(`${CROP}\n\n${SCHEMATIC} `));
-    assert.match(g.event?.body ?? "", / schematic (fitted|stowed in cargo)\.$/);
+    assert.match(g.event?.body ?? "", / schematic (fitted|stowed in cargo)\./);
+    assert.match(g.event?.body ?? "", /High scrap: \d+\./);
+    assert.equal(
+      g.log.some((line) => /schematic (fitted|stowed in cargo)\./.test(line)),
+      false,
+    );
+    assert.equal(
+      g.log.some((line) => /^High scrap: \d+\.$/.test(line)),
+      false,
+    );
     assert.equal(heldSchematics(g).length, schematics + 1);
     assert.equal(g.phase, "event");
     assert.equal(g.enemy, null);
@@ -160,7 +175,16 @@ describe("Remote settlement", () => {
     choose(g, "c:remote-settlement:3");
     // Rewards, "Drone": "A random drone schematic & T scrap."
     assert.ok(g.event?.body.startsWith(`${DWELLING}\n\n${SCHEMATIC} `));
-    assert.match(g.event?.body ?? "", / schematic (fitted|stowed in cargo)\.$/);
+    assert.match(g.event?.body ?? "", / schematic (fitted|stowed in cargo)\./);
+    assert.match(g.event?.body ?? "", /High scrap: \d+\./);
+    assert.equal(
+      g.log.some((line) => /schematic (fitted|stowed in cargo)\./.test(line)),
+      false,
+    );
+    assert.equal(
+      g.log.some((line) => /^High scrap: \d+\.$/.test(line)),
+      false,
+    );
     assert.equal(heldSchematics(g).length, schematics + 1);
     assert.ok(g.event?.body.includes("'tribute'"));
     assert.equal(g.missiles, 0);

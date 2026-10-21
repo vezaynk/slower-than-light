@@ -160,6 +160,12 @@ describe("surrender in a fight", () => {
       "surrender is rolled before the escape on the same tick",
     );
     choose(g, REFUSE_ID);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, "Offer refused. They brace for more.");
+    assert.equal(g.log.includes("Offer refused. They brace for more."), false);
+    assert.ok(g.enemy);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.paused, false);
     assert.ok(g.enemy);
@@ -368,14 +374,21 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(g.phase, "combat", "no second offer");
   });
 
-  it("Human crew: refusing logs their line and the fight continues", () => {
+  it("Human crew: refusing shows their line on the card and the fight continues", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
     offer(g);
     const crew = g.crew.filter((c) => c.side === "player").length;
+    const line = "Who knows how many humans will be saved if you kill them now.";
     choose(g, REFUSE_ID);
-    assert.equal(g.phase, "combat");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, line);
+    assert.equal(g.log.includes(line), false);
     assert.ok(g.enemy);
-    assert.ok(g.log.includes("Who knows how many humans will be saved if you kill them now."));
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
+    assert.equal(g.paused, false);
+    assert.ok(g.enemy);
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
   });
 
@@ -415,13 +428,20 @@ describe("scripted surrenders (event pages)", () => {
     );
   });
 
-  it("hull repairs: refusing logs their line and the fight continues", () => {
+  it("hull repairs: refusing shows their line on the card and the fight continues", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-hull-repairs");
     offer(g);
+    const line = "They wanted to pick a fight with you so that's what they'll get.";
     choose(g, REFUSE_ID);
-    assert.equal(g.phase, "combat");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, line);
+    assert.equal(g.log.includes(line), false);
     assert.ok(g.enemy);
-    assert.ok(g.log.includes("They wanted to pick a fight with you so that's what they'll get."));
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
+    assert.equal(g.paused, false);
+    assert.ok(g.enemy);
   });
 
   it("Pirate briber: high-tier Stuff", () => {

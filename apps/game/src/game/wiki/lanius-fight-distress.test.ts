@@ -35,8 +35,8 @@ describe("Lanius fight distress", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Lanius ship on arrival and leaves no button", () => {
-    // The page has no choice. The printed sentence, then "Fight a Lanius ship." distress=true. unique=true.
+  it("shows the intro card on arrival, then the fight button starts the Lanius ship", () => {
+    // The printed sentence stays on the card. The fight button starts the Lanius ship. distress=true. unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -54,13 +54,18 @@ describe("Lanius fight distress", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:lanius-fight-distress:0");
+    choose(g, "c:lanius-fight-distress:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "lanius-fight-distress");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

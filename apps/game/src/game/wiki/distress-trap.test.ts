@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { commitJump, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
 
@@ -64,15 +64,27 @@ describe("Pirate ship distress trap", () => {
     open(g);
     const body = g.event?.body ?? "";
     fillerChoose(g, "c:pirate-ship-distress-trap:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.ok((g.event?.body ?? "").includes(body.slice(0, 24)));
+    assert.equal(
+      g.log.some((line) => line.includes(body.slice(0, 24))),
+      false,
+    );
+    assert.equal(g.enemy?.pirate, true);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.event, null);
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.scrap, 10);
     assert.equal(g.player.hull, hull);
-    assert.ok(g.log.some((line) => line.includes(body.slice(0, 24))));
+    assert.equal(
+      g.log.some((line) => line.includes(body.slice(0, 24))),
+      false,
+    );
   });
 
-  it("starts the Pirate ship on arrival and leaves no button", () => {
+  it("starts the Pirate ship on arrival from the intro card", () => {
     // The page has no choice. One of the four printed intros, then "Fight a Pirate ship." distress=true. unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -91,12 +103,20 @@ describe("Pirate ship distress trap", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const intro = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, "c:pirate-ship-distress-trap:0");
+    choose(g, "c:pirate-ship-distress-trap:0");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.fightEvent, "pirate-ship-distress-trap");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(intro), false);
   });
 });

@@ -105,11 +105,21 @@ describe("Lanius ship absorbing jump beacon", () => {
       open(g);
       const before = stock(g);
       choose(g, "c:lanius-ship-absorbing-jump-beacon:0");
-      if (g.phase === "combat") {
+      if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
+        assert.match(g.event?.body ?? "", /fully functional and looking for a fight/);
+        assert.equal(
+          g.log.some((line) => line.includes("fully functional and looking for a fight")),
+          false,
+        );
+        sameStock(g, before);
+        choose(g, "ship-resume");
         assertLaniusFight(g);
         sameStock(g, before);
-        assert.ok(g.log.some((line) => line.includes("fully functional and looking for a fight")));
+        assert.equal(
+          g.log.some((line) => line.includes("fully functional and looking for a fight")),
+          false,
+        );
         continue;
       }
       assert.match(g.event?.body ?? "", /critical\.\.\. must\.\.\. metal\.\.\./);
@@ -119,11 +129,21 @@ describe("Lanius ship absorbing jump beacon", () => {
       );
       choose(g, "s:lanius-beacon-eater:leave");
       // Cast: TypeScript still holds the narrowing from above; choose changes the phase.
-      if ((g.phase as Game["phase"]) === "combat") {
+      if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         pulled = true;
+        assert.match(g.event?.body ?? "", /fully operational/);
+        assert.equal(
+          g.log.some((line) => line.includes("fully operational")),
+          false,
+        );
+        sameStock(g, before);
+        choose(g, "ship-resume");
         assertLaniusFight(g);
         sameStock(g, before);
-        assert.ok(g.log.some((line) => line.includes("fully operational")));
+        assert.equal(
+          g.log.some((line) => line.includes("fully operational")),
+          false,
+        );
       } else {
         quiet = true;
         assert.match(g.event?.body ?? "", /disable this beacon/);
@@ -146,10 +166,19 @@ describe("Lanius ship absorbing jump beacon", () => {
       const before = stock(g);
       choose(g, "c:lanius-ship-absorbing-jump-beacon:1");
       sameStock(g, before);
-      if (g.phase === "combat") {
+      if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight += 1;
+        assert.match(g.event?.body ?? "", /fully operational/);
+        assert.equal(
+          g.log.some((line) => line.includes("fully operational")),
+          false,
+        );
+        choose(g, "ship-resume");
         assertLaniusFight(g);
-        assert.ok(g.log.some((line) => line.includes("fully operational")));
+        assert.equal(
+          g.log.some((line) => line.includes("fully operational")),
+          false,
+        );
       } else {
         quiet += 1;
         assert.match(g.event?.body ?? "", /Nothing happens/);

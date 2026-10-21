@@ -38,7 +38,13 @@ describe("Auto-ship near radar station", () => {
       g.event?.choices.some((c) => c.id === "c:auto-ship-near-radar-station:2"),
       true,
     );
+    const lead = "The ship powers up and targets you.";
     choose(g, "c:auto-ship-near-radar-station:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "auto-ship-near-radar-station");
     assert.equal(g.scrap, 10);
@@ -109,13 +115,20 @@ describe("Auto-ship near radar station", () => {
       assert.equal(g.player.parts, 2);
       assert.equal(g.player.kits.drones?.target, target);
       assert.equal(g.scrap, 10);
-      if (g.phase === "combat") {
+      const body = g.event?.body ?? "";
+      assert.match(body, /Drone parts: -1\./);
+      assert.equal(g.log.includes("Drone parts: -1."), false);
+      const fighting =
+        g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
+      if (fighting) {
         fight += 1;
+        assert.match(body, /shoots it down/);
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "auto-ship-near-radar-station");
         assert.equal(g.fleet, 5);
       } else {
         station += 1;
-        const body = g.event?.body ?? "";
         if (body.includes("luring it away")) leads.add("lure");
         if (body.includes("repeatedly fires")) leads.add("fire");
         assert.match(body, /luring it away|repeatedly fires/);

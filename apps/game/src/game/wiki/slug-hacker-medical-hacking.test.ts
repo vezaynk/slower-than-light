@@ -78,8 +78,13 @@ describe("Slug hacker (medical) hacking", () => {
     open(g);
     assert.equal(choiceDisabled(g, "c:slug-hacker-medical:1"), null);
     choose(g, "c:slug-hacker-medical:1");
-    assert.ok(g.log.includes(LEAD));
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(LEAD));
+    assert.equal(g.log.includes(LEAD), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.log.includes(LEAD), false);
     assert.equal(g.fightEvent, "slug-hacker-medical");
     assert.equal(g.enemy?.faction, "slug");
     assert.equal(g.scrap, 10);

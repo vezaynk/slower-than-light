@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { commitJump, createGame } from "../sim.ts";
+import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
@@ -58,8 +58,8 @@ describe("Auto-ship fight near sun", () => {
     assert.equal(killed.phase, "event");
   });
 
-  it("starts the Auto-ship near the star on arrival and leaves no button", () => {
-    // The page has no choice. "Fight an Auto-ship." redgiant=true.
+  it("shows the star card, then starts the Auto-ship fight", () => {
+    // The arrival card stays up. "Fight an Auto-ship." redgiant=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -77,6 +77,15 @@ describe("Auto-ship fight near sun", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
+    const body =
+      "You arrive at the beacon to find yourself dangerously close to a star. An automated Rebel ship, impervious to the heat, moves in to engage.";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:auto-ship-fight-near-sun:0");
+    assert.equal(g.fleet, 1);
+    choose(g, "c:auto-ship-fight-near-sun:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.event, null);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "auto");
@@ -84,11 +93,6 @@ describe("Auto-ship fight near sun", () => {
     assert.equal(g.asteroid, false);
     assert.equal(g.flare, true);
     assert.ok((g.flareWait ?? 0) >= 28 && (g.flareWait ?? 0) < 34);
-    assert.equal(g.fleet, 1);
-    assert.ok(
-      g.log.includes(
-        "You arrive at the beacon to find yourself dangerously close to a star. An automated Rebel ship, impervious to the heat, moves in to engage.",
-      ),
-    );
+    assert.equal(g.log.includes(body), false);
   });
 });

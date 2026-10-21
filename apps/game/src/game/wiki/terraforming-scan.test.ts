@@ -19,7 +19,12 @@ function kind(g: Game): "fail" | "oxygen" | "pirate" | "mold" | "offer" {
   if (body.includes("no more powerful")) return "fail";
   if (body.includes("simple mold")) return "mold";
   if (body.includes("Oxygen system upgraded")) return "oxygen";
-  if (g.phase === "combat") return "pirate";
+  // A fight now waits on Continue. The enemy is already armed.
+  if (
+    g.phase === "combat" ||
+    (g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume"))
+  )
+    return "pirate";
   if (body.includes("schedule to keep")) return "offer";
   return "offer";
 }

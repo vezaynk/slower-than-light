@@ -16,14 +16,19 @@ function open(g: Game) {
 }
 
 describe("Rebel ship attacking civilians in Last Stand fight", () => {
-  it("attacking logs the printed lead-in and fights a Rebel ship", () => {
+  it("attacking shows the printed lead-in and fights a Rebel ship", () => {
+    const lead = "You move in to intercept.";
     const g = createGame(1);
     open(g);
     choose(g, "c:rebel-ship-attacking-civilians-in-last-stand:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.fightEvent, "rebel-ship-attacking-civilians-in-last-stand");
     assert.equal(g.scrap, 10);
-    assert.ok(g.log.includes("You move in to intercept."));
   });
 });

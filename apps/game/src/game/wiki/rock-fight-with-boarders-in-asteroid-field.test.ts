@@ -55,7 +55,7 @@ describe("Rock fight with boarders in asteroid field", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("applies the red line on arrival and leaves no button", () => {
+  it("shows the intro card on arrival, then applies the red line", () => {
     // Wiki citations:
     // > "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders in asteroid field]]
     // The page has no choice. "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." asteroidfield=true.
@@ -76,8 +76,14 @@ describe("Rock fight with boarders in asteroid field", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    const intro = g.event?.body ?? "";
+    assert.equal(g.phase, "event");
+    assert.ok(INTROS.includes(intro), intro);
+    assert.equal(g.log.includes(intro), false);
+    assert.equal(g.event?.choices[0]?.id, "c:rock-fight-with-boarders-in-asteroid-field:0");
+    choose(g, "c:rock-fight-with-boarders-in-asteroid-field:0");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "rock");
     assert.equal(g.asteroid, true);
     assert.equal(g.fightEvent, "rock-fight-with-boarders-in-asteroid-field");
@@ -86,5 +92,6 @@ describe("Rock fight with boarders in asteroid field", () => {
     );
     assert.ok(rocks.length >= 1 && rocks.length <= 2, String(rocks.length));
     assert.ok(g.log.some((line) => line.includes("rock boarders beam aboard your ship.")));
+    assert.equal(g.log.includes(intro), false);
   });
 });

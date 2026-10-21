@@ -16,18 +16,21 @@ function open(g: Game) {
 }
 
 describe("Lanius ship attacking Mantis fight", () => {
-  it("attacking logs the printed fray sentence and fights a Lanius ship", () => {
+  it("attacking shows the printed fray sentence on the card and fights a Lanius ship", () => {
     const g = createGame(1);
     open(g);
+    const lead =
+      "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!";
     choose(g, "c:lanius-ship-attacking-mantis:0");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-attacking-mantis");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes(
-        "The Lanius haven't noticed you yet - but they will. Launching into the fray, you target the Lanius vessel!",
-      ),
-    );
+    assert.equal(g.log.includes(lead), false);
   });
 });

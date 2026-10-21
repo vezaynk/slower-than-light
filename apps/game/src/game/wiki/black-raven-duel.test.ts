@@ -63,7 +63,9 @@ describe("The Black Raven mind duel", () => {
       const weapons = g.player.weapons.map((w) => w.defId);
       const scrap = g.scrap;
       choose(g, DUEL);
-      if (g.phase === "combat") {
+      const charging =
+        g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume";
+      if (charging) {
         boarded = true;
         const boarders = slugsAboard(g);
         assert.ok(boarders.length >= 1 && boarders.length <= 2, String(boarders.length));
@@ -71,16 +73,21 @@ describe("The Black Raven mind duel", () => {
         assert.equal(g.enemy!.faction, "slug");
         assert.ok(g.enemy!.pirate);
         assert.equal(g.fightEvent, "the-black-raven");
-        assert.ok(
+        assert.match(g.event?.body ?? "", /grunts in pain and collapses onto the floor, stunned/);
+        assert.equal(
           g.log.some((line) =>
             line.includes("grunts in pain and collapses onto the floor, stunned."),
           ),
+          false,
         );
+        assert.match(g.log.join("\n"), /slug boarders beam aboard/);
         assert.equal(g.scrap, scrap);
         assert.deepEqual(
           g.player.weapons.map((w) => w.defId),
           weapons,
         );
+        choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
       } else {
         paid = true;
         assert.equal(g.phase, "event");

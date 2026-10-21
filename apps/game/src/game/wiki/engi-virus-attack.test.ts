@@ -21,15 +21,20 @@ describe("The Engi virus attack", () => {
     open(g);
     const engines = g.player.systems.engines;
     const shields = g.player.systems.shields;
+    const told = "The Engi be damned, no one threatens your ship. You prepare for a fight!";
     choose(g, "c:the-engi-virus:1");
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(told));
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.faction, "engi");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "engi");
     assert.equal(g.fightEvent, "the-engi-virus");
     assert.equal(g.scrap, 10);
     assert.equal(g.player.systems.engines, engines);
     assert.equal(g.player.systems.shields, shields);
-    assert.ok(
-      g.log.includes("The Engi be damned, no one threatens your ship. You prepare for a fight!"),
-    );
+    assert.equal(g.log.includes(told), false);
   });
 });

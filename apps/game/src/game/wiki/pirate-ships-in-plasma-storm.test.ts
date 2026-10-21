@@ -54,7 +54,14 @@ describe("Pirate ships in plasma storm", () => {
 
     const fuel = createGame(2);
     open(fuel);
+    const fuelLead =
+      "You jet toward the pirate with the fuel supplies and engage - hopefully you can leave the ship in one piece!";
     choose(fuel, "c:pirate-ships-in-plasma-storm:0");
+    assert.equal(fuel.phase, "event");
+    assert.equal(fuel.event?.choices[0]?.id, "ship-resume");
+    assert.equal(fuel.event?.body, fuelLead);
+    assert.equal(fuel.log.includes(fuelLead), false);
+    choose(fuel, "ship-resume");
     assert.equal(fuel.phase, "combat");
     assert.equal(fuel.fightEvent, "pirate-ships-in-plasma-storm");
     assert.equal(fuel.enemy?.pirate, true);
@@ -74,7 +81,14 @@ describe("Pirate ships in plasma storm", () => {
 
     const ammo = createGame(3);
     open(ammo);
+    const ammoLead =
+      "You jet toward the pirate with the ammunition and engage - hopefully you can leave the ship in one piece!";
     choose(ammo, "c:pirate-ships-in-plasma-storm:1");
+    assert.equal(ammo.phase, "event");
+    assert.equal(ammo.event?.choices[0]?.id, "ship-resume");
+    assert.equal(ammo.event?.body, ammoLead);
+    assert.equal(ammo.log.includes(ammoLead), false);
+    choose(ammo, "ship-resume");
     assert.equal(ammo.phase, "combat");
     assert.equal(ammo.fightEvent, "pirate-ships-in-plasma-storm-ammo");
     assert.equal(ammo.enemy?.pirate, true);

@@ -45,6 +45,13 @@ describe("Auto-ship warning intro", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:auto-ship-warning:0");
+    const lead =
+      "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!";
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "auto");
     assert.equal(g.enemy?.pirate, false);

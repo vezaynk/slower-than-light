@@ -21,7 +21,7 @@
  */
 import { adjustScrap } from "../extras/index.ts";
 import { crewDef } from "@stl/pack";
-import { beginBoarding, deselectCrew, hurtSystem, log, rand } from "../sim.ts";
+import { beginBoarding, deselectCrew, hurtSystem, log, rand, showEventLines } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 import { rollBand } from "./event-bands.ts";
@@ -115,17 +115,13 @@ function roomHit(g: Game, breach = false): string {
   const flames = rand(g) < 0.5 ? 1 : 2;
   r.fire = Math.min(4, r.fire + flames);
   if (breach) r.breach += 1;
-  const line = breach ? "A fire and a breach break out." : "A fire breaks out.";
-  log(g, line);
-  return line;
+  return breach ? "A fire and a breach break out." : "A fire breaks out.";
 }
 
 /** "Rebel Fleet pursuit is doubled for 1 jump": the next advance counts twice (sim.ts pursuit). */
 function doublePursuit(g: Game): string {
   g.pursuitDouble = true;
-  const line = "Rebel Fleet pursuit is doubled for 1 jump.";
-  log(g, line);
-  return line;
+  return "Rebel Fleet pursuit is doubled for 1 jump.";
 }
 
 /** Rewards, "Fuel": T fuel & T scrap ("high (3-6 fuel) fuel and scrap", "medium (2-4 fuel) fuel and scrap"). */
@@ -163,9 +159,7 @@ function loseCrew(g: Game): string {
   if (mine.length <= 1) return "";
   const lost = pick(g, mine);
   g.crew = g.crew.filter((c) => c.id !== lost.id);
-  const line = `${lost.name} is lost.`;
-  log(g, line);
-  return line;
+  return `${lost.name} is lost.`;
 }
 
 /** "who becomes an enemy": that crew fights aboard your ship. INFERRED: never the last living crewmember. */
@@ -507,7 +501,6 @@ ${joined}`,
 function spendDronePart(g: Game): boolean {
   if (g.player.parts < 1) return false;
   g.player.parts -= 1;
-  log(g, "Drone parts: -1.");
   return true;
 }
 
@@ -1028,7 +1021,6 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // Wiki citations:
       // > "You receive Drone parts gained: 5 and Merchant's Delivery quest marker is added to your map." — [[Merchant's request]]
       g.player.parts += PARTS_OWED;
-      log(g, `Drone parts: ${PARTS_OWED}.`);
       result(
         g,
         "Great! I uploaded their location to your star map. I'm running out of options, so I have no choice but to trust you'll do what you have agreed to do.",
@@ -1145,13 +1137,12 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // Wiki citations:
       // > "As you get back on board, your injured friend rises up and starts to attack you, screaming. Caught off-guard, your remaining crew fall back as the other scientists fight their way onto the ship." — [[Research station with no response]]
       // > "You lose a crewmember, who becomes an enemy, and 3-4 human boarders beam aboard your ship." — [[Research station with no response]]
-      log(
-        g,
-        "As you get back on board, your injured friend rises up and starts to attack you, screaming. Caught off-guard, your remaining crew fall back as the other scientists fight their way onto the ship.",
-      );
       turnCoat(g);
       humanBoarders(g, 3, 4, "human boarders beam aboard.");
       beginBoarding(g);
+      showEventLines(g, [
+        "As you get back on board, your injured friend rises up and starts to attack you, screaming. Caught off-guard, your remaining crew fall back as the other scientists fight their way onto the ship.",
+      ]);
     },
     // Teleporter: "lose a crewmember, who becomes an enemy." No extra boarders. Last crew stays (the card remains).
     "q:research:beam": (g) => {
@@ -1165,20 +1156,19 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
         result(g, text);
         return;
       }
-      log(g, text);
       beginBoarding(g);
+      showEventLines(g, [text]);
     },
     // Medbay level 2: "3-4 human boarders beam aboard your ship." The crewmember recovers.
     "q:research:medbay": (g) => {
       // Wiki citations:
       // > "(Medbay) Drag him back to the Medbay. (Requires level 2 Medbay)" — [[Research station with no response]]
       // > "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help." — [[Research station with no response]]
-      log(
-        g,
-        "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help.",
-      );
       humanBoarders(g, 3, 4, "human boarders beam aboard.");
       beginBoarding(g);
+      showEventLines(g, [
+        "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help.",
+      ]);
     },
     "q:research:cure": (g) => {
       // Wiki citations:

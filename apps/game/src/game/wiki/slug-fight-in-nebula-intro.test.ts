@@ -56,7 +56,7 @@ describe("Slug fight in nebula intro", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Slug ship on arrival and leaves no button", () => {
+  it("shows the intro card on arrival, then the fight button starts the Slug ship", () => {
     // Wiki citations:
     // > "Fight a Slug ship (default rewards)." — [[Slug fight in nebula]]
     // The page has no choice. One of the five printed intros, then "Fight a Slug ship." nebula=true. unique=false.
@@ -77,13 +77,19 @@ describe("Slug fight in nebula intro", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    const body = g.event?.body ?? "";
+    assert.ok(INTROS.includes(body), body);
+    assert.equal(g.log.includes(body), false);
+    assert.equal(g.event?.choices[0]?.id, "c:slug-fight-in-nebula:0");
+    choose(g, "c:slug-fight-in-nebula:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "slug");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.fightEvent, "slug-fight-in-nebula");
     assert.equal(g.flare, false);
     assert.equal(g.fleet, 1);
-    assert.ok(INTROS.some((line) => g.log.includes(line)));
+    assert.equal(g.log.includes(body), false);
   });
 });

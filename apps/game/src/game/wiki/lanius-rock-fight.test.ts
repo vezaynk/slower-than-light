@@ -16,18 +16,20 @@ function open(g: Game) {
 }
 
 describe("Lanius ship attacking Rock fight", () => {
-  it("attacking logs the printed lead-in and fights a Lanius ship", () => {
+  it("attacking shows the printed lead-in on the card and fights a Lanius ship", () => {
     const g = createGame(1);
     open(g);
+    const lead =
+      "The Rockmen need your help - you target the Lanius ship and grimly prepare for battle.";
     choose(g, "c:lanius-ship-attacking-rock:0");
-    assert.equal(g.phase, "combat");
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, lead);
+    assert.equal(g.log.includes(lead), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.fightEvent, "lanius-ship-attacking-rock");
     assert.equal(g.scrap, 10);
-    assert.ok(
-      g.log.includes(
-        "The Rockmen need your help - you target the Lanius ship and grimly prepare for battle.",
-      ),
-    );
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
   });
 });

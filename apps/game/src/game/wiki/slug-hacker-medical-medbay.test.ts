@@ -75,11 +75,10 @@ describe("Slug hacker (medical) improved medbay", () => {
     open(g);
     assert.equal(choiceDisabled(g, ID), null);
     choose(g, ID);
-    assert.ok(g.log.includes(LEAD));
-    assert.equal(g.phase, "combat");
-    assert.equal(g.fightEvent, "slug-hacker-medical");
-    assert.equal(g.enemy?.faction, "slug");
-    assert.equal(g.scrap, 10);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.event?.body, LEAD);
+    assert.equal(g.log.includes(LEAD), false);
     assert.equal(g.player.systems.medbay.level, 2);
     assert.equal(playerMedicalOff(g), false);
     assert.equal(playerHackingOff(g), false);
@@ -88,6 +87,12 @@ describe("Slug hacker (medical) improved medbay", () => {
     assert.equal(boarders.length, 2);
     assert.ok(boarders.every((c) => c.kin === "slug" && c.hp === hp));
     assert.ok(g.log.includes("2 slug boarders beam aboard your ship."));
+    choose(g, "ship-resume");
+    assert.equal(g.phase, "combat");
+    assert.equal(g.fightEvent, "slug-hacker-medical");
+    assert.equal(g.enemy?.faction, "slug");
+    assert.equal(g.scrap, 10);
+    assert.equal(g.log.includes(LEAD), false);
     const away = g.player.rooms.find((r) => r.id !== bay.id);
     assert.ok(away);
     for (const boarder of boarders) boarder.room = away.id;

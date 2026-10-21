@@ -62,12 +62,19 @@ function jumpTo(g: Game, b: Beacon) {
   commitJump(g, b.id);
 }
 
+function resumeFight(g: Game) {
+  if (g.phase === "event" && g.event?.choices.some((c) => c.id === "ship-resume"))
+    choose(g, "ship-resume");
+}
+
 function winByHull(g: Game) {
+  resumeFight(g);
   g.enemy!.hull = 0;
   for (let i = 0; i < 3 && g.phase === "combat"; i++) step(g, 1 / 30);
 }
 
 function winByCrew(g: Game) {
+  resumeFight(g);
   // Clone Bay, Overview: dead crew on a hull with a Clone Bay are cloned, so the fight would not end. Drop it.
   if (g.enemy) delete g.enemy.kits.clonebay;
   for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
@@ -155,11 +162,13 @@ describe("Cited events that add a marker", () => {
       const g = atCited(createGame(seed), "Civilian Sector", "Escort civilians");
       const fuel = g.fuel;
       choose(g, "c:escort-civilians:0");
-      assert.ok(g.fuel > fuel && g.fuel <= fuel + 3);
-      assert.equal(
-        g.event!.body,
-        `"Great. Take this bit of fuel as a down-payment. We'll be one step behind you, following your jump signatures. Don't want to take any risks now, do we?"\n\n${QUEST_ADDED}`,
-      );
+      const gained = g.fuel - fuel;
+      assert.ok(gained >= 1 && gained <= 3);
+      const prose = `"Great. Take this bit of fuel as a down-payment. We'll be one step behind you, following your jump signatures. Don't want to take any risks now, do we?"`;
+      assert.equal(g.event!.body, `${prose}\n\n${QUEST_ADDED}\n\nFuel: ${gained}.`);
+      assert.equal(g.log.includes(QUEST_ADDED), true);
+      assert.equal(g.log.includes(prose), false);
+      assert.equal(g.log.includes(`Fuel: ${gained}.`), false);
       choose(g, "ack");
       const [b] = questBeacons(g, "escort");
       jumpTo(g, b);
@@ -168,6 +177,7 @@ describe("Cited events that add a marker", () => {
       if (body.includes("ambushed")) {
         seen.add("ambush");
         choose(g, "q:escort:fight");
+        resumeFight(g);
         assert.equal(g.phase, "combat");
       } else if (body.includes("offer you a reward")) seen.add("reward");
       else if (body.includes("show you their wares")) {
@@ -201,26 +211,32 @@ describe("Cited events that add a marker", () => {
     ];
     for (const [sector, dest, id, quest] of pages) {
       const g = atCited(createGame(3), sector, dest);
+      const scrap = g.scrap;
+      const fuel = g.fuel;
+      const missiles = g.missiles;
+      const parts = g.player.parts;
       choose(g, id);
       assert.equal(questBeacons(g, quest).length, 1, dest);
-      if (id === "c:mantis-war-camp:0") {
-        assert.equal(
-          g.event!.body,
-          `"Thank you! If you can just give us a count on their numbers perhaps we can get the Rebels to help."\n\n${QUEST_ADDED}`,
-        );
-      }
-      if (id === "c:space-station-under-construction:0") {
-        assert.equal(
-          g.event!.body,
-          `"Great. Thanks for your help. I've marked their last known coordinates and sent over some supplies to help you get there."\n\n${QUEST_ADDED}`,
-        );
-      }
-      if (id === "c:escort-civilians-ftl-haywire:0") {
-        assert.equal(
-          g.event!.body,
-          `"Take this bit of scrap as a down-payment. We'll use your jump signatures to follow you. You're really helping us out here."\n\n${QUEST_ADDED}`,
-        );
-      }
+      assert.equal(g.log.includes(QUEST_ADDED), true);
+      const pay =
+        id === "c:mantis-war-camp:0"
+          ? [`Medium scrap: ${g.scrap - scrap}.`]
+          : id === "c:escort-civilians-ftl-haywire:0"
+            ? [`Low scrap: ${g.scrap - scrap}.`]
+            : [
+                `Fuel: ${g.fuel - fuel}.`,
+                `Missiles: ${g.missiles - missiles}.`,
+                `Drone parts: ${g.player.parts - parts}.`,
+              ];
+      const prose =
+        id === "c:mantis-war-camp:0"
+          ? `"Thank you! If you can just give us a count on their numbers perhaps we can get the Rebels to help."`
+          : id === "c:space-station-under-construction:0"
+            ? `"Great. Thanks for your help. I've marked their last known coordinates and sent over some supplies to help you get there."`
+            : `"Take this bit of scrap as a down-payment. We'll use your jump signatures to follow you. You're really helping us out here."`;
+      assert.equal(g.event!.body, [prose, QUEST_ADDED, ...pay].join("\n\n"));
+      assert.equal(g.log.includes(prose), false);
+      for (const line of pay) assert.equal(g.log.includes(line), false, line);
     }
   });
 
@@ -282,13 +298,18 @@ describe("Cited events that add a marker", () => {
     for (let seed = 1; seed < 120 && !found; seed++) {
       const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
       choose(g, "c:rebel-defector:1");
-      if (g.phase !== "event") {
-        assert.equal(g.phase, "combat");
-        continue;
-      }
+      const openedFight =
+        g.phase === "combat" ||
+        (g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume"));
+      if (openedFight) continue;
+      assert.equal(g.phase, "event");
       choose(g, "q:defector:reluctant");
       if (questBeacons(g, "defector-cache").length) {
         found = true;
+        assert.equal(g.event?.choices[0]?.id, "ship-resume");
+        assert.ok(g.crew.some((c) => c.side === "player" && c.kin === "human"));
+        assert.equal(g.log.includes(QUEST_ADDED), true);
+        resumeFight(g);
         assert.equal(g.phase, "combat");
         assert.ok(g.crew.some((c) => c.side === "player" && c.kin === "human"));
       }
@@ -303,6 +324,8 @@ describe("Cited events that add a marker", () => {
       "Rebel ship attacking Federation loyalists",
     );
     choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    resumeFight(g);
     assert.equal(g.phase, "combat");
     winByHull(g);
     assert.equal(g.phase, "event");
@@ -333,6 +356,9 @@ describe("Slug comm tapping", () => {
     choose(g, "q:slug-trap:engage");
     assert.ok(g.enemy!.pirate);
     assert.equal(g.enemySurrender!.chance, 100);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    resumeFight(g);
+    assert.equal(g.phase, "combat");
     g.enemy!.weapons = [];
     g.enemy!.hull = Math.max(1, Math.floor(g.enemy!.hullMax * 0.25));
     for (let i = 0; i < 5 && g.phase === "combat"; i++) step(g, 1 / 30);
@@ -446,6 +472,9 @@ describe("Engi fleet discussion", () => {
     const real = questBeacons(g, "engi-real")[0];
     jumpTo(g, real);
     choose(g, "q:engi-real:fight");
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    resumeFight(g);
+    assert.equal(g.phase, "combat");
     g.enemyFlee = 1;
     step(g, 1 / 30);
     assert.ok(g.event!.body.startsWith("With the ship gone, you search"));
@@ -456,6 +485,9 @@ describe("Engi fleet discussion", () => {
     addQuest(h, "engi-fake");
     jumpTo(h, questBeacons(h, "engi-fake")[0]);
     choose(h, "q:engi-fake:fight");
+    assert.equal(h.event?.choices[0]?.id, "ship-resume");
+    resumeFight(h);
+    assert.equal(h.phase, "combat");
     h.enemy!.weapons = [];
     h.enemyEscape!.running = false;
     h.enemy!.hull = Math.max(1, Math.floor(h.enemy!.hullMax * 0.3));
@@ -582,7 +614,11 @@ describe("Page win rewards (destroyed / crew killed)", () => {
           const t = atCited(createGame(seed), sector, dest);
           if (dest === "The Black Raven") choose(t, "c:the-black-raven:0");
           choose(t, fightId);
-          if (t.phase === "combat") g = t;
+          if (
+            t.phase === "combat" ||
+            (t.enemy != null && t.event?.choices.some((c) => c.id === "ship-resume"))
+          )
+            g = t;
         }
         assert.ok(g);
         g.enemySurrender!.chance = 0;
@@ -631,7 +667,8 @@ describe("Rebel defector, Accept his proposal", () => {
       const pilot = g.player.systems.pilot!.damage;
       const crew = g.crew.filter((c) => c.side === "player" && c.hp > 0).length;
       choose(g, "c:rebel-defector:0");
-      assert.equal(g.phase, "combat", String(seed));
+      assert.equal(g.phase, "event", String(seed));
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
       assert.equal(g.fightEvent, "rebel-defector");
       assert.equal(
         g.beacons.some((b) => b.quest),
@@ -649,7 +686,9 @@ describe("Rebel defector, Accept his proposal", () => {
         boarders === 0 &&
         g.player.systems.pilot!.damage === pilot
       ) {
-        assert.ok(g.log.some((line) => line === "Rebel Fleet pursuit is doubled."));
+        assert.ok((g.event?.body ?? "").includes("Rebel Fleet pursuit is doubled."));
+        assert.equal(g.log.includes("Rebel Fleet pursuit is doubled."), false);
+        assert.ok(g.log.includes("Hull damage: 3."));
         seen.deceive++;
       } else if (
         hullLost === 3 &&
@@ -660,12 +699,18 @@ describe("Rebel defector, Accept his proposal", () => {
       )
         seen.trigger++;
       else if (hullLost === 0 && boarders === 1 && left === crew - 1) {
-        assert.ok(g.log.some((line) => line.endsWith("is gone.")));
+        assert.ok((g.event?.body ?? "").includes("is gone."));
+        assert.equal(
+          g.log.some((line) => line.endsWith("is gone.")),
+          false,
+        );
         seen.evisc++;
       } else
         assert.fail(
           `${seed} hull ${hullLost} crew ${crew}->${left} boarders ${boarders} fleet ${g.fleet}`,
         );
+      resumeFight(g);
+      assert.equal(g.phase, "combat");
       assert.equal(seen.join + seen.deceive + seen.trigger + seen.evisc, seed);
     }
     assert.ok(seen.deceive > 0 && seen.trigger > 0 && seen.evisc > 0, JSON.stringify(seen));
@@ -693,10 +738,16 @@ describe("Rebel defector, Accept his proposal", () => {
       };
       const crew = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:rebel-defector:0");
-      if (!g.log.some((line) => line.includes("clone launches"))) continue;
+      if (!(g.event?.body ?? "").includes("clone launches")) continue;
+      assert.equal(
+        g.log.some((line) => line.includes("clone launches")),
+        false,
+      );
       cloned = true;
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       assert.equal(g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 1);
+      assert.equal(g.event?.choices[0]?.id, "ship-resume");
+      resumeFight(g);
       assert.equal(g.phase, "combat");
     }
     assert.ok(cloned);
@@ -780,6 +831,8 @@ describe("Federation loyalists, Healing Burst", () => {
         "Rebel ship attacking Federation loyalists",
       );
       choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
+      if (g.phase !== "combat" && g.event?.choices[0]?.id !== "ship-resume") continue;
+      resumeFight(g);
       if (g.phase !== "combat") continue;
       winByHull(g);
       g.player.weapons.push(gun("BOMB_HEAL"));

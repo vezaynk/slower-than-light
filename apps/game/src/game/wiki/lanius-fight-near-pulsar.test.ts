@@ -36,7 +36,7 @@ describe("Lanius fight near pulsar", () => {
     assert.equal(g.scrap, 10);
   });
 
-  it("starts the Lanius ship beside a pulsar on arrival and leaves no button", () => {
+  it("shows the pulsar intro card on arrival, then the Lanius fight", () => {
     // The page has no choice. The printed sentence, then "Fight a Lanius ship." pulsar=true. unique=true.
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
@@ -55,14 +55,20 @@ describe("Lanius fight near pulsar", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    assert.equal(g.event, null);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body, BODY);
+    assert.equal(g.log.includes(BODY), false);
+    assert.equal(g.event?.choices[0]?.id, "c:lanius-fight-near-pulsar:0");
+    choose(g, "c:lanius-fight-near-pulsar:0");
+    if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
+    assert.equal(g.event, null);
     assert.equal(g.enemy?.faction, "lanius");
     assert.equal(g.enemy?.pirate, false);
     assert.equal(g.pulsar, true);
     assert.equal(g.flare, false);
     assert.equal(g.fightEvent, "lanius-fight-near-pulsar");
     assert.equal(g.fleet, 1);
-    assert.ok(g.log.includes(BODY));
+    assert.equal(g.log.includes(BODY), false);
   });
 });

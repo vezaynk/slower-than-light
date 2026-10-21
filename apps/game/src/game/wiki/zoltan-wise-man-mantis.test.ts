@@ -21,21 +21,24 @@ describe("Zoltan wise man Mantis", () => {
     const hp = kinOf("mantis").hp;
     const g = createGame(1);
     open(g);
+    const told = `"You like a challenge. So be it!" A wormhole forms and a confused, angry Mantis ship hurtles toward you!`;
     choose(g, "c:zoltan-wise-man:0");
+    assert.equal(g.phase, "event");
+    assert.ok(g.event?.body?.includes(told));
+    assert.equal(g.log.includes(told), false);
+    assert.equal(g.event?.choices[0]?.id, "ship-resume");
+    assert.equal(g.enemy?.faction, "mantis");
+    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "mantis");
     assert.equal(g.fightEvent, "zoltan-wise-man");
     assert.equal(g.scrap, 10);
+    assert.equal(g.log.includes(told), false);
     const theirs = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(theirs.length > 0);
     assert.ok(
       theirs.every(
         (c) => c.kin === "mantis" && c.name === "Mantis" && c.hp === hp && c.maxHp === hp,
-      ),
-    );
-    assert.ok(
-      g.log.includes(
-        `"You like a challenge. So be it!" A wormhole forms and a confused, angry Mantis ship hurtles toward you!`,
       ),
     );
   });

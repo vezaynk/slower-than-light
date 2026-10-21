@@ -8,6 +8,7 @@ import {
   clipFrame,
   crewLayers,
   crewPoseFrame,
+  crewPoseLoops,
   projectileBox,
   tintPixels,
   musicTrack,
@@ -110,6 +111,14 @@ describe("archive media", () => {
     const flipped = crewPoseFrame("slug", "walk", 0, "left");
     assert.equal(flipped?.row, 2);
     assert.equal(flipped?.mirror, true);
+    // Frame 0 of the walk sheet is the planted figure. Cycling it walks in place.
+    assert.equal(crewPoseLoops("human", "idle", { cycle: true }), false);
+    assert.equal(crewPoseLoops("human", "idle", { loopAll: true, dir: "left" }), false);
+    assert.equal(crewPoseLoops("human", "work", { cycle: true }), true);
+    assert.equal(crewPoseLoops("human", "walk", { loopAll: true }), true);
+    assert.equal(crewPoseLoops("human", "walk", { cycle: true }), false);
+    assert.equal(crewPoseLoops("human", "fight", { loopAll: true }), true);
+    assert.equal(crewPoseLoops("crystal", "idle", { cycle: true }), true);
     assert.equal(roomIconUrl("pilot"), "blob:media-3");
     assert.equal(droneLayerUrl("COMBAT_1", "on"), "blob:media-4");
     assert.equal(soundCue("laser")?.volume, 0.8);
@@ -120,6 +129,7 @@ describe("archive media", () => {
     assert.equal(musicTrack(), undefined);
     assert.equal(archiveGeneration(), before + 1);
     await rememberArchive([], new Map());
+    assert.equal(crewPoseLoops("human", "idle", { cycle: true }), true);
     assert.equal(weaponFrame("LASER_BURST_3"), undefined);
     assert.equal(roomIconUrl("pilot"), undefined);
     assert.deepEqual(revoked, [

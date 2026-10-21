@@ -13,6 +13,7 @@ import {
   crewBody,
   crewLayers,
   crewPoseFrame,
+  crewPoseLoops,
   loadedImage,
   paintCrew,
   subscribeArchive,
@@ -89,9 +90,9 @@ export function CrewSprite({
   className?: string;
   pose?: CrewPose;
   frame?: number;
-  /** Idle and terminal play all four frames on a CSS clock. Walk and fight stay on `frame`. */
+  /** Work plays its frames on a CSS clock. Idle does too, unless an archive walk sheet holds frame 0. Walk and fight stay on `frame`. */
   cycle?: boolean;
-  /** Every pose plays its four frames on the CSS clock, walk and fight too (the radial menu preview). */
+  /** Walk, fight, and work play their frames on the CSS clock. An archive idle still holds walk frame 0. */
   loopAll?: boolean;
   phase?: number;
   /** Archive sheet direction. A missing left clip is flipped in CSS. */
@@ -99,7 +100,7 @@ export function CrewSprite({
 }) {
   const id = kin ?? "human";
   const skin = (KIN_SKIN as Record<string, string>)[id] ?? KIN_SKIN.human;
-  const looping = loopAll || (cycle && (pose === "idle" || pose === "work"));
+  const looping = crewPoseLoops(id, pose, { cycle, loopAll, dir });
   const frames = looping ? [0, 1, 2, 3] : [frameIndex(pose === "idle" ? 0 : frame)];
   const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   const [sheets, setSheets] = useState<string[] | null>(null);

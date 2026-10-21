@@ -1768,7 +1768,9 @@ function minReactorForWeapons(g: Game, flags: boolean[]): number {
 
 /**
  * Per the user: a weapon click adds or removes that gun's whole cost, not one bar.
- * Up: the fewest bars that turn the next left-to-right gun on. A dearer gun is not skipped.
+ * Up: the fewest bars that put the next left-to-right gun into the power mask. A dearer gun is not skipped.
+ * A gun left flagged on after a storm or an ion lock takes its bars away still takes that step,
+ * and every gun already in the mask keeps its bars.
  * Down: drop the rightmost gun that is on, and any bars that gun's cost does not need.
  */
 function weaponPowerStep(g: Game, direction: 1 | -1): number {
@@ -1778,6 +1780,8 @@ function weaponPowerStep(g: Game, direction: 1 | -1): number {
     if (room <= 0) return 0;
     const savedPower = sys.power;
     const saved = g.player.weapons.map((w) => w.enabled);
+    const bonus = zoltanBars(g.crew, g.player, "player", "weapons");
+    const before = powerMask(g.player, bonus);
     let step = 0;
     for (let k = 1; k <= room; k++) {
       sys.power = savedPower + k;
@@ -1785,7 +1789,10 @@ function weaponPowerStep(g: Game, direction: 1 | -1): number {
         w.enabled = saved[i]!;
       });
       enableWeaponsForPower(g);
-      if (g.player.weapons.some((w, i) => w.enabled && !saved[i])) {
+      const after = powerMask(g.player, bonus);
+      const gained = after.some((on, i) => on && !before[i]);
+      const kept = before.every((on, i) => !on || after[i]);
+      if (gained && kept) {
         step = k;
         break;
       }
@@ -2528,6 +2535,13 @@ function clearWeaponAim(g: Game) {
   for (const w of g.player.weapons) if (w.target || w.beamLine || w.own) dropQueued(w);
 }
 
+/** True when the gun is flagged on and the bars, Zoltan bars included, actually feed it. */
+function weaponFed(g: Game, w: WeaponInst): boolean {
+  const index = g.player.weapons.indexOf(w);
+  if (index < 0 || !w.enabled) return false;
+  return !!powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"))[index];
+}
+
 export function armWeapon(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
   if (!w) return;
@@ -2539,7 +2553,7 @@ export function armWeapon(g: Game, weaponUid: string) {
     stopTargeting(g);
     return;
   }
-  if (!w.enabled) {
+  if (!weaponFed(g, w)) {
     // Weapon Control, Overview: ionized or hacked weapons cannot be powered manually.
     // Per the user: a tap to aim powers the weapon first; without the power it cannot be aimed.
     if (weaponsPowerLocked(g)) return;
@@ -2795,7 +2809,7 @@ export function fireReady(g: Game) {
 export function toggleWeapon(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
   if (!w || weaponsPowerLocked(g)) return;
-  if (w.enabled) {
+  if (weaponFed(g, w)) {
     w.enabled = false;
     delete g.player.systems.weapons.want;
     releaseWeaponBars(g);
@@ -2833,6 +2847,7 @@ function claimWeaponBars(g: Game, w: WeaponInst): boolean {
   const bonus = zoltanBars(g.crew, g.player, "player", "weapons");
   const index = g.player.weapons.indexOf(w);
   const before = sys.power;
+  const wasEnabled = w.enabled;
   const keep = powerMask(g.player, bonus);
   w.enabled = true;
   // Slots draw power left to right, so a gun switched on must not take bars from one already running.
@@ -2843,8 +2858,9 @@ function claimWeaponBars(g: Game, w: WeaponInst): boolean {
   while (!done() && sys.power < capOf(sys) && sparePower(g.player) > 0) sys.power += 1;
   if (done()) return true;
   sys.power = before;
-  w.enabled = false;
-  forgetAim(g, w);
+  w.enabled = wasEnabled;
+  // A gun that was already requested stays requested when the reactor cannot cover it.
+  if (!wasEnabled) forgetAim(g, w);
   log(g, `Not enough power for ${weaponDef(w.defId)?.name ?? "that weapon"}.`);
   return false;
 }

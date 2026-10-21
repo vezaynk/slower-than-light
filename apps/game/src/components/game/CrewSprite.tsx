@@ -157,15 +157,15 @@ export function CrewSprite({
     .join(" ");
   if (sheets && sheets.length === frames.length) {
     const sample = crewPoseFrame(id, pose, frames[0] ?? 0);
-    const width = sample ? Math.max(1, Math.round((size * sample.fw) / sample.fh)) : size;
     return (
       <span
         className={`${spriteClass} is-sheet`}
         aria-hidden="true"
         style={
           {
-            width,
-            height: size,
+            ["--frame-w" as string]: String(sample?.fw ?? size),
+            ["--frame-h" as string]: String(sample?.fh ?? size),
+            ["--sprite-size" as string]: `${size}px`,
             ...(looping ? { "--pose-phase": String(phase) } : {}),
           } as CSSProperties
         }

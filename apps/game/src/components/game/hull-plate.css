@@ -46,7 +46,8 @@
   left: 50%;
   bottom: 0;
   z-index: 4;
-  transform: translateX(-50%) scale(var(--ship-scale, 1));
+  /* 35px is one FTL room (ROOM_PX). --tile is that room on this board. */
+  transform: translateX(-50%) scale(calc(var(--tile, 44px) / 35px));
   transform-origin: center bottom;
 }
 .room > .clip-flash {
@@ -54,20 +55,20 @@
   inset: 0;
   margin: auto;
   z-index: 5;
-  transform: scale(var(--ship-scale, 1));
+  transform: scale(calc(var(--tile, 44px) / 35px));
 }
 .breach-hole .clip-breach {
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(calc(var(--tile, 44px) / 35px));
 }
 .clip-boom {
   position: absolute;
   left: 50%;
   top: 40%;
   z-index: 4;
-  transform: translate(-50%, -50%) scale(var(--ship-scale, 1));
+  transform: translate(-50%, -50%) scale(calc(var(--tile, 44px) / 35px));
 }
 
 .hull.is-gone .hull-gibs,

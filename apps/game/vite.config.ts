@@ -33,11 +33,13 @@ export default defineConfig(({ command, isPreview }) => ({
     // PWA head + ?install=1 tutorial page; runs before Start/Nitro.
     grokPwaPlugin(),
     tailwindcss(),
-    tanstackStart(
-      pagesBase
+    tanstackStart({
+      // The generated routeTree.gen.ts in the repo's Prettier style, so the dev server does not leave it modified.
+      router: { quoteStyle: "double", semicolons: true },
+      ...(pagesBase
         ? { spa: { enabled: true, prerender: { outputPath: "/index.html", crawlLinks: false } } }
-        : {},
-    ),
+        : {}),
+    }),
     ...(!pagesBase && (command === "build" || isPreview)
       ? [
           nitro({

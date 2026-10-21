@@ -39,12 +39,43 @@
   pointer-events: none;
 }
 
+/* A tall weapon sheet, turned so the barrel points right inside the slot box. */
+.gear-art.is-turned {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.gear-art.is-turned .sheet-turn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+.gear-art.is-turned .gear-art {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
 .crew-sprite.is-sheet {
   position: relative;
   display: inline-block;
   line-height: 0;
   overflow: visible;
   vertical-align: middle;
+  /* The slot passes a height. The frame keeps its own proportions. */
+  width: calc(var(--frame-w) * var(--sprite-size) / var(--frame-h));
+  height: var(--sprite-size);
+}
+
+/* On a hull the 35px crew frame is one room. --tile is that room, in play and in the hangar. */
+.crew-walkers .token.is-sprite .crew-sprite.is-sheet {
+  width: calc(var(--frame-w) * var(--tile, 44px) / 35);
+  height: calc(var(--frame-h) * var(--tile, 44px) / 35);
 }
 
 .crew-sprite.is-sheet .crew-frame {

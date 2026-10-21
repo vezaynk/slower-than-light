@@ -4834,6 +4834,21 @@ button.door-tick::before {
   line-height: 0;
 }
 
+/* Archive sheets point up. A clockwise quarter turn points the barrel at +x before mount-turn. */
+.mount-aim {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform: rotate(90deg);
+  transform-origin: 0 0;
+}
+
+.mount-gun.is-archive {
+  transform: none;
+}
+
 .mount-gun [data-muzzle] {
   position: absolute;
   left: 100%;

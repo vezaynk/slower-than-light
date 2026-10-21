@@ -19,6 +19,7 @@ import {
   type SheetFrame,
   type WeaponPhase,
 } from "@/game/pack/media";
+import { droneIconSide, weaponSlotBox } from "@/game/sprite-scale";
 import "./archive-art.css";
 
 const INK = "#14181d";
@@ -63,11 +64,17 @@ export function WeaponArt({
   id,
   height = 28,
   phase = "idle",
+  pixelScale,
 }: {
   id: string;
   height?: number;
   /** Charged and fire pick those frames. A one-frame sheet looks the same in every phase. */
   phase?: WeaponPhase;
+  /**
+   * Hull hardpoint. One archive pixel is this many screen pixels, and the sheet stays
+   * in its own orientation (the mount turns it). A slot omits this and uses weaponSlotBox.
+   */
+  pixelScale?: { x: number; y: number };
 }) {
   const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   const frame = useMemo(() => weaponFrame(id, phase), [id, phase, generation]);
@@ -75,20 +82,90 @@ export function WeaponArt({
     () => (phase === "charged" ? weaponChargeFrame(id) : undefined),
     [id, phase, generation],
   );
-  if (frame && charge) {
-    const width = Math.max(1, Math.round((height * frame.fw) / frame.fh));
-    const chargeHeight = Math.max(1, Math.round((height * charge.fh) / frame.fh));
+  if (frame && pixelScale) {
     return (
-      <span className="gear-art is-weapon is-sheet is-charged" style={{ width, height }}>
-        <SheetImg frame={frame} height={height} className="sheet-frame" />
-        <SheetImg frame={charge} height={chargeHeight} className="gear-charge" />
+      <WeaponSheets
+        frame={frame}
+        charge={charge}
+        frameW={frame.fw * pixelScale.x}
+        frameH={frame.fh * pixelScale.y}
+        chargeW={charge ? charge.fw * pixelScale.x : 0}
+        chargeH={charge ? charge.fh * pixelScale.y : 0}
+      />
+    );
+  }
+  if (frame) {
+    const box = weaponSlotBox(frame.fw, frame.fh, height);
+    const scale = box.w / Math.max(frame.fw, frame.fh);
+    const sheets = (
+      <WeaponSheets
+        frame={frame}
+        charge={charge}
+        frameW={frame.fw * scale}
+        frameH={frame.fh * scale}
+        chargeW={charge ? charge.fw * scale : 0}
+        chargeH={charge ? charge.fh * scale : 0}
+      />
+    );
+    if (!box.turned) return sheets;
+    // The sheet points up. A clockwise quarter turn points the barrel right, and the
+    // shift brings that turned picture back into the slot box.
+    return (
+      <span
+        className="gear-art is-weapon is-sheet is-turned"
+        style={{ width: box.w, height: box.h }}
+      >
+        <span
+          className="sheet-turn"
+          style={{
+            width: box.h,
+            height: box.w,
+            transform: `translateX(${box.w}px) rotate(90deg)`,
+          }}
+        >
+          {sheets}
+        </span>
       </span>
     );
   }
-  if (frame)
-    return <SheetImg frame={frame} height={height} className="gear-art is-weapon is-sheet" />;
   const art = weaponPixels(id);
   return <PixelSvg art={art} height={height} className="gear-art is-weapon" />;
+}
+
+function WeaponSheets({
+  frame,
+  charge,
+  frameW,
+  frameH,
+  chargeW,
+  chargeH,
+}: {
+  frame: SheetFrame;
+  charge: SheetFrame | undefined;
+  frameW: number;
+  frameH: number;
+  chargeW: number;
+  chargeH: number;
+}) {
+  if (charge) {
+    return (
+      <span
+        className="gear-art is-weapon is-sheet is-charged"
+        style={{ width: frameW, height: frameH }}
+      >
+        <SheetImg frame={frame} width={frameW} height={frameH} className="sheet-frame" />
+        <SheetImg frame={charge} width={chargeW} height={chargeH} className="gear-charge" />
+      </span>
+    );
+  }
+  return (
+    <SheetImg
+      frame={frame}
+      width={frameW}
+      height={frameH}
+      className="gear-art is-weapon is-sheet"
+    />
+  );
 }
 
 export function DroneArt({
@@ -107,8 +184,19 @@ export function DroneArt({
     [kind, powered, generation],
   );
   if (url) {
+    // The craft is the centre of a sheet about twice as wide. Clip to the icon box.
+    const side = droneIconSide(height);
+    const inset = (height - side) / 2;
     return (
-      <img className="gear-art is-drone is-sheet" alt="" src={url} height={height} width={height} />
+      <span className="gear-art is-drone is-sheet" style={{ width: height, height }}>
+        <img
+          alt=""
+          src={url}
+          width={side}
+          height={side}
+          style={{ marginLeft: inset, marginTop: inset }}
+        />
+      </span>
     );
   }
   const art = dronePixels(kind);
@@ -117,14 +205,15 @@ export function DroneArt({
 
 function SheetImg({
   frame,
+  width,
   height,
   className,
 }: {
   frame: SheetFrame;
+  width: number;
   height: number;
   className: string;
 }) {
-  const width = Math.max(1, Math.round((height * frame.fw) / frame.fh));
   const cols = Math.max(1, frame.sheetW / frame.fw);
   const rows = Math.max(1, frame.sheetH / frame.fh);
   return (

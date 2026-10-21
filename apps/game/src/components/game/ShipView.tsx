@@ -27,7 +27,7 @@ import "@/game/pack/base";
 import { powerMask, weaponAccentHot, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { EFFECT_CLIPS, hullDef, ROOM_PX, type HullMount, type HullPicture } from "@stl/pack";
-import { clipLength } from "@/game/pack/media";
+import { clipLength, weaponFrame, weaponMuzzle } from "@/game/pack/media";
 import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
@@ -375,6 +375,12 @@ function Hardpoints({
             const pose = mountPose(image, gun.mount, gun.powered, { x: offsetX, y: offsetY });
             const scaleX = pitch.pitchX / ROOM_PX;
             const scaleY = pitch.pitchY / ROOM_PX;
+            const frame = weaponFrame(gun.defId, gun.phase);
+            const aim = weaponMuzzle(gun.defId);
+            // Archive weapon sheets point up. Draw the frame at the room scale and
+            // quarter-turn it so the barrel follows the hardpoint. A horizontal sheet
+            // (the stand-in) keeps the drawn gun's length.
+            const upright = frame && aim && frame.fh > frame.fw ? { frame, aim } : null;
             return (
               <span
                 key={gun.uid}
@@ -391,10 +397,30 @@ function Hardpoints({
                   className="mount-turn"
                   style={{ transform: `rotate(${pose.turn}deg) scaleY(${pose.flip ? -1 : 1})` }}
                 >
-                  <span className="mount-gun" style={{ height, width: (height * 26) / 14 }}>
-                    <WeaponArt id={gun.defId} height={height} phase={gun.phase} />
-                    <i data-muzzle="" />
-                  </span>
+                  {upright ? (
+                    <span className="mount-aim">
+                      <span
+                        className="mount-gun is-archive"
+                        style={{
+                          width: upright.frame.fw * scaleX,
+                          height: upright.frame.fh * scaleY,
+                          left: -upright.aim.mountX * scaleX,
+                          top: -upright.aim.mountY * scaleY,
+                        }}
+                      >
+                        <WeaponArt
+                          id={gun.defId}
+                          phase={gun.phase}
+                          pixelScale={{ x: scaleX, y: scaleY }}
+                        />
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="mount-gun" style={{ height, width: (height * 26) / 14 }}>
+                      <WeaponArt id={gun.defId} height={height} phase={gun.phase} />
+                      <i data-muzzle="" />
+                    </span>
+                  )}
                 </span>
               </span>
             );

@@ -45,12 +45,12 @@ import "@/game/pack/base";
 import { pageRect } from "./turn";
 import { asteroidClip, ROOM_PX } from "@stl/pack";
 import { muzzlePoint } from "@/game/mount-place";
+import { barrelPoint, projectileHeading } from "@/game/sprite-scale";
 import { gridPitch } from "./grid-pitch";
 import {
   clipFrame,
   droneLayerUrl,
   loadedImage,
-  projectileBox,
   projectileFrame,
   weaponMuzzle,
 } from "@/game/pack/media";
@@ -296,6 +296,8 @@ function paintBolt(
   /** 1 in the main view. A rock on the enemy hull uses that hull's scale. */
   scale = 1,
   defId?: string,
+  /** Screen pixels per archive pixel for a packed projectile. */
+  px = 1,
 ) {
   c.save();
   if (rock) {
@@ -308,11 +310,12 @@ function paintBolt(
   const frame = projectileFrame(defId, kind);
   const img = frame ? loadedImage(frame.url) : undefined;
   if (frame && img) {
-    // xftl AbstractProjectile.render: the picture faces +x, centred on the shot and turned to its heading.
-    // Its own proportions are kept; the long side is 18 px in the main view.
-    c.rotate(ang);
+    // The picture is centred on the shot. A wide frame faces +x. A tall frame faces up,
+    // and projectileHeading turns that nose onto the heading. One archive pixel is `px`.
+    c.rotate(projectileHeading(ang, frame.fw, frame.fh));
     c.imageSmoothingEnabled = false;
-    const { w, h } = projectileBox(frame.fw, frame.fh, 18 * scale);
+    const w = frame.fw * px;
+    const h = frame.fh * px;
     c.drawImage(img, frame.sx, frame.sy, frame.fw, frame.fh, -w / 2, -h / 2, w, h);
     c.restore();
     return;
@@ -387,6 +390,13 @@ function drawAsteroid(ctx: CanvasRenderingContext2D, h: number) {
 }
 
 const droneSprites = new Map<string, HTMLCanvasElement>();
+
+/** An archive drone keeps its sheet size in room pixels. The drawn craft stays at `fallback`. */
+function drawnDroneSide(sprite: CanvasImageSource, px: number, fallback: number): number {
+  if (sprite instanceof HTMLImageElement && sprite.naturalWidth > 0)
+    return sprite.naturalWidth * px;
+  return fallback;
+}
 
 function dronePicture(key: DroneKey, hot: boolean): CanvasImageSource {
   const url = droneLayerUrl(key, hot ? "on" : "base");
@@ -523,6 +533,20 @@ export function CombatFx() {
       // Effects play out whenever the game runs, not only in a fight: when a fight ends, the last MISS / SHIELD /
       // damage numbers, rings and sparks still fade instead of freezing on screen. A pause still holds them.
       const live = !halted(g);
+      const gridScale = new Map<"player" | "enemy", { x: number; y: number }>();
+      const archivePx = (side: "player" | "enemy") => {
+        const cached = gridScale.get(side);
+        if (cached) return cached;
+        const el = host.querySelector(`.hull[data-ship="${side}"]`);
+        const ship = side === "player" ? g.player : g.enemy;
+        const pitch =
+          el instanceof HTMLElement && ship ? gridPitch(el, ship.cols, ship.rows) : undefined;
+        const next = pitch
+          ? { x: pitch.pitchX / ROOM_PX, y: pitch.pitchY / ROOM_PX }
+          : { x: 1, y: 1 };
+        gridScale.set(side, next);
+        return next;
+      };
       const time = now / 1000;
       // Per the user: pause holds each drone where it is. Losing power eases the orbit to a stop;
       // power coming back eases it up to cruise. The angle is kept here, not on the clock.
@@ -558,7 +582,7 @@ export function CombatFx() {
           };
           droneAt.set(key, p);
           const sprite = dronePicture(key, cruising);
-          const size = 27 * s;
+          const size = drawnDroneSide(sprite, archivePx(outbound ? "enemy" : "player").x, 27 * s);
           ctx.globalAlpha = cruising ? 1 : 0.4;
           ctx.drawImage(sprite, Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
           ctx.globalAlpha = 1;
@@ -586,6 +610,7 @@ export function CombatFx() {
         const phase = hash(unit.id) * Math.PI * 2;
         let p: Pt | null = null;
         let size = 27;
+        let px = 1;
         let s = 1;
         if (spot.at === "player-orbit" || spot.at === "enemy-orbit") {
           // Opposite spin to the player's own drone, so the two read apart.
@@ -593,7 +618,9 @@ export function CombatFx() {
           const a = follow(`e:${unit.id}`, omega, unit.powered, phase);
           const around = hull(spot.at === "player-orbit" ? "player" : "enemy");
           if (around) {
-            s = spot.at === "enemy-orbit" ? foeScale : 1;
+            const side = spot.at === "player-orbit" ? "player" : "enemy";
+            s = side === "enemy" ? foeScale : 1;
+            px = archivePx(side).x;
             size = 27 * s;
             p = {
               x: around.x + around.w / 2 + Math.cos(a) * (around.w / 2 + 22 * s),
@@ -606,6 +633,7 @@ export function CombatFx() {
           if (a && b) {
             const k = Math.min(1, Math.max(0, spot.progress));
             s = foeScale + (1 - foeScale) * k;
+            px = archivePx("enemy").x + (archivePx("player").x - archivePx("enemy").x) * k;
             size = 27 * s;
             p = {
               x: a.x + a.w / 2 + (b.x + b.w / 2 - (a.x + a.w / 2)) * k,
@@ -624,21 +652,18 @@ export function CombatFx() {
           const r = room(side, spot.room);
           if (r) {
             s = side === "enemy" ? foeScale : 1;
+            px = archivePx(side).x;
             size = 21 * s;
             p = { x: r.x + r.w / 2 + Math.sin(bob) * 3 * s, y: r.y + r.h / 2 };
           }
         }
         if (!p) continue;
+        const sprite = dronePicture(ekey, unit.powered);
+        size = drawnDroneSide(sprite, px, size);
         enemyDroneAt.set(unit.id, p);
         const stunned = (unit.stun ?? 0) > 0;
         ctx.globalAlpha = !unit.powered ? 0.4 : stunned ? 0.55 + 0.45 * Math.sin(time * 30) : 1;
-        ctx.drawImage(
-          dronePicture(ekey, unit.powered),
-          Math.round(p.x - size / 2),
-          Math.round(p.y - size / 2),
-          size,
-          size,
-        );
+        ctx.drawImage(sprite, Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
         ctx.globalAlpha = 1;
         // Enemy drones carry a red tag pixel pair so they never read as yours.
         ctx.fillStyle = "#ff5a4a";
@@ -845,21 +870,6 @@ export function CombatFx() {
       const panelBox = box(host.querySelector(".target-panel"));
       const stageBox = box(host.querySelector(".stage-slot"));
 
-      const gridScale = new Map<"player" | "enemy", { x: number; y: number }>();
-      const archivePx = (side: "player" | "enemy") => {
-        const cached = gridScale.get(side);
-        if (cached) return cached;
-        const el = host.querySelector(`.hull[data-ship="${side}"]`);
-        const ship = side === "player" ? g.player : g.enemy;
-        const pitch =
-          el instanceof HTMLElement && ship ? gridPitch(el, ship.cols, ship.rows) : undefined;
-        const next = pitch
-          ? { x: pitch.pitchX / ROOM_PX, y: pitch.pitchY / ROOM_PX }
-          : { x: 1, y: 1 };
-        gridScale.set(side, next);
-        return next;
-      };
-
       const muzzle = (shot: Shot): Pt | null => {
         if (shot.from === "env") {
           const side = targetSide(shot);
@@ -892,14 +902,15 @@ export function CombatFx() {
             const hard = packed ? box(el?.querySelector("[data-hardpoint]") ?? el ?? null) : null;
             if (packed && hard) {
               const turn = Number(el?.getAttribute("data-turn"));
+              const mount = { x: packed.mountX, y: packed.mountY };
               const fromFire = muzzlePoint(
                 hard,
                 {
                   turn: Number.isFinite(turn) ? turn : 0,
                   flip: el?.getAttribute("data-flip") === "1",
                 },
-                { x: packed.fireX, y: packed.fireY },
-                { x: packed.mountX, y: packed.mountY },
+                barrelPoint({ x: packed.fireX, y: packed.fireY }, mount),
+                { x: 0, y: 0 },
                 archivePx(side),
               );
               if (fromFire) return fromFire;
@@ -1298,7 +1309,8 @@ export function CombatFx() {
             const bomb = projectileFrame(shot.defId, "bomb");
             const bombImg = bomb ? loadedImage(bomb.url) : undefined;
             if (bomb && bombImg) {
-              const box = projectileBox(bomb.fw, bomb.fh, 16 * bombScale);
+              const px = archivePx(bombSide).x;
+              const box = { w: bomb.fw * px, h: bomb.fh * px };
               c.imageSmoothingEnabled = false;
               c.drawImage(
                 bombImg,
@@ -1327,7 +1339,18 @@ export function CombatFx() {
         drawOn(layer, (c) => {
           c.save();
           c.translate(Math.round(x), Math.round(y));
-          paintBolt(c, shot.kind, color, ang, t * 12, false, spin, 1, shot.defId);
+          paintBolt(
+            c,
+            shot.kind,
+            color,
+            ang,
+            t * 12,
+            false,
+            spin,
+            1,
+            shot.defId,
+            layer === "panel" ? archivePx("enemy").x : archivePx("player").x,
+          );
           c.restore();
         });
         if (shot.kind === "missile" && live && Math.random() < 0.7) {
@@ -1697,6 +1720,7 @@ export function CombatFx() {
             f.spin,
             f.rock && f.layer === "panel" ? foeScale : 1,
             f.defId,
+            f.layer === "panel" ? archivePx("enemy").x : archivePx("player").x,
           );
           c.restore();
         });

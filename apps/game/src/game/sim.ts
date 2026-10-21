@@ -1145,7 +1145,12 @@ export function aidPlayerAsb(g: Game): void {
 }
 
 function clearFriendlyAsb(g: Game): void {
-  friendlyAsb.delete(g);
+  // The ally battery is that fight's support. A beacon battery and an event PDS stay until the jump.
+  if (!friendlyAsb.delete(g)) return;
+  const here = g.beacons.find((b) => b.id === g.here);
+  if (citedAsb(g, here) || g.asbAim != null) return;
+  g.asb = false;
+  delete g.asbAim;
 }
 
 function doorsOff(g: Game, aboard: "player" | "enemy"): boolean {
@@ -5176,7 +5181,7 @@ function tickIons(ship: Ship, dt: number) {
 
 // Asteroid fire or breach is cited-asteroid.ts. The interval seconds are INFERRED.
 // Environmental Hazards, ==Anti-Ship Battery (ASB)==: a warning 15--20 seconds after the battle starts,
-// then the real shot 5--10 seconds later. The cycle repeats until escape.
+// then the real shot 5--10 seconds later. Per the user: the cycle keeps going after the battle, until the jump.
 // INFERRED: each span is uniform. rand() is [0, 1), so the printed top is not its own bucket.
 // Cosmetic fake projectiles have no count on the page, so they are not drawn.
 function armAsbClock(g: Game, phase: "warn" | "shot") {
@@ -5393,7 +5398,7 @@ function tickFlare(g: Game, dt: number) {
   }
 }
 
-function tickLingeringAsteroids(g: Game, dt: number) {
+function tickLingeringHazards(g: Game, dt: number) {
   // Shields, Overview: the bubble still restores. The hazard page does not stop that after the fight.
   shieldRegen(g, g.player, "player", dt);
   environment(g, dt);
@@ -5871,10 +5876,7 @@ function retireFlagship(g: Game) {
   g.enemy = null;
   g.shots = [];
   g.wreck = null;
-  g.asb = false;
-  delete g.asbAim;
-  g.pulsar = false;
-  g.flare = false;
+  // Environmental Hazards: the field, the pulsar, the star, and the battery stay up on the card between stages.
   g.boardTimer = 0;
   const note = moved
     ? "The Flagship jumps away."
@@ -5937,11 +5939,7 @@ function winCombat(g: Game) {
   );
   g.enemy = null;
   g.shots = [];
-  // Environmental Hazards, Asteroid Field: the rocks keep coming after the battle. A jump leaves the beacon.
-  g.asb = false;
-  delete g.asbAim;
-  g.pulsar = false;
-  g.flare = false;
+  // Environmental Hazards: the field, the pulsar, the star, and the battery keep going after the battle. A jump leaves the beacon.
   g.boardTimer = 0;
   if (boss) {
     g.phase = "victory";
@@ -8395,13 +8393,11 @@ function tickBoarding(g: Game, dt: number) {
   if (enemyAboard(g)) return;
   g.crew = g.crew.filter((c) => c.side === "player" || (c.cloneIn ?? 0) > 0);
   g.shots = [];
-  g.asb = false;
-  delete g.asbAim;
   if (openSecretSector(g)) return;
   g.phase = "map";
-  // The same sentence: with the boarders gone, only a remaining hazard keeps the clock.
-  // Asteroid Field stays until the jump. A sun or a pulsar can too. No hazard charges instantly.
-  if (!(g.asteroid || g.pulsar || g.flare)) g.flee = 1;
+  // Engines, "FTL Drive charge time": with the boarders gone, only a remaining hazard keeps the clock.
+  // The field, the sun, the pulsar, and the battery stay until the jump. No hazard charges instantly.
+  if (!(g.asteroid || g.pulsar || g.flare || g.asb)) g.flee = 1;
 }
 
 /**
@@ -8494,8 +8490,9 @@ export function step(g: Game, dt: number) {
         // needs an enemy ship (aiming and charging at it, sending boarders, its AI, surrender, escape) waits for a fight.
         // Intruders already on your ship keep fighting here, including after that ship is gone.
         playerShipTick(g, h);
-        // Environmental Hazards, Asteroid Field: the field stays after the enemy is gone, until the jump.
-        if (g.phase !== "combat" && g.asteroid) tickLingeringAsteroids(g, h);
+        // Environmental Hazards: the field, the pulsar, the star, and the battery keep ticking until the jump.
+        if (g.phase !== "combat" && (g.asteroid || g.pulsar || g.flare || g.asb))
+          tickLingeringHazards(g, h);
       }
     }
     flushSfx(g.sfx);
@@ -8574,11 +8571,7 @@ export function step(g: Game, dt: number) {
     g.shots = [];
     g.enemyFlee = 0;
     g.phase = "map";
-    // Environmental Hazards, Asteroid Field: an escape does not stop the field. A jump does.
-    g.asb = false;
-    delete g.asbAim;
-    g.pulsar = false;
-    g.flare = false;
+    // Environmental Hazards: an escape does not stop the field, the pulsar, the star, or the battery. A jump does.
     // A secret-sector tag stored on this fight jumps before the map card.
     if (!openSecretSector(g)) {
       // @agent:quests. A page's {{Winning|gotaway=true}} result (wiki/quests.ts pageGotAway).

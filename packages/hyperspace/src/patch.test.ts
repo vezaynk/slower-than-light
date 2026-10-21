@@ -67,6 +67,37 @@ describe("patchDocument", () => {
     assert.deepEqual(texts(xml, "title"), ["First", "Last", "Spark II", "Human", "Nova"]);
   });
 
+  it("runs a find in a later FTL section, and a find nested inside one", () => {
+    const siblings = `<FTL>
+<weaponBlueprint name="NOVA">
+  <type>BEAM</type>
+  <title>Nova</title>
+</weaponBlueprint>
+</FTL>
+<FTL>
+<mod:findName type="weaponBlueprint" name="SPARK">
+  <mod-overwrite:title>Spark II</mod-overwrite:title>
+</mod:findName>
+</FTL>`;
+    const nested = `<FTL>
+  <weaponBlueprint name="NOVA">
+    <type>BEAM</type>
+    <title>Nova</title>
+  </weaponBlueprint>
+  <FTL>
+    <mod:findName type="weaponBlueprint" name="SPARK">
+      <mod-overwrite:title>Spark II</mod-overwrite:title>
+    </mod:findName>
+  </FTL>
+</FTL>`;
+    for (const patch of [siblings, nested]) {
+      const xml = patchDocument(BASE, patch, "append");
+      assert.deepEqual(texts(xml, "title"), ["First", "Last", "Spark II", "Human", "Nova"]);
+      assert.equal((xml.match(/<FTL\b/g) ?? []).length, 1);
+      assert.equal(xml.includes("mod:findName"), false);
+    }
+  });
+
   it("throws when panic is set and a find matches nothing", () => {
     const patch = `<FTL><mod:findName type="crewBlueprint" name="missing" panic="true"><mod-append:maxHealth>1</mod-append:maxHealth></mod:findName></FTL>`;
     assert.throws(

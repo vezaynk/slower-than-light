@@ -67,16 +67,15 @@ export function patchDocument(
 }
 
 /**
- * The top-level operations of an append file. Slipstream wraps the file in a root before parsing, so most mods
- * write several top-level elements with no root of their own. An <FTL> root inside it is unwrapped as well.
+ * Operations in an append file.
+ * Slipstream deletes every exact `<FTL>` and `</FTL>` before wrapping, so those tags are section markers.
+ * The file may also be several elements with no root of its own.
  */
 function patchOps(patch: string, path: string): XmlElement[] {
-  const body = patch.replace(/^\uFEFF?\s*<\?xml[^>]*\?>/, "");
+  const body = patch.replace(/^\uFEFF?\s*<\?xml[^>]*\?>/, "").replace(/<\/?FTL>/g, "");
   const wrapper = readXml(`<wrapper>${body}</wrapper>`, path).documentElement;
   if (!wrapper) throw new Error(`${path}: the document has no root element.`);
-  const top = elementChildren(wrapper);
-  if (top.length === 1 && top[0]!.tagName === "FTL") return elementChildren(top[0]!);
-  return top;
+  return elementChildren(wrapper);
 }
 
 function rawAppend(baseXml: string, patch: string): string {

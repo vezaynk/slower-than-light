@@ -28,7 +28,7 @@ import { powerMask, weaponAccentHot, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { EFFECT_CLIPS, hullDef, ROOM_PX, type HullMount, type HullPicture } from "@stl/pack";
 import { clipLength, weaponFrame, weaponMuzzle } from "@/game/pack/media";
-import { arriveMove, hopSteps, walkCells, walkPose } from "@/game/walk-path";
+import { arriveMove, dirOf, hopSteps, walkCells, walkPose, type CrewDir } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import { RoomProp, RoomSeat, WallTerminal } from "./RoomConsole";
@@ -103,18 +103,24 @@ function crewPlace(
   c: Crew,
   spot: { x: number; y: number } | undefined,
   paint: { t: number; goal: { x: number; y: number } | undefined } | null,
-): { x: number; y: number; faceLeft: boolean } | null {
+): { x: number; y: number; faceLeft: boolean; dir: CrewDir } | null {
   const step = walkStep(ship, c);
   if (step && paint) {
     const at = walkPose(ship, c.room, c.path, c.via, paint.t, paint.goal);
     if (at)
-      return { x: (at.x / ship.cols) * 100, y: (at.y / ship.rows) * 100, faceLeft: at.faceLeft };
+      return {
+        x: (at.x / ship.cols) * 100,
+        y: (at.y / ship.rows) * 100,
+        faceLeft: at.faceLeft,
+        dir: at.dir,
+      };
     const from = roomCenter(step.from, ship);
     const to = roomCenter(step.to, ship);
     return {
       x: from.x + (to.x - from.x) * paint.t,
       y: from.y + (to.y - from.y) * paint.t,
       faceLeft: to.x < from.x,
+      dir: dirOf(to.x - from.x, to.y - from.y),
     };
   }
   if (!spot) return null;
@@ -126,6 +132,7 @@ function crewPlace(
         x: ((at.x + 0.5) / ship.cols) * 100,
         y: ((at.y + 0.5) / ship.rows) * 100,
         faceLeft: c.tile.x < c.shift.x,
+        dir: dirOf(c.tile.x - c.shift.x, c.tile.y - c.shift.y),
       };
     }
   }
@@ -133,6 +140,7 @@ function crewPlace(
     x: ((spot.x + 0.5) / ship.cols) * 100,
     y: ((spot.y + 0.5) / ship.rows) * 100,
     faceLeft: false,
+    dir: "down",
   };
 }
 
@@ -170,6 +178,7 @@ function CrewToken({
   pose,
   frame,
   cycle,
+  dir,
   className,
   style,
 }: {
@@ -182,6 +191,7 @@ function CrewToken({
   pose: CrewPose;
   frame: number;
   cycle: boolean;
+  dir?: CrewDir;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -219,7 +229,7 @@ function CrewToken({
         onPlace?.(c.room);
       }}
     >
-      <CrewFace crew={c} pose={pose} frame={frame} cycle={cycle} />
+      <CrewFace crew={c} pose={pose} frame={frame} cycle={cycle} dir={dir} />
       <span className="crew-hp" aria-hidden="true">
         <b style={{ width: `${hp}%` }} />
       </span>
@@ -1109,7 +1119,6 @@ export function ShipView({
             const paint = walkPaint(ship, here, c);
             const at = crewPlace(ship, c, spot, paint);
             if (!at) return null;
-            const faceLeft = at.faceLeft;
             const { step, pose, frame, cycle } = lookOf(c, spot, paint);
             const nudge = spot && !step ? spot.stack * 4 : 0;
             // Seated at a terminal: back from the wall its monitor hangs on, facing it (the seat sits the same way).
@@ -1122,7 +1131,9 @@ export function ShipView({
               : [0, 0];
             const placeX = at.x + (back[0]! / ship.cols) * 100;
             const placeY = at.y + (back[1]! / ship.rows) * 100;
-            const facing = seated ? seated.wall === "w" : faceLeft;
+            const dir: CrewDir = seated
+              ? { e: "right", w: "left", n: "up", s: "down" }[seated.wall]
+              : at.dir;
             // Stacked crew step aside by 4px at a full tile. The target panel's --ship-scale keeps that step with the rooms.
             const place = `translate(calc(-50% + ${nudge}px * var(--ship-scale, 1)), calc(-50% + ${nudge}px * var(--ship-scale, 1)))`;
             return (
@@ -1136,11 +1147,12 @@ export function ShipView({
                 pose={pose}
                 frame={frame}
                 cycle={cycle}
-                className={"crew-walker" + (facing ? " is-face-left" : "")}
+                dir={dir}
+                className="crew-walker"
                 style={{
                   left: `${placeX}%`,
                   top: `${placeY}%`,
-                  transform: facing ? `${place} scaleX(-1)` : place,
+                  transform: place,
                 }}
               />
             );

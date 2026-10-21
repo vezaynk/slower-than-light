@@ -65,21 +65,40 @@
   position: relative;
   display: inline-block;
   line-height: 0;
-  overflow: visible;
+  overflow: hidden;
   vertical-align: middle;
-  /* The slot passes a height. The frame keeps its own proportions. */
-  width: calc(var(--frame-w) * var(--sprite-size) / var(--frame-h));
+  /* The opaque figure fills the slot. The padded frame hangs outside that box. */
+  --body-x: 0;
+  --body-y: 0;
+  --body-w: var(--frame-w);
+  --body-h: var(--frame-h);
+  width: var(--sprite-size);
   height: var(--sprite-size);
+}
+
+.crew-sprite.is-mirror {
+  transform: scaleX(-1);
 }
 
 /* On a hull the 35px crew frame is one room. --tile is that room, in play and in the hangar. */
 .crew-walkers .token.is-sprite .crew-sprite.is-sheet {
   width: calc(var(--frame-w) * var(--tile, 44px) / 35);
   height: calc(var(--frame-h) * var(--tile, 44px) / 35);
+  overflow: visible;
 }
 
 .crew-sprite.is-sheet .crew-frame {
+  position: absolute;
   display: block;
+  width: calc(var(--sprite-size) * var(--frame-w) / var(--body-h));
+  height: calc(var(--sprite-size) * var(--frame-h) / var(--body-h));
+  left: calc(var(--sprite-size) * (0.5 - (var(--body-x) + var(--body-w) / 2) / var(--body-h)));
+  top: calc(var(--sprite-size) * (0.5 - (var(--body-y) + var(--body-h) / 2) / var(--body-h)));
+}
+
+.crew-walkers .token.is-sprite .crew-sprite.is-sheet .crew-frame {
+  left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
 }

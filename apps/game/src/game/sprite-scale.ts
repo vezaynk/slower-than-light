@@ -1,5 +1,4 @@
 import { ROOM_PX } from "@stl/pack";
-import { GUN_ART } from "./mount-place.ts";
 
 /**
  * Screen pixels for one archive pixel.
@@ -17,20 +16,18 @@ export function frameBox(fw: number, fh: number, tile: number): { w: number; h: 
 
 /**
  * Weapon icon in a slot.
- * The stand-in gun is `height` tall and `GUN_ART` long.
- * Archive sheets point up, so a taller frame is turned to point right,
- * and the barrel is that same length.
+ * `height` is the gun's thickness, the same as the stand-in.
+ * A tall archive sheet is turned to point right, and the barrel keeps the sheet's proportions.
  */
 export function weaponSlotBox(
   fw: number,
   fh: number,
   height: number,
 ): { w: number; h: number; turned: boolean } {
-  const length = (height * GUN_ART.w) / GUN_ART.h;
   const long = Math.max(fw, fh);
   const short = Math.min(fw, fh);
-  const scale = length / Math.max(1, long);
-  return { w: long * scale, h: short * scale, turned: fh > fw };
+  const length = (height * long) / Math.max(1, short);
+  return { w: length, h: height, turned: fh > fw };
 }
 
 /**

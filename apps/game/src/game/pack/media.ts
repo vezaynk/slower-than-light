@@ -36,6 +36,9 @@ export type SheetFrame = {
   sy: number;
 };
 
+/** Opaque pixels of one painted crew frame, in frame pixels. Icons scale this box up to the slot. */
+export type SpriteBody = { x: number; y: number; w: number; h: number };
+
 export type SoundClip = {
   name: string;
   file: string;
@@ -69,6 +72,7 @@ const cues = new Map<string, SoundClip>();
 const tracks = new Map<string, { explore: string; combat?: string }>();
 const images = new Map<string, HTMLImageElement>();
 const crewPaint = new Map<string, string>();
+const crewBodies = new Map<string, SpriteBody>();
 const faces: FontFace[] = [];
 let variant: ImageVariant = { colorblind: false, tablet: false, lang: "en" };
 
@@ -101,6 +105,7 @@ export async function rememberArchive(
   tracks.clear();
   images.clear();
   crewPaint.clear();
+  crewBodies.clear();
   dropFaces();
   const animXml: string[] = [];
   const soundXml: string[] = [];
@@ -212,28 +217,52 @@ export function projectileBox(fw: number, fh: number, long: number): { w: number
   return { w: (long * Math.max(1, fw)) / side, h: (long * Math.max(1, fh)) / side };
 }
 
+/** Which way a crew sheet faces. Archive walks, punches, and consoles have one clip per direction. */
+export type CrewDir = "down" | "up" | "left" | "right";
+
+export type CrewFrame = SheetFrame & {
+  /** The left clip is missing, so the down sheet is flipped. */
+  mirror: boolean;
+};
+
 /**
- * One crew frame. Idle and walk share `walk_down`.
- * Fight prefers the punch, and work prefers the typing loop.
+ * One crew frame.
+ * Idle and walk use the walk clip for `dir`. Fight prefers the punch, and work prefers typing.
+ * A missing direction falls back to down. A left fallback sets `mirror`.
  */
 export function crewPoseFrame(
   race: string,
   pose: "idle" | "walk" | "fight" | "work",
   index: number,
-): SheetFrame | undefined {
+  dir: CrewDir = "down",
+): CrewFrame | undefined {
   const names =
     pose === "fight"
-      ? [`${race}_punch_down`, `${race}_fire_down`, `${race}_walk_down`]
+      ? [
+          `${race}_punch_${dir}`,
+          `${race}_fire_${dir}`,
+          `${race}_shoot_${dir}`,
+          `${race}_walk_${dir}`,
+          `${race}_punch_down`,
+          `${race}_fire_down`,
+          `${race}_walk_down`,
+        ]
       : pose === "work"
-        ? [`${race}_type_down`, `${race}_repair`, `${race}_walk_down`]
-        : [`${race}_walk_down`];
+        ? [
+            `${race}_type_${dir}`,
+            `${race}_repair`,
+            `${race}_walk_${dir}`,
+            `${race}_type_down`,
+            `${race}_walk_down`,
+          ]
+        : [`${race}_walk_${dir}`, `${race}_walk_down`];
   for (const name of names) {
     const clip = clips.get(name);
     const sheet = clip ? sheets.get(clip.sheet) : undefined;
     if (!clip || !sheet || clip.length < 1) continue;
     const frame = ((Math.floor(index) % clip.length) + clip.length) % clip.length;
     const slice = frameOf(sheet, clip.x, clip.y, frame);
-    if (slice) return slice;
+    if (slice) return { ...slice, mirror: dir === "left" && !name.endsWith("_left") };
   }
   return undefined;
 }
@@ -398,7 +427,34 @@ export function paintCrew(
   }
   const url = canvas.toDataURL();
   crewPaint.set(key, url);
+  crewBodies.set(
+    url,
+    opaqueBody(ctx.getImageData(0, 0, frame.fw, frame.fh).data, frame.fw, frame.fh),
+  );
   return url;
+}
+
+/** The painted crew picture's opaque box. Icons use it so the figure fills the slot. */
+export function crewBody(url: string): SpriteBody | undefined {
+  return crewBodies.get(url);
+}
+
+function opaqueBody(data: Uint8ClampedArray, w: number, h: number): SpriteBody {
+  let minX = w;
+  let minY = h;
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if ((data[(y * w + x) * 4 + 3] ?? 0) < 8) continue;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    }
+  }
+  if (maxX < 0) return { x: 0, y: 0, w, h };
+  return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
 }
 
 /** Multiplies RGBA pixels by a tint: each channel by r/255, g/255, b/255, and alpha by a. */

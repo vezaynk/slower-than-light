@@ -267,6 +267,21 @@ export function crewPoseFrame(
   return undefined;
 }
 
+/**
+ * Whether this pose plays its frames on the clock.
+ * An idle with a walk sheet stays on frame 0. That cell is the planted figure.
+ * The later cells are the stride, so playing them walks in place and shifts the body.
+ * No sheet means the stand-in breathe still plays.
+ */
+export function crewPoseLoops(
+  race: string,
+  pose: "idle" | "walk" | "fight" | "work",
+  opts: { cycle?: boolean; loopAll?: boolean; dir?: CrewDir } = {},
+): boolean {
+  if (pose === "idle" && crewPoseFrame(race, "idle", 0, opts.dir ?? "down")) return false;
+  return opts.loopAll === true || (opts.cycle === true && (pose === "idle" || pose === "work"));
+}
+
 /** White interior icon, tinted by the room's current color. */
 export function roomIconUrl(name: string): string | undefined {
   return urls.get(`img/ship/interior/${name}.png`.toLowerCase());

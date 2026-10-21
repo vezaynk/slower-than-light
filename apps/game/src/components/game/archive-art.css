@@ -103,8 +103,4 @@
   height: 100%;
 }
 
-.crew-sprite.is-sheet.is-cycle .crew-frame {
-  position: absolute;
-  left: 0;
-  top: 0;
-}
+/* Cycle frames keep the placement above, so a portrait stays centered in its slot. */

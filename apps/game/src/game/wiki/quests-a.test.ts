@@ -45,6 +45,8 @@ function jumpTo(g: Game, b: Beacon) {
   g.fleet = 0;
   g.phase = "map";
   g.event = null;
+  // A pulsar, a star, or a battery left by the fight keeps charging the drive. This jump is the charged one.
+  g.flee = 1;
   commitJump(g, b.id);
 }
 

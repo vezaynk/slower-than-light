@@ -795,6 +795,31 @@ const STORE_PAGE: EventDef = {
   store: true,
 };
 
+/**
+ * Large trade station. EXIT_ITEMS loads this id.
+ * A list draw stays an ordinary beacon, so this is not a `<store/>` page.
+ */
+const REBEL_TRADE: EventDef = {
+  id: "STORE_REBELSIDE",
+  dest: "Large trade station",
+  flag: "STORE_REBELSIDE",
+  aliases: [],
+  sectors: [],
+  body: 'You come across a large trade station. However, as soon as you approach a warning goes out to all ships in the region: "Do not associate with the Federation sympathizer. All who oppose the Rebels will be punished."',
+  choices: [
+    {
+      id: "c:large-trade-station:1",
+      label: "Leave.",
+      fx: [
+        {
+          k: "note",
+          text: "You decide it's better not to push your luck and move on.",
+        },
+      ],
+    },
+  ],
+};
+
 /** Sector lists are quotas now. Alias and sector tags are not written, so the pack does not keep them. */
 function storedEvent(event: EventDef): EventDef {
   return { ...event, aliases: [], sectors: [] };
@@ -830,6 +855,7 @@ export function loadCatalog(): void {
   const events = named.map(storedEvent);
   // The STORE quota names a page, as in ftl.dat. Its <store/> opens the shop.
   if (!events.some((event) => event.id === "STORE")) events.push(STORE_PAGE);
+  if (!events.some((event) => event.id === "STORE_REBELSIDE")) events.push(REBEL_TRADE);
   loadPack(
     {
       crew: (Object.keys(KIN) as KinId[]).map(crewRow),

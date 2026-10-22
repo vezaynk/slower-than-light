@@ -305,7 +305,7 @@ describe("totallynotftl.dat", () => {
     assert.equal(Object.keys(WEAPON_MOUNTS).length, 69);
     assert.equal(mounts, 325);
     const fighter = merged.hulls?.find((hull) => hull.id === "REBEL_SKINNY");
-    assert.equal(fighter?.layout, "rebel-invader");
+    assert.equal(fighter?.layout, "rebel-fighter");
     assert.equal(fighter?.mounts, undefined);
     assert.equal(fighter?.gibs?.length, 1);
   });

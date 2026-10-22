@@ -1434,6 +1434,11 @@ describe("packFromFtl", () => {
 <FTL>
   <text name="sectorname_short_STANDARD_SPACE">Home</text>
 </FTL>`;
+    const hans = `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="sectorname_STANDARD_SPACE">Han Space Hyphen</text>
+  <text name="sectorname_short_STANDARD_SPACE">Hyphen</text>
+</FTL>`;
     const sectors = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>
   <sectorDescription name="STANDARD_SPACE">
@@ -1455,6 +1460,7 @@ describe("packFromFtl", () => {
       { path: "data/text_sectorname.xml.append", xml: append },
       { path: "data/text-de.xml.append", xml: germanAppend },
       { path: "data/events.xml", xml: short },
+      { path: "data/text-zh-Hans.xml", xml: hans },
     ]);
     const standard = pack.sectors?.find((row) => row.id === "STANDARD_SPACE");
     assert.equal(standard?.name, "Civil Space");

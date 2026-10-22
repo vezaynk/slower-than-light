@@ -1,4 +1,6 @@
 import { Node, type Document as XmlDocument, type Element as XmlElement } from "@xmldom/xmldom";
+import { applyArchiveExtras } from "./archive-extras.ts";
+import "./extras/register.ts";
 import type {
   AchievementCondition,
   AchievementDef,
@@ -192,7 +194,11 @@ export function packFromFtl(
         if (table) rewards = table;
       } else if (node.tagName === "ship") {
         const row = readShipEvent(node, strings, textLists);
-        if (row) ships.put(row);
+        if (row) {
+          const prev = ships.get(row.id);
+          if (prev) keepShipEndings(prev, row);
+          ships.put(row);
+        }
       }
     }
     for (const node of tagged(doc, "sectorDescription")) {
@@ -242,6 +248,7 @@ export function packFromFtl(
   const civilianSectorTitle = strings.get("sectorname_CIVILIAN_SECTOR");
   if (civilianSectorTitle) pack.civilianSectorTitle = civilianSectorTitle;
   attachPictures(pack.hulls, documents);
+  applyArchiveExtras(pack, parsed, layouts);
   return pack;
 }
 
@@ -306,6 +313,13 @@ function readFtlCrew(node: XmlElement): CrewDef | undefined {
   };
   const detail = textOf(node, "desc");
   if (detail) row.detail = detail;
+  const powers: string[] = [];
+  for (const item of elements(child(node, "powerList"))) {
+    if (item.tagName !== "power") continue;
+    const line = ownText(item).trim();
+    if (line) powers.push(line);
+  }
+  if (powers.length > 0) row.powers = powers;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
   const colors = readCrewColors(child(node, "colorList"));
@@ -334,6 +348,11 @@ function readCrewColors(list: XmlElement | undefined): CrewColor[][] {
 class Catalog<T extends { id: string }> {
   readonly rows: T[] = [];
   private readonly index = new Map<string, number>();
+
+  get(id: string): T | undefined {
+    const at = this.index.get(id);
+    return at == null ? undefined : this.rows[at];
+  }
 
   put(row: T) {
     const at = this.index.get(row.id);
@@ -373,10 +392,13 @@ function systemSlot(id: string, node: XmlElement): SystemSlot {
   return "sys";
 }
 
-/** `text-<code>.xml` is a translation. English tables are `text_<kind>.xml`. */
+/**
+ * `text-<code>.xml` is a translation. English tables are `text_<kind>.xml`.
+ * A locale code may contain a hyphen, as in `text-zh-Hans.xml`.
+ */
 function translationFile(path: string): boolean {
   const name = path.slice(path.lastIndexOf("/") + 1);
-  return /^text-[A-Za-z0-9_]+\.xml(?:\.append)?$/.test(name);
+  return /^text-.+\.xml(?:\.append)?$/i.test(name);
 }
 
 /**
@@ -767,10 +789,11 @@ const SECTOR_TYPE_GROUPS: Record<string, string> = {
 
 /**
  * Sector colour from sector_data.xml's `<sectorType>` lists, which StarMap::GenerateSectorMap draws each column from.
- * An `OVERRIDE_` list replaces its base list (Advanced Edition adds the Lanius sector to hostile this way). A sector in
- * none of the three lists (UNKNOWN, Hidden Crystal Worlds, The Last Stand) keeps no group, so the chart never rolls it.
+ * An `OVERRIDE_` list replaces its base list (Advanced Edition adds the Lanius sector to hostile this way). UNKNOWN is
+ * read and is not a colour: those sectors stay hidden unless a colour list also names them. A sector in no list
+ * (Hidden Crystal Worlds, The Last Stand) keeps no group, so the chart never rolls it.
  */
-function readSectorTypes(docs: readonly XmlDocument[]): Map<string, string> {
+export function readSectorTypes(docs: readonly XmlDocument[]): Map<string, string> {
   const lists = new Map<string, string[]>();
   for (const doc of docs) {
     for (const node of tagged(doc, "sectorType")) {
@@ -788,6 +811,10 @@ function readSectorTypes(docs: readonly XmlDocument[]): Map<string, string> {
     for (const id of lists.get(`OVERRIDE_${type}`) ?? lists.get(type) ?? []) {
       if (!colours.has(id)) colours.set(id, group);
     }
+  }
+  // Not a chart colour. A colour list that also names the sector wins, so this does not relabel it.
+  for (const id of lists.get("OVERRIDE_UNKNOWN") ?? lists.get("UNKNOWN") ?? []) {
+    if (!colours.has(id)) colours.set(id, "");
   }
   return colours;
 }
@@ -807,6 +834,8 @@ function readAchievement(
     name: elementString(node, "name", strings) ?? id,
     desc: elementString(node, "desc", strings) ?? "",
   };
+  const short = elementString(node, "shortname", strings);
+  if (short) row.short = short;
   const ship = textOf(node, "ship");
   if (ship) row.ship = ship;
   const multi = textOf(node, "multiDifficulty");
@@ -1178,6 +1207,8 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
     fx: [],
   };
   if (node.getAttribute("hidden") === "true") choice.hidden = true;
+  const gear = attr(node, "req")?.trim();
+  if (gear) choice.reqs = [{ k: "list", id: gear, text: "Requires the right gear." }];
   const result = elements(node).find((item) => item.tagName === "event");
   const environment = readEnvironment(result ?? node);
   if (environment) choice.environment = environment;
@@ -1450,7 +1481,54 @@ function shipEndingTag(tag: string): (typeof SHIP_ENDINGS)[number] | undefined {
   return SHIP_ENDINGS.find((name) => name === tag);
 }
 
-/** A root `<ship name>`. The first of each ending, crew block, and weapon override wins. */
+/** A later ship file replaces the record. An ending it leaves blank keeps the earlier sentence. */
+function keepEnding<T extends { page?: EventDef }>(
+  older: T | undefined,
+  newer: T | undefined,
+): T | undefined {
+  if (!newer) return older;
+  if (!older?.page?.body || newer.page?.body) return newer;
+  if (newer.page) newer.page.body = older.page.body;
+  else newer.page = older.page;
+  return newer;
+}
+
+function shipEnding(
+  row: ShipEventDef,
+  tag: (typeof SHIP_ENDINGS)[number],
+): ShipEventEnding | undefined {
+  if (tag === "surrender") return row.surrender;
+  if (tag === "escape") return row.escape;
+  if (tag === "destroyed") return row.destroyed;
+  if (tag === "deadCrew") return row.deadCrew;
+  return row.gotaway;
+}
+
+/** The sentence on a second tag of the same ending, when the first tag left the page blank. */
+function fillEndingPage(current: ShipEventEnding, extra: ShipEventEnding): void {
+  const told = extra.page?.body?.trim();
+  if (!told) return;
+  if (!current.page?.body?.trim()) {
+    current.page = extra.page;
+    return;
+  }
+  if (current.page.body.includes(told)) return;
+  current.page.texts = [...(current.page.texts ?? []), told];
+}
+
+function keepShipEndings(prev: ShipEventDef, next: ShipEventDef): void {
+  next.surrender = keepEnding(prev.surrender, next.surrender);
+  next.escape = keepEnding(prev.escape, next.escape);
+  next.destroyed = keepEnding(prev.destroyed, next.destroyed);
+  next.deadCrew = keepEnding(prev.deadCrew, next.deadCrew);
+  next.gotaway = keepEnding(prev.gotaway, next.gotaway);
+}
+
+/**
+ * A root `<ship name>`. The first of each ending, crew block, and weapon override wins.
+ * A later duplicate ending that carries a sentence fills an earlier ending that had none,
+ * so a timer-only escape still announces the text written on the second tag.
+ */
 function readShipEvent(
   node: XmlElement,
   strings: Map<string, string>,
@@ -1480,7 +1558,13 @@ function readShipEvent(
       continue;
     }
     const tag = shipEndingTag(item.tagName);
-    if (!tag || seen.has(tag)) continue;
+    if (!tag) continue;
+    if (seen.has(tag)) {
+      const extra = readShipEnding(item, id, tag, strings, lists);
+      const current = shipEnding(row, tag);
+      if (extra && current) fillEndingPage(current, extra);
+      continue;
+    }
     seen.add(tag);
     const ending = readShipEnding(item, id, tag, strings, lists);
     if (!ending) continue;
@@ -1582,9 +1666,14 @@ function readBoarders(node: XmlElement): ArchiveBoarders | undefined {
 
 function readGrant(node: XmlElement): ArchiveGrant | undefined {
   if (node.tagName === "crewMember") {
-    const id = attr(node, "class")?.trim() || attr(node, "id")?.trim();
+    const race = attr(node, "class")?.trim() || attr(node, "type")?.trim();
+    const named = ownText(node).trim();
+    const idAttr = attr(node, "id")?.trim();
+    // A name id inlines to the person's name and leaves the race off the tag. Those people join as human.
+    const id = race || (named && idAttr && idAttr !== named ? "human" : idAttr);
     if (!id) return undefined;
     const grant: ArchiveGrant = { kind: "crew", id };
+    if (named && named !== id) grant.name = named;
     const amount = intAttr(node, "amount");
     if (amount != null) grant.amount = amount;
     return grant;

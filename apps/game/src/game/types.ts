@@ -824,6 +824,13 @@ export type AchieveTally = {
   avast?: boolean;
   /** Reached sector 8 without an environmental-danger jump. */
   reachedClean?: boolean;
+  /**
+   * Diplomatic Immunity: distinct crew-blue choice ids used by sector 5 on the Federation Cruiser.
+   * The count is `blueCrew`. A later sector does not add to the list.
+   */
+  blueSeen?: string[];
+  /** How many of those crew-blue choices have been used. */
+  blueCrew?: number;
 };
 
 export type Game = {

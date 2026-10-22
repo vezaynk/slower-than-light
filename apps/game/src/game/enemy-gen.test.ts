@@ -10,6 +10,7 @@ import {
   enemyPool,
   fightHull,
   hullFor,
+  specFromHull,
   optionalChance,
   pickElite,
   pickEnemy,
@@ -20,6 +21,7 @@ import {
   UPGRADE_BUDGET,
 } from "./enemy-gen.ts";
 import { weaponIdForName } from "./gear-look.ts";
+import { listWasPlayed, resetPlayedLists } from "./played-lists.ts";
 import { createGame, startCombat } from "./sim.ts";
 import { ENEMY_CLASSES, ENEMY_WEAPON_POOLS } from "./wiki/enemy-ships.ts";
 import { sectorIdNamed } from "./fixtures.ts";
@@ -512,6 +514,45 @@ describe("archive loadout", () => {
       assert.deepEqual(armed.weapons, ["LASER_BURST_3"]);
       assert.deepEqual(armed.drones, ["DEFENSE_1"]);
       assert.equal(armed.parts, 5);
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("fields a circle ship's drone list where it overlaps DRONES_CIRCLE", () => {
+    const base = hullDef(enemyBlueprintId("rebel-fighter"));
+    assert.ok(base);
+    loadPack(
+      {
+        hulls: [
+          {
+            ...base,
+            id: "CIRCLE_TEST",
+            layout: "circle_test",
+            drones: [],
+            droneLoad: "DRONES_NARROW",
+            droneCount: 4,
+            parts: 8,
+            installs: [{ id: "drones", power: 8, start: true, room: 0 }],
+          },
+        ],
+        blueprints: [
+          { id: "DRONES_NARROW", names: ["DEFENSE_1", "COMBAT_1"] },
+          { id: "DRONES_CIRCLE", names: ["DEFENSE_1"] },
+          { id: "OVERRIDE_DRONES_CIRCLE", names: ["DEFENSE_1", "BATTLE"] },
+        ],
+      },
+      "append",
+    );
+    try {
+      resetPlayedLists();
+      const hull = hullDef("CIRCLE_TEST");
+      assert.ok(hull);
+      const spec = specFromHull(hull, ctx, seeded(1));
+      assert.equal(listWasPlayed("DRONES_CIRCLE"), true);
+      assert.equal(listWasPlayed("OVERRIDE_DRONES_CIRCLE"), true);
+      assert.ok(spec.drones.length > 0);
+      assert.ok(spec.drones.every((id) => id === "DEFENSE_1"));
     } finally {
       resetPackForTests();
     }

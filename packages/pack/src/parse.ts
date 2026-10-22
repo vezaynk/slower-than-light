@@ -234,6 +234,12 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
     price: numOf(node, "cost") ?? 0,
     blurb: textOf(node, "tooltip") ?? textOf(node, "desc") ?? "",
   };
+  const desc = textOf(node, "desc");
+  if (desc && desc !== row.blurb) row.detail = desc;
+  const short = textOf(node, "short");
+  if (short) row.short = short;
+  const flavor = textOf(node, "flavorType");
+  if (flavor) row.flavor = flavor;
   const length = numOf(node, "length");
   if (length != null) row.lengthTiles = length / 45;
   const speed = numOf(node, "speed");
@@ -268,6 +274,10 @@ export function readDrone(node: XmlElement): DroneDef | undefined {
     name: textOf(node, "title") ?? id,
     cost: numOf(node, "cost") ?? 0,
   };
+  const short = textOf(node, "short");
+  if (short) row.short = short;
+  const detail = textOf(node, "desc");
+  if (detail) row.detail = detail;
   const image = textOf(node, "droneImage");
   if (image) row.image = image;
   return row;

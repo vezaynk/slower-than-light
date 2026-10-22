@@ -19,6 +19,7 @@ import {
   type ImageVariant,
   type WeaponAnim,
 } from "@stl/pack";
+import { remapSheetFile } from "../archive-cover-extra.ts";
 import { droneBlueprintOf } from "../gear-look.ts";
 import { legibleCapRatio, ttfFromBitmap } from "./bitmap-ttf.ts";
 
@@ -115,7 +116,10 @@ export async function rememberArchive(
     else if (path.endsWith("sounds.xml")) soundXml.push(doc.xml);
   }
   const anim = mergeAnimations(animXml);
-  for (const row of anim.sheets) sheets.set(row.name, row);
+  for (const row of anim.sheets) {
+    row.file = remapSheetFile(row.name, row.file);
+    sheets.set(row.name, row);
+  }
   for (const row of anim.clips) clips.set(row.name, row);
   for (const row of anim.weapons) weapons.set(row.name, row);
   for (const [path, blob] of assets) blobs.set(path.toLowerCase(), blob);
@@ -148,7 +152,24 @@ export async function rememberArchive(
 }
 
 function weaponAnimOf(id: string): WeaponAnim | undefined {
-  return weapons.get(weaponDef(id)?.art ?? id);
+  const name = weaponDef(id)?.art ?? id;
+  const anim = weapons.get(name);
+  if (anim) return anim;
+  // A weaponArt may name a plain clip. Crystal Shard is the projectile sheet.
+  const clip = clips.get(name);
+  if (!clip) return undefined;
+  return {
+    name: clip.name,
+    sheet: clip.sheet,
+    length: clip.length,
+    x: clip.x,
+    y: clip.y,
+    chargedFrame: 0,
+    fireFrame: 0,
+    mountX: 0,
+    mountY: 0,
+    fireSounds: [],
+  };
 }
 
 /** One frame of a weapon sheet. `weaponArt` names the anim; a stand-in uses the blueprint id. */
@@ -284,6 +305,11 @@ export function droneLayerUrl(id: string, layer: "base" | "on" | "charged"): str
 
 export function soundCue(name: string): SoundClip | undefined {
   return cues.get(name);
+}
+
+/** One stored file, keyed the way the archive wrote the path. Missing files stay missing. */
+export function archiveBlob(path: string): Blob | undefined {
+  return blobs.get(path.toLowerCase());
 }
 
 export function soundCues(): SoundClip[] {

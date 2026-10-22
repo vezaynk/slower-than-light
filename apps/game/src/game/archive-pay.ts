@@ -18,16 +18,20 @@ import {
   allFillerLists,
   allShipEvents,
   augmentDef,
+  blueprintList,
   crewDef,
   droneDef,
   eventDef,
+  imageList,
   shipEndingPage,
   shipEventDef,
   warnPack,
   weaponDef,
 } from "@stl/pack";
+import { crewRandomIds } from "./blueprint-use.ts";
 import { upgradeCost } from "./content.ts";
 import { onCradleDeath, cradleUpgradeCost } from "./extras/cradle.ts";
+import { boardDroneCrew } from "./extras/drone-crew.ts";
 import { adjustScrap } from "./extras/index.ts";
 import type { KinId } from "./extras/kin.ts";
 import { spikeUpgradeCost } from "./extras/spike.ts";
@@ -40,6 +44,7 @@ import {
   hurtSystem,
   isMain,
   log,
+  openStoreHere,
   rand,
   showEventLines,
   startCombat,
@@ -117,8 +122,8 @@ export function showArchiveArrival(g: Game, flag: string): boolean {
 }
 
 /**
- * Applies a page's effects, grants, and reward, and starts its hostile ship or its boarders.
- * True when a fight or boarding started. "unpaid" when a cost is more than the ship holds: nothing is paid.
+ * Applies a page's effects, grants, and reward, and starts its hostile ship, its boarders, or its store.
+ * True when a fight, boarding, or a store started. "unpaid" when a cost is more than the ship holds: nothing is paid.
  * False when the card should stay up. Paying effects does not by itself return true.
  */
 export function showArchivePage(
@@ -128,6 +133,7 @@ export function showArchivePage(
 ): true | false | "unpaid" {
   const lines: string[] = [];
   if (!payPageFx(g, page.fx, lines)) return "unpaid";
+  pushNotes(page.fx, lines);
   for (const line of lines) notes?.push(line);
   if (g.player.hull <= 0) {
     g.phase = "defeat";
@@ -143,6 +149,7 @@ export function showArchivePage(
     applyArchiveAlters(g, page.alters, "enemy", lines);
     if (finishSecret(g, secret)) return true;
     showEventLines(g, lines);
+    if (openPageStore(g, page)) return true;
     return false;
   }
   // This page's environment replaces the one the previous event stored.
@@ -184,7 +191,15 @@ export function showArchivePage(
   applyArchiveAlters(g, page.alters, "enemy", lines);
   if (finishSecret(g, secret)) return true;
   showEventLines(g, lines);
+  if (openPageStore(g, page)) return true;
   return false;
+}
+
+/** A page `<store/>` opens this beacon's shop. The card comes down after the page's other results. */
+function openPageStore(g: Game, page: EventDef): boolean {
+  if (!page.store) return false;
+  openStoreHere(g);
+  return true;
 }
 
 /** The surrender page for the offer surrenderTick just marked. The enemy stays. */
@@ -275,7 +290,8 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
       !choice.environment &&
       !choice.alters?.length &&
       !choice.marks?.length &&
-      !choice.img)
+      !choice.img &&
+      !hasShownNote(choice))
   )
     return;
   if (isCampaign(id) && handlerActed(g, before)) return;
@@ -304,6 +320,7 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
   armEventEnvironment(g, choice.environment);
   stampArchiveImage(g, choice.img);
   if (finishSecret(g, applyArchiveMarks(g, choice.marks))) return;
+  pushNotes(choice.fx, lines);
   showEventLines(g, lines);
 }
 
@@ -325,10 +342,21 @@ function emptySurrenderResult(choice: EventChoice): boolean {
     choice.environment ||
     choice.alters?.length ||
     choice.marks?.length ||
-    choice.img
+    choice.img ||
+    hasShownNote(choice)
   )
     return false;
   return !choice.fx.some((fx) => fx.k !== "nothing" && fx.k !== "note");
+}
+
+function hasShownNote(choice: EventChoice): boolean {
+  return choice.fx.some((fx) => fx.k === "note" && fx.text.trim().length > 0);
+}
+
+function pushNotes(fxs: readonly EventEffect[] | undefined, lines: string[]): void {
+  for (const fx of fxs ?? []) {
+    if (fx.k === "note" && fx.text.trim()) lines.push(fx.text);
+  }
 }
 
 function isCampaign(id: string): boolean {
@@ -464,10 +492,12 @@ function finishSecret(g: Game, secret: boolean): boolean {
   return true;
 }
 
-/** The event card shows the archive image when that file is in the loaded pack. */
+/** The event card shows the archive image when that file is in the loaded pack. A list name picks one picture. */
 export function stampArchiveImage(g: Game, name: string | undefined): void {
   if (!name || !g.event || g.event.img) return;
-  const src = archiveImage(name);
+  const list = imageList(name);
+  const picked = list?.length ? list[Math.floor(rand(g) * list.length)] : name;
+  const src = archiveImage(picked ?? name);
   if (src) g.event.img = src;
 }
 
@@ -703,29 +733,49 @@ function giveGrant(g: Game, grant: ArchiveGrant): void {
   const count = grant.amount ?? 1;
   if (count <= 0) return;
   if (grant.kind === "crew") {
+    if (boardDroneCrew(g, grant.id, count) > 0) return;
     const race = crewName(grant.id);
-    if (!race) {
-      warnPack(`A grant names "${grant.id}", which is not a crew race; it is skipped.`);
+    if (race) {
+      for (let i = 0; i < count; i++) joinCrew(g, race, grant.name);
       return;
     }
-    for (let i = 0; i < count; i++) joinCrew(g, race);
+    if (grant.name) {
+      for (let i = 0; i < count; i++) joinCrew(g, "Human", grant.name);
+      return;
+    }
+    warnPack(`A grant names "${grant.id}", which is not a crew race; it is skipped.`);
     return;
   }
-  const known =
-    grant.kind === "weapon"
-      ? weaponDef(grant.id)
-      : grant.kind === "drone"
-        ? droneDef(grant.id)
-        : augmentDef(grant.id);
-  if (!known) {
+  const id = resolvedGrant(g, grant.kind, grant.id);
+  if (!id) {
     warnPack(`A grant names "${grant.id}", which is not a ${grant.kind}; it is skipped.`);
     return;
   }
   for (let i = 0; i < count; i++) {
-    if (grant.kind === "weapon") receiveWeapon(g, grant.id);
-    else if (grant.kind === "drone") receiveDrone(g, grant.id);
-    else receiveAugment(g, grant.id);
+    if (grant.kind === "weapon") receiveWeapon(g, id);
+    else if (grant.kind === "drone") receiveDrone(g, id);
+    else receiveAugment(g, id);
   }
+}
+
+/** A list grant draws one loaded blueprint. Advanced Edition uses the override list when it exists. */
+function resolvedGrant(
+  g: Game,
+  kind: Exclude<ArchiveGrant["kind"], "crew">,
+  id: string,
+): string | undefined {
+  const direct =
+    kind === "weapon" ? weaponDef(id) : kind === "drone" ? droneDef(id) : augmentDef(id);
+  if (direct) return id;
+  const names = id.startsWith("OVERRIDE_")
+    ? blueprintList(id)
+    : (blueprintList(`OVERRIDE_${id}`) ?? blueprintList(id));
+  if (!names?.length) return undefined;
+  const pool = names.filter((name) =>
+    kind === "weapon" ? weaponDef(name) : kind === "drone" ? droneDef(name) : augmentDef(name),
+  );
+  if (pool.length === 0) return undefined;
+  return pool[Math.floor(rand(g) * pool.length) % pool.length];
 }
 
 function crewName(id: string): string | undefined {
@@ -737,7 +787,7 @@ function crewName(id: string): string | undefined {
 }
 
 function beamBoarders(g: Game, row: ArchiveBoarders): void {
-  const crew = boarderCrew(row.class);
+  const crew = boarderCrew(g, row.class);
   const lo = Math.min(row.min, row.max);
   const hi = Math.max(row.min, row.max);
   const n = between(g, [lo, hi]);
@@ -765,9 +815,17 @@ function beamBoarders(g: Game, row: ArchiveBoarders): void {
   log(g, `${n} ${crew.name.toLowerCase()} boarders beam aboard your ship.`);
 }
 
-function boarderCrew(cls: string | undefined): { kin: KinId; name: string } {
-  if (!cls?.trim()) return CREW.human!;
-  const row = CREW[cls.trim().toLowerCase()];
+function boarderCrew(g: Game, cls: string | undefined): { kin: KinId; name: string } {
+  const key = cls?.trim().toLowerCase();
+  if (key === "random") {
+    const pool = (crewRandomIds() ?? []).flatMap((id) => {
+      const row = CREW[id.toLowerCase()];
+      return row ? [row] : [];
+    });
+    if (pool.length) return pool[Math.floor(rand(g) * pool.length) % pool.length]!;
+  }
+  if (!key) return CREW.human!;
+  const row = CREW[key];
   if (row) return row;
   warnPack(`Boarders class "${cls}" is not a race the game has crew for; human boarders are used.`);
   return CREW.human!;

@@ -6,9 +6,27 @@
  */
 import "./pack/base.ts";
 import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
-import { blueprintList, hullDef, marksFromDoors, warnPack, weaponDef } from "@stl/pack";
-import type { HullCrewCount, HullDef, ShipCrewRow, ShipWeaponOverride } from "@stl/pack";
+import {
+  allHulls,
+  augmentDef,
+  blueprintList,
+  hullDef,
+  loadPack,
+  marksFromDoors,
+  warnPack,
+  weaponDef,
+} from "@stl/pack";
+import type {
+  AugmentDef,
+  HullCrewCount,
+  HullDef,
+  ShipCrewRow,
+  ShipWeaponOverride,
+  WeaponBlueprint,
+} from "@stl/pack";
 import type { KinId } from "./extras/kin.ts";
+import { crewRandomIds, internalDrones } from "./blueprint-use.ts";
+import { noteListPlayed } from "./played-lists.ts";
 import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import type { Difficulty, DoorMark, KitId, SysId } from "./types.ts";
@@ -101,7 +119,50 @@ export const SCHEMATIC_POWER: Record<string, number> = {
   BOARDER: 3,
   /** Ion Intruder Drone: "Power requirement: 3 power". */
   BOARDER_ION: 3,
+  /**
+   * Anti-Personnel Drone. The archive blueprint is BATTLE; the sim id is personnel.
+   * Same "Power requirement: 2 power".
+   */
+  BATTLE: 2,
+  /** Defense Drone Mark II on an enemy blueprint. Same 3 power as DEFENSE_2. */
+  DEFENSE_2_ENEMY: 3,
+  /** Boarding Drone (boss). The archive costs 2, not the 3 of BOARDER. */
+  BOARDER_BOSS: 2,
+  /** Anti-Ship Fire Drone. Same 3 power as fire. */
+  COMBAT_FIRE: 3,
+  /** Anti-Ship Ion Drone I: "power 2". Flies as a combat drone. */
+  COMBAT_ION: 2,
+  /** Anti-Ship Missile Drone I: "power 2". Flies as a combat drone. */
+  COMBAT_MISSILE: 2,
+  /** Flagship Defense Drone Mark II. The archive costs 2 and shoots the Mark I laser. */
+  BOSS_DEFENSE_2: 2,
+  /** Hacking drone: "power 1". */
+  DRONE_HACKING: 1,
 };
+
+/**
+ * Archive blueprint → the sim id that already flies it.
+ * Power for an id missing above is that sim id's power (BATTLE → personnel).
+ * The fight keeps the archive id; it does not swap in the sim id.
+ */
+const ARCHIVE_SIM: Record<string, string> = {
+  BATTLE: "personnel",
+  DEFENSE_2_ENEMY: "DEFENSE_2",
+  BOARDER_BOSS: "BOARDER",
+  COMBAT_FIRE: "fire",
+  COMBAT_ION: "COMBAT_1",
+  COMBAT_MISSILE: "COMBAT_1",
+  BOSS_DEFENSE_2: "DEFENSE_1",
+  DRONE_HACKING: "REPAIR",
+};
+
+function schematicPower(id: string): number {
+  const direct = SCHEMATIC_POWER[id];
+  if (direct != null) return direct;
+  const sim = ARCHIVE_SIM[id];
+  if (!sim) return Infinity;
+  return SCHEMATIC_POWER[sim] ?? Infinity;
+}
 
 /**
  * @agent:drones. Schematics the enemy side of extras/swarm.ts can run.
@@ -119,8 +180,16 @@ export const ENEMY_RUNNABLE = new Set([
   "DRONE_SHIELD",
   "REPAIR",
   "personnel",
+  "BATTLE",
   "BOARDER",
   "BOARDER_ION",
+  "BOARDER_BOSS",
+  "DEFENSE_2_ENEMY",
+  "BOSS_DEFENSE_2",
+  "COMBAT_FIRE",
+  "COMBAT_ION",
+  "COMBAT_MISSILE",
+  "DRONE_HACKING",
 ]);
 
 /**
@@ -159,13 +228,20 @@ export function rollDrones(
 ): string[] {
   const row = listed ?? ENEMY_DRONES[classId];
   if (!row || level <= 0) return [];
-  const pool = row.drones.filter((id) => ENEMY_RUNNABLE.has(id));
+  // Archive aliases stay out of the draw so a native schematic is not dropped to make room.
+  // A hull that listed one still keeps that id, appended below.
+  // Unlisted ships roll a class pool. Internal crew-drones stay out of that draw.
+  // A blueprint that named them keeps them.
+  const blocked = listed ? undefined : internalDrones();
+  const pool = row.drones.filter(
+    (id) => ENEMY_RUNNABLE.has(id) && ARCHIVE_SIM[id] == null && !blocked?.has(id),
+  );
   const out: string[] = [];
   let open = flagsOpen;
   let left = level;
   while (out.length < row.maxDrones) {
     const hard = pool.filter((id) => {
-      const p = SCHEMATIC_POWER[id] ?? Infinity;
+      const p = schematicPower(id);
       return p >= 1 && p <= left && (level < 4 || p < level);
     });
     const soft = hard.filter((id) => !out.includes(id) && (!open || COMBAT_DRONES.has(id)));
@@ -174,8 +250,14 @@ export function rollDrones(
     // INFERRED: uniform among the drones that pass, as Mathchamp's weapon generator gives "equal odds for each entry".
     const id = fits[Math.floor(rand() * fits.length) % fits.length];
     out.push(id);
-    left -= SCHEMATIC_POWER[id];
+    left -= schematicPower(id);
     if (COMBAT_DRONES.has(id)) open = false;
+  }
+  if (listed) {
+    for (const id of row.drones) {
+      if (ARCHIVE_SIM[id] == null || !ENEMY_RUNNABLE.has(id) || out.includes(id)) continue;
+      out.push(id);
+    }
   }
   return out;
 }
@@ -669,6 +751,27 @@ export function mixCrewRaces(
 ): string[] | undefined {
   const usable: { race: string; prop: number }[] = [];
   for (const row of rows) {
+    if (row.race.toLowerCase() === "random") {
+      const races = (crewRandomIds() ?? []).flatMap((id) => {
+        const race = RACE_OF[id.toLowerCase()];
+        return race ? [race] : [];
+      });
+      if (races.length === 0) {
+        warnPack(
+          `${ship}: crew type "${row.race}" is not a race the game can spawn; it is dropped from the roll.`,
+        );
+        continue;
+      }
+      const share = row.prop / races.length;
+      if (!(share > 0)) {
+        warnPack(
+          `${ship}: crew type "${row.race}" has no positive weight; it is dropped from the roll.`,
+        );
+        continue;
+      }
+      for (const race of races) usable.push({ race, prop: share });
+      continue;
+    }
     const race = RACE_OF[row.race];
     if (!race) {
       warnPack(
@@ -1189,8 +1292,8 @@ function racesFromCounts(
  * The blueprint's guns: explicit `<weapon>` tags, and the names in its `load` list.
  * An unknown name is skipped with a warning. That matches FTL: BlueprintManager::GetWeaponBlueprint answers an unknown
  * name with a static `dummy` whose power is 0, and ShipGenerator::GetPossibleWeaponList only keeps a gun with more
- * power than a quarter of what is left, so the dummy is never picked. ftl.dat's own WEAPONS_JELLY list names
- * BOMB_BREACH, which the archive never defines.
+ * power than a quarter of what is left, so the dummy is never picked. ftl.dat's WEAPONS_JELLY list names
+ * BOMB_BREACH, which the archive never defines; that bomb is installed before the draw.
  */
 function weaponNames(hull: HullDef): { fixed: string[]; pool: string[] } | undefined {
   const known = (name: string) => {
@@ -1226,10 +1329,112 @@ function blueprintLoadout(
   return { weapons: [...fixed, ...drawn.weapons], flags: drawn.flags };
 }
 
+/**
+ * Advanced Edition is always on. BlueprintManager replaces a list id with `OVERRIDE_` plus that id when the
+ * override list exists, and that override id is the list a draw uses. An id that is already an override is
+ * left as-is, so the prefix is not applied twice.
+ */
+function drawnListId(id: string): string {
+  noteListPlayed(id);
+  if (id.startsWith("OVERRIDE_")) return id;
+  const over = `OVERRIDE_${id}`;
+  if (blueprintList(over)) {
+    noteListPlayed(over);
+    return over;
+  }
+  return id;
+}
+
+/** The first hull of a registry. A reloaded pack copies hulls, so the repair does not carry over. */
+const repairedHulls = new WeakSet<object>();
+
+/**
+ * ftl.dat's jelly lists name BOMB_BREACH. The archive never defines that weapon.
+ * Breach Bomb Mark I is the bomb the game already fires, under the missing id.
+ */
+function breachBomb(): WeaponBlueprint[] {
+  if (weaponDef("BOMB_BREACH")) return [];
+  const named =
+    blueprintList("WEAPONS_JELLY")?.includes("BOMB_BREACH") === true ||
+    blueprintList("OVERRIDE_WEAPONS_JELLY")?.includes("BOMB_BREACH") === true;
+  if (!named) return [];
+  const mark = weaponDef("BOMB_BREACH_1");
+  if (mark) return [{ ...mark, id: "BOMB_BREACH", name: "Breach Bomb" }];
+  return [
+    {
+      id: "BOMB_BREACH",
+      name: "Breach Bomb",
+      kind: "bomb",
+      power: 1,
+      charge: 9,
+      shots: 1,
+      gap: 0,
+      damage: 1,
+      ion: 0,
+      fire: 0,
+      breach: 1,
+      ammo: true,
+      price: 0,
+      blurb:
+        "Self-teleporting explosive designed to damage systems and causes a breach. Can target your own ship.",
+      art: "BOMB_BREACH_1",
+    },
+  ];
+}
+
+/**
+ * STARTING_AUGS names these ids. The archive leaves the blueprints commented out, so the
+ * records are loaded here with those titles.
+ */
+function hullArmor(): AugmentDef[] {
+  const names = blueprintList("STARTING_AUGS");
+  if (names) noteListPlayed("STARTING_AUGS");
+  if (!names) return [];
+  const rows: AugmentDef[] = [];
+  if (names.includes("HULL_ARMOR") && !augmentDef("HULL_ARMOR")) {
+    rows.push({
+      id: "HULL_ARMOR",
+      name: "Reinforced Hull Plating",
+      cost: 60,
+      detail:
+        "Superior hull armor provides a 15 percent chance to negate incoming hull damage (hit systems will still be damaged).",
+    });
+  }
+  if (names.includes("ADV_HULL_ARMOR") && !augmentDef("ADV_HULL_ARMOR")) {
+    rows.push({
+      id: "ADV_HULL_ARMOR",
+      name: "Advanced Hull Plating",
+      cost: 100,
+      detail:
+        "State of the art hull armor provides a massive 25 percent chance to negate incoming hull damage (hit systems will still be damaged).",
+    });
+  }
+  return rows;
+}
+
+/** Load list names the archive left commented out. Runs once per loaded registry. */
+function repairNamedBlueprints(): void {
+  const mark = allHulls()[0];
+  if (mark && repairedHulls.has(mark)) return;
+  const weapons = breachBomb();
+  const augments = hullArmor();
+  if (weapons.length > 0 || augments.length > 0) {
+    loadPack(
+      {
+        ...(weapons.length > 0 ? { weapons } : {}),
+        ...(augments.length > 0 ? { augments } : {}),
+      },
+      "append",
+    );
+  }
+  if (mark) repairedHulls.add(mark);
+}
+
 /** Names in a `load` list. A load that names no blueprintList is warned about and treated as empty. */
 function listNames(ship: string, load: string | undefined): string[] {
+  repairNamedBlueprints();
   if (!load) return [];
-  const names = blueprintList(load);
+  const names = blueprintList(drawnListId(load));
   if (!names) {
     warnPack(`${ship}: load="${load}" names no blueprintList; it is treated as empty.`);
     return [];
@@ -1237,9 +1442,36 @@ function listNames(ship: string, load: string | undefined): string[] {
   return [...names];
 }
 
+/** Engi hulls. The faction drone catalog sits beside `WEAPONS_CIRCLE` and is named `DRONES_CIRCLE`. */
+function circleShip(hull: HullDef): boolean {
+  return hull.layout.toLowerCase().startsWith("circle_") || hull.id.startsWith("CIRCLE_");
+}
+
+/**
+ * `DRONES_CIRCLE`, or its Advanced Edition override.
+ * A circle ship with no drone list of its own fields this catalog.
+ * A circle ship that names a list fields the overlap, so an Engi scout's `DRONES_DEFENSE`
+ * stays the defensive drones and the combat names in the catalog stay off that ship.
+ * If the two lists share nothing, the ship's own list is what it fields.
+ */
+function circleDroneNames(hull: HullDef, listed: string[]): string[] {
+  if (!circleShip(hull)) return listed;
+  if (!hull.droneLoad && listed.length > 0) return listed;
+  if (!blueprintList("DRONES_CIRCLE") && !blueprintList("OVERRIDE_DRONES_CIRCLE")) return listed;
+  const catalog = listNames(hull.id, "DRONES_CIRCLE");
+  if (!catalog.length) return listed;
+  if (!hull.droneLoad) return catalog;
+  const allowed = new Set(catalog);
+  const kept = listed.filter((id) => allowed.has(id));
+  return kept.length ? kept : listed;
+}
+
 /** Explicit drone tags, then the names in droneList load. The count caps how many are fitted. */
 function droneNames(hull: HullDef): { drones: string[]; maxDrones: number } | undefined {
-  const names = [...(hull.drones ?? []), ...listNames(hull.id, hull.droneLoad)];
+  const names = [
+    ...(hull.drones ?? []),
+    ...circleDroneNames(hull, listNames(hull.id, hull.droneLoad)),
+  ];
   if (!names.length) return undefined;
   return { drones: names, maxDrones: hull.droneCount ?? names.length };
 }
@@ -1263,10 +1495,11 @@ export function fightHull(
   rand: () => number,
   level: number,
 ): HullDef | undefined {
+  repairNamedBlueprints();
   const named = hullDef(tier);
   if (named) return named;
   if (!autoBlueprint) return undefined;
-  const names = blueprintList(autoBlueprint);
+  const names = blueprintList(drawnListId(autoBlueprint));
   if (!names) {
     warnPack(`auto_blueprint="${autoBlueprint}" names no blueprintList; the fight rolls a class.`);
     return undefined;

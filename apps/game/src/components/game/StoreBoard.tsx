@@ -5,6 +5,8 @@
  * slots of systems, weapons, drone schematics, augmentations, and crewmembers". Resources are one unit per purchase at
  * a fixed price; ×N is what the store has left (sim.ts rollStock).
  */
+import { allCrew, droneDef, weaponDef } from "@stl/pack";
+import { crewCopy, droneCopy, itemLines, weaponCopy } from "@/game/interface-copy";
 import { Kicker } from "@stl/ui";
 import { useState, type ReactNode } from "react";
 import { hullRepairPerPoint } from "@/game/content";
@@ -25,6 +27,7 @@ import type { KinId } from "@/game/extras/kin";
 import { canFieldDrone, citedSell, citedSellQuote } from "@/game/wiki/cited-stores";
 import { CARGO_SLOTS, cargoOf } from "@/game/wiki/make-room";
 import { kinLabel, UNIFORMS } from "@/game/crew-look";
+import { ArchiveCopy, ArchiveLines } from "./ArchiveCopy";
 import { CloseX } from "./CloseX";
 import { CrewFace, CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
@@ -97,6 +100,13 @@ function PriceButton({
   );
 }
 
+function stockCopy(item: StockItem): string[] {
+  if (item.kind === "weapon") return weaponCopy(weaponDef(item.ref) ?? {});
+  if (item.kind === "drone") return droneCopy(droneDef(item.ref));
+  if (item.kind === "crew") return crewCopy(allCrew().find((row) => row.id === item.ref));
+  return [];
+}
+
 function ItemCard({
   game,
   item,
@@ -116,6 +126,7 @@ function ItemCard({
       {item.kind === "weapon" || item.kind === "augment" ? (
         <span className="store-card-note">{item.detail}</span>
       ) : null}
+      <ArchiveLines lines={stockCopy(item)} mark={`stock-${item.ref}`} />
       {why ? <span className="offer-warn">{why}</span> : null}
       {!why &&
       ((item.kind === "weapon" && game.player.weapons.length >= weaponSlotCap(game)) ||
@@ -148,6 +159,7 @@ function Supplies({ game }: { game: Game }) {
           {"Resources "}
           <span className="BEAM_1">{"One per purchase. ×N is what the store has left."}</span>
         </h3>
+        <ArchiveLines lines={itemLines()} mark="supplies" />
         <div className="store-cards">
           {(["fuel", "missiles", "parts"] as const).map((kind) => {
             const item = stock.find((s) => s.kind === kind);
@@ -346,6 +358,7 @@ export function StoreBoard({ game }: { game: Game }) {
         <CloseX onClose={leave} label={"Leave the store"} />
         <header className="ship-sheet-head">
           <Kicker as="h2">{"Store"}</Kicker>
+          <ArchiveCopy screen="store" />
           <span className="store-have" aria-label={"Your supplies"}>
             <span title={"Hull"}>
               <PixelIcon name="ship" size={16} />

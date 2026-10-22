@@ -230,10 +230,22 @@
     </mod-overwrite:condition>
   </mod:findLike>
   <mod:findLike type="achievement">
+    <mod:selector id="ACH_FED_DIPLOMACY"/>
+    <mod-overwrite:condition>
+      <value name="tally.blueCrew" min="4"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
     <mod:selector id="ACH_FED_UPGRADE"/>
     <mod-overwrite:condition>
       <value name="sector" min="5"/>
       <value name="gauge.weaponsUpgrades" max="0"/>
+    </mod-overwrite:condition>
+  </mod:findLike>
+  <mod:findLike type="achievement">
+    <mod:selector id="ACH_SLUG_VISION"/>
+    <mod-overwrite:condition>
+      <value name="gauge.roomVision"/>
     </mod-overwrite:condition>
   </mod:findLike>
   <mod:findLike type="achievement">

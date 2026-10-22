@@ -4450,6 +4450,21 @@ button.door-tick::before {
   background: var(--color-panel);
 }
 
+.archive-copy {
+  display: block;
+  max-height: 14rem;
+  overflow: auto;
+  margin: 8px 0;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+.archive-copy-line {
+  display: block;
+  margin: 0 0 0.35rem;
+}
+
 .help-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;

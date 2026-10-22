@@ -6,6 +6,7 @@
  * overwrite of the base id, so those two classes share one blueprint.
  * Rows are in class-table order. A later row replaces an earlier ship of the
  * same name, which is the overwrite a loaded archive keeps.
+ * The shared room grid is one layout file, named for the first class.
  * Pirate ids are their own blueprints. A class with no pirate id uses the regular ship.
  */
 

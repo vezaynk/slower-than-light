@@ -1,3 +1,4 @@
+import { playArchiveAudio, playArchiveSfx } from "./archive-audio.ts";
 import { deathCue, flushSfx, syncLoops, weaponLaunchCue } from "./audio.ts";
 import { TILE_WALK_S, footVia, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
 import {
@@ -110,7 +111,9 @@ import type {
 import {
   allSectors,
   allWeapons,
+  augmentDef,
   crewDef,
+  droneDef,
   eventDef,
   hullDef,
   rewardBonus,
@@ -123,6 +126,13 @@ import {
   startingFit,
   warnPack,
 } from "@stl/pack";
+import {
+  editionSells,
+  freeWeaponIds,
+  resolveStart,
+  shelfWeaponIds,
+  startingCatalog,
+} from "./blueprint-use.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import { SPACE_O2, stepAir } from "./air.ts";
 import {
@@ -144,6 +154,7 @@ import {
 import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
+import { noteCrewBlue } from "./wiki/achievement-track.ts";
 
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./wiki/bonus-item.ts";
 import { CARGO_SLOTS, checkCrewRoom, pendingOverflow, receiveWeapon } from "./wiki/make-room.ts";
@@ -474,6 +485,7 @@ export function showEventLines(g: Game, lines: readonly string[]) {
 }
 
 function sfx(g: Game, name: string) {
+  playArchiveSfx(name);
   g.sfx.push(name);
 }
 
@@ -564,7 +576,9 @@ export function maxBubbles(ship: Ship, bonus = 0): number {
 
 export function syncShields(ship: Ship, bonus = 0) {
   const cap = maxBubbles(ship, bonus);
+  const before = ship.shieldNow;
   if (ship.shieldNow > cap) ship.shieldNow = cap;
+  if (before > 0 && ship.shieldNow === 0) playArchiveAudio("shieldsDown");
 }
 
 function room(
@@ -3847,6 +3861,7 @@ export function applyImpact(g: Game, shot: Shot) {
   // Weapons, "Lasers": one shot drops one layer. "Missiles": ignore layers. "Beams": do not pop layers.
   // Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer. Two layers still stop them.
   const pierce = citedPierce(shot.defId);
+  const shieldsBefore = ship.shieldNow;
   if (shot.kind !== "missile" && ship.shieldNow > pierce) {
     ship.shieldNow -= 1;
     ship.shieldCharge = 0;
@@ -3867,10 +3882,12 @@ export function applyImpact(g: Game, shot: Shot) {
     }
     sfx(g, "shield");
     floatAt(g, "SHIELD", playerTarget ? 68 : 32, 16);
+    if (shieldsBefore > 0 && ship.shieldNow === 0) playArchiveAudio("shieldsDown");
     // Per the user: the ship shakes only on damage, so a shield block does not.
     return;
   }
   if (shot.kind !== "missile" && pierce > 0 && ship.shieldNow > 0) ship.shieldNow = 0;
+  if (shieldsBefore > 0 && ship.shieldNow === 0) playArchiveAudio("shieldsDown");
 
   if (shot.kind === "ion") {
     if (playerTarget && !ionPassthrough && negateIon(g)) {
@@ -4210,6 +4227,7 @@ function strikeRoom(
   }
   const shown = hull > 0 ? hull : damage;
   floatAt(g, `−${shown}`, playerHurt ? 74 : 26, 30, shot.kind === "beam");
+  if (shot.kind === "missile") playArchiveAudio("missileHit", shot.damage >= 3 ? 1 : 0);
   sfx(g, "hit");
   if (playerHurt) {
     // Per the user: shake only when the hull actually drops, not for a hit that leaves it whole.
@@ -5123,6 +5141,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
           leashMult(attacker) *
           crewDef(attacker.kin ?? "human").fight *
           combatSkillMult(rankOf(attacker, "combat"));
+        if (attacker.kin === "mantis") playArchiveAudio("mantisFight");
         // Crew skills, Combat: "one point of experience for dealing the killing blow to hostile crew".
         // "killing cloned crew or destroying onboard drones doesn't grant experience."
         // Drones are not in this crew loop, so breaking one grants nothing.
@@ -5462,6 +5481,7 @@ function flareOne(g: Game, ship: Ship, aboard: "player" | "enemy") {
 
 /** One solar flare against both hulls. Environmental Hazards, Class-M Red Giant Star. */
 export function applyFlarePulse(g: Game) {
+  playArchiveAudio("sun");
   flareOne(g, g.player, "player");
   if (g.enemy) flareOne(g, g.enemy, "enemy");
 }
@@ -7077,11 +7097,15 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   }
   // The blueprint carries levels and counts. hull-fit works out the powered bars, kits, and seats as FTL does.
   const fit = startingFit(spec);
+  const starting = startingCatalog();
   ship.reactor = spec.reactor;
   ship.systems = systems(fit.systems);
   // Guns take the weapon system's bars in slot order. FTL starts the weapon system unpowered.
   let gunBars = fit.systems.weapons?.[1] ?? 0;
-  ship.weapons = spec.weapons.map((defId, i) => {
+  const weapons = spec.weapons.map((id) =>
+    resolveStart(id, starting.weapons, (name) => Boolean(weaponDef(name))),
+  );
+  ship.weapons = weapons.map((defId, i) => {
     const cost = weaponDef(defId)?.power ?? 1;
     const enabled = cost <= gunBars;
     if (enabled) gunBars -= cost;
@@ -7115,7 +7139,9 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
     };
     // The Engi Cruiser, Layout B: two System Repair schematics. A single target cannot hold both.
     // A schematic this build does not fly (Engi B's Anti-Personnel Drone) stays on the hangar card, not on the ship.
-    const flown = kit.loadout?.filter(canDeploy) ?? [];
+    const flown = (kit.loadout ?? [])
+      .map((id) => resolveStart(id, starting.drones, (name) => Boolean(droneDef(name))))
+      .filter(canDeploy);
     if (flown.length) fitted.loadout = flown;
     if (kitId === "drones" && kit.target != null && !canDeploy(kit.target))
       fitted.target = flown[0] ?? null;
@@ -7129,7 +7155,9 @@ function applyHull(g: Game, id: string, picks: CrewPick[] = []) {
   g.hullId = id;
   g.fuel = START_FUEL;
   g.missiles = spec.missiles;
-  g.augments = [...spec.augments];
+  g.augments = spec.augments.map((id) =>
+    resolveStart(id, starting.augments, (name) => Boolean(augmentDef(name))),
+  );
   // Zoltan Shield, lead: "Zoltan Shield is an augmentation" and "Zoltan Shield has 5 points of energy shielding".
   // Augmentations: "Your ship can have only up to three augmentations". Fitted zshield is one of those slots.
   if (g.augments.includes("ENERGY_SHIELD")) ship.zoltan = 5;
@@ -7573,11 +7601,26 @@ function rollStock(g: Game, storeId = "standard"): StockItem[] {
   // Sectors, "Hidden Crystal Worlds", "Sector specifics": the shelf is crystal weapons, including the Lockdown Bomb.
   // The weapon count below is the store record's. Dart stays pinned only outside this sector.
   const crystal = g.sectorId === CRYSTAL_SECTOR;
-  const guns = crystal
-    ? CRYSTAL_SECTOR_WEAPONS.map((id) => weaponDef(id)).filter(
-        (w): w is WeaponBlueprint => !!w && w.price > 0 && !owned.has(w.id),
-      )
-    : allWeapons().filter((w) => w.price > 0 && !owned.has(w.id));
+  const allow = crystal ? undefined : shelfWeaponIds(g.sector);
+  const guns = (
+    crystal
+      ? CRYSTAL_SECTOR_WEAPONS.map((id) => weaponDef(id)).filter(
+          (w): w is WeaponBlueprint => !!w && w.price > 0 && !owned.has(w.id),
+        )
+      : allWeapons().filter((w) => w.price > 0 && !owned.has(w.id) && (!allow || allow.has(w.id)))
+  ).filter((w) => editionSells(w.id));
+  const free = freeWeaponIds();
+  if (free?.length && guns.length > 0) {
+    const cheapest = guns.reduce((min, weapon) => Math.min(min, weapon.price), Infinity);
+    if (g.scrap < cheapest) {
+      const basic = free.flatMap((id) => {
+        const row = weaponDef(id);
+        return row && !owned.has(row.id) ? [row] : [];
+      });
+      const pick = basic[Math.floor(rand(g) * basic.length) % basic.length];
+      if (pick && !guns.some((weapon) => weapon.id === pick.id)) guns.unshift(pick);
+    }
+  }
   const items: StockItem[] = [];
   for (const line of store?.lines ?? []) {
     if (
@@ -7713,6 +7756,8 @@ export function leaveStore(g: Game) {
 
 // Event card choices. An exit's Continue... is FINISH_BEACON; plain beacons run wiki/filler-events.ts.
 export function choose(g: Game, id: string) {
+  // Diplomatic Immunity: an available crew-blue choice counts once, through sector 5, on the Federation Cruiser.
+  if (choiceDisabled(g, id) == null) noteCrewBlue(g, id);
   // @agent:surrender. Accept or refuse an enemy's surrender offer (wiki/surrender.ts).
   if (surrenderChoose(g, id)) return;
   // @agent:filler. Choices on the documented filler cards (wiki/filler-events.ts).

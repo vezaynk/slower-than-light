@@ -10,12 +10,15 @@ import { ACHIEVEMENTS as CATALOG_ACHIEVEMENTS } from "@stl/catalog/src/wiki/achi
 import {
   achievementDef,
   allAchievements,
+  allEvents,
   hullDef,
   startingFit,
   warnPack,
   type AchievementCondition,
   type AchievementDef,
 } from "@stl/pack";
+import { shipSight } from "../extras/slug-sight.ts";
+import { playerSensorLevel } from "../extras/spike.ts";
 import { HULLS } from "../hulls.ts";
 import { bars, kitShownBars, zoltanBars } from "../sim.ts";
 import { UNLOCKS_KEY, parseUnlocks } from "../unlocks.ts";
@@ -85,6 +88,7 @@ export function shipFamily(hullId: string | undefined): string | undefined {
  * - reactorUpgrades: reactor bars bought above the blueprint's, not counting the ones reactor offers in events added.
  * - weaponsUpgrades: "Artillery Mastery", "without upgrading your weapons system." INFERRED: levels above the start.
  * - typeAUnlocked: "Your Own Fleet".
+ * - roomVision: "We're in position!", every enemy room open while sensors are not functioning.
  */
 const GAUGES: Record<string, (g: Game) => number | boolean> = {
   crewRaces: (g) =>
@@ -109,7 +113,54 @@ const GAUGES: Record<string, (g: Game) => number | boolean> = {
     return g.player.systems.weapons.level - start;
   },
   typeAUnlocked: () => typeAUnlocked(),
+  roomVision: (g) => roomVision(g),
 };
+
+/**
+ * Ship Achievements, We're in position!: "have vision of every room on the enemy ship without functioning sensors."
+ * Sensors are out when destroyed, ionized, hacked, or in a nebula (playerSensorLevel). Room vision is shipSight,
+ * the same open rooms the board shows: a crew member's room, a Slug's neighbours, a hack, or a drone.
+ */
+function roomVision(g: Game): boolean {
+  const enemy = g.enemy;
+  if (!enemy || enemy.rooms.length === 0) return false;
+  if (playerSensorLevel(g) !== 0) return false;
+  const sight = shipSight(g);
+  return enemy.rooms.every((room) => sight.interior("enemy", room.id));
+}
+
+/**
+ * A choice that is blue because a living crew race is aboard. System, augment, and weapon locks do not count.
+ * Diplomatic Immunity: "only blue event choices that arise as a result of having particular ... crewmembers."
+ */
+function crewBlueChoice(id: string): boolean {
+  for (const ev of allEvents()) {
+    for (const choice of ev.choices) {
+      if (choice.id === id) return choice.reqs?.some((req) => req.k === "crew") ?? false;
+    }
+    for (const card of ev.cards ?? []) {
+      for (const choice of card.choices) {
+        if (choice.id === id) return choice.reqs?.some((req) => req.k === "crew") ?? false;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Diplomatic Immunity: "use your crew in four special blue events by sector 5" on the Federation Cruiser.
+ * Each distinct crew-blue choice counts once. Sector 6 is too late. Another ship does not count.
+ */
+export function noteCrewBlue(g: Game, choiceId: string): void {
+  if ((g.sector ?? 1) > 5) return;
+  if (shipFamily(g.hullId) !== "PLAYER_SHIP_FED") return;
+  if (!crewBlueChoice(choiceId)) return;
+  const tally = g.tally ?? (g.tally = {});
+  const seen = tally.blueSeen ?? [];
+  if (seen.includes(choiceId)) return;
+  tally.blueSeen = [...seen, choiceId];
+  tally.blueCrew = tally.blueSeen.length;
+}
 
 const warnedReadings = new Set<string>();
 
@@ -238,7 +289,7 @@ export function resetAchievementMemory(): void {
   memory = null;
 }
 
-/** Achievements the archive lists that have no condition: slug room-vision and the four blue events, in vanilla. */
+/** Archive achievements the gap did not give a condition. Empty when every id can be earned. */
 export function untrackedIds(): string[] {
   return allAchievements()
     .filter((row) => !row.condition)

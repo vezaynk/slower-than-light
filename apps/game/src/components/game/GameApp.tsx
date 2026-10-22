@@ -13,6 +13,7 @@ import {
 import { flushSync } from "react-dom";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { ArchiveBed } from "./ArchiveBed";
+import { ArchiveCopy, ArchiveLines } from "./ArchiveCopy";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
 import { OptionsPanel } from "./OptionsPanel";
@@ -24,7 +25,16 @@ import { sectorTag } from "@/game/sector-ids";
 import { aimedBeamTiles } from "@/game/pack/beams";
 import { loadBasePackXml } from "@/game/pack/boot";
 import "@/game/pack/base";
-import { FLEET_FILE, MAP_FILES, augmentDef, beaconPath, crewDef, weaponDef } from "@stl/pack";
+import {
+  FLEET_FILE,
+  MAP_FILES,
+  augmentDef,
+  beaconPath,
+  crewDef,
+  droneDef,
+  weaponDef,
+} from "@stl/pack";
+import { crewCopy, droneCopy, weaponCopy } from "@/game/interface-copy";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { beaconMark } from "@/game/beacon-mark";
 import { scanMark } from "@/game/extras/augments";
@@ -4024,6 +4034,7 @@ function OfferCards({
             </span>
           ) : null}
           {def?.blurb ? <span className="offer-note">{def.blurb}</span> : null}
+          {def ? <ArchiveLines lines={weaponCopy(def)} mark={`offer-${weapon}`} /> : null}
           {rackFull ? (
             <span className="offer-warn">
               {cargoOf(game).length < CARGO_SLOTS
@@ -4049,6 +4060,7 @@ function OfferCards({
             {k.fight !== 1 ? <span title={"Combat damage"}>combat {pct(k.fight)}</span> : null}
             {k.move !== 1 ? <span title={"Movement speed"}>move {pct(k.move)}</span> : null}
           </span>
+          <ArchiveLines lines={crewCopy(k)} mark={`offer-crew-${kin}`} />
           {crewFull ? (
             <span className="offer-warn">{"Crew is full (8): you pick who is relieved."}</span>
           ) : null}
@@ -4079,6 +4091,7 @@ function OfferCards({
             <DroneArt kind={droneKey} height={34} />
           </span>
           <b className="offer-name">{droneName(drone)}</b>
+          <ArchiveLines lines={droneCopy(droneDef(drone))} mark={`offer-drone-${drone}`} />
           {!canFieldDrone(game, drone) ? (
             <span className="offer-warn">
               {cargoOf(game).length < CARGO_SLOTS
@@ -4416,6 +4429,7 @@ function TitleScreen() {
         }}
       >
         <PixelMenu continueReady={saveReady && packReady} />
+        <ArchiveCopy screen="title" />
         {TITLE_MENU_ART.map((item) => (
           <button
             key={item.id}
@@ -4472,6 +4486,7 @@ function TitlePanel({ onClose }: { onClose: () => void }) {
     <div className="title-panel credits-panel has-x" onClick={(e) => e.stopPropagation()}>
       <CloseX onClose={onClose} />
       <p>{"CREDITS"}</p>
+      <ArchiveCopy screen="credits" />
       <div className="credits-body">
         <section>
           <h3>{"Development"}</h3>
@@ -4703,6 +4718,7 @@ function MapScreen({ game }: { game: Game }) {
     <section className="sector-map beacon-map has-x">
       <div className="map-head">
         <h2>{"BEACON MAP"}</h2>
+        <ArchiveCopy screen="map" />
         {/* Per the user: the map shows the fuel still aboard, and warns once it reaches 3. */}
         <p
           className={`map-fuel${lowFuel ? " is-low" : ""}`}
@@ -5302,6 +5318,8 @@ function ShipSheet({ game }: { game: Game }) {
             that scrolls, so switching tabs never resizes the sheet. INVENTED look. */}
         <header className="ship-sheet-head">
           <Kicker as="h2">{game.player.name}</Kicker>
+          <ArchiveCopy screen="sheet" />
+          <ArchiveCopy screen="hud" />
           <span className="scrap-box ship-sheet-scrap" aria-label={`${game.scrap} scrap`}>
             <PixelIcon name="scrap" size={18} />
             <b>{game.scrap}</b>
@@ -5735,6 +5753,7 @@ function CargoList({
                     <WeaponArt id={w.defId} height={28} />
                   </span>
                   <span className="cargo-name">{name}</span>
+                  {def ? <ArchiveLines lines={weaponCopy(def)} mark={`gun-${w.defId}`} /> : null}
                   {def ? (
                     <span className="cargo-stats">
                       <span title={"Power"}>
@@ -5801,6 +5820,7 @@ function CargoList({
                       {key ? <DroneArt kind={key} height={24} /> : null}
                     </span>
                     <span className="cargo-name">{name}</span>
+                    <ArchiveLines lines={droneCopy(droneDef(kind))} mark={`drone-${kind}`} />
                   </button>
                   <button
                     type="button"

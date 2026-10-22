@@ -2843,6 +2843,16 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>A trading post hangs at this beacon, open for business.</text>
     <store/>
   </event>
+  <event name="STORE_REBELSIDE">
+    <title>Large trade station</title>
+    <text>You come across a large trade station. However, as soon as you approach a warning goes out to all ships in the region: "Do not associate with the Federation sympathizer. All who oppose the Rebels will be punished."</text>
+    <choice name="c:large-trade-station:1">
+      <text>Leave.</text>
+      <event>
+        <text>You decide it's better not to push your luck and move on.</text>
+      </event>
+    </choice>
+  </event>
   <eventList name="FILLER">
     <event load="EMPTY_STATION2" unique="true"/>
     <event load="AUTO_REFUEL_STATION" unique="true"/>

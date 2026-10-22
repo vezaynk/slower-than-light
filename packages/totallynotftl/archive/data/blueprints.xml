@@ -1052,7 +1052,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <cloakImage>crystal_cruiser_2</cloakImage>
     <floorImage>crystal_cruiser_2</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="REBEL_SKINNY" layout="rebel-invader" img="rebel-invader">
+  <shipBlueprint name="REBEL_SKINNY" layout="rebel-fighter" img="rebel-fighter">
     <name>REBEL_SKINNY</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1065,11 +1065,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>rebel-invader</shieldImage>
-    <cloakImage>rebel-invader</cloakImage>
-    <floorImage>rebel-invader</floorImage>
+    <shieldImage>rebel-fighter</shieldImage>
+    <cloakImage>rebel-fighter</cloakImage>
+    <floorImage>rebel-fighter</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="REBEL_FAT" layout="rebel-disruptor" img="rebel-disruptor">
+  <shipBlueprint name="REBEL_FAT" layout="rebel-rigger" img="rebel-rigger">
     <name>REBEL_FAT</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1083,11 +1083,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>rebel-disruptor</shieldImage>
-    <cloakImage>rebel-disruptor</cloakImage>
-    <floorImage>rebel-disruptor</floorImage>
+    <shieldImage>rebel-rigger</shieldImage>
+    <cloakImage>rebel-rigger</cloakImage>
+    <floorImage>rebel-rigger</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="REBEL_SKINNY_ELITE" layout="elite-assault" img="elite-assault">
+  <shipBlueprint name="REBEL_SKINNY_ELITE" layout="elite-fighter" img="elite-fighter">
     <name>REBEL_SKINNY_ELITE</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1100,11 +1100,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>elite-assault</shieldImage>
-    <cloakImage>elite-assault</cloakImage>
-    <floorImage>elite-assault</floorImage>
+    <shieldImage>elite-fighter</shieldImage>
+    <cloakImage>elite-fighter</cloakImage>
+    <floorImage>elite-fighter</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="AUTO_BASIC" layout="auto-surveyor" img="auto-surveyor">
+  <shipBlueprint name="AUTO_BASIC" layout="auto-scout" img="auto-scout">
     <name>AUTO_BASIC</name>
     <systemList>
       <engines power="1" room="0" start="true"/>
@@ -1115,11 +1115,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>auto-surveyor</shieldImage>
-    <cloakImage>auto-surveyor</cloakImage>
-    <floorImage>auto-surveyor</floorImage>
+    <shieldImage>auto-scout</shieldImage>
+    <cloakImage>auto-scout</cloakImage>
+    <floorImage>auto-scout</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="AUTO_ASSAULT" layout="auto-hacker" img="auto-hacker">
+  <shipBlueprint name="AUTO_ASSAULT" layout="auto-assault" img="auto-assault">
     <name>AUTO_ASSAULT</name>
     <systemList>
       <shields power="1" room="0" start="true"/>
@@ -1130,11 +1130,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>auto-hacker</shieldImage>
-    <cloakImage>auto-hacker</cloakImage>
-    <floorImage>auto-hacker</floorImage>
+    <shieldImage>auto-assault</shieldImage>
+    <cloakImage>auto-assault</cloakImage>
+    <floorImage>auto-assault</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="CIRCLE_SCOUT" layout="engi-outrider" img="engi-outrider">
+  <shipBlueprint name="CIRCLE_SCOUT" layout="engi-scout" img="engi-scout">
     <name>CIRCLE_SCOUT</name>
     <systemList>
       <drones power="1" room="0" start="true"/>
@@ -1148,11 +1148,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>engi-outrider</shieldImage>
-    <cloakImage>engi-outrider</cloakImage>
-    <floorImage>engi-outrider</floorImage>
+    <shieldImage>engi-scout</shieldImage>
+    <cloakImage>engi-scout</cloakImage>
+    <floorImage>engi-scout</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="CIRCLE_BOMBER" layout="engi-hacker" img="engi-hacker">
+  <shipBlueprint name="CIRCLE_BOMBER" layout="engi-bomber" img="engi-bomber">
     <name>CIRCLE_BOMBER</name>
     <systemList>
       <pilot power="1" room="1" start="true"/>
@@ -1167,11 +1167,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>engi-hacker</shieldImage>
-    <cloakImage>engi-hacker</cloakImage>
-    <floorImage>engi-hacker</floorImage>
+    <shieldImage>engi-bomber</shieldImage>
+    <cloakImage>engi-bomber</cloakImage>
+    <floorImage>engi-bomber</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="MANTIS_SCOUT" layout="mantis-interceptor" img="mantis-interceptor">
+  <shipBlueprint name="MANTIS_SCOUT" layout="mantis-scout" img="mantis-scout">
     <name>MANTIS_SCOUT</name>
     <systemList>
       <clonebay power="1" room="0" start="true"/>
@@ -1185,11 +1185,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>mantis-interceptor</shieldImage>
-    <cloakImage>mantis-interceptor</cloakImage>
-    <floorImage>mantis-interceptor</floorImage>
+    <shieldImage>mantis-scout</shieldImage>
+    <cloakImage>mantis-scout</cloakImage>
+    <floorImage>mantis-scout</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="MANTIS_FIGHTER" layout="mantis-assault" img="mantis-assault">
+  <shipBlueprint name="MANTIS_FIGHTER" layout="mantis-fighter" img="mantis-fighter">
     <name>MANTIS_FIGHTER</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1203,11 +1203,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>mantis-assault</shieldImage>
-    <cloakImage>mantis-assault</cloakImage>
-    <floorImage>mantis-assault</floorImage>
+    <shieldImage>mantis-fighter</shieldImage>
+    <cloakImage>mantis-fighter</cloakImage>
+    <floorImage>mantis-fighter</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="MANTIS_BOMBER" layout="mantis-aggressor" img="mantis-aggressor">
+  <shipBlueprint name="MANTIS_BOMBER" layout="mantis-bomber" img="mantis-bomber">
     <name>MANTIS_BOMBER</name>
     <systemList>
       <clonebay power="1" room="0" start="true"/>
@@ -1221,11 +1221,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>mantis-aggressor</shieldImage>
-    <cloakImage>mantis-aggressor</cloakImage>
-    <floorImage>mantis-aggressor</floorImage>
+    <shieldImage>mantis-bomber</shieldImage>
+    <cloakImage>mantis-bomber</cloakImage>
+    <floorImage>mantis-bomber</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="JELLY_BUTTON" layout="slug-scout" img="slug-scout">
+  <shipBlueprint name="JELLY_BUTTON" layout="slug-interceptor" img="slug-interceptor">
     <name>JELLY_BUTTON</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1236,11 +1236,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>slug-scout</shieldImage>
-    <cloakImage>slug-scout</cloakImage>
-    <floorImage>slug-scout</floorImage>
+    <shieldImage>slug-interceptor</shieldImage>
+    <cloakImage>slug-interceptor</cloakImage>
+    <floorImage>slug-interceptor</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="JELLY_CROISSANT" layout="slug-light-surveyor" img="slug-light-surveyor">
+  <shipBlueprint name="JELLY_CROISSANT" layout="slug-light-cruiser" img="slug-light-cruiser">
     <name>JELLY_CROISSANT</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1253,11 +1253,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>slug-light-surveyor</shieldImage>
-    <cloakImage>slug-light-surveyor</cloakImage>
-    <floorImage>slug-light-surveyor</floorImage>
+    <shieldImage>slug-light-cruiser</shieldImage>
+    <cloakImage>slug-light-cruiser</cloakImage>
+    <floorImage>slug-light-cruiser</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="JELLY_TRUFFLE" layout="slug-instigator" img="slug-instigator">
+  <shipBlueprint name="JELLY_TRUFFLE" layout="slug-assault" img="slug-assault">
     <name>JELLY_TRUFFLE</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1271,11 +1271,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>slug-instigator</shieldImage>
-    <cloakImage>slug-instigator</cloakImage>
-    <floorImage>slug-instigator</floorImage>
+    <shieldImage>slug-assault</shieldImage>
+    <cloakImage>slug-assault</cloakImage>
+    <floorImage>slug-assault</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="ROCK_SCOUT" layout="rock-investigator" img="rock-investigator">
+  <shipBlueprint name="ROCK_SCOUT" layout="rock-scout" img="rock-scout">
     <name>ROCK_SCOUT</name>
     <systemList>
       <teleporter power="1" room="0" start="true"/>
@@ -1288,11 +1288,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>rock-investigator</shieldImage>
-    <cloakImage>rock-investigator</cloakImage>
-    <floorImage>rock-investigator</floorImage>
+    <shieldImage>rock-scout</shieldImage>
+    <cloakImage>rock-scout</cloakImage>
+    <floorImage>rock-scout</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="ROCK_FIGHT" layout="rock-interceptor" img="rock-interceptor">
+  <shipBlueprint name="ROCK_FIGHT" layout="rock-fighter" img="rock-fighter">
     <name>ROCK_FIGHT</name>
     <systemList>
       <clonebay power="1" room="0" start="true"/>
@@ -1306,11 +1306,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>rock-interceptor</shieldImage>
-    <cloakImage>rock-interceptor</cloakImage>
-    <floorImage>rock-interceptor</floorImage>
+    <shieldImage>rock-fighter</shieldImage>
+    <cloakImage>rock-fighter</cloakImage>
+    <floorImage>rock-fighter</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="ROCK_ASSAULT" layout="rock-aggressor" img="rock-aggressor">
+  <shipBlueprint name="ROCK_ASSAULT" layout="rock-assault" img="rock-assault">
     <name>ROCK_ASSAULT</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1325,9 +1325,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>rock-aggressor</shieldImage>
-    <cloakImage>rock-aggressor</cloakImage>
-    <floorImage>rock-aggressor</floorImage>
+    <shieldImage>rock-assault</shieldImage>
+    <cloakImage>rock-assault</cloakImage>
+    <floorImage>rock-assault</floorImage>
   </shipBlueprint>
   <shipBlueprint name="ROCK_ASSAULT_ELITE" layout="rock-assault-elite" img="rock-assault-elite">
     <name>ROCK_ASSAULT_ELITE</name>
@@ -1348,7 +1348,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <cloakImage>rock-assault-elite</cloakImage>
     <floorImage>rock-assault-elite</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="ZOLTAN_FIGHTER" layout="energy-instigator" img="energy-instigator">
+  <shipBlueprint name="ZOLTAN_FIGHTER" layout="energy-fighter" img="energy-fighter">
     <name>ZOLTAN_FIGHTER</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1361,11 +1361,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>energy-instigator</shieldImage>
-    <cloakImage>energy-instigator</cloakImage>
-    <floorImage>energy-instigator</floorImage>
+    <shieldImage>energy-fighter</shieldImage>
+    <cloakImage>energy-fighter</cloakImage>
+    <floorImage>energy-fighter</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="ZOLTAN_BOMBER" layout="energy-hacker" img="energy-hacker">
+  <shipBlueprint name="ZOLTAN_BOMBER" layout="energy-bomber" img="energy-bomber">
     <name>ZOLTAN_BOMBER</name>
     <systemList>
       <hacking power="1" room="0" start="true"/>
@@ -1379,11 +1379,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>energy-hacker</shieldImage>
-    <cloakImage>energy-hacker</cloakImage>
-    <floorImage>energy-hacker</floorImage>
+    <shieldImage>energy-bomber</shieldImage>
+    <cloakImage>energy-bomber</cloakImage>
+    <floorImage>energy-bomber</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="CRYSTAL_SCOUT" layout="crystal-outrider" img="crystal-outrider">
+  <shipBlueprint name="CRYSTAL_SCOUT" layout="crystal-scout" img="crystal-scout">
     <name>CRYSTAL_SCOUT</name>
     <systemList>
       <oxygen power="1" room="0" start="true"/>
@@ -1395,11 +1395,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>crystal-outrider</shieldImage>
-    <cloakImage>crystal-outrider</cloakImage>
-    <floorImage>crystal-outrider</floorImage>
+    <shieldImage>crystal-scout</shieldImage>
+    <cloakImage>crystal-scout</cloakImage>
+    <floorImage>crystal-scout</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="CRYSTAL_BOMBER" layout="crystal-instigator" img="crystal-instigator">
+  <shipBlueprint name="CRYSTAL_BOMBER" layout="crystal-bomber" img="crystal-bomber">
     <name>CRYSTAL_BOMBER</name>
     <systemList>
       <clonebay power="1" room="0" start="true"/>
@@ -1414,9 +1414,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>crystal-instigator</shieldImage>
-    <cloakImage>crystal-instigator</cloakImage>
-    <floorImage>crystal-instigator</floorImage>
+    <shieldImage>crystal-bomber</shieldImage>
+    <cloakImage>crystal-bomber</cloakImage>
+    <floorImage>crystal-bomber</floorImage>
   </shipBlueprint>
   <shipBlueprint name="ANAEROBIC_SCOUT" layout="lanius-scout" img="lanius-scout">
     <name>ANAEROBIC_SCOUT</name>
@@ -1454,7 +1454,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <cloakImage>lanius-bomber</cloakImage>
     <floorImage>lanius-bomber</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="FED_SCOUT" layout="federation-outrider" img="federation-outrider">
+  <shipBlueprint name="FED_SCOUT" layout="federation-scout" img="federation-scout">
     <name>FED_SCOUT</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1466,11 +1466,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>federation-outrider</shieldImage>
-    <cloakImage>federation-outrider</cloakImage>
-    <floorImage>federation-outrider</floorImage>
+    <shieldImage>federation-scout</shieldImage>
+    <cloakImage>federation-scout</cloakImage>
+    <floorImage>federation-scout</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="FED_BOMBER" layout="federation-hacker" img="federation-hacker">
+  <shipBlueprint name="FED_BOMBER" layout="federation-bomber" img="federation-bomber">
     <name>FED_BOMBER</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1483,9 +1483,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>federation-hacker</shieldImage>
-    <cloakImage>federation-hacker</cloakImage>
-    <floorImage>federation-hacker</floorImage>
+    <shieldImage>federation-bomber</shieldImage>
+    <cloakImage>federation-bomber</cloakImage>
+    <floorImage>federation-bomber</floorImage>
   </shipBlueprint>
   <shipBlueprint name="REBEL_SKINNY_P" layout="rebel-fighter-pirate" img="rebel-fighter-pirate">
     <name>REBEL_SKINNY_P</name>
@@ -1906,7 +1906,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <cloakImage>energy-hacker-pirate</cloakImage>
     <floorImage>energy-hacker-pirate</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="FED_SCOUT_P" layout="federation-outrider" img="federation-outrider">
+  <shipBlueprint name="FED_SCOUT_P" layout="federation-scout" img="federation-scout">
     <name>FED_SCOUT_P</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1918,11 +1918,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>federation-outrider</shieldImage>
-    <cloakImage>federation-outrider</cloakImage>
-    <floorImage>federation-outrider</floorImage>
+    <shieldImage>federation-scout</shieldImage>
+    <cloakImage>federation-scout</cloakImage>
+    <floorImage>federation-scout</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="FED_SCOUT_P_DLC" layout="federation-outrider" img="federation-outrider">
+  <shipBlueprint name="FED_SCOUT_P_DLC" layout="federation-scout" img="federation-scout">
     <name>FED_SCOUT_P_DLC</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1934,11 +1934,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>federation-outrider</shieldImage>
-    <cloakImage>federation-outrider</cloakImage>
-    <floorImage>federation-outrider</floorImage>
+    <shieldImage>federation-scout</shieldImage>
+    <cloakImage>federation-scout</cloakImage>
+    <floorImage>federation-scout</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="FED_BOMBER_P" layout="federation-hacker" img="federation-hacker">
+  <shipBlueprint name="FED_BOMBER_P" layout="federation-bomber" img="federation-bomber">
     <name>FED_BOMBER_P</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1951,11 +1951,11 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>federation-hacker</shieldImage>
-    <cloakImage>federation-hacker</cloakImage>
-    <floorImage>federation-hacker</floorImage>
+    <shieldImage>federation-bomber</shieldImage>
+    <cloakImage>federation-bomber</cloakImage>
+    <floorImage>federation-bomber</floorImage>
   </shipBlueprint>
-  <shipBlueprint name="FED_BOMBER_P_DLC" layout="federation-hacker" img="federation-hacker">
+  <shipBlueprint name="FED_BOMBER_P_DLC" layout="federation-bomber" img="federation-bomber">
     <name>FED_BOMBER_P_DLC</name>
     <systemList>
       <pilot power="1" room="0" start="true"/>
@@ -1968,9 +1968,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </systemList>
     <weaponList missiles="0"/>
     <maxPower amount="0"/>
-    <shieldImage>federation-hacker</shieldImage>
-    <cloakImage>federation-hacker</cloakImage>
-    <floorImage>federation-hacker</floorImage>
+    <shieldImage>federation-bomber</shieldImage>
+    <cloakImage>federation-bomber</cloakImage>
+    <floorImage>federation-bomber</floorImage>
   </shipBlueprint>
   <shipBlueprint name="BOSS_1_EASY_DLC" layout="flagship-1" img="flagship-1">
     <name>BOSS_1_EASY_DLC</name>

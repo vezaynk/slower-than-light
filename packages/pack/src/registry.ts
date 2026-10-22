@@ -1,3 +1,4 @@
+import { clearArchivePhrases } from "./extras/phrases.ts";
 import { pickOpening } from "./ftl.ts";
 import { cloneGrid } from "./grid.ts";
 import { bonusChance, resourceBounds, scrapBounds, type RewardDifficulty } from "./rewards.ts";
@@ -730,6 +731,11 @@ export function shipEndingPage(
   return entry.page ?? (entry.id ? storedEvent(entry.id) : undefined);
 }
 
+/** Every `<textList>` the pack loaded. A flat list is also expanded onto its events. */
+export function allTextLists(): TextListDef[] {
+  return [...textLists.values()].map(copyTextList);
+}
+
 /** One `<textList>`, or undefined when the archive has no list by that name. */
 export function textList(id: string | undefined): TextListDef | undefined {
   if (!id) return undefined;
@@ -840,6 +846,7 @@ export function allEmptyBeacons(): EmptyBeaconDef[] {
 
 /** Puts the campaign rows back. Appends made by tests do not survive this. */
 export function resetPackForTests(): void {
+  clearArchivePhrases();
   crew.clear();
   weapons.clear();
   augments.clear();

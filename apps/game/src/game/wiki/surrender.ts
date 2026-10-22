@@ -17,6 +17,7 @@ import { type KinId } from "../extras/kin.ts";
 import {
   allWeapons,
   crewDef,
+  crewNames,
   eventDef,
   factionSurrender,
   resourceRange,
@@ -432,7 +433,12 @@ export function joinCrew(g: Game, race: string, name?: string, skills?: Crew["sk
   // one or from the existing crew." The 9th comes aboard; make-room.ts asks who is relieved.
   const kin = raceKin(race);
   const used = new Set(g.crew.map((c) => c.name));
-  const named = name ?? CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";
+  const pool = crewNames(kin).filter((n) => !used.has(n));
+  const named =
+    name ??
+    (pool.length > 0 ? pool[Math.floor(rand(g) * pool.length)] : undefined) ??
+    CREW_POOL.find((n) => !used.has(n)) ??
+    "Rook Vale";
   const hp = crewDef(kin).hp;
   const roomId =
     g.player.rooms.find((x) => x.id === "p-medbay")?.id ?? g.player.rooms[0]?.id ?? "p-medbay";

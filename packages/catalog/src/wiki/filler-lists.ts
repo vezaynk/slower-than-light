@@ -5,8 +5,7 @@ import { ftlEventId } from "./ftl-event-ids.ts";
  * Filler lists and the sentences for a quiet beacon.
  * `base.ts` loads these records. This file does not import the sim.
  * A packed row id is the datafile id of that page. The authored `id` stays the slug
- * choice handlers already use. Large trade station has no card; a draw skips it
- * until a page with that id exists.
+ * choice handlers already use. Large trade station is the page STORE_REBELSIDE.
  * Choice handlers stay in filler-events.ts. Remembering a unique page stays in the sim.
  */
 

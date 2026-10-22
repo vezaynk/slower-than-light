@@ -1,3 +1,4 @@
+import { playArchiveAudio } from "../archive-audio.ts";
 import { skillRank } from "../content.ts";
 import {
   applyIon,
@@ -31,6 +32,7 @@ import { SCHEMATIC_POWER } from "../enemy-gen.ts";
 import type { Crew, DroneBlast, DroneUnit, Game, Kit, Room, Ship, Shot, SysId } from "../types.ts";
 import "../pack/base.ts";
 import { crewDef } from "@stl/pack";
+import { battleDroneFight, repairDronePace } from "./drone-crew.ts";
 import { veilBlocks } from "./veil.ts";
 import { crewDroneSpeed } from "../wiki/cited-booster.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
@@ -383,16 +385,24 @@ export function activateDroneSlot(g: Game, index: number): boolean {
 
 /**
  * Schematics player Drone Control can fly: every SwarmKind, plus Combat Drone Mark II, the Ion Intruder, and both Shield
- * Overchargers, which stay outside SwarmKind (drones-missing.ts still lists them). Anything else, such as the
- * Anti-Personnel Drone, is a schematic this build does not fly.
+ * Overchargers, which stay outside SwarmKind (drones-missing.ts still lists them).
+ * Archive ids no hull lists are flown here too: beam II, the fire / ion / missile combat drones, the hacking drone,
+ * and the flagship's Defense II. The Anti-Personnel Drone (BATTLE) stays off this list. Engi B leaves it unfitted;
+ * an enemy hull that lists it flies that id.
  */
 export function canDeploy(kind: string): boolean {
   return (
     isKind(kind) ||
     kind === "COMBAT_2" ||
+    kind === "COMBAT_BEAM_2" ||
+    kind === "COMBAT_FIRE" ||
+    kind === "COMBAT_ION" ||
+    kind === "COMBAT_MISSILE" ||
     kind === "BOARDER_ION" ||
     kind === "DRONE_SHIELD" ||
-    kind === "DRONE_SHIELD_PLAYER"
+    kind === "DRONE_SHIELD_PLAYER" ||
+    kind === "BOSS_DEFENSE_2" ||
+    kind === "DRONE_HACKING"
   );
 }
 
@@ -444,6 +454,7 @@ export function deploy(g: Game, kind: string): boolean {
   delete kit.heading;
   delete kit.bearing;
   log(g, `Drone Control deploys ${kind}.`);
+  playArchiveAudio("droneLaunch");
   const functioning = (kit.drones ?? []).filter((d) => d.alive && d.powered).length;
   noteAchieve(g, { k: "drone", kind, functioning: Math.max(functioning, kit.on ? 1 : 0) });
   return true;
@@ -928,8 +939,10 @@ function stepFinishedBoard(
 
 /**
  * Drone Control, Crew Drones > System Repair Drone: "Repairs systems and breaches, and puts out fires,
- * at the same speed as an Engi". Engi repair is ×2, so one bar or breach takes REPAIR_SECONDS / 2.
- * Skills: racial repair also scales fire-fighting, so the fire share uses that same ×2.
+ * at the same speed as an Engi". That Engi multiplier is the pace when the repair crew blueprint is
+ * not loaded. A loaded repair blueprint supplies its own repair number. Engi repair is ×2, so with
+ * no blueprint one bar or breach takes REPAIR_SECONDS / 2.
+ * Skills: racial repair also scales fire-fighting, so the fire share uses that same pace.
  * Inside the room the order is still fire, then a breach, then a system or kit.
  * Which room is patchRank. INFERRED: the drone is not crew, so low oxygen does not stop the work.
  * Crew skills, lead: repair drones "are totally unable to gain experience or achieve higher skill levels."
@@ -937,7 +950,7 @@ function stepFinishedBoard(
  * `repowerKits` matches enemy crew repair, which puts the freed bar back on an enemy kit.
  */
 function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): void {
-  const pace = crewDef("engi").repair;
+  const pace = repairDronePace();
   if (room.fire > 0) {
     room.fire = Math.max(0, room.fire - FIRE_FIGHT_SHARE * pace * dt);
     return;
@@ -1165,7 +1178,7 @@ function tickDyingRepair(
     finish();
     return;
   }
-  const pace = crewDef("engi").repair;
+  const pace = repairDronePace();
   if (job.kind === "system" && job.room.system) {
     const sys = ship.systems[job.room.system];
     const before = sys.damage;
@@ -1981,6 +1994,7 @@ function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
     unit.aux = intruderCharge.aux;
     unit.left = intruderCharge.left;
   }
+  playArchiveAudio("droneLaunch");
 }
 
 function killUnit(g: Game, unit: DroneUnit, why: string) {
@@ -2189,6 +2203,8 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
   switch (unit.kind) {
     case "DEFENSE_1":
     case "DEFENSE_2":
+    case "DEFENSE_2_ENEMY":
+    case "BOSS_DEFENSE_2":
       unit.cool = Math.max(0, unit.cool - dt);
       return;
     case "ANTI_DRONE":
@@ -2197,11 +2213,14 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
       return;
     case "COMBAT_1":
     case "COMBAT_2":
+    case "COMBAT_ION":
+    case "COMBAT_MISSILE":
       tickEnemyStriker(g, unit, dt);
       return;
     case "COMBAT_BEAM":
     case "COMBAT_BEAM_2":
     case "fire":
+    case "COMBAT_FIRE":
       tickEnemyBeam(g, unit, dt);
       return;
     case "DRONE_SHIELD":
@@ -2209,12 +2228,16 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
       return;
     case "BOARDER":
     case "BOARDER_ION":
+    case "BOARDER_BOSS":
       tickEnemyBoarder(g, unit, dt);
       return;
     case "REPAIR":
       tickEnemyPatch(g, enemy, unit, dt);
       return;
+    case "DRONE_HACKING":
+      return;
     case "personnel":
+    case "BATTLE":
       tickEnemyPersonnel(g, unit, dt);
       return;
   }
@@ -2610,7 +2633,9 @@ function tickEnemyPatch(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
 
 /**
  * Anti-Personnel Drone aboard the enemy: "Attacks intruders, dealing the same damage as an untrained Human".
- * Boarding, Combat: that hit is 3 to 7 HP. INFERRED: the same 1 second pause as a crew blow. The page prints no seconds.
+ * Boarding, Combat: that hit is 3 to 7 HP. The battle crew blueprint's fight multiplier scales it when that
+ * row is loaded. An unloaded blueprint stays ×1, so the hit stays 3 to 7.
+ * INFERRED: the same 1 second pause as a crew blow. The page prints no seconds.
  * INFERRED: the blow lands on the first living intruder in the room, and the drone goes straight to the first such room.
  */
 function tickEnemyPersonnel(g: Game, unit: DroneUnit, dt: number) {
@@ -2626,7 +2651,7 @@ function tickEnemyPersonnel(g: Game, unit: DroneUnit, dt: number) {
   unit.aux += dt;
   if (unit.aux < 1) return;
   unit.aux -= 1;
-  target.hp -= 3 + Math.floor(rand(g) * 5);
+  target.hp -= boardHit(g) * battleDroneFight();
   unit.fired = 0;
 }
 

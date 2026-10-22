@@ -20,6 +20,19 @@ export {
 } from "./hull-fit.ts";
 export { prettyXml } from "./format.ts";
 export { attachTextLists, packFromFtl, pickOpening } from "./ftl.ts";
+export { applyArchiveExtras, registerArchiveExtra } from "./archive-extras.ts";
+export type { ArchiveDoc, ArchiveExtra } from "./archive-extras.ts";
+export { crewNames } from "./extras/name-lists.ts";
+export { eventCount, eventCountsIn } from "./extras/event-counts.ts";
+export type { EventCount } from "./extras/event-counts.ts";
+export { imageList } from "./extras/image-lists.ts";
+export { allItemBlueprints, itemBlueprint } from "./extras/items.ts";
+export type { ItemBlueprint } from "./extras/items.ts";
+export { roomLayout } from "./extras/rooms.ts";
+export type { RoomLayout } from "./extras/rooms.ts";
+export { archivePhrase } from "./extras/phrases.ts";
+export { tutorialScript } from "./extras/tutorial.ts";
+export type { TutorialOrder, TutorialStep } from "./extras/tutorial.ts";
 export {
   ROOM_PX,
   attachPictures,
@@ -79,6 +92,7 @@ export {
   allSystems,
   allEmptyBeacons,
   allEvents,
+  allTextLists,
   allFactions,
   allFillerLists,
   allTunes,

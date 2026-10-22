@@ -11,6 +11,7 @@ import {
   tuneDef,
   weaponDef,
 } from "@stl/pack";
+import { editionSells, internalDrones } from "../blueprint-use.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
@@ -298,7 +299,8 @@ export function droneItems(g: Game, slot = storeDef("standard")?.slot ?? 3): Sto
   // Stores and resources, "Stores assortment": a drone slot holds three schematics.
   // The slot does not require Drone Control. Buying one still needs that system and a free slot.
   // Fire Drone and Shield Overcharger + are not in the catalog.
-  const rows = allDrones();
+  const internal = internalDrones();
+  const rows = allDrones().filter((row) => !internal.has(row.id) && editionSells(row.id));
   const n = rows.length;
   if (n === 0) return [];
   // INFERRED: rarity is named and the likelihood formula is not in the dump.

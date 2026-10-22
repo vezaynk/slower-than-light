@@ -20,6 +20,12 @@ export type WeaponBlueprint = {
   ammo: boolean;
   price: number;
   blurb: string;
+  /** `<short>` line. The hangar and the offer card show it beside the title. */
+  short?: string;
+  /** `<desc>` when a tooltip already occupies `blurb`. */
+  detail?: string;
+  /** `<flavorType>`, the weapon family the card names. */
+  flavor?: string;
   /** Beam length in tiles. Absent means the authored beam table. */
   lengthTiles?: number;
   /** FTL beam speed column. Absent means the authored speed table. */
@@ -58,6 +64,8 @@ export type CrewDef = {
   fireRepairMultiplier: number;
   /** Player-facing blurb from an archive crewBlueprint. Absent on a stats-only row. */
   detail?: string;
+  /** `<powerList>` lines, in file order. The crew card shows them under the blurb. */
+  powers?: string[];
   /** Hire price from an archive crewBlueprint. Absent on a stats-only row. */
   cost?: number;
   /**
@@ -83,6 +91,10 @@ export type DroneDef = {
   id: string;
   name: string;
   cost: number;
+  /** `<short>` line on the schematic card. */
+  short?: string;
+  /** `<desc>` on the schematic card. */
+  detail?: string;
   /** `<droneImage>` stem. Pictures are `img/ship/drones/<image>_base.png`, `_on.png`, and `_charged.png`. */
   image?: string;
   /** The blueprint carries `NOLOC`. That drone's room stays hidden from the other ship. */
@@ -570,6 +582,7 @@ export type ChoiceReq =
   | { k: "weapon"; id: string; text: string }
   | { k: "family"; id: string; text: string }
   | { k: "drone"; id: string; text: string }
+  | { k: "list"; id: string; text: string }
   | { k: "stock"; id: string; n: number; text: string };
 
 /**
@@ -612,6 +625,8 @@ export type ArchiveGrant = {
   kind: "weapon" | "drone" | "augment" | "crew";
   id: string;
   amount?: number;
+  /** A person's name when the archive names the crewmember. The race stays on `id`. */
+  name?: string;
 };
 
 /**
@@ -954,6 +969,8 @@ export type AchievementDef = {
   id: string;
   name: string;
   desc: string;
+  /** `<shortname>` on the stats icon. */
+  short?: string;
   /** `<ship>`: the ship blueprint (any of its layouts) the achievement can only be earned with. */
   ship?: string;
   /** `<multiDifficulty>`: the stats screen shows the difficulty it was earned on. */

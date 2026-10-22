@@ -1,6 +1,8 @@
 import { Kicker } from "@stl/ui";
 import { useEffect, useState } from "react";
 import { allAchievements, hullDef } from "@stl/pack";
+import { displayPhrase, helpListLines, verdictListLines } from "@/game/interface-copy";
+import { ArchiveCopy, ArchiveLines } from "./ArchiveCopy";
 import { earnedIds, isTracked, noteRun } from "@/game/wiki/achievement-track";
 import { lifetimeOf } from "@/game/wiki/achieve-notes";
 import { HULLS } from "@/game/hulls";
@@ -172,6 +174,7 @@ export function AchievementsScreen({ game, onClose }: { game: Game | null; onClo
       <CloseX onClose={onClose} />
       <header className="ship-sheet-head">
         <Kicker as="h2">{"STATS"}</Kicker>
+        <ArchiveCopy screen="stats" />
         <span className="stats-progress">
           <span>
             <b>{got}</b> / {total}
@@ -315,6 +318,11 @@ function achName(id: string): string {
   return allAchievements().find((row) => row.id === id)?.name ?? id;
 }
 
+function achievementTitle(id: string): string {
+  const row = allAchievements().find((item) => item.id === id);
+  return [row?.name ?? id, row?.short, row?.desc].filter(Boolean).join(" ");
+}
+
 function StatTile({
   icon,
   value,
@@ -436,10 +444,7 @@ function ShipBest({
               </span>
               <span className="stats-ship-achs">
                 {shipAchievements(cruiser).map((id) => (
-                  <span
-                    key={id}
-                    title={`${achName(id)}: ${allAchievements().find((row) => row.id === id)?.desc ?? ""}`}
-                  >
+                  <span key={id} title={achievementTitle(id)}>
                     <AchievementIcon id={id} earned={earned.includes(id)} size={30} />
                   </span>
                 ))}
@@ -464,6 +469,8 @@ export function HelpScreen({ onContinue }: { onContinue: () => void }) {
         if (e.key === "Enter" || e.key === " ") onContinue();
       }}
     >
+      <ArchiveCopy screen="help" />
+      <ArchiveLines lines={helpListLines()} mark="help-lists" />
       <div className="help-grid">
         <article>
           <h2>{"CREW CONTROL"}</h2>
@@ -532,9 +539,10 @@ function verdictCopy(game: Game): { title: string; body: string; score: boolean 
       score: true,
     };
   }
+  const told = verdictListLines()[0];
   return {
     title: "GAME OVER",
-    body: "One last explosion marks your fate as your ship is torn apart.",
+    body: told ?? "One last explosion marks your fate as your ship is torn apart.",
     score: true,
   };
 }
@@ -575,6 +583,7 @@ export function Verdict({ game }: { game: Game }) {
         : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
     return (
       <button type="button" className="victory-cinema" onClick={() => setStep("card")}>
+        <ArchiveCopy screen="verdict" />
         <p>{"Thanks to the valiant effort of:"}</p>
         <h2>{game.player.name}</h2>
         <p>{"And her successful crew:"}</p>
@@ -590,7 +599,9 @@ export function Verdict({ game }: { game: Game }) {
   return (
     <article className="verdict">
       <h2>{copy.title}</h2>
-      <p>{copy.body}</p>
+      <ArchiveCopy screen="verdict" />
+      {won ? null : <ArchiveLines lines={verdictListLines()} mark="verdict-lists" />}
+      <p>{displayPhrase(copy.body)}</p>
       {copy.score ? (
         <p className="verdict-score">
           {"SCORE: "}

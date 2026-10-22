@@ -117,7 +117,13 @@ type Fx =
   | { k: "close" }
   | { k: "nothing" };
 
-type ChoiceDef = { id: string; label: string; fx: Fx[] };
+type ChoiceDef = {
+  id: string;
+  label: string;
+  fx: Fx[];
+  /** Buttons on an inline result. A load stores the next page on a goto instead. */
+  choices?: ChoiceDef[];
+};
 
 type EventDef = {
   dest: string;
@@ -177,7 +183,7 @@ function findChoice(id: string): ChoiceDef | null {
       for (const c of entry.page?.choices ?? []) if (c.id === id) return c;
     }
   }
-  // Top-level choices on a ship-event ending. Nested choices stay on the page that owns them.
+  // Top-level choices on a ship-event ending.
   for (const ship of allShipEvents()) {
     for (const ending of [
       ship.surrender,
@@ -187,6 +193,42 @@ function findChoice(id: string): ChoiceDef | null {
       ship.gotaway,
     ]) {
       for (const c of ending?.page?.choices ?? []) if (c.id === id) return c;
+    }
+  }
+  // An inline result's buttons are not top-level. LONE_SHUTTLE:0:0 lives under LONE_SHUTTLE:0.
+  // Events, then ship endings, then list pages: the same order as findArchiveChoice.
+  for (const ev of loadedEvents()) {
+    const nested = findNestedChoice(ev.choices, id);
+    if (nested) return nested;
+  }
+  for (const ship of allShipEvents()) {
+    for (const ending of [
+      ship.surrender,
+      ship.escape,
+      ship.destroyed,
+      ship.deadCrew,
+      ship.gotaway,
+    ]) {
+      const nested = findNestedChoice(ending?.page?.choices, id);
+      if (nested) return nested;
+    }
+  }
+  for (const list of allFillerLists()) {
+    for (const entry of list.entries) {
+      const nested = findNestedChoice(entry.page?.choices, id);
+      if (nested) return nested;
+    }
+  }
+  return null;
+}
+
+/** Buttons under an inline result, including a button nested more than once. */
+function findNestedChoice(choices: readonly ChoiceDef[] | undefined, id: string): ChoiceDef | null {
+  for (const choice of choices ?? []) {
+    for (const nested of choice.choices ?? []) {
+      if (nested.id === id) return nested;
+      const deeper = findNestedChoice([nested], id);
+      if (deeper) return deeper;
     }
   }
   return null;
@@ -2174,6 +2216,18 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
       page.choices.map((next) => ({ id: next.id, label: next.label })),
     );
     if (g.phase === "event") g.paused = true;
+    return true;
+  }
+  // Inline result: the next buttons are this choice's own. Effects above already ran.
+  const inline = choice.choices;
+  if (inline && inline.length > 0) {
+    const body = choice.fx.flatMap((fx) => (fx.k === "note" ? [fx.text] : [])).join("\n\n");
+    pageCard(
+      g,
+      body,
+      inline.map((next) => ({ id: next.id, label: next.label })),
+    );
+    g.paused = true;
     return true;
   }
   ctx.resolve();

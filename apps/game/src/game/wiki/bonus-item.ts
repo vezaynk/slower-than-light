@@ -5,6 +5,8 @@
  * grantBonusAugment for a duplicate augmentation.
  */
 import { allAugments, allDrones, allWeapons, augmentDef, droneDef, weaponDef } from "@stl/pack";
+import { editionSells, freeWeaponIds, internalDrones, shelfWeaponIds } from "../blueprint-use.ts";
+import { CRYSTAL_SECTOR } from "../sector-ids.ts";
 import { rand } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { NOT_SOLD } from "./cited-stores.ts";
@@ -32,16 +34,34 @@ function pickOne<T>(g: Game, items: readonly T[]): T | undefined {
     : undefined;
 }
 
+function weaponPool(g: Game, owned: Set<string>, weapons?: (id: string) => boolean) {
+  const allow = g.sectorId === CRYSTAL_SECTOR ? undefined : shelfWeaponIds(g.sector);
+  const guns = allWeapons().filter(
+    (w) =>
+      w.price > 0 &&
+      !owned.has(w.id) &&
+      editionSells(w.id) &&
+      (!allow || allow.has(w.id)) &&
+      (!weapons || weapons(w.id)),
+  );
+  if (guns.length > 0) return guns;
+  return (freeWeaponIds() ?? []).flatMap((id) => {
+    const row = weaponDef(id);
+    return row && !owned.has(row.id) && (!weapons || weapons(row.id)) ? [row] : [];
+  });
+}
+
 /** Draws the bonus item, or nothing when no kind fits. `weapons` narrows the weapon pool (Hidden Crystal Worlds). */
 export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): BonusItem | undefined {
   const owned = new Set(g.player.weapons.map((w) => w.defId));
-  const guns = allWeapons().filter(
-    (w) => w.price > 0 && !owned.has(w.id) && (!weapons || weapons(w.id)),
-  );
+  const guns = weaponPool(g, owned, weapons);
   // INFERRED: the loot pool is the store pool (no Rock Plating or Titanium System Casing).
   const augs = allAugments().filter((row) => !NOT_SOLD.has(row.id));
   const held = heldSchematics(g);
-  const drones = allDrones().filter((row) => !held.includes(row.id));
+  const internal = internalDrones();
+  const drones = allDrones().filter(
+    (row) => !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
+  );
   const kinds = (
     [
       ["weapon", guns.length],
@@ -65,10 +85,7 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
 export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): string {
   if (kind === "weapon") {
     const owned = new Set(g.player.weapons.map((w) => w.defId));
-    const def = pickOne(
-      g,
-      allWeapons().filter((w) => w.price > 0 && !owned.has(w.id)),
-    );
+    const def = pickOne(g, weaponPool(g, owned));
     return def ? weaponLine(g, def.id) : "No weapon is left to give.";
   }
   if (kind === "augment") {
@@ -79,9 +96,12 @@ export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): 
     return id ? grantBonusAugment(g, id) : "No augmentation is left to give.";
   }
   const held = heldSchematics(g);
+  const internal = internalDrones();
   const ref = pickOne(
     g,
-    allDrones().filter((row) => !held.includes(row.id)),
+    allDrones().filter(
+      (row) => !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
+    ),
   )?.id;
   return ref ? droneLine(g, ref) : "No drone schematic is left to give.";
 }

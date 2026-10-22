@@ -1,4 +1,5 @@
 import { gridFromLayout, writeGrid } from "@stl/pack";
+import { ENEMY_BLUEPRINTS } from "./enemy-blueprints.ts";
 
 /**
  * Traced enemy interiors. The fight still seats a rolled loadout into these boxes.
@@ -1811,30 +1812,52 @@ export const ENEMY_LAYOUTS: Record<string, EnemyInterior> = {
   },
 };
 
-/** Layout file for one traced interior. The ship id keeps the ":pirate" suffix. */
+/**
+ * Layout file for one traced interior.
+ * Two classes on one blueprint share a room grid, so they share one file,
+ * named for the first class. The fight reads that file. A later class still
+ * overwrites the pictured systems. A pirate picture is its own blueprint.
+ */
 export function enemyLayoutFile(id: string): string {
-  return id.replace(":pirate", "-pirate");
+  if (id.endsWith(":pirate")) return id.replace(":pirate", "-pirate");
+  return sharedLayoutStem(id);
 }
 
-/** One data/<layout>.txt for every traced interior, in table order. */
+/** First class on a shared blueprint. A class with its own blueprint keeps its id. */
+function sharedLayoutStem(classId: string): string {
+  const row = ENEMY_BLUEPRINTS.find((item) => item.classId === classId);
+  if (!row) return classId;
+  const first = ENEMY_BLUEPRINTS.find((item) => item.blueprint === row.blueprint);
+  return first?.classId ?? classId;
+}
+
+/** One data/<layout>.txt per layout stem, in table order. A shared blueprint writes one file. */
 export function enemyLayoutFiles(): { path: string; text: string }[] {
-  return Object.entries(ENEMY_LAYOUTS).map(([id, layout]) => ({
-    path: `data/${enemyLayoutFile(id)}.txt`,
-    text: writeGrid(
-      gridFromLayout({
-        cols: layout.cols,
-        rows: layout.rows,
-        rooms: layout.rooms.map((room) => ({
-          id: "",
-          title: "",
-          system: room.system,
-          x: room.x,
-          y: room.y,
-          w: room.w,
-          h: room.h,
-        })),
-        marks: layout.marks,
-      }),
-    ),
-  }));
+  const seen = new Set<string>();
+  const files: { path: string; text: string }[] = [];
+  for (const [id, layout] of Object.entries(ENEMY_LAYOUTS)) {
+    const name = enemyLayoutFile(id);
+    if (seen.has(name)) continue;
+    seen.add(name);
+    files.push({
+      path: `data/${name}.txt`,
+      text: writeGrid(
+        gridFromLayout({
+          cols: layout.cols,
+          rows: layout.rows,
+          rooms: layout.rooms.map((room) => ({
+            id: "",
+            title: "",
+            system: room.system,
+            x: room.x,
+            y: room.y,
+            w: room.w,
+            h: room.h,
+          })),
+          marks: layout.marks,
+        }),
+      ),
+    });
+  }
+  return files;
 }

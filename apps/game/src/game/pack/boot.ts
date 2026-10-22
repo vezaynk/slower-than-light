@@ -1,9 +1,10 @@
 import datUrl from "../../../../../packages/totallynotftl/totallynotftl.dat?url";
 import gapUrl from "../../../../../packages/campaign/base.ftl?url";
 import { extractArchive, type FtlExtract } from "@stl/ftldat";
-import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
-import { loadPack, warnPack } from "@stl/pack";
+import { applyFtlMod } from "@stl/hyperspace";
+import { warnPack } from "@stl/pack";
 import { STAND_IN_ID, fileBlob, loadOrder, orderKey } from "./archive-list";
+import { loadExtractedPack } from "./install";
 import { rememberArchive } from "./media";
 import { rememberShipArt } from "./ship-art";
 
@@ -142,11 +143,9 @@ async function install(source?: ArrayBuffer | Uint8Array): Promise<void> {
   }
   const gapBytes = await fetchBytes(gapUrl, (ratio) => report(0.4 + ratio * 0.4));
   report(0.85);
-  const gap = await extractArchive(gapBytes);
-  const files = applyFtlMod(archive, gap);
+  const files = loadExtractedPack(archive, await extractArchive(gapBytes));
   await rememberShipArt(files.assets);
   await rememberArchive(files.documents, files.assets);
-  loadPack(packFromExtract(files), "base");
   report(1);
 }
 

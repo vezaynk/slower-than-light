@@ -1,4 +1,4 @@
-import { allEvents, weaponDef } from "@stl/pack";
+import { allEvents, blueprintList, weaponDef } from "@stl/pack";
 import type { ChoiceReq } from "@stl/pack";
 import type { Game, KitId, SysId } from "../types.ts";
 import { CHOICE_REQS } from "./choice-reqs.ts";
@@ -56,14 +56,21 @@ export function scrapStock(id: string): number | null {
 }
 
 function reqsFor(id: string): readonly ChoiceReq[] | null {
-  for (const ev of allEvents()) {
-    for (const choice of ev.choices) {
+  type Button = { id: string; reqs?: readonly ChoiceReq[]; choices?: readonly Button[] };
+  const walk = (choices: readonly Button[] | undefined): readonly ChoiceReq[] | null => {
+    for (const choice of choices ?? []) {
       if (choice.id === id && choice.reqs?.length) return choice.reqs;
+      const nested = walk(choice.choices);
+      if (nested) return nested;
     }
+    return null;
+  };
+  for (const ev of allEvents()) {
+    const found = walk(ev.choices);
+    if (found) return found;
     for (const card of ev.cards ?? []) {
-      for (const choice of card.choices) {
-        if (choice.id === id && choice.reqs?.length) return choice.reqs;
-      }
+      const nested = walk(card.choices);
+      if (nested) return nested;
     }
   }
   return null;
@@ -81,8 +88,24 @@ function meets(g: Game, req: ChoiceReq): boolean {
   if (req.k === "weapon") return g.player.weapons.some((w) => w.defId === req.id);
   if (req.k === "family") return meetsFamily(g, req.id);
   if (req.k === "drone") return meetsDrone(g, req.id);
+  if (req.k === "list") return meetsList(g, req.id);
   if (req.k === "stock") return have(g, req.id) >= req.n;
   return false;
+}
+
+/** A blueprint list is aboard when any of its names is mounted, installed, or carried. */
+function meetsList(g: Game, id: string): boolean {
+  const over = id.startsWith("OVERRIDE_") ? undefined : blueprintList(`OVERRIDE_${id}`);
+  const names = over ?? blueprintList(id);
+  if (!names) return false;
+  const kit = g.player.kits.drones;
+  const carried = new Set<string>([
+    ...g.player.weapons.map((weapon) => weapon.defId),
+    ...g.augments,
+    ...(kit?.target ? [kit.target] : []),
+    ...(kit?.loadout ?? []),
+  ]);
+  return names.some((name) => carried.has(name));
 }
 
 function levelOf(g: Game, id: string): number {

@@ -549,6 +549,7 @@ function reqElement(doc: XmlDocument, req: ChoiceReq): XmlElement {
   if (req.k === "augment") return blueprintReq(doc, "augment", req.id, req.text);
   if (req.k === "drone") return blueprintReq(doc, "drone", req.id, req.text);
   if (req.k === "weapon") return blueprintReq(doc, "weapon", req.id, req.text);
+  if (req.k === "list") return reqText(doc, { req: req.id }, req.text);
   const node = element(doc, "req", { req: req.id });
   add(node, element(doc, "weapon", {}));
   node.appendChild(doc.createTextNode(req.text));

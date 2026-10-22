@@ -35,10 +35,10 @@ describe("achievements", () => {
 });
 
 describe("achievement conditions", () => {
-  it("leave only the two lines the game cannot see untracked, and read only known values", () => {
+  it("gives every achievement a condition and reads only known values", () => {
     assert.deepEqual(
       ACHIEVEMENTS.filter((row) => !row.condition).map((row) => row.id),
-      ["ACH_FED_DIPLOMACY", "ACH_SLUG_VISION"],
+      [],
     );
     const g = createGame(1);
     const warnings: string[] = [];

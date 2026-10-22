@@ -1,18 +1,20 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { HULLS } from "../hulls.ts";
-import { createGame } from "../sim.ts";
+import { createGame, startCombat } from "../sim.ts";
 import { UNLOCKS_KEY } from "../unlocks.ts";
 import { ACHIEVEMENTS } from "@stl/catalog/src/wiki/achievements.ts";
 import {
   earnedIds,
   earnedNow,
   isTracked,
+  noteCrewBlue,
   noteReactorEvent,
   noteRun,
   resetAchievementMemory,
   untrackedIds,
 } from "./achievement-track.ts";
+import type { Crew } from "../types.ts";
 
 function memoryStorage() {
   const bag = new Map<string, string>();
@@ -115,15 +117,17 @@ describe("achievement tracker", () => {
       JSON.stringify(["just-getting-started", "scrap-hoarder", "were-in-position", "ACH_SECTOR_8"]),
     );
     resetAchievementMemory();
-    assert.deepEqual(earnedIds().sort(), ["ACH_LANIUS_SCRAP", "ACH_SECTOR_5", "ACH_SECTOR_8"]);
+    assert.deepEqual(earnedIds().sort(), [
+      "ACH_LANIUS_SCRAP",
+      "ACH_SECTOR_5",
+      "ACH_SECTOR_8",
+      "ACH_SLUG_VISION",
+    ]);
   });
 
   it("keeps earned ids in localStorage and ignores an untracked id", () => {
     memoryStorage();
-    localStorage.setItem(
-      "stl-achievements-v1",
-      JSON.stringify(["ACH_SLUG_VISION", "ACH_SECTOR_5"]),
-    );
+    localStorage.setItem("stl-achievements-v1", JSON.stringify(["ACH_NO_SUCH", "ACH_SECTOR_5"]));
     resetAchievementMemory();
     assert.deepEqual(earnedIds(), ["ACH_SECTOR_5"]);
 
@@ -197,15 +201,72 @@ describe("achievement tracker", () => {
     assert.equal(earnedNow(g).includes("ACH_ENERGY_MANPOWER"), false);
   });
 
-  it("tracks every named achievement except slug vision and the four blue events", () => {
-    const open = ["ACH_FED_DIPLOMACY", "ACH_SLUG_VISION"];
+  it("tracks every named achievement", () => {
     const tracked = ACHIEVEMENTS.filter((row) => isTracked(row.id)).map((row) => row.id);
     assert.deepEqual(
       tracked,
-      ACHIEVEMENTS.map((row) => row.id).filter((id) => !open.includes(id)),
+      ACHIEVEMENTS.map((row) => row.id),
     );
-    assert.deepEqual(untrackedIds().sort(), open);
-    assert.equal(tracked.length, ACHIEVEMENTS.length - open.length);
-    for (const id of untrackedIds()) assert.equal(isTracked(id), false);
+    assert.deepEqual(untrackedIds(), []);
+  });
+
+  it("earns four crew-blue choices by sector 5, and full enemy vision without sensors", () => {
+    const fed = createGame(1, "PLAYER_SHIP_FED");
+    fed.phase = "map";
+    fed.sector = 5;
+    const blues = [
+      "s:confused-mantis:human",
+      "s:moon:slug",
+      "c:engi-smashed-ships:2",
+      "c:fire-on-research-station:3",
+    ];
+    for (const id of blues) noteCrewBlue(fed, id);
+    noteCrewBlue(fed, blues[0]!);
+    noteCrewBlue(fed, "c:slocknog:0");
+    assert.equal(fed.tally?.blueCrew, 4);
+    assert.ok(earnedNow(fed).includes("ACH_FED_DIPLOMACY"));
+
+    const late = createGame(2, "PLAYER_SHIP_FED");
+    late.phase = "map";
+    late.sector = 6;
+    for (const id of blues) noteCrewBlue(late, id);
+    assert.equal(earnedNow(late).includes("ACH_FED_DIPLOMACY"), false);
+
+    const other = createGame(3, "PLAYER_SHIP_HARD");
+    other.phase = "map";
+    other.sector = 3;
+    for (const id of blues) noteCrewBlue(other, id);
+    assert.equal(earnedNow(other).includes("ACH_FED_DIPLOMACY"), false);
+
+    const slug = createGame(4, "PLAYER_SHIP_JELLY");
+    slug.phase = "map";
+    assert.equal(earnedNow(slug).includes("ACH_SLUG_VISION"), false);
+    startCombat(slug, "scout");
+    assert.ok(slug.enemy);
+    slug.player.systems.sensors.level = 0;
+    slug.player.systems.sensors.power = 0;
+    slug.player.systems.sensors.damage = 0;
+    slug.player.systems.sensors.ion = [];
+    slug.enemy.rooms.forEach((room, index) => {
+      const body: Crew = {
+        id: `board-${index}`,
+        name: `board-${index}`,
+        side: "player",
+        aboard: "enemy",
+        hp: 100,
+        maxHp: 100,
+        room: room.id,
+        path: [],
+        move: 0,
+        think: 0,
+        tone: 0,
+        kin: "slug",
+      };
+      slug.crew.push(body);
+    });
+    assert.ok(earnedNow(slug).includes("ACH_SLUG_VISION"));
+    slug.player.systems.sensors.level = 2;
+    slug.player.systems.sensors.power = 2;
+    assert.equal(earnedNow(slug).includes("ACH_SLUG_VISION"), false);
   });
 });

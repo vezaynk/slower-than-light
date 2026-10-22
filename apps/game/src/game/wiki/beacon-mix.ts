@@ -1,6 +1,13 @@
 import type { Beacon, BeaconKind, Game } from "../types.ts";
 import { rand } from "../sim.ts";
-import { allEmptyBeacons, eventDef, fillerList, sectorDef } from "@stl/pack";
+import {
+  allEmptyBeacons,
+  eventCount,
+  eventCountsIn,
+  eventDef,
+  fillerList,
+  sectorDef,
+} from "@stl/pack";
 import { CITED_EVENT_ROWS } from "@stl/catalog/src/wiki/event-catalog.ts";
 import { ftlEventId } from "@stl/catalog/src/wiki/ftl-event-ids.ts";
 import { SECTOR_TYPES } from "@stl/catalog/src/wiki/sectors.ts";
@@ -52,6 +59,13 @@ export function takeLines(rolls: number[], room: number): number[] {
 }
 
 const mixed = new WeakMap<Beacon[], string>();
+/** How many times the latest mix placed each eventCount id. */
+const dealt = new Map<string, number>();
+
+/** Placements of one eventCount id in the latest mix. Zero when that mix did not deal it. */
+export function lastEventDeals(id: string): number {
+  return dealt.get(id) ?? 0;
+}
 
 const NEBULA_OPENERS = new Set([
   "Slug comm tapping",
@@ -118,9 +132,12 @@ export function mixBeacons(g: Game, _events?: unknown): boolean {
   if (!quotas?.length) return false;
   if (mixed.get(g.beacons) === g.sectorId) return true;
   mixed.set(g.beacons, g.sectorId);
+  dealt.clear();
   const r = dealer(g);
   const story = storyIds(g.sectorId);
   const used = new Set<string>();
+  // eventCounts sector="0" is the first sector. Game.sector starts at 1.
+  const depth = g.sector - 1;
 
   const free = g.beacons.filter(
     (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && !b.flag,
@@ -136,11 +153,27 @@ export function mixBeacons(g: Game, _events?: unknown): boolean {
   for (const quota of quotas) {
     if (at >= free.length) break;
     const n = quota.min + irand(r, quota.max - quota.min + 1);
-    const take = Math.min(Math.max(0, n), free.length - at);
+    let take = Math.min(Math.max(0, n), free.length - at);
+    const bound = eventCount(quota.id, depth);
+    if (bound) take = Math.min(take, Math.max(0, bound.max - (dealt.get(quota.id) ?? 0)));
     for (let k = 0; k < take; k++) {
       const beacon = free[at++];
       if (!beacon) return true;
       placeQuota(beacon, quota.id, g, r, story, used);
+      if (bound) dealt.set(quota.id, (dealt.get(quota.id) ?? 0) + 1);
+    }
+  }
+  // A count can demand more than the sector quota left, when beacons are still free.
+  for (const row of eventCountsIn(depth)) {
+    const bound = eventCount(row.id, depth);
+    if (!bound) continue;
+    let have = dealt.get(row.id) ?? 0;
+    while (have < bound.min && have < bound.max && at < free.length) {
+      const beacon = free[at++];
+      if (!beacon) break;
+      placeQuota(beacon, row.id, g, r, story, used);
+      have += 1;
+      dealt.set(row.id, have);
     }
   }
   while (at < free.length) {

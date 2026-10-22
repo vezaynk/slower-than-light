@@ -366,6 +366,9 @@ export const ACHIEVEMENTS: AchievementRow[] = [
     ship: "PLAYER_SHIP_FED",
     multiDifficulty: true,
     source: "Ship Achievements",
+    // Ship Achievements, Diplomatic Immunity: crew-blue choices only, through sector 5.
+    // The run counts each distinct choice once (achievement-track noteCrewBlue).
+    condition: { value: "tally.blueCrew", min: 4 },
   },
   {
     id: "ACH_FED_UPGRADE",
@@ -390,6 +393,8 @@ export const ACHIEVEMENTS: AchievementRow[] = [
     ship: "PLAYER_SHIP_JELLY",
     multiDifficulty: true,
     source: "Ship Achievements",
+    // Ship Achievements, We're in position!: every enemy room is open, and sensors are not functioning.
+    condition: { value: "gauge.roomVision" },
   },
   {
     id: "ACH_SLUG_NEBULA",

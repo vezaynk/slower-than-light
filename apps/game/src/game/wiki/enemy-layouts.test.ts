@@ -26,7 +26,8 @@ function at<R extends { x: number; y: number }>(rooms: R[], x: number, y: number
 
 describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
   it("reads the Rebel Fighter from REBEL_SKINNY, the interior the archive keeps for that id", () => {
-    // Hard sector 8 fits every optional system. Fighter and Invader share REBEL_SKINNY.
+    // Hard sector 8 fits every optional system. Fighter and Invader share REBEL_SKINNY
+    // and one room grid, so the fight reads the rebel-fighter file.
     const spec = rollEnemy(
       cls("rebel-fighter"),
       false,
@@ -35,7 +36,7 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
     );
     assert.equal(enemyBlueprintId("rebel-fighter"), "REBEL_SKINNY");
     assert.equal(enemyBlueprintId("rebel-invader"), "REBEL_SKINNY");
-    assert.equal(hullDef("REBEL_SKINNY")?.layout, "rebel-invader");
+    assert.equal(hullDef("REBEL_SKINNY")?.layout, "rebel-fighter");
     assert.equal(hullDef("REBEL_SKINNY")?.health, undefined);
     assert.equal(hullDef("rebel-fighter"), undefined);
     assert.equal(hullDef("REBEL_SKINNY_DLC"), undefined);

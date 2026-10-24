@@ -20,6 +20,8 @@ function poweredKit(level = 1): Kit {
 
 describe("clonebay", () => {
   it("returns Ada at full health and keeps 80% of a skill", () => {
+    // Wiki citations:
+    // > "Revives dead crewmembers after several seconds with a 20% skill penalty (but only 1 point of combat experience is lost)." — [[Clone Bay#Overview]]
     const g = createGame(1);
     g.player.kits.clonebay = poweredKit();
     const ada = g.crew.find((c) => c.name === "Ada Voss");
@@ -38,6 +40,8 @@ describe("clonebay", () => {
 
   it("keeps 80 percent of a skill and loses one combat point", () => {
     // Crew skills: 20% off every skill, and Combat loses 1 point rather than 20%.
+    // Wiki citations:
+    // > "Revives dead crewmembers after several seconds with a 20% skill penalty (but only 1 point of combat experience is lost)." — [[Clone Bay#Overview]]
     const g = createGame(2);
     g.player.kits.clonebay = poweredKit();
     const ada = g.crew.find((c) => c.name === "Ada Voss");
@@ -52,6 +56,9 @@ describe("clonebay", () => {
 
   it("starts the clone timer after the printed death animation", () => {
     // Clone Bay, Overview: animation, then the 12/9/7 system time.
+    // Wiki citations:
+    // > "The cloning starts immediately after the crew dying animation is over. (animation duration: 2 seconds for Rock, Crystal, and Engi; 1.8 seconds for Humans, Slugs, and Lanius; 1.7 seconds for Mantis; 1.5 seconds for Zoltans)" — [[Clone Bay#Overview]]
+    // > "12 sec 8 HP 2 35 Ftlgame-scrap.png 9 sec 16 HP" — [[Clone Bay#System Upgrades]]
     const g = createGame(3);
     g.player.kits.clonebay = poweredKit(1);
     const ada = g.crew.find((c) => c.name === "Ada Voss");

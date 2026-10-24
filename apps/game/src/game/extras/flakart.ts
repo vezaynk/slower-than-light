@@ -221,6 +221,8 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
   }
   // Cloaking, Overview: "Weapons and artillery systems stop charging and cannot target a cloaked ship."
   // The <= 20 second exception is a beam trajectory. Flak Artillery is not that beam.
+  // Wiki citations:
+  // > "Weapons and artillery systems stop charging and cannot target a cloaked ship." — [[Cloaking#Overview]]
   if (from === "player" && veilBlocks(g, "player")) return;
   // Flak Artillery, Overview: "Automated Re-loaders work." The system "cannot be manned", so crew skill
   // does not shorten this clock. Augmentations, Automated Re-loader: one copy divides cooldown by 1.1,

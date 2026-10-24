@@ -45,6 +45,9 @@ function armed(parts = 2) {
 
 describe("hacking", () => {
   it("spends a part, pulses shields for 4s, and drops one bubble after 2s", () => {
+    // Wiki citations:
+    // > "Hacking pulse lasts either 4, 7, or 10 seconds, depending on the amount of power in your hacking system." — [[Hacking#Overview]]
+    // > "Shields: discharges shields, requiring 2 seconds to remove 1 shield layer." — [[Hacking#Overview]]
     const g = armed(2);
     armSpike(g, "shields");
     assert.equal(launchLanded(g), true);
@@ -66,6 +69,8 @@ describe("hacking", () => {
   it("randomly removes 1 or 2 shield layers across a full level-1 pulse", () => {
     // Hacking, Overview: "Level 1 hacking lasts exactly 4 seconds, and will randomly remove 1 or 2 shield layers."
     // INFERRED: the two outcomes are equally likely. The page prints no weight.
+    // Wiki citations:
+    // > "Level 1 hacking lasts exactly 4 seconds, and will randomly remove 1 or 2 shield layers." — [[Hacking#Overview]]
     const seen = new Set<number>();
     for (let seed = 1; seed <= 40; seed++) {
       const g = armed(2);
@@ -100,6 +105,9 @@ describe("hacking", () => {
   });
 
   it("cools for 20s after the pulse and can lock engines or pilot", () => {
+    // Wiki citations:
+    // > "When the pulse finishes, the hacking system enters 20 seconds cooldown before activating the next pulse." — [[Hacking#Overview]]
+    // > "Piloting/Engines: reduces base evasion to 0 and stops the FTL drive charging." — [[Hacking#Overview]]
     const g = armed(2);
     armSpike(g, "engines");
     assert.equal(launchLanded(g), true);
@@ -210,6 +218,8 @@ describe("hacking", () => {
 
   it("makes a hacked enemy room's doors level-3 blast doors for that ship's crew only", () => {
     // Boarding, "Doors": level 3 regardless of the door system, blocking the ship's crew.
+    // Wiki citations:
+    // > "Hacked doors are equivalent to level 3 blast doors" — [[Hacking#Overview]]
     // Boarders and mind-controlled crew pass. A level-1 door stays shut and does not block them.
     const g = armed(2);
     const enemy = g.enemy!;
@@ -584,6 +594,9 @@ describe("flagship artillery hack", () => {
 describe("hacking pulse holds", () => {
   it("holds the enemy's shield recharge while the player's pulse discharges them", () => {
     // Hacking, "Overview" (Shields): "discharges shields, requiring 2 seconds to remove 1 shield layer."
+    // Wiki citations:
+    // > "Shields: discharges shields, requiring 2 seconds to remove 1 shield layer." — [[Hacking#Overview]]
+    // > "Hacking pulse lasts either 4, 7, or 10 seconds, depending on the amount of power in your hacking system." — [[Hacking#Overview]]
     const g = armed(2);
     const enemy = g.enemy!;
     enemy.weapons = [];
@@ -664,6 +677,8 @@ describe("hacking pulse holds", () => {
 
   it("sets the pulse length from undamaged bars, Zoltan bar included", () => {
     // Hacking, "Overview" (Hacking pulse): "4, 7, or 10 seconds, depending on the amount of power".
+    // Wiki citations:
+    // > "Hacking pulse lasts either 4, 7, or 10 seconds, depending on the amount of power in your hacking system." — [[Hacking#Overview]]
     const g = armed(2);
     const kit = g.player.kits.hacking!;
     kit.level = 3;

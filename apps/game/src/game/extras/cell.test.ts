@@ -44,6 +44,8 @@ describe("battery", () => {
   it("gives 2 bars for 30s then cools for 20", () => {
     // Wiki citations:
     // > "1 35 Ftlgame-scrap.png 2 temporary power bars" — [[Backup Battery#System Upgrades]]
+    // > "When activated, Backup Battery provides 2 additional power bars for 30 seconds. Upgrading the subsystem provides 4 additional power bars in total upon activation." — [[Backup Battery#Overview]]
+    // > "Once the Backup Battery work cycle is over, the system enters a 20 seconds cooldown before it can be used again." — [[Backup Battery#Overview]]
     const g = createGame(1);
     g.phase = "combat";
     g.scrap = 35;
@@ -64,6 +66,8 @@ describe("battery", () => {
   });
 
   it("cools in 10s when augments include tap", () => {
+    // Wiki citations:
+    // > "Battery Charger augmentation reduces the cooldown to 10 seconds." — [[Backup Battery#Overview]]
     const g = createGame(2);
     g.phase = "combat";
     g.augments = ["BATTERY_BOOSTER"];
@@ -78,6 +82,7 @@ describe("battery", () => {
   it("upgrades to 4 bars for 50 scrap", () => {
     // Wiki citations:
     // > "2 50 Ftlgame-scrap.png 4 temporary power bars" — [[Backup Battery#System Upgrades]]
+    // > "Upgrading the subsystem provides 4 additional power bars in total upon activation." — [[Backup Battery#Overview]]
     const g = createGame(3);
     g.scrap = 85;
     installCell(g);
@@ -135,6 +140,8 @@ describe("battery", () => {
   });
 
   it("resets a cooldown on an FTL jump and not when waiting", () => {
+    // Wiki citations:
+    // > "Backup Battery's cooldown is immediately reset by an FTL jump. However, Waiting (e.g. for Flagship or in out-fuel events) will not reset the cooldown." — [[Backup Battery#Overview]]
     const g = createGame(8);
     g.player.kits.battery = pushCell(1);
     g.player.kits.battery.cool = 12;
@@ -150,6 +157,9 @@ describe("battery", () => {
   });
 
   it("starts the 25s cooldown when one hit ionizes every level", () => {
+    // Wiki citations:
+    // > "If all system levels of the Backup Battery subsystem get ionized (e.g. when a pulsar ionizes it), it will enter its maximum 25 seconds cooldown." — [[Backup Battery#Overview]]
+    // > "1 ion damage will not cause disruption to activated level 2 Backup Battery" — [[Backup Battery#Overview]]
     const g = createGame(9);
     g.phase = "map";
     g.augments = ["BATTERY_BOOSTER"];
@@ -176,6 +186,9 @@ describe("battery", () => {
   });
 
   it("locks an activated level 2 battery when two 1-ion sources land together", () => {
+    // Wiki citations:
+    // > "1 ion damage will not cause disruption to activated level 2 Backup Battery" — [[Backup Battery#Overview]]
+    // > "if 1 ion damage is applied from two ion sources simultaneously, the battery will enter its maximum cooldown." — [[Backup Battery#Overview]]
     const g = createGame(11);
     g.phase = "combat";
     g.player.kits.battery = pushCell(2);

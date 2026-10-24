@@ -1410,6 +1410,9 @@ describe("AI-Controlled Rebel Ships, manning bonuses", () => {
   it("adds the untrained +5/+5 while both systems are undamaged", () => {
     const { g, e } = autoHull(15);
     // Engines level 2 is 10, plus 5 engines and 5 piloting.
+    // Wiki citations:
+    // > "1 - 5% 2 10 Ftlgame-scrap.png 10%" — [[Engines#System Upgrades]]
+    // > "manning Engines and Piloting (+5% each)" — [[Piloting#Overview]]
     assert.equal(evasionPercent(g, e, "enemy"), 20);
     e.systems.engines.damage = 1;
     // One bar left is 5, and only piloting still adds 5.
@@ -1417,6 +1420,9 @@ describe("AI-Controlled Rebel Ships, manning bonuses", () => {
   });
 
   it("keeps the bonus while engines are ionized and drops it when piloting is destroyed", () => {
+    // Wiki citations:
+    // > "2 10 Ftlgame-scrap.png 10%" — [[Engines#System Upgrades]]
+    // > "manning Engines and Piloting (+5% each)" — [[Piloting#Overview]]
     const { g, e } = autoHull(16);
     e.systems.engines.ion = [5, 5];
     assert.equal(evasionPercent(g, e, "enemy"), 10);

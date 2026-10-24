@@ -404,6 +404,9 @@ export function tickLance(g: Game, dt: number): void {
   }
   // Cloaking, Overview: "Weapons and artillery systems stop charging and cannot target a cloaked ship."
   // A beam whose charge time is <= 20 seconds still fires. The example is Artillery Beam at system level 4.
+  // Wiki citations:
+  // > "Weapons and artillery systems stop charging and cannot target a cloaked ship." — [[Cloaking#Overview]]
+  // > "make the beam weapon fire if the weapons charge time is <=20 seconds (e.g. Glaive Beam with fully trained crew, Artillery Beam at system level 4)." — [[Cloaking#Overview]]
   if (veilBlocks(g, "player") && seconds > 20) return;
   // Artillery Beam, Overview: "Automated Re-loaders augmentations work." The system "cannot be manned
   // to reduce the charge time", so crew skill stays out. Augmentations, Automated Re-loader: one copy

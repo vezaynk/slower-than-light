@@ -293,6 +293,9 @@ describe("artillery", () => {
   it("stops charging at a cloaked ship unless the clock is 20 seconds", () => {
     // Cloaking, Overview: artillery stops charging and cannot target a cloaked ship.
     // Artillery Beam at system level 4 is the example that still fires, because that clock is 20 seconds.
+    // Wiki citations:
+    // > "Weapons and artillery systems stop charging and cannot target a cloaked ship." — [[Cloaking#Overview]]
+    // > "make the beam weapon fire if the weapons charge time is <=20 seconds (e.g. Glaive Beam with fully trained crew, Artillery Beam at system level 4)." — [[Cloaking#Overview]]
     const cloak = (g: Game) => {
       assert.ok(g.enemy);
       g.enemy.kits.cloaking = {

@@ -17,11 +17,15 @@ import { hackPulseOn } from "./spike.ts";
 // > "1 150 Ftlgame-scrap.png 5 sec" — [[Cloaking#System Upgrades]]
 const INSTALL_COST = 150;
 /** Wiki page "Cloaking", section "Overview": evasion is increased by a flat 60%. */
+// Wiki citations:
+// > "The ship's evasion is increased by flat 60%." — [[Cloaking#Overview]]
 const EVADE = 60;
 /**
  * Wiki page "Cloaking", section "Overview": when the cloak ends it takes 4 ion
  * damage, so it cannot be used again for 20 seconds. Code stores that 20s lockout.
  */
+// Wiki citations:
+// > "it cannot be used again for 20 seconds." — [[Cloaking#Overview]]
 const COOLDOWN = 20;
 /** Wiki page "Cloaking", section "System Upgrades": level 2 costs 30, level 3 costs 50. Keyed by the level already owned. */
 // Wiki citations:
@@ -116,6 +120,8 @@ export function toggleVeilPower(g: Game) {
  * or removing Zoltan power to the system ... the maximum cloak duration cannot exceed the maximum system level
  * duration"). INTENTIONALLY OVERRIDING the earlier read of 5 seconds per bought level.
  */
+// Wiki citations:
+// > "Cloaking duration can be increased or decreased by adding or removing Zoltan power to the system. (the maximum cloak duration cannot exceed the maximum system level duration, but the minimum duration can be as short as a fraction of a second)" — [[Cloaking#Overview]]
 export function veilSeconds(kit: Kit): number {
   return 5 * kitBars(kit);
 }
@@ -193,6 +199,9 @@ function capVeil(kit: Kit | undefined) {
 }
 
 /** Wiki page "Cloaking", section "Overview": flat +60 while that hull's Veil is up, powered, and still counting. */
+// Wiki citations:
+// > "The ship's evasion is increased by flat 60%." — [[Cloaking#Overview]]
+// > "Active cloaking evasion bonus is flat +60% and is not affected by the absence of crew in the Piloting (or auto-pilot evasion reduction)." — [[Piloting#Overview]]
 export function veilEvade(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   void g;
   void aboard;
@@ -200,6 +209,8 @@ export function veilEvade(g: Game, ship: Ship, aboard: "player" | "enemy"): numb
 }
 
 /** Wiki page "Cloaking", section "Overview": weapons cannot target a cloaked ship. */
+// Wiki citations:
+// > "cannot target a cloaked ship." — [[Cloaking#Overview]]
 export function veilBlocks(g: Game, from: "player" | "enemy"): boolean {
   const target = from === "player" ? g.enemy : g.player;
   return active(target?.kits.cloaking);
@@ -214,6 +225,9 @@ export function veilBlocks(g: Game, from: "player" | "enemy"): boolean {
  * gap, so that final shot leaves with the rest of the volley.
  * Swarm Missiles and Pegasus are an untested note on that page; they keep the single cut.
  */
+// Wiki citations:
+// > "Ion Charger and Charger Laser I remove 20% of the cloak time with each shot." — [[Cloaking#Overview]]
+// > "Laser Charger II removes 20% of the cloak time regardless of the number of shots and the de-cloaking effect takes places after the final shot of the charged up volley (e.g. after the 3rd shot of a 3-charge volley)." — [[Cloaking#Overview]]
 export function cloakVolleyCuts(defId: string, count: number): number {
   if (count < 1) return 0;
   if (defId === "ION_CHARGEGUN" || defId === "LASER_CHARGEGUN") return count;
@@ -226,6 +240,10 @@ export function cloakVolleyCuts(defId: string, count: number): number {
  * A cloak that reaches 0 starts the 20s cooldown.
  * A volley calls this once per cloakVolleyCuts, not once per projectile.
  */
+// Wiki citations:
+// > "Firing weapons disrupts cloak, except for beam weapons and artillery systems (both player's and the enemy's)." — [[Cloaking#Overview]]
+// > "reduces the cloak time by 20% of the full amount of the powered Cloaking system." — [[Cloaking#Overview]]
+// > "Stealth Weapons augmentation completely removes this penalty." — [[Cloaking#Overview]]
 export function veilBrokenByFire(g: Game, from: "player" | "enemy", kind: string) {
   if (kind === "beam") return;
   if (g.augments.includes("CLOAK_FIRE")) return;

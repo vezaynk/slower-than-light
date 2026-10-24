@@ -248,6 +248,8 @@ describe("Oxygen outside a fight", () => {
   });
 
   it("suffocates at 6.4 HP per second with no fight on", () => {
+    // Wiki citations:
+    // > "Crew suffocation occurs at 5% or less O2 in the room. Suffocating crewmembers take 6.4 HP damage per second." — [[Oxygen#Overview]]
     const g = createGame(22, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.player.systems.oxygen.power = 0;
@@ -268,6 +270,8 @@ describe("Oxygen outside a fight", () => {
   });
 
   it("lets a Lanius drain oxygen with no fight on, and does not suffocate them", () => {
+    // Wiki citations:
+    // > "The Lanius race doesn't need O2, nor suffers from suffocation - they drain the O2 instead (at the rate of a breach)." — [[Oxygen#Overview]]
     const g = createGame(23, "PLAYER_SHIP_HARD");
     g.phase = "map";
     for (const d of g.player.doors) d.open = false;

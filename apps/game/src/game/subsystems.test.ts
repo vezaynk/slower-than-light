@@ -184,6 +184,8 @@ describe("FTL charge with no enemy hull", () => {
   // Engines, "FTL Drive charge time": 23 seconds, further decreased by the same factors as the in-fight table.
   // INFERRED: 23 is the unmanned level-1 cell (67.9s), scaled by this hull's in-fight time.
   it("scales the 23 second base by the in-fight cell", () => {
+    // Wiki citations:
+    // > "If there is a hazard or a boarder, but no enemy ship, the FTL charge time is 23 seconds, which is further decreased by Engines power level upgrades, Engines manning and Engines manning crew skill level, FTL Recharge Boosters." — [[Engines#FTL Drive charge time]]
     const g = createGame(20);
     unmannedEngines(g, 1);
     assert.equal(ftlQuietSeconds(g), 23);
@@ -192,6 +194,9 @@ describe("FTL charge with no enemy hull", () => {
   });
 
   it("charges that clock through a hazard, and jumps at once once the hazard is gone", () => {
+    // Wiki citations:
+    // > "If there is a hazard or a boarder, but no enemy ship, the FTL charge time is 23 seconds, which is further decreased by Engines power level upgrades, Engines manning and Engines manning crew skill level, FTL Recharge Boosters." — [[Engines#FTL Drive charge time]]
+    // > "If there is no hazard or enemy, your FTL Drive charges instantly." — [[Engines#FTL Drive charge time]]
     const g = createGame(21);
     unmannedEngines(g, 1);
     g.phase = "map";
@@ -214,6 +219,8 @@ describe("FTL charge with no enemy hull", () => {
   });
 
   it("does not treat a nebula or an ion storm as that hazard", () => {
+    // Wiki citations:
+    // > "If there is no hazard or enemy, your FTL Drive charges instantly. (nebula environment and plasma/ion storms are not considered a hazard for this matter)" — [[Engines#FTL Drive charge time]]
     const g = createGame(22);
     unmannedEngines(g, 1);
     g.flee = 0.25;
@@ -228,6 +235,8 @@ describe("FTL charge with no enemy hull", () => {
   });
 
   it("finishes a partial charge at once when the map is quiet", () => {
+    // Wiki citations:
+    // > "If there is no hazard or enemy, your FTL Drive charges instantly." — [[Engines#FTL Drive charge time]]
     const g = createGame(23);
     unmannedEngines(g, 1);
     g.flee = 0.25;
@@ -236,6 +245,8 @@ describe("FTL charge with no enemy hull", () => {
   });
 
   it("keeps the printed table while an enemy hull is on the scope", () => {
+    // Wiki citations:
+    // > "1 67.9 61.8 58.0 54.3" — [[Engines#FTL Drive charge time]]
     const g = fight(24);
     unmannedEngines(g, 1);
     g.asteroid = true;
@@ -251,6 +262,9 @@ describe("FTL charge with no enemy hull", () => {
   });
 
   it("uses the 23 second clock for boarders, then jumps at once when they are gone", () => {
+    // Wiki citations:
+    // > "If there is a hazard or a boarder, but no enemy ship, the FTL charge time is 23 seconds" — [[Engines#FTL Drive charge time]]
+    // > "If there is no hazard or enemy, your FTL Drive charges instantly." — [[Engines#FTL Drive charge time]]
     const g = createGame(25);
     unmannedEngines(g, 1);
     const boarder = plantBoarder(g, "p-sensors");

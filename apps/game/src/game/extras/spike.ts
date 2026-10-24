@@ -38,6 +38,8 @@ export const SPIKE_COST = 80;
  * "System upgrades" lists the same 4 / 7 / 10 beside levels 1 / 2 / 3.
  * INFERRED: the 0 slot is 0 seconds. The page never states a duration for an unpowered system.
  */
+// Wiki citations:
+// > "Hacking pulse lasts either 4, 7, or 10 seconds, depending on the amount of power in your hacking system." — [[Hacking#Overview]]
 const PULSE_SECONDS = [0, 4, 7, 10] as const;
 
 /**
@@ -46,15 +48,24 @@ const PULSE_SECONDS = [0, 4, 7, 10] as const;
  * INFERRED: those two outcomes are equally likely. The page prints no weight.
  * The 30 frames-per-second lock that always removes 2 is not a clock this sim has.
  */
+// Wiki citations:
+// > "Shields: discharges shields, requiring 2 seconds to remove 1 shield layer." — [[Hacking#Overview]]
+// > "Level 1 hacking lasts exactly 4 seconds, and will randomly remove 1 or 2 shield layers." — [[Hacking#Overview]]
 const SHIELD_DROP_SECONDS = 2;
 
 /** Hacking wiki, "Overview" (Oxygen): drains oxygen at 6% per second. */
+// Wiki citations:
+// > "Oxygen: drains O2 levels of ship at 6% per second." — [[Hacking#Overview]]
 const OXYGEN_PER_SECOND = 6;
 
 /** Hacking wiki, "Overview" (Medbay): 13 health per second on hostile crew in the medbay. */
+// Wiki citations:
+// > "drains the health of hostile crew in the medbay at 13 health per second." — [[Hacking#Overview]]
 const MEDBAY_HURT = 13;
 
 /** Hacking wiki, "Overview" (Hacking pulse): 20 seconds of cooldown after the pulse finishes. */
+// Wiki citations:
+// > "When the pulse finishes, the hacking system enters 20 seconds cooldown before activating the next pulse." — [[Hacking#Overview]]
 const COOLDOWN = 20;
 
 /**
@@ -445,6 +456,8 @@ function tickOwnFlight(g: Game, kit: Kit, dt: number) {
 }
 
 /** Hacking wiki, "Overview" (Piloting/Engines): the pulse stops the FTL drive charging. */
+// Wiki citations:
+// > "Piloting/Engines: reduces base evasion to 0 and stops the FTL drive charging." — [[Hacking#Overview]]
 export function spikeFreezesFtl(g: Game): boolean {
   const kit = kitOf(g);
   if (!kit || !running(kit)) return false;
@@ -455,6 +468,8 @@ export function spikeFreezesFtl(g: Game): boolean {
  * Hacking wiki, "Overview" (Piloting/Engines): the pulse reduces base evasion to 0.
  * This only reports that case for the enemy ship. Cloak evasion is not separated here.
  */
+// Wiki citations:
+// > "reduces base evasion to 0" — [[Hacking#Overview]]
 export function spikeEvadeZero(g: Game, ship: Ship): boolean {
   // @agent:hacking. The enemy's pulse on the player's Engines or Piloting does the same to the player.
   if (ship === g.player) return hackFreezesFtl(g, ship);
@@ -861,6 +876,8 @@ const FLIGHT_SPREAD = 1;
 const RELAUNCH_DELAY = 5;
 
 /** Hacking wiki, "Overview": "Hacked doors are equivalent to level 3 blast doors". sim.ts moveCrew reads this. */
+// Wiki citations:
+// > "Hacked doors are equivalent to level 3 blast doors" — [[Hacking#Overview]]
 export const HACKED_DOOR_LEVEL = 3;
 
 /**
@@ -1351,6 +1368,8 @@ function applyEnemyPulse(g: Game, kit: Kit, dt: number) {
  * INFERRED: hp is cleared on lock and on release, so moveCrew re-arms at level 3, except the printed
  * level-3 cell for this difficulty, or the 4-hit Crystal Lockdown mark, already written this tick.
  */
+// Wiki citations:
+// > "Door System: locks all doors, converting them into temporary enemy level 3 blast doors." — [[Hacking#Overview]]
 function syncDoors(g: Game, kit: Kit | undefined) {
   const ship = g.player;
   const live = !!kit && !!kit.hackLatched && operational(kit) && !!g.enemy;

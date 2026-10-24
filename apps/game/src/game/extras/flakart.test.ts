@@ -464,6 +464,8 @@ describe("flak burst", () => {
   it("does not charge or fire while the enemy ship is cloaked", () => {
     // Cloaking, Overview: artillery systems stop charging and cannot target a cloaked ship.
     // The 20 second beam exception names Artillery Beam, not Flak Artillery.
+    // Wiki citations:
+    // > "Weapons and artillery systems stop charging and cannot target a cloaked ship." — [[Cloaking#Overview]]
     const g = fight(43);
     armFed(g, 4);
     assert.ok(g.enemy);

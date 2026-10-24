@@ -19,15 +19,23 @@ export function cellUpgradeCost(level: number): number | null {
   return level === 1 ? UPGRADE_COST : null;
 }
 /** Wiki page "Backup Battery", section "Overview": extra bars last 30 seconds. */
+// Wiki citations:
+// > "When activated, Backup Battery provides 2 additional power bars for 30 seconds. Upgrading the subsystem provides 4 additional power bars in total upon activation." — [[Backup Battery#Overview]]
 const ACTIVE = 30;
 /** Wiki page "Backup Battery", section "Overview": 20 seconds before it can be started again. */
+// Wiki citations:
+// > "Once the Backup Battery work cycle is over, the system enters a 20 seconds cooldown before it can be used again. Battery Charger augmentation reduces the cooldown to 10 seconds." — [[Backup Battery#Overview]]
 const COOL = 20;
 /** Wiki page "Backup Battery", section "Overview": the charger augment cuts cooldown to 10 seconds. Code id stays "BATTERY_BOOSTER". */
+// Wiki citations:
+// > "Battery Charger augmentation reduces the cooldown to 10 seconds." — [[Backup Battery#Overview]]
 const COOL_TAP = 10;
 /**
  * Backup Battery, Overview: full ionization enters the maximum 25 second cooldown.
  * The page's note on whether Battery Charger shortens that 25 is an HTML to-do, so the charger does not.
  */
+// Wiki citations:
+// > "If all system levels of the Backup Battery subsystem get ionized (e.g. when a pulsar ionizes it), it will enter its maximum 25 seconds cooldown." — [[Backup Battery#Overview]]
 const ION_MAX_COOL = 25;
 
 function makeCell(level: number): Kit {
@@ -228,6 +236,8 @@ export function upgradeCell(g: Game) {
  * Backup Battery, Overview: "Backup Battery's cooldown is immediately reset by an FTL jump."
  * Waiting is a different path and does not call this.
  */
+// Wiki citations:
+// > "Backup Battery's cooldown is immediately reset by an FTL jump. However, Waiting (e.g. for Flagship or in out-fuel events) will not reset the cooldown." — [[Backup Battery#Overview]]
 export function cellOnJump(g: Game) {
   const kit = g.player.kits.battery;
   if (!kit || kit.cool <= 0) return;
@@ -243,6 +253,10 @@ export function cellOnJump(g: Game) {
  * at the same time do. INFERRED: the same game time is simultaneous. A later time does not add.
  * The maximum gap is an HTML to-do, so it is not a numbered window.
  */
+// Wiki citations:
+// > "If all system levels of the Backup Battery subsystem get ionized (e.g. when a pulsar ionizes it), it will enter its maximum 25 seconds cooldown." — [[Backup Battery#Overview]]
+// > "1 ion damage will not cause disruption to activated level 2 Backup Battery" — [[Backup Battery#Overview]]
+// > "if 1 ion damage is applied from two ion sources simultaneously, the battery will enter its maximum cooldown." — [[Backup Battery#Overview]]
 export function ionOnCell(g: Game, kit: Kit, points: number): boolean {
   if (kit.level <= 0 || points <= 0) return false;
   let total = points;

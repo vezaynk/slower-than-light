@@ -41,6 +41,9 @@ function see(g: ReturnType<typeof createGame>) {
 
 describe("mind", () => {
   it("leashes the enemy pilot for the level duration, then clears it", () => {
+    // Wiki citations:
+    // > "Mind control duration depends on the system power level: 14 seconds for Lv1, 20 seconds for Lv2, and 28 seconds for Lv3." — [[Mind Control#Overview]]
+    // > "Once a certain system has been activated and its effect worn off, the system self-ionizes and enters a cooldown, which usually last 20 seconds." — [[Systems#Systems cooldown]]
     const g = createGame(1);
     startCombat(g, "Rebel ship");
     const kit = pushKit(g, 1, 1);
@@ -75,6 +78,8 @@ describe("mind", () => {
   });
 
   it("scales duration and damage with the upgrade table", () => {
+    // Wiki citations:
+    // > "Mind control duration depends on the system power level: 14 seconds for Lv1, 20 seconds for Lv2, and 28 seconds for Lv3." — [[Mind Control#Overview]]
     const mid = createGame(2);
     startCombat(mid, "Rebel ship");
     // Mind Control, Overview: duration follows the powered level, so both bars are on.
@@ -105,6 +110,8 @@ describe("mind", () => {
   });
 
   it("holds for the powered level, not the bought level", () => {
+    // Wiki citations:
+    // > "14 seconds for Lv1" — [[Mind Control#Overview]]
     const g = createGame(2);
     startCombat(g, "Rebel ship");
     pushKit(g, 3, 1);
@@ -157,6 +164,9 @@ describe("mind", () => {
   });
 
   it("starts the usual 20 second cooldown when an active hold loses power", () => {
+    // Wiki citations:
+    // > "Once a certain system has been activated and its effect worn off, the system self-ionizes and enters a cooldown, which usually last 20 seconds." — [[Systems#Systems cooldown]]
+    // > "If all system levels of Mind Control get ionized, the system enters the maximum cooldown - 25 seconds." — [[Mind Control#Overview]]
     const g = createGame(8);
     startCombat(g, "Rebel ship");
     const kit = pushKit(g, 1, 1);

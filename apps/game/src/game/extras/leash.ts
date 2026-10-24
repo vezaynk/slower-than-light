@@ -43,6 +43,8 @@ export const UPGRADE_COST: Readonly<Record<number, number>> = { 2: 30, 3: 60 };
  * Mind Control wiki, "Overview": 14 seconds at Lv1, 20 at Lv2, 28 at Lv3.
  * "System Upgrades" lists the same durations.
  */
+// Wiki citations:
+// > "Mind control duration depends on the system power level: 14 seconds for Lv1, 20 seconds for Lv2, and 28 seconds for Lv3." — [[Mind Control#Overview]]
 export const DURATION_BY_LEVEL: Readonly<Record<number, number>> = {
   1: 14,
   2: 20,
@@ -63,12 +65,16 @@ const DAMAGE_MULT_BY_LEVEL: Readonly<Record<number, number>> = {
  * Mind Control wiki, "Overview": if every level is ionized, the maximum cooldown is 25 seconds.
  * Systems, "Systems cooldown": a normal end uses the usual 20 seconds, not this maximum.
  */
+// Wiki citations:
+// > "If all system levels of Mind Control get ionized, the system enters the maximum cooldown - 25 seconds." — [[Mind Control#Overview]]
 export const ION_MAX_COOLDOWN = 25;
 
 /**
  * Systems, "Systems cooldown": once the effect has worn off, the system self-ionizes.
  * "This usually last 20 seconds." A 25 second ion cooldown already on the kit is left in place.
  */
+// Wiki citations:
+// > "Once a certain system has been activated and its effect worn off, the system self-ionizes and enters a cooldown, which usually last 20 seconds." — [[Systems#Systems cooldown]]
 const EFFECT_COOLDOWN = 20;
 
 function woreOff(kit: Kit) {
@@ -82,6 +88,8 @@ function woreOff(kit: Kit) {
  * INFERRED: a later ion hit that still covers every level sets that cooldown to 25 again.
  * An active hold is left running. Power is not cleared and the system is not shut down.
  */
+// Wiki citations:
+// > "If all system levels of Mind Control get ionized, the system enters the maximum cooldown - 25 seconds." — [[Mind Control#Overview]]
 export function ionOnLeash(kit: Kit): void {
   if (kit.level <= 0) return;
   if ((kit.ion?.length ?? 0) < kit.level) return;

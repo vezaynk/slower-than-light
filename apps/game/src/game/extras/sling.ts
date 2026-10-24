@@ -25,6 +25,8 @@ import { veilBlocks } from "./veil.ts";
 const INSTALL_COST = 90;
 
 /** Crew Teleporter wiki, "System Upgrades": level 3 is 10 sec, level 2 is 15 sec, level 1 is 20 sec. */
+// Wiki citations:
+// > "The cooldown for Crew Teleporter depends on the system power level: 20 seconds for level 1, 15 seconds for level 2, and 10 seconds for level 3." — [[Systems#Systems cooldown]]
 function cooldown(level: number): number {
   if (level >= 3) return 10;
   if (level === 2) return 15;

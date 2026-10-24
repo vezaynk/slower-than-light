@@ -28,6 +28,10 @@ function resources(body: string): number {
 
 describe("Lanius ship attacking Slug", () => {
   it("attacking starts a Lanius fight", () => {
+    // Wiki citations:
+    // > "The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating." — [[Lanius ship attacking Slug]]
+    // > "Attack the Lanius ship." — [[Lanius ship attacking Slug]]
+    // > "Fight a Lanius ship." — [[Lanius ship attacking Slug]]
     const g = createGame(1);
     open(g);
     assert.equal(

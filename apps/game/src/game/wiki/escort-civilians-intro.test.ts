@@ -23,6 +23,14 @@ function open(g: Game) {
 
 describe("Escort civilians intro", () => {
   it("shows one of the three printed intros before Accept and Decline", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Escort civilians]]
+    // > "After a short time you receive a message, \"Hello. I hope it's not a bother, but I'm looking for an escort to a nearby system. This region is quite dangerous and our ship is not well-armed.\"" — [[Escort civilians]]
+    // > "There is a single ship at this beacon. They hail you, \"We could really use some help. Our FTL navigation system is shot. Can you help us get to a nearby station where they can patch us up?\"" — [[Escort civilians]]
+    // > "\"Hello,\" your communicator opens a hail from a nearby ship. \"Our weapon systems are malfunctioning and we're too afraid of pirates to travel home unassisted. Can you escort us?\"" — [[Escort civilians]]
+    // > "Decline." — [[Escort civilians]]
+    // > "We understand. Not everyone is confident they can survive in these hostile times, let alone take the responsibility of protecting others." — [[Escort civilians]]
+    // > "Nothing happens." — [[Escort civilians]]
     assert.equal(INTROS.length, 3);
     assert.equal(new Set(INTROS).size, 3);
     const seen = new Set<string>();

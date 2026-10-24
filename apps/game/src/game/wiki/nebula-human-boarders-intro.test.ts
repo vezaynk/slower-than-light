@@ -33,6 +33,12 @@ function open(g: Game) {
 
 describe("Boarders: Humans in nebula intros", () => {
   it("shows one of the three printed intros, then beams humans with no ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Humans in nebula]]
+    // > "You see a small station nearby and feel the shudder of shots ringing through the ship. You can't be sure without sensors, but it seems there may be intruders on the ship!" — [[Boarders: Humans in nebula]]
+    // > "You arrive in the nebula and immediately receive a message from an unknown source, \"Prepare to be boarded!\" With the static from the nebula, there's no way to tell where they came from, but you hear shots fired on board the ship." — [[Boarders: Humans in nebula]]
+    // > "You see a number of derelict ships near this beacon. After a short time you hear the tell-tale sounds of a teleporter and shouts coming from within the ship. You've been boarded!" — [[Boarders: Humans in nebula]]
+    // > "2-4 human boarders beam aboard your ship." — [[Boarders: Humans in nebula]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

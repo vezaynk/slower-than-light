@@ -19,6 +19,11 @@ function open(g: Game) {
 
 describe("Lanius lone ship", () => {
   it("attacking starts a Lanius fight on default rewards", () => {
+    // Wiki citations:
+    // > "You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, \"Help! The metal monsters are coming to melt down our ship!\" Strangely, no active weapon signatures are detected." — [[Lanius lone ship]]
+    // > "Attack the Lanius ship." — [[Lanius lone ship]]
+    // > "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight." — [[Lanius lone ship]]
+    // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius lone ship]]
     const g = createGame(1);
     open(g);
     assert.equal(
@@ -41,6 +46,10 @@ describe("Lanius lone ship", () => {
   });
 
   it("staying out shows the printed escape sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "Stay out of it." — [[Lanius lone ship]]
+    // > "You ignore the ship's pleas and watch as it hastily escapes. Oddly, the Lanius ship makes no move to chase it. You wonder if they were ever a threat at all." — [[Lanius lone ship]]
+    // > "Nothing happens." — [[Lanius lone ship]]
     const g = createGame(1);
     open(g);
     g.fleet = 5;
@@ -96,6 +105,9 @@ describe("Lanius lone ship", () => {
   });
 
   it("a living Lanius opens the store", () => {
+    // Wiki citations:
+    // > "Try to contact the ship." — [[Lanius lone ship]]
+    // > "A store opens." — [[Lanius lone ship]]
     const bare = createGame(1);
     open(bare);
     assert.equal(choiceDisabled(bare, "c:lanius-lone-ship:3"), "Needs a Lanius crewmember");

@@ -18,6 +18,10 @@ function open(g: Game) {
 
 describe("Auto-ship fight in plasma storm", () => {
   it("preparing to fight starts an Auto-ship", () => {
+    // Wiki citations:
+    // > "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack." — [[Auto-ship fight in plasma storm]]
+    // > "Prepare to fight." — [[Auto-ship fight in plasma storm]]
+    // > "Fight an Auto-ship." — [[Auto-ship fight in plasma storm]]
     const g = createGame(1);
     open(g);
     assert.equal(

@@ -38,6 +38,9 @@ function boarded(g: Game) {
 
 describe("Boarders: rebels in nebula", () => {
   it("is one card in each named sector and beams 3-4 humans with no ship", () => {
+    // Wiki citations:
+    // > "There appear to be a number of small stations nearby. Before you have time to scan them, warnings go off. A Rebel teleporter was used in one of the stations. You've been boarded!" — [[Boarders: rebels in nebula]]
+    // > "3-4 human boarders beam aboard your ship." — [[Boarders: rebels in nebula]]
     for (const sector of SECTORS) {
       const pages = citedPagesFor(sector).filter((e) => e.dest === DEST);
       assert.equal(pages.length, 1, sector);

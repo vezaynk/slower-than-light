@@ -22,6 +22,9 @@ function open(g: Game) {
 
 describe("Lanius fight in asteroid field", () => {
   it("starts the fight inside an asteroid field", () => {
+    // Wiki citations:
+    // > "This beacon appears to have been set up within an asteroid field to access a mining settlement. However, half of the settlement has been disassembled by a number of Lanius scavengers. Their military escort moves in to scare you off." — [[Lanius fight in asteroid field]]
+    // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius fight in asteroid field]]
     const g = createGame(1);
     open(g);
     assert.equal(

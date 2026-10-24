@@ -17,6 +17,12 @@ function open(g: Game) {
 
 describe("Pirate smuggler weapons", () => {
   it("keeps the weapons threat closed below level 6, and a bribe pays medium fuel and scrap", () => {
+    // Wiki citations:
+    // > "A pirate ship arrives shortly after you. Judging from the fact that it is attempting to avoid your ship, you assume that it's a smuggler trying to stay away from beacons." — [[Pirate smuggler]]
+    // > "(Weapons) Activate your advanced weapons threateningly." — [[Pirate smuggler]]
+    // > "They hail you, \"There's no need for aggression... Perhaps this would convince you to look the other way?\"" — [[Pirate smuggler]]
+    // > "Take their bribe." — [[Pirate smuggler]]
+    // > "You receive medium fuel and scrap." — [[Pirate smuggler]]
     const closed = createGame(1);
     open(closed);
     assert.match(closed.event?.body ?? "", /smuggler trying to stay away/);

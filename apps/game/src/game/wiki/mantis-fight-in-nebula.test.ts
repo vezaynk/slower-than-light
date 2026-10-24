@@ -25,6 +25,14 @@ function open(g: Game) {
 
 describe("Mantis fight in nebula", () => {
   it("shows one of the five printed intros, then fights a Mantis ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight in nebula]]
+    // > "Nebulas are known to be popular Mantis hunting grounds. Information you would have done well to heed here." — [[Mantis fight in nebula]]
+    // > "You detect a Mantis expedition vessel returning home with its haul. So determined are they, in fact, that they don't wait to see if you're hostile before firing." — [[Mantis fight in nebula]]
+    // > "A Mantis ship, lost in the storm, hails you. \"Sensors are out. We have no local telemetry. We will take yours.\" You detect a power increase in their weapons systems." — [[Mantis fight in nebula]]
+    // > "A Mantis ship hails you through the storm: \"These are sacred Urggghtnag clan hunting grounds. You are prey.\" Shields up!" — [[Mantis fight in nebula]]
+    // > "You notice a Mantis attack ship ducking between the clouds of swirling space stuff; it's hunting you. You try to get the jump and move in to attack." — [[Mantis fight in nebula]]
+    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight in nebula]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

@@ -23,6 +23,12 @@ function open(g: Game) {
 
 describe("Pirate fight near pulsar", () => {
   it("shows one of the three intros, and the fight choice starts a pirate combat", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight near pulsar]]
+    // > "Sensors go wild as a nearby pulsar is detected. While you are attempting to recalibrate the FTL drive, a pirate sneaks up on your ship, weapons charging. Prepare for a fight!" — [[Pirate fight near pulsar]]
+    // > "You arrive to find a pulsar dominating the view screen. You see a small silhouette pass in front of the star. Before you can ponder what it is, warning signals go off. It appears to be a ship in a firing trajectory!" — [[Pirate fight near pulsar]]
+    // > "A small research station orbits a nearby pulsar. It appears largely abandoned, but you detect power signatures flaring up as soon as you're in scanning distance. A small combat ship launches from the station. Pirates!" — [[Pirate fight near pulsar]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight near pulsar]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

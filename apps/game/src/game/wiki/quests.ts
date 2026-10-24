@@ -1644,6 +1644,11 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Pirate smuggler. Weapon Control level 6+. Medium fuel (2-4) and medium scrap.
   "c:pirate-smuggler:2": (g) => {
+    // Wiki citations:
+    // > "(Weapons) Activate your advanced weapons threateningly." — [[Pirate smuggler]]
+    // > "They hail you, \"There's no need for aggression... Perhaps this would convince you to look the other way?\"" — [[Pirate smuggler]]
+    // > "Take their bribe." — [[Pirate smuggler]]
+    // > "Ignore their bribe and attack." — [[Pirate smuggler]]
     if ((g.player.systems.weapons?.level ?? 0) < 6) return;
     card(
       g,
@@ -1655,11 +1660,18 @@ ${laniusTraderOfferText(offer)}`,
     );
   },
   "q:pirate-smuggler:bribe": (g) => {
+    // Wiki citations:
+    // > "Take their bribe." — [[Pirate smuggler]]
+    // > "You receive medium fuel and scrap." — [[Pirate smuggler]]
     const offer = scrapOnly(g, "medium");
     offer.fuel = rollFuel("q:pirate-smuggler:bribe", (lo, hi) => between(g, [lo, hi]));
     result(g, "You receive medium fuel and scrap.", offer);
   },
   "q:pirate-smuggler:attack": (g) => {
+    // Wiki citations:
+    // > "Ignore their bribe and attack." — [[Pirate smuggler]]
+    // > "You power up your weapons and move in to engage." — [[Pirate smuggler]]
+    // > "Fight the pirate ship." — [[Pirate smuggler]]
     pageFight(
       g,
       "You power up your weapons and move in to engage.",
@@ -1785,6 +1797,15 @@ ${laniusTraderOfferText(offer)}`,
   // Rebel fight choice in nebula. Conceal lists three results and prints no odds. INFERRED: equal.
   // Caught opens Prepare to fight, or Engines 4+. Chase doubles pursuit for 1 jump (citedChoose `faster`: one extra step).
   "c:rebel-fight-choice-in-nebula:1": (g) => {
+    // Wiki citations:
+    // > "Attempt to remain concealed." — [[Rebel fight choice in nebula]]
+    // > "You immediately slip further into the clouds, but not quickly enough. The rebel catches sight of you and moves in to engage!" — [[Rebel fight choice in nebula]]
+    // > "Prepare to fight." — [[Rebel fight choice in nebula]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight choice in nebula]]
+    // > "The ship spots you and gives chase. After some quick maneuvering you were able to lose your pursuers in the clouds. You expect they warned the fleet of your position, however." — [[Rebel fight choice in nebula]]
+    // > "Rebel Fleet pursuit is doubled for 1 jump." — [[Rebel fight choice in nebula]]
+    // > "You power down non-essential systems and slip into the cloud. The ship never noticed you." — [[Rebel fight choice in nebula]]
+    // > "Nothing happens." — [[Rebel fight choice in nebula]]
     const r = pick(g, ["caught", "chase", "hidden"] as const);
     if (r === "caught") {
       card(
@@ -1819,6 +1840,10 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Engines level 4+. The page prints no percent.
   "q:rebel-nebula:engines": (g) => {
+    // Wiki citations:
+    // > "(Engines) Fully power the engines to out-run them." — [[Rebel fight choice in nebula]]
+    // > "Your powerful engines allow you to out-distance the ship and eventually lose it within the nebula." — [[Rebel fight choice in nebula]]
+    // > "Nothing happens." — [[Rebel fight choice in nebula]]
     if ((g.player.systems.engines?.level ?? 0) < 4) return;
     result(
       g,
@@ -1829,6 +1854,10 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Cloaking. Nothing happens.
   "c:rebel-fight-choice-in-nebula:2": (g) => {
+    // Wiki citations:
+    // > "(Cloaking) Cloak to stay hidden." — [[Rebel fight choice in nebula]]
+    // > "You use your cloaking system to slip further into the nebula undetected." — [[Rebel fight choice in nebula]]
+    // > "Nothing happens." — [[Rebel fight choice in nebula]]
     if ((g.player.kits.cloaking?.level ?? 0) <= 0) return;
     result(
       g,
@@ -2764,6 +2793,10 @@ Fuel: ${n}.`,
   // The page says "Hacking offline". INFERRED: the installed level stays, and a launch is refused until that fight ends.
   // This handler returns before citedChoose, so the Continue path's engine cap does not apply.
   "c:pirate-engine-hacker:1": (g) => {
+    // Wiki citations:
+    // > "(Hacking System) Counter the remote hacking." — [[Pirate engine hacker]]
+    // > "Your Hacking System automatically counters the digital assault and you move in to fight the ship." — [[Pirate engine hacker]]
+    // > "Fight the Pirate ship with your Hacking offline." — [[Pirate engine hacker]]
     pageFight(
       g,
       "Your Hacking System automatically counters the digital assault and you move in to fight the ship.",

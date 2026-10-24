@@ -17,6 +17,10 @@ function open(g: Game) {
 
 describe("Rebel ship warning", () => {
   it("prints the scout sentence, and the fight choice starts a Rebel ship", () => {
+    // Wiki citations:
+    // > "You stumble across a forward scout of the Rebel fleet." — [[Rebel ship warning]]
+    // > "Fight a Rebel ship that is running away. (40 seconds escape countdown timer if not interrupted)" — [[Rebel ship warning]]
+    // > "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!" — [[Rebel ship warning]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, "You stumble across a forward scout of the Rebel fleet.");

@@ -17,6 +17,9 @@ function open(g: Game) {
 
 describe("Pirate toll reject", () => {
   it("rejecting shows the printed lead-in on the card and fights a pirate ship", () => {
+    // Wiki citations:
+    // > "\"Too bad... You will regret this decision!\"" — [[Pirate toll]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate toll]]
     const g = createGame(1);
     open(g);
     const told = '"Too bad... You will regret this decision!"';

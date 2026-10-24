@@ -48,6 +48,15 @@ function open(g: Game) {
 
 describe("Trade resources in nebula", () => {
   it("shows one rolled offer, and Trade pays exactly those numbers", () => {
+    // Wiki citations:
+    // > "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal." — [[Trade resources in nebula]]
+    // > "Trade." — [[Trade resources in nebula]]
+    // > "You lose Drone parts lost: 1-2 and receive Fuel gained: 5-10." — [[Trade resources in nebula]]
+    // > "You lose Fuel lost: 1-2 and receive Missiles gained: 4-5." — [[Trade resources in nebula]]
+    // > "You lose Missiles lost: 2-3 and receive Drone parts gained: 2-3." — [[Trade resources in nebula]]
+    // > "You lose Missiles lost: 2-4 and receive Fuel gained: 4-10." — [[Trade resources in nebula]]
+    // > "Ignore." — [[Trade resources in nebula]]
+    // > "Nothing happens." — [[Trade resources in nebula]]
     const kinds = new Set<string>();
     for (let seed = 1; seed <= 240 && kinds.size < 4; seed++) {
       const g = createGame(seed);

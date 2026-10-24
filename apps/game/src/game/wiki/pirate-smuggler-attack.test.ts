@@ -17,6 +17,10 @@ function open(g: Game) {
 
 describe("Pirate smuggler attack", () => {
   it("attacking prints the engage sentence and starts a Pirate ship fight", () => {
+    // Wiki citations:
+    // > "Attack the pirate." — [[Pirate smuggler]]
+    // > "You power up your weapons and move in to engage." — [[Pirate smuggler]]
+    // > "Fight the pirate ship." — [[Pirate smuggler]]
     const g = createGame(1);
     open(g);
     const lead = "You power up your weapons and move in to engage.";

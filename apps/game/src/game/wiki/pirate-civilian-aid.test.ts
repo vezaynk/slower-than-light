@@ -17,6 +17,9 @@ function open(g: Game) {
 
 describe("Pirate ship attacking civilian aid", () => {
   it("aiding the civilian shows the printed lead-in on the card and fights a pirate ship", () => {
+    // Wiki citations:
+    // > "Aid the civilian ship." — [[Pirate ship attacking civilian]]
+    // > "You power up your weapons and engage the pirate ship." — [[Pirate ship attacking civilian]]
     const g = createGame(1);
     open(g);
     const lead = "You power up your weapons and engage the pirate ship.";

@@ -16,6 +16,10 @@ function open(g: Game) {
 
 describe("Pirate ship attacking civilian stay out", () => {
   it("shows the printed sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "Stay out of it." — [[Pirate ship attacking civilian]]
+    // > "The fight brings them out of your immediate scanning range. After a time the distress calls stop." — [[Pirate ship attacking civilian]]
+    // > "Nothing happens." — [[Pirate ship attacking civilian]]
     const g = createGame(1);
     open(g);
     choose(g, "c:pirate-ship-attacking-civilian:1");

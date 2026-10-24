@@ -20,6 +20,9 @@ function open(g: Game) {
 
 describe("Pirate fight near sun", () => {
   it("shows the sun intro, and the fight choice starts a pirate combat", () => {
+    // Wiki citations:
+    // > "This beacon has been placed too close to a super-giant class M star! The ship will gradually overheat until you get out of here... or die. A pirate, apparently oblivious to the danger of the sun, moves in to engage." — [[Pirate fight near sun]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight near sun]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);

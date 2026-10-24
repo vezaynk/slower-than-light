@@ -26,6 +26,14 @@ function open(g: Game) {
 
 describe("Pirate ship attacking civilian intro", () => {
   it("shows one of the six printed intros, then aids or stays out", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate ship attacking civilian]]
+    // > "You arrive in the system to see a pirate ship pursuing a civilian ship. You detect messages from the civilian ship on a distress frequency." — [[Pirate ship attacking civilian]]
+    // > "Scanners indicate that a battle is taking place nearby. It seems that someone is under attack by space pirates." — [[Pirate ship attacking civilian]]
+    // > "You detect two ships, one chasing the other... Scanners show the pursuer is a pirate!" — [[Pirate ship attacking civilian]]
+    // > "There are only two ships within range and they seem to be engaged in battle. One of them has the markings of a space pirate." — [[Pirate ship attacking civilian]]
+    // > "You arrive at the next beacon only to immediately be hailed by a small shuttle. \"Help us! We are being attacked by pirates!\"" — [[Pirate ship attacking civilian]]
+    // > "You come out of the jump to see laser blasts coming from the other side of the beacon. It looks like someone is under attack from pirates." — [[Pirate ship attacking civilian]]
     assert.equal(INTROS.length, 6);
     assert.equal(new Set(INTROS).size, 6);
     const seen = new Set<string>();

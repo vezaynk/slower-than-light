@@ -20,6 +20,10 @@ function open(g: Game) {
 
 describe("Pirate fight in asteroid field", () => {
   it("shows the printed wait, and the fight starts inside an asteroid field", () => {
+    // Wiki citations:
+    // > "A pirate ship was lying in wait inside this asteroid field. It immediately moves in to attack." — [[Pirate fight in asteroid field]]
+    // > "Turn and fight." — [[Pirate fight in asteroid field]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in asteroid field]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);

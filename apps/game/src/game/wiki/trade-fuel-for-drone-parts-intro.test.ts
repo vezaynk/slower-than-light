@@ -23,6 +23,15 @@ function open(g: Game) {
 
 describe("Trade fuel for drone parts intro", () => {
   it("shows one of the three printed intros before the trade and the reject", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Trade fuel for drone parts]]
+    // > "A nearby space station hails you. \"Greetings! Your arrival is most fortuitous. We recently came across some extra drones. If you have some fuel, perhaps we can make a deal?\"" — [[Trade fuel for drone parts]]
+    // > "A strange vessel approaches. A digital message appears on your view-screen: \"This is an automated merchant. Refill this vessel with fuel and it will supply you with drones.\"" — [[Trade fuel for drone parts]]
+    // > "You arrive in the sector and are greeted by a science vessel waiting by the beacon. They hail you, \"We find ourselves low on fuel and have a proposition.\"" — [[Trade fuel for drone parts]]
+    // > "Accept the offer." — [[Trade fuel for drone parts]]
+    // > "You lose Fuel lost: 2-4 and receive Drone parts gained: 1-3." — [[Trade fuel for drone parts]]
+    // > "Reject their offer." — [[Trade fuel for drone parts]]
+    // > "Nothing happens." — [[Trade fuel for drone parts]]
     assert.equal(INTROS.length, 3);
     assert.equal(new Set(INTROS).size, 3);
     const seen = new Set<string>();

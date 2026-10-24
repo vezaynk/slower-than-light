@@ -17,6 +17,10 @@ function open(g: Game) {
 
 describe("Pirate smuggler ignore", () => {
   it("ignoring the ship shows the printed jump sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "Ignore the ship." — [[Pirate smuggler]]
+    // > "It jumps away after a time." — [[Pirate smuggler]]
+    // > "Nothing happens." — [[Pirate smuggler]]
     const g = createGame(1);
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;

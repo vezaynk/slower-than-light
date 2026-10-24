@@ -48,6 +48,10 @@ describe("Rebel fight choice in nebula conceal", () => {
   });
 
   it("cloaking slips away and spends nothing", () => {
+    // Wiki citations:
+    // > "(Cloaking) Cloak to stay hidden." — [[Rebel fight choice in nebula]]
+    // > "You use your cloaking system to slip further into the nebula undetected." — [[Rebel fight choice in nebula]]
+    // > "Nothing happens." — [[Rebel fight choice in nebula]]
     const g = createGame(2);
     open(g);
     cloak(g);
@@ -62,6 +66,13 @@ describe("Rebel fight choice in nebula conceal", () => {
   });
 
   it("conceal is caught, doubles pursuit, or stays hidden", () => {
+    // Wiki citations:
+    // > "Attempt to remain concealed." — [[Rebel fight choice in nebula]]
+    // > "You immediately slip further into the clouds, but not quickly enough. The rebel catches sight of you and moves in to engage!" — [[Rebel fight choice in nebula]]
+    // > "The ship spots you and gives chase. After some quick maneuvering you were able to lose your pursuers in the clouds. You expect they warned the fleet of your position, however." — [[Rebel fight choice in nebula]]
+    // > "Rebel Fleet pursuit is doubled for 1 jump." — [[Rebel fight choice in nebula]]
+    // > "You power down non-essential systems and slip into the cloud. The ship never noticed you." — [[Rebel fight choice in nebula]]
+    // > "Nothing happens." — [[Rebel fight choice in nebula]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < 3; seed++) {
       const g = createGame(seed);
@@ -96,6 +107,12 @@ describe("Rebel fight choice in nebula conceal", () => {
   });
 
   it("engines at level 4 lose the ship, and preparing to fight starts a Rebel ship", () => {
+    // Wiki citations:
+    // > "(Engines) Fully power the engines to out-run them." — [[Rebel fight choice in nebula]]
+    // > "Your powerful engines allow you to out-distance the ship and eventually lose it within the nebula." — [[Rebel fight choice in nebula]]
+    // > "Nothing happens." — [[Rebel fight choice in nebula]]
+    // > "Prepare to fight." — [[Rebel fight choice in nebula]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight choice in nebula]]
     let caught: Game | undefined;
     for (let seed = 1; seed <= 40 && !caught; seed++) {
       const g = createGame(seed);

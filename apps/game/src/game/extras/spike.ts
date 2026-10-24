@@ -29,6 +29,8 @@ import { ANTI_STUN_S, REDEPLOY_S, enemyDroneSpot, interceptIncomingDrone } from 
 import type { Difficulty, Door, Game, Kit, KitId, Room, Ship, SysId } from "../types.ts";
 
 /** Hacking wiki, "System upgrades": level 1 cost is 80. */
+// Wiki citations:
+// > "1 80 Ftlgame-scrap.png 4 sec" — [[Hacking#System upgrades]]
 export const SPIKE_COST = 80;
 
 /**
@@ -179,6 +181,9 @@ export function installSpike(g: Game): boolean {
 }
 
 /** Hacking wiki, "System upgrades": level 2 costs 35, level 3 costs 60. Keyed by the level already owned. */
+// Wiki citations:
+// > "2 35 Ftlgame-scrap.png 7 sec" — [[Hacking#System upgrades]]
+// > "3 60 Ftlgame-scrap.png 10 sec" — [[Hacking#System upgrades]]
 const SPIKE_UPGRADE: Record<number, number> = { 1: 35, 2: 60 };
 
 export function spikeUpgradeCost(level: number): number | null {

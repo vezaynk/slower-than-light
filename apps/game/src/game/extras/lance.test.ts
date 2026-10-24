@@ -332,6 +332,11 @@ describe("artillery", () => {
   });
 
   it("is fitted only on Federation A and B, free, and records the wiki costs", () => {
+    // Wiki citations:
+    // > "Level Cost Charge time 1 - 50 sec" — [[Artillery Beam#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png 40 sec" — [[Artillery Beam#System Upgrades]]
+    // > "3 50 Ftlgame-scrap.png 30 sec" — [[Artillery Beam#System Upgrades]]
+    // > "4 80 Ftlgame-scrap.png 20 sec" — [[Artillery Beam#System Upgrades]]
     // Artillery Beam, "Overview": pre-installed only on the Federation Cruiser A and B. No purchase price is printed.
     const lark = createGame(7);
     assert.equal(installLance(lark), false);

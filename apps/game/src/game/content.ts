@@ -92,6 +92,10 @@ export function shieldLayerSeconds(layer: number): number {
  */
 export function upgradeCost(id: SysId | "reactor", level: number): number | null {
   if (id === "reactor") {
+    // Wiki citations:
+    // > "The reactor can hold a maximum of 25 power bars." — [[Ship#Reactor power]]
+    // > "In order to fully upgrade a ship with 8 power, it costs 490 Ftlgame-scrap.png." — [[Ship#Reactor power]]
+    // > "reactor power bars from 3 to 5 cost 30 scrap each" — [[Systems]]
     const next = level + 1;
     if (next > 25) return null;
     if (next <= 5) return 30;

@@ -119,6 +119,8 @@ describe("mind", () => {
   });
 
   it("spends the sheet price and one spare bar", () => {
+    // Wiki citations:
+    // > "1 75 Ftlgame-scrap.png Mind control 1 enemy crew" — [[Mind Control#System Upgrades]]
     const g = createGame(4);
     assert.equal(INSTALL_COST, 75);
     g.scrap = 75;

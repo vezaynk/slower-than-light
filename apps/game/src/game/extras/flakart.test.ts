@@ -85,6 +85,11 @@ function expectBurst(shots: readonly Shot[], from: "player" | "enemy" = "player"
 
 describe("flak burst", () => {
   it("records the upgrade table and does not sell", () => {
+    // Wiki citations:
+    // > "Level Cost Charge time 1 - 50 sec" — [[Flak Artillery#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png 40 sec" — [[Flak Artillery#System Upgrades]]
+    // > "3 50 Ftlgame-scrap.png 30 sec" — [[Flak Artillery#System Upgrades]]
+    // > "4 80 Ftlgame-scrap.png 20 sec" — [[Flak Artillery#System Upgrades]]
     assert.equal(chargeFlakSeconds(1), 50);
     assert.equal(chargeFlakSeconds(2), 40);
     assert.equal(chargeFlakSeconds(3), 30);

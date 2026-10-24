@@ -14,6 +14,11 @@ import { createGame, openShipMenu, startCombat, upgrade } from "./sim.ts";
 
 describe("ship menu upgrades", () => {
   it("prices a sensors upgrade at 25, then 40, and does not sell level 4", () => {
+    // Wiki citations:
+    // > "2 25 Ftlgame-scrap.png See interior of all rooms on your and enemy ship" — [[Sensors#System Upgrades]]
+    // > "3 40 Ftlgame-scrap.png See interior of all rooms on your and enemy ship, see enemy weapons charge" — [[Sensors#System Upgrades]]
+    // > "4 N/A* (Additionally) See enemy systems level, power usage, ion damage, cooldown, repair and sabotage progress" — [[Sensors#System Upgrades]]
+    // > "Only available when Level 3 Sensors subsystem is manned." — [[Sensors#System Upgrades]]
     assert.equal(upgradeCost("sensors", 1), 25);
     assert.equal(upgradeCost("sensors", 2), 40);
     assert.equal(upgradeCost("sensors", 3), null);
@@ -26,6 +31,9 @@ describe("ship menu upgrades", () => {
   });
 
   it("does not sell a missing door system from the upgrade path", () => {
+    // Wiki citations:
+    // > "1 60* Ftlgame-scrap.png Normal Doors Remote opening/closing of doors" — [[Door System#System Upgrades]]
+    // > "Only the Rock Cruiser layout B (Shivan) does not have the Door System pre-installed." — [[Door System#System Upgrades]]
     const g = createGame(1);
     g.player.systems.doors.level = 0;
     g.scrap = 60;
@@ -35,6 +43,28 @@ describe("ship menu upgrades", () => {
   });
 
   it("charges the printed hacking, clone, artillery, and flak steps", () => {
+    // Wiki citations:
+    // > "2 35 Ftlgame-scrap.png 7 sec" — [[Hacking#System upgrades]]
+    // > "3 60 Ftlgame-scrap.png 10 sec" — [[Hacking#System upgrades]]
+    // > "1 80 Ftlgame-scrap.png 4 sec" — [[Hacking#System upgrades]]
+    // > "2 35 Ftlgame-scrap.png 9 sec" — [[Clone Bay#System Upgrades]]
+    // > "3 45 Ftlgame-scrap.png 7 sec" — [[Clone Bay#System Upgrades]]
+    // > "1 50** Ftlgame-scrap.png 12 sec" — [[Clone Bay#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png 10 sec" — [[Cloaking#System Upgrades]]
+    // > "3 50 Ftlgame-scrap.png 15 sec" — [[Cloaking#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png 15 sec" — [[Crew Teleporter#System Upgrades]]
+    // > "3 60 Ftlgame-scrap.png 10 sec" — [[Crew Teleporter#System Upgrades]]
+    // > "2 50 Ftlgame-scrap.png 4 temporary power bars" — [[Backup Battery#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png +15 Health, +25% combat damage boost" — [[Mind Control#System Upgrades]]
+    // > "3 60 Ftlgame-scrap.png +30 Health, +100% combat damage boost" — [[Mind Control#System Upgrades]]
+    // > "Level Cost Charge time 1 - 50 sec" — [[Artillery Beam#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png 40 sec" — [[Artillery Beam#System Upgrades]]
+    // > "3 50 Ftlgame-scrap.png 30 sec" — [[Artillery Beam#System Upgrades]]
+    // > "4 80 Ftlgame-scrap.png 20 sec" — [[Artillery Beam#System Upgrades]]
+    // > "Level Cost Charge time 1 - 50 sec" — [[Flak Artillery#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png 40 sec" — [[Flak Artillery#System Upgrades]]
+    // > "3 50 Ftlgame-scrap.png 30 sec" — [[Flak Artillery#System Upgrades]]
+    // > "4 80 Ftlgame-scrap.png 20 sec" — [[Flak Artillery#System Upgrades]]
     assert.deepEqual(
       [spikeUpgradeCost(1), spikeUpgradeCost(2), spikeUpgradeCost(3)],
       [35, 60, null],

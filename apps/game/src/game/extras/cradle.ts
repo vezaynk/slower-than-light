@@ -6,6 +6,9 @@ import { hackPulseOn } from "./spike.ts";
 import type { Crew, Game, Kit, SkillName } from "../types.ts";
 
 /** Wiki page "Clone Bay", section "System Upgrades": level 1 purchasing cost 50. */
+// Wiki citations:
+// > "1 50** Ftlgame-scrap.png 12 sec" — [[Clone Bay#System Upgrades]]
+// > "Purchasing or switching cost. (Medbay system upgrades are transferred to Clone Bay, and vice versa, automatically)" — [[Clone Bay#System Upgrades]]
 export const INSTALL_COST: number | null = 50;
 
 /** Wiki page "Clone Bay", section "System Upgrades": cloning takes 12 / 9 / 7 seconds. */
@@ -85,6 +88,9 @@ export function installCradle(g: Game) {
 }
 
 /** Clone Bay, "System Upgrades": level 2 costs 35, level 3 costs 45. Keyed by the level already owned. */
+// Wiki citations:
+// > "2 35 Ftlgame-scrap.png 9 sec" — [[Clone Bay#System Upgrades]]
+// > "3 45 Ftlgame-scrap.png 7 sec" — [[Clone Bay#System Upgrades]]
 const CRADLE_UPGRADE: Record<number, number> = { 1: 35, 2: 45 };
 
 export function cradleUpgradeCost(level: number): number | null {

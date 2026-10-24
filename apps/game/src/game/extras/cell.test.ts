@@ -42,6 +42,8 @@ function pushCell(level = 1): Kit {
 
 describe("battery", () => {
   it("gives 2 bars for 30s then cools for 20", () => {
+    // Wiki citations:
+    // > "1 35 Ftlgame-scrap.png 2 temporary power bars" — [[Backup Battery#System Upgrades]]
     const g = createGame(1);
     g.phase = "combat";
     g.scrap = 35;
@@ -74,6 +76,8 @@ describe("battery", () => {
   });
 
   it("upgrades to 4 bars for 50 scrap", () => {
+    // Wiki citations:
+    // > "2 50 Ftlgame-scrap.png 4 temporary power bars" — [[Backup Battery#System Upgrades]]
     const g = createGame(3);
     g.scrap = 85;
     installCell(g);

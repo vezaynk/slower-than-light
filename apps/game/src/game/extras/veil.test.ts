@@ -28,6 +28,8 @@ function arm(kit: Kit) {
 
 describe("cloaking", () => {
   it("pays 150, adds 60 evasion while up, blocks the shooter, then cools for 20", () => {
+    // Wiki citations:
+    // > "1 150 Ftlgame-scrap.png 5 sec" — [[Cloaking#System Upgrades]]
     const { g, kit } = fit();
     assert.equal(g.scrap, 250);
     assert.equal(g.log[0], "Cloaking fitted.");
@@ -236,6 +238,9 @@ describe("cloaking", () => {
   });
 
   it("upgrades for 30 then 50 and stretches the window to 10 and 15", () => {
+    // Wiki citations:
+    // > "2 30 Ftlgame-scrap.png 10 sec" — [[Cloaking#System Upgrades]]
+    // > "3 50 Ftlgame-scrap.png 15 sec" — [[Cloaking#System Upgrades]]
     const { g, kit } = fit(200);
     assert.equal(g.scrap, 50);
     upgradeVeil(g);

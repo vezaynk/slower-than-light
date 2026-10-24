@@ -7,8 +7,12 @@ import { interruptVeil } from "./veil.ts";
 import type { Game, Kit, Ship } from "../types.ts";
 
 /** Wiki page "Backup Battery", section "System Upgrades": level 1 cost 35. Also the store price to fit it. */
+// Wiki citations:
+// > "1 35 Ftlgame-scrap.png 2 temporary power bars" — [[Backup Battery#System Upgrades]]
 const INSTALL_COST = 35;
 /** Wiki page "Backup Battery", section "System Upgrades": level 2 cost 50. Paid to go from 1 to 2. */
+// Wiki citations:
+// > "2 50 Ftlgame-scrap.png 4 temporary power bars" — [[Backup Battery#System Upgrades]]
 const UPGRADE_COST = 50;
 
 export function cellUpgradeCost(level: number): number | null {

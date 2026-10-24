@@ -13,6 +13,8 @@ import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { hackPulseOn } from "./spike.ts";
 
 /** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
+// Wiki citations:
+// > "1 150 Ftlgame-scrap.png 5 sec" — [[Cloaking#System Upgrades]]
 const INSTALL_COST = 150;
 /** Wiki page "Cloaking", section "Overview": evasion is increased by a flat 60%. */
 const EVADE = 60;
@@ -22,6 +24,9 @@ const EVADE = 60;
  */
 const COOLDOWN = 20;
 /** Wiki page "Cloaking", section "System Upgrades": level 2 costs 30, level 3 costs 50. Keyed by the level already owned. */
+// Wiki citations:
+// > "2 30 Ftlgame-scrap.png 10 sec" — [[Cloaking#System Upgrades]]
+// > "3 50 Ftlgame-scrap.png 15 sec" — [[Cloaking#System Upgrades]]
 const UPGRADE_COST: Record<number, number> = { 1: 30, 2: 50 };
 
 export function veilUpgradeCost(level: number): number | null {

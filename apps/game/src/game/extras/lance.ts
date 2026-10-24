@@ -15,8 +15,12 @@ export const DISPLAY_NAME = "Artillery Beam";
  * INFERRED: null, so installLance spends no scrap. The page gives no purchase price.
  */
 export const INSTALL_COST: number | null = null;
+// Wiki citations:
+// > "Level Cost Charge time 1 - 50 sec" — [[Artillery Beam#System Upgrades]]
 
 /** Artillery Beam "System Upgrades" charge time: level 1 = 50 sec, 2 = 40, 3 = 30, 4 = 20. */
+// Wiki citations:
+// > "Level Cost Charge time 1 - 50 sec 2 30 Ftlgame-scrap.png 40 sec 3 50 Ftlgame-scrap.png 30 sec 4 80 Ftlgame-scrap.png 20 sec" — [[Artillery Beam#System Upgrades]]
 export const CHARGE_SECONDS: Record<number, number> = {
   1: 50,
   2: 40,
@@ -29,8 +33,14 @@ export const CHARGE_SECONDS: Record<number, number> = {
  * Level 1 on that table is "-", so it has no row here.
  */
 export const UPGRADE_COSTS: Record<number, number> = {
+  // Wiki citations:
+  // > "2 30 Ftlgame-scrap.png 40 sec" — [[Artillery Beam#System Upgrades]]
   2: 30,
+  // Wiki citations:
+  // > "3 50 Ftlgame-scrap.png 30 sec" — [[Artillery Beam#System Upgrades]]
   3: 50,
+  // Wiki citations:
+  // > "4 80 Ftlgame-scrap.png 20 sec" — [[Artillery Beam#System Upgrades]]
   4: 80,
 };
 

@@ -33,6 +33,10 @@ void startCombat;
 export const INSTALL_COST: number | null = 75;
 
 /** Mind Control wiki, "System Upgrades": level 2 costs 30, level 3 costs 60. */
+// Wiki citations:
+// > "1 75 Ftlgame-scrap.png Mind control 1 enemy crew" — [[Mind Control#System Upgrades]]
+// > "2 30 Ftlgame-scrap.png +15 Health, +25% combat damage boost" — [[Mind Control#System Upgrades]]
+// > "3 60 Ftlgame-scrap.png +30 Health, +100% combat damage boost" — [[Mind Control#System Upgrades]]
 export const UPGRADE_COST: Readonly<Record<number, number>> = { 2: 30, 3: 60 };
 
 /**

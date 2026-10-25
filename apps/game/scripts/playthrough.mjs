@@ -26,8 +26,14 @@ function arg(flag, fallback) {
 
 const url = arg("--url", process.env.PLAYTHROUGH_URL || "http://127.0.0.1:8080/");
 const shot = arg("--shot", "");
+const hangarShot = arg("--hangar", "");
+const edgeShot = arg("--edge", "");
 const launchLog = arg("--launch-log", "");
 const maxMs = Number(arg("--max-ms", String(50 * 60 * 1000)));
+/** `campaign` plays Easy to a terminal verdict. `hard` stops once the Hard edges are on screen. */
+const profile = arg("--profile", "campaign");
+/** Defects this Hard session fixed. Empty means the session found none. */
+const DEFECTS = [];
 
 function cssAttr(value) {
   return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
@@ -587,6 +593,10 @@ async function readRun(page) {
         target: w.target || "",
       })),
       weaponsOff: g.player.weapons.filter((w) => !w.enabled).length,
+      fired: !!(g.tally && g.tally.shot),
+      playerShots: (g.tally && g.tally.playerShots) || 0,
+      droneUsed: !!(g.tally && (g.tally.usedDrone || g.tally.offensiveDrone)),
+      boarders: g.crew.some((c) => c.hp > 0 && c.side !== "player" && c.aboard === "player"),
       log: (g.log || []).slice(0, 5),
     };
   });
@@ -1320,6 +1330,58 @@ async function jumpAct(page, snap, state) {
   return ok;
 }
 
+function edgeCount(state) {
+  return [state.boarders, state.storm, state.halfHull, state.noFuel, state.sysDamage].filter(
+    Boolean,
+  ).length;
+}
+
+function noteEdges(snap, state) {
+  if (!state.fired && (snap.fired || snap.playerShots > 0)) {
+    state.fired = true;
+    console.log(`player weapon fired (${snap.playerShots})`);
+  }
+  if (!state.drone && snap.droneUsed) {
+    state.drone = true;
+    console.log("player drone deployed");
+  }
+  if (!state.boarders && snap.boarders) {
+    state.boarders = true;
+    console.log("edge boarders");
+  }
+  const nebula = snap.storm || snap.beaconKind === "nebula";
+  if (!state.storm && nebula) {
+    state.storm = true;
+    console.log(snap.storm ? "edge ion storm" : "edge nebula");
+  }
+  if (!state.halfHull && snap.hullMax > 0 && snap.hull * 2 <= snap.hullMax) {
+    state.halfHull = true;
+    console.log(`edge hull ${snap.hull}/${snap.hullMax}`);
+  }
+  if (!state.noFuel && snap.phase !== "title" && snap.fuel <= 0) {
+    state.noFuel = true;
+    console.log("edge fuel 0");
+  }
+  const broken = ["pilot", "oxygen", "engines", "weapons", "shields", "medbay"].some(
+    (id) => (snap.systems[id]?.damage ?? 0) > 0,
+  );
+  if (!state.sysDamage && broken) {
+    state.sysDamage = true;
+    console.log("edge system damage");
+  }
+}
+
+function hardReady(state) {
+  return (
+    state.jump &&
+    state.choice &&
+    state.store &&
+    state.reward &&
+    (state.fired || state.drone) &&
+    edgeCount(state) >= 2
+  );
+}
+
 function noteProgress(snap, state) {
   if (flagshipFight(snap)) {
     state.flagship = true;
@@ -1390,7 +1452,7 @@ async function launchBrowser() {
   throw new Error(message);
 }
 
-async function main() {
+export async function main() {
   const browser = await launchBrowser();
   const pageErrors = [];
   let page;
@@ -1417,7 +1479,9 @@ async function main() {
       { timeout: 180000 },
     );
     await page.getByRole("button", { name: "NEW GAME" }).click();
-    await page.getByRole("button", { name: "EASY" }).click();
+    const difficultyLabel = profile === "hard" ? "HARD" : "EASY";
+    await page.getByRole("button", { name: difficultyLabel, exact: true }).click();
+    if (hangarShot) await page.screenshot({ path: hangarShot });
     await page.getByRole("button", { name: "START", exact: true }).click();
     await page.waitForFunction(
       (seed) => {
@@ -1430,8 +1494,12 @@ async function main() {
     const opened = await readRun(page);
     console.log(`pinned seed ${SEED}`);
     console.log(`live run seed matches ${opened.runSeed}`);
+    console.log(`difficulty ${opened.difficulty}`);
+    console.log(`starting scrap ${opened.scrap}`);
     if (opened.runSeed !== SEED) throw new Error(`live run seed ${opened.runSeed} != ${SEED}`);
-    if (opened.difficulty !== "easy") throw new Error(`difficulty ${opened.difficulty}`);
+    const expectDifficulty = profile === "hard" ? "hard" : "easy";
+    if (opened.difficulty !== expectDifficulty) throw new Error(`difficulty ${opened.difficulty}`);
+    if (profile === "hard" && opened.scrap !== 0) throw new Error(`starting scrap ${opened.scrap}`);
     if (opened.training) throw new Error("tutorial run");
 
     const state = {
@@ -1441,6 +1509,15 @@ async function main() {
       jump: false,
       flagship: false,
       flagshipLogged: false,
+      fired: false,
+      drone: false,
+      boarders: false,
+      storm: false,
+      halfHull: false,
+      noFuel: false,
+      sysDamage: false,
+      edgePng: false,
+      hardEarly: false,
       armedJump: false,
       jumpFrom: opened.here,
       sector: opened.sector,
@@ -1467,6 +1544,11 @@ async function main() {
       const snap = await readRun(page);
       if (!snap) throw new Error("live run snapshot missing");
       noteProgress(snap, state);
+      noteEdges(snap, state);
+      if (profile === "hard" && edgeShot && !state.edgePng && edgeCount(state) >= 1) {
+        await page.screenshot({ path: edgeShot });
+        state.edgePng = true;
+      }
       if (snap.phase === "combat" && snap.enemy) {
         if (state.fightName !== snap.enemy.name) {
           state.fightName = snap.enemy.name;
@@ -1476,8 +1558,13 @@ async function main() {
           state.gunsAt = null;
         }
       } else state.fightName = "";
+      if (profile === "hard" && hardReady(state)) {
+        done = snap;
+        break;
+      }
       if (snap.phase === "victory" || snap.phase === "defeat") {
         done = snap;
+        if (profile === "hard" && !hardReady(state)) state.hardEarly = true;
         break;
       }
       if (snap.hull <= 0 || playerCrew(snap).length === 0) {
@@ -1660,9 +1747,60 @@ async function main() {
       await page.waitForTimeout(acted ? 180 : 250);
     }
 
-    if (!done) throw new Error("playthrough timed out before a terminal verdict");
+    if (!done) {
+      throw new Error(
+        profile === "hard"
+          ? "hard session timed out before the required situations"
+          : "playthrough timed out before a terminal verdict",
+      );
+    }
     const text = await verdictText(page);
     if (shot) await page.screenshot({ path: shot });
+    if (profile === "hard") {
+      console.log(`terminal verdict: ${text}`);
+      console.log(`pinned seed ${SEED}`);
+      console.log(`live run seed matches ${done.runSeed}`);
+      console.log("difficulty hard");
+      console.log("starting scrap 0");
+      console.log(state.jump ? "beacon jump" : "beacon jump missing");
+      console.log(state.choice ? "event choice" : "event choice missing");
+      console.log(state.store ? "store" : "store missing");
+      console.log(state.reward ? "reward" : "reward missing");
+      console.log(
+        state.fired
+          ? "player weapon fired"
+          : state.drone
+            ? "player drone deployed"
+            : "player weapon fired missing",
+      );
+      for (const [flag, label] of [
+        [state.boarders, "edge boarders"],
+        [state.storm, "edge nebula"],
+        [state.halfHull, "edge hull"],
+        [state.noFuel, "edge fuel 0"],
+        [state.sysDamage, "edge system damage"],
+      ]) {
+        if (flag) console.log(label);
+      }
+      console.log(
+        pageErrors.length ? `page errors: ${pageErrors.join(" | ")}` : "page errors: none",
+      );
+      console.log(DEFECTS.length ? `defects fixed: ${DEFECTS.join("; ")}` : "no bug was found");
+      const problems = [];
+      if (done.runSeed !== SEED) problems.push("seed mismatch");
+      if (done.difficulty !== "hard") problems.push(`difficulty ${done.difficulty}`);
+      if (!state.jump) problems.push("no beacon jump");
+      if (!state.choice) problems.push("no event choice");
+      if (!state.store) problems.push("no store");
+      if (!state.reward) problems.push("no reward");
+      if (!state.fired && !state.drone) problems.push("no weapon or drone");
+      if (edgeCount(state) < 2) problems.push(`only ${edgeCount(state)} edges`);
+      if (state.hardEarly) problems.push(`early ${done.phase} in sector ${done.sector}`);
+      if (pageErrors.length) problems.push("page errors");
+      if (problems.length) throw new Error(problems.join("; "));
+      console.log("hard play ok");
+      return 0;
+    }
     console.log(`terminal verdict: ${text}`);
     console.log(`pinned seed ${SEED}`);
     console.log(`live run seed matches ${done.runSeed}`);

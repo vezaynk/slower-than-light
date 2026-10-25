@@ -17,6 +17,7 @@
     "typecheck": "tsc --noEmit",
     "test:src": "node --experimental-strip-types --test src/game/*.test.ts src/game/selftest.ts src/game/extras/*.test.ts src/game/wiki/*.test.ts src/game/pack/*.test.ts",
     "test": "node --test 'scripts/**/*.test.mjs' && pnpm test:src",
+    "playthrough": "node scripts/playthrough.mjs",
     "lint": "cd ../.. && ./node_modules/.bin/eslint apps/game"
   },
   "dependencies": {

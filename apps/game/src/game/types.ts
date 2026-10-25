@@ -834,7 +834,13 @@ export type AchieveTally = {
 };
 
 export type Game = {
+  /**
+   * RNG cursor. Map generation and later rolls move it.
+   * `runSeed` is the seed the run was built from and does not move.
+   */
   seed: number;
+  /** The seed passed to createGame. Absent on saves from before it was stored. */
+  runSeed?: number;
   uid: number;
   phase: Phase;
   paused: boolean;

@@ -31,7 +31,15 @@ import { SCRIPTED_SURRENDERS } from "./surrender-offers.ts";
 export { SCRIPTED_SURRENDERS };
 export type { ScriptedReward, ScriptedSurrender } from "./surrender-offers.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
-import { beginBoarding, intruderOnPlayer, log, rand, showEventLines, startCombat } from "../sim.ts";
+import {
+  beginBoarding,
+  intruderOnPlayer,
+  log,
+  rand,
+  sealEmptyEvent,
+  showEventLines,
+  startCombat,
+} from "../sim.ts";
 import type { Crew, Game } from "../types.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./bonus-item.ts";
 import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
@@ -873,6 +881,7 @@ export function pageResult(g: Game, text: string, offer?: SurrenderOffer) {
 export function pageCard(g: Game, body: string, choices: { id: string; label: string }[]) {
   g.event = { title: here(g)?.name ?? "Event", body, choices: stampStockLabels(choices) };
   g.phase = "event";
+  sealEmptyEvent(g);
 }
 
 /** Starts the page's fight. `escape` replaces the default escape plan when the page states its own. */

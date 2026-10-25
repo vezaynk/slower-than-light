@@ -7206,8 +7206,10 @@ export function createGame(
   difficulty: Difficulty = "normal",
   picks: CrewPick[] = [],
 ): Game {
+  const pinned = seed || 1;
   const g = {
-    seed: seed || 1,
+    seed: pinned,
+    runSeed: pinned,
     uid: 10,
     phase: "map",
     paused: false,
@@ -7533,9 +7535,31 @@ function arrive(g: Game, b: Beacon) {
   g.paused = true;
   g.event = eventFor(g, b);
   // An archive page's hostile ship, boarders, grants, and reward. A page without them is unchanged.
-  if (showArchiveArrival(g, b.flag)) return;
-  // The printed intro stays on the event card. The sky log does not repeat it.
+  showArchiveArrival(g, b.flag);
   // A page whose only outcome is a fight still shows that card. The button starts the fight.
+  // A card born with no button (the surrender-only collectors page) cannot be clicked away.
+  sealEmptyEvent(g);
+}
+
+/**
+ * An event card with no choice never leaves the beacon. When the beacon's own page still
+ * has a hail and buttons, those stay. Otherwise Continue resolves the beacon.
+ */
+export function sealEmptyEvent(g: Game): void {
+  if (g.phase !== "event" || !g.event || g.event.choices.length > 0) return;
+  const beacon = g.beacons.find((item) => item.id === g.here);
+  const id = (beacon?.flag ?? "").replace(/^(cited:|filler:)/, "");
+  const page = id ? eventDef(id) : undefined;
+  const titled = g.event.title === page?.dest || g.event.title === beacon?.name;
+  if (page && page.choices.length > 0 && !g.event.body.trim() && page.body.trim() && titled) {
+    g.event = {
+      title: g.event.title || page.dest,
+      body: page.body,
+      choices: page.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+    };
+    return;
+  }
+  g.event = { ...g.event, choices: [{ id: "ack", label: "Continue" }] };
 }
 
 /**
@@ -8323,14 +8347,26 @@ export function stepShots(g: Game, dt: number) {
   g.shots = g.shots.filter((s) => s.t < 1 && !stopped.has(s.id));
 }
 
-/** A death from fire or from suffocation, with no enemy hull on the tick. */
-function finishIdleDeaths(g: Game) {
-  if (!g.crew.some((c) => c.hp <= 0)) return;
-  reap(g);
+/**
+ * A death from fire, sabotage, or suffocation, with no enemy hull on the tick.
+ * Hull at zero ends the run even when nobody died this frame. A crew wipe ends it
+ * only while the hull is still intact, so a burned-out hull is the hull defeat.
+ * Returns true once the run is over.
+ */
+function finishIdleDeaths(g: Game): boolean {
   if (g.phase !== "map" && g.phase !== "event" && g.phase !== "store" && g.phase !== "reward")
-    return;
+    return false;
+  if (g.crew.some((c) => c.hp <= 0)) reap(g);
+  if (g.player.hull <= 0) {
+    lose(g, "hull");
+    return true;
+  }
   const live = g.crew.some((c) => c.side === "player" && (c.hp > 0 || (c.cloneIn ?? 0) > 0));
-  if (!live && g.player.hull > 0) lose(g, "crew");
+  if (!live) {
+    lose(g, "crew");
+    return true;
+  }
+  return false;
 }
 
 function idleShip(g: Game): boolean {
@@ -8418,7 +8454,8 @@ function playerShipTick(g: Game, h: number) {
   moveCrew(g, h);
   life(g, g.player, "player", h);
   rerouteRepaired(g);
-  finishIdleDeaths(g);
+  // Suffocation and burns land in life(). A hull still above zero with nobody left ends here.
+  if (finishIdleDeaths(g)) return;
   noteZoltanKits(g);
   settleZoltanPower(g);
   shieldRegen(g, g.player, "player", h);
@@ -8433,6 +8470,9 @@ function playerShipTick(g: Game, h: number) {
   if (enemyAboard(g)) wanderBoarders(g, h);
   // Engines, "FTL Drive charge time": the map keeps charging through a hazard, and finishes at once without one.
   chargeFtl(g, h);
+  // Fires, "Boarding, Combat": a system destroyed by sabotage deals 1 hull. That lands in tickExtras,
+  // after the crew check above, so a hull that just hit zero still ends the run on this tick.
+  finishIdleDeaths(g);
 }
 
 /**
@@ -8487,7 +8527,12 @@ export function step(g: Game, dt: number) {
         // Intruders already on your ship keep fighting here, including after that ship is gone.
         playerShipTick(g, h);
         // Environmental Hazards: the field, the pulsar, the star, and the battery keep ticking until the jump.
-        if (g.phase !== "combat" && (g.asteroid || g.pulsar || g.flare || g.asb))
+        // A hull that already failed stays on the defeat card.
+        if (
+          g.phase !== "combat" &&
+          g.phase !== "defeat" &&
+          (g.asteroid || g.pulsar || g.flare || g.asb)
+        )
           tickLingeringHazards(g, h);
       }
     }

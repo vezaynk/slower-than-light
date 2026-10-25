@@ -372,6 +372,29 @@ describe("crew room orders", () => {
     assert.equal(g.log[0], "That room is full.");
   });
 
+  it("lets a crew member walk into a room that boarders have filled", () => {
+    const g = createGame(4, "PLAYER_SHIP_HARD");
+    g.phase = "combat";
+    const ada = g.crew.find((c) => c.name === "Ada Voss")!;
+    const oxygen = g.player.rooms.find((r) => r.id === "p-oxygen")!;
+    assert.equal(roomCapacity(oxygen, "player", interiorLinks(g.player.doors, oxygen.id)), 2);
+    const board = (id: string) => ({
+      ...ada,
+      id,
+      name: id,
+      side: "enemy" as const,
+      room: "p-oxygen",
+      path: [] as string[],
+      hp: 100,
+      maxHp: 100,
+    });
+    g.crew.push(board("b1"), board("b2"));
+    ada.room = "p-engines";
+    ada.path = [];
+    assert.equal(orderCrew(g, ada.id, "p-oxygen"), "ok");
+    assert.equal(ada.path.at(-1), "p-oxygen");
+  });
+
   it("lets a Crystal finish leaving a coated room through a shut door", () => {
     const g = createGame(9);
     g.phase = "map";

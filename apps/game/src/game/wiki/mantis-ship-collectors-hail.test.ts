@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { pageCard } from "./surrender.ts";
 
 const HAIL =
   'You are immediately hailed by an impressive-looking Mantis ship, "Your ship would make a mighty fine prize. Prepare for battle!"';
@@ -72,5 +73,46 @@ describe("Mantis ship-collectors hail", () => {
     const enemyCrew = g.crew.filter((c) => c.side === "enemy" && c.aboard === "enemy");
     assert.ok(enemyCrew.length > 0);
     assert.ok(enemyCrew.every((c) => c.kin === "mantis"));
+  });
+
+  it("a surrender-only collectors page still offers a way off the beacon", () => {
+    const g = createGame(1);
+    const here = g.beacons.find((b) => b.id === g.here);
+    assert.ok(here?.links[0]);
+    const dest = g.beacons.find((b) => b.id === here!.links[0]);
+    assert.ok(dest);
+    dest.kind = "event";
+    dest.flag = "quest-mantis-chase";
+    dest.name = "Quest stub";
+    dest.resolved = false;
+    dest.tier = "";
+    dest.col = 20;
+    g.fuel = 3;
+    g.fleet = 0;
+    g.sector = 1;
+    g.phase = "map";
+    g.event = null;
+    commitJump(g, dest.id);
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.title, "Mantis ship-collectors");
+    assert.ok((g.event?.choices.length ?? 0) > 0);
+    assert.equal(g.event?.choices[0]?.id, "ack");
+    choose(g, "ack");
+    assert.equal(g.phase, "map");
+    assert.equal(g.event, null);
+  });
+
+  it("puts the Mantis Fighter button back when the collectors card is born empty", () => {
+    const g = createGame(1);
+    const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
+    assert.ok(b);
+    b.flag = "DONOR_MANTIS_CHASE";
+    b.name = "Mantis ship-collectors";
+    g.here = b.id;
+    g.phase = "map";
+    g.event = null;
+    pageCard(g, "", []);
+    assert.equal(g.event?.body, HAIL);
+    assert.equal(g.event?.choices[0]?.id, "c:mantis-ship-collectors:0");
   });
 });

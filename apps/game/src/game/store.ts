@@ -2,7 +2,16 @@
 import { create, type StoreApi, type UseBoundStore } from "zustand";
 import { noteRun } from "./wiki/achievement-track.ts";
 import { noteUnlocks } from "./unlock-store.ts"; // @agent:unlocks
-import { createGame, loadGame, restartRun, saveGame, step, titleHandoff } from "./sim.ts";
+import { readPinnedSeed, resolveRunSeed } from "./run-seed.ts";
+import {
+  createGame,
+  loadGame,
+  restartRun,
+  saveGame,
+  sealEmptyEvent,
+  step,
+  titleHandoff,
+} from "./sim.ts";
 import type { CrewPick } from "./crew-look.ts";
 import type { Difficulty, Game } from "./types.ts";
 
@@ -29,6 +38,7 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
     tick: (dt) => {
       const game = get().game;
       step(game, dt);
+      sealEmptyEvent(game);
       noteRun(game);
       noteUnlocks(game);
     },
@@ -36,6 +46,7 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
     act: (fn) => {
       const game = get().game;
       fn(game);
+      sealEmptyEvent(game);
       noteRun(game);
       noteUnlocks(game);
       saveGame(game);
@@ -52,7 +63,8 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
     },
     newRun: (hullId?: string, difficulty: Difficulty = "normal", crew: CrewPick[] = []) => {
       const prev = get().played ?? get().game;
-      const seed = (Date.now() ^ 0x9e3779b9) >>> 0 || 1;
+      // A page may pin __stlSeed before START. Otherwise the run is mixed from the clock.
+      const seed = resolveRunSeed(readPinnedSeed(), Date.now());
       // Sectors, Hidden Crystal Worlds: the next hangar start reads the run the player was playing.
       const next = restartRun(prev, seed, hullId, difficulty, crew);
       noteRun(next);
@@ -61,7 +73,7 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
       set({ game: next, played: null, version: get().version + 1 });
     },
     restartSame: (prev) => {
-      const seed = (Date.now() ^ 0x9e3779b9) >>> 0 || 1;
+      const seed = resolveRunSeed(readPinnedSeed(), Date.now());
       // Sectors, Hidden Crystal Worlds: verdict RESTART reads the run on screen.
       const next = restartRun(prev, seed, prev.hullId, prev.difficulty);
       noteRun(next);

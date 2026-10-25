@@ -3733,6 +3733,7 @@ function EventCard({ game }: { game: Game }) {
                 key={c.id}
                 type="button"
                 className="choice-line"
+                data-choice={c.id}
                 data-phone-action="choice"
                 disabled={!!why || locked}
                 onClick={() => {
@@ -4885,6 +4886,7 @@ function MapScreen({ game }: { game: Game }) {
                     type="button"
                     className={`map-beacon${open ? " is-linked" : ""}${b.visited ? " is-visited" : ""}${swallowed ? " is-over" : ""}${soon ? " is-warn" : ""}${nebula ? " is-nebula" : ""}${tag ? ` is-${tag.toLowerCase()}` : ""}${mark ? " has-mark" : ""}`}
                     disabled={!open || ftlDriveCharging(game)}
+                    data-beacon={b.id}
                     aria-label={tag || "Beacon"}
                     style={mark ? { backgroundImage: `url(${mark})` } : undefined}
                     onClick={() => jumpTo(b.id)}
@@ -5027,6 +5029,7 @@ function SectorChart({ game }: { game: Game }) {
                 className={`beacon is-${sectorTone(b.group)}${linked ? " is-linked" : ""}${past ? " is-past" : ""}`}
                 style={{ left: pct(mapX(b.col), w), top: pct(mapY(b.row), h) }}
                 disabled={!linked}
+                data-node={b.id}
                 aria-label={sectorTag(b)}
                 onClick={() => act((g) => chooseSector(g, b.id))}
               />
@@ -5059,7 +5062,12 @@ function SectorChart({ game }: { game: Game }) {
       </div>
       <div className="sector-picks">
         {next.map((b, i) => (
-          <button key={b.id} type="button" onClick={() => act((g) => chooseSector(g, b.id))}>
+          <button
+            key={b.id}
+            type="button"
+            data-node={b.id}
+            onClick={() => act((g) => chooseSector(g, b.id))}
+          >
             {i + 1}. {sectorTag(b)}
           </button>
         ))}

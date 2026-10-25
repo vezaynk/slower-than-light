@@ -347,9 +347,12 @@ export function mayStand(
   interiorDoors: number,
 ): boolean {
   const cap = roomCapacity(room, side, interiorDoors);
+  const self = crew.find((c) => c.id === id);
   let held = 0;
   for (const other of crew) {
     if (other.id === id || other.hp <= 0 || other.aboard !== aboard) continue;
+    // Boarders share the room so the fight can happen. They do not use up this side's spots.
+    if (self?.side && other.side && other.side !== self.side) continue;
     const there =
       other.path.length === 0 ? other.room === dest : other.path[other.path.length - 1] === dest;
     if (there) held += 1;

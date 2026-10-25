@@ -41,6 +41,7 @@ import {
   log,
   openStoreHere,
   rand,
+  sealEmptyEvent,
   showEventLines,
   shutPlayerHacking,
 } from "../sim.ts";
@@ -397,6 +398,7 @@ export function result(
   };
   g.phase = "event";
   g.paused = true;
+  sealEmptyEvent(g);
 }
 
 export function card(g: Game, body: string, choices: Choice[]) {

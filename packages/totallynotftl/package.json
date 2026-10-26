@@ -17,8 +17,7 @@
     "@stl/catalog": "workspace:*",
     "@stl/ftldat": "workspace:*",
     "@stl/hyperspace": "workspace:*",
-    "@stl/pack": "workspace:*",
-    "@xmldom/xmldom": "^0.9.12"
+    "@stl/pack": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.16.5",

@@ -22,6 +22,8 @@ type Store = {
   played: Game | null;
   /** Where a finished run returns. The hangar is not a phase. */
   boot: "title" | "hangar";
+  /** Bumped when the combat reel swaps scenes. The sim's own seed changes every roll, so it cannot key the screen. */
+  frame: number;
   tick: (dt: number) => void;
   bump: () => void;
   act: (fn: (g: Game) => void) => void;
@@ -31,7 +33,7 @@ type Store = {
   continueRun: () => boolean;
 };
 
-type Actions = Omit<Store, "version" | "game" | "played" | "boot">;
+type Actions = Omit<Store, "version" | "game" | "played" | "boot" | "frame">;
 
 function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getState"]): Actions {
   return {
@@ -105,7 +107,7 @@ export const useGame: UseBoundStore<StoreApi<Store>> =
   create<Store>((set, get) => {
     const game = createGame(1);
     game.phase = "title";
-    return { version: 0, boot: "title", game, played: null, ...actions(set, get) };
+    return { version: 0, boot: "title", frame: 0, game, played: null, ...actions(set, get) };
   });
 
 if (shared) shared.setState(actions(shared.setState, shared.getState));
@@ -134,4 +136,10 @@ export function goTitle(boot: "title" | "hangar"): void {
   const onScreen = useGame.getState().game;
   if (onScreen.phase !== "title") useGame.setState({ played: onScreen });
   useGame.getState().toTitle(boot);
+}
+
+// The combat reel is a dev-only window hook. The import waits until this module has finished
+// creating the store, and production builds drop the branch.
+if (import.meta.env?.DEV) {
+  void import("./reel.ts").then((m) => m.installReel());
 }

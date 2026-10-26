@@ -2,7 +2,7 @@
 
 Lighter Than Air is a runtime and mod loader implementing the [FTL: Hyperspace](https://ftl-hyperspace.github.io/FTL-Hyperspace/en/) API on the web as a universal platform.
 
-This is a fundementally different approach to all the other clean-room implementations as its primarily goal is mod compatibility rather than gameplay fidelity.
+This is a fundamentally different approach to all the other clean-room implementations as its primary goal is mod compatibility rather than gameplay fidelity.
 
 # Why?
 
@@ -34,7 +34,7 @@ Hyperspace is almost there. We're missing the Lua API coverage for the moment.
 
 - [ ] LTA: Lighter Than Air
 
-Currently, the project is on track to ship with two modes of play: via `ftl.dat` (real FTL campaign, requiring uploading a game file) and `totallynoftl.dat` (which is entirely devoid of polish).
+Currently, the project is on track to ship with two modes of play: via `ftl.dat` (real FTL campaign, requiring uploading a game file) and `totallynotftl.dat` (which is entirely devoid of polish).
 
 I would like to ship a new campaign as part of this project with a real story, fresh assets, new mechanics and so on, so that LTA has something to offer out of the box.
 
@@ -46,7 +46,7 @@ FTL: Multiverse has not yet been tested or played on the LTA engine.
 
 - [ ] Publishing Android and iOS builds
 
-I'm having issues with my iOS developer account and it's blocking me from publishing. I have an Google Play account but no Android device test on.
+I'm having issues with my iOS developer account and it's blocking me from publishing. I have a Google Play account but no Android device to test on.
 
 Until I resolve either, it's going to be the web build only.
 

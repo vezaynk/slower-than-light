@@ -29,6 +29,7 @@ import type {
   RewardTable,
   RollEntry,
   SectorDef,
+  ShipClassDef,
   StoreDef,
   StoreLine,
   SurrenderOfferDef,
@@ -163,7 +164,7 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
 }
 
 /**
- * The gap file: faction offers, stores, the rewards block, and empty beacons.
+ * The gap file: faction offers, stores, the rewards block, empty beacons, and ship classes.
  * Crew combat and sector notes are appends, because they edit a record the archive already has.
  */
 export function emitGapDocument(pack: ContentPack): string {
@@ -175,7 +176,18 @@ export function emitGapDocument(pack: ContentPack): string {
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
+  for (const row of pack.shipClasses ?? []) add(root, shipClassElement(doc, row));
   return prettyXml(serializer.serializeToString(doc));
+}
+
+function shipClassElement(doc: XmlDocument, row: ShipClassDef): XmlElement {
+  const attrs: Record<string, string> = {
+    name: row.id,
+    class: row.classId,
+    blueprint: row.blueprint,
+  };
+  if (row.pirate) attrs.pirate = row.pirate;
+  return element(doc, "shipClass", attrs);
 }
 
 /**
@@ -248,9 +260,14 @@ export function emitConditionAppend(rows: readonly AchievementDef[]): string {
   if (!root) throw new Error("pack document has no root");
   doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
   for (const row of rows) {
-    if (!row.condition) continue;
+    if (!row.condition && !row.slug) continue;
     const find = element(doc, "mod:findLike", { type: "achievement" });
     add(find, element(doc, "mod:selector", { id: row.id }));
+    if (row.slug) add(find, leaf(doc, "mod-append:slug", row.slug));
+    if (!row.condition) {
+      add(root, find);
+      continue;
+    }
     const condition = element(doc, "mod-overwrite:condition", {});
     const top = "all" in row.condition ? row.condition.all : [row.condition];
     for (const part of top) add(condition, conditionElement(doc, part));
@@ -340,6 +357,10 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   if (texts.length > 1 && event.body !== "" && event.body !== texts[0]) attrs.intro = "after";
   const node = element(doc, "event", attrs);
   add(node, leaf(doc, "title", event.dest));
+  for (const alias of event.aliases) {
+    if (alias && alias !== event.id) add(node, leaf(doc, "alias", alias));
+  }
+  for (const sector of event.sectors) if (sector) add(node, leaf(doc, "sector", sector));
   const lines =
     texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
   for (const line of lines) add(node, leaf(doc, "text", line));
@@ -352,7 +373,9 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   if (event.grade) add(node, gradeElement(doc, event.grade));
   for (const card of event.cards ?? []) add(node, cardElement(doc, card));
   for (const choice of event.choices) {
-    const choiceNode = element(doc, "choice", { name: choice.id });
+    const choiceAttrs: Record<string, string> = { name: choice.id };
+    if (choice.owner) choiceAttrs.owner = choice.owner;
+    const choiceNode = element(doc, "choice", choiceAttrs);
     add(choiceNode, leaf(doc, "text", choice.label));
     for (const req of choice.reqs ?? []) add(choiceNode, reqElement(doc, req));
     let placedGift = false;
@@ -417,7 +440,7 @@ function cardElement(doc: XmlDocument, card: EventCard): XmlElement {
   const node = element(doc, "card", {});
   add(node, leaf(doc, "text", card.body));
   for (const choice of card.choices)
-    add(node, choiceElement(doc, choice.id, choice.label, choice.reqs, choice.gift));
+    add(node, choiceElement(doc, choice.id, choice.label, choice.reqs, choice.gift, choice.owner));
   return node;
 }
 
@@ -462,8 +485,11 @@ function choiceElement(
   label: string,
   reqs?: ChoiceReq[],
   gift?: ChoiceGift,
+  owner?: string,
 ): XmlElement {
-  const node = element(doc, "choice", { name: id });
+  const attrs: Record<string, string> = { name: id };
+  if (owner) attrs.owner = owner;
+  const node = element(doc, "choice", attrs);
   add(node, leaf(doc, "text", label));
   for (const req of reqs ?? []) add(node, reqElement(doc, req));
   if (gift) add(node, fuelModify(doc, gift));

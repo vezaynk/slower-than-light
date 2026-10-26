@@ -16,7 +16,7 @@ import {
 import { listWasPlayed, resetPlayedLists } from "./played-lists.ts";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
-import type { AugmentId, KitId, SysId } from "@stl/catalog";
+import type { AugmentId, KitId, SysId } from "@stl/pack";
 import type { FtlExtract } from "@stl/ftldat";
 import {
   CJK_FACES,

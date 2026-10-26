@@ -1,11 +1,4 @@
-import { MOUNT_IMAGES } from "@stl/catalog/src/weapon-mounts.ts";
-import {
-  pictureForRooms,
-  ROOM_PX,
-  type HullMount,
-  type HullMountSlide,
-  type HullPicture,
-} from "@stl/pack";
+import { ROOM_PX, type HullMount, type HullMountSlide, type HullPicture } from "@stl/pack";
 
 /**
  * Archive pixels a gun travels along `slide` when it powers up.
@@ -91,22 +84,14 @@ export function gunHeight(pitch: number): number {
   return (GUN_ART.h / GUN_ART.w) * GUN_PX * (pitch / ROOM_PX);
 }
 
-function samePicture(a: HullPicture, b: HullPicture): boolean {
-  return a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h;
-}
-
 /**
  * The image the hardpoints were measured on.
- * A stand-in picture is the room box, so the archive image box is used.
- * A picture from a loaded drawing file is that file's own box.
+ * A loaded drawing file stores that box on the hull. Callers still pass the layout and the rooms.
  */
 export function mountImage(
-  layout: string,
+  _layout: string,
   picture: HullPicture | undefined,
-  rooms: readonly { x: number; y: number; w: number; h: number }[] | undefined,
+  _rooms: readonly { x: number; y: number; w: number; h: number }[] | undefined,
 ): HullPicture | undefined {
-  const archive = MOUNT_IMAGES[layout];
-  const placeholder = rooms && rooms.length > 0 ? pictureForRooms(rooms) : undefined;
-  if (picture && placeholder && archive && samePicture(picture, placeholder)) return archive;
-  return picture ?? archive;
+  return picture;
 }

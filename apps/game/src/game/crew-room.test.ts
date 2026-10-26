@@ -12,7 +12,7 @@ import {
   roomConsole,
 } from "./crew-spots.ts";
 import { installSling, sendSling } from "./extras/sling.ts";
-import { HULLS } from "./hulls.ts";
+import { playerHulls } from "./hulls.ts";
 import {
   healingIds,
   canDismiss,
@@ -89,7 +89,7 @@ describe("furniture keeps clear of doors (per the user)", () => {
   it("hangs every terminal display on a wall with no door, and puts medical machines on tiles no door touches", () => {
     const step: Record<string, [number, number]> = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
     const opposite: Record<string, string> = { n: "s", e: "w", s: "n", w: "e" };
-    for (const hull of HULLS) {
+    for (const hull of playerHulls()) {
       const g = createGame(1, hull.id);
       const ship = g.player;
       const edges = new Set<string>();
@@ -326,9 +326,8 @@ describe("crew room orders", () => {
   it("will not end a walk in a room that has no standing spot left", () => {
     const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
-    const ada = g.crew.find((c) => c.name === "Ada Voss")!;
-    const ivo = g.crew.find((c) => c.name === "Ivo Park")!;
-    const nen = g.crew.find((c) => c.name === "Nen Hale")!;
+    const [ada, ivo, nen] = g.crew.filter((c) => c.side === "player");
+    assert.ok(ada && ivo && nen);
     const oxygen = g.player.rooms.find((r) => r.id === "p-oxygen")!;
     const medbay = g.player.rooms.find((r) => r.id === "p-medbay")!;
     assert.equal(roomCapacity(oxygen, "player", interiorLinks(g.player.doors, oxygen.id)), 2);
@@ -380,7 +379,8 @@ describe("crew room orders", () => {
   it("lets a crew member walk into a room that boarders have filled", () => {
     const g = createGame(4, "PLAYER_SHIP_HARD");
     g.phase = "combat";
-    const ada = g.crew.find((c) => c.name === "Ada Voss")!;
+    const ada = g.crew.find((c) => c.side === "player")!;
+    assert.ok(ada);
     const oxygen = g.player.rooms.find((r) => r.id === "p-oxygen")!;
     assert.equal(roomCapacity(oxygen, "player", interiorLinks(g.player.doors, oxygen.id)), 2);
     const board = (id: string) => ({
@@ -522,9 +522,9 @@ describe("manning terminal", () => {
     const engines = g.player.rooms.find((r) => r.id === "p-engines");
     const oxygen = g.player.rooms.find((r) => r.id === "p-oxygen");
     const medbay = g.player.rooms.find((r) => r.id === "p-medbay");
-    const ivo = g.crew.find((c) => c.name === "Ivo Park");
-    const ada = g.crew.find((c) => c.name === "Ada Voss");
+    const [ada, ivo] = g.crew.filter((c) => c.side === "player");
     assert.ok(engines && oxygen && medbay && ivo && ada);
+    ivo.room = "p-engines";
     // Door System picture: "(console on the right)". Engines is 2×2 at (1, 2), so the top-right tile.
     assert.deepEqual(roomConsole(engines, g.player), { x: 2, y: 2 });
     assert.equal(roomConsole(oxygen, g.player), null);

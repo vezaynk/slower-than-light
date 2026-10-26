@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { allWeapons } from "@stl/pack";
 import { applyImpact, createGame, fireReady, rand, startCombat } from "../sim.ts";
+import "../pack/base.ts";
 import { ACQUIRE_S, enemyDefenseIntercept, tickSwarm } from "./swarm.ts";
 import {
   FLAK1_FAKE,
   FLAK1_FAKE_LABEL,
   FLAK1_NARROW_CUTS,
   FLAK1_WIDE_CUTS,
-  ORDNANCE,
   bombIgnores,
   flak1AimRolls,
   flak1Landing,
@@ -16,19 +17,19 @@ import {
 
 describe("ordnance", () => {
   it("includes both a flak gun and a bomb", () => {
-    const kinds = new Set(ORDNANCE.map((w) => w.kind));
+    const kinds = new Set(allWeapons().map((w) => w.kind));
     assert.ok(kinds.has("flak"));
     assert.ok(kinds.has("bomb"));
   });
 
   it("gives Flak I at least three pellets", () => {
-    const scatter = ORDNANCE.find((w) => w.name === "Flak I");
+    const scatter = allWeapons().find((w) => w.name === "Flak I");
     assert.ok(scatter);
     assert.ok(scatter.shots >= 3);
   });
 
   it("makes the Fire Bomb spend a missile and ignore shields and evasion", () => {
-    const cask = ORDNANCE.find((w) => w.name === "Fire Bomb");
+    const cask = allWeapons().find((w) => w.name === "Fire Bomb");
     assert.ok(cask);
     assert.equal(cask.ammo, true);
     assert.equal(bombIgnores(cask), true);

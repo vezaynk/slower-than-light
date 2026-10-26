@@ -54,10 +54,9 @@ describe("event pages", () => {
     assert.equal(pay(g, "c:ember:0"), true);
     assert.equal(g.scrap, before + 7);
     assert.equal(allEvents().at(-1)?.id, "ember");
-    assert.equal(
-      citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.slug === "ember"),
-      false,
-    );
+    const pages = citedPagesFor("CIVILIAN_SECTOR");
+    assert.equal(pages.at(-1)?.slug, "ember");
+    assert.notEqual(pages[0]?.slug, "ember");
   });
 
   it("starts the fight an appended choice names", () => {

@@ -24,7 +24,8 @@ import {
   hurtArtillery,
   surgeDroneCount,
 } from "./flagship-systems.ts";
-import { WEAPONS } from "../content.ts";
+import { weaponDef } from "@stl/pack";
+import "../pack/base.ts";
 import { applyImpact, commitJump } from "../sim.ts";
 
 function bossFight(seed: number, difficulty: Game["difficulty"] = "normal"): Game {
@@ -323,8 +324,8 @@ describe("@agent:flagship Rebel Flagship artillery, retreat, surge stun, AI dodg
     const g = bossFight(31);
     const e = g.enemy!;
     e.systems.weapons.power = 0;
-    assert.equal(WEAPONS.ARTILLERY_BOSS_1.power, 4);
-    assert.equal(WEAPONS.ARTILLERY_BOSS_3.power, 3);
+    assert.equal(weaponDef("ARTILLERY_BOSS_1")!.power, 4);
+    assert.equal(weaponDef("ARTILLERY_BOSS_3")!.power, 3);
     const mask = powerMask(e);
     const laser = e.weapons.findIndex((w) => w.defId === "ARTILLERY_BOSS_1");
     const beam = e.weapons.findIndex((w) => w.defId === "ARTILLERY_BOSS_3");
@@ -336,15 +337,15 @@ describe("@agent:flagship Rebel Flagship artillery, retreat, surge stun, AI dodg
   });
 
   it("prints the boss weapon stats", () => {
-    assert.equal(WEAPONS.ARTILLERY_BOSS_1.shots, 3);
-    assert.equal(WEAPONS.ARTILLERY_BOSS_1.gap, 0);
-    assert.equal(WEAPONS.ARTILLERY_BOSS_1.damage, 1);
-    assert.equal(WEAPONS.ARTILLERY_BOSS_1.fire, 0.1);
-    assert.equal(WEAPONS.ARTILLERY_BOSS_1.breach, 0.09);
-    assert.equal(WEAPONS.ARTILLERY_BOSS_3.kind, "beam");
-    assert.equal(WEAPONS.ARTILLERY_BOSS_3.damage, 2);
-    assert.equal(WEAPONS.ARTILLERY_BOSS_2.fire, 0.3);
-    assert.equal(WEAPONS.ARTILLERY_BOSS_2.breach, 0.14);
+    assert.equal(weaponDef("ARTILLERY_BOSS_1")!.shots, 3);
+    assert.equal(weaponDef("ARTILLERY_BOSS_1")!.gap, 0);
+    assert.equal(weaponDef("ARTILLERY_BOSS_1")!.damage, 1);
+    assert.equal(weaponDef("ARTILLERY_BOSS_1")!.fire, 0.1);
+    assert.equal(weaponDef("ARTILLERY_BOSS_1")!.breach, 0.09);
+    assert.equal(weaponDef("ARTILLERY_BOSS_3")!.kind, "beam");
+    assert.equal(weaponDef("ARTILLERY_BOSS_3")!.damage, 2);
+    assert.equal(weaponDef("ARTILLERY_BOSS_2")!.fire, 0.3);
+    assert.equal(weaponDef("ARTILLERY_BOSS_2")!.breach, 0.14);
   });
 
   it("the Boss Missile fires in stage 1", () => {

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { allEvents, sectorDef } from "@stl/pack";
 import { choiceDisabled, choose, chooseSector, commitJump, createGame, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
-import { EXTRA_EVENTS as SURRENDER_PAGES } from "./cited-events-surrender.ts";
+import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 import {
   addQuest,
@@ -343,8 +344,12 @@ describe("Slug comm tapping", () => {
     // > "Let the pirate escape and go after the Slugman ship." — [[Slug comm tapping#Quest Marker]]
     // > "The pirate's too badly damaged to pursue you, and you catch up to the Slugs before they jump. \"Ah, of courssse, we would never leave without providing the agreed upon ssspoils.\" They transfer over a decent chunk of the profits and set off." — [[Slug comm tapping#Quest Marker]]
     // > "You receive high scrap." — [[Slug comm tapping#Quest Marker]]
-    const ev = SURRENDER_PAGES.find((e) => e.dest === "Slug comm tapping")!;
-    assert.deepEqual(ev.sectors, ["Slug Controlled Nebula", "Slug Home Nebula"]);
+    const ev = allEvents().find((e) => e.dest === "Slug comm tapping" && e.sectors.length > 0);
+    assert.ok(ev);
+    assert.deepEqual(
+      ev.sectors.map((id) => sectorDef(id)?.name ?? id),
+      ["Slug Controlled Nebula", "Slug Home Nebula"],
+    );
     const g = atCited(createGame(8), "Slug Home Nebula", "Slug comm tapping");
     choose(g, "c:slug-comm-tapping:0");
     assert.ok(g.event!.body.includes(QUEST_ADDED));

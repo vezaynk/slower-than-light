@@ -3,8 +3,8 @@ import { describe, it } from "node:test";
 import { BUNDLE_OTHER, BUNDLE_PATCH } from "../extras/swarm.ts";
 import { buy, commitJump, createGame, openStoreHere, startCombat, step } from "../sim.ts";
 import type { Game, Kit, KitId, StockItem, WeaponInst } from "../types.ts";
+import { allDrones } from "@stl/pack";
 import {
-  CITED_DRONES,
   CRYSTAL_SECTOR_WEAPONS,
   citedSell,
   citedSellQuote,
@@ -608,20 +608,21 @@ describe("cited stores", () => {
   });
 
   it("stocks three single-price schematics when Drone Control is fitted", () => {
+    const drones = allDrones();
     assert.equal(
-      CITED_DRONES.some((row) => row.name === "Anti-Ship Fire Drone" || row.name === "Fire Drone"),
+      drones.some((row) => row.name === "Anti-Ship Fire Drone" || row.name === "Fire Drone"),
       false,
     );
     assert.equal(
-      CITED_DRONES.some((row) => row.name === "Shield Overcharger +"),
+      drones.some((row) => row.name === "Shield Overcharger +"),
       false,
     );
     assert.equal(
-      CITED_DRONES.some((row) => row.name === "Drone Control" || row.ref === "drones"),
+      drones.some((row) => row.name === "Drone Control" || row.id === "drones"),
       false,
     );
     assert.deepEqual(
-      CITED_DRONES.map((row) => [row.name, row.cost]),
+      drones.map((row) => [row.name, row.cost]),
       [
         ["Combat Drone Mark I", 50],
         ["Combat Drone Mark II", 75],

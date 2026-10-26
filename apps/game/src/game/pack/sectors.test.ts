@@ -1,10 +1,16 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { buildRoute, createGame, enterHiddenCrystal } from "../sim.ts";
-import { SECTOR_TYPES } from "../wiki/sectors.ts";
 import { citedFleetAdvance } from "../wiki/cited-sectors.ts";
 import "./base.ts";
-import { loadPack, onPackWarning, packFromFtl, resetPackForTests, sectorDef } from "@stl/pack";
+import {
+  allSectors,
+  loadPack,
+  onPackWarning,
+  packFromFtl,
+  resetPackForTests,
+  sectorDef,
+} from "@stl/pack";
 import type { SectorDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
@@ -19,6 +25,12 @@ function seenOnChart(name: string, seeds = 400): boolean {
 describe("sector listings", () => {
   it("names the chart ends from the pack while the authored rows stay", () => {
     // Sector 1 shows STANDARD_SPACE's own title; the last column is FINAL.
+    assert.equal(allSectors().length, 19);
+    assert.equal(allSectors()[0]?.id, "STANDARD_SPACE");
+    assert.equal(allSectors().at(-1)?.id, "FINAL");
+    assert.equal(sectorDef("STANDARD_SPACE")?.name, "Civilian (Starting) Sector");
+    assert.equal(sectorDef("FINAL")?.name, "The Last Stand");
+    assert.ok((sectorDef("STANDARD_SPACE")?.notes.length ?? 0) > 0);
     const start = sectorDef("STANDARD_SPACE");
     const last = sectorDef("FINAL");
     assert.ok(start && last);
@@ -36,17 +48,17 @@ describe("sector listings", () => {
     assert.equal(route[0]?.name, "Ember Reach");
     assert.equal(route[route.length - 1]?.name, "Ember Gate");
     assert.equal(
-      SECTOR_TYPES.find((row) => row.id === "STANDARD_SPACE")?.name,
-      "Civilian (Starting) Sector",
-    );
-    assert.equal(SECTOR_TYPES.find((row) => row.id === "FINAL")?.name, "The Last Stand");
-    assert.equal(
       route.some((node) => node.name === "Hidden Crystal Worlds"),
       false,
     );
+    resetPackForTests();
+    assert.equal(sectorDef("STANDARD_SPACE")?.name, "Civilian (Starting) Sector");
+    assert.equal(sectorDef("FINAL")?.name, "The Last Stand");
   });
 
   it("slows the fleet for a renamed nebula and jumps to a renamed crystal sector", () => {
+    assert.equal(sectorDef("SLUG_SECTOR")?.name, "Slug Controlled Nebula");
+    assert.equal(sectorDef("CRYSTAL_HOME")?.name, "Hidden Crystal Worlds");
     const nebula = sectorDef("SLUG_SECTOR");
     const crystal = sectorDef("CRYSTAL_HOME");
     assert.ok(nebula && crystal);
@@ -68,15 +80,10 @@ describe("sector listings", () => {
     assert.equal(citedFleetAdvance(g, { kind: "nebula" }), 0.5);
     enterHiddenCrystal(g);
     assert.equal(g.sectorName, "Ember Worlds");
-    assert.equal(
-      SECTOR_TYPES.find((row) => row.id === "SLUG_SECTOR")?.name,
-      "Slug Controlled Nebula",
-    );
-    assert.equal(
-      SECTOR_TYPES.find((row) => row.id === "CRYSTAL_HOME")?.name,
-      "Hidden Crystal Worlds",
-    );
     assert.equal(seenOnChart("Ember Worlds", 40), false);
+    resetPackForTests();
+    assert.equal(sectorDef("SLUG_SECTOR")?.name, "Slug Controlled Nebula");
+    assert.equal(sectorDef("CRYSTAL_HOME")?.name, "Hidden Crystal Worlds");
   });
 
   it("can place an appended hostile sector and leaves a non-colour group off the chart", () => {
@@ -87,13 +94,22 @@ describe("sector listings", () => {
       notes: ["A later column."],
     };
     const vault: SectorDef = { id: "vault", name: "Vault", group: "vault", notes: [] };
+    assert.equal(
+      allSectors().some((row) => row.id === "ember"),
+      false,
+    );
     loadPack({ sectors: [ember, vault] }, "append");
     assert.equal(
-      SECTOR_TYPES.some((row) => row.id === "ember"),
-      false,
+      allSectors().some((row) => row.id === "ember"),
+      true,
     );
     assert.equal(seenOnChart("Ember Reach"), true);
     assert.equal(seenOnChart("Vault", 80), false);
+    resetPackForTests();
+    assert.equal(
+      allSectors().some((row) => row.id === "ember"),
+      false,
+    );
   });
 });
 

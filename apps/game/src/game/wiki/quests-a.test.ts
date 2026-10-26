@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { allSectors } from "@stl/pack";
 import { classIdFor, pickEnemy, requestFor } from "../enemy-gen.ts";
 import { choiceDisabled, choose, commitJump, createGame, startCombat, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
-import { SECTOR_TYPES } from "./sectors.ts";
+import "../pack/base.ts";
 import { citedEvent, citedPagesFor, stampCitedEvents } from "./cited-events.ts";
 import { addQuest } from "./quests.ts";
-import { EXTRA_EVENTS } from "./quests-a-pages.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 import { joinCrew } from "./surrender.ts";
 import { placeIn } from "../fixtures.ts";
@@ -145,8 +145,6 @@ describe("quest openers (quests-a)", () => {
       assert.ok(flags("Zoltan Controlled Sector", seed).includes("ZOLTAN_CREW_STUDY"));
     }
     assert.ok(citedPagesFor("ROCK_SECTOR").some((e) => e.dest === "Rock bride"));
-    for (const ev of EXTRA_EVENTS)
-      ev.choices.forEach((c, i) => assert.equal(c.id, `c:${ev.slug}:${i}`));
   });
 
   it("Rock war vessel encounter: marker -> Rock Assault (Elite) that runs at 32 s -> got away -> shipyard unlocks the Rock Cruiser", () => {
@@ -269,7 +267,7 @@ describe("quest openers (quests-a)", () => {
       choose(g, "exit-leave");
       assert.equal(g.sectorMap, false);
       assert.equal(g.sector, 6);
-      assert.ok(SECTOR_TYPES.some((s) => s.name === g.sectorName));
+      assert.ok(allSectors().some((s) => s.name === g.sectorName));
       assert.notEqual(g.sectorName, "Hidden Crystal Worlds");
       names.add(g.sectorName);
       if (!linked.has(g.sectorName)) offChart += 1;

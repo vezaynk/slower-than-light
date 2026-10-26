@@ -192,4 +192,3 @@ export function flak1Landing(rooms: readonly FlakRoom[], aimId: string, roll: nu
  */
 export const FLAK1_FAKE = 3;
 export const FLAK1_FAKE_LABEL = "fake-flak";
-export { ORDNANCE } from "@stl/catalog/src/extras/ordnance.ts";

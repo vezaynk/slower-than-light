@@ -1,0 +1,132 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { SECTOR_ORDER, SECTOR_TYPES, sectorRarities } from "./sectors.ts";
+
+/** Wiki page "Sectors": heading order and the group heading each one sits under. */
+const EXPECTED = [
+  ["STANDARD_SPACE", "Civilian (Starting) Sector", "civilian"],
+  ["CIVILIAN_SECTOR", "Civilian Sector", "civilian"],
+  ["ENGI_SECTOR", "Engi Controlled Sector", "civilian"],
+  ["ENGI_HOME", "Engi Homeworlds", "civilian"],
+  ["ZOLTAN_SECTOR", "Zoltan Controlled Sector", "civilian"],
+  ["ZOLTAN_HOME", "Zoltan Homeworlds", "civilian"],
+  ["LANIUS_SECTOR", "Abandoned Sector", "hostile"],
+  ["MANTIS_SECTOR", "Mantis Controlled Sector", "hostile"],
+  ["MANTIS_HOME", "Mantis Homeworlds", "hostile"],
+  ["PIRATE_SECTOR", "Pirate Controlled Sector", "hostile"],
+  ["REBEL_SECTOR", "Rebel Controlled Sector", "hostile"],
+  ["REBEL_SECTOR_MINIBOSS", "Rebel Stronghold", "hostile"],
+  ["ROCK_SECTOR", "Rock Controlled Sector", "hostile"],
+  ["ROCK_HOME", "Rock Homeworlds", "hostile"],
+  ["SLUG_SECTOR", "Slug Controlled Nebula", "nebula"],
+  ["SLUG_HOME", "Slug Home Nebula", "nebula"],
+  ["NEBULA_SECTOR", "Uncharted Nebula", "nebula"],
+  ["CRYSTAL_HOME", "Hidden Crystal Worlds", "hidden"],
+  ["FINAL", "The Last Stand", "last-stand"],
+] as const;
+
+describe("SECTOR_TYPES", () => {
+  it("has the 19 headings, each id once, under the page's groups", () => {
+    assert.equal(SECTOR_TYPES.length, 19);
+    const ids = SECTOR_TYPES.map((sector) => sector.id);
+    assert.equal(new Set(ids).size, ids.length);
+    assert.deepEqual(
+      SECTOR_TYPES.map((sector) => [sector.id, sector.name, sector.group]),
+      EXPECTED.map((row) => [...row]),
+    );
+  });
+
+  it("keeps a note on every heading and does not invent a generation order", () => {
+    for (const sector of SECTOR_TYPES) {
+      assert.ok(sector.notes.length > 0);
+      for (const note of sector.notes) {
+        assert.equal(typeof note, "string");
+        assert.ok(note.trim().length > 0);
+      }
+    }
+    const text = Object.fromEntries(
+      SECTOR_TYPES.map((sector) => [sector.id, sector.notes.join(" ")]),
+    );
+    assert.match(text["STANDARD_SPACE"], /sector 1/);
+    assert.match(text["ENGI_HOME"], /sector 3/);
+    assert.match(text["ZOLTAN_HOME"], /sector 3/);
+    assert.match(text["MANTIS_HOME"], /sector 3/);
+    assert.match(text["REBEL_SECTOR_MINIBOSS"], /sector 5/);
+    assert.match(text["ROCK_HOME"], /sector 5/);
+    assert.match(text["ROCK_SECTOR"], /rarity \(4\)/);
+    assert.match(text["ROCK_HOME"], /rarity \(2\)/);
+    assert.match(text["SLUG_SECTOR"], /sector 4/);
+    assert.match(text["SLUG_SECTOR"], /20%/);
+    assert.match(text["SLUG_SECTOR"], /50%/);
+    assert.match(text["SLUG_HOME"], /only once/i);
+    assert.match(text["NEBULA_SECTOR"], /0\.8%/);
+    assert.doesNotMatch(text["NEBULA_SECTOR"], /sector 4/);
+    assert.match(text["CRYSTAL_HOME"], /Ancient device/);
+    assert.match(text["FINAL"], /sector 8/);
+    assert.match(text["FINAL"], /10 repairs/);
+    assert.match(text["FINAL"], /22-44/);
+    assert.equal(SECTOR_ORDER, null);
+  });
+
+  it("reads crew rarities, and the Lockdown Bomb rarity, from the notes", () => {
+    const of = (id: string) => sectorRarities(SECTOR_TYPES.find((row) => row.id === id)!.notes);
+    assert.deepEqual(of("STANDARD_SPACE"), [
+      { id: "human", rarity: 1 },
+      { id: "engi", rarity: 2 },
+      { id: "mantis", rarity: 2 },
+      { id: "rock", rarity: 3 },
+      { id: "energy", rarity: 5 },
+    ]);
+    assert.deepEqual(of("ZOLTAN_SECTOR"), [
+      { id: "energy", rarity: 1 },
+      { id: "human", rarity: 2 },
+      { id: "engi", rarity: 3 },
+      { id: "mantis", rarity: 3 },
+      { id: "rock", rarity: 3 },
+      { id: "slug", rarity: 3 },
+    ]);
+    assert.deepEqual(of("LANIUS_SECTOR"), [
+      { id: "anaerobic", rarity: 2 },
+      { id: "human", rarity: 2 },
+      { id: "engi", rarity: 3 },
+      { id: "mantis", rarity: 3 },
+      { id: "rock", rarity: 3 },
+      { id: "energy", rarity: 4 },
+      { id: "slug", rarity: 4 },
+    ]);
+    assert.deepEqual(of("ROCK_SECTOR"), [
+      { id: "BOMB_LOCK", rarity: 4 },
+      { id: "rock", rarity: 1 },
+      { id: "human", rarity: 2 },
+      { id: "energy", rarity: 3 },
+    ]);
+    assert.deepEqual(of("ROCK_HOME"), [
+      { id: "BOMB_LOCK", rarity: 2 },
+      { id: "rock", rarity: 1 },
+      { id: "human", rarity: 2 },
+      { id: "energy", rarity: 3 },
+    ]);
+    assert.deepEqual(of("SLUG_HOME"), [
+      { id: "slug", rarity: 2 },
+      { id: "human", rarity: 2 },
+      { id: "engi", rarity: 4 },
+      { id: "mantis", rarity: 4 },
+      { id: "energy", rarity: 4 },
+      { id: "rock", rarity: 4 },
+    ]);
+    assert.deepEqual(of("NEBULA_SECTOR"), [
+      { id: "human", rarity: 1 },
+      { id: "slug", rarity: 3 },
+      { id: "engi", rarity: 4 },
+      { id: "mantis", rarity: 4 },
+      { id: "energy", rarity: 4 },
+      { id: "rock", rarity: 4 },
+    ]);
+    assert.deepEqual(of("FINAL"), of("STANDARD_SPACE"));
+    assert.deepEqual(of("CRYSTAL_HOME"), []);
+    for (const sector of SECTOR_TYPES) {
+      if (sector.id === "CRYSTAL_HOME") continue;
+      assert.ok(sectorRarities(sector.notes).length > 0, sector.id);
+    }
+  });
+});

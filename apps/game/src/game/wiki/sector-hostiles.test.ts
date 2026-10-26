@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { allSectors } from "@stl/pack";
 import { enemyPool, hostileWeights, pickEnemy, requestFor } from "../enemy-gen.ts";
+import "../pack/base.ts";
 import {
   HOSTILE_CIVILIAN,
   HOSTILE_SHIP,
@@ -8,7 +10,6 @@ import {
   SECTOR_HOSTILE_EVENTS,
   sectorHostiles,
 } from "./sector-hostiles.ts";
-import { SECTOR_TYPES } from "./sectors.ts";
 import { sectorIdNamed } from "../fixtures.ts";
 
 function seeded(seed: number) {
@@ -32,7 +33,7 @@ function shares(sector: number, sectorName: string): Record<string, number> {
 
 describe("hostile encounter lists (wiki/sector-hostiles.ts)", () => {
   it("has a list for every sector type on the Sectors page", () => {
-    for (const t of SECTOR_TYPES) assert.ok(sectorHostiles(t.id)?.length, t.id);
+    for (const t of allSectors()) assert.ok(sectorHostiles(t.id)?.length, t.id);
     assert.equal(sectorHostiles("Cinder Reach"), null);
   });
 

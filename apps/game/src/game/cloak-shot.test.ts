@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { WEAPONS } from "./content.ts";
+import { weaponDef } from "@stl/pack";
+import "./pack/base.ts";
 import { chargerCap, createGame, powerMask, startCombat, step } from "./sim.ts";
 import type { Game, WeaponInst } from "./types.ts";
 
@@ -45,7 +46,7 @@ function assertNoPresence(g: Game) {
 function primeLaser(g: Game, charge: number): WeaponInst {
   const w = g.player.weapons[0];
   assert.ok(w);
-  const def = WEAPONS[w.defId];
+  const def = weaponDef(w.defId);
   assert.equal(def?.kind, "laser");
   assert.equal(chargerCap(w.defId), null);
   const cost = def?.power ?? 1;

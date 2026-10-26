@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { blastHits, createGame, startCombat, step } from "../sim.ts";
-import { WEAPONS } from "../content.ts";
+import { weaponDef } from "@stl/pack";
+import "../pack/base.ts";
 import type { Game, Kit } from "../types.ts";
 import { startVeil, tickVeil } from "./veil.ts";
 import {
@@ -143,7 +144,7 @@ describe("hacking", () => {
     launchLanded(g);
     tickSpike(g, 1);
     for (const w of enemy.weapons) {
-      const seconds = WEAPONS[w.defId]?.charge ?? 1;
+      const seconds = weaponDef(w.defId)?.charge ?? 1;
       const left = Math.min(0.99, 1 - 1 / seconds);
       assert.ok(w.charge <= 0.99);
       assert.ok(Math.abs(w.charge - left) < 1e-9);

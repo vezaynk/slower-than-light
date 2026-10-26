@@ -3,18 +3,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { campaignPack } from "@stl/campaign";
 import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
-import { WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
+import { MOUNT_IMAGES, WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat, extractFtlZip, readPkg } from "@stl/ftldat";
 import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
-import {
-  packFromFtl,
-  parsePack,
-  pictureForRooms,
-  readAnimations,
-  readBitmapFont,
-  readSounds,
-} from "@stl/pack";
+import { packFromFtl, parsePack, readAnimations, readBitmapFont, readSounds } from "@stl/pack";
 import {
   standInAchievementsXml,
   standInDat,
@@ -277,7 +270,7 @@ describe("totallynotftl.dat", () => {
     );
     assert.deepEqual(
       merged.textLists?.map((row) => row.id),
-      ["STAND_IN_CALM", "STAND_IN_MORE", "STAND_IN_NEST"],
+      ["STAND_IN_CALM", "STAND_IN_MORE", "STAND_IN_NEST", "NAME_SYLLABLES", "CREW_POOL"],
     );
     assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_CALM")?.lines, [
       { text: "Nothing moves." },
@@ -292,11 +285,12 @@ describe("totallynotftl.dat", () => {
     assert.deepEqual(merged.rewards, pack.rewards);
     assert.deepEqual(merged.factions, pack.factions);
     assert.deepEqual(merged.empties, pack.empties);
+    assert.deepEqual(merged.shipClasses, pack.shipClasses);
     assert.equal(merged.facts, undefined);
     const kestrel = merged.hulls?.find((hull) => hull.id === "PLAYER_SHIP_HARD");
     assert.equal(kestrel?.img, "kestral");
     assert.equal(kestrel?.layout, "kestral");
-    assert.deepEqual(kestrel?.picture, pictureForRooms(kestrel?.grid?.rooms ?? []));
+    assert.deepEqual(kestrel?.picture, MOUNT_IMAGES.kestral);
     assert.deepEqual(kestrel?.mounts, WEAPON_MOUNTS.kestral);
     assert.deepEqual(kestrel?.cloakOffset, { x: 0, y: 0 });
     assert.deepEqual(kestrel?.floorOffset, { x: 0, y: 0 });

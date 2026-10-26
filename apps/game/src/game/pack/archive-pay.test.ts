@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import {
   crewDef,
   hullDef,
@@ -9,10 +8,12 @@ import {
   packFromFtl,
   resetPackForTests,
   scrapRange,
+  shipClassBlueprint,
 } from "@stl/pack";
 import type { HullDef, WeaponBlueprint } from "@stl/pack";
 import { weightedBlueprint } from "../archive-pay.ts";
 import { weaponCopy } from "../interface-copy.ts";
+import "./base.ts";
 import { choose, commitJump, createGame, waitHere } from "../sim.ts";
 import { overtaken } from "../wiki/sector-map.ts";
 import { citedFleetAdvance } from "../wiki/cited-sectors.ts";
@@ -21,7 +22,7 @@ import type { Game } from "../types.ts";
 afterEach(() => resetPackForTests());
 
 function emberHull(id: string, name: string, weapon: string): HullDef {
-  const base = hullDef(enemyBlueprintId("rebel-fighter"));
+  const base = hullDef(shipClassBlueprint("rebel-fighter"));
   assert.ok(base);
   return {
     ...base,

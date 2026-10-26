@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
+import { allEvents, eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import { CREW_CAP, choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
+import "../pack/base.ts";
 import {
   ACCEPT_ID,
   REFUSE_ID,
-  SCRIPTED_SURRENDERS,
   STALEMATE_FUEL,
   STALEMATE_SECONDS,
   joinCrew,
@@ -276,7 +276,10 @@ describe("scripted surrenders (event pages)", () => {
     assert.deepEqual(at("remote-settlement", 0), [50, 20, "remote-settlement"]);
     assert.deepEqual(at("slaver-hostile", 0), [80, 20, "slaver-hostile"]);
     assert.deepEqual(at("slug-home-nebula-surrender", 0), [100, 30, "slug-home-nebula-surrender"]);
-    assert.equal(SCRIPTED_SURRENDERS["slaver-friendly"].chance, 80);
+    assert.equal(
+      allEvents().find((event) => event.dest === "Slaver (friendly)")?.surrender?.chance,
+      80,
+    );
     assert.equal(eventDef("FRIENDLY_SLAVER")?.surrender?.chance, 80);
     assert.equal(eventDef("NEBULA_SLUG_FIGHT_UNLOCK")?.surrender?.reward.k, "weapon");
     assert.equal(eventDef("quest-engi-real")?.surrender?.quest, "engi-final");
@@ -292,7 +295,7 @@ describe("scripted surrenders (event pages)", () => {
             id: "NEBULA_SLUG_FIGHT_UNLOCK",
             dest: "Slug",
             flag: "NEBULA_SLUG_FIGHT_UNLOCK",
-            aliases: [],
+            aliases: ["slug-home-nebula-surrender"],
             sectors: [],
             body: "",
             choices: [],
@@ -520,21 +523,16 @@ describe("scripted surrenders (event pages)", () => {
     offer(slaver);
     assert.equal(surrenderOfferView(slaver)!.crew, "Crystal");
 
-    const named = rollScriptedOffer(
-      createGame(4),
-      SCRIPTED_SURRENDERS["crystal-fight-with-surrender-offer-human-crew"],
-    );
+    const human = allEvents().find(
+      (event) => event.dest === "Crystal fight with surrender offer (Human crew)",
+    )?.surrender;
+    assert.ok(human);
+    const named = rollScriptedOffer(createGame(4), human);
     assert.equal(named.crew, "Human");
     const onCrystal = createGame(4);
     onCrystal.sectorId = "CRYSTAL_HOME";
     onCrystal.sectorName = "Hidden Crystal Worlds";
-    assert.equal(
-      rollScriptedOffer(
-        onCrystal,
-        SCRIPTED_SURRENDERS["crystal-fight-with-surrender-offer-human-crew"],
-      ).crew,
-      "Human",
-    );
+    assert.equal(rollScriptedOffer(onCrystal, human).crew, "Human");
   });
 });
 

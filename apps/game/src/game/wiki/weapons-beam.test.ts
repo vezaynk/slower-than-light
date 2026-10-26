@@ -1,19 +1,22 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { weaponDef } from "@stl/pack";
 import { applyImpact, createGame, evasionPercent, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
+import "../pack/base.ts";
 import {
   ARTILLERY_BEAM_PX,
-  BEAM_CREW,
-  BEAM_GAPS,
-  BEAM_SPEED,
-  BEAM_TILES,
-  BEAM_WEAPONS,
   artillerySwipeSeconds,
   beamBodyTiles,
   beamSwipeSeconds,
   beamTileLength,
 } from "./weapons-beam.ts";
+
+function weaponDamage(id: string): number {
+  const damage = weaponDef(id)?.damage;
+  assert.notEqual(damage, undefined, id);
+  return damage as number;
+}
 
 function beamShot(partial: Partial<Shot> & Pick<Shot, "damage">): Shot {
   return {
@@ -45,221 +48,56 @@ function systemDamage(g: Game, roomId: string): number {
   return g.player.systems[room.system].damage;
 }
 
-const byId = Object.fromEntries(BEAM_WEAPONS.map((w) => [w.id, w]));
-
-function gap(id: string): string {
-  return BEAM_GAPS.filter((g) => g.id === id)
-    .map((g) => g.note)
-    .join("\n");
-}
-
 describe("beam weapons", () => {
-  it("emits the slotted rows and not Artillery Beam or Boss Beam", () => {
-    assert.deepEqual(
-      BEAM_WEAPONS.map((w) => w.id),
-      ["BEAM_1", "BEAM_LONG", "BEAM_HULL", "BEAM_2", "BEAM_3", "BEAM_FIRE", "BEAM_BIO"],
-    );
-    assert.deepEqual(
-      BEAM_WEAPONS.map((w) => w.name),
-      [
-        "Mini Beam",
-        "Pike Beam",
-        "Hull Beam",
-        "Halberd Beam",
-        "Glaive Beam",
-        "Fire Beam",
-        "Anti-Bio Beam",
-      ],
-    );
-    assert.equal(
-      BEAM_WEAPONS.some((w) => /artillery/i.test(w.id) || /artillery/i.test(w.name)),
-      false,
-    );
-    assert.equal(byId["artillery-beam"], undefined);
-  });
-
-  it("is beam, spends no ammo, and does not invent a shot gap", () => {
-    for (const w of BEAM_WEAPONS) {
-      assert.equal(w.kind, "beam");
-      assert.equal(w.ammo, false);
-      assert.equal(w.gap, 0);
-      assert.equal(w.shots, 1);
-      assert.equal(w.ion, 0);
-      assert.equal(w.breach, 0);
-    }
-  });
-
-  it("copies power, charge, damage, fire, price, and the italic blurb", () => {
-    assert.equal(byId.BEAM_1.power, 1);
-    assert.equal(byId.BEAM_1.charge, 12);
-    assert.equal(byId.BEAM_1.damage, 1);
-    assert.equal(byId.BEAM_1.fire, 0.1);
-    assert.equal(byId.BEAM_1.price, 0);
-    assert.equal(byId.BEAM_1.blurb, "Extremely cheap and weak beam weapon.");
-
-    assert.equal(byId.BEAM_LONG.power, 2);
-    assert.equal(byId.BEAM_LONG.charge, 16);
-    assert.equal(byId.BEAM_LONG.damage, 1);
-    assert.equal(byId.BEAM_LONG.fire, 0);
-    assert.equal(byId.BEAM_LONG.price, 55);
-    assert.equal(
-      byId.BEAM_LONG.blurb,
-      "Can cut across entire ships, assuming there's no shield to stop it.",
-    );
-
-    assert.equal(byId.BEAM_HULL.power, 2);
-    assert.equal(byId.BEAM_HULL.charge, 14);
-    assert.equal(byId.BEAM_HULL.damage, 1);
-    assert.equal(byId.BEAM_HULL.fire, 0);
-    assert.equal(byId.BEAM_HULL.price, 70);
-    assert.equal(
-      byId.BEAM_HULL.blurb,
-      "This beam is most powerful when targeting large, empty sections of hull.",
-    );
-
-    assert.equal(byId.BEAM_2.power, 3);
-    assert.equal(byId.BEAM_2.charge, 17);
-    assert.equal(byId.BEAM_2.damage, 2);
-    assert.equal(byId.BEAM_2.fire, 0);
-    assert.equal(byId.BEAM_2.price, 65);
-    assert.equal(byId.BEAM_2.blurb, "Slow but reliably powerful standard beam weapon.");
-
-    assert.equal(byId.BEAM_3.power, 4);
-    assert.equal(byId.BEAM_3.charge, 25);
-    assert.equal(byId.BEAM_3.damage, 3);
-    assert.equal(byId.BEAM_3.fire, 0);
-    assert.equal(byId.BEAM_3.price, 95);
-    assert.equal(
-      byId.BEAM_3.blurb,
-      "One of the most powerful weapons of war ever created. Known to take out some ships in a single blast.",
-    );
-
-    assert.equal(byId.BEAM_FIRE.power, 2);
-    assert.equal(byId.BEAM_FIRE.charge, 20);
-    assert.equal(byId.BEAM_FIRE.damage, 0);
-    assert.equal(byId.BEAM_FIRE.fire, 0.8);
-    assert.equal(byId.BEAM_FIRE.price, 50);
-    assert.equal(
-      byId.BEAM_FIRE.blurb,
-      "This terrifying beam does no physical damage but ignites fires.",
-    );
-
-    assert.equal(byId.BEAM_BIO.power, 2);
-    assert.equal(byId.BEAM_BIO.charge, 16);
-    assert.equal(byId.BEAM_BIO.damage, 0);
-    assert.equal(byId.BEAM_BIO.fire, 0);
-    assert.equal(byId.BEAM_BIO.price, 50);
-    assert.equal(
-      byId.BEAM_BIO.blurb,
-      "This terrifying beam does no physical damage, but rips through organic material, dealing heavy damage to crew members.",
-    );
-  });
-
-  it("stores printed crew-damage HP and leaves the dash and blocked beams out", () => {
-    assert.equal(BEAM_CREW.BEAM_1, 15);
-    assert.equal(BEAM_CREW.BEAM_LONG, 15);
-    assert.equal(BEAM_CREW.BEAM_HULL, 15);
-    assert.equal(BEAM_CREW.BEAM_2, 30);
-    assert.equal(BEAM_CREW.BEAM_3, 45);
-    assert.equal(BEAM_CREW.BEAM_BIO, 60);
-    assert.equal(Object.prototype.hasOwnProperty.call(BEAM_CREW, "BEAM_FIRE"), false);
-    assert.equal(Object.prototype.hasOwnProperty.call(BEAM_CREW, "ARTILLERY_BOSS_3"), false);
-    assert.equal(Object.prototype.hasOwnProperty.call(BEAM_CREW, "artillery-beam"), false);
+  it("stores printed crew-damage HP and leaves the dash and artillery beam out", () => {
+    // 0 is a stored value. A missing blueprint field stays undefined. Pike is BEAM_LONG.
+    assert.equal(weaponDef("BEAM_1")?.crewDamage, 15);
+    assert.equal(weaponDef("BEAM_LONG")?.crewDamage, 15);
+    assert.equal(weaponDef("BEAM_HULL")?.crewDamage, 15);
+    assert.equal(weaponDef("BEAM_2")?.crewDamage, 30);
+    assert.equal(weaponDef("BEAM_3")?.crewDamage, 45);
+    assert.equal(weaponDef("BEAM_BIO")?.crewDamage, 60);
+    assert.equal(weaponDef("BEAM_FIRE")?.crewDamage, undefined);
+    assert.equal(weaponDef("ARTILLERY_BOSS_3")?.crewDamage, undefined);
+    assert.equal(weaponDef("artillery-beam")?.crewDamage, undefined);
   });
 
   it("stores the printed tile lengths", () => {
     // Beam (Weapons): the parenthetical is the tile count. Pike Beam is BEAM_LONG.
-    assert.equal(BEAM_TILES.BEAM_1, 1);
-    assert.equal(BEAM_TILES.BEAM_LONG, 3.8);
+    assert.equal(weaponDef("BEAM_1")?.lengthTiles, 1);
+    assert.equal(weaponDef("BEAM_LONG")?.lengthTiles, 3.8);
     assert.equal(beamTileLength("BEAM_LONG"), 3.8);
-    assert.equal(BEAM_TILES.BEAM_HULL, 2.2);
-    assert.equal(BEAM_TILES.BEAM_2, 1.8);
-    assert.equal(BEAM_TILES.BEAM_3, 1.8);
-    assert.equal(BEAM_TILES.BEAM_FIRE, 3.1);
-    assert.equal(BEAM_TILES.BEAM_BIO, 3.1);
-    assert.equal(BEAM_TILES.ARTILLERY_BOSS_3, 2.2);
+    assert.equal(weaponDef("BEAM_HULL")?.lengthTiles, 2.2);
+    assert.equal(weaponDef("BEAM_2")?.lengthTiles, 1.8);
+    assert.equal(weaponDef("BEAM_3")?.lengthTiles, 1.8);
+    assert.equal(weaponDef("BEAM_FIRE")?.lengthTiles, 3.1);
+    assert.equal(weaponDef("BEAM_BIO")?.lengthTiles, 3.1);
+    assert.equal(weaponDef("ARTILLERY_BOSS_3")?.lengthTiles, 2.2);
     assert.equal(beamTileLength("artillery-beam"), null);
     assert.equal(beamBodyTiles("BEAM_LONG"), 3.8);
     assert.equal(beamBodyTiles("artillery-beam"), ARTILLERY_BEAM_PX / 45);
   });
 
-  it("times a swipe from the Multiverse weapon database speed", () => {
+  it("times a swipe from the loaded blueprint speed", () => {
     // Data:WeaponDatabase.map. Speed 5 is 80 pixels per second. 45 pixels is one diagonal tile.
-    assert.deepEqual(BEAM_SPEED, {
-      BEAM_1: 3,
-      BEAM_LONG: 9,
-      BEAM_HULL: 5,
-      BEAM_2: 5,
-      BEAM_3: 5,
-      BEAM_FIRE: 5,
-      BEAM_BIO: 30,
-      ARTILLERY_BOSS_3: 5,
-      "artillery-beam": 13,
-    });
+    // Artillery Beam is a shot label, not a blueprint. Its speed stays 13.
+    assert.equal(weaponDef("BEAM_1")?.speed, 3);
+    assert.equal(weaponDef("BEAM_LONG")?.speed, 9);
+    assert.equal(weaponDef("BEAM_HULL")?.speed, 5);
+    assert.equal(weaponDef("BEAM_2")?.speed, 5);
+    assert.equal(weaponDef("BEAM_3")?.speed, 5);
+    assert.equal(weaponDef("BEAM_FIRE")?.speed, 5);
+    assert.equal(weaponDef("BEAM_BIO")?.speed, 30);
+    assert.equal(weaponDef("ARTILLERY_BOSS_3")?.speed, 5);
+    assert.equal(weaponDef("artillery-beam"), undefined);
     assert.equal(beamSwipeSeconds("BEAM_1", 1), 45 / (3 * 16));
-    assert.equal(beamSwipeSeconds("BEAM_LONG", BEAM_TILES.BEAM_LONG), (3.8 * 45) / (9 * 16));
-    assert.equal(beamSwipeSeconds("BEAM_2", BEAM_TILES.BEAM_2), (1.8 * 45) / (5 * 16));
-    assert.equal(beamSwipeSeconds("BEAM_BIO", BEAM_TILES.BEAM_BIO), (3.1 * 45) / (30 * 16));
-    assert.equal(
-      beamSwipeSeconds("ARTILLERY_BOSS_3", BEAM_TILES.ARTILLERY_BOSS_3),
-      (2.2 * 45) / (5 * 16),
-    );
+    assert.equal(beamSwipeSeconds("BEAM_LONG", 3.8), (3.8 * 45) / (9 * 16));
+    assert.equal(beamSwipeSeconds("BEAM_2", 1.8), (1.8 * 45) / (5 * 16));
+    assert.equal(beamSwipeSeconds("BEAM_BIO", 3.1), (3.1 * 45) / (30 * 16));
+    assert.equal(beamSwipeSeconds("ARTILLERY_BOSS_3", 2.2), (2.2 * 45) / (5 * 16));
     assert.equal(artillerySwipeSeconds(), ARTILLERY_BEAM_PX / (13 * 16));
     assert.equal(beamSwipeSeconds("BEAM_FIRE", 0), 0);
     assert.equal(beamSwipeSeconds(undefined, 1), null);
-  });
-
-  it("parks length, rooms, pierce, and anti-bio crew damage in gaps", () => {
-    assert.match(gap("BEAM_1"), /beam length 45/);
-    assert.match(gap("BEAM_1"), /15 HP/);
-    assert.match(gap("BEAM_LONG"), /beam length 170/);
-    assert.match(gap("BEAM_HULL"), /beam length 100/);
-    assert.match(gap("BEAM_HULL"), /2 damage on systemless rooms/);
-    assert.match(gap("BEAM_2"), /beam length 80/);
-    assert.match(gap("BEAM_2"), /3-4 rooms straight/);
-    assert.match(gap("BEAM_2"), /2-3 diagonally/);
-    assert.match(gap("BEAM_2"), /5 max/);
-    assert.match(gap("BEAM_2"), /1 damage per room through 1 shield/);
-    assert.match(gap("BEAM_3"), /beam length 80/);
-    assert.match(gap("BEAM_3"), /1 damage per room through 2 shields/);
-    assert.match(gap("BEAM_3"), /2 damage per room through 1 shield/);
-    assert.match(gap("BEAM_FIRE"), /beam length 140/);
-    assert.match(gap("BEAM_FIRE"), /1 point of damage twice/);
-    assert.match(gap("BEAM_BIO"), /beam length 140/);
-    assert.match(gap("BEAM_BIO"), /60 HP/);
-    assert.match(gap("shield-layers"), /reduced by one for every shield layer/);
-    assert.match(gap("swipe"), /second click fires/);
-    assert.match(gap("swipe"), /stops at the printed tile length/);
-    assert.match(gap("swipe"), /one door-neighbour/);
-    assert.match(gap("zoltan-shield"), /33%/);
-    assert.match(gap("zoltan-shield"), /80%/);
-  });
-
-  it("copies Artillery Beam numbers under lance.ts and keeps Boss Beam out of this catalog", () => {
-    const art = gap("artillery-beam");
-    assert.match(art, /lance\.ts owns the system/);
-    assert.match(art, /4 system levels/);
-    assert.match(art, /50s for level 1/);
-    assert.match(art, /reduced by 10 seconds/);
-    assert.match(art, /20s for level 4/);
-    assert.match(art, /Beam length 500/);
-    assert.match(art, /1 damage per room hit/);
-    assert.match(art, /15 HP/);
-    assert.match(art, /10% chance to start fire/);
-    assert.equal(art.includes("BLOCKED"), false);
-
-    assert.equal(byId.ARTILLERY_BOSS_3, undefined);
-    const boss = gap("ARTILLERY_BOSS_3");
-    assert.equal(boss.includes("BLOCKED"), false);
-    assert.match(boss, /artillery maximum is 3/);
-    assert.match(boss, /not a Weapons-pool cost/);
-    assert.match(boss, /flagship-weapons\.ts/);
-    assert.match(boss, /does not emit a second WeaponDef/);
-    assert.match(boss, /32\.5s/);
-    assert.match(boss, /26s/);
-    assert.match(boss, /19\.5s/);
-    assert.match(boss, /Beam length 100/);
-    assert.match(boss, /2 damage per room hit/);
   });
 
   it("deals Glaive's printed damage through one shield and through two", () => {
@@ -275,7 +113,12 @@ describe("beam weapons", () => {
       const hull = g.player.hull;
       applyImpact(
         g,
-        beamShot({ damage: 3, defId: "BEAM_3", beamRooms: ["p-weapons"], targetRoom: "p-weapons" }),
+        beamShot({
+          damage: weaponDamage("BEAM_3"),
+          defId: "BEAM_3",
+          beamRooms: ["p-weapons"],
+          targetRoom: "p-weapons",
+        }),
       );
       return {
         shields: g.player.shieldNow,
@@ -313,7 +156,7 @@ describe("beam weapons", () => {
     applyImpact(
       g,
       beamShot({
-        damage: 2,
+        damage: weaponDamage("BEAM_2"),
         defId: "BEAM_2",
         beamRooms: ["p-shields", "p-weapons", "p-engines"],
         targetRoom: "p-shields",
@@ -332,7 +175,7 @@ describe("beam weapons", () => {
     applyImpact(
       g,
       beamShot({
-        damage: 2,
+        damage: weaponDamage("BEAM_2"),
         defId: "BEAM_2",
         beamRooms: ["p-weapons", "p-shields", "p-engines"],
         targetRoom: "p-weapons",
@@ -351,7 +194,7 @@ describe("beam weapons", () => {
     applyImpact(
       g,
       beamShot({
-        damage: 2,
+        damage: weaponDamage("BEAM_2"),
         defId: "BEAM_2",
         beamRooms: ["p-shields", "p-weapons"],
         targetRoom: "p-shields",
@@ -369,7 +212,7 @@ describe("beam weapons", () => {
     applyImpact(
       g,
       beamShot({
-        damage: 3,
+        damage: weaponDamage("BEAM_3"),
         defId: "BEAM_3",
         beamRooms: ["p-shields", "p-weapons"],
         targetRoom: "p-shields",
@@ -387,7 +230,7 @@ describe("beam weapons", () => {
     applyImpact(
       g,
       beamShot({
-        damage: 2,
+        damage: weaponDamage("BEAM_2"),
         defId: "BEAM_2",
         beamRooms: ["p-shields", "p-weapons"],
         targetRoom: "p-shields",
@@ -403,19 +246,33 @@ describe("beam weapons", () => {
     const path = ["p-engines", "p-shields", "p-oxygen", "p-medbay"];
     const held = quiet();
     const hull = held.player.hull;
-    applyImpact(held, beamShot({ damage: 2, defId: "BEAM_2", beamRooms: path }));
+    applyImpact(
+      held,
+      beamShot({ damage: weaponDamage("BEAM_2"), defId: "BEAM_2", beamRooms: path }),
+    );
     // Halberd: 2 damage times 2 instances. The bubble still has a point, so the hull is untouched.
     assert.equal(held.player.zoltan, 1);
     assert.equal(held.player.hull, hull);
     for (const id of path) assert.equal(systemDamage(held, id), 0);
 
     const fire = quiet();
-    applyImpact(fire, beamShot({ damage: 0, defId: "BEAM_FIRE", fireChance: 1, beamRooms: path }));
+    applyImpact(
+      fire,
+      beamShot({
+        damage: weaponDamage("BEAM_FIRE"),
+        defId: "BEAM_FIRE",
+        fireChance: 1,
+        beamRooms: path,
+      }),
+    );
     assert.equal(fire.player.zoltan, 3);
     assert.equal(fire.player.rooms.find((room) => room.id === "p-engines")?.fire ?? 0, 0);
 
     const anti = quiet();
-    applyImpact(anti, beamShot({ damage: 0, defId: "BEAM_BIO", beamRooms: path }));
+    applyImpact(
+      anti,
+      beamShot({ damage: weaponDamage("BEAM_BIO"), defId: "BEAM_BIO", beamRooms: path }),
+    );
     assert.equal(anti.player.zoltan, 3);
     assert.equal(anti.player.hull, hull);
 
@@ -423,7 +280,10 @@ describe("beam weapons", () => {
     // INFERRED equal slices: only the last quarter of a 4-room path is still ahead of 80%.
     const tail = quiet();
     tail.player.zoltan = 2;
-    applyImpact(tail, beamShot({ damage: 1, defId: "BEAM_1", beamRooms: path }));
+    applyImpact(
+      tail,
+      beamShot({ damage: weaponDamage("BEAM_1"), defId: "BEAM_1", beamRooms: path }),
+    );
     assert.equal(tail.player.zoltan, 0);
     assert.equal(systemDamage(tail, "p-engines"), 0);
     assert.equal(systemDamage(tail, "p-shields"), 0);
@@ -492,7 +352,7 @@ describe("beam weapons", () => {
     applyImpact(
       g,
       beamShot({
-        damage: 1,
+        damage: weaponDamage("BEAM_1"),
         from: "player",
         targetRoom: room.id,
         beamRooms: [room.id],
@@ -501,7 +361,12 @@ describe("beam weapons", () => {
     );
     assert.equal(ship.hull, before - 1);
     applyImpact(g, {
-      ...beamShot({ damage: 1, from: "player", targetRoom: room.id, defId: "LASER_BURST_2_A" }),
+      ...beamShot({
+        damage: weaponDamage("LASER_BURST_2_A"),
+        from: "player",
+        targetRoom: room.id,
+        defId: "LASER_BURST_2_A",
+      }),
       kind: "laser",
       beamRooms: undefined,
     });

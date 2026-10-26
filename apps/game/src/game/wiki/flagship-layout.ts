@@ -1,7 +1,18 @@
-import { flagshipBlueprintId, type FlagshipDifficulty } from "@stl/catalog/src/flagship-layouts.ts";
 import { hullDef, marksFromDoors } from "@stl/pack";
 import type { Layout } from "../layouts.ts";
 import type { SysId } from "../types.ts";
+
+export type FlagshipDifficulty = "easy" | "normal" | "hard";
+
+const FLAGSHIP_BAND: Record<FlagshipDifficulty, "EASY" | "NORMAL" | "HARD"> = {
+  easy: "EASY",
+  normal: "NORMAL",
+  hard: "HARD",
+};
+
+function flagshipBlueprintId(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): string {
+  return `BOSS_${stage}_${FLAGSHIP_BAND[difficulty]}_DLC`;
+}
 
 /**
  * Rebel Flagship interiors, one traced cutaway per stage.

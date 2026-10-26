@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Kit } from "../types.ts";
-import { CATALOG } from "./augments.ts";
+import { allAugments } from "@stl/pack";
 import {
   enemyFtlScale,
   hackStuns,
@@ -44,10 +44,10 @@ function swarm(power: number, target: string | null): Kit {
 }
 
 describe("more augments", () => {
-  it("lists the new ids on CATALOG with the wiki costs", () => {
+  it("lists the new ids with the wiki costs", () => {
     const ids = Object.keys(NAMES) as (keyof typeof NAMES)[];
     for (const id of ids) {
-      const row = CATALOG.find((item) => item.id === id);
+      const row = allAugments().find((item) => item.id === id);
       assert.ok(row, id);
       assert.equal(row.name, NAMES[id]);
       assert.equal(row.cost, COSTS[id]);

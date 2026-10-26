@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { WEAPONS } from "./content.ts";
+import { allWeapons } from "@stl/pack";
+import "./pack/base.ts";
 import {
   DRONE_LOOKS,
   WEAPON_LOOKS,
@@ -23,14 +24,18 @@ function shape(art: PixelArt) {
   return art.rows.join("/");
 }
 
+function weaponIds(): string[] {
+  return allWeapons().map((weapon) => weapon.id);
+}
+
 describe("gear art", () => {
   it("gives every fitted weapon its own look", () => {
     assert.deepEqual(
-      Object.keys(WEAPONS).filter((id) => !WEAPON_LOOKS[id]),
+      weaponIds().filter((id) => !WEAPON_LOOKS[id]),
       [],
     );
     const seen = new Map<string, string>();
-    for (const id of Object.keys(WEAPONS)) {
+    for (const id of weaponIds()) {
       const sig = signature(weaponPixels(id));
       assert.equal(seen.get(sig), undefined, `${id} draws the same as ${seen.get(sig)}`);
       seen.set(sig, id);
@@ -46,7 +51,7 @@ describe("gear art", () => {
   });
 
   it("gives every weapon a glow accent that can light when charged", () => {
-    for (const id of Object.keys(WEAPONS)) {
+    for (const id of weaponIds()) {
       assert.equal(
         weaponPixels(id).rows.some((row) => row.includes("g")),
         true,
@@ -56,7 +61,7 @@ describe("gear art", () => {
   });
 
   it("keeps every weapon silhouette apart, not just their colours", () => {
-    const ids = Object.keys(WEAPONS);
+    const ids = weaponIds();
     const shapes = new Set(ids.map((id) => shape(weaponPixels(id))));
     assert.equal(shapes.size, ids.length, "two weapons share a silhouette");
   });

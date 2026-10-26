@@ -8,6 +8,7 @@ import { hullPictureFiles, standInSheet, type HullPictureFile } from "@stl/catal
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { mountsFor } from "@stl/catalog/src/weapon-mounts.ts";
 import { packFtlDat } from "@stl/ftldat";
+import { pictureForRooms, type HullPicture } from "@stl/pack";
 import { standInMedia } from "./media.ts";
 import { TEXT_LISTS_XML } from "./text-lists.ts";
 import { basePng, cloakPng, floorPng, gibPng, shieldPng } from "./png.ts";
@@ -31,41 +32,50 @@ export async function standInDat(): Promise<Uint8Array> {
   );
 }
 
+/**
+ * The bitmap stays on the room grid. The `<img>` box can be the measured archive
+ * rectangle, which is not a whole number of rooms, and that box does not move the gibs.
+ */
+function drawBox(file: HullPictureFile): HullPicture {
+  return pictureForRooms(file.rooms) ?? file.picture;
+}
+
 /** Base, cloak, floor, shield, and gib pngs for each drawing. Names match a real archive. */
 export function standInImages(
   files: readonly HullPictureFile[],
 ): { path: string; bytes: Uint8Array }[] {
   const images: { path: string; bytes: Uint8Array }[] = [];
   for (const file of files) {
-    const gibs = standInSheet(file.picture, mountsFor(file.stem)).gibs ?? [];
+    const box = drawBox(file);
+    const gibs = standInSheet(box, mountsFor(file.stem)).gibs ?? [];
     images.push(
       {
         path: `img/ship/${file.stem}_base.png`,
-        bytes: basePng(file.stem, file.picture, file.rooms),
+        bytes: basePng(file.stem, box, file.rooms),
       },
       {
         path: `img/ship/${file.stem}_cloak.png`,
-        bytes: cloakPng(file.stem, file.picture, file.rooms),
+        bytes: cloakPng(file.stem, box, file.rooms),
       },
       {
         path: `img/ship/${file.stem}_floor.png`,
-        bytes: floorPng(file.stem, file.picture, file.rooms),
+        bytes: floorPng(file.stem, box, file.rooms),
       },
       {
         path: `img/ship/${file.stem}_shields1.png`,
-        bytes: shieldPng(file.stem, file.picture, file.rooms),
+        bytes: shieldPng(file.stem, box, file.rooms),
       },
       {
         path: `img/ships_noglow/${file.stem}_base.png`,
-        bytes: basePng(file.stem, file.picture, file.rooms),
+        bytes: basePng(file.stem, box, file.rooms),
       },
       {
         path: `img/ships_glow/${file.stem}_base.png`,
-        bytes: cloakPng(file.stem, file.picture, file.rooms),
+        bytes: cloakPng(file.stem, box, file.rooms),
       },
       ...gibs.map((gib, index) => ({
         path: `img/ship/${file.stem}_gib${gib.id}.png`,
-        bytes: gibPng(file.stem, file.picture, file.rooms, index, gibs.length),
+        bytes: gibPng(file.stem, box, file.rooms, index, gibs.length),
       })),
     );
   }

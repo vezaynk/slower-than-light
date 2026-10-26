@@ -1,4 +1,5 @@
-import { WEAPONS } from "../content.ts";
+import { CREW_POOL, WEAPONS } from "../content.ts";
+import { NAME_SYLLABLES } from "../names.ts";
 import { CATALOG } from "../extras/augment-catalog.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
 import { HULLS, type HullSpec } from "../hulls.ts";
@@ -18,8 +19,15 @@ import { PRINTED_BANDS } from "../wiki/event-bands.ts";
 import { TRADE_STEPS } from "../wiki/event-trades.ts";
 import { GRADES } from "../wiki/event-grades.ts";
 import { CARD_LISTS } from "../wiki/event-cards.ts";
-import { CHOICE_REQS } from "../wiki/choice-reqs.ts";
+import {
+  CHOICE_REQS,
+  CITED_LOCKS,
+  FILLER_LOCKS,
+  MISSING_LOCKS,
+  QUEST_LOCKS,
+} from "../wiki/choice-reqs.ts";
 import { FUEL_GIFTS } from "../wiki/fuel-gifts.ts";
+import { EXTRA_EVENTS as MISSING_PAGES } from "../wiki/cited-missing-pages.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { ftlEventId } from "../wiki/ftl-event-ids.ts";
@@ -27,6 +35,7 @@ import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
+import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
 import { ENEMY_BLUEPRINTS } from "../enemy-blueprints.ts";
 import { ENEMY_LAYOUTS, enemyLayoutFile } from "../enemy-layouts.ts";
 import {
@@ -37,7 +46,7 @@ import {
 } from "../flagship-layouts.ts";
 import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
 import { standInSheet } from "../ship-art.ts";
-import { mountsFor } from "../weapon-mounts.ts";
+import { MOUNT_IMAGES, mountsFor } from "../weapon-mounts.ts";
 import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
   AchievementDef,
@@ -132,12 +141,13 @@ function sectorRow(row: SectorType): SectorDef {
   return sector;
 }
 
-/** An achievement as data/achievements.xml carries it, with the gap mod's condition. The old slug stays off. */
+/** An achievement as data/achievements.xml carries it, with the gap mod's condition and the old save slug. */
 function achievementRow(row: AchievementRow): AchievementDef {
   const def: AchievementDef = { id: row.id, name: row.name, desc: row.desc };
   if (row.ship) def.ship = row.ship;
   if (row.multiDifficulty) def.multiDifficulty = true;
   if (row.condition) def.condition = structuredClone(row.condition);
+  if (row.slug) def.slug = row.slug;
   return def;
 }
 
@@ -270,13 +280,36 @@ function copyGift(gift: ChoiceGift): ChoiceGift {
   return { k: "fuel", lo: gift.lo, hi: gift.hi };
 }
 
-/** A button stores the locks and the fuel gift authored for its id. The tables are not mutated. */
+/** Pages the missing-event handler owns, including ones whose buttons store no lock. */
+const MISSING_PAGE_SLUGS = new Set([
+  ...MISSING_PAGES.map((ev) => ev.slug),
+  "no-fuel-slug-fuel-trader",
+  "no-fuel-drifting-debris",
+  "no-fuel-fuel-trader-distress-off",
+  "no-fuel-fuel-trader-distress-on",
+  "no-fuel-prepare-to-dock",
+  "no-fuel-refugee-trading",
+]);
+
+function lockOwner(id: string): EventChoice["owner"] | undefined {
+  if (Object.prototype.hasOwnProperty.call(FILLER_LOCKS, id)) return "filler";
+  if (Object.prototype.hasOwnProperty.call(MISSING_LOCKS, id)) return "missing";
+  if (Object.prototype.hasOwnProperty.call(CITED_LOCKS, id)) return "cited";
+  if (Object.prototype.hasOwnProperty.call(QUEST_LOCKS, id)) return "quest";
+  const slug = /^c:([^:]+):/.exec(id)?.[1];
+  if (slug && MISSING_PAGE_SLUGS.has(slug)) return "missing";
+  return undefined;
+}
+
+/** A button stores the locks, the handler, and the fuel gift authored for its id. The tables are not mutated. */
 function stampedChoice(choice: EventChoice): EventChoice {
   const reqs = CHOICE_REQS[choice.id];
   const gift = FUEL_GIFTS[choice.id];
-  if (!reqs?.length && !gift) return choice;
+  const owner = lockOwner(choice.id);
+  if (!reqs?.length && !gift && !owner) return choice;
   const next: EventChoice = { ...choice };
   if (reqs?.length) next.reqs = reqs.map(copyReq);
+  if (owner) next.owner = owner;
   if (gift) next.gift = copyGift(gift);
   return next;
 }
@@ -287,8 +320,10 @@ function copyCard(row: EventCard): EventCard {
     choices: row.choices.map((choice) => {
       const reqs = CHOICE_REQS[choice.id];
       const gift = FUEL_GIFTS[choice.id];
+      const owner = lockOwner(choice.id);
       const copy: EventCard["choices"][number] = { id: choice.id, label: choice.label };
       if (reqs?.length) copy.reqs = reqs.map(copyReq);
+      if (owner) copy.owner = owner;
       if (gift) copy.gift = copyGift(gift);
       return copy;
     }),
@@ -576,7 +611,12 @@ function paintHull(row: HullDef, stem: string | undefined): HullDef {
   row.cloak = stem;
   row.floor = stem;
   row.shield = stem;
-  const picture = row.grid ? pictureForRooms(row.grid.rooms) : undefined;
+  const measured = MOUNT_IMAGES[stem];
+  const picture = measured
+    ? { ...measured }
+    : row.grid
+      ? pictureForRooms(row.grid.rooms)
+      : undefined;
   if (picture) row.picture = picture;
   const mounts = mountsFor(stem);
   if (mounts) row.mounts = mounts.map((mount) => ({ ...mount }));
@@ -751,11 +791,13 @@ function weaponRow(id: string): WeaponBlueprint {
   if (Object.prototype.hasOwnProperty.call(BEAM_SPEED, id)) row.speed = BEAM_SPEED[id];
   if (id === "BEAM_LONG") row.crewDamage = BEAM_CREW.BEAM_LONG;
   else if (Object.prototype.hasOwnProperty.call(BEAM_CREW, id)) row.crewDamage = BEAM_CREW[id];
+  if (Object.prototype.hasOwnProperty.call(BOMB_CREW, id)) row.crewDamage = BOMB_CREW[id];
   return row;
 }
 
 /** Quest arrivals and surrender-only holders keep their ids. Every other page takes the datafile id. */
 function ftlIdFor(event: EventDef): string {
+  if (event.id.startsWith("filler-")) return event.id;
   if (
     event.id.startsWith("arrive-") ||
     event.flag.startsWith("quest:") ||
@@ -781,7 +823,11 @@ function mapChoices(choices: EventChoice[], ids: Map<string, string>): EventChoi
 
 function renameEvent(event: EventDef, ids: Map<string, string>): EventDef {
   const id = ids.get(event.id) ?? event.id;
-  return { ...event, id, flag: id, choices: mapChoices(event.choices, ids) };
+  const aliases =
+    id === event.id
+      ? event.aliases
+      : [event.id, ...event.aliases.filter((alias) => alias !== event.id && alias !== id)];
+  return { ...event, id, flag: id, aliases, choices: mapChoices(event.choices, ids) };
 }
 
 const STORE_PAGE: EventDef = {
@@ -820,9 +866,9 @@ const REBEL_TRADE: EventDef = {
   ],
 };
 
-/** Sector lists are quotas now. Alias and sector tags are not written, so the pack does not keep them. */
+/** Sector ids and the authoring slug stay on the record. The archive writes both, and the registry resolves the slug. */
 function storedEvent(event: EventDef): EventDef {
-  return { ...event, aliases: [], sectors: [] };
+  return event;
 }
 
 function campaignEvents(): EventDef[] {
@@ -830,12 +876,25 @@ function campaignEvents(): EventDef[] {
   const taken = new Set(cited.map((row) => row.id));
   const takenFtl = new Set(cited.map((row) => ftlIdFor(row)));
   // A filler card whose slug or datafile id is already a sector page stays that page.
-  const filler = fillerPageRecords()
+  // The filler opening is stored beside it, under filler-<slug>, so a stamp can still show it.
+  const fillerRows = fillerPageRecords();
+  const filler = fillerRows
     .filter((row) => !taken.has(row.id) && !takenFtl.has(ftlIdFor(row)))
     .map(eventRow);
-  const reqs = reqHolder(takenReqIds([...cited, ...filler]));
-  const gifts = fuelHolder(choiceIds([...cited, ...filler, reqs]));
-  const rows = [...cited, ...filler, reqs, ...(gifts.choices.length > 0 ? [gifts] : [])];
+  const twins = fillerRows
+    .filter((row) => taken.has(row.id) || takenFtl.has(ftlIdFor(row)))
+    .map((row) =>
+      eventRow({
+        ...row,
+        id: `filler-${row.id}`,
+        flag: `filler:${row.id}`,
+        aliases: [],
+        sectors: [],
+      }),
+    );
+  const reqs = reqHolder(takenReqIds([...cited, ...filler, ...twins]));
+  const gifts = fuelHolder(choiceIds([...cited, ...filler, ...twins, reqs]));
+  const rows = [...cited, ...filler, ...twins, reqs, ...(gifts.choices.length > 0 ? [gifts] : [])];
   const ids = new Map(rows.map((row) => [row.id, ftlIdFor(row)]));
   const seen = new Set<string>();
   const named: EventDef[] = [];
@@ -885,6 +944,24 @@ export function loadCatalog(): void {
       events,
       lists: [...fillerListRecords().map(listRow), ...lists],
       empties,
+      textLists: [
+        { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },
+        { id: "CREW_POOL", lines: CREW_POOL.map((text) => ({ text })) },
+      ],
+      shipClasses: ENEMY_BLUEPRINTS.map((row) => {
+        const ship: {
+          id: string;
+          classId: string;
+          blueprint: string;
+          pirate?: string;
+        } = {
+          id: row.classId,
+          classId: row.classId,
+          blueprint: row.blueprint,
+        };
+        if (row.pirateBlueprint) ship.pirate = row.pirateBlueprint;
+        return ship;
+      }),
     },
     "base",
   );

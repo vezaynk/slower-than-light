@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { hullDef } from "@stl/pack";
-import { WEAPONS } from "../content.ts";
+import { hullDef, weaponDef } from "@stl/pack";
+import "../pack/base.ts";
 import { createGame, startCombat } from "../sim.ts";
 import { citedEnemy } from "./cited-enemies.ts";
 import { ENEMY_CLASSES } from "./enemy-ships.ts";
@@ -74,8 +74,8 @@ describe("cited enemies", () => {
       // @agent:flagship. Boss Laser and Boss Beam are now WeaponDefs (wiki/flagship-weapons.ts).
       ["ARTILLERY_BOSS_4", "ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
     );
-    assert.equal(WEAPONS.ARTILLERY_BOSS_4?.power, 3);
-    assert.equal(WEAPONS.ARTILLERY_BOSS_2?.power, 4);
+    assert.equal(weaponDef("ARTILLERY_BOSS_4")?.power, 3);
+    assert.equal(weaponDef("ARTILLERY_BOSS_2")?.power, 4);
     // @agent:flagship. Artillery is not fed from a Weapons power pool ("Weapon cooldowns and status effects"):
     // every mounted gun is armed, the 4-power Boss Missile included.
     assert.ok(ship.weapons.every((weapon) => weapon.enabled));

@@ -1,7 +1,45 @@
 import { allEvents, blueprintList, weaponDef } from "@stl/pack";
-import type { ChoiceReq } from "@stl/pack";
+import type { ChoiceReq, LockOwner } from "@stl/pack";
 import type { Game, KitId, SysId } from "../types.ts";
-import { CHOICE_REQS } from "./choice-reqs.ts";
+
+type Button = {
+  id: string;
+  owner?: LockOwner;
+  reqs?: readonly ChoiceReq[];
+  choices?: readonly Button[];
+};
+
+function walkButtons(choices: readonly Button[] | undefined, visit: (choice: Button) => void) {
+  for (const choice of choices ?? []) {
+    visit(choice);
+    walkButtons(choice.choices, visit);
+  }
+}
+
+function eachChoice(visit: (choice: Button) => void) {
+  for (const ev of allEvents()) {
+    walkButtons(ev.choices, visit);
+    for (const card of ev.cards ?? []) walkButtons(card.choices, visit);
+  }
+}
+
+/** Choice ids this handler owns, with the reqs stored on them. Built from the loaded pack. */
+export function locksOwned(owner: LockOwner): Record<string, readonly ChoiceReq[]> {
+  const out: Record<string, readonly ChoiceReq[]> = {};
+  eachChoice((choice) => {
+    if (choice.owner === owner) out[choice.id] = choice.reqs ?? [];
+  });
+  return out;
+}
+
+/** True when a handler claimed this id. Reqs with no owner are a mod lock any handler may read. */
+function hasPackedReq(id: string): boolean {
+  let found = false;
+  eachChoice((choice) => {
+    if (choice.id === id && choice.owner) found = true;
+  });
+  return found;
+}
 
 const KITS = new Set<string>([
   "cloaking",
@@ -28,7 +66,7 @@ export function ownedLock(
   owned: Readonly<Record<string, readonly ChoiceReq[]>>,
 ): string | null {
   const mine = Object.prototype.hasOwnProperty.call(owned, id);
-  if (!mine && Object.prototype.hasOwnProperty.call(CHOICE_REQS, id)) return null;
+  if (!mine && hasPackedReq(id)) return null;
   return choiceLock(g, id);
 }
 
@@ -56,7 +94,6 @@ export function scrapStock(id: string): number | null {
 }
 
 function reqsFor(id: string): readonly ChoiceReq[] | null {
-  type Button = { id: string; reqs?: readonly ChoiceReq[]; choices?: readonly Button[] };
   const walk = (choices: readonly Button[] | undefined): readonly ChoiceReq[] | null => {
     for (const choice of choices ?? []) {
       if (choice.id === id && choice.reqs?.length) return choice.reqs;

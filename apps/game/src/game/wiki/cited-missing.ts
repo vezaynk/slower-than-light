@@ -4,15 +4,13 @@
  * An unnamed weapon, drone schematic, or augmentation is grantRandomItem. A crystal weapon is an even
  * draw of the crystal guns already in the game. Out-of-fuel pages name no sector; they join the wait roll only.
  */
-import { eventDef, openingLine } from "@stl/pack";
-import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
-import { EXTRA_EVENTS } from "./cited-missing-pages.ts";
-import { ownedLock } from "./choice-locks.ts";
+import { allEvents, eventDef, openingLine, storedId } from "@stl/pack";
+import type { EventChoice } from "@stl/pack";
+import { locksOwned, ownedLock } from "./choice-locks.ts";
 import { priced, rollPrice } from "./event-prices.ts";
 import { rollBand } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { affordStock, takeStock } from "./stock-spend.ts";
-import { MISSING_LOCKS } from "./choice-reqs.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { beginBoarding, hurtSystem, openStoreHere } from "../sim.ts";
 import type { Beacon, Game, GameEvent, SysId } from "../types.ts";
@@ -52,16 +50,37 @@ const NEBULA_ON_ARRIVAL = new Set([
 
 type PayKind = "parts" | "missiles" | "scrap";
 
-const OWNED = new Set(
-  EXTRA_EVENTS.map((ev) => ev.slug).concat([
-    "no-fuel-slug-fuel-trader",
-    "no-fuel-drifting-debris",
-    "no-fuel-fuel-trader-distress-off",
-    "no-fuel-fuel-trader-distress-on",
-    "no-fuel-prepare-to-dock",
-    "no-fuel-refugee-trading",
-  ]),
-);
+let missingSlugs: Set<string> | null = null;
+let missingStamp = "";
+
+function visitMissing(
+  choices: readonly { id: string; owner?: string; choices?: readonly EventChoice[] }[] | undefined,
+  slugs: Set<string>,
+) {
+  for (const choice of choices ?? []) {
+    if (choice.owner === "missing") {
+      const slug = slugOf(choice.id);
+      if (slug) slugs.add(slug);
+    }
+    visitMissing(choice.choices, slugs);
+  }
+}
+
+/** Authoring slugs whose buttons this file handles. Read from the loaded pack. */
+function ownsMissing(slug: string): boolean {
+  const events = allEvents();
+  const stamp = events.map((ev) => ev.id).join("\0");
+  if (!missingSlugs || missingStamp !== stamp) {
+    const slugs = new Set<string>();
+    for (const ev of events) {
+      visitMissing(ev.choices, slugs);
+      for (const card of ev.cards ?? []) visitMissing(card.choices, slugs);
+    }
+    missingSlugs = slugs;
+    missingStamp = stamp;
+  }
+  return missingSlugs.has(slug);
+}
 
 function slugOf(id: string): string | null {
   return /^c:([^:]+):/.exec(id)?.[1] ?? null;
@@ -372,7 +391,7 @@ export function missingAutoFight(flag: string): boolean {
 
 export function missingOwns(id: string): boolean {
   const slug = slugOf(id);
-  return slug != null && OWNED.has(slug);
+  return slug != null && ownsMissing(slug);
 }
 
 /** Last-stand hulls. A repeated name stays repeated. The draw stays between, before the opening sentence. */
@@ -531,9 +550,9 @@ export function missingCard(
 
 export function missingDisabled(g: Game, id: string): string | null {
   const slug = slugOf(id);
-  if (!slug || !OWNED.has(slug)) return null;
+  if (!slug || !ownsMissing(slug)) return null;
   const name = tail(id);
-  const locked = ownedLock(g, id, MISSING_LOCKS);
+  const locked = ownedLock(g, id, locksOwned("missing"));
   if (locked) return locked;
   const trade = TRADE_ID.exec(name);
   if (trade && stockOf(g, trade[3] as PayKind) < Number(trade[4])) {
@@ -585,7 +604,7 @@ function betterTrade(ctx: Ctx, id: string): boolean {
 
 export function missingChoose(ctx: Ctx, id: string): boolean | null {
   const slug = slugOf(id);
-  if (!slug || !OWNED.has(slug)) return null;
+  if (!slug || !ownsMissing(slug)) return null;
   if (
     id === "c:lanius-empty-distress-beacon-1:0" ||
     id === "c:lanius-empty-distress-beacon-2:0" ||

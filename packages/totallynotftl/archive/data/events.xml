@@ -51,6 +51,13 @@
 <FTL>
   <event name="STORM_BOARDING">
     <title>Boarders: Humans in plasma storm</title>
+    <alias>boarders-humans-in-plasma-storm</alias>
+    <alias>Boarders in Plasma Storm</alias>
+    <alias>Boarders: Humans in plasma storm</alias>
+    <alias>Human boarders in plasma storm</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You find two heavily damaged ships floating nearby, the remains of a battle. You begin to harvest some usable debris when you hear the sounds of someone beaming aboard followed by the shouts of a boarding party.</text>
     <choice name="c:boarders-humans-in-plasma-storm:0">
       <text>You receive medium scrap with resources</text>
@@ -59,6 +66,20 @@
   </event>
   <event name="BROKEN_REBEL_DRONE">
     <title>Deactivated Auto-ship</title>
+    <alias>deactivated-auto-ship</alias>
+    <alias>Deactivated Auto-ship</alias>
+    <alias>Deactivated Rebel Automated Scout</alias>
+    <sector>LANIUS_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You find a Rebel automated scout floating near this beacon. Despite its pristine condition, it appears to be de-activated.</text>
     <choice name="c:deactivated-auto-ship:0">
       <text>Don't risk activating it, and just strip the ship for any useful scrap</text>
@@ -67,6 +88,18 @@
   </event>
   <event name="ESCORT_BEACON">
     <title>Escort civilians FTL haywire</title>
+    <alias>escort-civilians-ftl-haywire</alias>
+    <alias>Escort FTL haywire civilian ship</alias>
+    <alias>Escort civilians FTL haywire</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text/>
     <choice name="c:escort-civilians-ftl-haywire:0">
       <text>Lead them to their destination</text>
@@ -80,6 +113,25 @@
   </event>
   <event name="FIND_DRONE">
     <title>Free drone schematic</title>
+    <alias>free-drone-schematic</alias>
+    <alias>Free Drone Schematic</alias>
+    <alias>Free drone schematic</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>CRYSTAL_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text/>
     <choice name="c:free-drone-schematic:0">
       <text>You receive a drone schematic with low scrap</text>
@@ -89,6 +141,23 @@
   </event>
   <event name="FREE_ITEMS">
     <title>Free scrap with resources</title>
+    <alias>free-scrap-with-resources</alias>
+    <alias>Free scrap with resources</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text/>
     <text>You arrive in a system and immediately discover a pirate ship nearby. Strangely, scans indicate there are no lifeforms aboard. You salvage anything useful, but find no clue as to the whereabouts of the former crew.</text>
     <text>Not much remains in this abandoned system; however, scans reveal a nearby mining platform with some salvageable materials.</text>
@@ -103,6 +172,10 @@
   </event>
   <event name="LANIUS_FREE_STUFF">
     <title>Free scrap with resources (Lanius)</title>
+    <alias>free-scrap-with-resources-lanius</alias>
+    <alias>Free scrap with resources (Lanius)</alias>
+    <alias>Lanius free stuff</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>You stumble across a badly damaged Lanius craft. It jumps away as soon as it sees you. Looking around the area, you discover a number of destroyed Rebel automated ships. It must have been quite the fight. You scrap what remains.</text>
     <choice name="c:free-scrap-with-resources-lanius:0">
       <text>You receive high scrap with resources</text>
@@ -111,6 +184,9 @@
   </event>
   <event name="LANIUS_TRADER">
     <title>Lanius trader</title>
+    <alias>lanius-trader</alias>
+    <alias>Lanius trader</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text/>
     <text>Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, "Metal sufficient. Request exchange." It appears there are some Lanius who wish sociable interaction with other races.</text>
     <text>A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.</text>
@@ -189,6 +265,11 @@
   </event>
   <event name="LANIUS_TRADER_TRANSLATOR">
     <title>Lanius trader with translator</title>
+    <alias>lanius-trader-with-translator</alias>
+    <alias>Lanius Merchant</alias>
+    <alias>Lanius Merchant with Improved Translator</alias>
+    <alias>Lanius trader with translator</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text/>
     <eventList name="base">
       <event>
@@ -244,6 +325,12 @@
   </event>
   <event name="QUEST_MANTIS_INVASION_START">
     <title>Mantis war camp</title>
+    <alias>mantis-war-camp</alias>
+    <alias>Mantis War Camp</alias>
+    <alias>Mantis war camp</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You receive a request, "All of our military ships have been destroyed or damaged during the rebellion. However, there have been reports of a Mantis war camp only a few jumps from us. Can you help?"</text>
     <choice name="c:mantis-war-camp:0">
       <text>Pledge to do what you can</text>
@@ -257,8 +344,27 @@
   </event>
   <event name="REFUEL_STATION">
     <title>Refueling station</title>
+    <alias>refueling-station</alias>
+    <alias>Refuel Station</alias>
+    <alias>Refueling station</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>CRYSTAL_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>A ship re-fueling station is stationed at this beacon. We can purchase fuel here.</text>
-    <choice name="c:refueling-station:0">
+    <choice name="c:refueling-station:0" owner="filler">
       <text>Buy 6 Fuel for 12 Scrap</text>
       <req><item_modify><item type="scrap" min="-12" max="-12"/></item_modify>Need 12 scrap</req>
       <item_modify>
@@ -268,7 +374,7 @@
         <item type="fuel" min="6" max="6"/>
       </item_modify>
     </choice>
-    <choice name="c:refueling-station:1">
+    <choice name="c:refueling-station:1" owner="filler">
       <text>Buy 3 Fuel for 6 Scrap</text>
       <req><item_modify><item type="scrap" min="-6" max="-6"/></item_modify>Need 6 scrap</req>
       <item_modify>
@@ -278,7 +384,7 @@
         <item type="fuel" min="3" max="3"/>
       </item_modify>
     </choice>
-    <choice name="c:refueling-station:2">
+    <choice name="c:refueling-station:2" owner="filler">
       <text>Buy 1 Fuel for 2 Scrap</text>
       <req><item_modify><item type="scrap" min="-2" max="-2"/></item_modify>Need 2 scrap</req>
       <item_modify>
@@ -295,6 +401,21 @@
   </event>
   <event name="SELL_DRONES_STATION">
     <title>Sell drone parts for scrap</title>
+    <alias>sell-drone-parts-for-scrap</alias>
+    <alias>Sell drone parts for scrap</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>You see a civilian space station with heavy damage. You receive a message, "We've been hit hard by the war. We need more drone parts to speed up our repairs. We'll buy some from you if you have extra."</text>
     <choice name="c:sell-drone-parts-for-scrap:0">
       <text>Sell 3 drone parts for 12 scrap</text>
@@ -330,6 +451,22 @@
   </event>
   <event name="SELL_MISSILES_STATION">
     <title>Sell missiles for scrap</title>
+    <alias>sell-missiles-for-scrap</alias>
+    <alias>Sell missiles for scrap</alias>
+    <alias>Trade: sell missiles for scrap</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>There is a black market hub here. You receive a message, "These are dangerous times. If you have extra military-grade explosives, we'll gladly pay you for them."</text>
     <choice name="c:sell-missiles-for-scrap:0">
       <text>Sell 5 missiles for 15 scrap</text>
@@ -365,6 +502,10 @@
   </event>
   <event name="QUEST_CONSTRUCTIONYARD">
     <title>Space station under construction</title>
+    <alias>space-station-under-construction</alias>
+    <alias>Space Station Under Construction</alias>
+    <alias>Space station under construction</alias>
+    <sector>CIVILIAN_SECTOR</sector>
     <text>You come across a space station under construction. You receive a message from their command tower, "Greetings. We recently lost contact with a cargo ship that was set to deliver more construction materials. Could you help us figure out what happened to them?"</text>
     <choice name="c:space-station-under-construction:0">
       <text>Offer your help</text>
@@ -386,6 +527,10 @@
   </event>
   <event name="LANIUS_PIRATE_BOARDERS">
     <title>Boarders: Humans (Abandoned)</title>
+    <alias>boarders-humans-abandoned</alias>
+    <alias>Weak and hungry human boarders</alias>
+    <alias>Weak and hungry Human intruders</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>An image of some weak and hungry humans comes onto your screen. "Those metal bastards think they can just absorb half of our engines and leave us here to die? I hope you understand the need to take your ship by force."</text>
     <choice name="c:boarders-humans-abandoned:0">
       <text>3-4 human boarders beam aboard your ship</text>
@@ -394,6 +539,14 @@
   </event>
   <event name="QUEST_ESCORT">
     <title>Escort civilians</title>
+    <alias>escort-civilians</alias>
+    <alias>Escort civilians</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
     <text/>
     <text>After a short time you receive a message, "Hello. I hope it's not a bother, but I'm looking for an escort to a nearby system. This region is quite dangerous and our ship is not well-armed."</text>
     <text>There is a single ship at this beacon. They hail you, "We could really use some help. Our FTL navigation system is shot. Can you help us get to a nearby station where they can patch us up?"</text>
@@ -412,6 +565,22 @@
   </event>
   <event name="FIND_WEAPON">
     <title>Free weapon</title>
+    <alias>free-weapon</alias>
+    <alias>Free weapon</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>CRYSTAL_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text/>
     <text>Holy crap! A weapon is just floating in space!</text>
     <text>You inform a nearby station of your flight from the Rebels. They offer to outfit your ship with a weapon and wish you well.</text>
@@ -427,6 +596,11 @@
   </event>
   <event name="NEBULA_BOARDING">
     <title>Boarders: Humans in nebula</title>
+    <alias>boarders-humans-in-nebula</alias>
+    <alias>Boarders: Humans in nebula</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>You see a small station nearby and feel the shudder of shots ringing through the ship. You can't be sure without sensors, but it seems there may be intruders on the ship!</text>
     <text>You arrive in the nebula and immediately receive a message from an unknown source, "Prepare to be boarded!" With the static from the nebula, there's no way to tell where they came from, but you hear shots fired on board the ship.</text>
     <text>You see a number of derelict ships near this beacon. After a short time you hear the tell-tale sounds of a teleporter and shouts coming from within the ship. You've been boarded!</text>
@@ -437,6 +611,15 @@
   </event>
   <event name="NEBULA_REBEL_BOARDING">
     <title>Boarders: rebels in nebula</title>
+    <alias>boarders-rebels-in-nebula</alias>
+    <alias>Boarders: rebels in nebula</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>There appear to be a number of small stations nearby. Before you have time to scan them, warnings go off. A Rebel teleporter was used in one of the stations. You've been boarded!</text>
     <choice name="c:boarders-rebels-in-nebula:0">
       <text>3-4 human boarders beam aboard your ship.</text>
@@ -445,6 +628,24 @@
   </event>
   <event name="REPAIR_STATION">
     <title>Repair station</title>
+    <alias>repair-station</alias>
+    <alias>Repair station</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>CRYSTAL_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You see a small station fitted with hundreds of Repair drones. You receive an automated message, "We don't know who you are and we don't care, but this is the right place for some ship repair!"</text>
     <choice name="c:repair-station:0">
       <text>Repair 20 damage for 40 scrap</text>
@@ -483,6 +684,23 @@
   </event>
   <event name="FUEL_FOR_DRONE">
     <title>Trade fuel for drone parts</title>
+    <alias>trade-fuel-for-drone-parts</alias>
+    <alias>Trade fuel for drone parts</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text/>
     <text>A nearby space station hails you. "Greetings! Your arrival is most fortuitous. We recently came across some extra drones. If you have some fuel, perhaps we can make a deal?"</text>
     <text>A strange vessel approaches. A digital message appears on your view-screen: "This is an automated merchant. Refill this vessel with fuel and it will supply you with drones."</text>
@@ -503,6 +721,23 @@
   </event>
   <event name="TRADER_CIV">
     <title>Trade resources</title>
+    <alias>trade-resources</alias>
+    <alias>Trade resources</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text/>
     <text>You arrive at a quiet spaceport and are immediately hailed by another ship at port with a "once in a lifetime deal!"</text>
     <text>You jump into a sector filled with civilian activity. Your scan the various advertisement channels while waiting for your FTL to charge, and are intrigued by a grey-market shipwright.</text>
@@ -579,6 +814,15 @@
   </event>
   <event name="NEBULA_TRADER">
     <title>Trade resources in nebula</title>
+    <alias>trade-resources-in-nebula</alias>
+    <alias>Trade resources in nebula</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text/>
     <eventList name="trade">
       <event>
@@ -649,6 +893,9 @@
   </event>
   <event name="BOARDERS_CRYSTAL" intro="after">
     <title>Boarders: Crystal</title>
+    <alias>boarders-crystal</alias>
+    <alias>Boarders: Crystal</alias>
+    <sector>CRYSTAL_HOME</sector>
     <text>You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!</text>
     <text>You detect a heavily armed Crystalline ship escorting some sort of prison vessel. Scans indicate there are a number of non-Crystal based life forms aboard; they must be rounding up all of the intruders in their space! Before you can react, you hear the telltale sounds of a teleporter going off.</text>
     <text>You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!</text>
@@ -660,6 +907,10 @@
   </event>
   <event name="CONFUSED_MANTIS">
     <title>Confused Mantis</title>
+    <alias>confused-mantis</alias>
+    <alias>Confused Mantis</alias>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
     <text>As soon as you jump into the system, you receive a hail from a nearby civilian Engi vessel. Their Captain appears on your screen: "Strange bug. Can you assist in debugging?"</text>
     <choice name="c:confused-mantis:0">
       <text>Listen to their problem.</text>
@@ -672,6 +923,13 @@
   </event>
   <event name="BOARDERS_SUN">
     <title>Boarders: Humans near sun</title>
+    <alias>boarders-humans-near-sun</alias>
+    <alias>Boarders: Humans near sun</alias>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
     <text>You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, "I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours." Hostiles detected on board our ship!</text>
     <choice name="c:boarders-humans-near-sun:0">
       <text>2-4 human boarders beam aboard your ship.</text>
@@ -680,6 +938,10 @@
   </event>
   <event name="MANTIS_BOARDERS">
     <title>Boarders: Mantis</title>
+    <alias>boarders-mantis</alias>
+    <alias>Boarders: Mantis</alias>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
     <text>A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!</text>
     <text>Your world, all of a sudden, changes. The Mantis are on board your ship.</text>
     <text>You hear a grating rattle and a soft clicking. You reach for your pistol.</text>
@@ -690,6 +952,10 @@
   </event>
   <event name="MANTIS_CREW">
     <title>Escape pod</title>
+    <alias>escape-pod</alias>
+    <alias>Escape pod</alias>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
     <text>You detect and retrieve an escape pod floating nearby. You consider returning it to space when you learn it's Mantis.</text>
     <choice name="c:escape-pod:0">
       <text>Jettison the pod.</text>
@@ -704,6 +970,9 @@
   </event>
   <event name="REFUGEE_NO_DISTRESS_PIRATE">
     <title>Refugee (Pirate)</title>
+    <alias>refugee-pirate</alias>
+    <alias>Refugee (Pirate)</alias>
+    <sector>PIRATE_SECTOR</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
     <eventList name="trade">
       <event>
@@ -744,6 +1013,9 @@
   </event>
   <event name="REFUGEE_DISTRESS_PIRATE">
     <title>Refugee distress (Pirate)</title>
+    <alias>refugee-distress-pirate</alias>
+    <alias>Refugee distress (Pirate)</alias>
+    <sector>PIRATE_SECTOR</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
     <eventList name="trade">
       <event>
@@ -784,6 +1056,9 @@
   </event>
   <event name="STATION_SICK">
     <title>Research station with no response</title>
+    <alias>research-station-with-no-response</alias>
+    <alias>Research station with no response</alias>
+    <sector>PIRATE_SECTOR</sector>
     <text>You arrive to find a small research station putting out a distress signal. There is no response to your hails.</text>
     <choice name="c:research-station-with-no-response:0">
       <text>Dock with the station and investigate.</text>
@@ -795,14 +1070,14 @@
       <text>Leave it alone.</text>
       <event/>
     </choice>
-    <choice name="c:research-station-with-no-response:2">
+    <choice name="c:research-station-with-no-response:2" owner="quest">
       <text>Send your battle drone in to help.</text>
       <req><drone name="BATTLE"/>Needs an Anti-Personnel Drone</req>
       <event>
         <text>Nothing, or medium scrap with resources.</text>
       </event>
     </choice>
-    <choice name="c:research-station-with-no-response:3">
+    <choice name="c:research-station-with-no-response:3" owner="quest">
       <text>Run advanced life scans.</text>
       <req><augment name="LIFE_SCANNER"/>Needs a Lifeform Scanner</req>
       <event>
@@ -812,6 +1087,10 @@
   </event>
   <event name="ROCK_BOARDERS_SUN">
     <title>Boarders: Rockmen near sun</title>
+    <alias>boarders-rockmen-near-sun</alias>
+    <alias>Boarders: Rockmen near sun</alias>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
     <text>As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, "Prepare to burn, fleshy meat-sack aliens!"</text>
     <text>With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement.</text>
     <choice name="c:boarders-rockmen-near-sun:0">
@@ -821,6 +1100,10 @@
   </event>
   <event name="ROCK_SLUG_ARGUMENT">
     <title>Rock and Slug standoff</title>
+    <alias>rock-and-slug-standoff</alias>
+    <alias>Rock and Slug standoff</alias>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
     <text>You find a Slug Cruiser and Rock ship at a standoff, both with weapons armed and ready to fight. You could intervene before this gets out of hand.</text>
     <item_modify name="debt">
       <item type="scrap" min="10" max="15"/>
@@ -843,6 +1126,12 @@
   </event>
   <event name="ROCK_MANTIS_FREIGHTER">
     <title>Mantis ships battle for Rock freighter</title>
+    <alias>mantis-ships-battle-for-rock-freighter</alias>
+    <alias>Mantis ships battle for Rock freighter</alias>
+    <alias>Mantis Ships Battle for Rock Freighter</alias>
+    <alias>Mantis ships battle for Rock Freighter</alias>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
     <text>A curious sight greets you at this beacon: a disabled Rock freighter drifts in space while two Mantis craft battle it out - presumably over who deserves the spoils.</text>
     <choice name="c:mantis-ships-battle-for-rock-freighter:0">
       <text>Wait, then attack the surviving Mantis.</text>
@@ -856,14 +1145,14 @@
         <text>Nothing happens.</text>
       </event>
     </choice>
-    <choice name="c:mantis-ships-battle-for-rock-freighter:2">
+    <choice name="c:mantis-ships-battle-for-rock-freighter:2" owner="filler">
       <text>Repair the Rock ship.</text>
       <req><drone name="REPAIR"/>Needs a Repair Drone</req>
       <event>
         <text>High scrap.</text>
       </event>
     </choice>
-    <choice name="c:mantis-ships-battle-for-rock-freighter:3">
+    <choice name="c:mantis-ships-battle-for-rock-freighter:3" owner="filler">
       <text>Repair their hull.</text>
       <req><drone name="SHIP_REPAIR"/>Needs a Hull Repair Drone</req>
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
@@ -874,6 +1163,11 @@
   </event>
   <event name="ROCK_STARSHIP_MINE">
     <title>Rock live mine</title>
+    <alias>rock-live-mine</alias>
+    <alias>Rock live mine</alias>
+    <alias>Rock Live Mine</alias>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
     <text>The burnt out hull of a Rock mine layer drifts by. Behind the wreck drifts a live mine; an automated drone that drills into ships' hulls before exploding. It locks onto your ship's signature and heads your way!</text>
     <choice name="c:rock-live-mine:0">
       <text>Attempt evasive maneuvers.</text>
@@ -881,7 +1175,7 @@
         <text>The mine bites down.</text>
       </event>
     </choice>
-    <choice name="c:rock-live-mine:1">
+    <choice name="c:rock-live-mine:1" owner="filler">
       <text>Reverse thrusters!</text>
       <req req="engines" lvl="5">Needs Engines level 5</req>
       <event>
@@ -891,8 +1185,12 @@
   </event>
   <event name="SLUG_DISTRESS_RESCUE">
     <title>Slocknog</title>
+    <alias>slocknog</alias>
+    <alias>Slocknog</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You detect life signs on a nearby moon - a lone Slug marooned on its surface. "Ah, a sssentient ssspecies, after all this time. I am Slocknog, a wandering hero ssseeking adventure. You may hire me for a ssmall sssum."</text>
-    <choice name="c:slocknog:0">
+    <choice name="c:slocknog:0" owner="filler">
       <text>Hire Slocknog.</text>
       <req><item_modify><item type="scrap" min="-55" max="-55"/></item_modify>Need 55 scrap</req>
       <event/>
@@ -904,6 +1202,10 @@
   </event>
   <event name="REFUGEE_NO_DISTRESS_SLUG">
     <title>Refugee (Slug)</title>
+    <alias>refugee-slug</alias>
+    <alias>Refugee (Slug)</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
     <eventList name="trade">
       <event>
@@ -944,6 +1246,10 @@
   </event>
   <event name="REFUGEE_DISTRESS_SLUG">
     <title>Refugee distress (Slug)</title>
+    <alias>refugee-distress-slug</alias>
+    <alias>Refugee distress (Slug)</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
     <eventList name="trade">
       <event>
@@ -984,6 +1290,12 @@
   </event>
   <event name="ZOLTAN_FREE_AUGMENT">
     <title>Zoltan free augment</title>
+    <alias>zoltan-free-augment</alias>
+    <alias>Zoltan free augment</alias>
+    <alias>Zoltan Academy Free Augment</alias>
+    <alias>Zoltan academy free augment</alias>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>A Zoltan academy sits docked just outside the beacon perimeter. They're happy to show you the fruits of their labor, and offer something to take home with you.</text>
     <choice name="c:zoltan-free-augment:0">
       <text>You receive an augmentation with low scrap</text>
@@ -993,12 +1305,17 @@
   </event>
   <event name="BOARDERS_HACKING">
     <title>Boarders: Humans jammed sensors</title>
+    <alias>boarders-humans-jammed-sensors</alias>
+    <alias>Boarders: Humans jammed sensors</alias>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You catch a glimpse of a strange signal coming from a space station before your sensors shut off unexpectedly. As you discover that your sensors are being jammed, you hear hostiles beam onto your ship.</text>
     <choice name="c:boarders-humans-jammed-sensors:0">
       <text>Continue...</text>
       <event/>
     </choice>
-    <choice name="c:boarders-humans-jammed-sensors:1">
+    <choice name="c:boarders-humans-jammed-sensors:1" owner="filler">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
       <event/>
@@ -1006,6 +1323,10 @@
   </event>
   <event name="NEBULA_ZOLTAN_EYE">
     <title>Zoltan Great Eye</title>
+    <alias>zoltan-great-eye</alias>
+    <alias>Zoltan Great Eye</alias>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>Inside this nebula you detect a rogue planet drifting through space, on its surface a huge monolith visible at this distance even to the naked eye. A Zoltan elder hails you from the planet. "Through luck or intent, you have discovered the Great Eye. Look into its depths and receive your just deserts."</text>
     <choice name="c:zoltan-great-eye:0">
       <text>Pull the ship in closer.</text>
@@ -1020,6 +1341,10 @@
   </event>
   <event name="FUEL_FLEET_DELAY">
     <title>No fuel: Rebel fleet delay</title>
+    <alias>no-fuel-rebel-fleet-delay</alias>
+    <alias>No fuel: Rebel fleet delay</alias>
+    <alias>Fuel Fleet Delay</alias>
+    <alias>Fuel Fleet delay</alias>
     <text/>
     <choice name="c:no-fuel-rebel-fleet-delay:0">
       <text>Rebel Fleet pursuit is delayed for 1 jump</text>
@@ -1031,6 +1356,10 @@
   </event>
   <event name="NO_FUEL_REFUGEE_FRIENDLY">
     <title>No fuel: friendly refugee</title>
+    <alias>no-fuel-friendly-refugee</alias>
+    <alias>No fuel: friendly refugee</alias>
+    <alias>Friendly Refugee</alias>
+    <alias>Friendly refugee</alias>
     <text>While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you.</text>
     <choice name="c:no-fuel-friendly-refugee:0">
       <text>You receive medium fuel</text>
@@ -1041,6 +1370,8 @@
   </event>
   <event name="FUEL_ON_SLUG_CHUCKLE">
     <title>No fuel: Slug fuel trader</title>
+    <alias>no-fuel-slug-fuel-trader</alias>
+    <alias>No fuel: Slug fuel trader</alias>
     <text/>
     <eventList>
       <event>
@@ -1054,24 +1385,28 @@
         </item_modify>
       </event>
     </eventList>
-    <choice name="c:no-fuel-slug-fuel-trader:0">
+    <choice name="c:no-fuel-slug-fuel-trader:0" owner="missing">
       <text>Continue</text>
       <event/>
     </choice>
   </event>
   <event name="FUEL_OFF_ROCK_WRECK">
     <title>No fuel: drifting debris</title>
+    <alias>no-fuel-drifting-debris</alias>
+    <alias>No fuel: drifting debris</alias>
     <text/>
     <item_modify name="ransom">
       <item type="scrap" min="25" max="40"/>
     </item_modify>
-    <choice name="c:no-fuel-drifting-debris:0">
+    <choice name="c:no-fuel-drifting-debris:0" owner="missing">
       <text>Continue</text>
       <event/>
     </choice>
   </event>
   <event name="FUEL_TRADER">
     <title>No fuel: fuel trader (distress off)</title>
+    <alias>no-fuel-fuel-trader-distress-off</alias>
+    <alias>No fuel: fuel trader (distress off)</alias>
     <text/>
     <text>A merchant ship jumps into the sector and you quickly hail them asking for help. They respond, "Perhaps we could work out an exchange..."</text>
     <text>A number of ships pass through the sector. You relay your message to each, and one finally responds. "I can't help much right now but perhaps we can trade."</text>
@@ -1118,13 +1453,15 @@
         </item_modify>
       </event>
     </eventList>
-    <choice name="c:no-fuel-fuel-trader-distress-off:0">
+    <choice name="c:no-fuel-fuel-trader-distress-off:0" owner="missing">
       <text>Continue</text>
       <event/>
     </choice>
   </event>
   <event name="FUEL_TRADER_DISTRESS">
     <title>No fuel: fuel trader (distress on)</title>
+    <alias>no-fuel-fuel-trader-distress-on</alias>
+    <alias>No fuel: fuel trader (distress on)</alias>
     <text/>
     <text>A merchant ship jumps into the sector, obviously responding to your ship's distress beacon. They hail you offering a trade for fuel.</text>
     <text>A ship arrives at the beacon. "We noticed your distress signal. I assume you're out of fuel? We're a bit low ourselves but perhaps we can make a trade."</text>
@@ -1170,13 +1507,20 @@
         </item_modify>
       </event>
     </eventList>
-    <choice name="c:no-fuel-fuel-trader-distress-on:0">
+    <choice name="c:no-fuel-fuel-trader-distress-on:0" owner="missing">
       <text>Continue</text>
       <event/>
     </choice>
   </event>
   <event name="ASTEROID_DERELICT_SHIP">
     <title>Dense asteroid field distress</title>
+    <alias>dense-asteroid-field-distress</alias>
+    <alias>Dense asteroid field distress</alias>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
     <text>A ship without life forms within a nearby dense asteroid field is giving off the distress call. Shall we investigate? It could be dangerous.</text>
     <choice name="c:dense-asteroid-field-distress:0">
       <text>Search for the ship.</text>
@@ -1188,7 +1532,7 @@
       <text>Avoid the area.</text>
       <event/>
     </choice>
-    <choice name="c:dense-asteroid-field-distress:2">
+    <choice name="c:dense-asteroid-field-distress:2" owner="filler">
       <text>Make a thorough search for the ship without fear of stray asteroids.</text>
       <req><augment name="ROCK_ARMOR"/>Needs Rock Plating</req>
       <event>
@@ -1198,6 +1542,9 @@
   </event>
   <event name="LANIUS_RESEARCHER_CRAFT">
     <title>Lanius craftsmen</title>
+    <alias>lanius-craftsmen</alias>
+    <alias>Lanius craftsmen</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>A merchant ship is docked with a Lanius transport. You message them to see if they need any help. It turns out they have been studying the Lanius's ability to reshape metal.</text>
     <choice name="c:lanius-craftsmen:0">
       <text>Inquire about the process.</text>
@@ -1214,6 +1561,10 @@
   </event>
   <event name="SLUG_DISTRESS_QUESTION">
     <title>Slug moons question</title>
+    <alias>slug-moons-question</alias>
+    <alias>Slug moons question</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You arrive near the distress beacon's signal.</text>
     <roll k="count" n="5">five</roll>
     <roll k="count" n="6">six</roll>
@@ -1233,6 +1584,9 @@
   </event>
   <event name="CRYSTAL_SCRAP_EXCITED">
     <title>Crystal scrap collector</title>
+    <alias>crystal-scrap-collector</alias>
+    <alias>Crystal scrap collector</alias>
+    <sector>CRYSTAL_HOME</sector>
     <text/>
     <choice name="c:crystal-scrap-collector:0">
       <text>Offer 35 scrap</text>
@@ -1250,6 +1604,9 @@
   </event>
   <event name="BOARDERS" intro="after">
     <title>Boarders: Humans (Pirate)</title>
+    <alias>boarders-humans-pirate</alias>
+    <alias>Boarders: Humans (Pirate)</alias>
+    <sector>PIRATE_SECTOR</sector>
     <text>What appears to be a civilian ship sends a friendly hail. As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!</text>
     <text>What appears to be a civilian ship sends a friendly hail. As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!"</text>
     <text>A heavily damaged ship is drifting near this beacon. You receive a communication: "Hello! Nice of you to drop by. As you can see, our ship has seen better days. Yours is looking quite nice, I think we might be taking it from you now." Intruders beam aboard.</text>
@@ -1263,6 +1620,10 @@
   </event>
   <event name="ZOLTAN_ODD_MOON">
     <title>Zoltan odd moon</title>
+    <alias>zoltan-odd-moon</alias>
+    <alias>Zoltan odd moon</alias>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>Something strikes you as odd about a moon in the distance.</text>
     <choice name="c:zoltan-odd-moon:0">
       <text>Check it out.</text>
@@ -1277,6 +1638,10 @@
   </event>
   <event name="REFUGEE_NO_DISTRESS_ZOLTAN">
     <title>Refugee (Zoltan)</title>
+    <alias>refugee-zoltan</alias>
+    <alias>Refugee (Zoltan)</alias>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.</text>
     <eventList name="trade">
       <event>
@@ -1317,6 +1682,10 @@
   </event>
   <event name="REFUGEE_DISTRESS_ZOLTAN">
     <title>Refugee distress (Zoltan)</title>
+    <alias>refugee-distress-zoltan</alias>
+    <alias>Refugee distress (Zoltan)</alias>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.</text>
     <eventList name="trade">
       <event>
@@ -1357,6 +1726,11 @@
   </event>
   <event name="ENGI_SURRENDER">
     <title>Engi surrender</title>
+    <alias>engi-surrender</alias>
+    <alias>Engi surrender</alias>
+    <alias>Engi Surrender</alias>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
     <text>An Engi ship in the vicinity, seeing you jump in armed to the teeth, immediately broadcasts its surrender. "Subject goal: wealth. Engi motivation: survival. Transfer of goods acceptable?"</text>
     <choice name="c:engi-surrender:0">
       <text>Explain that you're friendly.</text>
@@ -1373,6 +1747,13 @@
   </event>
   <event name="ZOLTAN_CREW_STUDY">
     <title>Zoltan research facility</title>
+    <alias>zoltan-research-facility</alias>
+    <alias>Zoltan research facility</alias>
+    <alias>Zoltan Research Facility</alias>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You arrive at a Zoltan research facility. They say they are researching genetic distortion due to stasis sleep and prolonged FTL travel. They ask if your crew has the time to undergo a few scans.</text>
     <choice name="c:zoltan-research-facility:0">
       <text>Participate in their study.</text>
@@ -1384,14 +1765,14 @@
       <text>Decline.</text>
       <event/>
     </choice>
-    <choice name="c:zoltan-research-facility:2">
+    <choice name="c:zoltan-research-facility:2" owner="quest">
       <text>Give them your medical records.</text>
       <req req="medbay" lvl="3">Needs Medbay level 3</req>
       <event>
         <text>They pay for the data.</text>
       </event>
     </choice>
-    <choice name="c:zoltan-research-facility:3">
+    <choice name="c:zoltan-research-facility:3" owner="quest">
       <text>Ask if they can fix this.</text>
       <req><augment name="STASIS_POD"/>Needs a Damaged Stasis Pod</req>
       <event>
@@ -1405,6 +1786,12 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
   </event>
   <event name="ROCK_QUEST_MARRIAGE_START">
     <title>Rock bride</title>
+    <alias>rock-bride</alias>
+    <alias>Rock bride</alias>
+    <alias>Rock Bride</alias>
+    <alias>Rock Bride Transport</alias>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
     <text>A rock captain hails you: "It is improper of me to contact off-worlders, but this is an emergency. We were on our way to deliver our passenger to her new husband - the Grand Basilisk of Numa V - when our engines broke down. Will you take possession of her, and make haste to Numa V?"</text>
     <choice name="c:rock-bride:0">
       <text>Accept the passenger.</text>
@@ -1420,6 +1807,18 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
   </event>
   <event name="CIVILIAN_ASTEROIDS_BEACON">
     <title>Asteroid belt distress</title>
+    <alias>asteroid-belt-distress</alias>
+    <alias>Asteroid belt distress</alias>
+    <alias>Asteroid Belt Distress</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>You follow the distress beacon to a tiny asteroid belt. You find a small ship struggling to maneuver through the field.</text>
     <choice name="c:asteroid-belt-distress:0">
       <text>Hail them to offer assistance.</text>
@@ -1430,8 +1829,13 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
   </event>
   <event name="NEBULA_BATTLEFIELD">
     <title>Nebula wreckage</title>
+    <alias>nebula-wreckage</alias>
+    <alias>Nebula wreckage</alias>
+    <alias>Nebula Wreckage</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>This nebula looks like it's recently seen two ships exchange fire... with mutually-assured destructive results. Wreckage drifts by your screens and tumbles into the depths of the nebula to be lost to sight. It's hard to determine who the combatants were without closer investigation.</text>
-    <choice name="c:nebula-wreckage:0">
+    <choice name="c:nebula-wreckage:0" owner="quest">
       <text>Ask your Slug crew to scan for survivors.</text>
       <req><crewMember name="slug"/>Needs a Slug crewmember</req>
       <event>
@@ -1451,18 +1855,21 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
   </event>
   <event name="CRYSTAL_CACHE">
     <title>Crystalline cache</title>
+    <alias>crystalline-cache</alias>
+    <alias>Crystalline cache</alias>
+    <sector>CRYSTAL_HOME</sector>
     <text>Odd radar pings from a huge, orbiting asteroid here reveal a Crystalline cache of some kind. A deep crater has been sealed over with a thick layer of crystal to keep whatever's inside safe — it'd take some serious firepower to break through.</text>
-    <choice name="c:crystalline-cache:weapons">
+    <choice name="c:crystalline-cache:weapons" owner="missing">
       <text>Attempt to break through with the weapons you have.</text>
       <event/>
     </choice>
-    <choice name="c:crystalline-cache:breach">
+    <choice name="c:crystalline-cache:breach" owner="missing">
       <text>Use a breach missile.</text>
       <req><weapon name="MISSILES_BREACH"/>Needs Breach Missiles</req>
       <req><item_modify><item type="missiles" min="-1" max="-1"/></item_modify>Need 1 missiles</req>
       <event/>
     </choice>
-    <choice name="c:crystalline-cache:crystal">
+    <choice name="c:crystalline-cache:crystal" owner="missing">
       <text>Have your Crystalline Being recalibrate your weapons.</text>
       <req><crewMember name="crystal"/>Needs a Crystal crewmember</req>
       <event/>
@@ -1470,21 +1877,25 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
   </event>
   <event name="DISTRESS_ENGI_REACTOR">
     <title>Engi research station</title>
+    <alias>engi-research-station</alias>
+    <alias>Engi research station</alias>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
     <text>You arrive at a smoldering Engi research station, its distress call unanswered — attacked by pirates or Mantis most likely. There may be someone left alive, or else something of value left on board.</text>
-    <choice name="c:engi-research-station:board">
+    <choice name="c:engi-research-station:board" owner="missing">
       <text>Board the station.</text>
       <event/>
     </choice>
-    <choice name="c:engi-research-station:ignore">
+    <choice name="c:engi-research-station:ignore" owner="missing">
       <text>Ignore it.</text>
       <event/>
     </choice>
-    <choice name="c:engi-research-station:sensors">
+    <choice name="c:engi-research-station:sensors" owner="missing">
       <text>Run another scan.</text>
       <req req="sensors" lvl="2">Needs Sensors level 2</req>
       <event/>
     </choice>
-    <choice name="c:engi-research-station:scanners">
+    <choice name="c:engi-research-station:scanners" owner="missing">
       <text>Run another scan.</text>
       <req><augment name="ADV_SCANNERS"/>Needs Long-Ranged Scanners</req>
       <event/>
@@ -1492,79 +1903,104 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
   </event>
   <event name="ENGI_GIFT">
     <title>Free scrap with resources (Engi)</title>
+    <alias>free-scrap-with-resources-engi</alias>
+    <alias>Free scrap with resources (Engi)</alias>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
     <text/>
     <text>An Engi vessel hails you. "Identity: Federation? Outlier probability. Implies... revival. Implies... hope. Assistance suggested." They offer some supplies.</text>
     <text>You cross paths with an Engi cargo vessel hurrying home before the Mantis fleets attempt to take over this sector. They're happy to offload some of their cargo to get home faster.</text>
     <text>You make contact with an isolated Engi science station who are staying put despite the likelihood of Mantis invasion. They suggest you trial some experimental technology.</text>
     <text>This was the site of a recent battle. Either a show of Mantis force, or the Engi here weren't disposed to go peacefully. You pick through the pieces.</text>
-    <choice name="c:free-scrap-with-resources-engi:take">
+    <choice name="c:free-scrap-with-resources-engi:take" owner="missing">
       <text>You receive a random amount of scrap with resources.</text>
       <event/>
     </choice>
   </event>
   <event name="ZOLTAN_DISTRESS_SHELL">
     <title>Free scrap with resources (Zoltan)</title>
+    <alias>free-scrap-with-resources-zoltan</alias>
+    <alias>Free scrap with resources (Zoltan)</alias>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You arrive to find a lumbering Zoltan freighter with no one at the helm. It's a mystery what happened to the crew, but it'd be a shame to let the opportunity go to waste.</text>
-    <choice name="c:free-scrap-with-resources-zoltan:take">
+    <choice name="c:free-scrap-with-resources-zoltan:take" owner="missing">
       <text>You receive a random amount of scrap with resources.</text>
       <event/>
     </choice>
   </event>
   <event name="ZOLTAN_FREE_MAP">
     <title>Zoltan free map</title>
+    <alias>zoltan-free-map</alias>
+    <alias>Zoltan free map</alias>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>The Zoltan stationed near this beacon are happy to receive you. As they give you the formal tour of their ship you spy some local star charts and mentally log the details.
 
 The current sector map is revealed.</text>
-    <choice name="c:zoltan-free-map:0">
+    <choice name="c:zoltan-free-map:0" owner="missing">
       <text>Continue</text>
       <event/>
     </choice>
   </event>
   <event name="LANIUS_DISTRESS_EMPTY">
     <title>Lanius empty distress beacon 1</title>
+    <alias>lanius-empty-distress-beacon-1</alias>
+    <alias>Lanius empty distress beacon 1</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>You arrive at the location of the distress signal prepared for a fight, but on first glance it's entirely empty. The signal is coming from a small plastic satellite orbiting a moon. A looping message describes how settlers have recently abandoned the area due to the Lanius threat. You fail to find any other signs of a settlement nearby.</text>
-    <choice name="c:lanius-empty-distress-beacon-1:0">
+    <choice name="c:lanius-empty-distress-beacon-1:0" owner="missing">
       <text>Nothing happens.</text>
       <event/>
     </choice>
   </event>
   <event name="LANIUS_DISTRESS_TOOLATE">
     <title>Lanius empty distress beacon 2</title>
+    <alias>lanius-empty-distress-beacon-2</alias>
+    <alias>Lanius empty distress beacon 2</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>When you get to the beacon you quickly try to locate the source of the distress call. As you are looking, the signal blinks out. It is then that you notice the small fleet of scavenger ships absorbing debris from a large battle nearby. You can't help but wonder where the distress signal came from, but you decide not to risk pressuring the fleet.</text>
-    <choice name="c:lanius-empty-distress-beacon-2:0">
+    <choice name="c:lanius-empty-distress-beacon-2:0" owner="missing">
       <text>Nothing happens.</text>
       <event/>
     </choice>
   </event>
   <event name="LANIUS_RESEARCHER_CONTACT">
     <title>Lanius with Federation science craft</title>
+    <alias>lanius-with-federation-science-craft</alias>
+    <alias>Lanius with Federation science craft</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>A Federation science craft is docked with a few Lanius ships. You hail them and ask what is going on. "Greetings! We have been attempting to understand our region's newest visitors, the Lanius, although we have been making little headway in deciphering their language."</text>
-    <choice name="c:lanius-with-federation-science-craft:ask">
+    <choice name="c:lanius-with-federation-science-craft:ask" owner="missing">
       <text>Ask if they have anything that could help your mission.</text>
       <event/>
     </choice>
-    <choice name="c:lanius-with-federation-science-craft:lanius">
+    <choice name="c:lanius-with-federation-science-craft:lanius" owner="missing">
       <text>Offer to copy your translator's data suite.</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
-    <choice name="c:lanius-with-federation-science-craft:leave">
+    <choice name="c:lanius-with-federation-science-craft:leave" owner="missing">
       <text>Leave.</text>
       <event/>
     </choice>
   </event>
   <event name="SLUG_DISTRESS_TRICK">
     <title>Slug oxygen malfunction</title>
+    <alias>slug-oxygen-malfunction</alias>
+    <alias>Slug oxygen malfunction</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You find a Slug vessel broadcasting a distress signal and contact them. "Ah, yesss, we are having problems with our oxygen generation unit. Perhaps your crew can assist in repairsss?"</text>
-    <choice name="c:slug-oxygen-malfunction:send">
+    <choice name="c:slug-oxygen-malfunction:send" owner="missing">
       <text>Send some crew to help.</text>
       <event/>
     </choice>
-    <choice name="c:slug-oxygen-malfunction:ignore">
+    <choice name="c:slug-oxygen-malfunction:ignore" owner="missing">
       <text>Ignore them.</text>
       <event/>
     </choice>
-    <choice name="c:slug-oxygen-malfunction:mantis">
+    <choice name="c:slug-oxygen-malfunction:mantis" owner="missing">
       <text>Have your Mantis oversee the repairs.</text>
       <req><crewMember name="mantis"/>Needs a Mantis crewmember</req>
       <event/>
@@ -1572,40 +2008,52 @@ The current sector map is revealed.</text>
   </event>
   <event name="NEBULA_SLUG_HULLFIX">
     <title>Slug repair station</title>
+    <alias>slug-repair-station</alias>
+    <alias>Slug repair station</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You arrive to find a small Slug repair station. "Greetingsss traveller! Care for a fix up? We could eassily patch up ssome of that damage."</text>
-    <choice name="c:slug-repair-station:no">
+    <choice name="c:slug-repair-station:no" owner="missing">
       <text>No thanks.</text>
       <event/>
     </choice>
-    <choice name="c:slug-repair-station:sure">
+    <choice name="c:slug-repair-station:sure" owner="missing">
       <text>Sure.</text>
       <event/>
     </choice>
-    <choice name="c:slug-repair-station:pay">
+    <choice name="c:slug-repair-station:pay" owner="missing">
       <text>Ask if they would like payment.</text>
       <event/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_FAKE_STORE">
     <title>Slug store ship</title>
+    <alias>slug-store-ship</alias>
+    <alias>Slug store ship</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>A Slug transport ship is stationed near the beacon with a military escort ship. They message you, "We have been waiting for a customer for agesss. Care to see our waresss?"</text>
-    <choice name="c:slug-store-ship:decline">
+    <choice name="c:slug-store-ship:decline" owner="missing">
       <text>Decline.</text>
       <event/>
     </choice>
-    <choice name="c:slug-store-ship:ask">
+    <choice name="c:slug-store-ship:ask" owner="missing">
       <text>Ask to see the goods.</text>
       <event/>
     </choice>
   </event>
   <event name="ROCK_SLUG_ARGUMENT_NEBULA">
     <title>Slug and Rock standoff in nebula</title>
+    <alias>slug-and-rock-standoff-in-nebula</alias>
+    <alias>Slug and Rock standoff in nebula</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You detect multiple ships running at maximum power nearby, but you can't see anything through this thick nebula.</text>
-    <choice name="c:slug-and-rock-standoff-in-nebula:0">
+    <choice name="c:slug-and-rock-standoff-in-nebula:0" owner="missing">
       <text>Get closer.</text>
       <event/>
     </choice>
-    <choice name="c:slug-and-rock-standoff-in-nebula:1">
+    <choice name="c:slug-and-rock-standoff-in-nebula:1" owner="missing">
       <text>Ignore them.</text>
       <event/>
     </choice>
@@ -1845,6 +2293,11 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="DONOR_PLAGUE">
     <title>Plagued station</title>
+    <alias>plagued-station</alias>
+    <alias>Plagued station</alias>
+    <alias>Plagued Station</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You arrive near a damaged and dilapidated space station. It appears to be abandoned but you detect faint life signatures on board.</text>
     <choice name="c:plagued-station:0">
       <text>Board the station and look for survivors.</text>
@@ -1859,6 +2312,11 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="DONOR_PONY">
     <title>Intelligent ponies</title>
+    <alias>intelligent-ponies</alias>
+    <alias>Intelligent ponies</alias>
+    <alias>Intelligent Ponies</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>Scanners are showing intelligent life forms on a nearby planet. No match for them can be found in the database.</text>
     <choice name="c:intelligent-ponies:0">
       <text>Investigate.</text>
@@ -1873,6 +2331,11 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="TERRAFORMING_SCAN">
     <title>Terraforming scan</title>
+    <alias>terraforming-scan</alias>
+    <alias>Terraforming scan</alias>
+    <alias>Terraforming Scan</alias>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
     <text>You receive a hail from a station orbiting a nearby planet. "Captain, we are Federation Terraforming Team C12 and are in need of assistance. Do you have some time?"</text>
     <item_modify name="scan">
       <item type="scrap" min="15" max="25"/>
@@ -1890,6 +2353,17 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="NEBULA_EMPTY">
     <title>Empty nebula beacon</title>
+    <alias>empty-nebula-beacon</alias>
+    <alias>Empty nebula beacon</alias>
+    <alias>Empty Nebula Beacon</alias>
+    <alias>Nebula empty beacon</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>There's nothing here, save for vast swirls of gas reflecting rays from a distant sun.</text>
     <choice name="c:empty-nebula-beacon:0">
       <text>Continue</text>
@@ -1898,6 +2372,16 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="STORM_ITEMS">
     <title>Plasma storm incapacitated ships</title>
+    <alias>plasma-storm-incapacitated-ships</alias>
+    <alias>Plasma storm incapacitated ships</alias>
+    <alias>Plasma Storm Incapacitated Ships</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You jump into the middle of a plasma storm. Multiple recently incapacitated ships loom in the shadows, briefly illuminated by the lightning.</text>
     <choice name="c:plasma-storm-incapacitated-ships:0">
       <text>Manually search the wreckage for survivors and equipment.</text>
@@ -1907,7 +2391,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Avoid the risk and wait to jump away unscathed.</text>
       <event/>
     </choice>
-    <choice name="c:plasma-storm-incapacitated-ships:2">
+    <choice name="c:plasma-storm-incapacitated-ships:2" owner="filler">
       <text>Have your pilot carefully explore the debris.</text>
       <req req="pilot" lvl="2">Needs level 2 Piloting</req>
       <event/>
@@ -1915,6 +2399,23 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="FRIENDLY_BEACON">
     <title>Friendly ship out of fuel</title>
+    <alias>friendly-ship-out-of-fuel</alias>
+    <alias>Friendly ship out of fuel</alias>
+    <alias>Friendly Ship Out of Fuel</alias>
+    <sector>LANIUS_SECTOR</sector>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>"Greetings! It is so good to see you! We've been out of fuel and floating out here for weeks. We were terrified a pirate or those damn Rebels would find us first. Could you spare some fuel?"</text>
     <item_modify name="give">
       <item type="fuel" min="2" max="4"/>
@@ -1933,6 +2434,12 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="REFUGEE_GHOST">
     <title>Refugee comms down</title>
+    <alias>refugee-comms-down</alias>
+    <alias>Refugee comms down</alias>
+    <alias>Refugee Comms Down</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board, and its communications seem to be down.</text>
     <choice name="c:refugee-comms-down:0">
       <text>Prepare to board and investigate.</text>
@@ -1948,6 +2455,21 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="TRADER_UPGRADES">
     <title>Trade scrap for upgrades</title>
+    <alias>trade-scrap-for-upgrades</alias>
+    <alias>Trade scrap for upgrades</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>You pick up an automated message from a nearby space station. There appears to be a local shipwright that can perform emergency work on military ships.</text>
     <text>There are a number of privately owned ship construction platforms in the area. You find one that has a slot open for some immediate work.</text>
     <text>You receive a message from a small refugee convoy, "Hail. We'd like to help you on your mission but don't have much to offer. If you have extra metal perhaps we could work on your ship?"</text>
@@ -1970,6 +2492,21 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="HELP_MINERS">
     <title>Asteroid mining colony</title>
+    <alias>asteroid-mining-colony</alias>
+    <alias>Asteroid mining colony</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>You come across an asteroid mining colony. They message you immediately, saying, "Greetings. Our supplies of mining explosives have run out ever since the Rebels blockaded this system. Do you have any extra explosives?"</text>
     <eventList>
       <event>
@@ -1983,19 +2520,19 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </eventList>
-    <choice name="c:asteroid-mining-colony:0">
+    <choice name="c:asteroid-mining-colony:0" owner="filler">
       <text>Offer to solve their problem by launching a missile.</text>
       <req req="missile"><weapon/>Needs a missile weapon</req>
       <event/>
     </choice>
-    <choice name="c:asteroid-mining-colony:1">
+    <choice name="c:asteroid-mining-colony:1" owner="filler">
       <text>Give them the requested 5 missiles.</text>
       <req><item_modify><item type="missiles" min="-5" max="-5"/></item_modify>Need 5 missiles</req>
       <item_modify>
         <item type="missiles" min="-5" max="-5"/>
       </item_modify>
     </choice>
-    <choice name="c:asteroid-mining-colony:2">
+    <choice name="c:asteroid-mining-colony:2" owner="filler">
       <text>Give them 15 missiles.</text>
       <req><item_modify><item type="missiles" min="-15" max="-15"/></item_modify>Need 15 missiles</req>
       <item_modify>
@@ -2009,6 +2546,21 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="TRADER_UPGRADES_EXCHANGE" intro="after">
     <title>Improve reactor for supplies</title>
+    <alias>improve-reactor-for-supplies</alias>
+    <alias>Improve reactor for supplies</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.</text>
     <text>"You look like a military vessel. We're trying to get back to our homes alive. I'm an engineer by trade and could try to improve your reactor if you have any extra supplies."</text>
     <text>You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.</text>
@@ -2048,6 +2600,17 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="DISTRESS_INFESTATION">
     <title>Giant alien spiders</title>
+    <alias>giant-alien-spiders</alias>
+    <alias>Giant alien spiders</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>You find a number of ships fleeing from a small space station. You hail them, asking what's wrong: "Help! We're being overrun by some sort of giant alien spiders!"</text>
     <choice name="c:giant-alien-spiders:0">
       <text>Send the crew to help! Giant alien spiders are no joke.</text>
@@ -2059,21 +2622,21 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Leave them alone.</text>
       <event/>
     </choice>
-    <choice name="c:giant-alien-spiders:2">
+    <choice name="c:giant-alien-spiders:2" owner="filler">
       <text>Send your battle drone in to help.</text>
       <req><drone name="personnel"/>Needs an Anti-Personnel Drone</req>
       <event>
         <text>Medium resources with some scrap.</text>
       </event>
     </choice>
-    <choice name="c:giant-alien-spiders:3">
+    <choice name="c:giant-alien-spiders:3" owner="filler">
       <text>Launch a Boarding drone into the station.</text>
       <req><drone name="BOARDER"/>Needs a Boarding Drone</req>
       <event>
         <text>Low scrap with resources.</text>
       </event>
     </choice>
-    <choice name="c:giant-alien-spiders:4">
+    <choice name="c:giant-alien-spiders:4" owner="filler">
       <text>Use the beam to pick off the spiders.</text>
       <req><weapon name="BEAM_BIO"/>Needs an Anti-Bio Beam</req>
       <event>
@@ -2083,6 +2646,15 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="DISTRESS_STATION_DISEASE">
     <title>Unknown disease on mining colony</title>
+    <alias>unknown-disease-on-mining-colony</alias>
+    <alias>Unknown disease on mining colony</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>You locate a nearby human mining colony where an unknown disease has spread virulently. They are setting up a quarantine to contain it but a riot has broken out.</text>
     <choice name="c:unknown-disease-on-mining-colony:0">
       <text>Send in your crew to help control the crowds.</text>
@@ -2094,21 +2666,21 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Ignore their request and move on.</text>
       <event/>
     </choice>
-    <choice name="c:unknown-disease-on-mining-colony:2">
+    <choice name="c:unknown-disease-on-mining-colony:2" owner="filler">
       <text>Send your Rock crew-member to prevent a riot.</text>
       <req><crewMember name="rock"/>Needs a Rock crewmember</req>
       <event>
         <text>Medium resources with some scrap.</text>
       </event>
     </choice>
-    <choice name="c:unknown-disease-on-mining-colony:3">
+    <choice name="c:unknown-disease-on-mining-colony:3" owner="filler">
       <text>Send your Engi to calm down the infected.</text>
       <req><crewMember name="engi"/>Needs an Engi crewmember</req>
       <event>
         <text>Medium resources with some scrap.</text>
       </event>
     </choice>
-    <choice name="c:unknown-disease-on-mining-colony:4">
+    <choice name="c:unknown-disease-on-mining-colony:4" owner="filler">
       <text>Use your medbay to help synthesize a cure.</text>
       <req req="medbay" lvl="2">Needs a level 2 Medbay</req>
       <event>
@@ -2118,6 +2690,20 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="DISTRESS_STATION_FIRE">
     <title>Fire on research station</title>
+    <alias>fire-on-research-station</alias>
+    <alias>Fire on research station</alias>
+    <sector>LANIUS_SECTOR</sector>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>You find the source of the distress call, a small research station. It appears a small laboratory fire got out of control and is threatening to destroy the station. Their fire suppression system is not responding.</text>
     <choice name="c:fire-on-research-station:0">
       <text>Send your crew in a shuttle to help put out the fire.</text>
@@ -2135,14 +2721,14 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Leave.</text>
       <event/>
     </choice>
-    <choice name="c:fire-on-research-station:3">
+    <choice name="c:fire-on-research-station:3" owner="filler">
       <text>Send your Rock crew-member in.</text>
       <req><crewMember name="rock"/>Needs a Rock crewmember</req>
       <event>
         <text>High scrap and a random augmentation.</text>
       </event>
     </choice>
-    <choice name="c:fire-on-research-station:4">
+    <choice name="c:fire-on-research-station:4" owner="filler">
       <text>Send your repair drone into the fire.</text>
       <req><drone name="REPAIR"/>Needs a Repair Drone</req>
       <event>
@@ -2152,6 +2738,16 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="STRANDED_BEACON">
     <title>Single life form on moon</title>
+    <alias>single-life-form-on-moon</alias>
+    <alias>Single life form on moon</alias>
+    <sector>LANIUS_SECTOR</sector>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>It appears the distress beacon is coming from the surface of a nearby moon. Your sensors are picking up a single life form.</text>
     <choice name="c:single-life-form-on-moon:0">
       <text>Go down to the surface to investigate.</text>
@@ -2166,6 +2762,20 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="DISTRESS_SATELLITE_DEFENSE">
     <title>Malfunctioning defense system</title>
+    <alias>malfunctioning-defense-system</alias>
+    <alias>Malfunctioning defense system</alias>
+    <sector>LANIUS_SECTOR</sector>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
+    <sector>ZOLTAN_SECTOR</sector>
+    <sector>ZOLTAN_HOME</sector>
     <text>The distress signal is coming from a small space station orbiting an uninhabited planet. Their satellite defense system has gone haywire and their repair crew can't approach without being fired on. They're looking for help to fix or disable it.</text>
     <choice name="c:malfunctioning-defense-system:0">
       <text>Promise to help.</text>
@@ -2180,6 +2790,21 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </event>
   <event name="TAVERN_HIRE">
     <title>Crew hiring station</title>
+    <alias>crew-hiring-station</alias>
+    <alias>Crew hiring station</alias>
+    <sector>CIVILIAN_SECTOR</sector>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <sector>MANTIS_SECTOR</sector>
+    <sector>MANTIS_HOME</sector>
+    <sector>PIRATE_SECTOR</sector>
+    <sector>REBEL_SECTOR</sector>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <sector>SLUG_SECTOR</sector>
+    <sector>SLUG_HOME</sector>
+    <sector>NEBULA_SECTOR</sector>
     <text>This Beacon seems to serve as meeting place for local traffic. It seems you can find crew willing to fight on your ship here... for a price.</text>
     <text>You find a space station set up for travelers. Browsing through its listings, you find a tavern full of mercenaries for hire. You look for potential crewmembers.</text>
     <text>There are a number of ships stationed around a rest stop. You immediately receive a message saying, "If you're looking for some bodies to fill your ship, you've come to the right place!"</text>
@@ -2188,161 +2813,199 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <event/>
     </choice>
   </event>
+  <event name="filler-refueling-station">
+    <title>Refueling station</title>
+    <text>A ship re-fueling station is stationed at this beacon. We can purchase fuel here.</text>
+    <choice name="c:refueling-station:0" owner="filler">
+      <text>Buy 6 Fuel for 12 Scrap.</text>
+      <req><item_modify><item type="scrap" min="-12" max="-12"/></item_modify>Need 12 scrap</req>
+      <item_modify>
+        <item type="scrap" min="-12" max="-12"/>
+      </item_modify>
+      <item_modify>
+        <item type="fuel" min="6" max="6"/>
+      </item_modify>
+    </choice>
+    <choice name="c:refueling-station:1" owner="filler">
+      <text>Buy 3 Fuel for 6 Scrap.</text>
+      <req><item_modify><item type="scrap" min="-6" max="-6"/></item_modify>Need 6 scrap</req>
+      <item_modify>
+        <item type="scrap" min="-6" max="-6"/>
+      </item_modify>
+      <item_modify>
+        <item type="fuel" min="3" max="3"/>
+      </item_modify>
+    </choice>
+    <choice name="c:refueling-station:2" owner="filler">
+      <text>Buy 1 Fuel for 2 Scrap.</text>
+      <req><item_modify><item type="scrap" min="-2" max="-2"/></item_modify>Need 2 scrap</req>
+      <item_modify>
+        <item type="scrap" min="-2" max="-2"/>
+      </item_modify>
+      <item_modify>
+        <item type="fuel" min="1" max="1"/>
+      </item_modify>
+    </choice>
+    <choice name="c:refueling-station:3">
+      <text>Ignore the station.</text>
+      <event/>
+    </choice>
+  </event>
   <event name="blue-button-reqs">
     <title>blue-button-reqs</title>
     <text/>
-    <choice name="c:malfunctioning-defense-system:3">
+    <choice name="c:malfunctioning-defense-system:3" owner="filler">
       <text>c:malfunctioning-defense-system:3</text>
       <req req="ion"><weapon/>Needs an ion weapon</req>
       <event/>
     </choice>
-    <choice name="c:malfunctioning-defense-system:4">
+    <choice name="c:malfunctioning-defense-system:4" owner="filler">
       <text>c:malfunctioning-defense-system:4</text>
       <req req="cloaking" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
-    <choice name="c:malfunctioning-defense-system:5">
+    <choice name="c:malfunctioning-defense-system:5" owner="filler">
       <text>c:malfunctioning-defense-system:5</text>
       <req req="cloaking" lvl="2">Needs Improved Cloaking</req>
       <event/>
     </choice>
-    <choice name="c:malfunctioning-defense-system:6">
+    <choice name="c:malfunctioning-defense-system:6" owner="filler">
       <text>c:malfunctioning-defense-system:6</text>
       <req req="cloaking" lvl="3">Needs Advanced Cloaking</req>
       <event/>
     </choice>
-    <choice name="c:malfunctioning-defense-system:7">
+    <choice name="c:malfunctioning-defense-system:7" owner="filler">
       <text>c:malfunctioning-defense-system:7</text>
       <req><crewMember name="engi"/>Needs an Engi crewmember</req>
       <event/>
     </choice>
-    <choice name="s:plagued-station:cure">
+    <choice name="s:plagued-station:cure" owner="filler">
       <text>s:plagued-station:cure</text>
       <req req="medbay" lvl="2">Needs a level 2 Medbay</req>
       <event/>
     </choice>
-    <choice name="s:unknown-disease:medbot">
+    <choice name="s:unknown-disease:medbot" owner="filler">
       <text>s:unknown-disease:medbot</text>
       <req><augment name="NANO_MEDBAY"/>Needs Engi Med-bot Dispersal</req>
       <event/>
     </choice>
-    <choice name="s:moon:medbay2">
+    <choice name="s:moon:medbay2" owner="filler">
       <text>s:moon:medbay2</text>
       <req req="medbay" lvl="2">Needs a level 2 Medbay</req>
       <event/>
     </choice>
-    <choice name="s:moon:collapse-medbay">
+    <choice name="s:moon:collapse-medbay" owner="filler">
       <text>s:moon:collapse-medbay</text>
       <req req="medbay" lvl="2">Needs a level 2 Medbay</req>
       <event/>
     </choice>
-    <choice name="s:moon:medbay3">
+    <choice name="s:moon:medbay3" owner="filler">
       <text>s:moon:medbay3</text>
       <req req="medbay" lvl="3">Needs a level 3 Medbay</req>
       <event/>
     </choice>
-    <choice name="s:moon:collapse-clone">
+    <choice name="s:moon:collapse-clone" owner="filler">
       <text>s:moon:collapse-clone</text>
       <req req="clonebay" lvl="2">Needs a level 2 Clone Bay</req>
       <event/>
     </choice>
-    <choice name="s:moon:slug">
+    <choice name="s:moon:slug" owner="filler">
       <text>s:moon:slug</text>
       <req><crewMember name="slug"/>Needs a Slug crewmember</req>
       <event/>
     </choice>
-    <choice name="s:confused-mantis:human">
+    <choice name="s:confused-mantis:human" owner="filler">
       <text>s:confused-mantis:human</text>
       <req><crewMember name="human"/>Needs a Human crewmember</req>
       <event/>
     </choice>
-    <choice name="s:confused-mantis:mantis">
+    <choice name="s:confused-mantis:mantis" owner="filler">
       <text>s:confused-mantis:mantis</text>
       <req><crewMember name="mantis"/>Needs a Mantis crewmember</req>
       <event/>
     </choice>
-    <choice name="s:confused-mantis:mind">
+    <choice name="s:confused-mantis:mind" owner="filler">
       <text>s:confused-mantis:mind</text>
       <req req="mind" lvl="1">Needs Mind Control</req>
       <event/>
     </choice>
-    <choice name="s:rock-mine:missile">
+    <choice name="s:rock-mine:missile" owner="filler">
       <text>s:rock-mine:missile</text>
       <req req="missile"><weapon/>Needs a missile weapon</req>
       <event/>
     </choice>
-    <choice name="s:rock-mine:beam">
+    <choice name="s:rock-mine:beam" owner="filler">
       <text>s:rock-mine:beam</text>
       <req><drone name="mine"/>Needs a Beam Drone</req>
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
-    <choice name="s:lanius-craftsmen:help">
+    <choice name="s:lanius-craftsmen:help" owner="filler">
       <text>s:lanius-craftsmen:help</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
-    <choice name="s:lanius-craftsmen:aug">
+    <choice name="s:lanius-craftsmen:aug" owner="filler">
       <text>s:lanius-craftsmen:aug</text>
       <req><item_modify><item type="scrap" min="-45" max="-45"/></item_modify>Need 45 scrap</req>
       <event/>
     </choice>
-    <choice name="s:lanius-craftsmen:weapon">
+    <choice name="s:lanius-craftsmen:weapon" owner="filler">
       <text>s:lanius-craftsmen:weapon</text>
       <req><item_modify><item type="scrap" min="-50" max="-50"/></item_modify>Need 50 scrap</req>
       <event/>
     </choice>
-    <choice name="s:lanius-craftsmen:drone">
+    <choice name="s:lanius-craftsmen:drone" owner="filler">
       <text>s:lanius-craftsmen:drone</text>
       <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <event/>
     </choice>
-    <choice name="s:lanius-craftsmen:help:aug">
+    <choice name="s:lanius-craftsmen:help:aug" owner="filler">
       <text>s:lanius-craftsmen:help:aug</text>
       <req><item_modify><item type="scrap" min="-35" max="-35"/></item_modify>Need 35 scrap</req>
       <event/>
     </choice>
-    <choice name="s:lanius-craftsmen:help:weapon">
+    <choice name="s:lanius-craftsmen:help:weapon" owner="filler">
       <text>s:lanius-craftsmen:help:weapon</text>
       <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <event/>
     </choice>
-    <choice name="s:lanius-craftsmen:help:drone">
+    <choice name="s:lanius-craftsmen:help:drone" owner="filler">
       <text>s:lanius-craftsmen:help:drone</text>
       <req><item_modify><item type="scrap" min="-30" max="-30"/></item_modify>Need 30 scrap</req>
       <event/>
     </choice>
-    <choice name="s:abandoned-station:dna">
+    <choice name="s:abandoned-station:dna" owner="filler">
       <text>s:abandoned-station:dna</text>
       <req req="clonebay" lvl="1">Needs a Clone Bay</req>
       <event/>
     </choice>
-    <choice name="s:terraforming-scan:sensors">
+    <choice name="s:terraforming-scan:sensors" owner="filler">
       <text>s:terraforming-scan:sensors</text>
       <req req="sensors" lvl="2">Needs Sensors level 2</req>
       <event/>
     </choice>
-    <choice name="s:terraforming-scan:zoltan">
+    <choice name="s:terraforming-scan:zoltan" owner="filler">
       <text>s:terraforming-scan:zoltan</text>
       <req><crewMember name="energy"/>Needs a Zoltan crewmember</req>
       <event/>
     </choice>
-    <choice name="c:crystalline-cache:teleport">
+    <choice name="c:crystalline-cache:teleport" owner="missing">
       <text>c:crystalline-cache:teleport</text>
       <req req="teleporter" lvl="2">Needs a Teleporter level 2</req>
       <event/>
     </choice>
-    <choice name="c:crystalline-cache:engines">
+    <choice name="c:crystalline-cache:engines" owner="missing">
       <text>c:crystalline-cache:engines</text>
       <req req="engines" lvl="7">Needs Engines level 7</req>
       <event/>
     </choice>
-    <choice name="c:crystalline-research-facility:dna">
+    <choice name="c:crystalline-research-facility:dna" owner="missing">
       <text>c:crystalline-research-facility:dna</text>
       <req><augment name="BACKUP_DNA"/>Needs a Backup DNA Bank</req>
       <event/>
     </choice>
-    <choice name="c:no-fuel-slug-fuel-trader:slug">
+    <choice name="c:no-fuel-slug-fuel-trader:slug" owner="missing">
       <text>c:no-fuel-slug-fuel-trader:slug</text>
       <req><crewMember name="slug"/>Needs a Slug crewmember</req>
       <req><item_modify><item type="scrap" min="-15" max="-15"/></item_modify>Need 15 scrap</req>
@@ -2352,32 +3015,32 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="c:slug-store-ship:slug">
+    <choice name="c:slug-store-ship:slug" owner="missing">
       <text>c:slug-store-ship:slug</text>
       <req><crewMember name="slug"/>Needs a Slug crewmember</req>
       <event/>
     </choice>
-    <choice name="c:no-fuel-drifting-debris:scan">
+    <choice name="c:no-fuel-drifting-debris:scan" owner="missing">
       <text>c:no-fuel-drifting-debris:scan</text>
       <req><augment name="LIFE_SCANNER"/>Needs a Lifeform Scanner</req>
       <event/>
     </choice>
-    <choice name="c:no-fuel-prepare-to-dock:sensors">
+    <choice name="c:no-fuel-prepare-to-dock:sensors" owner="missing">
       <text>c:no-fuel-prepare-to-dock:sensors</text>
       <req req="sensors" lvl="3">Needs Sensors level 3</req>
       <event/>
     </choice>
-    <choice name="c:no-fuel-prepare-to-dock:scanners">
+    <choice name="c:no-fuel-prepare-to-dock:scanners" owner="missing">
       <text>c:no-fuel-prepare-to-dock:scanners</text>
       <req><augment name="ADV_SCANNERS"/>Needs Long-Ranged Scanners</req>
       <event/>
     </choice>
-    <choice name="c:no-fuel-prepare-to-dock:cloak">
+    <choice name="c:no-fuel-prepare-to-dock:cloak" owner="missing">
       <text>c:no-fuel-prepare-to-dock:cloak</text>
       <req req="cloaking" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
-    <choice name="c:no-fuel-slug-fuel-trader:pay">
+    <choice name="c:no-fuel-slug-fuel-trader:pay" owner="missing">
       <text>c:no-fuel-slug-fuel-trader:pay</text>
       <req><item_modify><item type="scrap" min="-15" max="-15"/></item_modify>Need 15 scrap</req>
       <event>
@@ -2386,7 +3049,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="c:no-fuel-refugee-trading:better">
+    <choice name="c:no-fuel-refugee-trading:better" owner="missing">
       <text>c:no-fuel-refugee-trading:better</text>
       <req><item_modify><item type="scrap" min="-10" max="-10"/></item_modify>Need 10 scrap</req>
       <event>
@@ -2395,7 +3058,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="c:no-fuel-refugee-trading:again">
+    <choice name="c:no-fuel-refugee-trading:again" owner="missing">
       <text>c:no-fuel-refugee-trading:again</text>
       <req><item_modify><item type="scrap" min="-10" max="-10"/></item_modify>Need 10 scrap</req>
       <event>
@@ -2404,98 +3067,98 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="c:slug-repair-station:fuel">
+    <choice name="c:slug-repair-station:fuel" owner="missing">
       <text>c:slug-repair-station:fuel</text>
       <req><item_modify><item type="fuel" min="-15" max="-15"/></item_modify>Need 15 fuel</req>
       <event/>
     </choice>
-    <choice name="c:slug-repair-station:scrap50">
+    <choice name="c:slug-repair-station:scrap50" owner="missing">
       <text>c:slug-repair-station:scrap50</text>
       <req><item_modify><item type="scrap" min="-50" max="-50"/></item_modify>Need 50 scrap</req>
       <event/>
     </choice>
-    <choice name="c:slug-repair-station:accept50">
+    <choice name="c:slug-repair-station:accept50" owner="missing">
       <text>c:slug-repair-station:accept50</text>
       <req><item_modify><item type="scrap" min="-50" max="-50"/></item_modify>Need 50 scrap</req>
       <event/>
     </choice>
-    <choice name="c:zoltan-odd-moon:drone">
+    <choice name="c:zoltan-odd-moon:drone" owner="cited">
       <text>c:zoltan-odd-moon:drone</text>
       <req><drone name="BOARDER"/>Needs a Boarding Drone</req>
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
-    <choice name="c:lanius-trader:4">
+    <choice name="c:lanius-trader:4" owner="quest">
       <text>c:lanius-trader:4</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
-    <choice name="c:space-station-under-construction:2">
+    <choice name="c:space-station-under-construction:2" owner="quest">
       <text>c:space-station-under-construction:2</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
-    <choice name="q:lanius-dormant:plunder">
+    <choice name="q:lanius-dormant:plunder" owner="quest">
       <text>q:lanius-dormant:plunder</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event/>
     </choice>
-    <choice name="q:lanius-dormant:autopilot">
+    <choice name="q:lanius-dormant:autopilot" owner="quest">
       <text>q:lanius-dormant:autopilot</text>
       <req req="pilot" lvl="2">Needs level 2 Piloting</req>
       <event/>
     </choice>
-    <choice name="q:lanius-translator:buy">
+    <choice name="q:lanius-translator:buy" owner="quest">
       <text>q:lanius-translator:buy</text>
       <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-near-sensor-station:2">
+    <choice name="c:auto-ship-near-sensor-station:2" owner="quest">
       <text>c:auto-ship-near-sensor-station:2</text>
       <req req="sensors" lvl="3">Needs level 3 Sensors</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-near-sensor-station:3">
+    <choice name="c:auto-ship-near-sensor-station:3" owner="quest">
       <text>c:auto-ship-near-sensor-station:3</text>
       <req req="teleporter" lvl="1">Needs a Teleporter</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-fight-in-plasma-storm:1">
+    <choice name="c:auto-ship-fight-in-plasma-storm:1" owner="quest">
       <text>c:auto-ship-fight-in-plasma-storm:1</text>
       <req req="engines" lvl="3" max_lvl="5">Needs Engines level 3-5</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-fight-in-plasma-storm:2">
+    <choice name="c:auto-ship-fight-in-plasma-storm:2" owner="quest">
       <text>c:auto-ship-fight-in-plasma-storm:2</text>
       <req req="engines" lvl="6">Needs level 6 Engines</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-fight-in-plasma-storm:3">
+    <choice name="c:auto-ship-fight-in-plasma-storm:3" owner="quest">
       <text>c:auto-ship-fight-in-plasma-storm:3</text>
       <req req="cloaking" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
-    <choice name="c:deactivated-auto-ship:2">
+    <choice name="c:deactivated-auto-ship:2" owner="quest">
       <text>c:deactivated-auto-ship:2</text>
       <req req="sensors" lvl="3">Needs level 3 Sensors</req>
       <event/>
     </choice>
-    <choice name="c:rock-ship-in-plasma-storm:2">
+    <choice name="c:rock-ship-in-plasma-storm:2" owner="quest">
       <text>c:rock-ship-in-plasma-storm:2</text>
       <req><crewMember name="rock"/>Needs a Rock crewmember</req>
       <event/>
     </choice>
-    <choice name="c:slug-drink:2">
+    <choice name="c:slug-drink:2" owner="quest">
       <text>c:slug-drink:2</text>
       <req><crewMember name="rock"/>Needs a Rock crewmember</req>
       <event/>
     </choice>
-    <choice name="c:escort-civilians-ftl-haywire:2">
+    <choice name="c:escort-civilians-ftl-haywire:2" owner="quest">
       <text>c:escort-civilians-ftl-haywire:2</text>
       <req><augment name="FTL_JUMPER"/>Needs Adv. FTL Navigation</req>
       <event/>
     </choice>
-    <choice name="c:zoltan-security-checkpoint:2">
+    <choice name="c:zoltan-security-checkpoint:2" owner="quest">
       <text>c:zoltan-security-checkpoint:2</text>
       <req><crewMember name="slug"/>Needs a Slug crewmember</req>
       <event>
@@ -2504,7 +3167,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="c:zoltan-security-checkpoint:3">
+    <choice name="c:zoltan-security-checkpoint:3" owner="quest">
       <text>c:zoltan-security-checkpoint:3</text>
       <req req="mind" lvl="1">Needs Mind Control</req>
       <event>
@@ -2513,98 +3176,98 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="c:pirate-ship-attacking-civilian-distress:2">
+    <choice name="c:pirate-ship-attacking-civilian-distress:2" owner="quest">
       <text>c:pirate-ship-attacking-civilian-distress:2</text>
       <req req="weapons" lvl="6">Needs level 6 Weapons</req>
       <event/>
     </choice>
-    <choice name="c:pirate-smuggler:2">
+    <choice name="c:pirate-smuggler:2" owner="quest">
       <text>c:pirate-smuggler:2</text>
       <req req="weapons" lvl="6">Needs level 6 Weapons</req>
       <event/>
     </choice>
-    <choice name="c:rock-atheists:2">
+    <choice name="c:rock-atheists:2" owner="quest">
       <text>c:rock-atheists:2</text>
       <req req="sensors" lvl="2">Needs level 2 Sensors</req>
       <event/>
     </choice>
-    <choice name="q:pirate-drones:slug">
+    <choice name="q:pirate-drones:slug" owner="quest">
       <text>q:pirate-drones:slug</text>
       <req><crewMember name="slug"/>Needs a Slug crewmember</req>
       <event/>
     </choice>
-    <choice name="q:pirate-drones:hack">
+    <choice name="q:pirate-drones:hack" owner="quest">
       <text>q:pirate-drones:hack</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
       <event/>
     </choice>
-    <choice name="q:pirate-drones:upgrade">
+    <choice name="q:pirate-drones:upgrade" owner="quest">
       <text>q:pirate-drones:upgrade</text>
       <req req="drones" lvl="1">Needs Drone Control</req>
       <event/>
     </choice>
-    <choice name="q:engi-distress:scrap">
+    <choice name="q:engi-distress:scrap" owner="quest">
       <text>q:engi-distress:scrap</text>
       <req><item_modify><item type="scrap" min="-25" max="-25"/></item_modify>Need 25 scrap</req>
       <event/>
     </choice>
-    <choice name="q:engi-distress:supplies">
+    <choice name="q:engi-distress:supplies" owner="quest">
       <text>q:engi-distress:supplies</text>
       <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <req><item_modify><item type="missiles" min="-2" max="-2"/></item_modify>Need 2 missiles</req>
       <req><item_modify><item type="fuel" min="-2" max="-2"/></item_modify>Need 2 fuel</req>
       <event/>
     </choice>
-    <choice name="q:rebel-nebula:engines">
+    <choice name="q:rebel-nebula:engines" owner="quest">
       <text>q:rebel-nebula:engines</text>
       <req req="engines" lvl="4">Needs level 4 Engines</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-near-storage-station:2">
+    <choice name="c:auto-ship-near-storage-station:2" owner="quest">
       <text>c:auto-ship-near-storage-station:2</text>
       <req req="cloaking" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-near-storage-station-in-nebula:2">
+    <choice name="c:auto-ship-near-storage-station-in-nebula:2" owner="quest">
       <text>c:auto-ship-near-storage-station-in-nebula:2</text>
       <req req="cloaking" lvl="1">Needs Cloaking</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-near-storage-station-in-nebula:3">
+    <choice name="c:auto-ship-near-storage-station-in-nebula:3" owner="quest">
       <text>c:auto-ship-near-storage-station-in-nebula:3</text>
       <req req="cloaking" lvl="2">Needs level 2 Cloaking</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-near-storage-station-in-nebula:4">
+    <choice name="c:auto-ship-near-storage-station-in-nebula:4" owner="quest">
       <text>c:auto-ship-near-storage-station-in-nebula:4</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-near-storage-station-in-nebula:5">
+    <choice name="c:auto-ship-near-storage-station-in-nebula:5" owner="quest">
       <text>c:auto-ship-near-storage-station-in-nebula:5</text>
       <req req="hacking" lvl="2">Needs level 2 Hacking</req>
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
-    <choice name="c:auto-ship-near-radar-station:2">
+    <choice name="c:auto-ship-near-radar-station:2" owner="quest">
       <text>c:auto-ship-near-radar-station:2</text>
       <req><drone name="radar"/>Needs a Combat Drone</req>
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
-    <choice name="q:auto-radar:drone">
+    <choice name="q:auto-radar:drone" owner="quest">
       <text>q:auto-radar:drone</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
-    <choice name="s:the-black-raven:duel">
+    <choice name="s:the-black-raven:duel" owner="quest">
       <text>s:the-black-raven:duel</text>
       <req><crewMember name="slug"/>Needs a Slug crewmember</req>
       <event/>
     </choice>
-    <choice name="s:garbled-dock:doors">
+    <choice name="s:garbled-dock:doors" owner="quest">
       <text>s:garbled-dock:doors</text>
       <req req="doors" lvl="2">Needs level 2 Door System</req>
       <event>
@@ -2613,7 +3276,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="s:garbled-dock:sensors2">
+    <choice name="s:garbled-dock:sensors2" owner="quest">
       <text>s:garbled-dock:sensors2</text>
       <req req="sensors" lvl="2">Needs Sensors level 2</req>
       <event>
@@ -2622,7 +3285,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="s:garbled-dock:sensors3">
+    <choice name="s:garbled-dock:sensors3" owner="quest">
       <text>s:garbled-dock:sensors3</text>
       <req req="sensors" lvl="3">Needs Sensors level 3</req>
       <event>
@@ -2631,7 +3294,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="s:refuel-dock:accept">
+    <choice name="s:refuel-dock:accept" owner="quest">
       <text>s:refuel-dock:accept</text>
       <req><item_modify><item type="scrap" min="-5" max="-5"/></item_modify>Need 5 scrap</req>
       <event>
@@ -2640,12 +3303,12 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="s:zoltan-raft:hire">
+    <choice name="s:zoltan-raft:hire" owner="quest">
       <text>s:zoltan-raft:hire</text>
       <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <event/>
     </choice>
-    <choice name="s:refuel-dock:doors">
+    <choice name="s:refuel-dock:doors" owner="quest">
       <text>s:refuel-dock:doors</text>
       <req req="doors" lvl="2">Needs level 2 Door System</req>
       <event>
@@ -2654,52 +3317,52 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="q:war-camp:missile">
+    <choice name="q:war-camp:missile" owner="quest">
       <text>q:war-camp:missile</text>
       <req><item_modify><item type="missiles" min="-1" max="-1"/></item_modify>Need 1 missiles</req>
       <event/>
     </choice>
-    <choice name="q:loyalists:heal">
+    <choice name="q:loyalists:heal" owner="quest">
       <text>q:loyalists:heal</text>
       <req><item_modify><item type="missiles" min="-1" max="-1"/></item_modify>Need 1 missiles</req>
       <event/>
     </choice>
-    <choice name="q:war-camp:firebomb">
+    <choice name="q:war-camp:firebomb" owner="quest">
       <text>q:war-camp:firebomb</text>
       <req><item_modify><item type="missiles" min="-2" max="-2"/></item_modify>Need 2 missiles</req>
       <event/>
     </choice>
-    <choice name="q:station:fuel4">
+    <choice name="q:station:fuel4" owner="quest">
       <text>q:station:fuel4</text>
       <req><item_modify><item type="fuel" min="-4" max="-4"/></item_modify>Need 4 fuel</req>
       <event/>
     </choice>
-    <choice name="q:station:fuel1">
+    <choice name="q:station:fuel1" owner="quest">
       <text>q:station:fuel1</text>
       <req><item_modify><item type="fuel" min="-1" max="-1"/></item_modify>Need 1 fuel</req>
       <event/>
     </choice>
-    <choice name="q:asteroid:defense">
+    <choice name="q:asteroid:defense" owner="quest">
       <text>q:asteroid:defense</text>
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone parts</req>
       <event/>
     </choice>
-    <choice name="q:asteroid:repair">
+    <choice name="q:asteroid:repair" owner="quest">
       <text>q:asteroid:repair</text>
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone parts</req>
       <event/>
     </choice>
-    <choice name="q:merchant:paltry">
+    <choice name="q:merchant:paltry" owner="quest">
       <text>q:merchant:paltry</text>
       <req><item_modify><item type="drones" min="-5" max="-5"/></item_modify>Need 5 drone parts</req>
       <event/>
     </choice>
-    <choice name="q:merchant:full">
+    <choice name="q:merchant:full" owner="quest">
       <text>q:merchant:full</text>
       <req><item_modify><item type="drones" min="-5" max="-5"/></item_modify>Need 5 drone parts</req>
       <event/>
     </choice>
-    <choice name="q:merchant:weapons">
+    <choice name="q:merchant:weapons" owner="quest">
       <text>q:merchant:weapons</text>
       <req><item_modify><item type="drones" min="-5" max="-5"/></item_modify>Need 5 drone parts</req>
       <event>
@@ -2708,7 +3371,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         </item_modify>
       </event>
     </choice>
-    <choice name="q:research:drone">
+    <choice name="q:research:drone" owner="quest">
       <text>q:research:drone</text>
       <req><drone name="BATTLE"/>Needs an Anti-Personnel Drone</req>
       <event/>

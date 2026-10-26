@@ -379,4 +379,51 @@
     <text>You explore around the beacon and are shocked when a rock the size of a small moon suddenly looms ahead of you. Scans reveal the solid-looking rock is just a husk, almost entirely mined out of useful minerals.</text>
     <text>There are a number of small stations for travellers in the area, lit up by guiding lights and advertisements. Only Slug ships are docked so you decide it's better to avoid a confrontation and steer clear.</text>
   </emptyBeacon>
+  <shipClass name="rebel-fighter" class="rebel-fighter" blueprint="REBEL_SKINNY" pirate="REBEL_SKINNY_P"/>
+  <shipClass name="rebel-invader" class="rebel-invader" blueprint="REBEL_SKINNY" pirate="REBEL_SKINNY_P_DLC"/>
+  <shipClass name="rebel-rigger" class="rebel-rigger" blueprint="REBEL_FAT" pirate="REBEL_FAT_P"/>
+  <shipClass name="rebel-disruptor" class="rebel-disruptor" blueprint="REBEL_FAT" pirate="REBEL_FAT_P_DLC"/>
+  <shipClass name="elite-fighter" class="elite-fighter" blueprint="REBEL_SKINNY_ELITE"/>
+  <shipClass name="elite-assault" class="elite-assault" blueprint="REBEL_SKINNY_ELITE"/>
+  <shipClass name="auto-scout" class="auto-scout" blueprint="AUTO_BASIC"/>
+  <shipClass name="auto-surveyor" class="auto-surveyor" blueprint="AUTO_BASIC"/>
+  <shipClass name="auto-assault" class="auto-assault" blueprint="AUTO_ASSAULT"/>
+  <shipClass name="auto-hacker" class="auto-hacker" blueprint="AUTO_ASSAULT"/>
+  <shipClass name="engi-scout" class="engi-scout" blueprint="CIRCLE_SCOUT"/>
+  <shipClass name="engi-outrider" class="engi-outrider" blueprint="CIRCLE_SCOUT"/>
+  <shipClass name="engi-bomber" class="engi-bomber" blueprint="CIRCLE_BOMBER"/>
+  <shipClass name="engi-hacker" class="engi-hacker" blueprint="CIRCLE_BOMBER"/>
+  <shipClass name="mantis-scout" class="mantis-scout" blueprint="MANTIS_SCOUT" pirate="MANTIS_SCOUT_P"/>
+  <shipClass name="mantis-interceptor" class="mantis-interceptor" blueprint="MANTIS_SCOUT" pirate="MANTIS_SCOUT_P_DLC"/>
+  <shipClass name="mantis-fighter" class="mantis-fighter" blueprint="MANTIS_FIGHTER" pirate="MANTIS_FIGHTER_P"/>
+  <shipClass name="mantis-assault" class="mantis-assault" blueprint="MANTIS_FIGHTER" pirate="MANTIS_FIGHTER_P_DLC"/>
+  <shipClass name="mantis-bomber" class="mantis-bomber" blueprint="MANTIS_BOMBER" pirate="MANTIS_BOMBER_P"/>
+  <shipClass name="mantis-aggressor" class="mantis-aggressor" blueprint="MANTIS_BOMBER" pirate="MANTIS_BOMBER_P_DLC"/>
+  <shipClass name="slug-interceptor" class="slug-interceptor" blueprint="JELLY_BUTTON" pirate="JELLY_BUTTON_P"/>
+  <shipClass name="slug-scout" class="slug-scout" blueprint="JELLY_BUTTON" pirate="JELLY_BUTTON_P_DLC"/>
+  <shipClass name="slug-light-cruiser" class="slug-light-cruiser" blueprint="JELLY_CROISSANT" pirate="JELLY_CROISSANT_P"/>
+  <shipClass name="slug-light-surveyor" class="slug-light-surveyor" blueprint="JELLY_CROISSANT" pirate="JELLY_CROISSANT_P_DLC"/>
+  <shipClass name="slug-assault" class="slug-assault" blueprint="JELLY_TRUFFLE" pirate="JELLY_TRUFFLE_P"/>
+  <shipClass name="slug-instigator" class="slug-instigator" blueprint="JELLY_TRUFFLE" pirate="JELLY_TRUFFLE_P_DLC"/>
+  <shipClass name="rock-scout" class="rock-scout" blueprint="ROCK_SCOUT" pirate="ROCK_SCOUT_P"/>
+  <shipClass name="rock-investigator" class="rock-investigator" blueprint="ROCK_SCOUT" pirate="ROCK_SCOUT_P_DLC"/>
+  <shipClass name="rock-fighter" class="rock-fighter" blueprint="ROCK_FIGHT" pirate="ROCK_FIGHT_P"/>
+  <shipClass name="rock-interceptor" class="rock-interceptor" blueprint="ROCK_FIGHT" pirate="ROCK_FIGHT_P_DLC"/>
+  <shipClass name="rock-assault" class="rock-assault" blueprint="ROCK_ASSAULT"/>
+  <shipClass name="rock-aggressor" class="rock-aggressor" blueprint="ROCK_ASSAULT"/>
+  <shipClass name="rock-assault-elite" class="rock-assault-elite" blueprint="ROCK_ASSAULT_ELITE"/>
+  <shipClass name="energy-fighter" class="energy-fighter" blueprint="ZOLTAN_FIGHTER" pirate="ZOLTAN_FIGHTER_P"/>
+  <shipClass name="energy-instigator" class="energy-instigator" blueprint="ZOLTAN_FIGHTER" pirate="ZOLTAN_FIGHTER_P_DLC"/>
+  <shipClass name="energy-bomber" class="energy-bomber" blueprint="ZOLTAN_BOMBER" pirate="ZOLTAN_BOMBER_P"/>
+  <shipClass name="energy-hacker" class="energy-hacker" blueprint="ZOLTAN_BOMBER" pirate="ZOLTAN_BOMBER_P_DLC"/>
+  <shipClass name="crystal-scout" class="crystal-scout" blueprint="CRYSTAL_SCOUT"/>
+  <shipClass name="crystal-outrider" class="crystal-outrider" blueprint="CRYSTAL_SCOUT"/>
+  <shipClass name="crystal-bomber" class="crystal-bomber" blueprint="CRYSTAL_BOMBER"/>
+  <shipClass name="crystal-instigator" class="crystal-instigator" blueprint="CRYSTAL_BOMBER"/>
+  <shipClass name="lanius-scout" class="lanius-scout" blueprint="ANAEROBIC_SCOUT"/>
+  <shipClass name="lanius-bomber" class="lanius-bomber" blueprint="ANAEROBIC_BOMBER"/>
+  <shipClass name="federation-scout" class="federation-scout" blueprint="FED_SCOUT" pirate="FED_SCOUT_P"/>
+  <shipClass name="federation-outrider" class="federation-outrider" blueprint="FED_SCOUT" pirate="FED_SCOUT_P_DLC"/>
+  <shipClass name="federation-bomber" class="federation-bomber" blueprint="FED_BOMBER" pirate="FED_BOMBER_P"/>
+  <shipClass name="federation-hacker" class="federation-hacker" blueprint="FED_BOMBER" pirate="FED_BOMBER_P_DLC"/>
 </FTL>

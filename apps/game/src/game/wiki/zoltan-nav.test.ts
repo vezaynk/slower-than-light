@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { CATALOG } from "../extras/augments.ts";
+import { allAugments } from "@stl/pack";
 import {
   applyIon,
   bars,
@@ -148,7 +148,7 @@ describe("Zoltan power bar", () => {
 
 describe("Adv. FTL Navigation", () => {
   it("is sold for 50", () => {
-    const row = CATALOG.find((item) => item.id === "FTL_JUMPER");
+    const row = allAugments().find((item) => item.id === "FTL_JUMPER");
     assert.ok(row);
     assert.equal(row.name, "Adv. FTL Navigation");
     assert.equal(row.cost, 50);

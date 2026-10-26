@@ -1,9 +1,12 @@
-import { CREW_POOL, SYS_LABEL, WEAPONS, type WeaponDef } from "@stl/catalog";
-import { scrapRange, tuneDef } from "@stl/pack";
+import { scrapRange, systemDef, tuneDef, type WeaponBlueprint } from "@stl/pack";
 import type { Difficulty, SysId } from "./types";
 
-export type { WeaponDef };
-export { CREW_POOL, SYS_LABEL, WEAPONS };
+export type WeaponDef = WeaponBlueprint;
+
+/** Player-facing system name from the loaded blueprint. */
+export function systemLabel(id: string): string {
+  return systemDef(id)?.name ?? id;
+}
 
 export const MAIN_SYSTEMS: SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons"];
 

@@ -49,8 +49,7 @@ import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts"
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
 import { grantRandomItem } from "./bonus-item.ts";
-import { ownedLock } from "./choice-locks.ts";
-import { QUEST_LOCKS } from "./choice-reqs.ts";
+import { locksOwned, ownedLock } from "./choice-locks.ts";
 import { priceBand, priced, rollPrice } from "./event-prices.ts";
 import { rollBand, upgradeRows } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
@@ -4360,7 +4359,7 @@ export function questChoose(g: Game, id: string): boolean {
 
 /** sim.ts choiceDisabled: a lock stored on the choice, then a price parsed from the choice id. */
 export function questChoiceDisabled(g: Game, id: string): string | null {
-  const locked = ownedLock(g, id, QUEST_LOCKS);
+  const locked = ownedLock(g, id, locksOwned("quest"));
   if (locked) return locked;
   // Rebel checkpoint. The bribe amount is the one shown on the button.
   const checkpoint = /^q:rebel-checkpoint:bribe:(\d+)$/.exec(id);

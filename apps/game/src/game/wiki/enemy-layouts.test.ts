@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { rollEnemy, type PoolContext } from "../enemy-gen.ts";
 import { createGame, startCombat } from "../sim.ts";
-import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
-import { hullDef } from "@stl/pack";
+import { hullDef, shipClassBlueprint } from "@stl/pack";
+import "../pack/base.ts";
 import { enemyLayout } from "./enemy-layouts.ts";
 import { ENEMY_CLASSES } from "./enemy-ships.ts";
 
@@ -34,8 +34,8 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
       { ...ctx, sector: 8, difficulty: "hard" },
       () => 0.5,
     );
-    assert.equal(enemyBlueprintId("rebel-fighter"), "REBEL_SKINNY");
-    assert.equal(enemyBlueprintId("rebel-invader"), "REBEL_SKINNY");
+    assert.equal(shipClassBlueprint("rebel-fighter"), "REBEL_SKINNY");
+    assert.equal(shipClassBlueprint("rebel-invader"), "REBEL_SKINNY");
     assert.equal(hullDef("REBEL_SKINNY")?.layout, "rebel-fighter");
     assert.equal(hullDef("REBEL_SKINNY")?.health, undefined);
     assert.equal(hullDef("rebel-fighter"), undefined);
@@ -77,13 +77,13 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
     assert.notDeepEqual(pirate, regular);
     assert.equal(pirate.rooms.length, 10);
     assert.equal(pirate.rooms.find((room) => room.system === "doors")?.x, 0);
-    assert.equal(enemyBlueprintId("rebel-fighter", true), "REBEL_SKINNY_P");
+    assert.equal(shipClassBlueprint("rebel-fighter", true), "REBEL_SKINNY_P");
     assert.equal(hullDef("REBEL_SKINNY_P")?.layout, "rebel-fighter-pirate");
-    assert.equal(enemyBlueprintId("rebel-invader", true), "REBEL_SKINNY_P_DLC");
+    assert.equal(shipClassBlueprint("rebel-invader", true), "REBEL_SKINNY_P_DLC");
     assert.equal(hullDef("REBEL_SKINNY_P_DLC")?.layout, "rebel-invader-pirate");
     assert.equal(hullDef("rebel-fighter:pirate"), undefined);
     // Federation pirates have no separate picture, so they copy the regular interior.
-    assert.equal(enemyBlueprintId("federation-scout", true), "FED_SCOUT_P");
+    assert.equal(shipClassBlueprint("federation-scout", true), "FED_SCOUT_P");
     assert.equal(hullDef("federation-scout:pirate"), undefined);
     assert.deepEqual(enemyLayout("federation-scout", true), enemyLayout("federation-scout", false));
     const spec = rollEnemy(cls("rebel-fighter"), true, ctx, () => 0.99);
@@ -105,7 +105,7 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
   it("traces all 47 classes and gives every installed system its blueprint room", () => {
     for (const row of ENEMY_CLASSES) {
       for (const pirate of [false, true]) {
-        const id = enemyBlueprintId(row.id, pirate);
+        const id = shipClassBlueprint(row.id, pirate);
         const hull = hullDef(id);
         assert.ok(hull, id);
         assert.equal(hull.health, undefined, id);

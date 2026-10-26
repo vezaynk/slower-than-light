@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { HULLS } from "./hulls.ts";
+import { playerHulls } from "./hulls.ts";
 import { createGame } from "./sim.ts";
 import type { Game } from "./types.ts";
 import {
@@ -60,18 +60,19 @@ const start = emptyUnlocks();
 describe("ship unlocks (Ships, Layouts)", () => {
   it("starts with only the Kestrel A", () => {
     assert.deepEqual(start.ships, ["PLAYER_SHIP_HARD"]);
-    for (const hull of HULLS)
+    for (const hull of playerHulls())
       assert.equal(isUnlockedIn(start, hull.id), hull.id === "PLAYER_SHIP_HARD", hull.id);
   });
 
   it("has a rule and a page line for every hull", () => {
-    for (const hull of HULLS) {
+    for (const hull of playerHulls()) {
       assert.ok(ruleFor(hull.id).quote.length > 10, hull.id);
       assert.ok(hull.unlock.length > 10, hull.id);
     }
     assert.deepEqual(
       A_RULES.map((r) => r.hull).sort(),
-      HULLS.filter((h) => h.layout === "A")
+      playerHulls()
+        .filter((h) => h.layout === "A")
         .map((h) => h.id)
         .sort(),
     );
@@ -200,14 +201,14 @@ describe("ship unlocks (Ships, Layouts)", () => {
   });
 
   it("unlocks the Crystal after Flagship wins with A and B of every ship but the Lanius", () => {
-    const cruisers = [...new Set(HULLS.map((h) => h.cruiser))].filter(
+    const cruisers = [...new Set(playerHulls().map((h) => h.cruiser))].filter(
       (c) => c !== "Lanius Cruiser" && c !== "Crystal Cruiser",
     );
-    const wins = HULLS.filter((h) => cruisers.includes(h.cruiser) && h.layout !== "C").map(
-      (h) => h.id,
-    );
+    const wins = playerHulls()
+      .filter((h) => cruisers.includes(h.cruiser) && h.layout !== "C")
+      .map((h) => h.id);
     const most: UnlockState = { ships: ["PLAYER_SHIP_HARD"], wins: wins.slice(1) };
-    const missing = HULLS.find((h) => h.id === wins[0])!;
+    const missing = playerHulls().find((h) => h.id === wins[0])!;
     assert.equal(
       deriveUnlocks(most, run("PLAYER_SHIP_HARD"), []).ships.includes("PLAYER_SHIP_CRYSTAL"),
       false,
@@ -217,7 +218,7 @@ describe("ship unlocks (Ships, Layouts)", () => {
 
   it("unlock-all opens every hull and keeps wins", () => {
     const all = allUnlocks({ ships: ["PLAYER_SHIP_HARD"], wins: ["PLAYER_SHIP_CIRCLE"] });
-    for (const hull of HULLS) assert.ok(isUnlockedIn(all, hull.id));
+    for (const hull of playerHulls()) assert.ok(isUnlockedIn(all, hull.id));
     assert.deepEqual(all.wins, ["PLAYER_SHIP_CIRCLE"]);
   });
 
@@ -284,7 +285,7 @@ describe("unlock storage (stl:unlocks)", () => {
   it("unlock all and reset", () => {
     memoryStorage();
     unlockAll();
-    for (const hull of HULLS) assert.ok(isUnlocked(hull.id), hull.id);
+    for (const hull of playerHulls()) assert.ok(isUnlocked(hull.id), hull.id);
     resetUnlocks();
     assert.deepEqual(getUnlocks().ships, ["PLAYER_SHIP_HARD"]);
   });

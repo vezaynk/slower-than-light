@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { HULLS } from "./hulls.ts";
+import { playerHulls } from "./hulls.ts";
 import { layoutFor, seatKits, seatLayout } from "./layouts.ts";
 import { createGame, REPAIR_SECONDS, startCombat, step } from "./sim.ts";
 import type { Game, KitId, Shot } from "./types.ts";
@@ -32,7 +32,7 @@ function quiet(hull: string, difficulty: "easy" | "normal" | "hard" = "normal"):
 
 describe("player kit rooms (Systems: each system occupies one predetermined room)", () => {
   it("seats every starting kit of every hull in exactly one room", () => {
-    for (const h of HULLS) {
+    for (const h of playerHulls()) {
       const g = createGame(3, h.id);
       for (const id of Object.keys(h.kits) as KitId[]) {
         const rooms = g.player.rooms.filter((r) => r.kit === id);
@@ -72,7 +72,7 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
 
   it("keeps Teleporter rooms at 2 tiles except Mantis B, Mantis C and Crystal B (Crew Teleporter)", () => {
     const four = new Set(["PLAYER_SHIP_MANTIS_2", "PLAYER_SHIP_MANTIS_3", "PLAYER_SHIP_CRYSTAL_2"]);
-    for (const h of HULLS) {
+    for (const h of playerHulls()) {
       if (!h.kits.teleporter) continue;
       const r = kitRoom(createGame(3, h.id), "teleporter")!;
       assert.equal(r.w * r.h, four.has(h.id) ? 4 : 2, h.id);
@@ -80,7 +80,7 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
   });
 
   it("draws the same rooms in the hangar cutaway", () => {
-    for (const h of HULLS) {
+    for (const h of playerHulls()) {
       const laid = seatLayout(layoutFor(h.id)!, Object.keys(h.kits) as KitId[]);
       const g = createGame(3, h.id);
       for (const r of laid.rooms)
@@ -114,7 +114,7 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
       "Drones",
       "Backup Battery",
     ];
-    for (const h of HULLS) {
+    for (const h of playerHulls()) {
       const rooms = layoutFor(h.id)!.rooms;
       const kept = (r: { title: string; reserve?: string }) => r.reserve ?? r.title;
       for (const t of titles)
@@ -132,7 +132,7 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     const tele = g.player.rooms.find((r) => r.id === "p-tele")!;
     assert.equal(tele.title, "Hall");
     assert.equal(tele.reserve, "Teleporter");
-    for (const h of HULLS) {
+    for (const h of playerHulls()) {
       for (const r of createGame(3, h.id).player.rooms) {
         if (r.system === null && !r.kit) assert.equal(r.title, "Hall", `${h.id} ${r.id}`);
       }
@@ -159,6 +159,7 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     const old = createGame(3, "PLAYER_SHIP_HARD");
     const pads = old.player.rooms.find((r) => r.id === "p-tele")!;
     pads.title = "Teleporter";
+    pads.kit = "teleporter";
     delete pads.reserve;
     seatKits(old.player);
     assert.equal(pads.title, "Hall");

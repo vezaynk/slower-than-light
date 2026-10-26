@@ -7,15 +7,12 @@ import {
   eventDef,
   fillerList,
   openingLine,
+  storedId,
   warnPack,
 } from "@stl/pack";
 import type { EventDef as PackEvent } from "@stl/pack";
-import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
-import { SECTOR_TYPES } from "@stl/catalog/src/wiki/sectors.ts";
-import { CITED_EVENT_ROWS } from "./event-catalog.ts";
 import { missingCard, missingChoose, missingDisabled, missingOwns } from "./cited-missing.ts";
-import { ownedLock } from "./choice-locks.ts";
-import { CITED_LOCKS } from "./choice-reqs.ts";
+import { locksOwned, ownedLock } from "./choice-locks.ts";
 // @agent:beacon-mix. Per-sector beacon composition from the Sectors page.
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
@@ -332,23 +329,27 @@ export function citedOwns(id: string): boolean {
   );
 }
 
-/** The wiki names an authored page's sectors by heading; the chart keys sectors by ftl.dat id. */
-const SECTOR_ID = new Map(SECTOR_TYPES.map((row) => [row.name, row.id]));
-
-// @agent:beacon-mix. Read-only view for beacon-mix.test.ts: the authored pages that name a sector (by ftl.dat id).
+/** Loaded pages that name this ftl.dat sector. Arrivals and filler twins stay off the chart list. */
 export function citedPagesFor(sectorId: string): readonly Readonly<EventDef>[] {
-  return CITED_EVENT_ROWS.map((ev) => ({
-    ...ev,
-    sectors: ev.sectors.map((name) => SECTOR_ID.get(name) ?? name),
-  })).filter((ev) => ev.sectors.includes(sectorId));
+  return loadedEvents().filter((ev) => {
+    if (ev.slug.startsWith("arrive-") || ev.slug.startsWith("filler-")) return false;
+    return ev.sectors.includes(sectorId);
+  });
 }
 
 function matchEvent(b: Beacon): EventDef | null {
+  // A flag is the stored id. It wins over a title: a surrender holder copies the page
+  // title, has no card, and is stored ahead of the page.
   for (const ev of loadedEvents()) {
     if (b.flag === ev.flag || b.flag === ev.slug) return ev;
-    if (b.name === ev.dest || ev.aliases.includes(b.name)) return ev;
   }
-  return null;
+  let shell: EventDef | null = null;
+  for (const ev of loadedEvents()) {
+    if (b.name !== ev.dest && !ev.aliases.includes(b.name)) continue;
+    if (ev.body || ev.choices.length > 0) return ev;
+    shell ??= ev;
+  }
+  return shell;
 }
 
 const PLACE_KIND = ["event", "empty", "distress", "nebula", "cache", "hostile"] as const;
@@ -1663,7 +1664,7 @@ function ownsHullRepair(g: Game): boolean {
 export function citedChoiceDisabled(g: Game, id: string): string | null {
   const missing = missingDisabled(g, id);
   if (missing) return missing;
-  const locked = ownedLock(g, id, CITED_LOCKS);
+  const locked = ownedLock(g, id, locksOwned("cited"));
   if (locked) return locked;
   // Zoltan odd moon. Boarding Drone. INFERRED: the refusal lines. The page names the drone and the part.
   // Wiki citations:

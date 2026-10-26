@@ -109,9 +109,12 @@ export {
   setEventAlias,
   openingLine,
   textList,
+  storedId,
   blueprintList,
   fillerList,
   hullDef,
+  allShipClasses,
+  shipClassBlueprint,
   loadPack,
   resetPackForTests,
   resourceRange,
@@ -141,6 +144,7 @@ export type {
   EventGrade,
   GradePay,
   EventChoice,
+  LockOwner,
   EventDef,
   ShipEventDef,
   ShipCrewRow,
@@ -208,4 +212,6 @@ export type {
   TuneStep,
   WeaponBlueprint,
   WeaponKind,
+  ShipClassDef,
 } from "./types.ts";
+export type { AugmentId, KitId, SysId } from "./ids.ts";

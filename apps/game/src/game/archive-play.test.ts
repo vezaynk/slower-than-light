@@ -1,5 +1,5 @@
 import { after, before, describe, it } from "node:test";
-import { loadCatalog } from "@stl/catalog";
+import { installStandIn } from "@stl/standin";
 import {
   archiveCases,
   assertNewGame,
@@ -12,8 +12,8 @@ import {
 } from "./archive-play.ts";
 
 describe("archive plays", () => {
-  after(() => {
-    loadCatalog();
+  after(async () => {
+    await installStandIn();
   });
 
   for (const item of archiveCases()) {

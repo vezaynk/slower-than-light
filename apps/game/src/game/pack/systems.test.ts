@@ -3,7 +3,6 @@ import { afterEach, describe, it } from "node:test";
 import { buy, createGame } from "../sim.ts";
 import type { Game, Kit, KitId } from "../types.ts";
 import { citedStock, storeSections, type StoreSection } from "../wiki/cited-stores.ts";
-import { CITED_SYSTEMS } from "../wiki/system-catalog.ts";
 import "./base.ts";
 import { loadPack, resetPackForTests, systemDef } from "@stl/pack";
 
@@ -38,6 +37,9 @@ function ownEveryPricedSystem(g: Game) {
 
 describe("system listings", () => {
   it("charges the packed price for a system and a kit", () => {
+    assert.equal(systemDef("shields")?.cost, 125);
+    assert.equal(systemDef("doors")?.name, "Door System");
+    assert.equal(systemDef("doors")?.cost, 60);
     const shields = systemDef("shields");
     const veil = systemDef("cloaking");
     assert.ok(shields && veil);
@@ -61,7 +63,6 @@ describe("system listings", () => {
     assert.equal(hit.cost, 200);
     // Wiki citations:
     // > "Stealth Cruisers start without Shields system, and can buy one at a store for 125 scrap. This gives them Shields-2." — [[Shields#System Upgrades]]
-    assert.equal(CITED_SYSTEMS.find((row) => row.ref === "shields")?.cost, 125);
     g.scrap = 200;
     g.stock = citedStock(g);
     buy(g, hit.id);
@@ -83,6 +84,10 @@ describe("system listings", () => {
     assert.equal(cloak.scrap, 0);
     const installed = cloak.player.kits as Partial<Record<string, Kit>>;
     assert.equal(installed.cloaking?.level, 1);
+    resetPackForTests();
+    assert.equal(systemDef("shields")?.cost, 125);
+    assert.equal(systemDef("doors")?.name, "Door System");
+    assert.equal(systemDef("doors")?.cost, 60);
   });
 
   it("stocks an appended listing and does not install an unknown id", () => {

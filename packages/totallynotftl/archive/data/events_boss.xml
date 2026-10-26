@@ -51,6 +51,9 @@
 <FTL>
   <event name="BOSS_FLEETS_BOTH_FIGHT">
     <title>Rebel fight among Federation and Rebel fleets</title>
+    <alias>rebel-fight-among-federation-and-rebel-fleets</alias>
+    <alias>Rebel fight among Federation and Rebel fleets</alias>
+    <sector>FINAL</sector>
     <text/>
     <text>You arrive in the middle of a raging battle. Both sides are taking heavy losses. A small squadron flies past and a fighter breaks off, moving toward your position.</text>
     <text>Two fleets fight nearby. You try to skirt around the edges of the battle and keep out of weapons range, but a Rebel scout spots you and moves in.</text>
@@ -65,6 +68,10 @@
   </event>
   <event name="BOSS_SCOUT_RESCUE">
     <title>Rebel ship attacking civilians in Last Stand</title>
+    <alias>rebel-ship-attacking-civilians-in-last-stand</alias>
+    <alias>Rebel Attacking Civilians in Last Stand</alias>
+    <alias>Rebel ship attacking civilians in Last Stand</alias>
+    <sector>FINAL</sector>
     <text/>
     <text>A number of large transports are being pursued by a Rebel bombing squadron. One bomber has managed to slip through the defensive fire, and is poised to wreak among the enormous yet vulnerable transports. There's time for you to advance and take it out!</text>
     <text>Shots fly by your port windows followed by a Rebel scout in pursuit of a damaged cruiser. Should we move in to engage?</text>
@@ -82,6 +89,10 @@
   </event>
   <event name="FLAGSHIP_CONSTRUCTION">
     <title>Rebel shipyard</title>
+    <alias>rebel-shipyard</alias>
+    <alias>Rebel Flagship Construction</alias>
+    <alias>Rebel shipyard</alias>
+    <sector>REBEL_SECTOR_MINIBOSS</sector>
     <text>You arrive at the beacon to find yourself in a huge Rebel shipyard, scaffolding and construction drones filling the sector! The entire system looks devoted to ship construction, the nearby planets and moons ruthlessly mined to harvest resources for a ship of immense size...</text>
     <choice name="c:rebel-shipyard:0">
       <text>Look around</text>
@@ -94,6 +105,9 @@
   </event>
   <event name="BOSS_FLEETS_REBEL">
     <title>Rebel fight among Rebel fleet</title>
+    <alias>rebel-fight-among-rebel-fleet</alias>
+    <alias>Rebel fight among Rebel fleet</alias>
+    <sector>FINAL</sector>
     <text/>
     <text>Although you were expecting the Rebels, you never imagined their fleet could have grown so fast. Your scanners can hardly register them all before a fighter stationed nearby moves in to attack.</text>
     <text>This system is flooded with Rebel warships. Luckily your ship's signature is disguised as a civilian transport. Most heavy vessels ignore you but a small fighter is approaching with weapons hot!</text>
@@ -109,6 +123,9 @@
   </event>
   <event name="BOSS_SCOUT">
     <title>Fight in Last Stand</title>
+    <alias>fight-in-last-stand</alias>
+    <alias>Fight in Last Stand</alias>
+    <sector>FINAL</sector>
     <text/>
     <text>Although this sector is still under Federation control, a small scout has slipped by the fleet. You move in to engage.</text>
     <text>Long range scanners show this system is empty of any capital ships. Clearly it is not of strategic value. Wait... FTL signatures show a Rebel scout just jumped nearby!</text>
@@ -128,7 +145,7 @@
     <roll k="hull">rebel-fighter</roll>
     <roll k="hull">rebel-fighter</roll>
     <roll k="hull">rebel-invader</roll>
-    <choice name="c:fight-in-last-stand:0">
+    <choice name="c:fight-in-last-stand:0" owner="missing">
       <text>Fight the scout.</text>
       <ship hostile="true" load="Rebel ship"/>
     </choice>

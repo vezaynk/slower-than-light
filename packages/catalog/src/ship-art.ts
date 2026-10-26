@@ -9,7 +9,7 @@ import {
   type HullSheet,
 } from "@stl/pack";
 import { layoutFiles } from "./ship-layouts.ts";
-import { mountsFor } from "./weapon-mounts.ts";
+import { MOUNT_IMAGES, mountsFor } from "./weapon-mounts.ts";
 
 /** One drawing file for a layout that already has a room grid. */
 export type HullPictureFile = {
@@ -27,7 +27,8 @@ export function hullPictureFiles(): HullPictureFile[] {
     const stem = layoutStem(file.path);
     const grid = readGrid(file.text);
     if (!stem || !grid) continue;
-    const picture = pictureForRooms(grid.rooms);
+    const measured = MOUNT_IMAGES[stem];
+    const picture = measured ? { ...measured } : pictureForRooms(grid.rooms);
     if (!picture) continue;
     const mounts = mountsFor(stem);
     files.push({

@@ -15,7 +15,7 @@
  * The store calls noteUnlocks after each step; that reads the run and writes localStorage ("stl:unlocks").
  * Layout C is reaching sector 8 on Layout B. Advanced Edition content is always on.
  */
-import { HULLS, type HullSpec } from "./hulls.ts";
+import { playerHulls, type HullSpec } from "./hulls.ts";
 import type { Difficulty, Game } from "./types.ts";
 import { allAchievements, allHulls, warnPack } from "@stl/pack";
 
@@ -131,14 +131,14 @@ const B_QUOTE = "Layout B - earn 2 out of 3 ship-related Achievements.";
 const C_QUOTE = "Layout C - reach sector 8 with Layout B and Advanced Edition Content enabled.";
 
 function cruiserOf(hullId: string | undefined): HullSpec | undefined {
-  return hullId ? HULLS.find((h) => h.id === hullId) : undefined;
+  return hullId ? playerHulls().find((h) => h.id === hullId) : undefined;
 }
 
 function hullFor(cruiser: string, layout: "A" | "B" | "C"): string | undefined {
-  return HULLS.find((h) => h.cruiser === cruiser && h.layout === layout)?.id;
+  return playerHulls().find((h) => h.cruiser === cruiser && h.layout === layout)?.id;
 }
 
-/** Every rule, one per hull in HULLS, for the hangar's lock card and the tests. */
+/** Every rule, one per hull in playerHulls(), for the hangar's lock card and the tests. */
 export function ruleFor(hullId: string): UnlockRule {
   const a = A_RULES.find((r) => r.hull === hullId);
   if (a) return a;
@@ -156,7 +156,7 @@ export function ruleFor(hullId: string): UnlockRule {
  * ship blueprint (its Layout A id, which data/achievements.xml names for every layout).
  */
 export function shipAchievements(cruiser: string): string[] {
-  const ship = HULLS.find((hull) => hull.cruiser === cruiser && hull.layout === "A")?.id;
+  const ship = playerHulls().find((hull) => hull.cruiser === cruiser && hull.layout === "A")?.id;
   if (!ship) return [];
   return allAchievements()
     .filter((row) => row.ship === ship)
@@ -168,7 +168,7 @@ export function emptyUnlocks(): UnlockState {
 }
 
 export function allUnlocks(prev: UnlockState = emptyUnlocks()): UnlockState {
-  const next: UnlockState = { ships: HULLS.map((h) => h.id), wins: [...prev.wins] };
+  const next: UnlockState = { ships: playerHulls().map((h) => h.id), wins: [...prev.wins] };
   if (prev.boss?.length) next.boss = [...prev.boss];
   return next;
 }
@@ -183,7 +183,7 @@ export function isUnlockedIn(state: UnlockState, hullId: string): boolean {
  */
 /** Player ship blueprints in the order the loaded pack lists them. */
 export function playerShipIds(): string[] {
-  const player = new Set(HULLS.map((hull) => hull.id));
+  const player = new Set(playerHulls().map((hull) => hull.id));
   return allHulls()
     .filter((hull) => player.has(hull.id))
     .map((hull) => hull.id);
@@ -265,13 +265,13 @@ export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly stri
 
   // "Layout B - earn 2 out of 3 ship-related Achievements."
   const have = new Set(earned);
-  for (const b of HULLS.filter((h) => h.layout === "B")) {
+  for (const b of playerHulls().filter((h) => h.layout === "B")) {
     const got = shipAchievements(b.cruiser).filter((id) => have.has(id)).length;
     if (got >= 2) ships.add(b.id);
   }
 
   // Crystal: "defeating the Flagship with layout A and B of every ship (excluding the Lanius Cruiser)".
-  const others = [...new Set(HULLS.map((h) => h.cruiser))].filter(
+  const others = [...new Set(playerHulls().map((h) => h.cruiser))].filter(
     (c) => c !== "Lanius Cruiser" && c !== "Crystal Cruiser",
   );
   const allAB = others.every((c) =>
@@ -283,7 +283,7 @@ export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly stri
   if (allAB) ships.add("PLAYER_SHIP_CRYSTAL");
 
   // Lanius: "Unlock 4 ships (Excluding The Kestrel)". Counted last, after every other A rule.
-  const cruisers = HULLS.filter(
+  const cruisers = playerHulls().filter(
     (h) =>
       h.layout === "A" &&
       h.id !== "PLAYER_SHIP_HARD" &&
@@ -299,7 +299,7 @@ export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly stri
     state.ships.every((s) => ships.has(s));
   const bossSame = boss.size === prevBoss.length && prevBoss.every((d) => boss.has(d));
   if (same && state.wins.every((w) => wins.has(w)) && bossSame) return state;
-  const order = HULLS.map((h) => h.id);
+  const order = playerHulls().map((h) => h.id);
   const next: UnlockState = {
     ships: [...ships].sort((x, y) => order.indexOf(x) - order.indexOf(y)),
     wins: [...wins].sort((x, y) => order.indexOf(x) - order.indexOf(y)),

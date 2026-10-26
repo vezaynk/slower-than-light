@@ -14,7 +14,6 @@ import {
   settleTiles,
 } from "./crew-spots.ts";
 import {
-  CREW_POOL,
   EVADE_TABLE,
   FTL_HAZARD_BASE,
   FTL_SKILL,
@@ -91,7 +90,7 @@ import {
 } from "./extras/swarm.ts";
 import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
-import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
+import { clampUniform, cleanName, crewPool, defaultPick, type CrewPick } from "./crew-look.ts";
 import "./pack/base.ts";
 import {
   CIVILIAN_SECTOR,
@@ -6262,7 +6261,7 @@ export const CREW_CAP = 8;
 
 function addCrew(g: Game) {
   const used = new Set(g.crew.map((c) => c.name));
-  const name = CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";
+  const name = crewPool().find((n) => !used.has(n)) ?? "Rook Vale";
   g.crew.push({
     id: uid(g),
     name,

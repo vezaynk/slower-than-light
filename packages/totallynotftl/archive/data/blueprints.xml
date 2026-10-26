@@ -2375,6 +2375,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <crewDamage>30</crewDamage>
     <weaponArt>BOMB_FIRE</weaponArt>
     <image>BOMB_FIRE_shot</image>
   </weaponBlueprint>
@@ -2821,6 +2822,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <crewDamage>30</crewDamage>
     <weaponArt>BOMB_1</weaponArt>
     <image>BOMB_1_shot</image>
   </weaponBlueprint>
@@ -2837,6 +2839,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>10</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <crewDamage>30</crewDamage>
     <weaponArt>BOMB_BREACH_1</weaponArt>
     <image>BOMB_BREACH_1_shot</image>
   </weaponBlueprint>
@@ -2853,6 +2856,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>10</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <crewDamage>45</crewDamage>
     <weaponArt>BOMB_BREACH_2</weaponArt>
     <image>BOMB_BREACH_2_shot</image>
   </weaponBlueprint>
@@ -2869,6 +2873,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>4</ion>
     <missiles>1</missiles>
+    <crewDamage>0</crewDamage>
     <weaponArt>BOMB_ION</weaponArt>
     <image>BOMB_ION_shot</image>
   </weaponBlueprint>
@@ -2885,6 +2890,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>1</ion>
     <missiles>1</missiles>
+    <crewDamage>0</crewDamage>
     <weaponArt>BOMB_STUN</weaponArt>
     <image>BOMB_STUN_shot</image>
   </weaponBlueprint>
@@ -2901,6 +2907,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <crewDamage>0</crewDamage>
     <weaponArt>BOMB_HEAL</weaponArt>
     <image>BOMB_HEAL_shot</image>
   </weaponBlueprint>
@@ -2917,6 +2924,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <crewDamage>0</crewDamage>
     <weaponArt>BOMB_HEAL_SYSTEM</weaponArt>
     <image>BOMB_HEAL_SYSTEM_shot</image>
   </weaponBlueprint>
@@ -2933,6 +2941,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <crewDamage>0</crewDamage>
     <weaponArt>BOMB_LOCK</weaponArt>
     <image>BOMB_LOCK_shot</image>
   </weaponBlueprint>

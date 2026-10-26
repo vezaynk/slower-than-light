@@ -19,7 +19,9 @@ import {
   toggleWeapon,
 } from "./sim.ts";
 import type { Shot } from "./types.ts";
-import { WEAPONS, XP_NEED, skillRank } from "./content.ts";
+import { weaponDef } from "@stl/pack";
+import "./pack/base.ts";
+import { XP_NEED, skillRank } from "./content.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import type { SkillName } from "./types.ts";
 import {
@@ -1137,7 +1139,7 @@ describe("Crew skills: a Basic Laser charge", () => {
           target: null,
         },
       ];
-      assert.equal(WEAPONS.LASER_BURST_1.charge, 10);
+      assert.equal(weaponDef("LASER_BURST_1")!.charge, 10);
       let steps = 0;
       while ((g.player.weapons[0]?.charge ?? 0) < 1 && steps < 250) {
         step(g, 0.05);
@@ -1456,7 +1458,7 @@ describe("AI-Controlled Rebel Ships, manning bonuses", () => {
       step(g, 0.05);
       return e.weapons[0].charge;
     };
-    const bare = 0.05 / WEAPONS.LASER_BURST_1.charge;
+    const bare = 0.05 / weaponDef("LASER_BURST_1")!.charge;
     assert.ok(Math.abs(charged(0) - bare / 0.9) < 1e-9);
     assert.ok(Math.abs(charged(1) - bare) < 1e-9);
   });

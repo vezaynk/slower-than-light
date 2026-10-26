@@ -6,7 +6,6 @@
  * sensors, as FTL keeps its own in the executable. An achievement with no condition is not tracked.
  * Earned ids are kept in localStorage. Anything the paragraphs do not state is marked INFERRED or INVENTED.
  */
-import { ACHIEVEMENTS as CATALOG_ACHIEVEMENTS } from "@stl/catalog/src/wiki/achievements.ts";
 import {
   achievementDef,
   allAchievements,
@@ -19,7 +18,7 @@ import {
 } from "@stl/pack";
 import { shipSight } from "../extras/slug-sight.ts";
 import { playerSensorLevel } from "../extras/spike.ts";
-import { HULLS } from "../hulls.ts";
+import { playerHulls } from "../hulls.ts";
 import { bars, kitShownBars, zoltanBars } from "../sim.ts";
 import { UNLOCKS_KEY, parseUnlocks } from "../unlocks.ts";
 import type { AchieveTally, Difficulty, Game, SysId } from "../types.ts";
@@ -27,8 +26,10 @@ import { bankLifetime, lifetimeOf } from "./achieve-notes.ts";
 
 const STORAGE_KEY = "stl-achievements-v1";
 
-/** Earned achievements saved before the archive ids: the wiki slug each one was saved under. */
-const SLUG_ID = new Map(CATALOG_ACHIEVEMENTS.map((row) => [row.slug, row.id]));
+/** An id saved before the archive ids is the wiki slug on the loaded achievement. */
+function savedAchievementId(saved: string): string {
+  return allAchievements().find((row) => row.slug === saved)?.id ?? saved;
+}
 
 function savedUnlocks() {
   try {
@@ -55,7 +56,7 @@ function beatBoss(g: Game, difficulty: Difficulty): boolean {
  */
 function typeAUnlocked(): boolean {
   const ships = new Set(savedUnlocks()?.ships ?? []);
-  const typeA = HULLS.filter((hull) => hull.layout === "A");
+  const typeA = playerHulls().filter((hull) => hull.layout === "A");
   return typeA.length > 0 && typeA.every((hull) => ships.has(hull.id));
 }
 
@@ -246,7 +247,7 @@ function read(): Set<string> {
     // An id saved before the archive ids is the wiki slug; it is read as that achievement's archive id.
     for (const saved of parsed) {
       if (typeof saved !== "string") continue;
-      const id = SLUG_ID.get(saved) ?? saved;
+      const id = savedAchievementId(saved);
       if (isTracked(id)) next.add(id);
     }
   } catch {

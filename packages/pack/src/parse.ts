@@ -734,6 +734,12 @@ export function readEmpty(node: XmlElement): EmptyBeaconDef | undefined {
   return page;
 }
 
+function lockOwner(value: string | undefined): EventChoice["owner"] | undefined {
+  if (value === "filler" || value === "missing" || value === "cited" || value === "quest")
+    return value;
+  return undefined;
+}
+
 export function readEvent(node: XmlElement): EventDef | undefined {
   const parent = node.parentNode as XmlElement | null;
   if (parent?.tagName === "eventList") return undefined;
@@ -754,6 +760,16 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   for (const item of elements(node)) {
     if (item.tagName === "text") {
       lines.push(ownText(item).trim());
+      continue;
+    }
+    if (item.tagName === "alias") {
+      const text = ownText(item).trim();
+      if (text) aliases.push(text);
+      continue;
+    }
+    if (item.tagName === "sector") {
+      const text = ownText(item).trim();
+      if (text) sectors.push(text);
       continue;
     }
     if (item.tagName === "eventList") {
@@ -798,6 +814,8 @@ export function readEvent(node: XmlElement): EventDef | undefined {
     const choice: EventChoice = { id: choiceId, label: textOf(item, "text") ?? choiceId, fx };
     const reqs = readReqs(item);
     if (reqs) choice.reqs = reqs;
+    const owner = lockOwner(attr(item, "owner"));
+    if (owner) choice.owner = owner;
     const gift = readGift(item, "page");
     if (gift) choice.gift = gift;
     choices.push(choice);
@@ -948,6 +966,8 @@ function readCard(node: XmlElement): EventCard | undefined {
     const gift = readGift(item, "card");
     const choice: EventCard["choices"][number] = { id, label: choiceLabel(item, id) };
     if (reqs) choice.reqs = reqs;
+    const owner = lockOwner(attr(item, "owner"));
+    if (owner) choice.owner = owner;
     if (gift) choice.gift = gift;
     return [choice];
   });

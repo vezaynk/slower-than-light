@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
-import { hullDef, loadPack, onPackWarning, resetPackForTests } from "@stl/pack";
-import { WEAPONS } from "./content.ts";
+import {
+  hullDef,
+  loadPack,
+  onPackWarning,
+  resetPackForTests,
+  shipClassBlueprint,
+  weaponDef,
+} from "@stl/pack";
+import "./pack/base.ts";
 import {
   arm,
   blueprintCrew,
@@ -164,7 +170,7 @@ describe("rolled ships stay inside the printed numbers", () => {
             cls.optional[key as keyof typeof cls.optional];
           assert.ok(range && level >= range[0] && level <= range[1], `${cls.id} ${id} ${level}`);
         }
-        const power = spec.weapons.reduce((sum, id) => sum + WEAPONS[id].power, 0);
+        const power = spec.weapons.reduce((sum, id) => sum + weaponDef(id)!.power, 0);
         assert.ok(spec.weapons.length >= 1, `${cls.id} unarmed`);
         assert.ok(
           power <= (spec.systems.weapons?.[0] ?? 0) || spec.weapons.length === 1,
@@ -303,7 +309,7 @@ describe("enemy generation by difficulty (Mathchamp, Details on enemy ship gener
     for (let i = 0; i < 300; i++) {
       for (const level of [1, 2, 3, 4, 6, 8]) {
         const { weapons } = arm(ENEMY_WEAPON_POOLS.rebel, level, rand);
-        const power = weapons.map((id) => WEAPONS[id].power);
+        const power = weapons.map((id) => weaponDef(id)!.power);
         assert.ok(power.reduce((a, b) => a + b, 0) <= level);
         assert.ok(
           power.every((p) => p < level || p === 1),
@@ -311,7 +317,7 @@ describe("enemy generation by difficulty (Mathchamp, Details on enemy ship gener
         );
         if (level >= 3) assert.ok(power[0] >= 2, `level ${level} first gun ${weapons[0]}`);
         // A ship never opens on a gun that clears neither flag (non-damaging beam or bomb).
-        const first = WEAPONS[weapons[0]];
+        const first = weaponDef(weapons[0])!;
         assert.ok(
           first.kind === "laser" ||
             first.kind === "ion" ||
@@ -347,7 +353,7 @@ describe("archive loadout", () => {
 
   it("keeps the class table when the blueprint names no lists", () => {
     const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
-    const hull = hullDef(enemyBlueprintId("rebel-fighter"))!;
+    const hull = hullDef(shipClassBlueprint("rebel-fighter"))!;
     assert.equal(hull.weaponLoad, undefined);
     assert.equal(hull.crewCounts, undefined);
     const spec = rollEnemy(cls, false, ctx, seeded(4));
@@ -356,7 +362,7 @@ describe("archive loadout", () => {
 
   it("warns about a blueprint the game cannot fully read, and falls back", () => {
     const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
-    const hull = hullDef(enemyBlueprintId("rebel-fighter"))!;
+    const hull = hullDef(shipClassBlueprint("rebel-fighter"))!;
     const plain = rollEnemy(cls, false, ctx, seeded(4));
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));
@@ -419,7 +425,7 @@ describe("archive loadout", () => {
 
     // CreateArmory mounts the tags in order up to count, then CreateShip draws from the load list for what is left.
     const rigger = ENEMY_CLASSES.find((row) => row.id === "rebel-rigger")!;
-    const hull = hullDef(enemyBlueprintId("rebel-rigger"))!;
+    const hull = hullDef(shipClassBlueprint("rebel-rigger"))!;
     loadPack(
       {
         hulls: [
@@ -455,8 +461,8 @@ describe("archive loadout", () => {
   it("equips the blueprint crew, weapon list, and drone list", () => {
     const fighter = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
     const rigger = ENEMY_CLASSES.find((row) => row.id === "rebel-rigger")!;
-    const fighterHull = hullDef(enemyBlueprintId("rebel-fighter"))!;
-    const riggerHull = hullDef(enemyBlueprintId("rebel-rigger"))!;
+    const fighterHull = hullDef(shipClassBlueprint("rebel-fighter"))!;
+    const riggerHull = hullDef(shipClassBlueprint("rebel-rigger"))!;
     loadPack(
       {
         hulls: [
@@ -524,7 +530,7 @@ describe("archive loadout", () => {
   });
 
   it("fields a circle ship's drone list where it overlaps DRONES_CIRCLE", () => {
-    const base = hullDef(enemyBlueprintId("rebel-fighter"));
+    const base = hullDef(shipClassBlueprint("rebel-fighter"));
     assert.ok(base);
     loadPack(
       {
@@ -565,7 +571,7 @@ describe("archive loadout", () => {
 
 describe("blueprint sector range", () => {
   function gated(id: string, gate: { minSector?: number; maxSector?: number } = {}) {
-    const base = hullDef(enemyBlueprintId("rebel-fighter"));
+    const base = hullDef(shipClassBlueprint("rebel-fighter"));
     assert.ok(base);
     return { ...base, id, name: id, ...gate };
   }

@@ -20,7 +20,7 @@ import { OptionsPanel } from "./OptionsPanel";
 import { HOLD_MS, momentDown, momentLive, momentMarkHeld, momentUp, type Moment } from "./moment";
 import { animSpeed, applyCssSpeed, FAST_SPEED, useFast } from "./speed";
 import { pageRect, toPage } from "./turn";
-import { SECTOR_NAMES, SYS_LABEL, upgradeBlurb, upgradeCost } from "@/game/content";
+import { SECTOR_NAMES, systemLabel, upgradeBlurb, upgradeCost } from "@/game/content";
 import { sectorTag } from "@/game/sector-ids";
 import { aimedBeamTiles } from "@/game/pack/beams";
 import { loadBasePackXml } from "@/game/pack/boot";
@@ -32,6 +32,7 @@ import {
   beaconPath,
   crewDef,
   droneDef,
+  shipClassBlueprint,
   weaponDef,
 } from "@stl/pack";
 import { crewCopy, droneCopy, phraseOr, weaponCopy } from "@/game/interface-copy";
@@ -158,7 +159,6 @@ import {
 
 import { UNIFORMS } from "@/game/crew-look";
 import { enemySystemClock, ionClock, systemClock } from "@/game/system-clock";
-import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import { flagshipHullId } from "@/game/wiki/flagship-layout";
 import { artilleryGun, artilleryView } from "@/game/wiki/flagship-systems";
 import {
@@ -2002,7 +2002,7 @@ function TargetPanel({
   const foeHullId = enemy.flagship
     ? flagshipHullId(enemy.flagship.stage, game.difficulty)
     : enemy.classId
-      ? enemyBlueprintId(enemy.classId, enemy.pirate)
+      ? shipClassBlueprint(enemy.classId, enemy.pirate)
       : enemy.classId;
   // The panel keeps a margin so the shield ellipses sit inside it, including on the 12×10 flagship.
   // Crew, doors, icons, and mounts are drawn for a 44px tile. --ship-scale shrinks them with the rooms.
@@ -2205,8 +2205,8 @@ function TargetPanel({
           // Below level 4, and off the hacked system, the chip stays the short power count.
           const full = vision?.system === id || sensors >= 4;
           const tip = full
-            ? `${sensorSystemDetail(enemy, id, SYS_LABEL[id], shown)}${vision?.system === id ? " (hacking drone)" : ""}`
-            : SYS_LABEL[id];
+            ? `${sensorSystemDetail(enemy, id, systemLabel(id), shown)}${vision?.system === id ? " (hacking drone)" : ""}`
+            : systemLabel(id);
           // Below Sensors 4 only the icon shows: "level, power usage, ion damage" are level 4 information.
           // INFERRED: a damaged or destroyed system's icon is still tinted; the page does not hide damage.
           const harm =
@@ -2712,7 +2712,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   type="button"
                   className={`sub-orb${id === "doors" && game.mode === "vent" ? " is-on" : ""}${flash ? ` ${flash}` : ""}${rim.className ? ` ${rim.className}` : ""}`}
                   style={rim.style}
-                  aria-label={id === "doors" ? "Doors" : SYS_LABEL[id]}
+                  aria-label={id === "doors" ? "Doors" : systemLabel(id)}
                   aria-pressed={id === "doors" ? game.mode === "vent" : undefined}
                   onClick={() => {
                     if (id === "doors") {
@@ -3204,7 +3204,7 @@ function PowerStack({
                 .filter(Boolean)
                 .join(" ")}
               style={i === dmgStart && sys.damage > 0 ? fixStyle(sys.fix) : hurt}
-              aria-label={`${SYS_LABEL[id]} power ${i + 1}`}
+              aria-label={`${systemLabel(id)} power ${i + 1}`}
               aria-disabled={locked || undefined}
               onClick={() => {
                 if (i >= cap) return;
@@ -3218,7 +3218,7 @@ function PowerStack({
       <PowerOrb
         ship={game.player}
         icon={id}
-        label={SYS_LABEL[id]}
+        label={systemLabel(id)}
         onUp={() => act((g) => powerUp(g, id))}
         onDown={() => act((g) => powerDown(g, id))}
       />
@@ -3302,7 +3302,7 @@ function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
             locked={id === "weapons" && weaponsPowerLocked(game)}
           />
           <StepButtons
-            label={SYS_LABEL[id]}
+            label={systemLabel(id)}
             onDown={() => act((g) => powerDown(g, id))}
             onUp={() => act((g) => powerUp(g, id))}
           />

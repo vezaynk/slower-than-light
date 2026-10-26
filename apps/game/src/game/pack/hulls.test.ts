@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { HULLS, hullById } from "../hulls.ts";
+import { hullById } from "../hulls.ts";
 import { layoutFor } from "../layouts.ts";
 import { createGame, hangarLoadout } from "../sim.ts";
 import "./base.ts";
@@ -37,14 +37,13 @@ function emberHull(): HullDef {
 }
 
 describe("hull listings", () => {
-  it("starts from the packed name and reactor while the authored row stays", () => {
-    const authored = HULLS.find((row) => row.id === "PLAYER_SHIP_HARD");
-    assert.ok(authored);
+  it("an append changes the run and the live player hull", () => {
     const packed = hullDef("PLAYER_SHIP_HARD");
     assert.ok(packed);
+    assert.equal(packed.reactor, 8);
     loadPack({ hulls: [{ ...packed, name: "Red Lark", reactor: 12 }] }, "append");
-    assert.equal(authored.name, hullById("PLAYER_SHIP_HARD")?.name);
-    assert.equal(authored.reactor, 8);
+    assert.equal(hullById("PLAYER_SHIP_HARD")?.name, "Red Lark");
+    assert.equal(hullById("PLAYER_SHIP_HARD")?.reactor, 12);
     assert.equal(hullDef("PLAYER_SHIP_HARD")?.name, "Red Lark");
     assert.equal(hullDef("PLAYER_SHIP_HARD")?.reactor, 12);
     const started = createGame(1, "PLAYER_SHIP_HARD");
@@ -84,11 +83,13 @@ describe("hull listings", () => {
     const boarded = createGame(1, "PLAYER_SHIP_CIRCLE_2");
     assert.equal(boarded.player.kits.drones?.level, 1);
     assert.deepEqual(boarded.player.kits.drones?.loadout, ["DEFENSE_1"]);
-    assert.equal(HULLS.find((row) => row.id === "PLAYER_SHIP_CIRCLE_2")?.kits.drones?.level, 3);
+    assert.equal(hullById("PLAYER_SHIP_CIRCLE_2")?.kits.drones?.level, 1);
     assert.equal(boarded.player.rooms.length, layoutFor("PLAYER_SHIP_CIRCLE_2")?.rooms.length);
   });
 
   it("starts an appended hull without a new room grid or an unknown kit", () => {
+    const kestrel = hullById("PLAYER_SHIP_HARD")?.name;
+    assert.ok(kestrel);
     loadPack({ hulls: [emberHull()] }, "append");
     assert.equal(hullById("ember"), undefined);
     assert.equal(allHulls().at(-1)?.id, "ember");
@@ -122,9 +123,7 @@ describe("hull listings", () => {
     assert.equal(layoutFor("ember"), undefined);
     resetPackForTests();
     assert.equal(hullDef("ember"), undefined);
-    assert.equal(
-      createGame(1, "PLAYER_SHIP_HARD").player.name,
-      HULLS.find((row) => row.id === "PLAYER_SHIP_HARD")?.name,
-    );
+    assert.equal(hullById("PLAYER_SHIP_HARD")?.name, kestrel);
+    assert.equal(createGame(1, "PLAYER_SHIP_HARD").player.name, kestrel);
   });
 });

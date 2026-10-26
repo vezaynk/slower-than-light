@@ -1,4 +1,3 @@
-import { reserveRooms } from "@stl/catalog/src/ship-layouts.ts";
 import { hullDef, marksFromDoors, roomNames } from "@stl/pack";
 import type { Door, DoorMark, KitId, Room, Ship, SysId } from "./types.ts";
 
@@ -426,7 +425,6 @@ const BOUGHT_SYSTEMS: [SysId, string][] = [
  */
 export function seatKits(ship: Ship): void {
   if (!ship.rooms || !ship.kits) return;
-  reserveRooms(ship.rooms);
   const medbay = ship.systems?.medbay?.level ?? 0;
   for (const r of ship.rooms) {
     if (!r.kit || ship.kits[r.kit]) continue;

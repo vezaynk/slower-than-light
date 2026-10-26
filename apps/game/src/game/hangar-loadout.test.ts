@@ -1,11 +1,19 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { CATALOG } from "./extras/augments.ts";
+import { canFlyDrone } from "./extras/flown.ts";
 import { playerDroneSlots } from "./extras/swarm.ts";
 import { droneKeyForName, weaponIdForName } from "./gear-look.ts";
-import { HULLS, hullById } from "./hulls.ts";
+import { hullById, playerHulls } from "./hulls.ts";
 import { iconForName } from "./icons.ts";
-import { augmentDef, emitFtlShips, hullDef, packFromFtl } from "@stl/pack";
+import {
+  allAugments,
+  augmentDef,
+  droneDef,
+  emitFtlShips,
+  hullDef,
+  packFromFtl,
+  startingFit,
+} from "@stl/pack";
 import { createGame, hangarLoadout } from "./sim.ts";
 import { MISSING_AUGMENTS } from "./wiki/augments-missing.ts";
 import { hangarBay } from "./wiki/hangar-bay.ts";
@@ -19,7 +27,7 @@ const picks = [
 
 describe("hangar loadout", () => {
   it("matches the rooms, weapons, doors, and crew a run starts with", () => {
-    for (const spec of HULLS) {
+    for (const spec of playerHulls()) {
       const preview = hangarLoadout(spec.id, picks);
       const run = createGame(3, spec.id, "normal", picks);
       assert.equal(preview.ship.cols, run.player.cols, spec.id);
@@ -84,7 +92,7 @@ const DRONE_KIT_ID: Record<string, string> = {
 };
 
 const AUGMENT_ID = new Map<string, string>(
-  [...CATALOG, ...MISSING_AUGMENTS].map((row) => [row.name.toLowerCase(), row.id]),
+  [...allAugments(), ...MISSING_AUGMENTS].map((row) => [row.name.toLowerCase(), row.id]),
 );
 
 const sorted = (list: readonly string[]) => [...list].sort();
@@ -144,10 +152,23 @@ describe("hangar sheet vs run, every layout", () => {
           const key = droneKeyForName(name) ?? `?${name}`;
           return DRONE_KIT_ID[key] ?? key;
         });
-      assert.deepEqual(sorted(named), sorted(playerDroneSlots(kit)), layout.id);
+      const loadout = playerDroneSlots(kit);
+      const listed = startingFit(hullDef(layout.id)!).kits.drones?.loadout ?? [];
+      assert.deepEqual(sorted(named), sorted(loadout.filter((id) => canFlyDrone(id))), layout.id);
+      // startingFit keeps every schematic. The run flies only the ones Drone Control can deploy.
+      const runUnfitted = listed
+        .filter((id) => !canFlyDrone(id))
+        .map((id) => droneDef(id)?.name ?? id);
+      assert.deepEqual(sorted(spec.unfitted), sorted(runUnfitted), layout.id);
+      assert.deepEqual(sorted(loadout), sorted(listed.filter((id) => canFlyDrone(id))), layout.id);
       for (const name of spec.unfitted)
         assert.ok(sheet.drones.includes(name), `${layout.id} unfitted ${name}`);
     }
+    const engi = hullById("PLAYER_SHIP_CIRCLE_2");
+    assert.equal(engi?.kits.drones?.level, 3);
+    assert.equal(engi?.kits.drones?.power, 0);
+    assert.deepEqual(engi?.kits.drones?.loadout, ["REPAIR", "REPAIR", "BATTLE"]);
+    assert.deepEqual(engi?.unfitted, ["Anti-Personnel Drone"]);
   });
 
   it("matches system levels, crew, augments, reactor, and resources", () => {
@@ -222,15 +243,22 @@ describe("hangar bay", () => {
         layout.id,
       );
       const kit = run.player.kits.drones;
+      const spec = hullById(layout.id);
       assert.equal(bay.droneSystem, !!kit, layout.id);
+      const loadout = playerDroneSlots(kit);
+      const listed = startingFit(hullDef(layout.id)!).kits.drones?.loadout ?? [];
       assert.deepEqual(
         bay.drones.filter((drone) => !drone.unfitted).map((drone) => drone.id),
-        playerDroneSlots(kit),
+        loadout.filter((id) => canFlyDrone(id)),
         layout.id,
       );
+      const runUnfitted = listed
+        .filter((id) => !canFlyDrone(id))
+        .map((id) => droneDef(id)?.name ?? id);
+      assert.deepEqual(spec?.unfitted, runUnfitted, layout.id);
       assert.deepEqual(
         bay.drones.filter((drone) => drone.unfitted).map((drone) => drone.name),
-        hullById(layout.id)?.unfitted,
+        runUnfitted,
         layout.id,
       );
       if (bay.weaponSlots != null) assert.ok(bay.weapons.length <= bay.weaponSlots, layout.id);

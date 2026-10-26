@@ -5,7 +5,6 @@
  * Pure: the caller (sim makeEnemy) turns the spec into rooms, systems, doors, and crew.
  */
 import "./pack/base.ts";
-import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
 import {
   allHulls,
   augmentDef,
@@ -13,6 +12,7 @@ import {
   hullDef,
   loadPack,
   marksFromDoors,
+  shipClassBlueprint,
   warnPack,
   weaponDef,
 } from "@stl/pack";
@@ -1165,7 +1165,7 @@ export function rollEnemy(
   const ids = installed.map(([id]) => id);
   const traced = seatTrace(cls.id, ids, pirate);
   const { rooms, cols, rows } = traced ?? layout(ids);
-  const blueprint = hullDef(enemyBlueprintId(cls.id, pirate));
+  const blueprint = hullDef(shipClassBlueprint(cls.id, pirate));
   // Rows that were all skipped (warned about in racesFromCounts) leave the class table in charge.
   const fromBlueprint = blueprint?.crewCounts?.length
     ? racesFromCounts(blueprint.id, blueprint.crewCounts, ctx, rand)

@@ -1,5 +1,4 @@
-import type { WeaponKind } from "@stl/pack";
-import type { AugmentId, KitId, SysId } from "@stl/catalog";
+import type { AugmentId, KitId, SysId, WeaponKind } from "@stl/pack";
 import type { EscapePlan } from "./wiki/escape.ts";
 import type { SurrenderPlan } from "./wiki/surrender.ts";
 import type { FlagshipState } from "./wiki/flagship-systems.ts";

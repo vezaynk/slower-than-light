@@ -27,6 +27,7 @@ import type {
   OpeningLine,
   SectorDef,
   SectorQuota,
+  ShipClassDef,
   SectorRarity,
   EmptyBeaconDef,
   FactionSurrender,
@@ -128,6 +129,7 @@ export function packFromFtl(
   const achievements = new Catalog<AchievementDef>();
   const factions = new Catalog<FactionSurrender>();
   const empties = new Catalog<EmptyBeaconDef>();
+  const shipClasses = new Catalog<ShipClassDef>();
   let rewards: RewardTable | undefined;
   const strings = new Map<string, string>();
   const grids = readGrids(layouts);
@@ -192,6 +194,9 @@ export function packFromFtl(
       } else if (node.tagName === "rewards") {
         const table = readRewards(node);
         if (table) rewards = table;
+      } else if (node.tagName === "shipClass") {
+        const row = readShipClass(node);
+        if (row) shipClasses.put(row);
       } else if (node.tagName === "ship") {
         const row = readShipEvent(node, strings, textLists);
         if (row) {
@@ -239,6 +244,7 @@ export function packFromFtl(
   if (rewards) pack.rewards = rewards;
   if (factions.rows.length > 0) pack.factions = factions.rows;
   if (empties.rows.length > 0) pack.empties = empties.rows;
+  if (shipClasses.rows.length > 0) pack.shipClasses = shipClasses.rows;
   if (textLists.size > 0) {
     pack.textLists = [...textLists.entries()].map(([id, lines]) => ({ id, lines }));
   }
@@ -250,6 +256,20 @@ export function packFromFtl(
   attachPictures(pack.hulls, documents);
   applyArchiveExtras(pack, parsed, layouts);
   return pack;
+}
+
+function readShipClass(node: XmlElement): ShipClassDef | undefined {
+  const id = attr(node, "name")?.trim();
+  const blueprint = attr(node, "blueprint")?.trim();
+  if (!id || !blueprint) return undefined;
+  const row: ShipClassDef = {
+    id,
+    classId: attr(node, "class")?.trim() || id,
+    blueprint,
+  };
+  const pirate = attr(node, "pirate")?.trim();
+  if (pirate) row.pirate = pirate;
+  return row;
 }
 
 function readNames(doc: XmlDocument): ContentPack["names"] | undefined {
@@ -597,6 +617,16 @@ function collectStrings(doc: XmlDocument, strings: Map<string, string>) {
   }
 }
 
+function childTexts(node: XmlElement, tag: string): string[] {
+  const texts: string[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== tag) continue;
+    const text = ownText(item).trim();
+    if (text) texts.push(text);
+  }
+  return texts;
+}
+
 function ownText(node: XmlElement): string {
   let text = "";
   for (let i = 0; i < node.childNodes.length; i++) {
@@ -847,6 +877,8 @@ function readAchievement(
   if (multi === "1" || multi === "true") row.multiDifficulty = true;
   const img = textOf(node, "img");
   if (img) row.img = img;
+  const slug = textOf(node, "slug");
+  if (slug) row.slug = slug;
   const condition = child(node, "condition");
   if (condition) {
     const read = readConditionList(condition, id);
@@ -1087,8 +1119,8 @@ function readEventBody(
     id,
     dest: textOf(node, "title") ?? id,
     flag: id,
-    aliases: [],
-    sectors: [],
+    aliases: childTexts(node, "alias"),
+    sectors: childTexts(node, "sector"),
     body: openings ? "" : (lines[0] ?? ""),
     choices: readChoices(node, strings, id),
   };
@@ -1099,7 +1131,14 @@ function readEventBody(
   const alters: ArchiveAlter[] = [];
   const marks: ArchiveMark[] = [];
   for (const item of elements(node)) {
-    if (item.tagName === "text" || item.tagName === "choice") continue;
+    if (
+      item.tagName === "text" ||
+      item.tagName === "choice" ||
+      item.tagName === "alias" ||
+      item.tagName === "sector" ||
+      item.tagName === "title"
+    )
+      continue;
     if (item.tagName === "img") {
       const name = resolveText(item, strings)?.trim();
       if (name && !event.img) event.img = name;

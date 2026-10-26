@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, evasionPercent, ftlSeconds, roomWith, startCombat, step } from "../sim.ts";
 import { seatKits } from "../layouts.ts";
-import { WEAPONS } from "../content.ts";
+import { weaponDef } from "@stl/pack";
+import "../pack/base.ts";
 import {
   enemyHackTargets,
   enemyHackView,
@@ -249,7 +250,7 @@ describe("enemy hacking: pulse effects", () => {
     tickEnemySpike(g, 0.01);
     tickEnemySpike(g, 1);
     for (const w of g.player.weapons) {
-      const seconds = WEAPONS[w.defId]!.charge;
+      const seconds = weaponDef(w.defId)!.charge;
       assert.ok(w.charge <= 0.99);
       assert.ok(Math.abs(w.charge - Math.min(0.99, 1 - 1 / seconds)) < 1e-6);
     }

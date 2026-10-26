@@ -4,7 +4,6 @@ import { createGame } from "../sim.ts";
 import type { Kit } from "../types.ts";
 import { droneLine } from "../wiki/bonus-item.ts";
 import { citedBuy, droneItems } from "../wiki/cited-stores.ts";
-import { CITED_DRONES } from "../wiki/drone-catalog.ts";
 import "./base.ts";
 import { droneDef, loadPack, resetPackForTests } from "@stl/pack";
 
@@ -16,6 +15,8 @@ function swarm(): Kit {
 
 describe("drone listings", () => {
   it("stocks the packed name and cost in the same window", () => {
+    assert.equal(droneDef("COMBAT_1")?.name, "Combat Drone Mark I");
+    assert.equal(droneDef("COMBAT_1")?.cost, 50);
     const striker = droneDef("COMBAT_1");
     assert.ok(striker);
     loadPack({ drones: [{ ...striker, name: "Mark", cost: 80 }] }, "append");
@@ -29,9 +30,9 @@ describe("drone listings", () => {
     assert.equal(shelf[0]?.name, "Mark");
     assert.equal(shelf[0]?.cost, 80);
     assert.equal(shelf[0]?.detail, 'Drone Control, "Mark". Purchase price 80.');
-    const authored = CITED_DRONES.find((row) => row.ref === "COMBAT_1");
-    assert.equal(authored?.name, "Combat Drone Mark I");
-    assert.equal(authored?.cost, 50);
+    resetPackForTests();
+    assert.equal(droneDef("COMBAT_1")?.name, "Combat Drone Mark I");
+    assert.equal(droneDef("COMBAT_1")?.cost, 50);
   });
 
   it("awards, buys, and fields an appended listing", () => {

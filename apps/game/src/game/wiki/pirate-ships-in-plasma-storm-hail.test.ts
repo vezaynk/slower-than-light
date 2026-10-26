@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { allEvents } from "@stl/pack";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
+import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
-import { EXTRA_EVENTS } from "./cited-events-zoltan.ts";
 
 const BODY =
   "You spy two pirate ships lurking in the nebula here. They remain unaware of your presence; you're able to get your scanners to at least identify their cargo: One is carrying the fuel supplies, the other the ammunition. They begin to drift away from each other in the storm.";
@@ -27,7 +28,7 @@ describe("Pirate ships in plasma storm hail", () => {
     // > "Let them leave." — [[Pirate ships in plasma storm]]
     const g = createGame(1);
     open(g);
-    const def = EXTRA_EVENTS.find((ev) => ev.slug === "pirate-ships-in-plasma-storm");
+    const def = allEvents().find((event) => event.dest === "Pirate ships in plasma storm");
     assert.ok(def);
     const ids = g.event?.choices.map((c) => c.id) ?? [];
     assert.equal(g.event?.title, "Pirate ships in plasma storm");

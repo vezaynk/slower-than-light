@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { MOUNT_IMAGES, WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
-import { SHIP_LAYOUTS } from "@stl/catalog/src/ship-layouts.ts";
-import { pictureForRooms, ROOM_PX } from "@stl/pack";
+import { hullDef, pictureForRooms, ROOM_PX } from "@stl/pack";
 import { weaponPixels } from "./gear-look.ts";
+import { layoutFor } from "./layouts.ts";
+import "./pack/base.ts";
 import {
   GUN_ART,
   GUN_PX,
@@ -15,32 +15,54 @@ import {
 } from "./mount-place.ts";
 
 describe("archive weapon hardpoints", () => {
-  it("keeps an image box for every mount list", () => {
-    assert.deepEqual(Object.keys(MOUNT_IMAGES).sort(), Object.keys(WEAPON_MOUNTS).sort());
-  });
-
   it("places the Kestrel nose guns on the room grid", () => {
-    const image = MOUNT_IMAGES.kestral!;
-    const mounts = WEAPON_MOUNTS.kestral!;
-    const top = mountPose(image, mounts[0]!, true);
-    const bottom = mountPose(image, mounts[1]!, true);
+    const hull = hullDef("PLAYER_SHIP_HARD");
+    const image = hull?.picture;
+    const mounts = hull?.mounts;
+    assert.ok(image && mounts && mounts[0] && mounts[1]);
+    assert.equal(hull?.layout, "kestral");
+    assert.deepEqual(image, { x: -59, y: -103, w: 652, h: 418 });
+    assert.deepEqual(mounts[0], {
+      x: 540,
+      y: 155,
+      rotate: true,
+      mirror: true,
+      gib: 6,
+      slide: "up",
+    });
+    assert.deepEqual(mounts[1], {
+      x: 540,
+      y: 262,
+      rotate: true,
+      mirror: false,
+      gib: 6,
+      slide: "down",
+    });
+    const top = mountPose(image, mounts[0], true);
+    const bottom = mountPose(image, mounts[1], true);
     assert.deepEqual(top, { x: -59 + 540, y: -103 + 155, turn: 0, flip: true });
     assert.deepEqual(bottom, { x: -59 + 540, y: -103 + 262, turn: 0, flip: false });
-    const rooms = SHIP_LAYOUTS.PLAYER_SHIP_HARD!.rooms;
+    const rooms = layoutFor("PLAYER_SHIP_HARD")?.rooms;
+    assert.ok(rooms);
     const wide = 15 * ROOM_PX;
     const tall = 6 * ROOM_PX;
     assert.ok(top.x > 0 && top.x < wide && top.y > 0 && top.y < tall);
-    assert.ok(bottom.x > 0 && bottom.x < wide && bottom.y > 0 && bottom.y < tall);
+    assert.ok(bottom.x > 0 && bottom.x < wide);
+    assert.ok(bottom.y < tall);
     assert.ok(top.y < bottom.y);
   });
 
-  it("uses the archive image when the hull picture is the room box", () => {
-    const rooms = SHIP_LAYOUTS.PLAYER_SHIP_HARD!.rooms;
+  it("returns the measured picture, and the room box stays the bitmap grid", () => {
+    const rooms = layoutFor("PLAYER_SHIP_HARD")?.rooms;
+    assert.ok(rooms);
     const placeholder = pictureForRooms(rooms);
-    assert.deepEqual(mountImage("kestral", placeholder, rooms), MOUNT_IMAGES.kestral);
-    const loaded = { x: -59, y: -103, w: 652, h: 418 };
+    const loaded = hullDef("PLAYER_SHIP_HARD")?.picture;
+    const bottom = hullDef("PLAYER_SHIP_HARD")?.mounts?.[1];
+    assert.ok(placeholder && loaded && bottom);
+    assert.deepEqual(loaded, { x: -59, y: -103, w: 652, h: 418 });
+    assert.notDeepEqual(loaded, placeholder);
     assert.deepEqual(mountImage("kestral", loaded, rooms), loaded);
-    const tucked = mountPose(placeholder!, WEAPON_MOUNTS.kestral![1]!, true);
+    const tucked = mountPose(placeholder, bottom, true);
     assert.ok(tucked.y > 6 * ROOM_PX);
   });
 

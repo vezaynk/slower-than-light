@@ -13,7 +13,8 @@
  * INFERRED: that fight's existing event slug is "quest-rock-sun". The wiki does not print the slug.
  */
 
-import { packId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
+import "../pack/base.ts";
+import { storedId } from "@stl/pack";
 
 const FLARE_EVENTS = new Set([
   "AUTO_SUN",
@@ -28,8 +29,8 @@ const FLARE_EVENTS = new Set([
 export function eventHasFlare(event: string | undefined): boolean {
   if (!event) return false;
   if (FLARE_EVENTS.has(event)) return true;
-  const id = packId(event);
-  return !!id && id !== event && FLARE_EVENTS.has(id);
+  const id = storedId(event);
+  return id !== event && FLARE_EVENTS.has(id);
 }
 
 /**

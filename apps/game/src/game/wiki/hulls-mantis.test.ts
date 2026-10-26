@@ -1,10 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { HullSpec } from "../hulls.ts";
-import { MANTIS_HULLS } from "./hulls-mantis.ts";
+import { hullById, type HullSpec } from "../hulls.ts";
 
+const IDS = ["PLAYER_SHIP_MANTIS", "PLAYER_SHIP_MANTIS_2", "PLAYER_SHIP_MANTIS_3"] as const;
 const DRAW = ["shields", "engines", "oxygen", "medbay", "weapons"] as const;
 const SEATS = new Set(["p-pilot", "p-engines", "p-weapons", "p-shields"]);
+
+function hulls(): HullSpec[] {
+  return IDS.map((id) => {
+    const hull = hullById(id);
+    assert.ok(hull, id);
+    return hull;
+  });
+}
 
 function kinCount(hull: HullSpec, kin: HullSpec["crew"][number]["kin"]): number {
   return hull.crew.filter((c) => c.kin === kin).length;
@@ -20,7 +28,7 @@ function reactorDraw(hull: HullSpec): number {
 describe("Mantis cruiser loadouts", () => {
   it("lists the three layouts", () => {
     assert.deepEqual(
-      MANTIS_HULLS.map((h) => [h.id, h.layout, h.name, h.cruiser]),
+      hulls().map((h) => [h.id, h.layout, h.name, h.cruiser]),
       [
         ["PLAYER_SHIP_MANTIS", "A", "The Gila Monster", "Mantis Cruiser"],
         ["PLAYER_SHIP_MANTIS_2", "B", "The Basilisk", "Mantis Cruiser"],
@@ -30,7 +38,7 @@ describe("Mantis cruiser loadouts", () => {
   });
 
   it("uses the published reactor and stores", () => {
-    const byId = Object.fromEntries(MANTIS_HULLS.map((h) => [h.id, h]));
+    const byId = Object.fromEntries(hulls().map((h) => [h.id, h]));
     assert.deepEqual(
       [
         byId["PLAYER_SHIP_MANTIS"].reactor,
@@ -61,7 +69,7 @@ describe("Mantis cruiser loadouts", () => {
   });
 
   it("counts crew kin and stays inside the reactor", () => {
-    const byId = Object.fromEntries(MANTIS_HULLS.map((h) => [h.id, h]));
+    const byId = Object.fromEntries(hulls().map((h) => [h.id, h]));
     assert.deepEqual(
       [
         kinCount(byId["PLAYER_SHIP_MANTIS"], "mantis"),
@@ -86,7 +94,7 @@ describe("Mantis cruiser loadouts", () => {
       ],
       [1, 1, 1],
     );
-    for (const hull of MANTIS_HULLS) {
+    for (const hull of hulls()) {
       assert.ok(reactorDraw(hull) <= hull.reactor, hull.id);
       for (const seat of hull.crew) assert.ok(SEATS.has(seat.room), seat.room);
       for (const [level, power] of Object.values(hull.systems)) {

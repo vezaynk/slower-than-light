@@ -1,5 +1,6 @@
 import { playArchiveAudio } from "../archive-audio.ts";
 import { skillRank } from "../content.ts";
+import { canFlyDrone } from "./flown.ts";
 import {
   applyIon,
   blastHits,
@@ -393,19 +394,7 @@ export function activateDroneSlot(g: Game, index: number): boolean {
  * an enemy hull that lists it flies that id.
  */
 export function canDeploy(kind: string): boolean {
-  return (
-    isKind(kind) ||
-    kind === "COMBAT_2" ||
-    kind === "COMBAT_BEAM_2" ||
-    kind === "COMBAT_FIRE" ||
-    kind === "COMBAT_ION" ||
-    kind === "COMBAT_MISSILE" ||
-    kind === "BOARDER_ION" ||
-    kind === "DRONE_SHIELD" ||
-    kind === "DRONE_SHIELD_PLAYER" ||
-    kind === "BOSS_DEFENSE_2" ||
-    kind === "DRONE_HACKING"
-  );
+  return canFlyDrone(kind);
 }
 
 /**

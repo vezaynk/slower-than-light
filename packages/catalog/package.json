@@ -8,12 +8,14 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test src/wiki/*.test.ts",
     "lint": "cd ../.. && ./node_modules/.bin/eslint packages/catalog"
   },
   "dependencies": {
     "@stl/pack": "workspace:*"
   },
   "devDependencies": {
+    "@stl/wiki-dump": "workspace:*",
     "@types/node": "^22.16.5",
     "typescript": "^5.7.0"
   }

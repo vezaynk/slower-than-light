@@ -29,6 +29,7 @@ import type {
   RewardTable,
   RollEntry,
   SectorDef,
+  ShipClassDef,
   ShipEventChance,
   ShipEventDef,
   ShipEventEnding,
@@ -60,6 +61,9 @@ const textLists = new Map<string, TextListDef>();
 const empties = new Map<string, EmptyBeaconDef>();
 const achievements = new Map<string, AchievementDef>();
 const factions = new Map<string, FactionSurrender>();
+const shipClasses = new Map<string, ShipClassDef>();
+/** Authoring slug to the stored event id. A stored id always wins over an alias. */
+const eventAliases = new Map<string, string>();
 let reward: RewardTable | undefined;
 let baseReward: RewardTable | undefined;
 let civilianSectorTitleValue: string | undefined;
@@ -81,6 +85,7 @@ let baseTextLists: TextListDef[] = [];
 let baseEmpties: EmptyBeaconDef[] = [];
 let baseAchievements: AchievementDef[] = [];
 let baseFactions: FactionSurrender[] = [];
+let baseShipClasses: ShipClassDef[] = [];
 
 function copyCrew(row: CrewDef): CrewDef {
   const copy = { ...row };
@@ -211,6 +216,7 @@ function copyGift(gift: ChoiceGift): ChoiceGift {
 function copyChoice(choice: EventChoice): EventChoice {
   const copy: EventChoice = { id: choice.id, label: choice.label, fx: choice.fx.map(copyEffect) };
   if (choice.reqs?.length) copy.reqs = choice.reqs.map(copyReq);
+  if (choice.owner) copy.owner = choice.owner;
   if (choice.gift?.k === "fuel") copy.gift = copyGift(choice.gift);
   if (choice.hidden) copy.hidden = true;
   if (choice.reward) copy.reward = { ...choice.reward };
@@ -256,6 +262,20 @@ function copyBlueprint(row: BlueprintListDef): BlueprintListDef {
 
 function copyTextList(row: TextListDef): TextListDef {
   return { id: row.id, lines: row.lines.map((line) => ({ ...line })) };
+}
+
+function copyShipClass(row: ShipClassDef): ShipClassDef {
+  return { ...row };
+}
+
+function indexEventAliases(): void {
+  eventAliases.clear();
+  for (const event of events.values()) {
+    for (const alias of event.aliases) {
+      if (!alias || alias === event.id || events.has(alias) || eventAliases.has(alias)) continue;
+      eventAliases.set(alias, event.id);
+    }
+  }
 }
 
 function copyList(row: FillerListDef): FillerListDef {
@@ -428,6 +448,7 @@ function copyCard(row: EventCard): EventCard {
     choices: row.choices.map((choice) => {
       const copy: EventCard["choices"][number] = { id: choice.id, label: choice.label };
       if (choice.reqs?.length) copy.reqs = choice.reqs.map(copyReq);
+      if (choice.owner) copy.owner = choice.owner;
       if (choice.gift?.k === "fuel") copy.gift = copyGift(choice.gift);
       return copy;
     }),
@@ -516,11 +537,13 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     empties.clear();
     achievements.clear();
     factions.clear();
+    shipClasses.clear();
     reward = pack.rewards ? copyReward(pack.rewards) : undefined;
     baseReward = reward ? copyReward(reward) : undefined;
     civilianSectorTitleValue = pack.civilianSectorTitle;
     baseCivilianSectorTitle = pack.civilianSectorTitle;
     baseFactions = (pack.factions ?? []).map(copyFaction);
+    baseShipClasses = (pack.shipClasses ?? []).map(copyShipClass);
     baseCrew = (pack.crew ?? []).map(copyCrew);
     baseWeapons = (pack.weapons ?? []).map(copyWeapon);
     baseAugments = (pack.augments ?? []).map(copyAugment);
@@ -576,6 +599,9 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     achievements.set(row.id, copyAchievement(row));
   for (const row of mode === "base" ? baseFactions : (pack.factions ?? []))
     factions.set(row.id, copyFaction(row));
+  for (const row of mode === "base" ? baseShipClasses : (pack.shipClasses ?? []))
+    shipClasses.set(row.id, copyShipClass(row));
+  indexEventAliases();
 }
 
 /**
@@ -664,6 +690,19 @@ export function allHulls(): HullDef[] {
   return [...hulls.values()];
 }
 
+/** Class-table order. An appended id sits at the end. */
+export function allShipClasses(): ShipClassDef[] {
+  return [...shipClasses.values()].map(copyShipClass);
+}
+
+/** Archive blueprint a fight asks for. A missing class returns the class id. A pirate with no pirate ship uses the regular one. */
+export function shipClassBlueprint(classId: string, pirate = false): string {
+  const row = shipClasses.get(classId);
+  if (!row) return classId;
+  if (pirate && row.pirate) return row.pirate;
+  return row.blueprint;
+}
+
 export function sectorDef(id: string | undefined): SectorDef | undefined {
   if (!id) return undefined;
   return sectors.get(id);
@@ -715,9 +754,24 @@ export function hasEvent(id: string | undefined): boolean {
 function storedEvent(id: string): EventDef | undefined {
   const direct = events.get(id);
   if (direct) return direct;
+  const indexed = eventAliases.get(id);
+  if (indexed) {
+    const row = events.get(indexed);
+    if (row) return row;
+  }
   const alias = eventAlias?.(id);
   if (!alias || alias === id) return undefined;
   return events.get(alias);
+}
+
+/** The id this pack stored for an authoring slug. A stored id is returned as itself. */
+export function storedId(id: string): string {
+  if (events.has(id)) return id;
+  const indexed = eventAliases.get(id);
+  if (indexed && events.has(indexed)) return indexed;
+  const alias = eventAlias?.(id);
+  if (alias && alias !== id && events.has(alias)) return alias;
+  return id;
 }
 
 export function eventDef(id: string | undefined): EventDef | undefined {
@@ -888,6 +942,7 @@ export function resetPackForTests(): void {
   empties.clear();
   achievements.clear();
   factions.clear();
+  shipClasses.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
   civilianSectorTitleValue = baseCivilianSectorTitle;
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
@@ -907,4 +962,6 @@ export function resetPackForTests(): void {
   for (const row of baseEmpties) empties.set(row.id, copyEmpty(row));
   for (const row of baseAchievements) achievements.set(row.id, copyAchievement(row));
   for (const row of baseFactions) factions.set(row.id, copyFaction(row));
+  for (const row of baseShipClasses) shipClasses.set(row.id, copyShipClass(row));
+  indexEventAliases();
 }

@@ -32,7 +32,6 @@ import { CARGO_SLOTS, cargoOf, receiveDrone } from "./make-room.ts";
 type Offer = { slot: "sys" | "kit"; ref: string; name: string; cost: number };
 
 /** Authored single-price system list. The store reads the loaded copy. */
-export { CITED_SYSTEMS } from "./system-catalog.ts";
 
 const SYS_IDS: readonly SysId[] = [
   "shields",
@@ -112,7 +111,6 @@ export const CRYSTAL_SECTOR_WEAPONS = [
 ] as const;
 
 /** Authored schematic list. The store reads the loaded copy. Fire Drone, Shield Overcharger +, and Drone Control stay off it. */
-export { CITED_DRONES } from "./drone-catalog.ts";
 
 type SlotKind = "systems" | "drones" | "augments" | "crew";
 

@@ -1,11 +1,9 @@
 import { cellOccupied } from "../layouts.ts";
-export type { FlakCrystalGap } from "@stl/catalog/src/wiki/weapons-flak-crystal.ts";
-export {
-  ADV_FLAK_FAKE,
-  FLAK2_FAKE,
-  FLAK_CRYSTAL_GAPS,
-  FLAK_CRYSTAL_WEAPONS,
-} from "@stl/catalog/src/wiki/weapons-flak-crystal.ts";
+
+/** Flak (Weapons), "Flak Gun Mark II": additional fake flak. */
+export const FLAK2_FAKE = 6;
+/** Flak (Weapons), "Advanced Flak": additional fake flak. */
+export const ADV_FLAK_FAKE = 3;
 
 export type Flak2Room = {
   id: string;

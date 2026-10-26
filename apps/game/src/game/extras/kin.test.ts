@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import "../pack/base.ts";
 import { allCrew, crewDef } from "@stl/pack";
-import { KIN, kinOf, type KinId } from "./kin.ts";
+import { kinOf, type KinId } from "./kin.ts";
 
 const IDS: KinId[] = ["human", "engi", "energy", "mantis", "slug", "rock", "anaerobic", "crystal"];
 
@@ -15,7 +15,6 @@ describe("kin", () => {
     assert.equal(plain.fight, 1);
     assert.equal(plain.suffocate, 1);
     assert.equal(plain.fireTaken, 1);
-    assert.equal(KIN.human, plain);
   });
 
   it("voidlung does not suffocate", () => {

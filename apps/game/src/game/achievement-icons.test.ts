@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { allAchievements } from "@stl/pack";
 import { ACH_ICON_ROWS, ACH_ICON_SIZE } from "./achievement-icons.ts";
-import { ACHIEVEMENTS } from "@stl/catalog/src/wiki/achievements.ts";
+import "./pack/base.ts";
 
 describe("achievement icons", () => {
   it("draw every achievement, and nothing else", () => {
-    assert.deepEqual(Object.keys(ACH_ICON_ROWS).sort(), ACHIEVEMENTS.map((row) => row.id).sort());
+    assert.deepEqual(
+      Object.keys(ACH_ICON_ROWS).sort(),
+      allAchievements()
+        .map((row) => row.id)
+        .sort(),
+    );
   });
 
   it("are 16×16 with only known paint", () => {

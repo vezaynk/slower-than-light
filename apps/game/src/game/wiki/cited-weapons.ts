@@ -1,8 +1,6 @@
 import "../pack/base.ts";
 import { weaponDef } from "@stl/pack";
 import type { Shot } from "../types.ts";
-import { BEAM_CREW } from "./weapons-beam.ts";
-import { BOMB_CREW } from "./weapons-bomb.ts";
 
 /**
  * Crew damage for a hit when that weapon's own wiki section prints a number.
@@ -12,19 +10,12 @@ import { BOMB_CREW } from "./weapons-bomb.ts";
  * Beam pages say "per room tile". Shot has no tile count, so the HP is not multiplied.
  * Chain stays off the weapon: WeaponDef has no chain field.
  * Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer. citedPierce is that 1.
+ * Zero is a value: an ion bomb prints a dash of crew damage and stores 0.
  */
-const CREW_BY_ID: Record<string, number> = {
-  ...BOMB_CREW,
-  ...BEAM_CREW,
-  // content.ts stores Beam (Weapons), "Pike Beam" as shear and skips id pike.
-  BEAM_LONG: BEAM_CREW.BEAM_LONG,
-};
-
 export function citedCrewDamage(shot: Shot, _damage: number): number | null {
-  const packed = shot.defId ? weaponDef(shot.defId)?.crewDamage : undefined;
-  if (packed != null) return packed;
-  if (!shot.defId || !Object.prototype.hasOwnProperty.call(CREW_BY_ID, shot.defId)) return null;
-  return CREW_BY_ID[shot.defId];
+  if (!shot.defId) return null;
+  const packed = weaponDef(shot.defId)?.crewDamage;
+  return packed ?? null;
 }
 
 /**

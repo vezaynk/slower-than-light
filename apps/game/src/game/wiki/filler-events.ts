@@ -2,16 +2,16 @@ import { XP_NEED, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import {
   allEmptyBeacons,
+  allEvents,
   allWeapons,
   crewDef,
   eventDef,
   fillerList,
   openingLine,
+  storedId,
   weaponDef,
 } from "@stl/pack";
-import type { EmptyBeaconDef, EventDef } from "@stl/pack";
-import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
-import type { FillerList } from "./filler-lists.ts";
+import type { EmptyBeaconDef, EventChoice, EventDef } from "@stl/pack";
 import {
   beginBoarding,
   hurtSystem,
@@ -23,8 +23,6 @@ import {
   startCombat,
 } from "../sim.ts";
 import type { Beacon, Crew, Game, GameEvent, SkillName, SysId } from "../types.ts";
-import type { CitedEventDef } from "./cited-events-surrender.ts";
-import { FILLER_PAGES } from "./filler-pages.ts";
 import {
   NEVER_RUN,
   between,
@@ -45,17 +43,14 @@ import {
 } from "./surrender.ts";
 // Circular imports (beacon-mix -> here -> cited-events -> beacon-mix): only read inside functions, never at load.
 import { noteReactorEvent } from "./achievement-track.ts";
-import { SECTOR_MIX } from "./beacon-mix.ts";
-import { citedPagesFor } from "./cited-events.ts";
 import { rollBand } from "./event-bands.ts";
 import { priced, rollPrice } from "./event-prices.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
 import { grantRandomItem } from "./bonus-item.ts";
-import { ownedLock, scrapStock } from "./choice-locks.ts";
+import { locksOwned, ownedLock, scrapStock } from "./choice-locks.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
-import { FILLER_LOCKS } from "./choice-reqs.ts";
 
 /**
  * @agent:filler. Documented events for the plain beacons that the cited tables do not fill.
@@ -87,18 +82,6 @@ import { FILLER_LOCKS } from "./choice-reqs.ts";
  * that prints fires or a breach applies that hazard.
  */
 
-export type { EmptyPage, FillerList, FillerRow } from "./filler-lists.ts";
-export {
-  DISTRESS,
-  EMPTY_PAGES,
-  EXIT_ITEMS,
-  EXIT_NEUTRAL,
-  FILLER,
-  ITEMS,
-  NEBULA,
-} from "./filler-lists.ts";
-export { FILLER_PAGES } from "./filler-pages.ts";
-
 /**
  * The empty-beacon page for a sector. Civilian is the first plain page, so an unlisted sector uses it.
  * A nebula slot uses the Slug page in a Slug sector (SLUG_SECTOR, SLUG_HOME), and the other nebula page otherwise.
@@ -123,17 +106,30 @@ export function emptyPageFor(sectorId: string, nebula = false): EmptyBeaconDef {
 
 // ---- Lookup and draw -------------------------------------------------------------------------------------------
 
-type Page = Readonly<CitedEventDef>;
-let citedIndex: Map<string, Page> | null = null;
+type Page = {
+  dest: string;
+  slug: string;
+  flag: string;
+  aliases: string[];
+  sectors: string[];
+  body: string;
+  choices: EventChoice[];
+};
 
-/** Cited table pages by dest and alias (every sector the beacon mix lists). Built on first use. */
+let citedIndex: Map<string, Page> | null = null;
+let citedStamp = "";
+
+/** Loaded pages by dest and alias. Arrivals and filler twins stay out, so the sector page wins a name. */
 function citedByName(name: string): Page | undefined {
-  if (!citedIndex) {
+  const events = allEvents();
+  const stamp = events.map((ev) => ev.id).join("\0");
+  if (!citedIndex || citedStamp !== stamp) {
     citedIndex = new Map();
-    for (const sector of Object.keys(SECTOR_MIX)) {
-      for (const ev of citedPagesFor(sector) as Page[]) {
-        for (const n of [ev.dest, ...ev.aliases]) if (!citedIndex.has(n)) citedIndex.set(n, ev);
-      }
+    citedStamp = stamp;
+    for (const ev of events) {
+      if (ev.id.startsWith("arrive-") || ev.id.startsWith("filler-")) continue;
+      const page = pageFromEvent(ev);
+      for (const n of [ev.dest, ...ev.aliases]) if (!citedIndex.has(n)) citedIndex.set(n, page);
     }
   }
   return citedIndex.get(name);
@@ -167,61 +163,46 @@ function packedPage(id: string): Page | undefined {
   return page;
 }
 
-function citedPage(slug: string): Page | undefined {
-  if (!citedIndex) citedByName("");
-  for (const page of citedIndex!.values()) if (page.slug === slug) return page;
-  return undefined;
-}
-
-function sameOpening(
-  a: { body: string; choices: { id: string; label: string }[] },
-  b: { body: string; choices: { id: string; label: string }[] },
-): boolean {
-  if (a.body !== b.body || a.choices.length !== b.choices.length) return false;
-  return a.choices.every((choice, i) => {
-    const other = b.choices[i];
-    return other !== undefined && choice.id === other.id && choice.label === other.label;
-  });
+function withListSlug(page: Page, slug: string): Page {
+  if (page.slug === slug) return page;
+  return { ...page, slug };
 }
 
 /**
- * A filler card that shares its slug with a sector page.
- * While the pack still holds that sector page, a filler stamp shows this card.
- * A pack that replaces the record is what arrival shows.
+ * A filler card stored beside the sector page that already uses its slug.
+ * The record id is filler-<slug>. The stamp and the arrival still use the list id.
  */
 function fillerTwin(slug: string): Page | undefined {
-  const own = FILLER_PAGES.find((page) => page.slug === slug);
-  const packed = eventDef(slug);
-  const cited = citedPage(slug);
-  if (!own || !packed || !cited) return undefined;
-  if (sameOpening(packed, cited) && !sameOpening(packed, own)) return own;
-  return undefined;
+  const twin = packedPage(`filler-${slug}`);
+  if (!twin) return undefined;
+  return withListSlug(twin, slug);
 }
 
-/** The card for a list row: the cited table's page first, else the packed opening card. */
+/** The card for a list row: the sector page first, else the packed opening card. */
 export function pageForRow(dest: string): Page | undefined {
   const cited = citedByName(dest);
   if (cited) return cited;
-  const own = FILLER_PAGES.find((page) => page.dest === dest || page.aliases.includes(dest));
-  if (!own) return undefined;
-  return pageForEntry(own.slug) ?? own;
+  for (const ev of allEvents()) {
+    if (ev.id.startsWith("arrive-")) continue;
+    if (ev.dest !== dest && !ev.aliases.includes(dest)) continue;
+    if (ev.id.startsWith("filler-")) return fillerTwin(ev.id.slice("filler-".length));
+    return pageForEntry(ev.id);
+  }
+  return undefined;
 }
 
-/** The card a list row names. A sector page wins. Otherwise the packed event, then the authored card. */
+/** The card a list row names. A filler twin wins, and the page slug stays the list id. */
 function pageForEntry(id: string): Page | undefined {
-  const cited = citedPage(id);
-  if (cited) return cited;
-  return packedPage(id) ?? FILLER_PAGES.find((page) => page.slug === id);
+  const twin = fillerTwin(id);
+  if (twin) return twin;
+  const packed = packedPage(id);
+  if (!packed) return undefined;
+  return withListSlug(packed, id);
 }
 
 /** The card a filler stamp opens. A shared slug keeps the filler card while the pack holds the sector page. */
 function pageBySlug(slug: string): Page | undefined {
-  return (
-    fillerTwin(slug) ??
-    packedPage(slug) ??
-    FILLER_PAGES.find((page) => page.slug === slug) ??
-    citedPage(slug)
-  );
+  return fillerTwin(slug) ?? packedPage(slug);
 }
 
 export const FILLER_FLAG = "filler:";
@@ -275,7 +256,7 @@ export function stampFiller(b: Beacon, page: Page) {
 
 // ---- Arrival ---------------------------------------------------------------------------------------------------
 
-const LIST_FOR_KIND: Partial<Record<Beacon["kind"], FillerList>> = {
+const LIST_FOR_KIND: Partial<Record<Beacon["kind"], "FILLER" | "NEBULA" | "DISTRESS" | "ITEMS">> = {
   event: "FILLER",
   distress: "DISTRESS",
   cache: "ITEMS",
@@ -4634,7 +4615,7 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   // Wiki citations:
   // > "(Hacking System) Counter the remote hacking." — [[Boarders: Humans jammed sensors]]
   // Slaver (hostile). Engines level=6+. INFERRED: the refusal line. The page names the system and prints no sentence.
-  return ownedLock(g, id, FILLER_LOCKS);
+  return ownedLock(g, id, locksOwned("filler"));
 }
 
 /** The sector's "Empty beacon (...)" card ("Nothing happens."), for sim.ts eventFor's last resort. */

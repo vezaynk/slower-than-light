@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { HULLS } from "../hulls.ts";
+import { playerHulls } from "../hulls.ts";
 import { createGame, startCombat } from "../sim.ts";
 import { UNLOCKS_KEY } from "../unlocks.ts";
-import { ACHIEVEMENTS } from "@stl/catalog/src/wiki/achievements.ts";
+import { allAchievements } from "@stl/pack";
 import {
   earnedIds,
   earnedNow,
@@ -110,21 +110,6 @@ describe("achievement tracker", () => {
     assert.deepEqual(earnedNow(title), []);
   });
 
-  it("reads achievements saved under the old wiki slugs as their archive ids", () => {
-    memoryStorage();
-    localStorage.setItem(
-      "stl-achievements-v1",
-      JSON.stringify(["just-getting-started", "scrap-hoarder", "were-in-position", "ACH_SECTOR_8"]),
-    );
-    resetAchievementMemory();
-    assert.deepEqual(earnedIds().sort(), [
-      "ACH_LANIUS_SCRAP",
-      "ACH_SECTOR_5",
-      "ACH_SECTOR_8",
-      "ACH_SLUG_VISION",
-    ]);
-  });
-
   it("keeps earned ids in localStorage and ignores an untracked id", () => {
     memoryStorage();
     localStorage.setItem("stl-achievements-v1", JSON.stringify(["ACH_NO_SUCH", "ACH_SECTOR_5"]));
@@ -175,7 +160,9 @@ describe("achievement tracker", () => {
 
   it("reads Your Own Fleet from the saved Type A unlocks", () => {
     memoryStorage();
-    const typeA = HULLS.filter((hull) => hull.layout === "A").map((hull) => hull.id);
+    const typeA = playerHulls()
+      .filter((hull) => hull.layout === "A")
+      .map((hull) => hull.id);
     localStorage.setItem(UNLOCKS_KEY, JSON.stringify({ ships: typeA.slice(0, -1), wins: [] }));
     resetAchievementMemory();
     const shy = createGame(2);
@@ -202,10 +189,11 @@ describe("achievement tracker", () => {
   });
 
   it("tracks every named achievement", () => {
-    const tracked = ACHIEVEMENTS.filter((row) => isTracked(row.id)).map((row) => row.id);
+    const rows = allAchievements();
+    const tracked = rows.filter((row) => isTracked(row.id)).map((row) => row.id);
     assert.deepEqual(
       tracked,
-      ACHIEVEMENTS.map((row) => row.id),
+      rows.map((row) => row.id),
     );
     assert.deepEqual(untrackedIds(), []);
   });

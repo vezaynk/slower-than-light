@@ -1,9 +1,11 @@
 import { augmentDef } from "@stl/pack";
 import { bars, chargerCap, FIRE_FIGHT_SHARE, log, powerMask, rand, zoltanBars } from "../sim.ts";
 import type { AugmentId, BeaconKind, Crew, Game, Ship } from "../types.ts";
-import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 
-export { CATALOG } from "./augment-catalog.ts";
+/** Fires, Crystal crew: they put out fires at 83% of the normal rate. */
+export function crystalExtinguishScale(): number {
+  return 0.83;
+}
 
 function copies(g: Game, id: AugmentId): number {
   let n = 0;

@@ -562,9 +562,18 @@ export type RollEntry =
  * One whole opening a page draws when the card opens.
  * The sim still draws one with between. The button handlers stay in code.
  */
+/** Which handler claims a packed lock. The reqs stay on the choice. */
+export type LockOwner = "filler" | "missing" | "cited" | "quest";
+
 export type EventCard = {
   body: string;
-  choices: { id: string; label: string; reqs?: ChoiceReq[]; gift?: ChoiceGift }[];
+  choices: {
+    id: string;
+    label: string;
+    reqs?: ChoiceReq[];
+    gift?: ChoiceGift;
+    owner?: LockOwner;
+  }[];
 };
 
 /**
@@ -682,6 +691,8 @@ export type EventChoice = {
   fx: EventEffect[];
   /** Locks checked in order. The first failure's text is the refusal. */
   reqs?: ChoiceReq[];
+  /** The handler that claims this button's lock. Other handlers leave it alone. */
+  owner?: LockOwner;
   /** Fuel the handler pays. A positive resource effect is a different payment. */
   gift?: ChoiceGift;
   /** The archive hides this button until its requirement is met. */
@@ -995,6 +1006,17 @@ export type AchievementDef = {
   img?: string;
   /** Absent: the game has no way to tell when this one is earned. */
   condition?: AchievementCondition;
+  /** Old localStorage id. The gap writes it so a save from before archive ids still counts. */
+  slug?: string;
+};
+
+/** One campaign class and the ship blueprint a fight of that class asks for. */
+export type ShipClassDef = {
+  id: string;
+  classId: string;
+  blueprint: string;
+  /** Pirate fight. Absent when the class has no pirate ship. */
+  pirate?: string;
 };
 
 export type ContentPack = {
@@ -1017,6 +1039,11 @@ export type ContentPack = {
   blueprints?: BlueprintListDef[];
   /** `<textList>` rows. A page draws one line when it is shown. */
   textLists?: TextListDef[];
+  /**
+   * Campaign class id to the ship blueprint a fight asks for.
+   * A real ftl.dat has no such tag; the gap writes the rows.
+   */
+  shipClasses?: ShipClassDef[];
   empties?: EmptyBeaconDef[];
   /** Shared scrap scaling and resource bands. Absent until a pack loads one. */
   rewards?: RewardTable;

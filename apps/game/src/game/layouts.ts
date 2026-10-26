@@ -417,6 +417,12 @@ const BOUGHT_SYSTEMS: [SysId, string][] = [
   ["medbay", "Medbay"],
 ];
 
+/** Titles an older save used for a pale room, before that room stored `reserve`. */
+const RESERVABLE_TITLE = new Set<string>([
+  ...Object.values(KIT_TITLE),
+  ...BOUGHT_SYSTEMS.map(([, title]) => title),
+]);
+
 /**
  * Gives every kit on a player hull its room (`room.kit`), so weapon hits reach it (sim.ts strikeRoom -> hurtKit),
  * crew repair it (sim.ts life), and the Hard targeting list resolves it (wiki/targeting.ts). Idempotent.
@@ -426,6 +432,12 @@ const BOUGHT_SYSTEMS: [SysId, string][] = [
 export function seatKits(ship: Ship): void {
   if (!ship.rooms || !ship.kits) return;
   const medbay = ship.systems?.medbay?.level ?? 0;
+  // Older saves named the pale room after its system and did not set reserve.
+  for (const r of ship.rooms) {
+    if (r.system !== null || r.kit || !RESERVABLE_TITLE.has(r.title)) continue;
+    r.reserve = r.title;
+    r.title = "Hall";
+  }
   for (const r of ship.rooms) {
     if (!r.kit || ship.kits[r.kit]) continue;
     if (r.kit === "clonebay" && medbay > 0 && !ship.rooms.some((o) => o.system === "medbay")) {

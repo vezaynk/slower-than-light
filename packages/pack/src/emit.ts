@@ -252,7 +252,8 @@ function shotGapFind(doc: XmlDocument, weapon: { id: string; gap: number }): Xml
 
 /**
  * Each achievement's condition, overwritten onto data/achievements.xml. ftl.dat keys an achievement by its `id`
- * attribute, so the find is a findLike on that attribute. An achievement with no condition is left out.
+ * attribute, so the find is a findLike on that attribute. A row is left out only when it has neither a
+ * condition nor a slug. A slug is still written when there is no condition.
  */
 export function emitConditionAppend(rows: readonly AchievementDef[]): string {
   const doc = implementation.createDocument(null, "FTL", null);

@@ -159,7 +159,8 @@ describe("player kit rooms (Systems: each system occupies one predetermined room
     const old = createGame(3, "PLAYER_SHIP_HARD");
     const pads = old.player.rooms.find((r) => r.id === "p-tele")!;
     pads.title = "Teleporter";
-    pads.kit = "teleporter";
+    pads.system = null;
+    delete pads.kit;
     delete pads.reserve;
     seatKits(old.player);
     assert.equal(pads.title, "Hall");

@@ -49,6 +49,8 @@ export function tickExtras(g: Game, dt: number) {
  * Evasion added on top of the Engines table. Cloak evasion survives a Piloting/Engines hack
  * (Hacking, "Overview": "Does not affect evasion gained from Cloak").
  */
+// Wiki citations:
+// > "Does not affect evasion gained from Cloak." — [[Hacking#Overview]]
 export function extraEvade(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   // @agent:flagship. The Rebel Flagship, Dodge Rate "If controlled by AI" (wiki/flagship-systems.ts).
   return veilEvade(g, ship, aboard) + flagshipAiEvade(g, ship);

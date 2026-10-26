@@ -27,6 +27,16 @@ function open(g: Game) {
 
 describe("Rebel fight in nebula intro", () => {
   it("shows one of the seven printed intros, then fights a rebel ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight in nebula]]
+    // > "You cross paths with an advance scout of the Rebel fleet searching this section of the nebula for your ship." — [[Rebel fight in nebula]]
+    // > "A ship bearing Rebel colors can be seen waiting near the beacon. They must have been waiting for you, since they engage immediately." — [[Rebel fight in nebula]]
+    // > "The Rebels must have anticipated you would try to lose them within the nebula. A scout is waiting for you at the beacon." — [[Rebel fight in nebula]]
+    // > "It looks like you will be unable to avoid the Rebels by traveling through the nebula. A Rebel ship is waiting for you near the beacon." — [[Rebel fight in nebula]]
+    // > "Shortly after you arrive, a Rebel ship jumps nearby. There looks to be no escape. Prepare for a fight!" — [[Rebel fight in nebula]]
+    // > "Newton-knows what brings this Rebel ship so far out; its captain hails, but does a double take when he identifies your ship. They open fire." — [[Rebel fight in nebula]]
+    // > "A Rebel ship hails, but you don't take chances in conditions like this. You block the frequency and prepare to engage." — [[Rebel fight in nebula]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight in nebula]]
     assert.equal(INTROS.length, 7);
     assert.equal(new Set(INTROS).size, 7);
     const seen = new Set<string>();

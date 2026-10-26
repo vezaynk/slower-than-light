@@ -20,6 +20,10 @@ function open(g: Game) {
 
 describe("Refueling platform garbled broadcast", () => {
   it("shows the printed garbled sentence before the hail and ignore choices", () => {
+    // Wiki citations:
+    // > "You detect a refueling platform near the beacon, although its broadcast signal is garbled, and you can't make out the message." — [[Refueling platform garbled broadcast]]
+    // > "Hail the platform and attempt to communicate." — [[Refueling platform garbled broadcast]]
+    // > "Ignore the platform." — [[Refueling platform garbled broadcast]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);
@@ -34,6 +38,9 @@ describe("Refueling platform garbled broadcast", () => {
   });
 
   it("ignoring the platform shows the printed jump sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "You leave the platform alone, and prepare to jump." — [[Refueling platform garbled broadcast]]
+    // > "Nothing happens." — [[Refueling platform garbled broadcast]]
     const g = createGame(1);
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;

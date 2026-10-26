@@ -134,6 +134,8 @@ export const KIN: Record<KinId, Kin> = {
     move: 0.85,
     repair: 1,
     fight: 1,
+    // Wiki citations:
+    // > "The Lanius race doesn't need O2, nor suffers from suffocation" — [[Oxygen#Overview]]
     suffocate: 0,
     fireTaken: 1,
   },
@@ -143,6 +145,8 @@ export const KIN: Record<KinId, Kin> = {
     move: 0.8,
     repair: 1,
     fight: 1,
+    // Wiki citations:
+    // > "The Crystal race takes half of the suffocation damage." — [[Oxygen#Overview]]
     suffocate: 0.5,
     fireTaken: 1,
   },

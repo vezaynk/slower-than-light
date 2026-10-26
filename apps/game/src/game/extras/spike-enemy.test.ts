@@ -258,6 +258,8 @@ describe("enemy hacking: pulse effects", () => {
   });
 
   it("zeroes the player's evasion and freezes FTL on Engines or Piloting", () => {
+    // Wiki citations:
+    // > "Piloting/Engines: reduces base evasion to 0 and stops the FTL drive charging." — [[Hacking#Overview]]
     for (const target of ["engines", "pilot"]) {
       const g = latched(target);
       assert.notEqual(ftlSeconds(g, g.player), null);
@@ -269,6 +271,9 @@ describe("enemy hacking: pulse effects", () => {
   });
 
   it("drains oxygen 6%/s and hurts the player's crew in the medbay 13/s", () => {
+    // Wiki citations:
+    // > "Oxygen: drains O2 levels of ship at 6% per second." — [[Hacking#Overview]]
+    // > "drains the health of hostile crew in the medbay at 13 health per second." — [[Hacking#Overview]]
     const g = latched("oxygen");
     for (const r of g.player.rooms) r.o2 = 100;
     tickEnemySpike(g, 0.01);

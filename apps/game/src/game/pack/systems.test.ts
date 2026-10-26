@@ -59,6 +59,8 @@ describe("system listings", () => {
     assert.ok(hit);
     assert.equal(hit.name, "Bulwark");
     assert.equal(hit.cost, 200);
+    // Wiki citations:
+    // > "Stealth Cruisers start without Shields system, and can buy one at a store for 125 scrap. This gives them Shields-2." — [[Shields#System Upgrades]]
     assert.equal(CITED_SYSTEMS.find((row) => row.ref === "shields")?.cost, 125);
     g.scrap = 200;
     g.stock = citedStock(g);
@@ -92,6 +94,9 @@ describe("system listings", () => {
     assert.ok(hit);
     assert.equal(hit.name, "Ember");
     assert.equal(hit.cost, 15);
+    // Wiki citations:
+    // > "When the Drone Control system is bought at a store, it always comes with 2 slots and 2 system levels. It includes one random \"half price\" drone schematic, which is a System Repair Drone, a Defense Drone Mark I, or a Combat Drone Mark I. The base price of the system is 60 scrap, so it costs 75 scrap when bundled with a System Repair Drone and 85 scrap otherwise." — [[Drone Control]]
+    // > "Level Cost Charge time 1 - 50 sec" — [[Artillery Beam#System Upgrades]]
     assert.equal(
       citedStock(g).some((item) => item.ref === "drones" || item.ref === "artillery"),
       false,

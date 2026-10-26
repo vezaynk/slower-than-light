@@ -189,6 +189,8 @@ describe("enemy mind control", () => {
   });
 
   it("ionOnLeash sets 25 only when every level is ionized and leaves the hold up", () => {
+    // Wiki citations:
+    // > "If all system levels of Mind Control get ionized, the system enters the maximum cooldown - 25 seconds." — [[Mind Control#Overview]]
     const g = fight(12, 3);
     assert.equal(fireEnemyLeash(g), true);
     const c = held(g)!;

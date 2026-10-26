@@ -29,6 +29,9 @@ function resources(body: string): number {
 
 describe("Auto-ship warning in nebula", () => {
   it("starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
+    // Wiki citations:
+    // > "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing." — [[Auto-ship warning in nebula]]
+    // > "Fight an Auto-ship that is running away." — [[Auto-ship warning in nebula]]
     const g = createGame(1);
     open(g);
     assert.equal(

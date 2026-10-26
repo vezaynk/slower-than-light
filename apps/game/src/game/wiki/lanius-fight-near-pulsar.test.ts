@@ -21,6 +21,9 @@ function open(g: Game) {
 
 describe("Lanius fight near pulsar", () => {
   it("shows the printed intro, and the fight choice starts a Lanius combat near a pulsar", () => {
+    // Wiki citations:
+    // > "There appears to be some sort of research station near a pulsar, although it's hard to tell since a portion of it has been melted. The Lanius ship that has been working at it moves in to intercept you, totally oblivious to the threat of EM pulses." — [[Lanius fight near pulsar]]
+    // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius fight near pulsar]]
     const g = createGame(1);
     open(g);
     assert.equal(

@@ -28,6 +28,11 @@ function arm(kit: Kit) {
 
 describe("cloaking", () => {
   it("pays 150, adds 60 evasion while up, blocks the shooter, then cools for 20", () => {
+    // Wiki citations:
+    // > "1 150 Ftlgame-scrap.png 5 sec" — [[Cloaking#System Upgrades]]
+    // > "The ship's evasion is increased by flat 60%." — [[Cloaking#Overview]]
+    // > "cannot target a cloaked ship." — [[Cloaking#Overview]]
+    // > "it cannot be used again for 20 seconds." — [[Cloaking#Overview]]
     const { g, kit } = fit();
     assert.equal(g.scrap, 250);
     assert.equal(g.log[0], "Cloaking fitted.");
@@ -74,6 +79,10 @@ describe("cloaking", () => {
   });
 
   it("holds through a beam and drops on a laser unless quiet is fitted", () => {
+    // Wiki citations:
+    // > "Firing weapons disrupts cloak, except for beam weapons and artillery systems (both player's and the enemy's)." — [[Cloaking#Overview]]
+    // > "reduces the cloak time by 20% of the full amount of the powered Cloaking system." — [[Cloaking#Overview]]
+    // > "Stealth Weapons augmentation completely removes this penalty." — [[Cloaking#Overview]]
     const { g, kit } = fit();
     arm(kit);
     startVeil(g);
@@ -114,6 +123,10 @@ describe("cloaking", () => {
   it("cuts once per Ion Charger and Charger Laser I shot, and once for any other volley", () => {
     // Cloaking, Overview: Ion Charger and Charger Laser I (Laser Charger, not Laser Charger (S)).
     // Laser Charger II cuts once after the volley. A beam is exempt. Stealth Weapons skips the cut.
+    // Wiki citations:
+    // > "Ion Charger and Charger Laser I remove 20% of the cloak time with each shot." — [[Cloaking#Overview]]
+    // > "Laser Charger II removes 20% of the cloak time regardless of the number of shots and the de-cloaking effect takes places after the final shot of the charged up volley (e.g. after the 3rd shot of a 3-charge volley)." — [[Cloaking#Overview]]
+    // > "Stealth Weapons augmentation completely removes this penalty." — [[Cloaking#Overview]]
     const cases: [string, Partial<WeaponInst>, number][] = [
       ["ION_CHARGEGUN", { loaded: 3, charge: 0 }, 6],
       ["LASER_CHARGEGUN", { loaded: 2, charge: 0 }, 9],
@@ -216,6 +229,8 @@ describe("cloaking", () => {
   });
 
   it("runs 5 seconds per powered bar, and a removed bar shortens a running cloak", () => {
+    // Wiki citations:
+    // > "Cloaking duration can be increased or decreased by adding or removing Zoltan power to the system. (the maximum cloak duration cannot exceed the maximum system level duration, but the minimum duration can be as short as a fraction of a second)" — [[Cloaking#Overview]]
     const { g, kit } = fit(400);
     upgradeVeil(g);
     upgradeVeil(g);
@@ -236,6 +251,9 @@ describe("cloaking", () => {
   });
 
   it("upgrades for 30 then 50 and stretches the window to 10 and 15", () => {
+    // Wiki citations:
+    // > "2 30 Ftlgame-scrap.png 10 sec" — [[Cloaking#System Upgrades]]
+    // > "3 50 Ftlgame-scrap.png 15 sec" — [[Cloaking#System Upgrades]]
     const { g, kit } = fit(200);
     assert.equal(g.scrap, 50);
     upgradeVeil(g);

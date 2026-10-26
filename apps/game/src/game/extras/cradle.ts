@@ -6,9 +6,14 @@ import { hackPulseOn } from "./spike.ts";
 import type { Crew, Game, Kit, SkillName } from "../types.ts";
 
 /** Wiki page "Clone Bay", section "System Upgrades": level 1 purchasing cost 50. */
+// Wiki citations:
+// > "1 50** Ftlgame-scrap.png 12 sec" — [[Clone Bay#System Upgrades]]
+// > "Purchasing or switching cost. (Medbay system upgrades are transferred to Clone Bay, and vice versa, automatically)" — [[Clone Bay#System Upgrades]]
 export const INSTALL_COST: number | null = 50;
 
 /** Wiki page "Clone Bay", section "System Upgrades": cloning takes 12 / 9 / 7 seconds. */
+// Wiki citations:
+// > "Level Cost Cloning Healing* 1 50** Ftlgame-scrap.png 12 sec 8 HP 2 35 Ftlgame-scrap.png 9 sec 16 HP 3 45 Ftlgame-scrap.png 7 sec 25 HP" — [[Clone Bay#System Upgrades]]
 const CLONE_SECONDS: Record<number, number> = { 1: 12, 2: 9, 3: 7 };
 
 /**
@@ -17,6 +22,8 @@ const CLONE_SECONDS: Record<number, number> = { 1: 12, 2: 9, 3: 7 };
  * 1.7 for Mantis; 1.5 for Zoltans.
  * INFERRED: a body with no kin is a Human, the baseline row.
  */
+// Wiki citations:
+// > "The cloning starts immediately after the crew dying animation is over. (animation duration: 2 seconds for Rock, Crystal, and Engi; 1.8 seconds for Humans, Slugs, and Lanius; 1.7 seconds for Mantis; 1.5 seconds for Zoltans)" — [[Clone Bay#Overview]]
 const DEATH_ANIM: Record<string, number> = {
   rock: 2,
   crystal: 2,
@@ -36,6 +43,11 @@ export function deathAnimSeconds(kin: string | undefined): number {
  * Wiki page "Clone Bay", "System Upgrades": 8 / 16 / 25 HP flat per jump, not a percent of max health.
  * "Overview": the jump heal is passive and does not need power.
  */
+// Wiki citations:
+// > "12 sec 8 HP 2 35 Ftlgame-scrap.png 9 sec 16 HP 3 45 Ftlgame-scrap.png 7 sec 25 HP" — [[Clone Bay#System Upgrades]]
+// > "Healing per FTL jump." — [[Clone Bay#System Upgrades]]
+// > "Clone Bay does not need to be powered to activate the jump heal" — [[Clone Bay#Overview]]
+// > "Waiting at a beacon applies the jump heal effect." — [[Clone Bay#Overview]]
 const JUMP_HEAL: Record<number, number> = { 1: 8, 2: 16, 3: 25 };
 
 /**
@@ -43,6 +55,8 @@ const JUMP_HEAL: Record<number, number> = { 1: 8, 2: 16, 3: 25 };
  * Crew skills, Skills table: "Cloned crew loses 20% of skill points in every skill
  * (but loses only 1 skill point in Combat skill)."
  */
+// Wiki citations:
+// > "Revives dead crewmembers after several seconds with a 20% skill penalty (but only 1 point of combat experience is lost)." — [[Clone Bay#Overview]]
 const SKILL_KEEP = 0.8;
 
 function blankCradle(level: number): Kit {
@@ -85,6 +99,9 @@ export function installCradle(g: Game) {
 }
 
 /** Clone Bay, "System Upgrades": level 2 costs 35, level 3 costs 45. Keyed by the level already owned. */
+// Wiki citations:
+// > "2 35 Ftlgame-scrap.png 9 sec" — [[Clone Bay#System Upgrades]]
+// > "3 45 Ftlgame-scrap.png 7 sec" — [[Clone Bay#System Upgrades]]
 const CRADLE_UPGRADE: Record<number, number> = { 1: 35, 2: 45 };
 
 export function cradleUpgradeCost(level: number): number | null {

@@ -23,6 +23,12 @@ function open(g: Game) {
 
 describe("Rebel fight near pulsar", () => {
   it("shows one of the three intros, and the fight choice starts a Rebel ship combat", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight near pulsar]]
+    // > "A Rebel captain appears on the screen. \"I thought we had been doomed to backwater assignments. This is my chance to get back in Command's good graces! Charge the weapons!\"" — [[Rebel fight near pulsar]]
+    // > "A small rebel research station overlooks a pulsating star. Before you can react a Rebel ship spots you and moves in to attack." — [[Rebel fight near pulsar]]
+    // > "You arrive at an infrequently used beacon close to a pulsar. Before long a Rebel ship happens to jump nearby. Looks like you'll have to fight." — [[Rebel fight near pulsar]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight near pulsar]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

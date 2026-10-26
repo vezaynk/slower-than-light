@@ -251,6 +251,8 @@ const TRADE_RESOURCES_TAKE =
 
 // Trade resources in nebula. One intro and the same four offers, and no odds.
 // INFERRED: each offer is equally likely. The numbers are rolled once and stay on Trade.
+// Wiki citations:
+// > "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal." — [[Trade resources in nebula]]
 const TRADE_RESOURCES_NEBULA_INTRO =
   "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal.";
 
@@ -982,6 +984,9 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   if (ev.slug === "NEBULA_TRADER") return tradeResourcesNebulaEvent(g, ev.dest);
   // Pirate smuggler. {{Blue Option|Weapons|level=6+}}. The button stays visible.
   if (ev.slug === "NEBULA_PIRATE_SMUGGLE") {
+    // Wiki citations:
+    // > "A pirate ship arrives shortly after you. Judging from the fact that it is attempting to avoid your ship, you assume that it's a smuggler trying to stay away from beacons." — [[Pirate smuggler]]
+    // > "(Weapons) Activate your advanced weapons threateningly." — [[Pirate smuggler]]
     return {
       title: ev.dest,
       body: "A pirate ship arrives shortly after you. Judging from the fact that it is attempting to avoid your ship, you assume that it's a smuggler trying to stay away from beacons.",
@@ -2018,11 +2023,23 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   // Remote settlement. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
   if (id === "c:remote-settlement:0")
+    // Wiki citations:
+    // > "Attack the pirate." — [[Remote settlement]]
+    // > "\"You asked for it!\" They pull away from the planet and move in to engage." — [[Remote settlement]]
+    // > "Fight the pirate ship." — [[Remote settlement]]
     ctx.note('"You asked for it!" They pull away from the planet and move in to engage.');
   // Pirate smuggler. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
+  // Wiki citations:
+  // > "Attack the pirate." — [[Pirate smuggler]]
+  // > "You power up your weapons and move in to engage." — [[Pirate smuggler]]
+  // > "Fight the pirate ship." — [[Pirate smuggler]]
   if (id === "c:pirate-smuggler:0") ctx.note("You power up your weapons and move in to engage.");
   // Refueling platform garbled broadcast. "Hail the platform and attempt to communicate." One printed lead-in, then a Lanius ship fight.
   if (id === "c:refueling-platform-garbled-broadcast:0")
+    // Wiki citations:
+    // > "Hail the platform and attempt to communicate." — [[Refueling platform garbled broadcast]]
+    // > "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!" — [[Refueling platform garbled broadcast]]
+    // > "Fight a Lanius ship." — [[Refueling platform garbled broadcast]]
     ctx.note(
       "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!",
     );
@@ -2124,6 +2141,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   // Pirate toll. "Pay their toll." One printed result. The 15-25 scrap is already spent above. No fight.
   if (id === "c:pirate-toll:0") {
+    // Wiki citations:
+    // > "Pay their toll. [ Scrap lost: 15-25 ]" — [[Pirate toll]]
+    // > "\"You made the right decision, friend.\"" — [[Pirate toll]]
+    // > "You avoid the fight." — [[Pirate toll]]
     citedResult(g, '"You made the right decision, friend."', ["You avoid the fight."]);
     return true;
   }
@@ -2151,6 +2172,12 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   // Remote settlement. Fire Beam and Fire Bomb. High scrap is already applied above.
   // "You receive a drone schematic with high scrap." Rewards, "Drone": "A random drone schematic & T scrap."
   if (id === "c:remote-settlement:2" || id === "c:remote-settlement:3") {
+    // Wiki citations:
+    // > "(Fire Beam) Show the pirate how to intimidate settlers: burn their crops!" — [[Remote settlement]]
+    // > "The pirate watches as you start to light the meager crops on fire. In a few moments the settlement surrenders, offering tribute to leave them alone. The pirate seems impressed." — [[Remote settlement]]
+    // > "(Fire Bomb) Show the pirate how to intimidate settlers: start fires in their crude dwellings. [ Missiles lost: 1 ]" — [[Remote settlement]]
+    // > "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'." — [[Remote settlement]]
+    // > "You receive a drone schematic with high scrap." — [[Remote settlement]]
     const item = grantRandomItem(g, "drone");
     ctx.note(item);
     citedResult(

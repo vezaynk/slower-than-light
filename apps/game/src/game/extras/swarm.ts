@@ -58,6 +58,8 @@ import { airShown } from "../air.ts";
  * There is no heading on that paragraph. "Overview" is the next heading, not its section.
  */
 export const INSTALL_SCRAP: number | null = null;
+// Wiki citations:
+// > "When the Drone Control system is bought at a store, it always comes with 2 slots and 2 system levels. It includes one random \"half price\" drone schematic, which is a System Repair Drone, a Defense Drone Mark I, or a Combat Drone Mark I. The base price of the system is 60 scrap, so it costs 75 scrap when bundled with a System Repair Drone and 85 scrap otherwise." — [[Drone Control]]
 export const BUNDLE_PATCH = 75;
 export const BUNDLE_OTHER = 85;
 

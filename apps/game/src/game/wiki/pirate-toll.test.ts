@@ -19,6 +19,10 @@ function open(g: Game) {
 
 describe("Pirate toll", () => {
   it("shows the printed toll sentence before pay and reject", () => {
+    // Wiki citations:
+    // > "Upon completing your jump, you receive a message from a nearby ship. \"Greetings and welcome to our beacon! For a small fee, we'll let you continue on your way.\"" — [[Pirate toll]]
+    // > "Pay their toll. [ Scrap lost: 15-25 ]" — [[Pirate toll]]
+    // > "Reject their 'offer'." — [[Pirate toll]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);
@@ -33,6 +37,9 @@ describe("Pirate toll", () => {
   });
 
   it("paying logs the printed friend sentence and spends 15 to 25 scrap", () => {
+    // Wiki citations:
+    // > "\"You made the right decision, friend.\"" — [[Pirate toll]]
+    // > "You avoid the fight." — [[Pirate toll]]
     const g = createGame(1);
     open(g);
     g.scrap = 40;

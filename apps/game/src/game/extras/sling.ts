@@ -20,9 +20,13 @@ import { heldByEnemy } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";
 
 /** Crew Teleporter wiki, "System Upgrades": level 1 cost is 90. */
+// Wiki citations:
+// > "1 90 Ftlgame-scrap.png 20 sec" — [[Crew Teleporter#System Upgrades]]
 const INSTALL_COST = 90;
 
 /** Crew Teleporter wiki, "System Upgrades": level 3 is 10 sec, level 2 is 15 sec, level 1 is 20 sec. */
+// Wiki citations:
+// > "The cooldown for Crew Teleporter depends on the system power level: 20 seconds for level 1, 15 seconds for level 2, and 10 seconds for level 3." — [[Systems#Systems cooldown]]
 function cooldown(level: number): number {
   if (level >= 3) return 10;
   if (level === 2) return 15;
@@ -30,6 +34,9 @@ function cooldown(level: number): number {
 }
 
 /** Crew Teleporter wiki, "System Upgrades": the level 2 row costs 30, the level 3 row costs 60. Keyed by the level already owned. */
+// Wiki citations:
+// > "2 30 Ftlgame-scrap.png 15 sec" — [[Crew Teleporter#System Upgrades]]
+// > "3 60 Ftlgame-scrap.png 10 sec" — [[Crew Teleporter#System Upgrades]]
 export function slingUpgradeCost(level: number): number | null {
   if (level === 1) return 30;
   if (level === 2) return 60;

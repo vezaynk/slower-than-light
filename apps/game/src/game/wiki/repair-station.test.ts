@@ -19,6 +19,17 @@ function open(g: Game) {
 
 describe("Repair station", () => {
   it("shows the printed station sentence before the repair choices", () => {
+    // Wiki citations:
+    // > "You see a small station fitted with hundreds of Repair drones. You receive an automated message, \"We don't know who you are and we don't care, but this is the right place for some ship repair!\"" — [[Repair station]]
+    // > "Repair 20 damage. [ Scrap lost: 40 ]" — [[Repair station]]
+    // > "Repair 10 damage. [ Scrap lost: 20 ]" — [[Repair station]]
+    // > "Repair 5 damage. [ Scrap lost: 10 ]" — [[Repair station]]
+    // > "\"Thank you for your business, no refunds!\"" — [[Repair station]]
+    // > "Your ship receives 20 repairs." — [[Repair station]]
+    // > "Your ship receives 10 repairs." — [[Repair station]]
+    // > "Your ship receives 5 repairs." — [[Repair station]]
+    // > "Ignore the station." — [[Repair station]]
+    // > "Nothing happens." — [[Repair station]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.body, BODY);

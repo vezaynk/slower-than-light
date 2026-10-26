@@ -14,6 +14,8 @@ import type { Game, Kit, Shot, Ship } from "../types.ts";
 type FlakLevel = 1 | 2 | 3 | 4;
 
 /** Flak Artillery, System Upgrades: charge time. */
+// Wiki citations:
+// > "Level Cost Charge time 1 - 50 sec 2 30 Ftlgame-scrap.png 40 sec 3 50 Ftlgame-scrap.png 30 sec 4 80 Ftlgame-scrap.png 20 sec" — [[Flak Artillery#System Upgrades]]
 export const CHARGE_SECONDS: Record<FlakLevel, number> = {
   // Flak Artillery, System Upgrades: level 1, 50 sec
   1: 50,
@@ -31,10 +33,16 @@ export const CHARGE_SECONDS: Record<FlakLevel, number> = {
  */
 export const UPGRADE_COSTS: Record<2 | 3 | 4, number> = {
   // Flak Artillery, System Upgrades: level 2 costs 30
+  // Wiki citations:
+  // > "2 30 Ftlgame-scrap.png 40 sec" — [[Flak Artillery#System Upgrades]]
   2: 30,
   // Flak Artillery, System Upgrades: level 3 costs 50
+  // Wiki citations:
+  // > "3 50 Ftlgame-scrap.png 30 sec" — [[Flak Artillery#System Upgrades]]
   3: 50,
   // Flak Artillery, System Upgrades: level 4 costs 80
+  // Wiki citations:
+  // > "4 80 Ftlgame-scrap.png 20 sec" — [[Flak Artillery#System Upgrades]]
   4: 80,
 };
 
@@ -45,6 +53,8 @@ export const UPGRADE_COSTS: Record<2 | 3 | 4, number> = {
  * Wiki page "Flak Artillery", section "System Upgrades": purchase cost is a dash.
  * armFlak therefore spends no scrap.
  */
+// Wiki citations:
+// > "Level Cost Charge time 1 - 50 sec" — [[Flak Artillery#System Upgrades]]
 export const SOLD_IN_STORES = false;
 
 /**
@@ -211,6 +221,8 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
   }
   // Cloaking, Overview: "Weapons and artillery systems stop charging and cannot target a cloaked ship."
   // The <= 20 second exception is a beam trajectory. Flak Artillery is not that beam.
+  // Wiki citations:
+  // > "Weapons and artillery systems stop charging and cannot target a cloaked ship." — [[Cloaking#Overview]]
   if (from === "player" && veilBlocks(g, "player")) return;
   // Flak Artillery, Overview: "Automated Re-loaders work." The system "cannot be manned", so crew skill
   // does not shorten this clock. Augmentations, Automated Re-loader: one copy divides cooldown by 1.1,

@@ -97,6 +97,42 @@ describe("civilian M-Z cited events", () => {
   const pages = loadPages();
 
   it("exports only these titles, with sectors and numbers from the page", () => {
+    // Wiki citations:
+    // > "This random event occurs in Civilian Sector, Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fight]]
+    // > "This random event occurs in Civilian Sector, Uncharted Nebula." — [[Mantis fight in nebula]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate engine hacker]]
+    // > "It is unique." — [[Pirate engine hacker]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate fight]]
+    // > "This random event occurs in Abandoned Sector." — [[Pirate fight (Lanius)]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate fight in asteroid field]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate fight near pulsar]]
+    // > "It is unique." — [[Pirate fight near pulsar]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate fight near sun]]
+    // > "It is unique." — [[Pirate fight near sun]]
+    // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula." — [[Pirate ship attacking civilian]]
+    // > "This random event occurs in Abandoned Sector, Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Pirate ship distress trap]]
+    // > "It is unique." — [[Pirate ship distress trap]]
+    // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Uncharted Nebula." — [[Pirate smuggler]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate toll]]
+    // > "This random event occurs in Abandoned Sector, Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds, Rebel Controlled Sector, Rebel Stronghold, The Last Stand, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rebel fight]]
+    // > "This random event occurs in Abandoned Sector." — [[Rebel fight (Lanius)]]
+    // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rebel fight choice in nebula]]
+    // > "It is unique." — [[Rebel fight choice in nebula]]
+    // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rebel fight in nebula]]
+    // > "This random event occurs in Civilian Sector, Mantis Controlled Sector, Mantis Homeworlds, Rebel Controlled Sector, Rebel Stronghold, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rebel fight near pulsar]]
+    // > "It is unique." — [[Rebel fight near pulsar]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Rebel Controlled Sector, Rebel Stronghold." — [[Rebel ship warning]]
+    // > "It is unique." — [[Rebel ship warning]]
+    // > "This random event occurs in Abandoned Sector." — [[Refueling platform garbled broadcast]]
+    // > "It is unique." — [[Refueling platform garbled broadcast]]
+    // > "This random event occurs in Civilian Sector." — [[Remote settlement]]
+    // > "It is unique." — [[Remote settlement]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Hidden Crystal Worlds, Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Repair station]]
+    // > "It is unique." — [[Repair station]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Trade fuel for drone parts]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Trade resources]]
+    // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Trade resources in nebula]]
+    // > "It is unique." — [[Trade resources in nebula]]
     assert.equal(pages.size, TITLES.length);
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {
@@ -127,6 +163,10 @@ describe("civilian M-Z cited events", () => {
 
 describe("Pirate engine hacker", () => {
   it("limits evasion and the FTL charge to level 1, then restores them when that ship is destroyed", () => {
+    // Wiki citations:
+    // > "Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack." — [[Pirate engine hacker]]
+    // > "Continue..." — [[Pirate engine hacker]]
+    // > "Fight the Pirate ship with your Engines limited to level 1." — [[Pirate engine hacker]]
     const g = createGame(4);
     g.sectorId = "CIVILIAN_SECTOR";
     g.sectorName = "Civilian Sector";
@@ -178,6 +218,10 @@ describe("Pirate engine hacker", () => {
 
 describe("Rebel fight choice in nebula", () => {
   it("prints the opening sentence, and attacking starts a Rebel fight", () => {
+    // Wiki citations:
+    // > "Your ship emerges quite far away from the beacon. You see a rebel ship waiting nearby, undoubtedly stationed to look for you." — [[Rebel fight choice in nebula]]
+    // > "Attack the ship." — [[Rebel fight choice in nebula]]
+    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight choice in nebula]]
     const g = createGame(1);
     const b = g.beacons.find((x) => x.kind !== "start");
     assert.ok(b);

@@ -32,6 +32,15 @@ function open(g: Game) {
 
 describe("Free weapon intro", () => {
   it("shows one of the six printed intros and keeps the low-scrap choice", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Free weapon]]
+    // > "Holy crap! A weapon is just floating in space!" — [[Free weapon]]
+    // > "You inform a nearby station of your flight from the Rebels. They offer to outfit your ship with a weapon and wish you well." — [[Free weapon]]
+    // > "A settlement still loyal to the Federation hails your ship. They have prepared a weapon to aid your escape from the Rebels." — [[Free weapon]]
+    // > "As soon as you arrive a small Mantis ship detaches from a wreck and jumps away. You must have interrupted their salvage operation because you find a weapon ready to be installed!" — [[Free weapon]]
+    // > "A small merchant ship messages you, \"Underground Federation comm channels are all talking about your 'secret' mission. Let us install a weapon to help. Good luck!\"" — [[Free weapon]]
+    // > "Debris from a battle is scattered around this system. A few pieces bounce against your ship. You passively scan them and discover there is a functioning weapon among them!" — [[Free weapon]]
+    // > "You receive a weapon with low scrap." — [[Free weapon]]
     assert.equal(INTROS.length, 6);
     assert.equal(new Set(INTROS).size, 6);
     const seen = new Set<string>();

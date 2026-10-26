@@ -95,6 +95,33 @@ describe("cited events civilian and abandoned", () => {
   const pages = loadPages(TITLES);
 
   it("keeps every dest on this title list and every sector on that page", () => {
+    // Wiki citations:
+    // > "This random event occurs in Abandoned Sector, Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Auto-ship fight]]
+    // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Auto-ship fight in plasma storm]]
+    // > "It is unique." — [[Auto-ship fight in plasma storm]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Rebel Controlled Sector, Rebel Stronghold, Slug Controlled Nebula, Slug Home Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Auto-ship near storage station]]
+    // > "It is unique." — [[Auto-ship near storage station]]
+    // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Auto-ship warning in nebula]]
+    // > "It is unique." — [[Auto-ship warning in nebula]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rock Controlled Sector, Rock Homeworlds." — [[Escort civilians]]
+    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Hidden Crystal Worlds, Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula." — [[Free weapon]]
+    // > "This random event occurs in Abandoned Sector." — [[Lanius fight]]
+    // > "This random event occurs in Abandoned Sector." — [[Lanius fight distress]]
+    // > "It is unique." — [[Lanius fight distress]]
+    // > "This random event occurs in Abandoned Sector." — [[Lanius fight in asteroid field]]
+    // > "It is unique." — [[Lanius fight in asteroid field]]
+    // > "This random event occurs in Abandoned Sector." — [[Lanius fight near pulsar]]
+    // > "It is unique." — [[Lanius fight near pulsar]]
+    // > "This random event occurs in Abandoned Sector." — [[Lanius lone ship]]
+    // > "It is unique." — [[Lanius lone ship]]
+    // > "This random event occurs in Abandoned Sector." — [[Lanius powered-down ship]]
+    // > "It is unique." — [[Lanius powered-down ship]]
+    // > "This random event occurs in Abandoned Sector." — [[Lanius ship attacking Slug]]
+    // > "It is unique." — [[Lanius ship attacking Slug]]
+    // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Uncharted Nebula." — [[Boarders: Humans in nebula]]
+    // > "It is unique." — [[Boarders: Humans in nebula]]
+    // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Boarders: rebels in nebula]]
+    // > "It is unique." — [[Boarders: rebels in nebula]]
     assert.equal(pages.size, TITLES.length);
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {

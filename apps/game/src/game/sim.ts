@@ -1008,6 +1008,8 @@ function noteDodge(g: Game) {
 }
 
 /** Engines, manning: +5 / +7 / +10 evasion by skill rank. Same table for piloting. */
+// Wiki citations:
+// > "Manning the Engines increases evasion (by +5/+7/+10 %)" — [[Engines#Overview]]
 const EVADE_SKILL = [5, 7, 10];
 /** Weapon Control, manning: charge time ×0.9 / ×0.85 / ×0.8. */
 const WEAPON_RATE = [0.9, 0.85, 0.8];
@@ -1229,6 +1231,9 @@ function shieldCap(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
 }
 
 /** Engines evasion table, plus manning, plus Piloting autopilot (50% at level 2, 80% at level 3, minimum 2). */
+// Wiki citations:
+// > "Upgraded Piloting system provides auto-pilot functionality, which provides a portion of evasion granted by Engines and total Engines crew manning bonus (50% of the combined engines evasion for Piloting-2, 80% for Piloting-3)." — [[Piloting#Overview]]
+// > "Piloting/Engines: reduces base evasion to 0 and stops the FTL drive charging. Does not affect evasion gained from Cloak." — [[Hacking#Overview]]
 export function evasionPercent(g: Game, ship: Ship, aboard: "player" | "enemy"): number {
   // Hacking, "Overview": "Piloting/Engines: reduces base evasion to 0 ... Does not affect evasion gained from Cloak."
   if (spikeEvadeZero(g, ship)) return Math.min(100, extraEvade(g, ship, aboard));
@@ -1295,6 +1300,8 @@ export function jumpBlocked(g: Game): string | null {
 }
 
 /** Engines, "FTL Drive charge time": the in-fight table. A body in piloting is required. */
+// Wiki citations:
+// > "FTL Charge Time in seconds Engineslevel Unmanned Manned, Engines crew skill Unmanned_17x24.png level 0 (Manning_level_0_17x24.png) level 1 (Manning_level_1_17x24.png) level 2 (Manning_level_2_17x24.png) 1 67.9 61.8 58.0 54.3 2 53.1 48.3 45.4 42.6 3 43.6 39.6 37.2 34.9 4 36.9 33.6 31.6 29.5 5 32.1 29.0 27.5 25.7 6 28.3 25.7 24.2 22.6 7 25.4 23.1 21.7 20.3 8 23.0 20.9 19.6 18.4" — [[Engines#FTL Drive charge time]]
 export function ftlSeconds(g: Game, ship: Ship): number | null {
   const eng = engineBars(g, ship, "player");
   if (eng <= 0) return null;
@@ -1323,6 +1330,8 @@ function ftlWaits(g: Game): boolean {
  * FTL Recharge Boosters. The page prints no second table.
  * INFERRED: 23 is the unmanned level-1 end of the in-fight table (the 67.9s cell), scaled by this hull's ftlSeconds.
  */
+// Wiki citations:
+// > "If there is a hazard or a boarder, but no enemy ship, the FTL charge time is 23 seconds, which is further decreased by Engines power level upgrades, Engines manning and Engines manning crew skill level, FTL Recharge Boosters." — [[Engines#FTL Drive charge time]]
 export function ftlQuietSeconds(g: Game): number | null {
   const fight = ftlSeconds(g, g.player);
   const slow = FTL_UNMANNED[1];
@@ -1334,6 +1343,8 @@ export function ftlQuietSeconds(g: Game): number | null {
  * Seconds the drive is counting toward, or 0 when the jump is instant, or null when the ship cannot charge.
  * An enemy hull uses the in-fight table. A hazard or a boarder with no hull uses the 23s clock.
  */
+// Wiki citations:
+// > "If there is no hazard or enemy, your FTL Drive charges instantly. (nebula environment and plasma/ion storms are not considered a hazard for this matter)" — [[Engines#FTL Drive charge time]]
 export function ftlDriveSeconds(g: Game): number | null {
   if (g.enemy) return ftlSeconds(g, g.player);
   if (ftlWaits(g)) return ftlQuietSeconds(g);
@@ -4456,6 +4467,8 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
         : 1;
   const mult = skill / weaponBoost(g, from);
   // @agent:hacking. Hacking, "Overview" (Weapon Control): an enemy pulse drains and holds the player's weapons.
+  // Wiki citations:
+  // > "Weapons and artillery systems stop charging and cannot target a cloaked ship. However, if your crew or boarding drone or mind-controlled enemy crew is onboard the enemy ship, you will be able to target and fire your charged weapons." — [[Cloaking#Overview]]
   const frozen = targetIsCloaked(g, from) || hackHoldsWeapons(g, from);
   // Cloaking, "Overview": "Weapons and artillery systems stop charging and cannot target a cloaked ship.
   // However, if your crew or boarding drone or mind-controlled enemy crew is onboard the enemy ship,
@@ -4804,6 +4817,8 @@ function airflow(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
   // INTENTIONALLY OVERRIDING SPEC: production, crew breathing, fires, doors, airlocks, breaches, and Lanius (air.ts).
   const breathers = new Map<string, number>();
   const lanius = new Map<string, number>();
+  // Wiki citations:
+  // > "they drain the O2 instead (at the rate of a breach)." — [[Oxygen#Overview]]
   for (const c of g.crew) {
     if (c.hp <= 0 || c.aboard !== aboard) continue;
     if (crewDef(c.kin).drainsOxygen) lanius.set(c.room, (lanius.get(c.room) ?? 0) + 1);
@@ -4964,6 +4979,8 @@ function byFile(a: Crew, b: Crew): number {
 }
 
 /** Oxygen, Overview: crew in a room at 5% or less lose 6.4 HP per second, walking through or standing (per the user). */
+// Wiki citations:
+// > "Crew suffocation occurs at 5% or less O2 in the room. Suffocating crewmembers take 6.4 HP damage per second." — [[Oxygen#Overview]]
 function suffocatePresent(g: Game, present: Crew[], dt: number) {
   for (const c of present)
     c.hp -= 6.4 * suffocateScale(g, c) * crewDef(c.kin ?? "human").suffocate * dt;
@@ -4996,6 +5013,8 @@ export function crewBlowDamage(g: Game): number {
  * The Medbay's heal on one room, in a fight (life) and out of one (step's idle path): Medbay, "Overview" heals
  * "friendly crewmembers standing inside or moving through the room" whenever it is powered, not only in combat.
  */
+// Wiki citations:
+// > "When powered, heals friendly crewmembers standing inside or moving through the room." — [[Medbay#Overview]]
 function healMedbay(g: Game, ship: Ship, aboard: "player" | "enemy", r: Room, dt: number) {
   const heal = medbayHealing(g, ship, aboard, r);
   if (!heal) return;
@@ -5031,6 +5050,10 @@ function medbayHealing(
     .sort(byFile)
     .slice(0, medicalLimit(r, aboard, interiorLinks(ship.doors, r.id)));
   // Medbay: level 1 heals at 6.4 HP/s, level 2 at 9.6, level 3 at 19.2.
+  // Wiki citations:
+  // > "1 50 Ftlgame-scrap.png 6.4 HP/sec The healing rate is equal to the suffocation rate" — [[Medbay#System Upgrades]]
+  // > "2 35 Ftlgame-scrap.png 9.6 HP/sec Crew can heal in an airless Medbay" — [[Medbay#System Upgrades]]
+  // > "3 45 Ftlgame-scrap.png 19.2 HP/sec" — [[Medbay#System Upgrades]]
   // Medbay page: level 1 equals the suffocation rate, so an airless level 1 bay negates a full-rate human
   // (Oxygen: "negates the suffocation damage"). Crystals, and crew with Emergency Respirators, net-heal there.
   // Level 2 and 3 heal in an airless bay without that augment. Low oxygen does not turn the bay off.

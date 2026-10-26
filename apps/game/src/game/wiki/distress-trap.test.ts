@@ -39,6 +39,13 @@ function open(g: Game) {
 
 describe("Pirate ship distress trap", () => {
   it("is a card a distress draw can reach", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate ship distress trap]]
+    // > "You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!" — [[Pirate ship distress trap]]
+    // > "Haha! I knew someone would fall into our dastardly trap!" — [[Pirate ship distress trap]]
+    // > "Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight." — [[Pirate ship distress trap]]
+    // > "As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!" — [[Pirate ship distress trap]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate ship distress trap]]
     assert.equal(pageForRow("Pirate ship distress trap")?.slug, "pirate-ship-distress-trap");
     const ev = open(createGame(1));
     assert.deepEqual(

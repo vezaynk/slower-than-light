@@ -232,6 +232,20 @@ describe("cited stores", () => {
   });
 
   it("keeps each printed system price when that system is the one in the slot", () => {
+    // Wiki citations:
+    // > "Additional systems and subsystems can only be purchased at a store." — [[Systems]]
+    // > "Stealth Cruisers start without Shields system, and can buy one at a store for 125 scrap. This gives them Shields-2." — [[Shields#System Upgrades]]
+    // > "1 50 Ftlgame-scrap.png 6.4 HP/sec The healing rate is equal to the suffocation rate" — [[Medbay#System Upgrades]]
+    // > "1 50** Ftlgame-scrap.png 12 sec" — [[Clone Bay#System Upgrades]]
+    // > "Purchasing or switching cost. (Medbay system upgrades are transferred to Clone Bay, and vice versa, automatically)" — [[Clone Bay#System Upgrades]]
+    // > "1 90 Ftlgame-scrap.png 20 sec" — [[Crew Teleporter#System Upgrades]]
+    // > "1 150 Ftlgame-scrap.png 5 sec" — [[Cloaking#System Upgrades]]
+    // > "1 75 Ftlgame-scrap.png Mind control 1 enemy crew" — [[Mind Control#System Upgrades]]
+    // > "1 80 Ftlgame-scrap.png 4 sec" — [[Hacking#System upgrades]]
+    // > "1 40 Ftlgame-scrap.png See interior of all rooms on your ship" — [[Sensors#System Upgrades]]
+    // > "1 60* Ftlgame-scrap.png Normal Doors Remote opening/closing of doors" — [[Door System#System Upgrades]]
+    // > "Only the Rock Cruiser layout B (Shivan) does not have the Door System pre-installed." — [[Door System#System Upgrades]]
+    // > "1 35 Ftlgame-scrap.png 2 temporary power bars" — [[Backup Battery#System Upgrades]]
     const rows: { ref: string; name: string; cost: number; slot: "sys" | "kit" }[] = [
       { ref: "shields", name: "Shields", cost: 125, slot: "sys" },
       { ref: "medbay", name: "Medbay", cost: 50, slot: "sys" },
@@ -262,6 +276,8 @@ describe("cited stores", () => {
   });
 
   it("sells Drone Control at 75 with System Repair and at 85 with the other two schematics", () => {
+    // Wiki citations:
+    // > "When the Drone Control system is bought at a store, it always comes with 2 slots and 2 system levels. It includes one random \"half price\" drone schematic, which is a System Repair Drone, a Defense Drone Mark I, or a Combat Drone Mark I. The base price of the system is 60 scrap, so it costs 75 scrap when bundled with a System Repair Drone and 85 scrap otherwise." — [[Drone Control]]
     assert.equal(BUNDLE_PATCH, 75);
     assert.equal(BUNDLE_OTHER, 85);
     const cases = [

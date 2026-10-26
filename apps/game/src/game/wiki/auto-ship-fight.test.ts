@@ -29,6 +29,18 @@ function open(g: Game) {
 
 describe("Auto-ship fight", () => {
   it("shows one of the nine intros, then fights an Auto-ship", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Auto-ship fight]]
+    // > "You discover one of the Rebel's autonomous scouts. The ship's AI wastes no time in engaging your ship." — [[Auto-ship fight]]
+    // > "Your ship is hailed: \"This is an automated message. Resisting our takeover is pointless. Prepare to die.\" It appears this Rebel ship is run by an AI." — [[Auto-ship fight]]
+    // > "A Rebel autonomous scout is exploring this beacon. You attempt to hide behind a nearby moon, but the ship finds you and begins its assault." — [[Auto-ship fight]]
+    // > "The AI of a nearby small Rebel scout immediately identifies you as a threat and engages." — [[Auto-ship fight]]
+    // > "A Rebel ship moves in to engage. You attempt to open communications, but realize the futility of that action when you see the ship is run by an AI." — [[Auto-ship fight]]
+    // > "This must be one of the Rebels' unmanned scout ships. Looks like there's no way around a fight." — [[Auto-ship fight]]
+    // > "Another unmanned ship patrols this area. You prepare the ship for combat." — [[Auto-ship fight]]
+    // > "This beacon is being patrolled by a unmanned scout. A fight is unavoidable." — [[Auto-ship fight]]
+    // > "A small shuttle appears on the local radar. Turns out it is a Rebel automated scout!" — [[Auto-ship fight]]
+    // > "Fight an Auto-ship." — [[Auto-ship fight]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 400 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

@@ -53,6 +53,14 @@ function open(g: Game) {
 
 describe("Trade resources", () => {
   it("shows one rolled offer, and Trade pays exactly those numbers", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Trade resources]]
+    // > "You arrive at a quiet spaceport and are immediately hailed by another ship at port with a \"once in a lifetime deal!\"" — [[Trade resources]]
+    // > "You jump into a sector filled with civilian activity. Your scan the various advertisement channels while waiting for your FTL to charge, and are intrigued by a grey-market shipwright." — [[Trade resources]]
+    // > "Your ship is flooded with advertisement transmissions from nearby merchants as soon as you arrive at this beacon. You arbitrarily pick one to examine in detail." — [[Trade resources]]
+    // > "Despite the barren area, a trader has set up shop at this beacon. He presents his offer." — [[Trade resources]]
+    // > "The beacon at first glance seems home to a junk yard. Upon closer inspection, it reveals itself to be a ramshackle market. One trader has a deal that catches your eye." — [[Trade resources]]
+    // > "A pawn broker has set up shop at this obscure beacon. He might be offering something worth looking at." — [[Trade resources]]
     const kinds = new Set<string>();
     const intros = new Set<string>();
     for (let seed = 1; seed <= 240 && (kinds.size < 4 || intros.size < 6); seed++) {

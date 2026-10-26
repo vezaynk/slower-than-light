@@ -8,9 +8,14 @@ export { CREW_POOL, SYS_LABEL, WEAPONS };
 export const MAIN_SYSTEMS: SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons"];
 
 /** Engines, "System Upgrades", Evasion column. Powered levels 1–8 with a working pilot: 5, 10, 15, 20, 25, 28, 31, 35. Index 0 is no engines. Manning is added in the sim. */
+// Wiki citations:
+// > "The table values for Evasion are granted purely by the Engines powered levels with fully operational Piloting." — [[Engines#System Upgrades]]
+// > "Level Cost Evasion 1 - 5% 2 10 Ftlgame-scrap.png 10% 3 15 Ftlgame-scrap.png 15% 4 30 Ftlgame-scrap.png 20% 5 40 Ftlgame-scrap.png 25% 6 60 Ftlgame-scrap.png 28% 7 80 Ftlgame-scrap.png 31% 8 120 Ftlgame-scrap.png 35%" — [[Engines#System Upgrades]]
 export const EVADE_TABLE = [0, 5, 10, 15, 20, 25, 28, 31, 35];
 
 /** Engines, "FTL Drive charge time", unmanned column, levels 1–8. Index 0 is unused. */
+// Wiki citations:
+// > "FTL Charge Time in seconds Engineslevel Unmanned Manned, Engines crew skill Unmanned_17x24.png level 0 (Manning_level_0_17x24.png) level 1 (Manning_level_1_17x24.png) level 2 (Manning_level_2_17x24.png) 1 67.9 61.8 58.0 54.3 2 53.1 48.3 45.4 42.6 3 43.6 39.6 37.2 34.9 4 36.9 33.6 31.6 29.5 5 32.1 29.0 27.5 25.7 6 28.3 25.7 24.2 22.6 7 25.4 23.1 21.7 20.3 8 23.0 20.9 19.6 18.4" — [[Engines#FTL Drive charge time]]
 export const FTL_UNMANNED = [0, 67.9, 53.1, 43.6, 36.9, 32.1, 28.3, 25.4, 23.0];
 
 /**
@@ -18,9 +23,13 @@ export const FTL_UNMANNED = [0, 67.9, 53.1, 43.6, 36.9, 32.1, 28.3, 25.4, 23.0];
  * Nebula and plasma/ion storms are not that hazard. No hazard and no enemy charges instantly.
  * The in-fight table above is a different clock, used only while an enemy hull is on the scope.
  */
+// Wiki citations:
+// > "If there is a hazard or a boarder, but no enemy ship, the FTL charge time is 23 seconds, which is further decreased by Engines power level upgrades, Engines manning and Engines manning crew skill level, FTL Recharge Boosters." — [[Engines#FTL Drive charge time]]
 export const FTL_HAZARD_BASE = 23;
 
 /** Engines, "FTL Drive charge time", manned columns, skill ranks 0 / 1 / 2. */
+// Wiki citations:
+// > "FTL Charge Time in seconds Engineslevel Unmanned Manned, Engines crew skill Unmanned_17x24.png level 0 (Manning_level_0_17x24.png) level 1 (Manning_level_1_17x24.png) level 2 (Manning_level_2_17x24.png) 1 67.9 61.8 58.0 54.3 2 53.1 48.3 45.4 42.6 3 43.6 39.6 37.2 34.9 4 36.9 33.6 31.6 29.5 5 32.1 29.0 27.5 25.7 6 28.3 25.7 24.2 22.6 7 25.4 23.1 21.7 20.3 8 23.0 20.9 19.6 18.4" — [[Engines#FTL Drive charge time]]
 export const FTL_SKILL = [
   [0, 61.8, 48.3, 39.6, 33.6, 29.0, 25.7, 23.1, 20.9],
   [0, 58.0, 45.4, 37.2, 31.6, 27.5, 24.2, 21.7, 19.6],
@@ -77,6 +86,8 @@ export function skillRank(xp: number, need: number): 0 | 1 | 2 {
 }
 
 /** Wiki page "Shields", section "Overview": layers 1–2 restore in 2s, the 3rd in 1.72s, the 4th in 1.5s, the 5th in 1.33s. No later layer is listed, so that 1.33s is reused. INFERRED for a layer past the 5th. */
+// Wiki citations:
+// > "Shields base regeneration rate: 1 and 2 layers restore in 2 seconds, 3rd layer - in 1.72, 4th - in 1.5, 5th - in 1.33 seconds." — [[Shields#Overview]]
 export function shieldLayerSeconds(layer: number): number {
   if (layer <= 2) return 2;
   if (layer === 3) return 1.72;
@@ -92,6 +103,10 @@ export function shieldLayerSeconds(layer: number): number {
  */
 export function upgradeCost(id: SysId | "reactor", level: number): number | null {
   if (id === "reactor") {
+    // Wiki citations:
+    // > "The reactor can hold a maximum of 25 power bars." — [[Ship#Reactor power]]
+    // > "In order to fully upgrade a ship with 8 power, it costs 490 Ftlgame-scrap.png." — [[Ship#Reactor power]]
+    // > "reactor power bars from 3 to 5 cost 30 scrap each" — [[Systems]]
     const next = level + 1;
     if (next > 25) return null;
     if (next <= 5) return 30;

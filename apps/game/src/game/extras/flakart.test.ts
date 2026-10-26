@@ -85,6 +85,11 @@ function expectBurst(shots: readonly Shot[], from: "player" | "enemy" = "player"
 
 describe("flak burst", () => {
   it("records the upgrade table and does not sell", () => {
+    // Wiki citations:
+    // > "Level Cost Charge time 1 - 50 sec" — [[Flak Artillery#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png 40 sec" — [[Flak Artillery#System Upgrades]]
+    // > "3 50 Ftlgame-scrap.png 30 sec" — [[Flak Artillery#System Upgrades]]
+    // > "4 80 Ftlgame-scrap.png 20 sec" — [[Flak Artillery#System Upgrades]]
     assert.equal(chargeFlakSeconds(1), 50);
     assert.equal(chargeFlakSeconds(2), 40);
     assert.equal(chargeFlakSeconds(3), 30);
@@ -459,6 +464,8 @@ describe("flak burst", () => {
   it("does not charge or fire while the enemy ship is cloaked", () => {
     // Cloaking, Overview: artillery systems stop charging and cannot target a cloaked ship.
     // The 20 second beam exception names Artillery Beam, not Flak Artillery.
+    // Wiki citations:
+    // > "Weapons and artillery systems stop charging and cannot target a cloaked ship." — [[Cloaking#Overview]]
     const g = fight(43);
     armFed(g, 4);
     assert.ok(g.enemy);

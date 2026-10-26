@@ -82,6 +82,9 @@ describe("player Clone Bay queue (wiki Clone Bay, Overview)", () => {
   });
 
   it("jump heal skips a destroyed bay", () => {
+    // Wiki citations:
+    // > "Clone Bay does not need to be powered to activate the jump heal" — [[Clone Bay#Overview]]
+    // > "9 sec 16 HP" — [[Clone Bay#System Upgrades]]
     const g = createGame(1);
     const kit = poweredKit(2);
     g.player.kits.clonebay = kit;
@@ -97,6 +100,9 @@ describe("player Clone Bay queue (wiki Clone Bay, Overview)", () => {
   });
 
   it("waiting at a beacon applies the jump heal", () => {
+    // Wiki citations:
+    // > "Waiting at a beacon applies the jump heal effect." — [[Clone Bay#Overview]]
+    // > "12 sec 8 HP" — [[Clone Bay#System Upgrades]]
     const g = createGame(1);
     g.player.kits.clonebay = poweredKit(1);
     g.phase = "map";

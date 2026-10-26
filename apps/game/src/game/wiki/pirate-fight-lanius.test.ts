@@ -25,6 +25,14 @@ function open(g: Game) {
 
 describe("Pirate fight (Lanius)", () => {
   it("shows one of the five intros, and the fight choice starts a pirate combat", () => {
+    // Wiki citations:
+    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Lanius)]]
+    // > "An upgraded pirate ship sits among the remains of a number of Lanius ships. It hails you, \"These punks think they can jus' waltz in here into our sector? Obnoxious, right? Well, I'm sure you know the routine, let's do this.\"" — [[Pirate fight (Lanius)]]
+    // > "The pirate ship patrolling this sector has been busy. The debris of several Rebel scouts and at least one civilian ship litter the area. \"Welcome, welcome, there's room for one more!\" The over-confident pirate hails you as he charges his weapons and moves in to attack." — [[Pirate fight (Lanius)]]
+    // > "A pirate ship appears to be threatening a small refugee ship near the beacon. Upon seeing you jump in, it turns to approach. The civilian wastes no time and jumps away, but that appears only to harden the pirate's resolve." — [[Pirate fight (Lanius)]]
+    // > "Debris from a number of battleships are scattered around the beacon. As you approach the area a pirate ship thrusts itself through the hulks to attack. It must be using the metal to lure the Lanius into a trap." — [[Pirate fight (Lanius)]]
+    // > "The pirate sees you before you see him... prepare for a fight!" — [[Pirate fight (Lanius)]]
+    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Lanius)]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
       const g = createGame(seed);

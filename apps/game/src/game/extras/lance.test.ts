@@ -293,6 +293,9 @@ describe("artillery", () => {
   it("stops charging at a cloaked ship unless the clock is 20 seconds", () => {
     // Cloaking, Overview: artillery stops charging and cannot target a cloaked ship.
     // Artillery Beam at system level 4 is the example that still fires, because that clock is 20 seconds.
+    // Wiki citations:
+    // > "Weapons and artillery systems stop charging and cannot target a cloaked ship." — [[Cloaking#Overview]]
+    // > "make the beam weapon fire if the weapons charge time is <=20 seconds (e.g. Glaive Beam with fully trained crew, Artillery Beam at system level 4)." — [[Cloaking#Overview]]
     const cloak = (g: Game) => {
       assert.ok(g.enemy);
       g.enemy.kits.cloaking = {
@@ -332,6 +335,11 @@ describe("artillery", () => {
   });
 
   it("is fitted only on Federation A and B, free, and records the wiki costs", () => {
+    // Wiki citations:
+    // > "Level Cost Charge time 1 - 50 sec" — [[Artillery Beam#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png 40 sec" — [[Artillery Beam#System Upgrades]]
+    // > "3 50 Ftlgame-scrap.png 30 sec" — [[Artillery Beam#System Upgrades]]
+    // > "4 80 Ftlgame-scrap.png 20 sec" — [[Artillery Beam#System Upgrades]]
     // Artillery Beam, "Overview": pre-installed only on the Federation Cruiser A and B. No purchase price is printed.
     const lark = createGame(7);
     assert.equal(installLance(lark), false);

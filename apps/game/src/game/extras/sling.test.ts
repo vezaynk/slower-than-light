@@ -47,6 +47,8 @@ function stand(g: Game, ids?: string[]) {
 
 describe("teleporter", () => {
   it("sends one crew, recalls them, and loses anyone still over there", () => {
+    // Wiki citations:
+    // > "1 90 Ftlgame-scrap.png 20 sec" — [[Crew Teleporter#System Upgrades]]
     const g = createGame(1);
     g.scrap = 200;
     installSling(g);
@@ -294,6 +296,11 @@ describe("teleporter", () => {
   });
 
   it("charges 30 then 60, cools faster, and will not run underpowered", () => {
+    // Wiki citations:
+    // > "1 90 Ftlgame-scrap.png 20 sec" — [[Crew Teleporter#System Upgrades]]
+    // > "2 30 Ftlgame-scrap.png 15 sec" — [[Crew Teleporter#System Upgrades]]
+    // > "3 60 Ftlgame-scrap.png 10 sec" — [[Crew Teleporter#System Upgrades]]
+    // > "The cooldown for Crew Teleporter depends on the system power level: 20 seconds for level 1, 15 seconds for level 2, and 10 seconds for level 3." — [[Systems#Systems cooldown]]
     const g = createGame(1);
     g.scrap = 89;
     installSling(g);
@@ -366,6 +373,8 @@ describe("teleporter", () => {
   });
 
   it("resets the cooldown the moment the ship is not in danger", () => {
+    // Wiki citations:
+    // > "20 seconds for level 1" — [[Systems#Systems cooldown]]
     const g = createGame(1);
     g.scrap = 200;
     installSling(g);

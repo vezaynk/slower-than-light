@@ -45,6 +45,11 @@ function assertDefaultFight(g: Game) {
 
 describe("Lanius powered-down ship", () => {
   it("scanning starts a Lanius fight on default rewards", () => {
+    // Wiki citations:
+    // > "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down." — [[Lanius powered-down ship]]
+    // > "Scan the ship for lifeforms." — [[Lanius powered-down ship]]
+    // > "As you scan the vessel, the scan frequencies awaken the Lanius from hibernation - and they're hungry for raw materials!" — [[Lanius powered-down ship]]
+    // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius powered-down ship]]
     const g = createGame(1);
     open(g);
     assert.equal(

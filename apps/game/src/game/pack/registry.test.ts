@@ -172,6 +172,20 @@ describe("content pack", () => {
   });
 
   it("loads the system catalog in its authored order", () => {
+    // Wiki citations:
+    // > "Additional systems and subsystems can only be purchased at a store." — [[Systems]]
+    // > "Stealth Cruisers start without Shields system, and can buy one at a store for 125 scrap. This gives them Shields-2." — [[Shields#System Upgrades]]
+    // > "1 50 Ftlgame-scrap.png 6.4 HP/sec The healing rate is equal to the suffocation rate" — [[Medbay#System Upgrades]]
+    // > "1 50** Ftlgame-scrap.png 12 sec" — [[Clone Bay#System Upgrades]]
+    // > "Purchasing or switching cost. (Medbay system upgrades are transferred to Clone Bay, and vice versa, automatically)" — [[Clone Bay#System Upgrades]]
+    // > "1 90 Ftlgame-scrap.png 20 sec" — [[Crew Teleporter#System Upgrades]]
+    // > "1 150 Ftlgame-scrap.png 5 sec" — [[Cloaking#System Upgrades]]
+    // > "1 75 Ftlgame-scrap.png Mind control 1 enemy crew" — [[Mind Control#System Upgrades]]
+    // > "1 80 Ftlgame-scrap.png 4 sec" — [[Hacking#System upgrades]]
+    // > "1 40 Ftlgame-scrap.png See interior of all rooms on your ship" — [[Sensors#System Upgrades]]
+    // > "1 60* Ftlgame-scrap.png Normal Doors Remote opening/closing of doors" — [[Door System#System Upgrades]]
+    // > "Only the Rock Cruiser layout B (Shivan) does not have the Door System pre-installed." — [[Door System#System Upgrades]]
+    // > "1 35 Ftlgame-scrap.png 2 temporary power bars" — [[Backup Battery#System Upgrades]]
     assert.deepEqual(
       allSystems().map((row) => ({ id: row.id, name: row.name, cost: row.cost, slot: row.slot })),
       CITED_SYSTEMS.map((row) => ({ id: row.ref, name: row.name, cost: row.cost, slot: row.slot })),

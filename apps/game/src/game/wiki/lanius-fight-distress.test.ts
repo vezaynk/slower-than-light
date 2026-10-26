@@ -21,6 +21,9 @@ function open(g: Game) {
 
 describe("Lanius fight distress", () => {
   it("shows the printed intro, and the fight choice starts a Lanius combat", () => {
+    // Wiki citations:
+    // > "You are too late - whatever once was emitting the distress signal from this system drew a Lanius ship as well as your own. Having consumed the original target, the Lanius turn their attention to your vessel." — [[Lanius fight distress]]
+    // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius fight distress]]
     const g = createGame(1);
     open(g);
     assert.equal(

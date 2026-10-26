@@ -42,6 +42,10 @@ function resources(body: string): number {
 
 describe("Auto-ship near storage station", () => {
   it("attacking starts an Auto-ship fight", () => {
+    // Wiki citations:
+    // > "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods." — [[Auto-ship near storage station]]
+    // > "Attack the automated ship to get to the storage cache." — [[Auto-ship near storage station]]
+    // > "Fight the Auto-ship." — [[Auto-ship near storage station]]
     const g = createGame(1);
     open(g);
     assert.equal(

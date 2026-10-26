@@ -26,6 +26,12 @@ function open(g: Game) {
 
 describe("Remote settlement", () => {
   it("prints the blockade sentence and both choices", () => {
+    // Wiki citations:
+    // > "Scans show a remote settlement being blockaded by a pirate ship. The ship hastily messages you, \"Stay out of this, or you'll be next!...Concentrate fire on...\"" — [[Remote settlement]]
+    // > "Attack the pirate." — [[Remote settlement]]
+    // > "Ignore them." — [[Remote settlement]]
+    // > "(Fire Beam) Show the pirate how to intimidate settlers: burn their crops!" — [[Remote settlement]]
+    // > "(Fire Bomb) Show the pirate how to intimidate settlers: start fires in their crude dwellings. [ Missiles lost: 1 ]" — [[Remote settlement]]
     const g = createGame(1);
     open(g);
     assert.equal(g.event?.title, "Remote settlement");
@@ -57,6 +63,9 @@ describe("Remote settlement", () => {
   });
 
   it("attacking the pirate starts a pirate fight and changes nothing else", () => {
+    // Wiki citations:
+    // > "\"You asked for it!\" They pull away from the planet and move in to engage." — [[Remote settlement]]
+    // > "Fight the pirate ship." — [[Remote settlement]]
     const g = createGame(1);
     open(g);
     const crew = g.crew.filter((c) => c.side === "player").length;
@@ -76,6 +85,9 @@ describe("Remote settlement", () => {
   });
 
   it("ignoring them shows the printed jump sentence and nothing happens", () => {
+    // Wiki citations:
+    // > "It's just not possible to save every civilian affected by this war. You prepare to jump." — [[Remote settlement]]
+    // > "Nothing happens." — [[Remote settlement]]
     const g = createGame(1);
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;
@@ -110,6 +122,9 @@ describe("Remote settlement", () => {
   });
 
   it("a fire beam burns the crops, pays high scrap, and grants a random drone schematic", () => {
+    // Wiki citations:
+    // > "The pirate watches as you start to light the meager crops on fire. In a few moments the settlement surrenders, offering tribute to leave them alone. The pirate seems impressed." — [[Remote settlement]]
+    // > "You receive a drone schematic with high scrap." — [[Remote settlement]]
     const g = createGame(1);
     open(g);
     g.player.weapons.push({
@@ -155,6 +170,9 @@ describe("Remote settlement", () => {
   });
 
   it("a fire bomb spends 1 missile, pays high scrap, and grants a random drone schematic", () => {
+    // Wiki citations:
+    // > "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'." — [[Remote settlement]]
+    // > "You receive a drone schematic with high scrap." — [[Remote settlement]]
     const g = createGame(1);
     open(g);
     g.player.weapons.push({

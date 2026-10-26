@@ -228,6 +228,9 @@ describe("crew room orders", () => {
 
   it("heals out of a fight too, once the medbay has power", () => {
     // Medbay, "Overview": it heals friendly crew in the room whenever it is powered.
+    // Wiki citations:
+    // > "When powered, heals friendly crewmembers standing inside or moving through the room." — [[Medbay#Overview]]
+    // > "1 50 Ftlgame-scrap.png 6.4 HP/sec The healing rate is equal to the suffocation rate" — [[Medbay#System Upgrades]]
     const g = createGame(3, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.paused = false;
@@ -270,6 +273,8 @@ describe("crew room orders", () => {
     const healed = run(1);
     const unhealed = run(0);
     // Level 1 heals 6.4 HP/s; four 50 ms ticks.
+    // Wiki citations:
+    // > "1 50 Ftlgame-scrap.png 6.4 HP/sec The healing rate is equal to the suffocation rate" — [[Medbay#System Upgrades]]
     assert.ok(Math.abs(healed - unhealed - 6.4 * 0.2) < 1e-6, `${healed} ${unhealed}`);
   });
 

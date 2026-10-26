@@ -36,6 +36,10 @@ describe("Pirate engine hacker hacking counter", () => {
   });
 
   it("shows the printed counter sentence, takes Hacking offline, and does not cap Engines", () => {
+    // Wiki citations:
+    // > "(Hacking System) Counter the remote hacking." — [[Pirate engine hacker]]
+    // > "Your Hacking System automatically counters the digital assault and you move in to fight the ship." — [[Pirate engine hacker]]
+    // > "Fight the Pirate ship with your Hacking offline." — [[Pirate engine hacker]]
     const g = createGame(2);
     g.player.kits.hacking = {
       id: "hacking",

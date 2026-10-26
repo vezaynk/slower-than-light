@@ -711,6 +711,11 @@ describe("Emergency Respirators", () => {
     };
 
     // Level 1 equals suffocation, so a human nets zero. The augment's half leaves +3.2 HP/s.
+    // Wiki citations:
+    // > "1 50 Ftlgame-scrap.png 6.4 HP/sec The healing rate is equal to the suffocation rate" — [[Medbay#System Upgrades]]
+    // > "2 35 Ftlgame-scrap.png 9.6 HP/sec Crew can heal in an airless Medbay" — [[Medbay#System Upgrades]]
+    // > "3 45 Ftlgame-scrap.png 19.2 HP/sec" — [[Medbay#System Upgrades]]
+    // > "The Crystal race takes half of the suffocation damage." — [[Oxygen#Overview]]
     g.augments = [];
     near(tickBay(1, "human"), 0);
     g.augments = ["O2_MASKS"];

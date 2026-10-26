@@ -61,6 +61,11 @@ const XML = `<?xml version="1.0" encoding="UTF-8"?>
     <text>Zero.</text>
     <status type="divide" target="player" system="shields" amount="0"/>
   </event>
+  <event name="ember-clear-bare">
+    <text>Clear.</text>
+    <status type="limit" target="player" system="engines" amount="1"/>
+    <status type="clear" target="player" system="engines"/>
+  </event>
 </FTL>`;
 
 let warnings: string[] = [];
@@ -212,6 +217,17 @@ describe("archive status, upgrade, crew loss, and augment removal", () => {
     jumpTo(g, "ember-unpaid");
     assert.equal(g.player.reactor, reactor);
     assert.equal(g.scrap, scrap);
+  });
+
+  it("clears a cap when the clear tag has no amount", () => {
+    const g = createGame(11);
+    const engines = g.player.systems.engines;
+    engines.level = 5;
+    engines.power = 5;
+    jumpTo(g, "ember-clear-bare");
+    assert.equal(engines.archiveLimit, undefined);
+    assert.equal(engines.archiveDivide, undefined);
+    assert.equal(bars(engines), 5);
   });
 
   it("skips a divide whose amount is below 1", () => {

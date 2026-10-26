@@ -17,7 +17,7 @@
  */
 
 export type KinId =
-  "human" | "engi" | "energy" | "mantis" | "slug" | "rock" | "anaerobic" | "crystal";
+  "human" | "engi" | "energy" | "mantis" | "slug" | "rock" | "anaerobic" | "crystal" | "ghost";
 
 export type Kin = {
   name: string;
@@ -65,6 +65,10 @@ export type Kin = {
  * suffocation damage -50%. Fire-fighting 83% on that list is extinguish speed, not damage taken.
  * Crew, "Crew races comparison": repair ×1, combat ×1. Health, movement ×0.8, and the
  * suffocation cut match the Crystal page.
+ *
+ * ghost — not a hireable race and not a crewBlueprint. CrewMemberFactory builds the string
+ * "ghost" with 50 health, and Ghost::CanSuffocate returns false. Fire, movement, repair,
+ * and combat stay at the human rate. The stand-in omits this row.
  */
 export const KIN: Record<KinId, Kin> = {
   human: {
@@ -140,6 +144,15 @@ export const KIN: Record<KinId, Kin> = {
     repair: 1,
     fight: 1,
     suffocate: 0.5,
+    fireTaken: 1,
+  },
+  ghost: {
+    name: "Ghost",
+    hp: 50,
+    move: 1,
+    repair: 1,
+    fight: 1,
+    suffocate: 0,
     fireTaken: 1,
   },
 };

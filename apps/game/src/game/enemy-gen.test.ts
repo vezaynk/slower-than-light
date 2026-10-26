@@ -379,15 +379,19 @@ describe("archive loadout", () => {
       assert.deepEqual(roll({ weapons: ["NOT_A_GUN", "LASER_BURST_1"] }).weapons, [
         "LASER_BURST_1",
       ]);
-      // A race with no crew is skipped; nothing left means the class table's crew.
+      // Ghost is a race. One counted seat replaces the class table.
+      const ghosts = roll({ crewCounts: [{ amount: 1, class: "ghost" }] }).crew;
       assert.deepEqual(
-        roll({ crewCounts: [{ amount: 1, class: "ghost" }] }).crew.map((member) => member.race),
-        plain.crew.map((member) => member.race),
+        ghosts.map((member) => member.race),
+        ["Ghost"],
+      );
+      assert.deepEqual(
+        ghosts.map((member) => member.kin),
+        ["ghost"],
       );
       assert.deepEqual(warnings, [
         `${hull.id}: load="NO_SUCH_LIST" names no blueprintList; it is treated as empty.`,
         `${hull.id}: its weaponList names "NOT_A_GUN", which is not a weapon; it is skipped.`,
-        `${hull.id}: crewCount class "ghost" is not a race the game has crew for; it is skipped.`,
       ]);
     } finally {
       restore();
@@ -584,6 +588,35 @@ describe("blueprint sector range", () => {
       assert.equal(fightHull("pirate", "SHIPS_OPEN", () => 0, 0)?.id, "OPEN_HULL");
       assert.equal(fightHull("LATE_HULL", undefined, () => 0, 0)?.id, "LATE_HULL");
     } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("builds a named ship, then DEFAULT, and still warns when neither exists", () => {
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      assert.equal(
+        fightHull("pirate", "NO_SUCH_SHIP", () => 0, 0),
+        undefined,
+      );
+      assert.deepEqual(warnings, [
+        'auto_blueprint="NO_SUCH_SHIP" names no blueprintList; the fight rolls a class.',
+      ]);
+      loadPack(
+        {
+          hulls: [gated("SCOUT", { minSector: 4 }), gated("DEFAULT")],
+        },
+        "append",
+      );
+      warnings.length = 0;
+      // A direct ship id ignores minSector. A list draw of this hull would not.
+      assert.equal(fightHull("pirate", "SCOUT", () => 0, 0)?.id, "SCOUT");
+      assert.equal(fightHull("pirate", "NO_SUCH_SHIP", () => 0, 0)?.id, "DEFAULT");
+      assert.equal(fightHull("pirate", "DEFAULT", () => 0, 0)?.id, "DEFAULT");
+      assert.deepEqual(warnings, []);
+    } finally {
+      restore();
       resetPackForTests();
     }
   });

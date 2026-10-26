@@ -9,6 +9,7 @@ import {
   textList,
   tutorialScript,
   type OpeningLine,
+  type WeaponKind,
 } from "@stl/pack";
 import { INTERFACE_KEYS, type InterfaceScreen } from "./interface-keys.ts";
 
@@ -92,8 +93,31 @@ export function itemLines(): string[] {
   return lines;
 }
 
-export function weaponCopy(row: { short?: string; detail?: string; flavor?: string }): string[] {
-  return [row.short, row.detail, row.flavor].filter((line): line is string =>
+/** FTL WeaponBlueprint::GetDescription. Ion is a laser with ion damage. Crystal is a missile that spends none. */
+function weaponTypeKey(row: {
+  kind?: WeaponKind;
+  ion?: number;
+  ammo?: boolean;
+}): string | undefined {
+  if (row.kind === "ion" || (row.kind === "laser" && (row.ion ?? 0) > 0)) return "type_ion";
+  if (row.kind === "laser") return "type_laser";
+  if (row.kind === "beam") return "type_beam";
+  if (row.kind === "bomb") return "type_bomb";
+  if (row.kind === "flak") return "type_burst";
+  if (row.kind === "missile") return row.ammo ? "type_missile" : "type_crystal";
+  return undefined;
+}
+
+export function weaponCopy(row: {
+  kind?: WeaponKind;
+  ion?: number;
+  ammo?: boolean;
+  short?: string;
+  detail?: string;
+  flavor?: string;
+}): string[] {
+  const type = archivePhrase(weaponTypeKey(row));
+  return [type, row.short, row.detail, row.flavor].filter((line): line is string =>
     Boolean(line?.trim()),
   );
 }
@@ -103,9 +127,11 @@ export function droneCopy(row: { short?: string; detail?: string } | undefined):
   return [row.short, row.detail].filter((line): line is string => Boolean(line?.trim()));
 }
 
-export function crewCopy(row: { detail?: string; powers?: string[] } | undefined): string[] {
+export function crewCopy(
+  row: { short?: string; detail?: string; powers?: string[] } | undefined,
+): string[] {
   if (!row) return [];
-  return [row.detail, ...(row.powers ?? [])].filter((line): line is string =>
+  return [row.short, row.detail, ...(row.powers ?? [])].filter((line): line is string =>
     Boolean(line?.trim()),
   );
 }

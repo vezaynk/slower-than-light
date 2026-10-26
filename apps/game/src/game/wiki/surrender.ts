@@ -326,6 +326,7 @@ const RACES: [string, KinId][] = [
   ["Zoltan", "energy"],
   ["Crystal", "crystal"],
   ["Lanius", "anaerobic"],
+  ["Ghost", "ghost"],
 ];
 
 /** The kin a surrender's crew race joins as (joinCrew), for the offer card's portrait too. */

@@ -34,7 +34,7 @@ import {
   droneDef,
   weaponDef,
 } from "@stl/pack";
-import { crewCopy, droneCopy, weaponCopy } from "@/game/interface-copy";
+import { crewCopy, droneCopy, phraseOr, weaponCopy } from "@/game/interface-copy";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { beaconMark } from "@/game/beacon-mark";
 import { scanMark } from "@/game/extras/augments";
@@ -4026,7 +4026,7 @@ function OfferCards({
                   {def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg
                 </span>
               ) : null}
-              {def.ion > 0 ? <span title={"Ion"}>{def.ion} ion</span> : null}
+              {def.ion > 0 ? <span title={phraseOr("type_ion", "Ion")}>{def.ion} ion</span> : null}
               {def.ammo ? (
                 <span title={"Uses a missile"}>
                   <PixelIcon name="missile" size={12} />

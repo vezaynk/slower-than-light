@@ -31,6 +31,7 @@ function crewElement(doc: XmlDocument, row: CrewDef): XmlElement {
   const node = element(doc, "crewBlueprint", { name: row.id });
   node.appendChild(leaf(doc, "title", row.name));
   if (row.detail) node.appendChild(leaf(doc, "desc", row.detail));
+  if (row.short) node.appendChild(leaf(doc, "short", row.short));
   if (row.cost != null) node.appendChild(leaf(doc, "cost", row.cost));
   return node;
 }

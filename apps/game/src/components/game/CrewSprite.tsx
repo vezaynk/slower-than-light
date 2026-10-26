@@ -45,17 +45,27 @@ const POSE_BODY: Record<CrewPose, string[][]> = {
 };
 
 const RUNS = Object.fromEntries(
-  (["human", "engi", "energy", "mantis", "slug", "rock", "anaerobic", "crystal"] as KinId[]).map(
-    (kin) => [
-      kin,
-      Object.fromEntries(
-        (Object.keys(POSE_BODY) as CrewPose[]).map((pose) => [
-          pose,
-          POSE_BODY[pose].map((body) => pixelRuns([...crewHead(kin), ...body])),
-        ]),
-      ),
-    ],
-  ),
+  (
+    [
+      "human",
+      "engi",
+      "energy",
+      "mantis",
+      "slug",
+      "rock",
+      "anaerobic",
+      "crystal",
+      "ghost",
+    ] as KinId[]
+  ).map((kin) => [
+    kin,
+    Object.fromEntries(
+      (Object.keys(POSE_BODY) as CrewPose[]).map((pose) => [
+        pose,
+        POSE_BODY[pose].map((body) => pixelRuns([...crewHead(kin), ...body])),
+      ]),
+    ),
+  ]),
 ) as Record<KinId, Record<CrewPose, PixelRun[][]>>;
 
 const INK = "#1a120c";

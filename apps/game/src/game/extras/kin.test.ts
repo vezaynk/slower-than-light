@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import "../pack/base.ts";
-import { crewDef } from "@stl/pack";
+import { allCrew, crewDef } from "@stl/pack";
 import { KIN, kinOf, type KinId } from "./kin.ts";
 
 const IDS: KinId[] = ["human", "engi", "energy", "mantis", "slug", "rock", "anaerobic", "crystal"];
@@ -84,6 +84,19 @@ describe("kin", () => {
     assert.equal(crewDef("crystal").fireRepairMultiplier, 0.83);
     assert.equal(crewDef("human").bonusPower, 0);
     assert.notEqual(loaded, authored);
+  });
+
+  it("ghost has 50 health, does not suffocate, and is not a stand-in race", () => {
+    assert.equal(kinOf("ghost").hp, 50);
+    assert.equal(kinOf("ghost").suffocate, 0);
+    assert.equal(kinOf("ghost").move, 1);
+    assert.equal(kinOf("ghost").fireTaken, 1);
+    assert.equal(crewDef("ghost").hp, 50);
+    assert.equal(crewDef("ghost").suffocate, 0);
+    assert.equal(
+      allCrew().some((row) => row.id === "ghost"),
+      false,
+    );
   });
 
   it("display names match the crew table", () => {

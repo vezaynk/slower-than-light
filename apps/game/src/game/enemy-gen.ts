@@ -313,6 +313,7 @@ const KIN_OF: Record<string, KinId> = {
   Zoltan: "energy",
   Crystal: "crystal",
   Lanius: "anaerobic",
+  Ghost: "ghost",
 };
 
 /** Archive `<systemList>` ids. Mind control's tag is `mind`. */
@@ -346,6 +347,7 @@ const RACE_OF: Record<string, string> = {
   energy: "Zoltan",
   crystal: "Crystal",
   anaerobic: "Lanius",
+  ghost: "Ghost",
 };
 
 /** `sectorId` is the ftl.dat sector id; `sectorName` is only for messages. */
@@ -1478,15 +1480,23 @@ function droneNames(hull: HullDef): { drones: string[]; maxDrones: number } | un
 
 /**
  * The hull a fight should build instead of rolling a class.
- * A tier that is itself a hull wins. Otherwise one id is drawn from `autoBlueprint`'s list.
- * A list that is missing, a drawn id that is not a hull, or a drawn hull whose minSector or
- * maxSector excludes `level`, leaves the class roll in charge. `level` is
+ * A tier that is itself a hull wins. Otherwise `autoBlueprint` is a blueprintList, or a ship
+ * blueprint when no list has that id. A list draw skips a hull whose minSector or maxSector
+ * excludes `level`. A named ship does not. A name that is neither, and is not already
+ * DEFAULT, uses the hull DEFAULT when that hull exists. `level` is
  * `genSector(sector, difficulty) - 1`. Both gates are inclusive. A hull with neither stays eligible.
  */
 function hullInSector(hull: HullDef, level: number): boolean {
   if (hull.minSector != null && level < hull.minSector) return false;
   if (hull.maxSector != null && level > hull.maxSector) return false;
   return true;
+}
+
+/** The list a fight draws, including its Advanced Edition override. A ship id is not a list. */
+function fightList(id: string): readonly string[] | undefined {
+  const over = id.startsWith("OVERRIDE_") ? undefined : blueprintList(`OVERRIDE_${id}`);
+  if (!over && !blueprintList(id)) return undefined;
+  return blueprintList(drawnListId(id));
 }
 
 export function fightHull(
@@ -1499,16 +1509,22 @@ export function fightHull(
   const named = hullDef(tier);
   if (named) return named;
   if (!autoBlueprint) return undefined;
-  const names = blueprintList(drawnListId(autoBlueprint));
-  if (!names) {
-    warnPack(`auto_blueprint="${autoBlueprint}" names no blueprintList; the fight rolls a class.`);
-    return undefined;
+  const names = fightList(autoBlueprint);
+  if (names) {
+    if (names.length === 0) return undefined;
+    const id = names[Math.floor(rand() * names.length) % names.length]!;
+    const hull = hullDef(id);
+    if (!hull || !hullInSector(hull, level)) return undefined;
+    return hull;
   }
-  if (names.length === 0) return undefined;
-  const id = names[Math.floor(rand() * names.length) % names.length]!;
-  const hull = hullDef(id);
-  if (!hull || !hullInSector(hull, level)) return undefined;
-  return hull;
+  const direct = hullDef(autoBlueprint);
+  if (direct) return direct;
+  if (autoBlueprint !== "DEFAULT") {
+    const fallback = hullDef("DEFAULT");
+    if (fallback) return fallback;
+  }
+  warnPack(`auto_blueprint="${autoBlueprint}" names no blueprintList; the fight rolls a class.`);
+  return undefined;
 }
 
 /** Systems the blueprint fits at the start. A slot with `start` false is left empty. */

@@ -1,8 +1,18 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
-import { hullDef, loadPack, onPackWarning, resetPackForTests, scrapRange } from "@stl/pack";
-import type { HullDef } from "@stl/pack";
+import {
+  crewDef,
+  hullDef,
+  loadPack,
+  onPackWarning,
+  packFromFtl,
+  resetPackForTests,
+  scrapRange,
+} from "@stl/pack";
+import type { HullDef, WeaponBlueprint } from "@stl/pack";
+import { weightedBlueprint } from "../archive-pay.ts";
+import { weaponCopy } from "../interface-copy.ts";
 import { choose, commitJump, createGame, waitHere } from "../sim.ts";
 import { overtaken } from "../wiki/sector-map.ts";
 import { citedFleetAdvance } from "../wiki/cited-sectors.ts";
@@ -233,6 +243,36 @@ describe("archive event payoffs", () => {
     const people = human.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
     assert.equal(people.length, 1);
     assert.equal(people[0]?.kin, "human");
+
+    const ghosts = createGame(11);
+    loadPack(
+      {
+        events: [
+          {
+            id: "ember-ghost",
+            dest: "Ghosts",
+            flag: "ember-ghost",
+            aliases: [],
+            sectors: [],
+            body: "Ghosts.",
+            choices: [
+              {
+                id: "c:ember-ghost:0",
+                label: "Brace",
+                fx: [{ k: "nothing" }],
+                boarders: { min: 3, max: 3, class: "ghost" },
+              },
+            ],
+          },
+        ],
+      },
+      "append",
+    );
+    choose(ghosts, "c:ember-ghost:0");
+    const shades = ghosts.crew.filter((c) => c.side === "enemy" && c.aboard === "player");
+    assert.equal(shades.length, 3);
+    assert.ok(shades.every((c) => c.kin === "ghost" && c.hp === 50 && c.maxHp === 50));
+    assert.equal(crewDef("ghost").suffocate, 0);
   });
 
   it("grants a named blueprint and skips a missing one", () => {
@@ -279,6 +319,139 @@ describe("archive event payoffs", () => {
     } finally {
       restore();
     }
+  });
+
+  it("draws one RANDOM blueprint and skips a rarity of 0", () => {
+    const rows = [
+      { id: "ZZZ", rarity: 1 },
+      { id: "AAA", rarity: 5 },
+      { id: "ZERO", rarity: 0 },
+      { id: "NONE" },
+      { id: "HEAVY", rarity: 6 },
+    ];
+    assert.equal(
+      weightedBlueprint(rows, () => 0),
+      "AAA",
+    );
+    assert.equal(
+      weightedBlueprint(rows, () => 0.2),
+      "ZZZ",
+    );
+    assert.equal(
+      weightedBlueprint([{ id: "ZERO", rarity: 0 }], () => 0),
+      undefined,
+    );
+
+    const gun = (id: string, rarity?: number): WeaponBlueprint => ({
+      id,
+      name: id,
+      kind: "laser",
+      power: 1,
+      charge: 1,
+      shots: 1,
+      gap: 0,
+      damage: 1,
+      ion: 0,
+      fire: 0,
+      breach: 0,
+      ammo: false,
+      price: 1,
+      blurb: "",
+      ...(rarity == null ? {} : { rarity }),
+    });
+    loadPack(
+      {
+        weapons: [gun("RANDOM", 0), gun("BURST_ONLY", 2), gun("LOCKED", 6)],
+        events: [
+          {
+            id: "ember-random",
+            dest: "Random",
+            flag: "ember-random",
+            aliases: [],
+            sectors: [],
+            body: "Random.",
+            choices: [
+              {
+                id: "ember-random",
+                label: "Take",
+                fx: [{ k: "nothing" }],
+                grants: [{ kind: "weapon", id: "RANDOM" }],
+              },
+            ],
+          },
+        ],
+      },
+      "append",
+    );
+    const g = createGame(12);
+    choose(g, "ember-random");
+    assert.equal(holdsWeapon(g, "BURST_ONLY"), true);
+    assert.equal(holdsWeapon(g, "RANDOM"), false);
+    assert.equal(holdsWeapon(g, "LOCKED"), false);
+  });
+
+  it("skips RANDOM when every blueprint is excluded", () => {
+    loadPack(
+      {
+        events: [
+          {
+            id: "ember-empty-random",
+            dest: "Empty",
+            flag: "ember-empty-random",
+            aliases: [],
+            sectors: [],
+            body: "Empty.",
+            choices: [
+              {
+                id: "ember-empty-random",
+                label: "Take",
+                fx: [{ k: "nothing" }],
+                grants: [{ kind: "weapon", id: "RANDOM" }],
+              },
+            ],
+          },
+        ],
+      },
+      "append",
+    );
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const g = createGame(13);
+      const before = g.player.weapons.map((w) => w.defId).join(",");
+      choose(g, "ember-empty-random");
+      assert.equal(g.player.weapons.map((w) => w.defId).join(","), before);
+      assert.ok(warnings.some((message) => message.includes("RANDOM")));
+    } finally {
+      restore();
+    }
+  });
+
+  it("shows the archive type phrase on a weapon card", () => {
+    packFromFtl([
+      {
+        path: "data/text_blueprints.xml",
+        xml: `<FTL>
+          <text name="type_ion">Ion</text>
+          <text name="type_laser">Laser</text>
+          <text name="type_beam">Beam</text>
+          <text name="type_bomb">Bomb</text>
+          <text name="type_burst">Burst</text>
+          <text name="type_missile">Missile</text>
+          <text name="type_crystal">Crystal</text>
+        </FTL>`,
+      },
+    ]);
+    assert.deepEqual(weaponCopy({ kind: "laser", ion: 1, ammo: false }), ["Ion"]);
+    assert.deepEqual(weaponCopy({ kind: "ion", ammo: false }), ["Ion"]);
+    assert.deepEqual(weaponCopy({ kind: "laser", ion: 0, ammo: false }), ["Laser"]);
+    assert.deepEqual(weaponCopy({ kind: "beam" }), ["Beam"]);
+    assert.deepEqual(weaponCopy({ kind: "bomb", ion: 2, ammo: false }), ["Bomb"]);
+    assert.deepEqual(weaponCopy({ kind: "flak" }), ["Burst"]);
+    assert.deepEqual(weaponCopy({ kind: "missile", ammo: true }), ["Missile"]);
+    assert.deepEqual(weaponCopy({ kind: "missile", ammo: false }), ["Crystal"]);
+    resetPackForTests();
+    assert.deepEqual(weaponCopy({ kind: "missile", ammo: false }), []);
   });
 
   it("pays the existing high band for a high standard autoReward", () => {

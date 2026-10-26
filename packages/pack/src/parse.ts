@@ -175,6 +175,8 @@ function readCrew(node: XmlElement): CrewDef | undefined {
   if (title) row.name = title;
   const detail = textOf(node, "desc");
   if (detail) row.detail = detail;
+  const short = textOf(node, "short");
+  if (short) row.short = short;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
   readCrewCombat(node, row);
@@ -230,7 +232,8 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
     ion: numOf(node, "ion") ?? 0,
     fire: (numOf(node, "fireChance") ?? 0) / 10,
     breach: (numOf(node, "breachChance") ?? 0) / 10,
-    ammo: kind === "missile" || (numOf(node, "missiles") ?? 0) > 0,
+    // Crystal weapons are type MISSILES with no <missiles> child, so they do not spend a missile.
+    ammo: (numOf(node, "missiles") ?? 0) > 0,
     price: numOf(node, "cost") ?? 0,
     blurb: textOf(node, "tooltip") ?? textOf(node, "desc") ?? "",
   };
@@ -252,18 +255,23 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (art) row.art = art;
   const image = textOf(node, "image");
   if (image) row.image = image;
+  const rarity = numOf(node, "rarity");
+  if (rarity != null) row.rarity = rarity;
   return row;
 }
 
 export function readAugment(node: XmlElement): AugmentDef | undefined {
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
-  return {
+  const row: AugmentDef = {
     id,
     name: textOf(node, "title") ?? id,
     detail: textOf(node, "desc") ?? "",
     cost: numOf(node, "cost") ?? 0,
   };
+  const rarity = numOf(node, "rarity");
+  if (rarity != null) row.rarity = rarity;
+  return row;
 }
 
 export function readDrone(node: XmlElement): DroneDef | undefined {
@@ -280,6 +288,8 @@ export function readDrone(node: XmlElement): DroneDef | undefined {
   if (detail) row.detail = detail;
   const image = textOf(node, "droneImage");
   if (image) row.image = image;
+  const rarity = numOf(node, "rarity");
+  if (rarity != null) row.rarity = rarity;
   return row;
 }
 

@@ -1,4 +1,5 @@
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
+import { flakScatterRadius } from "../wiki/weapons-flak-crystal.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { liveTable, tuneMax, upgradeCost } from "../content.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
@@ -258,6 +259,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
       id: nextId(g),
       kind: "flak",
       from,
+      defId: "flak-artillery",
       damage: DAMAGE,
       ion: 0,
       fireChance: 0,
@@ -375,8 +377,15 @@ function longSideTiles(pair: [Tile, Tile]): [Tile, Tile, Tile, Tile] {
 /**
  * Where one artillery pellet lands. `roll` is used only for a two-tile room.
  * A 2×2 and every unprinted shape ignore `roll` and stay.
+ * A non-positive radius stays. A positive radius, including the default 35, keeps the room odds.
  */
-export function flakLanding(rooms: readonly FlakAimRoom[], aimId: string, roll: number): FlakLand {
+export function flakLanding(
+  rooms: readonly FlakAimRoom[],
+  aimId: string,
+  roll: number,
+  radius = 35,
+): FlakLand {
+  if (!(radius > 0)) return { kind: "stay" };
   const aim = rooms.find((room) => room.id === aimId);
   if (!aim) return { kind: "stay" };
   const pair = twoTile(aim);
@@ -409,7 +418,7 @@ function spreadRooms(
       out.push({ roomId: aim, offRoom: false });
       continue;
     }
-    const land = flakLanding(rooms, aim, rand(g));
+    const land = flakLanding(rooms, aim, rand(g), flakScatterRadius("flak-artillery", 35));
     if (land.kind === "miss") out.push({ roomId: aim, offRoom: true });
     else if (land.kind === "room") out.push({ roomId: land.roomId, offRoom: false });
     else out.push({ roomId: aim, offRoom: false });

@@ -1,10 +1,21 @@
-import { allEvents, blueprintList, weaponDef } from "@stl/pack";
+import {
+  allCrew,
+  allEvents,
+  augmentDef,
+  blueprintList,
+  droneDef,
+  systemDef,
+  weaponDef,
+} from "@stl/pack";
 import type { ChoiceReq, LockOwner } from "@stl/pack";
 import type { Game, KitId, SysId } from "../types.ts";
 
 type Button = {
   id: string;
   owner?: LockOwner;
+  hidden?: boolean;
+  maxGroup?: number;
+  blue?: false;
   reqs?: readonly ChoiceReq[];
   choices?: readonly Button[];
 };
@@ -74,6 +85,10 @@ function choiceLock(g: Game, id: string): string | null {
   const reqs = reqsFor(id);
   if (!reqs) return null;
   for (const req of reqs) {
+    if (req.k === "attr") {
+      if (!attrMet(g, req)) return attrRefusalText(req);
+      continue;
+    }
     if (!meets(g, req)) return req.text;
   }
   return null;
@@ -114,6 +129,7 @@ function reqsFor(id: string): readonly ChoiceReq[] | null {
 }
 
 function meets(g: Game, req: ChoiceReq): boolean {
+  if (req.k === "attr") return attrMet(g, req);
   if (req.k === "crew")
     return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === req.id);
   if (req.k === "system") return levelOf(g, req.id) >= req.level;
@@ -146,6 +162,7 @@ function meetsList(g: Game, id: string): boolean {
 }
 
 function levelOf(g: Game, id: string): number {
+  if (id === "reactor") return g.player.reactor;
   if (KITS.has(id)) return g.player.kits[id as KitId]?.level ?? 0;
   return g.player.systems[id as SysId]?.level ?? 0;
 }
@@ -205,4 +222,143 @@ function meetsDrone(g: Game, id: string): boolean {
   if (id === "radar") return !!kit && kit.level > 0 && RADAR.has(kit.target ?? "");
   if (id === "BATTLE") return !!kit && kit.level > 0 && kit.target === "BATTLE";
   return false;
+}
+
+const LEVEL_IDS = new Set([
+  "reactor",
+  "shields",
+  "engines",
+  "oxygen",
+  "weapons",
+  "drones",
+  "medbay",
+  "pilot",
+  "sensors",
+  "doors",
+  "clonebay",
+  "teleporter",
+  "cloaking",
+  "battery",
+  "mind",
+  "hacking",
+  "artillery",
+]);
+
+function isLevelId(id: string): boolean {
+  return LEVEL_IDS.has(id) || KITS.has(id) || systemDef(id) != null;
+}
+
+function attrOf(choice: Button): Extract<ChoiceReq, { k: "attr" }> | undefined {
+  const req = choice.reqs?.find((row) => row.k === "attr");
+  return req?.k === "attr" ? req : undefined;
+}
+
+function packedChoice(id: string): Button | undefined {
+  let found: Button | undefined;
+  eachChoice((choice) => {
+    if (!found && choice.id === id) found = choice;
+  });
+  return found;
+}
+
+/** System, kit, and reactor are a level. A crew race is one living crewmember. Anything else fails closed. */
+function attrMet(g: Game, req: Extract<ChoiceReq, { k: "attr" }>): boolean {
+  const id = req.id;
+  if (isLevelId(id)) {
+    const level = levelOf(g, id);
+    const lo = req.min ?? 1;
+    if (level < lo) return false;
+    if (req.max != null && level > req.max) return false;
+    return true;
+  }
+  if (allCrew().some((row) => row.id === id)) {
+    return g.crew.some((c) => c.side === "player" && c.hp > 0 && c.kin === id);
+  }
+  if (augmentDef(id)) return g.augments.includes(id);
+  if (weaponDef(id)) return g.player.weapons.some((w) => w.defId === id);
+  if (droneDef(id)) {
+    const kit = g.player.kits.drones;
+    return !!kit && (kit.target === id || (kit.loadout ?? []).includes(id));
+  }
+  if (blueprintList(id) || blueprintList(`OVERRIDE_${id}`)) return meetsList(g, id);
+  return false;
+}
+
+function levelName(id: string): string {
+  if (id === "reactor") return systemDef(id)?.name ?? "Reactor";
+  return systemDef(id)?.name ?? id;
+}
+
+function attrRefusalText(req: Extract<ChoiceReq, { k: "attr" }>): string {
+  if (!isLevelId(req.id)) {
+    if (
+      allCrew().some((row) => row.id === req.id) ||
+      augmentDef(req.id) ||
+      weaponDef(req.id) ||
+      droneDef(req.id) ||
+      blueprintList(req.id)
+    ) {
+      const named = allCrew().find((row) => row.id === req.id)?.name ?? systemDef(req.id)?.name;
+      return named ? `Needs ${named}` : `Requires ${req.id}.`;
+    }
+    return `Requires ${req.id}.`;
+  }
+  const name = levelName(req.id);
+  if (req.min != null && req.max != null) return `Needs ${name} level ${req.min} to ${req.max}`;
+  if (req.max != null) return `Needs ${name} up to level ${req.max}`;
+  if (req.min != null) return `Needs ${name} level ${req.min}`;
+  return `Needs ${name}`;
+}
+
+/** Rank used by `max_group`. No req is 0. A system or reactor with no minimum is 1. Unmet is null. */
+function matchRank(g: Game, choice: Button): number | null {
+  const req = attrOf(choice);
+  if (!req) return 0;
+  if (!attrMet(g, req)) return null;
+  if (isLevelId(req.id)) return req.min ?? 1;
+  return req.min ?? 0;
+}
+
+function groupWinner(g: Game, siblings: readonly string[], group: number): string | null {
+  let best: { id: string; index: number; min: number } | null = null;
+  for (let index = 0; index < siblings.length; index++) {
+    const id = siblings[index];
+    if (id == null) continue;
+    const choice = packedChoice(id);
+    if (!choice || choice.maxGroup !== group) continue;
+    const rank = matchRank(g, choice);
+    if (rank == null) continue;
+    if (!best || rank > best.min || (rank === best.min && index < best.index)) {
+      best = { id, index, min: rank };
+    }
+  }
+  return best?.id ?? null;
+}
+
+/**
+ * Hidden unmet choices stay off the card. A `max_group` keeps one match: highest minimum, then the earlier row.
+ * A group that matches nothing is omitted. A group does not cross into another page's sibling list.
+ */
+export function choiceOmitted(g: Game, id: string, siblings: readonly string[]): boolean {
+  const choice = packedChoice(id);
+  if (!choice) return false;
+  if (choice.maxGroup != null) return groupWinner(g, siblings, choice.maxGroup) !== id;
+  const req = attrOf(choice);
+  return !!req && choice.hidden === true && !attrMet(g, req);
+}
+
+/** Met gear is blue unless the choice says `blue="false"`. A choice with no req is not blue. */
+export function choiceBlue(g: Game, id: string): boolean {
+  const choice = packedChoice(id);
+  const req = choice ? attrOf(choice) : undefined;
+  if (!choice || !req || choice.blue === false) return false;
+  return attrMet(g, req);
+}
+
+/** Refusal for a shown, unmet attribute. Quest text still wins when the caller asks it first. */
+export function attrRefusal(g: Game, id: string): string | null {
+  const choice = packedChoice(id);
+  const req = choice ? attrOf(choice) : undefined;
+  if (!req || attrMet(g, req)) return null;
+  return attrRefusalText(req);
 }

@@ -1,5 +1,5 @@
 /** Archive waves play when that cue is packed. A missing cue keeps the tone. */
-import { sectorDef } from "@stl/pack";
+import { sectorDef, weaponDef } from "@stl/pack";
 import {
   archiveGeneration,
   musicTrack,
@@ -161,13 +161,20 @@ export function launchCue(
   return kind ?? "laser";
 }
 
-/** `launchCue` for the weapon anim loaded from the archive. */
+/**
+ * Launch prefers the blueprint's `<launchSounds>`, then the animation's `<fireSound>`, then the kind cue.
+ * A listed name that the archive did not pack is skipped, so the next source still plays.
+ */
 export function weaponLaunchCue(
   defId: string,
   kind: string | undefined,
   pick: () => number = Math.random,
 ): string {
-  return launchCue(kind, weaponFireSounds(defId), (name) => soundCue(name) != null, pick);
+  const packed = (name: string) => soundCue(name) != null;
+  const listed = weaponDef(defId)?.launchSounds;
+  const fromBlueprint = (listed ?? []).filter((name) => name.length > 0 && packed(name));
+  if (fromBlueprint.length > 0) return launchCue(kind, listed, packed, pick);
+  return launchCue(kind, weaponFireSounds(defId), packed, pick);
 }
 
 /** The archive cue for a game sound: a random present variant, or a cue named exactly that. */

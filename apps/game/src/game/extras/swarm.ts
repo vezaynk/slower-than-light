@@ -32,7 +32,7 @@ import { registerBeamTicker } from "../beam-tickers.ts";
 import { SCHEMATIC_POWER } from "../enemy-gen.ts";
 import type { Crew, DroneBlast, DroneUnit, Game, Kit, Room, Ship, Shot, SysId } from "../types.ts";
 import "../pack/base.ts";
-import { crewDef, droneDef } from "@stl/pack";
+import { crewDef, droneDef, weaponDef } from "@stl/pack";
 import { battleDroneFight, repairDronePace } from "./drone-crew.ts";
 import { veilBlocks } from "./veil.ts";
 import { crewDroneSpeed } from "../wiki/cited-booster.ts";
@@ -573,8 +573,9 @@ function shoots(
   // Environmental Hazards, anti-ship battery: it cannot be shot down.
   if (shot.from === "env" && shot.kind === "missile") return false;
   // Defensive Drones > Defense Drone Mark I: missiles, hacking and boarding
-  // drones, individual flak debris, and asteroids.
-  if (shot.kind === "missile" || shot.kind === "flak") return true;
+  // drones, and asteroids. Flak is a target when its blueprint sets drone_targetable.
+  if (shot.kind === "missile") return true;
+  if (shot.defId && weaponDef(shot.defId)?.droneTargetable === 1) return true;
   if (shot.kind === "hacking" || shot.kind === "boarding") return true;
   // INFERRED: that section shoots asteroids. This drill spawns them as laser
   // shots with from "env". An explicit kind "asteroid" counts too.

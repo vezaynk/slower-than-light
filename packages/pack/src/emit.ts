@@ -920,13 +920,44 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true
   if (weapon.ammo) add(node, leaf(doc, "missiles", 1));
   if (weapon.lengthTiles != null) add(node, leaf(doc, "length", scaled(weapon.lengthTiles, 45)));
   if (weapon.speed != null) add(node, leaf(doc, "speed", weapon.speed));
-  if (weapon.crewDamage != null) add(node, leaf(doc, "crewDamage", weapon.crewDamage));
+  if (weapon.persDamage != null) add(node, leaf(doc, "persDamage", weapon.persDamage));
+  else if (weapon.crewDamage != null) add(node, leaf(doc, "crewDamage", weapon.crewDamage));
+  if (weapon.sysDamage != null) add(node, leaf(doc, "sysDamage", weapon.sysDamage));
   if (weapon.pierce != null) add(node, leaf(doc, "sp", weapon.pierce));
   if (weapon.hullBust != null) add(node, leaf(doc, "hullBust", weapon.hullBust));
+  if (weapon.stunChance != null) add(node, leaf(doc, "stunChance", tenths(weapon.stunChance)));
+  if (weapon.radius != null) add(node, leaf(doc, "radius", weapon.radius));
+  if (weapon.chargeLevels != null) add(node, leaf(doc, "chargeLevels", weapon.chargeLevels));
+  if (weapon.spin != null) add(node, leaf(doc, "spin", weapon.spin));
+  if (weapon.droneTargetable === 1) add(node, leaf(doc, "drone_targetable", 1));
   if (weapon.art) add(node, leaf(doc, "weaponArt", weapon.art));
   if (weapon.image) add(node, leaf(doc, "image", weapon.image));
+  if (weapon.icon) add(node, leaf(doc, "iconImage", weapon.icon));
   if (weapon.rarity != null) add(node, leaf(doc, "rarity", weapon.rarity));
+  soundList(doc, node, "launchSounds", weapon.launchSounds);
+  soundList(doc, node, "hitShipSounds", weapon.hitShipSounds);
+  soundList(doc, node, "hitShieldSounds", weapon.hitShieldSounds);
+  soundList(doc, node, "missSounds", weapon.missSounds);
+  if (weapon.boost) {
+    const boost = element(doc, "boost", {});
+    add(boost, leaf(doc, "type", weapon.boost.type));
+    add(boost, leaf(doc, "amount", weapon.boost.amount));
+    add(boost, leaf(doc, "count", weapon.boost.count));
+    add(node, boost);
+  }
   return node;
+}
+
+function soundList(
+  doc: XmlDocument,
+  parent: XmlElement,
+  tag: string,
+  names: readonly string[] | undefined,
+) {
+  if (!names?.length) return;
+  const node = element(doc, tag, {});
+  for (const name of names) add(node, leaf(doc, "sound", name));
+  add(parent, node);
 }
 
 function raceElement(

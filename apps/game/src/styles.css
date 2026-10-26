@@ -1977,6 +1977,13 @@ button:disabled {
   min-width: calc(4 * 150px + 3 * 6px);
 }
 
+.gun-icon {
+  width: 18px;
+  height: 18px;
+  image-rendering: pixelated;
+  flex: none;
+}
+
 .gun-slot {
   position: relative;
   width: 150px;
@@ -2266,6 +2273,10 @@ button:disabled {
   display: block;
   width: 100%;
   border-radius: var(--radius);
+}
+
+.choice-line.is-blue {
+  color: var(--color-accent, #8ec8ff);
 }
 
 .choice-line:hover:not(:disabled) {
@@ -3179,11 +3190,33 @@ button.door-tick::before {
 
 /* Title screen: the menu image, with hits on CONTINUE through QUIT. */
 .title-shot {
+  position: relative;
   height: 100cqh;
   display: grid;
   place-items: center;
   background: #07060d;
   font-family: var(--font-title, var(--font-hud));
+}
+
+.title-locales {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  max-width: min(100cqw - 24px, 420px);
+}
+
+.title-locale-name {
+  margin: 0;
+  font-size: 14px;
+}
+
+.title-locales button.is-on {
+  color: var(--color-accent, #8ec8ff);
 }
 
 .title-frame {

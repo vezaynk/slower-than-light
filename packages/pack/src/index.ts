@@ -123,6 +123,8 @@ export {
   scrapRange,
   sectorDef,
   civilianSectorTitle,
+  packLocales,
+  localeString,
   storeDef,
   systemDef,
   tuneDef,

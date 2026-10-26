@@ -29,6 +29,7 @@
 <victory volume="8">ui/victory.wav</victory>
 <explosion1 volume="8">ui/explosion1.wav</explosion1>
 <airLoss volume="8">ui/airLoss.wav</airLoss>
+<miss volume="8">ui/miss.wav</miss>
 <doorOpen volume="8">ui/doorOpen.wav</doorOpen>
 <doorClose volume="8">ui/doorClose.wav</doorClose>
 <teleport volume="8">ui/teleport.wav</teleport>

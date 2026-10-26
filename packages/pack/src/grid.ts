@@ -1,3 +1,4 @@
+import { ROOM_PX } from "./picture.ts";
 import type { HullDef, HullDoor, HullEllipse, HullGrid, HullRoom } from "./types.ts";
 
 const GRID_KEYS = new Set([
@@ -94,14 +95,48 @@ export function gridFromLayout(layout: LayoutSource): HullGrid {
     x: 0,
     y: 0,
     vertical: 0,
+    ellipse: ellipseForRooms(rooms),
     rooms,
     doors: doorsFromMarks(rooms, layout.marks ?? []),
   };
 }
 
+/** Room bounding box in archive pixels. Offsets stay 0. A layout with no rooms has no oval. */
+function ellipseForRooms(rooms: readonly HullRoom[]): HullEllipse | undefined {
+  if (rooms.length === 0) return undefined;
+  let minX = rooms[0]?.x ?? 0;
+  let minY = rooms[0]?.y ?? 0;
+  let maxX = minX;
+  let maxY = minY;
+  for (const room of rooms) {
+    minX = Math.min(minX, room.x);
+    minY = Math.min(minY, room.y);
+    maxX = Math.max(maxX, room.x + room.w);
+    maxY = Math.max(maxY, room.y + room.h);
+  }
+  return { w: (maxX - minX) * ROOM_PX, h: (maxY - minY) * ROOM_PX, x: 0, y: 0 };
+}
+
 /** One token per line, in the order a layout file uses. */
 export function writeGrid(grid: HullGrid): string {
-  const lines = ["X_OFFSET", "0", "Y_OFFSET", "0", "VERTICAL", "0"];
+  const lines = [
+    "X_OFFSET",
+    String(grid.x ?? 0),
+    "Y_OFFSET",
+    String(grid.y ?? 0),
+    "VERTICAL",
+    String(grid.vertical ?? 0),
+  ];
+  if (grid.horizontal) lines.push("HORIZONTAL", String(grid.horizontal));
+  if (grid.ellipse) {
+    lines.push(
+      "ELLIPSE",
+      String(grid.ellipse.w),
+      String(grid.ellipse.h),
+      String(grid.ellipse.x),
+      String(grid.ellipse.y),
+    );
+  }
   for (const room of grid.rooms) {
     lines.push(
       "ROOM",

@@ -132,11 +132,19 @@ export function packFromFtl(
   const shipClasses = new Catalog<ShipClassDef>();
   let rewards: RewardTable | undefined;
   const strings = new Map<string, string>();
+  const locales = new Map<string, Map<string, string>>();
   const grids = readGrids(layouts);
   let facts = false;
   let names: ContentPack["names"];
   const parsed = readSources(documents);
   for (const source of parsed) {
+    const code = localeCode(source.path);
+    if (code) {
+      const table = locales.get(code) ?? new Map<string, string>();
+      collectStrings(source.doc, table);
+      locales.set(code, table);
+      continue;
+    }
     if (translationFile(source.path)) continue;
     collectStrings(source.doc, strings);
   }
@@ -253,6 +261,12 @@ export function packFromFtl(
   if (names) pack.names = names;
   const civilianSectorTitle = strings.get("sectorname_CIVILIAN_SECTOR");
   if (civilianSectorTitle) pack.civilianSectorTitle = civilianSectorTitle;
+  if (locales.size > 0) {
+    pack.locales = [...locales.entries()].map(([code, table]) => ({
+      code,
+      strings: Object.fromEntries(table),
+    }));
+  }
   attachPictures(pack.hulls, documents);
   applyArchiveExtras(pack, parsed, layouts);
   return pack;
@@ -426,6 +440,14 @@ function systemSlot(id: string, node: XmlElement): SystemSlot {
 function translationFile(path: string): boolean {
   const name = path.slice(path.lastIndexOf("/") + 1);
   return /^text-.+\.xml(?:\.append)?$/i.test(name);
+}
+
+/** `text-eo.xml` is `eo`. `text-zh-Hans.xml.append` is `zh-Hans`. Underscore tables are English. */
+function localeCode(path: string): string | undefined {
+  const name = path.slice(path.lastIndexOf("/") + 1);
+  const match = /^text-(.+)\.xml(?:\.append)?$/i.exec(name);
+  const code = match?.[1];
+  return code ? code : undefined;
 }
 
 /**
@@ -1220,7 +1242,6 @@ function readFtlList(
     }
     index += 1;
   }
-  if (entries.length === 0) return undefined;
   return { id, entries };
 }
 
@@ -1253,8 +1274,20 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
     fx: [],
   };
   if (node.getAttribute("hidden") === "true") choice.hidden = true;
+  const minLevel = intAttr(node, "lvl") ?? intAttr(node, "min_level");
+  const maxLevel = intAttr(node, "max_lvl");
+  const maxGroup = intAttr(node, "max_group");
+  if (minLevel != null) choice.minLevel = minLevel;
+  if (maxLevel != null) choice.maxLevel = maxLevel;
+  if (maxGroup != null) choice.maxGroup = maxGroup;
+  if (node.getAttribute("blue") === "false") choice.blue = false;
   const gear = attr(node, "req")?.trim();
-  if (gear) choice.reqs = [{ k: "list", id: gear, text: "Requires the right gear." }];
+  if (gear) {
+    const req: EventChoice["reqs"] = [
+      { k: "attr", id: gear, text: "", min: minLevel, max: maxLevel },
+    ];
+    choice.reqs = req;
+  }
   const result = elements(node).find((item) => item.tagName === "event");
   const environment = readEnvironment(result ?? node);
   if (environment) choice.environment = environment;

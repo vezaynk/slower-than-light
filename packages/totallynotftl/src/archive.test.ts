@@ -66,7 +66,11 @@ describe("totallynotftl.dat", () => {
     const media = await standInMedia();
     assert.equal(
       extracted.documents.length,
-      events.length + 4 + pictures.length + media.documents.length,
+      events.length + 5 + pictures.length + media.documents.length,
+    );
+    assert.match(
+      extracted.documents.find((doc) => doc.path === "data/text-eo.xml")?.xml ?? "",
+      /Malrapida ol lumo/,
     );
     for (const file of events) {
       assert.equal(extracted.documents.find((doc) => doc.path === file.path)?.xml, file.xml);
@@ -180,6 +184,9 @@ describe("totallynotftl.dat", () => {
       "fonts/HL2.font",
       "fonts/c&c.font",
       "fonts/c&cnew.font",
+      "fonts/eo.font",
+      "audio/waves/ui/miss.wav",
+      "img/loc-eo/statusUI/menu.png",
     ]) {
       assert.ok(extracted.assets.has(path), path);
     }
@@ -187,6 +194,17 @@ describe("totallynotftl.dat", () => {
     for (const path of ["img/people/human.png", "img/ship/drones/striker2_base.png"]) {
       assert.equal(extracted.assets.has(path), false, path);
     }
+    const glow = new Uint8Array(
+      await extracted.assets.get("img/ships_glow/kestral_base.png")!.arrayBuffer(),
+    );
+    const dark = new Uint8Array(
+      await extracted.assets.get("img/ships_noglow/kestral_base.png")!.arrayBuffer(),
+    );
+    const cloak = new Uint8Array(
+      await extracted.assets.get("img/ship/kestral_cloak.png")!.arrayBuffer(),
+    );
+    assert.equal(Buffer.compare(glow, dark) === 0, false);
+    assert.equal(Buffer.compare(glow, cloak) === 0, false);
     for (const [path, blob] of extracted.assets) {
       const bytes = new Uint8Array(await blob.arrayBuffer());
       assertMagic(path, bytes, blob.type);
@@ -236,12 +254,30 @@ describe("totallynotftl.dat", () => {
     assert.deepEqual(merged.hulls, pack.hulls);
     assert.deepEqual(merged.sectors, pack.sectors);
     const extra = new Set(["STAND_IN_BEACON", "STAND_IN_NESTED"]);
+    // STANDIN_GATES and STANDIN_EMPTY are spliced into the stand-in. They are not catalog records.
+    const standInEvent = new Set(["STANDIN_GATES"]);
+    const standInList = new Set(["STANDIN_EMPTY"]);
     const byId = <T extends { id: string }>(rows: T[] | undefined) =>
       [...(rows ?? [])].sort((a, b) => a.id.localeCompare(b.id));
     assert.deepEqual(
-      byId(merged.events?.filter((event) => !extra.has(event.id))),
-      byId(pack.events),
+      byId(merged.events?.filter((event) => !extra.has(event.id) && !standInEvent.has(event.id))),
+      byId(pack.events?.filter((event) => !standInEvent.has(event.id))),
     );
+    const gates = merged.events?.find((event) => event.id === "STANDIN_GATES");
+    assert.equal(gates?.body, "Gates.");
+    assert.deepEqual(
+      gates?.choices.map((choice) => choice.label),
+      ["Medbay band.", "Reactor cap.", "Hack one.", "Hack two.", "Continue."],
+    );
+    assert.equal(gates?.choices[0]?.hidden, true);
+    assert.equal(gates?.choices[0]?.minLevel, 2);
+    assert.equal(gates?.choices[1]?.blue, false);
+    assert.equal(gates?.choices[1]?.maxLevel, 24);
+    assert.equal(gates?.choices[2]?.maxGroup, 0);
+    assert.equal(gates?.choices[3]?.hidden, true);
+    assert.equal(gates?.choices[3]?.minLevel, 2);
+    assert.equal(gates?.choices[4]?.hidden, true);
+    assert.equal(gates?.choices[4]?.reqs, undefined);
     assert.deepEqual(
       merged.events?.find((event) => event.id === "STAND_IN_BEACON"),
       {
@@ -280,7 +316,11 @@ describe("totallynotftl.dat", () => {
       { text: "The near reading." },
       { load: "STAND_IN_MORE" },
     ]);
-    assert.deepEqual(merged.lists, pack.lists);
+    assert.deepEqual(
+      (merged.lists ?? []).filter((row) => !standInList.has(row.id)),
+      (pack.lists ?? []).filter((row) => !standInList.has(row.id)),
+    );
+    assert.equal(merged.lists?.find((row) => row.id === "STANDIN_EMPTY")?.entries.length, 0);
     assert.deepEqual(merged.stores, pack.stores);
     assert.deepEqual(merged.rewards, pack.rewards);
     assert.deepEqual(merged.factions, pack.factions);

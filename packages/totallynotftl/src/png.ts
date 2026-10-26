@@ -23,6 +23,53 @@ export function cloakPng(stem: string, picture: HullPicture, rooms: readonly Roo
   return paintPng(mask, stemColour(stem, 0.72), 170);
 }
 
+/**
+ * Engines-lit hangar portrait. Brighter than the unlit hull, with a lit strip on the bottom painted row.
+ * The bytes differ from `basePng` and from `cloakPng`.
+ */
+export function glowPortraitPng(
+  stem: string,
+  picture: HullPicture,
+  rooms: readonly Room[],
+): Uint8Array {
+  const mask = hullMask(stem, picture, rooms, true);
+  const colour = stemColour(stem, 0.62);
+  const { width, height, paint } = mask;
+  let bottom = -1;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      if (paint[y * width + x]) bottom = y;
+    }
+  }
+  const rgba = new Uint8Array(width * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      if (!paint[y * width + x]) continue;
+      const at = (y * width + x) * 4;
+      const engine = y === bottom;
+      rgba[at] = engine ? 255 : colour[0];
+      rgba[at + 1] = engine ? 214 : colour[1];
+      rgba[at + 2] = engine ? 64 : colour[2];
+      rgba[at + 3] = 255;
+    }
+  }
+  return rgbaPng(width, height, rgba);
+}
+
+/** A small original mark for the Esperanto locale menu. English has no file at this path. */
+export function localeMenuPng(): Uint8Array {
+  const size = 8;
+  const rgba = new Uint8Array(size * size * 4);
+  for (let i = 0; i < size * size; i += 1) {
+    const at = i * 4;
+    rgba[at] = 32;
+    rgba[at + 1] = 168;
+    rgba[at + 2] = 96;
+    rgba[at + 3] = 255;
+  }
+  return rgbaPng(size, size, rgba);
+}
+
 /** Room cells only, darker than the hull rim. */
 export function floorPng(stem: string, picture: HullPicture, rooms: readonly Room[]): Uint8Array {
   const mask = hullMask(stem, picture, rooms, false);

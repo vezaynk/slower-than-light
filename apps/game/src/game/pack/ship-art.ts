@@ -77,6 +77,11 @@ export function shipImage(id: string, layer: ShipLayer): ShipFrame | undefined {
   const extra =
     layer === "cloak" ? hull.cloakOffset : layer === "floor" ? hull.floorOffset : undefined;
   const placed = frame(url, hull.picture, hull.grid?.x, hull.grid?.y, extra);
+  if (layer === "base") {
+    const shift = baseGlowShift(hull.glow, hull.grid?.x, hull.grid?.y);
+    placed.offsetX = shift.offsetX;
+    placed.offsetY = shift.offsetY;
+  }
   if (layer === "cloak" && hull.img && cloakOutline(hull.img, file))
     return withCloakOutline(placed);
   // FTL draws the floor and cloak at their own size from their offset. The base and shield fill the hull box.
@@ -157,6 +162,19 @@ function withCloakOutline(placed: ShipFrame): ShipFrame {
     offsetX: placed.offsetX + CLOAK_OUTLINE,
     offsetY: placed.offsetY + CLOAK_OUTLINE,
   };
+}
+
+/**
+ * Glow shifts only the base layer, and only when the offset is not zero.
+ * `frame` subtracts the extra, so a glow of (4, -2) moves the sprite by (+4, -2).
+ */
+export function baseGlowShift(
+  glow: { x: number; y: number } | undefined,
+  gridX = 0,
+  gridY = 0,
+): { offsetX: number; offsetY: number } {
+  const use = glow && (glow.x !== 0 || glow.y !== 0) ? glow : undefined;
+  return { offsetX: gridX - (use?.x ?? 0), offsetY: gridY - (use?.y ?? 0) };
 }
 
 function frame(

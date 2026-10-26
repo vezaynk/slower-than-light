@@ -1,6 +1,7 @@
 import { useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { hullDef } from "@stl/pack";
 import { shipArtGeneration, shipImage, subscribeShipArt } from "@/game/pack/ship-art";
-import { bubbleLayout, frameRoom, readShipScale } from "./shield-bubble";
+import { bubbleLayout, frameRoom, readShipScale, shieldOval } from "./shield-bubble";
 
 /**
  * Concentric shield bubbles around one hull. One blue ellipse per live layer, a filling
@@ -49,6 +50,23 @@ export function ShieldField({
   }, []);
 
   const layout = bubbleLayout(box.room, layers, charge != null, zoltan > 0, box.scale);
+  const hull = hullId ? hullDef(hullId) : undefined;
+  const ring = (pad: number) => {
+    const ellipse = hull?.grid?.ellipse;
+    const picture = hull?.picture;
+    if (ellipse && picture) {
+      const oval = shieldOval(
+        box,
+        picture,
+        ellipse,
+        pad,
+        hull?.grid?.horizontal,
+        hull?.grid?.vertical,
+      );
+      if (oval) return oval;
+    }
+    return { rx: box.w / 2 + pad, ry: box.h / 2 + pad, dx: 0, dy: 0 };
+  };
   const visible =
     box.w > 1 &&
     box.h > 1 &&
@@ -58,8 +76,9 @@ export function ShieldField({
     8 * box.scale;
   const vw = Math.max(1, box.w + out * 2);
   const vh = Math.max(1, box.h + out * 2);
-  const cx = box.w / 2 + out;
-  const cy = box.h / 2 + out;
+  const origin = ring(0);
+  const cx = box.w / 2 + out + origin.dx;
+  const cy = box.h / 2 + out + origin.dy;
   const fill = charge == null ? 0 : Math.max(0, Math.min(1, charge));
   const outer = layout.live.length - 1;
 
@@ -83,13 +102,14 @@ export function ShieldField({
       {visible
         ? layout.live.map((pad, i) => {
             const edge = i === outer;
+            const live = ring(pad);
             return (
               <ellipse
                 key={`live-${i}`}
                 cx={cx}
                 cy={cy}
-                rx={box.w / 2 + pad}
-                ry={box.h / 2 + pad}
+                rx={live.rx}
+                ry={live.ry}
                 fill={edge ? `url(#${gradId})` : "none"}
                 stroke={edge ? "#c8ecff" : "#6cc4ff"}
                 strokeOpacity={edge ? 0.95 : 0.55 + (i / layout.live.length) * 0.25}
@@ -102,10 +122,10 @@ export function ShieldField({
         <image
           className="shield-skin"
           href={shield.url}
-          x={cx - (box.w / 2 + layout.live[outer]!)}
-          y={cy - (box.h / 2 + layout.live[outer]!)}
-          width={(box.w / 2 + layout.live[outer]!) * 2}
-          height={(box.h / 2 + layout.live[outer]!) * 2}
+          x={cx - ring(layout.live[outer]!).rx}
+          y={cy - ring(layout.live[outer]!).ry}
+          width={ring(layout.live[outer]!).rx * 2}
+          height={ring(layout.live[outer]!).ry * 2}
           preserveAspectRatio="none"
           opacity={0.55}
         />
@@ -115,8 +135,8 @@ export function ShieldField({
           className="shield-sheen"
           cx={cx}
           cy={cy}
-          rx={box.w / 2 + layout.live[outer]!}
-          ry={box.h / 2 + layout.live[outer]!}
+          rx={ring(layout.live[outer]!).rx}
+          ry={ring(layout.live[outer]!).ry}
           fill="none"
           stroke="#f4fbff"
           strokeWidth={2.4 * box.scale}
@@ -130,8 +150,8 @@ export function ShieldField({
           <ellipse
             cx={cx}
             cy={cy}
-            rx={box.w / 2 + layout.charge}
-            ry={box.h / 2 + layout.charge}
+            rx={ring(layout.charge).rx}
+            ry={ring(layout.charge).ry}
             fill="none"
             stroke="#6cc4ff"
             strokeOpacity={0.28}
@@ -142,8 +162,8 @@ export function ShieldField({
             className="shield-charge-arc"
             cx={cx}
             cy={cy}
-            rx={box.w / 2 + layout.charge}
-            ry={box.h / 2 + layout.charge}
+            rx={ring(layout.charge).rx}
+            ry={ring(layout.charge).ry}
             fill="none"
             stroke="#e7f6ff"
             strokeOpacity={0.45 + 0.55 * fill}
@@ -159,8 +179,8 @@ export function ShieldField({
           <ellipse
             cx={cx}
             cy={cy}
-            rx={box.w / 2 + layout.zoltan}
-            ry={box.h / 2 + layout.zoltan}
+            rx={ring(layout.zoltan).rx}
+            ry={ring(layout.zoltan).ry}
             fill="rgba(62, 229, 106, 0.07)"
             stroke="#3ee56a"
             strokeOpacity="0.4"
@@ -169,8 +189,8 @@ export function ShieldField({
           <ellipse
             cx={cx}
             cy={cy}
-            rx={box.w / 2 + layout.zoltan}
-            ry={box.h / 2 + layout.zoltan}
+            rx={ring(layout.zoltan).rx}
+            ry={ring(layout.zoltan).ry}
             fill="none"
             stroke="#d8ffe6"
             strokeWidth={2.2 * box.scale}

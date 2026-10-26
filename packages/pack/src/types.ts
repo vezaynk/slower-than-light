@@ -45,6 +45,35 @@ export type WeaponBlueprint = {
    * The integer is the flag. The doubled figure is `damage * 2`, not this number.
    */
   hullBust?: number;
+  /** `<stunChance>` already divided by 10. `2` in the file is 0.2. */
+  stunChance?: number;
+  /**
+   * `<persDamage>` as written. When the tag is present, `crewDamage` is this number times 15.
+   * A negative value heals. It wins over a `<crewDamage>` child.
+   */
+  persDamage?: number;
+  /** `<sysDamage>`. System bars. A bomb's `<damage>` stays hull and is often 0. */
+  sysDamage?: number;
+  /** `<radius>` in archive pixels. Landing odds do not treat it as a pixel circle. */
+  radius?: number;
+  /** `<chargeLevels>`. The charger bank. `<shots>` stays the volley when this is absent. */
+  chargeLevels?: number;
+  /** `<iconImage>` path. The weapon card shows that file. */
+  icon?: string;
+  /** `<launchSounds>` names, in file order. */
+  launchSounds?: string[];
+  /** `<hitShipSounds>` names, in file order. */
+  hitShipSounds?: string[];
+  /** `<hitShieldSounds>` names, in file order. */
+  hitShieldSounds?: string[];
+  /** `<missSounds>` names, in file order. */
+  missSounds?: string[];
+  /** `<spin>` degrees per second. The sprite turns. The landing does not. */
+  spin?: number;
+  /** `<drone_targetable>`. 1 means a Mark I defense drone may shoot this blueprint's shot. */
+  droneTargetable?: number;
+  /** `<boost>`. Cooldown subtracts seconds. Damage adds ion. Step 0 is the blueprint's own number. */
+  boost?: { type: "cooldown" | "damage"; amount: number; count: number };
 };
 
 /**
@@ -625,7 +654,8 @@ export type ChoiceReq =
   | { k: "family"; id: string; text: string }
   | { k: "drone"; id: string; text: string }
   | { k: "list"; id: string; text: string }
-  | { k: "stock"; id: string; n: number; text: string };
+  | { k: "stock"; id: string; n: number; text: string }
+  | { k: "attr"; id: string; text: string; min?: number; max?: number };
 
 /**
  * `<environment type>` on an archive event.
@@ -720,8 +750,16 @@ export type EventChoice = {
   owner?: LockOwner;
   /** Fuel the handler pays. A positive resource effect is a different payment. */
   gift?: ChoiceGift;
-  /** The archive hides this button until its requirement is met. */
+  /** The archive hides this button until its requirement is met. Exact `hidden="true"` only. */
   hidden?: boolean;
+  /** Inclusive floor from `lvl`, or from `min_level` when `lvl` is absent. */
+  minLevel?: number;
+  /** Inclusive ceiling from `max_lvl`. */
+  maxLevel?: number;
+  /** `max_group`. Siblings that share it keep one row. */
+  maxGroup?: number;
+  /** `blue="false"`. A met requirement is blue text unless this is false. */
+  blue?: false;
   /** autoReward on the result page. */
   reward?: ArchiveReward;
   /** A ship that is not a fight. A hostile ship with a load is a fight effect. A hostile ship with no load stays here. */
@@ -1086,4 +1124,9 @@ export type ContentPack = {
    * Column 0 shows this while `STANDARD_SPACE` keeps its stored name.
    */
   civilianSectorTitle?: string;
+  /**
+   * `text-<code>.xml` tables. English stays on the blueprints.
+   * A `.append` file merges into the same code. The code is the filename, hyphens included.
+   */
+  locales?: { code: string; strings: Record<string, string> }[];
 };

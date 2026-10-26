@@ -44,7 +44,7 @@ import {
   flagshipLayoutStem,
   type FlagshipDifficulty,
 } from "../flagship-layouts.ts";
-import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
+import { LAYOUT_FILE, SHIP_LAYOUTS, standInShieldPad } from "../ship-layouts.ts";
 import { standInSheet } from "../ship-art.ts";
 import { MOUNT_IMAGES, mountsFor } from "../weapon-mounts.ts";
 import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
@@ -472,9 +472,11 @@ function hullRow(spec: HullSpec): HullDef {
     augments: [...spec.augments],
   };
   const source = SHIP_LAYOUTS[spec.id];
+  const stem = LAYOUT_FILE[spec.id];
   if (source) row.grid = gridFromLayout(source);
+  if (stem && row.grid) standInShieldPad(stem, row.grid);
   blueprintFields(row, spec, source?.rooms ?? []);
-  return paintHull(row, LAYOUT_FILE[spec.id]);
+  return paintHull(row, stem);
 }
 
 /** Kits in the order the game seats them (sim.ts applyHull fills ship.kits in this order). */
@@ -639,7 +641,7 @@ function paintHull(row: HullDef, stem: string | undefined): HullDef {
   const mounts = mountsFor(stem);
   if (mounts) row.mounts = mounts.map((mount) => ({ ...mount }));
   if (picture) {
-    const sheet = standInSheet(picture, mounts);
+    const sheet = standInSheet(picture, mounts, stem);
     if (sheet.glow) row.glow = { ...sheet.glow };
     if (sheet.cloakOffset) row.cloakOffset = { ...sheet.cloakOffset };
     if (sheet.floorOffset) row.floorOffset = { ...sheet.floorOffset };
@@ -849,6 +851,86 @@ const PIERCE_ONE: Record<string, number> = {
   CRYSTAL_HEAVY_2: 1,
 };
 
+/**
+ * `<persDamage>` as the file writes it. Crew HP is that number times 15.
+ * Healing Burst is negative. Zeros stay on the bombs whose crew line is 0.
+ */
+const PERS: Record<string, number> = {
+  BEAM_BIO: 4,
+  BOMB_1: 2,
+  BOMB_BREACH_1: 2,
+  BOMB_BREACH_2: 3,
+  BOMB_FIRE: 2,
+  BOMB_HEAL: -10,
+  BOMB_STUN: 0,
+  BOMB_LOCK: 0,
+  BOMB_ION: 0,
+  BOMB_HEAL_SYSTEM: 0,
+};
+
+/** `<sysDamage>` system bars. A bomb's `<damage>` is hull and stays 0. */
+const SYS: Record<string, number> = {
+  BOMB_1: 2,
+  BOMB_BREACH_1: 1,
+  BOMB_BREACH_2: 3,
+  BOMB_HEAL_SYSTEM: -8,
+};
+
+/** `<boost>`. Cooldown subtracts seconds. Damage adds ion. Step 0 is the blueprint's own number. */
+const BOOST: Record<string, { type: "cooldown" | "damage"; amount: number; count: number }> = {
+  LASER_CHAINGUN: { type: "cooldown", amount: 3, count: 3 },
+  LASER_CHAINGUN_2: { type: "cooldown", amount: 2, count: 5 },
+  ION_CHAINGUN: { type: "damage", amount: 1, count: 3 },
+};
+
+/** `<chargeLevels>` is the bank. `<shots>` on these five was that bank. */
+const CHARGE_BANK = new Set([
+  "ION_CHARGEGUN",
+  "LASER_CHARGEGUN_PLAYER",
+  "LASER_CHARGEGUN",
+  "LASER_CHARGEGUN_2",
+  "MISSILE_CHARGEGUN",
+]);
+
+/** `<radius>` in archive pixels. Room odds do not treat it as a pixel circle. */
+const RADIUS: Record<string, number> = {
+  SHOTGUN: 42,
+  SHOTGUN_PLAYER: 40,
+  SHOTGUN_2: 55,
+  "flak-artillery": 35,
+  MISSILE_CHARGEGUN: 31,
+};
+
+/** `<spin>` 720 degrees per second. The sprite turns. The landing does not. */
+const SPIN_DRONE = new Set(["SHOTGUN", "SHOTGUN_PLAYER", "SHOTGUN_2", "flak-artillery"]);
+
+/** `<drone_targetable>` 1. Swarm is included. A plain missile is not. */
+const DRONE_TARGET = new Set([...SPIN_DRONE, "MISSILE_CHARGEGUN"]);
+
+/** `<stunChance>` in tenths, the same scale as fire and breach. `2` is 0.2. */
+const STUN_TENTHS: Record<string, number> = {
+  LASER_HEAVY_1: 2,
+  LASER_HEAVY_2: 2,
+  LASER_HEAVY_1_SP: 2,
+  CRYSTAL_HEAVY_1: 2,
+  MISSILES_1: 1,
+  MISSILES_2: 1,
+  MISSILES_2_PLAYER: 1,
+  MISSILES_3: 1,
+  MISSILES_BREACH: 1,
+  MISSILES_HULL: 1,
+  MISSILES_BURST: 1,
+  ION_1: 1,
+  ION_2: 2,
+};
+
+function launchSound(kind: WeaponBlueprint["kind"]): string {
+  if (kind === "laser" || kind === "flak") return "lightLaser1";
+  if (kind === "missile" || kind === "bomb") return "smallMissile1";
+  if (kind === "ion") return "ionShoot1";
+  return "beam1";
+}
+
 function weaponRow(id: string): WeaponBlueprint {
   const row: WeaponBlueprint = { ...WEAPONS[id] };
   // The stand-in sheet is named with the blueprint id. The projectile clip is `<id>_shot`.
@@ -863,6 +945,42 @@ function weaponRow(id: string): WeaponBlueprint {
   if (id === "BEAM_LONG") row.crewDamage = BEAM_CREW.BEAM_LONG;
   else if (Object.prototype.hasOwnProperty.call(BEAM_CREW, id)) row.crewDamage = BEAM_CREW[id];
   if (Object.prototype.hasOwnProperty.call(BOMB_CREW, id)) row.crewDamage = BOMB_CREW[id];
+  if (Object.prototype.hasOwnProperty.call(PERS, id)) {
+    const pers = PERS[id];
+    if (pers != null) {
+      row.persDamage = pers;
+      row.crewDamage = pers * 15;
+    }
+  }
+  if (row.kind === "bomb") {
+    row.damage = 0;
+    if (Object.prototype.hasOwnProperty.call(SYS, id)) {
+      const sys = SYS[id];
+      if (sys != null) row.sysDamage = sys;
+    }
+  }
+  const boost = BOOST[id];
+  if (boost) row.boost = { type: boost.type, amount: boost.amount, count: boost.count };
+  if (SPIN_DRONE.has(id)) row.spin = 720;
+  if (DRONE_TARGET.has(id)) row.droneTargetable = 1;
+  if (Object.prototype.hasOwnProperty.call(RADIUS, id)) {
+    const radius = RADIUS[id];
+    if (radius != null) row.radius = radius;
+  }
+  if (CHARGE_BANK.has(id)) {
+    row.chargeLevels = row.shots;
+    row.shots = 1;
+  }
+  const cue = launchSound(row.kind);
+  row.launchSounds = [cue];
+  row.hitShipSounds = ["hitHull1"];
+  row.hitShieldSounds = ["hitShield1"];
+  row.missSounds = ["miss"];
+  row.icon = `img/weapons/${id}.png`;
+  if (Object.prototype.hasOwnProperty.call(STUN_TENTHS, id)) {
+    const tenths = STUN_TENTHS[id];
+    if (tenths != null) row.stunChance = tenths / 10;
+  }
   return row;
 }
 

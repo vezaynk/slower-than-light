@@ -93,6 +93,38 @@ export function readShipScale(el: Element | null): number {
   return Number.isFinite(raw) && raw > 0 ? raw : 1;
 }
 
+export type ShieldOval = {
+  rx: number;
+  ry: number;
+  /** Ellipse origin, scaled into the well. Added to the well's center. */
+  dx: number;
+  dy: number;
+};
+
+/**
+ * The layout ELLIPSE drawn in the hull well.
+ * Width and height scale by the picture box, then the layer pad is added.
+ * HORIZONTAL widens the radius. VERTICAL raises it. The origin scales the same way.
+ */
+export function shieldOval(
+  box: { w: number; h: number },
+  picture: { w: number; h: number },
+  ellipse: { w: number; h: number; x: number; y: number },
+  pad: number,
+  horizontal?: number,
+  vertical?: number,
+): ShieldOval | null {
+  if (!(picture.w > 0) || !(picture.h > 0)) return null;
+  const sx = box.w / picture.w;
+  const sy = box.h / picture.h;
+  return {
+    rx: (ellipse.w / 2 + (horizontal ?? 0)) * sx + pad,
+    ry: (ellipse.h / 2 + (vertical ?? 0)) * sy + pad,
+    dx: ellipse.x * sx,
+    dy: ellipse.y * sy,
+  };
+}
+
 /**
  * Where the segment from `from` to `to` first crosses into the ellipse at `center` with radii `rx`, `ry`.
  * A segment that starts inside returns `from`. One that never reaches the ellipse returns null.

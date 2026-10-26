@@ -12,6 +12,8 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
+import { currentLocale, localeFace, localeLabel, selectLocale } from "@/game/locale";
+import { choiceBlue, choiceOmitted } from "@/game/wiki/choice-locks";
 import { ArchiveBed } from "./ArchiveBed";
 import { ArchiveCopy, ArchiveLines } from "./ArchiveCopy";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
@@ -32,6 +34,7 @@ import {
   beaconPath,
   crewDef,
   droneDef,
+  packLocales,
   shipClassBlueprint,
   weaponDef,
 } from "@stl/pack";
@@ -2378,6 +2381,7 @@ function useTrayDrag(tray: string, onReorder: (from: number, to: number) => void
 }
 
 function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
+  const art = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   const mask = powerMask(game.player, zoltanBars(game.crew, game.player, "player", "weapons"));
   const guns = useTrayDrag("weapons", (from, to) => act((g) => reorderWeapons(g, from, to)));
   const drones = useTrayDrag("drones", (from, to) =>
@@ -2585,6 +2589,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   >
                     <span className="gun-hit">
                       <WeaponArt id={w.defId} height={24} />
+                      {art >= 0 && def?.icon && archiveImage(def.icon) ? (
+                        <img className="gun-icon" alt="" src={archiveImage(def.icon)} />
+                      ) : null}
                       <span className="gun-name">{name}</span>
                       {aimed ? (
                         <span className="gun-aim">
@@ -3699,6 +3706,16 @@ function EventModal({ game }: { game: Game }) {
   );
 }
 
+/** Hidden unmet choices stay off the card. An empty offer still has Continue. */
+function shownChoices(
+  game: Game,
+  choices: { id: string; label: string }[],
+): { id: string; label: string }[] {
+  const ids = choices.map((choice) => choice.id);
+  const shown = choices.filter((choice) => !choiceOmitted(game, choice.id, ids));
+  return shown.length > 0 ? shown : [{ id: "ack", label: "Continue" }];
+}
+
 function EventCard({ game }: { game: Game }) {
   const locked = useArrivalLock();
   const event = game.event;
@@ -3726,13 +3743,14 @@ function EventCard({ game }: { game: Game }) {
           </>
         ) : null}
         <div className={`choice-list${locked ? " is-arming" : ""}`}>
-          {event.choices.map((c, index) => {
+          {shownChoices(game, event.choices).map((c, index) => {
             const why = choiceDisabled(game, c.id);
+            const blue = choiceBlue(game, c.id);
             return (
               <button
                 key={c.id}
                 type="button"
-                className="choice-line"
+                className={`choice-line${blue ? " is-blue" : ""}`}
                 data-choice={c.id}
                 data-phone-action="choice"
                 disabled={!!why || locked}
@@ -4355,6 +4373,7 @@ function Portrait({ crew }: { crew: Crew }) {
  */
 function TitleScreen() {
   const [saveReady, setSaveReady] = useState(false);
+  const [locale, setLocale] = useState(currentLocale);
   const [view, setView] = useState<string | null>(null);
   const [packRatio, setPackRatio] = useState(0);
   const [packReady, setPackReady] = useState(false);
@@ -4465,6 +4484,43 @@ function TitleScreen() {
           </div>
         ) : null}
       </div>
+      {packReady ? (
+        <div className="title-locales">
+          <p
+            className="title-locale-name"
+            style={localeFace() ? { fontFamily: localeFace() } : undefined}
+          >
+            {localeLabel("menu_title", "Slower than Light")}
+          </p>
+          <button
+            type="button"
+            className={locale === "en" ? "is-on" : ""}
+            aria-pressed={locale === "en"}
+            onClick={(e) => {
+              e.stopPropagation();
+              selectLocale("en");
+              setLocale("en");
+            }}
+          >
+            English
+          </button>
+          {packLocales().map((row) => (
+            <button
+              key={row.code}
+              type="button"
+              className={locale === row.code ? "is-on" : ""}
+              aria-pressed={locale === row.code}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectLocale(row.code);
+                setLocale(row.code);
+              }}
+            >
+              {row.strings.language_name ?? row.code}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -1,56 +1,49 @@
 /**
- * Chain weapons. Wiki pages "Laser (Weapons)" and "Ion (Weapons)".
- * WeaponDef.charge stays the first printed step. Combat reads the rest here.
+ * Chain weapons. The loaded blueprint's `<boost>` is the profile.
+ * Cooldown subtracts seconds from the blueprint charge. Damage adds ion to the blueprint ion.
+ * Step 0 is that blueprint number. A weapon with no boost is not a chain weapon.
  */
+import { weaponDef } from "@stl/pack";
 
-/** Chain Burst Laser: "Charge-up profile: 16s/13s/10s/7s (-3s per step, 3 steps total)". */
-const BURST_CHARGE = [16, 13, 10, 7] as const;
-/**
- * Chain Vulcan: "Charge-up profile: 11.1s / 9.1s / 7.1s / 5.1s / 3.1s / 1.1s (-2s per step, 5 steps total)".
- * "It takes 35.5 seconds before the Vulcan gets up to full speed" is the sum of the first five.
- */
-const VULCAN_CHARGE = [11.1, 9.1, 7.1, 5.1, 3.1, 1.1] as const;
-/**
- * Chain Ion: "Ion damage per shot: 1, with each subsequent shot dealing 1 additional ion damage, up to a maximum of 4".
- * Charge time stays 14 seconds. "it takes 56 seconds to fully chain" is 4 × 14.
- */
-const ION_STEPS = [1, 2, 3, 4] as const;
+type Boost = { type: "cooldown" | "damage"; amount: number; count: number };
 
-const CHARGE_STEPS: Record<string, readonly number[]> = {
-  LASER_CHAINGUN: BURST_CHARGE,
-  LASER_CHAINGUN_2: VULCAN_CHARGE,
-};
-
-const ION_BY_ID: Record<string, readonly number[]> = {
-  ION_CHAINGUN: ION_STEPS,
-};
-
-function capped(steps: readonly number[], step: number): number {
-  const i = Math.max(0, Math.min(Math.floor(step), steps.length - 1));
-  return steps[i];
+function boostOf(defId: string): Boost | null {
+  const boost = weaponDef(defId)?.boost;
+  if (!boost || !(boost.count > 0)) return null;
+  return boost;
 }
 
-/** Seconds for this charge, or null when the weapon is not a charge-profile chain gun. The last time stays. */
+/** Printed charge times are tenths of a second. Subtraction is rounded back to that tenth. */
+function tenths(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+/** Seconds for this charge, or null when the weapon is not a cooldown chain. The last time stays. */
 export function chainChargeSeconds(defId: string, step: number): number | null {
-  const steps = CHARGE_STEPS[defId];
-  if (!steps) return null;
-  return capped(steps, step);
+  const boost = boostOf(defId);
+  const base = weaponDef(defId)?.charge;
+  if (!boost || boost.type !== "cooldown" || base == null) return null;
+  const i = Math.max(0, Math.min(Math.floor(step), boost.count));
+  return tenths(base - boost.amount * i);
 }
 
-/** Ion on the shot about to launch, or null when the weapon is not Chain Ion. The last amount stays. */
+/** Ion on the shot about to launch, or null when the weapon is not a damage chain. The last amount stays. */
 export function chainIonAmount(defId: string, step: number): number | null {
-  const steps = ION_BY_ID[defId];
-  if (!steps) return null;
-  return capped(steps, step);
+  const boost = boostOf(defId);
+  const base = weaponDef(defId)?.ion;
+  if (!boost || boost.type !== "damage" || base == null) return null;
+  const i = Math.max(0, Math.min(Math.floor(step), boost.count));
+  return base + boost.amount * i;
 }
 
 export function isChainWeapon(defId: string): boolean {
-  return defId in CHARGE_STEPS || defId in ION_BY_ID;
+  const boost = boostOf(defId);
+  return boost != null && (boost.type === "cooldown" || boost.type === "damage");
 }
 
-/** Index after a shot actually leaves. Null when this id is not a chain weapon. Capped at the last printed step. */
+/** Index after a shot actually leaves. Null when this id is not a chain weapon. Capped at `count`. */
 export function nextChainStep(defId: string, step: number): number | null {
-  const steps = CHARGE_STEPS[defId] ?? ION_BY_ID[defId];
-  if (!steps) return null;
-  return Math.min(Math.max(0, Math.floor(step)) + 1, steps.length - 1);
+  const boost = boostOf(defId);
+  if (!boost) return null;
+  return Math.min(Math.max(0, Math.floor(step)) + 1, boost.count);
 }

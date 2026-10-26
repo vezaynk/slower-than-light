@@ -247,8 +247,14 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (length != null) row.lengthTiles = length / 45;
   const speed = numOf(node, "speed");
   if (speed != null) row.speed = speed;
-  const crew = numOf(node, "crewDamage");
-  if (crew != null) row.crewDamage = crew;
+  const pers = numOf(node, "persDamage");
+  if (pers != null) {
+    row.persDamage = pers;
+    row.crewDamage = pers * 15;
+  } else {
+    const crew = numOf(node, "crewDamage");
+    if (crew != null) row.crewDamage = crew;
+  }
   const pierce = numOf(node, "sp");
   if (pierce != null) row.pierce = pierce;
   const art = textOf(node, "weaponArt");
@@ -259,7 +265,53 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (rarity != null) row.rarity = rarity;
   const hullBust = numOf(node, "hullBust");
   if (hullBust != null) row.hullBust = hullBust;
+  const stun = numOf(node, "stunChance");
+  if (stun != null) row.stunChance = stun / 10;
+  const sys = numOf(node, "sysDamage");
+  if (sys != null) row.sysDamage = sys;
+  const radius = numOf(node, "radius");
+  if (radius != null) row.radius = radius;
+  const levels = numOf(node, "chargeLevels");
+  if (levels != null) row.chargeLevels = levels;
+  const icon = textOf(node, "iconImage");
+  if (icon) row.icon = icon;
+  const launch = soundNames(node, "launchSounds");
+  if (launch) row.launchSounds = launch;
+  const hitShip = soundNames(node, "hitShipSounds");
+  if (hitShip) row.hitShipSounds = hitShip;
+  const hitShield = soundNames(node, "hitShieldSounds");
+  if (hitShield) row.hitShieldSounds = hitShield;
+  const miss = soundNames(node, "missSounds");
+  if (miss) row.missSounds = miss;
+  const spin = numOf(node, "spin");
+  if (spin != null) row.spin = spin;
+  if (numOf(node, "drone_targetable") === 1) row.droneTargetable = 1;
+  const boost = readBoost(node);
+  if (boost) row.boost = boost;
   return row;
+}
+
+function soundNames(node: XmlElement, tag: string): string[] | undefined {
+  const found = child(node, tag);
+  if (!found) return undefined;
+  const names = elements(found)
+    .filter((item) => item.tagName === "sound")
+    .map((item) => ownText(item).trim())
+    .filter((name) => name.length > 0);
+  return names.length > 0 ? names : undefined;
+}
+
+function readBoost(
+  node: XmlElement,
+): { type: "cooldown" | "damage"; amount: number; count: number } | undefined {
+  const found = child(node, "boost");
+  if (!found) return undefined;
+  const type = textOf(found, "type");
+  const amount = numOf(found, "amount");
+  const count = numOf(found, "count");
+  if ((type !== "cooldown" && type !== "damage") || amount == null || count == null)
+    return undefined;
+  return { type, amount, count };
 }
 
 export function readAugment(node: XmlElement): AugmentDef | undefined {

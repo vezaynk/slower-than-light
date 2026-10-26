@@ -14,8 +14,10 @@ import {
   marksFromDoors,
   shipClassBlueprint,
   warnPack,
+  droneDef,
   weaponDef,
 } from "@stl/pack";
+import { liveTable } from "./content.ts";
 import type {
   AugmentDef,
   HullCrewCount,
@@ -89,10 +91,11 @@ export type EnemySpec = {
 
 /**
  * @agent:drones. Power per enemy drone schematic, Drone Control, each schematic's "Power requirement" line.
+ * A shelf blueprint's `<power>` wins. These numbers cover a missing blueprint and the enemy-only schematics.
  * The SwarmKind entries repeat DRONE_POWER in extras/swarm.ts (swarm-enemy.test.ts checks they agree).
  * Kept here so this pure module does not import swarm.ts, which imports sim.ts.
  */
-export const SCHEMATIC_POWER: Record<string, number> = {
+const SCHEMATIC_FALLBACK: Record<string, number> = {
   /** Combat Drone Mark I: "Power requirement: 2 power". */
   COMBAT_1: 2,
   /** Combat Drone Mark II: "Power requirement: 4 power". */
@@ -139,6 +142,19 @@ export const SCHEMATIC_POWER: Record<string, number> = {
   /** Hacking drone: "power 1". */
   DRONE_HACKING: 1,
 };
+
+/** Bars a schematic needs. personnel and the enemy Mark II read the shelf blueprint they fly as. */
+export const SCHEMATIC_POWER: Record<string, number> = liveTable(
+  Object.keys(SCHEMATIC_FALLBACK),
+  (id) => {
+    const packed = droneDef(id)?.power;
+    if (packed != null) return packed;
+    if (id === "personnel") return droneDef("BATTLE")?.power ?? SCHEMATIC_FALLBACK.personnel;
+    if (id === "DEFENSE_2_ENEMY")
+      return droneDef("DEFENSE_2")?.power ?? SCHEMATIC_FALLBACK.DEFENSE_2_ENEMY;
+    return SCHEMATIC_FALLBACK[id];
+  },
+);
 
 /**
  * Archive blueprint → the sim id that already flies it.

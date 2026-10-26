@@ -3,7 +3,8 @@ import type { TuneDef } from "@stl/pack";
 /**
  * Scrap to raise a system, keyed by the level already owned, and the level a purchase installs.
  * Weapon Control, Engines, Shields, Medbay, and Piloting "System Upgrades" tables.
- * Reactor bars stay a formula in upgradeCost. Kit upgrade tables stay in the effect files.
+ * Reactor bars stay a formula in upgradeCost. Kit charge times stay in the effect files.
+ * `max` is `<maxPower>`. An owned level at or above it has no next purchase.
  * Power assignment stays in upgrade().
  */
 export const SYSTEM_TUNES: readonly TuneDef[] = [
@@ -21,6 +22,7 @@ export const SYSTEM_TUNES: readonly TuneDef[] = [
   // > "8 100 Ftlgame-scrap.png 4 layers" — [[Shields#System Upgrades]]
   {
     id: "shields",
+    max: 8,
     start: 2,
     costs: [
       { level: 1, cost: 100 },
@@ -37,6 +39,7 @@ export const SYSTEM_TUNES: readonly TuneDef[] = [
   // > "Level Cost Evasion 1 - 5% 2 10 Ftlgame-scrap.png 10% 3 15 Ftlgame-scrap.png 15% 4 30 Ftlgame-scrap.png 20% 5 40 Ftlgame-scrap.png 25% 6 60 Ftlgame-scrap.png 28% 7 80 Ftlgame-scrap.png 31% 8 120 Ftlgame-scrap.png 35%" — [[Engines#System Upgrades]]
   {
     id: "engines",
+    max: 8,
     start: 1,
     costs: [
       { level: 1, cost: 10 },
@@ -54,6 +57,7 @@ export const SYSTEM_TUNES: readonly TuneDef[] = [
   // > "3 50 Ftlgame-scrap.png 8.4%/sec" — [[Oxygen#System Upgrades]]
   {
     id: "oxygen",
+    max: 3,
     start: 1,
     costs: [
       { level: 1, cost: 25 },
@@ -66,6 +70,7 @@ export const SYSTEM_TUNES: readonly TuneDef[] = [
   // > "3 45 Ftlgame-scrap.png 19.2 HP/sec" — [[Medbay#System Upgrades]]
   {
     id: "medbay",
+    max: 3,
     start: 1,
     costs: [
       { level: 1, cost: 35 },
@@ -77,6 +82,7 @@ export const SYSTEM_TUNES: readonly TuneDef[] = [
   // > "Level Cost Power 1 - 1 2 40 Ftlgame-scrap.png 2 3 25 Ftlgame-scrap.png 3 4 35 Ftlgame-scrap.png 4 5 50 Ftlgame-scrap.png 5 6 75 Ftlgame-scrap.png 6 7 90 Ftlgame-scrap.png 7 8 100 Ftlgame-scrap.png 8" — [[Weapon Control#System Upgrades]]
   {
     id: "weapons",
+    max: 8,
     start: 1,
     costs: [
       { level: 1, cost: 40 },
@@ -93,10 +99,63 @@ export const SYSTEM_TUNES: readonly TuneDef[] = [
   // > "Level Cost Evasion % of the total available Engines evasion with crew without crew 1 - 100% 0% 2 20 Ftlgame-scrap.png 100% 50% 3 50 Ftlgame-scrap.png 100% 80%" — [[Piloting#System Upgrades]]
   {
     id: "pilot",
+    max: 3,
     start: 1,
     costs: [
       { level: 1, cost: 20 },
       { level: 2, cost: 50 },
+    ],
+  },
+  // These five listings sit before Sensors in the system catalog, so the blueprint
+  // file writes them here, in that catalog order. Install scrap stays on the store listing.
+  // Clone Bay: level 2 costs 35, level 3 costs 45. The 50 is the store price.
+  {
+    id: "clonebay",
+    max: 3,
+    start: 1,
+    costs: [
+      { level: 1, cost: 35 },
+      { level: 2, cost: 45 },
+    ],
+  },
+  // Crew Teleporter: level 2 costs 30, level 3 costs 60. The 90 is the store price.
+  {
+    id: "teleporter",
+    max: 3,
+    start: 1,
+    costs: [
+      { level: 1, cost: 30 },
+      { level: 2, cost: 60 },
+    ],
+  },
+  // Cloaking: level 2 costs 30, level 3 costs 50. The 150 is the store price, not a row here.
+  {
+    id: "cloaking",
+    max: 3,
+    start: 1,
+    costs: [
+      { level: 1, cost: 30 },
+      { level: 2, cost: 50 },
+    ],
+  },
+  // Mind Control: level 2 costs 30, level 3 costs 60. The 75 is the store price.
+  {
+    id: "mind",
+    max: 3,
+    start: 1,
+    costs: [
+      { level: 1, cost: 30 },
+      { level: 2, cost: 60 },
+    ],
+  },
+  // Hacking: level 2 costs 35, level 3 costs 60. The 80 is the store price.
+  {
+    id: "hacking",
+    max: 3,
+    start: 1,
+    costs: [
+      { level: 1, cost: 35 },
+      { level: 2, cost: 60 },
     ],
   },
   // Sensors, "System Upgrades": level 2 costs 25, level 3 costs 40.
@@ -108,6 +167,7 @@ export const SYSTEM_TUNES: readonly TuneDef[] = [
   // > "Only available when Level 3 Sensors subsystem is manned." — [[Sensors#System Upgrades]]
   {
     id: "sensors",
+    max: 3,
     start: 1,
     costs: [
       { level: 1, cost: 25 },
@@ -122,11 +182,31 @@ export const SYSTEM_TUNES: readonly TuneDef[] = [
   // > "3 50 Ftlgame-scrap.png Improved Blast Doors Significantly slows down fires spread between rooms, impedes boarders movement more" — [[Door System#System Upgrades]]
   {
     id: "doors",
+    max: 3,
     start: 1,
     costs: [
       { level: 0, cost: 60 },
       { level: 1, cost: 35 },
       { level: 2, cost: 50 },
+    ],
+  },
+  // Backup Battery: one step, 50 scrap, from level 1 to level 2. The 35 is the store price.
+  {
+    id: "battery",
+    max: 2,
+    start: 1,
+    costs: [{ level: 1, cost: 50 }],
+  },
+  // Artillery Beam and Flak Artillery share this id. Level 1 is not sold. Then 30, 50, 80. Cap 4.
+  // Charge seconds stay in the effect files.
+  {
+    id: "artillery",
+    max: 4,
+    start: 1,
+    costs: [
+      { level: 1, cost: 30 },
+      { level: 2, cost: 50 },
+      { level: 3, cost: 80 },
     ],
   },
 ];

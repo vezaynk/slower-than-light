@@ -1,6 +1,15 @@
 import type { AugmentId } from "../ids.ts";
 
-export type Listing = { id: AugmentId; name: string; detail: string; cost: number };
+export type Listing = {
+  id: AugmentId;
+  name: string;
+  detail: string;
+  cost: number;
+  /** `<value>`. The effect switch still decides what this magnitude scales. */
+  value?: number;
+  /** `<stackable>`. A duplicate that is not stackable pays 25 scrap. */
+  stackable?: boolean;
+};
 
 /**
  * Augmentations, purchase price under each heading below.
@@ -20,6 +29,8 @@ export const CATALOG: Listing[] = [
     name: "Automated Re-loader",
     detail: "Weapon charge speed rises 10% per copy. Charge time is divided by 1 + copies / 10.",
     cost: 40,
+    value: 0.1,
+    stackable: true,
   },
   // Augmentations, "Offensive Augmentations", Explosive Replicator. Store cost 60.
   {
@@ -27,6 +38,7 @@ export const CATALOG: Listing[] = [
     name: "Explosive Replicator",
     detail: "A missile has a 50% chance not to be spent.",
     cost: 60,
+    value: 0.5,
   },
   // Augmentations, "Offensive Augmentations", Stealth Weapons. Store cost 50.
   {
@@ -48,6 +60,7 @@ export const CATALOG: Listing[] = [
     name: "Repair Arm",
     detail: "Scrap gain repairs 2 hull and is cut 15% while the hull is not already full.",
     cost: 50,
+    value: 0.15,
   },
   // Augmentations, "Defensive Augmentations", Reverse Ion Field. Store cost 45.
   {
@@ -55,6 +68,8 @@ export const CATALOG: Listing[] = [
     name: "Reverse Ion Field",
     detail: "50% chance to ignore an ion hit. Two or more ignore every ion hit.",
     cost: 45,
+    value: 0.5,
+    stackable: true,
   },
   // Augmentations, "Defensive Augmentations", Shield Charge Booster. Store cost 45.
   {
@@ -62,6 +77,8 @@ export const CATALOG: Listing[] = [
     name: "Shield Charge Booster",
     detail: "Shields recharge 15% faster per copy.",
     cost: 45,
+    value: 0.15,
+    stackable: true,
   },
   // Augmentations, "FTL Augmentations", FTL Recharge Booster. Store cost 50.
   {
@@ -69,6 +86,8 @@ export const CATALOG: Listing[] = [
     name: "FTL Recharge Booster",
     detail: "One copy makes FTL charge take 80% as long. Two take 67%. Three take 57%.",
     cost: 50,
+    value: 0.25,
+    stackable: true,
   },
   // Augmentations, "Misc. Augmentations", Scrap Recovery Arm. Store cost 50.
   {
@@ -76,6 +95,8 @@ export const CATALOG: Listing[] = [
     name: "Scrap Recovery Arm",
     detail: "Scrap gain is 10% higher per copy, applied before a weld cut, then rounded down.",
     cost: 50,
+    value: 0.1,
+    stackable: true,
   },
   // Augmentations, "Non-Purchasable Augmentations", Rock Plating. Sell price 40. Store cost 50 is INVENTED.
   {
@@ -84,6 +105,7 @@ export const CATALOG: Listing[] = [
     detail:
       "15% chance to ignore hull damage. Systems still take the hit. Not a store item on the wiki; 50 scrap is invented.",
     cost: 50,
+    value: 0.15,
   },
   // Augmentations, "Non-Purchasable Augmentations", Titanium System Casing. Sell price 40. Store cost 50 is INVENTED.
   {
@@ -92,6 +114,7 @@ export const CATALOG: Listing[] = [
     detail:
       "15% chance to ignore system damage. The hull still takes the hit. Not a store item on the wiki; 50 scrap is invented.",
     cost: 50,
+    value: 0.15,
   },
   // Augmentations, "Misc. Augmentations", Battery Charger. Store cost 40.
   {
@@ -99,6 +122,7 @@ export const CATALOG: Listing[] = [
     name: "Battery Charger",
     detail: "The Backup Battery cooldown is cut in half.",
     cost: 40,
+    value: 0.5,
   },
   // Augmentations, "Crew Augmentations", Emergency Respirators. Store cost 50.
   {
@@ -106,6 +130,7 @@ export const CATALOG: Listing[] = [
     name: "Emergency Respirators",
     detail: "Suffocation damage is halved, including while boarding. A Crystal takes a quarter.",
     cost: 50,
+    value: 0.5,
   },
   // Augmentations, "Defensive Augmentations", Fire Suppression. Store cost 65.
   {
@@ -120,6 +145,7 @@ export const CATALOG: Listing[] = [
     name: "Distraction Buoys",
     detail: "At sector start, before sector 8, the fleet falls back one jump.",
     cost: 55,
+    value: 1,
   },
   // Augmentations, "Misc. Augmentations", Long-Ranged Scanners. Store cost 30.
   {
@@ -135,6 +161,7 @@ export const CATALOG: Listing[] = [
     name: "FTL Jammer",
     detail: "Enemy ships take twice as long to charge FTL.",
     cost: 30,
+    value: 2,
   },
   // Augmentations, "Misc. Augmentations", Drone Recovery Arm. Store cost 50.
   {

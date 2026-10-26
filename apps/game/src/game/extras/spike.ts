@@ -20,6 +20,7 @@ import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import "../pack/base.ts";
 import { crewDef, weaponDef } from "@stl/pack";
+import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import { hackStuns } from "./moreaugs.ts";
@@ -28,10 +29,9 @@ import { veilBlocks } from "./veil.ts";
 import { ANTI_STUN_S, REDEPLOY_S, enemyDroneSpot, interceptIncomingDrone } from "./swarm.ts";
 import type { Difficulty, Door, Game, Kit, KitId, Room, Ship, SysId } from "../types.ts";
 
-/** Hacking wiki, "System upgrades": level 1 cost is 80. */
+/** Hacking wiki, "System upgrades": level 1 cost is 80. The store blueprint carries that price. */
 // Wiki citations:
 // > "1 80 Ftlgame-scrap.png 4 sec" — [[Hacking#System upgrades]]
-export const SPIKE_COST = 80;
 
 /**
  * Hacking wiki, "Overview" (Hacking pulse): 4, 7, or 10 seconds by power in the system.
@@ -171,9 +171,10 @@ function roomOf(ship: Ship, id: string): Room | undefined {
  * That table also prices level 2 at 35 and level 3 at 60; those costs are not charged here.
  */
 export function installSpike(g: Game): boolean {
-  if (g.player.kits.hacking) return false;
-  if (g.scrap < SPIKE_COST) return false;
-  g.scrap -= SPIKE_COST;
+  const cost = listedCost("hacking");
+  if (g.player.kits.hacking || cost == null) return false;
+  if (g.scrap < cost) return false;
+  g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.hacking = {
     id: "hacking",
@@ -195,16 +196,15 @@ export function installSpike(g: Game): boolean {
 // Wiki citations:
 // > "2 35 Ftlgame-scrap.png 7 sec" — [[Hacking#System upgrades]]
 // > "3 60 Ftlgame-scrap.png 10 sec" — [[Hacking#System upgrades]]
-const SPIKE_UPGRADE: Record<number, number> = { 1: 35, 2: 60 };
-
 export function spikeUpgradeCost(level: number): number | null {
-  return SPIKE_UPGRADE[level] ?? null;
+  if (level >= tuneMax("hacking", 3)) return null;
+  return upgradeCost("hacking", level);
 }
 
 /** Hacking wiki, "System upgrades": pay 35 to reach level 2, then 60 to reach level 3. */
 export function upgradeSpike(g: Game): boolean {
   const kit = g.player.kits.hacking;
-  if (!kit || kit.level >= 3) return false;
+  if (!kit || kit.level >= tuneMax("hacking", 3)) return false;
   const cost = spikeUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return false;
   g.scrap -= cost;

@@ -60,7 +60,7 @@ describe("system tunes", () => {
     // > "The reactor can hold a maximum of 25 power bars." — [[Ship#Reactor power]]
     // > "In order to fully upgrade a ship with 8 power, it costs 490 Ftlgame-scrap.png." — [[Ship#Reactor power]]
     // > "reactor power bars from 3 to 5 cost 30 scrap each" — [[Systems]]
-    assert.equal(allTunes().length, 8);
+    assert.equal(allTunes().length, 15);
     for (const tune of allTunes()) {
       assert.equal(tuneDef(tune.id)?.start, tune.start);
       for (const step of tune.costs)

@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { applyImpact, createGame, evasionPercent, sparePower, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
 import {
-  INSTALL_COST,
+  mindInstallCost,
   installLeash,
   leashedDamageBonus,
   interruptLeash,
@@ -129,7 +129,7 @@ describe("mind", () => {
     // Wiki citations:
     // > "1 75 Ftlgame-scrap.png Mind control 1 enemy crew" — [[Mind Control#System Upgrades]]
     const g = createGame(4);
-    assert.equal(INSTALL_COST, 75);
+    assert.equal(mindInstallCost(), 75);
     g.scrap = 75;
     installLeash(g);
     assert.equal(g.scrap, 0);

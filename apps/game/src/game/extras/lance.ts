@@ -1,4 +1,5 @@
 import type { Game, Kit, Room, Ship } from "../types.ts";
+import { listedCost, liveTable, tuneMax, upgradeCost } from "../content.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { ARTILLERY_SHOT_LABEL, artillerySwipeSeconds } from "../wiki/weapons-beam.ts";
@@ -14,7 +15,10 @@ export const DISPLAY_NAME = "Artillery Beam";
  * Artillery Beam "Overview": pre-installed, not a store item. "System Upgrades" level 1 cost is "-".
  * INFERRED: null, so installLance spends no scrap. The page gives no purchase price.
  */
-export const INSTALL_COST: number | null = null;
+/** Artillery is not a store listing, so this stays null unless a loaded blueprint prices it. */
+export function lanceInstallCost(): number | null {
+  return listedCost("artillery");
+}
 // Wiki citations:
 // > "Level Cost Charge time 1 - 50 sec" — [[Artillery Beam#System Upgrades]]
 
@@ -32,24 +36,21 @@ export const CHARGE_SECONDS: Record<number, number> = {
  * Artillery Beam "System Upgrades" cost: level 2 = 30, 3 = 50, 4 = 80 scrap.
  * Level 1 on that table is "-", so it has no row here.
  */
-export const UPGRADE_COSTS: Record<number, number> = {
-  // Wiki citations:
-  // > "2 30 Ftlgame-scrap.png 40 sec" — [[Artillery Beam#System Upgrades]]
-  2: 30,
-  // Wiki citations:
-  // > "3 50 Ftlgame-scrap.png 30 sec" — [[Artillery Beam#System Upgrades]]
-  3: 50,
-  // Wiki citations:
-  // > "4 80 Ftlgame-scrap.png 20 sec" — [[Artillery Beam#System Upgrades]]
-  4: 80,
-};
+// Wiki citations:
+// > "2 30 Ftlgame-scrap.png 40 sec" — [[Artillery Beam#System Upgrades]]
+// > "3 50 Ftlgame-scrap.png 30 sec" — [[Artillery Beam#System Upgrades]]
+// > "4 80 Ftlgame-scrap.png 20 sec" — [[Artillery Beam#System Upgrades]]
+/** Keyed by the level being bought. The scrap is the artillery tune, read when asked. */
+export const UPGRADE_COSTS: Record<number, number> = liveTable([2, 3, 4], (key) =>
+  upgradeCost("artillery", Number(key) - 1),
+);
 
 /**
  * Template:Beam weapons, Artillery Beam row: power {{tooltip|1-4*|Artillery system with a maximum of 4 system levels}}.
  * Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
  */
 function powerCap(kit: { level: number; damage?: number }): number {
-  const level = Math.max(0, Math.min(4, kit.level));
+  const level = Math.max(0, Math.min(tuneMax("artillery", 4), kit.level));
   return Math.max(0, level - (kit.damage ?? 0));
 }
 
@@ -83,9 +84,10 @@ const LANCE_HULLS: ReadonlySet<string> = new Set(["PLAYER_SHIP_FED", "PLAYER_SHI
 export function installLance(g: Game): boolean {
   if (g.player.kits.artillery) return false;
   if (!LANCE_HULLS.has(g.hullId ?? "")) return false;
-  if (INSTALL_COST != null) {
-    if (g.scrap < INSTALL_COST) return false;
-    g.scrap -= INSTALL_COST;
+  const cost = lanceInstallCost();
+  if (cost != null) {
+    if (g.scrap < cost) return false;
+    g.scrap -= cost;
   }
   g.player.kits.artillery = blankKit();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
@@ -94,13 +96,15 @@ export function installLance(g: Game): boolean {
 
 /** Artillery Beam, "System Upgrades": scrap to reach the next level. Level 1's cost is a dash. */
 export function lanceUpgradeCost(level: number): number | null {
-  return UPGRADE_COSTS[level + 1] ?? null;
+  if (level >= tuneMax("artillery", 4)) return null;
+  return upgradeCost("artillery", level);
 }
 
 /** Artillery Beam, "System Upgrades": 30, then 50, then 80, through level 4. */
 export function upgradeLance(g: Game): boolean {
   const kit = g.player.kits.artillery;
-  if (!kit || kit.weapon === "ARTILLERY_FED_C" || kit.level >= 4) return false;
+  if (!kit || kit.weapon === "ARTILLERY_FED_C" || kit.level >= tuneMax("artillery", 4))
+    return false;
   const cost = lanceUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return false;
   g.scrap -= cost;

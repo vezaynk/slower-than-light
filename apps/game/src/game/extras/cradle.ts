@@ -1,3 +1,4 @@
+import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { kitBars, log, playerMedicalOff, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
@@ -5,11 +6,10 @@ import { helixHolds } from "./moreaugs.ts";
 import { hackPulseOn } from "./spike.ts";
 import type { Crew, Game, Kit, SkillName } from "../types.ts";
 
-/** Wiki page "Clone Bay", section "System Upgrades": level 1 purchasing cost 50. */
+/** Wiki page "Clone Bay", section "System Upgrades": level 1 purchasing cost 50. The store blueprint carries it. */
 // Wiki citations:
 // > "1 50** Ftlgame-scrap.png 12 sec" — [[Clone Bay#System Upgrades]]
 // > "Purchasing or switching cost. (Medbay system upgrades are transferred to Clone Bay, and vice versa, automatically)" — [[Clone Bay#System Upgrades]]
-export const INSTALL_COST: number | null = 50;
 
 /** Wiki page "Clone Bay", section "System Upgrades": cloning takes 12 / 9 / 7 seconds. */
 // Wiki citations:
@@ -81,7 +81,7 @@ function poweredCradle(g: Game): Kit | null {
 
 /** Wiki page "Clone Bay", section "System Upgrades": install at the level-1 purchase cost of 50. */
 export function installCradle(g: Game) {
-  const cost = INSTALL_COST;
+  const cost = listedCost("clonebay");
   if (cost == null) {
     log(g, "Clone Bay price is not listed.");
     return;
@@ -102,16 +102,15 @@ export function installCradle(g: Game) {
 // Wiki citations:
 // > "2 35 Ftlgame-scrap.png 9 sec" — [[Clone Bay#System Upgrades]]
 // > "3 45 Ftlgame-scrap.png 7 sec" — [[Clone Bay#System Upgrades]]
-const CRADLE_UPGRADE: Record<number, number> = { 1: 35, 2: 45 };
-
 export function cradleUpgradeCost(level: number): number | null {
-  return CRADLE_UPGRADE[level] ?? null;
+  if (level >= tuneMax("clonebay", 3)) return null;
+  return upgradeCost("clonebay", level);
 }
 
 /** Clone Bay, "System Upgrades": pay 35 to reach level 2, then 45 to reach level 3. */
 export function upgradeCradle(g: Game) {
   const kit = g.player.kits.clonebay;
-  if (!kit || kit.level >= 3) return;
+  if (!kit || kit.level >= tuneMax("clonebay", 3)) return;
   const cost = cradleUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return;
   g.scrap -= cost;

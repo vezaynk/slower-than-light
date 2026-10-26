@@ -20,6 +20,7 @@ import type { Crew, Game, Kit, Ship } from "../types.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
 import "../pack/base.ts";
 import { crewDef } from "@stl/pack";
+import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { shipSight } from "./slug-sight.ts";
 
 // Combat setup stays on the sim. This module does not construct a game.
@@ -30,14 +31,26 @@ void startCombat;
  * Mind Control wiki, "System Upgrades": level 1 cost is 75.
  * Null only if that price is absent.
  */
-export const INSTALL_COST: number | null = 75;
-
-/** Mind Control wiki, "System Upgrades": level 2 costs 30, level 3 costs 60. */
 // Wiki citations:
 // > "1 75 Ftlgame-scrap.png Mind control 1 enemy crew" — [[Mind Control#System Upgrades]]
+export function mindInstallCost(): number | null {
+  return listedCost("mind");
+}
+
+/** Mind Control wiki, "System Upgrades": level 2 costs 30, level 3 costs 60. Keyed by the level being bought. */
+// Wiki citations:
 // > "2 30 Ftlgame-scrap.png +15 Health, +25% combat damage boost" — [[Mind Control#System Upgrades]]
 // > "3 60 Ftlgame-scrap.png +30 Health, +100% combat damage boost" — [[Mind Control#System Upgrades]]
-export const UPGRADE_COST: Readonly<Record<number, number>> = { 2: 30, 3: 60 };
+export const UPGRADE_COST: Readonly<Record<number, number>> = new Proxy(
+  {} as Record<number, number>,
+  {
+    get(_target, prop) {
+      const next = typeof prop === "string" ? Number(prop) : Number.NaN;
+      if (!Number.isInteger(next)) return undefined;
+      return upgradeCost("mind", next - 1) ?? undefined;
+    },
+  },
+);
 
 /**
  * Mind Control wiki, "Overview": 14 seconds at Lv1, 20 at Lv2, 28 at Lv3.
@@ -219,7 +232,8 @@ export function heldByEnemy(c: Crew): boolean {
 
 /** Mind Control wiki, "System Upgrades": spends the level 1 cost of 75. */
 export function installLeash(g: Game) {
-  if (INSTALL_COST == null) {
+  const cost = mindInstallCost();
+  if (cost == null) {
     log(g, "No price on the sheet.");
     return;
   }
@@ -227,11 +241,11 @@ export function installLeash(g: Game) {
     log(g, "The Lark already carries Mind Control.");
     return;
   }
-  if (g.scrap < INSTALL_COST) {
+  if (g.scrap < cost) {
     log(g, "Not enough scrap for Mind Control.");
     return;
   }
-  g.scrap -= INSTALL_COST;
+  g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.mind = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
@@ -241,9 +255,9 @@ export function installLeash(g: Game) {
 /** Mind Control wiki, "System Upgrades": pays 30 to reach level 2, then 60 to reach level 3. */
 export function upgradeLeash(g: Game) {
   const kit = g.player.kits.mind;
-  if (!kit || kit.level >= 3) return;
+  if (!kit || kit.level >= tuneMax("mind", 3)) return;
   const next = kit.level + 1;
-  const cost = UPGRADE_COST[next];
+  const cost = upgradeCost("mind", kit.level);
   if (cost == null) return;
   if (g.scrap < cost) {
     log(g, "Not enough scrap to raise Mind Control.");

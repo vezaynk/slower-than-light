@@ -257,6 +257,8 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (image) row.image = image;
   const rarity = numOf(node, "rarity");
   if (rarity != null) row.rarity = rarity;
+  const hullBust = numOf(node, "hullBust");
+  if (hullBust != null) row.hullBust = hullBust;
   return row;
 }
 
@@ -271,6 +273,11 @@ export function readAugment(node: XmlElement): AugmentDef | undefined {
   };
   const rarity = numOf(node, "rarity");
   if (rarity != null) row.rarity = rarity;
+  const value = numOf(node, "value");
+  if (value != null) row.value = value;
+  const stacked = textOf(node, "stackable")?.toLowerCase();
+  if (stacked === "true" || stacked === "1") row.stackable = true;
+  else if (stacked === "false" || stacked === "0") row.stackable = false;
   return row;
 }
 
@@ -290,6 +297,18 @@ export function readDrone(node: XmlElement): DroneDef | undefined {
   if (image) row.image = image;
   const rarity = numOf(node, "rarity");
   if (rarity != null) row.rarity = rarity;
+  const type = textOf(node, "type");
+  if (type) row.type = type;
+  const power = numOf(node, "power");
+  if (power != null) row.power = power;
+  const cooldown = numOf(node, "cooldown");
+  if (cooldown != null) row.cooldown = cooldown;
+  const speed = numOf(node, "speed");
+  if (speed != null) row.speed = speed;
+  const dodge = numOf(node, "dodge");
+  if (dodge != null) row.dodge = dodge;
+  const weapon = textOf(node, "weaponBlueprint");
+  if (weapon) row.weapon = weapon;
   return row;
 }
 
@@ -317,6 +336,8 @@ function readSystemBlueprint(node: XmlElement): { system?: SystemDef; tune?: Tun
       cost: numOf(node, "cost") ?? 0,
       slot: written === "kit" || written === "sys" ? written : "sys",
     };
+    const max = numOf(node, "maxPower");
+    if (max != null) found.system.max = max;
   }
   const tune = readBlueprintTune(node, id);
   if (tune) found.tune = tune;
@@ -345,7 +366,14 @@ export function readUpgradeCosts(node: XmlElement): TuneStep[] {
 /** A tune is startPower or one upgradeCost list. A blueprint with neither is only a listing. */
 export function readBlueprintTune(node: XmlElement, id: string): TuneDef | undefined {
   if (!child(node, "startPower") && !child(node, "upgradeCost")) return undefined;
-  return { id, start: numOf(node, "startPower") ?? 1, costs: readUpgradeCosts(node) };
+  const tune: TuneDef = {
+    id,
+    start: numOf(node, "startPower") ?? 1,
+    costs: readUpgradeCosts(node),
+  };
+  const max = numOf(node, "maxPower");
+  if (max != null) tune.max = max;
+  return tune;
 }
 
 export function readFaction(node: XmlElement): FactionSurrender | undefined {

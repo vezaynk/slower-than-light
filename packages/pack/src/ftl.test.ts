@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { emitPack } from "./emit.ts";
 import { attachTextLists, packFromFtl, pickOpening } from "./ftl.ts";
 import { onPackWarning } from "./warnings.ts";
 import {
@@ -1279,6 +1280,119 @@ describe("packFromFtl", () => {
     assert.equal(pack.drones?.find((row) => row.id === "QUIET")?.noloc, true);
     assert.equal(pack.drones?.find((row) => row.id === "LOUD")?.noloc, undefined);
     assert.equal(pack.drones?.find((row) => row.id === "ZERO")?.noloc, true);
+  });
+
+  it("round-trips hull bust, augment value, drone flight, and system max", () => {
+    const xml = emitPack({
+      weapons: [
+        {
+          id: "HULL",
+          name: "Hull",
+          kind: "laser",
+          power: 1,
+          charge: 1,
+          shots: 1,
+          gap: 0,
+          damage: 1,
+          ion: 0,
+          fire: 0,
+          breach: 0,
+          ammo: false,
+          price: 1,
+          blurb: "Hull.",
+          speed: 75,
+          hullBust: 1,
+        },
+      ],
+      augments: [
+        {
+          id: "SCRAP",
+          name: "Scrap",
+          detail: "More.",
+          cost: 1,
+          value: 0.1,
+          stackable: true,
+        },
+        {
+          id: "PLATE",
+          name: "Plate",
+          detail: "Once.",
+          cost: 1,
+          value: 0.15,
+          stackable: false,
+        },
+      ],
+      drones: [
+        {
+          id: "COMBAT_1",
+          name: "Combat",
+          cost: 1,
+          type: "COMBAT",
+          power: 2,
+          cooldown: 1000,
+          speed: 15,
+        },
+      ],
+      systems: [{ id: "cloaking", name: "Cloaking", cost: 150, slot: "kit" }],
+      tunes: [
+        {
+          id: "cloaking",
+          start: 1,
+          max: 3,
+          costs: [
+            { level: 1, cost: 30 },
+            { level: 2, cost: 50 },
+          ],
+        },
+        {
+          id: "artillery",
+          start: 1,
+          max: 4,
+          costs: [
+            { level: 1, cost: 30 },
+            { level: 2, cost: 50 },
+            { level: 3, cost: 80 },
+          ],
+        },
+      ],
+    });
+    const pack = packFromFtl([{ path: "data/blueprints.xml", xml }]);
+    const weapon = pack.weapons?.find((row) => row.id === "HULL");
+    assert.equal(weapon?.speed, 75);
+    assert.equal(weapon?.hullBust, 1);
+    const scrap = pack.augments?.find((row) => row.id === "SCRAP");
+    assert.equal(scrap?.value, 0.1);
+    assert.equal(scrap?.stackable, true);
+    const plate = pack.augments?.find((row) => row.id === "PLATE");
+    assert.equal(plate?.value, 0.15);
+    assert.equal(plate?.stackable, false);
+    const drone = pack.drones?.find((row) => row.id === "COMBAT_1");
+    assert.equal(drone?.type, "COMBAT");
+    assert.equal(drone?.power, 2);
+    assert.equal(drone?.cooldown, 1000);
+    assert.equal(drone?.speed, 15);
+    assert.equal(drone?.weapon, undefined);
+    assert.equal(drone?.dodge, undefined);
+    const cloak = pack.tunes?.find((row) => row.id === "cloaking");
+    assert.equal(cloak?.max, 3);
+    assert.equal(cloak?.start, 1);
+    assert.deepEqual(cloak?.costs, [
+      { level: 1, cost: 30 },
+      { level: 2, cost: 50 },
+    ]);
+    assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.max, 3);
+    assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.cost, 150);
+    const artillery = pack.tunes?.find((row) => row.id === "artillery");
+    assert.equal(artillery?.max, 4);
+    assert.deepEqual(artillery?.costs, [
+      { level: 1, cost: 30 },
+      { level: 2, cost: 50 },
+      { level: 3, cost: 80 },
+    ]);
+    assert.equal(
+      pack.systems?.find((row) => row.id === "artillery"),
+      undefined,
+    );
   });
 
   it("reads an event environment, including which ship a battery shoots", () => {

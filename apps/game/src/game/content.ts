@@ -100,11 +100,12 @@ export function shieldLayerSeconds(layer: number): number {
 
 /**
  * Cost of the next level, keyed by the level already owned.
- * System rows are the tune records. Reactor bars stay here.
+ * System and kit rows are the tune records. Reactor bars stay here.
  * Reactor bars: Template:Reactor power cost. The bar being bought is level + 1, and the cap is 25.
  * Ship: finishing a reactor that already has 8 bars costs 490 scrap.
+ * A tune with `<maxPower>` has no purchase once the owned level has reached that cap.
  */
-export function upgradeCost(id: SysId | "reactor", level: number): number | null {
+export function upgradeCost(id: string, level: number): number | null {
   if (id === "reactor") {
     // Wiki citations:
     // > "The reactor can hold a maximum of 25 power bars." — [[Ship#Reactor power]]
@@ -118,7 +119,54 @@ export function upgradeCost(id: SysId | "reactor", level: number): number | null
     if (next <= 20) return 30;
     return 35;
   }
-  return tuneDef(id)?.costs.find((step) => step.level === level)?.cost ?? null;
+  const tune = tuneDef(id);
+  if (!tune) return null;
+  if (tune.max != null && level >= tune.max) return null;
+  return tune.costs.find((step) => step.level === level)?.cost ?? null;
+}
+
+/** Store price of a system blueprint. Null when that blueprint is not sold. */
+export function listedCost(id: string): number | null {
+  const row = systemDef(id);
+  return row ? row.cost : null;
+}
+
+/** `<maxPower>` on the tune, or `fallback` when the blueprint omits it. */
+export function tuneMax(id: string, fallback: number): number {
+  return tuneDef(id)?.max ?? fallback;
+}
+
+/**
+ * A table read when a key is asked for. The own keys stay `keys`, so `in` and deepEqual see that list.
+ * Values come from `read` at that moment, after the stand-in has loaded.
+ */
+export function liveTable(
+  keys: readonly (string | number)[],
+  read: (key: string) => number | null | undefined,
+): Record<string, number> {
+  const names = keys.map(String);
+  const known = new Set(names);
+  return new Proxy({} as Record<string, number>, {
+    get(_target, prop) {
+      if (typeof prop !== "string" || !known.has(prop)) return undefined;
+      return read(prop) ?? undefined;
+    },
+    has(_target, prop) {
+      return typeof prop === "string" && known.has(prop);
+    },
+    ownKeys() {
+      return [...names];
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      if (typeof prop !== "string" || !known.has(prop)) return undefined;
+      return {
+        configurable: true,
+        enumerable: true,
+        writable: false,
+        value: read(prop) ?? undefined,
+      };
+    },
+  });
 }
 
 /** Template:Stores: hull repairs in stores. Per hull point: 2 in sectors 1–3, 3 in 4–6, 4 in 7–8. */

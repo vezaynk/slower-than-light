@@ -1,3 +1,4 @@
+import { augmentDef } from "@stl/pack";
 import type { AugmentId, Game } from "../types.ts";
 
 function fitted(g: Game, id: AugmentId): boolean {
@@ -6,7 +7,8 @@ function fitted(g: Game, id: AugmentId): boolean {
 
 /** Augmentations, "FTL Augmentations", FTL Jammer: enemy jump time is doubled. */
 export function enemyFtlScale(g: Game): number {
-  return fitted(g, "FTL_JAMMER") ? 2 : 1;
+  if (!fitted(g, "FTL_JAMMER")) return 1;
+  return augmentDef("FTL_JAMMER")?.value ?? 2;
 }
 
 /**

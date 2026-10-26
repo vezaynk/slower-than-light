@@ -1,7 +1,8 @@
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { liveTable, tuneMax, upgradeCost } from "../content.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
-import { projectileFlightSeconds } from "../wiki/projectile-speed.ts";
+import { LASER_FLIGHT_S, projectileFlightSeconds } from "../wiki/projectile-speed.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
 import { veilBlocks } from "./veil.ts";
@@ -31,20 +32,14 @@ export const CHARGE_SECONDS: Record<FlakLevel, number> = {
  * Flak Artillery, System Upgrades: cost to reach that level from the one below.
  * Level 1 is a dash on that table (no purchase into the row).
  */
-export const UPGRADE_COSTS: Record<2 | 3 | 4, number> = {
-  // Flak Artillery, System Upgrades: level 2 costs 30
-  // Wiki citations:
-  // > "2 30 Ftlgame-scrap.png 40 sec" — [[Flak Artillery#System Upgrades]]
-  2: 30,
-  // Flak Artillery, System Upgrades: level 3 costs 50
-  // Wiki citations:
-  // > "3 50 Ftlgame-scrap.png 30 sec" — [[Flak Artillery#System Upgrades]]
-  3: 50,
-  // Flak Artillery, System Upgrades: level 4 costs 80
-  // Wiki citations:
-  // > "4 80 Ftlgame-scrap.png 20 sec" — [[Flak Artillery#System Upgrades]]
-  4: 80,
-};
+// Flak Artillery shares the artillery tune with the beam. Keyed by the level being bought.
+// Wiki citations:
+// > "2 30 Ftlgame-scrap.png 40 sec" — [[Flak Artillery#System Upgrades]]
+// > "3 50 Ftlgame-scrap.png 30 sec" — [[Flak Artillery#System Upgrades]]
+// > "4 80 Ftlgame-scrap.png 20 sec" — [[Flak Artillery#System Upgrades]]
+export const UPGRADE_COSTS = liveTable([2, 3, 4], (key) =>
+  upgradeCost("artillery", Number(key) - 1),
+) as Record<2 | 3 | 4, number>;
 
 /**
  * Not sold.
@@ -100,9 +95,11 @@ export const POWER_BARS: Record<FlakLevel, number> = {
 
 /**
  * Template:Flak weapons, Flak Artillery: speed 26.
- * Speed 60 stays 0.7s, so this flight is 42/26 seconds. projectile-speed.ts holds that scale.
+ * Speed 60 stays 0.7s, so this flight is 42/26 seconds. Read when the burst is fired.
  */
-const FLIGHT_SECONDS = projectileFlightSeconds("flak-artillery") ?? 0.7;
+function flightSeconds(): number {
+  return projectileFlightSeconds("flak-artillery") ?? LASER_FLIGHT_S;
+}
 
 function blank(level: FlakLevel): Kit {
   return {
@@ -130,10 +127,8 @@ export function armFlak(g: Game, level: FlakLevel): void {
 
 /** Flak Artillery, "System Upgrades": scrap to reach the next level. Level 1's cost is a dash. */
 export function flakUpgradeCost(level: number): number | null {
-  if (level === 1) return UPGRADE_COSTS[2];
-  if (level === 2) return UPGRADE_COSTS[3];
-  if (level === 3) return UPGRADE_COSTS[4];
-  return null;
+  if (level >= tuneMax("artillery", 4)) return null;
+  return upgradeCost("artillery", level);
 }
 
 /** Flak Artillery, "System Upgrades": 30, then 50, then 80, through level 4. */
@@ -151,7 +146,7 @@ export function upgradeFlak(g: Game): boolean {
 
 /** Filled bars cannot pass min(4, level) minus damage. A Zoltan stamp counts inside that cap. */
 function powerCap(kit: { level: number; damage?: number }): number {
-  const level = Math.max(0, Math.min(4, kit.level));
+  const level = Math.max(0, Math.min(tuneMax("artillery", 4), kit.level));
   return Math.max(0, level - (kit.damage ?? 0));
 }
 
@@ -253,7 +248,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
       targetRoom: rooms[i % rooms.length].id,
       wait: 0,
       t: 0,
-      duration: FLIGHT_SECONDS,
+      duration: flightSeconds(),
       label: FAKE_LABEL,
     });
   }
@@ -272,7 +267,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
       offRoom: landed.offRoom ? true : undefined,
       wait: 0,
       t: 0,
-      duration: FLIGHT_SECONDS,
+      duration: flightSeconds(),
     };
     born.push(shot);
   }

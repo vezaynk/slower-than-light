@@ -1,5 +1,5 @@
 import { playArchiveAudio } from "../archive-audio.ts";
-import { skillRank } from "../content.ts";
+import { liveTable, skillRank } from "../content.ts";
 import { canFlyDrone } from "./flown.ts";
 import {
   applyIon,
@@ -32,18 +32,12 @@ import { registerBeamTicker } from "../beam-tickers.ts";
 import { SCHEMATIC_POWER } from "../enemy-gen.ts";
 import type { Crew, DroneBlast, DroneUnit, Game, Kit, Room, Ship, Shot, SysId } from "../types.ts";
 import "../pack/base.ts";
-import { crewDef } from "@stl/pack";
+import { crewDef, droneDef } from "@stl/pack";
 import { battleDroneFight, repairDronePace } from "./drone-crew.ts";
 import { veilBlocks } from "./veil.ts";
 import { crewDroneSpeed } from "../wiki/cited-booster.ts";
 import { bypassZoltan } from "../wiki/cited-bypass.ts";
-import {
-  BEAM_HOLD_S,
-  COMBAT1_SPEED,
-  COMBAT2,
-  bearingAccepted,
-  orbitLegSeconds,
-} from "../wiki/cited-combat2.ts";
+import { BEAM_HOLD_S, COMBAT2, bearingAccepted, orbitLegSeconds } from "../wiki/cited-combat2.ts";
 import { INTRUDER } from "../wiki/cited-intruder.ts";
 import { OVERCHARGER, OVERCHARGER_PLUS } from "../wiki/cited-overcharger.ts";
 import { scramblerBlocks } from "../wiki/cited-scrambler.ts";
@@ -81,8 +75,11 @@ export type SwarmKind =
   | "REPAIR"
   | "SHIP_REPAIR";
 
-/** Per-drone power. The system overhead above is separate and is 0. INFERRED, same as SYSTEM_POWER. */
-export const DRONE_POWER: Record<SwarmKind, number> = {
+/**
+ * Per-drone power when the blueprint omits `<power>`. The system overhead above is separate and is 0.
+ * INFERRED, same as SYSTEM_POWER.
+ */
+const DRONE_POWER_FALLBACK: Record<SwarmKind, number> = {
   /** Drone Control, Defensive Drones > Defense Drone Mark I: "Power requirement: 2 power". */
   DEFENSE_1: 2,
   /** Drone Control, Defense Drone Mark II: "Power requirement: 3 power". */
@@ -101,18 +98,31 @@ export const DRONE_POWER: Record<SwarmKind, number> = {
   SHIP_REPAIR: 2,
 };
 
+/** Bars a schematic needs. The blueprint's `<power>` wins. Shield overchargers are not in this list. */
+export const DRONE_POWER: Record<SwarmKind, number> = liveTable(
+  Object.keys(DRONE_POWER_FALLBACK),
+  (kind) => droneDef(kind)?.power ?? DRONE_POWER_FALLBACK[kind as SwarmKind],
+) as Record<SwarmKind, number>;
+
 /**
  * Shot cooldown in seconds. Mark I and Mark II act when this hits 0.
  * Anti-Combat starts fully charged (0) and would use its entry after a shot.
  */
-export const DRONE_COOLDOWN_S: Record<"DEFENSE_1" | "DEFENSE_2" | "ANTI_DRONE", number> = {
+/** Blueprint cooldown is milliseconds. These are the seconds when that child is absent. */
+const DRONE_COOLDOWN_MS = {
   /** Drone Control, Defensive Drones > Defense Drone Mark I: "Cooldown: 1000 ms". */
-  DEFENSE_1: 1000 / 1000,
+  DEFENSE_1: 1000,
   /** Drone Control, Defense Drone Mark II: "Cooldown: 880 ms". */
-  DEFENSE_2: 880 / 1000,
+  DEFENSE_2: 880,
   /** Drone Control, Anti-Combat Drone: "Cooldown: 7000 ms". */
-  ANTI_DRONE: 7000 / 1000,
-};
+  ANTI_DRONE: 7000,
+} as const;
+
+export const DRONE_COOLDOWN_S: Record<"DEFENSE_1" | "DEFENSE_2" | "ANTI_DRONE", number> = liveTable(
+  Object.keys(DRONE_COOLDOWN_MS),
+  (kind) =>
+    (droneDef(kind)?.cooldown ?? DRONE_COOLDOWN_MS[kind as keyof typeof DRONE_COOLDOWN_MS]) / 1000,
+) as Record<"DEFENSE_1" | "DEFENSE_2" | "ANTI_DRONE", number>;
 
 /**
  * Drone Control, "Combat Drones (offensive drones)", the paragraph above "Combat Drone Mark I":
@@ -150,8 +160,11 @@ export const BEAM2_SPEED = 11;
 export const FIRE_DRONE_SPEED = 12;
 
 export function beamDroneSpeed(kind: string): number {
+  const packed = droneDef(kind)?.speed;
+  if (packed != null && packed > 0) return packed;
+  if (kind === "COMBAT_2") return COMBAT2.speed;
   if (kind === "COMBAT_BEAM_2") return BEAM2_SPEED;
-  if (kind === "fire") return FIRE_DRONE_SPEED;
+  if (kind === "fire" || kind === "COMBAT_FIRE") return FIRE_DRONE_SPEED;
   return BEAM1_SPEED;
 }
 
@@ -718,7 +731,7 @@ function tickStriker(g: Game, kit: Kit, dt: number) {
     g,
     kit,
     dt,
-    COMBAT1_SPEED,
+    beamDroneSpeed("COMBAT_1"),
     () => enemyRoom(g),
     (room) => {
       if (combatFireBlocked(g, "player")) return;
@@ -742,7 +755,7 @@ function tickBeam(g: Game, kit: Kit, dt: number) {
     g,
     kit,
     dt,
-    BEAM1_SPEED,
+    beamDroneSpeed("COMBAT_BEAM"),
     () => enemyRoom(g),
     (roomId) => {
       fireBeamSwipe(g, g.enemy, roomId, "COMBAT_BEAM", "player", FLOWN_LABEL);
@@ -1296,12 +1309,12 @@ function tickHull(g: Game, kit: Kit, dt: number): void {
 function tickCombat2(g: Game, kit: Kit, dt: number) {
   // Drone Control, Combat Drone Mark II: "Power requirement: 4 power".
   // "Moves faster, and consequently has a higher rate of fire." The wait is the orbit leg.
-  if (!kit.on || kit.power < COMBAT2.power) return;
+  if (!kit.on || kit.power < (droneDef("COMBAT_2")?.power ?? COMBAT2.power)) return;
   flyCombatLaser(
     g,
     kit,
     dt,
-    COMBAT2.speed,
+    beamDroneSpeed("COMBAT_2"),
     () => enemyRoom(g),
     (room) => {
       if (combatFireBlocked(g, "player")) return;
@@ -2263,7 +2276,7 @@ function randomOf<T>(g: Game, list: readonly T[]): T | undefined {
 
 /** Combat Drone Mark I and Mark II aboard the enemy. Same orbit leg as the player's copy. */
 function tickEnemyStriker(g: Game, unit: DroneUnit, dt: number) {
-  const speed = unit.kind === "COMBAT_2" ? COMBAT2.speed : COMBAT1_SPEED;
+  const speed = beamDroneSpeed(unit.kind);
   flyCombatLaser(
     g,
     unit,

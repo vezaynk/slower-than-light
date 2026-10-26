@@ -17,16 +17,22 @@ function has(g: Game, id: AugmentId): boolean {
   return g.augments.includes(id);
 }
 
+/** `<value>` on the augment blueprint. `fallback` is the figure this effect used before the record existed. */
+function magnitude(id: AugmentId, fallback: number): number {
+  const value = augmentDef(id)?.value;
+  return value != null ? value : fallback;
+}
+
 /** Augmentations, "Offensive Augmentations", Automated Re-loader: firing rate +10% per copy. */
 export function feedRate(g: Game, from: "player" | "enemy"): number {
   if (from !== "player") return 1;
-  return 1 + copies(g, "AUTO_COOLDOWN") / 10;
+  return 1 + copies(g, "AUTO_COOLDOWN") * magnitude("AUTO_COOLDOWN", 0.1);
 }
 
 /** Augmentations, "Offensive Augmentations", Explosive Replicator: 50% chance not to spend a missile. */
 export function saveMissile(g: Game): boolean {
   if (!has(g, "EXPLOSIVE_REPLICATOR")) return false;
-  return rand(g) < 0.5;
+  return rand(g) < magnitude("EXPLOSIVE_REPLICATOR", 0.5);
 }
 
 /** Augmentations, "Offensive Augmentations", Weapon Pre-Igniter. Artillery is a separate kit and is not primed. */
@@ -52,13 +58,13 @@ export function baffleHolds(g: Game): boolean {
   const n = copies(g, "ION_ARMOR");
   if (n >= 2) return true;
   if (n <= 0) return false;
-  return rand(g) < 0.5;
+  return rand(g) < magnitude("ION_ARMOR", 0.5);
 }
 
 /** Augmentations, "Defensive Augmentations", Shield Charge Booster: +15% recharge rate per copy, additive. */
 export function coilRate(g: Game, aboard: "player" | "enemy"): number {
   if (aboard !== "player") return 1;
-  return 1 + 0.15 * copies(g, "SHIELD_RECHARGE");
+  return 1 + magnitude("SHIELD_RECHARGE", 0.15) * copies(g, "SHIELD_RECHARGE");
 }
 
 /**
@@ -77,13 +83,13 @@ export function spoolRate(g: Game): number {
 /** Augmentations, "Non-Purchasable Augmentations", Rock Plating: 15% chance to negate hull damage. Store price is INVENTED. */
 export function keelHolds(g: Game): boolean {
   if (!has(g, "ROCK_ARMOR")) return false;
-  return rand(g) < 0.15;
+  return rand(g) < magnitude("ROCK_ARMOR", 0.15);
 }
 
 /** Augmentations, "Non-Purchasable Augmentations", Titanium System Casing: 15% chance to negate system damage. Store price is INVENTED. */
 export function casingHolds(g: Game): boolean {
   if (!has(g, "SYSTEM_CASING")) return false;
-  return rand(g) < 0.15;
+  return rand(g) < magnitude("SYSTEM_CASING", 0.15);
 }
 
 /**
@@ -97,9 +103,10 @@ export function casingHolds(g: Game): boolean {
  * INFERRED: that is this same half, on the boarder (`crew.lungs`), not an enemy-hull augment.
  */
 export function lungScale(g: Game, crew: Crew): number {
-  if (crew.lungs) return 0.5;
+  const half = magnitude("O2_MASKS", 0.5);
+  if (crew.lungs) return half;
   if (crew.side !== "player" || !has(g, "O2_MASKS")) return 1;
-  return 0.5;
+  return half;
 }
 
 /**
@@ -156,14 +163,16 @@ export function onNewSector(g: Game) {
     g.buoyDelay = 0;
     return;
   }
+  // `<value>` is how many jumps the buoy holds. One is the printed delay.
+  const delay = magnitude("FLEET_DISTRACTION", 1);
   // The map starts the fleet at 0, so a subtraction would do nothing. Hold the next advance instead.
   if (g.fleet <= 0) {
-    g.buoyDelay = 1;
+    g.buoyDelay = delay;
     log(g, "Distraction Buoys. The fleet loses a jump.");
     return;
   }
   g.buoyDelay = 0;
-  g.fleet -= 1;
+  g.fleet -= delay;
   log(g, "Distraction Buoys. The fleet loses a jump.");
 }
 
@@ -234,9 +243,9 @@ export function scanMark(
  * INFERRED: the two are applied in that order. The page never states a combined formula.
  */
 export function adjustScrapAmount(g: Game, scrap: number): number {
-  let n = scrap * (1 + 0.1 * copies(g, "SCRAP_COLLECTOR"));
+  let n = scrap * (1 + magnitude("SCRAP_COLLECTOR", 0.1) * copies(g, "SCRAP_COLLECTOR"));
   if (has(g, "REPAIR_ARM") && g.player.hull < g.player.hullMax) {
-    n *= 0.85;
+    n *= 1 - magnitude("REPAIR_ARM", 0.15);
     g.player.hull += 2;
     log(g, "Repair Arm seals 2 hull.");
   }

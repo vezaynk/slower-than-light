@@ -858,6 +858,8 @@ function systemElement(doc: XmlDocument, system?: SystemDef, tune?: TuneDef): Xm
     add(node, leaf(doc, "title", system.name));
     add(node, leaf(doc, "cost", system.cost));
   }
+  const max = system?.max ?? tune?.max;
+  if (max != null) add(node, leaf(doc, "maxPower", max));
   if (tune) {
     add(node, leaf(doc, "startPower", tune.start));
     if (tune.costs.length > 0) {
@@ -881,6 +883,12 @@ function droneElement(doc: XmlDocument, drone: DroneDef): XmlElement {
   add(node, leaf(doc, "cost", drone.cost));
   if (drone.image) add(node, leaf(doc, "droneImage", drone.image));
   if (drone.rarity != null) add(node, leaf(doc, "rarity", drone.rarity));
+  if (drone.type) add(node, leaf(doc, "type", drone.type));
+  if (drone.power != null) add(node, leaf(doc, "power", drone.power));
+  if (drone.cooldown != null) add(node, leaf(doc, "cooldown", drone.cooldown));
+  if (drone.speed != null) add(node, leaf(doc, "speed", drone.speed));
+  if (drone.dodge != null) add(node, leaf(doc, "dodge", drone.dodge));
+  if (drone.weapon) add(node, leaf(doc, "weaponBlueprint", drone.weapon));
   return node;
 }
 
@@ -890,6 +898,8 @@ function augmentElement(doc: XmlDocument, augment: AugmentDef): XmlElement {
   add(node, leaf(doc, "desc", augment.detail));
   add(node, leaf(doc, "cost", augment.cost));
   if (augment.rarity != null) add(node, leaf(doc, "rarity", augment.rarity));
+  if (augment.value != null) add(node, leaf(doc, "value", augment.value));
+  if (augment.stackable != null) add(node, leaf(doc, "stackable", augment.stackable));
   return node;
 }
 
@@ -912,6 +922,7 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true
   if (weapon.speed != null) add(node, leaf(doc, "speed", weapon.speed));
   if (weapon.crewDamage != null) add(node, leaf(doc, "crewDamage", weapon.crewDamage));
   if (weapon.pierce != null) add(node, leaf(doc, "sp", weapon.pierce));
+  if (weapon.hullBust != null) add(node, leaf(doc, "hullBust", weapon.hullBust));
   if (weapon.art) add(node, leaf(doc, "weaponArt", weapon.art));
   if (weapon.image) add(node, leaf(doc, "image", weapon.image));
   if (weapon.rarity != null) add(node, leaf(doc, "rarity", weapon.rarity));

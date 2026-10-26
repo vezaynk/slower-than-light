@@ -407,6 +407,8 @@ function readFtlSystem(node: XmlElement): { system?: SystemDef; tune?: TuneDef }
   };
   const detail = textOf(node, "desc");
   if (detail) system.detail = detail;
+  const max = numOf(node, "maxPower");
+  if (max != null) system.max = max;
   return tune ? { system, tune } : { system };
 }
 

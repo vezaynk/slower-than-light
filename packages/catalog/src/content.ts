@@ -3,7 +3,7 @@ import type { SysId } from "./ids.ts";
 import { ORDNANCE } from "./extras/ordnance.ts";
 import { BEAM_WEAPONS } from "./wiki/weapons-beam.ts";
 import { BOMB_WEAPONS } from "./wiki/weapons-bomb.ts";
-import { FLAK_CRYSTAL_WEAPONS } from "./wiki/weapons-flak-crystal.ts";
+import { FLAK_ARTILLERY, FLAK_CRYSTAL_WEAPONS } from "./wiki/weapons-flak-crystal.ts";
 import { ION_WEAPONS } from "./wiki/weapons-ion.ts";
 import { LASER_WEAPONS } from "./wiki/weapons-laser.ts";
 import { MISSILE_WEAPONS } from "./wiki/weapons-missile.ts";
@@ -273,6 +273,8 @@ for (const extra of [
   if (extra.id === "BEAM_LONG" || WEAPONS[extra.id]) continue;
   WEAPONS[extra.id] = extra;
 }
+// Flak Artillery is off the flak list. The blueprint carries projectile speed.
+if (!WEAPONS[FLAK_ARTILLERY.id]) WEAPONS[FLAK_ARTILLERY.id] = FLAK_ARTILLERY;
 // @agent:flagship. Boss Laser and Boss Beam, and the flagship page's Boss Missile breach (wiki/flagship-weapons.ts).
 registerFlagshipWeapons(WEAPONS);
 

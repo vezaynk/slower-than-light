@@ -5,8 +5,8 @@
  * Drone Control is a bundle, not a row of this list: 75 with a System Repair Drone,
  * 85 with a Defense Drone Mark I or a Combat Drone Mark I. The naked 60 is not a shelf price.
  * Artillery Beam and Flak Artillery have kit ids and no purchase price on that list.
- * `slot` says whether the install lands on a system or a kit. Power stays in the effect code.
- * Starting level and upgrade scrap live on the tune record.
+ * `slot` says whether the install lands on a system or a kit.
+ * Starting level, upgrade scrap, and the level cap live on the tune record.
  */
 export const CITED_SYSTEMS: readonly {
   ref: string;

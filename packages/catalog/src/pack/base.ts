@@ -109,15 +109,27 @@ function crewRow(id: KinId): CrewDef {
 }
 
 function augmentRow(row: (typeof CATALOG)[number]): AugmentDef {
-  return { id: row.id, name: row.name, detail: row.detail, cost: row.cost };
+  const augment: AugmentDef = { id: row.id, name: row.name, detail: row.detail, cost: row.cost };
+  if (row.value != null) augment.value = row.value;
+  if (row.stackable != null) augment.stackable = row.stackable;
+  return augment;
 }
 
 function droneRow(row: (typeof CITED_DRONES)[number]): DroneDef {
-  return { id: row.ref, name: row.name, cost: row.cost, image: row.ref };
+  const drone: DroneDef = { id: row.ref, name: row.name, cost: row.cost, image: row.ref };
+  drone.type = row.type;
+  drone.power = row.power;
+  if (row.cooldown != null) drone.cooldown = row.cooldown;
+  if (row.speed != null) drone.speed = row.speed;
+  return drone;
 }
 
 function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
-  return { id: row.ref, name: row.name, cost: row.cost, slot: row.slot };
+  const system: SystemDef = { id: row.ref, name: row.name, cost: row.cost, slot: row.slot };
+  // The blueprint has one maxPower. The tune authors it; the listing carries the same cap.
+  const max = SYSTEM_TUNES.find((tune) => tune.id === row.ref)?.max;
+  if (max != null) system.max = max;
+  return system;
 }
 
 /**
@@ -163,7 +175,13 @@ function storeRow(row: StoreDef): StoreDef {
 }
 
 function tuneRow(row: TuneDef): TuneDef {
-  return { id: row.id, start: row.start, costs: row.costs.map((step) => ({ ...step })) };
+  const tune: TuneDef = {
+    id: row.id,
+    start: row.start,
+    costs: row.costs.map((step) => ({ ...step })),
+  };
+  if (row.max != null) tune.max = row.max;
+  return tune;
 }
 
 function surrenderRow(row: SurrenderOfferDef): SurrenderOfferDef {
@@ -772,6 +790,56 @@ function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef
   );
 }
 
+/**
+ * Projectile speed column. Beams already take BEAM_SPEED and are not in this table.
+ * Seconds in the sim are 42 / speed. Bombs and the invented dart have no speed.
+ */
+const PROJECTILE_SPEED: Record<string, number> = {
+  LASER_BURST_1: 60,
+  LASER_BURST_2: 60,
+  LASER_BURST_2_A: 60,
+  LASER_BURST_3: 60,
+  LASER_BURST_5: 60,
+  LASER_HEAVY_1: 60,
+  LASER_HEAVY_1_SP: 60,
+  LASER_HEAVY_2: 60,
+  LASER_HULL_1: 75,
+  LASER_HULL_2: 90,
+  LASER_CHAINGUN: 60,
+  LASER_CHAINGUN_2: 60,
+  LASER_CHARGEGUN_PLAYER: 60,
+  LASER_CHARGEGUN: 60,
+  LASER_CHARGEGUN_2: 60,
+  ARTILLERY_BOSS_1: 60,
+  SHOTGUN: 26,
+  SHOTGUN_PLAYER: 26,
+  SHOTGUN_2: 26,
+  "flak-artillery": 26,
+  ION_1: 30,
+  ION_4: 30,
+  ION_2: 40,
+  ION_STUN: 30,
+  ION_CHARGEGUN: 30,
+  ION_CHAINGUN: 30,
+  ARTILLERY_BOSS_4: 40,
+  MISSILES_1: 35,
+  MISSILES_2_PLAYER: 35,
+  MISSILES_2: 35,
+  MISSILES_3: 35,
+  MISSILES_BREACH: 35,
+  MISSILES_HULL: 35,
+  MISSILE_CHARGEGUN: 45,
+  MISSILES_BURST: 35,
+  ARTILLERY_BOSS_2: 35,
+  CRYSTAL_BURST_1: 50,
+  CRYSTAL_BURST_2: 50,
+  CRYSTAL_HEAVY_1: 50,
+  CRYSTAL_HEAVY_2: 50,
+};
+
+/** `<hullBust>` flag. Systemless hull damage is twice the blueprint damage. */
+const HULL_BUST = new Set(["LASER_HULL_1", "LASER_HULL_2", "BEAM_HULL", "MISSILES_HULL"]);
+
 /** Shield layers the weapon pages print. Other guns print no pierce. */
 const PIERCE_ONE: Record<string, number> = {
   LASER_HEAVY_1_SP: 1,
@@ -789,6 +857,9 @@ function weaponRow(id: string): WeaponBlueprint {
   if (Object.prototype.hasOwnProperty.call(PIERCE_ONE, id)) row.pierce = PIERCE_ONE[id];
   if (Object.prototype.hasOwnProperty.call(BEAM_TILES, id)) row.lengthTiles = BEAM_TILES[id];
   if (Object.prototype.hasOwnProperty.call(BEAM_SPEED, id)) row.speed = BEAM_SPEED[id];
+  else if (Object.prototype.hasOwnProperty.call(PROJECTILE_SPEED, id))
+    row.speed = PROJECTILE_SPEED[id];
+  if (HULL_BUST.has(id)) row.hullBust = 1;
   if (id === "BEAM_LONG") row.crewDamage = BEAM_CREW.BEAM_LONG;
   else if (Object.prototype.hasOwnProperty.call(BEAM_CREW, id)) row.crewDamage = BEAM_CREW[id];
   if (Object.prototype.hasOwnProperty.call(BOMB_CREW, id)) row.crewDamage = BOMB_CREW[id];

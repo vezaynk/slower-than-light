@@ -2,9 +2,11 @@ import type { WeaponDef } from "../content.ts";
 
 /**
  * Unfitted rows from page titles "Flak (Weapons)" and "Crystal (Weapons)".
- * Flak Gun Mark I is already fitted as scatter. Flak Artillery is not a weapon
- * row; flakart.ts owns that system, and the extra numbers sit in the gaps.
- * Crystal pages state one shield layer of pierce. WeaponDef has no pierce field.
+ * Flak Gun Mark I is already fitted as scatter. Flak Artillery stays off this
+ * list: flakart.ts owns charge, fake flak, and the room rolls. FLAK_ARTILLERY
+ * is a separate blueprint so the burst can read projectile speed. The extra
+ * numbers sit in the gaps. Crystal pages state one shield layer of pierce.
+ * WeaponDef has no pierce field.
  */
 export type FlakCrystalGap = {
   id: string;
@@ -30,6 +32,31 @@ const FLAK_FAMILY = {
   breach: 0,
   ammo: false,
 } as const;
+
+/**
+ * Template:Flak weapons, Flak Artillery: speed 26. The sim converts that to
+ * 42/26 seconds. Charge by level, the seven fake pellets, and the room odds
+ * stay in flakart.ts. Price 0: Overview says it is pre-installed and not sold.
+ */
+export const FLAK_ARTILLERY: WeaponDef = {
+  id: "flak-artillery",
+  name: "Flak Artillery",
+  kind: "flak",
+  // Template:Flak weapons: power 1-4. The row stores the maximum, as Boss Laser does.
+  power: 4,
+  // Level 1 charge. Levels 2–4 stay in flakart.ts.
+  charge: 50,
+  // Flak (Weapons), Flak Artillery: shots 7, damage per shot 1.
+  shots: 7,
+  gap: 0,
+  damage: 1,
+  ion: 0,
+  fire: 0,
+  breach: 0,
+  ammo: false,
+  price: 0,
+  blurb: "Seven pellets from the artillery mount. Not sold.",
+};
 
 export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
   {

@@ -40,6 +40,11 @@ export type WeaponBlueprint = {
   image?: string;
   /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
   rarity?: number;
+  /**
+   * `<hullBust>`. When set, a hit on a systemless room deals twice the blueprint's hull damage.
+   * The integer is the flag. The doubled figure is `damage * 2`, not this number.
+   */
+  hullBust?: number;
 };
 
 /**
@@ -90,9 +95,13 @@ export type AugmentDef = {
   cost: number;
   /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
   rarity?: number;
+  /** `<value>`. The effect switch still decides what this magnitude scales. */
+  value?: number;
+  /** `<stackable>`. A duplicate that is not stackable pays 25 scrap instead of fitting. */
+  stackable?: boolean;
 };
 
-/** A drone schematic listing. Power, cooldown, and speed stay in the effect code. */
+/** A drone schematic. Cooldown is milliseconds, the unit the blueprint writes. */
 export type DroneDef = {
   id: string;
   name: string;
@@ -107,9 +116,21 @@ export type DroneDef = {
   noloc?: boolean;
   /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
   rarity?: number;
+  /** `<type>`: COMBAT, DEFENSE, BOARDER, SHIELD, REPAIR, SHIP_REPAIR, BATTLE. */
+  type?: string;
+  /** `<power>`. Bars the drone needs while it flies. */
+  power?: number;
+  /** `<cooldown>` in milliseconds. */
+  cooldown?: number;
+  /** `<speed>`. Orbit and travel use this. A boarding drone's attack interval stays in the sim. */
+  speed?: number;
+  /** `<dodge>`. */
+  dodge?: number;
+  /** `<weaponBlueprint>` id, when the drone names the gun it fires. */
+  weapon?: string;
 };
 
-/** Where a purchased system is installed. Power and the starting level stay in the effect code. */
+/** Where a purchased system is installed. The starting level stays on the tune. */
 export type SystemSlot = "sys" | "kit";
 
 /** A store listing for one single-price system. `detail` is the archive's factual line. */
@@ -120,6 +141,8 @@ export type SystemDef = {
   slot: SystemSlot;
   /** Factual install line from the archive. Absent on a stats-only row. */
   detail?: string;
+  /** `<maxPower>`. The highest level this system can reach. */
+  max?: number;
 };
 
 /** A hangar layout letter. Unlock rules use this letter. A loaded hull names its layout file. */
@@ -421,13 +444,15 @@ export type TuneStep = {
  * Upgrade scrap and the level a store purchase installs.
  * These records are not store rows. Engines, oxygen, weapons, and piloting
  * have tunes and do not appear on the system shelf.
- * Reactor bands and kit upgrade tables stay in code.
+ * Reactor bands stay a formula in upgradeCost. Charge times stay in the effect code.
  */
 export type TuneDef = {
   id: string;
   /** Level written when the system is bought. Shields is 2. */
   start: number;
   costs: TuneStep[];
+  /** `<maxPower>`. An owned level at or above this has no next purchase. */
+  max?: number;
 };
 
 export type EventResource = "scrap" | "fuel" | "missiles" | "parts";

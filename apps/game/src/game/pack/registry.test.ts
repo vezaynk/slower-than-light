@@ -391,11 +391,30 @@ describe("content pack", () => {
     assert.equal(storeDef("standard")?.lines.find((line) => line.id === "human")?.cost, 45);
   });
 
-  it("loads the tune catalog in its authored order", () => {
-    assert.equal(allTunes().length, 8);
+  it("loads every tune in archive order", () => {
+    assert.equal(allTunes().length, 15);
+    // A system that also has a tune is written when the emitter reaches it.
+    // Clone Bay through Hacking sit before Sensors, so their tunes land there.
+    // Artillery has no store listing and comes last.
     assert.deepEqual(
       allTunes().map((row) => row.id),
-      ["shields", "engines", "oxygen", "medbay", "weapons", "pilot", "sensors", "doors"],
+      [
+        "shields",
+        "engines",
+        "oxygen",
+        "medbay",
+        "weapons",
+        "pilot",
+        "clonebay",
+        "teleporter",
+        "cloaking",
+        "mind",
+        "hacking",
+        "sensors",
+        "doors",
+        "battery",
+        "artillery",
+      ],
     );
     for (const tune of allTunes()) {
       assert.equal(tuneDef(tune.id)?.start, tune.start);

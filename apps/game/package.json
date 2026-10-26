@@ -19,6 +19,7 @@
     "test": "node --test 'scripts/**/*.test.mjs' && pnpm test:src",
     "playthrough": "node scripts/playthrough.mjs",
     "hard": "node scripts/hard-play.mjs",
+    "hard:fleet": "node scripts/hard-fleet.mjs",
     "lint": "cd ../.. && ./node_modules/.bin/eslint apps/game"
   },
   "dependencies": {

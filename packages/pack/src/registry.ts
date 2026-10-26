@@ -578,10 +578,34 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     factions.set(row.id, copyFaction(row));
 }
 
-/** The loaded race, or the plain race when the id is missing. */
+/**
+ * Ghost::GetMaxHealth is 50 and CanSuffocate returns false. No other multiplier changes.
+ * FTL has no crewBlueprint named ghost. A loaded row with that id wins over this constant.
+ */
+const GHOST_CREW: CrewDef = {
+  id: "ghost",
+  name: "Ghost",
+  hp: 50,
+  move: 1,
+  repair: 1,
+  fight: 1,
+  suffocate: 0,
+  fireTaken: 1,
+  bonusPower: 0,
+  hasDeathExplosion: false,
+  drainsOxygen: false,
+  detectsLifeforms: false,
+  resistsMindControl: false,
+  lockdown: false,
+  lockCooldown: 0,
+  fireRepairMultiplier: 1,
+};
+
+/** The loaded race, the ghost constant when no ghost blueprint is loaded, or the plain race. */
 export function crewDef(id: string | undefined): CrewDef {
   const row = id ? crew.get(id) : undefined;
   if (row) return row;
+  if (id === "ghost") return GHOST_CREW;
   const plain = crew.get("human");
   if (plain) return plain;
   throw new Error("crew pack is not loaded");

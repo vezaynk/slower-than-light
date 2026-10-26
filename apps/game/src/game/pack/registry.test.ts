@@ -83,6 +83,20 @@ describe("content pack", () => {
     assert.equal(weaponDef("energy"), undefined);
     assert.equal(crewDef("LASER_BURST_1").id, "human");
     assert.equal(crewDef("missing").hp, 100);
+    assert.equal(crewDef("ghost").id, "ghost");
+    assert.equal(crewDef("ghost").hp, 50);
+    assert.equal(crewDef("ghost").suffocate, 0);
+    assert.equal(crewDef("ghost").fireTaken, 1);
+    const loaded = crewDef("human");
+    loadPack(
+      {
+        crew: [{ ...loaded, id: "ghost", name: "Shade", hp: 40, suffocate: 1 }],
+      },
+      "append",
+    );
+    assert.equal(crewDef("ghost").name, "Shade");
+    assert.equal(crewDef("ghost").hp, 40);
+    assert.equal(crewDef("ghost").suffocate, 1);
   });
 
   it("copies beam length, speed, and crew damage onto the campaign guns", () => {

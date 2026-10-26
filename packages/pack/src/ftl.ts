@@ -267,12 +267,15 @@ function readNames(doc: XmlDocument): ContentPack["names"] | undefined {
   return { pool, syllables };
 }
 
-/** Every crewCount class should be "random" or a crewBlueprint in the same archive. Others are warned about. */
+/**
+ * Every crewCount class should be "random", "ghost", or a crewBlueprint in the same archive.
+ * Ghost is a race CrewMemberFactory builds with no crewBlueprint. Others are warned about.
+ */
 function checkCrewClasses(hulls: readonly HullDef[], crew: readonly CrewDef[]): void {
   const races = new Set(crew.map((row) => row.id));
   for (const hull of hulls) {
     for (const row of hull.crewCounts ?? []) {
-      if (row.class === "random" || races.has(row.class)) continue;
+      if (row.class === "random" || row.class === "ghost" || races.has(row.class)) continue;
       warnPack(`shipBlueprint ${hull.id}: crewCount class "${row.class}" is not a crewBlueprint.`);
     }
   }
@@ -313,6 +316,8 @@ function readFtlCrew(node: XmlElement): CrewDef | undefined {
   };
   const detail = textOf(node, "desc");
   if (detail) row.detail = detail;
+  const short = textOf(node, "short");
+  if (short) row.short = short;
   const powers: string[] = [];
   for (const item of elements(child(node, "powerList"))) {
     if (item.tagName !== "power") continue;
@@ -1363,14 +1368,21 @@ function readAlter(
       warnPack(`A <status> system "${system}" is not one this ship uses; it is skipped.`);
       return "skip";
     }
+    const targetId = target as "player" | "enemy";
+    // ClearStatus ignores amount. The six vanilla clears on weapons and hacking omit it.
+    if (type === "clear") {
+      return amount == null
+        ? { k: "status", type: "clear", target: targetId, system }
+        : { k: "status", type: "clear", target: targetId, system, amount };
+    }
     if (amount == null) {
       warnPack(`A <status> on ${system} has no whole-number amount; it is skipped.`);
       return "skip";
     }
     return {
       k: "status",
-      type: type as "limit" | "divide" | "clear" | "loss",
-      target: target as "player" | "enemy",
+      type: type as "limit" | "divide" | "loss",
+      target: targetId,
       system,
       amount,
     };

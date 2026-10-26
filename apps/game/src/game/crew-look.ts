@@ -27,6 +27,7 @@ export const KIN_SKIN: Record<KinId, string> = {
   rock: "#b9a48a",
   anaerobic: "#c9d0d8",
   crystal: "#bfe8ff",
+  ghost: "#e7eef6",
 };
 
 export const NAME_MAX = 14;

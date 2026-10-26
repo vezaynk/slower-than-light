@@ -470,7 +470,6 @@ describe("packFromFtl", () => {
       assert.deepEqual(warnings, [
         "shipBlueprint ODD: a crewCount of 2 names no class; it is skipped.",
         "shipBlueprint ODD: a crewCount has no amount; it is skipped.",
-        'shipBlueprint ODD: crewCount class "ghost" is not a crewBlueprint.',
         "shipBlueprint ODD: its droneList names drones but has no drones (parts) attribute; it carries 0 parts.",
       ]);
     } finally {
@@ -752,6 +751,65 @@ describe("packFromFtl", () => {
     ]);
     assert.equal(pack.weapons?.find((row) => row.id === "LETO")?.kind, "missile");
     assert.equal(pack.weapons?.find((row) => row.id === "LETO")?.ammo, true);
+  });
+
+  it("reads rarity, a crystal weapon that spends no missiles, and a crew short", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/text_blueprints.xml",
+        xml: `<FTL><text name="crew_human_short">Human</text></FTL>`,
+      },
+      {
+        path: "data/blueprints.xml",
+        xml: `<FTL>
+          <crewBlueprint name="human">
+            <title>Human</title>
+            <short id="crew_human_short"/>
+            <desc>Plain.</desc>
+          </crewBlueprint>
+          <weaponBlueprint name="ION_1">
+            <type>LASER</type>
+            <title>Ion</title>
+            <ion>1</ion>
+            <rarity>1</rarity>
+          </weaponBlueprint>
+          <weaponBlueprint name="CRYSTAL_BURST_1">
+            <type>MISSILES</type>
+            <title>Crystal Burst</title>
+            <rarity>0</rarity>
+          </weaponBlueprint>
+          <weaponBlueprint name="PLAIN">
+            <type>LASER</type>
+            <title>Plain</title>
+          </weaponBlueprint>
+          <droneBlueprint name="COMBAT_1">
+            <title>Combat</title>
+            <rarity>2</rarity>
+          </droneBlueprint>
+          <augBlueprint name="ROCK_ARMOR">
+            <title>Rock</title>
+            <desc>Plating.</desc>
+            <rarity>3</rarity>
+          </augBlueprint>
+        </FTL>`,
+      },
+    ]);
+    const ion = pack.weapons?.find((row) => row.id === "ION_1");
+    assert.equal(ion?.kind, "laser");
+    assert.equal(ion?.ion, 1);
+    assert.equal(ion?.ammo, false);
+    assert.equal(ion?.rarity, 1);
+    const crystal = pack.weapons?.find((row) => row.id === "CRYSTAL_BURST_1");
+    assert.equal(crystal?.kind, "missile");
+    assert.equal(crystal?.ammo, false);
+    assert.equal(crystal?.rarity, 0);
+    assert.equal(pack.weapons?.find((row) => row.id === "PLAIN")?.rarity, undefined);
+    assert.equal(pack.drones?.find((row) => row.id === "COMBAT_1")?.rarity, 2);
+    assert.equal(pack.augments?.find((row) => row.id === "ROCK_ARMOR")?.rarity, 3);
+    const human = pack.crew?.find((row) => row.id === "human");
+    assert.equal(human?.short, "Human");
+    assert.equal(human?.detail, "Plain.");
+    assert.equal(human?.name, "Human");
   });
 
   it("reads archive ships, sectors, and events", () => {
@@ -1310,6 +1368,11 @@ describe("packFromFtl", () => {
     <status type="limit" target="station" system="engines" amount="1"/>
     <status type="limit" target="player" system="engine" amount="1"/>
   </event>
+  <event name="BARE">
+    <text>Bare.</text>
+    <status type="clear" target="player" system="hacking"/>
+    <status type="limit" target="player" system="weapons"/>
+  </event>
 </FTL>`,
         },
       ]);
@@ -1326,10 +1389,14 @@ describe("packFromFtl", () => {
         { k: "status", type: "divide", target: "player", system: "shields", amount: 2 },
       ]);
       assert.equal(pack.events?.find((row) => row.id === "MELT")?.alters, undefined);
+      assert.deepEqual(pack.events?.find((row) => row.id === "BARE")?.alters, [
+        { k: "status", type: "clear", target: "player", system: "hacking" },
+      ]);
       assert.deepEqual(warnings, [
         'A <status> type "melt" is not limit, divide, clear, or loss; it is skipped.',
         'A <status> target "station" is not player or enemy; it is skipped.',
         'A <status> system "engine" is not one this ship uses; it is skipped.',
+        "A <status> on weapons has no whole-number amount; it is skipped.",
       ]);
       loadPack({ events: pack.events }, "append");
       assert.deepEqual(eventDef("CAP")?.alters, cap?.alters);

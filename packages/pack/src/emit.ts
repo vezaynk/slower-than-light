@@ -853,6 +853,7 @@ function droneElement(doc: XmlDocument, drone: DroneDef): XmlElement {
   add(node, leaf(doc, "title", drone.name));
   add(node, leaf(doc, "cost", drone.cost));
   if (drone.image) add(node, leaf(doc, "droneImage", drone.image));
+  if (drone.rarity != null) add(node, leaf(doc, "rarity", drone.rarity));
   return node;
 }
 
@@ -861,6 +862,7 @@ function augmentElement(doc: XmlDocument, augment: AugmentDef): XmlElement {
   add(node, leaf(doc, "title", augment.name));
   add(node, leaf(doc, "desc", augment.detail));
   add(node, leaf(doc, "cost", augment.cost));
+  if (augment.rarity != null) add(node, leaf(doc, "rarity", augment.rarity));
   return node;
 }
 
@@ -885,6 +887,7 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true
   if (weapon.pierce != null) add(node, leaf(doc, "sp", weapon.pierce));
   if (weapon.art) add(node, leaf(doc, "weaponArt", weapon.art));
   if (weapon.image) add(node, leaf(doc, "image", weapon.image));
+  if (weapon.rarity != null) add(node, leaf(doc, "rarity", weapon.rarity));
   return node;
 }
 
@@ -897,6 +900,7 @@ function raceElement(
   if (part !== "stats") {
     add(node, leaf(doc, "title", race.name));
     if (race.detail) add(node, leaf(doc, "desc", race.detail));
+    if (race.short) add(node, leaf(doc, "short", race.short));
     if (race.cost != null) add(node, leaf(doc, "cost", race.cost));
   }
   if (part === "identity") return node;

@@ -38,6 +38,8 @@ export type WeaponBlueprint = {
   art?: string;
   /** `<image>` projectile animation name. `<time>` on that anim is its duration, not the volley gap. */
   image?: string;
+  /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
+  rarity?: number;
 };
 
 /**
@@ -64,6 +66,8 @@ export type CrewDef = {
   fireRepairMultiplier: number;
   /** Player-facing blurb from an archive crewBlueprint. Absent on a stats-only row. */
   detail?: string;
+  /** `<short>` line. The crew card shows it with the blurb. The title stays the name. */
+  short?: string;
   /** `<powerList>` lines, in file order. The crew card shows them under the blurb. */
   powers?: string[];
   /** Hire price from an archive crewBlueprint. Absent on a stats-only row. */
@@ -84,6 +88,8 @@ export type AugmentDef = {
   name: string;
   detail: string;
   cost: number;
+  /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
+  rarity?: number;
 };
 
 /** A drone schematic listing. Power, cooldown, and speed stay in the effect code. */
@@ -99,6 +105,8 @@ export type DroneDef = {
   image?: string;
   /** The blueprint carries `NOLOC`. That drone's room stays hidden from the other ship. */
   noloc?: boolean;
+  /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
+  rarity?: number;
 };
 
 /** Where a purchased system is installed. Power and the starting level stay in the effect code. */
@@ -601,7 +609,7 @@ export type ArchiveEnvironment = {
 export type ArchiveShip = {
   load?: string;
   hostile: boolean;
-  /** `<ship auto_blueprint>`: a blueprintList id. */
+  /** `<ship auto_blueprint>`: a blueprintList id, or a ship blueprint id. */
   autoBlueprint?: string;
   /** `<ship asteroid>`: the fight opens in an asteroid field. */
   asteroid?: boolean;
@@ -636,7 +644,15 @@ export type ArchiveGrant = {
 export type ArchiveAlter =
   | {
       k: "status";
-      type: "limit" | "divide" | "clear" | "loss";
+      type: "clear";
+      target: "player" | "enemy";
+      system: string;
+      /** Clear ignores amount. A tag that omits it does not store 0. */
+      amount?: number;
+    }
+  | {
+      k: "status";
+      type: "limit" | "divide" | "loss";
       target: "player" | "enemy";
       system: string;
       amount: number;
@@ -904,7 +920,7 @@ export type ShipWeaponOverride = {
 
 /**
  * Root `<ship name>` in the ship-event file.
- * `autoBlueprint` is the hull list. Endings are optional.
+ * `autoBlueprint` is a blueprintList id, or a ship blueprint id. Endings are optional.
  * The first `<crew>` block and the first `<weaponOverride>` win.
  */
 export type ShipEventDef = {

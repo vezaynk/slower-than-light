@@ -858,7 +858,8 @@ export function loadCatalog(): void {
   if (!events.some((event) => event.id === "STORE_REBELSIDE")) events.push(REBEL_TRADE);
   loadPack(
     {
-      crew: (Object.keys(KIN) as KinId[]).map(crewRow),
+      // Ghost stays off the stand-in. crewDef supplies it when no crewBlueprint uses that id.
+      crew: (Object.keys(KIN) as KinId[]).filter((id) => id !== "ghost").map(crewRow),
       weapons: Object.keys(WEAPONS).map(weaponRow),
       augments: CATALOG.map(augmentRow),
       drones: CITED_DRONES.map(droneRow),

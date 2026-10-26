@@ -14,9 +14,12 @@ import type {
   EventEffect,
 } from "@stl/pack";
 import {
+  allAugments,
+  allDrones,
   allEvents,
   allFillerLists,
   allShipEvents,
+  allWeapons,
   augmentDef,
   blueprintList,
   crewDef,
@@ -81,6 +84,7 @@ const CREW: Record<string, { kin: KinId; name: string }> = {
   crystal: { kin: "crystal", name: "Crystal" },
   anaerobic: { kin: "anaerobic", name: "Lanius" },
   lanius: { kin: "anaerobic", name: "Lanius" },
+  ghost: { kin: "ghost", name: "Ghost" },
 };
 
 export type ArchiveSnap = {
@@ -558,12 +562,14 @@ function applyStatus(g: Game, alter: Extract<ArchiveAlter, { k: "status" }>): vo
 function writeStatus(
   row: SystemState | Kit,
   type: "limit" | "divide" | "clear" | "loss",
-  amount: number,
+  amount?: number,
 ): void {
   if (type === "limit") {
+    if (amount == null) return;
     row.archiveLimit = amount;
     delete row.archiveDivide;
   } else if (type === "divide") {
+    if (amount == null) return;
     row.archiveDivide = amount;
     delete row.archiveLimit;
   } else if (type === "clear") {
@@ -758,12 +764,44 @@ function giveGrant(g: Game, grant: ArchiveGrant): void {
   }
 }
 
+/**
+ * FTL GetRandomWeapon, GetRandomDrone, and GetRandomAugment with count 1.
+ * Rarity 0 is excluded. Weight is `6 - rarity`. Ids are sorted, matching std::map order.
+ */
+export function weightedBlueprint(
+  rows: readonly { id: string; rarity?: number }[],
+  roll: () => number,
+): string | undefined {
+  const pool: { id: string; weight: number }[] = [];
+  for (const row of rows) {
+    if (row.rarity == null || row.rarity === 0) continue;
+    const weight = 6 - row.rarity;
+    if (weight <= 0) continue;
+    pool.push({ id: row.id, weight });
+  }
+  pool.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  let total = 0;
+  for (const row of pool) total += row.weight;
+  if (total <= 0) return undefined;
+  let mark = roll() * total;
+  for (const row of pool) {
+    mark -= row.weight;
+    if (mark < 0) return row.id;
+  }
+  return pool[pool.length - 1]?.id;
+}
+
 /** A list grant draws one loaded blueprint. Advanced Edition uses the override list when it exists. */
 function resolvedGrant(
   g: Game,
   kind: Exclude<ArchiveGrant["kind"], "crew">,
   id: string,
 ): string | undefined {
+  // The name RANDOM is a draw, checked before any blueprint of that id.
+  if (id === "RANDOM") {
+    const rows = kind === "weapon" ? allWeapons() : kind === "drone" ? allDrones() : allAugments();
+    return weightedBlueprint(rows, () => rand(g));
+  }
   const direct =
     kind === "weapon" ? weaponDef(id) : kind === "drone" ? droneDef(id) : augmentDef(id);
   if (direct) return id;

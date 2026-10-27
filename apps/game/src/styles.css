@@ -1436,7 +1436,8 @@ button:disabled {
   place-items: center;
   position: relative;
   container-type: size;
-  overflow: hidden;
+  /* Per the user: the ship and its shields paint past this cell, under the HUD, crew list, dock and target panel. */
+  overflow: visible;
 }
 
 .planet {
@@ -1521,10 +1522,6 @@ button:disabled {
   /* One tile of hull plate sits outside the rooms, so the pitch fits cols+2 and rows+2. */
   --tile: clamp(16px, min(calc(100cqi / 17 - 2px), calc(100cqh / 11 - 2px)), 44px);
   margin: auto;
-  background: rgba(8, 12, 16, 0.55);
-  padding: 6px;
-  border-radius: var(--radius);
-  box-shadow: 0 0 0 2px rgba(190, 198, 206, 0.28);
 }
 
 .target-body .hull {

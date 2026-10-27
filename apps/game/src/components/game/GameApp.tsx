@@ -1280,10 +1280,14 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         {sector ? (
           <SectorChart game={game} />
         ) : (
-          <ShipStage
-            game={game}
-            shake={shake ? { transform: `translate(${ox}px, ${oy}px)` } : undefined}
-          />
+          <>
+            {/* Per the user: the skybox fills the whole view behind the HUD, crew list, dock and target panel. */}
+            <HazardSky game={game} />
+            <ShipStage
+              game={game}
+              shake={shake ? { transform: `translate(${ox}px, ${oy}px)` } : undefined}
+            />
+          </>
         )}
         {chart ? <MapScreen game={game} /> : null}
       </div>
@@ -1715,7 +1719,6 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
   const sight = shipSight(game);
   return (
     <div className={`sky${cloakClass(cloaked, releasing)}`} style={shake}>
-      <HazardSky game={game} />
       <div className="ship-well">
         <ShipView
           ship={game.player}

@@ -230,7 +230,7 @@ describe("ship art", () => {
     }
   });
 
-  it("draws an enemy hull from ships_glow when img/ship has no plate", async () => {
+  it("reads a player plate from img/ship and an enemy plate from ships_glow", async () => {
     installUrlMock();
     const picture: HullPicture = { x: -86, y: -45, w: 346, h: 509 };
     const layout = { x: 0, y: 0 };
@@ -279,33 +279,42 @@ describe("ship art", () => {
           ["img/ships_noglow/rebel_long_base.png", png(290, 455)],
           ["img/ships_glow/rebel_long_gib1.png", png(16, 16)],
           ["img/ship/rebel_long_cloak.png", png(306, 471)],
+          ["img/ship/rebel_long_base.png", png(picture.w, picture.h)],
+          ["img/ship/rebel_long_gib1.png", png(16, 16)],
         ]),
       );
-      const base = shipImage("GLOW_SHIP", "base");
-      const piece = gibImage("GLOW_SHIP", 1);
-      assert.equal(base?.url, "blob:ship-0");
-      assert.equal(piece?.url, "blob:ship-1");
-      const box = placed(base);
-      // The glow bitmap is the <img> box. glowOffset must not slide it.
+      const enemy = shipImage("GLOW_SHIP", "base", "glow");
+      const enemyPiece = gibImage("GLOW_SHIP", 1, "glow");
+      assert.equal(enemy?.url, "blob:ship-0");
+      assert.equal(enemyPiece?.url, "blob:ship-1");
+      const box = placed(enemy);
+      // The enemy bitmap is the <img> box. glowOffset does not slide it.
       assert.equal(box.left, picture.x - layout.x);
       assert.equal(box.top, picture.y - layout.y);
       assert.equal(box.width, picture.w);
       assert.equal(box.height, picture.h);
-      const pieceBox = placed(piece);
+      const pieceBox = placed(enemyPiece);
       assert.equal(pieceBox.width, 16);
       assert.equal(pieceBox.height, 16);
 
-      await rememberShipArt(
-        new Map([
-          ["img/ship/rebel_long_base.png", png(picture.w, picture.h)],
-          ["img/ships_glow/rebel_long_base.png", png(picture.w, picture.h)],
-        ]),
-      );
       const interior = shipImage("GLOW_SHIP", "base");
+      const interiorPiece = gibImage("GLOW_SHIP", 1);
       assert.equal(interior?.url, "blob:ship-3");
+      assert.equal(interiorPiece?.url, "blob:ship-4");
       const interiorBox = placed(interior);
       assert.equal(interiorBox.left, picture.x - layout.x + glow.x);
       assert.equal(interiorBox.top, picture.y - layout.y + glow.y);
+
+      await rememberShipArt(new Map([["img/ship/rebel_long_base.png", png(picture.w, picture.h)]]));
+      assert.equal(shipImage("GLOW_SHIP", "base", "glow"), undefined);
+      assert.equal(gibImage("GLOW_SHIP", 1, "glow"), undefined);
+      assert.ok(shipImage("GLOW_SHIP", "base"));
+
+      await rememberShipArt(
+        new Map([["img/ships_glow/rebel_long_base.png", png(picture.w, picture.h)]]),
+      );
+      assert.equal(shipImage("GLOW_SHIP", "base"), undefined);
+      assert.ok(shipImage("GLOW_SHIP", "base", "glow"));
     } finally {
       resetPackForTests();
     }

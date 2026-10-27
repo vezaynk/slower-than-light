@@ -809,6 +809,7 @@ export function ShipView({
         cols={ship.cols}
         rows={ship.rows}
         rooms={ship.rooms}
+        plate={aboard === "enemy" ? "glow" : "interior"}
         gone={ship.hull <= 0}
       />
       {ship.rooms.map((room) => {

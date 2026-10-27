@@ -8131,32 +8131,25 @@ body.page-turn-180 {
    PAUSED mark takes their place (PauseStamp). The slot is the stamp: "Press SPACE or click to resume" at 12px (274px).
    The two buttons sit at the right of that same width. INVENTED sizes. */
 /* The target panel's border is 16px in from the screen edge, so this margin lines the rightmost button's border up
-   with it. The column is too narrow for the readout beside the buttons, so the readout sits above them. */
+   with it. Per the user: the readout sits beside the buttons, as it did at the top. The column is sized to the Rebel
+   Flagship and is wide enough for both (171px + 274px); only a narrower one wraps the readout above the buttons. */
 .hud-right {
   grid-area: clock;
   /* Above the dock (3), which shares the bottom-right cell when there is no target panel. */
   z-index: 4;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 6px 8px;
   align-items: flex-end;
+  align-content: flex-end;
   justify-content: flex-end;
   margin: 0 16px 10px;
 }
-.hud-right .hud-beside {
-  min-height: 0;
-}
-/* With no target panel the dock spans the bottom row. Its right end is empty, so the readout and buttons sit there
-   side by side, and the readout keeps its fixed slot so the buttons do not move as it changes. */
+/* With no target panel the dock spans the bottom row, and the group sits at its empty right end. */
 .play.no-target .hud-right {
   grid-area: dock;
-  flex-direction: row;
-  align-items: flex-end;
   justify-self: end;
   align-self: end;
-}
-.play.no-target .hud-right .hud-beside {
-  min-height: 76px;
 }
 .hud-clock {
   flex: none;

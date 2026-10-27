@@ -372,6 +372,16 @@ function beginSwipe(g: Game, enemy: Ship): void {
   sweepTo(g, enemy, kit, 0);
 }
 
+/**
+ * Per the user: how full the Artillery Beam charge is, 0 to 1, for the icon's charge ring. aux is already that
+ * fraction. Null for the flak kit, and null during the swipe, which is the beam firing rather than charging.
+ */
+export function lanceChargeProgress(kit: Kit): number | null {
+  if (kit.weapon === "ARTILLERY_FED_C") return null;
+  if (kit.left > 0 && kit.path?.length) return null;
+  return Math.max(0, Math.min(1, kit.aux));
+}
+
 export function tickLance(g: Game, dt: number): void {
   const kit = g.player.kits.artillery;
   // Flak Artillery shares the kit id. An omitted weapon stays the beam so older fixtures still fire.

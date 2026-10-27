@@ -1,3 +1,5 @@
+import { flakChargeProgress } from "./extras/flakart.ts";
+import { lanceChargeProgress } from "./extras/lance.ts";
 import type { Kit, KitId, Ship, SysId } from "./types.ts";
 
 /**
@@ -5,11 +7,18 @@ import type { Kit, KitId, Ship, SysId } from "./types.ts";
  * ionization, a cooldown), the icon traces a circle. 0 is the start of that countdown, 1 is the end.
  * Ion points are born at 5 seconds (sim.ts applyIon). Other clocks remember the longest remaining
  * time seen for this countdown, so a cut jumps the trace forward and a longer reset starts it over.
+ * Per the user: artillery charging up traces the same circle, as `charge`, from empty to the shot.
  */
 export type SystemClock = {
   progress: number;
-  tone: "live" | "ion" | "cool";
+  tone: "live" | "ion" | "cool" | "charge";
 };
+
+/** Artillery Beam or Flak Artillery charge, 0 to 1. Null for any other kit, and while the beam is swiping. */
+function chargeOf(kit: Kit): number | null {
+  if (kit.id !== "artillery") return null;
+  return kit.weapon === "ARTILLERY_FED_C" ? flakChargeProgress(kit) : lanceChargeProgress(kit);
+}
 
 const ION_POINT = 5;
 
@@ -85,6 +94,9 @@ export function systemClock(ship: Ship, id: string): SystemClock | null {
   const ion = ionClock([...(sys?.ion ?? []), ...(kit?.ion ?? [])]);
   if (ion) return ion;
   if (coolProgress != null) return { progress: coolProgress, tone: "cool" };
+  // An empty charge draws nothing, so an unpowered artillery icon stays plain.
+  const charge = kit ? chargeOf(kit) : null;
+  if (charge != null && charge > 0) return { progress: charge, tone: "charge" };
   return null;
 }
 

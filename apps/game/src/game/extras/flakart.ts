@@ -167,6 +167,19 @@ function fedBars(kit: Kit): number {
 }
 
 /**
+ * Per the user: how full the Flak Artillery charge is, 0 to 1, for the icon's charge ring. Null for the beam kit.
+ * aux is seconds of charge against the clock of the bars filled now, or the installed level while unpowered
+ * (that is the clock the drain uses).
+ */
+export function flakChargeProgress(kit: Kit): number | null {
+  if (kit.weapon !== "ARTILLERY_FED_C") return null;
+  const fed = fedBars(kit);
+  const clock = chargeFlakSeconds(asFlakLevel(fed >= 1 ? fed : kit.level));
+  if (!(clock > 0)) return null;
+  return Math.max(0, Math.min(1, kit.aux / clock));
+}
+
+/**
  * One reactor bar at a time, up to powerCap, and only when a spare reactor bar is free.
  * Template:Flak weapons, Flak Artillery: power 1-4*, maximum of 4 system levels.
  */

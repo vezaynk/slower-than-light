@@ -9,7 +9,6 @@ import { setSetting, useOptionsOpen, useSettings, type Settings } from "@/game/s
 import { saveGame } from "@/game/sim";
 import { useGame } from "@/game/store";
 import { canForceLandscape } from "./turn";
-import { ArchiveCopy } from "./ArchiveCopy";
 import { CloseX } from "./CloseX";
 import { GameFilesPanel } from "./GameFilesPanel";
 
@@ -170,7 +169,6 @@ export function OptionsPanel({
         <CloseX onClose={onClose} />
         <header className="ship-sheet-head">
           <Kicker as="h2">{"Options"}</Kicker>
-          <ArchiveCopy screen="options" />
         </header>
         <div
           className="ship-tabs"

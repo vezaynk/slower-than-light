@@ -27,7 +27,7 @@ import type { KinId } from "@/game/extras/kin";
 import { canFieldDrone, citedSell, citedSellQuote } from "@/game/wiki/cited-stores";
 import { CARGO_SLOTS, cargoOf } from "@/game/wiki/make-room";
 import { kinLabel, UNIFORMS } from "@/game/crew-look";
-import { ArchiveCopy, ArchiveLines } from "./ArchiveCopy";
+import { ArchiveLines } from "./ArchiveCopy";
 import { CloseX } from "./CloseX";
 import { CrewFace, CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
@@ -358,7 +358,6 @@ export function StoreBoard({ game }: { game: Game }) {
         <CloseX onClose={leave} label={"Leave the store"} />
         <header className="ship-sheet-head">
           <Kicker as="h2">{"Store"}</Kicker>
-          <ArchiveCopy screen="store" />
           <span className="store-have" aria-label={"Your supplies"}>
             <span title={"Hull"}>
               <PixelIcon name="ship" size={16} />

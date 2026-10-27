@@ -15,7 +15,7 @@ import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { currentLocale, localeFace, localeLabel, selectLocale } from "@/game/locale";
 import { choiceBlue, offeredChoices } from "@/game/wiki/choice-locks";
 import { ArchiveBed } from "./ArchiveBed";
-import { ArchiveCopy, ArchiveLines } from "./ArchiveCopy";
+import { ArchiveLines } from "./ArchiveCopy";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
 import { OptionsPanel } from "./OptionsPanel";
@@ -4530,7 +4530,6 @@ function TitleScreen() {
         }}
       >
         <PixelMenu continueReady={saveReady && packReady} />
-        <ArchiveCopy screen="title" />
         {TITLE_MENU_ART.map((item) => (
           <button
             key={item.id}
@@ -4624,7 +4623,6 @@ function TitlePanel({ onClose }: { onClose: () => void }) {
     <div className="title-panel credits-panel has-x" onClick={(e) => e.stopPropagation()}>
       <CloseX onClose={onClose} />
       <p>{"CREDITS"}</p>
-      <ArchiveCopy screen="credits" />
       <div className="credits-body">
         <section>
           <h3>{"Development"}</h3>
@@ -4856,7 +4854,6 @@ function MapScreen({ game }: { game: Game }) {
     <section className="sector-map beacon-map has-x">
       <div className="map-head">
         <h2>{"BEACON MAP"}</h2>
-        <ArchiveCopy screen="map" />
         {/* Per the user: the map shows the fuel still aboard, and warns once it reaches 3. */}
         <p
           className={`map-fuel${lowFuel ? " is-low" : ""}`}
@@ -5463,8 +5460,6 @@ function ShipSheet({ game }: { game: Game }) {
             that scrolls, so switching tabs never resizes the sheet. INVENTED look. */}
         <header className="ship-sheet-head">
           <Kicker as="h2">{game.player.name}</Kicker>
-          <ArchiveCopy screen="sheet" />
-          <ArchiveCopy screen="hud" />
           <span className="scrap-box ship-sheet-scrap" aria-label={`${game.scrap} scrap`}>
             <PixelIcon name="scrap" size={18} />
             <b>{game.scrap}</b>

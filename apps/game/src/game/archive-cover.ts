@@ -3,16 +3,7 @@
  * The stand-in and any dat passed as FTL_DAT or STL_DATS share this path. Translation files stay unread,
  * matching the English-only loader.
  */
-import {
-  allInterfaceLines,
-  crewCopy,
-  droneCopy,
-  helpListLines,
-  itemLines,
-  tutorialLines,
-  verdictListLines,
-  weaponCopy,
-} from "./interface-copy.ts";
+import { crewCopy, droneCopy, itemLines, tutorialLines, weaponCopy } from "./interface-copy.ts";
 import { listWasPlayed, resetPlayedLists } from "./played-lists.ts";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
@@ -1364,10 +1355,7 @@ function shownText(): string {
     for (const line of row.texts) push(line);
   }
   for (const line of tutorialLines()) push(line);
-  for (const line of helpListLines()) push(line);
-  for (const line of verdictListLines()) push(line);
   for (const line of itemLines()) push(line);
-  for (const line of allInterfaceLines()) push(line);
   return parts.join("\n");
 }
 

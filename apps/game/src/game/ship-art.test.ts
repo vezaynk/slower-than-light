@@ -229,6 +229,87 @@ describe("ship art", () => {
       resetPackForTests();
     }
   });
+
+  it("draws an enemy hull from ships_glow when img/ship has no plate", async () => {
+    installUrlMock();
+    const picture: HullPicture = { x: -86, y: -45, w: 346, h: 509 };
+    const layout = { x: 0, y: 0 };
+    const glow = { x: 28, y: 27 };
+    loadPack(
+      {
+        hulls: [
+          {
+            id: "GLOW_SHIP",
+            cruiser: "",
+            layout: "rebel_long",
+            name: "Rebel",
+            quote: "",
+            unlock: "",
+            reactor: 0,
+            missiles: 0,
+            parts: 0,
+            weapons: [],
+            augments: [],
+            img: "rebel_long",
+            picture,
+            grid: { x: layout.x, y: layout.y, rooms: [], doors: [] },
+            glow,
+            gibs: [
+              {
+                id: 1,
+                x: 4,
+                y: 5,
+                velocityMin: 0.35,
+                velocityMax: 0.9,
+                directionMin: 0,
+                directionMax: 40,
+                angularMin: -12,
+                angularMax: 12,
+              },
+            ],
+          },
+        ],
+      },
+      "append",
+    );
+    try {
+      await rememberShipArt(
+        new Map([
+          ["img/ships_glow/rebel_long_base.png", png(picture.w, picture.h)],
+          ["img/ships_noglow/rebel_long_base.png", png(290, 455)],
+          ["img/ships_glow/rebel_long_gib1.png", png(16, 16)],
+          ["img/ship/rebel_long_cloak.png", png(306, 471)],
+        ]),
+      );
+      const base = shipImage("GLOW_SHIP", "base");
+      const piece = gibImage("GLOW_SHIP", 1);
+      assert.equal(base?.url, "blob:ship-0");
+      assert.equal(piece?.url, "blob:ship-1");
+      const box = placed(base);
+      // The glow bitmap is the <img> box. glowOffset must not slide it.
+      assert.equal(box.left, picture.x - layout.x);
+      assert.equal(box.top, picture.y - layout.y);
+      assert.equal(box.width, picture.w);
+      assert.equal(box.height, picture.h);
+      const pieceBox = placed(piece);
+      assert.equal(pieceBox.width, 16);
+      assert.equal(pieceBox.height, 16);
+
+      await rememberShipArt(
+        new Map([
+          ["img/ship/rebel_long_base.png", png(picture.w, picture.h)],
+          ["img/ships_glow/rebel_long_base.png", png(picture.w, picture.h)],
+        ]),
+      );
+      const interior = shipImage("GLOW_SHIP", "base");
+      assert.equal(interior?.url, "blob:ship-3");
+      const interiorBox = placed(interior);
+      assert.equal(interiorBox.left, picture.x - layout.x + glow.x);
+      assert.equal(interiorBox.top, picture.y - layout.y + glow.y);
+    } finally {
+      resetPackForTests();
+    }
+  });
 });
 
 function installUrlMock(): void {

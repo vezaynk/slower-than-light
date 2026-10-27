@@ -1,6 +1,13 @@
 import { hullDef, type HullPicture } from "@stl/pack";
 
 const SHIP_PNG = /^img\/ship\/(.+)_(base|cloak|floor|shields1|gib\d+)\.png$/i;
+/**
+ * A player hull's combat plate is `img/ship/<img>_base.png`.
+ * An enemy hull has no such file. Its plate is `img/ships_glow/<img>_base.png`,
+ * and that bitmap is the drawing's `<img>` box. Gibs sit beside it.
+ * `ships_noglow` is the cropped picker portrait, so it is not a plate.
+ */
+const GLOW_HULL_PNG = /^img\/ships_glow\/(.+)_(base|gib\d+)\.png$/i;
 
 export type ShipLayer = "base" | "cloak" | "floor" | "shield";
 
@@ -10,6 +17,8 @@ const CLOAK_OUTLINE = 10;
 let generation = 0;
 const urls = new Map<string, string>();
 const pixels = new Map<string, { w: number; h: number }>();
+/** Keys whose url is the glow plate, because `img/ship` had no file. */
+const glowPlate = new Set<string>();
 const listeners = new Set<() => void>();
 
 export function subscribeShipArt(listen: () => void): () => void {
@@ -26,20 +35,30 @@ export function shipArtGeneration(): number {
 /**
  * Keeps object URLs for the ship image family.
  * A real archive and the stand-in use the same names: base, cloak, floor, shields1, and gibN.
+ * An enemy plate comes from `img/ships_glow` when `img/ship` has no base or gib.
  * Replacing the archive revokes the previous set. Other blobs stay on the path map.
  */
 export async function rememberShipArt(assets: ReadonlyMap<string, Blob>): Promise<void> {
   const nextUrls = new Map<string, string>();
   const nextPixels = new Map<string, { w: number; h: number }>();
+  const glowUrls = new Map<string, string>();
+  const glowPixels = new Map<string, { w: number; h: number }>();
   const pending: Promise<void>[] = [];
   for (const [path, blob] of assets) {
-    if (!SHIP_PNG.test(path)) continue;
-    const key = path.toLowerCase();
+    const glow = GLOW_HULL_PNG.exec(path);
+    const key = glow
+      ? shipPath(`${glow[1]}_${glow[2]}`)
+      : SHIP_PNG.test(path)
+        ? path.toLowerCase()
+        : "";
+    if (!key) continue;
     const url = objectUrl(blob);
-    if (url) nextUrls.set(key, url);
+    const intoUrls = glow ? glowUrls : nextUrls;
+    const intoPixels = glow ? glowPixels : nextPixels;
+    if (url) intoUrls.set(key, url);
     pending.push(
       pngSize(blob).then((size) => {
-        if (size) nextPixels.set(key, size);
+        if (size) intoPixels.set(key, size);
       }),
     );
   }
@@ -47,8 +66,20 @@ export async function rememberShipArt(assets: ReadonlyMap<string, Blob>): Promis
   for (const url of urls.values()) revokeUrl(url);
   urls.clear();
   pixels.clear();
+  glowPlate.clear();
   for (const [key, url] of nextUrls) urls.set(key, url);
   for (const [key, size] of nextPixels) pixels.set(key, size);
+  for (const [key, url] of glowUrls) {
+    // The interior plate wins. The unused glow url must not leak.
+    if (urls.has(key)) {
+      revokeUrl(url);
+      continue;
+    }
+    urls.set(key, url);
+    glowPlate.add(key);
+    const size = glowPixels.get(key);
+    if (size) pixels.set(key, size);
+  }
   generation += 1;
   for (const listen of listeners) listen();
 }
@@ -77,7 +108,9 @@ export function shipImage(id: string, layer: ShipLayer): ShipFrame | undefined {
   const extra =
     layer === "cloak" ? hull.cloakOffset : layer === "floor" ? hull.floorOffset : undefined;
   const placed = frame(url, hull.picture, hull.grid?.x, hull.grid?.y, extra);
-  if (layer === "base") {
+  // glowOffset slides the interior plate. The iPad build is what uses it.
+  // The glow bitmap already fills the `<img>` box, so that nudge would move the enemy hull off its rooms.
+  if (layer === "base" && !glowPlate.has(shipPath(file))) {
     const shift = baseGlowShift(hull.glow, hull.grid?.x, hull.grid?.y);
     placed.offsetX = shift.offsetX;
     placed.offsetY = shift.offsetY;

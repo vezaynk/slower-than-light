@@ -2521,16 +2521,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
     <footer className="dock">
       <div className="power-area">
         <div className="power-dock">
-          <span className="spare-pip" title={"Reactor bars not assigned"}>
-            <DigitSlot value={sparePower(game.player)} sample={29} />
-          </span>
-          {batterySpareBars(game.player) > 0 ? (
-            <i className="spare-bonus" aria-hidden="true" title={"Backup Battery bars"}>
-              {Array.from({ length: batterySpareBars(game.player) }, (_, i) => (
-                <b key={i} />
-              ))}
-            </i>
-          ) : null}
+          {/* Per the user: no spare counter here. The reactor bar under the columns shows the spare and battery bars. */}
           {MAIN_ORDER.map((id) =>
             isKitId(id) ? (
               kitPod(id)

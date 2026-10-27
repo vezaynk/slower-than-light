@@ -778,13 +778,16 @@ function readList(node: XmlElement): FillerListDef | undefined {
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const entries: FillerEntry[] = [];
+  let events = 0;
   for (const item of elements(node)) {
     if (item.tagName !== "event") continue;
+    events += 1;
     const eventId = attr(item, "load")?.trim() || attr(item, "name")?.trim();
     if (!eventId) continue;
     entries.push({ id: eventId, unique: item.getAttribute("unique") === "true" });
   }
-  if (entries.length === 0) return undefined;
+  // A childless named list is empty on purpose. Events that name nothing are a retired spelling, so that list stays out.
+  if (entries.length === 0 && events > 0) return undefined;
   return { id, entries };
 }
 

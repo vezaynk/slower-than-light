@@ -41,8 +41,11 @@ export const PLAY_SEED = 2;
 const PREFERRED_HULL = "PLAYER_SHIP_HARD";
 const MAX_CARDS = 40;
 const MAX_JUMPS = 25;
-/** In-fight FTL charge is under a minute. Each combat step moves at most 0.05s. */
-const CHARGE_S = 90;
+/**
+ * Slowest in-fight charge is 67.9s at one unmanned bar.
+ * Ion or a repair can hold the drive, so the wait is longer than that cell.
+ */
+const CHARGE_S = 120;
 
 const GAP_URL = new URL("../../../../packages/campaign/base.ftl", import.meta.url);
 const STAND_IN_URL = new URL(
@@ -238,6 +241,8 @@ function chargeAndJump(g: Game): void {
   seatPilot(g);
   let charged = 0;
   while (g.phase === "combat" && g.flee < 1 && charged < CHARGE_S) {
+    // Ion clamps the bars off and does not put them back. One bar lets the drive charge.
+    if (jumpBlocked(g) === "Engines are unpowered.") powerUp(g, "engines");
     step(g, 0.05);
     charged += 0.05;
   }

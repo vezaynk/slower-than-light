@@ -875,7 +875,10 @@ describe("pack document", () => {
       <emptyBeacon><title>No name</title><text>Hi</text></emptyBeacon>
       <emptyBeacon name="kept" nebula="true"><title>Kept</title><sector>Ember</sector><text>Still.</text></emptyBeacon>
     </FTL>`);
-    assert.deepEqual(back.lists, [{ id: "ember", entries: [{ id: "kept", unique: false }] }]);
+    assert.deepEqual(back.lists, [
+      { id: "empty", entries: [] },
+      { id: "ember", entries: [{ id: "kept", unique: false }] },
+    ]);
     assert.equal(
       back.events?.some((row) => row.id === "kept"),
       false,

@@ -240,8 +240,10 @@ describe("drones", () => {
     deploy(g, "DEFENSE_1");
     assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy", defId: "SHOTGUN" }), true);
     tickSwarm(g, 1);
-    assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy" }), false);
-    assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy", defId: "LASER_BURST_1" }), false);
+    assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy" }), true);
+    tickSwarm(g, 1);
+    assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy", defId: "LASER_BURST_1" }), true);
+    tickSwarm(g, 1);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), true);
     tickSwarm(g, 1);
     assert.equal(swarmIntercept(g, { kind: "laser", from: "env" }), true);

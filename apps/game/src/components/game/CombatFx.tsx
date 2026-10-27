@@ -161,7 +161,17 @@ type Flyby = {
   /** Draw once at the handoff point before integrating. */
   fresh: boolean;
 };
-type Ring = { box: Box; life: number; color?: string; pad: number; scale?: number };
+type Ring = {
+  box: Box;
+  life: number;
+  color?: string;
+  pad: number;
+  scale?: number;
+  rx?: number;
+  ry?: number;
+  dx?: number;
+  dy?: number;
+};
 type Claim = { text: "SHIELD" | "MISS" | "HIT"; side: "player" | "enemy" };
 
 /** Same hull rule as applyImpact: `at` wins, an own bomb stays on the shooter, everything else crosses. */
@@ -1087,7 +1097,12 @@ export function CombatFx() {
                 )
               : struckPad(frame, Math.max(0, (ship?.shieldNow ?? 1) - 1), false, scale);
             const spark = zoltan ? token("--color-ok", "#3ee56a") : "#6cc4ff";
-            const ring = shieldRing(combatPlateId(g, side), { w: target.w, h: target.h }, pad);
+            const ring = shieldRing(
+              combatPlateId(g, side),
+              { w: target.w, h: target.h },
+              pad,
+              archivePx(side),
+            );
             const center = {
               x: target.x + target.w / 2 + ring.dx,
               y: target.y + target.h / 2 + ring.dy,
@@ -1101,6 +1116,10 @@ export function CombatFx() {
                 pad,
                 scale,
                 color: zoltan ? spark : undefined,
+                rx: ring.rx,
+                ry: ring.ry,
+                dx: ring.dx,
+                dy: ring.dy,
               });
             }
             if (live && Math.random() < 0.5) burst(end, spark, 1, 50);
@@ -1784,7 +1803,22 @@ export function CombatFx() {
                 scale,
               )
             : 16 * scale;
-          rings.push({ box: target, life: 0.45, pad, scale });
+          const flash = shieldRing(
+            combatPlateId(g, side),
+            { w: target.w, h: target.h },
+            pad,
+            archivePx(side),
+          );
+          rings.push({
+            box: target,
+            life: 0.45,
+            pad,
+            scale,
+            rx: flash.rx,
+            ry: flash.ry,
+            dx: flash.dx,
+            dy: flash.dy,
+          });
         }
         // @agent:flagship. Stagger: a volley lands several numbers at once (the 7-laser surge printed "MMISS -11 -1").
         // Each new number takes the lowest slot not held by a still-fresh number over the same hull: three columns
@@ -1983,10 +2017,10 @@ export function CombatFx() {
         ctx.lineWidth = 4 * (r.scale ?? 1);
         ctx.beginPath();
         ctx.ellipse(
-          r.box.x + r.box.w / 2,
-          r.box.y + r.box.h / 2,
-          r.box.w / 2 + r.pad,
-          r.box.h / 2 + r.pad,
+          r.box.x + r.box.w / 2 + (r.dx ?? 0),
+          r.box.y + r.box.h / 2 + (r.dy ?? 0),
+          r.rx ?? r.box.w / 2 + r.pad,
+          r.ry ?? r.box.h / 2 + r.pad,
           0,
           0,
           Math.PI * 2,

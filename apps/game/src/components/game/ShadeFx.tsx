@@ -6,7 +6,8 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useGame } from "@/game/store";
 import { halted, shieldChargeFraction } from "@/game/sim";
-import { bubbleRoom, readShipScale, zoltanPad } from "./shield-bubble";
+import { bubbleRoom, readShipScale, shieldRing, zoltanPad } from "./shield-bubble";
+import { combatPlateId } from "@/game/wiki/flagship-layout";
 import { animSpeed } from "./speed";
 import type { Ship } from "@/game/types";
 import { pageRect } from "./turn";
@@ -293,12 +294,12 @@ export function ShadeFx() {
       ) => {
         const b = cache[side];
         if (!b) return;
-        const pad = zPad(side, b);
+        const ring = shieldRing(combatPlateId(g, side), b, zPad(side, b));
         ovals.push({
-          x: b.x + b.w / 2,
-          y: b.y + b.h / 2,
-          rx: b.w / 2 + pad,
-          ry: b.h / 2 + pad,
+          x: b.x + b.w / 2 + ring.dx,
+          y: b.y + b.h / 2 + ring.dy,
+          rx: ring.rx,
+          ry: ring.ry,
           life,
           max: life,
           spread,
@@ -310,11 +311,11 @@ export function ShadeFx() {
       const shatter = (side: Side) => {
         const b = cache[side];
         if (!b) return;
-        const cx = b.x + b.w / 2;
-        const cy = b.y + b.h / 2;
-        const pad = zPad(side, b);
-        const rx = b.w / 2 + pad;
-        const ry = b.h / 2 + pad;
+        const ring = shieldRing(combatPlateId(g, side), b, zPad(side, b));
+        const cx = b.x + b.w / 2 + ring.dx;
+        const cy = b.y + b.h / 2 + ring.dy;
+        const rx = ring.rx;
+        const ry = ring.ry;
         shieldOval(side, 0.6, 40, 3, "#3ee56a");
         shieldOval(side, 0.6, 18, 2, "#e9ffe8");
         for (let i = 0; i < 28; i++) {

@@ -1652,10 +1652,10 @@ export function layoutFile(id: string): string | undefined {
 }
 
 /**
- * Shield-oval margin in archive pixels. One hull carries a non-zero pair so the pad has a fixture.
- * The rest stay at the zero `gridFromLayout` writes.
+ * VERTICAL and HORIZONTAL move the shield oval's center in archive pixels. They do not size it.
+ * One hull carries a non-zero pair so the shift has a fixture. The rest stay at the zero `gridFromLayout` writes.
  */
-export function standInShieldPad(name: string, grid: HullGrid): void {
+export function standInShieldShift(name: string, grid: HullGrid): void {
   if (name !== "kestral") return;
   grid.vertical = 4;
   grid.horizontal = 6;
@@ -1668,7 +1668,7 @@ export function layoutFiles(): { path: string; text: string }[] {
     const name = LAYOUT_FILE[id];
     if (!name) throw new Error(`No layout file for ${id}`);
     const grid = gridFromLayout(layout);
-    standInShieldPad(name, grid);
+    standInShieldShift(name, grid);
     files.push({ path: `data/${name}.txt`, text: writeGrid(grid) });
   }
   return [...files, ...enemyLayoutFiles(), ...flagshipLayoutFiles()];

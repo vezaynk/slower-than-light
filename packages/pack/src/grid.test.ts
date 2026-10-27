@@ -41,6 +41,9 @@ describe("layout text", () => {
     assert.equal(read.x, 0);
     assert.equal(read.y, 0);
     assert.equal(read.vertical, 0);
+    // Rooms span 4 by 2. The oval adds the one-cell plate on every side, and ELLIPSE stores radii.
+    assert.deepEqual(grid.ellipse, { w: 3 * 35, h: 2 * 35, x: 0, y: 0 });
+    assert.deepEqual(read.ellipse, grid.ellipse);
   });
 
   it("drops a bar whose cell is not inside a room", () => {

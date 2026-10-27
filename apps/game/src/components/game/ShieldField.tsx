@@ -1,6 +1,14 @@
 import { useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ROOM_PX, hullDef } from "@stl/pack";
 import { shipArtGeneration, shipImage, subscribeShipArt } from "@/game/pack/ship-art";
-import { bubbleLayout, frameRoom, readShipScale, shieldRing } from "./shield-bubble";
+import { gridPitch } from "./grid-pitch";
+import {
+  bubbleLayout,
+  frameRoom,
+  readShipScale,
+  roomGridPixels,
+  shieldRing,
+} from "./shield-bubble";
 
 /**
  * Concentric shield bubbles around one hull. One blue ellipse per live layer, a filling
@@ -23,7 +31,7 @@ export function ShieldField({
   const gradId = `shield-${useId().replace(/:/g, "")}`;
   const artTick = useSyncExternalStore(subscribeShipArt, shipArtGeneration, () => 0);
   const shield = hullId && artTick >= 0 ? shipImage(hullId, "shield") : undefined;
-  const [box, setBox] = useState({ w: 0, h: 0, room: 56, scale: 1 });
+  const [box, setBox] = useState({ w: 0, h: 0, room: 56, scale: 1, ax: 0, ay: 0 });
 
   useLayoutEffect(() => {
     const svg = ref.current;
@@ -34,22 +42,43 @@ export function ShieldField({
       const w = well.offsetWidth;
       const h = well.offsetHeight;
       const room = frameRoom(frame.clientWidth, frame.clientHeight, w, h);
-      const scale = readShipScale(well.querySelector(".hull"));
+      const hull = well.querySelector(".hull");
+      const scale = readShipScale(hull);
+      let ax = 0;
+      let ay = 0;
+      if (hull instanceof HTMLElement && hullId) {
+        const span = roomGridPixels(hullDef(hullId)?.grid?.rooms ?? []);
+        if (span) {
+          const pitch = gridPitch(hull, span.w / ROOM_PX, span.h / ROOM_PX);
+          if (pitch) {
+            ax = pitch.pitchX / ROOM_PX;
+            ay = pitch.pitchY / ROOM_PX;
+          }
+        }
+      }
       setBox((prev) =>
-        prev.w === w && prev.h === h && prev.room === room && prev.scale === scale
+        prev.w === w &&
+        prev.h === h &&
+        prev.room === room &&
+        prev.scale === scale &&
+        prev.ax === ax &&
+        prev.ay === ay
           ? prev
-          : { w, h, room, scale },
+          : { w, h, room, scale, ax, ay },
       );
     };
     read();
     const obs = new ResizeObserver(read);
     obs.observe(well);
     obs.observe(frame);
+    const hull = well.querySelector(".hull");
+    if (hull) obs.observe(hull);
     return () => obs.disconnect();
-  }, []);
+  }, [hullId]);
 
   const layout = bubbleLayout(box.room, layers, charge != null, zoltan > 0, box.scale);
-  const ring = (pad: number) => shieldRing(hullId, box, pad);
+  const ring = (pad: number) =>
+    shieldRing(hullId, box, pad, box.ax > 0 && box.ay > 0 ? { x: box.ax, y: box.ay } : undefined);
   const visible =
     box.w > 1 &&
     box.h > 1 &&

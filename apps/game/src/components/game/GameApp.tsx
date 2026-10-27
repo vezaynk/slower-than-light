@@ -1272,7 +1272,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         cancelAim();
       }}
     >
-      <Hud game={game} foe={showTarget && displayEnemy ? displayEnemy : null} />
+      <Hud game={game} />
       <CombatFx />
       <ShadeFx />
       <CrewRail game={game} />
@@ -1301,13 +1301,14 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
           leashAiming={leashOn}
         />
       ) : null}
+      <HudRight game={game} foe={showTarget && displayEnemy ? displayEnemy : null} />
       <Dock game={game} hackAiming={hackAiming} />
       {card}
     </div>
   );
 }
 
-function Hud({ game, foe }: { game: Game; foe: Ship | null }) {
+function Hud({ game }: { game: Game }) {
   const bubbles = game.player.shieldNow;
   const cap = Math.max(
     maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")),
@@ -1489,15 +1490,23 @@ function Hud({ game, foe }: { game: Game; foe: Ship | null }) {
           <PixelIcon name="upgrade" size={20} />
         </button>
       </div>
-      <div className="hud-right">
-        {/* Per the user: the open space left of pause holds the danger mark and the target's class and relationship. */}
-        <FoeReadout game={game} foe={foe} />
-        {/* Per the user: pause and fast forward, top right. While paused, the PAUSED mark takes their place. */}
-        <div className="hud-clock">
-          <ClockControls paused={!!game.userPaused} phase={game.phase} />
-        </div>
-      </div>
     </header>
+  );
+}
+
+/**
+ * Per the user: the danger mark, the target's class and relationship, and pause and fast forward sit under the
+ * target panel, bottom right, where a thumb reaches them on a phone. While paused, the PAUSED mark takes the
+ * buttons' place.
+ */
+function HudRight({ game, foe }: { game: Game; foe: Ship | null }) {
+  return (
+    <div className="hud-right">
+      <FoeReadout game={game} foe={foe} />
+      <div className="hud-clock">
+        <ClockControls paused={!!game.userPaused} phase={game.phase} />
+      </div>
+    </div>
   );
 }
 

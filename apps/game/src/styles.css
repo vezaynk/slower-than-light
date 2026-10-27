@@ -877,10 +877,13 @@ button:disabled {
   display: grid;
   grid-template-columns: 168px minmax(0, 1fr) minmax(220px, 340px);
   grid-template-rows: auto minmax(0, 1fr) auto;
+  /* Per the user: the danger mark, the target's name, and pause and fast forward sit under the target panel, where a
+     thumb reaches them on a phone. The panel starts at the top: it also covers the HUD row's right end, which is
+     empty now (.play > .target-panel). The HUD keeps the full width, so its centered FTL group does not move. */
   grid-template-areas:
     "hud hud hud"
     "crew stage target"
-    "dock dock target";
+    "dock dock clock";
   color: var(--color-fg);
 }
 
@@ -921,6 +924,16 @@ button:disabled {
   align-items: flex-start;
   padding: 8px 10px 0;
   z-index: 3;
+  /* The target panel lies under the HUD row's empty right end. Only the HUD's own controls take clicks. */
+  pointer-events: none;
+}
+
+.hud > * {
+  pointer-events: auto;
+}
+
+.play > .target-panel {
+  grid-row: 1 / 3;
 }
 
 .hud-left {
@@ -8114,17 +8127,29 @@ body.page-turn-180 {
   animation-play-state: paused;
 }
 
-/* Per the user: pause and fast forward side by side at the top right; while paused the PAUSED mark takes their
-   place (PauseStamp). The slot is the stamp: "Press SPACE or click to resume" at 12px (274px).
+/* Per the user: pause and fast forward side by side at the bottom right, under the target panel; while paused the
+   PAUSED mark takes their place (PauseStamp). The slot is the stamp: "Press SPACE or click to resume" at 12px (274px).
    The two buttons sit at the right of that same width. INVENTED sizes. */
-/* The HUD is padded 10px from the edge. The target panel's right border is 16px in, so this
-   margin lines the rightmost button's border up with that panel border. */
+/* The target panel's border is 16px in from the screen edge, so this margin lines the rightmost button's border up
+   with it. Per the user: the readout sits beside the buttons, as it did at the top. The column is sized to the Rebel
+   Flagship and is wide enough for both (171px + 274px); only a narrower one wraps the readout above the buttons. */
 .hud-right {
+  grid-area: clock;
+  /* Above the dock (3), which shares the bottom-right cell when there is no target panel. */
+  z-index: 4;
   display: flex;
-  gap: 8px;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: flex-end;
+  align-content: flex-end;
   justify-content: flex-end;
-  margin-right: 6px;
+  margin: 0 16px 10px;
+}
+/* With no target panel the dock spans the bottom row, and the group sits at its empty right end. */
+.play.no-target .hud-right {
+  grid-area: dock;
+  justify-self: end;
+  align-self: end;
 }
 .hud-clock {
   flex: none;
@@ -8133,6 +8158,11 @@ body.page-turn-180 {
   align-items: flex-start;
   gap: 8px;
   width: 274px;
+}
+/* Per the user: pause widens to fill the slot beside fast forward, so the pair spans the PAUSED stamp's width. */
+.hud-clock > .pause-btn:not(.fast-btn) {
+  flex: 1;
+  width: auto;
 }
 .frame-btn.fast-btn.is-on {
   color: var(--color-accent);

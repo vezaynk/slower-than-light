@@ -29,6 +29,28 @@ describe("system icon clock", () => {
     assert.equal(ionClock(undefined), null);
   });
 
+  it("fills artillery as it charges, and draws nothing empty or mid-swipe", () => {
+    const beam = ship([kit("artillery", { aux: 0.25 })]);
+    assert.equal(systemClock(beam, "artillery")?.tone, "charge");
+    near(systemClock(beam, "artillery")!.progress, 0.25);
+    beam.kits.artillery!.aux = 0;
+    assert.equal(systemClock(beam, "artillery"), null);
+    beam.kits.artillery!.aux = 1;
+    beam.kits.artillery!.left = 0.4;
+    beam.kits.artillery!.path = ["r1"];
+    assert.equal(systemClock(beam, "artillery"), null);
+
+    // Flak Artillery: aux is seconds, against the clock of the filled bars (2 bars: 40 seconds).
+    const flak = ship([
+      kit("artillery", { weapon: "ARTILLERY_FED_C", level: 2, power: 2, aux: 10 }),
+    ]);
+    near(systemClock(flak, "artillery")!.progress, 0.25);
+
+    // Ion outranks the charge ring.
+    flak.kits.artillery!.ion = [5];
+    assert.equal(systemClock(flak, "artillery")?.tone, "ion");
+  });
+
   it("traces ionization from the longest point, on a 5 second point", () => {
     const fresh = ionClock([5]);
     assert.equal(fresh?.tone, "ion");

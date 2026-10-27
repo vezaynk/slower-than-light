@@ -1971,6 +1971,13 @@ button:disabled {
   --clock: var(--color-ion);
 }
 
+/* Per the user: artillery charging up. The weapon-ready green, so a full ring reads as about to fire. */
+.sys-orb.is-clock.is-charge,
+.sub-orb.is-clock.is-charge,
+.target-systems span.is-clock.is-charge {
+  --clock: var(--color-ok);
+}
+
 .sys-orb.is-clock::before,
 .sub-orb.is-clock::before,
 .target-systems span.is-clock::before {

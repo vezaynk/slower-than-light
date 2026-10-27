@@ -48,6 +48,7 @@ import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/m
 import { beaconMark } from "@/game/beacon-mark";
 import { scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
+import { stormReactor } from "@/game/wiki/cited-sectors";
 import {
   beaconXY,
   CELL_PX,
@@ -1010,7 +1011,6 @@ const MAIN_ORDER: (SysId | KitId)[] = [
   "weapons",
   "drones",
 ];
-const SUB_KITS: KitId[] = ["battery"];
 
 function isKitId(id: SysId | KitId): id is KitId {
   return id in KIT_LABEL;
@@ -1272,7 +1272,7 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         cancelAim();
       }}
     >
-      <Hud game={game} foe={showTarget && displayEnemy ? displayEnemy : null} />
+      <Hud game={game} />
       <CombatFx />
       <ShadeFx />
       <CrewRail game={game} />
@@ -1280,10 +1280,14 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
         {sector ? (
           <SectorChart game={game} />
         ) : (
-          <ShipStage
-            game={game}
-            shake={shake ? { transform: `translate(${ox}px, ${oy}px)` } : undefined}
-          />
+          <>
+            {/* Per the user: the skybox fills the whole view behind the HUD, crew list, dock and target panel. */}
+            <HazardSky game={game} />
+            <ShipStage
+              game={game}
+              shake={shake ? { transform: `translate(${ox}px, ${oy}px)` } : undefined}
+            />
+          </>
         )}
         {chart ? <MapScreen game={game} /> : null}
       </div>
@@ -1297,13 +1301,14 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
           leashAiming={leashOn}
         />
       ) : null}
+      <HudRight game={game} foe={showTarget && displayEnemy ? displayEnemy : null} />
       <Dock game={game} hackAiming={hackAiming} />
       {card}
     </div>
   );
 }
 
-function Hud({ game, foe }: { game: Game; foe: Ship | null }) {
+function Hud({ game }: { game: Game }) {
   const bubbles = game.player.shieldNow;
   const cap = Math.max(
     maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")),
@@ -1485,15 +1490,23 @@ function Hud({ game, foe }: { game: Game; foe: Ship | null }) {
           <PixelIcon name="upgrade" size={20} />
         </button>
       </div>
-      <div className="hud-right">
-        {/* Per the user: the open space left of pause holds the danger mark and the target's class and relationship. */}
-        <FoeReadout game={game} foe={foe} />
-        {/* Per the user: pause and fast forward, top right. While paused, the PAUSED mark takes their place. */}
-        <div className="hud-clock">
-          <ClockControls paused={!!game.userPaused} phase={game.phase} />
-        </div>
-      </div>
     </header>
+  );
+}
+
+/**
+ * Per the user: the danger mark, the target's class and relationship, and pause and fast forward sit under the
+ * target panel, bottom right, where a thumb reaches them on a phone. While paused, the PAUSED mark takes the
+ * buttons' place.
+ */
+function HudRight({ game, foe }: { game: Game; foe: Ship | null }) {
+  return (
+    <div className="hud-right">
+      <FoeReadout game={game} foe={foe} />
+      <div className="hud-clock">
+        <ClockControls paused={!!game.userPaused} phase={game.phase} />
+      </div>
+    </div>
   );
 }
 
@@ -1715,7 +1728,6 @@ function ShipStage({ game, shake }: { game: Game; shake?: { transform: string } 
   const sight = shipSight(game);
   return (
     <div className={`sky${cloakClass(cloaked, releasing)}`} style={shake}>
-      <HazardSky game={game} />
       <div className="ship-well">
         <ShipView
           ship={game.player}
@@ -2507,29 +2519,28 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
 
   return (
     <footer className="dock">
-      <div className="power-dock">
-        <span className="spare-pip" title={"Reactor bars not assigned"}>
-          <DigitSlot value={sparePower(game.player)} sample={29} />
-        </span>
-        {batterySpareBars(game.player) > 0 ? (
-          <i className="spare-bonus" aria-hidden="true" title={"Backup Battery bars"}>
-            {Array.from({ length: batterySpareBars(game.player) }, (_, i) => (
-              <b key={i} />
-            ))}
-          </i>
-        ) : null}
-        {MAIN_ORDER.map((id) =>
-          isKitId(id) ? (
-            kitPod(id)
-          ) : game.player.systems[id].level > 0 ? (
-            <PowerStack
-              key={id}
-              game={game}
-              id={id}
-              locked={id === "weapons" && weaponsPowerLocked(game)}
-            />
-          ) : null,
-        )}
+      <div className="power-area">
+        <div className="power-dock">
+          {/* Per the user: no spare counter here. The reactor bar under the columns shows the spare and battery bars. */}
+          {MAIN_ORDER.map((id) =>
+            isKitId(id) ? (
+              kitPod(id)
+            ) : game.player.systems[id].level > 0 ? (
+              <PowerStack
+                key={id}
+                game={game}
+                id={id}
+                locked={id === "weapons" && weaponsPowerLocked(game)}
+              />
+            ) : null,
+          )}
+          {/* Subsystems sit in their rooms' radial menus. A Backup Battery with no room to sit in has no menu, so it
+            stays here. */}
+          {game.player.kits.battery && !game.player.rooms.some((r) => r.kit === "battery")
+            ? kitPod("battery")
+            : null}
+        </div>
+        <ReactorBar ship={game.player} />
       </div>
       <div className="weapon-dock">
         <div className="weapon-main">
@@ -2707,86 +2718,6 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
               <PartsChip game={game} />
             </button>
           </div>
-        </div>
-        {/* Per the user: subsystems sit on the right of the weapon tray, not under the target panel. */}
-        <div className="sub-dock">
-          <div className="sub-row">
-            {(["pilot", "sensors", "doors"] as SysId[]).map((id) => {
-              const sys = game.player.systems[id];
-              const flash = systemFlashClass(game, id);
-              const rim = clockRim(systemClock(game.player, id));
-              const orb = (
-                <button
-                  type="button"
-                  className={`sub-orb${id === "doors" && game.mode === "vent" ? " is-on" : ""}${flash ? ` ${flash}` : ""}${rim.className ? ` ${rim.className}` : ""}`}
-                  style={rim.style}
-                  aria-label={systemLabel(id)}
-                  aria-pressed={id === "doors" ? game.mode === "vent" : undefined}
-                  onClick={() => {
-                    if (id === "doors") {
-                      act((g) => {
-                        g.mode = g.mode === "vent" ? "crew" : "vent";
-                      });
-                    }
-                  }}
-                >
-                  <i className="sub-bars" aria-hidden="true">
-                    {Array.from({ length: Math.max(sys.level, 1) }, (_, n) => {
-                      // Ion locks the top bars, then damage, same stacking as PowerStack. column-reverse draws n = 0 at the bottom.
-                      const ionStart = sys.level - sys.ion.length;
-                      const dmgStart = ionStart - sys.damage;
-                      const ionSlot = sys.ion.length > 0 && n >= ionStart;
-                      const damaged = !ionSlot && sys.damage > 0 && n >= dmgStart;
-                      const hurt = n === dmgStart - 1 ? hurtStyle(game, id) : undefined;
-                      const cls = [
-                        n < dmgStart ? "on" : "",
-                        ionSlot ? "is-ion" : "",
-                        damaged ? (n === dmgStart ? "is-dmg is-fixing" : "is-dmg") : "",
-                        hurt ? "is-hurting" : "",
-                        barFlashClass(game, id, ionSlot, damaged),
-                      ]
-                        .filter(Boolean)
-                        .join(" ");
-                      return (
-                        <b
-                          key={n}
-                          className={cls}
-                          style={damaged && n === dmgStart ? fixStyle(sys.fix) : hurt}
-                        />
-                      );
-                    })}
-                  </i>
-                  <PixelIcon name={id} size={16} />
-                </button>
-              );
-              if (id !== "doors") return <span key={id}>{orb}</span>;
-              return (
-                <span key={id} className="door-pod">
-                  {game.mode === "vent" ? (
-                    <span className="door-pop" role="group" aria-label={"Doors control panel"}>
-                      <button
-                        type="button"
-                        aria-label={"Open the doors"}
-                        onClick={() => act((g) => openAllDoors(g))}
-                      >
-                        <DoorAllIcon open />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={"Close the doors"}
-                        onClick={() => act((g) => closeAllDoors(g))}
-                      >
-                        <DoorAllIcon />
-                      </button>
-                    </span>
-                  ) : null}
-                  {orb}
-                </span>
-              );
-            })}
-            {SUB_KITS.map((id) => kitPod(id))}
-          </div>
-          <span className="dock-label">{"SUBSYSTEMS"}</span>
         </div>
       </div>
     </footer>
@@ -3440,6 +3371,85 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
   );
 }
 
+/** Subsystems: their bars show in the room's radial menu, not in the dock. */
+const RADIAL_SUBSYSTEMS: SysId[] = ["pilot", "sensors", "doors"];
+
+/**
+ * Per the user: subsystems live in the radial menus, out of the dock, so the dock fits a full ship. The room's menu
+ * shows the subsystem's bars (level, damage, ion, the bar under repair). Doors and the Backup Battery keep their
+ * buttons in radialActions. Rooms with no subsystem show nothing.
+ */
+function RadialSubsystem({ game, roomId }: { game: Game; roomId: string }) {
+  const room = game.player.rooms.find((r) => r.id === roomId);
+  if (!room) return null;
+  if (room.system && RADIAL_SUBSYSTEMS.includes(room.system)) {
+    const id = room.system;
+    const sys = game.player.systems[id];
+    const rim = clockRim(systemClock(game.player, id));
+    return (
+      <div
+        className={`radial-sub${rim.className ? ` ${rim.className}` : ""}`}
+        style={rim.style}
+        aria-label={`${systemLabel(id)} ${sys.level - sys.damage}/${sys.level}`}
+      >
+        <i className="sub-bars" aria-hidden="true">
+          {Array.from({ length: Math.max(sys.level, 1) }, (_, n) => {
+            // Ion locks the top bars, then damage, same stacking as PowerStack. column-reverse draws n = 0 at the bottom.
+            const ionStart = sys.level - sys.ion.length;
+            const dmgStart = ionStart - sys.damage;
+            const ionSlot = sys.ion.length > 0 && n >= ionStart;
+            const damaged = !ionSlot && sys.damage > 0 && n >= dmgStart;
+            const hurt = n === dmgStart - 1 ? hurtStyle(game, id) : undefined;
+            const cls = [
+              n < dmgStart ? "on" : "",
+              ionSlot ? "is-ion" : "",
+              damaged ? (n === dmgStart ? "is-dmg is-fixing" : "is-dmg") : "",
+              hurt ? "is-hurting" : "",
+              barFlashClass(game, id, ionSlot, damaged),
+            ]
+              .filter(Boolean)
+              .join(" ");
+            return (
+              <b
+                key={n}
+                className={cls}
+                style={damaged && n === dmgStart ? fixStyle(sys.fix) : hurt}
+              />
+            );
+          })}
+        </i>
+        <PixelIcon name={id} size={20} />
+        <span>{systemLabel(id)}</span>
+      </div>
+    );
+  }
+  const kit = room.kit === "battery" ? game.player.kits.battery : undefined;
+  if (!kit) return null;
+  const rim = clockRim(systemClock(game.player, "battery"));
+  return (
+    <div
+      className={`radial-sub${rim.className ? ` ${rim.className}` : ""}`}
+      style={rim.style}
+      aria-label={KIT_LABEL.battery}
+    >
+      <i className="sub-bars" aria-hidden="true">
+        {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
+          <KitBar key={n} game={game} id="battery" kit={kit} n={n} />
+        ))}
+      </i>
+      <PixelIcon name={kitIcon("battery", kit.weapon)} size={20} />
+      <span>{KIT_LABEL.battery}</span>
+    </div>
+  );
+}
+
+function hasRadialSubsystem(game: Game, roomId: string): boolean {
+  const room = game.player.rooms.find((r) => r.id === roomId);
+  if (!room) return false;
+  if (room.system && RADIAL_SUBSYSTEMS.includes(room.system)) return true;
+  return room.kit === "battery" && !!game.player.kits.battery;
+}
+
 /** True when the room's system has a power control in the radial panel (RadialPower). */
 function hasRadialPower(game: Game, roomId: string): boolean {
   const room = game.player.rooms.find((r) => r.id === roomId);
@@ -3457,11 +3467,13 @@ function hasRadialPower(game: Game, roomId: string): boolean {
  */
 function radialPanel(game: Game, roomId: string, close: () => void): ReactNode {
   const power = hasRadialPower(game, roomId);
+  const sub = hasRadialSubsystem(game, roomId);
   const actions = radialActions(game, roomId, close);
-  if (!power && !actions) return null;
+  if (!power && !sub && !actions) return null;
   return (
     <>
       {power ? <RadialPower game={game} roomId={roomId} /> : null}
+      {sub ? <RadialSubsystem game={game} roomId={roomId} /> : null}
       {actions}
     </>
   );
@@ -5996,6 +6008,35 @@ function hurtStyle(game: Game, id: string): CSSProperties | undefined {
   const progress = room?.sabotage ?? 0;
   if (!(progress > 0)) return undefined;
   return { ["--hurt" as string]: `${Math.round(Math.min(1, progress) * 100)}%` };
+}
+
+/**
+ * Per the user: under the systems, the whole reactor as one horizontal row of power bars. Spare bars are lit from the
+ * left, bars the systems hold are dark, spare Backup Battery bars carry the battery's orange border, and bars an ion
+ * storm takes away show as ionized.
+ */
+function ReactorBar({ ship }: { ship: Ship }) {
+  const live = ship.storm ? stormReactor(ship.reactor) : ship.reactor;
+  const cut = ship.reactor - live;
+  const battery = batterySpareBars(ship);
+  const spare = Math.max(0, sparePower(ship) - battery);
+  const cells = [
+    ...Array.from({ length: spare }, () => "on"),
+    ...Array.from({ length: Math.max(0, live - spare) }, () => ""),
+    ...Array.from({ length: cut }, () => "is-ion"),
+    ...Array.from({ length: battery }, () => "on is-battery"),
+  ];
+  return (
+    <div
+      className="reactor-bar"
+      role="img"
+      aria-label={`Reactor: ${spare + battery} of ${live + battery} bars free`}
+    >
+      {cells.map((cls, i) => (
+        <i key={i} className={cls || undefined} />
+      ))}
+    </div>
+  );
 }
 
 /** A dock subsystem bar: powered, damaged (red), or the one being repaired (fixStyle). */

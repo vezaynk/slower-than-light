@@ -877,10 +877,13 @@ button:disabled {
   display: grid;
   grid-template-columns: 168px minmax(0, 1fr) minmax(220px, 340px);
   grid-template-rows: auto minmax(0, 1fr) auto;
+  /* Per the user: the danger mark, the target's name, and pause and fast forward sit under the target panel, where a
+     thumb reaches them on a phone. The panel starts at the top: it also covers the HUD row's right end, which is
+     empty now (.play > .target-panel). The HUD keeps the full width, so its centered FTL group does not move. */
   grid-template-areas:
     "hud hud hud"
     "crew stage target"
-    "dock dock target";
+    "dock dock clock";
   color: var(--color-fg);
 }
 
@@ -921,6 +924,16 @@ button:disabled {
   align-items: flex-start;
   padding: 8px 10px 0;
   z-index: 3;
+  /* The target panel lies under the HUD row's empty right end. Only the HUD's own controls take clicks. */
+  pointer-events: none;
+}
+
+.hud > * {
+  pointer-events: auto;
+}
+
+.play > .target-panel {
+  grid-row: 1 / 3;
 }
 
 .hud-left {
@@ -935,7 +948,6 @@ button:disabled {
 .hud-right,
 .air-readout,
 .dock-caption,
-.sub-row,
 .sub-pod,
 .target-systems {
   display: flex;
@@ -1389,12 +1401,33 @@ button:disabled {
   background: var(--color-ok);
 }
 
+/* Per the user: the stage fills the whole view, so the skybox shows behind the HUD, crew list, dock and target panel.
+   It is a subgrid of .play, so the ship and the map overlays stay in the stage cell at their old size. The other
+   panels sit above it (z-index 2 and up), and only the stage cell takes clicks. */
 .stage-slot {
-  grid-area: stage;
+  grid-area: 1 / 1 / -1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
   min-width: 0;
   min-height: 0;
   position: relative;
   z-index: 1;
+  pointer-events: none;
+}
+
+.stage-slot > * {
+  grid-area: stage;
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage-slot > .sky-field {
+  grid-area: 1 / 1 / -1 / -1;
+}
+
+.stage-slot > :not(.sky-field) {
+  pointer-events: auto;
 }
 
 .sky {
@@ -1798,8 +1831,7 @@ button:disabled {
   z-index: 3;
 }
 
-.power-dock,
-.sub-dock {
+.power-dock {
   position: relative;
   display: flex;
   align-items: flex-end;
@@ -1814,22 +1846,6 @@ button:disabled {
   /* Reactor cap is 25, and a level-2 battery adds 4. Two digits is the widest spare count. */
   min-width: 2ch;
   text-align: right;
-}
-
-/* Backup Battery, Overview: unassigned bonus bars keep the orange border. */
-.spare-bonus {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 2px;
-  align-self: flex-end;
-}
-
-.spare-bonus b {
-  display: block;
-  width: 14px;
-  height: 10px;
-  background: transparent;
-  border: 1px solid #ff7a18;
 }
 
 .power-stack {
@@ -1876,6 +1892,40 @@ button:disabled {
 }
 
 .power-col button.is-ion {
+  background: #8ecbff;
+  border-color: #d7ecff;
+}
+
+/* Per the user: the reactor under the systems, the column bars turned on their side (ReactorBar). The power row and
+   the reactor stack in one column, so the dock's first column is as wide as the wider of the two. */
+.power-area {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.reactor-bar {
+  display: flex;
+  gap: 2px;
+  padding-left: 2px;
+}
+/* Per the user: the cells stretch to fill the width under the system columns. */
+.reactor-bar i {
+  flex: 1 1 0;
+  min-width: 4px;
+  height: 14px;
+  border: 1px solid #1e4a30;
+  background: #102018;
+  box-sizing: border-box;
+}
+.reactor-bar i.on {
+  background: var(--color-ok);
+  border-color: #b6ff6a;
+}
+.reactor-bar i.on.is-battery {
+  border-color: #ff7a18;
+}
+.reactor-bar i.is-ion {
   background: #8ecbff;
   border-color: #d7ecff;
 }
@@ -1951,8 +2001,10 @@ button:disabled {
   }
 }
 
-/* Per the user: subsystems sit to the right of the weapon tray, so the target panel can use the space below it. */
+/* Per the user: subsystems sit in their rooms' radial menus, not in the dock, and the slots are narrower than the
+   original 150px. With all 12 systems the power row takes 448px, so the dock fits 448 + 12 + 4 * 116 + 3 * 6 = 942px. */
 .weapon-dock {
+  --slot-w: 116px;
   min-width: 0;
   display: flex;
   align-items: flex-end;
@@ -1964,17 +2016,13 @@ button:disabled {
   flex: 0 1 auto;
 }
 
-.weapon-dock .sub-dock {
-  flex: none;
-}
-
 .gun-tray {
   display: flex;
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 4px;
   /* Per the user: reserve a full bay (4 slots, the most any hull prints). A slot this ship does not have is blank, not a dashed empty slot. */
-  min-width: calc(4 * 150px + 3 * 6px);
+  min-width: calc(4 * var(--slot-w) + 3 * 6px);
 }
 
 .gun-icon {
@@ -1986,7 +2034,7 @@ button:disabled {
 
 .gun-slot {
   position: relative;
-  width: 150px;
+  width: var(--slot-w, 150px);
   height: 90px;
   flex: none;
   border-radius: var(--radius);
@@ -2049,6 +2097,20 @@ button:disabled {
   line-height: 0.95;
   font-weight: 400;
   min-height: 0;
+}
+
+/* The narrower dock slots leave about 88px for the name, so a long one takes two lines of 13px. The art and icon
+   share a row, which leaves those two lines room above the charge pips. */
+.weapon-dock .gun-name {
+  font-size: 13px;
+}
+.weapon-dock .gun-hit {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+.weapon-dock .gun-hit > .gun-name,
+.weapon-dock .gun-hit > .gun-aim {
+  grid-column: 1 / -1;
 }
 
 .gear-art {
@@ -2129,11 +2191,6 @@ button:disabled {
     0 0 12px rgba(180, 255, 230, 0.12);
 }
 
-.sub-dock {
-  flex-direction: column;
-  align-items: flex-end;
-}
-
 .sub-orb {
   position: relative;
   width: 36px;
@@ -2172,40 +2229,6 @@ button:disabled {
 /* Backup Battery, Overview: bonus power is indicated by power bars with orange borders. */
 .sub-bars b.on.is-battery {
   border-color: #ff7a18;
-}
-
-.door-pod {
-  position: relative;
-  display: flex;
-}
-
-/* Door System, "Doors control panel": two buttons above the Door System icon. Level pips sit in that gap. */
-.door-pop {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 42px);
-  transform: translateX(-50%);
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 3px;
-  background: var(--color-panel);
-  border: 2px solid var(--color-line);
-  border-radius: var(--radius);
-  box-shadow: var(--glow);
-}
-
-.door-pop button {
-  width: 36px;
-  height: 36px;
-  min-height: 36px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  background: var(--color-panel-2);
-  color: var(--color-fg);
-  border: 1px solid var(--color-line-dim);
 }
 
 .modal-layer {
@@ -6447,6 +6470,30 @@ button.modal-x.modal-x:focus-visible {
   height: 14px;
 }
 
+/* Radial panel: a subsystem's bars, icon and name (RadialSubsystem). Same big bars as the power column. INVENTED. */
+.radial-power .radial-sub {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: var(--radius);
+  font-family: var(--font-hud);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.radial-power .radial-sub .sub-bars {
+  position: static;
+  transform: none;
+  gap: 3px;
+  margin: 0;
+}
+.radial-power .radial-sub .sub-bars b {
+  width: 24px;
+  height: 14px;
+}
+
 /* Radial power panel: the bar column with + and - beside it (per the user). INVENTED 30px buttons. */
 .radial-power-row {
   display: flex;
@@ -8093,17 +8140,29 @@ body.page-turn-180 {
   animation-play-state: paused;
 }
 
-/* Per the user: pause and fast forward side by side at the top right; while paused the PAUSED mark takes their
-   place (PauseStamp). The slot is the stamp: "Press SPACE or click to resume" at 12px (274px).
+/* Per the user: pause and fast forward side by side at the bottom right, under the target panel; while paused the
+   PAUSED mark takes their place (PauseStamp). The slot is the stamp: "Press SPACE or click to resume" at 12px (274px).
    The two buttons sit at the right of that same width. INVENTED sizes. */
-/* The HUD is padded 10px from the edge. The target panel's right border is 16px in, so this
-   margin lines the rightmost button's border up with that panel border. */
+/* The target panel's border is 16px in from the screen edge, so this margin lines the rightmost button's border up
+   with it. Per the user: the readout sits beside the buttons, as it did at the top. The column is sized to the Rebel
+   Flagship and is wide enough for both (171px + 274px); only a narrower one wraps the readout above the buttons. */
 .hud-right {
+  grid-area: clock;
+  /* Above the dock (3), which shares the bottom-right cell when there is no target panel. */
+  z-index: 4;
   display: flex;
-  gap: 8px;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: flex-end;
+  align-content: flex-end;
   justify-content: flex-end;
-  margin-right: 6px;
+  margin: 0 16px 10px;
+}
+/* With no target panel the dock spans the bottom row, and the group sits at its empty right end. */
+.play.no-target .hud-right {
+  grid-area: dock;
+  justify-self: end;
+  align-self: end;
 }
 .hud-clock {
   flex: none;
@@ -8112,6 +8171,11 @@ body.page-turn-180 {
   align-items: flex-start;
   gap: 8px;
   width: 274px;
+}
+/* Per the user: pause widens to fill the slot beside fast forward, so the pair spans the PAUSED stamp's width. */
+.hud-clock > .pause-btn:not(.fast-btn) {
+  flex: 1;
+  width: auto;
 }
 .frame-btn.fast-btn.is-on {
   color: var(--color-accent);
@@ -8275,7 +8339,7 @@ body.page-turn-180 {
   min-height: 94px;
 }
 .drone-tray.is-tabbed .gun-slot {
-  width: 150px;
+  width: var(--slot-w, 150px);
   height: 90px;
 }
 /* Per the user: the drone bay explains the missing system instead of drawing slots. It stays inside the reserved width. */

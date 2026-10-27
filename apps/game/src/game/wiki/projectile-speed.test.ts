@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { loadPack, resetPackForTests, weaponDef } from "@stl/pack";
 import { createGame, startCombat, step } from "../sim.ts";
 import {
   BOMB_FLIGHT_S,
@@ -26,6 +27,35 @@ describe("projectile speed", () => {
     assert.equal(projectileFlightSeconds("dart"), null);
     assert.equal(shotFlightSeconds("bomb", "BOMB_FIRE"), BOMB_FLIGHT_S);
     assert.equal(shotFlightSeconds("missile", "dart"), BOMB_FLIGHT_S);
+    assert.equal(projectileFlightSeconds("NOT_A_GUN"), null);
+  });
+
+  it("flies Flak Artillery from the archive id when the stand-in id has no speed", () => {
+    const stand = weaponDef("flak-artillery");
+    assert.ok(stand);
+    assert.equal(stand.speed, 26);
+    loadPack(
+      {
+        weapons: [
+          { ...stand, speed: undefined },
+          { ...stand, id: "ARTILLERY_FED_C", speed: 13 },
+        ],
+      },
+      "append",
+    );
+    try {
+      assert.equal(projectileFlightSeconds("flak-artillery"), (LASER_SPEED * LASER_FLIGHT_S) / 13);
+      assert.equal(projectileFlightSeconds("ARTILLERY_FED_C"), (LASER_SPEED * LASER_FLIGHT_S) / 13);
+    } finally {
+      resetPackForTests();
+    }
+    loadPack({ weapons: [{ ...stand, speed: undefined }] }, "append");
+    try {
+      assert.equal(projectileFlightSeconds("flak-artillery"), (LASER_SPEED * LASER_FLIGHT_S) / 26);
+      assert.equal(projectileFlightSeconds("ARTILLERY_FED_C"), (LASER_SPEED * LASER_FLIGHT_S) / 26);
+    } finally {
+      resetPackForTests();
+    }
   });
 
   it("puts that flight on the shot the enemy fires", () => {

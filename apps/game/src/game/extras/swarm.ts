@@ -573,8 +573,10 @@ function shoots(
   // Environmental Hazards, anti-ship battery: it cannot be shot down.
   if (shot.from === "env" && shot.kind === "missile") return false;
   // Defensive Drones > Defense Drone Mark I: missiles, hacking and boarding
-  // drones, and asteroids. Flak is a target when its blueprint sets drone_targetable.
+  // drones, and asteroids. Flak is always a target. drone_targetable opts in
+  // any other blueprint, which is how a mod marks a laser.
   if (shot.kind === "missile") return true;
+  if (shot.kind === "flak") return true;
   if (shot.defId && weaponDef(shot.defId)?.droneTargetable === 1) return true;
   if (shot.kind === "hacking" || shot.kind === "boarding") return true;
   // INFERRED: that section shoots asteroids. This drill spawns them as laser

@@ -146,6 +146,7 @@ import {
 import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
 import {
   chainChargeSeconds,
+  chainDamageAmount,
   chainIonAmount,
   isChainWeapon,
   nextChainStep,
@@ -3143,8 +3144,10 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
   else if (volley == null) w.loaded = 0;
   else if ((w.loaded ?? 0) > 0) w.loaded = Math.max(0, (w.loaded ?? 0) - count);
   // Ion (Weapons), Chain Ion: the shot uses this step, then the step advances. A dry missile returns above.
+  // A damage boost adds ion only when the blueprint already has ion. Otherwise it adds hull damage.
   const step = w.chain ?? 0;
   const ion = chainIonAmount(w.defId, step) ?? def.ion;
+  const damage = chainDamageAmount(w.defId, step) ?? def.damage;
   const line =
     def.kind === "beam" && w.beamLine
       ? { a: { ...w.beamLine.a }, b: { ...w.beamLine.b } }
@@ -3231,7 +3234,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       id,
       kind: def.kind,
       from,
-      damage: def.damage,
+      damage,
       ion,
       fireChance: def.fire,
       breachChance: def.breach,

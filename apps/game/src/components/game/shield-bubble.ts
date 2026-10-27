@@ -3,7 +3,7 @@
  * A layer still charging and a Zoltan shield take the next slots outward.
  * A tight frame compresses the stack so the outer stroke stays inside the panel.
  */
-import { hullDef } from "@stl/pack";
+import { ROOM_PX, hullDef } from "@stl/pack";
 
 const PAD0 = 16;
 const GAP = 8;
@@ -103,42 +103,82 @@ export type ShieldOval = {
 };
 
 /**
+ * CSS room grid in archive pixels. Columns and rows run from 0 through the furthest room edge.
+ * One room is `ROOM_PX` archive pixels. An empty room list has no grid.
+ */
+export function roomGridPixels(
+  rooms: readonly { x: number; y: number; w: number; h: number }[],
+): { w: number; h: number } | null {
+  let cols = 0;
+  let rows = 0;
+  for (const room of rooms) {
+    if (!(room.w > 0) || !(room.h > 0)) continue;
+    cols = Math.max(cols, room.x + room.w);
+    rows = Math.max(rows, room.y + room.h);
+  }
+  if (!(cols > 0) || !(rows > 0)) return null;
+  return { w: cols * ROOM_PX, h: rows * ROOM_PX };
+}
+
+/**
  * The layout ELLIPSE drawn in the hull well.
- * Width and height scale by the picture box, then the layer pad is added.
- * HORIZONTAL widens the radius. VERTICAL raises it. The origin scales the same way.
+ * Diameters are archive pixels. The well is the room grid, so one archive pixel is
+ * the grid pitch divided by `ROOM_PX`. The picture box is larger than that grid and is not the scale.
+ * The oval's center is the image center plus the file's x and y, shifted from the room-grid center.
+ * HORIZONTAL widens the radius. VERTICAL raises it. The layer pad is added after the scale.
+ * `scale` is screen pixels per archive pixel. Without it, the well size stands in for the grid pitch.
  */
 export function shieldOval(
   box: { w: number; h: number },
-  picture: { w: number; h: number },
+  picture: { x: number; y: number; w: number; h: number },
   ellipse: { w: number; h: number; x: number; y: number },
   pad: number,
+  span: { w: number; h: number },
   horizontal?: number,
   vertical?: number,
+  scale?: { x: number; y: number },
+  offset?: { x?: number; y?: number },
 ): ShieldOval | null {
-  if (!(picture.w > 0) || !(picture.h > 0)) return null;
-  const sx = box.w / picture.w;
-  const sy = box.h / picture.h;
+  if (!(picture.w > 0) || !(picture.h > 0) || !(span.w > 0) || !(span.h > 0)) return null;
+  const sx = scale && scale.x > 0 ? scale.x : box.w / span.w;
+  const sy = scale && scale.y > 0 ? scale.y : box.h / span.h;
+  if (!(sx > 0) || !(sy > 0)) return null;
+  const originX = picture.x - (offset?.x ?? 0);
+  const originY = picture.y - (offset?.y ?? 0);
   return {
     rx: (ellipse.w / 2 + (horizontal ?? 0)) * sx + pad,
     ry: (ellipse.h / 2 + (vertical ?? 0)) * sy + pad,
-    dx: ellipse.x * sx,
-    dy: ellipse.y * sy,
+    dx: (originX + picture.w / 2 + ellipse.x - span.w / 2) * sx,
+    dy: (originY + picture.h / 2 + ellipse.y - span.h / 2) * sy,
   };
 }
 
 /**
- * The bubble for one hull. A layout ellipse uses the picture box. Anything else is the well plus the pad.
+ * The bubble for one hull. A layout ellipse uses the room grid. Anything else is the well plus the pad.
+ * `scale` is screen pixels per archive pixel, measured from the hull's grid pitch.
  */
 export function shieldRing(
   hullId: string | undefined,
   box: { w: number; h: number },
   pad: number,
+  scale?: { x: number; y: number },
 ): ShieldOval {
   const hull = hullId ? hullDef(hullId) : undefined;
   const ellipse = hull?.grid?.ellipse;
   const picture = hull?.picture;
-  if (ellipse && picture) {
-    const oval = shieldOval(box, picture, ellipse, pad, hull.grid?.horizontal, hull.grid?.vertical);
+  const span = hull?.grid ? roomGridPixels(hull.grid.rooms) : null;
+  if (ellipse && picture && span) {
+    const oval = shieldOval(
+      box,
+      picture,
+      ellipse,
+      pad,
+      span,
+      hull.grid?.horizontal,
+      hull.grid?.vertical,
+      scale,
+      { x: hull.grid?.x, y: hull.grid?.y },
+    );
     if (oval) return oval;
   }
   return { rx: box.w / 2 + pad, ry: box.h / 2 + pad, dx: 0, dy: 0 };

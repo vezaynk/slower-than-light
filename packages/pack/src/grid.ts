@@ -1,4 +1,4 @@
-import { ROOM_PX } from "./picture.ts";
+import { pictureForRooms } from "./picture.ts";
 import type { HullDef, HullDoor, HullEllipse, HullGrid, HullRoom } from "./types.ts";
 
 const GRID_KEYS = new Set([
@@ -101,20 +101,15 @@ export function gridFromLayout(layout: LayoutSource): HullGrid {
   };
 }
 
-/** Room bounding box in archive pixels. Offsets stay 0. A layout with no rooms has no oval. */
+/**
+ * Shield oval for the painted plate. `pictureForRooms` is the rooms plus one cell,
+ * which is the margin `hullMask` paints. A tight room box leaves that plate outside the bubble.
+ * x and y stay 0, so the oval is centered on the image. A layout with no rooms has no oval.
+ */
 function ellipseForRooms(rooms: readonly HullRoom[]): HullEllipse | undefined {
-  if (rooms.length === 0) return undefined;
-  let minX = rooms[0]?.x ?? 0;
-  let minY = rooms[0]?.y ?? 0;
-  let maxX = minX;
-  let maxY = minY;
-  for (const room of rooms) {
-    minX = Math.min(minX, room.x);
-    minY = Math.min(minY, room.y);
-    maxX = Math.max(maxX, room.x + room.w);
-    maxY = Math.max(maxY, room.y + room.h);
-  }
-  return { w: (maxX - minX) * ROOM_PX, h: (maxY - minY) * ROOM_PX, x: 0, y: 0 };
+  const plate = pictureForRooms(rooms);
+  if (!plate) return undefined;
+  return { w: plate.w, h: plate.h, x: 0, y: 0 };
 }
 
 /** One token per line, in the order a layout file uses. */

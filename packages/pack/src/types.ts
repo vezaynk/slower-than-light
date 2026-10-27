@@ -72,7 +72,7 @@ export type WeaponBlueprint = {
   spin?: number;
   /** `<drone_targetable>`. 1 means a Mark I defense drone may shoot this blueprint's shot. */
   droneTargetable?: number;
-  /** `<boost>`. Cooldown subtracts seconds. Damage adds ion. Step 0 is the blueprint's own number. */
+  /** `<boost>`. Cooldown subtracts seconds. Damage adds ion when ion is already above 0, and hull damage otherwise. Step 0 is the blueprint's own number. */
   boost?: { type: "cooldown" | "damage"; amount: number; count: number };
 };
 

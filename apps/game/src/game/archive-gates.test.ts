@@ -1,7 +1,15 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { eventDef, fillerList, hullDef, shipPreviewPath, weaponDef } from "@stl/pack";
-import { shieldOval } from "../components/game/shield-bubble.ts";
+import {
+  eventDef,
+  fillerList,
+  hullDef,
+  loadPack,
+  resetPackForTests,
+  shipPreviewPath,
+  weaponDef,
+} from "@stl/pack";
+import { roomGridPixels, shieldOval } from "../components/game/shield-bubble.ts";
 import { deploy, swarmIntercept, tickSwarm } from "./extras/swarm.ts";
 import { currentLocale, localeFace, localeLabel, selectLocale } from "./locale.ts";
 import { baseGlowShift } from "./pack/ship-art.ts";
@@ -180,32 +188,53 @@ describe("archive gates and combat figures", () => {
     assert.deepEqual(flak2Landing(rooms, "a", 0.1), flak2Landing(rooms, "a", 0.1, 55));
   });
 
-  it("spins a tagged flak and lets a defense drone shoot only that tag", () => {
+  it("spins a tagged flak and lets a defense drone shoot every flak", () => {
     assert.equal(projectileSpin("SHOTGUN", "flak", 1), (720 * Math.PI) / 180);
     assert.equal(projectileSpin("LASER_BURST_1", "flak", 1), 0);
     assert.equal(projectileSpin("SHOTGUN", "laser", 1), 0);
-    const g = createGame(5);
-    const kit: Kit = {
-      id: "drones",
-      level: 3,
-      power: 3,
-      left: 0,
-      cool: 0,
-      target: null,
-      on: false,
-      aux: 0,
-    };
-    g.player.kits.drones = kit;
-    g.player.parts = 2;
-    assert.equal(deploy(g, "DEFENSE_1"), true);
-    assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy", defId: "SHOTGUN" }), true);
-    tickSwarm(g, 1);
-    assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy" }), false);
-    assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy", defId: "LASER_BURST_1" }), false);
-    assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), true);
-    tickSwarm(g, 1);
-    assert.equal(deploy(g, "DEFENSE_2"), true);
-    assert.equal(swarmIntercept(g, { kind: "laser", from: "enemy" }), true);
+    const laser = weaponDef("LASER_BURST_1");
+    assert.ok(laser);
+    loadPack({ weapons: [{ ...laser, id: "TAGGED_LASER", droneTargetable: 1 }] }, "append");
+    try {
+      const g = createGame(5);
+      const kit: Kit = {
+        id: "drones",
+        level: 3,
+        power: 3,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
+      g.player.kits.drones = kit;
+      g.player.parts = 2;
+      assert.equal(deploy(g, "DEFENSE_1"), true);
+      assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy", defId: "SHOTGUN" }), true);
+      tickSwarm(g, 1);
+      assert.equal(swarmIntercept(g, { kind: "flak", from: "enemy" }), true);
+      tickSwarm(g, 1);
+      assert.equal(
+        swarmIntercept(g, { kind: "flak", from: "enemy", defId: "LASER_BURST_1" }),
+        true,
+      );
+      tickSwarm(g, 1);
+      assert.equal(
+        swarmIntercept(g, { kind: "laser", from: "enemy", defId: "LASER_BURST_1" }),
+        false,
+      );
+      assert.equal(
+        swarmIntercept(g, { kind: "laser", from: "enemy", defId: "TAGGED_LASER" }),
+        true,
+      );
+      tickSwarm(g, 1);
+      assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), true);
+      tickSwarm(g, 1);
+      assert.equal(deploy(g, "DEFENSE_2"), true);
+      assert.equal(swarmIntercept(g, { kind: "laser", from: "enemy" }), true);
+    } finally {
+      resetPackForTests();
+    }
   });
 
   it("draws the layout ellipse, shifts the glow hull, and keeps an empty list empty", () => {
@@ -219,14 +248,28 @@ describe("archive gates and combat figures", () => {
     assert.deepEqual(stealth?.glow, { x: 0, y: 0 });
     const box = { w: 200, h: 100 };
     const pad = 8;
-    const oval = shieldOval(box, hard.picture, hard.grid.ellipse, pad, 6, 4);
+    const span = roomGridPixels(hard.grid.rooms);
+    assert.ok(span);
+    // The painted plate is one cell outside the rooms, so the oval is wider and taller than the grid.
+    assert.ok(hard.grid.ellipse.w > span.w);
+    assert.ok(hard.grid.ellipse.h > span.h);
+    const oval = shieldOval(box, hard.picture, hard.grid.ellipse, pad, span, 6, 4);
     assert.ok(oval);
-    const sx = box.w / hard.picture.w;
-    const sy = box.h / hard.picture.h;
+    const sx = box.w / span.w;
+    const sy = box.h / span.h;
     assert.equal(oval.rx, (hard.grid.ellipse.w / 2 + 6) * sx + pad);
     assert.equal(oval.ry, (hard.grid.ellipse.h / 2 + 4) * sy + pad);
-    assert.equal(oval.dx, hard.grid.ellipse.x * sx);
-    assert.equal(oval.dy, hard.grid.ellipse.y * sy);
+    assert.equal(
+      oval.dx,
+      (hard.picture.x + hard.picture.w / 2 + hard.grid.ellipse.x - span.w / 2) * sx,
+    );
+    assert.equal(
+      oval.dy,
+      (hard.picture.y + hard.picture.h / 2 + hard.grid.ellipse.y - span.h / 2) * sy,
+    );
+    // The picture box is larger than the room grid. Scaling by it shrinks the bubble.
+    const shrunk = (hard.grid.ellipse.h / 2 + 4) * (box.h / hard.picture.h) + pad;
+    assert.ok(oval.ry > shrunk);
     assert.deepEqual(baseGlowShift({ x: 4, y: -2 }), { offsetX: -4, offsetY: 2 });
     assert.deepEqual(baseGlowShift({ x: 0, y: 0 }), { offsetX: 0, offsetY: 0 });
     assert.equal(fillerList("STANDIN_EMPTY")?.entries.length, 0);

@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, DEPOWER_DRAIN_S, startCombat, step } from "../sim.ts";
 import type { Game, WeaponInst } from "../types.ts";
-import { chainChargeSeconds, chainIonAmount, nextChainStep } from "./cited-chain.ts";
+import { loadPack, resetPackForTests, weaponDef } from "@stl/pack";
+import {
+  chainChargeSeconds,
+  chainDamageAmount,
+  chainIonAmount,
+  nextChainStep,
+} from "./cited-chain.ts";
 
 /** Laser (Weapons), Chain Burst Laser. */
 const BURST = [16, 13, 10, 7];
@@ -80,6 +86,7 @@ describe("chain weapon profiles", () => {
     );
     ION.forEach((ion, i) => assert.equal(chainIonAmount("ION_CHAINGUN", i), ion));
     assert.equal(chainIonAmount("ION_CHAINGUN", 9), 4);
+    assert.equal(chainDamageAmount("ION_CHAINGUN", 2), null);
     assert.equal(chainChargeSeconds("ION_CHAINGUN", 0), null);
     assert.equal(nextChainStep("LASER_CHAINGUN", 2), 3);
     assert.equal(nextChainStep("LASER_CHAINGUN", 3), 3);
@@ -138,6 +145,46 @@ describe("chain weapon profiles", () => {
     step(g, 0.05);
     assert.equal(w.chain, 0);
     close(w.charge, 1 - 0.05 / DEPOWER_DRAIN_S);
+  });
+
+  it("adds hull damage when a damage boost is on a weapon with no ion", () => {
+    const laser = weaponDef("LASER_BURST_1");
+    assert.ok(laser);
+    assert.equal(laser.ion, 0);
+    loadPack(
+      {
+        weapons: [
+          {
+            ...laser,
+            id: "MOD_CHAIN_LASER",
+            damage: 1,
+            boost: { type: "damage", amount: 1, count: 3 },
+          },
+        ],
+      },
+      "append",
+    );
+    try {
+      assert.equal(chainIonAmount("MOD_CHAIN_LASER", 2), null);
+      assert.equal(chainDamageAmount("MOD_CHAIN_LASER", 0), 1);
+      assert.equal(chainDamageAmount("MOD_CHAIN_LASER", 1), 2);
+      assert.equal(chainDamageAmount("MOD_CHAIN_LASER", 3), 4);
+      assert.equal(chainDamageAmount("MOD_CHAIN_LASER", 9), 4);
+      const g = createGame(11);
+      startCombat(g, "scout");
+      mount(g, "MOD_CHAIN_LASER", laser.power);
+      unman(g);
+      const seen: number[] = [];
+      for (let n = 0; n < 4; n++) {
+        const shots = fire(g);
+        assert.equal(shots.length, laser.shots);
+        seen.push(shots[0].damage);
+        assert.ok(shots.every((shot) => shot.ion === 0));
+      }
+      assert.deepEqual(seen, [1, 2, 3, 4]);
+    } finally {
+      resetPackForTests();
+    }
   });
 
   it("climbs Chain Ion from 1 to 4 and keeps the 14 second charge", () => {

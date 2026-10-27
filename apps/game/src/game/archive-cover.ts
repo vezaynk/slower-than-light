@@ -1365,7 +1365,11 @@ function listRefs(): string[] {
     walkChoices(page.choices, (choice) => {
       add(choice.ship?.autoBlueprint);
       for (const grant of choice.grants ?? []) add(grant.id);
-      for (const req of choice.reqs ?? []) if (req.k === "list") add(req.id);
+      for (const req of choice.reqs ?? []) {
+        // A child `<req>` can name a list. A choice `req` attribute is stored as attr
+        // and can name one too. Other attr ids are not list names, so equality ignores them.
+        if (req.k === "list" || req.k === "attr") add(req.id);
+      }
     });
   };
   for (const hull of allHulls()) {
@@ -1383,7 +1387,7 @@ function listRefs(): string[] {
 }
 
 /**
- * A list is drawn when a hull load or a ship autoBlueprint names it.
+ * A list is drawn when a hull load, a ship autoBlueprint, or a choice requirement names it.
  * Advanced Edition substitutes `OVERRIDE_` plus that id when the override list exists,
  * and that substituted id is the list `listNames` and `fightHull` read.
  */

@@ -1912,6 +1912,38 @@ button:disabled {
   border-color: #d7ecff;
 }
 
+/* Per the user: the reactor under the systems, the column bars turned on their side (ReactorBar). The power row and
+   the reactor stack in one column, so the dock's first column is as wide as the wider of the two. */
+.power-area {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.reactor-bar {
+  display: flex;
+  gap: 2px;
+  padding-left: 2px;
+}
+.reactor-bar i {
+  width: 10px;
+  height: 14px;
+  border: 1px solid #1e4a30;
+  background: #102018;
+  box-sizing: border-box;
+}
+.reactor-bar i.on {
+  background: var(--color-ok);
+  border-color: #b6ff6a;
+}
+.reactor-bar i.on.is-battery {
+  border-color: #ff7a18;
+}
+.reactor-bar i.is-ion {
+  background: #8ecbff;
+  border-color: #d7ecff;
+}
+
 .sys-orb,
 .sub-orb {
   position: relative;

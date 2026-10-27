@@ -48,6 +48,7 @@ import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/m
 import { beaconMark } from "@/game/beacon-mark";
 import { scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
+import { stormReactor } from "@/game/wiki/cited-sectors";
 import {
   beaconXY,
   CELL_PX,
@@ -2518,34 +2519,37 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
 
   return (
     <footer className="dock">
-      <div className="power-dock">
-        <span className="spare-pip" title={"Reactor bars not assigned"}>
-          <DigitSlot value={sparePower(game.player)} sample={29} />
-        </span>
-        {batterySpareBars(game.player) > 0 ? (
-          <i className="spare-bonus" aria-hidden="true" title={"Backup Battery bars"}>
-            {Array.from({ length: batterySpareBars(game.player) }, (_, i) => (
-              <b key={i} />
-            ))}
-          </i>
-        ) : null}
-        {MAIN_ORDER.map((id) =>
-          isKitId(id) ? (
-            kitPod(id)
-          ) : game.player.systems[id].level > 0 ? (
-            <PowerStack
-              key={id}
-              game={game}
-              id={id}
-              locked={id === "weapons" && weaponsPowerLocked(game)}
-            />
-          ) : null,
-        )}
-        {/* Subsystems sit in their rooms' radial menus. A Backup Battery with no room to sit in has no menu, so it
+      <div className="power-area">
+        <div className="power-dock">
+          <span className="spare-pip" title={"Reactor bars not assigned"}>
+            <DigitSlot value={sparePower(game.player)} sample={29} />
+          </span>
+          {batterySpareBars(game.player) > 0 ? (
+            <i className="spare-bonus" aria-hidden="true" title={"Backup Battery bars"}>
+              {Array.from({ length: batterySpareBars(game.player) }, (_, i) => (
+                <b key={i} />
+              ))}
+            </i>
+          ) : null}
+          {MAIN_ORDER.map((id) =>
+            isKitId(id) ? (
+              kitPod(id)
+            ) : game.player.systems[id].level > 0 ? (
+              <PowerStack
+                key={id}
+                game={game}
+                id={id}
+                locked={id === "weapons" && weaponsPowerLocked(game)}
+              />
+            ) : null,
+          )}
+          {/* Subsystems sit in their rooms' radial menus. A Backup Battery with no room to sit in has no menu, so it
             stays here. */}
-        {game.player.kits.battery && !game.player.rooms.some((r) => r.kit === "battery")
-          ? kitPod("battery")
-          : null}
+          {game.player.kits.battery && !game.player.rooms.some((r) => r.kit === "battery")
+            ? kitPod("battery")
+            : null}
+        </div>
+        <ReactorBar ship={game.player} />
       </div>
       <div className="weapon-dock">
         <div className="weapon-main">
@@ -6013,6 +6017,35 @@ function hurtStyle(game: Game, id: string): CSSProperties | undefined {
   const progress = room?.sabotage ?? 0;
   if (!(progress > 0)) return undefined;
   return { ["--hurt" as string]: `${Math.round(Math.min(1, progress) * 100)}%` };
+}
+
+/**
+ * Per the user: under the systems, the whole reactor as one horizontal row of power bars. Spare bars are lit from the
+ * left, bars the systems hold are dark, spare Backup Battery bars carry the battery's orange border, and bars an ion
+ * storm takes away show as ionized.
+ */
+function ReactorBar({ ship }: { ship: Ship }) {
+  const live = ship.storm ? stormReactor(ship.reactor) : ship.reactor;
+  const cut = ship.reactor - live;
+  const battery = batterySpareBars(ship);
+  const spare = Math.max(0, sparePower(ship) - battery);
+  const cells = [
+    ...Array.from({ length: spare }, () => "on"),
+    ...Array.from({ length: Math.max(0, live - spare) }, () => ""),
+    ...Array.from({ length: cut }, () => "is-ion"),
+    ...Array.from({ length: battery }, () => "on is-battery"),
+  ];
+  return (
+    <div
+      className="reactor-bar"
+      role="img"
+      aria-label={`Reactor: ${spare + battery} of ${live + battery} bars free`}
+    >
+      {cells.map((cls, i) => (
+        <i key={i} className={cls || undefined} />
+      ))}
+    </div>
+  );
 }
 
 /** A dock subsystem bar: powered, damaged (red), or the one being repaired (fixStyle). */

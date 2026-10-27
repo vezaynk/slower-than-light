@@ -8159,6 +8159,11 @@ body.page-turn-180 {
   gap: 8px;
   width: 274px;
 }
+/* Per the user: pause widens to fill the slot beside fast forward, so the pair spans the PAUSED stamp's width. */
+.hud-clock > .pause-btn:not(.fast-btn) {
+  flex: 1;
+  width: auto;
+}
 .frame-btn.fast-btn.is-on {
   color: var(--color-accent);
   border-color: var(--color-accent);

@@ -1848,22 +1848,6 @@ button:disabled {
   text-align: right;
 }
 
-/* Backup Battery, Overview: unassigned bonus bars keep the orange border. */
-.spare-bonus {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 2px;
-  align-self: flex-end;
-}
-
-.spare-bonus b {
-  display: block;
-  width: 14px;
-  height: 10px;
-  background: transparent;
-  border: 1px solid #ff7a18;
-}
-
 .power-stack {
   position: relative;
   display: flex;
@@ -1908,6 +1892,40 @@ button:disabled {
 }
 
 .power-col button.is-ion {
+  background: #8ecbff;
+  border-color: #d7ecff;
+}
+
+/* Per the user: the reactor under the systems, the column bars turned on their side (ReactorBar). The power row and
+   the reactor stack in one column, so the dock's first column is as wide as the wider of the two. */
+.power-area {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.reactor-bar {
+  display: flex;
+  gap: 2px;
+  padding-left: 2px;
+}
+/* Per the user: the cells stretch to fill the width under the system columns. */
+.reactor-bar i {
+  flex: 1 1 0;
+  min-width: 4px;
+  height: 14px;
+  border: 1px solid #1e4a30;
+  background: #102018;
+  box-sizing: border-box;
+}
+.reactor-bar i.on {
+  background: var(--color-ok);
+  border-color: #b6ff6a;
+}
+.reactor-bar i.on.is-battery {
+  border-color: #ff7a18;
+}
+.reactor-bar i.is-ion {
   background: #8ecbff;
   border-color: #d7ecff;
 }

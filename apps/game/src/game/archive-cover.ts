@@ -832,6 +832,21 @@ function exerciseImage(path: string, problems: string[]): void {
   if (!archiveImage(path)) problems.push(`image ${path} is not shown`);
   const interior = /^img\/ship\/interior\/(.+)\.png$/i.exec(path);
   if (interior && !roomIconUrl(interior[1] ?? "")) problems.push(`room icon ${path} is not drawn`);
+  const glow = /^img\/ships_glow\/(.+)_(base|gib(\d+))\.png$/i.exec(path);
+  if (glow) {
+    const stem = glow[1] ?? "";
+    const hull = allHulls().find(
+      (row) => row.img === stem && row.picture && !row.id.startsWith("PLAYER_SHIP_"),
+    );
+    if (!hull) return;
+    const kind = (glow[2] ?? "").toLowerCase();
+    const frame =
+      kind === "base"
+        ? shipImage(hull.id, "base", "glow")
+        : gibImage(hull.id, Number(glow[3]), "glow");
+    if (!frame) problems.push(`ship image ${path} is not drawn on ${hull.id}`);
+    return;
+  }
   const ship = /^img\/ship\/(.+)_(base|cloak|floor|shields1|gib(\d+))\.png$/i.exec(path);
   if (!ship) return;
   const stem = ship[1] ?? "";
@@ -1199,6 +1214,15 @@ function exerciseDrawings(drawings: ReadonlyMap<string, DrawingBits>, problems: 
           !shipImage(hull.id, "base")
         )
           problems.push(`drawing ${stem} is not drawn`);
+        const enemy = hulls.find(
+          (row) => row.img && row.picture && !row.id.startsWith("PLAYER_SHIP_"),
+        );
+        if (
+          enemy?.img &&
+          archiveBlob(`img/ships_glow/${enemy.img}_base.png`) &&
+          !shipImage(enemy.id, "base", "glow")
+        )
+          problems.push(`drawing ${stem} is not drawn`);
       }
     }
     if (drawing.glow && !hulls.some((row) => row.glow))
@@ -1231,9 +1255,14 @@ function exerciseDrawings(drawings: ReadonlyMap<string, DrawingBits>, problems: 
       }
       const frames = new Set(gibImages(hull.id).map((frame) => frame.url));
       for (const id of drawing.gibs) {
-        if (!hull.img || !archiveBlob(`img/ship/${hull.img}_gib${id}.png`)) continue;
-        if (!gibImage(hull.id, id) || frames.size < 1)
-          problems.push(`drawing ${stem} gib ${id} is not drawn`);
+        if (hull.img && archiveBlob(`img/ship/${hull.img}_gib${id}.png`)) {
+          if (!gibImage(hull.id, id) || frames.size < 1)
+            problems.push(`drawing ${stem} gib ${id} is not drawn`);
+        }
+        if (hull.img && archiveBlob(`img/ships_glow/${hull.img}_gib${id}.png`)) {
+          if (!gibImage(hull.id, id, "glow"))
+            problems.push(`drawing ${stem} gib ${id} is not drawn`);
+        }
       }
     }
   }

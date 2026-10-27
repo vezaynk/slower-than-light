@@ -5,7 +5,7 @@ import {
   standInShipsXml,
 } from "@stl/campaign";
 import { hullPictureFiles, standInSheet, type HullPictureFile } from "@stl/catalog/src/ship-art.ts";
-import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
+import { LAYOUT_FILE, layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { mountsFor } from "@stl/catalog/src/weapon-mounts.ts";
 import { packFtlDat } from "@stl/ftldat";
 import { pictureForRooms, type HullPicture } from "@stl/pack";
@@ -49,7 +49,15 @@ function drawBox(file: HullPictureFile): HullPicture {
   return pictureForRooms(file.rooms) ?? file.picture;
 }
 
-/** Base, cloak, floor, shield, and gib pngs for each drawing. Names match a real archive. */
+/** Player layout stems. Their combat plate stays in `img/ship`, as a real archive stores it. */
+const PLAYER_STEM = new Set(Object.values(LAYOUT_FILE));
+
+/**
+ * Pictures for each drawing, at the paths a real archive uses.
+ * A player plate, its gibs, the floor, and the shield are `img/ship`.
+ * An enemy plate is `img/ships_glow/<stem>_base.png`, and its gibs sit beside it.
+ * Cloak is `img/ship` for both. `ships_noglow` is the unlit portrait.
+ */
 export function standInImages(
   files: readonly HullPictureFile[],
 ): { path: string; bytes: Uint8Array }[] {
@@ -57,6 +65,10 @@ export function standInImages(
   for (const file of files) {
     const box = drawBox(file);
     const gibs = standInSheet(box, mountsFor(file.stem), file.stem).gibs ?? [];
+    const pieces = gibs.map((gib, index) => ({
+      id: gib.id,
+      bytes: gibPng(file.stem, box, file.rooms, index, gibs.length),
+    }));
     images.push(
       {
         path: `img/ship/${file.stem}_base.png`,
@@ -82,10 +94,16 @@ export function standInImages(
         path: `img/ships_glow/${file.stem}_base.png`,
         bytes: glowPortraitPng(file.stem, box, file.rooms),
       },
-      ...gibs.map((gib, index) => ({
-        path: `img/ship/${file.stem}_gib${gib.id}.png`,
-        bytes: gibPng(file.stem, box, file.rooms, index, gibs.length),
+      ...pieces.map((piece) => ({
+        path: `img/ship/${file.stem}_gib${piece.id}.png`,
+        bytes: piece.bytes,
       })),
+      ...(PLAYER_STEM.has(file.stem)
+        ? []
+        : pieces.map((piece) => ({
+            path: `img/ships_glow/${file.stem}_gib${piece.id}.png`,
+            bytes: piece.bytes,
+          }))),
     );
   }
   images.push({ path: "img/loc-eo/statusUI/menu.png", bytes: localeMenuPng() });

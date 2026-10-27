@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { campaignPack } from "@stl/campaign";
-import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
-import { MOUNT_IMAGES, WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
-import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
+import { hullPictureFiles, standInSheet } from "@stl/catalog/src/ship-art.ts";
+import { MOUNT_IMAGES, mountsFor, WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
+import { LAYOUT_FILE, layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat, extractFtlZip, readPkg } from "@stl/ftldat";
 import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
 import { packFromFtl, parsePack, readAnimations, readBitmapFont, readSounds } from "@stl/pack";
@@ -148,6 +148,16 @@ describe("totallynotftl.dat", () => {
     assert.equal(sounds.cues.find((row) => row.name === "repair")?.loop, true);
     const images = standInImages(pictures);
     assert.equal(extracted.assets.size, images.length + media.assets.length);
+    const playerStem = new Set(Object.values(LAYOUT_FILE));
+    for (const file of pictures) {
+      const gibs = standInSheet(file.picture, mountsFor(file.stem), file.stem).gibs ?? [];
+      for (const gib of gibs) {
+        const interior = `img/ship/${file.stem}_gib${gib.id}.png`;
+        const glow = `img/ships_glow/${file.stem}_gib${gib.id}.png`;
+        assert.equal(extracted.assets.has(interior), true, interior);
+        assert.equal(extracted.assets.has(glow), !playerStem.has(file.stem), glow);
+      }
+    }
     for (const path of [
       "img/weapons/LASER_BURST_3.png",
       "img/weapons/laser_shot.png",

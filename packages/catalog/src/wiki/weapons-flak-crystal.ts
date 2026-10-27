@@ -55,6 +55,9 @@ export const FLAK_ARTILLERY: WeaponDef = {
   breach: 0,
   ammo: false,
   price: 0,
+  radius: 35,
+  spin: 720,
+  droneTargetable: 1,
   blurb: "Seven pellets from the artillery mount. Not sold.",
 };
 
@@ -78,6 +81,9 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     // INFERRED: ammo false. The section lists no missile cost.
     ammo: FLAK_FAMILY.ammo,
     price: 0,
+    radius: 40,
+    spin: 720,
+    droneTargetable: 1,
     blurb:
       "Fires a blast of debris across a random area doing up to 3 damage. Good at taking down shields but hard to aim.",
   },
@@ -99,6 +105,9 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     // INFERRED: ammo false. The section lists no missile cost.
     ammo: FLAK_FAMILY.ammo,
     price: 80,
+    radius: 55,
+    spin: 720,
+    droneTargetable: 1,
     blurb:
       "Fires a blast of debris across a random area doing up to 7 damage. Good at taking down shields but hard to aim.",
   },
@@ -164,6 +173,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 20,
+    stunChance: 0.2,
     blurb: "Modified projectile weapon that fires shield piercing crystals.",
   },
   {
@@ -198,7 +208,7 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
       "When fired at 1x2 room: 48.74% in main room, 11.51% in each tile next to long sides, 2.57% in each tile next to short sides, 0.02% in each tile next to corners.",
       "When fired at 2x2 room: 89.59% in main room, 1.30% in each tile next to sides.",
     ],
-    note: 'Flak (Weapons) "Adv. Flak Gun": targeting area radius 40 and 3 additional fake flak are not on WeaponDef. Sells for 30 and cannot be bought or found, so price is 0. Enemies never use it. Only on Lanius B. Room odds are applied by advFlakLanding. Radius 40 is not simulated as pixels.',
+    note: 'Flak (Weapons) "Adv. Flak Gun": targeting area radius 40 is on the row. 3 additional fake flak are not on WeaponDef. Sells for 30 and cannot be bought or found, so price is 0. Enemies never use it. Only on Lanius B. Room odds are applied by advFlakLanding. Radius 40 is not simulated as pixels.',
   },
   {
     id: "SHOTGUN_2",
@@ -208,7 +218,7 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
       "When fired at 1x2 room: 25.78% in main room, 12.06% in each tile next to long sides, 7.02% in each tile next to short sides, 2.70% in each tile next to corners, 0.29% in each tile after the tiles next to long sides.",
       "When fired at 2x2 room: 51.56% in main room, 5.90% in each tile next to sides, 0.31% in each tile next to corners.",
     ],
-    note: 'Flak (Weapons) "Flak Gun Mark II": targeting area radius 55 and 6 additional fake flak are not on WeaponDef. Store rarity 4. Room odds are applied by flak2Landing. Radius 55 is not simulated as pixels.',
+    note: 'Flak (Weapons) "Flak Gun Mark II": targeting area radius 55 is on the row. 6 additional fake flak are not on WeaponDef. Store rarity 4. Room odds are applied by flak2Landing. Radius 55 is not simulated as pixels.',
   },
   {
     id: "flak-artillery",
@@ -218,7 +228,7 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
       "When fired at 1x2 room: 60.90% in main room, 9.78% in each tile next to long sides.",
       "When fired at 2x2 room: 100% in main room.",
     ],
-    note: 'flakart.ts owns the system. Flak (Weapons) "Flak Artillery" matches that file on 4 levels, charge 50/40/30/20, shots 7, damage 1, and auto-fire. This section is more than that reminder: radius 35 (each flak projectile is auto-targeted at a random room), additional fake flak 7, and the room odds below are not applied there.',
+    note: 'flakart.ts owns the system. Flak (Weapons) "Flak Artillery" matches that file on 4 levels, charge 50/40/30/20, shots 7, damage 1, and auto-fire. This section is more than that reminder: radius 35 is on the row (each flak projectile is auto-targeted at a random room). Additional fake flak 7 and the room odds below are not applied there.',
   },
   {
     id: "CRYSTAL_BURST_1",

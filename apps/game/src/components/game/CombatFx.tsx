@@ -14,14 +14,14 @@
  * that camera. Beams never miss. Bombs teleport, so a miss stays a puff on the room.
  */
 import { useEffect, useRef } from "react";
-import { hullDef } from "@stl/pack";
 import { halted, shieldChargeFraction } from "@/game/sim";
 import { projectileSpin } from "@/game/projectile-spin";
+import { combatPlateId } from "@/game/wiki/flagship-layout";
 import {
   bubbleCrossing,
   bubbleRoom,
   readShipScale,
-  shieldOval,
+  shieldRing,
   struckPad,
   zoltanPad,
 } from "./shield-bubble";
@@ -438,37 +438,6 @@ function droneSprite(key: DroneKey) {
   });
   droneSprites.set(key, c);
   return c;
-}
-
-/** Bubble radii from the hull's layout ellipse, or the well plus the layer pad. */
-function shieldRadii(
-  hullEl: Element | null,
-  target: { x: number; y: number; w: number; h: number },
-  pad: number,
-): { rx: number; ry: number; center: { x: number; y: number } } {
-  const center = { x: target.x + target.w / 2, y: target.y + target.h / 2 };
-  const plate = hullEl?.getAttribute("data-blueprint");
-  const hull = plate ? hullDef(plate) : undefined;
-  const ellipse = hull?.grid?.ellipse;
-  const picture = hull?.picture;
-  if (ellipse && picture) {
-    const oval = shieldOval(
-      { w: target.w, h: target.h },
-      picture,
-      ellipse,
-      pad,
-      hull?.grid?.horizontal,
-      hull?.grid?.vertical,
-    );
-    if (oval) {
-      return {
-        rx: oval.rx,
-        ry: oval.ry,
-        center: { x: center.x + oval.dx, y: center.y + oval.dy },
-      };
-    }
-  }
-  return { rx: target.w / 2 + pad, ry: target.h / 2 + pad, center };
 }
 
 export function CombatFx() {
@@ -1118,8 +1087,12 @@ export function CombatFx() {
                 )
               : struckPad(frame, Math.max(0, (ship?.shieldNow ?? 1) - 1), false, scale);
             const spark = zoltan ? token("--color-ok", "#3ee56a") : "#6cc4ff";
-            const bubble = shieldRadii(hullEl, target, pad);
-            end = bubbleCrossing(source, hit, bubble.center, bubble.rx, bubble.ry) ?? hit;
+            const ring = shieldRing(combatPlateId(g, side), { w: target.w, h: target.h }, pad);
+            const center = {
+              x: target.x + target.w / 2 + ring.dx,
+              y: target.y + target.h / 2 + ring.dy,
+            };
+            end = bubbleCrossing(source, hit, center, ring.rx, ring.ry) ?? hit;
             if (!beamCutSeen.has(shot.id)) {
               beamCutSeen.add(shot.id);
               rings.push({

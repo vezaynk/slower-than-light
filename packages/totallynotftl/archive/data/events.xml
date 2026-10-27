@@ -3516,6 +3516,30 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       </event>
     </choice>
   </event>
+  <event name="STANDIN_GATES">
+    <title>STANDIN_GATES</title>
+    <text>Gates.</text>
+    <choice name="STANDIN_GATES:0" hidden="true" lvl="2" req="medbay">
+      <text>Medbay band.</text>
+      <event/>
+    </choice>
+    <choice name="STANDIN_GATES:1" max_lvl="24" blue="false" req="reactor">
+      <text>Reactor cap.</text>
+      <event/>
+    </choice>
+    <choice name="STANDIN_GATES:2" hidden="true" lvl="1" max_group="0" req="hacking">
+      <text>Hack one.</text>
+      <event/>
+    </choice>
+    <choice name="STANDIN_GATES:3" hidden="true" lvl="2" max_group="0" req="hacking">
+      <text>Hack two.</text>
+      <event/>
+    </choice>
+    <choice name="STANDIN_GATES:4" hidden="true">
+      <text>Continue.</text>
+      <event/>
+    </choice>
+  </event>
   <eventList name="FILLER">
     <event load="EMPTY_STATION2" unique="true"/>
     <event load="AUTO_REFUEL_STATION" unique="true"/>
@@ -5409,13 +5433,5 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="TERRAFORMING_SCAN" unique="true"/>
     <event load="MERCENARY" unique="false"/>
   </eventList>
-<eventList name="STANDIN_EMPTY"></eventList>
-<event name="STANDIN_GATES">
-  <text>Gates.</text>
-  <choice req="medbay" min_level="2" hidden="true"><text>Medbay band.</text></choice>
-  <choice req="reactor" max_lvl="24" blue="false"><text>Reactor cap.</text></choice>
-  <choice req="hacking" lvl="1" max_group="0" hidden="true"><text>Hack one.</text></choice>
-  <choice req="hacking" lvl="2" max_group="0" hidden="true"><text>Hack two.</text></choice>
-  <choice hidden="true"><text>Continue.</text></choice>
-</event>
+  <eventList name="STANDIN_EMPTY"/>
 </FTL>

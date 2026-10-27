@@ -3,6 +3,7 @@
  * A layer still charging and a Zoltan shield take the next slots outward.
  * A tight frame compresses the stack so the outer stroke stays inside the panel.
  */
+import { hullDef } from "@stl/pack";
 
 const PAD0 = 16;
 const GAP = 8;
@@ -123,6 +124,24 @@ export function shieldOval(
     dx: ellipse.x * sx,
     dy: ellipse.y * sy,
   };
+}
+
+/**
+ * The bubble for one hull. A layout ellipse uses the picture box. Anything else is the well plus the pad.
+ */
+export function shieldRing(
+  hullId: string | undefined,
+  box: { w: number; h: number },
+  pad: number,
+): ShieldOval {
+  const hull = hullId ? hullDef(hullId) : undefined;
+  const ellipse = hull?.grid?.ellipse;
+  const picture = hull?.picture;
+  if (ellipse && picture) {
+    const oval = shieldOval(box, picture, ellipse, pad, hull.grid?.horizontal, hull.grid?.vertical);
+    if (oval) return oval;
+  }
+  return { rx: box.w / 2 + pad, ry: box.h / 2 + pad, dx: 0, dy: 0 };
 }
 
 /**

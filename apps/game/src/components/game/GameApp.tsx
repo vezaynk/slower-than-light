@@ -35,7 +35,6 @@ import {
   crewDef,
   droneDef,
   packLocales,
-  shipClassBlueprint,
   weaponDef,
 } from "@stl/pack";
 import { crewCopy, droneCopy, phraseOr, weaponCopy } from "@/game/interface-copy";
@@ -162,7 +161,7 @@ import {
 
 import { UNIFORMS } from "@/game/crew-look";
 import { enemySystemClock, ionClock, systemClock } from "@/game/system-clock";
-import { flagshipHullId } from "@/game/wiki/flagship-layout";
+import { combatPlateId } from "@/game/wiki/flagship-layout";
 import { artilleryGun, artilleryView } from "@/game/wiki/flagship-systems";
 import {
   aim,
@@ -2002,11 +2001,7 @@ function TargetPanel({
     0,
   );
   const foeCharge = shieldChargeFraction(game, enemy, "enemy");
-  const foeHullId = enemy.flagship
-    ? flagshipHullId(enemy.flagship.stage, game.difficulty)
-    : enemy.classId
-      ? shipClassBlueprint(enemy.classId, enemy.pirate)
-      : enemy.classId;
+  const foeHullId = combatPlateId(game, "enemy", enemy);
   // The panel keeps a margin so the shield ellipses sit inside it, including on the 12×10 flagship.
   // Crew, doors, icons, and mounts are drawn for a 44px tile. --ship-scale shrinks them with the rooms.
   const FOE_TILE_FULL = 44;

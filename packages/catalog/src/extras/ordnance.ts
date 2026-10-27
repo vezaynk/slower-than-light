@@ -22,11 +22,14 @@ export const ORDNANCE: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 65,
+    radius: 42,
+    spin: 720,
+    droneTargetable: 1,
     blurb: "Three pellets. Each is one damage, can miss alone, and one shield layer stops one.",
   },
   // Bomb (Weapons), "Fire Bomb": purchase price 50, power 2, charge 15 seconds, system damage 0.
   // Effect: guaranteed 1-2 fires, so fire is 1. No breach percent is published, so breach is 0.
-  // "Comparing bombs to missiles": 1 missile per shot, and bombs do no hull damage. Crew damage 30 is not a field.
+  // "Comparing bombs to missiles": 1 missile per shot, and bombs do no hull damage. persDamage 2 is the file's crew figure.
   // INFERRED: shots 1, gap 0, ion 0. The section does not number them. How often the second fire happens is not published.
   {
     id: "BOMB_FIRE",
@@ -42,6 +45,7 @@ export const ORDNANCE: WeaponDef[] = [
     breach: 0,
     ammo: true,
     price: 50,
+    persDamage: 2,
     blurb:
       "Hits the room. No hull. One or two fires. Spends a missile. Ignores shields. Can still miss.",
   },

@@ -1,6 +1,6 @@
-import { hullDef, marksFromDoors } from "@stl/pack";
+import { hullDef, marksFromDoors, shipClassBlueprint } from "@stl/pack";
 import type { Layout } from "../layouts.ts";
-import type { SysId } from "../types.ts";
+import type { Game, SysId } from "../types.ts";
 
 export type FlagshipDifficulty = "easy" | "normal" | "hard";
 
@@ -30,6 +30,23 @@ export function flagshipDifficulty(difficulty: string | undefined): FlagshipDiff
 /** Blueprint the fight asks for. Easy, normal, and hard each have their own id. */
 export function flagshipHullId(stage: 1 | 2 | 3, difficulty: string | undefined): string {
   return flagshipBlueprintId(stage, flagshipDifficulty(difficulty));
+}
+
+/**
+ * Hull blueprint drawn for this side.
+ * The player uses the hangar hull. An enemy uses the flagship stage, or the class blueprint.
+ * `shown` is the ship on screen when that ship is a wreck the fight has already cleared.
+ */
+export function combatPlateId(
+  g: Game,
+  side: "player" | "enemy",
+  shown?: Game["enemy"],
+): string | undefined {
+  if (side === "player") return g.hullId;
+  const enemy = shown === undefined ? g.enemy : shown;
+  if (!enemy) return undefined;
+  if (enemy.flagship) return flagshipHullId(enemy.flagship.stage, g.difficulty);
+  return enemy.classId ? shipClassBlueprint(enemy.classId, enemy.pirate) : enemy.classId;
 }
 
 function span(rooms: { x: number; y: number; w: number; h: number }[]): {

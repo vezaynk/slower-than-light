@@ -714,7 +714,6 @@ export function ShipView({
       ref={hullRef}
       className={`hull ${aboard === "enemy" ? "hull-foe" : "hull-own"}${ship.hull <= 0 ? " is-gone" : ""}`}
       data-ship={aboard}
-      data-blueprint={plateId}
       onPointerDownCapture={() => {
         // A touch drag ends without a click, so the swallow set on its release must not outlive it: a new press means
         // that click is not coming (bug: the tap after a drifted long hold was ignored).

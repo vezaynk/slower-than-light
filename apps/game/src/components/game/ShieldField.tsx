@@ -1,7 +1,6 @@
 import { useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { hullDef } from "@stl/pack";
 import { shipArtGeneration, shipImage, subscribeShipArt } from "@/game/pack/ship-art";
-import { bubbleLayout, frameRoom, readShipScale, shieldOval } from "./shield-bubble";
+import { bubbleLayout, frameRoom, readShipScale, shieldRing } from "./shield-bubble";
 
 /**
  * Concentric shield bubbles around one hull. One blue ellipse per live layer, a filling
@@ -50,23 +49,7 @@ export function ShieldField({
   }, []);
 
   const layout = bubbleLayout(box.room, layers, charge != null, zoltan > 0, box.scale);
-  const hull = hullId ? hullDef(hullId) : undefined;
-  const ring = (pad: number) => {
-    const ellipse = hull?.grid?.ellipse;
-    const picture = hull?.picture;
-    if (ellipse && picture) {
-      const oval = shieldOval(
-        box,
-        picture,
-        ellipse,
-        pad,
-        hull?.grid?.horizontal,
-        hull?.grid?.vertical,
-      );
-      if (oval) return oval;
-    }
-    return { rx: box.w / 2 + pad, ry: box.h / 2 + pad, dx: 0, dy: 0 };
-  };
+  const ring = (pad: number) => shieldRing(hullId, box, pad);
   const visible =
     box.w > 1 &&
     box.h > 1 &&

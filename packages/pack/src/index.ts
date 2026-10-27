@@ -123,14 +123,13 @@ export {
   scrapRange,
   sectorDef,
   civilianSectorTitle,
-  packLocales,
-  localeString,
   storeDef,
   systemDef,
   tuneDef,
   weaponDef,
   factionSurrender,
 } from "./registry.ts";
+export { localeString, packLocales } from "./locales.ts";
 export type {
   AugmentDef,
   ContentPack,
@@ -146,6 +145,7 @@ export type {
   EventGrade,
   GradePay,
   EventChoice,
+  LocaleTable,
   LockOwner,
   EventDef,
   ShipEventDef,

@@ -58,6 +58,7 @@ import {
   readDocument,
   readDrone,
   readEmpty,
+  readChoiceGates,
   readEvent,
   readFaction,
   readRewards,
@@ -1273,21 +1274,7 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
     label: elementString(node, "text", strings) ?? "",
     fx: [],
   };
-  if (node.getAttribute("hidden") === "true") choice.hidden = true;
-  const minLevel = intAttr(node, "lvl") ?? intAttr(node, "min_level");
-  const maxLevel = intAttr(node, "max_lvl");
-  const maxGroup = intAttr(node, "max_group");
-  if (minLevel != null) choice.minLevel = minLevel;
-  if (maxLevel != null) choice.maxLevel = maxLevel;
-  if (maxGroup != null) choice.maxGroup = maxGroup;
-  if (node.getAttribute("blue") === "false") choice.blue = false;
-  const gear = attr(node, "req")?.trim();
-  if (gear) {
-    const req: EventChoice["reqs"] = [
-      { k: "attr", id: gear, text: "", min: minLevel, max: maxLevel },
-    ];
-    choice.reqs = req;
-  }
+  readChoiceGates(choice, node);
   const result = elements(node).find((item) => item.tagName === "event");
   const environment = readEnvironment(result ?? node);
   if (environment) choice.environment = environment;

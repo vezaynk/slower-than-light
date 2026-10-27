@@ -3708,9 +3708,7 @@ export function applyImpact(g: Game, shot: Shot) {
       !bombThrough &&
       systemFigure === 0 &&
       shot.ion <= 0 &&
-      (crewFigure ?? 0) >= 0 &&
-      shot.defId !== "BOMB_HEAL" &&
-      shot.defId !== "BOMB_HEAL_SYSTEM"
+      (crewFigure ?? 0) >= 0
     ) {
       log(
         g,
@@ -3778,13 +3776,8 @@ export function applyImpact(g: Game, shot: Shot) {
         return;
       }
       // Bomb (Weapons), "Healing Burst": 150 health to personnel in the room, including mind-controlled crew.
-      // A negative `<persDamage>` is that heal. It returns before the room strike, which subtracts crew HP.
-      const healPoints =
-        crewFigure != null && crewFigure < 0
-          ? -crewFigure
-          : shot.defId === "BOMB_HEAL"
-            ? 150
-            : null;
+      // A negative crew figure is that heal. It returns before the room strike, which subtracts crew HP.
+      const healPoints = crewFigure != null && crewFigure < 0 ? -crewFigure : null;
       if (healPoints != null) {
         const owner = shot.from === "player" ? "player" : "enemy";
         for (const c of g.crew) {
@@ -3798,9 +3791,9 @@ export function applyImpact(g: Game, shot: Shot) {
         return;
       }
       // Bomb (Weapons), "Repair Burst": 8 bars of system damage. It does not put out fires or seal breaches.
-      // A negative `<sysDamage>` is that repair. Hull stays the blueprint's `<damage>`, which is 0.
-      if (shot.defId === "BOMB_HEAL_SYSTEM" || systemFigure < 0) {
-        const repair = systemFigure < 0 ? -systemFigure : 8;
+      // A negative system figure is that repair. Hull stays the blueprint's `<damage>`, which is 0.
+      if (systemFigure < 0) {
+        const repair = -systemFigure;
         if (r.system) {
           const sys = ship.systems[r.system];
           sys.damage = Math.max(0, sys.damage - repair);
@@ -4303,26 +4296,10 @@ function strikeRoom(
   }
 }
 
-/**
- * Ion Charger, the three Laser Chargers, and Swarm Missiles.
- * `shots` on the def is the bank, not one volley of a normal gun.
- * Missile (Weapons), Swarm Missiles: "7 seconds per shot" and "Shots: 1-3".
- */
-const CHARGER_IDS = new Set([
-  "ION_CHARGEGUN",
-  "LASER_CHARGEGUN_PLAYER",
-  "LASER_CHARGEGUN",
-  "LASER_CHARGEGUN_2",
-  "MISSILE_CHARGEGUN",
-]);
-
-/** Bank size for a charger, or null when this gun fires its whole volley from one bar. */
+/** Bank size from `<chargeLevels>`, or null when this gun fires its whole volley from one bar. */
 export function chargerCap(defId: string): number | null {
   const levels = weaponDef(defId)?.chargeLevels;
-  if (levels != null && levels > 0) return levels;
-  if (!CHARGER_IDS.has(defId)) return null;
-  const n = weaponDef(defId)?.shots ?? 0;
-  return n > 0 ? n : null;
+  return levels != null && levels > 0 ? levels : null;
 }
 
 /**

@@ -1128,5 +1128,11 @@ export type ContentPack = {
    * `text-<code>.xml` tables. English stays on the blueprints.
    * A `.append` file merges into the same code. The code is the filename, hyphens included.
    */
-  locales?: { code: string; strings: Record<string, string> }[];
+  locales?: LocaleTable[];
+};
+
+/** One `text-<code>.xml` table. English is not one of these. */
+export type LocaleTable = {
+  code: string;
+  strings: Record<string, string>;
 };

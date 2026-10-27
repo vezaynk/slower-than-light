@@ -254,14 +254,11 @@ describe("totallynotftl.dat", () => {
     assert.deepEqual(merged.hulls, pack.hulls);
     assert.deepEqual(merged.sectors, pack.sectors);
     const extra = new Set(["STAND_IN_BEACON", "STAND_IN_NESTED"]);
-    // STANDIN_GATES and STANDIN_EMPTY are spliced into the stand-in. They are not catalog records.
-    const standInEvent = new Set(["STANDIN_GATES"]);
-    const standInList = new Set(["STANDIN_EMPTY"]);
     const byId = <T extends { id: string }>(rows: T[] | undefined) =>
       [...(rows ?? [])].sort((a, b) => a.id.localeCompare(b.id));
     assert.deepEqual(
-      byId(merged.events?.filter((event) => !extra.has(event.id) && !standInEvent.has(event.id))),
-      byId(pack.events?.filter((event) => !standInEvent.has(event.id))),
+      byId(merged.events?.filter((event) => !extra.has(event.id))),
+      byId(pack.events),
     );
     const gates = merged.events?.find((event) => event.id === "STANDIN_GATES");
     assert.equal(gates?.body, "Gates.");
@@ -316,10 +313,7 @@ describe("totallynotftl.dat", () => {
       { text: "The near reading." },
       { load: "STAND_IN_MORE" },
     ]);
-    assert.deepEqual(
-      (merged.lists ?? []).filter((row) => !standInList.has(row.id)),
-      (pack.lists ?? []).filter((row) => !standInList.has(row.id)),
-    );
+    assert.deepEqual(merged.lists, pack.lists);
     assert.equal(merged.lists?.find((row) => row.id === "STANDIN_EMPTY")?.entries.length, 0);
     assert.deepEqual(merged.stores, pack.stores);
     assert.deepEqual(merged.rewards, pack.rewards);

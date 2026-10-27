@@ -19,6 +19,7 @@ import type {
   TradeStep,
   EventGrade,
   EventCard,
+  EventChoice,
   EventDef,
   EventEffect,
   FactionSurrender,
@@ -374,11 +375,12 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   if (event.grade) add(node, gradeElement(doc, event.grade));
   for (const card of event.cards ?? []) add(node, cardElement(doc, card));
   for (const choice of event.choices) {
-    const choiceAttrs: Record<string, string> = { name: choice.id };
-    if (choice.owner) choiceAttrs.owner = choice.owner;
-    const choiceNode = element(doc, "choice", choiceAttrs);
+    const choiceNode = element(doc, "choice", choiceAttributes(choice));
     add(choiceNode, leaf(doc, "text", choice.label));
-    for (const req of choice.reqs ?? []) add(choiceNode, reqElement(doc, req));
+    for (const req of choice.reqs ?? []) {
+      if (req.k === "attr") continue;
+      add(choiceNode, reqElement(doc, req));
+    }
     let placedGift = false;
     for (const fx of choice.fx) {
       if (fx.k === "nothing" && choice.gift && !placedGift) {
@@ -392,6 +394,20 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   }
   if (event.surrender) add(node, surrenderElement(doc, event.surrender));
   return node;
+}
+
+/** Choice attributes the archive stores on the button. An attr req is `req`, not a nested element. */
+function choiceAttributes(choice: EventChoice): Record<string, string> {
+  const attrs: Record<string, string> = { name: choice.id };
+  if (choice.owner) attrs.owner = choice.owner;
+  if (choice.hidden) attrs.hidden = "true";
+  if (choice.minLevel != null) attrs.lvl = String(choice.minLevel);
+  if (choice.maxLevel != null) attrs.max_lvl = String(choice.maxLevel);
+  if (choice.maxGroup != null) attrs.max_group = String(choice.maxGroup);
+  if (choice.blue === false) attrs.blue = "false";
+  const gear = choice.reqs?.find((req) => req.k === "attr");
+  if (gear?.k === "attr") attrs.req = gear.id;
+  return attrs;
 }
 
 /** Consecutive rows that share a list name stay in one eventList. Document order is the flat row order. */
@@ -492,7 +508,10 @@ function choiceElement(
   if (owner) attrs.owner = owner;
   const node = element(doc, "choice", attrs);
   add(node, leaf(doc, "text", label));
-  for (const req of reqs ?? []) add(node, reqElement(doc, req));
+  for (const req of reqs ?? []) {
+    if (req.k === "attr") continue;
+    add(node, reqElement(doc, req));
+  }
   if (gift) add(node, fuelModify(doc, gift));
   return node;
 }
@@ -560,6 +579,7 @@ function gradeElement(doc: XmlDocument, grade: EventGrade): XmlElement {
 }
 
 function reqElement(doc: XmlDocument, req: ChoiceReq): XmlElement {
+  if (req.k === "attr") throw new Error(`attr req ${req.id} belongs on the choice`);
   if (req.k === "system") return reqText(doc, { req: req.id, lvl: num(req.level) }, req.text);
   if (req.k === "band") {
     return reqText(doc, { req: req.id, lvl: num(req.lo), max_lvl: num(req.hi) }, req.text);

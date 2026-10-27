@@ -24,6 +24,22 @@ export type WeaponDef = {
   ammo: boolean;
   price: number;
   blurb: string;
+  /** `<persDamage>` as written. Crew HP is this times 15. A negative value heals. */
+  persDamage?: number;
+  /** `<sysDamage>` system bars. A bomb's `damage` stays the printed system figure. */
+  sysDamage?: number;
+  /** `<stunChance>` as a fraction. The file stores tenths, so 0.2 is the file's 2. */
+  stunChance?: number;
+  /** `<radius>` in archive pixels. Landing odds do not treat it as a pixel circle. */
+  radius?: number;
+  /** `<chargeLevels>`. The charger bank. `shots` stays the printed count. */
+  chargeLevels?: number;
+  /** `<spin>` degrees per second. The sprite turns. The landing does not. */
+  spin?: number;
+  /** `<drone_targetable>`. 1 means a defense drone may shoot this blueprint's shot. */
+  droneTargetable?: number;
+  /** `<boost>`. Cooldown subtracts seconds. Damage adds ion. Step 0 is this row's own number. */
+  boost?: { type: "cooldown" | "damage"; amount: number; count: number };
 };
 
 /**
@@ -106,6 +122,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0.3,
     ammo: false,
     price: 50,
+    stunChance: 0.2,
     blurb: "Two hull if it lands. One shield layer still eats the entire shot.",
   },
   // INVENTED. Charge is 14 seconds, which is not Artemis (Missile (Weapons), "Artemis Missiles", 11 seconds) or Leto ("Leto Missiles", 9 seconds), so it is not renamed.
@@ -126,7 +143,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     blurb: "Ignores shields. Spends one missile. Can still miss.",
   },
   // Ion (Weapons), "Ion Blast": purchase price 30, power 1, charge 8 seconds, shots 1, ion damage per shot 1.
-  // The section and the page lead give no hull damage, so damage is 0. Effect: low chance to stun. No percent is published. Stun is not a field.
+  // The section and the page lead give no hull damage, so damage is 0. Effect: low chance to stun. stunChance is that chance as a fraction.
   ION_1: {
     id: "ION_1",
     name: "Ion Blast",
@@ -141,12 +158,13 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: false,
     price: 30,
+    stunChance: 0.1,
     blurb: "No hull damage. A shield blocks it. If it lands, it locks one power bar for 5 seconds.",
   },
   // Missile (Weapons), "Artemis Missiles": sells for 19 (cannot be bought or found), so price is 0, not 19.
   // Power 1, charge 11 seconds, shots 1, damage per shot 2.
   // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
-  // Low chance to stun is not a field. The lead says a missile spends 1 ammunition.
+  // Low chance to stun is stunChance. The lead says a missile spends 1 ammunition.
   MISSILES_2_PLAYER: {
     id: "MISSILES_2_PLAYER",
     name: "Artemis Missiles",
@@ -161,12 +179,13 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: true,
     price: 0,
+    stunChance: 0.1,
     blurb: "Ignores shields. Two damage. Spends one missile. Can still miss.",
   },
   // Missile (Weapons), "Leto Missiles": sells for 10 (cannot be bought or found), so price is 0, not 10.
   // Power 1, charge 9 seconds, shots 1, damage per shot 1.
   // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
-  // Low chance to stun is not a field. The lead says a missile spends 1 ammunition.
+  // Low chance to stun is stunChance. The lead says a missile spends 1 ammunition.
   MISSILES_1: {
     id: "MISSILES_1",
     name: "Leto Missiles",
@@ -181,6 +200,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: true,
     price: 0,
+    stunChance: 0.1,
     blurb: "Ignores shields. One damage. Spends one missile. Can still miss.",
   },
   // Ion (Weapons), "Ion Blast Mark II": purchase price 70, power 3, charge 4 seconds, shots 1, ion damage per shot 1.
@@ -202,7 +222,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     blurb: "No hull damage. Locks one power bar for 5 seconds if it gets past the shields.",
   },
   // Ion (Weapons), "Heavy Ion": purchase price 45, power 2, charge 13 seconds, shots 1, ion damage per shot 2.
-  // No hull damage is stated, so damage is 0. Effect: moderate-low chance to stun. No percent is published. Stun is not a field.
+  // No hull damage is stated, so damage is 0. Effect: moderate-low chance to stun. stunChance is that chance as a fraction.
   ION_2: {
     id: "ION_2",
     name: "Heavy Ion",
@@ -217,6 +237,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: false,
     price: 45,
+    stunChance: 0.2,
     blurb: "No hull damage. Two ion if it lands, which is two locked bars.",
   },
   // Ion (Weapons), "Ion Stunner": purchase price 35, power 1, charge 10 seconds, shots 1, ion damage per shot 1.

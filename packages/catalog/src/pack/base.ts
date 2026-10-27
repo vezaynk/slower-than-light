@@ -851,79 +851,6 @@ const PIERCE_ONE: Record<string, number> = {
   CRYSTAL_HEAVY_2: 1,
 };
 
-/**
- * `<persDamage>` as the file writes it. Crew HP is that number times 15.
- * Healing Burst is negative. Zeros stay on the bombs whose crew line is 0.
- */
-const PERS: Record<string, number> = {
-  BEAM_BIO: 4,
-  BOMB_1: 2,
-  BOMB_BREACH_1: 2,
-  BOMB_BREACH_2: 3,
-  BOMB_FIRE: 2,
-  BOMB_HEAL: -10,
-  BOMB_STUN: 0,
-  BOMB_LOCK: 0,
-  BOMB_ION: 0,
-  BOMB_HEAL_SYSTEM: 0,
-};
-
-/** `<sysDamage>` system bars. A bomb's `<damage>` is hull and stays 0. */
-const SYS: Record<string, number> = {
-  BOMB_1: 2,
-  BOMB_BREACH_1: 1,
-  BOMB_BREACH_2: 3,
-  BOMB_HEAL_SYSTEM: -8,
-};
-
-/** `<boost>`. Cooldown subtracts seconds. Damage adds ion. Step 0 is the blueprint's own number. */
-const BOOST: Record<string, { type: "cooldown" | "damage"; amount: number; count: number }> = {
-  LASER_CHAINGUN: { type: "cooldown", amount: 3, count: 3 },
-  LASER_CHAINGUN_2: { type: "cooldown", amount: 2, count: 5 },
-  ION_CHAINGUN: { type: "damage", amount: 1, count: 3 },
-};
-
-/** `<chargeLevels>` is the bank. `<shots>` on these five was that bank. */
-const CHARGE_BANK = new Set([
-  "ION_CHARGEGUN",
-  "LASER_CHARGEGUN_PLAYER",
-  "LASER_CHARGEGUN",
-  "LASER_CHARGEGUN_2",
-  "MISSILE_CHARGEGUN",
-]);
-
-/** `<radius>` in archive pixels. Room odds do not treat it as a pixel circle. */
-const RADIUS: Record<string, number> = {
-  SHOTGUN: 42,
-  SHOTGUN_PLAYER: 40,
-  SHOTGUN_2: 55,
-  "flak-artillery": 35,
-  MISSILE_CHARGEGUN: 31,
-};
-
-/** `<spin>` 720 degrees per second. The sprite turns. The landing does not. */
-const SPIN_DRONE = new Set(["SHOTGUN", "SHOTGUN_PLAYER", "SHOTGUN_2", "flak-artillery"]);
-
-/** `<drone_targetable>` 1. Swarm is included. A plain missile is not. */
-const DRONE_TARGET = new Set([...SPIN_DRONE, "MISSILE_CHARGEGUN"]);
-
-/** `<stunChance>` in tenths, the same scale as fire and breach. `2` is 0.2. */
-const STUN_TENTHS: Record<string, number> = {
-  LASER_HEAVY_1: 2,
-  LASER_HEAVY_2: 2,
-  LASER_HEAVY_1_SP: 2,
-  CRYSTAL_HEAVY_1: 2,
-  MISSILES_1: 1,
-  MISSILES_2: 1,
-  MISSILES_2_PLAYER: 1,
-  MISSILES_3: 1,
-  MISSILES_BREACH: 1,
-  MISSILES_HULL: 1,
-  MISSILES_BURST: 1,
-  ION_1: 1,
-  ION_2: 2,
-};
-
 function launchSound(kind: WeaponBlueprint["kind"]): string {
   if (kind === "laser" || kind === "flak") return "lightLaser1";
   if (kind === "missile" || kind === "bomb") return "smallMissile1";
@@ -942,45 +869,22 @@ function weaponRow(id: string): WeaponBlueprint {
   else if (Object.prototype.hasOwnProperty.call(PROJECTILE_SPEED, id))
     row.speed = PROJECTILE_SPEED[id];
   if (HULL_BUST.has(id)) row.hullBust = 1;
-  if (id === "BEAM_LONG") row.crewDamage = BEAM_CREW.BEAM_LONG;
+  // A present persDamage, including 0, is the file's crew figure. Crew HP is that number times 15.
+  // Beams and bombs without it keep the printed crew table.
+  if (row.persDamage != null) row.crewDamage = row.persDamage * 15;
+  else if (id === "BEAM_LONG") row.crewDamage = BEAM_CREW.BEAM_LONG;
   else if (Object.prototype.hasOwnProperty.call(BEAM_CREW, id)) row.crewDamage = BEAM_CREW[id];
-  if (Object.prototype.hasOwnProperty.call(BOMB_CREW, id)) row.crewDamage = BOMB_CREW[id];
-  if (Object.prototype.hasOwnProperty.call(PERS, id)) {
-    const pers = PERS[id];
-    if (pers != null) {
-      row.persDamage = pers;
-      row.crewDamage = pers * 15;
-    }
-  }
-  if (row.kind === "bomb") {
-    row.damage = 0;
-    if (Object.prototype.hasOwnProperty.call(SYS, id)) {
-      const sys = SYS[id];
-      if (sys != null) row.sysDamage = sys;
-    }
-  }
-  const boost = BOOST[id];
-  if (boost) row.boost = { type: boost.type, amount: boost.amount, count: boost.count };
-  if (SPIN_DRONE.has(id)) row.spin = 720;
-  if (DRONE_TARGET.has(id)) row.droneTargetable = 1;
-  if (Object.prototype.hasOwnProperty.call(RADIUS, id)) {
-    const radius = RADIUS[id];
-    if (radius != null) row.radius = radius;
-  }
-  if (CHARGE_BANK.has(id)) {
-    row.chargeLevels = row.shots;
-    row.shots = 1;
-  }
+  else if (Object.prototype.hasOwnProperty.call(BOMB_CREW, id)) row.crewDamage = BOMB_CREW[id];
+  // A bomb's printed `damage` is system bars. The blueprint's `<damage>` is hull and stays 0.
+  if (row.kind === "bomb") row.damage = 0;
+  // The wiki row keeps the printed shot count. The blueprint's volley is one, and chargeLevels is the bank.
+  if (row.chargeLevels != null && row.chargeLevels > 0) row.shots = 1;
   const cue = launchSound(row.kind);
   row.launchSounds = [cue];
   row.hitShipSounds = ["hitHull1"];
   row.hitShieldSounds = ["hitShield1"];
   row.missSounds = ["miss"];
   row.icon = `img/weapons/${id}.png`;
-  if (Object.prototype.hasOwnProperty.call(STUN_TENTHS, id)) {
-    const tenths = STUN_TENTHS[id];
-    if (tenths != null) row.stunChance = tenths / 10;
-  }
   return row;
 }
 
@@ -1096,6 +1000,61 @@ function campaignEvents(): EventDef[] {
   return named;
 }
 
+/**
+ * Choice-attribute fixture. It is a catalog page so the emitter writes it.
+ * Choice ids are already scoped. An all-digit name would be rewritten on load.
+ */
+const STANDIN_GATES: EventDef = {
+  id: "STANDIN_GATES",
+  dest: "STANDIN_GATES",
+  flag: "STANDIN_GATES",
+  aliases: [],
+  sectors: [],
+  body: "Gates.",
+  choices: [
+    {
+      id: "STANDIN_GATES:0",
+      label: "Medbay band.",
+      hidden: true,
+      minLevel: 2,
+      fx: [{ k: "nothing" }],
+      reqs: [{ k: "attr", id: "medbay", text: "", min: 2 }],
+    },
+    {
+      id: "STANDIN_GATES:1",
+      label: "Reactor cap.",
+      maxLevel: 24,
+      blue: false,
+      fx: [{ k: "nothing" }],
+      reqs: [{ k: "attr", id: "reactor", text: "", max: 24 }],
+    },
+    {
+      id: "STANDIN_GATES:2",
+      label: "Hack one.",
+      hidden: true,
+      minLevel: 1,
+      maxGroup: 0,
+      fx: [{ k: "nothing" }],
+      reqs: [{ k: "attr", id: "hacking", text: "", min: 1 }],
+    },
+    {
+      id: "STANDIN_GATES:3",
+      label: "Hack two.",
+      hidden: true,
+      minLevel: 2,
+      maxGroup: 0,
+      fx: [{ k: "nothing" }],
+      reqs: [{ k: "attr", id: "hacking", text: "", min: 2 }],
+    },
+    {
+      id: "STANDIN_GATES:4",
+      label: "Continue.",
+      hidden: true,
+      fx: [{ k: "nothing" }],
+    },
+  ],
+};
+
 export function loadCatalog(): void {
   const named = campaignEvents();
   const empties = emptyBeaconRecords().map(emptyRow);
@@ -1104,6 +1063,8 @@ export function loadCatalog(): void {
   // The STORE quota names a page, as in ftl.dat. Its <store/> opens the shop.
   if (!events.some((event) => event.id === "STORE")) events.push(STORE_PAGE);
   if (!events.some((event) => event.id === "STORE_REBELSIDE")) events.push(REBEL_TRADE);
+  // After the sector quotas, so the empty list is not mistaken for one of them.
+  events.push(STANDIN_GATES);
   loadPack(
     {
       // Ghost stays off the stand-in. crewDef supplies it when no crewBlueprint uses that id.
@@ -1131,7 +1092,7 @@ export function loadCatalog(): void {
       rewards: REWARD_TABLE,
       factions: FACTION_SURRENDER.map((row) => ({ ...row })),
       events,
-      lists: [...fillerListRecords().map(listRow), ...lists],
+      lists: [...fillerListRecords().map(listRow), ...lists, { id: "STANDIN_EMPTY", entries: [] }],
       empties,
       textLists: [
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },

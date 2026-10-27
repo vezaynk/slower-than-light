@@ -894,6 +894,7 @@ export function readEvent(node: XmlElement): EventDef | undefined {
     const choice: EventChoice = { id: choiceId, label: textOf(item, "text") ?? choiceId, fx };
     const reqs = readReqs(item);
     if (reqs) choice.reqs = reqs;
+    readChoiceGates(choice, item);
     const owner = lockOwner(attr(item, "owner"));
     if (owner) choice.owner = owner;
     const gift = readGift(item, "page");
@@ -1344,6 +1345,28 @@ function fuelGift(modify: XmlElement): ChoiceGift | undefined {
   const hi = intAttr(item, "max");
   if (lo == null || hi == null || lo > hi || lo < 0) return undefined;
   return { k: "fuel", lo, hi };
+}
+
+/**
+ * `hidden`, `lvl` / `min_level`, `max_lvl`, `max_group`, `blue`, and `req` on the choice.
+ * Absent min and max stay absent. An attr req is not a nested `<req>`.
+ */
+export function readChoiceGates(choice: EventChoice, node: XmlElement): void {
+  if (node.getAttribute("hidden") === "true") choice.hidden = true;
+  const minLevel = intAttr(node, "lvl") ?? intAttr(node, "min_level");
+  const maxLevel = intAttr(node, "max_lvl");
+  const maxGroup = intAttr(node, "max_group");
+  if (minLevel != null) choice.minLevel = minLevel;
+  if (maxLevel != null) choice.maxLevel = maxLevel;
+  if (maxGroup != null) choice.maxGroup = maxGroup;
+  if (node.getAttribute("blue") === "false") choice.blue = false;
+  const gear = attr(node, "req")?.trim();
+  if (!gear) return;
+  const req: Extract<ChoiceReq, { k: "attr" }> = { k: "attr", id: gear, text: "" };
+  if (minLevel != null) req.min = minLevel;
+  if (maxLevel != null) req.max = maxLevel;
+  const rest = (choice.reqs ?? []).filter((item) => item.k !== "attr");
+  choice.reqs = [req, ...rest];
 }
 
 /** Direct req children. An unknown kind, a blank refusal, or a bad number is skipped. */

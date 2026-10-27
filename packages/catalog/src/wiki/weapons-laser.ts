@@ -83,6 +83,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Heavy Pierce Laser Mark I": "Sells for: 27 (cannot be bought or found)". price is 0. Sell value 27 is not stored in price.
     price: 0,
+    stunChance: 0.2,
     blurb:
       "Heavy lasers can wreak more havoc than their smaller, burst laser counterparts. This modified version pierces 1 shield.",
   },
@@ -109,6 +110,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Heavy Laser Mark II": "Purchase price: 65".
     price: 65,
+    stunChance: 0.2,
     blurb: "This heavy laser fires two shots in quick succession, each dealing 2 damage",
   },
   {
@@ -184,6 +186,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Chain Burst Laser": "Purchase price: 65".
     price: 65,
+    boost: { type: "cooldown", amount: 3, count: 3 },
     blurb:
       "This dual shot laser decreases in cooldown the more it fires. After 3 volleys it only takes 7 seconds to charge.",
   },
@@ -210,6 +213,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Chain Vulcan": "Purchase price: 95".
     price: 95,
+    boost: { type: "cooldown", amount: 2, count: 5 },
     blurb:
       "This laser weapon takes a long time to warm up. Each time it fires it decreases the cooldown, eventually able to take down any amount of shields.",
   },
@@ -221,7 +225,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     power: 1,
     // Laser (Weapons), "Laser Charger (S)": "Charge time: 5.5 seconds per shot, up to 2 shots". charge is the first / per-shot time, 5.5.
     charge: 5.5,
-    // Laser (Weapons), "Laser Charger (S)": "Shots: 1-2" and "up to 2 shots". shots stores the full charge, 2.
+    // Laser (Weapons), "Laser Charger (S)": "Shots: 1-2" and "up to 2 shots". shots stays 2. chargeLevels is the bank.
     shots: 2,
     // Laser (Weapons), "Laser Charger (S)": the section does not give a shot gap. gap 0 INFERRED.
     gap: 0,
@@ -236,6 +240,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Laser Charger (S)": "Sells for: 15 (cannot be bought or found)". price is 0. Sell value 15 is not stored in price.
     price: 0,
+    chargeLevels: 2,
     blurb:
       "This laser weapon can charge two times, giving it an additional projectile. This improved version only requires 1 power.",
   },
@@ -247,7 +252,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     power: 2,
     // Laser (Weapons), "Laser Charger": "Charge time: 6 seconds per shot, up to 2 shots". charge is the first / per-shot time, 6.
     charge: 6,
-    // Laser (Weapons), "Laser Charger": "Shots: 1-2" and "up to 2 shots". shots stores the full charge, 2.
+    // Laser (Weapons), "Laser Charger": "Shots: 1-2" and "up to 2 shots". shots stays 2. chargeLevels is the bank.
     shots: 2,
     // Laser (Weapons), "Laser Charger": the section does not give a shot gap. gap 0 INFERRED.
     gap: 0,
@@ -262,6 +267,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Laser Charger": "Purchase price: 55".
     price: 55,
+    chargeLevels: 2,
     blurb: "This laser weapon can charge two times, giving it an extra projectile.",
   },
   {
@@ -272,7 +278,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     power: 3,
     // Laser (Weapons), "Laser Charger Mark II": "Charge time: 5 seconds per shot, up to 4 shots". charge is the first / per-shot time, 5.
     charge: 5,
-    // Laser (Weapons), "Laser Charger Mark II": "Shots: 1-4" and "up to 4 shots". shots stores the full charge, 4.
+    // Laser (Weapons), "Laser Charger Mark II": "Shots: 1-4" and "up to 4 shots". shots stays 4. chargeLevels is the bank.
     shots: 4,
     // Laser (Weapons), "Laser Charger Mark II": the section does not give a shot gap. gap 0 INFERRED.
     gap: 0,
@@ -287,6 +293,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Laser Charger Mark II": "Purchase price: 70".
     price: 70,
+    chargeLevels: 4,
     blurb: "This laser weapon can charge multiple times, giving it additional projectiles.",
   },
 ];
@@ -306,7 +313,7 @@ export const LASER_GAPS: { id: string; note: string }[] = [
   },
   {
     id: "LASER_HEAVY_2",
-    note: 'Laser (Weapons), "Heavy Laser Mark II": "Moderate-low chance to stun crew". No stun percent is published. WeaponDef has no stun field.',
+    note: 'Laser (Weapons), "Heavy Laser Mark II": "Moderate-low chance to stun crew". No stun percent is published. stunChance stores 0.2.',
   },
   {
     id: "LASER_HULL_1",

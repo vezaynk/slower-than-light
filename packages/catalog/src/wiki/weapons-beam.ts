@@ -162,6 +162,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 50,
+    persDamage: 4,
     blurb:
       "This terrifying beam does no physical damage, but rips through organic material, dealing heavy damage to crew members.",
   },

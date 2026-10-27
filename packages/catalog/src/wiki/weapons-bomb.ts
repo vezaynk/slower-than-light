@@ -7,8 +7,8 @@ import type { WeaponDef } from "../content.ts";
  * "Comparing bombs to missiles": "Both bombs and missile weapons use 1 missile ammunition every time they fire".
  * A section that does not restate a missile cost still sets ammo from that lead.
  * Lead: "They deal no hull damage". `damage` is the section's system damage, not hull.
- * Each section's "Crew damage" number is BOMB_CREW. WeaponDef has no crew-damage field.
- * Stun, breach wording, heals, and repairs stay in BOMB_GAPS.
+ * Each section's "Crew damage" number is BOMB_CREW. persDamage is the file's crew figure.
+ * sysDamage is the file's system bars. Stun, breach wording, heals, and repairs stay in BOMB_GAPS.
  */
 export const BOMB_WEAPONS: WeaponDef[] = [
   {
@@ -34,6 +34,8 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Bomb (Weapons) "Small Bomb": purchase price 45 (store rarity 1).
     price: 45,
+    persDamage: 2,
+    sysDamage: 2,
     blurb:
       "Self-teleporting explosive that damages systems and crew but not the hull. Can target your own ship.",
   },
@@ -60,6 +62,8 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Bomb (Weapons) "Breach Bomb Mark I": sells for 25, "cannot be bought". price 0. Sell value is not the purchase price.
     price: 0,
+    persDamage: 2,
+    sysDamage: 1,
     blurb:
       "Self-teleporting explosive designed to damage systems and causes a breach. Can target your own ship.",
   },
@@ -86,6 +90,8 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Bomb (Weapons) "Breach Bomb Mark II": purchase price 60 (store rarity 4).
     price: 60,
+    persDamage: 3,
+    sysDamage: 3,
     blurb:
       "Slower than Mark 1 but breaches and does more damage to systems. Can target your own ship.",
   },
@@ -112,6 +118,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Bomb (Weapons) "Ion Bomb": purchase price 55 (store rarity 3).
     price: 55,
+    persDamage: 0,
     blurb:
       "Self-teleporting explosive that uses ion damage to disable systems. Can target your own ship.",
   },
@@ -138,6 +145,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Bomb (Weapons) "Stun Bomb": purchase price 45 (store rarity 2, Advanced Edition).
     price: 45,
+    persDamage: 0,
     blurb:
       "Self-teleporting explosive that does 1 ion damage and stuns all crew inside the room. Can target your own ship.",
   },
@@ -164,6 +172,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Bomb (Weapons) "Healing Burst": purchase price 40 (store rarity 3).
     price: 40,
+    persDamage: -10,
     blurb:
       "Self-teleporting healing unit that instantly heals all friendly crew in the room. Can target your own ship.",
   },
@@ -190,6 +199,8 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Bomb (Weapons) "Repair Burst": purchase price 40 (store rarity 3, Advanced Edition).
     price: 40,
+    persDamage: 0,
+    sysDamage: -8,
     blurb:
       "Self-teleporting unit that floods a room with nano-bots capable of completely repairing all system damage.",
   },
@@ -216,6 +227,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Bomb (Weapons) "Crystal Lockdown Bomb": purchase price 45. Rarity is not one number (0*, with a sector tooltip).
     price: 45,
+    persDamage: 0,
     blurb:
       "Self-teleporting explosive that does no damage but creates a dense wall preventing movement in or out of the room. Can target your own ship.",
   },

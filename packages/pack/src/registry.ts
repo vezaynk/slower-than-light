@@ -43,6 +43,7 @@ import type {
   TuneStep,
   WeaponBlueprint,
 } from "./types.ts";
+import { mergeStoredLocales, resetLocales, storeLocales } from "./locales.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -68,8 +69,6 @@ let reward: RewardTable | undefined;
 let baseReward: RewardTable | undefined;
 let civilianSectorTitleValue: string | undefined;
 let baseCivilianSectorTitle: string | undefined;
-let localeTables: { code: string; strings: Record<string, string> }[] = [];
-let baseLocales: { code: string; strings: Record<string, string> }[] = [];
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
 let baseAugments: AugmentDef[] = [];
@@ -554,8 +553,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseReward = reward ? copyReward(reward) : undefined;
     civilianSectorTitleValue = pack.civilianSectorTitle;
     baseCivilianSectorTitle = pack.civilianSectorTitle;
-    localeTables = copyLocales(pack.locales);
-    baseLocales = copyLocales(pack.locales);
+    storeLocales(pack.locales);
     baseFactions = (pack.factions ?? []).map(copyFaction);
     baseShipClasses = (pack.shipClasses ?? []).map(copyShipClass);
     baseCrew = (pack.crew ?? []).map(copyCrew);
@@ -580,7 +578,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   }
   if (mode === "append" && pack.civilianSectorTitle)
     civilianSectorTitleValue = pack.civilianSectorTitle;
-  if (mode === "append" && pack.locales) localeTables = mergeLocales(localeTables, pack.locales);
+  if (mode === "append" && pack.locales) mergeStoredLocales(pack.locales);
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
     weapons.set(row.id, copyWeapon(row));
@@ -726,35 +724,6 @@ export function sectorDef(id: string | undefined): SectorDef | undefined {
 /** English `sectorname_CIVILIAN_SECTOR`, when this pack stored it. */
 export function civilianSectorTitle(): string | undefined {
   return civilianSectorTitleValue;
-}
-
-function copyLocales(
-  rows: { code: string; strings: Record<string, string> }[] | undefined,
-): { code: string; strings: Record<string, string> }[] {
-  return (rows ?? []).map((row) => ({ code: row.code, strings: { ...row.strings } }));
-}
-
-function mergeLocales(
-  current: { code: string; strings: Record<string, string> }[],
-  extra: { code: string; strings: Record<string, string> }[],
-): { code: string; strings: Record<string, string> }[] {
-  const next = copyLocales(current);
-  for (const row of extra) {
-    const found = next.find((item) => item.code === row.code);
-    if (found) Object.assign(found.strings, row.strings);
-    else next.push({ code: row.code, strings: { ...row.strings } });
-  }
-  return next;
-}
-
-/** Translation tables the loaded pack carried. English is not one of these. */
-export function packLocales(): { code: string; strings: Record<string, string> }[] {
-  return copyLocales(localeTables);
-}
-
-/** One string from `text-<code>.xml`. Absent when that code or key was not loaded. */
-export function localeString(code: string, key: string): string | undefined {
-  return localeTables.find((row) => row.code === code)?.strings[key];
 }
 
 /** Page order. An appended id sits at the end, so the campaign chart rows stay put. */
@@ -989,7 +958,7 @@ export function resetPackForTests(): void {
   shipClasses.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
   civilianSectorTitleValue = baseCivilianSectorTitle;
-  localeTables = copyLocales(baseLocales);
+  resetLocales();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));
   for (const row of baseAugments) augments.set(row.id, copyAugment(row));

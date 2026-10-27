@@ -135,34 +135,8 @@ export function standInEventFiles(): { path: string; xml: string }[] {
       events: group,
       lists: path === "data/events.xml" ? lists : undefined,
     });
-    return [
-      {
-        path,
-        xml: path === "data/events.xml" ? withStandInGates(xml) : xml,
-      },
-    ];
+    return [{ path, xml }];
   });
-}
-
-/**
- * Records the catalog does not own. Choice attributes stay off `eventElement`, so this page is spliced.
- * An empty list is not a sector quota. A hidden continue has no req, so it still shows.
- */
-const STANDIN_GATES = `<eventList name="STANDIN_EMPTY"></eventList>
-<event name="STANDIN_GATES">
-  <text>Gates.</text>
-  <choice req="medbay" min_level="2" hidden="true"><text>Medbay band.</text></choice>
-  <choice req="reactor" max_lvl="24" blue="false"><text>Reactor cap.</text></choice>
-  <choice req="hacking" lvl="1" max_group="0" hidden="true"><text>Hack one.</text></choice>
-  <choice req="hacking" lvl="2" max_group="0" hidden="true"><text>Hack two.</text></choice>
-  <choice hidden="true"><text>Continue.</text></choice>
-</event>
-`;
-
-function withStandInGates(xml: string): string {
-  const close = xml.lastIndexOf("</FTL>");
-  if (close < 0) return xml;
-  return `${xml.slice(0, close)}${STANDIN_GATES}${xml.slice(close)}`;
 }
 
 /**

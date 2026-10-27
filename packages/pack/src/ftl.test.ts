@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { emitPack } from "./emit.ts";
 import { attachTextLists, packFromFtl, pickOpening } from "./ftl.ts";
 import { onPackWarning } from "./warnings.ts";
 import {
@@ -1281,6 +1282,119 @@ describe("packFromFtl", () => {
     assert.equal(pack.drones?.find((row) => row.id === "ZERO")?.noloc, true);
   });
 
+  it("round-trips hull bust, augment value, drone flight, and system max", () => {
+    const xml = emitPack({
+      weapons: [
+        {
+          id: "HULL",
+          name: "Hull",
+          kind: "laser",
+          power: 1,
+          charge: 1,
+          shots: 1,
+          gap: 0,
+          damage: 1,
+          ion: 0,
+          fire: 0,
+          breach: 0,
+          ammo: false,
+          price: 1,
+          blurb: "Hull.",
+          speed: 75,
+          hullBust: 1,
+        },
+      ],
+      augments: [
+        {
+          id: "SCRAP",
+          name: "Scrap",
+          detail: "More.",
+          cost: 1,
+          value: 0.1,
+          stackable: true,
+        },
+        {
+          id: "PLATE",
+          name: "Plate",
+          detail: "Once.",
+          cost: 1,
+          value: 0.15,
+          stackable: false,
+        },
+      ],
+      drones: [
+        {
+          id: "COMBAT_1",
+          name: "Combat",
+          cost: 1,
+          type: "COMBAT",
+          power: 2,
+          cooldown: 1000,
+          speed: 15,
+        },
+      ],
+      systems: [{ id: "cloaking", name: "Cloaking", cost: 150, slot: "kit" }],
+      tunes: [
+        {
+          id: "cloaking",
+          start: 1,
+          max: 3,
+          costs: [
+            { level: 1, cost: 30 },
+            { level: 2, cost: 50 },
+          ],
+        },
+        {
+          id: "artillery",
+          start: 1,
+          max: 4,
+          costs: [
+            { level: 1, cost: 30 },
+            { level: 2, cost: 50 },
+            { level: 3, cost: 80 },
+          ],
+        },
+      ],
+    });
+    const pack = packFromFtl([{ path: "data/blueprints.xml", xml }]);
+    const weapon = pack.weapons?.find((row) => row.id === "HULL");
+    assert.equal(weapon?.speed, 75);
+    assert.equal(weapon?.hullBust, 1);
+    const scrap = pack.augments?.find((row) => row.id === "SCRAP");
+    assert.equal(scrap?.value, 0.1);
+    assert.equal(scrap?.stackable, true);
+    const plate = pack.augments?.find((row) => row.id === "PLATE");
+    assert.equal(plate?.value, 0.15);
+    assert.equal(plate?.stackable, false);
+    const drone = pack.drones?.find((row) => row.id === "COMBAT_1");
+    assert.equal(drone?.type, "COMBAT");
+    assert.equal(drone?.power, 2);
+    assert.equal(drone?.cooldown, 1000);
+    assert.equal(drone?.speed, 15);
+    assert.equal(drone?.weapon, undefined);
+    assert.equal(drone?.dodge, undefined);
+    const cloak = pack.tunes?.find((row) => row.id === "cloaking");
+    assert.equal(cloak?.max, 3);
+    assert.equal(cloak?.start, 1);
+    assert.deepEqual(cloak?.costs, [
+      { level: 1, cost: 30 },
+      { level: 2, cost: 50 },
+    ]);
+    assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.max, 3);
+    assert.equal(pack.systems?.find((row) => row.id === "cloaking")?.cost, 150);
+    const artillery = pack.tunes?.find((row) => row.id === "artillery");
+    assert.equal(artillery?.max, 4);
+    assert.deepEqual(artillery?.costs, [
+      { level: 1, cost: 30 },
+      { level: 2, cost: 50 },
+      { level: 3, cost: 80 },
+    ]);
+    assert.equal(
+      pack.systems?.find((row) => row.id === "artillery"),
+      undefined,
+    );
+  });
+
   it("reads an event environment, including which ship a battery shoots", () => {
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));
@@ -1603,6 +1717,121 @@ describe("packFromFtl", () => {
         offers: [{ k: "trade", pay: "missiles", cost: [1, 2], get: "fuel", gain: [3, 5] }],
       },
     ]);
+  });
+
+  it("reads choice gates, weapon figures, an empty list, and a locale", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/events.xml",
+        xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <eventList name="QUIET"></eventList>
+  <event name="GATES">
+    <text>Gates.</text>
+    <choice req="medbay" min_level="2" hidden="true"><text>Medbay band.</text></choice>
+    <choice req="reactor" max_lvl="24" blue="false"><text>Reactor cap.</text></choice>
+    <choice req="hacking" lvl="1" max_group="0" hidden="true"><text>Hack one.</text></choice>
+    <choice req="hacking" lvl="2" max_group="0" hidden="true"><text>Hack two.</text></choice>
+    <choice hidden="true"><text>Continue.</text></choice>
+    <choice hiiden="true"><text>Misspelled.</text></choice>
+    <choice hidden="false" req="oxygen"><text>Shown.</text></choice>
+  </event>
+</FTL>`,
+      },
+      {
+        path: "data/blueprints.xml",
+        xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <weaponBlueprint name="GATE_GUN">
+    <type>LASER</type>
+    <title>Gate Gun</title>
+    <damage>1</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>10</cooldown>
+    <persDamage>4</persDamage>
+    <sysDamage>-8</sysDamage>
+    <chargeLevels>2</chargeLevels>
+    <radius>42</radius>
+    <spin>720</spin>
+    <drone_targetable>1</drone_targetable>
+    <iconImage>img/weapons/GATE_GUN.png</iconImage>
+    <launchSounds><sound>lightLaser1</sound></launchSounds>
+    <hitShipSounds><sound>hitHull1</sound></hitShipSounds>
+    <hitShieldSounds><sound>hitShield1</sound></hitShieldSounds>
+    <missSounds><sound>miss</sound></missSounds>
+    <boost><type>cooldown</type><amount>3</amount><count>3</count></boost>
+  </weaponBlueprint>
+  <weaponBlueprint name="GATE_HEAL">
+    <type>BOMB</type>
+    <title>Heal</title>
+    <damage>0</damage>
+    <shots>1</shots>
+    <power>1</power>
+    <cooldown>10</cooldown>
+    <persDamage>-10</persDamage>
+    <boost><type>damage</type><amount>1</amount><count>3</count></boost>
+  </weaponBlueprint>
+</FTL>`,
+      },
+      {
+        path: "data/text-eo.xml",
+        xml: `<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <text name="language_name">Esperanto</text>
+  <text name="menu_title">Malrapida ol lumo</text>
+</FTL>`,
+      },
+    ]);
+    const gates = pack.events?.find((row) => row.id === "GATES");
+    const choice = (label: string) => gates?.choices.find((row) => row.label === label);
+    const medbay = choice("Medbay band.");
+    assert.equal(medbay?.hidden, true);
+    assert.equal(medbay?.minLevel, 2);
+    assert.equal(medbay?.reqs?.[0]?.k, "attr");
+    assert.equal(medbay?.reqs?.[0]?.id, "medbay");
+    assert.equal(medbay?.reqs?.[0]?.text, "");
+    assert.equal(medbay?.reqs?.[0] && medbay.reqs[0].k === "attr" ? medbay.reqs[0].min : 0, 2);
+    const reactor = choice("Reactor cap.");
+    assert.equal(reactor?.hidden, undefined);
+    assert.equal(reactor?.blue, false);
+    assert.equal(reactor?.maxLevel, 24);
+    assert.equal(reactor?.reqs?.[0]?.k === "attr" ? reactor.reqs[0].max : 0, 24);
+    const hack = choice("Hack two.");
+    assert.equal(hack?.hidden, true);
+    assert.equal(hack?.maxGroup, 0);
+    assert.equal(hack?.minLevel, 2);
+    assert.equal(choice("Continue.")?.hidden, true);
+    assert.equal(choice("Continue.")?.reqs, undefined);
+    assert.equal(choice("Misspelled.")?.hidden, undefined);
+    assert.equal(choice("Shown.")?.hidden, undefined);
+    const gun = pack.weapons?.find((row) => row.id === "GATE_GUN");
+    assert.equal(gun?.shots, 1);
+    assert.equal(gun?.chargeLevels, 2);
+    assert.equal(gun?.persDamage, 4);
+    assert.equal(gun?.crewDamage, 60);
+    assert.equal(gun?.sysDamage, -8);
+    assert.equal(gun?.radius, 42);
+    assert.equal(gun?.spin, 720);
+    assert.equal(gun?.droneTargetable, 1);
+    assert.deepEqual(gun?.launchSounds, ["lightLaser1"]);
+    assert.deepEqual(gun?.hitShipSounds, ["hitHull1"]);
+    assert.deepEqual(gun?.hitShieldSounds, ["hitShield1"]);
+    assert.deepEqual(gun?.missSounds, ["miss"]);
+    assert.deepEqual(gun?.boost, { type: "cooldown", amount: 3, count: 3 });
+    const heal = pack.weapons?.find((row) => row.id === "GATE_HEAL");
+    assert.equal(heal?.persDamage, -10);
+    assert.equal(heal?.crewDamage, -150);
+    assert.deepEqual(heal?.boost, { type: "damage", amount: 1, count: 3 });
+    assert.equal(pack.lists?.find((row) => row.id === "QUIET")?.entries.length, 0);
+    assert.equal(
+      pack.locales?.find((row) => row.code === "eo")?.strings.menu_title,
+      "Malrapida ol lumo",
+    );
+    assert.equal(
+      pack.locales?.find((row) => row.code === "eo")?.strings.language_name,
+      "Esperanto",
+    );
   });
 
   it("names the file when the XML is not well-formed", () => {

@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { DRONE_POWER, deploy, swarmIntercept, tickSwarm } from "../extras/swarm.ts";
-import { HULLS } from "../hulls.ts";
+import { hullById } from "../hulls.ts";
 import { commitJump, createGame, startCombat } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { OVERCHARGER, OVERCHARGER_PLUS, OVERCHARGER_SPEED } from "./cited-overcharger.ts";
-import { CITED_DRONES, citedSell, citedSellQuote, citedStock } from "./cited-stores.ts";
+import { citedSell, citedSellQuote, citedStock } from "./cited-stores.ts";
+import { allDrones } from "@stl/pack";
 
 function arm(g: Game, power: number) {
   g.player.parts = 3;
@@ -287,14 +288,13 @@ describe("Shield Overcharger +", () => {
     assert.equal(fed.player.zoltan, 5);
 
     assert.equal(
-      CITED_DRONES.some((row) => row.name === "Shield Overcharger +"),
+      allDrones().some((row) => row.name === "Shield Overcharger +"),
       false,
     );
     assert.deepEqual(
-      CITED_DRONES.filter((row) => row.name === "Shield Overcharger").map((row) => [
-        row.name,
-        row.cost,
-      ]),
+      allDrones()
+        .filter((row) => row.name === "Shield Overcharger")
+        .map((row) => [row.name, row.cost]),
       [["Shield Overcharger", 60]],
     );
     const stock = citedStock(createGame(18));
@@ -344,10 +344,10 @@ describe("Shield Overcharger +", () => {
       false,
     );
 
-    const spec = HULLS.find((hull) => hull.id === "PLAYER_SHIP_STEALTH_3");
+    const spec = hullById("PLAYER_SHIP_STEALTH_3");
     assert.ok(spec);
     // The Stealth Cruiser, Layout C: Starting Drones lists Shield Overcharger +.
-    // One spare reactor bar cannot feed its 2 power, so the slot stays unpowered. INFERRED.
+    // Drone control starts with no bars, so the slot stays unpowered.
     assert.equal(spec.unfitted.includes("Shield Overcharger +"), false);
     // Starting Drones also lists Anti-Drone (Anti-Combat Drone). It is fitted as the second schematic.
     assert.equal(spec.unfitted.includes("Anti-Drone"), false);

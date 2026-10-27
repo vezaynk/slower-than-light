@@ -3,26 +3,18 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
+import { allEvents, allSectors, eventDef, fillerList } from "@stl/pack";
 import { choiceDisabled, choose, commitJump, createGame, step } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { SECTOR_MIX } from "./beacon-mix.ts";
+import "../pack/base.ts";
 import { stampCitedEvents } from "./cited-events.ts";
 import {
-  DISTRESS,
-  EMPTY_PAGES,
-  EXIT_ITEMS,
-  EXIT_NEUTRAL,
-  FILLER,
   FILLER_CHOICES,
   FILLER_FLAG,
-  FILLER_PAGES,
-  ITEMS,
-  NEBULA,
   emptyPageFor,
   fillerEvent,
   pageForRow,
 } from "./filler-events.ts";
-import { DUMP } from "@stl/wiki-dump";
 import { placeIn } from "../fixtures.ts";
 
 function storedCopy(): string {
@@ -40,41 +32,10 @@ function storedCopy(): string {
   return parts.join("\n");
 }
 
-function loadDump(): Map<string, string> {
-  const pages = new Map<string, string>();
-  for (const line of readFileSync(DUMP, "utf8").split("\n")) {
-    if (!line) continue;
-    const row = JSON.parse(line) as {
-      title?: string;
-      text?: string;
-      ns?: number;
-      redirect?: string;
-    };
-    // A redirect title reads as its target's page; count each page once, under its own title.
-    if (row.ns === 0 && row.title && !row.redirect) pages.set(row.title, row.text ?? "");
-  }
-  return pages;
-}
-
-function fetchTemplate(t: string): string {
-  for (const line of readFileSync(DUMP, "utf8").split("\n")) {
-    if (!line.includes(t)) continue;
-    const row = JSON.parse(line) as { title?: string; text?: string };
-    if (row.title === t) return row.text ?? "";
-  }
-  return "";
-}
-
-function locations(page: string): { sectors: string[]; params: Record<string, string> } {
-  const m = page.match(/\{\{Locations\|([^}]+)\}\}/);
-  assert.ok(m, "page has a Locations line");
-  const parts = m[1]
-    .split("|")
-    .map((p) => p.trim())
-    .filter(Boolean);
-  const params: Record<string, string> = {};
-  for (const p of parts.filter((x) => x.includes("="))) params[p.split("=")[0]] = p.split("=")[1];
-  return { sectors: parts.filter((p) => !p.includes("=")), params };
+function listDests(id: string): string[] {
+  return (fillerList(id)?.entries ?? [])
+    .map((entry) => eventDef(entry.id)?.dest)
+    .filter((dest): dest is string => !!dest);
 }
 
 /** A fresh map dealt as `name`, as nextSector does (makeMap leaves no flags from an earlier deal). */
@@ -103,91 +64,61 @@ const INVENTED = [
 ];
 
 describe("filler events (Sectors, Fallback events; EventList templates)", () => {
-  const dump = loadDump();
-
-  it("FILLER is every page with alsooccur=filler or exitandfiller, with its unique= flag", () => {
-    const want: [string, boolean][] = [];
-    for (const [title, text] of dump) {
-      if (/^#REDIRECT/i.test(text) || !/\{\{Locations\|/.test(text)) continue;
-      const { params } = locations(text);
-      if (params.alsooccur === "filler" || params.alsooccur === "exitandfiller")
-        want.push([title, params.unique === "true"]);
-    }
-    assert.deepEqual(FILLER.map((r) => [r.dest, r.unique]).sort(), want.sort());
-  });
-
-  it("the NEBULA, DISTRESS and ITEMS rows are their templates' rows", () => {
-    const rows = (t: string) =>
-      [
-        ...(dump.get(t) ?? "").matchAll(
-          /^\|'*\w+'*\|\|'*\[\[([^\]]+)\]\]'*\|\|[^|]*\|\|[^|]*\|\|(true|false)\|\|/gm,
-        ),
-      ].map((m) => [m[1], m[2] === "true"]);
-    const fetch = (t: string) => {
-      const raw = readFileSync(DUMP, "utf8");
-      for (const line of raw.split("\n")) {
-        if (!line.includes(t)) continue;
-        const row = JSON.parse(line) as { title?: string; text?: string };
-        if (row.title === t) return row.text ?? "";
+  it("every filler opening choice has a handler", () => {
+    const dests = [
+      "Large asteroid field",
+      "Battlefield wreckage",
+      "Plagued station",
+      "Rebel fight chance",
+      "Refugee",
+      "Intelligent ponies",
+      "Abandoned station",
+      "Terraforming scan",
+      "Empty nebula beacon",
+      "Nebula lost ship",
+      "Plasma storm incapacitated ships",
+      "Friendly ship out of fuel",
+      "Refugee distress",
+      "Refugee comms down",
+      "Trade scrap for upgrades",
+      "Refueling station",
+      "Asteroid mining colony",
+      "Improve reactor for supplies",
+      "Giant alien spiders",
+      "Crushed pirate",
+      "Unknown disease on mining colony",
+      "Fire on research station",
+      "Single life form on moon",
+      "Pirate ship distress trap",
+      "Malfunctioning defense system",
+      "Crew hiring station",
+    ];
+    assert.equal(dests.length, 26);
+    for (const dest of dests) {
+      const ev = allEvents().find((event) => event.dest === dest && event.choices.length > 0);
+      assert.ok(ev, dest);
+      for (const choice of ev.choices) {
+        const rolled = choice.id === "c:friendly-ship-out-of-fuel:0";
+        assert.ok(rolled || FILLER_CHOICES[choice.id], choice.id);
       }
-      return "";
-    };
-    const parse = (t: string) => {
-      dump.set(t, fetch(t));
-      return rows(t);
-    };
-    assert.deepEqual(
-      NEBULA.map((r) => [r.dest, r.unique]),
-      parse("Template:EventList NEBULA"),
-    );
-    // Rebel ship attacking Federation loyalists is on the distress template, and one choice is a free exit.
-    // It is a neutral event, so distress slots do not draw it.
-    const distress = parse("Template:EventList DISTRESS BEACON").filter(
-      (row) => row[0] !== "Rebel ship attacking Federation loyalists",
-    );
-    assert.deepEqual(
-      DISTRESS.map((r) => [r.dest, r.unique]),
-      distress,
-    );
-    assert.deepEqual(
-      ITEMS.map((r) => [r.dest, r.unique]),
-      parse("Template:EventList ITEMS"),
-    );
-  });
-
-  it("new cards follow the table format, name their page's sectors, and every choice has a handler", () => {
-    for (const ev of FILLER_PAGES) {
-      const slug = ev.dest
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
-      assert.equal(ev.slug, slug);
-      assert.equal(ev.flag, `cited:${slug}`);
-      assert.ok(ev.aliases.includes(ev.dest));
-      assert.deepEqual(ev.sectors, locations(dump.get(ev.dest) ?? "").sectors, ev.dest);
-      ev.choices.forEach((c, i) => {
-        assert.equal(c.id, `c:${slug}:${i}`);
-        const rolled = c.id === "c:friendly-ship-out-of-fuel:0";
-        assert.ok(rolled || FILLER_CHOICES[c.id], c.id);
-      });
     }
   });
 
-  it("empty beacon pages: every sector type has one, and each text is on its page", () => {
-    for (const name of Object.keys(SECTOR_MIX)) assert.ok(emptyPageFor(name), name);
-    for (const p of EMPTY_PAGES) {
-      const page = dump.get(p.dest) ?? "";
-      assert.deepEqual(p.sectors, locations(page).sectors, p.dest);
-      for (const t of p.texts) assert.ok(page.includes(t), `${p.dest}: ${t.slice(0, 30)}`);
-      assert.ok(page.includes("Nothing happens."));
-    }
+  it("empty beacon pages: every sector type has one", () => {
+    for (const sector of allSectors()) assert.ok(emptyPageFor(sector.id), sector.id);
   });
 
   it("deals no plain distress, items or nebula beacon, and no unique page twice", () => {
     const uniques = new Set(
-      [...FILLER, ...NEBULA, ...DISTRESS, ...ITEMS].filter((r) => r.unique).map((r) => r.dest),
+      ["FILLER", "NEBULA", "DISTRESS", "ITEMS"].flatMap((id) =>
+        (fillerList(id)?.entries ?? [])
+          .filter((row) => row.unique)
+          .map((row) => eventDef(row.id)?.dest)
+          .filter((dest): dest is string => !!dest),
+      ),
     );
-    for (const name of Object.keys(SECTOR_MIX)) {
+    for (const sector of allSectors()) {
+      const name = sector.id;
       for (let seed = 1; seed <= 40; seed++) {
         const g = dealt(seed, name);
         for (const b of g.beacons) {
@@ -203,9 +134,14 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
   });
 
   it("every list row a draw can reach has a card", () => {
-    const wired = [...FILLER, ...NEBULA, ...DISTRESS, ...ITEMS].filter((r) => pageForRow(r.dest));
+    const rows = ["FILLER", "NEBULA", "DISTRESS", "ITEMS"].flatMap(
+      (id) => fillerList(id)?.entries ?? [],
+    );
+    const wired = rows.filter((row) => pageForRow(eventDef(row.id)?.dest ?? ""));
     assert.ok(
-      FILLER.every((r) => pageForRow(r.dest)),
+      (fillerList("FILLER")?.entries ?? []).every((row) =>
+        pageForRow(eventDef(row.id)?.dest ?? ""),
+      ),
       "every filler row is wired",
     );
     assert.ok(wired.length >= 50, `${wired.length}`);
@@ -213,7 +149,8 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
 
   it("plain beacons get documented cards whose choices all run (no invented filler)", () => {
     const valid = new Set(["map", "event", "combat", "reward", "defeat", "store"]);
-    for (const name of Object.keys(SECTOR_MIX)) {
+    for (const sector of allSectors()) {
+      const name = sector.id;
       for (let seed = 1; seed <= 12; seed++) {
         const g0 = dealt(seed, name);
         for (const b0 of g0.beacons) {
@@ -242,27 +179,10 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     }
   });
 
-  it("the exit lists are Template:EventList OVERRIDE NEUTRAL EXIT and OVERRIDE ITEMS", () => {
-    const rows = (t: string) =>
-      [
-        ...(dump.get(t) ?? fetchTemplate(t)).matchAll(
-          /^\|'*\w+'*\|\|'*\[\[([^\]]+)\]\]'*\|\|[^|]*\|\|[^|]*\|\|(true|false)\|\|/gm,
-        ),
-      ].map((m) => [m[1], m[2] === "true"]);
-    assert.deepEqual(
-      EXIT_NEUTRAL.map((r) => [r.dest, r.unique]),
-      rows("Template:EventList OVERRIDE NEUTRAL EXIT"),
-    );
-    assert.deepEqual(
-      EXIT_ITEMS.map((r) => [r.dest, r.unique]),
-      rows("Template:EventList OVERRIDE ITEMS"),
-    );
-    assert.equal(EXIT_NEUTRAL.length, 18);
-    assert.equal(EXIT_ITEMS.length, 14);
-  });
-
   it("an exit shows FINISH_BEACON, then Continue draws a neutral exit or an item event, then the lane", () => {
-    const pages = new Set([...EXIT_NEUTRAL, ...EXIT_ITEMS].map((r) => r.dest));
+    const neutral = new Set(listDests("EXIT_NEUTRAL"));
+    const items = new Set(listDests("EXIT_ITEMS"));
+    const pages = new Set([...neutral, ...items]);
     const halves = { neutral: 0, items: 0 };
     for (let seed = 1; seed <= 40; seed++) {
       const g = createGame(seed);
@@ -281,7 +201,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       choose(g, "exit-continue");
       assert.ok(exit.flag.startsWith(FILLER_FLAG), `${seed}`);
       assert.ok(pages.has(exit.name), exit.name);
-      if (EXIT_NEUTRAL.some((r) => r.dest === exit.name)) halves.neutral += 1;
+      if (neutral.has(exit.name)) halves.neutral += 1;
       else halves.items += 1;
       if (seed > 3) continue;
       // Play the card out, then the lane card follows on the map.

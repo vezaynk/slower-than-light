@@ -16,17 +16,12 @@ export type BonusItem =
   { kind: "weapon"; id: string } | { kind: "augment"; id: string } | { kind: "drone"; id: string };
 
 /**
- * Augmentations, intro: "Most stat-boosting Augmentations stack with each other." The stackable ones are the five the
- * augments.ts header lists: Automated Re-loader, Reverse Ion Field, Shield Charge Booster, FTL Recharge Booster and
- * Scrap Recovery Arm.
+ * Augmentations, intro: "Most stat-boosting Augmentations stack with each other."
+ * `<stackable>` on the blueprint is that set. A record that omits it does not stack.
  */
-const STACKS: ReadonlySet<string> = new Set([
-  "AUTO_COOLDOWN",
-  "ION_ARMOR",
-  "SHIELD_RECHARGE",
-  "FTL_BOOSTER",
-  "SCRAP_COLLECTOR",
-]);
+function stacks(id: string): boolean {
+  return augmentDef(id)?.stackable === true;
+}
 
 function pickOne<T>(g: Game, items: readonly T[]): T | undefined {
   return items.length
@@ -117,7 +112,7 @@ export function weaponLine(g: Game, defId: string): string {
 
 /** What a looted augmentation does to this ship: fitted, 25 scrap for a duplicate, or a make-room choice. */
 export function bonusAugmentFate(g: Game, id: string): "fit" | "scrap" | "full" {
-  if (g.augments.includes(id) && !STACKS.has(id)) return "scrap";
+  if (g.augments.includes(id) && !stacks(id)) return "scrap";
   return g.augments.length >= 3 ? "full" : "fit";
 }
 

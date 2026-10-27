@@ -1,3 +1,1 @@
-import { loadCatalog } from "@stl/catalog";
-
-loadCatalog();
+import "@stl/standin";

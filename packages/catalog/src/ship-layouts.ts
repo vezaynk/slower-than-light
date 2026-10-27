@@ -1,4 +1,4 @@
-import { gridFromLayout, writeGrid } from "@stl/pack";
+import { gridFromLayout, writeGrid, type HullGrid } from "@stl/pack";
 import { enemyLayoutFiles } from "./enemy-layouts.ts";
 import { flagshipLayoutFiles } from "./flagship-layouts.ts";
 
@@ -1651,13 +1651,25 @@ export function layoutFile(id: string): string | undefined {
   return LAYOUT_FILE[id];
 }
 
+/**
+ * Shield-oval margin in archive pixels. One hull carries a non-zero pair so the pad has a fixture.
+ * The rest stay at the zero `gridFromLayout` writes.
+ */
+export function standInShieldPad(name: string, grid: HullGrid): void {
+  if (name !== "kestral") return;
+  grid.vertical = 4;
+  grid.horizontal = 6;
+}
+
 /** One `data/<layout>.txt` for every player ship, then every traced enemy interior, then each Flagship stage. */
 export function layoutFiles(): { path: string; text: string }[] {
   const files: { path: string; text: string }[] = [];
   for (const [id, layout] of Object.entries(SHIP_LAYOUTS)) {
     const name = LAYOUT_FILE[id];
     if (!name) throw new Error(`No layout file for ${id}`);
-    files.push({ path: `data/${name}.txt`, text: writeGrid(gridFromLayout(layout)) });
+    const grid = gridFromLayout(layout);
+    standInShieldPad(name, grid);
+    files.push({ path: `data/${name}.txt`, text: writeGrid(grid) });
   }
   return [...files, ...enemyLayoutFiles(), ...flagshipLayoutFiles()];
 }

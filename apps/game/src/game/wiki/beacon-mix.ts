@@ -2,31 +2,17 @@ import type { Beacon, BeaconKind, Game } from "../types.ts";
 import { rand } from "../sim.ts";
 import {
   allEmptyBeacons,
+  allEvents,
   eventCount,
   eventCountsIn,
   eventDef,
   fillerList,
   sectorDef,
 } from "@stl/pack";
-import { CITED_EVENT_ROWS } from "@stl/catalog/src/wiki/event-catalog.ts";
-import { ftlEventId } from "@stl/catalog/src/wiki/ftl-event-ids.ts";
-import { SECTOR_TYPES } from "@stl/catalog/src/wiki/sectors.ts";
 import { drawFiller, stampFiller } from "./filler-events.ts";
 
-export {
-  SECTOR_MIX,
-  classifyEvent,
-  HOSTILE_SLOTS,
-  REPEAT_BOARDERS,
-  REPEAT_DESTS,
-  REPEAT_CAP,
-  type Slot,
-  type MixLine,
-  type EventClass,
-  type MixEvent,
-} from "@stl/catalog/src/wiki/sector-mix.ts";
-
-import { REPEAT_CAP } from "@stl/catalog/src/wiki/sector-mix.ts";
+/** Sectors, Zoltan: the research facility is placed at most twice. */
+const REPEAT_CAP: Record<string, number> = { "Zoltan research facility": 2 };
 
 /**
  * The deal runs rand() on a shadow state seeded from g.seed, the sector and its id, so g.seed's own rolls
@@ -82,8 +68,6 @@ const SHARED_LISTS = new Set([
   "EXIT_ITEMS",
 ]);
 
-const SECTOR_OF = new Map(SECTOR_TYPES.map((row) => [row.name, row.id]));
-
 function setKind(b: Beacon, kind: BeaconKind) {
   b.kind = kind;
   b.asteroid = false;
@@ -92,11 +76,10 @@ function setKind(b: Beacon, kind: BeaconKind) {
 
 function storyIds(sectorId: string): Set<string> {
   const ids = new Set<string>();
-  for (const event of CITED_EVENT_ROWS) {
-    if (event.slug.startsWith("arrive-")) continue;
-    const sectors = event.sectors.map((name) => SECTOR_OF.get(name) ?? name);
-    if (!sectors.includes(sectorId)) continue;
-    ids.add(ftlEventId(event.dest) ?? event.slug);
+  for (const event of allEvents()) {
+    if (event.id.startsWith("arrive-") || event.id.startsWith("filler-")) continue;
+    if (!event.sectors.includes(sectorId)) continue;
+    ids.add(event.id);
   }
   return ids;
 }

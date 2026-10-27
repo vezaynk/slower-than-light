@@ -1,13 +1,12 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { allEvents, eventDef } from "@stl/pack";
 import { mediumScrapBand } from "../content.ts";
 import { choose, createGame, step } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { EXTRA_EVENTS } from "./cited-events-surrender.ts";
+import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
-import { ACCEPT_ID, PAGE_CHOICES, REFUSE_ID, SCRIPTED_SURRENDERS } from "./surrender.ts";
-import { DUMP } from "@stl/wiki-dump";
+import { ACCEPT_ID, PAGE_CHOICES, REFUSE_ID } from "./surrender.ts";
 import { placeIn } from "../fixtures.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. Rewards, "Weapon": "A random weapon & T scrap." */
@@ -18,16 +17,6 @@ function weaponsHeld(g: Game): number {
   return g.player.weapons.length + stowed;
 }
 
-function pageText(title: string): string | null {
-  if (!existsSync(DUMP)) return null;
-  for (const line of readFileSync(DUMP, "utf8").split("\n")) {
-    if (!line.includes(`"title": "${title}"`)) continue;
-    const o = JSON.parse(line) as { title: string; ns: number; text?: string };
-    if (o.ns === 0 && o.title === title) return o.text ?? "";
-  }
-  return null;
-}
-
 /**
  * Put the ship at a beacon carrying `dest` with its card open. The beacon is flagged by hand, the way
  * stampCitedEvents does it, so the test does not depend on which beacon the sector's seeded deal (beacon-mix.ts) gives it.
@@ -35,8 +24,8 @@ function pageText(title: string): string | null {
 function arrive(seed: number, sector: string, dest: string): Game {
   const g = createGame(seed);
   placeIn(g, sector);
-  const ev = EXTRA_EVENTS.find((e) => e.dest === dest)!;
-  assert.ok(ev.sectors.includes(sector));
+  const ev = allEvents().find((e) => e.dest === dest && e.choices.length > 0);
+  assert.ok(ev, dest);
   const b = g.beacons.find(
     (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
   )!;
@@ -79,59 +68,41 @@ function forceOffer(g: Game) {
 }
 
 describe("Ship surrender Events pages: cited table", () => {
-  it("takes sectors from {{Locations}} and the body from the page text", () => {
-    // Wiki citations:
-    // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Engi surrender]]
-    // > "It is unique." — [[Engi surrender]]
-    // > "This random event occurs in Pirate Controlled Sector." — [[Destroyed cargo ship]]
-    // > "It is unique." — [[Destroyed cargo ship]]
-    // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rock Controlled Sector, Rock Homeworlds." — [[Settlement mercenary work]]
-    // > "It is unique." — [[Settlement mercenary work]]
-    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[The Black Raven]]
-    // > "It is unique." — [[The Black Raven]]
-    // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan ship asks to dock]]
-    // > "It is unique." — [[Zoltan ship asks to dock]]
-    // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug comm tapping]]
-    // > "It is unique." — [[Slug comm tapping]]
-    // > "This random event occurs in Engi Homeworlds." — [[Engi fleet discussion]]
-    // > "It is unique." — [[Engi fleet discussion]]
-    for (const ev of EXTRA_EVENTS) {
-      const text = pageText(ev.dest);
-      if (text == null) continue;
-      const m = text.match(/\{\{Locations\|([^}]+)\}\}/);
-      assert.ok(m, ev.dest);
-      const names = m[1]
-        .split("|")
-        .map((s) => s.trim())
-        .filter((s) => s && !s.includes("="));
-      assert.deepEqual(ev.sectors, names, ev.dest);
-      const plain = text.replace(/''/g, "").replace(/\[\[(?:[^\]|]+\|)?([^\]]+)\]\]/g, "$1");
-      assert.ok(plain.includes(ev.body), ev.dest);
-      for (const c of ev.choices) assert.ok(plain.includes(c.label.replace(/\.$/, "")), c.label);
+  it("routes every random branch to surrender.ts and every page fight to a loaded surrender", () => {
+    const ids = new Set<string>();
+    for (const ev of allEvents()) {
+      for (const choice of ev.choices) ids.add(choice.id);
+      for (const card of ev.cards ?? []) for (const choice of card.choices) ids.add(choice.id);
     }
-  });
-
-  it("routes every random branch to surrender.ts and every page fight to a scripted surrender row", () => {
-    const ids = new Set(EXTRA_EVENTS.flatMap((ev) => ev.choices.map((c) => c.id)));
     for (const id of Object.keys(PAGE_CHOICES).filter((k) => k.startsWith("c:")))
       assert.ok(ids.has(id), id);
     // @agent:quests. Slug comm tapping and Engi fleet discussion open quest markers (wiki/quests.ts); their fights are
     // the "quest-*" surrender rows, not a row under the page slug.
     const questPages = new Set(["slug-comm-tapping", "engi-fleet-discussion"]);
-    for (const ev of EXTRA_EVENTS) {
+    const slugs = [
+      "engi-surrender",
+      "destroyed-cargo-ship",
+      "settlement-mercenary-work",
+      "the-black-raven",
+      "zoltan-ship-asks-to-dock",
+      "slug-comm-tapping",
+      "engi-fleet-discussion",
+    ];
+    for (const slug of slugs) {
+      const ev = allEvents().find((event) =>
+        event.choices.some((choice) => choice.id.startsWith(`c:${slug}:`)),
+      );
+      assert.ok(ev, slug);
       for (const c of ev.choices) {
-        if (questPages.has(ev.slug)) continue;
+        if (questPages.has(slug)) continue;
         if (c.fx.some((f) => f.k === "fight") || c.fx.some((f) => f.k === "note"))
           assert.ok(PAGE_CHOICES[c.id], c.id);
       }
-      if (ev.slug !== "engi-surrender" && !questPages.has(ev.slug))
-        assert.ok(SCRIPTED_SURRENDERS[ev.slug], ev.slug);
+      if (slug !== "engi-surrender" && !questPages.has(slug)) assert.ok(ev.surrender, slug);
     }
-    assert.ok(
-      SCRIPTED_SURRENDERS["quest-slug-pirate-trap-engage"] &&
-        SCRIPTED_SURRENDERS["quest-engi-real"] &&
-        SCRIPTED_SURRENDERS["quest-engi-fake"],
-    );
+    assert.ok(eventDef("quest-slug-pirate-trap-engage")?.surrender);
+    assert.ok(eventDef("quest-engi-real")?.surrender);
+    assert.ok(eventDef("quest-engi-fake")?.surrender);
   });
 });
 

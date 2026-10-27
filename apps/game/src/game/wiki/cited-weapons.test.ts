@@ -27,7 +27,7 @@ describe("citedCrewDamage", () => {
     assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_FIRE", damage: 0 }), 0), 30);
     assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_ION", damage: 0 }), 0), 0);
     assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_STUN", damage: 0 }), 0), 0);
-    assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_HEAL", damage: 0 }), 0), 0);
+    assert.equal(citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_HEAL", damage: 0 }), 0), -150);
     assert.equal(
       citedCrewDamage(shot({ kind: "bomb", defId: "BOMB_HEAL_SYSTEM", damage: 0 }), 0),
       0,

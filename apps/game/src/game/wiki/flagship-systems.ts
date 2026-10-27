@@ -12,8 +12,8 @@ import { log, rand } from "../sim.ts";
 import { veilBlocks } from "../extras/veil.ts";
 import { spikeEvadeZero } from "../extras/spike.ts";
 import { artilleryChargeSeconds } from "./flagship-weapons.ts";
-import { BEAM1_SPEED, DRONE_LABEL, pickOrbitBearing } from "../extras/swarm.ts";
-import { BEAM_HOLD_S, COMBAT1_SPEED, orbitLegSeconds } from "./cited-combat2.ts";
+import { DRONE_LABEL, beamDroneSpeed, pickOrbitBearing } from "../extras/swarm.ts";
+import { BEAM_HOLD_S, orbitLegSeconds } from "./cited-combat2.ts";
 import { randomRoom } from "./targeting.ts";
 import { flagshipHardLinks, flagshipLayout } from "./flagship-layout.ts";
 
@@ -350,7 +350,7 @@ export const FLAGSHIP_ZOLTAN = 12;
  * but is about 7 seconds." The variation is the orbit leg. Beam speed is not this wait.
  */
 function surgeSpeed(kind: SurgeDrone["kind"]): number {
-  return kind === "COMBAT_BEAM" ? BEAM1_SPEED : COMBAT1_SPEED;
+  return beamDroneSpeed(kind);
 }
 
 function armSurgeLeg(g: Game, d: SurgeDrone, speed: number) {

@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, FIRE_FIGHT_SHARE, startCombat, step } from "../sim.ts";
 import type { AugmentId, Crew, Kit, WeaponInst } from "../types.ts";
-import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
+import { allAugments } from "@stl/pack";
 import {
-  CATALOG,
   adjustScrapAmount,
+  crystalExtinguishScale,
   baffleHolds,
   casingHolds,
   coilRate,
@@ -23,7 +23,7 @@ import {
   tickSquall,
 } from "./augments.ts";
 
-/** Sold rows only. medbot, gel, pheromone, booster, vengeance, stasis, and zshield have no purchase price and are not in CATALOG. */
+/** Sold rows only. medbot, gel, pheromone, booster, vengeance, stasis, and zshield have no purchase price and are not in allAugments(). */
 type CatalogId = Exclude<
   AugmentId,
   | "NANO_MEDBAY"
@@ -104,13 +104,29 @@ function gun(partial: Partial<WeaponInst> & Pick<WeaponInst, "uid" | "defId">): 
 describe("augments", () => {
   it("lists original names and page prices", () => {
     const ids = Object.keys(NAMES) as CatalogId[];
-    assert.equal(CATALOG.length, ids.length);
+    const sold = allAugments();
+    assert.equal(sold.length, ids.length);
     for (const id of ids) {
-      const row = CATALOG.find((item) => item.id === id);
+      const row = sold.find((item) => item.id === id);
       assert.ok(row, id);
       assert.equal(row.name, NAMES[id]);
       assert.equal(row.cost, COSTS[id]);
       assert.ok(row.detail.length > 0);
+    }
+    for (const id of [
+      "NANO_MEDBAY",
+      "SLUG_GEL",
+      "CREW_STIMS",
+      "DRONE_SPEED",
+      "CRYSTAL_SHARDS",
+      "STASIS_POD",
+      "ENERGY_SHIELD",
+    ]) {
+      assert.equal(
+        sold.some((item) => item.id === id),
+        false,
+        id,
+      );
     }
   });
 
@@ -636,7 +652,7 @@ function stand(c: Crew, aboard: "player" | "enemy", room: string, hp = 80) {
 
 describe("Emergency Respirators", () => {
   it("is sold for 50", () => {
-    assert.equal(CATALOG.find((entry) => entry.id === "O2_MASKS")?.cost, 50);
+    assert.equal(allAugments().find((entry) => entry.id === "O2_MASKS")?.cost, 50);
   });
 
   it("halves a boarder and quarters a Crystal, and leaves the enemy at full", () => {

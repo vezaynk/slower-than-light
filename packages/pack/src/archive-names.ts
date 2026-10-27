@@ -281,6 +281,12 @@ export const FONT_FACES: readonly FontFaceJob[] = [
     fallback: "var(--font-hud)",
   },
   { path: "fonts/c&cnew.font", family: "CnCNew" },
+  {
+    path: "fonts/eo.font",
+    family: "EoFont",
+    variable: "--font-locale",
+    fallback: "var(--font-hud)",
+  },
 ];
 
 /** Installed when the archive has them. The stand-in does not invent CJK glyphs. */

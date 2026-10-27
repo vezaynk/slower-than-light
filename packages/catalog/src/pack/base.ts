@@ -1,4 +1,5 @@
-import { WEAPONS } from "../content.ts";
+import { CREW_POOL, WEAPONS } from "../content.ts";
+import { NAME_SYLLABLES } from "../names.ts";
 import { CATALOG } from "../extras/augment-catalog.ts";
 import { KIN, type KinId } from "../extras/kin.ts";
 import { HULLS, type HullSpec } from "../hulls.ts";
@@ -18,8 +19,15 @@ import { PRINTED_BANDS } from "../wiki/event-bands.ts";
 import { TRADE_STEPS } from "../wiki/event-trades.ts";
 import { GRADES } from "../wiki/event-grades.ts";
 import { CARD_LISTS } from "../wiki/event-cards.ts";
-import { CHOICE_REQS } from "../wiki/choice-reqs.ts";
+import {
+  CHOICE_REQS,
+  CITED_LOCKS,
+  FILLER_LOCKS,
+  MISSING_LOCKS,
+  QUEST_LOCKS,
+} from "../wiki/choice-reqs.ts";
 import { FUEL_GIFTS } from "../wiki/fuel-gifts.ts";
+import { EXTRA_EVENTS as MISSING_PAGES } from "../wiki/cited-missing-pages.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { ftlEventId } from "../wiki/ftl-event-ids.ts";
@@ -27,6 +35,7 @@ import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
+import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
 import { ENEMY_BLUEPRINTS } from "../enemy-blueprints.ts";
 import { ENEMY_LAYOUTS, enemyLayoutFile } from "../enemy-layouts.ts";
 import {
@@ -35,9 +44,9 @@ import {
   flagshipLayoutStem,
   type FlagshipDifficulty,
 } from "../flagship-layouts.ts";
-import { LAYOUT_FILE, SHIP_LAYOUTS } from "../ship-layouts.ts";
+import { LAYOUT_FILE, SHIP_LAYOUTS, standInShieldPad } from "../ship-layouts.ts";
 import { standInSheet } from "../ship-art.ts";
-import { mountsFor } from "../weapon-mounts.ts";
+import { MOUNT_IMAGES, mountsFor } from "../weapon-mounts.ts";
 import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
   AchievementDef,
@@ -100,15 +109,27 @@ function crewRow(id: KinId): CrewDef {
 }
 
 function augmentRow(row: (typeof CATALOG)[number]): AugmentDef {
-  return { id: row.id, name: row.name, detail: row.detail, cost: row.cost };
+  const augment: AugmentDef = { id: row.id, name: row.name, detail: row.detail, cost: row.cost };
+  if (row.value != null) augment.value = row.value;
+  if (row.stackable != null) augment.stackable = row.stackable;
+  return augment;
 }
 
 function droneRow(row: (typeof CITED_DRONES)[number]): DroneDef {
-  return { id: row.ref, name: row.name, cost: row.cost, image: row.ref };
+  const drone: DroneDef = { id: row.ref, name: row.name, cost: row.cost, image: row.ref };
+  drone.type = row.type;
+  drone.power = row.power;
+  if (row.cooldown != null) drone.cooldown = row.cooldown;
+  if (row.speed != null) drone.speed = row.speed;
+  return drone;
 }
 
 function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
-  return { id: row.ref, name: row.name, cost: row.cost, slot: row.slot };
+  const system: SystemDef = { id: row.ref, name: row.name, cost: row.cost, slot: row.slot };
+  // The blueprint has one maxPower. The tune authors it; the listing carries the same cap.
+  const max = SYSTEM_TUNES.find((tune) => tune.id === row.ref)?.max;
+  if (max != null) system.max = max;
+  return system;
 }
 
 /**
@@ -132,12 +153,13 @@ function sectorRow(row: SectorType): SectorDef {
   return sector;
 }
 
-/** An achievement as data/achievements.xml carries it, with the gap mod's condition. The old slug stays off. */
+/** An achievement as data/achievements.xml carries it, with the gap mod's condition and the old save slug. */
 function achievementRow(row: AchievementRow): AchievementDef {
   const def: AchievementDef = { id: row.id, name: row.name, desc: row.desc };
   if (row.ship) def.ship = row.ship;
   if (row.multiDifficulty) def.multiDifficulty = true;
   if (row.condition) def.condition = structuredClone(row.condition);
+  if (row.slug) def.slug = row.slug;
   return def;
 }
 
@@ -153,7 +175,13 @@ function storeRow(row: StoreDef): StoreDef {
 }
 
 function tuneRow(row: TuneDef): TuneDef {
-  return { id: row.id, start: row.start, costs: row.costs.map((step) => ({ ...step })) };
+  const tune: TuneDef = {
+    id: row.id,
+    start: row.start,
+    costs: row.costs.map((step) => ({ ...step })),
+  };
+  if (row.max != null) tune.max = row.max;
+  return tune;
 }
 
 function surrenderRow(row: SurrenderOfferDef): SurrenderOfferDef {
@@ -270,13 +298,36 @@ function copyGift(gift: ChoiceGift): ChoiceGift {
   return { k: "fuel", lo: gift.lo, hi: gift.hi };
 }
 
-/** A button stores the locks and the fuel gift authored for its id. The tables are not mutated. */
+/** Pages the missing-event handler owns, including ones whose buttons store no lock. */
+const MISSING_PAGE_SLUGS = new Set([
+  ...MISSING_PAGES.map((ev) => ev.slug),
+  "no-fuel-slug-fuel-trader",
+  "no-fuel-drifting-debris",
+  "no-fuel-fuel-trader-distress-off",
+  "no-fuel-fuel-trader-distress-on",
+  "no-fuel-prepare-to-dock",
+  "no-fuel-refugee-trading",
+]);
+
+function lockOwner(id: string): EventChoice["owner"] | undefined {
+  if (Object.prototype.hasOwnProperty.call(FILLER_LOCKS, id)) return "filler";
+  if (Object.prototype.hasOwnProperty.call(MISSING_LOCKS, id)) return "missing";
+  if (Object.prototype.hasOwnProperty.call(CITED_LOCKS, id)) return "cited";
+  if (Object.prototype.hasOwnProperty.call(QUEST_LOCKS, id)) return "quest";
+  const slug = /^c:([^:]+):/.exec(id)?.[1];
+  if (slug && MISSING_PAGE_SLUGS.has(slug)) return "missing";
+  return undefined;
+}
+
+/** A button stores the locks, the handler, and the fuel gift authored for its id. The tables are not mutated. */
 function stampedChoice(choice: EventChoice): EventChoice {
   const reqs = CHOICE_REQS[choice.id];
   const gift = FUEL_GIFTS[choice.id];
-  if (!reqs?.length && !gift) return choice;
+  const owner = lockOwner(choice.id);
+  if (!reqs?.length && !gift && !owner) return choice;
   const next: EventChoice = { ...choice };
   if (reqs?.length) next.reqs = reqs.map(copyReq);
+  if (owner) next.owner = owner;
   if (gift) next.gift = copyGift(gift);
   return next;
 }
@@ -287,8 +338,10 @@ function copyCard(row: EventCard): EventCard {
     choices: row.choices.map((choice) => {
       const reqs = CHOICE_REQS[choice.id];
       const gift = FUEL_GIFTS[choice.id];
+      const owner = lockOwner(choice.id);
       const copy: EventCard["choices"][number] = { id: choice.id, label: choice.label };
       if (reqs?.length) copy.reqs = reqs.map(copyReq);
+      if (owner) copy.owner = owner;
       if (gift) copy.gift = copyGift(gift);
       return copy;
     }),
@@ -419,9 +472,11 @@ function hullRow(spec: HullSpec): HullDef {
     augments: [...spec.augments],
   };
   const source = SHIP_LAYOUTS[spec.id];
+  const stem = LAYOUT_FILE[spec.id];
   if (source) row.grid = gridFromLayout(source);
+  if (stem && row.grid) standInShieldPad(stem, row.grid);
   blueprintFields(row, spec, source?.rooms ?? []);
-  return paintHull(row, LAYOUT_FILE[spec.id]);
+  return paintHull(row, stem);
 }
 
 /** Kits in the order the game seats them (sim.ts applyHull fills ship.kits in this order). */
@@ -576,12 +631,17 @@ function paintHull(row: HullDef, stem: string | undefined): HullDef {
   row.cloak = stem;
   row.floor = stem;
   row.shield = stem;
-  const picture = row.grid ? pictureForRooms(row.grid.rooms) : undefined;
+  const measured = MOUNT_IMAGES[stem];
+  const picture = measured
+    ? { ...measured }
+    : row.grid
+      ? pictureForRooms(row.grid.rooms)
+      : undefined;
   if (picture) row.picture = picture;
   const mounts = mountsFor(stem);
   if (mounts) row.mounts = mounts.map((mount) => ({ ...mount }));
   if (picture) {
-    const sheet = standInSheet(picture, mounts);
+    const sheet = standInSheet(picture, mounts, stem);
     if (sheet.glow) row.glow = { ...sheet.glow };
     if (sheet.cloakOffset) row.cloakOffset = { ...sheet.cloakOffset };
     if (sheet.floorOffset) row.floorOffset = { ...sheet.floorOffset };
@@ -732,6 +792,56 @@ function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef
   );
 }
 
+/**
+ * Projectile speed column. Beams already take BEAM_SPEED and are not in this table.
+ * Seconds in the sim are 42 / speed. Bombs and the invented dart have no speed.
+ */
+const PROJECTILE_SPEED: Record<string, number> = {
+  LASER_BURST_1: 60,
+  LASER_BURST_2: 60,
+  LASER_BURST_2_A: 60,
+  LASER_BURST_3: 60,
+  LASER_BURST_5: 60,
+  LASER_HEAVY_1: 60,
+  LASER_HEAVY_1_SP: 60,
+  LASER_HEAVY_2: 60,
+  LASER_HULL_1: 75,
+  LASER_HULL_2: 90,
+  LASER_CHAINGUN: 60,
+  LASER_CHAINGUN_2: 60,
+  LASER_CHARGEGUN_PLAYER: 60,
+  LASER_CHARGEGUN: 60,
+  LASER_CHARGEGUN_2: 60,
+  ARTILLERY_BOSS_1: 60,
+  SHOTGUN: 26,
+  SHOTGUN_PLAYER: 26,
+  SHOTGUN_2: 26,
+  "flak-artillery": 26,
+  ION_1: 30,
+  ION_4: 30,
+  ION_2: 40,
+  ION_STUN: 30,
+  ION_CHARGEGUN: 30,
+  ION_CHAINGUN: 30,
+  ARTILLERY_BOSS_4: 40,
+  MISSILES_1: 35,
+  MISSILES_2_PLAYER: 35,
+  MISSILES_2: 35,
+  MISSILES_3: 35,
+  MISSILES_BREACH: 35,
+  MISSILES_HULL: 35,
+  MISSILE_CHARGEGUN: 45,
+  MISSILES_BURST: 35,
+  ARTILLERY_BOSS_2: 35,
+  CRYSTAL_BURST_1: 50,
+  CRYSTAL_BURST_2: 50,
+  CRYSTAL_HEAVY_1: 50,
+  CRYSTAL_HEAVY_2: 50,
+};
+
+/** `<hullBust>` flag. Systemless hull damage is twice the blueprint damage. */
+const HULL_BUST = new Set(["LASER_HULL_1", "LASER_HULL_2", "BEAM_HULL", "MISSILES_HULL"]);
+
 /** Shield layers the weapon pages print. Other guns print no pierce. */
 const PIERCE_ONE: Record<string, number> = {
   LASER_HEAVY_1_SP: 1,
@@ -741,6 +851,13 @@ const PIERCE_ONE: Record<string, number> = {
   CRYSTAL_HEAVY_2: 1,
 };
 
+function launchSound(kind: WeaponBlueprint["kind"]): string {
+  if (kind === "laser" || kind === "flak") return "lightLaser1";
+  if (kind === "missile" || kind === "bomb") return "smallMissile1";
+  if (kind === "ion") return "ionShoot1";
+  return "beam1";
+}
+
 function weaponRow(id: string): WeaponBlueprint {
   const row: WeaponBlueprint = { ...WEAPONS[id] };
   // The stand-in sheet is named with the blueprint id. The projectile clip is `<id>_shot`.
@@ -749,13 +866,31 @@ function weaponRow(id: string): WeaponBlueprint {
   if (Object.prototype.hasOwnProperty.call(PIERCE_ONE, id)) row.pierce = PIERCE_ONE[id];
   if (Object.prototype.hasOwnProperty.call(BEAM_TILES, id)) row.lengthTiles = BEAM_TILES[id];
   if (Object.prototype.hasOwnProperty.call(BEAM_SPEED, id)) row.speed = BEAM_SPEED[id];
-  if (id === "BEAM_LONG") row.crewDamage = BEAM_CREW.BEAM_LONG;
+  else if (Object.prototype.hasOwnProperty.call(PROJECTILE_SPEED, id))
+    row.speed = PROJECTILE_SPEED[id];
+  if (HULL_BUST.has(id)) row.hullBust = 1;
+  // A present persDamage, including 0, is the file's crew figure. Crew HP is that number times 15.
+  // Beams and bombs without it keep the printed crew table.
+  if (row.persDamage != null) row.crewDamage = row.persDamage * 15;
+  else if (id === "BEAM_LONG") row.crewDamage = BEAM_CREW.BEAM_LONG;
   else if (Object.prototype.hasOwnProperty.call(BEAM_CREW, id)) row.crewDamage = BEAM_CREW[id];
+  else if (Object.prototype.hasOwnProperty.call(BOMB_CREW, id)) row.crewDamage = BOMB_CREW[id];
+  // A bomb's printed `damage` is system bars. The blueprint's `<damage>` is hull and stays 0.
+  if (row.kind === "bomb") row.damage = 0;
+  // The wiki row keeps the printed shot count. The blueprint's volley is one, and chargeLevels is the bank.
+  if (row.chargeLevels != null && row.chargeLevels > 0) row.shots = 1;
+  const cue = launchSound(row.kind);
+  row.launchSounds = [cue];
+  row.hitShipSounds = ["hitHull1"];
+  row.hitShieldSounds = ["hitShield1"];
+  row.missSounds = ["miss"];
+  row.icon = `img/weapons/${id}.png`;
   return row;
 }
 
 /** Quest arrivals and surrender-only holders keep their ids. Every other page takes the datafile id. */
 function ftlIdFor(event: EventDef): string {
+  if (event.id.startsWith("filler-")) return event.id;
   if (
     event.id.startsWith("arrive-") ||
     event.flag.startsWith("quest:") ||
@@ -781,7 +916,11 @@ function mapChoices(choices: EventChoice[], ids: Map<string, string>): EventChoi
 
 function renameEvent(event: EventDef, ids: Map<string, string>): EventDef {
   const id = ids.get(event.id) ?? event.id;
-  return { ...event, id, flag: id, choices: mapChoices(event.choices, ids) };
+  const aliases =
+    id === event.id
+      ? event.aliases
+      : [event.id, ...event.aliases.filter((alias) => alias !== event.id && alias !== id)];
+  return { ...event, id, flag: id, aliases, choices: mapChoices(event.choices, ids) };
 }
 
 const STORE_PAGE: EventDef = {
@@ -820,9 +959,9 @@ const REBEL_TRADE: EventDef = {
   ],
 };
 
-/** Sector lists are quotas now. Alias and sector tags are not written, so the pack does not keep them. */
+/** Sector ids and the authoring slug stay on the record. The archive writes both, and the registry resolves the slug. */
 function storedEvent(event: EventDef): EventDef {
-  return { ...event, aliases: [], sectors: [] };
+  return event;
 }
 
 function campaignEvents(): EventDef[] {
@@ -830,12 +969,25 @@ function campaignEvents(): EventDef[] {
   const taken = new Set(cited.map((row) => row.id));
   const takenFtl = new Set(cited.map((row) => ftlIdFor(row)));
   // A filler card whose slug or datafile id is already a sector page stays that page.
-  const filler = fillerPageRecords()
+  // The filler opening is stored beside it, under filler-<slug>, so a stamp can still show it.
+  const fillerRows = fillerPageRecords();
+  const filler = fillerRows
     .filter((row) => !taken.has(row.id) && !takenFtl.has(ftlIdFor(row)))
     .map(eventRow);
-  const reqs = reqHolder(takenReqIds([...cited, ...filler]));
-  const gifts = fuelHolder(choiceIds([...cited, ...filler, reqs]));
-  const rows = [...cited, ...filler, reqs, ...(gifts.choices.length > 0 ? [gifts] : [])];
+  const twins = fillerRows
+    .filter((row) => taken.has(row.id) || takenFtl.has(ftlIdFor(row)))
+    .map((row) =>
+      eventRow({
+        ...row,
+        id: `filler-${row.id}`,
+        flag: `filler:${row.id}`,
+        aliases: [],
+        sectors: [],
+      }),
+    );
+  const reqs = reqHolder(takenReqIds([...cited, ...filler, ...twins]));
+  const gifts = fuelHolder(choiceIds([...cited, ...filler, ...twins, reqs]));
+  const rows = [...cited, ...filler, ...twins, reqs, ...(gifts.choices.length > 0 ? [gifts] : [])];
   const ids = new Map(rows.map((row) => [row.id, ftlIdFor(row)]));
   const seen = new Set<string>();
   const named: EventDef[] = [];
@@ -848,6 +1000,61 @@ function campaignEvents(): EventDef[] {
   return named;
 }
 
+/**
+ * Choice-attribute fixture. It is a catalog page so the emitter writes it.
+ * Choice ids are already scoped. An all-digit name would be rewritten on load.
+ */
+const STANDIN_GATES: EventDef = {
+  id: "STANDIN_GATES",
+  dest: "STANDIN_GATES",
+  flag: "STANDIN_GATES",
+  aliases: [],
+  sectors: [],
+  body: "Gates.",
+  choices: [
+    {
+      id: "STANDIN_GATES:0",
+      label: "Medbay band.",
+      hidden: true,
+      minLevel: 2,
+      fx: [{ k: "nothing" }],
+      reqs: [{ k: "attr", id: "medbay", text: "", min: 2 }],
+    },
+    {
+      id: "STANDIN_GATES:1",
+      label: "Reactor cap.",
+      maxLevel: 24,
+      blue: false,
+      fx: [{ k: "nothing" }],
+      reqs: [{ k: "attr", id: "reactor", text: "", max: 24 }],
+    },
+    {
+      id: "STANDIN_GATES:2",
+      label: "Hack one.",
+      hidden: true,
+      minLevel: 1,
+      maxGroup: 0,
+      fx: [{ k: "nothing" }],
+      reqs: [{ k: "attr", id: "hacking", text: "", min: 1 }],
+    },
+    {
+      id: "STANDIN_GATES:3",
+      label: "Hack two.",
+      hidden: true,
+      minLevel: 2,
+      maxGroup: 0,
+      fx: [{ k: "nothing" }],
+      reqs: [{ k: "attr", id: "hacking", text: "", min: 2 }],
+    },
+    {
+      id: "STANDIN_GATES:4",
+      label: "Continue.",
+      hidden: true,
+      fx: [{ k: "nothing" }],
+    },
+  ],
+};
+
 export function loadCatalog(): void {
   const named = campaignEvents();
   const empties = emptyBeaconRecords().map(emptyRow);
@@ -856,6 +1063,8 @@ export function loadCatalog(): void {
   // The STORE quota names a page, as in ftl.dat. Its <store/> opens the shop.
   if (!events.some((event) => event.id === "STORE")) events.push(STORE_PAGE);
   if (!events.some((event) => event.id === "STORE_REBELSIDE")) events.push(REBEL_TRADE);
+  // After the sector quotas, so the empty list is not mistaken for one of them.
+  events.push(STANDIN_GATES);
   loadPack(
     {
       // Ghost stays off the stand-in. crewDef supplies it when no crewBlueprint uses that id.
@@ -883,8 +1092,26 @@ export function loadCatalog(): void {
       rewards: REWARD_TABLE,
       factions: FACTION_SURRENDER.map((row) => ({ ...row })),
       events,
-      lists: [...fillerListRecords().map(listRow), ...lists],
+      lists: [...fillerListRecords().map(listRow), ...lists, { id: "STANDIN_EMPTY", entries: [] }],
       empties,
+      textLists: [
+        { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },
+        { id: "CREW_POOL", lines: CREW_POOL.map((text) => ({ text })) },
+      ],
+      shipClasses: ENEMY_BLUEPRINTS.map((row) => {
+        const ship: {
+          id: string;
+          classId: string;
+          blueprint: string;
+          pirate?: string;
+        } = {
+          id: row.classId,
+          classId: row.classId,
+          blueprint: row.blueprint,
+        };
+        if (row.pirateBlueprint) ship.pirate = row.pirateBlueprint;
+        return ship;
+      }),
     },
     "base",
   );

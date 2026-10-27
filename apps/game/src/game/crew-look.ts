@@ -3,14 +3,48 @@
  * The hangar and every in-run view read these helpers, so a crew member
  * looks the same on the bay card, the crew rail, the ship tokens, and the ship sheet.
  */
-import { NAME_SYLLABLES } from "@stl/catalog";
-import { CREW_POOL } from "./content.ts";
 import { type KinId } from "./extras/kin.ts";
 import "./pack/base.ts";
-import { crewDef } from "@stl/pack";
+import { allCrewNames, crewDef, textList } from "@stl/pack";
 import type { Crew } from "./types.ts";
 
-export { NAME_SYLLABLES };
+/** Invented names. Used when the archive has neither CREW_POOL nor data/names.xml. */
+const CREW_FALLBACK = ["Ada Voss", "Ivo Park", "Nen Hale", "Brin Sol", "Quill Ade", "Mara Kent"];
+
+/** Invented syllables. Used when the archive has no NAME_SYLLABLES list. */
+const SYLLABLE_FALLBACK = [
+  "ka",
+  "ren",
+  "vo",
+  "li",
+  "mar",
+  "tes",
+  "an",
+  "dru",
+  "sel",
+  "ko",
+  "ny",
+  "bel",
+  "ta",
+  "ri",
+  "os",
+];
+
+function listLines(id: string): string[] {
+  return (textList(id)?.lines ?? []).flatMap((line) => ("text" in line ? [line.text] : []));
+}
+
+/**
+ * Names a new crew member can take. Read when asked, so a later pack is visible.
+ * The stand-in list wins. A real archive uses data/names.xml. Otherwise the invented pool.
+ */
+export function crewPool(): string[] {
+  const listed = listLines("CREW_POOL");
+  if (listed.length > 0) return listed;
+  const archive = allCrewNames();
+  if (archive.length > 0) return [...archive];
+  return [...CREW_FALLBACK];
+}
 
 /** Uniform swatches. Index 5 is the enemy red and is not offered in the hangar. */
 export const UNIFORMS = ["#3d6fb0", "#d0a23a", "#4f9a5c", "#8a5cc0", "#2fa3a3", "#b8402f"] as const;
@@ -40,7 +74,8 @@ export function kinLabel(kin: string | undefined) {
 }
 
 export function defaultPick(seat: number): CrewPick {
-  return { name: CREW_POOL[seat % CREW_POOL.length] ?? "Crew", uniform: seat % PLAYER_UNIFORMS };
+  const pool = crewPool();
+  return { name: pool[seat % pool.length] ?? "Crew", uniform: seat % PLAYER_UNIFORMS };
 }
 
 export function defaultPicks(count: number): CrewPick[] {
@@ -65,11 +100,16 @@ export function uniformOf(crew: Pick<Crew, "side" | "tone" | "uniform">) {
 }
 
 export function randomName(rand: () => number = Math.random) {
+  const listed = listLines("NAME_SYLLABLES");
+  if (listed.length === 0) {
+    const archive = allCrewNames();
+    if (archive.length > 0) {
+      return archive[Math.floor(rand() * archive.length)]!.slice(0, NAME_MAX);
+    }
+  }
+  const syllables = listed.length > 0 ? listed : [...SYLLABLE_FALLBACK];
   const part = (n: number) =>
-    Array.from(
-      { length: n },
-      () => NAME_SYLLABLES[Math.floor(rand() * NAME_SYLLABLES.length)],
-    ).join("");
+    Array.from({ length: n }, () => syllables[Math.floor(rand() * syllables.length)]).join("");
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
   return `${cap(part(1 + Math.floor(rand() * 2)))} ${cap(part(2))}`.slice(0, NAME_MAX);
 }

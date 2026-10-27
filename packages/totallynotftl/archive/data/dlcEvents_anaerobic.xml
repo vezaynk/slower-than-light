@@ -51,6 +51,10 @@
 <FTL>
   <event name="LANIUS_NOBOARDERS_PDS">
     <title>Lanius fight with friendly ASB support</title>
+    <alias>lanius-fight-with-friendly-asb-support</alias>
+    <alias>Anti-Ship Battery Firing on Lanius Ships</alias>
+    <alias>Lanius fight with friendly ASB support</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>After the fight</text>
     <choice name="c:lanius-fight-with-friendly-asb-support:0">
       <text>Fight a Lanius ship with an Anti-Ship Battery on your side</text>
@@ -59,6 +63,10 @@
   </event>
   <event name="LANIUS_AUTO_REBEL">
     <title>Lanius ship absorbing automated scout</title>
+    <alias>lanius-ship-absorbing-automated-scout</alias>
+    <alias>Lanius absorbing automated scout</alias>
+    <alias>Lanius ship absorbing automated scout</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>You come across a Lanius ship in the process of absorbing a Rebel automated scout. If you scare off the Lanius you could probably make use of it.</text>
     <choice name="c:lanius-ship-absorbing-automated-scout:0">
       <text>Fight the ship</text>
@@ -71,6 +79,10 @@
   </event>
   <event name="LANIUS_MANTIS_DISTRESS">
     <title>Lanius ship attacking Mantis</title>
+    <alias>lanius-ship-attacking-mantis</alias>
+    <alias>Lanius ship attacking Mantis</alias>
+    <alias>Ship Being Mined by Lanius</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>The Mantis ship in this system looks like its distress beacon is malfunctioning... likely due to the Lanius ship mining their hull and sub-systems! It doesn't look like the Mantis ship will last much longer.</text>
     <choice name="c:lanius-ship-attacking-mantis:0">
       <text>Attack the Lanius ship</text>
@@ -83,6 +95,10 @@
   </event>
   <event name="LANIUS_ROCK_DISTRESS">
     <title>Lanius ship attacking Rock</title>
+    <alias>lanius-ship-attacking-rock</alias>
+    <alias>Lanius attacking Rock</alias>
+    <alias>Lanius ship attacking Rock</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>A distress beacon pulses weakly from a Rockman ship in this system... their hull (and their crew) are being mined by the Lanius, lasers and weapons tearing through the ship!</text>
     <choice name="c:lanius-ship-attacking-rock:0">
       <text>Attack the Lanius ship</text>
@@ -95,6 +111,10 @@
   </event>
   <event name="LANIUS_CIVILIAN">
     <title>Lanius ship attacking civilian</title>
+    <alias>lanius-ship-attacking-civilian</alias>
+    <alias>Lanius Attacking Civilian</alias>
+    <alias>Lanius ship attacking civilian</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text/>
     <text>You immediately receive a message upon arrival, "Help! These metal bastards have gone crazy!" The communication originates from the hull of a partially dismantled ship which lies among a number of other destroyed ships. The violent Lanius ship responsible for this carnage is advancing on the survivors.</text>
     <text>You scan the area after arriving at this system. A Lanius ship is in fast pursuit of an unarmed civilian ship. It's hard to say if it's truly a threat since its weapons are not charging.</text>
@@ -110,6 +130,10 @@
   </event>
   <event name="LANIUS_DISTRESS_FIGHT">
     <title>Lanius ship attacking civilian distress</title>
+    <alias>lanius-ship-attacking-civilian-distress</alias>
+    <alias>Lanius attacking civilian distress</alias>
+    <alias>Lanius ship attacking civilian distress</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>You immediately do a short-range scan after arriving at the beacon. It appears to be coming from a small civilian vessel under fire from a Lanius ship. Not all Lanius are content with simply scavenging the wrecks of previous battles.</text>
     <choice name="c:lanius-ship-attacking-civilian-distress:0">
       <text>Fight the Lanius ship</text>
@@ -119,7 +143,7 @@
       <text>Avoid the conflict</text>
       <event/>
     </choice>
-    <choice name="c:lanius-ship-attacking-civilian-distress:2">
+    <choice name="c:lanius-ship-attacking-civilian-distress:2" owner="filler">
       <text>Have your crew admonish their captain.</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event>
@@ -129,6 +153,9 @@
   </event>
   <event name="LANIUS_HARVESTER">
     <title>Lanius ship in rich debris field</title>
+    <alias>lanius-ship-in-rich-debris-field</alias>
+    <alias>Lanius ship in rich debris field</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>Your scans have picked up a Lanius vessel in this system: it appears to be navigating a rich debris field, harvesting the minerals.</text>
     <choice name="c:lanius-ship-in-rich-debris-field:0">
       <text>Attempt to harvest some for yourself</text>
@@ -142,14 +169,14 @@
       <text>Ignore the vessel</text>
       <event/>
     </choice>
-    <choice name="c:lanius-ship-in-rich-debris-field:3">
+    <choice name="c:lanius-ship-in-rich-debris-field:3" owner="quest">
       <text>Engage the auto-pilot and safely harvest the debris.</text>
       <req req="pilot" lvl="2">Needs level 2 Piloting</req>
       <event>
         <text>Improved Piloting at level 2 pays medium scrap with resources.</text>
       </event>
     </choice>
-    <choice name="c:lanius-ship-in-rich-debris-field:4">
+    <choice name="c:lanius-ship-in-rich-debris-field:4" owner="quest">
       <text>Engage the auto-pilot and safely harvest the debris.</text>
       <req req="pilot" lvl="3">Needs level 3 Piloting</req>
       <event>
@@ -159,6 +186,10 @@
   </event>
   <event name="LANIUS_SOLO_SALVAGE">
     <title>Lanius ship salvager</title>
+    <alias>lanius-ship-salvager</alias>
+    <alias>Lanius Salvaging Small Asteroid Belt</alias>
+    <alias>Lanius ship salvager</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text/>
     <text>You come across a single Lanius ship salvaging a small civilian craft. You cannot tell if they attacked the craft or just happened upon it.</text>
     <text>There are remnants of a fierce battle here. Scattered among the hulks are small Lanius craft, slowly breaking apart the wrecks. One of the ships is close enough that you could probably attack it without immediately alerting the others.</text>
@@ -173,7 +204,7 @@
       <text>Leave them alone</text>
       <event/>
     </choice>
-    <choice name="c:lanius-ship-salvager:2">
+    <choice name="c:lanius-ship-salvager:2" owner="quest">
       <text>Request some scrap.</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event>
@@ -183,6 +214,9 @@
   </event>
   <event name="LANIUS_FIGHT">
     <title>Lanius fight</title>
+    <alias>lanius-fight</alias>
+    <alias>Lanius fight</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text/>
     <text>You receive a message on a wide band frequency, originating from an approaching Lanius ship. It appears not to be directed at you, but your translator does its best all the same: "... metallic opportunity... acquisition... by force..." Looks like you're in for a fight.</text>
     <text>Sensors indicate a small Lanius cruiser in the process of salvaging another small Lanius ship. Before you have a chance to wonder what caused them to turn on each other, the survivor notices you and moves in to attack.</text>
@@ -202,6 +236,9 @@
   </event>
   <event name="LANIUS_DISTRESS_TRAP">
     <title>Lanius fight distress</title>
+    <alias>lanius-fight-distress</alias>
+    <alias>Lanius fight distress</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>You are too late - whatever once was emitting the distress signal from this system drew a Lanius ship as well as your own. Having consumed the original target, the Lanius turn their attention to your vessel.</text>
     <choice name="c:lanius-fight-distress:0">
       <text>Fight a Lanius ship</text>
@@ -210,6 +247,9 @@
   </event>
   <event name="LANIUS_FIGHT_ASTEROID">
     <title>Lanius fight in asteroid field</title>
+    <alias>lanius-fight-in-asteroid-field</alias>
+    <alias>Lanius fight in asteroid field</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>This beacon appears to have been set up within an asteroid field to access a mining settlement. However, half of the settlement has been disassembled by a number of Lanius scavengers. Their military escort moves in to scare you off.</text>
     <choice name="c:lanius-fight-in-asteroid-field:0">
       <text>Fight a Lanius ship</text>
@@ -218,6 +258,9 @@
   </event>
   <event name="LANIUS_FIGHT_PULSAR">
     <title>Lanius fight near pulsar</title>
+    <alias>lanius-fight-near-pulsar</alias>
+    <alias>Lanius fight near pulsar</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>There appears to be some sort of research station near a pulsar, although it's hard to tell since a portion of it has been melted. The Lanius ship that has been working at it moves in to intercept you, totally oblivious to the threat of EM pulses.</text>
     <choice name="c:lanius-fight-near-pulsar:0">
       <text>Fight a Lanius ship</text>
@@ -226,6 +269,9 @@
   </event>
   <event name="LANIUS_SCARED_CIVILIAN">
     <title>Lanius lone ship</title>
+    <alias>lanius-lone-ship</alias>
+    <alias>Lanius lone ship</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, "Help! The metal monsters are coming to melt down our ship!" Strangely, no active weapon signatures are detected.</text>
     <choice name="c:lanius-lone-ship:0">
       <text>Attack the Lanius ship</text>
@@ -241,7 +287,7 @@
         <text>Continuing may open a store, start a Lanius fight, or do nothing.</text>
       </event>
     </choice>
-    <choice name="c:lanius-lone-ship:3">
+    <choice name="c:lanius-lone-ship:3" owner="quest">
       <text>Try to contact the ship.</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event>
@@ -251,6 +297,9 @@
   </event>
   <event name="LANIUS_DORMANT_EVENT">
     <title>Lanius powered-down ship</title>
+    <alias>lanius-powered-down-ship</alias>
+    <alias>Lanius powered-down ship</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down.</text>
     <choice name="c:lanius-powered-down-ship:0">
       <text>Scan the ship for lifeforms</text>
@@ -271,6 +320,9 @@
   </event>
   <event name="LANIUS_SLUG_DISTRESS">
     <title>Lanius ship attacking Slug</title>
+    <alias>lanius-ship-attacking-slug</alias>
+    <alias>Lanius ship attacking Slug</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating.</text>
     <choice name="c:lanius-ship-attacking-slug:0">
       <text>Attack the Lanius ship</text>
@@ -283,6 +335,9 @@
   </event>
   <event name="LANIUS_BEACON_EATER">
     <title>Lanius ship absorbing jump beacon</title>
+    <alias>lanius-ship-absorbing-jump-beacon</alias>
+    <alias>Lanius ship absorbing jump beacon</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>You detect a damaged vessel docked with the jump beacon. It appears the Lanius are absorbing metal from the beacon, risking destroying it and becoming stranded.</text>
     <choice name="c:lanius-ship-absorbing-jump-beacon:0">
       <text>Ask if they require assistance.</text>
@@ -296,14 +351,14 @@
         <text>Nothing, or a Lanius ship.</text>
       </event>
     </choice>
-    <choice name="c:lanius-ship-absorbing-jump-beacon:2">
+    <choice name="c:lanius-ship-absorbing-jump-beacon:2" owner="filler">
       <text>(Lanius Crew) Ask if they require assistance.</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event>
         <text>Nothing happens.</text>
       </event>
     </choice>
-    <choice name="c:lanius-ship-absorbing-jump-beacon:3">
+    <choice name="c:lanius-ship-absorbing-jump-beacon:3" owner="filler">
       <text>(Hull Repair Drone) Send a drone to help.</text>
       <req><drone name="SHIP_REPAIR"/>Needs a Hull Repair Drone</req>
       <event>
@@ -313,6 +368,9 @@
   </event>
   <event name="LANIUS_GROUP_AUTO">
     <title>Lanius ship absorbing rebel base</title>
+    <alias>lanius-ship-absorbing-rebel-base</alias>
+    <alias>Lanius ship absorbing rebel base</alias>
+    <sector>LANIUS_SECTOR</sector>
     <text>You notice a number of Lanius ships absorbing a forward Rebel base and its automated scouts. They don't seem to be aggressive. Perhaps their desire for metal could prove to be useful?</text>
     <choice name="c:lanius-ship-absorbing-rebel-base:0">
       <text>Try to use them to delay the Rebels.</text>
@@ -326,7 +384,7 @@
         <text>Nothing happens.</text>
       </event>
     </choice>
-    <choice name="c:lanius-ship-absorbing-rebel-base:2">
+    <choice name="c:lanius-ship-absorbing-rebel-base:2" owner="filler">
       <text>Try to use them to delay the Rebels.</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
       <event>

@@ -5,7 +5,7 @@ import { displayPhrase, helpListLines, verdictListLines } from "@/game/interface
 import { ArchiveCopy, ArchiveLines } from "./ArchiveCopy";
 import { earnedIds, isTracked, noteRun } from "@/game/wiki/achievement-track";
 import { lifetimeOf } from "@/game/wiki/achieve-notes";
-import { HULLS } from "@/game/hulls";
+import { playerHulls } from "@/game/hulls";
 import {
   UNLOCKS_KEY,
   emptyUnlocks,
@@ -116,10 +116,13 @@ function savedUnlockState(): UnlockState {
 }
 
 /** One card per cruiser, in hangar order. The PixelHull stamp is the hull id's first word (kestrel-a: kestrel). */
-const CRUISERS: { cruiser: string; kind: string }[] = [];
-for (const hull of HULLS) {
-  if (!CRUISERS.some((item) => item.cruiser === hull.cruiser))
-    CRUISERS.push({ cruiser: hull.cruiser, kind: hull.id.split("-")[0] ?? "kestrel" });
+function cruiserCards(): { cruiser: string; kind: string }[] {
+  const cards: { cruiser: string; kind: string }[] = [];
+  for (const hull of playerHulls()) {
+    if (!cards.some((item) => item.cruiser === hull.cruiser))
+      cards.push({ cruiser: hull.cruiser, kind: hull.id.split("-")[0] ?? "kestrel" });
+  }
+  return cards;
 }
 
 /**
@@ -154,12 +157,13 @@ export function AchievementsScreen({ game, onClose }: { game: Game | null; onClo
   }, [onClose]);
   const total = allAchievements().length;
   const got = allAchievements().filter((row) => earned.includes(row.id)).length;
-  const typeA = HULLS.filter((hull) => hull.layout === "A");
-  const shipsOpen = HULLS.filter((hull) => isUnlockedIn(unlocks, hull.id)).length;
+  const hulls = playerHulls();
+  const typeA = hulls.filter((hull) => hull.layout === "A");
+  const shipsOpen = hulls.filter((hull) => isUnlockedIn(unlocks, hull.id)).length;
   const tabs: [StatsTab, string, string][] = [
     ["records", "Records", ""],
     ["achievements", "Achievements", `${got}/${total}`],
-    ["ships", "Ships", `${shipsOpen}/${HULLS.length}`],
+    ["ships", "Ships", `${shipsOpen}/${hulls.length}`],
   ];
   const shown = (ids: string[]) =>
     rows(ids).filter(
@@ -425,8 +429,10 @@ function ShipBest({
         </span>
       </h3>
       <div className="stats-ships">
-        {CRUISERS.map(({ cruiser, kind }) => {
-          const hull = HULLS.find((item) => item.cruiser === cruiser && item.layout === type);
+        {cruiserCards().map(({ cruiser, kind }) => {
+          const hull = playerHulls().find(
+            (item) => item.cruiser === cruiser && item.layout === type,
+          );
           const open = !!hull && isUnlockedIn(unlocks, hull.id);
           const won = !!hull && unlocks.wins.includes(hull.id);
           return (

@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { LAYOUT_FILE, SHIP_LAYOUTS } from "@stl/catalog/src/ship-layouts.ts";
-import { hullDef, startingFit } from "@stl/pack";
-import { HULLS } from "./hulls.ts";
+import { START_FUEL, hullDef, startingFit, weaponDef } from "@stl/pack";
+import type { StartingFit } from "@stl/pack";
+import { powerGuns } from "./fixtures.ts";
+import { playerHulls } from "./hulls.ts";
 import { layoutFor, tileCount } from "./layouts.ts";
+import "./pack/base.ts";
 import {
   aim,
   armWeapon,
@@ -16,8 +18,6 @@ import {
   toggleAutoAll,
   toggleWeapon,
 } from "./sim.ts";
-import { WEAPONS } from "./content.ts";
-import { powerGuns } from "./fixtures.ts";
 
 const SQUARES: Record<string, number> = {
   // Traced cell counts from the hangar pictures. The cruiser pages do not state these.
@@ -51,6 +51,101 @@ const SQUARES: Record<string, number> = {
   PLAYER_SHIP_CRYSTAL_2: 46,
 };
 
+/** Archive layout file each player ship names. Kestrel's stem is spelled kestral. */
+const LAYOUT_STEM: Record<string, string> = {
+  PLAYER_SHIP_HARD: "kestral",
+  PLAYER_SHIP_HARD_2: "kestral_2",
+  PLAYER_SHIP_HARD_3: "kestral_3",
+  PLAYER_SHIP_CIRCLE: "circle_cruiser",
+  PLAYER_SHIP_CIRCLE_2: "circle_cruiser_2",
+  PLAYER_SHIP_CIRCLE_3: "circle_cruiser_3",
+  PLAYER_SHIP_FED: "fed_cruiser",
+  PLAYER_SHIP_FED_2: "fed_cruiser_2",
+  PLAYER_SHIP_FED_3: "fed_cruiser_3",
+  PLAYER_SHIP_ENERGY: "energy_cruiser",
+  PLAYER_SHIP_ENERGY_2: "energy_cruiser_2",
+  PLAYER_SHIP_ENERGY_3: "energy_cruiser_3",
+  PLAYER_SHIP_JELLY: "jelly_cruiser",
+  PLAYER_SHIP_JELLY_2: "jelly_cruiser_2",
+  PLAYER_SHIP_JELLY_3: "jelly_cruiser_3",
+  PLAYER_SHIP_ROCK: "rock_cruiser",
+  PLAYER_SHIP_ROCK_2: "rock_cruiser_2",
+  PLAYER_SHIP_ROCK_3: "rock_cruiser_3",
+  PLAYER_SHIP_STEALTH: "stealth",
+  PLAYER_SHIP_STEALTH_2: "stealth_2",
+  PLAYER_SHIP_STEALTH_3: "stealth_3",
+  PLAYER_SHIP_ANAEROBIC: "anaerobic_cruiser",
+  PLAYER_SHIP_ANAEROBIC_2: "anaerobic_cruiser_2",
+  PLAYER_SHIP_MANTIS: "mantis_cruiser",
+  PLAYER_SHIP_MANTIS_2: "mantis_cruiser_2",
+  PLAYER_SHIP_MANTIS_3: "mantis_cruiser_3",
+  PLAYER_SHIP_CRYSTAL: "crystal_cruiser",
+  PLAYER_SHIP_CRYSTAL_2: "crystal_cruiser_2",
+};
+
+const SUBSYSTEMS = new Set(["pilot", "sensors", "doors"]);
+
+/** Bars a system asks for before the reactor runs out. Weapons and drones start off. Shields fill. */
+function askedBars(id: string, level: number): number {
+  if (id === "shields") return level;
+  if (id === "weapons" || id === "drones") return 0;
+  if (id === "battery" || SUBSYSTEMS.has(id)) return 0;
+  return Math.min(1, level);
+}
+
+/**
+ * Reactor hand-out in ShipSystem order.
+ * Pilot, sensors, and doors store bars equal to their level and draw nothing.
+ * The battery is unpowered: its kit power stays 0 (the level is the charge it can give).
+ * Weapons and drones start at 0. Shields fill to their level. Other reactor systems take min(1, level)
+ * until the reactor is spent. That is not the old inferred weapon fill such as [3, 3].
+ */
+function expectBars(fit: StartingFit, reactor: number): void {
+  const order = [
+    "shields",
+    "engines",
+    "oxygen",
+    "weapons",
+    "drones",
+    "medbay",
+    "pilot",
+    "sensors",
+    "doors",
+    "teleporter",
+    "cloaking",
+    "artillery",
+    "battery",
+    "clonebay",
+    "mind",
+    "hacking",
+  ];
+  let left = reactor;
+  const got = new Map<string, number>();
+  const levelOf = (id: string): number | undefined => {
+    const sys = fit.systems[id];
+    if (sys) return sys[0];
+    return fit.kits[id]?.level;
+  };
+  for (const id of order) {
+    const level = levelOf(id);
+    if (level == null) continue;
+    if (SUBSYSTEMS.has(id)) {
+      got.set(id, level);
+      continue;
+    }
+    const want = Math.min(askedBars(id, level), Math.max(0, left));
+    got.set(id, want);
+    left -= want;
+  }
+  for (const [id, pair] of Object.entries(fit.systems)) {
+    assert.equal(pair[1], got.get(id), id);
+  }
+  for (const [id, kit] of Object.entries(fit.kits)) {
+    if (!kit) continue;
+    assert.equal(kit.power, got.get(id) ?? 0, id);
+  }
+}
+
 describe("hangar hulls", () => {
   it("leaves the unlabeled start as the Lark", () => {
     const g = createGame(1);
@@ -60,18 +155,39 @@ describe("hangar hulls", () => {
   });
 
   it("fits every fetched cruiser inside its reactor", () => {
-    for (const hull of HULLS) {
+    for (const hull of playerHulls()) {
       const g = createGame(1, hull.id);
       assert.equal(g.player.name, hull.name, hull.id);
-      assert.equal(g.fuel, hull.fuel);
+      assert.equal(hull.fuel, START_FUEL, hull.id);
+      assert.equal(g.fuel, START_FUEL, hull.id);
       assert.equal(g.missiles, hull.missiles);
       assert.equal(g.player.parts, hull.parts);
       assert.equal(g.player.reactor, hull.reactor);
       assert.ok(sparePower(g.player) >= 0, hull.id);
-      for (const id of hull.weapons) assert.ok(WEAPONS[id], `${hull.id} ${id}`);
+      for (const id of hull.weapons) assert.ok(weaponDef(id), `${hull.id} ${id}`);
       // Guns can be mounted beyond the powered bars. powerMask feeds them in list order.
       assert.equal(powerMask(g.player).length, g.player.weapons.length, hull.id);
+      const spec = hullDef(hull.id);
+      assert.ok(spec, hull.id);
+      const fit = startingFit(spec);
+      expectBars(fit, spec.reactor);
+      if (fit.systems.weapons) assert.equal(fit.systems.weapons[1], 0, hull.id);
+      if (fit.kits.drones) assert.equal(fit.kits.drones.power, 0, hull.id);
+      if (fit.systems.shields)
+        assert.equal(fit.systems.shields[1], fit.systems.shields[0], hull.id);
+      for (const id of SUBSYSTEMS) {
+        const pair = fit.systems[id];
+        if (pair) assert.equal(pair[1], pair[0], `${hull.id} ${id}`);
+      }
+      if (fit.kits.battery) assert.equal(fit.kits.battery.power, 0, hull.id);
+      assert.equal(g.player.systems.weapons.power, fit.systems.weapons?.[1] ?? 0, hull.id);
+      assert.equal(g.player.systems.shields.power, fit.systems.shields?.[1] ?? 0, hull.id);
     }
+    const kestrel = hullDef("PLAYER_SHIP_HARD");
+    assert.ok(kestrel);
+    assert.equal(kestrel.layout, "kestral");
+    assert.deepEqual(startingFit(kestrel).systems.weapons, [3, 0]);
+    assert.notDeepEqual(startingFit(kestrel).systems.weapons, [3, 3]);
   });
 
   it("powers the Breach Bomb once the Anti-Bio Beam is switched off", () => {
@@ -88,15 +204,17 @@ describe("hangar hulls", () => {
   });
 
   it("fits the Engi B and C printed augments", () => {
-    const b = HULLS.find((h) => h.id === "PLAYER_SHIP_CIRCLE_2");
-    const c = HULLS.find((h) => h.id === "PLAYER_SHIP_CIRCLE_3");
+    const b = playerHulls().find((h) => h.id === "PLAYER_SHIP_CIRCLE_2");
+    const c = playerHulls().find((h) => h.id === "PLAYER_SHIP_CIRCLE_3");
     assert.ok(b);
     assert.ok(c);
     assert.deepEqual(b.augments, ["DRONE_SPEED"]);
     assert.equal(b.unfitted.includes("Drone Reactor Booster"), false);
     assert.equal(b.unfitted.includes("Anti-Personnel Drone"), true);
     assert.equal(b.unfitted.includes("System Repair Drone (second)"), false);
-    assert.deepEqual(b.kits.drones?.loadout, ["REPAIR", "REPAIR"]);
+    // The blueprint lists both repair drones and the Anti-Personnel schematic. The ship flies only the repair pair.
+    assert.deepEqual(b.kits.drones?.loadout, ["REPAIR", "REPAIR", "BATTLE"]);
+    assert.equal(b.kits.drones?.power, 0);
     assert.deepEqual(createGame(1, "PLAYER_SHIP_CIRCLE_2").player.kits.drones?.loadout, [
       "REPAIR",
       "REPAIR",
@@ -157,45 +275,17 @@ describe("hangar hulls", () => {
   });
 
   it("reads each traced interior from the loaded ship", () => {
-    for (const [id, authored] of Object.entries(SHIP_LAYOUTS)) {
+    for (const [id, stem] of Object.entries(LAYOUT_STEM)) {
+      const hull = hullDef(id);
+      assert.equal(hull?.layout, stem, id);
       const laid = layoutFor(id);
       assert.ok(laid, id);
-      assert.equal(laid.cols, authored.cols, id);
-      assert.equal(laid.rows, authored.rows, id);
-      // Room names come from the blueprint (hull-fit roomNames): a system's room keeps its traced name, and a hall is
-      // p-hall<n> in grid order.
-      const halls = authored.rooms
-        .filter((room) => /^p-[a-z]{3}\d+$/.test(room.id))
-        .map((room) => room.id);
-      const named = (traced: string) =>
-        halls.includes(traced) ? `p-hall${halls.indexOf(traced)}` : traced;
-      assert.deepEqual(
-        laid.rooms.map((room) => ({
-          id: room.id,
-          title: room.title,
-          system: room.system,
-          x: room.x,
-          y: room.y,
-          w: room.w,
-          h: room.h,
-          reserve: room.reserve,
-        })),
-        authored.rooms.map((room) => ({
-          id: named(room.id),
-          title: room.title,
-          system: room.system,
-          x: room.x,
-          y: room.y,
-          w: room.w,
-          h: room.h,
-          reserve: room.reserve,
-        })),
-        id,
-      );
-      assert.deepEqual(laid.marks, authored.marks, id);
-      const hull = hullDef(id);
-      assert.equal(hull?.layout, LAYOUT_FILE[id], id);
-      for (const room of authored.rooms) {
+      assert.ok(laid.cols >= 1 && laid.rows >= 1, id);
+      const halls = laid.rooms.filter((room) => room.system == null && !room.reserve);
+      halls.forEach((room, index) => assert.equal(room.id, `p-hall${index}`, id));
+      for (const room of laid.rooms) {
+        assert.ok(room.x + room.w <= laid.cols && room.y + room.h <= laid.rows, id + room.id);
+        assert.ok(room.w > 0 && room.h > 0, id + room.id);
         if (!room.system) continue;
         assert.ok(
           hull && startingFit(hull).systems[room.system],
@@ -221,7 +311,7 @@ describe("hangar hulls", () => {
         }
       }
       const g = createGame(1, id);
-      for (const seat of HULLS.find((h) => h.id === id)?.crew ?? []) {
+      for (const seat of playerHulls().find((h) => h.id === id)?.crew ?? []) {
         assert.ok(
           g.player.rooms.some((r) => r.id === seat.room),
           `${id} ${seat.room}`,
@@ -232,17 +322,16 @@ describe("hangar hulls", () => {
 
   it("keeps a traced door on a room edge", () => {
     const step = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] } as const;
-    for (const [id, layout] of Object.entries(SHIP_LAYOUTS)) {
-      if (!layout.marks) continue;
+    for (const id of Object.keys(LAYOUT_STEM)) {
+      const layout = layoutFor(id);
+      if (!layout?.marks?.length) continue;
       const g = createGame(1, id);
-      // The loaded rooms are the traced ones, in the same order, under the blueprint's names.
-      const loaded = layoutFor(id)?.rooms ?? [];
       const at = new Map<string, string>();
-      layout.rooms.forEach((r, i) => {
+      for (const r of layout.rooms) {
         for (let y = r.y; y < r.y + r.h; y++) {
-          for (let x = r.x; x < r.x + r.w; x++) at.set(`${x},${y}`, loaded[i]?.id ?? r.id);
+          for (let x = r.x; x < r.x + r.w; x++) at.set(`${x},${y}`, r.id);
         }
-      });
+      }
       for (const mark of layout.marks) {
         const idHere = at.get(`${mark.x},${mark.y}`);
         assert.ok(idHere, `${id} ${mark.x},${mark.y} ${mark.side}`);

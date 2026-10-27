@@ -427,6 +427,17 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: SLATE,
     glow: ORANGE,
   },
+  // Artillery burst. One heavy stub and four pips, so the drum is not Flak I or II.
+  "flak-artillery": {
+    frame: "drum",
+    barrels: 1,
+    reach: 2,
+    heavy: true,
+    mark: 4,
+    body: "#c45a28",
+    trim: BRONZE,
+    glow: AMBER,
+  },
   // Bombs: teleporter pods, the payload as an emblem.
   BOMB_1: {
     frame: "pod",

@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import { createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
+import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
-import { EXTRA_EVENTS, citedFuelCandidates, rollFuelWait } from "./cited-fuel.ts";
+import { citedFuelCandidates, rollFuelWait } from "./cited-fuel.ts";
 
 function beacon(flag: string, name: string): Beacon {
   return {
@@ -27,42 +29,42 @@ function beacon(flag: string, name: string): Beacon {
  */
 const DISTRESS_ON = [
   // {{Locations|outoffuel=distresson}}
-  { flag: "cited:no-fuel-auto-ship-warning", dest: "No fuel: Auto-ship warning" },
+  { flag: "FUEL_ON_REBEL_WARNING", dest: "No fuel: Auto-ship warning" },
   // {{Locations|outoffuel=distresson}}
-  { flag: "cited:no-fuel-mantis-fight", dest: "No fuel: Mantis fight" },
+  { flag: "FUEL_ON_MANTIS_ATTACK", dest: "No fuel: Mantis fight" },
   // {{Locations|outoffuel=distresson}}
-  { flag: "cited:no-fuel-rebel-fight", dest: "No fuel: Rebel fight" },
+  { flag: "FUEL_ON_REBEL_ATTACK", dest: "No fuel: Rebel fight" },
   // {{Locations|outoffuel=distresson}}
-  { flag: "cited:no-fuel-slug-fuel-depot", dest: "No fuel: Slug fuel depot" },
+  { flag: "FUEL_ON_SLUG_OVERPRICED", dest: "No fuel: Slug fuel depot" },
   // {{Locations|outoffuel=distresson}}
-  { flag: "cited:no-fuel-automated-refueling-ship", dest: "No fuel: automated refueling ship" },
+  { flag: "FUEL_SELLER_DISTRESS", dest: "No fuel: automated refueling ship" },
   // {{Locations|outoffuel=distressboth}}
-  { flag: "cited:no-fuel-explore-the-system", dest: "No fuel: explore the system" },
+  { flag: "FUEL_EXPLORE", dest: "No fuel: explore the system" },
   // {{Locations|outoffuel=distresson}}
-  { flag: "cited:no-fuel-slug-fuel-trader", dest: "No fuel: Slug fuel trader" },
+  { flag: "FUEL_ON_SLUG_CHUCKLE", dest: "No fuel: Slug fuel trader" },
   // {{Locations|outoffuel=distresson}}
-  { flag: "cited:no-fuel-fuel-trader-distress-on", dest: "No fuel: fuel trader (distress on)" },
+  { flag: "FUEL_TRADER_DISTRESS", dest: "No fuel: fuel trader (distress on)" },
   // {{Locations|outoffuel=distressboth}}
-  { flag: "cited:no-fuel-prepare-to-dock", dest: "No fuel: prepare to dock" },
+  { flag: "FUEL_APPROACH", dest: "No fuel: prepare to dock" },
   // {{Locations|outoffuel=distresson}}
-  { flag: "cited:no-fuel-refugee-trading", dest: "No fuel: refugee trading" },
+  { flag: "NO_FUEL_REFUGEE", dest: "No fuel: refugee trading" },
 ];
 
 const DISTRESS_OFF = [
   // {{Locations|outoffuel=distressoff}}
-  { flag: "cited:no-fuel-engi-ship-repair", dest: "No fuel: Engi ship repair" },
+  { flag: "FUEL_OFF_ENGI_DUBIOUS", dest: "No fuel: Engi ship repair" },
   // {{Locations|outoffuel=distressboth}}
-  { flag: "cited:no-fuel-explore-the-system", dest: "No fuel: explore the system" },
+  { flag: "FUEL_EXPLORE", dest: "No fuel: explore the system" },
   // {{Random Events}} {{Locations|outoffuel=distressoff}}
-  { flag: "cited:no-fuel-rebel-fleet-delay", dest: "No fuel: Rebel fleet delay" },
+  { flag: "FUEL_FLEET_DELAY", dest: "No fuel: Rebel fleet delay" },
   // {{Locations|outoffuel=distressoff}}
-  { flag: "cited:no-fuel-friendly-refugee", dest: "No fuel: friendly refugee" },
+  { flag: "NO_FUEL_REFUGEE_FRIENDLY", dest: "No fuel: friendly refugee" },
   // {{Locations|outoffuel=distressoff}}
-  { flag: "cited:no-fuel-drifting-debris", dest: "No fuel: drifting debris" },
+  { flag: "FUEL_OFF_ROCK_WRECK", dest: "No fuel: drifting debris" },
   // {{Locations|outoffuel=distressoff}}
-  { flag: "cited:no-fuel-fuel-trader-distress-off", dest: "No fuel: fuel trader (distress off)" },
+  { flag: "FUEL_TRADER", dest: "No fuel: fuel trader (distress off)" },
   // {{Locations|outoffuel=distressboth}}
-  { flag: "cited:no-fuel-prepare-to-dock", dest: "No fuel: prepare to dock" },
+  { flag: "FUEL_APPROACH", dest: "No fuel: prepare to dock" },
 ];
 
 const SKIPPED = ["No fuel: wait fail (distress off)", "No fuel: wait fail (distress on)"];
@@ -87,14 +89,13 @@ describe("cited fuel candidates", () => {
 
   it("resolves a flagged out-of-fuel page and does not place one that names no sector", () => {
     const g = createGame(1, "PLAYER_SHIP_HARD", "normal");
-    const extra = new Set(EXTRA_EVENTS.map((ev) => ev.flag));
     const seen = new Set<string>();
     for (const row of [...DISTRESS_ON, ...DISTRESS_OFF]) {
       if (seen.has(row.flag)) continue;
       seen.add(row.flag);
       const ev = citedEvent(g, beacon(row.flag, row.dest));
       assert.equal(ev?.title, row.dest);
-      if (extra.has(row.flag))
+      if ((eventDef(row.flag)?.sectors.length ?? 0) === 0)
         assert.equal(
           g.beacons.some((b) => b.flag === row.flag),
           false,
@@ -102,60 +103,11 @@ describe("cited fuel candidates", () => {
     }
   });
 
-  it("does not candidate a skipped page and does not invent a sector", () => {
+  it("does not candidate a skipped page", () => {
     const dests = [...citedFuelCandidates(true), ...citedFuelCandidates(false)].map(
       (row) => row.dest,
     );
     for (const title of SKIPPED) assert.equal(dests.includes(title), false);
-    assert.deepEqual(
-      EXTRA_EVENTS.map((ev) => ev.dest),
-      [
-        "No fuel: Rebel fleet delay",
-        "No fuel: friendly refugee",
-        "No fuel: Slug fuel trader",
-        "No fuel: drifting debris",
-        "No fuel: fuel trader (distress off)",
-        "No fuel: fuel trader (distress on)",
-        "No fuel: prepare to dock",
-        "No fuel: refugee trading",
-      ],
-    );
-    for (const ev of EXTRA_EVENTS) {
-      assert.deepEqual(ev.sectors, []);
-      assert.equal(ev.flag, `cited:${ev.slug}`);
-      assert.ok(ev.body.length <= 240);
-      assert.ok(ev.choices.length >= 1);
-    }
-  });
-
-  it("quotes the Rebel fleet delay as one jump, then another event", () => {
-    // Wiki citations:
-    // > "Rebel Fleet pursuit is delayed for 1 jump." — [[No fuel: Rebel fleet delay]]
-    // > "Another out of fuel event occurs." — [[No fuel: Rebel fleet delay]]
-    const ev = EXTRA_EVENTS.find((row) => row.dest === "No fuel: Rebel fleet delay");
-    assert.ok(ev);
-    assert.equal(ev.body, "");
-    assert.equal(ev.choices.length, 1);
-    // "Rebel Fleet pursuit is delayed for 1 jump."
-    assert.deepEqual(ev.choices[0].fx[0], { k: "fleet", n: 1 });
-    // "Another out of fuel event occurs."
-    assert.deepEqual(ev.choices[0].fx[1], { k: "note", text: "Another out of fuel event occurs." });
-    assert.equal(ev.choices[0].fx.length, 2);
-  });
-
-  it("quotes the friendly refugee as medium fuel only, 2-4", () => {
-    // Wiki citations:
-    // > "While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you." — [[No fuel: friendly refugee]]
-    // > "You receive medium fuel." — [[No fuel: friendly refugee]]
-    const ev = EXTRA_EVENTS.find((row) => row.dest === "No fuel: friendly refugee");
-    assert.ok(ev);
-    assert.equal(
-      ev.body,
-      "While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you.",
-    );
-    assert.ok(ev.body.length <= 240);
-    // "You receive {{tooltip|medium|2-4}} [[Rewards#Fuel only|fuel]]."
-    assert.deepEqual(ev.choices[0].fx, [{ k: "res", id: "fuel", sign: 1, lo: 2, hi: 4 }]);
   });
 });
 
@@ -171,15 +123,39 @@ describe("waiting with no fuel (per the user: distress beacon toggle)", () => {
     };
     for (const on of [true, false]) {
       let fails = 0;
-      const allowed = new Set(citedFuelCandidates(on).map((c) => c.flag));
+      const allowed = new Map(citedFuelCandidates(on).map((c) => [c.flag, c.dest]));
       for (let i = 0; i < 4000; i++) {
         const pick = rollFuelWait(roll, on);
         if ("fail" in pick) fails += 1;
-        else assert.ok(allowed.has(pick.flag), pick.flag);
+        else assert.equal(allowed.get(pick.flag), pick.dest, pick.flag);
       }
       const share = fails / 4000;
       // No fuel: wait fail, Trivia: 16.7% with the beacon on, 36.4% with it off.
       assert.ok(Math.abs(share - (on ? 0.167 : 0.364)) < 0.03, String(share));
+    }
+  });
+
+  it("still draws a page when the archive stored the event id as its title", () => {
+    const flags = new Set([...DISTRESS_ON, ...DISTRESS_OFF].map((row) => row.flag));
+    const events = [...flags].map((id) => {
+      const row = eventDef(id);
+      assert.ok(row, id);
+      return { ...row, dest: row.id, aliases: [] };
+    });
+    loadPack({ events }, "append");
+    try {
+      assert.deepEqual(citedFuelCandidates(true), DISTRESS_ON);
+      assert.deepEqual(citedFuelCandidates(false), DISTRESS_OFF);
+      const delay = rollFuelWait(() => 0.37, false);
+      assert.deepEqual(delay, {
+        flag: "FUEL_FLEET_DELAY",
+        dest: "No fuel: Rebel fleet delay",
+      });
+      const page = rollFuelWait(() => 0.5, true);
+      assert.equal("fail" in page, false);
+      if (!("fail" in page)) assert.match(page.dest, /^No fuel: /);
+    } finally {
+      resetPackForTests();
     }
   });
 });

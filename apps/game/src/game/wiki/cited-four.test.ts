@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { installAugment } from "../extras/augments.ts";
+import { crystalExtinguishScale, installAugment } from "../extras/augments.ts";
 import type { KinId } from "../extras/kin.ts";
 import {
   DRONE_COOLDOWN_S,
@@ -11,11 +11,10 @@ import {
 } from "../extras/swarm.ts";
 import { FIRE_FIGHT_SHARE, createGame, startCombat, step } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
-import { crystalExtinguishScale } from "./cited-crystal-fire.ts";
-import { rockExtinguishScale } from "./cited-rock-fire.ts";
-
 // Template:Crew races (comparison) fire-fighting formula for an untrained Human (sim.ts FIRE_FIGHT_SHARE).
+// Rock extinguish scale is the catalog constant 1.67 (cited-rock-fire).
 const SHARE = FIRE_FIGHT_SHARE;
+const ROCK_EXTINGUISH_SCALE = 1.67;
 
 function fight(seed: number): Game {
   const g = createGame(seed);
@@ -120,7 +119,7 @@ describe("Rock and Crystal extinguish shares", () => {
     const rock = fight(2);
     hold(rock, "p-medbay", [{ id: "c-ada", kin: "rock" }]);
     const rockHp = rock.crew.find((c) => c.id === "c-ada")!.hp;
-    close(burn(rock, "p-medbay"), SHARE * rockExtinguishScale());
+    close(burn(rock, "p-medbay"), SHARE * ROCK_EXTINGUISH_SCALE);
     assert.equal(rock.crew.find((c) => c.id === "c-ada")!.hp, rockHp);
 
     const crystal = fight(3);
@@ -129,7 +128,7 @@ describe("Rock and Crystal extinguish shares", () => {
 
     const both = fight(4);
     hold(both, "p-medbay", [{ id: "c-ada" }, { id: "c-ivo", kin: "rock" }]);
-    close(burn(both, "p-medbay"), SHARE + SHARE * rockExtinguishScale());
+    close(burn(both, "p-medbay"), SHARE + SHARE * ROCK_EXTINGUISH_SCALE);
   });
 
   it("keeps Fire Suppression at Crystal speed on top of a Rock", () => {
@@ -143,7 +142,7 @@ describe("Rock and Crystal extinguish shares", () => {
     hold(rock, "p-medbay", [{ id: "c-ada", kin: "rock" }]);
     close(
       burn(rock, "p-medbay"),
-      FIRE_FIGHT_SHARE * crystalExtinguishScale() + SHARE * rockExtinguishScale(),
+      FIRE_FIGHT_SHARE * crystalExtinguishScale() + SHARE * ROCK_EXTINGUISH_SCALE,
     );
   });
 });

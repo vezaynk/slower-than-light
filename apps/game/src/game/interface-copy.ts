@@ -108,6 +108,20 @@ function weaponTypeKey(row: {
   return undefined;
 }
 
+/** Hull damage, or a bomb's system bars when hull damage is 0. */
+export function weaponDamageLabel(row: {
+  damage?: number;
+  sysDamage?: number;
+  shots?: number;
+}): string | null {
+  const hull = row.damage ?? 0;
+  const bars = row.sysDamage ?? 0;
+  const n = hull > 0 ? hull : bars > 0 ? bars : 0;
+  if (n <= 0) return null;
+  const shots = row.shots ?? 1;
+  return shots > 1 ? `${shots}×${n}` : String(n);
+}
+
 export function weaponCopy(row: {
   kind?: WeaponKind;
   ion?: number;

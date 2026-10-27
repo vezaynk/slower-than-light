@@ -3,18 +3,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { campaignPack } from "@stl/campaign";
 import { hullPictureFiles } from "@stl/catalog/src/ship-art.ts";
-import { WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
+import { MOUNT_IMAGES, WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
 import { layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat, extractFtlZip, readPkg } from "@stl/ftldat";
 import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
-import {
-  packFromFtl,
-  parsePack,
-  pictureForRooms,
-  readAnimations,
-  readBitmapFont,
-  readSounds,
-} from "@stl/pack";
+import { packFromFtl, parsePack, readAnimations, readBitmapFont, readSounds } from "@stl/pack";
 import {
   standInAchievementsXml,
   standInDat,
@@ -73,7 +66,11 @@ describe("totallynotftl.dat", () => {
     const media = await standInMedia();
     assert.equal(
       extracted.documents.length,
-      events.length + 4 + pictures.length + media.documents.length,
+      events.length + 5 + pictures.length + media.documents.length,
+    );
+    assert.match(
+      extracted.documents.find((doc) => doc.path === "data/text-eo.xml")?.xml ?? "",
+      /Malrapida ol lumo/,
     );
     for (const file of events) {
       assert.equal(extracted.documents.find((doc) => doc.path === file.path)?.xml, file.xml);
@@ -187,6 +184,9 @@ describe("totallynotftl.dat", () => {
       "fonts/HL2.font",
       "fonts/c&c.font",
       "fonts/c&cnew.font",
+      "fonts/eo.font",
+      "audio/waves/ui/miss.wav",
+      "img/loc-eo/statusUI/menu.png",
     ]) {
       assert.ok(extracted.assets.has(path), path);
     }
@@ -194,6 +194,17 @@ describe("totallynotftl.dat", () => {
     for (const path of ["img/people/human.png", "img/ship/drones/striker2_base.png"]) {
       assert.equal(extracted.assets.has(path), false, path);
     }
+    const glow = new Uint8Array(
+      await extracted.assets.get("img/ships_glow/kestral_base.png")!.arrayBuffer(),
+    );
+    const dark = new Uint8Array(
+      await extracted.assets.get("img/ships_noglow/kestral_base.png")!.arrayBuffer(),
+    );
+    const cloak = new Uint8Array(
+      await extracted.assets.get("img/ship/kestral_cloak.png")!.arrayBuffer(),
+    );
+    assert.equal(Buffer.compare(glow, dark) === 0, false);
+    assert.equal(Buffer.compare(glow, cloak) === 0, false);
     for (const [path, blob] of extracted.assets) {
       const bytes = new Uint8Array(await blob.arrayBuffer());
       assertMagic(path, bytes, blob.type);
@@ -249,6 +260,21 @@ describe("totallynotftl.dat", () => {
       byId(merged.events?.filter((event) => !extra.has(event.id))),
       byId(pack.events),
     );
+    const gates = merged.events?.find((event) => event.id === "STANDIN_GATES");
+    assert.equal(gates?.body, "Gates.");
+    assert.deepEqual(
+      gates?.choices.map((choice) => choice.label),
+      ["Medbay band.", "Reactor cap.", "Hack one.", "Hack two.", "Continue."],
+    );
+    assert.equal(gates?.choices[0]?.hidden, true);
+    assert.equal(gates?.choices[0]?.minLevel, 2);
+    assert.equal(gates?.choices[1]?.blue, false);
+    assert.equal(gates?.choices[1]?.maxLevel, 24);
+    assert.equal(gates?.choices[2]?.maxGroup, 0);
+    assert.equal(gates?.choices[3]?.hidden, true);
+    assert.equal(gates?.choices[3]?.minLevel, 2);
+    assert.equal(gates?.choices[4]?.hidden, true);
+    assert.equal(gates?.choices[4]?.reqs, undefined);
     assert.deepEqual(
       merged.events?.find((event) => event.id === "STAND_IN_BEACON"),
       {
@@ -277,7 +303,7 @@ describe("totallynotftl.dat", () => {
     );
     assert.deepEqual(
       merged.textLists?.map((row) => row.id),
-      ["STAND_IN_CALM", "STAND_IN_MORE", "STAND_IN_NEST"],
+      ["STAND_IN_CALM", "STAND_IN_MORE", "STAND_IN_NEST", "NAME_SYLLABLES", "CREW_POOL"],
     );
     assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_CALM")?.lines, [
       { text: "Nothing moves." },
@@ -288,15 +314,17 @@ describe("totallynotftl.dat", () => {
       { load: "STAND_IN_MORE" },
     ]);
     assert.deepEqual(merged.lists, pack.lists);
+    assert.equal(merged.lists?.find((row) => row.id === "STANDIN_EMPTY")?.entries.length, 0);
     assert.deepEqual(merged.stores, pack.stores);
     assert.deepEqual(merged.rewards, pack.rewards);
     assert.deepEqual(merged.factions, pack.factions);
     assert.deepEqual(merged.empties, pack.empties);
+    assert.deepEqual(merged.shipClasses, pack.shipClasses);
     assert.equal(merged.facts, undefined);
     const kestrel = merged.hulls?.find((hull) => hull.id === "PLAYER_SHIP_HARD");
     assert.equal(kestrel?.img, "kestral");
     assert.equal(kestrel?.layout, "kestral");
-    assert.deepEqual(kestrel?.picture, pictureForRooms(kestrel?.grid?.rooms ?? []));
+    assert.deepEqual(kestrel?.picture, MOUNT_IMAGES.kestral);
     assert.deepEqual(kestrel?.mounts, WEAPON_MOUNTS.kestral);
     assert.deepEqual(kestrel?.cloakOffset, { x: 0, y: 0 });
     assert.deepEqual(kestrel?.floorOffset, { x: 0, y: 0 });

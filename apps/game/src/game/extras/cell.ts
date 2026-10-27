@@ -1,3 +1,5 @@
+import { augmentDef } from "@stl/pack";
+import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { log, sparePower, syncShields, zoltanBars } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
@@ -6,17 +8,15 @@ import { shipInDanger } from "./sling.ts";
 import { interruptVeil } from "./veil.ts";
 import type { Game, Kit, Ship } from "../types.ts";
 
-/** Wiki page "Backup Battery", section "System Upgrades": level 1 cost 35. Also the store price to fit it. */
+/** Wiki page "Backup Battery", section "System Upgrades": level 1 cost 35. The store blueprint carries it. */
 // Wiki citations:
 // > "1 35 Ftlgame-scrap.png 2 temporary power bars" — [[Backup Battery#System Upgrades]]
-const INSTALL_COST = 35;
 /** Wiki page "Backup Battery", section "System Upgrades": level 2 cost 50. Paid to go from 1 to 2. */
 // Wiki citations:
 // > "2 50 Ftlgame-scrap.png 4 temporary power bars" — [[Backup Battery#System Upgrades]]
-const UPGRADE_COST = 50;
-
 export function cellUpgradeCost(level: number): number | null {
-  return level === 1 ? UPGRADE_COST : null;
+  if (level >= tuneMax("battery", 2)) return null;
+  return upgradeCost("battery", level);
 }
 /** Wiki page "Backup Battery", section "Overview": extra bars last 30 seconds. */
 // Wiki citations:
@@ -59,7 +59,10 @@ function barsFor(level: number): number {
 }
 
 function coolFor(g: Game): number {
-  return g.augments?.includes("BATTERY_BOOSTER") ? COOL_TAP : COOL;
+  if (!g.augments?.includes("BATTERY_BOOSTER")) return COOL;
+  // Battery Charger `<value>` is the fraction of the 20s cooldown that remains. 0.5 is 10s.
+  const scale = augmentDef("BATTERY_BOOSTER")?.value ?? COOL_TAP / COOL;
+  return COOL * scale;
 }
 
 function running(kit: Kit): boolean {
@@ -204,12 +207,13 @@ export function shedOverAssigned(g: Game, ship: Ship, aboard: "player" | "enemy"
 
 /** Wiki page "Backup Battery", section "System Upgrades": fit level 1 for 35. "Overview": no reactor energy is required, so power stays 0. */
 export function installCell(g: Game) {
-  if (g.player.kits.battery) return;
-  if (g.scrap < INSTALL_COST) {
+  const cost = listedCost("battery");
+  if (g.player.kits.battery || cost == null) return;
+  if (g.scrap < cost) {
     log(g, "Not enough scrap.");
     return;
   }
-  g.scrap -= INSTALL_COST;
+  g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.battery = makeCell(1);
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
@@ -219,12 +223,13 @@ export function installCell(g: Game) {
 /** Wiki page "Backup Battery", section "System Upgrades": 1→2 costs 50 and supplies 4 bars. Power stays 0. */
 export function upgradeCell(g: Game) {
   const kit = g.player.kits.battery;
-  if (!kit || kit.level !== 1) return;
-  if (g.scrap < UPGRADE_COST) {
+  const cost = kit ? cellUpgradeCost(kit.level) : null;
+  if (!kit || cost == null) return;
+  if (g.scrap < cost) {
     log(g, "Not enough scrap.");
     return;
   }
-  g.scrap -= UPGRADE_COST;
+  g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
   kit.level = 2;
   kit.power = 0;

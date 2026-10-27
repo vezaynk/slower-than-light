@@ -1,12 +1,12 @@
 import { after, describe, it } from "node:test";
-import { loadCatalog } from "@stl/catalog";
+import { installStandIn } from "@stl/standin";
 import { extractArchive } from "@stl/ftldat";
 import { assertArchiveCovered } from "./archive-cover.ts";
 import { archiveCases, installExtract } from "./archive-play.ts";
 
 describe("archive coverage", () => {
-  after(() => {
-    loadCatalog();
+  after(async () => {
+    await installStandIn();
   });
 
   for (const item of archiveCases()) {

@@ -36,6 +36,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Artemis Missiles (enemy)=== lists no purchase price. price 0. Player sells for 19; that sell value is not this row.
     price: 0,
+    stunChance: 0.1,
     // Wiki page "Missile (Weapons)", ===Artemis Missiles (enemy)=== has no italic quote.
     blurb: "",
   },
@@ -63,6 +64,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Hermes Missile===: "Purchase price: 45". Store rarity 2 is not a field.
     price: 45,
+    stunChance: 0.1,
     blurb: "Standard but powerful missile.",
   },
   {
@@ -89,6 +91,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Breach Missiles===: "Purchase price: 65". Store rarity 3 is not a field.
     price: 65,
+    stunChance: 0.1,
     blurb: "These missiles are designed to cause maximum destruction to ship hull armor.",
   },
   {
@@ -115,6 +118,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Hull Missile===: "Purchase price: 65". Store rarity 3 is not a field.
     price: 65,
+    stunChance: 0.1,
     blurb: "High hull damage plus a decent breach chance.",
   },
   {
@@ -126,7 +130,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     // Wiki page "Missile (Weapons)", ===Swarm Missiles===: "Charge time: 7 seconds per shot". charge is that per-shot time.
     charge: 7,
     // Wiki page "Missile (Weapons)", ===Swarm Missiles===: "Shots: 1-3" and "up to three missiles".
-    // shots is the bank. sim.ts stores one shot every 7 seconds. A click fires the bank.
+    // shots stays that printed count. chargeLevels is the bank. radius is the archive spread.
     shots: 3,
     // INFERRED: gap 0. Wiki page "Missile (Weapons)", ===Swarm Missiles=== gives no gap between the missiles.
     gap: 0,
@@ -143,6 +147,9 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Swarm Missiles===: "Purchase price: 65". Store rarity 4. Advanced Edition. Neither is a field.
     price: 65,
+    chargeLevels: 3,
+    radius: 31,
+    droneTargetable: 1,
     blurb: "If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.",
   },
   {
@@ -170,6 +177,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     ammo: true,
     // Wiki page "Missile (Weapons)", ===Pegasus Missile===: "Purchase price: 60". Store rarity 3 is not a field.
     price: 60,
+    stunChance: 0.1,
     blurb: "Creative missile design allows for two projectiles for the cost of one!",
   },
   {
@@ -272,7 +280,7 @@ export const MISSILE_GAPS = {
     // Wiki page "Missile (Weapons)", lead, before the === headings.
     // "A missile can either start 1-2 fires or cause a hull breach: the fire chance is rolled first, and if it fails, the hull breach chance is rolled next".
     fireBeforeBreach: true,
-    // "Low chance to stun" on Hermes, Breach, Hull, Pegasus, and enemy Artemis. No stun percent is printed. WeaponDef has no stun field.
+    // "Low chance to stun" on Hermes, Breach, Hull, Pegasus, and enemy Artemis. No stun percent is printed. stunChance stores 0.1.
     // A source comment says the stun lasts 3 seconds. That duration is not printed, so it is not stored.
     stunPercentPrinted: false,
   },

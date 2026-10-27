@@ -1,14 +1,16 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { allEvents } from "@stl/pack";
 import { choiceDisabled, createGame } from "../sim.ts";
-import { FILLER_PAGES, fillerChoose } from "./filler-events.ts";
+import "../pack/base.ts";
+import { fillerChoose } from "./filler-events.ts";
 
 const MINE = "c:large-asteroid-field:2";
 
 describe("Large asteroid field mining", () => {
   it("stays closed without a fitted Scrap Recovery Arm", () => {
     const g = createGame(4);
-    const page = FILLER_PAGES.find((row) => row.slug === "large-asteroid-field");
+    const page = allEvents().find((event) => event.dest === "Large asteroid field");
     assert.ok(
       page?.choices.some(
         (choice) => choice.id === MINE && choice.label === "Attempt to mine the asteroids.",

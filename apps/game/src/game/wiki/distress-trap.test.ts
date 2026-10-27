@@ -46,7 +46,7 @@ describe("Pirate ship distress trap", () => {
     // > "Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight." — [[Pirate ship distress trap]]
     // > "As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!" — [[Pirate ship distress trap]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate ship distress trap]]
-    assert.equal(pageForRow("Pirate ship distress trap")?.slug, "pirate-ship-distress-trap");
+    assert.equal(pageForRow("Pirate ship distress trap")?.slug, "TRAP_BEACON");
     const ev = open(createGame(1));
     assert.deepEqual(
       ev.choices.map((c) => c.id),

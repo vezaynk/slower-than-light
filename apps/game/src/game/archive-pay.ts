@@ -2,7 +2,7 @@
  * Ship, boarders, grants, autoReward, and environment already stored on an archive event.
  * A page or choice that does not carry them is left to its campaign handler.
  */
-import type { KitId, SysId } from "@stl/catalog";
+import type { KitId, SysId } from "@stl/pack";
 import type {
   ArchiveAlter,
   ArchiveBoarders,

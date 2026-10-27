@@ -1,11 +1,10 @@
+import { weaponDef } from "@stl/pack";
 import { cellOccupied } from "../layouts.ts";
-export type { FlakCrystalGap } from "@stl/catalog/src/wiki/weapons-flak-crystal.ts";
-export {
-  ADV_FLAK_FAKE,
-  FLAK2_FAKE,
-  FLAK_CRYSTAL_GAPS,
-  FLAK_CRYSTAL_WEAPONS,
-} from "@stl/catalog/src/wiki/weapons-flak-crystal.ts";
+
+/** Flak (Weapons), "Flak Gun Mark II": additional fake flak. */
+export const FLAK2_FAKE = 6;
+/** Flak (Weapons), "Advanced Flak": additional fake flak. */
+export const ADV_FLAK_FAKE = 3;
 
 export type Flak2Room = {
   id: string;
@@ -158,10 +157,27 @@ function landOn(rooms: readonly Flak2Room[], aimId: string, tile: Tile): Flak2La
 }
 
 /**
+ * `<radius>` on the blueprint, or `fallback` when the weapon does not store one.
+ * Artillery's hull-kit id reads the flak-artillery blueprint.
+ */
+export function flakScatterRadius(defId: string | undefined, fallback: number): number {
+  const id = defId === "ARTILLERY_FED_C" ? "flak-artillery" : defId;
+  const n = id ? weaponDef(id)?.radius : undefined;
+  return n != null && n > 0 ? n : fallback;
+}
+
+/**
  * Where one Flak II pellet lands. `roll` is used only for a 1×2 or a 2×2.
  * Every other shape ignores `roll` and stays.
+ * A non-positive radius stays. A positive radius, including the default 40, keeps the room odds.
  */
-export function flak2Landing(rooms: readonly Flak2Room[], aimId: string, roll: number): Flak2Land {
+export function flak2Landing(
+  rooms: readonly Flak2Room[],
+  aimId: string,
+  roll: number,
+  radius = 40,
+): Flak2Land {
+  if (!(radius > 0)) return { kind: "stay" };
   const aim = rooms.find((room) => room.id === aimId);
   if (!aim) return { kind: "stay" };
   const pair = twoTile(aim);

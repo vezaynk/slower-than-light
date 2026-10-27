@@ -1,8 +1,6 @@
 import "../pack/base.ts";
 import { weaponDef } from "@stl/pack";
 import type { Shot } from "../types.ts";
-import { BEAM_CREW } from "./weapons-beam.ts";
-import { BOMB_CREW } from "./weapons-bomb.ts";
 
 /**
  * Crew damage for a hit when that weapon's own wiki section prints a number.
@@ -12,19 +10,12 @@ import { BOMB_CREW } from "./weapons-bomb.ts";
  * Beam pages say "per room tile". Shot has no tile count, so the HP is not multiplied.
  * Chain stays off the weapon: WeaponDef has no chain field.
  * Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer. citedPierce is that 1.
+ * Zero is a value: an ion bomb prints a dash of crew damage and stores 0.
  */
-const CREW_BY_ID: Record<string, number> = {
-  ...BOMB_CREW,
-  ...BEAM_CREW,
-  // content.ts stores Beam (Weapons), "Pike Beam" as shear and skips id pike.
-  BEAM_LONG: BEAM_CREW.BEAM_LONG,
-};
-
 export function citedCrewDamage(shot: Shot, _damage: number): number | null {
-  const packed = shot.defId ? weaponDef(shot.defId)?.crewDamage : undefined;
-  if (packed != null) return packed;
-  if (!shot.defId || !Object.prototype.hasOwnProperty.call(CREW_BY_ID, shot.defId)) return null;
-  return CREW_BY_ID[shot.defId];
+  if (!shot.defId) return null;
+  const packed = weaponDef(shot.defId)?.crewDamage;
+  return packed ?? null;
 }
 
 /**
@@ -37,16 +28,15 @@ export function citedCrewDamage(shot: Shot, _damage: number): number | null {
  * INFERRED: that 4 is hull damage, and crew stay on the system-room 2, the split the laser page states.
  * A kit room counts as a system room. The pages say "system rooms" and "empty rooms" and do not mention kits.
  */
-const SYSTEMLESS_HULL: Record<string, number> = {
-  LASER_HULL_1: 2,
-  LASER_HULL_2: 2,
-  BEAM_HULL: 2,
-  MISSILES_HULL: 4,
-};
-
+/**
+ * `<hullBust>` is a flag. The systemless figure is twice the blueprint's hull damage:
+ * 2, 2, and 2 for the lasers and the beam, and 4 for the missile.
+ */
 export function systemlessHull(defId: string | undefined): number | null {
-  if (!defId || !Object.prototype.hasOwnProperty.call(SYSTEMLESS_HULL, defId)) return null;
-  return SYSTEMLESS_HULL[defId];
+  if (!defId) return null;
+  const weapon = weaponDef(defId);
+  if (weapon?.hullBust == null || !(weapon.hullBust > 0)) return null;
+  return weapon.damage * 2;
 }
 
 /** Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer. Other guns print no pierce. */

@@ -7,7 +7,7 @@ import { ARTILLERY_SHOT_LABEL, artillerySwipeSeconds } from "../wiki/weapons-bea
 import {
   CHARGE_SECONDS,
   DISPLAY_NAME,
-  INSTALL_COST,
+  lanceInstallCost,
   UPGRADE_COSTS,
   aimLance,
   cutLine,
@@ -345,7 +345,7 @@ describe("artillery", () => {
     assert.equal(installLance(lark), false);
     assert.equal(lark.player.kits.artillery, undefined);
     const g = fedFresh(7);
-    assert.equal(INSTALL_COST, null);
+    assert.equal(lanceInstallCost(), null);
     assert.deepEqual(CHARGE_SECONDS, { 1: 50, 2: 40, 3: 30, 4: 20 });
     assert.deepEqual(UPGRADE_COSTS, { 2: 30, 3: 50, 4: 80 });
     assert.equal(DISPLAY_NAME, "Artillery Beam");

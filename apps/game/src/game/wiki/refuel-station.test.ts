@@ -5,7 +5,7 @@ import { fillerChoose, pageForRow } from "./filler-events.ts";
 
 describe("Refueling station", () => {
   it("is a card an items draw can reach", () => {
-    assert.equal(pageForRow("Refueling station")?.slug, "refueling-station");
+    assert.equal(pageForRow("Refueling station")?.slug, "REFUEL_STATION");
   });
 
   it("sells 6, 3, or 1 fuel for 12, 6, or 2 scrap", () => {

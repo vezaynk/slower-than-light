@@ -1,36 +1,66 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { ftlEventId } from "@stl/catalog/src/wiki/ftl-event-ids.ts";
-import { eventDef } from "@stl/pack";
+import {
+  allEmptyBeacons,
+  allSectors,
+  eventDef,
+  fillerList,
+  sectorDef,
+  type SectorQuota,
+} from "@stl/pack";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
-import {
-  HOSTILE_SLOTS,
-  SECTOR_MIX,
-  classifyEvent,
-  takeLines,
-  type MixEvent,
-  type MixLine,
-} from "./beacon-mix.ts";
+import "../pack/base.ts";
+import { takeLines } from "./beacon-mix.ts";
 import { citedPagesFor, stampCitedEvents } from "./cited-events.ts";
 import { placeIn } from "../fixtures.ts";
-
-function pageId(dest: string): string {
-  return ftlEventId(dest) ?? dest;
-}
 
 function storyFlag(flag: string): boolean {
   return flag !== "" && !flag.includes(":") && eventDef(flag) != null;
 }
 
+const BOARDERS = new Set(["LANIUS_PIRATE_BOARDERS", "BOARDERS_CRYSTAL"]);
+const HOSTILE_SLOTS = new Set(["hostile", "nebula-hostile", "storm", "boarder", "environment"]);
+
+function slotOf(id: string): string | undefined {
+  const parts = id.split("__");
+  if (parts.length !== 3) return undefined;
+  return parts[1];
+}
+
+function isHostileQuota(id: string): boolean {
+  if (BOARDERS.has(id)) return true;
+  return fillerList(id)?.entries.some((entry) => entry.id.endsWith("__HOSTILE_SHIP")) ?? false;
+}
+
 /** Earlier lines whose maximums already cover a 19-beacon map leave the ship line unplaced. */
-function earlierMaxFillsMap(lines: MixLine[]): boolean {
+function earlierMaxFillsMap(lines: readonly SectorQuota[]): boolean {
   let used = 0;
   for (const line of lines) {
-    if (HOSTILE_SLOTS.has(line.slot)) return used >= 17;
-    used += line.hi;
+    if (isHostileQuota(line.id)) return used >= 17;
+    used += line.max;
   }
   return true;
+}
+
+function isSpecial(id: string, min: number, max: number): boolean {
+  if (min !== 1 || max !== 1) return false;
+  if (id === "STORE" || id === "QUEST" || id === "BOSS_REPAIR_STATION") return false;
+  if (id === "NEBULA" || id === "NEBULA_EMPTY" || id === "NEBULA_NOTHING_SLUG") return false;
+  if (BOARDERS.has(id)) return false;
+  if (allEmptyBeacons().some((page) => page.id === id)) return false;
+  if (fillerList(id)) return false;
+  return eventDef(id) != null;
+}
+
+function slotsFor(sectorId: string, flag: string): string[] {
+  const slots: string[] = [];
+  for (const quota of sectorDef(sectorId)?.quotas ?? []) {
+    const slot = slotOf(quota.id);
+    if (!slot) continue;
+    if (fillerList(quota.id)?.entries.some((entry) => entry.id === flag)) slots.push(slot);
+  }
+  return slots;
 }
 
 /**
@@ -56,13 +86,6 @@ function dealt(seed: number, name: string, sector = 4): Game {
 
 const middles = (g: Game) =>
   g.beacons.filter((b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss");
-const byDest = (dest: string): MixEvent => {
-  for (const name of Object.keys(SECTOR_MIX)) {
-    const ev = citedPagesFor(name).find((e) => e.dest === dest);
-    if (ev) return ev;
-  }
-  throw new Error(dest);
-};
 
 function reachable(g: Game): number {
   const start = g.beacons.find((b) => b.kind === "start");
@@ -100,32 +123,6 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     assert.ok(counts.size > 1);
   });
 
-  it("lists every sector type the Sectors page gives beacon counts for", () => {
-    assert.equal(Object.keys(SECTOR_MIX).length, 19);
-    const civ = SECTOR_MIX["CIVILIAN_SECTOR"].find((l) => l.slot === "hostile");
-    assert.deepEqual([civ?.lo, civ?.hi, civ?.quote], [6, 8, "6-8 hostile encounters"]);
-    const neb = SECTOR_MIX["SLUG_SECTOR"].find((l) => l.slot === "nebula-hostile");
-    assert.deepEqual([neb?.lo, neb?.hi], [5, 7]);
-    const start = SECTOR_MIX["STANDARD_SPACE"].filter((l) => l.slot === "hostile");
-    assert.deepEqual(
-      start.map((l) => [l.lo, l.hi]),
-      [
-        [4, 6],
-        [2, 2],
-      ],
-    );
-  });
-
-  it("classifies from the event lists first, then from the page's own choices", () => {
-    assert.equal(classifyEvent(byDest("Pirate toll")), "hostile");
-    assert.equal(classifyEvent(byDest("Auto-ship attacking civilian")), "hostile");
-    assert.equal(classifyEvent(byDest("Auto-ship near storage station")), "neutral");
-    assert.equal(classifyEvent(byDest("Pirate ship distress trap")), "distress");
-    assert.equal(classifyEvent(byDest("Free weapon")), "items");
-    assert.equal(classifyEvent(byDest("Zoltan fight")), "hostile");
-    assert.equal(classifyEvent(byDest("Deactivated Auto-ship")), "neutral");
-  });
-
   it("fills each line in order and stops when the map is full", () => {
     // Sectors, Technical details: min and max inclusive, then the next line, then stop.
     assert.deepEqual(takeLines([2, 3, 7], 20), [2, 3, 7]);
@@ -138,7 +135,8 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
   });
 
   it("re-deals every free beacon, is deterministic per seed, and leaves start, exit and existing flags", () => {
-    for (const name of Object.keys(SECTOR_MIX)) {
+    for (const sector of allSectors()) {
+      const name = sector.id;
       for (let seed = 1; seed <= 20; seed++) {
         const a = dealt(seed, name);
         const b = dealt(seed, name);
@@ -181,30 +179,31 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
   });
 
   it("keeps a store, the special events, and plain hostile beacons for the sector's ship list", () => {
-    for (const name of Object.keys(SECTOR_MIX)) {
+    for (const sector of allSectors()) {
       let plain = 0;
-      const lines = SECTOR_MIX[name];
+      const lines = sector.quotas ?? [];
+      const mustStore = lines.some((line) => line.id === "STORE" && line.min > 0);
       for (let seed = 1; seed <= 40; seed++) {
-        const g = dealt(seed, name);
-        const mustStore = lines.some((l) => l.slot === "store" && l.lo > 0);
+        const g = dealt(seed, sector.id);
         if (mustStore)
           assert.ok(
             g.beacons.some((b) => b.kind === "store"),
-            `${name} ${seed}`,
+            `${sector.id} ${seed}`,
           );
-        for (const l of lines.filter((x) => x.event)) {
-          const page = citedPagesFor(name).find((e) => e.dest === l.event);
+        for (const line of lines) {
+          if (!isSpecial(line.id, line.min, line.max)) continue;
+          const page = citedPagesFor(sector.id).find((e) => e.slug === line.id);
           if (page)
             assert.ok(
-              g.beacons.some((b) => b.flag === pageId(page.dest)),
-              `${name} ${l.event}`,
+              g.beacons.some((b) => b.flag === page.slug),
+              `${sector.id} ${page.dest}`,
             );
         }
         plain += g.beacons.filter((b) => b.kind === "hostile").length;
       }
       // A 19-beacon map keeps the start and the exit, so 17 beacons are free.
       // Engi Homeworlds puts the ship line last, after lines whose maximums already fill that map.
-      if (!earlierMaxFillsMap(lines)) assert.ok(plain > 0, name);
+      if (!earlierMaxFillsMap(lines)) assert.ok(plain > 0, sector.id);
     }
   });
 
@@ -240,9 +239,9 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       const g = dealt(seed, "Civilian Sector");
       for (const b of middles(g)) {
         if (b.kind === "hostile") hostile++;
-        const page = citedPagesFor("CIVILIAN_SECTOR").find((e) => pageId(e.dest) === b.flag);
-        if (page && classifyEvent(page) === "hostile") hostile++;
-        if (page && classifyEvent(page) === "neutral") neutral++;
+        const slots = slotsFor("CIVILIAN_SECTOR", b.flag);
+        if (slots.some((slot) => HOSTILE_SLOTS.has(slot))) hostile++;
+        if (slots.some((slot) => slot === "neutral" || slot === "nebula-neutral")) neutral++;
       }
     }
     assert.ok(hostile > neutral * 1.5, `${hostile} vs ${neutral}`);
@@ -253,32 +252,38 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     // later line can be absent. A line that still has room when every earlier line rolls its
     // maximum does get events. INFERRED: a 19-beacon map keeps the start and the exit, so 17 remain.
     const minFree = 17;
-    const hostileSlots = new Set(["hostile", "nebula-hostile", "storm", "boarder", "environment"]);
-    for (const name of Object.keys(SECTOR_MIX)) {
+    for (const sector of allSectors()) {
       let prevMax = 0;
-      const guaranteed = new Set<string>();
-      for (const line of SECTOR_MIX[name]) {
-        if (prevMax < minFree && line.hi > 0) {
-          if (hostileSlots.has(line.slot)) guaranteed.add("hostile");
-          else if (line.slot === "neutral" || line.slot === "nebula-neutral")
-            guaranteed.add("neutral");
-          else if (line.slot === "distress" || line.slot === "items") guaranteed.add(line.slot);
+      const want = new Set<string>();
+      const cited = new Set(citedPagesFor(sector.id).map((page) => page.slug));
+      for (const line of sector.quotas ?? []) {
+        const slot = slotOf(line.id);
+        const hostile = isHostileQuota(line.id);
+        const neutral = slot === "neutral" || slot === "nebula-neutral";
+        const bucket = slot === "distress" || slot === "items";
+        if (prevMax < minFree && line.max > 0 && (hostile || neutral || bucket)) {
+          if (cited.has(line.id)) want.add(line.id);
+          for (const entry of fillerList(line.id)?.entries ?? []) {
+            if (entry.id.endsWith("__HOSTILE_SHIP")) continue;
+            if (cited.has(entry.id)) want.add(entry.id);
+          }
         }
-        prevMax += line.hi;
+        prevMax += line.max;
       }
-      const pages = citedPagesFor(name).filter((p) => guaranteed.has(classifyEvent(p)));
-      const want = new Set(pages.map((p) => pageId(p.dest)));
       const seen = new Set<string>();
       for (let seed = 1; seed <= 200 && seen.size < want.size; seed++) {
-        for (const b of dealt(seed, name).beacons) if (want.has(b.flag)) seen.add(b.flag);
+        for (const b of dealt(seed, sector.id).beacons) {
+          if (want.has(b.flag)) seen.add(b.flag);
+          const bare = b.flag.startsWith("filler:") ? b.flag.slice("filler:".length) : "";
+          if (bare && want.has(bare)) seen.add(bare);
+        }
       }
-      const missing = pages.filter((p) => !seen.has(pageId(p.dest))).map((p) => p.dest);
-      assert.deepEqual(missing, [], name);
+      const missing = [...want].filter((id) => !seen.has(id)).map((id) => eventDef(id)?.dest ?? id);
+      assert.deepEqual(missing, [], sector.id);
     }
   });
 
   it("keeps Federation loyalists off distress beacons, and haywire distress stays a distress beacon", () => {
-    assert.equal(classifyEvent(byDest("Rebel ship attacking Federation loyalists")), "neutral");
     let haywire = 0;
     for (let seed = 1; seed <= 80; seed++) {
       const g = dealt(seed, "Civilian Sector");
@@ -291,7 +296,11 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
         }
         // dealt() clears the flag and kind of a re-stamp but leaves the starting-sector name, so a
         // hostile beacon can still be named haywire. Only a stamped haywire flag is this page.
-        if (b.flag === "ESCORT_BEACON" || b.flag === "filler:escort-civilians-ftl-haywire") {
+        if (
+          b.flag === "ESCORT_BEACON" ||
+          b.flag === "filler:ESCORT_BEACON" ||
+          b.flag === "filler:escort-civilians-ftl-haywire"
+        ) {
           assert.equal(b.kind, "distress", b.flag);
           haywire++;
         }
@@ -310,11 +319,12 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
     for (const sector of ["SLUG_HOME", "SLUG_SECTOR", "NEBULA_SECTOR"]) {
       for (let seed = 1; seed <= 80; seed++) {
         for (const b of dealt(seed, sector, 5).beacons) {
-          const name = byFlag.get(b.flag);
+          const stored = b.flag.startsWith("filler:") ? b.flag.slice("filler:".length) : b.flag;
+          const name = byFlag.get(stored);
           if (!name) continue;
           assert.equal(b.kind, "nebula", `${sector} ${name}`);
           assert.equal(b.name, name);
-          seen.add(b.flag);
+          seen.add(stored);
         }
       }
     }

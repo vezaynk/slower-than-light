@@ -1,4 +1,5 @@
 import type { Game, Kit, Ship } from "../types.ts";
+import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { seatKits } from "../layouts.ts";
 import {
   kitBars,
@@ -12,10 +13,6 @@ import {
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { hackPulseOn } from "./spike.ts";
 
-/** Wiki page "Cloaking", section "System Upgrades": level 1 cost 150. */
-// Wiki citations:
-// > "1 150 Ftlgame-scrap.png 5 sec" — [[Cloaking#System Upgrades]]
-const INSTALL_COST = 150;
 /** Wiki page "Cloaking", section "Overview": evasion is increased by a flat 60%. */
 // Wiki citations:
 // > "The ship's evasion is increased by flat 60%." — [[Cloaking#Overview]]
@@ -29,12 +26,11 @@ const EVADE = 60;
 const COOLDOWN = 20;
 /** Wiki page "Cloaking", section "System Upgrades": level 2 costs 30, level 3 costs 50. Keyed by the level already owned. */
 // Wiki citations:
+// > "1 150 Ftlgame-scrap.png 5 sec" — [[Cloaking#System Upgrades]]
 // > "2 30 Ftlgame-scrap.png 10 sec" — [[Cloaking#System Upgrades]]
 // > "3 50 Ftlgame-scrap.png 15 sec" — [[Cloaking#System Upgrades]]
-const UPGRADE_COST: Record<number, number> = { 1: 30, 2: 50 };
-
 export function veilUpgradeCost(level: number): number | null {
-  return UPGRADE_COST[level] ?? null;
+  return upgradeCost("cloaking", level);
 }
 
 function blankVeil(): Kit {
@@ -88,9 +84,10 @@ function tickKit(kit: Kit | undefined, dt: number) {
 
 /** Wiki page "Cloaking", section "System Upgrades": buy a level-1 Veil for 150. No-op if already fitted or scrap is short. */
 export function installVeil(g: Game) {
-  if (g.player.kits.cloaking) return;
-  if (g.scrap < INSTALL_COST) return;
-  g.scrap -= INSTALL_COST;
+  const cost = listedCost("cloaking");
+  if (g.player.kits.cloaking || cost == null) return;
+  if (g.scrap < cost) return;
+  g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.cloaking = blankVeil();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
@@ -100,8 +97,8 @@ export function installVeil(g: Game) {
 /** Wiki page "Cloaking", section "System Upgrades": level 1→2 costs 30, level 2→3 costs 50. Level 3 is the cap. */
 export function upgradeVeil(g: Game) {
   const kit = g.player.kits.cloaking;
-  if (!kit || kit.level >= 3) return;
-  const cost = UPGRADE_COST[kit.level];
+  if (!kit || kit.level >= tuneMax("cloaking", 3)) return;
+  const cost = veilUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return;
   g.scrap -= cost;
   kit.level += 1;

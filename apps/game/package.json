@@ -21,10 +21,10 @@
     "lint": "cd ../.. && ./node_modules/.bin/eslint apps/game"
   },
   "dependencies": {
-    "@stl/catalog": "workspace:*",
     "@stl/ftldat": "workspace:*",
     "@stl/hyperspace": "workspace:*",
     "@stl/pack": "workspace:*",
+    "@stl/standin": "workspace:*",
     "@stl/ui": "workspace:*",
     "@capacitor/android": "^8.5.3",
     "@capacitor/cli": "^8.5.3",

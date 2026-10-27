@@ -3,6 +3,7 @@
  * A layer still charging and a Zoltan shield take the next slots outward.
  * A tight frame compresses the stack so the outer stroke stays inside the panel.
  */
+import { hullDef } from "@stl/pack";
 
 const PAD0 = 16;
 const GAP = 8;
@@ -91,6 +92,56 @@ export function readShipScale(el: Element | null): number {
   if (!el || typeof getComputedStyle !== "function") return 1;
   const raw = parseFloat(getComputedStyle(el).getPropertyValue("--ship-scale"));
   return Number.isFinite(raw) && raw > 0 ? raw : 1;
+}
+
+export type ShieldOval = {
+  rx: number;
+  ry: number;
+  /** Ellipse origin, scaled into the well. Added to the well's center. */
+  dx: number;
+  dy: number;
+};
+
+/**
+ * The layout ELLIPSE drawn in the hull well.
+ * Width and height scale by the picture box, then the layer pad is added.
+ * HORIZONTAL widens the radius. VERTICAL raises it. The origin scales the same way.
+ */
+export function shieldOval(
+  box: { w: number; h: number },
+  picture: { w: number; h: number },
+  ellipse: { w: number; h: number; x: number; y: number },
+  pad: number,
+  horizontal?: number,
+  vertical?: number,
+): ShieldOval | null {
+  if (!(picture.w > 0) || !(picture.h > 0)) return null;
+  const sx = box.w / picture.w;
+  const sy = box.h / picture.h;
+  return {
+    rx: (ellipse.w / 2 + (horizontal ?? 0)) * sx + pad,
+    ry: (ellipse.h / 2 + (vertical ?? 0)) * sy + pad,
+    dx: ellipse.x * sx,
+    dy: ellipse.y * sy,
+  };
+}
+
+/**
+ * The bubble for one hull. A layout ellipse uses the picture box. Anything else is the well plus the pad.
+ */
+export function shieldRing(
+  hullId: string | undefined,
+  box: { w: number; h: number },
+  pad: number,
+): ShieldOval {
+  const hull = hullId ? hullDef(hullId) : undefined;
+  const ellipse = hull?.grid?.ellipse;
+  const picture = hull?.picture;
+  if (ellipse && picture) {
+    const oval = shieldOval(box, picture, ellipse, pad, hull.grid?.horizontal, hull.grid?.vertical);
+    if (oval) return oval;
+  }
+  return { rx: box.w / 2 + pad, ry: box.h / 2 + pad, dx: 0, dy: 0 };
 }
 
 /**

@@ -9,7 +9,7 @@ import {
   type HullSheet,
 } from "@stl/pack";
 import { layoutFiles } from "./ship-layouts.ts";
-import { mountsFor } from "./weapon-mounts.ts";
+import { MOUNT_IMAGES, mountsFor } from "./weapon-mounts.ts";
 
 /** One drawing file for a layout that already has a room grid. */
 export type HullPictureFile = {
@@ -27,12 +27,13 @@ export function hullPictureFiles(): HullPictureFile[] {
     const stem = layoutStem(file.path);
     const grid = readGrid(file.text);
     if (!stem || !grid) continue;
-    const picture = pictureForRooms(grid.rooms);
+    const measured = MOUNT_IMAGES[stem];
+    const picture = measured ? { ...measured } : pictureForRooms(grid.rooms);
     if (!picture) continue;
     const mounts = mountsFor(stem);
     files.push({
       path: `data/${stem}.xml`,
-      xml: pictureXml(picture, mounts, standInSheet(picture, mounts)),
+      xml: pictureXml(picture, mounts, standInSheet(picture, mounts, stem)),
       stem,
       picture,
       rooms: grid.rooms.map((room) => ({ x: room.x, y: room.y, w: room.w, h: room.h })),
@@ -46,7 +47,11 @@ export function hullPictureFiles(): HullPictureFile[] {
  * The silhouette has no glow shift. The image box is shared. Pieces step away from the centre.
  * A drawing with no mounts still has gib 1.
  */
-export function standInSheet(picture: HullPicture, mounts?: readonly HullMount[]): HullSheet {
+export function standInSheet(
+  picture: HullPicture,
+  mounts?: readonly HullMount[],
+  stem?: string,
+): HullSheet {
   const ids = gibIds(mounts);
   const gibs: HullGib[] = ids.map((id, index) => {
     const side = index < ids.length / 2 ? -1 : 1;
@@ -63,7 +68,7 @@ export function standInSheet(picture: HullPicture, mounts?: readonly HullMount[]
     };
   });
   return {
-    glow: { x: 0, y: 0 },
+    glow: stem === "kestral" ? { x: 4, y: -2 } : { x: 0, y: 0 },
     cloakOffset: { x: 0, y: 0 },
     floorOffset: { x: 0, y: 0 },
     gibs,

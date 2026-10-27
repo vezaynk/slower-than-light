@@ -12,6 +12,8 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
+import { currentLocale, localeFace, localeLabel, selectLocale } from "@/game/locale";
+import { choiceBlue, offeredChoices } from "@/game/wiki/choice-locks";
 import { ArchiveBed } from "./ArchiveBed";
 import { ArchiveCopy, ArchiveLines } from "./ArchiveCopy";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
@@ -20,7 +22,7 @@ import { OptionsPanel } from "./OptionsPanel";
 import { HOLD_MS, momentDown, momentLive, momentMarkHeld, momentUp, type Moment } from "./moment";
 import { animSpeed, applyCssSpeed, FAST_SPEED, useFast } from "./speed";
 import { pageRect, toPage } from "./turn";
-import { SECTOR_NAMES, SYS_LABEL, upgradeBlurb, upgradeCost } from "@/game/content";
+import { SECTOR_NAMES, systemLabel, upgradeBlurb, upgradeCost } from "@/game/content";
 import { sectorTag } from "@/game/sector-ids";
 import { aimedBeamTiles } from "@/game/pack/beams";
 import { loadBasePackXml } from "@/game/pack/boot";
@@ -32,9 +34,16 @@ import {
   beaconPath,
   crewDef,
   droneDef,
+  packLocales,
   weaponDef,
 } from "@stl/pack";
-import { crewCopy, droneCopy, phraseOr, weaponCopy } from "@/game/interface-copy";
+import {
+  crewCopy,
+  droneCopy,
+  phraseOr,
+  weaponCopy,
+  weaponDamageLabel,
+} from "@/game/interface-copy";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { beaconMark } from "@/game/beacon-mark";
 import { scanMark } from "@/game/extras/augments";
@@ -158,8 +167,7 @@ import {
 
 import { UNIFORMS } from "@/game/crew-look";
 import { enemySystemClock, ionClock, systemClock } from "@/game/system-clock";
-import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
-import { flagshipHullId } from "@/game/wiki/flagship-layout";
+import { combatPlateId } from "@/game/wiki/flagship-layout";
 import { artilleryGun, artilleryView } from "@/game/wiki/flagship-systems";
 import {
   aim,
@@ -769,7 +777,7 @@ export function GameApp() {
       if (!digit) return;
       const n = Number(digit[1]) - 1;
       if (g.phase === "event" && g.event && plain) {
-        const choice = g.event.choices[n];
+        const choice = offeredChoices(g, g.event.choices)[n];
         if (!choice || choiceDisabled(g, choice.id) || choicesLocked()) return;
         e.preventDefault();
         noteChoice();
@@ -1999,11 +2007,7 @@ function TargetPanel({
     0,
   );
   const foeCharge = shieldChargeFraction(game, enemy, "enemy");
-  const foeHullId = enemy.flagship
-    ? flagshipHullId(enemy.flagship.stage, game.difficulty)
-    : enemy.classId
-      ? enemyBlueprintId(enemy.classId, enemy.pirate)
-      : enemy.classId;
+  const foeHullId = combatPlateId(game, "enemy", enemy);
   // The panel keeps a margin so the shield ellipses sit inside it, including on the 12×10 flagship.
   // Crew, doors, icons, and mounts are drawn for a 44px tile. --ship-scale shrinks them with the rooms.
   const FOE_TILE_FULL = 44;
@@ -2205,8 +2209,8 @@ function TargetPanel({
           // Below level 4, and off the hacked system, the chip stays the short power count.
           const full = vision?.system === id || sensors >= 4;
           const tip = full
-            ? `${sensorSystemDetail(enemy, id, SYS_LABEL[id], shown)}${vision?.system === id ? " (hacking drone)" : ""}`
-            : SYS_LABEL[id];
+            ? `${sensorSystemDetail(enemy, id, systemLabel(id), shown)}${vision?.system === id ? " (hacking drone)" : ""}`
+            : systemLabel(id);
           // Below Sensors 4 only the icon shows: "level, power usage, ion damage" are level 4 information.
           // INFERRED: a damaged or destroyed system's icon is still tinted; the page does not hide damage.
           const harm =
@@ -2378,6 +2382,7 @@ function useTrayDrag(tray: string, onReorder: (from: number, to: number) => void
 }
 
 function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
+  const art = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   const mask = powerMask(game.player, zoltanBars(game.crew, game.player, "player", "weapons"));
   const guns = useTrayDrag("weapons", (from, to) => act((g) => reorderWeapons(g, from, to)));
   const drones = useTrayDrag("drones", (from, to) =>
@@ -2585,6 +2590,9 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   >
                     <span className="gun-hit">
                       <WeaponArt id={w.defId} height={24} />
+                      {art >= 0 && def?.icon && archiveImage(def.icon) ? (
+                        <img className="gun-icon" alt="" src={archiveImage(def.icon)} />
+                      ) : null}
                       <span className="gun-name">{name}</span>
                       {aimed ? (
                         <span className="gun-aim">
@@ -2712,7 +2720,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   type="button"
                   className={`sub-orb${id === "doors" && game.mode === "vent" ? " is-on" : ""}${flash ? ` ${flash}` : ""}${rim.className ? ` ${rim.className}` : ""}`}
                   style={rim.style}
-                  aria-label={id === "doors" ? "Doors" : SYS_LABEL[id]}
+                  aria-label={systemLabel(id)}
                   aria-pressed={id === "doors" ? game.mode === "vent" : undefined}
                   onClick={() => {
                     if (id === "doors") {
@@ -3204,7 +3212,7 @@ function PowerStack({
                 .filter(Boolean)
                 .join(" ")}
               style={i === dmgStart && sys.damage > 0 ? fixStyle(sys.fix) : hurt}
-              aria-label={`${SYS_LABEL[id]} power ${i + 1}`}
+              aria-label={`${systemLabel(id)} power ${i + 1}`}
               aria-disabled={locked || undefined}
               onClick={() => {
                 if (i >= cap) return;
@@ -3218,7 +3226,7 @@ function PowerStack({
       <PowerOrb
         ship={game.player}
         icon={id}
-        label={SYS_LABEL[id]}
+        label={systemLabel(id)}
         onUp={() => act((g) => powerUp(g, id))}
         onDown={() => act((g) => powerDown(g, id))}
       />
@@ -3302,7 +3310,7 @@ function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
             locked={id === "weapons" && weaponsPowerLocked(game)}
           />
           <StepButtons
-            label={SYS_LABEL[id]}
+            label={systemLabel(id)}
             onDown={() => act((g) => powerDown(g, id))}
             onUp={() => act((g) => powerUp(g, id))}
           />
@@ -3726,13 +3734,14 @@ function EventCard({ game }: { game: Game }) {
           </>
         ) : null}
         <div className={`choice-list${locked ? " is-arming" : ""}`}>
-          {event.choices.map((c, index) => {
+          {offeredChoices(game, event.choices).map((c, index) => {
             const why = choiceDisabled(game, c.id);
+            const blue = choiceBlue(game, c.id);
             return (
               <button
                 key={c.id}
                 type="button"
-                className="choice-line"
+                className={`choice-line${blue ? " is-blue" : ""}`}
                 data-choice={c.id}
                 data-phone-action="choice"
                 disabled={!!why || locked}
@@ -4000,6 +4009,7 @@ function OfferCards({
   const augFate = augment ? bonusAugmentFate(game, augment) : undefined;
   const droneKey = drone ? droneKeyOf(drone) : null;
   const def = weapon ? weaponDef(weapon) : undefined;
+  const hit = def ? weaponDamageLabel(def) : null;
   const rackFull = game.player.weapons.length >= weaponSlotCap(game);
   const crewFull = game.crew.filter((c) => c.side === "player").length >= CREW_CAP;
   const kin = crew ? raceKin(crew) : undefined;
@@ -4021,11 +4031,7 @@ function OfferCards({
                 {def.power}
               </span>
               <span title={"Charge time"}>{def.charge}s</span>
-              {def.damage > 0 ? (
-                <span title={"Damage per shot"}>
-                  {def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg
-                </span>
-              ) : null}
+              {hit ? <span title={"Damage per shot"}>{hit} dmg</span> : null}
               {def.ion > 0 ? <span title={phraseOr("type_ion", "Ion")}>{def.ion} ion</span> : null}
               {def.ammo ? (
                 <span title={"Uses a missile"}>
@@ -4355,6 +4361,7 @@ function Portrait({ crew }: { crew: Crew }) {
  */
 function TitleScreen() {
   const [saveReady, setSaveReady] = useState(false);
+  const [locale, setLocale] = useState(currentLocale);
   const [view, setView] = useState<string | null>(null);
   const [packRatio, setPackRatio] = useState(0);
   const [packReady, setPackReady] = useState(false);
@@ -4465,6 +4472,43 @@ function TitleScreen() {
           </div>
         ) : null}
       </div>
+      {packReady ? (
+        <div className="title-locales">
+          <p
+            className="title-locale-name"
+            style={localeFace() ? { fontFamily: localeFace() } : undefined}
+          >
+            {localeLabel("menu_title", "Slower than Light")}
+          </p>
+          <button
+            type="button"
+            className={locale === "en" ? "is-on" : ""}
+            aria-pressed={locale === "en"}
+            onClick={(e) => {
+              e.stopPropagation();
+              selectLocale("en");
+              setLocale("en");
+            }}
+          >
+            English
+          </button>
+          {packLocales().map((row) => (
+            <button
+              key={row.code}
+              type="button"
+              className={locale === row.code ? "is-on" : ""}
+              aria-pressed={locale === row.code}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectLocale(row.code);
+                setLocale(row.code);
+              }}
+            >
+              {row.strings.language_name ?? row.code}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -5740,6 +5784,7 @@ function CargoList({
             }
             const def = weaponDef(w.defId);
             const name = def?.name ?? w.defId;
+            const hit = def ? weaponDamageLabel(def) : null;
             const dragging = guns.from === index;
             const drop = guns.over === index && guns.from !== index;
             return (
@@ -5769,11 +5814,7 @@ function CargoList({
                         {def.power}
                       </span>
                       <span title={"Charge time"}>{def.charge}s</span>
-                      {def.damage > 0 ? (
-                        <span title={"Damage per shot"}>
-                          {def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg
-                        </span>
-                      ) : null}
+                      {hit ? <span title={"Damage per shot"}>{hit} dmg</span> : null}
                       {def.ammo ? (
                         <span title={"Uses a missile"}>
                           <PixelIcon name="missile" size={12} />

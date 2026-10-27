@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { CATALOG } from "../../../../../packages/catalog/src/extras/augment-catalog.ts";
+import "../pack/base.ts";
+import { allAugments } from "@stl/pack";
 import { MISSING_AUGMENTS } from "./augments-missing.ts";
 import { wikiPage } from "@stl/wiki-dump";
 
@@ -45,7 +46,7 @@ describe("missing augments", () => {
     const ids = MISSING_AUGMENTS.map((row) => row.id);
     assert.equal(new Set(ids).size, ids.length);
     assert.deepEqual(ids.slice().sort(), Object.keys(EXPECTED).sort());
-    const catalogNames = CATALOG.map((row) => row.name);
+    const catalogNames = allAugments().map((row) => row.name);
     for (const row of MISSING_AUGMENTS) {
       assert.equal(row.name, EXPECTED[row.id]);
       assert.equal(catalogNames.includes(row.name), false);

@@ -6,6 +6,8 @@ import {
   allEmptyBeacons,
   allEvents,
   allFactions,
+  allShipClasses,
+  allTextLists,
   allFillerLists,
   allDrones,
   allHulls,
@@ -47,6 +49,8 @@ export function campaignPack(): ContentPack {
     lists: allFillerLists(),
     empties: allEmptyBeacons(),
     achievements: allAchievements(),
+    textLists: allTextLists(),
+    shipClasses: allShipClasses(),
   };
 }
 
@@ -70,6 +74,7 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       tunes: pack.tunes,
       events: pack.events,
       lists: pack.lists,
+      textLists: pack.textLists,
     },
     gap: {
       crew: pack.crew,
@@ -78,6 +83,7 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       rewards: pack.rewards,
       factions: pack.factions,
       empties: pack.empties,
+      shipClasses: pack.shipClasses,
     },
   };
 }
@@ -125,15 +131,11 @@ export function standInEventFiles(): { path: string; xml: string }[] {
   return EVENT_FILES.flatMap((path) => {
     const group = groups.get(path) ?? [];
     if (group.length === 0) return [];
-    return [
-      {
-        path,
-        xml: emitPack({
-          events: group,
-          lists: path === "data/events.xml" ? lists : undefined,
-        }),
-      },
-    ];
+    const xml = emitPack({
+      events: group,
+      lists: path === "data/events.xml" ? lists : undefined,
+    });
+    return [{ path, xml }];
   });
 }
 

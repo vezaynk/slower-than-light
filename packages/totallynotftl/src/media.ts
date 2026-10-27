@@ -96,6 +96,7 @@ const CUES: readonly [cue: string, tone: string][] = [
   ["victory", "win"],
   ["explosion1", "die"],
   ["airLoss", "vent"],
+  ["miss", "miss"],
 ];
 
 let mediaPromise: Promise<{
@@ -204,6 +205,7 @@ async function buildMedia(): Promise<{
   assets.push({ path: "fonts/HL2.font", bytes: fontFile(2, 14, 14, true) });
   assets.push({ path: "fonts/c&c.font", bytes: fontFile(2, 12, 12) });
   assets.push({ path: "fonts/c&cnew.font", bytes: fontFile(2, 12, 12, true) });
+  assets.push({ path: "fonts/eo.font", bytes: fontFile(1, 9, 8) });
   const scenery = sceneryAssets(icons);
   assets.push(...scenery.assets);
   clipXml.push(...scenery.clips);
@@ -708,7 +710,9 @@ function cueWav(name: string): Uint8Array {
                                             ? 330
                                             : name === "jump"
                                               ? 220 - t * 80
-                                              : 400;
+                                              : name === "miss"
+                                                ? 960
+                                                : 400;
     const tone = Math.sin(2 * Math.PI * freq * t);
     const noise =
       name === "hit" || name === "missile" || name === "laser" || name === "vent" ? hash(i) : 0;

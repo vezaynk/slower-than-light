@@ -1,10 +1,9 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { buy, createGame, openStoreHere } from "../sim.ts";
-import { STORES } from "../wiki/store-catalog.ts";
 import { citedStock, storeSections } from "../wiki/cited-stores.ts";
 import "./base.ts";
-import { loadPack, resetPackForTests, storeDef } from "@stl/pack";
+import { allStores, loadPack, resetPackForTests, storeDef } from "@stl/pack";
 import type { StoreDef } from "@stl/pack";
 
 afterEach(() => resetPackForTests());
@@ -19,6 +18,8 @@ function withCrew() {
 
 describe("store listings", () => {
   it("prices fuel from the pack while the authored row stays", () => {
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "fuel")?.cost, 3);
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "fuel")?.name, "Fuel");
     const standard = storeDef("standard");
     assert.ok(standard);
     loadPack(
@@ -42,13 +43,14 @@ describe("store listings", () => {
     assert.equal(fuel?.name, "Fuel");
     buy(g, "fuel");
     assert.equal(g.scrap, 29);
-    assert.equal(
-      STORES.find((row) => row.id === "standard")?.lines.find((line) => line.id === "fuel")?.cost,
-      3,
-    );
+    resetPackForTests();
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "fuel")?.cost, 3);
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "fuel")?.name, "Fuel");
   });
 
   it("hires crew at the packed price while the authored row stays", () => {
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "human")?.name, "Human");
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "human")?.cost, 45);
     const standard = storeDef("standard");
     assert.ok(standard);
     loadPack(
@@ -68,10 +70,9 @@ describe("store listings", () => {
     const human = citedStock(g).find((item) => item.ref === "human");
     assert.equal(human?.name, "Human");
     assert.equal(human?.cost, 99);
-    assert.equal(
-      STORES.find((row) => row.id === "standard")?.lines.find((line) => line.id === "human")?.cost,
-      45,
-    );
+    resetPackForTests();
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "human")?.name, "Human");
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "human")?.cost, 45);
   });
 
   it("opens an appended store and leaves an unknown stock kind off the shelf", () => {
@@ -87,10 +88,14 @@ describe("store listings", () => {
         { id: "energy", kind: "crew", name: "Ember Hand", cost: 12, min: 1, max: 1 },
       ],
     };
+    assert.equal(
+      allStores().some((row) => row.id === "ember"),
+      false,
+    );
     loadPack({ stores: [ember] }, "append");
     assert.equal(
-      STORES.some((row) => row.id === "ember"),
-      false,
+      allStores().some((row) => row.id === "ember"),
+      true,
     );
     const g = createGame(1);
     openStoreHere(g, "ember");
@@ -105,5 +110,11 @@ describe("store listings", () => {
     openStoreHere(campaign);
     assert.equal(campaign.stock?.find((item) => item.id === "fuel")?.cost, 3);
     assert.equal(campaign.stock?.find((item) => item.id === "fuel")?.name, "Fuel");
+    resetPackForTests();
+    assert.equal(
+      allStores().some((row) => row.id === "ember"),
+      false,
+    );
+    assert.equal(storeDef("standard")?.lines.find((line) => line.id === "fuel")?.cost, 3);
   });
 });

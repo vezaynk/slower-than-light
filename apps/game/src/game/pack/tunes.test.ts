@@ -4,7 +4,6 @@ import { upgradeCost } from "../content.ts";
 import { buy, createGame, upgrade } from "../sim.ts";
 import type { Game, Kit, KitId, SysId } from "../types.ts";
 import { citedStock, storeSections } from "../wiki/cited-stores.ts";
-import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import "./base.ts";
 import { allSystems, allTunes, loadPack, resetPackForTests, tuneDef } from "@stl/pack";
 
@@ -61,11 +60,15 @@ describe("system tunes", () => {
     // > "The reactor can hold a maximum of 25 power bars." — [[Ship#Reactor power]]
     // > "In order to fully upgrade a ship with 8 power, it costs 490 Ftlgame-scrap.png." — [[Ship#Reactor power]]
     // > "reactor power bars from 3 to 5 cost 30 scrap each" — [[Systems]]
-    for (const tune of SYSTEM_TUNES) {
+    assert.equal(allTunes().length, 15);
+    for (const tune of allTunes()) {
       assert.equal(tuneDef(tune.id)?.start, tune.start);
       for (const step of tune.costs)
         assert.equal(upgradeCost(tune.id as SysId, step.level), step.cost);
     }
+    assert.equal(tuneDef("shields")?.start, 2);
+    assert.equal(tuneDef("shields")?.costs.find((step) => step.level === 1)?.cost, 100);
+    assert.equal(tuneDef("engines")?.costs.find((step) => step.level === 1)?.cost, 10);
     assert.equal(upgradeCost("sensors", 3), null);
     assert.equal(upgradeCost("doors", 0), 60);
     assert.equal(upgradeCost("reactor", 8), 20);
@@ -73,6 +76,7 @@ describe("system tunes", () => {
   });
 
   it("spends the packed shields step and leaves the authored row", () => {
+    assert.equal(tuneDef("shields")?.costs.find((step) => step.level === 1)?.cost, 100);
     const shields = tuneDef("shields");
     assert.ok(shields);
     loadPack(
@@ -94,16 +98,14 @@ describe("system tunes", () => {
     upgrade(g, "shields");
     assert.equal(g.player.systems.shields.level, 2);
     assert.equal(g.scrap, 33);
-    assert.equal(
-      SYSTEM_TUNES.find((row) => row.id === "shields")?.costs.find((step) => step.level === 1)
-        ?.cost,
-      100,
-    );
+    resetPackForTests();
+    assert.equal(tuneDef("shields")?.costs.find((step) => step.level === 1)?.cost, 100);
   });
 
   it("installs shields at the packed start", () => {
     // Wiki citations:
     // > "Stealth Cruisers start without Shields system, and can buy one at a store for 125 scrap. This gives them Shields-2." — [[Shields#System Upgrades]]
+    assert.equal(tuneDef("shields")?.start, 2);
     const shields = tuneDef("shields");
     assert.ok(shields);
     loadPack({ tunes: [{ ...shields, start: 3 }] }, "append");
@@ -119,7 +121,8 @@ describe("system tunes", () => {
     assert.equal(g.scrap, 0);
     assert.equal(g.player.systems.shields.level, 3);
     assert.equal(g.player.systems.shields.power, 0);
-    assert.equal(SYSTEM_TUNES.find((row) => row.id === "shields")?.start, 2);
+    resetPackForTests();
+    assert.equal(tuneDef("shields")?.start, 2);
   });
 
   it("stores a tune that is not a system and leaves the shelf alone", () => {

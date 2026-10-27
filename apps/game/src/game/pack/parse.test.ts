@@ -290,8 +290,8 @@ describe("parsePack", () => {
     const emberEvent = pack.events?.[0];
     assert.equal(emberEvent?.dest, "Ember");
     assert.equal(emberEvent?.flag, "ember");
-    assert.deepEqual(emberEvent?.aliases, []);
-    assert.deepEqual(emberEvent?.sectors, []);
+    assert.deepEqual(emberEvent?.aliases, ["Ember Page"]);
+    assert.deepEqual(emberEvent?.sectors, ["Civilian Sector"]);
     assert.equal(emberEvent?.body, "A packed beacon.");
     assert.equal(
       emberEvent?.choices[0]?.fx[2]?.k === "note" ? emberEvent.choices[0].fx[2].text : "",

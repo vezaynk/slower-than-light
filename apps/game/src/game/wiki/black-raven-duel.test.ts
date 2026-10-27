@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { allEvents } from "@stl/pack";
 import { choose, createGame, choiceDisabled } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { EXTRA_EVENTS } from "./cited-events-surrender.ts";
+import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const DUEL = "s:the-black-raven:duel";
@@ -11,7 +12,7 @@ function arrive(seed: number): Game {
   const g = createGame(seed);
   g.sectorId = "SLUG_HOME";
   g.sectorName = "Slug Home Nebula";
-  const ev = EXTRA_EVENTS.find((e) => e.dest === "The Black Raven")!;
+  const ev = allEvents().find((e) => e.dest === "The Black Raven")!;
   const b = g.beacons.find(
     (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
   )!;

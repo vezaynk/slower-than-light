@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
-import { enemyBlueprintId } from "@stl/catalog/src/enemy-blueprints.ts";
-import { hullDef, loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
+import { hullDef, loadPack, packFromFtl, resetPackForTests, shipClassBlueprint } from "@stl/pack";
 import type { HullDef } from "@stl/pack";
 import { openArchiveSurrender } from "../archive-pay.ts";
 import { mixCrewRaces } from "../enemy-gen.ts";
 import { choose, commitJump, createGame, rand, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
+import "./base.ts";
 import { overtaken } from "../wiki/sector-map.ts";
 import { ACCEPT_ID, REFUSE_ID, surrenderTick } from "../wiki/surrender.ts";
 
@@ -128,7 +128,7 @@ function emberHull(
   weapon: string,
   crewCounts: HullDef["crewCounts"] = [{ amount: 2, class: "mantis" }],
 ): HullDef {
-  const base = hullDef(enemyBlueprintId("rebel-fighter"));
+  const base = hullDef(shipClassBlueprint("rebel-fighter"));
   assert.ok(base);
   return {
     ...base,

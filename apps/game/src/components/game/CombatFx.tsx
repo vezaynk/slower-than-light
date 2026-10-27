@@ -15,7 +15,16 @@
  */
 import { useEffect, useRef } from "react";
 import { halted, shieldChargeFraction } from "@/game/sim";
-import { bubbleCrossing, bubbleRoom, readShipScale, struckPad, zoltanPad } from "./shield-bubble";
+import { projectileSpin } from "@/game/projectile-spin";
+import { combatPlateId } from "@/game/wiki/flagship-layout";
+import {
+  bubbleCrossing,
+  bubbleRoom,
+  readShipScale,
+  shieldRing,
+  struckPad,
+  zoltanPad,
+} from "./shield-bubble";
 import { animSpeed } from "./speed";
 import {
   DRONE_LOOKS,
@@ -1078,9 +1087,12 @@ export function CombatFx() {
                 )
               : struckPad(frame, Math.max(0, (ship?.shieldNow ?? 1) - 1), false, scale);
             const spark = zoltan ? token("--color-ok", "#3ee56a") : "#6cc4ff";
-            const center = { x: target.x + target.w / 2, y: target.y + target.h / 2 };
-            end =
-              bubbleCrossing(source, hit, center, target.w / 2 + pad, target.h / 2 + pad) ?? hit;
+            const ring = shieldRing(combatPlateId(g, side), { w: target.w, h: target.h }, pad);
+            const center = {
+              x: target.x + target.w / 2 + ring.dx,
+              y: target.y + target.h / 2 + ring.dy,
+            };
+            end = bubbleCrossing(source, hit, center, ring.rx, ring.ry) ?? hit;
             if (!beamCutSeen.has(shot.id)) {
               beamCutSeen.add(shot.id);
               rings.push({
@@ -1343,7 +1355,7 @@ export function CombatFx() {
             c,
             shot.kind,
             color,
-            ang,
+            ang + projectileSpin(shot.defId, shot.kind, t * shot.duration),
             t * 12,
             false,
             spin,
@@ -1714,7 +1726,7 @@ export function CombatFx() {
             c,
             f.kind,
             f.color,
-            f.ang,
+            f.ang + projectileSpin(f.defId, f.kind, f.age),
             tumble,
             f.rock,
             f.spin,

@@ -1,5 +1,6 @@
 import type { Crew, EnemyBoarding, Game, Kit, Ship } from "../types";
 import { hullDef } from "@stl/pack";
+import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { interiorLinks, mayStand, padCells, roomCapacity } from "../crew-spots.ts";
 import { seatKits } from "../layouts.ts";
 import {
@@ -19,11 +20,6 @@ import { mendOnSend } from "./moreaugs.ts";
 import { heldByEnemy } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";
 
-/** Crew Teleporter wiki, "System Upgrades": level 1 cost is 90. */
-// Wiki citations:
-// > "1 90 Ftlgame-scrap.png 20 sec" — [[Crew Teleporter#System Upgrades]]
-const INSTALL_COST = 90;
-
 /** Crew Teleporter wiki, "System Upgrades": level 3 is 10 sec, level 2 is 15 sec, level 1 is 20 sec. */
 // Wiki citations:
 // > "The cooldown for Crew Teleporter depends on the system power level: 20 seconds for level 1, 15 seconds for level 2, and 10 seconds for level 3." — [[Systems#Systems cooldown]]
@@ -38,9 +34,8 @@ function cooldown(level: number): number {
 // > "2 30 Ftlgame-scrap.png 15 sec" — [[Crew Teleporter#System Upgrades]]
 // > "3 60 Ftlgame-scrap.png 10 sec" — [[Crew Teleporter#System Upgrades]]
 export function slingUpgradeCost(level: number): number | null {
-  if (level === 1) return 30;
-  if (level === 2) return 60;
-  return null;
+  if (level >= tuneMax("teleporter", 3)) return null;
+  return upgradeCost("teleporter", level);
 }
 
 function sling(g: Game): Kit | undefined {
@@ -111,9 +106,10 @@ function pickCrew(g: Game): Crew[] {
 
 /** Crew Teleporter wiki, "System Upgrades": spends the level 1 cost of 90. */
 export function installSling(g: Game) {
-  if (g.player.kits.teleporter) return;
-  if (g.scrap < INSTALL_COST) return;
-  g.scrap -= INSTALL_COST;
+  const cost = listedCost("teleporter");
+  if (g.player.kits.teleporter || cost == null) return;
+  if (g.scrap < cost) return;
+  g.scrap -= cost;
   noteAchieve(g, { k: "upgrade" });
   g.player.kits.teleporter = blank();
   seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.

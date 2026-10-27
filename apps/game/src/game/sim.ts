@@ -14,7 +14,6 @@ import {
   settleTiles,
 } from "./crew-spots.ts";
 import {
-  CREW_POOL,
   EVADE_TABLE,
   FTL_HAZARD_BASE,
   FTL_SKILL,
@@ -91,7 +90,7 @@ import {
 } from "./extras/swarm.ts";
 import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
-import { clampUniform, cleanName, defaultPick, type CrewPick } from "./crew-look.ts";
+import { clampUniform, cleanName, crewPool, defaultPick, type CrewPick } from "./crew-look.ts";
 import "./pack/base.ts";
 import {
   CIVILIAN_SECTOR,
@@ -259,7 +258,9 @@ import {
   advFlakLanding,
   flak2AimRolls,
   flak2Landing,
+  flakScatterRadius,
 } from "./wiki/weapons-flak-crystal.ts";
+import { attrRefusal, choiceOmitted } from "./wiki/choice-locks.ts";
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
@@ -3041,7 +3042,7 @@ export function choiceDisabled(g: Game, id: string): string | null {
   const cited = citedChoiceDisabled(g, id);
   if (cited) return cited;
   // @agent:quests. Blue-option requirements and prices on quest cards (wiki/quests.ts).
-  return questChoiceDisabled(g, id);
+  return questChoiceDisabled(g, id) ?? attrRefusal(g, id);
 }
 
 export function toggleAuto(g: Game, weaponUid: string) {
@@ -3211,7 +3212,12 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       if (land.kind === "miss") offRoom = true;
       else if (land.kind === "room") targetRoom = land.roomId;
     } else if (flak2) {
-      const land = flak2Landing(targetShip.rooms, rooms[0], rand(g));
+      const land = flak2Landing(
+        targetShip.rooms,
+        rooms[0],
+        rand(g),
+        flakScatterRadius(w.defId, 40),
+      );
       if (land.kind === "miss") offRoom = true;
       else if (land.kind === "room") targetRoom = land.roomId;
     } else if (advFlak) {
@@ -3238,6 +3244,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       offRoom: offRoom ? true : undefined,
       wait: i * def.gap,
       t: 0,
+      ...(def.stunChance != null ? { stunChance: def.stunChance } : {}),
       duration:
         def.kind === "beam"
           ? beamFlightSeconds(w.defId, targetShip, rooms, line)
@@ -3506,12 +3513,37 @@ function spendZoltan(ship: Ship, amount: number): number | null {
   return amount - used;
 }
 
-function noteZoltan(g: Game, playerHurt: boolean) {
+function noteZoltan(g: Game, playerHurt: boolean, cue = "shield") {
   const ship = playerHurt ? g.player : g.enemy;
   const left = ship?.zoltan ?? 0;
   log(g, playerHurt ? `Zoltan Shield ${left}.` : `Their Zoltan Shield ${left}.`);
-  sfx(g, "shield");
+  sfx(g, cue);
   floatAt(g, "SHIELD", playerHurt ? 68 : 32, 16);
+}
+
+/** One packed name from the blueprint list, or the generic cue. A miss plays only when the list exists. */
+function packedCue(defId: string | undefined, slot: "hit" | "shield" | "miss"): string | undefined {
+  const def = defId ? weaponDef(defId) : undefined;
+  const list =
+    slot === "hit"
+      ? def?.hitShipSounds
+      : slot === "shield"
+        ? def?.hitShieldSounds
+        : def?.missSounds;
+  return list?.find((name) => name.length > 0);
+}
+
+function shieldCue(shot: { defId?: string }): string {
+  return packedCue(shot.defId, "shield") ?? "shield";
+}
+
+function hitCue(shot: { defId?: string }): string {
+  return packedCue(shot.defId, "hit") ?? "hit";
+}
+
+function playMiss(g: Game, shot: { defId?: string }) {
+  const name = packedCue(shot.defId, "miss");
+  if (name) sfx(g, name);
 }
 
 /**
@@ -3625,13 +3657,19 @@ export function applyImpact(g: Game, shot: Shot) {
     // Template:In-game tips, Heal Bomb: a Healing Burst can still miss the enemy ship.
     const evade = evasionPercent(g, ship, aboard);
     const ownHull = ownBomb && playerTarget === (shot.from === "player");
+    // `<sysDamage>` is the system bars. `<damage>` stays hull, which a bomb writes as 0.
+    // A shot built with only `damage` and no tag keeps that number for the bars.
+    const bars = shot.defId ? weaponDef(shot.defId)?.sysDamage : undefined;
+    const systemFigure = bars != null ? bars : shot.damage;
     if (!ownHull && rand(g) * 100 < evade) {
       if (playerTarget) {
         noteDodge(g);
-        noteAchieve(g, { k: "evade", missed: true, damage: shot.damage });
+        const avoided = systemFigure > 0 ? systemFigure : shot.damage;
+        noteAchieve(g, { k: "evade", missed: true, damage: avoided });
       }
       log(g, playerTarget ? "Bomb missed the Lark." : "They slipped the bomb.");
       floatAt(g, "MISS", playerTarget ? 70 : 30, 20);
+      playMiss(g, shot);
       return;
     }
     if (!ownHull && playerTarget) noteAchieve(g, { k: "evade", missed: false });
@@ -3648,29 +3686,30 @@ export function applyImpact(g: Game, shot: Shot) {
       shot.from === "player" &&
       g.augments.includes("ZOLTAN_BYPASS") &&
       bypassZoltan("bomb") === "pass";
+    const crewFigure = shot.defId ? weaponDef(shot.defId)?.crewDamage : undefined;
     // Zoltan Shield, lead: ion weapons deal double damage to the bubble. Ion and stun bombs carry ion and no hull damage.
     // The page does not say leftover ion reaches a system, so a hit that touches the bubble stops there.
     // With the bypass, Bomb (Weapons), Ion Bomb, still puts its ion on the room's system.
     // Augmentations, Reverse Ion Field: ion protection also covers a Zoltan Shield.
     // Zoltan Shield, lead: the pass-through bug names an ion projectile, so a resisted ion bomb stops.
-    if ((ship.zoltan ?? 0) > 0 && !bombThrough && shot.damage <= 0 && shot.ion > 0) {
+    if ((ship.zoltan ?? 0) > 0 && !bombThrough && systemFigure <= 0 && shot.ion > 0) {
       if (playerTarget && negateIon(g)) {
         log(g, "Reverse Ion Field shrugged that off.");
         return;
       }
       spendZoltan(ship, shot.ion * 2);
-      noteZoltan(g, playerTarget);
+      noteZoltan(g, playerTarget, shieldCue(shot));
       return;
     }
     // Zoltan Shield, lead: Fire Bomb and Crystal Lockdown Bomb have no effect on the bubble.
     // Healing Burst and Repair Burst also leave the bubble alone, and still heal or repair the room.
+    // A negative system or crew figure is that repair or heal, so it is not a shrug.
     if (
       (ship.zoltan ?? 0) > 0 &&
       !bombThrough &&
-      shot.damage <= 0 &&
+      systemFigure === 0 &&
       shot.ion <= 0 &&
-      shot.defId !== "BOMB_HEAL" &&
-      shot.defId !== "BOMB_HEAL_SYSTEM"
+      (crewFigure ?? 0) >= 0
     ) {
       log(
         g,
@@ -3678,13 +3717,13 @@ export function applyImpact(g: Game, shot: Shot) {
           ? "The Zoltan Shield shrugs the bomb off."
           : "Their Zoltan Shield shrugs the bomb off.",
       );
-      sfx(g, "shield");
+      sfx(g, shieldCue(shot));
       return;
     }
-    if (shot.damage > 0) {
-      const left = bombThrough ? null : spendZoltan(ship, shot.damage);
+    if (systemFigure > 0) {
+      const left = bombThrough ? null : spendZoltan(ship, systemFigure);
       if (left === 0) {
-        noteZoltan(g, playerTarget);
+        noteZoltan(g, playerTarget, shieldCue(shot));
         return;
       }
       strikeRoom(
@@ -3692,7 +3731,7 @@ export function applyImpact(g: Game, shot: Shot) {
         ship,
         aboard,
         shot.targetRoom,
-        left == null ? shot.damage : left,
+        left == null ? systemFigure : left,
         shot,
         playerTarget,
       );
@@ -3738,12 +3777,14 @@ export function applyImpact(g: Game, shot: Shot) {
         return;
       }
       // Bomb (Weapons), "Healing Burst": 150 health to personnel in the room, including mind-controlled crew.
-      if (shot.defId === "BOMB_HEAL") {
+      // A negative crew figure is that heal. It returns before the room strike, which subtracts crew HP.
+      const healPoints = crewFigure != null && crewFigure < 0 ? -crewFigure : null;
+      if (healPoints != null) {
         const owner = shot.from === "player" ? "player" : "enemy";
         for (const c of g.crew) {
           if (c.aboard !== aboard || c.room !== r.id || c.hp <= 0) continue;
           if (c.side !== owner && (c.leashed ?? 0) <= 0) continue;
-          c.hp = Math.min(c.maxHp, c.hp + 150);
+          c.hp = Math.min(c.maxHp, c.hp + healPoints);
         }
         r.flash = 0.35;
         log(g, playerTarget ? `${r.title} crew healed.` : `Their ${r.title} crew healed.`);
@@ -3751,10 +3792,12 @@ export function applyImpact(g: Game, shot: Shot) {
         return;
       }
       // Bomb (Weapons), "Repair Burst": 8 bars of system damage. It does not put out fires or seal breaches.
-      if (shot.defId === "BOMB_HEAL_SYSTEM") {
+      // A negative system figure is that repair. Hull stays the blueprint's `<damage>`, which is 0.
+      if (systemFigure < 0) {
+        const repair = -systemFigure;
         if (r.system) {
           const sys = ship.systems[r.system];
-          sys.damage = Math.max(0, sys.damage - 8);
+          sys.damage = Math.max(0, sys.damage - repair);
           sys.fix = 0;
         }
         r.flash = 0.35;
@@ -3768,7 +3811,7 @@ export function applyImpact(g: Game, shot: Shot) {
       if (shot.fireChance >= 1 && rand(g) < 0.5) r.fire = Math.min(4, r.fire + 1);
       r.flash = 0.35;
       log(g, playerTarget ? `Fire in ${r.title}.` : `Fire in their ${r.title}.`);
-      sfx(g, "hit");
+      sfx(g, hitCue(shot));
     }
     return;
   }
@@ -3791,7 +3834,7 @@ export function applyImpact(g: Game, shot: Shot) {
       for (const at of marks) {
         if ((ship.zoltan ?? 0) <= 0) break;
         spendZoltan(ship, instance);
-        noteZoltan(g, playerTarget);
+        noteZoltan(g, playerTarget, shieldCue(shot));
         if ((ship.zoltan ?? 0) <= 0) {
           brokeAt = at;
           break;
@@ -3817,7 +3860,7 @@ export function applyImpact(g: Game, shot: Shot) {
     }
     if (!landed) {
       log(g, "Beam skids off the shields.");
-      sfx(g, "shield");
+      sfx(g, shieldCue(shot));
     }
     return;
   }
@@ -3829,6 +3872,7 @@ export function applyImpact(g: Game, shot: Shot) {
     }
     log(g, playerTarget ? "Shot missed the Lark." : "Enemy evasion held.");
     floatAt(g, "MISS", playerTarget ? 72 : 28, 18);
+    playMiss(g, shot);
     return;
   }
   // Beams returned above. They never miss, so they are not a failed evade.
@@ -3851,7 +3895,7 @@ export function applyImpact(g: Game, shot: Shot) {
     if (!ionPassthrough) {
       const bubble = spendZoltan(ship, Math.max(0, shot.ion) * 2);
       if (bubble != null) {
-        noteZoltan(g, playerTarget);
+        noteZoltan(g, playerTarget, shieldCue(shot));
         return;
       }
     }
@@ -3863,7 +3907,7 @@ export function applyImpact(g: Game, shot: Shot) {
   if (shot.kind !== "ion" && damage > 0 && !asbShot) {
     const left = spendZoltan(ship, damage);
     if (left === 0) {
-      noteZoltan(g, playerTarget);
+      noteZoltan(g, playerTarget, shieldCue(shot));
       return;
     }
     if (left != null) damage = left;
@@ -3891,7 +3935,7 @@ export function applyImpact(g: Game, shot: Shot) {
       // "asteroids will not provide training unless you are still in combat." A rock during the fight still does.
       bumpXp(g, manningCrew(g, g.player, "player", "shields"), "shields", 1);
     }
-    sfx(g, "shield");
+    sfx(g, shieldCue(shot));
     floatAt(g, "SHIELD", playerTarget ? 68 : 32, 16);
     if (shieldsBefore > 0 && ship.shieldNow === 0) playArchiveAudio("shieldsDown");
     // Per the user: the ship shakes only on damage, so a shield block does not.
@@ -4032,14 +4076,14 @@ function stepBeam(g: Game, shot: Shot): boolean {
     passed += 1;
     if ((ship.zoltan ?? 0) <= 0) continue;
     spendZoltan(ship, zoltanBeamInstance(shot));
-    noteZoltan(g, playerTarget);
+    noteZoltan(g, playerTarget, shieldCue(shot));
   }
   if (passed > 0) shot.beamZoltan = passed;
   const bubble = (ship.zoltan ?? 0) > 0;
   if (!bubble && beamBlocked(ship, shot)) {
     shot.beamCut = t;
     log(g, "Beam skids off the shields.");
-    sfx(g, "shield");
+    sfx(g, shieldCue(shot));
     return true;
   }
   const done = shot.beamHit ?? [];
@@ -4239,7 +4283,7 @@ function strikeRoom(
   const shown = hull > 0 ? hull : damage;
   floatAt(g, `−${shown}`, playerHurt ? 74 : 26, 30, shot.kind === "beam");
   if (shot.kind === "missile") playArchiveAudio("missileHit", shot.damage >= 3 ? 1 : 0);
-  sfx(g, "hit");
+  sfx(g, hitCue(shot));
   if (playerHurt) {
     // Per the user: shake only when the hull actually drops, not for a hit that leaves it whole.
     if (ship.hull < hullBefore) shakeShip(g);
@@ -4253,24 +4297,10 @@ function strikeRoom(
   }
 }
 
-/**
- * Ion Charger, the three Laser Chargers, and Swarm Missiles.
- * `shots` on the def is the bank, not one volley of a normal gun.
- * Missile (Weapons), Swarm Missiles: "7 seconds per shot" and "Shots: 1-3".
- */
-const CHARGER_IDS = new Set([
-  "ION_CHARGEGUN",
-  "LASER_CHARGEGUN_PLAYER",
-  "LASER_CHARGEGUN",
-  "LASER_CHARGEGUN_2",
-  "MISSILE_CHARGEGUN",
-]);
-
-/** Bank size for a charger, or null when this gun fires its whole volley from one bar. */
+/** Bank size from `<chargeLevels>`, or null when this gun fires its whole volley from one bar. */
 export function chargerCap(defId: string): number | null {
-  if (!CHARGER_IDS.has(defId)) return null;
-  const n = weaponDef(defId)?.shots ?? 0;
-  return n > 0 ? n : null;
+  const levels = weaponDef(defId)?.chargeLevels;
+  return levels != null && levels > 0 ? levels : null;
 }
 
 /**
@@ -6262,7 +6292,7 @@ export const CREW_CAP = 8;
 
 function addCrew(g: Game) {
   const used = new Set(g.crew.map((c) => c.name));
-  const name = CREW_POOL.find((n) => !used.has(n)) ?? "Rook Vale";
+  const name = crewPool().find((n) => !used.has(n)) ?? "Rook Vale";
   g.crew.push({
     id: uid(g),
     name,
@@ -7803,6 +7833,9 @@ export function leaveStore(g: Game) {
 
 // Event card choices. An exit's Continue... is FINISH_BEACON; plain beacons run wiki/filler-events.ts.
 export function choose(g: Game, id: string) {
+  const siblings = g.event?.choices.map((choice) => choice.id) ?? [];
+  // A hidden unmet choice is not on the card. Running it would still resolve the beacon.
+  if (choiceOmitted(g, id, siblings)) return;
   // Diplomatic Immunity: an available crew-blue choice counts once, through sector 5, on the Federation Cruiser.
   if (choiceDisabled(g, id) == null) noteCrewBlue(g, id);
   // @agent:surrender. Accept or refuse an enemy's surrender offer (wiki/surrender.ts).
@@ -8260,15 +8293,16 @@ export function waitHere(g: Game) {
   // chances of being found by a ship, either hostile or friendly". Template:Locations outoffuel=distresson/distressoff
   // picks the page pool; wiki/cited-fuel.ts rollFuelWait picks one. Per the user: distress is on unless turned off.
   if (g.fuel <= 0 && b) {
-    const pick = rollFuelWait(() => rand(g), g.distress !== false);
+    const picked = rollFuelWait(() => rand(g), g.distress !== false);
+    if (!picked) return;
     const event =
-      "fail" in pick
+      "fail" in picked
         ? {
             title: "No fuel",
-            body: pick.fail,
+            body: picked.fail,
             choices: [{ id: "fuel-wait-done", label: "Continue..." }],
           }
-        : citedEvent(g, { ...b, flag: pick.flag, name: pick.dest });
+        : citedEvent(g, { ...b, flag: picked.flag, name: picked.dest });
     if (event) {
       g.event = event;
       g.phase = "event";

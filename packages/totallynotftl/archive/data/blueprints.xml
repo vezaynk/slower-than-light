@@ -2173,8 +2173,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
     <weaponArt>LASER_BURST_3</weaponArt>
     <image>LASER_BURST_3_shot</image>
+    <iconImage>img/weapons/LASER_BURST_3.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_BURST_1">
     <type>LASER</type>
@@ -2188,8 +2202,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
     <weaponArt>LASER_BURST_1</weaponArt>
     <image>LASER_BURST_1_shot</image>
+    <iconImage>img/weapons/LASER_BURST_1.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_BURST_2">
     <type>LASER</type>
@@ -2203,8 +2231,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
     <weaponArt>LASER_BURST_2</weaponArt>
     <image>LASER_BURST_2_shot</image>
+    <iconImage>img/weapons/LASER_BURST_2.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_HEAVY_1">
     <type>LASER</type>
@@ -2218,8 +2260,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>3</fireChance>
     <breachChance>3</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
+    <stunChance>2</stunChance>
     <weaponArt>LASER_HEAVY_1</weaponArt>
     <image>LASER_HEAVY_1_shot</image>
+    <iconImage>img/weapons/LASER_HEAVY_1.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="dart">
     <type>MISSILE</type>
@@ -2236,6 +2293,19 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <missiles>1</missiles>
     <weaponArt>dart</weaponArt>
     <image>dart_shot</image>
+    <iconImage>img/weapons/dart.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="ION_1">
     <type>ION</type>
@@ -2249,8 +2319,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>1</ion>
+    <speed>30</speed>
+    <stunChance>1</stunChance>
     <weaponArt>ION_1</weaponArt>
     <image>ION_1_shot</image>
+    <iconImage>img/weapons/ION_1.png</iconImage>
+    <launchSounds>
+      <sound>ionShoot1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="MISSILES_2_PLAYER">
     <type>MISSILE</type>
@@ -2265,8 +2350,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <speed>35</speed>
+    <stunChance>1</stunChance>
     <weaponArt>MISSILES_2_PLAYER</weaponArt>
     <image>MISSILES_2_PLAYER_shot</image>
+    <iconImage>img/weapons/MISSILES_2_PLAYER.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="MISSILES_1">
     <type>MISSILE</type>
@@ -2281,8 +2381,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <speed>35</speed>
+    <stunChance>1</stunChance>
     <weaponArt>MISSILES_1</weaponArt>
     <image>MISSILES_1_shot</image>
+    <iconImage>img/weapons/MISSILES_1.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="ION_4">
     <type>ION</type>
@@ -2296,8 +2411,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>1</ion>
+    <speed>30</speed>
     <weaponArt>ION_4</weaponArt>
     <image>ION_4_shot</image>
+    <iconImage>img/weapons/ION_4.png</iconImage>
+    <launchSounds>
+      <sound>ionShoot1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="ION_2">
     <type>ION</type>
@@ -2311,8 +2440,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>2</ion>
+    <speed>40</speed>
+    <stunChance>2</stunChance>
     <weaponArt>ION_2</weaponArt>
     <image>ION_2_shot</image>
+    <iconImage>img/weapons/ION_2.png</iconImage>
+    <launchSounds>
+      <sound>ionShoot1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="ION_STUN">
     <type>ION</type>
@@ -2326,8 +2470,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>1</ion>
+    <speed>30</speed>
     <weaponArt>ION_STUN</weaponArt>
     <image>ION_STUN_shot</image>
+    <iconImage>img/weapons/ION_STUN.png</iconImage>
+    <launchSounds>
+      <sound>ionShoot1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BEAM_LONG">
     <type>BEAM</type>
@@ -2346,6 +2504,19 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <crewDamage>15</crewDamage>
     <weaponArt>BEAM_LONG</weaponArt>
     <image>BEAM_LONG_shot</image>
+    <iconImage>img/weapons/BEAM_LONG.png</iconImage>
+    <launchSounds>
+      <sound>beam1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="SHOTGUN">
     <type>BURST</type>
@@ -2359,8 +2530,25 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>26</speed>
+    <radius>42</radius>
+    <spin>720</spin>
+    <drone_targetable>1</drone_targetable>
     <weaponArt>SHOTGUN</weaponArt>
     <image>SHOTGUN_shot</image>
+    <iconImage>img/weapons/SHOTGUN.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BOMB_FIRE">
     <type>BOMB</type>
@@ -2375,8 +2563,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <persDamage>2</persDamage>
     <weaponArt>BOMB_FIRE</weaponArt>
     <image>BOMB_FIRE_shot</image>
+    <iconImage>img/weapons/BOMB_FIRE.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_BURST_2_A">
     <type>LASER</type>
@@ -2390,8 +2592,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
     <weaponArt>LASER_BURST_2_A</weaponArt>
     <image>LASER_BURST_2_A_shot</image>
+    <iconImage>img/weapons/LASER_BURST_2_A.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_BURST_5">
     <type>LASER</type>
@@ -2405,8 +2621,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
     <weaponArt>LASER_BURST_5</weaponArt>
     <image>LASER_BURST_5_shot</image>
+    <iconImage>img/weapons/LASER_BURST_5.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_HEAVY_1_SP">
     <type>LASER</type>
@@ -2420,9 +2650,24 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>3</fireChance>
     <breachChance>3</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
     <sp>1</sp>
+    <stunChance>2</stunChance>
     <weaponArt>LASER_HEAVY_1_SP</weaponArt>
     <image>LASER_HEAVY_1_SP_shot</image>
+    <iconImage>img/weapons/LASER_HEAVY_1_SP.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_HEAVY_2">
     <type>LASER</type>
@@ -2436,8 +2681,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>3</fireChance>
     <breachChance>3</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
+    <stunChance>2</stunChance>
     <weaponArt>LASER_HEAVY_2</weaponArt>
     <image>LASER_HEAVY_2_shot</image>
+    <iconImage>img/weapons/LASER_HEAVY_2.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_HULL_1">
     <type>LASER</type>
@@ -2451,8 +2711,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>75</speed>
+    <hullBust>1</hullBust>
     <weaponArt>LASER_HULL_1</weaponArt>
     <image>LASER_HULL_1_shot</image>
+    <iconImage>img/weapons/LASER_HULL_1.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_HULL_2">
     <type>LASER</type>
@@ -2466,8 +2741,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>90</speed>
+    <hullBust>1</hullBust>
     <weaponArt>LASER_HULL_2</weaponArt>
     <image>LASER_HULL_2_shot</image>
+    <iconImage>img/weapons/LASER_HULL_2.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_CHAINGUN">
     <type>LASER</type>
@@ -2481,8 +2771,27 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
     <weaponArt>LASER_CHAINGUN</weaponArt>
     <image>LASER_CHAINGUN_shot</image>
+    <iconImage>img/weapons/LASER_CHAINGUN.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
+    <boost>
+      <type>cooldown</type>
+      <amount>3</amount>
+      <count>3</count>
+    </boost>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_CHAINGUN_2">
     <type>LASER</type>
@@ -2496,53 +2805,117 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
     <weaponArt>LASER_CHAINGUN_2</weaponArt>
     <image>LASER_CHAINGUN_2_shot</image>
+    <iconImage>img/weapons/LASER_CHAINGUN_2.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
+    <boost>
+      <type>cooldown</type>
+      <amount>2</amount>
+      <count>5</count>
+    </boost>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_CHARGEGUN_PLAYER">
     <type>LASER</type>
     <title>Laser Charger (S)</title>
     <tooltip>This laser weapon can charge two times, giving it an additional projectile. This improved version only requires 1 power.</tooltip>
     <damage>1</damage>
-    <shots>2</shots>
+    <shots>1</shots>
     <power>1</power>
     <cooldown>5.5</cooldown>
     <cost>0</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
+    <chargeLevels>2</chargeLevels>
     <weaponArt>LASER_CHARGEGUN_PLAYER</weaponArt>
     <image>LASER_CHARGEGUN_PLAYER_shot</image>
+    <iconImage>img/weapons/LASER_CHARGEGUN_PLAYER.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_CHARGEGUN">
     <type>LASER</type>
     <title>Laser Charger</title>
     <tooltip>This laser weapon can charge two times, giving it an extra projectile.</tooltip>
     <damage>1</damage>
-    <shots>2</shots>
+    <shots>1</shots>
     <power>2</power>
     <cooldown>6</cooldown>
     <cost>55</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
+    <chargeLevels>2</chargeLevels>
     <weaponArt>LASER_CHARGEGUN</weaponArt>
     <image>LASER_CHARGEGUN_shot</image>
+    <iconImage>img/weapons/LASER_CHARGEGUN.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="LASER_CHARGEGUN_2">
     <type>LASER</type>
     <title>Laser Charger Mark II</title>
     <tooltip>This laser weapon can charge multiple times, giving it additional projectiles.</tooltip>
     <damage>1</damage>
-    <shots>4</shots>
+    <shots>1</shots>
     <power>3</power>
     <cooldown>5</cooldown>
     <cost>70</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
+    <chargeLevels>4</chargeLevels>
     <weaponArt>LASER_CHARGEGUN_2</weaponArt>
     <image>LASER_CHARGEGUN_2_shot</image>
+    <iconImage>img/weapons/LASER_CHARGEGUN_2.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BEAM_1">
     <type>BEAM</type>
@@ -2561,6 +2934,19 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <crewDamage>15</crewDamage>
     <weaponArt>BEAM_1</weaponArt>
     <image>BEAM_1_shot</image>
+    <iconImage>img/weapons/BEAM_1.png</iconImage>
+    <launchSounds>
+      <sound>beam1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BEAM_HULL">
     <type>BEAM</type>
@@ -2577,8 +2963,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <length>99.00000000000001</length>
     <speed>5</speed>
     <crewDamage>15</crewDamage>
+    <hullBust>1</hullBust>
     <weaponArt>BEAM_HULL</weaponArt>
     <image>BEAM_HULL_shot</image>
+    <iconImage>img/weapons/BEAM_HULL.png</iconImage>
+    <launchSounds>
+      <sound>beam1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BEAM_2">
     <type>BEAM</type>
@@ -2597,6 +2997,19 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <crewDamage>30</crewDamage>
     <weaponArt>BEAM_2</weaponArt>
     <image>BEAM_2_shot</image>
+    <iconImage>img/weapons/BEAM_2.png</iconImage>
+    <launchSounds>
+      <sound>beam1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BEAM_3">
     <type>BEAM</type>
@@ -2615,6 +3028,19 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <crewDamage>45</crewDamage>
     <weaponArt>BEAM_3</weaponArt>
     <image>BEAM_3_shot</image>
+    <iconImage>img/weapons/BEAM_3.png</iconImage>
+    <launchSounds>
+      <sound>beam1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BEAM_FIRE">
     <type>BEAM</type>
@@ -2632,6 +3058,19 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <speed>5</speed>
     <weaponArt>BEAM_FIRE</weaponArt>
     <image>BEAM_FIRE_shot</image>
+    <iconImage>img/weapons/BEAM_FIRE.png</iconImage>
+    <launchSounds>
+      <sound>beam1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BEAM_BIO">
     <type>BEAM</type>
@@ -2647,24 +3086,52 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <length>139.5</length>
     <speed>30</speed>
-    <crewDamage>60</crewDamage>
+    <persDamage>4</persDamage>
     <weaponArt>BEAM_BIO</weaponArt>
     <image>BEAM_BIO_shot</image>
+    <iconImage>img/weapons/BEAM_BIO.png</iconImage>
+    <launchSounds>
+      <sound>beam1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="ION_CHARGEGUN">
     <type>ION</type>
     <title>Ion Charger</title>
     <tooltip>This ion weapon can charge multiple times, giving it additional projectiles.</tooltip>
     <damage>0</damage>
-    <shots>3</shots>
+    <shots>1</shots>
     <power>2</power>
     <cooldown>6</cooldown>
     <cost>50</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>1</ion>
+    <speed>30</speed>
+    <chargeLevels>3</chargeLevels>
     <weaponArt>ION_CHARGEGUN</weaponArt>
     <image>ION_CHARGEGUN_shot</image>
+    <iconImage>img/weapons/ION_CHARGEGUN.png</iconImage>
+    <launchSounds>
+      <sound>ionShoot1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="ION_CHAINGUN">
     <type>ION</type>
@@ -2678,8 +3145,27 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>1</ion>
+    <speed>30</speed>
     <weaponArt>ION_CHAINGUN</weaponArt>
     <image>ION_CHAINGUN_shot</image>
+    <iconImage>img/weapons/ION_CHAINGUN.png</iconImage>
+    <launchSounds>
+      <sound>ionShoot1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
+    <boost>
+      <type>damage</type>
+      <amount>1</amount>
+      <count>3</count>
+    </boost>
   </weaponBlueprint>
   <weaponBlueprint name="ARTILLERY_BOSS_4">
     <type>ION</type>
@@ -2693,8 +3179,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>1</ion>
+    <speed>40</speed>
     <weaponArt>ARTILLERY_BOSS_4</weaponArt>
     <image>ARTILLERY_BOSS_4_shot</image>
+    <iconImage>img/weapons/ARTILLERY_BOSS_4.png</iconImage>
+    <launchSounds>
+      <sound>ionShoot1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="MISSILES_2">
     <type>MISSILE</type>
@@ -2709,8 +3209,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <speed>35</speed>
+    <stunChance>1</stunChance>
     <weaponArt>MISSILES_2</weaponArt>
     <image>MISSILES_2_shot</image>
+    <iconImage>img/weapons/MISSILES_2.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="MISSILES_3">
     <type>MISSILE</type>
@@ -2725,8 +3240,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <speed>35</speed>
+    <stunChance>1</stunChance>
     <weaponArt>MISSILES_3</weaponArt>
     <image>MISSILES_3_shot</image>
+    <iconImage>img/weapons/MISSILES_3.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="MISSILES_BREACH">
     <type>MISSILE</type>
@@ -2741,8 +3271,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>5.6000000000000005</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <speed>35</speed>
+    <stunChance>1</stunChance>
     <weaponArt>MISSILES_BREACH</weaponArt>
     <image>MISSILES_BREACH_shot</image>
+    <iconImage>img/weapons/MISSILES_BREACH.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="MISSILES_HULL">
     <type>MISSILE</type>
@@ -2757,15 +3302,31 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>2.7</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <speed>35</speed>
+    <hullBust>1</hullBust>
+    <stunChance>1</stunChance>
     <weaponArt>MISSILES_HULL</weaponArt>
     <image>MISSILES_HULL_shot</image>
+    <iconImage>img/weapons/MISSILES_HULL.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="MISSILE_CHARGEGUN">
     <type>MISSILE</type>
     <title>Swarm Missiles</title>
     <tooltip>If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.</tooltip>
     <damage>1</damage>
-    <shots>3</shots>
+    <shots>1</shots>
     <power>2</power>
     <cooldown>7</cooldown>
     <cost>65</cost>
@@ -2773,8 +3334,25 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <speed>45</speed>
+    <radius>31</radius>
+    <chargeLevels>3</chargeLevels>
+    <drone_targetable>1</drone_targetable>
     <weaponArt>MISSILE_CHARGEGUN</weaponArt>
     <image>MISSILE_CHARGEGUN_shot</image>
+    <iconImage>img/weapons/MISSILE_CHARGEGUN.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="MISSILES_BURST">
     <type>MISSILE</type>
@@ -2789,8 +3367,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <speed>35</speed>
+    <stunChance>1</stunChance>
     <weaponArt>MISSILES_BURST</weaponArt>
     <image>MISSILES_BURST_shot</image>
+    <iconImage>img/weapons/MISSILES_BURST.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="ARTILLERY_BOSS_2">
     <type>MISSILE</type>
@@ -2805,14 +3398,28 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>1.4000000000000001</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <speed>35</speed>
     <weaponArt>ARTILLERY_BOSS_2</weaponArt>
     <image>ARTILLERY_BOSS_2_shot</image>
+    <iconImage>img/weapons/ARTILLERY_BOSS_2.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BOMB_1">
     <type>BOMB</type>
     <title>Small Bomb</title>
     <tooltip>Self-teleporting explosive that damages systems and crew but not the hull. Can target your own ship.</tooltip>
-    <damage>2</damage>
+    <damage>0</damage>
     <shots>1</shots>
     <power>1</power>
     <cooldown>13</cooldown>
@@ -2821,14 +3428,29 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <persDamage>2</persDamage>
+    <sysDamage>2</sysDamage>
     <weaponArt>BOMB_1</weaponArt>
     <image>BOMB_1_shot</image>
+    <iconImage>img/weapons/BOMB_1.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BOMB_BREACH_1">
     <type>BOMB</type>
     <title>Breach Bomb Mark I</title>
     <tooltip>Self-teleporting explosive designed to damage systems and causes a breach. Can target your own ship.</tooltip>
-    <damage>1</damage>
+    <damage>0</damage>
     <shots>1</shots>
     <power>1</power>
     <cooldown>9</cooldown>
@@ -2837,14 +3459,29 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>10</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <persDamage>2</persDamage>
+    <sysDamage>1</sysDamage>
     <weaponArt>BOMB_BREACH_1</weaponArt>
     <image>BOMB_BREACH_1_shot</image>
+    <iconImage>img/weapons/BOMB_BREACH_1.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BOMB_BREACH_2">
     <type>BOMB</type>
     <title>Breach Bomb Mark II</title>
     <tooltip>Slower than Mark 1 but breaches and does more damage to systems. Can target your own ship.</tooltip>
-    <damage>3</damage>
+    <damage>0</damage>
     <shots>1</shots>
     <power>2</power>
     <cooldown>17</cooldown>
@@ -2853,8 +3490,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>10</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <persDamage>3</persDamage>
+    <sysDamage>3</sysDamage>
     <weaponArt>BOMB_BREACH_2</weaponArt>
     <image>BOMB_BREACH_2_shot</image>
+    <iconImage>img/weapons/BOMB_BREACH_2.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BOMB_ION">
     <type>BOMB</type>
@@ -2869,8 +3521,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>4</ion>
     <missiles>1</missiles>
+    <persDamage>0</persDamage>
     <weaponArt>BOMB_ION</weaponArt>
     <image>BOMB_ION_shot</image>
+    <iconImage>img/weapons/BOMB_ION.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BOMB_STUN">
     <type>BOMB</type>
@@ -2885,8 +3551,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>1</ion>
     <missiles>1</missiles>
+    <persDamage>0</persDamage>
     <weaponArt>BOMB_STUN</weaponArt>
     <image>BOMB_STUN_shot</image>
+    <iconImage>img/weapons/BOMB_STUN.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BOMB_HEAL">
     <type>BOMB</type>
@@ -2901,8 +3581,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <persDamage>-10</persDamage>
     <weaponArt>BOMB_HEAL</weaponArt>
     <image>BOMB_HEAL_shot</image>
+    <iconImage>img/weapons/BOMB_HEAL.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BOMB_HEAL_SYSTEM">
     <type>BOMB</type>
@@ -2917,8 +3611,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <persDamage>0</persDamage>
+    <sysDamage>-8</sysDamage>
     <weaponArt>BOMB_HEAL_SYSTEM</weaponArt>
     <image>BOMB_HEAL_SYSTEM_shot</image>
+    <iconImage>img/weapons/BOMB_HEAL_SYSTEM.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="BOMB_LOCK">
     <type>BOMB</type>
@@ -2933,8 +3642,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>0</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <persDamage>0</persDamage>
     <weaponArt>BOMB_LOCK</weaponArt>
     <image>BOMB_LOCK_shot</image>
+    <iconImage>img/weapons/BOMB_LOCK.png</iconImage>
+    <launchSounds>
+      <sound>smallMissile1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="SHOTGUN_PLAYER">
     <type>BURST</type>
@@ -2948,8 +3671,25 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>26</speed>
+    <radius>40</radius>
+    <spin>720</spin>
+    <drone_targetable>1</drone_targetable>
     <weaponArt>SHOTGUN_PLAYER</weaponArt>
     <image>SHOTGUN_PLAYER_shot</image>
+    <iconImage>img/weapons/SHOTGUN_PLAYER.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="SHOTGUN_2">
     <type>BURST</type>
@@ -2963,8 +3703,25 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>26</speed>
+    <radius>55</radius>
+    <spin>720</spin>
+    <drone_targetable>1</drone_targetable>
     <weaponArt>SHOTGUN_2</weaponArt>
     <image>SHOTGUN_2_shot</image>
+    <iconImage>img/weapons/SHOTGUN_2.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="CRYSTAL_BURST_1">
     <type>LASER</type>
@@ -2978,9 +3735,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>50</speed>
     <sp>1</sp>
     <weaponArt>CRYSTAL_BURST_1</weaponArt>
     <image>CRYSTAL_BURST_1_shot</image>
+    <iconImage>img/weapons/CRYSTAL_BURST_1.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="CRYSTAL_BURST_2">
     <type>LASER</type>
@@ -2994,9 +3765,23 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>50</speed>
     <sp>1</sp>
     <weaponArt>CRYSTAL_BURST_2</weaponArt>
     <image>CRYSTAL_BURST_2_shot</image>
+    <iconImage>img/weapons/CRYSTAL_BURST_2.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="CRYSTAL_HEAVY_1">
     <type>LASER</type>
@@ -3010,9 +3795,24 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <speed>50</speed>
     <sp>1</sp>
+    <stunChance>2</stunChance>
     <weaponArt>CRYSTAL_HEAVY_1</weaponArt>
     <image>CRYSTAL_HEAVY_1_shot</image>
+    <iconImage>img/weapons/CRYSTAL_HEAVY_1.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="CRYSTAL_HEAVY_2">
     <type>LASER</type>
@@ -3026,9 +3826,55 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>0</fireChance>
     <breachChance>10</breachChance>
     <ion>0</ion>
+    <speed>50</speed>
     <sp>1</sp>
     <weaponArt>CRYSTAL_HEAVY_2</weaponArt>
     <image>CRYSTAL_HEAVY_2_shot</image>
+    <iconImage>img/weapons/CRYSTAL_HEAVY_2.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
+  </weaponBlueprint>
+  <weaponBlueprint name="flak-artillery">
+    <type>BURST</type>
+    <title>Flak Artillery</title>
+    <tooltip>Seven pellets from the artillery mount. Not sold.</tooltip>
+    <damage>1</damage>
+    <shots>7</shots>
+    <power>4</power>
+    <cooldown>50</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <ion>0</ion>
+    <speed>26</speed>
+    <radius>35</radius>
+    <spin>720</spin>
+    <drone_targetable>1</drone_targetable>
+    <weaponArt>flak-artillery</weaponArt>
+    <image>flak-artillery_shot</image>
+    <iconImage>img/weapons/flak-artillery.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="ARTILLERY_BOSS_1">
     <type>LASER</type>
@@ -3042,8 +3888,22 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>1</fireChance>
     <breachChance>0.8999999999999999</breachChance>
     <ion>0</ion>
+    <speed>60</speed>
     <weaponArt>ARTILLERY_BOSS_1</weaponArt>
     <image>ARTILLERY_BOSS_1_shot</image>
+    <iconImage>img/weapons/ARTILLERY_BOSS_1.png</iconImage>
+    <launchSounds>
+      <sound>lightLaser1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="ARTILLERY_BOSS_3">
     <type>BEAM</type>
@@ -3061,16 +3921,32 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <speed>5</speed>
     <weaponArt>ARTILLERY_BOSS_3</weaponArt>
     <image>ARTILLERY_BOSS_3_shot</image>
+    <iconImage>img/weapons/ARTILLERY_BOSS_3.png</iconImage>
+    <launchSounds>
+      <sound>beam1</sound>
+    </launchSounds>
+    <hitShipSounds>
+      <sound>hitHull1</sound>
+    </hitShipSounds>
+    <hitShieldSounds>
+      <sound>hitShield1</sound>
+    </hitShieldSounds>
+    <missSounds>
+      <sound>miss</sound>
+    </missSounds>
   </weaponBlueprint>
   <augBlueprint name="AUTO_COOLDOWN">
     <title>Automated Re-loader</title>
     <desc>Weapon charge speed rises 10% per copy. Charge time is divided by 1 + copies / 10.</desc>
     <cost>40</cost>
+    <value>0.1</value>
+    <stackable>true</stackable>
   </augBlueprint>
   <augBlueprint name="EXPLOSIVE_REPLICATOR">
     <title>Explosive Replicator</title>
     <desc>A missile has a 50% chance not to be spent.</desc>
     <cost>60</cost>
+    <value>0.5</value>
   </augBlueprint>
   <augBlueprint name="CLOAK_FIRE">
     <title>Stealth Weapons</title>
@@ -3086,46 +3962,59 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Repair Arm</title>
     <desc>Scrap gain repairs 2 hull and is cut 15% while the hull is not already full.</desc>
     <cost>50</cost>
+    <value>0.15</value>
   </augBlueprint>
   <augBlueprint name="ION_ARMOR">
     <title>Reverse Ion Field</title>
     <desc>50% chance to ignore an ion hit. Two or more ignore every ion hit.</desc>
     <cost>45</cost>
+    <value>0.5</value>
+    <stackable>true</stackable>
   </augBlueprint>
   <augBlueprint name="SHIELD_RECHARGE">
     <title>Shield Charge Booster</title>
     <desc>Shields recharge 15% faster per copy.</desc>
     <cost>45</cost>
+    <value>0.15</value>
+    <stackable>true</stackable>
   </augBlueprint>
   <augBlueprint name="FTL_BOOSTER">
     <title>FTL Recharge Booster</title>
     <desc>One copy makes FTL charge take 80% as long. Two take 67%. Three take 57%.</desc>
     <cost>50</cost>
+    <value>0.25</value>
+    <stackable>true</stackable>
   </augBlueprint>
   <augBlueprint name="SCRAP_COLLECTOR">
     <title>Scrap Recovery Arm</title>
     <desc>Scrap gain is 10% higher per copy, applied before a weld cut, then rounded down.</desc>
     <cost>50</cost>
+    <value>0.1</value>
+    <stackable>true</stackable>
   </augBlueprint>
   <augBlueprint name="ROCK_ARMOR">
     <title>Rock Plating</title>
     <desc>15% chance to ignore hull damage. Systems still take the hit. Not a store item on the wiki; 50 scrap is invented.</desc>
     <cost>50</cost>
+    <value>0.15</value>
   </augBlueprint>
   <augBlueprint name="SYSTEM_CASING">
     <title>Titanium System Casing</title>
     <desc>15% chance to ignore system damage. The hull still takes the hit. Not a store item on the wiki; 50 scrap is invented.</desc>
     <cost>50</cost>
+    <value>0.15</value>
   </augBlueprint>
   <augBlueprint name="BATTERY_BOOSTER">
     <title>Battery Charger</title>
     <desc>The Backup Battery cooldown is cut in half.</desc>
     <cost>40</cost>
+    <value>0.5</value>
   </augBlueprint>
   <augBlueprint name="O2_MASKS">
     <title>Emergency Respirators</title>
     <desc>Suffocation damage is halved, including while boarding. A Crystal takes a quarter.</desc>
     <cost>50</cost>
+    <value>0.5</value>
   </augBlueprint>
   <augBlueprint name="FIRE_EXTINGUISHERS">
     <title>Fire Suppression</title>
@@ -3136,6 +4025,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Distraction Buoys</title>
     <desc>At sector start, before sector 8, the fleet falls back one jump.</desc>
     <cost>55</cost>
+    <value>1</value>
   </augBlueprint>
   <augBlueprint name="ADV_SCANNERS">
     <title>Long-Ranged Scanners</title>
@@ -3146,6 +4036,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>FTL Jammer</title>
     <desc>Enemy ships take twice as long to charge FTL.</desc>
     <cost>30</cost>
+    <value>2</value>
   </augBlueprint>
   <augBlueprint name="DRONE_RECOVERY">
     <title>Drone Recovery Arm</title>
@@ -3191,70 +4082,106 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Combat Drone Mark I</title>
     <cost>50</cost>
     <droneImage>COMBAT_1</droneImage>
+    <type>COMBAT</type>
+    <power>2</power>
+    <speed>15</speed>
   </droneBlueprint>
   <droneBlueprint name="COMBAT_2">
     <title>Combat Drone Mark II</title>
     <cost>75</cost>
     <droneImage>COMBAT_2</droneImage>
+    <type>COMBAT</type>
+    <power>4</power>
+    <speed>28</speed>
   </droneBlueprint>
   <droneBlueprint name="COMBAT_BEAM">
     <title>Anti-Ship Beam Drone I</title>
     <cost>50</cost>
     <droneImage>COMBAT_BEAM</droneImage>
+    <type>COMBAT</type>
+    <power>2</power>
+    <speed>15</speed>
   </droneBlueprint>
   <droneBlueprint name="COMBAT_BEAM_2">
     <title>Anti-Ship Beam Drone II</title>
     <cost>60</cost>
     <droneImage>COMBAT_BEAM_2</droneImage>
+    <type>COMBAT</type>
+    <power>3</power>
+    <speed>11</speed>
   </droneBlueprint>
   <droneBlueprint name="DEFENSE_1">
     <title>Defense Drone Mark I</title>
     <cost>50</cost>
     <droneImage>DEFENSE_1</droneImage>
+    <type>DEFENSE</type>
+    <power>2</power>
+    <cooldown>1000</cooldown>
   </droneBlueprint>
   <droneBlueprint name="DEFENSE_2">
     <title>Defense Drone Mark II</title>
     <cost>70</cost>
     <droneImage>DEFENSE_2</droneImage>
+    <type>DEFENSE</type>
+    <power>3</power>
+    <cooldown>880</cooldown>
   </droneBlueprint>
   <droneBlueprint name="ANTI_DRONE">
     <title>Anti-Combat Drone</title>
     <cost>35</cost>
     <droneImage>ANTI_DRONE</droneImage>
+    <type>DEFENSE</type>
+    <power>1</power>
+    <cooldown>7000</cooldown>
   </droneBlueprint>
   <droneBlueprint name="DRONE_SHIELD">
     <title>Shield Overcharger</title>
     <cost>60</cost>
     <droneImage>DRONE_SHIELD</droneImage>
+    <type>SHIELD</type>
+    <power>3</power>
   </droneBlueprint>
   <droneBlueprint name="BATTLE">
     <title>Anti-Personnel Drone</title>
     <cost>35</cost>
     <droneImage>BATTLE</droneImage>
+    <type>BATTLE</type>
+    <power>2</power>
   </droneBlueprint>
   <droneBlueprint name="REPAIR">
     <title>System Repair Drone</title>
     <cost>30</cost>
     <droneImage>REPAIR</droneImage>
+    <type>REPAIR</type>
+    <power>1</power>
   </droneBlueprint>
   <droneBlueprint name="SHIP_REPAIR">
     <title>Hull Repair Drone</title>
     <cost>85</cost>
     <droneImage>SHIP_REPAIR</droneImage>
+    <type>SHIP_REPAIR</type>
+    <power>2</power>
   </droneBlueprint>
   <droneBlueprint name="BOARDER">
     <title>Boarding Drone</title>
     <cost>70</cost>
     <droneImage>BOARDER</droneImage>
+    <type>BOARDER</type>
+    <power>3</power>
+    <speed>18</speed>
   </droneBlueprint>
   <droneBlueprint name="BOARDER_ION">
     <title>Ion Intruder Drone</title>
     <cost>65</cost>
     <droneImage>BOARDER_ION</droneImage>
+    <type>BOARDER</type>
+    <power>3</power>
+    <speed>18</speed>
   </droneBlueprint>
   <systemBlueprint name="shields">
     <title>Shields</title>
     <cost>125</cost>
+    <maxPower>8</maxPower>
     <startPower>2</startPower>
     <upgradeCost>
       <level>100</level>
@@ -3267,6 +4194,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="engines">
+    <maxPower>8</maxPower>
     <startPower>1</startPower>
     <upgradeCost>
       <level>10</level>
@@ -3279,6 +4207,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="oxygen">
+    <maxPower>3</maxPower>
     <startPower>1</startPower>
     <upgradeCost>
       <level>25</level>
@@ -3288,6 +4217,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
   <systemBlueprint name="medbay">
     <title>Medbay</title>
     <cost>50</cost>
+    <maxPower>3</maxPower>
     <startPower>1</startPower>
     <upgradeCost>
       <level>35</level>
@@ -3295,6 +4225,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="weapons">
+    <maxPower>8</maxPower>
     <startPower>1</startPower>
     <upgradeCost>
       <level>40</level>
@@ -3307,6 +4238,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="pilot">
+    <maxPower>3</maxPower>
     <startPower>1</startPower>
     <upgradeCost>
       <level>20</level>
@@ -3317,30 +4249,61 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <slot>kit</slot>
     <title>Clone Bay</title>
     <cost>50</cost>
+    <maxPower>3</maxPower>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>35</level>
+      <level>45</level>
+    </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="teleporter">
     <slot>kit</slot>
     <title>Crew Teleporter</title>
     <cost>90</cost>
+    <maxPower>3</maxPower>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>30</level>
+      <level>60</level>
+    </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="cloaking">
     <slot>kit</slot>
     <title>Cloaking</title>
     <cost>150</cost>
+    <maxPower>3</maxPower>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>30</level>
+      <level>50</level>
+    </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="mind">
     <slot>kit</slot>
     <title>Mind Control</title>
     <cost>75</cost>
+    <maxPower>3</maxPower>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>30</level>
+      <level>60</level>
+    </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="hacking">
     <slot>kit</slot>
     <title>Hacking</title>
     <cost>80</cost>
+    <maxPower>3</maxPower>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>35</level>
+      <level>60</level>
+    </upgradeCost>
   </systemBlueprint>
   <systemBlueprint name="sensors">
     <title>Sensors</title>
     <cost>40</cost>
+    <maxPower>3</maxPower>
     <startPower>1</startPower>
     <upgradeCost>
       <level>25</level>
@@ -3350,6 +4313,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
   <systemBlueprint name="doors">
     <title>Door System</title>
     <cost>60</cost>
+    <maxPower>3</maxPower>
     <startPower>1</startPower>
     <upgradeCost>
       <level n="0">60</level>
@@ -3361,6 +4325,20 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <slot>kit</slot>
     <title>Backup Battery</title>
     <cost>35</cost>
+    <maxPower>2</maxPower>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>50</level>
+    </upgradeCost>
+  </systemBlueprint>
+  <systemBlueprint name="artillery">
+    <maxPower>4</maxPower>
+    <startPower>1</startPower>
+    <upgradeCost>
+      <level>30</level>
+      <level>50</level>
+      <level>80</level>
+    </upgradeCost>
   </systemBlueprint>
   <crewBlueprint name="human">
     <title>Human</title>

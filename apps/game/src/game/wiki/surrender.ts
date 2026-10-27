@@ -11,7 +11,7 @@
  * Hooks in sim.ts (marked @agent:surrender): startCombat sets the plan, step calls surrenderTick before
  * enemyEscapeStep, and choose routes the two offer choices here.
  */
-import { CREW_POOL } from "../content.ts";
+import { crewPool } from "../crew-look.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { type KinId } from "../extras/kin.ts";
 import {
@@ -23,13 +23,10 @@ import {
   resourceRange,
   rewardBonus,
   scrapRange,
+  storedId,
   weaponDef,
   type SurrenderOfferDef,
 } from "@stl/pack";
-import { storedId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
-import { SCRIPTED_SURRENDERS } from "./surrender-offers.ts";
-export { SCRIPTED_SURRENDERS };
-export type { ScriptedReward, ScriptedSurrender } from "./surrender-offers.ts";
 import { clearEnemyLeash } from "../extras/leash.ts";
 import {
   beginBoarding,
@@ -446,7 +443,7 @@ export function joinCrew(g: Game, race: string, name?: string, skills?: Crew["sk
   const named =
     name ??
     (pool.length > 0 ? pool[Math.floor(rand(g) * pool.length)] : undefined) ??
-    CREW_POOL.find((n) => !used.has(n)) ??
+    crewPool().find((n) => !used.has(n)) ??
     "Rook Vale";
   const hp = crewDef(kin).hp;
   const roomId =

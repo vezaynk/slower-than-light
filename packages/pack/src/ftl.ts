@@ -27,6 +27,7 @@ import type {
   OpeningLine,
   SectorDef,
   SectorQuota,
+  ShipClassDef,
   SectorRarity,
   EmptyBeaconDef,
   FactionSurrender,
@@ -57,6 +58,7 @@ import {
   readDocument,
   readDrone,
   readEmpty,
+  readChoiceGates,
   readEvent,
   readFaction,
   readRewards,
@@ -128,13 +130,22 @@ export function packFromFtl(
   const achievements = new Catalog<AchievementDef>();
   const factions = new Catalog<FactionSurrender>();
   const empties = new Catalog<EmptyBeaconDef>();
+  const shipClasses = new Catalog<ShipClassDef>();
   let rewards: RewardTable | undefined;
   const strings = new Map<string, string>();
+  const locales = new Map<string, Map<string, string>>();
   const grids = readGrids(layouts);
   let facts = false;
   let names: ContentPack["names"];
   const parsed = readSources(documents);
   for (const source of parsed) {
+    const code = localeCode(source.path);
+    if (code) {
+      const table = locales.get(code) ?? new Map<string, string>();
+      collectStrings(source.doc, table);
+      locales.set(code, table);
+      continue;
+    }
     if (translationFile(source.path)) continue;
     collectStrings(source.doc, strings);
   }
@@ -192,6 +203,9 @@ export function packFromFtl(
       } else if (node.tagName === "rewards") {
         const table = readRewards(node);
         if (table) rewards = table;
+      } else if (node.tagName === "shipClass") {
+        const row = readShipClass(node);
+        if (row) shipClasses.put(row);
       } else if (node.tagName === "ship") {
         const row = readShipEvent(node, strings, textLists);
         if (row) {
@@ -239,6 +253,7 @@ export function packFromFtl(
   if (rewards) pack.rewards = rewards;
   if (factions.rows.length > 0) pack.factions = factions.rows;
   if (empties.rows.length > 0) pack.empties = empties.rows;
+  if (shipClasses.rows.length > 0) pack.shipClasses = shipClasses.rows;
   if (textLists.size > 0) {
     pack.textLists = [...textLists.entries()].map(([id, lines]) => ({ id, lines }));
   }
@@ -247,9 +262,29 @@ export function packFromFtl(
   if (names) pack.names = names;
   const civilianSectorTitle = strings.get("sectorname_CIVILIAN_SECTOR");
   if (civilianSectorTitle) pack.civilianSectorTitle = civilianSectorTitle;
+  if (locales.size > 0) {
+    pack.locales = [...locales.entries()].map(([code, table]) => ({
+      code,
+      strings: Object.fromEntries(table),
+    }));
+  }
   attachPictures(pack.hulls, documents);
   applyArchiveExtras(pack, parsed, layouts);
   return pack;
+}
+
+function readShipClass(node: XmlElement): ShipClassDef | undefined {
+  const id = attr(node, "name")?.trim();
+  const blueprint = attr(node, "blueprint")?.trim();
+  if (!id || !blueprint) return undefined;
+  const row: ShipClassDef = {
+    id,
+    classId: attr(node, "class")?.trim() || id,
+    blueprint,
+  };
+  const pirate = attr(node, "pirate")?.trim();
+  if (pirate) row.pirate = pirate;
+  return row;
 }
 
 function readNames(doc: XmlDocument): ContentPack["names"] | undefined {
@@ -387,6 +422,8 @@ function readFtlSystem(node: XmlElement): { system?: SystemDef; tune?: TuneDef }
   };
   const detail = textOf(node, "desc");
   if (detail) system.detail = detail;
+  const max = numOf(node, "maxPower");
+  if (max != null) system.max = max;
   return tune ? { system, tune } : { system };
 }
 
@@ -404,6 +441,14 @@ function systemSlot(id: string, node: XmlElement): SystemSlot {
 function translationFile(path: string): boolean {
   const name = path.slice(path.lastIndexOf("/") + 1);
   return /^text-.+\.xml(?:\.append)?$/i.test(name);
+}
+
+/** `text-eo.xml` is `eo`. `text-zh-Hans.xml.append` is `zh-Hans`. Underscore tables are English. */
+function localeCode(path: string): string | undefined {
+  const name = path.slice(path.lastIndexOf("/") + 1);
+  const match = /^text-(.+)\.xml(?:\.append)?$/i.exec(name);
+  const code = match?.[1];
+  return code ? code : undefined;
 }
 
 /**
@@ -595,6 +640,16 @@ function collectStrings(doc: XmlDocument, strings: Map<string, string>) {
     const value = ownText(node).trim();
     if (value) strings.set(key, value);
   }
+}
+
+function childTexts(node: XmlElement, tag: string): string[] {
+  const texts: string[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== tag) continue;
+    const text = ownText(item).trim();
+    if (text) texts.push(text);
+  }
+  return texts;
 }
 
 function ownText(node: XmlElement): string {
@@ -847,6 +902,8 @@ function readAchievement(
   if (multi === "1" || multi === "true") row.multiDifficulty = true;
   const img = textOf(node, "img");
   if (img) row.img = img;
+  const slug = textOf(node, "slug");
+  if (slug) row.slug = slug;
   const condition = child(node, "condition");
   if (condition) {
     const read = readConditionList(condition, id);
@@ -1087,8 +1144,8 @@ function readEventBody(
     id,
     dest: textOf(node, "title") ?? id,
     flag: id,
-    aliases: [],
-    sectors: [],
+    aliases: childTexts(node, "alias"),
+    sectors: childTexts(node, "sector"),
     body: openings ? "" : (lines[0] ?? ""),
     choices: readChoices(node, strings, id),
   };
@@ -1099,7 +1156,14 @@ function readEventBody(
   const alters: ArchiveAlter[] = [];
   const marks: ArchiveMark[] = [];
   for (const item of elements(node)) {
-    if (item.tagName === "text" || item.tagName === "choice") continue;
+    if (
+      item.tagName === "text" ||
+      item.tagName === "choice" ||
+      item.tagName === "alias" ||
+      item.tagName === "sector" ||
+      item.tagName === "title"
+    )
+      continue;
     if (item.tagName === "img") {
       const name = resolveText(item, strings)?.trim();
       if (name && !event.img) event.img = name;
@@ -1179,7 +1243,6 @@ function readFtlList(
     }
     index += 1;
   }
-  if (entries.length === 0) return undefined;
   return { id, entries };
 }
 
@@ -1211,9 +1274,7 @@ function readChoice(node: XmlElement, index: number, strings: Map<string, string
     label: elementString(node, "text", strings) ?? "",
     fx: [],
   };
-  if (node.getAttribute("hidden") === "true") choice.hidden = true;
-  const gear = attr(node, "req")?.trim();
-  if (gear) choice.reqs = [{ k: "list", id: gear, text: "Requires the right gear." }];
+  readChoiceGates(choice, node);
   const result = elements(node).find((item) => item.tagName === "event");
   const environment = readEnvironment(result ?? node);
   if (environment) choice.environment = environment;

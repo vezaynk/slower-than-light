@@ -22,7 +22,7 @@ export { prettyXml } from "./format.ts";
 export { attachTextLists, packFromFtl, pickOpening } from "./ftl.ts";
 export { applyArchiveExtras, registerArchiveExtra } from "./archive-extras.ts";
 export type { ArchiveDoc, ArchiveExtra } from "./archive-extras.ts";
-export { crewNames } from "./extras/name-lists.ts";
+export { allCrewNames, crewNames } from "./extras/name-lists.ts";
 export { eventCount, eventCountsIn } from "./extras/event-counts.ts";
 export type { EventCount } from "./extras/event-counts.ts";
 export { imageList } from "./extras/image-lists.ts";
@@ -109,9 +109,12 @@ export {
   setEventAlias,
   openingLine,
   textList,
+  storedId,
   blueprintList,
   fillerList,
   hullDef,
+  allShipClasses,
+  shipClassBlueprint,
   loadPack,
   resetPackForTests,
   resourceRange,
@@ -126,6 +129,7 @@ export {
   weaponDef,
   factionSurrender,
 } from "./registry.ts";
+export { localeString, packLocales } from "./locales.ts";
 export type {
   AugmentDef,
   ContentPack,
@@ -141,6 +145,8 @@ export type {
   EventGrade,
   GradePay,
   EventChoice,
+  LocaleTable,
+  LockOwner,
   EventDef,
   ShipEventDef,
   ShipCrewRow,
@@ -208,4 +214,6 @@ export type {
   TuneStep,
   WeaponBlueprint,
   WeaponKind,
+  ShipClassDef,
 } from "./types.ts";
+export type { AugmentId, KitId, SysId } from "./ids.ts";

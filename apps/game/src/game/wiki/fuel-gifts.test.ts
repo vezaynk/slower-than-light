@@ -4,7 +4,7 @@ import { allEvents, eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { EventChoice } from "@stl/pack";
 import { choose, createGame } from "../sim.ts";
 import "../pack/base.ts";
-import { fuelBand, FUEL_GIFTS, rollFuel } from "./fuel-gifts.ts";
+import { fuelBand, rollFuel } from "./fuel-gifts.ts";
 
 afterEach(() => resetPackForTests());
 
@@ -32,11 +32,13 @@ function copyChoice(choice: EventChoice): EventChoice {
 }
 
 describe("fuel gifts", () => {
-  it("packs every authored gift once, and keeps the leftover page off the chart", () => {
-    const seen = packedGifts();
-    for (const [id, gift] of Object.entries(FUEL_GIFTS)) {
-      assert.deepEqual(seen.get(id), { lo: gift.lo, hi: gift.hi }, id);
+  it("fuelBand matches each packed gift, and keeps the leftover page off the chart", () => {
+    let gifts = 0;
+    for (const [id, gift] of packedGifts()) {
+      gifts += 1;
+      assert.deepEqual(fuelBand(id), [gift.lo, gift.hi], id);
     }
+    assert.ok(gifts > 0);
     const holder = eventDef("fuel-gifts");
     assert.ok(holder);
     assert.deepEqual(holder.sectors, []);

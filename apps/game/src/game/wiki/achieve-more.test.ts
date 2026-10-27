@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, startCombat } from "../sim.ts";
+import { weaponDef } from "@stl/pack";
+import { applyImpact, createGame, startCombat } from "../sim.ts";
+import type { Shot } from "../types.ts";
 import { deriveUnlocks } from "../unlocks.ts";
 import { noteAchieve } from "./achieve-notes.ts";
 import { earnedNow } from "./achievement-track.ts";
@@ -63,6 +65,50 @@ describe("achievement counters", () => {
     noteAchieve(g, { k: "cloak" });
     noteAchieve(g, { k: "evade", missed: true, damage: 9 });
     assert.equal(earnedNow(g).includes("ACH_STEALTH_AVOID"), true);
+  });
+
+  it("a dodged bomb counts its system bars toward the cloak", () => {
+    const bars = weaponDef("BOMB_1")?.sysDamage ?? 0;
+    assert.ok(bars > 0);
+    const roomOf = (seed: number) => {
+      const g = quietMap(seed, "PLAYER_SHIP_STEALTH");
+      g.player.kits.cloaking = {
+        id: "cloaking",
+        level: 1,
+        power: 1,
+        left: 5,
+        cool: 0,
+        target: null,
+        on: true,
+        aux: 0,
+      };
+      g.player.systems.engines.power = 0;
+      const room = g.player.rooms[0]?.id;
+      assert.ok(room);
+      return { g, room };
+    };
+    const bomb = (room: string, defId: string): Shot => ({
+      id: "s",
+      kind: "bomb",
+      from: "enemy",
+      damage: 0,
+      ion: 0,
+      fireChance: 0,
+      breachChance: 0,
+      targetRoom: room,
+      defId,
+    });
+    for (let seed = 1; seed < 80; seed++) {
+      const { g, room } = roomOf(seed);
+      applyImpact(g, bomb(room, "BOMB_1"));
+      if ((g.tally?.cloakAvoid ?? 0) > 0) {
+        assert.equal(g.tally?.cloakAvoid, bars);
+        applyImpact(g, bomb(room, "BOMB_HEAL_SYSTEM"));
+        assert.equal(g.tally?.cloakAvoid, bars);
+        return;
+      }
+    }
+    assert.fail("no seed dodged the bomb");
   });
 
   it("repair from 1 hull to full latches Tough Little Ship on the Kestrel", () => {

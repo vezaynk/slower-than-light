@@ -1,0 +1,27 @@
+{
+  "name": "@stl/standin",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "browser": "./src/browser.ts",
+      "default": "./src/node.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "cd ../.. && ./node_modules/.bin/eslint packages/standin"
+  },
+  "dependencies": {
+    "@stl/campaign": "workspace:*",
+    "@stl/ftldat": "workspace:*",
+    "@stl/hyperspace": "workspace:*",
+    "@stl/pack": "workspace:*",
+    "@stl/totallynotftl": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.5",
+    "typescript": "^5.7.0"
+  }
+}

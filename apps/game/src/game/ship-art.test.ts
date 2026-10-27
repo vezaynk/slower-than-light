@@ -146,8 +146,12 @@ describe("ship art", () => {
       const standInBase = placed(shipImage("PLAYER_SHIP_HARD", "base"));
       const standInFloor = placed(shipImage("PLAYER_SHIP_HARD", "floor"));
       const standInCloak = placed(shipImage("PLAYER_SHIP_HARD", "cloak"));
-      assert.deepEqual(standInFloor, standInBase);
-      assert.deepEqual(standInCloak, standInBase);
+      assert.deepEqual(standInCloak, standInFloor);
+      const glow = standIn.glow ?? { x: 0, y: 0 };
+      assert.equal(standInBase.left, standInFloor.left + glow.x);
+      assert.equal(standInBase.top, standInFloor.top + glow.y);
+      assert.equal(standInBase.width, standInFloor.width);
+      assert.equal(standInBase.height, standInFloor.height);
       const standInPiece = placed(gibImage("PLAYER_SHIP_HARD", 5));
       const standInLayoutX = standIn.grid?.x ?? 0;
       const standInLayoutY = standIn.grid?.y ?? 0;

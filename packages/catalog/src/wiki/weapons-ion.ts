@@ -5,7 +5,7 @@ import type { WeaponDef } from "../content.ts";
  * The lead says "Ion weapons do not damage hull, systems, or crew." damage is 0.
  * No section lists a missile cost, so ammo is false.
  * Not here: Ion Blast, Ion Blast Mark II, Heavy Ion, Ion Stunner.
- * Chain Ion's later ion steps stay in ION_GAPS. WeaponDef has no chain field.
+ * Chain Ion's later ion steps stay in ION_GAPS. `boost` is the archive chain.
  * cited-chain.ts applies 1, then 2, 3, and 4 ion. The charge time stays 14 seconds.
  */
 export const ION_WEAPONS: WeaponDef[] = [
@@ -16,7 +16,7 @@ export const ION_WEAPONS: WeaponDef[] = [
     // Wiki page "Ion (Weapons)", ===Ion Charger===.
     // Purchase price 50. Power requirement: 2 power. Charge time: 6 seconds per shot.
     // Ion damage per shot: 1. Effect is a dash, so fire and breach are 0.
-    // Shots: 1-3, "up to 3 shots". shots is that full volley. Firing early is in ION_GAPS.
+    // Shots: 1-3, "up to 3 shots". shots stays that printed count. chargeLevels is the bank.
     // Store rarity 3. Advanced Edition. The section prints no sell value.
     // INFERRED: gap 0. The section gives no gap.
     power: 2,
@@ -29,6 +29,7 @@ export const ION_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 50,
+    chargeLevels: 3,
     blurb: "This ion weapon can charge multiple times, giving it additional projectiles.",
   },
   {
@@ -51,6 +52,7 @@ export const ION_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 55,
+    boost: { type: "damage", amount: 1, count: 3 },
     blurb: "This weapon's Ion damage increases each time it fires to a max of 4.",
   },
   {
@@ -95,7 +97,7 @@ export const ION_GAPS = {
   ION_CHAINGUN: {
     // Wiki page "Ion (Weapons)", ===Chain Ion===.
     // "each subsequent shot dealing 1 additional ion damage, up to a maximum of 4".
-    // WeaponDef has no chain field. ion stays the first printed shot, 1. Later steps:
+    // boost stores the archive chain. ion stays the first printed shot, 1. Later steps:
     // cited-chain.ts applies these on launch. Losing power resets the streak (INFERRED; this section does not print the reset).
     laterIon: [2, 3, 4],
     // "it takes 56 seconds to fully chain."

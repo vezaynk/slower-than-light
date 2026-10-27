@@ -18,4 +18,29 @@
   <event name="STAND_IN_NESTED">
     <text load="STAND_IN_NEST"/>
   </event>
+  <textList name="NAME_SYLLABLES">
+    <text>ka</text>
+    <text>ren</text>
+    <text>vo</text>
+    <text>li</text>
+    <text>mar</text>
+    <text>tes</text>
+    <text>an</text>
+    <text>dru</text>
+    <text>sel</text>
+    <text>ko</text>
+    <text>ny</text>
+    <text>bel</text>
+    <text>ta</text>
+    <text>ri</text>
+    <text>os</text>
+  </textList>
+  <textList name="CREW_POOL">
+    <text>Ada Voss</text>
+    <text>Ivo Park</text>
+    <text>Nen Hale</text>
+    <text>Brin Sol</text>
+    <text>Quill Ade</text>
+    <text>Mara Kent</text>
+  </textList>
 </FTL>

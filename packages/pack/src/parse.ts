@@ -247,8 +247,14 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (length != null) row.lengthTiles = length / 45;
   const speed = numOf(node, "speed");
   if (speed != null) row.speed = speed;
-  const crew = numOf(node, "crewDamage");
-  if (crew != null) row.crewDamage = crew;
+  const pers = numOf(node, "persDamage");
+  if (pers != null) {
+    row.persDamage = pers;
+    row.crewDamage = pers * 15;
+  } else {
+    const crew = numOf(node, "crewDamage");
+    if (crew != null) row.crewDamage = crew;
+  }
   const pierce = numOf(node, "sp");
   if (pierce != null) row.pierce = pierce;
   const art = textOf(node, "weaponArt");
@@ -257,7 +263,55 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (image) row.image = image;
   const rarity = numOf(node, "rarity");
   if (rarity != null) row.rarity = rarity;
+  const hullBust = numOf(node, "hullBust");
+  if (hullBust != null) row.hullBust = hullBust;
+  const stun = numOf(node, "stunChance");
+  if (stun != null) row.stunChance = stun / 10;
+  const sys = numOf(node, "sysDamage");
+  if (sys != null) row.sysDamage = sys;
+  const radius = numOf(node, "radius");
+  if (radius != null) row.radius = radius;
+  const levels = numOf(node, "chargeLevels");
+  if (levels != null) row.chargeLevels = levels;
+  const icon = textOf(node, "iconImage");
+  if (icon) row.icon = icon;
+  const launch = soundNames(node, "launchSounds");
+  if (launch) row.launchSounds = launch;
+  const hitShip = soundNames(node, "hitShipSounds");
+  if (hitShip) row.hitShipSounds = hitShip;
+  const hitShield = soundNames(node, "hitShieldSounds");
+  if (hitShield) row.hitShieldSounds = hitShield;
+  const miss = soundNames(node, "missSounds");
+  if (miss) row.missSounds = miss;
+  const spin = numOf(node, "spin");
+  if (spin != null) row.spin = spin;
+  if (numOf(node, "drone_targetable") === 1) row.droneTargetable = 1;
+  const boost = readBoost(node);
+  if (boost) row.boost = boost;
   return row;
+}
+
+function soundNames(node: XmlElement, tag: string): string[] | undefined {
+  const found = child(node, tag);
+  if (!found) return undefined;
+  const names = elements(found)
+    .filter((item) => item.tagName === "sound")
+    .map((item) => ownText(item).trim())
+    .filter((name) => name.length > 0);
+  return names.length > 0 ? names : undefined;
+}
+
+function readBoost(
+  node: XmlElement,
+): { type: "cooldown" | "damage"; amount: number; count: number } | undefined {
+  const found = child(node, "boost");
+  if (!found) return undefined;
+  const type = textOf(found, "type");
+  const amount = numOf(found, "amount");
+  const count = numOf(found, "count");
+  if ((type !== "cooldown" && type !== "damage") || amount == null || count == null)
+    return undefined;
+  return { type, amount, count };
 }
 
 export function readAugment(node: XmlElement): AugmentDef | undefined {
@@ -271,6 +325,11 @@ export function readAugment(node: XmlElement): AugmentDef | undefined {
   };
   const rarity = numOf(node, "rarity");
   if (rarity != null) row.rarity = rarity;
+  const value = numOf(node, "value");
+  if (value != null) row.value = value;
+  const stacked = textOf(node, "stackable")?.toLowerCase();
+  if (stacked === "true" || stacked === "1") row.stackable = true;
+  else if (stacked === "false" || stacked === "0") row.stackable = false;
   return row;
 }
 
@@ -290,6 +349,18 @@ export function readDrone(node: XmlElement): DroneDef | undefined {
   if (image) row.image = image;
   const rarity = numOf(node, "rarity");
   if (rarity != null) row.rarity = rarity;
+  const type = textOf(node, "type");
+  if (type) row.type = type;
+  const power = numOf(node, "power");
+  if (power != null) row.power = power;
+  const cooldown = numOf(node, "cooldown");
+  if (cooldown != null) row.cooldown = cooldown;
+  const speed = numOf(node, "speed");
+  if (speed != null) row.speed = speed;
+  const dodge = numOf(node, "dodge");
+  if (dodge != null) row.dodge = dodge;
+  const weapon = textOf(node, "weaponBlueprint");
+  if (weapon) row.weapon = weapon;
   return row;
 }
 
@@ -317,6 +388,8 @@ function readSystemBlueprint(node: XmlElement): { system?: SystemDef; tune?: Tun
       cost: numOf(node, "cost") ?? 0,
       slot: written === "kit" || written === "sys" ? written : "sys",
     };
+    const max = numOf(node, "maxPower");
+    if (max != null) found.system.max = max;
   }
   const tune = readBlueprintTune(node, id);
   if (tune) found.tune = tune;
@@ -345,7 +418,14 @@ export function readUpgradeCosts(node: XmlElement): TuneStep[] {
 /** A tune is startPower or one upgradeCost list. A blueprint with neither is only a listing. */
 export function readBlueprintTune(node: XmlElement, id: string): TuneDef | undefined {
   if (!child(node, "startPower") && !child(node, "upgradeCost")) return undefined;
-  return { id, start: numOf(node, "startPower") ?? 1, costs: readUpgradeCosts(node) };
+  const tune: TuneDef = {
+    id,
+    start: numOf(node, "startPower") ?? 1,
+    costs: readUpgradeCosts(node),
+  };
+  const max = numOf(node, "maxPower");
+  if (max != null) tune.max = max;
+  return tune;
 }
 
 export function readFaction(node: XmlElement): FactionSurrender | undefined {
@@ -698,13 +778,16 @@ function readList(node: XmlElement): FillerListDef | undefined {
   const id = attr(node, "name")?.trim();
   if (!id) return undefined;
   const entries: FillerEntry[] = [];
+  let events = 0;
   for (const item of elements(node)) {
     if (item.tagName !== "event") continue;
+    events += 1;
     const eventId = attr(item, "load")?.trim() || attr(item, "name")?.trim();
     if (!eventId) continue;
     entries.push({ id: eventId, unique: item.getAttribute("unique") === "true" });
   }
-  if (entries.length === 0) return undefined;
+  // A childless named list is empty on purpose. Events that name nothing are a retired spelling, so that list stays out.
+  if (entries.length === 0 && events > 0) return undefined;
   return { id, entries };
 }
 
@@ -734,6 +817,12 @@ export function readEmpty(node: XmlElement): EmptyBeaconDef | undefined {
   return page;
 }
 
+function lockOwner(value: string | undefined): EventChoice["owner"] | undefined {
+  if (value === "filler" || value === "missing" || value === "cited" || value === "quest")
+    return value;
+  return undefined;
+}
+
 export function readEvent(node: XmlElement): EventDef | undefined {
   const parent = node.parentNode as XmlElement | null;
   if (parent?.tagName === "eventList") return undefined;
@@ -754,6 +843,16 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   for (const item of elements(node)) {
     if (item.tagName === "text") {
       lines.push(ownText(item).trim());
+      continue;
+    }
+    if (item.tagName === "alias") {
+      const text = ownText(item).trim();
+      if (text) aliases.push(text);
+      continue;
+    }
+    if (item.tagName === "sector") {
+      const text = ownText(item).trim();
+      if (text) sectors.push(text);
       continue;
     }
     if (item.tagName === "eventList") {
@@ -798,6 +897,9 @@ export function readEvent(node: XmlElement): EventDef | undefined {
     const choice: EventChoice = { id: choiceId, label: textOf(item, "text") ?? choiceId, fx };
     const reqs = readReqs(item);
     if (reqs) choice.reqs = reqs;
+    readChoiceGates(choice, item);
+    const owner = lockOwner(attr(item, "owner"));
+    if (owner) choice.owner = owner;
     const gift = readGift(item, "page");
     if (gift) choice.gift = gift;
     choices.push(choice);
@@ -948,6 +1050,8 @@ function readCard(node: XmlElement): EventCard | undefined {
     const gift = readGift(item, "card");
     const choice: EventCard["choices"][number] = { id, label: choiceLabel(item, id) };
     if (reqs) choice.reqs = reqs;
+    const owner = lockOwner(attr(item, "owner"));
+    if (owner) choice.owner = owner;
     if (gift) choice.gift = gift;
     return [choice];
   });
@@ -1244,6 +1348,28 @@ function fuelGift(modify: XmlElement): ChoiceGift | undefined {
   const hi = intAttr(item, "max");
   if (lo == null || hi == null || lo > hi || lo < 0) return undefined;
   return { k: "fuel", lo, hi };
+}
+
+/**
+ * `hidden`, `lvl` / `min_level`, `max_lvl`, `max_group`, `blue`, and `req` on the choice.
+ * Absent min and max stay absent. An attr req is not a nested `<req>`.
+ */
+export function readChoiceGates(choice: EventChoice, node: XmlElement): void {
+  if (node.getAttribute("hidden") === "true") choice.hidden = true;
+  const minLevel = intAttr(node, "lvl") ?? intAttr(node, "min_level");
+  const maxLevel = intAttr(node, "max_lvl");
+  const maxGroup = intAttr(node, "max_group");
+  if (minLevel != null) choice.minLevel = minLevel;
+  if (maxLevel != null) choice.maxLevel = maxLevel;
+  if (maxGroup != null) choice.maxGroup = maxGroup;
+  if (node.getAttribute("blue") === "false") choice.blue = false;
+  const gear = attr(node, "req")?.trim();
+  if (!gear) return;
+  const req: Extract<ChoiceReq, { k: "attr" }> = { k: "attr", id: gear, text: "" };
+  if (minLevel != null) req.min = minLevel;
+  if (maxLevel != null) req.max = maxLevel;
+  const rest = (choice.reqs ?? []).filter((item) => item.k !== "attr");
+  choice.reqs = [req, ...rest];
 }
 
 /** Direct req children. An unknown kind, a blank refusal, or a bad number is skipped. */

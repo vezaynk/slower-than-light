@@ -1,25 +1,14 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { allEvents, eventDef, loadPack, resetPackForTests } from "@stl/pack";
+import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { ChoiceReq, EventCard } from "@stl/pack";
 import { choiceDisabled, createGame } from "../sim.ts";
 import "../pack/base.ts";
 import { missingDisabled } from "./cited-missing.ts";
-import { CHOICE_REQS } from "./choice-reqs.ts";
 import { fillerChoiceDisabled } from "./filler-events.ts";
 import { questChoiceDisabled } from "./quests.ts";
 
 afterEach(() => resetPackForTests());
-
-function packedReqIds(): Set<string> {
-  const seen = new Set<string>();
-  for (const ev of allEvents()) {
-    for (const choice of ev.choices) if (choice.reqs?.length) seen.add(choice.id);
-    for (const card of ev.cards ?? [])
-      for (const choice of card.choices) if (choice.reqs?.length) seen.add(choice.id);
-  }
-  return seen;
-}
 
 function copyCard(card: EventCard): EventCard {
   return {
@@ -27,15 +16,14 @@ function copyCard(card: EventCard): EventCard {
     choices: card.choices.map((choice) => ({
       id: choice.id,
       label: choice.label,
+      ...(choice.owner ? { owner: choice.owner } : {}),
       ...(choice.reqs ? { reqs: choice.reqs.map((req) => ({ ...req })) } : {}),
     })),
   };
 }
 
 describe("choice requirements", () => {
-  it("finds every authored lock, and keeps the leftover page off the chart", () => {
-    const seen = packedReqIds();
-    for (const id of Object.keys(CHOICE_REQS)) assert.equal(seen.has(id), true, id);
+  it("keeps the leftover page off the chart", () => {
     const holder = eventDef("blue-button-reqs");
     assert.ok(holder);
     assert.deepEqual(holder.sectors, []);

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { SHIP_LAYOUTS } from "@stl/catalog/src/ship-layouts.ts";
 import { factionPaint, plateOf, type HullCell } from "./hull-plate.ts";
+import { playerHulls } from "./hulls.ts";
 import { layoutFor } from "./layouts.ts";
 import "./pack/base.ts";
 import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
@@ -45,7 +45,8 @@ describe("hull plates", () => {
       seen.set(key, id);
     };
 
-    for (const id of Object.keys(SHIP_LAYOUTS)) {
+    for (const hull of playerHulls()) {
+      const id = hull.id;
       const layout = layoutFor(id);
       assert.ok(layout, id);
       const cells = plateOf({
@@ -73,7 +74,7 @@ describe("hull plates", () => {
       offFloor(cells, BLOCK);
     }
 
-    const real = enemyLayout("rebel-fighter");
+    const real = enemyLayout("REBEL_SKINNY");
     assert.ok(real);
     const realCells = plateOf({
       id: "rebel-fighter",

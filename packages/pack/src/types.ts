@@ -40,6 +40,40 @@ export type WeaponBlueprint = {
   image?: string;
   /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
   rarity?: number;
+  /**
+   * `<hullBust>`. When set, a hit on a systemless room deals twice the blueprint's hull damage.
+   * The integer is the flag. The doubled figure is `damage * 2`, not this number.
+   */
+  hullBust?: number;
+  /** `<stunChance>` already divided by 10. `2` in the file is 0.2. */
+  stunChance?: number;
+  /**
+   * `<persDamage>` as written. When the tag is present, `crewDamage` is this number times 15.
+   * A negative value heals. It wins over a `<crewDamage>` child.
+   */
+  persDamage?: number;
+  /** `<sysDamage>`. System bars. A bomb's `<damage>` stays hull and is often 0. */
+  sysDamage?: number;
+  /** `<radius>` in archive pixels. Landing odds do not treat it as a pixel circle. */
+  radius?: number;
+  /** `<chargeLevels>`. The charger bank. `<shots>` stays the volley when this is absent. */
+  chargeLevels?: number;
+  /** `<iconImage>` path. The weapon card shows that file. */
+  icon?: string;
+  /** `<launchSounds>` names, in file order. */
+  launchSounds?: string[];
+  /** `<hitShipSounds>` names, in file order. */
+  hitShipSounds?: string[];
+  /** `<hitShieldSounds>` names, in file order. */
+  hitShieldSounds?: string[];
+  /** `<missSounds>` names, in file order. */
+  missSounds?: string[];
+  /** `<spin>` degrees per second. The sprite turns. The landing does not. */
+  spin?: number;
+  /** `<drone_targetable>`. 1 means a Mark I defense drone may shoot this blueprint's shot. */
+  droneTargetable?: number;
+  /** `<boost>`. Cooldown subtracts seconds. Damage adds ion. Step 0 is the blueprint's own number. */
+  boost?: { type: "cooldown" | "damage"; amount: number; count: number };
 };
 
 /**
@@ -90,9 +124,13 @@ export type AugmentDef = {
   cost: number;
   /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
   rarity?: number;
+  /** `<value>`. The effect switch still decides what this magnitude scales. */
+  value?: number;
+  /** `<stackable>`. A duplicate that is not stackable pays 25 scrap instead of fitting. */
+  stackable?: boolean;
 };
 
-/** A drone schematic listing. Power, cooldown, and speed stay in the effect code. */
+/** A drone schematic. Cooldown is milliseconds, the unit the blueprint writes. */
 export type DroneDef = {
   id: string;
   name: string;
@@ -107,9 +145,21 @@ export type DroneDef = {
   noloc?: boolean;
   /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
   rarity?: number;
+  /** `<type>`: COMBAT, DEFENSE, BOARDER, SHIELD, REPAIR, SHIP_REPAIR, BATTLE. */
+  type?: string;
+  /** `<power>`. Bars the drone needs while it flies. */
+  power?: number;
+  /** `<cooldown>` in milliseconds. */
+  cooldown?: number;
+  /** `<speed>`. Orbit and travel use this. A boarding drone's attack interval stays in the sim. */
+  speed?: number;
+  /** `<dodge>`. */
+  dodge?: number;
+  /** `<weaponBlueprint>` id, when the drone names the gun it fires. */
+  weapon?: string;
 };
 
-/** Where a purchased system is installed. Power and the starting level stay in the effect code. */
+/** Where a purchased system is installed. The starting level stays on the tune. */
 export type SystemSlot = "sys" | "kit";
 
 /** A store listing for one single-price system. `detail` is the archive's factual line. */
@@ -120,6 +170,8 @@ export type SystemDef = {
   slot: SystemSlot;
   /** Factual install line from the archive. Absent on a stats-only row. */
   detail?: string;
+  /** `<maxPower>`. The highest level this system can reach. */
+  max?: number;
 };
 
 /** A hangar layout letter. Unlock rules use this letter. A loaded hull names its layout file. */
@@ -421,13 +473,15 @@ export type TuneStep = {
  * Upgrade scrap and the level a store purchase installs.
  * These records are not store rows. Engines, oxygen, weapons, and piloting
  * have tunes and do not appear on the system shelf.
- * Reactor bands and kit upgrade tables stay in code.
+ * Reactor bands stay a formula in upgradeCost. Charge times stay in the effect code.
  */
 export type TuneDef = {
   id: string;
   /** Level written when the system is bought. Shields is 2. */
   start: number;
   costs: TuneStep[];
+  /** `<maxPower>`. An owned level at or above this has no next purchase. */
+  max?: number;
 };
 
 export type EventResource = "scrap" | "fuel" | "missiles" | "parts";
@@ -562,9 +616,18 @@ export type RollEntry =
  * One whole opening a page draws when the card opens.
  * The sim still draws one with between. The button handlers stay in code.
  */
+/** Which handler claims a packed lock. The reqs stay on the choice. */
+export type LockOwner = "filler" | "missing" | "cited" | "quest";
+
 export type EventCard = {
   body: string;
-  choices: { id: string; label: string; reqs?: ChoiceReq[]; gift?: ChoiceGift }[];
+  choices: {
+    id: string;
+    label: string;
+    reqs?: ChoiceReq[];
+    gift?: ChoiceGift;
+    owner?: LockOwner;
+  }[];
 };
 
 /**
@@ -591,7 +654,8 @@ export type ChoiceReq =
   | { k: "family"; id: string; text: string }
   | { k: "drone"; id: string; text: string }
   | { k: "list"; id: string; text: string }
-  | { k: "stock"; id: string; n: number; text: string };
+  | { k: "stock"; id: string; n: number; text: string }
+  | { k: "attr"; id: string; text: string; min?: number; max?: number };
 
 /**
  * `<environment type>` on an archive event.
@@ -682,10 +746,20 @@ export type EventChoice = {
   fx: EventEffect[];
   /** Locks checked in order. The first failure's text is the refusal. */
   reqs?: ChoiceReq[];
+  /** The handler that claims this button's lock. Other handlers leave it alone. */
+  owner?: LockOwner;
   /** Fuel the handler pays. A positive resource effect is a different payment. */
   gift?: ChoiceGift;
-  /** The archive hides this button until its requirement is met. */
+  /** The archive hides this button until its requirement is met. Exact `hidden="true"` only. */
   hidden?: boolean;
+  /** Inclusive floor from `lvl`, or from `min_level` when `lvl` is absent. */
+  minLevel?: number;
+  /** Inclusive ceiling from `max_lvl`. */
+  maxLevel?: number;
+  /** `max_group`. Siblings that share it keep one row. */
+  maxGroup?: number;
+  /** `blue="false"`. A met requirement is blue text unless this is false. */
+  blue?: false;
   /** autoReward on the result page. */
   reward?: ArchiveReward;
   /** A ship that is not a fight. A hostile ship with a load is a fight effect. A hostile ship with no load stays here. */
@@ -995,6 +1069,17 @@ export type AchievementDef = {
   img?: string;
   /** Absent: the game has no way to tell when this one is earned. */
   condition?: AchievementCondition;
+  /** Old localStorage id. The gap writes it so a save from before archive ids still counts. */
+  slug?: string;
+};
+
+/** One campaign class and the ship blueprint a fight of that class asks for. */
+export type ShipClassDef = {
+  id: string;
+  classId: string;
+  blueprint: string;
+  /** Pirate fight. Absent when the class has no pirate ship. */
+  pirate?: string;
 };
 
 export type ContentPack = {
@@ -1017,6 +1102,11 @@ export type ContentPack = {
   blueprints?: BlueprintListDef[];
   /** `<textList>` rows. A page draws one line when it is shown. */
   textLists?: TextListDef[];
+  /**
+   * Campaign class id to the ship blueprint a fight asks for.
+   * A real ftl.dat has no such tag; the gap writes the rows.
+   */
+  shipClasses?: ShipClassDef[];
   empties?: EmptyBeaconDef[];
   /** Shared scrap scaling and resource bands. Absent until a pack loads one. */
   rewards?: RewardTable;
@@ -1034,4 +1124,15 @@ export type ContentPack = {
    * Column 0 shows this while `STANDARD_SPACE` keeps its stored name.
    */
   civilianSectorTitle?: string;
+  /**
+   * `text-<code>.xml` tables. English stays on the blueprints.
+   * A `.append` file merges into the same code. The code is the filename, hyphens included.
+   */
+  locales?: LocaleTable[];
+};
+
+/** One `text-<code>.xml` table. English is not one of these. */
+export type LocaleTable = {
+  code: string;
+  strings: Record<string, string>;
 };

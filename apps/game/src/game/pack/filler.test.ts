@@ -1,19 +1,10 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { ftlEventId } from "@stl/catalog/src/wiki/ftl-event-ids.ts";
-import { packId } from "@stl/catalog/src/wiki/ftl-slugs.ts";
-import { allEvents, eventDef, fillerList, loadPack, resetPackForTests } from "@stl/pack";
+import { allEvents, eventDef, fillerList, loadPack, resetPackForTests, storedId } from "@stl/pack";
 import { createGame } from "../sim.ts";
 import "./base.ts";
 import { citedEvent } from "../wiki/cited-events.ts";
 import {
-  DISTRESS,
-  EXIT_ITEMS,
-  EXIT_NEUTRAL,
-  FILLER,
-  FILLER_PAGES,
-  ITEMS,
-  NEBULA,
   drawFiller,
   emptyPageFor,
   fillerEvent,
@@ -23,36 +14,19 @@ import {
 
 afterEach(() => resetPackForTests());
 
-function formula(dest: string): string {
-  return dest
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
 describe("filler lists", () => {
-  it("stores each row's page id in authored order", () => {
-    for (const row of [
-      ...FILLER,
-      ...NEBULA,
-      ...DISTRESS,
-      ...ITEMS,
-      ...EXIT_NEUTRAL,
-      ...EXIT_ITEMS,
-    ]) {
-      const slug = pageForRow(row.dest)?.slug ?? formula(row.dest);
-      assert.ok(slug === row.id || slug === ftlEventId(row.dest), row.dest);
+  it("stores each row's page id in list order", () => {
+    for (const id of ["FILLER", "NEBULA", "DISTRESS", "ITEMS", "EXIT_NEUTRAL", "EXIT_ITEMS"]) {
+      const list = fillerList(id);
+      assert.ok(list && list.entries.length > 0, id);
+      for (const entry of list.entries) {
+        const dest = eventDef(entry.id)?.dest;
+        assert.ok(dest, entry.id);
+        const page = pageForRow(dest);
+        assert.ok(page, dest);
+        assert.equal(page.slug, entry.id, dest);
+      }
     }
-    assert.equal(fillerList("FILLER")?.entries.length, FILLER.length);
-    assert.equal(
-      fillerList("FILLER")?.entries[0]?.id,
-      ftlEventId(FILLER[0]?.dest ?? "") ?? FILLER[0]?.id,
-    );
-    assert.equal(fillerList("NEBULA")?.entries.length, NEBULA.length);
-    assert.equal(fillerList("DISTRESS")?.entries.length, DISTRESS.length);
-    assert.equal(fillerList("ITEMS")?.entries.length, ITEMS.length);
-    assert.equal(fillerList("EXIT_NEUTRAL")?.entries.length, EXIT_NEUTRAL.length);
-    assert.equal(fillerList("EXIT_ITEMS")?.entries.length, EXIT_ITEMS.length);
     assert.equal(
       fillerList("EXIT_ITEMS")?.entries.some((entry) => entry.id === "STORE_REBELSIDE"),
       true,
@@ -62,12 +36,12 @@ describe("filler lists", () => {
   it("draws an appended list and leaves the campaign list in place", () => {
     const before = fillerList("FILLER")?.entries.length;
     loadPack(
-      { lists: [{ id: "ember-list", entries: [{ id: "large-asteroid-field", unique: false }] }] },
+      { lists: [{ id: "ember-list", entries: [{ id: "ASTEROID_EXPLORE", unique: false }] }] },
       "append",
     );
     assert.equal(fillerList("FILLER")?.entries.length, before);
     const page = drawFiller(createGame(1), "ember-list", []);
-    assert.equal(page, pageForRow("Large asteroid field"));
+    assert.deepEqual(page, pageForRow("Large asteroid field"));
     assert.equal(page?.slug, "ASTEROID_EXPLORE");
     resetPackForTests();
     assert.equal(drawFiller(createGame(1), "ember-list", []), null);
@@ -75,14 +49,15 @@ describe("filler lists", () => {
   });
 
   it("replaces a campaign list when the same id is appended", () => {
+    const nebula = fillerList("NEBULA")?.entries.length;
     loadPack(
-      { lists: [{ id: "FILLER", entries: [{ id: "large-asteroid-field", unique: false }] }] },
+      { lists: [{ id: "FILLER", entries: [{ id: "ASTEROID_EXPLORE", unique: false }] }] },
       "append",
     );
     assert.equal(fillerList("FILLER")?.entries.length, 1);
-    assert.equal(fillerList("NEBULA")?.entries.length, NEBULA.length);
+    assert.equal(fillerList("NEBULA")?.entries.length, nebula);
     const page = drawFiller(createGame(1), "FILLER", []);
-    assert.equal(page, pageForRow("Large asteroid field"));
+    assert.deepEqual(page, pageForRow("Large asteroid field"));
   });
 
   it("draws a packed event that the campaign lists do not name", () => {
@@ -111,10 +86,10 @@ describe("filler lists", () => {
 
   it("keeps the cited card when a filler page shares its slug", () => {
     loadPack(
-      { lists: [{ id: "ember-list", entries: [{ id: "refueling-station", unique: false }] }] },
+      { lists: [{ id: "ember-list", entries: [{ id: "REFUEL_STATION", unique: false }] }] },
       "append",
     );
-    assert.equal(drawFiller(createGame(1), "ember-list", []), pageForRow("Refueling station"));
+    assert.deepEqual(drawFiller(createGame(1), "ember-list", []), pageForRow("Refueling station"));
   });
 
   it("reads an appended empty beacon and falls back to Civilian", () => {
@@ -140,23 +115,10 @@ describe("filler lists", () => {
   });
 
   it("loads opening cards and keeps the two shared slugs as sector pages", () => {
-    const shared = new Set(["refueling-station", "pirate-ship-distress-trap"]);
-    assert.equal(FILLER_PAGES.length, 26);
-    let packed = 0;
-    for (const page of FILLER_PAGES) {
-      const record = eventDef(packId(page.slug));
-      assert.ok(record, page.slug);
-      const same =
-        record.body === page.body &&
-        record.choices.length === page.choices.length &&
-        record.choices.every((choice, i) => choice.label === page.choices[i]?.label);
-      if (shared.has(page.slug)) assert.equal(same, false, page.slug);
-      else {
-        assert.equal(same, true, page.slug);
-        packed += 1;
-      }
-    }
-    assert.equal(packed, 24);
+    assert.equal(
+      allEvents().find((event) => event.dest === "Large asteroid field")?.id,
+      "ASTEROID_EXPLORE",
+    );
     assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
     assert.equal(eventDef("TRAP_BEACON")?.body, "");
     assert.equal(eventDef("TRAP_BEACON")?.texts?.length, 4);
@@ -216,12 +178,14 @@ describe("filler lists", () => {
     const nebula = eventDef("NEBULA_TRADER")?.offers ?? [];
     assert.equal(trade.length, 4);
     assert.deepEqual(nebula, trade);
-    for (const id of [
-      "no-fuel-fuel-trader-distress-off",
-      "no-fuel-fuel-trader-distress-on",
-      "no-fuel-prepare-to-dock",
-    ]) {
-      const rows = eventDef(packId(id))?.offers ?? [];
+    for (const [id, dest] of [
+      ["no-fuel-fuel-trader-distress-off", "No fuel: fuel trader (distress off)"],
+      ["no-fuel-fuel-trader-distress-on", "No fuel: fuel trader (distress on)"],
+      ["no-fuel-prepare-to-dock", "No fuel: prepare to dock"],
+    ] as const) {
+      const rows =
+        eventDef(storedId(allEvents().find((event) => event.dest === dest)?.id ?? id))?.offers ??
+        [];
       assert.equal(rows.filter((row) => row.k === "fuel" && row.band === "high").length, 3, id);
       assert.equal(rows.filter((row) => row.k === "fuel" && row.band === "pt2").length, 3, id);
     }
@@ -296,6 +260,7 @@ describe("filler lists", () => {
     );
     assert.ok(beacon);
     beacon.flag = stand.flag;
+    beacon.name = stand.dest;
     assert.equal(citedEvent(g, beacon)?.choices[0]?.id, "c:fight-in-last-stand:go:Ember");
     resetPackForTests();
     assert.equal(eventDef("BOSS_SCOUT")?.rolls?.length, 12);
@@ -307,6 +272,7 @@ describe("filler lists", () => {
       "append",
     );
     beacon.flag = checkpoint.flag;
+    beacon.name = checkpoint.dest;
     const card = citedEvent(createGame(1), beacon);
     assert.equal(
       card?.choices.find((choice) => choice.id === "c:rebel-checkpoint:1")?.label,
@@ -319,6 +285,7 @@ describe("filler lists", () => {
     assert.ok(moonsPage);
     loadPack({ events: [{ ...moonsPage, rolls: [{ k: "count", n: 9, word: "nine" }] }] }, "append");
     beacon.flag = moonsPage.flag;
+    beacon.name = moonsPage.dest;
     const moonCard = citedEvent(createGame(1), beacon);
     assert.match(moonCard?.body ?? "", /one of the nine moons/);
     assert.equal(moonCard?.choices[0]?.id, "c:slug-moons-question:ask:9");

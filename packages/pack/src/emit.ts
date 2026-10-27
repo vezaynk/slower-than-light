@@ -19,6 +19,7 @@ import type {
   TradeStep,
   EventGrade,
   EventCard,
+  EventChoice,
   EventDef,
   EventEffect,
   FactionSurrender,
@@ -29,6 +30,7 @@ import type {
   RewardTable,
   RollEntry,
   SectorDef,
+  ShipClassDef,
   StoreDef,
   StoreLine,
   SurrenderOfferDef,
@@ -163,7 +165,7 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
 }
 
 /**
- * The gap file: faction offers, stores, the rewards block, and empty beacons.
+ * The gap file: faction offers, stores, the rewards block, empty beacons, and ship classes.
  * Crew combat and sector notes are appends, because they edit a record the archive already has.
  */
 export function emitGapDocument(pack: ContentPack): string {
@@ -175,7 +177,18 @@ export function emitGapDocument(pack: ContentPack): string {
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
+  for (const row of pack.shipClasses ?? []) add(root, shipClassElement(doc, row));
   return prettyXml(serializer.serializeToString(doc));
+}
+
+function shipClassElement(doc: XmlDocument, row: ShipClassDef): XmlElement {
+  const attrs: Record<string, string> = {
+    name: row.id,
+    class: row.classId,
+    blueprint: row.blueprint,
+  };
+  if (row.pirate) attrs.pirate = row.pirate;
+  return element(doc, "shipClass", attrs);
 }
 
 /**
@@ -240,7 +253,8 @@ function shotGapFind(doc: XmlDocument, weapon: { id: string; gap: number }): Xml
 
 /**
  * Each achievement's condition, overwritten onto data/achievements.xml. ftl.dat keys an achievement by its `id`
- * attribute, so the find is a findLike on that attribute. An achievement with no condition is left out.
+ * attribute, so the find is a findLike on that attribute. A row is left out only when it has neither a
+ * condition nor a slug. A slug is still written when there is no condition.
  */
 export function emitConditionAppend(rows: readonly AchievementDef[]): string {
   const doc = implementation.createDocument(null, "FTL", null);
@@ -248,9 +262,14 @@ export function emitConditionAppend(rows: readonly AchievementDef[]): string {
   if (!root) throw new Error("pack document has no root");
   doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
   for (const row of rows) {
-    if (!row.condition) continue;
+    if (!row.condition && !row.slug) continue;
     const find = element(doc, "mod:findLike", { type: "achievement" });
     add(find, element(doc, "mod:selector", { id: row.id }));
+    if (row.slug) add(find, leaf(doc, "mod-append:slug", row.slug));
+    if (!row.condition) {
+      add(root, find);
+      continue;
+    }
     const condition = element(doc, "mod-overwrite:condition", {});
     const top = "all" in row.condition ? row.condition.all : [row.condition];
     for (const part of top) add(condition, conditionElement(doc, part));
@@ -340,6 +359,10 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   if (texts.length > 1 && event.body !== "" && event.body !== texts[0]) attrs.intro = "after";
   const node = element(doc, "event", attrs);
   add(node, leaf(doc, "title", event.dest));
+  for (const alias of event.aliases) {
+    if (alias && alias !== event.id) add(node, leaf(doc, "alias", alias));
+  }
+  for (const sector of event.sectors) if (sector) add(node, leaf(doc, "sector", sector));
   const lines =
     texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
   for (const line of lines) add(node, leaf(doc, "text", line));
@@ -352,9 +375,12 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   if (event.grade) add(node, gradeElement(doc, event.grade));
   for (const card of event.cards ?? []) add(node, cardElement(doc, card));
   for (const choice of event.choices) {
-    const choiceNode = element(doc, "choice", { name: choice.id });
+    const choiceNode = element(doc, "choice", choiceAttributes(choice));
     add(choiceNode, leaf(doc, "text", choice.label));
-    for (const req of choice.reqs ?? []) add(choiceNode, reqElement(doc, req));
+    for (const req of choice.reqs ?? []) {
+      if (req.k === "attr") continue;
+      add(choiceNode, reqElement(doc, req));
+    }
     let placedGift = false;
     for (const fx of choice.fx) {
       if (fx.k === "nothing" && choice.gift && !placedGift) {
@@ -368,6 +394,20 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   }
   if (event.surrender) add(node, surrenderElement(doc, event.surrender));
   return node;
+}
+
+/** Choice attributes the archive stores on the button. An attr req is `req`, not a nested element. */
+function choiceAttributes(choice: EventChoice): Record<string, string> {
+  const attrs: Record<string, string> = { name: choice.id };
+  if (choice.owner) attrs.owner = choice.owner;
+  if (choice.hidden) attrs.hidden = "true";
+  if (choice.minLevel != null) attrs.lvl = String(choice.minLevel);
+  if (choice.maxLevel != null) attrs.max_lvl = String(choice.maxLevel);
+  if (choice.maxGroup != null) attrs.max_group = String(choice.maxGroup);
+  if (choice.blue === false) attrs.blue = "false";
+  const gear = choice.reqs?.find((req) => req.k === "attr");
+  if (gear?.k === "attr") attrs.req = gear.id;
+  return attrs;
 }
 
 /** Consecutive rows that share a list name stay in one eventList. Document order is the flat row order. */
@@ -417,7 +457,7 @@ function cardElement(doc: XmlDocument, card: EventCard): XmlElement {
   const node = element(doc, "card", {});
   add(node, leaf(doc, "text", card.body));
   for (const choice of card.choices)
-    add(node, choiceElement(doc, choice.id, choice.label, choice.reqs, choice.gift));
+    add(node, choiceElement(doc, choice.id, choice.label, choice.reqs, choice.gift, choice.owner));
   return node;
 }
 
@@ -462,10 +502,16 @@ function choiceElement(
   label: string,
   reqs?: ChoiceReq[],
   gift?: ChoiceGift,
+  owner?: string,
 ): XmlElement {
-  const node = element(doc, "choice", { name: id });
+  const attrs: Record<string, string> = { name: id };
+  if (owner) attrs.owner = owner;
+  const node = element(doc, "choice", attrs);
   add(node, leaf(doc, "text", label));
-  for (const req of reqs ?? []) add(node, reqElement(doc, req));
+  for (const req of reqs ?? []) {
+    if (req.k === "attr") continue;
+    add(node, reqElement(doc, req));
+  }
   if (gift) add(node, fuelModify(doc, gift));
   return node;
 }
@@ -533,6 +579,7 @@ function gradeElement(doc: XmlDocument, grade: EventGrade): XmlElement {
 }
 
 function reqElement(doc: XmlDocument, req: ChoiceReq): XmlElement {
+  if (req.k === "attr") throw new Error(`attr req ${req.id} belongs on the choice`);
   if (req.k === "system") return reqText(doc, { req: req.id, lvl: num(req.level) }, req.text);
   if (req.k === "band") {
     return reqText(doc, { req: req.id, lvl: num(req.lo), max_lvl: num(req.hi) }, req.text);
@@ -831,6 +878,8 @@ function systemElement(doc: XmlDocument, system?: SystemDef, tune?: TuneDef): Xm
     add(node, leaf(doc, "title", system.name));
     add(node, leaf(doc, "cost", system.cost));
   }
+  const max = system?.max ?? tune?.max;
+  if (max != null) add(node, leaf(doc, "maxPower", max));
   if (tune) {
     add(node, leaf(doc, "startPower", tune.start));
     if (tune.costs.length > 0) {
@@ -854,6 +903,12 @@ function droneElement(doc: XmlDocument, drone: DroneDef): XmlElement {
   add(node, leaf(doc, "cost", drone.cost));
   if (drone.image) add(node, leaf(doc, "droneImage", drone.image));
   if (drone.rarity != null) add(node, leaf(doc, "rarity", drone.rarity));
+  if (drone.type) add(node, leaf(doc, "type", drone.type));
+  if (drone.power != null) add(node, leaf(doc, "power", drone.power));
+  if (drone.cooldown != null) add(node, leaf(doc, "cooldown", drone.cooldown));
+  if (drone.speed != null) add(node, leaf(doc, "speed", drone.speed));
+  if (drone.dodge != null) add(node, leaf(doc, "dodge", drone.dodge));
+  if (drone.weapon) add(node, leaf(doc, "weaponBlueprint", drone.weapon));
   return node;
 }
 
@@ -863,6 +918,8 @@ function augmentElement(doc: XmlDocument, augment: AugmentDef): XmlElement {
   add(node, leaf(doc, "desc", augment.detail));
   add(node, leaf(doc, "cost", augment.cost));
   if (augment.rarity != null) add(node, leaf(doc, "rarity", augment.rarity));
+  if (augment.value != null) add(node, leaf(doc, "value", augment.value));
+  if (augment.stackable != null) add(node, leaf(doc, "stackable", augment.stackable));
   return node;
 }
 
@@ -883,12 +940,44 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true
   if (weapon.ammo) add(node, leaf(doc, "missiles", 1));
   if (weapon.lengthTiles != null) add(node, leaf(doc, "length", scaled(weapon.lengthTiles, 45)));
   if (weapon.speed != null) add(node, leaf(doc, "speed", weapon.speed));
-  if (weapon.crewDamage != null) add(node, leaf(doc, "crewDamage", weapon.crewDamage));
+  if (weapon.persDamage != null) add(node, leaf(doc, "persDamage", weapon.persDamage));
+  else if (weapon.crewDamage != null) add(node, leaf(doc, "crewDamage", weapon.crewDamage));
+  if (weapon.sysDamage != null) add(node, leaf(doc, "sysDamage", weapon.sysDamage));
   if (weapon.pierce != null) add(node, leaf(doc, "sp", weapon.pierce));
+  if (weapon.hullBust != null) add(node, leaf(doc, "hullBust", weapon.hullBust));
+  if (weapon.stunChance != null) add(node, leaf(doc, "stunChance", tenths(weapon.stunChance)));
+  if (weapon.radius != null) add(node, leaf(doc, "radius", weapon.radius));
+  if (weapon.chargeLevels != null) add(node, leaf(doc, "chargeLevels", weapon.chargeLevels));
+  if (weapon.spin != null) add(node, leaf(doc, "spin", weapon.spin));
+  if (weapon.droneTargetable === 1) add(node, leaf(doc, "drone_targetable", 1));
   if (weapon.art) add(node, leaf(doc, "weaponArt", weapon.art));
   if (weapon.image) add(node, leaf(doc, "image", weapon.image));
+  if (weapon.icon) add(node, leaf(doc, "iconImage", weapon.icon));
   if (weapon.rarity != null) add(node, leaf(doc, "rarity", weapon.rarity));
+  soundList(doc, node, "launchSounds", weapon.launchSounds);
+  soundList(doc, node, "hitShipSounds", weapon.hitShipSounds);
+  soundList(doc, node, "hitShieldSounds", weapon.hitShieldSounds);
+  soundList(doc, node, "missSounds", weapon.missSounds);
+  if (weapon.boost) {
+    const boost = element(doc, "boost", {});
+    add(boost, leaf(doc, "type", weapon.boost.type));
+    add(boost, leaf(doc, "amount", weapon.boost.amount));
+    add(boost, leaf(doc, "count", weapon.boost.count));
+    add(node, boost);
+  }
   return node;
+}
+
+function soundList(
+  doc: XmlDocument,
+  parent: XmlElement,
+  tag: string,
+  names: readonly string[] | undefined,
+) {
+  if (!names?.length) return;
+  const node = element(doc, tag, {});
+  for (const name of names) add(node, leaf(doc, "sound", name));
+  add(parent, node);
 }
 
 function raceElement(

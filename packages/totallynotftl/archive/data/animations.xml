@@ -109,6 +109,8 @@
 <weaponAnim name="CRYSTAL_HEAVY_1"><sheet>CRYSTAL_HEAVY_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="CRYSTAL_HEAVY_2" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_HEAVY_2.png</animSheet>
 <weaponAnim name="CRYSTAL_HEAVY_2"><sheet>CRYSTAL_HEAVY_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
+<animSheet name="flak-artillery" w="26" h="14" fw="26" fh="14">weapons/flak-artillery.png</animSheet>
+<weaponAnim name="flak-artillery"><sheet>flak-artillery</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="ARTILLERY_BOSS_1" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_1.png</animSheet>
 <weaponAnim name="ARTILLERY_BOSS_1"><sheet>ARTILLERY_BOSS_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="ARTILLERY_BOSS_3" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_3.png</animSheet>
@@ -223,6 +225,8 @@
 <anim name="CRYSTAL_HEAVY_1_shot"><sheet>CRYSTAL_HEAVY_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
 <animSheet name="CRYSTAL_HEAVY_2_shot" w="8" h="8" fw="8" fh="8">weapons/CRYSTAL_HEAVY_2_shot.png</animSheet>
 <anim name="CRYSTAL_HEAVY_2_shot"><sheet>CRYSTAL_HEAVY_2_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
+<animSheet name="flak-artillery_shot" w="8" h="8" fw="8" fh="8">weapons/flak-artillery_shot.png</animSheet>
+<anim name="flak-artillery_shot"><sheet>flak-artillery_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
 <animSheet name="ARTILLERY_BOSS_1_shot" w="8" h="8" fw="8" fh="8">weapons/ARTILLERY_BOSS_1_shot.png</animSheet>
 <anim name="ARTILLERY_BOSS_1_shot"><sheet>ARTILLERY_BOSS_1_shot</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
 <animSheet name="ARTILLERY_BOSS_3_shot" w="8" h="8" fw="8" fh="8">weapons/ARTILLERY_BOSS_3_shot.png</animSheet>

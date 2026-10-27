@@ -13,7 +13,7 @@ import {
 import { flushSync } from "react-dom";
 import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { currentLocale, localeFace, localeLabel, selectLocale } from "@/game/locale";
-import { choiceBlue, choiceOmitted } from "@/game/wiki/choice-locks";
+import { choiceBlue, offeredChoices } from "@/game/wiki/choice-locks";
 import { ArchiveBed } from "./ArchiveBed";
 import { ArchiveCopy, ArchiveLines } from "./ArchiveCopy";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
@@ -37,7 +37,13 @@ import {
   packLocales,
   weaponDef,
 } from "@stl/pack";
-import { crewCopy, droneCopy, phraseOr, weaponCopy } from "@/game/interface-copy";
+import {
+  crewCopy,
+  droneCopy,
+  phraseOr,
+  weaponCopy,
+  weaponDamageLabel,
+} from "@/game/interface-copy";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { beaconMark } from "@/game/beacon-mark";
 import { scanMark } from "@/game/extras/augments";
@@ -771,7 +777,7 @@ export function GameApp() {
       if (!digit) return;
       const n = Number(digit[1]) - 1;
       if (g.phase === "event" && g.event && plain) {
-        const choice = g.event.choices[n];
+        const choice = offeredChoices(g, g.event.choices)[n];
         if (!choice || choiceDisabled(g, choice.id) || choicesLocked()) return;
         e.preventDefault();
         noteChoice();
@@ -2714,7 +2720,7 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
                   type="button"
                   className={`sub-orb${id === "doors" && game.mode === "vent" ? " is-on" : ""}${flash ? ` ${flash}` : ""}${rim.className ? ` ${rim.className}` : ""}`}
                   style={rim.style}
-                  aria-label={id === "doors" ? "Doors" : systemLabel(id)}
+                  aria-label={systemLabel(id)}
                   aria-pressed={id === "doors" ? game.mode === "vent" : undefined}
                   onClick={() => {
                     if (id === "doors") {
@@ -3701,16 +3707,6 @@ function EventModal({ game }: { game: Game }) {
   );
 }
 
-/** Hidden unmet choices stay off the card. An empty offer still has Continue. */
-function shownChoices(
-  game: Game,
-  choices: { id: string; label: string }[],
-): { id: string; label: string }[] {
-  const ids = choices.map((choice) => choice.id);
-  const shown = choices.filter((choice) => !choiceOmitted(game, choice.id, ids));
-  return shown.length > 0 ? shown : [{ id: "ack", label: "Continue" }];
-}
-
 function EventCard({ game }: { game: Game }) {
   const locked = useArrivalLock();
   const event = game.event;
@@ -3738,7 +3734,7 @@ function EventCard({ game }: { game: Game }) {
           </>
         ) : null}
         <div className={`choice-list${locked ? " is-arming" : ""}`}>
-          {shownChoices(game, event.choices).map((c, index) => {
+          {offeredChoices(game, event.choices).map((c, index) => {
             const why = choiceDisabled(game, c.id);
             const blue = choiceBlue(game, c.id);
             return (
@@ -4013,6 +4009,7 @@ function OfferCards({
   const augFate = augment ? bonusAugmentFate(game, augment) : undefined;
   const droneKey = drone ? droneKeyOf(drone) : null;
   const def = weapon ? weaponDef(weapon) : undefined;
+  const hit = def ? weaponDamageLabel(def) : null;
   const rackFull = game.player.weapons.length >= weaponSlotCap(game);
   const crewFull = game.crew.filter((c) => c.side === "player").length >= CREW_CAP;
   const kin = crew ? raceKin(crew) : undefined;
@@ -4034,11 +4031,7 @@ function OfferCards({
                 {def.power}
               </span>
               <span title={"Charge time"}>{def.charge}s</span>
-              {def.damage > 0 ? (
-                <span title={"Damage per shot"}>
-                  {def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg
-                </span>
-              ) : null}
+              {hit ? <span title={"Damage per shot"}>{hit} dmg</span> : null}
               {def.ion > 0 ? <span title={phraseOr("type_ion", "Ion")}>{def.ion} ion</span> : null}
               {def.ammo ? (
                 <span title={"Uses a missile"}>
@@ -5791,6 +5784,7 @@ function CargoList({
             }
             const def = weaponDef(w.defId);
             const name = def?.name ?? w.defId;
+            const hit = def ? weaponDamageLabel(def) : null;
             const dragging = guns.from === index;
             const drop = guns.over === index && guns.from !== index;
             return (
@@ -5820,11 +5814,7 @@ function CargoList({
                         {def.power}
                       </span>
                       <span title={"Charge time"}>{def.charge}s</span>
-                      {def.damage > 0 ? (
-                        <span title={"Damage per shot"}>
-                          {def.shots > 1 ? `${def.shots}×${def.damage}` : def.damage} dmg
-                        </span>
-                      ) : null}
+                      {hit ? <span title={"Damage per shot"}>{hit} dmg</span> : null}
                       {def.ammo ? (
                         <span title={"Uses a missile"}>
                           <PixelIcon name="missile" size={12} />

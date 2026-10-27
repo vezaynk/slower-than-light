@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
+import { systemLabel } from "../content.ts";
 import { buy, createGame } from "../sim.ts";
 import type { Game, Kit, KitId } from "../types.ts";
 import { citedStock, storeSections, type StoreSection } from "../wiki/cited-stores.ts";
@@ -40,6 +41,20 @@ describe("system listings", () => {
     assert.equal(systemDef("shields")?.cost, 125);
     assert.equal(systemDef("doors")?.name, "Door System");
     assert.equal(systemDef("doors")?.cost, 60);
+    // A tune with no title is not a system row. The power bar still has a short name.
+    // Doors is sold as "Door System"; the bar says "Doors".
+    assert.equal(systemDef("engines"), undefined);
+    assert.equal(systemDef("oxygen"), undefined);
+    assert.equal(systemDef("weapons"), undefined);
+    assert.equal(systemDef("pilot"), undefined);
+    assert.equal(systemDef("artillery"), undefined);
+    assert.equal(systemLabel("engines"), "Engines");
+    assert.equal(systemLabel("oxygen"), "Oxygen");
+    assert.equal(systemLabel("weapons"), "Weapons");
+    assert.equal(systemLabel("pilot"), "Piloting");
+    assert.equal(systemLabel("artillery"), "Artillery");
+    assert.equal(systemLabel("doors"), "Doors");
+    assert.equal(systemLabel("shields"), "Shields");
     const shields = systemDef("shields");
     const veil = systemDef("cloaking");
     assert.ok(shields && veil);
@@ -60,6 +75,7 @@ describe("system listings", () => {
     const hit = citedStock(g).find((item) => item.ref === "shields");
     assert.ok(hit);
     assert.equal(hit.name, "Bulwark");
+    assert.equal(systemLabel("shields"), "Bulwark");
     assert.equal(hit.cost, 200);
     // Wiki citations:
     // > "Stealth Cruisers start without Shields system, and can buy one at a store for 125 scrap. This gives them Shields-2." — [[Shields#System Upgrades]]

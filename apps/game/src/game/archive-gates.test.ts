@@ -16,7 +16,7 @@ import {
   step,
 } from "./sim.ts";
 import type { Game, Kit, Shot } from "./types.ts";
-import { choiceBlue, choiceOmitted } from "./wiki/choice-locks.ts";
+import { choiceBlue, choiceOmitted, offeredChoices } from "./wiki/choice-locks.ts";
 import { citedCrewDamage } from "./wiki/cited-weapons.ts";
 import { flak2Landing, flakScatterRadius } from "./wiki/weapons-flak-crystal.ts";
 
@@ -63,8 +63,16 @@ describe("archive gates and combat figures", () => {
     const medbay = id("Medbay band.");
     g.player.systems.medbay.level = 1;
     assert.equal(choiceOmitted(g, medbay, ids), true);
+    assert.deepEqual(
+      offeredChoices(g, [{ id: medbay, label: "Medbay band." }]).map((choice) => choice.id),
+      ["ack"],
+    );
+    assert.equal(choiceDisabled(g, "ack"), null);
     choose(g, medbay);
     assert.equal(g.phase, "event");
+    choose(g, "ack");
+    assert.equal(g.event, null);
+    assert.equal(g.phase, "map");
     g.player.systems.medbay.level = 2;
     assert.equal(choiceOmitted(g, medbay, ids), false);
     assert.equal(choiceDisabled(g, medbay), null);
@@ -95,6 +103,10 @@ describe("archive gates and combat figures", () => {
     } as Kit;
     assert.equal(choiceOmitted(g, low, ids), true);
     assert.equal(choiceOmitted(g, high, ids), false);
+    assert.deepEqual(
+      offeredChoices(g, g.event?.choices ?? []).map((choice) => choice.id),
+      [reactor, high, id("Continue.")],
+    );
     g.player.kits.hacking.level = 1;
     assert.equal(choiceOmitted(g, low, ids), false);
     assert.equal(choiceOmitted(g, high, ids), true);

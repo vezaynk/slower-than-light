@@ -347,6 +347,20 @@ export function choiceOmitted(g: Game, id: string, siblings: readonly string[]):
   return !!req && choice.hidden === true && !attrMet(g, req);
 }
 
+/**
+ * Choices the card shows, in that order.
+ * Hidden unmet rows and `max_group` losers stay off. An empty offer is Continue.
+ */
+export function offeredChoices<T extends { id: string; label: string }>(
+  g: Game,
+  choices: readonly T[],
+): T[] {
+  const ids = choices.map((choice) => choice.id);
+  const shown = choices.filter((choice) => !choiceOmitted(g, choice.id, ids));
+  if (shown.length > 0) return [...shown];
+  return [{ id: "ack", label: "Continue" } as T];
+}
+
 /** Met gear is blue unless the choice says `blue="false"`. A choice with no req is not blue. */
 export function choiceBlue(g: Game, id: string): boolean {
   const choice = packedChoice(id);

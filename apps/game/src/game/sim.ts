@@ -3657,10 +3657,15 @@ export function applyImpact(g: Game, shot: Shot) {
     // Template:In-game tips, Heal Bomb: a Healing Burst can still miss the enemy ship.
     const evade = evasionPercent(g, ship, aboard);
     const ownHull = ownBomb && playerTarget === (shot.from === "player");
+    // `<sysDamage>` is the system bars. `<damage>` stays hull, which a bomb writes as 0.
+    // A shot built with only `damage` and no tag keeps that number for the bars.
+    const bars = shot.defId ? weaponDef(shot.defId)?.sysDamage : undefined;
+    const systemFigure = bars != null ? bars : shot.damage;
     if (!ownHull && rand(g) * 100 < evade) {
       if (playerTarget) {
         noteDodge(g);
-        noteAchieve(g, { k: "evade", missed: true, damage: shot.damage });
+        const avoided = systemFigure > 0 ? systemFigure : shot.damage;
+        noteAchieve(g, { k: "evade", missed: true, damage: avoided });
       }
       log(g, playerTarget ? "Bomb missed the Lark." : "They slipped the bomb.");
       floatAt(g, "MISS", playerTarget ? 70 : 30, 20);
@@ -3681,10 +3686,6 @@ export function applyImpact(g: Game, shot: Shot) {
       shot.from === "player" &&
       g.augments.includes("ZOLTAN_BYPASS") &&
       bypassZoltan("bomb") === "pass";
-    // `<sysDamage>` is the system bars. `<damage>` stays hull, which a bomb writes as 0.
-    // A shot built with only `damage` and no tag keeps that number for the bars.
-    const bars = shot.defId ? weaponDef(shot.defId)?.sysDamage : undefined;
-    const systemFigure = bars != null ? bars : shot.damage;
     const crewFigure = shot.defId ? weaponDef(shot.defId)?.crewDamage : undefined;
     // Zoltan Shield, lead: ion weapons deal double damage to the bubble. Ion and stun bombs carry ion and no hull damage.
     // The page does not say leftover ion reaches a system, so a hit that touches the bubble stops there.
@@ -8292,15 +8293,16 @@ export function waitHere(g: Game) {
   // chances of being found by a ship, either hostile or friendly". Template:Locations outoffuel=distresson/distressoff
   // picks the page pool; wiki/cited-fuel.ts rollFuelWait picks one. Per the user: distress is on unless turned off.
   if (g.fuel <= 0 && b) {
-    const pick = rollFuelWait(() => rand(g), g.distress !== false);
+    const picked = rollFuelWait(() => rand(g), g.distress !== false);
+    if (!picked) return;
     const event =
-      "fail" in pick
+      "fail" in picked
         ? {
             title: "No fuel",
-            body: pick.fail,
+            body: picked.fail,
             choices: [{ id: "fuel-wait-done", label: "Continue..." }],
           }
-        : citedEvent(g, { ...b, flag: pick.flag, name: pick.dest });
+        : citedEvent(g, { ...b, flag: picked.flag, name: picked.dest });
     if (event) {
       g.event = event;
       g.phase = "event";

@@ -8,6 +8,13 @@ export function crewNames(race: string): readonly string[] {
   return byRace.get(race) ?? [];
 }
 
+/** Every English name in data/names.xml, in file order. */
+export function allCrewNames(): readonly string[] {
+  const names: string[] = [];
+  for (const list of byRace.values()) names.push(...list);
+  return names;
+}
+
 /**
  * English `<nameList>` rows in data/names.xml. A language attribute is a translation.
  * Male and female lists for one race are one pool. Sector `<nameList>` rows live in other files.

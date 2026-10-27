@@ -12,7 +12,7 @@ import {
 } from "@stl/pack";
 import type { HullDef, WeaponBlueprint } from "@stl/pack";
 import { weightedBlueprint } from "../archive-pay.ts";
-import { weaponCopy } from "../interface-copy.ts";
+import { weaponCopy, weaponDamageLabel } from "../interface-copy.ts";
 import "./base.ts";
 import { choose, commitJump, createGame, waitHere } from "../sim.ts";
 import { overtaken } from "../wiki/sector-map.ts";
@@ -448,6 +448,9 @@ describe("archive event payoffs", () => {
     assert.deepEqual(weaponCopy({ kind: "laser", ion: 0, ammo: false }), ["Laser"]);
     assert.deepEqual(weaponCopy({ kind: "beam" }), ["Beam"]);
     assert.deepEqual(weaponCopy({ kind: "bomb", ion: 2, ammo: false }), ["Bomb"]);
+    assert.equal(weaponDamageLabel({ damage: 2, shots: 2 }), "2×2");
+    assert.equal(weaponDamageLabel({ damage: 0, sysDamage: 2, shots: 1 }), "2");
+    assert.equal(weaponDamageLabel({ damage: 0, sysDamage: -8, shots: 1 }), null);
     assert.deepEqual(weaponCopy({ kind: "flak" }), ["Burst"]);
     assert.deepEqual(weaponCopy({ kind: "missile", ammo: true }), ["Missile"]);
     assert.deepEqual(weaponCopy({ kind: "missile", ammo: false }), ["Crystal"]);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { eventDef } from "@stl/pack";
+import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import { createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
 import "../pack/base.ts";
@@ -132,6 +132,30 @@ describe("waiting with no fuel (per the user: distress beacon toggle)", () => {
       const share = fails / 4000;
       // No fuel: wait fail, Trivia: 16.7% with the beacon on, 36.4% with it off.
       assert.ok(Math.abs(share - (on ? 0.167 : 0.364)) < 0.03, String(share));
+    }
+  });
+
+  it("still draws a page when the archive stored the event id as its title", () => {
+    const flags = new Set([...DISTRESS_ON, ...DISTRESS_OFF].map((row) => row.flag));
+    const events = [...flags].map((id) => {
+      const row = eventDef(id);
+      assert.ok(row, id);
+      return { ...row, dest: row.id, aliases: [] };
+    });
+    loadPack({ events }, "append");
+    try {
+      assert.deepEqual(citedFuelCandidates(true), DISTRESS_ON);
+      assert.deepEqual(citedFuelCandidates(false), DISTRESS_OFF);
+      const delay = rollFuelWait(() => 0.37, false);
+      assert.deepEqual(delay, {
+        flag: "FUEL_FLEET_DELAY",
+        dest: "No fuel: Rebel fleet delay",
+      });
+      const page = rollFuelWait(() => 0.5, true);
+      assert.equal("fail" in page, false);
+      if (!("fail" in page)) assert.match(page.dest, /^No fuel: /);
+    } finally {
+      resetPackForTests();
     }
   });
 });

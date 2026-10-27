@@ -5,16 +5,45 @@
  */
 import { type KinId } from "./extras/kin.ts";
 import "./pack/base.ts";
-import { crewDef, textList } from "@stl/pack";
+import { allCrewNames, crewDef, textList } from "@stl/pack";
 import type { Crew } from "./types.ts";
+
+/** Invented names. Used when the archive has neither CREW_POOL nor data/names.xml. */
+const CREW_FALLBACK = ["Ada Voss", "Ivo Park", "Nen Hale", "Brin Sol", "Quill Ade", "Mara Kent"];
+
+/** Invented syllables. Used when the archive has no NAME_SYLLABLES list. */
+const SYLLABLE_FALLBACK = [
+  "ka",
+  "ren",
+  "vo",
+  "li",
+  "mar",
+  "tes",
+  "an",
+  "dru",
+  "sel",
+  "ko",
+  "ny",
+  "bel",
+  "ta",
+  "ri",
+  "os",
+];
 
 function listLines(id: string): string[] {
   return (textList(id)?.lines ?? []).flatMap((line) => ("text" in line ? [line.text] : []));
 }
 
-/** Names a new crew member can take. Read when asked, so a later pack is visible. */
+/**
+ * Names a new crew member can take. Read when asked, so a later pack is visible.
+ * The stand-in list wins. A real archive uses data/names.xml. Otherwise the invented pool.
+ */
 export function crewPool(): string[] {
-  return listLines("CREW_POOL");
+  const listed = listLines("CREW_POOL");
+  if (listed.length > 0) return listed;
+  const archive = allCrewNames();
+  if (archive.length > 0) return [...archive];
+  return [...CREW_FALLBACK];
 }
 
 /** Uniform swatches. Index 5 is the enemy red and is not offered in the hangar. */
@@ -71,8 +100,14 @@ export function uniformOf(crew: Pick<Crew, "side" | "tone" | "uniform">) {
 }
 
 export function randomName(rand: () => number = Math.random) {
-  const syllables = listLines("NAME_SYLLABLES");
-  if (syllables.length === 0) return "Crew";
+  const listed = listLines("NAME_SYLLABLES");
+  if (listed.length === 0) {
+    const archive = allCrewNames();
+    if (archive.length > 0) {
+      return archive[Math.floor(rand() * archive.length)]!.slice(0, NAME_MAX);
+    }
+  }
+  const syllables = listed.length > 0 ? listed : [...SYLLABLE_FALLBACK];
   const part = (n: number) =>
     Array.from({ length: n }, () => syllables[Math.floor(rand() * syllables.length)]).join("");
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

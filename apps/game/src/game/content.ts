@@ -3,9 +3,34 @@ import type { Difficulty, SysId } from "./types";
 
 export type WeaponDef = WeaponBlueprint;
 
-/** Player-facing system name from the loaded blueprint. */
+/**
+ * Short names for systems the archive leaves untitled.
+ * Doors is sold as "Door System"; the power bar and its aria say "Doors".
+ */
+const HUD_SYSTEM: Record<string, string> = {
+  shields: "Shields",
+  engines: "Engines",
+  oxygen: "Oxygen",
+  medbay: "Medbay",
+  weapons: "Weapons",
+  pilot: "Piloting",
+  sensors: "Sensors",
+  doors: "Doors",
+  artillery: "Artillery",
+  drones: "Drone Control",
+  clonebay: "Clone Bay",
+  cloaking: "Cloaking",
+  hacking: "Hacking",
+  mind: "Mind Control",
+  teleporter: "Crew Teleporter",
+  battery: "Backup Battery",
+};
+
+/** Player-facing system name. A stored title wins, except the doors shelf name. */
 export function systemLabel(id: string): string {
-  return systemDef(id)?.name ?? id;
+  const named = systemDef(id)?.name;
+  if (named && named !== id && !(id === "doors" && named === "Door System")) return named;
+  return HUD_SYSTEM[id] ?? named ?? id;
 }
 
 export const MAIN_SYSTEMS: SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons"];

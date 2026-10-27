@@ -7,23 +7,27 @@ import { allEvents } from "@stl/pack";
 
 type OutOfFuel = "distresson" | "distressoff" | "distressboth";
 
-/** Dest order is the seven written pages, then the extra pages. Not a shuffle. */
-const FUEL_PAGES: { dest: string; side: OutOfFuel }[] = [
-  { dest: "No fuel: Auto-ship warning", side: "distresson" },
-  { dest: "No fuel: Engi ship repair", side: "distressoff" },
-  { dest: "No fuel: Mantis fight", side: "distresson" },
-  { dest: "No fuel: Rebel fight", side: "distresson" },
-  { dest: "No fuel: Slug fuel depot", side: "distresson" },
-  { dest: "No fuel: automated refueling ship", side: "distresson" },
-  { dest: "No fuel: explore the system", side: "distressboth" },
-  { dest: "No fuel: Rebel fleet delay", side: "distressoff" },
-  { dest: "No fuel: friendly refugee", side: "distressoff" },
-  { dest: "No fuel: Slug fuel trader", side: "distresson" },
-  { dest: "No fuel: drifting debris", side: "distressoff" },
-  { dest: "No fuel: fuel trader (distress off)", side: "distressoff" },
-  { dest: "No fuel: fuel trader (distress on)", side: "distresson" },
-  { dest: "No fuel: prepare to dock", side: "distressboth" },
-  { dest: "No fuel: refugee trading", side: "distresson" },
+/**
+ * Dest order is the seven written pages, then the extra pages. Not a shuffle.
+ * `id` is the archive event name. A real ftl.dat event has no `<title>`, so its
+ * stored dest is that id. The stand-in also stores the written title.
+ */
+const FUEL_PAGES: { id: string; dest: string; side: OutOfFuel }[] = [
+  { id: "FUEL_ON_REBEL_WARNING", dest: "No fuel: Auto-ship warning", side: "distresson" },
+  { id: "FUEL_OFF_ENGI_DUBIOUS", dest: "No fuel: Engi ship repair", side: "distressoff" },
+  { id: "FUEL_ON_MANTIS_ATTACK", dest: "No fuel: Mantis fight", side: "distresson" },
+  { id: "FUEL_ON_REBEL_ATTACK", dest: "No fuel: Rebel fight", side: "distresson" },
+  { id: "FUEL_ON_SLUG_OVERPRICED", dest: "No fuel: Slug fuel depot", side: "distresson" },
+  { id: "FUEL_SELLER_DISTRESS", dest: "No fuel: automated refueling ship", side: "distresson" },
+  { id: "FUEL_EXPLORE", dest: "No fuel: explore the system", side: "distressboth" },
+  { id: "FUEL_FLEET_DELAY", dest: "No fuel: Rebel fleet delay", side: "distressoff" },
+  { id: "NO_FUEL_REFUGEE_FRIENDLY", dest: "No fuel: friendly refugee", side: "distressoff" },
+  { id: "FUEL_ON_SLUG_CHUCKLE", dest: "No fuel: Slug fuel trader", side: "distresson" },
+  { id: "FUEL_OFF_ROCK_WRECK", dest: "No fuel: drifting debris", side: "distressoff" },
+  { id: "FUEL_TRADER", dest: "No fuel: fuel trader (distress off)", side: "distressoff" },
+  { id: "FUEL_TRADER_DISTRESS", dest: "No fuel: fuel trader (distress on)", side: "distresson" },
+  { id: "FUEL_APPROACH", dest: "No fuel: prepare to dock", side: "distressboth" },
+  { id: "NO_FUEL_REFUGEE", dest: "No fuel: refugee trading", side: "distresson" },
 ];
 
 const WAIT_FAIL: Record<"on" | "off", string[]> = {
@@ -51,15 +55,28 @@ const WAIT_FAIL: Record<"on" | "off", string[]> = {
   ],
 };
 
+/** A loaded fuel page. Matches the archive id or the written title. */
+function loadedFuel(page: { id: string; dest: string }) {
+  return allEvents().find(
+    (row) =>
+      row.id === page.id ||
+      row.flag === page.id ||
+      row.dest === page.dest ||
+      row.dest === page.id ||
+      row.aliases.includes(page.id) ||
+      row.aliases.includes(page.dest),
+  );
+}
+
 /** Loaded pages whose distress side matches. `flag` is the id the pack stored. */
 export function citedFuelCandidates(distressOn: boolean): { flag: string; dest: string }[] {
   const side: OutOfFuel = distressOn ? "distresson" : "distressoff";
   const out: { flag: string; dest: string }[] = [];
   for (const page of FUEL_PAGES) {
     if (page.side !== side && page.side !== "distressboth") continue;
-    const ev = allEvents().find((row) => row.dest === page.dest);
+    const ev = loadedFuel(page);
     if (!ev) continue;
-    out.push({ flag: ev.id, dest: ev.dest });
+    out.push({ flag: ev.id, dest: ev.dest === page.dest ? ev.dest : page.dest });
   }
   return out;
 }
@@ -83,5 +100,8 @@ export function rollFuelWait(
   const delay = pages.find((page) => page.dest === "No fuel: Rebel fleet delay");
   if (!distressOn && delay && r < failShare + 0.09) return delay;
   const rest = pages.filter((page) => page !== delay);
-  return rest[Math.min(rest.length - 1, Math.floor(roll() * rest.length))]!;
+  const drawn = rest[Math.min(rest.length - 1, Math.floor(roll() * rest.length))];
+  if (drawn) return drawn;
+  const lines = WAIT_FAIL[distressOn ? "on" : "off"];
+  return { fail: lines[Math.min(lines.length - 1, Math.floor(roll() * lines.length))]! };
 }

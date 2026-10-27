@@ -1389,12 +1389,33 @@ button:disabled {
   background: var(--color-ok);
 }
 
+/* Per the user: the stage fills the whole view, so the skybox shows behind the HUD, crew list, dock and target panel.
+   It is a subgrid of .play, so the ship and the map overlays stay in the stage cell at their old size. The other
+   panels sit above it (z-index 2 and up), and only the stage cell takes clicks. */
 .stage-slot {
-  grid-area: stage;
+  grid-area: 1 / 1 / -1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
   min-width: 0;
   min-height: 0;
   position: relative;
   z-index: 1;
+  pointer-events: none;
+}
+
+.stage-slot > * {
+  grid-area: stage;
+  min-width: 0;
+  min-height: 0;
+}
+
+.stage-slot > .sky-field {
+  grid-area: 1 / 1 / -1 / -1;
+}
+
+.stage-slot > :not(.sky-field) {
+  pointer-events: auto;
 }
 
 .sky {

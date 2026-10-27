@@ -122,10 +122,13 @@ export function roomGridPixels(
 
 /**
  * The layout ELLIPSE drawn in the hull well.
- * Diameters are archive pixels. The well is the room grid, so one archive pixel is
- * the grid pitch divided by `ROOM_PX`. The picture box is larger than that grid and is not the scale.
+ * Its width and height are radii in archive pixels: Kestrel's `350 220` pairs with a 700x440 shield image.
+ * The well is the room grid, so one archive pixel is the grid pitch divided by `ROOM_PX`.
+ * The picture box is larger than that grid and is not the scale.
  * The oval's center is the image center plus the file's x and y, shifted from the room-grid center.
- * HORIZONTAL widens the radius. VERTICAL raises it. The layer pad is added after the scale.
+ * HORIZONTAL and VERTICAL move that center further. They do not change the radii:
+ * Mantis Scout's ELLIPSE y is -160 and its VERTICAL is 165, which puts the oval on the hull.
+ * The layer pad is added after the scale.
  * `scale` is screen pixels per archive pixel. Without it, the well size stands in for the grid pitch.
  */
 export function shieldOval(
@@ -146,10 +149,10 @@ export function shieldOval(
   const originX = picture.x - (offset?.x ?? 0);
   const originY = picture.y - (offset?.y ?? 0);
   return {
-    rx: (ellipse.w / 2 + (horizontal ?? 0)) * sx + pad,
-    ry: (ellipse.h / 2 + (vertical ?? 0)) * sy + pad,
-    dx: (originX + picture.w / 2 + ellipse.x - span.w / 2) * sx,
-    dy: (originY + picture.h / 2 + ellipse.y - span.h / 2) * sy,
+    rx: ellipse.w * sx + pad,
+    ry: ellipse.h * sy + pad,
+    dx: (originX + picture.w / 2 + ellipse.x + (horizontal ?? 0) - span.w / 2) * sx,
+    dy: (originY + picture.h / 2 + ellipse.y + (vertical ?? 0) - span.h / 2) * sy,
   };
 }
 

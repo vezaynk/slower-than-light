@@ -255,7 +255,10 @@ export type HullDoor = {
   vertical: number;
 };
 
-/** The four ELLIPSE integers, in file order: width, height, x, y. */
+/**
+ * The four ELLIPSE integers, in file order. `w` and `h` are the shield's radii in archive pixels,
+ * so the shield image is twice that size. `x` and `y` move the center.
+ */
 export type HullEllipse = {
   w: number;
   h: number;

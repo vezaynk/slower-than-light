@@ -44,7 +44,7 @@ import {
   flagshipLayoutStem,
   type FlagshipDifficulty,
 } from "../flagship-layouts.ts";
-import { LAYOUT_FILE, SHIP_LAYOUTS, standInShieldPad } from "../ship-layouts.ts";
+import { LAYOUT_FILE, SHIP_LAYOUTS, standInShieldShift } from "../ship-layouts.ts";
 import { standInSheet } from "../ship-art.ts";
 import { MOUNT_IMAGES, mountsFor } from "../weapon-mounts.ts";
 import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
@@ -474,7 +474,7 @@ function hullRow(spec: HullSpec): HullDef {
   const source = SHIP_LAYOUTS[spec.id];
   const stem = LAYOUT_FILE[spec.id];
   if (source) row.grid = gridFromLayout(source);
-  if (stem && row.grid) standInShieldPad(stem, row.grid);
+  if (stem && row.grid) standInShieldShift(stem, row.grid);
   blueprintFields(row, spec, source?.rooms ?? []);
   return paintHull(row, stem);
 }

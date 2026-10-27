@@ -104,12 +104,13 @@ export function gridFromLayout(layout: LayoutSource): HullGrid {
 /**
  * Shield oval for the painted plate. `pictureForRooms` is the rooms plus one cell,
  * which is the margin `hullMask` paints. A tight room box leaves that plate outside the bubble.
+ * ELLIPSE stores radii, so each is half the plate, rounded up so the oval still reaches the edge.
  * x and y stay 0, so the oval is centered on the image. A layout with no rooms has no oval.
  */
 function ellipseForRooms(rooms: readonly HullRoom[]): HullEllipse | undefined {
   const plate = pictureForRooms(rooms);
   if (!plate) return undefined;
-  return { w: plate.w, h: plate.h, x: 0, y: 0 };
+  return { w: Math.ceil(plate.w / 2), h: Math.ceil(plate.h / 2), x: 0, y: 0 };
 }
 
 /** One token per line, in the order a layout file uses. */

@@ -250,26 +250,38 @@ describe("archive gates and combat figures", () => {
     const pad = 8;
     const span = roomGridPixels(hard.grid.rooms);
     assert.ok(span);
-    // The painted plate is one cell outside the rooms, so the oval is wider and taller than the grid.
-    assert.ok(hard.grid.ellipse.w > span.w);
-    assert.ok(hard.grid.ellipse.h > span.h);
+    // ELLIPSE stores radii. The painted plate is one cell outside the rooms, so the oval is wider and taller than the grid.
+    assert.ok(hard.grid.ellipse.w * 2 > span.w);
+    assert.ok(hard.grid.ellipse.h * 2 > span.h);
     const oval = shieldOval(box, hard.picture, hard.grid.ellipse, pad, span, 6, 4);
     assert.ok(oval);
     const sx = box.w / span.w;
     const sy = box.h / span.h;
-    assert.equal(oval.rx, (hard.grid.ellipse.w / 2 + 6) * sx + pad);
-    assert.equal(oval.ry, (hard.grid.ellipse.h / 2 + 4) * sy + pad);
+    // HORIZONTAL 6 and VERTICAL 4 move the center. They do not grow the radii.
+    assert.equal(oval.rx, hard.grid.ellipse.w * sx + pad);
+    assert.equal(oval.ry, hard.grid.ellipse.h * sy + pad);
     assert.equal(
       oval.dx,
-      (hard.picture.x + hard.picture.w / 2 + hard.grid.ellipse.x - span.w / 2) * sx,
+      (hard.picture.x + hard.picture.w / 2 + hard.grid.ellipse.x + 6 - span.w / 2) * sx,
     );
     assert.equal(
       oval.dy,
-      (hard.picture.y + hard.picture.h / 2 + hard.grid.ellipse.y - span.h / 2) * sy,
+      (hard.picture.y + hard.picture.h / 2 + hard.grid.ellipse.y + 4 - span.h / 2) * sy,
     );
     // The picture box is larger than the room grid. Scaling by it shrinks the bubble.
-    const shrunk = (hard.grid.ellipse.h / 2 + 4) * (box.h / hard.picture.h) + pad;
+    const shrunk = hard.grid.ellipse.h * (box.h / hard.picture.h) + pad;
     assert.ok(oval.ry > shrunk);
+    // The real Kestrel: ELLIPSE 350 220 -30 0 and a 652x418 image. The radii reach past the painted hull.
+    const kestrel = shieldOval(
+      box,
+      { x: -59, y: -103, w: 652, h: 418 },
+      { w: 350, h: 220, x: -30, y: 0 },
+      0,
+      span,
+    );
+    assert.ok(kestrel);
+    assert.ok(kestrel.rx > (652 / 2) * sx);
+    assert.ok(kestrel.ry > (418 / 2) * sy);
     assert.deepEqual(baseGlowShift({ x: 4, y: -2 }), { offsetX: -4, offsetY: 2 });
     assert.deepEqual(baseGlowShift({ x: 0, y: 0 }), { offsetX: 0, offsetY: 0 });
     assert.equal(fillerList("STANDIN_EMPTY")?.entries.length, 0);

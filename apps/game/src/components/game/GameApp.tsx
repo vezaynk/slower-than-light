@@ -81,7 +81,6 @@ import {
   raiseSwarmPower,
   reorderDroneSlots,
   roomDroneHp,
-  toggleSwarmPower,
 } from "@/game/extras/swarm";
 
 import { clampTargetPoint, roomAtPoint, roomCenter, targetableSpan } from "@/game/beam-line";
@@ -124,7 +123,6 @@ import {
   enemyCloneQueue,
   lowerCradlePower,
   raiseCradlePower,
-  toggleCradlePower,
   upgradeCradle,
 } from "@/game/extras/cradle";
 import { sensorSystemDetail } from "@/game/extras/sensors";
@@ -403,8 +401,70 @@ function activateKit(id: KitId) {
   else if (id === "battery") act((g) => startCell(g));
   else if (id === "teleporter") slingIconClick();
   else if (id === "mind") leashIconClick();
-  else if (id === "clonebay") act((g) => toggleCradlePower(g));
-  else if (id === "drones") act((g) => toggleSwarmPower(g));
+}
+
+/**
+ * Kits whose power steps through their own module: Artillery Beam or Flak Artillery, drones, Clone Bay, hacking.
+ * Per the user: they take power the way every other system does, in the dock and in the room's radial menu.
+ */
+type StepKit = "artillery" | "drones" | "clonebay" | "hacking";
+type PowerKit = BarKit | StepKit;
+const STEP_KITS: readonly KitId[] = ["artillery", "drones", "clonebay", "hacking"];
+const BAR_KITS: readonly KitId[] = ["cloaking", "teleporter", "mind"];
+
+function isStepKit(id: KitId): id is StepKit {
+  return STEP_KITS.includes(id);
+}
+
+function isPowerKit(id: KitId): id is PowerKit {
+  return isStepKit(id) || BAR_KITS.includes(id);
+}
+
+function stepKit(g: Game, id: StepKit, up: boolean): void {
+  if (id === "artillery") {
+    // Flak Artillery shares the kit id. The beam is the default, as in tickLance.
+    if (g.player.kits.artillery?.weapon === "ARTILLERY_FED_C") {
+      if (up) raiseFlakPower(g);
+      else lowerFlakPower(g);
+    } else if (up) raiseLancePower(g);
+    else lowerLancePower(g);
+  } else if (id === "drones") {
+    if (up) raiseSwarmPower(g);
+    else lowerSwarmPower(g);
+  } else if (id === "clonebay") {
+    if (up) raiseCradlePower(g);
+    else lowerCradlePower(g);
+  } else if (up) raiseSpikePower(g);
+  else lowerSpikePower(g);
+}
+
+/** One more bar. True when the kit took it. */
+function kitUp(g: Game, id: PowerKit): boolean {
+  if (!isStepKit(id)) return kitPowerUp(g, id);
+  const before = g.player.kits[id]?.power ?? 0;
+  stepKit(g, id, true);
+  return (g.player.kits[id]?.power ?? 0) > before;
+}
+
+/** One bar less. True when the kit gave it up. */
+function kitDown(g: Game, id: PowerKit): boolean {
+  if (!isStepKit(id)) return kitPowerDown(g, id);
+  const before = g.player.kits[id]?.power ?? 0;
+  stepKit(g, id, false);
+  return (g.player.kits[id]?.power ?? 0) < before;
+}
+
+/** Steps the bars toward `next`, one at a time, stopping where the kit's rules refuse (sim.ts setKitBars). */
+function setPowerKitBars(g: Game, id: PowerKit, next: number): void {
+  const kit = g.player.kits[id];
+  if (!kit) return;
+  while (kit.power > next && kitDown(g, id));
+  while (kit.power < next && kitUp(g, id));
+}
+
+/** A tap on the icon: one more bar, and back to 0 from the top (KitPowerButton). */
+function kitTap(g: Game, id: PowerKit): void {
+  if (!kitUp(g, id)) setPowerKitBars(g, id, 0);
 }
 
 /**
@@ -2500,6 +2560,30 @@ function Dock({ game, hackAiming }: { game: Game; hackAiming: boolean }) {
           >
             <PixelIcon name={kitIcon(id, kit.weapon)} size={16} />
           </button>
+        ) : isStepKit(id) ? (
+          // Per the user: artillery, drones and the Clone Bay take power from the icon too. A tap adds a bar and the
+          // top wraps to 0; right click or a long press removes one, as on the main systems.
+          <button
+            type="button"
+            className={`sub-orb${kit.on ? " is-on" : ""}${hacked ? ` is-kit-hacked is-kit-hacked-${hacked}` : ""}${rim.className ? ` ${rim.className}` : ""}`}
+            style={rim.style}
+            data-kit={id}
+            title={label}
+            aria-label={`${label}: add power (right-click removes)`}
+            onPointerDown={(e) => armHold(e, () => act((g) => kitDown(g, id)))}
+            onClick={(e) => {
+              if (swallowHoldClick(e)) return;
+              act((g) => kitTap(g, id));
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (holdTookContext(e.currentTarget)) return;
+              act((g) => kitDown(g, id));
+            }}
+          >
+            <PixelIcon name={kitIcon(id, kit.weapon)} size={16} />
+          </button>
         ) : (
           <button
             type="button"
@@ -3251,18 +3335,17 @@ function RadialPower({ game, roomId }: { game: Game; roomId: string }) {
   }
   const kitId = room.kit;
   const kit = kitId ? game.player.kits[kitId] : undefined;
-  if (!kitId || !kit || (kitId !== "cloaking" && kitId !== "teleporter" && kitId !== "mind"))
-    return null;
-  const barKit: BarKit = kitId;
+  if (!kitId || !kit || !isPowerKit(kitId)) return null;
+  const powerKit: PowerKit = kitId;
   return (
     <>
       {spare}
       <div className="radial-power-row">
-        <KitPowerStack game={game} id={barKit} />
+        <KitPowerStack game={game} id={powerKit} />
         <StepButtons
-          label={KIT_LABEL[barKit]}
-          onDown={() => act((g) => kitPowerDown(g, barKit))}
-          onUp={() => act((g) => kitPowerUp(g, barKit))}
+          label={kitLabel(powerKit, kit.weapon)}
+          onDown={() => act((g) => kitDown(g, powerKit))}
+          onUp={() => act((g) => kitUp(g, powerKit))}
         />
       </div>
     </>
@@ -3314,11 +3397,12 @@ function KitPowerButton({ game, id }: { game: Game; id: BarKit }) {
 }
 
 /** The radial panel's enlarged column for those systems: tap a bar to set it, drag to set, like PowerStack. */
-function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
+function KitPowerStack({ game, id }: { game: Game; id: PowerKit }) {
   const kit = game.player.kits[id]!;
+  const label = kitLabel(id, kit.weapon);
   const slots = Math.max(kit.level, 1);
   const cap = Math.max(0, kit.level - (kit.damage ?? 0));
-  const drag = usePowerDrag((g, n) => setKitBars(g, id, n), slots, cap);
+  const drag = usePowerDrag((g, n) => setPowerKitBars(g, id, n), slots, cap);
   const flash = systemFlashClass(game, id);
   return (
     <div className={`power-stack is-big${flash ? ` ${flash}` : ""}`}>
@@ -3350,11 +3434,11 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
                 .filter(Boolean)
                 .join(" ")}
               style={i === cap && kit.damage ? fixStyle(kit.fix) : hurt}
-              aria-label={`${KIT_LABEL[id]} power ${i + 1}`}
+              aria-label={`${label} power ${i + 1}`}
               onClick={() => {
                 if (i >= cap) return;
                 const next = i < kit.power ? i : i + 1;
-                act((g) => setKitBars(g, id, next));
+                act((g) => setPowerKitBars(g, id, next));
               }}
             />
           );
@@ -3362,10 +3446,10 @@ function KitPowerStack({ game, id }: { game: Game; id: BarKit }) {
       </div>
       <PowerOrb
         ship={game.player}
-        icon={id}
-        label={KIT_LABEL[id]}
-        onUp={() => act((g) => kitPowerUp(g, id))}
-        onDown={() => act((g) => kitPowerDown(g, id))}
+        icon={kitIcon(id, kit.weapon)}
+        label={label}
+        onUp={() => act((g) => kitUp(g, id))}
+        onDown={() => act((g) => kitDown(g, id))}
       />
     </div>
   );
@@ -3455,10 +3539,7 @@ function hasRadialPower(game: Game, roomId: string): boolean {
   const room = game.player.rooms.find((r) => r.id === roomId);
   if (!room) return false;
   if (room.system && MAIN_BARS.includes(room.system)) return true;
-  return (
-    (room.kit === "cloaking" || room.kit === "teleporter" || room.kit === "mind") &&
-    !!game.player.kits[room.kit]
-  );
+  return !!room.kit && isPowerKit(room.kit) && !!game.player.kits[room.kit];
 }
 
 /**

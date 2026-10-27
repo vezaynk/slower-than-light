@@ -1,8 +1,17 @@
 import { hullDef, type HullPicture } from "@stl/pack";
 
 const SHIP_PNG = /^img\/ship\/(.+)_(base|cloak|floor|shields1|gib\d+)\.png$/i;
+/** Enemy plate and gibs. A player hull does not read this folder. */
+const GLOW_PNG = /^img\/ships_glow\/(.+)_(base|gib\d+)\.png$/i;
 
 export type ShipLayer = "base" | "cloak" | "floor" | "shield";
+
+/**
+ * Which ship is on screen. The player plate is `img/ship/<img>_base.png`.
+ * The enemy plate is `img/ships_glow/<img>_base.png`, and that bitmap is the drawing's `<img>` box.
+ * Gibs sit in the same folder as the plate. Cloak, floor, and shield stay in `img/ship`.
+ */
+export type HullPlate = "interior" | "glow";
 
 /** Vanilla cloak art adds this many pixels of outline on every side. */
 const CLOAK_OUTLINE = 10;
@@ -26,14 +35,14 @@ export function shipArtGeneration(): number {
 /**
  * Keeps object URLs for the ship image family.
  * A real archive and the stand-in use the same names: base, cloak, floor, shields1, and gibN.
- * Replacing the archive revokes the previous set. Other blobs stay on the path map.
+ * `img/ship` and `img/ships_glow` stay separate. Replacing the archive revokes the previous set.
  */
 export async function rememberShipArt(assets: ReadonlyMap<string, Blob>): Promise<void> {
   const nextUrls = new Map<string, string>();
   const nextPixels = new Map<string, { w: number; h: number }>();
   const pending: Promise<void>[] = [];
   for (const [path, blob] of assets) {
-    if (!SHIP_PNG.test(path)) continue;
+    if (!SHIP_PNG.test(path) && !GLOW_PNG.test(path)) continue;
     const key = path.toLowerCase();
     const url = objectUrl(blob);
     if (url) nextUrls.set(key, url);
@@ -58,8 +67,15 @@ export function baseImage(id: string): ShipFrame | undefined {
   return shipImage(id, "base");
 }
 
-/** One ship layer. Cloak, floor, and shield fall back to the hull image name. */
-export function shipImage(id: string, layer: ShipLayer): ShipFrame | undefined {
+/**
+ * One ship layer. A blueprint that omits cloak, floor, or shield uses the hull image name.
+ * `plate` picks the folder. It does not try the other folder when the file is absent.
+ */
+export function shipImage(
+  id: string,
+  layer: ShipLayer,
+  plate: HullPlate = "interior",
+): ShipFrame | undefined {
   const hull = hullDef(id);
   if (!hull?.picture) return undefined;
   const name =
@@ -72,46 +88,52 @@ export function shipImage(id: string, layer: ShipLayer): ShipFrame | undefined {
           : hull.img;
   if (!name) return undefined;
   const file = layer === "shield" ? `${name}_shields1` : `${name}_${layer}`;
-  const url = urls.get(shipPath(file));
+  const folder = layer === "base" ? plateFolder(plate) : "img/ship";
+  const url = urls.get(artPath(folder, file));
   if (!url) return undefined;
   const extra =
     layer === "cloak" ? hull.cloakOffset : layer === "floor" ? hull.floorOffset : undefined;
   const placed = frame(url, hull.picture, hull.grid?.x, hull.grid?.y, extra);
-  if (layer === "base") {
+  // glowOffset slides the interior plate. The iPad build is what uses it.
+  // The enemy bitmap already fills the `<img>` box.
+  if (layer === "base" && plate === "interior") {
     const shift = baseGlowShift(hull.glow, hull.grid?.x, hull.grid?.y);
     placed.offsetX = shift.offsetX;
     placed.offsetY = shift.offsetY;
   }
-  if (layer === "cloak" && hull.img && cloakOutline(hull.img, file))
+  if (layer === "cloak" && hull.img && cloakOutline(hull.img, file, plate))
     return withCloakOutline(placed);
   // FTL draws the floor and cloak at their own size from their offset. The base and shield fill the hull box.
-  if (layer === "floor" || layer === "cloak") return ownSize(placed, file);
+  if (layer === "floor" || layer === "cloak") return ownSize(placed, "img/ship", file);
   return placed;
 }
 
-/** Explosion pieces that have both a drawing entry and a png. */
-export function gibImages(id: string): ShipFrame[] {
+/** Explosion pieces that have both a drawing entry and a png in this plate's folder. */
+export function gibImages(id: string, plate: HullPlate = "interior"): ShipFrame[] {
   const hull = hullDef(id);
   if (!hull?.gibs) return [];
   const frames: ShipFrame[] = [];
   for (const gib of hull.gibs) {
-    const frame = gibImage(id, gib.id);
+    const frame = gibImage(id, gib.id, plate);
     if (frame) frames.push(frame);
   }
   return frames;
 }
 
-/** One explosion piece. The file is `img/ship/<img>_gibN.png`. */
-export function gibImage(id: string, gibId: number): ShipFrame | undefined {
+/** One explosion piece. Player gibs are `img/ship/<img>_gibN.png`. Enemy gibs are `img/ships_glow`. */
+export function gibImage(
+  id: string,
+  gibId: number,
+  plate: HullPlate = "interior",
+): ShipFrame | undefined {
   const hull = hullDef(id);
   const gib = hull?.gibs?.find((item) => item.id === gibId);
   if (!hull?.img || !hull.picture || !gib) return undefined;
-  const url = urls.get(shipPath(`${hull.img}_gib${gib.id}`));
+  const folder = plateFolder(plate);
+  const file = `${hull.img}_gib${gib.id}`;
+  const url = urls.get(artPath(folder, file));
   if (!url) return undefined;
-  return ownSize(
-    frame(url, hull.picture, hull.grid?.x, hull.grid?.y, gib),
-    `${hull.img}_gib${gib.id}`,
-  );
+  return ownSize(frame(url, hull.picture, hull.grid?.x, hull.grid?.y, gib), folder, file);
 }
 
 type ShipFrame = {
@@ -121,16 +143,24 @@ type ShipFrame = {
   offsetY: number;
 };
 
-function shipPath(file: string): string {
-  return `img/ship/${file}.png`.toLowerCase();
+function plateFolder(plate: HullPlate): "img/ship" | "img/ships_glow" {
+  return plate === "glow" ? "img/ships_glow" : "img/ship";
+}
+
+function artPath(folder: "img/ship" | "img/ships_glow", file: string): string {
+  return `${folder}/${file}.png`.toLowerCase();
 }
 
 /**
  * The png's own width and height, when it was read. The kestrel floor is 552x235 inside a 652x418 hull box;
  * stretched to the box it hung past the hull. A same-size stand-in png does not change.
  */
-function ownSize(placed: ShipFrame, file: string): ShipFrame {
-  const size = pixels.get(shipPath(file));
+function ownSize(
+  placed: ShipFrame,
+  folder: "img/ship" | "img/ships_glow",
+  file: string,
+): ShipFrame {
+  const size = pixels.get(artPath(folder, file));
   if (!size) return placed;
   return { ...placed, picture: { ...placed.picture, w: size.w, h: size.h } };
 }
@@ -139,9 +169,9 @@ function ownSize(placed: ShipFrame, file: string): ShipFrame {
  * A cloak png that is 20 pixels larger than the base in both axes.
  * That is the vanilla 10px outline. A same-size cloak, which the stand-in draws, is not.
  */
-function cloakOutline(img: string, cloakFile: string): boolean {
-  const base = pixels.get(shipPath(`${img}_base`));
-  const cloak = pixels.get(shipPath(cloakFile));
+function cloakOutline(img: string, cloakFile: string, plate: HullPlate): boolean {
+  const base = pixels.get(artPath(plateFolder(plate), `${img}_base`));
+  const cloak = pixels.get(artPath("img/ship", cloakFile));
   if (!base || !cloak) return false;
   return cloak.w === base.w + CLOAK_OUTLINE * 2 && cloak.h === base.h + CLOAK_OUTLINE * 2;
 }

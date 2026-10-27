@@ -22,6 +22,7 @@ export function HullSkin({
   cols,
   rows,
   rooms,
+  plate = "interior",
   gone = false,
 }: {
   id: string;
@@ -31,14 +32,16 @@ export function HullSkin({
   cols: number;
   rows: number;
   rooms: Room[];
+  /** Player hulls read `img/ship`. Enemy hulls read `img/ships_glow`. */
+  plate?: "interior" | "glow";
   /** The hull has blown apart. Gib images replace the base. */
   gone?: boolean;
 }) {
   const artTick = useSyncExternalStore(subscribeShipArt, shipArtGeneration, () => 0);
-  const base = artTick >= 0 ? shipImage(id, "base") : undefined;
-  const floor = artTick >= 0 ? shipImage(id, "floor") : undefined;
-  const cloak = artTick >= 0 ? shipImage(id, "cloak") : undefined;
-  const gibs = gone && artTick >= 0 ? gibImages(id) : [];
+  const base = artTick >= 0 ? shipImage(id, "base", plate) : undefined;
+  const floor = artTick >= 0 ? shipImage(id, "floor", plate) : undefined;
+  const cloak = artTick >= 0 ? shipImage(id, "cloak", plate) : undefined;
+  const gibs = gone && artTick >= 0 ? gibImages(id, plate) : [];
   const boom = gone ? <ClipSprite name={EFFECT_CLIPS.explosionBig} className="clip-boom" /> : null;
   if (base || floor || gibs.length > 0) {
     return (

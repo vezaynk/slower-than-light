@@ -1,6 +1,6 @@
 /**
  * Per the user: Options › Phone, beside Game files. Send this browser's game files, saved game, and
- * achievements to another device, or receive that set here. The code is the WebRTC session. The bytes
+ * achievements to another device, or receive that set here. The code is a short room code. The bytes
  * move on a data channel. A transfer that stops leaves the files already stored here in place.
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -12,20 +12,19 @@ import {
   handoffInventory,
   type HandoffInventory,
 } from "@/game/handoff/bridge";
-import { absorbTicket } from "@/game/handoff/frame";
 import {
-  createAnswerLink,
-  createOfferLink,
-  type HandoffSocket,
-  type OfferSocket,
+  createReceiveLink,
+  createSendLink,
+  type ReceiveLink,
+  type SendLink,
 } from "@/game/handoff/link";
+import { formatCode, handoffOrigin, normalizeCode } from "@/game/handoff/relay";
 import {
   confirmSaved,
   receiveCollected,
   reportFailure,
   sendCollected,
 } from "@/game/handoff/transfer";
-import type { HandoffBytes, HandoffManifest } from "@/game/handoff/payload";
 
 type Phase = "home" | "preparing" | "need-code" | "exchange" | "transfer" | "saving" | "done";
 type Role = "send" | "receive";
@@ -50,7 +49,7 @@ function QrCode({ text }: { text: string }) {
     } catch {
       return;
     }
-    const scale = Math.max(2, Math.floor(260 / qr.size));
+    const scale = Math.max(4, Math.floor(180 / qr.size));
     canvas.width = qr.size * scale;
     canvas.height = qr.size * scale;
     const ctx = canvas.getContext("2d");
@@ -81,14 +80,14 @@ function QrScan({ onText }: { onText: (text: string) => void }) {
       }
     ).BarcodeDetector;
     if (!Ctor || !navigator.mediaDevices?.getUserMedia) {
-      setProblem("Paste the code. This browser has no QR scanner.");
+      setProblem("Type the code. This browser has no QR scanner.");
       return;
     }
     let detector: Detector;
     try {
       detector = new Ctor({ formats: ["qr_code"] });
     } catch {
-      setProblem("Paste the code. This browser has no QR scanner.");
+      setProblem("Type the code. This browser has no QR scanner.");
       return;
     }
     let stop = false;
@@ -126,7 +125,7 @@ function QrScan({ onText }: { onText: (text: string) => void }) {
         timer = window.setTimeout(tick, 200);
       })
       .catch(() => {
-        if (!stop) setProblem("The camera is not available. Paste the code instead.");
+        if (!stop) setProblem("The camera is not available. Type the code instead.");
       });
     return () => {
       stop = true;
@@ -179,27 +178,27 @@ function Inventory({ inventory }: { inventory: HandoffInventory }) {
 }
 
 export function PhoneHandoffPanel() {
+  const origin = handoffOrigin();
   const canLink = typeof RTCPeerConnection === "function";
+  const ready = Boolean(origin) && canLink;
   const [inventory, setInventory] = useState<HandoffInventory | null>(null);
   const [phase, setPhase] = useState<Phase>("home");
   const [role, setRole] = useState<Role | null>(null);
   const [status, setStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [tickets, setTickets] = useState<string[] | null>(null);
-  const [ticketAt, setTicketAt] = useState(0);
+  const [code, setCode] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [paste, setPaste] = useState("");
   const [scan, setScan] = useState(false);
-  const [scanHave, setScanHave] = useState(0);
-  const [scanNeed, setScanNeed] = useState(0);
   const [copied, setCopied] = useState(false);
   const gen = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
-  const linkRef = useRef<OfferSocket | HandoffSocket | null>(null);
-  const pendingRef = useRef<{ manifest: HandoffManifest; bytes: HandoffBytes } | null>(null);
-  const bagRef = useRef(new Map<number, string>());
+  const linkRef = useRef<SendLink | ReceiveLink | null>(null);
   const roleRef = useRef<Role | null>(null);
+  const phaseRef = useRef<Phase>("home");
+  const busyRef = useRef(false);
   roleRef.current = role;
+  phaseRef.current = phase;
 
   useEffect(() => {
     let live = true;
@@ -231,18 +230,14 @@ export function PhoneHandoffPanel() {
     abortRef.current = new AbortController();
     linkRef.current?.close();
     linkRef.current = null;
-    pendingRef.current = null;
-    bagRef.current = new Map();
+    busyRef.current = false;
     roleRef.current = next;
     setRole(next);
     setError(null);
-    setTickets(null);
-    setTicketAt(0);
+    setCode(null);
     setProgress(0);
     setPaste("");
     setScan(false);
-    setScanHave(0);
-    setScanNeed(0);
     setCopied(false);
     setStatus("");
     return gen.current;
@@ -253,11 +248,11 @@ export function PhoneHandoffPanel() {
     abortRef.current?.abort();
     linkRef.current?.close();
     linkRef.current = null;
-    pendingRef.current = null;
+    busyRef.current = false;
     roleRef.current = null;
     setRole(null);
     setPhase("home");
-    setTickets(null);
+    setCode(null);
     setScan(false);
     setStatus("");
     setPaste("");
@@ -266,13 +261,14 @@ export function PhoneHandoffPanel() {
 
   function fail(mine: number, err: unknown) {
     if (gen.current !== mine) return;
+    abortRef.current?.abort();
     linkRef.current?.close();
     linkRef.current = null;
-    pendingRef.current = null;
+    busyRef.current = false;
     roleRef.current = null;
     setRole(null);
     setPhase("home");
-    setTickets(null);
+    setCode(null);
     setScan(false);
     setStatus("");
     setError(kept(err));
@@ -281,61 +277,25 @@ export function PhoneHandoffPanel() {
   async function startSend() {
     const mine = begin("send");
     setPhase("preparing");
-    setStatus("Reading the game files…");
+    setStatus("Opening a connection…");
+    const signal = abortRef.current?.signal;
+    if (!signal) return;
     try {
-      const collected = await collectHandoff();
-      if (gen.current !== mine) return;
-      pendingRef.current = collected;
-      const link = createOfferLink();
+      const link = createSendLink(signal);
+      void link.code.catch(() => {});
       void link.channel.catch(() => {});
       linkRef.current = link;
-      setStatus("Looking for a path to the other device…");
-      const codes = await link.tickets;
+      const roomCode = await link.code;
       if (gen.current !== mine) return;
-      setTickets(codes);
+      setCode(roomCode);
       setPhase("exchange");
-      setStatus(
-        "On the other device, choose Get it from my computer. Scan this code or paste it there.",
-      );
-    } catch (err) {
-      fail(mine, err);
-    }
-  }
-
-  function startReceive() {
-    begin("receive");
-    setPhase("need-code");
-    setStatus("Scan or paste the code from the sending device.");
-  }
-
-  async function useAnswer(text: string) {
-    const mine = gen.current;
-    const link = linkRef.current;
-    const collected = pendingRef.current;
-    const signal = abortRef.current?.signal;
-    if (!link || !("takeAnswer" in link) || !collected || !signal) return;
-    setError(null);
-    setScan(false);
-    setPhase("preparing");
-    setStatus("Connecting…");
-    try {
-      await link.takeAnswer(text);
-    } catch (err) {
-      if (gen.current !== mine) return;
-      setPhase("exchange");
-      setError(kept(err));
-      setStatus(
-        "On the other device, choose Get it from my computer. Scan this code or paste it there.",
-      );
-      return;
-    }
-    try {
+      setStatus("On the other device, choose Get it from my computer and enter this code.");
+      const collectedPromise = collectHandoff();
+      void collectedPromise.catch(() => {});
+      const [collected, dc] = await Promise.all([collectedPromise, link.channel]);
       if (gen.current !== mine) return;
       setPhase("transfer");
-      setTickets(null);
       setStatus("Sending the game files, the saved game, and the achievements…");
-      const dc = await link.channel;
-      if (gen.current !== mine) return;
       await sendCollected(
         dc,
         collected.manifest,
@@ -355,27 +315,34 @@ export function PhoneHandoffPanel() {
     }
   }
 
-  async function acceptOffer(text: string) {
+  function startReceive() {
+    begin("receive");
+    setPhase("need-code");
+    setStatus("Enter the code from the sending device.");
+  }
+
+  async function acceptCode(raw: string) {
+    if (busyRef.current || roleRef.current !== "receive") return;
+    const roomCode = normalizeCode(raw);
+    if (!roomCode) {
+      setError(kept(new Error("Enter the six-character code.")));
+      return;
+    }
     const mine = gen.current;
     const signal = abortRef.current?.signal;
-    if (!signal || roleRef.current !== "receive") return;
+    if (!signal) return;
+    busyRef.current = true;
     setError(null);
     setScan(false);
     setPhase("preparing");
-    setStatus("Looking for a path to the other device…");
+    setStatus("Connecting…");
     let dc: RTCDataChannel | null = null;
     try {
-      const link = createAnswerLink(text);
+      const link = createReceiveLink(roomCode, signal);
       void link.channel.catch(() => {});
       linkRef.current = link;
-      const codes = await link.tickets;
-      if (gen.current !== mine) return;
-      setTickets(codes);
-      setPhase("exchange");
-      setStatus("Show this code to the sending device. The copy starts once it connects.");
       dc = await link.channel;
       if (gen.current !== mine) return;
-      setTickets(null);
       setPhase("transfer");
       setStatus("Receiving the game files, the saved game, and the achievements…");
       const got = await receiveCollected(
@@ -403,45 +370,36 @@ export function PhoneHandoffPanel() {
       if (dc) reportFailure(dc, err instanceof Error ? err.message : "The handoff stopped.");
       if (gen.current !== mine) return;
       if (!dc) {
+        abortRef.current?.abort();
         linkRef.current?.close();
         linkRef.current = null;
+        abortRef.current = new AbortController();
+        busyRef.current = false;
         setPhase("need-code");
-        setTickets(null);
         setError(kept(err));
-        setStatus("Scan or paste the code from the sending device.");
+        setStatus("Enter the code from the sending device.");
         return;
       }
       fail(mine, err);
     }
   }
 
-  function submitText(text: string) {
-    if (roleRef.current === "send") void useAnswer(text);
-    else void acceptOffer(text);
-  }
-
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const text = paste.trim();
-    if (!text || phase === "preparing" || phase === "transfer" || phase === "saving") return;
-    submitText(text);
+    if (phase !== "need-code") return;
+    void acceptCode(paste);
   }
 
   function onScan(text: string) {
-    const absorbed = absorbTicket(bagRef.current, text);
-    setScanHave(absorbed.have);
-    setScanNeed(absorbed.need);
-    if (!absorbed.done) return;
-    bagRef.current = new Map();
-    setScan(false);
-    setPaste(absorbed.done);
-    submitText(absorbed.done);
+    if (phaseRef.current !== "need-code" || roleRef.current !== "receive") return;
+    setPaste(text);
+    void acceptCode(text);
   }
 
   async function copyCode() {
-    if (!tickets) return;
+    if (!code) return;
     try {
-      await navigator.clipboard.writeText(tickets.join("\n"));
+      await navigator.clipboard.writeText(formatCode(code));
       setCopied(true);
     } catch {
       setCopied(false);
@@ -449,7 +407,6 @@ export function PhoneHandoffPanel() {
   }
 
   const missing = inventory?.files.find((file) => file.missing);
-  const showPaste = phase === "need-code" || (phase === "exchange" && role === "send");
   const pct = Math.round(progress * 100);
 
   return (
@@ -458,7 +415,7 @@ export function PhoneHandoffPanel() {
         <>
           <p className="gf-note">
             {
-              "This copies the game files, the saved game, and the achievements onto the other device. Both devices on the same Wi-Fi can connect with the code. A transfer that stops leaves the files already stored here in place. A finished transfer replaces what is on the receiving device."
+              "This copies the game files, the saved game, and the achievements onto the other device. Enter the code on the other device. A transfer that stops leaves the files already stored here in place. A finished transfer replaces what is on the receiving device."
             }
           </p>
           {inventory ? (
@@ -472,19 +429,22 @@ export function PhoneHandoffPanel() {
               {`${missing.name} is no longer stored in this browser. Remove it under Game files, then pick it again.`}
             </p>
           ) : null}
-          {!canLink ? (
-            <p className="gf-note">{"This browser cannot open a direct connection."}</p>
+          {!origin ? (
+            <p className="gf-note">{"Phone handoff is not set up on this copy of the game."}</p>
+          ) : null}
+          {origin && !canLink ? (
+            <p className="gf-note">{"This browser cannot open a connection."}</p>
           ) : null}
           <div className="ph-actions">
             <button
               type="button"
               className="gf-button is-primary"
-              disabled={!canLink || !inventory || !!missing}
+              disabled={!ready || !inventory || !!missing}
               onClick={() => void startSend()}
             >
               {"Send to my phone"}
             </button>
-            <button type="button" className="gf-button" disabled={!canLink} onClick={startReceive}>
+            <button type="button" className="gf-button" disabled={!ready} onClick={startReceive}>
               {"Get it from my computer"}
             </button>
           </div>
@@ -498,63 +458,35 @@ export function PhoneHandoffPanel() {
       ) : null}
       {phase !== "home" && error ? <p className="gf-alert">{error}</p> : null}
 
-      {tickets && tickets[ticketAt] ? (
+      {phase === "exchange" && role === "send" && code ? (
         <div className="ph-code">
-          <QrCode text={tickets[ticketAt]} />
-          {tickets.length > 1 ? (
-            <div className="ph-pages">
-              <button
-                type="button"
-                className="gf-button"
-                onClick={() => setTicketAt((at) => (at + tickets.length - 1) % tickets.length)}
-              >
-                {"Previous code"}
-              </button>
-              <span className="gf-note">{`Code ${ticketAt + 1} of ${tickets.length}`}</span>
-              <button
-                type="button"
-                className="gf-button"
-                onClick={() => setTicketAt((at) => (at + 1) % tickets.length)}
-              >
-                {"Next code"}
-              </button>
-            </div>
-          ) : null}
-          <textarea
-            className="ph-paste"
-            readOnly
-            value={tickets.join("\n")}
-            aria-label={"Connection code"}
-          />
+          <p className="ph-short">{formatCode(code)}</p>
+          <QrCode text={code} />
           <button type="button" className="gf-button" onClick={() => void copyCode()}>
             {copied ? "Copied" : "Copy code"}
           </button>
         </div>
       ) : null}
 
-      {showPaste ? (
+      {phase === "need-code" ? (
         <form className="ph-form" onSubmit={onSubmit}>
           <label className="ph-form">
-            <span className="gf-note">
-              {role === "send" ? "Code from the phone" : "Code from the computer"}
-            </span>
-            <textarea
-              className="ph-paste"
+            <span className="gf-note">{"Code from the computer"}</span>
+            <input
+              className="ph-code-input"
               value={paste}
-              aria-label={role === "send" ? "Code from the phone" : "Code from the computer"}
+              maxLength={11}
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+              autoComplete="off"
+              aria-label={"Code from the computer"}
               onChange={(event) => setPaste(event.target.value)}
             />
           </label>
           {scan ? <QrScan onText={onScan} /> : null}
-          {scan && scanNeed > 1 ? (
-            <p className="gf-note">{`Scanned ${scanHave} of ${scanNeed}.`}</p>
-          ) : null}
           <div className="ph-actions">
-            <button
-              type="submit"
-              className="gf-button is-primary"
-              disabled={phase === "preparing" || !paste.trim()}
-            >
+            <button type="submit" className="gf-button is-primary" disabled={!paste.trim()}>
               {"Connect"}
             </button>
             <button type="button" className="gf-button" onClick={() => setScan((on) => !on)}>

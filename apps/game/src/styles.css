@@ -7641,7 +7641,7 @@ button.cargo-slot:hover {
   width: min(360px, 100%);
 }
 
-/* Per the user: Options › Phone, beside Game files. The code is the connection. INVENTED look. */
+/* Per the user: Options › Phone, beside Game files. A short code is the connection. INVENTED look. */
 .options-sheet .ship-tabs {
   overflow-x: auto;
 }
@@ -7706,21 +7706,28 @@ button.cargo-slot:hover {
   align-items: flex-start;
   gap: 8px;
 }
+.ph-short {
+  margin: 0;
+  font-family: var(--font-hud-large);
+  font-size: clamp(32px, 10vw, 42px);
+  letter-spacing: 0.18em;
+  line-height: 1.1;
+}
 .ph-qr {
-  width: min(260px, 100%);
+  width: min(180px, 70%);
   height: auto;
   image-rendering: pixelated;
   background: #fff;
   border-radius: 4px;
 }
-.ph-paste {
-  width: min(100%, 520px);
-  min-height: 72px;
-  resize: vertical;
-  padding: 8px 10px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 1.35;
+.ph-code-input {
+  width: min(100%, 280px);
+  min-height: 52px;
+  padding: 8px 12px;
+  font-family: var(--font-hud-large);
+  font-size: 28px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--color-fg);
   background: #14110e;
   border: 2px solid var(--color-line-dim);

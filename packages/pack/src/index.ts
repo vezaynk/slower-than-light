@@ -72,7 +72,7 @@ export {
   asteroidClip,
   beaconPath,
   imageCandidates,
-  shipPreviewPath,
+  miniShipPath,
   skyPath,
 } from "./archive-names.ts";
 export type { FontFaceJob, ImageVariant, SkyPick } from "./archive-names.ts";

@@ -6,7 +6,7 @@ import {
   hullDef,
   loadPack,
   resetPackForTests,
-  shipPreviewPath,
+  miniShipPath,
   weaponDef,
 } from "@stl/pack";
 import { roomGridPixels, shieldOval } from "../components/game/shield-bubble.ts";
@@ -285,8 +285,7 @@ describe("archive gates and combat figures", () => {
     assert.deepEqual(baseGlowShift({ x: 4, y: -2 }), { offsetX: -4, offsetY: 2 });
     assert.deepEqual(baseGlowShift({ x: 0, y: 0 }), { offsetX: 0, offsetY: 0 });
     assert.equal(fillerList("STANDIN_EMPTY")?.entries.length, 0);
-    assert.equal(shipPreviewPath("kestral", true), "img/ships_glow/kestral_base.png");
-    assert.equal(shipPreviewPath("kestral", false), "img/ships_noglow/kestral_base.png");
+    assert.equal(miniShipPath("kestral"), "img/customizeUI/miniship_kestral.png");
   });
 
   it("switches the sample locale string and face", () => {

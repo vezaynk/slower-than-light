@@ -143,11 +143,11 @@ export function beaconPath(tag: string, nebula: boolean, soon: boolean): string 
 }
 
 /**
- * Ship-picker portrait. Official files are `<img>_base.png` inside ships_glow and ships_noglow.
- * The stem is the hull picture stem already used (`kestral`, enemy stems, `flagship-1`).
+ * Ship-picker portrait for a player hull. ftl.dat keeps it at `img/customizeUI/miniship_<img>.png`
+ * (`miniship_kestral.png`, `miniship_kestral_2.png`). ships_glow and ships_noglow hold only enemy plates.
  */
-export function shipPreviewPath(stem: string, glow: boolean): string {
-  return `img/ships_${glow ? "glow" : "noglow"}/${stem}_base.png`;
+export function miniShipPath(stem: string): string {
+  return `img/customizeUI/miniship_${stem}.png`;
 }
 
 /** Effect and asteroid clips. The sheet file is whatever the loaded animations.xml names. */

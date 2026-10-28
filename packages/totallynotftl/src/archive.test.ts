@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { campaignPack } from "@stl/campaign";
-import { hullPictureFiles, standInSheet } from "@stl/catalog/src/ship-art.ts";
+import { hullLayers, hullPictureFiles, standInSheet } from "@stl/catalog/src/ship-art.ts";
 import { MOUNT_IMAGES, mountsFor, WEAPON_MOUNTS } from "@stl/catalog/src/weapon-mounts.ts";
 import { LAYOUT_FILE, layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat, extractFtlZip, readPkg } from "@stl/ftldat";
@@ -149,15 +149,40 @@ describe("totallynotftl.dat", () => {
     const images = standInImages(pictures);
     assert.equal(extracted.assets.size, images.length + media.assets.length);
     const playerStem = new Set(Object.values(LAYOUT_FILE));
+    // The layout ftl.dat uses. A player plate and gibs are img/ship, with a customizeUI miniship. An enemy's are
+    // img/ships_glow and img/ships_noglow. Cloak, floor, and shield exist only under the stem that owns them.
+    const has = (path: string) => extracted.assets.has(path);
     for (const file of pictures) {
-      const gibs = standInSheet(file.picture, mountsFor(file.stem), file.stem).gibs ?? [];
+      const stem = file.stem;
+      const player = playerStem.has(stem);
+      assert.equal(has(`img/ship/${stem}_base.png`), player, stem);
+      assert.equal(has(`img/customizeUI/miniship_${stem}.png`), player, stem);
+      assert.equal(has(`img/ships_glow/${stem}_base.png`), !player, stem);
+      assert.equal(has(`img/ships_noglow/${stem}_base.png`), !player, stem);
+      const layers = hullLayers(stem);
+      assert.equal(has(`img/ship/${stem}_cloak.png`), layers.cloak === stem, `${stem} cloak`);
+      assert.equal(has(`img/ship/${stem}_floor.png`), layers.floor === stem, `${stem} floor`);
+      assert.equal(has(`img/ship/${stem}_shields1.png`), layers.shield === stem, `${stem} shield`);
+      const gibs = standInSheet(file.picture, mountsFor(stem), stem).gibs ?? [];
       for (const gib of gibs) {
-        const interior = `img/ship/${file.stem}_gib${gib.id}.png`;
-        const glow = `img/ships_glow/${file.stem}_gib${gib.id}.png`;
-        assert.equal(extracted.assets.has(interior), true, interior);
-        assert.equal(extracted.assets.has(glow), !playerStem.has(file.stem), glow);
+        const name = `${stem}_gib${gib.id}.png`;
+        assert.equal(has(`img/ship/${name}`), player, name);
+        assert.equal(has(`img/ships_glow/${name}`), !player, name);
+        assert.equal(has(`img/ships_noglow/${name}`), !player, name);
       }
     }
+    // A B or C layout draws its A layout's cloak and shield, as ftl.dat's PLAYER_SHIP_HARD_2 and _3 do.
+    assert.deepEqual(hullLayers("kestral_2"), {
+      cloak: "kestral",
+      shield: "kestral",
+      floor: "kestral_2",
+    });
+    assert.deepEqual(hullLayers("kestral_3"), {
+      cloak: "kestral",
+      shield: "kestral",
+      floor: "kestral",
+    });
+    assert.deepEqual(hullLayers("mantis-scout-pirate"), { cloak: "mantis-scout" });
     for (const path of [
       "img/weapons/LASER_BURST_3.png",
       "img/weapons/laser_shot.png",
@@ -176,8 +201,9 @@ describe("totallynotftl.dat", () => {
       "audio/music/bp_MUS_CivilEXPLORE.ogg",
       "audio/music/bp_MUS_TitleScreen.ogg",
       "audio/music/bp_MUS_LastStand.ogg",
-      "img/ships_noglow/kestral_base.png",
-      "img/ships_glow/kestral_base.png",
+      "img/customizeUI/miniship_kestral.png",
+      "img/ships_noglow/rebel-fighter_base.png",
+      "img/ships_glow/rebel-fighter_base.png",
       "img/stars/bg_dullstars.png",
       "img/map/map_icon_ship.png",
       "img/ship/fleet/fleet_1_med_warning.png",
@@ -205,13 +231,13 @@ describe("totallynotftl.dat", () => {
       assert.equal(extracted.assets.has(path), false, path);
     }
     const glow = new Uint8Array(
-      await extracted.assets.get("img/ships_glow/kestral_base.png")!.arrayBuffer(),
+      await extracted.assets.get("img/ships_glow/rebel-fighter_base.png")!.arrayBuffer(),
     );
     const dark = new Uint8Array(
-      await extracted.assets.get("img/ships_noglow/kestral_base.png")!.arrayBuffer(),
+      await extracted.assets.get("img/ships_noglow/rebel-fighter_base.png")!.arrayBuffer(),
     );
     const cloak = new Uint8Array(
-      await extracted.assets.get("img/ship/kestral_cloak.png")!.arrayBuffer(),
+      await extracted.assets.get("img/ship/rebel-fighter_cloak.png")!.arrayBuffer(),
     );
     assert.equal(Buffer.compare(glow, dark) === 0, false);
     assert.equal(Buffer.compare(glow, cloak) === 0, false);

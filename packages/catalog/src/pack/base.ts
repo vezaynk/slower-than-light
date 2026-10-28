@@ -45,7 +45,7 @@ import {
   type FlagshipDifficulty,
 } from "../flagship-layouts.ts";
 import { LAYOUT_FILE, SHIP_LAYOUTS, standInShieldShift } from "../ship-layouts.ts";
-import { standInSheet } from "../ship-art.ts";
+import { hullLayers, standInSheet } from "../ship-art.ts";
 import { MOUNT_IMAGES, mountsFor } from "../weapon-mounts.ts";
 import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
@@ -627,10 +627,12 @@ function blueprintFields(row: HullDef, spec: HullSpec, traced: readonly TracedRo
 function paintHull(row: HullDef, stem: string | undefined): HullDef {
   if (!stem) return row;
   row.img = stem;
-  // Cloak, floor, and shield files are `<stem>_cloak.png`, `_floor.png`, and `_shields1.png`.
-  row.cloak = stem;
-  row.floor = stem;
-  row.shield = stem;
+  // Cloak, floor, and shield name the stem whose `_cloak.png`, `_floor.png`, and `_shields1.png` this hull draws,
+  // shared the way ftl.dat shares them (hullLayers). A layer with no picture has no name.
+  const layers = hullLayers(stem);
+  if (layers.cloak) row.cloak = layers.cloak;
+  if (layers.floor) row.floor = layers.floor;
+  if (layers.shield) row.shield = layers.shield;
   const measured = MOUNT_IMAGES[stem];
   const picture = measured
     ? { ...measured }

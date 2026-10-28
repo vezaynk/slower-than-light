@@ -8,8 +8,40 @@ import {
   type HullPicture,
   type HullSheet,
 } from "@stl/pack";
-import { layoutFiles } from "./ship-layouts.ts";
+import { LAYOUT_FILE, layoutFiles } from "./ship-layouts.ts";
 import { MOUNT_IMAGES, mountsFor } from "./weapon-mounts.ts";
+
+/** Which stem's cloak, shield, and floor pictures a hull draws. An absent layer has no picture. */
+export type HullLayers = { cloak?: string; shield?: string; floor?: string };
+
+const PLAYER_STEMS = new Set(Object.values(LAYOUT_FILE));
+let layoutStemSet: Set<string> | undefined;
+
+function layoutStems(): Set<string> {
+  layoutStemSet ??= new Set(layoutFiles().flatMap((file) => layoutStem(file.path) ?? []));
+  return layoutStemSet;
+}
+
+/**
+ * Per the user: the stand-in mirrors how ftl.dat shares these pictures, read or not.
+ * - Player A: its own cloak, shield, and floor. Player B (`_2`): A's cloak and shield, its own floor.
+ *   Player C (`_3`): A's cloak, shield, and floor. ftl.dat's Anaerobic C names none.
+ * - Enemy: no shield or floor. A design has its own cloak. Its pirate or elite variant names the design's cloak.
+ *   A variant with no design has none, like ftl.dat's DLC pirates. Flagship stage 1 has a cloak, stages 2 and 3 none.
+ */
+export function hullLayers(stem: string): HullLayers {
+  if (PLAYER_STEMS.has(stem)) {
+    const layout = /^(.+)_([23])$/.exec(stem);
+    if (!layout) return { cloak: stem, shield: stem, floor: stem };
+    const a = layout[1]!;
+    if (layout[2] === "2") return { cloak: a, shield: a, floor: stem };
+    return a === "anaerobic_cruiser" ? {} : { cloak: a, shield: a, floor: a };
+  }
+  if (stem.startsWith("flagship-")) return stem === "flagship-1" ? { cloak: stem } : {};
+  const variant = /^(.+)-(pirate|elite)$/.exec(stem);
+  if (variant) return layoutStems().has(variant[1]!) ? { cloak: variant[1] } : {};
+  return { cloak: stem };
+}
 
 /** One drawing file for a layout that already has a room grid. */
 export type HullPictureFile = {

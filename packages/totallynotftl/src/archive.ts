@@ -4,7 +4,12 @@ import {
   standInSectorsXml,
   standInShipsXml,
 } from "@stl/campaign";
-import { hullPictureFiles, standInSheet, type HullPictureFile } from "@stl/catalog/src/ship-art.ts";
+import {
+  hullLayers,
+  hullPictureFiles,
+  standInSheet,
+  type HullPictureFile,
+} from "@stl/catalog/src/ship-art.ts";
 import { LAYOUT_FILE, layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { mountsFor } from "@stl/catalog/src/weapon-mounts.ts";
 import { packFtlDat } from "@stl/ftldat";
@@ -53,10 +58,10 @@ function drawBox(file: HullPictureFile): HullPicture {
 const PLAYER_STEM = new Set(Object.values(LAYOUT_FILE));
 
 /**
- * Pictures for each drawing, at the paths a real archive uses.
- * A player plate, its gibs, the floor, and the shield are `img/ship`.
- * An enemy plate is `img/ships_glow/<stem>_base.png`, and its gibs sit beside it.
- * Cloak is `img/ship` for both. `ships_noglow` is the unlit portrait.
+ * Pictures for each drawing, at the paths ftl.dat uses. Per the user: the stand-in mirrors that layout, read or not.
+ * - Player: plate and gibs in `img/ship`, and `img/customizeUI/miniship_<stem>.png` for the ship picker.
+ * - Enemy: plate and gibs in both `img/ships_glow` (drawn in combat) and `img/ships_noglow`.
+ * - Cloak, floor, and shield sit in `img/ship`, only under the stem that owns them (hullLayers).
  */
 export function standInImages(
   files: readonly HullPictureFile[],
@@ -69,41 +74,49 @@ export function standInImages(
       id: gib.id,
       bytes: gibPng(file.stem, box, file.rooms, index, gibs.length),
     }));
-    images.push(
-      {
-        path: `img/ship/${file.stem}_base.png`,
-        bytes: basePng(file.stem, box, file.rooms),
-      },
-      {
+    const gibFiles = (folder: string) =>
+      pieces.map((piece) => ({
+        path: `img/${folder}/${file.stem}_gib${piece.id}.png`,
+        bytes: piece.bytes,
+      }));
+    const layers = hullLayers(file.stem);
+    if (layers.cloak === file.stem)
+      images.push({
         path: `img/ship/${file.stem}_cloak.png`,
         bytes: cloakPng(file.stem, box, file.rooms),
-      },
-      {
+      });
+    if (layers.floor === file.stem)
+      images.push({
         path: `img/ship/${file.stem}_floor.png`,
         bytes: floorPng(file.stem, box, file.rooms),
-      },
-      {
+      });
+    if (layers.shield === file.stem)
+      images.push({
         path: `img/ship/${file.stem}_shields1.png`,
         bytes: shieldPng(file.stem, box, file.rooms),
-      },
-      {
-        path: `img/ships_noglow/${file.stem}_base.png`,
-        bytes: basePng(file.stem, box, file.rooms),
-      },
+      });
+    if (PLAYER_STEM.has(file.stem)) {
+      images.push(
+        { path: `img/ship/${file.stem}_base.png`, bytes: basePng(file.stem, box, file.rooms) },
+        ...gibFiles("ship"),
+        {
+          path: `img/customizeUI/miniship_${file.stem}.png`,
+          bytes: glowPortraitPng(file.stem, box, file.rooms),
+        },
+      );
+      continue;
+    }
+    images.push(
       {
         path: `img/ships_glow/${file.stem}_base.png`,
         bytes: glowPortraitPng(file.stem, box, file.rooms),
       },
-      ...pieces.map((piece) => ({
-        path: `img/ship/${file.stem}_gib${piece.id}.png`,
-        bytes: piece.bytes,
-      })),
-      ...(PLAYER_STEM.has(file.stem)
-        ? []
-        : pieces.map((piece) => ({
-            path: `img/ships_glow/${file.stem}_gib${piece.id}.png`,
-            bytes: piece.bytes,
-          }))),
+      ...gibFiles("ships_glow"),
+      {
+        path: `img/ships_noglow/${file.stem}_base.png`,
+        bytes: basePng(file.stem, box, file.rooms),
+      },
+      ...gibFiles("ships_noglow"),
     );
   }
   images.push({ path: "img/loc-eo/statusUI/menu.png", bytes: localeMenuPng() });

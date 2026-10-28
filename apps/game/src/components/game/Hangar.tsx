@@ -11,8 +11,7 @@
  */
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import "@/game/pack/base";
-import { achievementDef, hullDef, shipPreviewPath, startingFit, weaponDef } from "@stl/pack";
-import { ArchiveCopy } from "./ArchiveCopy";
+import { achievementDef, hullDef, miniShipPath, startingFit, weaponDef } from "@stl/pack";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import {
   NAME_MAX,
@@ -98,11 +97,11 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   const hull = hullDef(layout.id);
   const cruiser = hull?.cruiser ?? "";
   const art = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
-  /** The archive's ship-picker portrait (ships_glow, then ships_noglow), for the LIST dialog. */
+  /** The archive's ship-picker portrait (img/customizeUI/miniship_<img>.png), for the LIST dialog. */
   const portraitOf = (layoutId: string | undefined): string | undefined => {
     const img = layoutId ? hullDef(layoutId)?.img : undefined;
     if (!img || art < 0) return undefined;
-    return archiveImage(shipPreviewPath(img, true)) ?? archiveImage(shipPreviewPath(img, false));
+    return archiveImage(miniShipPath(img));
   };
   const earned = new Set(unlocks === SERVER_UNLOCKS ? [] : earnedIds());
   const shipAch = shipAchievements(cruiser).flatMap((id) => {
@@ -147,7 +146,6 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   return (
     <section className="hangar">
       <div className="hangar-floor" aria-hidden="true" />
-      <ArchiveCopy screen="hangar" />
 
       <header className="hangar-top">
         {/* Per the user: no RENAME. The ship's name only shows in the Ship menu and the victory text, so every run

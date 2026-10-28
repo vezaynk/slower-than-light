@@ -63,6 +63,32 @@ function writeLife(row: { scrap: number; kills: number }) {
   }
 }
 
+/** Lifetime scrap and kills as stored, without this run folded in. */
+export function storedLifetime(): { scrap: number; kills: number } {
+  return life();
+}
+
+/** The lifetime record as stored. Null when no earlier run has been banked. */
+export function lifetimeRecordRaw(): string | null {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem(LIFE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Replace the lifetime record. Null clears it. */
+export function replaceLifetimeRecord(raw: string | null): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    if (raw == null) localStorage.removeItem(LIFE_KEY);
+    else localStorage.setItem(LIFE_KEY, raw);
+  } catch {
+    throw new Error("This browser could not store the achievement totals.");
+  }
+}
+
 /** Scrap and kills across earlier runs, plus this run, without counting this run twice. */
 export function lifetimeOf(g: Game): { scrap: number; kills: number } {
   const bank = life();

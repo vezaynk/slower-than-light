@@ -290,6 +290,28 @@ export function resetAchievementMemory(): void {
   memory = null;
 }
 
+/** The earned-achievement record as stored. Null when nothing has been earned. */
+export function achievementRecordRaw(): string | null {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Replace the earned-achievement record. Null clears it. The next read uses what was stored. */
+export function replaceAchievementRecord(raw: string | null): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    if (raw == null) localStorage.removeItem(STORAGE_KEY);
+    else localStorage.setItem(STORAGE_KEY, raw);
+  } catch {
+    throw new Error("This browser could not store the achievements.");
+  }
+  memory = null;
+}
+
 /** Archive achievements the gap did not give a condition. Empty when every id can be earned. */
 export function untrackedIds(): string[] {
   return allAchievements()

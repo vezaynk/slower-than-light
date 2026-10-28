@@ -144,6 +144,21 @@ export async function fileBlob(id: string): Promise<Blob | undefined> {
   return blob instanceof Blob ? blob : undefined;
 }
 
+/** Store a blob without changing the load order. The order is what boot reads. */
+export async function putBlob(id: string, blob: Blob): Promise<void> {
+  await run(FILES, "readwrite", (s) => {
+    s.put(blob, id);
+  });
+}
+
+/** Drop a blob without changing the load order. The stand-in has no blob. */
+export async function deleteBlob(id: string): Promise<void> {
+  if (id === STAND_IN_ID) return;
+  await run(FILES, "readwrite", (s) => {
+    s.delete(id);
+  });
+}
+
 /** Forget every player file and go back to the stand-in. */
 export async function resetArchives(): Promise<ArchiveEntry[]> {
   await run(FILES, "readwrite", (s) => {

@@ -88,3 +88,26 @@ export function subscribeUnlocks(fn: () => void): () => void {
 export function resetUnlockMemory(): void {
   memory = null;
 }
+
+/** The unlock record as stored. Null when the hangar is still at its start state. */
+export function unlockRecordRaw(): string | null {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem(UNLOCKS_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Replace the unlock record. Null clears it. Ship unlocks follow the earned achievements. */
+export function replaceUnlockRecord(raw: string | null): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    if (raw == null) localStorage.removeItem(UNLOCKS_KEY);
+    else localStorage.setItem(UNLOCKS_KEY, raw);
+  } catch {
+    throw new Error("This browser could not store the unlocked ships.");
+  }
+  memory = null;
+  for (const fn of listeners) fn();
+}

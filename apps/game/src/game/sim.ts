@@ -8843,3 +8843,24 @@ export function hasSave(): boolean {
   if (typeof localStorage === "undefined") return false;
   return !!localStorage.getItem(SAVE_KEY);
 }
+
+/** The saved session as stored, for a handoff. Null when there is no saved game. */
+export function savedSessionRaw(): string | null {
+  try {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem(SAVE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Replace the saved session. Null clears it. Throws when the browser refuses the write. */
+export function replaceSavedSession(raw: string | null): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    if (raw == null) localStorage.removeItem(SAVE_KEY);
+    else localStorage.setItem(SAVE_KEY, raw);
+  } catch {
+    throw new Error("This browser could not store the saved game.");
+  }
+}

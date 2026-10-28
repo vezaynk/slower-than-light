@@ -149,13 +149,17 @@ describe("totallynotftl.dat", () => {
     const images = standInImages(pictures);
     assert.equal(extracted.assets.size, images.length + media.assets.length);
     const playerStem = new Set(Object.values(LAYOUT_FILE));
+    // A player plate and its gibs are img/ship. An enemy's are img/ships_glow only, as a real archive stores them.
     for (const file of pictures) {
+      const player = playerStem.has(file.stem);
+      const base = `img/ship/${file.stem}_base.png`;
+      assert.equal(extracted.assets.has(base), player, base);
       const gibs = standInSheet(file.picture, mountsFor(file.stem), file.stem).gibs ?? [];
       for (const gib of gibs) {
         const interior = `img/ship/${file.stem}_gib${gib.id}.png`;
         const glow = `img/ships_glow/${file.stem}_gib${gib.id}.png`;
-        assert.equal(extracted.assets.has(interior), true, interior);
-        assert.equal(extracted.assets.has(glow), !playerStem.has(file.stem), glow);
+        assert.equal(extracted.assets.has(interior), player, interior);
+        assert.equal(extracted.assets.has(glow), !player, glow);
       }
     }
     for (const path of [

@@ -12,7 +12,6 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import "@/game/pack/base";
 import { achievementDef, hullDef, shipPreviewPath, startingFit, weaponDef } from "@stl/pack";
-import { ArchiveCopy } from "./ArchiveCopy";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import {
   NAME_MAX,
@@ -147,7 +146,6 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   return (
     <section className="hangar">
       <div className="hangar-floor" aria-hidden="true" />
-      <ArchiveCopy screen="hangar" />
 
       <header className="hangar-top">
         {/* Per the user: no RENAME. The ship's name only shows in the Ship menu and the victory text, so every run

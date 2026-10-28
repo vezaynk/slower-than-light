@@ -69,11 +69,18 @@ export function standInImages(
       id: gib.id,
       bytes: gibPng(file.stem, box, file.rooms, index, gibs.length),
     }));
+    // Per the user: no unread files. An enemy draws its plate and gibs from img/ships_glow (pack/ship-art.ts), so
+    // only a player stem keeps img/ship base and gibs, as a real archive stores them.
+    const player = PLAYER_STEM.has(file.stem);
     images.push(
-      {
-        path: `img/ship/${file.stem}_base.png`,
-        bytes: basePng(file.stem, box, file.rooms),
-      },
+      ...(player
+        ? [
+            {
+              path: `img/ship/${file.stem}_base.png`,
+              bytes: basePng(file.stem, box, file.rooms),
+            },
+          ]
+        : []),
       {
         path: `img/ship/${file.stem}_cloak.png`,
         bytes: cloakPng(file.stem, box, file.rooms),
@@ -95,15 +102,9 @@ export function standInImages(
         bytes: glowPortraitPng(file.stem, box, file.rooms),
       },
       ...pieces.map((piece) => ({
-        path: `img/ship/${file.stem}_gib${piece.id}.png`,
+        path: `img/${player ? "ship" : "ships_glow"}/${file.stem}_gib${piece.id}.png`,
         bytes: piece.bytes,
       })),
-      ...(PLAYER_STEM.has(file.stem)
-        ? []
-        : pieces.map((piece) => ({
-            path: `img/ships_glow/${file.stem}_gib${piece.id}.png`,
-            bytes: piece.bytes,
-          }))),
     );
   }
   images.push({ path: "img/loc-eo/statusUI/menu.png", bytes: localeMenuPng() });

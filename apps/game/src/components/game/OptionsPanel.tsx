@@ -12,8 +12,9 @@ import { canForceLandscape } from "./turn";
 import { ArchiveCopy } from "./ArchiveCopy";
 import { CloseX } from "./CloseX";
 import { GameFilesPanel } from "./GameFilesPanel";
+import { PhoneHandoffPanel } from "./PhoneHandoffPanel";
 
-type Tab = "exit" | "graphics" | "sound" | "keys" | "files";
+type Tab = "exit" | "graphics" | "sound" | "keys" | "files" | "phone";
 const TABS: [Tab, string][] = [
   ["graphics", "Graphics"],
   ["sound", "Sound"],
@@ -21,8 +22,8 @@ const TABS: [Tab, string][] = [
 ];
 /** Per the user: opened from a run, an Exit tab comes first (and opens first). */
 const GAME_TABS: [Tab, string][] = [["exit", "Exit"], ...TABS];
-/** Per the user: Game files only on the title screen. Changing them restarts the game. */
-const TITLE_TABS: [Tab, string][] = [...TABS, ["files", "Game files"]];
+/** Per the user: Game files and Phone only on the title screen. Changing files restarts the game. */
+const TITLE_TABS: [Tab, string][] = [...TABS, ["files", "Game files"], ["phone", "Phone"]];
 
 /** Leave the run for the title or the hangar. The run is saved first, so CONTINUE picks it up. */
 function leaveRun(boot: "title" | "hangar") {
@@ -164,7 +165,7 @@ export function OptionsPanel({
   return (
     <div className="overlay options-overlay" onClick={(e) => e.stopPropagation()}>
       <article
-        className={`sheet ftl-sheet ship-sheet options-sheet has-x${tab === "files" ? " is-wide" : ""}`}
+        className={`sheet ftl-sheet ship-sheet options-sheet has-x${tab === "files" || tab === "phone" ? " is-wide" : ""}`}
         aria-label={"Options"}
       >
         <CloseX onClose={onClose} />
@@ -328,6 +329,7 @@ export function OptionsPanel({
             </div>
           ) : null}
           {tab === "files" ? <GameFilesPanel /> : null}
+          {tab === "phone" ? <PhoneHandoffPanel /> : null}
           {tab === "keys" ? (
             <div className="opt-keys">
               {KEYS.map(([group, rows]) => (

@@ -33,7 +33,7 @@ jobs:
       - run: pnpm --filter @stl/handoff test
 
       - name: Deploy worker
-        run: pnpm --filter @stl/handoff deploy
+        run: pnpm --filter @stl/handoff run deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

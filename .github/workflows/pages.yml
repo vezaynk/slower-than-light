@@ -37,6 +37,7 @@ jobs:
         run: pnpm --filter @stl/game build:pages
         env:
           PAGES_BASE: ${{ steps.pages.outputs.base_path }}/
+          VITE_HANDOFF_URL: https://lighter-than-air-worker.k.workers.dev
 
       # Any deep link falls back to the SPA shell.
       - run: cp apps/game/dist/client/index.html apps/game/dist/client/404.html

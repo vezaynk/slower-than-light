@@ -1,127 +1,289 @@
 /**
- * A direct WebRTC connection between two devices. The ticket (a QR code or pasted text) is the session
- * description. The game files travel on the data channel after both devices have exchanged tickets.
+ * The two browsers meet through the handoff service. Each one keeps its own WebRTC
+ * connection to Cloudflare Realtime's SFU. The typed code names the room. The game
+ * files travel on a data channel named stl-handoff.
+ *
+ * The phone's first message is "ready", which the SFU consumes as the delivery gate.
+ * "hello" is the next message, and the computer waits for it before any file bytes.
  */
 
-import { decodeTicket, encodeTicket, type SessionTicket } from "./frame.ts";
-import { armChannel } from "./transfer.ts";
+import { handoffOrigin, postJson, RelayError, normalizeCode } from "./relay.ts";
+import { armChannel, waitForText } from "./transfer.ts";
 
-const RTC: RTCConfiguration = {
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+const RTC_CONFIG: RTCConfiguration = {
+  iceServers: [{ urls: "stun:stun.cloudflare.com:3478" }],
 };
 
-const CONNECT_FAILED = "The two devices could not connect. On the same Wi-Fi, try the codes again.";
+const CONNECT_MS = 20_000;
+const HELLO_MS = 3 * 60_000;
+const CONNECT_FAILED = "The two devices could not connect. Enter the code again.";
+const NOT_CONFIGURED = "Phone handoff is not set up on this copy of the game.";
+const CHANNEL_NAME = "stl-handoff";
 
-function waitIce(pc: RTCPeerConnection): Promise<void> {
-  if (pc.iceGatheringState === "complete") return Promise.resolve();
-  return new Promise((resolve) => {
-    const finish = () => {
-      window.clearTimeout(timer);
-      pc.removeEventListener("icegatheringstatechange", onChange);
-      resolve();
-    };
-    const onChange = () => {
-      if (pc.iceGatheringState === "complete") finish();
-    };
-    const timer = window.setTimeout(finish, 5000);
-    pc.addEventListener("icegatheringstatechange", onChange);
-  });
-}
-
-function failLater(pc: RTCPeerConnection, reject: (err: Error) => void): void {
-  const fail = () => reject(new Error(CONNECT_FAILED));
-  pc.addEventListener("connectionstatechange", () => {
-    if (pc.connectionState === "failed") fail();
-  });
-  pc.addEventListener("iceconnectionstatechange", () => {
-    if (pc.iceConnectionState === "failed") fail();
-  });
-}
-
-async function ticketFrom(pc: RTCPeerConnection, role: SessionTicket["role"]): Promise<string[]> {
-  await waitIce(pc);
-  const sdp = pc.localDescription?.sdp;
-  if (!sdp) throw new Error("This browser did not produce a connection code.");
-  return encodeTicket({ v: 1, role, sdp });
-}
-
-export type HandoffSocket = {
-  tickets: Promise<string[]>;
+export type SendLink = {
+  code: Promise<string>;
   channel: Promise<RTCDataChannel>;
   close(): void;
 };
 
-export type OfferSocket = HandoffSocket & {
-  takeAnswer(text: string): Promise<void>;
+export type ReceiveLink = {
+  channel: Promise<RTCDataChannel>;
+  close(): void;
 };
 
-/** The sending device. Show `tickets`, then pass the phone's code to `takeAnswer`. */
-export function createOfferLink(): OfferSocket {
-  const pc = new RTCPeerConnection(RTC);
-  const dc = pc.createDataChannel("stl-handoff");
-  armChannel(dc);
-  const channel = new Promise<RTCDataChannel>((resolve, reject) => {
-    failLater(pc, reject);
-    if (dc.readyState === "open") resolve(dc);
-    else dc.addEventListener("open", () => resolve(dc), { once: true });
-    dc.addEventListener("close", () => reject(new Error("The connection closed.")), { once: true });
+export function createSendLink(signal: AbortSignal): SendLink {
+  const origin = handoffOrigin();
+  const pc = origin ? new RTCPeerConnection(RTC_CONFIG) : null;
+  const retained: RTCDataChannel[] = [];
+  let app: RTCDataChannel | null = null;
+  if (pc) retainTransport(pc, retained);
+
+  let resolveCode: (code: string) => void = () => {};
+  let rejectCode: (err: Error) => void = () => {};
+  const code = new Promise<string>((resolve, reject) => {
+    resolveCode = resolve;
+    rejectCode = reject;
   });
-  const tickets = (async () => {
+
+  const channel = (async () => {
     try {
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      return await ticketFrom(pc, "offer");
+      if (!origin || !pc) throw new Error(NOT_CONFIGURED);
+      const created = await postJson(`${origin}/v1/rooms`, {}, signal);
+      const roomCode = readCode(created);
+      const offer = readOffer(created);
+      resolveCode(roomCode);
+      await answerTransport(pc, offer, signal);
+      await postJson(`${origin}/v1/rooms/${roomCode}/answer`, { sdp: localSdp(pc) }, signal);
+      await waitConnected(pc, signal);
+      const published = await postJson(`${origin}/v1/rooms/${roomCode}/publish`, {}, signal);
+      const dc = pc.createDataChannel(CHANNEL_NAME, {
+        negotiated: true,
+        id: readChannelId(published),
+      });
+      app = dc;
+      armChannel(dc);
+      await waitOpen(dc, signal);
+      await waitForText(dc, "hello", signal, HELLO_MS);
+      return dc;
     } catch (err) {
-      pc.close();
-      throw err;
+      const error = asError(err);
+      rejectCode(error);
+      pc?.close();
+      throw error;
     }
   })();
+
   return {
-    tickets,
+    code,
     channel,
-    async takeAnswer(text: string) {
-      const answer = await decodeTicket(text);
-      if (answer.role !== "answer")
-        throw new Error("Paste the code the receiving device is showing.");
-      await pc.setRemoteDescription({ type: "answer", sdp: answer.sdp });
-    },
     close() {
-      dc.close();
-      pc.close();
+      app?.close();
+      for (const extra of retained) extra.close();
+      pc?.close();
     },
   };
 }
 
-/** The receiving device. Pass the computer's code. Show `tickets` while `channel` connects. */
-export function createAnswerLink(offerText: string): HandoffSocket {
-  const pc = new RTCPeerConnection(RTC);
-  const channel = new Promise<RTCDataChannel>((resolve, reject) => {
-    failLater(pc, reject);
-    pc.addEventListener("datachannel", (ev) => {
-      const dc = ev.channel;
-      armChannel(dc);
-      if (dc.readyState === "open") resolve(dc);
-      else dc.addEventListener("open", () => resolve(dc), { once: true });
-    });
-  });
-  const tickets = (async () => {
+export function createReceiveLink(roomCode: string, signal: AbortSignal): ReceiveLink {
+  const origin = handoffOrigin();
+  const pc = origin ? new RTCPeerConnection(RTC_CONFIG) : null;
+  const retained: RTCDataChannel[] = [];
+  let app: RTCDataChannel | null = null;
+  if (pc) retainTransport(pc, retained);
+
+  const channel = (async () => {
     try {
-      const offer = await decodeTicket(offerText);
-      if (offer.role !== "offer") throw new Error("Paste the code the sending device is showing.");
-      await pc.setRemoteDescription({ type: "offer", sdp: offer.sdp });
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      return await ticketFrom(pc, "answer");
+      if (!origin || !pc) throw new Error(NOT_CONFIGURED);
+      const joined = await postJson(`${origin}/v1/rooms/${roomCode}/join`, {}, signal);
+      await answerTransport(pc, readOffer(joined), signal);
+      await postJson(`${origin}/v1/rooms/${roomCode}/join/answer`, { sdp: localSdp(pc) }, signal);
+      await waitConnected(pc, signal);
+      const subscribed = await subscribeWhenReady(origin, roomCode, signal);
+      const dc = pc.createDataChannel(CHANNEL_NAME, { negotiated: true, id: subscribed });
+      app = dc;
+      armChannel(dc);
+      await waitOpen(dc, signal);
+      dc.send("ready");
+      dc.send("hello");
+      return dc;
     } catch (err) {
-      pc.close();
-      throw err;
+      pc?.close();
+      throw asError(err);
     }
   })();
+
   return {
-    tickets,
     channel,
     close() {
-      pc.close();
+      app?.close();
+      for (const extra of retained) extra.close();
+      pc?.close();
     },
   };
+}
+
+function retainTransport(pc: RTCPeerConnection, retained: RTCDataChannel[]): void {
+  pc.addEventListener("datachannel", (ev) => {
+    retained.push(ev.channel);
+  });
+}
+
+async function answerTransport(
+  pc: RTCPeerConnection,
+  offer: RTCSessionDescriptionInit,
+  signal: AbortSignal,
+): Promise<void> {
+  await pc.setRemoteDescription(offer);
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  await waitIce(pc, signal);
+}
+
+async function subscribeWhenReady(
+  origin: string,
+  roomCode: string,
+  signal: AbortSignal,
+): Promise<number> {
+  const deadline = Date.now() + HELLO_MS;
+  for (;;) {
+    if (signal.aborted) throw new Error("The handoff was cancelled.");
+    try {
+      const payload = await postJson(`${origin}/v1/rooms/${roomCode}/subscribe`, {}, signal);
+      return readChannelId(payload);
+    } catch (err) {
+      if (err instanceof RelayError && err.status === 409 && Date.now() < deadline) {
+        await delay(1000, signal);
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
+function waitIce(pc: RTCPeerConnection, signal: AbortSignal): Promise<void> {
+  if (pc.iceGatheringState === "complete") return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const finish = (err?: Error) => {
+      window.clearTimeout(timer);
+      pc.removeEventListener("icegatheringstatechange", onChange);
+      signal.removeEventListener("abort", onAbort);
+      if (err) reject(err);
+      else resolve();
+    };
+    const onChange = () => {
+      if (pc.iceGatheringState === "complete") finish();
+    };
+    const onAbort = () => finish(new Error("The handoff was cancelled."));
+    const timer = window.setTimeout(() => finish(), 5000);
+    pc.addEventListener("icegatheringstatechange", onChange);
+    signal.addEventListener("abort", onAbort, { once: true });
+    if (signal.aborted) onAbort();
+  });
+}
+
+function waitConnected(pc: RTCPeerConnection, signal: AbortSignal): Promise<void> {
+  if (pc.connectionState === "connected") return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (err?: Error) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      pc.removeEventListener("connectionstatechange", onState);
+      pc.removeEventListener("iceconnectionstatechange", onIce);
+      signal.removeEventListener("abort", onAbort);
+      if (err) reject(err);
+      else resolve();
+    };
+    const onState = () => {
+      if (pc.connectionState === "connected") finish();
+      else if (pc.connectionState === "failed" || pc.connectionState === "closed") {
+        finish(new Error(CONNECT_FAILED));
+      }
+    };
+    const onIce = () => {
+      if (pc.iceConnectionState === "failed") finish(new Error(CONNECT_FAILED));
+    };
+    const onAbort = () => finish(new Error("The handoff was cancelled."));
+    const timer = window.setTimeout(() => finish(new Error(CONNECT_FAILED)), CONNECT_MS);
+    pc.addEventListener("connectionstatechange", onState);
+    pc.addEventListener("iceconnectionstatechange", onIce);
+    signal.addEventListener("abort", onAbort, { once: true });
+    if (signal.aborted) onAbort();
+  });
+}
+
+function waitOpen(dc: RTCDataChannel, signal: AbortSignal): Promise<void> {
+  if (dc.readyState === "open") return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const finish = (err?: Error) => {
+      window.clearTimeout(timer);
+      dc.removeEventListener("open", onOpen);
+      dc.removeEventListener("close", onClose);
+      signal.removeEventListener("abort", onAbort);
+      if (err) reject(err);
+      else resolve();
+    };
+    const onOpen = () => finish();
+    const onClose = () => finish(new Error("The connection closed."));
+    const onAbort = () => finish(new Error("The handoff was cancelled."));
+    const timer = window.setTimeout(() => finish(new Error(CONNECT_FAILED)), CONNECT_MS);
+    dc.addEventListener("open", onOpen, { once: true });
+    dc.addEventListener("close", onClose, { once: true });
+    signal.addEventListener("abort", onAbort, { once: true });
+    if (signal.aborted) onAbort();
+  });
+}
+
+function delay(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      window.clearTimeout(timer);
+      reject(new Error("The handoff was cancelled."));
+    };
+    if (signal.aborted) onAbort();
+    else signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+function localSdp(pc: RTCPeerConnection): string {
+  const sdp = pc.localDescription?.sdp;
+  if (!sdp) throw new Error("This browser did not produce a connection answer.");
+  return sdp;
+}
+
+function readCode(payload: unknown): string {
+  const code = payload && typeof payload === "object" ? (payload as { code?: unknown }).code : null;
+  const normalized = typeof code === "string" ? normalizeCode(code) : null;
+  if (!normalized) throw new Error("The handoff service could not open a connection.");
+  return normalized;
+}
+
+function readOffer(payload: unknown): RTCSessionDescriptionInit {
+  const desc =
+    payload && typeof payload === "object"
+      ? (payload as { sessionDescription?: { type?: unknown; sdp?: unknown } }).sessionDescription
+      : null;
+  if (!desc || desc.type !== "offer" || typeof desc.sdp !== "string" || !desc.sdp) {
+    throw new Error("The handoff service could not open a connection.");
+  }
+  return { type: "offer", sdp: desc.sdp };
+}
+
+function readChannelId(payload: unknown): number {
+  const id =
+    payload && typeof payload === "object" ? (payload as { channelId?: unknown }).channelId : null;
+  if (typeof id !== "number" || !Number.isInteger(id) || id < 0 || id > 65_534) {
+    throw new Error("The handoff service could not open a connection.");
+  }
+  return id;
+}
+
+function asError(err: unknown): Error {
+  if (err instanceof Error) return err;
+  return new Error("The handoff service could not open a connection.");
 }

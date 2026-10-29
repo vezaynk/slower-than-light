@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "lighter-than-air-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-28",
+  "observability": {
+    "enabled": true,
+  },
+  // Secrets, set with `wrangler secret put`, never in this file:
+  // REALTIME_SFU_APP_ID, REALTIME_SFU_APP_SECRET
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "HandoffRoom" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["HandoffRoom"] }],
+}

@@ -54,6 +54,43 @@ function takeMessages(dc: RTCDataChannel, handler: (ev: MessageEvent) => void): 
   return () => dc.removeEventListener("message", handler);
 }
 
+/** Consume one text message so a later frame reader does not treat it as a file frame. */
+export function waitForText(
+  dc: RTCDataChannel,
+  text: string,
+  signal: AbortSignal,
+  ms: number,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let stop = () => {};
+    const finish = (err?: Error) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      stop();
+      dc.removeEventListener("close", onClose);
+      signal.removeEventListener("abort", onAbort);
+      if (err) reject(err);
+      else resolve();
+    };
+    const onMessage = (ev: MessageEvent) => {
+      if (ev.data === text) finish();
+      else finish(new Error("The connection sent an unexpected message."));
+    };
+    const onClose = () => finish(new Error("The connection closed."));
+    const onAbort = () => finish(new Error("The handoff was cancelled."));
+    const timer = window.setTimeout(
+      () => finish(new Error("The other device did not enter the code.")),
+      ms,
+    );
+    stop = takeMessages(dc, onMessage);
+    dc.addEventListener("close", onClose);
+    signal.addEventListener("abort", onAbort, { once: true });
+    if (signal.aborted) onAbort();
+  });
+}
+
 export function bytesOf(data: unknown): Promise<Uint8Array> | Uint8Array {
   if (data instanceof ArrayBuffer) return new Uint8Array(data);
   if (ArrayBuffer.isView(data)) {

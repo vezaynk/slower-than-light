@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
-import { SKY_FILES, skyPath } from "@stl/pack";
+import { ASTEROID_BACK_FILES, SKY_FILES, skyPath } from "@stl/pack";
 import type { Game } from "@/game/types";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { skyScene } from "@/game/sky-scene";
@@ -121,6 +121,10 @@ export function HazardSky({ game }: { game: Game }) {
   const scene = skyScene(game);
   const plate = art >= 0 ? archiveImage(skyPath(scene)) : undefined;
   const world = scene.planet && art >= 0 ? archiveImage(SKY_FILES.planet) : undefined;
+  const backs =
+    scene.rocks && art >= 0
+      ? ASTEROID_BACK_FILES.map((path) => archiveImage(path)).filter((url): url is string => !!url)
+      : [];
   const sunFlash = useFallingEdge(scene.sunWarn);
   const ionFlash = useFallingEdge(scene.pulsarWarn);
   const shellFlash = useFallingEdge(scene.batteryAiming, 420);
@@ -152,7 +156,16 @@ export function HazardSky({ game }: { game: Game }) {
       {scene.pulsar ? <Pulsar warn={scene.pulsarWarn} /> : null}
       {scene.storm ? <Bolts /> : null}
       {scene.batteryAiming ? <i className="sky-aim" /> : null}
-      {scene.rocks
+      {backs.map((url, i) => (
+        <img
+          key={url}
+          className={`sky-rock-back is-back-${i + 1}`}
+          src={url}
+          alt=""
+          draggable={false}
+        />
+      ))}
+      {scene.rocks && backs.length === 0
         ? ROCKS.map((rock, i) => (
             <i
               key={`${rock.y}-${rock.delay}`}

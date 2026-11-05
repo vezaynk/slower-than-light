@@ -443,6 +443,58 @@
 
 /* --- Asteroid field. Far rocks are smaller and slower. --- */
 
+/*
+ * The archive's asteroid_back pictures: large rock clusters drifting right to left at three depths.
+ * The drawn rocks below are the fallback when the archive has none.
+ */
+.sky-rock-back {
+  position: absolute;
+  left: 0;
+  image-rendering: pixelated;
+  pointer-events: none;
+  animation: rock-back-pass var(--back-d, 60s) linear infinite;
+}
+
+.sky-rock-back.is-back-1 {
+  top: 8%;
+  width: 34%;
+  --back-d: 70s;
+  animation-delay: -12s;
+  opacity: 0.9;
+}
+
+.sky-rock-back.is-back-2 {
+  top: 46%;
+  width: 26%;
+  --back-d: 95s;
+  animation-delay: -55s;
+  opacity: 0.75;
+}
+
+.sky-rock-back.is-back-3 {
+  top: 62%;
+  width: 22%;
+  --back-d: 120s;
+  animation-delay: -30s;
+  opacity: 0.6;
+}
+
+@keyframes rock-back-pass {
+  from {
+    translate: 110cqi 0;
+  }
+  to {
+    translate: -60cqi 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-rock-back {
+    animation: none;
+    translate: 40cqi 0;
+  }
+}
+
 .sky-rock {
   position: absolute;
   top: var(--y);

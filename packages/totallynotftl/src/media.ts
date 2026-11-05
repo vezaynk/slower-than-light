@@ -213,12 +213,17 @@ async function buildMedia(): Promise<{
   const scenery = sceneryAssets(icons);
   assets.push(...scenery.assets);
   clipXml.push(...scenery.clips);
+  const field = asteroidField();
+  assets.push(...field.assets);
   const documents: FtlDocument[] = [
     {
       path: "data/animations.xml",
       xml: `<animations>\n${weaponXml.join("\n")}\n${clipXml.join("\n")}\n</animations>\n`,
     },
-    { path: "data/dlcAnimations.xml", xml: "<animations></animations>\n" },
+    {
+      path: "data/dlcAnimations.xml",
+      xml: `<animations>\n${field.clips.join("\n")}\n</animations>\n`,
+    },
     { path: "data/sounds.xml", xml: soundsXml() },
     { path: "data/dlcSounds.xml", xml: "<sounds><music></music></sounds>\n" },
   ];
@@ -467,13 +472,39 @@ function sceneryAssets(icons: IconModule): {
     });
     clips.push(effectAnim(sheet.name, sheet.frames, sheet.fw, sheet.fh, "effects"));
   }
-  for (let i = 0; i < 10; i += 1) {
-    const name = `asteroid${i}`;
-    assets.push({ path: `img/effects/${name}.png`, bytes: asteroidPng(i) });
-    clips.push(effectAnim(name, 1, 16, 16, "effects"));
-  }
   return { assets, clips };
 }
+
+/**
+ * The asteroid field, laid out as ftl.dat lays it: ten 24x24 rocks under img/asteroids with their anims in
+ * dlcAnimations.xml, and three large drifting backdrops the engine loads by path (asteroids/asteroid_back1-3.png).
+ * Every picture is drawn here.
+ */
+function asteroidField(): { assets: { path: string; bytes: Uint8Array }[]; clips: string[] } {
+  const assets: { path: string; bytes: Uint8Array }[] = [];
+  const clips: string[] = [];
+  for (let i = 0; i < 10; i += 1) {
+    const name = `asteroid${i}`;
+    assets.push({ path: `img/asteroids/${name}.png`, bytes: asteroidPng(i) });
+    clips.push(effectAnim(name, 1, ASTEROID_PX, ASTEROID_PX, "asteroids"));
+  }
+  ASTEROID_BACKS.forEach((back, i) => {
+    assets.push({
+      path: `img/asteroids/asteroid_back${i + 1}.png`,
+      bytes: asteroidBackPng(back.w, back.h, back.rocks, i),
+    });
+  });
+  return { assets, clips };
+}
+
+const ASTEROID_PX = 24;
+
+/** Backdrop sizes and rock counts. ftl.dat's are a few hundred pixels across; these are smaller. */
+const ASTEROID_BACKS = [
+  { w: 180, h: 110, rocks: 9 },
+  { w: 130, h: 150, rocks: 7 },
+  { w: 150, h: 130, rocks: 6 },
+];
 
 type EffectKind = "fire" | "breach" | "burst";
 
@@ -654,15 +685,16 @@ function effectPixel(
 }
 
 function asteroidPng(index: number): Uint8Array {
-  const size = 16;
+  const size = ASTEROID_PX;
   const rgba = new Uint8Array(size * size * 4);
   const tone = 90 + (index % 5) * 18;
+  const mid = (size - 1) / 2;
   for (let y = 0; y < size; y += 1) {
     for (let x = 0; x < size; x += 1) {
-      const dx = x - 7.5;
-      const dy = y - 7.5;
-      const bump = ((index * 3 + x) % 5) - 2;
-      if (dx * dx + dy * dy > 28 + bump) continue;
+      const dx = x - mid;
+      const dy = y - mid;
+      const bump = ((index * 3 + x) % 7) - 3;
+      if (dx * dx + dy * dy > 70 + bump * 3) continue;
       const at = (y * size + x) * 4;
       rgba[at] = tone;
       rgba[at + 1] = tone - 8;
@@ -671,6 +703,63 @@ function asteroidPng(index: number): Uint8Array {
     }
   }
   return rgbaPng(size, size, rgba);
+}
+
+/**
+ * A loose cluster of dark lumpy rocks on a clear backdrop, lit from the upper left.
+ * Rock places are fixed per backdrop, so the stand-in rebuilds byte for byte.
+ */
+function asteroidBackPng(w: number, h: number, rocks: number, seed: number): Uint8Array {
+  const rgba = new Uint8Array(w * h * 4);
+  let state = 0x9e3779b9 ^ (seed * 7919);
+  const roll = () => {
+    state = (Math.imul(state, 1103515245) + 12345) >>> 0;
+    return state / 0x100000000;
+  };
+  for (let n = 0; n < rocks; n += 1) {
+    const r = 7 + roll() * Math.min(w, h) * 0.17;
+    const cx = r + roll() * (w - 2 * r);
+    const cy = r + roll() * (h - 2 * r);
+    const squash = 0.7 + roll() * 0.3;
+    const p1 = roll() * Math.PI * 2;
+    const p2 = roll() * Math.PI * 2;
+    const p3 = roll() * Math.PI * 2;
+    const pits = Array.from({ length: 1 + Math.floor(roll() * 3) }, () => ({
+      x: (roll() - 0.5) * r,
+      y: (roll() - 0.5) * r * squash,
+      r: 1.5 + roll() * r * 0.22,
+    }));
+    for (let y = Math.max(0, Math.floor(cy - r * 1.3)); y < Math.min(h, cy + r * 1.3); y += 1) {
+      for (let x = Math.max(0, Math.floor(cx - r * 1.3)); x < Math.min(w, cx + r * 1.3); x += 1) {
+        const dx = x - cx;
+        const dy = (y - cy) / squash;
+        const a = Math.atan2(dy, dx);
+        // Low, uneven bumps read as rock. A single strong harmonic reads as a star.
+        const edge =
+          r *
+          (1 +
+            0.07 * Math.sin(2 * a + p1) +
+            0.05 * Math.sin(3 * a + p2) +
+            0.03 * Math.sin(7 * a + p3));
+        const d = Math.hypot(dx, dy);
+        if (d > edge) continue;
+        // Lit from the upper left, darker toward the rim.
+        let light = 0.6 - (dx + dy) / (edge * 2.6) - (d / edge) ** 3 * 0.25;
+        for (const pit of pits) {
+          const pd = Math.hypot(dx - pit.x, dy - pit.y);
+          if (pd < pit.r)
+            light -= 0.22 * (1 - pd / pit.r) + (dx - pit.x + (dy - pit.y) < 0 ? 0.08 : -0.04);
+        }
+        const shade = Math.round(30 + Math.max(0, Math.min(1, light)) * 72);
+        const at = (y * w + x) * 4;
+        rgba[at] = shade + 6;
+        rgba[at + 1] = shade;
+        rgba[at + 2] = Math.max(0, shade - 8);
+        rgba[at + 3] = d > edge - 1.2 ? 190 : 255;
+      }
+    }
+  }
+  return rgbaPng(w, h, rgba);
 }
 
 function markerPng(): Uint8Array {

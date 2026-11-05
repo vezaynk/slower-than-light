@@ -76,6 +76,39 @@
   visibility: visible;
 }
 
+/*
+ * A wreck piece drifts from where it sat. --gib-dx and --gib-dy are hull pixels (ship-art.ts gibFlight); one room
+ * is 35 of them, and --tile is that room on this board.
+ */
+.hull.is-gone .hull-gib {
+  transform-origin: center;
+  animation: hull-gib-fly var(--gib-seconds, 3s) cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+}
+
+@keyframes hull-gib-fly {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(var(--gib-dx, 0) * var(--tile, 44px) / 35),
+        calc(var(--gib-dy, 0) * var(--tile, 44px) / 35)
+      )
+      rotate(var(--gib-spin, 0deg));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hull.is-gone .hull-gib {
+    animation: none;
+  }
+}
+
 .hull-plate {
   shape-rendering: crispEdges;
 }

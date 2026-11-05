@@ -95,8 +95,9 @@ export function standInSheet(
       velocityMax: 0.9,
       directionMin: side < 0 ? 150 : 0,
       directionMax: side < 0 ? 210 : 40,
-      angularMin: -12,
-      angularMax: 12,
+      // ftl.dat's gibs spin between -0.5 and 1 (kestral: -0.4 to -0.1). Left pieces turn one way, right the other.
+      angularMin: side < 0 ? -0.4 : 0.1,
+      angularMax: side < 0 ? -0.1 : 0.4,
     };
   });
   return {

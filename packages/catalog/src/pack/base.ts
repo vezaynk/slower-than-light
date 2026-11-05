@@ -196,6 +196,8 @@ function sectorRow(row: SectorType): SectorDef {
   if (track) sector.tracks = [track];
   const rarities = sectorRarities(row.notes);
   if (rarities.length > 0) sector.rarities = rarities;
+  // ftl.dat's sector_data.xml names START_BEACON on the first sector. The others fall back to <beaconEvents>.
+  if (row.id === "STANDARD_SPACE") sector.startEvent = "START_BEACON";
   return sector;
 }
 
@@ -1116,6 +1118,69 @@ const STANDIN_GATES: EventDef = {
   ],
 };
 
+/**
+ * The names FTL's executable gives the start and exit beacon events (the strings START_BEACON, FINISH_BEACON, and
+ * FINISH_BEACON_NEBULA sit beside each other in it). The gap mod writes them as `<beaconEvents>`, so a real ftl.dat
+ * and the stand-in share them.
+ */
+const BEACON_EVENTS = {
+  start: "START_BEACON",
+  finish: "FINISH_BEACON",
+  finishNebula: "FINISH_BEACON_NEBULA",
+} as const;
+
+/** INVENTED text. The sector's first beacon. */
+const START_PAGE: EventDef = {
+  id: "START_BEACON",
+  dest: "Start beacon",
+  flag: "START_BEACON",
+  aliases: [],
+  sectors: [],
+  body: "The jump drive spins down. Fresh sensor returns trickle in from the beacons ahead.",
+  choices: [],
+};
+
+/**
+ * INVENTED text. The exit beacon. Its hidden Continue loads EXIT_LIST, as ftl.dat's FINISH_BEACON does.
+ * The sim keeps its own Continue and leave buttons and reads this page's label and list.
+ */
+const FINISH_PAGE: EventDef = {
+  id: "FINISH_BEACON",
+  dest: "Exit beacon",
+  flag: "FINISH_BEACON",
+  aliases: [],
+  sectors: [],
+  body: "A long-range relay marks the way out of this sector. Charge the drive to jump onward.",
+  choices: [
+    {
+      id: "continue",
+      label: "Continue...",
+      hidden: true,
+      fx: [{ k: "goto", id: "EXIT_LIST" }],
+    },
+  ],
+};
+
+/** INVENTED text. A nebula exit has no Continue, as ftl.dat's FINISH_BEACON_NEBULA has none. */
+const FINISH_NEBULA_PAGE: EventDef = {
+  id: "FINISH_BEACON_NEBULA",
+  dest: "Exit beacon",
+  flag: "FINISH_BEACON_NEBULA",
+  aliases: [],
+  sectors: [],
+  body: "The long-range relay is buried in nebula haze, but its signal holds. Charge the drive to jump onward.",
+  choices: [],
+};
+
+/** ftl.dat's EXIT_LIST shape: one draw between the neutral and item exit lists. */
+const EXIT_LIST = {
+  id: "EXIT_LIST",
+  entries: [
+    { id: "EXIT_NEUTRAL", unique: false },
+    { id: "EXIT_ITEMS", unique: false },
+  ],
+};
+
 export function loadCatalog(): void {
   const named = campaignEvents();
   const empties = emptyBeaconRecords().map(emptyRow);
@@ -1126,6 +1191,8 @@ export function loadCatalog(): void {
   if (!events.some((event) => event.id === "STORE_REBELSIDE")) events.push(REBEL_TRADE);
   // After the sector quotas, so the empty list is not mistaken for one of them.
   events.push(STANDIN_GATES);
+  for (const page of [START_PAGE, FINISH_PAGE, FINISH_NEBULA_PAGE])
+    if (!events.some((event) => event.id === page.id)) events.push(page);
   loadPack(
     {
       // Ghost stays off the stand-in. crewDef supplies it when no crewBlueprint uses that id.
@@ -1153,7 +1220,13 @@ export function loadCatalog(): void {
       rewards: REWARD_TABLE,
       factions: FACTION_SURRENDER.map((row) => ({ ...row })),
       events,
-      lists: [...fillerListRecords().map(listRow), ...lists, { id: "STANDIN_EMPTY", entries: [] }],
+      lists: [
+        ...fillerListRecords().map(listRow),
+        ...lists,
+        EXIT_LIST,
+        { id: "STANDIN_EMPTY", entries: [] },
+      ],
+      beaconEvents: { ...BEACON_EVENTS },
       empties,
       textLists: [
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },

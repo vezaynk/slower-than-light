@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { beginBoarding, choose, createGame, step } from "./sim.ts";
+import { beginBoarding, choose, step } from "./sim.ts";
 import type { Crew, Game } from "./types.ts";
 import { fillerChoose } from "./wiki/filler-events.ts";
 import { questChoose } from "./wiki/quests.ts";
 import { PART_B } from "./wiki/quests-b.ts";
+import { startedGame } from "./test-start.ts";
 
 function plant(g: Game, room: string, hp = 100): Crew {
   g.uid = (g.uid + 1) >>> 0;
@@ -46,14 +47,14 @@ function resumeBoarding(g: Game, narrative: string) {
 
 describe("Boarders with no enemy ship", () => {
   it("does not open a fight from a quiet map step", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     step(g, 0.05);
     assert.equal(g.phase, "map");
     assert.equal(g.enemy, null);
   });
 
   it("trades blows on the first step and ends with no salvage", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     const nen = g.crew.find((c) => c.id === "c-nen")!;
     const boarder = plant(g, nen.room, 0.2);
     const scrap = g.scrap;
@@ -78,7 +79,7 @@ describe("Boarders with no enemy ship", () => {
   });
 
   it("sabotages an empty system room at 0.08 per second", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     for (const c of g.crew) c.room = "p-pilot";
     plant(g, "p-weapons");
     const room = g.player.rooms.find((r) => r.id === "p-weapons")!;
@@ -91,7 +92,7 @@ describe("Boarders with no enemy ship", () => {
   });
 
   it("warns 15–20s in, then fires the planet-side battery 5–10s later", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     for (const c of g.crew) c.think = 9999;
     plant(g, "p-sensors");
     plant(g, "p-sensors");
@@ -131,7 +132,7 @@ describe("Boarders with no enemy ship", () => {
   });
 
   it("braces 3-4 human boarders with no hull", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     PART_B.choices["q:research:brace"](g);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
@@ -142,7 +143,7 @@ describe("Boarders with no enemy ship", () => {
   });
 
   it("turns one crewmember and beams 3-4 more on the drag", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     PART_B.choices["q:research:drag"](g);
     resumeBoarding(
       g,
@@ -160,7 +161,7 @@ describe("Boarders with no enemy ship", () => {
   });
 
   it("turns one crewmember and no extras on the teleporter retrieve", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     PART_B.choices["q:research:beam"](g);
     resumeBoarding(
       g,
@@ -174,7 +175,7 @@ describe("Boarders with no enemy ship", () => {
   });
 
   it("keeps the card when the teleporter retrieve would take the last crewmember", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     g.crew = g.crew.filter((c) => c.id === "c-ada");
     PART_B.choices["q:research:beam"](g);
     assert.equal(g.phase, "event");
@@ -184,7 +185,7 @@ describe("Boarders with no enemy ship", () => {
   });
 
   it("keeps the crew and beams 3-4 boarders from the medbay", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     PART_B.choices["q:research:medbay"](g);
     resumeBoarding(
       g,
@@ -203,7 +204,7 @@ describe("Boarders with no enemy ship", () => {
     let refugee = false;
     let battery = false;
     for (let seed = 1; seed < 80 && !(crazed && refugee && battery); seed++) {
-      const dna = createGame(seed);
+      const dna = startedGame(seed);
       questChoose(dna, "q:station:dna");
       if (pausedBoarding(dna) && humans(dna).length === 1) {
         assert.match(dna.event?.body ?? "", /crazed frenzy/);
@@ -211,7 +212,7 @@ describe("Boarders with no enemy ship", () => {
         assert.match(dna.log.join("\n"), /boarder beams aboard/);
         crazed = true;
       }
-      const ref = createGame(seed + 1000);
+      const ref = startedGame(seed + 1000);
       fillerChoose(ref, "c:refugee-comms-down:0");
       const aboard = humans(ref);
       if (pausedBoarding(ref) && aboard.length >= 2 && aboard.length <= 4 && !ref.asb) {
@@ -220,7 +221,7 @@ describe("Boarders with no enemy ship", () => {
         assert.match(ref.log.join("\n"), /human boarders beam aboard/);
         refugee = true;
       }
-      const station = createGame(seed + 2000);
+      const station = startedGame(seed + 2000);
       fillerChoose(station, "c:abandoned-station:0");
       const pirates = humans(station);
       if (pausedBoarding(station) && station.asb && pirates.length >= 2 && pirates.length <= 4) {

@@ -21,7 +21,7 @@ const UNPLAYED: Partial<Record<keyof ContentPack, readonly string[]>> = {
   crew: ["colors", "detail"],
   drones: ["noloc"],
   hulls: ["droneCount", "droneLoad", "maxSector", "minSector", "weaponCount", "weaponLoad"],
-  sectors: ["short", "startEvent"],
+  sectors: ["short"],
   events: ["alters", "boarders", "environment", "fx", "grants", "marks", "reward", "ship"],
 };
 

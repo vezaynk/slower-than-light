@@ -146,6 +146,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (lists) pack.lists = lists;
   if (empties) pack.empties = empties;
   if (parsed.rewards) pack.rewards = parsed.rewards;
+  if (parsed.beaconEvents) pack.beaconEvents = parsed.beaconEvents;
   if (factions) pack.factions = factions;
   return pack;
 }

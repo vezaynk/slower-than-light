@@ -123,6 +123,8 @@ export {
   scrapRange,
   sectorDef,
   civilianSectorTitle,
+  beaconEventId,
+  beaconEvents,
   storeDef,
   systemDef,
   tuneDef,
@@ -132,6 +134,7 @@ export {
 export { localeString, packLocales } from "./locales.ts";
 export type {
   AugmentDef,
+  BeaconEvents,
   ContentPack,
   CrewColor,
   CrewDef,

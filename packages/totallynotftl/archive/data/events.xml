@@ -3540,6 +3540,22 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <event/>
     </choice>
   </event>
+  <event name="START_BEACON">
+    <title>Start beacon</title>
+    <text>The jump drive spins down. Fresh sensor returns trickle in from the beacons ahead.</text>
+  </event>
+  <event name="FINISH_BEACON">
+    <title>Exit beacon</title>
+    <text>A long-range relay marks the way out of this sector. Charge the drive to jump onward.</text>
+    <choice name="continue" hidden="true">
+      <text>Continue...</text>
+      <event load="EXIT_LIST"/>
+    </choice>
+  </event>
+  <event name="FINISH_BEACON_NEBULA">
+    <title>Exit beacon</title>
+    <text>The long-range relay is buried in nebula haze, but its signal holds. Charge the drive to jump onward.</text>
+  </event>
   <eventList name="FILLER">
     <event load="EMPTY_STATION2" unique="true"/>
     <event load="AUTO_REFUEL_STATION" unique="true"/>
@@ -5432,6 +5448,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="FRIENDLY_SLAVER" unique="true"/>
     <event load="TERRAFORMING_SCAN" unique="true"/>
     <event load="MERCENARY" unique="false"/>
+  </eventList>
+  <eventList name="EXIT_LIST">
+    <event load="EXIT_NEUTRAL" unique="false"/>
+    <event load="EXIT_ITEMS" unique="false"/>
   </eventList>
   <eventList name="STANDIN_EMPTY"/>
 </FTL>

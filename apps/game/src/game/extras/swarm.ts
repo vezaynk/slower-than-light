@@ -44,6 +44,7 @@ import { scramblerBlocks } from "../wiki/cited-scrambler.ts";
 import { flagshipDronePower } from "../wiki/flagship-systems.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { airShown } from "../air.ts";
+import { holdLoopCue, queueSfx } from "../sfx-queue.ts";
 
 /**
  * Drone Control, the paragraph above "Overview": the system itself is priced at 60.
@@ -1277,6 +1278,8 @@ function tickRepair(
     body.path = [];
     const breaches = here.breach;
     engiRepair(ship, here, dt, repowerKits);
+    // dlcSounds.xml shrikeRepair: the System Repair Drone's working loop. INFERRED: shrike names that drone.
+    holdLoopCue(g, "shrikeRepair");
     // Door System: sealing a breach on an enemy ship shuts that room's doors when the system functions.
     if (aboard === "enemy" && here.breach < breaches) noteEnemyBreach(g, here.id);
     return;
@@ -1585,11 +1588,14 @@ function tickOvercharger(g: Game, kit: Kit, dt: number): void {
     if (wait == null) return;
     kit.left = wait;
     kit.aux = 0;
+    // dlcSounds.xml shieldDroneCharge: the overcharger starts building a layer.
+    queueSfx(g, "shieldDroneCharge");
   }
   kit.aux += dt;
   while (kit.left > 0 && kit.aux >= kit.left) {
     kit.aux -= kit.left;
     addOvercharge(ship);
+    queueSfx(g, "shieldDroneActivate");
     const next = overchargerWait(ship.zoltan ?? 0);
     if (next == null) {
       kit.left = 0;
@@ -1621,6 +1627,8 @@ function tickIntruder(g: Game, kit: Kit, dt: number): void {
   if (takeDoorSkip(kit)) kit.aux = kit.left;
   kit.aux += dt;
   while (kit.aux >= kit.left) {
+    // dlcSounds.xml ionBoarderCharge: the Ion Intruder's pulse.
+    queueSfx(g, "ionBoarderCharge");
     pulseIntruder(g, enemy, kit);
     kit.aux -= kit.left;
     kit.left = rollIntruderWait(g);
@@ -2031,6 +2039,7 @@ function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
 
 function killUnit(g: Game, unit: DroneUnit, why: string) {
   if (unit.kind === "REPAIR" && unit.alive && g.enemy && holdDyingRepair(g.enemy, unit)) return;
+  if (unit.kind === "REPAIR" && unit.alive) queueSfx(g, "shrikeDeath");
   unit.dying = undefined;
   unit.alive = false;
   unit.powered = false;
@@ -2607,6 +2616,7 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
   while (unit.aux >= (unit.left ?? 0)) {
     unit.aux -= unit.left ?? 0;
     unit.left = rollIntruderWait(g);
+    queueSfx(g, "ionBoarderCharge");
     const ship = g.player;
     const room = ship.rooms.find((item) => item.id === unit.room);
     if (room?.system) {
@@ -2914,6 +2924,7 @@ function killPlayerDrone(g: Game, why: string) {
   const kit = g.player.kits.drones;
   if (!kit) return;
   if (kit.target === "REPAIR" && kit.on && holdDyingRepair(g.player, kit)) return;
+  if (kit.target === "REPAIR" && kit.on) queueSfx(g, "shrikeDeath");
   kit.dying = undefined;
   kit.on = false;
   kit.stun = 0;

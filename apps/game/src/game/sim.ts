@@ -8398,7 +8398,8 @@ function openSectorStart(g: Game): void {
     g.paused = false;
     return;
   }
-  if (shown === true || g.phase === "defeat") return;
+  // showArchivePage can end the run, which TypeScript does not see through the call.
+  if (shown === true || (g.phase as Game["phase"]) === "defeat") return;
   g.phase = "event";
   g.paused = true;
 }

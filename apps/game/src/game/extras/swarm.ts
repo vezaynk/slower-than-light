@@ -1819,13 +1819,30 @@ const FIRE_DRONE_FIRE = 90 / 100;
  * Combat Drones (offensive drones): "Damage to Zoltan Shields is ... 1 per beam drone swipe (2 for Beam Drone II ...)".
  * Anti-Ship Fire Drone: "Does 1 damage to a Zoltan Shield, just like the Anti-Ship Beam Drone I".
  */
-const SWIPE_ZOLTAN: Record<string, number> = { COMBAT_BEAM: 1, COMBAT_BEAM_2: 2, fire: 1 };
+const SWIPE_ZOLTAN: Record<string, number> = {
+  COMBAT_BEAM: 1,
+  COMBAT_BEAM_2: 2,
+  fire: 1,
+  COMBAT_FIRE: 1,
+};
 
 /** Shot label prefix for a shot fired by an enemy drone. CombatFx reads the drone id after the colon. */
 export const DRONE_LABEL = "drone:";
 
 /** Drone Control, "Combat Drones (offensive drones)": these orbit the target ship. */
-const OFFENSIVE = new Set(["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire"]);
+const OFFENSIVE = new Set([
+  "COMBAT_1",
+  "COMBAT_2",
+  "COMBAT_BEAM",
+  "COMBAT_BEAM_2",
+  "fire",
+  "COMBAT_FIRE",
+]);
+
+/** Anti-Ship Fire Drone. The archive blueprint is COMBAT_FIRE. Class tables still say fire. */
+function fireDrone(kind: string): boolean {
+  return kind === "fire" || kind === "COMBAT_FIRE";
+}
 /** Drone Control, "Boarding Drones": Boarding Drone and Ion Intruder Drone fly to the target and breach in. */
 const BOARDERS = new Set(["BOARDER", "BOARDER_ION"]);
 /** Drone Control, "Defensive Drones" the enemy flies. */
@@ -2341,9 +2358,9 @@ function fireBeamSwipe(
     id: nextId(g),
     kind: "beam",
     from,
-    damage: kind === "fire" ? 0 : BEAM_DAMAGE,
+    damage: fireDrone(kind) ? 0 : BEAM_DAMAGE,
     ion: 0,
-    fireChance: kind === "fire" ? FIRE_DRONE_FIRE : BEAM_FIRE,
+    fireChance: fireDrone(kind) ? FIRE_DRONE_FIRE : BEAM_FIRE,
     breachChance: 0,
     targetRoom: room.id,
     beamRooms: rooms,
@@ -2408,9 +2425,9 @@ function tickDroneBeam(g: Game, shot: Shot): boolean {
     done.push(span.id);
     const hit = ship.rooms.find((item) => item.id === span.id);
     if (!hit) continue;
-    if (kind === "fire") {
-      // Anti-Ship Fire Drone: "90% chance to set a tile on fire". INFERRED: one tile per swipe.
-      // Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
+    if (fireDrone(kind)) {
+      // Anti-Ship Fire Drone: "90% chance to set a tile on fire" and "Does no hull damage".
+      // INFERRED: one tile per swipe. Fires, "Fires and enemy AI": the stack stops at 4.
       if (rand(g) < FIRE_DRONE_FIRE) {
         hit.fire = Math.min(4, hit.fire + 1);
         if (shot.from === "enemy") log(g, `Their fire drone lights the ${hit.title}.`);

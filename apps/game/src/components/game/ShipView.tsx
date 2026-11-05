@@ -5,6 +5,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
   type RefObject,
@@ -27,11 +28,18 @@ import "@/game/pack/base";
 import { powerMask, weaponAccentHot, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { EFFECT_CLIPS, hullDef, ROOM_PX, type HullMount, type HullPicture } from "@stl/pack";
-import { clipLength, weaponFrame, weaponMuzzle } from "@/game/pack/media";
+import {
+  archiveGeneration,
+  clipLength,
+  subscribeArchive,
+  weaponFrame,
+  weaponMuzzle,
+} from "@/game/pack/media";
 import { arriveMove, dirOf, hopSteps, walkCells, walkPose, type CrewDir } from "@/game/walk-path";
 import { artilleryGun } from "@/game/wiki/flagship-systems";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import { RoomProp, RoomSeat, WallTerminal } from "./RoomConsole";
+import { drawnPlate, RoomPlate } from "./RoomPlate";
 import { DoorLayer, cellOwners } from "./DoorTicks";
 import { WeaponArt } from "./GearArt";
 import { gridPitch } from "./grid-pitch";
@@ -66,11 +74,48 @@ function clamp01(n: number): number {
   return n;
 }
 
-/** Room center as a percent of the hull, from the room box not the gap. */
-function roomCenter(room: { x: number; y: number; w: number; h: number }, ship: Ship) {
+/** Room center in cell space. 0.5 is the middle of the first column. */
+function roomCenter(room: { x: number; y: number; w: number; h: number }) {
   return {
-    x: ((room.x + room.w / 2) / ship.cols) * 100,
-    y: ((room.y + room.h / 2) / ship.rows) * 100,
+    x: room.x + room.w / 2,
+    y: room.y + room.h / 2,
+  };
+}
+
+/** A seated crew member faces the console wall. */
+const WALL_FACE: Record<"n" | "e" | "s" | "w", CrewDir> = {
+  e: "right",
+  w: "left",
+  n: "up",
+  s: "down",
+};
+
+/**
+ * A cell-space point on the door pitch.
+ * Column 0's center is half a tile in, and each next column steps by the tile plus the wall gap.
+ */
+function cellOrigin(x: number, y: number): CSSProperties {
+  const at = (n: number) => `calc(${n} * (var(--tile) + var(--wall)) - var(--wall) / 2)`;
+  return { left: at(x), top: at(y) };
+}
+
+/** The same point, in pixels of the walker layer, for the drag box. */
+function cellPixels(
+  layer: HTMLElement,
+  ship: Ship,
+  x: number,
+  y: number,
+): { x: number; y: number } {
+  const hull = layer.closest(".hull");
+  const el = hull instanceof HTMLElement ? hull : layer;
+  const pitch = gridPitch(el, ship.cols, ship.rows);
+  if (!pitch) return { x: 0, y: 0 };
+  const cs = getComputedStyle(el);
+  const gapX = parseFloat(cs.columnGap) || 0;
+  const gapY = parseFloat(cs.rowGap) || 0;
+  return {
+    x: pitch.padL + x * pitch.pitchX - gapX / 2,
+    y: pitch.padT + y * pitch.pitchY - gapY / 2,
   };
 }
 
@@ -97,7 +142,7 @@ function walkPaint(
   return { t, steps, goal };
 }
 
-/** Sprite center as a percent of the hull. Walkers follow the door path. Idle crew use their floor tile. */
+/** Sprite center in cell space. Walkers follow the door path. Idle crew use their floor tile. */
 function crewPlace(
   ship: Ship,
   c: Crew,
@@ -107,15 +152,9 @@ function crewPlace(
   const step = walkStep(ship, c);
   if (step && paint) {
     const at = walkPose(ship, c.room, c.path, c.via, paint.t, paint.goal);
-    if (at)
-      return {
-        x: (at.x / ship.cols) * 100,
-        y: (at.y / ship.rows) * 100,
-        faceLeft: at.faceLeft,
-        dir: at.dir,
-      };
-    const from = roomCenter(step.from, ship);
-    const to = roomCenter(step.to, ship);
+    if (at) return { x: at.x, y: at.y, faceLeft: at.faceLeft, dir: at.dir };
+    const from = roomCenter(step.from);
+    const to = roomCenter(step.to);
     return {
       x: from.x + (to.x - from.x) * paint.t,
       y: from.y + (to.y - from.y) * paint.t,
@@ -129,16 +168,16 @@ function crewPlace(
     const at = shiftPoint(c);
     if (at) {
       return {
-        x: ((at.x + 0.5) / ship.cols) * 100,
-        y: ((at.y + 0.5) / ship.rows) * 100,
+        x: at.x + 0.5,
+        y: at.y + 0.5,
         faceLeft: c.tile.x < c.shift.x,
         dir: dirOf(c.tile.x - c.shift.x, c.tile.y - c.shift.y),
       };
     }
   }
   return {
-    x: ((spot.x + 0.5) / ship.cols) * 100,
-    y: ((spot.y + 0.5) / ship.rows) * 100,
+    x: spot.x + 0.5,
+    y: spot.y + 0.5,
     faceLeft: false,
     dir: "down",
   };
@@ -558,6 +597,7 @@ export function ShipView({
   pirate,
   facing,
 }: Props) {
+  const archiveTick = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
   void ventMode;
   const here = crew.filter((c) => c.aboard === aboard && c.hp > 0);
   const fighting = meleeIds(here);
@@ -709,10 +749,13 @@ export function ShipView({
   if (beamAnchor && !previewEnd) {
     for (const id of roomsOnSegment(ship, beamAnchor, beamAnchor)) beamHit.add(id);
   }
+  const artHull = plateId ? hullDef(plateId) : undefined;
+  const plates = ship.rooms.map((room) => drawnPlate(artHull, room, archiveTick >= 0));
+  const interior = plates.some((plate) => plate);
   return (
     <div
       ref={hullRef}
-      className={`hull ${aboard === "enemy" ? "hull-foe" : "hull-own"}${ship.hull <= 0 ? " is-gone" : ""}`}
+      className={`hull ${aboard === "enemy" ? "hull-foe" : "hull-own"}${ship.hull <= 0 ? " is-gone" : ""}${interior ? " has-interior" : ""}`}
       data-ship={aboard}
       onPointerDownCapture={() => {
         // A touch drag ends without a click, so the swallow set on its release must not outlive it: a new press means
@@ -766,21 +809,18 @@ export function ShipView({
         const layer = layerRef.current ?? hullRef.current;
         if (!layer) return;
         const box = dragRect(layer, drag.x, drag.y, e.clientX, e.clientY, drag.turn);
-        const w = layer.clientWidth;
-        const h = layer.clientHeight;
         const ids: string[] = [];
         for (const c of here) {
           const open = seen ? seen(c.room) : true;
           if (!open && !(crewLit?.(c) ?? false)) continue;
           const at = crewPlace(ship, c, standFor(c), walkPaint(ship, here, c));
           if (!at) continue;
-          const px = (at.x / 100) * w;
-          const py = (at.y / 100) * h;
+          const px = cellPixels(layer, ship, at.x, at.y);
           if (
-            px >= box.left &&
-            px <= box.left + box.width &&
-            py >= box.top &&
-            py <= box.top + box.height
+            px.x >= box.left &&
+            px.x <= box.left + box.width &&
+            px.y >= box.top &&
+            px.y <= box.top + box.height
           )
             ids.push(c.id);
         }
@@ -812,7 +852,8 @@ export function ShipView({
         plate={aboard === "enemy" ? "glow" : "interior"}
         gone={ship.hull <= 0}
       />
-      {ship.rooms.map((room) => {
+      {ship.rooms.map((room, roomIndex) => {
+        const plate = plates[roomIndex];
         const open = seen ? seen(room.id) : true;
         const clip = roomClip(room);
         const pick = hackPick ? hackPick(room.id) : null;
@@ -826,6 +867,7 @@ export function ShipView({
             data-hacked={room.hacked}
             className={
               "room" +
+              (plate ? " has-plate" : "") +
               (clip ? " is-cut" : "") +
               (room.flash > 0 ? " is-flash" : "") +
               // Sensors, "Overview": fire, venting, and air are interior information, so an unseen room shows none of it.
@@ -851,6 +893,7 @@ export function ShipView({
             }}
           >
             {clip ? <i className="pixel-fill" style={{ clipPath: clip }} /> : null}
+            {plate ? <RoomPlate src={plate.src} glow={plate.glow} /> : null}
             {open && room.breach > 0 ? <BreachHoles room={room} /> : null}
             {fireClip ? <ClipSprite name={fireClip} className="clip-fire" /> : null}
             {open && room.flash > 0 ? (
@@ -891,7 +934,7 @@ export function ShipView({
                 dark room, so systems can be targeted without Sensors (Sensors, "Overview" does not list where systems
                 are among what its levels reveal).
               */}
-              {(room.system ?? room.kit) ? (
+              {(room.system ?? room.kit) && !plate ? (
                 <PixelIcon
                   name={(room.system ?? room.kit)!}
                   size={20}
@@ -937,7 +980,7 @@ export function ShipView({
                 </div>
               ) : null}
             </div>
-            {open
+            {open && !plate
               ? (() => {
                   const cell = consoleSpot(room, ship);
                   if (!cell || !room.system) return null;
@@ -979,7 +1022,7 @@ export function ShipView({
                 })()
               : null}
             {/* The medical machine on the tile nobody stands on (crew-spots blockedCells). */}
-            {open && (room.system === "medbay" || room.kit === "clonebay")
+            {open && !plate && (room.system === "medbay" || room.kit === "clonebay")
               ? blockedCells(room, aboard, interiorLinks(ship.doors, room.id), ship.doorMarks).map(
                   (cell) => (
                     <i
@@ -1081,10 +1124,10 @@ export function ShipView({
                 data-heal={c.id}
                 aria-hidden="true"
                 style={{
-                  left: `${(spot.x / ship.cols) * 100}%`,
-                  top: `${(spot.y / ship.rows) * 100}%`,
-                  width: `${100 / ship.cols}%`,
-                  height: `${100 / ship.rows}%`,
+                  left: `calc(${spot.x} * (var(--tile) + var(--wall)))`,
+                  top: `calc(${spot.y} * (var(--tile) + var(--wall)))`,
+                  width: "var(--tile)",
+                  height: "var(--tile)",
                 }}
               />
             );
@@ -1104,10 +1147,7 @@ export function ShipView({
                 className="token is-sprite crew-walker crew-ghost"
                 data-ghost={c.id}
                 aria-hidden="true"
-                style={{
-                  left: `${((goal.x + 0.5) / ship.cols) * 100}%`,
-                  top: `${((goal.y + 0.5) / ship.rows) * 100}%`,
-                }}
+                style={cellOrigin(goal.x + 0.5, goal.y + 0.5)}
               >
                 <CrewFace crew={c} pose="idle" frame={0} cycle={false} />
               </span>
@@ -1130,11 +1170,9 @@ export function ShipView({
             const back = seated
               ? { e: [-0.18, 0], w: [0.18, 0], n: [0, 0.18], s: [0, -0.18] }[seated.wall]
               : [0, 0];
-            const placeX = at.x + (back[0]! / ship.cols) * 100;
-            const placeY = at.y + (back[1]! / ship.rows) * 100;
-            const dir: CrewDir = seated
-              ? { e: "right", w: "left", n: "up", s: "down" }[seated.wall]
-              : at.dir;
+            const placeX = at.x + back[0]!;
+            const placeY = at.y + back[1]!;
+            const dir: CrewDir = seated ? WALL_FACE[seated.wall] : at.dir;
             // Stacked crew step aside by 4px at a full tile. The target panel's --ship-scale keeps that step with the rooms.
             const place = `translate(calc(-50% + ${nudge}px * var(--ship-scale, 1)), calc(-50% + ${nudge}px * var(--ship-scale, 1)))`;
             return (
@@ -1151,8 +1189,7 @@ export function ShipView({
                 dir={dir}
                 className="crew-walker"
                 style={{
-                  left: `${placeX}%`,
-                  top: `${placeY}%`,
+                  ...cellOrigin(placeX, placeY),
                   transform: place,
                 }}
               />

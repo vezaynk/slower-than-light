@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { flushSync } from "react-dom";
-import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
+import { resumeAudio, setMuted, setVolume, syncLoops, unlockAudio } from "@/game/audio";
 import { currentLocale, localeFace, localeLabel, selectLocale } from "@/game/locale";
 import { choiceBlue, offeredChoices } from "@/game/wiki/choice-locks";
 import { ArchiveBed } from "./ArchiveBed";
@@ -958,7 +958,11 @@ export function GameApp() {
       applyCssSpeed();
       // Per the user (haptics): your ship's hits, losses, jumps and wins (haptics.ts watchHaptics).
       watchHaptics(useGame.getState().game);
-      if (!ticking) acc = 0;
+      if (!ticking) {
+        acc = 0;
+        // The step is not running, so a repair or fire loop already started would keep going.
+        syncLoops({ fire: false, repair: false });
+      }
       // A tick that stops the clock itself (a surrender offer, a win, a reward card) must be drawn at once: with the
       // clock stopped nothing bumps again, and the screen stayed frozen on the frame before (bug reported by the user).
       const stopped = ticking && !shipTicking(useGame.getState().game);

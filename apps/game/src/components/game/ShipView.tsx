@@ -275,6 +275,7 @@ function EdgeMounts({
               id={w.defId}
               height={aboard === "player" ? 22 : 16}
               phase={(w.muzzle ?? 0) > 0 ? "fire" : ready ? "charged" : "idle"}
+              charge={powered ? w.charge : undefined}
             />
           </span>
         );
@@ -290,6 +291,8 @@ type DrawnGun = {
   powered: boolean;
   ready: boolean;
   phase: "idle" | "charged" | "fire";
+  /** The powered gun's charge, 0 to 1. Unset for a cold gun. */
+  charge?: number;
 };
 
 /**
@@ -318,6 +321,7 @@ function drawnGuns(
       powered,
       ready: powered && weaponAccentHot(w),
       phase: (w.muzzle ?? 0) > 0 ? "fire" : powered && weaponAccentHot(w) ? "charged" : "idle",
+      ...(powered ? { charge: w.charge } : {}),
     });
   }
   if (artilleryAt >= 0 && artillery?.weapon) {
@@ -385,7 +389,7 @@ function Hardpoints({
             const pose = mountPose(image, gun.mount, gun.powered, { x: offsetX, y: offsetY });
             const scaleX = pitch.pitchX / ROOM_PX;
             const scaleY = pitch.pitchY / ROOM_PX;
-            const frame = weaponFrame(gun.defId, gun.phase);
+            const frame = weaponFrame(gun.defId, gun.phase, gun.charge);
             const aim = weaponMuzzle(gun.defId);
             // Archive weapon sheets point up. Draw the frame at the room scale and
             // quarter-turn it so the barrel follows the hardpoint. A horizontal sheet
@@ -421,13 +425,19 @@ function Hardpoints({
                         <WeaponArt
                           id={gun.defId}
                           phase={gun.phase}
+                          charge={gun.charge}
                           pixelScale={{ x: scaleX, y: scaleY }}
                         />
                       </span>
                     </span>
                   ) : (
                     <span className="mount-gun" style={{ height, width: (height * 26) / 14 }}>
-                      <WeaponArt id={gun.defId} height={height} phase={gun.phase} />
+                      <WeaponArt
+                        id={gun.defId}
+                        height={height}
+                        phase={gun.phase}
+                        charge={gun.charge}
+                      />
                       <i data-muzzle="" />
                     </span>
                   )}

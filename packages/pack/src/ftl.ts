@@ -45,6 +45,7 @@ import type {
   TextListDef,
   TuneDef,
 } from "./types.ts";
+import { CREW_SKILL_NAMES } from "./types.ts";
 import { cloneGrid, readGrids } from "./grid.ts";
 import { attachPictures } from "./picture.ts";
 import { warnPack } from "./warnings.ts";
@@ -369,6 +370,8 @@ function readFtlCrew(node: XmlElement): CrewDef | undefined {
   if (powers.length > 0) row.powers = powers;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
+  const bp = numOf(node, "bp");
+  if (bp != null) row.bp = bp;
   const colors = readCrewColors(child(node, "colorList"));
   if (colors.length > 0) row.colors = colors;
   readCrewCombat(node, row);
@@ -1770,18 +1773,47 @@ function readBoarders(node: XmlElement): ArchiveBoarders | undefined {
   return row;
 }
 
+/**
+ * `all_skills` and the six skill attributes on a `<crewMember>`. A level outside 0-2 is clamped with a warning.
+ * Unset when the tag names none.
+ */
+function readGrantSkills(node: XmlElement): ArchiveGrant["skills"] {
+  const level = (name: string): number | undefined => {
+    const raw = intAttr(node, name);
+    if (raw == null) return undefined;
+    if (raw < 0 || raw > 2) {
+      warnPack(`<crewMember ${name}="${raw}"> is outside 0-2; it is clamped.`);
+      return Math.max(0, Math.min(2, raw));
+    }
+    return raw;
+  };
+  const all = level("all_skills");
+  const skills: NonNullable<ArchiveGrant["skills"]> = {};
+  for (const skill of CREW_SKILL_NAMES) {
+    const own = level(skill);
+    const value = own ?? all;
+    if (value != null) skills[skill] = value;
+  }
+  return Object.keys(skills).length > 0 ? skills : undefined;
+}
+
+/** The grant id of a `<crewMember>` that names no race: the sim picks one for the sector. */
+export const RANDOM_CREW = "random";
+
 function readGrant(node: XmlElement): ArchiveGrant | undefined {
   if (node.tagName === "crewMember") {
     const race = attr(node, "class")?.trim() || attr(node, "type")?.trim();
     const named = ownText(node).trim();
     const idAttr = attr(node, "id")?.trim();
     // A name id inlines to the person's name and leaves the race off the tag. Those people join as human.
-    const id = race || (named && idAttr && idAttr !== named ? "human" : idAttr);
-    if (!id) return undefined;
+    // A tag with no class, id, or name is a crewmember of a random race (vanilla <crewMember shields="1"/>).
+    const id = race || (named && idAttr && idAttr !== named ? "human" : idAttr) || RANDOM_CREW;
     const grant: ArchiveGrant = { kind: "crew", id };
     if (named && named !== id) grant.name = named;
     const amount = intAttr(node, "amount");
     if (amount != null) grant.amount = amount;
+    const skills = readGrantSkills(node);
+    if (skills) grant.skills = skills;
     return grant;
   }
   if (node.tagName !== "weapon" && node.tagName !== "drone" && node.tagName !== "augment")

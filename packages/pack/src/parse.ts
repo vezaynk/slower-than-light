@@ -249,6 +249,8 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (short) row.short = short;
   const flavor = textOf(node, "flavorType");
   if (flavor) row.flavor = flavor;
+  const bp = numOf(node, "bp");
+  if (bp != null) row.bp = bp;
   const length = numOf(node, "length");
   if (length != null) row.lengthTiles = length / 45;
   const speed = numOf(node, "speed");
@@ -365,6 +367,8 @@ export function readDrone(node: XmlElement): DroneDef | undefined {
   if (speed != null) row.speed = speed;
   const dodge = numOf(node, "dodge");
   if (dodge != null) row.dodge = dodge;
+  const bp = numOf(node, "bp");
+  if (bp != null) row.bp = bp;
   const weapon = textOf(node, "weaponBlueprint");
   if (weapon) row.weapon = weapon;
   return row;

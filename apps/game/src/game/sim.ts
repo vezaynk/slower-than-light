@@ -110,6 +110,7 @@ import type {
   WeaponBlueprint,
 } from "@stl/pack";
 import {
+  allCrew,
   allSectors,
   allWeapons,
   augmentDef,
@@ -566,6 +567,8 @@ const edges = new WeakMap<
  * The first look only records the baseline, so loading a game makes no sound.
  */
 function noteEdges(g: Game): void {
+  // The title screen steps a placeholder game before the archive loads. Crew power reads need that pack.
+  if (allCrew().length === 0) return;
   const last = edges.get(g) ?? { ready: new Set(), jump: false, hurt: new Set(), seen: false };
   const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
   const ready = new Set(

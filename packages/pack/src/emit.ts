@@ -899,7 +899,10 @@ function systemElement(doc: XmlDocument, system?: SystemDef, tune?: TuneDef): Xm
 
 function droneElement(doc: XmlDocument, drone: DroneDef): XmlElement {
   const node = element(doc, "droneBlueprint", { name: drone.id });
+  if (drone.noloc) node.setAttribute("NOLOC", "1");
   add(node, leaf(doc, "title", drone.name));
+  if (drone.short) add(node, leaf(doc, "short", drone.short));
+  if (drone.detail) add(node, leaf(doc, "desc", drone.detail));
   add(node, leaf(doc, "cost", drone.cost));
   if (drone.image) add(node, leaf(doc, "droneImage", drone.image));
   if (drone.rarity != null) add(node, leaf(doc, "rarity", drone.rarity));
@@ -927,7 +930,10 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true
   const node = element(doc, "weaponBlueprint", { name: weapon.id });
   add(node, leaf(doc, "type", TYPE[weapon.kind]));
   add(node, leaf(doc, "title", weapon.name));
+  if (weapon.short) add(node, leaf(doc, "short", weapon.short));
+  if (weapon.detail) add(node, leaf(doc, "desc", weapon.detail));
   add(node, leaf(doc, "tooltip", weapon.blurb));
+  if (weapon.flavor) add(node, leaf(doc, "flavorType", weapon.flavor));
   add(node, leaf(doc, "damage", weapon.damage));
   add(node, leaf(doc, "shots", weapon.shots));
   add(node, leaf(doc, "power", weapon.power));
@@ -991,6 +997,11 @@ function raceElement(
     if (race.detail) add(node, leaf(doc, "desc", race.detail));
     if (race.short) add(node, leaf(doc, "short", race.short));
     if (race.cost != null) add(node, leaf(doc, "cost", race.cost));
+    if (race.powers?.length) {
+      const list = element(doc, "powerList", {});
+      for (const line of race.powers) add(list, leaf(doc, "power", line));
+      add(node, list);
+    }
   }
   if (part === "identity") return node;
   add(node, leaf(doc, "maxHealth", race.hp));

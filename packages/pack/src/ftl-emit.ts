@@ -33,6 +33,11 @@ function crewElement(doc: XmlDocument, row: CrewDef): XmlElement {
   if (row.detail) node.appendChild(leaf(doc, "desc", row.detail));
   if (row.short) node.appendChild(leaf(doc, "short", row.short));
   if (row.cost != null) node.appendChild(leaf(doc, "cost", row.cost));
+  if (row.powers?.length) {
+    const list = element(doc, "powerList");
+    for (const line of row.powers) list.appendChild(leaf(doc, "power", line));
+    node.appendChild(list);
+  }
   return node;
 }
 
@@ -103,6 +108,7 @@ function shipElement(doc: XmlDocument, hull: HullDef): XmlElement {
     crew.class = row.class;
     ship.appendChild(element(doc, "crewCount", crew));
   }
+  if (hull.boardingAI) ship.appendChild(leaf(doc, "boardingAI", hull.boardingAI));
   if (hull.shield) ship.appendChild(leaf(doc, "shieldImage", hull.shield));
   if (hull.cloak) ship.appendChild(leaf(doc, "cloakImage", hull.cloak));
   if (hull.floor) ship.appendChild(leaf(doc, "floorImage", hull.floor));

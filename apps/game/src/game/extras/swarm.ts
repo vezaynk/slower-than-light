@@ -141,6 +141,20 @@ const STRIKER_FIRE = 10 / 100;
 const STRIKER_ION = 0;
 const STRIKER_BREACH = 0;
 
+/** Damage figures one drone shot carries. */
+type DroneHit = { damage: number; ion: number; fireChance: number; breachChance: number };
+
+/**
+ * The gun a drone blueprint names with `<weaponBlueprint>` (ftl.dat: DRONE_LASER, DRONE_BEAM, DRONE_FIREBEAM...).
+ * Its damage, ion, fire, and breach replace the cited figures. A drone naming no loaded gun keeps them.
+ */
+export function droneGun(kind: string, cited: DroneHit): DroneHit {
+  const id = droneDef(kind)?.weapon;
+  const gun = id ? weaponDef(id) : undefined;
+  if (!gun) return cited;
+  return { damage: gun.damage, ion: gun.ion, fireChance: gun.fire, breachChance: gun.breach };
+}
+
 /**
  * INVENTED: the drone page has no projectile flight time. Must be > 0 because
  * shot progress divides by duration. 0.7 matches other laser shots in this drill.
@@ -178,6 +192,19 @@ const BEAM_DAMAGE = 1;
 
 /** Drone Control, Combat Drones (offensive drones) > Anti-Ship Beam Drone I: "10% chance to set a tile on fire". */
 const BEAM_FIRE = 10 / 100;
+
+const STRIKER_HIT: DroneHit = {
+  damage: STRIKER_DAMAGE,
+  ion: STRIKER_ION,
+  fireChance: STRIKER_FIRE,
+  breachChance: STRIKER_BREACH,
+};
+const COMBAT2_HIT: DroneHit = {
+  ...STRIKER_HIT,
+  damage: COMBAT2.damage,
+  fireChance: COMBAT2.fireChance,
+};
+const BEAM_HIT: DroneHit = { damage: BEAM_DAMAGE, ion: 0, fireChance: BEAM_FIRE, breachChance: 0 };
 
 /**
  * Door System, Door strength: "They make about one attack per second with slightly randomized timing."
@@ -648,10 +675,7 @@ function pushStriker(g: Game, targetRoom: string) {
     id: nextId(g),
     kind: "laser",
     from: "player",
-    damage: STRIKER_DAMAGE,
-    ion: STRIKER_ION,
-    fireChance: STRIKER_FIRE,
-    breachChance: STRIKER_BREACH,
+    ...droneGun("COMBAT_1", STRIKER_HIT),
     targetRoom,
     wait: SHOT_WAIT_S,
     t: SHOT_T,
@@ -1814,6 +1838,7 @@ function crewCombat(c: Crew): number {
 
 /** Anti-Ship Fire Drone: "90% chance to set a tile on fire" and "Does no hull damage". */
 const FIRE_DRONE_FIRE = 90 / 100;
+const FIRE_BEAM_HIT: DroneHit = { damage: 0, ion: 0, fireChance: FIRE_DRONE_FIRE, breachChance: 0 };
 
 /**
  * Combat Drones (offensive drones): "Damage to Zoltan Shields is ... 1 per beam drone swipe (2 for Beam Drone II ...)".
@@ -2294,10 +2319,7 @@ function tickEnemyStriker(g: Game, unit: DroneUnit, dt: number) {
         id: nextId(g),
         kind: "laser",
         from: "enemy",
-        damage: unit.kind === "COMBAT_2" ? COMBAT2.damage : STRIKER_DAMAGE,
-        ion: STRIKER_ION,
-        fireChance: unit.kind === "COMBAT_2" ? COMBAT2.fireChance : STRIKER_FIRE,
-        breachChance: STRIKER_BREACH,
+        ...droneGun(unit.kind, unit.kind === "COMBAT_2" ? COMBAT2_HIT : STRIKER_HIT),
         targetRoom: roomId,
         wait: SHOT_WAIT_S,
         t: SHOT_T,
@@ -2341,10 +2363,7 @@ function fireBeamSwipe(
     id: nextId(g),
     kind: "beam",
     from,
-    damage: kind === "fire" ? 0 : BEAM_DAMAGE,
-    ion: 0,
-    fireChance: kind === "fire" ? FIRE_DRONE_FIRE : BEAM_FIRE,
-    breachChance: 0,
+    ...droneGun(kind === "fire" ? "COMBAT_FIRE" : kind, kind === "fire" ? FIRE_BEAM_HIT : BEAM_HIT),
     targetRoom: room.id,
     beamRooms: rooms,
     defId: kind,
@@ -2411,22 +2430,22 @@ function tickDroneBeam(g: Game, shot: Shot): boolean {
     if (kind === "fire") {
       // Anti-Ship Fire Drone: "90% chance to set a tile on fire". INFERRED: one tile per swipe.
       // Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
-      if (rand(g) < FIRE_DRONE_FIRE) {
+      if (rand(g) < shot.fireChance) {
         hit.fire = Math.min(4, hit.fire + 1);
         if (shot.from === "enemy") log(g, `Their fire drone lights the ${hit.title}.`);
       }
       continue;
     }
     const before = ship.hull;
-    ship.hull = Math.max(0, ship.hull - BEAM_DAMAGE);
+    ship.hull = Math.max(0, ship.hull - shot.damage);
     if (shot.from === "player" && ship.hull < before) noteAchieve(g, { k: "droneHull" });
     if (hit.system) {
       const sys = ship.systems[hit.system];
-      if (sys && sys.damage < sys.level) sys.damage += BEAM_DAMAGE;
+      if (sys && sys.damage < sys.level) sys.damage = Math.min(sys.level, sys.damage + shot.damage);
     }
     // INFERRED: one tile per swipe. The 10% is per tile. Beam length 0.4 tile is not a count of tiles.
     // Fires, "Fires and enemy AI": the stack stops at 4.
-    if (rand(g) < BEAM_FIRE) hit.fire = Math.min(4, hit.fire + 1);
+    if (rand(g) < shot.fireChance) hit.fire = Math.min(4, hit.fire + 1);
   }
   if (done.length > 0) shot.beamHit = done;
   return true;

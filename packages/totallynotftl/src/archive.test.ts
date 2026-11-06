@@ -7,7 +7,16 @@ import { MOUNT_IMAGES, mountsFor, WEAPON_MOUNTS } from "@stl/catalog/src/weapon-
 import { LAYOUT_FILE, layoutFiles } from "@stl/catalog/src/ship-layouts.ts";
 import { extractFtlDat, extractFtlZip, readPkg } from "@stl/ftldat";
 import { applyFtlMod, packFromExtract } from "@stl/hyperspace";
-import { packFromFtl, parsePack, readAnimations, readBitmapFont, readSounds } from "@stl/pack";
+import {
+  TITLE_FILES,
+  TITLE_LOGO,
+  TITLE_PLATE,
+  packFromFtl,
+  parsePack,
+  readAnimations,
+  readBitmapFont,
+  readSounds,
+} from "@stl/pack";
 import {
   standInAchievementsXml,
   standInDat,
@@ -18,6 +27,11 @@ import {
 } from "./archive.ts";
 import { standInMedia } from "./media.ts";
 import { TEXT_LISTS_XML } from "./text-lists.ts";
+
+function pngSize(bytes: Uint8Array): { w: number; h: number } {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  return { w: view.getUint32(16), h: view.getUint32(20) };
+}
 
 describe("totallynotftl.dat", () => {
   it("keeps every file of the archive committed under archive/, and nothing else", async () => {
@@ -205,6 +219,8 @@ describe("totallynotftl.dat", () => {
       "img/ships_noglow/rebel-fighter_base.png",
       "img/ships_glow/rebel-fighter_base.png",
       "img/stars/bg_dullstars.png",
+      TITLE_FILES.base,
+      TITLE_FILES.logo,
       "img/map/map_icon_ship.png",
       "img/ship/fleet/fleet_1_med_warning.png",
       "img/effects/fire_large.png",
@@ -241,6 +257,11 @@ describe("totallynotftl.dat", () => {
     );
     assert.equal(Buffer.compare(glow, dark) === 0, false);
     assert.equal(Buffer.compare(glow, cloak) === 0, false);
+    const plate = new Uint8Array(await extracted.assets.get(TITLE_FILES.base)!.arrayBuffer());
+    const word = new Uint8Array(await extracted.assets.get(TITLE_FILES.logo)!.arrayBuffer());
+    assert.deepEqual(pngSize(plate), { w: TITLE_PLATE.w, h: TITLE_PLATE.h });
+    assert.deepEqual(pngSize(word), { w: TITLE_LOGO.w, h: TITLE_LOGO.h });
+    assert.equal(word[25], 6);
     for (const [path, blob] of extracted.assets) {
       const bytes = new Uint8Array(await blob.arrayBuffer());
       assertMagic(path, bytes, blob.type);

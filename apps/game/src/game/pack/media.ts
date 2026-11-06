@@ -172,23 +172,83 @@ function weaponAnimOf(id: string): WeaponAnim | undefined {
   };
 }
 
-/** One frame of a weapon sheet. `weaponArt` names the anim; a stand-in uses the blueprint id. */
-export function weaponFrame(id: string, phase: WeaponPhase = "idle"): SheetFrame | undefined {
+/**
+ * How far the charge animation has run, 0 to 1, for a weapon `charge` of 0 to 1.
+ * `<delayChargeAnim>` d holds it at 0 until the charge passes d, then it runs over the rest.
+ */
+export function chargeAnimProgress(charge: number, delay = 0): number {
+  const c = Math.min(1, Math.max(0, charge));
+  const d = Math.min(1, Math.max(0, delay));
+  if (c <= d || d >= 1) return c >= 1 ? 1 : 0;
+  return (c - d) / (1 - d);
+}
+
+/**
+ * The sheet frame while charging: frames 0 to chargedFrame - 1 play across the charge animation, and chargedFrame
+ * waits for the charged phase. A sheet with chargedFrame 0 has no charge frames.
+ */
+export function chargingFrameIndex(chargedFrame: number, progress: number): number {
+  if (chargedFrame <= 0) return 0;
+  return Math.min(chargedFrame - 1, Math.max(0, Math.floor(progress * chargedFrame)));
+}
+
+/**
+ * One frame of a weapon sheet. `weaponArt` names the anim; a stand-in uses the blueprint id.
+ * An idle weapon with a `charge` plays its charge frames.
+ */
+export function weaponFrame(
+  id: string,
+  phase: WeaponPhase = "idle",
+  charge?: number,
+): SheetFrame | undefined {
   const anim = weaponAnimOf(id);
   if (!anim) return undefined;
   const sheet = sheets.get(anim.sheet);
   if (!sheet) return undefined;
-  const index = phase === "fire" ? anim.fireFrame : phase === "charged" ? anim.chargedFrame : 0;
+  const index =
+    phase === "fire"
+      ? anim.fireFrame
+      : phase === "charged"
+        ? anim.chargedFrame
+        : charge != null
+          ? chargingFrameIndex(anim.chargedFrame, chargeAnimProgress(charge, anim.delayChargeAnim))
+          : 0;
   return frameOf(sheet, anim.x, anim.y, index);
 }
 
 /**
- * The charge overlay for a charged weapon.
- * The name is an anim. It is drawn only when that clip and its sheet are packed.
+ * How bright the charge image is: full when charged, the charge animation's progress while charging, and 0 otherwise.
+ */
+export function weaponChargeAlpha(id: string, phase: WeaponPhase, charge?: number): number {
+  if (phase === "charged") return 1;
+  if (phase === "fire" || charge == null) return 0;
+  return chargeAnimProgress(charge, weaponAnimOf(id)?.delayChargeAnim);
+}
+
+/**
+ * The charge image drawn over the weapon frame.
+ * ftl.dat names a frame-sized picture under `img/`, which takes the weapon frame's size.
+ * A name that is no picture is tried as an anim (the older stand-in form). Drawn only when packed.
  */
 export function weaponChargeFrame(id: string): SheetFrame | undefined {
-  const name = weaponAnimOf(id)?.chargeImage;
-  if (!name) return undefined;
+  const anim = weaponAnimOf(id);
+  const name = anim?.chargeImage;
+  if (!anim || !name) return undefined;
+  const url = urls.get(`img/${name}`.toLowerCase());
+  const weapon = sheets.get(anim.sheet);
+  if (url && weapon) {
+    return {
+      url,
+      fw: weapon.fw,
+      fh: weapon.fh,
+      col: 0,
+      row: 0,
+      sheetW: weapon.fw,
+      sheetH: weapon.fh,
+      sx: 0,
+      sy: 0,
+    };
+  }
   const clip = clips.get(name);
   const sheet = clip ? sheets.get(clip.sheet) : undefined;
   if (!clip || !sheet) return undefined;

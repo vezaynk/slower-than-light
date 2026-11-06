@@ -14,6 +14,7 @@ import {
   archiveGeneration,
   droneLayerUrl,
   subscribeArchive,
+  weaponChargeAlpha,
   weaponChargeFrame,
   weaponFrame,
   type SheetFrame,
@@ -64,12 +65,15 @@ export function WeaponArt({
   id,
   height = 28,
   phase = "idle",
+  charge,
   pixelScale,
 }: {
   id: string;
   height?: number;
   /** Charged and fire pick those frames. A one-frame sheet looks the same in every phase. */
   phase?: WeaponPhase;
+  /** A powered weapon's charge, 0 to 1. Idle plays the charge frames and brightens the charge image with it. */
+  charge?: number;
   /**
    * Hull hardpoint. One archive pixel is this many screen pixels, and the sheet stays
    * in its own orientation (the mount turns it). A slot omits this and uses weaponSlotBox.
@@ -77,20 +81,23 @@ export function WeaponArt({
   pixelScale?: { x: number; y: number };
 }) {
   const generation = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
-  const frame = useMemo(() => weaponFrame(id, phase), [id, phase, generation]);
-  const charge = useMemo(
-    () => (phase === "charged" ? weaponChargeFrame(id) : undefined),
-    [id, phase, generation],
+  const frame = useMemo(() => weaponFrame(id, phase, charge), [id, phase, charge, generation]);
+  const glow = useMemo(() => weaponChargeAlpha(id, phase, charge), [id, phase, charge, generation]);
+  const lit = glow > 0;
+  const chargeImage = useMemo(
+    () => (lit ? weaponChargeFrame(id) : undefined),
+    [id, lit, generation],
   );
+  const chargeFrame = chargeImage ? { ...chargeImage, alpha: glow } : undefined;
   if (frame && pixelScale) {
     return (
       <WeaponSheets
         frame={frame}
-        charge={charge}
+        charge={chargeFrame}
         frameW={frame.fw * pixelScale.x}
         frameH={frame.fh * pixelScale.y}
-        chargeW={charge ? charge.fw * pixelScale.x : 0}
-        chargeH={charge ? charge.fh * pixelScale.y : 0}
+        chargeW={chargeFrame ? chargeFrame.fw * pixelScale.x : 0}
+        chargeH={chargeFrame ? chargeFrame.fh * pixelScale.y : 0}
       />
     );
   }
@@ -100,11 +107,11 @@ export function WeaponArt({
     const sheets = (
       <WeaponSheets
         frame={frame}
-        charge={charge}
+        charge={chargeFrame}
         frameW={frame.fw * scale}
         frameH={frame.fh * scale}
-        chargeW={charge ? charge.fw * scale : 0}
-        chargeH={charge ? charge.fh * scale : 0}
+        chargeW={chargeFrame ? chargeFrame.fw * scale : 0}
+        chargeH={chargeFrame ? chargeFrame.fh * scale : 0}
       />
     );
     if (!box.turned) return sheets;
@@ -141,7 +148,8 @@ function WeaponSheets({
   chargeH,
 }: {
   frame: SheetFrame;
-  charge: SheetFrame | undefined;
+  /** The charge image and how bright it is, 0 to 1. */
+  charge: (SheetFrame & { alpha: number }) | undefined;
   frameW: number;
   frameH: number;
   chargeW: number;
@@ -154,7 +162,13 @@ function WeaponSheets({
         style={{ width: frameW, height: frameH }}
       >
         <SheetImg frame={frame} width={frameW} height={frameH} className="sheet-frame" />
-        <SheetImg frame={charge} width={chargeW} height={chargeH} className="gear-charge" />
+        <SheetImg
+          frame={charge}
+          width={chargeW}
+          height={chargeH}
+          className="gear-charge"
+          opacity={charge.alpha}
+        />
       </span>
     );
   }
@@ -208,16 +222,21 @@ function SheetImg({
   width,
   height,
   className,
+  opacity,
 }: {
   frame: SheetFrame;
   width: number;
   height: number;
   className: string;
+  opacity?: number;
 }) {
   const cols = Math.max(1, frame.sheetW / frame.fw);
   const rows = Math.max(1, frame.sheetH / frame.fh);
   return (
-    <span className={className} style={{ width, height }}>
+    <span
+      className={className}
+      style={{ width, height, ...(opacity != null && opacity < 1 ? { opacity } : {}) }}
+    >
       <img
         alt=""
         src={frame.url}

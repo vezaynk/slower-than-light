@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import jsQR from "jsqr";
 import { encode } from "uqr";
 
-/** The room code QR as PhoneHandoffPanel draws it (uqr, ecc L, border 2), rasterized at `scale` px per module. */
+/** A connection-code page as PhoneHandoffPanel draws it (uqr, ecc L, border 2), rasterized at `scale` px per module. */
 function rasterize(text: string, scale: number) {
   const qr = encode(text, { ecc: "L", border: 2 });
   const size = qr.size * scale;
@@ -19,11 +19,12 @@ function rasterize(text: string, scale: number) {
 }
 
 describe("QR fallback reader", () => {
-  it("jsQR reads the room code the computer shows", () => {
-    for (const code of ["ABC234", "XYZ789"]) {
-      const { data, size } = rasterize(code, 6);
+  it("jsQR reads a full connection-code page (encodeTicket's 700-character pieces)", () => {
+    const body = "Ab0_-".repeat(140).slice(0, 700);
+    for (const page of [`STL1.1.2.${body}`, "STL1.2.2.tail"]) {
+      const { data, size } = rasterize(page, 4);
       const found = jsQR(data, size, size, { inversionAttempts: "dontInvert" });
-      assert.equal(found?.data, code);
+      assert.equal(found?.data, page);
     }
   });
 });

@@ -14,5 +14,3 @@ ios/
 android/
 *.keystore
 *.jks
-.dev.vars
-.wrangler

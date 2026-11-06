@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import {
+  allWeapons,
   crewDef,
   hullDef,
   loadPack,
@@ -360,9 +361,11 @@ describe("archive event payoffs", () => {
       blurb: "",
       ...(rarity == null ? {} : { rarity }),
     });
+    // The stand-in's own weapons carry rarity too. Set them to 0 so only these three compete.
+    const silenced = allWeapons().map((row) => ({ ...row, rarity: 0 }));
     loadPack(
       {
-        weapons: [gun("RANDOM", 0), gun("BURST_ONLY", 2), gun("LOCKED", 6)],
+        weapons: [...silenced, gun("RANDOM", 0), gun("BURST_ONLY", 2), gun("LOCKED", 6)],
         events: [
           {
             id: "ember-random",
@@ -394,6 +397,7 @@ describe("archive event payoffs", () => {
   it("skips RANDOM when every blueprint is excluded", () => {
     loadPack(
       {
+        weapons: allWeapons().map((row) => ({ ...row, rarity: 0 })),
         events: [
           {
             id: "ember-empty-random",

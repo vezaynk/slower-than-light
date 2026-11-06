@@ -179,6 +179,11 @@ function readCrew(node: XmlElement): CrewDef | undefined {
   if (short) row.short = short;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
+  const powers = elements(child(node, "powerList"))
+    .filter((item) => item.tagName === "power")
+    .map((item) => ownText(item).trim())
+    .filter((line) => line.length > 0);
+  if (powers.length > 0) row.powers = powers;
   readCrewCombat(node, row);
   return row;
 }

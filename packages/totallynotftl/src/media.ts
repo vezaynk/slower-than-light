@@ -127,6 +127,8 @@ async function buildMedia(): Promise<{
   const weaponXml: string[] = [];
   const clipXml: string[] = [];
   for (const weapon of allWeapons()) {
+    // A drone's gun names no weaponArt: it is never mounted, so it has no sheet or shot to draw.
+    if (!weapon.art) continue;
     const art = gear.weaponPixels(weapon.id);
     assets.push({ path: `img/weapons/${weapon.id}.png`, bytes: artPng(art) });
     assets.push({

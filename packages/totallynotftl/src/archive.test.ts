@@ -295,6 +295,29 @@ describe("totallynotftl.dat", () => {
     assert.equal(Buffer.compare(built, golden), 0);
   });
 
+  it("fills the fields the parity check reads from ftl.dat, without ftl.dat", async () => {
+    // parity.test.ts needs a local ftl.dat. These are the fields it once caught missing.
+    const pack = packFromExtract(await extractFtlDat(await standInDat()));
+    for (const kind of ["weapons", "augments", "drones"] as const) {
+      for (const row of pack[kind] ?? [])
+        assert.notEqual(row.rarity, undefined, `${kind} ${row.id}`);
+    }
+    const drawn = (pack.weapons ?? []).filter((row) => (row.rarity ?? 0) > 0);
+    assert.ok(drawn.length > 0, "a RANDOM weapon draw has a pool");
+    for (const drone of pack.drones ?? []) {
+      if (!drone.weapon) continue;
+      assert.ok(
+        pack.weapons?.some((row) => row.id === drone.weapon),
+        `drone ${drone.id} fires the loaded gun ${drone.weapon}`,
+      );
+    }
+    assert.ok(pack.drones?.some((row) => row.weapon && row.dodge != null));
+    assert.ok(pack.hulls?.some((row) => row.boardingAI === "sabotage"));
+    assert.ok(pack.hulls?.some((row) => row.boardingAI === "invasion"));
+    assert.ok(pack.weapons?.some((row) => row.short && row.detail && row.flavor));
+    assert.ok(pack.crew?.every((row) => row.short && row.powers?.length));
+  });
+
   it("merges the stand-in archive with the gap mod back into the catalog", async () => {
     const pack = campaignPack();
     const gap = await extractFtlZip(

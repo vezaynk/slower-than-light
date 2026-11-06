@@ -87,3 +87,55 @@ export const CITED_DRONES: readonly {
     speed: 18,
   },
 ];
+
+/**
+ * The guns offensive drone blueprints name with `<weaponBlueprint>`, as ftl.dat's DRONE_LASER and DRONE_BEAM do.
+ * apps/game/src/game/extras/swarm.ts droneGun reads damage, ion, fire, and breach from these rows.
+ * Drone Control, Combat Drones (offensive drones): "Drones deal 1 hull/system damage per projectile" and
+ * "1 hull/system damage ... per room crossed by the beam". Combat Drone Mark I: "Laser blast has 10% chance to start
+ * fire in the hit room". Anti-Ship Beam Drone I: "10% chance to set a tile on fire". Anti-Ship Beam Drone II prints
+ * the same figures. No breach or ion is printed, so both are 0.
+ * The guns are never sold or fitted: no power, charge, or price. Names and blurbs are INVENTED.
+ * Defense drones shoot projectiles down and carry no hit figures, so they name no gun.
+ */
+export const DRONE_GUNS: readonly {
+  id: string;
+  name: string;
+  kind: "laser" | "beam";
+  damage: number;
+  fire: number;
+  blurb: string;
+}[] = [
+  {
+    id: "DRONE_LASER",
+    name: "Drone Laser",
+    kind: "laser",
+    damage: 1,
+    fire: 0.1,
+    blurb: "A combat drone's bolt.",
+  },
+  {
+    id: "DRONE_BEAM",
+    name: "Drone Beam",
+    kind: "beam",
+    damage: 1,
+    fire: 0.1,
+    blurb: "A beam drone's swipe.",
+  },
+  {
+    id: "DRONE_BEAM2",
+    name: "Drone Beam II",
+    kind: "beam",
+    damage: 1,
+    fire: 0.1,
+    blurb: "A longer beam drone swipe.",
+  },
+];
+
+/** The gun each offensive drone fires. Combat Drone Mark II shares Mark I's laser, as its page prints the same bolt. */
+export const DRONE_GUN_OF: Readonly<Record<string, string>> = {
+  COMBAT_1: "DRONE_LASER",
+  COMBAT_2: "DRONE_LASER",
+  COMBAT_BEAM: "DRONE_BEAM",
+  COMBAT_BEAM_2: "DRONE_BEAM2",
+};

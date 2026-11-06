@@ -13,13 +13,16 @@ import { standInDat } from "./archive.ts";
  * Picture names, shield pierce, hire prices, crew rarities, and beacon quotas are written.
  * Campaign fights stay on choice effects, so an event does not grow a ship, a grant, a boarder tag,
  * or an environment. A campaign fight's hazard is its own fight effect.
+ * Quest marks and system changes are choice effects too, so no page carries them at its top level.
+ * ftl.dat sets NOLOC only on enemy-only drones, and the stand-in authors none of those.
  */
 const UNPLAYED: Partial<Record<keyof ContentPack, readonly string[]>> = {
   systems: ["detail"],
   crew: ["colors", "detail"],
+  drones: ["noloc"],
   hulls: ["droneCount", "droneLoad", "maxSector", "minSector", "weaponCount", "weaponLoad"],
   sectors: ["short", "startEvent"],
-  events: ["boarders", "environment", "fx", "grants", "reward", "ship"],
+  events: ["alters", "boarders", "environment", "fx", "grants", "marks", "reward", "ship"],
 };
 
 const RECORD_LISTS = [

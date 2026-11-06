@@ -15,6 +15,7 @@ import {
   REDEPLOY_S,
   deploy,
   enemyDefenseIntercept,
+  enemyDroneSpot,
   interceptIncomingDrone,
   BEAM1_SPEED,
   BEAM2_SPEED,
@@ -46,7 +47,7 @@ function pinLeg(
 
 function beamSpeed(kind: string): number {
   if (kind === "COMBAT_BEAM_2") return BEAM2_SPEED;
-  if (kind === "fire") return FIRE_DRONE_SPEED;
+  if (kind === "fire" || kind === "COMBAT_FIRE") return FIRE_DRONE_SPEED;
   return BEAM1_SPEED;
 }
 
@@ -363,6 +364,42 @@ describe("enemy offensive drones", () => {
     spend("COMBAT_BEAM", 3);
     spend("COMBAT_BEAM_2", 2);
     spend("fire", 3);
+    spend("COMBAT_FIRE", 3);
+  });
+
+  it("a fire drone lights a room only after the shields are down, and does no hull damage", () => {
+    const swipe = (kind: string, shields: boolean) => {
+      const g = quiet(11);
+      if (shields) {
+        g.player.shieldNow = 2;
+        g.player.systems.shields.power = 4;
+      } else dropPlayerShields(g);
+      for (const room of g.player.rooms) room.fire = 0;
+      fleet(g, [kind], 4);
+      const hull = g.player.hull;
+      tickSwarm(g, 0.05);
+      const unit = units(g)[0];
+      assert.ok(unit);
+      assert.equal(enemyDroneSpot(unit)?.at, "player-orbit");
+      for (let i = 0; i < 12; i++) {
+        pinLeg(unit, FIRE_DRONE_SPEED);
+        tickSwarm(g, unit.left ?? 0);
+        stepShots(g, 0.05);
+      }
+      return {
+        fire: g.player.rooms.some((room) => room.fire > 0),
+        hull: g.player.hull,
+        before: hull,
+      };
+    };
+    for (const kind of ["fire", "COMBAT_FIRE"]) {
+      const open = swipe(kind, false);
+      assert.equal(open.fire, true, kind);
+      assert.equal(open.hull, open.before, kind);
+      const shut = swipe(kind, true);
+      assert.equal(shut.fire, false, kind);
+      assert.equal(shut.hull, shut.before, kind);
+    }
   });
 
   it("a beam drone does not cut a cloaked hull, and the swipe interval still runs", () => {

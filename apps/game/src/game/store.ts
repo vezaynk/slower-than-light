@@ -12,6 +12,7 @@ import {
   step,
   titleHandoff,
 } from "./sim.ts";
+import { quietPackWarnings } from "@stl/pack";
 import type { CrewPick } from "./crew-look.ts";
 import type { Difficulty, Game } from "./types.ts";
 
@@ -97,14 +98,21 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
  * would leave the game loop ticking the old one while the screen shows a fresh, frozen one. So in dev
  * there is one store per page: a re-run keeps the run in progress and only swaps in the new actions.
  */
+function titleGame(): Game {
+  const game = createGame(1);
+  game.phase = "title";
+  return game;
+}
+
 type Shared = { __stlStore?: UseBoundStore<StoreApi<Store>> };
 const shared = import.meta.env?.DEV ? (globalThis as Shared).__stlStore : undefined;
 
 export const useGame: UseBoundStore<StoreApi<Store>> =
   shared ??
   create<Store>((set, get) => {
-    const game = createGame(1);
-    game.phase = "title";
+    // Built at import, before setup has loaded any archive: its empty-pack fallbacks (no sectors to chart) are
+    // not data problems, so they stay quiet. Launch replaces it with refreshTitleGame once the pack is in.
+    const game = quietPackWarnings(() => titleGame());
     return { version: 0, boot: "title", game, played: null, ...actions(set, get) };
   });
 
@@ -134,4 +142,14 @@ export function goTitle(boot: "title" | "hangar"): void {
   const onScreen = useGame.getState().game;
   if (onScreen.phase !== "title") useGame.setState({ played: onScreen });
   useGame.getState().toTitle(boot);
+}
+
+/**
+ * Launch (launch.ts) calls this once the pack is installed: the title placeholder is rebuilt on the loaded
+ * sectors and ships. A run already on screen is left alone.
+ */
+export function refreshTitleGame(): void {
+  const state = useGame.getState();
+  if (state.game.phase !== "title") return;
+  useGame.setState({ game: titleGame(), version: state.version + 1 });
 }

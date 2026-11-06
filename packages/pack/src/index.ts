@@ -81,7 +81,12 @@ export {
   skyPath,
 } from "./archive-names.ts";
 export type { FontFaceJob, ImageVariant, SkyPick } from "./archive-names.ts";
-export { onPackWarning, warnPack, type PackWarningListener } from "./warnings.ts";
+export {
+  onPackWarning,
+  quietPackWarnings,
+  warnPack,
+  type PackWarningListener,
+} from "./warnings.ts";
 export type { MusicTrack, SoundCue, SoundSet } from "./sounds.ts";
 export { parsePack } from "./parse.ts";
 export type { FtlBlueprintFile, FtlTextFile } from "./ftl.ts";

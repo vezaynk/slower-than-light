@@ -41,6 +41,11 @@ export type WeaponBlueprint = {
   /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
   rarity?: number;
   /**
+   * `<bp>`. FTL's executable reads it beside cost and rarity (the strings sit together), but nothing shows what it
+   * does. It is kept for the round trip and the game does not read it.
+   */
+  bp?: number;
+  /**
    * `<hullBust>`. When set, a hit on a systemless room deals twice the blueprint's hull damage.
    * The integer is the flag. The doubled figure is `damage * 2`, not this number.
    */
@@ -111,6 +116,11 @@ export type CrewDef = {
    * `img/people/<id>_layerN.png`, drawn over the untinted base sheet. Absent on a stats-only row.
    */
   colors?: CrewColor[][];
+  /**
+   * `<bp>`. FTL's executable reads it beside cost and rarity (the strings sit together), but nothing shows what it
+   * does. It is kept for the round trip and the game does not read it.
+   */
+  bp?: number;
 };
 
 /** One `<color>` of a crew colour layer. r, g, b are 0 to 255; a is 0 to 1. */
@@ -145,6 +155,11 @@ export type DroneDef = {
   noloc?: boolean;
   /** `<rarity>`. A RANDOM grant skips 0 and weights the rest by `6 - rarity`. */
   rarity?: number;
+  /**
+   * `<bp>`. FTL's executable reads it beside cost and rarity (the strings sit together), but nothing shows what it
+   * does. It is kept for the round trip and the game does not read it.
+   */
+  bp?: number;
   /** `<type>`: COMBAT, DEFENSE, BOARDER, SHIELD, REPAIR, SHIP_REPAIR, BATTLE. */
   type?: string;
   /** `<power>`. Bars the drone needs while it flies. */
@@ -161,6 +176,13 @@ export type DroneDef = {
 
 /** Where a purchased system is installed. The starting level stays on the tune. */
 export type SystemSlot = "sys" | "kit";
+
+/** The events a sector's start and exit beacons open when the sector names none. */
+export type BeaconEvents = {
+  start?: string;
+  finish?: string;
+  finishNebula?: string;
+};
 
 /** A store listing for one single-price system. `detail` is the archive's factual line. */
 export type SystemDef = {
@@ -425,6 +447,10 @@ export type SectorDef = {
   unique?: boolean;
   /** Event that opens the sector. */
   startEvent?: string;
+  /** `<finishEvent>`, a private tag FTL ignores: the exit beacon's event in this sector. */
+  finishEvent?: string;
+  /** `<finishEvent nebula="true">`: the exit beacon's event when that exit sits in a nebula. */
+  finishNebulaEvent?: string;
   /** Music track ids. */
   tracks?: string[];
   /** How many beacons draw each event. These are not page lines. */
@@ -696,12 +722,29 @@ export type ArchiveBoarders = {
 };
 
 /** A named blueprint an archive page grants. A nameless weapon, drone, or augment stays an item effect. */
+/** The six crew skills, as `<crewMember>` names them. */
+export type CrewSkillName = "pilot" | "engines" | "shields" | "weapons" | "repair" | "combat";
+
+export const CREW_SKILL_NAMES: readonly CrewSkillName[] = [
+  "pilot",
+  "engines",
+  "shields",
+  "weapons",
+  "repair",
+  "combat",
+];
+
 export type ArchiveGrant = {
   kind: "weapon" | "drone" | "augment" | "crew";
   id: string;
   amount?: number;
   /** A person's name when the archive names the crewmember. The race stays on `id`. */
   name?: string;
+  /**
+   * Skill levels (0-2) a granted crewmember joins with: `all_skills` sets every skill, a named skill attribute
+   * (`pilot="1"`) sets that one and wins over `all_skills`.
+   */
+  skills?: Partial<Record<CrewSkillName, number>>;
 };
 
 /**
@@ -1127,6 +1170,12 @@ export type ContentPack = {
    * Column 0 shows this while `STANDARD_SPACE` keeps its stored name.
    */
   civilianSectorTitle?: string;
+  /**
+   * A root `<beaconEvents>`, a private tag FTL ignores. FTL names these events in its executable.
+   * The base mod writes FTL's names, so a real ftl.dat and the stand-in read the same defaults.
+   * A sector's own `<startEvent>` or `<finishEvent>` wins over these.
+   */
+  beaconEvents?: BeaconEvents;
   /**
    * `text-<code>.xml` tables. English stays on the blueprints.
    * A `.append` file merges into the same code. The code is the filename, hyphens included.

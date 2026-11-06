@@ -26,7 +26,7 @@
 <animSheet name="SHOTGUN" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN.png</animSheet>
 <weaponAnim name="SHOTGUN"><sheet>SHOTGUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="BOMB_FIRE" w="26" h="14" fw="26" fh="14">weapons/BOMB_FIRE.png</animSheet>
-<weaponAnim name="BOMB_FIRE"><sheet>BOMB_FIRE</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
+<weaponAnim name="BOMB_FIRE"><sheet>BOMB_FIRE</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound><delayChargeAnim>0.98</delayChargeAnim><chargeImage>weapons/BOMB_FIRE_glow.png</chargeImage></weaponAnim>
 <animSheet name="LASER_BURST_2_A" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_2_A.png</animSheet>
 <weaponAnim name="LASER_BURST_2_A"><sheet>LASER_BURST_2_A</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="LASER_BURST_5" w="26" h="14" fw="26" fh="14">weapons/LASER_BURST_5.png</animSheet>
@@ -82,21 +82,21 @@
 <animSheet name="ARTILLERY_BOSS_2" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_2.png</animSheet>
 <weaponAnim name="ARTILLERY_BOSS_2"><sheet>ARTILLERY_BOSS_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="BOMB_1" w="26" h="14" fw="26" fh="14">weapons/BOMB_1.png</animSheet>
-<weaponAnim name="BOMB_1"><sheet>BOMB_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
+<weaponAnim name="BOMB_1"><sheet>BOMB_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound><delayChargeAnim>0.98</delayChargeAnim><chargeImage>weapons/BOMB_1_glow.png</chargeImage></weaponAnim>
 <animSheet name="BOMB_BREACH_1" w="26" h="14" fw="26" fh="14">weapons/BOMB_BREACH_1.png</animSheet>
-<weaponAnim name="BOMB_BREACH_1"><sheet>BOMB_BREACH_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
+<weaponAnim name="BOMB_BREACH_1"><sheet>BOMB_BREACH_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound><delayChargeAnim>0.98</delayChargeAnim><chargeImage>weapons/BOMB_BREACH_1_glow.png</chargeImage></weaponAnim>
 <animSheet name="BOMB_BREACH_2" w="26" h="14" fw="26" fh="14">weapons/BOMB_BREACH_2.png</animSheet>
-<weaponAnim name="BOMB_BREACH_2"><sheet>BOMB_BREACH_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
+<weaponAnim name="BOMB_BREACH_2"><sheet>BOMB_BREACH_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound><delayChargeAnim>0.98</delayChargeAnim><chargeImage>weapons/BOMB_BREACH_2_glow.png</chargeImage></weaponAnim>
 <animSheet name="BOMB_ION" w="26" h="14" fw="26" fh="14">weapons/BOMB_ION.png</animSheet>
-<weaponAnim name="BOMB_ION"><sheet>BOMB_ION</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
+<weaponAnim name="BOMB_ION"><sheet>BOMB_ION</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound><delayChargeAnim>0.98</delayChargeAnim><chargeImage>weapons/BOMB_ION_glow.png</chargeImage></weaponAnim>
 <animSheet name="BOMB_STUN" w="26" h="14" fw="26" fh="14">weapons/BOMB_STUN.png</animSheet>
-<weaponAnim name="BOMB_STUN"><sheet>BOMB_STUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
+<weaponAnim name="BOMB_STUN"><sheet>BOMB_STUN</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound><delayChargeAnim>0.98</delayChargeAnim><chargeImage>weapons/BOMB_STUN_glow.png</chargeImage></weaponAnim>
 <animSheet name="BOMB_HEAL" w="26" h="14" fw="26" fh="14">weapons/BOMB_HEAL.png</animSheet>
-<weaponAnim name="BOMB_HEAL"><sheet>BOMB_HEAL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
+<weaponAnim name="BOMB_HEAL"><sheet>BOMB_HEAL</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound><delayChargeAnim>0.98</delayChargeAnim><chargeImage>weapons/BOMB_HEAL_glow.png</chargeImage></weaponAnim>
 <animSheet name="BOMB_HEAL_SYSTEM" w="26" h="14" fw="26" fh="14">weapons/BOMB_HEAL_SYSTEM.png</animSheet>
-<weaponAnim name="BOMB_HEAL_SYSTEM"><sheet>BOMB_HEAL_SYSTEM</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
+<weaponAnim name="BOMB_HEAL_SYSTEM"><sheet>BOMB_HEAL_SYSTEM</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound><delayChargeAnim>0.98</delayChargeAnim><chargeImage>weapons/BOMB_HEAL_SYSTEM_glow.png</chargeImage></weaponAnim>
 <animSheet name="BOMB_LOCK" w="26" h="14" fw="26" fh="14">weapons/BOMB_LOCK.png</animSheet>
-<weaponAnim name="BOMB_LOCK"><sheet>BOMB_LOCK</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
+<weaponAnim name="BOMB_LOCK"><sheet>BOMB_LOCK</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound><delayChargeAnim>0.98</delayChargeAnim><chargeImage>weapons/BOMB_LOCK_glow.png</chargeImage></weaponAnim>
 <animSheet name="SHOTGUN_PLAYER" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN_PLAYER.png</animSheet>
 <weaponAnim name="SHOTGUN_PLAYER"><sheet>SHOTGUN_PLAYER</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="SHOTGUN_2" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN_2.png</animSheet>
@@ -427,24 +427,4 @@
 <anim name="explosion1"><sheet>explosion1</sheet><desc length="6" x="0" y="0"/><time>1</time></anim>
 <animSheet name="explosion_big1" w="112" h="28" fw="28" fh="28">effects/explosion_big1.png</animSheet>
 <anim name="explosion_big1"><sheet>explosion_big1</sheet><desc length="4" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid0" w="16" h="16" fw="16" fh="16">effects/asteroid0.png</animSheet>
-<anim name="asteroid0"><sheet>asteroid0</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid1" w="16" h="16" fw="16" fh="16">effects/asteroid1.png</animSheet>
-<anim name="asteroid1"><sheet>asteroid1</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid2" w="16" h="16" fw="16" fh="16">effects/asteroid2.png</animSheet>
-<anim name="asteroid2"><sheet>asteroid2</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid3" w="16" h="16" fw="16" fh="16">effects/asteroid3.png</animSheet>
-<anim name="asteroid3"><sheet>asteroid3</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid4" w="16" h="16" fw="16" fh="16">effects/asteroid4.png</animSheet>
-<anim name="asteroid4"><sheet>asteroid4</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid5" w="16" h="16" fw="16" fh="16">effects/asteroid5.png</animSheet>
-<anim name="asteroid5"><sheet>asteroid5</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid6" w="16" h="16" fw="16" fh="16">effects/asteroid6.png</animSheet>
-<anim name="asteroid6"><sheet>asteroid6</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid7" w="16" h="16" fw="16" fh="16">effects/asteroid7.png</animSheet>
-<anim name="asteroid7"><sheet>asteroid7</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid8" w="16" h="16" fw="16" fh="16">effects/asteroid8.png</animSheet>
-<anim name="asteroid8"><sheet>asteroid8</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
-<animSheet name="asteroid9" w="16" h="16" fw="16" fh="16">effects/asteroid9.png</animSheet>
-<anim name="asteroid9"><sheet>asteroid9</sheet><desc length="1" x="0" y="0"/><time>1</time></anim>
 </animations>

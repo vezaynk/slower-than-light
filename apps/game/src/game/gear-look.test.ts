@@ -24,8 +24,11 @@ function shape(art: PixelArt) {
   return art.rows.join("/");
 }
 
+/** Fitted weapons. A drone's gun names no weaponArt: it is never mounted, so it has no look. */
 function weaponIds(): string[] {
-  return allWeapons().map((weapon) => weapon.id);
+  return allWeapons()
+    .filter((weapon) => weapon.art)
+    .map((weapon) => weapon.id);
 }
 
 describe("gear art", () => {

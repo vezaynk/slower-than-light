@@ -102,6 +102,116 @@ const CUES: readonly [cue: string, tone: string][] = [
   ["miss", "miss"],
 ];
 
+/**
+ * INVENTED: one synthesized voice per cue the game plays beyond CUES and BED_CUES, under the names and loop flags
+ * ftl.dat's sounds.xml (base) and dlcSounds.xml (dlc) give them. f0 to f1 is a pitch sweep in Hz over `s` seconds;
+ * `decay` is the fade rate, `noise` the share of hiss, `wave` the shape. A numbered family detunes each variant.
+ */
+type Voice = {
+  f0: number;
+  f1?: number;
+  s: number;
+  decay: number;
+  noise?: number;
+  wave?: "sine" | "square" | "saw";
+  loop?: boolean;
+  dlc?: boolean;
+  /** Numbered variants: name1, name2, ... */
+  count?: number;
+};
+
+const VOICES: Record<string, Voice> = {
+  powerUpSystem: { f0: 520, f1: 780, s: 0.08, decay: 20, wave: "square" },
+  powerDownSystem: { f0: 620, f1: 380, s: 0.08, decay: 20, wave: "square" },
+  powerUpFail: { f0: 180, f1: 150, s: 0.12, decay: 14, wave: "square" },
+  upgradeSystem: { f0: 440, f1: 990, s: 0.22, decay: 8, wave: "square" },
+  autofireOn: { f0: 700, f1: 900, s: 0.06, decay: 25, wave: "square" },
+  autofireOff: { f0: 700, f1: 500, s: 0.06, decay: 25, wave: "square" },
+  jumpReady: { f0: 1320, s: 0.5, decay: 5 },
+  airLeak: { f0: 0, s: 0.6, decay: 0, noise: 1, loop: true },
+  repairShip: { f0: 300, f1: 600, s: 0.18, decay: 10, wave: "saw" },
+  hoverBeep: { f0: 1600, s: 0.03, decay: 60 },
+  environWarning: { f0: 600, f1: 420, s: 0.3, decay: 4, wave: "square" },
+  death: { f0: 150, f1: 70, s: 0.35, decay: 7, wave: "saw", count: 2 },
+  femaleDeath: { f0: 320, f1: 160, s: 0.35, decay: 7, wave: "saw", count: 3 },
+  lowCrewHealth: { f0: 880, s: 0.18, decay: 6, wave: "square" },
+  rockHit: { f0: 90, f1: 60, s: 0.14, decay: 18, noise: 0.5, count: 3 },
+  rockThrow: { f0: 160, f1: 110, s: 0.1, decay: 20, noise: 0.4, count: 3 },
+  rockStomp: { f0: 70, f1: 50, s: 0.12, decay: 20, noise: 0.3, count: 2 },
+  rockThud: { f0: 60, f1: 40, s: 0.12, decay: 22, noise: 0.3, count: 3 },
+  mantisSplat: { f0: 260, f1: 140, s: 0.1, decay: 22, noise: 0.6, count: 3 },
+  lockdown: { f0: 1200, f1: 1800, s: 0.3, decay: 8, count: 2 },
+  solarFlare: { f0: 120, f1: 60, s: 0.6, decay: 4, noise: 0.7 },
+  lightning: { f0: 80, f1: 40, s: 0.5, decay: 6, noise: 0.85, count: 4 },
+  enginesOn: { f0: 80, f1: 220, s: 0.4, decay: 4, wave: "saw" },
+  enginesOff: { f0: 220, f1: 60, s: 0.4, decay: 4, wave: "saw" },
+  sysExplosion: { f0: 120, f1: 50, s: 0.2, decay: 14, noise: 0.7 },
+  crewLaser: { f0: 1400, f1: 600, s: 0.07, decay: 30, wave: "square", count: 3 },
+  cloneArrive: { f0: 400, f1: 800, s: 0.4, decay: 5, dlc: true },
+  cloneBroken: { f0: 300, s: 0.5, decay: 0, wave: "square", loop: true, dlc: true },
+  batteryStart: { f0: 200, f1: 600, s: 0.3, decay: 6, wave: "saw", dlc: true },
+  batteryStop: { f0: 600, f1: 200, s: 0.3, decay: 6, wave: "saw", dlc: true },
+  mindControl: { f0: 500, f1: 300, s: 0.4, decay: 5, dlc: true },
+  mindControlEnd: { f0: 300, f1: 500, s: 0.3, decay: 7, dlc: true },
+  hackStart: { f0: 900, f1: 400, s: 0.2, decay: 10, wave: "square", dlc: true },
+  hackLand: { f0: 200, s: 0.1, decay: 25, noise: 0.5, dlc: true },
+  hackLoop: { f0: 700, s: 0.5, decay: 0, wave: "square", loop: true, dlc: true },
+  shrikeDeath: { f0: 400, f1: 80, s: 0.3, decay: 8, noise: 0.4, dlc: true },
+  shrikeRepair: { f0: 520, s: 0.5, decay: 0, wave: "saw", loop: true, dlc: true },
+  fleetFireHeavy: { f0: 70, f1: 40, s: 0.5, decay: 5, noise: 0.8, dlc: true },
+  fleetFireLight: { f0: 140, f1: 80, s: 0.3, decay: 8, noise: 0.7, dlc: true },
+  ionBoarderCharge: { f0: 300, f1: 900, s: 0.3, decay: 6, dlc: true },
+  shieldDroneCharge: { f0: 260, f1: 520, s: 0.3, decay: 6, dlc: true },
+  shieldDroneActivate: { f0: 520, f1: 1040, s: 0.2, decay: 9, dlc: true },
+  weaponReady: { f0: 1100, s: 0.1, decay: 16, dlc: true },
+  hullBreach: { f0: 90, f1: 40, s: 0.3, decay: 8, noise: 0.8, dlc: true },
+  eventDamage: { f0: 80, f1: 40, s: 0.45, decay: 5, noise: 0.8, dlc: true },
+  beam: { f0: 340, s: 0.25, decay: 6, wave: "saw", dlc: true },
+};
+
+/** Cue names a voice writes, with the variant's detune. `death` is death2 here: death1 is in BED_CUES. */
+function voiceCues(): { name: string; voice: Voice; detune: number }[] {
+  const out: { name: string; voice: Voice; detune: number }[] = [];
+  for (const [base, voice] of Object.entries(VOICES)) {
+    if (base === "death") out.push({ name: "death2", voice, detune: 0.92 });
+    else if (base === "femaleDeath")
+      for (const n of [2, 3])
+        out.push({ name: `femaleDeath${n}`, voice, detune: 1 + (n - 2) * 0.08 });
+    else if (base === "beam") out.push({ name: "beam3", voice, detune: 1 });
+    else if (voice.count)
+      for (let n = 1; n <= voice.count; n += 1)
+        out.push({ name: `${base}${n}`, voice, detune: 1 + (n - 1) * 0.07 });
+    else out.push({ name: base, voice, detune: 1 });
+  }
+  return out;
+}
+
+const VOICE_RATE = 11025;
+
+function voiceWav(voice: Voice, detune: number): Uint8Array {
+  const n = Math.floor(VOICE_RATE * voice.s);
+  let phase = 0;
+  const samples = Array.from({ length: n }, (_, i) => {
+    const t = i / VOICE_RATE;
+    const freq = (voice.f0 + ((voice.f1 ?? voice.f0) - voice.f0) * (t / voice.s)) * detune;
+    phase += (2 * Math.PI * freq) / VOICE_RATE;
+    const cycle = (phase / (2 * Math.PI)) % 1;
+    const wave =
+      voice.wave === "square"
+        ? cycle < 0.5
+          ? 1
+          : -1
+        : voice.wave === "saw"
+          ? cycle * 2 - 1
+          : Math.sin(phase);
+    const hiss = voice.noise ?? 0;
+    // A loop keeps a flat level so it repeats without a click; a one-shot fades from a short attack.
+    const env = voice.loop ? 0.5 : Math.min(1, t * 200) * Math.exp(-t * voice.decay);
+    return (wave * (1 - hiss) + hash(i + Math.round(voice.f0)) * hiss) * env * 0.6;
+  });
+  return wavFromSamples(samples, VOICE_RATE);
+}
+
 let mediaPromise: Promise<{
   documents: FtlDocument[];
   assets: { path: string; bytes: Uint8Array }[];
@@ -127,8 +237,12 @@ async function buildMedia(): Promise<{
   const weaponXml: string[] = [];
   const clipXml: string[] = [];
   for (const weapon of allWeapons()) {
+    // A drone's gun names no weaponArt: it is never mounted, so it has no sheet or shot to draw.
+    if (!weapon.art) continue;
     const art = gear.weaponPixels(weapon.id);
     assets.push({ path: `img/weapons/${weapon.id}.png`, bytes: artPng(art) });
+    if (weapon.kind === "bomb")
+      assets.push({ path: `img/weapons/${weapon.id}_glow.png`, bytes: glowPng(art) });
     assets.push({
       path: `img/weapons/${weapon.id}_shot.png`,
       bytes: shotPng(art.palette.glow),
@@ -190,6 +304,8 @@ async function buildMedia(): Promise<{
   for (const [cue, tone] of CUES) {
     assets.push({ path: `audio/waves/ui/${cue}.wav`, bytes: cueWav(tone) });
   }
+  for (const cue of voiceCues())
+    assets.push({ path: `audio/waves/ui/${cue.name}.wav`, bytes: voiceWav(cue.voice, cue.detune) });
   for (const cue of BED_CUES) {
     assets.push({ path: `audio/waves/ui/${cue.name}.wav`, bytes: cueWav(cue.tone) });
   }
@@ -216,14 +332,22 @@ async function buildMedia(): Promise<{
     { path: TITLE_FILES.logo, bytes: titleLogoPng() },
   );
   clipXml.push(...scenery.clips);
+  const field = asteroidField();
+  assets.push(...field.assets);
   const documents: FtlDocument[] = [
     {
       path: "data/animations.xml",
       xml: `<animations>\n${weaponXml.join("\n")}\n${clipXml.join("\n")}\n</animations>\n`,
     },
-    { path: "data/dlcAnimations.xml", xml: "<animations></animations>\n" },
+    {
+      path: "data/dlcAnimations.xml",
+      xml: `<animations>\n${field.clips.join("\n")}\n</animations>\n`,
+    },
     { path: "data/sounds.xml", xml: soundsXml() },
-    { path: "data/dlcSounds.xml", xml: "<sounds><music></music></sounds>\n" },
+    {
+      path: "data/dlcSounds.xml",
+      xml: `<sounds><music></music>\n${voiceRows(true).join("\n")}\n</sounds>\n`,
+    },
   ];
   return { documents, assets };
 }
@@ -246,6 +370,12 @@ function standInFireCue(kind: string): string | undefined {
   return cue && CUES.some(([name]) => name === cue) ? cue : undefined;
 }
 
+/**
+ * ftl.dat's bomb launchers wait out 98% of the charge before their charge frames run (`<delayChargeAnim>0.98`), and
+ * brighten a frame-sized glow picture. The stand-in's bombs do the same with their own glow.
+ */
+const BOMB_CHARGE_DELAY = 0.98;
+
 function weaponAnimXml(id: string, kind: string, w: number, h: number): string {
   const sheet = `<animSheet name="${id}" w="${w}" h="${h}" fw="${w}" fh="${h}">weapons/${id}.png</animSheet>`;
   const y = Math.floor(h / 2);
@@ -254,7 +384,11 @@ function weaponAnimXml(id: string, kind: string, w: number, h: number): string {
   const anim =
     `<weaponAnim name="${id}"><sheet>${id}</sheet><desc length="1" x="0" y="0"/>` +
     `<chargedFrame>0</chargedFrame><fireFrame>0</fireFrame>` +
-    `<mountPoint x="0" y="${y}"/><firePoint x="0" y="${y}"/>${sound}</weaponAnim>`;
+    `<mountPoint x="0" y="${y}"/><firePoint x="0" y="${y}"/>${sound}` +
+    (kind === "bomb"
+      ? `<delayChargeAnim>${BOMB_CHARGE_DELAY}</delayChargeAnim><chargeImage>weapons/${id}_glow.png</chargeImage>`
+      : "") +
+    `</weaponAnim>`;
   return `${sheet}\n${anim}`;
 }
 
@@ -279,6 +413,16 @@ function animTag(name: string, sheet: string, length: number, y: number): string
   return `<anim name="${name}"><sheet>${sheet}</sheet><desc length="${length}" x="0" y="${y}"/><time>1</time></anim>`;
 }
 
+/** sounds.xml or dlcSounds.xml rows for the voices, as ftl.dat splits them. */
+function voiceRows(dlc: boolean): string[] {
+  return voiceCues()
+    .filter((cue) => !!cue.voice.dlc === dlc)
+    .map(
+      (cue) =>
+        `<${cue.name} volume="8"${cue.voice.loop ? ' loop="true"' : ""}>ui/${cue.name}.wav</${cue.name}>`,
+    );
+}
+
 function soundsXml(): string {
   const cues = [
     ...CUES.map(([cue]) => `<${cue} volume="8">ui/${cue}.wav</${cue}>`),
@@ -286,6 +430,7 @@ function soundsXml(): string {
       (cue) =>
         `<${cue.name} volume="8"${cue.loop ? ' loop="true"' : ""}>ui/${cue.name}.wav</${cue.name}>`,
     ),
+    ...voiceRows(false),
   ].join("\n");
   const music = MUSIC_TRACKS.map((track) => {
     const combat = track.combat ? `<combat>${track.combat}</combat>` : "";
@@ -318,6 +463,23 @@ function artPng(art: PixelArt, hot = false): Uint8Array {
       rgba[at] = colour[0] ?? 0;
       rgba[at + 1] = colour[1] ?? 0;
       rgba[at + 2] = colour[2] ?? 0;
+      rgba[at + 3] = 255;
+    });
+  });
+  return rgbaPng(art.w, art.h, rgba);
+}
+
+/** The weapon's glow pixels alone, lit white-hot, on a clear frame of the same size. */
+function glowPng(art: PixelArt): Uint8Array {
+  const rgba = new Uint8Array(art.w * art.h * 4);
+  art.rows.forEach((row, y) => {
+    if (y >= art.h) return;
+    [...row].forEach((ch, x) => {
+      if (x >= art.w || ch !== "g") return;
+      const at = (y * art.w + x) * 4;
+      rgba[at] = 255;
+      rgba[at + 1] = 244;
+      rgba[at + 2] = 214;
       rgba[at + 3] = 255;
     });
   });
@@ -443,13 +605,39 @@ function sceneryAssets(icons: IconModule): {
     });
     clips.push(effectAnim(sheet.name, sheet.frames, sheet.fw, sheet.fh, "effects"));
   }
-  for (let i = 0; i < 10; i += 1) {
-    const name = `asteroid${i}`;
-    assets.push({ path: `img/effects/${name}.png`, bytes: asteroidPng(i) });
-    clips.push(effectAnim(name, 1, 16, 16, "effects"));
-  }
   return { assets, clips };
 }
+
+/**
+ * The asteroid field, laid out as ftl.dat lays it: ten 24x24 rocks under img/asteroids with their anims in
+ * dlcAnimations.xml, and three large drifting backdrops the engine loads by path (asteroids/asteroid_back1-3.png).
+ * Every picture is drawn here.
+ */
+function asteroidField(): { assets: { path: string; bytes: Uint8Array }[]; clips: string[] } {
+  const assets: { path: string; bytes: Uint8Array }[] = [];
+  const clips: string[] = [];
+  for (let i = 0; i < 10; i += 1) {
+    const name = `asteroid${i}`;
+    assets.push({ path: `img/asteroids/${name}.png`, bytes: asteroidPng(i) });
+    clips.push(effectAnim(name, 1, ASTEROID_PX, ASTEROID_PX, "asteroids"));
+  }
+  ASTEROID_BACKS.forEach((back, i) => {
+    assets.push({
+      path: `img/asteroids/asteroid_back${i + 1}.png`,
+      bytes: asteroidBackPng(back.w, back.h, back.rocks, i),
+    });
+  });
+  return { assets, clips };
+}
+
+const ASTEROID_PX = 24;
+
+/** Backdrop sizes and rock counts. ftl.dat's are a few hundred pixels across; these are smaller. */
+const ASTEROID_BACKS = [
+  { w: 180, h: 110, rocks: 9 },
+  { w: 130, h: 150, rocks: 7 },
+  { w: 150, h: 130, rocks: 6 },
+];
 
 type EffectKind = "fire" | "breach" | "burst";
 
@@ -816,15 +1004,16 @@ function effectPixel(
 }
 
 function asteroidPng(index: number): Uint8Array {
-  const size = 16;
+  const size = ASTEROID_PX;
   const rgba = new Uint8Array(size * size * 4);
   const tone = 90 + (index % 5) * 18;
+  const mid = (size - 1) / 2;
   for (let y = 0; y < size; y += 1) {
     for (let x = 0; x < size; x += 1) {
-      const dx = x - 7.5;
-      const dy = y - 7.5;
-      const bump = ((index * 3 + x) % 5) - 2;
-      if (dx * dx + dy * dy > 28 + bump) continue;
+      const dx = x - mid;
+      const dy = y - mid;
+      const bump = ((index * 3 + x) % 7) - 3;
+      if (dx * dx + dy * dy > 70 + bump * 3) continue;
       const at = (y * size + x) * 4;
       rgba[at] = tone;
       rgba[at + 1] = tone - 8;
@@ -833,6 +1022,63 @@ function asteroidPng(index: number): Uint8Array {
     }
   }
   return rgbaPng(size, size, rgba);
+}
+
+/**
+ * A loose cluster of dark lumpy rocks on a clear backdrop, lit from the upper left.
+ * Rock places are fixed per backdrop, so the stand-in rebuilds byte for byte.
+ */
+function asteroidBackPng(w: number, h: number, rocks: number, seed: number): Uint8Array {
+  const rgba = new Uint8Array(w * h * 4);
+  let state = 0x9e3779b9 ^ (seed * 7919);
+  const roll = () => {
+    state = (Math.imul(state, 1103515245) + 12345) >>> 0;
+    return state / 0x100000000;
+  };
+  for (let n = 0; n < rocks; n += 1) {
+    const r = 7 + roll() * Math.min(w, h) * 0.17;
+    const cx = r + roll() * (w - 2 * r);
+    const cy = r + roll() * (h - 2 * r);
+    const squash = 0.7 + roll() * 0.3;
+    const p1 = roll() * Math.PI * 2;
+    const p2 = roll() * Math.PI * 2;
+    const p3 = roll() * Math.PI * 2;
+    const pits = Array.from({ length: 1 + Math.floor(roll() * 3) }, () => ({
+      x: (roll() - 0.5) * r,
+      y: (roll() - 0.5) * r * squash,
+      r: 1.5 + roll() * r * 0.22,
+    }));
+    for (let y = Math.max(0, Math.floor(cy - r * 1.3)); y < Math.min(h, cy + r * 1.3); y += 1) {
+      for (let x = Math.max(0, Math.floor(cx - r * 1.3)); x < Math.min(w, cx + r * 1.3); x += 1) {
+        const dx = x - cx;
+        const dy = (y - cy) / squash;
+        const a = Math.atan2(dy, dx);
+        // Low, uneven bumps read as rock. A single strong harmonic reads as a star.
+        const edge =
+          r *
+          (1 +
+            0.07 * Math.sin(2 * a + p1) +
+            0.05 * Math.sin(3 * a + p2) +
+            0.03 * Math.sin(7 * a + p3));
+        const d = Math.hypot(dx, dy);
+        if (d > edge) continue;
+        // Lit from the upper left, darker toward the rim.
+        let light = 0.6 - (dx + dy) / (edge * 2.6) - (d / edge) ** 3 * 0.25;
+        for (const pit of pits) {
+          const pd = Math.hypot(dx - pit.x, dy - pit.y);
+          if (pd < pit.r)
+            light -= 0.22 * (1 - pd / pit.r) + (dx - pit.x + (dy - pit.y) < 0 ? 0.08 : -0.04);
+        }
+        const shade = Math.round(30 + Math.max(0, Math.min(1, light)) * 72);
+        const at = (y * w + x) * 4;
+        rgba[at] = shade + 6;
+        rgba[at + 1] = shade;
+        rgba[at + 2] = Math.max(0, shade - 8);
+        rgba[at + 3] = d > edge - 1.2 ? 190 : 255;
+      }
+    }
+  }
+  return rgbaPng(w, h, rgba);
 }
 
 function markerPng(): Uint8Array {

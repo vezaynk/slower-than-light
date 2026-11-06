@@ -86,8 +86,9 @@ describe("sector short names and start events", () => {
     assert.ok(dest);
     g.sectorMap = true;
     chooseSector(g, dest.id);
-    assert.equal(g.phase, "map");
-    assert.equal(g.event, null);
+    // The next sector names no start event, so it opens the <beaconEvents> default, START_BEACON.
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.body.startsWith("Welcome to a new sector!"), true);
     assert.equal(g.sectorName, dest.name);
   });
 
@@ -97,7 +98,9 @@ describe("sector short names and start events", () => {
     const stored = sectorDef("STANDARD_SPACE")?.name;
     assert.equal(g.sectorName, stored);
     assert.equal(g.route[0]?.name, stored);
-    assert.equal(g.phase, "map");
+    // The stand-in's own START_BEACON opens the sector.
+    assert.equal(g.phase, "event");
+    assert.equal(g.event?.title, stored);
   });
 
   it("leaves the resolved start when the start event id is missing", () => {

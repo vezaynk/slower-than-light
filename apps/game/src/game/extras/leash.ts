@@ -22,6 +22,7 @@ import "../pack/base.ts";
 import { crewDef } from "@stl/pack";
 import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { shipSight } from "./slug-sight.ts";
+import { queueSfx } from "../sfx-queue.ts";
 
 // Combat setup stays on the sim. This module does not construct a game.
 void createGame;
@@ -389,6 +390,7 @@ export function startLeash(g: Game, crewId: string) {
   kit.on = true;
   kit.target = crew.id;
   retarget(g);
+  queueSfx(g, "mindControl");
   log(g, `${crew.name} is leashed.`);
 }
 
@@ -464,7 +466,10 @@ export function tickLeash(g: Game, dt: number) {
   for (const c of g.crew) {
     if (!c.leashed || c.leashed <= 0) continue;
     c.leashed -= dt;
-    if (c.leashed <= 0) clearCrew(c);
+    if (c.leashed <= 0) {
+      clearCrew(c);
+      queueSfx(g, "mindControlEnd");
+    }
   }
   tickEnemyLeash(g, dt);
   const kit = g.player.kits.mind;
@@ -625,6 +630,7 @@ export function fireEnemyLeash(g: Game): boolean {
   crew.path = [];
   crew.move = 0;
   deselectCrew(g, crew.id);
+  queueSfx(g, "mindControl");
   log(g, `${crew.name} is under their mind control.`);
   return true;
 }

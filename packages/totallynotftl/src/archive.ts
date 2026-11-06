@@ -15,7 +15,7 @@ import { mountsFor } from "@stl/catalog/src/weapon-mounts.ts";
 import { packFtlDat } from "@stl/ftldat";
 import { pictureForRooms, type HullPicture } from "@stl/pack";
 import { standInMedia } from "./media.ts";
-import { TEXT_LISTS_XML } from "./text-lists.ts";
+import { NAMES_XML, TEXT_LISTS_XML } from "./text-lists.ts";
 import {
   basePng,
   cloakPng,
@@ -37,6 +37,7 @@ export async function standInDat(): Promise<Uint8Array> {
       { path: "data/sector_data.xml", xml: standInSectorsXml() },
       { path: "data/achievements.xml", xml: standInAchievementsXml() },
       { path: "data/text_lists.xml", xml: TEXT_LISTS_XML },
+      { path: "data/names.xml", xml: NAMES_XML },
       { path: "data/text-eo.xml", xml: TEXT_EO_XML },
       ...pictures.map((file) => ({ path: file.path, xml: file.xml })),
       ...media.documents,

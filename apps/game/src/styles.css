@@ -3304,46 +3304,6 @@ button.door-tick::before {
   cursor: default;
 }
 
-/* The credit line is the bottom of the title art. This row stays in the starfield above the wordmark. */
-.title-frame .pack-boot {
-  position: absolute;
-  top: 1.6%;
-  right: 3%;
-  z-index: 3;
-  width: min(560px, 48%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 2px 0;
-  background: #07060d;
-  pointer-events: none;
-}
-
-.title-frame .pack-boot-track {
-  flex: 1 1 120px;
-  min-width: 120px;
-  height: 14px;
-  border: 2px solid var(--color-line);
-  background: #07060d;
-}
-
-.title-frame .pack-boot-fill {
-  height: 100%;
-  width: 0;
-  background: var(--color-accent);
-  transition: width 0.35s linear;
-}
-
-.title-frame .pack-boot p {
-  margin: 0;
-  font-family: var(--font-hud-large);
-  font-size: 22px;
-  line-height: 1;
-  letter-spacing: 0.06em;
-  color: var(--color-fg);
-  white-space: nowrap;
-}
-
 .title-panel {
   position: absolute;
   left: 28%;
@@ -7294,8 +7254,79 @@ button.cargo-slot:hover {
 }
 
 /* Per the user: Options › Game files (GameFilesPanel). Load order on the left, the picked file on the right. INVENTED look. */
-.options-sheet.is-wide {
+.options-sheet.is-wide,
+.setup-sheet {
   width: min(1240px, 100%);
+}
+
+/* Per the user: the setup screen comes before the title, like a launcher. */
+.setup-screen,
+.setup-boot {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #07060d;
+}
+
+.setup-sheet {
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.setup-sheet .ship-tab-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.setup-launch {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 12px 14px 4px;
+}
+
+.setup-launch .gf-alert {
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.pack-boot {
+  width: min(560px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.pack-boot-track {
+  flex: 1 1 120px;
+  min-width: 120px;
+  height: 14px;
+  border: 2px solid var(--color-line);
+  background: #07060d;
+}
+
+.pack-boot-fill {
+  height: 100%;
+  width: 0;
+  background: var(--color-accent);
+  transition: width 0.35s linear;
+}
+
+.pack-boot p {
+  margin: 0;
+  font-family: var(--font-hud-large);
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--color-fg);
+  white-space: nowrap;
 }
 .gf {
   display: grid;

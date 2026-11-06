@@ -3,7 +3,6 @@ import { describe, it } from "node:test";
 import {
   beginBoarding,
   commitJump,
-  createGame,
   evasionPercent,
   ftlDriveCharging,
   ftlDriveSeconds,
@@ -16,6 +15,7 @@ import {
 } from "./sim.ts";
 import { sensorLevel } from "./extras/sensors.ts";
 import type { Crew, Game } from "./types.ts";
+import { startedGame } from "./test-start.ts";
 
 function calm(g: Game) {
   g.player.weapons = [];
@@ -29,7 +29,7 @@ function calm(g: Game) {
 }
 
 function fight(seed = 1): Game {
-  const g = createGame(seed);
+  const g = startedGame(seed);
   startCombat(g, "scout");
   assert.ok(g.enemy);
   calm(g);
@@ -88,7 +88,7 @@ describe("piloting presence", () => {
   });
 
   it("refuses a map jump with no pilot, destroyed Piloting, or unpowered engines", () => {
-    const g = createGame(5);
+    const g = startedGame(5);
     const to = jumpTarget(g);
     const pilot = pilotOf(g);
     pilot.room = "p-medbay";
@@ -118,14 +118,14 @@ describe("piloting presence", () => {
 describe("manning a damaged system", () => {
   // Systems, the paragraph above "Main systems": "Ionized, damaged, hacked or disabled ... systems cannot be manned".
   it("drops the manning bonus while the system has damage", () => {
-    const g = createGame(6);
+    const g = startedGame(6);
     assert.equal(manning(g, g.player, "player", "engines"), true);
     g.player.systems.engines.damage = 1;
     assert.equal(manning(g, g.player, "player", "engines"), false);
   });
 
   it("gives Sensors no manned level while damaged, mind-controlled, or out of air", () => {
-    const g = createGame(7);
+    const g = startedGame(7);
     const c = g.crew.find((x) => x.side === "player");
     assert.ok(c);
     c.room = "p-sensors";
@@ -186,7 +186,7 @@ describe("FTL charge with no enemy hull", () => {
   it("scales the 23 second base by the in-fight cell", () => {
     // Wiki citations:
     // > "If there is a hazard or a boarder, but no enemy ship, the FTL charge time is 23 seconds, which is further decreased by Engines power level upgrades, Engines manning and Engines manning crew skill level, FTL Recharge Boosters." — [[Engines#FTL Drive charge time]]
-    const g = createGame(20);
+    const g = startedGame(20);
     unmannedEngines(g, 1);
     assert.equal(ftlQuietSeconds(g), 23);
     unmannedEngines(g, 2);
@@ -197,7 +197,7 @@ describe("FTL charge with no enemy hull", () => {
     // Wiki citations:
     // > "If there is a hazard or a boarder, but no enemy ship, the FTL charge time is 23 seconds, which is further decreased by Engines power level upgrades, Engines manning and Engines manning crew skill level, FTL Recharge Boosters." — [[Engines#FTL Drive charge time]]
     // > "If there is no hazard or enemy, your FTL Drive charges instantly." — [[Engines#FTL Drive charge time]]
-    const g = createGame(21);
+    const g = startedGame(21);
     unmannedEngines(g, 1);
     g.phase = "map";
     g.paused = false;
@@ -221,7 +221,7 @@ describe("FTL charge with no enemy hull", () => {
   it("does not treat a nebula or an ion storm as that hazard", () => {
     // Wiki citations:
     // > "If there is no hazard or enemy, your FTL Drive charges instantly. (nebula environment and plasma/ion storms are not considered a hazard for this matter)" — [[Engines#FTL Drive charge time]]
-    const g = createGame(22);
+    const g = startedGame(22);
     unmannedEngines(g, 1);
     g.flee = 0.25;
     g.player.storm = true;
@@ -237,7 +237,7 @@ describe("FTL charge with no enemy hull", () => {
   it("finishes a partial charge at once when the map is quiet", () => {
     // Wiki citations:
     // > "If there is no hazard or enemy, your FTL Drive charges instantly." — [[Engines#FTL Drive charge time]]
-    const g = createGame(23);
+    const g = startedGame(23);
     unmannedEngines(g, 1);
     g.flee = 0.25;
     step(g, 0.05);
@@ -265,7 +265,7 @@ describe("FTL charge with no enemy hull", () => {
     // Wiki citations:
     // > "If there is a hazard or a boarder, but no enemy ship, the FTL charge time is 23 seconds" — [[Engines#FTL Drive charge time]]
     // > "If there is no hazard or enemy, your FTL Drive charges instantly." — [[Engines#FTL Drive charge time]]
-    const g = createGame(25);
+    const g = startedGame(25);
     unmannedEngines(g, 1);
     const boarder = plantBoarder(g, "p-sensors");
     beginBoarding(g);
@@ -283,7 +283,7 @@ describe("FTL charge with no enemy hull", () => {
   });
 
   it("keeps a partial charge when a sun is still up after the boarders die", () => {
-    const g = createGame(26);
+    const g = startedGame(26);
     unmannedEngines(g, 1);
     const boarder = plantBoarder(g, "p-sensors");
     beginBoarding(g, false, true);

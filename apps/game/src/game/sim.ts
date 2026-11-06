@@ -1,5 +1,6 @@
-import { playArchiveAudio, playArchiveSfx } from "./archive-audio.ts";
+import { playArchiveAudio } from "./archive-audio.ts";
 import { deathCue, flushSfx, syncLoops, weaponLaunchCue } from "./audio.ts";
+import { queueSfx, takeHeldLoops } from "./sfx-queue.ts";
 import { TILE_WALK_S, footVia, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
 import {
   claimPadTile,
@@ -61,6 +62,7 @@ import {
   hackBlocksManning,
   hackRepairScale,
   ionHitsHack,
+  hackPulseRunning,
 } from "./extras/spike.ts";
 // Mind Control: sideOf is the side a crew member fights for (a leashed crew member fights for the other side).
 import {
@@ -108,10 +110,12 @@ import type {
   WeaponBlueprint,
 } from "@stl/pack";
 import {
+  allCrew,
   allSectors,
   allWeapons,
   augmentDef,
   beaconEventId,
+  crewNameSex,
   fillerList,
   crewDef,
   droneDef,
@@ -400,7 +404,7 @@ export function repairHull(g: Game, mode: "one" | "all" | "max") {
   g.player.hull += n;
   noteAchieve(g, { k: "store", repair: true });
   noteAchieve(g, { k: "hull", before, after: g.player.hull });
-  sfx(g, "click");
+  sfx(g, "repairShip");
 }
 
 export function rand(g: Game): number {
@@ -489,8 +493,7 @@ export function showEventLines(g: Game, lines: readonly string[]) {
 }
 
 function sfx(g: Game, name: string) {
-  playArchiveSfx(name);
-  g.sfx.push(name);
+  queueSfx(g, name);
 }
 
 /** Fire while any room is burning. Repair while a crew member is sealing or fixing, and not fighting that fire. */
@@ -515,8 +518,78 @@ function syncBed(g: Game) {
       if (standing) repair = true;
     }
   }
-  syncLoops({ fire, repair });
+  // sounds.xml airLeak: air escaping through a breach or an open airlock on your own ship.
+  const airLeak = g.player.rooms.some((room) => room.breach > 0 || room.venting);
+  const held = takeHeldLoops(g);
+  syncLoops({
+    fire,
+    repair,
+    airLeak,
+    hackLoop: hackPulseRunning(g),
+    cloneBroken: held.has("cloneBroken"),
+    shrikeRepair: held.has("shrikeRepair"),
+  });
+  noteEdges(g);
 }
+
+/**
+ * The blow sounds for one melee strike, by the attacker's race: Rocks throw and land a rock, Mantis splat (their
+ * fight cry stays the archive wave), and everyone else fires the small-arms laser FTL's crew combat uses
+ * (animations.xml: "every crewmember uses this" crewLaser). Each is a family that picks a numbered variant.
+ */
+export function meleeCues(kin: string | undefined): string[] {
+  if (kin === "rock") return ["rockThrow", "rockHit"];
+  if (kin === "mantis") return ["mantisSplat"];
+  return ["crewLaser"];
+}
+
+/** INFERRED: seconds between thunderclaps in an ion storm. FTL's lightning1-4 have no event that names them. */
+const THUNDER_EVERY_S = 9;
+
+/**
+ * Ion storm: a thunderclap now and then while the storm is on the player's ship (dlcSounds.xml lightning1-4).
+ * Audio only, so it uses Math.random and leaves the game's seeded roll alone.
+ */
+function stormThunder(g: Game, dt: number): void {
+  if (!g.player.storm || g.paused || dt <= 0) return;
+  if (Math.random() < dt / THUNDER_EVERY_S) sfx(g, "lightning");
+}
+
+/** The last value each edge cue saw, per game. Not saved: a loaded game starts a fresh baseline. */
+const edges = new WeakMap<
+  Game,
+  { ready: Set<string>; jump: boolean; hurt: Set<string>; seen: boolean }
+>();
+
+/**
+ * One-shot cues for a line being crossed: weaponReady when a powered player gun finishes charging, jumpReady when
+ * the FTL drive finishes, and lowCrewHealth when a player crewmember drops under a quarter of their health.
+ * The first look only records the baseline, so loading a game makes no sound.
+ */
+function noteEdges(g: Game): void {
+  // The title screen steps a placeholder game before the archive loads. Crew power reads need that pack.
+  if (allCrew().length === 0) return;
+  const last = edges.get(g) ?? { ready: new Set(), jump: false, hurt: new Set(), seen: false };
+  const mask = powerMask(g.player, zoltanBars(g.crew, g.player, "player", "weapons"));
+  const ready = new Set(
+    g.player.weapons.filter((w, i) => (mask[i] ?? false) && weaponAccentHot(w)).map((w) => w.uid),
+  );
+  const jump = g.flee >= 1;
+  const hurt = new Set(
+    g.crew
+      .filter((c) => c.side === "player" && c.hp > 0 && c.hp < c.maxHp * LOW_HEALTH)
+      .map((c) => c.id),
+  );
+  if (last.seen) {
+    if ([...ready].some((uid) => !last.ready.has(uid))) sfx(g, "weaponReady");
+    if (jump && !last.jump && g.phase === "combat") sfx(g, "jumpReady");
+    if ([...hurt].some((id) => !last.hurt.has(id))) sfx(g, "lowCrewHealth");
+  }
+  edges.set(g, { ready, jump, hurt, seen: true });
+}
+
+/** INFERRED: the health warning sounds under a quarter of full health, where the crew bar turns red. */
+const LOW_HEALTH = 0.25;
 
 function floatAt(g: Game, text: string, x: number, y: number, beam?: boolean) {
   g.floaters.push({ id: uid(g), text, life: 0.9, x, y, ...(beam ? { beam: true } : {}) });
@@ -1950,16 +2023,19 @@ function disableUnpoweredWeapons(g: Game): void {
 export function powerUp(g: Game, id: SysId) {
   const sys = g.player.systems[id];
   if (!isMain(id)) return;
-  if (id === "weapons" && weaponsPowerLocked(g)) return;
-  if (sparePower(g.player) <= 0) return;
-  if (sys.power >= capOf(sys)) return;
+  // sounds.xml powerUpFail: a bar that cannot be added.
+  if (id === "weapons" && weaponsPowerLocked(g)) return sfx(g, "powerUpFail");
+  if (sparePower(g.player) <= 0) return sfx(g, "powerUpFail");
+  if (sys.power >= capOf(sys)) return sfx(g, "powerUpFail");
   const step = id === "shields" ? shieldPowerStep(g, 1) : id === "weapons" ? weaponPowerStep(g) : 1;
-  if (step <= 0) return;
+  if (step <= 0) return sfx(g, "powerUpFail");
+  const was = sys.power;
   sys.power += step;
   delete sys.want;
   if (id === "weapons") enableWeaponsForPower(g);
   syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
-  sfx(g, "click");
+  sfx(g, "powerUpSystem");
+  if (id === "engines" && was <= 0) sfx(g, "enginesOn");
 }
 
 export function powerDown(g: Game, id: SysId) {
@@ -1970,7 +2046,7 @@ export function powerDown(g: Game, id: SysId) {
     if (!powerDownWeapons(g)) return;
     delete sys.want;
     syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
-    sfx(g, "click");
+    sfx(g, "powerDownSystem");
     return;
   }
   if (sys.power <= 0) return;
@@ -1979,7 +2055,8 @@ export function powerDown(g: Game, id: SysId) {
   sys.power -= step;
   delete sys.want;
   syncShields(g.player, zoltanBars(g.crew, g.player, "player", "shields"));
-  sfx(g, "click");
+  sfx(g, "powerDownSystem");
+  if (id === "engines" && sys.power <= 0) sfx(g, "enginesOff");
 }
 
 function findDoor(ship: Ship, a: string, b: string): Door | undefined {
@@ -2181,7 +2258,7 @@ export function lockdown(g: Game, crewId: string): boolean {
   if (!ship || !roomById(ship, crew.room)) return false;
   coatRoom(g, ship, crew.aboard, crew.room);
   crew.lockCool = def.lockCooldown;
-  sfx(g, "click");
+  sfx(g, "lockdown");
   return true;
 }
 
@@ -2865,7 +2942,7 @@ export function reverseSlotAuto(g: Game, weaponUid: string) {
   const w = g.player.weapons.find((x) => x.uid === weaponUid);
   if (!w) return;
   w.autoInvert = !w.autoInvert;
-  sfx(g, "click");
+  sfx(g, !!g.autofireAll !== !!w.autoInvert ? "autofireOn" : "autofireOff");
 }
 
 /**
@@ -2881,7 +2958,7 @@ export function holdAutofire(g: Game): void {
 /** Weapon Control, Overview: autofire can be enabled or disabled for all weapons. */
 export function toggleAutoAll(g: Game) {
   g.autofireAll = !g.autofireAll;
-  sfx(g, "click");
+  sfx(g, g.autofireAll ? "autofireOn" : "autofireOff");
 }
 
 export function fireReady(g: Game) {
@@ -3345,6 +3422,7 @@ export function kitPowerUp(g: Game, id: BarKit): boolean {
   if (kit.power >= Math.max(0, kit.level - (kit.damage ?? 0)) || sparePower(g.player) < 1)
     return false;
   kit.power += 1;
+  sfx(g, "powerUpSystem");
   return true;
 }
 
@@ -3353,6 +3431,7 @@ export function kitPowerDown(g: Game, id: BarKit): boolean {
   if (!kit || cooldownLocksPower(kit) || kit.power <= 0) return false;
   kit.power -= 1;
   delete kit.want;
+  sfx(g, "powerDownSystem");
   return true;
 }
 
@@ -4197,6 +4276,8 @@ function strikeRoom(
     (citedCrewDamage(shot, 0) != null || shot.fireChance > 0);
   if (!r || (damage <= 0 && hull <= 0 && !dashed)) return;
   if (damage > 0) {
+    // sounds.xml sysExplosion: a hit lands on a system or subsystem room.
+    if (r.kit || r.system) sfx(g, "sysExplosion");
     if (r.kit) hurtKit(ship, r.kit, damage);
     if (r.system) {
       if (playerHurt && negateSystem(g)) log(g, "Titanium System Casing held the system.");
@@ -4276,6 +4357,7 @@ function strikeRoom(
   const exclusive = (heavyLaser || missile) && fireStarted;
   if (shot.breachChance > 0 && !exclusive && rand(g) < shot.breachChance) {
     r.breach += 1;
+    sfx(g, "hullBreach");
     if (aboard === "enemy") noteEnemyBreach(g, r.id);
   }
   // @agent:flagship. Stage-3 Power Surge lasers: "20% stun" (wiki/flagship-systems.ts SURGE_STUN_S, INFERRED 3 s).
@@ -4685,6 +4767,8 @@ function moveCrew(g: Game, dt: number) {
       const landing = hopLanding(ship, c.room, c.path, c.via, spot ?? undefined);
       c.room = c.path.shift()!;
       c.move = 0;
+      // sounds.xml rockStomp and rockThud: a Rock's heavy tread, one per room it steps into. INFERRED: per room.
+      if (c.kin === "rock") sfx(g, "rockStep");
       if (c.path.length && landing) c.via = `${landing.x},${landing.y}`;
       else delete c.via;
     }
@@ -5209,6 +5293,7 @@ function life(g: Game, ship: Ship, aboard: "player" | "enemy", dt: number) {
           crewDef(attacker.kin ?? "human").fight *
           combatSkillMult(rankOf(attacker, "combat"));
         if (attacker.kin === "mantis") playArchiveAudio("mantisFight");
+        for (const cue of meleeCues(attacker.kin)) sfx(g, cue);
         // Crew skills, Combat: "one point of experience for dealing the killing blow to hostile crew".
         // "killing cloned crew or destroying onboard drones doesn't grant experience."
         // Drones are not in this crew loop, so breaking one grants nothing.
@@ -5467,7 +5552,7 @@ function tickPulsar(g: Game, dt: number) {
     g.pulsarWarned = true;
     // Environmental Hazards, Pulsar: the danger line is the warning.
     log(g, "Periodic waves of electromagnetic energy will disrupt your systems.");
-    sfx(g, "alarm");
+    sfx(g, "environWarning");
   }
   if (g.pulsarT >= wait) {
     applyPulsarPulse(g);
@@ -5549,6 +5634,7 @@ function flareOne(g: Game, ship: Ship, aboard: "player" | "enemy") {
 /** One solar flare against both hulls. Environmental Hazards, Class-M Red Giant Star. */
 export function applyFlarePulse(g: Game) {
   playArchiveAudio("sun");
+  sfx(g, "solarFlare");
   flareOne(g, g.player, "player");
   if (g.enemy) flareOne(g, g.enemy, "enemy");
 }
@@ -5562,7 +5648,7 @@ function tickFlare(g: Game, dt: number) {
     g.flareWarned = true;
     // Environmental Hazards, Class-M Red Giant Star: the danger line is the warning.
     log(g, "Solar flares will light the ship on fire. Shields will reduce the effect.");
-    sfx(g, "alarm");
+    sfx(g, "environWarning");
   }
   if (g.flareT >= wait) {
     applyFlarePulse(g);
@@ -5654,7 +5740,7 @@ function environment(g: Game, dt: number) {
               ? "The Fleet's Anti-Ship Batteries are targeting you."
               : "Planet-side anti-ship batteries are detected in this system.",
         );
-        sfx(g, "alarm");
+        sfx(g, "environWarning");
         armAsbClock(g, "shot");
       } else {
         const asb = citedAsbShot();
@@ -5684,7 +5770,8 @@ function environment(g: Game, dt: number) {
           });
         }
         log(g, "Line artillery.");
-        sfx(g, "alarm");
+        // dlcSounds.xml fleetFireHeavy and fleetFireLight: the fleet's batteries firing. Two or more hull is heavy.
+        sfx(g, asb.damage >= 2 ? "fleetFireHeavy" : "fleetFireLight");
         armAsbClock(g, "warn");
       }
     }
@@ -5923,7 +6010,7 @@ function reap(g: Game) {
   if (!dead.length) return;
   for (const c of dead) {
     const cloned = noteDeath(g, c);
-    sfx(g, deathCue(c.kin));
+    sfx(g, deathCue(c.kin, crewNameSex(c.name)));
     const hull = c.aboard === "player" ? g.player : g.enemy;
     const room = hull?.rooms.find((r) => r.id === c.room);
     const livingPlayers = g.crew.filter((other) => other.side === "player" && other.hp > 0);
@@ -8323,7 +8410,8 @@ function openSectorStart(g: Game): void {
     g.paused = false;
     return;
   }
-  if (shown === true || g.phase === "defeat") return;
+  // showArchivePage can end the run, which TypeScript does not see through the call.
+  if (shown === true || (g.phase as Game["phase"]) === "defeat") return;
   g.phase = "event";
   g.paused = true;
 }
@@ -8403,7 +8491,7 @@ export function upgrade(g: Game, id: SysId | "reactor") {
     g.scrap -= cost;
     g.player.reactor += 1;
     noteAchieve(g, { k: "upgrade" });
-    sfx(g, "levelup");
+    sfx(g, "upgradeSystem");
     log(g, `Reactor ${g.player.reactor}.`);
     return;
   }
@@ -8414,7 +8502,7 @@ export function upgrade(g: Game, id: SysId | "reactor") {
   sys.level += 1;
   if (!isMain(id)) sys.power = sys.level;
   noteAchieve(g, { k: "upgrade" });
-  sfx(g, "levelup");
+  sfx(g, "upgradeSystem");
   log(g, `${id} upgraded.`);
 }
 
@@ -8444,7 +8532,7 @@ export function patchAll(g: Game) {
   g.player.hull = g.player.hullMax;
   noteAchieve(g, { k: "store", repair: true });
   noteAchieve(g, { k: "hull", before, after: g.player.hull });
-  sfx(g, "click");
+  sfx(g, "repairShip");
 }
 
 // exported for tests
@@ -8632,6 +8720,7 @@ function neutralShipTick(g: Game, h: number) {
 
 export function step(g: Game, dt: number) {
   syncBed(g);
+  stormThunder(g, dt);
   promptExitLane(g);
   // Environmental Hazards: IN DANGER prevents opening the ship info screen.
   // INFERRED: a screen already open closes when that danger starts. The page does not say it stays up.

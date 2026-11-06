@@ -7,6 +7,7 @@ import { interruptLeash } from "./leash.ts";
 import { shipInDanger } from "./sling.ts";
 import { interruptVeil } from "./veil.ts";
 import type { Game, Kit, Ship } from "../types.ts";
+import { queueSfx } from "../sfx-queue.ts";
 
 /** Wiki page "Backup Battery", section "System Upgrades": level 1 cost 35. The store blueprint carries it. */
 // Wiki citations:
@@ -298,6 +299,7 @@ export function startCell(g: Game) {
   // Systems, "Damaged and destroyed systems": every level damaged is "completely unfunctional".
   if ((kit.damage ?? 0) >= kit.level) return;
   arm(kit);
+  queueSfx(g, "batteryStart");
   log(g, "Backup Battery online.");
 }
 
@@ -317,6 +319,7 @@ function stepKit(g: Game, kit: Kit | undefined, dt: number, player: boolean) {
     kit.left = 0;
     kit.on = false;
     kit.aux = 0;
+    if (player) queueSfx(g, "batteryStop");
     // Backup Battery, Overview: "If you are not IN DANGER and Backup Battery runs out, it becomes
     // instantly available again - it doesn't enter its cooldown".
     // INFERRED: that "you" is the player cell. An enemy cell still cools.

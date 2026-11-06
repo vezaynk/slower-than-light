@@ -91,6 +91,7 @@ import {
   scrapLine,
   takeStock,
 } from "./stock-spend.ts";
+import { queueSfx } from "../sfx-queue.ts";
 
 /**
  * @agent:quests-a. One quest-opener module (quests-a.ts, quests-b.ts): its quest ids, arrival cards, choices, page wins
@@ -546,6 +547,8 @@ function hasMissileWeapon(g: Game): boolean {
 function damageHull(g: Game, n: number): boolean {
   g.player.hull = Math.max(0, g.player.hull - n);
   log(g, `Hull damage: ${n}.`);
+  // sounds.xml eventDamage: an event's blast against the hull.
+  if (n > 0) queueSfx(g, "eventDamage");
   if (g.player.hull > 0) return false;
   g.phase = "defeat";
   g.outcome = g.training ? "tutorial" : "hull";

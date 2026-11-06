@@ -57,6 +57,7 @@ import {
 } from "./sim.ts";
 import type { Crew, Game, Kit, SkillName, SystemState } from "./types.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
+import { queueSfx } from "./sfx-queue.ts";
 import { grantUnlockAt } from "./unlocks.ts";
 import { grantRandomItem } from "./wiki/bonus-item.ts";
 import { addArchiveQuest } from "./wiki/quests.ts";
@@ -678,7 +679,10 @@ function payPageFx(g: Game, fxs: readonly EventEffect[] | undefined, notes: stri
   for (const fx of fxs ?? []) {
     if (fx.k !== "hull") continue;
     if (fx.n >= 0) g.player.hull = Math.min(g.player.hullMax, g.player.hull + fx.n);
-    else g.player.hull = Math.max(0, g.player.hull + fx.n);
+    else {
+      g.player.hull = Math.max(0, g.player.hull + fx.n);
+      queueSfx(g, "eventDamage");
+    }
     notes.push(fx.n >= 0 ? `Hull repairs: ${fx.n}.` : `Hull damage: ${-fx.n}.`);
   }
   for (const fx of fxs ?? []) {

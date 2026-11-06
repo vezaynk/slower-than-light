@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { flushSync } from "react-dom";
-import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
+import { playSfx, resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { currentLocale, localeFace, localeLabel, selectLocale } from "@/game/locale";
 import { choiceBlue, offeredChoices } from "@/game/wiki/choice-locks";
 import { ArchiveBed } from "./ArchiveBed";
@@ -634,10 +634,33 @@ function DoorAllIcon({ open }: { open?: boolean }) {
 }
 
 /** INVENTED title line. The play HUD follows the combat, event, and pause screens. */
+/** Shortest gap between two hover ticks. INFERRED: fast sweeps across a button row stay a few ticks. */
+const HOVER_BEEP_MS = 70;
+
 export function GameApp() {
   const version = useGame((s) => s.version);
   const game = useGame.getState().game;
   void version;
+
+  useEffect(() => {
+    // sounds.xml hoverBeep: a soft tick when the mouse moves onto a button. One listener for every button,
+    // once per button entered, and no more than one tick in HOVER_BEEP_MS. Touch has no hover, so it stays quiet.
+    let last: Element | null = null;
+    let at = 0;
+    const onOver = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      const target = e.target instanceof Element ? e.target.closest("button") : null;
+      if (target === last) return;
+      last = target;
+      if (!target || (target as HTMLButtonElement).disabled) return;
+      const now = performance.now();
+      if (now - at < HOVER_BEEP_MS) return;
+      at = now;
+      playSfx("hoverBeep");
+    };
+    document.addEventListener("pointerover", onOver);
+    return () => document.removeEventListener("pointerover", onOver);
+  }, []);
 
   useEffect(() => {
     // Options, Sound: the saved mute and volume drive the mixer, now and on every change.

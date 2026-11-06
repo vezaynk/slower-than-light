@@ -54,6 +54,7 @@ import {
   rollSurrenderOffer,
   type SurrenderOffer,
 } from "./surrender.ts";
+import { queueSfx } from "../sfx-queue.ts";
 
 // ---------------------------------------------------------------------------------------------------------------
 // Helpers
@@ -80,6 +81,8 @@ function hasDrone(g: Game, kinds: string[]): boolean {
 function damageHull(g: Game, n: number): boolean {
   g.player.hull = Math.max(0, g.player.hull - n);
   log(g, `Hull damage: ${n}.`);
+  // sounds.xml eventDamage: an event's blast against the hull.
+  if (n > 0) queueSfx(g, "eventDamage");
   if (g.player.hull > 0) return false;
   g.phase = "defeat";
   g.outcome = g.training ? "tutorial" : "hull";

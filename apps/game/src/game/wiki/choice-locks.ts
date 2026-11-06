@@ -1,6 +1,8 @@
 import {
   allCrew,
   allEvents,
+  allFillerLists,
+  allShipEvents,
   augmentDef,
   blueprintList,
   droneDef,
@@ -27,11 +29,61 @@ function walkButtons(choices: readonly Button[] | undefined, visit: (choice: But
   }
 }
 
+/** Inline list pages and ship-event endings are not root events. Their buttons still carry req. */
+function gatePages(): { choices?: readonly Button[] }[] {
+  const pages: { choices?: readonly Button[] }[] = [];
+  for (const ship of allShipEvents()) {
+    for (const ending of [
+      ship.surrender,
+      ship.escape,
+      ship.destroyed,
+      ship.deadCrew,
+      ship.gotaway,
+    ]) {
+      if (ending?.page) pages.push(ending.page);
+    }
+  }
+  for (const list of allFillerLists()) {
+    for (const entry of list.entries) if (entry.page) pages.push(entry.page);
+  }
+  return pages;
+}
+
 function eachChoice(visit: (choice: Button) => void) {
   for (const ev of allEvents()) {
     walkButtons(ev.choices, visit);
     for (const card of ev.cards ?? []) walkButtons(card.choices, visit);
   }
+  for (const page of gatePages()) walkButtons(page.choices, visit);
+}
+
+const CAMPAIGN_ID = /^(?:c|q|s):/;
+
+/**
+ * A page whose buttons are the archive's own rows. Named c:/q:/s: buttons are the stand-in's,
+ * and those still take the wiki cards. An indexed id, or a row that already stores a gate,
+ * is shown as written.
+ */
+export function archiveAuthoredChoices(
+  choices: readonly {
+    id: string;
+    hidden?: boolean;
+    maxGroup?: number;
+    minLevel?: number;
+    maxLevel?: number;
+    reqs?: readonly { k: string }[];
+  }[],
+): boolean {
+  if (choices.length === 0) return false;
+  if (choices.every((choice) => !CAMPAIGN_ID.test(choice.id))) return true;
+  return choices.some(
+    (choice) =>
+      choice.hidden === true ||
+      choice.maxGroup != null ||
+      choice.minLevel != null ||
+      choice.maxLevel != null ||
+      choice.reqs?.some((req) => req.k === "attr"),
+  );
 }
 
 /** Choice ids this handler owns, with the reqs stored on them. Built from the loaded pack. */
@@ -109,23 +161,11 @@ export function scrapStock(id: string): number | null {
 }
 
 function reqsFor(id: string): readonly ChoiceReq[] | null {
-  const walk = (choices: readonly Button[] | undefined): readonly ChoiceReq[] | null => {
-    for (const choice of choices ?? []) {
-      if (choice.id === id && choice.reqs?.length) return choice.reqs;
-      const nested = walk(choice.choices);
-      if (nested) return nested;
-    }
-    return null;
-  };
-  for (const ev of allEvents()) {
-    const found = walk(ev.choices);
-    if (found) return found;
-    for (const card of ev.cards ?? []) {
-      const nested = walk(card.choices);
-      if (nested) return nested;
-    }
-  }
-  return null;
+  let found: readonly ChoiceReq[] | null = null;
+  eachChoice((choice) => {
+    if (!found && choice.id === id && choice.reqs?.length) found = choice.reqs;
+  });
+  return found;
 }
 
 function meets(g: Game, req: ChoiceReq): boolean {

@@ -25,6 +25,7 @@ import {
 } from "./sim.ts";
 import type { Game, Kit, Shot } from "./types.ts";
 import { choiceBlue, choiceOmitted, offeredChoices } from "./wiki/choice-locks.ts";
+import { citedEvent } from "./wiki/cited-events.ts";
 import { citedCrewDamage } from "./wiki/cited-weapons.ts";
 import { flak2Landing, flakScatterRadius } from "./wiki/weapons-flak-crystal.ts";
 
@@ -297,5 +298,139 @@ describe("archive gates and combat figures", () => {
     assert.equal(localeFace(), "EoFont");
     selectLocale("en");
     assert.equal(localeLabel("menu_title", "Slower than Light"), "Slower than Light");
+  });
+
+  it("refuses an archive system gate and does not offer an ungated duplicate", () => {
+    const radar = eventDef("AUTO_DEFENSE_RADAR");
+    assert.ok(radar);
+    const medbay = {
+      id: "AUTO_DEFENSE_RADAR:1",
+      label: "Treat them in the medbay.",
+      fx: [{ k: "nothing" as const }],
+      hidden: true,
+      reqs: [{ k: "attr" as const, id: "medbay", text: "medbay", min: 2 }],
+    };
+    const hack = {
+      id: "AUTO_DEFENSE_RADAR:2",
+      label: "Hack the station.",
+      fx: [{ k: "nothing" as const }],
+      reqs: [{ k: "attr" as const, id: "hacking", text: "hack", min: 1 }],
+    };
+    try {
+      loadPack(
+        {
+          events: [
+            {
+              ...radar,
+              choices: [
+                { id: "AUTO_DEFENSE_RADAR:0", label: "Approach.", fx: [{ k: "nothing" }] },
+                medbay,
+                hack,
+              ],
+            },
+          ],
+          lists: [
+            {
+              id: "GATE_LIST",
+              entries: [
+                {
+                  id: "GATE_LIST_PAGE",
+                  unique: false,
+                  page: {
+                    id: "GATE_LIST_PAGE",
+                    dest: "List gate",
+                    flag: "GATE_LIST_PAGE",
+                    aliases: [],
+                    sectors: [],
+                    body: "A list page.",
+                    choices: [
+                      {
+                        id: "GATE_LIST_PAGE:0",
+                        label: "Use the medbay.",
+                        fx: [{ k: "nothing" }],
+                        hidden: true,
+                        reqs: [{ k: "attr", id: "medbay", text: "medbay", min: 2 }],
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+          shipEvents: [
+            {
+              id: "GATE_SHIP",
+              destroyed: {
+                page: {
+                  id: "GATE_SHIP_DEAD",
+                  dest: "Dead",
+                  flag: "GATE_SHIP_DEAD",
+                  aliases: [],
+                  sectors: [],
+                  body: "The wreck.",
+                  choices: [
+                    {
+                      id: "GATE_SHIP_DEAD:0",
+                      label: "Hack the wreck.",
+                      fx: [{ k: "nothing" }],
+                      reqs: [{ k: "attr", id: "hacking", text: "hack", min: 1 }],
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+        "append",
+      );
+      const g = createGame(3);
+      const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit");
+      assert.ok(b);
+      b.flag = "AUTO_DEFENSE_RADAR";
+      b.name = radar.dest;
+      g.here = b.id;
+      g.player.systems.medbay.level = 1;
+      const card = citedEvent(g, b);
+      assert.ok(card);
+      assert.equal(
+        card.choices.some((choice) => choice.id.startsWith("c:")),
+        false,
+      );
+      const shown = offeredChoices(g, card.choices).map((choice) => choice.id);
+      assert.equal(shown.includes(medbay.id), false);
+      assert.equal(shown.includes(hack.id), true);
+      assert.ok(choiceDisabled(g, hack.id));
+      g.player.kits.hacking = {
+        id: "hacking",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
+      assert.equal(choiceDisabled(g, hack.id), null);
+      g.player.systems.medbay.level = 2;
+      assert.equal(choiceDisabled(g, medbay.id), null);
+      assert.equal(
+        choiceOmitted(
+          g,
+          medbay.id,
+          card.choices.map((choice) => choice.id),
+        ),
+        false,
+      );
+
+      g.player.systems.medbay.level = 1;
+      assert.equal(choiceOmitted(g, "GATE_LIST_PAGE:0", ["GATE_LIST_PAGE:0"]), true);
+      g.player.systems.medbay.level = 2;
+      assert.equal(choiceOmitted(g, "GATE_LIST_PAGE:0", ["GATE_LIST_PAGE:0"]), false);
+      assert.ok(choiceDisabled(createGame(4), "GATE_SHIP_DEAD:0"));
+      g.player.kits.hacking.level = 2;
+      assert.equal(choiceDisabled(g, "GATE_SHIP_DEAD:0"), null);
+    } finally {
+      resetPackForTests();
+    }
   });
 });

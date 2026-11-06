@@ -1,6 +1,13 @@
-import { useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { EFFECT_CLIPS, pictureFrame, type HullPicture } from "@stl/pack";
-import { gibImages, shipArtGeneration, shipImage, subscribeShipArt } from "@/game/pack/ship-art";
+import {
+  GIB_SECONDS,
+  gibFlight,
+  gibImages,
+  shipArtGeneration,
+  shipImage,
+  subscribeShipArt,
+} from "@/game/pack/ship-art";
 import { ClipSprite } from "./ClipSprite";
 import { gridPitch } from "./grid-pitch";
 import { HullPlate } from "./HullPlate";
@@ -82,18 +89,27 @@ export function HullSkin({
         ) : null}
         {gibs.length > 0 ? (
           <span className="hull-gibs">
-            {gibs.map((gib) => (
-              <HullBase
-                key={gib.url}
-                className="hull-gib"
-                url={gib.url}
-                picture={gib.picture}
-                offsetX={gib.offsetX}
-                offsetY={gib.offsetY}
-                cols={cols}
-                rows={rows}
-              />
-            ))}
+            {gibs.map((gib) => {
+              const flight = gibFlight(gib.gib, id);
+              return (
+                <HullBase
+                  key={gib.url}
+                  className="hull-gib"
+                  url={gib.url}
+                  picture={gib.picture}
+                  offsetX={gib.offsetX}
+                  offsetY={gib.offsetY}
+                  cols={cols}
+                  rows={rows}
+                  flight={{
+                    "--gib-dx": String(flight.dx),
+                    "--gib-dy": String(flight.dy),
+                    "--gib-spin": `${flight.spin}deg`,
+                    "--gib-seconds": `${GIB_SECONDS}s`,
+                  }}
+                />
+              );
+            })}
           </span>
         ) : null}
       </>
@@ -123,6 +139,7 @@ function HullBase({
   offsetY,
   cols,
   rows,
+  flight,
 }: {
   className: string;
   url: string;
@@ -131,6 +148,8 @@ function HullBase({
   offsetY: number;
   cols: number;
   rows: number;
+  /** A gib's drift as CSS custom properties (hull-plate.css `hull-gib-fly`). */
+  flight?: Record<string, string>;
 }) {
   const ref = useRef<HTMLImageElement>(null);
   const [box, setBox] = useState<Box | null>(null);
@@ -170,7 +189,7 @@ function HullBase({
       src={url}
       alt=""
       draggable={false}
-      style={box ?? undefined}
+      style={box || flight ? ({ ...box, ...flight } as CSSProperties) : undefined}
     />
   );
 }

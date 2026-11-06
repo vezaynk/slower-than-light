@@ -33,6 +33,7 @@ function crewElement(doc: XmlDocument, row: CrewDef): XmlElement {
   if (row.detail) node.appendChild(leaf(doc, "desc", row.detail));
   if (row.short) node.appendChild(leaf(doc, "short", row.short));
   if (row.cost != null) node.appendChild(leaf(doc, "cost", row.cost));
+  if (row.bp != null) node.appendChild(leaf(doc, "bp", row.bp));
   if (row.powers?.length) {
     const list = element(doc, "powerList");
     for (const line of row.powers) list.appendChild(leaf(doc, "power", line));

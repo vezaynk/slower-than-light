@@ -936,6 +936,7 @@ function droneElement(doc: XmlDocument, drone: DroneDef): XmlElement {
   if (drone.detail) add(node, leaf(doc, "desc", drone.detail));
   add(node, leaf(doc, "cost", drone.cost));
   if (drone.image) add(node, leaf(doc, "droneImage", drone.image));
+  if (drone.bp != null) add(node, leaf(doc, "bp", drone.bp));
   if (drone.rarity != null) add(node, leaf(doc, "rarity", drone.rarity));
   if (drone.type) add(node, leaf(doc, "type", drone.type));
   if (drone.power != null) add(node, leaf(doc, "power", drone.power));
@@ -990,6 +991,7 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true
   if (weapon.art) add(node, leaf(doc, "weaponArt", weapon.art));
   if (weapon.image) add(node, leaf(doc, "image", weapon.image));
   if (weapon.icon) add(node, leaf(doc, "iconImage", weapon.icon));
+  if (weapon.bp != null) add(node, leaf(doc, "bp", weapon.bp));
   if (weapon.rarity != null) add(node, leaf(doc, "rarity", weapon.rarity));
   soundList(doc, node, "launchSounds", weapon.launchSounds);
   soundList(doc, node, "hitShipSounds", weapon.hitShipSounds);

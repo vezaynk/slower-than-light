@@ -26,6 +26,7 @@ import {
   droneDef,
   eventDef,
   imageList,
+  RANDOM_CREW,
   shipEndingPage,
   shipEventDef,
   warnPack,
@@ -54,7 +55,8 @@ import {
   syncIonStorm,
   syncShields,
 } from "./sim.ts";
-import type { Game, Kit, SystemState } from "./types.ts";
+import type { Crew, Game, Kit, SkillName, SystemState } from "./types.ts";
+import { xpNeedFor } from "./extras/lineage.ts";
 import { grantUnlockAt } from "./unlocks.ts";
 import { grantRandomItem } from "./wiki/bonus-item.ts";
 import { addArchiveQuest } from "./wiki/quests.ts";
@@ -65,6 +67,7 @@ import {
   closeFight,
   joinCrew,
   payOffer,
+  randomRace,
   resourceBand,
   rollStandard,
   rollSurrenderOffer,
@@ -735,18 +738,34 @@ function applyGrants(g: Game, grants: ArchiveGrant[] | undefined): void {
   for (const grant of grants ?? []) giveGrant(g, grant);
 }
 
+/**
+ * `<crewMember all_skills="2">` and the per-skill attributes: the crewmember who just joined starts at those levels.
+ * Level L is L times that skill's experience need (Crew skills: level 1 and 2 cost the same), as maxedCrew does.
+ */
+function trainGranted(g: Game, skills: ArchiveGrant["skills"]): void {
+  if (!skills) return;
+  const c = g.crew[g.crew.length - 1];
+  if (!c) return;
+  const trained: NonNullable<Crew["skills"]> = { ...c.skills };
+  for (const [skill, level] of Object.entries(skills) as [SkillName, number][]) {
+    if (level > 0) trained[skill] = xpNeedFor(c, skill) * level;
+  }
+  c.skills = trained;
+}
+
 function giveGrant(g: Game, grant: ArchiveGrant): void {
   const count = grant.amount ?? 1;
   if (count <= 0) return;
   if (grant.kind === "crew") {
     if (boardDroneCrew(g, grant.id, count) > 0) return;
-    const race = crewName(grant.id);
+    const race =
+      grant.id === RANDOM_CREW
+        ? randomRace(g)
+        : (crewName(grant.id) ?? (grant.name ? "Human" : undefined));
     if (race) {
-      for (let i = 0; i < count; i++) joinCrew(g, race, grant.name);
-      return;
-    }
-    if (grant.name) {
-      for (let i = 0; i < count; i++) joinCrew(g, "Human", grant.name);
+      for (let i = 0; i < count; i++) {
+        if (joinCrew(g, race, grant.name)) trainGranted(g, grant.skills);
+      }
       return;
     }
     warnPack(`A grant names "${grant.id}", which is not a crew race; it is skipped.`);

@@ -11,7 +11,6 @@ import {
   subscribeArchive,
 } from "@/game/pack/media";
 import { useSettings } from "@/game/settings";
-import { halted } from "@/game/sim";
 import { useGame } from "@/game/store";
 
 export function ArchiveBed() {
@@ -35,7 +34,8 @@ export function ArchiveBed() {
       sectorId: game.sectorId,
       combat: game.phase === "combat" && !!game.enemy,
     });
-    syncScore({ track: pick.track, combat: pick.mode === "combat", paused: halted(game) });
+    // Pause, the menu, and the map keep the score. Options mute is the master gain.
+    syncScore({ track: pick.track, combat: pick.mode === "combat", paused: false });
   }, [version, colorblind, archive]);
   return null;
 }

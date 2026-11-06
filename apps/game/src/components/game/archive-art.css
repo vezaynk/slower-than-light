@@ -80,8 +80,15 @@
   transform: scaleX(-1);
 }
 
-/* On a hull the 35px crew frame is one room. --tile is that room, in play and in the hangar. */
+/* On a hull the 35px crew frame is one room. --tile is that room, in play and in the hangar.
+   The token stays the small hit target. A frame larger than that token overflows, and grid
+   center alignment then pins it to the corner, so center it on the token explicitly.
+   `translate` stays off `transform`, which mirror and the stun wobble already use. */
 .crew-walkers .token.is-sprite .crew-sprite.is-sheet {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
   width: calc(var(--frame-w) * var(--tile, 44px) / 35);
   height: calc(var(--frame-h) * var(--tile, 44px) / 35);
   overflow: visible;

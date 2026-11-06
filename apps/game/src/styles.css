@@ -1538,6 +1538,13 @@ button:disabled {
   box-shadow: inset 0 0 0 calc(1px * var(--ship-scale, 1)) #f7f4ee;
 }
 
+/* A real interior plate fills the room. Halls on that hull show the floor through the hull image. */
+.play .hull.has-interior .room:not(.is-unseen):not(.is-thin):not(.is-airless):not(.is-beam),
+.hangar-stage .hull.has-interior .room {
+  background: transparent;
+  border-width: 0;
+}
+
 /* Oxygen, Overview: white at full air, pink/red as it falls. A clipped room's floor is .pixel-fill. */
 .play .room.is-thin:not(.is-cut),
 .play .room.is-airless:not(.is-cut) {
@@ -5934,6 +5941,108 @@ button.door-tick::before {
 }
 .room .room-icon.is-destroyed {
   color: var(--color-danger);
+}
+
+/* Archive room picture. One FTL room is 35px; the image stretches across this room's grid box. */
+.room-plate {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.room-plate-img,
+.room-glow img {
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.room-plate-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.room-glow {
+  position: absolute;
+  transform-origin: center center;
+}
+
+.room-glow.is-right {
+  transform: rotate(90deg);
+}
+
+.room-glow.is-down {
+  transform: rotate(180deg);
+}
+
+.room-glow.is-left {
+  transform: rotate(-90deg);
+}
+
+.room-glow img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  opacity: 0;
+  animation: room-glow 0.6s steps(1, end) infinite;
+}
+
+.room-glow img:nth-child(1) {
+  opacity: 1;
+}
+
+.room-glow img:nth-child(2) {
+  animation-delay: -0.4s;
+}
+
+.room-glow img:nth-child(3) {
+  animation-delay: -0.2s;
+}
+
+.room-glow.is-still img,
+.room.is-unseen .room-glow img {
+  animation: none;
+  opacity: 0;
+}
+
+.room-glow.is-still img:first-child,
+.room.is-unseen .room-glow img:first-child {
+  opacity: 1;
+}
+
+.room.is-unseen .room-plate {
+  filter: brightness(0.55);
+}
+
+@keyframes room-glow {
+  0%,
+  32% {
+    opacity: 1;
+  }
+  33%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.is-halted .room-glow img {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-glow img {
+    animation: none;
+    opacity: 0;
+  }
+
+  .room-glow img:first-child {
+    opacity: 1;
+  }
 }
 
 .play .room.is-unseen .pixel-fill,

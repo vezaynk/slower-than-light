@@ -3248,13 +3248,31 @@ button.door-tick::before {
 
 .title-frame {
   position: relative;
-  width: min(100cqw, calc(100cqh * 400 / 224));
+  width: min(100cqw, calc(100cqh * 1280 / 720));
+  aspect-ratio: 1280 / 720;
+}
+
+.title-frame .title-base,
+.title-frame .pixel-menu {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.title-frame .title-base {
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.title-frame .title-logo {
+  position: absolute;
+  height: auto;
+  pointer-events: none;
 }
 
 .title-frame .pixel-menu {
   display: block;
-  width: 100%;
-  height: auto;
   image-rendering: pixelated;
   shape-rendering: crispEdges;
 }

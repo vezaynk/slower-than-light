@@ -1,6 +1,7 @@
-import { type ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import "@/game/pack/base";
-import { hullDef, startingFit } from "@stl/pack";
+import { TITLE_FILES, TITLE_LOGO, TITLE_PLATE, hullDef, startingFit } from "@stl/pack";
+import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { layoutFor, roomClip, seatLayout } from "@/game/layouts";
 import type { KitId } from "@/game/types";
 
@@ -448,7 +449,8 @@ const FONT: Record<string, string[]> = {
 
 export const TITLE_VIEW = { w: 400, h: 224 };
 const MENU_SCALE = 2;
-const MENU_TOP = 78;
+/** Clears the wordmark, which ends at 258/720 of the title plate. */
+const MENU_TOP = 82;
 const MENU_STEP = 18;
 const MENU_RIGHT = 16;
 
@@ -596,61 +598,98 @@ function shipPixels(ship: (typeof FLEET)[number]) {
   return rects;
 }
 
-/** Title: planet and fleet on the left, the LTA mark, the Lighter Than Air subtitle and the menu on the right. */
+/**
+ * Title plate. The archive's backdrop and wordmark fill the frame.
+ * Until those files load, the drawn planet, fleet, and LTA mark stand in.
+ */
 export function PixelMenu({ continueReady }: { continueReady: boolean }) {
+  const art = useSyncExternalStore(subscribeArchive, archiveGeneration, () => 0);
+  const base = art >= 0 ? archiveImage(TITLE_FILES.base) : undefined;
+  const logo = art >= 0 ? archiveImage(TITLE_FILES.logo) : undefined;
   const subtitle = "LIGHTER THAN AIR";
   const mark = "FAN PROJECT · INSPIRED BY FTL";
   const version = "v. 0.1";
   return (
-    <svg className="pixel-menu" viewBox={`0 0 ${TITLE_VIEW.w} ${TITLE_VIEW.h}`} aria-hidden="true">
-      <rect width={TITLE_VIEW.w} height={TITLE_VIEW.h} fill="#07060d" />
-      {STARS.map((star, i) => (
-        <rect
-          key={`s${i}`}
-          x={star.x}
-          y={star.y}
-          width="1"
-          height="1"
-          fill={star.bright ? "#f4f7f4" : "#8a93a8"}
+    <>
+      {base ? <img className="title-base" alt="" src={base} /> : null}
+      {logo ? (
+        <img
+          className="title-logo"
+          alt=""
+          src={logo}
+          style={{
+            left: `${(TITLE_LOGO.x / TITLE_PLATE.w) * 100}%`,
+            top: `${(TITLE_LOGO.y / TITLE_PLATE.h) * 100}%`,
+            width: `${(TITLE_LOGO.w / TITLE_PLATE.w) * 100}%`,
+          }}
         />
-      ))}
-      {PLANET.map((cell) => (
-        <rect
-          key={`p${cell.x}-${cell.y}`}
-          x={cell.x}
-          y={cell.y}
-          width="2"
-          height="2"
-          fill={cell.fill}
-        />
-      ))}
-      {FLEET.map((ship) => shipPixels(ship))}
-      {blit("LTA", TITLE_VIEW.w - MENU_RIGHT - textWidth("LTA", 4), 24, 4, "#f4f7f4", "logo")}
-      {blit(
-        subtitle,
-        TITLE_VIEW.w - MENU_RIGHT - textWidth(subtitle, 1),
-        58,
-        1,
-        "#c8c8c8",
-        "subtitle",
-      )}
-      {TITLE_LINES.map((item, i) =>
-        blit(
-          item.label,
-          TITLE_VIEW.w - MENU_RIGHT - textWidth(item.label, MENU_SCALE),
-          MENU_TOP + i * MENU_STEP,
-          MENU_SCALE,
-          item.id === "continue" && !continueReady ? "#8a8a8a" : "#f4f7f4",
-          item.id,
-        ),
-      )}
-      {blit(mark, (TITLE_VIEW.w - textWidth(mark, 1)) / 2, 210, 1, "#c8c8c8", "copy")}
-      {blit(version, TITLE_VIEW.w - 8 - textWidth(version, 1), 210, 1, "#c8c8c8", "ver")}
-      <rect x="8" y="206" width="2" height="2" fill="#f4f7f4" />
-      <rect x="12" y="204" width="1" height="1" fill="#f4f7f4" />
-      <rect x="348" y="196" width="2" height="2" fill="#c45ad0" />
-      <rect x="354" y="200" width="3" height="2" fill="#7a3cff" />
-      <rect x="360" y="194" width="2" height="3" fill="#e070b0" />
-    </svg>
+      ) : null}
+      <svg
+        className="pixel-menu"
+        viewBox={`0 0 ${TITLE_VIEW.w} ${TITLE_VIEW.h}`}
+        aria-hidden="true"
+      >
+        {base ? null : <rect width={TITLE_VIEW.w} height={TITLE_VIEW.h} fill="#07060d" />}
+        {base
+          ? null
+          : STARS.map((star, i) => (
+              <rect
+                key={`s${i}`}
+                x={star.x}
+                y={star.y}
+                width="1"
+                height="1"
+                fill={star.bright ? "#f4f7f4" : "#8a93a8"}
+              />
+            ))}
+        {base
+          ? null
+          : PLANET.map((cell) => (
+              <rect
+                key={`p${cell.x}-${cell.y}`}
+                x={cell.x}
+                y={cell.y}
+                width="2"
+                height="2"
+                fill={cell.fill}
+              />
+            ))}
+        {base ? null : FLEET.map((ship) => shipPixels(ship))}
+        {logo
+          ? null
+          : blit("LTA", TITLE_VIEW.w - MENU_RIGHT - textWidth("LTA", 4), 24, 4, "#f4f7f4", "logo")}
+        {logo
+          ? null
+          : blit(
+              subtitle,
+              TITLE_VIEW.w - MENU_RIGHT - textWidth(subtitle, 1),
+              58,
+              1,
+              "#c8c8c8",
+              "subtitle",
+            )}
+        {TITLE_LINES.map((item, i) =>
+          blit(
+            item.label,
+            TITLE_VIEW.w - MENU_RIGHT - textWidth(item.label, MENU_SCALE),
+            MENU_TOP + i * MENU_STEP,
+            MENU_SCALE,
+            item.id === "continue" && !continueReady ? "#8a8a8a" : "#f4f7f4",
+            item.id,
+          ),
+        )}
+        {base
+          ? null
+          : blit(mark, (TITLE_VIEW.w - textWidth(mark, 1)) / 2, 210, 1, "#c8c8c8", "copy")}
+        {base
+          ? null
+          : blit(version, TITLE_VIEW.w - 8 - textWidth(version, 1), 210, 1, "#c8c8c8", "ver")}
+        {base ? null : <rect x="8" y="206" width="2" height="2" fill="#f4f7f4" />}
+        {base ? null : <rect x="12" y="204" width="1" height="1" fill="#f4f7f4" />}
+        {base ? null : <rect x="348" y="196" width="2" height="2" fill="#c45ad0" />}
+        {base ? null : <rect x="354" y="200" width="3" height="2" fill="#7a3cff" />}
+        {base ? null : <rect x="360" y="194" width="2" height="3" fill="#e070b0" />}
+      </svg>
+    </>
   );
 }

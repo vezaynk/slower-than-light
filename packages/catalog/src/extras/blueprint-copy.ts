@@ -32,20 +32,21 @@ function percent(chance: number): string {
 
 /** One line on what a volley does, from the blueprint's own figures. */
 export function weaponDetail(row: WeaponBlueprint): string {
-  const parts: string[] = [];
   const shots = Math.max(1, row.shots);
-  const volley = row.chargeLevels
-    ? `Banks up to ${plural(row.chargeLevels, "volley", "volleys")}`
-    : null;
-  if (row.kind === "beam") parts.push(`Sweeps ${row.damage} damage across each room it crosses`);
-  else if (row.kind === "bomb") parts.push("Teleports a charge straight into the target room");
+  let line: string;
+  if (row.kind === "beam") line = `Sweeps ${row.damage} damage across each room it crosses`;
+  else if (row.kind === "bomb") line = "Teleports a charge straight into the target room";
   else if (row.ion > 0 && row.damage === 0)
-    parts.push(`Fires ${plural(shots, "pulse", "pulses")} of ${row.ion} ion`);
-  else parts.push(`Fires ${plural(shots, "shot", "shots")} of ${row.damage} damage`);
-  if (volley) parts.push(volley.toLowerCase());
-  if (row.charge > 0) parts.push(`every ${row.charge} seconds`);
-  const line = parts.join(" ") + ".";
+    line = `Fires ${plural(shots, "pulse", "pulses")} of ${row.ion} ion`;
+  else line = `Fires ${plural(shots, "shot", "shots")} of ${row.damage} damage`;
+  if (row.charge > 0) line += `, every ${row.charge} seconds`;
+  if (row.chargeLevels)
+    line += `, and banks up to ${plural(row.chargeLevels, "volley", "volleys")}`;
+  line += ".";
   const extras: string[] = [];
+  if (row.kind === "bomb" && row.damage > 0) extras.push(`${row.damage} damage`);
+  if (row.kind === "bomb" && row.ion > 0) extras.push(`${row.ion} ion`);
+  if ((row.stunChance ?? 0) > 0) extras.push(`${percent(row.stunChance ?? 0)} stun`);
   if (row.fire > 0) extras.push(`${percent(row.fire)} fire`);
   if (row.breach > 0) extras.push(`${percent(row.breach)} breach`);
   if (row.ammo) extras.push("uses a missile");

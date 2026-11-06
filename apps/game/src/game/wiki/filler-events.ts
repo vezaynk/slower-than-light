@@ -48,7 +48,7 @@ import { priced, rollPrice } from "./event-prices.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "./make-room.ts";
 import { grantRandomItem } from "./bonus-item.ts";
-import { locksOwned, ownedLock, scrapStock } from "./choice-locks.ts";
+import { archiveAuthoredChoices, locksOwned, ownedLock, scrapStock } from "./choice-locks.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
 import { queueSfx } from "../sfx-queue.ts";
@@ -379,6 +379,14 @@ function tradeOfferText(o: TradeOffer): string {
 }
 
 function cardFor(g: Game, page: Page): GameEvent {
+  if (archiveAuthoredChoices(page.choices)) {
+    const text = randOpening(g, page.slug);
+    return {
+      title: page.dest,
+      body: text || page.body,
+      choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
+    };
+  }
   const slug = storedId(page.slug) ?? page.slug;
   if (slug === "NEBULA_EMPTY") return emptyCard(g, emptyPageFor("", true));
   // The fuel amount is rolled when the card opens. The page may be the packed record or the authored card.

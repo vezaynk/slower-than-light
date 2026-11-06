@@ -496,8 +496,16 @@ function sfx(g: Game, name: string) {
   queueSfx(g, name);
 }
 
-/** Fire while any room is burning. Repair while a crew member is sealing or fixing, and not fighting that fire. */
+/**
+ * Fire while any room is burning. Repair while a crew member is sealing or fixing, and not fighting that fire.
+ * Pause, the menu, and the map keep the score. These loops are the work, so they stop with the clock.
+ */
 function syncBed(g: Game) {
+  if (halted(g)) {
+    // An empty map stops every loop: fire, repair, air leak, hacking, and the rest.
+    syncLoops({});
+    return;
+  }
   let fire = false;
   let repair = false;
   const hulls: { ship: Ship; aboard: "player" | "enemy" }[] = [

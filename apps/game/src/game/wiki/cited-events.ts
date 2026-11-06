@@ -12,7 +12,7 @@ import {
 } from "@stl/pack";
 import type { EventDef as PackEvent } from "@stl/pack";
 import { missingCard, missingChoose, missingDisabled, missingOwns } from "./cited-missing.ts";
-import { locksOwned, ownedLock } from "./choice-locks.ts";
+import { archiveAuthoredChoices, locksOwned, ownedLock } from "./choice-locks.ts";
 // @agent:beacon-mix. Per-sector beacon composition from the Sectors page.
 import { mixBeacons } from "./beacon-mix.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
@@ -790,6 +790,16 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   if (!ev) return null;
   // The beacon holds the bare id, so a null card would fall through to the empty-beacon page.
   if (lacksRows(ev.slug)) return asWritten(ev);
+  // ftl.dat already wrote the blue options. Injected c: buttons have no lock once that archive
+  // replaces the stand-in's named choices. Stand-in pages keep their c:/q:/s: ids and the cards below.
+  if (archiveAuthoredChoices(ev.choices)) {
+    const card = asWritten(ev);
+    if (!card.body.trim()) {
+      const line = opening(g, ev.slug);
+      if (line) card.body = line;
+    }
+    return card;
+  }
   const missing = missingCard(g, b, ev);
   if (missing) return missing;
   if (ev.slug === "SLUG_DISTRESS_QUESTION") return slugMoonsCard(g, b, ev.dest);

@@ -130,6 +130,17 @@ export function skyPath(scene: SkyPick): string {
   return SKY_FILES.quiet;
 }
 
+/**
+ * The asteroid field's large drifting rocks. FTL's executable loads these by path (asteroids/asteroid_back1-3.png);
+ * no XML names them. ftl.dat's explosion_asteroid and asteroidSmallExplosion1 strips are loaded by nothing, so they
+ * stay unread here too.
+ */
+export const ASTEROID_BACK_FILES = [
+  "img/asteroids/asteroid_back1.png",
+  "img/asteroids/asteroid_back2.png",
+  "img/asteroids/asteroid_back3.png",
+] as const;
+
 /** Beacon marks. A kind with no file here keeps the drawn diamond. */
 export const MAP_FILES = {
   ship: "img/map/map_icon_ship.png",

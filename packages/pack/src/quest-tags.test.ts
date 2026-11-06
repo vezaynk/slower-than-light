@@ -40,6 +40,35 @@ describe("quest tags", () => {
     assert.deepEqual(back?.choices[1]?.fx, PAGE.choices[1]?.fx);
   });
 
+  it("keeps the quest in the sentence's event when close comes between them", () => {
+    const page: EventDef = {
+      ...PAGE,
+      choices: [
+        {
+          id: "ember-late",
+          label: "Late",
+          fx: [
+            { k: "note", text: "They send coordinates." },
+            { k: "close" },
+            { k: "quest", id: "ember-quest" },
+          ],
+        },
+      ],
+    };
+    const xml = emitPack({ events: [page] });
+    const choice = xml.slice(xml.indexOf('<choice name="ember-late"'), xml.indexOf("</choice>"));
+    assert.equal(choice.match(/<event[\s>]/g)?.length, 1);
+    assert.match(
+      choice,
+      /<event>\s*<text>They send coordinates\.<\/text>\s*<quest event="arrive-ember-quest"\/>\s*<\/event>/,
+    );
+    const back = parsePack(xml).events?.find((row) => row.id === PAGE.id);
+    const fx = back?.choices[0]?.fx ?? [];
+    assert.equal(fx.length, 3);
+    for (const want of page.choices[0]!.fx)
+      assert.ok(fx.some((row) => JSON.stringify(row) === JSON.stringify(want)));
+  });
+
   it("warns on a campaign quest that names no arrive- page", () => {
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));

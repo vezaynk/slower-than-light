@@ -15,6 +15,7 @@ import { resumeAudio, setMuted, setVolume, unlockAudio } from "@/game/audio";
 import { currentLocale, localeFace, localeLabel, selectLocale } from "@/game/locale";
 import { choiceBlue, offeredChoices } from "@/game/wiki/choice-locks";
 import { ArchiveBed } from "./ArchiveBed";
+import { shownEventTitle } from "@/game/event-title";
 import { ArchiveLines } from "./ArchiveCopy";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
@@ -3806,10 +3807,12 @@ function EventCard({ game }: { game: Game }) {
   if (!event) return null;
   // @agent:surrender. Rewards, "Stuff": the offered resources and scrap, shown before the player answers.
   const offer = surrenderOfferView(game);
+  // ftl.dat events have no title, so the parsed title is the event id. FTL shows no heading then.
+  const heading = shownEventTitle(event.title);
   return (
     <div className="modal-layer">
       <article className={`ftl-card${offer ? " surrender-card" : ""}`}>
-        {event.title ? <p className="event-lead">{event.title}</p> : null}
+        {heading ? <p className="event-lead">{heading}</p> : null}
         {event.img ? <img className="event-img" src={event.img} alt="" /> : null}
         <p>{event.body}</p>
         {offer ? (

@@ -131,6 +131,8 @@ async function buildMedia(): Promise<{
     if (!weapon.art) continue;
     const art = gear.weaponPixels(weapon.id);
     assets.push({ path: `img/weapons/${weapon.id}.png`, bytes: artPng(art) });
+    if (weapon.kind === "bomb")
+      assets.push({ path: `img/weapons/${weapon.id}_glow.png`, bytes: glowPng(art) });
     assets.push({
       path: `img/weapons/${weapon.id}_shot.png`,
       bytes: shotPng(art.palette.glow),
@@ -248,6 +250,12 @@ function standInFireCue(kind: string): string | undefined {
   return cue && CUES.some(([name]) => name === cue) ? cue : undefined;
 }
 
+/**
+ * ftl.dat's bomb launchers wait out 98% of the charge before their charge frames run (`<delayChargeAnim>0.98`), and
+ * brighten a frame-sized glow picture. The stand-in's bombs do the same with their own glow.
+ */
+const BOMB_CHARGE_DELAY = 0.98;
+
 function weaponAnimXml(id: string, kind: string, w: number, h: number): string {
   const sheet = `<animSheet name="${id}" w="${w}" h="${h}" fw="${w}" fh="${h}">weapons/${id}.png</animSheet>`;
   const y = Math.floor(h / 2);
@@ -256,7 +264,11 @@ function weaponAnimXml(id: string, kind: string, w: number, h: number): string {
   const anim =
     `<weaponAnim name="${id}"><sheet>${id}</sheet><desc length="1" x="0" y="0"/>` +
     `<chargedFrame>0</chargedFrame><fireFrame>0</fireFrame>` +
-    `<mountPoint x="0" y="${y}"/><firePoint x="0" y="${y}"/>${sound}</weaponAnim>`;
+    `<mountPoint x="0" y="${y}"/><firePoint x="0" y="${y}"/>${sound}` +
+    (kind === "bomb"
+      ? `<delayChargeAnim>${BOMB_CHARGE_DELAY}</delayChargeAnim><chargeImage>weapons/${id}_glow.png</chargeImage>`
+      : "") +
+    `</weaponAnim>`;
   return `${sheet}\n${anim}`;
 }
 
@@ -320,6 +332,23 @@ function artPng(art: PixelArt, hot = false): Uint8Array {
       rgba[at] = colour[0] ?? 0;
       rgba[at + 1] = colour[1] ?? 0;
       rgba[at + 2] = colour[2] ?? 0;
+      rgba[at + 3] = 255;
+    });
+  });
+  return rgbaPng(art.w, art.h, rgba);
+}
+
+/** The weapon's glow pixels alone, lit white-hot, on a clear frame of the same size. */
+function glowPng(art: PixelArt): Uint8Array {
+  const rgba = new Uint8Array(art.w * art.h * 4);
+  art.rows.forEach((row, y) => {
+    if (y >= art.h) return;
+    [...row].forEach((ch, x) => {
+      if (x >= art.w || ch !== "g") return;
+      const at = (y * art.w + x) * 4;
+      rgba[at] = 255;
+      rgba[at + 1] = 244;
+      rgba[at + 2] = 214;
       rgba[at + 3] = 255;
     });
   });

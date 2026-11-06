@@ -56,13 +56,12 @@
 }
 
 /* The viewport stretches to the window. Width and height stay auto so they follow the window
-   instead of a pixel size captured once. The 1560×720 screen inside is scaled to fit. */
+   instead of a pixel size captured once. The 1560×720 screen inside is scaled to fit.
+   Per the user: edge to edge, not inside the safe area. A 19.5:9 phone in landscape is the screen's own shape, so
+   the iPhone's notch and home-bar insets letterboxed all four sides. The notch may cover a sliver of its side. */
 .viewport {
   position: fixed;
-  top: env(safe-area-inset-top, 0px);
-  right: env(safe-area-inset-right, 0px);
-  bottom: env(safe-area-inset-bottom, 0px);
-  left: env(safe-area-inset-left, 0px);
+  inset: 0;
   width: auto;
   height: auto;
   overflow: hidden;

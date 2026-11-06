@@ -8,7 +8,6 @@ afterEach(() => resetPackForTests());
 
 describe("event card heading", () => {
   it("drops an archive event id that stood in for a missing title", () => {
-    assert.equal(shownEventTitle("REBEL_VS_FEDERATION"), undefined);
     assert.equal(shownEventTitle("AUTO_DEFENSE_RADAR"), undefined);
     assert.equal(shownEventTitle(""), undefined);
     assert.equal(shownEventTitle(undefined), undefined);
@@ -37,5 +36,7 @@ describe("event card heading", () => {
   it("keeps a written title", () => {
     assert.equal(shownEventTitle("Auto-ship near radar station"), "Auto-ship near radar station");
     assert.equal(shownEventTitle("Ember"), "Ember");
+    // Only a real id is dropped, not anything that looks like one.
+    assert.equal(shownEventTitle("NOT_A_LOADED_ID"), "NOT_A_LOADED_ID");
   });
 });

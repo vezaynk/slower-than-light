@@ -1,4 +1,4 @@
-import { hullDef, type HullPicture } from "@stl/pack";
+import { hullDef, type HullGib, type HullPicture } from "@stl/pack";
 
 const SHIP_PNG = /^img\/ship\/(.+)_(base|cloak|floor|shields1|gib\d+)\.png$/i;
 /** Enemy plate and gibs. A player hull does not read this folder. */
@@ -109,15 +109,53 @@ export function shipImage(
 }
 
 /** Explosion pieces that have both a drawing entry and a png in this plate's folder. */
-export function gibImages(id: string, plate: HullPlate = "interior"): ShipFrame[] {
+export function gibImages(id: string, plate: HullPlate = "interior"): GibFrame[] {
   const hull = hullDef(id);
   if (!hull?.gibs) return [];
-  const frames: ShipFrame[] = [];
+  const frames: GibFrame[] = [];
   for (const gib of hull.gibs) {
     const frame = gibImage(id, gib.id, plate);
-    if (frame) frames.push(frame);
+    if (frame) frames.push({ ...frame, gib });
   }
   return frames;
+}
+
+/** A gib picture and the row that says how it flies. */
+export type GibFrame = ShipFrame & { gib: HullGib };
+
+/** Seconds a gib drifts before it is gone. INFERRED: FTL's wreck pieces drift off over a few seconds. */
+export const GIB_SECONDS = 3;
+
+/** Frames per second the archive's per-frame velocity and spin are counted in. INFERRED. */
+const GIB_FPS = 60;
+
+/**
+ * Where one gib ends up after GIB_SECONDS, in hull pixels, and how far it turns, in degrees.
+ * ftl.dat's `<gibN>`: velocity is pixels per frame, direction is degrees (0 right, 90 down, as kestral's lower
+ * pieces head 60-120), angular is degrees per frame. Each range is rolled once from `seed`, so a hull breaks
+ * the same way every time it is drawn. INFERRED: the units, read from how the vanilla numbers look on screen.
+ */
+export function gibFlight(gib: HullGib, seed: string): { dx: number; dy: number; spin: number } {
+  let state = hashSeed(`${seed}:${gib.id}`);
+  const roll = () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
+  const between = (lo: number, hi: number) => lo + (hi - lo) * roll();
+  const speed = between(gib.velocityMin, gib.velocityMax);
+  const heading = (between(gib.directionMin, gib.directionMax) * Math.PI) / 180;
+  const frames = GIB_SECONDS * GIB_FPS;
+  return {
+    dx: Math.cos(heading) * speed * frames,
+    dy: Math.sin(heading) * speed * frames,
+    spin: between(gib.angularMin, gib.angularMax) * frames,
+  };
+}
+
+function hashSeed(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619) >>> 0;
+  return h;
 }
 
 /** One explosion piece. Player gibs are `img/ship/<img>_gibN.png`. Enemy gibs are `img/ships_glow`. */

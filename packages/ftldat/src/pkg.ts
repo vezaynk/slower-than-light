@@ -84,12 +84,34 @@ export async function readPkg(bytes: Uint8Array): Promise<PkgFile[]> {
   );
 }
 
-/** Writes an uncompressed FTL 1.6 PKG. Bit 24 of each path field stays clear. */
-export function writePkg(files: readonly PkgFile[]): Uint8Array {
+/**
+ * SIL's path hash, the first field of each index row. FTL looks a file up by this hash with a binary search, so
+ * a row with the wrong hash, or an index out of hash order, is a file the game cannot open. Letters are folded
+ * to lower case first. Every row of ftl.dat 1.6.13 matches it, and its index is sorted by it.
+ */
+export function pkgPathHash(path: string): number {
+  let hash = 0;
+  for (let i = 0; i < path.length; i++) {
+    let code = path.charCodeAt(i);
+    if (code >= 0x41 && code <= 0x5a) code += 0x20;
+    hash = ((hash << 27) | (hash >>> 5)) >>> 0;
+    hash = (hash ^ code) >>> 0;
+  }
+  return hash;
+}
+
+/**
+ * Writes an uncompressed FTL 1.6 PKG that the game itself can read. Rows carry SIL's path hash and are sorted
+ * by it, as ftl.dat's are. Bit 24 of each path field stays clear.
+ */
+export function writePkg(input: readonly PkgFile[]): Uint8Array {
+  const files = input
+    .map((file) => ({ file, hash: pkgPathHash(file.path) }))
+    .sort((a, b) => a.hash - b.hash || (a.file.path < b.file.path ? -1 : 1));
   let pathsSize = 0;
   let bodySize = 0;
   const seen = new Set<string>();
-  for (const file of files) {
+  for (const { file } of files) {
     if (file.path.length === 0) throw new Error("ftl.dat path is empty");
     if (seen.has(file.path)) throw new Error(`ftl.dat repeats ${file.path}`);
     seen.add(file.path);
@@ -111,8 +133,9 @@ export function writePkg(files: readonly PkgFile[]): Uint8Array {
   let pathAt = 0;
   let dataAt = dataStart;
   const pathTable = HEADER_SIZE + files.length * ENTRY_SIZE;
-  files.forEach((file, index) => {
+  files.forEach(({ file, hash }, index) => {
     const at = HEADER_SIZE + index * ENTRY_SIZE;
+    view.setUint32(at, hash, false);
     view.setUint32(at + 4, pathAt, false);
     view.setUint32(at + 8, dataAt, false);
     view.setUint32(at + 12, file.bytes.byteLength, false);

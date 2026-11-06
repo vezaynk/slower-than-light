@@ -11,7 +11,7 @@ import { combatPlateId } from "@/game/wiki/flagship-layout";
 import { animSpeed } from "./speed";
 import type { Ship } from "@/game/types";
 import { pageRect } from "./turn";
-import { gibImages } from "@/game/pack/ship-art";
+import { GIB_SECONDS, gibImages } from "@/game/pack/ship-art";
 
 /** True while the enemy ship's break-up tiles are still in the air. */
 let enemyWreck = false;
@@ -229,9 +229,26 @@ export function ShadeFx() {
         const cy = b.y + b.h / 2;
         const wreck = side === "enemy";
         // A hull with archive gib pictures breaks into those (HullPicture.tsx). The tiles only fly for a drawn plate.
-        const plateId = combatPlateId(g, side);
+        // The sim clears g.enemy on the tick the hull breaks, and may already hold the next ship: look up the one that broke.
+        const plateId =
+          side === "enemy" ? combatPlateId(g, side, enemyRef) : combatPlateId(g, side);
         const pieces = plateId ? gibImages(plateId, side === "enemy" ? "glow" : "interior") : [];
         const bits = pieces.length > 0 ? [] : (plates[side] ?? []);
+        if (wreck && pieces.length > 0) {
+          // An invisible chunk holds the lingering enemy panel open for the whole gib flight (hull-gib-fly).
+          push({
+            x: cx,
+            y: cy,
+            vx: 0,
+            vy: 0,
+            life: GIB_SECONDS,
+            max: GIB_SECONDS,
+            color: "transparent",
+            w: 0,
+            h: 0,
+            wreck,
+          });
+        }
         for (const bit of bits) {
           const px = bit.x + bit.w / 2;
           const py = bit.y + bit.h / 2;

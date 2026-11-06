@@ -540,7 +540,9 @@
     -2px -4px 0 #8a8174;
 }
 
-.sky-field.is-quiet .sky-rock.is-far {
+.sky-field.is-quiet .sky-rock.is-far,
+.sky-field.is-quiet .sky-rock-back.is-back-2,
+.sky-field.is-quiet .sky-rock-back.is-back-3 {
   opacity: 0;
 }
 
@@ -627,7 +629,9 @@
     translate: none;
   }
 
-  .sky-field.is-quiet .sky-rock.is-far {
+  .sky-field.is-quiet .sky-rock.is-far,
+  .sky-field.is-quiet .sky-rock-back.is-back-2,
+  .sky-field.is-quiet .sky-rock-back.is-back-3 {
     opacity: 0.15;
   }
 

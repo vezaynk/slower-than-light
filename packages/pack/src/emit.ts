@@ -405,7 +405,8 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
         placedGift = true;
         note = undefined;
       } else if (fx.k === "quest") {
-        // ftl.dat's <quest event> sits inside the result event. A preceding sentence is that event.
+        // ftl.dat's <quest event> sits inside the result event, and FTL reads only the first <event> of a choice.
+        // The sentence is that event, even when a stand-in-only effect such as close comes between them.
         const quest = element(doc, "quest", { event: QUEST_ARRIVAL_PREFIX + fx.id });
         if (note) add(note, quest);
         else {
@@ -416,7 +417,8 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
       } else {
         const node = effectElement(doc, fx);
         add(choiceNode, node);
-        note = fx.k === "note" ? node : undefined;
+        if (fx.k === "note") note = node;
+        else if (node.tagName === "event") note = undefined;
       }
     }
     add(node, choiceNode);
@@ -682,17 +684,13 @@ function surrenderReward(doc: XmlDocument, reward: SurrenderReward): XmlElement[
   return [element(doc, "fuelRepairs", { repairs: num(reward.repairs) })];
 }
 
-function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
+/** One effect as its tag. A quest is written by the choice loop, inside the result event. */
+function effectElement(doc: XmlDocument, fx: Exclude<EventEffect, { k: "quest" }>): XmlElement {
   if (fx.k === "nothing") return element(doc, "event", {});
   if (fx.k === "note") {
     const node = element(doc, "event", {});
     add(node, leaf(doc, "text", fx.text));
     return node;
-  }
-  if (fx.k === "quest") {
-    const holder = element(doc, "event", {});
-    add(holder, element(doc, "quest", { event: QUEST_ARRIVAL_PREFIX + fx.id }));
-    return holder;
   }
   if (fx.k === "goto") return element(doc, "event", { load: fx.id });
   if (fx.k === "close") return element(doc, "effect", { k: "close" });

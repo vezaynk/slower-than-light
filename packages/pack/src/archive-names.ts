@@ -84,6 +84,19 @@ export const BED_CUES: readonly { name: string; tone: string; loop?: boolean }[]
   { name: "jumpArrive", tone: "jump" },
 ];
 
+/**
+ * Title plate. `main_base2.png` fills the screen. `main_FTL2.png` is the wordmark.
+ * The wordmark's box is the vanilla slot (the Hyperspace main-menu default).
+ */
+export const TITLE_FILES = {
+  base: "img/main_menus/main_base2.png",
+  logo: "img/main_menus/main_FTL2.png",
+} as const;
+
+export const TITLE_PLATE = { w: 1280, h: 720 } as const;
+
+export const TITLE_LOGO = { x: 820, y: 60, w: 411, h: 198 } as const;
+
 /** Backdrop for the sky the stage already chooses. A missing file keeps the drawn sky. */
 export const SKY_FILES = {
   quiet: "img/stars/bg_dullstars.png",

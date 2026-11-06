@@ -157,6 +157,20 @@ export function droneGun(kind: string, cited: DroneHit): DroneHit {
 }
 
 /**
+ * The projectile a drone's loaded gun launches, and the gun id for its pierce, stun, and sounds.
+ * ftl.dat's DRONE_ION and DRONE_MISSILE are typed ION and MISSILE. A gun typed LASER with no damage but ion
+ * still ionizes, because sim.ts applies ion only to an ion shot. A drone naming no loaded gun stays a laser.
+ */
+export function droneGunShot(kind: string): { kind: "laser" | "ion" | "missile"; defId?: string } {
+  const id = droneDef(kind)?.weapon;
+  const gun = id ? weaponDef(id) : undefined;
+  if (!id || !gun) return { kind: "laser" };
+  if (gun.kind === "missile") return { kind: "missile", defId: id };
+  if (gun.kind === "ion" || (gun.damage === 0 && gun.ion > 0)) return { kind: "ion", defId: id };
+  return { kind: "laser", defId: id };
+}
+
+/**
  * INVENTED: the drone page has no projectile flight time. Must be > 0 because
  * shot progress divides by duration. 0.7 matches other laser shots in this drill.
  */
@@ -2326,9 +2340,9 @@ function tickEnemyStriker(g: Game, unit: DroneUnit, dt: number) {
       // Combat Drones (offensive drones): "orbit the enemy ship and attack it repeatedly, targeting random rooms".
       g.shots.push({
         id: nextId(g),
-        kind: "laser",
         from: "enemy",
         ...droneGun(unit.kind, unit.kind === "COMBAT_2" ? COMBAT2_HIT : STRIKER_HIT),
+        ...droneGunShot(unit.kind),
         targetRoom: roomId,
         wait: SHOT_WAIT_S,
         t: SHOT_T,

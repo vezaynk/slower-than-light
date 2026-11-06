@@ -4419,6 +4419,15 @@ export function weaponAccentHot(w: WeaponInst): boolean {
   return Math.round(charge * CHARGE_PIPS) >= CHARGE_PIPS;
 }
 
+/**
+ * The weapon sheet's charged pose: the gun is actually full, or a charger holds a stored shot.
+ * weaponAccentHot lights the accent a pip early. The sheet waits, so a delayChargeAnim burst near the end still plays.
+ */
+export function weaponSheetCharged(w: WeaponInst): boolean {
+  if (chargerCap(w.defId) != null && (w.loaded ?? 0) >= 1) return true;
+  return w.charge >= 1;
+}
+
 /** Move finished charger time into the bank. A full bank drops leftover progress. */
 function absorbCharger(w: WeaponInst, max: number) {
   let loaded = w.loaded ?? 0;

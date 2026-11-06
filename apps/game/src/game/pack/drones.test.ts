@@ -5,7 +5,8 @@ import type { Kit } from "../types.ts";
 import { droneLine } from "../wiki/bonus-item.ts";
 import { citedBuy, droneItems } from "../wiki/cited-stores.ts";
 import "./base.ts";
-import { droneDef, loadPack, resetPackForTests } from "@stl/pack";
+import { droneDef, loadPack, resetPackForTests, weaponDef } from "@stl/pack";
+import { droneGunShot } from "../extras/swarm.ts";
 
 afterEach(() => resetPackForTests());
 
@@ -66,5 +67,32 @@ describe("drone listings", () => {
     );
     assert.equal(bought.player.kits.drones?.target, "ember");
     assert.equal(droneDef("DRONE_SHIELD_PLAYER"), undefined);
+  });
+});
+
+describe("a drone's loaded gun", () => {
+  it("launches an ion or missile shot when the gun is one, and keeps the gun id", () => {
+    const laser = weaponDef("LASER_BURST_1");
+    const striker = droneDef("COMBAT_1");
+    assert.ok(laser && striker);
+    loadPack(
+      {
+        weapons: [
+          { ...laser, id: "TEST_DRONE_ION", kind: "ion", damage: 0, ion: 1 },
+          { ...laser, id: "TEST_DRONE_LASER_ION", kind: "laser", damage: 0, ion: 1 },
+          { ...laser, id: "TEST_DRONE_MISSILE", kind: "missile", damage: 3, ion: 0 },
+        ],
+        drones: [
+          { ...striker, id: "T_ION", weapon: "TEST_DRONE_ION" },
+          { ...striker, id: "T_LASER_ION", weapon: "TEST_DRONE_LASER_ION" },
+          { ...striker, id: "T_MISSILE", weapon: "TEST_DRONE_MISSILE" },
+        ],
+      },
+      "append",
+    );
+    assert.deepEqual(droneGunShot("T_ION"), { kind: "ion", defId: "TEST_DRONE_ION" });
+    assert.deepEqual(droneGunShot("T_LASER_ION"), { kind: "ion", defId: "TEST_DRONE_LASER_ION" });
+    assert.deepEqual(droneGunShot("T_MISSILE"), { kind: "missile", defId: "TEST_DRONE_MISSILE" });
+    assert.deepEqual(droneGunShot("no-such-drone"), { kind: "laser" });
   });
 });

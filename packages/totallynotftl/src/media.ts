@@ -14,6 +14,9 @@ import {
   MAP_FILES,
   MUSIC_TRACKS,
   SKY_FILES,
+  TITLE_FILES,
+  TITLE_LOGO,
+  TITLE_PLATE,
   writeBitmapFont,
   type FontStamp,
 } from "@stl/pack";
@@ -324,6 +327,10 @@ async function buildMedia(): Promise<{
   assets.push({ path: "fonts/eo.font", bytes: fontFile(1, 9, 8) });
   const scenery = sceneryAssets(icons);
   assets.push(...scenery.assets);
+  assets.push(
+    { path: TITLE_FILES.base, bytes: titleBasePng() },
+    { path: TITLE_FILES.logo, bytes: titleLogoPng() },
+  );
   clipXml.push(...scenery.clips);
   const field = asteroidField();
   assets.push(...field.assets);
@@ -693,6 +700,192 @@ function starHash(x: number, y: number): number {
   let n = Math.imul(x, 374761393) ^ Math.imul(y, 668265263);
   n = Math.imul(n ^ (n >>> 13), 1274126177);
   return (n ^ (n >>> 16)) >>> 0;
+}
+
+const TITLE_SHIPS = [
+  ".......####.......",
+  "...#############..",
+  "##################",
+  "###cc########cc###",
+  "...#############..",
+  ".......####.......",
+];
+
+const TITLE_FLEET: { x: number; y: number; s: number; flip: boolean }[] = [
+  { x: 58, y: 167, s: 6, flip: false },
+  { x: 480, y: 129, s: 6, flip: false },
+  { x: 275, y: 238, s: 3, flip: true },
+  { x: 422, y: 276, s: 3, flip: false },
+  { x: 26, y: 360, s: 6, flip: false },
+  { x: 346, y: 399, s: 3, flip: true },
+  { x: 538, y: 444, s: 6, flip: false },
+  { x: 147, y: 482, s: 3, flip: false },
+];
+
+/** Original backdrop at `img/main_menus/main_base2.png`. The right side stays dark for the menu. */
+function titleBasePng(): Uint8Array {
+  const w = TITLE_PLATE.w;
+  const h = TITLE_PLATE.h;
+  const rgba = new Uint8Array(w * h * 4);
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const at = (y * w + x) * 4;
+      const roll = starHash(x, y);
+      const star = roll % 1400 === 0;
+      const glow = star ? 0.55 + ((roll >>> 10) % 45) / 100 : 0;
+      const fade = Math.min(1, Math.max(0, (x - w * 0.5) / (w * 0.22)));
+      const dim = 1 - 0.45 * fade;
+      rgba[at] = Math.round((7 + 237 * glow) * dim);
+      rgba[at + 1] = Math.round((6 + 241 * glow) * dim);
+      rgba[at + 2] = Math.round((13 + 231 * glow) * dim);
+      rgba[at + 3] = 255;
+    }
+  }
+  paintTitlePlanet(rgba, w, h);
+  for (const ship of TITLE_FLEET) paintTitleShip(rgba, w, h, ship);
+  const line = "FAN PROJECT - INSPIRED BY FTL";
+  const scale = 3;
+  stampText(
+    rgba,
+    w,
+    h,
+    line,
+    Math.round((w - measureText(line, scale)) / 2),
+    h - 36,
+    scale,
+    [200, 200, 200],
+  );
+  const version = "v. 0.1";
+  stampText(rgba, w, h, version, w - 24 - measureText(version, 2), h - 28, 2, [200, 200, 200]);
+  return rgbaPng(w, h, rgba);
+}
+
+/** Original wordmark at `img/main_menus/main_FTL2.png`, transparent around the letters. */
+function titleLogoPng(): Uint8Array {
+  const w = TITLE_LOGO.w;
+  const h = TITLE_LOGO.h;
+  const rgba = new Uint8Array(w * h * 4);
+  const mark = "LTA";
+  const sub = "LIGHTER THAN AIR";
+  const markScale = 16;
+  const subScale = 4;
+  stampText(
+    rgba,
+    w,
+    h,
+    mark,
+    Math.round((w - measureText(mark, markScale)) / 2),
+    28,
+    markScale,
+    [244, 247, 244],
+  );
+  stampText(
+    rgba,
+    w,
+    h,
+    sub,
+    Math.round((w - measureText(sub, subScale)) / 2),
+    28 + 7 * markScale + 18,
+    subScale,
+    [200, 200, 200],
+  );
+  return rgbaPng(w, h, rgba);
+}
+
+function paintTitlePlanet(rgba: Uint8Array, w: number, h: number): void {
+  const cx = w * 0.3;
+  const cy = h * 0.48;
+  const r = h * 0.38;
+  const x0 = Math.max(0, Math.floor(cx - r));
+  const x1 = Math.min(w, Math.ceil(cx + r));
+  const y0 = Math.max(0, Math.floor(cy - r));
+  const y1 = Math.min(h, Math.ceil(cy + r));
+  for (let y = y0; y < y1; y += 1) {
+    for (let x = x0; x < x1; x += 1) {
+      const dx = (x - cx) / r;
+      const dy = (y - cy) / r;
+      const d2 = dx * dx + dy * dy;
+      if (d2 > 1) continue;
+      const dz = Math.sqrt(1 - d2);
+      const light = Math.max(0, -0.55 * dx - 0.45 * dy + 0.7 * dz);
+      const n = ((Math.floor(x / 18) * 17) ^ (Math.floor(y / 18) * 31)) & 15;
+      const limb = d2 > 0.82 && dx < 0.15;
+      let tone: [number, number, number] = [20, 17, 15];
+      if (limb) tone = dx < -0.2 ? [110, 86, 72] : [42, 33, 28];
+      else if (n > 12) tone = [58, 44, 38];
+      else if (n > 9) tone = [34, 24, 20];
+      const shade = 0.55 + 0.7 * light;
+      const at = (y * w + x) * 4;
+      rgba[at] = Math.min(255, Math.round(tone[0] * shade));
+      rgba[at + 1] = Math.min(255, Math.round(tone[1] * shade));
+      rgba[at + 2] = Math.min(255, Math.round(tone[2] * shade));
+      rgba[at + 3] = 255;
+    }
+  }
+}
+
+function paintTitleShip(
+  rgba: Uint8Array,
+  w: number,
+  h: number,
+  ship: { x: number; y: number; s: number; flip: boolean },
+): void {
+  TITLE_SHIPS.forEach((row, iy) => {
+    [...row].forEach((ch, ix) => {
+      if (ch === ".") return;
+      const localX = ship.flip ? (row.length - 1 - ix) * ship.s : ix * ship.s;
+      const fill: [number, number, number] = ch === "c" ? [127, 212, 234] : [227, 155, 43];
+      for (let dy = 0; dy < ship.s; dy += 1) {
+        for (let dx = 0; dx < ship.s; dx += 1) {
+          const px = ship.x + localX + dx;
+          const py = ship.y + iy * ship.s + dy;
+          if (px < 0 || py < 0 || px >= w || py >= h) continue;
+          const at = (py * w + px) * 4;
+          rgba[at] = fill[0];
+          rgba[at + 1] = fill[1];
+          rgba[at + 2] = fill[2];
+          rgba[at + 3] = 255;
+        }
+      }
+    });
+  });
+}
+
+function measureText(text: string, scale: number): number {
+  let width = 0;
+  for (const ch of text) width += glyphAlpha(ch, scale).w + scale;
+  return Math.max(0, width - scale);
+}
+
+function stampText(
+  rgba: Uint8Array,
+  width: number,
+  height: number,
+  text: string,
+  x: number,
+  y: number,
+  scale: number,
+  color: [number, number, number],
+): void {
+  let cx = x;
+  for (const ch of text) {
+    const glyph = glyphAlpha(ch, scale);
+    for (let gy = 0; gy < glyph.h; gy += 1) {
+      const py = y + gy;
+      if (py < 0 || py >= height) continue;
+      for (let gx = 0; gx < glyph.w; gx += 1) {
+        if (!glyph.alpha[gy * glyph.w + gx]) continue;
+        const px = cx + gx;
+        if (px < 0 || px >= width) continue;
+        const at = (py * width + px) * 4;
+        rgba[at] = color[0];
+        rgba[at + 1] = color[1];
+        rgba[at + 2] = color[2];
+        rgba[at + 3] = 255;
+      }
+    }
+    cx += glyph.w + scale;
+  }
 }
 
 function markPng(

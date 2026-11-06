@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import type { HullGib } from "@stl/pack";
 import { GIB_SECONDS, gibFlight } from "./ship-art.ts";
 
-/** kestral.xml's gib1: a lower piece, heading 60-120 degrees. */
+/** Vanilla ftl.dat's kestral.xml gib1 (not the stand-in's): a lower piece, heading 60-120 degrees. */
 const KESTREL_GIB1: HullGib = {
   id: 1,
   x: -5,

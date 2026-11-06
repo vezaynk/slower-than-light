@@ -24,7 +24,7 @@ import {
 import { cellOccupied, roomClip } from "@/game/layouts";
 import { gunHeight, mountImage, mountPose } from "@/game/mount-place";
 import "@/game/pack/base";
-import { powerMask, weaponAccentHot, zoltanBars } from "@/game/sim";
+import { powerMask, weaponAccentHot, weaponSheetCharged, zoltanBars } from "@/game/sim";
 import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
 import { EFFECT_CLIPS, hullDef, ROOM_PX, type HullMount, type HullPicture } from "@stl/pack";
 import { clipLength, weaponFrame, weaponMuzzle } from "@/game/pack/media";
@@ -274,7 +274,9 @@ function EdgeMounts({
             <WeaponArt
               id={w.defId}
               height={aboard === "player" ? 22 : 16}
-              phase={(w.muzzle ?? 0) > 0 ? "fire" : ready ? "charged" : "idle"}
+              phase={
+                (w.muzzle ?? 0) > 0 ? "fire" : powered && weaponSheetCharged(w) ? "charged" : "idle"
+              }
               charge={powered ? w.charge : undefined}
             />
           </span>
@@ -320,7 +322,7 @@ function drawnGuns(
       mount: mounts[i]!,
       powered,
       ready: powered && weaponAccentHot(w),
-      phase: (w.muzzle ?? 0) > 0 ? "fire" : powered && weaponAccentHot(w) ? "charged" : "idle",
+      phase: (w.muzzle ?? 0) > 0 ? "fire" : powered && weaponSheetCharged(w) ? "charged" : "idle",
       ...(powered ? { charge: w.charge } : {}),
     });
   }

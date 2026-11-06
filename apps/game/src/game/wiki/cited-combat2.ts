@@ -64,3 +64,38 @@ export function orbitLegSeconds(from: number, to: number, speed: number, hold = 
 export function bearingAccepted(from: number, to: number): boolean {
   return Math.abs(to - from) >= ORBIT_MIN_SEP;
 }
+
+export type OrbitChord = { x: number; y: number; angle: number };
+
+/**
+ * Where a fire drone sits on the straight chord between two stops, and which way it faces.
+ * Degrees match pickOrbitBearing. 0 is +x. Canvas y grows downward, the same way the ellipse is drawn.
+ * The sheet's nose points +x, so `angle` is the rotation. The last pause, plus `hold`, is spent sitting
+ * on the destination. xftl doc/combat-drone: the drone flies that chord, then waits, then fires.
+ */
+export function orbitChordPose(
+  heading: number,
+  bearing: number,
+  aux: number,
+  left: number,
+  rx: number,
+  ry: number,
+  hold = 0,
+): OrbitChord {
+  const from = chordStop(heading, rx, ry);
+  const to = chordStop(bearing, rx, ry);
+  const flight = Math.max(0, left - ORBIT_FIRE_PAUSE_S - hold);
+  const t = flight <= 1e-6 ? 1 : Math.min(1, Math.max(0, aux) / flight);
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  return {
+    x: from.x + dx * t,
+    y: from.y + dy * t,
+    angle: Math.hypot(dx, dy) < 1e-4 ? (bearing * Math.PI) / 180 : Math.atan2(dy, dx),
+  };
+}
+
+function chordStop(deg: number, rx: number, ry: number): { x: number; y: number } {
+  const rad = (deg * Math.PI) / 180;
+  return { x: Math.cos(rad) * rx, y: Math.sin(rad) * ry };
+}

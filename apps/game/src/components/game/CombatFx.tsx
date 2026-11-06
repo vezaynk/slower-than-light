@@ -35,6 +35,7 @@ import {
 } from "@/game/gear-look";
 import { DRONE_LABEL, enemyDroneSpot, playerDroneCruising } from "@/game/extras/swarm";
 import { stepDrift, type DroneDrift } from "@/game/drone-drift";
+import { BEAM_HOLD_S, orbitChordPose } from "@/game/wiki/cited-combat2";
 import { roomInterior } from "@/game/extras/slug-sight";
 // @agent:combat-ui. Enemy hacking drone flight / latch / pulse (read-only view).
 import { enemyHackView, playerHackView } from "@/game/extras/spike";
@@ -255,7 +256,13 @@ const ENEMY_DRONE_KEY: Record<string, DroneKey> = {
 };
 
 function enemyDroneKey(unit: DroneUnit): DroneKey | null {
+  if (unit.kind === "COMBAT_FIRE" || unit.kind === "fire") return "fire";
   return ENEMY_DRONE_KEY[unit.kind] ?? droneKeyOf(unit.kind);
+}
+
+/** The archive blueprint is COMBAT_FIRE. The stand-in look is fire. Either sheet's nose points right. */
+function fireDroneKind(kind: string): boolean {
+  return kind === "fire" || kind === "COMBAT_FIRE";
 }
 
 /** A @theme colour token from styles.css, read once. The canvas cannot use var() directly. */
@@ -418,9 +425,13 @@ function drawnDroneSide(sprite: CanvasImageSource, px: number, fallback: number)
 }
 
 function dronePicture(key: DroneKey, hot: boolean): CanvasImageSource {
-  const url = droneLayerUrl(key, hot ? "on" : "base");
-  const img = url ? loadedImage(url) : undefined;
-  if (img) return img;
+  const layer = hot ? "on" : "base";
+  const ids = key === "fire" ? ["COMBAT_FIRE", key] : [key];
+  for (const id of ids) {
+    const url = droneLayerUrl(id, layer);
+    const img = url ? loadedImage(url) : undefined;
+    if (img) return img;
+  }
   return droneSprite(key);
 }
 
@@ -631,20 +642,39 @@ export function CombatFx() {
         let size = 27;
         let px = 1;
         let s = 1;
+        let facing: number | null = null;
         if (spot.at === "player-orbit" || spot.at === "enemy-orbit") {
-          // Opposite spin to the player's own drone, so the two read apart.
-          const omega = spot.at === "player-orbit" ? -0.8 : -0.55;
-          const a = follow(`e:${unit.id}`, omega, unit.powered, phase);
           const around = hull(spot.at === "player-orbit" ? "player" : "enemy");
           if (around) {
             const side = spot.at === "player-orbit" ? "player" : "enemy";
             s = side === "enemy" ? foeScale : 1;
             px = archivePx(side).x;
             size = 27 * s;
-            p = {
-              x: around.x + around.w / 2 + Math.cos(a) * (around.w / 2 + 22 * s),
-              y: around.y + around.h / 2 + Math.sin(a) * (around.h / 2 + 18 * s),
-            };
+            const cx = around.x + around.w / 2;
+            const cy = around.y + around.h / 2;
+            if (fireDroneKind(unit.kind)) {
+              // The sim already flies a straight chord between random bearings. Pause and a
+              // power loss leave aux where it is, so this read does not advance the drone.
+              const pose = orbitChordPose(
+                unit.heading ?? 0,
+                unit.bearing ?? unit.heading ?? 0,
+                unit.aux,
+                unit.left ?? 0,
+                around.w / 2 + 22 * s,
+                around.h / 2 + 18 * s,
+                BEAM_HOLD_S,
+              );
+              p = { x: cx + pose.x, y: cy + pose.y };
+              facing = pose.angle;
+            } else {
+              // Opposite spin to the player's own drone, so the two read apart.
+              const omega = spot.at === "player-orbit" ? -0.8 : -0.55;
+              const a = follow(`e:${unit.id}`, omega, unit.powered, phase);
+              p = {
+                x: cx + Math.cos(a) * (around.w / 2 + 22 * s),
+                y: cy + Math.sin(a) * (around.h / 2 + 18 * s),
+              };
+            }
           }
         } else if (spot.at === "flying") {
           const a = hull("enemy");
@@ -682,7 +712,16 @@ export function CombatFx() {
         enemyDroneAt.set(unit.id, p);
         const stunned = (unit.stun ?? 0) > 0;
         ctx.globalAlpha = !unit.powered ? 0.4 : stunned ? 0.55 + 0.45 * Math.sin(time * 30) : 1;
-        ctx.drawImage(sprite, Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
+        if (facing != null) {
+          ctx.save();
+          ctx.imageSmoothingEnabled = false;
+          ctx.translate(p.x, p.y);
+          ctx.rotate(facing);
+          ctx.drawImage(sprite, Math.round(-size / 2), Math.round(-size / 2), size, size);
+          ctx.restore();
+        } else {
+          ctx.drawImage(sprite, Math.round(p.x - size / 2), Math.round(p.y - size / 2), size, size);
+        }
         ctx.globalAlpha = 1;
         // Enemy drones carry a red tag pixel pair so they never read as yours.
         ctx.fillStyle = "#ff5a4a";
@@ -704,7 +743,7 @@ export function CombatFx() {
           );
         }
         // The fire drone's swipe makes no shot; draw it here for its first 0.4 s.
-        if (unit.kind === "fire" && unit.room && (unit.fired ?? 99) < 0.4) {
+        if (fireDroneKind(unit.kind) && unit.room && (unit.fired ?? 99) < 0.4) {
           const r = room("player", unit.room);
           if (r) {
             ctx.strokeStyle = "#ff8a3a";

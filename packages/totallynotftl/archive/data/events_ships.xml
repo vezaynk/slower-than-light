@@ -38,7 +38,7 @@
   A fixed trade does not roll. The handler still reads the amount from the choice id.
   A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
-  A quest effect names a marker. A goto effect opens another page.
+  A quest is ftl.dat's quest tag inside the result event. Its event is arrive- plus the quest id. A goto effect opens another page.
   An arrival page is named arrive- plus the quest id. The dealer leaves it off the chart.
   A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
   An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
@@ -2873,8 +2873,8 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Tap their comm frequency.</text>
       <event>
         <text>You overhear their conversation and learn they're planning to raid an infamous and likely wealthy pirate ship in the area. The pair jump off and you note down their target co-ordinates.</text>
+        <quest event="arrive-slug-pirate-trap"/>
       </event>
-      <effect k="quest" id="slug-pirate-trap"/>
     </choice>
     <choice name="c:slug-comm-tapping:1">
       <text>Ignore them.</text>
@@ -2942,15 +2942,15 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>"We're going to save them or die trying."</text>
       <event>
         <text>"The latter being more likely. Still... we can potentially help you and your precious fleet, but you'll need to prove yourself first. Meet us at these coordinates." They jump away.</text>
+        <quest event="arrive-rock-sun"/>
       </event>
-      <effect k="quest" id="rock-sun"/>
     </choice>
     <choice name="c:rock-war-vessel-encounter:1">
       <text>"We're strong enough to destroy you!"</text>
       <event>
         <text>"One ship is not the same as a fleet, but at least you've got some fire. Meet us at these coordinates if you want to prove to us that the Federation is worth saving." They jump away.</text>
+        <quest event="arrive-rock-sun"/>
       </event>
-      <effect k="quest" id="rock-sun"/>
     </choice>
     <choice name="c:rock-war-vessel-encounter:2">
       <text>Ignore them.</text>
@@ -2974,8 +2974,8 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
         <text>They continue. "We take your silence for interested contemplation." They talk at length about peace and harmony, but either it's beyond your simple mind or it's all nonsense.
 
 They finish: "Please, spread the word of enlightenment to those that have not heard. Once you have, contact our brethren." They transmit coordinates of their so-called "brethren".</text>
+        <quest event="arrive-zoltan-peace"/>
       </event>
-      <effect k="quest" id="zoltan-peace"/>
     </choice>
     <choice name="c:unarmed-zoltan-transport:2">
       <text>Leave.</text>

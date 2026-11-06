@@ -13,8 +13,9 @@ registry the game reads it from.
 - **`loadPack`** and the `all*`/`*Def` lookups (`src/registry.ts`) hold the loaded pack. `src/extras/` adds
   archive pieces outside the core records: name lists, sounds, animations, fonts and images.
 
-When an archive has bad data, the reader logs a `warnPack` warning and falls back to what the game would do. It
-never throws.
+When a record has bad data (an unknown name, a missing attribute, an empty list), the reader logs a `warnPack`
+warning and falls back to what the game would do. A file that is not well-formed XML fails the load, naming the
+file.
 
 ## Does the game use everything in ftl.dat?
 
@@ -44,4 +45,6 @@ As of November 2026 (FTL 1.6.13):
 | `totallynotftl.dat` | Everything is used                                                                                                                                                                                                                                    | Reaches sector 2 and saves                                                |
 | `ftl.dat`           | All of it is used except some UI text: **930** of the 5,176 English string keys are never shown. Most are tooltips and menu text from `text_misc.xml` and `text_tooltips.xml`, starting with `tooltip_oxygen`, `tooltip_doors` and `tooltip_shields`. | **Fails**: "Engines are unpowered" at the first combat beacon of sector 1 |
 
-The nine translations (`text-de.xml` and the rest) are not read, because the loader is English-only.
+English record text comes from the `text_*.xml` tables. Each translation (`text-de.xml` and the rest) is read
+into `pack.locales`, and the title screen offers it as a language. The coverage check skips those files, so it
+does not require their strings to be shown.

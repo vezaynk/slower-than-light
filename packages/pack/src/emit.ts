@@ -42,6 +42,7 @@ import type {
   WeaponKind,
 } from "./types.ts";
 import { prettyXml } from "./format.ts";
+import { QUEST_ARRIVAL_PREFIX } from "./parse.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -94,7 +95,7 @@ const HEADER = `
   A fixed trade does not roll. The handler still reads the amount from the choice id.
   A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
-  A quest effect names a marker. A goto effect opens another page.
+  A quest is ftl.dat's quest tag inside the result event. Its event is arrive- plus the quest id. A goto effect opens another page.
   An arrival page is named arrive- plus the quest id. The dealer leaves it off the chart.
   A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
   An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
@@ -397,12 +398,27 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
       add(choiceNode, reqElement(doc, req));
     }
     let placedGift = false;
+    let note: XmlElement | undefined;
     for (const fx of choice.fx) {
       if (fx.k === "nothing" && choice.gift && !placedGift) {
         add(choiceNode, nothingEvent(doc, choice.gift));
         placedGift = true;
+        note = undefined;
+      } else if (fx.k === "quest") {
+        // ftl.dat's <quest event> sits inside the result event, and FTL reads only the first <event> of a choice.
+        // The sentence is that event, even when a stand-in-only effect such as close comes between them.
+        const quest = element(doc, "quest", { event: QUEST_ARRIVAL_PREFIX + fx.id });
+        if (note) add(note, quest);
+        else {
+          const holder = element(doc, "event", {});
+          add(holder, quest);
+          add(choiceNode, holder);
+        }
       } else {
-        add(choiceNode, effectElement(doc, fx));
+        const node = effectElement(doc, fx);
+        add(choiceNode, node);
+        if (fx.k === "note") note = node;
+        else if (node.tagName === "event") note = undefined;
       }
     }
     add(node, choiceNode);
@@ -668,14 +684,14 @@ function surrenderReward(doc: XmlDocument, reward: SurrenderReward): XmlElement[
   return [element(doc, "fuelRepairs", { repairs: num(reward.repairs) })];
 }
 
-function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
+/** One effect as its tag. A quest is written by the choice loop, inside the result event. */
+function effectElement(doc: XmlDocument, fx: Exclude<EventEffect, { k: "quest" }>): XmlElement {
   if (fx.k === "nothing") return element(doc, "event", {});
   if (fx.k === "note") {
     const node = element(doc, "event", {});
     add(node, leaf(doc, "text", fx.text));
     return node;
   }
-  if (fx.k === "quest") return element(doc, "effect", { k: "quest", id: fx.id });
   if (fx.k === "goto") return element(doc, "event", { load: fx.id });
   if (fx.k === "close") return element(doc, "effect", { k: "close" });
   if (fx.k === "item") return element(doc, fx.item, {});

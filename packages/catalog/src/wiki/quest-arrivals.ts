@@ -39,9 +39,12 @@ function marker(
   quest: string,
   close = false,
 ): EventChoice {
-  const fx: EventEffect[] = [{ k: "note", text }];
+  // The quest follows the sentence, so it sits inside that result event, where ftl.dat's <quest> is read.
+  const fx: EventEffect[] = [
+    { k: "note", text },
+    { k: "quest", id: quest },
+  ];
   if (close) fx.push({ k: "close" });
-  fx.push({ k: "quest", id: quest });
   return { id, label, fx };
 }
 

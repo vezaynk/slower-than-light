@@ -96,7 +96,7 @@ export function SetupScreen() {
           inert={booting}
           aria-disabled={booting}
         >
-          {tab === "files" ? <GameFilesPanel /> : <PhoneHandoffPanel />}
+          {tab === "files" ? <GameFilesPanel /> : <PhoneHandoffPanel paused={booting} />}
         </div>
         <footer className="setup-launch">
           {error ? <p className="gf-alert">{error}</p> : null}

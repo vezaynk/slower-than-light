@@ -170,7 +170,8 @@ function Inventory({ inventory }: { inventory: HandoffInventory }) {
   );
 }
 
-export function PhoneHandoffPanel() {
+/** `paused` is set while setup loads the game files: the camera turns off, and a live transfer keeps going. */
+export function PhoneHandoffPanel({ paused = false }: { paused?: boolean } = {}) {
   const canLink = typeof RTCPeerConnection === "function";
   const [inventory, setInventory] = useState<HandoffInventory | null>(null);
   const [phase, setPhase] = useState<Phase>("home");
@@ -543,7 +544,7 @@ export function PhoneHandoffPanel() {
               onChange={(event) => setPaste(event.target.value)}
             />
           </label>
-          {scan ? <QrScan onText={onScan} /> : null}
+          {scan && !paused ? <QrScan onText={onScan} /> : null}
           {scan && scanNeed > 1 ? (
             <p className="gf-note">{`Scanned ${scanHave} of ${scanNeed}.`}</p>
           ) : null}

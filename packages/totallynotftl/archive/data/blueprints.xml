@@ -2077,7 +2077,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Burst Laser II</title>
     <short>Burst Laser II</short>
-    <desc>Fires 3 shots of 1 damage every 12 seconds.</desc>
+    <desc>Fires 3 shots of 1 damage, every 12 seconds.</desc>
     <tooltip>Three bolts. The first one only buys down a shield layer.</tooltip>
     <damage>1</damage>
     <shots>3</shots>
@@ -2109,7 +2109,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Basic Laser</title>
     <short>Basic Laser</short>
-    <desc>Fires 1 shot of 1 damage every 10 seconds.</desc>
+    <desc>Fires 1 shot of 1 damage, every 10 seconds.</desc>
     <tooltip>One bolt. A shield layer stops it whole.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2141,7 +2141,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Dual Lasers</title>
     <short>Dual Lasers</short>
-    <desc>Fires 2 shots of 1 damage every 10 seconds.</desc>
+    <desc>Fires 2 shots of 1 damage, every 10 seconds.</desc>
     <tooltip>Two bolts from a single power bar.</tooltip>
     <damage>1</damage>
     <shots>2</shots>
@@ -2173,7 +2173,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Heavy Laser</title>
     <short>Heavy Laser</short>
-    <desc>Fires 1 shot of 2 damage every 9 seconds. 30% fire, 30% breach.</desc>
+    <desc>Fires 1 shot of 2 damage, every 9 seconds. 20% stun, 30% fire, 30% breach.</desc>
     <tooltip>Two hull if it lands. One shield layer still eats the entire shot.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -2206,7 +2206,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Dart</title>
     <short>Dart</short>
-    <desc>Fires 1 shot of 2 damage every 14 seconds. 10% fire, 25% breach, uses a missile.</desc>
+    <desc>Fires 1 shot of 2 damage, every 14 seconds. 10% fire, 25% breach, uses a missile.</desc>
     <tooltip>Ignores shields. Spends one missile. Can still miss.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -2238,7 +2238,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>ION</type>
     <title>Ion Blast</title>
     <short>Ion Blast</short>
-    <desc>Fires 1 pulse of 1 ion every 8 seconds.</desc>
+    <desc>Fires 1 pulse of 1 ion, every 8 seconds. 10% stun.</desc>
     <tooltip>No hull damage. A shield blocks it. If it lands, it locks one power bar for 5 seconds.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -2271,7 +2271,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Artemis Missiles</title>
     <short>Artemis</short>
-    <desc>Fires 1 shot of 2 damage every 11 seconds. Uses a missile.</desc>
+    <desc>Fires 1 shot of 2 damage, every 11 seconds. 10% stun, uses a missile.</desc>
     <tooltip>Ignores shields. Two damage. Spends one missile. Can still miss.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -2305,7 +2305,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Leto Missiles</title>
     <short>Leto Missiles</short>
-    <desc>Fires 1 shot of 1 damage every 9 seconds. Uses a missile.</desc>
+    <desc>Fires 1 shot of 1 damage, every 9 seconds. 10% stun, uses a missile.</desc>
     <tooltip>Ignores shields. One damage. Spends one missile. Can still miss.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2339,7 +2339,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>ION</type>
     <title>Ion Blast II</title>
     <short>Ion Blast II</short>
-    <desc>Fires 1 pulse of 1 ion every 4 seconds.</desc>
+    <desc>Fires 1 pulse of 1 ion, every 4 seconds.</desc>
     <tooltip>No hull damage. Locks one power bar for 5 seconds if it gets past the shields.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -2371,7 +2371,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>ION</type>
     <title>Heavy Ion</title>
     <short>Heavy Ion</short>
-    <desc>Fires 1 pulse of 2 ion every 13 seconds.</desc>
+    <desc>Fires 1 pulse of 2 ion, every 13 seconds. 20% stun.</desc>
     <tooltip>No hull damage. Two ion if it lands, which is two locked bars.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -2404,7 +2404,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>ION</type>
     <title>Ion Stunner</title>
     <short>Ion Stunner</short>
-    <desc>Fires 1 pulse of 1 ion every 10 seconds.</desc>
+    <desc>Fires 1 pulse of 1 ion, every 10 seconds.</desc>
     <tooltip>No hull damage. One ion if it lands. Stuns the room for 5 seconds.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -2436,7 +2436,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BEAM</type>
     <title>Pike Beam</title>
     <short>Pike Beam</short>
-    <desc>Sweeps 1 damage across each room it crosses every 16 seconds.</desc>
+    <desc>Sweeps 1 damage across each room it crosses, every 16 seconds.</desc>
     <tooltip>One evade roll for the whole sweep. Shields subtract damage and stay up.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2470,7 +2470,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BURST</type>
     <title>Flak I</title>
     <short>Flak I</short>
-    <desc>Fires 3 shots of 1 damage every 10 seconds.</desc>
+    <desc>Fires 3 shots of 1 damage, every 10 seconds.</desc>
     <tooltip>Three pellets. Each is one damage, can miss alone, and one shield layer stops one.</tooltip>
     <flavorType>Scattered Debris Volley</flavorType>
     <damage>1</damage>
@@ -2506,7 +2506,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BOMB</type>
     <title>Fire Bomb</title>
     <short>Fire Bomb</short>
-    <desc>Teleports a charge straight into the target room every 15 seconds. 100% fire, uses a missile.</desc>
+    <desc>Teleports a charge straight into the target room, every 15 seconds. 100% fire, uses a missile.</desc>
     <tooltip>Hits the room. No hull. One or two fires. Spends a missile. Ignores shields. Can still miss.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -2539,7 +2539,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Burst Laser Mark I</title>
     <short>Burst Laser I</short>
-    <desc>Fires 2 shots of 1 damage every 11 seconds.</desc>
+    <desc>Fires 2 shots of 1 damage, every 11 seconds.</desc>
     <tooltip>This simple burst laser isn't flashy but it gets the job done.</tooltip>
     <damage>1</damage>
     <shots>2</shots>
@@ -2571,7 +2571,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Burst Laser Mark III</title>
     <short>Burst III</short>
-    <desc>Fires 5 shots of 1 damage every 19 seconds.</desc>
+    <desc>Fires 5 shots of 1 damage, every 19 seconds.</desc>
     <tooltip>Powerful burst laser that fires off an impressive barrage.</tooltip>
     <damage>1</damage>
     <shots>5</shots>
@@ -2603,7 +2603,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Heavy Pierce Laser Mark I</title>
     <short>Heavy I</short>
-    <desc>Fires 1 shot of 2 damage every 10 seconds. 30% fire, 30% breach, pierces 1 shield layer.</desc>
+    <desc>Fires 1 shot of 2 damage, every 10 seconds. 20% stun, 30% fire, 30% breach, pierces 1 shield layer.</desc>
     <tooltip>Heavy lasers can wreak more havoc than their smaller, burst laser counterparts. This modified version pierces 1 shield.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -2637,7 +2637,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Heavy Laser Mark II</title>
     <short>Heavy Laser II</short>
-    <desc>Fires 2 shots of 2 damage every 13 seconds. 30% fire, 30% breach.</desc>
+    <desc>Fires 2 shots of 2 damage, every 13 seconds. 20% stun, 30% fire, 30% breach.</desc>
     <tooltip>This heavy laser fires two shots in quick succession, each dealing 2 damage</tooltip>
     <damage>2</damage>
     <shots>2</shots>
@@ -2670,7 +2670,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Hull Smasher Laser</title>
     <short>Hull</short>
-    <desc>Fires 2 shots of 1 damage every 14 seconds.</desc>
+    <desc>Fires 2 shots of 1 damage, every 14 seconds.</desc>
     <tooltip>A powerful laser designed to maximize hull damage.</tooltip>
     <damage>1</damage>
     <shots>2</shots>
@@ -2703,7 +2703,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Hull Smasher Laser Mark II</title>
     <short>Hull II</short>
-    <desc>Fires 3 shots of 1 damage every 15 seconds.</desc>
+    <desc>Fires 3 shots of 1 damage, every 15 seconds.</desc>
     <tooltip>This powerful counterpart to the Hull Smasher Mark I fires more projectiles per shot.</tooltip>
     <damage>1</damage>
     <shots>3</shots>
@@ -2736,7 +2736,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Chain Burst Laser</title>
     <short>Chain</short>
-    <desc>Fires 2 shots of 1 damage every 16 seconds.</desc>
+    <desc>Fires 2 shots of 1 damage, every 16 seconds.</desc>
     <tooltip>This dual shot laser decreases in cooldown the more it fires. After 3 volleys it only takes 7 seconds to charge.</tooltip>
     <damage>1</damage>
     <shots>2</shots>
@@ -2773,7 +2773,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Chain Vulcan</title>
     <short>Chain Vulcan</short>
-    <desc>Fires 1 shot of 1 damage every 11.1 seconds.</desc>
+    <desc>Fires 1 shot of 1 damage, every 11.1 seconds.</desc>
     <tooltip>This laser weapon takes a long time to warm up. Each time it fires it decreases the cooldown, eventually able to take down any amount of shields.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2810,7 +2810,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Laser Charger (S)</title>
     <short>Laser Charger</short>
-    <desc>Fires 1 shot of 1 damage banks up to 2 volleys every 5.5 seconds.</desc>
+    <desc>Fires 1 shot of 1 damage, every 5.5 seconds, and banks up to 2 volleys.</desc>
     <tooltip>This laser weapon can charge two times, giving it an additional projectile. This improved version only requires 1 power.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2843,7 +2843,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Laser Charger</title>
     <short>Laser Charger</short>
-    <desc>Fires 1 shot of 1 damage banks up to 2 volleys every 6 seconds.</desc>
+    <desc>Fires 1 shot of 1 damage, every 6 seconds, and banks up to 2 volleys.</desc>
     <tooltip>This laser weapon can charge two times, giving it an extra projectile.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2876,7 +2876,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Laser Charger Mark II</title>
     <short>Laser II</short>
-    <desc>Fires 1 shot of 1 damage banks up to 4 volleys every 5 seconds.</desc>
+    <desc>Fires 1 shot of 1 damage, every 5 seconds, and banks up to 4 volleys.</desc>
     <tooltip>This laser weapon can charge multiple times, giving it additional projectiles.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2909,7 +2909,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BEAM</type>
     <title>Mini Beam</title>
     <short>Mini Beam</short>
-    <desc>Sweeps 1 damage across each room it crosses every 12 seconds. 10% fire.</desc>
+    <desc>Sweeps 1 damage across each room it crosses, every 12 seconds. 10% fire.</desc>
     <tooltip>Extremely cheap and weak beam weapon.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2943,7 +2943,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BEAM</type>
     <title>Hull Beam</title>
     <short>Hull Beam</short>
-    <desc>Sweeps 1 damage across each room it crosses every 14 seconds.</desc>
+    <desc>Sweeps 1 damage across each room it crosses, every 14 seconds.</desc>
     <tooltip>This beam is most powerful when targeting large, empty sections of hull.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2978,7 +2978,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BEAM</type>
     <title>Halberd Beam</title>
     <short>Halberd Beam</short>
-    <desc>Sweeps 2 damage across each room it crosses every 17 seconds.</desc>
+    <desc>Sweeps 2 damage across each room it crosses, every 17 seconds.</desc>
     <tooltip>Slow but reliably powerful standard beam weapon.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -3012,7 +3012,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BEAM</type>
     <title>Glaive Beam</title>
     <short>Glaive Beam</short>
-    <desc>Sweeps 3 damage across each room it crosses every 25 seconds.</desc>
+    <desc>Sweeps 3 damage across each room it crosses, every 25 seconds.</desc>
     <tooltip>One of the most powerful weapons of war ever created. Known to take out some ships in a single blast.</tooltip>
     <damage>3</damage>
     <shots>1</shots>
@@ -3046,7 +3046,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BEAM</type>
     <title>Fire Beam</title>
     <short>Fire Beam</short>
-    <desc>Sweeps 0 damage across each room it crosses every 20 seconds. 80% fire.</desc>
+    <desc>Sweeps 0 damage across each room it crosses, every 20 seconds. 80% fire.</desc>
     <tooltip>This terrifying beam does no physical damage but ignites fires.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3079,7 +3079,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BEAM</type>
     <title>Anti-Bio Beam</title>
     <short>Anti-Bio Beam</short>
-    <desc>Sweeps 0 damage across each room it crosses every 16 seconds.</desc>
+    <desc>Sweeps 0 damage across each room it crosses, every 16 seconds.</desc>
     <tooltip>This terrifying beam does no physical damage, but rips through organic material, dealing heavy damage to crew members.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3113,7 +3113,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>ION</type>
     <title>Ion Charger</title>
     <short>Ion Charger</short>
-    <desc>Fires 1 pulse of 1 ion banks up to 3 volleys every 6 seconds.</desc>
+    <desc>Fires 1 pulse of 1 ion, every 6 seconds, and banks up to 3 volleys.</desc>
     <tooltip>This ion weapon can charge multiple times, giving it additional projectiles.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3146,7 +3146,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>ION</type>
     <title>Chain Ion</title>
     <short>Chain Ion</short>
-    <desc>Fires 1 pulse of 1 ion every 14 seconds.</desc>
+    <desc>Fires 1 pulse of 1 ion, every 14 seconds.</desc>
     <tooltip>This weapon's Ion damage increases each time it fires to a max of 4.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3183,7 +3183,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>ION</type>
     <title>Boss Ion</title>
     <short>Boss Ion</short>
-    <desc>Fires 3 pulses of 1 ion every 35 seconds.</desc>
+    <desc>Fires 3 pulses of 1 ion, every 35 seconds.</desc>
     <tooltip>Flagship artillery. Three shots of one ion. Not sold.</tooltip>
     <damage>0</damage>
     <shots>3</shots>
@@ -3248,7 +3248,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Hermes Missile</title>
     <short>Hermes Missile</short>
-    <desc>Fires 1 shot of 3 damage every 14 seconds. 30% fire, uses a missile.</desc>
+    <desc>Fires 1 shot of 3 damage, every 14 seconds. 10% stun, 30% fire, uses a missile.</desc>
     <tooltip>Standard but powerful missile.</tooltip>
     <damage>3</damage>
     <shots>1</shots>
@@ -3282,7 +3282,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Breach Missiles</title>
     <short>Breach</short>
-    <desc>Fires 1 shot of 4 damage every 22 seconds. 30% fire, 56% breach, uses a missile.</desc>
+    <desc>Fires 1 shot of 4 damage, every 22 seconds. 10% stun, 30% fire, 56% breach, uses a missile.</desc>
     <tooltip>These missiles are designed to cause maximum destruction to ship hull armor.</tooltip>
     <damage>4</damage>
     <shots>1</shots>
@@ -3316,7 +3316,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Hull Missile</title>
     <short>Hull Missile</short>
-    <desc>Fires 1 shot of 2 damage every 17 seconds. 27% breach, uses a missile.</desc>
+    <desc>Fires 1 shot of 2 damage, every 17 seconds. 10% stun, 27% breach, uses a missile.</desc>
     <tooltip>High hull damage plus a decent breach chance.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -3351,7 +3351,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Swarm Missiles</title>
     <short>Swarm Missiles</short>
-    <desc>Fires 1 shot of 1 damage banks up to 3 volleys every 7 seconds. Uses a missile.</desc>
+    <desc>Fires 1 shot of 1 damage, every 7 seconds, and banks up to 3 volleys. Uses a missile.</desc>
     <tooltip>If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.</tooltip>
     <flavorType>Stacked Missile Salvo</flavorType>
     <damage>1</damage>
@@ -3388,7 +3388,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Pegasus Missile</title>
     <short>Pegasus</short>
-    <desc>Fires 2 shots of 2 damage every 20 seconds. 30% fire, uses a missile.</desc>
+    <desc>Fires 2 shots of 2 damage, every 20 seconds. 10% stun, 30% fire, uses a missile.</desc>
     <tooltip>Creative missile design allows for two projectiles for the cost of one!</tooltip>
     <damage>2</damage>
     <shots>2</shots>
@@ -3454,7 +3454,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BOMB</type>
     <title>Small Bomb</title>
     <short>Small Bomb</short>
-    <desc>Teleports a charge straight into the target room every 13 seconds. Uses a missile.</desc>
+    <desc>Teleports a charge straight into the target room, every 13 seconds. Uses a missile.</desc>
     <tooltip>Self-teleporting explosive that damages systems and crew but not the hull. Can target your own ship.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3488,7 +3488,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BOMB</type>
     <title>Breach Bomb Mark I</title>
     <short>Breach Bomb I</short>
-    <desc>Teleports a charge straight into the target room every 9 seconds. 100% breach, uses a missile.</desc>
+    <desc>Teleports a charge straight into the target room, every 9 seconds. 100% breach, uses a missile.</desc>
     <tooltip>Self-teleporting explosive designed to damage systems and causes a breach. Can target your own ship.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3522,7 +3522,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BOMB</type>
     <title>Breach Bomb Mark II</title>
     <short>Breach Bomb II</short>
-    <desc>Teleports a charge straight into the target room every 17 seconds. 100% breach, uses a missile.</desc>
+    <desc>Teleports a charge straight into the target room, every 17 seconds. 100% breach, uses a missile.</desc>
     <tooltip>Slower than Mark 1 but breaches and does more damage to systems. Can target your own ship.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3556,7 +3556,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BOMB</type>
     <title>Ion Bomb</title>
     <short>Ion Bomb</short>
-    <desc>Teleports a charge straight into the target room every 22 seconds. Uses a missile.</desc>
+    <desc>Teleports a charge straight into the target room, every 22 seconds. 4 ion, uses a missile.</desc>
     <tooltip>Self-teleporting explosive that uses ion damage to disable systems. Can target your own ship.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3589,7 +3589,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BOMB</type>
     <title>Stun Bomb</title>
     <short>Stun Bomb</short>
-    <desc>Teleports a charge straight into the target room every 17 seconds. Uses a missile.</desc>
+    <desc>Teleports a charge straight into the target room, every 17 seconds. 1 ion, uses a missile.</desc>
     <tooltip>Self-teleporting explosive that does 1 ion damage and stuns all crew inside the room. Can target your own ship.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3622,7 +3622,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BOMB</type>
     <title>Healing Burst</title>
     <short>Healing Burst</short>
-    <desc>Teleports a charge straight into the target room every 18 seconds. Uses a missile.</desc>
+    <desc>Teleports a charge straight into the target room, every 18 seconds. Uses a missile.</desc>
     <tooltip>Self-teleporting healing unit that instantly heals all friendly crew in the room. Can target your own ship.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3655,7 +3655,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BOMB</type>
     <title>Repair Burst</title>
     <short>Repair Burst</short>
-    <desc>Teleports a charge straight into the target room every 14 seconds. Uses a missile.</desc>
+    <desc>Teleports a charge straight into the target room, every 14 seconds. Uses a missile.</desc>
     <tooltip>Self-teleporting unit that floods a room with nano-bots capable of completely repairing all system damage.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3689,7 +3689,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BOMB</type>
     <title>Crystal Lockdown Bomb</title>
     <short>Crystal</short>
-    <desc>Teleports a charge straight into the target room every 15 seconds. Uses a missile.</desc>
+    <desc>Teleports a charge straight into the target room, every 15 seconds. Uses a missile.</desc>
     <tooltip>Self-teleporting explosive that does no damage but creates a dense wall preventing movement in or out of the room. Can target your own ship.</tooltip>
     <damage>0</damage>
     <shots>1</shots>
@@ -3722,7 +3722,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BURST</type>
     <title>Adv. Flak Gun</title>
     <short>Adv. Flak Gun</short>
-    <desc>Fires 3 shots of 1 damage every 8 seconds.</desc>
+    <desc>Fires 3 shots of 1 damage, every 8 seconds.</desc>
     <tooltip>Fires a blast of debris across a random area doing up to 3 damage. Good at taking down shields but hard to aim.</tooltip>
     <flavorType>Scattered Debris Volley</flavorType>
     <damage>1</damage>
@@ -3758,7 +3758,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BURST</type>
     <title>Flak Gun Mark II</title>
     <short>Flak Gun II</short>
-    <desc>Fires 7 shots of 1 damage every 21 seconds.</desc>
+    <desc>Fires 7 shots of 1 damage, every 21 seconds.</desc>
     <tooltip>Fires a blast of debris across a random area doing up to 7 damage. Good at taking down shields but hard to aim.</tooltip>
     <flavorType>Scattered Debris Volley</flavorType>
     <damage>1</damage>
@@ -3794,7 +3794,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Crystal Burst Mark I</title>
     <short>Crystal I</short>
-    <desc>Fires 2 shots of 1 damage every 15 seconds. Pierces 1 shield layer.</desc>
+    <desc>Fires 2 shots of 1 damage, every 15 seconds. Pierces 1 shield layer.</desc>
     <tooltip>Modified projectile weapon that fires shield piercing crystals.</tooltip>
     <damage>1</damage>
     <shots>2</shots>
@@ -3827,7 +3827,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Crystal Burst Mark II</title>
     <short>Crystal II</short>
-    <desc>Fires 3 shots of 1 damage every 17 seconds. Pierces 1 shield layer.</desc>
+    <desc>Fires 3 shots of 1 damage, every 17 seconds. Pierces 1 shield layer.</desc>
     <tooltip>Modified projectile weapon that fires shield piercing crystals.</tooltip>
     <damage>1</damage>
     <shots>3</shots>
@@ -3860,7 +3860,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Heavy Crystal Mark I</title>
     <short>Heavy I</short>
-    <desc>Fires 1 shot of 2 damage every 13 seconds. Pierces 1 shield layer.</desc>
+    <desc>Fires 1 shot of 2 damage, every 13 seconds. 20% stun, pierces 1 shield layer.</desc>
     <tooltip>Modified projectile weapon that fires shield piercing crystals.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -3894,7 +3894,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>LASER</type>
     <title>Heavy Crystal Mark II</title>
     <short>Heavy II</short>
-    <desc>Fires 1 shot of 4 damage every 19 seconds. 100% breach, pierces 1 shield layer.</desc>
+    <desc>Fires 1 shot of 4 damage, every 19 seconds. 100% breach, pierces 1 shield layer.</desc>
     <tooltip>Modified projectile weapon that fires shield piercing crystals.</tooltip>
     <damage>4</damage>
     <shots>1</shots>
@@ -3927,7 +3927,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>BURST</type>
     <title>Flak Artillery</title>
     <short>Flak Artillery</short>
-    <desc>Fires 7 shots of 1 damage every 50 seconds.</desc>
+    <desc>Fires 7 shots of 1 damage, every 50 seconds.</desc>
     <tooltip>Seven pellets from the artillery mount. Not sold.</tooltip>
     <flavorType>Scattered Debris Volley</flavorType>
     <damage>1</damage>

@@ -6,7 +6,7 @@
     "dev": "pnpm --filter @stl/game dev",
     "build": "turbo run build",
     "test": "turbo run test",
-    "test:ci": "turbo run test --filter=!@stl/game && pnpm --filter @stl/game test:src",
+    "test:ci": "turbo run test --filter=!@stl/game && turbo run test:src --filter=@stl/game",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "format": "prettier --write .",

@@ -16,12 +16,12 @@
     },
     "@stl/totallynotftl#generate": {
       "dependsOn": ["@stl/campaign#generate", "^typecheck"],
-      "outputs": ["totallynotftl.xml", "totallynotftl.dat"],
+      "outputs": ["archive/**", "totallynotftl.xml", "totallynotftl.dat"],
       "inputs": ["package.json", "src/**"]
     },
     "@stl/totallynotftl#test": {
       "dependsOn": ["^typecheck"],
-      "inputs": ["package.json", "src/**", "totallynotftl.xml", "totallynotftl.dat"]
+      "inputs": ["package.json", "src/**", "archive/**", "totallynotftl.xml", "totallynotftl.dat"]
     },
     "@stl/campaign#test": {
       "dependsOn": ["^typecheck"],
@@ -31,8 +31,16 @@
       "cache": false,
       "persistent": true
     },
-    "typecheck": {},
-    "test": {},
-    "lint": {}
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "dependsOn": ["^typecheck"]
+    },
+    "lint": {},
+    "@stl/game#test:src": {
+      "dependsOn": ["^typecheck"],
+      "env": ["FTL_DAT", "STL_DATS"]
+    }
   }
 }

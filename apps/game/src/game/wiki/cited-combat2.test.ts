@@ -6,6 +6,7 @@ import {
   COMBAT1_SPEED,
   COMBAT2,
   bearingAccepted,
+  orbitChordPose,
   orbitGap,
   orbitLegSeconds,
 } from "./cited-combat2.ts";
@@ -33,6 +34,22 @@ describe("Combat Drone Mark II shot", () => {
       orbitLegSeconds(0, 180, COMBAT1_SPEED) + 0.5,
     );
     assert.ok(orbitLegSeconds(5, 355, COMBAT2.speed) < orbitLegSeconds(0, 180, COMBAT2.speed));
+  });
+
+  it("flies the straight chord and faces that chord", () => {
+    const start = orbitChordPose(0, 90, 0, 4, 90, 30, 0.5);
+    assert.equal(start.x, 90);
+    assert.equal(start.y, 0);
+    const mid = orbitChordPose(0, 90, 1, 4, 90, 30, 0.5);
+    assert.ok(Math.abs(mid.x - 60) < 1e-9, `${mid.x}`);
+    assert.ok(Math.abs(mid.y - 10) < 1e-9, `${mid.y}`);
+    assert.ok(Math.abs(mid.angle - Math.atan2(30, -90)) < 1e-9);
+    const arc = { x: Math.cos(Math.PI / 4) * 90, y: Math.sin(Math.PI / 4) * 30 };
+    assert.ok(Math.hypot(mid.x - arc.x, mid.y - arc.y) > 1);
+    const sat = orbitChordPose(0, 90, 4, 4, 90, 30, 0.5);
+    assert.ok(Math.abs(sat.x) < 1e-9, `${sat.x}`);
+    assert.ok(Math.abs(sat.y - 30) < 1e-9, `${sat.y}`);
+    assert.ok(Math.abs(sat.angle - mid.angle) < 1e-9);
   });
 
   it("only picks an angle the non-wrapping check accepts", () => {

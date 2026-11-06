@@ -102,6 +102,116 @@ const CUES: readonly [cue: string, tone: string][] = [
   ["miss", "miss"],
 ];
 
+/**
+ * INVENTED: one synthesized voice per cue the game plays beyond CUES and BED_CUES, under the names and loop flags
+ * ftl.dat's sounds.xml (base) and dlcSounds.xml (dlc) give them. f0 to f1 is a pitch sweep in Hz over `s` seconds;
+ * `decay` is the fade rate, `noise` the share of hiss, `wave` the shape. A numbered family detunes each variant.
+ */
+type Voice = {
+  f0: number;
+  f1?: number;
+  s: number;
+  decay: number;
+  noise?: number;
+  wave?: "sine" | "square" | "saw";
+  loop?: boolean;
+  dlc?: boolean;
+  /** Numbered variants: name1, name2, ... */
+  count?: number;
+};
+
+const VOICES: Record<string, Voice> = {
+  powerUpSystem: { f0: 520, f1: 780, s: 0.08, decay: 20, wave: "square" },
+  powerDownSystem: { f0: 620, f1: 380, s: 0.08, decay: 20, wave: "square" },
+  powerUpFail: { f0: 180, f1: 150, s: 0.12, decay: 14, wave: "square" },
+  upgradeSystem: { f0: 440, f1: 990, s: 0.22, decay: 8, wave: "square" },
+  autofireOn: { f0: 700, f1: 900, s: 0.06, decay: 25, wave: "square" },
+  autofireOff: { f0: 700, f1: 500, s: 0.06, decay: 25, wave: "square" },
+  jumpReady: { f0: 1320, s: 0.5, decay: 5 },
+  airLeak: { f0: 0, s: 0.6, decay: 0, noise: 1, loop: true },
+  repairShip: { f0: 300, f1: 600, s: 0.18, decay: 10, wave: "saw" },
+  hoverBeep: { f0: 1600, s: 0.03, decay: 60 },
+  environWarning: { f0: 600, f1: 420, s: 0.3, decay: 4, wave: "square" },
+  death: { f0: 150, f1: 70, s: 0.35, decay: 7, wave: "saw", count: 2 },
+  femaleDeath: { f0: 320, f1: 160, s: 0.35, decay: 7, wave: "saw", count: 3 },
+  lowCrewHealth: { f0: 880, s: 0.18, decay: 6, wave: "square" },
+  rockHit: { f0: 90, f1: 60, s: 0.14, decay: 18, noise: 0.5, count: 3 },
+  rockThrow: { f0: 160, f1: 110, s: 0.1, decay: 20, noise: 0.4, count: 3 },
+  rockStomp: { f0: 70, f1: 50, s: 0.12, decay: 20, noise: 0.3, count: 2 },
+  rockThud: { f0: 60, f1: 40, s: 0.12, decay: 22, noise: 0.3, count: 3 },
+  mantisSplat: { f0: 260, f1: 140, s: 0.1, decay: 22, noise: 0.6, count: 3 },
+  lockdown: { f0: 1200, f1: 1800, s: 0.3, decay: 8, count: 2 },
+  solarFlare: { f0: 120, f1: 60, s: 0.6, decay: 4, noise: 0.7 },
+  lightning: { f0: 80, f1: 40, s: 0.5, decay: 6, noise: 0.85, count: 4 },
+  enginesOn: { f0: 80, f1: 220, s: 0.4, decay: 4, wave: "saw" },
+  enginesOff: { f0: 220, f1: 60, s: 0.4, decay: 4, wave: "saw" },
+  sysExplosion: { f0: 120, f1: 50, s: 0.2, decay: 14, noise: 0.7 },
+  crewLaser: { f0: 1400, f1: 600, s: 0.07, decay: 30, wave: "square", count: 3 },
+  cloneArrive: { f0: 400, f1: 800, s: 0.4, decay: 5, dlc: true },
+  cloneBroken: { f0: 300, s: 0.5, decay: 0, wave: "square", loop: true, dlc: true },
+  batteryStart: { f0: 200, f1: 600, s: 0.3, decay: 6, wave: "saw", dlc: true },
+  batteryStop: { f0: 600, f1: 200, s: 0.3, decay: 6, wave: "saw", dlc: true },
+  mindControl: { f0: 500, f1: 300, s: 0.4, decay: 5, dlc: true },
+  mindControlEnd: { f0: 300, f1: 500, s: 0.3, decay: 7, dlc: true },
+  hackStart: { f0: 900, f1: 400, s: 0.2, decay: 10, wave: "square", dlc: true },
+  hackLand: { f0: 200, s: 0.1, decay: 25, noise: 0.5, dlc: true },
+  hackLoop: { f0: 700, s: 0.5, decay: 0, wave: "square", loop: true, dlc: true },
+  shrikeDeath: { f0: 400, f1: 80, s: 0.3, decay: 8, noise: 0.4, dlc: true },
+  shrikeRepair: { f0: 520, s: 0.5, decay: 0, wave: "saw", loop: true, dlc: true },
+  fleetFireHeavy: { f0: 70, f1: 40, s: 0.5, decay: 5, noise: 0.8, dlc: true },
+  fleetFireLight: { f0: 140, f1: 80, s: 0.3, decay: 8, noise: 0.7, dlc: true },
+  ionBoarderCharge: { f0: 300, f1: 900, s: 0.3, decay: 6, dlc: true },
+  shieldDroneCharge: { f0: 260, f1: 520, s: 0.3, decay: 6, dlc: true },
+  shieldDroneActivate: { f0: 520, f1: 1040, s: 0.2, decay: 9, dlc: true },
+  weaponReady: { f0: 1100, s: 0.1, decay: 16, dlc: true },
+  hullBreach: { f0: 90, f1: 40, s: 0.3, decay: 8, noise: 0.8, dlc: true },
+  eventDamage: { f0: 80, f1: 40, s: 0.45, decay: 5, noise: 0.8, dlc: true },
+  beam: { f0: 340, s: 0.25, decay: 6, wave: "saw", dlc: true },
+};
+
+/** Cue names a voice writes, with the variant's detune. `death` is death2 here: death1 is in BED_CUES. */
+function voiceCues(): { name: string; voice: Voice; detune: number }[] {
+  const out: { name: string; voice: Voice; detune: number }[] = [];
+  for (const [base, voice] of Object.entries(VOICES)) {
+    if (base === "death") out.push({ name: "death2", voice, detune: 0.92 });
+    else if (base === "femaleDeath")
+      for (const n of [2, 3])
+        out.push({ name: `femaleDeath${n}`, voice, detune: 1 + (n - 2) * 0.08 });
+    else if (base === "beam") out.push({ name: "beam3", voice, detune: 1 });
+    else if (voice.count)
+      for (let n = 1; n <= voice.count; n += 1)
+        out.push({ name: `${base}${n}`, voice, detune: 1 + (n - 1) * 0.07 });
+    else out.push({ name: base, voice, detune: 1 });
+  }
+  return out;
+}
+
+const VOICE_RATE = 11025;
+
+function voiceWav(voice: Voice, detune: number): Uint8Array {
+  const n = Math.floor(VOICE_RATE * voice.s);
+  let phase = 0;
+  const samples = Array.from({ length: n }, (_, i) => {
+    const t = i / VOICE_RATE;
+    const freq = (voice.f0 + ((voice.f1 ?? voice.f0) - voice.f0) * (t / voice.s)) * detune;
+    phase += (2 * Math.PI * freq) / VOICE_RATE;
+    const cycle = (phase / (2 * Math.PI)) % 1;
+    const wave =
+      voice.wave === "square"
+        ? cycle < 0.5
+          ? 1
+          : -1
+        : voice.wave === "saw"
+          ? cycle * 2 - 1
+          : Math.sin(phase);
+    const hiss = voice.noise ?? 0;
+    // A loop keeps a flat level so it repeats without a click; a one-shot fades from a short attack.
+    const env = voice.loop ? 0.5 : Math.min(1, t * 200) * Math.exp(-t * voice.decay);
+    return (wave * (1 - hiss) + hash(i + Math.round(voice.f0)) * hiss) * env * 0.6;
+  });
+  return wavFromSamples(samples, VOICE_RATE);
+}
+
 let mediaPromise: Promise<{
   documents: FtlDocument[];
   assets: { path: string; bytes: Uint8Array }[];
@@ -194,6 +304,8 @@ async function buildMedia(): Promise<{
   for (const [cue, tone] of CUES) {
     assets.push({ path: `audio/waves/ui/${cue}.wav`, bytes: cueWav(tone) });
   }
+  for (const cue of voiceCues())
+    assets.push({ path: `audio/waves/ui/${cue.name}.wav`, bytes: voiceWav(cue.voice, cue.detune) });
   for (const cue of BED_CUES) {
     assets.push({ path: `audio/waves/ui/${cue.name}.wav`, bytes: cueWav(cue.tone) });
   }
@@ -232,7 +344,10 @@ async function buildMedia(): Promise<{
       xml: `<animations>\n${field.clips.join("\n")}\n</animations>\n`,
     },
     { path: "data/sounds.xml", xml: soundsXml() },
-    { path: "data/dlcSounds.xml", xml: "<sounds><music></music></sounds>\n" },
+    {
+      path: "data/dlcSounds.xml",
+      xml: `<sounds><music></music>\n${voiceRows(true).join("\n")}\n</sounds>\n`,
+    },
   ];
   return { documents, assets };
 }
@@ -298,6 +413,16 @@ function animTag(name: string, sheet: string, length: number, y: number): string
   return `<anim name="${name}"><sheet>${sheet}</sheet><desc length="${length}" x="0" y="${y}"/><time>1</time></anim>`;
 }
 
+/** sounds.xml or dlcSounds.xml rows for the voices, as ftl.dat splits them. */
+function voiceRows(dlc: boolean): string[] {
+  return voiceCues()
+    .filter((cue) => !!cue.voice.dlc === dlc)
+    .map(
+      (cue) =>
+        `<${cue.name} volume="8"${cue.voice.loop ? ' loop="true"' : ""}>ui/${cue.name}.wav</${cue.name}>`,
+    );
+}
+
 function soundsXml(): string {
   const cues = [
     ...CUES.map(([cue]) => `<${cue} volume="8">ui/${cue}.wav</${cue}>`),
@@ -305,6 +430,7 @@ function soundsXml(): string {
       (cue) =>
         `<${cue.name} volume="8"${cue.loop ? ' loop="true"' : ""}>ui/${cue.name}.wav</${cue.name}>`,
     ),
+    ...voiceRows(false),
   ].join("\n");
   const music = MUSIC_TRACKS.map((track) => {
     const combat = track.combat ? `<combat>${track.combat}</combat>` : "";

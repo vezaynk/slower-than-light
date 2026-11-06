@@ -1,1 +1,22 @@
-<sounds><music></music></sounds>
+<sounds><music></music>
+<cloneArrive volume="8">ui/cloneArrive.wav</cloneArrive>
+<cloneBroken volume="8" loop="true">ui/cloneBroken.wav</cloneBroken>
+<batteryStart volume="8">ui/batteryStart.wav</batteryStart>
+<batteryStop volume="8">ui/batteryStop.wav</batteryStop>
+<mindControl volume="8">ui/mindControl.wav</mindControl>
+<mindControlEnd volume="8">ui/mindControlEnd.wav</mindControlEnd>
+<hackStart volume="8">ui/hackStart.wav</hackStart>
+<hackLand volume="8">ui/hackLand.wav</hackLand>
+<hackLoop volume="8" loop="true">ui/hackLoop.wav</hackLoop>
+<shrikeDeath volume="8">ui/shrikeDeath.wav</shrikeDeath>
+<shrikeRepair volume="8" loop="true">ui/shrikeRepair.wav</shrikeRepair>
+<fleetFireHeavy volume="8">ui/fleetFireHeavy.wav</fleetFireHeavy>
+<fleetFireLight volume="8">ui/fleetFireLight.wav</fleetFireLight>
+<ionBoarderCharge volume="8">ui/ionBoarderCharge.wav</ionBoarderCharge>
+<shieldDroneCharge volume="8">ui/shieldDroneCharge.wav</shieldDroneCharge>
+<shieldDroneActivate volume="8">ui/shieldDroneActivate.wav</shieldDroneActivate>
+<weaponReady volume="8">ui/weaponReady.wav</weaponReady>
+<hullBreach volume="8">ui/hullBreach.wav</hullBreach>
+<eventDamage volume="8">ui/eventDamage.wav</eventDamage>
+<beam3 volume="8">ui/beam3.wav</beam3>
+</sounds>

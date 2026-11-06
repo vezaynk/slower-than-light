@@ -3,6 +3,7 @@
  * achievements to another device, or receive that set here, over local Wi-Fi. The code is the WebRTC session. The bytes
  * move on a data channel. A transfer that stops leaves the files already stored here in place.
  */
+import { launchAfterReload, packInstalled } from "@/game/launch";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { encode } from "uqr";
 import { formatBytes } from "@/game/pack/archive-inspect";
@@ -388,7 +389,13 @@ export function PhoneHandoffPanel() {
         // The files are already stored. Reloading picks them up.
       }
       setPhase("done");
+      if (!packInstalled()) {
+        // Setup on a first visit: nothing is loaded yet, so Launch reads the received files as they are.
+        setStatus("Saved on this device. Launch to play.");
+        return;
+      }
       setStatus("Saved on this device. Reloading…");
+      launchAfterReload();
       window.setTimeout(() => location.reload(), 500);
     } catch (err) {
       if (dc) reportFailure(dc, err instanceof Error ? err.message : "The handoff stopped.");

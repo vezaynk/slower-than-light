@@ -80,6 +80,7 @@ export function SetupScreen() {
               aria-selected={tab === id}
               aria-controls="setup-tab-panel"
               tabIndex={tab === id ? 0 : -1}
+              disabled={booting}
               onClick={() => setTab(id)}
             >
               <span>{label}</span>
@@ -91,6 +92,9 @@ export function SetupScreen() {
           id="setup-tab-panel"
           role="tabpanel"
           aria-labelledby={`setup-tab-${tab}`}
+          // The files are being read. An edit now would load next time but not this time, so the panel waits.
+          inert={booting}
+          aria-disabled={booting}
         >
           {tab === "files" ? <GameFilesPanel /> : <PhoneHandoffPanel />}
         </div>

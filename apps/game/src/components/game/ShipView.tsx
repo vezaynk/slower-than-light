@@ -934,7 +934,8 @@ export function ShipView({
                 dark room, so systems can be targeted without Sensors (Sensors, "Overview" does not list where systems
                 are among what its levels reveal).
               */}
-              {(room.system ?? room.kit) && !plate ? (
+              {/* FTL draws the system icon over the interior picture too: it carries the damage, ion, and hack state. */}
+              {(room.system ?? room.kit) ? (
                 <PixelIcon
                   name={(room.system ?? room.kit)!}
                   size={20}

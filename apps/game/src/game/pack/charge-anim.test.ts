@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { readAnimations } from "@stl/pack";
 import "./base.ts";
+import { weaponAccentHot, weaponSheetCharged } from "../sim.ts";
+import type { WeaponInst } from "../types.ts";
 import {
   chargeAnimProgress,
   chargingFrameIndex,
@@ -72,6 +74,12 @@ describe("weapon charge animation", () => {
       assert.ok(weaponChargeAlpha("ember_bomb", "idle", 0.99) > 0);
       assert.equal(weaponChargeAlpha("ember_bomb", "charged"), 1);
       assert.equal(weaponChargeAlpha("ember_bomb", "fire", 1), 0);
+      // The accent lights a pip early, at 95%. The sheet stays idle there, so the delayed burst still plays.
+      const bomb = { defId: "ember_bomb", charge: 0.95 } as WeaponInst;
+      assert.equal(weaponAccentHot(bomb), true);
+      assert.equal(weaponSheetCharged(bomb), false);
+      assert.equal(weaponChargeAlpha("ember_bomb", "idle", bomb.charge), 0);
+      assert.equal(weaponSheetCharged({ ...bomb, charge: 1 }), true);
     } finally {
       await rememberArchive([], new Map());
     }

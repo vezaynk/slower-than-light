@@ -123,7 +123,11 @@ export function HazardSky({ game }: { game: Game }) {
   const world = scene.planet && art >= 0 ? archiveImage(SKY_FILES.planet) : undefined;
   const backs =
     scene.rocks && art >= 0
-      ? ASTEROID_BACK_FILES.map((path) => archiveImage(path)).filter((url): url is string => !!url)
+      ? // Each picture keeps its file's depth class, so a missing asteroid_back1 does not move back2 up a layer.
+        ASTEROID_BACK_FILES.flatMap((path, i) => {
+          const url = archiveImage(path);
+          return url ? [{ url, depth: i + 1 }] : [];
+        })
       : [];
   const sunFlash = useFallingEdge(scene.sunWarn);
   const ionFlash = useFallingEdge(scene.pulsarWarn);
@@ -156,10 +160,10 @@ export function HazardSky({ game }: { game: Game }) {
       {scene.pulsar ? <Pulsar warn={scene.pulsarWarn} /> : null}
       {scene.storm ? <Bolts /> : null}
       {scene.batteryAiming ? <i className="sky-aim" /> : null}
-      {backs.map((url, i) => (
+      {backs.map(({ url, depth }) => (
         <img
-          key={url}
-          className={`sky-rock-back is-back-${i + 1}`}
+          key={depth}
+          className={`sky-rock-back is-back-${depth}`}
           src={url}
           alt=""
           draggable={false}

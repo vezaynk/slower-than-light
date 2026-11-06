@@ -4,6 +4,7 @@ import { cloneGrid } from "./grid.ts";
 import { bonusChance, resourceBounds, scrapBounds, type RewardDifficulty } from "./rewards.ts";
 import type {
   AugmentDef,
+  BeaconEvents,
   BlueprintListDef,
   ChoiceGift,
   ChoiceReq,
@@ -69,6 +70,8 @@ let reward: RewardTable | undefined;
 let baseReward: RewardTable | undefined;
 let civilianSectorTitleValue: string | undefined;
 let baseCivilianSectorTitle: string | undefined;
+let beaconEventsValue: BeaconEvents = {};
+let baseBeaconEvents: BeaconEvents = {};
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
 let baseAugments: AugmentDef[] = [];
@@ -553,6 +556,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseReward = reward ? copyReward(reward) : undefined;
     civilianSectorTitleValue = pack.civilianSectorTitle;
     baseCivilianSectorTitle = pack.civilianSectorTitle;
+    beaconEventsValue = { ...pack.beaconEvents };
+    baseBeaconEvents = { ...pack.beaconEvents };
     storeLocales(pack.locales);
     baseFactions = (pack.factions ?? []).map(copyFaction);
     baseShipClasses = (pack.shipClasses ?? []).map(copyShipClass);
@@ -578,6 +583,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   }
   if (mode === "append" && pack.civilianSectorTitle)
     civilianSectorTitleValue = pack.civilianSectorTitle;
+  if (mode === "append" && pack.beaconEvents)
+    beaconEventsValue = { ...beaconEventsValue, ...pack.beaconEvents };
   if (mode === "append" && pack.locales) mergeStoredLocales(pack.locales);
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
@@ -719,6 +726,29 @@ export function shipClassBlueprint(classId: string, pirate = false): string {
 export function sectorDef(id: string | undefined): SectorDef | undefined {
   if (!id) return undefined;
   return sectors.get(id);
+}
+
+/** The loaded `<beaconEvents>` defaults. */
+export function beaconEvents(): BeaconEvents {
+  return { ...beaconEventsValue };
+}
+
+/**
+ * The event a sector's start or exit beacon opens. The sector's own tag wins over `<beaconEvents>`.
+ * A nebula exit takes the nebula entry, then the plain one. Undefined when neither names one.
+ */
+export function beaconEventId(
+  role: "start" | "finish",
+  sectorId: string | undefined,
+  nebula = false,
+): string | undefined {
+  const sector = sectorDef(sectorId);
+  if (role === "start") return sector?.startEvent ?? beaconEventsValue.start;
+  if (nebula) {
+    const own = sector?.finishNebulaEvent ?? beaconEventsValue.finishNebula;
+    if (own) return own;
+  }
+  return sector?.finishEvent ?? beaconEventsValue.finish;
 }
 
 /** English `sectorname_CIVILIAN_SECTOR`, when this pack stored it. */
@@ -958,6 +988,7 @@ export function resetPackForTests(): void {
   shipClasses.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
   civilianSectorTitleValue = baseCivilianSectorTitle;
+  beaconEventsValue = { ...baseBeaconEvents };
   resetLocales();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));

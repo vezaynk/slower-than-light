@@ -318,4 +318,13 @@
   <mod:findName type="weaponBlueprint" name="ARTILLERY_BOSS_3">
     <mod-overwrite:shotGap>0</mod-overwrite:shotGap>
   </mod:findName>
+  <mod:findName type="weaponBlueprint" name="DRONE_LASER">
+    <mod-overwrite:shotGap>0</mod-overwrite:shotGap>
+  </mod:findName>
+  <mod:findName type="weaponBlueprint" name="DRONE_BEAM">
+    <mod-overwrite:shotGap>0</mod-overwrite:shotGap>
+  </mod:findName>
+  <mod:findName type="weaponBlueprint" name="DRONE_BEAM2">
+    <mod-overwrite:shotGap>0</mod-overwrite:shotGap>
+  </mod:findName>
 </FTL>

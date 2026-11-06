@@ -280,8 +280,11 @@ describe("archive media", () => {
     );
     assert.equal(deathCue("rock"), "rockDeath");
     assert.equal(deathCue("mantis"), "mantisDeath");
-    assert.equal(deathCue("human"), "death1");
-    assert.equal(deathCue(undefined), "death1");
+    // The human family: death1/death2, or femaleDeath1-3 for a crewmember named from the female list.
+    assert.equal(deathCue("human"), "death");
+    assert.equal(deathCue(undefined), "death");
+    assert.equal(deathCue("human", "female"), "femaleDeath");
+    assert.equal(deathCue("rock", "female"), "rockDeath");
     syncLoops({ fire: true, repair: false });
   });
 

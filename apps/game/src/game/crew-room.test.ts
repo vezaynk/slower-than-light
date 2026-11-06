@@ -17,7 +17,6 @@ import {
   healingIds,
   canDismiss,
   closeAllDoors,
-  createGame,
   dismissCrew,
   orderCrew,
   orderSelected,
@@ -29,6 +28,7 @@ import {
   step,
   toggleDoor,
 } from "./sim.ts";
+import { startedGame } from "./test-start.ts";
 
 describe("medical standing spots", () => {
   const wide = { x: 0, y: 0, w: 2, h: 2, system: "medbay" as const };
@@ -63,7 +63,7 @@ describe("the medical machine's tile", () => {
   });
 
   it("never stands crew on the blocked tile", () => {
-    const g = createGame(6, "PLAYER_SHIP_HARD");
+    const g = startedGame(6, "PLAYER_SHIP_HARD");
     g.phase = "map";
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
     const [blocked] = blockedCells(
@@ -90,7 +90,7 @@ describe("furniture keeps clear of doors (per the user)", () => {
     const step: Record<string, [number, number]> = { n: [0, -1], e: [1, 0], s: [0, 1], w: [-1, 0] };
     const opposite: Record<string, string> = { n: "s", e: "w", s: "n", w: "e" };
     for (const hull of playerHulls()) {
-      const g = createGame(1, hull.id);
+      const g = startedGame(1, hull.id);
       const ship = g.player;
       const edges = new Set<string>();
       for (const m of ship.doorMarks ?? []) {
@@ -126,7 +126,7 @@ describe("furniture keeps clear of doors (per the user)", () => {
 
 describe("crew room orders", () => {
   it("orders a boarded crew member onto another enemy room and keeps the selection", () => {
-    const g = createGame(3);
+    const g = startedGame(3);
     startCombat(g, "scout");
     const ivo = g.crew.find((c) => c.id === "c-ivo");
     assert.ok(ivo && g.enemy && g.enemy.rooms.length > 1);
@@ -146,7 +146,7 @@ describe("crew room orders", () => {
   });
 
   it("puts the first crew sent back at the front of the fight", () => {
-    const g = createGame(5);
+    const g = startedGame(5);
     startCombat(g, "scout");
     const ada = g.crew.find((c) => c.id === "c-ada");
     const ivo = g.crew.find((c) => c.id === "c-ivo");
@@ -182,7 +182,7 @@ describe("crew room orders", () => {
   });
 
   it("heals a walker in the medbay and leaves an idle body past the spot cap", () => {
-    const g = createGame(6);
+    const g = startedGame(6);
     startCombat(g, "scout");
     g.player.systems.medbay.power = 1;
     const ada = g.crew.find((c) => c.id === "c-ada")!;
@@ -210,7 +210,7 @@ describe("crew room orders", () => {
   });
 
   it("names the crew the medbay is healing right now: hurt, in the bay, and only while it has power", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = startedGame(3, "PLAYER_SHIP_HARD");
     g.phase = "map";
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
     const [hurt, whole] = g.crew.filter((x) => x.side === "player");
@@ -231,7 +231,7 @@ describe("crew room orders", () => {
     // Wiki citations:
     // > "When powered, heals friendly crewmembers standing inside or moving through the room." — [[Medbay#Overview]]
     // > "1 50 Ftlgame-scrap.png 6.4 HP/sec The healing rate is equal to the suffocation rate" — [[Medbay#System Upgrades]]
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = startedGame(3, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.paused = false;
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
@@ -250,7 +250,7 @@ describe("crew room orders", () => {
     // Fires: an "operational Medbay on fire" is "capable of healing the crew more than the fire damaging them".
     // Boarding, "Medbay": "A working Medbay can be a good place to deal with enemy boarders".
     const run = (power: number) => {
-      const g = createGame(6);
+      const g = startedGame(6);
       startCombat(g, "scout");
       g.player.systems.medbay.power = power;
       const bay = g.player.rooms.find((r) => r.id === "p-medbay")!;
@@ -279,7 +279,7 @@ describe("crew room orders", () => {
   });
 
   it("lets only the standing spots repair a medbay", () => {
-    const g = createGame(7);
+    const g = startedGame(7);
     startCombat(g, "scout");
     g.player.systems.medbay.power = 0;
     g.player.systems.medbay.damage = 1;
@@ -302,7 +302,7 @@ describe("crew room orders", () => {
   });
 
   it("refuses a mind-controlled order, a coated room, and a missing room out loud", () => {
-    const g = createGame(8);
+    const g = startedGame(8);
     const ivo = g.crew.find((c) => c.id === "c-ivo")!;
     g.selected = ivo.id;
     g.squad = [ivo.id];
@@ -324,7 +324,7 @@ describe("crew room orders", () => {
   });
 
   it("will not end a walk in a room that has no standing spot left", () => {
-    const g = createGame(4, "PLAYER_SHIP_HARD");
+    const g = startedGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
     const [ada, ivo, nen] = g.crew.filter((c) => c.side === "player");
     assert.ok(ada && ivo && nen);
@@ -377,7 +377,7 @@ describe("crew room orders", () => {
   });
 
   it("lets a crew member walk into a room that boarders have filled", () => {
-    const g = createGame(4, "PLAYER_SHIP_HARD");
+    const g = startedGame(4, "PLAYER_SHIP_HARD");
     g.phase = "combat";
     const ada = g.crew.find((c) => c.side === "player")!;
     assert.ok(ada);
@@ -401,7 +401,7 @@ describe("crew room orders", () => {
   });
 
   it("lets a Crystal finish leaving a coated room through a shut door", () => {
-    const g = createGame(9);
+    const g = startedGame(9);
     g.phase = "map";
     const ivo = g.crew.find((c) => c.id === "c-ivo")!;
     const door = g.player.doors.find(
@@ -429,7 +429,7 @@ describe("crew room orders", () => {
   });
 
   it("seeds every crew member's station with where they spawn, tile included", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD");
+    const g = startedGame(3, "PLAYER_SHIP_HARD");
     for (const c of g.crew.filter((x) => x.side === "player")) {
       assert.equal(c.station, c.room, c.name);
       assert.deepEqual(c.stationTile, { x: c.tile!.x, y: c.tile!.y }, c.name);
@@ -437,7 +437,7 @@ describe("crew room orders", () => {
   });
 
   it("saves stations on the player ship and returns crew there", () => {
-    const g = createGame(10);
+    const g = startedGame(10);
     g.phase = "map";
     const ivo = g.crew.find((c) => c.id === "c-ivo")!;
     const nen = g.crew.find((c) => c.id === "c-nen")!;
@@ -448,7 +448,7 @@ describe("crew room orders", () => {
     assert.equal(g.log[0], "Stations saved.");
     assert.equal(ivo.station, "p-pilot");
     // Away from the ship, Nen keeps the station seeded at spawn.
-    assert.equal(nen.station, createGame(10).crew.find((c) => c.id === "c-nen")!.station);
+    assert.equal(nen.station, startedGame(10).crew.find((c) => c.id === "c-nen")!.station);
     ivo.room = "p-engines";
     for (const other of g.crew) {
       if (other.id === ivo.id || other.side !== "player") continue;
@@ -464,7 +464,7 @@ describe("crew room orders", () => {
   });
 
   it("blocks door controls when any ion is on a still-functional Door System", () => {
-    const g = createGame(11);
+    const g = startedGame(11);
     const door = g.player.doors.find((d) => d.b !== "void");
     assert.ok(door);
     g.player.systems.doors.level = 3;
@@ -482,7 +482,7 @@ describe("crew room orders", () => {
   });
 
   it("sends only crew who were given a teleporter pad", () => {
-    const g = createGame(12);
+    const g = startedGame(12);
     g.scrap = 200;
     installSling(g);
     const kit = g.player.kits.teleporter;
@@ -518,7 +518,7 @@ describe("crew room orders", () => {
 
 describe("manning terminal", () => {
   it("puts the crew member who runs the system on the right-hand terminal", () => {
-    const g = createGame(4, "PLAYER_SHIP_HARD");
+    const g = startedGame(4, "PLAYER_SHIP_HARD");
     const engines = g.player.rooms.find((r) => r.id === "p-engines");
     const oxygen = g.player.rooms.find((r) => r.id === "p-oxygen");
     const medbay = g.player.rooms.find((r) => r.id === "p-medbay");
@@ -565,7 +565,7 @@ describe("manning terminal", () => {
 
 describe("dismissing crew (Ship menu)", () => {
   it("removes a crew member aboard, but not a boarder, an enemy, or the last one aboard", () => {
-    const g = createGame(6);
+    const g = startedGame(6);
     const mine = () => g.crew.filter((c) => c.side === "player");
     const [ada, ivo, nen] = mine();
     g.selected = ada.id;

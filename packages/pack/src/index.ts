@@ -19,10 +19,11 @@ export {
   type StartingFit,
 } from "./hull-fit.ts";
 export { prettyXml } from "./format.ts";
-export { attachTextLists, packFromFtl, pickOpening } from "./ftl.ts";
+export { attachTextLists, packFromFtl, pickOpening, RANDOM_CREW } from "./ftl.ts";
 export { applyArchiveExtras, registerArchiveExtra } from "./archive-extras.ts";
 export type { ArchiveDoc, ArchiveExtra } from "./archive-extras.ts";
-export { allCrewNames, crewNames } from "./extras/name-lists.ts";
+export { allCrewNames, crewNames, crewNameSex, crewNamesOfSex } from "./extras/name-lists.ts";
+export type { CrewSex } from "./extras/name-lists.ts";
 export { eventCount, eventCountsIn } from "./extras/event-counts.ts";
 export type { EventCount } from "./extras/event-counts.ts";
 export { imageList } from "./extras/image-lists.ts";
@@ -68,6 +69,7 @@ export {
   MAP_FILES,
   MUSIC_TRACKS,
   SECTOR_TRACKS,
+  ASTEROID_BACK_FILES,
   SKY_FILES,
   TITLE_FILES,
   TITLE_LOGO,
@@ -79,7 +81,12 @@ export {
   skyPath,
 } from "./archive-names.ts";
 export type { FontFaceJob, ImageVariant, SkyPick } from "./archive-names.ts";
-export { onPackWarning, warnPack, type PackWarningListener } from "./warnings.ts";
+export {
+  onPackWarning,
+  quietPackWarnings,
+  warnPack,
+  type PackWarningListener,
+} from "./warnings.ts";
 export type { MusicTrack, SoundCue, SoundSet } from "./sounds.ts";
 export { parsePack } from "./parse.ts";
 export type { FtlBlueprintFile, FtlTextFile } from "./ftl.ts";
@@ -126,6 +133,8 @@ export {
   scrapRange,
   sectorDef,
   civilianSectorTitle,
+  beaconEventId,
+  beaconEvents,
   storeDef,
   systemDef,
   tuneDef,
@@ -135,6 +144,7 @@ export {
 export { localeString, packLocales } from "./locales.ts";
 export type {
   AugmentDef,
+  BeaconEvents,
   ContentPack,
   CrewColor,
   CrewDef,
@@ -186,6 +196,7 @@ export type {
   ArchiveBoarders,
   ArchiveEnvironment,
   ArchiveGrant,
+  CrewSkillName,
   ArchiveReward,
   ArchiveShip,
   BlueprintListDef,

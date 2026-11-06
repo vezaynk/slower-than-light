@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { allEvents, eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { ChoiceReq, EventDef } from "@stl/pack";
-import { choiceDisabled, choose, createGame } from "../sim.ts";
+import { choiceDisabled, choose } from "../sim.ts";
 import type { Game, Kit, KitId } from "../types.ts";
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
@@ -11,6 +11,7 @@ import { fillerEvent } from "./filler-events.ts";
 import { pageWin, questEvent } from "./quests.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { joinCrew } from "./surrender.ts";
+import { startedGame } from "../test-start.ts";
 
 afterEach(() => resetPackForTests());
 
@@ -260,7 +261,7 @@ describe("stock labels", () => {
 
 describe("stock spends", () => {
   it("sells the packed scrap at the refueling station and leaves the stored label alone", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     const beacon = spot(g);
     beacon.flag = "filler:refueling-station";
     assert.equal(
@@ -289,7 +290,7 @@ describe("stock spends", () => {
 
     resetPackForTests();
     rewriteStock("c:refueling-station:0", undefined);
-    const skipped = createGame(2);
+    const skipped = startedGame(2);
     const quiet = spot(skipped);
     quiet.flag = "filler:refueling-station";
     assert.equal(
@@ -306,7 +307,7 @@ describe("stock spends", () => {
   });
 
   it("spends the packed missile count on the five-missile miner reward", () => {
-    const shown = createGame(1);
+    const shown = startedGame(1);
     const beacon = spot(shown);
     beacon.flag = "filler:asteroid-mining-colony";
     assert.equal(
@@ -318,14 +319,14 @@ describe("stock spends", () => {
       labelOf(fillerEvent(shown, beacon)?.choices, "c:asteroid-mining-colony:1"),
       "Give them the requested 7 missiles.",
     );
-    const paid = createGame(2);
+    const paid = startedGame(2);
     paid.missiles = 7;
     choose(paid, "c:asteroid-mining-colony:1");
     assert.equal(paid.missiles, 0);
     assert.match(paid.event?.body ?? "", /thank you/i);
     assert.doesNotMatch(paid.event?.body ?? "", /Wow/);
 
-    const short = createGame(3);
+    const short = startedGame(3);
     short.missiles = 6;
     const seed = short.seed;
     choose(short, "c:asteroid-mining-colony:1");
@@ -334,7 +335,7 @@ describe("stock spends", () => {
 
     resetPackForTests();
     rewriteStock("c:asteroid-mining-colony:1", undefined);
-    const gone = createGame(4);
+    const gone = startedGame(4);
     const quiet = spot(gone);
     quiet.flag = "filler:asteroid-mining-colony";
     assert.equal(
@@ -351,7 +352,7 @@ describe("stock spends", () => {
   });
 
   it("pays the Engi gift and the supply bundle from the packed rows", () => {
-    const shown = createGame(1);
+    const shown = startedGame(1);
     assert.equal(pageWin(shown, "engi-distress-rebel-fight", false), true);
     assert.equal(labelOf(shown.event?.choices, "q:engi-distress:scrap"), "Give them 25 scrap.");
     assert.equal(
@@ -359,7 +360,7 @@ describe("stock spends", () => {
       "Give them 40 scrap, 2 missiles and 2 fuel.",
     );
 
-    const paid = createGame(2);
+    const paid = startedGame(2);
     paid.scrap = 25;
     const before = paid.seed;
     choose(paid, "q:engi-distress:scrap");
@@ -368,7 +369,7 @@ describe("stock spends", () => {
     assert.notEqual(paid.seed, before);
 
     rewriteStock("q:engi-distress:scrap", undefined);
-    const skipped = createGame(3);
+    const skipped = startedGame(3);
     skipped.scrap = 25;
     const seed = skipped.seed;
     choose(skipped, "q:engi-distress:scrap");
@@ -376,7 +377,7 @@ describe("stock spends", () => {
     assert.equal(skipped.seed, seed);
 
     resetPackForTests();
-    const bundle = createGame(4);
+    const bundle = startedGame(4);
     bundle.scrap = 40;
     bundle.missiles = 2;
     bundle.fuel = 2;
@@ -390,7 +391,7 @@ describe("stock spends", () => {
     assert.match(bundle.event?.body ?? "", /Fuel: -2\./);
 
     rewriteStock("q:engi-distress:supplies", [stock("scrap", 40), stock("fuel", 2)]);
-    const partial = createGame(5);
+    const partial = startedGame(5);
     partial.scrap = 40;
     partial.missiles = 0;
     partial.fuel = 2;
@@ -408,7 +409,7 @@ describe("stock spends", () => {
       stock("missiles", 1),
       stock("fuel", 1),
     ]);
-    const smaller = createGame(6);
+    const smaller = startedGame(6);
     smaller.scrap = 4;
     smaller.missiles = 1;
     smaller.fuel = 1;
@@ -423,7 +424,7 @@ describe("stock spends", () => {
   });
 
   it("buys the translator for the packed scrap and hires nobody when the row is gone", () => {
-    const shown = createGame(1);
+    const shown = startedGame(1);
     const beacon = spot(shown);
     beacon.flag = "LANIUS_TRADER_TRANSLATOR";
     beacon.name = "Lanius trader with translator";
@@ -436,7 +437,7 @@ describe("stock spends", () => {
     );
 
     rewriteStock("q:lanius-translator:buy", [stock("scrap", 7)]);
-    const renamed = createGame(2);
+    const renamed = startedGame(2);
     const next = spot(renamed);
     next.flag = "LANIUS_TRADER_TRANSLATOR";
     next.name = "Lanius trader with translator";
@@ -449,7 +450,7 @@ describe("stock spends", () => {
     );
 
     resetPackForTests();
-    const paid = createGame(3);
+    const paid = startedGame(3);
     paid.scrap = 40;
     choose(paid, "q:lanius-translator:buy");
     assert.equal(paid.scrap, 0);
@@ -459,7 +460,7 @@ describe("stock spends", () => {
     );
 
     rewriteStock("q:lanius-translator:buy", undefined);
-    const skipped = createGame(4);
+    const skipped = startedGame(4);
     const quiet = spot(skipped);
     quiet.flag = "LANIUS_TRADER_TRANSLATOR";
     quiet.name = "Lanius trader with translator";
@@ -482,7 +483,7 @@ describe("stock spends", () => {
   });
 
   it("offers the raft hire at the packed scrap and rolls only after the ship can pay", () => {
-    const shown = createGame(1);
+    const shown = startedGame(1);
     assert.equal(pageWin(shown, "zoltan-retake-the-ship", false), true);
     assert.equal(
       labelOf(shown.event?.choices, "s:zoltan-raft:hire"),
@@ -490,7 +491,7 @@ describe("stock spends", () => {
     );
 
     rewriteStock("s:zoltan-raft:hire", undefined);
-    const gone = createGame(2);
+    const gone = startedGame(2);
     gone.scrap = 80;
     const goneSeed = gone.seed;
     choose(gone, "s:zoltan-raft:hire");
@@ -501,26 +502,26 @@ describe("stock spends", () => {
     rewriteStock("s:zoltan-raft:hire", [stock("scrap", 7)]);
     let accepted = false;
     for (let n = 1; n <= 40 && !accepted; n++) {
-      const g = createGame(n);
+      const g = startedGame(n);
       g.scrap = 7;
       choose(g, "s:zoltan-raft:hire");
       if (!g.event?.body.includes("Scrap: -7.")) continue;
       accepted = true;
       assert.equal(g.scrap, 0);
-      assert.notEqual(g.seed, createGame(n).seed);
+      assert.notEqual(g.seed, startedGame(n).seed);
     }
     assert.equal(accepted, true);
   });
 
   it("spends the trade-hub fee when a Zoltan is aboard", () => {
-    const bare = createGame(1);
+    const bare = startedGame(1);
     bare.scrap = 10;
     const bareSeed = bare.seed;
     choose(bare, "c:zoltan-trade-hub:2");
     assert.equal(bare.scrap, 10);
     assert.equal(bare.seed, bareSeed);
 
-    const paid = createGame(2);
+    const paid = startedGame(2);
     joinCrew(paid, "Zoltan");
     paid.scrap = 10;
     choose(paid, "c:zoltan-trade-hub:2");
@@ -529,7 +530,7 @@ describe("stock spends", () => {
     assert.equal(/Scrap: -10\./.test(paid.log.join("\n")), false);
 
     rewriteStock("c:zoltan-trade-hub:2", undefined);
-    const gone = createGame(3);
+    const gone = startedGame(3);
     joinCrew(gone, "Zoltan");
     gone.scrap = 10;
     const seed = gone.seed;
@@ -539,7 +540,7 @@ describe("stock spends", () => {
   });
 
   it("buys the slug's fuel for the packed scrap and leaves the slug button's sentence alone", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     const beacon = spot(g);
     beacon.flag = "FUEL_ON_SLUG_CHUCKLE";
     beacon.name = "No fuel: Slug fuel trader";
@@ -565,14 +566,14 @@ describe("stock spends", () => {
     );
 
     resetPackForTests();
-    const paid = createGame(2);
+    const paid = startedGame(2);
     const fuel = paid.fuel;
     paid.scrap = 15;
     choose(paid, "c:no-fuel-slug-fuel-trader:pay");
     assert.equal(paid.scrap, 0);
     assert.equal(paid.fuel, fuel + 5);
 
-    const slug = createGame(3);
+    const slug = startedGame(3);
     joinCrew(slug, "Slug");
     const slugFuel = slug.fuel;
     slug.scrap = 15;
@@ -583,7 +584,7 @@ describe("stock spends", () => {
     assert.equal(slug.seed, slugSeed);
 
     rewriteStock("c:no-fuel-slug-fuel-trader:pay", undefined);
-    const quiet = createGame(4);
+    const quiet = startedGame(4);
     const quietBeacon = spot(quiet);
     quietBeacon.flag = "FUEL_ON_SLUG_CHUCKLE";
     quietBeacon.name = "No fuel: Slug fuel trader";
@@ -606,7 +607,7 @@ describe("stock spends", () => {
   });
 
   it("trades the packed refugee scrap and prints the packed missile loss", () => {
-    const trade = createGame(1);
+    const trade = startedGame(1);
     const fuel = trade.fuel;
     trade.scrap = 10;
     const seed = trade.seed;
@@ -616,7 +617,7 @@ describe("stock spends", () => {
     assert.equal(trade.seed, seed);
 
     rewriteStock("c:no-fuel-refugee-trading:trade", undefined);
-    const skipped = createGame(2);
+    const skipped = startedGame(2);
     skipped.scrap = 10;
     const skippedFuel = skipped.fuel;
     const skippedSeed = skipped.seed;
@@ -626,21 +627,21 @@ describe("stock spends", () => {
     assert.equal(skipped.seed, skippedSeed);
 
     resetPackForTests();
-    const missiles = createGame(3);
+    const missiles = startedGame(3);
     missiles.missiles = 1;
     choose(missiles, "c:no-fuel-refugee-trading:missiles");
     assert.equal(missiles.missiles, 0);
     assert.match(`${missiles.event?.body ?? ""}\n${missiles.log.join("\n")}`, /You lose 1 missile/);
 
     rewriteStock("c:no-fuel-refugee-trading:missiles", [stock("missiles", 3)]);
-    const three = createGame(4);
+    const three = startedGame(4);
     three.missiles = 3;
     choose(three, "c:no-fuel-refugee-trading:missiles");
     assert.equal(three.missiles, 0);
     assert.match(`${three.event?.body ?? ""}\n${three.log.join("\n")}`, /You lose 3 missile/);
 
     rewriteStock("c:no-fuel-refugee-trading:missiles", undefined);
-    const gone = createGame(5);
+    const gone = startedGame(5);
     gone.missiles = 1;
     const held = gone.seed;
     choose(gone, "c:no-fuel-refugee-trading:missiles");
@@ -652,7 +653,7 @@ describe("stock spends", () => {
     const accept = { id: "c:slug-repair-station:accept50", label: "Accept." };
     rewriteStock(accept.id, undefined);
     assert.equal(stampStockLabels([accept])[0], accept);
-    const skipped = createGame(1);
+    const skipped = startedGame(1);
     skipped.scrap = 50;
     const seed = skipped.seed;
     choose(skipped, accept.id);
@@ -660,7 +661,7 @@ describe("stock spends", () => {
     assert.equal(skipped.seed, seed);
 
     resetPackForTests();
-    const paid = createGame(2);
+    const paid = startedGame(2);
     paid.scrap = 50;
     choose(paid, accept.id);
     assert.equal(paid.scrap, 0);
@@ -669,7 +670,7 @@ describe("stock spends", () => {
   it("spends station fuel before the scrap reward and prints the packed count", () => {
     let found = false;
     for (let n = 1; n <= 40 && !found; n++) {
-      const g = createGame(n);
+      const g = startedGame(n);
       const beacon = spot(g);
       beacon.quest = "space-station";
       g.here = beacon.id;
@@ -681,14 +682,14 @@ describe("stock spends", () => {
     }
     assert.equal(found, true);
 
-    const paid = createGame(2);
+    const paid = startedGame(2);
     paid.fuel = 4;
     const before = paid.seed;
     choose(paid, "q:station:fuel4");
     assert.equal(paid.fuel, 0);
     assert.notEqual(paid.seed, before);
 
-    const one = createGame(3);
+    const one = startedGame(3);
     one.fuel = 1;
     const oneSeed = one.seed;
     choose(one, "q:station:fuel1");
@@ -696,7 +697,7 @@ describe("stock spends", () => {
     assert.equal(one.seed, oneSeed);
 
     rewriteStock("q:station:fuel4", undefined);
-    const gone = createGame(4);
+    const gone = startedGame(4);
     gone.fuel = 4;
     const seed = gone.seed;
     choose(gone, "q:station:fuel4");
@@ -705,7 +706,7 @@ describe("stock spends", () => {
   });
 
   it("spends a merchant's packed parts and still grants five on delivery", () => {
-    const paid = createGame(1);
+    const paid = startedGame(1);
     paid.player.parts = 5;
     const before = paid.seed;
     choose(paid, "q:merchant:paltry");
@@ -714,7 +715,7 @@ describe("stock spends", () => {
     assert.notEqual(paid.seed, before);
 
     rewriteStock("q:merchant:paltry", undefined);
-    const gone = createGame(2);
+    const gone = startedGame(2);
     gone.player.parts = 5;
     const seed = gone.seed;
     choose(gone, "q:merchant:paltry");
@@ -723,21 +724,21 @@ describe("stock spends", () => {
 
     resetPackForTests();
     rewriteStock("q:merchant:paltry", [stock("parts", 2)]);
-    const two = createGame(3);
+    const two = startedGame(3);
     two.player.parts = 2;
     choose(two, "q:merchant:paltry");
     assert.equal(two.player.parts, 0);
     assert.match(two.event?.body ?? "", /Drone parts: -2\./);
 
     resetPackForTests();
-    const deliver = createGame(4);
+    const deliver = startedGame(4);
     deliver.player.parts = 0;
     choose(deliver, "q:merchant:deliver");
     assert.equal(deliver.player.parts, 5);
   });
 
   it("spends one asteroid-defense part and does not roll when the row is gone", () => {
-    const paid = createGame(1);
+    const paid = startedGame(1);
     paid.player.parts = 1;
     const before = paid.seed;
     choose(paid, "q:asteroid:defense");
@@ -745,7 +746,7 @@ describe("stock spends", () => {
     assert.notEqual(paid.seed, before);
 
     rewriteStock("q:asteroid:defense", undefined);
-    const gone = createGame(2);
+    const gone = startedGame(2);
     gone.player.parts = 1;
     const seed = gone.seed;
     choose(gone, "q:asteroid:defense");
@@ -754,7 +755,7 @@ describe("stock spends", () => {
   });
 
   it("holds the war-camp missile until the ship has both the weapon and the ammo", () => {
-    const bare = createGame(1);
+    const bare = startedGame(1);
     bare.missiles = 1;
     const seed = bare.seed;
     choose(bare, "q:war-camp:missile");
@@ -762,7 +763,7 @@ describe("stock spends", () => {
     assert.equal(bare.phase, "map");
     assert.equal(bare.seed, seed);
 
-    const paid = createGame(2);
+    const paid = startedGame(2);
     paid.player.weapons.push(gun("MISSILES_2_PLAYER"));
     paid.missiles = 1;
     choose(paid, "q:war-camp:missile");
@@ -779,7 +780,7 @@ describe("stock spends", () => {
   });
 
   it("spends a boarding-drone part and leaves the moon's missile blast on its literal one", () => {
-    const paid = createGame(1);
+    const paid = startedGame(1);
     paid.player.kits.drones = kit("drones", 2);
     paid.player.kits.drones.target = "BOARDER";
     paid.player.parts = 1;
@@ -790,7 +791,7 @@ describe("stock spends", () => {
     assert.match(paid.event?.body ?? "", /Drone parts: -1\./);
 
     rewriteStock("c:zoltan-odd-moon:drone", undefined);
-    const gone = createGame(2);
+    const gone = startedGame(2);
     gone.player.kits.drones = kit("drones", 2);
     gone.player.kits.drones.target = "BOARDER";
     gone.player.parts = 1;
@@ -804,7 +805,7 @@ describe("stock spends", () => {
   });
 
   it("spends a hull-repair part before the fuel gift", () => {
-    const paid = createGame(1);
+    const paid = startedGame(1);
     paid.player.kits.drones = kit("drones", 2);
     paid.player.kits.drones.target = "SHIP_REPAIR";
     paid.player.parts = 1;
@@ -814,7 +815,7 @@ describe("stock spends", () => {
     assert.ok(paid.fuel >= fuel + 4 && paid.fuel <= fuel + 6);
 
     rewriteStock("c:no-fuel-engi-ship-repair:2", undefined);
-    const gone = createGame(2);
+    const gone = startedGame(2);
     gone.player.kits.drones = kit("drones", 2);
     gone.player.kits.drones.target = "SHIP_REPAIR";
     gone.player.parts = 1;
@@ -827,7 +828,7 @@ describe("stock spends", () => {
   });
 
   it("spends the cache missile before the search and prints the story without a count", () => {
-    const paid = createGame(1);
+    const paid = startedGame(1);
     paid.player.weapons.push(gun("MISSILES_BREACH"));
     paid.missiles = 1;
     const before = paid.seed;
@@ -838,7 +839,7 @@ describe("stock spends", () => {
     assert.notEqual(paid.seed, before);
 
     rewriteStock("c:crystalline-cache:breach", undefined);
-    const gone = createGame(2);
+    const gone = startedGame(2);
     gone.missiles = 1;
     const seed = gone.seed;
     choose(gone, "c:crystalline-cache:breach");
@@ -847,7 +848,7 @@ describe("stock spends", () => {
   });
 
   it("spends one hacking part at the storage station and one combat-drone part at the radar", () => {
-    const storage = createGame(1);
+    const storage = startedGame(1);
     storage.player.kits.hacking = kit("hacking", 1);
     storage.player.parts = 1;
     const storageSeed = storage.seed;
@@ -856,7 +857,7 @@ describe("stock spends", () => {
     assert.notEqual(storage.seed, storageSeed);
 
     rewriteStock("c:auto-ship-near-storage-station-in-nebula:4", undefined);
-    const quiet = createGame(2);
+    const quiet = startedGame(2);
     quiet.player.kits.hacking = kit("hacking", 1);
     quiet.player.parts = 1;
     const quietSeed = quiet.seed;
@@ -865,7 +866,7 @@ describe("stock spends", () => {
     assert.equal(quiet.seed, quietSeed);
 
     resetPackForTests();
-    const radar = createGame(3);
+    const radar = startedGame(3);
     radar.player.kits.drones = kit("drones", 1);
     radar.player.kits.drones.target = "COMBAT_1";
     radar.player.parts = 1;
@@ -874,7 +875,7 @@ describe("stock spends", () => {
     assert.match(radar.event?.body ?? "", /Drone parts: -1\./);
     assert.equal(/Drone parts: -1\./.test(radar.log.join("\n")), false);
 
-    const fleet = createGame(4);
+    const fleet = startedGame(4);
     fleet.player.kits.hacking = kit("hacking", 1);
     fleet.player.parts = 1;
     const delay = fleet.fleet;
@@ -886,7 +887,7 @@ describe("stock spends", () => {
   });
 
   it("spends a hull-repair part on the freighter and a beam-drone part on the mine", () => {
-    const freighter = createGame(1);
+    const freighter = startedGame(1);
     freighter.player.kits.drones = kit("drones", 2);
     freighter.player.kits.drones.target = "SHIP_REPAIR";
     freighter.player.parts = 1;
@@ -905,7 +906,7 @@ describe("stock spends", () => {
     assert.equal(freighter.phase, "combat");
     assert.equal(stockCount("c:mantis-ships-battle-for-rock-freighter:2", "parts"), null);
 
-    const mine = createGame(2);
+    const mine = startedGame(2);
     mine.player.kits.drones = kit("drones", 2);
     mine.player.kits.drones.target = "COMBAT_BEAM_2";
     mine.player.parts = 1;
@@ -920,14 +921,14 @@ describe("stock spends", () => {
   });
 
   it("spends the healing missile only when a Healing Burst is fitted", () => {
-    const bare = createGame(1);
+    const bare = startedGame(1);
     bare.missiles = 1;
     const seed = bare.seed;
     choose(bare, "q:loyalists:heal");
     assert.equal(bare.missiles, 1);
     assert.equal(bare.seed, seed);
 
-    const paid = createGame(2);
+    const paid = startedGame(2);
     paid.player.weapons.push(gun("BOMB_HEAL"));
     paid.missiles = 1;
     choose(paid, "q:loyalists:heal");

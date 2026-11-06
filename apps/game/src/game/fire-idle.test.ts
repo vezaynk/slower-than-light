@@ -3,7 +3,6 @@ import { describe, it } from "node:test";
 import {
   FIRE_FIGHT_SHARE,
   adjacentFires,
-  createGame,
   fireStarveSeconds,
   openAllDoors,
   shipTicking,
@@ -11,6 +10,7 @@ import {
   step,
 } from "./sim.ts";
 import type { Game, Room } from "./types.ts";
+import { startedGame } from "./test-start.ts";
 
 /** Empty the fire room, shut every door, and keep the door console unmanned so spread uses the level-1 slow. */
 function sealed(g: Game, roomId: string): Room {
@@ -52,7 +52,7 @@ describe("Fires outside a fight", () => {
   it("catches a second tile of a sealed 2x1 room after 6.25 to 30.6 seconds (xftl doc/fires)", () => {
     // A counter of 10 to 49, drained 1.6 a second by the one adjacent fire.
     for (const seed of [1, 2, 3, 4]) {
-      const g = createGame(seed, "PLAYER_SHIP_HARD");
+      const g = startedGame(seed, "PLAYER_SHIP_HARD");
       const room = sealed(g, "p-oxygen");
       assert.equal(room.w * room.h, 2);
       const t = until(g, () => room.fire >= 2, 40);
@@ -63,7 +63,7 @@ describe("Fires outside a fight", () => {
 
   it("holds a fire behind shut blast doors for at least 62.5 seconds", () => {
     // doc/fires: a level 2+ door drains the far tile's counter 0.16 a second, so 10 / 0.16 at the soonest.
-    const g = createGame(2, "PLAYER_SHIP_HARD");
+    const g = startedGame(2, "PLAYER_SHIP_HARD");
     g.player.systems.doors.level = 2;
     const room = sealed(g, "p-oxygen");
     room.fire = 2;
@@ -71,7 +71,7 @@ describe("Fires outside a fight", () => {
     assert.ok(t >= 62.5 - 0.05, `${t}`);
   });
   it("a crew member in the room puts the fire out and takes 2.128 HP per second", () => {
-    const g = createGame(3);
+    const g = startedGame(3);
     const room = g.player.rooms.find((r) => r.id === "p-oxygen")!;
     const worker = g.crew[0]!;
     for (const c of g.crew) {
@@ -94,7 +94,7 @@ describe("Fires outside a fight", () => {
   });
 
   it("starts a die-out timer below 10% when oxygen is off", () => {
-    const g = createGame(4);
+    const g = startedGame(4);
     g.player.systems.oxygen.power = 0;
     const room = sealed(g, "p-oxygen");
     // Every room at 10%, so no air seeps in through the shut doors (air.ts).
@@ -126,7 +126,7 @@ describe("Fires outside a fight", () => {
     // INFERRED: more than 4 adjacent fires stays on the printed maximum.
     assert.equal(fireStarveSeconds(14, 9), fireStarveSeconds(14, 4));
 
-    const g = createGame(8);
+    const g = startedGame(8);
     g.player.systems.oxygen.power = 0;
     const room = sealed(g, "p-oxygen");
     // Every room under 10%, so no shut door seeps the fire room back over the line (air.ts).
@@ -163,7 +163,7 @@ describe("Fires outside a fight", () => {
   });
 
   it("drops the die-out timer when oxygen is back at 10% or more", () => {
-    const g = createGame(9);
+    const g = startedGame(9);
     const room = sealed(g, "p-oxygen");
     room.o2 = 9;
     room.fire = 1;
@@ -175,7 +175,7 @@ describe("Fires outside a fight", () => {
   });
 
   it("repairs on the map as in a fight, and still suffocates", () => {
-    const g = createGame(5);
+    const g = startedGame(5);
     sealed(g, "p-oxygen");
     const med = g.player.rooms.find((r) => r.id === "p-medbay")!;
     g.player.systems.medbay.power = 1;
@@ -198,7 +198,7 @@ describe("Fires outside a fight", () => {
   });
 
   it("crosses an open door from a burning room after 6.25 to 30.6 seconds", () => {
-    const g = createGame(6, "PLAYER_SHIP_HARD");
+    const g = startedGame(6, "PLAYER_SHIP_HARD");
     const room = sealed(g, "p-oxygen");
     room.fire = 2;
     for (const d of g.player.doors) {
@@ -209,7 +209,7 @@ describe("Fires outside a fight", () => {
   });
 
   it("stays still while paused or on the title", () => {
-    const g = createGame(7);
+    const g = startedGame(7);
     const room = sealed(g, "p-oxygen");
     room.fireTick = 7;
     g.paused = true;
@@ -227,7 +227,7 @@ describe("Fires outside a fight", () => {
 
 describe("Oxygen outside a fight", () => {
   it("drains the ship when every door is open, and keeps the clock running", () => {
-    const g = createGame(21, "PLAYER_SHIP_HARD");
+    const g = startedGame(21, "PLAYER_SHIP_HARD");
     assert.equal(g.phase, "map");
     assert.equal(shipTicking(g), true);
     g.paused = true;
@@ -250,7 +250,7 @@ describe("Oxygen outside a fight", () => {
   it("suffocates at 6.4 HP per second with no fight on", () => {
     // Wiki citations:
     // > "Crew suffocation occurs at 5% or less O2 in the room. Suffocating crewmembers take 6.4 HP damage per second." — [[Oxygen#Overview]]
-    const g = createGame(22, "PLAYER_SHIP_HARD");
+    const g = startedGame(22, "PLAYER_SHIP_HARD");
     g.phase = "map";
     g.player.systems.oxygen.power = 0;
     for (const d of g.player.doors) d.open = false;
@@ -272,7 +272,7 @@ describe("Oxygen outside a fight", () => {
   it("lets a Lanius drain oxygen with no fight on, and does not suffocate them", () => {
     // Wiki citations:
     // > "The Lanius race doesn't need O2, nor suffers from suffocation - they drain the O2 instead (at the rate of a breach)." — [[Oxygen#Overview]]
-    const g = createGame(23, "PLAYER_SHIP_HARD");
+    const g = startedGame(23, "PLAYER_SHIP_HARD");
     g.phase = "map";
     for (const d of g.player.doors) d.open = false;
     const room = g.player.rooms.find((r) => r.id === "p-pilot")!;
@@ -294,7 +294,7 @@ describe("Oxygen outside a fight", () => {
 
 /** Combat tick, doors shut, oxygen full. */
 function ventFight(seed: number): Game {
-  const g = createGame(seed);
+  const g = startedGame(seed);
   startCombat(g, "scout");
   for (const w of [...g.player.weapons, ...(g.enemy?.weapons ?? [])]) w.enabled = false;
   const swarm = g.enemy?.kits.drones;

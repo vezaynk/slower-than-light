@@ -40,8 +40,16 @@ export type WeaponAnim = {
   firePoint?: { x: number; y: number };
   /** `<fireSound>` names, in file order. A weapon may repeat the tag. */
   fireSounds: string[];
-  /** `<chargeImage>` anim name. Absent when the tag is missing. */
+  /**
+   * `<chargeImage>`. ftl.dat names a frame-sized picture under `img/` (`weapons/bomblauncher_1_glow.png`) that brightens
+   * over the weapon as it charges. An older stand-in named an anim instead. Absent when the tag is missing.
+   */
   chargeImage?: string;
+  /**
+   * `<delayChargeAnim>`: the share of the charge that passes before the charge frames start. ftl.dat's bomb launchers
+   * use 0.98, so they sit idle and run their frames in the last moment. Absent means 0.
+   */
+  delayChargeAnim?: number;
 };
 
 export type AnimationSet = {
@@ -147,6 +155,9 @@ function readWeaponAnim(node: XmlElement, name: string): WeaponAnim | undefined 
   };
   if (fire) anim.firePoint = { x: intAttr(fire, "x") ?? 0, y: intAttr(fire, "y") ?? 0 };
   if (chargeImage) anim.chargeImage = chargeImage;
+  const delay = Number(textChild(node, "delayChargeAnim"));
+  if (textChild(node, "delayChargeAnim") != null && Number.isFinite(delay))
+    anim.delayChargeAnim = Math.min(1, Math.max(0, delay));
   return anim;
 }
 

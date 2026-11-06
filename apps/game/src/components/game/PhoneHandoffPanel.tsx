@@ -1,5 +1,5 @@
 /**
- * Per the user: Options › Phone, beside Game files. Send this browser's game files, saved game, and
+ * Per the user: Setup › Phone, beside Game files (SetupScreen.tsx). Send this browser's game files, saved game, and
  * achievements to another device, or receive that set here. The code is a short room code. The bytes
  * move on a data channel. A transfer that stops leaves the files already stored here in place.
  */
@@ -19,6 +19,7 @@ import {
   type SendLink,
 } from "@/game/handoff/link";
 import { formatCode, handoffOrigin, normalizeCode } from "@/game/handoff/relay";
+import { qrReader } from "@/game/handoff/qr-detect";
 import {
   confirmSaved,
   receiveCollected,
@@ -28,10 +29,6 @@ import {
 
 type Phase = "home" | "preparing" | "need-code" | "exchange" | "transfer" | "saving" | "done";
 type Role = "send" | "receive";
-
-type Detector = {
-  detect(source: CanvasImageSource): Promise<{ rawValue?: string }[]>;
-};
 
 function kept(err: unknown): string {
   const message = err instanceof Error && err.message ? err.message : "The handoff stopped.";
@@ -74,55 +71,49 @@ function QrScan({ onText }: { onText: (text: string) => void }) {
   onTextRef.current = onText;
   const [problem, setProblem] = useState<string | null>(null);
   useEffect(() => {
-    const Ctor = (
-      globalThis as {
-        BarcodeDetector?: new (opts: { formats: string[] }) => Detector;
-      }
-    ).BarcodeDetector;
-    if (!Ctor || !navigator.mediaDevices?.getUserMedia) {
-      setProblem("Type the code. This browser has no QR scanner.");
-      return;
-    }
-    let detector: Detector;
-    try {
-      detector = new Ctor({ formats: ["qr_code"] });
-    } catch {
-      setProblem("Type the code. This browser has no QR scanner.");
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setProblem("Type the code. This browser cannot use the camera here.");
       return;
     }
     let stop = false;
     let stream: MediaStream | null = null;
     let timer = 0;
-    navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: { ideal: "environment" } } })
-      .then((next) => {
+    // The camera is asked for first, on the tap that opened this, so iOS still counts it as that gesture.
+    const camera = navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false,
+    });
+    Promise.all([camera, qrReader()])
+      .then(([next, reader]) => {
         stream = next;
         const video = videoRef.current;
         if (!video || stop) {
           next.getTracks().forEach((track) => track.stop());
           return;
         }
+        if (!reader) {
+          next.getTracks().forEach((track) => track.stop());
+          setProblem("Type the code. This browser has no QR scanner.");
+          return;
+        }
         video.srcObject = next;
-        return video.play();
-      })
-      .then(() => {
-        const tick = () => {
-          if (stop) return;
-          const video = videoRef.current;
-          if (video && video.readyState >= 2) {
-            void detector
-              .detect(video)
-              .then((found) => {
-                if (stop) return;
-                for (const code of found) {
-                  if (code.rawValue) onTextRef.current(code.rawValue);
-                }
-              })
-              .catch(() => {});
-          }
+        return video.play().then(() => {
+          const tick = () => {
+            if (stop) return;
+            const shown = videoRef.current;
+            if (shown && shown.readyState >= 2) {
+              void reader
+                .read(shown)
+                .then((found) => {
+                  if (stop) return;
+                  for (const text of found) onTextRef.current(text);
+                })
+                .catch(() => {});
+            }
+            timer = window.setTimeout(tick, 200);
+          };
           timer = window.setTimeout(tick, 200);
-        };
-        timer = window.setTimeout(tick, 200);
+        });
       })
       .catch(() => {
         if (!stop) setProblem("The camera is not available. Type the code instead.");

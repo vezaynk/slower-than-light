@@ -5,7 +5,15 @@ import { KIN, type KinId } from "../extras/kin.ts";
 import { HULLS, type HullSpec } from "../hulls.ts";
 import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "../wiki/cited-rock-fire.ts";
-import { CITED_DRONES } from "../wiki/drone-catalog.ts";
+import { CITED_DRONES, DRONE_GUNS, DRONE_GUN_OF } from "../wiki/drone-catalog.ts";
+import { STORE_RARITY } from "../wiki/store-rarity.ts";
+import {
+  crewPowers,
+  droneDetail,
+  shortLabel,
+  weaponDetail,
+  weaponFlavor,
+} from "../extras/blueprint-copy.ts";
 import { SECTOR_TYPES, sectorRarities, type SectorType } from "../wiki/sectors.ts";
 import { ACHIEVEMENTS, type AchievementRow } from "../wiki/achievements.ts";
 import { STORES } from "../wiki/store-catalog.ts";
@@ -105,11 +113,15 @@ function crewRow(id: KinId): CrewDef {
       id === "rock" ? rockExtinguishScale() : id === "crystal" ? crystalExtinguishScale() : 1,
   };
   if (hire) row.cost = hire.cost;
+  row.short = kin.name;
+  row.powers = crewPowers(row);
   return row;
 }
 
 function augmentRow(row: (typeof CATALOG)[number]): AugmentDef {
   const augment: AugmentDef = { id: row.id, name: row.name, detail: row.detail, cost: row.cost };
+  const rarity = STORE_RARITY[row.id];
+  if (rarity != null) augment.rarity = rarity;
   if (row.value != null) augment.value = row.value;
   if (row.stackable != null) augment.stackable = row.stackable;
   return augment;
@@ -121,7 +133,41 @@ function droneRow(row: (typeof CITED_DRONES)[number]): DroneDef {
   drone.power = row.power;
   if (row.cooldown != null) drone.cooldown = row.cooldown;
   if (row.speed != null) drone.speed = row.speed;
+  const rarity = STORE_RARITY[row.ref];
+  if (rarity != null) drone.rarity = rarity;
+  // INFERRED: Drone Control prints no dodge for any drone, so drones that fly outside the hull never evade.
+  // Boarding, repair, and anti-personnel drones work inside a ship and carry no dodge tag.
+  if (FLYING_DRONE_TYPES.has(row.type)) drone.dodge = 0;
+  const gun = DRONE_GUN_OF[row.ref];
+  if (gun) drone.weapon = gun;
+  drone.short = shortLabel(row.name);
+  const detail = droneDetail(row.type, row.power);
+  if (detail) drone.detail = detail;
   return drone;
+}
+
+/** Drone types that fly in space beside a hull. */
+const FLYING_DRONE_TYPES = new Set(["COMBAT", "DEFENSE", "SHIELD"]);
+
+/** A drone's gun as a blueprint. It is never sold, fitted, or drawn from a list. */
+function droneGunRow(row: (typeof DRONE_GUNS)[number]): WeaponBlueprint {
+  return {
+    id: row.id,
+    name: row.name,
+    kind: row.kind,
+    power: 0,
+    charge: 0,
+    shots: 1,
+    gap: 0,
+    damage: row.damage,
+    ion: 0,
+    fire: row.fire,
+    breach: 0,
+    ammo: false,
+    price: 0,
+    blurb: row.blurb,
+    rarity: 0,
+  };
 }
 
 function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
@@ -150,6 +196,8 @@ function sectorRow(row: SectorType): SectorDef {
   if (track) sector.tracks = [track];
   const rarities = sectorRarities(row.notes);
   if (rarities.length > 0) sector.rarities = rarities;
+  // ftl.dat's sector_data.xml names START_BEACON on the first sector. The others fall back to <beaconEvents>.
+  if (row.id === "STANDARD_SPACE") sector.startEvent = "START_BEACON";
   return sector;
 }
 
@@ -683,6 +731,9 @@ function enemyHull(id: string, interior: string): HullDef {
       name: id,
       quote: "",
       unlock: "",
+      // INFERRED: every crewed enemy blueprint sabotages, as no wiki page names an enemy that invades except the
+      // Flagship (Crew Teleporter, "Enemy Crew Teleporter"). Auto-ships carry no crew and no tag.
+      ...(id.startsWith("AUTO_") ? {} : { boardingAI: "sabotage" as const }),
       reactor: 0,
       missiles: 0,
       parts: 0,
@@ -772,6 +823,9 @@ function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef
       missiles: 0,
       parts: 0,
       health: FLAGSHIP_HEALTH[stage],
+      // Crew Teleporter, "Enemy Crew Teleporter": the Flagship "will send all its crew except for 1 or 2
+      // crewmembers". Only the last stage carries a teleporter room, so only it names the plan.
+      ...(stage === 3 ? { boardingAI: "invasion" as const } : {}),
       weapons: [],
       augments: [],
       installs: flagshipInstalls(source.rooms),
@@ -862,6 +916,8 @@ function launchSound(kind: WeaponBlueprint["kind"]): string {
 
 function weaponRow(id: string): WeaponBlueprint {
   const row: WeaponBlueprint = { ...WEAPONS[id] };
+  const rarity = STORE_RARITY[id];
+  if (rarity != null) row.rarity = rarity;
   // The stand-in sheet is named with the blueprint id. The projectile clip is `<id>_shot`.
   row.art = id;
   row.image = `${id}_shot`;
@@ -887,6 +943,11 @@ function weaponRow(id: string): WeaponBlueprint {
   row.hitShieldSounds = ["hitShield1"];
   row.missSounds = ["miss"];
   row.icon = `img/weapons/${id}.png`;
+  row.short = shortLabel(row.name);
+  // A row with no tooltip reads its <desc> as the tooltip, so only a tooltip row gets a second line.
+  if (row.blurb) row.detail = weaponDetail(row);
+  const flavor = weaponFlavor(row);
+  if (flavor) row.flavor = flavor;
   return row;
 }
 
@@ -1057,6 +1118,69 @@ const STANDIN_GATES: EventDef = {
   ],
 };
 
+/**
+ * The names FTL's executable gives the start and exit beacon events (the strings START_BEACON, FINISH_BEACON, and
+ * FINISH_BEACON_NEBULA sit beside each other in it). The gap mod writes them as `<beaconEvents>`, so a real ftl.dat
+ * and the stand-in share them.
+ */
+const BEACON_EVENTS = {
+  start: "START_BEACON",
+  finish: "FINISH_BEACON",
+  finishNebula: "FINISH_BEACON_NEBULA",
+} as const;
+
+/** INVENTED text. The sector's first beacon. */
+const START_PAGE: EventDef = {
+  id: "START_BEACON",
+  dest: "Start beacon",
+  flag: "START_BEACON",
+  aliases: [],
+  sectors: [],
+  body: "The jump drive spins down. Fresh sensor returns trickle in from the beacons ahead.",
+  choices: [],
+};
+
+/**
+ * INVENTED text. The exit beacon. Its hidden Continue loads EXIT_LIST, as ftl.dat's FINISH_BEACON does.
+ * The sim keeps its own Continue and leave buttons and reads this page's label and list.
+ */
+const FINISH_PAGE: EventDef = {
+  id: "FINISH_BEACON",
+  dest: "Exit beacon",
+  flag: "FINISH_BEACON",
+  aliases: [],
+  sectors: [],
+  body: "A long-range relay marks the way out of this sector. Charge the drive to jump onward.",
+  choices: [
+    {
+      id: "continue",
+      label: "Continue...",
+      hidden: true,
+      fx: [{ k: "goto", id: "EXIT_LIST" }],
+    },
+  ],
+};
+
+/** INVENTED text. A nebula exit has no Continue, as ftl.dat's FINISH_BEACON_NEBULA has none. */
+const FINISH_NEBULA_PAGE: EventDef = {
+  id: "FINISH_BEACON_NEBULA",
+  dest: "Exit beacon",
+  flag: "FINISH_BEACON_NEBULA",
+  aliases: [],
+  sectors: [],
+  body: "The long-range relay is buried in nebula haze, but its signal holds. Charge the drive to jump onward.",
+  choices: [],
+};
+
+/** ftl.dat's EXIT_LIST shape: one draw between the neutral and item exit lists. */
+const EXIT_LIST = {
+  id: "EXIT_LIST",
+  entries: [
+    { id: "EXIT_NEUTRAL", unique: false },
+    { id: "EXIT_ITEMS", unique: false },
+  ],
+};
+
 export function loadCatalog(): void {
   const named = campaignEvents();
   const empties = emptyBeaconRecords().map(emptyRow);
@@ -1067,11 +1191,13 @@ export function loadCatalog(): void {
   if (!events.some((event) => event.id === "STORE_REBELSIDE")) events.push(REBEL_TRADE);
   // After the sector quotas, so the empty list is not mistaken for one of them.
   events.push(STANDIN_GATES);
+  for (const page of [START_PAGE, FINISH_PAGE, FINISH_NEBULA_PAGE])
+    if (!events.some((event) => event.id === page.id)) events.push(page);
   loadPack(
     {
       // Ghost stays off the stand-in. crewDef supplies it when no crewBlueprint uses that id.
       crew: (Object.keys(KIN) as KinId[]).filter((id) => id !== "ghost").map(crewRow),
-      weapons: Object.keys(WEAPONS).map(weaponRow),
+      weapons: [...Object.keys(WEAPONS).map(weaponRow), ...DRONE_GUNS.map(droneGunRow)],
       augments: CATALOG.map(augmentRow),
       drones: CITED_DRONES.map(droneRow),
       systems: CITED_SYSTEMS.map(systemRow),
@@ -1094,7 +1220,13 @@ export function loadCatalog(): void {
       rewards: REWARD_TABLE,
       factions: FACTION_SURRENDER.map((row) => ({ ...row })),
       events,
-      lists: [...fillerListRecords().map(listRow), ...lists, { id: "STANDIN_EMPTY", entries: [] }],
+      lists: [
+        ...fillerListRecords().map(listRow),
+        ...lists,
+        EXIT_LIST,
+        { id: "STANDIN_EMPTY", entries: [] },
+      ],
+      beaconEvents: { ...BEACON_EVENTS },
       empties,
       textLists: [
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },

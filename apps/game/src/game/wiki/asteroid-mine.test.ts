@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { allEvents } from "@stl/pack";
-import { choiceDisabled, createGame } from "../sim.ts";
+import { choiceDisabled } from "../sim.ts";
 import "../pack/base.ts";
 import { fillerChoose } from "./filler-events.ts";
+import { startedGame } from "../test-start.ts";
 
 const MINE = "c:large-asteroid-field:2";
 
 describe("Large asteroid field mining", () => {
   it("stays closed without a fitted Scrap Recovery Arm", () => {
-    const g = createGame(4);
+    const g = startedGame(4);
     const page = allEvents().find((event) => event.dest === "Large asteroid field");
     assert.ok(
       page?.choices.some(
@@ -25,7 +26,7 @@ describe("Large asteroid field mining", () => {
   });
 
   it("a fitted arm pays high scrap and nothing else", () => {
-    const g = createGame(4);
+    const g = startedGame(4);
     g.augments = ["SCRAP_COLLECTOR"];
     assert.equal(choiceDisabled(g, MINE), null);
     const scrap = g.scrap;

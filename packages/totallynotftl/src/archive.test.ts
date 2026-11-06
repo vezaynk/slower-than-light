@@ -80,7 +80,8 @@ describe("totallynotftl.dat", () => {
     const media = await standInMedia();
     assert.equal(
       extracted.documents.length,
-      events.length + 5 + pictures.length + media.documents.length,
+      // ships, sectors, achievements, text lists, names, and the Esperanto table.
+      events.length + 6 + pictures.length + media.documents.length,
     );
     assert.match(
       extracted.documents.find((doc) => doc.path === "data/text-eo.xml")?.xml ?? "",
@@ -130,7 +131,11 @@ describe("totallynotftl.dat", () => {
     assert.equal(anim.clips.find((row) => row.name === "LASER_BURST_3_shot")?.time, 1);
     assert.ok(anim.clips.some((row) => row.name === "human_walk_down"));
     assert.equal(anim.clips.find((row) => row.name === "fire_large")?.length, 4);
-    assert.equal(anim.clips.find((row) => row.name === "asteroid0")?.length, 1);
+    // The rocks sit in dlcAnimations.xml, as in ftl.dat ("lays out the asteroid field" below).
+    assert.equal(
+      anim.clips.find((row) => row.name === "asteroid0"),
+      undefined,
+    );
     assert.equal(anim.clips.find((row) => row.name === "explosion_big1")?.time, 1);
     const sounds = readSounds(
       extracted.documents.find((doc) => doc.path === "data/sounds.xml")?.xml ?? "",
@@ -224,7 +229,7 @@ describe("totallynotftl.dat", () => {
       "img/map/map_icon_ship.png",
       "img/ship/fleet/fleet_1_med_warning.png",
       "img/effects/fire_large.png",
-      "img/effects/asteroid0.png",
+      "img/asteroids/asteroid0.png",
       "img/ui_icons/icon_scrap.png",
       "img/mouse/pointerValid.png",
       "fonts/JustinFont8.font",
@@ -293,6 +298,42 @@ describe("totallynotftl.dat", () => {
     const golden = readFileSync(new URL("../totallynotftl.dat", import.meta.url));
     assert.equal(built.byteLength, golden.byteLength);
     assert.equal(Buffer.compare(built, golden), 0);
+  });
+
+  it("fills the fields the parity check reads from ftl.dat, without ftl.dat", async () => {
+    // parity.test.ts needs a local ftl.dat. These are the fields it once caught missing.
+    const pack = packFromExtract(await extractFtlDat(await standInDat()));
+    for (const kind of ["weapons", "augments", "drones"] as const) {
+      for (const row of pack[kind] ?? [])
+        assert.notEqual(row.rarity, undefined, `${kind} ${row.id}`);
+    }
+    const drawn = (pack.weapons ?? []).filter((row) => (row.rarity ?? 0) > 0);
+    assert.ok(drawn.length > 0, "a RANDOM weapon draw has a pool");
+    for (const drone of pack.drones ?? []) {
+      if (!drone.weapon) continue;
+      assert.ok(
+        pack.weapons?.some((row) => row.id === drone.weapon),
+        `drone ${drone.id} fires the loaded gun ${drone.weapon}`,
+      );
+    }
+    assert.ok(pack.drones?.some((row) => row.weapon && row.dodge != null));
+    assert.ok(pack.hulls?.some((row) => row.boardingAI === "sabotage"));
+    assert.ok(pack.hulls?.some((row) => row.boardingAI === "invasion"));
+    assert.ok(pack.weapons?.some((row) => row.short && row.detail && row.flavor));
+    assert.ok(pack.crew?.every((row) => row.short && row.powers?.length));
+  });
+
+  it("lays out the asteroid field as ftl.dat does", async () => {
+    const files = await extractFtlDat(await standInDat());
+    for (let i = 0; i < 10; i += 1) assert.ok(files.assets.has(`img/asteroids/asteroid${i}.png`));
+    for (let i = 1; i <= 3; i += 1)
+      assert.ok(files.assets.has(`img/asteroids/asteroid_back${i}.png`));
+    const dlc = files.documents.find((doc) => doc.path === "data/dlcAnimations.xml")?.xml ?? "";
+    const set = readAnimations(dlc);
+    const rock = set.sheets.find((sheet) => sheet.name === "asteroid0");
+    assert.equal(rock?.file, "img/asteroids/asteroid0.png");
+    assert.equal(rock?.fw, 24);
+    assert.ok(set.clips.some((clip) => clip.name === "asteroid9"));
   });
 
   it("merges the stand-in archive with the gap mod back into the catalog", async () => {

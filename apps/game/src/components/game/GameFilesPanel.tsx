@@ -1,7 +1,8 @@
 /**
- * Per the user: Options › Game files. Upload ftl.dat, .ftl and .zip files, set the order they load in, and look inside
- * each one. The first enabled file is the base game; each later one is applied over it, top to bottom. The campaign
- * rules always load last. Applying reloads the page, and boot reads the saved order (pack/boot.ts).
+ * Per the user: Setup › Game files (SetupScreen.tsx). Upload ftl.dat, .ftl and .zip files, set the order they load in,
+ * and look inside each one. The first enabled file is the base game; each later one is applied over it, top to bottom.
+ * The campaign rules always load last. Launch reads the saved order (pack/boot.ts, game/launch.ts); a changed order
+ * after a launch reloads the page.
  * INVENTED layout, on the Options sheet's rows and switches.
  */
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
@@ -222,16 +223,9 @@ export function GameFilesPanel() {
           <div className="gf-pending" role="status">
             <p>
               {
-                "Saved. The game is still running the previous files. Restarting reloads the page; a saved run may not continue if its ship or events are gone."
+                "Saved. The game is still running the previous files, so Launch reloads the page to load these. A saved run may not continue if its ship or events are gone."
               }
             </p>
-            <button
-              type="button"
-              className="gf-button is-primary"
-              onClick={() => location.reload()}
-            >
-              {"Apply and restart"}
-            </button>
           </div>
         ) : null}
         {fromUrl ? (

@@ -29,6 +29,7 @@
     <trackList>
       <track>civilian</track>
     </trackList>
+    <startEvent>START_BEACON</startEvent>
     <event name="NEBULA" min="0" max="4"/>
     <event name="STORE" min="1" max="2"/>
     <event name="STANDARD_SPACE__items__2" min="1" max="1"/>

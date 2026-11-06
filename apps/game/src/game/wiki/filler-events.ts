@@ -51,6 +51,7 @@ import { grantRandomItem } from "./bonus-item.ts";
 import { archiveAuthoredChoices, locksOwned, ownedLock, scrapStock } from "./choice-locks.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
+import { queueSfx } from "../sfx-queue.ts";
 
 /**
  * @agent:filler. Documented events for the plain beacons that the cited tables do not fill.
@@ -527,6 +528,8 @@ function weaponOffer(g: Game, tier: SurrenderTier): SurrenderOffer {
 function hurt(g: Game, n: number): boolean {
   g.player.hull = Math.max(0, g.player.hull - n);
   log(g, `Hull damage: ${n}.`);
+  // sounds.xml eventDamage: an event's blast against the hull.
+  if (n > 0) queueSfx(g, "eventDamage");
   if (g.player.hull > 0) return false;
   g.phase = "defeat";
   g.outcome = g.training ? "tutorial" : "hull";

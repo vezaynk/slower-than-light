@@ -167,6 +167,14 @@ describe("hyperspace mod", () => {
     assert.deepEqual(packFromMod(xml), { weapons: pack.weapons });
   });
 
+  it("keeps the default start and exit events", () => {
+    const beaconEvents = { start: "OPEN", finish: "LEAVE", finishNebula: "LEAVE_FOG" };
+    const xml = emitMod({ weapons: pack.weapons, beaconEvents });
+    assert.match(xml, /<beaconEvents>/);
+    assert.match(xml, /<finishEvent nebula="true">LEAVE_FOG<\/finishEvent>/);
+    assert.deepEqual(packFromMod(xml), { weapons: pack.weapons, beaconEvents });
+  });
+
   it("refuses a campaign file", () => {
     assert.throws(() => packFromMod(`<FTL><weaponBlueprint name="ember"/></FTL>`), /Campaign XML/);
   });

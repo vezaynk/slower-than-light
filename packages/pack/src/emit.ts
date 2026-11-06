@@ -8,6 +8,7 @@ import type {
   AchievementCondition,
   AchievementDef,
   AugmentDef,
+  BeaconEvents,
   ChoiceGift,
   ChoiceReq,
   ContentPack,
@@ -41,6 +42,7 @@ import type {
   WeaponKind,
 } from "./types.ts";
 import { prettyXml } from "./format.ts";
+import { QUEST_ARRIVAL_PREFIX } from "./parse.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -93,7 +95,7 @@ const HEADER = `
   A fixed trade does not roll. The handler still reads the amount from the choice id.
   A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
-  A quest effect names a marker. A goto effect opens another page.
+  A quest is ftl.dat's quest tag inside the result event. Its event is arrive- plus the quest id. A goto effect opens another page.
   An arrival page is named arrive- plus the quest id. The dealer leaves it off the chart.
   A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
   An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
@@ -178,7 +180,21 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
   for (const row of pack.shipClasses ?? []) add(root, shipClassElement(doc, row));
+  if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   return prettyXml(serializer.serializeToString(doc));
+}
+
+/** `<beaconEvents>`: the start and exit events a sector opens when it names none. */
+function beaconEventsElement(doc: XmlDocument, row: BeaconEvents): XmlElement {
+  const node = element(doc, "beaconEvents", {});
+  if (row.start) add(node, leaf(doc, "startEvent", row.start));
+  if (row.finish) add(node, leaf(doc, "finishEvent", row.finish));
+  if (row.finishNebula) {
+    const nebula = leaf(doc, "finishEvent", row.finishNebula);
+    nebula.setAttribute("nebula", "true");
+    add(node, nebula);
+  }
+  return node;
 }
 
 function shipClassElement(doc: XmlDocument, row: ShipClassDef): XmlElement {
@@ -382,12 +398,27 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
       add(choiceNode, reqElement(doc, req));
     }
     let placedGift = false;
+    let note: XmlElement | undefined;
     for (const fx of choice.fx) {
       if (fx.k === "nothing" && choice.gift && !placedGift) {
         add(choiceNode, nothingEvent(doc, choice.gift));
         placedGift = true;
+        note = undefined;
+      } else if (fx.k === "quest") {
+        // ftl.dat's <quest event> sits inside the result event, and FTL reads only the first <event> of a choice.
+        // The sentence is that event, even when a stand-in-only effect such as close comes between them.
+        const quest = element(doc, "quest", { event: QUEST_ARRIVAL_PREFIX + fx.id });
+        if (note) add(note, quest);
+        else {
+          const holder = element(doc, "event", {});
+          add(holder, quest);
+          add(choiceNode, holder);
+        }
       } else {
-        add(choiceNode, effectElement(doc, fx));
+        const node = effectElement(doc, fx);
+        add(choiceNode, node);
+        if (fx.k === "note") note = node;
+        else if (node.tagName === "event") note = undefined;
       }
     }
     add(node, choiceNode);
@@ -653,14 +684,14 @@ function surrenderReward(doc: XmlDocument, reward: SurrenderReward): XmlElement[
   return [element(doc, "fuelRepairs", { repairs: num(reward.repairs) })];
 }
 
-function effectElement(doc: XmlDocument, fx: EventEffect): XmlElement {
+/** One effect as its tag. A quest is written by the choice loop, inside the result event. */
+function effectElement(doc: XmlDocument, fx: Exclude<EventEffect, { k: "quest" }>): XmlElement {
   if (fx.k === "nothing") return element(doc, "event", {});
   if (fx.k === "note") {
     const node = element(doc, "event", {});
     add(node, leaf(doc, "text", fx.text));
     return node;
   }
-  if (fx.k === "quest") return element(doc, "effect", { k: "quest", id: fx.id });
   if (fx.k === "goto") return element(doc, "event", { load: fx.id });
   if (fx.k === "close") return element(doc, "effect", { k: "close" });
   if (fx.k === "item") return element(doc, fx.item, {});
@@ -899,9 +930,13 @@ function systemElement(doc: XmlDocument, system?: SystemDef, tune?: TuneDef): Xm
 
 function droneElement(doc: XmlDocument, drone: DroneDef): XmlElement {
   const node = element(doc, "droneBlueprint", { name: drone.id });
+  if (drone.noloc) node.setAttribute("NOLOC", "1");
   add(node, leaf(doc, "title", drone.name));
+  if (drone.short) add(node, leaf(doc, "short", drone.short));
+  if (drone.detail) add(node, leaf(doc, "desc", drone.detail));
   add(node, leaf(doc, "cost", drone.cost));
   if (drone.image) add(node, leaf(doc, "droneImage", drone.image));
+  if (drone.bp != null) add(node, leaf(doc, "bp", drone.bp));
   if (drone.rarity != null) add(node, leaf(doc, "rarity", drone.rarity));
   if (drone.type) add(node, leaf(doc, "type", drone.type));
   if (drone.power != null) add(node, leaf(doc, "power", drone.power));
@@ -927,7 +962,10 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true
   const node = element(doc, "weaponBlueprint", { name: weapon.id });
   add(node, leaf(doc, "type", TYPE[weapon.kind]));
   add(node, leaf(doc, "title", weapon.name));
+  if (weapon.short) add(node, leaf(doc, "short", weapon.short));
+  if (weapon.detail) add(node, leaf(doc, "desc", weapon.detail));
   add(node, leaf(doc, "tooltip", weapon.blurb));
+  if (weapon.flavor) add(node, leaf(doc, "flavorType", weapon.flavor));
   add(node, leaf(doc, "damage", weapon.damage));
   add(node, leaf(doc, "shots", weapon.shots));
   add(node, leaf(doc, "power", weapon.power));
@@ -953,6 +991,7 @@ function weaponElement(doc: XmlDocument, weapon: WeaponBlueprint, shotGap = true
   if (weapon.art) add(node, leaf(doc, "weaponArt", weapon.art));
   if (weapon.image) add(node, leaf(doc, "image", weapon.image));
   if (weapon.icon) add(node, leaf(doc, "iconImage", weapon.icon));
+  if (weapon.bp != null) add(node, leaf(doc, "bp", weapon.bp));
   if (weapon.rarity != null) add(node, leaf(doc, "rarity", weapon.rarity));
   soundList(doc, node, "launchSounds", weapon.launchSounds);
   soundList(doc, node, "hitShipSounds", weapon.hitShipSounds);
@@ -991,6 +1030,11 @@ function raceElement(
     if (race.detail) add(node, leaf(doc, "desc", race.detail));
     if (race.short) add(node, leaf(doc, "short", race.short));
     if (race.cost != null) add(node, leaf(doc, "cost", race.cost));
+    if (race.powers?.length) {
+      const list = element(doc, "powerList", {});
+      for (const line of race.powers) add(list, leaf(doc, "power", line));
+      add(node, list);
+    }
   }
   if (part === "identity") return node;
   add(node, leaf(doc, "maxHealth", race.hp));

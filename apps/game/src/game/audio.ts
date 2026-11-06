@@ -108,7 +108,7 @@ export const SFX_CUES: Record<string, readonly string[]> = {
   laser: ["lightLaser1", "lightLaser2", "lightLaser3"],
   missile: ["smallMissile1", "smallMissile2"],
   ion: ["ionShoot1", "ionShoot2", "ionShoot3"],
-  beam: ["beam1"],
+  beam: ["beam1", "beam3"],
   COMBAT_BEAM: ["beam1"],
   shield: ["hitShield1", "hitShield2", "hitShield3"],
   hit: ["hitHull1", "hitHull2", "hitHull3"],
@@ -128,16 +128,30 @@ export const SFX_CUES: Record<string, readonly string[]> = {
   jumpArrive: ["jumpArrive"],
   fire: ["fire"],
   repair: ["repair"],
+  // Human deaths (deathCue). A family with one packed variant plays that one.
+  death: ["death1", "death2"],
+  femaleDeath: ["femaleDeath1", "femaleDeath2", "femaleDeath3"],
+  // Crew melee (sim.ts meleeCues) and a Rock's tread.
+  crewLaser: ["crewLaser1", "crewLaser2", "crewLaser3"],
+  rockThrow: ["rockThrow1", "rockThrow2", "rockThrow3"],
+  rockHit: ["rockHit1", "rockHit2", "rockHit3"],
+  mantisSplat: ["mantisSplat1", "mantisSplat2", "mantisSplat3"],
+  rockStep: ["rockStomp1", "rockStomp2", "rockThud1", "rockThud2", "rockThud3"],
+  lockdown: ["lockdown1", "lockdown2"],
+  lightning: ["lightning1", "lightning2", "lightning3", "lightning4"],
 };
 
-/** The death cue for a crew member. A race with its own tag uses that; everyone else uses death1. */
-export function deathCue(kin: string | undefined): string {
+/**
+ * The death sound for a crew member. A race with its own cue uses that. Everyone else uses the human family:
+ * female crew (named from data/names.xml's female list) the femaleDeath cues, the rest death1 and death2.
+ */
+export function deathCue(kin: string | undefined, sex?: "male" | "female"): string {
   if (kin === "rock") return "rockDeath";
   if (kin === "mantis") return "mantisDeath";
   if (kin === "crystal") return "crystalDeath";
   if (kin === "engi") return "engiDeath";
   if (kin === "energy") return "energyDeath";
-  return "death1";
+  return sex === "female" ? "femaleDeath" : "death";
 }
 
 /**
@@ -191,8 +205,8 @@ export function playSfx(name: string) {
   if (muted) return;
   const cue = cueFor(name);
   if (cue) {
-    // Fire and repair are started by syncLoops. Everything else stays a one-shot.
-    if (cue.loop && (name === "fire" || name === "repair")) return;
+    // The loop cues are started by syncLoops. Everything else stays a one-shot.
+    if (cue.loop && isLoopCue(name)) return;
     void playCue(cue.file, cue.blob, cue.volume, false);
     return;
   }
@@ -315,11 +329,30 @@ async function playCue(file: string, blob: Blob, volume01: number, loop: boolean
 const loops = new Map<string, { src: AudioBufferSourceNode; gain: GainNode }>();
 const loopWanted = new Map<string, boolean>();
 
-/** Starts the fire or repair loop while that work is happening, and stops it when the work stops. */
-export function syncLoops(flags: { fire: boolean; repair: boolean }) {
+/**
+ * Archive cues that run as a loop while their work lasts, held by syncLoops. Each is `loop="true"` in ftl.dat's
+ * sounds.xml or dlcSounds.xml. A one-shot play of one of these names is skipped: the loop owns it.
+ */
+export const LOOP_CUES = [
+  "fire",
+  "repair",
+  "airLeak",
+  "hackLoop",
+  "cloneBroken",
+  "shrikeRepair",
+] as const;
+
+export type LoopCue = (typeof LOOP_CUES)[number];
+
+/** Starts each loop while its work is happening, and stops it when the work stops. A missing key is off. */
+export function syncLoops(flags: Partial<Record<LoopCue, boolean>>) {
   if (typeof window === "undefined" || !ctx || !master) return;
-  void holdLoop("fire", flags.fire);
-  void holdLoop("repair", flags.repair);
+  for (const name of LOOP_CUES) void holdLoop(name, flags[name] ?? false);
+}
+
+/** True for a name syncLoops holds. */
+export function isLoopCue(name: string): boolean {
+  return (LOOP_CUES as readonly string[]).includes(name);
 }
 
 async function holdLoop(name: string, on: boolean) {
@@ -490,5 +523,6 @@ export function flushSfx(queue: string[]) {
     return;
   }
   const batch = queue.splice(0, queue.length);
-  for (const name of batch) playSfx(name);
+  // One play per name per flush: a loop that steps power bar by bar sounds once, not once per bar.
+  for (const name of new Set(batch)) playSfx(name);
 }

@@ -40,6 +40,7 @@ import { stampStockLabels } from "./stock-labels.ts";
 import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
 import { grantRandomItem } from "./bonus-item.ts";
 import { showArchivePage } from "../archive-pay.ts";
+import { queueSfx } from "../sfx-queue.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -1948,7 +1949,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   for (const fx of choice.fx) {
     if (fx.k !== "hull") continue;
     if (fx.n >= 0) g.player.hull = Math.min(g.player.hullMax, g.player.hull + fx.n);
-    else g.player.hull = Math.max(0, g.player.hull + fx.n);
+    else {
+      g.player.hull = Math.max(0, g.player.hull + fx.n);
+      queueSfx(g, "eventDamage");
+    }
     ctx.note(fx.n >= 0 ? `Hull repairs: ${fx.n}.` : `Hull damage: ${-fx.n}.`);
   }
   for (const fx of choice.fx) {

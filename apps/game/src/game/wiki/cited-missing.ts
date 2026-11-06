@@ -31,6 +31,7 @@ import {
   type SurrenderOffer,
   type SurrenderTier,
 } from "./surrender.ts";
+import { queueSfx } from "../sfx-queue.ts";
 
 type Ctx = {
   g: Game;
@@ -1112,6 +1113,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
     }
     if (name === "ridiculous") {
       g.player.hull = Math.max(0, g.player.hull - 5);
+      queueSfx(g, "eventDamage");
       const sys = hurtRandom(ctx);
       ctx.note(`Hull damage: ${5}.`);
       if (sys) ctx.note(sys);

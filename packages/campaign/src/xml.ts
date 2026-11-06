@@ -26,6 +26,7 @@ import {
   emitNoteAppend,
   emitPack,
   rewardTable,
+  beaconEvents,
   type ContentPack,
   type EventDef,
 } from "@stl/pack";
@@ -45,6 +46,7 @@ export function campaignPack(): ContentPack {
     stores: allStores(),
     tunes: allTunes(),
     rewards: rewardTable(),
+    beaconEvents: beaconEvents(),
     events: allEvents(),
     lists: allFillerLists(),
     empties: allEmptyBeacons(),
@@ -81,6 +83,7 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       sectors: pack.sectors,
       stores: pack.stores,
       rewards: pack.rewards,
+      beaconEvents: pack.beaconEvents,
       factions: pack.factions,
       empties: pack.empties,
       shipClasses: pack.shipClasses,

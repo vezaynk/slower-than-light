@@ -38,7 +38,7 @@
   A fixed trade does not roll. The handler still reads the amount from the choice id.
   A grade tag hires a crew when the picked count matches, and pays its bands when it does not.
   A fixed payment does not roll. The handler still compares the two numbers on the choice id.
-  A quest effect names a marker. A goto effect opens another page.
+  A quest is ftl.dat's quest tag inside the result event. Its event is arrive- plus the quest id. A goto effect opens another page.
   An arrival page is named arrive- plus the quest id. The dealer leaves it off the chart.
   A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
   An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
@@ -1797,8 +1797,8 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
       <text>Accept the passenger.</text>
       <event>
         <text>"You surprise me, off-worlder. Thank you. The passenger will be with you momentarily." She refuses to enter the main hold and prefers to wait in the cargo bay.</text>
+        <quest event="arrive-rock-bride"/>
       </event>
-      <effect k="quest" id="rock-bride"/>
     </choice>
     <choice name="c:rock-bride:1">
       <text>Refuse.</text>
@@ -2197,37 +2197,37 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Let them live. We don't want the weapon, we want information.</text>
       <event>
         <text>You ask where they were delivering the weapon. "By telling you we will probably die jussst as like as not... Oh well." They give you the coordinates of the a prototype cruiser's mobile construction platform.</text>
+        <quest event="arrive-slug-platform"/>
       </event>
       <effect k="close"/>
-      <effect k="quest" id="slug-platform"/>
     </choice>
     <choice name="q:capture:agree">
       <text>Agree to capture the ship.</text>
       <event>
         <text>"Great, we'll relay their coordinates. Remember, do NOT destroy that ship! Remember, we'll be right behind you."</text>
+        <quest event="arrive-capture-ship"/>
       </event>
-      <effect k="quest" id="capture-ship"/>
     </choice>
     <choice name="q:merchant:investigate">
       <text>Accept.</text>
       <event>
         <text>"At least you're confident, for what little that's worth. Here is their last known location."</text>
+        <quest event="arrive-merchant-investigation"/>
       </event>
-      <effect k="quest" id="merchant-investigation"/>
     </choice>
     <choice name="q:nebula:comfort">
       <text>Make them comfortable for their final moments.</text>
       <event>
         <text>On their death bed, they croak out a series of coordinates and beg you to go there - when you attempt to ask them why, the survivor simply says, "ABADOTH" and perishes.</text>
+        <quest event="arrive-abadoth"/>
       </event>
-      <effect k="quest" id="abadoth"/>
     </choice>
     <choice name="q:mantis-collectors:follow">
       <text>After them!</text>
       <event>
         <text>You input their coordinates into your map and prepare to follow.</text>
+        <quest event="arrive-mantis-chase"/>
       </event>
-      <effect k="quest" id="mantis-chase"/>
     </choice>
   </event>
   <event name="quest-slug-pirate-trap-engage">
@@ -3539,6 +3539,22 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <text>Continue.</text>
       <event/>
     </choice>
+  </event>
+  <event name="START_BEACON">
+    <title>Start beacon</title>
+    <text>The jump drive spins down. Fresh sensor returns trickle in from the beacons ahead.</text>
+  </event>
+  <event name="FINISH_BEACON">
+    <title>Exit beacon</title>
+    <text>A long-range relay marks the way out of this sector. Charge the drive to jump onward.</text>
+    <choice name="continue" hidden="true">
+      <text>Continue...</text>
+      <event load="EXIT_LIST"/>
+    </choice>
+  </event>
+  <event name="FINISH_BEACON_NEBULA">
+    <title>Exit beacon</title>
+    <text>The long-range relay is buried in nebula haze, but its signal holds. Charge the drive to jump onward.</text>
   </event>
   <eventList name="FILLER">
     <event load="EMPTY_STATION2" unique="true"/>
@@ -5432,6 +5448,10 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="FRIENDLY_SLAVER" unique="true"/>
     <event load="TERRAFORMING_SCAN" unique="true"/>
     <event load="MERCENARY" unique="false"/>
+  </eventList>
+  <eventList name="EXIT_LIST">
+    <event load="EXIT_NEUTRAL" unique="false"/>
+    <event load="EXIT_ITEMS" unique="false"/>
   </eventList>
   <eventList name="STANDIN_EMPTY"/>
 </FTL>

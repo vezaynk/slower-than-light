@@ -44,6 +44,7 @@ import { scramblerBlocks } from "../wiki/cited-scrambler.ts";
 import { flagshipDronePower } from "../wiki/flagship-systems.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { airShown } from "../air.ts";
+import { holdLoopCue, queueSfx } from "../sfx-queue.ts";
 
 /**
  * Drone Control, the paragraph above "Overview": the system itself is priced at 60.
@@ -141,6 +142,34 @@ const STRIKER_FIRE = 10 / 100;
 const STRIKER_ION = 0;
 const STRIKER_BREACH = 0;
 
+/** Damage figures one drone shot carries. */
+type DroneHit = { damage: number; ion: number; fireChance: number; breachChance: number };
+
+/**
+ * The gun a drone blueprint names with `<weaponBlueprint>` (ftl.dat: DRONE_LASER, DRONE_BEAM, DRONE_FIREBEAM...).
+ * Its damage, ion, fire, and breach replace the cited figures. A drone naming no loaded gun keeps them.
+ */
+export function droneGun(kind: string, cited: DroneHit): DroneHit {
+  const id = droneDef(kind)?.weapon;
+  const gun = id ? weaponDef(id) : undefined;
+  if (!gun) return cited;
+  return { damage: gun.damage, ion: gun.ion, fireChance: gun.fire, breachChance: gun.breach };
+}
+
+/**
+ * The projectile a drone's loaded gun launches, and the gun id for its pierce, stun, and sounds.
+ * ftl.dat's DRONE_ION and DRONE_MISSILE are typed ION and MISSILE. A gun typed LASER with no damage but ion
+ * still ionizes, because sim.ts applies ion only to an ion shot. A drone naming no loaded gun stays a laser.
+ */
+export function droneGunShot(kind: string): { kind: "laser" | "ion" | "missile"; defId?: string } {
+  const id = droneDef(kind)?.weapon;
+  const gun = id ? weaponDef(id) : undefined;
+  if (!id || !gun) return { kind: "laser" };
+  if (gun.kind === "missile") return { kind: "missile", defId: id };
+  if (gun.kind === "ion" || (gun.damage === 0 && gun.ion > 0)) return { kind: "ion", defId: id };
+  return { kind: "laser", defId: id };
+}
+
 /**
  * INVENTED: the drone page has no projectile flight time. Must be > 0 because
  * shot progress divides by duration. 0.7 matches other laser shots in this drill.
@@ -178,6 +207,19 @@ const BEAM_DAMAGE = 1;
 
 /** Drone Control, Combat Drones (offensive drones) > Anti-Ship Beam Drone I: "10% chance to set a tile on fire". */
 const BEAM_FIRE = 10 / 100;
+
+const STRIKER_HIT: DroneHit = {
+  damage: STRIKER_DAMAGE,
+  ion: STRIKER_ION,
+  fireChance: STRIKER_FIRE,
+  breachChance: STRIKER_BREACH,
+};
+const COMBAT2_HIT: DroneHit = {
+  ...STRIKER_HIT,
+  damage: COMBAT2.damage,
+  fireChance: COMBAT2.fireChance,
+};
+const BEAM_HIT: DroneHit = { damage: BEAM_DAMAGE, ion: 0, fireChance: BEAM_FIRE, breachChance: 0 };
 
 /**
  * Door System, Door strength: "They make about one attack per second with slightly randomized timing."
@@ -648,10 +690,7 @@ function pushStriker(g: Game, targetRoom: string) {
     id: nextId(g),
     kind: "laser",
     from: "player",
-    damage: STRIKER_DAMAGE,
-    ion: STRIKER_ION,
-    fireChance: STRIKER_FIRE,
-    breachChance: STRIKER_BREACH,
+    ...droneGun("COMBAT_1", STRIKER_HIT),
     targetRoom,
     wait: SHOT_WAIT_S,
     t: SHOT_T,
@@ -1253,6 +1292,8 @@ function tickRepair(
     body.path = [];
     const breaches = here.breach;
     engiRepair(ship, here, dt, repowerKits);
+    // dlcSounds.xml shrikeRepair: the System Repair Drone's working loop. INFERRED: shrike names that drone.
+    holdLoopCue(g, "shrikeRepair");
     // Door System: sealing a breach on an enemy ship shuts that room's doors when the system functions.
     if (aboard === "enemy" && here.breach < breaches) noteEnemyBreach(g, here.id);
     return;
@@ -1561,11 +1602,14 @@ function tickOvercharger(g: Game, kit: Kit, dt: number): void {
     if (wait == null) return;
     kit.left = wait;
     kit.aux = 0;
+    // dlcSounds.xml shieldDroneCharge: the overcharger starts building a layer.
+    queueSfx(g, "shieldDroneCharge");
   }
   kit.aux += dt;
   while (kit.left > 0 && kit.aux >= kit.left) {
     kit.aux -= kit.left;
     addOvercharge(ship);
+    queueSfx(g, "shieldDroneActivate");
     const next = overchargerWait(ship.zoltan ?? 0);
     if (next == null) {
       kit.left = 0;
@@ -1597,6 +1641,8 @@ function tickIntruder(g: Game, kit: Kit, dt: number): void {
   if (takeDoorSkip(kit)) kit.aux = kit.left;
   kit.aux += dt;
   while (kit.aux >= kit.left) {
+    // dlcSounds.xml ionBoarderCharge: the Ion Intruder's pulse.
+    queueSfx(g, "ionBoarderCharge");
     pulseIntruder(g, enemy, kit);
     kit.aux -= kit.left;
     kit.left = rollIntruderWait(g);
@@ -1814,6 +1860,7 @@ function crewCombat(c: Crew): number {
 
 /** Anti-Ship Fire Drone: "90% chance to set a tile on fire" and "Does no hull damage". */
 const FIRE_DRONE_FIRE = 90 / 100;
+const FIRE_BEAM_HIT: DroneHit = { damage: 0, ion: 0, fireChance: FIRE_DRONE_FIRE, breachChance: 0 };
 
 /**
  * Combat Drones (offensive drones): "Damage to Zoltan Shields is ... 1 per beam drone swipe (2 for Beam Drone II ...)".
@@ -2006,6 +2053,7 @@ function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
 
 function killUnit(g: Game, unit: DroneUnit, why: string) {
   if (unit.kind === "REPAIR" && unit.alive && g.enemy && holdDyingRepair(g.enemy, unit)) return;
+  if (unit.kind === "REPAIR" && unit.alive) queueSfx(g, "shrikeDeath");
   unit.dying = undefined;
   unit.alive = false;
   unit.powered = false;
@@ -2292,12 +2340,9 @@ function tickEnemyStriker(g: Game, unit: DroneUnit, dt: number) {
       // Combat Drones (offensive drones): "orbit the enemy ship and attack it repeatedly, targeting random rooms".
       g.shots.push({
         id: nextId(g),
-        kind: "laser",
         from: "enemy",
-        damage: unit.kind === "COMBAT_2" ? COMBAT2.damage : STRIKER_DAMAGE,
-        ion: STRIKER_ION,
-        fireChance: unit.kind === "COMBAT_2" ? COMBAT2.fireChance : STRIKER_FIRE,
-        breachChance: STRIKER_BREACH,
+        ...droneGun(unit.kind, unit.kind === "COMBAT_2" ? COMBAT2_HIT : STRIKER_HIT),
+        ...droneGunShot(unit.kind),
         targetRoom: roomId,
         wait: SHOT_WAIT_S,
         t: SHOT_T,
@@ -2341,10 +2386,7 @@ function fireBeamSwipe(
     id: nextId(g),
     kind: "beam",
     from,
-    damage: kind === "fire" ? 0 : BEAM_DAMAGE,
-    ion: 0,
-    fireChance: kind === "fire" ? FIRE_DRONE_FIRE : BEAM_FIRE,
-    breachChance: 0,
+    ...droneGun(kind === "fire" ? "COMBAT_FIRE" : kind, kind === "fire" ? FIRE_BEAM_HIT : BEAM_HIT),
     targetRoom: room.id,
     beamRooms: rooms,
     defId: kind,
@@ -2411,22 +2453,22 @@ function tickDroneBeam(g: Game, shot: Shot): boolean {
     if (kind === "fire") {
       // Anti-Ship Fire Drone: "90% chance to set a tile on fire". INFERRED: one tile per swipe.
       // Fires, "Fires and enemy AI": the stack stops at 4, one flame per tile of a 2x2.
-      if (rand(g) < FIRE_DRONE_FIRE) {
+      if (rand(g) < shot.fireChance) {
         hit.fire = Math.min(4, hit.fire + 1);
         if (shot.from === "enemy") log(g, `Their fire drone lights the ${hit.title}.`);
       }
       continue;
     }
     const before = ship.hull;
-    ship.hull = Math.max(0, ship.hull - BEAM_DAMAGE);
+    ship.hull = Math.max(0, ship.hull - shot.damage);
     if (shot.from === "player" && ship.hull < before) noteAchieve(g, { k: "droneHull" });
     if (hit.system) {
       const sys = ship.systems[hit.system];
-      if (sys && sys.damage < sys.level) sys.damage += BEAM_DAMAGE;
+      if (sys && sys.damage < sys.level) sys.damage = Math.min(sys.level, sys.damage + shot.damage);
     }
     // INFERRED: one tile per swipe. The 10% is per tile. Beam length 0.4 tile is not a count of tiles.
     // Fires, "Fires and enemy AI": the stack stops at 4.
-    if (rand(g) < BEAM_FIRE) hit.fire = Math.min(4, hit.fire + 1);
+    if (rand(g) < shot.fireChance) hit.fire = Math.min(4, hit.fire + 1);
   }
   if (done.length > 0) shot.beamHit = done;
   return true;
@@ -2588,6 +2630,7 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
   while (unit.aux >= (unit.left ?? 0)) {
     unit.aux -= unit.left ?? 0;
     unit.left = rollIntruderWait(g);
+    queueSfx(g, "ionBoarderCharge");
     const ship = g.player;
     const room = ship.rooms.find((item) => item.id === unit.room);
     if (room?.system) {
@@ -2895,6 +2938,7 @@ function killPlayerDrone(g: Game, why: string) {
   const kit = g.player.kits.drones;
   if (!kit) return;
   if (kit.target === "REPAIR" && kit.on && holdDyingRepair(g.player, kit)) return;
+  if (kit.target === "REPAIR" && kit.on) queueSfx(g, "shrikeDeath");
   kit.dying = undefined;
   kit.on = false;
   kit.stun = 0;

@@ -28,6 +28,7 @@ import { clearEnemyLeash, sideOf } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";
 import { ANTI_STUN_S, REDEPLOY_S, enemyDroneSpot, interceptIncomingDrone } from "./swarm.ts";
 import type { Difficulty, Door, Game, Kit, KitId, Room, Ship, SysId } from "../types.ts";
+import { queueSfx } from "../sfx-queue.ts";
 
 /** Hacking wiki, "System upgrades": level 1 cost is 80. The store blueprint carries that price. */
 // Wiki citations:
@@ -102,6 +103,14 @@ function kitOf(g: Game): Kit | undefined {
 
 function running(kit: Kit): boolean {
   return kit.on && kit.left > 0;
+}
+
+/** True while either side's hacking pulse runs in a fight: dlcSounds.xml hackLoop plays for it. */
+export function hackPulseRunning(g: Game): boolean {
+  if (g.phase !== "combat") return false;
+  const own = g.player.kits.hacking;
+  const theirs = g.enemy?.kits.hacking;
+  return (!!own && running(own)) || (!!theirs && running(theirs));
 }
 
 /**
@@ -375,6 +384,7 @@ function loseOwnDrone(g: Game, kit: Kit) {
 
 /** Hacking wiki, "Overview" (Hacking pulse): starts a pulse and its at-start effects (startEnemyPulse's twin). */
 function startOwnPulse(g: Game, kit: Kit, seconds: number) {
+  queueSfx(g, "hackStart");
   kit.on = true;
   kit.left = seconds;
   kit.aux = 0;
@@ -415,6 +425,7 @@ function arriveOwn(g: Game, kit: Kit) {
   foe.hackDrone = target;
   // Crystal Lockdown: a coating already on this room is what leaves 4 hits. The pulse below can cancel it.
   noteHackLatchedDuringLock(foe, target);
+  queueSfx(g, "hackLand");
   log(g, `Hacking drone latches onto their ${LABEL[target] ?? target}.`);
   const seconds = pulseSeconds(fedBars(kit));
   if (seconds > 0 && !enemyPulseOn(g, ["hacking"])) startOwnPulse(g, kit, seconds);
@@ -1058,6 +1069,7 @@ function arrive(g: Game, kit: Kit) {
   kit.hackLatched = true;
   // Crystal Lockdown: a coating already on this room is what leaves 4 hits. The later pulse can cancel it.
   if (kit.target) noteHackLatchedDuringLock(g.player, kit.target);
+  queueSfx(g, "hackLand");
   log(g, `Their hacking drone latches onto your ${LABEL[kit.target ?? ""] ?? kit.target}.`);
 }
 
@@ -1065,6 +1077,7 @@ function arrive(g: Game, kit: Kit) {
 function startEnemyPulse(g: Game, kit: Kit) {
   const seconds = pulseSeconds(kitBars(kit));
   if (seconds <= 0) return;
+  queueSfx(g, "hackStart");
   kit.on = true;
   kit.left = seconds;
   kit.aux = 0;

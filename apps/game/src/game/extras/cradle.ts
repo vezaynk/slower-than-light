@@ -5,6 +5,7 @@ import { seatKits } from "../layouts.ts";
 import { helixHolds } from "./moreaugs.ts";
 import { hackPulseOn } from "./spike.ts";
 import type { Crew, Game, Kit, SkillName } from "../types.ts";
+import { holdLoopCue, queueSfx } from "../sfx-queue.ts";
 
 /** Wiki page "Clone Bay", section "System Upgrades": level 1 purchasing cost 50. The store blueprint carries it. */
 // Wiki citations:
@@ -231,6 +232,8 @@ export function tickCradle(g: Game, dt: number) {
       kit.aux = 0;
       return;
     }
+    // dlcSounds.xml cloneBroken: the bay's warning loop while a copy waits in a dark bay.
+    holdLoopCue(g, "cloneBroken");
     kit.aux += dt;
     if (kit.aux < 3) return;
     kit.aux = 0;
@@ -248,6 +251,7 @@ export function tickCradle(g: Game, dt: number) {
   restoreSkills(head);
   // Crew skills, Combat: a body the bay returned is cloned crew. Killing it grants no combat experience.
   head.cloned = true;
+  queueSfx(g, "cloneArrive");
   log(g, `Clone Bay returned ${head.name}.`);
 }
 

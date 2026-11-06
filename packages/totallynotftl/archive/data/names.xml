@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FTL>
+  <nameList race="human" sex="male">
+    <name>Arlo Fenn</name>
+    <name>Dov Reyes</name>
+    <name>Hal Ostrow</name>
+    <name>Jory Vance</name>
+    <name>Kip Marlo</name>
+    <name>Orrin Tate</name>
+    <name>Pell Osei</name>
+    <name>Rafe Calder</name>
+  </nameList>
+  <nameList race="human" sex="female">
+    <name>Bea Lorne</name>
+    <name>Cass Imani</name>
+    <name>Dela Wren</name>
+    <name>Edda Quist</name>
+    <name>Lio Marsh</name>
+    <name>Nessa Holt</name>
+    <name>Sefa Prior</name>
+    <name>Tamsin Ardo</name>
+  </nameList>
+</FTL>

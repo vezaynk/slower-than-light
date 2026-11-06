@@ -3,7 +3,6 @@ import { describe, it } from "node:test";
 import {
   applyImpact,
   applyPulsarPulse,
-  createGame,
   settleZoltanPower,
   sparePower,
   syncIonStorm,
@@ -26,6 +25,7 @@ import { toggleVeilPower } from "./veil.ts";
 import { onPlayerJump } from "./index.ts";
 import { fleetToReach } from "../wiki/sector-map.ts";
 import type { Crew, Kit, Shot, WeaponInst } from "../types.ts";
+import { startedGame } from "../test-start.ts";
 
 function pushCell(level = 1): Kit {
   return {
@@ -46,7 +46,7 @@ describe("battery", () => {
     // > "1 35 Ftlgame-scrap.png 2 temporary power bars" — [[Backup Battery#System Upgrades]]
     // > "When activated, Backup Battery provides 2 additional power bars for 30 seconds. Upgrading the subsystem provides 4 additional power bars in total upon activation." — [[Backup Battery#Overview]]
     // > "Once the Backup Battery work cycle is over, the system enters a 20 seconds cooldown before it can be used again." — [[Backup Battery#Overview]]
-    const g = createGame(1);
+    const g = startedGame(1);
     g.phase = "combat";
     g.scrap = 35;
     installCell(g);
@@ -68,7 +68,7 @@ describe("battery", () => {
   it("cools in 10s when augments include tap", () => {
     // Wiki citations:
     // > "Battery Charger augmentation reduces the cooldown to 10 seconds." — [[Backup Battery#Overview]]
-    const g = createGame(2);
+    const g = startedGame(2);
     g.phase = "combat";
     g.augments = ["BATTERY_BOOSTER"];
     g.player.kits.battery = pushCell(1);
@@ -83,7 +83,7 @@ describe("battery", () => {
     // Wiki citations:
     // > "2 50 Ftlgame-scrap.png 4 temporary power bars" — [[Backup Battery#System Upgrades]]
     // > "Upgrading the subsystem provides 4 additional power bars in total upon activation." — [[Backup Battery#Overview]]
-    const g = createGame(3);
+    const g = startedGame(3);
     g.scrap = 85;
     installCell(g);
     upgradeCell(g);
@@ -96,7 +96,7 @@ describe("battery", () => {
   });
 
   it("does not start again until cool reaches 0", () => {
-    const g = createGame(4);
+    const g = startedGame(4);
     g.phase = "combat";
     g.player.kits.battery = pushCell(1);
     startCell(g);
@@ -111,7 +111,7 @@ describe("battery", () => {
   });
 
   it("does not crash when the enemy is null", () => {
-    const g = createGame(5);
+    const g = startedGame(5);
     g.enemy = null;
     tickCell(g, 1);
     g.player.kits.battery = pushCell(1);
@@ -121,7 +121,7 @@ describe("battery", () => {
   });
 
   it("stays ready when it runs out and the ship is not in danger", () => {
-    const g = createGame(7);
+    const g = startedGame(7);
     g.player.kits.battery = pushCell(1);
     assert.equal(g.phase, "map");
     startCell(g);
@@ -142,7 +142,7 @@ describe("battery", () => {
   it("resets a cooldown on an FTL jump and not when waiting", () => {
     // Wiki citations:
     // > "Backup Battery's cooldown is immediately reset by an FTL jump. However, Waiting (e.g. for Flagship or in out-fuel events) will not reset the cooldown." — [[Backup Battery#Overview]]
-    const g = createGame(8);
+    const g = startedGame(8);
     g.player.kits.battery = pushCell(1);
     g.player.kits.battery.cool = 12;
     onPlayerJump(g);
@@ -160,7 +160,7 @@ describe("battery", () => {
     // Wiki citations:
     // > "If all system levels of the Backup Battery subsystem get ionized (e.g. when a pulsar ionizes it), it will enter its maximum 25 seconds cooldown." — [[Backup Battery#Overview]]
     // > "1 ion damage will not cause disruption to activated level 2 Backup Battery" — [[Backup Battery#Overview]]
-    const g = createGame(9);
+    const g = startedGame(9);
     g.phase = "map";
     g.augments = ["BATTERY_BOOSTER"];
     g.player.kits.battery = pushCell(1);
@@ -189,7 +189,7 @@ describe("battery", () => {
     // Wiki citations:
     // > "1 ion damage will not cause disruption to activated level 2 Backup Battery" — [[Backup Battery#Overview]]
     // > "if 1 ion damage is applied from two ion sources simultaneously, the battery will enter its maximum cooldown." — [[Backup Battery#Overview]]
-    const g = createGame(11);
+    const g = startedGame(11);
     g.phase = "combat";
     g.player.kits.battery = pushCell(2);
     startCell(g);
@@ -210,7 +210,7 @@ describe("battery", () => {
     assert.equal(g.player.kits.battery?.on, true);
     assert.equal(g.player.kits.battery?.cool, 0);
 
-    const hit = createGame(12);
+    const hit = startedGame(12);
     hit.player.kits.battery = pushCell(2);
     seatKits(hit.player);
     const room = hit.player.rooms.find((r) => r.kit === "battery");
@@ -241,7 +241,7 @@ describe("battery", () => {
   });
 
   it("lets an ion bomb and a pulsar cover the battery", () => {
-    const g = createGame(10);
+    const g = startedGame(10);
     g.scrap = 85;
     installCell(g);
     upgradeCell(g);
@@ -276,7 +276,7 @@ describe("battery", () => {
 
     let pulsed = false;
     for (let seed = 1; seed < 80 && !pulsed; seed++) {
-      const pulse = createGame(seed);
+      const pulse = startedGame(seed);
       pulse.player.kits.battery = pushCell(2);
       pulse.player.zoltan = 0;
       pulse.player.systems.shields.power = 0;
@@ -288,7 +288,7 @@ describe("battery", () => {
   });
 
   it("pulls the extra bars back when the window ends and ends a cloak or hold that used one", () => {
-    const g = createGame(13);
+    const g = startedGame(13);
     g.phase = "combat";
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
       g.player.systems[id].power = 0;
@@ -314,7 +314,7 @@ describe("battery", () => {
     assert.equal(g.player.systems.engines.power, 1);
     assert.equal(sparePower(g.player), 0);
 
-    const hold = createGame(14);
+    const hold = startedGame(14);
     hold.phase = "combat";
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
       hold.player.systems[id].power = 0;
@@ -354,7 +354,7 @@ describe("battery", () => {
     assert.equal(hold.crew.find((c) => c.id === "foe")?.leashed, undefined);
     assert.equal(hold.player.systems.engines.power, 1);
 
-    const guns = createGame(15);
+    const guns = startedGame(15);
     guns.phase = "map";
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
       guns.player.systems[id].power = 0;
@@ -369,7 +369,7 @@ describe("battery", () => {
   });
 
   it("leaves a cooling cloak's cooldown alone when its battery bar is taken back", () => {
-    const g = createGame(16);
+    const g = startedGame(16);
     g.phase = "combat";
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
       g.player.systems[id].power = 0;
@@ -398,7 +398,7 @@ describe("battery", () => {
   });
 
   it("counts battery bars as spare when a Zoltan leaves weapons", () => {
-    const g = createGame(18);
+    const g = startedGame(18);
     g.player.reactor = 30;
     const sys = g.player.systems.weapons;
     sys.level = 4;
@@ -448,7 +448,7 @@ describe("battery", () => {
     assert.equal(stormReactor(8), 4);
     assert.equal(stormReactor(5), 3);
     assert.equal(stormReactor(1), 1);
-    const g = createGame(19);
+    const g = startedGame(19);
     const beacon = g.beacons[2];
     assert.ok(beacon);
     beacon.kind = "nebula";
@@ -484,7 +484,7 @@ describe("battery", () => {
   });
 
   it("marks bonus bars after the regular reactor bars", () => {
-    const g = createGame(21);
+    const g = startedGame(21);
     g.player.reactor = 5;
     for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
       g.player.systems[id].power = 0;
@@ -510,7 +510,7 @@ describe("battery", () => {
   });
 
   it("lets the ship assign more than 25 bars while the battery is on", () => {
-    const g = createGame(17);
+    const g = startedGame(17);
     g.scrap = 100;
     g.player.reactor = 25;
     upgrade(g, "reactor");
@@ -540,7 +540,7 @@ describe("battery", () => {
   });
 
   it("starts an enemy cell when spare power is tight", () => {
-    const g = createGame(6);
+    const g = startedGame(6);
     g.enemy = {
       ...g.player,
       name: "Picket",

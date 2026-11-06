@@ -1408,6 +1408,18 @@ async function main() {
     });
     const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
     console.log(`opened ${url} status ${response?.status() ?? 0}`);
+    // A fresh browser opens on the setup screen first. Launch loads the saved files (the stand-in by default).
+    await page.waitForFunction(
+      () =>
+        document.querySelector('button[aria-label="NEW GAME"]') ||
+        [...document.querySelectorAll(".setup-launch button")].some(
+          (b) => b.textContent === "Launch",
+        ),
+      null,
+      { timeout: 60000 },
+    );
+    const launchButton = page.locator(".setup-launch button", { hasText: "Launch" });
+    if (await launchButton.count()) await launchButton.click();
     await page.waitForFunction(
       () => {
         const button = document.querySelector('button[aria-label="NEW GAME"]');

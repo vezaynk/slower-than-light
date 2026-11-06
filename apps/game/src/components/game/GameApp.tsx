@@ -11,10 +11,11 @@ import {
   type ReactNode,
 } from "react";
 import { flushSync } from "react-dom";
-import { resumeAudio, setMuted, setVolume, syncLoops, unlockAudio } from "@/game/audio";
+import { playSfx, resumeAudio, setMuted, setVolume, syncLoops, unlockAudio } from "@/game/audio";
 import { currentLocale, localeFace, localeLabel, selectLocale } from "@/game/locale";
 import { choiceBlue, offeredChoices } from "@/game/wiki/choice-locks";
 import { ArchiveBed } from "./ArchiveBed";
+import { shownEventTitle } from "@/game/event-title";
 import { ArchiveLines } from "./ArchiveCopy";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
@@ -25,7 +26,8 @@ import { pageRect, toPage } from "./turn";
 import { SECTOR_NAMES, systemLabel, upgradeBlurb, upgradeCost } from "@/game/content";
 import { sectorTag } from "@/game/sector-ids";
 import { aimedBeamTiles } from "@/game/pack/beams";
-import { loadBasePackXml } from "@/game/pack/boot";
+import { bootPack, toSetup, useLaunch } from "@/game/launch";
+import { BootScreen, SetupScreen } from "./SetupScreen";
 import "@/game/pack/base";
 import {
   FLEET_FILE,
@@ -632,10 +634,33 @@ function DoorAllIcon({ open }: { open?: boolean }) {
 }
 
 /** INVENTED title line. The play HUD follows the combat, event, and pause screens. */
+/** Shortest gap between two hover ticks. INFERRED: fast sweeps across a button row stay a few ticks. */
+const HOVER_BEEP_MS = 70;
+
 export function GameApp() {
   const version = useGame((s) => s.version);
   const game = useGame.getState().game;
   void version;
+
+  useEffect(() => {
+    // sounds.xml hoverBeep: a soft tick when the mouse moves onto a button. One listener for every button,
+    // once per button entered, and no more than one tick in HOVER_BEEP_MS. Touch has no hover, so it stays quiet.
+    let last: Element | null = null;
+    let at = 0;
+    const onOver = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      const target = e.target instanceof Element ? e.target.closest("button") : null;
+      if (target === last) return;
+      last = target;
+      if (!target || (target as HTMLButtonElement).disabled) return;
+      const now = performance.now();
+      if (now - at < HOVER_BEEP_MS) return;
+      at = now;
+      playSfx("hoverBeep");
+    };
+    document.addEventListener("pointerover", onOver);
+    return () => document.removeEventListener("pointerover", onOver);
+  }, []);
 
   useEffect(() => {
     // Options, Sound: the saved mute and volume drive the mixer, now and on every change.
@@ -960,8 +985,8 @@ export function GameApp() {
       watchHaptics(useGame.getState().game);
       if (!ticking) {
         acc = 0;
-        // The step is not running, so a repair or fire loop already started would keep going.
-        syncLoops({ fire: false, repair: false });
+        // The step is not running, so a loop already started (repair, fire, air leak...) would keep going.
+        syncLoops({});
       }
       // A tick that stops the clock itself (a surrender offer, a win, a reward card) must be drawn at once: with the
       // clock stopped nothing bumps again, and the screen stayed frozen on the frame before (bug reported by the user).
@@ -993,6 +1018,20 @@ export function GameApp() {
 
   // Options, Graphics: screen shake (off by default under reduced motion, settings.ts).
   const shakeOn = useSettings((st) => st.shake);
+
+  // Per the user: setup (the game files) comes first, like a launcher. A remembered launch only shows the bar.
+  const stage = useLaunch((st) => st.stage);
+  const remembered = useRef(stage === "booting");
+  useEffect(() => {
+    if (useLaunch.getState().stage === "booting") void bootPack();
+  }, []);
+  if (stage !== "ready") {
+    return (
+      <Screen>
+        {stage === "booting" && remembered.current ? <BootScreen /> : <SetupScreen />}
+      </Screen>
+    );
+  }
 
   return (
     <Screen>
@@ -3810,10 +3849,12 @@ function EventCard({ game }: { game: Game }) {
   if (!event) return null;
   // @agent:surrender. Rewards, "Stuff": the offered resources and scrap, shown before the player answers.
   const offer = surrenderOfferView(game);
+  // ftl.dat events have no title, so the parsed title is the event id. FTL shows no heading then.
+  const heading = shownEventTitle(event.title);
   return (
     <div className="modal-layer">
       <article className={`ftl-card${offer ? " surrender-card" : ""}`}>
-        {event.title ? <p className="event-lead">{event.title}</p> : null}
+        {heading ? <p className="event-lead">{heading}</p> : null}
         {event.img ? <img className="event-img" src={event.img} alt="" /> : null}
         <p>{event.body}</p>
         {offer ? (
@@ -4460,34 +4501,10 @@ function TitleScreen() {
   const [saveReady, setSaveReady] = useState(false);
   const [locale, setLocale] = useState(currentLocale);
   const [view, setView] = useState<string | null>(null);
-  const [packRatio, setPackRatio] = useState(0);
-  const [packReady, setPackReady] = useState(false);
-  const [packError, setPackError] = useState(false);
-  const [packBar, setPackBar] = useState(true);
   const boot = useGame((s) => s.boot);
   useEffect(() => {
     setSaveReady(hasSave());
   }, []);
-  useEffect(() => {
-    let live = true;
-    loadBasePackXml((ratio) => {
-      if (live) setPackRatio(ratio);
-    })
-      .then(() => {
-        if (live) setPackReady(true);
-      })
-      .catch(() => {
-        if (live) setPackError(true);
-      });
-    return () => {
-      live = false;
-    };
-  }, []);
-  useEffect(() => {
-    if (!packReady) return;
-    const hide = setTimeout(() => setPackBar(false), 700);
-    return () => clearTimeout(hide);
-  }, [packReady]);
   useEffect(() => {
     if (boot === "hangar") {
       setView("hangar");
@@ -4509,7 +4526,8 @@ function TitleScreen() {
       return;
     }
     if (id === "quit") {
-      setView(null);
+      // Per the user: QUIT goes back to setup, like quitting to a launcher.
+      toSetup();
       return;
     }
     setView(view === id ? null : id);
@@ -4525,7 +4543,7 @@ function TitleScreen() {
   if (cruiser) return <CruiserArticle page={cruiser} onShips={() => setView("ships")} />;
   if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
   return (
-    <section className="title-shot" aria-busy={!packReady}>
+    <section className="title-shot">
       <InstallButton className="title-install" />
       <div
         className="title-frame"
@@ -4533,14 +4551,14 @@ function TitleScreen() {
           if (view === "stats" || view === "options" || view === "credits") setView(null);
         }}
       >
-        <PixelMenu continueReady={saveReady && packReady} />
+        <PixelMenu continueReady={saveReady} />
         {TITLE_MENU_ART.map((item) => (
           <button
             key={item.id}
             type="button"
             className="menu-hit"
             aria-label={item.label}
-            disabled={!packReady || (item.id === "continue" && !saveReady)}
+            disabled={item.id === "continue" && !saveReady}
             style={{ top: item.top, height: item.height, right: item.right, width: item.width }}
             onClick={(e) => {
               e.stopPropagation();
@@ -4552,59 +4570,42 @@ function TitleScreen() {
         {view === "stats" ? <AchievementsScreen game={null} onClose={() => setView(null)} /> : null}
         {view === "options" ? <OptionsPanel onClose={() => setView(null)} /> : null}
         {view === "help" ? <HelpScreen onContinue={startTutorial} /> : null}
-        {packBar ? (
-          <div className="pack-boot">
-            <p>{packError ? "The ship pack did not load." : "Loading the ship pack"}</p>
-            <div
-              className="pack-boot-track"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(packRatio * 100)}
-              aria-label={"Loading the ship pack"}
-            >
-              <div className="pack-boot-fill" style={{ width: `${packRatio * 100}%` }} />
-            </div>
-          </div>
-        ) : null}
       </div>
-      {packReady ? (
-        <div className="title-locales">
-          <p
-            className="title-locale-name"
-            style={localeFace() ? { fontFamily: localeFace() } : undefined}
-          >
-            {localeLabel("menu_title", "Slower than Light")}
-          </p>
+      <div className="title-locales">
+        <p
+          className="title-locale-name"
+          style={localeFace() ? { fontFamily: localeFace() } : undefined}
+        >
+          {localeLabel("menu_title", "Slower than Light")}
+        </p>
+        <button
+          type="button"
+          className={locale === "en" ? "is-on" : ""}
+          aria-pressed={locale === "en"}
+          onClick={(e) => {
+            e.stopPropagation();
+            selectLocale("en");
+            setLocale("en");
+          }}
+        >
+          English
+        </button>
+        {packLocales().map((row) => (
           <button
+            key={row.code}
             type="button"
-            className={locale === "en" ? "is-on" : ""}
-            aria-pressed={locale === "en"}
+            className={locale === row.code ? "is-on" : ""}
+            aria-pressed={locale === row.code}
             onClick={(e) => {
               e.stopPropagation();
-              selectLocale("en");
-              setLocale("en");
+              selectLocale(row.code);
+              setLocale(row.code);
             }}
           >
-            English
+            {row.strings.language_name ?? row.code}
           </button>
-          {packLocales().map((row) => (
-            <button
-              key={row.code}
-              type="button"
-              className={locale === row.code ? "is-on" : ""}
-              aria-pressed={locale === row.code}
-              onClick={(e) => {
-                e.stopPropagation();
-                selectLocale(row.code);
-                setLocale(row.code);
-              }}
-            >
-              {row.strings.language_name ?? row.code}
-            </button>
-          ))}
-        </div>
-      ) : null}
+        ))}
+      </div>
     </section>
   );
 }

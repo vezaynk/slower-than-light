@@ -53,6 +53,7 @@ import type {
   WeaponBlueprint,
   WeaponKind,
 } from "./types.ts";
+import { warnPack } from "./warnings.ts";
 
 const KINDS: Record<string, WeaponKind> = {
   LASER: "laser",
@@ -179,6 +180,11 @@ function readCrew(node: XmlElement): CrewDef | undefined {
   if (short) row.short = short;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
+  const powers = elements(child(node, "powerList"))
+    .filter((item) => item.tagName === "power")
+    .map((item) => ownText(item).trim())
+    .filter((line) => line.length > 0);
+  if (powers.length > 0) row.powers = powers;
   readCrewCombat(node, row);
   return row;
 }
@@ -243,6 +249,8 @@ export function readWeapon(node: XmlElement): WeaponBlueprint | undefined {
   if (short) row.short = short;
   const flavor = textOf(node, "flavorType");
   if (flavor) row.flavor = flavor;
+  const bp = numOf(node, "bp");
+  if (bp != null) row.bp = bp;
   const length = numOf(node, "length");
   if (length != null) row.lengthTiles = length / 45;
   const speed = numOf(node, "speed");
@@ -359,6 +367,8 @@ export function readDrone(node: XmlElement): DroneDef | undefined {
   if (speed != null) row.speed = speed;
   const dodge = numOf(node, "dodge");
   if (dodge != null) row.dodge = dodge;
+  const bp = numOf(node, "bp");
+  if (bp != null) row.bp = bp;
   const weapon = textOf(node, "weaponBlueprint");
   if (weapon) row.weapon = weapon;
   return row;
@@ -1442,6 +1452,28 @@ function readStockReq(node: XmlElement): { id: string; n: number } | undefined {
   return { id, n: -min };
 }
 
+/** A campaign quest's arrival page is `arrive-` plus its id. ftl.dat's `<quest event>` names that page. */
+export const QUEST_ARRIVAL_PREFIX = "arrive-";
+
+/**
+ * `<quest event="arrive-X">` inside a choice's result event: campaign quest X, as FTL places a quest beacon that
+ * runs that page. A quest naming any other page is not a campaign quest and is skipped with a warning.
+ */
+function questEffects(node: XmlElement): EventEffect[] {
+  const out: EventEffect[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "quest") continue;
+    const event = attr(item, "event")?.trim() ?? "";
+    if (event.startsWith(QUEST_ARRIVAL_PREFIX) && event.length > QUEST_ARRIVAL_PREFIX.length)
+      out.push({ k: "quest", id: event.slice(QUEST_ARRIVAL_PREFIX.length) });
+    else
+      warnPack(
+        `A campaign <quest event="${event}"> does not name an arrive- page; it places nothing.`,
+      );
+  }
+  return out;
+}
+
 /** Choice results, in document order. */
 function readChoiceEffects(node: XmlElement): EventEffect[] {
   const fx: EventEffect[] = [];
@@ -1478,8 +1510,9 @@ function readChoiceEffect(node: XmlElement): EventEffect[] | undefined {
     const load = attr(node, "load")?.trim();
     if (load) return [{ k: "goto", id: load }];
     const text = textOf(node, "text");
-    if (text != null) return [{ k: "note", text }];
-    return [{ k: "nothing" }];
+    const quests = questEffects(node);
+    if (text != null) return [{ k: "note", text }, ...quests];
+    return quests.length > 0 ? quests : [{ k: "nothing" }];
   }
   if (node.tagName === "damage") {
     const amount = intAttr(node, "amount");

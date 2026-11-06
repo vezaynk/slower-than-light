@@ -426,4 +426,9 @@
   <shipClass name="federation-outrider" class="federation-outrider" blueprint="FED_SCOUT" pirate="FED_SCOUT_P_DLC"/>
   <shipClass name="federation-bomber" class="federation-bomber" blueprint="FED_BOMBER" pirate="FED_BOMBER_P"/>
   <shipClass name="federation-hacker" class="federation-hacker" blueprint="FED_BOMBER" pirate="FED_BOMBER_P_DLC"/>
+  <beaconEvents>
+    <startEvent>START_BEACON</startEvent>
+    <finishEvent>FINISH_BEACON</finishEvent>
+    <finishEvent nebula="true">FINISH_BEACON_NEBULA</finishEvent>
+  </beaconEvents>
 </FTL>

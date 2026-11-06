@@ -5,6 +5,7 @@ import type {
   AchievementCondition,
   AchievementDef,
   ArchiveAlter,
+  BeaconEvents,
   ArchiveMark,
   ArchiveBoarders,
   ArchiveEnvironment,
@@ -44,6 +45,7 @@ import type {
   TextListDef,
   TuneDef,
 } from "./types.ts";
+import { CREW_SKILL_NAMES } from "./types.ts";
 import { cloneGrid, readGrids } from "./grid.ts";
 import { attachPictures } from "./picture.ts";
 import { warnPack } from "./warnings.ts";
@@ -104,6 +106,8 @@ export type FtlTextFile = {
  * Crew combat children fill the combat fields. A blueprint without them keeps neutral defaults.
  * A `<facts/>` marker and a `<names>` list are kept.
  * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender-only `<shipBlueprint>` is kept.
+ * A root `<beaconEvents>` and a sector's `<finishEvent>` (optionally `nebula="true"`) are private tags FTL ignores.
+ * They name the start and exit beacon events FTL's executable hard-codes. The base mod writes FTL's names.
  * A root `<ship name>` is a ship event (hull list and endings), not a hull.
  * A `<note>` on a sector is kept. This catalog does not invent a store or a rewards table.
  * `layouts` are the `data/*.txt` room grids. A ship keeps its layout file name, and the grid is
@@ -132,6 +136,7 @@ export function packFromFtl(
   const empties = new Catalog<EmptyBeaconDef>();
   const shipClasses = new Catalog<ShipClassDef>();
   let rewards: RewardTable | undefined;
+  let beaconEvents: BeaconEvents | undefined;
   const strings = new Map<string, string>();
   const locales = new Map<string, Map<string, string>>();
   const grids = readGrids(layouts);
@@ -203,6 +208,8 @@ export function packFromFtl(
       } else if (node.tagName === "rewards") {
         const table = readRewards(node);
         if (table) rewards = table;
+      } else if (node.tagName === "beaconEvents") {
+        beaconEvents = { ...beaconEvents, ...readBeaconEvents(node) };
       } else if (node.tagName === "shipClass") {
         const row = readShipClass(node);
         if (row) shipClasses.put(row);
@@ -251,6 +258,7 @@ export function packFromFtl(
   if (stores.rows.length > 0) pack.stores = stores.rows;
   if (achievements.rows.length > 0) pack.achievements = achievements.rows;
   if (rewards) pack.rewards = rewards;
+  if (beaconEvents) pack.beaconEvents = beaconEvents;
   if (factions.rows.length > 0) pack.factions = factions.rows;
   if (empties.rows.length > 0) pack.empties = empties.rows;
   if (shipClasses.rows.length > 0) pack.shipClasses = shipClasses.rows;
@@ -362,6 +370,8 @@ function readFtlCrew(node: XmlElement): CrewDef | undefined {
   if (powers.length > 0) row.powers = powers;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
+  const bp = numOf(node, "bp");
+  if (bp != null) row.bp = bp;
   const colors = readCrewColors(child(node, "colorList"));
   if (colors.length > 0) row.colors = colors;
   readCrewCombat(node, row);
@@ -957,6 +967,25 @@ function numAttr(node: XmlElement, name: string): number | undefined {
   return Number.isFinite(value) ? value : undefined;
 }
 
+/**
+ * A root `<beaconEvents>`: `<startEvent>`, `<finishEvent>`, and `<finishEvent nebula="true">`.
+ * The same tags a `<sectorDescription>` may carry. FTL names these events in its executable instead.
+ */
+export function readBeaconEvents(node: XmlElement): BeaconEvents {
+  const out: BeaconEvents = {};
+  for (const item of elements(node)) {
+    const id = ownText(item).trim();
+    if (!id) continue;
+    if (item.tagName === "startEvent") out.start = id;
+    else if (item.tagName === "finishEvent") {
+      if (item.getAttribute("nebula") === "true") out.finishNebula = id;
+      else out.finish = id;
+    } else
+      warnPack(`beaconEvents: <${item.tagName}> is not startEvent or finishEvent; it is skipped.`);
+  }
+  return out;
+}
+
 function readFtlSector(node: XmlElement, strings: Map<string, string>): SectorDef | undefined {
   if (!rootChild(node)) return undefined;
   const id = attr(node, "name")?.trim();
@@ -977,6 +1006,13 @@ function readFtlSector(node: XmlElement, strings: Map<string, string>): SectorDe
   if (unique === "false") sector.unique = false;
   const start = textOf(node, "startEvent");
   if (start) sector.startEvent = start;
+  for (const item of elements(node)) {
+    if (item.tagName !== "finishEvent") continue;
+    const id = ownText(item).trim();
+    if (!id) continue;
+    if (item.getAttribute("nebula") === "true") sector.finishNebulaEvent = id;
+    else sector.finishEvent = id;
+  }
   const tracks = readTracks(node);
   if (tracks.length > 0) sector.tracks = tracks;
   const quotas: SectorQuota[] = [];
@@ -1737,18 +1773,47 @@ function readBoarders(node: XmlElement): ArchiveBoarders | undefined {
   return row;
 }
 
+/**
+ * `all_skills` and the six skill attributes on a `<crewMember>`. A level outside 0-2 is clamped with a warning.
+ * Unset when the tag names none.
+ */
+function readGrantSkills(node: XmlElement): ArchiveGrant["skills"] {
+  const level = (name: string): number | undefined => {
+    const raw = intAttr(node, name);
+    if (raw == null) return undefined;
+    if (raw < 0 || raw > 2) {
+      warnPack(`<crewMember ${name}="${raw}"> is outside 0-2; it is clamped.`);
+      return Math.max(0, Math.min(2, raw));
+    }
+    return raw;
+  };
+  const all = level("all_skills");
+  const skills: NonNullable<ArchiveGrant["skills"]> = {};
+  for (const skill of CREW_SKILL_NAMES) {
+    const own = level(skill);
+    const value = own ?? all;
+    if (value != null) skills[skill] = value;
+  }
+  return Object.keys(skills).length > 0 ? skills : undefined;
+}
+
+/** The grant id of a `<crewMember>` that names no race: the sim picks one for the sector. */
+export const RANDOM_CREW = "random";
+
 function readGrant(node: XmlElement): ArchiveGrant | undefined {
   if (node.tagName === "crewMember") {
     const race = attr(node, "class")?.trim() || attr(node, "type")?.trim();
     const named = ownText(node).trim();
     const idAttr = attr(node, "id")?.trim();
     // A name id inlines to the person's name and leaves the race off the tag. Those people join as human.
-    const id = race || (named && idAttr && idAttr !== named ? "human" : idAttr);
-    if (!id) return undefined;
+    // A tag with no class, id, or name is a crewmember of a random race (vanilla <crewMember shields="1"/>).
+    const id = race || (named && idAttr && idAttr !== named ? "human" : idAttr) || RANDOM_CREW;
     const grant: ArchiveGrant = { kind: "crew", id };
     if (named && named !== id) grant.name = named;
     const amount = intAttr(node, "amount");
     if (amount != null) grant.amount = amount;
+    const skills = readGrantSkills(node);
+    if (skills) grant.skills = skills;
     return grant;
   }
   if (node.tagName !== "weapon" && node.tagName !== "drone" && node.tagName !== "augment")

@@ -15,11 +15,13 @@ import { standInDat } from "./archive.ts";
  * or an environment. A campaign fight's hazard is its own fight effect.
  * Quest marks and system changes are choice effects too, so no page carries them at its top level.
  * ftl.dat sets NOLOC only on enemy-only drones, and the stand-in authors none of those.
+ * `<bp>` is read by FTL with no known effect, so the stand-in does not invent a value.
  */
 const UNPLAYED: Partial<Record<keyof ContentPack, readonly string[]>> = {
+  weapons: ["bp"],
   systems: ["detail"],
-  crew: ["colors", "detail"],
-  drones: ["noloc"],
+  crew: ["bp", "colors", "detail"],
+  drones: ["bp", "noloc"],
   hulls: ["droneCount", "droneLoad", "maxSector", "minSector", "weaponCount", "weaponLoad"],
   sectors: ["short"],
   events: ["alters", "boarders", "environment", "fx", "grants", "marks", "reward", "ship"],

@@ -13,6 +13,8 @@ import {
 } from "@stl/pack";
 import type { HullDef, WeaponBlueprint } from "@stl/pack";
 import { weightedBlueprint } from "../archive-pay.ts";
+import { skillRank } from "../content.ts";
+import { xpNeedFor } from "../extras/lineage.ts";
 import { weaponCopy, weaponDamageLabel } from "../interface-copy.ts";
 import "./base.ts";
 import { choose, commitJump, createGame, waitHere } from "../sim.ts";
@@ -392,6 +394,51 @@ describe("archive event payoffs", () => {
     assert.equal(holdsWeapon(g, "BURST_ONLY"), true);
     assert.equal(holdsWeapon(g, "RANDOM"), false);
     assert.equal(holdsWeapon(g, "LOCKED"), false);
+  });
+
+  it("trains a granted crewmember to the archive's skill levels", () => {
+    loadPack(
+      {
+        events: [
+          {
+            id: "ember-crew",
+            dest: "Crew",
+            flag: "ember-crew",
+            aliases: [],
+            sectors: [],
+            body: "Crew.",
+            choices: [
+              {
+                id: "ember-crew",
+                label: "Take",
+                fx: [{ k: "nothing" }],
+                grants: [
+                  {
+                    kind: "crew",
+                    id: "engi",
+                    name: "Ember Virus",
+                    skills: { pilot: 1, engines: 2, shields: 2, weapons: 2, repair: 2, combat: 2 },
+                  },
+                  { kind: "crew", id: "random", name: "Ember Stray", skills: { weapons: 1 } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      "append",
+    );
+    const g = createGame(12);
+    choose(g, "ember-crew");
+    const virus = g.crew.find((c) => c.name === "Ember Virus");
+    assert.ok(virus);
+    assert.equal(virus.kin, "engi");
+    assert.equal(skillRank(virus.skills?.engines ?? 0, xpNeedFor(virus, "engines")), 2);
+    assert.equal(skillRank(virus.skills?.pilot ?? 0, xpNeedFor(virus, "pilot")), 1);
+    const stray = g.crew.find((c) => c.name === "Ember Stray");
+    assert.ok(stray, "a raceless crewMember joins as some race");
+    assert.equal(skillRank(stray.skills?.weapons ?? 0, xpNeedFor(stray, "weapons")), 1);
+    assert.equal(stray.skills?.pilot, undefined);
   });
 
   it("skips RANDOM when every blueprint is excluded", () => {

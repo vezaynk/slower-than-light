@@ -95,7 +95,9 @@ describe("crew names", () => {
     }
   });
 
-  it("invents a name when the archive has neither list", () => {
+  it("invents a name when the archive has neither list", async () => {
+    // The stand-in's data/names.xml goes too: an archive without one leaves the name lists empty.
+    packFromFtl([{ path: "data/names.xml", xml: "<FTL/>" }]);
     loadPack(
       {
         textLists: [
@@ -113,6 +115,7 @@ describe("crew names", () => {
       );
     } finally {
       resetPackForTests();
+      await installStandIn();
     }
   });
 });

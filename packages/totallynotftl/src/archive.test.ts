@@ -80,7 +80,8 @@ describe("totallynotftl.dat", () => {
     const media = await standInMedia();
     assert.equal(
       extracted.documents.length,
-      events.length + 5 + pictures.length + media.documents.length,
+      // ships, sectors, achievements, text lists, names, and the Esperanto table.
+      events.length + 6 + pictures.length + media.documents.length,
     );
     assert.match(
       extracted.documents.find((doc) => doc.path === "data/text-eo.xml")?.xml ?? "",

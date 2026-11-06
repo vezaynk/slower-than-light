@@ -131,7 +131,11 @@ describe("totallynotftl.dat", () => {
     assert.equal(anim.clips.find((row) => row.name === "LASER_BURST_3_shot")?.time, 1);
     assert.ok(anim.clips.some((row) => row.name === "human_walk_down"));
     assert.equal(anim.clips.find((row) => row.name === "fire_large")?.length, 4);
-    assert.equal(anim.clips.find((row) => row.name === "asteroid0")?.length, 1);
+    // The rocks sit in dlcAnimations.xml, as in ftl.dat ("lays out the asteroid field" below).
+    assert.equal(
+      anim.clips.find((row) => row.name === "asteroid0"),
+      undefined,
+    );
     assert.equal(anim.clips.find((row) => row.name === "explosion_big1")?.time, 1);
     const sounds = readSounds(
       extracted.documents.find((doc) => doc.path === "data/sounds.xml")?.xml ?? "",
@@ -225,7 +229,7 @@ describe("totallynotftl.dat", () => {
       "img/map/map_icon_ship.png",
       "img/ship/fleet/fleet_1_med_warning.png",
       "img/effects/fire_large.png",
-      "img/effects/asteroid0.png",
+      "img/asteroids/asteroid0.png",
       "img/ui_icons/icon_scrap.png",
       "img/mouse/pointerValid.png",
       "fonts/JustinFont8.font",
@@ -317,6 +321,19 @@ describe("totallynotftl.dat", () => {
     assert.ok(pack.hulls?.some((row) => row.boardingAI === "invasion"));
     assert.ok(pack.weapons?.some((row) => row.short && row.detail && row.flavor));
     assert.ok(pack.crew?.every((row) => row.short && row.powers?.length));
+  });
+
+  it("lays out the asteroid field as ftl.dat does", async () => {
+    const files = await extractFtlDat(await standInDat());
+    for (let i = 0; i < 10; i += 1) assert.ok(files.assets.has(`img/asteroids/asteroid${i}.png`));
+    for (let i = 1; i <= 3; i += 1)
+      assert.ok(files.assets.has(`img/asteroids/asteroid_back${i}.png`));
+    const dlc = files.documents.find((doc) => doc.path === "data/dlcAnimations.xml")?.xml ?? "";
+    const set = readAnimations(dlc);
+    const rock = set.sheets.find((sheet) => sheet.name === "asteroid0");
+    assert.equal(rock?.file, "img/asteroids/asteroid0.png");
+    assert.equal(rock?.fw, 24);
+    assert.ok(set.clips.some((clip) => clip.name === "asteroid9"));
   });
 
   it("merges the stand-in archive with the gap mod back into the catalog", async () => {

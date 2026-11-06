@@ -162,6 +162,13 @@ export type DroneDef = {
 /** Where a purchased system is installed. The starting level stays on the tune. */
 export type SystemSlot = "sys" | "kit";
 
+/** The events a sector's start and exit beacons open when the sector names none. */
+export type BeaconEvents = {
+  start?: string;
+  finish?: string;
+  finishNebula?: string;
+};
+
 /** A store listing for one single-price system. `detail` is the archive's factual line. */
 export type SystemDef = {
   id: string;
@@ -425,6 +432,10 @@ export type SectorDef = {
   unique?: boolean;
   /** Event that opens the sector. */
   startEvent?: string;
+  /** `<finishEvent>`, a private tag FTL ignores: the exit beacon's event in this sector. */
+  finishEvent?: string;
+  /** `<finishEvent nebula="true">`: the exit beacon's event when that exit sits in a nebula. */
+  finishNebulaEvent?: string;
   /** Music track ids. */
   tracks?: string[];
   /** How many beacons draw each event. These are not page lines. */
@@ -1127,6 +1138,12 @@ export type ContentPack = {
    * Column 0 shows this while `STANDARD_SPACE` keeps its stored name.
    */
   civilianSectorTitle?: string;
+  /**
+   * A root `<beaconEvents>`, a private tag FTL ignores. FTL names these events in its executable.
+   * The base mod writes FTL's names, so a real ftl.dat and the stand-in read the same defaults.
+   * A sector's own `<startEvent>` or `<finishEvent>` wins over these.
+   */
+  beaconEvents?: BeaconEvents;
   /**
    * `text-<code>.xml` tables. English stays on the blueprints.
    * A `.append` file merges into the same code. The code is the filename, hyphens included.

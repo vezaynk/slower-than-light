@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { allEvents, allSectors, eventDef, fillerList } from "@stl/pack";
-import { choiceDisabled, choose, commitJump, createGame, step } from "../sim.ts";
+import { choiceDisabled, choose, commitJump, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
 import { stampCitedEvents } from "./cited-events.ts";
@@ -16,6 +16,7 @@ import {
   pageForRow,
 } from "./filler-events.ts";
 import { placeIn } from "../fixtures.ts";
+import { startedGame } from "../test-start.ts";
 
 function storedCopy(): string {
   const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -40,7 +41,7 @@ function listDests(id: string): string[] {
 
 /** A fresh map dealt as `name`, as nextSector does (makeMap leaves no flags from an earlier deal). */
 function dealt(seed: number, name: string): Game {
-  const g = createGame(seed);
+  const g = startedGame(seed);
   for (const b of g.beacons) {
     if (b.kind === "start" || b.kind === "exit" || b.kind === "boss") continue;
     b.flag = "";
@@ -185,7 +186,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     const pages = new Set([...neutral, ...items]);
     const halves = { neutral: 0, items: 0 };
     for (let seed = 1; seed <= 40; seed++) {
-      const g = createGame(seed);
+      const g = startedGame(seed);
       g.sectorId = "CIVILIAN_SECTOR";
       g.sectorName = "Civilian Sector";
       const exit = g.beacons.find((b) => b.kind === "exit")!;
@@ -194,10 +195,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       g.fuel = 5;
       commitJump(g, exit.id);
       assert.equal(g.phase, "event");
-      assert.equal(
-        g.event?.body,
-        "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.",
-      );
+      assert.equal(g.event?.body, eventDef("FINISH_BEACON")?.body);
       choose(g, "exit-continue");
       assert.ok(exit.flag.startsWith(FILLER_FLAG), `${seed}`);
       assert.ok(pages.has(exit.name), exit.name);
@@ -219,10 +217,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       if ((g.phase as Game["phase"]) === "map") g.event = null;
       step(g, 0.05);
       assert.equal(g.event?.title, "Exit beacon");
-      assert.equal(
-        g.event?.body,
-        "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.",
-      );
+      assert.equal(g.event?.body, eventDef("FINISH_BEACON")?.body);
       assert.equal(g.event?.choices.find((c) => c.id === "exit-leave")?.label, "Continue...");
     }
     // An even split between the two halves.
@@ -230,7 +225,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
   });
 
   it("a nebula sector's exit prints FINISH_BEACON_NEBULA and nothing happens", () => {
-    const g = createGame(14);
+    const g = startedGame(14);
     g.sectorId = "NEBULA_SECTOR";
     g.sectorName = "Uncharted Nebula";
     const exit = g.beacons.find((b) => b.kind === "exit")!;
@@ -238,10 +233,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
     if (!from.links.includes(exit.id)) from.links.push(exit.id);
     g.fuel = 5;
     commitJump(g, exit.id);
-    assert.equal(
-      g.event?.body,
-      "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector.",
-    );
+    assert.equal(g.event?.body, eventDef("FINISH_BEACON_NEBULA")?.body);
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),
       ["exit-leave"],
@@ -251,7 +243,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
   });
 
   it("an old picket flag starts the Rebel fight and does not print a hail", () => {
-    const g = createGame(3);
+    const g = startedGame(3);
     const exit = g.beacons.find((b) => b.kind === "exit")!;
     exit.flag = "picket";
     const from = g.beacons.find((b) => b.id === g.here)!;

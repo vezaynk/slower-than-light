@@ -5,6 +5,7 @@ import type {
   AchievementCondition,
   AchievementDef,
   ArchiveAlter,
+  BeaconEvents,
   ArchiveMark,
   ArchiveBoarders,
   ArchiveEnvironment,
@@ -104,6 +105,8 @@ export type FtlTextFile = {
  * Crew combat children fill the combat fields. A blueprint without them keeps neutral defaults.
  * A `<facts/>` marker and a `<names>` list are kept.
  * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender-only `<shipBlueprint>` is kept.
+ * A root `<beaconEvents>` and a sector's `<finishEvent>` (optionally `nebula="true"`) are private tags FTL ignores.
+ * They name the start and exit beacon events FTL's executable hard-codes. The base mod writes FTL's names.
  * A root `<ship name>` is a ship event (hull list and endings), not a hull.
  * A `<note>` on a sector is kept. This catalog does not invent a store or a rewards table.
  * `layouts` are the `data/*.txt` room grids. A ship keeps its layout file name, and the grid is
@@ -132,6 +135,7 @@ export function packFromFtl(
   const empties = new Catalog<EmptyBeaconDef>();
   const shipClasses = new Catalog<ShipClassDef>();
   let rewards: RewardTable | undefined;
+  let beaconEvents: BeaconEvents | undefined;
   const strings = new Map<string, string>();
   const locales = new Map<string, Map<string, string>>();
   const grids = readGrids(layouts);
@@ -203,6 +207,8 @@ export function packFromFtl(
       } else if (node.tagName === "rewards") {
         const table = readRewards(node);
         if (table) rewards = table;
+      } else if (node.tagName === "beaconEvents") {
+        beaconEvents = { ...beaconEvents, ...readBeaconEvents(node) };
       } else if (node.tagName === "shipClass") {
         const row = readShipClass(node);
         if (row) shipClasses.put(row);
@@ -251,6 +257,7 @@ export function packFromFtl(
   if (stores.rows.length > 0) pack.stores = stores.rows;
   if (achievements.rows.length > 0) pack.achievements = achievements.rows;
   if (rewards) pack.rewards = rewards;
+  if (beaconEvents) pack.beaconEvents = beaconEvents;
   if (factions.rows.length > 0) pack.factions = factions.rows;
   if (empties.rows.length > 0) pack.empties = empties.rows;
   if (shipClasses.rows.length > 0) pack.shipClasses = shipClasses.rows;
@@ -957,6 +964,25 @@ function numAttr(node: XmlElement, name: string): number | undefined {
   return Number.isFinite(value) ? value : undefined;
 }
 
+/**
+ * A root `<beaconEvents>`: `<startEvent>`, `<finishEvent>`, and `<finishEvent nebula="true">`.
+ * The same tags a `<sectorDescription>` may carry. FTL names these events in its executable instead.
+ */
+export function readBeaconEvents(node: XmlElement): BeaconEvents {
+  const out: BeaconEvents = {};
+  for (const item of elements(node)) {
+    const id = ownText(item).trim();
+    if (!id) continue;
+    if (item.tagName === "startEvent") out.start = id;
+    else if (item.tagName === "finishEvent") {
+      if (item.getAttribute("nebula") === "true") out.finishNebula = id;
+      else out.finish = id;
+    } else
+      warnPack(`beaconEvents: <${item.tagName}> is not startEvent or finishEvent; it is skipped.`);
+  }
+  return out;
+}
+
 function readFtlSector(node: XmlElement, strings: Map<string, string>): SectorDef | undefined {
   if (!rootChild(node)) return undefined;
   const id = attr(node, "name")?.trim();
@@ -977,6 +1003,13 @@ function readFtlSector(node: XmlElement, strings: Map<string, string>): SectorDe
   if (unique === "false") sector.unique = false;
   const start = textOf(node, "startEvent");
   if (start) sector.startEvent = start;
+  for (const item of elements(node)) {
+    if (item.tagName !== "finishEvent") continue;
+    const id = ownText(item).trim();
+    if (!id) continue;
+    if (item.getAttribute("nebula") === "true") sector.finishNebulaEvent = id;
+    else sector.finishEvent = id;
+  }
   const tracks = readTracks(node);
   if (tracks.length > 0) sector.tracks = tracks;
   const quotas: SectorQuota[] = [];

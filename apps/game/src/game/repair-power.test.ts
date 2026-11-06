@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, hurtSystem, powerDown, sparePower, step } from "./sim.ts";
+import { hurtSystem, powerDown, sparePower, step } from "./sim.ts";
+import { startedGame } from "./test-start.ts";
 
 describe("Per the user: a repaired system takes back spare power", () => {
   it("re-powers the bar damage cut once it is repaired", () => {
-    const g = createGame(1);
+    const g = startedGame(1);
     const eng = g.player.systems.engines;
     const before = eng.power;
     assert.ok(before >= 1);
@@ -17,7 +18,7 @@ describe("Per the user: a repaired system takes back spare power", () => {
   });
 
   it("stays down when there is no spare power", () => {
-    const g = createGame(2);
+    const g = startedGame(2);
     const eng = g.player.systems.engines;
     const before = eng.power;
     hurtSystem(g.player, "engines", 1);
@@ -30,7 +31,7 @@ describe("Per the user: a repaired system takes back spare power", () => {
   });
 
   it("leaves a system the player turned down", () => {
-    const g = createGame(3);
+    const g = startedGame(3);
     const eng = g.player.systems.engines;
     const before = eng.power;
     hurtSystem(g.player, "engines", 1);

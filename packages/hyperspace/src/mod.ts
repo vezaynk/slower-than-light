@@ -1,6 +1,7 @@
 import {
   emitFtlSectors,
   emitFtlShips,
+  emitGapDocument,
   emitPack,
   packFromFtl,
   parsePack,
@@ -80,6 +81,12 @@ export function emitMod(pack: ContentPack): string {
       root.appendChild(node);
     }
   }
+  // The default start and exit events, in the same <beaconEvents> tag the gap file writes.
+  if (pack.beaconEvents) {
+    const gap = readXml(emitGapDocument({ beaconEvents: pack.beaconEvents })).documentElement;
+    for (const child of gap ? elementChildren(gap) : [])
+      root.appendChild(doc.importNode(child, true));
+  }
   writeCrewIdentity(root, pack.crew, doc);
   writeSystemDetail(root, pack.systems, doc);
   return prettyXml(serializer.serializeToString(doc));
@@ -98,6 +105,7 @@ export function packFromMod(xml: string): ContentPack {
   const parsed = parsePack(xml);
   const ftl = packFromFtl([{ path: "pack.xml", xml }]);
   if (ftl.hulls) parsed.hulls = ftl.hulls;
+  if (ftl.beaconEvents) parsed.beaconEvents = ftl.beaconEvents;
   if (ftl.sectors) {
     const notes = new Map((parsed.sectors ?? []).map((row) => [row.id, row.notes]));
     parsed.sectors = ftl.sectors.map((row) => ({ ...row, notes: [...(notes.get(row.id) ?? [])] }));
@@ -146,6 +154,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (lists) pack.lists = lists;
   if (empties) pack.empties = empties;
   if (parsed.rewards) pack.rewards = parsed.rewards;
+  if (parsed.beaconEvents) pack.beaconEvents = parsed.beaconEvents;
   if (factions) pack.factions = factions;
   return pack;
 }

@@ -111,6 +111,8 @@ import {
   allSectors,
   allWeapons,
   augmentDef,
+  beaconEventId,
+  fillerList,
   crewDef,
   droneDef,
   eventDef,
@@ -7618,20 +7620,88 @@ export function sealEmptyEvent(g: Game): void {
   g.event = { ...g.event, choices: [{ id: "ack", label: "Continue" }] };
 }
 
+/** Exit pages already warned about, so a missing page warns once per load. */
+const warnedExits = new Set<string>();
+
+function warnExitOnce(key: string, message: string): void {
+  if (warnedExits.has(key)) return;
+  warnedExits.add(key);
+  warnPack(message);
+}
+
 /**
- * FINISH_BEACON / FINISH_BEACON_NEBULA (FTL events.xml, as transcribed on hugomg.github.io/ftl-cheatsheet).
- * A nebula sector uses the nebula line. Continue... is the event's own label.
+ * The exit beacon's page: the sector's `<finishEvent>`, else `<beaconEvents>` (FTL's FINISH_BEACON and
+ * FINISH_BEACON_NEBULA). INFERRED: a nebula sector's exit is the beacon "contained within a nebula".
+ */
+function exitPage(g: Game) {
+  const id = beaconEventId("finish", g.sectorId, nebulaSector(g.sectorId));
+  if (!id) {
+    warnExitOnce(
+      "(none)",
+      "No exit beacon event is named: no <beaconEvents> or <finishEvent>. The exit keeps its own text.",
+    );
+    return undefined;
+  }
+  const page = eventDef(id);
+  if (!page)
+    warnExitOnce(id, `Exit beacon event ${id} is not loaded. The exit keeps its own text.`);
+  return page;
+}
+
+/** The list the exit page's Continue loads, as FINISH_BEACON's hidden choice loads EXIT_LIST. */
+function exitContinueList(g: Game): string | undefined {
+  for (const choice of exitPage(g)?.choices ?? []) {
+    for (const fx of choice.fx) if (fx.k === "goto") return fx.id;
+  }
+  return undefined;
+}
+
+/** Advanced Edition draws the OVERRIDE_ list when the archive has one, as resolvedGrant does for blueprints. */
+function listOrOverride(id: string): string {
+  return !id.startsWith("OVERRIDE_") && fillerList(`OVERRIDE_${id}`) ? `OVERRIDE_${id}` : id;
+}
+
+/**
+ * One draw from the exit's Continue list. ftl.dat's EXIT_LIST holds two lists (NEUTRAL_EXIT and ITEMS), so a list of
+ * lists picks one list with equal odds, then a page in it. A list of pages draws a page.
+ * INFERRED: a row with no card here, or a unique row already on this map, is skipped within its list.
+ */
+function drawExitPage(g: Game, listId: string) {
+  const id = listOrOverride(listId);
+  const list = fillerList(id);
+  if (!list) {
+    warnExitOnce(
+      `list:${id}`,
+      `Exit beacon Continue loads ${id}, which is not a loaded list. The card closes.`,
+    );
+    return null;
+  }
+  const nested = list.entries.filter((entry) => fillerList(listOrOverride(entry.id)));
+  if (nested.length > 0 && nested.length === list.entries.length) {
+    const pick = nested[Math.min(nested.length - 1, Math.floor(rand(g) * nested.length))]!;
+    return drawFiller(g, listOrOverride(pick.id), g.beacons);
+  }
+  return drawFiller(g, id, g.beacons);
+}
+
+/**
+ * The exit beacon card, from the archive's finish page. The title stays "Exit beacon" unless the page names its own.
+ * The button keeps the sim's id (choose() switches on it) and takes the page's Continue label.
+ * With no page loaded, FTL's FINISH_BEACON wording (hugomg.github.io/ftl-cheatsheet) stays the fallback.
  */
 function longRangeExit(
   g: Game,
   choiceId: "exit-leave" | "exit-continue",
 ): NonNullable<Game["event"]> {
+  const page = exitPage(g);
+  const fallback = nebulaSector(g.sectorId)
+    ? "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector."
+    : "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.";
+  const label = page?.choices.find((choice) => choice.label.trim())?.label ?? "Continue...";
   return {
-    title: "Exit beacon",
-    body: nebulaSector(g.sectorId)
-      ? "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector."
-      : "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.",
-    choices: [{ id: choiceId, label: "Continue..." }],
+    title: page && page.dest && page.dest !== page.id ? page.dest : "Exit beacon",
+    body: page?.body.trim() ? page.body : fallback,
+    choices: [{ id: choiceId, label }],
   };
 }
 
@@ -7866,13 +7936,10 @@ export function choose(g: Game, id: string) {
       startCombat(g, tierFor(g, true));
       break;
     case "exit-continue": {
-      // FINISH_BEACON's Continue: 1/2 OVERRIDE_NEUTRAL_EXIT (1/18 each), 1/2 OVERRIDE_ITEMS (1/14 each), per the game's
-      // event data (hugomg.github.io/ftl-cheatsheet). Lists: filler-events EXIT_NEUTRAL and EXIT_ITEMS.
-      // INFERRED: a row with no card here, or a unique row already on this map, is skipped within its half.
+      // The finish page's Continue loads a list (ftl.dat: EXIT_LIST, one draw between NEUTRAL_EXIT and ITEMS).
       const exit = hereBeacon(g);
-      const page = exit
-        ? drawFiller(g, rand(g) < 0.5 ? "EXIT_NEUTRAL" : "EXIT_ITEMS", g.beacons)
-        : null;
+      const listId = exit ? exitContinueList(g) : undefined;
+      const page = exit && listId ? drawExitPage(g, listId) : null;
       const card =
         exit && page ? (stampFiller(exit, page), (exit.kind = "exit"), fillerEvent(g, exit)) : null;
       g.event = card ?? longRangeExit(g, "exit-leave");
@@ -8224,7 +8291,8 @@ function nextSector(g: Game, id?: string) {
 
 /** The sector's stored start event, after the map stamps. A missing id leaves the resolved start beacon. */
 function openSectorStart(g: Game): void {
-  const id = sectorDef(g.sectorId)?.startEvent;
+  // The sector's <startEvent>, else <beaconEvents> (FTL's START_BEACON).
+  const id = beaconEventId("start", g.sectorId);
   if (!id) return;
   const page = eventDef(id);
   if (!page) return;

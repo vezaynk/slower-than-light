@@ -157,6 +157,12 @@ function sectorElement(doc: XmlDocument, sector: SectorDef): XmlElement {
     node.appendChild(tracks);
   }
   if (sector.startEvent) node.appendChild(leaf(doc, "startEvent", sector.startEvent));
+  if (sector.finishEvent) node.appendChild(leaf(doc, "finishEvent", sector.finishEvent));
+  if (sector.finishNebulaEvent) {
+    const nebula = leaf(doc, "finishEvent", sector.finishNebulaEvent);
+    nebula.setAttribute("nebula", "true");
+    node.appendChild(nebula);
+  }
   for (const quota of sector.quotas ?? []) {
     node.appendChild(
       element(doc, "event", { name: quota.id, min: String(quota.min), max: String(quota.max) }),

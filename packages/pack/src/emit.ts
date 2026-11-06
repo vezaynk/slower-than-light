@@ -8,6 +8,7 @@ import type {
   AchievementCondition,
   AchievementDef,
   AugmentDef,
+  BeaconEvents,
   ChoiceGift,
   ChoiceReq,
   ContentPack,
@@ -178,7 +179,21 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
   for (const row of pack.shipClasses ?? []) add(root, shipClassElement(doc, row));
+  if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   return prettyXml(serializer.serializeToString(doc));
+}
+
+/** `<beaconEvents>`: the start and exit events a sector opens when it names none. */
+function beaconEventsElement(doc: XmlDocument, row: BeaconEvents): XmlElement {
+  const node = element(doc, "beaconEvents", {});
+  if (row.start) add(node, leaf(doc, "startEvent", row.start));
+  if (row.finish) add(node, leaf(doc, "finishEvent", row.finish));
+  if (row.finishNebula) {
+    const nebula = leaf(doc, "finishEvent", row.finishNebula);
+    nebula.setAttribute("nebula", "true");
+    add(node, nebula);
+  }
+  return node;
 }
 
 function shipClassElement(doc: XmlDocument, row: ShipClassDef): XmlElement {

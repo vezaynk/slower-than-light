@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame, step } from "./sim.ts";
+import { step } from "./sim.ts";
+import { startedGame } from "./test-start.ts";
 
 describe("a dead ship outside combat", () => {
   it("ends the run when a fire destroys the last system bar and the hull", () => {
-    const g = createGame(1902176094, "PLAYER_SHIP_HARD", "easy");
+    const g = startedGame(1902176094, "PLAYER_SHIP_HARD", "easy");
     assert.equal(g.phase, "map");
     assert.equal(g.enemy, null);
     const room = g.player.rooms.find((r) => r.system === "oxygen");
@@ -43,7 +44,7 @@ describe("a dead ship outside combat", () => {
   });
 
   it("ends the run when the crew suffocates on the map with the hull intact", () => {
-    const g = createGame(3, "PLAYER_SHIP_HARD", "easy");
+    const g = startedGame(3, "PLAYER_SHIP_HARD", "easy");
     assert.equal(g.phase, "map");
     g.player.systems.oxygen.power = 0;
     g.player.systems.medbay.power = 0;

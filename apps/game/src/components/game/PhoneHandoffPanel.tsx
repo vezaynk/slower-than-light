@@ -1,5 +1,5 @@
 /**
- * Per the user: Options › Phone, beside Game files. Send this browser's game files, saved game, and
+ * Per the user: Setup › Phone, beside Game files (SetupScreen.tsx). Send this browser's game files, saved game, and
  * achievements to another device, or receive that set here. The code is a short room code. The bytes
  * move on a data channel. A transfer that stops leaves the files already stored here in place.
  */

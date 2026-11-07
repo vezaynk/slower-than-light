@@ -7282,6 +7282,11 @@ button.cargo-slot:hover {
   overflow: auto;
 }
 
+/* The files are being read, so the panels wait until the boot is done. */
+.setup-sheet .ship-tab-panel[inert] {
+  opacity: 0.55;
+}
+
 .setup-launch {
   display: flex;
   align-items: center;

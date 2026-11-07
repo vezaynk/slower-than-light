@@ -48,3 +48,12 @@ As of November 2026 (FTL 1.6.13):
 English record text comes from the `text_*.xml` tables. Each translation (`text-de.xml` and the rest) is read
 into `pack.locales`, and the title screen offers it as a language. The coverage check skips those files, so it
 does not require their strings to be shown.
+
+## Known warnings
+
+Some warnings come from `ftl.dat` itself. The reader still logs them (the game's play log and Sentry both see
+them), but they are known and intentionally ignored:
+
+| Warning                                                                | Cause                                                                                                                                                                                                                              |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `A <status> system "engine" is not one this ship uses; it is skipped.` | A typo in `ftl.dat` 1.6.13's `TEST_EVENT2` (`data/events.xml`): `system="engine"` instead of `"engines"`. No sector or list loads that test event, so skipping the row changes nothing. It is reported on every load of `ftl.dat`. |

@@ -1633,6 +1633,17 @@ function seatHull(
  * One explicit hull: its weapons, drones, crew counts, augments, and installed systems.
  * This does not roll a class on top. An empty crew is an automated ship.
  */
+/**
+ * The name an enemy blueprint shows. ftl.dat's enemy ships carry no `<name>`, only `<class>` (REBEL_SKINNY is
+ * "Rebel Fighter", ROCK_FIGHT_P "Pirate Fighter"), and the reader falls back to the id for a missing name.
+ * Per the user: the class text, so a fight off a blueprint list is named like one off the class picker.
+ */
+export function hullDisplayName(hull: Pick<HullDef, "id" | "name" | "cruiser">): string {
+  const name = hull.name.trim();
+  if (name && name !== hull.id) return name;
+  return hull.cruiser.trim() || name || hull.id;
+}
+
 export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number): EnemySpec {
   const installed = installedSystems(hull);
   const seated = seatHull(hull, installed);
@@ -1666,7 +1677,7 @@ export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number
     : { weapons: [] as string[], flags: { laser: true, hull: true } };
   const spec: EnemySpec = {
     classId: hull.id,
-    name: hull.name.trim() || hull.id,
+    name: hullDisplayName(hull),
     pirate: false,
     automated: crew.length === 0,
     hull: hull.health != null && hull.health > 0 ? hull.health : 1,

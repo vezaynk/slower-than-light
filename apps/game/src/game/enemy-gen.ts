@@ -18,7 +18,6 @@ import {
   shipEventDef,
   loadPack,
   marksFromDoors,
-  shipClassBlueprint,
   warnPack,
   droneDef,
   weaponDef,
@@ -26,7 +25,6 @@ import {
 import { liveTable } from "./content.ts";
 import type {
   AugmentDef,
-  EventEffect,
   HullCrewCount,
   HullDef,
   ShipCrewRow,
@@ -36,7 +34,7 @@ import type {
 import type { KinId } from "./extras/kin.ts";
 import { crewRandomIds, internalDrones } from "./blueprint-use.ts";
 import { noteListPlayed } from "./played-lists.ts";
-import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
+import { pirateCrewRaces } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import type { Difficulty, DoorMark, KitId, SysId } from "./types.ts";
 
@@ -1427,48 +1425,85 @@ function drawHull(
   return pool[Math.floor(rand() * pool.length) % pool.length];
 }
 
-/** Ship fights on a page and its choices: `<ship load>` effects. */
-function pageFights(
-  fx: readonly EventEffect[] | undefined,
-  out: { tier: string; list?: string }[],
-) {
-  for (const row of fx ?? []) {
-    if (row.k === "fight")
-      out.push({ tier: row.tier, ...(row.autoBlueprint ? { list: row.autoBlueprint } : {}) });
-  }
+/**
+ * The ship an event opens with: its own hostile `<ship load>` (ftl.dat's PIRATE), a fight effect on the page itself,
+ * or the one fight of a page whose only choice is that fight (the stand-in's "Fight a Pirate ship", where the page
+ * "has no choice. Arrival calls this fight"). A fight that is one choice among others is not what the beacon opens
+ * with, so it stays out.
+ */
+function openingFight(id: string): { tier: string; list?: string } | undefined {
+  const page = eventDef(id);
+  if (!page) return undefined;
+  if (page.ship?.hostile && page.ship.load)
+    return {
+      tier: page.ship.load,
+      ...(page.ship.autoBlueprint ? { list: page.ship.autoBlueprint } : {}),
+    };
+  const only = page.choices.length === 1 ? page.choices[0]!.fx : [];
+  const fx = [...(page.fx ?? []), ...(only.length === 1 ? only : [])];
+  const row = fx.find((effect) => effect.k === "fight");
+  if (row?.k !== "fight") return undefined;
+  return { tier: row.tier, ...(row.autoBlueprint ? { list: row.autoBlueprint } : {}) };
 }
 
+type PoolFight = { tier: string; list?: string; weight: number };
+
 /**
- * The sector's random fight: one ship off the fights its own event lists hold, as a hostile beacon there would meet.
- * Each fight counts once per page that holds it.
+ * The fights a hostile beacon in the sector opens with. Each quota of the sector contributes the opening fights of the
+ * events its list holds, weighted by the quota's mean event count shared evenly over the list (a nested list splits
+ * its share again). Quotas whose events open with no ship (neutral, store, a distress call without a fight) add nothing.
  */
+function poolFights(sectorId: string): PoolFight[] {
+  const fights: PoolFight[] = [];
+  const visit = (id: string, share: number, depth: number, path: readonly string[]) => {
+    if (depth > 3 || path.includes(id) || share <= 0) return;
+    const list = fillerList(id);
+    if (list) {
+      const each = share / Math.max(1, list.entries.length);
+      for (const entry of list.entries) visit(entry.id, each, depth + 1, [...path, id]);
+      return;
+    }
+    const fight = openingFight(id);
+    if (!fight || /flagship/i.test(fight.tier)) return;
+    if (!shipEventDef(fight.tier) && !hullDef(fight.tier)) return;
+    fights.push({ ...fight, weight: share });
+  };
+  for (const quota of sectorDef(sectorId)?.quotas ?? [])
+    visit(quota.id, (quota.min + quota.max) / 2, 0, []);
+  return fights;
+}
+
+/** The sector's random fight: one opening fight off `poolFights`, drawn by weight. */
 function sectorFight(
   ctx: PoolContext,
   rand: () => number,
   level: number,
 ): ArchiveFight | undefined {
-  const fights: { tier: string; list?: string }[] = [];
-  const seen = new Set<string>();
-  const visit = (id: string, depth: number) => {
-    if (depth > 3 || seen.has(id)) return;
-    seen.add(id);
-    const list = fillerList(id);
-    if (list) {
-      for (const entry of list.entries) visit(entry.id, depth + 1);
-      return;
+  const fights = poolFights(ctx.sectorId);
+  const total = fights.reduce((sum, row) => sum + row.weight, 0);
+  if (total <= 0) return undefined;
+  let roll = rand() * total;
+  let pick = fights[fights.length - 1]!;
+  for (const row of fights) {
+    roll -= row.weight;
+    if (roll < 0) {
+      pick = row;
+      break;
     }
-    const page = eventDef(id);
-    if (!page) return;
-    pageFights(page.fx, fights);
-    for (const choice of page.choices) pageFights(choice.fx, fights);
-  };
-  for (const quota of sectorDef(ctx.sectorId)?.quotas ?? []) visit(quota.id, 0);
-  const ships = fights.filter(
-    (row) => !/flagship/i.test(row.tier) && (shipEventDef(row.tier) || hullDef(row.tier)),
-  );
-  if (ships.length === 0) return undefined;
-  const pick = ships[Math.floor(rand() * ships.length) % ships.length]!;
+  }
   const list = pick.list ?? shipEventDef(pick.tier)?.autoBlueprint;
   const hull = fightHull(pick.tier, list, rand, level);
   return hull ? { hull, ...(list ? { list } : {}) } : undefined;
+}
+
+/** The sector's pool by the list (or ship event) each fight draws from, as shares of 1. */
+export function sectorFightPool(sectorId: string): Map<string, number> {
+  const out = new Map<string, number>();
+  const fights = poolFights(sectorId);
+  const total = fights.reduce((sum, row) => sum + row.weight, 0);
+  for (const row of fights) {
+    const key = row.list ?? shipEventDef(row.tier)?.autoBlueprint ?? row.tier;
+    out.set(key, (out.get(key) ?? 0) + row.weight / total);
+  }
+  return out;
 }

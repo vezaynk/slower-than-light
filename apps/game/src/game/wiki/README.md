@@ -15,13 +15,12 @@ own tests did) were removed with this README: `events-0`–`events-3`, `enemies-
 
 ## 1. Content that duplicates the archive: replace with archive reads, then delete
 
-| Module                                    | Lines | What it holds                                                 | Archive source                                                                           |
-| ----------------------------------------- | ----: | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `layout-pages.ts`                         | 3,524 | Cruiser page text for the hangar (names, notes, unlock lines) | The player `shipBlueprint`: `name`, `class`, `desc`, `unlock`, and `text_blueprints.xml` |
-| `hangar-bay.ts`, `augments-missing.ts`    |   297 | Hangar loadout article; augments the catalog lacked           | The player blueprint's lists and `augBlueprint`s                                         |
-| `flagship.ts`, `flagship-layout.ts`       |   274 | Flagship stage numbers; traced cutaways                       | `BOSS_*` blueprints and `data/boss_*.txt` (ftl.dat), `flagship-*` (stand-in)             |
-| `projectile-speed.ts`, `cited-weapons.ts` |   112 | Shot speed; crew damage per weapon                            | `weaponBlueprint` `<speed>` and `<persDamage>`                                           |
-| `skills.ts`                               |    86 | Skill speed tables; crew races per sector for pirate crews    | Skill tables are a rule (section 3). Races: the sector's `<rarityList>`                  |
+| Module                                    | Lines | What it holds                                              | Archive source                                                               |
+| ----------------------------------------- | ----: | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `hangar-bay.ts`, `augments-missing.ts`    |   297 | Hangar loadout article; augments the catalog lacked        | The player blueprint's lists and `augBlueprint`s                             |
+| `flagship.ts`, `flagship-layout.ts`       |   274 | Flagship stage numbers; traced cutaways                    | `BOSS_*` blueprints and `data/boss_*.txt` (ftl.dat), `flagship-*` (stand-in) |
+| `projectile-speed.ts`, `cited-weapons.ts` |   112 | Shot speed; crew damage per weapon                         | `weaponBlueprint` `<speed>` and `<persDamage>`                               |
+| `skills.ts`                               |    86 | Skill speed tables; crew races per sector for pirate crews | Skill tables are a rule (section 3). Races: the sector's `<rarityList>`      |
 
 ## 2. Events written in code: move to the archive, then delete
 
@@ -65,6 +64,7 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 2. **Done (#175, #176, and the class-picker removal):** the stand-in carries `ftl.dat`'s `SHIPS_*` lists and full
    enemy blueprints (written by `@stl/catalog` from the faction pages), every fight resolves to an archive ship
    (`enemy-gen.ts` `archiveFight`), and `enemy-ships.ts`, `enemy-layouts.ts` and `sector-hostiles.ts` are gone.
-3. **Content modules** in section 1, one at a time.
+3. **Content modules** in section 1, one at a time. Done: `layout-pages.ts` (the hangar reads its cruisers from the
+   archive, `game/hangar-roster.ts`; the unreachable "Playable ships" article went with it).
 4. **Events** in section 2, one page at a time.
 5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`.

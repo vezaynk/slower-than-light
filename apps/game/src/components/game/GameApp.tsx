@@ -111,13 +111,6 @@ import {
   UnlockDiagram,
   classOfPage,
 } from "./PixelArt";
-import {
-  PLAYABLE_SHIPS,
-  cruiserPage,
-  type CruiserLayout,
-  type WikiLine,
-} from "@/game/wiki/layout-pages";
-import { cruiserArticle } from "@/game/wiki/hangar-bay";
 import { startVeil, upgradeVeil, veilUpgradeCost } from "@/game/extras/veil";
 import { startLeash, UPGRADE_COST as LEASH_UPGRADE, upgradeLeash } from "@/game/extras/leash";
 import {
@@ -4600,10 +4593,7 @@ function TitleScreen() {
       g.training = true;
     });
   }
-  const cruiser = view ? cruiserPage(view) : undefined;
   if (view === "hangar") return <Hangar onMenu={() => setView(null)} />;
-  if (cruiser) return <CruiserArticle page={cruiser} onShips={() => setView("ships")} />;
-  if (view === "ships") return <PlayableShips onOpen={setView} onTitle={() => setView(null)} />;
   return (
     <section className="title-shot">
       <InstallButton className="title-install" />
@@ -4729,134 +4719,8 @@ function TitlePanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Wiki page "Ship", section "Playable ships" and section "Layouts". */
-function PlayableShips({
-  onOpen,
-  onTitle,
-}: {
-  onOpen: (page: string) => void;
-  onTitle: () => void;
-}) {
-  const ships = PLAYABLE_SHIPS;
-  return (
-    <article className="wiki-doc">
-      <button type="button" className="title-figure-hit" aria-label={"FTL"} onClick={onTitle}>
-        <PixelTitle />
-      </button>
-      <h1>{ships.heading}</h1>
-      {ships.see.map((line) => (
-        <p key={line}>{line}</p>
-      ))}
-      <p>{ships.lead}</p>
-      <table className="ship-table">
-        <tbody>
-          {ships.rows.map((row) => (
-            <tr key={row[0].page}>
-              {row.map((cell) => (
-                <td key={cell.page}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      unlockAudio();
-                      onOpen(cell.page);
-                    }}
-                  >
-                    <PixelHull kind={classOfPage(cell.page)} />
-                    <span>{cell.page}</span>
-                  </button>
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p>{ships.note}</p>
-      <h2>{ships.layoutsHeading}</h2>
-      <p>{ships.layoutsLead}</p>
-      <ul>
-        {ships.layouts.map((line) => (
-          <li key={line.text} style={{ marginLeft: `${(line.depth - 1) * 1.15}em` }}>
-            {line.text}
-          </li>
-        ))}
-      </ul>
-      <figure>
-        <UnlockDiagram />
-        <figcaption>{ships.diagram.caption}</figcaption>
-      </figure>
-    </article>
-  );
-}
-
-/** One cruiser article. "Playable ships" is the parent section. The default-name line starts that layout. */
-function CruiserArticle({
-  page,
-  onShips,
-}: {
-  page: { page: string; layouts: CruiserLayout[] };
-  onShips: () => void;
-}) {
-  return (
-    <article className="wiki-doc">
-      <button type="button" className="wiki-parent" onClick={onShips}>
-        {PLAYABLE_SHIPS.heading}
-      </button>
-      <h1>{page.page}</h1>
-      {page.layouts.map((layout) => (
-        <section key={layout.id} className="layout-block">
-          <h2>{layout.heading}</h2>
-          <WikiLines
-            lines={cruiserArticle(layout.id) ?? layout.lines}
-            onRun={() => {
-              if (!isUnlocked(layout.id)) return; // @agent:unlocks. A locked layout does not start from its wiki article.
-              unlockAudio();
-              useGame.getState().newRun(layout.id);
-            }}
-          />
-          <PixelLayout id={layout.id} />
-        </section>
-      ))}
-    </article>
-  );
-}
-
 function isDefaultName(text: string) {
   return text.startsWith("Default name:") || text.startsWith("Default Name:");
-}
-
-function WikiLines({ lines, onRun }: { lines: WikiLine[]; onRun: () => void }) {
-  const blocks: ReactNode[] = [];
-  let list: WikiLine[] = [];
-  const flush = () => {
-    if (!list.length) return;
-    const items = list;
-    list = [];
-    blocks.push(
-      <ul key={blocks.length}>
-        {items.map((line, i) => (
-          <li key={i} style={{ marginLeft: `${(line.depth - 1) * 1.15}em` }}>
-            {isDefaultName(line.text) ? (
-              <button type="button" onClick={onRun}>
-                {line.text}
-              </button>
-            ) : (
-              line.text
-            )}
-          </li>
-        ))}
-      </ul>,
-    );
-  };
-  for (const line of lines) {
-    if (line.depth === 0) {
-      flush();
-      blocks.push(<p key={blocks.length}>{line.text}</p>);
-    } else {
-      list.push(line);
-    }
-  }
-  flush();
-  return <>{blocks}</>;
 }
 
 function mapX(col: number) {

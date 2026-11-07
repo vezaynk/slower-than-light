@@ -4,7 +4,6 @@
  */
 import {
   augmentDef,
-  crewDef,
   droneDef,
   hullDef,
   startingFit,

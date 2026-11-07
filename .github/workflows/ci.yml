@@ -27,19 +27,20 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Turborepo's local cache, kept between runs. A pull request restores master's newest cache (and its own),
-      # so a task whose inputs and dependencies are unchanged replays instead of running again.
+      - id: node
+        run: echo "version=$(node --version)" >> "$GITHUB_OUTPUT"
+
+      # Turborepo does not hash the Node version, and the goldens' zlib bytes depend on it.
       - uses: actions/cache@v4
         with:
           path: .turbo/cache
-          key: turbo-${{ github.job }}-${{ runner.os }}-${{ github.sha }}
+          key: turbo-${{ github.job }}-${{ runner.os }}-${{ steps.node.outputs.version }}-${{ github.sha }}
           restore-keys: |
-            turbo-${{ github.job }}-${{ runner.os }}-
+            turbo-${{ github.job }}-${{ runner.os }}-${{ steps.node.outputs.version }}-
 
       # The script checks under apps/game/scripts read gitignored .grok files.
       - run: pnpm test:ci
 
-      # Every run saves the whole cache again, so drop entries that have not been written for two weeks.
       - name: Prune the turbo cache
         if: always()
         run: find .turbo/cache -type f -mtime +14 -delete 2>/dev/null || true
@@ -58,17 +59,21 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Turborepo's local cache, kept between runs. A pull request restores master's newest cache (and its own),
-      # so a task whose inputs and dependencies are unchanged replays instead of running again.
+      - id: node
+        run: echo "version=$(node --version)" >> "$GITHUB_OUTPUT"
+
+      # Turborepo does not hash the Node version, and the goldens' zlib bytes depend on it.
       - uses: actions/cache@v4
         with:
           path: .turbo/cache
-          key: turbo-${{ github.job }}-${{ runner.os }}-${{ github.sha }}
+          key: turbo-${{ github.job }}-${{ runner.os }}-${{ steps.node.outputs.version }}-${{ github.sha }}
           restore-keys: |
-            turbo-${{ github.job }}-${{ runner.os }}-
+            turbo-${{ github.job }}-${{ runner.os }}-${{ steps.node.outputs.version }}-
 
-      # Rewrites the campaign gap and the stand-in. A stale committed file leaves a diff. A cache hit restores the
-      # outputs of unchanged sources over the committed files, so a hand-edited golden still shows as a diff.
+      # A cache hit merges its outputs over the tree and leaves extra files, so clear the trees the generators
+      # rebuild. The stand-in generator reads the committed totallynotftl.dat, so that file stays.
+      - run: rm -rf packages/campaign/mod packages/totallynotftl/archive
+
       - run: pnpm campaign:xml
 
       - run: pnpm totallynotftl:dat
@@ -83,7 +88,6 @@ jobs:
             exit 1
           fi
 
-      # Every run saves the whole cache again, so drop entries that have not been written for two weeks.
       - name: Prune the turbo cache
         if: always()
         run: find .turbo/cache -type f -mtime +14 -delete 2>/dev/null || true

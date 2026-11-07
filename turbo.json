@@ -17,11 +17,23 @@
     "@stl/totallynotftl#generate": {
       "dependsOn": ["@stl/campaign#generate", "^typecheck"],
       "outputs": ["archive/**", "totallynotftl.xml", "totallynotftl.dat"],
-      "inputs": ["package.json", "src/**"]
+      "inputs": [
+        "package.json",
+        "src/**",
+        "tones/**",
+        "totallynotftl.dat",
+        "$TURBO_ROOT$/apps/game/src/game/gear-look.ts",
+        "$TURBO_ROOT$/apps/game/src/game/icons.ts",
+        "$TURBO_ROOT$/apps/game/src/game/crew-pixels.ts",
+        "$TURBO_ROOT$/apps/game/src/game/pack/base.ts",
+        "$TURBO_ROOT$/packages/standin/package.json",
+        "$TURBO_ROOT$/packages/standin/src/**"
+      ]
     },
     "@stl/totallynotftl#test": {
       "dependsOn": ["^typecheck"],
-      "inputs": ["package.json", "src/**", "archive/**", "totallynotftl.xml", "totallynotftl.dat"]
+      "inputs": ["package.json", "src/**", "archive/**", "totallynotftl.xml", "totallynotftl.dat"],
+      "env": ["FTL_DAT", "STL_DAT_DIGEST"]
     },
     "@stl/campaign#test": {
       "dependsOn": ["^typecheck"],
@@ -40,7 +52,7 @@
     "lint": {},
     "@stl/game#test:src": {
       "dependsOn": ["^typecheck"],
-      "env": ["FTL_DAT", "STL_DATS"]
+      "env": ["FTL_DAT", "STL_DATS", "STL_DAT_DIGEST"]
     }
   }
 }

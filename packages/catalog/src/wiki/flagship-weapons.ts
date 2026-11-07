@@ -23,7 +23,7 @@ export const BOSS_LASER: WeaponDef = {
   kind: "laser",
   // INFERRED, chosen: the artillery maximum (4). No power line is printed. Not a Weapons-pool cost.
   power: 4,
-  // Level-1 base. The other levels are in ARTILLERY_CHARGE.
+  // Level-1 charge; registerFlagshipWeapons writes the level-2 one as the blueprint cooldown.
   charge: 25,
   shots: 3,
   // Laser (Weapons), Boss Laser: "Shots: 3". No gap is printed, so the three bolts are not spaced.
@@ -79,24 +79,15 @@ export const ARTILLERY_CHARGE: Record<string, Partial<Record<1 | 2 | 3 | 4, numb
   ARTILLERY_BOSS_3: { 1: 32.5, 2: 26, 3: 19.5 },
 };
 
-/**
- * Seconds for one charge of a flagship gun at `level` working artillery bars, or null when it cannot charge
- * (0 bars). "Damaging the system slows down the weapon": a damaged level reads the lower row. A level above the
- * gun's printed maximum (Ion / Beam have no level-4 cell) uses its highest printed row.
- */
-export function artilleryChargeSeconds(defId: string, level: number): number | null {
-  const row = ARTILLERY_CHARGE[defId];
-  if (!row || level < 1) return null;
-  for (let lv = Math.min(4, Math.floor(level)); lv >= 1; lv--) {
-    const s = row[lv as 1 | 2 | 3 | 4];
-    if (s != null) return s;
-  }
-  return null;
-}
-
 /** Add Boss Laser / Boss Beam and the flagship page's Boss Missile breach to the weapon registry. */
 export function registerFlagshipWeapons(weapons: Record<string, WeaponDef>) {
   for (const def of [BOSS_LASER, BOSS_BEAM]) if (!weapons[def.id]) weapons[def.id] = def;
+  // An artillery gun's `<cooldown>` is its charge at level 2, as in ftl.dat's BOSS_* weapons; the game scales it
+  // per level (game wiki/flagship-systems.ts artilleryChargeSeconds).
+  for (const [id, row] of Object.entries(ARTILLERY_CHARGE)) {
+    const def = weapons[id];
+    if (def && row[2] != null) weapons[id] = { ...def, charge: row[2] };
+  }
   const missile = weapons.ARTILLERY_BOSS_2;
   // A copy, so MISSILE_WEAPONS keeps the Missile page's row.
   if (missile) weapons.ARTILLERY_BOSS_2 = { ...missile, breach: BOSS_MISSILE_BREACH };

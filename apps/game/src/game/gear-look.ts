@@ -177,7 +177,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     trim: GUNMETAL,
     glow: AMBER,
   },
-  // @agent:flagship. Rebel Flagship artillery (wiki/flagship-weapons.ts), in the boss maroon of Boss Ion / Missile.
+  // @agent:flagship. Rebel Flagship artillery (the BOSS_* blueprints' artillery), in the boss maroon of Boss Ion / Missile.
   ARTILLERY_BOSS_1: {
     frame: "block",
     barrels: 3,

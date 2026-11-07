@@ -21,7 +21,6 @@ import { sectorIdOf } from "./sector-ids.ts";
 import type { Game } from "./types.ts";
 import { citedSell, citedSellQuote } from "./wiki/cited-stores.ts";
 import { citedEvent } from "./wiki/cited-events.ts";
-import { FLAGSHIP_PHASES } from "./wiki/flagship.ts";
 import { ACCEPT_ID, joinCrew } from "./wiki/surrender.ts";
 import {
   augmentDef,
@@ -367,18 +366,13 @@ describe("a seeded Kestrel run", () => {
     fight.here = boss.id;
     startCombat(fight, "boss");
     const guns = fight.enemy?.weapons ?? [];
-    assert.deepEqual(
-      guns.map((w) => w.defId),
-      ["ARTILLERY_BOSS_4", "ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
-    );
-    assert.deepEqual(
-      guns.map((w) => weaponDef(w.defId)?.name),
-      [...FLAGSHIP_PHASES[0].weapons],
-    );
-    assert.deepEqual(
-      guns.map((w) => weaponDef(w.defId)?.name),
-      ["Boss Ion", "Boss Laser", "Boss Missile", "Boss Beam"],
-    );
+    // The stage-1 blueprint's four artillery pods, in its room order.
+    assert.deepEqual(guns.map((w) => weaponDef(w.defId)?.name).sort(), [
+      "Boss Beam",
+      "Boss Ion",
+      "Boss Laser",
+      "Boss Missile",
+    ]);
   });
 
   it("buys fuel, a Human, the Re-loader, Drone Control, a schematic, and Mind Control", () => {

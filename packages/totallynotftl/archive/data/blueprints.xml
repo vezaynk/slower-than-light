@@ -2148,169 +2148,178 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
   <shipBlueprint name="BOSS_1_EASY_DLC" layout="flagship-1" img="flagship-1">
     <name>BOSS_1_EASY_DLC</name>
     <systemList>
-      <pilot power="1" room="0" start="true"/>
-      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
-      <shields power="1" room="2" start="true"/>
-      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
-      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_4"/>
-      <artillery power="1" room="5" start="true" weapon="ARTILLERY_BOSS_3"/>
-      <doors power="1" room="6" start="true"/>
-      <cloaking power="1" room="9" start="true"/>
-      <medbay power="1" room="11" start="true"/>
-      <hacking power="1" room="14" start="true"/>
-      <oxygen power="1" room="18" start="true"/>
-      <engines power="1" room="19" start="true"/>
+      <pilot power="3" room="0" start="true"/>
+      <artillery power="3" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="8" room="2" start="true"/>
+      <artillery power="3" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="3" room="4" start="true" weapon="ARTILLERY_BOSS_4"/>
+      <artillery power="3" room="5" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <doors power="3" room="6" start="true"/>
+      <cloaking power="2" room="9" start="true"/>
+      <medbay power="3" room="11" start="true"/>
+      <hacking power="3" room="14" start="true"/>
+      <oxygen power="2" room="18" start="true"/>
+      <engines power="2" room="19" start="true"/>
     </systemList>
-    <weaponList missiles="0"/>
+    <weaponList missiles="10"/>
+    <droneList drones="10"/>
     <health amount="20"/>
-    <maxPower amount="0"/>
+    <maxPower amount="42"/>
     <cloakImage>flagship-1</cloakImage>
   </shipBlueprint>
   <shipBlueprint name="BOSS_1_NORMAL_DLC" layout="flagship-1" img="flagship-1">
     <name>BOSS_1_NORMAL_DLC</name>
     <systemList>
-      <pilot power="1" room="0" start="true"/>
-      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
-      <shields power="1" room="2" start="true"/>
-      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
-      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_4"/>
-      <artillery power="1" room="5" start="true" weapon="ARTILLERY_BOSS_3"/>
-      <doors power="1" room="6" start="true"/>
-      <cloaking power="1" room="9" start="true"/>
-      <medbay power="1" room="11" start="true"/>
-      <hacking power="1" room="14" start="true"/>
-      <oxygen power="1" room="18" start="true"/>
-      <engines power="1" room="19" start="true"/>
+      <pilot power="3" room="0" start="true"/>
+      <artillery power="3" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="8" room="2" start="true"/>
+      <artillery power="3" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="3" room="4" start="true" weapon="ARTILLERY_BOSS_4"/>
+      <artillery power="3" room="5" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <doors power="3" room="6" start="true"/>
+      <cloaking power="2" room="9" start="true"/>
+      <medbay power="3" room="11" start="true"/>
+      <hacking power="3" room="14" start="true"/>
+      <oxygen power="2" room="18" start="true"/>
+      <engines power="2" room="19" start="true"/>
     </systemList>
-    <weaponList missiles="0"/>
+    <weaponList missiles="10"/>
+    <droneList drones="10"/>
     <health amount="20"/>
-    <maxPower amount="0"/>
+    <maxPower amount="42"/>
     <cloakImage>flagship-1</cloakImage>
   </shipBlueprint>
   <shipBlueprint name="BOSS_1_HARD_DLC" layout="flagship-1" img="flagship-1">
     <name>BOSS_1_HARD_DLC</name>
     <systemList>
-      <pilot power="1" room="0" start="true"/>
-      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
-      <shields power="1" room="2" start="true"/>
-      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
-      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_4"/>
-      <artillery power="1" room="5" start="true" weapon="ARTILLERY_BOSS_3"/>
-      <doors power="1" room="6" start="true"/>
-      <cloaking power="1" room="9" start="true"/>
-      <medbay power="1" room="11" start="true"/>
-      <hacking power="1" room="14" start="true"/>
-      <oxygen power="1" room="18" start="true"/>
-      <engines power="1" room="19" start="true"/>
+      <pilot power="3" room="0" start="true"/>
+      <artillery power="3" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="8" room="2" start="true"/>
+      <artillery power="3" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="3" room="4" start="true" weapon="ARTILLERY_BOSS_4"/>
+      <artillery power="3" room="5" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <doors power="3" room="6" start="true"/>
+      <cloaking power="2" room="9" start="true"/>
+      <medbay power="3" room="11" start="true"/>
+      <hacking power="3" room="14" start="true"/>
+      <oxygen power="2" room="18" start="true"/>
+      <engines power="2" room="19" start="true"/>
     </systemList>
-    <weaponList missiles="0"/>
+    <weaponList missiles="10"/>
+    <droneList drones="10"/>
     <health amount="20"/>
-    <maxPower amount="0"/>
+    <maxPower amount="42"/>
     <cloakImage>flagship-1</cloakImage>
   </shipBlueprint>
   <shipBlueprint name="BOSS_2_EASY_DLC" layout="flagship-2" img="flagship-2">
     <name>BOSS_2_EASY_DLC</name>
     <systemList>
-      <pilot power="1" room="0" start="true"/>
-      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
-      <shields power="1" room="2" start="true"/>
-      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
-      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_3"/>
-      <medbay power="1" room="8" start="true"/>
-      <drones power="1" room="10" start="true"/>
-      <oxygen power="1" room="14" start="true"/>
-      <engines power="1" room="15" start="true"/>
+      <pilot power="3" room="0" start="true"/>
+      <artillery power="3" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="8" room="2" start="true"/>
+      <artillery power="3" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="3" room="4" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <medbay power="3" room="8" start="true"/>
+      <drones power="8" room="10" start="true"/>
+      <oxygen power="2" room="14" start="true"/>
+      <engines power="3" room="15" start="true"/>
     </systemList>
-    <weaponList missiles="0"/>
+    <weaponList missiles="10"/>
+    <droneList drones="10"/>
     <health amount="22"/>
-    <maxPower amount="0"/>
+    <maxPower amount="44"/>
   </shipBlueprint>
   <shipBlueprint name="BOSS_2_NORMAL_DLC" layout="flagship-2" img="flagship-2">
     <name>BOSS_2_NORMAL_DLC</name>
     <systemList>
-      <pilot power="1" room="0" start="true"/>
-      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
-      <shields power="1" room="2" start="true"/>
-      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
-      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_3"/>
-      <medbay power="1" room="8" start="true"/>
-      <drones power="1" room="10" start="true"/>
-      <oxygen power="1" room="14" start="true"/>
-      <engines power="1" room="15" start="true"/>
+      <pilot power="3" room="0" start="true"/>
+      <artillery power="3" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="8" room="2" start="true"/>
+      <artillery power="3" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="3" room="4" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <medbay power="3" room="8" start="true"/>
+      <drones power="8" room="10" start="true"/>
+      <oxygen power="2" room="14" start="true"/>
+      <engines power="3" room="15" start="true"/>
     </systemList>
-    <weaponList missiles="0"/>
+    <weaponList missiles="10"/>
+    <droneList drones="10"/>
     <health amount="22"/>
-    <maxPower amount="0"/>
+    <maxPower amount="44"/>
   </shipBlueprint>
   <shipBlueprint name="BOSS_2_HARD_DLC" layout="flagship-2" img="flagship-2">
     <name>BOSS_2_HARD_DLC</name>
     <systemList>
-      <pilot power="1" room="0" start="true"/>
-      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
-      <shields power="1" room="2" start="true"/>
-      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
-      <artillery power="1" room="4" start="true" weapon="ARTILLERY_BOSS_3"/>
-      <medbay power="1" room="8" start="true"/>
-      <drones power="1" room="10" start="true"/>
-      <oxygen power="1" room="14" start="true"/>
-      <engines power="1" room="15" start="true"/>
+      <pilot power="3" room="0" start="true"/>
+      <artillery power="3" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="8" room="2" start="true"/>
+      <artillery power="3" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <artillery power="3" room="4" start="true" weapon="ARTILLERY_BOSS_3"/>
+      <medbay power="3" room="8" start="true"/>
+      <drones power="8" room="10" start="true"/>
+      <oxygen power="2" room="14" start="true"/>
+      <engines power="3" room="15" start="true"/>
     </systemList>
-    <weaponList missiles="0"/>
+    <weaponList missiles="10"/>
+    <droneList drones="10"/>
     <health amount="22"/>
-    <maxPower amount="0"/>
+    <maxPower amount="44"/>
   </shipBlueprint>
   <shipBlueprint name="BOSS_3_EASY_DLC" layout="flagship-3" img="flagship-3">
     <name>BOSS_3_EASY_DLC</name>
     <systemList>
-      <pilot power="1" room="0" start="true"/>
-      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
-      <shields power="1" room="2" start="true"/>
-      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
-      <teleporter power="1" room="5" start="true"/>
-      <mind power="1" room="6" start="true"/>
-      <medbay power="1" room="7" start="true"/>
-      <oxygen power="1" room="10" start="true"/>
-      <engines power="1" room="11" start="true"/>
+      <pilot power="3" room="0" start="true"/>
+      <artillery power="4" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="8" room="2" start="true"/>
+      <artillery power="4" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <teleporter power="2" room="5" start="true"/>
+      <mind power="3" room="6" start="true"/>
+      <medbay power="3" room="7" start="true"/>
+      <oxygen power="2" room="10" start="true"/>
+      <engines power="6" room="11" start="true"/>
     </systemList>
-    <weaponList missiles="0"/>
+    <weaponList missiles="10"/>
+    <droneList drones="10"/>
     <health amount="20"/>
-    <maxPower amount="0"/>
+    <maxPower amount="32"/>
     <boardingAI>invasion</boardingAI>
   </shipBlueprint>
   <shipBlueprint name="BOSS_3_NORMAL_DLC" layout="flagship-3" img="flagship-3">
     <name>BOSS_3_NORMAL_DLC</name>
     <systemList>
-      <pilot power="1" room="0" start="true"/>
-      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
-      <shields power="1" room="2" start="true"/>
-      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
-      <teleporter power="1" room="5" start="true"/>
-      <mind power="1" room="6" start="true"/>
-      <medbay power="1" room="7" start="true"/>
-      <oxygen power="1" room="10" start="true"/>
-      <engines power="1" room="11" start="true"/>
+      <pilot power="3" room="0" start="true"/>
+      <artillery power="4" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="8" room="2" start="true"/>
+      <artillery power="4" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <teleporter power="2" room="5" start="true"/>
+      <mind power="3" room="6" start="true"/>
+      <medbay power="3" room="7" start="true"/>
+      <oxygen power="2" room="10" start="true"/>
+      <engines power="6" room="11" start="true"/>
     </systemList>
-    <weaponList missiles="0"/>
+    <weaponList missiles="10"/>
+    <droneList drones="10"/>
     <health amount="20"/>
-    <maxPower amount="0"/>
+    <maxPower amount="32"/>
     <boardingAI>invasion</boardingAI>
   </shipBlueprint>
   <shipBlueprint name="BOSS_3_HARD_DLC" layout="flagship-3" img="flagship-3">
     <name>BOSS_3_HARD_DLC</name>
     <systemList>
-      <pilot power="1" room="0" start="true"/>
-      <artillery power="1" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
-      <shields power="1" room="2" start="true"/>
-      <artillery power="1" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
-      <teleporter power="1" room="5" start="true"/>
-      <mind power="1" room="6" start="true"/>
-      <medbay power="1" room="7" start="true"/>
-      <oxygen power="1" room="10" start="true"/>
-      <engines power="1" room="11" start="true"/>
+      <pilot power="3" room="0" start="true"/>
+      <artillery power="4" room="1" start="true" weapon="ARTILLERY_BOSS_1"/>
+      <shields power="8" room="2" start="true"/>
+      <artillery power="4" room="3" start="true" weapon="ARTILLERY_BOSS_2"/>
+      <teleporter power="2" room="5" start="true"/>
+      <mind power="3" room="6" start="true"/>
+      <medbay power="3" room="7" start="true"/>
+      <oxygen power="2" room="10" start="true"/>
+      <engines power="6" room="11" start="true"/>
     </systemList>
-    <weaponList missiles="0"/>
+    <weaponList missiles="10"/>
+    <droneList drones="10"/>
     <health amount="20"/>
-    <maxPower amount="0"/>
+    <maxPower amount="32"/>
     <boardingAI>invasion</boardingAI>
   </shipBlueprint>
   <blueprintList name="SHIPS_REBEL">
@@ -3771,12 +3780,12 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>ION</type>
     <title>Boss Ion</title>
     <short>Boss Ion</short>
-    <desc>Fires 3 pulses of 1 ion, every 35 seconds.</desc>
+    <desc>Fires 3 pulses of 1 ion, every 28 seconds.</desc>
     <tooltip>Flagship artillery. Three shots of one ion. Not sold.</tooltip>
     <damage>0</damage>
     <shots>3</shots>
     <power>3</power>
-    <cooldown>35</cooldown>
+    <cooldown>28</cooldown>
     <cost>0</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
@@ -4014,7 +4023,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <damage>1</damage>
     <shots>3</shots>
     <power>4</power>
-    <cooldown>28.75</cooldown>
+    <cooldown>23</cooldown>
     <cost>0</cost>
     <fireChance>3</fireChance>
     <breachChance>1.4000000000000001</breachChance>
@@ -4555,7 +4564,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <damage>1</damage>
     <shots>3</shots>
     <power>4</power>
-    <cooldown>25</cooldown>
+    <cooldown>20</cooldown>
     <cost>0</cost>
     <fireChance>1</fireChance>
     <breachChance>0.8999999999999999</breachChance>
@@ -4586,7 +4595,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <damage>2</damage>
     <shots>1</shots>
     <power>3</power>
-    <cooldown>32.5</cooldown>
+    <cooldown>26</cooldown>
     <cost>0</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>

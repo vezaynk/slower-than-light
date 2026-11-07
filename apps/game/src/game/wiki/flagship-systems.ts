@@ -11,11 +11,11 @@ import type { Crew, DoorMark, Game, Kit, KitId, Room, Ship, SysId, WeaponInst } 
 import { log, rand } from "../sim.ts";
 import { veilBlocks } from "../extras/veil.ts";
 import { spikeEvadeZero } from "../extras/spike.ts";
-import { artilleryChargeSeconds } from "./flagship-weapons.ts";
+import { hullDef, weaponDef } from "@stl/pack";
 import { DRONE_LABEL, beamDroneSpeed, pickOrbitBearing } from "../extras/swarm.ts";
 import { BEAM_HOLD_S, orbitLegSeconds } from "./cited-combat2.ts";
 import { randomRoom } from "./targeting.ts";
-import { flagshipHardLinks, flagshipLayout } from "./flagship-layout.ts";
+import { flagshipHardLinks, flagshipHullId, flagshipLayout } from "./flagship-layout.ts";
 
 /**
  * One Power Surge drone (stage 2). Not a Drone Control unit: "They are an independent hazard."
@@ -56,7 +56,8 @@ export type FlagshipState = {
 };
 
 /** One artillery gun's own system state: damaged bars, ion locks (seconds left per point), repair progress. */
-export type ArtilleryGun = { damage: number; ion: number[]; fix: number };
+/** `level` is the pod's power in the stage blueprint (`<artillery power>`); older saves fall back to the shared level. */
+export type ArtilleryGun = { damage: number; ion: number[]; fix: number; level?: number };
 
 /**
  * What the Lark remembers of the Flagship between battles (Game.flagshipMemo).
@@ -196,14 +197,13 @@ export function flagshipDronePower(ship: Ship, kind: string): number | null {
   return kind === "BOARDER" ? 2 : null;
 }
 
-/** Printed system levels that the sim runs as kits, per stage ("Systems" lists). */
-const STAGE_KITS: Record<1 | 2 | 3, Partial<Record<KitId, number>>> = {
-  // "1st Stage" / "Systems": "Cloaking (2)", "Hacking (3) [Advanced Edition]".
-  1: { cloaking: 2, hacking: 3 },
-  // "2nd stage" / "Systems": "Drone (8)".
-  2: { drones: 8 },
-  // "Final stage" / "Systems": "Teleporter (2)", "Mind Control (3) [Advanced Edition]".
-  3: { teleporter: 2, mind: 3 },
+/** Blueprint systems that the sim runs as kits. */
+const KIT_INSTALLS: Partial<Record<string, KitId>> = {
+  cloaking: "cloaking",
+  hacking: "hacking",
+  drones: "drones",
+  teleporter: "teleporter",
+  mind: "mind",
 };
 
 function blankKit(id: KitId, level: number): Kit {
@@ -211,13 +211,16 @@ function blankKit(id: KitId, level: number): Kit {
 }
 
 /**
- * Fresh kits for a stage. "Global behavior": "Hull and system damage of the Rebel Flagship will be repaired on the
- * next stage", so nothing carries over.
+ * Fresh kits for a stage, at the levels its blueprint fits. "Global behavior": "Hull and system damage of the Rebel
+ * Flagship will be repaired on the next stage", so nothing carries over.
  */
-export function flagshipKits(stage: 1 | 2 | 3): Ship["kits"] {
+export function flagshipKits(stage: 1 | 2 | 3, difficulty: string | undefined): Ship["kits"] {
   const kits: Ship["kits"] = {};
-  for (const [id, level] of Object.entries(STAGE_KITS[stage]) as [KitId, number][])
-    kits[id] = blankKit(id, level);
+  for (const install of hullDef(flagshipHullId(stage, difficulty))?.installs ?? []) {
+    const id = KIT_INSTALLS[install.id];
+    if (!id || install.start === false) continue;
+    kits[id] = blankKit(id, install.power);
+  }
   if (kits.drones) kits.drones.loadout = [...STAGE2_DRONES];
   return kits;
 }
@@ -235,8 +238,8 @@ export const FLAGSHIP_PARTS = 10;
  */
 
 /** Apply the stage's kits, parts, and boarding plan to an already-built hull. */
-export function applyFlagshipSystems(ship: Ship, stage: 1 | 2 | 3) {
-  ship.kits = flagshipKits(stage);
+export function applyFlagshipSystems(ship: Ship, stage: 1 | 2 | 3, difficulty: string | undefined) {
+  ship.kits = flagshipKits(stage, difficulty);
   ship.parts = FLAGSHIP_PARTS;
   ship.boards = stage === 3;
   // limit is unused while invasion is set. A stored 99 was a stand-in, not a printed cap.
@@ -639,7 +642,7 @@ export function artilleryGun(ship: Ship, roomId: string): ArtilleryGun | null {
 export function hurtArtillery(ship: Ship, roomId: string, amount: number): boolean {
   const gun = artilleryGun(ship, roomId);
   if (!gun) return false;
-  gun.damage = Math.min(ship.systems.weapons.level, gun.damage + Math.max(0, amount));
+  gun.damage = Math.min(gunLevel(ship, gun), gun.damage + Math.max(0, amount));
   return true;
 }
 
@@ -663,7 +666,24 @@ export function artilleryBars(ship: Ship, roomId: string): number {
   const sys = ship.systems.weapons;
   const gun = artilleryGun(ship, roomId);
   const own = gun ? gun.damage + gun.ion.length : 0;
-  return Math.max(0, sys.level - sys.damage - sys.ion.length - own);
+  return Math.max(0, gunLevel(ship, gun) - sys.damage - sys.ion.length - own);
+}
+
+/** A pod's artillery level: its blueprint power, or the shared Weapons level for a gun without one. */
+function gunLevel(ship: Ship, gun: ArtilleryGun | null): number {
+  return gun?.level ?? ship.systems.weapons.level;
+}
+
+/**
+ * Seconds for one charge of an artillery gun at `level` working bars, or null when it cannot charge (0 bars) or has
+ * no blueprint. FTL's artillery rule: the weapon's `<cooldown>` is its charge at level 2, and each level above or
+ * below takes a quarter of it off or on (level 1 = 1.25x, 3 = 0.75x, 4 = 0.5x). This reproduces the wiki's
+ * "Charge time (seconds)" table for every Boss gun from ftl.dat's cooldowns (Laser 20, Missile 23, Beam 26, Ion 28).
+ */
+export function artilleryChargeSeconds(defId: string, level: number): number | null {
+  const base = weaponDef(defId)?.charge;
+  if (!base || level < 1) return null;
+  return base * (1.5 - 0.25 * Math.min(4, Math.floor(level)));
 }
 
 /** Working bars of a gun by its WeaponDef id. INFERRED: a boss gun with no artillery room uses the bare level. */
@@ -673,7 +693,7 @@ function gunBars(ship: Ship, defId: string): number {
 
 /**
  * Seconds for one charge of a flagship gun, or null when this is not a flagship artillery piece. A gun with no
- * working bar never charges (Infinity). "Weapon cooldowns and status effects" table (wiki/flagship-weapons.ts):
+ * working bar never charges (Infinity). artilleryChargeSeconds:
  * level 3 on stages 1–2, level 4 on the final stage, lower rows as its own room takes damage. Called by sim.ts chargeSide.
  */
 export function flagshipChargeSeconds(ship: Ship, w: WeaponInst): number | null {
@@ -705,7 +725,7 @@ export function artilleryView(
     out.push({
       room,
       defId,
-      level: ship.systems.weapons.level,
+      level: gunLevel(ship, artilleryGun(ship, room)),
       bars: artilleryBars(ship, room),
       ion: artilleryGun(ship, room)?.ion.length ?? 0,
     });

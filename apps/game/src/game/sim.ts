@@ -4665,7 +4665,7 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
       }
       return;
     }
-    // @agent:flagship. Flagship artillery charges on the page's per-level table (wiki/flagship-weapons.ts).
+    // @agent:flagship. Flagship artillery charges by its pod level (wiki/flagship-systems.ts artilleryChargeSeconds).
     const seconds =
       flagshipChargeSeconds(ship, w) ?? chainChargeSeconds(w.defId, w.chain ?? 0) ?? def.charge;
     w.charge = Math.min(1, w.charge + dt / (seconds * mult));
@@ -6502,7 +6502,7 @@ function flagshipStage(g: Game, ship: Ship, stage: 1 | 2 | 3) {
     sys.fix = 0;
   }
   if (stage > 1) clearEnemyLeash(g);
-  applyFlagshipSystems(ship, stage);
+  applyFlagshipSystems(ship, stage, g.difficulty);
   if (stage > 1) carryCrew(g, old, ship);
   armDoors(ship, doorLevel(g, ship, "enemy"), g.difficulty);
   // INFERRED: the stage-3 teleporter starts boarding 9 s in, as startCombat does for any boarding hull.

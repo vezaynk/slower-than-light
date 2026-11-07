@@ -15,12 +15,11 @@ own tests did) were removed with this README: `events-0`–`events-3`, `enemies-
 
 ## 1. Content that duplicates the archive: replace with archive reads, then delete
 
-| Module                                    | Lines | What it holds                                              | Archive source                                                               |
-| ----------------------------------------- | ----: | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `hangar-bay.ts`, `augments-missing.ts`    |   297 | Hangar loadout article; augments the catalog lacked        | The player blueprint's lists and `augBlueprint`s                             |
-| `flagship.ts`, `flagship-layout.ts`       |   274 | Flagship stage numbers; traced cutaways                    | `BOSS_*` blueprints and `data/boss_*.txt` (ftl.dat), `flagship-*` (stand-in) |
-| `projectile-speed.ts`, `cited-weapons.ts` |   112 | Shot speed; crew damage per weapon                         | `weaponBlueprint` `<speed>` and `<persDamage>`                               |
-| `skills.ts`                               |    86 | Skill speed tables; crew races per sector for pirate crews | Skill tables are a rule (section 3). Races: the sector's `<rarityList>`      |
+| Module                                    | Lines | What it holds                                              | Archive source                                                          |
+| ----------------------------------------- | ----: | ---------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `hangar-bay.ts`, `augments-missing.ts`    |   297 | Hangar loadout article; augments the catalog lacked        | The player blueprint's lists and `augBlueprint`s                        |
+| `projectile-speed.ts`, `cited-weapons.ts` |   112 | Shot speed; crew damage per weapon                         | `weaponBlueprint` `<speed>` and `<persDamage>`                          |
+| `skills.ts`                               |    86 | Skill speed tables; crew races per sector for pirate crews | Skill tables are a rule (section 3). Races: the sector's `<rarityList>` |
 
 ## 2. Events written in code: move to the archive, then delete
 
@@ -51,7 +50,7 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 | `escape.ts`, `surrender.ts` (rule part)                                                                                                                                                                                                                                                             | When an enemy runs or surrenders. Odds are already gap data. |
 | `targeting.ts`, `swarm-aim.ts`                                                                                                                                                                                                                                                                      | Enemy weapon targeting; swarm missile spread                 |
 | `sector-map.ts`                                                                                                                                                                                                                                                                                     | Map generation and the fleet's advance (xftl notes)          |
-| `flagship-systems.ts`, `flagship-weapons.ts`, `cited-enemies.ts`                                                                                                                                                                                                                                    | Flagship stages, surge, artillery charge table               |
+| `flagship-systems.ts`, `cited-enemies.ts`                                                                                                                                                                                                                                                           | Flagship stages, surge, artillery charge rule                |
 | `cited-combat2.ts`, `cited-overcharger.ts`, `cited-intruder.ts`, `cited-booster.ts`, `cited-scrambler.ts`, `cited-bypass.ts`, `cited-zoltan-power.ts`, `cited-nav.ts`, `cited-vengeance.ts`, `cited-chain.ts`, `cited-asteroid.ts`, `cited-pulsar.ts`, `weapons-beam.ts`, `weapons-flak-crystal.ts` | Drone, augment, weapon and hazard behaviour                  |
 | `make-room.ts`, `bonus-item.ts`                                                                                                                                                                                                                                                                     | Full racks; bonus reward odds                                |
 | `achievement-track.ts`, `achieve-notes.ts`                                                                                                                                                                                                                                                          | Achievement counters. Conditions are already gap data.       |
@@ -65,6 +64,12 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    enemy blueprints (written by `@stl/catalog` from the faction pages), every fight resolves to an archive ship
    (`enemy-gen.ts` `archiveFight`), and `enemy-ships.ts`, `enemy-layouts.ts` and `sector-hostiles.ts` are gone.
 3. **Content modules** in section 1, one at a time. Done: `layout-pages.ts` (the hangar reads its cruisers from the
-   archive, `game/hangar-roster.ts`; the unreachable "Playable ships" article went with it).
+   archive, `game/hangar-roster.ts`; the unreachable "Playable ships" article went with it), `flagship.ts` (each
+   stage's hull, reactor, system and subsystem levels and artillery come from its `BOSS_*` blueprint; the stand-in
+   catalog writes them from `catalog/src/wiki/flagship-stages.ts`). `flagship-layout.ts` already reads the blueprint's
+   grid and stays as code. Each artillery pod charges at its own blueprint power from its weapon's `<cooldown>` (FTL's
+   artillery rule: the cooldown is the level-2 charge, a quarter more or less per level); `wiki/flagship-weapons.ts`
+   is gone. Left as rules for step 5: the stage-3 Zoltan Shield and the crew seats. Still to read from the archive:
+   the stage-2 drone loadout (`droneList`).
 4. **Events** in section 2, one page at a time.
 5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`.

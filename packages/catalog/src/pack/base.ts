@@ -39,6 +39,7 @@ import { EXTRA_EVENTS as MISSING_PAGES } from "../wiki/cited-missing-pages.ts";
 import { emptyBeaconRecords, fillerListRecords } from "../wiki/filler-lists.ts";
 import { fillerPageRecords } from "../wiki/filler-pages.ts";
 import { ftlEventId } from "../wiki/ftl-event-ids.ts";
+import { FLAGSHIP_STAGES, type FlagshipStage } from "../wiki/flagship-stages.ts";
 import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
@@ -834,14 +835,7 @@ function enemyHull(id: string, interior: string): HullDef {
   );
 }
 
-/** Wiki page "The Rebel Flagship": 1st Stage 20, 2nd stage 22, Final stage 20. */
-const FLAGSHIP_HEALTH: Record<1 | 2 | 3, number> = {
-  1: 20,
-  2: 22,
-  3: 20,
-};
-
-const FLAGSHIP_STAGES = [1, 2, 3] as const;
+const FLAGSHIP_STAGE_IDS = [1, 2, 3] as const;
 const FLAGSHIP_DIFFICULTIES = [
   "easy",
   "normal",
@@ -867,11 +861,14 @@ const FLAGSHIP_ROOM: Record<string, { id: string; weapon?: string }> = {
   ion: { id: "artillery", weapon: "ARTILLERY_BOSS_4" },
 };
 
-function flagshipInstalls(rooms: readonly { id: string }[]): HullInstall[] {
+/** A traced room's system at the stage's level. A system the stage does not list has no install. */
+function flagshipInstalls(rooms: readonly { id: string }[], stage: FlagshipStage): HullInstall[] {
   return rooms.flatMap((room, index): HullInstall[] => {
     const held = FLAGSHIP_ROOM[room.id.replace(/^f[123]-/, "")];
     if (!held) return [];
-    const install: HullInstall = { id: held.id, power: 1, room: index, start: true };
+    const power = held.weapon ? stage.artillery : stage.systems[held.id];
+    if (!power) return [];
+    const install: HullInstall = { id: held.id, power, room: index, start: true };
     if (held.weapon) install.weapon = held.weapon;
     return [install];
   });
@@ -883,6 +880,7 @@ function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef
   const source = FLAGSHIP_LAYOUTS[layout];
   if (!source) throw new Error(`No flagship interior for ${layout}`);
   const id = flagshipBlueprintId(stage, difficulty);
+  const numbers = FLAGSHIP_STAGES[stage];
   return paintHull(
     {
       id,
@@ -891,16 +889,16 @@ function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef
       name: id,
       quote: "",
       unlock: "",
-      reactor: 0,
-      missiles: 0,
-      parts: 0,
-      health: FLAGSHIP_HEALTH[stage],
+      reactor: numbers.reactor,
+      missiles: numbers.missiles,
+      parts: numbers.parts,
+      health: numbers.health,
       // Crew Teleporter, "Enemy Crew Teleporter": the Flagship "will send all its crew except for 1 or 2
       // crewmembers". Only the last stage carries a teleporter room, so only it names the plan.
       ...(stage === 3 ? { boardingAI: "invasion" as const } : {}),
       weapons: [],
       augments: [],
-      installs: flagshipInstalls(source.rooms),
+      installs: flagshipInstalls(source.rooms, numbers),
       grid: gridFromLayout({
         cols: source.cols,
         rows: source.rows,
@@ -1277,7 +1275,7 @@ export function loadCatalog(): void {
       hulls: [
         ...HULLS.map(hullRow),
         ...enemyHulls(),
-        ...FLAGSHIP_STAGES.flatMap((stage) =>
+        ...FLAGSHIP_STAGE_IDS.flatMap((stage) =>
           FLAGSHIP_DIFFICULTIES.map((difficulty) => flagshipHull(stage, difficulty)),
         ),
       ],

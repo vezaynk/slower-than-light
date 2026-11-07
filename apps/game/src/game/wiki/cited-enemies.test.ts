@@ -79,8 +79,8 @@ describe("cited enemies", () => {
     assert.ok(spent <= ship.reactor);
     assert.deepEqual(
       ship.weapons.map((weapon) => weapon.defId),
-      // @agent:flagship. Boss Laser and Boss Beam are now WeaponDefs (wiki/flagship-weapons.ts).
-      ["ARTILLERY_BOSS_4", "ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
+      // The stage-1 blueprint's artillery pods, in its room order.
+      ["ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_4", "ARTILLERY_BOSS_3"],
     );
     assert.equal(weaponDef("ARTILLERY_BOSS_4")?.power, 3);
     assert.equal(weaponDef("ARTILLERY_BOSS_2")?.power, 4);

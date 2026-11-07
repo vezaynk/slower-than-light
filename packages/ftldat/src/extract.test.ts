@@ -225,4 +225,16 @@ describe("writePkg", () => {
     );
     for (const file of back) assert.equal(new TextDecoder().decode(file.bytes), file.path);
   });
+
+  it("rejects two paths that differ only by case, which the game treats as one file", () => {
+    const bytes = new Uint8Array(1);
+    assert.throws(
+      () =>
+        writePkg([
+          { path: "data/Foo.xml", bytes },
+          { path: "data/foo.xml", bytes },
+        ]),
+      /repeats/,
+    );
+  });
 });

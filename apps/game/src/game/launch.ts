@@ -58,6 +58,11 @@ export function hasLaunched(): boolean {
   return readFlag("local", LAUNCHED_KEY);
 }
 
+/** True once the pack is installed in this page, so new files need a reload to take effect. */
+export function packInstalled(): boolean {
+  return installed;
+}
+
 /** Set before a reload that should skip setup (a new file order, or files received from another device). */
 export function launchAfterReload(): void {
   writeFlag("session", LAUNCH_NOW_KEY);
@@ -74,6 +79,13 @@ export function bootPack(): Promise<void> {
     try {
       await loadBasePackXml((ratio) => useLaunch.setState({ ratio }));
       installed = true;
+      // The order is read when the load starts. One saved while it ran (another tab) is applied by a reload,
+      // so this session opens the same files the next one will.
+      if (relaunchReloads(orderKey(await loadOrder()), bootedOrderKey())) {
+        launchAfterReload();
+        location.reload();
+        return;
+      }
       writeFlag("local", LAUNCHED_KEY);
       refreshTitleGame();
       useLaunch.setState({ stage: "ready", ratio: 1 });

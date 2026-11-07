@@ -3,6 +3,7 @@
  * achievements to another device, or receive that set here, over local Wi-Fi. The code is the WebRTC session. The bytes
  * move on a data channel. A transfer that stops leaves the files already stored here in place.
  */
+import { launchAfterReload, packInstalled } from "@/game/launch";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { encode } from "uqr";
 import { formatBytes } from "@/game/pack/archive-inspect";
@@ -17,6 +18,7 @@ import { qrReader } from "@/game/handoff/qr-detect";
 import {
   createAnswerLink,
   createOfferLink,
+  shareLocalAddress,
   type HandoffSocket,
   type OfferSocket,
 } from "@/game/handoff/link";
@@ -169,7 +171,8 @@ function Inventory({ inventory }: { inventory: HandoffInventory }) {
   );
 }
 
-export function PhoneHandoffPanel() {
+/** `paused` is set while setup loads the game files: the camera turns off, and a live transfer keeps going. */
+export function PhoneHandoffPanel({ paused = false }: { paused?: boolean } = {}) {
   const canLink = typeof RTCPeerConnection === "function";
   const [inventory, setInventory] = useState<HandoffInventory | null>(null);
   const [phase, setPhase] = useState<Phase>("home");
@@ -185,6 +188,8 @@ export function PhoneHandoffPanel() {
   const [scanNeed, setScanNeed] = useState(0);
   const [copied, setCopied] = useState(false);
   const gen = useRef(0);
+  /** Set before the first await of a code being accepted, so a second scan or submit cannot start another. */
+  const busyRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
   const linkRef = useRef<OfferSocket | HandoffSocket | null>(null);
   const pendingRef = useRef<{ manifest: HandoffManifest; bytes: HandoffBytes } | null>(null);
@@ -218,6 +223,7 @@ export function PhoneHandoffPanel() {
 
   function begin(next: Role): number {
     gen.current += 1;
+    busyRef.current = false;
     abortRef.current?.abort();
     abortRef.current = new AbortController();
     linkRef.current?.close();
@@ -241,6 +247,7 @@ export function PhoneHandoffPanel() {
 
   function stop() {
     gen.current += 1;
+    busyRef.current = false;
     abortRef.current?.abort();
     linkRef.current?.close();
     linkRef.current = null;
@@ -257,6 +264,7 @@ export function PhoneHandoffPanel() {
 
   function fail(mine: number, err: unknown) {
     if (gen.current !== mine) return;
+    busyRef.current = false;
     linkRef.current?.close();
     linkRef.current = null;
     pendingRef.current = null;
@@ -274,6 +282,8 @@ export function PhoneHandoffPanel() {
     setPhase("preparing");
     setStatus("Reading the game files…");
     try {
+      await shareLocalAddress();
+      if (gen.current !== mine) return;
       const collected = await collectHandoff();
       if (gen.current !== mine) return;
       pendingRef.current = collected;
@@ -304,7 +314,10 @@ export function PhoneHandoffPanel() {
     const link = linkRef.current;
     const collected = pendingRef.current;
     const signal = abortRef.current?.signal;
-    if (!link || !("takeAnswer" in link) || !collected || !signal) return;
+    if (!link || !("takeAnswer" in link) || !collected || !signal) {
+      busyRef.current = false;
+      return;
+    }
     setError(null);
     setScan(false);
     setPhase("preparing");
@@ -313,6 +326,7 @@ export function PhoneHandoffPanel() {
       await link.takeAnswer(text);
     } catch (err) {
       if (gen.current !== mine) return;
+      busyRef.current = false;
       setPhase("exchange");
       setError(kept(err));
       setStatus(
@@ -349,13 +363,19 @@ export function PhoneHandoffPanel() {
   async function acceptOffer(text: string) {
     const mine = gen.current;
     const signal = abortRef.current?.signal;
-    if (!signal || roleRef.current !== "receive") return;
+    if (!signal || roleRef.current !== "receive") {
+      busyRef.current = false;
+      return;
+    }
     setError(null);
     setScan(false);
     setPhase("preparing");
     setStatus("Looking for a path to the other device…");
     let dc: RTCDataChannel | null = null;
     try {
+      await shareLocalAddress();
+      if (gen.current !== mine) return;
+      linkRef.current?.close();
       const link = createAnswerLink(text);
       void link.channel.catch(() => {});
       linkRef.current = link;
@@ -388,12 +408,19 @@ export function PhoneHandoffPanel() {
         // The files are already stored. Reloading picks them up.
       }
       setPhase("done");
+      if (!packInstalled()) {
+        // Setup on a first visit: nothing is loaded yet, so Launch reads the received files as they are.
+        setStatus("Saved on this device. Launch to play.");
+        return;
+      }
       setStatus("Saved on this device. Reloading…");
+      launchAfterReload();
       window.setTimeout(() => location.reload(), 500);
     } catch (err) {
       if (dc) reportFailure(dc, err instanceof Error ? err.message : "The handoff stopped.");
       if (gen.current !== mine) return;
       if (!dc) {
+        busyRef.current = false;
         linkRef.current?.close();
         linkRef.current = null;
         setPhase("need-code");
@@ -407,6 +434,8 @@ export function PhoneHandoffPanel() {
   }
 
   function submitText(text: string) {
+    if (busyRef.current) return;
+    busyRef.current = true;
     if (roleRef.current === "send") void acceptAnswer(text);
     else void acceptOffer(text);
   }
@@ -419,6 +448,7 @@ export function PhoneHandoffPanel() {
   }
 
   function onScan(text: string) {
+    if (busyRef.current) return;
     const absorbed = absorbTicket(bagRef.current, text);
     setScanHave(absorbed.have);
     setScanNeed(absorbed.need);
@@ -536,7 +566,7 @@ export function PhoneHandoffPanel() {
               onChange={(event) => setPaste(event.target.value)}
             />
           </label>
-          {scan ? <QrScan onText={onScan} /> : null}
+          {scan && !paused ? <QrScan onText={onScan} /> : null}
           {scan && scanNeed > 1 ? (
             <p className="gf-note">{`Scanned ${scanHave} of ${scanNeed}.`}</p>
           ) : null}

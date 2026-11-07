@@ -3,14 +3,7 @@ import { describe, it } from "node:test";
 import { canFlyDrone } from "./extras/flown.ts";
 import { playerDroneSlots } from "./extras/swarm.ts";
 import { hullById, playerHulls } from "./hulls.ts";
-import {
-  augmentDef,
-  droneDef,
-  emitFtlShips,
-  hullDef,
-  packFromFtl,
-  startingFit,
-} from "@stl/pack";
+import { augmentDef, droneDef, emitFtlShips, hullDef, packFromFtl, startingFit } from "@stl/pack";
 import { createGame, hangarLoadout } from "./sim.ts";
 import { MISSING_AUGMENTS } from "./wiki/augments-missing.ts";
 import { hangarBay } from "./wiki/hangar-bay.ts";

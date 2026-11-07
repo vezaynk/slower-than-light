@@ -15,6 +15,7 @@ import {
   crewCount,
   enemyPool,
   fightHull,
+  hullDisplayName,
   hullFor,
   specFromHull,
   optionalChance,
@@ -667,5 +668,24 @@ describe("Federation requests", () => {
         pickEnemy(ctx, seeded(i * 97), requestFor("Federation ship")).cls.faction,
         "federation",
       );
+  });
+});
+
+describe("enemy hull names", () => {
+  it("shows a blueprint's class text when it has no name of its own, as ftl.dat's enemy ships do", () => {
+    // packFromFtl sets name to the id when <name> is missing.
+    assert.equal(
+      hullDisplayName({ id: "REBEL_SKINNY", name: "REBEL_SKINNY", cruiser: "Rebel Fighter" }),
+      "Rebel Fighter",
+    );
+    assert.equal(
+      hullDisplayName({ id: "ROCK_FIGHT_P", name: "ROCK_FIGHT_P", cruiser: "Pirate Fighter" }),
+      "Pirate Fighter",
+    );
+    assert.equal(
+      hullDisplayName({ id: "X", name: "The Kestrel", cruiser: "Kestrel Cruiser" }),
+      "The Kestrel",
+    );
+    assert.equal(hullDisplayName({ id: "X", name: "X", cruiser: "" }), "X");
   });
 });

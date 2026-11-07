@@ -397,7 +397,9 @@ function maxpTable(count: number, maxPoints: number, maxContours: number): Uint8
   set16(out, 4, count);
   set16(out, 6, maxPoints);
   set16(out, 8, maxContours);
-  set16(out, 16, 2);
+  // maxZones: 2, since the glyphs carry no instructions that would use only the twilight zone.
+  // Browsers reject 0 here (OTS "Bad maxZones").
+  set16(out, 14, 2);
   return out;
 }
 
@@ -437,7 +439,16 @@ function os2Table(
 }
 
 function cmapTable(codes: { code: number; index: number }[]): Uint8Array {
-  const sorted = [...codes].sort((a, b) => a.code - b.code);
+  // One glyph per character: ftl.dat's HL1 draws U+201E twice, and a repeated code makes two segments with the same
+  // end, which browsers reject (OTS "Out of order end range"). The first glyph wins. U+FFFF is the closing segment.
+  const byCode = new Map<number, number>();
+  for (const row of codes) {
+    if (row.code >= 0xffff || byCode.has(row.code)) continue;
+    byCode.set(row.code, row.index);
+  }
+  const sorted = [...byCode]
+    .map(([code, index]) => ({ code, index }))
+    .sort((a, b) => a.code - b.code);
   const segs: { start: number; end: number; delta: number }[] = [];
   for (const row of sorted) {
     const prev = segs[segs.length - 1];

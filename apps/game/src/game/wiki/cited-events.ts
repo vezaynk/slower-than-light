@@ -771,13 +771,18 @@ const ROW_CARDS: Record<string, string> = {
 };
 const warnedRows = new Set<string>();
 
-/** A ftl.dat page under a campaign card's id carries no such table. It shows as the archive wrote it. */
+/**
+ * A ftl.dat page under a campaign card's id carries no such table. It shows as the archive wrote it.
+ * ftl.dat's own pages write the trade as choices instead (TRADER_CIV's "Trade." loads TRADER_LIST, a list of
+ * item_modify swaps), and those play as written, so only a page with neither the table nor such choices warns.
+ */
 function lacksRows(slug: string): boolean {
   const kind = ROW_CARDS[slug];
   if (!kind) return false;
   const page = eventDef(storedId(slug));
   const rows: { k: string }[] = [...(page?.offers ?? []), ...(page?.rolls ?? [])];
   if (rows.some((row) => row.k === kind)) return false;
+  if (page && archiveAuthoredChoices(page.choices)) return true;
   if (!warnedRows.has(slug)) {
     warnedRows.add(slug);
     warnPack(`Event ${slug} has no ${kind} rows; its page shows as written.`);

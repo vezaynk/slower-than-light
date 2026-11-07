@@ -30,6 +30,33 @@ describe("bitmap ttf", () => {
     assert.ok(glyf && glyf.length > 10);
   });
 
+  it("writes one cmap segment per code and a valid maxZones, so a browser accepts a font that repeats a code", () => {
+    const solid = (w: number, h: number) => new Uint8Array(w * h).fill(255);
+    // ftl.dat's HL1 draws U+201E twice.
+    const packed = writeBitmapFont(
+      [
+        { ch: 65, w: 2, h: 2, ascent: 2, alpha: solid(2, 2) },
+        { ch: 0x201e, w: 2, h: 2, ascent: 2, alpha: solid(2, 2) },
+        { ch: 0x201e, w: 2, h: 2, ascent: 2, alpha: solid(2, 2) },
+      ],
+      8,
+      7,
+    );
+    const font = readBitmapFont(packed);
+    assert.ok(font);
+    const bytes = ttfFromBitmap(font, "HL1");
+    const maxp = table(bytes, "maxp");
+    assert.ok(maxp);
+    assert.equal(be16(maxp, 14), 2);
+    const cmap = table(bytes, "cmap");
+    assert.ok(cmap);
+    const segCount = be16(cmap, 18) / 2;
+    const ends = Array.from({ length: segCount }, (_, i) => be16(cmap, 26 + i * 2));
+    for (let i = 1; i < ends.length; i++)
+      assert.ok(ends[i]! > ends[i - 1]!, `segment ends ${ends.join(",")}`);
+    assert.equal(ends.filter((end) => end === 0x201e).length, 1);
+  });
+
   it("sizes the em by cap height, sits glyphs on their ascent, and advances by the font's kerning", () => {
     const solid = (w: number, h: number) => new Uint8Array(w * h).fill(255);
     const packed = writeBitmapFont(

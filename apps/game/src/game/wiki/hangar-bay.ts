@@ -2,14 +2,7 @@
  * Hangar bay and cruiser article taken from the loaded ship.
  * The cruiser pages stay the index. Neither surface reads their lines.
  */
-import {
-  augmentDef,
-  droneDef,
-  hullDef,
-  startingFit,
-  systemDef,
-  weaponDef,
-} from "@stl/pack";
+import { augmentDef, droneDef, hullDef, startingFit, systemDef, weaponDef } from "@stl/pack";
 import { droneKeyForName, droneKeyOf, type DroneKey } from "../gear-look.ts";
 import type { IconName } from "../icons.ts";
 import { canDeploy } from "../extras/swarm.ts";

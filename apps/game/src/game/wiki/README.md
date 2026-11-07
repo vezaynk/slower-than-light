@@ -15,11 +15,10 @@ own tests did) were removed with this README: `events-0`–`events-3`, `enemies-
 
 ## 1. Content that duplicates the archive: replace with archive reads, then delete
 
-| Module                                    | Lines | What it holds                                              | Archive source                                                          |
-| ----------------------------------------- | ----: | ---------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `hangar-bay.ts`, `augments-missing.ts`    |   297 | Hangar loadout article; augments the catalog lacked        | The player blueprint's lists and `augBlueprint`s                        |
-| `projectile-speed.ts`, `cited-weapons.ts` |   112 | Shot speed; crew damage per weapon                         | `weaponBlueprint` `<speed>` and `<persDamage>`                          |
-| `skills.ts`                               |    86 | Skill speed tables; crew races per sector for pirate crews | Skill tables are a rule (section 3). Races: the sector's `<rarityList>` |
+| Module                                    | Lines | What it holds                                       | Archive source                                   |
+| ----------------------------------------- | ----: | --------------------------------------------------- | ------------------------------------------------ |
+| `hangar-bay.ts`, `augments-missing.ts`    |   297 | Hangar loadout article; augments the catalog lacked | The player blueprint's lists and `augBlueprint`s |
+| `projectile-speed.ts`, `cited-weapons.ts` |   112 | Shot speed; crew damage per weapon                  | `weaponBlueprint` `<speed>` and `<persDamage>`   |
 
 ## 2. Events written in code: move to the archive, then delete
 
@@ -54,7 +53,7 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 | `cited-combat2.ts`, `cited-overcharger.ts`, `cited-intruder.ts`, `cited-booster.ts`, `cited-scrambler.ts`, `cited-bypass.ts`, `cited-zoltan-power.ts`, `cited-nav.ts`, `cited-vengeance.ts`, `cited-chain.ts`, `cited-asteroid.ts`, `cited-pulsar.ts`, `weapons-beam.ts`, `weapons-flak-crystal.ts` | Drone, augment, weapon and hazard behaviour                  |
 | `make-room.ts`, `bonus-item.ts`                                                                                                                                                                                                                                                                     | Full racks; bonus reward odds                                |
 | `achievement-track.ts`, `achieve-notes.ts`                                                                                                                                                                                                                                                          | Achievement counters. Conditions are already gap data.       |
-| `kin`-related lines in `skills.ts`                                                                                                                                                                                                                                                                  | Skill speed tables                                           |
+| `skills.ts`                                                                                                                                                                                                                                                                                         | Skill speed tables                                           |
 
 ## Steps
 
@@ -70,6 +69,9 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    grid and stays as code. Each artillery pod charges at its own blueprint power from its weapon's `<cooldown>` (FTL's
    artillery rule: the cooldown is the level-2 charge, a quarter more or less per level); `wiki/flagship-weapons.ts`
    is gone. Left as rules for step 5: the stage-3 Zoltan Shield and the crew seats. Still to read from the archive:
-   the stage-2 drone loadout (`droneList`).
+   the stage-2 drone loadout (`droneList`). `skills.ts`: races done. Pirate and other `random` crews, and crew rewards
+   that name no race, draw from the current sector's `<rarityList>` over each `crewBlueprint`'s `<rarity>`, weighted
+   `6 - rarity` (FTL's GetRandomCrew; the rule is `game/rarity.ts`). The stand-in writes Hidden Crystal Worlds' list
+   too. The skill speed tables stay in `skills.ts` as rules for step 5.
 4. **Events** in section 2, one page at a time.
 5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`.

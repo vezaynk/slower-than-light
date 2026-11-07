@@ -42,6 +42,7 @@ import type {
   RewardScaling,
   RewardTable,
   SectorDef,
+  SectorRarity,
   StoreDef,
   StoreLine,
   SurrenderChoice,
@@ -180,6 +181,8 @@ function readCrew(node: XmlElement): CrewDef | undefined {
   if (short) row.short = short;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
+  const rarity = numOf(node, "rarity");
+  if (rarity != null) row.rarity = rarity;
   const powers = elements(child(node, "powerList"))
     .filter((item) => item.tagName === "power")
     .map((item) => ownText(item).trim())
@@ -594,6 +597,15 @@ function readSector(node: XmlElement): SectorDef | undefined {
     notes,
   };
   if (tracks.length > 0) sector.tracks = tracks;
+  const rarities: SectorRarity[] = [];
+  for (const item of elements(child(node, "rarityList"))) {
+    if (item.tagName !== "blueprint") continue;
+    const name = attr(item, "name")?.trim();
+    const rarity = attrNum(item.getAttribute("rarity"));
+    if (!name || rarity == null) continue;
+    rarities.push({ id: name, rarity });
+  }
+  if (rarities.length > 0) sector.rarities = rarities;
   return sector;
 }
 

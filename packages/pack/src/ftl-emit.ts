@@ -41,6 +41,7 @@ function crewElement(doc: XmlDocument, row: CrewDef): XmlElement {
   if (row.short) node.appendChild(leaf(doc, "short", row.short));
   if (row.cost != null) node.appendChild(leaf(doc, "cost", row.cost));
   if (row.bp != null) node.appendChild(leaf(doc, "bp", row.bp));
+  if (row.rarity != null) node.appendChild(leaf(doc, "rarity", row.rarity));
   if (row.powers?.length) {
     const list = element(doc, "powerList");
     for (const line of row.powers) list.appendChild(leaf(doc, "power", line));

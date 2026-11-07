@@ -121,7 +121,7 @@ const serializer = new XMLSerializer();
  * startPower and one upgradeCost list on that same blueprint are the tune.
  * A hull is its id, class, layout file, name, and starting loadout. The layout file is data/<layout>.txt. A roomList names the rooms.
  * A ship with no layout and a surrender tag is a faction row.
- * A sector is its id, title, colour group, and page notes. Depth gates stay in the chart code.
+ * A sector is its id, title, colour group, page notes, and rarityList. Depth gates stay in the chart code.
  * A store is a customStore. Empty blueprint items set the shelf sizes.
  * A rewards block derives scrap and stores the resource bands.
  * Section count, the hull-repair rate, and the reactor formula stay in code.
@@ -914,6 +914,13 @@ function sectorElement(
     for (const name of sector.tracks) add(list, leaf(doc, "track", name));
     add(node, list);
   }
+  if (part !== "gap" && sector.rarities && sector.rarities.length > 0) {
+    const list = element(doc, "rarityList", {});
+    for (const row of sector.rarities) {
+      add(list, element(doc, "blueprint", { name: row.id, rarity: String(row.rarity) }));
+    }
+    add(node, list);
+  }
   return node;
 }
 
@@ -1046,6 +1053,7 @@ function raceElement(
     if (race.detail) add(node, leaf(doc, "desc", race.detail));
     if (race.short) add(node, leaf(doc, "short", race.short));
     if (race.cost != null) add(node, leaf(doc, "cost", race.cost));
+    if (race.rarity != null) add(node, leaf(doc, "rarity", race.rarity));
     if (race.powers?.length) {
       const list = element(doc, "powerList", {});
       for (const line of race.powers) add(list, leaf(doc, "power", line));

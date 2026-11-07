@@ -19,18 +19,12 @@ import {
   toggleWeapon,
 } from "./sim.ts";
 import type { Shot } from "./types.ts";
-import { hullDef, weaponDef } from "@stl/pack";
+import { allSectors, hullDef, onPackWarning, weaponDef } from "@stl/pack";
 import "./pack/base.ts";
 import { XP_NEED, skillRank } from "./content.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import type { SkillName } from "./types.ts";
-import {
-  ALL_CREW_RACES,
-  COMBAT_SKILL_MULT,
-  REPAIR_SKILL_MULT,
-  SECTOR_CREW_RACES,
-  pirateCrewRaces,
-} from "./wiki/skills.ts";
+import { COMBAT_SKILL_MULT, REPAIR_SKILL_MULT } from "./wiki/skills.ts";
 import type { Crew, Game } from "./types.ts";
 import { sectorIdNamed } from "./fixtures.ts";
 
@@ -1889,8 +1883,8 @@ describe("Crew skills, Shields: one point per bubble hit", () => {
   });
 });
 
-describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
-  // A pirate version's crew is crewCount class="random", drawn from the sector's races.
+describe("Enemy Ships, Pirated ships: crew from the sector's rarityList", () => {
+  // A pirate version's crew is crewCount class="random", drawn from the sector's crew rarities.
   const pirate = () => hullDef("REBEL_SKINNY_P")!;
 
   function racesIn(sectorName: string): Set<string> {
@@ -1914,15 +1908,26 @@ describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
 
   it("Hidden Crystal Worlds pirates are Crystal only; Lanius only where listed", () => {
     assert.deepEqual([...racesIn("Hidden Crystal Worlds")], ["Crystal"]);
-    for (const [name, list] of Object.entries(SECTOR_CREW_RACES)) {
-      if (name !== "LANIUS_SECTOR") assert.ok(!list.includes("Lanius"), name);
+    for (const sector of allSectors()) {
+      const lanius = (sector.rarities ?? []).some(
+        (row) => row.id === "anaerobic" && row.rarity > 0,
+      );
+      assert.equal(lanius, sector.id === "LANIUS_SECTOR", sector.id);
     }
     assert.ok(racesIn("Abandoned Sector").has("Lanius"));
   });
 
-  it("an unlisted sector name falls back to every race (INFERRED)", () => {
-    assert.deepEqual(pirateCrewRaces("Cinder Reach"), ALL_CREW_RACES);
-    assert.equal(racesIn("Cinder Reach").size, ALL_CREW_RACES.length);
+  it("a sector the archive does not define keeps the blueprints' rarities; the stand-in's crew carry none", () => {
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      assert.equal(racesIn("Cinder Reach").size, 0);
+    } finally {
+      restore();
+    }
+    assert.ok(
+      warnings.some((message) => message.includes("no races to draw from in Cinder Reach")),
+    );
   });
 
   it("non-pirate crews are the blueprint's crew class", () => {

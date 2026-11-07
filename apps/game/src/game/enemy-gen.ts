@@ -36,7 +36,7 @@ import type {
 import type { KinId } from "./extras/kin.ts";
 import { crewRandomIds, internalDrones } from "./blueprint-use.ts";
 import { noteListPlayed } from "./played-lists.ts";
-import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
+import { RACE_OF, rollSectorRace } from "./rarity.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import type { Difficulty, DoorMark, KitId, SysId } from "./types.ts";
 
@@ -375,19 +375,6 @@ const FROM_INSTALL: Record<string, EnemySystem> = {
   mindcontrol: "mindcontrol",
   battery: "battery",
   artillery: "artillery",
-};
-
-/** `<crewCount class>` ids. A name the class table already prints. */
-const RACE_OF: Record<string, string> = {
-  human: "Human",
-  engi: "Engi",
-  mantis: "Mantis",
-  slug: "Slug",
-  rock: "Rock",
-  energy: "Zoltan",
-  crystal: "Crystal",
-  anaerobic: "Lanius",
-  ghost: "Ghost",
 };
 
 /** `sectorId` is the ftl.dat sector id; `sectorName` is only for messages. */
@@ -837,8 +824,8 @@ export function blueprintCrew(min: number, max: number | undefined, ctx: PoolCon
 }
 
 /**
- * Blueprint crew rows (blueprintCrew). A row with no maximum is that many of the named race. `random` draws from the
- * sector's crew races.
+ * Blueprint crew rows (blueprintCrew). A row with no maximum is that many of the named race. Each seat of a `random`
+ * row draws a race from the sector's crew rarities (rarity.ts rollSectorRace).
  * A race the game has no crew for, or a `random` row with no races to draw from, is skipped with a warning.
  */
 function racesFromCounts(
@@ -848,19 +835,19 @@ function racesFromCounts(
   rand: () => number,
 ): string[] {
   const races: string[] = [];
-  const randomRaces = pirateCrewRaces(ctx.sectorId);
   for (const row of rows) {
     const n = blueprintCrew(row.amount, row.max, ctx);
     if (n <= 0) continue;
     if (row.class === "random") {
-      if (randomRaces.length === 0) {
-        warnPack(
-          `${ship}: a random crewCount has no races to draw from in ${ctx.sectorName}; it is skipped.`,
-        );
-        continue;
-      }
       for (let i = 0; i < n; i++) {
-        races.push(randomRaces[Math.floor(rand() * randomRaces.length) % randomRaces.length]!);
+        const race = rollSectorRace(ctx.sectorId, rand);
+        if (!race) {
+          warnPack(
+            `${ship}: a random crewCount has no races to draw from in ${ctx.sectorName}; it is skipped.`,
+          );
+          break;
+        }
+        races.push(race);
       }
       continue;
     }

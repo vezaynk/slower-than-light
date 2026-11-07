@@ -39,9 +39,12 @@ function forward(entry: LogEntry, error: Error | undefined): void {
   Sentry.withScope((scope) => {
     scope.setLevel(report.level);
     scope.setTag("log.source", entry.source);
+    if (report.kind === "exception") {
+      Sentry.captureException(error);
+      return;
+    }
     scope.setFingerprint(report.fingerprint);
-    if (report.kind === "exception") Sentry.captureException(error);
-    else Sentry.captureMessage(report.message, report.level);
+    Sentry.captureMessage(report.message, report.level);
   });
 }
 

@@ -28,12 +28,18 @@ describe("sentryReport", () => {
 
   it("sends console text as a message and a real Error as its own exception", () => {
     assert.equal(sentryReport(entry("error", "console", "boom"), undefined)?.kind, "message");
+    // No fingerprint on an exception: Sentry groups it by its stack, so call sites with one message stay apart.
     const report = sentryReport(entry("error", "console", "boom"), new Error("boom"));
-    assert.deepEqual(report, {
-      kind: "exception",
-      level: "error",
-      fingerprint: ["console", "boom"],
-    });
+    assert.deepEqual(report, { kind: "exception", level: "error" });
+  });
+
+  it("sends a failed resource load, which Sentry's own handler never sees", () => {
+    const report = sentryReport(
+      entry("warn", "resource", "A resource failed to load (<img> x.webp)"),
+      undefined,
+    );
+    assert.equal(report?.kind, "message");
+    assert.equal(report?.level, "warning");
   });
 
   it("leaves uncaught errors and rejections to Sentry's own handlers", () => {

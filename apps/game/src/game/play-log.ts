@@ -8,7 +8,8 @@ import { onPackWarning } from "@stl/pack";
 import { create } from "zustand";
 
 export type LogLevel = "error" | "warn";
-export type LogSource = "console" | "uncaught" | "promise" | "pack";
+/** `resource`: a file that failed to load (an element in the page, or an image a loader made). */
+export type LogSource = "console" | "uncaught" | "promise" | "pack" | "resource";
 
 export type LogEntry = {
   /** Level, source, and message: a repeat bumps `count` instead of adding a row. */
@@ -202,13 +203,13 @@ function consoleText(args: readonly unknown[]): string {
   return [filled, ...rest.slice(i).map(describe)].join(" ").trim();
 }
 
-/** "A resource failed to load", naming the element and its address when the target is one. */
-function resourceFailure(target: EventTarget | null): string {
-  if (!target || target === (globalThis as { window?: unknown }).window) return "Unknown error";
-  const el = target as { tagName?: string; src?: string; href?: string };
-  const url = el.src || el.href;
-  const tag = el.tagName?.toLowerCase();
-  return `A resource failed to load${tag ? ` (<${tag}>` + (url ? ` ${url})` : ")") : ""}`;
+/**
+ * Logs a file that failed to load. The window listener catches elements in the page; a loader that makes its own
+ * `new Image()` (no parent, so its error never reaches window) calls this from its onerror.
+ */
+export function logResourceFailure(tag: string, url: string | undefined): void {
+  const name = tag.toLowerCase();
+  logProblem("warn", "resource", `A resource failed to load (<${name}>${url ? ` ${url}` : ""})`);
 }
 
 let installed = false;
@@ -231,7 +232,13 @@ export function installPlayLog(): void {
     "error",
     (event) => {
       const error = event.error instanceof Error ? event.error : undefined;
-      const message = error?.message || event.message || resourceFailure(event.target);
+      const target = event.target as { tagName?: string; src?: string; href?: string } | null;
+      if (!error && !event.message && target && target !== (window as unknown) && target.tagName) {
+        // An element in the page failed to load. Sentry's window.onerror never sees these.
+        logResourceFailure(target.tagName, target.src || target.href);
+        return;
+      }
+      const message = error?.message || event.message || "Unknown error";
       const place = event.filename ? ` (${event.filename}:${event.lineno}:${event.colno})` : "";
       logProblem("error", "uncaught", `${message}${place}`, error?.stack, Date.now(), error);
     },

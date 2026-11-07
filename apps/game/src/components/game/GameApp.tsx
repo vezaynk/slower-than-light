@@ -1453,7 +1453,23 @@ function LogBadge() {
   );
 }
 
+/** Publishes the FTL group's width as --mid-w, so the stylesheet can keep it clear of the target panel. */
+function useMidWidth() {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const read = () => el.style.setProperty("--mid-w", `${el.offsetWidth}px`);
+    read();
+    const obs = new ResizeObserver(read);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
+
 function Hud({ game }: { game: Game }) {
+  const midRef = useMidWidth();
   const bubbles = game.player.shieldNow;
   const cap = Math.max(
     maxBubbles(game.player, zoltanBars(game.crew, game.player, "player", "shields")),
@@ -1540,7 +1556,7 @@ function Hud({ game }: { game: Game }) {
           ) : null}
         </div>
       </div>
-      <div className="hud-mid">
+      <div className="hud-mid" ref={midRef}>
         {/* Per the user: fuel sits beside the FTL Drive it feeds. */}
         <span
           className={`count-chip hud-fuel${game.fuel < 1 ? " is-empty" : ""}`}

@@ -1175,15 +1175,27 @@ function emptyHall(): { rooms: EnemyRoomSpec[]; cols: number; rows: number } {
   };
 }
 
-/** The blueprint's own rooms. A hull with no grid uses the same fallback as a class with no interior. */
+/**
+ * The blueprint's own rooms. A hull with no grid uses the same fallback as a class with no interior.
+ * A fitted system the grid has no room for (an install with no room, or one whose room another fitted system already
+ * holds, as ftl.dat's BOSS_SPECIAL puts teleporter and mind control both in room 3) is warned about and left out of
+ * `seated`, so the fight does not fit it; it never gets a room off the hull.
+ */
 function seatHull(
   hull: HullDef,
   installed: [EnemySystem, number][],
-): { rooms: EnemyRoomSpec[]; cols: number; rows: number; marks?: DoorMark[] } {
+): {
+  rooms: EnemyRoomSpec[];
+  cols: number;
+  rows: number;
+  marks?: DoorMark[];
+  seated: ReadonlySet<EnemySystem>;
+} {
   const ids = installed.map(([id]) => id);
   const grid = hull.grid;
   const boxes = grid?.rooms.filter((room) => room.w > 0 || room.h > 0) ?? [];
-  if (!grid || boxes.length === 0) return ids.length ? layout(ids) : emptyHall();
+  if (!grid || boxes.length === 0)
+    return { ...(ids.length ? layout(ids) : emptyHall()), seated: new Set(ids) };
   const have = new Set(ids);
   const taken = new Set<EnemySystem>();
   let hall = 0;
@@ -1210,22 +1222,18 @@ function seatHull(
   }
   for (const id of ids) {
     if (taken.has(id)) continue;
-    const kit = KIT[id];
-    rooms.push({
-      id: `e-${id}`,
-      title: TITLE[id],
-      system: RUN[id] ?? null,
-      ...(kit ? { kit } : {}),
-      x: cols,
-      y: 0,
-      w: 1,
-      h: 1,
-    });
-    cols += 1;
+    const room = (hull.installs ?? []).find(
+      (row) => FROM_INSTALL[row.id] === id && row.power >= 1 && row.room != null,
+    )?.room;
+    warnPack(
+      room == null
+        ? `${hull.id}: system "${id}" has no room; it is not fitted.`
+        : `${hull.id}: system "${id}" is in room ${room}, which another system holds or the layout lacks; it is not fitted.`,
+    );
   }
-  if (rooms.length === 0) return emptyHall();
+  if (rooms.length === 0) return { ...emptyHall(), seated: taken };
   const marks = grid.doors.length > 0 ? marksFromDoors(grid) : undefined;
-  return { rooms, cols, rows, ...(marks ? { marks } : {}) };
+  return { rooms, cols, rows, ...(marks ? { marks } : {}), seated: taken };
 }
 
 /**
@@ -1255,8 +1263,9 @@ export function blueprintHull(hull: Pick<HullDef, "health">, ctx: PoolContext): 
 }
 
 export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number): EnemySpec {
-  const installed = installedSystems(hull, ctx, rand);
-  const seated = seatHull(hull, installed);
+  const rolled = installedSystems(hull, ctx, rand);
+  const seated = seatHull(hull, rolled);
+  const installed = rolled.filter(([id]) => seated.seated.has(id));
   const systems: EnemySpec["systems"] = {};
   const kits: EnemySpec["kits"] = {};
   const unwired: EnemySpec["unwired"] = [];

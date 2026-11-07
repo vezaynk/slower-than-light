@@ -134,9 +134,10 @@ export function assertNewGame(g: Game): void {
 
 /** Dismiss the opening, then jump to the exit. A fight charges the drive and jumps along the path. */
 export function walkToExit(g: Game): void {
-  const startFuel = g.fuel;
   settle(g);
   let hops = 0;
+  // Fuel the jumps burned. The fuel left can be back at the start: an event or a fight's salvage may give fuel.
+  let burned = 0;
   while (here(g)?.kind !== "exit") {
     stop(g);
     if (g.fuel < 1) fail(g, "out of fuel before the exit");
@@ -145,7 +146,7 @@ export function walkToExit(g: Game): void {
     if (!hop) fail(g, "no path to the exit");
     if (g.phase !== "map") settle(g);
     if (here(g)?.kind === "exit") break;
-    jumpToward(g, hop);
+    burned += jumpToward(g, hop);
     hops += 1;
     settle(g);
   }
@@ -153,7 +154,7 @@ export function walkToExit(g: Game): void {
   assert.equal(here(g)?.kind, "exit");
   assert.ok(g.player.hull > 0);
   assert.ok(g.jumps > 0);
-  assert.ok(g.fuel < startFuel);
+  assert.ok(burned > 0);
 }
 
 /**
@@ -279,7 +280,8 @@ function chargeAndJump(g: Game): void {
   jumpToward(g, hop);
 }
 
-function jumpToward(g: Game, hop: string): void {
+/** Charge the drive and jump. Returns the fuel the jump burned. */
+function jumpToward(g: Game, hop: string): number {
   const beacon = g.here;
   seatPilot(g);
   let waited = 0;
@@ -291,11 +293,13 @@ function jumpToward(g: Game, hop: string): void {
     step(g, 0.05);
     waited += 0.05;
   }
+  const fuel = g.fuel;
   commitJump(g, hop);
   if (g.here === beacon) {
     const why = jumpBlocked(g);
     fail(g, why ? `${why} at ${beacon}` : `jump did not leave ${beacon}`);
   }
+  return fuel - g.fuel;
 }
 
 /** An empty pilot chair cannot jump. Send one living crew member, as a player would. */

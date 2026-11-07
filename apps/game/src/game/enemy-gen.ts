@@ -1527,11 +1527,21 @@ export function fightHull(
   if (!autoBlueprint) return undefined;
   const names = fightList(autoBlueprint);
   if (names) {
-    if (names.length === 0) return undefined;
-    const id = names[Math.floor(rand() * names.length) % names.length]!;
-    const hull = hullDef(id);
-    if (!hull || !hullInSector(hull, level)) return undefined;
-    return hull;
+    // FTL draws only from the list's ships whose minSector..maxSector allows this sector. Drawing first and then
+    // rejecting the ship sent the fight to the wiki class picker, so an ftl.dat fight met a ship ftl.dat never had.
+    const hulls = names.map((id) => hullDef(id)).filter((hull): hull is HullDef => !!hull);
+    if (hulls.length === 0) {
+      warnPack(`blueprintList ${autoBlueprint} names no shipBlueprint; the fight rolls a class.`);
+      return undefined;
+    }
+    const open = hulls.filter((hull) => hullInSector(hull, level));
+    if (open.length === 0) {
+      warnPack(
+        `blueprintList ${autoBlueprint} has no ship for sector level ${level}; it draws from the whole list.`,
+      );
+    }
+    const pool = open.length > 0 ? open : hulls;
+    return pool[Math.floor(rand() * pool.length) % pool.length];
   }
   const direct = hullDef(autoBlueprint);
   if (direct) return direct;

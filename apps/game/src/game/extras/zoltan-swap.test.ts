@@ -193,7 +193,7 @@ describe("Zoltan cooldown swap", () => {
 
   it("peels an enemy cloak the same way, including across a combat tick", () => {
     const g = createGame(8);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
     const room = g.enemy.rooms.find((r) => r.system === "sensors") ?? g.enemy.rooms[0];

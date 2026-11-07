@@ -96,7 +96,7 @@ describe("targetable slider range", () => {
 describe("slider aim", () => {
   it("moves a queued laser onto the room under the point and does not fire", () => {
     const g = createGame(1, "PLAYER_SHIP_JELLY");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     powerGuns(g);
     const laser = g.player.weapons.find((gun) => gun.defId !== "BEAM_BIO" && gun.enabled);
     assert.ok(laser);
@@ -120,7 +120,7 @@ describe("slider aim", () => {
 
   it("sets a beam from two points and will not leave the enemy floor", () => {
     const g = createGame(1, "PLAYER_SHIP_JELLY");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     powerGuns(g);
     const w = g.player.weapons.find((gun) => gun.defId === "BEAM_BIO");
     assert.ok(w);
@@ -151,7 +151,7 @@ describe("slider aim", () => {
 
   it("lets either beam thumb pull the other once the swipe is at full length", () => {
     const g = createGame(1, "PLAYER_SHIP_JELLY");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     powerGuns(g);
     const w = g.player.weapons.find((gun) => gun.defId === "BEAM_BIO");
     assert.ok(w);
@@ -275,7 +275,7 @@ describe("printed beam length", () => {
 describe("player beam aim", () => {
   function fight() {
     const g = createGame(1, "PLAYER_SHIP_JELLY");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     powerGuns(g);
     const w = g.player.weapons.find((gun) => gun.defId === "BEAM_BIO");
     assert.ok(w);
@@ -400,7 +400,7 @@ describe("player beam aim", () => {
 describe("enemy beam aim", () => {
   it("still swipes the aimed room and one door neighbour", () => {
     const g = createGame(4);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     powerGuns(g);
     for (const w of g.player.weapons) w.enabled = false;
     const enemy = g.enemy!;
@@ -445,10 +445,13 @@ describe("enemy beam aim", () => {
 
   it("swipes the Boss Beam at the printed speed of 5", () => {
     const g = createGame(4);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     powerGuns(g);
     for (const w of g.player.weapons) w.enabled = false;
     const enemy = g.enemy!;
+    // Enough Weapons power for the boss gun, whatever the sector rolled.
+    enemy.systems.weapons.level = 8;
+    enemy.systems.weapons.power = 8;
     enemy.weapons = [
       {
         uid: "e-beam",

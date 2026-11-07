@@ -20,7 +20,7 @@ import {
 /** A quiet fight: no guns, no rocks, no fleet. */
 function quiet(seed: number): Game {
   const g = createGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   g.asteroid = false;
   g.asb = false;

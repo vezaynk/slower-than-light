@@ -362,7 +362,7 @@ describe("Shield Overcharger +", () => {
     assert.equal(simo.player.parts, 16);
 
     const fight = createGame(20);
-    startCombat(fight, "scout");
+    startCombat(fight, "Rebel ship");
     const enemy = fight.enemy;
     assert.ok(enemy);
     const before = enemy.zoltan ?? null;

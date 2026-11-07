@@ -72,7 +72,7 @@ describe("reverse ion field", () => {
     assert.equal(hit.player.systems.weapons.ion.length, 0);
 
     const enemy = createGame(6);
-    startCombat(enemy, "scout");
+    startCombat(enemy, "Rebel ship");
     still(enemy);
     enemy.augments = ["ION_ARMOR", "ION_ARMOR"];
     const room = enemy.enemy?.rooms.find((item) => item.system);
@@ -132,7 +132,7 @@ describe("reverse ion field", () => {
 
   it("stops an enemy ion intruder's ion and still stuns the crew in that room", () => {
     const g = createGame(9);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.augments = ["ION_ARMOR", "ION_ARMOR"];
     const room = g.player.rooms.find((item) => item.system === "weapons");
     assert.ok(room);

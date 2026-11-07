@@ -22,7 +22,7 @@ function pulse(on: boolean): Kit {
 describe("hacking splits a volley (Hacking, Overview)", () => {
   it("holds the shots still waiting to leave, then fires them when the charge refills", () => {
     const g = createGame(3, "PLAYER_SHIP_HARD");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     const i = enemy.weapons.findIndex((_, n) => powerMask(enemy)[n]);

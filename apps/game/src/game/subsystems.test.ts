@@ -30,7 +30,7 @@ function calm(g: Game) {
 
 function fight(seed = 1): Game {
   const g = startedGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   calm(g);
   return g;

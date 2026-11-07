@@ -127,7 +127,7 @@ describe("furniture keeps clear of doors (per the user)", () => {
 describe("crew room orders", () => {
   it("orders a boarded crew member onto another enemy room and keeps the selection", () => {
     const g = startedGame(3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const ivo = g.crew.find((c) => c.id === "c-ivo");
     assert.ok(ivo && g.enemy && g.enemy.rooms.length > 1);
     const dest = g.enemy.rooms[1]!.id;
@@ -147,7 +147,7 @@ describe("crew room orders", () => {
 
   it("puts the first crew sent back at the front of the fight", () => {
     const g = startedGame(5);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const ada = g.crew.find((c) => c.id === "c-ada");
     const ivo = g.crew.find((c) => c.id === "c-ivo");
     const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
@@ -183,7 +183,7 @@ describe("crew room orders", () => {
 
   it("heals a walker in the medbay and leaves an idle body past the spot cap", () => {
     const g = startedGame(6);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.systems.medbay.power = 1;
     const ada = g.crew.find((c) => c.id === "c-ada")!;
     const ivo = g.crew.find((c) => c.id === "c-ivo")!;
@@ -251,7 +251,7 @@ describe("crew room orders", () => {
     // Boarding, "Medbay": "A working Medbay can be a good place to deal with enemy boarders".
     const run = (power: number) => {
       const g = startedGame(6);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       g.player.systems.medbay.power = power;
       const bay = g.player.rooms.find((r) => r.id === "p-medbay")!;
       bay.fire = 1;
@@ -280,7 +280,7 @@ describe("crew room orders", () => {
 
   it("lets only the standing spots repair a medbay", () => {
     const g = startedGame(7);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.systems.medbay.power = 0;
     g.player.systems.medbay.damage = 1;
     const ada = g.crew.find((c) => c.id === "c-ada")!;
@@ -582,7 +582,7 @@ describe("dismissing crew (Ship menu)", () => {
     assert.equal(dismissCrew(g, nen.id), true);
     assert.equal(dismissCrew(g, ivo.id), false);
     assert.equal(mine().length, 1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const foe = g.crew.find((c) => c.side === "enemy")!;
     assert.equal(canDismiss(g, foe.id), false);
   });

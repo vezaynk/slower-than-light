@@ -295,7 +295,7 @@ describe("Oxygen outside a fight", () => {
 /** Combat tick, doors shut, oxygen full. */
 function ventFight(seed: number): Game {
   const g = startedGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   for (const w of [...g.player.weapons, ...(g.enemy?.weapons ?? [])]) w.enabled = false;
   const swarm = g.enemy?.kits.drones;
   if (swarm) swarm.loadout = [];

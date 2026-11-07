@@ -314,7 +314,7 @@ describe("beam weapons", () => {
   it("hits a ship that would dodge every other shot", () => {
     // Beam (Weapons) and Weapons, "Beams": "They are the only weapons that never miss."
     const g = createGame(3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const ship = g.enemy;
     assert.ok(ship);
     ship.systems.engines.level = 8;

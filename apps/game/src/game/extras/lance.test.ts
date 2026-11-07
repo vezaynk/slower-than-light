@@ -34,7 +34,7 @@ function fedFresh(seed: number): Game {
 
 function armed(seed: number): Game {
   const g = createGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   g.player.kits.artillery = {
     id: "artillery",
@@ -432,7 +432,7 @@ describe("artillery", () => {
     toggleLancePower(g);
     toggleLancePower(g);
     assert.equal(kit.power, 4);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     kit.aux = 0;
     const hull = g.enemy.hull;

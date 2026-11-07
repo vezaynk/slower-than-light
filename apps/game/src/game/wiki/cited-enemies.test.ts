@@ -4,18 +4,26 @@ import { hullDef, weaponDef } from "@stl/pack";
 import "../pack/base.ts";
 import { createGame, startCombat } from "../sim.ts";
 import { citedEnemy } from "./cited-enemies.ts";
-import { ENEMY_CLASSES } from "./enemy-ships.ts";
+import { blueprintHull, hullDisplayName } from "../enemy-gen.ts";
 import { flagshipHullId } from "./flagship-layout.ts";
 
 describe("cited enemies", () => {
   it("leaves a non-boss hull alone", () => {
     const g = createGame(1);
-    startCombat(g, "scout");
-    // Non-boss hulls are documented classes from the faction pages (enemy-gen.ts); citedEnemy does not touch them.
-    const cls = ENEMY_CLASSES.find((row) => row.id === g.enemy?.classId);
-    assert.ok(cls);
-    assert.ok(g.enemy?.name === cls.name || g.enemy?.name === cls.pirate);
-    assert.ok(g.enemy && g.enemy.hull >= cls.hull[0] - 1 && g.enemy.hull <= cls.hull[1]);
+    startCombat(g, "Rebel ship");
+    // Non-boss hulls are archive blueprints (enemy-gen.ts specFromHull); citedEnemy does not touch them.
+    const hull = hullDef(g.enemy?.classId ?? "");
+    assert.ok(hull && g.enemy);
+    assert.equal(g.enemy.name, hullDisplayName(hull));
+    assert.equal(
+      g.enemy.hull,
+      blueprintHull(hull, {
+        sector: g.sector,
+        sectorId: g.sectorId,
+        sectorName: g.sectorName,
+        difficulty: g.difficulty,
+      }),
+    );
   });
 
   it("applies stage 1 of the Rebel Flagship when the fight has no phase counter", () => {
@@ -188,7 +196,7 @@ describe("Zoltan ship shield", () => {
 
     const rebel = createGame(4);
     rebel.sector = 4;
-    startCombat(rebel, "scout");
+    startCombat(rebel, "Rebel ship");
     assert.notEqual(rebel.enemy?.faction, "zoltan");
     assert.equal(rebel.enemy?.zoltan, undefined);
   });

@@ -20,7 +20,7 @@ function shot(partial: Partial<Shot> & Pick<Shot, "kind" | "from" | "damage">): 
 
 function fight() {
   const g = createGame(7);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   const enemy = g.enemy;
   assert.ok(enemy);
   enemy.systems.engines.power = 0;

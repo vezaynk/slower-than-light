@@ -100,7 +100,7 @@ describe("Zoltan bar on kit systems", () => {
     const room = g.player.rooms.find((r) => r.kit === "hacking");
     assert.ok(kit && room);
     kit.power = 0;
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.zoltan = undefined;
     for (const w of g.enemy.weapons) w.enabled = false;

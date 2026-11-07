@@ -13,7 +13,7 @@ import {
 import type { Game, Shot } from "./types.ts";
 
 function quiet(g: Game) {
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   g.enemy.weapons = [];
   g.player.systems.engines.power = 0;
@@ -411,7 +411,7 @@ describe("ion stunner", () => {
 describe("an invalid tap clears the armed weapon's aim (per the user)", () => {
   it("drops a laser's earlier target when its next tap lands on your own ship", () => {
     const g = createGame(3, "PLAYER_SHIP_HARD");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const w = g.player.weapons[0]!;
     const enemyRoom = g.enemy!.rooms[0]!;
     g.paused = true;

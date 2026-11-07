@@ -39,7 +39,7 @@ function armed(parts = 2) {
   assert.equal(g.player.kits.hacking?.level, 1);
   toggleSpikePower(g);
   assert.equal(g.player.kits.hacking?.power, 1);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   return g;
 }
@@ -98,7 +98,7 @@ describe("hacking", () => {
     cold.scrap = 80;
     cold.player.parts = 2;
     installSpike(cold);
-    startCombat(cold, "scout");
+    startCombat(cold, "Rebel ship");
     armSpike(cold, "shields");
     assert.equal(cold.player.kits.hacking?.power, 0);
     assert.equal(launchLanded(cold), false);

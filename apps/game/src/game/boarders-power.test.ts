@@ -218,7 +218,7 @@ describe("boarding drones lose power when that hull is destroyed", () => {
     const board = unit("BOARDER", { id: "landed", room: "p-weapons" });
     mount(g, [board]);
     destroy(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
     g.enemy.boards = false;

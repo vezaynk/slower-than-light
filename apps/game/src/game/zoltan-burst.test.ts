@@ -20,7 +20,7 @@ function body(partial: Pick<Crew, "id" | "name" | "side" | "room"> & Partial<Cre
 describe("zoltan death burst", () => {
   it("deals 15 HP to an enemy in the same room and not to one elsewhere", () => {
     const g = createGame(1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const spark = body({
       id: "z",
       name: "Zed",
@@ -47,7 +47,7 @@ describe("zoltan death burst", () => {
   it("spares the holder's crew when the Zoltan was mind-controlled", () => {
     // Zoltans, Race characteristics: "No damage to allies, if the exploding Zoltan was mind-controlled".
     const g = createGame(6);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const spark = body({
       id: "z",
       name: "Zed",
@@ -70,7 +70,7 @@ describe("zoltan death burst", () => {
 
   it("does not burst when a human dies", () => {
     const g = createGame(2);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const plain = body({
       id: "h",
       name: "Hue",
@@ -101,7 +101,7 @@ describe("zoltan death burst", () => {
 
   it("takes 7.5 from a drone that has health and is in the room", () => {
     const g = createGame(4);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     const swarm = g.enemy.kits.drones ?? (g.enemy.kits.drones = kit());
     swarm.loadout = [];
@@ -145,7 +145,7 @@ describe("zoltan death burst", () => {
 
   it("hits the player's Ion Intruder when an enemy Zoltan dies in its room", () => {
     const g = createGame(5);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     if (g.enemy.kits.clonebay) g.enemy.kits.clonebay.level = 0;
     const swarm = g.enemy.kits.drones ?? (g.enemy.kits.drones = kit());

@@ -40,7 +40,7 @@ describe("zoltanBars", () => {
     // Zoltans, lead: "the ship system whose corresponding room they are currently standing in".
     // Race characteristics: one yellow bar on an occupied system. Mind control leaves that bar where they stand.
     const g = createGame(6);
-    startCombat(g, "scout");
+    startCombat(g, "Zoltan ship");
     const zoltan = g.crew.find((c) => c.side === "enemy" && c.kin === "energy")!;
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
     zoltan.aboard = "player";
@@ -68,7 +68,7 @@ describe("zoltanBars", () => {
 
   it("keeps a mind-controlled Zoltan's bar on the room they still occupy", () => {
     const g = createGame(6);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const friend = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
     const shields = zoltanBars(g.crew, g.enemy!, "enemy", "shields");
@@ -83,7 +83,7 @@ describe("zoltanBars", () => {
 
   it("powers the enemy system a boarding Zoltan stands in", () => {
     const g = createGame(6);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const room = g.enemy!.rooms.find((r) => r.system === "engines")!;
     const before = zoltanBars(g.crew, g.enemy!, "enemy", "engines");
     const you = g.crew.find((c) => c.side === "player" && c.hp > 0)!;

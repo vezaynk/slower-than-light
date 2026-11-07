@@ -145,7 +145,7 @@ describe("ship menu upgrades", () => {
     assert.equal(g.shipSheet, false);
 
     openShipMenu(g, "crew");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.equal(g.shipSheet, false);
     openShipMenu(g, "upgrades");
     assert.equal(g.shipSheet, false);

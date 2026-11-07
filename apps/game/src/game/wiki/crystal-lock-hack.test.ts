@@ -70,7 +70,7 @@ describe("door hits by difficulty", () => {
       ["hard", 6],
     ] as const) {
       const g = createGame(4, "PLAYER_SHIP_CRYSTAL", difficulty);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       calm(g);
       g.player.systems.doors.level = 2;
       g.player.systems.doors.damage = 0;
@@ -100,7 +100,7 @@ describe("door strength scales with the level", () => {
   it("rescales a door already being broken when the level changes", () => {
     const g = createGame(3);
     g.difficulty = "hard";
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     calm(g);
     g.player.systems.doors.level = 2;
     g.player.systems.doors.power = 2;
@@ -128,7 +128,7 @@ describe("door strength scales with the level", () => {
 describe("crystal lockdown and a hacking drone", () => {
   it("leaves 4 hits when the coating was up before the drone attached", () => {
     const g = createGame(4, "PLAYER_SHIP_CRYSTAL");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     calm(g);
     assert.ok(g.enemy);
     g.player.systems.doors.level = 2;
@@ -192,7 +192,7 @@ describe("crystal lockdown and a hacking drone", () => {
 
   it("keeps normal hacked-door health when the pulse starts during the coating", () => {
     const g = createGame(5, "PLAYER_SHIP_CRYSTAL");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     calm(g);
     assert.ok(g.enemy);
     const room = g.player.rooms.find((r) => r.system === "weapons");
@@ -222,7 +222,7 @@ describe("crystal lockdown and a hacking drone", () => {
 
   it("restores level-3 health when the lockdown comes after the drone is attached", () => {
     const g = createGame(6, "PLAYER_SHIP_CRYSTAL");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     calm(g);
     assert.ok(g.enemy);
     g.player.systems.doors.level = 2;
@@ -252,7 +252,7 @@ describe("crystal lockdown and a hacking drone", () => {
 
   it("breaks those 4-hit doors in four seconds", () => {
     const g = createGame(7, "PLAYER_SHIP_CRYSTAL");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     calm(g);
     assert.ok(g.enemy);
     const room = g.player.rooms.find((r) => r.system === "weapons");
@@ -294,7 +294,7 @@ describe("crystal lockdown and a hacking drone", () => {
 
   it("uses the same 4 hits when the player's drone latches onto a coated enemy room", () => {
     const g = createGame(8, "PLAYER_SHIP_CRYSTAL");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     calm(g);
     assert.ok(g.enemy);
     g.enemy.systems.doors.level = 4;
@@ -329,7 +329,7 @@ describe("crystal lockdown and a hacking drone", () => {
     assert.equal(door.hp, 4);
 
     const kept = createGame(9, "PLAYER_SHIP_CRYSTAL");
-    startCombat(kept, "scout");
+    startCombat(kept, "Rebel ship");
     calm(kept);
     assert.ok(kept.enemy);
     delete kept.enemy.kits.drones; // no enemy drones in this test

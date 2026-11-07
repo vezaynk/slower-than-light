@@ -118,13 +118,23 @@ const CLASS_BY_ID = new Map(ENEMY_CLASSES.map((row) => [row.id, row]));
  * (Mantis Fighter for MANTIS_FIGHTER), whose name ftl.dat gives the blueprint, rather than its Advanced Edition variant.
  */
 function classFor(blueprint: string): { cls: EnemyClass; pirate: boolean } | undefined {
+  return classesFor(blueprint)[0];
+}
+
+/** Every class row naming this blueprint, base class first. */
+function classesFor(blueprint: string): { cls: EnemyClass; pirate: boolean }[] {
+  const out: { cls: EnemyClass; pirate: boolean }[] = [];
   for (const row of ENEMY_BLUEPRINTS) {
     const pirate = row.pirateBlueprint === blueprint;
     if (row.blueprint !== blueprint && !pirate) continue;
     const cls = CLASS_BY_ID.get(row.classId);
-    if (cls) return { cls, pirate };
+    if (cls) out.push({ cls, pirate });
   }
-  return undefined;
+  return out;
+}
+
+function widen(a: Range, b: Range): Range {
+  return [Math.min(a[0], b[0]), Math.max(a[1], b[1])];
 }
 
 export type EnemyStats = {
@@ -150,14 +160,23 @@ export function enemyStats(blueprint: string): EnemyStats | undefined {
   if (!found) return undefined;
   const { cls, pirate } = found;
   const systems = new Map<string, { range: Range; start: boolean }>();
-  for (const [id, range] of Object.entries(cls.systems) as [string, Range][]) {
-    systems.set(INSTALL_ID[id] ?? id, { range, start: true });
-  }
-  for (const [id, range] of Object.entries(cls.optional) as [string, Range][]) {
-    const only = cls.optionalNotes?.[id as keyof EnemyClass["optional"]];
-    if (only && /pirate/i.test(only) !== pirate) continue;
-    if (!systems.has(id)) systems.set(INSTALL_ID[id] ?? id, { range, start: false });
-  }
+  // The base class's systems keep their status. A system only a variant sharing the blueprint carries (Rebel Invader's
+  // Clone Bay on REBEL_SKINNY) is optional, as an Advanced Edition overwrite adds it; each range covers every class.
+  classesFor(blueprint).forEach(({ cls: row, pirate: rowPirate }, index) => {
+    const add = (id: string, range: Range, start: boolean) => {
+      const key = INSTALL_ID[id] ?? id;
+      const prev = systems.get(key);
+      if (prev) prev.range = widen(prev.range, range);
+      else systems.set(key, { range, start: index === 0 && start });
+    };
+    for (const [id, range] of Object.entries(row.systems) as [string, Range][])
+      add(id, range, true);
+    for (const [id, range] of Object.entries(row.optional) as [string, Range][]) {
+      const only = row.optionalNotes?.[id as keyof EnemyClass["optional"]];
+      if (only && /pirate/i.test(only) !== rowPirate) continue;
+      add(id, range, false);
+    }
+  });
   const crewCounts: HullCrewCount[] = [];
   if (cls.crew[1] > 0) {
     const race = pirate ? "random" : CREW_CLASS[cls.crewMix[0]?.[0] ?? "Human"];

@@ -107,7 +107,7 @@ describe("Flak II room odds", () => {
 
   it("uses those odds when Flak II fires, and a 1x1 does not roll", () => {
     const g = createGame(3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
     const base = g.enemy.rooms[0];
@@ -160,7 +160,7 @@ describe("Flak II room odds", () => {
     });
 
     const quiet = createGame(5);
-    startCombat(quiet, "scout");
+    startCombat(quiet, "Rebel ship");
     assert.ok(quiet.enemy);
     quiet.enemy.weapons = [];
     const dot = quiet.enemy.rooms[0];
@@ -215,7 +215,7 @@ describe("Adv. Flak room odds", () => {
 
   it("uses those odds when Adv. Flak fires", () => {
     const g = createGame(6);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
     const base = g.enemy.rooms[0];
@@ -274,7 +274,7 @@ describe("Flak II and Adv. Flak fake pellets", () => {
     assert.equal(ADV_FLAK_FAKE, 3);
     const fire = (defId: string, power: number, fake: number, seed: number) => {
       const g = createGame(seed);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
       g.enemy.weapons = [];
       g.enemy.systems.engines.level = 0;
@@ -314,7 +314,7 @@ describe("Flak II and Adv. Flak fake pellets", () => {
 
   it("lets a defense drone shoot a Flak II fake pellet", () => {
     const g = createGame(11);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
     g.enemy.kits.drones = {

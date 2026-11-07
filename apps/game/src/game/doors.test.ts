@@ -29,6 +29,8 @@ import type { Game, Shot } from "./types.ts";
 function calm(g: Game) {
   g.player.weapons = [];
   if (g.enemy) g.enemy.weapons = [];
+  // No subsystem kits: a Teleporter's boarders or a boarding drone would open doors, hacking would lock them.
+  if (g.enemy) g.enemy.kits = {};
   g.enemyEscape = null;
   g.enemySurrender = null;
   g.asb = false;
@@ -43,7 +45,7 @@ function calm(g: Game) {
 
 function fight(seed = 1): Game {
   const g = createGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   calm(g);
   return g;
@@ -241,7 +243,7 @@ describe("broken doors", () => {
   it("closes a coated door by hand after Open All", () => {
     // Door System: Z overrides the coating, and those doors can then be closed (X, or one door).
     const g = createGame(11, "PLAYER_SHIP_CRYSTAL");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     calm(g);
     const crystal = g.crew.find((c) => c.kin === "crystal" && c.hp > 0);
     assert.ok(crystal);
@@ -272,7 +274,7 @@ describe("hacked doors", () => {
     g.player.parts = 2;
     assert.equal(installSpike(g), true);
     toggleSpikePower(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     calm(g);
     return g;
   }

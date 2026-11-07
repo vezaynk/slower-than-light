@@ -132,7 +132,7 @@ describe("archive gates and combat figures", () => {
     assert.equal(citedCrewDamage(bomb({ defId: "BOMB_HEAL", targetRoom: "r" }), 0), -150);
 
     const g = createGame(4);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
     g.enemy.shieldNow = 0;

@@ -44,7 +44,7 @@ function dark(g: Game) {
 /** Sensors at 0, no living player Slug, one live enemy crew member. */
 function blindScout(seed: number): { g: Game; foe: Crew } {
   const g = createGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   dark(g);
   const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
   assert.ok(foe);
@@ -104,7 +104,7 @@ describe("drone room vision", () => {
 describe("Slug vision", () => {
   it("opens rooms that share an edge with the Slug, including a room whose door was removed", () => {
     const g = createGame(21);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     dark(g);
     park(g, "p-engines");
     gel(g, "p-engines");
@@ -126,7 +126,7 @@ describe("Slug vision", () => {
 
   it("reveals live enemy crew on both ships; a friendly boarder's own room is seen; a dead Slug reveals nothing", () => {
     const g = createGame(22);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     dark(g);
     park(g, "p-pilot");
     const slug = gel(g, "p-engines");
@@ -152,7 +152,7 @@ describe("Slug vision", () => {
 
   it("lets level 2 sensors show the enemy ship, and level 2 still shows their crew through a cloak", () => {
     const g = createGame(23);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.systems.sensors.level = 2;
     const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
     assert.ok(foe && g.enemy);
@@ -175,7 +175,7 @@ describe("Slug vision", () => {
 
   it("still opens adjacent rooms when a nebula has disabled Sensors", () => {
     const g = createGame(25);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here);
     here.kind = "nebula";
@@ -192,7 +192,7 @@ describe("Slug vision", () => {
 
   it("an enemy Slug does not open rooms for you", () => {
     const g = createGame(24);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     dark(g);
     park(g, "p-pilot");
     const foe = g.crew.find((c) => c.side === "enemy");
@@ -232,7 +232,7 @@ describe("Slug vision", () => {
 
   it("a nebula disables Sensors and a Lifeform Scanner still reveals live enemy crew", () => {
     const g = createGame(28);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here);
     here.kind = "nebula";

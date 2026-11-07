@@ -60,7 +60,7 @@ describe("projectile speed", () => {
 
   it("puts that flight on the shot the enemy fires", () => {
     const g = createGame(3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     for (const w of g.player.weapons) w.enabled = false;
     g.enemy.reactor = 40;

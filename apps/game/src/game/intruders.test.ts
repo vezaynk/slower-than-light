@@ -23,7 +23,7 @@ function boarder(g: Game, room: string, id: string): Crew {
 
 function setup(): Game {
   const g = createGame(5);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   g.enemy!.weapons = [];
   g.player.weapons = [];
   g.enemyEscape = null;

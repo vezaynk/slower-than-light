@@ -179,6 +179,8 @@ describe("enemy crew teleporter", () => {
   it("phase 3 keeps sending after the usual trip count", () => {
     const g = boarder(4);
     g.enemy!.flagship = { stage: 3 } as never;
+    // A Flagship hull carries no <boardingAI> tag; the Mantis blueprint's sabotage tag would win over the flag.
+    g.enemy!.classId = "TEST_FLAGSHIP";
     g.enemy!.boarding = { sent: 5, limit: 0, party: [], away: [], home: {}, invasion: true };
     const party = send(g);
     assert.ok(party.length > 0);
@@ -205,6 +207,7 @@ describe("enemy crew teleporter", () => {
     const g = boarder(4);
     for (const c of foes(g).slice(4)) g.crew = g.crew.filter((x) => x.id !== c.id);
     g.enemy!.flagship = { stage: 3 } as never;
+    g.enemy!.classId = "TEST_FLAGSHIP";
     const party = send(g);
     assert.equal(plan(g).invasion, true);
     assert.equal(plan(g).stay, 2);

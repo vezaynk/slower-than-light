@@ -18,7 +18,7 @@ const ROCK_EXTINGUISH_SCALE = 1.67;
 
 function fight(seed: number): Game {
   const g = createGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   g.asteroid = false;
   g.asb = false;
@@ -325,7 +325,7 @@ describe("Drone Reactor Booster", () => {
       on: false,
       aux: 0,
     };
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const weapons = g.player.rooms.find((room) => room.system === "weapons")!;
     g.player.systems.weapons.damage = 1;
     g.player.systems.weapons.fix = 0;

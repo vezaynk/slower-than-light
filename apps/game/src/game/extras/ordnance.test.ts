@@ -83,7 +83,7 @@ describe("Flak I fake flak", () => {
   it("adds three damage-0 decoys that do not roll and do not drop shields", () => {
     assert.equal(FLAK1_FAKE, 3);
     const g = createGame(7);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
     g.enemy.systems.engines.level = 0;
@@ -147,7 +147,7 @@ describe("Flak I fake flak", () => {
 
   it("lets a defense drone shoot a fake pellet", () => {
     const g = createGame(8);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.weapons = [];
     g.enemy.kits.drones = {

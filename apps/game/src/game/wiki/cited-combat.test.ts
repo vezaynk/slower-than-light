@@ -38,7 +38,7 @@ describe("one-layer pierce, bombs, and the battery", () => {
     assert.equal(citedPierce(undefined), 0);
 
     const g = createGame(1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     enemy.systems.engines.power = 0;
@@ -77,7 +77,7 @@ describe("one-layer pierce, bombs, and the battery", () => {
 
   it("heals 150 through a Zoltan Shield and repairs 8 system bars without touching fire", () => {
     const g = createGame(2);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     enemy.systems.engines.power = 0;
@@ -118,7 +118,7 @@ describe("one-layer pierce, bombs, and the battery", () => {
 
   it("lets the battery hit hull and ignores a defense drone and a Zoltan Shield", () => {
     const g = createGame(3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.systems.engines.power = 0;
     g.player.zoltan = 5;
     g.player.parts = 2;
@@ -307,7 +307,7 @@ describe("flagship stages are separate battles", () => {
 describe("beams with a damage dash", () => {
   function quietEnemy() {
     const g = createGame(8);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     enemy.systems.engines.power = 0;

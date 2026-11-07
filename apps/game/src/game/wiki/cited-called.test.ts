@@ -20,15 +20,17 @@ import { citedSellQuote, citedStock } from "./cited-stores.ts";
 
 function fight(seed: number): Game {
   const g = createGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   g.asteroid = false;
   g.asb = false;
-  for (const w of [...g.player.weapons, ...g.enemy.weapons]) {
+  for (const w of g.player.weapons) {
     w.enabled = false;
     w.target = null;
     w.charge = 0;
   }
+  // Taken off, not switched off: the enemy's ship AI repowers anything switched off (extras/ship-ai.ts).
+  g.enemy.weapons = [];
   return g;
 }
 
@@ -696,7 +698,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
   });
 
   it("does not ionize a destroyed system and freezes the timer while unpowered", () => {
-    const dead = fight(34);
+    const dead = fight(20);
     swarmKit(dead, 3);
     assert.equal(deploy(dead, "BOARDER_ION"), true);
     const systems = dead.enemy!.rooms.filter((room) => room.system);
@@ -752,7 +754,7 @@ describe("Combat Drone Mark II and the Ion Intruder", () => {
     // Boarding, "Boarding Drones": "The Ion Intruder will ionize a system, stunning all hostile crew and drones for 6 seconds, and then move to another system."
     // Drone Control, Ion Intruder: "The stun does not affect friendly boarders, Boarding Drones, or other Ion Intruders."
     const g = createGame(9);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const room = g.player.rooms.find((item) => item.system === "weapons");
     assert.ok(room?.system);
     const sys = g.player.systems[room.system];

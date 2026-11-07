@@ -8,7 +8,7 @@ import { powerGuns } from "./fixtures.ts";
 /** A player beam across two enemy system rooms, no shields, fired from a powered mount. */
 function sweep() {
   const g = createGame(3, "PLAYER_SHIP_HARD");
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   powerGuns(g);
   const enemy = g.enemy;
   assert.ok(enemy);
@@ -112,7 +112,7 @@ describe("beam sweep (per the user: damage lands as the beam touches each room)"
     // Hacking, "Overview": Weapon Control "drains the charge of all weapons" and "prevents them from being fired".
     // A beam already firing has spent its charge, so the pulse does not stop it.
     const g = createGame(3, "PLAYER_SHIP_HARD");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     powerGuns(g);
     const enemy = g.enemy;
     assert.ok(enemy);

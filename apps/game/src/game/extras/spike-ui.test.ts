@@ -37,7 +37,7 @@ function fight(parts = 2): Game {
   assert.equal(installSpike(g), true);
   g.player.kits.hacking!.level = 2;
   raiseSpikePower(g);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   g.enemy.kits = {};
   g.enemy.zoltan = undefined;

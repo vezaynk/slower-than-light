@@ -53,6 +53,9 @@
     "@stl/game#test:src": {
       "dependsOn": ["^typecheck"],
       "env": ["FTL_DAT", "STL_DATS", "STL_DAT_DIGEST"]
+    },
+    "@stl/game#test:scripts": {
+      "cache": false
     }
   }
 }

@@ -38,6 +38,9 @@ jobs:
         run: pnpm --filter @stl/game build:pages
         env:
           PAGES_BASE: /
+          VITE_SENTRY_RELEASE: ${{ github.sha }}
+          # Uploads source maps to Sentry when the repository has this secret (apps/game/vite.config.ts).
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - uses: actions/setup-java@v4
         with:

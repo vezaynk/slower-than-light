@@ -276,10 +276,13 @@ import { AchievementsScreen, HelpScreen, Verdict, sectorTone } from "./WikiViews
 import { StoreBoard } from "./StoreBoard";
 import { airShown } from "@/game/air";
 import { installPlayLog, setLogWhere, unseenCounts, usePlayLog } from "@/game/play-log";
+import { startSentry } from "@/game/sentry";
 import { useShallow } from "zustand/react/shallow";
 
-// Per the user: catch every error and warning met in play (Options › Log). Started before the first render.
+// Per the user: catch every error and warning met in play (Options › Log), and send them to Sentry.
+// Started before the first render.
 installPlayLog();
+startSentry();
 setLogWhere(() => {
   const g = useGame.getState().game;
   if (!g) return "";

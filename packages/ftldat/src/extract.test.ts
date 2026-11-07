@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { parsePack } from "@stl/pack";
 import { extractFtlDat, packFtlDat } from "./extract.ts";
+import { pkgPathHash, readPkg, writePkg } from "./pkg.ts";
 
 const HEADER_SIZE = 16;
 const ENTRY_SIZE = 20;
@@ -167,7 +168,9 @@ describe("packFtlDat", () => {
       { path: "data/names.xml", xml: NAMES_XML },
     ];
     const extracted = await extractFtlDat(packFtlDat(documents));
-    assert.deepEqual(extracted.documents, documents);
+    // The index is in path-hash order, as ftl.dat's is, so the documents come back in that order.
+    const byPath = (a: { path: string }, b: { path: string }) => a.path.localeCompare(b.path);
+    assert.deepEqual([...extracted.documents].sort(byPath), [...documents].sort(byPath));
     assert.equal(extracted.text.size, 0);
     assert.equal(extracted.assets.size, 0);
   });
@@ -192,6 +195,44 @@ describe("packFtlDat", () => {
         packFtlDat([
           { path: "data/a.xml", xml: "<FTL/>" },
           { path: "data/a.xml", xml: "<FTL/>" },
+        ]),
+      /repeats/,
+    );
+  });
+});
+
+describe("writePkg", () => {
+  it("hashes paths as ftl.dat 1.6.13 does", () => {
+    // Read from the index rows of the shipped ftl.dat. Upper case letters hash as lower case.
+    assert.equal(pkgPathHash("data/blueprints.xml"), 0x9795b62b);
+    assert.equal(pkgPathHash("data/text_misc.xml"), 0x8006e510);
+    assert.equal(pkgPathHash("img/ship/kestral_base.png"), 0x4f7f9883);
+    assert.equal(pkgPathHash("audio/music/bp_MUS_TitleScreen.ogg"), 0xf9fddd81);
+  });
+
+  it("writes each row's hash and sorts the index by it, so the game's lookup finds every file", async () => {
+    const files = ["data/text_misc.xml", "img/ship/kestral_base.png", "data/blueprints.xml"].map(
+      (path) => ({ path, bytes: new TextEncoder().encode(path) }),
+    );
+    const bytes = writePkg(files);
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const hashes = [0, 1, 2].map((i) => view.getUint32(16 + i * 20, false));
+    assert.deepEqual(hashes, [0x4f7f9883, 0x8006e510, 0x9795b62b]);
+    const back = await readPkg(bytes);
+    assert.deepEqual(
+      back.map((file) => file.path),
+      ["img/ship/kestral_base.png", "data/text_misc.xml", "data/blueprints.xml"],
+    );
+    for (const file of back) assert.equal(new TextDecoder().decode(file.bytes), file.path);
+  });
+
+  it("rejects two paths that differ only by case, which the game treats as one file", () => {
+    const bytes = new Uint8Array(1);
+    assert.throws(
+      () =>
+        writePkg([
+          { path: "data/Foo.xml", bytes },
+          { path: "data/foo.xml", bytes },
         ]),
       /repeats/,
     );

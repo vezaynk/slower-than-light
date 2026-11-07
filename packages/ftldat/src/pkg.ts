@@ -84,15 +84,42 @@ export async function readPkg(bytes: Uint8Array): Promise<PkgFile[]> {
   );
 }
 
-/** Writes an uncompressed FTL 1.6 PKG. Bit 24 of each path field stays clear. */
-export function writePkg(files: readonly PkgFile[]): Uint8Array {
+/**
+ * SIL's path hash, the first field of each index row. FTL binary-searches the index for it, so a row with the
+ * wrong hash, or an index out of order, is a file the game cannot open.
+ */
+export function pkgPathHash(path: string): number {
+  let hash = 0;
+  for (let i = 0; i < path.length; i++) {
+    let code = path.charCodeAt(i);
+    if (code >= 0x41 && code <= 0x5a) code += 0x20;
+    hash = ((hash << 27) | (hash >>> 5)) >>> 0;
+    hash = (hash ^ code) >>> 0;
+  }
+  return hash;
+}
+
+/** Folds `A`-`Z` the way SIL's `stricmp` does, so paths compare as the game's lookup compares them. */
+function foldPath(path: string): string {
+  return path.replace(/[A-Z]/g, (letter) => letter.toLowerCase());
+}
+
+/**
+ * Writes an uncompressed FTL 1.6 PKG that the game itself can read. Rows are ordered by `(hash, stricmp)`,
+ * the key FTL's binary search uses. Bit 24 of each path field stays clear.
+ */
+export function writePkg(input: readonly PkgFile[]): Uint8Array {
+  const files = input
+    .map((file) => ({ file, hash: pkgPathHash(file.path), folded: foldPath(file.path) }))
+    .sort((a, b) => a.hash - b.hash || (a.folded < b.folded ? -1 : a.folded > b.folded ? 1 : 0));
   let pathsSize = 0;
   let bodySize = 0;
   const seen = new Set<string>();
-  for (const file of files) {
+  for (const { file, folded } of files) {
     if (file.path.length === 0) throw new Error("ftl.dat path is empty");
-    if (seen.has(file.path)) throw new Error(`ftl.dat repeats ${file.path}`);
-    seen.add(file.path);
+    // FTL matches paths case-insensitively, so two paths that differ only by case are one file to the game.
+    if (seen.has(folded)) throw new Error(`ftl.dat repeats ${file.path}`);
+    seen.add(folded);
     for (let i = 0; i < file.path.length; i++) {
       const code = file.path.charCodeAt(i);
       if (code === 0 || code > 0x7f) throw new Error(`ftl.dat path is not ASCII: ${file.path}`);
@@ -111,8 +138,9 @@ export function writePkg(files: readonly PkgFile[]): Uint8Array {
   let pathAt = 0;
   let dataAt = dataStart;
   const pathTable = HEADER_SIZE + files.length * ENTRY_SIZE;
-  files.forEach((file, index) => {
+  files.forEach(({ file, hash }, index) => {
     const at = HEADER_SIZE + index * ENTRY_SIZE;
+    view.setUint32(at, hash, false);
     view.setUint32(at + 4, pathAt, false);
     view.setUint32(at + 8, dataAt, false);
     view.setUint32(at + 12, file.bytes.byteLength, false);

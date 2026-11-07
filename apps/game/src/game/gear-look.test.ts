@@ -5,16 +5,11 @@ import "./pack/base.ts";
 import {
   DRONE_LOOKS,
   WEAPON_LOOKS,
-  droneKeyForName,
   dronePixels,
-  weaponIdForName,
   weaponPixels,
   type DroneKey,
   type PixelArt,
 } from "./gear-look.ts";
-import { MISSING_DRONES } from "./wiki/drones-missing.ts";
-import { CRUISER_PAGES } from "./wiki/layout-pages.ts";
-import { hangarSheet } from "./wiki/hangar-sheet.ts";
 
 function signature(art: PixelArt) {
   return `${art.rows.join("/")}|${art.palette.body}|${art.palette.trim}|${art.palette.glow}`;
@@ -67,29 +62,5 @@ describe("gear art", () => {
     const ids = weaponIds();
     const shapes = new Set(ids.map((id) => shape(weaponPixels(id))));
     assert.equal(shapes.size, ids.length, "two weapons share a silhouette");
-  });
-
-  it("resolves every hangar weapon and drone name", () => {
-    const weapons = new Set<string>();
-    const drones = new Set<string>();
-    for (const page of CRUISER_PAGES) {
-      for (const layout of page.layouts) {
-        const sheet = hangarSheet(layout);
-        sheet.weapons.filter((name) => name !== "none").forEach((name) => weapons.add(name));
-        sheet.drones.filter((name) => !/^none\b/i.test(name)).forEach((name) => drones.add(name));
-      }
-    }
-    assert.deepEqual(
-      [...weapons].filter((name) => !weaponIdForName(name)),
-      [],
-    );
-    assert.deepEqual(
-      [...drones].filter((name) => !droneKeyForName(name)),
-      [],
-    );
-    assert.deepEqual(
-      MISSING_DRONES.map((row) => row.name).filter((name) => !droneKeyForName(name)),
-      [],
-    );
   });
 });

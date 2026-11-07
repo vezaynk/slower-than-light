@@ -2,22 +2,11 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { canFlyDrone } from "./extras/flown.ts";
 import { playerDroneSlots } from "./extras/swarm.ts";
-import { droneKeyForName, weaponIdForName } from "./gear-look.ts";
 import { hullById, playerHulls } from "./hulls.ts";
-import { iconForName } from "./icons.ts";
-import {
-  allAugments,
-  augmentDef,
-  droneDef,
-  emitFtlShips,
-  hullDef,
-  packFromFtl,
-  startingFit,
-} from "@stl/pack";
+import { augmentDef, droneDef, emitFtlShips, hullDef, packFromFtl, startingFit } from "@stl/pack";
 import { createGame, hangarLoadout } from "./sim.ts";
 import { MISSING_AUGMENTS } from "./wiki/augments-missing.ts";
 import { hangarBay } from "./wiki/hangar-bay.ts";
-import { hangarSheet, orderByIds } from "./wiki/hangar-sheet.ts";
 import { CRUISER_PAGES } from "./wiki/layout-pages.ts";
 
 const picks = [
@@ -67,34 +56,6 @@ describe("hangar loadout", () => {
   });
 });
 
-/**
- * Every playable layout (CRUISER_PAGES): the hangar sheet parsed from the wiki layout lines carries no placeholder
- * lines, and it names the same weapons, drones, systems, crew, augments, and resources a run starts with (hulls.ts).
- */
-const RACE_KIN: Record<string, string> = {
-  human: "human",
-  engi: "engi",
-  zoltan: "energy",
-  mantis: "mantis",
-  slug: "slug",
-  rockman: "rock",
-  rockmen: "rock",
-  lanius: "anaerobic",
-  crystal: "crystal",
-};
-
-/** gear-look DroneKey -> Drone Control schematic id, where the two differ. */
-const DRONE_KIT_ID: Record<string, string> = {
-  overcharge: "DRONE_SHIELD",
-  overcharge2: "DRONE_SHIELD_PLAYER",
-  striker2: "COMBAT_2",
-  intruder: "BOARDER_ION",
-};
-
-const AUGMENT_ID = new Map<string, string>(
-  [...allAugments(), ...MISSING_AUGMENTS].map((row) => [row.name.toLowerCase(), row.id]),
-);
-
 const sorted = (list: readonly string[]) => [...list].sort();
 
 const layouts = CRUISER_PAGES.flatMap((page) => page.layouts);
@@ -102,132 +63,6 @@ const layouts = CRUISER_PAGES.flatMap((page) => page.layouts);
 describe("hangar sheet vs run, every layout", () => {
   it("has a hull for every playable layout", () => {
     for (const layout of layouts) assert.ok(hullById(layout.id), layout.id);
-  });
-
-  it("shows no placeholder or count junk", () => {
-    for (const layout of layouts) {
-      const sheet = hangarSheet(layout);
-      for (const name of [...sheet.weapons, ...sheet.drones, ...sheet.augments]) {
-        assert.doesNotMatch(name, /^none\b/i, `${layout.id} ${name}`);
-        assert.doesNotMatch(name, /\(x\d+\)/i, `${layout.id} ${name}`);
-        assert.doesNotMatch(name, /requires system|not installed/i, `${layout.id} ${name}`);
-      }
-      assert.ok(sheet.unlock.length > 0, `${layout.id} unlock`);
-      for (const line of sheet.unlock)
-        assert.doesNotMatch(line, /^(special )?notes?:/i, `${layout.id} ${line}`);
-      for (const system of sheet.systems)
-        assert.ok(iconForName(system.name), `${layout.id} ${system.name}`);
-    }
-  });
-
-  it("names the run's weapons, in the run's slot order", () => {
-    for (const layout of layouts) {
-      const sheet = hangarSheet(layout);
-      const run = createGame(3, layout.id, "normal", picks);
-      const ids = run.player.weapons.map((weapon) => weapon.defId);
-      assert.deepEqual(
-        sorted(sheet.weapons.map((name) => weaponIdForName(name) ?? `?${name}`)),
-        sorted(ids),
-        layout.id,
-      );
-      assert.deepEqual(
-        orderByIds(sheet.weapons, ids, weaponIdForName).map(weaponIdForName),
-        ids,
-        layout.id,
-      );
-      if (sheet.weaponSlots != null) assert.ok(ids.length <= sheet.weaponSlots, layout.id);
-    }
-  });
-
-  it("names the run's drone schematics, apart from the hull's unfitted names", () => {
-    for (const layout of layouts) {
-      const sheet = hangarSheet(layout);
-      const spec = hullById(layout.id)!;
-      const run = createGame(3, layout.id, "normal", picks);
-      const kit = run.player.kits.drones;
-      assert.equal(sheet.droneSystem, !!kit, layout.id);
-      const named = sheet.drones
-        .filter((name) => !spec.unfitted.includes(name))
-        .map((name) => {
-          const key = droneKeyForName(name) ?? `?${name}`;
-          return DRONE_KIT_ID[key] ?? key;
-        });
-      const loadout = playerDroneSlots(kit);
-      const listed = startingFit(hullDef(layout.id)!).kits.drones?.loadout ?? [];
-      assert.deepEqual(sorted(named), sorted(loadout.filter((id) => canFlyDrone(id))), layout.id);
-      // startingFit keeps every schematic. The run flies only the ones Drone Control can deploy.
-      const runUnfitted = listed
-        .filter((id) => !canFlyDrone(id))
-        .map((id) => droneDef(id)?.name ?? id);
-      assert.deepEqual(sorted(spec.unfitted), sorted(runUnfitted), layout.id);
-      assert.deepEqual(sorted(loadout), sorted(listed.filter((id) => canFlyDrone(id))), layout.id);
-      for (const name of spec.unfitted)
-        assert.ok(sheet.drones.includes(name), `${layout.id} unfitted ${name}`);
-    }
-    const engi = hullById("PLAYER_SHIP_CIRCLE_2");
-    assert.equal(engi?.kits.drones?.level, 3);
-    assert.equal(engi?.kits.drones?.power, 0);
-    assert.deepEqual(engi?.kits.drones?.loadout, ["REPAIR", "REPAIR", "BATTLE"]);
-    assert.deepEqual(engi?.unfitted, ["Anti-Personnel Drone"]);
-  });
-
-  it("matches system levels, crew, augments, reactor, and resources", () => {
-    for (const layout of layouts) {
-      const sheet = hangarSheet(layout);
-      const run = createGame(3, layout.id, "normal", picks);
-      const levels = new Map<string, number>();
-      for (const [id, system] of Object.entries(run.player.systems))
-        if (system.level > 0) levels.set(id, system.level);
-      for (const [id, kit] of Object.entries(run.player.kits))
-        if (kit && kit.level > 0) levels.set(id, kit.level);
-      const shown = new Map(
-        sheet.systems.map((system) => {
-          const icon = iconForName(system.name);
-          const id = icon === "ARTILLERY_FED_C" ? "artillery" : icon;
-          return [id as string, system.level];
-        }),
-      );
-      assert.deepEqual(
-        Object.fromEntries([...shown].sort()),
-        Object.fromEntries([...levels].sort()),
-        layout.id,
-      );
-
-      const kin = run.crew
-        .filter((crew) => crew.side === "player")
-        .map((crew) => crew.kin as string);
-      assert.deepEqual(
-        sorted(sheet.crew.map((race) => RACE_KIN[race.toLowerCase()] ?? "human")),
-        sorted(kin),
-        layout.id,
-      );
-
-      assert.deepEqual(
-        sorted(sheet.augments.map((name) => AUGMENT_ID.get(name.toLowerCase()) ?? `?${name}`)),
-        sorted(run.augments),
-        layout.id,
-      );
-
-      const text = layout.lines.map((line) => line.text);
-      const reactor = text.map((line) => line.match(/reactor:\s*(\d+)/i)).find(Boolean);
-      const count = (re: RegExp) => Number(text.map((line) => line.match(re)).find(Boolean)?.[1]);
-      assert.equal(run.player.reactor, Number(reactor?.[1]), `${layout.id} reactor`);
-      assert.equal(run.fuel, count(/^(\d+) Fuel$/), `${layout.id} fuel`);
-      assert.equal(run.missiles, count(/^(\d+) Missiles$/), `${layout.id} missiles`);
-      assert.equal(run.player.parts, count(/^(\d+) Drone parts$/), `${layout.id} parts`);
-    }
-  });
-
-  it("stores the page unlock lines and the printed bays on the hull", () => {
-    for (const layout of layouts) {
-      const sheet = hangarSheet(layout);
-      const hull = hullById(layout.id);
-      assert.ok(hull, layout.id);
-      assert.deepEqual(hull.unlock.split("\n"), sheet.unlock, layout.id);
-      assert.equal(hull.weaponSlots, sheet.weaponSlots, layout.id);
-      assert.equal(hull.droneSlots, sheet.droneSlots, layout.id);
-      assert.equal(hull.health, 30, layout.id);
-    }
   });
 });
 

@@ -586,11 +586,24 @@ describe("blueprint sector range", () => {
       "append",
     );
     try {
-      assert.equal(
-        fightHull("pirate", "SHIPS_LATE", () => 0, 0),
-        undefined,
-      );
+      // A list with no ship for this level still fights one of its own ships, with a warning.
+      const warnings: string[] = [];
+      const restore = onPackWarning((message) => warnings.push(message));
+      try {
+        assert.equal(fightHull("pirate", "SHIPS_LATE", () => 0, 0)?.id, "LATE_HULL");
+      } finally {
+        restore();
+      }
+      assert.match(warnings.join("\n"), /SHIPS_LATE has no ship for sector level 0/);
       assert.equal(fightHull("pirate", "SHIPS_LATE", () => 0, 4)?.id, "LATE_HULL");
+      // The draw skips a ship the level does not allow instead of rejecting the fight.
+      loadPack(
+        { blueprints: [{ id: "SHIPS_MIXED", names: ["LATE_HULL", "OPEN_HULL"] }] },
+        "append",
+      );
+      for (const roll of [0, 0.4, 0.6, 0.99]) {
+        assert.equal(fightHull("pirate", "SHIPS_MIXED", () => roll, 0)?.id, "OPEN_HULL");
+      }
       loadPack({ blueprints: [{ id: "SHIPS_OPEN", names: ["OPEN_HULL"] }] }, "append");
       assert.equal(fightHull("pirate", "SHIPS_OPEN", () => 0, 0)?.id, "OPEN_HULL");
       assert.equal(fightHull("LATE_HULL", undefined, () => 0, 0)?.id, "LATE_HULL");
@@ -631,24 +644,29 @@ describe("blueprint sector range", () => {
   it("startCombat consults that world level", () => {
     loadPack(
       {
-        blueprints: [{ id: "SHIPS_LATE", names: ["LATE_HULL"] }],
-        hulls: [gated("LATE_HULL", { minSector: 4 })],
+        blueprints: [{ id: "SHIPS_LATE", names: ["LATE_HULL", "OPEN_HULL"] }],
+        hulls: [gated("LATE_HULL", { minSector: 4 }), gated("OPEN_HULL")],
         shipEvents: [{ id: "LATE", autoBlueprint: "SHIPS_LATE" }],
       },
       "append",
     );
     try {
-      const early = createGame(3);
-      early.sector = 1;
-      early.difficulty = "normal";
-      startCombat(early, "LATE");
-      assert.notEqual(early.enemy?.name, "LATE_HULL");
-
-      const late = createGame(4);
-      late.sector = 5;
-      late.difficulty = "normal";
-      startCombat(late, "LATE");
-      assert.equal(late.enemy?.name, "LATE_HULL");
+      for (let seed = 1; seed <= 6; seed++) {
+        const early = createGame(seed);
+        early.sector = 1;
+        early.difficulty = "normal";
+        startCombat(early, "LATE");
+        assert.equal(early.enemy?.name, "OPEN_HULL");
+      }
+      const late = new Set<string | undefined>();
+      for (let seed = 1; seed <= 12; seed++) {
+        const g = createGame(seed);
+        g.sector = 5;
+        g.difficulty = "normal";
+        startCombat(g, "LATE");
+        late.add(g.enemy?.name);
+      }
+      assert.deepEqual([...late].sort(), ["LATE_HULL", "OPEN_HULL"]);
     } finally {
       resetPackForTests();
     }

@@ -10,6 +10,9 @@ dist
 *.log
 .env
 .env.*
+# Wrangler's local secrets, from the retired handoff worker.
+.dev.vars
+.wrangler
 ios/
 android/
 *.keystore

@@ -124,6 +124,7 @@ import {
   rewardBonus,
   scrapRange,
   sectorDef,
+  shipAllegiance,
   shipEventDef,
   storeDef,
   weaponDef,
@@ -6594,6 +6595,8 @@ function shipFromSpec(
  * "elite" is a Rebel Elite (fleet-overtaken beacons). Any other tier string draws from the sector pool.
  * A tier that is a hull id, or an auto_blueprint list that draws a hull, builds that hull instead.
  */
+const ELITE_SHIP = "LONG_FLEET";
+
 function makeEnemy(
   g: Game,
   tier: string,
@@ -6611,6 +6614,8 @@ function makeEnemy(
   };
   const r = () => rand(g);
   const shipEvent = shipEventDef(tier);
+  // Rebel Fleet: an overtaken beacon's Elite is the ship ftl.dat's FLEET_EASY events load, LONG_FLEET (SHIPS_REBEL_ELITE).
+  if (tier === "elite" && !autoBlueprint) autoBlueprint = shipEventDef(ELITE_SHIP)?.autoBlueprint;
   const hull = fightHull(tier, autoBlueprint, r, genSector(ctx.sector, ctx.difficulty) - 1);
   if (hull) {
     const spec = specFromHull(hull, ctx, r);
@@ -6619,7 +6624,10 @@ function makeEnemy(
     if (shipEvent?.weaponOverride) {
       spec.weapons = overrideWeaponIds(shipEvent.weaponOverride, r, tier);
     }
-    const built = shipFromSpec(g, spec, undefined);
+    // The gap's <shipList> rows: the faction and pirate flag escape, surrender, and the Slug and Rock hull rules read.
+    const allegiance = shipAllegiance(hull.id, autoBlueprint);
+    spec.pirate = allegiance.pirate;
+    const built = shipFromSpec(g, spec, allegiance.faction);
     citedEnemy(g, tier, built.ship, built.crew);
     return built;
   }

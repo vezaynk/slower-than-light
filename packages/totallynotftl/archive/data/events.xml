@@ -2171,11 +2171,11 @@ Realizing arrival is imminent, your passenger - silent so far - pleads with you 
 You tap into their frequency and hear the Rebel captain yelling, "We are liberating this planet in the name of the new Galactic government! These aliens will not be left in ignorance where they cannot be of use!"</text>
     <choice name="c:zoltan-quest-primitives:0">
       <text>Interfere - make first contact with the primitive aliens</text>
-      <ship hostile="true" load="Zoltan ship"/>
+      <ship hostile="true" load="ZOLTAN_SHIP"/>
     </choice>
     <choice name="c:zoltan-quest-primitives:1">
       <text>Protect the aliens' way of life - Attack the Rebel ship</text>
-      <ship hostile="true" load="Rebel Ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:zoltan-quest-primitives:2">
       <text>Leave</text>

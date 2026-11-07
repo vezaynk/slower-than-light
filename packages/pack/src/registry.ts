@@ -31,6 +31,7 @@ import type {
   RollEntry,
   SectorDef,
   ShipClassDef,
+  ShipListRule,
   ShipEventChance,
   ShipEventDef,
   ShipEventEnding,
@@ -64,6 +65,7 @@ const empties = new Map<string, EmptyBeaconDef>();
 const achievements = new Map<string, AchievementDef>();
 const factions = new Map<string, FactionSurrender>();
 const shipClasses = new Map<string, ShipClassDef>();
+const shipLists = new Map<string, ShipListRule>();
 /** Authoring slug to the stored event id. A stored id always wins over an alias. */
 const eventAliases = new Map<string, string>();
 let reward: RewardTable | undefined;
@@ -90,6 +92,7 @@ let baseEmpties: EmptyBeaconDef[] = [];
 let baseAchievements: AchievementDef[] = [];
 let baseFactions: FactionSurrender[] = [];
 let baseShipClasses: ShipClassDef[] = [];
+let baseShipLists: ShipListRule[] = [];
 
 function copyCrew(row: CrewDef): CrewDef {
   const copy = { ...row };
@@ -552,6 +555,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     achievements.clear();
     factions.clear();
     shipClasses.clear();
+    shipLists.clear();
     reward = pack.rewards ? copyReward(pack.rewards) : undefined;
     baseReward = reward ? copyReward(reward) : undefined;
     civilianSectorTitleValue = pack.civilianSectorTitle;
@@ -561,6 +565,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     storeLocales(pack.locales);
     baseFactions = (pack.factions ?? []).map(copyFaction);
     baseShipClasses = (pack.shipClasses ?? []).map(copyShipClass);
+    baseShipLists = (pack.shipLists ?? []).map((row) => ({ ...row }));
     baseCrew = (pack.crew ?? []).map(copyCrew);
     baseWeapons = (pack.weapons ?? []).map(copyWeapon);
     baseAugments = (pack.augments ?? []).map(copyAugment);
@@ -621,6 +626,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     factions.set(row.id, copyFaction(row));
   for (const row of mode === "base" ? baseShipClasses : (pack.shipClasses ?? []))
     shipClasses.set(row.id, copyShipClass(row));
+  for (const row of mode === "base" ? baseShipLists : (pack.shipLists ?? []))
+    shipLists.set(row.id, { ...row });
   indexEventAliases();
 }
 
@@ -721,6 +728,47 @@ export function shipClassBlueprint(classId: string, pirate = false): string {
   if (!row) return classId;
   if (pirate && row.pirate) return row.pirate;
   return row.blueprint;
+}
+
+/** Gap `<shipList>` rows, in authored order. */
+export function allShipLists(): ShipListRule[] {
+  return [...shipLists.values()].map((row) => ({ ...row }));
+}
+
+/** Strips a pirate version's suffix: ROCK_FIGHT_P and ROCK_FIGHT_P_DLC are the pirate ROCK_FIGHT. */
+function pirateBase(id: string): string | undefined {
+  const base = id.replace(/_P(_DLC)?$/, "");
+  return base === id ? undefined : base;
+}
+
+/**
+ * The faction and pirate flag of a ship drawn for a fight (types.ts ShipListRule). `list` is the event's
+ * auto_blueprint, when it named one. A blueprint's faction is the faction list naming it or the ship it is the pirate
+ * version of. A pirate version, or a ship off a pirate list, is a pirate.
+ */
+export function shipAllegiance(
+  blueprint: string,
+  list?: string,
+): { faction?: string; pirate: boolean } {
+  const base = pirateBase(blueprint);
+  let faction: string | undefined;
+  let viaBase = false;
+  for (const row of shipLists.values()) {
+    if (!row.faction || row.pirate) continue;
+    const names = blueprints.get(row.id)?.names ?? [];
+    if (names.includes(blueprint)) {
+      faction = row.faction;
+      viaBase = false;
+      break;
+    }
+    if (!faction && base && names.includes(base)) {
+      faction = row.faction;
+      viaBase = true;
+    }
+  }
+  const rule = list ? shipLists.get(list) : undefined;
+  faction ??= rule?.faction;
+  return { ...(faction ? { faction } : {}), pirate: !!rule?.pirate || viaBase };
 }
 
 export function sectorDef(id: string | undefined): SectorDef | undefined {
@@ -883,6 +931,11 @@ export function allEvents(): EventDef[] {
 }
 
 /** Names in one `<blueprintList>`. A missing id has no pool. */
+/** Every `<blueprintList>`, in authored order. */
+export function allBlueprintLists(): BlueprintListDef[] {
+  return [...blueprints.values()].map(copyBlueprint);
+}
+
 export function blueprintList(id: string | undefined): readonly string[] | undefined {
   if (!id) return undefined;
   return blueprints.get(id)?.names;
@@ -986,6 +1039,7 @@ export function resetPackForTests(): void {
   achievements.clear();
   factions.clear();
   shipClasses.clear();
+  shipLists.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
   civilianSectorTitleValue = baseCivilianSectorTitle;
   beaconEventsValue = { ...baseBeaconEvents };
@@ -1008,5 +1062,6 @@ export function resetPackForTests(): void {
   for (const row of baseAchievements) achievements.set(row.id, copyAchievement(row));
   for (const row of baseFactions) factions.set(row.id, copyFaction(row));
   for (const row of baseShipClasses) shipClasses.set(row.id, copyShipClass(row));
+  for (const row of baseShipLists) shipLists.set(row.id, { ...row });
   indexEventAliases();
 }

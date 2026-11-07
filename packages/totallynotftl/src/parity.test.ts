@@ -8,8 +8,9 @@ import { standInDat } from "./archive.ts";
 
 /**
  * Fields a real archive fills and this campaign leaves unset.
- * Writing one would invent a sentence, a palette, a short label, a start event, or a gun list.
- * A gun list or a slot count would also change which weapons a ship mounts.
+ * Writing one would invent a sentence, a palette, a short label, or a start event.
+ * Enemy gun and drone lists come from the faction pages (packages/catalog enemy-stats.ts). A fixed gun count or a
+ * sector limit is left off: either would change which weapons a ship mounts or where it fights.
  * Picture names, shield pierce, hire prices, crew rarities, and beacon quotas are written.
  * Campaign fights stay on choice effects, so an event does not grow a ship, a grant, a boarder tag,
  * or an environment. A campaign fight's hazard is its own fight effect.
@@ -22,7 +23,7 @@ const UNPLAYED: Partial<Record<keyof ContentPack, readonly string[]>> = {
   systems: ["detail"],
   crew: ["bp", "colors", "detail"],
   drones: ["bp", "noloc"],
-  hulls: ["droneCount", "droneLoad", "maxSector", "minSector", "weaponCount", "weaponLoad"],
+  hulls: ["maxSector", "minSector", "weaponCount"],
   sectors: ["short"],
   events: ["alters", "boarders", "environment", "fx", "grants", "marks", "reward", "ship"],
 };

@@ -44,8 +44,12 @@ export function enemyLayout(classId: string, pirate = false): EnemyLayout | unde
   if (grid.rooms.every((room) => room.w === 0 && room.h === 0)) return undefined;
   const box = span(grid.rooms);
   // What a room holds is the blueprint's: the system installed there, as ftl.dat's systemList places it.
+  // An optional system (start="false") still owns its room; the fight decides whether it is fitted.
   const held = (index: number) =>
-    hull.installs?.find((item) => item.room === index && item.start)?.id ?? null;
+    (
+      hull.installs?.find((item) => item.room === index && item.start) ??
+      hull.installs?.find((item) => item.room === index)
+    )?.id ?? null;
   return {
     cols: grid.cols ?? box.cols,
     rows: grid.rows ?? box.rows,

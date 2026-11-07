@@ -37,7 +37,8 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
     assert.equal(shipClassBlueprint("rebel-fighter"), "REBEL_SKINNY");
     assert.equal(shipClassBlueprint("rebel-invader"), "REBEL_SKINNY");
     assert.equal(hullDef("REBEL_SKINNY")?.layout, "rebel-fighter");
-    assert.equal(hullDef("REBEL_SKINNY")?.health, undefined);
+    // Rebel Ships, Rebel Fighter "10-17" over sectors 1-8: health 10 (packages/catalog enemy-stats.ts).
+    assert.equal(hullDef("REBEL_SKINNY")?.health, 10);
     assert.equal(hullDef("rebel-fighter"), undefined);
     assert.equal(hullDef("REBEL_SKINNY_DLC"), undefined);
     assert.equal(spec.cols, 5);
@@ -108,7 +109,7 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
         const id = shipClassBlueprint(row.id, pirate);
         const hull = hullDef(id);
         assert.ok(hull, id);
-        assert.equal(hull.health, undefined, id);
+        assert.ok((hull.health ?? 0) > 0, id);
         assert.equal(hullDef(row.id), undefined, row.id);
         const laid = enemyLayout(row.id, pirate);
         assert.ok(laid, row.id);

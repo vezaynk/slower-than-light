@@ -60,7 +60,7 @@
     <text>You come across a Rebel automated scout ship pursuing a civilian ship, weapons engaged.</text>
     <choice name="c:auto-ship-attacking-civilian:0">
       <text>Aid the civilian ship</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
     <choice name="c:auto-ship-attacking-civilian:1">
       <text>Stay out of it</text>
@@ -77,7 +77,7 @@
     <text>You detect an automated Rebel scout attacking a small refueling outpost.</text>
     <choice name="c:auto-ship-attacking-outpost:0">
       <text>Intervene to defend the outpost</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
     <choice name="c:auto-ship-attacking-outpost:1">
       <text>Avoid the conflict</text>
@@ -92,12 +92,12 @@
     <text>Your arrival is greeted by numerous computer alerts. The nearby automated Rebel scout has deployed a virus and disrupted your shield system. Hopefully it won't cause further problems before you can destroy it.</text>
     <choice name="c:auto-ship-carrying-shield-virus:0">
       <text>Continue</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
     <choice name="c:auto-ship-carrying-shield-virus:1" owner="cited">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="CRYSTAL_AUTO">
@@ -109,7 +109,7 @@
     <text>The Rebels must have sent their automated scouts to find you. One jumps in and immediately moves to attack.</text>
     <choice name="c:auto-ship-fight-crystal:0">
       <text>Fight an Auto-ship</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="AUTO_ASTEROID">
@@ -125,7 +125,7 @@
     <text>You arrive in an asteroid belt to discover that a Rebel automated-scout has been stationed here. Prepare for a fight!</text>
     <choice name="c:auto-ship-fight-in-asteroid-field:0">
       <text>Fight an Auto-ship</text>
-      <ship hostile="true" load="Auto-ship" asteroid="true"/>
+      <ship hostile="true" load="REBEL_AUTO" asteroid="true"/>
     </choice>
   </event>
   <event name="NEBULA_AUTO">
@@ -148,7 +148,7 @@
     <text>It's worrying that the Rebels have penetrated so deep into uncharted space, even if it is only an unmanned craft. It arms its weapons; you should do the same.</text>
     <choice name="c:auto-ship-fight-in-nebula:0">
       <text>Fight an Auto-ship</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="AUTO_SUN">
@@ -161,7 +161,7 @@
     <text>You arrive at the beacon to find yourself dangerously close to a star. An automated Rebel ship, impervious to the heat, moves in to engage.</text>
     <choice name="c:auto-ship-fight-near-sun:0">
       <text>Fight an Auto-ship</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="AUTO_DEFENSE_RADAR">
@@ -173,7 +173,7 @@
     <text>A Rebel automated ship sits dormant near a Rebel forward radar station.</text>
     <choice name="c:auto-ship-near-radar-station:0">
       <text>Approach the station</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
     <choice name="c:auto-ship-near-radar-station:1">
       <text>Keep your distance and wait for the FTL to charge</text>
@@ -192,7 +192,7 @@
     <text>You detect a Rebel automated ship nearby. It does not engage and seems to be patrolling around a long-range sensor station.</text>
     <choice name="c:auto-ship-near-sensor-station:0">
       <text>Attack the automated ship to get to the sensor station</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
     <choice name="c:auto-ship-near-sensor-station:1">
       <text>Avoid provoking the ship</text>
@@ -216,7 +216,7 @@
     <text>An advance &lt;!-- [sic] --&gt;rebel automated ship remains stationed near a small Rebel space-station. However, without functioning sensors it is impossible to tell what is inside.</text>
     <choice name="c:auto-ship-near-storage-station-in-nebula:0">
       <text>Attack the automated ship to get to the station</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
     <choice name="c:auto-ship-near-storage-station-in-nebula:1">
       <text>Avoid provoking the ship</text>
@@ -245,7 +245,7 @@
     <text>A small shuttle appears on the local radar. Turns out it is a Rebel automated scout!</text>
     <choice name="c:auto-ship-warning:0">
       <text>Fight an Auto-ship that is running away</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="CRYSTAL_HUNTER">
@@ -256,7 +256,7 @@
     <text>Crystal shards fly past your ship as soon as you jump. You scan to find the assailant and discover a Crystalline ship carrying a number of humans in it's cargo bay. It must be hunting the intruding ships!</text>
     <choice name="c:crystal-fight-with-surrender-offer-human-crew:0">
       <text>Fight a Crystal ship</text>
-      <ship hostile="true" load="Crystal ship"/>
+      <ship hostile="true" load="CRYSTAL_SHIP"/>
     </choice>
     <surrender chance="50" min="30" max="40" continues="true">
       <text>The hunters message you, "We surrender. Take one of these squishy meat sacks that we've captured." He must be referring to the human captives.</text>
@@ -279,7 +279,7 @@
     <text>A large convoy of lumbering civilian ships appears to be passing through this region. You show no hostile intentions, but they are taking no chances, immediately sending their escort to attack!</text>
     <choice name="c:crystal-fight-with-surrender-offer-hull-repairs:0">
       <text>Fight a Crystal ship</text>
-      <ship hostile="true" load="Crystal ship"/>
+      <ship hostile="true" load="CRYSTAL_SHIP"/>
     </choice>
     <surrender chance="100" min="30" max="40">
       <text>Their ship seems severely damaged and they look to be reconsidering the fight. Should you power down your weapons and explain that you mean no threat?</text>
@@ -304,7 +304,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>There appears to be a fight going on nearby. A Crystalline border guard is chasing a small Federation ship!</text>
     <choice name="c:crystal-ship-attacking-federation-loyalists:0">
       <text>Save the Federation ship</text>
-      <ship hostile="true" load="Crystal ship"/>
+      <ship hostile="true" load="CRYSTAL_SHIP"/>
     </choice>
     <choice name="c:crystal-ship-attacking-federation-loyalists:1">
       <text>Prepare to leave</text>
@@ -348,7 +348,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The distress signal originates at a small Engi ship under attack by a rebel fighter - but when they see Federation markings they turn to attack!</text>
     <choice name="c:engi-distress-rebel-fight:0">
       <text>Fight the Rebel Ship</text>
-      <ship hostile="true" load="Rebel Ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="ENGI_SEX">
@@ -361,7 +361,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>What appeared to be a single damaged ship is in fact two ships that have smashed into each other... there is a flurry of comm signals and damage, and it's hard to determine what occurred. The vessels appear to be... Engi? They look locked together by the impact and can't free themselves.</text>
     <choice name="c:engi-smashed-ships:0">
       <text>Attempt to help the ships by prying them apart</text>
-      <ship hostile="true" load="Engi ship"/>
+      <ship hostile="true" load="ENGI_SHIP"/>
     </choice>
     <choice name="c:engi-smashed-ships:1">
       <text>Ignore the damaged vessels</text>
@@ -393,7 +393,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:federation-deserters:0">
       <text>Attack the traitors</text>
-      <ship hostile="true" load="Federation ship"/>
+      <ship hostile="true" load="FED_SHIP"/>
     </choice>
     <choice name="c:federation-deserters:1">
       <text>Leave them be</text>
@@ -410,12 +410,12 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You cross paths with a Mantis ship that looks to have had dozens of layers of armor-plating added over what must have been a hundred year career. Its captain is legendary thief KazaaakplethKilik. Your crew look frightened.</text>
     <choice name="c:legendary-thief-kazaaakplethkilik:0">
       <text>Prepare to fight</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
     <choice name="c:legendary-thief-kazaaakplethkilik:1" owner="quest">
       <text>Attempt to hail him.</text>
       <req><crewMember name="mantis"/>Needs a Mantis crewmember</req>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="ZOLTAN_BOARDERS_MANTIS">
@@ -427,7 +427,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The Mantis outcasts sometimes make the mistake of taking the Zoltan for easy game. A scout moves in to attack while a boarding party beams aboard from a nearby transport!</text>
     <choice name="c:mantis-outcasts:0">
       <text>2-3 mantis boarders beam aboard your ship and you fight a Mantis Ship (default rewards)</text>
-      <ship hostile="true" load="Mantis Ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="CRYSTAL_MANTIS_CRYSTAL">
@@ -438,7 +438,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You discover a number of civilian ships fleeing the area. Shots are fired and you find the assailant; a Mantis ship is attacking one of the smaller ships!</text>
     <choice name="c:mantis-ship-attacking-crystal:0">
       <text>Attack the Mantis</text>
-      <ship hostile="true" load="Mantis Ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
     <choice name="c:mantis-ship-attacking-crystal:1">
       <text>Ignore them</text>
@@ -453,7 +453,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A ship responding to your distress moves in. Unfortunately it turns out to be an automated Rebel scout. It immediately reverses thrust after scanning your ship.</text>
     <choice name="c:no-fuel-auto-ship-warning:0">
       <text>Fight an Auto-ship that is running away</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="FUEL_OFF_ENGI_DUBIOUS">
@@ -494,7 +494,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text/>
     <choice name="c:no-fuel-mantis-fight:0">
       <text>Fight a Mantis ship that is running away</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="FUEL_ON_REBEL_ATTACK">
@@ -505,7 +505,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text/>
     <choice name="c:no-fuel-rebel-fight:0">
       <text>Fight a Rebel ship that is running away</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="FUEL_ON_SLUG_OVERPRICED">
@@ -534,7 +534,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:no-fuel-slug-fuel-depot:2">
       <text>Negotiate</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
   </event>
   <event name="FUEL_SELLER_DISTRESS">
@@ -569,7 +569,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:no-fuel-automated-refueling-ship:3">
       <text>Attack the automated ship</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="FUEL_EXPLORE">
@@ -634,7 +634,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:pirate-briber:1">
       <text>Try to be a hero. Attack the pirate</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <surrender chance="70" min="30" max="40">
       <text>"Fine! Our previous offer was not generous enough, let's improve it."</text>
@@ -658,7 +658,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A pirate ship is firing on the small ships docked at a refueling station. They are broadcasting on a wide band channel. You catch the captain's rant mid-speed, "...saw you trading with those damned scavengers. I'll show you what happens when you try and undercut the Red Giant gang!"</text>
     <choice name="c:pirate-ship-attacking-civilian-lanius:0">
       <text>Attack the pirate</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-ship-attacking-civilian-lanius:1">
       <text>Avoid the conflict</text>
@@ -680,7 +680,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The distress beacon is coming from a civilian ship. It appears it is being chased by a pirate.</text>
     <choice name="c:pirate-ship-attacking-civilian-distress:0">
       <text>Aid the civilian ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-ship-attacking-civilian-distress:1">
       <text>Stay out of it</text>
@@ -738,7 +738,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:pirate-ship-selling-drones:1">
       <text>Attack him before he can attack!</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-ship-selling-drones:2">
       <text>Quickly prepare to jump away</text>
@@ -758,7 +758,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A black market weapons trader spins you a tale of the dangers of the nebula before pushing his wares.</text>
     <choice name="c:pirate-ship-selling-weapon:0">
       <text>Attack the ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-ship-selling-weapon:1">
       <text>Ignore the ship</text>
@@ -793,7 +793,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </item_modify>
     <choice name="c:rebel-checkpoint:0">
       <text>Fend for yourself, attack, and escape</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-checkpoint:1">
       <text>Fly behind a moon and stay hidden</text>
@@ -816,7 +816,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You arrive in the middle of a plasma storm. Despite the harsh conditions, a Rebel scout seems to be waiting for you.</text>
     <choice name="c:rebel-fight-in-plasma-storm:0">
       <text>Fight a Rebel ship (default rewards)</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="CRYSTAL_REBEL_CRYSTAL">
@@ -828,12 +828,12 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Crystal shards fly past the screen as soon as you arrive. Checking the scanners, it looks like a crystalline ship is engaged with a Rebel!</text>
     <choice name="c:rebel-ship-attacking-crystal-ship:0">
       <text>Attack the Rebel</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-ship-attacking-crystal-ship:1">
       <text>Attack the Crystalline ship</text>
       <modifyPursuit amount="1" faster="true"/>
-      <ship hostile="true" load="Crystal ship"/>
+      <ship hostile="true" load="CRYSTAL_SHIP"/>
     </choice>
     <choice name="c:rebel-ship-attacking-crystal-ship:2">
       <text>Ignore them</text>
@@ -858,7 +858,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Your sensors are picking up a distress call on an encrypted Federation channel. You eventually find a Federation scout being chased by a Rebel fighter!</text>
     <choice name="c:rebel-ship-attacking-federation-loyalists:0">
       <text>Aid the Federation ship</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-ship-attacking-federation-loyalists:1">
       <text>Use this chance to escape</text>
@@ -876,7 +876,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You detect a Rebel scout on an attack approach to a small refueling outpost. Their weapons are charged, but they're not firing yet.</text>
     <choice name="c:rebel-ship-attacking-refueling-outpost:0">
       <text>Intervene to defend the outpost</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-ship-attacking-refueling-outpost:1">
       <text>Avoid the conflict</text>
@@ -898,7 +898,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Because of the war, thousands of colonists have had their supply lines disrupted and have found themselves in dire straits. It seems in this system, the Rebels are sympathetic and are distributing what little supplies they can spare.</text>
     <choice name="c:rebel-ship-supplying-civilians:0">
       <text>Attack the Rebels</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-ship-supplying-civilians:1">
       <text>Leave them be</text>
@@ -923,7 +923,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You spot a small rebel ship nearby. It seems to have been re-fitted for transport rather than combat. It does not seem to want to engage you and your ship.</text>
     <choice name="c:rebel-transport-ship:0">
       <text>Demand the surrender of their goods</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-transport-ship:1">
       <text>Avoid the ship</text>
@@ -950,7 +950,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:refueling-platform:1">
       <text>Ignore the refueling platform.</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="ROCK_ATHIEST">
@@ -963,7 +963,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text/>
     <choice name="c:rock-atheists:0">
       <text>Tell them their god sent them here to join your crew</text>
-      <ship hostile="true" load="Rock ship"/>
+      <ship hostile="true" load="ROCK_SHIP"/>
     </choice>
   </event>
   <event name="NEBULA_ROCK_RACIST">
@@ -975,7 +975,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A rock armoured transport nearby looks to have lost its bearings, but when you hail they grow suspicious: "Whatever life-form you are, we find you repugnant. We seek no aid. Leave. Now."</text>
     <choice name="c:rock-ship-in-plasma-storm:0">
       <text>Repugnant? Arm the weapons!</text>
-      <ship hostile="true" load="Rock ship"/>
+      <ship hostile="true" load="ROCK_SHIP"/>
     </choice>
     <choice name="c:rock-ship-in-plasma-storm:1">
       <text>Leave</text>
@@ -999,7 +999,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You recognize the ship as a well known slave trader. He hails you and offers you "laborers" for cheap.</text>
     <choice name="c:slaver-friendly:0">
       <text>Attack the slaver scum</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:slaver-friendly:1">
       <text>Ignore the slaver and continue on your way</text>
@@ -1030,12 +1030,12 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:slaver-hostile:0">
       <text>We will never surrender one of our crew to slavers!</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:slaver-hostile:1" owner="filler">
       <text>Attempt to out-run the slaver ship.</text>
       <req req="engines" lvl="6">Needs Engines level 6</req>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <surrender chance="80" min="20" max="40">
       <text>We surrender! Take one of our slaves as tribute; if you destroy us they'll all die anyway!</text>
@@ -1064,7 +1064,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </eventList>
     <choice name="c:slug-drink:0">
       <text>Refuse</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_CHOOSE_DEATH">
@@ -1078,15 +1078,15 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You are immediately hailed by a dangerous looking ship. "I'm feeling generouss today. I shall allow you to choose your own death. Which do you like leasst: shields, oxygen, or weaponsss?"</text>
     <choice name="c:slug-hacker-choice:0">
       <text>Shields</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:slug-hacker-choice:1">
       <text>Oxygen</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:slug-hacker-choice:2">
       <text>Weapons</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:slug-hacker-choice:3">
       <text>Offer 35 scrap to leave you alone</text>
@@ -1097,7 +1097,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <choice name="c:slug-hacker-choice:4" owner="quest">
       <text>Counter any hack attempt.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_DOORS">
@@ -1110,12 +1110,12 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>There are few more vicious beasts in the galaxy than a Slug with his back to the wall. The faltering ship armed with fire-weapons uses a remote hacking tool to try and disable your door system - they're going to burn you out!</text>
     <choice name="c:slug-hacker-doors:0">
       <text>Continue</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:slug-hacker-doors:1" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_MEDBAY">
@@ -1127,17 +1127,17 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A Slug ship hails you: "We've detected some worrying radiation coming from your medical unit, perhaps you should take a look?" As he signs off, your medical bay shuts off and their crew teleports aboard from a nearby station. They don't look like engineers.</text>
     <choice name="c:slug-hacker-medical:0">
       <text>Continue</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:slug-hacker-medical:1" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:slug-hacker-medical:2" owner="quest">
       <text>Try to squeeze some extra power to the system.</text>
       <req req="medbay" lvl="2">Needs level 2 Medbay</req>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_OXYGEN">
@@ -1151,17 +1151,17 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The slugs here use a tactic you hoped you'd never see: They sabotage your oxygen production system and then charge fire-weapons - you're going to suffocate!</text>
     <choice name="c:slug-hacker-oxygen:0">
       <text>Continue</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:slug-hacker-oxygen:1" owner="quest">
       <text>Try to squeeze some extra power to the system.</text>
       <req req="oxygen" lvl="2">Needs level 2 Oxygen</req>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:slug-hacker-oxygen:2" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
   </event>
   <event name="ENGI_VIRUS">
@@ -1175,11 +1175,11 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The Engi are awaiting you at the beacon, with their weapons on-line! They explain a computer virus that is wanted for hostile acts against the Engi (multiple counts of binary scrambling, nano-dissolution, and variable interference) is aboard your vessel. They insist they must destroy your ship to prevent the virus from escaping!</text>
     <choice name="c:the-engi-virus:0">
       <text>Hold on! Let us try to purge the system code!</text>
-      <ship hostile="true" load="Engi ship"/>
+      <ship hostile="true" load="ENGI_SHIP"/>
     </choice>
     <choice name="c:the-engi-virus:1">
       <text>Attack the Engi vessel!</text>
-      <ship hostile="true" load="Engi ship"/>
+      <ship hostile="true" load="ENGI_SHIP"/>
     </choice>
   </event>
   <event name="MERCENARY">
@@ -1209,7 +1209,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:the-mercenary:1">
       <text>Fight the ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:the-mercenary:2">
       <text>You have no need of his services</text>
@@ -1226,7 +1226,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You pick up a Zoltan life raft floating in space. Its inhabitant asks you to retake his ship from the pirates who recently commandeered it. "I'm certain it is clear," he concludes, "that you must not destroy my vessel in the process."</text>
     <choice name="c:zoltan-retake-the-ship:0">
       <text>Engage the pirates</text>
-      <ship hostile="true" load="Zoltan pirate ship"/>
+      <ship hostile="true" load="ZOLTAN_PIRATE"/>
     </choice>
     <choice name="c:zoltan-retake-the-ship:1">
       <text>Leave</text>
@@ -1242,15 +1242,15 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You come to a quiet part of Zoltan space and encounter an ancient Zoltan wise man who has managed to harness the power of a spatial rift, but seems to have been driven completely mad by the power. "Choose your doom," he demands. This is all part of a day's work.</text>
     <choice name="c:zoltan-wise-man:0">
       <text>Mantis</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
     <choice name="c:zoltan-wise-man:1">
       <text>Slug</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:zoltan-wise-man:2">
       <text>Rockmen</text>
-      <ship hostile="true" load="Rock ship"/>
+      <ship hostile="true" load="ROCK_SHIP"/>
     </choice>
   </event>
   <event name="REBEL_AUTO">
@@ -1276,7 +1276,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A small shuttle appears on the local radar. Turns out it is a Rebel automated scout!</text>
     <choice name="c:auto-ship-fight:0">
       <text>Fight an Auto-ship</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="STORM_AUTO">
@@ -1293,7 +1293,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack.</text>
     <choice name="c:auto-ship-fight-in-plasma-storm:0">
       <text>Prepare to fight</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="AUTO_DEFENSE_ITEM">
@@ -1312,7 +1312,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods.</text>
     <choice name="c:auto-ship-near-storage-station:0">
       <text>Attack the automated ship to get to the storage cache</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
     <choice name="c:auto-ship-near-storage-station:1">
       <text>Avoid provoking the ship</text>
@@ -1333,7 +1333,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.</text>
     <choice name="c:auto-ship-warning-in-nebula:0">
       <text>Fight an Auto-ship that is running away</text>
-      <ship hostile="true" load="Auto-ship"/>
+      <ship hostile="true" load="REBEL_AUTO"/>
     </choice>
   </event>
   <event name="MANTIS_FIGHT">
@@ -1366,7 +1366,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A youthful-looking Mantis captain hails. "You, prey, must know. Your death, Kaaazthwak's final kill before maturity. Kaaazthwak pay respects." Seems respects in Mantis culture are paid with lasers.</text>
     <choice name="c:mantis-fight:0">
       <text>Fight a Mantis ship</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="NEBULA_MANTIS_FIGHT">
@@ -1383,7 +1383,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You notice a Mantis attack ship ducking between the clouds of swirling space stuff; it's hunting you. You try to get the jump and move in to attack.</text>
     <choice name="c:mantis-fight-in-nebula:0">
       <text>Fight a Mantis ship</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="PIRATE_NO_ESCAPE">
@@ -1397,12 +1397,12 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack.</text>
     <choice name="c:pirate-engine-hacker:0">
       <text>Continue</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-engine-hacker:1" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="PIRATE">
@@ -1421,7 +1421,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You barely have time to register jump completion before your ship warns you of an incoming ship with weapons hot.</text>
     <choice name="c:pirate-fight:0">
       <text>Fight a Pirate ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="LANIUS_PIRATE_FIGHT">
@@ -1437,7 +1437,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The pirate sees you before you see him... prepare for a fight!</text>
     <choice name="c:pirate-fight-lanius:0">
       <text>Fight a Pirate ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="PIRATE_ASTEROID">
@@ -1451,7 +1451,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A pirate ship was lying in wait inside this asteroid field. It immediately moves in to attack.</text>
     <choice name="c:pirate-fight-in-asteroid-field:0">
       <text>Turn and fight</text>
-      <ship hostile="true" load="Pirate ship" asteroid="true"/>
+      <ship hostile="true" load="PIRATE" asteroid="true"/>
     </choice>
   </event>
   <event name="PIRATE_PULSAR">
@@ -1468,7 +1468,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A small research station orbits a nearby pulsar. It appears largely abandoned, but you detect power signatures flaring up as soon as you're in scanning distance. A small combat ship launches from the station. Pirates!</text>
     <choice name="c:pirate-fight-near-pulsar:0">
       <text>Fight a Pirate ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="PIRATE_SUN">
@@ -1482,7 +1482,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>This beacon has been placed too close to a super-giant class M star! The ship will gradually overheat until you get out of here... or die. A pirate, apparently oblivious to the danger of the sun, moves in to engage.</text>
     <choice name="c:pirate-fight-near-sun:0">
       <text>Fight a Pirate ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="PIRATE_CIVILIAN">
@@ -1504,7 +1504,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You come out of the jump to see laser blasts coming from the other side of the beacon. It looks like someone is under attack from pirates.</text>
     <choice name="c:pirate-ship-attacking-civilian:0">
       <text>Aid the civilian ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-ship-attacking-civilian:1">
       <text>Stay out of it</text>
@@ -1538,7 +1538,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!</text>
     <choice name="c:pirate-ship-distress-trap:0">
       <text>Fight a Pirate ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="NEBULA_PIRATE_SMUGGLE">
@@ -1551,7 +1551,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text/>
     <choice name="c:pirate-smuggler:0">
       <text>Attack the pirate</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-smuggler:1">
       <text>Ignore the ship</text>
@@ -1585,7 +1585,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:pirate-toll:1">
       <text>Reject their offer</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="REBEL">
@@ -1616,7 +1616,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A Rebel ship is guarding this beacon. You order a pursuit course and prepare to scratch up one more.</text>
     <choice name="c:rebel-fight:0">
       <text>Fight a Rebel ship</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="LANIUS_REBEL_FIGHT">
@@ -1633,7 +1633,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Your arrival coincides almost exactly with that of a Rebel ship. It's hard to know who is more surprised, but there is no option but to fight.</text>
     <choice name="c:rebel-fight-lanius:0">
       <text>Fight a Rebel ship</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="NEBULA_REBEL_UNDETECTED">
@@ -1652,7 +1652,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Your ship emerges quite far away from the beacon. You see a rebel ship waiting nearby, undoubtedly stationed to look for you.</text>
     <choice name="c:rebel-fight-choice-in-nebula:0">
       <text>Attack the ship</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-fight-choice-in-nebula:1">
       <text>Attempt to remain concealed</text>
@@ -1685,7 +1685,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A Rebel ship hails, but you don't take chances in conditions like this. You block the frequency and prepare to engage.</text>
     <choice name="c:rebel-fight-in-nebula:0">
       <text>Fight a Rebel ship</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="REBEL_PULSAR">
@@ -1705,7 +1705,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You arrive at an infrequently used beacon close to a pulsar. Before long a Rebel ship happens to jump nearby. Looks like you'll have to fight.</text>
     <choice name="c:rebel-fight-near-pulsar:0">
       <text>Fight a Rebel ship</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="SQUAT_WARNING">
@@ -1720,7 +1720,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You stumble across a forward scout of the Rebel fleet.</text>
     <choice name="c:rebel-ship-warning:0">
       <text>Fight a Rebel ship that is running away</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="LANIUS_FUELING_STATION">
@@ -1743,7 +1743,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </eventList>
     <choice name="c:refueling-platform-garbled-broadcast:0">
       <text>Hail the platform and attempt to communicate</text>
-      <ship hostile="true" load="Lanius ship"/>
+      <ship hostile="true" load="LANIUS_SHIP"/>
     </choice>
     <choice name="c:refueling-platform-garbled-broadcast:1">
       <text>Ignore the platform</text>
@@ -1762,7 +1762,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Scans show a remote settlement being blockaded by a pirate ship. The ship hastily messages you, "Stay out of this, or you'll be next!...Concentrate fire on..."</text>
     <choice name="c:remote-settlement:0">
       <text>Attack the pirate</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:remote-settlement:1">
       <text>Ignore them</text>
@@ -1807,7 +1807,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A barrage of rasps and clicks is broadcast over the comm; the universal translator understands little, but the words 'aliens', 'allowed' and 'no' come through quite clearly. You'll have to prove your right to be here in combat!</text>
     <choice name="c:crystal-fight:0">
       <text>Fight a Crystal ship (default rewards)</text>
-      <ship hostile="true" load="Crystal ship"/>
+      <ship hostile="true" load="CRYSTAL_SHIP"/>
     </choice>
     <surrender chance="40" min="30" max="40">
       <text>"We yield, aliens. We have no wish to die fighting you."</text>
@@ -1831,7 +1831,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You're greeted by an unwelcome sight - a Rebel advance ship is laying down fire on a Crystalline vessel in the distance.</text>
     <choice name="c:crystal-fight-choice:0">
       <text>Engage the Rebel ship</text>
-      <ship hostile="true" load="Crystal ship"/>
+      <ship hostile="true" load="CRYSTAL_SHIP"/>
     </choice>
     <choice name="c:crystal-fight-choice:1">
       <text>Leave them alone</text>
@@ -1846,7 +1846,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A pirate ship jumps in right after you arrive at the beacon. It must have followed once the Long-Range Beacon was reactivated. It almost charges a small Crystalline transport ship, weapons armed.</text>
     <choice name="c:pirate-ship-attacking-crystal:0">
       <text>Attack the pirate</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-ship-attacking-crystal:1">
       <text>Ignore them</text>
@@ -1861,7 +1861,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>As soon as you arrive, a Rebel ship jumps in after you; they must be really hot on your tail.</text>
     <choice name="c:rebel-fight-crystal:0">
       <text>Fight a Rebel ship (default rewards)</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="ENGI_MANTIS_FIGHT">
@@ -1877,7 +1877,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You find a Mantis ship harrying a small squad of Engi. They make it to the node and jump off, leaving you toe to toe with their pursuer!</text>
     <choice name="c:mantis-fight-engi:0">
       <text>Fight a Mantis ship</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="MANTIS_FIGHT_CHOICE">
@@ -1897,7 +1897,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You overhear Mantis comm chatter: "Agreed. Next ship is your turn. Good hunting." They don't see you yet.</text>
     <choice name="c:mantis-fight-choice:0">
       <text>Attack the ship</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
     <choice name="c:mantis-fight-choice:1">
       <text>Attempt to remain concealed</text>
@@ -1925,7 +1925,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You pick up a distress call from a civilian ship. It's being chased by a Mantis ship!</text>
     <choice name="c:mantis-ship-attacking-civilian:0">
       <text>Aid the civilian ship</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
     <choice name="c:mantis-ship-attacking-civilian:1">
       <text>Stay out of it</text>
@@ -1941,7 +1941,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>There must have been rich pickings for pirates around here up until war broke out. The pirate you encounter here looks worn down, but hungry. You'll have to fight!</text>
     <choice name="c:pirate-fight-engi:0">
       <text>Fight a Pirate ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="ENGI_REBEL_FIGHT">
@@ -1953,7 +1953,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The rebel fighter here would seem to suggest elements of the rebel fleet are already making incursions on Engi space. You move to engage.</text>
     <choice name="c:rebel-fight-engi:0">
       <text>Fight a Rebel ship</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="ALISON_MANTIS_CREW">
@@ -1967,7 +1967,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You arrive just in time to see an unusually well-armed Engi ship destroying a small pirate craft. A teleporter signal is detected...intruder on deck!</text>
     <choice name="c:mantis-fugitive:0">
       <text>Side with the fugitive and fight the Engi ship.</text>
-      <ship hostile="true" load="Engi ship"/>
+      <ship hostile="true" load="ENGI_SHIP"/>
     </choice>
     <choice name="c:mantis-fugitive:1">
       <text>Agree to offer up the Mantis in exchange for a bounty.</text>
@@ -1985,7 +1985,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?</text>
     <choice name="c:mantis-fight-near-sun:0">
       <text>Fight a Mantis ship (default rewards)</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="DONOR_MANTIS_CHASE">
@@ -1997,7 +1997,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You are immediately hailed by an impressive-looking Mantis ship, "Your ship would make a mighty fine prize. Prepare for battle!"</text>
     <choice name="c:mantis-ship-collectors:0">
       <text>Fight a Mantis Fighter</text>
-      <ship hostile="true" load="Mantis Fighter"/>
+      <ship hostile="true" load="MANTIS_FIGHTER_SHIP"/>
     </choice>
   </event>
   <event name="NEBULA_PIRATE">
@@ -2014,7 +2014,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You try to read the ID of a ship ahead in the fog, but it's too thick to penetrate. You have your answer when the ship turns, weapons hot!</text>
     <choice name="c:pirate-fight-in-nebula:0">
       <text>Fight a Pirate ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="BOARDERS_REBEL_SHIP">
@@ -2030,7 +2030,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You receive a message on a low-band channel. "You're surrounded, just like the last of your Federation friends. Just die already." The enemy has teleported onto your ship!</text>
     <choice name="c:rebel-fight-with-boarders:0">
       <text>Fight a Rebel ship</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="ROCK_MANTIS_HUNTER">
@@ -2045,7 +2045,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A Mantis ship here is adorned with Rock body parts! It would be a gorier display if they had internal organs, but the message is clear enough: this is a hunter of a very specialized kind.</text>
     <choice name="c:mantis-ship-with-rock-body-parts:0">
       <text>Attack!</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
     <choice name="c:mantis-ship-with-rock-body-parts:1">
       <text>Ignore them.</text>
@@ -2054,12 +2054,12 @@ They apologize for their hasty response to your presence and spend some time ref
     <choice name="c:mantis-ship-with-rock-body-parts:2" owner="quest">
       <text>Put your Rock crewmember on the comm.</text>
       <req><crewMember name="rock"/>Needs a Rock crewmember</req>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
     <choice name="c:mantis-ship-with-rock-body-parts:3" owner="quest">
       <text>Ram the bastards.</text>
       <req><augment name="ROCK_ARMOR"/>Needs Rock Plating</req>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="ROCK_SHIP">
@@ -2080,7 +2080,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You're intercepted by a Rock salvage operation. They don't seem to mind that you're still on board while they junk your ship.</text>
     <choice name="c:rock-fight:0">
       <text>Fight a Rock ship</text>
-      <ship hostile="true" load="Rock ship"/>
+      <ship hostile="true" load="ROCK_SHIP"/>
     </choice>
   </event>
   <event name="ROCK_FIGHT_ASTEROID">
@@ -2096,7 +2096,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The captain of a Rock freighter lost in the asteroid field hails you: "Our co-ordinates led us here, but only death greets us. What must be must be. Death to all." You power up the battle systems and wonder how long they've been stuck here.</text>
     <choice name="c:rock-fight-in-asteroid-field:0">
       <text>Fight a Rock ship</text>
-      <ship hostile="true" load="Rock ship" asteroid="true"/>
+      <ship hostile="true" load="ROCK_SHIP" asteroid="true"/>
     </choice>
   </event>
   <event name="ROCK_BOARDERS_SHIP">
@@ -2112,7 +2112,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You find a Rock ship docked with a damaged Mantis fighter. Before you have a chance to hail them, the ship moves in to attack you and you register teleporter symbols from the disabled ship. They're using Mantis tech to board you!</text>
     <choice name="c:rock-fight-with-boarders:0">
       <text>Fight a Rock ship</text>
-      <ship hostile="true" load="Rock ship"/>
+      <ship hostile="true" load="ROCK_SHIP"/>
     </choice>
   </event>
   <event name="ROCK_BOARDERS_ASTEROID">
@@ -2128,7 +2128,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Your shields are being taxed as they deflect the debris from an asteroid field. As you weave your way between the rocks, you happen upon a Rock pirate stronghold. You register teleport signatures and hear shouts aboard the ship.</text>
     <choice name="c:rock-fight-with-boarders-in-asteroid-field:0">
       <text>Fight a Rock ship</text>
-      <ship hostile="true" load="Rock ship" asteroid="true"/>
+      <ship hostile="true" load="ROCK_SHIP" asteroid="true"/>
     </choice>
   </event>
   <event name="ROCK_PIRATE">
@@ -2145,7 +2145,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!</text>
     <choice name="c:rock-pirates-fight:0">
       <text>Fight a Rock pirate ship</text>
-      <ship hostile="true" load="Rock pirate ship"/>
+      <ship hostile="true" load="ROCK_PIRATE"/>
     </choice>
   </event>
   <event name="ROCK_PIRATE_ASTEROID">
@@ -2162,7 +2162,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You exit the jump surrounded by dirt and rocks. Before long a blast is deflected by your shield, but that was no asteroid... Incoming pirate!</text>
     <choice name="c:rock-pirates-fight-in-asteroid-field:0">
       <text>Fight a Rock pirate ship</text>
-      <ship hostile="true" load="Rock pirate ship" asteroid="true"/>
+      <ship hostile="true" load="ROCK_PIRATE" asteroid="true"/>
     </choice>
   </event>
   <event name="ROCK_PIRATE_SUN">
@@ -2179,7 +2179,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A Rock ship is silhouetted against a sun in supernova. They hail: "Even out here you follow us! We only wish to be left alone!" Out of panic or anger, they charge their weapons.</text>
     <choice name="c:rock-pirates-fight-near-sun:0">
       <text>Fight a Rock pirate ship</text>
-      <ship hostile="true" load="Rock pirate ship"/>
+      <ship hostile="true" load="ROCK_PIRATE"/>
     </choice>
   </event>
   <event name="ROCK_LOOTING">
@@ -2218,7 +2218,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You intercept comm chatter from an incoming Mantis ship. "Look. This ship appears not to be owned by the squishy ones. Maybe they won't smell so bad when we cut them open." They move in on your position.</text>
     <choice name="c:mantis-fight-slug:0">
       <text>Fight a Mantis ship</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="NEBULA_MANTIS_CHOICE">
@@ -2229,7 +2229,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Navigating the fog blind, you practically bump hulls with a Mantis ship. They hail you: "Pah! This transgression will be overlooked. Nebula, very dangerous. Next time, humans all die."</text>
     <choice name="c:mantis-fight-choice-in-nebula:0">
       <text>There won't be a next time. Open fire!</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
     <choice name="c:mantis-fight-choice-in-nebula:1">
       <text>This place is dangerous enough. Move on.</text>
@@ -2245,7 +2245,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The Mantis attack ship here looks to have been hunting Slugs on their home turf - a rare test of honor for the mightiest Mantis crews. Weapons up!</text>
     <choice name="c:mantis-fight-in-nebula-slug:0">
       <text>Fight a Mantis ship</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="SLUG_DISTRESS_MANTIS">
@@ -2257,11 +2257,11 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The distress call appears to be emanating from a Slug ship caught in open space by a Mantis raider. They contact you on emergency frequencies: "Please, we'll give you all we have if you sssave ussss!"</text>
     <choice name="c:mantis-ship-attacking-slug-ship:0">
       <text>Attack the Mantis ship.</text>
-      <ship hostile="true" load="Mantis Ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
     <choice name="c:mantis-ship-attacking-slug-ship:1">
       <text>Attack the Slug ship.</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:mantis-ship-attacking-slug-ship:2">
       <text>Of all the species in the galaxy, these two deserve one another. You power up the jump drive.</text>
@@ -2280,7 +2280,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Before you can take a moment's rest from the ever present nebulas in this sector, a pirate ship appears behind you and opens fire.</text>
     <choice name="c:pirate-fight-slug:0">
       <text>Fight a Pirate ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_PIRATE">
@@ -2292,7 +2292,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You're surprised to find a ship without Slug markings stranded all the way out here, and move in to provide assistance. When you see the pirate insignia on the hull you quickly reconsider.</text>
     <choice name="c:pirate-fight-choice-in-nebula:0">
       <text>Attack!</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-fight-choice-in-nebula:1">
       <text>Keep your distance and hope they haven't seen you yet.</text>
@@ -2311,7 +2311,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You receive a message from a nearby ship, "Looks like our intelligence was correct! Sneaking through the clouds with the Slugs... No one can hide from the rebellion!"</text>
     <choice name="c:rebel-fight-slug:0">
       <text>Fight a Rebel ship</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_FIGHT_UNLOCK">
@@ -2322,7 +2322,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>This is the Slug Cruiser ship unlocking event.</text>
     <choice name="c:slug-home-nebula-surrender:0">
       <text>Fight a Slug ship</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <surrender chance="100" min="30" max="40">
       <text>"You have besssted us! Will you accept what is in our storeesss in exchange for our livess?" "Take thisss newly developed weapon we're transporting..."</text>
@@ -2348,7 +2348,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>It's rare for the Slugs to stay exposed in open space for long periods - the ship here may be lost, or just passing through, but either way he moves in to attack!</text>
     <choice name="c:slug-fight:0">
       <text>Fight a Slug ship</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_FIGHT">
@@ -2364,7 +2364,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Direct attacks are not preferred by the Slugs, but of the three you see at this beacon, one has the brass to make a move on your position!</text>
     <choice name="c:slug-fight-in-nebula:0">
       <text>Fight a Slug ship</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
   </event>
   <event name="STORM_SLUG_FIGHT">
@@ -2379,7 +2379,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You find yourself stuck in the middle of an ion storm with a Slug ship just a short distance away, refusing all hails. You cautiously try to slip further into the clouds, but they turn suddenly to attack!</text>
     <choice name="c:slug-fight-in-plasma-storm:0">
       <text>Fight a Slug ship</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
   </event>
   <event name="NEBULA_REBEL_CHASE">
@@ -2403,17 +2403,17 @@ They apologize for their hasty response to your presence and spend some time ref
     <choice name="c:rebel-fight-chance-in-nebula:2" owner="filler">
       <text>Try to track them as you move to engage.</text>
       <req req="sensors" lvl="3">Needs Sensors level 3</req>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-fight-chance-in-nebula:3" owner="filler">
       <text>Try to track them as you move to engage.</text>
       <req><augment name="ADV_SCANNERS"/>Needs Long-Ranged Scanners</req>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-fight-chance-in-nebula:4" owner="filler">
       <text>Use their life signatures to follow.</text>
       <req><augment name="LIFE_SCANNER"/>Needs a Lifeform Scanner</req>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="SLUG_DISTRESS_ROCK">
@@ -2425,7 +2425,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You arrive to find a Slug ship in the middle of boarding a disabled Rock freighter.</text>
     <choice name="c:slug-ship-boarding-rock-ship:0">
       <text>Engage the Slug ship.</text>
-      <ship hostile="true" load="Slug ship"/>
+      <ship hostile="true" load="JELLY"/>
     </choice>
     <choice name="c:slug-ship-boarding-rock-ship:1">
       <text>Ignore them.</text>
@@ -2445,7 +2445,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You jump into a debris field that used to be a Zoltan cruiser. Unfortunately, its Engi escort takes you for the attacker and retaliates! They refuse all hails.</text>
     <choice name="c:engi-fight:0">
       <text>Fight an Engi ship</text>
-      <ship hostile="true" load="Engi ship"/>
+      <ship hostile="true" load="ENGI_SHIP"/>
     </choice>
   </event>
   <event name="ZOLTAN_MANTIS">
@@ -2458,7 +2458,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You pick up the last broadcast from a rupturing Zoltan freighter: "The Mantis, they're here, please-" You're interrupted by fire off the port bow!</text>
     <choice name="c:mantis-fight-zoltan:0">
       <text>Fight a Mantis ship</text>
-      <ship hostile="true" load="Mantis ship"/>
+      <ship hostile="true" load="MANTIS_SHIP"/>
     </choice>
   </event>
   <event name="ZOLTAN_PIRATE">
@@ -2477,7 +2477,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You spot a pirate ship looting a small Zoltan cruiser. They spot you and move in to attack before your FTL drive has a chance to recharge.</text>
     <choice name="c:pirate-fight-zoltan:0">
       <text>Fight a Pirate ship</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="STORM_ZOLTAN_SUPPLY_CHOICE">
@@ -2491,11 +2491,11 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You spy two pirate ships lurking in the nebula here. They remain unaware of your presence; you're able to get your scanners to at least identify their cargo: One is carrying the fuel supplies, the other the ammunition. They begin to drift away from each other in the storm.</text>
     <choice name="c:pirate-ships-in-plasma-storm:0">
       <text>Secure the fuel supply</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-ships-in-plasma-storm:1">
       <text>Secure the ammunition</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-ships-in-plasma-storm:2">
       <text>Let them leave</text>
@@ -2512,7 +2512,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>This nebula turns out to be the hiding place of a terrified rock crew taking refuge from the Zoltan border police. They don't seem prepared to risk your leaving with their co-ordinates, and open fire!</text>
     <choice name="c:rock-fight-in-nebula:0">
       <text>Fight a Rock ship</text>
-      <ship hostile="true" load="Rock ship"/>
+      <ship hostile="true" load="ROCK_SHIP"/>
     </choice>
   </event>
   <event name="ZOLTAN_BOARDERS">
@@ -2525,7 +2525,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>There are few more zealous in their customs checks than the Zoltan. A team of border police beam on board. There's just a little confusion over your weapons licences, but things escalate rapidly from heated discussion to gunfire!</text>
     <choice name="c:zoltan-border-police:0">
       <text>Fight a Zoltan ship</text>
-      <ship hostile="true" load="Zoltan ship"/>
+      <ship hostile="true" load="ZOLTAN_SHIP"/>
     </choice>
   </event>
   <event name="ZOLTAN_FIGHT">
@@ -2545,7 +2545,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The Zoltan ship patrolling this area hails you: "This area is off limits. Secrecy is vital." They power their weapons.</text>
     <choice name="c:zoltan-fight:0">
       <text>Fight a Zoltan ship</text>
-      <ship hostile="true" load="Zoltan ship"/>
+      <ship hostile="true" load="ZOLTAN_SHIP"/>
     </choice>
   </event>
   <event name="ZOLTAN_ASTEROID">
@@ -2557,7 +2557,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You arrive in an asteroid field and are greeted by a Zoltan guard, "By attempting to access these closed mining fields, you are in violation of the Natural Mineral Protection Act. Your weaponry will be confiscated for processing." You don't have time for this.</text>
     <choice name="c:zoltan-fight-in-asteroid-field:0">
       <text>Fight a Zoltan ship</text>
-      <ship hostile="true" load="Zoltan ship" asteroid="true"/>
+      <ship hostile="true" load="ZOLTAN_SHIP" asteroid="true"/>
     </choice>
   </event>
   <event name="ZOLTAN_QUEST_PRIMITIVES">
@@ -2571,11 +2571,11 @@ They apologize for their hasty response to your presence and spend some time ref
 You tap into their frequency and hear the Rebel captain yelling, "We are liberating this planet in the name of the new Galactic government! These aliens will not be left in ignorance where they cannot be of use!"</text>
     <choice name="c:zoltan-quest-primitives:0">
       <text>Interfere - make first contact with the primitive aliens</text>
-      <ship hostile="true" load="Zoltan ship"/>
+      <ship hostile="true" load="ZOLTAN_SHIP"/>
     </choice>
     <choice name="c:zoltan-quest-primitives:1">
       <text>Protect the aliens' way of life - Attack the Rebel ship</text>
-      <ship hostile="true" load="Rebel Ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:zoltan-quest-primitives:2">
       <text>Leave</text>
@@ -2592,7 +2592,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>You arrive at a Zoltan security checkpoint set up in a perimeter around the beacon. "Traveling vessel, you will submit to crew profiling to identify fugitives of the empire."</text>
     <choice name="c:zoltan-security-checkpoint:0">
       <text>You don't have time for this nonsense. Attack!</text>
-      <ship hostile="true" load="Zoltan ship"/>
+      <ship hostile="true" load="ZOLTAN_SHIP"/>
     </choice>
   </event>
   <event name="ZOLTAN_DISTRESS_MANTIS">
@@ -2606,11 +2606,11 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>Your jump interrupts a Zoltan security ship as it follows a Mantis pirate into an asteroid field. They message you, "Your presence here will continue to be tolerated - but please, do not interfere."</text>
     <choice name="c:zoltan-ship-follows-mantis-ship:0">
       <text>Interfere and save the Mantis ship</text>
-      <ship hostile="true" load="Zoltan ship" asteroid="true"/>
+      <ship hostile="true" load="ZOLTAN_SHIP" asteroid="true"/>
     </choice>
     <choice name="c:zoltan-ship-follows-mantis-ship:1">
       <text>Interfere and help the Zoltan ship</text>
-      <ship hostile="true" load="Mantis ship" asteroid="true"/>
+      <ship hostile="true" load="MANTIS_SHIP" asteroid="true"/>
     </choice>
     <choice name="c:zoltan-ship-follows-mantis-ship:2">
       <text>Don't interfere</text>
@@ -2729,7 +2729,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </choice>
     <choice name="c:rebel-defector:1">
       <text>Reject his offer. You can never trust these Rebels.</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="FLOATING_CARGO">
@@ -2748,7 +2748,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     </eventList>
     <choice name="c:destroyed-cargo-ship:0">
       <text>Bring it aboard.</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:destroyed-cargo-ship:1">
       <text>Leave it alone, this looks suspicious.</text>
@@ -2793,7 +2793,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>You are immediately contacted by a settlement, "Hello, travelers. Your ship seems to be outfitted for combat...care to take up a bit of mercenary work?"</text>
     <choice name="c:settlement-mercenary-work:0">
       <text>Listen to their offer.</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:settlement-mercenary-work:1">
       <text>Decline.</text>
@@ -2821,7 +2821,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>As you jump in, you immediately see an impressive Slug pirate ship with "The Black Raven" painted on one side. They hail you, "Greetingsss. I am the dreaded pirate, Captain Nights. You mussst be full of fear, no? You have heard of me... no?"</text>
     <choice name="c:the-black-raven:0">
       <text>No.</text>
-      <ship hostile="true" load="Slug pirate ship"/>
+      <ship hostile="true" load="JELLY_PIRATE"/>
     </choice>
     <surrender chance="100" min="30" max="40">
       <text>"I see the rumorsss are true. I yield, we are no match for you. Take this and let us leave in ssshame."</text>
@@ -2846,7 +2846,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>What appears to be a Zoltan science ship requests permission to dock.</text>
     <choice name="c:zoltan-ship-asks-to-dock:0">
       <text>Dock with them.</text>
-      <ship hostile="true" load="Zoltan ship"/>
+      <ship hostile="true" load="ZOLTAN_SHIP"/>
     </choice>
     <choice name="c:zoltan-ship-asks-to-dock:1">
       <text>Have them keep their distance.</text>
@@ -2966,7 +2966,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>An unarmed Zoltan transport vessel is slowly making its way toward the beacon here. They hail: "This is a Zoltan peace envoy. We carry no weapons or shielding and rely on the mercy of others to communicate our message."</text>
     <choice name="c:unarmed-zoltan-transport:0">
       <text>Attack them.</text>
-      <ship hostile="true" load="Zoltan ship"/>
+      <ship hostile="true" load="ZOLTAN_SHIP"/>
     </choice>
     <choice name="c:unarmed-zoltan-transport:1">
       <text>Hear them out.</text>
@@ -3223,7 +3223,7 @@ Overhearing their conversation, it seems that they need to take possession of an
     <text>Scans reveal a large asteroid field nearby. Short-range scanners may discover useful materials while we wait for the FTL to recharge.</text>
     <choice name="c:large-asteroid-field:0">
       <text>Explore the asteroid field.</text>
-      <ship hostile="true" load="Pirate ship" asteroid="true"/>
+      <ship hostile="true" load="PIRATE" asteroid="true"/>
     </choice>
     <choice name="c:large-asteroid-field:1">
       <text>Too dangerous. We'll just wait for the FTL to charge.</text>
@@ -3251,7 +3251,7 @@ Overhearing their conversation, it seems that they need to take possession of an
     <text>You have jumped into the aftermath of what seems to have been a brutal exchange between several ships. Wreckage drifts by your screens, and you can still see the remains of the dying ships sparking and breaking apart. It's hard to determine who the combatants were without closer investigation.</text>
     <choice name="c:battlefield-wreckage:0">
       <text>Investigate the battlefield.</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:battlefield-wreckage:1">
       <text>Ignore the wreckage and continue on.</text>
@@ -3278,7 +3278,7 @@ Overhearing their conversation, it seems that they need to take possession of an
     <text>You jump into a field of debris. It appears a battle recently took place here, and the loser seems to have been a civilian ship. A message was left on repeat before it was destroyed: "Rebels attacking, please send aid!" The responsible Rebels are likely still nearby.</text>
     <choice name="c:rebel-fight-chance:0">
       <text>Go looking for the Rebel ship.</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-fight-chance:1">
       <text>No time to search, you prepare to jump away.</text>
@@ -3287,12 +3287,12 @@ Overhearing their conversation, it seems that they need to take possession of an
     <choice name="c:rebel-fight-chance:2" owner="filler">
       <text>Perform a scan of the area.</text>
       <req req="sensors" lvl="2">Needs Sensors level 2</req>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:rebel-fight-chance:3" owner="filler">
       <text>Pinpoint the Rebel's location.</text>
       <req req="sensors" lvl="3">Needs Sensors level 3</req>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
   </event>
   <event name="REFUGEE_NO_DISTRESS">
@@ -3333,7 +3333,7 @@ Overhearing their conversation, it seems that they need to take possession of an
     </eventList>
     <choice name="c:refugee:0">
       <text>Hail them.</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:refugee:1">
       <text>Ignore the refugees.</text>
@@ -3377,7 +3377,7 @@ Overhearing their conversation, it seems that they need to take possession of an
     <text>A heavily damaged Federation ship is hiding in the nebula at this beacon. Before you have time to make contact with them, they fade into the nebula.</text>
     <choice name="c:nebula-lost-ship:0">
       <text>Attempt to follow and help them.</text>
-      <ship hostile="true" load="Rebel ship"/>
+      <ship hostile="true" load="REBEL"/>
     </choice>
     <choice name="c:nebula-lost-ship:1">
       <text>Keep your position, they can handle themselves.</text>
@@ -3431,7 +3431,7 @@ Overhearing their conversation, it seems that they need to take possession of an
     </eventList>
     <choice name="c:refugee-distress:0">
       <text>Hail them.</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:refugee-distress:1">
       <text>Ignore the refugees.</text>
@@ -3484,7 +3484,23 @@ Overhearing their conversation, it seems that they need to take possession of an
     <text>You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!</text>
     <choice name="c:pirate-ship-distress-trap:0">
       <text>Fight the pirate ship.</text>
-      <ship hostile="true" load="Pirate ship"/>
+      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
+  <ship name="PIRATE" auto_blueprint="SHIPS_PIRATE"/>
+  <ship name="REBEL" auto_blueprint="SHIPS_REBEL"/>
+  <ship name="REBEL_AUTO" auto_blueprint="SHIPS_AUTO"/>
+  <ship name="JELLY" auto_blueprint="SHIPS_JELLY"/>
+  <ship name="MANTIS_SHIP" auto_blueprint="SHIPS_MANTIS"/>
+  <ship name="LANIUS_SHIP" auto_blueprint="SHIPS_LANIUS"/>
+  <ship name="ZOLTAN_SHIP" auto_blueprint="SHIPS_ZOLTAN"/>
+  <ship name="ROCK_SHIP" auto_blueprint="SHIPS_ROCK"/>
+  <ship name="CRYSTAL_SHIP" auto_blueprint="SHIPS_CRYSTAL"/>
+  <ship name="ENGI_SHIP" auto_blueprint="SHIPS_CIRCLE"/>
+  <ship name="FED_SHIP" auto_blueprint="SHIPS_FED"/>
+  <ship name="ROCK_PIRATE" auto_blueprint="SHIPS_ROCK_PIRATE"/>
+  <ship name="ZOLTAN_PIRATE" auto_blueprint="SHIPS_ZOLTAN_PIRATE"/>
+  <ship name="JELLY_PIRATE" auto_blueprint="SHIPS_JELLY_PIRATE"/>
+  <ship name="MANTIS_FIGHTER_SHIP" auto_blueprint="MANTIS_FIGHTER"/>
+  <ship name="LONG_FLEET" auto_blueprint="SHIPS_REBEL_ELITE"/>
 </FTL>

@@ -46,6 +46,8 @@ import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
 import { ENEMY_BLUEPRINTS } from "../enemy-blueprints.ts";
 import { ENEMY_LAYOUTS, enemyLayoutFile } from "../enemy-layouts.ts";
+import { fightShipEvent, SHIP_EVENTS, SHIP_LIST_RULES, SHIP_LISTS } from "../ship-lists.ts";
+import { enemyGearLists, enemyStats } from "../enemy-stats.ts";
 import {
   FLAGSHIP_LAYOUTS,
   flagshipBlueprintId,
@@ -396,6 +398,18 @@ function copyCard(row: EventCard): EventCard {
   };
 }
 
+/** Every fight on a page loads a ship event (ship-lists.ts), as ftl.dat's `<ship load>` does, not a page's wording. */
+function loadShipEvents(node: unknown): void {
+  if (Array.isArray(node)) {
+    for (const item of node) loadShipEvents(item);
+    return;
+  }
+  if (!node || typeof node !== "object") return;
+  const row = node as { k?: unknown; tier?: unknown };
+  if (row.k === "fight" && typeof row.tier === "string") row.tier = fightShipEvent(row.tier);
+  for (const value of Object.values(node)) loadShipEvents(value);
+}
+
 function takenReqIds(events: readonly EventDef[]): Set<string> {
   const seen = new Set<string>();
   for (const ev of events) {
@@ -718,15 +732,47 @@ function enemyHulls(): HullDef[] {
   return [...plans.entries()].map(([id, interior]) => enemyHull(id, interior));
 }
 
+/** Every enemy blueprint id enemyHulls writes, for the drone lists (enemy-stats.ts). */
+function enemyHullIds(): string[] {
+  const ids = new Set<string>();
+  for (const row of ENEMY_BLUEPRINTS) {
+    ids.add(row.blueprint);
+    if (row.pirateBlueprint) ids.add(row.pirateBlueprint);
+  }
+  return [...ids];
+}
+
 /** A traced enemy interior. The pictured icons are rooms, not a starting loadout. */
 function enemyHull(id: string, interior: string): HullDef {
   const source = ENEMY_LAYOUTS[interior];
   if (!source) throw new Error(`No enemy interior for ${interior}`);
   const layout = enemyLayoutFile(interior);
+  const stats = enemyStats(id);
+  // Each pictured system icon is an install in its room, as an ftl.dat blueprint's systemList places it. The faction
+  // page gives its starting level and maximum; a system the page lists that the picture lacks gets no room.
+  const pictured = new Set<string>();
+  const installs: HullInstall[] = source.rooms.flatMap((room, index): HullInstall[] => {
+    if (!room.system) return [];
+    pictured.add(room.system);
+    const row = stats?.systems.get(room.system);
+    return [
+      {
+        id: room.system,
+        power: row?.range[0] ?? 1,
+        ...(row ? { max: row.range[1] } : {}),
+        room: index,
+        start: row?.start ?? true,
+      },
+    ];
+  });
+  for (const [system, row] of stats?.systems ?? []) {
+    if (pictured.has(system) || row.range[0] < 1) continue;
+    installs.push({ id: system, power: row.range[0], max: row.range[1], start: row.start });
+  }
   return paintHull(
     {
       id,
-      cruiser: "",
+      cruiser: stats?.cruiser ?? "",
       layout,
       name: id,
       quote: "",
@@ -735,14 +781,21 @@ function enemyHull(id: string, interior: string): HullDef {
       // Flagship (Crew Teleporter, "Enemy Crew Teleporter"). Auto-ships carry no crew and no tag.
       ...(id.startsWith("AUTO_") ? {} : { boardingAI: "sabotage" as const }),
       reactor: 0,
-      missiles: 0,
-      parts: 0,
+      missiles: stats?.missiles ?? 0,
+      parts: stats?.droneLoad ? stats.parts : 0,
       weapons: [],
       augments: [],
-      // Each pictured system icon is an install in its room, as an ftl.dat blueprint's systemList places it.
-      installs: source.rooms.flatMap((room, index): HullInstall[] =>
-        room.system ? [{ id: room.system, power: 1, room: index, start: true }] : [],
-      ),
+      installs,
+      ...(stats
+        ? {
+            health: stats.health,
+            ...(stats.crewCounts.length ? { crewCounts: stats.crewCounts } : {}),
+            weaponLoad: stats.weaponLoad,
+            ...(stats.droneLoad
+              ? { droneLoad: stats.droneLoad, droneCount: stats.droneCount }
+              : {}),
+          }
+        : {}),
       grid: gridFromLayout({
         cols: source.cols,
         rows: source.rows,
@@ -1193,6 +1246,7 @@ export function loadCatalog(): void {
   events.push(STANDIN_GATES);
   for (const page of [START_PAGE, FINISH_PAGE, FINISH_NEBULA_PAGE])
     if (!events.some((event) => event.id === page.id)) events.push(page);
+  for (const event of events) loadShipEvents(event);
   loadPack(
     {
       // Ghost stays off the stand-in. crewDef supplies it when no crewBlueprint uses that id.
@@ -1232,6 +1286,12 @@ export function loadCatalog(): void {
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },
         { id: "CREW_POOL", lines: CREW_POOL.map((text) => ({ text })) },
       ],
+      blueprints: [...SHIP_LISTS, ...enemyGearLists(enemyHullIds())].map((row) => ({
+        id: row.id,
+        names: [...row.names],
+      })),
+      shipEvents: SHIP_EVENTS.map((row) => ({ ...row })),
+      shipLists: SHIP_LIST_RULES.map((row) => ({ ...row })),
       shipClasses: ENEMY_BLUEPRINTS.map((row) => {
         const ship: {
           id: string;

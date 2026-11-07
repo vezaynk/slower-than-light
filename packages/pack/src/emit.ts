@@ -32,6 +32,7 @@ import type {
   RollEntry,
   SectorDef,
   ShipClassDef,
+  ShipListRule,
   StoreDef,
   StoreLine,
   SurrenderOfferDef,
@@ -162,6 +163,12 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const event of pack.events ?? []) add(root, eventElement(doc, event));
   for (const list of pack.lists ?? []) add(root, listElement(doc, list));
+  // `<ship name auto_blueprint>`: a ship event a fight loads, as ftl.dat's events_ships.xml writes them.
+  for (const ship of pack.shipEvents ?? []) {
+    const attrs: Record<string, string> = { name: ship.id };
+    if (ship.autoBlueprint) attrs.auto_blueprint = ship.autoBlueprint;
+    add(root, element(doc, "ship", attrs));
+  }
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
   return prettyXml(serializer.serializeToString(doc));
 }
@@ -180,6 +187,7 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
   for (const row of pack.shipClasses ?? []) add(root, shipClassElement(doc, row));
+  for (const row of pack.shipLists ?? []) add(root, shipListElement(doc, row));
   if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   return prettyXml(serializer.serializeToString(doc));
 }
@@ -195,6 +203,14 @@ function beaconEventsElement(doc: XmlDocument, row: BeaconEvents): XmlElement {
     add(node, nebula);
   }
   return node;
+}
+
+/** `<shipList>`: the faction and pirate flag of a blueprint list's fights (types.ts ShipListRule). */
+function shipListElement(doc: XmlDocument, row: ShipListRule): XmlElement {
+  const attrs: Record<string, string> = { name: row.id };
+  if (row.faction) attrs.faction = row.faction;
+  if (row.pirate) attrs.pirate = "true";
+  return element(doc, "shipList", attrs);
 }
 
 function shipClassElement(doc: XmlDocument, row: ShipClassDef): XmlElement {

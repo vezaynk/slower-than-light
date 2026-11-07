@@ -285,6 +285,11 @@ describe("missing location pages", () => {
     g.player.systems.engines.power = Math.max(1, g.player.systems.engines.power);
     // The weapons choice beams one Slug. They stay after the win, so the drive has to finish before the jump.
     g.flee = 1;
+    // Someone has to be piloting; the boarder may have drawn the crew away.
+    const pilot = g.crew.find((c) => c.side === "player" && c.hp > 0 && c.aboard === "player");
+    assert.ok(pilot);
+    pilot.room = "p-pilot";
+    pilot.path = [];
     commitJump(g, spot.links[0]);
     assert.equal(weaponsSealed(g.player), false);
   });

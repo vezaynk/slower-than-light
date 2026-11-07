@@ -6,7 +6,7 @@ import {
 } from "@xmldom/xmldom";
 import { appendFtlListings, type FtlListings } from "./emit.ts";
 import { prettyXml } from "./format.ts";
-import type { AchievementDef, CrewDef, HullDef, SectorDef } from "./types.ts";
+import type { AchievementDef, BlueprintListDef, CrewDef, HullDef, SectorDef } from "./types.ts";
 
 /**
  * Writes ship blueprints the way ftl.dat's data/blueprints.xml does, so packFromFtl reads the stand-in with the same
@@ -17,11 +17,18 @@ export function emitFtlShips(
   hulls: readonly HullDef[],
   crew: readonly CrewDef[] = [],
   listings: FtlListings = {},
+  lists: readonly BlueprintListDef[] = [],
 ): string {
   const doc = new DOMImplementation().createDocument(null, "FTL", null);
   const root = doc.documentElement;
   if (!root) throw new Error("could not create the FTL root");
   for (const hull of hulls) root.appendChild(shipElement(doc, hull));
+  // `<blueprintList name><name>…</name></blueprintList>`, as ftl.dat's ship lists (SHIPS_REBEL, SHIPS_PIRATE).
+  for (const list of lists) {
+    const node = element(doc, "blueprintList", { name: list.id });
+    for (const name of list.names) node.appendChild(leaf(doc, "name", name));
+    root.appendChild(node);
+  }
   appendFtlListings(doc, root, listings);
   for (const row of crew) root.appendChild(crewElement(doc, row));
   return prettyXml(new XMLSerializer().serializeToString(doc));

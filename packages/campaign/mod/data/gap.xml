@@ -426,6 +426,21 @@
   <shipClass name="federation-outrider" class="federation-outrider" blueprint="FED_SCOUT" pirate="FED_SCOUT_P_DLC"/>
   <shipClass name="federation-bomber" class="federation-bomber" blueprint="FED_BOMBER" pirate="FED_BOMBER_P"/>
   <shipClass name="federation-hacker" class="federation-hacker" blueprint="FED_BOMBER" pirate="FED_BOMBER_P_DLC"/>
+  <shipList name="SHIPS_REBEL" faction="rebel"/>
+  <shipList name="SHIPS_AUTO" faction="auto"/>
+  <shipList name="SHIPS_CIRCLE" faction="engi"/>
+  <shipList name="SHIPS_MANTIS" faction="mantis"/>
+  <shipList name="SHIPS_JELLY" faction="slug"/>
+  <shipList name="SHIPS_ROCK" faction="rock"/>
+  <shipList name="SHIPS_ZOLTAN" faction="zoltan"/>
+  <shipList name="SHIPS_CRYSTAL" faction="crystal"/>
+  <shipList name="SHIPS_LANIUS" faction="lanius"/>
+  <shipList name="SHIPS_FED" faction="federation"/>
+  <shipList name="SHIPS_REBEL_ELITE" faction="rebel"/>
+  <shipList name="SHIPS_PIRATE" pirate="true"/>
+  <shipList name="SHIPS_ROCK_PIRATE" faction="rock" pirate="true"/>
+  <shipList name="SHIPS_ZOLTAN_PIRATE" faction="zoltan" pirate="true"/>
+  <shipList name="SHIPS_JELLY_PIRATE" faction="slug" pirate="true"/>
   <beaconEvents>
     <startEvent>START_BEACON</startEvent>
     <finishEvent>FINISH_BEACON</finishEvent>

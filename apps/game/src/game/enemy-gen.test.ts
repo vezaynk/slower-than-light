@@ -8,6 +8,7 @@ import {
   shipClassBlueprint,
   weaponDef,
 } from "@stl/pack";
+import type { HullDef } from "@stl/pack";
 import "./pack/base.ts";
 import {
   arm,
@@ -160,10 +161,15 @@ describe("rolled ships stay inside the printed numbers", () => {
         };
         const spec = rollEnemy(cls, false, ctx, seeded(sector * 31 + cls.id.length));
         assert.ok(spec.hull >= cls.hull[0] && spec.hull <= cls.hull[1], `${cls.id} hull`);
-        assert.ok(
-          spec.crew.length >= cls.crew[0] && spec.crew.length <= cls.crew[1],
-          `${cls.id} crew`,
-        );
+        // A blueprint crewCount (packages/catalog enemy-stats.ts) seats the crew; classes sharing it share its range.
+        const counts = hullDef(shipClassBlueprint(cls.id))?.crewCounts;
+        const crew: [number, number] = counts?.length
+          ? [
+              counts.reduce((sum, row) => sum + row.amount, 0),
+              counts.reduce((sum, row) => sum + (row.max ?? row.amount), 0),
+            ]
+          : cls.crew;
+        assert.ok(spec.crew.length >= crew[0] && spec.crew.length <= crew[1], `${cls.id} crew`);
         for (const [id, [level]] of Object.entries(spec.systems)) {
           const key = id === "pilot" ? "pilot" : id;
           const range =
@@ -177,7 +183,9 @@ describe("rolled ships stay inside the printed numbers", () => {
           power <= (spec.systems.weapons?.[0] ?? 0) || spec.weapons.length === 1,
           `${cls.id} over power`,
         );
-        assert.equal(spec.missiles, cls.missiles);
+        // The class's blueprint carries the missiles once it lists its guns (packages/catalog enemy-stats.ts).
+        const blueprint = hullDef(shipClassBlueprint(cls.id));
+        assert.equal(spec.missiles, blueprint?.weaponLoad ? blueprint.missiles : cls.missiles);
       }
     }
   });
@@ -352,19 +360,34 @@ describe("archive loadout", () => {
     difficulty: "normal" as const,
   };
 
+  /** The stand-in's REBEL_SKINNY with its gun list and crew count taken off. */
+  function bareRebel(): HullDef {
+    const hull = hullDef(shipClassBlueprint("rebel-fighter"))!;
+    const { weaponLoad: _load, crewCounts: _crew, ...rest } = hull;
+    return { ...rest, weapons: [] };
+  }
+
   it("keeps the class table when the blueprint names no lists", () => {
     const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
-    const hull = hullDef(shipClassBlueprint("rebel-fighter"))!;
-    assert.equal(hull.weaponLoad, undefined);
-    assert.equal(hull.crewCounts, undefined);
-    const spec = rollEnemy(cls, false, ctx, seeded(4));
-    assert.equal(spec.missiles, cls.missiles);
+    loadPack({ hulls: [bareRebel()] }, "append");
+    try {
+      const spec = rollEnemy(cls, false, ctx, seeded(4));
+      assert.equal(spec.missiles, cls.missiles);
+    } finally {
+      resetPackForTests();
+    }
   });
 
   it("warns about a blueprint the game cannot fully read, and falls back", () => {
     const cls = ENEMY_CLASSES.find((row) => row.id === "rebel-fighter")!;
-    const hull = hullDef(shipClassBlueprint("rebel-fighter"))!;
-    const plain = rollEnemy(cls, false, ctx, seeded(4));
+    const hull = bareRebel();
+    loadPack({ hulls: [hull] }, "append");
+    let plain: ReturnType<typeof rollEnemy>;
+    try {
+      plain = rollEnemy(cls, false, ctx, seeded(4));
+    } finally {
+      resetPackForTests();
+    }
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));
     const roll = (patch: Partial<typeof hull>) => {
@@ -574,7 +597,7 @@ describe("blueprint sector range", () => {
   function gated(id: string, gate: { minSector?: number; maxSector?: number } = {}) {
     const base = hullDef(shipClassBlueprint("rebel-fighter"));
     assert.ok(base);
-    return { ...base, id, name: id, ...gate };
+    return { ...base, id, name: id, cruiser: "", ...gate };
   }
 
   it("skips a hull outside the world level and builds one inside it", () => {

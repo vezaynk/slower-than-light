@@ -275,6 +275,24 @@ import { ShipView, type AimMark, type HackMark } from "./ShipView";
 import { AchievementsScreen, HelpScreen, Verdict, sectorTone } from "./WikiViews";
 import { StoreBoard } from "./StoreBoard";
 import { airShown } from "@/game/air";
+import { installPlayLog, setLogWhere, unseenCounts, usePlayLog } from "@/game/play-log";
+import { useShallow } from "zustand/react/shallow";
+
+// Per the user: catch every error and warning met in play (Options › Log). Started before the first render.
+installPlayLog();
+setLogWhere(() => {
+  const g = useGame.getState().game;
+  if (!g) return "";
+  const parts: string[] = [g.phase];
+  if (g.phase !== "title") {
+    parts.push(`sector ${g.sector}${g.sectorName ? ` (${g.sectorName})` : ""}`);
+    if (g.here) parts.push(`beacon ${g.here}`);
+    if (g.enemy?.name) parts.push(`facing ${g.enemy.name}`);
+    if (g.event?.title) parts.push(`event "${g.event.title}"`);
+  }
+  if (g.runSeed !== undefined) parts.push(`seed ${g.runSeed}`);
+  return parts.join(" · ");
+});
 
 const SYS_ORDER: SysId[] = [
   "shields",
@@ -1419,6 +1437,22 @@ function PlayFrame({ game, shake }: { game: Game; shake: number }) {
   );
 }
 
+/** Per the user: new errors (red) or warnings (amber) since Options › Log was last opened. */
+function LogBadge() {
+  const unseen = usePlayLog(useShallow((s) => unseenCounts(s)));
+  const count = unseen.error || unseen.warn;
+  if (!count) return null;
+  const level = unseen.error ? "error" : "warn";
+  return (
+    <span
+      className={`log-badge is-${level}`}
+      aria-label={`${count} new ${level === "error" ? "errors" : "warnings"} in Options, Log`}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
 /** Publishes the FTL group's width as --mid-w, so the stylesheet can keep it clear of the target panel. */
 function useMidWidth() {
   const ref = useRef<HTMLDivElement>(null);
@@ -1615,6 +1649,7 @@ function Hud({ game }: { game: Game }) {
           onClick={() => useOptionsOpen.setState({ open: true })}
         >
           <PixelIcon name="upgrade" size={20} />
+          <LogBadge />
         </button>
       </div>
     </header>

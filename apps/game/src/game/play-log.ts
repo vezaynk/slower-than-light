@@ -73,6 +73,19 @@ export function setLogWhere(read: () => string): void {
   whereNow = read;
 }
 
+/** Called for every sighting, repeats included, e.g. to forward it to Sentry (sentry.ts). */
+export type LogReporter = (entry: LogEntry, error: Error | undefined) => void;
+let reporter: LogReporter | null = null;
+
+export function setLogReporter(next: LogReporter | null): void {
+  reporter = next;
+}
+
+/** Where the run is now, as the play log writes it. */
+export function logWhereNow(): string {
+  return safeWhere();
+}
+
 function safeWhere(): string {
   try {
     return whereNow();
@@ -88,6 +101,7 @@ export function logProblem(
   message: string,
   stack?: string,
   now = Date.now(),
+  error?: Error,
 ): void {
   const text = message.length > MESSAGE_CAP ? `${message.slice(0, MESSAGE_CAP)}…` : message;
   const key = `${level}|${source}|${text}`;
@@ -114,6 +128,11 @@ export function logProblem(
   }
   usePlayLog.setState({ entries: next });
   saveSoon();
+  try {
+    reporter?.(next[at >= 0 ? at : next.length - 1]!, error);
+  } catch {
+    // A reporter that throws must not take the log down with it.
+  }
 }
 
 export function clearPlayLog(): void {
@@ -193,7 +212,7 @@ export function installPlayLog(): void {
     console[level] = (...args: unknown[]) => {
       original[level](...args);
       const error = args.find((arg): arg is Error => arg instanceof Error);
-      logProblem(level, "console", consoleText(args), error?.stack);
+      logProblem(level, "console", consoleText(args), error?.stack, Date.now(), error);
     };
   }
   window.addEventListener("error", (event) => {
@@ -203,16 +222,12 @@ export function installPlayLog(): void {
       event.message ||
       (event.target && event.target !== window ? "A resource failed to load" : "Unknown error");
     const place = event.filename ? ` (${event.filename}:${event.lineno}:${event.colno})` : "";
-    logProblem("error", "uncaught", `${message}${place}`, error?.stack);
+    logProblem("error", "uncaught", `${message}${place}`, error?.stack, Date.now(), error);
   });
   window.addEventListener("unhandledrejection", (event) => {
     const reason: unknown = event.reason;
-    logProblem(
-      "error",
-      "promise",
-      describe(reason),
-      reason instanceof Error ? reason.stack : undefined,
-    );
+    const error = reason instanceof Error ? reason : undefined;
+    logProblem("error", "promise", describe(reason), error?.stack, Date.now(), error);
   });
   onPackWarning((message) => {
     original.warn(`[pack] ${message}`);

@@ -4,10 +4,11 @@
  *
  * Uncaught errors and unhandled rejections reach Sentry through its own global handlers. The play log
  * (play-log.ts) forwards what those handlers do not see: console errors and warnings, and pack data warnings,
- * once per distinct message per page load. Every event carries where the run was (the play log's `where`).
+ * once per distinct message per page load, as sentry-report.ts decides. Every event carries where the run was (the play log's `where`).
  */
 import * as Sentry from "@sentry/react";
 import { logWhereNow, setLogReporter, type LogEntry } from "./play-log.ts";
+import { replayOnEvent, sentryReport } from "./sentry-report.ts";
 
 /** The project's public client key. It only lets a client send events, so it can ship in the bundle. */
 const DEFAULT_DSN =
@@ -28,31 +29,19 @@ function shell(): string {
   }
 }
 
-/** Which play-log sources Sentry's own handlers already capture. */
-const SENTRY_SEES = new Set<string>(["uncaught", "promise"]);
 const sent = new Set<string>();
-const NAMES: Record<string, string> = {
-  "pack:warn": "PackWarning",
-  "console:warn": "ConsoleWarning",
-  "console:error": "ConsoleError",
-};
 
 function forward(entry: LogEntry, error: Error | undefined): void {
-  if (SENTRY_SEES.has(entry.source) || sent.has(entry.key)) return;
+  if (sent.has(entry.key)) return;
+  const report = sentryReport(entry, error);
+  if (!report) return;
   sent.add(entry.key);
   Sentry.withScope((scope) => {
-    scope.setLevel(entry.level === "error" ? "error" : "warning");
+    scope.setLevel(report.level);
     scope.setTag("log.source", entry.source);
-    if (error) {
-      Sentry.captureException(error);
-      return;
-    }
-    // A named error, so the issue title is the message ("PackWarning: …") rather than this function's name.
-    const report = new Error(entry.message);
-    report.name = NAMES[`${entry.source}:${entry.level}`] ?? "PlayLogProblem";
-    // Group by the message, not the call site: every pack warning comes from the same warnPack line.
-    scope.setFingerprint([entry.source, entry.message]);
-    Sentry.captureException(report);
+    scope.setFingerprint(report.fingerprint);
+    if (report.kind === "exception") Sentry.captureException(error);
+    else Sentry.captureMessage(report.message, report.level);
   });
 }
 
@@ -66,7 +55,11 @@ export function startSentry(): void {
     environment: env.VITE_SENTRY_ENVIRONMENT || (dev ? "development" : "production"),
     // Set by the deploy build (pages.yml) to the commit, so an issue names the build that raised it.
     release: env.VITE_SENTRY_RELEASE || undefined,
-    integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      // A warning does not start an error replay (sentry-report.ts replayOnEvent).
+      Sentry.replayIntegration({ beforeErrorSampling: replayOnEvent }),
+    ],
     // Every trace while developing; a fifth of sessions in production.
     tracesSampleRate: dev ? 1.0 : 0.2,
     // The game calls no API of its own, so no request needs trace headers.

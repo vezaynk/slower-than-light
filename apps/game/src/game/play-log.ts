@@ -181,7 +181,8 @@ function describe(value: unknown): string {
   if (value instanceof Error) return value.message || value.name;
   if (typeof value === "string") return value;
   try {
-    return JSON.stringify(value);
+    // JSON.stringify gives undefined, not a string, for undefined, a function, or a symbol.
+    return JSON.stringify(value) ?? String(value);
   } catch {
     return String(value);
   }
@@ -201,6 +202,15 @@ function consoleText(args: readonly unknown[]): string {
   return [filled, ...rest.slice(i).map(describe)].join(" ").trim();
 }
 
+/** "A resource failed to load", naming the element and its address when the target is one. */
+function resourceFailure(target: EventTarget | null): string {
+  if (!target || target === (globalThis as { window?: unknown }).window) return "Unknown error";
+  const el = target as { tagName?: string; src?: string; href?: string };
+  const url = el.src || el.href;
+  const tag = el.tagName?.toLowerCase();
+  return `A resource failed to load${tag ? ` (<${tag}>` + (url ? ` ${url})` : ")") : ""}`;
+}
+
 let installed = false;
 
 /** Starts capturing. Safe to call more than once; the console still prints everything. */
@@ -215,15 +225,18 @@ export function installPlayLog(): void {
       logProblem(level, "console", consoleText(args), error?.stack, Date.now(), error);
     };
   }
-  window.addEventListener("error", (event) => {
-    const error = event.error instanceof Error ? event.error : undefined;
-    const message =
-      error?.message ||
-      event.message ||
-      (event.target && event.target !== window ? "A resource failed to load" : "Unknown error");
-    const place = event.filename ? ` (${event.filename}:${event.lineno}:${event.colno})` : "";
-    logProblem("error", "uncaught", `${message}${place}`, error?.stack, Date.now(), error);
-  });
+  // Capture phase: a failed <img>/<script>/<link> load fires `error` on the element and does not bubble, so only a
+  // capturing listener on window sees it.
+  window.addEventListener(
+    "error",
+    (event) => {
+      const error = event.error instanceof Error ? event.error : undefined;
+      const message = error?.message || event.message || resourceFailure(event.target);
+      const place = event.filename ? ` (${event.filename}:${event.lineno}:${event.colno})` : "";
+      logProblem("error", "uncaught", `${message}${place}`, error?.stack, Date.now(), error);
+    },
+    true,
+  );
   window.addEventListener("unhandledrejection", (event) => {
     const reason: unknown = event.reason;
     const error = reason instanceof Error ? reason : undefined;

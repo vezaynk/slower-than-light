@@ -127,48 +127,6 @@ function unlockLines(unlock: string): string[] {
     .filter((line) => line.length > 0);
 }
 
-export type ArticleLine = { depth: number; text: string };
-
-/**
- * The cruiser article for one loaded hull.
- * One spelling for every layout: the bay's names, in the hull's order.
- * Absent when that id is not in the pack.
- */
-export function cruiserArticle(id: string | undefined): ArticleLine[] | undefined {
-  const hull = hullDef(id);
-  const bay = hangarBay(id);
-  if (!hull || !bay) return undefined;
-  const lines: ArticleLine[] = [];
-  const quote = hull.quote.trim();
-  if (quote) lines.push({ depth: 0, text: `"${quote}"` });
-  lines.push({ depth: 1, text: `Default name: ${hull.name}` });
-  lines.push({ depth: 1, text: `Reactor: ${hull.reactor}` });
-  lines.push({ depth: 1, text: "Crew:" });
-  for (const seat of countedCrew(startingFit(hull).crew)) lines.push({ depth: 2, text: seat });
-  lines.push({ depth: 1, text: "Systems:" });
-  for (const system of bay.systems)
-    lines.push({ depth: 2, text: `${system.name} (${system.level})` });
-  lines.push({ depth: 1, text: slotHeader("Weapons", bay.weaponSlots) });
-  for (const weapon of bay.weapons) lines.push({ depth: 2, text: weapon.name });
-  lines.push({ depth: 1, text: slotHeader("Drones", bay.droneSlots) });
-  if (bay.droneSystem) {
-    for (const drone of bay.drones) lines.push({ depth: 2, text: drone.name });
-  } else {
-    lines.push({ depth: 2, text: "none (system not installed)" });
-  }
-  if (bay.augments.length > 0) {
-    lines.push({ depth: 1, text: "Augmentations:" });
-    for (const name of bay.augments) lines.push({ depth: 2, text: name });
-  }
-  lines.push({ depth: 1, text: "Resources:" });
-  lines.push({ depth: 2, text: `${START_FUEL} Fuel` });
-  lines.push({ depth: 2, text: `${hull.missiles} Missiles` });
-  lines.push({ depth: 2, text: `${hull.parts} Drone parts` });
-  lines.push({ depth: 0, text: "Unlock:" });
-  for (const line of bay.unlock) lines.push({ depth: 1, text: line });
-  return lines;
-}
-
 function slotHeader(label: string, slots: number | null): string {
   return slots != null ? `${label} (${slots} slots):` : `${label}:`;
 }

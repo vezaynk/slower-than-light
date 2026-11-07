@@ -7,7 +7,7 @@ import { augmentDef, droneDef, emitFtlShips, hullDef, packFromFtl, startingFit }
 import { createGame, hangarLoadout } from "./sim.ts";
 import { MISSING_AUGMENTS } from "./wiki/augments-missing.ts";
 import { hangarBay } from "./wiki/hangar-bay.ts";
-import { CRUISER_PAGES } from "./wiki/layout-pages.ts";
+import { hangarPages } from "./hangar-roster.ts";
 
 const picks = [
   { name: "Ada", uniform: 1 },
@@ -58,7 +58,7 @@ describe("hangar loadout", () => {
 
 const sorted = (list: readonly string[]) => [...list].sort();
 
-const layouts = CRUISER_PAGES.flatMap((page) => page.layouts);
+const layouts = hangarPages().flatMap((page) => page.layouts);
 
 describe("hangar sheet vs run, every layout", () => {
   it("has a hull for every playable layout", () => {

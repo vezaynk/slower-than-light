@@ -30,7 +30,7 @@ import { hangarLoadout } from "@/game/sim";
 import type { IconName } from "@/game/icons";
 import { useGame } from "@/game/store";
 import type { Difficulty as RunDifficulty } from "@/game/types";
-import { CRUISER_PAGES } from "@/game/wiki/layout-pages";
+import { hangarPages } from "@/game/hangar-roster";
 import { earnedIds } from "@/game/wiki/achievement-track";
 import { getUnlocks, resetUnlocks, subscribeUnlocks, unlockAll } from "@/game/unlock-store";
 import { emptyUnlocks, isUnlockedIn, ruleFor, shipAchievements } from "@/game/unlocks";
@@ -85,8 +85,10 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   const [letter, setLetter] = useState<Letter>("A");
   const [difficulty, setDifficulty] = useState<Difficulty>("EASY");
   const [listOpen, setListOpen] = useState(false);
+  // The loaded archive's cruisers, in FTL's hangar order (game/hangar-roster.ts).
+  const PAGES = useMemo(() => hangarPages(), []);
 
-  const page = CRUISER_PAGES[pageIndex] ?? CRUISER_PAGES[0];
+  const page = PAGES[pageIndex] ?? PAGES[0];
   const layout = page.layouts.find((item) => letterOf(item.heading) === letter) ?? page.layouts[0];
   const bay = hangarBay(layout.id);
   const active = letterOf(layout.heading);
@@ -108,7 +110,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
     const row = achievementDef(id);
     return row ? [row] : [];
   });
-  const allOpen = CRUISER_PAGES.every((p) => p.layouts.every((l) => isUnlockedIn(unlocks, l.id)));
+  const allOpen = PAGES.every((p) => p.layouts.every((l) => isUnlockedIn(unlocks, l.id)));
 
   const seats = seatsOf(layout.id);
   const [picks, setPicks] = useState<CrewPick[]>(() => defaultPicks(seats.length));
@@ -125,7 +127,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
   }
 
   function stepPage(dir: number) {
-    setPageIndex((index) => (index + dir + CRUISER_PAGES.length) % CRUISER_PAGES.length);
+    setPageIndex((index) => (index + dir + PAGES.length) % PAGES.length);
   }
 
   function start() {
@@ -330,7 +332,7 @@ export function Hangar({ onMenu }: { onMenu: () => void }) {
                 <CloseX onClose={() => setListOpen(false)} />
                 <p className="hangar-label">{"SHIPS"}</p>
                 <ul>
-                  {CRUISER_PAGES.map((cruiserPage, index) => (
+                  {PAGES.map((cruiserPage, index) => (
                     <li key={cruiserPage.page}>
                       <span className="hangar-ship-list-hull">
                         {portraitOf(cruiserPage.layouts[0]?.id) ? (

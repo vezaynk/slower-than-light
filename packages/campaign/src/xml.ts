@@ -7,6 +7,9 @@ import {
   allEvents,
   allFactions,
   allShipClasses,
+  allShipLists,
+  allBlueprintLists,
+  allShipEvents,
   allTextLists,
   allFillerLists,
   allDrones,
@@ -53,6 +56,9 @@ export function campaignPack(): ContentPack {
     achievements: allAchievements(),
     textLists: allTextLists(),
     shipClasses: allShipClasses(),
+    shipLists: allShipLists(),
+    blueprints: allBlueprintLists(),
+    shipEvents: allShipEvents(),
   };
 }
 
@@ -77,6 +83,8 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       events: pack.events,
       lists: pack.lists,
       textLists: pack.textLists,
+      blueprints: pack.blueprints,
+      shipEvents: pack.shipEvents,
     },
     gap: {
       crew: pack.crew,
@@ -87,6 +95,7 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       factions: pack.factions,
       empties: pack.empties,
       shipClasses: pack.shipClasses,
+      shipLists: pack.shipLists,
     },
   };
 }
@@ -97,13 +106,18 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
  */
 export function standInShipsXml(): string {
   const pack = campaignPack();
-  return emitFtlShips(pack.hulls ?? [], pack.crew ?? [], {
-    weapons: pack.weapons,
-    augments: pack.augments,
-    drones: pack.drones,
-    systems: pack.systems,
-    tunes: pack.tunes,
-  });
+  return emitFtlShips(
+    pack.hulls ?? [],
+    pack.crew ?? [],
+    {
+      weapons: pack.weapons,
+      augments: pack.augments,
+      drones: pack.drones,
+      systems: pack.systems,
+      tunes: pack.tunes,
+    },
+    pack.blueprints ?? [],
+  );
 }
 
 /** The catalog's sectors, written as ftl.dat's data/sector_data.xml writes them. */
@@ -123,7 +137,7 @@ const EVENT_FILES = [
  * An empty group is omitted. Blueprints and sectors are their own files.
  */
 export function standInEventFiles(): { path: string; xml: string }[] {
-  const { events, lists } = splitCampaign(campaignPack()).body;
+  const { events, lists, shipEvents } = splitCampaign(campaignPack()).body;
   const groups = new Map<string, EventDef[]>();
   for (const event of events ?? []) {
     const path = eventXmlFile(event);
@@ -133,10 +147,12 @@ export function standInEventFiles(): { path: string; xml: string }[] {
   }
   return EVENT_FILES.flatMap((path) => {
     const group = groups.get(path) ?? [];
-    if (group.length === 0) return [];
+    const ships = path === "data/events_ships.xml" ? shipEvents : undefined;
+    if (group.length === 0 && !ships?.length) return [];
     const xml = emitPack({
       events: group,
       lists: path === "data/events.xml" ? lists : undefined,
+      shipEvents: ships,
     });
     return [{ path, xml }];
   });

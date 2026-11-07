@@ -1128,6 +1128,18 @@ export type ShipClassDef = {
   pirate?: string;
 };
 
+/**
+ * Gap `<shipList name faction pirate>`: what a fight drawn from a blueprint list fields. FTL keeps this in its
+ * executable: a ship has no faction field, but rules (surrender and escape odds, Slug and Rock hull rules) depend on one.
+ * A list with a faction gives its ships that faction. A pirate list makes its ships pirates; their faction is the one a
+ * faction list gives the blueprint, or the blueprint it is the pirate version of (`_P`, `_P_DLC`).
+ */
+export type ShipListRule = {
+  id: string;
+  faction?: string;
+  pirate?: boolean;
+};
+
 export type ContentPack = {
   /** data/achievements.xml. */
   achievements?: AchievementDef[];
@@ -1153,6 +1165,7 @@ export type ContentPack = {
    * A real ftl.dat has no such tag; the gap writes the rows.
    */
   shipClasses?: ShipClassDef[];
+  shipLists?: ShipListRule[];
   empties?: EmptyBeaconDef[];
   /** Shared scrap scaling and resource bands. Absent until a pack loads one. */
   rewards?: RewardTable;

@@ -17,6 +17,8 @@ import {
 import type { Beacon, Game } from "./types.ts";
 import { START_SECTOR } from "./sector-ids.ts";
 import {
+  aim,
+  armWeapon,
   choose,
   chooseSector,
   commitJump,
@@ -31,6 +33,7 @@ import {
   powerUp,
   saveGame,
   step,
+  toggleAutoAll,
 } from "./sim.ts";
 import { extractArchive, type FtlExtract } from "@stl/ftldat";
 import { loadExtractedPack } from "./pack/install.ts";
@@ -236,9 +239,29 @@ function settle(g: Game): void {
   fail(g, "event did not return to the map");
 }
 
+/**
+ * Aim every gun at the enemy's Weapons room (or its first room) and turn autofire on, as a player shoots back while
+ * the drive charges. Without it the walk only survives a fight the enemy happens to lose slowly.
+ */
+function shootBack(g: Game): void {
+  const enemy = g.enemy;
+  if (!enemy) return;
+  const room = enemy.rooms.find((item) => item.system === "weapons") ?? enemy.rooms[0];
+  if (!room) return;
+  for (const weapon of g.player.weapons) {
+    if (weapon.target) continue;
+    armWeapon(g, weapon.uid);
+    // A beam takes two clicks: its start, then its end.
+    aim(g, room.id);
+    if (g.targeting) aim(g, room.id);
+  }
+  if (!g.autofireAll) toggleAutoAll(g);
+}
+
 function chargeAndJump(g: Game): void {
   const beacon = g.here;
   seatPilot(g);
+  shootBack(g);
   let charged = 0;
   while (g.phase === "combat" && g.flee < 1 && charged < CHARGE_S) {
     // Ion clamps the bars off and does not put them back. One bar lets the drive charge.

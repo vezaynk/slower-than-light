@@ -29,6 +29,7 @@ import type {
   SectorDef,
   SectorQuota,
   ShipClassDef,
+  ShipListRule,
   SectorRarity,
   EmptyBeaconDef,
   FactionSurrender,
@@ -135,6 +136,7 @@ export function packFromFtl(
   const factions = new Catalog<FactionSurrender>();
   const empties = new Catalog<EmptyBeaconDef>();
   const shipClasses = new Catalog<ShipClassDef>();
+  const shipLists = new Catalog<ShipListRule>();
   let rewards: RewardTable | undefined;
   let beaconEvents: BeaconEvents | undefined;
   const strings = new Map<string, string>();
@@ -213,6 +215,9 @@ export function packFromFtl(
       } else if (node.tagName === "shipClass") {
         const row = readShipClass(node);
         if (row) shipClasses.put(row);
+      } else if (node.tagName === "shipList") {
+        const row = readShipList(node);
+        if (row) shipLists.put(row);
       } else if (node.tagName === "ship") {
         const row = readShipEvent(node, strings, textLists);
         if (row) {
@@ -262,6 +267,7 @@ export function packFromFtl(
   if (factions.rows.length > 0) pack.factions = factions.rows;
   if (empties.rows.length > 0) pack.empties = empties.rows;
   if (shipClasses.rows.length > 0) pack.shipClasses = shipClasses.rows;
+  if (shipLists.rows.length > 0) pack.shipLists = shipLists.rows;
   if (textLists.size > 0) {
     pack.textLists = [...textLists.entries()].map(([id, lines]) => ({ id, lines }));
   }
@@ -292,6 +298,19 @@ function readShipClass(node: XmlElement): ShipClassDef | undefined {
   };
   const pirate = attr(node, "pirate")?.trim();
   if (pirate) row.pirate = pirate;
+  return row;
+}
+
+function readShipList(node: XmlElement): ShipListRule | undefined {
+  const id = attr(node, "name")?.trim();
+  if (!id) {
+    warnPack("A <shipList> has no name; it is skipped.");
+    return undefined;
+  }
+  const row: ShipListRule = { id };
+  const faction = attr(node, "faction")?.trim();
+  if (faction) row.faction = faction;
+  if (attr(node, "pirate")?.trim() === "true") row.pirate = true;
   return row;
 }
 

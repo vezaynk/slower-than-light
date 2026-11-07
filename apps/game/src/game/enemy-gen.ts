@@ -213,8 +213,12 @@ export const ENEMY_RUNNABLE = new Set([
  * of parts as they have drones ... Hacking does not count towards this increase".
  */
 export function enemyParts(classId: string, drones: number): number {
-  const base = ENEMY_DRONES[classId]?.parts ?? ENEMY_PARTS_BASELINE;
-  return Math.max(base, drones * 2);
+  return stockedParts(ENEMY_DRONES[classId]?.parts ?? ENEMY_PARTS_BASELINE, drones);
+}
+
+/** The same rule on a blueprint's own `drones` count: at least two parts per drone it fields. */
+export function stockedParts(parts: number, drones: number): number {
+  return Math.max(parts, drones * 2);
 }
 
 /**
@@ -1119,35 +1123,29 @@ export function optionalChance(sector: number, difficulty: Difficulty = "normal"
 
 const STATION: EnemySystem[] = ["pilot", "weapons", "shields", "engines"];
 
-export function rollEnemy(
-  cls: EnemyClass,
-  pirate: boolean,
+/**
+ * Mathchamp's system generation: "First, it rolls a maximum level for each system. Second, it rolls non-starting
+ * systems. Finally, it upgrades systems from a limited budget." Each system is (starting level, blueprint maximum):
+ * a blueprint's `power` and `max`. `optional` are the systems a blueprint marks `start="false"`.
+ * Returned pilot first, so a lone crew member mans it, then the main systems.
+ */
+export function generateSystems(
+  starting: readonly [EnemySystem, Range][],
+  optional: readonly [EnemySystem, Range][],
   ctx: PoolContext,
   rand: () => number,
-): EnemySpec {
-  const automated = cls.faction === "auto";
-  // Mathchamp: "First, it rolls a maximum level for each system. Second, it rolls non-starting systems. Finally, it
-  // upgrades systems from a limited budget."
+): [EnemySystem, number][] {
   const caps = new Map<EnemySystem, number>();
-  for (const [id, r] of [...Object.entries(cls.systems), ...Object.entries(cls.optional)] as [
-    EnemySystem,
-    Range,
-  ][]) {
-    caps.set(id, rollMaxLevel(r, ctx, rand));
-  }
+  for (const [id, r] of [...starting, ...optional]) caps.set(id, rollMaxLevel(r, ctx, rand));
   const levels = new Map<EnemySystem, number>();
-  // Faction pages print (starting level - blueprint maximum); a starting system begins at the first number and only the
-  // budget raises it (Mathchamp: "upgrades systems from a limited budget").
-  for (const [id, r] of Object.entries(cls.systems) as [EnemySystem, Range][]) levels.set(id, r[0]);
+  // A starting system begins at its starting level and only the budget raises it (Mathchamp: "upgrades systems from a
+  // limited budget").
+  for (const [id, r] of starting) levels.set(id, r[0]);
   // UPGRADE_BUDGET holds sectors 1-8, one row each. INFERRED: a sector outside 1-8 uses the nearest row.
   const row = UPGRADE_BUDGET[ctx.difficulty][Math.max(0, Math.min(7, ctx.sector - 1))];
   const defense = row[1];
   let [offense, , general] = row;
-  for (const [id, r] of Object.entries(cls.optional) as [EnemySystem, Range][]) {
-    // Faction pages: "[Pirate Fighter only]" fits only the pirate version; "[Rock Investigator only]" and
-    // "[Mantis Scout only]" fit only the regular one.
-    const only = cls.optionalNotes?.[id];
-    if (only && /pirate/i.test(only) !== pirate) continue;
+  for (const [id, r] of optional) {
     if (rand() >= optionalChance(ctx.sector, ctx.difficulty)) continue;
     // Mathchamp: installed "at its starting power". "If the optional system is weapons, drone control, or teleporter
     // (not artillery), then it reduces the remaining offensive budget by 1. Other systems reduce the general budget ...
@@ -1165,9 +1163,30 @@ export function rollEnemy(
   const defLeft = spendBudget(levels, caps, DEFENSIVE, defense, rand);
   spendBudget(levels, caps, null, general + offLeft + defLeft, rand);
   const installed: [EnemySystem, number][] = [...levels.entries()];
-  // Pilot first so a lone crew member mans it; then the main systems.
   const rank = (id: EnemySystem) => (STATION.includes(id) ? STATION.indexOf(id) : STATION.length);
   installed.sort((a, b) => rank(a[0]) - rank(b[0]));
+  return installed;
+}
+
+export function rollEnemy(
+  cls: EnemyClass,
+  pirate: boolean,
+  ctx: PoolContext,
+  rand: () => number,
+): EnemySpec {
+  const automated = cls.faction === "auto";
+  const optional = (Object.entries(cls.optional) as [EnemySystem, Range][]).filter(([id]) => {
+    // Faction pages: "[Pirate Fighter only]" fits only the pirate version; "[Rock Investigator only]" and
+    // "[Mantis Scout only]" fit only the regular one.
+    const only = cls.optionalNotes?.[id];
+    return !(only && /pirate/i.test(only) !== pirate);
+  });
+  const installed = generateSystems(
+    Object.entries(cls.systems) as [EnemySystem, Range][],
+    optional,
+    ctx,
+    rand,
+  );
   const systems: EnemySpec["systems"] = {};
   const unwired: EnemySpec["unwired"] = [];
   const kits: EnemySpec["kits"] = {};
@@ -1248,7 +1267,9 @@ export function rollEnemy(
       armed.flags.laser || armed.flags.hull,
       listedDrones,
     );
-    spec.parts = listedDrones ? (blueprint?.parts ?? 0) : enemyParts(cls.id, spec.drones.length);
+    spec.parts = listedDrones
+      ? stockedParts(blueprint?.parts ?? 0, spec.drones.length)
+      : enemyParts(cls.id, spec.drones.length);
   }
   return spec;
 }
@@ -1553,23 +1574,32 @@ export function fightHull(
   return undefined;
 }
 
-/** Systems the blueprint fits at the start. A slot with `start` false is left empty. */
-function installedSystems(hull: HullDef): [EnemySystem, number][] {
-  const levels = new Map<EnemySystem, number>();
+/**
+ * The blueprint's systems after Mathchamp's generation (generateSystems): each system's `power` is its starting level
+ * and `max` its blueprint maximum; a `start="false"` system is optional. ftl.dat's REBEL_SKINNY shields are
+ * power 2, max 8, so they rise with the sector instead of staying at 2.
+ */
+function installedSystems(
+  hull: HullDef,
+  ctx: PoolContext,
+  rand: () => number,
+): [EnemySystem, number][] {
+  const starting = new Map<EnemySystem, Range>();
+  const optional = new Map<EnemySystem, Range>();
   for (const item of hull.installs ?? []) {
-    if (!item.start || item.power < 1) continue;
+    if (item.power < 1) continue;
     const id = FROM_INSTALL[item.id];
     if (!id) {
       warnPack(`${hull.id}: system "${item.id}" is not a system this fight runs; it is skipped.`);
       continue;
     }
-    levels.set(id, Math.max(levels.get(id) ?? 0, item.power));
+    const range: Range = [item.power, Math.max(item.power, item.max ?? item.power)];
+    const into = item.start ? starting : optional;
+    const prev = into.get(id);
+    into.set(id, prev ? [Math.max(prev[0], range[0]), Math.max(prev[1], range[1])] : range);
   }
-  if (levels.has("clonebay")) levels.delete("medbay");
-  const installed = [...levels.entries()];
-  const rank = (id: EnemySystem) => (STATION.includes(id) ? STATION.indexOf(id) : STATION.length);
-  installed.sort((a, b) => rank(a[0]) - rank(b[0]));
-  return installed;
+  for (const id of starting.keys()) optional.delete(id);
+  return generateSystems([...starting], [...optional], ctx, rand);
 }
 
 function systemInRoom(hull: HullDef, index: number): EnemySystem | null {
@@ -1654,8 +1684,18 @@ export function hullDisplayName(hull: Pick<HullDef, "id" | "name" | "cruiser">):
   return hull.cruiser.trim() || name || hull.id;
 }
 
+/**
+ * Hull by sector: the blueprint's health plus one per sector after the first, with Easy delayed a sector. The faction
+ * pages' ranges are this rule on ftl.dat's health: REBEL_SKINNY 10 is "10-17" over sectors 1-8, CIRCLE_SCOUT 7 is
+ * "8-13" over sectors 2-7, ROCK_ASSAULT 12 is "17-18" in sectors 6-7, and each "(x-y on Easy)" is one lower.
+ */
+export function blueprintHull(hull: Pick<HullDef, "health">, ctx: PoolContext): number {
+  const base = hull.health != null && hull.health > 0 ? hull.health : 1;
+  return base + genSector(ctx.sector, ctx.difficulty) - 1;
+}
+
 export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number): EnemySpec {
-  const installed = installedSystems(hull);
+  const installed = installedSystems(hull, ctx, rand);
   const seated = seatHull(hull, installed);
   const systems: EnemySpec["systems"] = {};
   const kits: EnemySpec["kits"] = {};
@@ -1690,7 +1730,7 @@ export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number
     name: hullDisplayName(hull),
     pirate: false,
     automated: crew.length === 0,
-    hull: hull.health != null && hull.health > 0 ? hull.health : 1,
+    hull: blueprintHull(hull, ctx),
     systems,
     kits,
     unwired,
@@ -1715,6 +1755,7 @@ export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number
       armed.flags.laser || armed.flags.hull,
       droneNames(hull),
     );
+    spec.parts = stockedParts(hull.parts, spec.drones.length);
   }
   return spec;
 }

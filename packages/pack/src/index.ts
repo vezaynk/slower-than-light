@@ -124,6 +124,9 @@ export {
   fillerList,
   hullDef,
   allShipClasses,
+  allShipLists,
+  allBlueprintLists,
+  shipAllegiance,
   shipClassBlueprint,
   loadPack,
   resetPackForTests,
@@ -229,5 +232,6 @@ export type {
   WeaponBlueprint,
   WeaponKind,
   ShipClassDef,
+  ShipListRule,
 } from "./types.ts";
 export type { AugmentId, KitId, SysId } from "./ids.ts";

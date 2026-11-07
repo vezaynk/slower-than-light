@@ -3,7 +3,6 @@
  * The cruiser pages stay the index. Neither surface reads their lines.
  */
 import {
-  START_FUEL,
   augmentDef,
   crewDef,
   droneDef,
@@ -125,19 +124,4 @@ function unlockLines(unlock: string): string[] {
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
-}
-
-function slotHeader(label: string, slots: number | null): string {
-  return slots != null ? `${label} (${slots} slots):` : `${label}:`;
-}
-
-/** One line per race, in the order the seats first name that race. */
-function countedCrew(crew: { kin: string }[]): string[] {
-  const order: string[] = [];
-  const counts = new Map<string, number>();
-  for (const seat of crew) {
-    if (!counts.has(seat.kin)) order.push(seat.kin);
-    counts.set(seat.kin, (counts.get(seat.kin) ?? 0) + 1);
-  }
-  return order.map((kin) => `${crewDef(kin).name} (${counts.get(kin)})`);
 }

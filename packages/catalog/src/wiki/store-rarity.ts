@@ -204,4 +204,6 @@ export const STORE_RARITY: Readonly<Record<string, number>> = {
   BOARDER: 4,
   // Drone Control, "Ion Intruder Drone": Store rarity.
   BOARDER_ION: 4,
+  // The Rebel Flagship's "Boarding Drone (Boss)". Enemy-only, so no draw picks it.
+  BOARDER_BOSS: 0,
 };

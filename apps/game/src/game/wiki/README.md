@@ -69,7 +69,8 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    catalog writes them from `catalog/src/wiki/flagship-stages.ts`). `flagship-layout.ts` already reads the blueprint's
    grid and stays as code. Each artillery pod charges at its own blueprint power from its weapon's `<cooldown>` (FTL's
    artillery rule: the cooldown is the level-2 charge, a quarter more or less per level); `wiki/flagship-weapons.ts`
-   is gone. Left as rules for step 5: the stage-3 Zoltan Shield and the crew seats. Still to read from the archive:
-   the stage-2 drone loadout (`droneList`).
+   is gone. Drone Control flies the stage blueprint's `droneList` in its order (ftl.dat's `BOARDER_BOSS` flies by its
+   droneBlueprint type, at its own power: `extras/flown.ts` `flownAs`). Left as rules for step 5: the stage-3 Zoltan
+   Shield and the crew seats.
 4. **Events** in section 2, one page at a time.
 5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`.

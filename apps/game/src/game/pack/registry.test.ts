@@ -173,6 +173,8 @@ describe("content pack", () => {
         ["SHIP_REPAIR", "Hull Repair Drone", 85],
         ["BOARDER", "Boarding Drone", 70],
         ["BOARDER_ION", "Ion Intruder Drone", 65],
+        // The Rebel Flagship's stage-2 boarder, written after the shelf (catalog BOSS_DRONES).
+        ["BOARDER_BOSS", "Boarding Drone (Boss)", 70],
       ],
     );
   });

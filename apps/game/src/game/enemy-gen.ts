@@ -35,6 +35,7 @@ import type {
 } from "@stl/pack";
 import type { KinId } from "./extras/kin.ts";
 import { crewRandomIds, internalDrones } from "./blueprint-use.ts";
+import { flownAs } from "./extras/flown.ts";
 import { noteListPlayed } from "./played-lists.ts";
 import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
@@ -158,8 +159,6 @@ const SCHEMATIC_FALLBACK: Record<string, number> = {
   BATTLE: 2,
   /** Defense Drone Mark II on an enemy blueprint. Same 3 power as DEFENSE_2. */
   DEFENSE_2_ENEMY: 3,
-  /** Boarding Drone (boss). The archive costs 2, not the 3 of BOARDER. */
-  BOARDER_BOSS: 2,
   /** Anti-Ship Fire Drone. Same 3 power as fire. */
   COMBAT_FIRE: 3,
   /** Anti-Ship Ion Drone I: "power 2". Flies as a combat drone. */
@@ -193,7 +192,6 @@ export const SCHEMATIC_POWER: Record<string, number> = liveTable(
 const ARCHIVE_SIM: Record<string, string> = {
   BATTLE: "personnel",
   DEFENSE_2_ENEMY: "DEFENSE_2",
-  BOARDER_BOSS: "BOARDER",
   COMBAT_FIRE: "fire",
   COMBAT_ION: "COMBAT_1",
   COMBAT_MISSILE: "COMBAT_1",
@@ -202,11 +200,20 @@ const ARCHIVE_SIM: Record<string, string> = {
 };
 
 function schematicPower(id: string): number {
-  const direct = SCHEMATIC_POWER[id];
+  const direct = SCHEMATIC_POWER[id] ?? droneDef(id)?.power;
   if (direct != null) return direct;
-  const sim = ARCHIVE_SIM[id];
+  const sim = ARCHIVE_SIM[id] ?? flownAs(id);
   if (!sim) return Infinity;
   return SCHEMATIC_POWER[sim] ?? Infinity;
+}
+
+/**
+ * A listed id appended after the draw rather than drawn: an archive alias, or a schematic the drone code does not
+ * name and flies by its droneBlueprint type (extras/flown.ts flownAs), such as ftl.dat's BOARDER_BOSS.
+ */
+function appendedDrone(id: string): boolean {
+  if (ARCHIVE_SIM[id] != null) return ENEMY_RUNNABLE.has(id);
+  return !ENEMY_RUNNABLE.has(id) && flownAs(id) != null;
 }
 
 /**
@@ -228,7 +235,6 @@ export const ENEMY_RUNNABLE = new Set([
   "BATTLE",
   "BOARDER",
   "BOARDER_ION",
-  "BOARDER_BOSS",
   "DEFENSE_2_ENEMY",
   "BOSS_DEFENSE_2",
   "COMBAT_FIRE",
@@ -274,7 +280,7 @@ export function rollDrones(
   // A blueprint that named them keeps them.
   const blocked = listed ? undefined : internalDrones();
   const pool = row.drones.filter(
-    (id) => ENEMY_RUNNABLE.has(id) && ARCHIVE_SIM[id] == null && !blocked?.has(id),
+    (id) => ENEMY_RUNNABLE.has(id) && !appendedDrone(id) && !blocked?.has(id),
   );
   const out: string[] = [];
   let open = flagsOpen;
@@ -295,7 +301,7 @@ export function rollDrones(
   }
   if (listed) {
     for (const id of row.drones) {
-      if (ARCHIVE_SIM[id] == null || !ENEMY_RUNNABLE.has(id) || out.includes(id)) continue;
+      if (!appendedDrone(id) || out.includes(id)) continue;
       out.push(id);
     }
   }

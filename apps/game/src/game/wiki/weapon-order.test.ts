@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { blueprintList } from "@stl/pack";
 import { primeWeapons } from "../extras/augments.ts";
 import { reorderDroneSlots, tickEnemyDrones } from "../extras/swarm.ts";
-import { enemyMayMount, rollEnemy } from "../enemy-gen.ts";
+import { enemyHulls, enemyMayMount, specFromHull } from "../enemy-gen.ts";
 import {
   aim,
   applyImpact,
@@ -23,7 +24,6 @@ import {
   zoltanBars,
 } from "../sim.ts";
 import type { Crew, Game, Kit, Room, WeaponInst } from "../types.ts";
-import { ENEMY_CLASSES, ENEMY_WEAPON_POOLS } from "./enemy-ships.ts";
 import { SWARM_CUTS, swarmLanding } from "./swarm-aim.ts";
 
 function gun(defId: string, extra: Partial<WeaponInst> = {}): WeaponInst {
@@ -152,6 +152,16 @@ function findSeed(pred: (roll: number) => boolean): number {
 function seeded(seed: number) {
   let s = seed >>> 0 || 1;
   return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296;
+}
+
+/** Every enemy blueprint's gun list (its weaponList load). */
+function enemyGunLists(): readonly string[][] {
+  const ids = new Set(
+    enemyHulls()
+      .map((hull) => hull.weaponLoad)
+      .filter((id): id is string => !!id),
+  );
+  return [...ids].map((id) => [...(blueprintList(id) ?? [])]);
 }
 
 describe("charger banks", () => {
@@ -485,21 +495,20 @@ describe("drone order and enemy chargers", () => {
   it("never mounts Laser Charger (S), and an enemy Laser Charger Mark II fires one shot", () => {
     assert.equal(enemyMayMount("LASER_CHARGEGUN_PLAYER"), false);
     assert.equal(enemyMayMount("LASER_CHARGEGUN_2"), true);
-    for (const names of Object.values(ENEMY_WEAPON_POOLS))
-      assert.equal(names.includes("Laser Charger (S)"), false);
-    for (const cls of ENEMY_CLASSES) {
-      const spec = rollEnemy(
-        cls,
-        false,
+    for (const names of enemyGunLists())
+      assert.equal(names.includes("LASER_CHARGEGUN_PLAYER"), false);
+    for (const hull of enemyHulls()) {
+      const spec = specFromHull(
+        hull,
         {
           sector: 3,
           sectorId: "CIVILIAN_SECTOR",
           sectorName: "Civilian Sector",
           difficulty: "normal",
         },
-        seeded(cls.id.length + 4),
+        seeded(hull.id.length + 4),
       );
-      assert.equal(spec.weapons.includes("LASER_CHARGEGUN_PLAYER"), false, cls.id);
+      assert.equal(spec.weapons.includes("LASER_CHARGEGUN_PLAYER"), false, hull.id);
     }
 
     // An Auto-ship: nobody aboard its weapons room, so the 5 second clock is not a manning bonus or a Zoltan bar.
@@ -637,24 +646,23 @@ describe("swarm missiles", () => {
     assert.equal(enemyMayMount("MISSILE_CHARGEGUN"), false);
     assert.equal(enemyMayMount("MISSILES_BURST"), false);
     assert.equal(enemyMayMount("LASER_CHARGEGUN_2"), true);
-    for (const names of Object.values(ENEMY_WEAPON_POOLS)) {
-      assert.equal(names.includes("Swarm Missiles"), false);
-      assert.equal(names.includes("Pegasus Missile"), false);
+    for (const names of enemyGunLists()) {
+      assert.equal(names.includes("MISSILE_CHARGEGUN"), false);
+      assert.equal(names.includes("MISSILES_BURST"), false);
     }
-    for (const cls of ENEMY_CLASSES) {
-      const spec = rollEnemy(
-        cls,
-        false,
+    for (const hull of enemyHulls()) {
+      const spec = specFromHull(
+        hull,
         {
           sector: 3,
           sectorId: "CIVILIAN_SECTOR",
           sectorName: "Civilian Sector",
           difficulty: "normal",
         },
-        seeded(cls.id.length + 9),
+        seeded(hull.id.length + 9),
       );
-      assert.equal(spec.weapons.includes("MISSILE_CHARGEGUN"), false, cls.id);
-      assert.equal(spec.weapons.includes("MISSILES_BURST"), false, cls.id);
+      assert.equal(spec.weapons.includes("MISSILE_CHARGEGUN"), false, hull.id);
+      assert.equal(spec.weapons.includes("MISSILES_BURST"), false, hull.id);
     }
   });
 

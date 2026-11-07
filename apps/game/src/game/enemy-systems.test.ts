@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { rollEnemy } from "./enemy-gen.ts";
+import { enemyHulls, specFromHull } from "./enemy-gen.ts";
 import { enemyHoldsFire } from "./extras/veil.ts";
 import { createGame, startCombat, step } from "./sim.ts";
-import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
 
 function seeded(seed: number) {
   let s = seed >>> 0 || 1;
@@ -19,14 +18,14 @@ const ctx = {
 describe("enemy subsystems: groundwork", () => {
   it("turns drones, hacking, cloaking, teleporter, clone bay, and mind control into kits", () => {
     const seen = new Set<string>();
-    for (const cls of ENEMY_CLASSES) {
+    for (const hull of enemyHulls()) {
       for (let i = 0; i < 8; i++) {
-        const spec = rollEnemy(cls, false, ctx, seeded(i * 13 + cls.id.length));
+        const spec = specFromHull(hull, ctx, seeded(i * 13 + hull.id.length));
         Object.keys(spec.kits).forEach((k) => seen.add(k));
         assert.deepEqual(
           spec.unwired.map((u) => u.id).filter((id) => id !== "artillery"),
           [],
-          cls.id,
+          hull.id,
         );
       }
     }
@@ -35,9 +34,8 @@ describe("enemy subsystems: groundwork", () => {
   });
 
   it("sizes the reactor to the installed capacity", () => {
-    const spec = rollEnemy(
-      ENEMY_CLASSES.find((c) => c.id === "engi-hacker")!,
-      false,
+    const spec = specFromHull(
+      enemyHulls().find((hull) => hull.id === "CIRCLE_BOMBER")!,
       ctx,
       seeded(3),
     );
@@ -48,10 +46,10 @@ describe("enemy subsystems: groundwork", () => {
   });
 
   it("never fits a Clone Bay and a Medbay together", () => {
-    for (const cls of ENEMY_CLASSES) {
+    for (const hull of enemyHulls()) {
       for (let i = 0; i < 12; i++) {
-        const spec = rollEnemy(cls, false, ctx, seeded(i * 7 + 1));
-        assert.ok(!(spec.kits.clonebay && spec.systems.medbay), cls.id);
+        const spec = specFromHull(hull, ctx, seeded(i * 7 + 1));
+        assert.ok(!(spec.kits.clonebay && spec.systems.medbay), hull.id);
       }
     }
   });

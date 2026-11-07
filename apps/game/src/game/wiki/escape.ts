@@ -35,7 +35,7 @@ export type EscapePlan = {
 export type EscapeContext = {
   /** makeEnemy tier: "boss", "elite", or a pool request. */
   tier: string;
-  /** Faction of the documented class (wiki/enemy-ships.ts). */
+  /** The ship's faction, from the gap's <shipList> rows (@stl/pack shipAllegiance). */
   faction?: string;
   /** The ship is a pirate version. */
   pirate?: boolean;

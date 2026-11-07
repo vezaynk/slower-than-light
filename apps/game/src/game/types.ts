@@ -592,7 +592,7 @@ export type Ship = {
   zoltanOver?: boolean;
   /** Augment ids on an explicit enemy hull. The player's rack is `Game.augments`. */
   augments?: string[];
-  /** Enemy hulls: the wiki class this ship was rolled from (wiki/enemy-ships.ts). */
+  /** Enemy hulls: the archive blueprint this ship was built from. */
   classId?: string;
   /** Faction page the class comes from, and whether this is the pirate version. */
   faction?: string;

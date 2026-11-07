@@ -1,7 +1,6 @@
 /**
- * Picks a documented enemy class for the current sector and rolls one ship from it.
- * Data: wiki/enemy-ships.ts (faction pages). Rules are cited per line; anything marked
- * INFERRED fills a gap the pages leave (they print ranges, not how a sector picks inside them).
+ * Builds an enemy ship from an archive blueprint (specFromHull), and finds the blueprint a fight asks for
+ * (fightHull, archiveFight). Generation follows Mathchamp's rules, cited per line; anything marked INFERRED fills a gap.
  * Pure: the caller (sim makeEnemy) turns the spec into rooms, systems, doors, and crew.
  */
 import "./pack/base.ts";
@@ -40,18 +39,40 @@ import { noteListPlayed } from "./played-lists.ts";
 import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import type { Difficulty, DoorMark, KitId, SysId } from "./types.ts";
-import { enemyLayout } from "./wiki/enemy-layouts.ts";
-import {
-  ENEMY_CLASSES,
-  ENEMY_DRONES,
-  ENEMY_PARTS_BASELINE,
-  ENEMY_WEAPON_POOLS,
-  type EnemyClass,
-  type EnemySystem,
-  type Range,
-} from "./wiki/enemy-ships.ts";
-// @agent:sector-hostiles. Documented / derived hostile encounters per sector type.
-import { sectorHostiles } from "./wiki/sector-hostiles.ts";
+
+/** A system level pair: starting level and blueprint maximum. */
+export type Range = [number, number];
+
+export type EnemySystem =
+  | "shields"
+  | "engines"
+  | "oxygen"
+  | "weapons"
+  | "pilot"
+  | "medbay"
+  | "doors"
+  | "sensors"
+  | "drones"
+  | "hacking"
+  | "cloaking"
+  | "teleporter"
+  | "clonebay"
+  | "mindcontrol"
+  | "battery"
+  | "artillery";
+
+/** The factions a fight's wording names (requestFor) and the gap's <shipList> rows give a ship. */
+export type EnemyFaction =
+  | "rebel"
+  | "auto"
+  | "engi"
+  | "mantis"
+  | "slug"
+  | "rock"
+  | "zoltan"
+  | "crystal"
+  | "lanius"
+  | "federation";
 
 export type EnemyRoomSpec = {
   id: string;
@@ -216,14 +237,6 @@ export const ENEMY_RUNNABLE = new Set([
   "DRONE_HACKING",
 ]);
 
-/**
- * @agent:drones. Enemy Ships, "Missile and drone stocks": "the game will always give them at least double the number
- * of parts as they have drones ... Hacking does not count towards this increase".
- */
-export function enemyParts(classId: string, drones: number): number {
-  return stockedParts(ENEMY_DRONES[classId]?.parts ?? ENEMY_PARTS_BASELINE, drones);
-}
-
 /** The same rule on a blueprint's own `drones` count: at least two parts per drone it fields. */
 export function stockedParts(parts: number, drones: number): number {
   return Math.max(parts, drones * 2);
@@ -237,8 +250,7 @@ export function stockedParts(parts: number, drones: number): number {
 const COMBAT_DRONES = new Set(["COMBAT_1", "COMBAT_2", "COMBAT_BEAM", "COMBAT_BEAM_2", "fire"]);
 
 /**
- * @agent:drones. Which drones this hull fields. Allowed schematics: Template:Enemy ships drones (ENEMY_DRONES).
- * Count cap: that row's max parts column ("# of drones ×2"), halved.
+ * @agent:drones. Which drones this hull fields: the blueprint's droneList, at most its `count`.
  * Mathchamp, "Drone generation has the following rules": the drone "cannot use more power than is available", cannot
  * be 0 power, "If the system is at least level 4, then the drone's power must be strictly less than the total system
  * power", "must not have the same blueprint as an already installed drone", and "If either flag from the weapon
@@ -254,7 +266,7 @@ export function rollDrones(
   flagsOpen = false,
   listed?: { drones: string[]; maxDrones: number },
 ): string[] {
-  const row = listed ?? ENEMY_DRONES[classId];
+  const row = listed;
   if (!row || level <= 0) return [];
   // Archive aliases stay out of the draw so a native schematic is not dropped to make room.
   // A hull that listed one still keeps that id, appended below.
@@ -386,27 +398,13 @@ export type PoolContext = {
   difficulty: Difficulty;
 };
 
-/**
- * What a fight asks for: any ship in the sector pool, or one faction, and/or a pirate.
- * `classId`: one ship class (wiki/enemy-ships.ts id), when the event page names it ("Fight a Mantis Bomber", "always a
- * Slug Assault class"). requestFor reads it from the fight string by class name ("Mantis Bomber", "Slug Assault pirate
- * ship") or id ("slug-assault").
- */
+/** What a fight's wording asks for: one faction, and/or a pirate (archiveFight). */
 export type EnemyRequest = {
-  faction?: EnemyClass["faction"];
+  faction?: EnemyFaction;
   pirate?: boolean;
-  event?: string;
-  classId?: string;
 };
 
-function slug(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-const FACTION_WORDS: [RegExp, EnemyClass["faction"]][] = [
+const FACTION_WORDS: [RegExp, EnemyFaction][] = [
   [/auto/i, "auto"],
   [/rebel/i, "rebel"],
   [/engi/i, "engi"],
@@ -429,182 +427,7 @@ export function requestFor(tier: string): EnemyRequest {
     : faction && faction !== "federation"
       ? false
       : undefined;
-  const classId = classIdFor(tier);
-  return classId ? { faction, pirate, classId } : { faction, pirate };
-}
-
-/** Class names longest first, so "Rock Assault (Elite)" wins over "Rock Assault". */
-const CLASS_NAMES = ENEMY_CLASSES.map((c) => ({ id: c.id, name: c.name.toLowerCase() })).sort(
-  (a, b) => b.name.length - a.name.length,
-);
-
-/** The ship class a fight string names ("Fight a Mantis Bomber"), by class name or id; undefined for "Mantis ship". */
-export function classIdFor(tier: string): string | undefined {
-  const t = tier.toLowerCase();
-  return CLASS_NAMES.find((c) => t.includes(c.name) || t === c.id)?.id;
-}
-
-/** Enemy Ships, "Pirated ships": Engi, Lanius, and Crystal have no pirate versions; Federation is only fought as pirates. */
-function canBePirate(c: EnemyClass) {
-  return !!c.pirate || c.faction === "federation";
-}
-
-function fleetOnly(c: EnemyClass) {
-  // Rebel Ships, Elite Fighter / Elite Assault: "at beacons overtaken by the Rebel Fleet".
-  return /overtaken by the Rebel Fleet/i.test(c.where ?? "");
-}
-
-type PoolEntry = { cls: EnemyClass; pirate: boolean };
-
-/**
- * Classes this sector's number can field, each as regular and/or pirate: each class's "Encountered in sectors" range and
- * `where` notes. An event that asks for a ship draws from this (the event page itself places that ship here).
- * Sector 1: wiki "Sectors", Civilian (Starting) Sector lists the HOSTILE_CIVILIAN and HOSTILE1 event lists,
- * whose fights are Rebel, Auto-ship, Mantis, and Pirate ships only.
- */
-export function rangePool(ctx: PoolContext): PoolEntry[] {
-  const out: { cls: EnemyClass; pirate: boolean }[] = [];
-  for (const cls of ENEMY_CLASSES) {
-    if (cls.uniqueTo || fleetOnly(cls)) continue;
-    // Mathchamp: "Blueprint selection (minimum/maximum sector for blueprints) is affected by the Easy sector delay."
-    const at = genSector(ctx.sector, ctx.difficulty);
-    if (at < cls.sectors[0] || at > cls.sectors[1]) continue;
-    const where = cls.where ?? "";
-    // Federation Ships: "in Crystal Homeworlds only".
-    if (/Crystal Homeworlds only/i.test(where) && ctx.sectorId !== "CRYSTAL_HOME") continue;
-    // Mantis Bomber: "normally appears in sectors 5+; in sectors 2-4 can only be encountered in the Mantis Ship-Collectors event".
-    if (/normally appears in sectors 5\+/i.test(where) && ctx.sector < 5) continue;
-    // Mantis ships: "in sector 8 the non-pirate version can only be encountered in the Battlefield Wreckage event".
-    const regularOk =
-      cls.faction !== "federation" &&
-      !(ctx.sector === 8 && /sector 8 the non-pirate version/i.test(where));
-    const sectorOne = ctx.sector === 1;
-    if (
-      regularOk &&
-      (!sectorOne || cls.faction === "rebel" || cls.faction === "auto" || cls.faction === "mantis")
-    ) {
-      out.push({ cls, pirate: false });
-    }
-    if (canBePirate(cls)) out.push({ cls, pirate: true });
-  }
-  return out;
-}
-
-function fitsRequest(e: PoolEntry, want: EnemyRequest): boolean {
-  return (
-    (!want.faction || e.cls.faction === want.faction) &&
-    (want.pirate == null || e.pirate === want.pirate)
-  );
-}
-
-/**
- * @agent:sector-hostiles. Weights of a sector's random fights from its hostile encounter list (wiki/sector-hostiles.ts):
- * documented event lists for the two Civilian sectors, event-page {{Locations}} for the rest. Each event's weight is
- * split evenly over the pool entries that can field its ship. INFERRED: the faction pages give no odds between classes.
- * An entry that no listed event fields weighs 0. Null when the sector name has no list (e.g. the placeholder names).
- */
-export function hostileWeights(pool: PoolEntry[], sectorId: string): number[] | null {
-  const list = sectorHostiles(sectorId);
-  if (!list) return null;
-  const out = pool.map(() => 0);
-  for (const e of list) {
-    // The list's weights stay by faction: its one class-named row ("Rock Assault (Elite) ship") is a unique ship that
-    // only its own event fields (pickEnemy), so a class request would drop that weight entirely.
-    const asked = requestFor(e.ship);
-    const want: EnemyRequest = { faction: asked.faction, pirate: asked.pirate };
-    const fit = pool.flatMap((p, i) => (fitsRequest(p, want) ? [i] : []));
-    for (const i of fit) out[i] += e.weight / fit.length;
-  }
-  return out.some((w) => w > 0) ? out : null;
-}
-
-/**
- * Classes a normal hostile beacon can field in this sector: the range pool, narrowed to the factions (and pirates) the
- * sector's hostile encounter list fights. A sector with no list keeps the whole range pool.
- */
-export function enemyPool(ctx: PoolContext): PoolEntry[] {
-  const pool = rangePool(ctx);
-  const w = hostileWeights(pool, ctx.sectorId);
-  return w ? pool.filter((_, i) => w[i] > 0) : pool;
-}
-
-/**
- * INFERRED fallback, only for a sector name with no hostile list (sector-hostiles.ts) and for a fight an event asked
- * for: a sector named for a faction favours that faction ×3.
- */
-/** A faction's own sector triples its weight. The faction is in the sector's ftl.dat id (ENGI_HOME, LANIUS_SECTOR). */
-function weight(entry: { cls: EnemyClass; pirate: boolean }, sectorId: string): number {
-  const name = sectorId.toLowerCase();
-  if (entry.pirate) return name.includes("pirate") ? 3 : 1;
-  const f = entry.cls.faction;
-  if (f === "auto") return name.includes("rebel") ? 3 : 1;
-  if (
-    f === "zoltan" ||
-    f === "engi" ||
-    f === "mantis" ||
-    f === "rock" ||
-    f === "slug" ||
-    f === "rebel" ||
-    f === "crystal" ||
-    f === "lanius"
-  ) {
-    return name.includes(f) ? 3 : 1;
-  }
-  return 1;
-}
-
-export function pickEnemy(
-  ctx: PoolContext,
-  rand: () => number,
-  want: EnemyRequest = {},
-): { cls: EnemyClass; pirate: boolean } {
-  // "Ship unique to the … event": that event fields this class and no other does.
-  const unique = want.event
-    ? ENEMY_CLASSES.find((cls) => cls.uniqueTo && slug(cls.uniqueTo) === want.event)
-    : undefined;
-  if (unique) return { cls: unique, pirate: false };
-  // A page that names the class ("always a Slug Assault class") gets that class. INFERRED: the page places it, so its
-  // sector range and `where` notes do not apply (The Black Raven: "the only event where you fight a Slug Assault in
-  // sector 4"). Pirate only when asked and the class has a pirate version; Federation classes are only pirates.
-  const named = want.classId ? ENEMY_CLASSES.find((c) => c.id === want.classId) : undefined;
-  if (named)
-    return {
-      cls: named,
-      pirate: named.faction === "federation" || (want.pirate === true && canBePirate(named)),
-    };
-  const fits = (e: PoolEntry) => fitsRequest(e, want);
-  // @agent:sector-hostiles. A fight an event asked for takes any class of that ship in range; a plain hostile beacon
-  // draws from the sector's hostile encounter list.
-  const requested = !!want.faction || want.pirate != null;
-  let pool = requested ? rangePool(ctx).filter(fits) : enemyPool(ctx);
-  if (!pool.length && (want.faction || want.pirate != null)) {
-    // The event names a ship the sector line does not list for this sector. INFERRED: take that faction's
-    // ships from any sector rather than swapping in a different faction.
-    pool = ENEMY_CLASSES.filter((cls) => !cls.uniqueTo && !fleetOnly(cls))
-      .flatMap((cls) => [
-        ...(cls.faction !== "federation" || want.faction === "federation"
-          ? [{ cls, pirate: false }]
-          : []),
-        ...(canBePirate(cls) ? [{ cls, pirate: true }] : []),
-      ])
-      .filter(fits);
-  }
-  if (!pool.length)
-    return { cls: ENEMY_CLASSES.find((c) => c.id === "rebel-fighter")!, pirate: false };
-  const weights =
-    (!requested && hostileWeights(pool, ctx.sectorId)) || pool.map((e) => weight(e, ctx.sectorId));
-  let roll = rand() * weights.reduce((a, b) => a + b, 0);
-  for (let i = 0; i < pool.length; i++) {
-    roll -= weights[i];
-    if (roll <= 0) return pool[i];
-  }
-  return pool[pool.length - 1];
-}
-
-/** Rebel Elites: "Elite Fighter" and "Elite Assault" (Rebel Ships). */
-export function pickElite(rand: () => number): EnemyClass {
-  const elites = ENEMY_CLASSES.filter(fleetOnly);
-  return elites[Math.floor(rand() * elites.length) % elites.length];
+  return { faction, pirate };
 }
 
 /*
@@ -711,28 +534,6 @@ function spendBudget(
     left -= 1;
   }
   return left;
-}
-
-/**
- * Mathchamp: "Crew count is linearly interpolated between the minimum and maximum values between Sector 1 and Sector 9,
- * and rounded down, so you never actually see the max value". The faction pages print the largest count seen, so the
- * blueprint maximum is one above it (this matches the per-sector crew tables on ftl-layouts.mikehopley.org, e.g.
- * Mantis Scout 3-4: 3 in sectors 1-4, 4 in sectors 5-6). Easy is delayed a sector.
- */
-export function crewCount(r: Range, ctx: PoolContext): number {
-  // INFERRED: a "0-0" crew range (automated ships) has no blueprint maximum to add one to; it stays crewless.
-  if (r[1] <= 0) return 0;
-  return Math.min(r[1], Math.floor(lerp(r[0], r[1] + 1, genSector(ctx.sector, ctx.difficulty))));
-}
-
-/**
- * Hull by sector. Not in Mathchamp's post. ftl-layouts.mikehopley.org prints one value per sector, rising by one each
- * sector from the low end where the class first appears (Mantis Fighter 10-16 is 10 in sector 2 and 16 in sector 8).
- * Easy uses the page's "(x-y on Easy)" pair the same way.
- */
-export function hullFor(cls: EnemyClass, ctx: PoolContext): number {
-  const [lo, hi] = ctx.difficulty === "easy" && cls.easyHull ? cls.easyHull : cls.hull;
-  return Math.max(lo, Math.min(hi, lo + (ctx.sector - cls.sectors[0])));
 }
 
 /**
@@ -964,160 +765,6 @@ function layout(installed: EnemySystem[]): { rooms: EnemyRoomSpec[]; cols: numbe
   return { rooms, cols: Math.max(rowX[0], rowX[1]), rows: 2 };
 }
 
-const STEP: Record<DoorMark["side"], [number, number]> = {
-  n: [0, -1],
-  e: [1, 0],
-  s: [0, 1],
-  w: [-1, 0],
-};
-
-/** Rooms linked by an interior bar. The largest set is the hull a crew member can walk. */
-function mainComponent(
-  rooms: { x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] }[],
-  marks: DoorMark[],
-): Set<number> {
-  const parent = rooms.map((_, i) => i);
-  const find = (a: number): number => {
-    let at = a;
-    while (parent[at] !== at) {
-      parent[at] = parent[parent[at]];
-      at = parent[at];
-    }
-    return at;
-  };
-  const union = (a: number, b: number) => {
-    const ra = find(a);
-    const rb = find(b);
-    if (ra !== rb) parent[rb] = ra;
-  };
-  const at = new Map<string, number>();
-  const cells = new Map<number, number>();
-  rooms.forEach((r, i) => {
-    const skip = new Set((r.omit ?? []).map((c) => `${c.x},${c.y}`));
-    let n = 0;
-    for (let y = r.y; y < r.y + r.h; y++) {
-      for (let x = r.x; x < r.x + r.w; x++) {
-        if (skip.has(`${x},${y}`)) continue;
-        at.set(`${x},${y}`, i);
-        n += 1;
-      }
-    }
-    cells.set(i, n);
-  });
-  for (const mark of marks) {
-    const a = at.get(`${mark.x},${mark.y}`);
-    if (a == null) continue;
-    const [dx, dy] = STEP[mark.side];
-    const b = at.get(`${mark.x + dx},${mark.y + dy}`);
-    if (b == null || b === a) continue;
-    union(a, b);
-  }
-  const count = new Map<number, { rooms: number; cells: number }>();
-  for (let i = 0; i < rooms.length; i++) {
-    const root = find(i);
-    const row = count.get(root) ?? { rooms: 0, cells: 0 };
-    row.rooms += 1;
-    row.cells += cells.get(i) ?? 0;
-    count.set(root, row);
-  }
-  let best = 0;
-  let bestRooms = -1;
-  let bestCells = -1;
-  for (const [root, row] of count) {
-    if (row.rooms > bestRooms || (row.rooms === bestRooms && row.cells > bestCells)) {
-      best = root;
-      bestRooms = row.rooms;
-      bestCells = row.cells;
-    }
-  }
-  const main = new Set<number>();
-  for (let i = 0; i < rooms.length; i++) if (find(i) === best) main.add(i);
-  return main;
-}
-
-/**
- * Seat this fight's systems into the traced boxes.
- * A room whose icon is installed keeps that system. Clone Bay and Medbay share one pictured room:
- * INFERRED, the installed one takes the other's box. An icon that did not roll becomes a hall.
- * INFERRED: a system with no icon sits in an empty hall of the largest connected interior,
- * largest hall first, then nearer the nose. A class that rolls more systems than rooms
- * gains a 1×1 past the traced columns. Pictured walls are not given extra doors.
- */
-function seatTrace(
-  classId: string,
-  installed: EnemySystem[],
-  pirate = false,
-): { rooms: EnemyRoomSpec[]; cols: number; rows: number; marks: DoorMark[] } | null {
-  const laid = enemyLayout(classId, pirate);
-  if (!laid) return null;
-  const have = new Set(installed);
-  const taken = new Set<EnemySystem>();
-  const claim = (pictured: EnemySystem | null): EnemySystem | null => {
-    if (!pictured || taken.has(pictured)) return null;
-    if (have.has(pictured)) return pictured;
-    if (pictured === "medbay" && have.has("clonebay") && !have.has("medbay")) return "clonebay";
-    if (pictured === "clonebay" && have.has("medbay") && !have.has("clonebay")) return "medbay";
-    return null;
-  };
-  let hall = 0;
-  const rooms: EnemyRoomSpec[] = laid.rooms.map((r) => {
-    const system = claim(r.system);
-    const omit = r.omit?.length ? r.omit : undefined;
-    const box = { x: r.x, y: r.y, w: r.w, h: r.h, ...(omit ? { omit } : {}) };
-    if (!system) return { id: `e-h${hall++}`, title: "Hall", system: null, ...box };
-    taken.add(system);
-    const kit = KIT[system];
-    return {
-      id: `e-${system}`,
-      title: TITLE[system],
-      system: RUN[system] ?? null,
-      ...(kit ? { kit } : {}),
-      ...box,
-    };
-  });
-  const main = mainComponent(rooms, laid.marks);
-  const empties = rooms
-    .map((room, index) => ({ room, index }))
-    .filter((row) => row.room.system == null && row.room.kit == null)
-    .sort((a, b) => {
-      const ca = main.has(a.index) ? 0 : 1;
-      const cb = main.has(b.index) ? 0 : 1;
-      return (
-        ca - cb ||
-        b.room.w * b.room.h - a.room.w * a.room.h ||
-        a.room.y - b.room.y ||
-        a.room.x - b.room.x
-      );
-    });
-  let at = 0;
-  let cols = laid.cols;
-  for (const id of installed) {
-    if (taken.has(id)) continue;
-    const kit = KIT[id];
-    const slot = empties[at++];
-    if (slot) {
-      slot.room.id = `e-${id}`;
-      slot.room.title = TITLE[id];
-      slot.room.system = RUN[id] ?? null;
-      if (kit) slot.room.kit = kit;
-    } else {
-      rooms.push({
-        id: `e-${id}`,
-        title: TITLE[id],
-        system: RUN[id] ?? null,
-        ...(kit ? { kit } : {}),
-        x: cols,
-        y: 0,
-        w: 1,
-        h: 1,
-      });
-      cols += 1;
-    }
-    taken.add(id);
-  }
-  return { rooms, cols, rows: laid.rows, marks: laid.marks };
-}
-
 /**
  * Chance an optional system is fitted. Mathchamp: "Optional systems have a base chance of 20% on Normal, plus 10% per
  * sector. Hard adds an additional 10% while Easy subtracts 10%, but with the Easy sector delay it effectively subtracts
@@ -1174,112 +821,6 @@ export function generateSystems(
   const rank = (id: EnemySystem) => (STATION.includes(id) ? STATION.indexOf(id) : STATION.length);
   installed.sort((a, b) => rank(a[0]) - rank(b[0]));
   return installed;
-}
-
-export function rollEnemy(
-  cls: EnemyClass,
-  pirate: boolean,
-  ctx: PoolContext,
-  rand: () => number,
-): EnemySpec {
-  const automated = cls.faction === "auto";
-  const optional = (Object.entries(cls.optional) as [EnemySystem, Range][]).filter(([id]) => {
-    // Faction pages: "[Pirate Fighter only]" fits only the pirate version; "[Rock Investigator only]" and
-    // "[Mantis Scout only]" fit only the regular one.
-    const only = cls.optionalNotes?.[id];
-    return !(only && /pirate/i.test(only) !== pirate);
-  });
-  const installed = generateSystems(
-    Object.entries(cls.systems) as [EnemySystem, Range][],
-    optional,
-    ctx,
-    rand,
-  );
-  const systems: EnemySpec["systems"] = {};
-  const unwired: EnemySpec["unwired"] = [];
-  const kits: EnemySpec["kits"] = {};
-  for (const [id, level] of installed) {
-    const run = RUN[id];
-    const kit = KIT[id];
-    if (run) systems[run] = [level, level];
-    else if (kit) kits[kit] = level;
-    else unwired.push({ id, level });
-  }
-  const ids = installed.map(([id]) => id);
-  const traced = seatTrace(cls.id, ids, pirate);
-  const { rooms, cols, rows } = traced ?? layout(ids);
-  const blueprint = hullDef(shipClassBlueprint(cls.id, pirate));
-  // Rows that were all skipped (warned about in racesFromCounts) leave the class table in charge.
-  const fromBlueprint = blueprint?.crewCounts?.length
-    ? racesFromCounts(blueprint.id, blueprint.crewCounts, ctx, rand)
-    : undefined;
-  const counted = fromBlueprint?.length ? fromBlueprint : undefined;
-  const crewSize = counted ? counted.length : crewCount(cls.crew, ctx);
-  const races: string[] = [];
-  if (counted) {
-    races.push(...counted);
-  } else if (pirate) {
-    // Enemy Ships, "Pirated ships": "pirate crews are randomly chosen from the races that can be encountered in that sector".
-    // The races are the Sectors page's per-sector "Crewmembers" list (wiki/skills.ts); INFERRED: any race off that list.
-    races.push(...rollPirateCrew(ctx.sectorId, crewSize, rand));
-  } else {
-    for (const [race, lo, hi] of cls.crewMix) {
-      const n = lo + Math.floor(rand() * (hi - lo + 1));
-      for (let i = 0; i < n && races.length < crewSize; i++) races.push(race);
-    }
-    while (races.length < crewSize) races.push(cls.crewMix[0]?.[0] ?? "Human");
-  }
-  const stations = STATION.map((id) => `e-${id}`).filter((id) => rooms.some((r) => r.id === id));
-  const others = rooms.map((r) => r.id).filter((id) => !stations.includes(id));
-  const crew = races.map((race, i) => ({
-    kin: KIN_OF[race] ?? "human",
-    race,
-    room: stations[i] ?? others[(i - stations.length) % Math.max(1, others.length)] ?? rooms[0].id,
-  }));
-  const weaponLevel = systems.weapons?.[0] ?? 1;
-  const listedWeapons = blueprint ? weaponNames(blueprint) : undefined;
-  const armed =
-    listedWeapons && blueprint
-      ? blueprintLoadout(blueprint, listedWeapons, weaponLevel, rand)
-      : arm(ENEMY_WEAPON_POOLS[cls.faction] ?? [], weaponLevel, rand, ENEMY_WEAPON_SLOTS);
-  const spec: EnemySpec = {
-    classId: cls.id,
-    name: pirate ? (cls.pirate ?? `Pirate ${cls.name.split(" ").slice(1).join(" ")}`) : cls.name,
-    pirate,
-    automated,
-    hull: hullFor(cls, ctx),
-    systems,
-    kits,
-    unwired,
-    // Decision: enemy reactor equals the capacity its systems need, so every installed level is powered.
-    reactor: installed.reduce((sum, [, level]) => sum + level, 0),
-    rooms,
-    cols,
-    rows,
-    ...(traced ? { marks: traced.marks } : {}),
-    weapons: armed.weapons,
-    missiles: listedWeapons ? (blueprint?.missiles ?? cls.missiles) : cls.missiles,
-    crew,
-    boards: installed.some(([id]) => id === "teleporter"),
-    parts: enemyParts(cls.id, 0),
-    drones: [],
-  };
-  // @agent:drones. Mathchamp: drones are generated after weapons and see the weapon flags. Only for a hull with Drone
-  // Control.
-  if (kits.drones) {
-    const listedDrones = blueprint ? droneNames(blueprint) : undefined;
-    spec.drones = rollDrones(
-      cls.id,
-      kits.drones,
-      rand,
-      armed.flags.laser || armed.flags.hull,
-      listedDrones,
-    );
-    spec.parts = listedDrones
-      ? stockedParts(blueprint?.parts ?? 0, spec.drones.length)
-      : enemyParts(cls.id, spec.drones.length);
-  }
-  return spec;
 }
 
 /**
@@ -1703,13 +1244,14 @@ export function hullDisplayName(hull: Pick<HullDef, "id" | "name" | "cruiser">):
 }
 
 /**
- * Hull by sector: the blueprint's health plus one per sector after the first, with Easy delayed a sector. The faction
+ * Hull by sector: the blueprint's health plus one per sector after the first, one lower on Easy. The faction
  * pages' ranges are this rule on ftl.dat's health: REBEL_SKINNY 10 is "10-17" over sectors 1-8, CIRCLE_SCOUT 7 is
  * "8-13" over sectors 2-7, ROCK_ASSAULT 12 is "17-18" in sectors 6-7, and each "(x-y on Easy)" is one lower.
  */
 export function blueprintHull(hull: Pick<HullDef, "health">, ctx: PoolContext): number {
   const base = hull.health != null && hull.health > 0 ? hull.health : 1;
-  return base + genSector(ctx.sector, ctx.difficulty) - 1;
+  // Easy is one lower in every sector, sector 1 included ("(9-16 on Easy)" for 10-17), not the clamped sector delay.
+  return Math.max(1, base + ctx.sector - 1 - (ctx.difficulty === "easy" ? 1 : 0));
 }
 
 export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number): EnemySpec {
@@ -1804,8 +1346,14 @@ export function archiveFight(
   return sectorFight(ctx, rand, level);
 }
 
+/** Any enemy blueprint, for a fight whose wording and sector name none (a warned last resort in sim makeEnemy). */
+export function anyEnemyHull(rand: () => number): HullDef | undefined {
+  const hulls = enemyHulls();
+  return hulls.length ? hulls[Math.floor(rand() * hulls.length) % hulls.length] : undefined;
+}
+
 /** Enemy blueprints the archive lists or maps a class to. A player hull is not one. */
-function enemyHulls(): HullDef[] {
+export function enemyHulls(): HullDef[] {
   const ids = new Set<string>();
   for (const rule of allShipLists()) for (const id of blueprintList(rule.id) ?? []) ids.add(id);
   for (const row of allShipClasses()) {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { rollEnemy } from "./enemy-gen.ts";
+import { specFromHull } from "./enemy-gen.ts";
 import { armFlak, tickFlak } from "./extras/flakart.ts";
 import { tickLance } from "./extras/lance.ts";
 import { tickSabotage } from "./extras/sabotage.ts";
@@ -19,7 +19,7 @@ import {
   toggleWeapon,
 } from "./sim.ts";
 import type { Shot } from "./types.ts";
-import { weaponDef } from "@stl/pack";
+import { hullDef, weaponDef } from "@stl/pack";
 import "./pack/base.ts";
 import { XP_NEED, skillRank } from "./content.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
@@ -31,7 +31,6 @@ import {
   SECTOR_CREW_RACES,
   pirateCrewRaces,
 } from "./wiki/skills.ts";
-import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
 import type { Crew, Game } from "./types.ts";
 import { sectorIdNamed } from "./fixtures.ts";
 
@@ -1891,14 +1890,14 @@ describe("Crew skills, Shields: one point per bubble hit", () => {
 });
 
 describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
-  const pirateCls = ENEMY_CLASSES.find((c) => !!c.pirate || c.faction === "federation")!;
+  // A pirate version's crew is crewCount class="random", drawn from the sector's races.
+  const pirate = () => hullDef("REBEL_SKINNY_P")!;
 
   function racesIn(sectorName: string): Set<string> {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 200; seed++) {
-      const spec = rollEnemy(
-        pirateCls,
-        true,
+      const spec = specFromHull(
+        pirate(),
         { sector: 3, sectorId: sectorIdNamed(sectorName), sectorName, difficulty: "normal" },
         rng(seed),
       );
@@ -1926,11 +1925,9 @@ describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
     assert.equal(racesIn("Cinder Reach").size, ALL_CREW_RACES.length);
   });
 
-  it("non-pirate crews still use the class crew mix", () => {
-    const cls = ENEMY_CLASSES.find((c) => c.faction === "rebel" && c.crewMix.length)!;
-    const spec = rollEnemy(
-      cls,
-      false,
+  it("non-pirate crews are the blueprint's crew class", () => {
+    const spec = specFromHull(
+      hullDef("REBEL_SKINNY")!,
       {
         sector: 3,
         sectorId: "CRYSTAL_HOME",
@@ -1939,7 +1936,7 @@ describe("Enemy Ships, Pirated ships: crew from the sector's races", () => {
       },
       rng(4),
     );
-    const mix = new Set(cls.crewMix.map(([race]) => race));
-    for (const c of spec.crew) assert.ok(mix.has(c.race) || c.race === cls.crewMix[0][0], c.race);
+    assert.ok(spec.crew.length > 0);
+    for (const c of spec.crew) assert.equal(c.race, "Human");
   });
 });

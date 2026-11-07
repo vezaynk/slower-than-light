@@ -311,16 +311,14 @@ import {
 } from "./wiki/quests.ts";
 import {
   applyCrewMix,
+  anyEnemyHull,
   archiveFight,
   fightHull,
   genSector,
   overrideWeaponIds,
-  pickElite,
-  pickEnemy,
-  requestFor,
-  rollEnemy,
   specFromHull,
 } from "./enemy-gen.ts";
+import type { EnemySpec } from "./enemy-gen.ts";
 import {
   applyChoiceArchive,
   archiveSnap,
@@ -6552,7 +6550,7 @@ function enemyCrew(g: Game, kin: string, race: string, roomId: string): Crew {
 
 function shipFromSpec(
   g: Game,
-  spec: ReturnType<typeof rollEnemy>,
+  spec: EnemySpec,
   faction: string | undefined,
 ): { ship: Ship; crew: Crew[] } {
   const rooms = spec.rooms.map((x) => room(x));
@@ -6574,7 +6572,7 @@ function shipFromSpec(
     cols: spec.cols,
     rows: spec.rows,
     kits: enemyKits(spec.kits),
-    // @agent:drones. Enemy Ships, "Missile and drone stocks" (enemy-gen.ts enemyParts).
+    // @agent:drones. Enemy Ships, "Missile and drone stocks" (enemy-gen.ts stockedParts).
     parts: spec.parts ?? 0,
     classId: spec.classId,
     faction,
@@ -6645,20 +6643,11 @@ function makeEnemy(
     if (worded) fitSlugHackerFire(g, event, shipEvent, built.ship);
     return built;
   }
-  warnPack(`The fight "${tier}" finds no archive ship; it rolls a wiki class.`);
-  const picked =
-    tier === "elite"
-      ? { cls: pickElite(r), pirate: false }
-      : pickEnemy(ctx, r, { ...requestFor(tier), event });
-  const spec = rollEnemy(picked.cls, picked.pirate, ctx, r);
-  if (shipEvent?.crew?.length) applyCrewMix(spec, shipEvent.crew, r, tier);
-  if (shipEvent?.weaponOverride) {
-    spec.weapons = overrideWeaponIds(shipEvent.weaponOverride, r, tier);
-  }
-  const built = shipFromSpec(g, spec, picked.cls.faction);
-  citedEnemy(g, tier, built.ship, built.crew);
-  fitSlugHackerFire(g, event, shipEvent, built.ship);
-  return built;
+  // Every archive has enemy ships; one that names none for this fight still fights one of them.
+  const fallback = anyEnemyHull(r);
+  if (!fallback) throw new Error(`The archive has no enemy ship for the fight "${tier}".`);
+  warnPack(`The fight "${tier}" finds no archive ship; it fights ${fallback.id}.`);
+  return makeEnemy(g, fallback.id, event);
 }
 
 /**

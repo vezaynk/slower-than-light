@@ -1227,6 +1227,14 @@ function useFoeTile(cols: number, rows: number, playerTile: number) {
       const fit = Math.min(w / Math.max(1, widthUnits), h / Math.max(1, heightUnits));
       const next = Math.max(12, Math.min(44, playerTile, fit));
       setTile((prev) => (Math.abs(prev - next) < 0.5 ? prev : next));
+      // Per the user: the rows above and below do not hide the ship. The well clips at the panel's border, not its
+      // own box, so a shield ellipse runs under the hull, shield, and systems rows.
+      const panel = el.offsetParent;
+      if (panel instanceof HTMLElement) {
+        const above = el.offsetTop;
+        const below = Math.max(0, panel.clientHeight - el.offsetTop - el.offsetHeight);
+        el.style.clipPath = `inset(-${above}px 0 -${below}px 0)`;
+      }
     };
     read();
     const obs = new ResizeObserver(read);

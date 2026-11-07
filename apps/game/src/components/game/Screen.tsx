@@ -12,13 +12,57 @@ export const SCREEN_H = 720;
 
 const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-/** Fit the 1560×720 screen to the viewport's box. */
-function paintFit(viewport: HTMLElement | null, screen: HTMLElement | null) {
+type Insets = { top: number; right: number; bottom: number; left: number };
+
+let insetProbe: HTMLElement | null = null;
+
+/** The device's safe-area insets in CSS pixels, as the physical (unturned) page sees them. */
+function safeInsets(): Insets {
+  if (!insetProbe) {
+    insetProbe = document.createElement("div");
+    insetProbe.setAttribute("aria-hidden", "true");
+    insetProbe.style.cssText =
+      "position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;" +
+      "padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)";
+    document.documentElement.appendChild(insetProbe);
+  }
+  const style = getComputedStyle(insetProbe);
+  return {
+    top: parseFloat(style.paddingTop) || 0,
+    right: parseFloat(style.paddingRight) || 0,
+    bottom: parseFloat(style.paddingBottom) || 0,
+    left: parseFloat(style.paddingLeft) || 0,
+  };
+}
+
+/** The insets on the screen's own sides once the page is turned (styles.css .page-turn-*, clockwise). */
+function turnedInsets(raw: Insets, turn: PageTurn): Insets {
+  if (turn === 90) return { left: raw.top, top: raw.right, right: raw.bottom, bottom: raw.left };
+  if (turn === 270) return { left: raw.bottom, top: raw.left, right: raw.top, bottom: raw.right };
+  if (turn === 180) return { left: raw.right, top: raw.bottom, right: raw.left, bottom: raw.top };
+  return raw;
+}
+
+/**
+ * Fit the 1560×720 screen to the viewport's box. Per the user: the picture stays edge to edge, but the controls
+ * keep clear of the notch and home bar. Whatever part of an inset the letterbox does not already cover is set as
+ * `--safe-*` in screen pixels, and the layout pads by it (styles.css .deck).
+ */
+function paintFit(viewport: HTMLElement | null, screen: HTMLElement | null, turn: PageTurn) {
   if (!viewport || !screen) return;
   const w = viewport.clientWidth;
   const h = viewport.clientHeight;
   const fit = w > 0 && h > 0 ? Math.min(w / SCREEN_W, h / SCREEN_H) : 1;
   screen.style.transform = `translate(-50%, -50%) scale(${fit})`;
+  const insets = turnedInsets(safeInsets(), turn);
+  const marginX = (w - SCREEN_W * fit) / 2;
+  const marginY = (h - SCREEN_H * fit) / 2;
+  const pad = (inset: number, margin: number) =>
+    `${Math.ceil(Math.max(0, inset - margin) / fit)}px`;
+  screen.style.setProperty("--safe-l", pad(insets.left, marginX));
+  screen.style.setProperty("--safe-r", pad(insets.right, marginX));
+  screen.style.setProperty("--safe-t", pad(insets.top, marginY));
+  screen.style.setProperty("--safe-b", pad(insets.bottom, marginY));
   screen.classList.add("is-fit");
 }
 
@@ -57,8 +101,9 @@ export function Screen({ children }: { children: ReactNode }) {
     const update = () => {
       // Forced landscape: Android's installed app takes a real orientation lock (the OS rotates, and the turn below
       // comes out 0); iOS has none, so the page turns by CSS. Off restores everything.
-      applyTurn(wantedTurn(useSettings.getState().rotate));
-      paintFit(viewportRef.current, screenRef.current);
+      const turn = wantedTurn(useSettings.getState().rotate);
+      applyTurn(turn);
+      paintFit(viewportRef.current, screenRef.current, turn);
     };
     update();
     const observed = viewportRef.current;

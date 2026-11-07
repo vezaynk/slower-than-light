@@ -8043,6 +8043,11 @@ body.page-turn-180 {
   gap: 8px;
   align-items: center;
 }
+/* Per the user: the FTL group stays centred, but moves left as far as it takes to clear the target panel, whose
+   border sits 16px inside its column. --mid-w is the group's width (GameApp useMidWidth). */
+.play:not(.no-target) .hud-mid {
+  left: min(50%, calc(100% - var(--target-col, 340px) + 8px - var(--mid-w, 0px) / 2));
+}
 .frame-btn.pause-btn {
   width: 76px;
   height: 76px;

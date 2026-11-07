@@ -392,7 +392,7 @@ describe("Zoltan shield pairs and system cover", () => {
 describe("Zoltan drones, hacking ion, and mind control", () => {
   it("occupies enemy drone slots from the left when the system is full", () => {
     const g = createGame(40);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy!;
     enemy.reactor = 40;
     for (const room of enemy.rooms) if (room.kit === "drones") delete room.kit;
@@ -480,7 +480,7 @@ describe("Zoltan drones, hacking ion, and mind control", () => {
 
   it("interrupts a level 3 hack pulse on one ion point, Zoltans or not", () => {
     const g = createGame(42);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const foe = g.crew.find((c) => c.side === "enemy" && c.hp > 0);
     assert.ok(foe && g.enemy);
     foe.leashed = 4;
@@ -542,7 +542,7 @@ describe("Zoltan drones, hacking ion, and mind control", () => {
   // boost are removed if the system level is decreased". So three Zoltan bars keep the level 3 boost; losing one drops it.
   it("keeps a mind-control boost while Zoltan bars hold the level, and drops it when one leaves", () => {
     const g = createGame(43);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     if (g.enemy.kits.mind) g.enemy.kits.mind.cool = 999;
     const room = g.enemy?.rooms[0]?.id ?? "e-pilot";
@@ -574,7 +574,7 @@ describe("Zoltan drones, hacking ion, and mind control", () => {
     // Zoltans: "Mind Control system with a Zoltan will not shutdown if it gets ionized by external factors."
     // Unfilled levels still ionize, which reduces the maximum effect and duration.
     const g = createGame(44);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     if (g.enemy.kits.mind) g.enemy.kits.mind.cool = 999;
     const room = g.enemy.rooms[0]?.id ?? "e-pilot";
@@ -603,7 +603,7 @@ describe("Zoltan drones, hacking ion, and mind control", () => {
     assert.ok(Math.abs(g.player.kits.mind.left - (14 - 0.05)) < 1e-9);
 
     const bare = createGame(45);
-    startCombat(bare, "scout");
+    startCombat(bare, "Rebel ship");
     assert.ok(bare.enemy);
     if (bare.enemy.kits.mind) bare.enemy.kits.mind.cool = 999;
     const other = spark(bare.enemy.rooms[0]?.id ?? "e-pilot", "other", "enemy");

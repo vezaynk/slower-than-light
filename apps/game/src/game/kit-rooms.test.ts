@@ -16,7 +16,7 @@ function kitRoom(g: Game, kit: KitId) {
 /** A fight with the guns and hazards off, so only the shots a test pushes land. */
 function quiet(hull: string, difficulty: "easy" | "normal" | "hard" = "normal"): Game {
   const g = createGame(11, hull, difficulty);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   g.asteroid = false;
   g.asb = false;
   g.boardTimer = 0;

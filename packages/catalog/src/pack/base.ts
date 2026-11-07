@@ -753,11 +753,21 @@ function enemyHull(id: string, interior: string): HullDef {
   const pictured = new Set<string>();
   const installs: HullInstall[] = source.rooms.flatMap((room, index): HullInstall[] => {
     if (!room.system) return [];
-    pictured.add(room.system);
-    const row = stats?.systems.get(room.system);
+    // Medbay and Clone Bay share one slot: a pictured Clone Bay room holds the class's Medbay, and the reverse.
+    const twin =
+      room.system === "clonebay" ? "medbay" : room.system === "medbay" ? "clonebay" : undefined;
+    const system =
+      stats && !stats.systems.has(room.system) && twin && stats.systems.has(twin)
+        ? twin
+        : room.system;
+    pictured.add(system);
+    const row = stats?.systems.get(system);
+    // A room the picture labels with a system the faction page does not list for the class stays empty: the class
+    // never carries it.
+    if (stats && !row) return [];
     return [
       {
-        id: room.system,
+        id: system,
         power: row?.range[0] ?? 1,
         ...(row ? { max: row.range[1] } : {}),
         room: index,
@@ -767,7 +777,16 @@ function enemyHull(id: string, interior: string): HullDef {
   });
   for (const [system, row] of stats?.systems ?? []) {
     if (pictured.has(system) || row.range[0] < 1) continue;
-    installs.push({ id: system, power: row.range[0], max: row.range[1], start: row.start });
+    // Medbay and Clone Bay share a room; the fight fits one of them (game enemy-gen.ts generateSystems).
+    const twin = system === "clonebay" ? "medbay" : system === "medbay" ? "clonebay" : undefined;
+    const room = twin ? installs.find((item) => item.id === twin)?.room : undefined;
+    installs.push({
+      id: system,
+      power: row.range[0],
+      max: row.range[1],
+      ...(room != null ? { room } : {}),
+      start: row.start,
+    });
   }
   return paintHull(
     {
@@ -782,7 +801,7 @@ function enemyHull(id: string, interior: string): HullDef {
       ...(id.startsWith("AUTO_") ? {} : { boardingAI: "sabotage" as const }),
       reactor: 0,
       missiles: stats?.missiles ?? 0,
-      parts: stats?.droneLoad ? stats.parts : 0,
+      parts: stats?.parts ?? 0,
       weapons: [],
       augments: [],
       installs,

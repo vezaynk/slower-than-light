@@ -909,7 +909,7 @@ describe("Hidden Crystal Worlds stock", () => {
         g.sectorId = "CRYSTAL_HOME";
         g.sectorName = "Hidden Crystal Worlds";
         g.player.weapons = [];
-        startCombat(g, "scout");
+        startCombat(g, "Rebel ship");
         assert.ok(g.enemy);
         g.enemy.automated = false;
         g.enemy.classId = g.enemy.classId || "cited";

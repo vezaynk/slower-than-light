@@ -19,7 +19,7 @@ describe("starting augments", () => {
 describe("Slug Repair Gel and Mantis Pheromones", () => {
   it("seals an empty breached room, and stacks on a crew repair", () => {
     const empty = createGame(1);
-    startCombat(empty, "scout");
+    startCombat(empty, "Rebel ship");
     const room = empty.player.rooms[0];
     const elsewhere = empty.player.rooms.find((item) => item.id !== room.id);
     assert.ok(elsewhere);
@@ -34,7 +34,7 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
     assert.equal(room.breach, 0);
 
     const bare = createGame(1);
-    startCombat(bare, "scout");
+    startCombat(bare, "Rebel ship");
     const open = bare.player.rooms[0];
     for (const crew of bare.crew) {
       if (crew.room === open.id)
@@ -47,7 +47,7 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
     assert.equal(open.breach, 1);
 
     const stacked = createGame(1);
-    startCombat(stacked, "scout");
+    startCombat(stacked, "Rebel ship");
     const bench = stacked.player.rooms.find(
       (item) => item.system && stacked.player.systems[item.system].damage <= 0,
     );
@@ -73,7 +73,7 @@ describe("Slug Repair Gel and Mantis Pheromones", () => {
   it("moves your crew 25 percent faster, including off the ship", () => {
     function walked(pheromone: boolean, aboard: "player" | "enemy") {
       const g = createGame(2);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       const crew = g.crew.find((item) => item.side === "player" && item.hp > 0);
       assert.ok(crew);
       const ship = aboard === "player" ? g.player : g.enemy;

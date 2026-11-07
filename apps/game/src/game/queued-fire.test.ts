@@ -14,7 +14,7 @@ import type { Game } from "./types.ts";
 
 function fight(): Game {
   const g = createGame(3);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   g.paused = false;
   return g;
 }

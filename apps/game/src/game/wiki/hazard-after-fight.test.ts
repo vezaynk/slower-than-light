@@ -55,7 +55,7 @@ function plantBoarder(g: Game, room: string) {
 describe("environmental hazards after the battle", () => {
   it("keeps the pulsar, the star, and the battery until the jump", () => {
     const g = createGame(11);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     quietFight(g);
     g.pulsar = true;
     g.flare = true;
@@ -108,7 +108,7 @@ describe("environmental hazards after the battle", () => {
 
   it("keeps them when the enemy escapes", () => {
     const g = createGame(4);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     quietFight(g);
     g.pulsar = true;
     g.flare = true;
@@ -149,7 +149,7 @@ describe("environmental hazards after the battle", () => {
 
   it("retires a friendly battery with the fight", () => {
     const g = createGame(3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     quietFight(g);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here);

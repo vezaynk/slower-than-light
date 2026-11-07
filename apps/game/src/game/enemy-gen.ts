@@ -7,9 +7,16 @@
 import "./pack/base.ts";
 import {
   allHulls,
+  allShipClasses,
+  allShipLists,
   augmentDef,
   blueprintList,
+  eventDef,
+  fillerList,
   hullDef,
+  sectorDef,
+  shipAllegiance,
+  shipEventDef,
   loadPack,
   marksFromDoors,
   shipClassBlueprint,
@@ -20,6 +27,7 @@ import {
 import { liveTable } from "./content.ts";
 import type {
   AugmentDef,
+  EventEffect,
   HullCrewCount,
   HullDef,
   ShipCrewRow,
@@ -1602,10 +1610,20 @@ function installedSystems(
   return generateSystems([...starting], [...optional], ctx, rand);
 }
 
-function systemInRoom(hull: HullDef, index: number): EnemySystem | null {
-  const item = hull.installs?.find((row) => row.room === index && row.start && row.power >= 1);
-  if (!item) return null;
-  return FROM_INSTALL[item.id] ?? null;
+/**
+ * The system a blueprint room holds. With `fitted`, the one of that room's installs the generation fitted (an optional
+ * system, or one of a Medbay and Clone Bay that share a room); without it, the starting install.
+ */
+function systemInRoom(
+  hull: HullDef,
+  index: number,
+  fitted?: ReadonlySet<EnemySystem>,
+): EnemySystem | null {
+  const rows = (hull.installs ?? []).filter((row) => row.room === index && row.power >= 1);
+  const ids = rows.map((row) => FROM_INSTALL[row.id]).filter((id): id is EnemySystem => !!id);
+  if (fitted) return ids.find((id) => fitted.has(id)) ?? null;
+  const start = rows.find((row) => row.start);
+  return start ? (FROM_INSTALL[start.id] ?? null) : null;
 }
 
 function emptyHall(): { rooms: EnemyRoomSpec[]; cols: number; rows: number } {
@@ -1629,7 +1647,7 @@ function seatHull(
   const taken = new Set<EnemySystem>();
   let hall = 0;
   const rooms: EnemyRoomSpec[] = boxes.map((room) => {
-    const pictured = systemInRoom(hull, room.id);
+    const pictured = systemInRoom(hull, room.id, have);
     const system = pictured && have.has(pictured) && !taken.has(pictured) ? pictured : null;
     const box = { x: room.x, y: room.y, w: Math.max(1, room.w), h: Math.max(1, room.h) };
     if (!system) return { id: `e-h${hall++}`, title: "Hall", system: null, ...box };
@@ -1758,4 +1776,142 @@ export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number
     spec.parts = stockedParts(hull.parts, spec.drones.length);
   }
   return spec;
+}
+
+/**
+ * A fight the code names by wording ("Rebel ship", "Slug pirate ship", "Fight a Mantis Bomber"), or the sector's
+ * random fight ("pool"), turned into the archive ship it is. The archive is the source: the gap's <shipList> rows say
+ * which list fields a faction or pirates, and a named class is the blueprint whose `<class>` name it is.
+ * `list` is the blueprint list the ship came from, for its allegiance (shipAllegiance).
+ */
+export type ArchiveFight = { hull: HullDef; list?: string };
+
+export function archiveFight(
+  tier: string,
+  ctx: PoolContext,
+  rand: () => number,
+): ArchiveFight | undefined {
+  const level = genSector(ctx.sector, ctx.difficulty) - 1;
+  if (tier !== "pool") {
+    const named = namedHull(tier);
+    if (named) return { hull: named };
+    const want = requestFor(tier);
+    if (want.faction || want.pirate != null) {
+      const fight = requestedFight(want, rand, level);
+      if (fight) return fight;
+    }
+  }
+  return sectorFight(ctx, rand, level);
+}
+
+/** Enemy blueprints the archive lists or maps a class to. A player hull is not one. */
+function enemyHulls(): HullDef[] {
+  const ids = new Set<string>();
+  for (const rule of allShipLists()) for (const id of blueprintList(rule.id) ?? []) ids.add(id);
+  for (const row of allShipClasses()) {
+    ids.add(row.blueprint);
+    if (row.pirate) ids.add(row.pirate);
+  }
+  return [...ids].map((id) => hullDef(id)).filter((hull): hull is HullDef => !!hull);
+}
+
+/** "Fight a Mantis Bomber": the enemy blueprint whose class name the wording holds, longest name first. */
+function namedHull(tier: string): HullDef | undefined {
+  const text = tier.toLowerCase();
+  const pirate = /pirate/i.test(tier);
+  let best: HullDef | undefined;
+  for (const hull of enemyHulls()) {
+    const name = hullDisplayName(hull).toLowerCase();
+    if (name === hull.id.toLowerCase() || !text.includes(name)) continue;
+    if (!best || name.length > hullDisplayName(best).length) best = hull;
+  }
+  if (!best || !pirate || shipAllegiance(best.id).pirate) return best;
+  // "Slug Assault pirate ship": the class's pirate version, as the gap's <shipClass> pairs them.
+  const row = allShipClasses().find((item) => item.blueprint === best!.id && item.pirate);
+  return (row?.pirate ? hullDef(row.pirate) : undefined) ?? best;
+}
+
+/** A faction and/or pirate request, drawn from the list the gap's <shipList> rows give it. */
+function requestedFight(
+  want: EnemyRequest,
+  rand: () => number,
+  level: number,
+): ArchiveFight | undefined {
+  const rules = allShipLists();
+  const own = rules.find(
+    (rule) => rule.faction === want.faction && !!rule.pirate === (want.pirate === true),
+  );
+  // Pirates of a faction with no list of its own: the pirate list, narrowed to that faction's ships.
+  const rule =
+    own ??
+    (want.pirate ? rules.find((item) => item.pirate && !item.faction) : undefined) ??
+    (want.faction
+      ? rules.find((item) => item.faction === want.faction && !item.pirate)
+      : undefined);
+  if (!rule) return undefined;
+  const hulls = (blueprintList(rule.id) ?? [])
+    .map((id) => hullDef(id))
+    .filter((hull): hull is HullDef => !!hull)
+    .filter(
+      (hull) => own || !want.faction || shipAllegiance(hull.id, rule.id).faction === want.faction,
+    );
+  const hull = drawHull(hulls, level, rand);
+  return hull ? { hull, list: rule.id } : undefined;
+}
+
+function drawHull(
+  hulls: readonly HullDef[],
+  level: number,
+  rand: () => number,
+): HullDef | undefined {
+  if (hulls.length === 0) return undefined;
+  const open = hulls.filter((hull) => hullInSector(hull, level));
+  const pool = open.length > 0 ? open : hulls;
+  return pool[Math.floor(rand() * pool.length) % pool.length];
+}
+
+/** Ship fights on a page and its choices: `<ship load>` effects. */
+function pageFights(
+  fx: readonly EventEffect[] | undefined,
+  out: { tier: string; list?: string }[],
+) {
+  for (const row of fx ?? []) {
+    if (row.k === "fight")
+      out.push({ tier: row.tier, ...(row.autoBlueprint ? { list: row.autoBlueprint } : {}) });
+  }
+}
+
+/**
+ * The sector's random fight: one ship off the fights its own event lists hold, as a hostile beacon there would meet.
+ * Each fight counts once per page that holds it.
+ */
+function sectorFight(
+  ctx: PoolContext,
+  rand: () => number,
+  level: number,
+): ArchiveFight | undefined {
+  const fights: { tier: string; list?: string }[] = [];
+  const seen = new Set<string>();
+  const visit = (id: string, depth: number) => {
+    if (depth > 3 || seen.has(id)) return;
+    seen.add(id);
+    const list = fillerList(id);
+    if (list) {
+      for (const entry of list.entries) visit(entry.id, depth + 1);
+      return;
+    }
+    const page = eventDef(id);
+    if (!page) return;
+    pageFights(page.fx, fights);
+    for (const choice of page.choices) pageFights(choice.fx, fights);
+  };
+  for (const quota of sectorDef(ctx.sectorId)?.quotas ?? []) visit(quota.id, 0);
+  const ships = fights.filter(
+    (row) => !/flagship/i.test(row.tier) && (shipEventDef(row.tier) || hullDef(row.tier)),
+  );
+  if (ships.length === 0) return undefined;
+  const pick = ships[Math.floor(rand() * ships.length) % ships.length]!;
+  const list = pick.list ?? shipEventDef(pick.tier)?.autoBlueprint;
+  const hull = fightHull(pick.tier, list, rand, level);
+  return hull ? { hull, ...(list ? { list } : {}) } : undefined;
 }

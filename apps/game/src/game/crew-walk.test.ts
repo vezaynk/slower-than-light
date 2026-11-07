@@ -269,7 +269,7 @@ describe("crew keep their tiles in a shared room (per the user)", () => {
 
   it("fights an intruder before anyone heads for the terminal", () => {
     const { g, room, cell, op, others } = crowd();
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const foe = g.crew.find((c) => c.side === "enemy" && c.kin !== "energy")!;
     foe.aboard = "player";
     foe.room = room.id;
@@ -408,7 +408,7 @@ describe("walking crew are not immune to damage (per the user)", () => {
   it("is struck by an enemy standing in the room it walks through", () => {
     const g = startedGame(4, "PLAYER_SHIP_HARD");
     g.phase = "map";
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const { c, hold } = walker(g, "p-engines");
     // Nobody of ours stands in the room: those standing are struck before anyone walking through.
     for (const other of g.crew) {

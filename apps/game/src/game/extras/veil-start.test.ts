@@ -8,7 +8,7 @@ describe("Per the user (bug): a powered starting cloak is ready, not cooling", (
     const g = createGame(1, "PLAYER_SHIP_STEALTH");
     const veil = g.player.kits.cloaking!;
     assert.equal(veil.on, false);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.paused = false;
     step(g, 0.05);
     assert.equal(veil.cool, 0);

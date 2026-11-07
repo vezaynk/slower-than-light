@@ -27,7 +27,7 @@ describe("weapons out of a fight", () => {
     onPlayerJump(g);
     assert.equal(w.charge, 0);
     w.charge = 0.6;
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.equal(w.charge, 0.6);
   });
 

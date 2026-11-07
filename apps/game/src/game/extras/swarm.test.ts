@@ -193,7 +193,7 @@ describe("drones", () => {
     let saw = false;
     for (let seed = 1; seed < 80 && !saw; seed++) {
       const g = createGame(seed);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
       g.asteroid = false;
       g.asb = false;
@@ -254,7 +254,7 @@ describe("drones", () => {
   it("combat drone fires when the orbit leg finishes", () => {
     const g = createGame(6);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     assert.equal(deploy(g, "COMBAT_1"), true);
     const kit = g.player.kits.drones;
@@ -296,7 +296,7 @@ describe("drones", () => {
     for (const kind of ["COMBAT_1", "COMBAT_2"] as const) {
       const g = createGame(kind === "COMBAT_1" ? 61 : 62);
       const kit = place(g, 4);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
       assert.equal(deploy(g, kind), true);
       const speed = kind === "COMBAT_2" ? COMBAT2.speed : COMBAT1_SPEED;
@@ -351,7 +351,7 @@ describe("drones", () => {
   it("beam does not hurt a hull that still has shields", () => {
     const g = createGame(9);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     assert.ok(g.enemy.shieldNow > 0);
     assert.equal(DRONE_POWER.COMBAT_BEAM, 2);
@@ -378,7 +378,7 @@ describe("drones", () => {
   it("beam deals 1 hull and 1 system damage per room once shields are down", () => {
     const g = createGame(10);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.shieldNow = 0;
     assert.equal(deploy(g, "COMBAT_BEAM"), true);
@@ -408,7 +408,7 @@ describe("drones", () => {
   it("a beam drone does not cut a cloaked hull, and the swipe interval still runs", () => {
     const g = createGame(64);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.shieldNow = 0;
     g.enemy.zoltan = 2;
@@ -456,7 +456,7 @@ describe("drones", () => {
   it("a player beam drone spends one Zoltan Shield layer and does not cut hull on that swipe", () => {
     const g = createGame(11);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.zoltan = 2;
     g.enemy.shieldNow = 0;
@@ -486,7 +486,7 @@ describe("drones", () => {
     const setup = () => {
       const g = createGame(10);
       place(g);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
       g.enemy.shieldNow = 0;
       g.enemy.zoltan = 0;
@@ -543,7 +543,7 @@ describe("drones", () => {
   it("beam fire lands on some swipes and not others", () => {
     const g = createGame(11);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.shieldNow = 0;
     deploy(g, "COMBAT_BEAM");
@@ -559,7 +559,7 @@ describe("drones", () => {
   it("an underpowered beam does not cut", () => {
     const g = createGame(12);
     place(g, 1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.shieldNow = 0;
     assert.equal(deploy(g, "COMBAT_BEAM"), true);
@@ -571,7 +571,7 @@ describe("drones", () => {
   it("board hits enemy crew through shields, once a second, for 3 to 7 HP", () => {
     const g = createGame(13);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     assert.equal(DRONE_POWER.BOARDER, 3);
     assert.ok(g.enemy.shieldNow > 0);
@@ -609,7 +609,7 @@ describe("drones", () => {
   it("holds in space while the enemy is cloaked, then breaches and hits for 3 to 7 HP", () => {
     const g = createGame(13);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     assert.equal(deploy(g, "BOARDER"), true);
     const kit = g.player.kits.drones;
@@ -655,7 +655,7 @@ describe("drones", () => {
   it("board breaks one system bar in 12.5 seconds when no enemy crew are left and still ignores shields", () => {
     const g = createGame(14);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.shieldNow = 4;
     for (const sys of Object.values(g.enemy.systems)) sys.level = Math.max(sys.level, 8);
@@ -685,7 +685,7 @@ describe("drones", () => {
   it("moves to the nearest system room once that system is destroyed and no enemy crew remain", () => {
     const g = createGame(18);
     place(g);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     assert.equal(deploy(g, "BOARDER"), true);
     tickSwarm(g, 1);
@@ -711,7 +711,7 @@ describe("drones", () => {
   it("an underpowered board does not attack", () => {
     const g = createGame(15);
     place(g, 2);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     assert.equal(deploy(g, "BOARDER"), true);
     const hp = g.crew.filter((c) => c.side === "enemy").reduce((sum, c) => sum + c.hp, 0);
@@ -725,7 +725,7 @@ describe("drones", () => {
   it("patch repairs one bar in 6.25s, an Engi's pace, even with no oxygen", () => {
     const g = createGame(16);
     place(g, 1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     assert.equal(DRONE_POWER.REPAIR, 1);
     const weapons = g.player.rooms.find((room) => room.system === "weapons")!;
@@ -896,7 +896,7 @@ describe("drones", () => {
     assert.equal(HULL_POINT_S, 3);
     const g = createGame(17);
     place(g, 2);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     assert.equal(DRONE_POWER.SHIP_REPAIR, 2);
     g.player.hull = 4;
@@ -1093,7 +1093,7 @@ describe("drones", () => {
   it("walks the enemy repair drone to the job instead of appearing there", () => {
     const g = createGame(24);
     place(g, 1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     const start = enemy.rooms.find((room) => room.system && room.system !== "doors");
@@ -1194,7 +1194,7 @@ describe("drones", () => {
   it("an enemy repair drone keeps that same fire ignore after it is destroyed", () => {
     const g = createGame(25);
     place(g, 1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     const start = enemy.rooms.find((room) => room.system && room.system !== "doors");
@@ -1318,7 +1318,7 @@ describe("drones", () => {
   it("an enemy repair drone ignores the crew in the room until that one bar is finished", () => {
     const g = createGame(30);
     place(g, 1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     const dest = enemy.rooms.find((room) => room.system && room.system !== "doors");
@@ -1378,7 +1378,7 @@ describe("Ion Intruder body", () => {
     assert.equal(INTRUDER_SPACE_SPEED, 18);
     const g = createGame(41);
     place(g, 3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     assert.equal(deploy(g, "BOARDER_ION"), true);
@@ -1411,7 +1411,7 @@ describe("Ion Intruder body", () => {
     assert.equal(DRONE_DOOR_HITS_PER_S, 2);
     const g = createGame(43);
     place(g, 3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     assert.equal(deploy(g, "BOARDER_ION"), true);
@@ -1486,7 +1486,9 @@ describe("Ion Intruder body", () => {
   it("dies at 0 health and waits out the redeploy", () => {
     const g = createGame(42);
     place(g, 3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
+    // No Teleporter or drones on their side: the fight is the drone against one crew member.
+    g.enemy!.kits = {};
     assert.equal(deploy(g, "BOARDER_ION"), true);
     const kit = g.player.kits.drones;
     assert.ok(kit);
@@ -1520,7 +1522,7 @@ describe("Ion Intruder body", () => {
     const drop = (xp: number) => {
       const g = createGame(42);
       place(g, 3);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       assert.equal(deploy(g, "BOARDER_ION"), true);
       const kit = g.player.kits.drones;
       assert.ok(kit);
@@ -1571,7 +1573,7 @@ describe("on-board drone damage", () => {
   it("takes half the crew damage, and a drone elsewhere or still in flight does not", () => {
     const g = createGame(11);
     place(g, 3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     enemy.systems.engines.power = 0;
@@ -1611,7 +1613,7 @@ describe("on-board drone damage", () => {
   it("destroys a drone that cannot cover the half, and leaves the intruder alone on the other hull", () => {
     const g = createGame(12);
     place(g, 3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     enemy.systems.engines.power = 0;
@@ -1669,7 +1671,7 @@ describe("Zoltans drone depower", () => {
   it("refuses while Zoltan power alone fully powers the deployed drone", () => {
     // Zoltans: the drone cannot be manually de-powered while Zoltans fully power it solely by their power.
     const g = createGame(3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const kit = place(g, 0);
     kit.zoltan = 2;
     const parts = g.player.parts;

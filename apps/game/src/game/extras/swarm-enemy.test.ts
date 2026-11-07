@@ -92,17 +92,19 @@ function nearestSystem(ship: Ship, from: string): string[] {
 /** A quiet fight: no guns, no rocks, no fleet, no teleporter. */
 function quiet(seed: number): Game {
   const g = createGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   g.asteroid = false;
   g.asb = false;
   g.boardTimer = 0;
   g.enemyEscape = null;
-  for (const w of [...g.player.weapons, ...g.enemy.weapons]) {
+  for (const w of g.player.weapons) {
     w.enabled = false;
     w.charge = 0;
     w.target = null;
   }
+  // Taken off, not switched off: the enemy crew would power them again.
+  g.enemy.weapons = [];
   return g;
 }
 

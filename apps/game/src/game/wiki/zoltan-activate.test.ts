@@ -49,7 +49,7 @@ describe("Zoltans ionized activation", () => {
   it("refuses cloaking, hacking, mind control, and the teleporter", () => {
     // Zoltans: "Cloaking, Hacking, Mind Control, and Crew Teleporter cannot be activated if they are ionized".
     const g = createGame(30);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.player.systems.engines.power = 0;
     g.player.systems.shields.power = 0;

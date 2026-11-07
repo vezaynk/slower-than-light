@@ -278,7 +278,7 @@ describe("a seeded Kestrel run", () => {
     assert.equal(g.player.rooms.find((r) => r.id === crystal.room)?.lock, 12);
     assert.equal(crystal.lockCool, 50);
 
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.paused = false;
     const laser = g.player.weapons.find((w) => w.defId === "LASER_BURST_3");
     assert.ok(laser);

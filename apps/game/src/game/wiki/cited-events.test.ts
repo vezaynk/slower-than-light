@@ -377,7 +377,7 @@ describe("Auto-ship carrying shield virus", () => {
     g.enemy.hull = 0;
     step(g, 0.05);
     assert.notEqual(g.phase, "combat");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     for (const w of g.enemy.weapons) w.enabled = false;
     g.player.systems.shields.level = 4;
@@ -911,7 +911,7 @@ describe("Slug hacker (choice)", () => {
     guns.enemy.hull = 0;
     step(guns, 0.05);
     assert.notEqual(guns.phase, "combat");
-    startCombat(guns, "scout");
+    startCombat(guns, "Rebel ship");
     assert.deepEqual(powerMask(guns.player), [true, true]);
   });
 });
@@ -980,7 +980,7 @@ describe("Slug hacker (doors)", () => {
 describe("Door System open and close", () => {
   it("opens every door, then shuts them again", () => {
     const g = createGame(3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.systems.doors.level = 2;
     g.player.systems.doors.damage = 0;
     g.player.systems.doors.ion = [];
@@ -1025,7 +1025,7 @@ describe("Slug hacker (oxygen)", () => {
     g.enemy.hull = 0;
     step(g, 0.05);
     assert.notEqual(g.phase, "combat");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     quietEnemy(g);
     for (const d of g.player.doors) d.open = false;
     for (const r of g.player.rooms) {
@@ -1125,7 +1125,7 @@ describe("Slug hacker (medical)", () => {
     g.enemy.hull = 0;
     step(g, 0.05);
     assert.notEqual(g.phase, "combat");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     quietEnemy(g);
     patient.room = bay.id;
     patient.aboard = "player";
@@ -1173,7 +1173,7 @@ describe("Lanius fight with friendly ASB support", () => {
     g.enemy.hull = 0;
     step(g, 0.05);
     assert.notEqual(g.phase, "combat");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     quietEnemy(g);
     g.shots = [];
     g.asb = true;

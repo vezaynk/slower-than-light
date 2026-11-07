@@ -87,7 +87,7 @@ describe("stl rules", () => {
 
   it("keeps the crew alive in a sealed, supplied ship", () => {
     const g = createGame(7);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     step(g, 2);
     for (const c of g.crew.filter((c) => c.side === "player")) assert.ok(c.hp > 90);
   });
@@ -97,7 +97,7 @@ describe("stl rules", () => {
     const hostile = g.beacons.find((b) => b.kind === "hostile");
     assert.ok(hostile);
     g.here = hostile.id;
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.equal(g.phase, "combat");
     assert.ok(g.enemy);
     step(g, 0.5);

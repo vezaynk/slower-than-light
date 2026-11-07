@@ -311,6 +311,7 @@ import {
 } from "./wiki/quests.ts";
 import {
   applyCrewMix,
+  archiveFight,
   fightHull,
   genSector,
   overrideWeaponIds,
@@ -6591,9 +6592,9 @@ function shipFromSpec(
 }
 
 /**
- * Every other fight: a documented class from the faction pages (enemy-gen.ts, wiki/enemy-ships.ts).
- * "elite" is a Rebel Elite (fleet-overtaken beacons). Any other tier string draws from the sector pool.
- * A tier that is a hull id, or an auto_blueprint list that draws a hull, builds that hull instead.
+ * Every fight is an archive ship: a hull id, a ship event's auto_blueprint list, or (enemy-gen.ts archiveFight) the list
+ * or class a fight's wording names, or a ship off the sector's own event lists for "pool". "elite" is the fleet's
+ * LONG_FLEET. The faction pages' class picker is only a warned fallback for an archive with none of those.
  */
 const ELITE_SHIP = "LONG_FLEET";
 
@@ -6616,7 +6617,18 @@ function makeEnemy(
   const shipEvent = shipEventDef(tier);
   // Rebel Fleet: an overtaken beacon's Elite is the ship ftl.dat's FLEET_EASY events load, LONG_FLEET (SHIPS_REBEL_ELITE).
   if (tier === "elite" && !autoBlueprint) autoBlueprint = shipEventDef(ELITE_SHIP)?.autoBlueprint;
-  const hull = fightHull(tier, autoBlueprint, r, genSector(ctx.sector, ctx.difficulty) - 1);
+  let hull = fightHull(tier, autoBlueprint, r, genSector(ctx.sector, ctx.difficulty) - 1);
+  // A fight the code names by wording ("Rebel ship"), or the sector's random fight: the archive ship it is
+  // (enemy-gen.ts archiveFight).
+  let worded = false;
+  if (!hull && tier !== "elite") {
+    const fight = archiveFight(tier, ctx, r);
+    if (fight) {
+      hull = fight.hull;
+      autoBlueprint = fight.list ?? autoBlueprint;
+      worded = true;
+    }
+  }
   if (hull) {
     const spec = specFromHull(hull, ctx, r);
     // The crew block replaces each blueprint seat's race. The weapon override replaces the blueprint guns.
@@ -6629,8 +6641,11 @@ function makeEnemy(
     spec.pirate = allegiance.pirate;
     const built = shipFromSpec(g, spec, allegiance.faction);
     citedEnemy(g, tier, built.ship, built.crew);
+    // An explicit hull keeps the guns its blueprint named; a ship the wording asked for is fitted like a class pick.
+    if (worded) fitSlugHackerFire(g, event, shipEvent, built.ship);
     return built;
   }
+  warnPack(`The fight "${tier}" finds no archive ship; it rolls a wiki class.`);
   const picked =
     tier === "elite"
       ? { cls: pickElite(r), pirate: false }
@@ -6642,20 +6657,28 @@ function makeEnemy(
   }
   const built = shipFromSpec(g, spec, picked.cls.faction);
   citedEnemy(g, tier, built.ship, built.crew);
-  // Slug hacker (oxygen) and Slug hacker (doors): "Note: The enemy ship will have at least one Fire Beam or Fire Bomb."
-  // The page prints no odds between the two guns. INFERRED: equal, one rand(g). Under 0.5 is firebeam, otherwise cask.
-  // INFERRED: replace the first already-fitted gun's defId. A ship with no guns gets one via enemyGun.
-  // An explicit hull keeps the guns its blueprint named. A weapon override already chose the guns.
-  if (
-    (event === "slug-hacker-oxygen" || event === "slug-hacker-doors") &&
-    !shipEvent?.weaponOverride &&
-    !built.ship.weapons.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE")
-  ) {
-    const defId = rand(g) < 0.5 ? "BEAM_FIRE" : "BOMB_FIRE";
-    if (built.ship.weapons.length > 0) built.ship.weapons[0].defId = defId;
-    else built.ship.weapons.push(enemyGun(g, defId));
-  }
+  fitSlugHackerFire(g, event, shipEvent, built.ship);
   return built;
+}
+
+/**
+ * Slug hacker (oxygen) and Slug hacker (doors): "Note: The enemy ship will have at least one Fire Beam or Fire Bomb."
+ * The page prints no odds between the two guns. INFERRED: equal, one rand(g). Under 0.5 is firebeam, otherwise cask.
+ * INFERRED: replace the first already-fitted gun's defId. A ship with no guns gets one via enemyGun.
+ * A weapon override already chose the guns.
+ */
+function fitSlugHackerFire(
+  g: Game,
+  event: string | undefined,
+  shipEvent: ReturnType<typeof shipEventDef>,
+  ship: Ship,
+): void {
+  if (event !== "slug-hacker-oxygen" && event !== "slug-hacker-doors") return;
+  if (shipEvent?.weaponOverride) return;
+  if (ship.weapons.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE")) return;
+  const defId = rand(g) < 0.5 ? "BEAM_FIRE" : "BOMB_FIRE";
+  if (ship.weapons.length > 0) ship.weapons[0].defId = defId;
+  else ship.weapons.push(enemyGun(g, defId));
 }
 
 /**

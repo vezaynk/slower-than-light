@@ -268,7 +268,7 @@ describe("fleet advance and the anti-ship battery", () => {
 
     here.kind = "nebula";
     g.fleet += 1;
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.equal(g.asb, false);
   });
 
@@ -361,7 +361,7 @@ describe("fleet advance and the anti-ship battery", () => {
     assert.ok(here);
     here.kind = "empty";
     g.fleet = fleetToReach(g, here);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.equal(g.asb, true);
     assert.equal(g.asbPhase, "warn");
     assert.equal(g.asbT, 0);
@@ -444,7 +444,7 @@ describe("ship info screen while in danger", () => {
 
   it("sends asteroids at the enemy ship too, in turn with the player's (xftl doc/asteroids)", () => {
     const g = createGame(12);
-    startCombat(g, "scout", true);
+    startCombat(g, "Rebel ship", true);
     assert.ok(g.enemy);
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy.weapons) w.enabled = false;

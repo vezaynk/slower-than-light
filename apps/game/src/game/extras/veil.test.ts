@@ -137,7 +137,7 @@ describe("cloaking", () => {
     ];
     for (const [id, extra, left] of cases) {
       const g = createGame(1);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       const room = g.enemy!.rooms[0]!.id;
       g.player.kits.cloaking = {
         id: "cloaking",
@@ -175,7 +175,7 @@ describe("cloaking", () => {
     }
 
     const quiet = createGame(2);
-    startCombat(quiet, "scout");
+    startCombat(quiet, "Rebel ship");
     const room = quiet.enemy!.rooms[0]!.id;
     quiet.player.kits.cloaking = {
       id: "cloaking",

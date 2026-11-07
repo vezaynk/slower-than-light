@@ -95,7 +95,7 @@ describe("chain weapon profiles", () => {
 
   it("steps Chain Burst through 16, 13, 10, then 7, and a manned gun uses the 0.9 rate", () => {
     const g = createGame(4);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const w = mount(g, "LASER_CHAINGUN", 2);
     unman(g);
     for (const seconds of BURST) {
@@ -108,14 +108,14 @@ describe("chain weapon profiles", () => {
     close(rate(g), 0.05 / 7);
 
     const manned = createGame(5);
-    startCombat(manned, "scout");
+    startCombat(manned, "Rebel ship");
     mount(manned, "LASER_CHAINGUN", 2);
     close(rate(manned), 0.05 / (16 * 0.9));
   });
 
   it("steps Chain Vulcan down to 1.1 and resets to 11.1 when power drops", () => {
     const g = createGame(6);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const w = mount(g, "LASER_CHAINGUN_2", 4);
     unman(g);
     for (const seconds of VULCAN) {
@@ -171,7 +171,7 @@ describe("chain weapon profiles", () => {
       assert.equal(chainDamageAmount("MOD_CHAIN_LASER", 3), 4);
       assert.equal(chainDamageAmount("MOD_CHAIN_LASER", 9), 4);
       const g = createGame(11);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       mount(g, "MOD_CHAIN_LASER", laser.power);
       unman(g);
       const seen: number[] = [];
@@ -189,7 +189,7 @@ describe("chain weapon profiles", () => {
 
   it("climbs Chain Ion from 1 to 4 and keeps the 14 second charge", () => {
     const g = createGame(7);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const w = mount(g, "ION_CHAINGUN", 3);
     unman(g);
     const seen: number[] = [];
@@ -212,7 +212,7 @@ describe("chain weapon profiles", () => {
 
   it("pauses a chain on a cloaked enemy and drains an ordinary gun's charge when it loses power", () => {
     const g = createGame(8);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const w = mount(g, "LASER_CHAINGUN", 2);
     unman(g);
     fire(g);
@@ -236,7 +236,7 @@ describe("chain weapon profiles", () => {
     assert.equal(w.charge, 0.4);
 
     const plain = createGame(9);
-    startCombat(plain, "scout");
+    startCombat(plain, "Rebel ship");
     const spark = mount(plain, "LASER_BURST_1", 1);
     unman(plain);
     spark.charge = 0.4;

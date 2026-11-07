@@ -105,7 +105,7 @@ describe("solar flare", () => {
     assert.equal(flareFireCount(false, 0.999), 6);
 
     const g = createGame(3);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.shieldNow = 4;
     g.player.zoltan = 0;
     clearFires(g);
@@ -161,7 +161,7 @@ describe("solar flare", () => {
     let hurt = false;
     for (let seed = 1; seed < 40 && !hurt; seed++) {
       const g = createGame(seed);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       g.player.shieldNow = 0;
       g.player.zoltan = 0;
       g.player.systems.engines.power = 0;

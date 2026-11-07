@@ -48,7 +48,7 @@ describe("score", () => {
     const hook = createGame(4);
     hook.augments = ["SCRAP_COLLECTOR"];
     const start = hook.scrap;
-    startCombat(hook, "scout");
+    startCombat(hook, "Rebel ship");
     assert.ok(hook.enemy);
     hook.enemy.hull = 0;
     step(hook, 0.01);
@@ -61,7 +61,7 @@ describe("score", () => {
     weld.augments = ["REPAIR_ARM"];
     weld.player.hull = 20;
     const weldStart = weld.scrap;
-    startCombat(weld, "scout");
+    startCombat(weld, "Rebel ship");
     assert.ok(weld.enemy);
     weld.enemy.hull = 0;
     step(weld, 0.01);

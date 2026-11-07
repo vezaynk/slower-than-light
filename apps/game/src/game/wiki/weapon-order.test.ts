@@ -55,9 +55,9 @@ function spark(room: string, id: string): Crew {
   };
 }
 
-function fight(seed = 3): Game {
+function fight(seed = 3, ship = "Rebel ship"): Game {
   const g = createGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, ship);
   g.paused = false;
   g.asb = false;
   g.player.hull = 30;
@@ -502,9 +502,9 @@ describe("drone order and enemy chargers", () => {
       assert.equal(spec.weapons.includes("LASER_CHARGEGUN_PLAYER"), false, cls.id);
     }
 
-    const g = fight(15);
+    // An Auto-ship: nobody aboard its weapons room, so the 5 second clock is not a manning bonus or a Zoltan bar.
+    const g = fight(15, "Auto-ship");
     parkGunners(g);
-    // Nobody aboard their weapons room, so the 5 second clock is not a manning bonus or a Zoltan bar.
     g.crew = g.crew.filter((c) => c.side === "player");
     g.player.weapons = [];
     const enemy = g.enemy!;
@@ -619,6 +619,8 @@ describe("swarm missiles", () => {
 
     const g = fight(8);
     parkGunners(g);
+    // No drones or hacking: only the launcher's own clock is under test.
+    g.enemy!.kits = {};
     feed(g, 4, 4, ["MISSILES_BURST"]);
     g.missiles = 4;
     const w = g.player.weapons[0];

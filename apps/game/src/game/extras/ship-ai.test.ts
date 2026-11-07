@@ -11,7 +11,7 @@ function kit(id: KitId, level: number): Kit {
 /** A plain enemy: shields 4, engines 2, oxygen 1, weapons 3 with a 1-bar and a 2-bar gun. */
 function enemy(reactor: number): Game {
   const g = createGame(3);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   const e = g.enemy!;
   e.kits = {};
   e.storm = false;

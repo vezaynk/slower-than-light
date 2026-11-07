@@ -46,7 +46,7 @@ function rng(seed: number) {
 /** One player crew alone in a system room; everyone else moved out. */
 function lone(g: Game): { worker: Crew; roomId: string; sys: string } {
   // life() runs only in combat.
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   const room = g.player.rooms.find((r) => r.system && r.system !== "oxygen")!;
   const worker = g.crew.find((c) => c.side === "player" && c.hp > 0)!;
   const away = g.player.rooms.find((r) => r.id !== room.id)!;
@@ -265,7 +265,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
   it("a mind-controlled crew member still gains a repair point", () => {
     // Crew skills, lead: "your mind-controlled crew still gains skill points by performing the tasks."
     const g = createGame(36);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     const room = g.enemy!.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0)!;
@@ -339,7 +339,7 @@ describe("Crew skills, Repair skill: one point when a bar finishes", () => {
 
     const hurt = (kin: "human" | "engi" | "mantis") => {
       const g = createGame(49);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
       if (g.enemy?.kits.drones) g.enemy.kits.drones.loadout = [];
@@ -519,7 +519,7 @@ describe("Crew skills: sabotage damage ignores race", () => {
     // Crew skills, lead: other jobs "are performed equally well by all crew races, including inflicting sabotage damage".
     const progress = (kin: "human" | "engi" | "mantis") => {
       const g = createGame(50);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
       const room = g.enemy!.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0)!;
@@ -551,7 +551,7 @@ describe("Crew skills: sabotage damage ignores race", () => {
     // Crew skills, Combat skill: "always 12.5 seconds per crew for one system bar, regardless of the crew type or skills."
     const steps = (kin: "human" | "engi" | "mantis", combat: number) => {
       const g = createGame(57);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
       const room = g.enemy!.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0)!;
@@ -589,7 +589,7 @@ describe("Crew skills: a repair drone cannot gain experience", () => {
   it("finishes a system bar and trains nobody", () => {
     // Crew skills, lead: repair drones "are totally unable to gain experience or achieve higher skill levels."
     const g = createGame(37);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     for (const c of g.crew) c.skills = {};
@@ -715,7 +715,7 @@ describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
   it("a gold fighter deals 20% more and does not take 20% more", () => {
     const blow = (xp: number) => {
       const g = createGame(11);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       const room =
         g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms.find((r) => !r.system);
       assert.ok(room);
@@ -758,7 +758,7 @@ describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
   it("does not speed sabotage", () => {
     const rates = [0, 100].map((xp) => {
       const g = createGame(13);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       const room = g.enemy?.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0);
       assert.ok(room && g.enemy);
       const away = g.enemy.rooms.find((r) => r.id !== room.id);
@@ -785,7 +785,7 @@ describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
 describe("Crew skills, Combat skill: one point for a killing blow or one system level", () => {
   function duel() {
     const g = createGame(31);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     const room = g.player.rooms.find((r) => r.system === "sensors") ?? g.player.rooms[0]!;
@@ -853,7 +853,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
 
   it("grants one point when a sabotage bar finishes, and nothing to a fire", () => {
     const g = createGame(32);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.crew = g.crew.filter((c) => c.side === "player");
     const room = g.enemy!.rooms.find((r) => r.system && g.enemy!.systems[r.system].level > 0)!;
     const sys = g.enemy!.systems[room.system!];
@@ -878,7 +878,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
     assert.equal(bystander.skills?.combat ?? 0, 0);
 
     const burned = createGame(33);
-    startCombat(burned, "scout");
+    startCombat(burned, "Rebel ship");
     for (const c of burned.crew) c.skills = {};
     const hot = burned.enemy!.rooms.find(
       (r) => r.system && burned.enemy!.systems[r.system].level > 0,
@@ -895,7 +895,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
 
   it("a mind-controlled crew member gains the point for damaging your system", () => {
     const g = createGame(34);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const room = g.player.rooms.find((r) => r.system && g.player.systems[r.system].level > 0)!;
     g.player.systems[room.system!].damage = 0;
     room.fire = 0;
@@ -918,7 +918,7 @@ describe("Crew skills, Combat skill: one point for a killing blow or one system 
 
   it("destroying a crew drone trains nothing", () => {
     const g = createGame(35);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     const room = g.enemy!.rooms[0]!;
@@ -980,7 +980,7 @@ describe("Crew skills: combat skill and onboard drones", () => {
     // Level 2 (Gold) is "20% more crew damage".
     const drop = (trained: boolean) => {
       const g = createGame(62);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
       const room = g.enemy!.rooms[0]!;
@@ -1033,7 +1033,7 @@ describe("Crew skills: combat skill and onboard drones", () => {
 describe("Crew skills, Weapons: artillery grants one point", () => {
   function gunner(seed: number) {
     const g = createGame(seed);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     const room = g.player.rooms.find((r) => r.system === "weapons")!;
@@ -1095,8 +1095,9 @@ describe("Crew skills: a Basic Laser charge", () => {
     // Crew skills, Weapons skill: "a Basic Laser improves from 10 seconds to 8 seconds."
     const fill = (trained: boolean) => {
       const g = createGame(60);
-      startCombat(g, "scout");
-      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      startCombat(g, "Rebel ship");
+      // The enemy's guns are taken off, not switched off: its crew would power them again.
+      if (g.enemy) g.enemy.weapons = [];
       if (g.enemy?.kits.cloaking) {
         g.enemy.kits.cloaking.on = false;
         g.enemy.kits.cloaking.power = 0;
@@ -1106,7 +1107,7 @@ describe("Crew skills: a Basic Laser charge", () => {
         g.enemy.kits.hacking.left = 0;
         g.enemy.kits.hacking.cool = 999;
       }
-      if (g.enemy?.kits.drones) g.enemy.kits.drones.loadout = [];
+      if (g.enemy?.kits.drones) delete g.enemy.kits.drones;
       g.augments = [];
       g.asteroid = false;
       g.player.systems.weapons.level = 1;
@@ -1159,7 +1160,7 @@ describe("Crew skills: a trained shield recharge", () => {
     // Crew skills, Shields skill: "with fully trained crew, recharge time is divided by 1.3 -- so a 2 seconds recharge is reduced to 1.54 seconds."
     const fill = (trained: boolean) => {
       const g = createGame(61);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
       if (g.enemy?.kits.cloaking) {
@@ -1215,7 +1216,7 @@ describe("Crew skills: a trained shield recharge", () => {
 describe("Crew skills, Weapons: turning a gun off just after the increment drops the shot", () => {
   function primed(seed: number, defId: string) {
     const g = createGame(seed);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     const room = g.player.rooms.find((r) => r.system === "weapons")!;
     const away = g.player.rooms.find((r) => r.id !== room.id)!;
@@ -1313,7 +1314,7 @@ describe("Crew skills, Weapons: turning a gun off just after the increment drops
 describe("Crew skills, Weapons: a bomb fired at your own ship still trains", () => {
   it("grants one point and spends one missile", () => {
     const g = createGame(46);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     const room = g.player.rooms.find((r) => r.system === "weapons")!;
     const bay = g.player.rooms.find((r) => r.system === "medbay")!;
@@ -1355,7 +1356,7 @@ describe("Crew skills, Weapons: a bomb fired at your own ship still trains", () 
 describe("Crew skills, Shields: an ion hit on the bubble ionizes shields", () => {
   it("puts the ion on shields, leaves the aimed room clear, and trains nothing", () => {
     const g = createGame(51);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.systems.engines.power = 0;
     g.player.systems.shields.level = 4;
     g.player.systems.shields.power = 4;
@@ -1391,7 +1392,7 @@ describe("Crew skills, Shields: an ion hit on the bubble ionizes shields", () =>
 describe("AI-Controlled Rebel Ships, manning bonuses", () => {
   function autoHull(seed: number) {
     const g = createGame(seed);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const e = g.enemy;
     assert.ok(e);
     e.automated = true;
@@ -1486,7 +1487,7 @@ describe("AI-Controlled Rebel Ships, manning bonuses", () => {
 describe("Crew skills, Piloting: a cloak does not train evasion", () => {
   it("skips piloting and engines while cloaked, and still trains shields on a bubble hit", () => {
     const g = createGame(6);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
@@ -1567,7 +1568,7 @@ describe("Crew skills, Piloting: a cloak does not train evasion", () => {
     // Crew skills, Piloting: "one point of experience for each projectile dodged during combat."
     // Engines: "one point of experience for each projectile evaded."
     const g = createGame(51);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
@@ -1638,7 +1639,7 @@ describe("Crew skills: piloting and engines are different consoles", () => {
   it("gives the dodge to whoever is at that console", () => {
     // Crew skills, lead: Piloting and Engines "are gained at different system consoles."
     const g = createGame(67);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
@@ -1716,7 +1717,7 @@ describe("Crew skills, Piloting: an asteroid during the fight", () => {
   it("trains piloting and engines when a rock is dodged in combat", () => {
     // Crew skills, Piloting: "This includes asteroids, provided you are still in combat."
     const g = createGame(64);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
@@ -1778,7 +1779,7 @@ describe("Crew skills, Shields: an asteroid during the fight", () => {
   it("trains shields when a rock depletes the bubble", () => {
     // Crew skills, Shields: "asteroids will not provide training unless you are still in combat."
     const g = createGame(65);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {
@@ -1825,7 +1826,7 @@ describe("Crew skills, Shields: one point per bubble hit", () => {
   it("grants one shields point when a shot depletes the bubble, and none when it misses", () => {
     // Crew skills, Shields: "one point of experience for every projectile that hits your shield bubble and depletes it".
     const g = createGame(53);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     for (const w of g.player.weapons) w.enabled = false;
     // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and drones are removed.
     if (g.enemy) {

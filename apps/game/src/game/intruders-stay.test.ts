@@ -34,7 +34,7 @@ function plant(g: Game, room: string, hp = 80): Crew {
 function quietFight(seed = 4): Game {
   const g = createGame(seed);
   g.player.weapons = [];
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   g.enemy.weapons = [];
   g.enemy.boards = false;
@@ -141,7 +141,7 @@ describe("intruders stay until they die", () => {
   it("is still aboard when the next fight starts", () => {
     const g = quietFight();
     const boarder = plant(g, "p-sensors");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     assert.deepEqual(
       intruders(g).map((c) => c.id),

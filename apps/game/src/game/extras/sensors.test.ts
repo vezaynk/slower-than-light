@@ -37,7 +37,7 @@ describe("sensorLevel", () => {
     assert.equal(playerSensorLevel(g), 0);
 
     here.kind = "start";
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     g.enemy.flagship = { stage: 1, warned: false, surge: [], lasers: 0, ai: false };
     assert.equal(sensorLevel(g, g.player, "player"), 2);
@@ -48,7 +48,7 @@ describe("sensorLevel", () => {
 describe("sensorSystemDetail", () => {
   it("lists level, power, each ion cooldown, and INFERRED repair and sabotage percents", () => {
     const g = createGame(1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     const sys = enemy.systems.shields;
@@ -73,7 +73,7 @@ describe("sensorSystemDetail", () => {
 
   it("reads ion 0, cooldown none, and 0% when repair and sabotage are empty", () => {
     const g = createGame(1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     const sys = enemy.systems.weapons;
@@ -90,7 +90,7 @@ describe("sensorSystemDetail", () => {
 
   it("INFERRED: repair and sabotage percents round and clamp to 0..100", () => {
     const g = createGame(1);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const enemy = g.enemy;
     assert.ok(enemy);
     const sys = enemy.systems.engines;

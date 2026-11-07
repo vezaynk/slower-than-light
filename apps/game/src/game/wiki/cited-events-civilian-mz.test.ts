@@ -55,7 +55,7 @@ describe("Pirate engine hacker", () => {
     assert.notEqual(g.phase, "combat");
     const restored = evasionPercent(g, g.player, "player");
     assert.ok(restored > high, `${restored} vs ${high}`);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(evasionPercent(g, g.player, "player") > high);
   });
 });

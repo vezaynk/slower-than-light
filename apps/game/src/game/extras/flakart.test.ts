@@ -32,7 +32,7 @@ import {
 
 function fight(seed: number): Game {
   const g = createGame(seed);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   assert.ok(g.enemy.rooms.length >= 2);
   return g;

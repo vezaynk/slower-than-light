@@ -39,7 +39,7 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
     assert.equal(nextAsteroidPhase("wave1"), "wave2");
     assert.equal(nextAsteroidPhase("wave2"), "break");
     const g = createGame(9);
-    startCombat(g, "scout", true);
+    startCombat(g, "Rebel ship", true);
     assert.equal(g.asteroidPhase, "break");
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
@@ -54,7 +54,7 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
       g.player.systems.shields.level = level;
       g.player.systems.shields.power = power;
       g.player.systems.shields.ion = ion;
-      startCombat(g, "scout", true);
+      startCombat(g, "Rebel ship", true);
       return g.asteroidPhaseLeft;
     };
     assert.equal(wait(0, [5, 5, 5, 5], 6), wait(6, [], 6));
@@ -65,7 +65,7 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
     const g = createGame(9);
     g.player.systems.shields.level = 8;
     g.player.systems.shields.power = 0;
-    startCombat(g, "scout", true);
+    startCombat(g, "Rebel ship", true);
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     g.player.systems.engines.power = 0;
@@ -83,7 +83,7 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
 
   it("keeps throwing rocks after the fight and does not train on those", () => {
     const g = createGame(11);
-    startCombat(g, "scout", true);
+    startCombat(g, "Rebel ship", true);
     for (const w of g.player.weapons) w.enabled = false;
     for (const w of g.enemy?.weapons ?? []) w.enabled = false;
     g.player.systems.engines.power = 0;
@@ -140,7 +140,7 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed < 80 && seen.size < 3; seed++) {
       const g = createGame(seed);
-      startCombat(g, "scout", true);
+      startCombat(g, "Rebel ship", true);
       for (const w of g.player.weapons) w.enabled = false;
       for (const w of g.enemy?.weapons ?? []) w.enabled = false;
       g.player.systems.engines.power = 0;
@@ -162,7 +162,7 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
     const land = (want: "fire" | "breach") => {
       for (let seed = 1; seed < 240; seed++) {
         const g = createGame(seed);
-        startCombat(g, "scout", true);
+        startCombat(g, "Rebel ship", true);
         for (const w of g.player.weapons) w.enabled = false;
         for (const w of g.enemy?.weapons ?? []) w.enabled = false;
         g.player.systems.engines.power = 0;
@@ -194,7 +194,7 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
 
   it("keeps the field when the enemy escapes", () => {
     const g = createGame(4);
-    startCombat(g, "scout", true);
+    startCombat(g, "Rebel ship", true);
     const enemy = g.enemy;
     assert.ok(enemy);
     enemy.systems.engines.power = enemy.systems.engines.level;

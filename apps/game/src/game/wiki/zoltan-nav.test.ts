@@ -58,7 +58,7 @@ describe("Zoltan power bar", () => {
 
   it("powers a weapon and refills oxygen from a Zoltan in that room", () => {
     const g = createGame(12);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     if (g.enemy) g.enemy.weapons = [];
     g.player.systems.weapons.power = 1;
     g.crew.push(spark("p-weapons", "z-gun"));
@@ -68,7 +68,7 @@ describe("Zoltan power bar", () => {
     assert.ok(g.player.weapons[0].charge > 0);
 
     const quiet = createGame(13);
-    startCombat(quiet, "scout");
+    startCombat(quiet, "Rebel ship");
     if (quiet.enemy) quiet.enemy.weapons = [];
     quiet.player.systems.weapons.power = 1;
     quiet.player.weapons[0].charge = 0;
@@ -76,7 +76,7 @@ describe("Zoltan power bar", () => {
     assert.equal(quiet.player.weapons[0].charge, 0);
 
     const air = createGame(14);
-    startCombat(air, "scout");
+    startCombat(air, "Rebel ship");
     if (air.enemy) air.enemy.weapons = [];
     air.player.systems.oxygen.power = 0;
     for (const room of air.player.rooms) room.o2 = 50;
@@ -89,7 +89,7 @@ describe("Zoltan power bar", () => {
 
   it("keeps one shield layer from two Zoltans while the system is ionized", () => {
     const g = createGame(15);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     if (g.enemy) g.enemy.weapons = [];
     g.player.systems.shields.level = 2;
     g.player.systems.shields.power = 2;

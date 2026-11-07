@@ -144,7 +144,7 @@ describe("escape in a fight", () => {
   it("doubles the next fleet advance when a pursuit runner escapes", () => {
     const g = createGame(4);
     g.player.weapons = [];
-    startCombat(g, "scout", false, "rebel-ship-warning");
+    startCombat(g, "Rebel ship", false, "rebel-ship-warning");
     run(g, 45);
     assert.match(g.event?.body ?? "", /The scout jumps away/);
     assert.match(g.event?.body ?? "", /Rebel Fleet pursuit is doubled/);

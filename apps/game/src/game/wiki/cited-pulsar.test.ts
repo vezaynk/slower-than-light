@@ -127,7 +127,7 @@ describe("pulsar", () => {
     assert.equal(missed, true);
 
     const g = createGame(6);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.systems.shields.power = 0;
     g.player.zoltan = 0;
     assert.equal(pulsarSystemIon(g, g.player, "player", "shields"), 1);
@@ -167,7 +167,7 @@ describe("pulsar", () => {
 
   it("ionizes a damaged Backup Battery at its system level", () => {
     const g = createGame(11);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.zoltan = 0;
     for (const id of Object.keys(g.player.systems) as SysId[]) {
       g.player.systems[id].level = 0;

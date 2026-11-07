@@ -86,7 +86,16 @@ describe("traced enemy interiors (ftl-layouts.mikehopley.org)", () => {
     // Federation pirates have no separate picture, so they copy the regular interior.
     assert.equal(shipClassBlueprint("federation-scout", true), "FED_SCOUT_P");
     assert.equal(hullDef("federation-scout:pirate"), undefined);
-    assert.deepEqual(enemyLayout("federation-scout", true), enemyLayout("federation-scout", false));
+    // Same picture; a pirate version may fit different optional systems, so only the geometry is compared.
+    const shape = (pirate: boolean) => {
+      const laid = enemyLayout("federation-scout", pirate)!;
+      return {
+        cols: laid.cols,
+        rows: laid.rows,
+        rooms: laid.rooms.map(({ x, y, w, h }) => ({ x, y, w, h })),
+      };
+    };
+    assert.deepEqual(shape(true), shape(false));
     const spec = rollEnemy(cls("rebel-fighter"), true, ctx, () => 0.99);
     assert.equal(spec.rooms.length, 10);
   });

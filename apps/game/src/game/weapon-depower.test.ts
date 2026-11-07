@@ -49,7 +49,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
 
   it("drains quickly, not at once, and holds while paused or while the radial menu is open", () => {
     const g = powerGuns(startedGame(3, "PLAYER_SHIP_HARD"));
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const w = g.player.weapons[0]!;
     w.charge = 0.9;
     depowerWeapon(g, w.uid);
@@ -70,7 +70,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
 
   it("drains a gun that loses power to damage, not only one switched off", () => {
     const g = powerGuns(startedGame(3, "PLAYER_SHIP_HARD"));
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const w = g.player.weapons[0]!;
     w.charge = 0.5;
     const sys = g.player.systems.weapons;
@@ -133,7 +133,7 @@ describe("weapon depower (per the user; Game patches, Weapon Depower Delay)", ()
 
   it("clears the aim of a weapon that is disabled, and leaves the other gun's aim", () => {
     const g = powerGuns(startedGame(3, "PLAYER_SHIP_HARD"));
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     g.player.reactor = 25;
     const sys = g.player.systems.weapons;
     sys.level = 8;

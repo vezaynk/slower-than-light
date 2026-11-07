@@ -116,9 +116,9 @@ describe("enemy-gen: a fight can ask for one ship class", () => {
   it("startCombat builds that class (quest fights: Slug Interceptor, Rock Assault (Elite))", () => {
     const g = createGame(3);
     startCombat(g, "Slug Interceptor", false, "quest-slug-interceptor");
-    assert.equal(g.enemy!.classId, "slug-interceptor");
+    assert.equal(g.enemy!.classId, "JELLY_BUTTON");
     startCombat(g, "Rock Assault (Elite)", false, "quest-rock-sun");
-    assert.equal(g.enemy!.classId, "rock-assault-elite");
+    assert.equal(g.enemy!.classId, "ROCK_ASSAULT_ELITE");
   });
 });
 
@@ -170,7 +170,7 @@ describe("quest openers (quests-a)", () => {
     assert.equal(g.event?.body, sun);
     assert.equal(g.log.includes(sun), false);
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    assert.equal(g.enemy!.classId, "rock-assault-elite");
+    assert.equal(g.enemy!.classId, "ROCK_ASSAULT_ELITE");
     assert.deepEqual(
       [g.enemyEscape!.mode, g.enemyEscape!.running, g.enemyEscape!.seconds],
       ["start", true, 32],

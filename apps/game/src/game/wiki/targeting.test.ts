@@ -111,7 +111,7 @@ describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
 
   it("an enemy gun re-aims each volley", () => {
     const g = createGame(11, undefined, "normal");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const gun = g.enemy!.weapons.find((w) => w.enabled !== false);
     assert.ok(gun);
     const aims = new Set<string>();
@@ -128,7 +128,7 @@ describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
 
   it("each shot of an enemy burst rolls its own room (combat-ai UpdateWeapons)", () => {
     const g = createGame(5, "PLAYER_SHIP_HARD", "normal");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     const gun = g.enemy!.weapons[0];
     gun.defId = "LASER_BURST_5";
     gun.enabled = true;

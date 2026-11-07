@@ -119,7 +119,7 @@ describe("achievement counters", () => {
 
   it("a fire in every enemy room latches the burn line", () => {
     const g = quietMap();
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
     for (const room of g.enemy.rooms) room.fire = 1;
     noteAchieve(g, { k: "tick" });

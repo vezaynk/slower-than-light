@@ -7,7 +7,7 @@ describe("default fight salvage", () => {
     const seen = { fuel: false, missiles: false, parts: false };
     for (let seed = 1; seed <= 48; seed++) {
       const g = createGame(seed);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
       g.fightEvent = null;
       g.pending = null;
@@ -47,7 +47,7 @@ describe("default fight salvage", () => {
     for (let seed = 1; seed <= trials; seed++) {
       const g = createGame(seed);
       g.player.weapons = [];
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
       g.fightEvent = null;
       g.pending = null;
@@ -64,7 +64,7 @@ describe("default fight salvage", () => {
 
     for (let seed = 1; seed <= 40; seed++) {
       const g = createGame(seed);
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
       g.fightEvent = null;
       g.pending = null;
@@ -91,7 +91,7 @@ describe("default fight salvage", () => {
       const g = createGame(seed);
       g.player.weapons = [];
       const crew = g.crew.filter((c) => c.side === "player").length;
-      startCombat(g, "scout");
+      startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
       g.fightEvent = null;
       g.pending = null;
@@ -131,7 +131,7 @@ describe("default fight salvage", () => {
     assert.deepEqual([...seen].sort(), ["fuel", "resources", "survivor", "weapon"]);
 
     const dive = createGame(9);
-    startCombat(dive, "scout");
+    startCombat(dive, "Rebel ship");
     assert.ok(dive.enemy);
     dive.fightEvent = null;
     dive.pending = "dive:1";

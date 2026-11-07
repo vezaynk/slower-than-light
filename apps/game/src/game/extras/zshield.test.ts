@@ -54,8 +54,10 @@ function quiet(g: ReturnType<typeof createGame>) {
   g.player.systems.engines.power = 0;
   if (g.enemy) {
     g.enemy.systems.engines.power = 0;
-    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns are removed.
+    // The enemy's ship AI repowers anything switched off (extras/ship-ai.ts), so its guns and kits (drones, hacking)
+    // are removed.
     g.enemy.weapons = [];
+    g.enemy.kits = {};
   }
   g.asteroid = false;
   g.asb = false;
@@ -139,7 +141,7 @@ describe("zoltan shield", () => {
     assert.equal(g.player.zoltan, 0);
     assert.equal(g.player.hull, hull - 3);
 
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     quiet(g);
     g.player.zoltan = 2;
     advance(g, 15);
@@ -213,7 +215,7 @@ function roomFire(g: ReturnType<typeof createGame>) {
 describe("crystal lockdown", () => {
   it("coats for 12 seconds, recharges in 50, and blocks new passage", () => {
     const g = createGame(6, "PLAYER_SHIP_CRYSTAL");
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     quiet(g);
     const shards = g.crew.filter((c) => c.kin === "crystal" && c.hp > 0);
     const human = g.crew.find((c) => c.kin === "human" && c.hp > 0);
@@ -298,7 +300,7 @@ describe("crystal lockdown", () => {
 
   it("breaks a coated door after 60 crew hits, and the door level does not change that", () => {
     const g = createGame(9);
-    startCombat(g, "scout");
+    startCombat(g, "Rebel ship");
     quiet(g);
     for (const w of g.player.weapons) w.enabled = false;
     const here = g.player.rooms.find((room) => room.system === "weapons");

@@ -1059,13 +1059,14 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <pilot power="1" max="3" room="0" start="true"/>
       <teleporter power="1" max="1" room="1" start="false"/>
       <oxygen power="1" max="2" room="2" start="true"/>
-      <clonebay power="1" room="3" start="true"/>
+      <clonebay power="1" max="2" room="3" start="false"/>
       <shields power="2" max="8" room="4" start="true"/>
       <engines power="2" max="5" room="5" start="true"/>
       <weapons power="2" max="8" room="6" start="true"/>
-      <medbay power="1" max="2" start="false"/>
+      <medbay power="1" max="2" room="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_REBEL"/>
+    <droneList drones="4"/>
     <health amount="10"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="6" class="human"/>
@@ -1079,12 +1080,12 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <pilot power="1" max="2" room="0" start="true"/>
       <oxygen power="1" max="2" room="1" start="true"/>
       <weapons power="1" max="6" room="2" start="true"/>
-      <clonebay power="1" room="3" start="true"/>
+      <clonebay power="1" max="3" room="3" start="false"/>
       <drones power="2" max="8" room="4" start="true"/>
-      <hacking power="1" room="5" start="true"/>
+      <hacking power="1" max="2" room="5" start="false"/>
       <engines power="2" max="4" room="6" start="true"/>
       <shields power="2" max="8" room="7" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <medbay power="1" max="3" room="3" start="false"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_REBEL"/>
@@ -1102,13 +1103,14 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <pilot power="1" max="3" room="0" start="true"/>
       <teleporter power="1" max="3" room="1" start="false"/>
       <oxygen power="1" max="2" room="2" start="true"/>
-      <clonebay power="1" room="3" start="true"/>
+      <clonebay power="1" max="3" room="3" start="false"/>
       <shields power="4" max="8" room="4" start="true"/>
       <engines power="3" max="5" room="5" start="true"/>
       <weapons power="4" max="10" room="6" start="true"/>
-      <medbay power="1" max="3" start="true"/>
+      <medbay power="1" max="3" room="3" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_REBEL"/>
+    <droneList drones="4"/>
     <health amount="14"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="8" class="human"/>
@@ -1120,13 +1122,14 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <name>AUTO_BASIC</name>
     <systemList>
       <engines power="2" max="8" room="0" start="true"/>
-      <mindcontrol power="1" room="1" start="true"/>
+      <mindcontrol power="1" max="2" room="1" start="false"/>
       <shields power="2" max="8" room="2" start="false"/>
       <pilot power="1" max="2" room="3" start="true"/>
       <weapons power="2" max="8" room="4" start="true"/>
       <cloaking power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_AUTO"/>
+    <droneList drones="4"/>
     <health amount="6"/>
     <maxPower amount="0"/>
     <cloakImage>auto-scout</cloakImage>
@@ -1137,9 +1140,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <systemList>
       <shields power="2" max="9" room="0" start="true"/>
       <pilot power="1" max="3" room="1" start="true"/>
-      <weapons power="0" max="6" room="2" start="true"/>
+      <weapons power="0" max="7" room="2" start="true"/>
       <engines power="1" max="5" room="3" start="true"/>
-      <hacking power="1" room="4" start="true"/>
+      <hacking power="1" max="2" room="4" start="false"/>
       <drones power="2" max="6" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_AUTO"/>
@@ -1154,13 +1157,13 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <systemList>
       <drones power="2" max="8" room="0" start="true"/>
       <weapons power="2" max="8" room="1" start="true"/>
-      <hacking power="1" room="2" start="true"/>
+      <hacking power="1" max="2" room="2" start="false"/>
       <shields power="2" max="8" room="3" start="true"/>
       <oxygen power="1" max="3" room="4" start="true"/>
-      <clonebay power="1" room="5" start="true"/>
+      <clonebay power="1" max="3" room="5" start="false"/>
       <engines power="1" max="5" room="6" start="true"/>
       <pilot power="1" max="3" room="7" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <medbay power="1" max="3" room="5" start="false"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="6" load="WEAPONS_CIRCLE"/>
@@ -1179,12 +1182,12 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <doors power="1" max="3" room="2" start="false"/>
       <oxygen power="1" max="3" room="3" start="true"/>
       <shields power="2" max="10" room="4" start="true"/>
-      <clonebay power="1" room="5" start="true"/>
+      <clonebay power="1" max="3" room="5" start="false"/>
       <drones power="2" max="8" room="8" start="true"/>
       <weapons power="2" max="10" room="9" start="true"/>
       <engines power="1" max="5" room="10" start="true"/>
-      <hacking power="1" room="11" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <hacking power="1" max="3" room="11" start="false"/>
+      <medbay power="1" max="3" room="5" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_CIRCLE"/>
     <droneList count="4" drones="4" load="DRONES_CIRCLE_BOMBER"/>
@@ -1198,7 +1201,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <class>Mantis Scout</class>
     <name>MANTIS_SCOUT</name>
     <systemList>
-      <clonebay power="1" room="0" start="true"/>
+      <clonebay power="1" max="2" room="0" start="false"/>
       <teleporter power="1" max="3" room="1" start="false"/>
       <oxygen power="1" max="3" room="2" start="true"/>
       <shields power="2" max="8" room="3" start="true"/>
@@ -1206,9 +1209,10 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <doors power="1" max="3" room="5" start="false"/>
       <weapons power="2" max="7" room="6" start="true"/>
       <engines power="1" max="5" room="7" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <medbay power="1" max="3" room="0" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_MANTIS"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="5" class="mantis"/>
@@ -1220,16 +1224,17 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <name>MANTIS_FIGHTER</name>
     <systemList>
       <pilot power="1" max="3" room="0" start="true"/>
-      <clonebay power="1" room="1" start="true"/>
+      <clonebay power="1" max="3" room="1" start="false"/>
       <oxygen power="1" max="3" room="2" start="true"/>
       <teleporter power="1" max="3" room="3" start="true"/>
       <shields power="2" max="8" room="5" start="true"/>
       <doors power="1" max="3" room="6" start="false"/>
       <weapons power="1" max="8" room="7" start="true"/>
       <engines power="1" max="5" room="9" start="true"/>
-      <medbay power="1" max="3" start="true"/>
+      <medbay power="1" max="3" room="1" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_MANTIS"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="5" class="mantis"/>
@@ -1240,7 +1245,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <class>Mantis Bomber</class>
     <name>MANTIS_BOMBER</name>
     <systemList>
-      <clonebay power="1" room="0" start="true"/>
+      <clonebay power="1" max="1" room="0" start="false"/>
       <pilot power="1" max="3" room="4" start="true"/>
       <teleporter power="1" max="3" room="5" start="true"/>
       <oxygen power="1" max="3" room="6" start="true"/>
@@ -1248,9 +1253,10 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <weapons power="2" max="10" room="9" start="true"/>
       <shields power="2" max="10" room="10" start="true"/>
       <engines power="1" max="5" room="11" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <medbay power="1" max="3" room="0" start="false"/>
     </systemList>
     <weaponList missiles="14" load="WEAPONS_MANTIS"/>
+    <droneList drones="4"/>
     <health amount="11"/>
     <maxPower amount="0"/>
     <crewCount amount="4" max="6" class="mantis"/>
@@ -1268,6 +1274,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="8" room="4" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_JELLY"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="slug"/>
@@ -1283,12 +1290,13 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="6" room="2" start="true"/>
       <shields power="2" max="10" room="3" start="true"/>
       <oxygen power="1" max="3" room="4" start="true"/>
-      <mindcontrol power="1" room="6" start="true"/>
-      <clonebay power="1" room="7" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <mindcontrol power="1" max="2" room="6" start="false"/>
+      <clonebay power="1" max="3" room="7" start="false"/>
+      <medbay power="1" max="3" room="7" start="false"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_JELLY"/>
+    <droneList drones="4"/>
     <health amount="10"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="6" class="slug"/>
@@ -1302,15 +1310,16 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <pilot power="1" max="3" room="0" start="true"/>
       <weapons power="2" max="10" room="1" start="true"/>
       <shields power="2" max="10" room="2" start="true"/>
-      <mindcontrol power="1" room="3" start="true"/>
+      <mindcontrol power="1" max="2" room="3" start="false"/>
       <oxygen power="1" max="3" room="4" start="true"/>
       <cloaking power="1" max="1" room="5" start="false"/>
-      <clonebay power="1" room="6" start="true"/>
+      <clonebay power="1" max="3" room="6" start="false"/>
       <engines power="1" max="5" room="7" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <medbay power="1" max="3" room="6" start="false"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="14" load="WEAPONS_JELLY"/>
+    <droneList drones="4"/>
     <health amount="11"/>
     <maxPower amount="0"/>
     <crewCount amount="5" max="7" class="slug"/>
@@ -1321,17 +1330,18 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <class>Rock Scout</class>
     <name>ROCK_SCOUT</name>
     <systemList>
-      <teleporter power="1" room="0" start="true"/>
+      <teleporter power="1" max="2" room="0" start="false"/>
       <engines power="1" max="5" room="1" start="true"/>
       <shields power="2" max="8" room="2" start="true"/>
       <pilot power="1" max="3" room="3" start="true"/>
       <weapons power="2" max="8" room="4" start="true"/>
       <oxygen power="1" max="3" room="5" start="true"/>
-      <clonebay power="1" room="6" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <clonebay power="1" max="3" room="6" start="false"/>
+      <medbay power="1" max="3" room="6" start="false"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="6" load="WEAPONS_ROCK"/>
+    <droneList drones="4"/>
     <health amount="8"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="4" class="rock"/>
@@ -1342,18 +1352,19 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <class>Rock Fighter</class>
     <name>ROCK_FIGHT</name>
     <systemList>
-      <clonebay power="1" room="0" start="true"/>
-      <cloaking power="1" room="2" start="true"/>
+      <clonebay power="1" max="3" room="0" start="false"/>
+      <cloaking power="1" max="1" room="2" start="false"/>
       <pilot power="1" max="3" room="3" start="true"/>
       <oxygen power="1" max="3" room="4" start="true"/>
       <engines power="2" max="5" room="5" start="true"/>
       <weapons power="2" max="8" room="6" start="true"/>
       <shields power="2" max="8" room="7" start="true"/>
-      <teleporter power="1" room="8" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <teleporter power="1" max="2" room="8" start="false"/>
+      <medbay power="1" max="3" room="0" start="false"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_ROCK"/>
+    <droneList drones="4"/>
     <health amount="10"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="5" class="rock"/>
@@ -1365,17 +1376,18 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <name>ROCK_ASSAULT</name>
     <systemList>
       <pilot power="1" max="3" room="0" start="true"/>
-      <clonebay power="1" room="1" start="true"/>
+      <clonebay power="1" max="2" room="1" start="false"/>
       <doors power="1" max="3" room="3" start="false"/>
-      <cloaking power="1" max="1" room="4" start="false"/>
+      <cloaking power="1" max="2" room="4" start="false"/>
       <weapons power="2" max="8" room="5" start="true"/>
       <shields power="2" max="8" room="6" start="true"/>
       <engines power="2" max="5" room="7" start="true"/>
       <teleporter power="1" max="2" room="8" start="false"/>
       <oxygen power="1" max="3" room="9" start="true"/>
-      <medbay power="1" max="2" start="false"/>
+      <medbay power="1" max="2" room="1" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_ROCK"/>
+    <droneList drones="4"/>
     <health amount="12"/>
     <maxPower amount="0"/>
     <crewCount amount="4" max="6" class="rock"/>
@@ -1397,6 +1409,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <oxygen power="1" max="3" room="9" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_ROCK"/>
+    <droneList drones="4"/>
     <health amount="12"/>
     <maxPower amount="0"/>
     <crewCount amount="4" max="6" class="rock"/>
@@ -1408,16 +1421,17 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <name>ZOLTAN_FIGHTER</name>
     <systemList>
       <pilot power="1" max="3" room="0" start="true"/>
-      <mindcontrol power="1" room="1" start="true"/>
-      <clonebay power="1" room="2" start="true"/>
+      <mindcontrol power="1" max="1" room="1" start="false"/>
+      <clonebay power="1" max="3" room="2" start="false"/>
       <shields power="2" max="8" room="3" start="true"/>
       <engines power="1" max="5" room="4" start="true"/>
       <weapons power="2" max="8" room="5" start="true"/>
       <oxygen power="1" max="3" room="6" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <medbay power="1" max="3" room="2" start="false"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_ZOLTAN"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="energy"/>
@@ -1428,15 +1442,15 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <class>Energy Bomber</class>
     <name>ZOLTAN_BOMBER</name>
     <systemList>
-      <hacking power="1" room="0" start="true"/>
+      <hacking power="1" max="2" room="0" start="false"/>
       <pilot power="1" max="3" room="1" start="true"/>
       <doors power="1" max="3" room="2" start="false"/>
       <weapons power="2" max="8" room="3" start="true"/>
       <shields power="2" max="8" room="4" start="true"/>
       <oxygen power="1" max="3" room="5" start="true"/>
       <engines power="1" max="5" room="6" start="true"/>
-      <clonebay power="1" room="7" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <clonebay power="1" max="3" room="7" start="false"/>
+      <medbay power="1" max="3" room="7" start="false"/>
       <drones power="2" max="4" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_ZOLTAN"/>
@@ -1455,11 +1469,12 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <shields power="2" max="8" room="1" start="true"/>
       <weapons power="4" max="8" room="2" start="true"/>
       <pilot power="1" max="3" room="3" start="true"/>
-      <clonebay power="1" room="4" start="true"/>
+      <clonebay power="1" max="3" room="4" start="false"/>
       <engines power="1" max="5" room="5" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <medbay power="1" max="3" room="4" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_CRYSTAL"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="crystal"/>
@@ -1470,18 +1485,19 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <class>Crystal Bomber</class>
     <name>CRYSTAL_BOMBER</name>
     <systemList>
-      <clonebay power="1" room="0" start="true"/>
-      <cloaking power="1" room="1" start="true"/>
+      <clonebay power="1" max="3" room="0" start="false"/>
+      <cloaking power="1" max="2" room="1" start="false"/>
       <weapons power="2" max="10" room="2" start="true"/>
       <pilot power="1" max="3" room="3" start="true"/>
-      <teleporter power="1" room="4" start="true"/>
+      <teleporter power="1" max="2" room="4" start="false"/>
       <doors power="1" max="3" room="5" start="false"/>
       <oxygen power="1" max="3" room="6" start="true"/>
       <shields power="2" max="10" room="7" start="true"/>
       <engines power="1" max="5" room="8" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <medbay power="1" max="3" room="0" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_CRYSTAL"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="5" class="crystal"/>
@@ -1501,6 +1517,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="5" room="6" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_LANIUS"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="anaerobic"/>
@@ -1522,6 +1539,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <doors power="1" max="3" room="10" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_LANIUS"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="5" class="anaerobic"/>
@@ -1534,13 +1552,14 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <systemList>
       <pilot power="1" max="3" room="0" start="true"/>
       <weapons power="2" max="8" room="1" start="true"/>
-      <hacking power="1" room="2" start="true"/>
+      <hacking power="1" max="1" room="2" start="false"/>
       <shields power="2" max="8" room="3" start="true"/>
       <oxygen power="1" max="3" room="4" start="true"/>
       <engines power="1" max="5" room="5" start="true"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_FED"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="human"/>
@@ -1553,15 +1572,16 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <systemList>
       <pilot power="1" max="3" room="0" start="true"/>
       <weapons power="2" max="8" room="1" start="true"/>
-      <hacking power="1" room="3" start="true"/>
+      <hacking power="1" max="1" room="3" start="false"/>
       <engines power="1" max="5" room="5" start="true"/>
       <shields power="2" max="8" room="7" start="true"/>
       <oxygen power="1" max="3" room="8" start="true"/>
-      <clonebay power="1" room="9" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <clonebay power="1" max="3" room="9" start="false"/>
+      <medbay power="1" max="3" room="9" start="false"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_FED"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="6" class="human"/>
@@ -1582,6 +1602,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <oxygen power="1" max="2" room="9" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_REBEL"/>
+    <droneList drones="4"/>
     <health amount="10"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="6" class="random"/>
@@ -1602,6 +1623,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="2" max="5" room="7" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_REBEL"/>
+    <droneList drones="4"/>
     <health amount="10"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="6" class="random"/>
@@ -1661,6 +1683,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <oxygen power="1" max="3" room="6" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_MANTIS"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="5" class="random"/>
@@ -1680,6 +1703,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <teleporter power="1" max="2" room="6" start="false"/>
     </systemList>
     <weaponList missiles="6" load="WEAPONS_MANTIS"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="4" class="random"/>
@@ -1699,6 +1723,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="5" room="7" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_MANTIS"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="5" class="random"/>
@@ -1719,6 +1744,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="5" room="7" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_MANTIS"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="5" class="random"/>
@@ -1738,6 +1764,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <medbay power="1" max="3" room="11" start="false"/>
     </systemList>
     <weaponList missiles="14" load="WEAPONS_MANTIS"/>
+    <droneList drones="4"/>
     <health amount="11"/>
     <maxPower amount="0"/>
     <crewCount amount="4" max="6" class="random"/>
@@ -1758,6 +1785,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="5" room="11" start="true"/>
     </systemList>
     <weaponList missiles="14" load="WEAPONS_MANTIS"/>
+    <droneList drones="4"/>
     <health amount="11"/>
     <maxPower amount="0"/>
     <crewCount amount="4" max="6" class="random"/>
@@ -1775,6 +1803,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <weapons power="2" max="8" room="5" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_JELLY"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="random"/>
@@ -1793,6 +1822,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <shields power="2" max="8" room="5" start="true"/>
     </systemList>
     <weaponList missiles="6" load="WEAPONS_JELLY"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="random"/>
@@ -1812,6 +1842,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="6" room="8" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_JELLY"/>
+    <droneList drones="4"/>
     <health amount="10"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="6" class="random"/>
@@ -1831,6 +1862,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="6" room="8" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_JELLY"/>
+    <droneList drones="4"/>
     <health amount="10"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="7" class="random"/>
@@ -1850,6 +1882,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <medbay power="1" max="3" room="8" start="false"/>
     </systemList>
     <weaponList missiles="14" load="WEAPONS_JELLY"/>
+    <droneList drones="4"/>
     <health amount="11"/>
     <maxPower amount="0"/>
     <crewCount amount="5" max="7" class="random"/>
@@ -1870,6 +1903,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="5" room="8" start="true"/>
     </systemList>
     <weaponList missiles="14" load="WEAPONS_JELLY"/>
+    <droneList drones="4"/>
     <health amount="11"/>
     <maxPower amount="0"/>
     <crewCount amount="6" max="8" class="random"/>
@@ -1887,6 +1921,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="5" room="5" start="true"/>
     </systemList>
     <weaponList missiles="6" load="WEAPONS_ROCK"/>
+    <droneList drones="4"/>
     <health amount="8"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="4" class="random"/>
@@ -1905,6 +1940,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="5" room="5" start="true"/>
     </systemList>
     <weaponList missiles="6" load="WEAPONS_ROCK"/>
+    <droneList drones="4"/>
     <health amount="8"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="4" class="random"/>
@@ -1924,6 +1960,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <medbay power="1" max="3" room="7" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_ROCK"/>
+    <droneList drones="4"/>
     <health amount="10"/>
     <maxPower amount="0"/>
     <crewCount amount="3" max="5" class="random"/>
@@ -1944,6 +1981,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <oxygen power="1" max="3" room="7" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_ROCK"/>
+    <droneList drones="4"/>
     <health amount="10"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="5" class="random"/>
@@ -1962,6 +2000,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="5" room="6" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_ZOLTAN"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="random"/>
@@ -1981,6 +2020,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <weapons power="2" max="8" room="6" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_ZOLTAN"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="random"/>
@@ -2033,13 +2073,13 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <systemList>
       <pilot power="1" max="3" room="0" start="true"/>
       <weapons power="2" max="8" room="1" start="true"/>
-      <hacking power="1" room="2" start="true"/>
       <shields power="2" max="8" room="3" start="true"/>
       <oxygen power="1" max="3" room="4" start="true"/>
       <engines power="1" max="5" room="5" start="true"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_FED"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="random"/>
@@ -2058,6 +2098,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="1" max="5" room="5" start="true"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_FED"/>
+    <droneList drones="4"/>
     <health amount="7"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="3" class="random"/>
@@ -2070,15 +2111,14 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <systemList>
       <pilot power="1" max="3" room="0" start="true"/>
       <weapons power="2" max="8" room="1" start="true"/>
-      <hacking power="1" room="3" start="true"/>
       <engines power="1" max="5" room="5" start="true"/>
       <shields power="2" max="8" room="7" start="true"/>
       <oxygen power="1" max="3" room="8" start="true"/>
-      <clonebay power="1" room="9" start="true"/>
-      <medbay power="1" max="3" start="false"/>
+      <medbay power="1" max="3" room="9" start="false"/>
       <doors power="1" max="3" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_FED"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="6" class="random"/>
@@ -2098,6 +2138,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <clonebay power="1" max="3" room="9" start="false"/>
     </systemList>
     <weaponList missiles="10" load="WEAPONS_FED"/>
+    <droneList drones="4"/>
     <health amount="9"/>
     <maxPower amount="0"/>
     <crewCount amount="2" max="6" class="random"/>

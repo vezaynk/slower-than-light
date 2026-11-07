@@ -229,7 +229,7 @@ describe("achievement tracker", () => {
     const slug = createGame(4, "PLAYER_SHIP_JELLY");
     slug.phase = "map";
     assert.equal(earnedNow(slug).includes("ACH_SLUG_VISION"), false);
-    startCombat(slug, "scout");
+    startCombat(slug, "Rebel ship");
     assert.ok(slug.enemy);
     slug.player.systems.sensors.level = 0;
     slug.player.systems.sensors.power = 0;

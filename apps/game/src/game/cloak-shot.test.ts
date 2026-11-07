@@ -7,7 +7,7 @@ import type { Game, WeaponInst } from "./types.ts";
 
 function cloakedFight(): Game {
   const g = createGame(1);
-  startCombat(g, "scout");
+  startCombat(g, "Rebel ship");
   assert.ok(g.enemy);
   g.paused = false;
   for (const gun of g.enemy.weapons) {

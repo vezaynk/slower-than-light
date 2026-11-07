@@ -1,6 +1,6 @@
 import type { Crew, Game, Ship, SysId } from "../types.ts";
-import { allWeapons, hullDef, weaponDef } from "@stl/pack";
-import { FLAGSHIP_PHASES, type FlagshipPhase } from "./flagship.ts";
+import { hullDef, weaponDef } from "@stl/pack";
+import { FLAGSHIP_ARTILLERY_LEVEL, FLAGSHIP_ZOLTAN } from "./flagship-systems.ts";
 import { flagshipHullId } from "./flagship-layout.ts";
 import { PHASE_BANDS, phaseOf } from "../extras/ram.ts";
 
@@ -11,7 +11,7 @@ import { PHASE_BANDS, phaseOf } from "../extras/ram.ts";
  * @agent:flagship. Boss Laser and Boss Beam are WeaponDefs now (wiki/flagship-weapons.ts), so every stage mounts its
  * printed artillery.
  */
-export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): void {
+export function citedEnemy(g: Game, tier: string, ship: Ship, _crew: Crew[]): void {
   if (tier === "elite") {
     // Rebel Fleet: jumping into the fleet fights a Rebel Elite.
     // Elite Fighter and Elite Assault print ranges, not one loadout, so the grid stays.
@@ -23,58 +23,44 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, crew: Crew[]): voi
     return;
   }
   const stage = stageNow(g, ship);
-  const phase = FLAGSHIP_PHASES.find((row) => row.phase === stage);
-  if (!phase) return;
+  // The stage's blueprint at the run's difficulty (BOSS_<stage>_<DIFFICULTY>_DLC): hull, reactor, system levels and
+  // the artillery it fits. A pack without it leaves the built hull as it is.
+  const hull = hullDef(flagshipHullId(stage, g.difficulty));
+  if (!hull) return;
   // Wiki page "The Rebel Flagship". The page's name, without the article.
   ship.name = "Rebel Flagship";
-  // The difficulty's blueprint carries the hull points. The page number is the fallback.
-  const health = hullDef(flagshipHullId(stage, g.difficulty))?.health ?? phase.hull;
-  if (health != null) {
-    ship.hull = health;
-    ship.hullMax = health;
+  if (hull.health != null) {
+    ship.hull = hull.health;
+    ship.hullMax = hull.health;
   }
-  const reactor = printedReactor(phase);
-  if (reactor != null) ship.reactor = reactor;
-  const bubble = printedZoltan(phase);
-  if (bubble != null) ship.zoltan = bubble;
-  for (const system of phase.systems) {
-    const id = ON_HULL[system.name];
-    if (!id || system.level == null) continue;
-    ship.systems[id].level = system.level;
-    // Piloting spends no reactor. Power matches the printed level.
-    // @agent:flagship. The Door System is a subsystem too ("1st Stage" / "Systems": "Door (3)").
-    if (id === "pilot" || id === "doors") ship.systems[id].power = system.level;
+  ship.reactor = hull.reactor;
+  if (stage === 3) ship.zoltan = FLAGSHIP_ZOLTAN;
+  const fitted = new Map<string, number>();
+  for (const install of hull.installs ?? []) {
+    if (install.start === false) continue;
+    fitted.set(install.id, install.power);
   }
-  // @agent:flagship. A system the stage no longer lists "was lost in the previous battle" ("2nd stage" / "Systems").
-  for (const [name, id] of Object.entries(ON_HULL)) {
-    if (!id || phase.systems.some((system) => system.name === name)) continue;
-    ship.systems[id].level = 0;
-    ship.systems[id].power = 0;
+  // A system the blueprint does not fit "was lost in the previous battle" ("2nd stage" / "Systems").
+  for (const id of ON_HULL) {
+    const level = fitted.get(id) ?? 0;
+    ship.systems[id].level = level;
+    // Piloting and the Door System are subsystems: they spend no reactor, so power matches the level.
+    ship.systems[id].power = id === "pilot" || id === "doors" ? level : 0;
   }
-  const bars = artilleryBars(phase);
-  if (bars != null) ship.systems.weapons.level = bars;
+  ship.systems.weapons.level = FLAGSHIP_ARTILLERY_LEVEL[stage];
   fund(ship);
-  ship.weapons = mount(g, phase.weapons);
+  const guns = (hull.installs ?? []).flatMap((install) =>
+    install.id === "artillery" && install.start !== false && install.weapon ? [install.weapon] : [],
+  );
+  ship.weapons = mount(g, guns);
   armMounted(ship);
-  const humans = printedHumans(phase);
-  if (humans != null) addHumans(g, ship, crew, humans);
 }
 
 /**
- * Systems this hull already has a room for.
- * Door, cloaking, medbay, hacking, drones, teleporter, and mind control
- * are on the phase row and are not rooms makeEnemy built.
- * @agent:flagship. The traced cutaway (wiki/flagship-systems.ts) now has Medbay and Door rooms, so those two are
- * set here. Cloaking, Hacking, Drone, Teleporter, and Mind Control are kits set by applyFlagshipSystems.
+ * Main systems the stage blueprint sets. Cloaking, Hacking, Drone, Teleporter and Mind Control are kits that
+ * applyFlagshipSystems sets from the same blueprint.
  */
-const ON_HULL: Partial<Record<string, SysId>> = {
-  Piloting: "pilot",
-  Shields: "shields",
-  Engines: "engines",
-  Oxygen: "oxygen",
-  Medbay: "medbay",
-  Door: "doors",
-};
+const ON_HULL: SysId[] = ["pilot", "shields", "engines", "oxygen", "medbay", "doors"];
 
 /** Shields first, then the other mains. Guns take what the reactor has left. @agent:flagship: Medbay added. */
 const DRAW: SysId[] = ["shields", "engines", "oxygen", "medbay", "weapons"];
@@ -106,35 +92,10 @@ function stageNow(g: Game, ship: Ship): 1 | 2 | 3 {
   return 1;
 }
 
-function printedZoltan(phase: FlagshipPhase): number | null {
-  const note = phase.notes.find((line) => line.startsWith("General: the Zoltan Shield has "));
-  const match = note?.match(/(\d+) health points/);
-  return match ? Number(match[1]) : null;
-}
-
-function printedReactor(phase: FlagshipPhase): number | null {
-  const note = phase.notes.find((line) => line.startsWith("General: Reactor "));
-  const match = note?.match(/^General: Reactor (\d+)\.$/);
-  return match ? Number(match[1]) : null;
-}
-
-/** One weapons bar. The note prints the same artillery level on every gun of that stage. */
-function artilleryBars(phase: FlagshipPhase): number | null {
-  const note = phase.notes.find((line) => line.startsWith("Weapons: system levels "));
-  const match = note?.match(/\d+/);
-  return match ? Number(match[0]) : null;
-}
-
-function printedHumans(phase: FlagshipPhase): number | null {
-  const note = phase.notes.find((line) => line.startsWith("General: Crew "));
-  const match = note?.match(/^General: Crew (\d+) Humans\.$/);
-  return match ? Number(match[1]) : null;
-}
-
-function mount(g: Game, names: string[]) {
+function mount(g: Game, ids: string[]) {
   const weapons = [];
-  for (const name of names) {
-    const def = allWeapons().find((weapon) => weapon.name === name);
+  for (const id of ids) {
+    const def = weaponDef(id);
     // @agent:flagship. All four boss guns resolve (Boss Laser / Boss Beam from wiki/flagship-weapons.ts).
     if (!def) continue;
     g.uid = (g.uid + 1) >>> 0;
@@ -187,31 +148,5 @@ function armMounted(ship: Ship) {
     }
     weapon.enabled = true;
     pool -= cost;
-  }
-}
-
-function addHumans(g: Game, ship: Ship, crew: Crew[], total: number) {
-  const rooms = ship.rooms.map((room) => room.id);
-  if (rooms.length === 0) return;
-  let count = crew.filter((member) => member.side === "enemy").length;
-  let seat = 0;
-  while (count < total) {
-    g.uid = (g.uid + 1) >>> 0;
-    crew.push({
-      id: "u" + g.uid,
-      // "1st Stage" / "General": "Crew 11 Humans." No personal names are printed.
-      name: "Human",
-      side: "enemy",
-      aboard: "enemy",
-      hp: 100,
-      maxHp: 100,
-      room: rooms[seat % rooms.length] ?? rooms[0],
-      path: [],
-      move: 0,
-      think: 0,
-      tone: 0,
-    });
-    seat += 1;
-    count += 1;
   }
 }

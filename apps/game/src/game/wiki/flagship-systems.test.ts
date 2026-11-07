@@ -102,8 +102,8 @@ describe("Rebel Flagship rooms per stage", () => {
     const g = bossFight(13);
     const e = g.enemy!;
     assert.ok(g.crew.some((c) => c.side === "enemy" && c.room === "e-ion"));
-    const gun = e.weapons[0];
-    assert.equal(gun.defId, "ARTILLERY_BOSS_4");
+    const gun = e.weapons.find((w) => w.defId === "ARTILLERY_BOSS_4");
+    assert.ok(gun);
     gun.charge = 0;
     step(g, 0.05);
     assert.ok(Math.abs(gun.charge - 0.05 / 21) < 1e-9, String(gun.charge));

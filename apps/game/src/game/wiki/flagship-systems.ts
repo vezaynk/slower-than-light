@@ -11,11 +11,12 @@ import type { Crew, DoorMark, Game, Kit, KitId, Room, Ship, SysId, WeaponInst } 
 import { log, rand } from "../sim.ts";
 import { veilBlocks } from "../extras/veil.ts";
 import { spikeEvadeZero } from "../extras/spike.ts";
+import { hullDef } from "@stl/pack";
 import { artilleryChargeSeconds } from "./flagship-weapons.ts";
 import { DRONE_LABEL, beamDroneSpeed, pickOrbitBearing } from "../extras/swarm.ts";
 import { BEAM_HOLD_S, orbitLegSeconds } from "./cited-combat2.ts";
 import { randomRoom } from "./targeting.ts";
-import { flagshipHardLinks, flagshipLayout } from "./flagship-layout.ts";
+import { flagshipHardLinks, flagshipHullId, flagshipLayout } from "./flagship-layout.ts";
 
 /**
  * One Power Surge drone (stage 2). Not a Drone Control unit: "They are an independent hazard."
@@ -196,14 +197,13 @@ export function flagshipDronePower(ship: Ship, kind: string): number | null {
   return kind === "BOARDER" ? 2 : null;
 }
 
-/** Printed system levels that the sim runs as kits, per stage ("Systems" lists). */
-const STAGE_KITS: Record<1 | 2 | 3, Partial<Record<KitId, number>>> = {
-  // "1st Stage" / "Systems": "Cloaking (2)", "Hacking (3) [Advanced Edition]".
-  1: { cloaking: 2, hacking: 3 },
-  // "2nd stage" / "Systems": "Drone (8)".
-  2: { drones: 8 },
-  // "Final stage" / "Systems": "Teleporter (2)", "Mind Control (3) [Advanced Edition]".
-  3: { teleporter: 2, mind: 3 },
+/** Blueprint systems that the sim runs as kits. */
+const KIT_INSTALLS: Partial<Record<string, KitId>> = {
+  cloaking: "cloaking",
+  hacking: "hacking",
+  drones: "drones",
+  teleporter: "teleporter",
+  mind: "mind",
 };
 
 function blankKit(id: KitId, level: number): Kit {
@@ -211,13 +211,16 @@ function blankKit(id: KitId, level: number): Kit {
 }
 
 /**
- * Fresh kits for a stage. "Global behavior": "Hull and system damage of the Rebel Flagship will be repaired on the
- * next stage", so nothing carries over.
+ * Fresh kits for a stage, at the levels its blueprint fits. "Global behavior": "Hull and system damage of the Rebel
+ * Flagship will be repaired on the next stage", so nothing carries over.
  */
-export function flagshipKits(stage: 1 | 2 | 3): Ship["kits"] {
+export function flagshipKits(stage: 1 | 2 | 3, difficulty: string | undefined): Ship["kits"] {
   const kits: Ship["kits"] = {};
-  for (const [id, level] of Object.entries(STAGE_KITS[stage]) as [KitId, number][])
-    kits[id] = blankKit(id, level);
+  for (const install of hullDef(flagshipHullId(stage, difficulty))?.installs ?? []) {
+    const id = KIT_INSTALLS[install.id];
+    if (!id || install.start === false) continue;
+    kits[id] = blankKit(id, install.power);
+  }
   if (kits.drones) kits.drones.loadout = [...STAGE2_DRONES];
   return kits;
 }
@@ -235,8 +238,8 @@ export const FLAGSHIP_PARTS = 10;
  */
 
 /** Apply the stage's kits, parts, and boarding plan to an already-built hull. */
-export function applyFlagshipSystems(ship: Ship, stage: 1 | 2 | 3) {
-  ship.kits = flagshipKits(stage);
+export function applyFlagshipSystems(ship: Ship, stage: 1 | 2 | 3, difficulty: string | undefined) {
+  ship.kits = flagshipKits(stage, difficulty);
   ship.parts = FLAGSHIP_PARTS;
   ship.boards = stage === 3;
   // limit is unused while invasion is set. A stored 99 was a stand-in, not a printed cap.
@@ -341,6 +344,14 @@ export const LASER_SURGES_PER_RESTORE = 3;
 
 /** "Final stage" / "General": "The Flagship's Zoltan Shield has 12 health points." */
 export const FLAGSHIP_ZOLTAN = 12;
+
+/**
+ * The artillery level every gun of a stage charges at. "Weapons": "system levels Boss Ion 3, Boss Laser 3, Boss
+ * Missile 3, Boss Beam 3" on the 1st and 2nd stage, "Boss Laser 4, Boss Missile 4" on the Final stage.
+ * ftl.dat's BOSS_* blueprints print per-gun powers instead (Laser and Missile 4, Beam and Ion 3, on every stage); the
+ * game keeps the page's charge times until that difference is settled.
+ */
+export const FLAGSHIP_ARTILLERY_LEVEL: Record<1 | 2 | 3, number> = { 1: 3, 2: 3, 3: 4 };
 
 /**
  * The Rebel Flagship, 2nd stage, Power Surge: extra drones are "randomly split between Beam and Combat (both mark 1)".

@@ -68,7 +68,7 @@ describe("weapon lookups", () => {
     assert.equal(cargo?.scrap, 7);
   });
 
-  it("mounts an appended gun whose name the flagship prints, and arms from its packed power", () => {
+  it("mounts the stage blueprint's artillery by id, whatever a mod renames it, and arms it", () => {
     const ion = weaponDef("ARTILLERY_BOSS_4");
     assert.ok(ion);
     loadPack(
@@ -84,10 +84,12 @@ describe("weapon lookups", () => {
     startCombat(g, "boss");
     const ship = g.enemy;
     assert.ok(ship);
-    assert.deepEqual(
-      ship.weapons.map((weapon) => weapon.defId),
-      ["emberion", "ARTILLERY_BOSS_1", "ARTILLERY_BOSS_2", "ARTILLERY_BOSS_3"],
-    );
+    assert.deepEqual(ship.weapons.map((weapon) => weapon.defId).sort(), [
+      "ARTILLERY_BOSS_1",
+      "ARTILLERY_BOSS_2",
+      "ARTILLERY_BOSS_3",
+      "ARTILLERY_BOSS_4",
+    ]);
     assert.ok(ship.weapons.every((weapon) => weapon.enabled));
   });
 

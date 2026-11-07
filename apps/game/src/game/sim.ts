@@ -6502,7 +6502,7 @@ function flagshipStage(g: Game, ship: Ship, stage: 1 | 2 | 3) {
     sys.fix = 0;
   }
   if (stage > 1) clearEnemyLeash(g);
-  applyFlagshipSystems(ship, stage);
+  applyFlagshipSystems(ship, stage, g.difficulty);
   if (stage > 1) carryCrew(g, old, ship);
   armDoors(ship, doorLevel(g, ship, "enemy"), g.difficulty);
   // INFERRED: the stage-3 teleporter starts boarding 9 s in, as startCombat does for any boarding hull.

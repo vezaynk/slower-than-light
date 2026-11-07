@@ -1,6 +1,6 @@
 import type { Crew, Game, Ship, SysId } from "../types.ts";
 import { hullDef, weaponDef } from "@stl/pack";
-import { FLAGSHIP_ARTILLERY_LEVEL, FLAGSHIP_ZOLTAN } from "./flagship-systems.ts";
+import { FLAGSHIP_ZOLTAN, GUN_ROOM, artilleryGun } from "./flagship-systems.ts";
 import { flagshipHullId } from "./flagship-layout.ts";
 import { PHASE_BANDS, phaseOf } from "../extras/ram.ts";
 
@@ -8,8 +8,6 @@ import { PHASE_BANDS, phaseOf } from "../extras/ram.ts";
  * Adjust an already-built enemy hull with numbers the wiki states.
  * The room grid stays the one makeEnemy built. Do not invent a new grid.
  * @agent:flagship. For the boss that grid is the traced cutaway (sim.ts flagshipStage, wiki/flagship-systems.ts).
- * @agent:flagship. Boss Laser and Boss Beam are WeaponDefs now (wiki/flagship-weapons.ts), so every stage mounts its
- * printed artillery.
  */
 export function citedEnemy(g: Game, tier: string, ship: Ship, _crew: Crew[]): void {
   if (tier === "elite") {
@@ -47,13 +45,24 @@ export function citedEnemy(g: Game, tier: string, ship: Ship, _crew: Crew[]): vo
     // Piloting and the Door System are subsystems: they spend no reactor, so power matches the level.
     ship.systems[id].power = id === "pilot" || id === "doors" ? level : 0;
   }
-  ship.systems.weapons.level = FLAGSHIP_ARTILLERY_LEVEL[stage];
-  fund(ship);
-  const guns = (hull.installs ?? []).flatMap((install) =>
-    install.id === "artillery" && install.start !== false && install.weapon ? [install.weapon] : [],
+  // Each artillery pod is its own system at its blueprint power ("<artillery power room weapon>"). The shared Weapons
+  // level is the highest pod, for anything that reads the system as a whole.
+  const pods = (hull.installs ?? []).flatMap((install) =>
+    install.id === "artillery" && install.start !== false && install.weapon
+      ? [{ weapon: install.weapon, level: install.power }]
+      : [],
   );
-  ship.weapons = mount(g, guns);
+  ship.systems.weapons.level = Math.max(0, ...pods.map((pod) => pod.level));
+  fund(ship);
+  ship.weapons = mount(
+    g,
+    pods.map((pod) => pod.weapon),
+  );
   armMounted(ship);
+  for (const pod of pods) {
+    const gun = artilleryGun(ship, GUN_ROOM[pod.weapon] ?? "");
+    if (gun) gun.level = pod.level;
+  }
 }
 
 /**
@@ -96,7 +105,6 @@ function mount(g: Game, ids: string[]) {
   const weapons = [];
   for (const id of ids) {
     const def = weaponDef(id);
-    // @agent:flagship. All four boss guns resolve (Boss Laser / Boss Beam from wiki/flagship-weapons.ts).
     if (!def) continue;
     g.uid = (g.uid + 1) >>> 0;
     weapons.push({

@@ -4665,7 +4665,7 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
       }
       return;
     }
-    // @agent:flagship. Flagship artillery charges on the page's per-level table (wiki/flagship-weapons.ts).
+    // @agent:flagship. Flagship artillery charges by its pod level (wiki/flagship-systems.ts artilleryChargeSeconds).
     const seconds =
       flagshipChargeSeconds(ship, w) ?? chainChargeSeconds(w.defId, w.chain ?? 0) ?? def.charge;
     w.charge = Math.min(1, w.charge + dt / (seconds * mult));

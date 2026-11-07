@@ -11,8 +11,7 @@ import type { Crew, DoorMark, Game, Kit, KitId, Room, Ship, SysId, WeaponInst } 
 import { log, rand } from "../sim.ts";
 import { veilBlocks } from "../extras/veil.ts";
 import { spikeEvadeZero } from "../extras/spike.ts";
-import { hullDef } from "@stl/pack";
-import { artilleryChargeSeconds } from "./flagship-weapons.ts";
+import { hullDef, weaponDef } from "@stl/pack";
 import { DRONE_LABEL, beamDroneSpeed, pickOrbitBearing } from "../extras/swarm.ts";
 import { BEAM_HOLD_S, orbitLegSeconds } from "./cited-combat2.ts";
 import { randomRoom } from "./targeting.ts";
@@ -57,7 +56,8 @@ export type FlagshipState = {
 };
 
 /** One artillery gun's own system state: damaged bars, ion locks (seconds left per point), repair progress. */
-export type ArtilleryGun = { damage: number; ion: number[]; fix: number };
+/** `level` is the pod's power in the stage blueprint (`<artillery power>`); older saves fall back to the shared level. */
+export type ArtilleryGun = { damage: number; ion: number[]; fix: number; level?: number };
 
 /**
  * What the Lark remembers of the Flagship between battles (Game.flagshipMemo).
@@ -344,14 +344,6 @@ export const LASER_SURGES_PER_RESTORE = 3;
 
 /** "Final stage" / "General": "The Flagship's Zoltan Shield has 12 health points." */
 export const FLAGSHIP_ZOLTAN = 12;
-
-/**
- * The artillery level every gun of a stage charges at. "Weapons": "system levels Boss Ion 3, Boss Laser 3, Boss
- * Missile 3, Boss Beam 3" on the 1st and 2nd stage, "Boss Laser 4, Boss Missile 4" on the Final stage.
- * ftl.dat's BOSS_* blueprints print per-gun powers instead (Laser and Missile 4, Beam and Ion 3, on every stage); the
- * game keeps the page's charge times until that difference is settled.
- */
-export const FLAGSHIP_ARTILLERY_LEVEL: Record<1 | 2 | 3, number> = { 1: 3, 2: 3, 3: 4 };
 
 /**
  * The Rebel Flagship, 2nd stage, Power Surge: extra drones are "randomly split between Beam and Combat (both mark 1)".
@@ -650,7 +642,7 @@ export function artilleryGun(ship: Ship, roomId: string): ArtilleryGun | null {
 export function hurtArtillery(ship: Ship, roomId: string, amount: number): boolean {
   const gun = artilleryGun(ship, roomId);
   if (!gun) return false;
-  gun.damage = Math.min(ship.systems.weapons.level, gun.damage + Math.max(0, amount));
+  gun.damage = Math.min(gunLevel(ship, gun), gun.damage + Math.max(0, amount));
   return true;
 }
 
@@ -674,7 +666,24 @@ export function artilleryBars(ship: Ship, roomId: string): number {
   const sys = ship.systems.weapons;
   const gun = artilleryGun(ship, roomId);
   const own = gun ? gun.damage + gun.ion.length : 0;
-  return Math.max(0, sys.level - sys.damage - sys.ion.length - own);
+  return Math.max(0, gunLevel(ship, gun) - sys.damage - sys.ion.length - own);
+}
+
+/** A pod's artillery level: its blueprint power, or the shared Weapons level for a gun without one. */
+function gunLevel(ship: Ship, gun: ArtilleryGun | null): number {
+  return gun?.level ?? ship.systems.weapons.level;
+}
+
+/**
+ * Seconds for one charge of an artillery gun at `level` working bars, or null when it cannot charge (0 bars) or has
+ * no blueprint. FTL's artillery rule: the weapon's `<cooldown>` is its charge at level 2, and each level above or
+ * below takes a quarter of it off or on (level 1 = 1.25x, 3 = 0.75x, 4 = 0.5x). This reproduces the wiki's
+ * "Charge time (seconds)" table for every Boss gun from ftl.dat's cooldowns (Laser 20, Missile 23, Beam 26, Ion 28).
+ */
+export function artilleryChargeSeconds(defId: string, level: number): number | null {
+  const base = weaponDef(defId)?.charge;
+  if (!base || level < 1) return null;
+  return base * (1.5 - 0.25 * Math.min(4, Math.floor(level)));
 }
 
 /** Working bars of a gun by its WeaponDef id. INFERRED: a boss gun with no artillery room uses the bare level. */
@@ -684,7 +693,7 @@ function gunBars(ship: Ship, defId: string): number {
 
 /**
  * Seconds for one charge of a flagship gun, or null when this is not a flagship artillery piece. A gun with no
- * working bar never charges (Infinity). "Weapon cooldowns and status effects" table (wiki/flagship-weapons.ts):
+ * working bar never charges (Infinity). artilleryChargeSeconds:
  * level 3 on stages 1–2, level 4 on the final stage, lower rows as its own room takes damage. Called by sim.ts chargeSide.
  */
 export function flagshipChargeSeconds(ship: Ship, w: WeaponInst): number | null {
@@ -716,7 +725,7 @@ export function artilleryView(
     out.push({
       room,
       defId,
-      level: ship.systems.weapons.level,
+      level: gunLevel(ship, artilleryGun(ship, room)),
       bars: artilleryBars(ship, room),
       ion: artilleryGun(ship, room)?.ion.length ?? 0,
     });

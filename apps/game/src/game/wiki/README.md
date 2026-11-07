@@ -50,7 +50,7 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 | `escape.ts`, `surrender.ts` (rule part)                                                                                                                                                                                                                                                             | When an enemy runs or surrenders. Odds are already gap data. |
 | `targeting.ts`, `swarm-aim.ts`                                                                                                                                                                                                                                                                      | Enemy weapon targeting; swarm missile spread                 |
 | `sector-map.ts`                                                                                                                                                                                                                                                                                     | Map generation and the fleet's advance (xftl notes)          |
-| `flagship-systems.ts`, `flagship-weapons.ts`, `cited-enemies.ts`                                                                                                                                                                                                                                    | Flagship stages, surge, artillery charge table               |
+| `flagship-systems.ts`, `cited-enemies.ts`                                                                                                                                                                                                                                                           | Flagship stages, surge, artillery charge rule                |
 | `cited-combat2.ts`, `cited-overcharger.ts`, `cited-intruder.ts`, `cited-booster.ts`, `cited-scrambler.ts`, `cited-bypass.ts`, `cited-zoltan-power.ts`, `cited-nav.ts`, `cited-vengeance.ts`, `cited-chain.ts`, `cited-asteroid.ts`, `cited-pulsar.ts`, `weapons-beam.ts`, `weapons-flak-crystal.ts` | Drone, augment, weapon and hazard behaviour                  |
 | `make-room.ts`, `bonus-item.ts`                                                                                                                                                                                                                                                                     | Full racks; bonus reward odds                                |
 | `achievement-track.ts`, `achieve-notes.ts`                                                                                                                                                                                                                                                          | Achievement counters. Conditions are already gap data.       |
@@ -67,7 +67,9 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    archive, `game/hangar-roster.ts`; the unreachable "Playable ships" article went with it), `flagship.ts` (each
    stage's hull, reactor, system and subsystem levels and artillery come from its `BOSS_*` blueprint; the stand-in
    catalog writes them from `catalog/src/wiki/flagship-stages.ts`). `flagship-layout.ts` already reads the blueprint's
-   grid and stays as code. Left as rules for step 5: the stage-3 Zoltan Shield, the artillery level per stage, the
-   crew seats, and the stage-2 drone loadout.
+   grid and stays as code. Each artillery pod charges at its own blueprint power from its weapon's `<cooldown>` (FTL's
+   artillery rule: the cooldown is the level-2 charge, a quarter more or less per level); `wiki/flagship-weapons.ts`
+   is gone. Left as rules for step 5: the stage-3 Zoltan Shield and the crew seats. Still to read from the archive:
+   the stage-2 drone loadout (`droneList`).
 4. **Events** in section 2, one page at a time.
 5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`.

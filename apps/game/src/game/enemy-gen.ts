@@ -18,7 +18,6 @@ import {
   shipEventDef,
   loadPack,
   marksFromDoors,
-  shipClassBlueprint,
   warnPack,
   droneDef,
   weaponDef,
@@ -26,7 +25,6 @@ import {
 import { liveTable } from "./content.ts";
 import type {
   AugmentDef,
-  EventEffect,
   HullCrewCount,
   HullDef,
   ShipCrewRow,
@@ -36,7 +34,7 @@ import type {
 import type { KinId } from "./extras/kin.ts";
 import { crewRandomIds, internalDrones } from "./blueprint-use.ts";
 import { noteListPlayed } from "./played-lists.ts";
-import { pirateCrewRaces, rollPirateCrew } from "./wiki/skills.ts";
+import { pirateCrewRaces } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
 import type { Difficulty, DoorMark, KitId, SysId } from "./types.ts";
 

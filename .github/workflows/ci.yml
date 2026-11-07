@@ -38,6 +38,9 @@ jobs:
           restore-keys: |
             turbo-${{ github.job }}-${{ runner.os }}-${{ steps.node.outputs.version }}-
 
+      # Strict env mode would strip the dat variables silently, and CI has no ftl.dat to notice.
+      - run: pnpm test:env
+
       # The script checks under apps/game/scripts read gitignored .grok files.
       - run: pnpm test:ci
 

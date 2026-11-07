@@ -4,8 +4,8 @@ import { factionPaint, plateOf, type HullCell } from "./hull-plate.ts";
 import { playerHulls } from "./hulls.ts";
 import { layoutFor } from "./layouts.ts";
 import "./pack/base.ts";
-import { ENEMY_CLASSES } from "./wiki/enemy-ships.ts";
-import { enemyLayout } from "./wiki/enemy-layouts.ts";
+import { hullDef, shipAllegiance } from "@stl/pack";
+import { enemyHulls } from "./enemy-gen.ts";
 import { flagshipLayout } from "./wiki/flagship-layout.ts";
 
 type Box = { x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] };
@@ -61,21 +61,28 @@ describe("hull plates", () => {
       offFloor(cells, layout.rooms);
     }
 
-    for (const cls of ENEMY_CLASSES) {
+    for (const hull of enemyHulls()) {
       const cells = plateOf({
-        id: cls.id,
-        faction: cls.faction,
+        id: hull.id,
+        faction: shipAllegiance(hull.id).faction ?? "rebel",
         facing: "left",
         cols: 4,
         rows: 3,
         rooms: BLOCK,
       });
-      claim(`block:${cls.id}`, cells);
+      claim(`block:${hull.id}`, cells);
       offFloor(cells, BLOCK);
     }
 
-    const real = enemyLayout("REBEL_SKINNY");
-    assert.ok(real);
+    // The archive blueprint's own room grid.
+    const grid = hullDef("REBEL_SKINNY")?.grid;
+    assert.ok(grid);
+    const gridRooms = grid.rooms.map(({ x, y, w, h }) => ({ x, y, w, h, system: null }));
+    const real = {
+      cols: grid.cols ?? Math.max(...gridRooms.map((room) => room.x + room.w)),
+      rows: grid.rows ?? Math.max(...gridRooms.map((room) => room.y + room.h)),
+      rooms: gridRooms,
+    };
     const realCells = plateOf({
       id: "rebel-fighter",
       faction: "rebel",
@@ -132,10 +139,7 @@ describe("hull plates", () => {
   });
 
   it("paints rebel and zoltan with different skins", () => {
-    const rebel = ENEMY_CLASSES.find((row) => row.faction === "rebel");
-    const zoltan = ENEMY_CLASSES.find((row) => row.faction === "zoltan");
-    assert.ok(rebel && zoltan);
-    assert.notEqual(factionPaint(rebel.faction).skin, factionPaint(zoltan.faction).skin);
+    assert.notEqual(factionPaint("rebel").skin, factionPaint("zoltan").skin);
     assert.equal(factionPaint("federation").skin, factionPaint("fed").skin);
     assert.equal(factionPaint("unknown").skin, factionPaint("rebel").skin);
   });

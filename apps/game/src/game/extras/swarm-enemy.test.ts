@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { ENEMY_RUNNABLE, SCHEMATIC_POWER, enemyParts, rollDrones } from "../enemy-gen.ts";
+import { blueprintList, hullDef } from "@stl/pack";
+import {
+  ENEMY_RUNNABLE,
+  SCHEMATIC_POWER,
+  enemyHulls,
+  rollDrones,
+  stockedParts,
+} from "../enemy-gen.ts";
 import { createGame, startCombat, step, stepShots } from "../sim.ts";
 import type { DroneUnit, Game, Ship } from "../types.ts";
-import { ENEMY_DRONES } from "../wiki/enemy-ships.ts";
 import {
   ACQUIRE_S,
   ANTI_KILL,
@@ -138,11 +144,11 @@ function dropPlayerShields(g: Game) {
 
 describe("enemy drone allowance (Template:Enemy ships drones)", () => {
   it("never gives an Engi ship an offensive or boarding drone", () => {
-    for (const id of ["engi-scout", "engi-outrider", "engi-bomber", "engi-hacker"]) {
-      const row = ENEMY_DRONES[id];
-      assert.ok(row);
+    for (const id of ["CIRCLE_SCOUT", "CIRCLE_BOMBER"]) {
+      const names = blueprintList(hullDef(id)?.droneLoad) ?? [];
+      assert.ok(names.length > 0, id);
       assert.deepEqual(
-        row.drones.filter((d) => OFFENSIVE.includes(d)),
+        names.filter((d) => OFFENSIVE.includes(d)),
         [],
       );
     }
@@ -162,12 +168,15 @@ describe("enemy drone allowance (Template:Enemy ships drones)", () => {
     assert.ok(seen > 0);
   });
 
-  it("keeps every roll inside the class list, the Drone Control level, and the drone cap", () => {
+  it("keeps every roll inside the blueprint's drone list, the Drone Control level, and the drone cap", () => {
     let r = 0.123;
     const rand = () => (r = (r * 9301 + 0.49297) % 1);
-    for (const [id, row] of Object.entries(ENEMY_DRONES)) {
+    for (const hull of enemyHulls()) {
+      const drones = blueprintList(hull.droneLoad);
+      if (!drones) continue;
+      const row = { drones: [...drones], maxDrones: hull.droneCount ?? drones.length };
       for (let level = 1; level <= 8; level++) {
-        const out = rollDrones(id, level, rand);
+        const out = rollDrones(hull.id, level, rand, false, row);
         assert.ok(out.length <= row.maxDrones);
         assert.ok(out.reduce((sum, k) => sum + SCHEMATIC_POWER[k], 0) <= level);
         for (const k of out) {
@@ -177,9 +186,9 @@ describe("enemy drone allowance (Template:Enemy ships drones)", () => {
       }
     }
     // Drone Control, Overview: "Enemies can have up to 4 active drones".
-    assert.equal(ENEMY_DRONES["rebel-rigger"].maxDrones, 4);
-    assert.equal(ENEMY_DRONES["auto-assault"].maxDrones, 3);
-    assert.equal(ENEMY_DRONES["energy-bomber"].maxDrones, 2);
+    assert.equal(hullDef("REBEL_FAT")?.droneCount, 4);
+    assert.equal(hullDef("AUTO_ASSAULT")?.droneCount, 3);
+    assert.equal(hullDef("ZOLTAN_BOMBER")?.droneCount, 2);
   });
 
   it("prices each schematic the same as the player's DRONE_POWER", () => {
@@ -190,18 +199,16 @@ describe("enemy drone allowance (Template:Enemy ships drones)", () => {
 });
 
 describe("enemy drone parts (Enemy Ships, Missile and drone stocks)", () => {
-  it("is the baseline, raised to double the drone count", () => {
-    assert.equal(enemyParts("rebel-rigger", 0), 4);
-    assert.equal(enemyParts("rebel-rigger", 3), 6);
-    assert.equal(enemyParts("rebel-rigger", 4), 8);
-    assert.equal(enemyParts("rebel-disruptor", 2), 4);
-    assert.equal(enemyParts("auto-assault", 2), 5);
-    assert.equal(enemyParts("auto-assault", 3), 6);
-    assert.equal(enemyParts("energy-hacker", 0), 5);
-    assert.equal(enemyParts("energy-bomber", 1), 2);
-    assert.equal(enemyParts("energy-bomber", 2), 4);
-    assert.equal(enemyParts("auto-hacker", 0), 4);
-    assert.equal(enemyParts("rebel-fighter", 0), 4);
+  it("is the blueprint's stock, raised to double the drone count", () => {
+    const parts = (id: string, drones: number) => stockedParts(hullDef(id)!.parts, drones);
+    assert.equal(parts("REBEL_FAT", 0), 4);
+    assert.equal(parts("REBEL_FAT", 3), 6);
+    assert.equal(parts("REBEL_FAT", 4), 8);
+    assert.equal(parts("AUTO_ASSAULT", 2), 5);
+    assert.equal(parts("AUTO_ASSAULT", 3), 6);
+    assert.equal(parts("ZOLTAN_BOMBER", 1), 2);
+    assert.equal(parts("ZOLTAN_BOMBER", 2), 4);
+    assert.equal(parts("REBEL_SKINNY", 0), 4);
   });
 
   it("sets ship.parts on generated hulls", () => {
@@ -214,7 +221,7 @@ describe("enemy drone parts (Enemy Ships, Missile and drone stocks)", () => {
       const enemy = g.enemy!;
       if (!enemy.classId) continue;
       const n = enemy.kits.drones?.loadout?.length ?? 0;
-      assert.equal(enemy.parts, enemyParts(enemy.classId, n));
+      assert.equal(enemy.parts, stockedParts(hullDef(enemy.classId)!.parts, n));
     }
   });
 });

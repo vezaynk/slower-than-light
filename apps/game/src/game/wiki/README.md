@@ -15,16 +15,13 @@ own tests did) were removed with this README: `events-0`–`events-3`, `enemies-
 
 ## 1. Content that duplicates the archive: replace with archive reads, then delete
 
-| Module                                    | Lines | What it holds                                                     | Archive source                                                                                  |
-| ----------------------------------------- | ----: | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `enemy-ships.ts`                          | 1,195 | 47 enemy classes: hull, crew, systems, sector ranges, gun pools   | `shipBlueprint` and the `SHIPS_*` `blueprintList`s. Step 2 below.                               |
-| `enemy-layouts.ts`                        |    61 | Which layout a class uses                                         | The blueprint's `layout`                                                                        |
-| `sector-hostiles.ts`                      |   518 | Which fights each sector's hostile beacons draw, and their weight | The sector's `<event>` counts and the event lists they name (`HOSTILE1`, `HOSTILE_CIVILIAN`, …) |
-| `layout-pages.ts`                         | 3,524 | Cruiser page text for the hangar (names, notes, unlock lines)     | The player `shipBlueprint`: `name`, `class`, `desc`, `unlock`, and `text_blueprints.xml`        |
-| `hangar-bay.ts`, `augments-missing.ts`    |   297 | Hangar loadout article; augments the catalog lacked               | The player blueprint's lists and `augBlueprint`s                                                |
-| `flagship.ts`, `flagship-layout.ts`       |   274 | Flagship stage numbers; traced cutaways                           | `BOSS_*` blueprints and `data/boss_*.txt` (ftl.dat), `flagship-*` (stand-in)                    |
-| `projectile-speed.ts`, `cited-weapons.ts` |   112 | Shot speed; crew damage per weapon                                | `weaponBlueprint` `<speed>` and `<persDamage>`                                                  |
-| `skills.ts`                               |    86 | Skill speed tables; crew races per sector for pirate crews        | Skill tables are a rule (section 3). Races: the sector's `<rarityList>`                         |
+| Module                                    | Lines | What it holds                                                 | Archive source                                                                           |
+| ----------------------------------------- | ----: | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `layout-pages.ts`                         | 3,524 | Cruiser page text for the hangar (names, notes, unlock lines) | The player `shipBlueprint`: `name`, `class`, `desc`, `unlock`, and `text_blueprints.xml` |
+| `hangar-bay.ts`, `augments-missing.ts`    |   297 | Hangar loadout article; augments the catalog lacked           | The player blueprint's lists and `augBlueprint`s                                         |
+| `flagship.ts`, `flagship-layout.ts`       |   274 | Flagship stage numbers; traced cutaways                       | `BOSS_*` blueprints and `data/boss_*.txt` (ftl.dat), `flagship-*` (stand-in)             |
+| `projectile-speed.ts`, `cited-weapons.ts` |   112 | Shot speed; crew damage per weapon                            | `weaponBlueprint` `<speed>` and `<persDamage>`                                           |
+| `skills.ts`                               |    86 | Skill speed tables; crew races per sector for pirate crews    | Skill tables are a rule (section 3). Races: the sector's `<rarityList>`                  |
 
 ## 2. Events written in code: move to the archive, then delete
 
@@ -65,10 +62,9 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 
 1. **Done (#173):** a blueprint-list fight draws from the ships its sector allows, instead of falling back to a wiki class.
    With `ftl.dat`, every ship event now meets an `ftl.dat` ship.
-2. **Ship classes** (`enemy-ships.ts`, `enemy-layouts.ts`, `sector-hostiles.ts`): the stand-in gets `ftl.dat`'s
-   `SHIPS_*` lists; `"pool"` fights draw from the sector's hostile event lists; the fleet's elite draws
-   `SHIPS_REBEL_ELITE`; and the fight labels in the code events above name an archive list. Then the class picker
-   (`pickEnemy`, `rollEnemy`, `rangePool`) and these modules go.
+2. **Done (#175, #176, and the class-picker removal):** the stand-in carries `ftl.dat`'s `SHIPS_*` lists and full
+   enemy blueprints (written by `@stl/catalog` from the faction pages), every fight resolves to an archive ship
+   (`enemy-gen.ts` `archiveFight`), and `enemy-ships.ts`, `enemy-layouts.ts` and `sector-hostiles.ts` are gone.
 3. **Content modules** in section 1, one at a time.
 4. **Events** in section 2, one page at a time.
 5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`.

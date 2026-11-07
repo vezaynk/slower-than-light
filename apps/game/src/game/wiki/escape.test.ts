@@ -131,7 +131,7 @@ describe("escape in a fight", () => {
     const g = createGame(4);
     startCombat(g, "fighter", false, "rebel-transport-ship");
     // extras/crewai.ts sends enemy crew to repair Engines, so keep them broken every second.
-    // Every tick: a one-second gap lets a crew member mend a bar on some hulls (wiki/sector-hostiles.ts picks the class).
+    // Every tick: a one-second gap lets a crew member mend a bar on some hulls (the archive picks the ship).
     for (let i = 0; i < 60 * 30; i++) {
       g.enemy!.systems.engines.damage = g.enemy!.systems.engines.level;
       g.enemy!.systems.engines.fix = 0;

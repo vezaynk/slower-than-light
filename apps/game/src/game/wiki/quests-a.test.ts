@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { allSectors } from "@stl/pack";
-import { classIdFor, pickEnemy, requestFor } from "../enemy-gen.ts";
+import { archiveFight, requestFor } from "../enemy-gen.ts";
 import { choiceDisabled, choose, commitJump, createGame, startCombat, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import "../pack/base.ts";
@@ -83,33 +83,32 @@ function seedWhere(pick: (g: Game) => boolean): Game {
 }
 
 describe("enemy-gen: a fight can ask for one ship class", () => {
+  const ctx = {
+    sector: 2,
+    sectorId: "CIVILIAN_SECTOR",
+    sectorName: "CIVILIAN_SECTOR",
+    difficulty: "normal" as const,
+  };
+  const named = (tier: string, sector = 2) =>
+    archiveFight(tier, { ...ctx, sector }, () => 0.5)?.hull.id;
+
   it("reads the class from the fight string, longest name first; a faction word alone names none", () => {
-    assert.equal(classIdFor("Mantis Bomber"), "mantis-bomber");
-    assert.equal(classIdFor("Rock Assault (Elite)"), "rock-assault-elite");
-    assert.equal(classIdFor("Rock Assault"), "rock-assault");
-    assert.equal(classIdFor("slug-interceptor"), "slug-interceptor");
-    assert.equal(classIdFor("Mantis ship"), undefined);
-    assert.equal(classIdFor("Rebel Ship"), undefined);
-    assert.deepEqual(requestFor("Slug Assault pirate ship"), {
-      faction: "slug",
-      pirate: true,
-      classId: "slug-assault",
-    });
+    assert.equal(named("Mantis Bomber"), "MANTIS_BOMBER");
+    assert.equal(named("Rock Assault (Elite)"), "ROCK_ASSAULT_ELITE");
+    assert.equal(named("Rock Assault"), "ROCK_ASSAULT");
+    assert.deepEqual(requestFor("Slug Assault pirate ship"), { faction: "slug", pirate: true });
     assert.deepEqual(requestFor("Mantis ship"), { faction: "mantis", pirate: false });
   });
 
   it("fields the named class outside its normal sectors (Mantis Bomber in sector 2, Slug Assault in 4)", () => {
-    const ctx = {
-      sector: 2,
-      sectorId: "CIVILIAN_SECTOR",
-      sectorName: "CIVILIAN_SECTOR",
-      difficulty: "normal" as const,
-    };
     for (let i = 0; i < 20; i++) {
       const r = () => (i + 0.5) / 20;
-      assert.equal(pickEnemy(ctx, r, requestFor("Mantis Bomber")).cls.id, "mantis-bomber");
-      const raven = pickEnemy({ ...ctx, sector: 4 }, r, requestFor("Slug Assault pirate ship"));
-      assert.deepEqual([raven.cls.id, raven.pirate], ["slug-assault", true]);
+      assert.equal(archiveFight("Mantis Bomber", ctx, r)?.hull.id, "MANTIS_BOMBER");
+      // The pirate version of the class the wording names (gap <shipClass pirate>).
+      assert.equal(
+        archiveFight("Slug Assault pirate ship", { ...ctx, sector: 4 }, r)?.hull.id,
+        "JELLY_TRUFFLE_P",
+      );
     }
   });
 

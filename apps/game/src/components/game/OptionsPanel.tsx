@@ -10,12 +10,15 @@ import { saveGame } from "@/game/sim";
 import { useGame } from "@/game/store";
 import { canForceLandscape } from "./turn";
 import { CloseX } from "./CloseX";
+import { PlayLogPanel } from "./PlayLogPanel";
 
-type Tab = "exit" | "graphics" | "sound" | "keys";
+type Tab = "exit" | "graphics" | "sound" | "keys" | "log";
 const TABS: [Tab, string][] = [
   ["graphics", "Graphics"],
   ["sound", "Sound"],
   ["keys", "Keyboard"],
+  // Per the user: the errors and warnings met in play.
+  ["log", "Log"],
 ];
 /** Per the user: opened from a run, an Exit tab comes first (and opens first). */
 const GAME_TABS: [Tab, string][] = [["exit", "Exit"], ...TABS];
@@ -321,6 +324,7 @@ export function OptionsPanel({
               </label>
             </div>
           ) : null}
+          {tab === "log" ? <PlayLogPanel /> : null}
           {tab === "keys" ? (
             <div className="opt-keys">
               {KEYS.map(([group, rows]) => (

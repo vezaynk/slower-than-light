@@ -82,10 +82,19 @@ export function emitMod(pack: ContentPack): string {
     }
   }
   // The default start and exit events and the escape timers, in the same tags the gap file writes.
-  if (pack.beaconEvents || pack.escapeTimers) {
+  if (
+    pack.beaconEvents ||
+    pack.escapeTimers ||
+    pack.overchargerWaits ||
+    pack.ionIntruder ||
+    pack.crystalVengeance
+  ) {
     const rules: ContentPack = {};
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
     if (pack.escapeTimers) rules.escapeTimers = pack.escapeTimers;
+    if (pack.overchargerWaits) rules.overchargerWaits = pack.overchargerWaits;
+    if (pack.ionIntruder) rules.ionIntruder = pack.ionIntruder;
+    if (pack.crystalVengeance) rules.crystalVengeance = pack.crystalVengeance;
     const gap = readXml(emitGapDocument(rules)).documentElement;
     for (const child of gap ? elementChildren(gap) : [])
       root.appendChild(doc.importNode(child, true));
@@ -162,6 +171,9 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (factions) pack.factions = factions;
   if (escapes) pack.escapes = escapes;
   if (parsed.escapeTimers) pack.escapeTimers = parsed.escapeTimers;
+  if (parsed.overchargerWaits) pack.overchargerWaits = parsed.overchargerWaits;
+  if (parsed.ionIntruder) pack.ionIntruder = parsed.ionIntruder;
+  if (parsed.crystalVengeance) pack.crystalVengeance = parsed.crystalVengeance;
   return pack;
 }
 

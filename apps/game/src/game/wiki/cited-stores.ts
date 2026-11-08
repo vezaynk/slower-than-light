@@ -15,7 +15,7 @@ import { editionSells, internalDrones } from "../blueprint-use.ts";
 import { shelfAugment } from "../extras/augments.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
-import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
+import { OVERCHARGER_PLUS_SELL } from "../rules/cited-overcharger.ts";
 import { CARGO_SLOTS, cargoOf, receiveDrone } from "./make-room.ts";
 
 /**
@@ -616,7 +616,7 @@ export function citedSellQuote(g: Game): SellQuote[] {
       kind: "drone",
       ref: "DRONE_SHIELD_PLAYER",
       name: "Shield Overcharger +",
-      scrap: OVERCHARGER_PLUS.sell,
+      scrap: OVERCHARGER_PLUS_SELL,
     });
   }
   return quotes;

@@ -5010,6 +5010,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <rarity>4</rarity>
     <type>SHIELD</type>
     <power>3</power>
+    <speed>5</speed>
     <dodge>0</dodge>
   </droneBlueprint>
   <droneBlueprint name="BATTLE">

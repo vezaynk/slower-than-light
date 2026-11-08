@@ -115,6 +115,9 @@ const pack: ContentPack = {
     { id: "lanius", chance: 80, min: 20, max: 40 },
   ],
   escapeTimers: { hull: 15, lastFuel: 90 },
+  overchargerWaits: { layer0: 8, layer1: 10, layer2: 13, layer3: 16, layer4: 20 },
+  ionIntruder: { ion: 3, stun: 6, pulseMin: 8.2, pulseMax: 10 },
+  crystalVengeance: { chance: 0.1, damage: 1, breach: 0.1, stunChance: 0.2, stun: 3 },
   empties: [
     {
       id: "ember-quiet",
@@ -155,6 +158,15 @@ describe("hyperspace mod", () => {
     assert.match(xml, /<shipBlueprint name="rebel">\s*<surrender chance="50" min="20" max="30"\/>/);
     assert.match(xml, /<escape chance="80" min="20" max="40"\/>/);
     assert.match(xml, /<escapeTimers hull="15" lastFuel="90"\/>/);
+    assert.match(
+      xml,
+      /<overchargerWaits layer0="8" layer1="10" layer2="13" layer3="16" layer4="20"\/>/,
+    );
+    assert.match(xml, /<ionIntruder ion="3" stun="6" pulseMin="8.2" pulseMax="10"\/>/);
+    assert.match(
+      xml,
+      /<crystalVengeance chance="0.1" damage="1" breach="0.1" stunChance="0.2" stun="3"\/>/,
+    );
     assert.deepEqual(packFromMod(xml), pack);
   });
 

@@ -451,4 +451,7 @@
     <finishEvent nebula="true">FINISH_BEACON_NEBULA</finishEvent>
   </beaconEvents>
   <escapeTimers hull="15" lastFuel="90"/>
+  <overchargerWaits layer0="8" layer1="10" layer2="13" layer3="16" layer4="20"/>
+  <ionIntruder ion="3" stun="6" pulseMin="8.2" pulseMax="10"/>
+  <crystalVengeance chance="0.1" damage="1" breach="0.1" stunChance="0.2" stun="3"/>
 </FTL>

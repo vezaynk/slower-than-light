@@ -22,7 +22,7 @@ import "../pack/base.ts";
 import { crewDef, weaponDef } from "@stl/pack";
 import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { sensorLevel } from "./sensors.ts";
-import { bypassZoltan } from "../wiki/cited-bypass.ts";
+import { bypassZoltan } from "../rules/cited-bypass.ts";
 import { hackStuns } from "./moreaugs.ts";
 import { clearEnemyLeash, sideOf } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";

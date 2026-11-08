@@ -147,6 +147,12 @@ export {
   allFactionEscapes,
   escapeTimer,
   escapeTimers,
+  overchargerWaits,
+  overchargerLayerSeconds,
+  ionIntruderRule,
+  ionIntruderStat,
+  crystalVengeanceRule,
+  crystalVengeanceStat,
 } from "./registry.ts";
 export { localeString, packLocales } from "./locales.ts";
 export type {
@@ -191,6 +197,9 @@ export type {
   EventResource,
   EventTier,
   EscapeTimers,
+  OverchargerWaits,
+  IonIntruderRule,
+  CrystalVengeanceRule,
   FactionEscape,
   FactionSurrender,
   NamedReward,

@@ -4,9 +4,14 @@ import { DRONE_POWER, deploy, swarmIntercept, tickSwarm } from "../extras/swarm.
 import { hullById } from "../hulls.ts";
 import { commitJump, createGame, startCombat } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { OVERCHARGER, OVERCHARGER_PLUS, OVERCHARGER_SPEED } from "./cited-overcharger.ts";
-import { citedSell, citedSellQuote, citedStock } from "./cited-stores.ts";
-import { allDrones } from "@stl/pack";
+import { citedSell, citedSellQuote, citedStock } from "../wiki/cited-stores.ts";
+import {
+  OVERCHARGER_PLUS_SELL,
+  overchargerPower,
+  overchargerSpeed,
+  overchargerWait,
+} from "./cited-overcharger.ts";
+import { allDrones, droneDef, loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 
 function arm(g: Game, power: number) {
   g.player.parts = 3;
@@ -32,16 +37,15 @@ function jump(g: Game) {
 
 describe("Shield Overcharger citation", () => {
   it("records the power requirements and the five waits", () => {
-    assert.equal(OVERCHARGER.power, 3);
-    assert.equal(OVERCHARGER_PLUS.power, 2);
-    assert.deepEqual(OVERCHARGER.waits, [8, 10, 13, 16, 20]);
-    assert.equal(OVERCHARGER_PLUS.sell, 30);
-    assert.equal(OVERCHARGER_SPEED, 5);
-    assert.equal("speed" in OVERCHARGER, false);
-    assert.equal("speed" in OVERCHARGER_PLUS, false);
-    assert.equal("cooldown" in OVERCHARGER, false);
-    assert.deepEqual(Object.keys(OVERCHARGER), ["power", "waits"]);
-    assert.deepEqual(Object.keys(OVERCHARGER_PLUS), ["power", "sell"]);
+    assert.equal(overchargerPower("DRONE_SHIELD"), 3);
+    assert.equal(overchargerPower("DRONE_SHIELD_PLAYER"), 2);
+    assert.deepEqual(
+      [0, 1, 2, 3, 4].map((layers) => overchargerWait(layers)),
+      [8, 10, 13, 16, 20],
+    );
+    assert.equal(overchargerWait(5), null);
+    assert.equal(OVERCHARGER_PLUS_SELL, 30);
+    assert.equal(overchargerSpeed(), 5);
   });
 });
 
@@ -376,5 +380,54 @@ describe("Shield Overcharger +", () => {
     tickSwarm(fight, 8);
     assert.equal(fight.player.zoltan, 1);
     assert.equal(enemy.zoltan ?? null, before);
+  });
+});
+
+describe("Shield Overcharger numbers from the archive", () => {
+  it("follows a gap file that shortens the first wait", () => {
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><overchargerWaits layer0="1"/></FTL>` }]),
+      "append",
+    );
+    try {
+      assert.equal(overchargerWait(0), 1);
+      assert.equal(overchargerWait(1), 10);
+      const g = createGame(30);
+      arm(g, 3);
+      assert.equal(deploy(g, "DRONE_SHIELD"), true);
+      tickSwarm(g, 1);
+      assert.equal(g.player.zoltan, 1);
+      assert.equal(g.player.kits.drones?.left, 10);
+    } finally {
+      resetPackForTests();
+    }
+    assert.equal(overchargerWait(0), 8);
+    const again = createGame(30);
+    arm(again, 3);
+    assert.equal(deploy(again, "DRONE_SHIELD"), true);
+    tickSwarm(again, 1);
+    assert.equal(again.player.zoltan ?? null, null);
+  });
+
+  it("follows a blueprint that changes the power", () => {
+    const row = droneDef("DRONE_SHIELD");
+    assert.ok(row);
+    loadPack({ drones: [{ ...row, power: 1 }] }, "append");
+    try {
+      assert.equal(overchargerPower("DRONE_SHIELD"), 1);
+      const g = createGame(31);
+      arm(g, 1);
+      assert.equal(deploy(g, "DRONE_SHIELD"), true);
+      tickSwarm(g, 8);
+      assert.equal(g.player.zoltan, 1);
+    } finally {
+      resetPackForTests();
+    }
+    assert.equal(overchargerPower("DRONE_SHIELD"), 3);
+    const again = createGame(31);
+    arm(again, 1);
+    assert.equal(deploy(again, "DRONE_SHIELD"), true);
+    tickSwarm(again, 8);
+    assert.equal(again.player.zoltan ?? null, null);
   });
 });

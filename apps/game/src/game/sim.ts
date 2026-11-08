@@ -158,8 +158,8 @@ import {
   isChainWeapon,
   nextChainStep,
 } from "./wiki/cited-chain.ts";
-import { bypassZoltan } from "./wiki/cited-bypass.ts";
-import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
+import { bypassZoltan } from "./rules/cited-bypass.ts";
+import { vengeanceFires, vengeanceShot } from "./rules/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
 import { noteCrewBlue } from "./wiki/achievement-track.ts";
 
@@ -271,7 +271,7 @@ import {
 import { attrRefusal, choiceOmitted } from "./wiki/choice-locks.ts";
 import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
-import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
+import { citedZoltanPower } from "./rules/cited-zoltan-power.ts";
 
 import { escapePlan, eventSlugOf, hullRunSeconds, overtakenArrivalEscape } from "./rules/escape.ts";
 // @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
@@ -4228,12 +4228,13 @@ function looseShard(g: Game) {
     log(g, "The shard missed.");
     return;
   }
-  const left = spendZoltan(enemy, VENGEANCE_SHOT.damage);
+  const shard = vengeanceShot();
+  const left = spendZoltan(enemy, shard.damage);
   if (left === 0) {
     noteZoltan(g, false);
     return;
   }
-  const damage = left == null ? VENGEANCE_SHOT.damage : left;
+  const damage = left == null ? shard.damage : left;
   if (damage <= 0) return;
   enemy.hull = Math.max(0, enemy.hull - damage);
   if (enemy.hull <= 0) noteAchieve(g, { k: "vengeance" });

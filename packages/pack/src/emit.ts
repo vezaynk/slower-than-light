@@ -24,6 +24,9 @@ import type {
   EventDef,
   EventEffect,
   EscapeTimers,
+  OverchargerWaits,
+  IonIntruderRule,
+  CrystalVengeanceRule,
   FactionEscape,
   FactionSurrender,
   FillerListDef,
@@ -193,6 +196,9 @@ export function emitGapDocument(pack: ContentPack): string {
   for (const row of pack.shipLists ?? []) add(root, shipListElement(doc, row));
   if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
+  if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
+  if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
+  if (pack.crystalVengeance) add(root, crystalVengeanceElement(doc, pack.crystalVengeance));
   return prettyXml(serializer.serializeToString(doc));
 }
 
@@ -215,6 +221,36 @@ function escapeTimersElement(doc: XmlDocument, row: EscapeTimers): XmlElement {
   if (row.hull != null) attrs.hull = num(row.hull);
   if (row.lastFuel != null) attrs.lastFuel = num(row.lastFuel);
   return element(doc, "escapeTimers", attrs);
+}
+
+/** `<overchargerWaits layer0…layer4>`: Shield Overcharger layer waits (types.ts OverchargerWaits). */
+function overchargerWaitsElement(doc: XmlDocument, row: OverchargerWaits): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of ["layer0", "layer1", "layer2", "layer3", "layer4"] as const) {
+    const value = row[key];
+    if (value != null) attrs[key] = num(value);
+  }
+  return element(doc, "overchargerWaits", attrs);
+}
+
+/** `<ionIntruder ion stun pulseMin pulseMax>`: the Ion Intruder pulse (types.ts IonIntruderRule). */
+function ionIntruderElement(doc: XmlDocument, row: IonIntruderRule): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of ["ion", "stun", "pulseMin", "pulseMax"] as const) {
+    const value = row[key];
+    if (value != null) attrs[key] = num(value);
+  }
+  return element(doc, "ionIntruder", attrs);
+}
+
+/** `<crystalVengeance chance damage breach stunChance stun>` (types.ts CrystalVengeanceRule). */
+function crystalVengeanceElement(doc: XmlDocument, row: CrystalVengeanceRule): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of ["chance", "damage", "breach", "stunChance", "stun"] as const) {
+    const value = row[key];
+    if (value != null) attrs[key] = num(value);
+  }
+  return element(doc, "crystalVengeance", attrs);
 }
 
 /** `<shipList>`: the faction and pirate flag of a blueprint list's fights (types.ts ShipListRule). */

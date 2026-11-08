@@ -4005,11 +4005,16 @@ export function applyImpact(g: Game, shot: Shot) {
     if (left != null) damage = left;
   }
 
-  // Weapons, "Lasers": one shot drops one layer. "Missiles": ignore layers. "Beams": do not pop layers.
-  // Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer. Two layers still stop them.
-  const pierce = citedPierce(shot.defId);
+  // The bubble stops a projectile unless the layers up are at most the blueprint's `<sp>`.
+  // ftl.dat writes 5 on every missile, 1 on the crystal guns and LASER_HEAVY_1_SP, and 0 or nothing elsewhere.
+  // A stopped shot drops one layer. A shot that passes goes straight through and leaves the layers up.
+  // Environmental Hazards: the anti-ship battery fires a "shield-piercing" shot; ftl.dat's PDS_SHOT is `<sp>5</sp>`.
+  // Flak (Weapons), "Understanding flak accuracy": fake flak "cannot take down shields or deal damage".
+  // Both fake-pellet sources (ordnance.ts and flakart.ts) share this label.
+  const fake = shot.label === FLAK1_FAKE_LABEL;
+  const pierce = asbShot || fake ? Infinity : citedPierce(shot.defId);
   const shieldsBefore = ship.shieldNow;
-  if (shot.kind !== "missile" && ship.shieldNow > pierce) {
+  if (ship.shieldNow > pierce) {
     ship.shieldNow -= 1;
     ship.shieldCharge = 0;
     if (shot.kind === "ion") {
@@ -4033,8 +4038,6 @@ export function applyImpact(g: Game, shot: Shot) {
     // Per the user: the ship shakes only on damage, so a shield block does not.
     return;
   }
-  if (shot.kind !== "missile" && pierce > 0 && ship.shieldNow > 0) ship.shieldNow = 0;
-  if (shieldsBefore > 0 && ship.shieldNow === 0) playArchiveAudio("shieldsDown");
 
   if (shot.kind === "ion") {
     if (playerTarget && !ionPassthrough && negateIon(g)) {

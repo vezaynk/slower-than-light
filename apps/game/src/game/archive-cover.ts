@@ -110,6 +110,7 @@ import { conditionMet, isTracked } from "./wiki/achievement-track.ts";
 import { mixBeacons } from "./wiki/beacon-mix.ts";
 import { citedOwns } from "./wiki/cited-events.ts";
 import { emptyPageFor } from "./wiki/filler-events.ts";
+import { receiveAugment } from "./wiki/make-room.ts";
 import { surrenderPlan } from "./wiki/surrender.ts";
 import { playerShipIds } from "./unlocks.ts";
 
@@ -464,7 +465,11 @@ function exerciseAugment(id: string, problems: string[]): void {
   const g = richGame();
   g.augments = [];
   g.scrap = Math.max(g.scrap, row.cost + 1);
-  if (installAugment(g, id as AugmentId)) {
+  // Store rarity 0 is never bought; an event grant (Damaged Stasis Pod) fits it instead.
+  if (
+    installAugment(g, id as AugmentId) ||
+    (row.rarity === 0 && receiveAugment(g, id) === "fitted")
+  ) {
     try {
       step(g, 0.05);
     } catch (err) {

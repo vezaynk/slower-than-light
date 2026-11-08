@@ -24,7 +24,10 @@ import {
   hurtArtillery,
   surgeDroneCount,
 } from "./flagship-systems.ts";
-import { weaponDef } from "@stl/pack";
+import { droneDef, hullDef, weaponDef } from "@stl/pack";
+import { flownAs } from "../extras/flown.ts";
+import { flagshipHullId } from "./flagship-layout.ts";
+import { enemyDroneSpot } from "../extras/swarm.ts";
 import "../pack/base.ts";
 import { applyImpact, commitJump } from "../sim.ts";
 
@@ -147,15 +150,69 @@ describe("Rebel Flagship systems per stage", () => {
         e.rooms.some((r) => r.id === c.room),
         c.room,
       );
+    // Drone Control flies the BOSS_2 blueprint's droneList, in its order: defense first, the boss boarder last.
+    assert.deepEqual(e.kits.drones?.loadout, hullDef(flagshipHullId(2, "normal"))?.drones);
+    assert.deepEqual(e.kits.drones?.loadout, [
+      "DEFENSE_1",
+      "COMBAT_1",
+      "COMBAT_BEAM",
+      "BOARDER_BOSS",
+    ]);
     step(g, 0.05);
     const drones = e.kits.drones?.drones ?? [];
-    assert.deepEqual(
-      drones.map((d) => d.kind),
-      ["DEFENSE_1", "COMBAT_BEAM", "COMBAT_1", "BOARDER"],
-    );
+    // BOARDER_BOSS is no id the drone code names: it flies by its droneBlueprint type, at its own power.
+    assert.equal(flownAs("BOARDER_BOSS"), "BOARDER");
+    assert.equal(droneDef("BOARDER_BOSS")?.power, 2);
     // "Since it uses 4 drones at once": all four fit the printed Drone (8) at (2) each.
     assert.ok(drones.every((d) => d.alive && d.powered));
     assert.equal(e.parts, 6);
+    const boss = drones.find((d) => d.kind === "BOARDER_BOSS");
+    assert.ok(boss);
+    // It launches as a boarder: in flight toward the player hull, with a boarding drone's health.
+    assert.equal(enemyDroneSpot(boss)?.at, "flying");
+    assert.equal(boss.hp, 150);
+  });
+
+  it("stage 2 on every difficulty: the blueprint's four drones, the boss boarder breaching and sabotaging", () => {
+    for (const difficulty of ["easy", "normal", "hard"] as const) {
+      const g = bossFight(23, difficulty);
+      nextStage(g);
+      const e = g.enemy!;
+      assert.deepEqual(
+        e.kits.drones?.loadout,
+        ["DEFENSE_1", "COMBAT_1", "COMBAT_BEAM", "BOARDER_BOSS"],
+        difficulty,
+      );
+      const damage = () =>
+        Object.values(g.player.systems).reduce((n, sys) => n + (sys.damage ?? 0), 0);
+      const before = damage();
+      // Past the 3 s approach (swarm.ts BOARD_FLY_S): the boss boarder is in a player room.
+      for (let t = 0; t < 4; t += 0.05) step(g, 0.05);
+      const boss = e.kits.drones?.drones?.find((d) => d.kind === "BOARDER_BOSS");
+      assert.ok(boss?.alive, difficulty);
+      assert.equal(enemyDroneSpot(boss)?.at, "player-room", difficulty);
+      // It sabotages the room it breached into, as a Boarding Drone does.
+      const room = boss.room;
+      for (let t = 0; t < 8 && damage() === before; t += 0.05) step(g, 0.05);
+      assert.ok(damage() > before, `${difficulty}: no system damage from ${room}`);
+    }
+  });
+
+  it("stage 2 powers drones down from the boss boarder up: at 6 bars the boarder is dark, the defense drone is not", () => {
+    // "Handling phase 2 drones": "the Boarding Drone is the first drone to go down ... and finally the defense drone".
+    const g = bossFight(24);
+    nextStage(g);
+    const kit = g.enemy!.kits.drones!;
+    step(g, 0.05);
+    kit.damage = 2;
+    step(g, 0.05);
+    const powered = Object.fromEntries((kit.drones ?? []).map((d) => [d.kind, d.powered]));
+    assert.deepEqual(powered, {
+      DEFENSE_1: true,
+      COMBAT_1: true,
+      COMBAT_BEAM: true,
+      BOARDER_BOSS: false,
+    });
   });
 
   it("stage 3: Teleporter 2 and Mind Control 3, loses Drone and the Beam room crew, Zoltan Shield 12", () => {

@@ -3,9 +3,18 @@ import { describe, it } from "node:test";
 import { canFlyDrone } from "./extras/flown.ts";
 import { playerDroneSlots } from "./extras/swarm.ts";
 import { hullById, playerHulls } from "./hulls.ts";
-import { augmentDef, droneDef, emitFtlShips, hullDef, packFromFtl, startingFit } from "@stl/pack";
+import {
+  augmentDef,
+  droneDef,
+  emitFtlShips,
+  hullDef,
+  loadPack,
+  onPackWarning,
+  packFromFtl,
+  resetPackForTests,
+  startingFit,
+} from "@stl/pack";
 import { createGame, hangarLoadout } from "./sim.ts";
-import { MISSING_AUGMENTS } from "./wiki/augments-missing.ts";
 import { hangarBay } from "./wiki/hangar-bay.ts";
 import { hangarPages } from "./hangar-roster.ts";
 
@@ -109,12 +118,28 @@ describe("hangar bay", () => {
       );
       const augmentIds = hullById(layout.id)?.augments ?? [];
       assert.deepEqual(sorted(augmentIds), sorted(run.augments), layout.id);
-      const missing = new Map(MISSING_AUGMENTS.map((row) => [row.id, row.name]));
       assert.deepEqual(
         bay.augments,
-        augmentIds.map((id) => augmentDef(id)?.name ?? missing.get(id) ?? id),
+        augmentIds.map((id) => augmentDef(id)?.name),
         layout.id,
       );
+    }
+  });
+
+  it("shows an augment with no blueprint as its id, with a warning", () => {
+    const kestrel = hullDef("PLAYER_SHIP_HARD");
+    assert.ok(kestrel);
+    loadPack({ hulls: [{ ...kestrel, augments: ["NOT_AN_AUGMENT"] }] }, "append");
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      assert.deepEqual(hangarBay("PLAYER_SHIP_HARD")?.augments, ["NOT_AN_AUGMENT"]);
+      assert.deepEqual(warnings, [
+        'Augment "NOT_AN_AUGMENT" has no augBlueprint; the hangar shows its id.',
+      ]);
+    } finally {
+      restore();
+      resetPackForTests();
     }
   });
 

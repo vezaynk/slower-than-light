@@ -149,6 +149,20 @@ export const STORE_RARITY: Readonly<Record<string, number>> = {
   ROCK_ARMOR: 0,
   // Augmentations, "Titanium System Casing": prints a sell price and no purchase price or store rarity.
   SYSTEM_CASING: 0,
+  // Augmentations, "Crystal Vengeance": "Non-Purchasable Augmentations", no purchase price or store rarity.
+  CRYSTAL_SHARDS: 0,
+  // Augmentations, "Damaged Stasis Pod": "Non-Purchasable Augmentations", no purchase price or store rarity.
+  STASIS_POD: 0,
+  // Augmentations, "Drone Reactor Booster": "Non-Purchasable Augmentations", no purchase price or store rarity.
+  DRONE_SPEED: 0,
+  // Augmentations, "Engi Med-bot Dispersal": "Non-Purchasable Augmentations", no purchase price or store rarity.
+  NANO_MEDBAY: 0,
+  // Augmentations, "Mantis Pheromones": "Non-Purchasable Augmentations", no purchase price or store rarity.
+  CREW_STIMS: 0,
+  // Augmentations, "Slug Repair Gel": "Non-Purchasable Augmentations", no purchase price or store rarity.
+  SLUG_GEL: 0,
+  // Augmentations, "Zoltan Shield": "Non-Purchasable Augmentations", no purchase price or store rarity.
+  ENERGY_SHIELD: 0,
   // Augmentations, "Battery Charger": Store rarity.
   BATTERY_BOOSTER: 2,
   // Augmentations, "Emergency Respirators": Store rarity.
@@ -204,4 +218,6 @@ export const STORE_RARITY: Readonly<Record<string, number>> = {
   BOARDER: 4,
   // Drone Control, "Ion Intruder Drone": Store rarity.
   BOARDER_ION: 4,
+  // The Rebel Flagship's "Boarding Drone (Boss)". Enemy-only, so no draw picks it.
+  BOARDER_BOSS: 0,
 };

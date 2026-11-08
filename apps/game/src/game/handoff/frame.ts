@@ -18,7 +18,20 @@ export type Frame =
   | { kind: "applied" }
   | { kind: "error"; message: string };
 
-const PART = /^STL1\.(\d+)\.(\d+)\.([A-Za-z0-9_-]+)$/;
+/**
+ * A QR code holds at most 2953 bytes, so a page body stays under that. `encodeTicket` writes 700-character
+ * bodies, and the page and count numbers stay within 40.
+ */
+const MAX_PAGES = 40;
+const MAX_BODY = 2940;
+const PART = /^STL1\.(\d{1,2})\.(\d{1,2})\.([A-Za-z0-9_-]{1,2940})$/;
+/** Pasted text longer than a full set of the largest pages (with room for line breaks) is not a code. */
+const MAX_TEXT = MAX_PAGES * (MAX_BODY + 16);
+/**
+ * A real ticket unpacks to a few kilobytes: an SDP with a handful of host candidates. The cap leaves ample room
+ * and keeps a crafted code from unpacking into something that exhausts the tab.
+ */
+const MAX_TICKET_BYTES = 64 * 1024;
 
 export type SessionTicket = {
   v: 1;
@@ -102,9 +115,31 @@ async function gzip(bytes: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
-async function gunzip(bytes: Uint8Array): Promise<Uint8Array> {
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+/** Unpacks `bytes`, stopping (and throwing) as soon as the output passes `cap`. */
+async function gunzip(bytes: Uint8Array, cap: number): Promise<Uint8Array> {
+  const reader = new Blob([bytes])
+    .stream()
+    .pipeThrough(new DecompressionStream("gzip"))
+    .getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > cap) {
+      void reader.cancel().catch(() => {});
+      throw new Error("The code unpacks past the size limit.");
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let at = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, at);
+    at += chunk.length;
+  }
+  return out;
 }
 
 function b64url(bytes: Uint8Array): string {
@@ -132,7 +167,7 @@ export async function encodeTicket(ticket: SessionTicket, piece = 700): Promise<
     new TextEncoder().encode(JSON.stringify({ v: 1, role: ticket.role, sdp: ticket.sdp })),
   );
   const body = b64url(gz);
-  const size = Math.max(1, Math.floor(piece));
+  const size = Math.min(MAX_BODY, Math.max(1, Math.floor(piece)));
   const count = Math.max(1, Math.ceil(body.length / size));
   const parts: string[] = [];
   for (let i = 0; i < count; i++) {
@@ -149,12 +184,12 @@ export function absorbTicket(
   bag: Map<number, string>,
   text: string,
 ): { have: number; need: number; done: string | null } {
-  for (const line of text.split(/\s+/)) {
+  for (const line of text.length > MAX_TEXT ? [] : text.split(/\s+/)) {
     const match = PART.exec(line);
     if (!match) continue;
     const index = Number(match[1]);
     const count = Number(match[2]);
-    if (index < 1 || count < 1 || index > count || count > 40) continue;
+    if (index < 1 || count < 1 || index > count || count > MAX_PAGES) continue;
     const sample = bag.values().next().value as string | undefined;
     const open = sample ? Number(PART.exec(sample)?.[2]) : 0;
     if ((open && open !== count) || (bag.get(index) && bag.get(index) !== line)) bag.clear();
@@ -173,6 +208,7 @@ export function absorbTicket(
 }
 
 export async function decodeTicket(text: string): Promise<SessionTicket> {
+  if (text.length > MAX_TEXT) throw new Error("That code could not be read.");
   const absorbed = absorbTicket(new Map(), text);
   if (!absorbed.done) {
     throw new Error(
@@ -187,7 +223,9 @@ export async function decodeTicket(text: string): Promise<SessionTicket> {
     .join("");
   let parsed: unknown;
   try {
-    parsed = JSON.parse(new TextDecoder().decode(await gunzip(b64urlDecode(body))));
+    parsed = JSON.parse(
+      new TextDecoder().decode(await gunzip(b64urlDecode(body), MAX_TICKET_BYTES)),
+    );
   } catch {
     throw new Error("That code could not be read.");
   }

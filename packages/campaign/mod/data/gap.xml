@@ -5,15 +5,19 @@
   </shipBlueprint>
   <shipBlueprint name="slug">
     <surrender chance="50" min="30" max="40"/>
+    <escape chance="50" min="30" max="40"/>
   </shipBlueprint>
   <shipBlueprint name="lanius">
     <surrender chance="80" min="30" max="40"/>
+    <escape chance="80" min="20" max="40"/>
   </shipBlueprint>
   <shipBlueprint name="pirate">
     <surrender chance="50" min="30" max="40"/>
+    <escape chance="50" min="20" max="40"/>
   </shipBlueprint>
   <shipBlueprint name="rebel">
     <surrender chance="50" min="20" max="30"/>
+    <escape chance="50" min="30" max="40"/>
   </shipBlueprint>
   <shipBlueprint name="rock">
     <surrender chance="30" min="30" max="40"/>
@@ -446,4 +450,5 @@
     <finishEvent>FINISH_BEACON</finishEvent>
     <finishEvent nebula="true">FINISH_BEACON_NEBULA</finishEvent>
   </beaconEvents>
+  <escapeTimers hull="15" lastFuel="90"/>
 </FTL>

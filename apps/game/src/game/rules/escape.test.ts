@@ -2,13 +2,9 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { choose, createGame, startCombat, step, waitHere } from "../sim.ts";
 import type { Game } from "../types.ts";
-import {
-  HULL_RUN_SECONDS,
-  LAST_FUEL_SECONDS,
-  OUT_OF_FUEL_WAIT_SECONDS,
-  escapePlan,
-  eventSlugOf,
-} from "./escape.ts";
+import { loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
+import { OUT_OF_FUEL_WAIT_SECONDS } from "../wiki/escape-events.ts";
+import { escapePlan, eventSlugOf, hullRunSeconds, lastFuelSeconds } from "./escape.ts";
 
 const half = () => 0.5;
 
@@ -40,7 +36,7 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
       half,
     );
     assert.equal(slug.mode, "hull");
-    assert.equal(slug.seconds, HULL_RUN_SECONDS);
+    assert.equal(slug.seconds, hullRunSeconds());
     assert.equal(slug.chance, 50);
     assert.equal(slug.threshold, 35);
     assert.equal(slug.running, false);
@@ -66,14 +62,14 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
 
   it("runs at 90 s after the last fuel is spent", () => {
     const p = escapePlan({ tier: "fighter", lastFuel: true }, half);
-    assert.deepEqual([p.mode, p.seconds], ["start", LAST_FUEL_SECONDS]);
+    assert.deepEqual([p.mode, p.seconds], ["start", lastFuelSeconds()]);
   });
 
   it("otherwise rolls the Rebel row: 50% at 30–40% hull, 15 s", () => {
     const p = escapePlan({ tier: "fighter" }, half);
     assert.deepEqual(
       [p.mode, p.chance, p.threshold, p.seconds, p.running],
-      ["hull", 50, 35, HULL_RUN_SECONDS, false],
+      ["hull", 50, 35, hullRunSeconds(), false],
     );
   });
 
@@ -122,7 +118,7 @@ describe("escape in a fight", () => {
     g.enemy!.hull = 2;
     run(g, 1);
     assert.equal(g.enemyEscape?.running, true);
-    run(g, HULL_RUN_SECONDS + 1);
+    run(g, hullRunSeconds() + 1);
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "map");
   });
@@ -157,5 +153,56 @@ describe("escape in a fight", () => {
     const again = g.fleet;
     waitHere(g);
     assert.equal(doubled, (g.fleet - again) * 2);
+  });
+});
+
+describe("escape numbers from the gap mod", () => {
+  it("reads FTL's numbers from the loaded gap", () => {
+    assert.equal(hullRunSeconds(), 15);
+    assert.equal(lastFuelSeconds(), 90);
+  });
+
+  it("follows a gap file that overrides one number", () => {
+    // A mod's gap.xml: the hull-triggered timer is 25 s, and Mantis ships run at 100% below 50% hull.
+    loadPack(
+      packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL>
+  <escapeTimers hull="25"/>
+  <shipBlueprint name="mantis"><escape chance="100" min="50" max="50"/></shipBlueprint>
+</FTL>`,
+        },
+      ]),
+      "append",
+    );
+    try {
+      const rebel = escapePlan({ tier: "fighter" }, half);
+      assert.deepEqual(
+        [rebel.mode, rebel.chance, rebel.threshold, rebel.seconds],
+        ["hull", 50, 35, 25],
+      );
+      assert.equal(lastFuelSeconds(), 90);
+      const mantis = escapePlan({ tier: "pool", faction: "mantis" }, half);
+      assert.deepEqual([mantis.mode, mantis.chance, mantis.threshold], ["hull", 100, 50]);
+
+      // In a fight: a hull-triggered run now takes 25 s, not 15.
+      const g = createGame(4);
+      startCombat(g, "Rebel ship");
+      g.enemyEscape!.chance = 100;
+      g.enemySurrender!.chance = 0;
+      g.enemy!.hull = 2;
+      run(g, 1);
+      assert.equal(g.enemyEscape?.running, true);
+      assert.equal(g.enemyEscape?.seconds, 25);
+      run(g, 16);
+      assert.equal(g.phase, "combat");
+      run(g, 10);
+      assert.equal(g.enemy, null);
+    } finally {
+      resetPackForTests();
+    }
+    assert.equal(hullRunSeconds(), 15);
+    assert.equal(escapePlan({ tier: "pool", faction: "mantis" }, half).mode, "never");
   });
 });

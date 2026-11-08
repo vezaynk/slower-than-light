@@ -12,7 +12,7 @@ import {
   shipClassBlueprint,
 } from "@stl/pack";
 import type { HullDef, WeaponBlueprint } from "@stl/pack";
-import { weightedBlueprint } from "../archive-pay.ts";
+import { weightedBlueprint } from "../rarity.ts";
 import { skillRank } from "../content.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
 import { weaponCopy, weaponDamageLabel } from "../interface-copy.ts";

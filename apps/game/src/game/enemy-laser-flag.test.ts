@@ -32,6 +32,10 @@ describe("enemy generation's laser flag (Mathchamp, Details on enemy ship genera
     // Every stand-in missile writes <sp>5</sp>, as ftl.dat's do.
     for (const row of allWeapons().filter((w) => w.kind === "missile"))
       assert.equal(row.pierce, 5, row.id);
+    // Ammo missiles fly past every layer in the sim, so the card does not print that <sp>.
+    for (const row of allWeapons().filter((w) => w.kind === "missile" && w.ammo))
+      assert.doesNotMatch(`${row.blurb} ${row.detail ?? ""}`, /pierces/i, row.id);
+    assert.match(weaponDef("CRYSTAL_BURST_1")!.detail ?? "", /Pierces 1 shield layer/);
     assert.equal(laserFlag("NO_SUCH_GUN"), false);
   });
 

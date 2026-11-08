@@ -721,6 +721,10 @@ describe("enemy boarding drones", () => {
     sys.damage = sys.level;
     const guard = g.crew.find((c) => c.aboard === "player" && c.hp > 0);
     assert.ok(guard);
+    // The guard is the room's only crew, so its death leaves the room empty.
+    const elsewhere = g.player.rooms.find((r) => r.id !== from)!.id;
+    for (const c of g.crew)
+      if (c !== guard && c.aboard === "player" && c.room === from) c.room = elsewhere;
     guard.room = from;
     tickSwarm(g, 1);
     assert.equal(unit.room, from);

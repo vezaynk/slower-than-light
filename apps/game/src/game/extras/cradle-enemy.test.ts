@@ -75,6 +75,9 @@ describe("enemy clone bay", () => {
 
   it("Clone Bay, Overview: the queue revives one-by-one, earliest death first", () => {
     const g = cloneShip();
+    // Level 1: 12 seconds a revival (the ship rolls its bay's level).
+    bay(g).level = 1;
+    bay(g).power = 1;
     const [a, b] = foes(g);
     kill(g, a);
     kill(g, b);
@@ -143,6 +146,9 @@ describe("enemy clone bay", () => {
 
   it("Clone Bay, Overview: offline for 3 seconds loses the last clone queued", () => {
     const g = cloneShip();
+    // Level 1: 12 seconds a revival (the ship rolls its bay's level).
+    bay(g).level = 1;
+    bay(g).power = 1;
     const [a, b] = foes(g);
     kill(g, a);
     kill(g, b);

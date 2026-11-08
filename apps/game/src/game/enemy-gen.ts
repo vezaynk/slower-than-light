@@ -206,12 +206,19 @@ function schematicPower(id: string): number {
 }
 
 /**
- * A listed id appended after the draw rather than drawn: an archive alias, or a schematic the drone code does not
- * name and flies by its droneBlueprint type (extras/flown.ts flownAs), such as ftl.dat's BOARDER_BOSS.
+ * A schematic the drone code does not name, flown by its droneBlueprint type (extras/flown.ts flownAs), such as
+ * ftl.dat's BOARDER_BOSS. It is drawn like a native schematic, at its own power, so the draw's count and power
+ * limits hold. Ids the code names (SHIP_REPAIR, DRONE_SHIELD_PLAYER, ...) map to themselves and stay out.
  */
-function appendedDrone(id: string): boolean {
-  if (ARCHIVE_SIM[id] != null) return ENEMY_RUNNABLE.has(id);
-  return !ENEMY_RUNNABLE.has(id) && flownAs(id) != null;
+function typeFlown(id: string): boolean {
+  if (ENEMY_RUNNABLE.has(id) || ARCHIVE_SIM[id] != null) return false;
+  const as = flownAs(id);
+  return as != null && as !== id;
+}
+
+/** The flight code a drawn id runs, for the combat-drone flag rule. */
+function drawnAs(id: string): string {
+  return typeFlown(id) ? (flownAs(id) ?? id) : id;
 }
 
 /**
@@ -278,7 +285,8 @@ export function rollDrones(
   // A blueprint that named them keeps them.
   const blocked = listed ? undefined : internalDrones();
   const pool = row.drones.filter(
-    (id) => ENEMY_RUNNABLE.has(id) && !appendedDrone(id) && !blocked?.has(id),
+    (id) =>
+      ((ENEMY_RUNNABLE.has(id) && ARCHIVE_SIM[id] == null) || typeFlown(id)) && !blocked?.has(id),
   );
   const out: string[] = [];
   let open = flagsOpen;
@@ -288,18 +296,20 @@ export function rollDrones(
       const p = schematicPower(id);
       return p >= 1 && p <= left && (level < 4 || p < level);
     });
-    const soft = hard.filter((id) => !out.includes(id) && (!open || COMBAT_DRONES.has(id)));
+    const soft = hard.filter(
+      (id) => !out.includes(id) && (!open || COMBAT_DRONES.has(drawnAs(id))),
+    );
     const fits = soft.length ? soft : hard;
     if (!fits.length) break;
     // INFERRED: uniform among the drones that pass, as Mathchamp's weapon generator gives "equal odds for each entry".
     const id = fits[Math.floor(rand() * fits.length) % fits.length];
     out.push(id);
     left -= schematicPower(id);
-    if (COMBAT_DRONES.has(id)) open = false;
+    if (COMBAT_DRONES.has(drawnAs(id))) open = false;
   }
   if (listed) {
     for (const id of row.drones) {
-      if (!appendedDrone(id) || out.includes(id)) continue;
+      if (ARCHIVE_SIM[id] == null || !ENEMY_RUNNABLE.has(id) || out.includes(id)) continue;
       out.push(id);
     }
   }

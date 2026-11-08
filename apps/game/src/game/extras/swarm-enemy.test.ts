@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { blueprintList, hullDef } from "@stl/pack";
+import { blueprintList, droneDef, hullDef } from "@stl/pack";
 import {
   ENEMY_RUNNABLE,
   SCHEMATIC_POWER,
@@ -189,6 +189,29 @@ describe("enemy drone allowance (Template:Enemy ships drones)", () => {
     assert.equal(hullDef("REBEL_FAT")?.droneCount, 4);
     assert.equal(hullDef("AUTO_ASSAULT")?.droneCount, 3);
     assert.equal(hullDef("ZOLTAN_BOMBER")?.droneCount, 2);
+  });
+
+  it("draws a type-flown schematic inside the drone cap and the bars: BOSS_2 rolls its four drones, no more", () => {
+    let r = 0.321;
+    const rand = () => (r = (r * 9301 + 0.49297) % 1);
+    for (const id of ["BOSS_2_EASY_DLC", "BOSS_2_NORMAL_DLC", "BOSS_2_HARD_DLC"]) {
+      const hull = hullDef(id);
+      assert.ok(hull?.drones, id);
+      const row = { drones: [...hull.drones], maxDrones: hull.droneCount ?? hull.drones.length };
+      for (let i = 0; i < 20; i++) {
+        // Drone Control 8 at each drone's own 2 power: exactly the four listed ids, each once.
+        const out = rollDrones(id, 8, rand, false, row);
+        assert.deepEqual([...out].sort(), [...row.drones].sort(), id);
+        const power = out.reduce((sum, k) => sum + (droneDef(k)?.power ?? Infinity), 0);
+        assert.ok(power <= 8, `${id}: ${power}`);
+      }
+    }
+    // A schematic the code names but the enemy side does not run is not forced on: SHIP_REPAIR stays out.
+    const repair = rollDrones("X", 8, rand, false, {
+      drones: ["SHIP_REPAIR", "DEFENSE_1"],
+      maxDrones: 2,
+    });
+    assert.ok(repair.length > 0 && repair.every((k) => k === "DEFENSE_1"), repair.join());
   });
 
   it("prices each schematic the same as the player's DRONE_POWER", () => {

@@ -171,6 +171,11 @@ export type DroneDef = {
   power?: number;
   /** `<cooldown>` in milliseconds. */
   cooldown?: number;
+  /**
+   * `<target>` on a DEFENSE drone: what it shoots beside missiles and asteroids. LASERS adds lasers and ions (Defense
+   * Drone Mark II); DRONES shoots drones only (Anti-Combat Drone). Absent is the Mark I screen.
+   */
+  target?: string;
   /** `<speed>`. Orbit and travel use this. A boarding drone's attack interval stays in the sim. */
   speed?: number;
   /** `<dodge>`. */

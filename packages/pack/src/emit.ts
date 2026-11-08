@@ -995,6 +995,7 @@ function droneElement(doc: XmlDocument, drone: DroneDef): XmlElement {
   if (drone.type) add(node, leaf(doc, "type", drone.type));
   if (drone.power != null) add(node, leaf(doc, "power", drone.power));
   if (drone.cooldown != null) add(node, leaf(doc, "cooldown", drone.cooldown));
+  if (drone.target) add(node, leaf(doc, "target", drone.target));
   if (drone.speed != null) add(node, leaf(doc, "speed", drone.speed));
   if (drone.dodge != null) add(node, leaf(doc, "dodge", drone.dodge));
   if (drone.weapon) add(node, leaf(doc, "weaponBlueprint", drone.weapon));

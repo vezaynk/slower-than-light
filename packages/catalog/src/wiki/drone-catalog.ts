@@ -16,6 +16,8 @@ export const CITED_DRONES: readonly {
   power: number;
   /** Milliseconds. Omitted when the schematic prints no cooldown. */
   cooldown?: number;
+  /** DEFENSE `<target>`: LASERS for Mark II's laser and ion screen, DRONES for the Anti-Combat Drone. */
+  target?: string;
   speed?: number;
 }[] = [
   // Combat Drone Mark I: power 2, speed 15.
@@ -57,6 +59,8 @@ export const CITED_DRONES: readonly {
     type: "DEFENSE",
     power: 3,
     cooldown: 880,
+    // Defense Drone Mark II: "also ion blasts and lasers".
+    target: "LASERS",
   },
   // Anti-Combat Drone: power 1, cooldown 7000 ms.
   {
@@ -66,6 +70,8 @@ export const CITED_DRONES: readonly {
     type: "DEFENSE",
     power: 1,
     cooldown: 7000,
+    // Anti-Combat Drone: shoots drones, not projectiles.
+    target: "DRONES",
   },
   // Shield Overcharger: power 3. The layer table stays in the sim.
   { ref: "DRONE_SHIELD", name: "Shield Overcharger", cost: 60, type: "SHIELD", power: 3 },

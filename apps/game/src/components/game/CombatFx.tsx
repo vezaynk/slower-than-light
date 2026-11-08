@@ -427,9 +427,11 @@ function drawnDroneSide(sprite: CanvasImageSource, px: number, fallback: number)
   return fallback;
 }
 
-function dronePicture(key: DroneKey, hot: boolean): CanvasImageSource {
+/** `own` is the unit's schematic: its `<droneImage>` wins (BOSS_DEFENSE_2 flies as Mark I but wears drone_defense2). */
+function dronePicture(key: DroneKey, hot: boolean, own?: string): CanvasImageSource {
   const layer = hot ? "on" : "base";
   const ids = key === "fire" ? ["COMBAT_FIRE", key] : [key];
+  if (own && own !== key) ids.unshift(own);
   for (const id of ids) {
     const url = droneLayerUrl(id, layer);
     const img = url ? loadedImage(url) : undefined;
@@ -710,7 +712,7 @@ export function CombatFx() {
           }
         }
         if (!p) continue;
-        const sprite = dronePicture(ekey, unit.powered);
+        const sprite = dronePicture(ekey, unit.powered, unit.kind);
         size = drawnDroneSide(sprite, px, size);
         enemyDroneAt.set(unit.id, p);
         const stunned = (unit.stun ?? 0) > 0;

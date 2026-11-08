@@ -298,6 +298,8 @@ describe("drones", () => {
       const kit = place(g, 4);
       startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
+      // Enemy drones would stun or shoot down the drone.
+      delete g.enemy.kits.drones;
       assert.equal(deploy(g, kind), true);
       const speed = kind === "COMBAT_2" ? COMBAT2.speed : COMBAT1_SPEED;
       kit.heading = 0;

@@ -797,20 +797,29 @@ function enemyHull(id: string, interior: string): HullDef {
   });
   // A system the page lists that the picture lacks takes the first room no system holds, as each ftl.dat blueprint
   // gives every system its own room (JELLY_CROISSANT's doors are room 5, FED_BOMBER's room 2: the stand-in pictures'
-  // first empty rooms too). With no empty room the hull has no place for it and the blueprint leaves it off; the
-  // fight would otherwise seat it in a room off the hull (game enemy-gen.ts seatHull).
-  const held = new Set<number>(installs.map((item) => item.room).filter((room) => room != null));
+  // first empty rooms too). With no empty room, an optional system shares the first room that holds only one optional
+  // system (not the Medbay/Clone Bay room): the fight fits one of the two (game enemy-gen.ts generateSystems), so the
+  // system still rolls and is never seated off the hull. REBEL_FAT's doors share the hacking room, ftl.dat's room 5.
+  const holders = (room: number) => installs.filter((item) => item.room === room);
+  const shareable = (room: number) => {
+    const rows = holders(room);
+    return (
+      rows.length === 1 && !rows[0]!.start && rows[0]!.id !== "medbay" && rows[0]!.id !== "clonebay"
+    );
+  };
   for (const [system, row] of stats?.systems ?? []) {
     if (pictured.has(system) || row.range[0] < 1) continue;
     // Medbay and Clone Bay share a room; the fight fits one of them (game enemy-gen.ts generateSystems).
     const twin = system === "clonebay" ? "medbay" : system === "medbay" ? "clonebay" : undefined;
     const shared = twin ? installs.find((item) => item.id === twin)?.room : undefined;
-    const room = shared ?? source.rooms.findIndex((_, index) => !held.has(index));
+    const empty = source.rooms.findIndex((_, index) => holders(index).length === 0);
+    const room =
+      shared ??
+      (empty >= 0 || row.start ? empty : source.rooms.findIndex((_, index) => shareable(index)));
     if (room < 0) {
       if (row.start) throw new Error(`${id}: the ${interior} interior has no room for ${system}`);
       continue;
     }
-    held.add(room);
     installs.push({ id: system, power: row.range[0], max: row.range[1], room, start: row.start });
   }
   return paintHull(

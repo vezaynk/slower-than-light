@@ -787,6 +787,7 @@ export function generateSystems(
   optional: readonly [EnemySystem, Range][],
   ctx: PoolContext,
   rand: () => number,
+  roomOf?: ReadonlyMap<EnemySystem, number>,
 ): [EnemySystem, number][] {
   const caps = new Map<EnemySystem, number>();
   for (const [id, r] of [...starting, ...optional]) caps.set(id, rollMaxLevel(r, ctx, rand));
@@ -799,6 +800,14 @@ export function generateSystems(
   const defense = row[1];
   let [offense, , general] = row;
   for (const [id, r] of optional) {
+    // Two optional systems in one room are alternatives, as a Medbay and Clone Bay are: once one is fitted the other is
+    // not rolled, before it could cost budget. INFERRED: the earlier-listed one is rolled first (the Medbay/Clone Bay
+    // pair keeps its own rule below). The stand-in seats a system its picture has no room of its own for this way.
+    const room = roomOf?.get(id);
+    const held =
+      room != null &&
+      [...levels.keys()].some((other) => roomOf?.get(other) === room && !bayPair(id, other));
+    if (held) continue;
     if (rand() >= optionalChance(ctx.sector, ctx.difficulty)) continue;
     // Mathchamp: installed "at its starting power". "If the optional system is weapons, drone control, or teleporter
     // (not artillery), then it reduces the remaining offensive budget by 1. Other systems reduce the general budget ...
@@ -1121,24 +1130,58 @@ export function fightHull(
   return undefined;
 }
 
+/** A Medbay and a Clone Bay share a room in ftl.dat; generateSystems keeps one of them. */
+function bayPair(a: EnemySystem, b: EnemySystem): boolean {
+  return (a === "medbay" && b === "clonebay") || (a === "clonebay" && b === "medbay");
+}
+
 /**
  * The blueprint's systems after Mathchamp's generation (generateSystems): each system's `power` is its starting level
  * and `max` its blueprint maximum; a `start="false"` system is optional. ftl.dat's REBEL_SKINNY shields are
  * power 2, max 8, so they rise with the sector instead of staying at 2.
+ * On a hull with a room grid, a system with no room of the grid, or whose room a starting system already holds (ftl.dat's
+ * BOSS_SPECIAL lists teleporter and an optional mind control both in room 3), is warned about and left out before the
+ * budget is spent, so no bars go to a system the ship cannot seat.
  */
 function installedSystems(
   hull: HullDef,
   ctx: PoolContext,
   rand: () => number,
 ): [EnemySystem, number][] {
+  const boxes = new Set(
+    (hull.grid?.rooms ?? []).filter((room) => room.w > 0 || room.h > 0).map((room) => room.id),
+  );
   const starting = new Map<EnemySystem, Range>();
   const optional = new Map<EnemySystem, Range>();
-  for (const item of hull.installs ?? []) {
-    if (item.power < 1) continue;
+  const roomOf = new Map<EnemySystem, number>();
+  const rows = (hull.installs ?? []).filter((item) => item.power >= 1);
+  // Starting systems first, so an optional system never takes a starting system's room.
+  const ordered = [...rows.filter((item) => item.start), ...rows.filter((item) => !item.start)];
+  for (const item of ordered) {
     const id = FROM_INSTALL[item.id];
     if (!id) {
       warnPack(`${hull.id}: system "${item.id}" is not a system this fight runs; it is skipped.`);
       continue;
+    }
+    if (boxes.size > 0 && !roomOf.has(id)) {
+      if (item.room == null || !boxes.has(item.room)) {
+        warnPack(
+          item.room == null
+            ? `${hull.id}: system "${id}" has no room; it is not fitted.`
+            : `${hull.id}: system "${id}" is in room ${item.room}, which the layout lacks; it is not fitted.`,
+        );
+        continue;
+      }
+      const holder = [...starting.keys()].find(
+        (other) => roomOf.get(other) === item.room && other !== id && !bayPair(id, other),
+      );
+      if (holder) {
+        warnPack(
+          `${hull.id}: system "${id}" is in room ${item.room}, which ${holder} holds; it is not fitted.`,
+        );
+        continue;
+      }
+      roomOf.set(id, item.room);
     }
     const range: Range = [item.power, Math.max(item.power, item.max ?? item.power)];
     const into = item.start ? starting : optional;
@@ -1146,7 +1189,13 @@ function installedSystems(
     into.set(id, prev ? [Math.max(prev[0], range[0]), Math.max(prev[1], range[1])] : range);
   }
   for (const id of starting.keys()) optional.delete(id);
-  return generateSystems([...starting], [...optional], ctx, rand);
+  return generateSystems(
+    [...starting],
+    [...optional],
+    ctx,
+    rand,
+    boxes.size > 0 ? roomOf : undefined,
+  );
 }
 
 /**

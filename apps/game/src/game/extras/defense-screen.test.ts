@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { after, describe, it } from "node:test";
-import { droneDef, onPackWarning, weaponDef } from "@stl/pack";
+import { droneDef, loadPack, onPackWarning, resetPackForTests, weaponDef } from "@stl/pack";
 import { installStandIn } from "@stl/standin";
 import { installArchive } from "../archive-play.ts";
 import { createGame, fireReady, startCombat, stepShots } from "../sim.ts";
@@ -49,7 +49,7 @@ function screened(drone: string): Game {
  * The player fires one charged gun at the enemy. `cut` is true when their drone shot it down before it landed;
  * `cool` is that drone's cooldown right after.
  */
-function fire(drone: string, gun: string): { cut: boolean; cool: number } {
+function fire(drone: string, gun: string): { cut: boolean; cool: number; g: Game } {
   assert.ok(weaponDef(gun), gun);
   const g = screened(drone);
   g.player.systems.weapons.level = 8;
@@ -77,7 +77,7 @@ function fire(drone: string, gun: string): { cut: boolean; cool: number } {
     stepShots(g, 0.05);
     cool = Math.max(cool, g.enemy!.kits.drones!.drones![0]!.cool);
   }
-  return { cut: cuts() > before, cool };
+  return { cut: cuts() > before, cool, g };
 }
 
 /** What each schematic shoots down: [missile, laser]. */
@@ -94,6 +94,55 @@ describe("defense drones screen by droneBlueprint type and target (stand-in)", (
       DEFENSE_2: [true, true],
       ANTI_DRONE: [false, false],
     });
+  });
+});
+
+describe("a defense schematic the code does not name screens by its blueprint (stand-in plus rows)", () => {
+  // ftl.dat's DEFENSE_2_ENEMY and BOSS_DEFENSE_2 in shape: one DEFENSE drone with LASERS, one with no <target>.
+  // Ids and cooldowns are invented so the test reads them from these rows, not from the stand-in's own drones.
+  const rows = [
+    {
+      id: "TEST_SCREEN_LASERS",
+      name: "Test",
+      cost: 0,
+      type: "DEFENSE",
+      target: "LASERS",
+      power: 2,
+      cooldown: 600,
+    },
+    { id: "TEST_SCREEN_PLAIN", name: "Test", cost: 0, type: "DEFENSE", power: 2, cooldown: 750 },
+  ];
+
+  it("LASERS screens like Mark II, no target like Mark I, each locked out for its own cooldown", () => {
+    loadPack({ drones: rows }, "append");
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      assert.equal(defenseAs("TEST_SCREEN_LASERS"), "DEFENSE_2");
+      assert.equal(defenseAs("TEST_SCREEN_PLAIN"), "DEFENSE_1");
+      assert.deepEqual(screen(["TEST_SCREEN_LASERS", "TEST_SCREEN_PLAIN"]), {
+        TEST_SCREEN_LASERS: [true, true],
+        TEST_SCREEN_PLAIN: [true, false],
+      });
+      for (const [id, s] of [
+        ["TEST_SCREEN_LASERS", 0.6],
+        ["TEST_SCREEN_PLAIN", 0.75],
+      ] as const) {
+        const { cut, cool, g } = fire(id, MISSILE);
+        assert.ok(cut, id);
+        assert.equal(cool, s, id);
+        // The drone clock runs in tickSwarm: still locked just before its cooldown ends, ready just after.
+        const unit = g.enemy!.kits.drones!.drones![0]!;
+        tickSwarm(g, s - 0.1);
+        assert.ok(unit.cool > 0, `${id} locked: ${unit.cool}`);
+        tickSwarm(g, 0.2);
+        assert.equal(unit.cool, 0, `${id} ready`);
+      }
+      assert.deepEqual(warnings, []);
+    } finally {
+      restore();
+      resetPackForTests();
+    }
   });
 });
 

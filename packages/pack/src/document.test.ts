@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { emitPack } from "./emit.ts";
-import { emitFtlShips } from "./ftl-emit.ts";
+import { emitFtlSectors, emitFtlShips } from "./ftl-emit.ts";
 import { packFromFtl } from "./ftl.ts";
 import { parsePack } from "./parse.ts";
 import {
@@ -1008,6 +1008,33 @@ describe("pack document", () => {
   it("reads a title stored as character data", () => {
     const back = parsePack(`<FTL><race name="human"><title><![CDATA[A & B]]></title></race></FTL>`);
     assert.equal(back.crew?.[0]?.name, "A & B");
+  });
+
+  it("round-trips crew rarity and a sector rarityList in both dialects", () => {
+    const human = { ...pack.crew![0]!, rarity: 1 };
+    const sector = {
+      id: "ENGI_SECTOR",
+      name: "Engi Controlled Sector",
+      group: "civilian",
+      notes: [],
+      rarities: [
+        { id: "engi", rarity: 1 },
+        { id: "mantis", rarity: 0 },
+      ],
+    };
+    const native = parsePack(emitPack({ crew: [human], sectors: [sector] }));
+    assert.equal(native.crew?.[0]?.rarity, 1);
+    assert.deepEqual(native.sectors?.[0]?.rarities, sector.rarities);
+    assert.equal(
+      parsePack(emitPack({ sectors: [sector] }, { sector: "gap" })).sectors?.[0]?.rarities,
+      undefined,
+    );
+    const ftl = packFromFtl([
+      { path: "data/blueprints.xml", xml: emitFtlShips([], [human]) },
+      { path: "data/sector_data.xml", xml: emitFtlSectors([sector]) },
+    ]);
+    assert.equal(ftl.crew?.[0]?.rarity, 1);
+    assert.deepEqual(ftl.sectors?.[0]?.rarities, sector.rarities);
   });
 
   it("rejects XML that is not well-formed", () => {

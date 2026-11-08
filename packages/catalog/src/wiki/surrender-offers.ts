@@ -30,7 +30,7 @@ const CRYSTAL_FIGHT_HAILS = [
 
 /**
  * Scripted surrenders: event pages whose ship carries its own surrender offer and reward. Keyed by the event slug that
- * startCombat receives (wiki/escape.ts eventSlugOf). Only pages the cited events wire to a fight are listed.
+ * startCombat receives (game rules/escape.ts eventSlugOf). Only pages the cited events wire to a fight are listed.
  * Each reward is only what the page names; nothing else is added.
  */
 export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
@@ -120,8 +120,8 @@ They apologize for their hasty response to your presence and spend some time ref
   // Template:Slaver Fight (used by "Slaver (hostile)" and "Slaver (friendly)"): "(enemy ship has 80% chance to surrender
   // at 20-40% hull)". "Accept their offer." -> "You receive a crewmember." The race is not named.
   // Category:Crew Rewards: any of the possible races for the current sector type (randomRace), not a global race.
-  // INFERRED: each race on that sector's Sectors "Crewmembers" list is equally likely. The Sectors page says rarity
-  // only affects the store assortment probability.
+  // randomRace draws it weighted by the sector's crew rarities (apps/game/src/game/rarity.ts rollSectorRace, FTL's
+  // GetRandomCrew).
   "slaver-hostile": {
     page: "Slaver (hostile)",
     chance: 80,

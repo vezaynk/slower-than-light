@@ -273,12 +273,7 @@ import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
 
-import {
-  escapePlan,
-  eventSlugOf,
-  HULL_RUN_SECONDS,
-  overtakenArrivalEscape,
-} from "./wiki/escape.ts";
+import { escapePlan, eventSlugOf, hullRunSeconds, overtakenArrivalEscape } from "./rules/escape.ts";
 // @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
 import {
   joinCrew,
@@ -6744,7 +6739,7 @@ function archiveSurrenderPlan(
 function archiveEscapePlan(g: Game, ending: ShipEventEscape): NonNullable<Game["enemyEscape"]> {
   return {
     mode: "hull",
-    seconds: ending.timer ?? HULL_RUN_SECONDS,
+    seconds: ending.timer ?? hullRunSeconds(),
     chance: ending.chance ?? 1,
     threshold: hullThreshold(g, ending.min, ending.max),
     rolled: false,
@@ -6773,7 +6768,7 @@ export function startCombat(
   const shipEvent = shipEventDef(tier);
   g.fightShip = shipEvent ? tier : null;
   const built = makeEnemy(g, tier, event, autoBlueprint ?? shipEvent?.autoBlueprint);
-  // Enemy Ships, "Surrenders and escape attempts": who runs, when, and for how long. See wiki/escape.ts.
+  // Enemy Ships, "Surrenders and escape attempts": who runs, when, and for how long. See rules/escape.ts.
   g.enemyEscape = escapePlan(
     { tier, event, lastFuel: g.fuel <= 0, faction: built.ship.faction, pirate: built.ship.pirate },
     () => rand(g),
@@ -7969,8 +7964,9 @@ export function buy(g: Game, id: string) {
     log(g, `Bought ${item.name}.`);
     return;
   }
-  // A drone schematic that did not fit, and a system the ship cannot install, spend nothing.
-  if (item.kind === "drone" || item.kind === "system") return;
+  // A drone schematic that did not fit, a system the ship cannot install, and an augment that is refused (a ship or
+  // event grant, a duplicate, or a full rack) spend nothing and leave the row.
+  if (item.kind === "drone" || item.kind === "system" || item.kind === "augment") return;
   // Per the user: a weapon with no free slot goes to cargo; the store will not sell it when cargo is full too.
   if (
     item.kind === "weapon" &&
@@ -8138,7 +8134,7 @@ export function choose(g: Game, id: string) {
             resolve,
             fight: (tier, asteroid, slug, autoBlueprint) => {
               g.event = null;
-              // The event page that started the fight picks the escape rule (wiki/escape.ts).
+              // The event page that started the fight picks the escape rule (rules/escape.ts).
               // A passed slug is that page's own fight (repair caps, the sealed store ship, a fuel timer).
               const event = slug ?? eventSlugOf(id);
               startCombat(g, tier, asteroid, event, autoBlueprint);
@@ -8984,7 +8980,7 @@ export function loadGame(): Game | null {
     }
     if (g.ramId === undefined) g.ramId = null;
     if (g.enemyFlee == null) g.enemyFlee = 0;
-    // Saves from before wiki/escape.ts: a fight in progress gets the default hull-triggered rule.
+    // Saves from before rules/escape.ts (then wiki/escape.ts): a fight in progress gets the default hull-triggered rule.
     if (g.enemy && g.enemyEscape === undefined)
       g.enemyEscape = escapePlan({ tier: "pool" }, () => rand(g));
     if (g.ramStage == null) g.ramStage = 1;

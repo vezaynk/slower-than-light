@@ -24,10 +24,12 @@ import {
   rewardBonus,
   scrapRange,
   storedId,
+  warnPack,
   weaponDef,
   type SurrenderOfferDef,
 } from "@stl/pack";
 import { clearEnemyLeash } from "../extras/leash.ts";
+import { rollSectorRace } from "../rarity.ts";
 import {
   beginBoarding,
   intruderOnPlayer,
@@ -40,13 +42,12 @@ import {
 import type { Crew, Game } from "../types.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./bonus-item.ts";
 import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
-import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
+import { hullRunSeconds, type EscapePlan } from "../rules/escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
 import { rollBand } from "./event-bands.ts";
 import { addQuest, questChoose } from "./quests.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
-import { pirateCrewRaces } from "./skills.ts";
 
 export type SurrenderTier = "low" | "medium" | "high";
 
@@ -254,7 +255,7 @@ export function surrenderPlan(ctx: SurrenderContext, roll: () => number): Surren
     return { ...never(), chance: scripted.chance, threshold, event: ctx.event };
   }
   // A faction with no blueprint does not offer. A pirate uses the pirate row.
-  // INFERRED: a ship with no faction field is a generic Rebel, as in wiki/escape.ts.
+  // INFERRED: a ship with no faction field is a generic Rebel, as in rules/escape.ts.
   const row = factionSurrender(ctx.pirate ? "pirate" : (ctx.faction ?? "rebel"));
   if (!row) return never();
   // Enemy Ships, DISCLAIMER: the percent "may be incorrect as a concept"; read as a percent of max hull here.
@@ -418,16 +419,16 @@ export function rollScriptedOffer(g: Game, s: SurrenderOfferDef): SurrenderOffer
 
 /**
  * Category:Crew Rewards: "If a crewmember's race is not predefined/hard-coded or specified, then it can be of any of
- * the possible races for the current sector type." Those races are the sector's Sectors "Crewmembers" list
- * (pirateCrewRaces). Hidden Crystal Worlds: "only Crystal crewmembers can be purchased or received as a crew kill
- * reward."
- * INFERRED: each race on that sector list is equally likely. The Sectors page says rarity only affects the store
- * assortment probability.
+ * the possible races for the current sector type." FTL EventGenerator::CreateEvent draws it with GetRandomCrew, weighted
+ * by the sector's crew rarities (rarity.ts rollSectorRace).
+ * When the archive leaves no race to draw, the crewmember is Human, with a warning.
  * @agent:quests. A page that gives "a crewmember" without naming one.
  */
 export function randomRace(g: Game): string {
-  const list = pirateCrewRaces(g.sectorId);
-  return list[Math.min(list.length - 1, Math.floor(rand(g) * list.length))];
+  const race = rollSectorRace(g.sectorId, () => rand(g));
+  if (race) return race;
+  warnPack(`No crew race has a rarity in sector ${g.sectorId}; a Human crewmember is used.`);
+  return "Human";
 }
 
 /**
@@ -1284,7 +1285,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       const escape: EscapePlan = {
         ...NEVER_RUN,
         mode: "hull",
-        seconds: HULL_RUN_SECONDS,
+        seconds: hullRunSeconds(),
         chance: 70,
         threshold: 20 + rand(g) * 20,
       };
@@ -1521,7 +1522,7 @@ There is no room aboard for their crewmember.`,
       // Wiki citations:
       // > "You allow them to approach, but are caught unaware when they open fire!" — [[Zoltan ship asks to dock]]
       // > "Fight a Zoltan ship." — [[Zoltan ship asks to dock]]
-      // "Fight a Zoltan ship." "never tries to escape" (Zoltan ships never run in wiki/escape.ts already).
+      // "Fight a Zoltan ship." "never tries to escape" (Zoltan ships never run in rules/escape.ts already).
       pageFight(
         g,
         "You allow them to approach, but are caught unaware when they open fire!",

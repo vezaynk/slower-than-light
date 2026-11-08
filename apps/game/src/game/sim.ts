@@ -91,7 +91,7 @@ import {
   zoltanBurstDrones,
 } from "./extras/swarm.ts";
 import { rollSurge } from "./extras/ram.ts";
-import { enemyTarget, randomRoom } from "./wiki/targeting.ts";
+import { enemyTarget, randomRoom } from "./rules/targeting.ts";
 import { clampUniform, cleanName, crewPool, defaultPick, type CrewPick } from "./crew-look.ts";
 import "./pack/base.ts";
 import {
@@ -269,7 +269,7 @@ import {
   flakScatterRadius,
 } from "./wiki/weapons-flak-crystal.ts";
 import { attrRefusal, choiceOmitted } from "./wiki/choice-locks.ts";
-import { swarmAimRolls, swarmLanding } from "./wiki/swarm-aim.ts";
+import { swarmAimRolls, swarmLanding } from "./rules/swarm-aim.ts";
 import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./wiki/cited-zoltan-power.ts";
 
@@ -3233,7 +3233,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       ? { a: { ...w.beamLine.a }, b: { ...w.beamLine.b } }
       : undefined;
   const aimed = roomById(targetShip, rooms[0]);
-  // Missile (Weapons), ===Swarm Missiles===: a 1x2 room scatters. A 2x2 stays. Radius 31 is not a pixel sim.
+  // Missile (Weapons), ===Swarm Missiles===: a 1x2 room scatters. A 2x2 stays. `<radius>` is not a pixel sim.
   const scatter = w.defId === "MISSILE_CHARGEGUN" && aimed != null && swarmAimRolls(aimed);
   // Flak (Weapons), Flak Gun Mark I: 1x2 and 2x2 room odds. Radius 42 is not a pixel sim.
   const flak1 = w.defId === "SHOTGUN" && aimed != null && flak1AimRolls(aimed);
@@ -3278,7 +3278,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
     }
   }
   for (let i = 0; i < count; i++) {
-    // wiki/targeting.ts, combat-ai UpdateWeapons: "one [target room] for each projectile that will be fired".
+    // rules/targeting.ts, combat-ai UpdateWeapons: "one [target room] for each projectile that will be fired".
     // INFERRED: a beam is one swipe, so it keeps the room already picked (w.target) instead of rolling per projectile.
     // INFERRED: a flak burst is one spread around one room (its pellet odds above).
     let targetRoom =
@@ -3287,7 +3287,7 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
         : rooms[0];
     let offRoom = false;
     if (scatter) {
-      const land = swarmLanding(targetShip.rooms, rooms[0], rand(g));
+      const land = swarmLanding(targetShip.rooms, rooms[0], rand(g), def.radius);
       if (land.kind === "miss") offRoom = true;
       else if (land.kind === "room") targetRoom = land.roomId;
     } else if (flak1) {
@@ -4645,7 +4645,7 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
       else if (isChainWeapon(w.defId)) w.charge = 0;
       return;
     }
-    // wiki/targeting.ts: enemy aim per difficulty, including the Hard priority list.
+    // rules/targeting.ts: enemy aim per difficulty, including the Hard priority list.
     if (from === "enemy" && !w.target) w.target = enemyTarget(g, w);
     if (frozen) {
       // Charging stays stopped (no dt). A weapons hack still blocks the shot. Chargers already returned.
@@ -4672,7 +4672,7 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
     // Cloaking, "Enemy AI and Cloaking": a cloaked enemy that chose to hold fire keeps its charge until the cloak ends.
     if (from === "enemy" && enemyHoldsFire(g)) return;
     if (w.charge >= 1 && w.target) {
-      // wiki/targeting.ts: an enemy gun picks its rooms as it fires ("Targeting rolls appear to happen when the weapon
+      // rules/targeting.ts: an enemy gun picks its rooms as it fires ("Targeting rolls appear to happen when the weapon
       // fires", reddit 7pmz3j). INFERRED: a missile gun with no ammo fires nothing, so there is no new shot to roll a
       // room for; it keeps its old target.
       if (from === "enemy" && !(def.ammo && ship.ammo <= 0)) w.target = enemyTarget(g, w);
@@ -5764,7 +5764,7 @@ function environment(g: Game, dt: number) {
             ion: 0,
             fireChance: asb.fireChance,
             breachChance: asb.breachChance,
-            // Environmental Hazards, Anti-Ship Batteries: "hitting a random room" (wiki/targeting.ts).
+            // Environmental Hazards, Anti-Ship Batteries: "hitting a random room" (rules/targeting.ts).
             targetRoom: randomRoom(g, hull),
             ...(at === "enemy" ? { at: "enemy" as const } : {}),
             wait: 0.15,

@@ -614,6 +614,25 @@ export type EscapeTimers = {
   lastFuel?: number;
 };
 
+/**
+ * Gap `<aiTarget easy normal hardRoom hardAny evasion oxygen artillery>`: enemy weapon targeting numbers FTL's
+ * executable hard-codes (xftl combat-ai, PrioritizeSystem). `easy` and `normal` are the chance a shot picks from the
+ * system list. `hardRoom` is the share of Hard shots that pick no system; `hardAny` is the share that pick any
+ * installed system; the rest pick the priority list. `evasion` is the dodge percent above which Engines and Piloting
+ * are listed (strictly greater). `oxygen` is the average oxygen below which Oxygen is listed (strictly less).
+ * `artillery` is seconds of charge below which Artillery is listed (strictly less). A missing value warns and uses
+ * FTL's number.
+ */
+export type AiTarget = {
+  easy?: number;
+  normal?: number;
+  hardRoom?: number;
+  hardAny?: number;
+  evasion?: number;
+  oxygen?: number;
+  artillery?: number;
+};
+
 export type EventItem = "weapon" | "augment" | "drone";
 
 /**
@@ -1210,6 +1229,8 @@ export type ContentPack = {
   escapes?: FactionEscape[];
   /** Default escape timers. Absent until a pack loads them. */
   escapeTimers?: EscapeTimers;
+  /** Enemy weapon targeting numbers. Absent until a pack loads them. */
+  aiTarget?: AiTarget;
   /**
    * The archive is the factual stand-in. Item text states numbers.
    * A run can replace decision prose with outcomes.

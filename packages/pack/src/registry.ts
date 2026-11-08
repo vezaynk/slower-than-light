@@ -19,6 +19,7 @@ import type {
   EventDef,
   EventEffect,
   EventTier,
+  AiTarget,
   EscapeTimers,
   FactionEscape,
   FactionSurrender,
@@ -79,6 +80,8 @@ let baseCivilianSectorTitle: string | undefined;
 let beaconEventsValue: BeaconEvents = {};
 let escapeTimersValue: EscapeTimers = {};
 let baseEscapeTimers: EscapeTimers = {};
+let aiTargetValue: AiTarget = {};
+let baseAiTarget: AiTarget = {};
 let baseBeaconEvents: BeaconEvents = {};
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
@@ -572,6 +575,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseBeaconEvents = { ...pack.beaconEvents };
     escapeTimersValue = { ...pack.escapeTimers };
     baseEscapeTimers = { ...pack.escapeTimers };
+    aiTargetValue = { ...pack.aiTarget };
+    baseAiTarget = { ...pack.aiTarget };
     storeLocales(pack.locales);
     baseFactions = (pack.factions ?? []).map(copyFaction);
     baseEscapes = (pack.escapes ?? []).map((row) => ({ ...row }));
@@ -603,6 +608,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     beaconEventsValue = { ...beaconEventsValue, ...pack.beaconEvents };
   if (mode === "append" && pack.escapeTimers)
     escapeTimersValue = { ...escapeTimersValue, ...pack.escapeTimers };
+  if (mode === "append" && pack.aiTarget) aiTargetValue = { ...aiTargetValue, ...pack.aiTarget };
   if (mode === "append" && pack.locales) mergeStoredLocales(pack.locales);
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
@@ -1046,6 +1052,35 @@ export function escapeTimer(key: keyof EscapeTimers): number {
   return FTL_ESCAPE_TIMERS[key];
 }
 
+/**
+ * FTL's own enemy targeting numbers (xftl combat-ai, PrioritizeSystem, and the developer list on "Hard mode AI
+ * Targeting mechanics"). Used only when no loaded pack sets `<aiTarget>`, with a warning.
+ */
+const FTL_AI_TARGET: Required<AiTarget> = {
+  easy: 0.2,
+  normal: 0.33,
+  hardRoom: 0.5,
+  hardAny: 0.25,
+  evasion: 25,
+  oxygen: 50,
+  artillery: 4,
+};
+
+/** The loaded `<aiTarget>`, as authored (no defaults filled in). */
+export function aiTargets(): AiTarget {
+  return { ...aiTargetValue };
+}
+
+/**
+ * One enemy targeting number (gap `<aiTarget>`). A pack that omits the value gets FTL's, with one warning.
+ */
+export function aiTarget(key: keyof AiTarget): number {
+  const value = aiTargetValue[key];
+  if (value != null) return value;
+  warnPack(`No <aiTarget ${key}> is loaded; FTL's ${FTL_AI_TARGET[key]} is used.`);
+  return FTL_AI_TARGET[key];
+}
+
 export function emptyBeacon(id: string | undefined): EmptyBeaconDef | undefined {
   if (!id) return undefined;
   return empties.get(id);
@@ -1094,6 +1129,7 @@ export function resetPackForTests(): void {
   civilianSectorTitleValue = baseCivilianSectorTitle;
   beaconEventsValue = { ...baseBeaconEvents };
   escapeTimersValue = { ...baseEscapeTimers };
+  aiTargetValue = { ...baseAiTarget };
   resetLocales();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));

@@ -13,6 +13,7 @@ import {
   SYSTEM_TARGETS,
 } from "./targeting.ts";
 import { powerGuns } from "../fixtures.ts";
+import { aiTarget, loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 
 function kit(id: KitId, over: Partial<Kit> = {}): Kit {
   return { id, level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0, ...over };
@@ -149,5 +150,61 @@ describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
       if (rooms.size >= 2) spread++;
     }
     assert.ok(spread > 10, `volleys that split: ${spread} of 20`);
+  });
+});
+
+describe("targeting numbers from the gap mod", () => {
+  it("reads FTL's numbers from the loaded gap", () => {
+    assert.equal(aiTarget("easy"), 0.2);
+    assert.equal(aiTarget("normal"), 0.33);
+    assert.equal(aiTarget("hardRoom"), 0.5);
+    assert.equal(aiTarget("hardAny"), 0.25);
+    assert.equal(aiTarget("evasion"), 25);
+    assert.equal(aiTarget("oxygen"), 50);
+    assert.equal(aiTarget("artillery"), 4);
+  });
+
+  it("follows a gap file that overrides one number", () => {
+    // A mod's gap.xml: oxygen is a priority under 1000 average air, and Hard always consults that list.
+    loadPack(
+      packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><aiTarget oxygen="1000" hardRoom="0" hardAny="0"/></FTL>`,
+        },
+      ]),
+      "append",
+    );
+    try {
+      const g = calm("hard");
+      const oxygen = g.player.rooms.find((room) => room.system === "oxygen");
+      assert.ok(oxygen);
+      assert.deepEqual(priorityList(g), ["oxygen"]);
+      assert.deepEqual(priorityRooms(g), [oxygen.id]);
+      startCombat(g, "Rebel ship");
+      const gun = g.enemy!.weapons[0];
+      gun.defId = "LASER_BURST_3";
+      gun.enabled = true;
+      g.enemy!.weapons = [gun];
+      g.enemy!.systems.weapons.level = g.enemy!.systems.weapons.power = 4;
+      g.shots = [];
+      gun.charge = 1;
+      gun.target = oxygen.id;
+      step(g, 0.001);
+      const rooms = g.shots
+        .filter((shot) => shot.from === "enemy" && shot.defId === "LASER_BURST_3")
+        .map((shot) => shot.targetRoom);
+      assert.ok(rooms.length >= 2, `shots ${rooms.length}`);
+      assert.ok(
+        rooms.every((id) => id === oxygen.id),
+        `aimed ${rooms.join(",")}`,
+      );
+    } finally {
+      resetPackForTests();
+    }
+    const after = calm("hard");
+    assert.deepEqual(priorityList(after), []);
+    assert.equal(aiTarget("oxygen"), 50);
+    assert.equal(aiTarget("hardRoom"), 0.5);
   });
 });

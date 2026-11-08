@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
-import { enemyTarget } from "../wiki/targeting.ts";
+import { enemyTarget } from "../rules/targeting.ts";
 import {
   enemySensorsHacked,
   hackRepairScale,

@@ -25,6 +25,8 @@
  * - Beam (Weapons): "Enemies target beams inefficiently, starting the beam in the centre of a room."
  *
  * Gaps:
+ * - The numbers are gap `<aiTarget easy normal hardRoom hardAny evasion oxygen artillery>` (`@stl/pack`
+ *   `aiTarget`). A missing value warns and uses FTL's.
  * - INFERRED: xftl does not print the system_targets list. It is every system type here, so a system the player lacks
  *   turns that roll into a random room, as the quote above says it should.
  * - INFERRED: "Pick a random system" (Hard) draws from the systems installed on the player ship, subsystems included,
@@ -36,18 +38,7 @@
 import type { Game, KitId, Room, Ship, SysId, WeaponInst } from "../types.ts";
 import { evasionPercent, powerMask, rand, zoltanBars } from "../sim.ts";
 import { airShown } from "../air.ts";
-
-/** combat-ai, PrioritizeSystem: chance an Easy / Normal shot picks from system_targets. */
-export const SYSTEM_CHANCE = { easy: 0.2, normal: 0.33 } as const;
-/** combat-ai, PrioritizeSystem (Hard): share of shots that pick no system, and that pick any system. The rest pick the list. */
-export const HARD_RANDOM_ROOM = 0.5;
-export const HARD_ANY_SYSTEM = 0.25;
-/** combat-ai: Engines and Piloting are listed at ">25% dodge". Strictly greater. */
-export const EVASION_LINE = 25;
-/** combat-ai: Oxygen is listed when "average oxygen is <50%". */
-export const OXYGEN_LINE = 50;
-/** combat-ai: Artillery is listed with "< 4sec of total charge". */
-export const ARTILLERY_LINE = 4;
+import { aiTarget } from "@stl/pack";
 
 /** A player system as the AI sees it: a core system id or a kit id. */
 export type TargetSystem = SysId | KitId;
@@ -127,9 +118,10 @@ export function priorityList(g: Game): TargetSystem[] {
   const kits = ship.kits ?? {};
   const out: TargetSystem[] = [];
   // combat-ai, Hard list, one line per entry. Shields: "if powered".
+  // Engines, Piloting: ">25% dodge". Oxygen: "average oxygen is <50%". Gap `<aiTarget evasion oxygen>`.
   if (ship.systems.shields.power > 0) out.push("shields");
-  if (evasionPercent(g, ship, "player") > EVASION_LINE) out.push("engines", "pilot");
-  if (averageOxygen(ship) < OXYGEN_LINE) out.push("oxygen");
+  if (evasionPercent(g, ship, "player") > aiTarget("evasion")) out.push("engines", "pilot");
+  if (averageOxygen(ship) < aiTarget("oxygen")) out.push("oxygen");
   // Weapons, Drones: "if any weapon/drone is powered"; Zoltan bars count (reddit 7pmz3j, header). INFERRED: Drone
   // Control with any power counts as a powered drone.
   if (powerMask(ship, zoltanBars(g.crew, ship, "player", "weapons")).some(Boolean))
@@ -137,7 +129,7 @@ export function priorityList(g: Game): TargetSystem[] {
   if (kits.drones && kits.drones.power > 0) out.push("drones");
   // Teleporter: "if the enemy ship has any intruders", i.e. player crew aboard the enemy (Boarding: "when your crew is
   // onboard enemy ship, your Teleporter system will be among the priority targets"). Cloaking: "if not on cooldown,
-  // nor active". Artillery: "< 4sec of total charge".
+  // nor active". Artillery: "< 4sec of total charge". Gap `<aiTarget artillery>`.
   if (
     kits.teleporter &&
     g.crew.some((c) => c.side === "player" && c.aboard === "enemy" && c.hp > 0)
@@ -145,7 +137,7 @@ export function priorityList(g: Game): TargetSystem[] {
     out.push("teleporter");
   if (kits.cloaking && kits.cloaking.cool <= 0 && !(kits.cloaking.on && kits.cloaking.left > 0))
     out.push("cloaking");
-  if (kits.artillery && artilleryCharge(g) < ARTILLERY_LINE) out.push("artillery");
+  if (kits.artillery && artilleryCharge(g) < aiTarget("artillery")) out.push("artillery");
   // Clonebay: "if crew is being cloned". INFERRED: a dead player crew member with a clone queued (cloneSeq).
   // Mind control: "if active". Hacking: "if drone launched (flying or landed)". Doors: "if there are any intruders or
   // fires". Backup battery: "if active". Sensors: "never", so it is not checked.
@@ -179,17 +171,21 @@ function pick<T>(g: Game, list: readonly T[]): T | undefined {
 export function prioritizeSystem(g: Game): string | null {
   const ship = g.player;
   if (g.difficulty !== "hard") {
-    const chance = g.difficulty === "easy" ? SYSTEM_CHANCE.easy : SYSTEM_CHANCE.normal;
+    // Easy 20%, Normal 33%. Gap `<aiTarget easy normal>`.
+    const chance = g.difficulty === "easy" ? aiTarget("easy") : aiTarget("normal");
     if (rand(g) >= chance) return null;
     // INFERRED: uniform over system_targets; an entry the player lacks returns null ("isn't present in the player ship").
     const id = pick(g, SYSTEM_TARGETS);
     return (id && systemRoom(ship, id)?.id) ?? null;
   }
   const roll = rand(g);
-  if (roll < HARD_RANDOM_ROOM) return null;
+  // Hard: 50% no system, 25% any installed system, the rest the priority list. Gap `<aiTarget hardRoom hardAny>`.
+  const hardRoom = aiTarget("hardRoom");
+  const hardAny = aiTarget("hardAny");
+  if (roll < hardRoom) return null;
   const any = installedSystems(g);
   // "Pick a high-priority system at random if there is one, otherwise pick a system at random."
-  const listed = roll < HARD_RANDOM_ROOM + HARD_ANY_SYSTEM ? [] : priorityList(g);
+  const listed = roll < hardRoom + hardAny ? [] : priorityList(g);
   const id = pick(g, listed.length > 0 ? listed : any);
   return (id && systemRoom(ship, id)?.id) ?? null;
 }

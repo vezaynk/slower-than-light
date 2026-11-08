@@ -7,7 +7,7 @@ import type { Game, KitId, Shot } from "./types.ts";
 import { onCradleDeath } from "./extras/cradle.ts";
 import { installSling } from "./extras/sling.ts";
 import { installVeil, startVeil, toggleVeilPower } from "./extras/veil.ts";
-import { priorityRooms } from "./wiki/targeting.ts";
+import { priorityRooms } from "./rules/targeting.ts";
 
 function kitRoom(g: Game, kit: KitId) {
   return g.player.rooms.find((r) => r.kit === kit);

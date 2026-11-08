@@ -24,7 +24,7 @@ import {
   zoltanBars,
 } from "../sim.ts";
 import type { Crew, Game, Kit, Room, WeaponInst } from "../types.ts";
-import { SWARM_CUTS, swarmLanding } from "./swarm-aim.ts";
+import { SWARM_CUTS, swarmLanding } from "../rules/swarm-aim.ts";
 
 function gun(defId: string, extra: Partial<WeaponInst> = {}): WeaponInst {
   return {

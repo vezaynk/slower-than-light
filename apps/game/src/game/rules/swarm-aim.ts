@@ -5,7 +5,9 @@ import { cellOccupied } from "../layouts.ts";
  * "Targeting area radius: 31".
  * "When fired at 1x2 room: 67.85% in main room, 8.04% in each tile next to long sides."
  * "When fired at 2x2 room: 100% in main room."
- * Radius 31 is not resimulated as pixels. These percents are the printed result.
+ * The radius is `<radius>` on the MISSILE_CHARGEGUN blueprint. It is not copied here, and it is not resimulated as
+ * pixels. These percents are the printed result of that radius, so they stay the mechanic: a positive radius keeps
+ * them, and a non-positive radius stays in the aimed room.
  * INFERRED: a 2×1 is that 1×2 rectangle turned, so it uses the same split.
  * INFERRED: a shape with no printed percent stays in the aimed room.
  * INFERRED: 67.85 + 4×8.04 rounds to 100.01, so the last long-side tile is short the extra hundredth.
@@ -85,10 +87,17 @@ function longSideTiles(pair: [Tile, Tile]): [Tile, Tile, Tile, Tile] {
 }
 
 /**
- * Where one Swarm missile lands. `roll` is used only for a two-tile room.
+ * Where one Swarm missile lands. `roll` is used only for a two-tile room with a positive radius.
  * A 2×2 and every unprinted shape ignore `roll` and stay.
+ * `radius` is the blueprint's `<radius>`. Omitted, it is Swarm's 31. A non-positive radius stays.
  */
-export function swarmLanding(rooms: readonly SwarmRoom[], aimId: string, roll: number): SwarmLand {
+export function swarmLanding(
+  rooms: readonly SwarmRoom[],
+  aimId: string,
+  roll: number,
+  radius = 31,
+): SwarmLand {
+  if (!(radius > 0)) return { kind: "stay" };
   const aim = rooms.find((room) => room.id === aimId);
   if (!aim) return { kind: "stay" };
   const pair = twoTile(aim);

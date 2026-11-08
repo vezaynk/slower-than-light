@@ -24,6 +24,7 @@ import type {
   EventDef,
   EventEffect,
   EscapeTimers,
+  AiTarget,
   FactionEscape,
   FactionSurrender,
   FillerListDef,
@@ -193,6 +194,7 @@ export function emitGapDocument(pack: ContentPack): string {
   for (const row of pack.shipLists ?? []) add(root, shipListElement(doc, row));
   if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
+  if (pack.aiTarget) add(root, aiTargetElement(doc, pack.aiTarget));
   return prettyXml(serializer.serializeToString(doc));
 }
 
@@ -215,6 +217,19 @@ function escapeTimersElement(doc: XmlDocument, row: EscapeTimers): XmlElement {
   if (row.hull != null) attrs.hull = num(row.hull);
   if (row.lastFuel != null) attrs.lastFuel = num(row.lastFuel);
   return element(doc, "escapeTimers", attrs);
+}
+
+/** `<aiTarget>`: enemy weapon targeting numbers FTL's executable hard-codes (types.ts AiTarget). */
+function aiTargetElement(doc: XmlDocument, row: AiTarget): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.easy != null) attrs.easy = num(row.easy);
+  if (row.normal != null) attrs.normal = num(row.normal);
+  if (row.hardRoom != null) attrs.hardRoom = num(row.hardRoom);
+  if (row.hardAny != null) attrs.hardAny = num(row.hardAny);
+  if (row.evasion != null) attrs.evasion = num(row.evasion);
+  if (row.oxygen != null) attrs.oxygen = num(row.oxygen);
+  if (row.artillery != null) attrs.artillery = num(row.artillery);
+  return element(doc, "aiTarget", attrs);
 }
 
 /** `<shipList>`: the faction and pirate flag of a blueprint list's fights (types.ts ShipListRule). */

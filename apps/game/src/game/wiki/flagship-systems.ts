@@ -14,7 +14,7 @@ import { spikeEvadeZero } from "../extras/spike.ts";
 import { hullDef, weaponDef } from "@stl/pack";
 import { DRONE_LABEL, beamDroneSpeed, pickOrbitBearing } from "../extras/swarm.ts";
 import { BEAM_HOLD_S, orbitLegSeconds } from "./cited-combat2.ts";
-import { randomRoom } from "./targeting.ts";
+import { randomRoom } from "../rules/targeting.ts";
 import { flagshipHardLinks, flagshipHullId, flagshipLayout } from "./flagship-layout.ts";
 
 /**

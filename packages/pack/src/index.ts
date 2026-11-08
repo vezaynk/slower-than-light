@@ -147,6 +147,8 @@ export {
   allFactionEscapes,
   escapeTimer,
   escapeTimers,
+  aiTarget,
+  aiTargets,
 } from "./registry.ts";
 export { localeString, packLocales } from "./locales.ts";
 export type {
@@ -190,6 +192,7 @@ export type {
   EventItem,
   EventResource,
   EventTier,
+  AiTarget,
   EscapeTimers,
   FactionEscape,
   FactionSurrender,

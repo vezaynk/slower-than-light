@@ -425,7 +425,7 @@ const RESERVABLE_TITLE = new Set<string>([
 
 /**
  * Gives every kit on a player hull its room (`room.kit`), so weapon hits reach it (sim.ts strikeRoom -> hurtKit),
- * crew repair it (sim.ts life), and the Hard targeting list resolves it (wiki/targeting.ts). Idempotent.
+ * crew repair it (sim.ts life), and the Hard targeting list resolves it (rules/targeting.ts). Idempotent.
  * Also undoes a Clone Bay room when the store swaps Medbay back in (Systems: "buying one replaces the other"), and
  * gives a bought Shields, Sensors, Door System, or Medbay the pale room its hangar picture keeps for it.
  */

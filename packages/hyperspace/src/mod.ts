@@ -81,11 +81,13 @@ export function emitMod(pack: ContentPack): string {
       root.appendChild(node);
     }
   }
-  // The default start and exit events and the escape timers, in the same tags the gap file writes.
-  if (pack.beaconEvents || pack.escapeTimers) {
+  // The default start and exit events, the escape timers, and the enemy targeting numbers, in the same tags the gap
+  // file writes.
+  if (pack.beaconEvents || pack.escapeTimers || pack.aiTarget) {
     const rules: ContentPack = {};
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
     if (pack.escapeTimers) rules.escapeTimers = pack.escapeTimers;
+    if (pack.aiTarget) rules.aiTarget = pack.aiTarget;
     const gap = readXml(emitGapDocument(rules)).documentElement;
     for (const child of gap ? elementChildren(gap) : [])
       root.appendChild(doc.importNode(child, true));
@@ -162,6 +164,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (factions) pack.factions = factions;
   if (escapes) pack.escapes = escapes;
   if (parsed.escapeTimers) pack.escapeTimers = parsed.escapeTimers;
+  if (parsed.aiTarget) pack.aiTarget = parsed.aiTarget;
   return pack;
 }
 

@@ -451,4 +451,5 @@
     <finishEvent nebula="true">FINISH_BEACON_NEBULA</finishEvent>
   </beaconEvents>
   <escapeTimers hull="15" lastFuel="90"/>
+  <aiTarget easy="0.2" normal="0.33" hardRoom="0.5" hardAny="0.25" evasion="25" oxygen="50" artillery="4"/>
 </FTL>

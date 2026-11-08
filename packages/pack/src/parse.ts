@@ -25,6 +25,7 @@ import type {
   EventResource,
   EventTier,
   EscapeTimers,
+  AiTarget,
   FactionEscape,
   FactionSurrender,
   FillerEntry,
@@ -496,6 +497,39 @@ export function readEscapeTimers(node: XmlElement): EscapeTimers {
   return out;
 }
 
+const AI_TARGET_CHANCES = ["easy", "normal", "hardRoom", "hardAny"] as const;
+const AI_TARGET_LINES = ["evasion", "oxygen", "artillery"] as const;
+
+/**
+ * Gap `<aiTarget easy normal hardRoom hardAny evasion oxygen artillery>` (types.ts AiTarget). A missing attribute is
+ * left out, so the registry keeps the earlier value or FTL's default. A chance outside 0..1, or a negative line, is
+ * skipped with a warning.
+ */
+export function readAiTarget(node: XmlElement): AiTarget {
+  const out: AiTarget = {};
+  for (const key of AI_TARGET_CHANCES) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const chance = attrNum(raw);
+    if (chance == null || chance < 0 || chance > 1) {
+      warnPack(`aiTarget: ${key}="${raw}" is not a chance from 0 to 1; it is skipped.`);
+      continue;
+    }
+    out[key] = chance;
+  }
+  for (const key of AI_TARGET_LINES) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const line = attrNum(raw);
+    if (line == null || line < 0) {
+      warnPack(`aiTarget: ${key}="${raw}" is not a non-negative number; it is skipped.`);
+      continue;
+    }
+    out[key] = line;
+  }
+  return out;
+}
+
 function readCount(node: XmlElement): { min: number; max: number } {
   const count = child(node, "count");
   if (!count) return { min: 0, max: 0 };
@@ -757,7 +791,7 @@ export function readRewards(node: XmlElement): RewardTable | undefined {
   return { scaling, resources, rewards };
 }
 
-/** Reads the crew, weapon, augment, drone, system, hull, sector, store, reward, faction (surrender and escape), escape timer, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
+/** Reads the crew, weapon, augment, drone, system, hull, sector, store, reward, faction (surrender and escape), escape timer, enemy targeting, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const doc = readDocument(xml);
   const crew: CrewDef[] = [];
@@ -827,6 +861,9 @@ export function parsePack(xml: string): ContentPack {
   const timersNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "escapeTimers",
   );
+  const aiTargetNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "aiTarget",
+  );
   const pack: ContentPack = {
     crew,
     weapons,
@@ -844,6 +881,7 @@ export function parsePack(xml: string): ContentPack {
   if (factions.length > 0) pack.factions = factions;
   if (escapes.length > 0) pack.escapes = escapes;
   if (timersNode) pack.escapeTimers = readEscapeTimers(timersNode);
+  if (aiTargetNode) pack.aiTarget = readAiTarget(aiTargetNode);
   return pack;
 }
 

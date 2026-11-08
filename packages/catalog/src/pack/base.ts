@@ -43,6 +43,7 @@ import { FLAGSHIP_STAGES, type FlagshipStage } from "../wiki/flagship-stages.ts"
 import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
+import { AI_TARGET } from "../wiki/targeting-rules.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
@@ -1378,6 +1379,7 @@ export function loadCatalog(): void {
       factions: FACTION_SURRENDER.map((row) => ({ ...row })),
       escapes: FACTION_ESCAPE.map((row) => ({ ...row })),
       escapeTimers: { ...ESCAPE_TIMERS },
+      aiTarget: { ...AI_TARGET },
       events,
       lists: [
         ...fillerListRecords().map(listRow),

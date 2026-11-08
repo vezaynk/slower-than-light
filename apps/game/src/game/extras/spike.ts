@@ -754,7 +754,7 @@ function pulseTheirSling(g: Game) {
  * nothing for the enemy and nothing here reads this flag on purpose. Sensors wiki, "Overview": "Enemy ships do not have
  * Sensors subsystem, but have all the information about your ship and crew." Cloaking wiki, "Overview": enemies "can
  * use mind control against your ship even while you are cloaked (because they don't need vision)". So enemy targeting,
- * crew AI, boarding and drones never consult their Sensors (hooks noted in wiki/targeting.ts and extras/crewai.ts).
+ * crew AI, boarding and drones never consult their Sensors (hooks noted in rules/targeting.ts and extras/crewai.ts).
  * What the player does get from the drone is generic to every hacked system (Hacking "Overview", passive effects):
  * "Room vision and max-level Sensors information on the system" and "Repair speed of the system is halved."
  * Pinned in extras/sensors-enemy.test.ts. NOT INVENTED: no enemy-side penalty is added.

@@ -1,6 +1,6 @@
 import { playArchiveAudio } from "../archive-audio.ts";
 import { liveTable, skillRank } from "../content.ts";
-import { canFlyDrone, flownAs } from "./flown.ts";
+import { canFlyDrone, defenseAs, flownAs, type DefenseAs } from "./flown.ts";
 import {
   applyIon,
   blastHits,
@@ -600,7 +600,7 @@ function tickPlayerSlots(g: Game, kit: Kit, dt: number) {
 }
 
 function shoots(
-  kind: SwarmKind,
+  kind: DefenseAs,
   shot: { kind: string; from: string; defId?: string },
   defender: "player" | "enemy",
 ): boolean {
@@ -631,20 +631,36 @@ function shoots(
 }
 
 /**
+ * Seconds between a defense drone's shots: the schematic's own `<cooldown>` (BOSS_DEFENSE_2 writes 750), else the
+ * screen it flies.
+ */
+function defenseCooldownS(id: string, as: DefenseAs): number {
+  const ms = droneDef(id)?.cooldown;
+  return ms != null ? ms / 1000 : DRONE_COOLDOWN_S[as];
+}
+
+/** A single-target kit's defense screen, when its fed bars cover the schematic's own power. */
+function kitScreen(kit: Kit): DefenseAs | undefined {
+  const as = defenseAs(kit.target);
+  if (!as || !kit.target || !kit.on || kit.idle) return undefined;
+  return fedBars(kit) >= (flightPower(kit.target) ?? DRONE_POWER[as]) ? as : undefined;
+}
+
+/**
  * True when a powered defense drone is off cooldown and this shot is one it
  * shoots down. One shot per cooldown: a hit fills kit.cool and kit.aux.
+ * The screen is the schematic's droneBlueprint `<type>` and `<target>` (flown.ts defenseAs), not its id.
  */
 export function swarmIntercept(
   g: Game,
   shot: { kind: string; from: string; defId?: string; label?: string },
 ): boolean {
   const kit = g.player.kits.drones;
-  if (!kit || !isKind(kit.target)) return false;
-  const kind = kit.target;
-  if (!powered(kit, kind) || !ready(kit)) return false;
+  const kind = kit && kitScreen(kit);
+  if (!kit?.target || !kind || !ready(kit)) return false;
   if (!shoots(kind, shot, "player")) return false;
   if (kind !== "DEFENSE_1" && kind !== "DEFENSE_2") return false;
-  setCooldown(kit, DRONE_COOLDOWN_S[kind]);
+  setCooldown(kit, defenseCooldownS(kit.target, kind));
   defenseStray(g, "player", kind, shot);
   return true;
 }
@@ -661,13 +677,13 @@ export function enemyDefenseIntercept(
   const kit = g.enemy?.kits.drones;
   // @agent:drones. A generated enemy fields several drones (kit.drones). Hand-built kits keep the single target below.
   if (kit?.drones) return enemyUnitsIntercept(g, kit.drones, shot);
-  if (!kit || !isKind(kit.target)) return false;
-  const kind = kit.target;
+  const kind = kit && kitScreen(kit);
+  if (!kit?.target || !kind) return false;
   if (g.augments.includes("DEFENSE_SCRAMBLER") && scramblerBlocks(kind)) return false;
-  if (!powered(kit, kind) || !ready(kit)) return false;
+  if (!ready(kit)) return false;
   if (!shoots(kind, shot, "enemy")) return false;
   if (kind !== "DEFENSE_1" && kind !== "DEFENSE_2") return false;
-  setCooldown(kit, DRONE_COOLDOWN_S[kind]);
+  setCooldown(kit, defenseCooldownS(kit.target, kind));
   defenseStray(g, "enemy", kind, shot);
   return true;
 }
@@ -1657,10 +1673,7 @@ function tickIntruder(g: Game, kit: Kit, dt: number): void {
  */
 function tickEnemyDefense(g: Game, dt: number) {
   const kit = g.enemy?.kits.drones;
-  if (!kit || !isKind(kit.target)) return;
-  const kind = kit.target;
-  if (kind !== "DEFENSE_1" && kind !== "DEFENSE_2" && kind !== "ANTI_DRONE") return;
-  if (!powered(kit, kind)) return;
+  if (!kit || !kitScreen(kit)) return;
   tickCooldown(kit, dt);
 }
 
@@ -1744,7 +1757,13 @@ export function tickSwarm(g: Game, dt: number) {
     );
     return;
   }
-  if (!isKind(kit.target) || !powered(kit, kit.target)) return;
+  // A defense schematic the code does not name (BOSS_DEFENSE_2) recharges on its screen's bars like Mark I / II.
+  if (!isKind(kit.target)) {
+    const screen = kitScreen(kit);
+    if (screen === "DEFENSE_1" || screen === "DEFENSE_2") tickCooldown(kit, dt);
+    return;
+  }
+  if (!powered(kit, kit.target)) return;
   const kind = kit.target;
   if (kind === "COMBAT_1") {
     tickStriker(g, kit, dt);
@@ -2295,8 +2314,6 @@ function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
   switch (flight(unit)) {
     case "DEFENSE_1":
     case "DEFENSE_2":
-    case "DEFENSE_2_ENEMY":
-    case "BOSS_DEFENSE_2":
       unit.cool = Math.max(0, unit.cool - dt);
       return;
     case "ANTI_DRONE":
@@ -2755,7 +2772,7 @@ function enemyAntiCombat(g: Game, unit: DroneUnit) {
   if (!kit?.on || !kind || (!OFFENSIVE.has(kind) && !BOARDERS.has(kind)) || (kit.stun ?? 0) > 0)
     return;
   // "after the first shot it needs continuous power for 7 seconds to charge the next one".
-  unit.cool = DRONE_COOLDOWN_S.ANTI_DRONE;
+  unit.cool = defenseCooldownS(unit.kind, "ANTI_DRONE");
   unit.fired = 0;
   if (rand(g) < ANTI_KILL) {
     killPlayerDrone(g, "Their anti-combat drone destroyed your drone.");
@@ -2775,8 +2792,8 @@ function playerAntiCombat(g: Game, kit: Kit) {
       (OFFENSIVE.has(flight(u)) || (BOARDERS.has(flight(u)) && ((u.fly ?? 0) > 0 || !u.room))),
   );
   const target = randomOf(g, targets);
-  if (!target) return;
-  setCooldown(kit, DRONE_COOLDOWN_S.ANTI_DRONE);
+  if (!target || !kit.target) return;
+  setCooldown(kit, defenseCooldownS(kit.target, "ANTI_DRONE"));
   if (rand(g) < ANTI_KILL) {
     killUnit(g, target, `Your anti-combat drone destroyed their ${unitName(flight(target))}.`);
     return;
@@ -2799,7 +2816,10 @@ export function ionHitsDrone(unit: DroneUnit, ion: number): boolean {
   return true;
 }
 
-/** Enemy Defense Drone Mark I / II against an incoming player shot, for enemyDefenseIntercept. */
+/**
+ * Enemy Defense Drone Mark I / II against an incoming player shot, for enemyDefenseIntercept. flight() is the screen
+ * from the droneBlueprint (flown.ts defenseAs), so ftl.dat's DEFENSE_2_ENEMY shoots lasers and BOSS_DEFENSE_2 does not.
+ */
 function enemyUnitsIntercept(
   g: Game,
   units: DroneUnit[],
@@ -2812,9 +2832,7 @@ function enemyUnitsIntercept(
     // Augmentations, "Defense Scrambler": an enemy Defense Drone cannot acquire a target, and keeps its cooldown.
     if (g.augments.includes("DEFENSE_SCRAMBLER") && scramblerBlocks(as)) continue;
     if (!shoots(as, shot, "enemy")) continue;
-    // The schematic's own `<cooldown>` wins over the flight code's.
-    const ms = droneDef(unit.kind)?.cooldown;
-    unit.cool = ms != null ? ms / 1000 : DRONE_COOLDOWN_S[as];
+    unit.cool = defenseCooldownS(unit.kind, as);
     unit.fired = 0;
     defenseStray(g, "enemy", as, shot);
     return true;
@@ -2848,15 +2866,9 @@ export function interceptIncomingDrone(
   if (defender === "player") {
     if (swarmIntercept(g, { kind, from })) return "down";
     const kit = g.player.kits.drones;
-    if (
-      !kit ||
-      kit.target !== "ANTI_DRONE" ||
-      !powered(kit, "ANTI_DRONE") ||
-      !ready(kit) ||
-      (kit.stun ?? 0) > 0
-    )
+    if (!kit?.target || kitScreen(kit) !== "ANTI_DRONE" || !ready(kit) || (kit.stun ?? 0) > 0)
       return null;
-    setCooldown(kit, DRONE_COOLDOWN_S.ANTI_DRONE);
+    setCooldown(kit, defenseCooldownS(kit.target, "ANTI_DRONE"));
     return rand(g) < ANTI_KILL ? "down" : "stun";
   }
   if (enemyDefenseIntercept(g, { kind, from })) return "down";
@@ -2866,7 +2878,7 @@ export function interceptIncomingDrone(
     (u) => flight(u) === "ANTI_DRONE" && u.alive && u.powered && (u.stun ?? 0) <= 0 && u.cool <= 0,
   );
   if (!cut) return null;
-  cut.cool = DRONE_COOLDOWN_S.ANTI_DRONE;
+  cut.cool = defenseCooldownS(cut.kind, "ANTI_DRONE");
   cut.fired = 0;
   return rand(g) < ANTI_KILL ? "down" : "stun";
 }
@@ -2937,7 +2949,7 @@ function orbiters(g: Game): Orbiter[] {
     // Combat Drones: offensive drones "orbit the enemy ship". Defensive drones fly around their own.
     if (OFFENSIVE.has(kit.target))
       out.push({ side: "player", kind: kit.target, at: "enemy-orbit" });
-    else if (HOME_ORBIT.has(kit.target))
+    else if (HOME_ORBIT.has(kit.target) || defenseAs(kit.target))
       out.push({ side: "player", kind: kit.target, at: "player-orbit" });
   }
   for (const unit of g.enemy?.kits.drones?.drones ?? []) {
@@ -2958,7 +2970,8 @@ function droneShot(shot: { label?: string }): boolean {
 /** Overview, ion line, for the player's single drone. Same rule as ionHitsDrone. */
 export function ionHitsKit(kit: Kit, ion: number): boolean {
   if (!kit.on || !kit.target || ion <= 0) return false;
-  if (!OFFENSIVE.has(kit.target) && !HOME_ORBIT.has(kit.target)) return false;
+  if (!OFFENSIVE.has(kit.target) && !HOME_ORBIT.has(kit.target) && !defenseAs(kit.target))
+    return false;
   kit.stun = Math.max(kit.stun ?? 0, ION_STUN_PER * ion);
   kit.ionT = 0;
   return true;

@@ -140,6 +140,7 @@ function droneRow(row: (typeof CITED_DRONES)[number] & { image?: string }): Dron
   drone.type = row.type;
   drone.power = row.power;
   if (row.cooldown != null) drone.cooldown = row.cooldown;
+  if (row.target) drone.target = row.target;
   if (row.speed != null) drone.speed = row.speed;
   const rarity = STORE_RARITY[row.ref];
   if (rarity != null) drone.rarity = rarity;

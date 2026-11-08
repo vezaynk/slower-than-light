@@ -186,8 +186,8 @@ export function flak1Landing(rooms: readonly FlakRoom[], aimId: string, roll: nu
  * Flak (Weapons), "Flak Gun Mark I": Additional fake flak 3.
  * "Understanding flak accuracy": fake flak cannot take down shields or deal damage, but can distract defense drones
  * or collide with other projectiles.
- * INVENTED: each fake pellet is a missile with damage 0 and this label. A flak shot drops a shield layer even at
- * damage 0. A missile does not, and defense drones shoot missiles.
+ * INVENTED: each fake pellet is a missile with damage 0 and this label. applyImpact lets this label past the shield
+ * bubble without dropping a layer, and defense drones shoot missiles.
  * The page does not print a kind, a damage number, or a label.
  */
 export const FLAK1_FAKE = 3;

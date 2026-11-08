@@ -327,4 +327,7 @@
   <mod:findName type="weaponBlueprint" name="DRONE_BEAM2">
     <mod-overwrite:shotGap>0</mod-overwrite:shotGap>
   </mod:findName>
+  <mod:findName type="weaponBlueprint" name="PDS_SHOT">
+    <mod-overwrite:shotGap>0</mod-overwrite:shotGap>
+  </mod:findName>
 </FTL>

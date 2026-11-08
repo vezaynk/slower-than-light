@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { augmentDef, loadPack, resetPackForTests } from "@stl/pack";
 import { installAugment } from "../extras/augments.ts";
-import { createGame } from "../sim.ts";
+import { buy, createGame } from "../sim.ts";
 import type { AugmentId } from "../types.ts";
 import { grantRandomItem, rollBonusItem } from "./bonus-item.ts";
 import { augmentItems, citedSellQuote } from "./cited-stores.ts";
@@ -61,5 +61,31 @@ describe("shelf augments (store rarity 0 or missing is never offered)", () => {
       assert.equal(quote?.scrap, cost / 2, id);
       assert.equal(quote?.name, augmentDef(id)?.name, id);
     }
+  });
+
+  it("refuses a store row that names a grant: no scrap spent, nothing fitted, the row stays", () => {
+    const g = createGame(1);
+    g.scrap = 500;
+    g.augments = [];
+    const row = augmentDef("ENERGY_SHIELD");
+    assert.ok(row);
+    g.stock = [
+      {
+        id: "aug-ENERGY_SHIELD",
+        kind: "augment",
+        ref: "ENERGY_SHIELD",
+        name: row.name,
+        detail: row.detail,
+        cost: row.cost,
+        amount: 1,
+      },
+    ];
+    buy(g, "aug-ENERGY_SHIELD");
+    assert.equal(g.scrap, 500);
+    assert.deepEqual(g.augments, []);
+    assert.deepEqual(
+      g.stock.map((item) => item.id),
+      ["aug-ENERGY_SHIELD"],
+    );
   });
 });

@@ -12,6 +12,13 @@ export type FlagshipStage = {
   artillery: number;
   missiles: number;
   parts: number;
+  /**
+   * The droneList, in the order Drone Control powers it. "2nd stage" / "Drones": "Combat Drone Mark I (2), Anti-Ship
+   * Beam Drone I (2), Defense Drone Mark I (2), Boarding Drone (Boss) (2)". "Handling phase 2 drones": "the Boarding
+   * Drone is the first drone to go down. Further damage will take the regular beam and combat drones offline ... and
+   * finally the defense drone", so the defense drone is listed first and the boarding drone last.
+   */
+  drones?: string[];
 };
 
 export const FLAGSHIP_STAGES: Record<1 | 2 | 3, FlagshipStage> = {
@@ -39,6 +46,7 @@ export const FLAGSHIP_STAGES: Record<1 | 2 | 3, FlagshipStage> = {
     artillery: 3,
     missiles: 10,
     parts: 10,
+    drones: ["DEFENSE_1", "COMBAT_1", "COMBAT_BEAM", "BOARDER_BOSS"],
   },
   3: {
     health: 20,

@@ -22,6 +22,7 @@ import {
 import { remapSheetFile } from "../archive-cover-extra.ts";
 import { droneBlueprintOf } from "../gear-look.ts";
 import { legibleCapRatio, ttfFromBitmap } from "./bitmap-ttf.ts";
+import { logResourceFailure } from "../play-log.ts";
 
 export type WeaponPhase = "idle" | "charged" | "fire";
 
@@ -454,6 +455,8 @@ export function loadedImage(url: string): HTMLImageElement | undefined {
   let img = images.get(url);
   if (!img) {
     img = new Image();
+    // A detached image's error never reaches window, so the play log hears it here.
+    img.onerror = () => logResourceFailure("img", url);
     img.src = url;
     images.set(url, img);
   }

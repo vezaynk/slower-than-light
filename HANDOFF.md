@@ -11,7 +11,11 @@ pnpm dev
 
 The game is `@stl/game` (`apps/game`). `pnpm dev` starts it on port 8080.
 
-`pnpm test` runs every package test, including the game suite. `pnpm typecheck` is `tsc --noEmit` in each package.
+`pnpm test` runs every package test, including the game suite (`test:src`). It keeps going past a failure and still exits non-zero. `pnpm test:ci`, which CI runs, is the same command. `pnpm typecheck` is `tsc --noEmit` in each package.
+
+`FTL_DAT=/path/to/ftl.dat pnpm test` also runs the tests against the real archive. `STL_DATS` adds more dats, comma-separated. Relative paths are taken from the repo root. The command hashes the bytes of those files into the Turborepo cache key, so a dat replaced in place reruns its tests. A path it cannot read is reported, and the tests run anyway. Running `turbo run test:src` or `turbo run test --filter=@stl/totallynotftl` directly skips that hash, so either can replay a result for an older dat.
+
+The game's template checks under `apps/game/scripts` read gitignored `.grok` files, so neither command runs them. Run them with `pnpm --filter @stl/game test:scripts`.
 
 Wiki-backed tests read `packages/wiki-dump/pages.jsonl` (every main-namespace article, every redirect title, and the `Template:EventList` pages) through `@stl/wiki-dump`. Refresh it with `pnpm wiki:dump`; a test that then fails means the wiki changed.
 

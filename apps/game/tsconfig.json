@@ -9,8 +9,6 @@
     "strict": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    // `server/middleware/grok-pwa.ts` imports scripts/grok-pwa-shared.mjs;
-    // checkJs types that module instead of a hand-written declaration.
     "allowJs": true,
     "checkJs": true,
     "noEmit": true,
@@ -21,5 +19,5 @@
     },
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "server"]
+  "include": ["src"]
 }

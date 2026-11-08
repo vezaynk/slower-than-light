@@ -265,8 +265,15 @@ async function buildMedia(): Promise<{
     ...allDrones().map((drone) => drone.id),
     ...Object.keys(gear.DRONE_LOOKS).filter((key) => !gear.DRONE_BLUEPRINT[key]),
   ]);
+  // A blueprint with no look of its own that names another drone's `<droneImage>` (the Flagship's BOARDER_BOSS) is
+  // drawn in that drone's look, so its own files match the pictures it shows.
+  const imageOf = new Map(allDrones().map((drone) => [drone.id, drone.image]));
   for (const id of [...droneIds].sort()) {
-    const key = id in gear.DRONE_LOOKS ? id : (lookOf.get(id) ?? id);
+    const image = imageOf.get(id);
+    const key =
+      id in gear.DRONE_LOOKS
+        ? id
+        : (lookOf.get(id) ?? (image && image in gear.DRONE_LOOKS ? image : id));
     const art = gear.dronePixels(key in gear.DRONE_LOOKS ? key : null);
     assets.push({ path: `img/ship/drones/${id}_base.png`, bytes: artPng(art) });
     assets.push({ path: `img/ship/drones/${id}_on.png`, bytes: artPng(art, true) });

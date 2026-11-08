@@ -54,8 +54,10 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
   const augs = allAugments().filter(drawableAugment);
   const held = heldSchematics(g);
   const internal = internalDrones();
+  // Rarity 0 is never drawn (FTL GetRandomDrone): the enemy-only schematics stay out.
   const drones = allDrones().filter(
-    (row) => !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
+    (row) =>
+      row.rarity !== 0 && !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
   );
   const kinds = (
     [
@@ -92,7 +94,8 @@ export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): 
   const ref = pickOne(
     g,
     allDrones().filter(
-      (row) => !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
+      (row) =>
+        row.rarity !== 0 && !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
     ),
   )?.id;
   return ref ? droneLine(g, ref) : "No drone schematic is left to give.";

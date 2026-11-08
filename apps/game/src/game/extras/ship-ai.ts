@@ -15,7 +15,7 @@
  * (wiki/flagship-systems.ts).
  */
 import { SCHEMATIC_POWER } from "../enemy-gen.ts";
-import { weaponDef } from "@stl/pack";
+import { droneDef, weaponDef } from "@stl/pack";
 import { kitIonLocked, zoltanBars } from "../sim.ts";
 import type { Game, Kit, KitId, Ship, SysId, SystemState } from "../types.ts";
 import { stormReactor } from "../wiki/cited-sectors.ts";
@@ -57,7 +57,8 @@ function locked(g: Game, ship: Ship, slot: Slot): boolean {
  */
 function dronePowers(kit: Kit): number[] {
   const list = kit.loadout?.length ? kit.loadout : kit.target ? [kit.target] : [];
-  return list.map((kind) => SCHEMATIC_POWER[kind] ?? 1);
+  // The schematic's own `<power>` first, as swarm.ts unitPower reads it. personnel has no blueprint of that id.
+  return list.map((kind) => droneDef(kind)?.power ?? SCHEMATIC_POWER[kind] ?? 1);
 }
 
 /** Seconds a weapon has been charging. */

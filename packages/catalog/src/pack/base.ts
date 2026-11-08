@@ -5,7 +5,7 @@ import { KIN, type KinId } from "../extras/kin.ts";
 import { HULLS, type HullSpec } from "../hulls.ts";
 import { crystalExtinguishScale } from "../wiki/cited-crystal-fire.ts";
 import { rockExtinguishScale } from "../wiki/cited-rock-fire.ts";
-import { CITED_DRONES, DRONE_GUNS, DRONE_GUN_OF } from "../wiki/drone-catalog.ts";
+import { BOSS_DRONES, CITED_DRONES, DRONE_GUNS, DRONE_GUN_OF } from "../wiki/drone-catalog.ts";
 import { STORE_RARITY } from "../wiki/store-rarity.ts";
 import {
   crewPowers,
@@ -131,8 +131,13 @@ function augmentRow(row: (typeof CATALOG)[number]): AugmentDef {
   return augment;
 }
 
-function droneRow(row: (typeof CITED_DRONES)[number]): DroneDef {
-  const drone: DroneDef = { id: row.ref, name: row.name, cost: row.cost, image: row.ref };
+function droneRow(row: (typeof CITED_DRONES)[number] & { image?: string }): DroneDef {
+  const drone: DroneDef = {
+    id: row.ref,
+    name: row.name,
+    cost: row.cost,
+    image: row.image ?? row.ref,
+  };
   drone.type = row.type;
   drone.power = row.power;
   if (row.cooldown != null) drone.cooldown = row.cooldown;
@@ -900,6 +905,9 @@ function flagshipHull(stage: 1 | 2 | 3, difficulty: FlagshipDifficulty): HullDef
       weapons: [],
       augments: [],
       installs: flagshipInstalls(source.rooms, numbers),
+      ...(numbers.drones?.length
+        ? { drones: [...numbers.drones], droneCount: numbers.drones.length }
+        : {}),
       grid: gridFromLayout({
         cols: source.cols,
         rows: source.rows,
@@ -1271,7 +1279,7 @@ export function loadCatalog(): void {
       crew: (Object.keys(KIN) as KinId[]).filter((id) => id !== "ghost").map(crewRow),
       weapons: [...Object.keys(WEAPONS).map(weaponRow), ...DRONE_GUNS.map(droneGunRow)],
       augments: CATALOG.map(augmentRow),
-      drones: CITED_DRONES.map(droneRow),
+      drones: [...CITED_DRONES, ...BOSS_DRONES].map(droneRow),
       systems: CITED_SYSTEMS.map(systemRow),
       hulls: [
         ...HULLS.map(hullRow),

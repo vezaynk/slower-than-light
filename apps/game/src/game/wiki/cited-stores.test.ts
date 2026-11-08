@@ -637,6 +637,7 @@ describe("cited stores", () => {
         ["Hull Repair Drone", 85],
         ["Boarding Drone", 70],
         ["Ion Intruder Drone", 65],
+        ["Boarding Drone (Boss)", 70],
       ],
     );
     const windowOf = (seed: number) => {
@@ -665,6 +666,9 @@ describe("cited stores", () => {
       ["BOARDER_ION", 65, "Ion Intruder Drone"],
     ]);
     assert.deepEqual(windowOf(-3), windowOf(10));
+    // Rarity 0 is never stocked: the Flagship's boss boarder stays off every window.
+    for (let seed = 0; seed < 14; seed++)
+      assert.ok(!windowOf(seed).some(([ref]) => ref === "BOARDER_BOSS"), String(seed));
     const bare = createGame(1);
     bare.seed = 2;
     // Without Drone Control a drones section survives only beside a systems section, which then guarantees it.

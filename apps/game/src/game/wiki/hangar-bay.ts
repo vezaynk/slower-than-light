@@ -2,14 +2,26 @@
  * Hangar bay and cruiser article taken from the loaded ship.
  * The cruiser pages stay the index. Neither surface reads their lines.
  */
-import { augmentDef, droneDef, hullDef, startingFit, systemDef, weaponDef } from "@stl/pack";
+import {
+  augmentDef,
+  droneDef,
+  hullDef,
+  startingFit,
+  systemDef,
+  warnPack,
+  weaponDef,
+} from "@stl/pack";
 import { droneKeyForName, droneKeyOf, type DroneKey } from "../gear-look.ts";
 import type { IconName } from "../icons.ts";
 import { canDeploy } from "../extras/swarm.ts";
-import { MISSING_AUGMENTS } from "./augments-missing.ts";
 
-/** Titles for augments that have no blueprint. */
-const MISSING_NAME = new Map(MISSING_AUGMENTS.map((row) => [row.id, row.name]));
+/** The augment's blueprint title. An id the archive has no `augBlueprint` for shows as the id, with a warning. */
+function augmentName(id: string): string {
+  const name = augmentDef(id)?.name;
+  if (name) return name;
+  warnPack(`Augment "${id}" has no augBlueprint; the hangar shows its id.`);
+  return id;
+}
 
 const SYSTEM_NAME: Record<string, string> = {
   shields: "Shields",
@@ -105,9 +117,7 @@ export function hangarBay(id: string | undefined): HangarBay | undefined {
     drones,
     droneSlots: hull.droneSlots ?? null,
     droneSystem: Boolean(droneKit),
-    augments: hull.augments.map(
-      (augmentId) => augmentDef(augmentId)?.name ?? MISSING_NAME.get(augmentId) ?? augmentId,
-    ),
+    augments: hull.augments.map(augmentName),
   };
 }
 

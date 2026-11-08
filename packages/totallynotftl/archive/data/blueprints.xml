@@ -4844,6 +4844,49 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <cost>55</cost>
     <rarity>3</rarity>
   </augBlueprint>
+  <augBlueprint name="CRYSTAL_SHARDS">
+    <title>Crystal Vengeance</title>
+    <desc>Each time the ship takes damage there is a 10 percent chance to fire a crystal shot that does 1 damage, has a 10 percent chance to breach, has a 20 percent chance to stun for 3 seconds, ignores shields, is affected by evasion, and can be shot down by defense drones.</desc>
+    <cost>80</cost>
+    <rarity>0</rarity>
+  </augBlueprint>
+  <augBlueprint name="STASIS_POD">
+    <title>Damaged Stasis Pod</title>
+    <desc>More than one can be held at a time with each copy in an augmentation slot, each can be acquired only from the Dense asteroid field distress call, and each Zoltan research facility opens a single pod to yield a Crystal crewmember.</desc>
+    <cost>30</cost>
+    <rarity>0</rarity>
+    <stackable>true</stackable>
+  </augBlueprint>
+  <augBlueprint name="DRONE_SPEED">
+    <title>Drone Reactor Booster</title>
+    <desc>Crew drone movement speed is increased by 25 percent, from 50 percent of regular crew speed to 62.5 percent.</desc>
+    <cost>50</cost>
+    <rarity>0</rarity>
+  </augBlueprint>
+  <augBlueprint name="NANO_MEDBAY">
+    <title>Engi Med-bot Dispersal</title>
+    <desc>It heals 1.6 health points per second when the medbay is powered, medbay upgrades do not affect it, it does not heal crew on another ship, and it does nothing with a clone bay.</desc>
+    <cost>60</cost>
+    <rarity>0</rarity>
+  </augBlueprint>
+  <augBlueprint name="CREW_STIMS">
+    <title>Mantis Pheromones</title>
+    <desc>Crew movement speed increases by 25 percent on your ship and while boarding an enemy.</desc>
+    <cost>50</cost>
+    <rarity>0</rarity>
+  </augBlueprint>
+  <augBlueprint name="SLUG_GEL">
+    <title>Slug Repair Gel</title>
+    <desc>It fixes all breaches simultaneously at 75 percent of regular crew speed and stacks with crew repairs.</desc>
+    <cost>60</cost>
+    <rarity>0</rarity>
+  </augBlueprint>
+  <augBlueprint name="ENERGY_SHIELD">
+    <title>Zoltan Shield</title>
+    <desc>It has 5 points of energy shielding that are completely recharged on an FTL jump, enemy shields are replenished on revisiting the beacon, only the initial boarding party of a boarding event passes through it, and Zoltan Shield Bypass lets crew teleportation, bomb teleportation, and mind control pass through it.</desc>
+    <cost>80</cost>
+    <rarity>0</rarity>
+  </augBlueprint>
   <droneBlueprint name="COMBAT_1">
     <title>Combat Drone Mark I</title>
     <short>Combat Drone I</short>

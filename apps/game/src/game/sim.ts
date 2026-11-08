@@ -157,7 +157,7 @@ import {
   chainIonAmount,
   isChainWeapon,
   nextChainStep,
-} from "./wiki/cited-chain.ts";
+} from "./rules/chain.ts";
 import { bypassZoltan } from "./wiki/cited-bypass.ts";
 import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
@@ -234,12 +234,12 @@ import {
 import {
   eventHasPulsar,
   pickPulsarTargets,
-  PULSAR_WARN_S,
   pulsarCycleSeconds,
   pulsarMainIon,
   pulsarShieldSpend,
+  pulsarWarnSeconds,
   type PulsarPick,
-} from "./wiki/cited-pulsar.ts";
+} from "./rules/pulsar.ts";
 import {
   eventHasFlare,
   FLARE_WARN_S,
@@ -253,7 +253,7 @@ import {
   asteroidSide,
   asteroidSpawnSeconds,
   nextAsteroidPhase,
-} from "./wiki/cited-asteroid.ts";
+} from "./rules/asteroid.ts";
 import {
   CRYSTAL_SECTOR_WEAPONS,
   citedBuy,
@@ -5444,7 +5444,7 @@ function tickIons(ship: Ship, dt: number) {
   }
 }
 
-// Asteroid fire or breach is cited-asteroid.ts. The interval seconds are INFERRED.
+// Asteroid fire or breach is rules/asteroid.ts. The interval seconds are gap `<asteroidField>`.
 // Environmental Hazards, ==Anti-Ship Battery (ASB)==: a warning 15--20 seconds after the battle starts,
 // then the real shot 5--10 seconds later. Per the user: the cycle keeps going after the battle, until the jump.
 // INFERRED: each span is uniform. rand() is [0, 1), so the printed top is not its own bucket.
@@ -5557,7 +5557,7 @@ function tickPulsar(g: Game, dt: number) {
   if (!((g.pulsarWait ?? 0) > 0)) armPulsar(g);
   g.pulsarT = (g.pulsarT ?? 0) + dt;
   const wait = g.pulsarWait ?? 0;
-  if (!g.pulsarWarned && g.pulsarT >= wait - PULSAR_WARN_S) {
+  if (!g.pulsarWarned && g.pulsarT >= wait - pulsarWarnSeconds()) {
     g.pulsarWarned = true;
     // Environmental Hazards, Pulsar: the danger line is the warning.
     log(g, "Periodic waves of electromagnetic energy will disrupt your systems.");
@@ -5674,7 +5674,7 @@ function tickLingeringHazards(g: Game, dt: number) {
 }
 
 /**
- * Start the asteroid field's next phase (wiki/cited-asteroid.ts). xftl doc/asteroids: "The timings are determined by
+ * Start the asteroid field's next phase (rules/asteroid.ts). xftl doc/asteroids: "The timings are determined by
  * the player shield level ... set in AsteroidGenerator::Initialize".
  * INFERRED: that is the installed Shields level, read when each phase starts, so ion or an empty power bar does not
  * slow the rocks. The notes do not say whether damage or power counts.
@@ -5694,7 +5694,7 @@ function environment(g: Game, dt: number) {
     g.asteroidT += dt;
     if (g.asteroidPhase !== "break" && g.asteroidT >= (g.asteroidWait ?? Infinity)) {
       // Environmental Hazards, Asteroid Field: "They have a small chance to cause a fire or a breach." Fires: one of a
-      // breach, fires, or neither. INFERRED: 5 percent each, so one rock does not start both (cited-asteroid.ts).
+      // breach, fires, or neither. INFERRED: 5 percent each, so one rock does not start both (rules/asteroid.ts).
       const rock = (ship: Ship, at: "player" | "enemy") => {
         const side = asteroidSide(rand(g));
         g.shots.push({

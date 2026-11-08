@@ -151,6 +151,13 @@ export {
   cargoSlots,
   bonusItem,
   bonusItemWeight,
+  asteroidField,
+  asteroidTiming,
+  asteroidOdds,
+  pulsarRules,
+  pulsarRule,
+  droneOrbitRules,
+  droneOrbit,
 } from "./registry.ts";
 export { localeString, packLocales } from "./locales.ts";
 export type {
@@ -197,6 +204,10 @@ export type {
   EscapeTimers,
   CargoSlots,
   BonusItemWeights,
+  AsteroidField,
+  AsteroidTiming,
+  PulsarRules,
+  DroneOrbit,
   FactionEscape,
   FactionSurrender,
   NamedReward,

@@ -3,12 +3,7 @@ import { describe, it } from "node:test";
 import { createGame, DEPOWER_DRAIN_S, startCombat, step } from "../sim.ts";
 import type { Game, WeaponInst } from "../types.ts";
 import { loadPack, resetPackForTests, weaponDef } from "@stl/pack";
-import {
-  chainChargeSeconds,
-  chainDamageAmount,
-  chainIonAmount,
-  nextChainStep,
-} from "./cited-chain.ts";
+import { chainChargeSeconds, chainDamageAmount, chainIonAmount, nextChainStep } from "./chain.ts";
 
 /** Laser (Weapons), Chain Burst Laser. */
 const BURST = [16, 13, 10, 7];
@@ -185,6 +180,40 @@ describe("chain weapon profiles", () => {
     } finally {
       resetPackForTests();
     }
+  });
+
+  it("follows a blueprint boost that shortens the charge", () => {
+    const burst = weaponDef("LASER_CHAINGUN");
+    assert.ok(burst?.boost);
+    loadPack(
+      {
+        weapons: [
+          {
+            ...burst,
+            id: "MOD_FAST_CHAIN",
+            charge: 10,
+            boost: { type: "cooldown", amount: 4, count: 2 },
+          },
+        ],
+      },
+      "append",
+    );
+    try {
+      assert.equal(chainChargeSeconds("MOD_FAST_CHAIN", 0), 10);
+      assert.equal(chainChargeSeconds("MOD_FAST_CHAIN", 1), 6);
+      assert.equal(chainChargeSeconds("MOD_FAST_CHAIN", 2), 2);
+      assert.equal(chainChargeSeconds("LASER_CHAINGUN", 1), 13);
+      const g = createGame(12);
+      startCombat(g, "Rebel ship");
+      mount(g, "MOD_FAST_CHAIN", burst.power);
+      unman(g);
+      close(rate(g), 0.05 / 10);
+      fire(g);
+      close(rate(g), 0.05 / 6);
+    } finally {
+      resetPackForTests();
+    }
+    assert.equal(chainChargeSeconds("LASER_CHAINGUN", 1), 13);
   });
 
   it("climbs Chain Ion from 1 to 4 and keeps the 14 second charge", () => {

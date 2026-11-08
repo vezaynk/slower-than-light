@@ -453,4 +453,12 @@
   <escapeTimers hull="15" lastFuel="90"/>
   <cargoSlots slots="4"/>
   <bonusItem weapon="1" augment="1" drone="1"/>
+  <asteroidField fire="0.05" breach="0.05">
+    <timing bubbles="1" breakMin="5" breakMax="10" wave1Min="8" wave1Max="16" wave2Min="5" wave2Max="8" spawn1Min="1.8" spawn1Max="2.2" spawn2Min="1.4" spawn2Max="1.6"/>
+    <timing bubbles="2" breakMin="5" breakMax="10" wave1Min="10" wave1Max="20" wave2Min="5" wave2Max="10" spawn1Min="1" spawn1Max="1.8" spawn2Min="0.9" spawn2Max="1.3"/>
+    <timing bubbles="3" breakMin="12" breakMax="15" wave1Min="16" wave1Max="28" wave2Min="8" wave2Max="13" spawn1Min="0.9" spawn1Max="1.4" spawn2Min="0.9" spawn2Max="1.3"/>
+    <timing bubbles="4" breakMin="12" breakMax="15" wave1Min="16" wave1Max="30" wave2Min="8" wave2Max="11" spawn1Min="0.72" spawn1Max="1.35" spawn2Min="0.54" spawn2Max="0.95"/>
+  </asteroidField>
+  <pulsar cycleMin="11" cycleMax="18" warn="5" shieldLow="3" shieldHigh="4" ionBase="1" ionPerPower="0.5"/>
+  <droneOrbit minSep="90" speedScale="21.875" stopRadius="1.15" firePause="0.5" beamHold="0.5"/>
 </FTL>

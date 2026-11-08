@@ -34,6 +34,9 @@ import {
   escapeTimers,
   cargoSlots,
   bonusItem,
+  asteroidField,
+  pulsarRules,
+  droneOrbitRules,
   type ContentPack,
   type EventDef,
 } from "@stl/pack";
@@ -53,6 +56,9 @@ export function campaignPack(): ContentPack {
     escapeTimers: escapeTimers(),
     cargoSlots: cargoSlots(),
     bonusItem: bonusItem(),
+    asteroidField: asteroidField(),
+    pulsar: pulsarRules(),
+    droneOrbit: droneOrbitRules(),
     sectors: allSectors(),
     stores: allStores(),
     tunes: allTunes(),
@@ -105,6 +111,9 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       escapeTimers: pack.escapeTimers,
       cargoSlots: pack.cargoSlots,
       bonusItem: pack.bonusItem,
+      asteroidField: pack.asteroidField,
+      pulsar: pack.pulsar,
+      droneOrbit: pack.droneOrbit,
       empties: pack.empties,
       shipClasses: pack.shipClasses,
       shipLists: pack.shipLists,
@@ -175,7 +184,7 @@ export function standInEventFiles(): { path: string; xml: string }[] {
  * Vanilla keeps Lanius in dlcBlueprints.xml and some weapons in that file too.
  * The same finds go in both appends. A find in a file that has no such blueprint does nothing.
  * The sector append adds notes. `data/gap.xml` adds the store, the rewards block, faction surrender and escape
- * rows, escape timers, and empty beacons.
+ * rows, escape timers, asteroid timings, the pulsar, combat-drone orbit, and empty beacons.
  */
 export function gapModFiles(): { path: string; xml: string }[] {
   const pack = campaignPack();

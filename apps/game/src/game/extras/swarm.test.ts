@@ -298,6 +298,8 @@ describe("drones", () => {
       const kit = place(g, 4);
       startCombat(g, "Rebel ship");
       assert.ok(g.enemy);
+      // Enemy drones would stun or shoot down the drone.
+      delete g.enemy.kits.drones;
       assert.equal(deploy(g, kind), true);
       const speed = kind === "COMBAT_2" ? COMBAT2.speed : COMBAT1_SPEED;
       kit.heading = 0;
@@ -573,6 +575,8 @@ describe("drones", () => {
     place(g);
     startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
+    // An enemy Anti-Combat Drone would stun the boarder between hits.
+    delete g.enemy.kits.drones;
     assert.equal(DRONE_POWER.BOARDER, 3);
     assert.ok(g.enemy.shieldNow > 0);
     assert.equal(deploy(g, "BOARDER"), true);
@@ -611,6 +615,8 @@ describe("drones", () => {
     place(g);
     startCombat(g, "Rebel ship");
     assert.ok(g.enemy);
+    // An enemy Anti-Combat Drone would stun the boarder in space.
+    delete g.enemy.kits.drones;
     assert.equal(deploy(g, "BOARDER"), true);
     const kit = g.player.kits.drones;
     assert.ok(kit);

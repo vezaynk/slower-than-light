@@ -6,7 +6,7 @@
  */
 import { useEffect, useState } from "react";
 
-const ICON = `${import.meta.env.BASE_URL}__grok/install/assets/homescreen`;
+const ICON = `${import.meta.env.BASE_URL}install`;
 
 type InstallPrompt = Event & {
   prompt: () => Promise<void>;

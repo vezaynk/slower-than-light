@@ -1,6 +1,7 @@
 import { hurtKit, hurtSystem, log, noteCombatPoint, shakeShip, zoltanBars } from "../sim.ts";
 import type { Crew, Game, Room, Ship } from "../types.ts";
 import { sideOf } from "./leash.ts";
+import { flownAs } from "./flown.ts";
 import { artilleryGun, hurtArtillery } from "../wiki/flagship-systems.ts";
 
 /**
@@ -140,7 +141,8 @@ function droneAttacking(g: Game, aboard: "player" | "enemy", roomId: string): bo
     return kit.hp == null || kit.hp > 0;
   }
   for (const unit of g.enemy?.kits.drones?.drones ?? []) {
-    if (!unit.alive || unit.room !== roomId || !BOARDER_DRONES.has(unit.kind)) continue;
+    if (!unit.alive || unit.room !== roomId || !BOARDER_DRONES.has(flownAs(unit.kind) ?? unit.kind))
+      continue;
     if ((unit.fly ?? 0) > 0 || (unit.stun ?? 0) > 0 || (unit.path?.length ?? 0) > 0) continue;
     if ((unit.hp ?? 1) <= 0) continue;
     return true;

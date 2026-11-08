@@ -89,6 +89,24 @@ export const CITED_DRONES: readonly {
 ];
 
 /**
+ * Enemy-only schematics the stand-in writes beside the shelf. They are never sold: rarity 0 (store-rarity.ts).
+ * The Rebel Flagship, "2nd stage" / "Drones": "Boarding Drone (Boss) (2)". The page prints only that power. It flies as
+ * a Boarding Drone (its droneBlueprint type is BOARDER), so the price, speed, and picture are the Boarding Drone's
+ * (INFERRED).
+ */
+export const BOSS_DRONES: readonly ((typeof CITED_DRONES)[number] & { image: string })[] = [
+  {
+    ref: "BOARDER_BOSS",
+    name: "Boarding Drone (Boss)",
+    cost: 70,
+    type: "BOARDER",
+    power: 2,
+    speed: 18,
+    image: "BOARDER",
+  },
+];
+
+/**
  * The guns offensive drone blueprints name with `<weaponBlueprint>`, as ftl.dat's DRONE_LASER and DRONE_BEAM do.
  * apps/game/src/game/extras/swarm.ts droneGun reads damage, ion, fire, and breach from these rows.
  * Drone Control, Combat Drones (offensive drones): "Drones deal 1 hull/system damage per projectile" and

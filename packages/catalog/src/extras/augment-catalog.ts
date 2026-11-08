@@ -21,6 +21,8 @@ export type Listing = {
  * a test writes the array directly.
  * Rock Plating and Titanium System Casing are under "Non-Purchasable Augmentations"
  * and are not sold; their sell prices are 40. The 50 scrap store cost below is INVENTED.
+ * The other non-purchasable augments (ship and event grants) come last. The page prints only their sell price,
+ * and a sale pays half the blueprint cost, so their cost is twice that price. Their store rarity is 0.
  */
 export const CATALOG: Listing[] = [
   // Augmentations, "Offensive Augmentations", Automated Re-loader. Store cost 40.
@@ -221,5 +223,68 @@ export const CATALOG: Listing[] = [
     name: "Zoltan Shield Bypass",
     detail: "Crew teleportation, bomb teleportation, and mind control work through Zoltan Shields.",
     cost: 55,
+  },
+  // Augmentations, "Non-Purchasable Augmentations", Crystal Vengeance. "Sell price: 40", so the blueprint cost is 80.
+  // Augmentations, "Crystal Vengeance": "there is a 10 percent chance to break off a shard" and the bullet on the shot.
+  {
+    id: "CRYSTAL_SHARDS",
+    name: "Crystal Vengeance",
+    detail:
+      "Each time the ship takes damage there is a 10 percent chance to fire a crystal shot that does 1 damage, has a 10 percent chance to breach, has a 20 percent chance to stun for 3 seconds, ignores shields, is affected by evasion, and can be shot down by defense drones.",
+    cost: 80,
+  },
+  // Augmentations, "Non-Purchasable Augmentations", Damaged Stasis Pod. "Sell price: 15", so the blueprint cost is 30.
+  // Augmentations, "Damaged Stasis Pod": "More than one Stasis Pod can be acquired and held at a time", so it stacks.
+  {
+    id: "STASIS_POD",
+    name: "Damaged Stasis Pod",
+    detail:
+      "More than one can be held at a time with each copy in an augmentation slot, each can be acquired only from the Dense asteroid field distress call, and each Zoltan research facility opens a single pod to yield a Crystal crewmember.",
+    cost: 30,
+    stackable: true,
+  },
+  // Augmentations, "Non-Purchasable Augmentations", Drone Reactor Booster. "Sell price: 25", so the blueprint cost is 50.
+  // Augmentations, "Drone Reactor Booster": "Increases the speed of crew drones by 25%".
+  {
+    id: "DRONE_SPEED",
+    name: "Drone Reactor Booster",
+    detail:
+      "Crew drone movement speed is increased by 25 percent, from 50 percent of regular crew speed to 62.5 percent.",
+    cost: 50,
+  },
+  // Augmentations, "Non-Purchasable Augmentations", Engi Med-bot Dispersal. "Sell price: 30", so the blueprint cost is 60.
+  // Augmentations, "Engi Med-bot Dispersal": heals 1.6 per second, needs a powered medbay, no clone bay.
+  {
+    id: "NANO_MEDBAY",
+    name: "Engi Med-bot Dispersal",
+    detail:
+      "It heals 1.6 health points per second when the medbay is powered, medbay upgrades do not affect it, it does not heal crew on another ship, and it does nothing with a clone bay.",
+    cost: 60,
+  },
+  // Augmentations, "Non-Purchasable Augmentations", Mantis Pheromones. "Sell price: 25", so the blueprint cost is 50.
+  // Augmentations, "Mantis Pheromones": "Your crew's movement speed is increased by 25 percent."
+  {
+    id: "CREW_STIMS",
+    name: "Mantis Pheromones",
+    detail: "Crew movement speed increases by 25 percent on your ship and while boarding an enemy.",
+    cost: 50,
+  },
+  // Augmentations, "Non-Purchasable Augmentations", Slug Repair Gel. "Sell price: 30", so the blueprint cost is 60.
+  // Augmentations, "Slug Repair Gel": "Fixes all breaches simultaneously, at 75% regular crew speed."
+  {
+    id: "SLUG_GEL",
+    name: "Slug Repair Gel",
+    detail:
+      "It fixes all breaches simultaneously at 75 percent of regular crew speed and stacks with crew repairs.",
+    cost: 60,
+  },
+  // Augmentations, "Non-Purchasable Augmentations", Zoltan Shield. "Sell price: 40", so the blueprint cost is 80.
+  // Zoltan Shield: 5 points of shielding, recharged on a jump. Its figures win over the Augmentations wording.
+  {
+    id: "ENERGY_SHIELD",
+    name: "Zoltan Shield",
+    detail:
+      "It has 5 points of energy shielding that are completely recharged on an FTL jump, enemy shields are replenished on revisiting the beacon, only the initial boarding party of a boarding event passes through it, and Zoltan Shield Bypass lets crew teleportation, bomb teleportation, and mind control pass through it.",
+    cost: 80,
   },
 ];

@@ -12,6 +12,7 @@ import {
   weaponDef,
 } from "@stl/pack";
 import { editionSells, internalDrones } from "../blueprint-use.ts";
+import { shelfAugment } from "../extras/augments.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
@@ -96,12 +97,9 @@ const CREW_CAP = 8;
 // Augmentations, "Non-Purchasable Augmentations". The catalog's 50 is marked invented there.
 export const NOT_SOLD: ReadonlySet<string> = new Set(["ROCK_ARMOR", "SYSTEM_CASING"]);
 
-/**
- * An augment a store or a random reward can draw. Store rarity 0 is never drawn (FTL GetRandomAugment skips it):
- * the ship and event grants such as Zoltan Shield or Damaged Stasis Pod, which both archives write with rarity 0.
- */
+/** An augment a store or a random reward can draw: a shelf augment, less Rock Plating and Titanium System Casing. */
 export function drawableAugment(row: { id: string; rarity?: number }): boolean {
-  return !NOT_SOLD.has(row.id) && row.rarity !== 0;
+  return !NOT_SOLD.has(row.id) && shelfAugment(row);
 }
 
 /**
@@ -137,25 +135,6 @@ const WEAPON_SELL: Readonly<Record<string, number>> = {
 
 // content.ts marks the Dart entry INVENTED, including its 40 scrap price. No sale.
 const INVENTED_WEAPON_PRICE: ReadonlySet<string> = new Set(["dart"]);
-
-// Augmentations prints "Sell price:" on the non-purchasable rows. That is the sell line.
-const AUGMENT_SELL: Partial<Record<string, number>> = {
-  NANO_MEDBAY: 30,
-  CREW_STIMS: 25,
-  SLUG_GEL: 30,
-  // Augmentations, "Crystal Vengeance": "Sell price: 40". No purchase price, so it is not in CATALOG.
-  CRYSTAL_SHARDS: 40,
-  // Zoltan Shield, "Sell value: 40". No purchase price, so it is not in CATALOG.
-  ENERGY_SHIELD: 40,
-};
-
-const AUGMENT_SELL_NAME: Partial<Record<string, string>> = {
-  NANO_MEDBAY: "Engi Med-bot Dispersal",
-  CREW_STIMS: "Mantis Pheromones",
-  SLUG_GEL: "Slug Repair Gel",
-  CRYSTAL_SHARDS: "Crystal Vengeance",
-  ENERGY_SHIELD: "Zoltan Shield",
-};
 
 export type SellQuote = {
   id: string;
@@ -446,7 +425,8 @@ function grantSystem(g: Game, item: StockItem): boolean {
 
 function grantAugment(g: Game, item: StockItem): boolean {
   const row = augmentDef(item.ref);
-  if (!row || NOT_SOLD.has(row.id)) return false;
+  // A stock row is bought as offered, except a ship or event grant (store rarity 0) or a NOT_SOLD row.
+  if (!row || NOT_SOLD.has(row.id) || row.rarity === 0) return false;
   if (!g.augments) g.augments = [];
   if (g.augments.includes(row.id) || g.augments.length >= AUGMENT_CAP) return false;
   g.augments.push(row.id);
@@ -573,8 +553,6 @@ function weaponSell(defId: string): number | null {
 
 function augmentSell(id: string): number | null {
   if (NOT_SOLD.has(id)) return null;
-  const printed = AUGMENT_SELL[id];
-  if (printed != null) return printed;
   const row = augmentDef(id);
   if (!row || row.cost <= 0) return null;
   return Math.floor(row.cost / 2);
@@ -623,7 +601,7 @@ export function citedSellQuote(g: Game): SellQuote[] {
       id: `a:${index}:${id}`,
       kind: "augment",
       ref: id,
-      name: row?.name ?? AUGMENT_SELL_NAME[id] ?? id,
+      name: row?.name ?? id,
       scrap,
     });
   });

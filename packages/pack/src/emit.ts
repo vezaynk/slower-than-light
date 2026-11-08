@@ -103,6 +103,7 @@ const HEADER = `
   A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
   An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
   The sim still checks the hull and still hands that reward over.
+  An autoReward on a choice is that button's reward, as in ftl.dat: a level and a kind such as drone or weapon.
   An event list with page names is drawn in that order. unique means the page can appear once per sector.
   The sim still remembers which unique page already appeared.
   A list with no page ids is an offer table or the printed bands.
@@ -448,6 +449,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
         else if (node.tagName === "event") note = undefined;
       }
     }
+    if (choice.reward) add(choiceNode, autoReward(doc, choice.reward.name, choice.reward.level));
     add(node, choiceNode);
   }
   if (event.surrender) add(node, surrenderElement(doc, event.surrender));

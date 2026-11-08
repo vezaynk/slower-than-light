@@ -166,7 +166,7 @@ export function showArchivePage(
   delete g.eventNebula;
   syncIonStorm(g);
   applyGrants(g, page.grants);
-  if (page.reward) payAutoReward(g, page.reward);
+  if (page.reward) lines.push(...payAutoReward(g, page.reward));
   if (page.ship?.hostile && page.ship.load) {
     const told = g.event?.body ?? "";
     startCombat(
@@ -310,7 +310,7 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
   if (enemyPresent) applyArchiveAlters(g, choice.alters, "enemy", lines);
   if (choice.ship && !choice.ship.hostile && !choice.ship.load && g.enemy) closeFight(g);
   applyGrants(g, choice.grants);
-  if (choice.reward) payAutoReward(g, choice.reward);
+  const rewarded = choice.reward ? payAutoReward(g, choice.reward) : [];
   const fought = g.enemy != null || g.phase === "combat";
   if (!fought && choice.ship?.hostile && choice.ship.load) {
     startCombat(
@@ -330,6 +330,7 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
   stampArchiveImage(g, choice.img);
   if (finishSecret(g, applyArchiveMarks(g, choice.marks))) return;
   pushNotes(choice.fx, lines);
+  lines.push(...rewarded);
   showEventLines(g, lines);
 }
 
@@ -866,34 +867,43 @@ function boarderCrew(g: Game, cls: string | undefined): { kin: KinId; name: stri
   return CREW.human!;
 }
 
-function payAutoReward(g: Game, reward: ArchiveReward): void {
+/**
+ * Pays an autoReward and returns what it gave, one line per resource and item, for the result card.
+ * FTL lists the reward under the result text the same way.
+ */
+function payAutoReward(g: Game, reward: ArchiveReward): string[] {
   const tier = rewardTier(g, reward.level);
-  if (!tier) return;
+  if (!tier) return [];
   const name = reward.name.trim();
-  if (name === "standard") {
-    payOffer(g, rollStandard(g, tier), true);
-    return;
-  }
-  if (name === "stuff") {
-    payOffer(g, rollSurrenderOffer(g, tier), true);
-    return;
-  }
-  if (name === "scrap_only") {
-    payOffer(g, scrapOffer(g, tier), true);
-    return;
-  }
+  const paid = (offer: SurrenderOffer) => rewardLines(offer, payOffer(g, offer, true));
+  if (name === "standard") return paid(rollStandard(g, tier));
+  if (name === "stuff") return paid(rollSurrenderOffer(g, tier));
+  if (name === "scrap_only") return paid(scrapOffer(g, tier));
   if (name === "fuel" || name === "missiles" || name === "droneparts") {
     const offer = scrapOffer(g, tier);
     const kind = name === "droneparts" ? "parts" : name;
     offer[kind] = between(g, resourceBand(kind, tier));
-    payOffer(g, offer, true);
-    return;
+    return paid(offer);
   }
   if (name === "weapon" || name === "augment" || name === "drone") {
     const offer = scrapOffer(g, tier);
     offer.random = name;
-    payOffer(g, offer, true);
+    return paid(offer);
   }
+  return [];
+}
+
+function rewardLines(
+  offer: SurrenderOffer,
+  got: { weaponName?: string; extras: string[] },
+): string[] {
+  const lines: string[] = [];
+  if (offer.scrap) lines.push(`Scrap: ${offer.scrap}.`);
+  if (offer.fuel) lines.push(`Fuel: ${offer.fuel}.`);
+  if (offer.missiles) lines.push(`Missiles: ${offer.missiles}.`);
+  if (offer.parts) lines.push(`Drone parts: ${offer.parts}.`);
+  if (got.weaponName) lines.push(`${got.weaponName}.`);
+  return [...lines, ...got.extras.filter(Boolean)];
 }
 
 function rewardTier(g: Game, level: string): SurrenderTier | undefined {

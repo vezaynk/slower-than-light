@@ -72,6 +72,14 @@ function copyEffect(fx: EventEffect): EventEffect {
   return { k: "nothing" };
 }
 
+/** A button's id, label, and effects, plus the archive's hidden flag and autoReward when the page states them. */
+function copyChoice(choice: EventChoice): EventChoice {
+  const copy: EventChoice = { id: choice.id, label: choice.label, fx: choice.fx.map(copyEffect) };
+  if (choice.hidden) copy.hidden = true;
+  if (choice.reward) copy.reward = { level: choice.reward.level, name: choice.reward.name };
+  return copy;
+}
+
 function copyRow(ev: CitedEventRow): CitedEventRow {
   return {
     dest: ev.dest,
@@ -80,11 +88,7 @@ function copyRow(ev: CitedEventRow): CitedEventRow {
     aliases: [...ev.aliases],
     sectors: [...ev.sectors],
     body: ev.body,
-    choices: ev.choices.map((choice) => ({
-      id: choice.id,
-      label: choice.label,
-      fx: choice.fx.map(copyEffect),
-    })),
+    choices: ev.choices.map(copyChoice),
   };
 }
 
@@ -128,11 +132,7 @@ export function citedEventRecords(): EventDef[] {
     aliases: [...ev.aliases],
     sectors: [...ev.sectors],
     body: ev.body,
-    choices: ev.choices.map((choice) => ({
-      id: choice.id,
-      label: choice.label,
-      fx: choice.fx.map(copyEffect),
-    })),
+    choices: ev.choices.map(copyChoice),
   }));
   const byId = new Map(records.map((row) => [row.id, row]));
   const holders: EventDef[] = [];

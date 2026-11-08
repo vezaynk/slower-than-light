@@ -92,7 +92,7 @@ export function citedSystemHalf(
 
 /**
  * Event pages whose opening choice states a number, a scrap tier, or a fight.
- * Engi cache stays in sim.ts. A page that only says "a random amount" is absent.
+ * A page that only says "a random amount" is absent.
  * Blue options, crew, map reveals, and upgrades are not granted. An unnamed weapon, augmentation or
  * drone schematic is a random one (Rewards; the "item" fx, or grantRandomItem in a handler).
  * Template:Scrap rewards low and high columns are the WIKI-SPEC section 14 table.

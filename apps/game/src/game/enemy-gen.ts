@@ -803,6 +803,7 @@ export function generateSystems(
   optional: readonly [EnemySystem, Range][],
   ctx: PoolContext,
   rand: () => number,
+  roomOf?: ReadonlyMap<EnemySystem, number>,
 ): [EnemySystem, number][] {
   const caps = new Map<EnemySystem, number>();
   for (const [id, r] of [...starting, ...optional]) caps.set(id, rollMaxLevel(r, ctx, rand));
@@ -815,6 +816,14 @@ export function generateSystems(
   const defense = row[1];
   let [offense, , general] = row;
   for (const [id, r] of optional) {
+    // Two optional systems in one room are alternatives, as a Medbay and Clone Bay are: once one is fitted the other is
+    // not rolled, before it could cost budget. INFERRED: the earlier-listed one is rolled first (the Medbay/Clone Bay
+    // pair keeps its own rule below). The stand-in seats a system its picture has no room of its own for this way.
+    const room = roomOf?.get(id);
+    const held =
+      room != null &&
+      [...levels.keys()].some((other) => roomOf?.get(other) === room && !bayPair(id, other));
+    if (held) continue;
     if (rand() >= optionalChance(ctx.sector, ctx.difficulty)) continue;
     // Mathchamp: installed "at its starting power". "If the optional system is weapons, drone control, or teleporter
     // (not artillery), then it reduces the remaining offensive budget by 1. Other systems reduce the general budget ...
@@ -1137,24 +1146,58 @@ export function fightHull(
   return undefined;
 }
 
+/** A Medbay and a Clone Bay share a room in ftl.dat; generateSystems keeps one of them. */
+function bayPair(a: EnemySystem, b: EnemySystem): boolean {
+  return (a === "medbay" && b === "clonebay") || (a === "clonebay" && b === "medbay");
+}
+
 /**
  * The blueprint's systems after Mathchamp's generation (generateSystems): each system's `power` is its starting level
  * and `max` its blueprint maximum; a `start="false"` system is optional. ftl.dat's REBEL_SKINNY shields are
  * power 2, max 8, so they rise with the sector instead of staying at 2.
+ * On a hull with a room grid, a system with no room of the grid, or whose room a starting system already holds (ftl.dat's
+ * BOSS_SPECIAL lists teleporter and an optional mind control both in room 3), is warned about and left out before the
+ * budget is spent, so no bars go to a system the ship cannot seat.
  */
 function installedSystems(
   hull: HullDef,
   ctx: PoolContext,
   rand: () => number,
 ): [EnemySystem, number][] {
+  const boxes = new Set(
+    (hull.grid?.rooms ?? []).filter((room) => room.w > 0 || room.h > 0).map((room) => room.id),
+  );
   const starting = new Map<EnemySystem, Range>();
   const optional = new Map<EnemySystem, Range>();
-  for (const item of hull.installs ?? []) {
-    if (item.power < 1) continue;
+  const roomOf = new Map<EnemySystem, number>();
+  const rows = (hull.installs ?? []).filter((item) => item.power >= 1);
+  // Starting systems first, so an optional system never takes a starting system's room.
+  const ordered = [...rows.filter((item) => item.start), ...rows.filter((item) => !item.start)];
+  for (const item of ordered) {
     const id = FROM_INSTALL[item.id];
     if (!id) {
       warnPack(`${hull.id}: system "${item.id}" is not a system this fight runs; it is skipped.`);
       continue;
+    }
+    if (boxes.size > 0 && !roomOf.has(id)) {
+      if (item.room == null || !boxes.has(item.room)) {
+        warnPack(
+          item.room == null
+            ? `${hull.id}: system "${id}" has no room; it is not fitted.`
+            : `${hull.id}: system "${id}" is in room ${item.room}, which the layout lacks; it is not fitted.`,
+        );
+        continue;
+      }
+      const holder = [...starting.keys()].find(
+        (other) => roomOf.get(other) === item.room && other !== id && !bayPair(id, other),
+      );
+      if (holder) {
+        warnPack(
+          `${hull.id}: system "${id}" is in room ${item.room}, which ${holder} holds; it is not fitted.`,
+        );
+        continue;
+      }
+      roomOf.set(id, item.room);
     }
     const range: Range = [item.power, Math.max(item.power, item.max ?? item.power)];
     const into = item.start ? starting : optional;
@@ -1162,7 +1205,13 @@ function installedSystems(
     into.set(id, prev ? [Math.max(prev[0], range[0]), Math.max(prev[1], range[1])] : range);
   }
   for (const id of starting.keys()) optional.delete(id);
-  return generateSystems([...starting], [...optional], ctx, rand);
+  return generateSystems(
+    [...starting],
+    [...optional],
+    ctx,
+    rand,
+    boxes.size > 0 ? roomOf : undefined,
+  );
 }
 
 /**
@@ -1189,15 +1238,27 @@ function emptyHall(): { rooms: EnemyRoomSpec[]; cols: number; rows: number } {
   };
 }
 
-/** The blueprint's own rooms. A hull with no grid uses the same fallback as a class with no interior. */
+/**
+ * The blueprint's own rooms. A hull with no grid uses the same fallback as a class with no interior.
+ * A fitted system the grid has no room for (an install with no room, or one whose room another fitted system already
+ * holds, as ftl.dat's BOSS_SPECIAL puts teleporter and mind control both in room 3) is warned about and left out of
+ * `seated`, so the fight does not fit it; it never gets a room off the hull.
+ */
 function seatHull(
   hull: HullDef,
   installed: [EnemySystem, number][],
-): { rooms: EnemyRoomSpec[]; cols: number; rows: number; marks?: DoorMark[] } {
+): {
+  rooms: EnemyRoomSpec[];
+  cols: number;
+  rows: number;
+  marks?: DoorMark[];
+  seated: ReadonlySet<EnemySystem>;
+} {
   const ids = installed.map(([id]) => id);
   const grid = hull.grid;
   const boxes = grid?.rooms.filter((room) => room.w > 0 || room.h > 0) ?? [];
-  if (!grid || boxes.length === 0) return ids.length ? layout(ids) : emptyHall();
+  if (!grid || boxes.length === 0)
+    return { ...(ids.length ? layout(ids) : emptyHall()), seated: new Set(ids) };
   const have = new Set(ids);
   const taken = new Set<EnemySystem>();
   let hall = 0;
@@ -1224,22 +1285,18 @@ function seatHull(
   }
   for (const id of ids) {
     if (taken.has(id)) continue;
-    const kit = KIT[id];
-    rooms.push({
-      id: `e-${id}`,
-      title: TITLE[id],
-      system: RUN[id] ?? null,
-      ...(kit ? { kit } : {}),
-      x: cols,
-      y: 0,
-      w: 1,
-      h: 1,
-    });
-    cols += 1;
+    const room = (hull.installs ?? []).find(
+      (row) => FROM_INSTALL[row.id] === id && row.power >= 1 && row.room != null,
+    )?.room;
+    warnPack(
+      room == null
+        ? `${hull.id}: system "${id}" has no room; it is not fitted.`
+        : `${hull.id}: system "${id}" is in room ${room}, which another system holds or the layout lacks; it is not fitted.`,
+    );
   }
-  if (rooms.length === 0) return emptyHall();
+  if (rooms.length === 0) return { ...emptyHall(), seated: taken };
   const marks = grid.doors.length > 0 ? marksFromDoors(grid) : undefined;
-  return { rooms, cols, rows, ...(marks ? { marks } : {}) };
+  return { rooms, cols, rows, ...(marks ? { marks } : {}), seated: taken };
 }
 
 /**
@@ -1269,8 +1326,9 @@ export function blueprintHull(hull: Pick<HullDef, "health">, ctx: PoolContext): 
 }
 
 export function specFromHull(hull: HullDef, ctx: PoolContext, rand: () => number): EnemySpec {
-  const installed = installedSystems(hull, ctx, rand);
-  const seated = seatHull(hull, installed);
+  const rolled = installedSystems(hull, ctx, rand);
+  const seated = seatHull(hull, rolled);
+  const installed = rolled.filter(([id]) => seated.seated.has(id));
   const systems: EnemySpec["systems"] = {};
   const kits: EnemySpec["kits"] = {};
   const unwired: EnemySpec["unwired"] = [];

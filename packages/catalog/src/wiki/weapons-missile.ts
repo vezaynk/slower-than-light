@@ -5,7 +5,7 @@ import type { WeaponDef } from "../content.ts";
  * Wiki page "Missile (Weapons)".
  * ===Leto Missiles=== and ===Artemis Missiles=== are not emitted.
  * ===Artemis Missiles (enemy)=== is power 2 and 10s, not power 1 and 11s, so it is artemisEnemy.
- * kind is "missile". That already ignores shields. No extra field.
+ * kind is "missile". Shield passing is not the kind: pack/base.ts writes `<sp>5</sp>` on every missile, as ftl.dat does.
  * Lead: "Missile weapons consume 1 missile ammunition each time they fire." ammo is true.
  * Swarm and Pegasus still spend 1 per volley. No section says otherwise.
  */

@@ -2817,7 +2817,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Dart</title>
     <short>Dart</short>
-    <desc>Fires 1 shot of 2 damage, every 14 seconds. 10% fire, 25% breach, uses a missile.</desc>
+    <desc>Fires 1 shot of 2 damage, every 14 seconds. 10% fire, 25% breach, uses a missile, pierces 5 shield layers.</desc>
     <tooltip>Ignores shields. Spends one missile. Can still miss.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -2828,6 +2828,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <breachChance>2.5</breachChance>
     <ion>0</ion>
     <missiles>1</missiles>
+    <sp>5</sp>
     <weaponArt>dart</weaponArt>
     <image>dart_shot</image>
     <iconImage>img/weapons/dart.png</iconImage>
@@ -2882,7 +2883,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Artemis Missiles</title>
     <short>Artemis</short>
-    <desc>Fires 1 shot of 2 damage, every 11 seconds. 10% stun, uses a missile.</desc>
+    <desc>Fires 1 shot of 2 damage, every 11 seconds. 10% stun, uses a missile, pierces 5 shield layers.</desc>
     <tooltip>Ignores shields. Two damage. Spends one missile. Can still miss.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -2894,6 +2895,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <missiles>1</missiles>
     <speed>35</speed>
+    <sp>5</sp>
     <stunChance>1</stunChance>
     <weaponArt>MISSILES_2_PLAYER</weaponArt>
     <image>MISSILES_2_PLAYER_shot</image>
@@ -2916,7 +2918,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Leto Missiles</title>
     <short>Leto Missiles</short>
-    <desc>Fires 1 shot of 1 damage, every 9 seconds. 10% stun, uses a missile.</desc>
+    <desc>Fires 1 shot of 1 damage, every 9 seconds. 10% stun, uses a missile, pierces 5 shield layers.</desc>
     <tooltip>Ignores shields. One damage. Spends one missile. Can still miss.</tooltip>
     <damage>1</damage>
     <shots>1</shots>
@@ -2928,6 +2930,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <missiles>1</missiles>
     <speed>35</speed>
+    <sp>5</sp>
     <stunChance>1</stunChance>
     <weaponArt>MISSILES_1</weaponArt>
     <image>MISSILES_1_shot</image>
@@ -3837,6 +3840,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <missiles>1</missiles>
     <speed>35</speed>
+    <sp>5</sp>
     <stunChance>1</stunChance>
     <weaponArt>MISSILES_2</weaponArt>
     <image>MISSILES_2_shot</image>
@@ -3859,7 +3863,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Hermes Missile</title>
     <short>Hermes Missile</short>
-    <desc>Fires 1 shot of 3 damage, every 14 seconds. 10% stun, 30% fire, uses a missile.</desc>
+    <desc>Fires 1 shot of 3 damage, every 14 seconds. 10% stun, 30% fire, uses a missile, pierces 5 shield layers.</desc>
     <tooltip>Standard but powerful missile.</tooltip>
     <damage>3</damage>
     <shots>1</shots>
@@ -3871,6 +3875,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <missiles>1</missiles>
     <speed>35</speed>
+    <sp>5</sp>
     <stunChance>1</stunChance>
     <weaponArt>MISSILES_3</weaponArt>
     <image>MISSILES_3_shot</image>
@@ -3893,7 +3898,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Breach Missiles</title>
     <short>Breach</short>
-    <desc>Fires 1 shot of 4 damage, every 22 seconds. 10% stun, 30% fire, 56% breach, uses a missile.</desc>
+    <desc>Fires 1 shot of 4 damage, every 22 seconds. 10% stun, 30% fire, 56% breach, uses a missile, pierces 5 shield layers.</desc>
     <tooltip>These missiles are designed to cause maximum destruction to ship hull armor.</tooltip>
     <damage>4</damage>
     <shots>1</shots>
@@ -3905,6 +3910,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <missiles>1</missiles>
     <speed>35</speed>
+    <sp>5</sp>
     <stunChance>1</stunChance>
     <weaponArt>MISSILES_BREACH</weaponArt>
     <image>MISSILES_BREACH_shot</image>
@@ -3927,7 +3933,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Hull Missile</title>
     <short>Hull Missile</short>
-    <desc>Fires 1 shot of 2 damage, every 17 seconds. 10% stun, 27% breach, uses a missile.</desc>
+    <desc>Fires 1 shot of 2 damage, every 17 seconds. 10% stun, 27% breach, uses a missile, pierces 5 shield layers.</desc>
     <tooltip>High hull damage plus a decent breach chance.</tooltip>
     <damage>2</damage>
     <shots>1</shots>
@@ -3939,6 +3945,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <missiles>1</missiles>
     <speed>35</speed>
+    <sp>5</sp>
     <hullBust>1</hullBust>
     <stunChance>1</stunChance>
     <weaponArt>MISSILES_HULL</weaponArt>
@@ -3962,7 +3969,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Swarm Missiles</title>
     <short>Swarm Missiles</short>
-    <desc>Fires 1 shot of 1 damage, every 7 seconds, and banks up to 3 volleys. Uses a missile.</desc>
+    <desc>Fires 1 shot of 1 damage, every 7 seconds, and banks up to 3 volleys. Uses a missile, pierces 5 shield layers.</desc>
     <tooltip>If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.</tooltip>
     <flavorType>Stacked Missile Salvo</flavorType>
     <damage>1</damage>
@@ -3975,6 +3982,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <missiles>1</missiles>
     <speed>45</speed>
+    <sp>5</sp>
     <radius>31</radius>
     <chargeLevels>3</chargeLevels>
     <drone_targetable>1</drone_targetable>
@@ -3999,7 +4007,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <type>MISSILE</type>
     <title>Pegasus Missile</title>
     <short>Pegasus</short>
-    <desc>Fires 2 shots of 2 damage, every 20 seconds. 10% stun, 30% fire, uses a missile.</desc>
+    <desc>Fires 2 shots of 2 damage, every 20 seconds. 10% stun, 30% fire, uses a missile, pierces 5 shield layers.</desc>
     <tooltip>Creative missile design allows for two projectiles for the cost of one!</tooltip>
     <damage>2</damage>
     <shots>2</shots>
@@ -4011,6 +4019,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <missiles>1</missiles>
     <speed>35</speed>
+    <sp>5</sp>
     <stunChance>1</stunChance>
     <weaponArt>MISSILES_BURST</weaponArt>
     <image>MISSILES_BURST_shot</image>
@@ -4044,6 +4053,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <missiles>1</missiles>
     <speed>35</speed>
+    <sp>5</sp>
     <weaponArt>ARTILLERY_BOSS_2</weaponArt>
     <image>ARTILLERY_BOSS_2_shot</image>
     <iconImage>img/weapons/ARTILLERY_BOSS_2.png</iconImage>
@@ -4673,6 +4683,21 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <fireChance>1</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
+    <rarity>0</rarity>
+  </weaponBlueprint>
+  <weaponBlueprint name="PDS_SHOT">
+    <type>LASER</type>
+    <title>PDS Shot</title>
+    <tooltip>The anti-ship battery's shot.</tooltip>
+    <damage>3</damage>
+    <shots>1</shots>
+    <power>0</power>
+    <cooldown>0</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>10</breachChance>
+    <ion>0</ion>
+    <sp>5</sp>
     <rarity>0</rarity>
   </weaponBlueprint>
   <augBlueprint name="AUTO_COOLDOWN">

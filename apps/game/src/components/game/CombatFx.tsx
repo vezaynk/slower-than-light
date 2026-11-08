@@ -37,6 +37,7 @@ import { DRONE_LABEL, enemyDroneSpot, playerDroneCruising } from "@/game/extras/
 import { stepDrift, type DroneDrift } from "@/game/drone-drift";
 import { BEAM_HOLD_S, orbitChordPose } from "@/game/wiki/cited-combat2";
 import { roomInterior } from "@/game/extras/slug-sight";
+import { flownAs } from "@/game/extras/flown";
 // @agent:combat-ui. Enemy hacking drone flight / latch / pulse (read-only view).
 import { enemyHackView, playerHackView } from "@/game/extras/spike";
 // @agent:flagship. Stage-2 Power Surge drones (read-only view).
@@ -255,9 +256,11 @@ const ENEMY_DRONE_KEY: Record<string, DroneKey> = {
   DRONE_SHIELD: "overcharge",
 };
 
+/** A schematic the art does not name draws as the one whose flight code runs it (extras/flown.ts). */
 function enemyDroneKey(unit: DroneUnit): DroneKey | null {
-  if (unit.kind === "COMBAT_FIRE" || unit.kind === "fire") return "fire";
-  return ENEMY_DRONE_KEY[unit.kind] ?? droneKeyOf(unit.kind);
+  const kind = flownAs(unit.kind) ?? unit.kind;
+  if (kind === "COMBAT_FIRE" || kind === "fire") return "fire";
+  return ENEMY_DRONE_KEY[kind] ?? droneKeyOf(kind);
 }
 
 /** The archive blueprint is COMBAT_FIRE. The stand-in look is fire. Either sheet's nose points right. */

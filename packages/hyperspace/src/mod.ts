@@ -81,13 +81,23 @@ export function emitMod(pack: ContentPack): string {
       root.appendChild(node);
     }
   }
-  // The default start and exit events, the escape timers, and the enemy targeting numbers, in the same tags the gap
-  // file writes.
-  if (pack.beaconEvents || pack.escapeTimers || pack.aiTarget) {
+  // The default start and exit events, escape timers, enemy targeting numbers, and the hazard and drone-orbit rules,
+  // in the same tags the gap file writes.
+  if (
+    pack.beaconEvents ||
+    pack.escapeTimers ||
+    pack.aiTarget ||
+    pack.asteroidField ||
+    pack.pulsar ||
+    pack.droneOrbit
+  ) {
     const rules: ContentPack = {};
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
     if (pack.escapeTimers) rules.escapeTimers = pack.escapeTimers;
     if (pack.aiTarget) rules.aiTarget = pack.aiTarget;
+    if (pack.asteroidField) rules.asteroidField = pack.asteroidField;
+    if (pack.pulsar) rules.pulsar = pack.pulsar;
+    if (pack.droneOrbit) rules.droneOrbit = pack.droneOrbit;
     const gap = readXml(emitGapDocument(rules)).documentElement;
     for (const child of gap ? elementChildren(gap) : [])
       root.appendChild(doc.importNode(child, true));
@@ -165,6 +175,9 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (escapes) pack.escapes = escapes;
   if (parsed.escapeTimers) pack.escapeTimers = parsed.escapeTimers;
   if (parsed.aiTarget) pack.aiTarget = parsed.aiTarget;
+  if (parsed.asteroidField) pack.asteroidField = parsed.asteroidField;
+  if (parsed.pulsar) pack.pulsar = parsed.pulsar;
+  if (parsed.droneOrbit) pack.droneOrbit = parsed.droneOrbit;
   return pack;
 }
 

@@ -13,7 +13,7 @@ import {
   tickEnemyDrones,
   tickSwarm,
 } from "../extras/swarm.ts";
-import { COMBAT2, orbitLegSeconds } from "./cited-combat2.ts";
+import { COMBAT2, orbitLegSeconds } from "../rules/combat2.ts";
 import { applyImpact, createGame, startCombat, step } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
 import { citedSellQuote, citedStock } from "./cited-stores.ts";

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { continueReward, createGame, startCombat, step } from "../sim.ts";
 import { BEAM1_SPEED, DRONE_LABEL } from "../extras/swarm.ts";
-import { COMBAT1_SPEED, orbitLegSeconds } from "./cited-combat2.ts";
+import { COMBAT1_SPEED, orbitLegSeconds } from "../rules/combat2.ts";
 import type { Game } from "../types.ts";
 
 function bossFight(seed: number): Game {

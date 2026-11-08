@@ -21,6 +21,10 @@ import type {
   EventTier,
   AiTarget,
   EscapeTimers,
+  AsteroidField,
+  AsteroidTiming,
+  PulsarRules,
+  DroneOrbit,
   FactionEscape,
   FactionSurrender,
   FillerListDef,
@@ -82,6 +86,12 @@ let escapeTimersValue: EscapeTimers = {};
 let baseEscapeTimers: EscapeTimers = {};
 let aiTargetValue: AiTarget = {};
 let baseAiTarget: AiTarget = {};
+let asteroidFieldValue: AsteroidField = {};
+let baseAsteroidField: AsteroidField = {};
+let pulsarValue: PulsarRules = {};
+let basePulsar: PulsarRules = {};
+let droneOrbitValue: DroneOrbit = {};
+let baseDroneOrbit: DroneOrbit = {};
 let baseBeaconEvents: BeaconEvents = {};
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
@@ -577,6 +587,12 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseEscapeTimers = { ...pack.escapeTimers };
     aiTargetValue = { ...pack.aiTarget };
     baseAiTarget = { ...pack.aiTarget };
+    asteroidFieldValue = copyAsteroidField(pack.asteroidField);
+    baseAsteroidField = copyAsteroidField(asteroidFieldValue);
+    pulsarValue = { ...pack.pulsar };
+    basePulsar = { ...pulsarValue };
+    droneOrbitValue = { ...pack.droneOrbit };
+    baseDroneOrbit = { ...droneOrbitValue };
     storeLocales(pack.locales);
     baseFactions = (pack.factions ?? []).map(copyFaction);
     baseEscapes = (pack.escapes ?? []).map((row) => ({ ...row }));
@@ -609,6 +625,11 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   if (mode === "append" && pack.escapeTimers)
     escapeTimersValue = { ...escapeTimersValue, ...pack.escapeTimers };
   if (mode === "append" && pack.aiTarget) aiTargetValue = { ...aiTargetValue, ...pack.aiTarget };
+  if (mode === "append" && pack.asteroidField)
+    asteroidFieldValue = mergeLoadedAsteroid(asteroidFieldValue, pack.asteroidField);
+  if (mode === "append" && pack.pulsar) pulsarValue = { ...pulsarValue, ...pack.pulsar };
+  if (mode === "append" && pack.droneOrbit)
+    droneOrbitValue = { ...droneOrbitValue, ...pack.droneOrbit };
   if (mode === "append" && pack.locales) mergeStoredLocales(pack.locales);
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
@@ -1081,6 +1102,162 @@ export function aiTarget(key: keyof AiTarget): number {
   return FTL_AI_TARGET[key];
 }
 
+function copySpan(span: [number, number]): [number, number] {
+  return [span[0], span[1]];
+}
+
+function copyAsteroidTiming(row: AsteroidTiming): AsteroidTiming {
+  return {
+    bubbles: row.bubbles,
+    break: copySpan(row.break),
+    wave1: copySpan(row.wave1),
+    wave2: copySpan(row.wave2),
+    spawn1: copySpan(row.spawn1),
+    spawn2: copySpan(row.spawn2),
+  };
+}
+
+function copyAsteroidField(row: AsteroidField | undefined): AsteroidField {
+  if (!row) return {};
+  const copy: AsteroidField = {};
+  if (row.fire != null) copy.fire = row.fire;
+  if (row.breach != null) copy.breach = row.breach;
+  if (row.timings) copy.timings = row.timings.map(copyAsteroidTiming);
+  return copy;
+}
+
+function mergeLoadedAsteroid(prev: AsteroidField, extra: AsteroidField): AsteroidField {
+  const next = copyAsteroidField(prev);
+  if (extra.fire != null) next.fire = extra.fire;
+  if (extra.breach != null) next.breach = extra.breach;
+  if (extra.timings) {
+    const rows = [...(next.timings ?? [])];
+    for (const row of extra.timings) {
+      const copy = copyAsteroidTiming(row);
+      const at = rows.findIndex((item) => item.bubbles === copy.bubbles);
+      if (at >= 0) rows[at] = copy;
+      else rows.push(copy);
+    }
+    next.timings = rows;
+  }
+  return next;
+}
+
+/**
+ * xftl doc/asteroids, the table by shield bubbles (0–1, 2, 3, 4+). Side chances are Environmental Hazards, Asteroid
+ * Field: a small chance of fire or a breach. INFERRED: 5 percent each, fire first. Used only when no loaded pack sets
+ * the value, with a warning.
+ */
+const FTL_ASTEROID_TIMINGS: readonly AsteroidTiming[] = [
+  {
+    bubbles: 1,
+    break: [5, 10],
+    wave1: [8, 16],
+    wave2: [5, 8],
+    spawn1: [1.8, 2.2],
+    spawn2: [1.4, 1.6],
+  },
+  {
+    bubbles: 2,
+    break: [5, 10],
+    wave1: [10, 20],
+    wave2: [5, 10],
+    spawn1: [1, 1.8],
+    spawn2: [0.9, 1.3],
+  },
+  {
+    bubbles: 3,
+    break: [12, 15],
+    wave1: [16, 28],
+    wave2: [8, 13],
+    spawn1: [0.9, 1.4],
+    spawn2: [0.9, 1.3],
+  },
+  {
+    bubbles: 4,
+    break: [12, 15],
+    wave1: [16, 30],
+    wave2: [8, 11],
+    spawn1: [0.72, 1.35],
+    spawn2: [0.54, 0.95],
+  },
+];
+const FTL_ASTEROID_ODDS = { fire: 0.05, breach: 0.05 } as const;
+
+/** The loaded `<asteroidField>`, as authored (no defaults filled in). */
+export function asteroidField(): AsteroidField {
+  return copyAsteroidField(asteroidFieldValue);
+}
+
+/** One bubble band (1 = 0–1, 4 = 4+). A pack that omits the band gets FTL's, with one warning. */
+export function asteroidTiming(bubbles: 1 | 2 | 3 | 4): AsteroidTiming {
+  const row = asteroidFieldValue.timings?.find((item) => item.bubbles === bubbles);
+  if (row) return copyAsteroidTiming(row);
+  const fallback = FTL_ASTEROID_TIMINGS.find((item) => item.bubbles === bubbles);
+  warnPack(`No <asteroidField> timing for ${bubbles} bubbles is loaded; FTL's row is used.`);
+  return copyAsteroidTiming(fallback ?? FTL_ASTEROID_TIMINGS[0]);
+}
+
+/** Chance a rock starts a fire, or a breach after fire misses. A pack that omits it gets FTL's, with one warning. */
+export function asteroidOdds(kind: "fire" | "breach"): number {
+  const chance = asteroidFieldValue[kind];
+  if (chance != null) return chance;
+  warnPack(`No <asteroidField ${kind}> is loaded; FTL's ${FTL_ASTEROID_ODDS[kind]} is used.`);
+  return FTL_ASTEROID_ODDS[kind];
+}
+
+/**
+ * Environmental Hazards, Pulsar: a pulse every 11–18 seconds, a 5 second warning, 3 or 4 ion on a Zoltan Shield, and
+ * ion of 1 + 0.5(power) rounded down. Used only when no loaded pack sets `<pulsar>`, with a warning.
+ */
+const FTL_PULSAR: Required<PulsarRules> = {
+  cycleMin: 11,
+  cycleMax: 18,
+  warn: 5,
+  shieldLow: 3,
+  shieldHigh: 4,
+  ionBase: 1,
+  ionPerPower: 0.5,
+};
+
+/** The loaded `<pulsar>`, as authored (no defaults filled in). */
+export function pulsarRules(): PulsarRules {
+  return { ...pulsarValue };
+}
+
+/** One pulsar number (gap `<pulsar>`). A pack that omits it gets FTL's, with one warning. */
+export function pulsarRule(key: keyof PulsarRules): number {
+  const value = pulsarValue[key];
+  if (value != null) return value;
+  warnPack(`No <pulsar ${key}> is loaded; FTL's ${FTL_PULSAR[key]} is used.`);
+  return FTL_PULSAR[key];
+}
+
+/**
+ * xftl doc/combat-drone: 90° separation, speed divided by 21.875, stop at 1.15, 0.5 s pause, 0.5 s beam hold.
+ * Used only when no loaded pack sets `<droneOrbit>`, with a warning. Blueprint `<speed>` is not one of these.
+ */
+const FTL_DRONE_ORBIT: Required<DroneOrbit> = {
+  minSep: 90,
+  speedScale: 21.875,
+  stopRadius: 1.15,
+  firePause: 0.5,
+  beamHold: 0.5,
+};
+
+/** The loaded `<droneOrbit>`, as authored (no defaults filled in). */
+export function droneOrbitRules(): DroneOrbit {
+  return { ...droneOrbitValue };
+}
+
+/** One orbit number (gap `<droneOrbit>`). A pack that omits it gets FTL's, with one warning. */
+export function droneOrbit(key: keyof DroneOrbit): number {
+  const value = droneOrbitValue[key];
+  if (value != null) return value;
+  warnPack(`No <droneOrbit ${key}> is loaded; FTL's ${FTL_DRONE_ORBIT[key]} is used.`);
+  return FTL_DRONE_ORBIT[key];
+}
+
 export function emptyBeacon(id: string | undefined): EmptyBeaconDef | undefined {
   if (!id) return undefined;
   return empties.get(id);
@@ -1130,6 +1307,9 @@ export function resetPackForTests(): void {
   beaconEventsValue = { ...baseBeaconEvents };
   escapeTimersValue = { ...baseEscapeTimers };
   aiTargetValue = { ...baseAiTarget };
+  asteroidFieldValue = copyAsteroidField(baseAsteroidField);
+  pulsarValue = { ...basePulsar };
+  droneOrbitValue = { ...baseDroneOrbit };
   resetLocales();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));

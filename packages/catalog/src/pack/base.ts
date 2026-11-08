@@ -44,6 +44,9 @@ import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
 import { AI_TARGET } from "../wiki/targeting-rules.ts";
+import { ASTEROID_FIELD } from "../wiki/asteroid-rules.ts";
+import { PULSAR_RULES } from "../wiki/pulsar-rules.ts";
+import { DRONE_ORBIT } from "../wiki/drone-orbit.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
@@ -1048,6 +1051,7 @@ const HULL_BUST = new Set(["LASER_HULL_1", "LASER_HULL_2", "BEAM_HULL", "MISSILE
 /**
  * `<sp>`: the shield layers a projectile passes. The bubble stops it when more layers are up.
  * ftl.dat writes `<sp>5</sp>` on every MISSILES blueprint, so every stand-in missile writes 5 too.
+ * Enemy generation reads it: a missile above 3 does not count for Mathchamp's laser flag.
  * The crystal guns and LASER_HEAVY_1_SP write 1, as their ftl.dat namesakes do. Other guns write none.
  */
 const MISSILE_PIERCE = 5;
@@ -1380,6 +1384,20 @@ export function loadCatalog(): void {
       escapes: FACTION_ESCAPE.map((row) => ({ ...row })),
       escapeTimers: { ...ESCAPE_TIMERS },
       aiTarget: { ...AI_TARGET },
+      asteroidField: {
+        fire: ASTEROID_FIELD.fire,
+        breach: ASTEROID_FIELD.breach,
+        timings: ASTEROID_FIELD.timings?.map((row) => ({
+          bubbles: row.bubbles,
+          break: [...row.break] as [number, number],
+          wave1: [...row.wave1] as [number, number],
+          wave2: [...row.wave2] as [number, number],
+          spawn1: [...row.spawn1] as [number, number],
+          spawn2: [...row.spawn2] as [number, number],
+        })),
+      },
+      pulsar: { ...PULSAR_RULES },
+      droneOrbit: { ...DRONE_ORBIT },
       events,
       lists: [
         ...fillerListRecords().map(listRow),

@@ -149,6 +149,13 @@ export {
   escapeTimers,
   aiTarget,
   aiTargets,
+  asteroidField,
+  asteroidTiming,
+  asteroidOdds,
+  pulsarRules,
+  pulsarRule,
+  droneOrbitRules,
+  droneOrbit,
 } from "./registry.ts";
 export { localeString, packLocales } from "./locales.ts";
 export type {
@@ -194,6 +201,10 @@ export type {
   EventTier,
   AiTarget,
   EscapeTimers,
+  AsteroidField,
+  AsteroidTiming,
+  PulsarRules,
+  DroneOrbit,
   FactionEscape,
   FactionSurrender,
   NamedReward,

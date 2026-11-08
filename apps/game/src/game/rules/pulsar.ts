@@ -1,13 +1,15 @@
-import type { SysId } from "../types.ts";
-
-/** A pulsar pick. "battery" is the Backup Battery subsystem, which is not a SysId. */
-export type PulsarId = SysId | "battery";
-
 /**
  * Environmental Hazards, ==Pulsar==, and Zoltan Shield, lead.
  * Pirate fight near pulsar, Rebel fight near pulsar, and Lanius fight near pulsar
  * set pulsar=true on the Locations line. No other fetched page does.
+ *
+ * The numbers are gap `<pulsar>` (`pulsarRule`). No event or hazard blueprint carries them.
  */
+import type { SysId } from "../types.ts";
+import { pulsarRule } from "@stl/pack";
+
+/** A pulsar pick. "battery" is the Backup Battery subsystem, which is not a SysId. */
+export type PulsarId = SysId | "battery";
 
 /** True when the cited event slug is one of those pulsar fights. */
 export function eventHasPulsar(event: string | undefined): boolean {
@@ -18,28 +20,38 @@ export function eventHasPulsar(event: string | undefined): boolean {
  * Environmental Hazards, Pulsar: an ion pulse every 11--18 seconds.
  * INFERRED: uniform, and the printed top is not its own bucket, same as the battery.
  * INFERRED: that span is the whole cycle. The 5 second warning is the last part of it.
+ * Gap `<pulsar cycleMin cycleMax>`.
  */
 export function pulsarCycleSeconds(roll: number): number {
-  return 11 + roll * 7;
+  const min = pulsarRule("cycleMin");
+  const max = pulsarRule("cycleMax");
+  return min + roll * (max - min);
 }
 
-/** Seconds the warning leads the pulse. Environmental Hazards, Pulsar: 5 seconds beforehand. */
-export const PULSAR_WARN_S = 5;
+/**
+ * Seconds the warning leads the pulse. Environmental Hazards, Pulsar: 5 seconds beforehand.
+ * Gap `<pulsar warn>`.
+ */
+export function pulsarWarnSeconds(): number {
+  return pulsarRule("warn");
+}
 
 /**
  * Zoltan Shield, lead: the bubble "taking 3 or 4 ion damage".
  * INFERRED: the page does not say which, so each pulse is an even split.
+ * Gap `<pulsar shieldLow shieldHigh>`.
  */
-export function pulsarShieldSpend(roll: number): 3 | 4 {
-  return roll < 0.5 ? 3 : 4;
+export function pulsarShieldSpend(roll: number): number {
+  return roll < 0.5 ? pulsarRule("shieldLow") : pulsarRule("shieldHigh");
 }
 
 /**
  * Environmental Hazards, Pulsar: ion damage = 1 + 0.5(system power), rounded down.
  * Unpowered shields are the 0-power case, which is 1.
+ * Gap `<pulsar ionBase ionPerPower>`.
  */
 export function pulsarMainIon(power: number): number {
-  return Math.floor(1 + 0.5 * Math.max(0, power));
+  return Math.floor(pulsarRule("ionBase") + pulsarRule("ionPerPower") * Math.max(0, power));
 }
 
 export type PulsarPick = { id: PulsarId; points: number; powered: boolean };

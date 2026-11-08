@@ -29,7 +29,7 @@ import {
   ionHitsDrone,
   tickSwarm,
 } from "./swarm.ts";
-import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
+import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../rules/combat2.ts";
 
 const OFFENSIVE = [
   "COMBAT_1",

@@ -35,7 +35,7 @@ import {
 } from "@/game/gear-look";
 import { DRONE_LABEL, enemyDroneSpot, playerDroneCruising } from "@/game/extras/swarm";
 import { stepDrift, type DroneDrift } from "@/game/drone-drift";
-import { BEAM_HOLD_S, orbitChordPose } from "@/game/wiki/cited-combat2";
+import { beamHoldSeconds, orbitChordPose } from "@/game/rules/combat2";
 import { roomInterior } from "@/game/extras/slug-sight";
 import { flownAs } from "@/game/extras/flown";
 // @agent:combat-ui. Enemy hacking drone flight / latch / pulse (read-only view).
@@ -667,7 +667,7 @@ export function CombatFx() {
                 unit.left ?? 0,
                 around.w / 2 + 22 * s,
                 around.h / 2 + 18 * s,
-                BEAM_HOLD_S,
+                beamHoldSeconds(),
               );
               p = { x: cx + pose.x, y: cy + pose.y };
               facing = pose.angle;

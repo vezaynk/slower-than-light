@@ -26,6 +26,10 @@ import type {
   EventTier,
   EscapeTimers,
   AiTarget,
+  AsteroidField,
+  AsteroidTiming,
+  PulsarRules,
+  DroneOrbit,
   FactionEscape,
   FactionSurrender,
   FillerEntry,
@@ -497,6 +501,151 @@ export function readEscapeTimers(node: XmlElement): EscapeTimers {
   return out;
 }
 
+const ASTEROID_BUBBLES = new Set([1, 2, 3, 4]);
+
+function readSpan(node: XmlElement, minKey: string, maxKey: string): [number, number] | undefined {
+  const min = attrNum(node.getAttribute(minKey));
+  const max = attrNum(node.getAttribute(maxKey));
+  if (min == null || max == null || min < 0 || max < min) return undefined;
+  return [min, max];
+}
+
+/**
+ * Gap `<asteroidField fire breach>` › `<timing>` (types.ts AsteroidField). A bad chance or a malformed timing row is
+ * skipped with a warning. A missing chance or band stays unset, so the registry keeps the earlier value or FTL's.
+ */
+export function readAsteroidField(node: XmlElement): AsteroidField {
+  const out: AsteroidField = {};
+  for (const key of ["fire", "breach"] as const) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const chance = attrNum(raw);
+    if (chance == null || chance < 0 || chance > 1) {
+      warnPack(`asteroidField: ${key}="${raw}" is not a chance from 0 to 1; it is skipped.`);
+      continue;
+    }
+    out[key] = chance;
+  }
+  const timings: AsteroidTiming[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "timing") continue;
+    const bubbles = attrNum(item.getAttribute("bubbles"));
+    const spans = {
+      break: readSpan(item, "breakMin", "breakMax"),
+      wave1: readSpan(item, "wave1Min", "wave1Max"),
+      wave2: readSpan(item, "wave2Min", "wave2Max"),
+      spawn1: readSpan(item, "spawn1Min", "spawn1Max"),
+      spawn2: readSpan(item, "spawn2Min", "spawn2Max"),
+    };
+    if (
+      bubbles == null ||
+      !ASTEROID_BUBBLES.has(bubbles) ||
+      !spans.break ||
+      !spans.wave1 ||
+      !spans.wave2 ||
+      !spans.spawn1 ||
+      !spans.spawn2
+    ) {
+      warnPack(
+        `asteroidField: timing bubbles="${item.getAttribute("bubbles") ?? ""}" is malformed; it is skipped.`,
+      );
+      continue;
+    }
+    const row: AsteroidTiming = {
+      bubbles,
+      break: spans.break,
+      wave1: spans.wave1,
+      wave2: spans.wave2,
+      spawn1: spans.spawn1,
+      spawn2: spans.spawn2,
+    };
+    const at = timings.findIndex((timing) => timing.bubbles === bubbles);
+    if (at >= 0) timings[at] = row;
+    else timings.push(row);
+  }
+  if (timings.length > 0) out.timings = timings;
+  return out;
+}
+
+/** Later file wins per attribute. Timing rows replace the same `bubbles` band and keep the rest. */
+export function mergeAsteroidField(
+  prev: AsteroidField | undefined,
+  next: AsteroidField,
+): AsteroidField {
+  const timings = [...(prev?.timings ?? [])];
+  for (const row of next.timings ?? []) {
+    const at = timings.findIndex((timing) => timing.bubbles === row.bubbles);
+    if (at >= 0) timings[at] = row;
+    else timings.push(row);
+  }
+  const merged: AsteroidField = { ...prev };
+  if (next.fire != null) merged.fire = next.fire;
+  if (next.breach != null) merged.breach = next.breach;
+  if (timings.length > 0) merged.timings = timings;
+  return merged;
+}
+
+const PULSAR_KEYS = [
+  "cycleMin",
+  "cycleMax",
+  "warn",
+  "shieldLow",
+  "shieldHigh",
+  "ionBase",
+  "ionPerPower",
+] as const;
+
+/**
+ * Gap `<pulsar …>` (types.ts PulsarRules). A missing or unusable attribute is left out. `cycleMax` below `cycleMin`
+ * drops both.
+ */
+export function readPulsar(node: XmlElement): PulsarRules {
+  const out: PulsarRules = {};
+  for (const key of PULSAR_KEYS) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const value = attrNum(raw);
+    const ion = key === "ionBase" || key === "ionPerPower";
+    const pause = key === "warn";
+    const ok = value != null && (ion || pause ? value >= 0 : value > 0);
+    if (!ok) {
+      warnPack(`pulsar: ${key}="${raw}" is not a usable number; it is skipped.`);
+      continue;
+    }
+    out[key] = value;
+  }
+  if (out.cycleMin != null && out.cycleMax != null && out.cycleMax < out.cycleMin) {
+    warnPack(
+      `pulsar: cycleMax="${out.cycleMax}" is below cycleMin="${out.cycleMin}"; both are skipped.`,
+    );
+    delete out.cycleMin;
+    delete out.cycleMax;
+  }
+  return out;
+}
+
+const ORBIT_KEYS = ["minSep", "speedScale", "stopRadius", "firePause", "beamHold"] as const;
+
+/**
+ * Gap `<droneOrbit …>` (types.ts DroneOrbit). A missing or unusable attribute is left out. `minSep`, `firePause`, and
+ * `beamHold` may be 0. `speedScale` and `stopRadius` must be positive.
+ */
+export function readDroneOrbit(node: XmlElement): DroneOrbit {
+  const out: DroneOrbit = {};
+  for (const key of ORBIT_KEYS) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const value = attrNum(raw);
+    const strict = key === "speedScale" || key === "stopRadius";
+    if (value == null || (strict ? value <= 0 : value < 0)) {
+      warnPack(`droneOrbit: ${key}="${raw}" is not a usable number; it is skipped.`);
+      continue;
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
 const AI_TARGET_CHANCES = ["easy", "normal", "hardRoom", "hardAny"] as const;
 const AI_TARGET_LINES = ["evasion", "oxygen", "artillery"] as const;
 
@@ -864,6 +1013,15 @@ export function parsePack(xml: string): ContentPack {
   const aiTargetNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "aiTarget",
   );
+  const asteroidNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "asteroidField",
+  );
+  const pulsarNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "pulsar",
+  );
+  const orbitNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "droneOrbit",
+  );
   const pack: ContentPack = {
     crew,
     weapons,
@@ -882,6 +1040,9 @@ export function parsePack(xml: string): ContentPack {
   if (escapes.length > 0) pack.escapes = escapes;
   if (timersNode) pack.escapeTimers = readEscapeTimers(timersNode);
   if (aiTargetNode) pack.aiTarget = readAiTarget(aiTargetNode);
+  if (asteroidNode) pack.asteroidField = readAsteroidField(asteroidNode);
+  if (pulsarNode) pack.pulsar = readPulsar(pulsarNode);
+  if (orbitNode) pack.droneOrbit = readDroneOrbit(orbitNode);
   return pack;
 }
 

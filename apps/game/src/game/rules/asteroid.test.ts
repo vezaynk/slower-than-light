@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { commitJump, continueReward, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
+import { loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 import {
-  ASTEROID_TABLE,
   asteroidPhaseSeconds,
   asteroidSide,
   asteroidSpawnSeconds,
   nextAsteroidPhase,
-} from "./cited-asteroid.ts";
+} from "./asteroid.ts";
 
 /** Put the field in a long wave with the next rock due now. */
 function rockNow(g: Game) {
@@ -29,7 +29,6 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
     assert.equal(asteroidSpawnSeconds(2, "wave1", 0), 1.8);
     assert.equal(asteroidSpawnSeconds(8, "wave2", 0), 0.54);
     assert.equal(asteroidSpawnSeconds(12, "wave2", 1), 0.95);
-    assert.equal(ASTEROID_TABLE.length, 4);
     // More bubbles, faster rocks (Environmental Hazards: "more frequently if your shields are highly upgraded").
     assert.ok(asteroidSpawnSeconds(8, "wave1", 0.5) < asteroidSpawnSeconds(0, "wave1", 0.5));
   });
@@ -219,5 +218,36 @@ describe("asteroid field timing (xftl doc/asteroids)", () => {
     assert.equal(g.phase, "map");
     assert.equal(g.enemy, null);
     assert.equal(g.asteroid, true);
+  });
+
+  it("follows a gap file that shortens the break and forces a fire", () => {
+    // FTL's 0-1 bubble break is 5–10 s, so nothing lands in the first two seconds. This gap makes that band a 1 s
+    // break and a 0.2 s spawn, and every rock a fire.
+    loadPack(
+      packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><asteroidField fire="1" breach="0"><timing bubbles="1" breakMin="1" breakMax="1" wave1Min="30" wave1Max="30" wave2Min="5" wave2Max="5" spawn1Min="0.2" spawn1Max="0.2" spawn2Min="1" spawn2Max="1"/></asteroidField></FTL>`,
+        },
+      ]),
+      "append",
+    );
+    try {
+      const g = createGame(9);
+      g.player.systems.shields.level = 2;
+      startCombat(g, "Rebel ship", true);
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy?.weapons ?? []) w.enabled = false;
+      assert.equal(g.asteroidPhase, "break");
+      assert.equal(g.asteroidPhaseLeft, 1);
+      for (let i = 0; i < 28; i++) step(g, 0.05);
+      const rocks = g.shots.filter((s) => s.label === "Rock");
+      assert.ok(rocks.length > 0);
+      assert.ok(rocks.every((s) => s.fireChance === 1 && s.breachChance === 0));
+    } finally {
+      resetPackForTests();
+    }
+    assert.equal(asteroidPhaseSeconds(2, "break", 0), 5);
+    assert.equal(asteroidSide(0.06), "breach");
   });
 });

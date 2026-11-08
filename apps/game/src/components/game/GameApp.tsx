@@ -143,7 +143,7 @@ import {
   upgradeSpike,
 } from "@/game/extras/spike";
 import { create } from "zustand";
-import { LAST_FUEL_SECONDS } from "@/game/wiki/escape";
+import { lastFuelSeconds } from "@/game/rules/escape";
 // @agent:surrender. The surrender card lists the offered cargo.
 import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
 import { augmentDetail, augmentName, bonusAugmentFate, droneName } from "@/game/wiki/bonus-item";
@@ -2205,7 +2205,7 @@ function TargetPanel({
                   aria-hidden={escape.stalled || undefined}
                 >
                   {"FTL CHARGING · "}
-                  <DigitSlot value={escape.left} sample={LAST_FUEL_SECONDS * 2} />s
+                  <DigitSlot value={escape.left} sample={lastFuelSeconds() * 2} />s
                 </span>
                 <span
                   className={escape.stalled ? undefined : "is-reserve"}

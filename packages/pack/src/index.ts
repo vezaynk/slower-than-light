@@ -143,6 +143,10 @@ export {
   tuneDef,
   weaponDef,
   factionSurrender,
+  factionEscape,
+  allFactionEscapes,
+  escapeTimer,
+  escapeTimers,
 } from "./registry.ts";
 export { localeString, packLocales } from "./locales.ts";
 export type {
@@ -186,6 +190,8 @@ export type {
   EventItem,
   EventResource,
   EventTier,
+  EscapeTimers,
+  FactionEscape,
   FactionSurrender,
   NamedReward,
   ResourceReward,

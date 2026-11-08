@@ -1,5 +1,5 @@
 import type { AugmentId, KitId, SysId, WeaponKind } from "@stl/pack";
-import type { EscapePlan } from "./wiki/escape.ts";
+import type { EscapePlan } from "./rules/escape.ts";
 import type { SurrenderPlan } from "./wiki/surrender.ts";
 import type { FlagshipState } from "./wiki/flagship-systems.ts";
 export type { WeaponKind };
@@ -1006,7 +1006,7 @@ export type Game = {
   flee: number;
   /** Enemy escape progress, 0 to 1, against enemyEscape.seconds. Moves only while enemyEscape.running. */
   enemyFlee: number;
-  /** How the current enemy tries to jump away (wiki/escape.ts). Null outside a fight. */
+  /** How the current enemy tries to jump away (rules/escape.ts). Null outside a fight. */
   enemyEscape?: EscapePlan | null;
   /** @agent:surrender. Surrender offer state for the current enemy (wiki/surrender.ts). */
   enemySurrender?: SurrenderPlan | null;

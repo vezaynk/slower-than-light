@@ -6,6 +6,7 @@ import {
   allEmptyBeacons,
   allEvents,
   allFactions,
+  allFactionEscapes,
   allShipClasses,
   allShipLists,
   allBlueprintLists,
@@ -30,6 +31,7 @@ import {
   emitPack,
   rewardTable,
   beaconEvents,
+  escapeTimers,
   type ContentPack,
   type EventDef,
 } from "@stl/pack";
@@ -45,6 +47,8 @@ export function campaignPack(): ContentPack {
     systems: allSystems(),
     hulls: allHulls(),
     factions: allFactions(),
+    escapes: allFactionEscapes(),
+    escapeTimers: escapeTimers(),
     sectors: allSectors(),
     stores: allStores(),
     tunes: allTunes(),
@@ -93,6 +97,8 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       rewards: pack.rewards,
       beaconEvents: pack.beaconEvents,
       factions: pack.factions,
+      escapes: pack.escapes,
+      escapeTimers: pack.escapeTimers,
       empties: pack.empties,
       shipClasses: pack.shipClasses,
       shipLists: pack.shipLists,
@@ -162,8 +168,8 @@ export function standInEventFiles(): { path: string; xml: string }[] {
  * The gap mod. The blueprint append overwrites crew combat and weapon shotGap.
  * Vanilla keeps Lanius in dlcBlueprints.xml and some weapons in that file too.
  * The same finds go in both appends. A find in a file that has no such blueprint does nothing.
- * The sector append adds notes. `data/gap.xml` adds the store, the rewards block, faction offers,
- * and empty beacons.
+ * The sector append adds notes. `data/gap.xml` adds the store, the rewards block, faction surrender and escape
+ * rows, escape timers, and empty beacons.
  */
 export function gapModFiles(): { path: string; xml: string }[] {
   const pack = campaignPack();

@@ -19,6 +19,8 @@ import type {
   EventDef,
   EventEffect,
   EventTier,
+  EscapeTimers,
+  FactionEscape,
   FactionSurrender,
   FillerListDef,
   HullDef,
@@ -46,6 +48,7 @@ import type {
   WeaponBlueprint,
 } from "./types.ts";
 import { mergeStoredLocales, resetLocales, storeLocales } from "./locales.ts";
+import { warnPack } from "./warnings.ts";
 
 const crew = new Map<string, CrewDef>();
 const weapons = new Map<string, WeaponBlueprint>();
@@ -64,6 +67,7 @@ const textLists = new Map<string, TextListDef>();
 const empties = new Map<string, EmptyBeaconDef>();
 const achievements = new Map<string, AchievementDef>();
 const factions = new Map<string, FactionSurrender>();
+const escapes = new Map<string, FactionEscape>();
 const shipClasses = new Map<string, ShipClassDef>();
 const shipLists = new Map<string, ShipListRule>();
 /** Authoring slug to the stored event id. A stored id always wins over an alias. */
@@ -73,6 +77,8 @@ let baseReward: RewardTable | undefined;
 let civilianSectorTitleValue: string | undefined;
 let baseCivilianSectorTitle: string | undefined;
 let beaconEventsValue: BeaconEvents = {};
+let escapeTimersValue: EscapeTimers = {};
+let baseEscapeTimers: EscapeTimers = {};
 let baseBeaconEvents: BeaconEvents = {};
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
@@ -91,6 +97,7 @@ let baseTextLists: TextListDef[] = [];
 let baseEmpties: EmptyBeaconDef[] = [];
 let baseAchievements: AchievementDef[] = [];
 let baseFactions: FactionSurrender[] = [];
+let baseEscapes: FactionEscape[] = [];
 let baseShipClasses: ShipClassDef[] = [];
 let baseShipLists: ShipListRule[] = [];
 
@@ -554,6 +561,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     empties.clear();
     achievements.clear();
     factions.clear();
+    escapes.clear();
     shipClasses.clear();
     shipLists.clear();
     reward = pack.rewards ? copyReward(pack.rewards) : undefined;
@@ -562,8 +570,11 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseCivilianSectorTitle = pack.civilianSectorTitle;
     beaconEventsValue = { ...pack.beaconEvents };
     baseBeaconEvents = { ...pack.beaconEvents };
+    escapeTimersValue = { ...pack.escapeTimers };
+    baseEscapeTimers = { ...pack.escapeTimers };
     storeLocales(pack.locales);
     baseFactions = (pack.factions ?? []).map(copyFaction);
+    baseEscapes = (pack.escapes ?? []).map((row) => ({ ...row }));
     baseShipClasses = (pack.shipClasses ?? []).map(copyShipClass);
     baseShipLists = (pack.shipLists ?? []).map((row) => ({ ...row }));
     baseCrew = (pack.crew ?? []).map(copyCrew);
@@ -590,6 +601,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     civilianSectorTitleValue = pack.civilianSectorTitle;
   if (mode === "append" && pack.beaconEvents)
     beaconEventsValue = { ...beaconEventsValue, ...pack.beaconEvents };
+  if (mode === "append" && pack.escapeTimers)
+    escapeTimersValue = { ...escapeTimersValue, ...pack.escapeTimers };
   if (mode === "append" && pack.locales) mergeStoredLocales(pack.locales);
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
@@ -624,6 +637,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     achievements.set(row.id, copyAchievement(row));
   for (const row of mode === "base" ? baseFactions : (pack.factions ?? []))
     factions.set(row.id, copyFaction(row));
+  for (const row of mode === "base" ? baseEscapes : (pack.escapes ?? []))
+    escapes.set(row.id, { ...row });
   for (const row of mode === "base" ? baseShipClasses : (pack.shipClasses ?? []))
     shipClasses.set(row.id, copyShipClass(row));
   for (const row of mode === "base" ? baseShipLists : (pack.shipLists ?? []))
@@ -997,6 +1012,40 @@ export function allFactions(): FactionSurrender[] {
   return [...factions.values()].map(copyFaction);
 }
 
+/** A faction's default hull-triggered escape (gap `<escape>`), or undefined when that faction never runs. */
+export function factionEscape(id: string | undefined): FactionEscape | undefined {
+  if (!id) return undefined;
+  const row = escapes.get(id);
+  return row ? { ...row } : undefined;
+}
+
+/** Faction escape rows, in authored order. */
+export function allFactionEscapes(): FactionEscape[] {
+  return [...escapes.values()].map((row) => ({ ...row }));
+}
+
+/**
+ * FTL's own escape timers: the 15 s hull-triggered run and the 90 s last-fuel run (wiki "Enemy Ships", "Surrenders
+ * and escape attempts"). Used only when no loaded pack sets `<escapeTimers>`, with a warning.
+ */
+const FTL_ESCAPE_TIMERS: Required<EscapeTimers> = { hull: 15, lastFuel: 90 };
+
+/** The loaded `<escapeTimers>`, as authored (no defaults filled in). */
+export function escapeTimers(): EscapeTimers {
+  return { ...escapeTimersValue };
+}
+
+/**
+ * Seconds an escaping enemy charges when nothing else names a timer (gap `<escapeTimers>`). A pack that omits the
+ * value gets FTL's, with one warning.
+ */
+export function escapeTimer(key: keyof EscapeTimers): number {
+  const seconds = escapeTimersValue[key];
+  if (seconds != null) return seconds;
+  warnPack(`No <escapeTimers ${key}> is loaded; FTL's ${FTL_ESCAPE_TIMERS[key]} seconds is used.`);
+  return FTL_ESCAPE_TIMERS[key];
+}
+
 export function emptyBeacon(id: string | undefined): EmptyBeaconDef | undefined {
   if (!id) return undefined;
   return empties.get(id);
@@ -1038,11 +1087,13 @@ export function resetPackForTests(): void {
   empties.clear();
   achievements.clear();
   factions.clear();
+  escapes.clear();
   shipClasses.clear();
   shipLists.clear();
   reward = baseReward ? copyReward(baseReward) : undefined;
   civilianSectorTitleValue = baseCivilianSectorTitle;
   beaconEventsValue = { ...baseBeaconEvents };
+  escapeTimersValue = { ...baseEscapeTimers };
   resetLocales();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));
@@ -1061,6 +1112,7 @@ export function resetPackForTests(): void {
   for (const row of baseEmpties) empties.set(row.id, copyEmpty(row));
   for (const row of baseAchievements) achievements.set(row.id, copyAchievement(row));
   for (const row of baseFactions) factions.set(row.id, copyFaction(row));
+  for (const row of baseEscapes) escapes.set(row.id, { ...row });
   for (const row of baseShipClasses) shipClasses.set(row.id, copyShipClass(row));
   for (const row of baseShipLists) shipLists.set(row.id, { ...row });
   indexEventAliases();

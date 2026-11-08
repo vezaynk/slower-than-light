@@ -7973,8 +7973,9 @@ export function buy(g: Game, id: string) {
     log(g, `Bought ${item.name}.`);
     return;
   }
-  // A drone schematic that did not fit, and a system the ship cannot install, spend nothing.
-  if (item.kind === "drone" || item.kind === "system") return;
+  // A drone schematic that did not fit, a system the ship cannot install, and an augment that is refused (a ship or
+  // event grant, a duplicate, or a full rack) spend nothing and leave the row.
+  if (item.kind === "drone" || item.kind === "system" || item.kind === "augment") return;
   // Per the user: a weapon with no free slot goes to cargo; the store will not sell it when cargo is full too.
   if (
     item.kind === "weapon" &&

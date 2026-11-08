@@ -33,7 +33,7 @@
     "@stl/totallynotftl#test": {
       "dependsOn": ["^typecheck"],
       "inputs": ["package.json", "src/**", "archive/**", "totallynotftl.xml", "totallynotftl.dat"],
-      "env": ["FTL_DAT", "STL_DAT_DIGEST"]
+      "env": ["FTL_DAT", "FTL_DAT_DIGEST"]
     },
     "@stl/campaign#test": {
       "dependsOn": ["^typecheck"],

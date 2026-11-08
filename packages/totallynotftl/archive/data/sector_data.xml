@@ -443,6 +443,9 @@
     <event name="CRYSTAL_HOME__hostile__3" min="6" max="10"/>
     <event name="BOARDERS_CRYSTAL" min="1" max="2"/>
     <event name="CRYSTAL_HOME__neutral__5" min="12" max="12"/>
+    <rarityList>
+      <blueprint name="crystal" rarity="1"/>
+    </rarityList>
   </sectorDescription>
   <sectorDescription name="FINAL" minSector="7" unique="true">
     <nameList>

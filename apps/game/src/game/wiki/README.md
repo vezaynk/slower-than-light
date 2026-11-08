@@ -15,10 +15,9 @@ own tests did) were removed with this README: `events-0`–`events-3`, `enemies-
 
 ## 1. Content that duplicates the archive: replace with archive reads, then delete
 
-| Module          | Lines | What it holds                                                         | Archive source                                                          |
-| --------------- | ----: | --------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `hangar-bay.ts` |   129 | Hangar loadout article; system titles it prefers over the blueprint's | The player blueprint's lists and `systemBlueprint` titles               |
-| `skills.ts`     |    86 | Skill speed tables; crew races per sector for pirate crews            | Skill tables are a rule (section 3). Races: the sector's `<rarityList>` |
+| Module          | Lines | What it holds                                                         | Archive source                                            |
+| --------------- | ----: | --------------------------------------------------------------------- | --------------------------------------------------------- |
+| `hangar-bay.ts` |   129 | Hangar loadout article; system titles it prefers over the blueprint's | The player blueprint's lists and `systemBlueprint` titles |
 
 ## 2. Events written in code: move to the archive, then delete
 
@@ -46,7 +45,7 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 
 | Module                                                                                                                                                                                                                                                                                              | Rule                                                                                                                                  |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `escape.ts`, `surrender.ts` (rule part)                                                                                                                                                                                                                                                             | When an enemy runs or surrenders. Odds are already gap data.                                                                          |
+| `surrender.ts` (rule part)                                                                                                                                                                                                                                                                          | When an enemy surrenders. Odds are already gap data.                                                                                  |
 | `targeting.ts`, `swarm-aim.ts`                                                                                                                                                                                                                                                                      | Enemy weapon targeting; swarm missile spread                                                                                          |
 | `sector-map.ts`                                                                                                                                                                                                                                                                                     | Map generation and the fleet's advance (xftl notes)                                                                                   |
 | `flagship-systems.ts`, `cited-enemies.ts`                                                                                                                                                                                                                                                           | Flagship stages, surge, artillery charge rule                                                                                         |
@@ -54,7 +53,7 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 | `make-room.ts`, `bonus-item.ts`                                                                                                                                                                                                                                                                     | Full racks; bonus reward odds                                                                                                         |
 | `projectile-speed.ts`, `cited-weapons.ts`                                                                                                                                                                                                                                                           | Shot flight time from `<speed>` (speed 60 flies 0.7 s; bombs 1.35 s); crew damage, systemless hull and pierce read from the blueprint |
 | `achievement-track.ts`, `achieve-notes.ts`                                                                                                                                                                                                                                                          | Achievement counters. Conditions are already gap data.                                                                                |
-| `kin`-related lines in `skills.ts`                                                                                                                                                                                                                                                                  | Skill speed tables                                                                                                                    |
+| `skills.ts`                                                                                                                                                                                                                                                                                         | Skill speed tables                                                                                                                    |
 
 ## Steps
 
@@ -79,6 +78,41 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    cost), Flak Artillery's speed 26
    (both archives write `<speed>` on it; `projectile-speed.ts` only maps the stand-in's `flak-artillery` id to
    ftl.dat's `ARTILLERY_FED_C`) and the one-layer pierce set (both archives write `<sp>`). `projectile-speed.ts` and
-   `cited-weapons.ts` now hold only rules (section 3).
+   `cited-weapons.ts` now hold only rules (section 3). `skills.ts`: races done. Pirate and other `random` crews, and crew rewards that name no race, draw from
+   the current sector's `<rarityList>` over each `crewBlueprint`'s `<rarity>`, weighted `6 - rarity` (FTL's
+   GetRandomCrew; the rule is `game/rarity.ts`). The stand-in writes Hidden Crystal Worlds' list too. The skill speed
+   tables stay in `skills.ts` as rules for step 5.
 4. **Events** in section 2, one page at a time.
-5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`.
+5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`. Done: `escape.ts`, now
+   `game/rules/escape.ts`. Faction odds are gap `<shipBlueprint name>` › `<escape chance min max>` beside the
+   surrender row, the 15 s and 90 s timers are gap `<escapeTimers hull lastFuel>`, and a ship event's own `<escape>`
+   already came from the archive. The per-page lines (run from the start, page hull rows, never-run pages, the 80 s
+   out-of-fuel wait) are content of the section-2 event pages, so they sit in `wiki/escape-events.ts` and go with
+   those pages, once the archive path can run a ship from the start and read `<gotaway>` `<modifyPursuit>` as the
+   doubled next advance (`archiveEscapePlan` builds only a hull-threshold plan today; see that file's header).
+
+## How to move a rule module
+
+`escape.ts` (step 5) is the worked example; follow its diff.
+
+1. **Inventory** every constant and table. Sort each into: a _rule number_ FTL keeps in its executable (gap XML);
+   _content_ that belongs to a ship, event or blueprint (read it from the archive; check `ftl.dat` first, e.g.
+   `events_ships.xml` `<escape>`); or a _pure mechanic_ with no tunable number (stays code).
+2. **Gap tag.** Prefer an existing element (escape odds went on the faction `<shipBlueprint>` that already holds
+   `<surrender>`); otherwise add a root tag FTL ignores (`<escapeTimers>`). In `packages/pack`: a type and a
+   `ContentPack` field (`types.ts`), a reader in `parse.ts` used by `ftl.ts` `packFromFtl` (and `parsePack`), state with
+   base/append/reset handling and a getter in `registry.ts`, export from `index.ts`, and an emitter in `emit.ts`
+   `emitGapDocument`. A malformed row calls `warnPack` and is skipped; a getter whose value no pack set calls
+   `warnPack` once and returns FTL's number (registry `escapeTimer`).
+3. **Data.** The wiki numbers move to `packages/catalog/src/wiki/` (with their citations), are loaded in
+   `catalog/src/pack/base.ts` `loadCatalog`, and reach the gap through `campaign/src/xml.ts` (`campaignPack` and the
+   `gap` half of `splitCampaign`). A `<pack>` mod round-trips through `packages/hyperspace` `emitMod` / `packFromMod`:
+   add the field there too (`omitEmpty`, and the `emitGapDocument` call for a root tag) and to its `mod.test.ts`
+   fixture. Run `pnpm campaign:xml && pnpm totallynotftl:dat`, and document the tag in
+   `packages/campaign/README.md`.
+4. **Code.** The game reads the getter (a function, not an exported constant, so a mod's value is seen). Content
+   tables the module still carries go to their own `wiki/` file next to the content they belong to. Move the module
+   to `game/rules/`, keep its wiki quotes as comments, and fix every import (`rules/*.test.ts` is in `test:src`).
+5. **Prove it.** A probe in the scratchpad over many seeds with the stand-in and `ftl.dat`, run before and after: the
+   output must be identical. Add a pack test (parse, emit round trip, override, warning fallback) and a game test that
+   a gap file overriding one number changes play.

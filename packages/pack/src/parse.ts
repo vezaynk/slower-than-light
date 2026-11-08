@@ -23,6 +23,8 @@ import type {
   EventEffect,
   EventResource,
   EventTier,
+  EscapeTimers,
+  FactionEscape,
   FactionSurrender,
   FillerEntry,
   FillerListDef,
@@ -42,6 +44,7 @@ import type {
   RewardScaling,
   RewardTable,
   SectorDef,
+  SectorRarity,
   StoreDef,
   StoreLine,
   SurrenderChoice,
@@ -180,6 +183,8 @@ function readCrew(node: XmlElement): CrewDef | undefined {
   if (short) row.short = short;
   const cost = numOf(node, "cost");
   if (cost != null) row.cost = cost;
+  const rarity = numOf(node, "rarity");
+  if (rarity != null) row.rarity = rarity;
   const powers = elements(child(node, "powerList"))
     .filter((item) => item.tagName === "power")
     .map((item) => ownText(item).trim())
@@ -450,6 +455,44 @@ export function readFaction(node: XmlElement): FactionSurrender | undefined {
   return { id, chance, min, max };
 }
 
+/**
+ * Gap `<shipBlueprint name>` › `<escape chance min max>`: a faction's default escape (types.ts FactionEscape).
+ * A hull blueprint (one with a layout) is not a faction row. A row missing a number is skipped with a warning.
+ */
+export function readFactionEscape(node: XmlElement): FactionEscape | undefined {
+  const id = attr(node, "name")?.trim();
+  if (!id || attr(node, "layout")?.trim()) return undefined;
+  const run = child(node, "escape");
+  if (!run) return undefined;
+  const chance = attrNum(run.getAttribute("chance"));
+  const min = attrNum(run.getAttribute("min"));
+  const max = attrNum(run.getAttribute("max"));
+  if (chance == null || min == null || max == null) {
+    warnPack(`shipBlueprint ${id}: <escape> needs chance, min and max; the faction does not run.`);
+    return undefined;
+  }
+  return { id, chance, min, max };
+}
+
+/**
+ * Gap `<escapeTimers hull lastFuel>` (types.ts EscapeTimers). A missing or non-positive attribute is left out, so the
+ * registry keeps the earlier value or FTL's default.
+ */
+export function readEscapeTimers(node: XmlElement): EscapeTimers {
+  const out: EscapeTimers = {};
+  for (const key of ["hull", "lastFuel"] as const) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const seconds = attrNum(raw);
+    if (seconds == null || seconds <= 0) {
+      warnPack(`escapeTimers: ${key}="${raw}" is not a positive number of seconds; it is skipped.`);
+      continue;
+    }
+    out[key] = seconds;
+  }
+  return out;
+}
+
 function readCount(node: XmlElement): { min: number; max: number } {
   const count = child(node, "count");
   if (!count) return { min: 0, max: 0 };
@@ -594,6 +637,15 @@ function readSector(node: XmlElement): SectorDef | undefined {
     notes,
   };
   if (tracks.length > 0) sector.tracks = tracks;
+  const rarities: SectorRarity[] = [];
+  for (const item of elements(child(node, "rarityList"))) {
+    if (item.tagName !== "blueprint") continue;
+    const name = attr(item, "name")?.trim();
+    const rarity = attrNum(item.getAttribute("rarity"));
+    if (!name || rarity == null) continue;
+    rarities.push({ id: name, rarity });
+  }
+  if (rarities.length > 0) sector.rarities = rarities;
   return sector;
 }
 
@@ -702,7 +754,7 @@ export function readRewards(node: XmlElement): RewardTable | undefined {
   return { scaling, resources, rewards };
 }
 
-/** Reads the crew, weapon, augment, drone, system, hull, sector, store, reward, faction, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
+/** Reads the crew, weapon, augment, drone, system, hull, sector, store, reward, faction (surrender and escape), escape timer, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const doc = readDocument(xml);
   const crew: CrewDef[] = [];
@@ -711,6 +763,7 @@ export function parsePack(xml: string): ContentPack {
   const drones: DroneDef[] = [];
   const systems: SystemDef[] = [];
   const factions: FactionSurrender[] = [];
+  const escapes: FactionEscape[] = [];
   const sectors: SectorDef[] = [];
   const stores: StoreDef[] = [];
   const tunes: TuneDef[] = [];
@@ -741,6 +794,8 @@ export function parsePack(xml: string): ContentPack {
   for (const node of tagged(doc, "shipBlueprint")) {
     const faction = readFaction(node);
     if (faction) factions.push(faction);
+    const escape = readFactionEscape(node);
+    if (escape) escapes.push(escape);
   }
   for (const node of tagged(doc, "sectorDescription")) {
     const row = readSector(node);
@@ -766,6 +821,9 @@ export function parsePack(xml: string): ContentPack {
     (item) => item.tagName === "rewards",
   );
   const rewards = rewardsNode ? readRewards(rewardsNode) : undefined;
+  const timersNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "escapeTimers",
+  );
   const pack: ContentPack = {
     crew,
     weapons,
@@ -781,6 +839,8 @@ export function parsePack(xml: string): ContentPack {
   };
   if (rewards) pack.rewards = rewards;
   if (factions.length > 0) pack.factions = factions;
+  if (escapes.length > 0) pack.escapes = escapes;
+  if (timersNode) pack.escapeTimers = readEscapeTimers(timersNode);
   return pack;
 }
 

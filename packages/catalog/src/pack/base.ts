@@ -42,6 +42,7 @@ import { ftlEventId } from "../wiki/ftl-event-ids.ts";
 import { FLAGSHIP_STAGES, type FlagshipStage } from "../wiki/flagship-stages.ts";
 import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
+import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
@@ -116,6 +117,10 @@ function crewRow(id: KinId): CrewDef {
       id === "rock" ? rockExtinguishScale() : id === "crystal" ? crystalExtinguishScale() : 1,
   };
   if (hire) row.cost = hire.cost;
+  // `<rarity>`: the default a sector's rarityList overrides. Every stand-in sector writes the crew races its Sectors
+  // page lists (sectorRow), so this default never decides a draw. 0 keeps a race the page leaves out out of the
+  // sector, as the wiki's rarity tables do.
+  row.rarity = 0;
   row.short = kin.name;
   row.powers = crewPowers(row);
   return row;
@@ -1367,6 +1372,8 @@ export function loadCatalog(): void {
       tunes: SYSTEM_TUNES.map(tuneRow),
       rewards: REWARD_TABLE,
       factions: FACTION_SURRENDER.map((row) => ({ ...row })),
+      escapes: FACTION_ESCAPE.map((row) => ({ ...row })),
+      escapeTimers: { ...ESCAPE_TIMERS },
       events,
       lists: [
         ...fillerListRecords().map(listRow),

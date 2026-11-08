@@ -4,7 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
-import { HULL_RUN_SECONDS } from "./escape.ts";
+import { hullRunSeconds } from "../rules/escape.ts";
 import { surrenderPlan } from "./surrender.ts";
 
 function open(g: Game) {
@@ -67,7 +67,7 @@ describe("Pirate ships in plasma storm", () => {
     assert.equal(fuel.enemy?.pirate, true);
     assert.equal(fuel.enemyEscape?.mode, "hull");
     assert.equal(fuel.enemyEscape?.chance, 50);
-    assert.equal(fuel.enemyEscape?.seconds, HULL_RUN_SECONDS);
+    assert.equal(fuel.enemyEscape?.seconds, hullRunSeconds());
     assert.ok(
       (fuel.enemyEscape?.threshold ?? -1) >= 20 && (fuel.enemyEscape?.threshold ?? 99) < 40,
     );

@@ -48,12 +48,12 @@ describe("stl rules", () => {
     assert.equal(g.player.hull, before);
   });
 
-  it("lets a missile ignore shields", () => {
+  it("lets a missile through shields with its <sp>", () => {
     const g = createGame(4);
     g.player.systems.engines.power = 0;
     g.player.shieldNow = 1;
     const before = g.player.hull;
-    applyImpact(g, { ...laser(2), kind: "missile" });
+    applyImpact(g, { ...laser(2), kind: "missile", defId: "MISSILES_2" });
     assert.equal(g.player.shieldNow, 1);
     assert.equal(g.player.hull, before - 2);
   });

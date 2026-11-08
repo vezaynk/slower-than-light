@@ -42,7 +42,8 @@ describe("one-layer pierce, bombs, and the battery", () => {
     const enemy = g.enemy;
     assert.ok(enemy);
     enemy.systems.engines.power = 0;
-    const room = enemy.rooms.find((item) => item.system);
+    // Not the Shields room: system damage there would cut the bubble on its own.
+    const room = enemy.rooms.find((item) => item.system && item.system !== "shields");
     assert.ok(room);
     enemy.shieldNow = 1;
     enemy.hull = 10;
@@ -56,7 +57,8 @@ describe("one-layer pierce, bombs, and the battery", () => {
         targetRoom: room.id,
       }),
     );
-    assert.equal(enemy.shieldNow, 0);
+    // Crystal (Weapons): shards "pierce one layer of shield, going straight through it". The layer stays up.
+    assert.equal(enemy.shieldNow, 1);
     assert.equal(enemy.hull, 8);
 
     enemy.shieldNow = 2;
@@ -135,8 +137,11 @@ describe("one-layer pierce, bombs, and the battery", () => {
     assert.equal(deploy(g, "DEFENSE_1"), true);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "env" }), false);
     assert.equal(g.player.kits.drones?.cool, 0);
-    const room = g.player.rooms[0];
+    // Not the Shields room: system damage there would cut the bubble on its own.
+    const room = g.player.rooms.find((item) => item.system !== "shields")!;
     const hull = g.player.hull;
+    // PDS_SHOT is `<sp>5</sp>`, so the raised layer does not stop it and does not drop.
+    g.player.shieldNow = 1;
     applyImpact(
       g,
       shot({
@@ -149,6 +154,7 @@ describe("one-layer pierce, bombs, and the battery", () => {
       }),
     );
     assert.equal(g.player.zoltan, 5);
+    assert.equal(g.player.shieldNow, 1);
     assert.equal(g.player.hull, hull - 3);
     assert.equal(room.breach, 1);
     assert.equal(g.player.kits.drones?.cool ?? 0, 0);

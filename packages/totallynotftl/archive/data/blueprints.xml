@@ -4685,6 +4685,21 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <ion>0</ion>
     <rarity>0</rarity>
   </weaponBlueprint>
+  <weaponBlueprint name="PDS_SHOT">
+    <type>LASER</type>
+    <title>PDS Shot</title>
+    <tooltip>The anti-ship battery's shot.</tooltip>
+    <damage>3</damage>
+    <shots>1</shots>
+    <power>0</power>
+    <cooldown>0</cooldown>
+    <cost>0</cost>
+    <fireChance>0</fireChance>
+    <breachChance>10</breachChance>
+    <ion>0</ion>
+    <sp>5</sp>
+    <rarity>0</rarity>
+  </weaponBlueprint>
   <augBlueprint name="AUTO_COOLDOWN">
     <title>Automated Re-loader</title>
     <desc>Weapon charge speed rises 10% per copy. Charge time is divided by 1 + copies / 10.</desc>

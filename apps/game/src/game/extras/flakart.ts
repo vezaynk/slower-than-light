@@ -66,8 +66,8 @@ export const PROJECTILES = 7;
  * take down shields or deal damage, but can distract defense drones or collide with other projectiles."
  * That section also says fake flak causes MISS notices when the player's ship evades them.
  * INVENTED: each fake pellet is a missile with damage 0 and this label. A flak shot drops a shield layer
- * whenever the bubble is above pierce, even at damage 0. A missile does not drop a layer, and a hit with
- * damage 0 deals nothing. Defense drones shoot missiles. A missile is a projectile the line-of-fire check
+ * whenever the bubble is above pierce, even at damage 0. applyImpact lets this label past the bubble without
+ * dropping a layer, and a hit with damage 0 deals nothing. Defense drones shoot missiles. A missile is a projectile the line-of-fire check
  * can strike. offRoom is the swarm-miss flag, so these pellets do not set it.
  * The page does not print a kind, a damage number, or a label for the fake pellets.
  * INFERRED: this sim has no shot-versus-shot check, so the line-of-fire strike is the collision they get.

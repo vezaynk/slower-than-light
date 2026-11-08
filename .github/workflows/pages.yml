@@ -34,9 +34,11 @@ jobs:
 
       # The game is client-only, so the SPA shell prerenders to dist/client/index.html.
       - name: Build static site
-        run: pnpm --filter @stl/game build:pages
+        run: pnpm --filter @stl/game build
         env:
           PAGES_BASE: ${{ steps.pages.outputs.base_path }}/
+          # Absolute URLs for the share-card images (apps/game/src/routes/__root.tsx).
+          VITE_SITE_URL: ${{ steps.pages.outputs.base_url }}
           # Sentry tags each event with the commit it was built from (apps/game/src/game/sentry.ts).
           VITE_SENTRY_RELEASE: ${{ github.sha }}
           # Uploads source maps to Sentry when the repository has this secret (apps/game/vite.config.ts).

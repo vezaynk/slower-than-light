@@ -1,3 +1,0 @@
-{
-  "installCommand": "cd \"$(git rev-parse --show-toplevel)\" && pnpm install --frozen-lockfile"
-}

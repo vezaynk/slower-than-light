@@ -184,6 +184,32 @@ function droneGunRow(row: (typeof DRONE_GUNS)[number]): WeaponBlueprint {
   };
 }
 
+/**
+ * The anti-ship battery's shot, as ftl.dat's PDS_SHOT. It is never sold, fitted, or drawn from a list.
+ * Environmental Hazards, Anti-Ship Batteries: "a shield-piercing 3-damage shot", "always causing a hull breach".
+ * `<sp>5</sp>` is ftl.dat's: no regular bubble stops it.
+ */
+function batteryShotRow(): WeaponBlueprint {
+  return {
+    id: "PDS_SHOT",
+    name: "PDS Shot",
+    kind: "laser",
+    power: 0,
+    charge: 0,
+    shots: 1,
+    gap: 0,
+    damage: 3,
+    ion: 0,
+    fire: 0,
+    breach: 1,
+    ammo: false,
+    price: 0,
+    blurb: "The anti-ship battery's shot.",
+    rarity: 0,
+    pierce: 5,
+  };
+}
+
 function systemRow(row: (typeof CITED_SYSTEMS)[number]): SystemDef {
   const system: SystemDef = { id: row.ref, name: row.name, cost: row.cost, slot: row.slot };
   // The blueprint has one maxPower. The tune authors it; the listing carries the same cap.
@@ -1015,7 +1041,12 @@ const PROJECTILE_SPEED: Record<string, number> = {
 /** `<hullBust>` flag. Systemless hull damage is twice the blueprint damage. */
 const HULL_BUST = new Set(["LASER_HULL_1", "LASER_HULL_2", "BEAM_HULL", "MISSILES_HULL"]);
 
-/** Shield layers the weapon pages print. Other guns print no pierce. */
+/**
+ * `<sp>`: the shield layers a projectile passes. The bubble stops it when more layers are up.
+ * ftl.dat writes `<sp>5</sp>` on every MISSILES blueprint, so every stand-in missile writes 5 too.
+ * The crystal guns and LASER_HEAVY_1_SP write 1, as their ftl.dat namesakes do. Other guns write none.
+ */
+const MISSILE_PIERCE = 5;
 const PIERCE_ONE: Record<string, number> = {
   LASER_HEAVY_1_SP: 1,
   CRYSTAL_BURST_1: 1,
@@ -1039,6 +1070,7 @@ function weaponRow(id: string): WeaponBlueprint {
   row.art = id;
   row.image = `${id}_shot`;
   if (Object.prototype.hasOwnProperty.call(PIERCE_ONE, id)) row.pierce = PIERCE_ONE[id];
+  else if (row.kind === "missile") row.pierce = MISSILE_PIERCE;
   if (Object.prototype.hasOwnProperty.call(BEAM_TILES, id)) row.lengthTiles = BEAM_TILES[id];
   if (Object.prototype.hasOwnProperty.call(BEAM_SPEED, id)) row.speed = BEAM_SPEED[id];
   else if (Object.prototype.hasOwnProperty.call(PROJECTILE_SPEED, id))
@@ -1315,7 +1347,11 @@ export function loadCatalog(): void {
     {
       // Ghost stays off the stand-in. crewDef supplies it when no crewBlueprint uses that id.
       crew: (Object.keys(KIN) as KinId[]).filter((id) => id !== "ghost").map(crewRow),
-      weapons: [...Object.keys(WEAPONS).map(weaponRow), ...DRONE_GUNS.map(droneGunRow)],
+      weapons: [
+        ...Object.keys(WEAPONS).map(weaponRow),
+        ...DRONE_GUNS.map(droneGunRow),
+        batteryShotRow(),
+      ],
       augments: CATALOG.map(augmentRow),
       drones: [...CITED_DRONES, ...BOSS_DRONES].map(droneRow),
       systems: CITED_SYSTEMS.map(systemRow),

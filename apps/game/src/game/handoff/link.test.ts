@@ -57,6 +57,13 @@ function offerTickets(link: typeof import("./link.ts")): Promise<string[]> {
   return offer.tickets.finally(() => offer.close());
 }
 
+/** The network diagnosis, not the camera one. */
+function noNetwork(err: Error): boolean {
+  assert.match(err.message, /Wi-Fi/);
+  assert.doesNotMatch(err.message, /Allow the camera/);
+  return true;
+}
+
 let fresh = 0;
 /** link.ts remembers what it found, so each case loads its own copy. */
 async function loadLink(): Promise<typeof import("./link.ts")> {
@@ -122,16 +129,45 @@ describe("local address probe", () => {
     const link = await loadLink();
     await link.shareLocalAddress();
     assert.equal(net.cameraAsks, 1);
-    await assert.rejects(
-      () => offerTickets(link),
-      (err: Error) => {
-        assert.match(err.message, /Wi-Fi/);
-        assert.doesNotMatch(err.message, /Allow the camera/);
-        return true;
-      },
-    );
+    await assert.rejects(() => offerTickets(link), noNetwork);
     await link.shareLocalAddress();
     assert.equal(net.cameraAsks, 2, "no address was seen, so the next tap tries again");
+  });
+
+  it("says to check the network, and probes again, when a seen address goes away", async () => {
+    net.host = true;
+    const link = await loadLink();
+    await link.shareLocalAddress();
+    assert.ok((await offerTickets(link)).length >= 1);
+    // Wi-Fi drops or a VPN comes up: the next code has no local address.
+    net.host = false;
+    net.hostAfterCamera = false;
+    await link.shareLocalAddress();
+    await assert.rejects(() => offerTickets(link), noNetwork);
+    await link.shareLocalAddress();
+    assert.equal(
+      net.cameraAsks,
+      1,
+      "the failed connection cleared the latch, so this tap probed and asked",
+    );
+  });
+
+  it("keeps the network diagnosis when the camera fails on a retry", async () => {
+    net.hostAfterCamera = false;
+    const link = await loadLink();
+    await link.shareLocalAddress();
+    await assert.rejects(() => offerTickets(link), noNetwork);
+    net.cameraAllowed = false;
+    await link.shareLocalAddress();
+    assert.equal(net.cameraAsks, 2);
+    await assert.rejects(() => offerTickets(link), noNetwork);
+  });
+
+  it("does not ask to allow a camera this browser cannot request", async () => {
+    Object.defineProperty(globalThis, "navigator", { configurable: true, value: {} });
+    const link = await loadLink();
+    await link.shareLocalAddress();
+    await assert.rejects(() => offerTickets(link), noNetwork);
   });
 
   it("asks to allow the camera when it was refused", async () => {

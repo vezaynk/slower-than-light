@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createGame } from "../sim.ts";
-import { pickOrbitBearing } from "../extras/swarm.ts";
+import { createGame, startCombat } from "../sim.ts";
+import { deploy, pickOrbitBearing, tickSwarm } from "../extras/swarm.ts";
+import { loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 import {
   COMBAT1_SPEED,
   COMBAT2,
@@ -9,7 +10,7 @@ import {
   orbitChordPose,
   orbitGap,
   orbitLegSeconds,
-} from "./cited-combat2.ts";
+} from "./combat2.ts";
 
 describe("Combat Drone Mark II shot", () => {
   it("keeps power 4, damage 1, speed 28, and no printed cooldown", () => {
@@ -58,5 +59,50 @@ describe("Combat Drone Mark II shot", () => {
       const next = pickOrbitBearing(g, 0);
       assert.equal(bearingAccepted(0, next), true);
     }
+  });
+
+  it("follows a gap file that lengthens the pause before the shot", () => {
+    const oldLeg = (2.3 * 21.875) / COMBAT1_SPEED + 0.5;
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><droneOrbit firePause="2"/></FTL>` }]),
+      "append",
+    );
+    try {
+      const leg = orbitLegSeconds(0, 180, COMBAT1_SPEED);
+      assert.ok(Math.abs(leg - ((2.3 * 21.875) / COMBAT1_SPEED + 2)) < 1e-9);
+      const g = createGame(6);
+      g.player.kits.drones = {
+        id: "drones",
+        level: 3,
+        power: 3,
+        left: 0,
+        cool: 0,
+        target: null,
+        on: false,
+        aux: 0,
+      };
+      g.player.parts = 2;
+      startCombat(g, "Rebel ship");
+      assert.ok(g.enemy);
+      delete g.enemy.kits.drones;
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy.weapons) w.enabled = false;
+      assert.equal(deploy(g, "COMBAT_1"), true);
+      const kit = g.player.kits.drones;
+      assert.ok(kit);
+      kit.heading = 0;
+      kit.bearing = 180;
+      kit.left = leg;
+      kit.aux = 0;
+      g.shots = [];
+      // The old 0.5 s pause would have fired by now. The gap's 2 s pause has not.
+      tickSwarm(g, oldLeg);
+      assert.equal(g.shots.length, 0);
+      tickSwarm(g, leg - oldLeg);
+      assert.equal(g.shots.length, 1);
+    } finally {
+      resetPackForTests();
+    }
+    assert.ok(Math.abs(orbitLegSeconds(0, 180, COMBAT1_SPEED) - oldLeg) < 1e-9);
   });
 });

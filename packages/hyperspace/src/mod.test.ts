@@ -115,6 +115,36 @@ const pack: ContentPack = {
     { id: "lanius", chance: 80, min: 20, max: 40 },
   ],
   escapeTimers: { hull: 15, lastFuel: 90 },
+  asteroidField: {
+    fire: 0.05,
+    breach: 0.05,
+    timings: [
+      {
+        bubbles: 1,
+        break: [5, 10],
+        wave1: [8, 16],
+        wave2: [5, 8],
+        spawn1: [1.8, 2.2],
+        spawn2: [1.4, 1.6],
+      },
+    ],
+  },
+  pulsar: {
+    cycleMin: 11,
+    cycleMax: 18,
+    warn: 5,
+    shieldLow: 3,
+    shieldHigh: 4,
+    ionBase: 1,
+    ionPerPower: 0.5,
+  },
+  droneOrbit: {
+    minSep: 90,
+    speedScale: 21.875,
+    stopRadius: 1.15,
+    firePause: 0.5,
+    beamHold: 0.5,
+  },
   empties: [
     {
       id: "ember-quiet",
@@ -155,6 +185,16 @@ describe("hyperspace mod", () => {
     assert.match(xml, /<shipBlueprint name="rebel">\s*<surrender chance="50" min="20" max="30"\/>/);
     assert.match(xml, /<escape chance="80" min="20" max="40"\/>/);
     assert.match(xml, /<escapeTimers hull="15" lastFuel="90"\/>/);
+    assert.match(xml, /<asteroidField fire="0.05" breach="0.05">/);
+    assert.match(xml, /<timing bubbles="1"/);
+    assert.match(
+      xml,
+      /<pulsar cycleMin="11" cycleMax="18" warn="5" shieldLow="3" shieldHigh="4" ionBase="1" ionPerPower="0.5"\/>/,
+    );
+    assert.match(
+      xml,
+      /<droneOrbit minSep="90" speedScale="21.875" stopRadius="1.15" firePause="0.5" beamHold="0.5"\/>/,
+    );
     assert.deepEqual(packFromMod(xml), pack);
   });
 

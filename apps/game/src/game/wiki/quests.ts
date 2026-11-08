@@ -59,7 +59,7 @@ import { laniusTraderOfferText, laniusTraderTakeId, rollLaniusTrader } from "./c
 import { RUWEN_ENTRY } from "./ruwen-entry.ts";
 import { PART_A } from "./quests-a.ts";
 import { PART_B } from "./quests-b.ts"; // @agent:quests-b. Quest-opening events, part B.
-import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
+import { hullRunSeconds, type EscapePlan } from "../rules/escape.ts";
 import {
   between,
   closeFight,
@@ -4014,7 +4014,7 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
       "You swoop in to assist, taking down the wing leader.",
       "elite",
       "quest-fed-assist-wing",
-      hullRun(20, 40 + rand(g) * 20, HULL_RUN_SECONDS),
+      hullRun(20, 40 + rand(g) * 20, hullRunSeconds()),
     );
     aidPlayerAsb(g);
   },
@@ -5705,7 +5705,7 @@ export const PAGE_WINS: Record<string, Win> = {
     );
   },
   // Rebel ship warning. Both endings pay medium scrap with resources.
-  // The 40 second run and doubled pursuit stay in wiki/escape.ts.
+  // The 40 second run and doubled pursuit stay in wiki/escape-events.ts.
   "rebel-ship-warning": std(
     "medium",
     "medium",
@@ -5713,7 +5713,7 @@ export const PAGE_WINS: Record<string, Win> = {
     "Their ship goes silent and you are relieved to know that you are still one step ahead of the fleet.",
   ),
   // Auto-ship warning. {{Winning|destroyed=true}}: "You receive low scrap with resources."
-  // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape.ts.
+  // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape-events.ts.
   "auto-ship-warning": (g, deadCrew) => {
     if (deadCrew) return false;
     result(
@@ -5723,7 +5723,7 @@ export const PAGE_WINS: Record<string, Win> = {
     );
   },
   // Auto-ship warning in nebula. Same destroyed line: "You receive low scrap with resources."
-  // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape.ts.
+  // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape-events.ts.
   "auto-ship-warning-in-nebula": (g, deadCrew) => {
     if (deadCrew) return false;
     result(

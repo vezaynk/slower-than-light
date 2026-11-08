@@ -16,6 +16,8 @@ const CONNECT_FAILED =
   "The two devices could not connect. Put both on the same Wi-Fi and try the codes again.";
 const NO_ADDRESS =
   "This browser did not share a local network address, so the other device cannot reach it. Allow the camera when asked, then try again.";
+const NO_NETWORK =
+  "This browser did not share a local network address. Check that this device is connected to Wi-Fi and that no VPN, privacy setting, or extension blocks local connections, then try again.";
 const CLOSED = "The connection closed.";
 
 /** Once the sender has the phone's code, both sides have what they need. A LAN pair connects in seconds. */
@@ -43,34 +45,58 @@ function hasHostCandidate(sdp: string | undefined): boolean {
   return !!sdp && / typ host/.test(sdp);
 }
 
-let addressShared = false;
-
-/**
- * With no ICE servers, a code carries host candidates only. WebKit hides those until the page has had camera
- * or microphone access, so when a probe finds none this asks for the camera once and stops it at once. Call it
- * at the start of the tap that makes a code.
- */
-export async function shareLocalAddress(): Promise<void> {
-  if (addressShared || typeof RTCPeerConnection !== "function") return;
+/** A throwaway offer: does this browser put a local address in a code right now? */
+async function probeHostCandidate(): Promise<boolean> {
   const probe = new RTCPeerConnection(RTC);
   try {
     probe.createDataChannel("probe");
     await probe.setLocalDescription(await probe.createOffer());
     await waitIce(probe, 2000);
-    addressShared = hasHostCandidate(probe.localDescription?.sdp);
+    return hasHostCandidate(probe.localDescription?.sdp);
   } catch {
     // The real link reports the problem.
+    return false;
   } finally {
     probe.close();
   }
-  if (addressShared || !navigator.mediaDevices?.getUserMedia) return;
+}
+
+/** The last probe or connection had a local address, so the next tap can skip the probe. */
+let addressShared = false;
+/** This page has had a local address at some point. */
+let hostSeen = false;
+/** The camera was allowed at some point. */
+let cameraGranted = false;
+
+/**
+ * With no ICE servers, a code carries host candidates only. WebKit hides those until the page has had camera
+ * or microphone access, so when a probe finds none this asks for the camera and stops it at once. Call it at
+ * the start of the tap that makes a code. The connection that follows decides whether that was enough.
+ */
+export async function shareLocalAddress(): Promise<void> {
+  if (addressShared || typeof RTCPeerConnection !== "function") return;
+  if (await probeHostCandidate()) {
+    addressShared = hostSeen = true;
+    return;
+  }
+  if (!navigator.mediaDevices?.getUserMedia) return;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     stream.getTracks().forEach((track) => track.stop());
-    addressShared = true;
+    cameraGranted = true;
   } catch {
     // Refused or no camera: `ticketFrom` says why the code cannot work.
   }
+}
+
+/**
+ * Why the connection that is making a code has no local address. Allowing the camera helps only if it has
+ * not been allowed yet and this browser can ask. After a grant, or once an address has been seen, none means
+ * no network or a setting that hides local addresses.
+ */
+function noAddressMessage(): string {
+  const cameraCanHelp = !cameraGranted && !hostSeen && !!navigator.mediaDevices?.getUserMedia;
+  return cameraCanHelp ? NO_ADDRESS : NO_NETWORK;
 }
 
 /**
@@ -129,7 +155,12 @@ async function ticketFrom(pc: RTCPeerConnection, role: SessionTicket["role"]): P
   await waitIce(pc);
   const sdp = pc.localDescription?.sdp;
   if (!sdp) throw new Error("This browser did not produce a connection code.");
-  if (!hasHostCandidate(sdp)) throw new Error(NO_ADDRESS);
+  if (!hasHostCandidate(sdp)) {
+    // Probe again on the next tap rather than trusting an address this connection did not get.
+    addressShared = false;
+    throw new Error(noAddressMessage());
+  }
+  addressShared = hostSeen = true;
   return encodeTicket({ v: 1, role, sdp });
 }
 

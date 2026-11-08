@@ -50,7 +50,9 @@ export function weaponDetail(row: WeaponBlueprint): string {
   if (row.fire > 0) extras.push(`${percent(row.fire)} fire`);
   if (row.breach > 0) extras.push(`${percent(row.breach)} breach`);
   if (row.ammo) extras.push("uses a missile");
-  if (row.pierce) extras.push(`pierces ${plural(row.pierce, "shield layer", "shield layers")}`);
+  // A missile that spends ammo flies past every layer, and its card already says so. Its `<sp>` stays off the line.
+  if (row.pierce && !(row.kind === "missile" && row.ammo))
+    extras.push(`pierces ${plural(row.pierce, "shield layer", "shield layers")}`);
   return extras.length > 0 ? `${line} ${capital(extras.join(", "))}.` : line;
 }
 

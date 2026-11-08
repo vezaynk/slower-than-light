@@ -5,6 +5,7 @@ import { weaponDef } from "@stl/pack";
 import { installStandIn } from "@stl/standin";
 import { freshGame, installArchive } from "./archive-play.ts";
 import { applyImpact, evasionPercent } from "./sim.ts";
+import { asbPierce } from "./wiki/cited-sectors.ts";
 import type { Shot } from "./types.ts";
 
 const dat = process.env.FTL_DAT?.trim();
@@ -30,7 +31,11 @@ function shotOf(id: string, room: string): Shot {
 }
 
 /** Layers up after the shot, and hull lost. Evasion and the Zoltan Shield are pinned to 0. */
-function fire(id: string, layers: number): { shieldNow: number; lost: number } {
+function fire(
+  id: string,
+  layers: number,
+  patch: Partial<Shot> = {},
+): { shieldNow: number; lost: number } {
   const g = freshGame();
   g.player.systems.engines.power = 0;
   g.player.zoltan = 0;
@@ -40,11 +45,14 @@ function fire(id: string, layers: number): { shieldNow: number; lost: number } {
   // A hit on the Shields room would cut the bubble by system damage, so aim at a room without systems.
   const room = g.player.rooms.find((row) => !row.system && !row.kit);
   assert.ok(room, "a room without systems");
-  applyImpact(g, shotOf(id, room.id));
+  applyImpact(g, { ...shotOf(id, room.id), ...patch });
   return { shieldNow: g.player.shieldNow, lost: before - g.player.hull };
 }
 
-/** `<sp>` from the archive decides the bubble: a shot passes when the layers up are at most its sp. */
+/**
+ * `<sp>` from the archive decides the bubble: a shot passes when the layers up are at most its sp.
+ * Six layers is above a missile's 5, so a missile is not let through for being a missile.
+ */
 function checkPierce(): void {
   const cases: Array<[id: string, sp: number]> = [
     ["MISSILES_2", 5],
@@ -55,7 +63,7 @@ function checkPierce(): void {
   for (const [id, sp] of cases) {
     assert.equal(weaponDef(id)?.pierce ?? 0, sp, `${id} <sp>`);
     const damage = weaponDef(id)!.damage;
-    for (const layers of [1, 2, 3]) {
+    for (const layers of [1, 2, 3, 6]) {
       const out = fire(id, layers);
       if (layers <= sp) {
         assert.deepEqual(out, { shieldNow: layers, lost: damage }, `${id} through ${layers}`);
@@ -69,6 +77,22 @@ function checkPierce(): void {
 describe("shield pierce on the stand-in", () => {
   it("passes a missile through 3 layers, a crystal burst and heavy pierce through 1, a laser through none", () => {
     checkPierce();
+  });
+
+  it("stops a missile-kind shot with <sp>1 at two layers, as ftl.dat's crystal guns are typed", () => {
+    // The stand-in types the crystal guns LASER. ftl.dat types them MISSILES; the kind must not let them through.
+    assert.deepEqual(fire("CRYSTAL_BURST_1", 1, { kind: "missile" }), {
+      shieldNow: 1,
+      lost: weaponDef("CRYSTAL_BURST_1")!.damage,
+    });
+    assert.deepEqual(fire("CRYSTAL_BURST_1", 2, { kind: "missile" }), { shieldNow: 1, lost: 0 });
+  });
+
+  it("passes the anti-ship battery through PDS_SHOT's <sp> layers and stops it above", () => {
+    assert.equal(asbPierce(), 5);
+    const battery: Partial<Shot> = { kind: "missile", from: "env", defId: undefined, damage: 3 };
+    assert.deepEqual(fire("PDS_SHOT", 5, battery), { shieldNow: 5, lost: 3 });
+    assert.deepEqual(fire("PDS_SHOT", 6, battery), { shieldNow: 5, lost: 0 });
   });
 
   it("leaves the layers up under a fake flak pellet", () => {
@@ -92,6 +116,7 @@ describe(
       await installArchive(new Uint8Array(readFileSync(dat!)));
       assert.equal(weaponDef("CRYSTAL_BURST_1")?.kind, "missile");
       checkPierce();
+      assert.equal(asbPierce(), 5);
     });
   },
 );

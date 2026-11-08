@@ -217,6 +217,7 @@ import {
 } from "./wiki/flagship-systems.ts";
 import {
   citedAsb,
+  asbPierce,
   citedAsbShot,
   citedBeaconCount,
   citedFleetAdvance,
@@ -4008,11 +4009,11 @@ export function applyImpact(g: Game, shot: Shot) {
   // The bubble stops a projectile unless the layers up are at most the blueprint's `<sp>`.
   // ftl.dat writes 5 on every missile, 1 on the crystal guns and LASER_HEAVY_1_SP, and 0 or nothing elsewhere.
   // A stopped shot drops one layer. A shot that passes goes straight through and leaves the layers up.
-  // Environmental Hazards: the anti-ship battery fires a "shield-piercing" shot; ftl.dat's PDS_SHOT is `<sp>5</sp>`.
+  // Environmental Hazards: the anti-ship battery fires a "shield-piercing" shot. It passes PDS_SHOT's `<sp>` layers.
   // Flak (Weapons), "Understanding flak accuracy": fake flak "cannot take down shields or deal damage".
   // Both fake-pellet sources (ordnance.ts and flakart.ts) share this label.
   const fake = shot.label === FLAK1_FAKE_LABEL;
-  const pierce = asbShot || fake ? Infinity : citedPierce(shot.defId);
+  const pierce = fake ? Infinity : asbShot ? asbPierce() : citedPierce(shot.defId);
   const shieldsBefore = ship.shieldNow;
   if (ship.shieldNow > pierce) {
     ship.shieldNow -= 1;

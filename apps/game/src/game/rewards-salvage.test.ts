@@ -137,6 +137,8 @@ describe("default fight salvage", () => {
     dive.pending = "dive:1";
     dive.enemy.automated = false;
     dive.enemy.classId = dive.enemy.classId || "cited";
+    // A Clone Bay would keep the dead crew in the fight, as in the loop above.
+    if (dive.enemy.kits.clonebay) dive.enemy.kits.clonebay.level = 0;
     for (const c of dive.crew) if (c.side === "enemy") c.hp = 0;
     step(dive, 0);
     assert.equal(dive.phase, "reward");

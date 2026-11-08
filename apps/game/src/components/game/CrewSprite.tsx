@@ -21,6 +21,7 @@ import {
   type SpriteBody,
 } from "@/game/pack/media";
 import type { Crew } from "@/game/types";
+import { logResourceFailure } from "@/game/play-log";
 import "./archive-art.css";
 import "./crew-motion.css";
 
@@ -161,6 +162,7 @@ export function CrewSprite({
         if (pending === 0) paint(loaded);
       };
       img.onerror = () => {
+        logResourceFailure("img", url);
         if (!cancel) setSheets(null);
       };
       img.src = url;

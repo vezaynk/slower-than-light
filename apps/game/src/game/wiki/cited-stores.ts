@@ -97,6 +97,14 @@ const CREW_CAP = 8;
 export const NOT_SOLD: ReadonlySet<string> = new Set(["ROCK_ARMOR", "SYSTEM_CASING"]);
 
 /**
+ * An augment a store or a random reward can draw. Store rarity 0 is never drawn (FTL GetRandomAugment skips it):
+ * the ship and event grants such as Zoltan Shield or Damaged Stasis Pod, which both archives write with rarity 0.
+ */
+export function drawableAugment(row: { id: string; rarity?: number }): boolean {
+  return !NOT_SOLD.has(row.id) && row.rarity !== 0;
+}
+
+/**
  * Sectors, "Hidden Crystal Worlds", "Sector specifics": "only crystal weapons (including Lockdown Bomb)
  * can be purchased in stores or received as a crew kill reward".
  * Page order of Crystal (Weapons), then Bomb (Weapons) "Crystal Lockdown Bomb".
@@ -321,7 +329,7 @@ export function augmentItems(g: Game, slot = storeDef("standard")?.slot ?? 3): S
   const have = g.augments ?? [];
   const free = AUGMENT_CAP - have.length;
   if (free <= 0) return [];
-  const pool = allAugments().filter((row) => !NOT_SOLD.has(row.id) && !have.includes(row.id));
+  const pool = allAugments().filter((row) => drawableAugment(row) && !have.includes(row.id));
   return pool.slice(0, Math.min(slot, free)).map((row) => ({
     id: `aug-${row.id}`,
     kind: "augment" as const,

@@ -1,5 +1,5 @@
 import "../pack/base.ts";
-import { weaponDef } from "@stl/pack";
+import { warnPack, weaponDef } from "@stl/pack";
 import type { WeaponKind } from "../types.ts";
 
 /**
@@ -11,16 +11,18 @@ import type { WeaponKind } from "../types.ts";
  * Every other printed speed scales from that. seconds = 42 / speed.
  * Bombs have no speed column. They teleport, and the 1.35s delay stays.
  * Dart is an invented missile with no row, so it keeps that same 1.35s.
+ * These three are engine rules (FTL keeps them in its executable, not in a blueprint), so they stay as code
+ * and are headed for the campaign gap mod with the other rules (wiki/README.md, section 3).
  */
 export const LASER_FLIGHT_S = 0.7;
 export const LASER_SPEED = 60;
 export const BOMB_FLIGHT_S = 1.35;
 
 /**
- * Stand-in id for Flak Artillery. A real archive names the same gun `ARTILLERY_FED_C`.
- * Template:Flak weapons prints speed 26 for that gun. Speed 60 stays 0.7s, so 26 is 42/26 seconds.
+ * Flak Artillery's two ids. The stand-in writes `flak-artillery`; ftl.dat writes `ARTILLERY_FED_C`.
+ * Both blueprints carry `<speed>26</speed>`. Either id reads whichever one the loaded archive has.
  */
-const FLAK_ARTILLERY_SPEED = 26;
+const FLAK_ARTILLERY_IDS = ["flak-artillery", "ARTILLERY_FED_C"];
 
 function positiveSpeed(defId: string): number | null {
   const weapon = weaponDef(defId);
@@ -31,7 +33,7 @@ function positiveSpeed(defId: string): number | null {
 /**
  * Seconds for the blueprint's `<speed>`, or null when that weapon has no projectile speed.
  * Beams carry a swipe speed and fly on their own clock. Bombs and the invented dart have none.
- * Flak Artillery keeps speed 26 when the loaded archive uses the other id, or neither blueprint.
+ * Flak Artillery reads the other id's blueprint when the loaded archive has only that one.
  */
 export function projectileFlightSeconds(defId: string | undefined): number | null {
   if (!defId) return null;
@@ -41,9 +43,14 @@ export function projectileFlightSeconds(defId: string | undefined): number | nul
 }
 
 function flightSpeed(defId: string): number | null {
-  if (defId !== "flak-artillery" && defId !== "ARTILLERY_FED_C") return positiveSpeed(defId);
-  const other = defId === "flak-artillery" ? "ARTILLERY_FED_C" : "flak-artillery";
-  return positiveSpeed(defId) ?? positiveSpeed(other) ?? FLAK_ARTILLERY_SPEED;
+  if (!FLAK_ARTILLERY_IDS.includes(defId)) return positiveSpeed(defId);
+  const other = FLAK_ARTILLERY_IDS.find((id) => id !== defId)!;
+  const speed = positiveSpeed(defId) ?? positiveSpeed(other);
+  if (speed == null)
+    warnPack(
+      `Flak Artillery (${FLAK_ARTILLERY_IDS.join(" or ")}) has no <speed>; it flies as a laser.`,
+    );
+  return speed;
 }
 
 /** Flight for a non-beam shot. Beams use beamFlightSeconds. */

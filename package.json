@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "pnpm --filter @stl/game dev",
     "build": "turbo run build",
-    "test": "turbo run test",
-    "test:ci": "node scripts/dat-digest.mjs \"turbo run test --filter=!@stl/game && turbo run test:src --filter=@stl/game\"",
+    "test": "node scripts/dat-digest.mjs test test:src",
+    "test:ci": "node scripts/dat-digest.mjs test test:src",
+    "test:env": "node scripts/check-test-env.mjs",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
     "format": "prettier --write .",

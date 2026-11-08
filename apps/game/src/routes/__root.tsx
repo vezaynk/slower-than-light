@@ -1,10 +1,36 @@
 import type { ReactNode } from "react";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "LTA: Lighter Than Air";
+const DESCRIPTION = "Hold the Lark together and outrun the fleet.";
 const BASE = import.meta.env.BASE_URL;
+/**
+ * The site's public URL (the Pages workflow passes it), so the share-card images get the absolute
+ * URLs link previews need. Without it the page has no og:image.
+ */
+const SITE_URL = (import.meta.env.VITE_SITE_URL ?? "").replace(/\/+$/, "");
+
+function shareCard() {
+  const meta: Array<Record<string, string>> = [
+    { property: "og:title", content: APP_NAME },
+    { property: "og:description", content: DESCRIPTION },
+    { property: "og:type", content: "x:game" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ];
+  if (SITE_URL) {
+    meta.push(
+      { property: "og:url", content: `${SITE_URL}/` },
+      { property: "og:image", content: `${SITE_URL}/og.jpg` },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "x:game:image", content: `${SITE_URL}/x-banner.jpg` },
+      { property: "x:game:image:width", content: "1200" },
+      { property: "x:game:image:height", content: "264" },
+    );
+  }
+  return meta;
+}
 
 export const Route = createRootRoute({
   head: () => ({
@@ -18,9 +44,11 @@ export const Route = createRootRoute({
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Lighter Than Air" },
       { title: APP_NAME },
-      { name: "description", content: "Hold the Lark together and outrun the fleet." },
+      { name: "description", content: DESCRIPTION },
       { name: "theme-color", content: "#020308" },
+      ...shareCard(),
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: `${BASE}favicon.svg` },
@@ -29,8 +57,8 @@ export const Route = createRootRoute({
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=VT323&display=swap",
       },
-      { rel: "manifest", href: `${BASE}__grok/manifest.webmanifest` },
-      { rel: "apple-touch-icon", href: `${BASE}__grok/icon-180.png` },
+      { rel: "manifest", href: `${BASE}manifest.webmanifest` },
+      { rel: "apple-touch-icon", href: `${BASE}icons/icon-180.png` },
     ],
   }),
   // The document shell is always server-rendered, even with SSR off in src/start.ts.
@@ -45,7 +73,6 @@ function RootDocument({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <PreviewHostBridge />
         {children}
         <Scripts />
       </body>

@@ -43,6 +43,7 @@ import { FLAGSHIP_STAGES, type FlagshipStage } from "../wiki/flagship-stages.ts"
 import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
+import { BONUS_ITEM_WEIGHTS, CARGO_SLOTS } from "../wiki/rack-rules.ts";
 import { ASTEROID_FIELD } from "../wiki/asteroid-rules.ts";
 import { PULSAR_RULES } from "../wiki/pulsar-rules.ts";
 import { DRONE_ORBIT } from "../wiki/drone-orbit.ts";
@@ -1382,6 +1383,8 @@ export function loadCatalog(): void {
       factions: FACTION_SURRENDER.map((row) => ({ ...row })),
       escapes: FACTION_ESCAPE.map((row) => ({ ...row })),
       escapeTimers: { ...ESCAPE_TIMERS },
+      cargoSlots: { ...CARGO_SLOTS },
+      bonusItem: { ...BONUS_ITEM_WEIGHTS },
       asteroidField: {
         fire: ASTEROID_FIELD.fire,
         breach: ASTEROID_FIELD.breach,

@@ -33,6 +33,8 @@ import type {
   SectorRarity,
   EmptyBeaconDef,
   EscapeTimers,
+  CargoSlots,
+  BonusItemWeights,
   AsteroidField,
   PulsarRules,
   DroneOrbit,
@@ -69,6 +71,8 @@ import {
   readChoiceGates,
   readEvent,
   readEscapeTimers,
+  readCargoSlots,
+  readBonusItem,
   readAsteroidField,
   mergeAsteroidField,
   readPulsar,
@@ -119,6 +123,8 @@ export type FtlTextFile = {
  * A `<facts/>` marker and a `<names>` list are kept.
  * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender- and escape-only `<shipBlueprint>` is kept.
  * A root `<escapeTimers>` is a private tag FTL ignores: the escape timers its executable hard-codes.
+ * A root `<cargoSlots>` is a private tag FTL ignores: the cargo hold its executable hard-codes.
+ * A root `<bonusItem>` is a private tag FTL ignores: the bonus-reward kind weights its executable hard-codes.
  * A root `<asteroidField>` is a private tag FTL ignores: the asteroid timings and side chances its executable hard-codes.
  * A root `<pulsar>` is a private tag FTL ignores: the pulsar cycle, warning, shield spend, and ion its executable hard-codes.
  * A root `<droneOrbit>` is a private tag FTL ignores: combat-drone flight its executable hard-codes. Blueprint `<speed>` stays on the drone.
@@ -156,6 +162,8 @@ export function packFromFtl(
   let rewards: RewardTable | undefined;
   let beaconEvents: BeaconEvents | undefined;
   let escapeTimers: EscapeTimers | undefined;
+  let cargoSlots: CargoSlots | undefined;
+  let bonusItem: BonusItemWeights | undefined;
   let asteroidField: AsteroidField | undefined;
   let pulsar: PulsarRules | undefined;
   let droneOrbit: DroneOrbit | undefined;
@@ -236,6 +244,10 @@ export function packFromFtl(
         beaconEvents = { ...beaconEvents, ...readBeaconEvents(node) };
       } else if (node.tagName === "escapeTimers") {
         escapeTimers = { ...escapeTimers, ...readEscapeTimers(node) };
+      } else if (node.tagName === "cargoSlots") {
+        cargoSlots = { ...cargoSlots, ...readCargoSlots(node) };
+      } else if (node.tagName === "bonusItem") {
+        bonusItem = { ...bonusItem, ...readBonusItem(node) };
       } else if (node.tagName === "asteroidField") {
         asteroidField = mergeAsteroidField(asteroidField, readAsteroidField(node));
       } else if (node.tagName === "pulsar") {
@@ -297,6 +309,8 @@ export function packFromFtl(
   if (factions.rows.length > 0) pack.factions = factions.rows;
   if (escapes.rows.length > 0) pack.escapes = escapes.rows;
   if (escapeTimers) pack.escapeTimers = escapeTimers;
+  if (cargoSlots) pack.cargoSlots = cargoSlots;
+  if (bonusItem) pack.bonusItem = bonusItem;
   if (asteroidField) pack.asteroidField = asteroidField;
   if (pulsar) pack.pulsar = pulsar;
   if (droneOrbit) pack.droneOrbit = droneOrbit;

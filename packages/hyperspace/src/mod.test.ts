@@ -115,6 +115,8 @@ const pack: ContentPack = {
     { id: "lanius", chance: 80, min: 20, max: 40 },
   ],
   escapeTimers: { hull: 15, lastFuel: 90 },
+  cargoSlots: { slots: 4 },
+  bonusItem: { weapon: 1, augment: 1, drone: 1 },
   asteroidField: {
     fire: 0.05,
     breach: 0.05,
@@ -185,6 +187,8 @@ describe("hyperspace mod", () => {
     assert.match(xml, /<shipBlueprint name="rebel">\s*<surrender chance="50" min="20" max="30"\/>/);
     assert.match(xml, /<escape chance="80" min="20" max="40"\/>/);
     assert.match(xml, /<escapeTimers hull="15" lastFuel="90"\/>/);
+    assert.match(xml, /<cargoSlots slots="4"\/>/);
+    assert.match(xml, /<bonusItem weapon="1" augment="1" drone="1"\/>/);
     assert.match(xml, /<asteroidField fire="0.05" breach="0.05">/);
     assert.match(xml, /<timing bubbles="1"/);
     assert.match(

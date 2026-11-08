@@ -38,7 +38,7 @@ import { addQuest, result } from "./quests.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
-import { grantRandomItem } from "./bonus-item.ts";
+import { grantRandomItem } from "../rules/bonus-item.ts";
 import { showArchivePage } from "../archive-pay.ts";
 import { queueSfx } from "../sfx-queue.ts";
 

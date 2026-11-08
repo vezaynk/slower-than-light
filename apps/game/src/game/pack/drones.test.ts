@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Kit } from "../types.ts";
-import { droneLine } from "../wiki/bonus-item.ts";
+import { droneLine } from "../rules/bonus-item.ts";
 import { citedBuy, droneItems } from "../wiki/cited-stores.ts";
 import "./base.ts";
 import { droneDef, loadPack, resetPackForTests, weaponDef } from "@stl/pack";

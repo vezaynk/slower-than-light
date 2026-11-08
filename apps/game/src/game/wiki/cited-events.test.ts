@@ -26,7 +26,7 @@ import {
   stampCitedEvents,
   type CitedChoice,
 } from "./cited-events.ts";
-import { heldSchematics } from "./make-room.ts";
+import { heldSchematics } from "../rules/make-room.ts";
 import { placeIn } from "../fixtures.ts";
 
 function storyFlags(beacons: readonly { flag: string }[]): string[] {

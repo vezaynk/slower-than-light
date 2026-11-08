@@ -147,6 +147,10 @@ export {
   allFactionEscapes,
   escapeTimer,
   escapeTimers,
+  cargoSlotCount,
+  cargoSlots,
+  bonusItem,
+  bonusItemWeight,
 } from "./registry.ts";
 export { localeString, packLocales } from "./locales.ts";
 export type {
@@ -191,6 +195,8 @@ export type {
   EventResource,
   EventTier,
   EscapeTimers,
+  CargoSlots,
+  BonusItemWeights,
   FactionEscape,
   FactionSurrender,
   NamedReward,

@@ -4,7 +4,7 @@ import { mediumScrapBand } from "../content.ts";
 import { CREW_CAP, choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
-import { cargoOf } from "./make-room.ts";
+import { cargoOf } from "../rules/make-room.ts";
 import { joinCrew } from "./surrender.ts";
 
 function beacon(): Beacon {

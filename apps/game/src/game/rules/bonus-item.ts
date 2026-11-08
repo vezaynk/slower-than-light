@@ -1,15 +1,24 @@
 /**
  * Rewards, "Standard" (3%) and "Stuff" (6%): "a bonus weapon, augmentation, or drone schematic".
- * INFERRED: the page does not split the three, so each kind has equal odds. A full rack does not block a kind: weapons
- * and drone schematics go to cargo, and make-room.ts asks what to leave behind when that is full too. See
- * grantBonusAugment for a duplicate augmentation.
+ * The 3% and 6% are the reward table. INFERRED: the page does not split the three, so each kind has equal odds
+ * (gap `<bonusItem weapon augment drone>`, each 1). A full rack does not block a kind: weapons and drone schematics
+ * go to cargo, and make-room.ts asks what to leave behind when that is full too. See grantBonusAugment for a
+ * duplicate augmentation.
  */
-import { allAugments, allDrones, allWeapons, augmentDef, droneDef, weaponDef } from "@stl/pack";
+import {
+  allAugments,
+  allDrones,
+  allWeapons,
+  augmentDef,
+  bonusItemWeight,
+  droneDef,
+  weaponDef,
+} from "@stl/pack";
 import { editionSells, freeWeaponIds, internalDrones, shelfWeaponIds } from "../blueprint-use.ts";
 import { CRYSTAL_SECTOR } from "../sector-ids.ts";
 import { rand } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { drawableAugment } from "./cited-stores.ts";
+import { drawableAugment } from "../wiki/cited-stores.ts";
 import { heldSchematics, receiveAugment, receiveDrone, receiveWeapon } from "./make-room.ts";
 
 export type BonusItem =
@@ -27,6 +36,22 @@ function pickOne<T>(g: Game, items: readonly T[]): T | undefined {
   return items.length
     ? items[Math.min(items.length - 1, Math.floor(rand(g) * items.length))]
     : undefined;
+}
+
+/** One rand, same buckets as pickOne when the weights are equal. A zero weight is already filtered out. */
+function pickWeighted<T extends string>(
+  g: Game,
+  rows: readonly { kind: T; weight: number }[],
+): T | undefined {
+  let total = 0;
+  for (const row of rows) total += row.weight;
+  if (rows.length === 0 || total <= 0) return undefined;
+  let mark = rand(g) * total;
+  for (const row of rows) {
+    if (mark < row.weight) return row.kind;
+    mark -= row.weight;
+  }
+  return rows[rows.length - 1]?.kind;
 }
 
 function weaponPool(g: Game, owned: Set<string>, weapons?: (id: string) => boolean) {
@@ -61,12 +86,14 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
   );
   const kinds = (
     [
-      ["weapon", guns.length],
-      ["augment", augs.length],
-      ["drone", drones.length],
+      ["weapon", guns.length, bonusItemWeight("weapon")],
+      ["augment", augs.length, bonusItemWeight("augment")],
+      ["drone", drones.length, bonusItemWeight("drone")],
     ] as const
-  ).filter(([, n]) => n > 0);
-  const kind = pickOne(g, kinds)?.[0];
+  )
+    .filter(([, n, weight]) => n > 0 && weight > 0)
+    .map(([kind, , weight]) => ({ kind, weight }));
+  const kind = pickWeighted(g, kinds);
   if (kind === "weapon") return { kind, id: pickOne(g, guns)!.id };
   if (kind === "augment") return { kind, id: pickOne(g, augs)!.id };
   if (kind === "drone") return { kind, id: pickOne(g, drones)!.id };

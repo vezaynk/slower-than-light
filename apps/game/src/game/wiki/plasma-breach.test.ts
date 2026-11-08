@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { fillerChoose } from "./filler-events.ts";
-import { heldSchematics } from "./make-room.ts";
+import { heldSchematics } from "../rules/make-room.ts";
 
 const ID = "c:plasma-storm-incapacitated-ships:0";
 

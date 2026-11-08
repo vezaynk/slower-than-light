@@ -48,7 +48,7 @@ import {
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
-import { grantRandomItem } from "./bonus-item.ts";
+import { grantRandomItem } from "../rules/bonus-item.ts";
 import { locksOwned, ownedLock } from "./choice-locks.ts";
 import { priceBand, priced, rollPrice } from "./event-prices.ts";
 import { rollBand, upgradeRows } from "./event-bands.ts";
@@ -81,7 +81,7 @@ import {
   type SurrenderOffer,
   type SurrenderTier,
 } from "./surrender.ts";
-import { keepNewHire, receiveAugment } from "./make-room.ts";
+import { keepNewHire, receiveAugment } from "../rules/make-room.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import {
   affordStock,

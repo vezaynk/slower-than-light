@@ -24,6 +24,8 @@ import type {
   EventDef,
   EventEffect,
   EscapeTimers,
+  CargoSlots,
+  BonusItemWeights,
   FactionEscape,
   FactionSurrender,
   FillerListDef,
@@ -193,6 +195,8 @@ export function emitGapDocument(pack: ContentPack): string {
   for (const row of pack.shipLists ?? []) add(root, shipListElement(doc, row));
   if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
+  if (pack.cargoSlots) add(root, cargoSlotsElement(doc, pack.cargoSlots));
+  if (pack.bonusItem) add(root, bonusItemElement(doc, pack.bonusItem));
   return prettyXml(serializer.serializeToString(doc));
 }
 
@@ -215,6 +219,22 @@ function escapeTimersElement(doc: XmlDocument, row: EscapeTimers): XmlElement {
   if (row.hull != null) attrs.hull = num(row.hull);
   if (row.lastFuel != null) attrs.lastFuel = num(row.lastFuel);
   return element(doc, "escapeTimers", attrs);
+}
+
+/** `<cargoSlots slots>`: the cargo hold FTL's executable hard-codes (types.ts CargoSlots). */
+function cargoSlotsElement(doc: XmlDocument, row: CargoSlots): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.slots != null) attrs.slots = num(row.slots);
+  return element(doc, "cargoSlots", attrs);
+}
+
+/** `<bonusItem weapon augment drone>`: bonus-reward kind weights (types.ts BonusItemWeights). */
+function bonusItemElement(doc: XmlDocument, row: BonusItemWeights): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.weapon != null) attrs.weapon = num(row.weapon);
+  if (row.augment != null) attrs.augment = num(row.augment);
+  if (row.drone != null) attrs.drone = num(row.drone);
+  return element(doc, "bonusItem", attrs);
 }
 
 /** `<shipList>`: the faction and pirate flag of a blueprint list's fights (types.ts ShipListRule). */

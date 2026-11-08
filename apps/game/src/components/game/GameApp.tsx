@@ -146,10 +146,10 @@ import { create } from "zustand";
 import { lastFuelSeconds } from "@/game/rules/escape";
 // @agent:surrender. The surrender card lists the offered cargo.
 import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
-import { augmentDetail, augmentName, bonusAugmentFate, droneName } from "@/game/wiki/bonus-item";
+import { augmentDetail, augmentName, bonusAugmentFate, droneName } from "@/game/rules/bonus-item";
 import { canFieldDrone, droneSlotCap } from "@/game/wiki/cited-stores";
 import {
-  CARGO_SLOTS,
+  cargoSlots,
   canFitFromCargo,
   cargoOf,
   fitFromCargo,
@@ -157,7 +157,7 @@ import {
   resolveOverflow,
   stowDrone,
   stowWeapon,
-} from "@/game/wiki/make-room";
+} from "@/game/rules/make-room";
 
 import { UNIFORMS } from "@/game/crew-look";
 import { enemySystemClock, ionClock, systemClock } from "@/game/system-clock";
@@ -4068,7 +4068,7 @@ const ROOM_TEXT: Record<Overflow["kind"], [string, string]> = {
 };
 
 /**
- * Per the user: the make-room choice (wiki/make-room.ts). Tap one card, then confirm, so one stray tap loses nothing.
+ * Per the user: the make-room choice (rules/make-room.ts). Tap one card, then confirm, so one stray tap loses nothing.
  * It opens on its own, so it takes the arrival lock too. INVENTED look, on the offer cards.
  */
 function MakeRoomModal({ game }: { game: Game }) {
@@ -4237,7 +4237,7 @@ function OfferCards({
           {def ? <ArchiveLines lines={weaponCopy(def)} mark={`offer-${weapon}`} /> : null}
           {rackFull ? (
             <span className="offer-warn">
-              {cargoOf(game).length < CARGO_SLOTS
+              {cargoOf(game).length < cargoSlots()
                 ? "No free weapon slot: it goes to cargo."
                 : "No room in cargo: you pick what to leave behind."}
             </span>
@@ -4294,7 +4294,7 @@ function OfferCards({
           <ArchiveLines lines={droneCopy(droneDef(drone))} mark={`offer-drone-${drone}`} />
           {!canFieldDrone(game, drone) ? (
             <span className="offer-warn">
-              {cargoOf(game).length < CARGO_SLOTS
+              {cargoOf(game).length < cargoSlots()
                 ? "No free schematic slot: it goes to cargo."
                 : "No room in cargo: you pick what to leave behind."}
             </span>
@@ -5779,7 +5779,7 @@ function CargoList({
   const gunCap = Math.max(weaponSlotCap(game), game.player.weapons.length);
   const augCap = Math.max(3, game.augments.length);
   const cargo = cargoOf(game);
-  const cargoRoom = cargo.length < CARGO_SLOTS;
+  const cargoRoom = cargo.length < cargoSlots();
   return (
     <div className="cargo-list">
       <section className="sheet-group">
@@ -5905,17 +5905,17 @@ function CargoList({
           </div>
         )}
       </section>
-      {/* Per the user: the 4-slot cargo hold for weapons and drone schematics that are not fitted (wiki/make-room.ts). */}
+      {/* Per the user: the 4-slot cargo hold for weapons and drone schematics that are not fitted (rules/make-room.ts). */}
       <section className="sheet-group">
         <h3 className="sheet-group-head">
           {"Cargo"}{" "}
           <span className="BEAM_1">
-            {cargo.length}/{CARGO_SLOTS}
+            {cargo.length}/{cargoSlots()}
             {". Weapons and drone schematics that are not fitted."}
           </span>
         </h3>
         <div className="cargo-slots">
-          {Array.from({ length: CARGO_SLOTS }, (_, index) => {
+          {Array.from({ length: cargoSlots() }, (_, index) => {
             const item = cargo[index];
             if (!item) {
               return (

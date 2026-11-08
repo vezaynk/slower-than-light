@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game, Kit } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
-import { heldSchematics } from "./make-room.ts";
+import { heldSchematics } from "../rules/make-room.ts";
 
 function beacon(): Beacon {
   return {

@@ -20,6 +20,8 @@ import type {
   EventEffect,
   EventTier,
   EscapeTimers,
+  CargoSlots,
+  BonusItemWeights,
   FactionEscape,
   FactionSurrender,
   FillerListDef,
@@ -78,7 +80,11 @@ let civilianSectorTitleValue: string | undefined;
 let baseCivilianSectorTitle: string | undefined;
 let beaconEventsValue: BeaconEvents = {};
 let escapeTimersValue: EscapeTimers = {};
+let cargoSlotsValue: CargoSlots = {};
+let bonusItemValue: BonusItemWeights = {};
 let baseEscapeTimers: EscapeTimers = {};
+let baseCargoSlots: CargoSlots = {};
+let baseBonusItem: BonusItemWeights = {};
 let baseBeaconEvents: BeaconEvents = {};
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
@@ -572,6 +578,10 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseBeaconEvents = { ...pack.beaconEvents };
     escapeTimersValue = { ...pack.escapeTimers };
     baseEscapeTimers = { ...pack.escapeTimers };
+    cargoSlotsValue = { ...pack.cargoSlots };
+    baseCargoSlots = { ...pack.cargoSlots };
+    bonusItemValue = { ...pack.bonusItem };
+    baseBonusItem = { ...pack.bonusItem };
     storeLocales(pack.locales);
     baseFactions = (pack.factions ?? []).map(copyFaction);
     baseEscapes = (pack.escapes ?? []).map((row) => ({ ...row }));
@@ -603,6 +613,10 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     beaconEventsValue = { ...beaconEventsValue, ...pack.beaconEvents };
   if (mode === "append" && pack.escapeTimers)
     escapeTimersValue = { ...escapeTimersValue, ...pack.escapeTimers };
+  if (mode === "append" && pack.cargoSlots)
+    cargoSlotsValue = { ...cargoSlotsValue, ...pack.cargoSlots };
+  if (mode === "append" && pack.bonusItem)
+    bonusItemValue = { ...bonusItemValue, ...pack.bonusItem };
   if (mode === "append" && pack.locales) mergeStoredLocales(pack.locales);
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
@@ -1046,6 +1060,50 @@ export function escapeTimer(key: keyof EscapeTimers): number {
   return FTL_ESCAPE_TIMERS[key];
 }
 
+/**
+ * FTL's cargo hold: 4 slots for weapons and drone schematics that are not fitted (Environmental Hazards names the
+ * cargo bay; the slot count is the executable's). Used only when no loaded pack sets `<cargoSlots>`, with a warning.
+ */
+const FTL_CARGO_SLOTS = 4;
+
+/** The loaded `<cargoSlots>`, as authored (no default filled in). */
+export function cargoSlots(): CargoSlots {
+  return { ...cargoSlotsValue };
+}
+
+/**
+ * How many weapons and drone schematics the cargo hold keeps (gap `<cargoSlots slots>`). A pack that omits it gets
+ * FTL's 4, with one warning.
+ */
+export function cargoSlotCount(): number {
+  const slots = cargoSlotsValue.slots;
+  if (slots != null) return slots;
+  warnPack(`No <cargoSlots slots> is loaded; FTL's ${FTL_CARGO_SLOTS} is used.`);
+  return FTL_CARGO_SLOTS;
+}
+
+/**
+ * FTL draws a bonus weapon, augmentation, or drone schematic with equal odds (Rewards, "Standard" and "Stuff"; the
+ * page does not split the three). Used only when no loaded pack sets that `<bonusItem>` weight, with a warning.
+ */
+const FTL_BONUS_WEIGHTS: Required<BonusItemWeights> = { weapon: 1, augment: 1, drone: 1 };
+
+/** The loaded `<bonusItem>` weights, as authored (no defaults filled in). */
+export function bonusItem(): BonusItemWeights {
+  return { ...bonusItemValue };
+}
+
+/**
+ * Relative weight of one bonus-item kind (gap `<bonusItem>`). A pack that omits it gets FTL's 1, with one warning.
+ * Zero means that kind is never drawn.
+ */
+export function bonusItemWeight(kind: keyof BonusItemWeights): number {
+  const weight = bonusItemValue[kind];
+  if (weight != null) return weight;
+  warnPack(`No <bonusItem ${kind}> is loaded; FTL's ${FTL_BONUS_WEIGHTS[kind]} is used.`);
+  return FTL_BONUS_WEIGHTS[kind];
+}
+
 export function emptyBeacon(id: string | undefined): EmptyBeaconDef | undefined {
   if (!id) return undefined;
   return empties.get(id);
@@ -1094,6 +1152,8 @@ export function resetPackForTests(): void {
   civilianSectorTitleValue = baseCivilianSectorTitle;
   beaconEventsValue = { ...baseBeaconEvents };
   escapeTimersValue = { ...baseEscapeTimers };
+  cargoSlotsValue = { ...baseCargoSlots };
+  bonusItemValue = { ...baseBonusItem };
   resetLocales();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));

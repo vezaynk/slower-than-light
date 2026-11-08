@@ -25,6 +25,8 @@ import type {
   EventResource,
   EventTier,
   EscapeTimers,
+  CargoSlots,
+  BonusItemWeights,
   FactionEscape,
   FactionSurrender,
   FillerEntry,
@@ -496,6 +498,42 @@ export function readEscapeTimers(node: XmlElement): EscapeTimers {
   return out;
 }
 
+/**
+ * Gap `<cargoSlots slots>` (types.ts CargoSlots). A missing, fractional, or non-positive attribute is left out, so the
+ * registry keeps the earlier value or FTL's default.
+ */
+export function readCargoSlots(node: XmlElement): CargoSlots {
+  const raw = node.getAttribute("slots");
+  if (raw == null) return {};
+  const slots = attrNum(raw);
+  if (slots == null || !Number.isInteger(slots) || slots <= 0) {
+    warnPack(`cargoSlots: slots="${raw}" is not a positive whole number of slots; it is skipped.`);
+    return {};
+  }
+  return { slots };
+}
+
+const BONUS_KINDS = ["weapon", "augment", "drone"] as const;
+
+/**
+ * Gap `<bonusItem weapon augment drone>` (types.ts BonusItemWeights). A missing attribute is left out. A negative or
+ * non-numeric weight is skipped. Zero is kept: that kind is never drawn.
+ */
+export function readBonusItem(node: XmlElement): BonusItemWeights {
+  const out: BonusItemWeights = {};
+  for (const key of BONUS_KINDS) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const weight = attrNum(raw);
+    if (weight == null || weight < 0) {
+      warnPack(`bonusItem: ${key}="${raw}" is not a non-negative weight; it is skipped.`);
+      continue;
+    }
+    out[key] = weight;
+  }
+  return out;
+}
+
 function readCount(node: XmlElement): { min: number; max: number } {
   const count = child(node, "count");
   if (!count) return { min: 0, max: 0 };
@@ -827,6 +865,12 @@ export function parsePack(xml: string): ContentPack {
   const timersNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "escapeTimers",
   );
+  const cargoNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "cargoSlots",
+  );
+  const bonusNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "bonusItem",
+  );
   const pack: ContentPack = {
     crew,
     weapons,
@@ -844,6 +888,8 @@ export function parsePack(xml: string): ContentPack {
   if (factions.length > 0) pack.factions = factions;
   if (escapes.length > 0) pack.escapes = escapes;
   if (timersNode) pack.escapeTimers = readEscapeTimers(timersNode);
+  if (cargoNode) pack.cargoSlots = readCargoSlots(cargoNode);
+  if (bonusNode) pack.bonusItem = readBonusItem(bonusNode);
   return pack;
 }
 

@@ -60,10 +60,10 @@ import { xpNeedFor } from "./extras/lineage.ts";
 import { weightedBlueprint } from "./rarity.ts";
 import { queueSfx } from "./sfx-queue.ts";
 import { grantUnlockAt } from "./unlocks.ts";
-import { grantRandomItem } from "./wiki/bonus-item.ts";
+import { grantRandomItem } from "./rules/bonus-item.ts";
 import { addArchiveQuest } from "./wiki/quests.ts";
 import { fleetToReach } from "./wiki/sector-map.ts";
-import { receiveAugment, receiveDrone, receiveWeapon } from "./wiki/make-room.ts";
+import { receiveAugment, receiveDrone, receiveWeapon } from "./rules/make-room.ts";
 import {
   between,
   closeFight,

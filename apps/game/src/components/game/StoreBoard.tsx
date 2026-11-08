@@ -25,7 +25,7 @@ import { useGame } from "@/game/store";
 import type { Game, StockItem } from "@/game/types";
 import type { KinId } from "@/game/extras/kin";
 import { canFieldDrone, citedSell, citedSellQuote } from "@/game/wiki/cited-stores";
-import { CARGO_SLOTS, cargoOf } from "@/game/wiki/make-room";
+import { cargoOf, cargoSlots } from "@/game/rules/make-room";
 import { kinLabel, UNIFORMS } from "@/game/crew-look";
 import { ArchiveLines } from "./ArchiveCopy";
 import { CloseX } from "./CloseX";
@@ -54,7 +54,7 @@ const RESOURCE: Record<"fuel" | "missiles" | "parts", [IconName, (g: Game) => nu
 /** Why a purchase would not go through, shown on the card. Mirrors the checks in buy and citedBuy. */
 function blocked(g: Game, item: StockItem): string | null {
   // Per the user: what does not fit goes to cargo, so only a full cargo hold blocks a purchase.
-  const cargoFull = cargoOf(g).length >= CARGO_SLOTS;
+  const cargoFull = cargoOf(g).length >= cargoSlots();
   if (item.kind === "weapon" && g.player.weapons.length >= weaponSlotCap(g) && cargoFull)
     return "No free weapon slot or cargo slot.";
   if (item.kind === "drone" && !canFieldDrone(g, item.ref) && cargoFull)

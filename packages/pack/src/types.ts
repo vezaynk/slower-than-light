@@ -614,6 +614,25 @@ export type EscapeTimers = {
   lastFuel?: number;
 };
 
+/**
+ * Gap `<cargoSlots slots>`: how many weapons and drone schematics the cargo hold keeps.
+ * FTL's executable hard-codes 4. A missing value warns and uses 4.
+ */
+export type CargoSlots = {
+  slots?: number;
+};
+
+/**
+ * Gap `<bonusItem weapon augment drone>`: relative weights when a bonus reward draws a weapon, an augmentation, or a
+ * drone schematic. Rewards does not split the three, so each weight is 1. A kind whose pool is empty is not drawn.
+ * Zero is a real weight: that kind is never drawn. A missing weight warns and uses 1.
+ */
+export type BonusItemWeights = {
+  weapon?: number;
+  augment?: number;
+  drone?: number;
+};
+
 export type EventItem = "weapon" | "augment" | "drone";
 
 /**
@@ -1210,6 +1229,10 @@ export type ContentPack = {
   escapes?: FactionEscape[];
   /** Default escape timers. Absent until a pack loads them. */
   escapeTimers?: EscapeTimers;
+  /** Cargo hold size. Absent until a pack loads it. */
+  cargoSlots?: CargoSlots;
+  /** Bonus-item kind weights. Absent until a pack loads them. */
+  bonusItem?: BonusItemWeights;
   /**
    * The archive is the factual stand-in. Item text states numbers.
    * A run can replace decision prose with outcomes.

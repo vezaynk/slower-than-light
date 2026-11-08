@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { installAugment } from "../extras/augments.ts";
 import { createGame } from "../sim.ts";
-import { grantBonusAugment } from "../wiki/bonus-item.ts";
+import { grantBonusAugment } from "../rules/bonus-item.ts";
 import { augmentItems, citedBuy, citedSellQuote } from "../wiki/cited-stores.ts";
 import "./base.ts";
 import { augmentDef, loadPack, resetPackForTests } from "@stl/pack";

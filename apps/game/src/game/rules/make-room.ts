@@ -11,20 +11,29 @@
  *
  * The choice queues on Game.overflow and stops the clock (sim.ts halted) until it is answered. The new item can always
  * be the one left behind.
+ *
+ * The cargo hold's 4 slots are gap `<cargoSlots slots>` (@stl/pack `cargoSlotCount`). The three-augment rack and the
+ * 8-crew cap stay the make-room mechanic.
  */
+import { cargoSlotCount } from "@stl/pack";
 import { CREW_CAP, dismissCrew, log, weaponSlotCap } from "../sim.ts";
 import type { CargoItem, Game, Overflow } from "../types.ts";
-import { canFieldDrone, fieldDroneSchematic, fieldedSchematics } from "./cited-stores.ts";
+import { canFieldDrone, fieldDroneSchematic, fieldedSchematics } from "../wiki/cited-stores.ts";
 
-/** Per the user: the cargo hold's slot count. */
-export const CARGO_SLOTS = 4;
+/**
+ * Environmental Hazards names a "cargo bay to swap weapons and drone schematics". Per the user: it has 4 slots and
+ * takes what does not fit. Gap `<cargoSlots slots>`.
+ */
+export function cargoSlots(): number {
+  return cargoSlotCount();
+}
 
 export function cargoOf(g: Game): CargoItem[] {
   return g.cargo ?? [];
 }
 
 function stow(g: Game, item: CargoItem): boolean {
-  if (cargoOf(g).length >= CARGO_SLOTS) return false;
+  if (cargoOf(g).length >= cargoSlots()) return false;
   g.cargo = [...cargoOf(g), item];
   return true;
 }
@@ -111,7 +120,7 @@ export function receiveDrone(g: Game, ref: string): "fitted" | "cargo" | "queued
 export function stowWeapon(g: Game, uid: string): boolean {
   const index = g.player.weapons.findIndex((w) => w.uid === uid);
   const w = g.player.weapons[index];
-  if (!w || cargoOf(g).length >= CARGO_SLOTS) return false;
+  if (!w || cargoOf(g).length >= cargoSlots()) return false;
   g.player.weapons.splice(index, 1);
   if (g.armed === uid) {
     g.armed = null;
@@ -125,7 +134,7 @@ export function stowWeapon(g: Game, uid: string): boolean {
 /** Inventory: a fitted drone schematic goes into cargo. */
 export function stowDrone(g: Game, index: number): boolean {
   const kit = g.player.kits.drones;
-  if (!kit || cargoOf(g).length >= CARGO_SLOTS) return false;
+  if (!kit || cargoOf(g).length >= cargoSlots()) return false;
   const have = fieldedSchematics(kit);
   const ref = have[index];
   if (ref == null) return false;

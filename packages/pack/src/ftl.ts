@@ -33,6 +33,9 @@ import type {
   SectorRarity,
   EmptyBeaconDef,
   EscapeTimers,
+  AsteroidField,
+  PulsarRules,
+  DroneOrbit,
   FactionEscape,
   FactionSurrender,
   RewardTable,
@@ -66,6 +69,10 @@ import {
   readChoiceGates,
   readEvent,
   readEscapeTimers,
+  readAsteroidField,
+  mergeAsteroidField,
+  readPulsar,
+  readDroneOrbit,
   readFaction,
   readFactionEscape,
   readRewards,
@@ -112,6 +119,9 @@ export type FtlTextFile = {
  * A `<facts/>` marker and a `<names>` list are kept.
  * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender- and escape-only `<shipBlueprint>` is kept.
  * A root `<escapeTimers>` is a private tag FTL ignores: the escape timers its executable hard-codes.
+ * A root `<asteroidField>` is a private tag FTL ignores: the asteroid timings and side chances its executable hard-codes.
+ * A root `<pulsar>` is a private tag FTL ignores: the pulsar cycle, warning, shield spend, and ion its executable hard-codes.
+ * A root `<droneOrbit>` is a private tag FTL ignores: combat-drone flight its executable hard-codes. Blueprint `<speed>` stays on the drone.
  * A root `<beaconEvents>` and a sector's `<finishEvent>` (optionally `nebula="true"`) are private tags FTL ignores.
  * They name the start and exit beacon events FTL's executable hard-codes. The base mod writes FTL's names.
  * A root `<ship name>` is a ship event (hull list and endings), not a hull.
@@ -146,6 +156,9 @@ export function packFromFtl(
   let rewards: RewardTable | undefined;
   let beaconEvents: BeaconEvents | undefined;
   let escapeTimers: EscapeTimers | undefined;
+  let asteroidField: AsteroidField | undefined;
+  let pulsar: PulsarRules | undefined;
+  let droneOrbit: DroneOrbit | undefined;
   const strings = new Map<string, string>();
   const locales = new Map<string, Map<string, string>>();
   const grids = readGrids(layouts);
@@ -223,6 +236,12 @@ export function packFromFtl(
         beaconEvents = { ...beaconEvents, ...readBeaconEvents(node) };
       } else if (node.tagName === "escapeTimers") {
         escapeTimers = { ...escapeTimers, ...readEscapeTimers(node) };
+      } else if (node.tagName === "asteroidField") {
+        asteroidField = mergeAsteroidField(asteroidField, readAsteroidField(node));
+      } else if (node.tagName === "pulsar") {
+        pulsar = { ...pulsar, ...readPulsar(node) };
+      } else if (node.tagName === "droneOrbit") {
+        droneOrbit = { ...droneOrbit, ...readDroneOrbit(node) };
       } else if (node.tagName === "shipClass") {
         const row = readShipClass(node);
         if (row) shipClasses.put(row);
@@ -278,6 +297,9 @@ export function packFromFtl(
   if (factions.rows.length > 0) pack.factions = factions.rows;
   if (escapes.rows.length > 0) pack.escapes = escapes.rows;
   if (escapeTimers) pack.escapeTimers = escapeTimers;
+  if (asteroidField) pack.asteroidField = asteroidField;
+  if (pulsar) pack.pulsar = pulsar;
+  if (droneOrbit) pack.droneOrbit = droneOrbit;
   if (empties.rows.length > 0) pack.empties = empties.rows;
   if (shipClasses.rows.length > 0) pack.shipClasses = shipClasses.rows;
   if (shipLists.rows.length > 0) pack.shipLists = shipLists.rows;

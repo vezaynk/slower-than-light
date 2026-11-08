@@ -9,7 +9,7 @@ import {
   startCombat,
   stepShots,
 } from "../sim.ts";
-import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../wiki/cited-combat2.ts";
+import { COMBAT1_SPEED, COMBAT2, orbitLegSeconds } from "../rules/combat2.ts";
 import type { DroneUnit, Game, Kit, Ship, Shot } from "../types.ts";
 import {
   BEAM1_SPEED,

@@ -223,7 +223,7 @@ function drawnAs(id: string): string {
 
 /**
  * @agent:drones. Schematics the enemy side of extras/swarm.ts can run.
- * Combat Drone Mark II fires on the orbit leg in swarm.ts (cited-combat2.ts).
+ * Combat Drone Mark II fires on the orbit leg in swarm.ts (rules/combat2.ts).
  */
 export const ENEMY_RUNNABLE = new Set([
   "COMBAT_1",

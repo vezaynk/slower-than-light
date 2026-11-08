@@ -953,11 +953,11 @@ export type Game = {
   eventStorm?: boolean;
   asteroidT: number;
   /**
-   * Environmental Hazards, Asteroid Field: seconds until the next rock in a wave (wiki/cited-asteroid.ts).
+   * Environmental Hazards, Asteroid Field: seconds until the next rock in a wave (rules/asteroid.ts).
    * 0 until that field is armed.
    */
   asteroidWait?: number;
-  /** xftl doc/asteroids (wiki/cited-asteroid.ts): the asteroid state machine's phase, and seconds left in it. */
+  /** xftl doc/asteroids (rules/asteroid.ts): the asteroid state machine's phase, and seconds left in it. */
   asteroidPhase?: "break" | "wave1" | "wave2";
   asteroidPhaseLeft?: number;
   /** xftl doc/asteroids: "fired in sequence at your ship and the enemy's ship"; true when the next one is the enemy's. */

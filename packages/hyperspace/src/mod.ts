@@ -81,11 +81,20 @@ export function emitMod(pack: ContentPack): string {
       root.appendChild(node);
     }
   }
-  // The default start and exit events and the escape timers, in the same tags the gap file writes.
-  if (pack.beaconEvents || pack.escapeTimers) {
+  // The default start and exit events, escape timers, and the hazard and drone-orbit rules, in the same tags the gap file writes.
+  if (
+    pack.beaconEvents ||
+    pack.escapeTimers ||
+    pack.asteroidField ||
+    pack.pulsar ||
+    pack.droneOrbit
+  ) {
     const rules: ContentPack = {};
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
     if (pack.escapeTimers) rules.escapeTimers = pack.escapeTimers;
+    if (pack.asteroidField) rules.asteroidField = pack.asteroidField;
+    if (pack.pulsar) rules.pulsar = pack.pulsar;
+    if (pack.droneOrbit) rules.droneOrbit = pack.droneOrbit;
     const gap = readXml(emitGapDocument(rules)).documentElement;
     for (const child of gap ? elementChildren(gap) : [])
       root.appendChild(doc.importNode(child, true));
@@ -162,6 +171,9 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (factions) pack.factions = factions;
   if (escapes) pack.escapes = escapes;
   if (parsed.escapeTimers) pack.escapeTimers = parsed.escapeTimers;
+  if (parsed.asteroidField) pack.asteroidField = parsed.asteroidField;
+  if (parsed.pulsar) pack.pulsar = parsed.pulsar;
+  if (parsed.droneOrbit) pack.droneOrbit = parsed.droneOrbit;
   return pack;
 }
 

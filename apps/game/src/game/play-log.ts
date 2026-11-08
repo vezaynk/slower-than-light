@@ -8,7 +8,8 @@ import { onPackWarning } from "@stl/pack";
 import { create } from "zustand";
 
 export type LogLevel = "error" | "warn";
-export type LogSource = "console" | "uncaught" | "promise" | "pack";
+/** `resource`: a file that failed to load (an element in the page, or an image a loader made). */
+export type LogSource = "console" | "uncaught" | "promise" | "pack" | "resource";
 
 export type LogEntry = {
   /** Level, source, and message: a repeat bumps `count` instead of adding a row. */
@@ -181,7 +182,8 @@ function describe(value: unknown): string {
   if (value instanceof Error) return value.message || value.name;
   if (typeof value === "string") return value;
   try {
-    return JSON.stringify(value);
+    // JSON.stringify gives undefined, not a string, for undefined, a function, or a symbol.
+    return JSON.stringify(value) ?? String(value);
   } catch {
     return String(value);
   }
@@ -201,6 +203,15 @@ function consoleText(args: readonly unknown[]): string {
   return [filled, ...rest.slice(i).map(describe)].join(" ").trim();
 }
 
+/**
+ * Logs a file that failed to load. The window listener catches elements in the page; a loader that makes its own
+ * `new Image()` (no parent, so its error never reaches window) calls this from its onerror.
+ */
+export function logResourceFailure(tag: string, url: string | undefined): void {
+  const name = tag.toLowerCase();
+  logProblem("warn", "resource", `A resource failed to load (<${name}>${url ? ` ${url}` : ""})`);
+}
+
 let installed = false;
 
 /** Starts capturing. Safe to call more than once; the console still prints everything. */
@@ -215,15 +226,24 @@ export function installPlayLog(): void {
       logProblem(level, "console", consoleText(args), error?.stack, Date.now(), error);
     };
   }
-  window.addEventListener("error", (event) => {
-    const error = event.error instanceof Error ? event.error : undefined;
-    const message =
-      error?.message ||
-      event.message ||
-      (event.target && event.target !== window ? "A resource failed to load" : "Unknown error");
-    const place = event.filename ? ` (${event.filename}:${event.lineno}:${event.colno})` : "";
-    logProblem("error", "uncaught", `${message}${place}`, error?.stack, Date.now(), error);
-  });
+  // Capture phase: a failed <img>/<script>/<link> load fires `error` on the element and does not bubble, so only a
+  // capturing listener on window sees it.
+  window.addEventListener(
+    "error",
+    (event) => {
+      const error = event.error instanceof Error ? event.error : undefined;
+      const target = event.target as { tagName?: string; src?: string; href?: string } | null;
+      if (!error && !event.message && target && target !== (window as unknown) && target.tagName) {
+        // An element in the page failed to load. Sentry's window.onerror never sees these.
+        logResourceFailure(target.tagName, target.src || target.href);
+        return;
+      }
+      const message = error?.message || event.message || "Unknown error";
+      const place = event.filename ? ` (${event.filename}:${event.lineno}:${event.colno})` : "";
+      logProblem("error", "uncaught", `${message}${place}`, error?.stack, Date.now(), error);
+    },
+    true,
+  );
   window.addEventListener("unhandledrejection", (event) => {
     const reason: unknown = event.reason;
     const error = reason instanceof Error ? reason : undefined;

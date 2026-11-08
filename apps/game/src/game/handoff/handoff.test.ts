@@ -105,6 +105,36 @@ describe("phone handoff", () => {
     await assert.rejects(() => decodeTicket("not a code"), /could not be read/);
   });
 
+  it("reads a real-sized ticket and rejects one that unpacks past the size cap", async () => {
+    // A phone's answer: a handful of mDNS host candidates plus the usual SDP lines, a few kilobytes.
+    const sdp = [
+      "v=0",
+      ...Array.from({ length: 30 }, (_, i) => `a=attr-${i}:${"x".repeat(60)}`),
+      ...Array.from(
+        { length: 8 },
+        (_, i) =>
+          `a=candidate:${i} 1 udp 2113937151 ${crypto.randomUUID()}.local 5${i}000 typ host`,
+      ),
+    ].join("\r\n");
+    const parts = await encodeTicket({ v: 1, role: "answer", sdp });
+    assert.equal(parts.length, 1, `${parts[0]!.length} characters`);
+    assert.equal((await decodeTicket(parts[0]!)).sdp, sdp);
+    // Compresses to a few pages, unpacks to 100 KB.
+    const bomb = await encodeTicket({ v: 1, role: "offer", sdp: " typ host".repeat(12_000) });
+    assert.ok(bomb.length <= 40);
+    await assert.rejects(() => decodeTicket(bomb.join("\n")), /could not be read/);
+  });
+
+  it("ignores over-long lines and pasted text", async () => {
+    const long = `STL1.1.1.${"A".repeat(3000)}`;
+    assert.equal(absorbTicket(new Map(), long).need, 0);
+    await assert.rejects(() => decodeTicket(long), /could not be read/);
+    const parts = await encodeTicket({ v: 1, role: "offer", sdp: "v=0" });
+    const padded = `${parts[0]!}\n${" ".repeat(200_000)}`;
+    assert.equal(absorbTicket(new Map(), padded).need, 0);
+    await assert.rejects(() => decodeTicket(padded), /could not be read/);
+  });
+
   it("frames a description and a chunk", () => {
     const manifest: HandoffManifest = {
       v: 1,

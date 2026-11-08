@@ -307,8 +307,11 @@ export function droneItems(g: Game, slot = storeDef("standard")?.slot ?? 3): Sto
   // Stores and resources, "Stores assortment": a drone slot holds three schematics.
   // The slot does not require Drone Control. Buying one still needs that system and a free slot.
   // Fire Drone and Shield Overcharger + are not in the catalog.
+  // FTL's GetRandomDrone skips rarity 0: the enemy-only schematics (the Flagship's BOARDER_BOSS) are never stocked.
   const internal = internalDrones();
-  const rows = allDrones().filter((row) => !internal.has(row.id) && editionSells(row.id));
+  const rows = allDrones().filter(
+    (row) => row.rarity !== 0 && !internal.has(row.id) && editionSells(row.id),
+  );
   const n = rows.length;
   if (n === 0) return [];
   // INFERRED: rarity is named and the likelihood formula is not in the dump.

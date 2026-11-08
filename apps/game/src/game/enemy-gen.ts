@@ -33,6 +33,7 @@ import type {
 } from "@stl/pack";
 import type { KinId } from "./extras/kin.ts";
 import { crewRandomIds, internalDrones } from "./blueprint-use.ts";
+import { flownAs } from "./extras/flown.ts";
 import { noteListPlayed } from "./played-lists.ts";
 import { pirateCrewRaces } from "./wiki/skills.ts";
 import { weaponIdForName } from "./gear-look.ts";
@@ -156,8 +157,6 @@ const SCHEMATIC_FALLBACK: Record<string, number> = {
   BATTLE: 2,
   /** Defense Drone Mark II on an enemy blueprint. Same 3 power as DEFENSE_2. */
   DEFENSE_2_ENEMY: 3,
-  /** Boarding Drone (boss). The archive costs 2, not the 3 of BOARDER. */
-  BOARDER_BOSS: 2,
   /** Anti-Ship Fire Drone. Same 3 power as fire. */
   COMBAT_FIRE: 3,
   /** Anti-Ship Ion Drone I: "power 2". Flies as a combat drone. */
@@ -191,7 +190,6 @@ export const SCHEMATIC_POWER: Record<string, number> = liveTable(
 const ARCHIVE_SIM: Record<string, string> = {
   BATTLE: "personnel",
   DEFENSE_2_ENEMY: "DEFENSE_2",
-  BOARDER_BOSS: "BOARDER",
   COMBAT_FIRE: "fire",
   COMBAT_ION: "COMBAT_1",
   COMBAT_MISSILE: "COMBAT_1",
@@ -200,11 +198,27 @@ const ARCHIVE_SIM: Record<string, string> = {
 };
 
 function schematicPower(id: string): number {
-  const direct = SCHEMATIC_POWER[id];
+  const direct = SCHEMATIC_POWER[id] ?? droneDef(id)?.power;
   if (direct != null) return direct;
-  const sim = ARCHIVE_SIM[id];
+  const sim = ARCHIVE_SIM[id] ?? flownAs(id);
   if (!sim) return Infinity;
   return SCHEMATIC_POWER[sim] ?? Infinity;
+}
+
+/**
+ * A schematic the drone code does not name, flown by its droneBlueprint type (extras/flown.ts flownAs), such as
+ * ftl.dat's BOARDER_BOSS. It is drawn like a native schematic, at its own power, so the draw's count and power
+ * limits hold. Ids the code names (SHIP_REPAIR, DRONE_SHIELD_PLAYER, ...) map to themselves and stay out.
+ */
+function typeFlown(id: string): boolean {
+  if (ENEMY_RUNNABLE.has(id) || ARCHIVE_SIM[id] != null) return false;
+  const as = flownAs(id);
+  return as != null && as !== id;
+}
+
+/** The flight code a drawn id runs, for the combat-drone flag rule. */
+function drawnAs(id: string): string {
+  return typeFlown(id) ? (flownAs(id) ?? id) : id;
 }
 
 /**
@@ -226,7 +240,6 @@ export const ENEMY_RUNNABLE = new Set([
   "BATTLE",
   "BOARDER",
   "BOARDER_ION",
-  "BOARDER_BOSS",
   "DEFENSE_2_ENEMY",
   "BOSS_DEFENSE_2",
   "COMBAT_FIRE",
@@ -272,7 +285,8 @@ export function rollDrones(
   // A blueprint that named them keeps them.
   const blocked = listed ? undefined : internalDrones();
   const pool = row.drones.filter(
-    (id) => ENEMY_RUNNABLE.has(id) && ARCHIVE_SIM[id] == null && !blocked?.has(id),
+    (id) =>
+      ((ENEMY_RUNNABLE.has(id) && ARCHIVE_SIM[id] == null) || typeFlown(id)) && !blocked?.has(id),
   );
   const out: string[] = [];
   let open = flagsOpen;
@@ -282,14 +296,16 @@ export function rollDrones(
       const p = schematicPower(id);
       return p >= 1 && p <= left && (level < 4 || p < level);
     });
-    const soft = hard.filter((id) => !out.includes(id) && (!open || COMBAT_DRONES.has(id)));
+    const soft = hard.filter(
+      (id) => !out.includes(id) && (!open || COMBAT_DRONES.has(drawnAs(id))),
+    );
     const fits = soft.length ? soft : hard;
     if (!fits.length) break;
     // INFERRED: uniform among the drones that pass, as Mathchamp's weapon generator gives "equal odds for each entry".
     const id = fits[Math.floor(rand() * fits.length) % fits.length];
     out.push(id);
     left -= schematicPower(id);
-    if (COMBAT_DRONES.has(id)) open = false;
+    if (COMBAT_DRONES.has(drawnAs(id))) open = false;
   }
   if (listed) {
     for (const id of row.drones) {

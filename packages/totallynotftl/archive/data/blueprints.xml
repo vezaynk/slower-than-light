@@ -2225,7 +2225,12 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="3" room="15" start="true"/>
     </systemList>
     <weaponList missiles="10"/>
-    <droneList drones="10"/>
+    <droneList count="4" drones="10">
+      <drone name="DEFENSE_1"/>
+      <drone name="COMBAT_1"/>
+      <drone name="COMBAT_BEAM"/>
+      <drone name="BOARDER_BOSS"/>
+    </droneList>
     <health amount="22"/>
     <maxPower amount="44"/>
   </shipBlueprint>
@@ -2243,7 +2248,12 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="3" room="15" start="true"/>
     </systemList>
     <weaponList missiles="10"/>
-    <droneList drones="10"/>
+    <droneList count="4" drones="10">
+      <drone name="DEFENSE_1"/>
+      <drone name="COMBAT_1"/>
+      <drone name="COMBAT_BEAM"/>
+      <drone name="BOARDER_BOSS"/>
+    </droneList>
     <health amount="22"/>
     <maxPower amount="44"/>
   </shipBlueprint>
@@ -2261,7 +2271,12 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <engines power="3" room="15" start="true"/>
     </systemList>
     <weaponList missiles="10"/>
-    <droneList drones="10"/>
+    <droneList count="4" drones="10">
+      <drone name="DEFENSE_1"/>
+      <drone name="COMBAT_1"/>
+      <drone name="COMBAT_BEAM"/>
+      <drone name="BOARDER_BOSS"/>
+    </droneList>
     <health amount="22"/>
     <maxPower amount="44"/>
   </shipBlueprint>
@@ -5021,6 +5036,17 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <rarity>4</rarity>
     <type>BOARDER</type>
     <power>3</power>
+    <speed>18</speed>
+  </droneBlueprint>
+  <droneBlueprint name="BOARDER_BOSS">
+    <title>Boarding Drone (Boss)</title>
+    <short>Boarding Drone</short>
+    <desc>Rams the enemy hull and fights its way through the rooms. Needs 2 power bars.</desc>
+    <cost>70</cost>
+    <droneImage>BOARDER</droneImage>
+    <rarity>0</rarity>
+    <type>BOARDER</type>
+    <power>2</power>
     <speed>18</speed>
   </droneBlueprint>
   <systemBlueprint name="shields">

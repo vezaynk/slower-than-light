@@ -2,7 +2,6 @@
   "name": "LTA: Lighter Than Air",
   "short_name": "Lighter Than Air",
   "description": "Hold the Lark together and outrun the fleet.",
-  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

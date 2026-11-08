@@ -3,8 +3,11 @@
  * Wiki page "Enemy Ships", section "Surrenders and escape attempts", unless a line says otherwise.
  *
  * This is content, not a rule: in ftl.dat each of these is the ship event's own `<escape timer chance min max>` and its
- * `<gotaway>` `<modifyPursuit>`, which rules/escape.ts already reads through `archiveEscapePlan` in sim.ts. It goes
- * with the cited event pages (wiki/README.md section 2) when they move to the archive.
+ * `<gotaway>` `<modifyPursuit>`. It goes with the cited event pages (wiki/README.md section 2), but deleting it is not
+ * free: these fights start as "Rebel ship" / "Auto-ship", not a ship-event id, so `startCombat` never meets an archive
+ * `<escape>`, and sim.ts `archiveEscapePlan` only builds a hull-threshold plan (`running: false`, `pursuit: false`).
+ * Before this file goes, the archive path must run a ship from the start and turn a `<gotaway>` `<modifyPursuit>` into
+ * `pursuit` (the next fleet advance counts twice, not payPageFx's immediate `g.fleet *= 2`).
  */
 
 export type CitedEscape =

@@ -83,7 +83,8 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    surrender row, the 15 s and 90 s timers are gap `<escapeTimers hull lastFuel>`, and a ship event's own `<escape>`
    already came from the archive. The per-page lines (run from the start, page hull rows, never-run pages, the 80 s
    out-of-fuel wait) are content of the section-2 event pages, so they sit in `wiki/escape-events.ts` and go with
-   those pages.
+   those pages, once the archive path can run a ship from the start and read `<gotaway>` `<modifyPursuit>` as the
+   doubled next advance (`archiveEscapePlan` builds only a hull-threshold plan today; see that file's header).
 
 ## How to move a rule module
 
@@ -100,7 +101,9 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    `warnPack` once and returns FTL's number (registry `escapeTimer`).
 3. **Data.** The wiki numbers move to `packages/catalog/src/wiki/` (with their citations), are loaded in
    `catalog/src/pack/base.ts` `loadCatalog`, and reach the gap through `campaign/src/xml.ts` (`campaignPack` and the
-   `gap` half of `splitCampaign`). Run `pnpm campaign:xml && pnpm totallynotftl:dat`, and document the tag in
+   `gap` half of `splitCampaign`). A `<pack>` mod round-trips through `packages/hyperspace` `emitMod` / `packFromMod`:
+   add the field there too (`omitEmpty`, and the `emitGapDocument` call for a root tag) and to its `mod.test.ts`
+   fixture. Run `pnpm campaign:xml && pnpm totallynotftl:dat`, and document the tag in
    `packages/campaign/README.md`.
 4. **Code.** The game reads the getter (a function, not an exported constant, so a mod's value is seen). Content
    tables the module still carries go to their own `wiki/` file next to the content they belong to. Move the module

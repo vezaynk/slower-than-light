@@ -253,9 +253,19 @@ export function adjustScrapAmount(g: Game, scrap: number): number {
 }
 
 /**
+ * An augment a store or a random reward can offer. FTL GetRandomAugment (archive-pay.ts weightedBlueprint) skips a
+ * blueprint whose `<rarity>` is 0 or missing: the ship and event grants such as Zoltan Shield or Damaged Stasis Pod,
+ * which both archives write with rarity 0.
+ */
+export function shelfAugment(row: { rarity?: number }): boolean {
+  return row.rarity != null && row.rarity !== 0;
+}
+
+/**
  * Augmentations, the paragraph above "Offensive Augmentations": up to three augmentations.
  * That paragraph has no heading. INVENTED: a second copy of a stackable augment is refused.
- * Store rarity 0 is never on a shelf (FTL GetRandomAugment skips it): ship and event grants are not bought.
+ * A ship or event grant (store rarity 0) is not bought. A row with no rarity is never offered (shelfAugment), but a
+ * stock row that names one still sells.
  */
 export function installAugment(g: Game, id: AugmentId): boolean {
   const row = augmentDef(id);

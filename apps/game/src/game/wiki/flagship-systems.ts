@@ -379,8 +379,8 @@ const SURGE_LASER = { damage: 1, fireChance: 0.3, breachChance: 0.21, stunChance
 
 /**
  * INFERRED: 3 s stun. The flagship page prints the 20% chance but no duration. The closest printed figure for a
- * 20% weapon stun is Crystal Vengeance's shard, "has a 20 percent chance to stun for 3 seconds" (wiki/augments-missing.ts),
- * and the Missile page's source comment also names 3 seconds. Read by sim.ts strikeRoom for any Shot.stunChance.
+ * 20% weapon stun is Crystal Vengeance's shard, "has a 20 percent chance to stun for 3 seconds" (Augmentations; the
+ * stand-in's CRYSTAL_SHARDS augBlueprint carries it), and the Missile page's source comment also names 3 seconds. Read by sim.ts strikeRoom for any Shot.stunChance.
  */
 export const SURGE_STUN_S = 3;
 

@@ -102,16 +102,18 @@ describe("content pack", () => {
 
   it("loads the catalog in its authored order", () => {
     const sold = allAugments();
-    assert.equal(sold.length, 25);
+    assert.equal(sold.length, 32);
     assert.equal(sold[0]?.id, "AUTO_COOLDOWN");
     assert.equal(sold[0]?.name, "Automated Re-loader");
     assert.equal(sold[0]?.cost, 40);
     assert.equal(sold.find((row) => row.id === "O2_MASKS")?.cost, 50);
     assert.equal(sold.find((row) => row.id === "FTL_JUMPER")?.name, "Adv. FTL Navigation");
     assert.equal(sold.find((row) => row.id === "FTL_JUMPER")?.cost, 50);
-    assert.equal(sold.at(-1)?.id, "ZOLTAN_BYPASS");
-    assert.equal(sold.at(-1)?.name, "Zoltan Shield Bypass");
-    assert.equal(sold.at(-1)?.cost, 55);
+    const bypass = sold.find((row) => row.id === "ZOLTAN_BYPASS");
+    assert.equal(sold.indexOf(bypass!), 24);
+    assert.equal(bypass?.name, "Zoltan Shield Bypass");
+    assert.equal(bypass?.cost, 55);
+    assert.equal(sold.at(-1)?.id, "ENERGY_SHIELD");
     for (const row of sold) assert.ok(row.detail.length > 0, row.id);
     for (const id of [
       "NANO_MEDBAY",
@@ -122,11 +124,7 @@ describe("content pack", () => {
       "STASIS_POD",
       "ENERGY_SHIELD",
     ]) {
-      assert.equal(
-        sold.some((row) => row.id === id),
-        false,
-        id,
-      );
+      assert.equal(sold.find((row) => row.id === id)?.rarity, 0, id);
     }
   });
 

@@ -255,10 +255,11 @@ export function adjustScrapAmount(g: Game, scrap: number): number {
 /**
  * Augmentations, the paragraph above "Offensive Augmentations": up to three augmentations.
  * That paragraph has no heading. INVENTED: a second copy of a stackable augment is refused.
+ * Store rarity 0 is never on a shelf (FTL GetRandomAugment skips it): ship and event grants are not bought.
  */
 export function installAugment(g: Game, id: AugmentId): boolean {
   const row = augmentDef(id);
-  if (!row || row.cost <= 0) return false;
+  if (!row || row.cost <= 0 || row.rarity === 0) return false;
   if (has(g, id)) {
     log(g, "Already fitted.");
     return false;

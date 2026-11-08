@@ -3,11 +3,11 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".output/**"]
+      "outputs": ["dist/**"]
     },
     "@stl/game#build": {
       "dependsOn": ["@stl/campaign#generate", "@stl/totallynotftl#generate", "^build"],
-      "outputs": ["dist/**", ".output/**"]
+      "outputs": ["dist/**"]
     },
     "@stl/campaign#generate": {
       "dependsOn": ["^typecheck"],

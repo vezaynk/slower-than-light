@@ -5214,6 +5214,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Human</title>
     <short>Human</short>
     <cost>45</cost>
+    <rarity>0</rarity>
     <powerList>
       <power>No special traits</power>
     </powerList>
@@ -5222,6 +5223,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Engi</title>
     <short>Engi</short>
     <cost>50</cost>
+    <rarity>0</rarity>
     <powerList>
       <power>Repairs faster: ×2</power>
       <power>Melee damage ×0.5</power>
@@ -5231,6 +5233,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Zoltan</title>
     <short>Zoltan</short>
     <cost>60</cost>
+    <rarity>0</rarity>
     <powerList>
       <power>Health 70</power>
       <power>Adds 1 power bar to its room</power>
@@ -5241,6 +5244,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Mantis</title>
     <short>Mantis</short>
     <cost>55</cost>
+    <rarity>0</rarity>
     <powerList>
       <power>Repairs slower: ×0.5</power>
       <power>Melee damage ×1.5</power>
@@ -5251,6 +5255,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Slug</title>
     <short>Slug</short>
     <cost>45</cost>
+    <rarity>0</rarity>
     <powerList>
       <power>Sees into nearby rooms</power>
       <power>Cannot be mind controlled</power>
@@ -5260,6 +5265,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Rock</title>
     <short>Rock</short>
     <cost>55</cost>
+    <rarity>0</rarity>
     <powerList>
       <power>Health 150</power>
       <power>Moves slower: ×0.5</power>
@@ -5271,6 +5277,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Lanius</title>
     <short>Lanius</short>
     <cost>50</cost>
+    <rarity>0</rarity>
     <powerList>
       <power>Moves slower: ×0.85</power>
       <power>Needs no air</power>
@@ -5281,6 +5288,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <title>Crystal</title>
     <short>Crystal</short>
     <cost>60</cost>
+    <rarity>0</rarity>
     <powerList>
       <power>Health 125</power>
       <power>Moves slower: ×0.8</power>

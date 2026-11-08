@@ -117,6 +117,10 @@ function crewRow(id: KinId): CrewDef {
       id === "rock" ? rockExtinguishScale() : id === "crystal" ? crystalExtinguishScale() : 1,
   };
   if (hire) row.cost = hire.cost;
+  // `<rarity>`: the default a sector's rarityList overrides. Every stand-in sector writes the crew races its Sectors
+  // page lists (sectorRow), so this default never decides a draw. 0 keeps a race the page leaves out out of the
+  // sector, as the wiki's rarity tables do.
+  row.rarity = 0;
   row.short = kin.name;
   row.powers = crewPowers(row);
   return row;

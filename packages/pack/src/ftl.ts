@@ -404,6 +404,8 @@ function readFtlCrew(node: XmlElement): CrewDef | undefined {
   if (cost != null) row.cost = cost;
   const bp = numOf(node, "bp");
   if (bp != null) row.bp = bp;
+  const rarity = numOf(node, "rarity");
+  if (rarity != null) row.rarity = rarity;
   const colors = readCrewColors(child(node, "colorList"));
   if (colors.length > 0) row.colors = colors;
   readCrewCombat(node, row);

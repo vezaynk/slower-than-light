@@ -112,6 +112,11 @@ export type CrewDef = {
   /** Hire price from an archive crewBlueprint. Absent on a stats-only row. */
   cost?: number;
   /**
+   * `<rarity>`: the race's default rarity, 0 (never drawn) or 1 (common) to 5 (rare). A sector's `<rarityList>`
+   * overrides it while the player is in that sector. Absent reads as 0.
+   */
+  rarity?: number;
+  /**
    * `<colorList>` from an archive crewBlueprint: one list per `<layer>`, in order. Layer N tints
    * `img/people/<id>_layerN.png`, drawn over the untinted base sheet. Absent on a stats-only row.
    */
@@ -455,7 +460,10 @@ export type SectorDef = {
   tracks?: string[];
   /** How many beacons draw each event. These are not page lines. */
   quotas?: SectorQuota[];
-  /** Crew rarities. */
+  /**
+   * `<rarityList>`: blueprint rarities this sector sets over each blueprint's own `<rarity>`. Crew races and items
+   * share the list.
+   */
   rarities?: SectorRarity[];
 };
 

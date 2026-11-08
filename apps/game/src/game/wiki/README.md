@@ -15,10 +15,9 @@ own tests did) were removed with this README: `events-0`–`events-3`, `enemies-
 
 ## 1. Content that duplicates the archive: replace with archive reads, then delete
 
-| Module          | Lines | What it holds                                                         | Archive source                                                          |
-| --------------- | ----: | --------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `hangar-bay.ts` |   129 | Hangar loadout article; system titles it prefers over the blueprint's | The player blueprint's lists and `systemBlueprint` titles               |
-| `skills.ts`     |    86 | Skill speed tables; crew races per sector for pirate crews            | Skill tables are a rule (section 3). Races: the sector's `<rarityList>` |
+| Module          | Lines | What it holds                                                         | Archive source                                            |
+| --------------- | ----: | --------------------------------------------------------------------- | --------------------------------------------------------- |
+| `hangar-bay.ts` |   129 | Hangar loadout article; system titles it prefers over the blueprint's | The player blueprint's lists and `systemBlueprint` titles |
 
 ## 2. Events written in code: move to the archive, then delete
 
@@ -54,7 +53,7 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 | `make-room.ts`, `bonus-item.ts`                                                                                                                                                                                                                                                                     | Full racks; bonus reward odds                                                                                                         |
 | `projectile-speed.ts`, `cited-weapons.ts`                                                                                                                                                                                                                                                           | Shot flight time from `<speed>` (speed 60 flies 0.7 s; bombs 1.35 s); crew damage, systemless hull and pierce read from the blueprint |
 | `achievement-track.ts`, `achieve-notes.ts`                                                                                                                                                                                                                                                          | Achievement counters. Conditions are already gap data.                                                                                |
-| `kin`-related lines in `skills.ts`                                                                                                                                                                                                                                                                  | Skill speed tables                                                                                                                    |
+| `skills.ts`                                                                                                                                                                                                                                                                                         | Skill speed tables                                                                                                                    |
 
 ## Steps
 
@@ -79,7 +78,10 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    cost), Flak Artillery's speed 26
    (both archives write `<speed>` on it; `projectile-speed.ts` only maps the stand-in's `flak-artillery` id to
    ftl.dat's `ARTILLERY_FED_C`) and the one-layer pierce set (both archives write `<sp>`). `projectile-speed.ts` and
-   `cited-weapons.ts` now hold only rules (section 3).
+   `cited-weapons.ts` now hold only rules (section 3). `skills.ts`: races done. Pirate and other `random` crews, and crew rewards that name no race, draw from
+   the current sector's `<rarityList>` over each `crewBlueprint`'s `<rarity>`, weighted `6 - rarity` (FTL's
+   GetRandomCrew; the rule is `game/rarity.ts`). The stand-in writes Hidden Crystal Worlds' list too. The skill speed
+   tables stay in `skills.ts` as rules for step 5.
 4. **Events** in section 2, one page at a time.
 5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`. Done: `escape.ts`, now
    `game/rules/escape.ts`. Faction odds are gap `<shipBlueprint name>` › `<escape chance min max>` beside the

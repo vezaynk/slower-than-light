@@ -39,18 +39,10 @@ export function systemlessHull(defId: string | undefined): number | null {
   return weapon.damage * 2;
 }
 
-/** Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer. Other guns print no pierce. */
-const PIERCE_ONE = new Set([
-  "LASER_HEAVY_1_SP",
-  "CRYSTAL_BURST_1",
-  "CRYSTAL_BURST_2",
-  "CRYSTAL_HEAVY_1",
-  "CRYSTAL_HEAVY_2",
-]);
-
+/**
+ * Shield layers the shot bypasses: the blueprint's `<sp>`. A weapon without one pierces nothing.
+ * Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer; both archives write `<sp>1</sp>` on them.
+ */
 export function citedPierce(defId: string | undefined): number {
-  const packed = defId ? weaponDef(defId)?.pierce : undefined;
-  if (packed != null) return packed;
-  if (!defId || !PIERCE_ONE.has(defId)) return 0;
-  return 1;
+  return (defId ? weaponDef(defId)?.pierce : undefined) ?? 0;
 }

@@ -42,7 +42,7 @@ import {
 import type { Crew, Game } from "../types.ts";
 import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./bonus-item.ts";
 import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
-import { HULL_RUN_SECONDS, type EscapePlan } from "./escape.ts";
+import { hullRunSeconds, type EscapePlan } from "../rules/escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
 import { rollBand } from "./event-bands.ts";
 import { addQuest, questChoose } from "./quests.ts";
@@ -255,7 +255,7 @@ export function surrenderPlan(ctx: SurrenderContext, roll: () => number): Surren
     return { ...never(), chance: scripted.chance, threshold, event: ctx.event };
   }
   // A faction with no blueprint does not offer. A pirate uses the pirate row.
-  // INFERRED: a ship with no faction field is a generic Rebel, as in wiki/escape.ts.
+  // INFERRED: a ship with no faction field is a generic Rebel, as in rules/escape.ts.
   const row = factionSurrender(ctx.pirate ? "pirate" : (ctx.faction ?? "rebel"));
   if (!row) return never();
   // Enemy Ships, DISCLAIMER: the percent "may be incorrect as a concept"; read as a percent of max hull here.
@@ -1285,7 +1285,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       const escape: EscapePlan = {
         ...NEVER_RUN,
         mode: "hull",
-        seconds: HULL_RUN_SECONDS,
+        seconds: hullRunSeconds(),
         chance: 70,
         threshold: 20 + rand(g) * 20,
       };
@@ -1522,7 +1522,7 @@ There is no room aboard for their crewmember.`,
       // Wiki citations:
       // > "You allow them to approach, but are caught unaware when they open fire!" — [[Zoltan ship asks to dock]]
       // > "Fight a Zoltan ship." — [[Zoltan ship asks to dock]]
-      // "Fight a Zoltan ship." "never tries to escape" (Zoltan ships never run in wiki/escape.ts already).
+      // "Fight a Zoltan ship." "never tries to escape" (Zoltan ships never run in rules/escape.ts already).
       pageFight(
         g,
         "You allow them to approach, but are caught unaware when they open fire!",

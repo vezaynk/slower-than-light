@@ -23,6 +23,8 @@ import type {
   EventChoice,
   EventDef,
   EventEffect,
+  EscapeTimers,
+  FactionEscape,
   FactionSurrender,
   FillerListDef,
   HullDef,
@@ -157,7 +159,7 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   for (const id of mergeIds(systems, tunes)) {
     add(root, systemElement(doc, systemById.get(id), tuneById.get(id)));
   }
-  for (const faction of pack.factions ?? []) add(root, factionElement(doc, faction));
+  for (const node of factionElements(doc, pack)) add(root, node);
   for (const sector of pack.sectors ?? []) add(root, sectorElement(doc, sector, sectorPart));
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
@@ -182,13 +184,14 @@ export function emitGapDocument(pack: ContentPack): string {
   const root = doc.documentElement;
   if (!root) throw new Error("pack document has no root");
   doc.insertBefore(doc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"'), root);
-  for (const faction of pack.factions ?? []) add(root, factionElement(doc, faction));
+  for (const node of factionElements(doc, pack)) add(root, node);
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
   for (const row of pack.shipClasses ?? []) add(root, shipClassElement(doc, row));
   for (const row of pack.shipLists ?? []) add(root, shipListElement(doc, row));
   if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
+  if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
   return prettyXml(serializer.serializeToString(doc));
 }
 
@@ -203,6 +206,14 @@ function beaconEventsElement(doc: XmlDocument, row: BeaconEvents): XmlElement {
     add(node, nebula);
   }
   return node;
+}
+
+/** `<escapeTimers hull lastFuel>`: the escape timers FTL's executable hard-codes (types.ts EscapeTimers). */
+function escapeTimersElement(doc: XmlDocument, row: EscapeTimers): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.hull != null) attrs.hull = num(row.hull);
+  if (row.lastFuel != null) attrs.lastFuel = num(row.lastFuel);
+  return element(doc, "escapeTimers", attrs);
 }
 
 /** `<shipList>`: the faction and pirate flag of a blueprint list's fights (types.ts ShipListRule). */
@@ -845,13 +856,31 @@ function mergeIds(systems: SystemDef[], tunes: TuneDef[]): string[] {
   return out;
 }
 
-function factionElement(doc: XmlDocument, row: FactionSurrender): XmlElement {
-  const node = element(doc, "shipBlueprint", { name: row.id });
-  add(
-    node,
-    element(doc, "surrender", { chance: num(row.chance), min: num(row.min), max: num(row.max) }),
-  );
-  return node;
+/**
+ * One `<shipBlueprint name>` per faction, carrying its `<surrender>` and `<escape>` rows. Surrender order first; a
+ * faction with only an escape row follows.
+ */
+function factionElements(doc: XmlDocument, pack: ContentPack): XmlElement[] {
+  const nodes = new Map<string, XmlElement>();
+  const node = (id: string) => {
+    let row = nodes.get(id);
+    if (!row) {
+      row = element(doc, "shipBlueprint", { name: id });
+      nodes.set(id, row);
+    }
+    return row;
+  };
+  for (const row of pack.factions ?? []) add(node(row.id), bandElement(doc, "surrender", row));
+  for (const row of pack.escapes ?? []) add(node(row.id), bandElement(doc, "escape", row));
+  return [...nodes.values()];
+}
+
+function bandElement(
+  doc: XmlDocument,
+  tag: "surrender" | "escape",
+  row: FactionSurrender | FactionEscape,
+): XmlElement {
+  return element(doc, tag, { chance: num(row.chance), min: num(row.min), max: num(row.max) });
 }
 
 function rewardsElement(doc: XmlDocument, table: RewardTable): XmlElement {

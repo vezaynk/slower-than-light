@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
-import { escapePlan, HULL_RUN_SECONDS } from "./escape.ts";
+import { escapePlan, hullRunSeconds } from "../rules/escape.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -24,7 +24,7 @@ describe("Rebel ship attacking civilians in Last Stand escape", () => {
     );
     assert.deepEqual(
       [low.mode, low.chance, low.threshold, low.seconds],
-      ["hull", 50, 40, HULL_RUN_SECONDS],
+      ["hull", 50, 40, hullRunSeconds()],
     );
     const high = escapePlan(
       { tier: "pool", faction: "rebel", event: "rebel-ship-attacking-civilians-in-last-stand" },
@@ -48,7 +48,7 @@ describe("Rebel ship attacking civilians in Last Stand escape", () => {
     assert.equal(g.fightEvent, "rebel-ship-attacking-civilians-in-last-stand");
     assert.equal(g.enemyEscape?.mode, "hull");
     assert.equal(g.enemyEscape?.chance, 50);
-    assert.equal(g.enemyEscape?.seconds, HULL_RUN_SECONDS);
+    assert.equal(g.enemyEscape?.seconds, hullRunSeconds());
     const threshold = g.enemyEscape?.threshold ?? -1;
     assert.ok(threshold >= 40 && threshold <= 80);
   });

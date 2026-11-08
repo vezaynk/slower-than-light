@@ -32,6 +32,8 @@ import type {
   ShipListRule,
   SectorRarity,
   EmptyBeaconDef,
+  EscapeTimers,
+  FactionEscape,
   FactionSurrender,
   RewardTable,
   ShipCrewRow,
@@ -63,7 +65,9 @@ import {
   readEmpty,
   readChoiceGates,
   readEvent,
+  readEscapeTimers,
   readFaction,
+  readFactionEscape,
   readRewards,
   readStore,
   readWeapon,
@@ -106,7 +110,8 @@ export type FtlTextFile = {
  * A list entry that loads another list stays one draw, picked when the page is shown.
  * Crew combat children fill the combat fields. A blueprint without them keeps neutral defaults.
  * A `<facts/>` marker and a `<names>` list are kept.
- * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender-only `<shipBlueprint>` is kept.
+ * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender- and escape-only `<shipBlueprint>` is kept.
+ * A root `<escapeTimers>` is a private tag FTL ignores: the escape timers its executable hard-codes.
  * A root `<beaconEvents>` and a sector's `<finishEvent>` (optionally `nebula="true"`) are private tags FTL ignores.
  * They name the start and exit beacon events FTL's executable hard-codes. The base mod writes FTL's names.
  * A root `<ship name>` is a ship event (hull list and endings), not a hull.
@@ -134,11 +139,13 @@ export function packFromFtl(
   const stores = new Catalog<StoreDef>();
   const achievements = new Catalog<AchievementDef>();
   const factions = new Catalog<FactionSurrender>();
+  const escapes = new Catalog<FactionEscape>();
   const empties = new Catalog<EmptyBeaconDef>();
   const shipClasses = new Catalog<ShipClassDef>();
   const shipLists = new Catalog<ShipListRule>();
   let rewards: RewardTable | undefined;
   let beaconEvents: BeaconEvents | undefined;
+  let escapeTimers: EscapeTimers | undefined;
   const strings = new Map<string, string>();
   const locales = new Map<string, Map<string, string>>();
   const grids = readGrids(layouts);
@@ -195,6 +202,8 @@ export function packFromFtl(
       if (row) hulls.put(row);
       const faction = readFaction(node);
       if (faction) factions.put(faction);
+      const escape = readFactionEscape(node);
+      if (escape) escapes.put(escape);
     }
     const root = doc.documentElement;
     for (const node of elements(root ?? undefined)) {
@@ -212,6 +221,8 @@ export function packFromFtl(
         if (table) rewards = table;
       } else if (node.tagName === "beaconEvents") {
         beaconEvents = { ...beaconEvents, ...readBeaconEvents(node) };
+      } else if (node.tagName === "escapeTimers") {
+        escapeTimers = { ...escapeTimers, ...readEscapeTimers(node) };
       } else if (node.tagName === "shipClass") {
         const row = readShipClass(node);
         if (row) shipClasses.put(row);
@@ -265,6 +276,8 @@ export function packFromFtl(
   if (rewards) pack.rewards = rewards;
   if (beaconEvents) pack.beaconEvents = beaconEvents;
   if (factions.rows.length > 0) pack.factions = factions.rows;
+  if (escapes.rows.length > 0) pack.escapes = escapes.rows;
+  if (escapeTimers) pack.escapeTimers = escapeTimers;
   if (empties.rows.length > 0) pack.empties = empties.rows;
   if (shipClasses.rows.length > 0) pack.shipClasses = shipClasses.rows;
   if (shipLists.rows.length > 0) pack.shipLists = shipLists.rows;

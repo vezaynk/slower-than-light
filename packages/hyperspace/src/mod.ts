@@ -81,9 +81,12 @@ export function emitMod(pack: ContentPack): string {
       root.appendChild(node);
     }
   }
-  // The default start and exit events, in the same <beaconEvents> tag the gap file writes.
-  if (pack.beaconEvents) {
-    const gap = readXml(emitGapDocument({ beaconEvents: pack.beaconEvents })).documentElement;
+  // The default start and exit events and the escape timers, in the same tags the gap file writes.
+  if (pack.beaconEvents || pack.escapeTimers) {
+    const rules: ContentPack = {};
+    if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
+    if (pack.escapeTimers) rules.escapeTimers = pack.escapeTimers;
+    const gap = readXml(emitGapDocument(rules)).documentElement;
     for (const child of gap ? elementChildren(gap) : [])
       root.appendChild(doc.importNode(child, true));
   }
@@ -141,6 +144,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   const lists = keep(parsed.lists);
   const empties = keep(parsed.empties);
   const factions = keep(parsed.factions);
+  const escapes = keep(parsed.escapes);
   if (crew) pack.crew = crew;
   if (weapons) pack.weapons = weapons;
   if (augments) pack.augments = augments;
@@ -156,6 +160,8 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (parsed.rewards) pack.rewards = parsed.rewards;
   if (parsed.beaconEvents) pack.beaconEvents = parsed.beaconEvents;
   if (factions) pack.factions = factions;
+  if (escapes) pack.escapes = escapes;
+  if (parsed.escapeTimers) pack.escapeTimers = parsed.escapeTimers;
   return pack;
 }
 

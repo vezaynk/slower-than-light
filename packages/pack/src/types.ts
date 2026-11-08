@@ -587,6 +587,28 @@ export type FactionSurrender = {
   max: number;
 };
 
+/**
+ * Gap `<shipBlueprint name>` › `<escape chance min max>`: a faction's default hull-triggered escape.
+ * `chance` is the percent, rolled once when hull first drops to a point drawn in the `min`–`max` band (percent of max
+ * hull). A faction with no row never runs on its own; a ship event's `<escape>` still can.
+ */
+export type FactionEscape = {
+  id: string;
+  chance: number;
+  min: number;
+  max: number;
+};
+
+/**
+ * Gap `<escapeTimers hull lastFuel>`: seconds of charging FTL's executable gives an escaping enemy when nothing else
+ * names a timer. `hull` is a hull-triggered run, and a ship event's `<escape>` with no `timer`. `lastFuel` is every
+ * hostile after you jump with your last fuel.
+ */
+export type EscapeTimers = {
+  hull?: number;
+  lastFuel?: number;
+};
+
 export type EventItem = "weapon" | "augment" | "drone";
 
 /**
@@ -1179,6 +1201,10 @@ export type ContentPack = {
   rewards?: RewardTable;
   /** Faction surrender rows. A missing id does not offer. */
   factions?: FactionSurrender[];
+  /** Faction escape rows. A missing id does not run. */
+  escapes?: FactionEscape[];
+  /** Default escape timers. Absent until a pack loads them. */
+  escapeTimers?: EscapeTimers;
   /**
    * The archive is the factual stand-in. Item text states numbers.
    * A run can replace decision prose with outcomes.

@@ -558,11 +558,22 @@ export function enemyMayMount(id: string): boolean {
   return id !== "LASER_CHARGEGUN_PLAYER" && id !== "MISSILE_CHARGEGUN" && id !== "MISSILES_BURST";
 }
 
-/** Mathchamp's first flag: "a weapon that is either a LASER, or is a MISSILE with at most 3 shield piercing. In vanilla,
- * this is met by lasers, ions, and crystal weapons." Crystal weapons are lasers in content.ts. */
-function laserFlag(id: string): boolean {
-  const kind = weaponDef(id)?.kind;
-  return kind === "laser" || kind === "ion";
+/** Mathchamp's first flag: a MISSILE counts when its shield piercing is at most this. */
+const LASER_FLAG_MAX_PIERCE = 3;
+
+/**
+ * Mathchamp's first flag (Details on enemy ship generation): "a weapon that is either a LASER, or is a MISSILE with at
+ * most 3 shield piercing. In vanilla, this is met by lasers, ions, and crystal weapons."
+ * Read from the archive only: the blueprint's `<type>` (weaponDef kind) and `<sp>` (pierce, absent is 0).
+ * - ftl.dat types its ion guns LASER. An archive `ION` type is the same family, so it counts too.
+ * - ftl.dat types its crystal guns MISSILES with `<sp>1</sp>`, so they pass. Its real missiles write `<sp>5</sp>`.
+ * - Bombs, beams and flak are none of these, so they never count.
+ */
+export function laserFlag(id: string): boolean {
+  const def = weaponDef(id);
+  if (!def) return false;
+  if (def.kind === "laser" || def.kind === "ion") return true;
+  return def.kind === "missile" && (def.pierce ?? 0) <= LASER_FLAG_MAX_PIERCE;
 }
 
 /** Mathchamp's second flag: "A weapon that deals normal damage (i.e. hull damage)". Bombs never damage hull (Bomb (Weapons)). */

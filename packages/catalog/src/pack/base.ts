@@ -976,7 +976,12 @@ const PROJECTILE_SPEED: Record<string, number> = {
 /** `<hullBust>` flag. Systemless hull damage is twice the blueprint damage. */
 const HULL_BUST = new Set(["LASER_HULL_1", "LASER_HULL_2", "BEAM_HULL", "MISSILES_HULL"]);
 
-/** Shield layers the weapon pages print. Other guns print no pierce. */
+/**
+ * `<sp>`: the shield layers a projectile passes. The bubble stops it when more layers are up.
+ * ftl.dat writes `<sp>5</sp>` on every MISSILES blueprint, so every stand-in missile writes 5 too.
+ * The crystal guns and LASER_HEAVY_1_SP write 1, as their ftl.dat namesakes do. Other guns write none.
+ */
+const MISSILE_PIERCE = 5;
 const PIERCE_ONE: Record<string, number> = {
   LASER_HEAVY_1_SP: 1,
   CRYSTAL_BURST_1: 1,
@@ -1000,6 +1005,7 @@ function weaponRow(id: string): WeaponBlueprint {
   row.art = id;
   row.image = `${id}_shot`;
   if (Object.prototype.hasOwnProperty.call(PIERCE_ONE, id)) row.pierce = PIERCE_ONE[id];
+  else if (row.kind === "missile") row.pierce = MISSILE_PIERCE;
   if (Object.prototype.hasOwnProperty.call(BEAM_TILES, id)) row.lengthTiles = BEAM_TILES[id];
   if (Object.prototype.hasOwnProperty.call(BEAM_SPEED, id)) row.speed = BEAM_SPEED[id];
   else if (Object.prototype.hasOwnProperty.call(PROJECTILE_SPEED, id))

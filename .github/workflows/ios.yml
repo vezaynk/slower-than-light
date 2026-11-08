@@ -31,7 +31,7 @@ jobs:
 
       # The game is client-only, so the SPA shell prerenders to dist/client/index.html (as for GitHub Pages).
       - name: Build static web app
-        run: pnpm --filter @stl/game build:pages
+        run: pnpm --filter @stl/game build
         env:
           PAGES_BASE: /
           VITE_SENTRY_RELEASE: ${{ github.sha }}

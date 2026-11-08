@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 /**
- * Native shells through Capacitor. The web game is the static SPA build (`PAGES_BASE=/` build:pages, the same
+ * Native shells through Capacitor. The web game is the static SPA build (`pnpm build`, the same
  * build GitHub Pages ships), bundled from dist/client. ios/ and android/ are generated in CI
  * (.github/workflows/ios.yml and android.yml) and gitignored. appId
  * io.knyazev.lighterthanair is the iOS bundle id and the Android application id.

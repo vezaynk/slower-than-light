@@ -81,6 +81,7 @@ import { checkEnemyPower } from "./extras/ship-ai.ts";
 import { tickEnemyCrewAi, tickNeutralCrew } from "./extras/crewai.ts";
 import { enemyCloneHolds, onCradleJump } from "./extras/cradle.ts";
 import { enemyFtlScale } from "./extras/moreaugs.ts";
+import { projectileScreen } from "./extras/flown.ts";
 // @agent:drones. Projectiles and asteroids striking orbiting drones (extras/swarm.ts shotHitsDrone).
 import {
   canDeploy,
@@ -6186,9 +6187,8 @@ function winCombat(g: Game) {
     deadCrew,
     allAboard: livingPlayer.length > 0 && livingPlayer.every((c) => c.aboard === "enemy"),
     defense:
-      defenseUnits.some((d) => d.alive && (d.kind === "DEFENSE_1" || d.kind === "DEFENSE_2")) ||
-      (!!foe?.kits.drones?.on &&
-        (foe.kits.drones.target === "DEFENSE_1" || foe.kits.drones.target === "DEFENSE_2")),
+      defenseUnits.some((d) => d.alive && projectileScreen(d.kind)) ||
+      (!!foe?.kits.drones?.on && projectileScreen(foe.kits.drones.target)),
     rock: foe?.faction === "rock",
   });
   g.kills += 1;

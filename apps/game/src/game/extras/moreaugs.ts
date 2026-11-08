@@ -1,5 +1,6 @@
 import { augmentDef } from "@stl/pack";
 import type { AugmentId, Game } from "../types.ts";
+import { defenseAs } from "./flown.ts";
 
 function fitted(g: Game, id: AugmentId): boolean {
   return g.augments.includes(id);
@@ -41,7 +42,7 @@ export function partsBack(g: Game): number {
   const deployed = typeof target === "string" && target.length > 0 && !!kit?.on;
   if (!fitted(g, "DRONE_RECOVERY") || !deployed || kit === undefined || kit.power <= 0 || !target)
     return 0;
-  if (RECOVER_DEFENSE.has(target)) return 1;
+  if (RECOVER_DEFENSE.has(target) || defenseAs(target)) return 1;
   if (RECOVER_COMBAT.has(target) && !(g.phase === "combat" && g.enemy)) return 1;
   return 0;
 }

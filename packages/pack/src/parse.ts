@@ -368,6 +368,8 @@ export function readDrone(node: XmlElement): DroneDef | undefined {
   if (power != null) row.power = power;
   const cooldown = numOf(node, "cooldown");
   if (cooldown != null) row.cooldown = cooldown;
+  const target = textOf(node, "target");
+  if (target) row.target = target;
   const speed = numOf(node, "speed");
   if (speed != null) row.speed = speed;
   const dodge = numOf(node, "dodge");

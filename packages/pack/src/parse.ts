@@ -5,6 +5,7 @@ import {
   type Element as XmlElement,
 } from "@xmldom/xmldom";
 import type {
+  ArchiveReward,
   AugmentDef,
   ChoiceGift,
   ChoiceReq,
@@ -912,6 +913,8 @@ export function readEvent(node: XmlElement): EventDef | undefined {
     if (owner) choice.owner = owner;
     const gift = readGift(item, "page");
     if (gift) choice.gift = gift;
+    const reward = readChoiceReward(item);
+    if (reward) choice.reward = reward;
     choices.push(choice);
   }
   const event: EventDef = {
@@ -1358,6 +1361,26 @@ function fuelGift(modify: XmlElement): ChoiceGift | undefined {
   const hi = intAttr(item, "max");
   if (lo == null || hi == null || lo > hi || lo < 0) return undefined;
   return { k: "fuel", lo, hi };
+}
+
+/**
+ * A choice's autoReward: a direct child, or inside its result event as ftl.dat writes it.
+ * A missing level is skipped with a warning; the button then pays nothing extra.
+ */
+function readChoiceReward(node: XmlElement): ArchiveReward | undefined {
+  const holders = [node, ...elements(node).filter((item) => item.tagName === "event")];
+  for (const holder of holders) {
+    const auto = child(holder, "autoReward");
+    if (!auto) continue;
+    const level = attr(auto, "level")?.trim();
+    const name = ownText(auto).trim();
+    if (level && name) return { level, name };
+    warnPack(
+      `An autoReward on choice "${attr(node, "name") ?? ""}" has no level or kind; it is skipped.`,
+    );
+    return undefined;
+  }
+  return undefined;
 }
 
 /**

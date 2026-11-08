@@ -167,16 +167,16 @@ describe("archive event payoffs", () => {
       {
         events: [
           {
-            id: "ember-cache",
-            dest: "Cache",
-            flag: "ember-cache",
+            id: "ember-station",
+            dest: "Station",
+            flag: "ember-station",
             aliases: [],
             sectors: [],
-            body: "Cache.",
+            body: "Station.",
             choices: [
               {
-                id: "engi-cache-secure",
-                label: "Secure",
+                id: "BOSS_REPAIR_STATION",
+                label: "Dock",
                 fx: [{ k: "nothing" }],
                 grants: [{ kind: "weapon", id: "BEAM_FIRE" }],
                 reward: { level: "HIGH", name: "standard" },
@@ -188,12 +188,15 @@ describe("archive event payoffs", () => {
       "append",
     );
     const g = createGame(3);
+    const here = g.beacons.find((b) => b.id === g.here)!;
+    here.flag = "BOSS_REPAIR_STATION";
+    here.resolved = false;
     const before = g.scrap;
     assert.equal(holdsWeapon(g, "BEAM_FIRE"), false);
-    choose(g, "engi-cache-secure");
-    const [lo, hi] = scrapRange(g.difficulty, g.sector, "medium");
+    choose(g, "BOSS_REPAIR_STATION");
+    // The repair station handler's own 22-44 scrap, not a HIGH standard reward.
     const delta = g.scrap - before;
-    assert.ok(delta >= lo && delta <= hi, `scrap delta ${delta} outside ${lo}..${hi}`);
+    assert.ok(delta >= 22 && delta <= 44, `scrap delta ${delta} outside 22..44`);
     assert.equal(holdsWeapon(g, "BEAM_FIRE"), false);
   });
 

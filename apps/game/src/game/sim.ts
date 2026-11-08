@@ -20,7 +20,6 @@ import {
   FTL_SKILL,
   FTL_UNMANNED,
   flagshipStageScrap,
-  mediumScrapBand,
   hullRepairPerPoint,
   shieldLayerSeconds,
   skillRank,
@@ -179,7 +178,6 @@ import {
 } from "./beam-line.ts";
 import { beamTicker } from "./beam-tickers.ts";
 import { cellOccupied, layoutFor, seatKits } from "./layouts.ts";
-import { engiCacheEvent, stampEngiCache } from "./wiki/engi-cache.ts";
 import {
   citedChoiceDisabled,
   citedChoose,
@@ -3125,8 +3123,6 @@ export function choiceDisabled(g: Game, id: string): string | null {
   // @agent:filler. Rolled prices on filler cards (refugee trades, the fuel gift, the terraformers' delay).
   const filler = fillerChoiceDisabled(g, id);
   if (filler) return filler;
-  // Engi cache: Transaction 2 subtract_missiles.
-  if (id === "engi-cache-trap" && g.missiles < 2) return "Need 2 missiles";
   const cited = citedChoiceDisabled(g, id);
   if (cited) return cited;
   // @agent:quests. Blue-option requirements and prices on quest cards (wiki/quests.ts).
@@ -7831,7 +7827,6 @@ function longRangeExit(
 
 // Plain beacons run documented events: wiki/filler-events.ts (Sectors, "Fallback events", and the EventList templates).
 function eventFor(g: Game, b: Beacon): Game["event"] {
-  if (b.flag === "engi-cache") return engiCacheEvent();
   if (b.flag === "BOSS_REPAIR_STATION") return lastStandRepairEvent();
   // @agent:quests. A quest marker beacon runs its page's "Quest Marker" section (wiki/quests.ts).
   const quest = questEvent(g, b);
@@ -8085,24 +8080,6 @@ export function choose(g: Game, id: string) {
       }
       openSectorMap(g);
       break;
-    case "engi-cache-trap":
-      // Wiki page "Engi cache": 2 missiles delay the Rebel Fleet for 2 turns.
-      if (g.missiles < 2) return;
-      g.missiles -= 2;
-      g.fleet = Math.max(0, g.fleet - 2);
-      g.event = null;
-      showEventLines(g, ["Rebel Fleet is delayed for 2 turns."]);
-      break;
-    case "engi-cache-secure": {
-      // Wiki page "Engi cache": a drone schematic with medium scrap. Rewards, "Drone": "A random drone schematic & T
-      // scrap."
-      const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
-      const n = lo + irand(g, hi - lo + 1);
-      addScrap(g, n);
-      g.event = null;
-      showEventLines(g, [`Medium scrap: ${n}.`, grantRandomItem(g, "drone")]);
-      break;
-    }
     case "BOSS_REPAIR_STATION": {
       // Beacons, "Repair station beacon": 15 hull, 22–44 scrap, 5 fuel, 4 missiles, 5 drone parts, once.
       if (!b || b.flag !== "BOSS_REPAIR_STATION" || b.resolved) return;
@@ -8279,7 +8256,6 @@ export function enterHiddenCrystal(g: Game) {
   makeMap(g);
   syncIonStorm(g);
   enterSector(g, CRYSTAL_SECTOR);
-  stampEngiCache(g);
   stampCitedEvents(g);
   citedSector(g);
   placeQueuedQuests(g);
@@ -8398,7 +8374,6 @@ function nextSector(g: Game, id?: string) {
   }
   makeMap(g);
   if (id) enterSector(g, id);
-  stampEngiCache(g);
   stampCitedEvents(g);
   citedSector(g);
   // @agent:quests. "Added a quest marker to the next sector!": placed after the sector's events (wiki/quests.ts).

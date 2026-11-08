@@ -12,7 +12,6 @@ import {
   upgrade,
   waitHere,
 } from "../sim.ts";
-import { stampEngiCache } from "./engi-cache.ts";
 import { fleetToReach } from "./sector-map.ts";
 import {
   citedAsb,
@@ -75,7 +74,7 @@ describe("Last Stand repair stations", () => {
     assert.equal(g.fuel, 14);
   });
 
-  it("does not stamp any other sector name, and it leaves an Engi cache in place", () => {
+  it("does not stamp any other sector name", () => {
     const g = createGame(2);
     citedSector(g);
     assert.equal(
@@ -83,23 +82,9 @@ describe("Last Stand repair stations", () => {
       false,
     );
     assert.equal(g.sectorId, "STANDARD_SPACE");
-
-    g.sectorId = "ENGI_HOME";
-
-    g.sectorName = "Engi Homeworlds";
-    stampEngiCache(g);
-    const cache = g.beacons.find((b) => b.flag === "engi-cache");
-    assert.ok(cache);
-    citedSector(g);
-    assert.equal(cache.flag, "engi-cache");
-    assert.equal(cache.name, "Engi cache");
-    assert.equal(
-      g.beacons.some((b) => b.flag === "BOSS_REPAIR_STATION"),
-      false,
-    );
   });
 
-  it("will not overwrite the cache, the exit, or invent a station the map does not have", () => {
+  it("will not overwrite the Federation base, the exit, or invent a station the map does not have", () => {
     const g = createGame(6);
     g.sectorId = "FINAL";
     g.sectorName = "The Last Stand";
@@ -107,12 +92,12 @@ describe("Last Stand repair stations", () => {
       (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "store",
     );
     assert.ok(cache);
-    cache.flag = "engi-cache";
+    cache.flag = "fed-base";
     const exit = g.beacons.find((b) => b.kind === "exit");
     const start = g.beacons.find((b) => b.kind === "start");
     const store = g.beacons.find((b) => b.kind === "store");
     citedSector(g);
-    assert.equal(cache.flag, "engi-cache");
+    assert.equal(cache.flag, "fed-base");
     assert.equal(exit?.kind, "exit");
     assert.notEqual(exit?.flag, "BOSS_REPAIR_STATION");
     assert.notEqual(start?.flag, "BOSS_REPAIR_STATION");

@@ -43,6 +43,7 @@
   A surrender tag on a fight page stores the chance, the hull band as min and max, the hail, and the reward.
   An autoReward names stuff, standard, or scrap_only. A weapon names that blueprint. A crewMember is the race.
   The sim still checks the hull and still hands that reward over.
+  An autoReward on a choice is that button's reward, as in ftl.dat: a level and a kind such as drone or weapon.
   An event list with page names is drawn in that order. unique means the page can appear once per sector.
   The sim still remembers which unique page already appeared.
   A list with no page ids is an offer table or the printed bands.
@@ -1557,6 +1558,31 @@
       <event>
         <text>Nothing happens.</text>
       </event>
+    </choice>
+  </event>
+  <event name="ENGI_FLEET_DELAY">
+    <title>Engi cache</title>
+    <alias>engi-cache</alias>
+    <alias>Engi cache</alias>
+    <sector>ENGI_SECTOR</sector>
+    <sector>ENGI_HOME</sector>
+    <text>You notice an Engi colony hiding on the other side of a nearby moon. It turns out they're excavating an equipment cache from the Federation-Mantis War, and they suggest it might be used to lure the pursuing rebel fleet.</text>
+    <choice name="c:engi-cache:0">
+      <text>Booby trap the cache.</text>
+      <event>
+        <text>You transfer down some missile warheads and the Engi rig them to blow before setting a distress signal to attract the fleet's attention.</text>
+      </event>
+      <item_modify>
+        <item type="missiles" min="-2" max="-2"/>
+      </item_modify>
+      <modifyPursuit amount="-2"/>
+    </choice>
+    <choice name="c:engi-cache:1" hidden="true">
+      <text>Secure the cache.</text>
+      <event>
+        <text>You have the Engi complete their excavations and bring the supplies on-board.</text>
+      </event>
+      <autoReward level="MED">drone</autoReward>
     </choice>
   </event>
   <event name="SLUG_DISTRESS_QUESTION">
@@ -3862,6 +3888,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="CONFUSED_MANTIS" unique="true"/>
     <event load="ALISON_MANTIS_CREW" unique="true"/>
     <event load="ASTEROID_DERELICT_SHIP" unique="true"/>
+    <event load="ENGI_FLEET_DELAY" unique="true"/>
     <event load="ENGI_SURRENDER" unique="true"/>
     <event load="MERCENARY_WORK_START" unique="true"/>
     <event load="ZOLTAN_CREW_STUDY" unique="false"/>
@@ -3945,6 +3972,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="CONFUSED_MANTIS" unique="true"/>
     <event load="ALISON_MANTIS_CREW" unique="true"/>
     <event load="ASTEROID_DERELICT_SHIP" unique="true"/>
+    <event load="ENGI_FLEET_DELAY" unique="true"/>
     <event load="ENGI_SURRENDER" unique="true"/>
     <event load="MERCENARY_WORK_START" unique="true"/>
     <event load="ZOLTAN_CREW_STUDY" unique="false"/>

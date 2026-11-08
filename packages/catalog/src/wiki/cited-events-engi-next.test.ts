@@ -21,28 +21,6 @@ const TITLES = [
   "Rebel Attacking Engi",
 ];
 
-const SECTORS = new Set([
-  "STANDARD_SPACE",
-  "CIVILIAN_SECTOR",
-  "ENGI_SECTOR",
-  "ENGI_HOME",
-  "ZOLTAN_SECTOR",
-  "ZOLTAN_HOME",
-  "LANIUS_SECTOR",
-  "MANTIS_SECTOR",
-  "MANTIS_HOME",
-  "PIRATE_SECTOR",
-  "REBEL_SECTOR",
-  "REBEL_SECTOR_MINIBOSS",
-  "ROCK_SECTOR",
-  "ROCK_HOME",
-  "SLUG_SECTOR",
-  "SLUG_HOME",
-  "NEBULA_SECTOR",
-  "CRYSTAL_HOME",
-  "FINAL",
-]);
-
 function slug(title: string): string {
   return title
     .toLowerCase()
@@ -57,8 +35,7 @@ function locationNames(text: string): string[] {
   return m[1]
     .split("|")
     .map((part) => part.trim())
-    .filter((part) => part.length > 0 && !part.includes("="))
-    .filter((part) => SECTORS.has(part));
+    .filter((part) => part.length > 0 && !part.includes("="));
 }
 
 function pages(titles: string[]): Map<string, string> {
@@ -86,10 +63,9 @@ function pages(titles: string[]): Map<string, string> {
 describe("cited engi next events", () => {
   const wiki = pages(TITLES);
 
-  it("exports only candidate titles that exist, and not Engi cache", () => {
+  it("exports only candidate titles that exist", () => {
     assert.equal(wiki.size, TITLES.length);
     const dests = EXTRA_EVENTS.map((ev) => ev.dest);
-    assert.equal(dests.includes("Engi cache"), false);
     for (const dest of dests) {
       assert.ok(TITLES.includes(dest), dest);
     }

@@ -1634,11 +1634,10 @@ Player hangar cutaways are traced from the hangar pictures in layouts.ts: rooms,
 - [x] Engi attacked by Rebel
   - [x] No playable control, number, layout, or rule.
 
-- [ ] Engi cache
-  - [x] wiki/engi-cache.ts.
+- [x] Engi cache
+  - [x] An archive page (ENGI_FLEET_DELAY), dealt from the sector's lists. The stand-in's copy is in @stl/catalog cited-events-engi-next.ts.
   - [x] In Engi Controlled Sector and Engi Homeworlds, booby-trapping spends 2 missiles and delays the Rebel Fleet for 2 turns.
-  - [x] Securing grants medium scrap from Template:Scrap rewards (Medium) for the hangar difficulty and sector.
-  - [ ] The page does not name the drone schematic, so none is granted.
+  - [x] Securing grants a MED drone autoReward: medium scrap and a random drone schematic.
 
 - [x] Engi colony hiding
   - [x] same title as "Engi Colony Hiding" with different capitalization.

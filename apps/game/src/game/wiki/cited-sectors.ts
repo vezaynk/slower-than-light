@@ -6,7 +6,7 @@ import { overtaken, type Danger } from "./sector-map.ts";
 
 /**
  * Sector, fleet, and Last Stand rules whose numbers the wiki states.
- * Called after the map exists and after Engi cache is stamped.
+ * Called after the map exists and after the sector's events are dealt.
  *
  * Beacons, "Repair station beacon": The Last Stand has 3 repair stations.
  * Each is 15 hull, 22–44 scrap, 5 fuel, 4 missiles, and 5 drone parts, once.
@@ -28,7 +28,7 @@ export function citedSector(g: Game): void {
   for (const b of g.beacons) {
     if (need <= 0) break;
     // Sectors, "The Last Stand": the Federation base is its own beacon, not a repair station.
-    if (b.flag === REPAIR_FLAG || b.flag === "engi-cache" || b.flag === "fed-base") continue;
+    if (b.flag === REPAIR_FLAG || b.flag === "fed-base") continue;
     if (b.kind === "start" || b.kind === "exit" || b.kind === "boss" || b.kind === "store")
       continue;
     b.flag = REPAIR_FLAG;

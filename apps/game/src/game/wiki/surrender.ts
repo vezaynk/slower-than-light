@@ -24,10 +24,12 @@ import {
   rewardBonus,
   scrapRange,
   storedId,
+  warnPack,
   weaponDef,
   type SurrenderOfferDef,
 } from "@stl/pack";
 import { clearEnemyLeash } from "../extras/leash.ts";
+import { rollSectorRace } from "../rarity.ts";
 import {
   beginBoarding,
   intruderOnPlayer,
@@ -46,7 +48,6 @@ import { rollBand } from "./event-bands.ts";
 import { addQuest, questChoose } from "./quests.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
-import { pirateCrewRaces } from "./skills.ts";
 
 export type SurrenderTier = "low" | "medium" | "high";
 
@@ -418,16 +419,16 @@ export function rollScriptedOffer(g: Game, s: SurrenderOfferDef): SurrenderOffer
 
 /**
  * Category:Crew Rewards: "If a crewmember's race is not predefined/hard-coded or specified, then it can be of any of
- * the possible races for the current sector type." Those races are the sector's Sectors "Crewmembers" list
- * (pirateCrewRaces). Hidden Crystal Worlds: "only Crystal crewmembers can be purchased or received as a crew kill
- * reward."
- * INFERRED: each race on that sector list is equally likely. The Sectors page says rarity only affects the store
- * assortment probability.
+ * the possible races for the current sector type." FTL EventGenerator::CreateEvent draws it with GetRandomCrew, weighted
+ * by the sector's crew rarities (rarity.ts rollSectorRace).
+ * When the archive leaves no race to draw, the crewmember is Human, with a warning.
  * @agent:quests. A page that gives "a crewmember" without naming one.
  */
 export function randomRace(g: Game): string {
-  const list = pirateCrewRaces(g.sectorId);
-  return list[Math.min(list.length - 1, Math.floor(rand(g) * list.length))];
+  const race = rollSectorRace(g.sectorId, () => rand(g));
+  if (race) return race;
+  warnPack(`No crew race has a rarity in sector ${g.sectorId}; a Human crewmember is used.`);
+  return "Human";
 }
 
 /**

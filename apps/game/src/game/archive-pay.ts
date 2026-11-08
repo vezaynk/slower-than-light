@@ -57,6 +57,7 @@ import {
 } from "./sim.ts";
 import type { Crew, Game, Kit, SkillName, SystemState } from "./types.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
+import { weightedBlueprint } from "./rarity.ts";
 import { queueSfx } from "./sfx-queue.ts";
 import { grantUnlockAt } from "./unlocks.ts";
 import { grantRandomItem } from "./wiki/bonus-item.ts";
@@ -785,33 +786,6 @@ function giveGrant(g: Game, grant: ArchiveGrant): void {
     else if (grant.kind === "drone") receiveDrone(g, id);
     else receiveAugment(g, id);
   }
-}
-
-/**
- * FTL GetRandomWeapon, GetRandomDrone, and GetRandomAugment with count 1.
- * Rarity 0 is excluded. Weight is `6 - rarity`. Ids are sorted, matching std::map order.
- */
-export function weightedBlueprint(
-  rows: readonly { id: string; rarity?: number }[],
-  roll: () => number,
-): string | undefined {
-  const pool: { id: string; weight: number }[] = [];
-  for (const row of rows) {
-    if (row.rarity == null || row.rarity === 0) continue;
-    const weight = 6 - row.rarity;
-    if (weight <= 0) continue;
-    pool.push({ id: row.id, weight });
-  }
-  pool.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  let total = 0;
-  for (const row of pool) total += row.weight;
-  if (total <= 0) return undefined;
-  let mark = roll() * total;
-  for (const row of pool) {
-    mark -= row.weight;
-    if (mark < 0) return row.id;
-  }
-  return pool[pool.length - 1]?.id;
 }
 
 /** A list grant draws one loaded blueprint. Advanced Edition uses the override list when it exists. */

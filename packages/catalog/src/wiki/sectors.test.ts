@@ -123,9 +123,8 @@ describe("SECTOR_TYPES", () => {
       { id: "rock", rarity: 4 },
     ]);
     assert.deepEqual(of("FINAL"), of("STANDARD_SPACE"));
-    assert.deepEqual(of("CRYSTAL_HOME"), []);
+    assert.deepEqual(of("CRYSTAL_HOME"), [{ id: "crystal", rarity: 1 }]);
     for (const sector of SECTOR_TYPES) {
-      if (sector.id === "CRYSTAL_HOME") continue;
       assert.ok(sectorRarities(sector.notes).length > 0, sector.id);
     }
   });

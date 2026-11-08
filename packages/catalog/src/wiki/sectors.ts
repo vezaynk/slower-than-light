@@ -303,7 +303,9 @@ const CREW_ID: Record<string, string> = {
 
 /**
  * Crew rarities, and the Lockdown Bomb rarity, copied out of the sector notes.
- * A heading with no number stays empty. Hidden Crystal Worlds names Crystal crew and gives no rarity.
+ * A heading with no number stays empty.
+ * Hidden Crystal Worlds: "Only Crystal crew can be bought or received as a crew-kill reward." The page prints no
+ * number. INFERRED: rarity 1 (common). With Crystal the only race listed, any rarity above 0 draws Crystal every time.
  */
 export function sectorRarities(notes: readonly string[]): { id: string; rarity: number }[] {
   const rows: { id: string; rarity: number }[] = [];
@@ -312,6 +314,9 @@ export function sectorRarities(notes: readonly string[]): { id: string; rarity: 
       /Crystal Lockdown Bombs can be found or bought here, at an? \w+ rarity \((\d+)\)/,
     );
     if (bomb) rows.push({ id: "BOMB_LOCK", rarity: Number(bomb[1]) });
+    if (/Only Crystal crew can be bought or received as a crew-kill reward/.test(note)) {
+      rows.push({ id: "crystal", rarity: 1 });
+    }
     const crew = note.match(/common to rare:\s*(.+?)\.\s*Rarity only/);
     if (!crew?.[1]) continue;
     const group = /((?:[A-Z][a-z]+)(?:(?:,?\s+and\s+|,\s+)[A-Z][a-z]+)*)\s+(?:rarity\s+)?(\d+)/g;

@@ -1,7 +1,7 @@
 /**
  * Store rarity of each weapon, augment, and drone blueprint, written as `<rarity>`.
  * FTL GetRandomWeapon, GetRandomDrone, and GetRandomAugment skip rarity 0 and weigh the rest by 6 - rarity
- * (apps/game/src/game/archive-pay.ts weightedBlueprint).
+ * (apps/game/src/game/rarity.ts weightedBlueprint).
  * Sources: the Rarity column of Template:Laser / Beam / Bomb / Crystal / Flak / Ion / Missile weapons, and the
  * "Store rarity" bullets on Augmentations and Drone Control. A weapon a page prints no rarity for is a
  * starting, enemy-only, or boss arm and is 0.

@@ -38,7 +38,7 @@
 import type { Game, KitId, Room, Ship, SysId, WeaponInst } from "../types.ts";
 import { evasionPercent, powerMask, rand, zoltanBars } from "../sim.ts";
 import { airShown } from "../air.ts";
-import { aiTarget } from "@stl/pack";
+import { aiTarget, warnPack } from "@stl/pack";
 
 /** A player system as the AI sees it: a core system id or a kit id. */
 export type TargetSystem = SysId | KitId;
@@ -167,6 +167,23 @@ function pick<T>(g: Game, list: readonly T[]): T | undefined {
   return list[Math.min(list.length - 1, Math.floor(rand(g) * list.length))];
 }
 
+/**
+ * The Hard shares, gap `<aiTarget hardRoom hardAny>`. Both share one roll, so they can sum past 1.
+ * INFERRED: that is malformed data. FTL's order holds: hardRoom keeps its share, hardAny gets what is left, and the
+ * priority list gets none. It warns once.
+ */
+export function hardShares(): { hardRoom: number; hardAny: number } {
+  const hardRoom = aiTarget("hardRoom");
+  const hardAny = aiTarget("hardAny");
+  // A little slack, so shares like 0.33 + 0.67 that round past 1 do not warn.
+  if (hardRoom + hardAny <= 1 + 1e-9) return { hardRoom, hardAny };
+  const left = Math.max(0, 1 - hardRoom);
+  warnPack(
+    `aiTarget: hardRoom="${hardRoom}" plus hardAny="${hardAny}" is more than 1; hardAny gets the ${+left.toFixed(4)} left and the Hard priority list none.`,
+  );
+  return { hardRoom, hardAny: left };
+}
+
 /** combat-ai, PrioritizeSystem: the player room one enemy shot aims at, or null for "a random room". */
 export function prioritizeSystem(g: Game): string | null {
   const ship = g.player;
@@ -180,8 +197,7 @@ export function prioritizeSystem(g: Game): string | null {
   }
   const roll = rand(g);
   // Hard: 50% no system, 25% any installed system, the rest the priority list. Gap `<aiTarget hardRoom hardAny>`.
-  const hardRoom = aiTarget("hardRoom");
-  const hardAny = aiTarget("hardAny");
+  const { hardRoom, hardAny } = hardShares();
   if (roll < hardRoom) return null;
   const any = installedSystems(g);
   // "Pick a high-priority system at random if there is one, otherwise pick a system at random."

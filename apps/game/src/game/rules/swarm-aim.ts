@@ -52,9 +52,12 @@ function twoTile(room: SwarmRoom): [Tile, Tile] | null {
   return straight ? [a, b] : null;
 }
 
-/** True only when the shot must roll the printed 1×2 split. A 2×2 does not roll. */
-export function swarmAimRolls(room: SwarmRoom): boolean {
-  return twoTile(room) != null;
+/**
+ * True only when the shot must roll the printed 1×2 split. A 2×2 does not roll.
+ * `radius` is the blueprint's `<radius>`. Omitted, it is Swarm's 31. A non-positive radius stays, so it does not roll.
+ */
+export function swarmAimRolls(room: SwarmRoom, radius = 31): boolean {
+  return radius > 0 && twoTile(room) != null;
 }
 
 /** -1 is the main room. 0..3 are the long-side tiles. The last tile runs to 1. */

@@ -3234,7 +3234,9 @@ function launch(g: Game, from: "player" | "enemy", w: WeaponInst, volley?: numbe
       : undefined;
   const aimed = roomById(targetShip, rooms[0]);
   // Missile (Weapons), ===Swarm Missiles===: a 1x2 room scatters. A 2x2 stays. `<radius>` is not a pixel sim.
-  const scatter = w.defId === "MISSILE_CHARGEGUN" && aimed != null && swarmAimRolls(aimed);
+  // A non-positive `<radius>` stays too, so it spends no roll.
+  const scatter =
+    w.defId === "MISSILE_CHARGEGUN" && aimed != null && swarmAimRolls(aimed, def.radius);
   // Flak (Weapons), Flak Gun Mark I: 1x2 and 2x2 room odds. Radius 42 is not a pixel sim.
   const flak1 = w.defId === "SHOTGUN" && aimed != null && flak1AimRolls(aimed);
   // Flak (Weapons), Flak Gun Mark II: 1x2 and 2x2 room odds. Radius 55 is not a pixel sim.

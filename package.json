@@ -26,10 +26,5 @@
     "prettier": "^3.4.0",
     "turbo": "^2.5.8",
     "typescript-eslint": "^8.56.1"
-  },
-  "pnpm": {
-    "overrides": {
-      "nf3": "0.3.17"
-    }
   }
 }

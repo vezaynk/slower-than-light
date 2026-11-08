@@ -210,8 +210,8 @@ describe("cited events", () => {
       (b) => b.kind !== "start" && b.kind !== "exit" && b.kind !== "boss" && b.kind !== "store",
     );
     assert.ok(held);
-    held.flag = "engi-cache";
-    held.name = "Engi cache";
+    held.flag = "fed-base";
+    held.name = "Federation base";
     stampCitedEvents(g);
     const first = storyFlags(g.beacons);
     stampCitedEvents(g);
@@ -219,7 +219,7 @@ describe("cited events", () => {
     assert.ok(first.length >= 1);
     assert.deepEqual(second, first);
     assert.equal(new Set(first).size, first.length);
-    assert.equal(held.flag, "engi-cache");
+    assert.equal(held.flag, "fed-base");
     assert.equal(
       g.beacons.some(
         (b) =>

@@ -32,11 +32,43 @@ its own campaign) is the source; the code should only interpret event XML.
 | `cited-events.ts`, `cited-missing.ts`                                                                                           | 3,985 | Event pages with their choices, rows and outcomes                                           |
 | `surrender.ts`                                                                                                                  | 1,552 | Surrender offers per event, plus the surrender rule (section 3)                             |
 | `cited-stores.ts`                                                                                                               |   692 | Store rows and prices                                                                       |
-| `beacon-mix.ts`, `cited-sectors.ts`, `engi-cache.ts`, `ruwen-entry.ts`, `cited-fuel.ts`, `cited-flare.ts`                       |   690 | Where events are placed in a sector, sector specials, out-of-fuel waits, sun fights         |
+| `beacon-mix.ts`, `cited-sectors.ts`, `ruwen-entry.ts`, `cited-fuel.ts`, `cited-flare.ts`                                        |   653 | Where events are placed in a sector, sector specials, out-of-fuel waits, sun fights         |
 | `choice-locks.ts`, `stock-labels.ts`, `stock-spend.ts`, `event-bands.ts`, `event-prices.ts`, `event-grades.ts`, `fuel-gifts.ts` |   730 | Helpers that read a loaded page. They stay as code once the pages above are archive events. |
 
 Order: per event, check that the archive's version plays correctly (as `TRADER_CIV` was checked), then delete the
 code page and its tests. The stand-in's catalog then has to carry its own version of any event that only exists here.
+
+Done: `engi-cache.ts` (the pilot, November 2026). Engi cache is `ENGI_FLEET_DELAY` in both archives: ftl.dat deals it
+from `ITEMS_ENGI`, the stand-in from its Engi sector lists (`@stl/catalog` `cited-events-engi-next.ts`).
+
+### How to migrate an event module
+
+1. **Map it.** List the module's events, its importers (`git grep`), and each event's archive id
+   (`packages/catalog/src/wiki/ftl-event-ids.ts` maps a wiki title to it). Find the page in ftl.dat
+   (`events*.xml`) and in the stand-in (`packages/totallynotftl/archive/data/`).
+2. **Compare before deleting.** `src/game/event-diff.ts` plays both versions of one event from the same seeds and
+   prints every field that differs: title, body, buttons, locks, resource deltas, items gained, result text, end
+   phase, and pack warnings. Each side is a beacon flag: the code module's flag, and the archive id
+   (`filler:<ID>` when only a list deals it).
+
+   ```sh
+   cd apps/game
+   node --experimental-strip-types src/game/event-diff.ts --sector ENGI_SECTOR \
+     --old engi-cache --archive ENGI_FLEET_DELAY --seeds 1-20              # stand-in
+   node --experimental-strip-types src/game/event-diff.ts --sector ENGI_SECTOR \
+     --old engi-cache --archive filler:ENGI_FLEET_DELAY --dat "$FTL_DAT"   # ftl.dat
+   ```
+
+3. **Close every difference.** A missing or different stand-in page goes into the catalog (`packages/catalog`), in
+   ftl.dat's own shape where the dialect allows it. If the dialect cannot say it, extend `packages/pack/src/emit.ts`
+   and `parse.ts` together and add the line to the `HEADER` in `emit.ts`, which documents the event dialect inside
+   the archive. Regenerate with `pnpm campaign:xml && pnpm totallynotftl:dat`. A rule FTL keeps in its executable
+   stays code, in the archive interpreter (`archive-pay.ts`, `cited-events.ts`), not per event. What is left is
+   intended (ftl.dat wins: its text, its list placement) and goes in the PR.
+4. **Delete** the module, its tests, and its wiring in `sim.ts` (stamps, `eventFor`, `choose` cases,
+   `choiceDisabled`). Add the event to `src/game/archive-events.test.ts`, which plays it on the stand-in and, with
+   `FTL_DAT`, on ftl.dat through the same checker.
+5. **Verify** with both archives (that test, and a dealing probe), then mark the module done here.
 
 ## 3. Rules FTL keeps in its executable: keep as code, move the numbers to the gap mod
 

@@ -343,7 +343,8 @@ describe("ship events", () => {
     step(g, 1 / 30);
     assert.ok(g.scrap > scrap);
     assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, "The hull breaks apart.");
+    // The page's autoReward is listed under its text.
+    assert.match(g.event?.body ?? "", /^The hull breaks apart\.\n\nScrap: \d+\.$/);
     assert.equal(g.reward, null);
     assert.equal(g.fightEvent, null);
   });

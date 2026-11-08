@@ -330,13 +330,16 @@ function eventRow(row: EventDef): EventDef {
     aliases: [...row.aliases],
     sectors: sectorIds(row.sectors),
     body: row.body,
-    choices: row.choices.map((choice) =>
-      stampedChoice({
+    choices: row.choices.map((choice) => {
+      const copy: EventChoice = {
         id: choice.id,
         label: choice.label,
         fx: choice.fx.map((fx) => ({ ...fx })),
-      }),
-    ),
+      };
+      if (choice.hidden) copy.hidden = true;
+      if (choice.reward) copy.reward = { ...choice.reward };
+      return stampedChoice(copy);
+    }),
   };
   const texts = OPENING_TEXTS[row.id];
   if (texts && texts.length > 1) copy.texts = [...texts];

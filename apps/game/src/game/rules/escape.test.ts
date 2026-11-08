@@ -96,7 +96,7 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
 
   it("reads the event slug from a cited choice id", () => {
     assert.equal(eventSlugOf("c:auto-ship-warning:0"), "auto-ship-warning");
-    assert.equal(eventSlugOf("engi-cache-trap"), undefined);
+    assert.equal(eventSlugOf("exit-leave"), undefined);
   });
 });
 

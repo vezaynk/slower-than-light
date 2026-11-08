@@ -147,7 +147,6 @@ const KEEP_FLAGS = new Set([
   "ENGI_UNLOCK_1",
   "MANTIS_NAMED_THIEF",
   "NEBULA_SLUG_FIGHT_UNLOCK",
-  "engi-cache",
   "BOSS_REPAIR_STATION",
   // @agent:quests-a. Category:Ship Unlocking Events pages wired in quests-a.ts.
   "ROCK_CRYSTAL_BEACON",

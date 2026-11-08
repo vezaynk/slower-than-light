@@ -110,6 +110,11 @@ const pack: ContentPack = {
     rewards: [{ name: "fuel", resources: [{ name: "fuel", level: "LOW" }] }],
   },
   factions: [{ id: "rebel", chance: 50, min: 20, max: 30 }],
+  escapes: [
+    { id: "rebel", chance: 50, min: 30, max: 40 },
+    { id: "lanius", chance: 80, min: 20, max: 40 },
+  ],
+  escapeTimers: { hull: 15, lastFuel: 90 },
   empties: [
     {
       id: "ember-quiet",
@@ -148,6 +153,8 @@ describe("hyperspace mod", () => {
     assert.match(xml, /<rewards>/);
     assert.match(xml, /<rewardScaling>/);
     assert.match(xml, /<shipBlueprint name="rebel">\s*<surrender chance="50" min="20" max="30"\/>/);
+    assert.match(xml, /<escape chance="80" min="20" max="40"\/>/);
+    assert.match(xml, /<escapeTimers hull="15" lastFuel="90"\/>/);
     assert.deepEqual(packFromMod(xml), pack);
   });
 

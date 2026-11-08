@@ -30,7 +30,7 @@ const CRYSTAL_FIGHT_HAILS = [
 
 /**
  * Scripted surrenders: event pages whose ship carries its own surrender offer and reward. Keyed by the event slug that
- * startCombat receives (wiki/escape.ts eventSlugOf). Only pages the cited events wire to a fight are listed.
+ * startCombat receives (game rules/escape.ts eventSlugOf). Only pages the cited events wire to a fight are listed.
  * Each reward is only what the page names; nothing else is added.
  */
 export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {

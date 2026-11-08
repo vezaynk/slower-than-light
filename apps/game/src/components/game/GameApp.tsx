@@ -149,6 +149,7 @@ import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
 import { augmentDetail, augmentName, bonusAugmentFate, droneName } from "@/game/rules/bonus-item";
 import { canFieldDrone, droneSlotCap } from "@/game/wiki/cited-stores";
 import {
+  cargoCells,
   cargoSlots,
   canFitFromCargo,
   cargoOf,
@@ -5905,7 +5906,7 @@ function CargoList({
           </div>
         )}
       </section>
-      {/* Per the user: the 4-slot cargo hold for weapons and drone schematics that are not fitted (rules/make-room.ts). */}
+      {/* Per the user: the cargo hold (gap `<cargoSlots>`) for weapons and drone schematics that are not fitted (rules/make-room.ts). A save over a lowered cap still draws every item. */}
       <section className="sheet-group">
         <h3 className="sheet-group-head">
           {"Cargo"}{" "}
@@ -5915,7 +5916,7 @@ function CargoList({
           </span>
         </h3>
         <div className="cargo-slots">
-          {Array.from({ length: cargoSlots() }, (_, index) => {
+          {Array.from({ length: cargoCells(game) }, (_, index) => {
             const item = cargo[index];
             if (!item) {
               return (

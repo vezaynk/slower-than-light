@@ -32,6 +32,14 @@ export function cargoOf(g: Game): CargoItem[] {
   return g.cargo ?? [];
 }
 
+/**
+ * Cells the cargo sheet draws. A continued save can hold more than a lowered `<cargoSlots>`; those items stay shown
+ * and fittable, and `stow` still refuses anything new until the hold is under the cap.
+ */
+export function cargoCells(g: Game): number {
+  return Math.max(cargoOf(g).length, cargoSlots());
+}
+
 function stow(g: Game, item: CargoItem): boolean {
   if (cargoOf(g).length >= cargoSlots()) return false;
   g.cargo = [...cargoOf(g), item];

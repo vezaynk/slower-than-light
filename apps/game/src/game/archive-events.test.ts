@@ -21,7 +21,10 @@ for (const archive of archiveCases()) {
       const lists = allFillerLists().filter((list) =>
         list.entries.some((entry) => entry.id === "ENGI_FLEET_DELAY"),
       );
-      assert.ok(lists.length > 0, "an event list deals it");
+      // An item list, as ftl.dat's ITEMS_ENGI. The stand-in names its lists <SECTOR>__items__<n>.
+      const ids = lists.map((list) => list.id);
+      assert.ok(ids.length > 0, "an event list deals it");
+      for (const id of ids) assert.match(id, /ITEMS|__items__/, id);
       const c: EventDiffCase = {
         sector: "ENGI_SECTOR",
         old: { flag: "ENGI_FLEET_DELAY" },

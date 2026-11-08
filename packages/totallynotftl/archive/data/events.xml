@@ -3855,6 +3855,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="REPAIR_STATION" unique="true"/>
     <event load="FUEL_FOR_DRONE" unique="true"/>
     <event load="TRADER_CIV" unique="true"/>
+    <event load="ENGI_FLEET_DELAY" unique="true"/>
     <event load="TRADER_UPGRADES" unique="true"/>
     <event load="HELP_MINERS" unique="true"/>
     <event load="TRADER_UPGRADES_EXCHANGE" unique="true"/>
@@ -3888,7 +3889,6 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="CONFUSED_MANTIS" unique="true"/>
     <event load="ALISON_MANTIS_CREW" unique="true"/>
     <event load="ASTEROID_DERELICT_SHIP" unique="true"/>
-    <event load="ENGI_FLEET_DELAY" unique="true"/>
     <event load="ENGI_SURRENDER" unique="true"/>
     <event load="MERCENARY_WORK_START" unique="true"/>
     <event load="ZOLTAN_CREW_STUDY" unique="false"/>
@@ -3939,6 +3939,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="REPAIR_STATION" unique="true"/>
     <event load="FUEL_FOR_DRONE" unique="true"/>
     <event load="TRADER_CIV" unique="true"/>
+    <event load="ENGI_FLEET_DELAY" unique="true"/>
     <event load="TRADER_UPGRADES" unique="true"/>
     <event load="HELP_MINERS" unique="true"/>
     <event load="TRADER_UPGRADES_EXCHANGE" unique="true"/>
@@ -3972,7 +3973,6 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="CONFUSED_MANTIS" unique="true"/>
     <event load="ALISON_MANTIS_CREW" unique="true"/>
     <event load="ASTEROID_DERELICT_SHIP" unique="true"/>
-    <event load="ENGI_FLEET_DELAY" unique="true"/>
     <event load="ENGI_SURRENDER" unique="true"/>
     <event load="MERCENARY_WORK_START" unique="true"/>
     <event load="ZOLTAN_CREW_STUDY" unique="false"/>

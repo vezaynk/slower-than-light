@@ -295,6 +295,13 @@ export const LIST_ITEMS = [
   "Improve reactor for supplies",
 ];
 
+/**
+ * Item pages a faction's own list deals, not the shared Template:EventList ITEMS. The page names its sectors.
+ * Engi cache: ftl.dat's ITEMS_ENGI holds ENGI_FLEET_DELAY. Its result is a drone cache, the "Drone Schematics reward
+ * opportunity" category on its page.
+ */
+export const LIST_ITEMS_SECTOR = ["Engi cache"];
+
 /** The shape of a cited-events table row this module reads. */
 export type MixEvent = {
   dest: string;
@@ -314,7 +321,7 @@ export function classifyEvent(ev: MixEvent): EventClass {
   const listed = (list: string[]) => names.some((n) => list.includes(n));
   if (listed(LIST_HOSTILE)) return "hostile";
   if (listed(LIST_DISTRESS)) return "distress";
-  if (listed(LIST_ITEMS)) return "items";
+  if (listed(LIST_ITEMS) || listed(LIST_ITEMS_SECTOR)) return "items";
   if (listed(LIST_NEUTRAL)) return "neutral";
   const fights = ev.choices.map((c) => c.fx.some((f) => f.k === "fight"));
   if (!fights.some(Boolean)) return "neutral";

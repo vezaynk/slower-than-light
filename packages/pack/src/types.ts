@@ -32,7 +32,7 @@ export type WeaponBlueprint = {
   speed?: number;
   /** Flat crew-damage HP when this blueprint states one. */
   crewDamage?: number;
-  /** Shield layers this shot bypasses. Absent means the authored pierce table. */
+  /** `<sp>`: shield layers this shot bypasses. Absent means none. */
   pierce?: number;
   /** `<weaponArt>` name in the animation document. Absent uses the blueprint id. */
   art?: string;

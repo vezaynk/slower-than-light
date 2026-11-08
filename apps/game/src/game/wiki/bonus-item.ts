@@ -9,7 +9,7 @@ import { editionSells, freeWeaponIds, internalDrones, shelfWeaponIds } from "../
 import { CRYSTAL_SECTOR } from "../sector-ids.ts";
 import { rand } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { NOT_SOLD } from "./cited-stores.ts";
+import { drawableAugment } from "./cited-stores.ts";
 import { heldSchematics, receiveAugment, receiveDrone, receiveWeapon } from "./make-room.ts";
 
 export type BonusItem =
@@ -51,11 +51,13 @@ export function rollBonusItem(g: Game, weapons?: (id: string) => boolean): Bonus
   const owned = new Set(g.player.weapons.map((w) => w.defId));
   const guns = weaponPool(g, owned, weapons);
   // INFERRED: the loot pool is the store pool (no Rock Plating or Titanium System Casing).
-  const augs = allAugments().filter((row) => !NOT_SOLD.has(row.id));
+  const augs = allAugments().filter(drawableAugment);
   const held = heldSchematics(g);
   const internal = internalDrones();
+  // Rarity 0 is never drawn (FTL GetRandomDrone): the enemy-only schematics stay out.
   const drones = allDrones().filter(
-    (row) => !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
+    (row) =>
+      row.rarity !== 0 && !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
   );
   const kinds = (
     [
@@ -84,10 +86,7 @@ export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): 
     return def ? weaponLine(g, def.id) : "No weapon is left to give.";
   }
   if (kind === "augment") {
-    const id = pickOne(
-      g,
-      allAugments().filter((row) => !NOT_SOLD.has(row.id)),
-    )?.id;
+    const id = pickOne(g, allAugments().filter(drawableAugment))?.id;
     return id ? grantBonusAugment(g, id) : "No augmentation is left to give.";
   }
   const held = heldSchematics(g);
@@ -95,7 +94,8 @@ export function grantRandomItem(g: Game, kind: "weapon" | "augment" | "drone"): 
   const ref = pickOne(
     g,
     allDrones().filter(
-      (row) => !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
+      (row) =>
+        row.rarity !== 0 && !held.includes(row.id) && !internal.has(row.id) && editionSells(row.id),
     ),
   )?.id;
   return ref ? droneLine(g, ref) : "No drone schematic is left to give.";

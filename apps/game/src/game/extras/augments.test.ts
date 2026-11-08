@@ -105,7 +105,8 @@ describe("augments", () => {
   it("lists original names and page prices", () => {
     const ids = Object.keys(NAMES) as CatalogId[];
     const sold = allAugments();
-    assert.equal(sold.length, ids.length);
+    // The seven ship and event grants come last, at twice their printed sell price and store rarity 0.
+    assert.equal(sold.length, ids.length + 7);
     for (const id of ids) {
       const row = sold.find((item) => item.id === id);
       assert.ok(row, id);
@@ -113,20 +114,19 @@ describe("augments", () => {
       assert.equal(row.cost, COSTS[id]);
       assert.ok(row.detail.length > 0);
     }
-    for (const id of [
-      "NANO_MEDBAY",
-      "SLUG_GEL",
-      "CREW_STIMS",
-      "DRONE_SPEED",
-      "CRYSTAL_SHARDS",
-      "STASIS_POD",
-      "ENERGY_SHIELD",
-    ]) {
-      assert.equal(
-        sold.some((item) => item.id === id),
-        false,
-        id,
-      );
+    for (const [id, name, cost] of [
+      ["NANO_MEDBAY", "Engi Med-bot Dispersal", 60],
+      ["SLUG_GEL", "Slug Repair Gel", 60],
+      ["CREW_STIMS", "Mantis Pheromones", 50],
+      ["DRONE_SPEED", "Drone Reactor Booster", 50],
+      ["CRYSTAL_SHARDS", "Crystal Vengeance", 80],
+      ["STASIS_POD", "Damaged Stasis Pod", 30],
+      ["ENERGY_SHIELD", "Zoltan Shield", 80],
+    ] as const) {
+      const row = sold.find((item) => item.id === id);
+      assert.equal(row?.name, name, id);
+      assert.equal(row?.cost, cost, id);
+      assert.equal(row?.rarity, 0, id);
     }
   });
 

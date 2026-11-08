@@ -178,25 +178,6 @@ export function flagshipSeats(hard: boolean): string[] {
 // Systems (kits)
 // ---------------------------------------------------------------------------------------------
 
-/**
- * Stage 2 Drone Control loadout, in power order. "Drones": "Combat Drone Mark I (2), Anti-Ship Beam Drone I (2),
- * Defense Drone Mark I (2), Boarding Drone (Boss) (2)". "Handling phase 2 drones": "If you damage the Flagship's
- * drone system, the Boarding Drone is the first drone to go down. Further damage will take the regular beam and
- * combat drones offline (not the power surge drones), and finally the defense drone." swarm.ts powers drones in
- * loadout order, so the defense drone is first and the boarding drone last.
- * INFERRED: "Boarding Drone (Boss)" runs as swarm.ts "BOARDER" (the regular Boarding Drone), at the printed (2) power.
- */
-export const STAGE2_DRONES = ["DEFENSE_1", "COMBAT_BEAM", "COMBAT_1", "BOARDER"] as const;
-
-/**
- * Power of one Drone Control schematic on the flagship, or null to use the regular figure.
- * "Drones": every row prints (2), and 4 x 2 = the printed Drone (8). The regular Boarding Drone is 3.
- */
-export function flagshipDronePower(ship: Ship, kind: string): number | null {
-  if (!isFlagship(ship)) return null;
-  return kind === "BOARDER" ? 2 : null;
-}
-
 /** Blueprint systems that the sim runs as kits. */
 const KIT_INSTALLS: Partial<Record<string, KitId>> = {
   cloaking: "cloaking",
@@ -213,15 +194,19 @@ function blankKit(id: KitId, level: number): Kit {
 /**
  * Fresh kits for a stage, at the levels its blueprint fits. "Global behavior": "Hull and system damage of the Rebel
  * Flagship will be repaired on the next stage", so nothing carries over.
+ * Drone Control flies the blueprint's droneList in its order. swarm.ts powers drones in loadout order, and both
+ * archives list the defense drone first and the boarding drone last ("Handling phase 2 drones": the Boarding Drone
+ * "is the first drone to go down ... and finally the defense drone").
  */
 export function flagshipKits(stage: 1 | 2 | 3, difficulty: string | undefined): Ship["kits"] {
   const kits: Ship["kits"] = {};
-  for (const install of hullDef(flagshipHullId(stage, difficulty))?.installs ?? []) {
+  const hull = hullDef(flagshipHullId(stage, difficulty));
+  for (const install of hull?.installs ?? []) {
     const id = KIT_INSTALLS[install.id];
     if (!id || install.start === false) continue;
     kits[id] = blankKit(id, install.power);
   }
-  if (kits.drones) kits.drones.loadout = [...STAGE2_DRONES];
+  if (kits.drones) kits.drones.loadout = [...(hull?.drones ?? [])];
   return kits;
 }
 
@@ -379,8 +364,8 @@ const SURGE_LASER = { damage: 1, fireChance: 0.3, breachChance: 0.21, stunChance
 
 /**
  * INFERRED: 3 s stun. The flagship page prints the 20% chance but no duration. The closest printed figure for a
- * 20% weapon stun is Crystal Vengeance's shard, "has a 20 percent chance to stun for 3 seconds" (wiki/augments-missing.ts),
- * and the Missile page's source comment also names 3 seconds. Read by sim.ts strikeRoom for any Shot.stunChance.
+ * 20% weapon stun is Crystal Vengeance's shard, "has a 20 percent chance to stun for 3 seconds" (Augmentations; the
+ * stand-in's CRYSTAL_SHARDS augBlueprint carries it), and the Missile page's source comment also names 3 seconds. Read by sim.ts strikeRoom for any Shot.stunChance.
  */
 export const SURGE_STUN_S = 3;
 

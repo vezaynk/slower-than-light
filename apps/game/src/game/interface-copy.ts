@@ -9,6 +9,7 @@ import {
   archivePhrase,
   textList,
   tutorialScript,
+  weaponDef,
   type OpeningLine,
   type WeaponKind,
 } from "@stl/pack";
@@ -65,6 +66,33 @@ export function itemLines(): string[] {
   return lines;
 }
 
+/** Crystal is a missile that spends no ammo. The card prints that as type_crystal. */
+export function isCrystalMissile(
+  row: { kind?: WeaponKind; ammo?: boolean } | null | undefined,
+): boolean {
+  return row?.kind === "missile" && !row.ammo;
+}
+
+/**
+ * Smoke trail, arc, orange blast, and missileHit.
+ * An ammo-less missile is a crystal, the same split as weaponTypeKey. A shot with no
+ * missile row (the battery, a fake flak pellet) stays a warhead.
+ */
+export function presentsAsWarhead(shot: { kind: string; defId?: string }): boolean {
+  if (shot.kind !== "missile") return false;
+  return !isCrystalMissile(shot.defId ? weaponDef(shot.defId) : undefined);
+}
+
+/** Archive missileHit file. Null skips the blast. 1 is the large warhead, used when damage is at least 3. */
+export function missileHitVariant(shot: {
+  kind: string;
+  defId?: string;
+  damage: number;
+}): 0 | 1 | null {
+  if (!presentsAsWarhead(shot)) return null;
+  return shot.damage >= 3 ? 1 : 0;
+}
+
 /** FTL WeaponBlueprint::GetDescription. Ion is a laser with ion damage. Crystal is a missile that spends none. */
 function weaponTypeKey(row: {
   kind?: WeaponKind;
@@ -76,7 +104,7 @@ function weaponTypeKey(row: {
   if (row.kind === "beam") return "type_beam";
   if (row.kind === "bomb") return "type_bomb";
   if (row.kind === "flak") return "type_burst";
-  if (row.kind === "missile") return row.ammo ? "type_missile" : "type_crystal";
+  if (row.kind === "missile") return isCrystalMissile(row) ? "type_crystal" : "type_missile";
   return undefined;
 }
 

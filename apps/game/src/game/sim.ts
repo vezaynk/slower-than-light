@@ -1,4 +1,5 @@
 import { playArchiveAudio } from "./archive-audio.ts";
+import { missileHitVariant } from "./interface-copy.ts";
 import { deathCue, flushSfx, syncLoops, weaponLaunchCue } from "./audio.ts";
 import { queueSfx, takeHeldLoops } from "./sfx-queue.ts";
 import { TILE_WALK_S, footVia, hopLanding, hopSteps, walkCells } from "./walk-path.ts";
@@ -4382,7 +4383,10 @@ function strikeRoom(
   }
   const shown = hull > 0 ? hull : damage;
   floatAt(g, `−${shown}`, playerHurt ? 74 : 26, 30, shot.kind === "beam");
-  if (shot.kind === "missile") playArchiveAudio("missileHit", shot.damage >= 3 ? 1 : 0);
+  // Crystal is kind missile with ammo false. It is not a warhead, so it takes no missile blast.
+  // Heavy Crystal II is 4 damage and must not play the large file.
+  const blast = missileHitVariant(shot);
+  if (blast != null) playArchiveAudio("missileHit", blast);
   sfx(g, hitCue(shot));
   if (playerHurt) {
     // Per the user: shake only when the hull actually drops, not for a hit that leaves it whole.

@@ -215,13 +215,18 @@ function have(g: Game, id: string): number {
   return 0;
 }
 
+/** Missile Weapon for a blue option. Hull Missile stays excluded. A crystal gun is kind missile with ammo false, so it is not a warhead. */
+export function eventMissileWeapon(g: Game): boolean {
+  return g.player.weapons.some((w) => {
+    if (w.defId === "MISSILES_HULL") return false;
+    const def = weaponDef(w.defId);
+    return def?.kind === "missile" && def.ammo === true;
+  });
+}
+
 /** Missile excludes Hull Missile. Ion includes any ion damage. Beam includes the artillery lance and excludes the two named beams. */
 function meetsFamily(g: Game, id: string): boolean {
-  if (id === "missile") {
-    return g.player.weapons.some(
-      (w) => w.defId !== "MISSILES_HULL" && weaponDef(w.defId)?.kind === "missile",
-    );
-  }
+  if (id === "missile") return eventMissileWeapon(g);
   if (id === "ion") {
     return g.player.weapons.some((w) => {
       const def = weaponDef(w.defId);

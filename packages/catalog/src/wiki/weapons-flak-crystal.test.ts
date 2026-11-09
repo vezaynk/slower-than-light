@@ -193,6 +193,16 @@ describe("flak and crystal wiki weapons", () => {
       assert.equal("pierce" in row, false);
       assert.match(extra.note, /WeaponDef has no pierce field/);
       assert.match(extra.note, /pierce/);
+      assert.match(extra.note, /applyImpact stops the shot when more layers are up than that/);
+      assert.match(
+        extra.note,
+        /ammo false only skips the missile spend and lets the card print the pierce line/,
+      );
+      assert.match(
+        extra.note,
+        /Pierce 5 is written for other missiles because they are not in PIERCE_ONE/,
+      );
+      assert.equal(extra.note.includes("ammo is false so"), false);
       assert.match(extra.note, /no percent is given/);
       assert.match(extra.note, new RegExp(`rarity ${rarity(section)}`));
     }

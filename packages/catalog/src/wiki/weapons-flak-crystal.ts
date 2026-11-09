@@ -233,22 +233,22 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
   {
     id: "CRYSTAL_BURST_1",
     pierce: 1,
-    note: 'Crystal (Weapons) "Crystal Burst Mark I": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. kind is "missile", matching ftl.dat, and ammo is false so the shot does not skip every layer. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 1.',
+    note: 'Crystal (Weapons) "Crystal Burst Mark I": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. applyImpact stops the shot when more layers are up than that `<sp>`. ammo false only skips the missile spend and lets the card print the pierce line. Pierce 5 is written for other missiles because they are not in PIERCE_ONE. kind is "missile", matching ftl.dat. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 1.',
   },
   {
     id: "CRYSTAL_BURST_2",
     pierce: 1,
-    note: 'Crystal (Weapons) "Crystal Burst Mark II": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. kind is "missile", matching ftl.dat, and ammo is false so the shot does not skip every layer. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 4.',
+    note: 'Crystal (Weapons) "Crystal Burst Mark II": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. applyImpact stops the shot when more layers are up than that `<sp>`. ammo false only skips the missile spend and lets the card print the pierce line. Pierce 5 is written for other missiles because they are not in PIERCE_ONE. kind is "missile", matching ftl.dat. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 4.',
   },
   {
     id: "CRYSTAL_HEAVY_1",
     pierce: 1,
-    note: 'Crystal (Weapons) "Heavy Crystal Mark I": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. kind is "missile", matching ftl.dat, and ammo is false so the shot does not skip every layer. Effect: low chance of breach; no percent is given. Moderate-low chance to stun crew; no percent is given. Store rarity 2.',
+    note: 'Crystal (Weapons) "Heavy Crystal Mark I": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. applyImpact stops the shot when more layers are up than that `<sp>`. ammo false only skips the missile spend and lets the card print the pierce line. Pierce 5 is written for other missiles because they are not in PIERCE_ONE. kind is "missile", matching ftl.dat. Effect: low chance of breach; no percent is given. Moderate-low chance to stun crew; no percent is given. Store rarity 2.',
   },
   {
     id: "CRYSTAL_HEAVY_2",
     pierce: 1,
-    note: 'Crystal (Weapons) "Heavy Crystal Mark II": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. kind is "missile", matching ftl.dat, and ammo is false so the shot does not skip every layer. Effect: guaranteed breach, stored as breach 1. Moderate-low chance to stun crew; no percent is given. Store rarity 5.',
+    note: 'Crystal (Weapons) "Heavy Crystal Mark II": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. applyImpact stops the shot when more layers are up than that `<sp>`. ammo false only skips the missile spend and lets the card print the pierce line. Pierce 5 is written for other missiles because they are not in PIERCE_ONE. kind is "missile", matching ftl.dat. Effect: guaranteed breach, stored as breach 1. Moderate-low chance to stun crew; no percent is given. Store rarity 5.',
   },
 ];
 

@@ -1,5 +1,5 @@
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
-import { flakScatterRadius } from "../wiki/weapons-flak-crystal.ts";
+import { flakScatterRadius, isFlakArtillery } from "../wiki/weapons-flak-crystal.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { liveTable, tuneMax, upgradeCost } from "../content.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
@@ -95,11 +95,11 @@ export const POWER_BARS: Record<FlakLevel, number> = {
 };
 
 /**
- * Template:Flak weapons, Flak Artillery: speed 26.
- * Speed 60 stays 0.7s, so this flight is 42/26 seconds. Read when the burst is fired.
+ * Template:Flak weapons, Flak Artillery: speed 26 on the stand-in gun.
+ * Speed 60 stays 0.7s, so that flight is 42/26 seconds. A hull that mounts another gun uses that blueprint's speed.
  */
-function flightSeconds(): number {
-  return projectileFlightSeconds("ARTILLERY_FED_C") ?? LASER_FLIGHT_S;
+function flightSeconds(defId: string): number {
+  return projectileFlightSeconds(defId) ?? LASER_FLIGHT_S;
 }
 
 function blank(level: FlakLevel): Kit {
@@ -135,7 +135,7 @@ export function flakUpgradeCost(level: number): number | null {
 /** Flak Artillery, "System Upgrades": 30, then 50, then 80, through level 4. */
 export function upgradeFlak(g: Game): boolean {
   const kit = g.player.kits.artillery;
-  if (!kit || kit.weapon !== "ARTILLERY_FED_C") return false;
+  if (!kit || !isFlakArtillery(kit.weapon)) return false;
   const cost = flakUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return false;
   g.scrap -= cost;
@@ -172,7 +172,7 @@ function fedBars(kit: Kit): number {
  * (that is the clock the drain uses).
  */
 export function flakChargeProgress(kit: Kit): number | null {
-  if (kit.weapon !== "ARTILLERY_FED_C") return null;
+  if (!isFlakArtillery(kit.weapon)) return null;
   const fed = fedBars(kit);
   const clock = chargeFlakSeconds(asFlakLevel(fed >= 1 ? fed : kit.level));
   if (!(clock > 0)) return null;
@@ -187,7 +187,7 @@ export function raiseFlakPower(g: Game): void {
   const kit = g.player.kits.artillery;
   if (
     !kit ||
-    kit.weapon !== "ARTILLERY_FED_C" ||
+    !isFlakArtillery(kit.weapon) ||
     kit.power >= powerCap(kit) ||
     sparePower(g.player) < 1
   )
@@ -198,14 +198,15 @@ export function raiseFlakPower(g: Game): void {
 
 export function lowerFlakPower(g: Game): void {
   const kit = g.player.kits.artillery;
-  if (!kit || kit.weapon !== "ARTILLERY_FED_C" || kit.power <= 0) return;
+  if (!kit || !isFlakArtillery(kit.weapon) || kit.power <= 0) return;
   kit.power -= 1;
   kit.on = kit.power > 0;
 }
 
 function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): void {
   const kit = ship.kits.artillery;
-  if (!kit || kit.weapon !== "ARTILLERY_FED_C") return;
+  const gun = kit?.weapon;
+  if (!kit || !isFlakArtillery(gun)) return;
   const other = from === "player" ? g.enemy : g.player;
   // Installed level's charge time. The power-off drain uses this, not the filled bars.
   const seconds = chargeFlakSeconds(asFlakLevel(kit.level));
@@ -244,7 +245,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
     return;
   }
   kit.aux = 0;
-  const targets = spreadRooms(g, rooms, PROJECTILES);
+  const targets = spreadRooms(g, rooms, PROJECTILES, gun);
   const born: Shot[] = [];
   // INFERRED: decoys are pushed first. A defense drone takes the first eligible shot in the list.
   // The page does not print which pellet it prefers.
@@ -262,7 +263,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
       targetRoom: rooms[i % rooms.length].id,
       wait: 0,
       t: 0,
-      duration: flightSeconds(),
+      duration: flightSeconds(gun),
       label: FAKE_LABEL,
     });
   }
@@ -272,7 +273,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
       id: nextId(g),
       kind: "flak",
       from,
-      defId: "ARTILLERY_FED_C",
+      defId: gun,
       damage: DAMAGE,
       ion: 0,
       fireChance: 0,
@@ -282,7 +283,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
       offRoom: landed.offRoom ? true : undefined,
       wait: 0,
       t: 0,
-      duration: flightSeconds(),
+      duration: flightSeconds(gun),
     };
     born.push(shot);
   }
@@ -415,6 +416,7 @@ function spreadRooms(
   g: Game,
   rooms: readonly FlakAimRoom[],
   count: number,
+  gun: string,
 ): { roomId: string; offRoom: boolean }[] {
   const ids = rooms.map((room) => room.id);
   for (let i = ids.length - 1; i > 0; i--) {
@@ -431,7 +433,7 @@ function spreadRooms(
       out.push({ roomId: aim, offRoom: false });
       continue;
     }
-    const land = flakLanding(rooms, aim, rand(g), flakScatterRadius("ARTILLERY_FED_C", 35));
+    const land = flakLanding(rooms, aim, rand(g), flakScatterRadius(gun, 35));
     if (land.kind === "miss") out.push({ roomId: aim, offRoom: true });
     else if (land.kind === "room") out.push({ roomId: land.roomId, offRoom: false });
     else out.push({ roomId: aim, offRoom: false });

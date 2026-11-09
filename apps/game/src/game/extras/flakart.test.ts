@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { loadPack, resetPackForTests, weaponDef } from "@stl/pack";
 import { applyImpact, createGame, evasionPercent, rand, sparePower, startCombat } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
+import { LASER_FLIGHT_S, LASER_SPEED } from "../wiki/projectile-speed.ts";
+import { flakScatterRadius } from "../wiki/weapons-flak-crystal.ts";
 import {
   ACQUIRE_S,
   deploy,
@@ -124,6 +127,37 @@ describe("flak burst", () => {
     assert.equal(g.enemy.hull, hull);
     const rooms = new Set(g.enemy.rooms.map((r) => r.id));
     for (const shot of g.shots) assert.ok(rooms.has(shot.targetRoom));
+  });
+
+  it("reads flight, scatter, and the shot from the hull's artillery weapon", () => {
+    const stand = weaponDef("ARTILLERY_FED_C");
+    assert.ok(stand);
+    loadPack(
+      { weapons: [{ ...stand, id: "MOD_FLAK", name: "Mod Flak", speed: 13, radius: 12 }] },
+      "append",
+    );
+    try {
+      assert.equal(flakScatterRadius("MOD_FLAK", 35), 12);
+      const g = fight(3);
+      armFed(g, 1);
+      const kit = g.player.kits.artillery;
+      assert.ok(kit);
+      kit.weapon = "MOD_FLAK";
+      tickFlak(g, 50);
+      const reals = realOf(g.shots);
+      assert.equal(reals.length, PROJECTILES);
+      const flight = (LASER_SPEED * LASER_FLIGHT_S) / 13;
+      for (const shot of reals) assert.equal(shot.defId, "MOD_FLAK");
+      for (const shot of g.shots) assert.equal(shot.duration, flight);
+      // The beam id is not this system. A hull that mounts it does not fire the flak burst.
+      kit.weapon = "ARTILLERY_FED";
+      kit.aux = 100;
+      const fired = g.shots.length;
+      tickFlak(g, 1);
+      assert.equal(g.shots.length, fired);
+    } finally {
+      resetPackForTests();
+    }
   });
 
   it("uses the shorter clocks at higher levels", () => {

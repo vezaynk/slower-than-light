@@ -93,6 +93,7 @@ import {
   raiseFlakPower,
   upgradeFlak,
 } from "@/game/extras/flakart";
+import { isFlakArtillery } from "@/game/wiki/weapons-flak-crystal";
 import { Hangar } from "./Hangar";
 import { InstallButton } from "./InstallGuide";
 import {
@@ -307,12 +308,16 @@ const KIT_LABEL: Record<KitId, string> = {
 };
 
 function kitLabel(id: KitId, weapon?: string): string {
-  if (id === "artillery") return weapon === "ARTILLERY_FED_C" ? "Flak Artillery" : "Artillery Beam";
+  if (id === "artillery") {
+    const row = weapon ? weaponDef(weapon) : undefined;
+    if (row?.name && row.name !== row.id) return row.name;
+    return KIT_LABEL.artillery;
+  }
   return KIT_LABEL[id];
 }
 
 function kitIcon(id: KitId, weapon?: string): IconName {
-  if (id === "artillery" && weapon === "ARTILLERY_FED_C") return "ARTILLERY_FED_C";
+  if (id === "artillery" && isFlakArtillery(weapon)) return "ARTILLERY_FED_C";
   return id;
 }
 
@@ -433,7 +438,7 @@ function isPowerKit(id: KitId): id is PowerKit {
 function stepKit(g: Game, id: StepKit, up: boolean): void {
   if (id === "artillery") {
     // Flak Artillery shares the kit id. The beam is the default, as in tickLance.
-    if (g.player.kits.artillery?.weapon === "ARTILLERY_FED_C") {
+    if (isFlakArtillery(g.player.kits.artillery?.weapon)) {
       if (up) raiseFlakPower(g);
       else lowerFlakPower(g);
     } else if (up) raiseLancePower(g);
@@ -524,7 +529,7 @@ function powerHotkey(code: string, down: boolean): boolean {
   if (code === "KeyY") {
     act((g) => {
       const artillery = g.player.kits.artillery;
-      if (artillery?.weapon === "ARTILLERY_FED_C") {
+      if (isFlakArtillery(artillery?.weapon)) {
         if (down) lowerFlakPower(g);
         else raiseFlakPower(g);
         return;
@@ -5316,7 +5321,7 @@ function upgradeRows(game: Game): UpgradeRow[] {
   }
   {
     const kit = game.player.kits.artillery;
-    if (kit?.weapon === "ARTILLERY_FED_C") {
+    if (isFlakArtillery(kit?.weapon)) {
       const next = kit.level + 1;
       const seconds = next === 2 || next === 3 || next === 4 ? FLAK_CHARGE[next] : null;
       fitted("artillery", flakUpgradeCost, seconds != null ? `${seconds} sec charge.` : "", (g) =>

@@ -1,6 +1,6 @@
 import type { AugmentId, KitId, SysId, WeaponKind } from "@stl/pack";
 import type { EscapePlan } from "./rules/escape.ts";
-import type { SurrenderPlan } from "./wiki/surrender.ts";
+import type { SurrenderPlan } from "./rules/surrender.ts";
 import type { FlagshipState } from "./wiki/flagship-systems.ts";
 export type { WeaponKind };
 export type { AugmentId, KitId, SysId };
@@ -1014,7 +1014,7 @@ export type Game = {
   enemyFlee: number;
   /** How the current enemy tries to jump away (rules/escape.ts). Null outside a fight. */
   enemyEscape?: EscapePlan | null;
-  /** @agent:surrender. Surrender offer state for the current enemy (wiki/surrender.ts). */
+  /** @agent:surrender. Surrender offer state for the current enemy (rules/surrender.ts). */
   enemySurrender?: SurrenderPlan | null;
   /** @agent:surrender. Anti-stalemate clock: seconds below the hull threshold since the enemy last lost hull. */
   stalemate?: { ship: string; hull: number; quiet: number } | null;

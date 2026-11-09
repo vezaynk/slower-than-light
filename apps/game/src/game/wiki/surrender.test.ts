@@ -1,20 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { allEvents, eventDef, loadPack, resetPackForTests } from "@stl/pack";
+import { allEvents, eventDef, loadPack, resetPackForTests, stalemateStat } from "@stl/pack";
 import { CREW_CAP, choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
+import { surrenderPlan } from "../rules/surrender.ts";
 import {
   ACCEPT_ID,
   REFUSE_ID,
-  STALEMATE_FUEL,
-  STALEMATE_SECONDS,
   joinCrew,
   randomRace,
   rollScriptedOffer,
   rollSurrenderOffer,
   surrenderOfferView,
-  surrenderPlan,
 } from "./surrender.ts";
 
 function run(g: Game, seconds: number) {
@@ -204,13 +202,13 @@ describe("anti-stalemate (Enemy Ships, Note)", () => {
   it("ends with 2 fuel after a minute below the threshold without hull damage", () => {
     const g = lowAndQuiet();
     const fuel = g.fuel;
-    run(g, STALEMATE_SECONDS - 1);
+    run(g, stalemateStat("seconds") - 1);
     assert.equal(g.phase, "combat");
     run(g, 2);
     assert.equal(g.phase, "reward");
     assert.equal(g.enemy, null);
-    assert.equal(g.fuel, fuel + STALEMATE_FUEL);
-    assert.equal(g.reward?.res?.fuel, STALEMATE_FUEL);
+    assert.equal(g.fuel, fuel + stalemateStat("fuel"));
+    assert.equal(g.reward?.res?.fuel, stalemateStat("fuel"));
   });
 
   it("hull damage starts the minute over", () => {
@@ -227,7 +225,7 @@ describe("anti-stalemate (Enemy Ships, Note)", () => {
     const g = quietFight();
     g.enemySurrender!.chance = 0;
     g.enemyEscape!.mode = "never";
-    run(g, STALEMATE_SECONDS + 5);
+    run(g, stalemateStat("seconds") + 5);
     assert.equal(g.phase, "combat");
   });
 });

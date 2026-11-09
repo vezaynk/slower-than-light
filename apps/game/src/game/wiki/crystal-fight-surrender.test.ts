@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { ACCEPT_ID, REFUSE_ID, surrenderPlan } from "./surrender.ts";
+import { surrenderPlan } from "../rules/surrender.ts";
+import { ACCEPT_ID, REFUSE_ID } from "./surrender.ts";
 
 const HAILS = [
   '"We yield, aliens. We have no wish to die fighting you."',

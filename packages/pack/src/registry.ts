@@ -21,6 +21,7 @@ import type {
   EventTier,
   AiTarget,
   EscapeTimers,
+  Stalemate,
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
@@ -88,9 +89,11 @@ let civilianSectorTitleValue: string | undefined;
 let baseCivilianSectorTitle: string | undefined;
 let beaconEventsValue: BeaconEvents = {};
 let escapeTimersValue: EscapeTimers = {};
+let stalemateValue: Stalemate = {};
 let cargoSlotsValue: CargoSlots = {};
 let bonusItemValue: BonusItemWeights = {};
 let baseEscapeTimers: EscapeTimers = {};
+let baseStalemate: Stalemate = {};
 let aiTargetValue: AiTarget = {};
 let baseAiTarget: AiTarget = {};
 let overchargerWaitsValue: OverchargerWaits = {};
@@ -600,6 +603,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseBeaconEvents = { ...pack.beaconEvents };
     escapeTimersValue = { ...pack.escapeTimers };
     baseEscapeTimers = { ...pack.escapeTimers };
+    stalemateValue = { ...pack.stalemate };
+    baseStalemate = { ...pack.stalemate };
     aiTargetValue = { ...pack.aiTarget };
     baseAiTarget = { ...pack.aiTarget };
     overchargerWaitsValue = { ...pack.overchargerWaits };
@@ -649,6 +654,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     beaconEventsValue = { ...beaconEventsValue, ...pack.beaconEvents };
   if (mode === "append" && pack.escapeTimers)
     escapeTimersValue = { ...escapeTimersValue, ...pack.escapeTimers };
+  if (mode === "append" && pack.stalemate)
+    stalemateValue = { ...stalemateValue, ...pack.stalemate };
   if (mode === "append" && pack.aiTarget) aiTargetValue = { ...aiTargetValue, ...pack.aiTarget };
   if (mode === "append" && pack.overchargerWaits)
     overchargerWaitsValue = { ...overchargerWaitsValue, ...pack.overchargerWaits };
@@ -1108,6 +1115,27 @@ export function escapeTimer(key: keyof EscapeTimers): number {
   return FTL_ESCAPE_TIMERS[key];
 }
 
+/**
+ * FTL's anti-stalemate break-off (Enemy Ships, "Note (anti-stalemate mechanism)"): below 40% hull, 60 seconds without
+ * hull damage, 2 fuel. Used only when no loaded pack sets `<stalemate>`, with a warning.
+ */
+const FTL_STALEMATE: Required<Stalemate> = { threshold: 40, seconds: 60, fuel: 2 };
+
+/** The loaded `<stalemate>`, as authored (no defaults filled in). */
+export function stalemate(): Stalemate {
+  return { ...stalemateValue };
+}
+
+/**
+ * One anti-stalemate number (gap `<stalemate>`). A pack that omits the value gets FTL's, with one warning.
+ */
+export function stalemateStat(key: keyof Stalemate): number {
+  const value = stalemateValue[key];
+  if (value != null) return value;
+  warnPack(`No <stalemate ${key}> is loaded; FTL's ${FTL_STALEMATE[key]} is used.`);
+  return FTL_STALEMATE[key];
+}
+
 const FTL_OVERCHARGER_WAITS: Required<OverchargerWaits> = {
   layer0: 8,
   layer1: 10,
@@ -1466,6 +1494,7 @@ export function resetPackForTests(): void {
   civilianSectorTitleValue = baseCivilianSectorTitle;
   beaconEventsValue = { ...baseBeaconEvents };
   escapeTimersValue = { ...baseEscapeTimers };
+  stalemateValue = { ...baseStalemate };
   aiTargetValue = { ...baseAiTarget };
   overchargerWaitsValue = { ...baseOverchargerWaits };
   ionIntruderValue = { ...baseIonIntruder };

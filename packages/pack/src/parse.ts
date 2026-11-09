@@ -26,6 +26,7 @@ import type {
   EventResource,
   EventTier,
   EscapeTimers,
+  Stalemate,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -503,6 +504,25 @@ export function readEscapeTimers(node: XmlElement): EscapeTimers {
       continue;
     }
     out[key] = seconds;
+  }
+  return out;
+}
+
+/**
+ * Gap `<stalemate threshold seconds fuel>` (types.ts Stalemate). A missing or non-positive attribute is left out, so
+ * the registry keeps the earlier value or FTL's default.
+ */
+export function readStalemate(node: XmlElement): Stalemate {
+  const out: Stalemate = {};
+  for (const key of ["threshold", "seconds", "fuel"] as const) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const value = attrNum(raw);
+    if (value == null || value <= 0) {
+      warnPack(`stalemate: ${key}="${raw}" is not a positive number; it is skipped.`);
+      continue;
+    }
+    out[key] = value;
   }
   return out;
 }
@@ -1078,7 +1098,7 @@ export function readRewards(node: XmlElement): RewardTable | undefined {
   return { scaling, resources, rewards };
 }
 
-/** Reads the crew, weapon, augment, drone, system, hull, sector, store, reward, faction (surrender and escape), escape timer, enemy targeting, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
+/** Reads the crew, weapon, augment, drone, system, hull, sector, store, reward, faction (surrender and escape), escape timer, anti-stalemate, enemy targeting, event, filler list, and empty beacon tags this milestone stores. Other tags are ignored. */
 export function parsePack(xml: string): ContentPack {
   const doc = readDocument(xml);
   const crew: CrewDef[] = [];
@@ -1148,6 +1168,9 @@ export function parsePack(xml: string): ContentPack {
   const timersNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "escapeTimers",
   );
+  const stalemateNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "stalemate",
+  );
   const aiTargetNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "aiTarget",
   );
@@ -1192,6 +1215,7 @@ export function parsePack(xml: string): ContentPack {
   if (factions.length > 0) pack.factions = factions;
   if (escapes.length > 0) pack.escapes = escapes;
   if (timersNode) pack.escapeTimers = readEscapeTimers(timersNode);
+  if (stalemateNode) pack.stalemate = readStalemate(stalemateNode);
   if (aiTargetNode) pack.aiTarget = readAiTarget(aiTargetNode);
   if (waitsNode) pack.overchargerWaits = readOverchargerWaits(waitsNode);
   if (ionNode) pack.ionIntruder = readIonIntruder(ionNode);

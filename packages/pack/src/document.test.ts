@@ -4,6 +4,7 @@ import { emitPack } from "./emit.ts";
 import { emitFtlSectors, emitFtlShips } from "./ftl-emit.ts";
 import { packFromFtl } from "./ftl.ts";
 import { parsePack } from "./parse.ts";
+import { onPackWarning } from "./warnings.ts";
 import {
   crewDef,
   emptyBeacon,
@@ -947,6 +948,45 @@ describe("pack document", () => {
       },
     }));
     assert.deepEqual(parsePack(emitPack({ events })).events, events);
+  });
+
+  it("round-trips <environment> and skips a type this game does not play", () => {
+    const events = [
+      {
+        id: "sun",
+        dest: "Sun",
+        flag: "sun",
+        aliases: [],
+        sectors: [],
+        body: "Hot",
+        environment: { type: "sun" as const },
+        choices: [
+          {
+            id: "go",
+            label: "Fight",
+            fx: [{ k: "nothing" as const }],
+            environment: { type: "PDS" as const, target: "all" as const },
+          },
+        ],
+      },
+    ];
+    const xml = emitPack({ events });
+    assert.match(xml, /<environment type="sun"\/>/);
+    assert.match(xml, /<environment type="PDS" target="all"\/>/);
+    assert.deepEqual(parsePack(xml).events, events);
+    const warnings: string[] = [];
+    const stop = onPackWarning((message) => warnings.push(message));
+    try {
+      const bad = parsePack(
+        `<FTL><event name="odd"><title>Odd</title><text>Hi</text><environment type="vortex"/></event></FTL>`,
+      );
+      assert.equal(bad.events?.[0]?.environment, undefined);
+      assert.deepEqual(warnings, [
+        'An <environment> type "vortex" is not asteroid, nebula, pulsar, sun, storm, or PDS; it is skipped.',
+      ]);
+    } finally {
+      stop();
+    }
   });
 
   it("round-trips weapon bays, hull points, and a two-line unlock, and leaves a bare hull without them", () => {

@@ -5,6 +5,7 @@ import {
   type Element as XmlElement,
 } from "@xmldom/xmldom";
 import type {
+  ArchiveEnvironment,
   ArchiveReward,
   AugmentDef,
   ChoiceGift,
@@ -1333,6 +1334,8 @@ export function readEvent(node: XmlElement): EventDef | undefined {
     if (gift) choice.gift = gift;
     const reward = readChoiceReward(item);
     if (reward) choice.reward = reward;
+    const environment = readEnvironment(item);
+    if (environment) choice.environment = environment;
     choices.push(choice);
   }
   const event: EventDef = {
@@ -1354,8 +1357,40 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   if (grade) event.grade = grade;
   if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
+  const environment = readEnvironment(node);
+  if (environment) event.environment = environment;
   if (elements(node).some((item) => item.tagName === "store")) event.store = true;
   return event;
+}
+
+const ENVIRONMENT_TYPES = new Set(["asteroid", "nebula", "pulsar", "sun", "storm", "PDS"]);
+const PDS_TARGETS = new Set(["player", "enemy", "all"]);
+
+/** The first `<environment type>` on this node. A type this game does not play is skipped. */
+function readEnvironment(node: XmlElement): ArchiveEnvironment | undefined {
+  for (const item of elements(node)) {
+    if (item.tagName !== "environment") continue;
+    const type = attr(item, "type")?.trim();
+    if (!type || !ENVIRONMENT_TYPES.has(type)) {
+      warnPack(
+        `An <environment> type "${type ?? ""}" is not asteroid, nebula, pulsar, sun, storm, or PDS; it is skipped.`,
+      );
+      return undefined;
+    }
+    const environment: ArchiveEnvironment = { type: type as ArchiveEnvironment["type"] };
+    if (type !== "PDS") return environment;
+    const target = item.getAttribute("target")?.trim();
+    if (!target) return environment;
+    if (!PDS_TARGETS.has(target)) {
+      warnPack(
+        `An <environment type="PDS"> target "${target}" is not player, enemy, or all; it is skipped.`,
+      );
+      return undefined;
+    }
+    environment.target = target as "player" | "enemy" | "all";
+    return environment;
+  }
+  return undefined;
 }
 
 const OFFER_LISTS = new Set(["trade", "high", "pt2", "base", "better", "supply"]);

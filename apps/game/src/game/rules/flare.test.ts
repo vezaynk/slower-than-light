@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { applyFlarePulse, createGame, startCombat, step } from "../sim.ts";
+import { eventDef } from "@stl/pack";
+import { showArchivePage } from "../archive-pay.ts";
+import { applyFlarePulse, choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import {
   eventHasFlare,
@@ -8,7 +10,7 @@ import {
   flareDamagesRoom,
   flareFireCount,
   placeFlareFires,
-} from "./cited-flare.ts";
+} from "./flare.ts";
 
 function fires(g: Game, side: "player" | "enemy"): number {
   const ship = side === "player" ? g.player : g.enemy;
@@ -41,6 +43,7 @@ describe("solar flare", () => {
     assert.equal(eventHasFlare("auto-ship-fight-near-sun"), true);
     assert.equal(eventHasFlare("mantis-fight-near-sun"), true);
     assert.equal(eventHasFlare("rock-pirates-fight-near-sun"), true);
+    assert.equal(eventHasFlare("PIRATE_SUN"), true);
     assert.equal(eventHasFlare("pirate-fight-near-pulsar"), false);
     assert.equal(flareCycleSeconds(0), 28);
     assert.ok(flareCycleSeconds(0.999) < 34);
@@ -56,8 +59,9 @@ describe("solar flare", () => {
   });
 
   it("arms the Rock war vessel Sun Quest Marker as a red-giant fight", () => {
-    // INFERRED: the Sun Quest Marker fight's event slug is "quest-rock-sun".
+    // The fight slug is not a datafile id. It aliases the arrival page, which carries the sun.
     assert.equal(eventHasFlare("quest-rock-sun"), true);
+    assert.equal(eventHasFlare("arrive-rock-sun"), true);
     const g = createGame(11);
     startCombat(g, "Rock Assault (Elite)", false, "quest-rock-sun");
     assert.equal(g.flare, true);
@@ -178,5 +182,84 @@ describe("solar flare", () => {
       hurt = dropped > 0 && systems > 0;
     }
     assert.equal(hurt, true);
+  });
+
+  it("does not roll a flare cycle while the arrival card is paused", () => {
+    // The ship and the boarders are on the button. Opening the card used to armFlare,
+    // and the button then rolled another cycle on the shifted stream.
+    const pirate = eventDef("PIRATE_SUN");
+    const boarders = eventDef("BOARDERS_SUN");
+    assert.ok(pirate?.choices[0] && boarders?.choices[0]);
+    assert.equal(pirate.environment?.type, "sun");
+    assert.equal(boarders.environment?.type, "sun");
+
+    const opened = createGame(5);
+    opened.phase = "event";
+    opened.paused = true;
+    const stream = opened.seed;
+    showArchivePage(opened, pirate);
+    assert.equal(opened.phase, "event");
+    assert.equal(opened.paused, true);
+    assert.equal(opened.enemy, null);
+    assert.equal(opened.flare, true);
+    assert.equal(opened.flareWait ?? 0, 0);
+    assert.equal(opened.seed, stream);
+
+    const card = createGame(5);
+    card.phase = "event";
+    card.paused = true;
+    showArchivePage(card, pirate);
+    card.event = {
+      title: pirate.dest,
+      body: pirate.body,
+      choices: pirate.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+    };
+    choose(card, pirate.choices[0].id);
+    const clean = createGame(5);
+    clean.phase = "event";
+    clean.paused = true;
+    clean.event = {
+      title: pirate.dest,
+      body: pirate.body,
+      choices: pirate.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+    };
+    choose(clean, pirate.choices[0].id);
+    assert.equal(card.phase, "combat");
+    assert.equal(card.enemy?.name, clean.enemy?.name);
+    assert.deepEqual(
+      card.enemy?.weapons.map((weapon) => weapon.defId),
+      clean.enemy?.weapons.map((weapon) => weapon.defId),
+    );
+    assert.equal(card.seed, clean.seed);
+    assert.equal(card.flare, true);
+    assert.ok((card.flareWait ?? 0) >= 28 && (card.flareWait ?? 0) < 34);
+
+    const sunCard = createGame(8);
+    sunCard.phase = "event";
+    sunCard.paused = true;
+    const before = sunCard.seed;
+    showArchivePage(sunCard, boarders);
+    assert.equal(sunCard.seed, before);
+    assert.equal(sunCard.flareWait ?? 0, 0);
+    sunCard.event = {
+      title: boarders.dest,
+      body: boarders.body,
+      choices: boarders.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+    };
+    const direct = createGame(8);
+    direct.phase = "event";
+    direct.paused = true;
+    direct.event = {
+      title: boarders.dest,
+      body: boarders.body,
+      choices: boarders.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+    };
+    choose(sunCard, boarders.choices[0].id);
+    choose(direct, boarders.choices[0].id);
+    const boarded = (g: Game) => g.crew.filter((crew) => crew.side === "enemy").length;
+    assert.equal(boarded(sunCard), boarded(direct));
+    assert.ok(boarded(sunCard) >= 2);
+    assert.equal(sunCard.seed, direct.seed);
+    assert.equal(sunCard.flare, true);
   });
 });

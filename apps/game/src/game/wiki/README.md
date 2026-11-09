@@ -32,7 +32,7 @@ its own campaign) is the source; the code should only interpret event XML.
 | `cited-events.ts`, `cited-missing.ts`                                                                                           | 3,985 | Event pages with their choices, rows and outcomes                                           |
 | `surrender.ts`                                                                                                                  | 1,552 | Surrender offers per event, plus the surrender rule (section 3)                             |
 | `cited-stores.ts`                                                                                                               |   692 | Store rows and prices                                                                       |
-| `beacon-mix.ts`, `cited-sectors.ts`, `ruwen-entry.ts`, `cited-fuel.ts`, `cited-flare.ts`                                        |   653 | Where events are placed in a sector, sector specials, out-of-fuel waits, sun fights         |
+| `beacon-mix.ts`, `cited-sectors.ts`, `ruwen-entry.ts`                                                                           |   468 | Where events are placed in a sector, and sector specials                                    |
 | `choice-locks.ts`, `stock-labels.ts`, `stock-spend.ts`, `event-bands.ts`, `event-prices.ts`, `event-grades.ts`, `fuel-gifts.ts` |   730 | Helpers that read a loaded page. They stay as code once the pages above are archive events. |
 
 Order: per event, check that the archive's version plays correctly (as `TRADER_CIV` was checked), then delete the
@@ -40,6 +40,13 @@ code page and its tests. The stand-in's catalog then has to carry its own versio
 
 Done: `engi-cache.ts` (the pilot, November 2026). Engi cache is `ENGI_FLEET_DELAY` in both archives: ftl.dat deals it
 from `ITEMS_ENGI`, the stand-in from its Engi sector lists (`@stl/catalog` `cited-events-engi-next.ts`).
+
+Done: `cited-fuel.ts` and `cited-flare.ts` (November 2026). An out-of-fuel wait loads `NO_FUEL` or `NO_FUEL_DISTRESS`.
+Duplicate `<event load>` rows are the weights (nothing is 4/11 with distress off and 2/12 with it on; Rebel fleet delay
+is 1/11). The flare clock stays code (`game/rules/flare.ts`). Which fight is a sun is `<environment type="sun">` on
+`AUTO_SUN`, `MANTIS_SUN_FIGHT`, `PIRATE_SUN`, `ROCK_PIRATE_SUN`, `BOARDERS_SUN`, `ROCK_BOARDERS_SUN`, and the stand-in's
+`arrive-rock-sun` (alias `quest-rock-sun`). `ruwen-entry.ts` stays: Ancient device is `ROCK_CRYSTAL_BEACON`, and painting
+the quest marker is an executable rule with no archive id.
 
 ### How to migrate an event module
 

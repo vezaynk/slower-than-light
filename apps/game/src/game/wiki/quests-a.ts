@@ -279,7 +279,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
       '"Heh. Like I expected. If the Federation is as weak as you it deserves to fall." They jump away without another word.',
     );
   },
-  // INFERRED: no surrender (the page prints none). The M-class star's flares are cited-flare.ts eventHasFlare("quest-rock-sun").
+  // INFERRED: no surrender (the page prints none). The M-class star's flares are rules/flare.ts eventHasFlare("quest-rock-sun"): the arrival page's `<environment type="sun">`.
   "qa:rock-sun:fight": (g) => {
     // Wiki citations:
     // > "Fight the Rock Assault (Elite) ship." — [[Rock war vessel encounter#Sun Quest Marker]]

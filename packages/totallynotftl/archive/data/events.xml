@@ -3,6 +3,7 @@
   Event pages and filler lists. Weapon, augment, drone, and system blueprints are data/blueprints.xml.
   shotGap is a gap overwrite on weaponBlueprint. Crew combat is a gap overwrite on crewBlueprint.
   An event tag is a page. The name is the datafile id. title is the page heading.
+  An environment tag is type asteroid, nebula, pulsar, sun, storm, or PDS. PDS may name target player, enemy, or all.
   A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
   A fight is a hostile ship. Its load is the ship name this sim already fights.
   An empty nested event is an empty result. A nested event with text is a result sentence. load opens another page.
@@ -932,6 +933,7 @@
     <sector>REBEL_SECTOR</sector>
     <sector>REBEL_SECTOR_MINIBOSS</sector>
     <text>You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, "I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours." Hostiles detected on board our ship!</text>
+    <environment type="sun"/>
     <choice name="c:boarders-humans-near-sun:0">
       <text>2-4 human boarders beam aboard your ship.</text>
       <event/>
@@ -1094,6 +1096,7 @@
     <sector>ROCK_HOME</sector>
     <text>As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, "Prepare to burn, fleshy meat-sack aliens!"</text>
     <text>With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement.</text>
+    <environment type="sun"/>
     <choice name="c:boarders-rockmen-near-sun:0">
       <text>2-3 rock boarders beam aboard your ship.</text>
       <event/>
@@ -2158,7 +2161,9 @@ Suddenly the first ship bursts into flames, and an urgent call arrives from the 
   </event>
   <event name="arrive-rock-sun">
     <title>Red giant</title>
+    <alias>quest-rock-sun</alias>
     <text>You arrive at the coordinates given and find yourself dangerously close to an M-class star! The other ship messages you, "Let's see how long your puny ship can handle this heat! Prepare for a challenge!"</text>
+    <environment type="sun"/>
     <choice name="qa:rock-sun:fight">
       <text>Fight the Rock ship.</text>
       <event/>
@@ -3581,6 +3586,40 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <event name="FINISH_BEACON_NEBULA">
     <title>Exit beacon</title>
     <text>The long-range relay is buried in nebula haze, but its signal holds. Charge the drive to jump onward.</text>
+  </event>
+  <event name="FUEL_NOTHING">
+    <title>No fuel: wait fail (distress off)</title>
+    <alias>No fuel: wait fail (distress off)</alias>
+    <text>No ship is in scanning range and no one arrives at the beacon.</text>
+    <text>Your waiting yields nothing while the fleet surely gets closer...</text>
+    <text>A freighter suddenly arrives nearby. They are so close you can almost wave at them, but your hails are ignored and the ship quickly jumps away.</text>
+    <text>Small traffic passes within a short distance of you, but no one responds to your hails.</text>
+    <text>The only ship within hailing range appears to be a civilian vessel. However, it quickly leaves once it picks up your signal.</text>
+    <text>As you wait, a small asteroid storm pelts softly against your shields and hull.</text>
+    <text>You begin to wonder if turning on the beacon would be worth the risk of detection. The fleet slowly approaches.</text>
+    <text>You contemplate the vastness of space.</text>
+    <text>The prolonged wait in empty space is causing tension among the crew. Still no contact.</text>
+    <text>Cabin fever begins to spread among your crew.</text>
+    <text>Long range scanners detect a small settlement, but they refuse all contact.</text>
+    <choice name="fuel-wait-done">
+      <text>Continue...</text>
+      <event/>
+    </choice>
+  </event>
+  <event name="FUEL_NOTHING_DISTRESS">
+    <title>No fuel: wait fail (distress on)</title>
+    <alias>No fuel: wait fail (distress on)</alias>
+    <text>You contemplate that it is fortunate the ship's life support system does not rely on FTL fuel cells.</text>
+    <text>Nothing happens. Your calls go unanswered.</text>
+    <text>The distress beacon's light is the only movement visible outside the ship.</text>
+    <text>No ships jump into the sector...</text>
+    <text>A few passing ships seem oblivious to your distress call and ignore all hails.</text>
+    <text>A few civilian ships are within scanning range, yet none respond to your calls.</text>
+    <text>No ships pass through the area.</text>
+    <choice name="fuel-wait-done">
+      <text>Continue...</text>
+      <event/>
+    </choice>
   </event>
   <eventList name="FILLER">
     <event load="EMPTY_STATION2" unique="true"/>
@@ -5480,6 +5519,33 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   <eventList name="EXIT_LIST">
     <event load="EXIT_NEUTRAL" unique="false"/>
     <event load="EXIT_ITEMS" unique="false"/>
+  </eventList>
+  <eventList name="NO_FUEL">
+    <event load="FUEL_FLEET_DELAY" unique="false"/>
+    <event load="FUEL_NOTHING" unique="false"/>
+    <event load="FUEL_NOTHING" unique="false"/>
+    <event load="FUEL_NOTHING" unique="false"/>
+    <event load="FUEL_NOTHING" unique="false"/>
+    <event load="FUEL_TRADER" unique="false"/>
+    <event load="FUEL_EXPLORE" unique="false"/>
+    <event load="FUEL_APPROACH" unique="false"/>
+    <event load="FUEL_OFF_ENGI_DUBIOUS" unique="false"/>
+    <event load="FUEL_OFF_ROCK_WRECK" unique="false"/>
+    <event load="NO_FUEL_REFUGEE_FRIENDLY" unique="false"/>
+  </eventList>
+  <eventList name="NO_FUEL_DISTRESS">
+    <event load="FUEL_NOTHING_DISTRESS" unique="false"/>
+    <event load="FUEL_NOTHING_DISTRESS" unique="false"/>
+    <event load="FUEL_SELLER_DISTRESS" unique="false"/>
+    <event load="FUEL_TRADER_DISTRESS" unique="false"/>
+    <event load="FUEL_EXPLORE" unique="false"/>
+    <event load="FUEL_APPROACH" unique="false"/>
+    <event load="FUEL_ON_SLUG_OVERPRICED" unique="false"/>
+    <event load="FUEL_ON_SLUG_CHUCKLE" unique="false"/>
+    <event load="FUEL_ON_MANTIS_ATTACK" unique="false"/>
+    <event load="FUEL_ON_REBEL_WARNING" unique="false"/>
+    <event load="FUEL_ON_REBEL_ATTACK" unique="false"/>
+    <event load="NO_FUEL_REFUGEE" unique="false"/>
   </eventList>
   <eventList name="STANDIN_EMPTY"/>
 </FTL>

@@ -1,36 +1,16 @@
 /**
  * Environmental Hazards, ==Class-M Red Giant Star==.
- * Auto-ship fight near sun, Mantis fight near sun, Pirate fight near sun, and
- * Rock pirates fight near sun set redgiant=true on the Locations line.
- * Boarders: Humans near sun and Boarders: Rockmen near sun also set it, and they
- * are not a startCombat slug.
- *
- * Rock war vessel encounter, ==Sun Quest Marker==: the Locations / Long-Ranged
- * Scanners mark on that fight is shipdetected=ship+redgiant, so it is a
- * red-giant fight and the same flares arm. Printed: arrive dangerously close
- * to an M-class star, then fight the Rock Assault (Elite) ship (escape countdown
- * 32 seconds is not a flare number).
- * INFERRED: that fight's existing event slug is "quest-rock-sun". The wiki does not print the slug.
+ * Which fight is a sun is the archive event's `<environment type="sun">`.
+ * The cycle, the fire counts, and the damage chance are not on any blueprint.
+ * FTL keeps those in the executable.
  */
-
+import { eventDef } from "@stl/pack";
 import "../pack/base.ts";
-import { storedId } from "@stl/pack";
 
-const FLARE_EVENTS = new Set([
-  "AUTO_SUN",
-  "MANTIS_SUN_FIGHT",
-  "PIRATE_SUN",
-  "ROCK_PIRATE_SUN",
-  // INFERRED: Sun Quest Marker slug. The wiki prints shipdetected=ship+redgiant, not this id.
-  "quest-rock-sun",
-]);
-
-/** True when the fight is one of those red-giant pages. startCombat passes the authoring slug. */
+/** True when this event, or the page its slug stores, carries `<environment type="sun">`. */
 export function eventHasFlare(event: string | undefined): boolean {
   if (!event) return false;
-  if (FLARE_EVENTS.has(event)) return true;
-  const id = storedId(event);
-  return id !== event && FLARE_EVENTS.has(id);
+  return eventDef(event)?.environment?.type === "sun";
 }
 
 /**

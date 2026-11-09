@@ -3,6 +3,7 @@
   Event pages and filler lists. Weapon, augment, drone, and system blueprints are data/blueprints.xml.
   shotGap is a gap overwrite on weaponBlueprint. Crew combat is a gap overwrite on crewBlueprint.
   An event tag is a page. The name is the datafile id. title is the page heading.
+  An environment tag is type asteroid, nebula, pulsar, sun, storm, or PDS. PDS may name target player, enemy, or all.
   A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
   A fight is a hostile ship. Its load is the ship name this sim already fights.
   An empty nested event is an empty result. A nested event with text is a result sentence. load opens another page.
@@ -160,6 +161,7 @@
     <alias>Auto-ship near sun</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <text>You arrive at the beacon to find yourself dangerously close to a star. An automated Rebel ship, impervious to the heat, moves in to engage.</text>
+    <environment type="sun"/>
     <choice name="c:auto-ship-fight-near-sun:0">
       <text>Fight an Auto-ship</text>
       <ship hostile="true" load="REBEL_AUTO"/>
@@ -1481,6 +1483,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>ENGI_HOME</sector>
     <sector>PIRATE_SECTOR</sector>
     <text>This beacon has been placed too close to a super-giant class M star! The ship will gradually overheat until you get out of here... or die. A pirate, apparently oblivious to the danger of the sun, moves in to engage.</text>
+    <environment type="sun"/>
     <choice name="c:pirate-fight-near-sun:0">
       <text>Fight a Pirate ship</text>
       <ship hostile="true" load="PIRATE"/>
@@ -1984,6 +1987,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>MANTIS_SECTOR</sector>
     <sector>MANTIS_HOME</sector>
     <text>Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?</text>
+    <environment type="sun"/>
     <choice name="c:mantis-fight-near-sun:0">
       <text>Fight a Mantis ship (default rewards)</text>
       <ship hostile="true" load="MANTIS_SHIP"/>
@@ -2178,6 +2182,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text/>
     <text>Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.</text>
     <text>A Rock ship is silhouetted against a sun in supernova. They hail: "Even out here you follow us! We only wish to be left alone!" Out of panic or anger, they charge their weapons.</text>
+    <environment type="sun"/>
     <choice name="c:rock-pirates-fight-near-sun:0">
       <text>Fight a Rock pirate ship</text>
       <ship hostile="true" load="ROCK_PIRATE"/>

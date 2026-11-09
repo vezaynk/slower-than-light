@@ -3,6 +3,7 @@
   Event pages and filler lists. Weapon, augment, drone, and system blueprints are data/blueprints.xml.
   shotGap is a gap overwrite on weaponBlueprint. Crew combat is a gap overwrite on crewBlueprint.
   An event tag is a page. The name is the datafile id. title is the page heading.
+  An environment tag is type asteroid, nebula, pulsar, sun, storm, or PDS. PDS may name target player, enemy, or all.
   A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
   A fight is a hostile ship. Its load is the ship name this sim already fights.
   An empty nested event is an empty result. A nested event with text is a result sentence. load opens another page.

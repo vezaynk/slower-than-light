@@ -198,7 +198,6 @@ import {
   stampCitedEvents,
 } from "./wiki/cited-events.ts";
 import { missingPageWin } from "./wiki/cited-missing.ts";
-import { rollFuelWait } from "./wiki/cited-fuel.ts";
 import { rollFuel } from "./wiki/fuel-gifts.ts";
 import { citedEnemy } from "./wiki/cited-enemies.ts";
 import {
@@ -248,7 +247,7 @@ import {
   flareDamagesRoom,
   flareFireCount,
   placeFlareFires,
-} from "./wiki/cited-flare.ts";
+} from "./rules/flare.ts";
 import {
   asteroidPhaseSeconds,
   asteroidSide,
@@ -6680,7 +6679,9 @@ function fitSlugHackerFire(
 
 /**
  * Plays `<environment>` on the event already open.
- * Asteroid, pulsar, sun, and PDS arm the fight clocks. Storm halves the reactor until the jump.
+ * Asteroid, pulsar, and PDS arm the fight clocks. A sun marks the flare. The cycle is a rand, so a paused
+ * arrival card does not roll one: startCombat and beginBoarding arm it when the fight starts.
+ * Storm halves the reactor until the jump.
  * Nebula slows a later wait. A clock this fight already armed is left running.
  */
 export function armEventEnvironment(g: Game, env: ArchiveEnvironment | undefined): void {
@@ -6706,12 +6707,15 @@ export function armEventEnvironment(g: Game, env: ArchiveEnvironment | undefined
     return;
   }
   if (env.type === "sun") {
+    // `<environment type="sun">` is the marker eventHasFlare reads. armFlare spends rand(g).
+    // The arrival card is paused and that cycle never ticks. The fight button rolls another,
+    // so the ship and the boarder count move off the seed. Mark the sun and leave the roll.
     if (g.flare) return;
     g.flare = true;
     g.flareT = 0;
     g.flareWarned = false;
     g.flareWait = 0;
-    armFlare(g);
+    if (!g.paused) armFlare(g);
     return;
   }
   if (env.type === "PDS") {
@@ -6862,7 +6866,7 @@ export function startCombat(
   g.pulsarWarned = false;
   g.pulsarWait = 0;
   if (g.pulsar) armPulsar(g);
-  // Auto-ship / Mantis / Pirate / Rock pirates fight near sun: Locations redgiant=true.
+  // A page's `<environment type="sun">` arms the flare. The clock is rules/flare.ts.
   g.flare = eventHasFlare(event);
   g.flareT = 0;
   g.flareWarned = false;
@@ -8474,19 +8478,10 @@ export function waitHere(g: Game) {
   }
   sfx(g, "click");
   // Stores and resources, "Fuel": "A distress beacon can be activated before waiting. The distress beacon increases the
-  // chances of being found by a ship, either hostile or friendly". Template:Locations outoffuel=distresson/distressoff
-  // picks the page pool; wiki/cited-fuel.ts rollFuelWait picks one. Per the user: distress is on unless turned off.
+  // chances of being found by a ship, either hostile or friendly". The executable loads NO_FUEL or NO_FUEL_DISTRESS.
+  // Per the user: distress is on unless turned off.
   if (g.fuel <= 0 && b) {
-    const picked = rollFuelWait(() => rand(g), g.distress !== false);
-    if (!picked) return;
-    const event =
-      "fail" in picked
-        ? {
-            title: "No fuel",
-            body: picked.fail,
-            choices: [{ id: "fuel-wait-done", label: "Continue..." }],
-          }
-        : citedEvent(g, { ...b, flag: picked.flag, name: picked.dest });
+    const event = fuelWaitCard(g, b);
     if (event) {
       g.event = event;
       g.phase = "event";
@@ -8494,6 +8489,43 @@ export function waitHere(g: Game) {
       g.picking = false;
     }
   }
+}
+
+/**
+ * One draw from the out-of-fuel list. Duplicate rows are the weights.
+ * FUEL_NOTHING and FUEL_NOTHING_DISTRESS are a random `<text>` and Continue, and the beacon stays.
+ */
+function fuelWaitCard(g: Game, beacon: Beacon): NonNullable<Game["event"]> | null {
+  const listId = g.distress !== false ? "NO_FUEL_DISTRESS" : "NO_FUEL";
+  const list = fillerList(listId);
+  if (!list || list.entries.length === 0) {
+    warnPack(`Out-of-fuel wait has no ${listId} list.`);
+    return null;
+  }
+  const entry = list.entries[Math.floor(rand(g) * list.entries.length)];
+  if (!entry) return null;
+  const page = eventDef(entry.id);
+  if (!page) {
+    warnPack(`Out-of-fuel list ${listId} names ${entry.id}, which is not a loaded event.`);
+    return null;
+  }
+  if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
+    const lines = page.texts?.length ? page.texts : [page.body];
+    const body = lines[Math.floor(rand(g) * lines.length)] ?? "";
+    const choice = page.choices[0];
+    return {
+      title: page.dest,
+      body,
+      choices: [{ id: "fuel-wait-done", label: choice?.label || "Continue..." }],
+    };
+  }
+  return (
+    citedEvent(g, { ...beacon, flag: page.id, name: page.dest }) ?? {
+      title: page.dest,
+      body: page.body,
+      choices: page.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+    }
+  );
 }
 
 export function upgrade(g: Game, id: SysId | "reactor") {

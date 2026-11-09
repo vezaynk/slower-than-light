@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { allWeapons, loadPack, onPackWarning, resetPackForTests, weaponDef } from "@stl/pack";
 import { SECTOR_NAMES } from "../content.ts";
 import {
   choose,
@@ -369,6 +370,66 @@ describe("fleet advance and the anti-ship battery", () => {
       g.shots.some((s) => s.label === "Artillery"),
       false,
     );
+  });
+
+  it("fires a pack override of PDS_SHOT damage and breach", () => {
+    const stand = weaponDef("PDS_SHOT");
+    assert.ok(stand);
+    assert.equal(stand.damage, 3);
+    assert.equal(stand.breach, 1);
+    assert.equal(stand.fire, 0);
+    loadPack({ weapons: [{ ...stand, damage: 4, breach: 0.4, fire: 0.2 }] }, "append");
+    try {
+      assert.deepEqual(citedAsbShot(), { damage: 4, breachChance: 0.4, fireChance: 0.2 });
+      const g = createGame(2, "PLAYER_SHIP_HARD", "normal");
+      const here = g.beacons.find((b) => b.id === g.here);
+      assert.ok(here);
+      here.kind = "empty";
+      g.fleet = fleetToReach(g, here);
+      startCombat(g, "Rebel ship");
+      assert.equal(g.asb, true);
+      assert.ok(g.enemy);
+      for (const w of g.player.weapons) w.enabled = false;
+      for (const w of g.enemy.weapons) w.enabled = false;
+      g.asbPhase = "shot";
+      g.asbWait = 0.01;
+      g.asbT = 0.01;
+      step(g, 0.05);
+      const shots = g.shots.filter((s) => s.label === "Artillery");
+      assert.equal(shots.length, 1);
+      const shot = shots[0];
+      assert.ok(shot);
+      assert.equal(shot.kind, "missile");
+      assert.equal(shot.from, "env");
+      assert.equal(shot.damage, 4);
+      assert.equal(shot.breachChance, 0.4);
+      assert.equal(shot.fireChance, 0.2);
+      assert.equal(shot.ion, 0);
+    } finally {
+      resetPackForTests();
+    }
+    assert.deepEqual(citedAsbShot(), { damage: 3, breachChance: 1, fireChance: 0 });
+  });
+
+  it("warns once and uses 3 hull, breach 1, and fire 0 when PDS_SHOT is missing", async () => {
+    const { installStandIn } = await import("@stl/standin");
+    loadPack({ weapons: allWeapons().filter((row) => row.id !== "PDS_SHOT") }, "base");
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      assert.equal(weaponDef("PDS_SHOT"), undefined);
+      assert.deepEqual(citedAsbShot(), { damage: 3, breachChance: 1, fireChance: 0 });
+      assert.deepEqual(citedAsbShot(), { damage: 3, breachChance: 1, fireChance: 0 });
+      assert.deepEqual(warnings, [
+        "PDS_SHOT is not loaded; the anti-ship battery uses 3 hull, breach 1, and fire 0.",
+      ]);
+    } finally {
+      restore();
+      await installStandIn();
+    }
+    assert.equal(weaponDef("PDS_SHOT")?.damage, 3);
+    assert.equal(weaponDef("PDS_SHOT")?.breach, 1);
+    assert.deepEqual(citedAsbShot(), { damage: 3, breachChance: 1, fireChance: 0 });
   });
 });
 

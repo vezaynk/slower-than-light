@@ -20,6 +20,9 @@ import type {
   EventEffect,
   EventTier,
   EscapeTimers,
+  OverchargerWaits,
+  IonIntruderRule,
+  CrystalVengeanceRule,
   CargoSlots,
   BonusItemWeights,
   AsteroidField,
@@ -87,6 +90,12 @@ let escapeTimersValue: EscapeTimers = {};
 let cargoSlotsValue: CargoSlots = {};
 let bonusItemValue: BonusItemWeights = {};
 let baseEscapeTimers: EscapeTimers = {};
+let overchargerWaitsValue: OverchargerWaits = {};
+let baseOverchargerWaits: OverchargerWaits = {};
+let ionIntruderValue: IonIntruderRule = {};
+let baseIonIntruder: IonIntruderRule = {};
+let crystalVengeanceValue: CrystalVengeanceRule = {};
+let baseCrystalVengeance: CrystalVengeanceRule = {};
 let baseCargoSlots: CargoSlots = {};
 let baseBonusItem: BonusItemWeights = {};
 let asteroidFieldValue: AsteroidField = {};
@@ -588,6 +597,12 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseBeaconEvents = { ...pack.beaconEvents };
     escapeTimersValue = { ...pack.escapeTimers };
     baseEscapeTimers = { ...pack.escapeTimers };
+    overchargerWaitsValue = { ...pack.overchargerWaits };
+    baseOverchargerWaits = { ...pack.overchargerWaits };
+    ionIntruderValue = { ...pack.ionIntruder };
+    baseIonIntruder = { ...pack.ionIntruder };
+    crystalVengeanceValue = { ...pack.crystalVengeance };
+    baseCrystalVengeance = { ...pack.crystalVengeance };
     cargoSlotsValue = { ...pack.cargoSlots };
     baseCargoSlots = { ...pack.cargoSlots };
     bonusItemValue = { ...pack.bonusItem };
@@ -629,6 +644,12 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     beaconEventsValue = { ...beaconEventsValue, ...pack.beaconEvents };
   if (mode === "append" && pack.escapeTimers)
     escapeTimersValue = { ...escapeTimersValue, ...pack.escapeTimers };
+  if (mode === "append" && pack.overchargerWaits)
+    overchargerWaitsValue = { ...overchargerWaitsValue, ...pack.overchargerWaits };
+  if (mode === "append" && pack.ionIntruder)
+    ionIntruderValue = { ...ionIntruderValue, ...pack.ionIntruder };
+  if (mode === "append" && pack.crystalVengeance)
+    crystalVengeanceValue = { ...crystalVengeanceValue, ...pack.crystalVengeance };
   if (mode === "append" && pack.cargoSlots)
     cargoSlotsValue = { ...cargoSlotsValue, ...pack.cargoSlots };
   if (mode === "append" && pack.bonusItem)
@@ -1081,6 +1102,87 @@ export function escapeTimer(key: keyof EscapeTimers): number {
   return FTL_ESCAPE_TIMERS[key];
 }
 
+const FTL_OVERCHARGER_WAITS: Required<OverchargerWaits> = {
+  layer0: 8,
+  layer1: 10,
+  layer2: 13,
+  layer3: 16,
+  layer4: 20,
+};
+
+const OVERCHARGER_LAYERS = ["layer0", "layer1", "layer2", "layer3", "layer4"] as const;
+
+/** The loaded `<overchargerWaits>`, as authored (no defaults filled in). */
+export function overchargerWaits(): OverchargerWaits {
+  return { ...overchargerWaitsValue };
+}
+
+/**
+ * Seconds before the next Zoltan Shield layer when `layers` already exist (gap `<overchargerWaits>`).
+ * Five or more has no printed wait. A pack that omits a layer gets FTL's, with one warning.
+ */
+export function overchargerLayerSeconds(layers: number): number | undefined {
+  if (!Number.isInteger(layers) || layers < 0 || layers >= OVERCHARGER_LAYERS.length)
+    return undefined;
+  const key = OVERCHARGER_LAYERS[layers]!;
+  const seconds = overchargerWaitsValue[key];
+  if (seconds != null) return seconds;
+  const fallback = FTL_OVERCHARGER_WAITS[key];
+  warnPack(`No <overchargerWaits ${key}> is loaded; FTL's ${fallback} seconds is used.`);
+  return fallback;
+}
+
+/**
+ * FTL's Ion Intruder pulse (Drone Control, "Ion Intruder Drone"): 3 ion, a 6 s stun, and a wait from 8.2 s to 10 s.
+ * Used only when no loaded pack sets `<ionIntruder>`, with a warning.
+ */
+const FTL_ION_INTRUDER: Required<IonIntruderRule> = {
+  ion: 3,
+  stun: 6,
+  pulseMin: 8.2,
+  pulseMax: 10,
+};
+
+/** The loaded `<ionIntruder>`, as authored (no defaults filled in). */
+export function ionIntruderRule(): IonIntruderRule {
+  return { ...ionIntruderValue };
+}
+
+/** One Ion Intruder pulse figure (gap `<ionIntruder>`). A pack that omits it gets FTL's, with one warning. */
+export function ionIntruderStat(key: keyof IonIntruderRule): number {
+  const value = ionIntruderValue[key];
+  if (value != null) return value;
+  const fallback = FTL_ION_INTRUDER[key];
+  warnPack(`No <ionIntruder ${key}> is loaded; FTL's ${fallback} is used.`);
+  return fallback;
+}
+
+/**
+ * FTL's Crystal Vengeance (Augmentations): a 10% chance, 1 damage, 10% breach, 20% stun for 3 s.
+ * Used only when no loaded pack sets `<crystalVengeance>`, with a warning.
+ */
+const FTL_CRYSTAL_VENGEANCE: Required<CrystalVengeanceRule> = {
+  chance: 0.1,
+  damage: 1,
+  breach: 0.1,
+  stunChance: 0.2,
+  stun: 3,
+};
+
+/** The loaded `<crystalVengeance>`, as authored (no defaults filled in). */
+export function crystalVengeanceRule(): CrystalVengeanceRule {
+  return { ...crystalVengeanceValue };
+}
+
+/** One Crystal Vengeance figure (gap `<crystalVengeance>`). A pack that omits it gets FTL's, with one warning. */
+export function crystalVengeanceStat(key: keyof CrystalVengeanceRule): number {
+  const value = crystalVengeanceValue[key];
+  if (value != null) return value;
+  const fallback = FTL_CRYSTAL_VENGEANCE[key];
+  warnPack(`No <crystalVengeance ${key}> is loaded; FTL's ${fallback} is used.`);
+  return fallback;
+}
+
 /**
  * FTL's cargo hold: 4 slots for weapons and drone schematics that are not fitted (Environmental Hazards names the
  * cargo bay; the slot count is the executable's). Used only when no loaded pack sets `<cargoSlots>`, with a warning.
@@ -1329,6 +1431,9 @@ export function resetPackForTests(): void {
   civilianSectorTitleValue = baseCivilianSectorTitle;
   beaconEventsValue = { ...baseBeaconEvents };
   escapeTimersValue = { ...baseEscapeTimers };
+  overchargerWaitsValue = { ...baseOverchargerWaits };
+  ionIntruderValue = { ...baseIonIntruder };
+  crystalVengeanceValue = { ...baseCrystalVengeance };
   cargoSlotsValue = { ...baseCargoSlots };
   bonusItemValue = { ...baseBonusItem };
   asteroidFieldValue = copyAsteroidField(baseAsteroidField);

@@ -73,8 +73,8 @@ export const CITED_DRONES: readonly {
     // Anti-Combat Drone: shoots drones, not projectiles.
     target: "DRONES",
   },
-  // Shield Overcharger: power 3. The layer table stays in the sim.
-  { ref: "DRONE_SHIELD", name: "Shield Overcharger", cost: 60, type: "SHIELD", power: 3 },
+  // Shield Overcharger: power 3, speed 5. Layer waits are gap `<overchargerWaits>`, not a `<cooldown>`.
+  { ref: "DRONE_SHIELD", name: "Shield Overcharger", cost: 60, type: "SHIELD", power: 3, speed: 5 },
   // Anti-Personnel Drone. The archive id is BATTLE. Power 2.
   { ref: "BATTLE", name: "Anti-Personnel Drone", cost: 35, type: "BATTLE", power: 2 },
   // System Repair Drone: power 1.
@@ -83,7 +83,7 @@ export const CITED_DRONES: readonly {
   { ref: "SHIP_REPAIR", name: "Hull Repair Drone", cost: 85, type: "SHIP_REPAIR", power: 2 },
   // Boarding Drone: power 3, speed 18. The attack interval stays one second in the sim.
   { ref: "BOARDER", name: "Boarding Drone", cost: 70, type: "BOARDER", power: 3, speed: 18 },
-  // Ion Intruder Drone: power 3, speed 18. The pulse window stays in the sim.
+  // Ion Intruder Drone: power 3, speed 18. The pulse, ion, and stun are gap `<ionIntruder>`.
   {
     ref: "BOARDER_ION",
     name: "Ion Intruder Drone",

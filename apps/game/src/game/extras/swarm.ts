@@ -35,12 +35,18 @@ import "../pack/base.ts";
 import { crewDef, droneDef, weaponDef } from "@stl/pack";
 import { battleDroneFight, repairDronePace } from "./drone-crew.ts";
 import { veilBlocks } from "./veil.ts";
-import { crewDroneSpeed } from "../wiki/cited-booster.ts";
-import { bypassZoltan } from "../wiki/cited-bypass.ts";
+import { crewDroneSpeed } from "../rules/cited-booster.ts";
+import { bypassZoltan } from "../rules/cited-bypass.ts";
+import {
+  intruderIon,
+  intruderPower,
+  intruderPulseMax,
+  intruderPulseMin,
+  intruderStun,
+} from "../rules/cited-intruder.ts";
+import { overchargerPower, overchargerWait } from "../rules/cited-overcharger.ts";
+import { scramblerBlocks } from "../rules/cited-scrambler.ts";
 import { beamHoldSeconds, COMBAT2, bearingAccepted, orbitLegSeconds } from "../rules/combat2.ts";
-import { INTRUDER } from "../wiki/cited-intruder.ts";
-import { OVERCHARGER, OVERCHARGER_PLUS } from "../wiki/cited-overcharger.ts";
-import { scramblerBlocks } from "../wiki/cited-scrambler.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { airShown } from "../air.ts";
 import { holdLoopCue, queueSfx } from "../sfx-queue.ts";
@@ -278,7 +284,7 @@ function powered(kit: Kit, kind: SwarmKind): boolean {
 
 function flightPower(kind: string): number | undefined {
   if (isKind(kind)) return DRONE_POWER[kind];
-  if (kind === "DRONE_SHIELD_PLAYER") return OVERCHARGER_PLUS.power;
+  if (kind === "DRONE_SHIELD_PLAYER") return overchargerPower("DRONE_SHIELD_PLAYER");
   return SCHEMATIC_POWER[kind];
 }
 
@@ -1551,7 +1557,7 @@ function hurtPlayerIntruder(g: Game, kit: Kit, dt: number): boolean {
 function rollIntruderWait(g: Game): number {
   // Drone Control, Ion Intruder: "Pulse time varies between 8.2 and 10 seconds."
   // INFERRED: each wait is uniform inside that range. The page names no distribution.
-  return INTRUDER.pulseMin + rand(g) * (INTRUDER.pulseMax - INTRUDER.pulseMin);
+  return intruderPulseMin() + rand(g) * (intruderPulseMax() - intruderPulseMin());
 }
 
 function pulseIntruder(g: Game, enemy: Ship, kit: Kit): void {
@@ -1565,30 +1571,24 @@ function pulseIntruder(g: Game, enemy: Ship, kit: Kit): void {
     const sys = enemy.systems[room.system];
     // A destroyed system is not ionized. An ionized system is still a target.
     if (sys.damage < sys.level) {
-      applyIon(enemy, room.system, INTRUDER.ion);
+      applyIon(enemy, room.system, intruderIon());
       for (const c of g.crew) {
         if (c.side !== "enemy" || c.aboard !== "enemy" || c.room !== room.id || c.hp <= 0) continue;
         // Boarding, "Stun effect": stun only enemy units, including crew the player is mind-controlling.
         // Drone Control, Ion Intruder: a friendly boarder stays free. side "player" is already skipped.
-        c.stun = INTRUDER.stunSeconds;
+        c.stun = intruderStun();
       }
       // Boarding, "Boarding Drones": "The Ion Intruder will ionize a system, stunning all hostile crew and drones for 6 seconds, and then move to another system."
       // Drone Control, Ion Intruder: "The stun does not affect friendly boarders, Boarding Drones, or other Ion Intruders."
       for (const unit of enemy.kits.drones?.drones ?? []) {
         const spot = enemyDroneSpot(unit);
         if (spot?.at !== "enemy-room" || spot.room !== room.id) continue;
-        unit.stun = Math.max(unit.stun ?? 0, INTRUDER.stunSeconds);
+        unit.stun = Math.max(unit.stun ?? 0, intruderStun());
       }
     }
   }
   // "then moves to a different system". The walk is stepIntruderWalk. This pulse only chooses the rooms.
   if (kit.room) kit.path = intruderRoute(g, enemy, kit.room, systems);
-}
-
-function overchargerWait(layers: number): number | null {
-  // The table is only 0 through 4 existing layers. Five or more has no printed time.
-  if (!Number.isInteger(layers) || layers < 0 || layers >= OVERCHARGER.waits.length) return null;
-  return OVERCHARGER.waits[layers] ?? null;
 }
 
 function addOvercharge(ship: Ship): void {
@@ -1602,8 +1602,11 @@ function addOvercharge(ship: Ship): void {
 
 function tickOvercharger(g: Game, kit: Kit, dt: number): void {
   // Drone Control, Shield Overcharger and Shield Overcharger +.
-  // OVERCHARGER_SPEED is a flight figure, not a wait. This tick does not move the drone and does not fire.
-  const need = kit.target === "DRONE_SHIELD_PLAYER" ? OVERCHARGER_PLUS.power : OVERCHARGER.power;
+  // overchargerSpeed() is the blueprint <speed>, a flight figure, not a wait. This tick does not move the drone and does not fire.
+  const need =
+    kit.target === "DRONE_SHIELD_PLAYER"
+      ? overchargerPower("DRONE_SHIELD_PLAYER")
+      : overchargerPower("DRONE_SHIELD");
   // "Each timer resets should the drone become unpowered."
   if (!kit.on || kit.power < need) {
     kit.aux = 0;
@@ -1639,7 +1642,7 @@ function tickIntruder(g: Game, kit: Kit, dt: number): void {
   if (kit.hp == null) kit.hp = INTRUDER_HP;
   if (!(kit.left > 0)) kit.left = rollIntruderWait(g);
   // Removing power does not reset the cooldown. The timer freezes: it is not zeroed and it does not advance.
-  if (!kit.on || kit.power < INTRUDER.power) return;
+  if (!kit.on || kit.power < intruderPower()) return;
   const enemy = g.enemy;
   if (!enemy) return;
   const systems = systemRooms(enemy);
@@ -2693,11 +2696,11 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
         // INFERRED: Drone Control, Ion Intruder, prints the stun beside the ion damage, so a resist still stuns.
         const held = negateIon(g);
         if (!held)
-          applyIon(ship, room.system, INTRUDER.ion, zoltanBars(g.crew, ship, "player", "shields"));
+          applyIon(ship, room.system, intruderIon(), zoltanBars(g.crew, ship, "player", "shields"));
         for (const c of g.crew) {
           if (c.side !== "player" || c.aboard !== "player" || c.room !== room.id || c.hp <= 0)
             continue;
-          c.stun = Math.max(c.stun ?? 0, INTRUDER.stunSeconds);
+          c.stun = Math.max(c.stun ?? 0, intruderStun());
         }
         // Boarding, "Boarding Drones": "The Ion Intruder will ionize a system, stunning all hostile crew and drones for 6 seconds, and then move to another system."
         // Drone Control, Ion Intruder: "The stun does not affect friendly boarders, Boarding Drones, or other Ion Intruders."
@@ -2709,7 +2712,7 @@ function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
           kit.target !== "BOARDER" &&
           kit.target !== "BOARDER_ION"
         ) {
-          kit.stun = Math.max(kit.stun ?? 0, INTRUDER.stunSeconds);
+          kit.stun = Math.max(kit.stun ?? 0, intruderStun());
         }
         unit.fired = 0;
         log(

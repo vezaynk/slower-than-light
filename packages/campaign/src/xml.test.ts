@@ -73,6 +73,10 @@ describe("campaign document", () => {
     assert.deepEqual(merged.stores, pack.stores);
     assert.deepEqual(merged.rewards, pack.rewards);
     assert.deepEqual(merged.factions, pack.factions);
+    assert.deepEqual(merged.escapeTimers, pack.escapeTimers);
+    assert.deepEqual(merged.overchargerWaits, pack.overchargerWaits);
+    assert.deepEqual(merged.ionIntruder, pack.ionIntruder);
+    assert.deepEqual(merged.crystalVengeance, pack.crystalVengeance);
     assert.deepEqual(merged.empties, pack.empties);
     assert.equal(merged.facts, undefined);
   });

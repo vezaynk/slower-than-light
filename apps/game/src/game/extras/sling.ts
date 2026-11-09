@@ -15,7 +15,7 @@ import {
   sparePower,
 } from "../sim.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
-import { bypassZoltan } from "../wiki/cited-bypass.ts";
+import { bypassZoltan } from "../rules/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
 import { heldByEnemy } from "./leash.ts";
 import { veilBlocks } from "./veil.ts";

@@ -150,7 +150,8 @@ import {
   pickFlagship,
   populateGrid,
   rollDangerY,
-} from "./wiki/sector-map.ts";
+  startRow,
+} from "./rules/sector-map.ts";
 import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
 import {
   chainChargeSeconds,
@@ -7166,7 +7167,7 @@ function burnLegacyMap(g: Game): boolean {
 }
 
 // Sectors, lead: a sector contains 19 to 24 beacons. The grid, links, exit, and Last Stand seats are xftl
-// doc/sector-map (wiki/sector-map.ts).
+// doc/sector-map (rules/sector-map.ts).
 function makeMap(g: Game) {
   const seed0 = g.seed;
   const picket = burnLegacyMap(g);
@@ -7189,10 +7190,11 @@ function makeMap(g: Game) {
   }));
   connectGrid(beacons);
   const inCol = (col: number) => beacons.filter((b) => b.col === col);
-  // INFERRED: the start is the left column's beacon nearest the middle. The notes do not place it.
+  // INFERRED: the start is the left column's beacon nearest the middle of the loaded grid.
   const firstCol = Math.min(...beacons.map((b) => b.col));
+  const mid = startRow();
   const start = [...inCol(firstCol)].sort(
-    (a, b) => Math.abs(a.row - 1.5) - Math.abs(b.row - 1.5) || a.row - b.row,
+    (a, b) => Math.abs(a.row - mid) - Math.abs(b.row - mid) || a.row - b.row,
   )[0];
   start.kind = "start";
   start.visited = true;
@@ -7541,7 +7543,7 @@ export function commitJump(g: Game, id: string) {
   g.jumps += 1;
   sfx(g, "jumpLeave");
   // Score, b: "Visiting a beacon controlled by rebels or about to be controlled by rebels does NOT increase the count."
-  // Controlled is inside the danger circle (wiki/sector-map.ts). INFERRED: "about to be" is inside it once this jump's
+  // Controlled is inside the danger circle (rules/sector-map.ts). INFERRED: "about to be" is inside it once this jump's
   // fleet advance lands. Sector 8 has no fleet circle (the Flagship rules there are not modelled here).
   const held =
     g.sector < 8 &&

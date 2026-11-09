@@ -37,6 +37,7 @@ import {
   crewDef,
   droneDef,
   packLocales,
+  sectorMap,
   weaponDef,
 } from "@stl/pack";
 import {
@@ -51,15 +52,7 @@ import { beaconMark } from "@/game/beacon-mark";
 import { scanMark } from "@/game/extras/augments";
 import { navAllows } from "@/game/wiki/cited-nav";
 import { stormReactor } from "@/game/wiki/cited-sectors";
-import {
-  beaconXY,
-  CELL_PX,
-  dangerCentre,
-  DANGER_RADIUS,
-  GRID_COLS,
-  GRID_ROWS,
-  overtaken,
-} from "@/game/wiki/sector-map";
+import { beaconXY, dangerCentre, overtaken } from "@/game/rules/sector-map";
 import {
   batteryBarsOn,
   batterySpareBars,
@@ -4753,10 +4746,14 @@ function MapScreen({ game }: { game: Game }) {
   // own extent to fill the board on each axis (INVENTED view), keeping an inset so tap targets and labels stay whole.
   const xs = game.beacons.map((b) => beaconXY(b)[0]);
   const ys = game.beacons.map((b) => beaconXY(b)[1]);
+  const gridCols = sectorMap("cols");
+  const gridRows = sectorMap("rows");
+  const cellPx = sectorMap("cell");
+  const dangerRadius = sectorMap("dangerRadius");
   const x0 = xs.length ? Math.min(...xs) : 0;
-  const x1 = xs.length ? Math.max(...xs) : GRID_COLS * CELL_PX;
+  const x1 = xs.length ? Math.max(...xs) : gridCols * cellPx;
   const y0 = ys.length ? Math.min(...ys) : 0;
-  const y1 = ys.length ? Math.max(...ys) : GRID_ROWS * CELL_PX;
+  const y1 = ys.length ? Math.max(...ys) : gridRows * cellPx;
   const INSET_X = 0.06;
   const INSET_Y = 0.12;
   // Game px -> 0..1 of the plot.
@@ -4776,8 +4773,8 @@ function MapScreen({ game }: { game: Game }) {
       ? { fleet: game.fleet + (game.pursuitDouble ? 2 : 1), dangerY: game.dangerY }
       : null;
   const [wx, wy] = warn ? dangerCentre(warn) : [dx, dy];
-  const rx = (DANGER_RADIUS / Math.max(1, x1 - x0)) * (1 - 2 * INSET_X);
-  const ry = (DANGER_RADIUS / Math.max(1, y1 - y0)) * (1 - 2 * INSET_Y);
+  const rx = (dangerRadius / Math.max(1, x1 - x0)) * (1 - 2 * INSET_X);
+  const ry = (dangerRadius / Math.max(1, y1 - y0)) * (1 - 2 * INSET_Y);
   // The warning label sits on the band's leading edge, at the fleet's centre height, kept on the plot.
   const warnX = Math.min(0.97, Math.max(0.03, fx(wx) + rx));
   const warnY = Math.min(0.9, Math.max(0.1, fy(wy)));

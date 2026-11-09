@@ -43,6 +43,7 @@ import type {
   AsteroidField,
   PulsarRules,
   DroneOrbit,
+  SectorMap,
   FactionEscape,
   FactionSurrender,
   RewardTable,
@@ -87,6 +88,7 @@ import {
   mergeAsteroidField,
   readPulsar,
   readDroneOrbit,
+  readSectorMap,
   readFaction,
   readFactionEscape,
   readRewards,
@@ -142,6 +144,7 @@ export type FtlTextFile = {
  * A root `<asteroidField>` is a private tag FTL ignores: the asteroid timings and side chances its executable hard-codes.
  * A root `<pulsar>` is a private tag FTL ignores: the pulsar cycle, warning, shield spend, and ion its executable hard-codes.
  * A root `<droneOrbit>` is a private tag FTL ignores: combat-drone flight its executable hard-codes. Blueprint `<speed>` stays on the drone.
+ * A root `<sectorMap>` is a private tag FTL ignores: the beacon map and Rebel fleet circle its executable hard-codes.
  * A root `<beaconEvents>` and a sector's `<finishEvent>` (optionally `nebula="true"`) are private tags FTL ignores.
  * They name the start and exit beacon events FTL's executable hard-codes. The base mod writes FTL's names.
  * A root `<ship name>` is a ship event (hull list and endings), not a hull.
@@ -186,6 +189,7 @@ export function packFromFtl(
   let asteroidField: AsteroidField | undefined;
   let pulsar: PulsarRules | undefined;
   let droneOrbit: DroneOrbit | undefined;
+  let sectorMap: SectorMap | undefined;
   const strings = new Map<string, string>();
   const locales = new Map<string, Map<string, string>>();
   const grids = readGrids(layouts);
@@ -283,6 +287,8 @@ export function packFromFtl(
         pulsar = { ...pulsar, ...readPulsar(node) };
       } else if (node.tagName === "droneOrbit") {
         droneOrbit = { ...droneOrbit, ...readDroneOrbit(node) };
+      } else if (node.tagName === "sectorMap") {
+        sectorMap = { ...sectorMap, ...readSectorMap(node) };
       } else if (node.tagName === "shipClass") {
         const row = readShipClass(node);
         if (row) shipClasses.put(row);
@@ -348,6 +354,7 @@ export function packFromFtl(
   if (asteroidField) pack.asteroidField = asteroidField;
   if (pulsar) pack.pulsar = pulsar;
   if (droneOrbit) pack.droneOrbit = droneOrbit;
+  if (sectorMap) pack.sectorMap = sectorMap;
   if (empties.rows.length > 0) pack.empties = empties.rows;
   if (shipClasses.rows.length > 0) pack.shipClasses = shipClasses.rows;
   if (shipLists.rows.length > 0) pack.shipLists = shipLists.rows;

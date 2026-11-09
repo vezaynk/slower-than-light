@@ -82,8 +82,8 @@ export function emitMod(pack: ContentPack): string {
     }
   }
   // The default start and exit events, escape timers, the anti-stalemate break-off, enemy targeting numbers, the
-  // cargo hold, the bonus-item weights, the hazard and drone-orbit rules, and the augment and drone rules, in the
-  // same tags the gap file writes.
+  // cargo hold, the bonus-item weights, the hazard and drone-orbit rules, the beacon map, and the augment and drone
+  // rules, in the same tags the gap file writes.
   if (
     pack.beaconEvents ||
     pack.escapeTimers ||
@@ -96,7 +96,8 @@ export function emitMod(pack: ContentPack): string {
     pack.bonusItem ||
     pack.asteroidField ||
     pack.pulsar ||
-    pack.droneOrbit
+    pack.droneOrbit ||
+    pack.sectorMap
   ) {
     const rules: ContentPack = {};
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
@@ -111,6 +112,7 @@ export function emitMod(pack: ContentPack): string {
     if (pack.asteroidField) rules.asteroidField = pack.asteroidField;
     if (pack.pulsar) rules.pulsar = pack.pulsar;
     if (pack.droneOrbit) rules.droneOrbit = pack.droneOrbit;
+    if (pack.sectorMap) rules.sectorMap = pack.sectorMap;
     const gap = readXml(emitGapDocument(rules)).documentElement;
     for (const child of gap ? elementChildren(gap) : [])
       root.appendChild(doc.importNode(child, true));
@@ -197,6 +199,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (parsed.asteroidField) pack.asteroidField = parsed.asteroidField;
   if (parsed.pulsar) pack.pulsar = parsed.pulsar;
   if (parsed.droneOrbit) pack.droneOrbit = parsed.droneOrbit;
+  if (parsed.sectorMap) pack.sectorMap = parsed.sectorMap;
   return pack;
 }
 

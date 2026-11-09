@@ -12,7 +12,7 @@ import {
   waitHere,
 } from "../sim.ts";
 import { citedPierce } from "./cited-weapons.ts";
-import { fleetToReach } from "./sector-map.ts";
+import { fleetToReach } from "../rules/sector-map.ts";
 import type { Shot } from "../types.ts";
 
 function shot(partial: Partial<Shot> & Pick<Shot, "kind" | "from" | "damage">): Shot {

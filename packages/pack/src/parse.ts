@@ -31,6 +31,7 @@ import type {
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
+  ShipWeapons,
   CargoSlots,
   BonusItemWeights,
   AsteroidField,
@@ -622,6 +623,26 @@ export function readCrystalVengeance(node: XmlElement): CrystalVengeanceRule {
   );
   if (stun != null) out.stun = stun;
   return out;
+}
+
+/**
+ * Gap `<shipWeapons ship>` › `<anyOf>` (types.ts ShipWeapons). Names are split on whitespace.
+ * A missing ship, or a list that names nothing, is skipped.
+ */
+export function readShipWeapons(node: XmlElement): ShipWeapons | undefined {
+  const ship = node.getAttribute("ship")?.trim();
+  if (!ship) {
+    warnPack("A <shipWeapons> names no ship; it is skipped.");
+    return undefined;
+  }
+  const anyOf: string[] = [];
+  const listed = textOf(node, "anyOf");
+  if (listed) for (const name of listed.split(/\s+/)) if (name) anyOf.push(name);
+  if (anyOf.length === 0) {
+    warnPack(`<shipWeapons ship="${ship}"> names no weapon; it is skipped.`);
+    return undefined;
+  }
+  return { ship, anyOf };
 }
 
 /**
@@ -1271,6 +1292,9 @@ export function parsePack(xml: string): ContentPack {
   const vengeanceNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "crystalVengeance",
   );
+  const weaponNodes = elements(doc.documentElement ?? undefined).filter(
+    (item) => item.tagName === "shipWeapons",
+  );
   const cargoNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "cargoSlots",
   );
@@ -1311,6 +1335,15 @@ export function parsePack(xml: string): ContentPack {
   if (waitsNode) pack.overchargerWaits = readOverchargerWaits(waitsNode);
   if (ionNode) pack.ionIntruder = readIonIntruder(ionNode);
   if (vengeanceNode) pack.crystalVengeance = readCrystalVengeance(vengeanceNode);
+  const shipWeapons: ShipWeapons[] = [];
+  for (const node of weaponNodes) {
+    const row = readShipWeapons(node);
+    if (!row) continue;
+    const at = shipWeapons.findIndex((item) => item.ship === row.ship);
+    if (at >= 0) shipWeapons[at] = row;
+    else shipWeapons.push(row);
+  }
+  if (shipWeapons.length > 0) pack.shipWeapons = shipWeapons;
   if (cargoNode) pack.cargoSlots = readCargoSlots(cargoNode);
   if (bonusNode) pack.bonusItem = readBonusItem(bonusNode);
   if (asteroidNode) pack.asteroidField = readAsteroidField(asteroidNode);
@@ -1386,6 +1419,7 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   const trades: TradeStep[] = [];
   let grade: EventGrade | undefined;
   let surrender: SurrenderOfferDef | undefined;
+  let ship: EventDef["ship"];
   for (const item of elements(node)) {
     if (item.tagName === "text") {
       lines.push(ownText(item).trim());
@@ -1436,6 +1470,10 @@ export function readEvent(node: XmlElement): EventDef | undefined {
       surrender = readSurrender(item);
       continue;
     }
+    if (item.tagName === "ship") {
+      ship ??= readEventShip(item);
+      continue;
+    }
     if (item.tagName !== "choice") continue;
     const choiceId = attr(item, "name")?.trim();
     if (!choiceId) continue;
@@ -1473,10 +1511,24 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   if (grade) event.grade = grade;
   if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
+  if (ship) event.ship = ship;
   const environment = readEnvironment(node);
   if (environment) event.environment = environment;
   if (elements(node).some((item) => item.tagName === "store")) event.store = true;
   return event;
+}
+
+/** `<ship load>` on the event. A choice that does not load a ship fights this one. */
+function readEventShip(node: XmlElement): EventDef["ship"] | undefined {
+  const load = attr(node, "load")?.trim();
+  const hostile = node.getAttribute("hostile");
+  if (!load && hostile == null) return undefined;
+  const ship: NonNullable<EventDef["ship"]> = { hostile: hostile !== "false" };
+  if (load) ship.load = load;
+  const list = attr(node, "auto_blueprint")?.trim();
+  if (list) ship.autoBlueprint = list;
+  if (node.getAttribute("asteroid") === "true") ship.asteroid = true;
+  return ship;
 }
 
 const ENVIRONMENT_TYPES = new Set(["asteroid", "nebula", "pulsar", "sun", "storm", "PDS"]);

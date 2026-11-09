@@ -382,7 +382,9 @@ function slugFight(ctx: Ctx, boarders: number) {
 }
 
 function pirateFight(ctx: Ctx, slug: string, boarders = false) {
-  ctx.fight("Pirate ship", undefined, slug);
+  // 80s from the start, including on the last fuel. The 90s branch stays a Pirate ship so last fuel is the timer.
+  const tier = slug === "no-fuel-prepare-dock-80" ? "PIRATE_DOCK_80" : "Pirate ship";
+  ctx.fight(tier, undefined, slug);
   if (boarders) humanBoarders(ctx.g, 2, 3, "human boarders beam aboard your ship.");
 }
 
@@ -1634,7 +1636,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       ctx.note(
         `Having traded supplies, the ship suddenly powers up and attacks — it's a pirate ship! You lose ${n} missile and receive ${fuel} fuel.`,
       );
-      ctx.fight("Pirate ship", undefined, "no-fuel-refugee-trading");
+      ctx.fight("PIRATE_REFUGEE", undefined, "no-fuel-refugee-trading");
       return true;
     }
     if (name === "arm-no") {
@@ -1650,7 +1652,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
         ctx.note(
           "Taking your reluctance as weakness, the refugee ship suddenly bristles with weapons — it's a pirate ship, and it believes it's found easy prey!",
         );
-        ctx.fight("Pirate ship", undefined, "no-fuel-refugee-trading");
+        ctx.fight("PIRATE_REFUGEE", undefined, "no-fuel-refugee-trading");
         return true;
       }
       if (branch === 1) {

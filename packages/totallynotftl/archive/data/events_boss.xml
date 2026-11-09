@@ -65,7 +65,7 @@
     <text>You don't have any time to worry about the battle in the distance. The fight is coming to you really quickly!</text>
     <choice name="c:rebel-fight-among-federation-and-rebel-fleets:0">
       <text>Fight a Rebel ship</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="REBEL_NO_ESCAPE"/>
     </choice>
   </event>
   <event name="BOSS_SCOUT_RESCUE">
@@ -82,7 +82,7 @@
     <text>A civilian ship is broadcasting a request for assistance on a secure Federation channel. They are being harassed by Rebel scouts. Will you respond?</text>
     <choice name="c:rebel-ship-attacking-civilians-in-last-stand:0">
       <text>Prepare to fight the Rebel ship!</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="BOSS_SCOUT_RESCUE"/>
     </choice>
     <choice name="c:rebel-ship-attacking-civilians-in-last-stand:1">
       <text>There's no time, get ready to jump</text>
@@ -120,7 +120,7 @@
     <text>The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well.</text>
     <choice name="c:rebel-fight-among-rebel-fleet:0">
       <text>Fight a Rebel ship</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="REBEL_NO_ESCAPE"/>
     </choice>
   </event>
   <event name="BOSS_SCOUT">
@@ -149,7 +149,7 @@
     <roll k="hull">rebel-invader</roll>
     <choice name="c:fight-in-last-stand:0" owner="missing">
       <text>Fight the scout.</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="REBEL_NO_ESCAPE"/>
     </choice>
   </event>
 </FTL>

@@ -73,7 +73,8 @@ describe("Pirate smuggler weapons", () => {
     assert.equal(g.fightEvent, "pirate-smuggler");
     assert.equal(g.enemy?.pirate, true);
     assert.equal(g.enemyEscape?.seconds, 35);
-    assert.equal(g.enemyEscape?.chance, 100);
+    assert.equal(g.enemyEscape?.chance, 1);
+    assert.equal(g.enemyEscape?.hullPoints, true);
     assert.equal(g.enemySurrender?.chance, 50);
   });
 });

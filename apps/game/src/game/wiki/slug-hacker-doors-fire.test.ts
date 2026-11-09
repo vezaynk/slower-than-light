@@ -6,7 +6,7 @@ describe("Slug hacker (doors) fire weapons", () => {
   it("fits a Fire Beam or a Fire Bomb on that fight", () => {
     for (let seed = 1; seed <= 40; seed++) {
       const g = createGame(seed);
-      startCombat(g, "Slug ship", false, "slug-hacker-doors");
+      startCombat(g, "JELLY_STATUS_DOORS");
       const guns = g.enemy?.weapons ?? [];
       assert.ok(
         guns.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE"),

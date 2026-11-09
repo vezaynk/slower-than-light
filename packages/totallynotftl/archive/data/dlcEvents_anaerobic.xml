@@ -60,7 +60,7 @@
     <text>After the fight</text>
     <choice name="c:lanius-fight-with-friendly-asb-support:0">
       <text>Fight a Lanius ship with an Anti-Ship Battery on your side</text>
-      <ship hostile="true" load="LANIUS_SHIP"/>
+      <ship hostile="true" load="LANIUS_NO_ESCAPE"/>
     </choice>
   </event>
   <event name="LANIUS_AUTO_REBEL">
@@ -88,7 +88,7 @@
     <text>The Mantis ship in this system looks like its distress beacon is malfunctioning... likely due to the Lanius ship mining their hull and sub-systems! It doesn't look like the Mantis ship will last much longer.</text>
     <choice name="c:lanius-ship-attacking-mantis:0">
       <text>Attack the Lanius ship</text>
-      <ship hostile="true" load="LANIUS_SHIP"/>
+      <ship hostile="true" load="LANIUS_NO_ESCAPE"/>
     </choice>
     <choice name="c:lanius-ship-attacking-mantis:1">
       <text>Leave the Mantis to their fate</text>
@@ -104,7 +104,7 @@
     <text>A distress beacon pulses weakly from a Rockman ship in this system... their hull (and their crew) are being mined by the Lanius, lasers and weapons tearing through the ship!</text>
     <choice name="c:lanius-ship-attacking-rock:0">
       <text>Attack the Lanius ship</text>
-      <ship hostile="true" load="LANIUS_SHIP"/>
+      <ship hostile="true" load="LANIUS_NO_ESCAPE"/>
     </choice>
     <choice name="c:lanius-ship-attacking-rock:1">
       <text>Leave the Rockmen to their fate</text>
@@ -123,7 +123,7 @@
     <text>You arrive at the location of a recent battle. Judging from the debris, some settlers attempted to fight off a number of small Lanius ships, although it's impossible to say who instigated the aggression. A few skirmishes can be seen in the distance, but more notably a lone Lanius ship is firing on a heavily damaged civilian vessel.</text>
     <choice name="c:lanius-ship-attacking-civilian:0">
       <text>Attack the Lanius ship</text>
-      <ship hostile="true" load="LANIUS_SHIP"/>
+      <ship hostile="true" load="LANIUS_NO_ESCAPE"/>
     </choice>
     <choice name="c:lanius-ship-attacking-civilian:1">
       <text>Avoid the conflict</text>
@@ -139,7 +139,7 @@
     <text>You immediately do a short-range scan after arriving at the beacon. It appears to be coming from a small civilian vessel under fire from a Lanius ship. Not all Lanius are content with simply scavenging the wrecks of previous battles.</text>
     <choice name="c:lanius-ship-attacking-civilian-distress:0">
       <text>Fight the Lanius ship</text>
-      <ship hostile="true" load="LANIUS_SHIP"/>
+      <ship hostile="true" load="LANIUS_NO_ESCAPE"/>
     </choice>
     <choice name="c:lanius-ship-attacking-civilian-distress:1">
       <text>Avoid the conflict</text>
@@ -161,11 +161,11 @@
     <text>Your scans have picked up a Lanius vessel in this system: it appears to be navigating a rich debris field, harvesting the minerals.</text>
     <choice name="c:lanius-ship-in-rich-debris-field:0">
       <text>Attempt to harvest some for yourself</text>
-      <ship hostile="true" load="LANIUS_SHIP"/>
+      <ship hostile="true" load="LANIUS_NO_ESCAPE"/>
     </choice>
     <choice name="c:lanius-ship-in-rich-debris-field:1">
       <text>Attack the vessel</text>
-      <ship hostile="true" load="LANIUS_SHIP"/>
+      <ship hostile="true" load="LANIUS_NO_ESCAPE"/>
     </choice>
     <choice name="c:lanius-ship-in-rich-debris-field:2">
       <text>Ignore the vessel</text>
@@ -328,7 +328,7 @@
     <text>The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating.</text>
     <choice name="c:lanius-ship-attacking-slug:0">
       <text>Attack the Lanius ship</text>
-      <ship hostile="true" load="LANIUS_SHIP"/>
+      <ship hostile="true" load="LANIUS_NO_ESCAPE"/>
     </choice>
     <choice name="c:lanius-ship-attacking-slug:1">
       <text>Leave the Slugs to their fate</text>

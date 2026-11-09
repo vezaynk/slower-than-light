@@ -23,7 +23,7 @@ import {
   type CrewPick,
 } from "@/game/crew-look";
 import type { KinId } from "@/game/extras/kin";
-import { hangarBay } from "@/game/wiki/hangar-bay";
+import { hangarBay } from "@/game/hangar-bay";
 
 import { factionPaint } from "@/game/hull-plate";
 import { hangarLoadout } from "@/game/sim";

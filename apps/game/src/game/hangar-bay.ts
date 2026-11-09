@@ -1,6 +1,9 @@
 /**
- * Hangar bay and cruiser article taken from the loaded ship.
- * The cruiser pages stay the index. Neither surface reads their lines.
+ * The hangar's loadout for one hull, from the loaded archive.
+ * Weapons, drones, augments, and the starting fit are the player blueprint's lists.
+ * A system title is its `systemBlueprint` title. An artillery kit whose weapon blueprint has a title uses that
+ * title (the archive's name for that gun). A system the archive leaves untitled keeps `systemLabel`
+ * (Engines, Piloting, Drone Control, and the rest) and does not warn. No English names are written here.
  */
 import {
   augmentDef,
@@ -11,9 +14,10 @@ import {
   warnPack,
   weaponDef,
 } from "@stl/pack";
-import { droneKeyForName, droneKeyOf, type DroneKey } from "../gear-look.ts";
-import type { IconName } from "../icons.ts";
-import { canDeploy } from "../extras/swarm.ts";
+import { droneKeyForName, droneKeyOf, type DroneKey } from "./gear-look.ts";
+import type { IconName } from "./icons.ts";
+import { canDeploy } from "./extras/swarm.ts";
+import { systemLabel } from "./content.ts";
 
 /** The augment's blueprint title. An id the archive has no `augBlueprint` for shows as the id, with a warning. */
 function augmentName(id: string): string {
@@ -22,25 +26,6 @@ function augmentName(id: string): string {
   warnPack(`Augment "${id}" has no augBlueprint; the hangar shows its id.`);
   return id;
 }
-
-const SYSTEM_NAME: Record<string, string> = {
-  shields: "Shields",
-  engines: "Engines",
-  oxygen: "Oxygen",
-  medbay: "Medbay",
-  weapons: "Weapons",
-  pilot: "Piloting",
-  sensors: "Sensors",
-  doors: "Door System",
-  drones: "Drone Control",
-  clonebay: "Clone Bay",
-  cloaking: "Cloaking",
-  hacking: "Hacking",
-  mind: "Mind Control",
-  teleporter: "Crew Teleporter",
-  battery: "Backup Battery",
-  artillery: "Artillery",
-};
 
 export type BaySystem = { id: string; name: string; icon: IconName; level: number };
 export type BayWeapon = { id: string; name: string };
@@ -63,9 +48,29 @@ export type HangarBay = {
   augments: string[];
 };
 
+/**
+ * A blueprint title. The reader copies the id into `name` when the archive wrote no `<title>`, and that is not a title.
+ */
+function distinctTitle(row: { id: string; name: string } | undefined): string | undefined {
+  if (!row?.name || row.name === row.id) return undefined;
+  return row.name;
+}
+
+/** The weapon blueprint's own title. The hull names the gun. */
+function weaponTitle(id: string): string | undefined {
+  return distinctTitle(weaponDef(id));
+}
+
+/**
+ * Artillery is named by its weapon blueprint when that blueprint has a title. Otherwise the systemBlueprint title.
+ * A tune the archive leaves untitled keeps the short name the rest of the ship already uses.
+ */
 function systemName(id: string, weapon?: string): string {
-  if (id === "artillery" && weapon === "ARTILLERY_FED_C") return "Flak Artillery";
-  return SYSTEM_NAME[id] ?? systemDef(id)?.name ?? id;
+  const fromWeapon = weapon ? weaponTitle(weapon) : undefined;
+  if (fromWeapon) return fromWeapon;
+  const fromSystem = distinctTitle(systemDef(id));
+  if (fromSystem) return fromSystem;
+  return systemLabel(id);
 }
 
 function systemIcon(id: string, weapon?: string): IconName {

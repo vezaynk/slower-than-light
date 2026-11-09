@@ -39,7 +39,7 @@ const FLAK_FAMILY = {
  * stay in flakart.ts. Price 0: Overview says it is pre-installed and not sold.
  */
 export const FLAK_ARTILLERY: WeaponDef = {
-  id: "flak-artillery",
+  id: "ARTILLERY_FED_C",
   name: "Flak Artillery",
   kind: "flak",
   // Template:Flak weapons: power 1-4. The row stores the maximum, as Boss Laser does.
@@ -221,7 +221,7 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
     note: 'Flak (Weapons) "Flak Gun Mark II": targeting area radius 55 is on the row. 6 additional fake flak are not on WeaponDef. Store rarity 4. Room odds are applied by flak2Landing. Radius 55 is not simulated as pixels.',
   },
   {
-    id: "flak-artillery",
+    id: "ARTILLERY_FED_C",
     radius: 35,
     fake: 7,
     rooms: [

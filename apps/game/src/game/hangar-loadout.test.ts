@@ -13,10 +13,13 @@ import {
   packFromFtl,
   resetPackForTests,
   startingFit,
+  systemDef,
+  weaponDef,
 } from "@stl/pack";
 import { createGame, hangarLoadout } from "./sim.ts";
-import { hangarBay } from "./wiki/hangar-bay.ts";
+import { hangarBay } from "./hangar-bay.ts";
 import { hangarPages } from "./hangar-roster.ts";
+import { systemLabel } from "./content.ts";
 
 const picks = [
   { name: "Ada", uniform: 1 },
@@ -134,11 +137,89 @@ describe("hangar bay", () => {
     const restore = onPackWarning((message) => warnings.push(message));
     try {
       assert.deepEqual(hangarBay("PLAYER_SHIP_HARD")?.augments, ["NOT_AN_AUGMENT"]);
-      assert.deepEqual(warnings, [
-        'Augment "NOT_AN_AUGMENT" has no augBlueprint; the hangar shows its id.',
-      ]);
+      assert.deepEqual(
+        warnings.filter((message) => message.includes("NOT_AN_AUGMENT")),
+        ['Augment "NOT_AN_AUGMENT" has no augBlueprint; the hangar shows its id.'],
+      );
     } finally {
       restore();
+      resetPackForTests();
+    }
+  });
+
+  it("prefers a loaded system title, and an untitled tune keeps its short name", () => {
+    const shields = systemDef("shields");
+    assert.ok(shields);
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const bay = hangarBay("PLAYER_SHIP_HARD");
+      assert.equal(bay?.systems.find((system) => system.id === "shields")?.name, shields.name);
+      for (const id of ["engines", "oxygen", "weapons", "pilot"]) {
+        assert.equal(bay?.systems.find((system) => system.id === id)?.name, systemLabel(id), id);
+      }
+      assert.equal(systemLabel("engines"), "Engines");
+      assert.equal(systemLabel("pilot"), "Piloting");
+      const drones = layouts
+        .map((layout) => hangarBay(layout.id))
+        .find((sheet) => sheet?.systems.some((system) => system.id === "drones"));
+      assert.equal(drones?.systems.find((system) => system.id === "drones")?.name, "Drone Control");
+      assert.deepEqual(
+        warnings.filter((message) => message.includes("systemBlueprint")),
+        [],
+      );
+
+      const engines = systemDef("engines");
+      assert.equal(engines, undefined);
+      loadPack(
+        { systems: [{ id: "engines", name: "Thrusters", cost: 40, slot: "sys" }] },
+        "append",
+      );
+      assert.equal(
+        hangarBay("PLAYER_SHIP_HARD")?.systems.find((system) => system.id === "engines")?.name,
+        "Thrusters",
+      );
+      loadPack({ systems: [{ ...shields, name: "Bulwark" }] }, "append");
+      assert.equal(
+        hangarBay("PLAYER_SHIP_HARD")?.systems.find((system) => system.id === "shields")?.name,
+        "Bulwark",
+      );
+    } finally {
+      restore();
+      resetPackForTests();
+    }
+  });
+
+  it("names an artillery kit from its weapon blueprint title", () => {
+    const gun = weaponDef("ARTILLERY_FED_C");
+    assert.ok(gun);
+    assert.equal(
+      hangarBay("PLAYER_SHIP_FED")?.systems.find((system) => system.id === "artillery")?.name,
+      "Artillery",
+    );
+    assert.equal(
+      hangarBay("PLAYER_SHIP_FED_3")?.systems.find((system) => system.id === "artillery")?.name,
+      gun.name,
+    );
+    loadPack(
+      {
+        weapons: [
+          { ...gun, id: "ARTILLERY_FED", name: "Archive Beam" },
+          { ...gun, id: "ARTILLERY_FED_C", name: "Archive Flak" },
+        ],
+      },
+      "append",
+    );
+    try {
+      assert.equal(
+        hangarBay("PLAYER_SHIP_FED")?.systems.find((system) => system.id === "artillery")?.name,
+        "Archive Beam",
+      );
+      assert.equal(
+        hangarBay("PLAYER_SHIP_FED_3")?.systems.find((system) => system.id === "artillery")?.name,
+        "Archive Flak",
+      );
+    } finally {
       resetPackForTests();
     }
   });

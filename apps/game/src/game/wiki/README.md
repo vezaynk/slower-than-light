@@ -15,9 +15,9 @@ own tests did) were removed with this README: `events-0`–`events-3`, `enemies-
 
 ## 1. Content that duplicates the archive: replace with archive reads, then delete
 
-| Module          | Lines | What it holds                                                         | Archive source                                            |
-| --------------- | ----: | --------------------------------------------------------------------- | --------------------------------------------------------- |
-| `hangar-bay.ts` |   129 | Hangar loadout article; system titles it prefers over the blueprint's | The player blueprint's lists and `systemBlueprint` titles |
+| Module          | Lines | What it holds                                                                                                                                             | Archive source                                            |
+| --------------- | ----: | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `hangar-bay.ts` |  done | Done: `game/hangar-bay.ts`. Titles are `systemBlueprint` titles; an artillery kit uses its weapon blueprint's title. An untitled tune keeps `systemLabel` | The player blueprint's lists and `systemBlueprint` titles |
 
 ## 2. Events written in code: move to the archive, then delete
 
@@ -114,12 +114,14 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    unknown id raw, with a warning; stores and random rewards skip a missing or 0 rarity, as FTL's GetRandomAugment
    does, and a store row naming a rarity-0 grant is refused without spending scrap; a sale pays half the blueprint
    cost), Flak Artillery's speed 26
-   (both archives write `<speed>` on it; `projectile-speed.ts` only maps the stand-in's `flak-artillery` id to
-   ftl.dat's `ARTILLERY_FED_C`) and the one-layer pierce set (both archives write `<sp>`). `projectile-speed.ts` and
+   (both archives write `<speed>` on `ARTILLERY_FED_C`) and the one-layer pierce set (both archives write `<sp>`). `projectile-speed.ts` and
    `cited-weapons.ts` now hold only rules (section 3). `skills.ts`: races done. Pirate and other `random` crews, and crew rewards that name no race, draw from
    the current sector's `<rarityList>` over each `crewBlueprint`'s `<rarity>`, weighted `6 - rarity` (FTL's
    GetRandomCrew; the rule is `game/rarity.ts`). The stand-in writes Hidden Crystal Worlds' list too. The skill speed
    tables stay in `skills.ts` as rules for step 5.
+   Done: `hangar-bay.ts` (the hangar reads the player blueprint in `game/hangar-bay.ts`. A system title is the
+   `systemBlueprint` title; an artillery kit uses its weapon blueprint's title. A tune the archive leaves untitled
+   keeps `systemLabel`, and does not warn).
 4. **Events** in section 2, one page at a time.
 5. **Rules** in section 3: move constants to the gap mod and the modules out of `wiki/`. Done: `escape.ts`, now
    `game/rules/escape.ts`; `cited-asteroid.ts`, `cited-pulsar.ts`, and `cited-combat2.ts`, now `game/rules/asteroid.ts`,

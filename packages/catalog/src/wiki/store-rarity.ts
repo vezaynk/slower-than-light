@@ -120,8 +120,8 @@ export const STORE_RARITY: Readonly<Record<string, number>> = {
   CRYSTAL_HEAVY_1: 0,
   // Crystal (Weapons): crystal arms are "only in Hidden Crystal Worlds", so no draw picks them.
   CRYSTAL_HEAVY_2: 0,
-  // INFERRED: Flagship artillery, as ARTILLERY_BOSS_2.
-  "flak-artillery": 0,
+  // Template:Flak weapons, Flak Artillery: pre-installed and not sold.
+  ARTILLERY_FED_C: 0,
   // Template:Laser weapons, "Boss Laser".
   ARTILLERY_BOSS_1: 0,
   // Template:Beam weapons, "Artillery Beam".

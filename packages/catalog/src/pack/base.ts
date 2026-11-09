@@ -1049,7 +1049,7 @@ const PROJECTILE_SPEED: Record<string, number> = {
   SHOTGUN: 26,
   SHOTGUN_PLAYER: 26,
   SHOTGUN_2: 26,
-  "flak-artillery": 26,
+  ARTILLERY_FED_C: 26,
   ION_1: 30,
   ION_4: 30,
   ION_2: 40,

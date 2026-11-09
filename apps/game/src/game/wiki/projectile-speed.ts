@@ -1,5 +1,5 @@
 import "../pack/base.ts";
-import { warnPack, weaponDef } from "@stl/pack";
+import { weaponDef } from "@stl/pack";
 import type { WeaponKind } from "../types.ts";
 
 /**
@@ -19,38 +19,14 @@ export const LASER_SPEED = 60;
 export const BOMB_FLIGHT_S = 1.35;
 
 /**
- * Flak Artillery's two ids. The stand-in writes `flak-artillery`; ftl.dat writes `ARTILLERY_FED_C`.
- * Both blueprints carry `<speed>26</speed>`. Either id reads whichever one the loaded archive has.
- */
-const FLAK_ARTILLERY_IDS = ["flak-artillery", "ARTILLERY_FED_C"];
-
-function positiveSpeed(defId: string): number | null {
-  const weapon = weaponDef(defId);
-  if (!weapon || weapon.kind === "beam" || !(weapon.speed != null && weapon.speed > 0)) return null;
-  return weapon.speed;
-}
-
-/**
  * Seconds for the blueprint's `<speed>`, or null when that weapon has no projectile speed.
  * Beams carry a swipe speed and fly on their own clock. Bombs and the invented dart have none.
- * Flak Artillery reads the other id's blueprint when the loaded archive has only that one.
  */
 export function projectileFlightSeconds(defId: string | undefined): number | null {
   if (!defId) return null;
-  const speed = flightSpeed(defId);
-  if (speed == null) return null;
-  return (LASER_SPEED * LASER_FLIGHT_S) / speed;
-}
-
-function flightSpeed(defId: string): number | null {
-  if (!FLAK_ARTILLERY_IDS.includes(defId)) return positiveSpeed(defId);
-  const other = FLAK_ARTILLERY_IDS.find((id) => id !== defId)!;
-  const speed = positiveSpeed(defId) ?? positiveSpeed(other);
-  if (speed == null)
-    warnPack(
-      `Flak Artillery (${FLAK_ARTILLERY_IDS.join(" or ")}) has no <speed>; it flies as a laser.`,
-    );
-  return speed;
+  const weapon = weaponDef(defId);
+  if (!weapon || weapon.kind === "beam" || !(weapon.speed != null && weapon.speed > 0)) return null;
+  return (LASER_SPEED * LASER_FLIGHT_S) / weapon.speed;
 }
 
 /** Flight for a non-beam shot. Beams use beamFlightSeconds. */

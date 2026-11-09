@@ -568,6 +568,21 @@ function droneSell(id: string): number | null {
   return Math.floor(row.cost / 2);
 }
 
+/** The deployed schematic is gone. A fitted Shield Overcharger + sale clears these same fields. */
+function groundDrone(kit: NonNullable<Game["player"]["kits"]["drones"]>) {
+  kit.target = null;
+  kit.on = false;
+  kit.left = 0;
+  kit.aux = 0;
+  delete kit.hp;
+}
+
+/** Fitted means the id is in the fielded list. A stale kit.target left by stowing a loadout slot is not fitted. */
+function shieldPlusFielded(g: Game): boolean {
+  const kit = g.player.kits.drones;
+  return !!kit && fieldedSchematics(kit).includes("DRONE_SHIELD_PLAYER");
+}
+
 /**
  * Template:In-game tips, Selling: weapons, drones, and augments sell for half the purchase price.
  * Scrap: half-price, rounded down against the player.
@@ -575,7 +590,10 @@ function droneSell(id: string): number | null {
  * Fuel, missiles, drone parts, hull repair, crew, and systems are not sold. Drone Control is not sold.
  * Cargo drone schematics sell the same way. A schematic with no purchase price, or a price of 0, is not sold.
  * A fitted schematic is not quoted, except a fitted Shield Overcharger +.
+ * Fitted means the id is in the fielded list, not merely kit.target.
  * That plus row is the only fitted sale, so a schematic both fitted and in cargo is quoted once.
+ * A Shield Overcharger + in cargo and not fielded is that cargo row, at the printed 30.
+ * Selling a cargo schematic that is no longer fielded clears a stale target, so it cannot launch.
  * Drone Control, "Shield Overcharger +": "Sells for: 30 (cannot be bought or found)."
  * The regular Shield Overcharger has a purchase price and no printed sell line used here.
  */
@@ -592,8 +610,8 @@ export function citedSellQuote(g: Game): SellQuote[] {
       scrap,
     });
   }
-  // A fitted Shield Overcharger + keeps its own row. The same id in cargo is not quoted again.
-  const overchargerPlus = g.player.kits.drones?.target === "DRONE_SHIELD_PLAYER";
+  // A fielded Shield Overcharger + keeps its own row. The same id in cargo is not quoted again.
+  const plusFielded = shieldPlusFielded(g);
   // Per the user: weapons in cargo sell like fitted ones. Cargo schematics sell for half their cost.
   cargoOf(g).forEach((item, index) => {
     if (item.kind === "weapon") {
@@ -609,8 +627,18 @@ export function citedSellQuote(g: Game): SellQuote[] {
       return;
     }
     if (item.kind !== "drone") return;
-    // The fitted Shield Overcharger + row already covers this id. Do not quote the cargo copy too.
-    if (overchargerPlus && item.id === "DRONE_SHIELD_PLAYER") return;
+    if (item.id === "DRONE_SHIELD_PLAYER") {
+      // The plus has no blueprint, so droneSell is null. Fielded: one fitted row. Otherwise this cargo slot.
+      if (plusFielded) return;
+      quotes.push({
+        id: `c:${index}:${item.id}`,
+        kind: "drone",
+        ref: item.id,
+        name: "Shield Overcharger + (cargo)",
+        scrap: OVERCHARGER_PLUS_SELL,
+      });
+      return;
+    }
     const scrap = droneSell(item.id);
     if (scrap == null || scrap <= 0) return;
     quotes.push({
@@ -634,8 +662,9 @@ export function citedSellQuote(g: Game): SellQuote[] {
     });
   });
   const over = g.player.kits.drones;
-  // A fitted Shield Overcharger + only. Identified by the drone id, not by the scrap amount.
-  if (over?.target === "DRONE_SHIELD_PLAYER") {
+  // A fitted Shield Overcharger + only. Fitted is the fielded list, and it is the active drone.
+  // Identified by the drone id, not by the scrap amount.
+  if (plusFielded && over?.target === "DRONE_SHIELD_PLAYER") {
     quotes.push({
       id: "d:overchargerplus",
       kind: "drone",
@@ -656,6 +685,17 @@ export function citedSell(g: Game, id: string): boolean {
     const item = cargoOf(g)[index];
     if (!item || item.id !== quote.ref || item.kind !== quote.kind) return false;
     g.cargo = cargoOf(g).filter((_, i) => i !== index);
+    const kit = g.player.kits.drones;
+    // Stow on a loadout rewrites the list and can leave this id deployed. It is gone once it is not fielded.
+    // A copy that is still fielded keeps flying.
+    if (
+      item.kind === "drone" &&
+      kit &&
+      kit.target === item.id &&
+      !fieldedSchematics(kit).includes(item.id)
+    ) {
+      groundDrone(kit);
+    }
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
     g.sfx.push("sell");
@@ -664,11 +704,7 @@ export function citedSell(g: Game, id: string): boolean {
   if (quote.kind === "drone") {
     const kit = g.player.kits.drones;
     if (!kit || kit.target !== quote.ref) return false;
-    kit.target = null;
-    kit.on = false;
-    kit.left = 0;
-    kit.aux = 0;
-    delete kit.hp;
+    groundDrone(kit);
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
     g.sfx.push("sell");

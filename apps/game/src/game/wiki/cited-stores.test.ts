@@ -4,6 +4,8 @@ import { BUNDLE_OTHER, BUNDLE_PATCH } from "../extras/swarm.ts";
 import { buy, commitJump, createGame, openStoreHere, startCombat, step } from "../sim.ts";
 import type { Game, Kit, KitId, StockItem, WeaponInst } from "../types.ts";
 import { allDrones, droneDef, loadPack, resetPackForTests, weaponDef } from "@stl/pack";
+import { OVERCHARGER_PLUS_SELL } from "../rules/cited-overcharger.ts";
+import { stowDrone } from "../rules/make-room.ts";
 import {
   CRYSTAL_SECTOR_WEAPONS,
   citedSell,
@@ -581,6 +583,10 @@ describe("cited stores", () => {
       g.player.kits.drones = kit("drones", 2);
       // Fitted, and the same schematic is in cargo: one quote (the cargo slot). The fitted copy stays.
       g.player.kits.drones.target = "ANTI_DRONE";
+      g.player.kits.drones.on = true;
+      g.player.kits.drones.left = 3;
+      g.player.kits.drones.aux = 2;
+      g.player.kits.drones.hp = 12;
       g.cargo = [
         { kind: "drone", id: "ANTI_DRONE" },
         { kind: "drone", id: "freebie" },
@@ -611,6 +617,10 @@ describe("cited stores", () => {
       assert.equal(g.scrapCollected, (collected ?? 0) + drone.scrap);
       assert.equal(g.sfx[sounds], "sell");
       assert.equal(g.player.kits.drones.target, "ANTI_DRONE");
+      assert.equal(g.player.kits.drones.on, true);
+      assert.equal(g.player.kits.drones.left, 3);
+      assert.equal(g.player.kits.drones.aux, 2);
+      assert.equal(g.player.kits.drones.hp, 12);
       assert.deepEqual(g.cargo, [
         { kind: "drone", id: "freebie" },
         { kind: "weapon", id: "LASER_BURST_1" },
@@ -626,8 +636,10 @@ describe("cited stores", () => {
       assert.equal(g.scrap, before + drone.scrap + weapon.scrap);
       assert.deepEqual(g.cargo, [{ kind: "drone", id: "freebie" }]);
       assert.equal(g.player.kits.drones.target, "ANTI_DRONE");
+      assert.equal(g.player.kits.drones.on, true);
 
       // Fitted Shield Overcharger + stays a single row when that id is also in cargo.
+      // No loadout: the target is the fielded list.
       g.player.kits.drones.target = "DRONE_SHIELD_PLAYER";
       g.cargo = [
         { kind: "drone", id: "DRONE_SHIELD_PLAYER" },
@@ -640,6 +652,156 @@ describe("cited stores", () => {
     } finally {
       resetPackForTests();
     }
+  });
+
+  it("sells a stowed loadout schematic and powers that drone down", () => {
+    const combat = droneDef("COMBAT_1");
+    const ward = droneDef("DEFENSE_1");
+    assert.ok(combat && ward);
+
+    const flying = createGame(1);
+    const kept = kit("drones", 2);
+    kept.loadout = ["COMBAT_1", "DEFENSE_1"];
+    kept.target = "COMBAT_1";
+    kept.on = true;
+    kept.left = 3;
+    kept.aux = 2;
+    kept.hp = 11;
+    flying.player.kits.drones = kept;
+    // The other schematic leaves. Combat I is still fielded, so it keeps flying.
+    assert.equal(stowDrone(flying, 1), true);
+    assert.deepEqual(kept.loadout, ["COMBAT_1"]);
+    assert.equal(kept.target, "COMBAT_1");
+    assert.equal(kept.on, true);
+    const defense = citedSellQuote(flying).find((row) => row.ref === "DEFENSE_1");
+    assert.ok(defense);
+    assert.equal(defense.scrap, Math.floor(ward.cost / 2));
+    assert.equal(citedSell(flying, defense.id), true);
+    assert.deepEqual(flying.cargo, []);
+    assert.deepEqual(kept.loadout, ["COMBAT_1"]);
+    assert.equal(kept.target, "COMBAT_1");
+    assert.equal(kept.on, true);
+    assert.equal(kept.left, 3);
+    assert.equal(kept.aux, 2);
+    assert.equal(kept.hp, 11);
+
+    const g = createGame(1);
+    const drones = kit("drones", 2);
+    drones.loadout = ["COMBAT_1", "DEFENSE_1"];
+    drones.target = "COMBAT_1";
+    drones.on = true;
+    drones.left = 4;
+    drones.aux = 1;
+    drones.hp = 9;
+    g.player.kits.drones = drones;
+    assert.equal(stowDrone(g, 0), true);
+    assert.deepEqual(drones.loadout, ["DEFENSE_1"]);
+    assert.deepEqual(g.cargo, [{ kind: "drone", id: "COMBAT_1" }]);
+    assert.equal(drones.target, null);
+    assert.equal(drones.on, false);
+    const quote = citedSellQuote(g).find((row) => row.ref === "COMBAT_1");
+    assert.ok(quote);
+    assert.equal(quote.id, "c:0:COMBAT_1");
+    assert.equal(quote.scrap, Math.floor(combat.cost / 2));
+    const before = g.scrap;
+    assert.equal(citedSell(g, quote.id), true);
+    assert.equal(g.scrap, before + quote.scrap);
+    assert.deepEqual(g.cargo, []);
+    assert.deepEqual(drones.loadout, ["DEFENSE_1"]);
+    assert.equal(drones.target, null);
+    assert.equal(drones.on, false);
+    assert.equal(drones.left, 0);
+    assert.equal(drones.aux, 0);
+    assert.equal(drones.hp, undefined);
+
+    // Stow of the last loadout slot must not leave an empty list pointing at the old target.
+    const solo = createGame(1);
+    const only = kit("drones", 2);
+    only.loadout = ["COMBAT_1"];
+    only.target = "COMBAT_1";
+    only.on = true;
+    solo.player.kits.drones = only;
+    assert.equal(stowDrone(solo, 0), true);
+    assert.deepEqual(only.loadout, []);
+    assert.equal(only.target, null);
+    assert.equal(only.on, false);
+    const last = citedSellQuote(solo).find((row) => row.ref === "COMBAT_1");
+    assert.ok(last);
+    assert.equal(last.id, "c:0:COMBAT_1");
+    assert.equal(citedSell(solo, last.id), true);
+    assert.deepEqual(solo.cargo, []);
+    assert.equal(only.target, null);
+    assert.equal(only.on, false);
+
+    // A ship that never grew a loadout already clears target inside setFielded.
+    const bare = createGame(1);
+    const single = kit("drones", 2);
+    single.target = "DEFENSE_1";
+    single.on = true;
+    single.hp = 5;
+    bare.player.kits.drones = single;
+    assert.equal(stowDrone(bare, 0), true);
+    assert.equal(single.loadout, undefined);
+    assert.equal(single.target, null);
+    assert.equal(single.on, false);
+    assert.equal(single.hp, undefined);
+    const priced = citedSellQuote(bare).find((row) => row.ref === "DEFENSE_1");
+    assert.ok(priced);
+    assert.equal(priced.scrap, Math.floor(ward.cost / 2));
+    assert.equal(citedSell(bare, priced.id), true);
+    assert.deepEqual(bare.cargo, []);
+    assert.equal(single.target, null);
+    assert.equal(single.on, false);
+  });
+
+  it("quotes a stowed Shield Overcharger + from cargo at 30", () => {
+    const g = createGame(1);
+    const drones = kit("drones", 2);
+    drones.loadout = ["DRONE_SHIELD_PLAYER", "ANTI_DRONE"];
+    drones.target = "DRONE_SHIELD_PLAYER";
+    drones.on = true;
+    drones.left = 2;
+    drones.aux = 1;
+    drones.hp = 8;
+    g.player.kits.drones = drones;
+    // Still fielded: one fitted row, even if a cargo copy is also sitting there.
+    g.cargo = [{ kind: "drone", id: "DRONE_SHIELD_PLAYER" }];
+    const fitted = citedSellQuote(g).filter((row) => row.ref === "DRONE_SHIELD_PLAYER");
+    assert.equal(fitted.length, 1);
+    assert.equal(fitted[0]?.id, "d:overchargerplus");
+    assert.equal(fitted[0]?.scrap, OVERCHARGER_PLUS_SELL);
+    g.cargo = [];
+
+    assert.equal(stowDrone(g, 0), true);
+    assert.deepEqual(drones.loadout, ["ANTI_DRONE"]);
+    assert.deepEqual(g.cargo, [{ kind: "drone", id: "DRONE_SHIELD_PLAYER" }]);
+    const plus = citedSellQuote(g).filter((row) => row.ref === "DRONE_SHIELD_PLAYER");
+    assert.equal(plus.length, 1);
+    assert.equal(plus[0]?.id, "c:0:DRONE_SHIELD_PLAYER");
+    assert.equal(plus[0]?.scrap, OVERCHARGER_PLUS_SELL);
+    assert.equal(OVERCHARGER_PLUS_SELL, 30);
+    assert.equal(
+      citedSellQuote(g).some((row) => row.id === "d:overchargerplus"),
+      false,
+    );
+    const before = g.scrap;
+    assert.equal(citedSell(g, plus[0]!.id), true);
+    assert.equal(g.scrap, before + OVERCHARGER_PLUS_SELL);
+    assert.equal(
+      g.cargo.some((item) => item.id === "DRONE_SHIELD_PLAYER"),
+      false,
+    );
+    assert.deepEqual(g.cargo, []);
+    assert.notEqual(drones.target, "DRONE_SHIELD_PLAYER");
+    assert.equal(drones.on, false);
+    assert.equal(drones.left, 0);
+    assert.equal(drones.aux, 0);
+    assert.equal(drones.hp, undefined);
+    assert.deepEqual(drones.loadout, ["ANTI_DRONE"]);
+    assert.equal(
+      citedSellQuote(g).some((row) => row.ref === "DRONE_SHIELD_PLAYER"),
+      false,
+    );
   });
 
   it("sells one copy of a repeated augment and uses the other printed sell prices", () => {

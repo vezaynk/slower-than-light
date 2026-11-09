@@ -17,7 +17,7 @@ export type SystemClock = {
 /** Artillery Beam or Flak Artillery charge, 0 to 1. Null for any other kit, and while the beam is swiping. */
 function chargeOf(kit: Kit): number | null {
   if (kit.id !== "artillery") return null;
-  return kit.weapon === "ARTILLERY_FED_C" ? flakChargeProgress(kit) : lanceChargeProgress(kit);
+  return flakChargeProgress(kit) ?? lanceChargeProgress(kit);
 }
 
 const ION_POINT = 5;

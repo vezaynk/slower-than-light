@@ -12,23 +12,25 @@
  * INFERRED: the cycle runs break, wave 1, wave 2, break. The notes do not give the order.
  * INFERRED: bubbles are the Shields system level halved (installed, not powered), as the wiki ties it to the level.
  * The notes print wave 2 at 0-1 bubbles as "1.6/1.4" (min above max); read as 1.4 to 1.6.
+ *
+ * The numbers are gap `<asteroidField>` (`asteroidTiming`, `asteroidOdds`). No event or hazard blueprint carries them.
  */
+import { asteroidOdds, asteroidTiming, type AsteroidTiming } from "@stl/pack";
+
 export type AsteroidPhase = "break" | "wave1" | "wave2";
 
 type Span = [number, number];
-type Row = { break: Span; wave1: Span; wave2: Span; spawn1: Span; spawn2: Span };
 
-/** doc/asteroids table: durations and spawn periods (seconds, min/max) for 0-1, 2, 3, and 4+ bubbles. */
-export const ASTEROID_TABLE: Row[] = [
-  { break: [5, 10], wave1: [8, 16], wave2: [5, 8], spawn1: [1.8, 2.2], spawn2: [1.4, 1.6] },
-  { break: [5, 10], wave1: [10, 20], wave2: [5, 10], spawn1: [1.0, 1.8], spawn2: [0.9, 1.3] },
-  { break: [12, 15], wave1: [16, 28], wave2: [8, 13], spawn1: [0.9, 1.4], spawn2: [0.9, 1.3] },
-  { break: [12, 15], wave1: [16, 30], wave2: [8, 11], spawn1: [0.72, 1.35], spawn2: [0.54, 0.95] },
-];
-
-function rowFor(shieldLevel: number): Row {
+function bandFor(shieldLevel: number): 1 | 2 | 3 | 4 {
   const bubbles = Math.floor(Math.max(0, shieldLevel) / 2);
-  return ASTEROID_TABLE[bubbles <= 1 ? 0 : Math.min(3, bubbles - 1)];
+  if (bubbles <= 1) return 1;
+  if (bubbles === 2) return 2;
+  if (bubbles === 3) return 3;
+  return 4;
+}
+
+function rowFor(shieldLevel: number): AsteroidTiming {
+  return asteroidTiming(bandFor(shieldLevel));
 }
 
 function within([lo, hi]: Span, roll: number): number {
@@ -64,10 +66,13 @@ export function nextAsteroidPhase(phase: AsteroidPhase): AsteroidPhase {
  * Fires: "asteroids (which can either cause a breach, or fires, or no additional effect)".
  * INFERRED: each of those two effects is 5 percent. Fire is checked first, so one rock does not start both.
  * The page prints no percent. 5 percent is the breach figure this shot already used.
+ * Gap `<asteroidField fire breach>`.
  */
 export function asteroidSide(roll: number): "fire" | "breach" | "none" {
   const t = Math.min(0.999999, Math.max(0, roll));
-  if (t < 0.05) return "fire";
-  if (t < 0.1) return "breach";
+  const fire = asteroidOdds("fire");
+  const breach = asteroidOdds("breach");
+  if (t < fire) return "fire";
+  if (t < fire + breach) return "breach";
   return "none";
 }

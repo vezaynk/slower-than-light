@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { heldSchematics } from "./make-room.ts";
+import { heldSchematics } from "../rules/make-room.ts";
 import { pageWin } from "./quests.ts";
 
 /**

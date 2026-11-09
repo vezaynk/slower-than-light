@@ -27,6 +27,12 @@ import type {
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
+  CargoSlots,
+  BonusItemWeights,
+  AsteroidField,
+  AsteroidTiming,
+  PulsarRules,
+  DroneOrbit,
   FactionEscape,
   FactionSurrender,
   FillerListDef,
@@ -199,6 +205,12 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
   if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
   if (pack.crystalVengeance) add(root, crystalVengeanceElement(doc, pack.crystalVengeance));
+  if (pack.cargoSlots) add(root, cargoSlotsElement(doc, pack.cargoSlots));
+  if (pack.bonusItem) add(root, bonusItemElement(doc, pack.bonusItem));
+  if (hasAsteroidField(pack.asteroidField))
+    add(root, asteroidFieldElement(doc, pack.asteroidField));
+  if (hasPulsar(pack.pulsar)) add(root, pulsarElement(doc, pack.pulsar));
+  if (hasDroneOrbit(pack.droneOrbit)) add(root, droneOrbitElement(doc, pack.droneOrbit));
   return prettyXml(serializer.serializeToString(doc));
 }
 
@@ -251,6 +263,84 @@ function crystalVengeanceElement(doc: XmlDocument, row: CrystalVengeanceRule): X
     if (value != null) attrs[key] = num(value);
   }
   return element(doc, "crystalVengeance", attrs);
+}
+
+/** `<cargoSlots slots>`: the cargo hold FTL's executable hard-codes (types.ts CargoSlots). */
+function cargoSlotsElement(doc: XmlDocument, row: CargoSlots): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.slots != null) attrs.slots = num(row.slots);
+  return element(doc, "cargoSlots", attrs);
+}
+
+/** `<bonusItem weapon augment drone>`: bonus-reward kind weights (types.ts BonusItemWeights). */
+function bonusItemElement(doc: XmlDocument, row: BonusItemWeights): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.weapon != null) attrs.weapon = num(row.weapon);
+  if (row.augment != null) attrs.augment = num(row.augment);
+  if (row.drone != null) attrs.drone = num(row.drone);
+  return element(doc, "bonusItem", attrs);
+}
+
+function hasAsteroidField(row: AsteroidField | undefined): row is AsteroidField {
+  return !!row && (row.fire != null || row.breach != null || (row.timings?.length ?? 0) > 0);
+}
+
+/** `<asteroidField>`: asteroid timings and side chances FTL's executable hard-codes (types.ts AsteroidField). */
+function asteroidFieldElement(doc: XmlDocument, row: AsteroidField): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.fire != null) attrs.fire = num(row.fire);
+  if (row.breach != null) attrs.breach = num(row.breach);
+  const node = element(doc, "asteroidField", attrs);
+  for (const timing of row.timings ?? []) add(node, asteroidTimingElement(doc, timing));
+  return node;
+}
+
+function asteroidTimingElement(doc: XmlDocument, row: AsteroidTiming): XmlElement {
+  return element(doc, "timing", {
+    bubbles: num(row.bubbles),
+    breakMin: num(row.break[0]),
+    breakMax: num(row.break[1]),
+    wave1Min: num(row.wave1[0]),
+    wave1Max: num(row.wave1[1]),
+    wave2Min: num(row.wave2[0]),
+    wave2Max: num(row.wave2[1]),
+    spawn1Min: num(row.spawn1[0]),
+    spawn1Max: num(row.spawn1[1]),
+    spawn2Min: num(row.spawn2[0]),
+    spawn2Max: num(row.spawn2[1]),
+  });
+}
+
+function hasPulsar(row: PulsarRules | undefined): row is PulsarRules {
+  return !!row && Object.keys(row).length > 0;
+}
+
+/** `<pulsar>`: the pulsar FTL's executable hard-codes (types.ts PulsarRules). */
+function pulsarElement(doc: XmlDocument, row: PulsarRules): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.cycleMin != null) attrs.cycleMin = num(row.cycleMin);
+  if (row.cycleMax != null) attrs.cycleMax = num(row.cycleMax);
+  if (row.warn != null) attrs.warn = num(row.warn);
+  if (row.shieldLow != null) attrs.shieldLow = num(row.shieldLow);
+  if (row.shieldHigh != null) attrs.shieldHigh = num(row.shieldHigh);
+  if (row.ionBase != null) attrs.ionBase = num(row.ionBase);
+  if (row.ionPerPower != null) attrs.ionPerPower = num(row.ionPerPower);
+  return element(doc, "pulsar", attrs);
+}
+
+function hasDroneOrbit(row: DroneOrbit | undefined): row is DroneOrbit {
+  return !!row && Object.keys(row).length > 0;
+}
+
+/** `<droneOrbit>`: combat-drone flight FTL's executable hard-codes (types.ts DroneOrbit). */
+function droneOrbitElement(doc: XmlDocument, row: DroneOrbit): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.minSep != null) attrs.minSep = num(row.minSep);
+  if (row.speedScale != null) attrs.speedScale = num(row.speedScale);
+  if (row.stopRadius != null) attrs.stopRadius = num(row.stopRadius);
+  if (row.firePause != null) attrs.firePause = num(row.firePause);
+  if (row.beamHold != null) attrs.beamHold = num(row.beamHold);
+  return element(doc, "droneOrbit", attrs);
 }
 
 /** `<shipList>`: the faction and pirate flag of a blueprint list's fights (types.ts ShipListRule). */

@@ -40,8 +40,13 @@ import {
   startCombat,
 } from "../sim.ts";
 import type { Crew, Game } from "../types.ts";
-import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./bonus-item.ts";
-import { checkCrewRoom, receiveWeapon } from "./make-room.ts";
+import {
+  droneLine,
+  grantBonusAugment,
+  grantRandomItem,
+  rollBonusItem,
+} from "../rules/bonus-item.ts";
+import { checkCrewRoom, receiveWeapon } from "../rules/make-room.ts";
 import { hullRunSeconds, type EscapePlan } from "../rules/escape.ts";
 // @agent:quests. Quest markers (circular import: only called inside functions, never at module load).
 import { rollBand } from "./event-bands.ts";

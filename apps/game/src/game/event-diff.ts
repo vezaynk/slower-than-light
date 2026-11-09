@@ -16,7 +16,7 @@ import { eventDef, onPackWarning } from "@stl/pack";
 import type { BeaconKind, Game } from "./types.ts";
 import { choiceDisabled, choose, commitJump, createGame } from "./sim.ts";
 import { placeIn } from "./fixtures.ts";
-import { heldSchematics } from "./wiki/make-room.ts";
+import { heldSchematics } from "./rules/make-room.ts";
 
 export type EventSide = {
   /** The beacon flag that makes the sim play this version. */

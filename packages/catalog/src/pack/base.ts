@@ -44,6 +44,10 @@ import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
 import { CRYSTAL_VENGEANCE, ION_INTRUDER, OVERCHARGER_WAITS } from "../wiki/augment-rules.ts";
+import { BONUS_ITEM_WEIGHTS, CARGO_SLOTS } from "../wiki/rack-rules.ts";
+import { ASTEROID_FIELD } from "../wiki/asteroid-rules.ts";
+import { PULSAR_RULES } from "../wiki/pulsar-rules.ts";
+import { DRONE_ORBIT } from "../wiki/drone-orbit.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
@@ -1383,6 +1387,22 @@ export function loadCatalog(): void {
       overchargerWaits: { ...OVERCHARGER_WAITS },
       ionIntruder: { ...ION_INTRUDER },
       crystalVengeance: { ...CRYSTAL_VENGEANCE },
+      cargoSlots: { ...CARGO_SLOTS },
+      bonusItem: { ...BONUS_ITEM_WEIGHTS },
+      asteroidField: {
+        fire: ASTEROID_FIELD.fire,
+        breach: ASTEROID_FIELD.breach,
+        timings: ASTEROID_FIELD.timings?.map((row) => ({
+          bubbles: row.bubbles,
+          break: [...row.break] as [number, number],
+          wave1: [...row.wave1] as [number, number],
+          wave2: [...row.wave2] as [number, number],
+          spawn1: [...row.spawn1] as [number, number],
+          spawn2: [...row.spawn2] as [number, number],
+        })),
+      },
+      pulsar: { ...PULSAR_RULES },
+      droneOrbit: { ...DRONE_ORBIT },
       events,
       lists: [
         ...fillerListRecords().map(listRow),

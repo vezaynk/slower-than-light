@@ -46,7 +46,7 @@ import {
 } from "../rules/cited-intruder.ts";
 import { overchargerPower, overchargerWait } from "../rules/cited-overcharger.ts";
 import { scramblerBlocks } from "../rules/cited-scrambler.ts";
-import { BEAM_HOLD_S, COMBAT2, bearingAccepted, orbitLegSeconds } from "../wiki/cited-combat2.ts";
+import { beamHoldSeconds, COMBAT2, bearingAccepted, orbitLegSeconds } from "../rules/combat2.ts";
 import { noteAchieve } from "../wiki/achieve-notes.ts";
 import { airShown } from "../air.ts";
 import { holdLoopCue, queueSfx } from "../sfx-queue.ts";
@@ -757,7 +757,7 @@ function combatFireBlocked(g: Game, from: "player" | "enemy"): boolean {
  * where it is (no hull yet). A cloaked target does not: the leg still finishes,
  * a new bearing is picked, and the fire callback withholds the shot.
  * The timer does not run while unpowered: callers skip this until the bars cover the drone.
- * `hold` is a beam drone's BEAM_HOLD_S (xftl doc/combat-drone, additionalPause), added to each leg after a shot.
+ * `hold` is a beam drone's beamHoldSeconds (xftl doc/combat-drone, additionalPause), added to each leg after a shot.
  */
 function flyCombatLaser(
   g: Game,
@@ -824,7 +824,7 @@ function tickBeam(g: Game, kit: Kit, dt: number) {
       fireBeamSwipe(g, g.enemy, roomId, "COMBAT_BEAM", "player", FLOWN_LABEL);
     },
     // xftl doc/combat-drone: a beam drone holds 0.5 s while the beam finishes.
-    BEAM_HOLD_S,
+    beamHoldSeconds(),
   );
 }
 
@@ -2417,7 +2417,7 @@ function linkedRoom(g: Game, ship: Ship, id: string): string | undefined {
 const DRONE_BEAM = "drone";
 
 /**
- * One swipe when the orbit leg finishes. Per the user: the beam fires for the drone's beam hold (BEAM_HOLD_S),
+ * One swipe when the orbit leg finishes. Per the user: the beam fires for the drone's beam hold (beamHoldSeconds),
  * from the drone to the one point it hits, and lands on each room as it touches it (tickDroneBeam).
  * Anti-Ship Beam Drone II: "it can often hit 2 rooms". INFERRED: a door-linked neighbour is the second room.
  * "0.4 tile diagonally" is the Beam I length, not a flight time, so the swipe takes the hold, not a second duration.
@@ -2448,7 +2448,7 @@ function fireBeamSwipe(
     defId: kind,
     wait: 0,
     t: 0,
-    duration: BEAM_HOLD_S,
+    duration: beamHoldSeconds(),
     label,
     beamOwner: DRONE_BEAM,
   });
@@ -2550,7 +2550,7 @@ function tickEnemyBeam(g: Game, unit: DroneUnit, dt: number) {
       fireBeamSwipe(g, g.player, roomId, unit.kind, "enemy", DRONE_LABEL + unit.id);
     },
     // xftl doc/combat-drone: a beam drone holds 0.5 s while the beam finishes.
-    BEAM_HOLD_S,
+    beamHoldSeconds(),
   );
 }
 

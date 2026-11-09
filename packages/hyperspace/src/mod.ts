@@ -81,13 +81,19 @@ export function emitMod(pack: ContentPack): string {
       root.appendChild(node);
     }
   }
-  // The default start and exit events and the escape timers, in the same tags the gap file writes.
+  // The default start and exit events, escape timers, the cargo hold, the bonus-item weights, the hazard and
+  // drone-orbit rules, and the augment and drone rules, in the same tags the gap file writes.
   if (
     pack.beaconEvents ||
     pack.escapeTimers ||
     pack.overchargerWaits ||
     pack.ionIntruder ||
-    pack.crystalVengeance
+    pack.crystalVengeance ||
+    pack.cargoSlots ||
+    pack.bonusItem ||
+    pack.asteroidField ||
+    pack.pulsar ||
+    pack.droneOrbit
   ) {
     const rules: ContentPack = {};
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
@@ -95,6 +101,11 @@ export function emitMod(pack: ContentPack): string {
     if (pack.overchargerWaits) rules.overchargerWaits = pack.overchargerWaits;
     if (pack.ionIntruder) rules.ionIntruder = pack.ionIntruder;
     if (pack.crystalVengeance) rules.crystalVengeance = pack.crystalVengeance;
+    if (pack.cargoSlots) rules.cargoSlots = pack.cargoSlots;
+    if (pack.bonusItem) rules.bonusItem = pack.bonusItem;
+    if (pack.asteroidField) rules.asteroidField = pack.asteroidField;
+    if (pack.pulsar) rules.pulsar = pack.pulsar;
+    if (pack.droneOrbit) rules.droneOrbit = pack.droneOrbit;
     const gap = readXml(emitGapDocument(rules)).documentElement;
     for (const child of gap ? elementChildren(gap) : [])
       root.appendChild(doc.importNode(child, true));
@@ -174,6 +185,11 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (parsed.overchargerWaits) pack.overchargerWaits = parsed.overchargerWaits;
   if (parsed.ionIntruder) pack.ionIntruder = parsed.ionIntruder;
   if (parsed.crystalVengeance) pack.crystalVengeance = parsed.crystalVengeance;
+  if (parsed.cargoSlots) pack.cargoSlots = parsed.cargoSlots;
+  if (parsed.bonusItem) pack.bonusItem = parsed.bonusItem;
+  if (parsed.asteroidField) pack.asteroidField = parsed.asteroidField;
+  if (parsed.pulsar) pack.pulsar = parsed.pulsar;
+  if (parsed.droneOrbit) pack.droneOrbit = parsed.droneOrbit;
   return pack;
 }
 

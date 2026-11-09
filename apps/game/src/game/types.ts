@@ -715,14 +715,14 @@ export type Phase =
 export type Difficulty = "easy" | "normal" | "hard";
 
 /**
- * Per the user: the cargo hold, 4 slots for weapons and drone schematics that are not fitted (wiki/make-room.ts).
+ * Per the user: the cargo hold, 4 slots for weapons and drone schematics that are not fitted (rules/make-room.ts).
  * Augmentations: "the cargo storage cannot hold any of them", and crew are not cargo.
  * Weapon Control: "A weapon charge can be stored if a weapon is fully charged and then put into a cargo slot."
  */
 export type CargoItem =
   { kind: "weapon"; id: string; charge?: number } | { kind: "drone"; id: string };
 
-/** wiki/make-room.ts: an item with no room. A crew entry means more than 8 crew are aboard. */
+/** rules/make-room.ts: an item with no room. A crew entry means more than 8 crew are aboard. */
 export type Overflow =
   | { kind: "augment"; id: string }
   | { kind: "weapon"; id: string }
@@ -856,7 +856,7 @@ export type Game = {
   userPaused?: boolean;
   /**
    * Per the user: rewards that arrived to a full rack, waiting for the player to pick what is left behind
-   * (wiki/make-room.ts). The first entry is on screen; the clock is stopped while any wait.
+   * (rules/make-room.ts). The first entry is on screen; the clock is stopped while any wait.
    */
   overflow?: Overflow[];
   /** Per the user: the distress beacon for waiting with no fuel (wiki/cited-fuel.ts rollFuelWait). Missing means on. */
@@ -953,11 +953,11 @@ export type Game = {
   eventStorm?: boolean;
   asteroidT: number;
   /**
-   * Environmental Hazards, Asteroid Field: seconds until the next rock in a wave (wiki/cited-asteroid.ts).
+   * Environmental Hazards, Asteroid Field: seconds until the next rock in a wave (rules/asteroid.ts).
    * 0 until that field is armed.
    */
   asteroidWait?: number;
-  /** xftl doc/asteroids (wiki/cited-asteroid.ts): the asteroid state machine's phase, and seconds left in it. */
+  /** xftl doc/asteroids (rules/asteroid.ts): the asteroid state machine's phase, and seconds left in it. */
   asteroidPhase?: "break" | "wave1" | "wave2";
   asteroidPhaseLeft?: number;
   /** xftl doc/asteroids: "fired in sequence at your ship and the enemy's ship"; true when the next one is the enemy's. */

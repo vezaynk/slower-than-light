@@ -118,6 +118,38 @@ const pack: ContentPack = {
   overchargerWaits: { layer0: 8, layer1: 10, layer2: 13, layer3: 16, layer4: 20 },
   ionIntruder: { ion: 3, stun: 6, pulseMin: 8.2, pulseMax: 10 },
   crystalVengeance: { chance: 0.1, damage: 1, breach: 0.1, stunChance: 0.2, stun: 3 },
+  cargoSlots: { slots: 4 },
+  bonusItem: { weapon: 1, augment: 1, drone: 1 },
+  asteroidField: {
+    fire: 0.05,
+    breach: 0.05,
+    timings: [
+      {
+        bubbles: 1,
+        break: [5, 10],
+        wave1: [8, 16],
+        wave2: [5, 8],
+        spawn1: [1.8, 2.2],
+        spawn2: [1.4, 1.6],
+      },
+    ],
+  },
+  pulsar: {
+    cycleMin: 11,
+    cycleMax: 18,
+    warn: 5,
+    shieldLow: 3,
+    shieldHigh: 4,
+    ionBase: 1,
+    ionPerPower: 0.5,
+  },
+  droneOrbit: {
+    minSep: 90,
+    speedScale: 21.875,
+    stopRadius: 1.15,
+    firePause: 0.5,
+    beamHold: 0.5,
+  },
   empties: [
     {
       id: "ember-quiet",
@@ -166,6 +198,18 @@ describe("hyperspace mod", () => {
     assert.match(
       xml,
       /<crystalVengeance chance="0.1" damage="1" breach="0.1" stunChance="0.2" stun="3"\/>/,
+    );
+    assert.match(xml, /<cargoSlots slots="4"\/>/);
+    assert.match(xml, /<bonusItem weapon="1" augment="1" drone="1"\/>/);
+    assert.match(xml, /<asteroidField fire="0.05" breach="0.05">/);
+    assert.match(xml, /<timing bubbles="1"/);
+    assert.match(
+      xml,
+      /<pulsar cycleMin="11" cycleMax="18" warn="5" shieldLow="3" shieldHigh="4" ionBase="1" ionPerPower="0.5"\/>/,
+    );
+    assert.match(
+      xml,
+      /<droneOrbit minSep="90" speedScale="21.875" stopRadius="1.15" firePause="0.5" beamHold="0.5"\/>/,
     );
     assert.deepEqual(packFromMod(xml), pack);
   });

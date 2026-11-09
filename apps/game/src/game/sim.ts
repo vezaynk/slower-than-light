@@ -157,14 +157,19 @@ import {
   chainIonAmount,
   isChainWeapon,
   nextChainStep,
-} from "./wiki/cited-chain.ts";
+} from "./rules/chain.ts";
 import { bypassZoltan } from "./rules/cited-bypass.ts";
 import { vengeanceFires, vengeanceShot } from "./rules/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
 import { noteCrewBlue } from "./wiki/achievement-track.ts";
 
-import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./wiki/bonus-item.ts";
-import { CARGO_SLOTS, checkCrewRoom, pendingOverflow, receiveWeapon } from "./wiki/make-room.ts";
+import {
+  droneLine,
+  grantBonusAugment,
+  grantRandomItem,
+  rollBonusItem,
+} from "./rules/bonus-item.ts";
+import { cargoSlots, checkCrewRoom, pendingOverflow, receiveWeapon } from "./rules/make-room.ts";
 import {
   cellsOnSegment,
   clampBeamEnd,
@@ -229,12 +234,12 @@ import {
 import {
   eventHasPulsar,
   pickPulsarTargets,
-  PULSAR_WARN_S,
   pulsarCycleSeconds,
   pulsarMainIon,
   pulsarShieldSpend,
+  pulsarWarnSeconds,
   type PulsarPick,
-} from "./wiki/cited-pulsar.ts";
+} from "./rules/pulsar.ts";
 import {
   eventHasFlare,
   FLARE_WARN_S,
@@ -248,7 +253,7 @@ import {
   asteroidSide,
   asteroidSpawnSeconds,
   nextAsteroidPhase,
-} from "./wiki/cited-asteroid.ts";
+} from "./rules/asteroid.ts";
 import {
   CRYSTAL_SECTOR_WEAPONS,
   citedBuy,
@@ -5440,7 +5445,7 @@ function tickIons(ship: Ship, dt: number) {
   }
 }
 
-// Asteroid fire or breach is cited-asteroid.ts. The interval seconds are INFERRED.
+// Asteroid fire or breach is rules/asteroid.ts. The interval seconds are gap `<asteroidField>`.
 // Environmental Hazards, ==Anti-Ship Battery (ASB)==: a warning 15--20 seconds after the battle starts,
 // then the real shot 5--10 seconds later. Per the user: the cycle keeps going after the battle, until the jump.
 // INFERRED: each span is uniform. rand() is [0, 1), so the printed top is not its own bucket.
@@ -5553,7 +5558,7 @@ function tickPulsar(g: Game, dt: number) {
   if (!((g.pulsarWait ?? 0) > 0)) armPulsar(g);
   g.pulsarT = (g.pulsarT ?? 0) + dt;
   const wait = g.pulsarWait ?? 0;
-  if (!g.pulsarWarned && g.pulsarT >= wait - PULSAR_WARN_S) {
+  if (!g.pulsarWarned && g.pulsarT >= wait - pulsarWarnSeconds()) {
     g.pulsarWarned = true;
     // Environmental Hazards, Pulsar: the danger line is the warning.
     log(g, "Periodic waves of electromagnetic energy will disrupt your systems.");
@@ -5670,7 +5675,7 @@ function tickLingeringHazards(g: Game, dt: number) {
 }
 
 /**
- * Start the asteroid field's next phase (wiki/cited-asteroid.ts). xftl doc/asteroids: "The timings are determined by
+ * Start the asteroid field's next phase (rules/asteroid.ts). xftl doc/asteroids: "The timings are determined by
  * the player shield level ... set in AsteroidGenerator::Initialize".
  * INFERRED: that is the installed Shields level, read when each phase starts, so ion or an empty power bar does not
  * slow the rocks. The notes do not say whether damage or power counts.
@@ -5690,7 +5695,7 @@ function environment(g: Game, dt: number) {
     g.asteroidT += dt;
     if (g.asteroidPhase !== "break" && g.asteroidT >= (g.asteroidWait ?? Infinity)) {
       // Environmental Hazards, Asteroid Field: "They have a small chance to cause a fire or a breach." Fires: one of a
-      // breach, fires, or neither. INFERRED: 5 percent each, so one rock does not start both (cited-asteroid.ts).
+      // breach, fires, or neither. INFERRED: 5 percent each, so one rock does not start both (rules/asteroid.ts).
       const rock = (ship: Ship, at: "player" | "enemy") => {
         const side = asteroidSide(rand(g));
         g.shots.push({
@@ -6334,7 +6339,7 @@ function winCombat(g: Game) {
   // Template:Resources rewards, Low: fuel 1–3, missiles 1–2, drone parts 1.
   // INFERRED: each draw is uniform across the three, and the same resource may be drawn twice.
   // Rewards, "Standard": "roughly a 3% chance to include a bonus weapon, augmentation, or drone schematic."
-  // The roll uses that printed 3 percent; wiki/bonus-item.ts draws which of the three (equal odds, INFERRED).
+  // The roll uses that printed 3 percent; rules/bonus-item.ts draws which of the three (equal odds, INFERRED).
   const resourceKinds = ["fuel", "missiles", "parts"] as const;
   for (let draw = 0; draw < 2; draw++) {
     const kind = resourceKinds[irand(g, resourceKinds.length)];
@@ -6390,7 +6395,7 @@ export function weaponSlotCap(g: Game): number {
 
 /**
  * Crew, and Ship: a player ship carries a maximum of 8 crewmembers.
- * A 9th comes aboard and the player picks who is relieved (wiki/make-room.ts).
+ * A 9th comes aboard and the player picks who is relieved (rules/make-room.ts).
  * Template:Crew races (comparison), Humans: maximum health 100.
  */
 export const CREW_CAP = 8;
@@ -6411,7 +6416,7 @@ function addCrew(g: Game) {
     think: 0,
     tone: g.crew.length % 3,
   });
-  // Crew: a 9th crewmember means relieving one (wiki/make-room.ts).
+  // Crew: a 9th crewmember means relieving one (rules/make-room.ts).
   checkCrewRoom(g);
 }
 
@@ -7971,7 +7976,7 @@ export function buy(g: Game, id: string) {
   if (
     item.kind === "weapon" &&
     g.player.weapons.length >= weaponSlotCap(g) &&
-    (g.cargo?.length ?? 0) >= CARGO_SLOTS
+    (g.cargo?.length ?? 0) >= cargoSlots()
   ) {
     log(g, "No free weapon slot or cargo slot.");
     return;

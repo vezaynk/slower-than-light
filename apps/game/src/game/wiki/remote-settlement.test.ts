@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
-import { heldSchematics } from "./make-room.ts";
+import { heldSchematics } from "../rules/make-room.ts";
 import { scrapBand } from "./surrender.ts";
 
 const CROP =

@@ -23,7 +23,7 @@ import { adjustScrap } from "../extras/index.ts";
 import { crewDef } from "@stl/pack";
 import { beginBoarding, deselectCrew, hurtSystem, log, rand, showEventLines } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
-import { grantRandomItem } from "./bonus-item.ts";
+import { grantRandomItem } from "../rules/bonus-item.ts";
 import { rollBand } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { affordStock, partsLine, takeStock } from "./stock-spend.ts";

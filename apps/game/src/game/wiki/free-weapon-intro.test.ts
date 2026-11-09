@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
-import { cargoOf } from "./make-room.ts";
+import { cargoOf } from "../rules/make-room.ts";
 
 const INTROS = [
   "Holy crap! A weapon is just floating in space!",

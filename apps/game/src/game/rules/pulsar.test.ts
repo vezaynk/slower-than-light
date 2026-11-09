@@ -2,13 +2,15 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { applyPulsarPulse, createGame, pulsarSystemIon, startCombat, step } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
+import { loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 import {
   eventHasPulsar,
   pickPulsarTargets,
   pulsarMainIon,
   pulsarShieldSpend,
+  pulsarWarnSeconds,
   type PulsarPick,
-} from "./cited-pulsar.ts";
+} from "./pulsar.ts";
 
 function ionCount(g: Game, side: "player" | "enemy"): number {
   const ship = side === "player" ? g.player : g.enemy;
@@ -191,5 +193,40 @@ describe("pulsar", () => {
     };
     applyPulsarPulse(g);
     assert.equal(g.player.kits.battery?.cool, 25);
+  });
+
+  it("follows a gap file that lengthens the cycle and spends 1 shield ion", () => {
+    assert.equal(pulsarWarnSeconds(), 5);
+    loadPack(
+      packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><pulsar cycleMin="20" cycleMax="20" warn="2" shieldLow="1" shieldHigh="1"/></FTL>`,
+        },
+      ]),
+      "append",
+    );
+    try {
+      const g = createGame(4);
+      startCombat(g, "Pirate ship", false, "pirate-fight-near-pulsar");
+      quietEnemy(g);
+      for (const w of g.player.weapons) w.enabled = false;
+      assert.equal(g.pulsarWait, 20);
+      assert.equal(pulsarWarnSeconds(), 2);
+      // FTL warns 5 s ahead of an 11–18 s cycle, so t = 16 s has already warned. This cycle warns at 18 s.
+      for (let i = 0; i < 320; i++) step(g, 0.05);
+      assert.equal(g.pulsarWarned, false);
+      for (let i = 0; i < 42; i++) step(g, 0.05);
+      assert.equal(g.pulsarWarned, true);
+
+      g.player.zoltan = 5;
+      clearIon(g, "player");
+      applyPulsarPulse(g);
+      assert.equal(g.player.zoltan, 4);
+    } finally {
+      resetPackForTests();
+    }
+    assert.equal(pulsarWarnSeconds(), 5);
+    assert.equal(pulsarShieldSpend(0), 3);
   });
 });

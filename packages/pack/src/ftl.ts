@@ -36,6 +36,11 @@ import type {
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
+  CargoSlots,
+  BonusItemWeights,
+  AsteroidField,
+  PulsarRules,
+  DroneOrbit,
   FactionEscape,
   FactionSurrender,
   RewardTable,
@@ -72,6 +77,12 @@ import {
   readOverchargerWaits,
   readIonIntruder,
   readCrystalVengeance,
+  readCargoSlots,
+  readBonusItem,
+  readAsteroidField,
+  mergeAsteroidField,
+  readPulsar,
+  readDroneOrbit,
   readFaction,
   readFactionEscape,
   readRewards,
@@ -120,6 +131,11 @@ export type FtlTextFile = {
  * A root `<escapeTimers>` is a private tag FTL ignores: the escape timers its executable hard-codes.
  * A root `<overchargerWaits>`, `<ionIntruder>`, or `<crystalVengeance>` is the same kind of tag: layer waits, the
  * ion intruder's pulse, and the crystal vengeance shard. Power and speed stay on the droneBlueprint.
+ * A root `<cargoSlots>` is a private tag FTL ignores: the cargo hold its executable hard-codes.
+ * A root `<bonusItem>` is a private tag FTL ignores: the bonus-reward kind weights its executable hard-codes.
+ * A root `<asteroidField>` is a private tag FTL ignores: the asteroid timings and side chances its executable hard-codes.
+ * A root `<pulsar>` is a private tag FTL ignores: the pulsar cycle, warning, shield spend, and ion its executable hard-codes.
+ * A root `<droneOrbit>` is a private tag FTL ignores: combat-drone flight its executable hard-codes. Blueprint `<speed>` stays on the drone.
  * A root `<beaconEvents>` and a sector's `<finishEvent>` (optionally `nebula="true"`) are private tags FTL ignores.
  * They name the start and exit beacon events FTL's executable hard-codes. The base mod writes FTL's names.
  * A root `<ship name>` is a ship event (hull list and endings), not a hull.
@@ -157,6 +173,11 @@ export function packFromFtl(
   let overchargerWaits: OverchargerWaits | undefined;
   let ionIntruder: IonIntruderRule | undefined;
   let crystalVengeance: CrystalVengeanceRule | undefined;
+  let cargoSlots: CargoSlots | undefined;
+  let bonusItem: BonusItemWeights | undefined;
+  let asteroidField: AsteroidField | undefined;
+  let pulsar: PulsarRules | undefined;
+  let droneOrbit: DroneOrbit | undefined;
   const strings = new Map<string, string>();
   const locales = new Map<string, Map<string, string>>();
   const grids = readGrids(layouts);
@@ -240,6 +261,16 @@ export function packFromFtl(
         ionIntruder = { ...ionIntruder, ...readIonIntruder(node) };
       } else if (node.tagName === "crystalVengeance") {
         crystalVengeance = { ...crystalVengeance, ...readCrystalVengeance(node) };
+      } else if (node.tagName === "cargoSlots") {
+        cargoSlots = { ...cargoSlots, ...readCargoSlots(node) };
+      } else if (node.tagName === "bonusItem") {
+        bonusItem = { ...bonusItem, ...readBonusItem(node) };
+      } else if (node.tagName === "asteroidField") {
+        asteroidField = mergeAsteroidField(asteroidField, readAsteroidField(node));
+      } else if (node.tagName === "pulsar") {
+        pulsar = { ...pulsar, ...readPulsar(node) };
+      } else if (node.tagName === "droneOrbit") {
+        droneOrbit = { ...droneOrbit, ...readDroneOrbit(node) };
       } else if (node.tagName === "shipClass") {
         const row = readShipClass(node);
         if (row) shipClasses.put(row);
@@ -298,6 +329,11 @@ export function packFromFtl(
   if (overchargerWaits) pack.overchargerWaits = overchargerWaits;
   if (ionIntruder) pack.ionIntruder = ionIntruder;
   if (crystalVengeance) pack.crystalVengeance = crystalVengeance;
+  if (cargoSlots) pack.cargoSlots = cargoSlots;
+  if (bonusItem) pack.bonusItem = bonusItem;
+  if (asteroidField) pack.asteroidField = asteroidField;
+  if (pulsar) pack.pulsar = pulsar;
+  if (droneOrbit) pack.droneOrbit = droneOrbit;
   if (empties.rows.length > 0) pack.empties = empties.rows;
   if (shipClasses.rows.length > 0) pack.shipClasses = shipClasses.rows;
   if (shipLists.rows.length > 0) pack.shipLists = shipLists.rows;

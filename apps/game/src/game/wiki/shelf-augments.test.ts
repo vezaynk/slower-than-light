@@ -4,7 +4,7 @@ import { augmentDef, loadPack, resetPackForTests } from "@stl/pack";
 import { installAugment } from "../extras/augments.ts";
 import { buy, createGame } from "../sim.ts";
 import type { AugmentId } from "../types.ts";
-import { grantRandomItem, rollBonusItem } from "./bonus-item.ts";
+import { grantRandomItem, rollBonusItem } from "../rules/bonus-item.ts";
 import { augmentItems, citedSellQuote } from "./cited-stores.ts";
 
 /** The ship and event grants the stand-in writes with `<rarity>0</rarity>`, with their blueprint cost. */

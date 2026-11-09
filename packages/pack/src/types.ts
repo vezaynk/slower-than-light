@@ -653,6 +653,80 @@ export type CrystalVengeanceRule = {
   stun?: number;
 };
 
+/**
+ * Gap `<cargoSlots slots>`: how many weapons and drone schematics the cargo hold keeps.
+ * FTL's executable hard-codes 4. A missing value warns and uses 4.
+ */
+export type CargoSlots = {
+  slots?: number;
+};
+
+/**
+ * Gap `<bonusItem weapon augment drone>`: relative weights when a bonus reward draws a weapon, an augmentation, or a
+ * drone schematic. Rewards does not split the three, so each weight is 1. A kind whose pool is empty is not drawn.
+ * Zero is a real weight: that kind is never drawn. A missing weight warns and uses 1.
+ */
+export type BonusItemWeights = {
+  weapon?: number;
+  augment?: number;
+  drone?: number;
+};
+
+/** One bubble band of the asteroid field. `bubbles` 1 is 0–1 bubbles, 2 and 3 are that many, 4 is 4+. */
+export type AsteroidTiming = {
+  bubbles: number;
+  break: [number, number];
+  wave1: [number, number];
+  wave2: [number, number];
+  spawn1: [number, number];
+  spawn2: [number, number];
+};
+
+/**
+ * Gap `<asteroidField fire breach>` › `<timing bubbles …>`: the asteroid state machine FTL's executable hard-codes
+ * (xftl doc/asteroids). `fire` and `breach` are the chances a rock starts that side effect; fire is checked first.
+ * A missing value warns and uses FTL's row.
+ */
+export type AsteroidField = {
+  fire?: number;
+  breach?: number;
+  timings?: AsteroidTiming[];
+};
+
+/**
+ * Gap `<pulsar cycleMin cycleMax warn shieldLow shieldHigh ionBase ionPerPower>`: the pulsar FTL's executable
+ * hard-codes. The cycle is uniform from `cycleMin` to `cycleMax`. The warning leads the pulse by `warn` seconds.
+ * A Zoltan Shield spends `shieldLow` or `shieldHigh` (even split). Ion on a main system is
+ * `floor(ionBase + ionPerPower * power)`. A missing value warns and uses FTL's number.
+ */
+export type PulsarRules = {
+  cycleMin?: number;
+  cycleMax?: number;
+  warn?: number;
+  shieldLow?: number;
+  shieldHigh?: number;
+  ionBase?: number;
+  ionPerPower?: number;
+};
+
+/**
+ * Gap `<droneOrbit minSep speedScale stopRadius firePause beamHold>`: combat-drone flight FTL's executable
+ * hard-codes (xftl doc/combat-drone). The blueprint `<speed>` is not here. A missing value warns and uses FTL's
+ * number.
+ */
+export type DroneOrbit = {
+  /** Degrees. The next stop must be at least this far from the last, and the comparison does not wrap. */
+  minSep?: number;
+  /** Pixels per second is blueprint speed times the shield semi-major axis, divided by this. */
+  speedScale?: number;
+  /** Stop circle, in semi-major units. */
+  stopRadius?: number;
+  /** Seconds the drone sits on the stop before it fires. */
+  firePause?: number;
+  /** Extra seconds a beam drone waits while the beam finishes. */
+  beamHold?: number;
+};
+
 export type EventItem = "weapon" | "augment" | "drone";
 
 /**
@@ -1255,6 +1329,16 @@ export type ContentPack = {
   ionIntruder?: IonIntruderRule;
   /** Crystal Vengeance shard. Absent until a pack loads it. */
   crystalVengeance?: CrystalVengeanceRule;
+  /** Cargo hold size. Absent until a pack loads it. */
+  cargoSlots?: CargoSlots;
+  /** Bonus-item kind weights. Absent until a pack loads them. */
+  bonusItem?: BonusItemWeights;
+  /** Asteroid field timings and side chances. Absent until a pack loads them. */
+  asteroidField?: AsteroidField;
+  /** Pulsar cycle, warning, shield spend, and ion. Absent until a pack loads them. */
+  pulsar?: PulsarRules;
+  /** Combat-drone orbit. Absent until a pack loads it. The blueprint `<speed>` is not this. */
+  droneOrbit?: DroneOrbit;
   /**
    * The archive is the factual stand-in. Item text states numbers.
    * A run can replace decision prose with outcomes.

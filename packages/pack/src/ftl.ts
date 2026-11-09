@@ -34,6 +34,9 @@ import type {
   EmptyBeaconDef,
   EscapeTimers,
   AiTarget,
+  OverchargerWaits,
+  IonIntruderRule,
+  CrystalVengeanceRule,
   CargoSlots,
   BonusItemWeights,
   AsteroidField,
@@ -73,6 +76,9 @@ import {
   readEvent,
   readEscapeTimers,
   readAiTarget,
+  readOverchargerWaits,
+  readIonIntruder,
+  readCrystalVengeance,
   readCargoSlots,
   readBonusItem,
   readAsteroidField,
@@ -126,6 +132,8 @@ export type FtlTextFile = {
  * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender- and escape-only `<shipBlueprint>` is kept.
  * A root `<escapeTimers>` is a private tag FTL ignores: the escape timers its executable hard-codes.
  * A root `<aiTarget>` is a private tag FTL ignores: the enemy targeting numbers its executable hard-codes.
+ * A root `<overchargerWaits>`, `<ionIntruder>`, or `<crystalVengeance>` is the same kind of tag: layer waits, the
+ * ion intruder's pulse, and the crystal vengeance shard. Power and speed stay on the droneBlueprint.
  * A root `<cargoSlots>` is a private tag FTL ignores: the cargo hold its executable hard-codes.
  * A root `<bonusItem>` is a private tag FTL ignores: the bonus-reward kind weights its executable hard-codes.
  * A root `<asteroidField>` is a private tag FTL ignores: the asteroid timings and side chances its executable hard-codes.
@@ -166,6 +174,9 @@ export function packFromFtl(
   let beaconEvents: BeaconEvents | undefined;
   let escapeTimers: EscapeTimers | undefined;
   let aiTarget: AiTarget | undefined;
+  let overchargerWaits: OverchargerWaits | undefined;
+  let ionIntruder: IonIntruderRule | undefined;
+  let crystalVengeance: CrystalVengeanceRule | undefined;
   let cargoSlots: CargoSlots | undefined;
   let bonusItem: BonusItemWeights | undefined;
   let asteroidField: AsteroidField | undefined;
@@ -250,6 +261,12 @@ export function packFromFtl(
         escapeTimers = { ...escapeTimers, ...readEscapeTimers(node) };
       } else if (node.tagName === "aiTarget") {
         aiTarget = { ...aiTarget, ...readAiTarget(node) };
+      } else if (node.tagName === "overchargerWaits") {
+        overchargerWaits = { ...overchargerWaits, ...readOverchargerWaits(node) };
+      } else if (node.tagName === "ionIntruder") {
+        ionIntruder = { ...ionIntruder, ...readIonIntruder(node) };
+      } else if (node.tagName === "crystalVengeance") {
+        crystalVengeance = { ...crystalVengeance, ...readCrystalVengeance(node) };
       } else if (node.tagName === "cargoSlots") {
         cargoSlots = { ...cargoSlots, ...readCargoSlots(node) };
       } else if (node.tagName === "bonusItem") {
@@ -316,6 +333,9 @@ export function packFromFtl(
   if (escapes.rows.length > 0) pack.escapes = escapes.rows;
   if (escapeTimers) pack.escapeTimers = escapeTimers;
   if (aiTarget) pack.aiTarget = aiTarget;
+  if (overchargerWaits) pack.overchargerWaits = overchargerWaits;
+  if (ionIntruder) pack.ionIntruder = ionIntruder;
+  if (crystalVengeance) pack.crystalVengeance = crystalVengeance;
   if (cargoSlots) pack.cargoSlots = cargoSlots;
   if (bonusItem) pack.bonusItem = bonusItem;
   if (asteroidField) pack.asteroidField = asteroidField;

@@ -82,11 +82,15 @@ export function emitMod(pack: ContentPack): string {
     }
   }
   // The default start and exit events, escape timers, enemy targeting numbers, the cargo hold, the bonus-item
-  // weights, and the hazard and drone-orbit rules, in the same tags the gap file writes.
+  // weights, the hazard and drone-orbit rules, and the augment and drone rules, in the same tags the gap file
+  // writes.
   if (
     pack.beaconEvents ||
     pack.escapeTimers ||
     pack.aiTarget ||
+    pack.overchargerWaits ||
+    pack.ionIntruder ||
+    pack.crystalVengeance ||
     pack.cargoSlots ||
     pack.bonusItem ||
     pack.asteroidField ||
@@ -97,6 +101,9 @@ export function emitMod(pack: ContentPack): string {
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
     if (pack.escapeTimers) rules.escapeTimers = pack.escapeTimers;
     if (pack.aiTarget) rules.aiTarget = pack.aiTarget;
+    if (pack.overchargerWaits) rules.overchargerWaits = pack.overchargerWaits;
+    if (pack.ionIntruder) rules.ionIntruder = pack.ionIntruder;
+    if (pack.crystalVengeance) rules.crystalVengeance = pack.crystalVengeance;
     if (pack.cargoSlots) rules.cargoSlots = pack.cargoSlots;
     if (pack.bonusItem) rules.bonusItem = pack.bonusItem;
     if (pack.asteroidField) rules.asteroidField = pack.asteroidField;
@@ -179,6 +186,9 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (escapes) pack.escapes = escapes;
   if (parsed.escapeTimers) pack.escapeTimers = parsed.escapeTimers;
   if (parsed.aiTarget) pack.aiTarget = parsed.aiTarget;
+  if (parsed.overchargerWaits) pack.overchargerWaits = parsed.overchargerWaits;
+  if (parsed.ionIntruder) pack.ionIntruder = parsed.ionIntruder;
+  if (parsed.crystalVengeance) pack.crystalVengeance = parsed.crystalVengeance;
   if (parsed.cargoSlots) pack.cargoSlots = parsed.cargoSlots;
   if (parsed.bonusItem) pack.bonusItem = parsed.bonusItem;
   if (parsed.asteroidField) pack.asteroidField = parsed.asteroidField;

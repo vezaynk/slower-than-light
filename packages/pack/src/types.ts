@@ -634,6 +634,45 @@ export type AiTarget = {
 };
 
 /**
+ * Gap `<overchargerWaits layer0 layer1 layer2 layer3 layer4>`: seconds a Shield Overcharger waits before adding one
+ * Zoltan Shield layer, when that many layers already exist. FTL's executable hard-codes 8/10/13/16/20. Five or more
+ * layers have no wait. Power and speed stay on the droneBlueprint (`<power>`, `<speed>`).
+ */
+export type OverchargerWaits = {
+  layer0?: number;
+  layer1?: number;
+  layer2?: number;
+  layer3?: number;
+  layer4?: number;
+};
+
+/**
+ * Gap `<ionIntruder ion stun pulseMin pulseMax>`: the Ion Intruder's pulse. `ion` is ion damage, `stun` is seconds
+ * the crew stays stunned, and each pulse waits uniformly between `pulseMin` and `pulseMax` seconds. Power and the
+ * space speed stay on the droneBlueprint.
+ */
+export type IonIntruderRule = {
+  ion?: number;
+  stun?: number;
+  pulseMin?: number;
+  pulseMax?: number;
+};
+
+/**
+ * Gap `<crystalVengeance chance damage breach stunChance stun>`: Crystal Vengeance. `chance` is the probability
+ * (0 to 1) that a hull hit breaks off a shard. The shard does `damage` hull, has `breach` chance to breach, and
+ * `stunChance` to stun for `stun` seconds. Ignoring shields, facing evasion, and being shot down by a defense
+ * drone are the shot's behaviour, not numbers.
+ */
+export type CrystalVengeanceRule = {
+  chance?: number;
+  damage?: number;
+  breach?: number;
+  stunChance?: number;
+  stun?: number;
+};
+
+/**
  * Gap `<cargoSlots slots>`: how many weapons and drone schematics the cargo hold keeps.
  * FTL's executable hard-codes 4. A missing value warns and uses 4.
  */
@@ -1305,6 +1344,12 @@ export type ContentPack = {
   escapeTimers?: EscapeTimers;
   /** Enemy weapon targeting numbers. Absent until a pack loads them. */
   aiTarget?: AiTarget;
+  /** Shield Overcharger layer waits. Absent until a pack loads them. */
+  overchargerWaits?: OverchargerWaits;
+  /** Ion Intruder pulse. Absent until a pack loads it. */
+  ionIntruder?: IonIntruderRule;
+  /** Crystal Vengeance shard. Absent until a pack loads it. */
+  crystalVengeance?: CrystalVengeanceRule;
   /** Cargo hold size. Absent until a pack loads it. */
   cargoSlots?: CargoSlots;
   /** Bonus-item kind weights. Absent until a pack loads them. */

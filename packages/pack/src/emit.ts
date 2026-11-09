@@ -25,6 +25,9 @@ import type {
   EventEffect,
   EscapeTimers,
   AiTarget,
+  OverchargerWaits,
+  IonIntruderRule,
+  CrystalVengeanceRule,
   CargoSlots,
   BonusItemWeights,
   AsteroidField,
@@ -201,6 +204,9 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
   if (pack.aiTarget) add(root, aiTargetElement(doc, pack.aiTarget));
+  if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
+  if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
+  if (pack.crystalVengeance) add(root, crystalVengeanceElement(doc, pack.crystalVengeance));
   if (pack.cargoSlots) add(root, cargoSlotsElement(doc, pack.cargoSlots));
   if (pack.bonusItem) add(root, bonusItemElement(doc, pack.bonusItem));
   if (hasAsteroidField(pack.asteroidField))
@@ -242,6 +248,36 @@ function aiTargetElement(doc: XmlDocument, row: AiTarget): XmlElement {
   if (row.oxygen != null) attrs.oxygen = num(row.oxygen);
   if (row.artillery != null) attrs.artillery = num(row.artillery);
   return element(doc, "aiTarget", attrs);
+}
+
+/** `<overchargerWaits layer0…layer4>`: Shield Overcharger layer waits (types.ts OverchargerWaits). */
+function overchargerWaitsElement(doc: XmlDocument, row: OverchargerWaits): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of ["layer0", "layer1", "layer2", "layer3", "layer4"] as const) {
+    const value = row[key];
+    if (value != null) attrs[key] = num(value);
+  }
+  return element(doc, "overchargerWaits", attrs);
+}
+
+/** `<ionIntruder ion stun pulseMin pulseMax>`: the Ion Intruder pulse (types.ts IonIntruderRule). */
+function ionIntruderElement(doc: XmlDocument, row: IonIntruderRule): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of ["ion", "stun", "pulseMin", "pulseMax"] as const) {
+    const value = row[key];
+    if (value != null) attrs[key] = num(value);
+  }
+  return element(doc, "ionIntruder", attrs);
+}
+
+/** `<crystalVengeance chance damage breach stunChance stun>` (types.ts CrystalVengeanceRule). */
+function crystalVengeanceElement(doc: XmlDocument, row: CrystalVengeanceRule): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of ["chance", "damage", "breach", "stunChance", "stun"] as const) {
+    const value = row[key];
+    if (value != null) attrs[key] = num(value);
+  }
+  return element(doc, "crystalVengeance", attrs);
 }
 
 /** `<cargoSlots slots>`: the cargo hold FTL's executable hard-codes (types.ts CargoSlots). */

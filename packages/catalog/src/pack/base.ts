@@ -44,6 +44,7 @@ import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
 import { AI_TARGET } from "../wiki/targeting-rules.ts";
+import { CRYSTAL_VENGEANCE, ION_INTRUDER, OVERCHARGER_WAITS } from "../wiki/augment-rules.ts";
 import { BONUS_ITEM_WEIGHTS, CARGO_SLOTS } from "../wiki/rack-rules.ts";
 import { ASTEROID_FIELD } from "../wiki/asteroid-rules.ts";
 import { PULSAR_RULES } from "../wiki/pulsar-rules.ts";
@@ -1385,6 +1386,9 @@ export function loadCatalog(): void {
       escapes: FACTION_ESCAPE.map((row) => ({ ...row })),
       escapeTimers: { ...ESCAPE_TIMERS },
       aiTarget: { ...AI_TARGET },
+      overchargerWaits: { ...OVERCHARGER_WAITS },
+      ionIntruder: { ...ION_INTRUDER },
+      crystalVengeance: { ...CRYSTAL_VENGEANCE },
       cargoSlots: { ...CARGO_SLOTS },
       bonusItem: { ...BONUS_ITEM_WEIGHTS },
       asteroidField: {

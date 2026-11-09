@@ -33,6 +33,9 @@ import {
   beaconEvents,
   escapeTimers,
   aiTargets,
+  overchargerWaits,
+  ionIntruderRule,
+  crystalVengeanceRule,
   cargoSlots,
   bonusItem,
   asteroidField,
@@ -56,6 +59,9 @@ export function campaignPack(): ContentPack {
     escapes: allFactionEscapes(),
     escapeTimers: escapeTimers(),
     aiTarget: aiTargets(),
+    overchargerWaits: overchargerWaits(),
+    ionIntruder: ionIntruderRule(),
+    crystalVengeance: crystalVengeanceRule(),
     cargoSlots: cargoSlots(),
     bonusItem: bonusItem(),
     asteroidField: asteroidField(),
@@ -112,6 +118,9 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       escapes: pack.escapes,
       escapeTimers: pack.escapeTimers,
       aiTarget: pack.aiTarget,
+      overchargerWaits: pack.overchargerWaits,
+      ionIntruder: pack.ionIntruder,
+      crystalVengeance: pack.crystalVengeance,
       cargoSlots: pack.cargoSlots,
       bonusItem: pack.bonusItem,
       asteroidField: pack.asteroidField,
@@ -187,7 +196,8 @@ export function standInEventFiles(): { path: string; xml: string }[] {
  * Vanilla keeps Lanius in dlcBlueprints.xml and some weapons in that file too.
  * The same finds go in both appends. A find in a file that has no such blueprint does nothing.
  * The sector append adds notes. `data/gap.xml` adds the store, the rewards block, faction surrender and escape
- * rows, escape timers, enemy targeting numbers, asteroid timings, the pulsar, combat-drone orbit, and empty beacons.
+ * rows, escape timers, enemy targeting numbers, Shield Overcharger layer waits, the Ion Intruder pulse, Crystal
+ * Vengeance, the cargo hold, bonus-item weights, asteroid timings, the pulsar, combat-drone orbit, and empty beacons.
  */
 export function gapModFiles(): { path: string; xml: string }[] {
   const pack = campaignPack();

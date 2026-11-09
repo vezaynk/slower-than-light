@@ -26,6 +26,9 @@ import type {
   EventTier,
   EscapeTimers,
   AiTarget,
+  OverchargerWaits,
+  IonIntruderRule,
+  CrystalVengeanceRule,
   CargoSlots,
   BonusItemWeights,
   AsteroidField,
@@ -500,6 +503,102 @@ export function readEscapeTimers(node: XmlElement): EscapeTimers {
     }
     out[key] = seconds;
   }
+  return out;
+}
+
+function readCheckedAttr(
+  node: XmlElement,
+  tag: string,
+  key: string,
+  ok: (value: number) => boolean,
+  why: string,
+): number | undefined {
+  const raw = node.getAttribute(key);
+  if (raw == null) return undefined;
+  const value = attrNum(raw);
+  if (value == null || !ok(value)) {
+    warnPack(`${tag}: ${key}="${raw}" ${why}; it is skipped.`);
+    return undefined;
+  }
+  return value;
+}
+
+const OVERCHARGER_LAYERS = ["layer0", "layer1", "layer2", "layer3", "layer4"] as const;
+
+/**
+ * Gap `<overchargerWaits layer0…layer4>` (types.ts OverchargerWaits). A missing or non-positive attribute is left
+ * out, so the registry keeps the earlier value or FTL's default.
+ */
+export function readOverchargerWaits(node: XmlElement): OverchargerWaits {
+  const out: OverchargerWaits = {};
+  for (const key of OVERCHARGER_LAYERS) {
+    const seconds = readCheckedAttr(
+      node,
+      "overchargerWaits",
+      key,
+      (value) => value > 0,
+      "is not a positive number of seconds",
+    );
+    if (seconds != null) out[key] = seconds;
+  }
+  return out;
+}
+
+/**
+ * Gap `<ionIntruder ion stun pulseMin pulseMax>` (types.ts IonIntruderRule). A missing or non-positive attribute
+ * is left out.
+ */
+export function readIonIntruder(node: XmlElement): IonIntruderRule {
+  const out: IonIntruderRule = {};
+  for (const key of ["ion", "stun", "pulseMin", "pulseMax"] as const) {
+    const value = readCheckedAttr(
+      node,
+      "ionIntruder",
+      key,
+      (n) => n > 0,
+      "is not a positive number",
+    );
+    if (value != null) out[key] = value;
+  }
+  return out;
+}
+
+/**
+ * Gap `<crystalVengeance chance damage breach stunChance stun>` (types.ts CrystalVengeanceRule). Chance, breach,
+ * and stun chance are 0 to 1. Damage and stun seconds are not negative. A bad attribute is left out.
+ */
+export function readCrystalVengeance(node: XmlElement): CrystalVengeanceRule {
+  const out: CrystalVengeanceRule = {};
+  const unit = (key: "chance" | "breach" | "stunChance") =>
+    readCheckedAttr(
+      node,
+      "crystalVengeance",
+      key,
+      (value) => value >= 0 && value <= 1,
+      "is not a chance from 0 to 1",
+    );
+  const chance = unit("chance");
+  if (chance != null) out.chance = chance;
+  const breach = unit("breach");
+  if (breach != null) out.breach = breach;
+  const stunChance = unit("stunChance");
+  if (stunChance != null) out.stunChance = stunChance;
+  const damage = readCheckedAttr(
+    node,
+    "crystalVengeance",
+    "damage",
+    (value) => value >= 0,
+    "is not a non-negative amount of damage",
+  );
+  if (damage != null) out.damage = damage;
+  const stun = readCheckedAttr(
+    node,
+    "crystalVengeance",
+    "stun",
+    (value) => value >= 0,
+    "is not a non-negative number of seconds",
+  );
+  if (stun != null) out.stun = stun;
   return out;
 }
 
@@ -1051,6 +1150,15 @@ export function parsePack(xml: string): ContentPack {
   const aiTargetNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "aiTarget",
   );
+  const waitsNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "overchargerWaits",
+  );
+  const ionNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "ionIntruder",
+  );
+  const vengeanceNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "crystalVengeance",
+  );
   const cargoNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "cargoSlots",
   );
@@ -1084,6 +1192,9 @@ export function parsePack(xml: string): ContentPack {
   if (escapes.length > 0) pack.escapes = escapes;
   if (timersNode) pack.escapeTimers = readEscapeTimers(timersNode);
   if (aiTargetNode) pack.aiTarget = readAiTarget(aiTargetNode);
+  if (waitsNode) pack.overchargerWaits = readOverchargerWaits(waitsNode);
+  if (ionNode) pack.ionIntruder = readIonIntruder(ionNode);
+  if (vengeanceNode) pack.crystalVengeance = readCrystalVengeance(vengeanceNode);
   if (cargoNode) pack.cargoSlots = readCargoSlots(cargoNode);
   if (bonusNode) pack.bonusItem = readBonusItem(bonusNode);
   if (asteroidNode) pack.asteroidField = readAsteroidField(asteroidNode);

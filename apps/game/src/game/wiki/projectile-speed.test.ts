@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { loadPack, onPackWarning, resetPackForTests, weaponDef } from "@stl/pack";
+import { loadPack, resetPackForTests, weaponDef } from "@stl/pack";
 import { createGame, startCombat, step } from "../sim.ts";
 import {
   BOMB_FLIGHT_S,
@@ -17,7 +17,7 @@ describe("projectile speed", () => {
     assert.equal(projectileFlightSeconds("LASER_HULL_1"), (LASER_SPEED * LASER_FLIGHT_S) / 75);
     assert.equal(projectileFlightSeconds("LASER_HULL_2"), (LASER_SPEED * LASER_FLIGHT_S) / 90);
     assert.equal(projectileFlightSeconds("SHOTGUN"), (LASER_SPEED * LASER_FLIGHT_S) / 26);
-    assert.equal(projectileFlightSeconds("flak-artillery"), (LASER_SPEED * LASER_FLIGHT_S) / 26);
+    assert.equal(projectileFlightSeconds("ARTILLERY_FED_C"), (LASER_SPEED * LASER_FLIGHT_S) / 26);
     assert.equal(projectileFlightSeconds("ION_1"), (LASER_SPEED * LASER_FLIGHT_S) / 30);
     assert.equal(projectileFlightSeconds("ION_2"), (LASER_SPEED * LASER_FLIGHT_S) / 40);
     assert.equal(projectileFlightSeconds("ARTILLERY_BOSS_4"), (LASER_SPEED * LASER_FLIGHT_S) / 40);
@@ -30,37 +30,21 @@ describe("projectile speed", () => {
     assert.equal(projectileFlightSeconds("NOT_A_GUN"), null);
   });
 
-  it("flies Flak Artillery from whichever id carries <speed>, and warns when neither does", () => {
-    const stand = weaponDef("flak-artillery");
-    assert.ok(stand);
-    assert.equal(stand.speed, 26);
-    loadPack(
-      {
-        weapons: [
-          { ...stand, speed: undefined },
-          { ...stand, id: "ARTILLERY_FED_C", speed: 13 },
-        ],
-      },
-      "append",
-    );
+  it("reads Flak Artillery's speed from its own blueprint", () => {
+    const gun = weaponDef("ARTILLERY_FED_C");
+    assert.ok(gun);
+    assert.equal(gun.speed, 26);
+    loadPack({ weapons: [{ ...gun, speed: 13 }] }, "append");
     try {
-      assert.equal(projectileFlightSeconds("flak-artillery"), (LASER_SPEED * LASER_FLIGHT_S) / 13);
       assert.equal(projectileFlightSeconds("ARTILLERY_FED_C"), (LASER_SPEED * LASER_FLIGHT_S) / 13);
     } finally {
       resetPackForTests();
     }
-    loadPack({ weapons: [{ ...stand, speed: undefined }] }, "append");
-    const warnings: string[] = [];
-    const restore = onPackWarning((message) => warnings.push(message));
+    loadPack({ weapons: [{ ...gun, speed: undefined }] }, "append");
     try {
-      // Neither blueprint has a speed: the game holds no number of its own, warns, and flies it as a laser.
-      assert.equal(projectileFlightSeconds("flak-artillery"), null);
       assert.equal(projectileFlightSeconds("ARTILLERY_FED_C"), null);
-      assert.equal(shotFlightSeconds("flak", "flak-artillery"), LASER_FLIGHT_S);
-      assert.equal(warnings.length, 1);
-      assert.match(warnings[0]!, /Flak Artillery .* has no <speed>/);
+      assert.equal(shotFlightSeconds("flak", "ARTILLERY_FED_C"), LASER_FLIGHT_S);
     } finally {
-      restore();
       resetPackForTests();
     }
   });

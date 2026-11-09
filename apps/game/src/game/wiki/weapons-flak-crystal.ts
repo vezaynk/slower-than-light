@@ -156,13 +156,9 @@ function landOn(rooms: readonly Flak2Room[], aimId: string, tile: Tile): Flak2La
   return { kind: "room", roomId: hit.id };
 }
 
-/**
- * `<radius>` on the blueprint, or `fallback` when the weapon does not store one.
- * Artillery's hull-kit id reads the flak-artillery blueprint.
- */
+/** `<radius>` on the blueprint, or `fallback` when the weapon does not store one. */
 export function flakScatterRadius(defId: string | undefined, fallback: number): number {
-  const id = defId === "ARTILLERY_FED_C" ? "flak-artillery" : defId;
-  const n = id ? weaponDef(id)?.radius : undefined;
+  const n = defId ? weaponDef(defId)?.radius : undefined;
   return n != null && n > 0 ? n : fallback;
 }
 

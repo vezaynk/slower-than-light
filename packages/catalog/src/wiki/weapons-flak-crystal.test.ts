@@ -82,7 +82,7 @@ describe("flak and crystal wiki weapons", () => {
     );
     assert.equal(
       FLAK_CRYSTAL_WEAPONS.some(
-        (row) => row.name === "Flak Artillery" || row.id === "flak-artillery",
+        (row) => row.name === "Flak Artillery" || row.id === "ARTILLERY_FED_C",
       ),
       false,
     );
@@ -146,7 +146,7 @@ describe("flak and crystal wiki weapons", () => {
   it("records artillery radius and fake flak on the gap row", () => {
     const section = flak.get("Flak Artillery");
     assert.ok(section);
-    const extra = gap("flak-artillery");
+    const extra = gap("ARTILLERY_FED_C");
     assert.match(extra.note, /flakart\.ts owns the system/);
     assert.equal(extra.radius, field(section, "Targeting area radius"));
     assert.equal(extra.fake, field(section, "Additional fake flak"));

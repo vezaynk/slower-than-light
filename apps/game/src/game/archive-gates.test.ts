@@ -183,7 +183,6 @@ describe("archive gates and combat figures", () => {
     assert.equal(weaponDef("LASER_BURST_2")?.chargeLevels, undefined);
     assert.equal(flakScatterRadius("SHOTGUN_2", 40), 55);
     assert.equal(flakScatterRadius("ARTILLERY_FED_C", 35), 35);
-    assert.equal(flakScatterRadius("flak-artillery", 35), 35);
     const rooms = [{ id: "a", x: 0, y: 0, w: 1, h: 2 }];
     assert.deepEqual(flak2Landing(rooms, "a", 0.1, 0), { kind: "stay" });
     assert.deepEqual(flak2Landing(rooms, "a", 0.1), flak2Landing(rooms, "a", 0.1, 55));

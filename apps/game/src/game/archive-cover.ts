@@ -113,6 +113,7 @@ import { emptyPageFor } from "./wiki/filler-events.ts";
 import { receiveAugment } from "./rules/make-room.ts";
 import { surrenderPlan } from "./wiki/surrender.ts";
 import { playerShipIds } from "./unlocks.ts";
+import { knownUnusedUiString } from "./unused-ui-strings.ts";
 
 /** `text-<code>.xml`, including a hyphenated locale such as `text-zh-Hans.xml`. */
 const TRANSLATION = /^text-.+\.xml(?:\.append)?$/i;
@@ -774,17 +775,45 @@ function exerciseRewards(problems: string[]): void {
 
 function exerciseStrings(strings: Map<string, string>, problems: string[]): void {
   if (strings.size === 0) return;
-  const haystack = shownText();
-  const missing: string[] = [];
-  for (const [key, value] of strings) {
-    if (value.trim().length < 6) continue;
-    if (!haystack.includes(value)) missing.push(key);
-  }
+  const missing = unshownStringKeys(strings, shownText());
   if (missing.length === 0) return;
   const sample = missing.slice(0, 12).join(", ");
   problems.push(
     `${missing.length} string keys are never shown (${sample}${missing.length > 12 ? ", …" : ""})`,
   );
+}
+
+/**
+ * English string keys of six or more characters whose text is not on screen.
+ * Known unused UI keys (tooltips and menu text) are left out. Anything else is a regression:
+ * a gameplay string that used to be shown, or a new unused string outside that set.
+ */
+export function unshownStringKeys(strings: ReadonlyMap<string, string>, shown: string): string[] {
+  const missing: string[] = [];
+  for (const [key, value] of strings) {
+    if (value.trim().length < 6) continue;
+    if (shown.includes(value)) continue;
+    if (knownUnusedUiString(key)) continue;
+    missing.push(key);
+  }
+  return missing;
+}
+
+/**
+ * Split the long unshown English strings into the known UI set and everything else.
+ * The pack has to be loaded first: the shown text is whatever the game reads back.
+ */
+export function englishStringCoverage(raw: FtlExtract): { ignored: string[]; missing: string[] } {
+  const shown = shownText();
+  const ignored: string[] = [];
+  const missing: string[] = [];
+  for (const [key, value] of collectEnglishStrings(raw)) {
+    if (value.trim().length < 6) continue;
+    if (shown.includes(value)) continue;
+    if (knownUnusedUiString(key)) ignored.push(key);
+    else missing.push(key);
+  }
+  return { ignored, missing };
 }
 
 async function exerciseFiles(
@@ -1067,17 +1096,29 @@ function scan(raw: FtlExtract, problems: string[]): Inventory {
         if (id) inventory.texts.add(id);
       });
     }
-    if (!TRANSLATION.test(name)) {
-      walk(root, (node) => {
-        if (node.tagName !== "text") return;
-        const key = attr(node, "name");
-        const value = textOf(node);
-        if (key && value) inventory.strings.set(key, value);
-      });
-    }
   }
+  inventory.strings = collectEnglishStrings(raw);
   for (const row of inventory.unknown) problems.push(row);
   return inventory;
+}
+
+/** Named `<text>` rows. Translation files are skipped, the same as the record scan. */
+function collectEnglishStrings(raw: FtlExtract): Map<string, string> {
+  const strings = new Map<string, string>();
+  const parser = new DOMParser({ errorHandler: () => {} });
+  for (const doc of raw.documents) {
+    const name = fileName(doc.path);
+    if (TRANSLATION.test(name)) continue;
+    const root = parser.parseFromString(doc.xml, "text/xml").documentElement;
+    if (!root) continue;
+    walk(root, (node) => {
+      if (node.tagName !== "text") return;
+      const key = attr(node, "name");
+      const value = textOf(node);
+      if (key && value) strings.set(key, value);
+    });
+  }
+  return strings;
 }
 
 function readRecord(node: XmlEl, path: string, inventory: Inventory): void {

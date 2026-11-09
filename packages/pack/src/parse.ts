@@ -473,6 +473,29 @@ export function readFaction(node: XmlElement): FactionSurrender | undefined {
 }
 
 /**
+ * `<surrender chance min max>` on a hull blueprint (one with a layout). Chance 0 is a real row: the ship never offers.
+ * A missing number is skipped with a warning. A layout-less blueprint is a faction row (`readFaction`), not this.
+ */
+export function readHullSurrender(
+  node: XmlElement,
+): { chance: number; min: number; max: number } | undefined {
+  const id = attr(node, "name")?.trim() ?? "?";
+  if (!attr(node, "layout")?.trim()) return undefined;
+  const offer = child(node, "surrender");
+  if (!offer) return undefined;
+  const chance = attrNum(offer.getAttribute("chance"));
+  const min = attrNum(offer.getAttribute("min"));
+  const max = attrNum(offer.getAttribute("max"));
+  if (chance == null || min == null || max == null) {
+    warnPack(
+      `shipBlueprint ${id}: <surrender> needs chance, min and max; the ship has no own offer.`,
+    );
+    return undefined;
+  }
+  return { chance, min, max };
+}
+
+/**
  * Gap `<shipBlueprint name>` › `<escape chance min max>`: a faction's default escape (types.ts FactionEscape).
  * A hull blueprint (one with a layout) is not a faction row. A row missing a number is skipped with a warning.
  */

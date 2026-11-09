@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { allEvents, eventDef, loadPack, resetPackForTests, stalemateStat } from "@stl/pack";
+import {
+  allEvents,
+  eventDef,
+  hullDef,
+  loadPack,
+  resetPackForTests,
+  stalemateStat,
+} from "@stl/pack";
 import { CREW_CAP, choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
@@ -56,8 +63,22 @@ describe("surrender rows (Enemy Ships, Surrender/escape values)", () => {
     for (const f of ["auto", "engi", "mantis", "zoltan", "federation"]) {
       assert.equal(surrenderPlan({ tier: "pool", faction: f }, () => 0.5).chance, 0, f);
     }
-    assert.equal(surrenderPlan({ tier: "elite", faction: "rebel" }, () => 0.5).chance, 0);
+    // The blueprint's `<surrender chance="0">` is the never, not the tier.
+    assert.equal(
+      surrenderPlan({ tier: "elite", faction: "rebel", ship: "REBEL_SKINNY_ELITE" }, () => 0.5)
+        .chance,
+      0,
+    );
+    assert.equal(
+      surrenderPlan({ tier: "elite", faction: "rock", ship: "ROCK_ASSAULT_ELITE" }, () => 0.5)
+        .chance,
+      0,
+    );
+    assert.equal(surrenderPlan({ tier: "boss", ship: "BOSS_1_NORMAL_DLC" }, () => 0.5).chance, 0);
+    assert.equal(surrenderPlan({ tier: "boss", ship: "BOSS_3_HARD" }, () => 0.5).chance, 0);
+    // No tag and no faction does not borrow Rebel. Tier alone does not decide.
     assert.equal(surrenderPlan({ tier: "boss" }, () => 0.5).chance, 0);
+    assert.equal(surrenderPlan({ tier: "elite", faction: "rebel" }, () => 0.5).chance, 50);
     assert.equal(
       surrenderPlan(
         { tier: "pool", faction: "rebel", event: "rebel-ship-supplying-civilians" },
@@ -72,6 +93,47 @@ describe("surrender rows (Enemy Ships, Surrender/escape values)", () => {
       ).chance,
       0,
     );
+  });
+
+  it("a ship's own surrender tag beats the chance-0 row and the tier", () => {
+    const boss = createGame(3);
+    startCombat(boss, "boss");
+    assert.equal(boss.enemySurrender?.chance, 0);
+    assert.equal(boss.enemy?.classId, undefined);
+    assert.equal(boss.enemy?.flagship?.stage, 1);
+
+    const elite = createGame(4);
+    startCombat(elite, "elite");
+    assert.equal(elite.enemySurrender?.chance, 0);
+    assert.ok(
+      elite.enemy?.classId === "REBEL_SKINNY_ELITE" ||
+        elite.enemy?.classId === "ROCK_ASSAULT_ELITE",
+    );
+
+    const hull = hullDef("BOSS_1_NORMAL_DLC");
+    assert.ok(hull);
+    loadPack({ hulls: [{ ...hull, surrender: { chance: 25, min: 10, max: 10 } }] }, "append");
+    try {
+      const fromHull = surrenderPlan(
+        { tier: "boss", ship: "BOSS_1_NORMAL_DLC", faction: "rebel" },
+        () => 0,
+      );
+      assert.equal(fromHull.chance, 25);
+      assert.equal(fromHull.threshold, 10);
+    } finally {
+      resetPackForTests();
+    }
+
+    loadPack({ factions: [{ id: "BOSS_1_NORMAL_DLC", chance: 40, min: 30, max: 30 }] }, "append");
+    try {
+      const mod = createGame(1);
+      mod.difficulty = "normal";
+      startCombat(mod, "boss");
+      assert.equal(mod.enemySurrender?.chance, 40);
+      assert.equal(mod.enemySurrender?.threshold, 30);
+    } finally {
+      resetPackForTests();
+    }
   });
 
   it("rolls a Stuff offer: two of fuel / missiles / parts plus scrap", () => {

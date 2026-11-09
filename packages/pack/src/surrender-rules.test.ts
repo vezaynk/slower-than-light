@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { emitGapDocument } from "./emit.ts";
+import { emitFtlShips } from "./ftl-emit.ts";
 import { packFromFtl } from "./ftl.ts";
 import { parsePack } from "./parse.ts";
 import { loadPack, resetPackForTests, stalemate, stalemateStat } from "./registry.ts";
@@ -88,5 +89,40 @@ describe("gap stalemate rule", () => {
       lines.some((line) => line.includes("fuel")),
       false,
     );
+  });
+});
+
+describe("hull surrender tag", () => {
+  it("reads a surrender tag on a hull and writes it back", () => {
+    const xml = `<FTL>
+      <shipBlueprint name="MOD_BOSS" layout="flagship-1">
+        <surrender chance="40" min="30" max="40"/>
+      </shipBlueprint>
+    </FTL>`;
+    const pack = packFromFtl([{ path: "data/blueprints.xml", xml }]);
+    assert.deepEqual(pack.hulls?.[0]?.surrender, { chance: 40, min: 30, max: 40 });
+    assert.equal(
+      (pack.factions ?? []).some((row) => row.id === "MOD_BOSS"),
+      false,
+    );
+    const back = packFromFtl([
+      { path: "data/blueprints.xml", xml: emitFtlShips(pack.hulls ?? []) },
+    ]);
+    assert.deepEqual(back.hulls?.[0]?.surrender, pack.hulls?.[0]?.surrender);
+  });
+
+  it("warns and skips a hull surrender that is missing a number", () => {
+    let pack: ReturnType<typeof packFromFtl> | undefined;
+    const lines = warned(() => {
+      pack = packFromFtl([
+        {
+          path: "data/blueprints.xml",
+          xml: `<FTL><shipBlueprint name="MOD_BOSS" layout="x"><surrender chance="10" min="1"/></shipBlueprint></FTL>`,
+        },
+      ]);
+    });
+    assert.equal(pack?.hulls?.[0]?.surrender, undefined);
+    assert.equal(pack?.hulls?.[0]?.id, "MOD_BOSS");
+    assert.ok(lines.some((line) => line.includes("MOD_BOSS") && line.includes("<surrender>")));
   });
 });

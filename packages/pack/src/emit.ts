@@ -73,6 +73,7 @@ const HEADER = `
   Event pages and filler lists. Weapon, augment, drone, and system blueprints are data/blueprints.xml.
   shotGap is a gap overwrite on weaponBlueprint. Crew combat is a gap overwrite on crewBlueprint.
   An event tag is a page. The name is the datafile id. title is the page heading.
+  An environment tag is type asteroid, nebula, pulsar, sun, storm, or PDS. PDS may name target player, enemy, or all.
   A resource result is item_modify. Drone parts use type drones. A loss stores the negative range.
   A fight is a hostile ship. Its load is the ship name this sim already fights.
   An empty nested event is an empty result. A nested event with text is a result sentence. load opens another page.
@@ -551,6 +552,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const lines =
     texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
   for (const line of lines) add(node, leaf(doc, "text", line));
+  if (event.environment) add(node, environmentElement(doc, event.environment));
   if (event.store) add(node, element(doc, "store", {}));
   for (const list of offerLists(doc, event.offers ?? [])) add(node, list);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll));
@@ -591,10 +593,20 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
       }
     }
     if (choice.reward) add(choiceNode, autoReward(doc, choice.reward.name, choice.reward.level));
+    if (choice.environment) add(choiceNode, environmentElement(doc, choice.environment));
     add(node, choiceNode);
   }
   if (event.surrender) add(node, surrenderElement(doc, event.surrender));
   return node;
+}
+
+function environmentElement(
+  doc: XmlDocument,
+  env: NonNullable<EventDef["environment"]>,
+): XmlElement {
+  const attrs: Record<string, string> = { type: env.type };
+  if (env.type === "PDS" && env.target) attrs.target = env.target;
+  return element(doc, "environment", attrs);
 }
 
 /** Choice attributes the archive stores on the button. An attr req is `req`, not a nested element. */

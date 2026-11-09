@@ -51,5 +51,72 @@ for (const archive of archiveCases()) {
       );
       assert.ok(poor.locks[0], "the trap is locked below 2 missiles");
     });
+
+    it("deals an out-of-fuel wait from NO_FUEL or NO_FUEL_DISTRESS", async () => {
+      await installArchive(archive.bytes);
+      const off = allFillerLists().find((list) => list.id === "NO_FUEL");
+      const on = allFillerLists().find((list) => list.id === "NO_FUEL_DISTRESS");
+      assert.ok(off && on);
+      const ids = (list: { entries: { id: string }[] }) => list.entries.map((entry) => entry.id);
+      assert.deepEqual(ids(off), [
+        "FUEL_FLEET_DELAY",
+        "FUEL_NOTHING",
+        "FUEL_NOTHING",
+        "FUEL_NOTHING",
+        "FUEL_NOTHING",
+        "FUEL_TRADER",
+        "FUEL_EXPLORE",
+        "FUEL_APPROACH",
+        "FUEL_OFF_ENGI_DUBIOUS",
+        "FUEL_OFF_ROCK_WRECK",
+        "NO_FUEL_REFUGEE_FRIENDLY",
+      ]);
+      assert.deepEqual(ids(on), [
+        "FUEL_NOTHING_DISTRESS",
+        "FUEL_NOTHING_DISTRESS",
+        "FUEL_SELLER_DISTRESS",
+        "FUEL_TRADER_DISTRESS",
+        "FUEL_EXPLORE",
+        "FUEL_APPROACH",
+        "FUEL_ON_SLUG_OVERPRICED",
+        "FUEL_ON_SLUG_CHUCKLE",
+        "FUEL_ON_MANTIS_ATTACK",
+        "FUEL_ON_REBEL_WARNING",
+        "FUEL_ON_REBEL_ATTACK",
+        "NO_FUEL_REFUGEE",
+      ]);
+      for (const id of [...new Set([...ids(off), ...ids(on)])]) {
+        assert.ok(eventDef(id), id);
+      }
+      const lines = (id: string) => {
+        const page = eventDef(id);
+        return Math.max(page?.texts?.length ?? 0, page?.openings?.length ?? 0);
+      };
+      assert.ok(lines("FUEL_NOTHING") > 1);
+      assert.ok(lines("FUEL_NOTHING_DISTRESS") > 1);
+      assert.ok((eventDef("FUEL_NOTHING")?.choices.length ?? 0) >= 1);
+      assert.ok((eventDef("FUEL_NOTHING_DISTRESS")?.choices.length ?? 0) >= 1);
+    });
+
+    it('marks a sun fight with <environment type="sun">', async () => {
+      await installArchive(archive.bytes);
+      for (const id of [
+        "AUTO_SUN",
+        "MANTIS_SUN_FIGHT",
+        "PIRATE_SUN",
+        "ROCK_PIRATE_SUN",
+        "BOARDERS_SUN",
+        "ROCK_BOARDERS_SUN",
+      ]) {
+        assert.equal(eventDef(id)?.environment?.type, "sun", id);
+      }
+      // The Sun Quest Marker has no datafile id. The stand-in stamps the sun on the arrival.
+      if (archive.name === "totallynotftl") {
+        const arrival = eventDef("arrive-rock-sun");
+        assert.equal(arrival?.environment?.type, "sun");
+        assert.ok(arrival?.aliases.includes("quest-rock-sun"));
+        assert.equal(eventDef("quest-rock-sun")?.id, "arrive-rock-sun");
+      }
+    });
   });
 }

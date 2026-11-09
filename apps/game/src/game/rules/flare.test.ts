@@ -8,7 +8,7 @@ import {
   flareDamagesRoom,
   flareFireCount,
   placeFlareFires,
-} from "./cited-flare.ts";
+} from "./flare.ts";
 
 function fires(g: Game, side: "player" | "enemy"): number {
   const ship = side === "player" ? g.player : g.enemy;
@@ -41,6 +41,7 @@ describe("solar flare", () => {
     assert.equal(eventHasFlare("auto-ship-fight-near-sun"), true);
     assert.equal(eventHasFlare("mantis-fight-near-sun"), true);
     assert.equal(eventHasFlare("rock-pirates-fight-near-sun"), true);
+    assert.equal(eventHasFlare("PIRATE_SUN"), true);
     assert.equal(eventHasFlare("pirate-fight-near-pulsar"), false);
     assert.equal(flareCycleSeconds(0), 28);
     assert.ok(flareCycleSeconds(0.999) < 34);
@@ -56,8 +57,9 @@ describe("solar flare", () => {
   });
 
   it("arms the Rock war vessel Sun Quest Marker as a red-giant fight", () => {
-    // INFERRED: the Sun Quest Marker fight's event slug is "quest-rock-sun".
+    // The fight slug is not a datafile id. It aliases the arrival page, which carries the sun.
     assert.equal(eventHasFlare("quest-rock-sun"), true);
+    assert.equal(eventHasFlare("arrive-rock-sun"), true);
     const g = createGame(11);
     startCombat(g, "Rock Assault (Elite)", false, "quest-rock-sun");
     assert.equal(g.flare, true);

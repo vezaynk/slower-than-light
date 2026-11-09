@@ -859,7 +859,7 @@ export type Game = {
    * (rules/make-room.ts). The first entry is on screen; the clock is stopped while any wait.
    */
   overflow?: Overflow[];
-  /** Per the user: the distress beacon for waiting with no fuel (wiki/cited-fuel.ts rollFuelWait). Missing means on. */
+  /** Per the user: the distress beacon for an out-of-fuel wait. The executable loads NO_FUEL or NO_FUEL_DISTRESS. Missing means on. */
   distress?: boolean;
   /** Per the user: the 4-slot cargo hold (CargoItem). Missing on older saves means empty. */
   cargo?: CargoItem[];

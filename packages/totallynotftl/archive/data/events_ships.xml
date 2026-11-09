@@ -1398,14 +1398,13 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>ENGI_HOME</sector>
     <sector>PIRATE_SECTOR</sector>
     <text>Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack.</text>
+    <ship hostile="true" load="PIRATE_NO_ESCAPE"/>
     <choice name="c:pirate-engine-hacker:0">
       <text>Continue</text>
-      <ship hostile="true" load="PIRATE_NO_ESCAPE"/>
     </choice>
     <choice name="c:pirate-engine-hacker:1" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="PIRATE_NO_ESCAPE"/>
     </choice>
   </event>
   <event name="PIRATE">

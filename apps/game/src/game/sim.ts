@@ -6748,13 +6748,16 @@ function archiveSurrenderPlan(
 
 /**
  * A cited fight still names the ship by wording ("Rebel ship"). The archive page loads one ship event
- * (`<ship load>`). A named class ("Auto-Scout", "rebel-fighter") stays that hull; only the escape plan is borrowed.
+ * (`<ship load>` on the event, or on one choice). A named class ("Auto-Scout", "rebel-fighter") stays that hull;
+ * only the escape plan is borrowed.
  */
 function pageShipOf(event: string | undefined): string | undefined {
   if (!event) return undefined;
   const page = eventDef(event);
   if (!page) return undefined;
   const loads = new Set<string>();
+  const own = page.ship?.hostile ? page.ship.load : undefined;
+  if (own && shipEventDef(own)) loads.add(own);
   for (const choice of page.choices) {
     for (const fx of choice.fx) {
       if (fx.k === "fight" && shipEventDef(fx.tier)) loads.add(fx.tier);

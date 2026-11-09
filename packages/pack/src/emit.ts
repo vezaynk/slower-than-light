@@ -609,6 +609,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const lines =
     texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
   for (const line of lines) add(node, leaf(doc, "text", line));
+  if (event.ship) add(node, archiveShipElement(doc, event.ship));
   if (event.environment) add(node, environmentElement(doc, event.environment));
   if (event.store) add(node, element(doc, "store", {}));
   for (const list of offerLists(doc, event.offers ?? [])) add(node, list);
@@ -664,6 +665,15 @@ function environmentElement(
   const attrs: Record<string, string> = { type: env.type };
   if (env.type === "PDS" && env.target) attrs.target = env.target;
   return element(doc, "environment", attrs);
+}
+
+/** `<ship load>` on the event itself. A choice that does not load a ship fights this one. */
+function archiveShipElement(doc: XmlDocument, ship: NonNullable<EventDef["ship"]>): XmlElement {
+  const attrs: Record<string, string> = { hostile: ship.hostile ? "true" : "false" };
+  if (ship.load) attrs.load = ship.load;
+  if (ship.autoBlueprint) attrs.auto_blueprint = ship.autoBlueprint;
+  if (ship.asteroid) attrs.asteroid = "true";
+  return element(doc, "ship", attrs);
 }
 
 /** Choice attributes the archive stores on the button. An attr req is `req`, not a nested element. */

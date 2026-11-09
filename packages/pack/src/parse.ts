@@ -1419,6 +1419,7 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   const trades: TradeStep[] = [];
   let grade: EventGrade | undefined;
   let surrender: SurrenderOfferDef | undefined;
+  let ship: EventDef["ship"];
   for (const item of elements(node)) {
     if (item.tagName === "text") {
       lines.push(ownText(item).trim());
@@ -1469,6 +1470,10 @@ export function readEvent(node: XmlElement): EventDef | undefined {
       surrender = readSurrender(item);
       continue;
     }
+    if (item.tagName === "ship") {
+      ship ??= readEventShip(item);
+      continue;
+    }
     if (item.tagName !== "choice") continue;
     const choiceId = attr(item, "name")?.trim();
     if (!choiceId) continue;
@@ -1506,10 +1511,24 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   if (grade) event.grade = grade;
   if (cards.length > 0) event.cards = cards;
   if (surrender) event.surrender = surrender;
+  if (ship) event.ship = ship;
   const environment = readEnvironment(node);
   if (environment) event.environment = environment;
   if (elements(node).some((item) => item.tagName === "store")) event.store = true;
   return event;
+}
+
+/** `<ship load>` on the event. A choice that does not load a ship fights this one. */
+function readEventShip(node: XmlElement): EventDef["ship"] | undefined {
+  const load = attr(node, "load")?.trim();
+  const hostile = node.getAttribute("hostile");
+  if (!load && hostile == null) return undefined;
+  const ship: NonNullable<EventDef["ship"]> = { hostile: hostile !== "false" };
+  if (load) ship.load = load;
+  const list = attr(node, "auto_blueprint")?.trim();
+  if (list) ship.autoBlueprint = list;
+  if (node.getAttribute("asteroid") === "true") ship.asteroid = true;
+  return ship;
 }
 
 const ENVIRONMENT_TYPES = new Set(["asteroid", "nebula", "pulsar", "sun", "storm", "PDS"]);

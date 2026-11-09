@@ -470,6 +470,18 @@ function loadShipEvents(node: unknown, choiceId?: string): void {
   for (const value of Object.values(node)) loadShipEvents(value, next);
 }
 
+/**
+ * ftl.dat's PIRATE_NO_ESCAPE puts `<ship load>` on the event. Both choices fight that ship
+ * and do not load one of their own. The engine cap and the hacking shutdown stay on the choices.
+ */
+function hoistEventShip(event: EventDef): void {
+  if (event.id !== "PIRATE_NO_ESCAPE") return;
+  const fights = event.choices.flatMap((choice) => choice.fx.filter((fx) => fx.k === "fight"));
+  if (fights.length === 0 || fights.some((fx) => fx.tier !== event.id)) return;
+  event.ship = { hostile: true, load: event.id };
+  for (const choice of event.choices) choice.fx = choice.fx.filter((fx) => fx.k !== "fight");
+}
+
 function takenReqIds(events: readonly EventDef[]): Set<string> {
   const seen = new Set<string>();
   for (const ev of events) {
@@ -1482,7 +1494,10 @@ export function loadCatalog(): void {
     FUEL_NOTHING_DISTRESS,
   ])
     if (!events.some((event) => event.id === page.id)) events.push(page);
-  for (const event of events) loadShipEvents(event);
+  for (const event of events) {
+    loadShipEvents(event);
+    hoistEventShip(event);
+  }
   loadPack(
     {
       // Ghost stays off the stand-in. crewDef supplies it when no crewBlueprint uses that id.

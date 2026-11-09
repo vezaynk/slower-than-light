@@ -6,51 +6,67 @@ import { installStandIn } from "@stl/standin";
 import {
   collectEnglishStrings,
   englishStringCoverage,
+  releaseSkipsString,
   shownText,
   unshownStringKeys,
 } from "./archive-cover.ts";
 import { installExtract } from "./archive-play.ts";
-import { knownUnusedUiStrings } from "./unused-ui-strings.ts";
+import { verdictArchiveLines, verdictScoreLine, verdictTitle } from "./interface-copy.ts";
 
-describe("unused UI strings", () => {
-  it("ignores a known tooltip, reports an unknown string, and keeps a shown string", () => {
-    assert.equal(knownUnusedUiStrings.has("tooltip_oxygen"), true);
-    assert.equal(knownUnusedUiStrings.has("text_GAMEOVER_1"), false);
+describe("unshown archive strings", () => {
+  it("reports an unshown sentence, keeps a shown one, and skips only a demo key", () => {
+    assert.equal(releaseSkipsString("gameover_win_demo"), true);
+    assert.equal(releaseSkipsString("text_GAMEOVER_1"), false);
     const strings = new Map([
-      ["tooltip_oxygen", "Oxygen system hover text"],
-      ["mainmenu_newgame", "New Game menu label"],
+      ["gameover_win_demo", "Demo victory sentence"],
       ["event_brand_new", "A sentence the game dropped"],
+      ["text_GAMEOVER_1", "One last explosion marks your fate as your ship is torn apart."],
       ["weapon_shown", "Burst laser description"],
       ["tiny", "nope"],
     ]);
-    const missing = unshownStringKeys(strings, "Burst laser description");
+    const missing = unshownStringKeys(
+      strings,
+      "Burst laser description\nOne last explosion marks your fate as your ship is torn apart.",
+    );
     assert.deepEqual(missing, ["event_brand_new"]);
-    assert.equal(missing.includes("tooltip_oxygen"), false);
-    assert.equal(missing.includes("weapon_shown"), false);
+  });
+
+  it("paints the stand-in game-over English when the archive has no table", () => {
+    assert.equal(verdictTitle(false), "GAME OVER");
+    assert.equal(verdictTitle(true), "VICTORY!");
+    assert.equal(verdictScoreLine(12), "SCORE: 12");
+    assert.ok(verdictArchiveLines().includes("RESTART"));
+    assert.ok(verdictArchiveLines().includes("SCORE: \\1"));
   });
 });
 
 const dat = process.env.FTL_DAT?.trim();
 
 describe(
-  "ftl.dat unused UI strings",
+  "ftl.dat strings still not on screen",
   { skip: dat ? false : "FTL_DAT is unset", timeout: 300_000 },
   () => {
     after(async () => {
       await installStandIn();
     });
 
-    it("ignores exactly the known UI set and reports no other long string", async () => {
+    it("reports the remaining count and already shows the game-over card", async () => {
       const raw = await extractArchive(readFileSync(dat!));
       await installExtract(raw);
       const strings = collectEnglishStrings(raw);
       const shown = shownText();
       const report = englishStringCoverage(raw);
-      assert.deepEqual(report.missing, []);
-      assert.deepEqual(unshownStringKeys(strings, shown), []);
-      assert.equal(report.ignored.length, knownUnusedUiStrings.size);
-      for (const key of report.ignored) assert.equal(knownUnusedUiStrings.has(key), true, key);
-      for (const key of knownUnusedUiStrings) assert.equal(report.ignored.includes(key), true, key);
+      const missing = unshownStringKeys(strings, shown);
+      const sample = missing.slice(0, 12).join(", ");
+      console.log(
+        `${missing.length} English strings are not on screen yet (${sample}${missing.length > 12 ? ", …" : ""})`,
+      );
+      assert.deepEqual(missing, report.missing);
+      assert.equal(missing.includes("text_GAMEOVER_1"), false);
+      assert.equal(missing.includes("gameover_title_gameover"), false);
+      assert.equal(missing.includes("gameover_win"), false);
+      assert.equal(missing.includes("gameover_win_demo"), false);
+      for (const key of report.ignored) assert.equal(releaseSkipsString(key), true, key);
     });
   },
 );

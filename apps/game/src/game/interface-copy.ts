@@ -38,6 +38,125 @@ export function verdictListLines(): string[] {
   return lines;
 }
 
+/** Game Over and the victory card. The archive phrase wins. The English is what a stand-in with no table paints. */
+export function verdictTitle(victory: boolean): string {
+  return phraseOr(
+    victory ? "gameover_title_victory" : "gameover_title_gameover",
+    victory ? "VICTORY!" : "GAME OVER",
+  );
+}
+
+/** Body for a named ending. Hull loss is the GAMEOVER list, then `gameover_blowup`. */
+export function verdictEnding(outcome: string): string | undefined {
+  if (outcome === "victory")
+    return phraseOr(
+      "gameover_win",
+      "Congratulations! You've defeated the Rebel Flagship and ensured the victory of the Federation!",
+    );
+  if (outcome === "tutorial")
+    return phraseOr(
+      "gameover_tutorial",
+      "Somehow you've died during the introduction training exercise. Feel free to try again but this doesn't bode well for your mission.",
+    );
+  if (outcome === "crew")
+    return phraseOr(
+      "gameover_crew",
+      "All crew members have died. Your ship will continue to drift for eternity, or until looters destroy it.",
+    );
+  if (outcome === "rebel")
+    return phraseOr(
+      "gameover_fedbase",
+      "The Rebel Flagship is within range of the Federation Base. All is lost, they've won.",
+    );
+  return undefined;
+}
+
+export function verdictBlowup(): string {
+  return phraseOr(
+    "gameover_blowup",
+    "One last explosion marks your fate as your ship is torn apart.",
+  );
+}
+
+export function verdictScoreLabel(): string {
+  return phraseOr("gameover_score", "SCORE: \\1");
+}
+
+/** `gameover_score` is a format. `\1` is the score. */
+export function verdictScoreLine(score: number): string {
+  return verdictScoreLabel().replaceAll("\\1", String(score));
+}
+
+export function verdictHighScore(): string {
+  return phraseOr("new_high", "New High Score!");
+}
+
+export function verdictRestartLabel(): string {
+  return phraseOr("gameover_button_restart", "RESTART");
+}
+
+export function verdictHangarLabel(): string {
+  return phraseOr("gameover_button_hangar", "HANGAR");
+}
+
+export function verdictMenuLabel(): string {
+  return phraseOr("gameover_button_mainmenu", "MAIN MENU");
+}
+
+export function verdictStatsLabel(): string {
+  return phraseOr("gameover_button_stats", "STATS");
+}
+
+export function verdictQuitLabel(): string {
+  return phraseOr("gameover_button_quit", "QUIT");
+}
+
+/** The victory cinema. The crew list uses the archive's comma and the word before the last name. */
+export function victoryCinema(): {
+  ship: string;
+  crew: string;
+  comma: string;
+  join: string;
+  ending: string;
+} {
+  return {
+    ship: phraseOr("thank_ship", "Thanks to the valiant effort of:"),
+    crew: phraseOr("thank_crew", "And her successful crew:"),
+    comma: phraseOr("crewlist_comma", ", "),
+    join: phraseOr("crewlist_and", " and "),
+    ending: phraseOr(
+      "credit_victory",
+      "The Rebel's flagship was destroyed, throwing their fleet into chaos and ensuring a Federation victory",
+    ),
+  };
+}
+
+/** Every verdict sentence the loaded archive can replace. The screen paints these same calls. */
+export function verdictArchiveLines(): string[] {
+  const cinema = victoryCinema();
+  return [
+    verdictTitle(true),
+    verdictTitle(false),
+    verdictEnding("victory") ?? "",
+    verdictEnding("tutorial") ?? "",
+    verdictEnding("crew") ?? "",
+    verdictEnding("rebel") ?? "",
+    verdictBlowup(),
+    verdictScoreLabel(),
+    verdictHighScore(),
+    verdictRestartLabel(),
+    verdictHangarLabel(),
+    verdictMenuLabel(),
+    verdictStatsLabel(),
+    verdictQuitLabel(),
+    cinema.ship,
+    cinema.crew,
+    cinema.comma,
+    cinema.join,
+    cinema.ending,
+  ];
+}
+
 /** The tutorial's continue button. The stand-in keeps the word Continue. */
 export function tutorialContinueLabel(): string {
   return phraseOr("event_TUTORIAL_START_c1_c2_choice", "Continue");

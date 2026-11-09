@@ -6674,7 +6674,9 @@ function fitSlugHackerFire(
 
 /**
  * Plays `<environment>` on the event already open.
- * Asteroid, pulsar, sun, and PDS arm the fight clocks. Storm halves the reactor until the jump.
+ * Asteroid, pulsar, and PDS arm the fight clocks. A sun marks the flare. The cycle is a rand, so a paused
+ * arrival card does not roll one: startCombat and beginBoarding arm it when the fight starts.
+ * Storm halves the reactor until the jump.
  * Nebula slows a later wait. A clock this fight already armed is left running.
  */
 export function armEventEnvironment(g: Game, env: ArchiveEnvironment | undefined): void {
@@ -6700,12 +6702,15 @@ export function armEventEnvironment(g: Game, env: ArchiveEnvironment | undefined
     return;
   }
   if (env.type === "sun") {
+    // `<environment type="sun">` is the marker eventHasFlare reads. armFlare spends rand(g).
+    // The arrival card is paused and that cycle never ticks. The fight button rolls another,
+    // so the ship and the boarder count move off the seed. Mark the sun and leave the roll.
     if (g.flare) return;
     g.flare = true;
     g.flareT = 0;
     g.flareWarned = false;
     g.flareWait = 0;
-    armFlare(g);
+    if (!g.paused) armFlare(g);
     return;
   }
   if (env.type === "PDS") {

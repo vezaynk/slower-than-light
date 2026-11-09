@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import { after, describe, it } from "node:test";
-import { allFillerLists, eventDef } from "@stl/pack";
+import { allFillerLists, eventDef, fillerList } from "@stl/pack";
 import { installStandIn } from "@stl/standin";
 import { archiveCases, installArchive } from "./archive-play.ts";
 import { playSide, type EventDiffCase } from "./event-diff.ts";
+import { choose, createGame, rand, waitHere } from "./sim.ts";
+import type { GameEvent } from "./types.ts";
+import { citedEvent } from "./wiki/cited-events.ts";
+import { citedFleetAdvance } from "./wiki/cited-sectors.ts";
 
 /**
  * Events that used to be code pages (wiki/README.md, "How to migrate an event module") and now play only from the
@@ -88,14 +92,95 @@ for (const archive of archiveCases()) {
       for (const id of [...new Set([...ids(off), ...ids(on)])]) {
         assert.ok(eventDef(id), id);
       }
-      const lines = (id: string) => {
-        const page = eventDef(id);
-        return Math.max(page?.texts?.length ?? 0, page?.openings?.length ?? 0);
-      };
-      assert.ok(lines("FUEL_NOTHING") > 1);
-      assert.ok(lines("FUEL_NOTHING_DISTRESS") > 1);
+      // fuelWaitCard reads texts. Openings alone are not a successful wait.
+      assert.ok((eventDef("FUEL_NOTHING")?.texts?.length ?? 0) > 1);
+      assert.ok((eventDef("FUEL_NOTHING_DISTRESS")?.texts?.length ?? 0) > 1);
       assert.ok((eventDef("FUEL_NOTHING")?.choices.length ?? 0) >= 1);
       assert.ok((eventDef("FUEL_NOTHING_DISTRESS")?.choices.length ?? 0) >= 1);
+    });
+
+    it("plays an out-of-fuel wait from the distress lists", async () => {
+      await installArchive(archive.bytes);
+      const cardOf = (event: GameEvent | null | undefined) => ({
+        title: event?.title,
+        body: event?.body,
+        img: event?.img,
+        choices: event?.choices.map((choice) => ({ id: choice.id, label: choice.label })),
+      });
+      const parked = (seed: number, distress: false | undefined) => {
+        const g = createGame(seed);
+        g.fuel = 0;
+        g.phase = "map";
+        g.paused = false;
+        g.fleet = 0;
+        g.event = null;
+        const here = g.beacons.find((item) => item.id === g.here);
+        assert.ok(here);
+        here.resolved = false;
+        if (distress === false) g.distress = false;
+        else delete g.distress;
+        return g;
+      };
+      const play = (distress: false | undefined, listId: "NO_FUEL" | "NO_FUEL_DISTRESS") => {
+        const list = fillerList(listId);
+        assert.ok(list && list.entries.length > 0, listId);
+        const seen = new Set<string>();
+        let nothing = false;
+        for (
+          let seed = 1;
+          seen.size < new Set(list.entries.map((entry) => entry.id)).size;
+          seed++
+        ) {
+          assert.ok(seed < 400, `${listId} did not draw every row`);
+          const probe = parked(seed, distress);
+          const live = parked(seed, distress);
+          assert.equal(live.seed, probe.seed);
+          const beacon = live.beacons.find((item) => item.id === live.here);
+          assert.ok(beacon);
+          const fleet = live.fleet;
+          const entry = list.entries[Math.floor(rand(probe) * list.entries.length)];
+          assert.ok(entry);
+          const page = eventDef(entry.id);
+          assert.ok(page, entry.id);
+          seen.add(page.id);
+          let expected: GameEvent;
+          if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
+            const lines = page.texts ?? [];
+            // Variants that live only in openings are not a wait. fuelWaitCard reads texts.
+            assert.ok(lines.length > 1, `${page.id} variants are not texts`);
+            const body = lines[Math.floor(rand(probe) * lines.length)] ?? "";
+            expected = {
+              title: page.dest,
+              body,
+              choices: [{ id: "fuel-wait-done", label: page.choices[0]?.label || "Continue..." }],
+            };
+          } else {
+            const cited = citedEvent(probe, { ...beacon, flag: page.id, name: page.dest });
+            assert.ok(cited, page.id);
+            expected = cited;
+          }
+          waitHere(live);
+          assert.equal(live.phase, "event");
+          assert.equal(live.fleet - fleet, citedFleetAdvance(live, beacon));
+          assert.equal(beacon.resolved, false);
+          assert.deepEqual(cardOf(live.event), cardOf(expected));
+          if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
+            const texts = page.texts ?? [];
+            assert.ok(texts.includes(live.event?.body ?? ""), page.id);
+            assert.equal(live.event?.choices[0]?.id, "fuel-wait-done");
+            const advanced = live.fleet;
+            choose(live, "fuel-wait-done");
+            assert.equal(live.phase, "map");
+            assert.equal(live.event, null);
+            assert.equal(beacon.resolved, false);
+            assert.equal(live.fleet, advanced);
+            nothing = true;
+          }
+        }
+        assert.equal(nothing, true, listId);
+      };
+      play(false, "NO_FUEL");
+      play(undefined, "NO_FUEL_DISTRESS");
     });
 
     it('marks a sun fight with <environment type="sun">', async () => {

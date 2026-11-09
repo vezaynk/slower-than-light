@@ -124,6 +124,8 @@ const pack: ContentPack = {
     oxygen: 50,
     artillery: 4,
   },
+  cargoSlots: { slots: 4 },
+  bonusItem: { weapon: 1, augment: 1, drone: 1 },
   asteroidField: {
     fire: 0.05,
     breach: 0.05,
@@ -198,6 +200,8 @@ describe("hyperspace mod", () => {
       xml,
       /<aiTarget easy="0.2" normal="0.33" hardRoom="0.5" hardAny="0.25" evasion="25" oxygen="50" artillery="4"\/>/,
     );
+    assert.match(xml, /<cargoSlots slots="4"\/>/);
+    assert.match(xml, /<bonusItem weapon="1" augment="1" drone="1"\/>/);
     assert.match(xml, /<asteroidField fire="0.05" breach="0.05">/);
     assert.match(xml, /<timing bubbles="1"/);
     assert.match(

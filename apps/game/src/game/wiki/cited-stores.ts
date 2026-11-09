@@ -16,7 +16,7 @@ import { shelfAugment } from "../extras/augments.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { OVERCHARGER_PLUS } from "./cited-overcharger.ts";
-import { CARGO_SLOTS, cargoOf, receiveDrone } from "./make-room.ts";
+import { cargoOf, cargoSlots, receiveDrone } from "../rules/make-room.ts";
 
 /**
  * Extra store rows whose price and stock the wiki states.
@@ -464,7 +464,7 @@ function pairedRepair(kit: Kit): boolean {
 
 /** Per the user: a schematic that cannot be fitted goes to cargo. The store will not sell it when cargo is full too. */
 function grantDrone(g: Game, item: StockItem): boolean {
-  if (!canFieldDrone(g, item.ref) && cargoOf(g).length >= CARGO_SLOTS) return false;
+  if (!canFieldDrone(g, item.ref) && cargoOf(g).length >= cargoSlots()) return false;
   const got = receiveDrone(g, item.ref);
   return got === "fitted" || got === "cargo";
 }

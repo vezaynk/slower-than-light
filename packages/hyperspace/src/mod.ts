@@ -81,12 +81,14 @@ export function emitMod(pack: ContentPack): string {
       root.appendChild(node);
     }
   }
-  // The default start and exit events, escape timers, enemy targeting numbers, and the hazard and drone-orbit rules,
-  // in the same tags the gap file writes.
+  // The default start and exit events, escape timers, enemy targeting numbers, the cargo hold, the bonus-item
+  // weights, and the hazard and drone-orbit rules, in the same tags the gap file writes.
   if (
     pack.beaconEvents ||
     pack.escapeTimers ||
     pack.aiTarget ||
+    pack.cargoSlots ||
+    pack.bonusItem ||
     pack.asteroidField ||
     pack.pulsar ||
     pack.droneOrbit
@@ -95,6 +97,8 @@ export function emitMod(pack: ContentPack): string {
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
     if (pack.escapeTimers) rules.escapeTimers = pack.escapeTimers;
     if (pack.aiTarget) rules.aiTarget = pack.aiTarget;
+    if (pack.cargoSlots) rules.cargoSlots = pack.cargoSlots;
+    if (pack.bonusItem) rules.bonusItem = pack.bonusItem;
     if (pack.asteroidField) rules.asteroidField = pack.asteroidField;
     if (pack.pulsar) rules.pulsar = pack.pulsar;
     if (pack.droneOrbit) rules.droneOrbit = pack.droneOrbit;
@@ -175,6 +179,8 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (escapes) pack.escapes = escapes;
   if (parsed.escapeTimers) pack.escapeTimers = parsed.escapeTimers;
   if (parsed.aiTarget) pack.aiTarget = parsed.aiTarget;
+  if (parsed.cargoSlots) pack.cargoSlots = parsed.cargoSlots;
+  if (parsed.bonusItem) pack.bonusItem = parsed.bonusItem;
   if (parsed.asteroidField) pack.asteroidField = parsed.asteroidField;
   if (parsed.pulsar) pack.pulsar = parsed.pulsar;
   if (parsed.droneOrbit) pack.droneOrbit = parsed.droneOrbit;

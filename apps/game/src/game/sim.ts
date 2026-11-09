@@ -163,8 +163,13 @@ import { VENGEANCE_SHOT, vengeanceFires } from "./wiki/cited-vengeance.ts";
 import { noteAchieve } from "./wiki/achieve-notes.ts";
 import { noteCrewBlue } from "./wiki/achievement-track.ts";
 
-import { droneLine, grantBonusAugment, grantRandomItem, rollBonusItem } from "./wiki/bonus-item.ts";
-import { CARGO_SLOTS, checkCrewRoom, pendingOverflow, receiveWeapon } from "./wiki/make-room.ts";
+import {
+  droneLine,
+  grantBonusAugment,
+  grantRandomItem,
+  rollBonusItem,
+} from "./rules/bonus-item.ts";
+import { cargoSlots, checkCrewRoom, pendingOverflow, receiveWeapon } from "./rules/make-room.ts";
 import {
   cellsOnSegment,
   clampBeamEnd,
@@ -6335,7 +6340,7 @@ function winCombat(g: Game) {
   // Template:Resources rewards, Low: fuel 1–3, missiles 1–2, drone parts 1.
   // INFERRED: each draw is uniform across the three, and the same resource may be drawn twice.
   // Rewards, "Standard": "roughly a 3% chance to include a bonus weapon, augmentation, or drone schematic."
-  // The roll uses that printed 3 percent; wiki/bonus-item.ts draws which of the three (equal odds, INFERRED).
+  // The roll uses that printed 3 percent; rules/bonus-item.ts draws which of the three (equal odds, INFERRED).
   const resourceKinds = ["fuel", "missiles", "parts"] as const;
   for (let draw = 0; draw < 2; draw++) {
     const kind = resourceKinds[irand(g, resourceKinds.length)];
@@ -6391,7 +6396,7 @@ export function weaponSlotCap(g: Game): number {
 
 /**
  * Crew, and Ship: a player ship carries a maximum of 8 crewmembers.
- * A 9th comes aboard and the player picks who is relieved (wiki/make-room.ts).
+ * A 9th comes aboard and the player picks who is relieved (rules/make-room.ts).
  * Template:Crew races (comparison), Humans: maximum health 100.
  */
 export const CREW_CAP = 8;
@@ -6412,7 +6417,7 @@ function addCrew(g: Game) {
     think: 0,
     tone: g.crew.length % 3,
   });
-  // Crew: a 9th crewmember means relieving one (wiki/make-room.ts).
+  // Crew: a 9th crewmember means relieving one (rules/make-room.ts).
   checkCrewRoom(g);
 }
 
@@ -7972,7 +7977,7 @@ export function buy(g: Game, id: string) {
   if (
     item.kind === "weapon" &&
     g.player.weapons.length >= weaponSlotCap(g) &&
-    (g.cargo?.length ?? 0) >= CARGO_SLOTS
+    (g.cargo?.length ?? 0) >= cargoSlots()
   ) {
     log(g, "No free weapon slot or cargo slot.");
     return;

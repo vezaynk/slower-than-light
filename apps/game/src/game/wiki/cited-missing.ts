@@ -14,7 +14,7 @@ import { affordStock, takeStock } from "./stock-spend.ts";
 import { adjustScrap } from "../extras/index.ts";
 import { beginBoarding, hurtSystem, openStoreHere } from "../sim.ts";
 import type { Beacon, Game, GameEvent, SysId } from "../types.ts";
-import { grantRandomItem, weaponLine } from "./bonus-item.ts";
+import { grantRandomItem, weaponLine } from "../rules/bonus-item.ts";
 import { CRYSTAL_SECTOR_WEAPONS } from "./cited-stores.ts";
 import {
   between,

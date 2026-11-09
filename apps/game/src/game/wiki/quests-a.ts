@@ -15,7 +15,7 @@ import { xpNeedFor } from "../extras/lineage.ts";
 import { enterHiddenCrystal, log, rand, showEventLines } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts";
-import { grantRandomItem } from "./bonus-item.ts";
+import { grantRandomItem } from "../rules/bonus-item.ts";
 import { affordStock, scrapLine, takeStock } from "./stock-spend.ts";
 import {
   addQuest,

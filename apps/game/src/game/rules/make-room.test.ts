@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 import { createGame, halted, weaponSlotCap } from "../sim.ts";
 import {
-  CARGO_SLOTS,
+  cargoCells,
   cargoOf,
+  cargoSlots,
   fitFromCargo,
   pendingOverflow,
   receiveAugment,
@@ -12,7 +14,7 @@ import {
   resolveOverflow,
   stowWeapon,
 } from "./make-room.ts";
-import { joinCrew } from "./surrender.ts";
+import { joinCrew } from "../wiki/surrender.ts";
 
 describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
   it("asks which augmentation to leave behind and swaps the chosen one out", () => {
@@ -31,8 +33,8 @@ describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
   it("puts a weapon with no free slot into cargo, and asks only when the cargo is full too", () => {
     const g = createGame(1);
     while (g.player.weapons.length < weaponSlotCap(g)) receiveWeapon(g, "LASER_BURST_1");
-    for (let i = 0; i < CARGO_SLOTS; i++) assert.equal(receiveWeapon(g, "LASER_BURST_2"), "cargo");
-    assert.equal(cargoOf(g).length, CARGO_SLOTS);
+    for (let i = 0; i < cargoSlots(); i++) assert.equal(receiveWeapon(g, "LASER_BURST_2"), "cargo");
+    assert.equal(cargoOf(g).length, cargoSlots());
     assert.equal(pendingOverflow(g), null);
     assert.equal(receiveWeapon(g, "LASER_HEAVY_1"), "queued");
     assert.deepEqual(pendingOverflow(g), { kind: "weapon", id: "LASER_HEAVY_1" });
@@ -42,7 +44,7 @@ describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
     const full = () => {
       const g = createGame(1);
       while (g.player.weapons.length < weaponSlotCap(g)) receiveWeapon(g, "LASER_BURST_1");
-      for (let i = 0; i < CARGO_SLOTS; i++) receiveWeapon(g, "LASER_BURST_2");
+      for (let i = 0; i < cargoSlots(); i++) receiveWeapon(g, "LASER_BURST_2");
       receiveWeapon(g, "LASER_HEAVY_1");
       return g;
     };
@@ -62,7 +64,7 @@ describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
     const cargo = full();
     resolveOverflow(cargo, "c:2");
     assert.deepEqual(cargoOf(cargo)[2], { kind: "weapon", id: "LASER_HEAVY_1" });
-    assert.equal(cargoOf(cargo).length, CARGO_SLOTS);
+    assert.equal(cargoOf(cargo).length, cargoSlots());
   });
 
   it("moves weapons between the rack and cargo, keeping only a full charge", () => {
@@ -104,5 +106,67 @@ describe("make room (Augmentations, Crew: choose what to leave behind)", () => {
       false,
     );
     assert.equal(pendingOverflow(g), null);
+  });
+});
+
+describe("cargo slots from the gap mod", () => {
+  it("reads FTL's 4 from the loaded gap", () => {
+    assert.equal(cargoSlots(), 4);
+  });
+
+  it("follows a gap file that overrides the hold", () => {
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><cargoSlots slots="1"/></FTL>` }]),
+      "append",
+    );
+    try {
+      assert.equal(cargoSlots(), 1);
+      const g = createGame(1);
+      while (g.player.weapons.length < weaponSlotCap(g)) receiveWeapon(g, "LASER_BURST_1");
+      assert.equal(receiveWeapon(g, "LASER_BURST_2"), "cargo");
+      assert.equal(cargoOf(g).length, 1);
+      assert.equal(receiveWeapon(g, "LASER_HEAVY_1"), "queued");
+      assert.deepEqual(pendingOverflow(g), { kind: "weapon", id: "LASER_HEAVY_1" });
+    } finally {
+      resetPackForTests();
+    }
+    assert.equal(cargoSlots(), 4);
+    const g = createGame(1);
+    while (g.player.weapons.length < weaponSlotCap(g)) receiveWeapon(g, "LASER_BURST_1");
+    for (let i = 0; i < 4; i++) assert.equal(receiveWeapon(g, "LASER_BURST_2"), "cargo");
+    assert.equal(receiveWeapon(g, "LASER_HEAVY_1"), "queued");
+  });
+
+  it("keeps and shows a continued hold over a lowered cap, and refuses a fifth stow", () => {
+    const g = createGame(1);
+    while (g.player.weapons.length < weaponSlotCap(g)) receiveWeapon(g, "LASER_BURST_1");
+    for (const id of ["LASER_BURST_2", "LASER_HEAVY_1", "MISSILES_1"])
+      assert.equal(receiveWeapon(g, id), "cargo");
+    delete g.player.kits.drones;
+    assert.equal(receiveDrone(g, "COMBAT_1"), "cargo");
+    const held = cargoOf(g).map((item) => item.id);
+    assert.equal(held.length, 4);
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><cargoSlots slots="1"/></FTL>` }]),
+      "append",
+    );
+    try {
+      assert.equal(cargoSlots(), 1);
+      assert.deepEqual(
+        cargoOf(g).map((item) => item.id),
+        held,
+      );
+      assert.equal(cargoCells(g), 4);
+      assert.equal(stowWeapon(g, g.player.weapons[0]!.uid), false);
+      assert.equal(receiveWeapon(g, "LASER_BURST_5"), "queued");
+      assert.equal(cargoOf(g).length, 4);
+      // The tail past the cap is still fittable.
+      g.player.weapons.pop();
+      assert.equal(fitFromCargo(g, 2), true);
+      assert.equal(g.player.weapons.at(-1)!.defId, "MISSILES_1");
+      assert.equal(cargoCells(g), 3);
+    } finally {
+      resetPackForTests();
+    }
   });
 });

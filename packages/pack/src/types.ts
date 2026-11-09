@@ -633,6 +633,25 @@ export type AiTarget = {
   artillery?: number;
 };
 
+/**
+ * Gap `<cargoSlots slots>`: how many weapons and drone schematics the cargo hold keeps.
+ * FTL's executable hard-codes 4. A missing value warns and uses 4.
+ */
+export type CargoSlots = {
+  slots?: number;
+};
+
+/**
+ * Gap `<bonusItem weapon augment drone>`: relative weights when a bonus reward draws a weapon, an augmentation, or a
+ * drone schematic. Rewards does not split the three, so each weight is 1. A kind whose pool is empty is not drawn.
+ * Zero is a real weight: that kind is never drawn. A missing weight warns and uses 1.
+ */
+export type BonusItemWeights = {
+  weapon?: number;
+  augment?: number;
+  drone?: number;
+};
+
 /** One bubble band of the asteroid field. `bubbles` 1 is 0–1 bubbles, 2 and 3 are that many, 4 is 4+. */
 export type AsteroidTiming = {
   bubbles: number;
@@ -1286,6 +1305,10 @@ export type ContentPack = {
   escapeTimers?: EscapeTimers;
   /** Enemy weapon targeting numbers. Absent until a pack loads them. */
   aiTarget?: AiTarget;
+  /** Cargo hold size. Absent until a pack loads it. */
+  cargoSlots?: CargoSlots;
+  /** Bonus-item kind weights. Absent until a pack loads them. */
+  bonusItem?: BonusItemWeights;
   /** Asteroid field timings and side chances. Absent until a pack loads them. */
   asteroidField?: AsteroidField;
   /** Pulsar cycle, warning, shield spend, and ion. Absent until a pack loads them. */

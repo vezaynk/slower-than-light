@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { initialStage, relaunchReloads } from "./launch-stage.ts";
+import { initialStage, openingControlLabel, relaunchReloads } from "./launch-stage.ts";
 
 describe("launch stage", () => {
   it("opens setup on a first visit", () => {
@@ -11,6 +11,22 @@ describe("launch stage", () => {
     assert.equal(initialStage({ urlArchive: false, launched: true, launchNow: false }), "booting");
     assert.equal(initialStage({ urlArchive: false, launched: false, launchNow: true }), "booting");
     assert.equal(initialStage({ urlArchive: true, launched: false, launchNow: false }), "booting");
+  });
+
+  it("says Launch on the server and the first paint, and Loading the game files only after a remembered boot", () => {
+    assert.equal(openingControlLabel("setup"), "Launch");
+    assert.equal(
+      openingControlLabel(initialStage({ urlArchive: false, launched: false, launchNow: false })),
+      "Launch",
+    );
+    assert.equal(
+      openingControlLabel(initialStage({ urlArchive: false, launched: true, launchNow: false })),
+      "Loading the game files",
+    );
+    assert.equal(
+      openingControlLabel(initialStage({ urlArchive: true, launched: false, launchNow: false })),
+      "Loading the game files",
+    );
   });
 
   it("reloads a relaunch only when the file order changed", () => {

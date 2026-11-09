@@ -42,16 +42,26 @@ function writeFlag(storage: "local" | "session", key: string): void {
   }
 }
 
-function startStage(): LaunchStage {
+/** Computed once. A strict-mode remount must not take the one-shot session flag a second time. */
+let clientStageOnce: LaunchStage | undefined;
+
+/**
+ * Where this browser should open. Not read when the store is created: the server render and the
+ * first client paint stay on setup, and this runs from a mount effect (GameApp).
+ */
+export function clientStage(): LaunchStage {
+  if (clientStageOnce) return clientStageOnce;
   if (typeof window === "undefined") return "setup";
-  return initialStage({
+  clientStageOnce = initialStage({
     urlArchive: urlArchive() != null,
     launched: readFlag("local", LAUNCHED_KEY),
     launchNow: readFlag("session", LAUNCH_NOW_KEY, true),
   });
+  return clientStageOnce;
 }
 
-export const useLaunch = create<LaunchState>(() => ({ stage: startStage(), ratio: 0 }));
+/** Server render and first paint: setup. A remembered launch is applied after mount. */
+export const useLaunch = create<LaunchState>(() => ({ stage: "setup", ratio: 0 }));
 
 /** True once a launch has succeeded in this browser, so a reload goes straight to the title. */
 export function hasLaunched(): boolean {

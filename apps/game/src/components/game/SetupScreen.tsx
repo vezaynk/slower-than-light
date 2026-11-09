@@ -6,6 +6,7 @@
 import { Kicker } from "@stl/ui";
 import { useState } from "react";
 import { launch, useLaunch } from "@/game/launch";
+import { openingControlLabel } from "@/game/launch-stage";
 import { GameFilesPanel } from "./GameFilesPanel";
 import { PhoneHandoffPanel } from "./PhoneHandoffPanel";
 
@@ -38,7 +39,7 @@ export function BootScreen() {
   const ratio = useLaunch((s) => s.ratio);
   return (
     <section className="setup-boot" aria-busy="true">
-      <LoadBar ratio={ratio} label={"Loading the game files"} />
+      <LoadBar ratio={ratio} label={openingControlLabel("booting")} />
     </section>
   );
 }
@@ -101,10 +102,10 @@ export function SetupScreen() {
         <footer className="setup-launch">
           {error ? <p className="gf-alert">{error}</p> : null}
           {booting ? (
-            <LoadBar ratio={ratio} label={"Loading the game files"} />
+            <LoadBar ratio={ratio} label={openingControlLabel("booting")} />
           ) : (
             <button type="button" className="gf-button is-primary" onClick={() => void launch()}>
-              {"Launch"}
+              {openingControlLabel("setup")}
             </button>
           )}
         </footer>

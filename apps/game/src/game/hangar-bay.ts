@@ -56,19 +56,9 @@ function distinctTitle(row: { id: string; name: string } | undefined): string | 
   return row.name;
 }
 
-/**
- * Flak Artillery's two ids. The stand-in writes `flak-artillery`; ftl.dat writes `ARTILLERY_FED_C`.
- * The hull names one of them. The title is whichever blueprint the loaded archive actually has.
- */
-const FLAK_GUNS = ["ARTILLERY_FED_C", "flak-artillery"];
-
+/** The weapon blueprint's own title. The hull names the gun. */
 function weaponTitle(id: string): string | undefined {
-  const own = weaponDef(id);
-  const titled = distinctTitle(own);
-  if (titled) return titled;
-  if (own || !FLAK_GUNS.includes(id)) return undefined;
-  const other = FLAK_GUNS.find((gun) => gun !== id);
-  return other ? distinctTitle(weaponDef(other)) : undefined;
+  return distinctTitle(weaponDef(id));
 }
 
 /**

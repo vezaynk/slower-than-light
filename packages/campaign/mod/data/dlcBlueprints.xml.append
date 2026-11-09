@@ -309,7 +309,7 @@
   <mod:findName type="weaponBlueprint" name="CRYSTAL_HEAVY_2">
     <mod-overwrite:shotGap>0</mod-overwrite:shotGap>
   </mod:findName>
-  <mod:findName type="weaponBlueprint" name="flak-artillery">
+  <mod:findName type="weaponBlueprint" name="ARTILLERY_FED_C">
     <mod-overwrite:shotGap>0</mod-overwrite:shotGap>
   </mod:findName>
   <mod:findName type="weaponBlueprint" name="ARTILLERY_BOSS_1">

@@ -191,7 +191,7 @@ describe("hangar bay", () => {
   });
 
   it("names an artillery kit from its weapon blueprint title", () => {
-    const gun = weaponDef("flak-artillery");
+    const gun = weaponDef("ARTILLERY_FED_C");
     assert.ok(gun);
     assert.equal(
       hangarBay("PLAYER_SHIP_FED")?.systems.find((system) => system.id === "artillery")?.name,

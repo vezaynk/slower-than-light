@@ -428,7 +428,7 @@ export const WEAPON_LOOKS: Record<string, WeaponLook> = {
     glow: ORANGE,
   },
   // Artillery burst. One heavy stub and four pips, so the drum is not Flak I or II.
-  "flak-artillery": {
+  ARTILLERY_FED_C: {
     frame: "drum",
     barrels: 1,
     reach: 2,

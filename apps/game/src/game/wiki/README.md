@@ -114,8 +114,7 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    unknown id raw, with a warning; stores and random rewards skip a missing or 0 rarity, as FTL's GetRandomAugment
    does, and a store row naming a rarity-0 grant is refused without spending scrap; a sale pays half the blueprint
    cost), Flak Artillery's speed 26
-   (both archives write `<speed>` on it; `projectile-speed.ts` only maps the stand-in's `flak-artillery` id to
-   ftl.dat's `ARTILLERY_FED_C`) and the one-layer pierce set (both archives write `<sp>`). `projectile-speed.ts` and
+   (both archives write `<speed>` on `ARTILLERY_FED_C`) and the one-layer pierce set (both archives write `<sp>`). `projectile-speed.ts` and
    `cited-weapons.ts` now hold only rules (section 3). `skills.ts`: races done. Pirate and other `random` crews, and crew rewards that name no race, draw from
    the current sector's `<rarityList>` over each `crewBlueprint`'s `<rarity>`, weighted `6 - rarity` (FTL's
    GetRandomCrew; the rule is `game/rarity.ts`). The stand-in writes Hidden Crystal Worlds' list too. The skill speed

@@ -99,7 +99,7 @@ export const POWER_BARS: Record<FlakLevel, number> = {
  * Speed 60 stays 0.7s, so this flight is 42/26 seconds. Read when the burst is fired.
  */
 function flightSeconds(): number {
-  return projectileFlightSeconds("flak-artillery") ?? LASER_FLIGHT_S;
+  return projectileFlightSeconds("ARTILLERY_FED_C") ?? LASER_FLIGHT_S;
 }
 
 function blank(level: FlakLevel): Kit {
@@ -272,7 +272,7 @@ function tickShip(g: Game, ship: Ship, from: "player" | "enemy", dt: number): vo
       id: nextId(g),
       kind: "flak",
       from,
-      defId: "flak-artillery",
+      defId: "ARTILLERY_FED_C",
       damage: DAMAGE,
       ion: 0,
       fireChance: 0,
@@ -431,7 +431,7 @@ function spreadRooms(
       out.push({ roomId: aim, offRoom: false });
       continue;
     }
-    const land = flakLanding(rooms, aim, rand(g), flakScatterRadius("flak-artillery", 35));
+    const land = flakLanding(rooms, aim, rand(g), flakScatterRadius("ARTILLERY_FED_C", 35));
     if (land.kind === "miss") out.push({ roomId: aim, offRoom: true });
     else if (land.kind === "room") out.push({ roomId: land.roomId, offRoom: false });
     else out.push({ roomId: aim, offRoom: false });

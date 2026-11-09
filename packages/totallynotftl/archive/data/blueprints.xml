@@ -4544,7 +4544,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
       <sound>miss</sound>
     </missSounds>
   </weaponBlueprint>
-  <weaponBlueprint name="flak-artillery">
+  <weaponBlueprint name="ARTILLERY_FED_C">
     <type>BURST</type>
     <title>Flak Artillery</title>
     <short>Flak Artillery</short>
@@ -4563,9 +4563,9 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <radius>35</radius>
     <spin>720</spin>
     <drone_targetable>1</drone_targetable>
-    <weaponArt>flak-artillery</weaponArt>
-    <image>flak-artillery_shot</image>
-    <iconImage>img/weapons/flak-artillery.png</iconImage>
+    <weaponArt>ARTILLERY_FED_C</weaponArt>
+    <image>ARTILLERY_FED_C_shot</image>
+    <iconImage>img/weapons/ARTILLERY_FED_C.png</iconImage>
     <rarity>0</rarity>
     <launchSounds>
       <sound>lightLaser1</sound>

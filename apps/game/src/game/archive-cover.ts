@@ -118,7 +118,7 @@ import { mixBeacons } from "./wiki/beacon-mix.ts";
 import { citedOwns } from "./wiki/cited-events.ts";
 import { emptyPageFor } from "./wiki/filler-events.ts";
 import { receiveAugment } from "./rules/make-room.ts";
-import { surrenderPlan } from "./wiki/surrender.ts";
+import { surrenderPlan } from "./rules/surrender.ts";
 import { playerShipIds } from "./unlocks.ts";
 
 /** `text-<code>.xml`, including a hyphenated locale such as `text-zh-Hans.xml`. */

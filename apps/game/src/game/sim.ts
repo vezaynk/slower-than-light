@@ -279,15 +279,14 @@ import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./rules/cited-zoltan-power.ts";
 
 import { escapePlan, eventSlugOf, hullRunSeconds, overtakenArrivalEscape } from "./rules/escape.ts";
-// @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
+import { surrenderPlan, surrenderTick } from "./rules/surrender.ts";
+// @agent:surrender. Enemy surrender offers. The when-rule is rules/surrender.ts.
 import {
   joinCrew,
   randomRace,
   resourceBand,
   scrapBand,
   surrenderChoose,
-  surrenderPlan,
-  surrenderTick,
 } from "./wiki/surrender.ts";
 import { markRuwenEntry } from "./wiki/ruwen-entry.ts";
 // @agent:filler. Documented events for plain beacons.
@@ -6802,7 +6801,7 @@ export function startCombat(
   ) {
     g.enemyEscape = overtakenArrivalEscape();
   }
-  // @agent:surrender. Enemy Ships: "Enemies may also surrender after dropping below a hull threshold." wiki/surrender.ts.
+  // @agent:surrender. Enemy Ships: "Enemies may also surrender after dropping below a hull threshold." rules/surrender.ts.
   g.enemySurrender = surrenderPlan(
     { tier, event, faction: built.ship.faction, pirate: built.ship.pirate },
     () => rand(g),

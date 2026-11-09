@@ -8,7 +8,8 @@ import { choose, commitJump, createGame, rand, startCombat, step } from "../sim.
 import type { Game } from "../types.ts";
 import "./base.ts";
 import { overtaken } from "../wiki/sector-map.ts";
-import { ACCEPT_ID, REFUSE_ID, surrenderTick } from "../wiki/surrender.ts";
+import { surrenderTick } from "../rules/surrender.ts";
+import { ACCEPT_ID, REFUSE_ID } from "../wiki/surrender.ts";
 
 const XML = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>

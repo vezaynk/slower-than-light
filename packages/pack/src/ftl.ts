@@ -33,6 +33,7 @@ import type {
   SectorRarity,
   EmptyBeaconDef,
   EscapeTimers,
+  Stalemate,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -75,6 +76,7 @@ import {
   readChoiceGates,
   readEvent,
   readEscapeTimers,
+  readStalemate,
   readAiTarget,
   readOverchargerWaits,
   readIonIntruder,
@@ -131,6 +133,7 @@ export type FtlTextFile = {
  * A `<facts/>` marker and a `<names>` list are kept.
  * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender- and escape-only `<shipBlueprint>` is kept.
  * A root `<escapeTimers>` is a private tag FTL ignores: the escape timers its executable hard-codes.
+ * A root `<stalemate>` is a private tag FTL ignores: the anti-stalemate break-off its executable hard-codes.
  * A root `<aiTarget>` is a private tag FTL ignores: the enemy targeting numbers its executable hard-codes.
  * A root `<overchargerWaits>`, `<ionIntruder>`, or `<crystalVengeance>` is the same kind of tag: layer waits, the
  * ion intruder's pulse, and the crystal vengeance shard. Power and speed stay on the droneBlueprint.
@@ -173,6 +176,7 @@ export function packFromFtl(
   let rewards: RewardTable | undefined;
   let beaconEvents: BeaconEvents | undefined;
   let escapeTimers: EscapeTimers | undefined;
+  let stalemate: Stalemate | undefined;
   let aiTarget: AiTarget | undefined;
   let overchargerWaits: OverchargerWaits | undefined;
   let ionIntruder: IonIntruderRule | undefined;
@@ -259,6 +263,8 @@ export function packFromFtl(
         beaconEvents = { ...beaconEvents, ...readBeaconEvents(node) };
       } else if (node.tagName === "escapeTimers") {
         escapeTimers = { ...escapeTimers, ...readEscapeTimers(node) };
+      } else if (node.tagName === "stalemate") {
+        stalemate = { ...stalemate, ...readStalemate(node) };
       } else if (node.tagName === "aiTarget") {
         aiTarget = { ...aiTarget, ...readAiTarget(node) };
       } else if (node.tagName === "overchargerWaits") {
@@ -332,6 +338,7 @@ export function packFromFtl(
   if (factions.rows.length > 0) pack.factions = factions.rows;
   if (escapes.rows.length > 0) pack.escapes = escapes.rows;
   if (escapeTimers) pack.escapeTimers = escapeTimers;
+  if (stalemate) pack.stalemate = stalemate;
   if (aiTarget) pack.aiTarget = aiTarget;
   if (overchargerWaits) pack.overchargerWaits = overchargerWaits;
   if (ionIntruder) pack.ionIntruder = ionIntruder;

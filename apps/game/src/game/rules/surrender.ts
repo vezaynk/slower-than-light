@@ -189,6 +189,12 @@ function ratio(g: Game): number {
   return (ship.hull / Math.max(1, ship.hullMax)) * 100;
 }
 
+/** The break-off line. "A minute" is the loaded 60s; any other gap duration says how long it was. */
+function quietSpan(seconds: number): string {
+  if (seconds === 60) return "A minute";
+  return `${seconds} ${seconds === 1 ? "second" : "seconds"}`;
+}
+
 /**
  * One combat tick, run before enemyEscapeStep. Returns true when the tick opened an offer or ended the fight,
  * so the rest of step should not run.
@@ -258,9 +264,10 @@ export function stalemateTick(g: Game, h: number): boolean {
   // "the fight will end by granting you 2 fuel." INFERRED: no scrap, and it does not count as a kill.
   // Gap `<stalemate fuel>`.
   const fuel = stalemateStat("fuel");
+  const seconds = stalemateStat("seconds");
   closeFight(g);
   g.fuel += fuel;
-  log(g, `A minute without a hit. The fight breaks off. +${fuel} fuel.`);
+  log(g, `${quietSpan(seconds)} without a hit. The fight breaks off. +${fuel} fuel.`);
   g.reward = {
     scrap: 0,
     note: "Neither ship can finish it. Both crews break off.",

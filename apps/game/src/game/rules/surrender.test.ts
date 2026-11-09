@@ -68,6 +68,7 @@ describe("surrender numbers from the gap mod", () => {
       assert.equal(g.enemy, null);
       assert.equal(g.fuel, fuel + 2);
       assert.equal(g.reward?.res?.fuel, 2);
+      assert.ok(g.log.includes("1 second without a hit. The fight breaks off. +2 fuel."));
       assert.equal(stalemateStat("threshold"), 40);
       assert.equal(stalemateStat("fuel"), 2);
     } finally {
@@ -82,5 +83,48 @@ describe("surrender numbers from the gap mod", () => {
     assert.equal(after.phase, "combat");
     assert.equal(after.fuel, fuel);
     assert.equal(stalemateStat("seconds"), 60);
+  });
+
+  it("stays in the fight when hull is above the gap threshold", () => {
+    loadPack(
+      packFromFtl([
+        { path: "data/gap.xml", xml: `<FTL><stalemate threshold="20" seconds="1"/></FTL>` },
+      ]),
+      "append",
+    );
+    try {
+      const g = quietFight();
+      g.enemySurrender!.chance = 0;
+      g.enemyEscape!.mode = "never";
+      g.enemy!.hull = Math.max(1, Math.floor(g.enemy!.hullMax * 0.3));
+      const pct = (g.enemy!.hull / g.enemy!.hullMax) * 100;
+      assert.ok(pct >= 20 && pct < 40, `hull percent ${pct}`);
+      run(g, 3);
+      assert.equal(g.phase, "combat");
+      assert.equal(g.reward, null);
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("pays the gap's fuel on the counter and the card", () => {
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><stalemate seconds="1" fuel="5"/></FTL>` }]),
+      "append",
+    );
+    try {
+      const g = quietFight();
+      const fuel = g.fuel;
+      g.enemySurrender!.chance = 0;
+      g.enemyEscape!.mode = "never";
+      g.enemy!.hull = Math.max(1, Math.floor(g.enemy!.hullMax * 0.3));
+      run(g, 2);
+      assert.equal(g.phase, "reward");
+      assert.equal(g.fuel, fuel + 5);
+      assert.equal(g.reward?.res?.fuel, 5);
+      assert.ok(g.log.includes("1 second without a hit. The fight breaks off. +5 fuel."));
+    } finally {
+      resetPackForTests();
+    }
   });
 });

@@ -214,6 +214,7 @@ export const PAGE_SHIPS: Readonly<Record<string, string>> = {
   "c:pirate-ship-attacking-civilian-distress:0": "PIRATE_NO_ESCAPE",
   "c:pirate-ship-attacking-civilian:0": "PIRATE_NO_ESCAPE",
   "c:pirate-engine-hacker:0": "PIRATE_NO_ESCAPE",
+  "c:pirate-engine-hacker:1": "PIRATE_NO_ESCAPE",
   "c:lanius-ship-attacking-civilian-distress:0": "LANIUS_NO_ESCAPE",
   "c:lanius-ship-attacking-civilian:0": "LANIUS_NO_ESCAPE",
   "c:lanius-ship-attacking-rock:0": "LANIUS_NO_ESCAPE",

@@ -1405,7 +1405,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <choice name="c:pirate-engine-hacker:1" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="PIRATE"/>
+      <ship hostile="true" load="PIRATE_NO_ESCAPE"/>
     </choice>
   </event>
   <event name="PIRATE">

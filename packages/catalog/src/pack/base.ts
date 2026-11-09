@@ -1145,6 +1145,17 @@ function renameEvent(event: EventDef, ids: Map<string, string>): EventDef {
   return { ...event, id, flag: id, aliases, choices: mapChoices(event.choices, ids) };
 }
 
+/** Pages whose ftl.dat event carries `<environment type="sun">`. */
+const SUN_EVENTS = new Set([
+  "AUTO_SUN",
+  "MANTIS_SUN_FIGHT",
+  "PIRATE_SUN",
+  "ROCK_PIRATE_SUN",
+  "BOARDERS_SUN",
+  "ROCK_BOARDERS_SUN",
+  "arrive-rock-sun",
+]);
+
 const STORE_PAGE: EventDef = {
   id: "STORE",
   dest: "Store",
@@ -1218,6 +1229,16 @@ function campaignEvents(): EventDef[] {
     if (seen.has(event.id)) continue;
     seen.add(event.id);
     named.push(event);
+  }
+  // ftl.dat writes `<environment type="sun">` on these pages. The flare clock stays in the executable.
+  // quest-rock-sun is the fight slug for the Sun Quest Marker. That section has no datafile id of its own;
+  // the arrival page is the event that carries the sun.
+  for (const event of named) {
+    if (!SUN_EVENTS.has(event.id)) continue;
+    event.environment = { type: "sun" };
+    if (event.id === "arrive-rock-sun" && !event.aliases.includes("quest-rock-sun")) {
+      event.aliases = [...event.aliases, "quest-rock-sun"];
+    }
   }
   return named;
 }
@@ -1340,6 +1361,95 @@ const EXIT_LIST = {
   ],
 };
 
+/**
+ * No fuel: wait fail. The lines are the page's `<text>` list. Continue leaves the beacon unresolved.
+ * Distress off is weight 4 on NO_FUEL (4/11 = 36.4%). Distress on is weight 2 on NO_FUEL_DISTRESS (2/12 = 16.7%).
+ */
+function fuelNothing(id: string, dest: string, lines: readonly string[]): EventDef {
+  return {
+    id,
+    dest,
+    flag: id,
+    aliases: [dest],
+    sectors: [],
+    body: lines[0] ?? "",
+    texts: [...lines],
+    choices: [{ id: "fuel-wait-done", label: "Continue...", fx: [{ k: "nothing" }] }],
+  };
+}
+
+const FUEL_NOTHING = fuelNothing("FUEL_NOTHING", "No fuel: wait fail (distress off)", [
+  "No ship is in scanning range and no one arrives at the beacon.",
+  "Your waiting yields nothing while the fleet surely gets closer...",
+  "A freighter suddenly arrives nearby. They are so close you can almost wave at them, but your hails are ignored and the ship quickly jumps away.",
+  "Small traffic passes within a short distance of you, but no one responds to your hails.",
+  "The only ship within hailing range appears to be a civilian vessel. However, it quickly leaves once it picks up your signal.",
+  "As you wait, a small asteroid storm pelts softly against your shields and hull.",
+  "You begin to wonder if turning on the beacon would be worth the risk of detection. The fleet slowly approaches.",
+  "You contemplate the vastness of space.",
+  "The prolonged wait in empty space is causing tension among the crew. Still no contact.",
+  "Cabin fever begins to spread among your crew.",
+  "Long range scanners detect a small settlement, but they refuse all contact.",
+]);
+
+const FUEL_NOTHING_DISTRESS = fuelNothing(
+  "FUEL_NOTHING_DISTRESS",
+  "No fuel: wait fail (distress on)",
+  [
+    "You contemplate that it is fortunate the ship's life support system does not rely on FTL fuel cells.",
+    "Nothing happens. Your calls go unanswered.",
+    "The distress beacon's light is the only movement visible outside the ship.",
+    "No ships jump into the sector...",
+    "A few passing ships seem oblivious to your distress call and ignore all hails.",
+    "A few civilian ships are within scanning range, yet none respond to your calls.",
+    "No ships pass through the area.",
+  ],
+);
+
+/** One list row. unique is false: a fuel page can be drawn again. */
+function fuelRow(id: string): { id: string; unique: boolean } {
+  return { id, unique: false };
+}
+
+/**
+ * ftl.dat's out-of-fuel lists. The executable picks the list from the distress beacon.
+ * A repeated row is that page's weight. Off: nothing 4/11, fleet delay 1/11. On: nothing 2/12.
+ */
+const NO_FUEL_LIST: FillerListDef = {
+  id: "NO_FUEL",
+  entries: [
+    fuelRow("FUEL_FLEET_DELAY"),
+    fuelRow("FUEL_NOTHING"),
+    fuelRow("FUEL_NOTHING"),
+    fuelRow("FUEL_NOTHING"),
+    fuelRow("FUEL_NOTHING"),
+    fuelRow("FUEL_TRADER"),
+    fuelRow("FUEL_EXPLORE"),
+    fuelRow("FUEL_APPROACH"),
+    fuelRow("FUEL_OFF_ENGI_DUBIOUS"),
+    fuelRow("FUEL_OFF_ROCK_WRECK"),
+    fuelRow("NO_FUEL_REFUGEE_FRIENDLY"),
+  ],
+};
+
+const NO_FUEL_DISTRESS_LIST: FillerListDef = {
+  id: "NO_FUEL_DISTRESS",
+  entries: [
+    fuelRow("FUEL_NOTHING_DISTRESS"),
+    fuelRow("FUEL_NOTHING_DISTRESS"),
+    fuelRow("FUEL_SELLER_DISTRESS"),
+    fuelRow("FUEL_TRADER_DISTRESS"),
+    fuelRow("FUEL_EXPLORE"),
+    fuelRow("FUEL_APPROACH"),
+    fuelRow("FUEL_ON_SLUG_OVERPRICED"),
+    fuelRow("FUEL_ON_SLUG_CHUCKLE"),
+    fuelRow("FUEL_ON_MANTIS_ATTACK"),
+    fuelRow("FUEL_ON_REBEL_WARNING"),
+    fuelRow("FUEL_ON_REBEL_ATTACK"),
+    fuelRow("NO_FUEL_REFUGEE"),
+  ],
+};
+
 export function loadCatalog(): void {
   const named = campaignEvents();
   const empties = emptyBeaconRecords().map(emptyRow);
@@ -1350,7 +1460,13 @@ export function loadCatalog(): void {
   if (!events.some((event) => event.id === "STORE_REBELSIDE")) events.push(REBEL_TRADE);
   // After the sector quotas, so the empty list is not mistaken for one of them.
   events.push(STANDIN_GATES);
-  for (const page of [START_PAGE, FINISH_PAGE, FINISH_NEBULA_PAGE])
+  for (const page of [
+    START_PAGE,
+    FINISH_PAGE,
+    FINISH_NEBULA_PAGE,
+    FUEL_NOTHING,
+    FUEL_NOTHING_DISTRESS,
+  ])
     if (!events.some((event) => event.id === page.id)) events.push(page);
   for (const event of events) loadShipEvents(event);
   loadPack(
@@ -1410,6 +1526,8 @@ export function loadCatalog(): void {
         ...fillerListRecords().map(listRow),
         ...lists,
         EXIT_LIST,
+        NO_FUEL_LIST,
+        NO_FUEL_DISTRESS_LIST,
         { id: "STANDIN_EMPTY", entries: [] },
       ],
       beaconEvents: { ...BEACON_EVENTS },

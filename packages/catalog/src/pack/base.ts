@@ -43,12 +43,14 @@ import { FLAGSHIP_STAGES, type FlagshipStage } from "../wiki/flagship-stages.ts"
 import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
+import { STALEMATE } from "../wiki/surrender-rules.ts";
 import { AI_TARGET } from "../wiki/targeting-rules.ts";
 import { CRYSTAL_VENGEANCE, ION_INTRUDER, OVERCHARGER_WAITS } from "../wiki/augment-rules.ts";
 import { BONUS_ITEM_WEIGHTS, CARGO_SLOTS } from "../wiki/rack-rules.ts";
 import { ASTEROID_FIELD } from "../wiki/asteroid-rules.ts";
 import { PULSAR_RULES } from "../wiki/pulsar-rules.ts";
 import { DRONE_ORBIT } from "../wiki/drone-orbit.ts";
+import { SECTOR_MAP } from "../wiki/sector-map-rules.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
@@ -1513,6 +1515,7 @@ export function loadCatalog(): void {
       factions: FACTION_SURRENDER.map((row) => ({ ...row })),
       escapes: FACTION_ESCAPE.map((row) => ({ ...row })),
       escapeTimers: { ...ESCAPE_TIMERS },
+      stalemate: { ...STALEMATE },
       aiTarget: { ...AI_TARGET },
       overchargerWaits: { ...OVERCHARGER_WAITS },
       ionIntruder: { ...ION_INTRUDER },
@@ -1534,6 +1537,7 @@ export function loadCatalog(): void {
       },
       pulsar: { ...PULSAR_RULES },
       droneOrbit: { ...DRONE_ORBIT },
+      sectorMap: { ...SECTOR_MAP },
       events,
       lists: [
         ...fillerListRecords().map(listRow),

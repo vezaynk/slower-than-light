@@ -115,6 +115,7 @@ const pack: ContentPack = {
     { id: "lanius", chance: 80, min: 20, max: 40 },
   ],
   escapeTimers: { hull: 15, lastFuel: 90 },
+  stalemate: { threshold: 40, seconds: 60, fuel: 2 },
   aiTarget: {
     easy: 0.2,
     normal: 0.33,
@@ -159,6 +160,34 @@ const pack: ContentPack = {
     firePause: 0.5,
     beamHold: 0.5,
   },
+  sectorMap: {
+    cols: 6,
+    rows: 4,
+    cell: 110,
+    margin: 28,
+    empty: 0.2,
+    yMax: 415,
+    topRightY: 30,
+    link: 165,
+    dangerRadius: 767,
+    startX: -959,
+    step: 64,
+    dangerYMin: 50,
+    dangerYMax: 300,
+    exitColMin: 4,
+    exitColMax: 5,
+    exitMinJumps: 5,
+    tries: 16,
+    fedColMin: 2,
+    fedColMax: 3,
+    fedHardColMin: 3,
+    fedHardColMax: 4,
+    fedJumps: 4,
+    fedHardJumpsMin: 5,
+    fedHardJumpsMax: 6,
+    flagshipJumpsMin: 3,
+    flagshipJumpsMax: 5,
+  },
   empties: [
     {
       id: "ember-quiet",
@@ -199,6 +228,7 @@ describe("hyperspace mod", () => {
     assert.match(xml, /<shipBlueprint name="rebel">\s*<surrender chance="50" min="20" max="30"\/>/);
     assert.match(xml, /<escape chance="80" min="20" max="40"\/>/);
     assert.match(xml, /<escapeTimers hull="15" lastFuel="90"\/>/);
+    assert.match(xml, /<stalemate threshold="40" seconds="60" fuel="2"\/>/);
     assert.match(
       xml,
       /<aiTarget easy="0.2" normal="0.33" hardRoom="0.5" hardAny="0.25" evasion="25" oxygen="50" artillery="4"\/>/,
@@ -224,6 +254,10 @@ describe("hyperspace mod", () => {
       xml,
       /<droneOrbit minSep="90" speedScale="21.875" stopRadius="1.15" firePause="0.5" beamHold="0.5"\/>/,
     );
+    assert.match(xml, /<sectorMap /);
+    assert.match(xml, /margin="28"/);
+    assert.match(xml, /startX="-959"/);
+    assert.match(xml, /flagshipJumpsMax="5"/);
     assert.deepEqual(packFromMod(xml), pack);
   });
 

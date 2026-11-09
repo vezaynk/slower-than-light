@@ -4,7 +4,7 @@ import { choiceDisabled, choose, createGame, weaponSlotCap } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
-import { surrenderPlan } from "./surrender.ts";
+import { surrenderPlan } from "../rules/surrender.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

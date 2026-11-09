@@ -147,6 +147,8 @@ export {
   allFactionEscapes,
   escapeTimer,
   escapeTimers,
+  stalemate,
+  stalemateStat,
   aiTarget,
   aiTargets,
   overchargerWaits,
@@ -168,6 +170,8 @@ export {
   pulsarRule,
   droneOrbitRules,
   droneOrbit,
+  sectorMapRules,
+  sectorMap,
 } from "./registry.ts";
 export { localeString, packLocales } from "./locales.ts";
 export type {
@@ -213,6 +217,7 @@ export type {
   EventTier,
   AiTarget,
   EscapeTimers,
+  Stalemate,
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
@@ -223,6 +228,7 @@ export type {
   AsteroidTiming,
   PulsarRules,
   DroneOrbit,
+  SectorMap,
   FactionEscape,
   FactionSurrender,
   NamedReward,

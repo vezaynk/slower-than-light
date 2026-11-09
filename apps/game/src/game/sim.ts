@@ -152,7 +152,8 @@ import {
   pickFlagship,
   populateGrid,
   rollDangerY,
-} from "./wiki/sector-map.ts";
+  startRow,
+} from "./rules/sector-map.ts";
 import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
 import {
   chainChargeSeconds,
@@ -281,15 +282,14 @@ import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./rules/cited-zoltan-power.ts";
 
 import { escapePlan, eventSlugOf, hullRunSeconds, overtakenArrivalEscape } from "./rules/escape.ts";
-// @agent:surrender. Enemy surrender offers and the anti-stalemate rule.
+import { surrenderPlan, surrenderTick } from "./rules/surrender.ts";
+// @agent:surrender. Enemy surrender offers. The when-rule is rules/surrender.ts.
 import {
   joinCrew,
   randomRace,
   resourceBand,
   scrapBand,
   surrenderChoose,
-  surrenderPlan,
-  surrenderTick,
 } from "./wiki/surrender.ts";
 import { markRuwenEntry } from "./wiki/ruwen-entry.ts";
 // @agent:filler. Documented events for plain beacons.
@@ -6842,7 +6842,7 @@ export function startCombat(
   ) {
     g.enemyEscape = overtakenArrivalEscape();
   }
-  // @agent:surrender. Enemy Ships: "Enemies may also surrender after dropping below a hull threshold." wiki/surrender.ts.
+  // @agent:surrender. Enemy Ships: "Enemies may also surrender after dropping below a hull threshold." rules/surrender.ts.
   g.enemySurrender = surrenderPlan(
     { tier, event, faction: built.ship.faction, pirate: built.ship.pirate },
     () => rand(g),
@@ -7220,7 +7220,7 @@ function burnLegacyMap(g: Game): boolean {
 }
 
 // Sectors, lead: a sector contains 19 to 24 beacons. The grid, links, exit, and Last Stand seats are xftl
-// doc/sector-map (wiki/sector-map.ts).
+// doc/sector-map (rules/sector-map.ts).
 function makeMap(g: Game) {
   const seed0 = g.seed;
   const picket = burnLegacyMap(g);
@@ -7243,10 +7243,11 @@ function makeMap(g: Game) {
   }));
   connectGrid(beacons);
   const inCol = (col: number) => beacons.filter((b) => b.col === col);
-  // INFERRED: the start is the left column's beacon nearest the middle. The notes do not place it.
+  // INFERRED: the start is the left column's beacon nearest the middle of the loaded grid.
   const firstCol = Math.min(...beacons.map((b) => b.col));
+  const mid = startRow();
   const start = [...inCol(firstCol)].sort(
-    (a, b) => Math.abs(a.row - 1.5) - Math.abs(b.row - 1.5) || a.row - b.row,
+    (a, b) => Math.abs(a.row - mid) - Math.abs(b.row - mid) || a.row - b.row,
   )[0];
   start.kind = "start";
   start.visited = true;
@@ -7595,7 +7596,7 @@ export function commitJump(g: Game, id: string) {
   g.jumps += 1;
   sfx(g, "jumpLeave");
   // Score, b: "Visiting a beacon controlled by rebels or about to be controlled by rebels does NOT increase the count."
-  // Controlled is inside the danger circle (wiki/sector-map.ts). INFERRED: "about to be" is inside it once this jump's
+  // Controlled is inside the danger circle (rules/sector-map.ts). INFERRED: "about to be" is inside it once this jump's
   // fleet advance lands. Sector 8 has no fleet circle (the Flagship rules there are not modelled here).
   const held =
     g.sector < 8 &&

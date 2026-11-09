@@ -8,7 +8,7 @@ import { canJumpTo, choose, commitJump, continueReward, createGame } from "../si
 import type { Game } from "../types.ts";
 import { playerShipIds } from "../unlocks.ts";
 import { QUEST_CANCELLED } from "../wiki/quests.ts";
-import { overtaken } from "../wiki/sector-map.ts";
+import { overtaken } from "../rules/sector-map.ts";
 
 const XML = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>

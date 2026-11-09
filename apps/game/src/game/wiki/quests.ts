@@ -53,7 +53,7 @@ import { locksOwned, ownedLock, eventMissileWeapon } from "./choice-locks.ts";
 import { priceBand, priced, rollPrice } from "./event-prices.ts";
 import { rollBand, upgradeRows } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
-import { fleetToReach, jumpsBetween, overtaken } from "./sector-map.ts";
+import { fleetToReach, jumpsBetween, overtaken } from "../rules/sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
 import { laniusTraderOfferText, laniusTraderTakeId, rollLaniusTrader } from "./cited-events.ts";
 import { RUWEN_ENTRY } from "./ruwen-entry.ts";
@@ -162,7 +162,7 @@ const KEEP_FLAGS = new Set([
  * argument is set, the number of jumps away from the player must be less than the number of jumps until this quest is
  * overtaken by the rebels" ("force ... is true when adding quests delayed from a previous sector").
  * Beacons, "Quest (marker) beacon": "A quest marker cannot appear in nebula area".
- * INFERRED: jumps until overtaken count normal 64px fleet steps (wiki/sector-map.ts fleetToReach). The boss beacon and
+ * INFERRED: jumps until overtaken count normal 64px fleet steps (rules/sector-map.ts fleetToReach). The boss beacon and
  * the KEEP_FLAGS pages are also kept clear.
  */
 function canHold(g: Game, b: Beacon, from: Beacon | undefined, force: boolean): boolean {

@@ -114,9 +114,9 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
   {
     id: "CRYSTAL_BURST_1",
     name: "Crystal Burst Mark I",
-    // Shards are projectiles. WeaponKind has no crystal kind.
-    // kind "laser" is the closest stored kind and pierce is NOT modeled by kind.
-    kind: "laser",
+    // ftl.dat types this MISSILES. It spends no ammo, so ammo stays false.
+    // Shield passing is `<sp>1` (pack/base.ts), not the kind. A defense drone still shoots a missile-kind shot.
+    kind: "missile",
     // Crystal (Weapons) "Crystal Burst Mark I": 2 power, 15s, 2 shots, 1 damage, purchase price 20.
     power: 2,
     charge: 15,
@@ -138,8 +138,8 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
   {
     id: "CRYSTAL_BURST_2",
     name: "Crystal Burst Mark II",
-    // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
-    kind: "laser",
+    // Same stored kind as Crystal Burst Mark I: missile, no ammo. Pierce is `<sp>`, not the kind.
+    kind: "missile",
     // Crystal (Weapons) "Crystal Burst Mark II": 3 power, 17s, 3 shots, 1 damage, purchase price 20.
     power: 3,
     charge: 17,
@@ -158,8 +158,8 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
   {
     id: "CRYSTAL_HEAVY_1",
     name: "Heavy Crystal Mark I",
-    // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
-    kind: "laser",
+    // Same stored kind as Crystal Burst Mark I: missile, no ammo. Pierce is `<sp>`, not the kind.
+    kind: "missile",
     // Crystal (Weapons) "Heavy Crystal Mark I": 1 power, 13s, 1 shot, 2 damage, purchase price 20.
     power: 1,
     charge: 13,
@@ -179,8 +179,8 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
   {
     id: "CRYSTAL_HEAVY_2",
     name: "Heavy Crystal Mark II",
-    // Same stored kind as Crystal Burst Mark I. Pierce is NOT modeled by kind.
-    kind: "laser",
+    // Same stored kind as Crystal Burst Mark I: missile, no ammo. Pierce is `<sp>`, not the kind.
+    kind: "missile",
     // Crystal (Weapons) "Heavy Crystal Mark II": 3 power, 19s, 1 shot, 4 damage, purchase price 20.
     power: 3,
     charge: 19,
@@ -233,22 +233,22 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
   {
     id: "CRYSTAL_BURST_1",
     pierce: 1,
-    note: 'Crystal (Weapons) "Crystal Burst Mark I": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 1.',
+    note: 'Crystal (Weapons) "Crystal Burst Mark I": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. kind is "missile", matching ftl.dat, and ammo is false so the shot does not skip every layer. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 1.',
   },
   {
     id: "CRYSTAL_BURST_2",
     pierce: 1,
-    note: 'Crystal (Weapons) "Crystal Burst Mark II": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 4.',
+    note: 'Crystal (Weapons) "Crystal Burst Mark II": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. kind is "missile", matching ftl.dat, and ammo is false so the shot does not skip every layer. Effect: low chance of breach; no percent is given. Low chance to stun crew; no percent is given. Store rarity 4.',
   },
   {
     id: "CRYSTAL_HEAVY_1",
     pierce: 1,
-    note: 'Crystal (Weapons) "Heavy Crystal Mark I": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: low chance of breach; no percent is given. Moderate-low chance to stun crew; no percent is given. Store rarity 2.',
+    note: 'Crystal (Weapons) "Heavy Crystal Mark I": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. kind is "missile", matching ftl.dat, and ammo is false so the shot does not skip every layer. Effect: low chance of breach; no percent is given. Moderate-low chance to stun crew; no percent is given. Store rarity 2.',
   },
   {
     id: "CRYSTAL_HEAVY_2",
     pierce: 1,
-    note: 'Crystal (Weapons) "Heavy Crystal Mark II": pierce one shield layer. WeaponDef has no pierce field, so kind "laser" does not apply pierce. Effect: guaranteed breach, stored as breach 1. Moderate-low chance to stun crew; no percent is given. Store rarity 5.',
+    note: 'Crystal (Weapons) "Heavy Crystal Mark II": pierce one shield layer. WeaponDef has no pierce field; the blueprint writes `<sp>1</sp>`. kind is "missile", matching ftl.dat, and ammo is false so the shot does not skip every layer. Effect: guaranteed breach, stored as breach 1. Moderate-low chance to stun crew; no percent is given. Store rarity 5.',
   },
 ];
 

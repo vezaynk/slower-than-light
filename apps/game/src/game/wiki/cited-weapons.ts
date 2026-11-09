@@ -42,9 +42,8 @@ export function systemlessHull(defId: string | undefined): number | null {
 /**
  * Shield layers the shot bypasses: the blueprint's `<sp>`. A weapon without one pierces nothing.
  * Shields: Crystal weapons and Heavy Pierce bypass 1 shield layer; both archives write `<sp>1</sp>` on them.
- * The shield check (sim.ts applyImpact) reads this only for non-missile shots. Heavy Pierce is a laser in both
- * archives. The stand-in writes the crystal guns as lasers, so they stop on a second layer; ftl.dat writes them as
- * MISSILES, and a missile-kind shot passes every layer whatever its `<sp>`.
+ * applyImpact reads this for every shot. Kind does not skip the bubble. An ammo missile writes `<sp>5</sp>`,
+ * so it passes every ordinary layer. Crystal guns are missiles with no ammo and `<sp>1</sp>`, so a second layer stops them.
  */
 export function citedPierce(defId: string | undefined): number {
   return (defId ? weaponDef(defId)?.pierce : undefined) ?? 0;

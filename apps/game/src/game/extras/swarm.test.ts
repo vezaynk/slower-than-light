@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { weaponDef } from "@stl/pack";
 import { onPlayerJump } from "./index.ts";
 import {
   applyImpact,
@@ -153,6 +154,19 @@ describe("drones", () => {
     assert.equal(swarmIntercept(g, { kind: "laser", from: "enemy" }), false);
     assert.equal(kit.cool, 0);
     assert.equal(swarmIntercept(g, { kind: "missile", from: "enemy" }), true);
+  });
+
+  it("shoots a crystal burst, which ftl.dat types as a missile", () => {
+    const g = createGame(7);
+    place(g);
+    assert.equal(deploy(g, "DEFENSE_1"), true);
+    const def = weaponDef("CRYSTAL_BURST_1");
+    assert.equal(def?.kind, "missile");
+    assert.equal(def?.ammo, false);
+    assert.equal(
+      swarmIntercept(g, { kind: def!.kind, from: "enemy", defId: "CRYSTAL_BURST_1" }),
+      true,
+    );
   });
 
   it("mark II does intercept a laser", () => {

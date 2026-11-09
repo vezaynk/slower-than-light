@@ -102,13 +102,13 @@
 <animSheet name="SHOTGUN_2" w="26" h="14" fw="26" fh="14">weapons/SHOTGUN_2.png</animSheet>
 <weaponAnim name="SHOTGUN_2"><sheet>SHOTGUN_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="CRYSTAL_BURST_1" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_BURST_1.png</animSheet>
-<weaponAnim name="CRYSTAL_BURST_1"><sheet>CRYSTAL_BURST_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
+<weaponAnim name="CRYSTAL_BURST_1"><sheet>CRYSTAL_BURST_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="CRYSTAL_BURST_2" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_BURST_2.png</animSheet>
-<weaponAnim name="CRYSTAL_BURST_2"><sheet>CRYSTAL_BURST_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
+<weaponAnim name="CRYSTAL_BURST_2"><sheet>CRYSTAL_BURST_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="CRYSTAL_HEAVY_1" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_HEAVY_1.png</animSheet>
-<weaponAnim name="CRYSTAL_HEAVY_1"><sheet>CRYSTAL_HEAVY_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
+<weaponAnim name="CRYSTAL_HEAVY_1"><sheet>CRYSTAL_HEAVY_1</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="CRYSTAL_HEAVY_2" w="26" h="14" fw="26" fh="14">weapons/CRYSTAL_HEAVY_2.png</animSheet>
-<weaponAnim name="CRYSTAL_HEAVY_2"><sheet>CRYSTAL_HEAVY_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
+<weaponAnim name="CRYSTAL_HEAVY_2"><sheet>CRYSTAL_HEAVY_2</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>smallMissile1</fireSound></weaponAnim>
 <animSheet name="flak-artillery" w="26" h="14" fw="26" fh="14">weapons/flak-artillery.png</animSheet>
 <weaponAnim name="flak-artillery"><sheet>flak-artillery</sheet><desc length="1" x="0" y="0"/><chargedFrame>0</chargedFrame><fireFrame>0</fireFrame><mountPoint x="0" y="7"/><firePoint x="0" y="7"/><fireSound>lightLaser1</fireSound></weaponAnim>
 <animSheet name="ARTILLERY_BOSS_1" w="26" h="14" fw="26" fh="14">weapons/ARTILLERY_BOSS_1.png</animSheet>

@@ -4412,7 +4412,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="CRYSTAL_BURST_1">
-    <type>LASER</type>
+    <type>MISSILE</type>
     <title>Crystal Burst Mark I</title>
     <short>Crystal I</short>
     <desc>Fires 2 shots of 1 damage, every 15 seconds. Pierces 1 shield layer.</desc>
@@ -4432,7 +4432,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <iconImage>img/weapons/CRYSTAL_BURST_1.png</iconImage>
     <rarity>0</rarity>
     <launchSounds>
-      <sound>lightLaser1</sound>
+      <sound>smallMissile1</sound>
     </launchSounds>
     <hitShipSounds>
       <sound>hitHull1</sound>
@@ -4445,7 +4445,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="CRYSTAL_BURST_2">
-    <type>LASER</type>
+    <type>MISSILE</type>
     <title>Crystal Burst Mark II</title>
     <short>Crystal II</short>
     <desc>Fires 3 shots of 1 damage, every 17 seconds. Pierces 1 shield layer.</desc>
@@ -4465,7 +4465,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <iconImage>img/weapons/CRYSTAL_BURST_2.png</iconImage>
     <rarity>0</rarity>
     <launchSounds>
-      <sound>lightLaser1</sound>
+      <sound>smallMissile1</sound>
     </launchSounds>
     <hitShipSounds>
       <sound>hitHull1</sound>
@@ -4478,7 +4478,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="CRYSTAL_HEAVY_1">
-    <type>LASER</type>
+    <type>MISSILE</type>
     <title>Heavy Crystal Mark I</title>
     <short>Heavy I</short>
     <desc>Fires 1 shot of 2 damage, every 13 seconds. 20% stun, pierces 1 shield layer.</desc>
@@ -4499,7 +4499,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <iconImage>img/weapons/CRYSTAL_HEAVY_1.png</iconImage>
     <rarity>0</rarity>
     <launchSounds>
-      <sound>lightLaser1</sound>
+      <sound>smallMissile1</sound>
     </launchSounds>
     <hitShipSounds>
       <sound>hitHull1</sound>
@@ -4512,7 +4512,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     </missSounds>
   </weaponBlueprint>
   <weaponBlueprint name="CRYSTAL_HEAVY_2">
-    <type>LASER</type>
+    <type>MISSILE</type>
     <title>Heavy Crystal Mark II</title>
     <short>Heavy II</short>
     <desc>Fires 1 shot of 4 damage, every 19 seconds. 100% breach, pierces 1 shield layer.</desc>
@@ -4532,7 +4532,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <iconImage>img/weapons/CRYSTAL_HEAVY_2.png</iconImage>
     <rarity>0</rarity>
     <launchSounds>
-      <sound>lightLaser1</sound>
+      <sound>smallMissile1</sound>
     </launchSounds>
     <hitShipSounds>
       <sound>hitHull1</sound>

@@ -1052,7 +1052,8 @@ const HULL_BUST = new Set(["LASER_HULL_1", "LASER_HULL_2", "BEAM_HULL", "MISSILE
 
 /**
  * `<sp>`: the shield layers a projectile passes. The bubble stops it when more layers are up.
- * ftl.dat writes `<sp>5</sp>` on every MISSILES blueprint, so every stand-in missile writes 5 too.
+ * ftl.dat writes `<sp>5</sp>` on ammo missiles. The stand-in does the same for kind missile, except the ids in PIERCE_ONE.
+ * Crystal guns are missiles with no ammo and `<sp>1</sp>`, as ftl.dat writes them, so they are not given 5.
  * Enemy generation reads it: a missile above 3 does not count for Mathchamp's laser flag.
  * The crystal guns and LASER_HEAVY_1_SP write 1, as their ftl.dat namesakes do. Other guns write none.
  */

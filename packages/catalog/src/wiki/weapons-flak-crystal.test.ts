@@ -154,7 +154,7 @@ describe("flak and crystal wiki weapons", () => {
     assert.match(extra.note, /auto-targeted at a random room/);
   });
 
-  it("stores crystal rows as lasers and keeps pierce 1 only in the gaps", () => {
+  it("stores crystal rows as missiles with no ammo and keeps pierce 1 only in the gaps", () => {
     const titles = {
       CRYSTAL_BURST_1: "Crystal Burst Mark I",
       CRYSTAL_BURST_2: "Crystal Burst Mark II",
@@ -166,7 +166,7 @@ describe("flak and crystal wiki weapons", () => {
       assert.ok(section, id);
       const row = weapon(id);
       assert.equal(row.name, titles[id]);
-      assert.equal(row.kind, "laser");
+      assert.equal(row.kind, "missile");
       assert.equal(row.power, field(section, "Power requirement"));
       assert.equal(row.charge, field(section, "Charge time"));
       assert.equal(row.shots, field(section, "Shots"));

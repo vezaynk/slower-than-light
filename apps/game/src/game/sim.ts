@@ -4006,7 +4006,8 @@ export function applyImpact(g: Game, shot: Shot) {
   }
 
   // The bubble stops a projectile unless the layers up are at most the blueprint's `<sp>`.
-  // ftl.dat writes 5 on every missile, 1 on the crystal guns and LASER_HEAVY_1_SP, and 0 or nothing elsewhere.
+  // ftl.dat writes 5 on ammo missiles, 1 on the crystal guns (also MISSILES) and LASER_HEAVY_1_SP, and 0 or nothing elsewhere.
+  // Kind is not a bypass. An ammo-less missile still stops when more layers are up than its `<sp>`.
   // A stopped shot drops one layer. A shot that passes goes straight through and leaves the layers up.
   // Environmental Hazards: the anti-ship battery fires a "shield-piercing" shot. It passes PDS_SHOT's `<sp>` layers.
   // Flak (Weapons), "Understanding flak accuracy": fake flak "cannot take down shields or deal damage".

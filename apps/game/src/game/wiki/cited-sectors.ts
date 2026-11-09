@@ -146,7 +146,14 @@ export function asbPierce(): number {
   return Infinity;
 }
 
-/** Rebel Fleet / Environmental Hazards: 3 hull and a breach. No fire figure is stated. The timer is environment(). */
+/**
+ * Hull, breach, and fire on the anti-ship battery's shot: PDS_SHOT's damage, breach, and fire.
+ * Environmental Hazards: 3 hull and a breach. No fire figure is stated. The timer is environment().
+ * An archive without PDS_SHOT warns once and uses those wiki figures.
+ */
 export function citedAsbShot(): { damage: number; breachChance: number; fireChance: number } {
+  const def = weaponDef(ASB_WEAPON);
+  if (def) return { damage: def.damage, breachChance: def.breach, fireChance: def.fire };
+  warnPack(`${ASB_WEAPON} is not loaded; the anti-ship battery uses 3 hull, breach 1, and fire 0.`);
   return { damage: 3, breachChance: 1, fireChance: 0 };
 }

@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { BUNDLE_OTHER, BUNDLE_PATCH } from "../extras/swarm.ts";
 import { buy, commitJump, createGame, openStoreHere, startCombat, step } from "../sim.ts";
 import type { Game, Kit, KitId, StockItem, WeaponInst } from "../types.ts";
-import { allDrones } from "@stl/pack";
+import { allDrones, droneDef, loadPack, resetPackForTests, weaponDef } from "@stl/pack";
 import {
   CRYSTAL_SECTOR_WEAPONS,
   citedSell,
@@ -567,6 +567,79 @@ describe("cited stores", () => {
     assert.equal(citedSell(g, line.id), false);
     assert.equal(g.scrap, before + 40);
     assert.equal(citedSell(g, "fuel"), false);
+  });
+
+  it("sells a priced cargo schematic for half, skips a free one, and still sells a cargo weapon", () => {
+    const priced = droneDef("ANTI_DRONE");
+    const gun = weaponDef("LASER_BURST_1");
+    assert.ok(priced && priced.cost > 0);
+    assert.ok(gun);
+    loadPack({ drones: [{ id: "freebie", name: "Freebie", cost: 0 }] }, "append");
+    try {
+      const g = createGame(1);
+      const collected = g.scrapCollected;
+      g.player.kits.drones = kit("drones", 2);
+      // Fitted, and the same schematic is in cargo: one quote (the cargo slot). The fitted copy stays.
+      g.player.kits.drones.target = "ANTI_DRONE";
+      g.cargo = [
+        { kind: "drone", id: "ANTI_DRONE" },
+        { kind: "drone", id: "freebie" },
+        { kind: "weapon", id: "LASER_BURST_1" },
+      ];
+      const quotes = citedSellQuote(g);
+      const drones = quotes.filter((quote) => quote.ref === "ANTI_DRONE");
+      assert.equal(drones.length, 1);
+      const drone = drones[0];
+      assert.equal(drone.kind, "drone");
+      assert.equal(drone.id, "c:0:ANTI_DRONE");
+      assert.equal(drone.name, `${priced.name} (cargo)`);
+      assert.equal(drone.scrap, Math.floor(priced.cost / 2));
+      assert.equal(
+        quotes.some((quote) => quote.ref === "freebie"),
+        false,
+      );
+      const weapon = quotes.find((quote) => quote.kind === "weapon" && quote.id.startsWith("c:"));
+      assert.ok(weapon);
+      assert.equal(weapon.ref, "LASER_BURST_1");
+      assert.equal(weapon.name, `${gun.name} (cargo)`);
+      assert.equal(weapon.scrap, 10);
+
+      const before = g.scrap;
+      const sounds = g.sfx.length;
+      assert.equal(citedSell(g, drone.id), true);
+      assert.equal(g.scrap, before + drone.scrap);
+      assert.equal(g.scrapCollected, (collected ?? 0) + drone.scrap);
+      assert.equal(g.sfx[sounds], "sell");
+      assert.equal(g.player.kits.drones.target, "ANTI_DRONE");
+      assert.deepEqual(g.cargo, [
+        { kind: "drone", id: "freebie" },
+        { kind: "weapon", id: "LASER_BURST_1" },
+      ]);
+      assert.equal(citedSell(g, drone.id), false);
+
+      const weaponNow = citedSellQuote(g).find(
+        (quote) => quote.kind === "weapon" && quote.id.startsWith("c:"),
+      );
+      assert.ok(weaponNow);
+      assert.equal(weaponNow.id, "c:1:LASER_BURST_1");
+      assert.equal(citedSell(g, weaponNow.id), true);
+      assert.equal(g.scrap, before + drone.scrap + weapon.scrap);
+      assert.deepEqual(g.cargo, [{ kind: "drone", id: "freebie" }]);
+      assert.equal(g.player.kits.drones.target, "ANTI_DRONE");
+
+      // Fitted Shield Overcharger + stays a single row when that id is also in cargo.
+      g.player.kits.drones.target = "DRONE_SHIELD_PLAYER";
+      g.cargo = [
+        { kind: "drone", id: "DRONE_SHIELD_PLAYER" },
+        { kind: "drone", id: "freebie" },
+      ];
+      const plus = citedSellQuote(g).filter((quote) => quote.ref === "DRONE_SHIELD_PLAYER");
+      assert.equal(plus.length, 1);
+      assert.equal(plus[0]?.id, "d:overchargerplus");
+      assert.equal(plus[0]?.scrap, 30);
+    } finally {
+      resetPackForTests();
+    }
   });
 
   it("sells one copy of a repeated augment and uses the other printed sell prices", () => {

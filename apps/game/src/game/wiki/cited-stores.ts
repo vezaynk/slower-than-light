@@ -561,12 +561,21 @@ function augmentSell(id: string): number | null {
   return Math.floor(row.cost / 2);
 }
 
+/** Half the schematic's purchase price, rounded down. No blueprint, or a price of 0, is not sold. */
+function droneSell(id: string): number | null {
+  const row = droneDef(id);
+  if (!row || row.cost <= 0) return null;
+  return Math.floor(row.cost / 2);
+}
+
 /**
  * Template:In-game tips, Selling: weapons, drones, and augments sell for half the purchase price.
  * Scrap: half-price, rounded down against the player.
  * A printed "Sells for" or "Sell price" replaces that half.
  * Fuel, missiles, drone parts, hull repair, crew, and systems are not sold. Drone Control is not sold.
- * Drone schematics are not quoted, except a fitted Shield Overcharger +.
+ * Cargo drone schematics sell the same way. A schematic with no purchase price, or a price of 0, is not sold.
+ * A fitted schematic is not quoted, except a fitted Shield Overcharger +.
+ * That plus row is the only fitted sale, so a schematic both fitted and in cargo is quoted once.
  * Drone Control, "Shield Overcharger +": "Sells for: 30 (cannot be bought or found)."
  * The regular Shield Overcharger has a purchase price and no printed sell line used here.
  */
@@ -583,16 +592,32 @@ export function citedSellQuote(g: Game): SellQuote[] {
       scrap,
     });
   }
-  // Per the user: weapons in cargo sell like fitted ones.
+  // A fitted Shield Overcharger + keeps its own row. The same id in cargo is not quoted again.
+  const overchargerPlus = g.player.kits.drones?.target === "DRONE_SHIELD_PLAYER";
+  // Per the user: weapons in cargo sell like fitted ones. Cargo schematics sell for half their cost.
   cargoOf(g).forEach((item, index) => {
-    if (item.kind !== "weapon") return;
-    const scrap = weaponSell(item.id);
+    if (item.kind === "weapon") {
+      const scrap = weaponSell(item.id);
+      if (scrap == null || scrap <= 0) return;
+      quotes.push({
+        id: `c:${index}:${item.id}`,
+        kind: "weapon",
+        ref: item.id,
+        name: `${weaponDef(item.id)?.name ?? item.id} (cargo)`,
+        scrap,
+      });
+      return;
+    }
+    if (item.kind !== "drone") return;
+    // The fitted Shield Overcharger + row already covers this id. Do not quote the cargo copy too.
+    if (overchargerPlus && item.id === "DRONE_SHIELD_PLAYER") return;
+    const scrap = droneSell(item.id);
     if (scrap == null || scrap <= 0) return;
     quotes.push({
       id: `c:${index}:${item.id}`,
-      kind: "weapon",
+      kind: "drone",
       ref: item.id,
-      name: `${weaponDef(item.id)?.name ?? item.id} (cargo)`,
+      name: `${droneDef(item.id)?.name ?? item.id} (cargo)`,
       scrap,
     });
   });
@@ -622,10 +647,20 @@ export function citedSellQuote(g: Game): SellQuote[] {
   return quotes;
 }
 
-/** Add the quoted scrap. Remove that one weapon, augment, or fitted Shield Overcharger +. Do not subtract scrap. */
+/** Add the quoted scrap. Remove that one weapon, cargo schematic, augment, or fitted Shield Overcharger +. Do not subtract scrap. */
 export function citedSell(g: Game, id: string): boolean {
   const quote = citedSellQuote(g).find((row) => row.id === id);
   if (!quote) return false;
+  if (id.startsWith("c:")) {
+    const index = Number(id.split(":")[1]);
+    const item = cargoOf(g)[index];
+    if (!item || item.id !== quote.ref || item.kind !== quote.kind) return false;
+    g.cargo = cargoOf(g).filter((_, i) => i !== index);
+    g.scrap += quote.scrap;
+    g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
+    g.sfx.push("sell");
+    return true;
+  }
   if (quote.kind === "drone") {
     const kit = g.player.kits.drones;
     if (!kit || kit.target !== quote.ref) return false;
@@ -634,15 +669,6 @@ export function citedSell(g: Game, id: string): boolean {
     kit.left = 0;
     kit.aux = 0;
     delete kit.hp;
-    g.scrap += quote.scrap;
-    g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
-    g.sfx.push("sell");
-    return true;
-  }
-  if (quote.kind === "weapon" && id.startsWith("c:")) {
-    const index = Number(id.split(":")[1]);
-    if (cargoOf(g)[index]?.id !== quote.ref) return false;
-    g.cargo = cargoOf(g).filter((_, i) => i !== index);
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
     g.sfx.push("sell");

@@ -24,6 +24,7 @@ import type {
   EventDef,
   EventEffect,
   EscapeTimers,
+  Stalemate,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -205,6 +206,7 @@ export function emitGapDocument(pack: ContentPack): string {
   for (const row of pack.shipLists ?? []) add(root, shipListElement(doc, row));
   if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
+  if (pack.stalemate) add(root, stalemateElement(doc, pack.stalemate));
   if (pack.aiTarget) add(root, aiTargetElement(doc, pack.aiTarget));
   if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
   if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
@@ -238,6 +240,15 @@ function escapeTimersElement(doc: XmlDocument, row: EscapeTimers): XmlElement {
   if (row.hull != null) attrs.hull = num(row.hull);
   if (row.lastFuel != null) attrs.lastFuel = num(row.lastFuel);
   return element(doc, "escapeTimers", attrs);
+}
+
+/** `<stalemate threshold seconds fuel>`: the anti-stalemate break-off FTL's executable hard-codes (types.ts Stalemate). */
+function stalemateElement(doc: XmlDocument, row: Stalemate): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.threshold != null) attrs.threshold = num(row.threshold);
+  if (row.seconds != null) attrs.seconds = num(row.seconds);
+  if (row.fuel != null) attrs.fuel = num(row.fuel);
+  return element(doc, "stalemate", attrs);
 }
 
 /** `<aiTarget>`: enemy weapon targeting numbers FTL's executable hard-codes (types.ts AiTarget). */

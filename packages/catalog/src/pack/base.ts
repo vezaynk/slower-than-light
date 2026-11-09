@@ -60,6 +60,7 @@ import {
   SHIP_EVENTS,
   SHIP_LIST_RULES,
   SHIP_LISTS,
+  SHIP_WEAPONS,
 } from "../ship-lists.ts";
 import { enemyGearLists, enemyStats } from "../enemy-stats.ts";
 import {
@@ -1516,6 +1517,7 @@ export function loadCatalog(): void {
       overchargerWaits: { ...OVERCHARGER_WAITS },
       ionIntruder: { ...ION_INTRUDER },
       crystalVengeance: { ...CRYSTAL_VENGEANCE },
+      shipWeapons: SHIP_WEAPONS.map((row) => ({ ship: row.ship, anyOf: [...row.anyOf] })),
       cargoSlots: { ...CARGO_SLOTS },
       bonusItem: { ...BONUS_ITEM_WEIGHTS },
       asteroidField: {

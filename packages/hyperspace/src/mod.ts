@@ -91,6 +91,7 @@ export function emitMod(pack: ContentPack): string {
     pack.overchargerWaits ||
     pack.ionIntruder ||
     pack.crystalVengeance ||
+    pack.shipWeapons?.length ||
     pack.cargoSlots ||
     pack.bonusItem ||
     pack.asteroidField ||
@@ -104,6 +105,7 @@ export function emitMod(pack: ContentPack): string {
     if (pack.overchargerWaits) rules.overchargerWaits = pack.overchargerWaits;
     if (pack.ionIntruder) rules.ionIntruder = pack.ionIntruder;
     if (pack.crystalVengeance) rules.crystalVengeance = pack.crystalVengeance;
+    if (pack.shipWeapons?.length) rules.shipWeapons = pack.shipWeapons;
     if (pack.cargoSlots) rules.cargoSlots = pack.cargoSlots;
     if (pack.bonusItem) rules.bonusItem = pack.bonusItem;
     if (pack.asteroidField) rules.asteroidField = pack.asteroidField;
@@ -189,6 +191,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (parsed.overchargerWaits) pack.overchargerWaits = parsed.overchargerWaits;
   if (parsed.ionIntruder) pack.ionIntruder = parsed.ionIntruder;
   if (parsed.crystalVengeance) pack.crystalVengeance = parsed.crystalVengeance;
+  if (parsed.shipWeapons) pack.shipWeapons = parsed.shipWeapons;
   if (parsed.cargoSlots) pack.cargoSlots = parsed.cargoSlots;
   if (parsed.bonusItem) pack.bonusItem = parsed.bonusItem;
   if (parsed.asteroidField) pack.asteroidField = parsed.asteroidField;

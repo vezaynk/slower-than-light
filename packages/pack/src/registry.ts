@@ -24,6 +24,7 @@ import type {
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
+  ShipWeapons,
   CargoSlots,
   BonusItemWeights,
   AsteroidField,
@@ -99,6 +100,8 @@ let ionIntruderValue: IonIntruderRule = {};
 let baseIonIntruder: IonIntruderRule = {};
 let crystalVengeanceValue: CrystalVengeanceRule = {};
 let baseCrystalVengeance: CrystalVengeanceRule = {};
+let shipWeaponsValue: ShipWeapons[] = [];
+let baseShipWeapons: ShipWeapons[] = [];
 let baseCargoSlots: CargoSlots = {};
 let baseBonusItem: BonusItemWeights = {};
 let asteroidFieldValue: AsteroidField = {};
@@ -609,6 +612,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseIonIntruder = { ...pack.ionIntruder };
     crystalVengeanceValue = { ...pack.crystalVengeance };
     baseCrystalVengeance = { ...pack.crystalVengeance };
+    shipWeaponsValue = copyShipWeapons(pack.shipWeapons ?? []);
+    baseShipWeapons = copyShipWeapons(shipWeaponsValue);
     cargoSlotsValue = { ...pack.cargoSlots };
     baseCargoSlots = { ...pack.cargoSlots };
     bonusItemValue = { ...pack.bonusItem };
@@ -657,6 +662,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     ionIntruderValue = { ...ionIntruderValue, ...pack.ionIntruder };
   if (mode === "append" && pack.crystalVengeance)
     crystalVengeanceValue = { ...crystalVengeanceValue, ...pack.crystalVengeance };
+  if (mode === "append" && pack.shipWeapons) shipWeaponsValue = mergeShipWeapons(pack.shipWeapons);
   if (mode === "append" && pack.cargoSlots)
     cargoSlotsValue = { ...cargoSlotsValue, ...pack.cargoSlots };
   if (mode === "append" && pack.bonusItem)
@@ -1190,6 +1196,44 @@ export function crystalVengeanceStat(key: keyof CrystalVengeanceRule): number {
   return fallback;
 }
 
+function copyShipWeapons(rows: readonly ShipWeapons[]): ShipWeapons[] {
+  return rows.map((row) => ({ ship: row.ship, anyOf: [...row.anyOf] }));
+}
+
+/** An append replaces a ship already loaded and adds the rest. */
+function mergeShipWeapons(rows: readonly ShipWeapons[]): ShipWeapons[] {
+  const map = new Map(shipWeaponsValue.map((row) => [row.ship, row]));
+  for (const row of rows) map.set(row.ship, { ship: row.ship, anyOf: [...row.anyOf] });
+  return [...map.values()];
+}
+
+/**
+ * Fire weapons FTL's executable fits when the data names none (the developers' note on the slug hacker ships:
+ * NEEDS CODE TO GIVE FIRE WEAPONS). Used only when no loaded pack sets `<shipWeapons>` for that ship, with a warning.
+ */
+const FTL_SHIP_WEAPONS: Readonly<Record<string, readonly string[]>> = {
+  JELLY_STATUS_OXYGEN_FIRE: ["BEAM_FIRE", "BOMB_FIRE"],
+  JELLY_STATUS_DOORS: ["BEAM_FIRE", "BOMB_FIRE"],
+};
+
+/** The loaded `<shipWeapons>` rows, as authored. */
+export function shipWeapons(): ShipWeapons[] {
+  return copyShipWeapons(shipWeaponsValue);
+}
+
+/**
+ * Weapon ids a ship must carry at least one of (gap `<shipWeapons>`). A pack that omits a ship FTL arms in code
+ * gets FTL's list, with one warning. Any other ship is left alone.
+ */
+export function shipWeaponAnyOf(ship: string): readonly string[] | undefined {
+  const row = shipWeaponsValue.find((item) => item.ship === ship);
+  if (row) return row.anyOf;
+  const fallback = FTL_SHIP_WEAPONS[ship];
+  if (!fallback) return undefined;
+  warnPack(`No <shipWeapons ship="${ship}"> is loaded; FTL's ${fallback.join(" ")} is used.`);
+  return fallback;
+}
+
 /**
  * FTL's own enemy targeting numbers (xftl combat-ai, PrioritizeSystem, and the developer list on "Hard mode AI
  * Targeting mechanics"). Used only when no loaded pack sets `<aiTarget>`, with a warning.
@@ -1471,6 +1515,7 @@ export function resetPackForTests(): void {
   overchargerWaitsValue = { ...baseOverchargerWaits };
   ionIntruderValue = { ...baseIonIntruder };
   crystalVengeanceValue = { ...baseCrystalVengeance };
+  shipWeaponsValue = copyShipWeapons(baseShipWeapons);
   cargoSlotsValue = { ...baseCargoSlots };
   bonusItemValue = { ...baseBonusItem };
   asteroidFieldValue = copyAsteroidField(baseAsteroidField);

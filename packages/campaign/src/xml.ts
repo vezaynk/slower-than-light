@@ -36,6 +36,7 @@ import {
   overchargerWaits,
   ionIntruderRule,
   crystalVengeanceRule,
+  shipWeapons,
   cargoSlots,
   bonusItem,
   asteroidField,
@@ -62,6 +63,7 @@ export function campaignPack(): ContentPack {
     overchargerWaits: overchargerWaits(),
     ionIntruder: ionIntruderRule(),
     crystalVengeance: crystalVengeanceRule(),
+    shipWeapons: shipWeapons(),
     cargoSlots: cargoSlots(),
     bonusItem: bonusItem(),
     asteroidField: asteroidField(),
@@ -121,6 +123,7 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       overchargerWaits: pack.overchargerWaits,
       ionIntruder: pack.ionIntruder,
       crystalVengeance: pack.crystalVengeance,
+      shipWeapons: pack.shipWeapons,
       cargoSlots: pack.cargoSlots,
       bonusItem: pack.bonusItem,
       asteroidField: pack.asteroidField,
@@ -197,7 +200,7 @@ export function standInEventFiles(): { path: string; xml: string }[] {
  * The same finds go in both appends. A find in a file that has no such blueprint does nothing.
  * The sector append adds notes. `data/gap.xml` adds the store, the rewards block, faction surrender and escape
  * rows, escape timers, enemy targeting numbers, Shield Overcharger layer waits, the Ion Intruder pulse, Crystal
- * Vengeance, the cargo hold, bonus-item weights, asteroid timings, the pulsar, combat-drone orbit, and empty beacons.
+ * Vengeance, the fire weapons an executable rule forces onto a ship, the cargo hold, bonus-item weights, asteroid timings, the pulsar, combat-drone orbit, and empty beacons.
  */
 export function gapModFiles(): { path: string; xml: string }[] {
   const pack = campaignPack();

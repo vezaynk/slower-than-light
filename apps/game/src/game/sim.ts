@@ -95,6 +95,7 @@ import { rollSurge } from "./extras/ram.ts";
 import { enemyTarget, randomRoom } from "./rules/targeting.ts";
 import { clampUniform, cleanName, crewPool, defaultPick, type CrewPick } from "./crew-look.ts";
 import "./pack/base.ts";
+import { isFightWording } from "@stl/catalog/src/ship-lists.ts";
 import {
   CIVILIAN_SECTOR,
   CRYSTAL_SECTOR,
@@ -127,6 +128,7 @@ import {
   sectorDef,
   shipAllegiance,
   shipEventDef,
+  shipWeaponAnyOf,
   storeDef,
   weaponDef,
   START_FUEL,
@@ -6607,12 +6609,7 @@ function shipFromSpec(
  */
 const ELITE_SHIP = "LONG_FLEET";
 
-function makeEnemy(
-  g: Game,
-  tier: string,
-  event?: string,
-  autoBlueprint?: string,
-): { ship: Ship; crew: Crew[] } {
+function makeEnemy(g: Game, tier: string, autoBlueprint?: string): { ship: Ship; crew: Crew[] } {
   // Cited event "second Rebel Flagship" (Rebel shipyard) is the flagship hull as well.
   // @agent:flagship. Only the Last Stand fight resumes a remembered stage (wiki/flagship-systems.ts takeFlagshipMemo).
   if (tier === "boss" || /flagship/i.test(tier)) return makeFlagship(g, tier === "boss");
@@ -6629,13 +6626,11 @@ function makeEnemy(
   let hull = fightHull(tier, autoBlueprint, r, genSector(ctx.sector, ctx.difficulty) - 1);
   // A fight the code names by wording ("Rebel ship"), or the sector's random fight: the archive ship it is
   // (enemy-gen.ts archiveFight).
-  let worded = false;
   if (!hull && tier !== "elite") {
     const fight = archiveFight(tier, ctx, r);
     if (fight) {
       hull = fight.hull;
       autoBlueprint = fight.list ?? autoBlueprint;
-      worded = true;
     }
   }
   if (hull) {
@@ -6650,34 +6645,28 @@ function makeEnemy(
     spec.pirate = allegiance.pirate;
     const built = shipFromSpec(g, spec, allegiance.faction);
     citedEnemy(g, tier, built.ship, built.crew);
-    // An explicit hull keeps the guns its blueprint named; a ship the wording asked for is fitted like a class pick.
-    if (worded) fitSlugHackerFire(g, event, shipEvent, built.ship);
+    // Gap `<shipWeapons>`, or FTL's list when that tag is missing. A weapon override already chose the guns.
+    if (shipEvent && !shipEvent.weaponOverride) fitGuaranteedWeapons(g, tier, built.ship);
     return built;
   }
   // Every archive has enemy ships; one that names none for this fight still fights one of them.
   const fallback = anyEnemyHull(r);
   if (!fallback) throw new Error(`The archive has no enemy ship for the fight "${tier}".`);
   warnPack(`The fight "${tier}" finds no archive ship; it fights ${fallback.id}.`);
-  return makeEnemy(g, fallback.id, event);
+  return makeEnemy(g, fallback.id);
 }
 
 /**
- * Slug hacker (oxygen) and Slug hacker (doors): "Note: The enemy ship will have at least one Fire Beam or Fire Bomb."
- * The page prints no odds between the two guns. INFERRED: equal, one rand(g). Under 0.5 is firebeam, otherwise cask.
- * INFERRED: replace the first already-fitted gun's defId. A ship with no guns gets one via enemyGun.
- * A weapon override already chose the guns.
+ * Gap `<shipWeapons>`: the ship must carry at least one listed gun. One it already rolled stays.
+ * Otherwise the first gun is replaced. Equal odds across the list. A ship with no guns gains one.
  */
-function fitSlugHackerFire(
-  g: Game,
-  event: string | undefined,
-  shipEvent: ReturnType<typeof shipEventDef>,
-  ship: Ship,
-): void {
-  if (event !== "slug-hacker-oxygen" && event !== "slug-hacker-doors") return;
-  if (shipEvent?.weaponOverride) return;
-  if (ship.weapons.some((w) => w.defId === "BEAM_FIRE" || w.defId === "BOMB_FIRE")) return;
-  const defId = rand(g) < 0.5 ? "BEAM_FIRE" : "BOMB_FIRE";
-  if (ship.weapons.length > 0) ship.weapons[0].defId = defId;
+function fitGuaranteedWeapons(g: Game, shipId: string, ship: Ship): void {
+  const anyOf = shipWeaponAnyOf(shipId);
+  if (!anyOf?.length) return;
+  if (ship.weapons.some((w) => anyOf.includes(w.defId))) return;
+  const defId = anyOf[Math.floor(rand(g) * anyOf.length)] ?? anyOf[0];
+  if (!defId) return;
+  if (ship.weapons.length > 0) ship.weapons[0] = enemyGun(g, defId);
   else ship.weapons.push(enemyGun(g, defId));
 }
 
@@ -6758,17 +6747,17 @@ function archiveSurrenderPlan(
 }
 
 /**
- * A cited fight still names the ship by wording ("Rebel ship"). The archive choice loads a ship event
- * (`<ship load>`). When every such fight on the page is the same ship event, that event's `<escape>` is the plan.
+ * A cited fight still names the ship by wording ("Rebel ship"). The archive page loads one ship event
+ * (`<ship load>`). A named class ("Auto-Scout", "rebel-fighter") stays that hull; only the escape plan is borrowed.
  */
-function escapeShipOf(event: string | undefined): string | undefined {
+function pageShipOf(event: string | undefined): string | undefined {
   if (!event) return undefined;
   const page = eventDef(event);
   if (!page) return undefined;
   const loads = new Set<string>();
   for (const choice of page.choices) {
     for (const fx of choice.fx) {
-      if (fx.k === "fight" && shipEventDef(fx.tier)?.escape) loads.add(fx.tier);
+      if (fx.k === "fight" && shipEventDef(fx.tier)) loads.add(fx.tier);
     }
   }
   if (loads.size !== 1) return undefined;
@@ -6804,7 +6793,8 @@ function archiveEscapePlan(
     seconds: ending.timer ?? hullRunSeconds(),
     chance,
     threshold,
-    rolled: running,
+    // A miss inside the band is the roll. The next tick must not roll again.
+    rolled: under,
     running,
     pursuit,
     hullPoints: true,
@@ -6827,11 +6817,14 @@ export function startCombat(
   delete g.asbAim;
   // Mind Control, Overview: a bomb that lands opens that room. INFERRED: the next fight starts with those rooms closed.
   clearBombSight(g);
-  // A wording ("Rebel ship") whose page loads one ship event uses that event, so its <escape> is the plan.
-  const fightTier = shipEventDef(tier) ? tier : (escapeShipOf(event) ?? tier);
+  // A wording ("Rebel ship") whose page loads one ship event uses that event.
+  // A named class keeps its hull. The page's ship event still supplies `<escape>` when this tier has none.
+  const pageShip = pageShipOf(event);
+  const own = !!shipEventDef(tier);
+  const fightTier = own || !isFightWording(tier) ? tier : (pageShip ?? tier);
   const shipEvent = shipEventDef(fightTier);
   g.fightShip = shipEvent ? fightTier : null;
-  const built = makeEnemy(g, fightTier, event, autoBlueprint ?? shipEvent?.autoBlueprint);
+  const built = makeEnemy(g, fightTier, autoBlueprint ?? shipEvent?.autoBlueprint);
   // Enemy Ships, "Surrenders and escape attempts": who runs, when, and for how long. See rules/escape.ts.
   g.enemyEscape = escapePlan(
     { tier, event, lastFuel: g.fuel <= 0, faction: built.ship.faction, pirate: built.ship.pirate },
@@ -6854,13 +6847,19 @@ export function startCombat(
     { tier, event, faction: built.ship.faction, pirate: built.ship.pirate },
     () => rand(g),
   );
-  // A ship-event child replaces the wiki plan. A missing child keeps it, including an overtaken arrival.
-  if (shipEvent?.escape) {
+  // A ship-event child replaces the wiki plan. A named class keeps its hull and borrows the page ship's `<escape>`.
+  // A missing child keeps the wiki plan, including an overtaken arrival.
+  const escapeEvent = shipEvent?.escape
+    ? shipEvent
+    : !own && pageShip
+      ? shipEventDef(pageShip)
+      : undefined;
+  if (escapeEvent?.escape) {
     g.enemyEscape = archiveEscapePlan(
       g,
-      shipEvent.escape,
+      escapeEvent.escape,
       built.ship.hull,
-      shipEvent.pursuit === true,
+      escapeEvent.pursuit === true,
     );
   }
   if (shipEvent?.surrender) g.enemySurrender = archiveSurrenderPlan(g, shipEvent.surrender);

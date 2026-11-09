@@ -65,6 +65,9 @@ importers:
       '@sentry/vite-plugin':
         specifier: ^11.11.0
         version: 11.11.0
+      '@stl/catalog':
+        specifier: workspace:*
+        version: link:../../packages/catalog
       '@stl/ftldat':
         specifier: workspace:*
         version: link:../../packages/ftldat

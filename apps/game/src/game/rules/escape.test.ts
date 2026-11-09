@@ -205,3 +205,56 @@ describe("escape numbers from the gap mod", () => {
     assert.equal(escapePlan({ tier: "pool", faction: "mantis" }, half).mode, "never");
   });
 });
+
+describe("escape ship events the review called out", () => {
+  it("keeps a Last Stand class hull and still never runs", () => {
+    const scout = createGame(3);
+    startCombat(scout, "Auto-Scout", false, "fight-in-last-stand");
+    assert.equal(scout.enemy?.classId, "AUTO_BASIC");
+    assert.equal(scout.enemyEscape?.mode, "never");
+    const fighter = createGame(3);
+    startCombat(fighter, "rebel-fighter", false, "fight-in-last-stand");
+    assert.equal(fighter.enemy?.classId, "REBEL_SKINNY");
+    assert.equal(fighter.enemyEscape?.mode, "never");
+  });
+
+  it("does not start a sector-8 transport whose hull is already above the dat band of 14", () => {
+    const g = createGame(4);
+    g.sector = 8;
+    startCombat(g, "SQUAT_TRANSPORT");
+    assert.equal(g.enemyEscape?.threshold, 14);
+    assert.ok((g.enemy?.hull ?? 0) > 14);
+    assert.equal(g.enemyEscape?.running, false);
+  });
+
+  it("does not roll an escape miss again on the next tick", () => {
+    let found = false;
+    for (let seed = 1; seed <= 80 && !found; seed++) {
+      const g = createGame(seed);
+      g.difficulty = "easy";
+      startCombat(g, "BOSS_SCOUT_RESCUE");
+      const plan = g.enemyEscape;
+      if (!plan?.hullPoints || plan.running || (g.enemy?.hull ?? 0) > plan.threshold) continue;
+      found = true;
+      assert.equal(plan.rolled, true);
+      g.enemySurrender!.chance = 0;
+      run(g, 2);
+      assert.equal(g.enemyEscape?.running, false);
+      assert.equal(g.phase, "combat");
+    }
+    assert.equal(found, true);
+  });
+
+  it("runs the fuel-page ships from the start, on their own timers", () => {
+    const dock = createGame(2);
+    dock.fuel = 0;
+    startCombat(dock, "PIRATE_DOCK_80");
+    assert.equal(dock.enemyEscape?.running, true);
+    assert.equal(dock.enemyEscape?.seconds, 80);
+    const refugee = createGame(2);
+    refugee.fuel = 6;
+    startCombat(refugee, "PIRATE_REFUGEE");
+    assert.equal(refugee.enemyEscape?.running, true);
+    assert.equal(refugee.enemyEscape?.seconds, 90);
+  });
+});

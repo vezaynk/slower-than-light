@@ -1405,6 +1405,8 @@ export function archiveFight(
 ): ArchiveFight | undefined {
   const level = genSector(ctx.sector, ctx.difficulty) - 1;
   if (tier !== "pool") {
+    const byClass = classHull(tier);
+    if (byClass) return { hull: byClass };
     const named = namedHull(tier);
     if (named) return { hull: named };
     const want = requestFor(tier);
@@ -1431,6 +1433,17 @@ export function enemyHulls(): HullDef[] {
     if (row.pirate) ids.add(row.pirate);
   }
   return [...ids].map((id) => hullDef(id)).filter((hull): hull is HullDef => !!hull);
+}
+
+/**
+ * A rolled class ("Auto-Scout", "rebel-fighter"), not a page wording ("Mantis Fighter").
+ * The blueprint is the gap's `<shipClass>`. Two classes can share one blueprint.
+ */
+function classHull(tier: string): HullDef | undefined {
+  if (/\s/.test(tier)) return undefined;
+  const key = tier.trim().toLowerCase().replace(/_/g, "-");
+  const row = allShipClasses().find((item) => item.classId === key);
+  return row ? hullDef(row.blueprint) : undefined;
 }
 
 /** "Fight a Mantis Bomber": the enemy blueprint whose class name the wording holds, longest name first. */

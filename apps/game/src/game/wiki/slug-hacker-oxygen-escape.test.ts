@@ -16,13 +16,16 @@ function open(g: Game) {
 }
 
 describe("Slug hacker (oxygen) escape", () => {
-  it("fights a Slug ship that never escapes", () => {
+  it("loads JELLY_STATUS_OXYGEN_FIRE, which has no <escape>, so the Slug row applies", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:slug-hacker-oxygen:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "slug");
     assert.equal(g.fightEvent, "slug-hacker-oxygen");
-    assert.equal(g.enemyEscape?.mode, "never");
+    assert.equal(g.fightShip, "JELLY_STATUS_OXYGEN_FIRE");
+    assert.equal(g.enemyEscape?.mode, "hull");
+    assert.equal(g.enemyEscape?.hullPoints, undefined);
+    assert.equal(g.enemyEscape?.chance, 50);
   });
 });

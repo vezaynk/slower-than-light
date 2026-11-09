@@ -79,6 +79,7 @@ import {
   readOverchargerWaits,
   readIonIntruder,
   readCrystalVengeance,
+  readShipWeapons,
   readCargoSlots,
   readBonusItem,
   readAsteroidField,
@@ -134,6 +135,8 @@ export type FtlTextFile = {
  * A root `<aiTarget>` is a private tag FTL ignores: the enemy targeting numbers its executable hard-codes.
  * A root `<overchargerWaits>`, `<ionIntruder>`, or `<crystalVengeance>` is the same kind of tag: layer waits, the
  * ion intruder's pulse, and the crystal vengeance shard. Power and speed stay on the droneBlueprint.
+ * A root `<shipWeapons>` is a private tag FTL ignores: the fire weapons its executable forces onto a ship the data
+ * does not arm. `<anyOf>` lists the weapon ids. A missing ship falls back to FTL's list.
  * A root `<cargoSlots>` is a private tag FTL ignores: the cargo hold its executable hard-codes.
  * A root `<bonusItem>` is a private tag FTL ignores: the bonus-reward kind weights its executable hard-codes.
  * A root `<asteroidField>` is a private tag FTL ignores: the asteroid timings and side chances its executable hard-codes.
@@ -177,6 +180,7 @@ export function packFromFtl(
   let overchargerWaits: OverchargerWaits | undefined;
   let ionIntruder: IonIntruderRule | undefined;
   let crystalVengeance: CrystalVengeanceRule | undefined;
+  const shipWeapons = new Map<string, NonNullable<ContentPack["shipWeapons"]>[number]>();
   let cargoSlots: CargoSlots | undefined;
   let bonusItem: BonusItemWeights | undefined;
   let asteroidField: AsteroidField | undefined;
@@ -267,6 +271,9 @@ export function packFromFtl(
         ionIntruder = { ...ionIntruder, ...readIonIntruder(node) };
       } else if (node.tagName === "crystalVengeance") {
         crystalVengeance = { ...crystalVengeance, ...readCrystalVengeance(node) };
+      } else if (node.tagName === "shipWeapons") {
+        const row = readShipWeapons(node);
+        if (row) shipWeapons.set(row.ship, row);
       } else if (node.tagName === "cargoSlots") {
         cargoSlots = { ...cargoSlots, ...readCargoSlots(node) };
       } else if (node.tagName === "bonusItem") {
@@ -336,6 +343,7 @@ export function packFromFtl(
   if (overchargerWaits) pack.overchargerWaits = overchargerWaits;
   if (ionIntruder) pack.ionIntruder = ionIntruder;
   if (crystalVengeance) pack.crystalVengeance = crystalVengeance;
+  if (shipWeapons.size > 0) pack.shipWeapons = [...shipWeapons.values()];
   if (cargoSlots) pack.cargoSlots = cargoSlots;
   if (bonusItem) pack.bonusItem = bonusItem;
   if (asteroidField) pack.asteroidField = asteroidField;

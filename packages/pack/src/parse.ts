@@ -30,6 +30,7 @@ import type {
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
+  ShipWeapons,
   CargoSlots,
   BonusItemWeights,
   AsteroidField,
@@ -604,6 +605,26 @@ export function readCrystalVengeance(node: XmlElement): CrystalVengeanceRule {
 }
 
 /**
+ * Gap `<shipWeapons ship>` › `<anyOf>` (types.ts ShipWeapons). Names are split on whitespace.
+ * A missing ship, or a list that names nothing, is skipped.
+ */
+export function readShipWeapons(node: XmlElement): ShipWeapons | undefined {
+  const ship = node.getAttribute("ship")?.trim();
+  if (!ship) {
+    warnPack("A <shipWeapons> names no ship; it is skipped.");
+    return undefined;
+  }
+  const anyOf: string[] = [];
+  const listed = textOf(node, "anyOf");
+  if (listed) for (const name of listed.split(/\s+/)) if (name) anyOf.push(name);
+  if (anyOf.length === 0) {
+    warnPack(`<shipWeapons ship="${ship}"> names no weapon; it is skipped.`);
+    return undefined;
+  }
+  return { ship, anyOf };
+}
+
+/**
  * Gap `<cargoSlots slots>` (types.ts CargoSlots). A missing, fractional, or non-positive attribute is left out, so the
  * registry keeps the earlier value or FTL's default.
  */
@@ -1160,6 +1181,9 @@ export function parsePack(xml: string): ContentPack {
   const vengeanceNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "crystalVengeance",
   );
+  const weaponNodes = elements(doc.documentElement ?? undefined).filter(
+    (item) => item.tagName === "shipWeapons",
+  );
   const cargoNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "cargoSlots",
   );
@@ -1196,6 +1220,15 @@ export function parsePack(xml: string): ContentPack {
   if (waitsNode) pack.overchargerWaits = readOverchargerWaits(waitsNode);
   if (ionNode) pack.ionIntruder = readIonIntruder(ionNode);
   if (vengeanceNode) pack.crystalVengeance = readCrystalVengeance(vengeanceNode);
+  const shipWeapons: ShipWeapons[] = [];
+  for (const node of weaponNodes) {
+    const row = readShipWeapons(node);
+    if (!row) continue;
+    const at = shipWeapons.findIndex((item) => item.ship === row.ship);
+    if (at >= 0) shipWeapons[at] = row;
+    else shipWeapons.push(row);
+  }
+  if (shipWeapons.length > 0) pack.shipWeapons = shipWeapons;
   if (cargoNode) pack.cargoSlots = readCargoSlots(cargoNode);
   if (bonusNode) pack.bonusItem = readBonusItem(bonusNode);
   if (asteroidNode) pack.asteroidField = readAsteroidField(asteroidNode);

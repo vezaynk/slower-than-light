@@ -1113,12 +1113,12 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>There are few more vicious beasts in the galaxy than a Slug with his back to the wall. The faltering ship armed with fire-weapons uses a remote hacking tool to try and disable your door system - they're going to burn you out!</text>
     <choice name="c:slug-hacker-doors:0">
       <text>Continue</text>
-      <ship hostile="true" load="JELLY"/>
+      <ship hostile="true" load="JELLY_STATUS_DOORS"/>
     </choice>
     <choice name="c:slug-hacker-doors:1" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="JELLY"/>
+      <ship hostile="true" load="JELLY_STATUS_HACKING"/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_MEDBAY">
@@ -1154,17 +1154,17 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The slugs here use a tactic you hoped you'd never see: They sabotage your oxygen production system and then charge fire-weapons - you're going to suffocate!</text>
     <choice name="c:slug-hacker-oxygen:0">
       <text>Continue</text>
-      <ship hostile="true" load="JELLY_NO_ESCAPE"/>
+      <ship hostile="true" load="JELLY_STATUS_OXYGEN_FIRE"/>
     </choice>
     <choice name="c:slug-hacker-oxygen:1" owner="quest">
       <text>Try to squeeze some extra power to the system.</text>
       <req req="oxygen" lvl="2">Needs level 2 Oxygen</req>
-      <ship hostile="true" load="JELLY_NO_ESCAPE"/>
+      <ship hostile="true" load="JELLY_STATUS_OXYGEN_FIRE"/>
     </choice>
     <choice name="c:slug-hacker-oxygen:2" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="JELLY_NO_ESCAPE"/>
+      <ship hostile="true" load="JELLY_STATUS_OXYGEN_FIRE"/>
     </choice>
   </event>
   <event name="ENGI_VIRUS">
@@ -3509,6 +3509,9 @@ Overhearing their conversation, it seems that they need to take possession of an
   <ship name="JELLY_PIRATE" auto_blueprint="SHIPS_JELLY_PIRATE"/>
   <ship name="MANTIS_FIGHTER_SHIP" auto_blueprint="MANTIS_FIGHTER"/>
   <ship name="LONG_FLEET" auto_blueprint="SHIPS_REBEL_ELITE"/>
+  <ship name="JELLY_STATUS_OXYGEN_FIRE" auto_blueprint="SHIPS_JELLY"/>
+  <ship name="JELLY_STATUS_DOORS" auto_blueprint="SHIPS_JELLY"/>
+  <ship name="JELLY_STATUS_HACKING" auto_blueprint="SHIPS_JELLY"/>
   <ship name="REBEL_AUTO_WARNING" auto_blueprint="SHIPS_AUTO">
     <escape min="22" max="22" timer="40"/>
     <gotaway>
@@ -3544,6 +3547,12 @@ Overhearing their conversation, it seems that they need to take possession of an
   <ship name="PIRATE_SMUGGLE" auto_blueprint="SHIPS_PIRATE">
     <escape min="3" max="4" timer="35"/>
   </ship>
+  <ship name="PIRATE_DOCK_80" auto_blueprint="SHIPS_PIRATE">
+    <escape min="30" max="30" timer="80"/>
+  </ship>
+  <ship name="PIRATE_REFUGEE" auto_blueprint="SHIPS_PIRATE">
+    <escape min="30" max="30" timer="90"/>
+  </ship>
   <ship name="BOSS_SCOUT_RESCUE" auto_blueprint="SHIPS_REBEL">
     <escape min="4" max="8" chance="0.5"/>
   </ship>
@@ -3554,9 +3563,6 @@ Overhearing their conversation, it seems that they need to take possession of an
     <escape min="0" max="0" chance="0"/>
   </ship>
   <ship name="LANIUS_NO_ESCAPE" auto_blueprint="SHIPS_LANIUS">
-    <escape min="0" max="0" chance="0"/>
-  </ship>
-  <ship name="JELLY_NO_ESCAPE" auto_blueprint="SHIPS_JELLY">
     <escape min="0" max="0" chance="0"/>
   </ship>
 </FTL>

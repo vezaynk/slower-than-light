@@ -28,6 +28,7 @@ import type {
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
+  ShipWeapons,
   CargoSlots,
   BonusItemWeights,
   AsteroidField,
@@ -206,6 +207,7 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
   if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
   if (pack.crystalVengeance) add(root, crystalVengeanceElement(doc, pack.crystalVengeance));
+  for (const row of pack.shipWeapons ?? []) add(root, shipWeaponsElement(doc, row));
   if (pack.cargoSlots) add(root, cargoSlotsElement(doc, pack.cargoSlots));
   if (pack.bonusItem) add(root, bonusItemElement(doc, pack.bonusItem));
   if (hasAsteroidField(pack.asteroidField))
@@ -277,6 +279,13 @@ function crystalVengeanceElement(doc: XmlDocument, row: CrystalVengeanceRule): X
     if (value != null) attrs[key] = num(value);
   }
   return element(doc, "crystalVengeance", attrs);
+}
+
+/** `<shipWeapons ship>` › `<anyOf>` (types.ts ShipWeapons). */
+function shipWeaponsElement(doc: XmlDocument, row: ShipWeapons): XmlElement {
+  const node = element(doc, "shipWeapons", { ship: row.ship });
+  add(node, leaf(doc, "anyOf", row.anyOf.join(" ")));
+  return node;
 }
 
 /** `<cargoSlots slots>`: the cargo hold FTL's executable hard-codes (types.ts CargoSlots). */

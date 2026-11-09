@@ -659,6 +659,16 @@ export type IonIntruderRule = {
 };
 
 /**
+ * Gap `<shipWeapons ship>` › `<anyOf>`: weapons FTL's executable forces onto a ship the data does not arm.
+ * `anyOf` is the weapon ids, in document order. The fight keeps one it already rolled; otherwise it fits one of them.
+ * A ship with no row keeps FTL's list, with one warning.
+ */
+export type ShipWeapons = {
+  ship: string;
+  anyOf: string[];
+};
+
+/**
  * Gap `<crystalVengeance chance damage breach stunChance stun>`: Crystal Vengeance. `chance` is the probability
  * (0 to 1) that a hull hit breaks off a shard. The shard does `damage` hull, has `breach` chance to breach, and
  * `stunChance` to stun for `stun` seconds. Ignoring shields, facing evasion, and being shot down by a defense
@@ -1355,6 +1365,11 @@ export type ContentPack = {
   ionIntruder?: IonIntruderRule;
   /** Crystal Vengeance shard. Absent until a pack loads it. */
   crystalVengeance?: CrystalVengeanceRule;
+  /**
+   * Weapons an executable rule forces onto a named ship. Absent until a pack loads them.
+   * A missing ship falls back to FTL's list.
+   */
+  shipWeapons?: ShipWeapons[];
   /** Cargo hold size. Absent until a pack loads it. */
   cargoSlots?: CargoSlots;
   /** Bonus-item kind weights. Absent until a pack loads them. */

@@ -9,7 +9,14 @@
  * - `SHIP_LIST_RULES`: the gap's `<shipList>` rows, which give each list's fights a faction and a pirate flag. ftl.dat
  *   uses the same list names, so the rows cover it too.
  */
-import type { BlueprintListDef, ShipEventDef, ShipListRule } from "@stl/pack";
+import type {
+  BlueprintListDef,
+  EventDef,
+  ShipEventDef,
+  ShipEventEscape,
+  ShipListRule,
+  ShipWeapons,
+} from "@stl/pack";
 import { ENEMY_BLUEPRINTS } from "./enemy-blueprints.ts";
 
 /** Class id prefix to faction. Zoltan classes are `energy-`, as the hulls are. */
@@ -106,15 +113,131 @@ const FIGHTS: [string[], string, string][] = [
   [["Mantis Fighter"], "MANTIS_FIGHTER_SHIP", "MANTIS_FIGHTER"],
 ];
 
+const AUTO_GOTAWAY =
+  "The scout jumps away. It will certainly have informed the fleet of your position. You must get to the next sector as soon as possible!";
+const REBEL_GOTAWAY =
+  "The scout jumps away. They are sure to have informed the fleet of your position. You must get to the next Sector as soon as possible!";
+
+function gotawayPage(id: string, body: string): EventDef {
+  return { id: `${id}:gotaway`, dest: id, flag: id, aliases: [], sectors: [], body, choices: [] };
+}
+
+function escapeShip(
+  id: string,
+  autoBlueprint: string,
+  escape: ShipEventEscape,
+  pursuit = false,
+  gotaway?: string,
+): ShipEventDef {
+  const row: ShipEventDef = { id, autoBlueprint, escape };
+  if (pursuit) row.pursuit = true;
+  if (gotaway) row.gotaway = { page: gotawayPage(id, gotaway) };
+  return row;
+}
+
+function neverShip(id: string, autoBlueprint: string): ShipEventDef {
+  return { id, autoBlueprint, escape: { chance: 0, min: 0, max: 0 } };
+}
+
+/** Ship events whose `<escape>` is the page's own line. A chance of 0 does not run. */
+const ESCAPE_SHIPS: readonly ShipEventDef[] = [
+  escapeShip(
+    "REBEL_AUTO_WARNING",
+    "SHIPS_AUTO",
+    { timer: 40, min: 22, max: 22 },
+    true,
+    AUTO_GOTAWAY,
+  ),
+  escapeShip("SQUAT_WARNING", "SHIPS_REBEL", { timer: 40, min: 22, max: 22 }, true, REBEL_GOTAWAY),
+  // ftl.dat's band is 14 hull. Sector 6+ Rebel hull is already above that, so the transport waits until it is
+  // damaged into the band. Raising it so every sector starts running would leave the dat.
+  escapeShip("SQUAT_TRANSPORT", "SHIPS_REBEL", { timer: 40, min: 14, max: 14 }),
+  escapeShip("REBEL_FUEL", "SHIPS_REBEL", { timer: 80, min: 30, max: 30 }),
+  escapeShip("MANTIS_FUEL", "SHIPS_MANTIS", { timer: 80, min: 30, max: 30 }),
+  escapeShip("JELLY_OVERPRICED", "SHIPS_JELLY", { timer: 80, min: 30, max: 30 }),
+  escapeShip("AUTO_FUEL_SELLER", "SHIPS_AUTO", { timer: 80, min: 30, max: 30 }),
+  escapeShip("PIRATE_BRIBER", "SHIPS_PIRATE", { chance: 0.4, min: 3, max: 4 }),
+  escapeShip("PIRATE_SMUGGLE", "SHIPS_PIRATE", { timer: 35, min: 3, max: 4 }),
+  // Wiki timers the fuel pages print. Not compared to ftl.dat: the stand-in still starts these fights from
+  // cited-missing.ts, and these ids are the stand-in's until that pass.
+  escapeShip("PIRATE_DOCK_80", "SHIPS_PIRATE", { timer: 80, min: 30, max: 30 }),
+  escapeShip("PIRATE_REFUGEE", "SHIPS_PIRATE", { timer: 90, min: 30, max: 30 }),
+  escapeShip("BOSS_SCOUT_RESCUE", "SHIPS_REBEL", { chance: 0.5, min: 4, max: 8 }),
+  neverShip("REBEL_NO_ESCAPE", "SHIPS_REBEL"),
+  neverShip("PIRATE_NO_ESCAPE", "SHIPS_PIRATE"),
+  neverShip("LANIUS_NO_ESCAPE", "SHIPS_LANIUS"),
+];
+
 export const SHIP_EVENTS: readonly ShipEventDef[] = [
   ...FIGHTS.map(([, id, autoBlueprint]) => ({ id, autoBlueprint })),
   // The Rebel fleet's Elite at an overtaken beacon. ftl.dat's FLEET_EASY events load this ship by this name.
   { id: "LONG_FLEET", autoBlueprint: "SHIPS_REBEL_ELITE" },
+  // Slug hacker ships. ftl.dat loads these ids and does not arm them; the fire guns are gap `<shipWeapons>`.
+  { id: "JELLY_STATUS_OXYGEN_FIRE", autoBlueprint: "SHIPS_JELLY" },
+  { id: "JELLY_STATUS_DOORS", autoBlueprint: "SHIPS_JELLY" },
+  { id: "JELLY_STATUS_HACKING", autoBlueprint: "SHIPS_JELLY" },
+  ...ESCAPE_SHIPS,
 ];
+
+/**
+ * Fire weapons FTL's executable adds. The data ships have no `<weaponOverride>`.
+ * JELLY_STATUS_HACKING is the hacking counter and is not on this list.
+ */
+export const SHIP_WEAPONS: readonly ShipWeapons[] = [
+  { ship: "JELLY_STATUS_OXYGEN_FIRE", anyOf: ["BEAM_FIRE", "BOMB_FIRE"] },
+  { ship: "JELLY_STATUS_DOORS", anyOf: ["BEAM_FIRE", "BOMB_FIRE"] },
+];
+
+/**
+ * A page's fight loads this ship event instead of the faction's ordinary ship.
+ * The ids are ftl.dat's `<ship load>`. The escape band and a gotaway pursuit live on that ship.
+ */
+export const PAGE_SHIPS: Readonly<Record<string, string>> = {
+  "c:auto-ship-warning:0": "REBEL_AUTO_WARNING",
+  "c:auto-ship-warning-in-nebula:0": "REBEL_AUTO_WARNING",
+  "c:no-fuel-auto-ship-warning:0": "REBEL_AUTO_WARNING",
+  "c:rebel-ship-warning:0": "SQUAT_WARNING",
+  "c:rebel-transport-ship:0": "SQUAT_TRANSPORT",
+  "c:no-fuel-rebel-fight:0": "REBEL_FUEL",
+  "c:no-fuel-mantis-fight:0": "MANTIS_FUEL",
+  "c:no-fuel-slug-fuel-depot:2": "JELLY_OVERPRICED",
+  "c:no-fuel-automated-refueling-ship:3": "AUTO_FUEL_SELLER",
+  "c:pirate-briber:1": "PIRATE_BRIBER",
+  "c:pirate-smuggler:0": "PIRATE_SMUGGLE",
+  "c:rebel-ship-attacking-civilians-in-last-stand:0": "BOSS_SCOUT_RESCUE",
+  "c:rebel-fight-among-rebel-fleet:0": "REBEL_NO_ESCAPE",
+  "c:rebel-fight-among-federation-and-rebel-fleets:0": "REBEL_NO_ESCAPE",
+  "c:rebel-ship-attacking-federation-loyalists:0": "REBEL_NO_ESCAPE",
+  "c:rebel-ship-attacking-refueling-outpost:0": "REBEL_NO_ESCAPE",
+  "c:rebel-ship-supplying-civilians:0": "REBEL_NO_ESCAPE",
+  "c:fight-in-last-stand:0": "REBEL_NO_ESCAPE",
+  "c:pirate-ship-attacking-civilian-distress:0": "PIRATE_NO_ESCAPE",
+  "c:pirate-ship-attacking-civilian:0": "PIRATE_NO_ESCAPE",
+  "c:pirate-engine-hacker:0": "PIRATE_NO_ESCAPE",
+  "c:pirate-engine-hacker:1": "PIRATE_NO_ESCAPE",
+  "c:lanius-ship-attacking-civilian-distress:0": "LANIUS_NO_ESCAPE",
+  "c:lanius-ship-attacking-civilian:0": "LANIUS_NO_ESCAPE",
+  "c:lanius-ship-attacking-rock:0": "LANIUS_NO_ESCAPE",
+  "c:lanius-ship-attacking-mantis:0": "LANIUS_NO_ESCAPE",
+  "c:lanius-ship-attacking-slug:0": "LANIUS_NO_ESCAPE",
+  "c:lanius-ship-in-rich-debris-field:0": "LANIUS_NO_ESCAPE",
+  "c:lanius-ship-in-rich-debris-field:1": "LANIUS_NO_ESCAPE",
+  "c:lanius-fight-with-friendly-asb-support:0": "LANIUS_NO_ESCAPE",
+  "c:slug-hacker-oxygen:0": "JELLY_STATUS_OXYGEN_FIRE",
+  "c:slug-hacker-oxygen:1": "JELLY_STATUS_OXYGEN_FIRE",
+  "c:slug-hacker-oxygen:2": "JELLY_STATUS_OXYGEN_FIRE",
+  "c:slug-hacker-doors:0": "JELLY_STATUS_DOORS",
+  "c:slug-hacker-doors:1": "JELLY_STATUS_HACKING",
+};
 
 const FIGHT_SHIP = new Map(
   FIGHTS.flatMap(([words, id]) => words.map((word) => [word, id] as const)),
 );
+
+/** A page names the fight in words ("Rebel ship"), not by a class or a ship event. */
+export function isFightWording(tier: string): boolean {
+  return FIGHT_SHIP.has(tier);
+}
 
 /** A fight that is not a ship event: the Rebel Flagship's own path. */
 const NOT_A_SHIP = /flagship/i;

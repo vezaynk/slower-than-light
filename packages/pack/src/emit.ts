@@ -29,6 +29,7 @@ import type {
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
+  ShipWeapons,
   CargoSlots,
   BonusItemWeights,
   AsteroidField,
@@ -46,6 +47,8 @@ import type {
   RollEntry,
   SectorDef,
   ShipClassDef,
+  ShipEventDef,
+  ShipEventEscape,
   ShipListRule,
   StoreDef,
   StoreLine,
@@ -180,11 +183,7 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   for (const event of pack.events ?? []) add(root, eventElement(doc, event));
   for (const list of pack.lists ?? []) add(root, listElement(doc, list));
   // `<ship name auto_blueprint>`: a ship event a fight loads, as ftl.dat's events_ships.xml writes them.
-  for (const ship of pack.shipEvents ?? []) {
-    const attrs: Record<string, string> = { name: ship.id };
-    if (ship.autoBlueprint) attrs.auto_blueprint = ship.autoBlueprint;
-    add(root, element(doc, "ship", attrs));
-  }
+  for (const ship of pack.shipEvents ?? []) add(root, shipEventElement(doc, ship));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
   return prettyXml(serializer.serializeToString(doc));
 }
@@ -211,6 +210,7 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
   if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
   if (pack.crystalVengeance) add(root, crystalVengeanceElement(doc, pack.crystalVengeance));
+  for (const row of pack.shipWeapons ?? []) add(root, shipWeaponsElement(doc, row));
   if (pack.cargoSlots) add(root, cargoSlotsElement(doc, pack.cargoSlots));
   if (pack.bonusItem) add(root, bonusItemElement(doc, pack.bonusItem));
   if (hasAsteroidField(pack.asteroidField))
@@ -292,6 +292,13 @@ function crystalVengeanceElement(doc: XmlDocument, row: CrystalVengeanceRule): X
     if (value != null) attrs[key] = num(value);
   }
   return element(doc, "crystalVengeance", attrs);
+}
+
+/** `<shipWeapons ship>` › `<anyOf>` (types.ts ShipWeapons). */
+function shipWeaponsElement(doc: XmlDocument, row: ShipWeapons): XmlElement {
+  const node = element(doc, "shipWeapons", { ship: row.ship });
+  add(node, leaf(doc, "anyOf", row.anyOf.join(" ")));
+  return node;
 }
 
 /** `<cargoSlots slots>`: the cargo hold FTL's executable hard-codes (types.ts CargoSlots). */
@@ -602,6 +609,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const lines =
     texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
   for (const line of lines) add(node, leaf(doc, "text", line));
+  if (event.ship) add(node, archiveShipElement(doc, event.ship));
   if (event.environment) add(node, environmentElement(doc, event.environment));
   if (event.store) add(node, element(doc, "store", {}));
   for (const list of offerLists(doc, event.offers ?? [])) add(node, list);
@@ -657,6 +665,15 @@ function environmentElement(
   const attrs: Record<string, string> = { type: env.type };
   if (env.type === "PDS" && env.target) attrs.target = env.target;
   return element(doc, "environment", attrs);
+}
+
+/** `<ship load>` on the event itself. A choice that does not load a ship fights this one. */
+function archiveShipElement(doc: XmlDocument, ship: NonNullable<EventDef["ship"]>): XmlElement {
+  const attrs: Record<string, string> = { hostile: ship.hostile ? "true" : "false" };
+  if (ship.load) attrs.load = ship.load;
+  if (ship.autoBlueprint) attrs.auto_blueprint = ship.autoBlueprint;
+  if (ship.asteroid) attrs.asteroid = "true";
+  return element(doc, "ship", attrs);
 }
 
 /** Choice attributes the archive stores on the button. An attr req is `req`, not a nested element. */
@@ -1312,6 +1329,33 @@ function raceElement(
   add(power, leaf(doc, "lockdown", race.lockdown));
   add(power, leaf(doc, "cooldown", race.lockCooldown));
   add(node, power);
+  return node;
+}
+
+function shipEventElement(doc: XmlDocument, ship: ShipEventDef): XmlElement {
+  const attrs: Record<string, string> = { name: ship.id };
+  if (ship.autoBlueprint) attrs.auto_blueprint = ship.autoBlueprint;
+  const node = element(doc, "ship", attrs);
+  if (ship.escape) add(node, escapeElement(doc, ship.escape));
+  if (ship.gotaway || ship.pursuit) add(node, gotawayElement(doc, ship));
+  return node;
+}
+
+function escapeElement(doc: XmlDocument, escape: ShipEventEscape): XmlElement {
+  const attrs: Record<string, string> = { min: num(escape.min), max: num(escape.max) };
+  if (escape.chance != null) attrs.chance = num(escape.chance);
+  if (escape.timer != null) attrs.timer = num(escape.timer);
+  const node = element(doc, "escape", attrs);
+  const body = escape.page?.body;
+  if (body) add(node, leaf(doc, "text", body));
+  return node;
+}
+
+function gotawayElement(doc: XmlDocument, ship: ShipEventDef): XmlElement {
+  const node = element(doc, "gotaway", {});
+  const body = ship.gotaway?.page?.body;
+  if (body) add(node, leaf(doc, "text", body));
+  if (ship.pursuit) add(node, element(doc, "modifyPursuit", { amount: "1" }));
   return node;
 }
 

@@ -2277,6 +2277,17 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     g.paused = true;
     return true;
   }
+  // A choice that does not load a ship fights the one on the event (ftl.dat's PIRATE_NO_ESCAPE).
+  if (fightPageShip(ctx, id)) return true;
   ctx.resolve();
+  return true;
+}
+
+/** The page's hostile `<ship load>`, when this choice did not load one of its own. */
+function fightPageShip(ctx: CitedChoice, id: string): boolean {
+  const page = allEvents().find((event) => event.choices.some((choice) => choice.id === id));
+  const ship = page?.ship;
+  if (!ship?.hostile || !ship.load) return false;
+  ctx.fight(ship.load, ship.asteroid ? true : undefined, undefined, ship.autoBlueprint);
   return true;
 }

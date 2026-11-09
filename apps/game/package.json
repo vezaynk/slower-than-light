@@ -23,6 +23,7 @@
     "@capacitor/ios": "^8.5.3",
     "@sentry/react": "^11.11.0",
     "@sentry/vite-plugin": "^11.11.0",
+    "@stl/catalog": "workspace:*",
     "@stl/ftldat": "workspace:*",
     "@stl/hyperspace": "workspace:*",
     "@stl/pack": "workspace:*",

@@ -3,7 +3,6 @@ import { describe, it } from "node:test";
 import { choose, createGame, startCombat, step, waitHere } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
-import { OUT_OF_FUEL_WAIT_SECONDS } from "../wiki/escape-events.ts";
 import { escapePlan, eventSlugOf, hullRunSeconds, lastFuelSeconds } from "./escape.ts";
 
 const half = () => 0.5;
@@ -13,46 +12,45 @@ function run(g: Game, seconds: number) {
 }
 
 describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
-  it("runs from the start with the event's timer", () => {
-    assert.deepEqual(
-      [
-        "auto-ship-warning",
-        "rebel-ship-warning",
-        "rebel-transport-ship",
-        "rock-war-vessel-encounter",
-      ].map((event) => {
-        const p = escapePlan({ tier: "scout", event }, half);
-        return [p.mode, p.seconds, p.pursuit, p.running];
-      }),
-      [
-        ["start", 40, true, true],
-        ["start", 40, true, true],
-        ["start", 40, false, true],
-        ["start", 32, false, true],
-      ],
+  it("runs a warning ship from the start, and a transport without pursuit", () => {
+    const warning = createGame(4);
+    warning.player.weapons = [];
+    startCombat(warning, "SQUAT_WARNING");
+    assert.equal(warning.enemyEscape?.seconds, 40);
+    assert.equal(warning.enemyEscape?.pursuit, true);
+    assert.equal(
+      warning.enemyEscape?.running,
+      warning.enemy!.hull <= warning.enemyEscape!.threshold,
     );
-    const slug = escapePlan(
-      { tier: "scout", faction: "slug", event: "slug-home-nebula-surrender" },
-      half,
+    const transport = createGame(4);
+    startCombat(transport, "SQUAT_TRANSPORT");
+    assert.equal(transport.enemyEscape?.seconds, 40);
+    assert.equal(transport.enemyEscape?.pursuit, false);
+    assert.equal(
+      transport.enemyEscape?.running,
+      transport.enemy!.hull <= transport.enemyEscape!.threshold,
     );
-    assert.equal(slug.mode, "hull");
-    assert.equal(slug.seconds, hullRunSeconds());
-    assert.equal(slug.chance, 50);
-    assert.equal(slug.threshold, 35);
-    assert.equal(slug.running, false);
   });
 
-  it("uses 80 s for out-of-fuel events, except the 40 s auto-ship", () => {
-    // Wiki citations:
-    // > "Unlike the usual 80 seconds escape countdown timer in all other Out-of-fuel events or the 90 seconds escape countdown timer for any hostile ship encountered in other events after depleting your last fuel, the enemy auto-ship has 40 seconds escape countdown timer from the start, similarly to Auto-ship warning and Auto-ship warning in nebula (and Rebel ship warning) events." — [[No fuel: Auto-ship warning#Notes]]
-    assert.equal(
-      escapePlan({ tier: "scout", event: "no-fuel-engi-ship-repair" }, half).seconds,
-      OUT_OF_FUEL_WAIT_SECONDS,
-    );
-    assert.equal(
-      escapePlan({ tier: "scout", event: "no-fuel-auto-ship-warning" }, half).seconds,
-      40,
-    );
+  it("uses 80 s for an out-of-fuel ship and 40 s for the auto warning", () => {
+    const fuel = createGame(4);
+    startCombat(fuel, "REBEL_FUEL");
+    assert.equal(fuel.enemyEscape?.seconds, 80);
+    assert.equal(fuel.enemyEscape?.hullPoints, true);
+    const warn = createGame(4);
+    startCombat(warn, "REBEL_AUTO_WARNING");
+    assert.equal(warn.enemyEscape?.seconds, 40);
+    assert.equal(warn.enemyEscape?.pursuit, true);
+  });
+
+  it("does not run a ship whose escape chance is 0", () => {
+    const g = createGame(4);
+    startCombat(g, "REBEL_NO_ESCAPE");
+    g.enemySurrender!.chance = 0;
+    g.enemy!.hull = 1;
+    run(g, 20);
+    assert.equal(g.enemyEscape?.running, false);
+    assert.equal(g.phase, "combat");
   });
 
   it("never runs for the flagship or a Rebel Elite", () => {
@@ -86,12 +84,13 @@ describe("escape rules (Enemy Ships, Surrenders and escape attempts)", () => {
       assert.equal(row(f)[0], "never", f);
   });
 
-  it("uses an event page's own hull row (Pirate briber, 60% at 30-40%)", () => {
-    const p = escapePlan(
-      { tier: "pool", faction: "rebel", pirate: true, event: "pirate-briber" },
-      () => 0,
-    );
-    assert.deepEqual([p.mode, p.chance, Math.round(p.threshold)], ["hull", 60, 30]);
+  it("uses the briber ship's hull points, not the pirate percent row", () => {
+    const g = createGame(4);
+    startCombat(g, "PIRATE_BRIBER");
+    assert.equal(g.enemyEscape?.chance, 0.4);
+    assert.equal(g.enemyEscape?.hullPoints, true);
+    assert.ok(g.enemyEscape!.threshold >= 3 && g.enemyEscape!.threshold <= 4);
+    assert.equal(g.enemyEscape?.running, g.enemy!.hull <= g.enemyEscape!.threshold);
   });
 
   it("reads the event slug from a cited choice id", () => {
@@ -125,7 +124,7 @@ describe("escape in a fight", () => {
 
   it("stalls while their engines are down", () => {
     const g = createGame(4);
-    startCombat(g, "fighter", false, "rebel-transport-ship");
+    startCombat(g, "SQUAT_TRANSPORT");
     // extras/crewai.ts sends enemy crew to repair Engines, so keep them broken every second.
     // Every tick: a one-second gap lets a crew member mend a bar on some hulls (the archive picks the ship).
     for (let i = 0; i < 60 * 30; i++) {
@@ -140,10 +139,10 @@ describe("escape in a fight", () => {
   it("doubles the next fleet advance when a pursuit runner escapes", () => {
     const g = createGame(4);
     g.player.weapons = [];
-    startCombat(g, "Rebel ship", false, "rebel-ship-warning");
+    startCombat(g, "SQUAT_WARNING");
     run(g, 45);
     assert.match(g.event?.body ?? "", /The scout jumps away/);
-    assert.match(g.event?.body ?? "", /Rebel Fleet pursuit is doubled/);
+    assert.ok(g.log.some((line) => line.includes("Rebel Fleet pursuit is doubled")));
     choose(g, "ack");
     assert.equal(g.phase, "map");
     assert.equal(g.pursuitDouble, true);
@@ -204,5 +203,58 @@ describe("escape numbers from the gap mod", () => {
     }
     assert.equal(hullRunSeconds(), 15);
     assert.equal(escapePlan({ tier: "pool", faction: "mantis" }, half).mode, "never");
+  });
+});
+
+describe("escape ship events the review called out", () => {
+  it("keeps a Last Stand class hull and still never runs", () => {
+    const scout = createGame(3);
+    startCombat(scout, "Auto-Scout", false, "fight-in-last-stand");
+    assert.equal(scout.enemy?.classId, "AUTO_BASIC");
+    assert.equal(scout.enemyEscape?.mode, "never");
+    const fighter = createGame(3);
+    startCombat(fighter, "rebel-fighter", false, "fight-in-last-stand");
+    assert.equal(fighter.enemy?.classId, "REBEL_SKINNY");
+    assert.equal(fighter.enemyEscape?.mode, "never");
+  });
+
+  it("does not start a sector-8 transport whose hull is already above the dat band of 14", () => {
+    const g = createGame(4);
+    g.sector = 8;
+    startCombat(g, "SQUAT_TRANSPORT");
+    assert.equal(g.enemyEscape?.threshold, 14);
+    assert.ok((g.enemy?.hull ?? 0) > 14);
+    assert.equal(g.enemyEscape?.running, false);
+  });
+
+  it("does not roll an escape miss again on the next tick", () => {
+    let found = false;
+    for (let seed = 1; seed <= 80 && !found; seed++) {
+      const g = createGame(seed);
+      g.difficulty = "easy";
+      startCombat(g, "BOSS_SCOUT_RESCUE");
+      const plan = g.enemyEscape;
+      if (!plan?.hullPoints || plan.running || (g.enemy?.hull ?? 0) > plan.threshold) continue;
+      found = true;
+      assert.equal(plan.rolled, true);
+      g.enemySurrender!.chance = 0;
+      run(g, 2);
+      assert.equal(g.enemyEscape?.running, false);
+      assert.equal(g.phase, "combat");
+    }
+    assert.equal(found, true);
+  });
+
+  it("runs the fuel-page ships from the start, on their own timers", () => {
+    const dock = createGame(2);
+    dock.fuel = 0;
+    startCombat(dock, "PIRATE_DOCK_80");
+    assert.equal(dock.enemyEscape?.running, true);
+    assert.equal(dock.enemyEscape?.seconds, 80);
+    const refugee = createGame(2);
+    refugee.fuel = 6;
+    startCombat(refugee, "PIRATE_REFUGEE");
+    assert.equal(refugee.enemyEscape?.running, true);
+    assert.equal(refugee.enemyEscape?.seconds, 90);
   });
 });

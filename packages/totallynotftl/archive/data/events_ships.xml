@@ -248,7 +248,7 @@
     <text>A small shuttle appears on the local radar. Turns out it is a Rebel automated scout!</text>
     <choice name="c:auto-ship-warning:0">
       <text>Fight an Auto-ship that is running away</text>
-      <ship hostile="true" load="REBEL_AUTO"/>
+      <ship hostile="true" load="REBEL_AUTO_WARNING"/>
     </choice>
   </event>
   <event name="CRYSTAL_HUNTER">
@@ -456,7 +456,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>A ship responding to your distress moves in. Unfortunately it turns out to be an automated Rebel scout. It immediately reverses thrust after scanning your ship.</text>
     <choice name="c:no-fuel-auto-ship-warning:0">
       <text>Fight an Auto-ship that is running away</text>
-      <ship hostile="true" load="REBEL_AUTO"/>
+      <ship hostile="true" load="REBEL_AUTO_WARNING"/>
     </choice>
   </event>
   <event name="FUEL_OFF_ENGI_DUBIOUS">
@@ -497,7 +497,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text/>
     <choice name="c:no-fuel-mantis-fight:0">
       <text>Fight a Mantis ship that is running away</text>
-      <ship hostile="true" load="MANTIS_SHIP"/>
+      <ship hostile="true" load="MANTIS_FUEL"/>
     </choice>
   </event>
   <event name="FUEL_ON_REBEL_ATTACK">
@@ -508,7 +508,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text/>
     <choice name="c:no-fuel-rebel-fight:0">
       <text>Fight a Rebel ship that is running away</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="REBEL_FUEL"/>
     </choice>
   </event>
   <event name="FUEL_ON_SLUG_OVERPRICED">
@@ -537,7 +537,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:no-fuel-slug-fuel-depot:2">
       <text>Negotiate</text>
-      <ship hostile="true" load="JELLY"/>
+      <ship hostile="true" load="JELLY_OVERPRICED"/>
     </choice>
   </event>
   <event name="FUEL_SELLER_DISTRESS">
@@ -572,7 +572,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:no-fuel-automated-refueling-ship:3">
       <text>Attack the automated ship</text>
-      <ship hostile="true" load="REBEL_AUTO"/>
+      <ship hostile="true" load="AUTO_FUEL_SELLER"/>
     </choice>
   </event>
   <event name="FUEL_EXPLORE">
@@ -637,7 +637,7 @@ They apologize for their hasty response to your presence and spend some time ref
     </choice>
     <choice name="c:pirate-briber:1">
       <text>Try to be a hero. Attack the pirate</text>
-      <ship hostile="true" load="PIRATE"/>
+      <ship hostile="true" load="PIRATE_BRIBER"/>
     </choice>
     <surrender chance="70" min="30" max="40">
       <text>"Fine! Our previous offer was not generous enough, let's improve it."</text>
@@ -683,7 +683,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The distress beacon is coming from a civilian ship. It appears it is being chased by a pirate.</text>
     <choice name="c:pirate-ship-attacking-civilian-distress:0">
       <text>Aid the civilian ship</text>
-      <ship hostile="true" load="PIRATE"/>
+      <ship hostile="true" load="PIRATE_NO_ESCAPE"/>
     </choice>
     <choice name="c:pirate-ship-attacking-civilian-distress:1">
       <text>Stay out of it</text>
@@ -861,7 +861,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Your sensors are picking up a distress call on an encrypted Federation channel. You eventually find a Federation scout being chased by a Rebel fighter!</text>
     <choice name="c:rebel-ship-attacking-federation-loyalists:0">
       <text>Aid the Federation ship</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="REBEL_NO_ESCAPE"/>
     </choice>
     <choice name="c:rebel-ship-attacking-federation-loyalists:1">
       <text>Use this chance to escape</text>
@@ -879,7 +879,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You detect a Rebel scout on an attack approach to a small refueling outpost. Their weapons are charged, but they're not firing yet.</text>
     <choice name="c:rebel-ship-attacking-refueling-outpost:0">
       <text>Intervene to defend the outpost</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="REBEL_NO_ESCAPE"/>
     </choice>
     <choice name="c:rebel-ship-attacking-refueling-outpost:1">
       <text>Avoid the conflict</text>
@@ -901,7 +901,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>Because of the war, thousands of colonists have had their supply lines disrupted and have found themselves in dire straits. It seems in this system, the Rebels are sympathetic and are distributing what little supplies they can spare.</text>
     <choice name="c:rebel-ship-supplying-civilians:0">
       <text>Attack the Rebels</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="REBEL_NO_ESCAPE"/>
     </choice>
     <choice name="c:rebel-ship-supplying-civilians:1">
       <text>Leave them be</text>
@@ -926,7 +926,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You spot a small rebel ship nearby. It seems to have been re-fitted for transport rather than combat. It does not seem to want to engage you and your ship.</text>
     <choice name="c:rebel-transport-ship:0">
       <text>Demand the surrender of their goods</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="SQUAT_TRANSPORT"/>
     </choice>
     <choice name="c:rebel-transport-ship:1">
       <text>Avoid the ship</text>
@@ -1113,12 +1113,12 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>There are few more vicious beasts in the galaxy than a Slug with his back to the wall. The faltering ship armed with fire-weapons uses a remote hacking tool to try and disable your door system - they're going to burn you out!</text>
     <choice name="c:slug-hacker-doors:0">
       <text>Continue</text>
-      <ship hostile="true" load="JELLY"/>
+      <ship hostile="true" load="JELLY_STATUS_DOORS"/>
     </choice>
     <choice name="c:slug-hacker-doors:1" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="JELLY"/>
+      <ship hostile="true" load="JELLY_STATUS_HACKING"/>
     </choice>
   </event>
   <event name="NEBULA_SLUG_MEDBAY">
@@ -1154,17 +1154,17 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>The slugs here use a tactic you hoped you'd never see: They sabotage your oxygen production system and then charge fire-weapons - you're going to suffocate!</text>
     <choice name="c:slug-hacker-oxygen:0">
       <text>Continue</text>
-      <ship hostile="true" load="JELLY"/>
+      <ship hostile="true" load="JELLY_STATUS_OXYGEN_FIRE"/>
     </choice>
     <choice name="c:slug-hacker-oxygen:1" owner="quest">
       <text>Try to squeeze some extra power to the system.</text>
       <req req="oxygen" lvl="2">Needs level 2 Oxygen</req>
-      <ship hostile="true" load="JELLY"/>
+      <ship hostile="true" load="JELLY_STATUS_OXYGEN_FIRE"/>
     </choice>
     <choice name="c:slug-hacker-oxygen:2" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="JELLY"/>
+      <ship hostile="true" load="JELLY_STATUS_OXYGEN_FIRE"/>
     </choice>
   </event>
   <event name="ENGI_VIRUS">
@@ -1336,7 +1336,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.</text>
     <choice name="c:auto-ship-warning-in-nebula:0">
       <text>Fight an Auto-ship that is running away</text>
-      <ship hostile="true" load="REBEL_AUTO"/>
+      <ship hostile="true" load="REBEL_AUTO_WARNING"/>
     </choice>
   </event>
   <event name="MANTIS_FIGHT">
@@ -1398,14 +1398,13 @@ They apologize for their hasty response to your presence and spend some time ref
     <sector>ENGI_HOME</sector>
     <sector>PIRATE_SECTOR</sector>
     <text>Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack.</text>
+    <ship hostile="true" load="PIRATE_NO_ESCAPE"/>
     <choice name="c:pirate-engine-hacker:0">
       <text>Continue</text>
-      <ship hostile="true" load="PIRATE"/>
     </choice>
     <choice name="c:pirate-engine-hacker:1" owner="quest">
       <text>Counter the remote hacking.</text>
       <req req="hacking" lvl="1">Needs a Hacking system</req>
-      <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
   <event name="PIRATE">
@@ -1508,7 +1507,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You come out of the jump to see laser blasts coming from the other side of the beacon. It looks like someone is under attack from pirates.</text>
     <choice name="c:pirate-ship-attacking-civilian:0">
       <text>Aid the civilian ship</text>
-      <ship hostile="true" load="PIRATE"/>
+      <ship hostile="true" load="PIRATE_NO_ESCAPE"/>
     </choice>
     <choice name="c:pirate-ship-attacking-civilian:1">
       <text>Stay out of it</text>
@@ -1555,7 +1554,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text/>
     <choice name="c:pirate-smuggler:0">
       <text>Attack the pirate</text>
-      <ship hostile="true" load="PIRATE"/>
+      <ship hostile="true" load="PIRATE_SMUGGLE"/>
     </choice>
     <choice name="c:pirate-smuggler:1">
       <text>Ignore the ship</text>
@@ -1724,7 +1723,7 @@ They apologize for their hasty response to your presence and spend some time ref
     <text>You stumble across a forward scout of the Rebel fleet.</text>
     <choice name="c:rebel-ship-warning:0">
       <text>Fight a Rebel ship that is running away</text>
-      <ship hostile="true" load="REBEL"/>
+      <ship hostile="true" load="SQUAT_WARNING"/>
     </choice>
   </event>
   <event name="LANIUS_FUELING_STATION">
@@ -3509,4 +3508,60 @@ Overhearing their conversation, it seems that they need to take possession of an
   <ship name="JELLY_PIRATE" auto_blueprint="SHIPS_JELLY_PIRATE"/>
   <ship name="MANTIS_FIGHTER_SHIP" auto_blueprint="MANTIS_FIGHTER"/>
   <ship name="LONG_FLEET" auto_blueprint="SHIPS_REBEL_ELITE"/>
+  <ship name="JELLY_STATUS_OXYGEN_FIRE" auto_blueprint="SHIPS_JELLY"/>
+  <ship name="JELLY_STATUS_DOORS" auto_blueprint="SHIPS_JELLY"/>
+  <ship name="JELLY_STATUS_HACKING" auto_blueprint="SHIPS_JELLY"/>
+  <ship name="REBEL_AUTO_WARNING" auto_blueprint="SHIPS_AUTO">
+    <escape min="22" max="22" timer="40"/>
+    <gotaway>
+      <text>The scout jumps away. It will certainly have informed the fleet of your position. You must get to the next sector as soon as possible!</text>
+      <modifyPursuit amount="1"/>
+    </gotaway>
+  </ship>
+  <ship name="SQUAT_WARNING" auto_blueprint="SHIPS_REBEL">
+    <escape min="22" max="22" timer="40"/>
+    <gotaway>
+      <text>The scout jumps away. They are sure to have informed the fleet of your position. You must get to the next Sector as soon as possible!</text>
+      <modifyPursuit amount="1"/>
+    </gotaway>
+  </ship>
+  <ship name="SQUAT_TRANSPORT" auto_blueprint="SHIPS_REBEL">
+    <escape min="14" max="14" timer="40"/>
+  </ship>
+  <ship name="REBEL_FUEL" auto_blueprint="SHIPS_REBEL">
+    <escape min="30" max="30" timer="80"/>
+  </ship>
+  <ship name="MANTIS_FUEL" auto_blueprint="SHIPS_MANTIS">
+    <escape min="30" max="30" timer="80"/>
+  </ship>
+  <ship name="JELLY_OVERPRICED" auto_blueprint="SHIPS_JELLY">
+    <escape min="30" max="30" timer="80"/>
+  </ship>
+  <ship name="AUTO_FUEL_SELLER" auto_blueprint="SHIPS_AUTO">
+    <escape min="30" max="30" timer="80"/>
+  </ship>
+  <ship name="PIRATE_BRIBER" auto_blueprint="SHIPS_PIRATE">
+    <escape min="3" max="4" chance="0.4"/>
+  </ship>
+  <ship name="PIRATE_SMUGGLE" auto_blueprint="SHIPS_PIRATE">
+    <escape min="3" max="4" timer="35"/>
+  </ship>
+  <ship name="PIRATE_DOCK_80" auto_blueprint="SHIPS_PIRATE">
+    <escape min="30" max="30" timer="80"/>
+  </ship>
+  <ship name="PIRATE_REFUGEE" auto_blueprint="SHIPS_PIRATE">
+    <escape min="30" max="30" timer="90"/>
+  </ship>
+  <ship name="BOSS_SCOUT_RESCUE" auto_blueprint="SHIPS_REBEL">
+    <escape min="4" max="8" chance="0.5"/>
+  </ship>
+  <ship name="REBEL_NO_ESCAPE" auto_blueprint="SHIPS_REBEL">
+    <escape min="0" max="0" chance="0"/>
+  </ship>
+  <ship name="PIRATE_NO_ESCAPE" auto_blueprint="SHIPS_PIRATE">
+    <escape min="0" max="0" chance="0"/>
+  </ship>
+  <ship name="LANIUS_NO_ESCAPE" auto_blueprint="SHIPS_LANIUS">
+    <escape min="0" max="0" chance="0"/>
+  </ship>
 </FTL>

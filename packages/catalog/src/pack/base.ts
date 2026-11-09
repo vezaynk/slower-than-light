@@ -56,7 +56,14 @@ import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
 import { ENEMY_BLUEPRINTS } from "../enemy-blueprints.ts";
 import { ENEMY_LAYOUTS, enemyLayoutFile } from "../enemy-layouts.ts";
-import { fightShipEvent, SHIP_EVENTS, SHIP_LIST_RULES, SHIP_LISTS } from "../ship-lists.ts";
+import {
+  fightShipEvent,
+  PAGE_SHIPS,
+  SHIP_EVENTS,
+  SHIP_LIST_RULES,
+  SHIP_LISTS,
+  SHIP_WEAPONS,
+} from "../ship-lists.ts";
 import { enemyGearLists, enemyStats } from "../enemy-stats.ts";
 import {
   FLAGSHIP_LAYOUTS,
@@ -448,15 +455,31 @@ function copyCard(row: EventCard): EventCard {
 }
 
 /** Every fight on a page loads a ship event (ship-lists.ts), as ftl.dat's `<ship load>` does, not a page's wording. */
-function loadShipEvents(node: unknown): void {
+function loadShipEvents(node: unknown, choiceId?: string): void {
   if (Array.isArray(node)) {
-    for (const item of node) loadShipEvents(item);
+    for (const item of node) loadShipEvents(item, choiceId);
     return;
   }
   if (!node || typeof node !== "object") return;
-  const row = node as { k?: unknown; tier?: unknown };
-  if (row.k === "fight" && typeof row.tier === "string") row.tier = fightShipEvent(row.tier);
-  for (const value of Object.values(node)) loadShipEvents(value);
+  const row = node as { k?: unknown; tier?: unknown; id?: unknown; fx?: unknown };
+  if (row.k === "fight" && typeof row.tier === "string") {
+    const named = typeof choiceId === "string" ? PAGE_SHIPS[choiceId] : undefined;
+    row.tier = named ?? fightShipEvent(row.tier);
+  }
+  const next = typeof row.id === "string" && Array.isArray(row.fx) ? row.id : choiceId;
+  for (const value of Object.values(node)) loadShipEvents(value, next);
+}
+
+/**
+ * ftl.dat's PIRATE_NO_ESCAPE puts `<ship load>` on the event. Both choices fight that ship
+ * and do not load one of their own. The engine cap and the hacking shutdown stay on the choices.
+ */
+function hoistEventShip(event: EventDef): void {
+  if (event.id !== "PIRATE_NO_ESCAPE") return;
+  const fights = event.choices.flatMap((choice) => choice.fx.filter((fx) => fx.k === "fight"));
+  if (fights.length === 0 || fights.some((fx) => fx.tier !== event.id)) return;
+  event.ship = { hostile: true, load: event.id };
+  for (const choice of event.choices) choice.fx = choice.fx.filter((fx) => fx.k !== "fight");
 }
 
 function takenReqIds(events: readonly EventDef[]): Set<string> {
@@ -1471,7 +1494,10 @@ export function loadCatalog(): void {
     FUEL_NOTHING_DISTRESS,
   ])
     if (!events.some((event) => event.id === page.id)) events.push(page);
-  for (const event of events) loadShipEvents(event);
+  for (const event of events) {
+    loadShipEvents(event);
+    hoistEventShip(event);
+  }
   loadPack(
     {
       // Ghost stays off the stand-in. crewDef supplies it when no crewBlueprint uses that id.
@@ -1509,6 +1535,7 @@ export function loadCatalog(): void {
       overchargerWaits: { ...OVERCHARGER_WAITS },
       ionIntruder: { ...ION_INTRUDER },
       crystalVengeance: { ...CRYSTAL_VENGEANCE },
+      shipWeapons: SHIP_WEAPONS.map((row) => ({ ship: row.ship, anyOf: [...row.anyOf] })),
       cargoSlots: { ...CARGO_SLOTS },
       bonusItem: { ...BONUS_ITEM_WEIGHTS },
       asteroidField: {

@@ -3,18 +3,20 @@ import { describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
 
 describe("Pirate smuggler escape", () => {
-  // "Pirate smuggler", Fight the Pirate ship: "(enemy ship starts to escape at 30-40% hull with 35 seconds countdown timer)".
-  it("starts a hull run at 30-40% with a 35 second timer", () => {
+  // PIRATE_SMUGGLE: `<escape min="3" max="4" timer="35">`. Omitted chance is certain. Hull points, not 30–40%.
+  it("starts from the smuggler ship's 3–4 hull and 35 second timer", () => {
     for (let seed = 1; seed <= 40; seed++) {
       const g = createGame(seed);
       startCombat(g, "Pirate ship", false, "pirate-smuggler");
       const e = g.enemyEscape;
       assert.ok(e);
-      assert.equal(e.mode, "hull");
-      assert.equal(e.chance, 100);
+      assert.equal(e.chance, 1);
+      assert.equal(e.hullPoints, true);
       assert.equal(e.seconds, 35);
-      // rand() is [0, 1), so the rolled threshold stays below the printed high end.
-      assert.ok(e.threshold >= 30 && e.threshold < 40, `seed ${seed}: ${e.threshold}`);
+      assert.ok(e.threshold >= 3 && e.threshold <= 4, `seed ${seed}: ${e.threshold}`);
+      const under = g.enemy!.hull > 0 && g.enemy!.hull <= e.threshold;
+      assert.equal(e.running, under);
+      assert.equal(e.mode, under ? "start" : "hull");
     }
   });
 
@@ -27,14 +29,17 @@ describe("Pirate smuggler escape", () => {
     assert.equal(e.seconds, 15);
   });
 
-  it("keeps Pirate briber on the typical 15 second timer", () => {
+  it("keeps Pirate briber on the ship's 0.4 chance at 3–4 hull", () => {
     const g = createGame(1);
     startCombat(g, "Pirate ship", false, "pirate-briber");
     const e = g.enemyEscape;
     assert.ok(e);
-    assert.equal(e.mode, "hull");
-    assert.equal(e.chance, 60);
+    assert.equal(e.hullPoints, true);
+    assert.equal(e.chance, 0.4);
     assert.equal(e.seconds, 15);
-    assert.ok(e.threshold >= 30 && e.threshold < 40);
+    assert.ok(e.threshold >= 3 && e.threshold <= 4);
+    assert.ok(g.enemy!.hull > e.threshold);
+    assert.equal(e.mode, "hull");
+    assert.equal(e.running, false);
   });
 });

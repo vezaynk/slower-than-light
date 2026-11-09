@@ -12,11 +12,10 @@
  * - each faction's hull-triggered odds and band: gap `<shipBlueprint name>` › `<escape chance min max>`
  *   (@stl/pack `factionEscape`);
  * - the 15 s hull-triggered timer and the 90 s last-fuel timer: gap `<escapeTimers hull lastFuel>` (`escapeTimer`);
- * - a ship event's own `<escape>` (ftl.dat events_ships.xml), read in sim.ts `archiveEscapePlan`;
- * - the cited event pages' own lines, which are content: wiki/escape-events.ts.
+ * - a ship event's own `<escape>` (ftl.dat events_ships.xml), read in sim.ts `archiveEscapePlan`.
+ *   A hull already at or below that band is running. A gotaway `<modifyPursuit amount="1">` is `pursuit`.
  */
 import { escapeTimer, factionEscape } from "@stl/pack";
-import { citedEscape } from "../wiki/escape-events.ts";
 
 export type EscapeMode = "never" | "start" | "hull";
 
@@ -37,6 +36,8 @@ export type EscapePlan = {
   rolled: boolean;
   /** The ship is charging its escape. */
   running: boolean;
+  /** The escape announcement has been shown. */
+  shown?: boolean;
   /** Rebel Fleet: an escape from this event doubles the fleet's next advance. */
   pursuit: boolean;
 };
@@ -94,15 +95,6 @@ function plan(mode: EscapeMode, seconds: number, extra: Partial<EscapePlan> = {}
 }
 
 export function escapePlan(ctx: EscapeContext, rand: () => number): EscapePlan {
-  // The page that started the fight prints its own line first (wiki/escape-events.ts).
-  const cited = citedEscape(ctx.event);
-  if (cited?.kind === "start") return plan("start", cited.seconds, { pursuit: cited.pursuit });
-  if (cited?.kind === "hull")
-    return plan("hull", cited.seconds ?? hullRunSeconds(), {
-      chance: cited.chance,
-      threshold: cited.low + rand() * (cited.high - cited.low),
-    });
-  if (cited?.kind === "never") return plan("never", 0);
   // Enemy Ships, "Never run away, never surrender": "Rebel Elite ships".
   // INFERRED for the boss: "The Rebel Flagship" is on no run list, and Template:SurrenderEscape reads a ship with
   // no escape data as "should not escape". The 90-second last-fuel rule names "non-friendly ships that usually

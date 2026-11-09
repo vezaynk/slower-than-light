@@ -128,10 +128,9 @@ These are behaviour, not content. Their logic stays; any table or constant becom
    `pulsar.ts`, and `combat2.ts` (gap `<asteroidField>`, `<pulsar>`, `<droneOrbit>`); `cited-chain.ts`, now
    `game/rules/chain.ts` (the blueprint's `<boost>`, not a second table). Faction odds are gap `<shipBlueprint name>` › `<escape chance min max>` beside the
    surrender row, the 15 s and 90 s timers are gap `<escapeTimers hull lastFuel>`, and a ship event's own `<escape>`
-   already came from the archive. The per-page lines (run from the start, page hull rows, never-run pages, the 80 s
-   out-of-fuel wait) are content of the section-2 event pages, so they sit in `wiki/escape-events.ts` and go with
-   those pages, once the archive path can run a ship from the start and read `<gotaway>` `<modifyPursuit>` as the
-   doubled next advance (`archiveEscapePlan` builds only a hull-threshold plan today; see that file's header).
+   is the page's line. A hull already inside that band is running, and `<gotaway>` `<modifyPursuit amount="1">`
+   doubles the next fleet advance. The stand-in writes those ships (`REBEL_AUTO_WARNING`, `SQUAT_WARNING`,
+   `REBEL_FUEL`, and the rest) and the pages load them. `wiki/escape-events.ts` is gone.
    Done: `targeting.ts` and `swarm-aim.ts`, now `game/rules/`. The aim chances and Hard list lines (easy 0.2, normal
    0.33, hard room 0.5, hard any-system 0.25, evasion 25, oxygen 50, artillery 4 s) are gap `<aiTarget>`. Swarm
    missile `SWARM_CUTS` stay code: they are the printed room percents for `<radius>31` already on the

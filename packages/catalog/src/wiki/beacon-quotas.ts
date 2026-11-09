@@ -53,8 +53,9 @@ function choiceFights(choices: readonly EventChoice[]): boolean {
   return false;
 }
 
-/** A page that starts a fight from a choice. Card buttons carry no effect list. */
+/** A page that starts a fight: its own `<ship load>`, or a fight on a choice. */
 export function eventHasFight(event: EventDef): boolean {
+  if (event.ship?.hostile && event.ship.load) return true;
   return choiceFights(event.choices);
 }
 

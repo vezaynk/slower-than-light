@@ -26,7 +26,7 @@ import { pageRect, toPage } from "./turn";
 import { SECTOR_NAMES, systemLabel, upgradeBlurb, upgradeCost } from "@/game/content";
 import { sectorTag } from "@/game/sector-ids";
 import { aimedBeamTiles } from "@/game/pack/beams";
-import { bootPack, clientStage, toSetup, useLaunch } from "@/game/launch";
+import { bootPack, toSetup, useLaunch } from "@/game/launch";
 import { BootScreen, SetupScreen } from "./SetupScreen";
 import "@/game/pack/base";
 import {
@@ -1034,15 +1034,10 @@ export function GameApp() {
   // Options, Graphics: screen shake (off by default under reduced motion, settings.ts).
   const shakeOn = useSettings((st) => st.shake);
 
-  // Per the user: setup (the game files) comes first, like a launcher. A remembered launch only
-  // shows the bar. The server HTML and the first paint stay on the setup sheet ("Launch"). Reading
-  // localStorage while creating the store painted "Loading the game files" on a return visit.
+  // Per the user: setup (the game files) comes first, like a launcher. A remembered launch only shows the bar.
   const stage = useLaunch((st) => st.stage);
-  const remembered = useRef(false);
+  const remembered = useRef(stage === "booting");
   useEffect(() => {
-    const next = clientStage();
-    if (next === "booting") remembered.current = true;
-    if (next !== useLaunch.getState().stage) useLaunch.setState({ stage: next });
     if (useLaunch.getState().stage === "booting") void bootPack();
   }, []);
   if (stage !== "ready") {

@@ -46,8 +46,9 @@ function writeFlag(storage: "local" | "session", key: string): void {
 let clientStageOnce: LaunchStage | undefined;
 
 /**
- * Where this browser should open. Not read when the store is created: the server render and the
- * first client paint stay on setup, and this runs from a mount effect (GameApp).
+ * Where this browser should open. No `window` means setup. A remembered launch, a `?dat=` open,
+ * or a taken `stl-launch-now` flag goes straight to the loading bar. Read when the store is
+ * created: this route's first render is already in the browser.
  */
 export function clientStage(): LaunchStage {
   if (clientStageOnce) return clientStageOnce;
@@ -60,8 +61,8 @@ export function clientStage(): LaunchStage {
   return clientStageOnce;
 }
 
-/** Server render and first paint: setup. A remembered launch is applied after mount. */
-export const useLaunch = create<LaunchState>(() => ({ stage: "setup", ratio: 0 }));
+/** The stage `clientStage()` decides. A strict-mode remount reuses it, so `stl-launch-now` is taken once. */
+export const useLaunch = create<LaunchState>(() => ({ stage: clientStage(), ratio: 0 }));
 
 /** True once a launch has succeeded in this browser, so a reload goes straight to the title. */
 export function hasLaunched(): boolean {

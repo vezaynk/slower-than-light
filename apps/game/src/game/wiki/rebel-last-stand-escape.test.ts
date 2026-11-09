@@ -17,20 +17,8 @@ function open(g: Game) {
 }
 
 describe("Rebel ship attacking civilians in Last Stand escape", () => {
-  it("runs at 50% once hull is 40-80%, on the typical 15 second timer", () => {
-    const low = escapePlan(
-      { tier: "pool", faction: "rebel", event: "rebel-ship-attacking-civilians-in-last-stand" },
-      () => 0,
-    );
-    assert.deepEqual(
-      [low.mode, low.chance, low.threshold, low.seconds],
-      ["hull", 50, 40, hullRunSeconds()],
-    );
-    const high = escapePlan(
-      { tier: "pool", faction: "rebel", event: "rebel-ship-attacking-civilians-in-last-stand" },
-      () => 1,
-    );
-    assert.equal(high.threshold, 80);
+  // BOSS_SCOUT_RESCUE: `<escape chance="0.5" min="4" max="8">`. Hull points. No timer, so the 15 s hull run.
+  it("runs the scout ship's 0.5 chance at 4–8 hull, on the 15 second timer", () => {
     const plain = escapePlan({ tier: "pool", faction: "rebel" }, () => 0);
     assert.equal(plain.threshold, 30);
 
@@ -46,10 +34,13 @@ describe("Rebel ship attacking civilians in Last Stand escape", () => {
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy?.faction, "rebel");
     assert.equal(g.fightEvent, "rebel-ship-attacking-civilians-in-last-stand");
-    assert.equal(g.enemyEscape?.mode, "hull");
-    assert.equal(g.enemyEscape?.chance, 50);
+    assert.equal(g.enemyEscape?.chance, 0.5);
+    assert.equal(g.enemyEscape?.hullPoints, true);
     assert.equal(g.enemyEscape?.seconds, hullRunSeconds());
     const threshold = g.enemyEscape?.threshold ?? -1;
-    assert.ok(threshold >= 40 && threshold <= 80);
+    assert.ok(threshold >= 4 && threshold <= 8);
+    const under = g.enemy!.hull > 0 && g.enemy!.hull <= threshold;
+    assert.equal(g.enemyEscape?.running, under);
+    assert.equal(g.enemyEscape?.mode, under ? "start" : "hull");
   });
 });

@@ -1218,6 +1218,11 @@ export type ShipEventDef = {
   destroyed?: ShipEventEnding;
   deadCrew?: ShipEventEnding;
   gotaway?: ShipEventEnding;
+  /**
+   * `<gotaway>` `<modifyPursuit amount="1">`. The next fleet advance counts twice.
+   * It is not an immediate change to the fleet counter.
+   */
+  pursuit?: boolean;
   crew?: ShipCrewRow[];
   weaponOverride?: ShipWeaponOverride;
 };

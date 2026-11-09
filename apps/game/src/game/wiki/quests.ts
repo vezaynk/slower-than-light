@@ -5703,7 +5703,7 @@ export const PAGE_WINS: Record<string, Win> = {
     );
   },
   // Rebel ship warning. Both endings pay medium scrap with resources.
-  // The 40 second run and doubled pursuit stay in wiki/escape-events.ts.
+  // The 40 second run and doubled pursuit are the ship event's escape and gotaway.
   "rebel-ship-warning": std(
     "medium",
     "medium",
@@ -5711,7 +5711,7 @@ export const PAGE_WINS: Record<string, Win> = {
     "Their ship goes silent and you are relieved to know that you are still one step ahead of the fleet.",
   ),
   // Auto-ship warning. {{Winning|destroyed=true}}: "You receive low scrap with resources."
-  // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape-events.ts.
+  // The page prints no crew-kill reward. The 40 second run and doubled pursuit are the ship event's escape and gotaway.
   "auto-ship-warning": (g, deadCrew) => {
     if (deadCrew) return false;
     result(
@@ -5721,7 +5721,7 @@ export const PAGE_WINS: Record<string, Win> = {
     );
   },
   // Auto-ship warning in nebula. Same destroyed line: "You receive low scrap with resources."
-  // The page prints no crew-kill reward. The 40 second run and doubled pursuit stay in wiki/escape-events.ts.
+  // The page prints no crew-kill reward. The 40 second run and doubled pursuit are the ship event's escape and gotaway.
   "auto-ship-warning-in-nebula": (g, deadCrew) => {
     if (deadCrew) return false;
     result(

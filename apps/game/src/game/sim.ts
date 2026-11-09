@@ -1481,16 +1481,13 @@ function enemyEscapeStep(g: Game, h: number) {
   const ship = g.enemy;
   const plan = g.enemyEscape;
   if (!ship || !plan || plan.mode === "never") return;
+  let started = false;
   if (!plan.running && plan.mode === "hull" && !plan.rolled && plan.hullPoints) {
     if (ship.hull > 0 && ship.hull <= plan.threshold) {
       plan.rolled = true;
       if (plan.chance >= 1 || rand(g) < plan.chance) {
         plan.running = true;
-        openShipEscapePage(g);
-        if (g.phase === "combat") {
-          log(g, "They are powering their FTL drive to escape.");
-          sfx(g, "alarm");
-        }
+        started = true;
       }
     }
   } else if (
@@ -1503,6 +1500,13 @@ function enemyEscapeStep(g: Game, h: number) {
     plan.rolled = true;
     if (rand(g) * 100 < plan.chance) {
       plan.running = true;
+      started = true;
+    }
+  }
+  if (plan.running && !plan.shown) {
+    plan.shown = true;
+    openShipEscapePage(g);
+    if (g.phase === "combat" && started) {
       log(g, "They are powering their FTL drive to escape.");
       sfx(g, "alarm");
     }
@@ -6753,15 +6757,56 @@ function archiveSurrenderPlan(
   };
 }
 
-function archiveEscapePlan(g: Game, ending: ShipEventEscape): NonNullable<Game["enemyEscape"]> {
+/**
+ * A cited fight still names the ship by wording ("Rebel ship"). The archive choice loads a ship event
+ * (`<ship load>`). When every such fight on the page is the same ship event, that event's `<escape>` is the plan.
+ */
+function escapeShipOf(event: string | undefined): string | undefined {
+  if (!event) return undefined;
+  const page = eventDef(event);
+  if (!page) return undefined;
+  const loads = new Set<string>();
+  for (const choice of page.choices) {
+    for (const fx of choice.fx) {
+      if (fx.k === "fight" && shipEventDef(fx.tier)?.escape) loads.add(fx.tier);
+    }
+  }
+  if (loads.size !== 1) return undefined;
+  return [...loads][0];
+}
+
+function archiveEscapePlan(
+  g: Game,
+  ending: ShipEventEscape,
+  hull: number,
+  pursuit: boolean,
+): NonNullable<Game["enemyEscape"]> {
+  const threshold = hullThreshold(g, ending.min, ending.max);
+  const chance = ending.chance ?? 1;
+  // A chance of 0 is the archive's "this ship does not run."
+  if (chance <= 0) {
+    return {
+      mode: "never",
+      seconds: 0,
+      chance: 0,
+      threshold: 0,
+      rolled: true,
+      running: false,
+      pursuit: false,
+      hullPoints: true,
+    };
+  }
+  // min/max already at or above this hull is how the archive says the ship is running.
+  const under = hull > 0 && hull <= threshold;
+  const running = under && (chance >= 1 || rand(g) < chance);
   return {
-    mode: "hull",
+    mode: running ? "start" : "hull",
     seconds: ending.timer ?? hullRunSeconds(),
-    chance: ending.chance ?? 1,
-    threshold: hullThreshold(g, ending.min, ending.max),
-    rolled: false,
-    running: false,
-    pursuit: false,
+    chance,
+    threshold,
+    rolled: running,
+    running,
+    pursuit,
     hullPoints: true,
   };
 }
@@ -6782,9 +6827,11 @@ export function startCombat(
   delete g.asbAim;
   // Mind Control, Overview: a bomb that lands opens that room. INFERRED: the next fight starts with those rooms closed.
   clearBombSight(g);
-  const shipEvent = shipEventDef(tier);
-  g.fightShip = shipEvent ? tier : null;
-  const built = makeEnemy(g, tier, event, autoBlueprint ?? shipEvent?.autoBlueprint);
+  // A wording ("Rebel ship") whose page loads one ship event uses that event, so its <escape> is the plan.
+  const fightTier = shipEventDef(tier) ? tier : (escapeShipOf(event) ?? tier);
+  const shipEvent = shipEventDef(fightTier);
+  g.fightShip = shipEvent ? fightTier : null;
+  const built = makeEnemy(g, fightTier, event, autoBlueprint ?? shipEvent?.autoBlueprint);
   // Enemy Ships, "Surrenders and escape attempts": who runs, when, and for how long. See rules/escape.ts.
   g.enemyEscape = escapePlan(
     { tier, event, lastFuel: g.fuel <= 0, faction: built.ship.faction, pirate: built.ship.pirate },
@@ -6808,7 +6855,14 @@ export function startCombat(
     () => rand(g),
   );
   // A ship-event child replaces the wiki plan. A missing child keeps it, including an overtaken arrival.
-  if (shipEvent?.escape) g.enemyEscape = archiveEscapePlan(g, shipEvent.escape);
+  if (shipEvent?.escape) {
+    g.enemyEscape = archiveEscapePlan(
+      g,
+      shipEvent.escape,
+      built.ship.hull,
+      shipEvent.pursuit === true,
+    );
+  }
   if (shipEvent?.surrender) g.enemySurrender = archiveSurrenderPlan(g, shipEvent.surrender);
   // @agent:quests. The page that started this fight, for its own win reward (wiki/quests.ts pageWin).
   g.fightEvent = event ?? null;

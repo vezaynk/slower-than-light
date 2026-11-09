@@ -1082,6 +1082,8 @@ describe("packFromFtl", () => {
     </deadCrew>
     <gotaway load="GONE">
       <text>Inline wins.</text>
+      <modifyPursuit amount="1"/>
+      <modifyPursuit amount="-2"/>
     </gotaway>
   </ship>
   <ship auto_blueprint="NO_NAME"/>
@@ -1144,6 +1146,8 @@ describe("packFromFtl", () => {
       ]);
       assert.equal(pirate?.gotaway?.page?.body, "Inline wins.");
       assert.equal(pirate?.gotaway?.load, undefined);
+      assert.equal(pirate?.pursuit, true);
+      assert.deepEqual(pirate?.gotaway?.page?.fx, [{ k: "fleet", n: 2 }]);
       assert.deepEqual(
         pack.shipEvents?.map((row) => row.id),
         ["PIRATE", "BARE", "PIRATE_BARE_ESCAPE"],

@@ -44,6 +44,8 @@ import type {
   RollEntry,
   SectorDef,
   ShipClassDef,
+  ShipEventDef,
+  ShipEventEscape,
   ShipListRule,
   StoreDef,
   StoreLine,
@@ -178,11 +180,7 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   for (const event of pack.events ?? []) add(root, eventElement(doc, event));
   for (const list of pack.lists ?? []) add(root, listElement(doc, list));
   // `<ship name auto_blueprint>`: a ship event a fight loads, as ftl.dat's events_ships.xml writes them.
-  for (const ship of pack.shipEvents ?? []) {
-    const attrs: Record<string, string> = { name: ship.id };
-    if (ship.autoBlueprint) attrs.auto_blueprint = ship.autoBlueprint;
-    add(root, element(doc, "ship", attrs));
-  }
+  for (const ship of pack.shipEvents ?? []) add(root, shipEventElement(doc, ship));
   for (const empty of pack.empties ?? []) add(root, emptyElement(doc, empty));
   return prettyXml(serializer.serializeToString(doc));
 }
@@ -1262,6 +1260,33 @@ function raceElement(
   add(power, leaf(doc, "lockdown", race.lockdown));
   add(power, leaf(doc, "cooldown", race.lockCooldown));
   add(node, power);
+  return node;
+}
+
+function shipEventElement(doc: XmlDocument, ship: ShipEventDef): XmlElement {
+  const attrs: Record<string, string> = { name: ship.id };
+  if (ship.autoBlueprint) attrs.auto_blueprint = ship.autoBlueprint;
+  const node = element(doc, "ship", attrs);
+  if (ship.escape) add(node, escapeElement(doc, ship.escape));
+  if (ship.gotaway || ship.pursuit) add(node, gotawayElement(doc, ship));
+  return node;
+}
+
+function escapeElement(doc: XmlDocument, escape: ShipEventEscape): XmlElement {
+  const attrs: Record<string, string> = { min: num(escape.min), max: num(escape.max) };
+  if (escape.chance != null) attrs.chance = num(escape.chance);
+  if (escape.timer != null) attrs.timer = num(escape.timer);
+  const node = element(doc, "escape", attrs);
+  const body = escape.page?.body;
+  if (body) add(node, leaf(doc, "text", body));
+  return node;
+}
+
+function gotawayElement(doc: XmlDocument, ship: ShipEventDef): XmlElement {
+  const node = element(doc, "gotaway", {});
+  const body = ship.gotaway?.page?.body;
+  if (body) add(node, leaf(doc, "text", body));
+  if (ship.pursuit) add(node, element(doc, "modifyPursuit", { amount: "1" }));
   return node;
 }
 

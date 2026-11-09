@@ -480,6 +480,7 @@ function copyShipEvent(row: ShipEventDef): ShipEventDef {
   if (row.destroyed) copy.destroyed = copyEnding(row.destroyed);
   if (row.deadCrew) copy.deadCrew = copyEnding(row.deadCrew);
   if (row.gotaway) copy.gotaway = copyEnding(row.gotaway);
+  if (row.pursuit) copy.pursuit = true;
   if (row.crew?.length) copy.crew = row.crew.map((seat) => ({ ...seat }));
   if (row.weaponOverride) {
     copy.weaponOverride = {

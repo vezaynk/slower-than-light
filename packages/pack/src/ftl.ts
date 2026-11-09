@@ -1780,6 +1780,7 @@ function readShipEvent(
     else if (tag === "deadCrew") row.deadCrew = ending;
     else row.gotaway = ending;
   }
+  noteGotawayPursuit(row);
   return row;
 }
 
@@ -1845,6 +1846,23 @@ function readShipEnding(
   const timer = intAttr(node, "timer");
   if (timer != null) escape.timer = timer;
   return escape;
+}
+
+/**
+ * A gotaway `<modifyPursuit amount="1">` is the next fleet advance counting twice, not a payment.
+ * A negative amount stays on the page (a delay). `double` and `faster` stay payments too.
+ */
+function noteGotawayPursuit(row: ShipEventDef): void {
+  const page = row.gotaway?.page;
+  const fx = page?.fx;
+  if (!fx) return;
+  const pursuit = (effect: (typeof fx)[number]) =>
+    effect.k === "fleet" && effect.n < 0 && !effect.double && !effect.faster;
+  if (!fx.some(pursuit)) return;
+  row.pursuit = true;
+  const rest = fx.filter((effect) => !pursuit(effect));
+  if (rest.length) page.fx = rest;
+  else delete page.fx;
 }
 
 function numberAttr(node: XmlElement, name: string): number | undefined {

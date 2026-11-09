@@ -26,6 +26,15 @@ export function initialStage(inputs: StageInputs): LaunchStage {
 }
 
 /**
+ * The opening control's words. The server HTML and the first client paint are setup, so they
+ * say "Launch". After mount, a browser that already launched (or was opened with ?dat=) is
+ * booting and says "Loading the game files".
+ */
+export function openingControlLabel(stage: LaunchStage): "Launch" | "Loading the game files" {
+  return stage === "booting" ? "Loading the game files" : "Launch";
+}
+
+/**
  * Launching again from setup after QUIT. The running pack cannot be unloaded, so a changed file order reloads
  * the page. The same order (or a `?dat=` boot, which ignores the list) goes back to the title as it is.
  */

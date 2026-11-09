@@ -886,7 +886,23 @@ export function readSectorMap(node: XmlElement): SectorMap {
   if (empty != null) out.empty = empty;
   const startX = readCheckedAttr(node, "sectorMap", "startX", () => true, "is not a number");
   if (startX != null) out.startX = startX;
+  dropInvertedJumps(out, "fedHardJumpsMin", "fedHardJumpsMax");
+  dropInvertedJumps(out, "flagshipJumpsMin", "flagshipJumpsMax");
   return out;
+}
+
+/** A jump minimum above its maximum matches nothing. Same as `<pulsar>`: warn and keep neither. */
+function dropInvertedJumps(
+  out: SectorMap,
+  minKey: "fedHardJumpsMin" | "flagshipJumpsMin",
+  maxKey: "fedHardJumpsMax" | "flagshipJumpsMax",
+): void {
+  const min = out[minKey];
+  const max = out[maxKey];
+  if (min == null || max == null || min <= max) return;
+  warnPack(`sectorMap: ${maxKey}="${max}" is below ${minKey}="${min}"; both are skipped.`);
+  delete out[minKey];
+  delete out[maxKey];
 }
 
 function readCount(node: XmlElement): { min: number; max: number } {

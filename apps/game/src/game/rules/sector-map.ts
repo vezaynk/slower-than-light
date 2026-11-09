@@ -16,17 +16,37 @@
  * diagonal neighbours as adjacent, are mechanics with no tunable number.
  */
 import type { Beacon, Difficulty } from "../types.ts";
-import { sectorMap } from "@stl/pack";
+import { sectorMap, warnPack } from "@stl/pack";
 
 export type Cell = { col: number; row: number; x: number; y: number };
 
-/** Inclusive column range. A swapped pair is still that range. */
-function columns(min: number, max: number): number[] {
-  const lo = Math.min(min, max);
-  const hi = Math.max(min, max);
-  const out: number[] = [];
-  for (let col = lo; col <= hi; col++) out.push(col);
-  return out;
+/** Inclusive column range. A swapped pair is still that range. Not a list: a wide max must not be allocated. */
+function columnRange(min: number, max: number): { lo: number; hi: number } {
+  return { lo: Math.min(min, max), hi: Math.max(min, max) };
+}
+
+function rollColumn(range: { lo: number; hi: number }, roll: () => number): number {
+  return range.lo + Math.floor(roll() * (range.hi - range.lo + 1));
+}
+
+function inColumns(col: number, range: { lo: number; hi: number }): boolean {
+  return col >= range.lo && col <= range.hi;
+}
+
+/**
+ * The start beacon sits nearest this row: the middle of the loaded grid. Four rows is still 1.5.
+ */
+export function startRow(): number {
+  return (sectorMap("rows") - 1) / 2;
+}
+
+/** A margin wider than half a cell is not an inset. The point stays inside the cell. */
+function insetOf(cell: number, margin: number): number {
+  if (margin <= cell / 2) return margin;
+  warnPack(
+    `sectorMap margin="${margin}" is wider than half of cell="${cell}"; beacons stay inside the cell.`,
+  );
+  return cell / 2;
 }
 
 /** PopulateGrid over the whole grid, x outer and y inner. */
@@ -45,20 +65,23 @@ export function populateGrid(roll: () => number): Cell[] {
       : emptyChance >= 1
         ? 0
         : Number.POSITIVE_INFINITY;
-  const span = cell - 2 * margin;
+  const inset = insetOf(cell, margin);
+  const span = cell - 2 * inset;
   const out: Cell[] = [];
   let empty = 0;
   for (let col = 0; col < cols; col++) {
     for (let row = 0; row < rows; row++) {
+      const lastCell = col === cols - 1 && row === rows - 1;
       if (roll() < emptyChance) {
         const tooMany = empty >= 1 && empty * filledPerEmpty >= out.length;
-        if (!tooMany) {
+        // A 1×1 that rolls empty has no later cell. The map always keeps one beacon.
+        if (!tooMany && !(lastCell && out.length === 0)) {
           empty += 1;
           continue;
         }
       }
-      const x = col * cell + margin + roll() * span;
-      let y = row * cell + margin + roll() * span;
+      const x = col * cell + inset + roll() * span;
+      let y = row * cell + inset + roll() * span;
       y = Math.min(y, yMax);
       if (row === 0 && col >= cols - 2) y = Math.max(y, topRightY);
       out.push({ col, row, x, y });
@@ -151,21 +174,21 @@ export function jumpsBetween(beacons: Placed[], from: string, to: string): numbe
  */
 function pickBeacon<T extends Placed>(
   beacons: T[],
-  cols: number[],
+  range: { lo: number; hi: number },
   roll: () => number,
   ok: (b: T) => boolean,
 ): T | undefined {
   const rows = sectorMap("rows");
   let last: T | undefined;
   for (let i = 0; i < sectorMap("tries"); i++) {
-    const col = cols[Math.floor(roll() * cols.length)];
+    const col = rollColumn(range, roll);
     const row = Math.floor(roll() * rows);
     const b = beacons.find((x) => x.col === col && x.row === row);
     if (!b) continue;
     last = b;
     if (ok(b)) return b;
   }
-  return last ?? beacons.filter((b) => cols.includes(b.col)).pop();
+  return last ?? beacons.filter((b) => inColumns(b.col, range)).pop();
 }
 
 /** The end beacon: the exit columns, at least the minimum jumps from the start. */
@@ -176,7 +199,7 @@ export function pickExit<T extends Placed>(
 ): T | undefined {
   return pickBeacon(
     beacons,
-    columns(sectorMap("exitColMin"), sectorMap("exitColMax")),
+    columnRange(sectorMap("exitColMin"), sectorMap("exitColMax")),
     roll,
     (b) => jumpsBetween(beacons, start.id, b.id) >= sectorMap("exitMinJumps"),
   );
@@ -202,8 +225,8 @@ export function pickFedBase<T extends Placed>(
   return pickBeacon(
     beacons,
     hard
-      ? columns(sectorMap("fedHardColMin"), sectorMap("fedHardColMax"))
-      : columns(sectorMap("fedColMin"), sectorMap("fedColMax")),
+      ? columnRange(sectorMap("fedHardColMin"), sectorMap("fedHardColMax"))
+      : columnRange(sectorMap("fedColMin"), sectorMap("fedColMax")),
     roll,
     ok,
   );
@@ -221,10 +244,10 @@ export function pickFlagship<T extends Placed>(
   base: T,
   roll: () => number,
 ): T | undefined {
-  const cols = columns(sectorMap("exitColMin"), sectorMap("exitColMax"));
+  const range = columnRange(sectorMap("exitColMin"), sectorMap("exitColMax"));
   const minJumps = sectorMap("flagshipJumpsMin");
   const maxJumps = sectorMap("flagshipJumpsMax");
-  const pool = beacons.filter((b) => cols.includes(b.col) && b.id !== base.id);
+  const pool = beacons.filter((b) => inColumns(b.col, range) && b.id !== base.id);
   const jumps = (b: T) => jumpsBetween(beacons, base.id, b.id);
   const ok = pool.filter((b) => jumps(b) >= minJumps && jumps(b) <= maxJumps);
   if (ok.length) return ok[Math.floor(roll() * ok.length) % ok.length];
@@ -258,13 +281,33 @@ export function overtaken(
 }
 
 /**
- * Fewest whole steps that put this beacon inside the danger circle (for setups and tests).
- * The 64-step give-up is this helper's search limit, not the gap's px step.
+ * Fewest whole steps that put this beacon inside the danger circle.
+ * The circle only travels one way. A beacon it never covers is not an arrival:
+ * callers get Infinity, not the old 64-step give-up that pretended it had arrived.
  */
 export function fleetToReach(
   d: Danger,
   b: Pick<Beacon, "col" | "row"> & { x?: number; y?: number },
 ): number {
-  for (let n = 0; n < 64; n++) if (overtaken({ fleet: n, dangerY: d.dangerY }, b)) return n;
-  return 64;
+  const step = sectorMap("step");
+  const radius = sectorMap("dangerRadius");
+  if (!(step > 0) || !(radius > 0)) return Number.POSITIVE_INFINITY;
+  const [x, y] = beaconXY(b);
+  const minY = sectorMap("dangerYMin");
+  const maxY = sectorMap("dangerYMax");
+  const cy = d.dangerY ?? (minY + maxY) / 2;
+  const reach = radius * radius - (y - cy) * (y - cy);
+  if (reach <= 0) return Number.POSITIVE_INFINITY;
+  const half = Math.sqrt(reach);
+  const startX = sectorMap("startX");
+  const lowN = (x - half - startX) / step;
+  const highN = (x + half - startX) / step;
+  const lo = Math.min(lowN, highN);
+  const hi = Math.max(lowN, highN);
+  const first = Math.max(0, Math.floor(lo));
+  const last = Math.ceil(hi);
+  for (let n = first; n <= last; n++) {
+    if (overtaken({ fleet: n, dangerY: d.dangerY }, b)) return n;
+  }
+  return Number.POSITIVE_INFINITY;
 }

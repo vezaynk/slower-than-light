@@ -15,6 +15,7 @@ import {
   pickFedBase,
   pickFlagship,
   populateGrid,
+  startRow,
 } from "./sector-map.ts";
 
 function lcg(seed: number) {
@@ -321,5 +322,112 @@ describe("sector map from the gap mod", () => {
       populateGrid(lcg(1)).map((c) => [c.x, c.y]),
       before,
     );
+  });
+
+  it("keeps a beacon when a 1×1 grid rolls empty", () => {
+    loadPack(
+      packFromFtl([
+        { path: "data/gap.xml", xml: `<FTL><sectorMap cols="1" rows="1" empty="1"/></FTL>` },
+      ]),
+      "append",
+    );
+    try {
+      const cells = populateGrid(lcg(1));
+      assert.equal(cells.length, 1);
+      assert.deepEqual([cells[0].col, cells[0].row], [0, 0]);
+      const g = createGame(1);
+      assert.equal(g.here, "s1-c0-r0");
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("picks a column in a wide range without building that range", () => {
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><sectorMap exitColMax="40000000"/></FTL>` }]),
+      "append",
+    );
+    try {
+      const beacons = grid(1);
+      const start = beacons[0];
+      const exit = pickExit(beacons, start, lcg(2));
+      assert.ok(exit);
+      assert.ok(exit.col <= 5);
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("keeps a wide margin inside the cell", () => {
+    loadPack(
+      packFromFtl([
+        { path: "data/gap.xml", xml: `<FTL><sectorMap margin="200" cell="110"/></FTL>` },
+      ]),
+      "append",
+    );
+    try {
+      const lines = warned(() => {
+        const cells = populateGrid(lcg(3));
+        assert.ok(cells.length > 0);
+        for (const c of cells) {
+          assert.ok(c.x >= c.col * 110 && c.x <= (c.col + 1) * 110, `x ${c.x}`);
+          assert.ok(c.y >= 0 && c.y <= 440, `y ${c.y}`);
+        }
+      });
+      assert.ok(lines.some((line) => line.includes('margin="200"')));
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("searches past 64 steps, and does not pretend a missed beacon arrived", () => {
+    const y = 175;
+    const far = { col: 0, row: 0, x: 0, y };
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><sectorMap startX="-10000"/></FTL>` }]),
+      "append",
+    );
+    try {
+      const n = fleetToReach({ fleet: 0, dangerY: y }, far);
+      assert.ok(n > 64, `steps ${n}`);
+      assert.equal(overtaken({ fleet: n, dangerY: y }, far), true);
+      assert.equal(overtaken({ fleet: n - 1, dangerY: y }, far), false);
+      const away = { col: 0, row: 0, x: -20000, y };
+      assert.equal(Number.isFinite(fleetToReach({ fleet: 0, dangerY: y }, away)), false);
+    } finally {
+      resetPackForTests();
+    }
+    const g = createGame(3);
+    for (const b of g.beacons) {
+      const n = fleetToReach(g, b);
+      assert.equal(overtaken({ fleet: n, dangerY: g.dangerY }, b), true, b.id);
+      if (n > 0) assert.equal(overtaken({ fleet: n - 1, dangerY: g.dangerY }, b), false, b.id);
+    }
+  });
+
+  it("puts the start nearest the middle of the loaded rows", () => {
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><sectorMap rows="6"/></FTL>` }]),
+      "append",
+    );
+    try {
+      assert.equal(startRow(), 2.5);
+      let moved = false;
+      for (let seed = 1; seed <= 30; seed++) {
+        const g = createGame(seed);
+        const start = g.beacons.find((b) => b.kind === "start");
+        assert.ok(start, String(seed));
+        const inCol = g.beacons.filter((b) => b.col === start.col);
+        const nearest = (bias: number) =>
+          [...inCol].sort(
+            (a, b) => Math.abs(a.row - bias) - Math.abs(b.row - bias) || a.row - b.row,
+          )[0];
+        assert.equal(start.id, nearest(2.5).id, String(seed));
+        if (nearest(1.5).id !== start.id) moved = true;
+      }
+      assert.equal(moved, true);
+    } finally {
+      resetPackForTests();
+    }
   });
 });

@@ -137,4 +137,23 @@ describe("gap sector map", () => {
     assert.ok(lines.some((line) => line.includes('tries="16.5"')));
     assert.ok(lines.some((line) => line.includes('exitColMin="-1"')));
   });
+
+  it("warns and drops a jump minimum above its maximum", () => {
+    let pack: ReturnType<typeof packFromFtl> | undefined;
+    const lines = warned(() => {
+      pack = packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><sectorMap fedHardJumpsMin="8" fedHardJumpsMax="2" flagshipJumpsMin="9" flagshipJumpsMax="1" cell="110"/></FTL>`,
+        },
+      ]);
+    });
+    assert.equal(pack?.sectorMap?.cell, 110);
+    assert.equal(pack?.sectorMap?.fedHardJumpsMin, undefined);
+    assert.equal(pack?.sectorMap?.fedHardJumpsMax, undefined);
+    assert.equal(pack?.sectorMap?.flagshipJumpsMin, undefined);
+    assert.equal(pack?.sectorMap?.flagshipJumpsMax, undefined);
+    assert.ok(lines.some((line) => line.includes('fedHardJumpsMax="2"')));
+    assert.ok(lines.some((line) => line.includes('flagshipJumpsMax="1"')));
+  });
 });

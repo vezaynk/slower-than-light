@@ -150,6 +150,7 @@ import {
   pickFlagship,
   populateGrid,
   rollDangerY,
+  startRow,
 } from "./rules/sector-map.ts";
 import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
 import {
@@ -7190,10 +7191,11 @@ function makeMap(g: Game) {
   }));
   connectGrid(beacons);
   const inCol = (col: number) => beacons.filter((b) => b.col === col);
-  // INFERRED: the start is the left column's beacon nearest the middle. The notes do not place it.
+  // INFERRED: the start is the left column's beacon nearest the middle of the loaded grid.
   const firstCol = Math.min(...beacons.map((b) => b.col));
+  const mid = startRow();
   const start = [...inCol(firstCol)].sort(
-    (a, b) => Math.abs(a.row - 1.5) - Math.abs(b.row - 1.5) || a.row - b.row,
+    (a, b) => Math.abs(a.row - mid) - Math.abs(b.row - mid) || a.row - b.row,
   )[0];
   start.kind = "start";
   start.visited = true;

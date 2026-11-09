@@ -27,9 +27,19 @@ function collect(doc: XmlDocument): void {
     if (attr(node, "language")?.trim()) continue;
     const key = attr(node, "name")?.trim();
     if (!key) continue;
-    const value = ownText(node).trim();
-    if (value) phrases.set(key, value);
+    const value = phraseText(ownText(node));
+    if (value.trim()) phrases.set(key, value);
   }
+}
+
+/**
+ * A phrase can be a separator. One leading or trailing space is part of the string.
+ * Any other surrounding whitespace belongs to the file.
+ */
+function phraseText(raw: string): string {
+  const value = raw.trim();
+  if (!value) return "";
+  return `${raw.startsWith(" ") ? " " : ""}${value}${raw.endsWith(" ") ? " " : ""}`;
 }
 
 registerArchiveExtra({

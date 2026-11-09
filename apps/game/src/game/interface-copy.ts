@@ -5,37 +5,14 @@
  */
 import {
   allItemBlueprints,
-  allTextLists,
   archivePhrase,
-  textList,
   tutorialScript,
   weaponDef,
-  type OpeningLine,
   type WeaponKind,
 } from "@stl/pack";
 
 export function phraseOr(key: string, fallback: string): string {
   return archivePhrase(key) ?? fallback;
-}
-
-function listText(line: OpeningLine, seen: Set<string>): string[] {
-  if ("text" in line) return line.text.trim() ? [line.text] : [];
-  if (!line.load || seen.has(line.load)) return [];
-  seen.add(line.load);
-  const nested = textList(line.load);
-  if (!nested) return [];
-  return nested.lines.flatMap((row) => listText(row, seen));
-}
-
-/** Game-over lists. The verdict says the first line (WikiViews verdictCopy). */
-export function verdictListLines(): string[] {
-  const lines: string[] = [];
-  for (const list of allTextLists()) {
-    if (!/gameover/i.test(list.id)) continue;
-    const seen = new Set<string>([list.id]);
-    for (const line of list.lines) lines.push(...listText(line, seen));
-  }
-  return lines;
 }
 
 /** A phrase from the loaded archive. Missing keys paint nothing: the sentence is not stored here. */
@@ -48,7 +25,7 @@ export function verdictTitle(victory: boolean): string {
   return archiveLine(victory ? "gameover_title_victory" : "gameover_title_gameover");
 }
 
-/** Body for a named ending. Undefined for hull loss, which uses the GAMEOVER list, then `gameover_blowup`. */
+/** Body for a named ending. Undefined for hull loss, which is the blow-up line. */
 export function verdictEnding(outcome: string): string | undefined {
   const key =
     outcome === "victory"
@@ -62,6 +39,11 @@ export function verdictEnding(outcome: string): string | undefined {
             : undefined;
   if (!key) return undefined;
   return archiveLine(key);
+}
+
+/** The card body. A named ending uses its phrase. Hull loss uses the blow-up line. */
+export function verdictBody(outcome: string | undefined): string {
+  return verdictEnding(outcome ?? "") ?? verdictBlowup();
 }
 
 export function verdictBlowup(): string {
@@ -116,6 +98,14 @@ export function victoryCinema(): {
     join: archiveLine("crewlist_and"),
     ending: archiveLine("credit_victory"),
   };
+}
+
+/** Crew names on the victory cinema, joined with the archive's separators. */
+export function victoryCrewLine(names: readonly string[]): string {
+  const cinema = victoryCinema();
+  if (names.length < 2) return names.join("");
+  const last = names[names.length - 1] ?? "";
+  return `${names.slice(0, -1).join(cinema.comma)}${cinema.join}${last}`;
 }
 
 /** Every verdict sentence the loaded archive can replace. The screen paints these same calls. */

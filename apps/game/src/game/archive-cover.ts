@@ -9,7 +9,6 @@ import {
   itemLines,
   tutorialLines,
   verdictArchiveLines,
-  verdictListLines,
   weaponCopy,
 } from "./interface-copy.ts";
 import { listWasPlayed, resetPlayedLists } from "./played-lists.ts";
@@ -782,15 +781,29 @@ function exerciseRewards(problems: string[]): void {
 
 function exerciseStrings(strings: Map<string, string>, problems: string[]): void {
   if (strings.size === 0) return;
-  const missing = unshownStringKeys(strings, shownText());
+  const shown = shownText();
+  const missing = unshownStringKeys(strings, shown);
   if (missing.length === 0) return;
-  // These are screens that still paint their own English. Report the count.
-  // Do not fail the cover until that English is read from the archive.
-  void problems;
   const sample = missing.slice(0, 12).join(", ");
   console.log(
     `${missing.length} string keys are not on screen yet (${sample}${missing.length > 12 ? ", …" : ""})`,
   );
+  for (const row of stringCoverProblems(strings, shown)) problems.push(row);
+}
+
+/**
+ * A tooltip table means the archive still has screens the game paints itself. Report those.
+ * The stand-in ships no tooltip table, so a missing sentence there has left the screen.
+ */
+export function stringCoverProblems(strings: ReadonlyMap<string, string>, shown: string): string[] {
+  const missing = unshownStringKeys(strings, shown);
+  if (missing.length === 0) return [];
+  if ([...strings.keys()].some((key) => key.startsWith("tooltip_"))) return [];
+  const noun = missing.length === 1 ? "string key" : "string keys";
+  const sample = missing.slice(0, 12).join(", ");
+  return [
+    `${missing.length} ${noun} left the screen (${sample}${missing.length > 12 ? ", …" : ""})`,
+  ];
 }
 
 /**
@@ -1419,7 +1432,6 @@ export function shownText(): string {
   }
   for (const line of tutorialLines()) push(line);
   for (const line of itemLines()) push(line);
-  for (const line of verdictListLines()) push(line);
   for (const line of verdictArchiveLines()) push(line);
   return parts.join("\n");
 }

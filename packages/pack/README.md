@@ -30,10 +30,11 @@ looks at every piece of the archive:
 - every sound and music track, and whether it is played;
 - every English text string of six or more characters, and whether the game ever shows it. A key whose
   name ends in `_demo` is the demo build's copy, and the release executable does not read it. Every other
-  unshown string is a screen that still paints its own English. The cover reports that count and does not
-  fail on it until those screens read the archive. The game-over card already does. Its sentences live in
-  the loaded archive (the stand-in's `text_ui.xml`, or ftl.dat's own wording). The code only looks the
-  keys up, and it fills the score into the archive's score line.
+  unshown string is a screen that still paints its own English. An archive that still ships a tooltip
+  table reports that count and does not fail on it yet. The stand-in has no tooltip table, so a sentence
+  that leaves the screen fails the cover. The game-over card already reads the archive. Hull loss uses
+  the blow-up line. The crew list keeps the separators' spaces. The code only looks the keys up, and it
+  fills the score into the archive's score line.
 
 Run it against the real archive with:
 
@@ -48,10 +49,10 @@ shown sentence is not, a demo key is skipped, and `text_GAMEOVER_1` is not a ski
 
 As of November 2026 (FTL 1.6.13):
 
-| Archive             | Coverage                                                                                                                                                                                                                                                                                                   | Play-through (`archive-play.test.ts`)                                     |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `totallynotftl.dat` | Everything is used                                                                                                                                                                                                                                                                                         | Reaches sector 2 and saves                                                |
-| `ftl.dat`           | All of it is used except the English strings a screen still paints itself, plus demo-only keys (`*_demo`). The game-over card reads its titles, endings, score, high-score line, buttons, and victory cinema from the archive. The coverage check reports the remaining count and does not fail on it yet. | **Fails**: "Engines are unpowered" at the first combat beacon of sector 1 |
+| Archive             | Coverage                                                                                                                                                                                                                                                                                                                                                    | Play-through (`archive-play.test.ts`)                                     |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `totallynotftl.dat` | Everything is used                                                                                                                                                                                                                                                                                                                                          | Reaches sector 2 and saves                                                |
+| `ftl.dat`           | All of it is used except the English strings a screen still paints itself, plus demo-only keys (`*_demo`). The game-over card reads the archive, including the blow-up line for hull loss. The coverage check reports the remaining count and does not fail on it yet. The stand-in has no tooltip table, so a sentence that leaves its screen still fails. | **Fails**: "Engines are unpowered" at the first combat beacon of sector 1 |
 
 English record text comes from the `text_*.xml` tables. Each translation (`text-de.xml` and the rest) is read
 into `pack.locales`, and the title screen offers it as a language. The coverage check skips those files, so it

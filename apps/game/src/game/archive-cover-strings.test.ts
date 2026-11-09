@@ -8,11 +8,18 @@ import {
   englishStringCoverage,
   releaseSkipsString,
   shownText,
+  stringCoverProblems,
   unshownStringKeys,
 } from "./archive-cover.ts";
 import { installExtract } from "./archive-play.ts";
 import { archivePhrase } from "@stl/pack";
-import { verdictArchiveLines, verdictScoreLine, verdictTitle } from "./interface-copy.ts";
+import {
+  verdictArchiveLines,
+  verdictBody,
+  verdictScoreLine,
+  verdictTitle,
+  victoryCrewLine,
+} from "./interface-copy.ts";
 
 describe("unshown archive strings", () => {
   it("reports an unshown sentence, keeps a shown one, and skips only a demo key", () => {
@@ -21,15 +28,29 @@ describe("unshown archive strings", () => {
     const strings = new Map([
       ["gameover_win_demo", "Demo victory sentence"],
       ["event_brand_new", "A sentence the game dropped"],
-      ["text_GAMEOVER_1", "One last explosion marks your fate as your ship is torn apart."],
+      ["text_GAMEOVER_1", "The Federation's last hope line."],
       ["weapon_shown", "Burst laser description"],
       ["tiny", "nope"],
     ]);
     const missing = unshownStringKeys(
       strings,
-      "Burst laser description\nOne last explosion marks your fate as your ship is torn apart.",
+      "Burst laser description\nThe Federation's last hope line.",
     );
     assert.deepEqual(missing, ["event_brand_new"]);
+    assert.deepEqual(
+      stringCoverProblems(new Map([["event_brand_new", "A sentence the game dropped"]]), ""),
+      ["1 string key left the screen (event_brand_new)"],
+    );
+    assert.deepEqual(
+      stringCoverProblems(
+        new Map([
+          ["tooltip_oxygen", "Oxygen system hover text"],
+          ["event_brand_new", "A sentence the game dropped"],
+        ]),
+        "",
+      ),
+      [],
+    );
   });
 
   it("reads the game-over card from the loaded archive and does not keep a second copy", () => {
@@ -39,6 +60,12 @@ describe("unshown archive strings", () => {
     assert.match(format, /\\1/);
     assert.equal(verdictScoreLine(12), format.replaceAll("\\1", "12"));
     assert.ok(verdictArchiveLines().includes(archivePhrase("gameover_button_restart")));
+    assert.equal(verdictBody(undefined), archivePhrase("gameover_blowup"));
+    const comma = archivePhrase("crewlist_comma") ?? "";
+    const join = archivePhrase("crewlist_and") ?? "";
+    assert.ok(comma.endsWith(" "), comma);
+    assert.ok(join.startsWith(" ") && join.endsWith(" "), join);
+    assert.equal(victoryCrewLine(["Alice", "Bob", "Carol"]), `Alice${comma}Bob${join}Carol`);
   });
 });
 
@@ -64,7 +91,8 @@ describe(
         `${missing.length} English strings are not on screen yet (${sample}${missing.length > 12 ? ", …" : ""})`,
       );
       assert.deepEqual(missing, report.missing);
-      assert.equal(missing.includes("text_GAMEOVER_1"), false);
+      assert.equal(verdictBody(undefined), archivePhrase("gameover_blowup"));
+      assert.equal(missing.includes("gameover_blowup"), false);
       assert.equal(missing.includes("gameover_title_gameover"), false);
       assert.equal(missing.includes("gameover_win"), false);
       assert.equal(missing.includes("gameover_win_demo"), false);

@@ -3,11 +3,9 @@ import { useEffect, useState } from "react";
 import { allAchievements, hullDef } from "@stl/pack";
 import {
   displayPhrase,
-  verdictBlowup,
-  verdictEnding,
+  verdictBody,
   verdictHangarLabel,
   verdictHighScore,
-  verdictListLines,
   verdictMenuLabel,
   verdictQuitLabel,
   verdictRestartLabel,
@@ -15,6 +13,7 @@ import {
   verdictStatsLabel,
   verdictTitle,
   victoryCinema,
+  victoryCrewLine,
 } from "@/game/interface-copy";
 import { earnedIds, isTracked, noteRun } from "@/game/wiki/achievement-track";
 import { lifetimeOf } from "@/game/wiki/achieve-notes";
@@ -527,19 +526,11 @@ export function HelpScreen({ onContinue }: { onContinue: () => void }) {
 }
 
 function verdictCopy(game: Game): { title: string; body: string; score: boolean } {
-  const ending = verdictEnding(game.outcome ?? "");
-  if (ending !== undefined) {
-    return {
-      title: verdictTitle(game.outcome === "victory"),
-      body: ending,
-      score: game.outcome !== "tutorial",
-    };
-  }
-  const told = verdictListLines()[0];
+  const outcome = game.outcome ?? "";
   return {
-    title: verdictTitle(false),
-    body: told ?? verdictBlowup(),
-    score: true,
+    title: verdictTitle(outcome === "victory"),
+    body: verdictBody(outcome),
+    score: outcome !== "tutorial",
   };
 }
 
@@ -574,10 +565,7 @@ export function Verdict({ game }: { game: Game }) {
   if (step === "cinema") {
     const cinema = victoryCinema();
     const names = game.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.name);
-    const crew =
-      names.length < 2
-        ? names.join("")
-        : `${names.slice(0, -1).join(cinema.comma)}${cinema.join}${names[names.length - 1]}`;
+    const crew = victoryCrewLine(names);
     return (
       <button type="button" className="victory-cinema" onClick={() => setStep("card")}>
         <p>{cinema.ship}</p>

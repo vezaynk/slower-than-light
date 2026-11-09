@@ -5,6 +5,7 @@ import { seatKits } from "../layouts.ts";
 import type { Game, Kit, KitId } from "../types.ts";
 import {
   enemyTarget,
+  hardShares,
   installedSystems,
   prioritizeSystem,
   priorityList,
@@ -13,6 +14,14 @@ import {
   SYSTEM_TARGETS,
 } from "./targeting.ts";
 import { powerGuns } from "../fixtures.ts";
+import {
+  aiTarget,
+  aiTargets,
+  loadPack,
+  onPackWarning,
+  packFromFtl,
+  resetPackForTests,
+} from "@stl/pack";
 
 function kit(id: KitId, over: Partial<Kit> = {}): Kit {
   return { id, level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0, ...over };
@@ -149,5 +158,115 @@ describe("enemy targeting (combat-ai, PrioritizeSystem)", () => {
       if (rooms.size >= 2) spread++;
     }
     assert.ok(spread > 10, `volleys that split: ${spread} of 20`);
+  });
+});
+
+function warned(run: () => void): string[] {
+  const lines: string[] = [];
+  const restore = onPackWarning((message) => lines.push(message));
+  try {
+    run();
+  } finally {
+    restore();
+  }
+  return lines;
+}
+
+describe("targeting numbers from the gap mod", () => {
+  it("reads FTL's numbers from the loaded gap", () => {
+    // aiTarget() falls back to these same numbers, so check the loaded row itself and that no read warned.
+    assert.deepEqual(aiTargets(), {
+      easy: 0.2,
+      normal: 0.33,
+      hardRoom: 0.5,
+      hardAny: 0.25,
+      evasion: 25,
+      oxygen: 50,
+      artillery: 4,
+    });
+    const lines = warned(() => {
+      assert.equal(aiTarget("easy"), 0.2);
+      assert.equal(aiTarget("normal"), 0.33);
+      assert.equal(aiTarget("hardRoom"), 0.5);
+      assert.equal(aiTarget("hardAny"), 0.25);
+      assert.equal(aiTarget("evasion"), 25);
+      assert.equal(aiTarget("oxygen"), 50);
+      assert.equal(aiTarget("artillery"), 4);
+      assert.deepEqual(hardShares(), { hardRoom: 0.5, hardAny: 0.25 });
+    });
+    assert.deepEqual(lines, []);
+  });
+
+  it("warns once when hardRoom and hardAny sum past 1, and gives hardAny only the rest", () => {
+    // A mod's gap.xml raises hardRoom and keeps the stock hardAny of 0.25: 1.05 in all.
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><aiTarget hardRoom="0.8"/></FTL>` }]),
+      "append",
+    );
+    try {
+      const lines = warned(() => {
+        assert.deepEqual(hardShares(), { hardRoom: 0.8, hardAny: 1 - 0.8 });
+        assert.deepEqual(hardShares(), { hardRoom: 0.8, hardAny: 1 - 0.8 });
+        // Every roll is no system or any system: the priority list gets no share.
+        const g = calm("hard");
+        g.player.systems.shields.power = 1;
+        const shields = g.player.rooms.find((room) => room.system === "shields");
+        assert.ok(shields);
+        assert.deepEqual(priorityList(g), ["shields"]);
+        const rolls = 4000;
+        const shieldShare = share(g, rolls, (room) => room === shields.id);
+        // Any-system picks shields 1 in installedSystems(g).length; the priority list would add 0.2 on top.
+        const expected = 0.2 / installedSystems(g).length;
+        assert.ok(Math.abs(shieldShare - expected) < 0.03, `shields ${shieldShare} vs ${expected}`);
+      });
+      assert.equal(lines.length, 1, lines.join("\n"));
+      assert.match(lines[0], /hardRoom="0.8" plus hardAny="0.25" is more than 1/);
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("follows a gap file that overrides one number", () => {
+    // A mod's gap.xml: oxygen is a priority under 1000 average air, and Hard always consults that list.
+    loadPack(
+      packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><aiTarget oxygen="1000" hardRoom="0" hardAny="0"/></FTL>`,
+        },
+      ]),
+      "append",
+    );
+    try {
+      const g = calm("hard");
+      const oxygen = g.player.rooms.find((room) => room.system === "oxygen");
+      assert.ok(oxygen);
+      assert.deepEqual(priorityList(g), ["oxygen"]);
+      assert.deepEqual(priorityRooms(g), [oxygen.id]);
+      startCombat(g, "Rebel ship");
+      const gun = g.enemy!.weapons[0];
+      gun.defId = "LASER_BURST_3";
+      gun.enabled = true;
+      g.enemy!.weapons = [gun];
+      g.enemy!.systems.weapons.level = g.enemy!.systems.weapons.power = 4;
+      g.shots = [];
+      gun.charge = 1;
+      gun.target = oxygen.id;
+      step(g, 0.001);
+      const rooms = g.shots
+        .filter((shot) => shot.from === "enemy" && shot.defId === "LASER_BURST_3")
+        .map((shot) => shot.targetRoom);
+      assert.ok(rooms.length >= 2, `shots ${rooms.length}`);
+      assert.ok(
+        rooms.every((id) => id === oxygen.id),
+        `aimed ${rooms.join(",")}`,
+      );
+    } finally {
+      resetPackForTests();
+    }
+    const after = calm("hard");
+    assert.deepEqual(priorityList(after), []);
+    assert.equal(aiTarget("oxygen"), 50);
+    assert.equal(aiTarget("hardRoom"), 0.5);
   });
 });

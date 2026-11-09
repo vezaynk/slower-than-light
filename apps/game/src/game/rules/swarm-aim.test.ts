@@ -59,4 +59,14 @@ describe("swarm aim", () => {
     assert.deepEqual(swarmLanding([one, three, punched], "t", 0.1), { kind: "stay" });
     assert.deepEqual(swarmLanding([one, three, punched], "p", 0.5), { kind: "stay" });
   });
+
+  it("stays in the aimed room when the blueprint radius is not positive", () => {
+    // `<radius>` on MISSILE_CHARGEGUN is 31. Zero is a mod that clears the spread.
+    assert.deepEqual(swarmLanding(vertical, "n", 0.99, 0), { kind: "stay" });
+    assert.deepEqual(swarmLanding(vertical, "n", 0.99, 31), { kind: "room", roomId: "e" });
+    assert.equal(swarmAimRolls(narrow, 0), false);
+    assert.equal(swarmAimRolls(narrow, -1), false);
+    assert.equal(swarmAimRolls(narrow, 31), true);
+    assert.equal(swarmAimRolls(narrow, undefined), true);
+  });
 });

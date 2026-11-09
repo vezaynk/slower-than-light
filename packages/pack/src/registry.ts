@@ -19,6 +19,7 @@ import type {
   EventDef,
   EventEffect,
   EventTier,
+  AiTarget,
   EscapeTimers,
   OverchargerWaits,
   IonIntruderRule,
@@ -90,6 +91,8 @@ let escapeTimersValue: EscapeTimers = {};
 let cargoSlotsValue: CargoSlots = {};
 let bonusItemValue: BonusItemWeights = {};
 let baseEscapeTimers: EscapeTimers = {};
+let aiTargetValue: AiTarget = {};
+let baseAiTarget: AiTarget = {};
 let overchargerWaitsValue: OverchargerWaits = {};
 let baseOverchargerWaits: OverchargerWaits = {};
 let ionIntruderValue: IonIntruderRule = {};
@@ -597,6 +600,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseBeaconEvents = { ...pack.beaconEvents };
     escapeTimersValue = { ...pack.escapeTimers };
     baseEscapeTimers = { ...pack.escapeTimers };
+    aiTargetValue = { ...pack.aiTarget };
+    baseAiTarget = { ...pack.aiTarget };
     overchargerWaitsValue = { ...pack.overchargerWaits };
     baseOverchargerWaits = { ...pack.overchargerWaits };
     ionIntruderValue = { ...pack.ionIntruder };
@@ -644,6 +649,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     beaconEventsValue = { ...beaconEventsValue, ...pack.beaconEvents };
   if (mode === "append" && pack.escapeTimers)
     escapeTimersValue = { ...escapeTimersValue, ...pack.escapeTimers };
+  if (mode === "append" && pack.aiTarget) aiTargetValue = { ...aiTargetValue, ...pack.aiTarget };
   if (mode === "append" && pack.overchargerWaits)
     overchargerWaitsValue = { ...overchargerWaitsValue, ...pack.overchargerWaits };
   if (mode === "append" && pack.ionIntruder)
@@ -1184,6 +1190,35 @@ export function crystalVengeanceStat(key: keyof CrystalVengeanceRule): number {
 }
 
 /**
+ * FTL's own enemy targeting numbers (xftl combat-ai, PrioritizeSystem, and the developer list on "Hard mode AI
+ * Targeting mechanics"). Used only when no loaded pack sets `<aiTarget>`, with a warning.
+ */
+const FTL_AI_TARGET: Required<AiTarget> = {
+  easy: 0.2,
+  normal: 0.33,
+  hardRoom: 0.5,
+  hardAny: 0.25,
+  evasion: 25,
+  oxygen: 50,
+  artillery: 4,
+};
+
+/** The loaded `<aiTarget>`, as authored (no defaults filled in). */
+export function aiTargets(): AiTarget {
+  return { ...aiTargetValue };
+}
+
+/**
+ * One enemy targeting number (gap `<aiTarget>`). A pack that omits the value gets FTL's, with one warning.
+ */
+export function aiTarget(key: keyof AiTarget): number {
+  const value = aiTargetValue[key];
+  if (value != null) return value;
+  warnPack(`No <aiTarget ${key}> is loaded; FTL's ${FTL_AI_TARGET[key]} is used.`);
+  return FTL_AI_TARGET[key];
+}
+
+/**
  * FTL's cargo hold: 4 slots for weapons and drone schematics that are not fitted (Environmental Hazards names the
  * cargo bay; the slot count is the executable's). Used only when no loaded pack sets `<cargoSlots>`, with a warning.
  */
@@ -1431,6 +1466,7 @@ export function resetPackForTests(): void {
   civilianSectorTitleValue = baseCivilianSectorTitle;
   beaconEventsValue = { ...baseBeaconEvents };
   escapeTimersValue = { ...baseEscapeTimers };
+  aiTargetValue = { ...baseAiTarget };
   overchargerWaitsValue = { ...baseOverchargerWaits };
   ionIntruderValue = { ...baseIonIntruder };
   crystalVengeanceValue = { ...baseCrystalVengeance };

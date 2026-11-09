@@ -615,6 +615,25 @@ export type EscapeTimers = {
 };
 
 /**
+ * Gap `<aiTarget easy normal hardRoom hardAny evasion oxygen artillery>`: enemy weapon targeting numbers FTL's
+ * executable hard-codes (xftl combat-ai, PrioritizeSystem). `easy` and `normal` are the chance a shot picks from the
+ * system list. `hardRoom` is the share of Hard shots that pick no system; `hardAny` is the share that pick any
+ * installed system; the rest pick the priority list. `evasion` is the dodge percent above which Engines and Piloting
+ * are listed (strictly greater). `oxygen` is the average oxygen below which Oxygen is listed (strictly less).
+ * `artillery` is seconds of charge below which Artillery is listed (strictly less). A missing value warns and uses
+ * FTL's number.
+ */
+export type AiTarget = {
+  easy?: number;
+  normal?: number;
+  hardRoom?: number;
+  hardAny?: number;
+  evasion?: number;
+  oxygen?: number;
+  artillery?: number;
+};
+
+/**
  * Gap `<overchargerWaits layer0 layer1 layer2 layer3 layer4>`: seconds a Shield Overcharger waits before adding one
  * Zoltan Shield layer, when that many layers already exist. FTL's executable hard-codes 8/10/13/16/20. Five or more
  * layers have no wait. Power and speed stay on the droneBlueprint (`<power>`, `<speed>`).
@@ -1323,6 +1342,8 @@ export type ContentPack = {
   escapes?: FactionEscape[];
   /** Default escape timers. Absent until a pack loads them. */
   escapeTimers?: EscapeTimers;
+  /** Enemy weapon targeting numbers. Absent until a pack loads them. */
+  aiTarget?: AiTarget;
   /** Shield Overcharger layer waits. Absent until a pack loads them. */
   overchargerWaits?: OverchargerWaits;
   /** Ion Intruder pulse. Absent until a pack loads it. */

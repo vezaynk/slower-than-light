@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { blueprintList } from "@stl/pack";
+import { blueprintList, weaponDef } from "@stl/pack";
 import { primeWeapons } from "../extras/augments.ts";
 import { reorderDroneSlots, tickEnemyDrones } from "../extras/swarm.ts";
 import { enemyHulls, enemyMayMount, specFromHull } from "../enemy-gen.ts";
@@ -24,7 +24,7 @@ import {
   zoltanBars,
 } from "../sim.ts";
 import type { Crew, Game, Kit, Room, WeaponInst } from "../types.ts";
-import { SWARM_CUTS, swarmLanding } from "./swarm-aim.ts";
+import { SWARM_CUTS, swarmLanding } from "../rules/swarm-aim.ts";
 
 function gun(defId: string, extra: Partial<WeaponInst> = {}): WeaponInst {
   return {
@@ -691,6 +691,36 @@ describe("swarm missiles", () => {
     aim(g, "one");
     assert.equal(g.seed, seed);
     assert.equal(shotsOf(g, "MISSILE_CHARGEGUN")[0]?.targetRoom, "one");
+  });
+
+  it("does not roll a 1x2 when the blueprint radius is 0", () => {
+    const g = fight();
+    parkGunners(g);
+    feed(g, 4, 4, ["MISSILE_CHARGEGUN"]);
+    g.missiles = 4;
+    const enemy = g.enemy!;
+    const base = enemy.rooms[0];
+    enemy.rooms = [
+      retile(base, "n", 1, 0, 1, 2, "shields"),
+      retile(base, "w", 0, 0, 1, 1, "oxygen"),
+      retile(base, "e", 2, 0, 1, 2, "weapons"),
+    ];
+    const def = weaponDef("MISSILE_CHARGEGUN");
+    assert.ok(def);
+    const radius = def.radius;
+    def.radius = 0;
+    try {
+      const w = g.player.weapons[0];
+      w.loaded = 1;
+      const seed = g.seed;
+      armWeapon(g, w.uid);
+      aim(g, "n");
+      assert.equal(g.seed, seed);
+      assert.equal(shotsOf(g, "MISSILE_CHARGEGUN")[0]?.targetRoom, "n");
+      assert.equal(shotsOf(g, "MISSILE_CHARGEGUN")[0]?.offRoom, undefined);
+    } finally {
+      def.radius = radius;
+    }
   });
 
   it("scatters a 2x1 room with the launch roll", () => {

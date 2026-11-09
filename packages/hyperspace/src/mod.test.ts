@@ -159,6 +159,34 @@ const pack: ContentPack = {
     firePause: 0.5,
     beamHold: 0.5,
   },
+  sectorMap: {
+    cols: 6,
+    rows: 4,
+    cell: 110,
+    margin: 28,
+    empty: 0.2,
+    yMax: 415,
+    topRightY: 30,
+    link: 165,
+    dangerRadius: 767,
+    startX: -959,
+    step: 64,
+    dangerYMin: 50,
+    dangerYMax: 300,
+    exitColMin: 4,
+    exitColMax: 5,
+    exitMinJumps: 5,
+    tries: 16,
+    fedColMin: 2,
+    fedColMax: 3,
+    fedHardColMin: 3,
+    fedHardColMax: 4,
+    fedJumps: 4,
+    fedHardJumpsMin: 5,
+    fedHardJumpsMax: 6,
+    flagshipJumpsMin: 3,
+    flagshipJumpsMax: 5,
+  },
   empties: [
     {
       id: "ember-quiet",
@@ -224,6 +252,10 @@ describe("hyperspace mod", () => {
       xml,
       /<droneOrbit minSep="90" speedScale="21.875" stopRadius="1.15" firePause="0.5" beamHold="0.5"\/>/,
     );
+    assert.match(xml, /<sectorMap /);
+    assert.match(xml, /margin="28"/);
+    assert.match(xml, /startX="-959"/);
+    assert.match(xml, /flagshipJumpsMax="5"/);
     assert.deepEqual(packFromMod(xml), pack);
   });
 

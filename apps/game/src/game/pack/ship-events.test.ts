@@ -7,7 +7,7 @@ import { mixCrewRaces } from "../enemy-gen.ts";
 import { choose, commitJump, createGame, rand, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "./base.ts";
-import { overtaken } from "../wiki/sector-map.ts";
+import { overtaken } from "../rules/sector-map.ts";
 import { ACCEPT_ID, REFUSE_ID, surrenderTick } from "../wiki/surrender.ts";
 
 const XML = `<?xml version="1.0" encoding="UTF-8"?>

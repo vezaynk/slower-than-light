@@ -150,7 +150,7 @@ import {
   pickFlagship,
   populateGrid,
   rollDangerY,
-} from "./wiki/sector-map.ts";
+} from "./rules/sector-map.ts";
 import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
 import {
   chainChargeSeconds,
@@ -7167,7 +7167,7 @@ function burnLegacyMap(g: Game): boolean {
 }
 
 // Sectors, lead: a sector contains 19 to 24 beacons. The grid, links, exit, and Last Stand seats are xftl
-// doc/sector-map (wiki/sector-map.ts).
+// doc/sector-map (rules/sector-map.ts).
 function makeMap(g: Game) {
   const seed0 = g.seed;
   const picket = burnLegacyMap(g);
@@ -7542,7 +7542,7 @@ export function commitJump(g: Game, id: string) {
   g.jumps += 1;
   sfx(g, "jumpLeave");
   // Score, b: "Visiting a beacon controlled by rebels or about to be controlled by rebels does NOT increase the count."
-  // Controlled is inside the danger circle (wiki/sector-map.ts). INFERRED: "about to be" is inside it once this jump's
+  // Controlled is inside the danger circle (rules/sector-map.ts). INFERRED: "about to be" is inside it once this jump's
   // fleet advance lands. Sector 8 has no fleet circle (the Flagship rules there are not modelled here).
   const held =
     g.sector < 8 &&

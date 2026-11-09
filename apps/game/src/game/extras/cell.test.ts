@@ -23,7 +23,7 @@ import {
 } from "./cell.ts";
 import { toggleVeilPower } from "./veil.ts";
 import { onPlayerJump } from "./index.ts";
-import { fleetToReach } from "../wiki/sector-map.ts";
+import { fleetToReach } from "../rules/sector-map.ts";
 import type { Crew, Kit, Shot, WeaponInst } from "../types.ts";
 import { startedGame } from "../test-start.ts";
 

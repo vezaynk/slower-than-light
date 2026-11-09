@@ -36,6 +36,7 @@ import type {
   AsteroidTiming,
   PulsarRules,
   DroneOrbit,
+  SectorMap,
   FactionEscape,
   FactionSurrender,
   FillerEntry,
@@ -817,6 +818,77 @@ export function readAiTarget(node: XmlElement): AiTarget {
   return out;
 }
 
+const SECTOR_MAP_POSITIVE_INTS = ["cols", "rows", "tries"] as const;
+const SECTOR_MAP_WHOLE = [
+  "exitColMin",
+  "exitColMax",
+  "exitMinJumps",
+  "fedColMin",
+  "fedColMax",
+  "fedHardColMin",
+  "fedHardColMax",
+  "fedJumps",
+  "fedHardJumpsMin",
+  "fedHardJumpsMax",
+  "flagshipJumpsMin",
+  "flagshipJumpsMax",
+] as const;
+const SECTOR_MAP_POSITIVE = ["cell", "link", "dangerRadius", "step"] as const;
+const SECTOR_MAP_NONNEG = ["margin", "yMax", "topRightY", "dangerYMin", "dangerYMax"] as const;
+
+/**
+ * Gap `<sectorMap>` (types.ts SectorMap). A missing attribute is left out, so the registry keeps the earlier
+ * value or FTL's default. A malformed attribute warns and is skipped. `margin` may be 0. `startX` may be negative.
+ */
+export function readSectorMap(node: XmlElement): SectorMap {
+  const out: SectorMap = {};
+  for (const key of SECTOR_MAP_POSITIVE_INTS) {
+    const value = readCheckedAttr(
+      node,
+      "sectorMap",
+      key,
+      (n) => Number.isInteger(n) && n > 0,
+      "is not a positive whole number",
+    );
+    if (value != null) out[key] = value;
+  }
+  for (const key of SECTOR_MAP_WHOLE) {
+    const value = readCheckedAttr(
+      node,
+      "sectorMap",
+      key,
+      (n) => Number.isInteger(n) && n >= 0,
+      "is not a non-negative whole number",
+    );
+    if (value != null) out[key] = value;
+  }
+  for (const key of SECTOR_MAP_POSITIVE) {
+    const value = readCheckedAttr(node, "sectorMap", key, (n) => n > 0, "is not a positive number");
+    if (value != null) out[key] = value;
+  }
+  for (const key of SECTOR_MAP_NONNEG) {
+    const value = readCheckedAttr(
+      node,
+      "sectorMap",
+      key,
+      (n) => n >= 0,
+      "is not a non-negative number",
+    );
+    if (value != null) out[key] = value;
+  }
+  const empty = readCheckedAttr(
+    node,
+    "sectorMap",
+    "empty",
+    (n) => n >= 0 && n <= 1,
+    "is not a chance from 0 to 1",
+  );
+  if (empty != null) out.empty = empty;
+  const startX = readCheckedAttr(node, "sectorMap", "startX", () => true, "is not a number");
+  if (startX != null) out.startX = startX;
+  return out;
+}
+
 function readCount(node: XmlElement): { min: number; max: number } {
   const count = child(node, "count");
   if (!count) return { min: 0, max: 0 };
@@ -1175,6 +1247,9 @@ export function parsePack(xml: string): ContentPack {
   const orbitNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "droneOrbit",
   );
+  const sectorMapNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "sectorMap",
+  );
   const pack: ContentPack = {
     crew,
     weapons,
@@ -1201,6 +1276,7 @@ export function parsePack(xml: string): ContentPack {
   if (asteroidNode) pack.asteroidField = readAsteroidField(asteroidNode);
   if (pulsarNode) pack.pulsar = readPulsar(pulsarNode);
   if (orbitNode) pack.droneOrbit = readDroneOrbit(orbitNode);
+  if (sectorMapNode) pack.sectorMap = readSectorMap(sectorMapNode);
   return pack;
 }
 

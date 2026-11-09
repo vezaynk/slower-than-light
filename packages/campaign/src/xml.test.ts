@@ -74,6 +74,7 @@ describe("campaign document", () => {
     assert.deepEqual(merged.rewards, pack.rewards);
     assert.deepEqual(merged.factions, pack.factions);
     assert.deepEqual(merged.escapeTimers, pack.escapeTimers);
+    assert.deepEqual(merged.sectorMap, pack.sectorMap);
     assert.deepEqual(merged.overchargerWaits, pack.overchargerWaits);
     assert.deepEqual(merged.ionIntruder, pack.ionIntruder);
     assert.deepEqual(merged.crystalVengeance, pack.crystalVengeance);

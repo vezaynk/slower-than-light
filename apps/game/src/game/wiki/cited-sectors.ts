@@ -2,7 +2,7 @@ import "../pack/base.ts";
 import { sectorDef, warnPack, weaponDef } from "@stl/pack";
 import { FINAL_SECTOR } from "../sector-ids.ts";
 import type { Beacon, Game, GameEvent } from "../types.ts";
-import { overtaken, type Danger } from "./sector-map.ts";
+import { overtaken, type Danger } from "../rules/sector-map.ts";
 
 /**
  * Sector, fleet, and Last Stand rules whose numbers the wiki states.
@@ -43,7 +43,7 @@ export function citedSector(g: Game): void {
  * Beacons that count toward score.
  * Return null to keep g.beaconsVisited.
  * Score: rebel-held beacons do not count.
- * overtaken(g, beacon) (wiki/sector-map.ts) is what the sim treats as overtaken,
+ * overtaken(g, beacon) (rules/sector-map.ts) is what the sim treats as overtaken,
  * but beaconsVisited is a lifetime counter and earlier sectors are gone,
  * so a visit-time count cannot be rebuilt from these fields.
  */
@@ -72,7 +72,7 @@ export function citedFleetAdvance(g: Game, beacon: Pick<Beacon, "kind">): number
 
 /**
  * Rebel Fleet / Environmental Hazards: the battery is not on a nebula beacon, and never on an Easy exit.
- * Overtaken is the xftl danger circle (wiki/sector-map.ts overtaken).
+ * Overtaken is the xftl danger circle (rules/sector-map.ts overtaken).
  * Anti-Ship Battery: an out-of-fuel wait that the fleet overtakes removes the nebula, so the battery is present.
  */
 export function citedAsb(

@@ -166,6 +166,8 @@ export {
   pulsarRule,
   droneOrbitRules,
   droneOrbit,
+  sectorMapRules,
+  sectorMap,
 } from "./registry.ts";
 export { localeString, packLocales } from "./locales.ts";
 export type {
@@ -220,6 +222,7 @@ export type {
   AsteroidTiming,
   PulsarRules,
   DroneOrbit,
+  SectorMap,
   FactionEscape,
   FactionSurrender,
   NamedReward,

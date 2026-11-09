@@ -30,6 +30,7 @@ import type {
   AsteroidTiming,
   PulsarRules,
   DroneOrbit,
+  SectorMap,
   FactionEscape,
   FactionSurrender,
   FillerListDef,
@@ -107,6 +108,8 @@ let pulsarValue: PulsarRules = {};
 let basePulsar: PulsarRules = {};
 let droneOrbitValue: DroneOrbit = {};
 let baseDroneOrbit: DroneOrbit = {};
+let sectorMapValue: SectorMap = {};
+let baseSectorMap: SectorMap = {};
 let baseBeaconEvents: BeaconEvents = {};
 let baseCrew: CrewDef[] = [];
 let baseWeapons: WeaponBlueprint[] = [];
@@ -618,6 +621,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     basePulsar = { ...pulsarValue };
     droneOrbitValue = { ...pack.droneOrbit };
     baseDroneOrbit = { ...droneOrbitValue };
+    sectorMapValue = { ...pack.sectorMap };
+    baseSectorMap = { ...sectorMapValue };
     storeLocales(pack.locales);
     baseFactions = (pack.factions ?? []).map(copyFaction);
     baseEscapes = (pack.escapes ?? []).map((row) => ({ ...row }));
@@ -665,6 +670,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   if (mode === "append" && pack.pulsar) pulsarValue = { ...pulsarValue, ...pack.pulsar };
   if (mode === "append" && pack.droneOrbit)
     droneOrbitValue = { ...droneOrbitValue, ...pack.droneOrbit };
+  if (mode === "append" && pack.sectorMap)
+    sectorMapValue = { ...sectorMapValue, ...pack.sectorMap };
   if (mode === "append" && pack.locales) mergeStoredLocales(pack.locales);
   for (const row of mode === "base" ? baseCrew : (pack.crew ?? [])) crew.set(row.id, copyCrew(row));
   for (const row of mode === "base" ? baseWeapons : (pack.weapons ?? []))
@@ -1418,6 +1425,56 @@ export function droneOrbit(key: keyof DroneOrbit): number {
   return FTL_DRONE_ORBIT[key];
 }
 
+/**
+ * FTL's beacon map and Rebel fleet circle (xftl doc/sector-map). The cell margin xftl prints is 10; the stand-in
+ * ships 28 so beacons stay tappable, and that 28 is data, not this fallback. Used only when no loaded pack sets
+ * `<sectorMap>`, with a warning.
+ */
+const FTL_SECTOR_MAP: Required<SectorMap> = {
+  cols: 6,
+  rows: 4,
+  cell: 110,
+  margin: 10,
+  empty: 0.2,
+  yMax: 415,
+  topRightY: 30,
+  link: 165,
+  dangerRadius: 767,
+  startX: -959,
+  step: 64,
+  dangerYMin: 50,
+  dangerYMax: 300,
+  exitColMin: 4,
+  exitColMax: 5,
+  exitMinJumps: 5,
+  tries: 16,
+  fedColMin: 2,
+  fedColMax: 3,
+  fedHardColMin: 3,
+  fedHardColMax: 4,
+  fedJumps: 4,
+  fedHardJumpsMin: 5,
+  fedHardJumpsMax: 6,
+  flagshipJumpsMin: 3,
+  flagshipJumpsMax: 5,
+};
+
+/** The loaded `<sectorMap>`, as authored (no defaults filled in). */
+export function sectorMapRules(): SectorMap {
+  return { ...sectorMapValue };
+}
+
+/**
+ * One beacon-map or fleet number (gap `<sectorMap>`). A pack that omits the value gets FTL's, with one warning.
+ * A missing margin uses FTL's 10, not the stand-in's 28.
+ */
+export function sectorMap(key: keyof SectorMap): number {
+  const value = sectorMapValue[key];
+  if (value != null) return value;
+  warnPack(`No <sectorMap ${key}> is loaded; FTL's ${FTL_SECTOR_MAP[key]} is used.`);
+  return FTL_SECTOR_MAP[key];
+}
+
 export function emptyBeacon(id: string | undefined): EmptyBeaconDef | undefined {
   if (!id) return undefined;
   return empties.get(id);
@@ -1475,6 +1532,7 @@ export function resetPackForTests(): void {
   asteroidFieldValue = copyAsteroidField(baseAsteroidField);
   pulsarValue = { ...basePulsar };
   droneOrbitValue = { ...baseDroneOrbit };
+  sectorMapValue = { ...baseSectorMap };
   resetLocales();
   for (const row of baseCrew) crew.set(row.id, copyCrew(row));
   for (const row of baseWeapons) weapons.set(row.id, copyWeapon(row));

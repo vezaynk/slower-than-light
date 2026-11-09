@@ -1,18 +1,17 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
+import { loadPack, onPackWarning, packFromFtl, resetPackForTests, sectorMap } from "@stl/pack";
 import { buildRoute, columnLinks, createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
 import {
-  CELL_MARGIN_PX,
-  CELL_PX,
-  DANGER_RADIUS,
-  LINK_PX,
   beaconXY,
   connectGrid,
   dangerCentre,
   fleetToReach,
   jumpsBetween,
   overtaken,
+  pickExit,
   pickFedBase,
   pickFlagship,
   populateGrid,
@@ -55,15 +54,15 @@ describe("beacon map (xftl doc/sector-map)", () => {
       cells += grid.length;
       runs += 1;
       for (const c of grid) {
+        const cell = sectorMap("cell");
+        const margin = sectorMap("margin");
+        assert.ok(c.x >= c.col * cell + margin && c.x <= (c.col + 1) * cell - margin, `x ${c.x}`);
         assert.ok(
-          c.x >= c.col * CELL_PX + CELL_MARGIN_PX && c.x <= (c.col + 1) * CELL_PX - CELL_MARGIN_PX,
-          `x ${c.x}`,
+          c.y >= c.row * cell + margin ||
+            (c.row === 0 && c.col >= sectorMap("cols") - 2 && c.y >= sectorMap("topRightY")),
         );
-        assert.ok(
-          c.y >= c.row * CELL_PX + CELL_MARGIN_PX || (c.row === 0 && c.col >= 4 && c.y >= 30),
-        );
-        assert.ok(c.y <= 415);
-        if (c.row === 0 && c.col >= 4) assert.ok(c.y >= 30);
+        assert.ok(c.y <= sectorMap("yMax"));
+        if (c.row === 0 && c.col >= sectorMap("cols") - 2) assert.ok(c.y >= sectorMap("topRightY"));
       }
     }
     // Sectors, lead: 19 to 24 beacons.
@@ -87,7 +86,7 @@ describe("beacon map (xftl doc/sector-map)", () => {
         b.links.map((id) => {
           const [ax, ay] = beaconXY(b);
           const [bx, by] = beaconXY(byId.get(id)!);
-          return Math.hypot(ax - bx, ay - by) <= LINK_PX;
+          return Math.hypot(ax - bx, ay - by) <= sectorMap("link");
         }),
       );
       assert.ok(short.filter(Boolean).length / short.length > 0.9);
@@ -154,7 +153,10 @@ describe("danger zone (xftl doc/sector-map)", () => {
     }
     const g = createGame(3);
     // No beacon is inside before the first jump: the circle's right edge starts at -192.
-    assert.equal(-959 + DANGER_RADIUS, -192);
+    assert.equal(sectorMap("startX"), -959);
+    assert.equal(sectorMap("dangerRadius"), 767);
+    assert.equal(sectorMap("step"), 64);
+    assert.equal(-959 + 767, -192);
     assert.ok(g.beacons.every((b) => !overtaken(g, b)));
     const far = g.beacons.reduce((a, b) => (beaconXY(b)[0] > beaconXY(a)[0] ? b : a));
     const near = g.beacons.reduce((a, b) => (beaconXY(b)[0] < beaconXY(a)[0] ? b : a));
@@ -221,5 +223,103 @@ describe("sector chart (xftl doc/sector-map, AddSectorColumn)", () => {
       const l = columnLinks(p, n);
       assert.ok(!l.some(([a, b]) => l.some(([c, d]) => a < c && b > d)), `${p}->${n}`);
     }
+  });
+});
+
+const MAP_SEEDS = [1, 2, 3, 7, 11, 13, 21, 42];
+const SEAT_SEEDS = [1, 2, 5, 9, 17];
+
+/** Maps drawn before the numbers moved onto `<sectorMap>`, with the stand-in loaded. */
+function sectorMapProbe(): string {
+  const maps = MAP_SEEDS.map((seed) => {
+    const g = createGame(seed);
+    return {
+      seed,
+      dangerY: g.dangerY,
+      here: g.here,
+      beacons: g.beacons.map((b) => ({
+        id: b.id,
+        col: b.col,
+        row: b.row,
+        x: b.x,
+        y: b.y,
+        kind: b.kind,
+        links: [...b.links].sort(),
+      })),
+    };
+  });
+  const seats: {
+    difficulty: string;
+    seed: number;
+    ids: string[];
+    start: string;
+    exit: string | null;
+    base: string | null;
+    boss: string | null;
+  }[] = [];
+  for (const difficulty of ["normal", "hard"] as const) {
+    for (const seed of SEAT_SEEDS) {
+      const beacons = grid(seed);
+      const start = beacons.filter((b) => b.col === 0)[0] ?? beacons[0];
+      const roll = lcg(seed * 7 + 1);
+      const base = pickFedBase(beacons, start, difficulty, roll);
+      const boss = base ? pickFlagship(beacons, base, roll) : undefined;
+      const exit = pickExit(beacons, start, lcg(seed * 3 + 9));
+      seats.push({
+        difficulty,
+        seed,
+        ids: beacons.map((b) => `${b.id}:${b.x},${b.y}:${[...b.links].sort().join("+")}`),
+        start: start.id,
+        exit: exit?.id ?? null,
+        base: base?.id ?? null,
+        boss: boss?.id ?? null,
+      });
+    }
+  }
+  return JSON.stringify({ maps, seats });
+}
+
+function warned(run: () => void): string[] {
+  const lines: string[] = [];
+  const restore = onPackWarning((message) => lines.push(message));
+  try {
+    run();
+  } finally {
+    restore();
+  }
+  return lines;
+}
+
+describe("sector map from the gap mod", () => {
+  it("matches the maps the stand-in drew before the numbers moved", () => {
+    const lines = warned(() => {
+      assert.equal(sectorMap("margin"), 28);
+      assert.equal(sectorMap("link"), 165);
+      assert.equal(
+        createHash("sha256").update(sectorMapProbe()).digest("hex"),
+        "0457a47e28f828436df026ad9b4d42a06c3ca7b456606c27690f004bc959b267",
+      );
+    });
+    assert.deepEqual(lines, []);
+  });
+
+  it("follows a gap file that overrides the cell margin", () => {
+    const before = populateGrid(lcg(1)).map((c) => [c.x, c.y]);
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><sectorMap margin="0"/></FTL>` }]),
+      "append",
+    );
+    try {
+      assert.equal(sectorMap("margin"), 0);
+      const after = populateGrid(lcg(1)).map((c) => [c.x, c.y]);
+      assert.notDeepEqual(after, before);
+    } finally {
+      resetPackForTests();
+    }
+    assert.equal(sectorMap("margin"), 28);
+    assert.deepEqual(
+      populateGrid(lcg(1)).map((c) => [c.x, c.y]),
+      before,
+    );
   });
 });

@@ -49,6 +49,7 @@ import { BONUS_ITEM_WEIGHTS, CARGO_SLOTS } from "../wiki/rack-rules.ts";
 import { ASTEROID_FIELD } from "../wiki/asteroid-rules.ts";
 import { PULSAR_RULES } from "../wiki/pulsar-rules.ts";
 import { DRONE_ORBIT } from "../wiki/drone-orbit.ts";
+import { SECTOR_MAP } from "../wiki/sector-map-rules.ts";
 import { SYSTEM_TUNES } from "../wiki/system-tunes.ts";
 import { BEAM_CREW, BEAM_SPEED, BEAM_TILES } from "../wiki/weapons-beam.ts";
 import { BOMB_CREW } from "../wiki/weapons-bomb.ts";
@@ -1522,6 +1523,7 @@ export function loadCatalog(): void {
       },
       pulsar: { ...PULSAR_RULES },
       droneOrbit: { ...DRONE_ORBIT },
+      sectorMap: { ...SECTOR_MAP },
       events,
       lists: [
         ...fillerListRecords().map(listRow),

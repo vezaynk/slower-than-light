@@ -528,7 +528,7 @@ export function HelpScreen({ onContinue }: { onContinue: () => void }) {
 
 function verdictCopy(game: Game): { title: string; body: string; score: boolean } {
   const ending = verdictEnding(game.outcome ?? "");
-  if (ending) {
+  if (ending !== undefined) {
     return {
       title: verdictTitle(game.outcome === "victory"),
       body: ending,

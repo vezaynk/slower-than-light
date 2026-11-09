@@ -31,9 +31,9 @@ looks at every piece of the archive:
 - every English text string of six or more characters, and whether the game ever shows it. A key whose
   name ends in `_demo` is the demo build's copy, and the release executable does not read it. Every other
   unshown string is a screen that still paints its own English. The cover reports that count and does not
-  fail on it until those screens read the archive. The game-over card already does: titles, endings, the
-  score line (`\1` is the score), the high-score line, every button, and the victory cinema, including how
-  the crew names are joined.
+  fail on it until those screens read the archive. The game-over card already does. Its sentences live in
+  the loaded archive (the stand-in's `text_ui.xml`, or ftl.dat's own wording). The code only looks the
+  keys up, and it fills the score into the archive's score line.
 
 Run it against the real archive with:
 

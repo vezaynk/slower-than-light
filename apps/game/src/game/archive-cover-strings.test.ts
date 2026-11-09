@@ -11,6 +11,7 @@ import {
   unshownStringKeys,
 } from "./archive-cover.ts";
 import { installExtract } from "./archive-play.ts";
+import { archivePhrase } from "@stl/pack";
 import { verdictArchiveLines, verdictScoreLine, verdictTitle } from "./interface-copy.ts";
 
 describe("unshown archive strings", () => {
@@ -31,12 +32,13 @@ describe("unshown archive strings", () => {
     assert.deepEqual(missing, ["event_brand_new"]);
   });
 
-  it("paints the stand-in game-over English when the archive has no table", () => {
-    assert.equal(verdictTitle(false), "GAME OVER");
-    assert.equal(verdictTitle(true), "VICTORY!");
-    assert.equal(verdictScoreLine(12), "SCORE: 12");
-    assert.ok(verdictArchiveLines().includes("RESTART"));
-    assert.ok(verdictArchiveLines().includes("SCORE: \\1"));
+  it("reads the game-over card from the loaded archive and does not keep a second copy", () => {
+    assert.equal(verdictTitle(false), archivePhrase("gameover_title_gameover"));
+    assert.equal(verdictTitle(true), archivePhrase("gameover_title_victory"));
+    const format = archivePhrase("gameover_score") ?? "";
+    assert.match(format, /\\1/);
+    assert.equal(verdictScoreLine(12), format.replaceAll("\\1", "12"));
+    assert.ok(verdictArchiveLines().includes(archivePhrase("gameover_button_restart")));
   });
 });
 

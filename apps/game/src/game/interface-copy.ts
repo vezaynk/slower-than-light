@@ -1,7 +1,7 @@
 /**
  * Lines the screens render from the loaded archive.
- * A stand-in with no string table leaves these empty, and the screen keeps its own English.
- * Per the user: a screen uses an archive phrase in its own place (phraseOr). It does not list a screen's strings.
+ * A sentence that exists in the archive is read from there. The code does not keep a second copy.
+ * Per the user: a screen uses an archive phrase in its own place. It does not list a screen's strings.
  */
 import {
   allItemBlueprints,
@@ -38,48 +38,38 @@ export function verdictListLines(): string[] {
   return lines;
 }
 
-/** Game Over and the victory card. The archive phrase wins. The English is what a stand-in with no table paints. */
-export function verdictTitle(victory: boolean): string {
-  return phraseOr(
-    victory ? "gameover_title_victory" : "gameover_title_gameover",
-    victory ? "VICTORY!" : "GAME OVER",
-  );
+/** A phrase from the loaded archive. Missing keys paint nothing: the sentence is not stored here. */
+function archiveLine(key: string): string {
+  return archivePhrase(key) ?? "";
 }
 
-/** Body for a named ending. Hull loss is the GAMEOVER list, then `gameover_blowup`. */
+/** Game Over and the victory card. */
+export function verdictTitle(victory: boolean): string {
+  return archiveLine(victory ? "gameover_title_victory" : "gameover_title_gameover");
+}
+
+/** Body for a named ending. Undefined for hull loss, which uses the GAMEOVER list, then `gameover_blowup`. */
 export function verdictEnding(outcome: string): string | undefined {
-  if (outcome === "victory")
-    return phraseOr(
-      "gameover_win",
-      "Congratulations! You've defeated the Rebel Flagship and ensured the victory of the Federation!",
-    );
-  if (outcome === "tutorial")
-    return phraseOr(
-      "gameover_tutorial",
-      "Somehow you've died during the introduction training exercise. Feel free to try again but this doesn't bode well for your mission.",
-    );
-  if (outcome === "crew")
-    return phraseOr(
-      "gameover_crew",
-      "All crew members have died. Your ship will continue to drift for eternity, or until looters destroy it.",
-    );
-  if (outcome === "rebel")
-    return phraseOr(
-      "gameover_fedbase",
-      "The Rebel Flagship is within range of the Federation Base. All is lost, they've won.",
-    );
-  return undefined;
+  const key =
+    outcome === "victory"
+      ? "gameover_win"
+      : outcome === "tutorial"
+        ? "gameover_tutorial"
+        : outcome === "crew"
+          ? "gameover_crew"
+          : outcome === "rebel"
+            ? "gameover_fedbase"
+            : undefined;
+  if (!key) return undefined;
+  return archiveLine(key);
 }
 
 export function verdictBlowup(): string {
-  return phraseOr(
-    "gameover_blowup",
-    "One last explosion marks your fate as your ship is torn apart.",
-  );
+  return archiveLine("gameover_blowup");
 }
 
 export function verdictScoreLabel(): string {
-  return phraseOr("gameover_score", "SCORE: \\1");
+  return archiveLine("gameover_score");
 }
 
 /** `gameover_score` is a format. `\1` is the score. */
@@ -88,27 +78,27 @@ export function verdictScoreLine(score: number): string {
 }
 
 export function verdictHighScore(): string {
-  return phraseOr("new_high", "New High Score!");
+  return archiveLine("new_high");
 }
 
 export function verdictRestartLabel(): string {
-  return phraseOr("gameover_button_restart", "RESTART");
+  return archiveLine("gameover_button_restart");
 }
 
 export function verdictHangarLabel(): string {
-  return phraseOr("gameover_button_hangar", "HANGAR");
+  return archiveLine("gameover_button_hangar");
 }
 
 export function verdictMenuLabel(): string {
-  return phraseOr("gameover_button_mainmenu", "MAIN MENU");
+  return archiveLine("gameover_button_mainmenu");
 }
 
 export function verdictStatsLabel(): string {
-  return phraseOr("gameover_button_stats", "STATS");
+  return archiveLine("gameover_button_stats");
 }
 
 export function verdictQuitLabel(): string {
-  return phraseOr("gameover_button_quit", "QUIT");
+  return archiveLine("gameover_button_quit");
 }
 
 /** The victory cinema. The crew list uses the archive's comma and the word before the last name. */
@@ -120,14 +110,11 @@ export function victoryCinema(): {
   ending: string;
 } {
   return {
-    ship: phraseOr("thank_ship", "Thanks to the valiant effort of:"),
-    crew: phraseOr("thank_crew", "And her successful crew:"),
-    comma: phraseOr("crewlist_comma", ", "),
-    join: phraseOr("crewlist_and", " and "),
-    ending: phraseOr(
-      "credit_victory",
-      "The Rebel's flagship was destroyed, throwing their fleet into chaos and ensuring a Federation victory",
-    ),
+    ship: archiveLine("thank_ship"),
+    crew: archiveLine("thank_crew"),
+    comma: archiveLine("crewlist_comma"),
+    join: archiveLine("crewlist_and"),
+    ending: archiveLine("credit_victory"),
   };
 }
 

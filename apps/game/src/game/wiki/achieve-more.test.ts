@@ -4,7 +4,7 @@ import { weaponDef } from "@stl/pack";
 import { applyImpact, createGame, startCombat } from "../sim.ts";
 import type { Shot } from "../types.ts";
 import { deriveUnlocks } from "../unlocks.ts";
-import { noteAchieve } from "./achieve-notes.ts";
+import { noteAchieve, noteArtillery } from "./achieve-notes.ts";
 import { earnedNow } from "./achievement-track.ts";
 import { stampCitedEvents } from "./cited-events.ts";
 import { drawFiller } from "./filler-events.ts";
@@ -132,6 +132,95 @@ describe("achievement counters", () => {
     g.jumps = 0;
     noteAchieve(g, { k: "tick" });
     assert.equal(earnedNow(g).includes("ACH_LANIUS_OXYGEN"), false);
+  });
+});
+
+describe("crystal shots are missiles, not warheads, for the three kill lines", () => {
+  function hullWin(
+    shots: { kind: string; defId: string }[],
+    opts: { artillery?: boolean; drone?: boolean; defense?: boolean } = {},
+  ) {
+    const g = quietMap();
+    startCombat(g, "Rebel ship");
+    assert.ok(g.enemy);
+    noteAchieve(g, { k: "fight" });
+    if (opts.artillery) noteArtillery(g);
+    if (opts.drone) noteAchieve(g, { k: "droneHull" });
+    for (const shot of shots) {
+      noteAchieve(g, {
+        k: "shot",
+        from: "player",
+        kind: shot.kind,
+        defId: shot.defId,
+        rooms: ["a"],
+      });
+    }
+    g.enemy.hull = 0;
+    noteAchieve(g, {
+      k: "win",
+      deadCrew: false,
+      allAboard: false,
+      defense: !!opts.defense,
+      rock: false,
+    });
+    return g.tally ?? {};
+  }
+
+  it("lets a crystal-only fight keep missile defense and fail artillery and drone-only, and a laser fails all three", () => {
+    const crystalArtillery = hullWin([{ kind: "missile", defId: "CRYSTAL_HEAVY_2" }], {
+      artillery: true,
+      defense: true,
+    });
+    assert.equal(crystalArtillery.missileShots, 1);
+    assert.notEqual(crystalArtillery.otherWeapon, true);
+    assert.equal(crystalArtillery.crystalWeapon, true);
+    assert.equal(crystalArtillery.missileDefense, true);
+    assert.notEqual(crystalArtillery.artilleryKill, true);
+
+    const crystalDrone = hullWin([{ kind: "missile", defId: "CRYSTAL_BURST_1" }], {
+      drone: true,
+      defense: true,
+    });
+    assert.equal(crystalDrone.missileShots, 1);
+    assert.notEqual(crystalDrone.otherWeapon, true);
+    assert.equal(crystalDrone.crystalWeapon, true);
+    assert.equal(crystalDrone.missileDefense, true);
+    assert.notEqual(crystalDrone.droneOnly, true);
+
+    const leto = hullWin([{ kind: "missile", defId: "MISSILES_1" }], {
+      artillery: true,
+      defense: true,
+    });
+    assert.equal(leto.missileShots, 1);
+    assert.notEqual(leto.otherWeapon, true);
+    assert.notEqual(leto.crystalWeapon, true);
+    assert.equal(leto.missileDefense, true);
+    assert.equal(leto.artilleryKill, true);
+    const letoDrone = hullWin([{ kind: "missile", defId: "MISSILES_1" }], { drone: true });
+    assert.equal(letoDrone.droneOnly, true);
+
+    const laserDefense = hullWin(
+      [
+        { kind: "missile", defId: "MISSILES_1" },
+        { kind: "laser", defId: "LASER_BURST_1" },
+      ],
+      { defense: true },
+    );
+    assert.equal(laserDefense.otherWeapon, true);
+    assert.notEqual(laserDefense.missileDefense, true);
+    const laserArtillery = hullWin([{ kind: "laser", defId: "LASER_BURST_1" }], {
+      artillery: true,
+    });
+    assert.equal(laserArtillery.otherWeapon, true);
+    assert.notEqual(laserArtillery.artilleryKill, true);
+    const laserDrone = hullWin([{ kind: "laser", defId: "LASER_BURST_1" }], { drone: true });
+    assert.equal(laserDrone.otherWeapon, true);
+    assert.notEqual(laserDrone.droneOnly, true);
+
+    const bomb = hullWin([{ kind: "bomb", defId: "BOMB_1" }], { artillery: true });
+    assert.notEqual(bomb.otherWeapon, true);
+    assert.notEqual(bomb.crystalWeapon, true);
+    assert.equal(bomb.artilleryKill, true);
   });
 });
 

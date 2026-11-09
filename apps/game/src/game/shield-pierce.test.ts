@@ -79,13 +79,15 @@ describe("shield pierce on the stand-in", () => {
     checkPierce();
   });
 
-  it("stops a missile-kind shot with <sp>1 at two layers, as ftl.dat's crystal guns are typed", () => {
-    // The stand-in types the crystal guns LASER. ftl.dat types them MISSILES; the kind must not let them through.
-    assert.deepEqual(fire("CRYSTAL_BURST_1", 1, { kind: "missile" }), {
-      shieldNow: 1,
-      lost: weaponDef("CRYSTAL_BURST_1")!.damage,
-    });
-    assert.deepEqual(fire("CRYSTAL_BURST_1", 2, { kind: "missile" }), { shieldNow: 1, lost: 0 });
+  it("stops a crystal burst at two layers and lets it through one", () => {
+    // ftl.dat types the crystal guns MISSILES with no <missiles> and <sp>1. Kind must not let them through.
+    const def = weaponDef("CRYSTAL_BURST_1");
+    assert.ok(def);
+    assert.equal(def.kind, "missile");
+    assert.equal(def.ammo, false);
+    assert.equal(def.pierce, 1);
+    assert.deepEqual(fire("CRYSTAL_BURST_1", 1), { shieldNow: 1, lost: def.damage });
+    assert.deepEqual(fire("CRYSTAL_BURST_1", 2), { shieldNow: 1, lost: 0 });
   });
 
   it("passes the anti-ship battery through PDS_SHOT's <sp> layers and stops it above", () => {

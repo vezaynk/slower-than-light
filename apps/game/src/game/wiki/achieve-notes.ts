@@ -2,8 +2,10 @@
  * Counters for the Achievements and Ship Achievements lines that are not a single field
  * the run already stored. Each mark is the printed condition. Nothing here grants a reward.
  */
+import { weaponDef } from "@stl/pack";
 import type { AchieveTally, Game } from "../types.ts";
 import { airShown } from "../air.ts";
+import { isCrystalMissile } from "../interface-copy.ts";
 
 const LIFE_KEY = "stl-achieve-life-v1";
 const contributed = new WeakMap<Game, { scrap: number; kills: number }>();
@@ -177,7 +179,12 @@ function onShot(g: Game, ev: Extract<AchieveNote, { k: "shot" }>) {
   t.playerShots = (t.playerShots ?? 0) + 1;
   if (ev.kind === "missile" || ev.kind === "bomb") {
     t.missileOrBomb = true;
-    if (ev.kind === "missile") t.missileShots = (t.missileShots ?? 0) + 1;
+    if (ev.kind === "missile") {
+      t.missileShots = (t.missileShots ?? 0) + 1;
+      // Ammo false is a crystal, not a warhead. otherWeapon would fail missileDefense, so this is its own mark.
+      const row = ev.defId ? weaponDef(ev.defId) : undefined;
+      if (isCrystalMissile(row)) t.crystalWeapon = true;
+    }
   } else t.otherWeapon = true;
   if (ev.kind === "beam" && g.enemy) {
     const now = g.time;
@@ -230,9 +237,17 @@ function onWin(g: Game, ev: Extract<AchieveNote, { k: "win" }>) {
   if (ev.deadCrew) return;
   const hullKill = !!g.enemy && g.enemy.hull <= 0;
   if (!hullKill) return;
-  if (t.artilleryUsed && !t.otherWeapon && !t.weaponHurt && !t.droneHurt && !t.fightHull)
+  if (
+    t.artilleryUsed &&
+    !t.otherWeapon &&
+    !t.crystalWeapon &&
+    !t.weaponHurt &&
+    !t.droneHurt &&
+    !t.fightHull
+  )
     t.artilleryKill = true;
-  if (t.droneHurt && !t.weaponHurt && !t.otherWeapon && !t.artilleryUsed) t.droneOnly = true;
+  if (t.droneHurt && !t.weaponHurt && !t.otherWeapon && !t.crystalWeapon && !t.artilleryUsed)
+    t.droneOnly = true;
   if ((t.missileShots ?? 0) > 0 && !t.otherWeapon && ev.defense) t.missileDefense = true;
   if (t.shieldArmed && t.shieldIntact) t.shieldsHeld = true;
   if (t.cloakPrey && g.player.kits.cloaking?.on) t.bird = true;
@@ -259,6 +274,7 @@ export function noteAchieve(g: Game, ev: AchieveNote) {
     t.droneHurt = false;
     t.artilleryUsed = false;
     t.otherWeapon = false;
+    t.crystalWeapon = false;
     t.missileShots = 0;
     t.fightHull = false;
     t.shieldArmed = (g.player.zoltan ?? 0) > 0;

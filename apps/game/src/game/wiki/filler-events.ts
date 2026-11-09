@@ -48,7 +48,13 @@ import { priced, rollPrice } from "./event-prices.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "../rules/make-room.ts";
 import { grantRandomItem } from "../rules/bonus-item.ts";
-import { archiveAuthoredChoices, locksOwned, ownedLock, scrapStock } from "./choice-locks.ts";
+import {
+  archiveAuthoredChoices,
+  eventMissileWeapon,
+  locksOwned,
+  ownedLock,
+  scrapStock,
+} from "./choice-locks.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
 import { queueSfx } from "../sfx-queue.ts";
@@ -724,11 +730,9 @@ function weighted<T>(g: Game, items: [T, number][]): T {
   return items[items.length - 1][0];
 }
 
-/** Missile (Weapons), Hull Missile: "BUGGED: not considered a missile weapon for events." */
+/** Missile (Weapons), Hull Missile: "BUGGED: not considered a missile weapon for events." A crystal gun spends no ammo, so it is not one either. */
 function miningMissile(g: Game): boolean {
-  return g.player.weapons.some(
-    (w) => w.defId !== "MISSILES_HULL" && weaponDef(w.defId)?.kind === "missile",
-  );
+  return eventMissileWeapon(g);
 }
 
 function miningOffers(): { id: string; label: string }[] {

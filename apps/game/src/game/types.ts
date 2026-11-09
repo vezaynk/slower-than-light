@@ -799,6 +799,12 @@ export type AchieveTally = {
   artilleryUsed?: boolean;
   otherWeapon?: boolean;
   missileShots?: number;
+  /**
+   * A crystal gun fired this fight. It still counts as a missile shot.
+   * It is not otherWeapon: that flag would fail Defense Drones Don't Do D'anything.
+   * It does block an artillery-only kill and a drone-only kill.
+   */
+  crystalWeapon?: boolean;
   ionFour?: boolean;
   nebulaJumps?: number;
   antiBio?: number;

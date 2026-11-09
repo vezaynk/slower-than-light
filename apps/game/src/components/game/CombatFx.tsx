@@ -15,6 +15,7 @@
  */
 import { useEffect, useRef } from "react";
 import { halted, shieldChargeFraction } from "@/game/sim";
+import { presentsAsWarhead } from "@/game/interface-copy";
 import { projectileSpin } from "@/game/projectile-spin";
 import { combatPlateId } from "@/game/wiki/flagship-layout";
 import {
@@ -367,7 +368,7 @@ function paintBolt(
     c.fillRect(-5, -5, 10, 10);
     c.fillStyle = "#e8f6ff";
     c.fillRect(-2, -2, 4, 4);
-  } else if (kind === "missile") {
+  } else if (presentsAsWarhead({ kind, defId })) {
     c.fillStyle = "#d8dde2";
     c.fillRect(-9, -2, 14, 5);
     c.fillStyle = "#6f7b86";
@@ -1251,7 +1252,7 @@ export function CombatFx() {
         let y = from.y + (to.y - from.y) * t;
         let ang = Math.atan2(to.y - from.y, to.x - from.x);
         let layer: Layer = "over";
-        if (!crossing && shot.kind === "missile") {
+        if (!crossing && presentsAsWarhead(shot)) {
           y += Math.sin(t * Math.PI) * -24;
           ang = Math.atan2(to.y - from.y + Math.cos(t * Math.PI) * -24 * Math.PI, to.x - from.x);
         }
@@ -1428,7 +1429,7 @@ export function CombatFx() {
           );
           c.restore();
         });
-        if (shot.kind === "missile" && live && Math.random() < 0.7) {
+        if (presentsAsWarhead(shot) && live && Math.random() < 0.7) {
           sparks.push({
             x,
             y,
@@ -1636,7 +1637,7 @@ export function CombatFx() {
           }
           return;
         }
-        if (s.kind === "missile") {
+        if (presentsAsWarhead(s)) {
           marks.push({
             x: s.at.x,
             y: s.at.y,
@@ -1811,7 +1812,7 @@ export function CombatFx() {
             size: 2,
             layer: f.layer === "world" ? "world" : undefined,
           });
-        } else if (live && f.kind === "missile" && Math.random() < 0.7) {
+        } else if (live && presentsAsWarhead(f) && Math.random() < 0.7) {
           sparks.push({
             x: f.x,
             y: f.y,

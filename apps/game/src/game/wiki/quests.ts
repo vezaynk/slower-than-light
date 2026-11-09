@@ -49,7 +49,7 @@ import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts"
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "./achievement-track.ts";
 import { grantRandomItem } from "../rules/bonus-item.ts";
-import { locksOwned, ownedLock } from "./choice-locks.ts";
+import { locksOwned, ownedLock, eventMissileWeapon } from "./choice-locks.ts";
 import { priceBand, priced, rollPrice } from "./event-prices.ts";
 import { rollBand, upgradeRows } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
@@ -538,9 +538,8 @@ export function hasTeleporter(g: Game): boolean {
 }
 function hasMissileWeapon(g: Game): boolean {
   // Weapons, Hull Missile: countedAsMissileInEvents is false. A Hull Missile does not open a Missile Weapon option.
-  return g.player.weapons.some(
-    (w) => w.defId !== "MISSILES_HULL" && weaponDef(w.defId)?.kind === "missile",
-  );
+  // A crystal gun is kind missile with ammo false. It is not a Missile Weapon.
+  return eventMissileWeapon(g);
 }
 
 function damageHull(g: Game, n: number): boolean {

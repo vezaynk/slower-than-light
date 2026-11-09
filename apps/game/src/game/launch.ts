@@ -42,16 +42,27 @@ function writeFlag(storage: "local" | "session", key: string): void {
   }
 }
 
-function startStage(): LaunchStage {
+/** Computed once. A strict-mode remount must not take the one-shot session flag a second time. */
+let clientStageOnce: LaunchStage | undefined;
+
+/**
+ * Where this browser should open. No `window` means setup. A remembered launch, a `?dat=` open,
+ * or a taken `stl-launch-now` flag goes straight to the loading bar. Read when the store is
+ * created: this route's first render is already in the browser.
+ */
+export function clientStage(): LaunchStage {
+  if (clientStageOnce) return clientStageOnce;
   if (typeof window === "undefined") return "setup";
-  return initialStage({
+  clientStageOnce = initialStage({
     urlArchive: urlArchive() != null,
     launched: readFlag("local", LAUNCHED_KEY),
     launchNow: readFlag("session", LAUNCH_NOW_KEY, true),
   });
+  return clientStageOnce;
 }
 
-export const useLaunch = create<LaunchState>(() => ({ stage: startStage(), ratio: 0 }));
+/** The stage `clientStage()` decides. A strict-mode remount reuses it, so `stl-launch-now` is taken once. */
+export const useLaunch = create<LaunchState>(() => ({ stage: clientStage(), ratio: 0 }));
 
 /** True once a launch has succeeded in this browser, so a reload goes straight to the title. */
 export function hasLaunched(): boolean {

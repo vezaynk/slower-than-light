@@ -8,7 +8,8 @@
  * apart from power, so it uses the same speed.
  * SwarmKind is not extended. Neither schematic is stocked as the plus: the plus is not a blueprint.
  * Shield Overcharger + prints "Sells for: 30 (cannot be bought or found)."
- * A fitted copy quotes that 30. The schematic is not stocked.
+ * A fitted copy quotes that 30. A copy in cargo that is not fielded quotes the same 30.
+ * The schematic is not stocked.
  *
  * Numbers:
  * - power is the droneBlueprint `<power>` (`droneDef`). The plus has no blueprint, so 2 is the fallback.
@@ -49,7 +50,8 @@ export function overchargerWait(layers: number): number | null {
 }
 
 /**
- * "Sells for: 30 (cannot be bought or found)." Not a store row. A fitted drone quotes it.
+ * "Sells for: 30 (cannot be bought or found)." Not a store row.
+ * A fitted drone quotes it. A cargo copy that is not fielded quotes the same 30.
  * FTL sells a drone for half its blueprint cost. This schematic is not in the archive, so the
  * printed 30 stays the quote rather than a gap number or a duplicated cost.
  */

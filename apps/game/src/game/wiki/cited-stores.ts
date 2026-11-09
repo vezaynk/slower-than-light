@@ -561,12 +561,39 @@ function augmentSell(id: string): number | null {
   return Math.floor(row.cost / 2);
 }
 
+/** Half the schematic's purchase price, rounded down. No blueprint, or a price of 0, is not sold. */
+function droneSell(id: string): number | null {
+  const row = droneDef(id);
+  if (!row || row.cost <= 0) return null;
+  return Math.floor(row.cost / 2);
+}
+
+/** The deployed schematic is gone. A fitted Shield Overcharger + sale clears these same fields. */
+function groundDrone(kit: NonNullable<Game["player"]["kits"]["drones"]>) {
+  kit.target = null;
+  kit.on = false;
+  kit.left = 0;
+  kit.aux = 0;
+  delete kit.hp;
+}
+
+/** Fitted means the id is in the fielded list. A stale kit.target left by stowing a loadout slot is not fitted. */
+function shieldPlusFielded(g: Game): boolean {
+  const kit = g.player.kits.drones;
+  return !!kit && fieldedSchematics(kit).includes("DRONE_SHIELD_PLAYER");
+}
+
 /**
  * Template:In-game tips, Selling: weapons, drones, and augments sell for half the purchase price.
  * Scrap: half-price, rounded down against the player.
  * A printed "Sells for" or "Sell price" replaces that half.
  * Fuel, missiles, drone parts, hull repair, crew, and systems are not sold. Drone Control is not sold.
- * Drone schematics are not quoted, except a fitted Shield Overcharger +.
+ * Cargo drone schematics sell the same way. A schematic with no purchase price, or a price of 0, is not sold.
+ * A fitted schematic is not quoted, except a fitted Shield Overcharger +.
+ * Fitted means the id is in the fielded list, not merely kit.target.
+ * That plus row is the only fitted sale, so a schematic both fitted and in cargo is quoted once.
+ * A Shield Overcharger + in cargo and not fielded is that cargo row, at the printed 30.
+ * Selling a cargo schematic that is no longer fielded clears a stale target, so it cannot launch.
  * Drone Control, "Shield Overcharger +": "Sells for: 30 (cannot be bought or found)."
  * The regular Shield Overcharger has a purchase price and no printed sell line used here.
  */
@@ -583,16 +610,42 @@ export function citedSellQuote(g: Game): SellQuote[] {
       scrap,
     });
   }
-  // Per the user: weapons in cargo sell like fitted ones.
+  // A fielded Shield Overcharger + keeps its own row. The same id in cargo is not quoted again.
+  const plusFielded = shieldPlusFielded(g);
+  // Per the user: weapons in cargo sell like fitted ones. Cargo schematics sell for half their cost.
   cargoOf(g).forEach((item, index) => {
-    if (item.kind !== "weapon") return;
-    const scrap = weaponSell(item.id);
+    if (item.kind === "weapon") {
+      const scrap = weaponSell(item.id);
+      if (scrap == null || scrap <= 0) return;
+      quotes.push({
+        id: `c:${index}:${item.id}`,
+        kind: "weapon",
+        ref: item.id,
+        name: `${weaponDef(item.id)?.name ?? item.id} (cargo)`,
+        scrap,
+      });
+      return;
+    }
+    if (item.kind !== "drone") return;
+    if (item.id === "DRONE_SHIELD_PLAYER") {
+      // The plus has no blueprint, so droneSell is null. Fielded: one fitted row. Otherwise this cargo slot.
+      if (plusFielded) return;
+      quotes.push({
+        id: `c:${index}:${item.id}`,
+        kind: "drone",
+        ref: item.id,
+        name: "Shield Overcharger + (cargo)",
+        scrap: OVERCHARGER_PLUS_SELL,
+      });
+      return;
+    }
+    const scrap = droneSell(item.id);
     if (scrap == null || scrap <= 0) return;
     quotes.push({
       id: `c:${index}:${item.id}`,
-      kind: "weapon",
+      kind: "drone",
       ref: item.id,
-      name: `${weaponDef(item.id)?.name ?? item.id} (cargo)`,
+      name: `${droneDef(item.id)?.name ?? item.id} (cargo)`,
       scrap,
     });
   });
@@ -609,8 +662,9 @@ export function citedSellQuote(g: Game): SellQuote[] {
     });
   });
   const over = g.player.kits.drones;
-  // A fitted Shield Overcharger + only. Identified by the drone id, not by the scrap amount.
-  if (over?.target === "DRONE_SHIELD_PLAYER") {
+  // A fitted Shield Overcharger + only. Fitted is the fielded list, and it is the active drone.
+  // Identified by the drone id, not by the scrap amount.
+  if (plusFielded && over?.target === "DRONE_SHIELD_PLAYER") {
     quotes.push({
       id: "d:overchargerplus",
       kind: "drone",
@@ -622,27 +676,35 @@ export function citedSellQuote(g: Game): SellQuote[] {
   return quotes;
 }
 
-/** Add the quoted scrap. Remove that one weapon, augment, or fitted Shield Overcharger +. Do not subtract scrap. */
+/** Add the quoted scrap. Remove that one weapon, cargo schematic, augment, or fitted Shield Overcharger +. Do not subtract scrap. */
 export function citedSell(g: Game, id: string): boolean {
   const quote = citedSellQuote(g).find((row) => row.id === id);
   if (!quote) return false;
-  if (quote.kind === "drone") {
+  if (id.startsWith("c:")) {
+    const index = Number(id.split(":")[1]);
+    const item = cargoOf(g)[index];
+    if (!item || item.id !== quote.ref || item.kind !== quote.kind) return false;
+    g.cargo = cargoOf(g).filter((_, i) => i !== index);
     const kit = g.player.kits.drones;
-    if (!kit || kit.target !== quote.ref) return false;
-    kit.target = null;
-    kit.on = false;
-    kit.left = 0;
-    kit.aux = 0;
-    delete kit.hp;
+    // Stow on a loadout rewrites the list and can leave this id deployed. It is gone once it is not fielded.
+    // A copy that is still fielded keeps flying.
+    if (
+      item.kind === "drone" &&
+      kit &&
+      kit.target === item.id &&
+      !fieldedSchematics(kit).includes(item.id)
+    ) {
+      groundDrone(kit);
+    }
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
     g.sfx.push("sell");
     return true;
   }
-  if (quote.kind === "weapon" && id.startsWith("c:")) {
-    const index = Number(id.split(":")[1]);
-    if (cargoOf(g)[index]?.id !== quote.ref) return false;
-    g.cargo = cargoOf(g).filter((_, i) => i !== index);
+  if (quote.kind === "drone") {
+    const kit = g.player.kits.drones;
+    if (!kit || kit.target !== quote.ref) return false;
+    groundDrone(kit);
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
     g.sfx.push("sell");

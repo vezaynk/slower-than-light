@@ -175,16 +175,28 @@ export function canFitFromCargo(g: Game, index: number): boolean {
     : canFieldDrone(g, item.id);
 }
 
-function setFielded(kit: NonNullable<Game["player"]["kits"]["drones"]>, next: string[]) {
-  if (kit.loadout?.length) {
-    kit.loadout = next;
-    return;
-  }
-  kit.target = next[0] ?? null;
+/** Powers the deployed schematic down. The caller clears target when that id has left. */
+function powerDown(kit: NonNullable<Game["player"]["kits"]["drones"]>) {
   kit.on = false;
   kit.left = 0;
   kit.aux = 0;
   delete kit.hp;
+}
+
+function setFielded(kit: NonNullable<Game["player"]["kits"]["drones"]>, next: string[]) {
+  if (kit.loadout?.length) {
+    kit.loadout = next;
+    // Rewriting the list used to leave target set, so the drone kept flying after it left the sheet.
+    // An empty next must drop that target too: a 0-length loadout falls back to target.
+    if (kit.target && !next.includes(kit.target)) {
+      kit.target = null;
+      powerDown(kit);
+    }
+    return;
+  }
+  // No loadout: the single target is the fielded list. Stow clears it here.
+  kit.target = next[0] ?? null;
+  powerDown(kit);
 }
 
 /** Called after a crewmember joins: a 9th asks who is relieved. */

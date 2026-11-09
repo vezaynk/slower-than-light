@@ -32,6 +32,7 @@ import {
   rewardTable,
   beaconEvents,
   escapeTimers,
+  stalemate,
   aiTargets,
   overchargerWaits,
   ionIntruderRule,
@@ -41,6 +42,7 @@ import {
   asteroidField,
   pulsarRules,
   droneOrbitRules,
+  sectorMapRules,
   type ContentPack,
   type EventDef,
 } from "@stl/pack";
@@ -58,6 +60,7 @@ export function campaignPack(): ContentPack {
     factions: allFactions(),
     escapes: allFactionEscapes(),
     escapeTimers: escapeTimers(),
+    stalemate: stalemate(),
     aiTarget: aiTargets(),
     overchargerWaits: overchargerWaits(),
     ionIntruder: ionIntruderRule(),
@@ -67,6 +70,7 @@ export function campaignPack(): ContentPack {
     asteroidField: asteroidField(),
     pulsar: pulsarRules(),
     droneOrbit: droneOrbitRules(),
+    sectorMap: sectorMapRules(),
     sectors: allSectors(),
     stores: allStores(),
     tunes: allTunes(),
@@ -117,6 +121,7 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       factions: pack.factions,
       escapes: pack.escapes,
       escapeTimers: pack.escapeTimers,
+      stalemate: pack.stalemate,
       aiTarget: pack.aiTarget,
       overchargerWaits: pack.overchargerWaits,
       ionIntruder: pack.ionIntruder,
@@ -126,6 +131,7 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       asteroidField: pack.asteroidField,
       pulsar: pack.pulsar,
       droneOrbit: pack.droneOrbit,
+      sectorMap: pack.sectorMap,
       empties: pack.empties,
       shipClasses: pack.shipClasses,
       shipLists: pack.shipLists,
@@ -196,8 +202,9 @@ export function standInEventFiles(): { path: string; xml: string }[] {
  * Vanilla keeps Lanius in dlcBlueprints.xml and some weapons in that file too.
  * The same finds go in both appends. A find in a file that has no such blueprint does nothing.
  * The sector append adds notes. `data/gap.xml` adds the store, the rewards block, faction surrender and escape
- * rows, escape timers, enemy targeting numbers, Shield Overcharger layer waits, the Ion Intruder pulse, Crystal
- * Vengeance, the cargo hold, bonus-item weights, asteroid timings, the pulsar, combat-drone orbit, and empty beacons.
+ * rows, escape timers, the anti-stalemate break-off, enemy targeting numbers, Shield Overcharger layer waits, the Ion Intruder pulse, Crystal
+ * Vengeance, the cargo hold, bonus-item weights, asteroid timings, the pulsar, combat-drone orbit, the beacon map
+ * and the Rebel fleet's advance, and empty beacons.
  */
 export function gapModFiles(): { path: string; xml: string }[] {
   const pack = campaignPack();

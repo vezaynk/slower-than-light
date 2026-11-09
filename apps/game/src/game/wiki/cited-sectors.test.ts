@@ -13,7 +13,7 @@ import {
   upgrade,
   waitHere,
 } from "../sim.ts";
-import { fleetToReach } from "./sector-map.ts";
+import { fleetToReach } from "../rules/sector-map.ts";
 import {
   citedAsb,
   citedAsbShot,

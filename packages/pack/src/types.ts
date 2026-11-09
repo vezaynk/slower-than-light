@@ -615,6 +615,18 @@ export type EscapeTimers = {
 };
 
 /**
+ * Gap `<stalemate threshold seconds fuel>`: the anti-stalemate break-off FTL's executable hard-codes.
+ * `threshold` is the percent of max hull below which a quiet fight can end. `seconds` is how long the enemy must go
+ * without losing hull. `fuel` is what the player is granted. A missing value warns and uses FTL's (40, 60, 2).
+ * Boss and elite never surrender; that is a tier check, not a number on their blueprints.
+ */
+export type Stalemate = {
+  threshold?: number;
+  seconds?: number;
+  fuel?: number;
+};
+
+/**
  * Gap `<aiTarget easy normal hardRoom hardAny evasion oxygen artillery>`: enemy weapon targeting numbers FTL's
  * executable hard-codes (xftl combat-ai, PrioritizeSystem). `easy` and `normal` are the chance a shot picks from the
  * system list. `hardRoom` is the share of Hard shots that pick no system; `hardAny` is the share that pick any
@@ -744,6 +756,50 @@ export type DroneOrbit = {
   firePause?: number;
   /** Extra seconds a beam drone waits while the beam finishes. */
   beamHold?: number;
+};
+
+/**
+ * Gap `<sectorMap>`: beacon-map and Rebel-fleet numbers FTL's executable hard-codes (xftl doc/sector-map).
+ * One tag, one attribute per number. `cols`×`rows` is the grid (6×4). `cell` is the cell size in px (110).
+ * `margin` is the inset inside a cell: xftl prints 10, and the stand-in ships 28 so neighbouring beacons stay
+ * tappable. `empty` is the chance a cell is skipped (0.2). `yMax` clamps beacon y (415). `topRightY` is the
+ * minimum y of the two top-right cells (30). `link` is how far adjacent beacons connect (165). The danger
+ * circle has radius `dangerRadius` (767), starts at `startX` (−959), and moves `step` px per fleet step (64);
+ * its centre height is uniform from `dangerYMin` to `dangerYMax` (50–300). The exit sits in columns
+ * `exitColMin`–`exitColMax` (4–5), at least `exitMinJumps` (5) from the start, and the pick gives up after
+ * `tries` (16). The Federation base is columns `fedColMin`–`fedColMax` (2–3) and exactly `fedJumps` (4) away
+ * on Easy/Normal, or `fedHardColMin`–`fedHardColMax` (3–4) and `fedHardJumpsMin`–`fedHardJumpsMax` (5–6) on
+ * Hard. The flagship uses the exit columns and must be `flagshipJumpsMin`–`flagshipJumpsMax` (3–5) jumps from
+ * the base. A missing value warns and uses FTL's; a missing margin uses 10. Connecting a split map and
+ * diagonal adjacency are not numbers.
+ */
+export type SectorMap = {
+  cols?: number;
+  rows?: number;
+  cell?: number;
+  margin?: number;
+  empty?: number;
+  yMax?: number;
+  topRightY?: number;
+  link?: number;
+  dangerRadius?: number;
+  startX?: number;
+  step?: number;
+  dangerYMin?: number;
+  dangerYMax?: number;
+  exitColMin?: number;
+  exitColMax?: number;
+  exitMinJumps?: number;
+  tries?: number;
+  fedColMin?: number;
+  fedColMax?: number;
+  fedHardColMin?: number;
+  fedHardColMax?: number;
+  fedJumps?: number;
+  fedHardJumpsMin?: number;
+  fedHardJumpsMax?: number;
+  flagshipJumpsMin?: number;
+  flagshipJumpsMax?: number;
 };
 
 export type EventItem = "weapon" | "augment" | "drone";
@@ -1342,6 +1398,8 @@ export type ContentPack = {
   escapes?: FactionEscape[];
   /** Default escape timers. Absent until a pack loads them. */
   escapeTimers?: EscapeTimers;
+  /** Anti-stalemate break-off. Absent until a pack loads it. */
+  stalemate?: Stalemate;
   /** Enemy weapon targeting numbers. Absent until a pack loads them. */
   aiTarget?: AiTarget;
   /** Shield Overcharger layer waits. Absent until a pack loads them. */
@@ -1360,6 +1418,8 @@ export type ContentPack = {
   pulsar?: PulsarRules;
   /** Combat-drone orbit. Absent until a pack loads it. The blueprint `<speed>` is not this. */
   droneOrbit?: DroneOrbit;
+  /** Beacon map and Rebel fleet circle. Absent until a pack loads it. */
+  sectorMap?: SectorMap;
   /**
    * The archive is the factual stand-in. Item text states numbers.
    * A run can replace decision prose with outcomes.

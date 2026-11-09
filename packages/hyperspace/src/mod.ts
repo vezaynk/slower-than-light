@@ -81,12 +81,13 @@ export function emitMod(pack: ContentPack): string {
       root.appendChild(node);
     }
   }
-  // The default start and exit events, escape timers, enemy targeting numbers, the cargo hold, the bonus-item
-  // weights, the hazard and drone-orbit rules, and the augment and drone rules, in the same tags the gap file
-  // writes.
+  // The default start and exit events, escape timers, the anti-stalemate break-off, enemy targeting numbers, the
+  // cargo hold, the bonus-item weights, the hazard and drone-orbit rules, the beacon map, and the augment and drone
+  // rules, in the same tags the gap file writes.
   if (
     pack.beaconEvents ||
     pack.escapeTimers ||
+    pack.stalemate ||
     pack.aiTarget ||
     pack.overchargerWaits ||
     pack.ionIntruder ||
@@ -95,11 +96,13 @@ export function emitMod(pack: ContentPack): string {
     pack.bonusItem ||
     pack.asteroidField ||
     pack.pulsar ||
-    pack.droneOrbit
+    pack.droneOrbit ||
+    pack.sectorMap
   ) {
     const rules: ContentPack = {};
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
     if (pack.escapeTimers) rules.escapeTimers = pack.escapeTimers;
+    if (pack.stalemate) rules.stalemate = pack.stalemate;
     if (pack.aiTarget) rules.aiTarget = pack.aiTarget;
     if (pack.overchargerWaits) rules.overchargerWaits = pack.overchargerWaits;
     if (pack.ionIntruder) rules.ionIntruder = pack.ionIntruder;
@@ -109,6 +112,7 @@ export function emitMod(pack: ContentPack): string {
     if (pack.asteroidField) rules.asteroidField = pack.asteroidField;
     if (pack.pulsar) rules.pulsar = pack.pulsar;
     if (pack.droneOrbit) rules.droneOrbit = pack.droneOrbit;
+    if (pack.sectorMap) rules.sectorMap = pack.sectorMap;
     const gap = readXml(emitGapDocument(rules)).documentElement;
     for (const child of gap ? elementChildren(gap) : [])
       root.appendChild(doc.importNode(child, true));
@@ -185,6 +189,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (factions) pack.factions = factions;
   if (escapes) pack.escapes = escapes;
   if (parsed.escapeTimers) pack.escapeTimers = parsed.escapeTimers;
+  if (parsed.stalemate) pack.stalemate = parsed.stalemate;
   if (parsed.aiTarget) pack.aiTarget = parsed.aiTarget;
   if (parsed.overchargerWaits) pack.overchargerWaits = parsed.overchargerWaits;
   if (parsed.ionIntruder) pack.ionIntruder = parsed.ionIntruder;
@@ -194,6 +199,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (parsed.asteroidField) pack.asteroidField = parsed.asteroidField;
   if (parsed.pulsar) pack.pulsar = parsed.pulsar;
   if (parsed.droneOrbit) pack.droneOrbit = parsed.droneOrbit;
+  if (parsed.sectorMap) pack.sectorMap = parsed.sectorMap;
   return pack;
 }
 

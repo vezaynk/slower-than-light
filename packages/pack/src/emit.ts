@@ -24,6 +24,7 @@ import type {
   EventDef,
   EventEffect,
   EscapeTimers,
+  Stalemate,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -34,6 +35,7 @@ import type {
   AsteroidTiming,
   PulsarRules,
   DroneOrbit,
+  SectorMap,
   FactionEscape,
   FactionSurrender,
   FillerListDef,
@@ -204,6 +206,7 @@ export function emitGapDocument(pack: ContentPack): string {
   for (const row of pack.shipLists ?? []) add(root, shipListElement(doc, row));
   if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
+  if (pack.stalemate) add(root, stalemateElement(doc, pack.stalemate));
   if (pack.aiTarget) add(root, aiTargetElement(doc, pack.aiTarget));
   if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
   if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
@@ -214,6 +217,7 @@ export function emitGapDocument(pack: ContentPack): string {
     add(root, asteroidFieldElement(doc, pack.asteroidField));
   if (hasPulsar(pack.pulsar)) add(root, pulsarElement(doc, pack.pulsar));
   if (hasDroneOrbit(pack.droneOrbit)) add(root, droneOrbitElement(doc, pack.droneOrbit));
+  if (pack.sectorMap) add(root, sectorMapElement(doc, pack.sectorMap));
   return prettyXml(serializer.serializeToString(doc));
 }
 
@@ -236,6 +240,15 @@ function escapeTimersElement(doc: XmlDocument, row: EscapeTimers): XmlElement {
   if (row.hull != null) attrs.hull = num(row.hull);
   if (row.lastFuel != null) attrs.lastFuel = num(row.lastFuel);
   return element(doc, "escapeTimers", attrs);
+}
+
+/** `<stalemate threshold seconds fuel>`: the anti-stalemate break-off FTL's executable hard-codes (types.ts Stalemate). */
+function stalemateElement(doc: XmlDocument, row: Stalemate): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (row.threshold != null) attrs.threshold = num(row.threshold);
+  if (row.seconds != null) attrs.seconds = num(row.seconds);
+  if (row.fuel != null) attrs.fuel = num(row.fuel);
+  return element(doc, "stalemate", attrs);
 }
 
 /** `<aiTarget>`: enemy weapon targeting numbers FTL's executable hard-codes (types.ts AiTarget). */
@@ -299,6 +312,43 @@ function bonusItemElement(doc: XmlDocument, row: BonusItemWeights): XmlElement {
 
 function hasAsteroidField(row: AsteroidField | undefined): row is AsteroidField {
   return !!row && (row.fire != null || row.breach != null || (row.timings?.length ?? 0) > 0);
+}
+
+/** `<sectorMap>`: beacon map and Rebel fleet circle FTL's executable hard-codes (types.ts SectorMap). */
+function sectorMapElement(doc: XmlDocument, row: SectorMap): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of [
+    "cols",
+    "rows",
+    "cell",
+    "margin",
+    "empty",
+    "yMax",
+    "topRightY",
+    "link",
+    "dangerRadius",
+    "startX",
+    "step",
+    "dangerYMin",
+    "dangerYMax",
+    "exitColMin",
+    "exitColMax",
+    "exitMinJumps",
+    "tries",
+    "fedColMin",
+    "fedColMax",
+    "fedHardColMin",
+    "fedHardColMax",
+    "fedJumps",
+    "fedHardJumpsMin",
+    "fedHardJumpsMax",
+    "flagshipJumpsMin",
+    "flagshipJumpsMax",
+  ] as const) {
+    const value = row[key];
+    if (value != null) attrs[key] = num(value);
+  }
+  return element(doc, "sectorMap", attrs);
 }
 
 /** `<asteroidField>`: asteroid timings and side chances FTL's executable hard-codes (types.ts AsteroidField). */

@@ -4,7 +4,7 @@ import { loadPack, onPackWarning, packFromFtl, resetPackForTests } from "@stl/pa
 import { installCradle, raiseCradlePower } from "../extras/cradle.ts";
 import { bars, choose, commitJump, createGame, evasionPercent, maxBubbles } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { overtaken } from "../wiki/sector-map.ts";
+import { overtaken } from "../rules/sector-map.ts";
 
 const XML = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>

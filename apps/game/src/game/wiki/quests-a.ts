@@ -33,6 +33,7 @@ import {
   type QuestPart,
   type Win,
 } from "./quests.ts";
+import { type SurrenderPlan } from "../rules/surrender.ts";
 import {
   between,
   closeFight,
@@ -43,7 +44,6 @@ import {
   rollStandard,
   resourceBand,
   rollSurrenderOffer,
-  type SurrenderPlan,
 } from "./surrender.ts";
 
 // ---------------------------------------------------------------------------------------------------------------

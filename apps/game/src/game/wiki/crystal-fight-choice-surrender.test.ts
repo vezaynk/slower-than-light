@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
-import { surrenderPlan } from "./surrender.ts";
+import { surrenderPlan } from "../rules/surrender.ts";
 
 describe("Crystal fight choice surrender", () => {
   it("never surrenders; a Crystal ship with no event still can", () => {

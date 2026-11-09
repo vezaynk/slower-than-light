@@ -13,7 +13,7 @@ import {
   QUEST_NEXT,
   QUESTS,
 } from "./quests.ts";
-import { fleetToReach, jumpsBetween } from "./sector-map.ts";
+import { fleetToReach, jumpsBetween } from "../rules/sector-map.ts";
 import { ACCEPT_ID, joinCrew } from "./surrender.ts";
 import { placeIn } from "../fixtures.ts";
 

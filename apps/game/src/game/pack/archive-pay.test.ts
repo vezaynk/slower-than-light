@@ -18,7 +18,7 @@ import { xpNeedFor } from "../extras/lineage.ts";
 import { weaponCopy, weaponDamageLabel } from "../interface-copy.ts";
 import "./base.ts";
 import { choose, commitJump, createGame, waitHere } from "../sim.ts";
-import { overtaken } from "../wiki/sector-map.ts";
+import { overtaken } from "../rules/sector-map.ts";
 import { citedFleetAdvance } from "../wiki/cited-sectors.ts";
 import type { Game } from "../types.ts";
 

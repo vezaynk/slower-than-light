@@ -13,9 +13,11 @@ import {
   packFromFtl,
   resetPackForTests,
   startingFit,
+  systemDef,
+  weaponDef,
 } from "@stl/pack";
 import { createGame, hangarLoadout } from "./sim.ts";
-import { hangarBay } from "./wiki/hangar-bay.ts";
+import { hangarBay } from "./hangar-bay.ts";
 import { hangarPages } from "./hangar-roster.ts";
 
 const picks = [
@@ -134,11 +136,73 @@ describe("hangar bay", () => {
     const restore = onPackWarning((message) => warnings.push(message));
     try {
       assert.deepEqual(hangarBay("PLAYER_SHIP_HARD")?.augments, ["NOT_AN_AUGMENT"]);
-      assert.deepEqual(warnings, [
-        'Augment "NOT_AN_AUGMENT" has no augBlueprint; the hangar shows its id.',
-      ]);
+      assert.deepEqual(
+        warnings.filter((message) => message.includes("NOT_AN_AUGMENT")),
+        ['Augment "NOT_AN_AUGMENT" has no augBlueprint; the hangar shows its id.'],
+      );
     } finally {
       restore();
+      resetPackForTests();
+    }
+  });
+
+  it("prefers a loaded system title and shows a missing title as the id", () => {
+    const shields = systemDef("shields");
+    assert.ok(shields);
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      const bay = hangarBay("PLAYER_SHIP_HARD");
+      assert.equal(bay?.systems.find((system) => system.id === "shields")?.name, shields.name);
+      assert.equal(bay?.systems.find((system) => system.id === "engines")?.name, "engines");
+      assert.deepEqual(
+        warnings.filter((message) => message.includes('"engines"')),
+        ['System "engines" has no systemBlueprint title; the hangar shows its id.'],
+      );
+      hangarBay("PLAYER_SHIP_HARD");
+      assert.equal(warnings.filter((message) => message.includes('"engines"')).length, 1);
+
+      loadPack({ systems: [{ ...shields, name: "Bulwark" }] }, "append");
+      assert.equal(
+        hangarBay("PLAYER_SHIP_HARD")?.systems.find((system) => system.id === "shields")?.name,
+        "Bulwark",
+      );
+    } finally {
+      restore();
+      resetPackForTests();
+    }
+  });
+
+  it("names an artillery kit from its weapon blueprint title", () => {
+    const gun = weaponDef("flak-artillery");
+    assert.ok(gun);
+    assert.equal(
+      hangarBay("PLAYER_SHIP_FED")?.systems.find((system) => system.id === "artillery")?.name,
+      "artillery",
+    );
+    assert.equal(
+      hangarBay("PLAYER_SHIP_FED_3")?.systems.find((system) => system.id === "artillery")?.name,
+      gun.name,
+    );
+    loadPack(
+      {
+        weapons: [
+          { ...gun, id: "ARTILLERY_FED", name: "Archive Beam" },
+          { ...gun, id: "ARTILLERY_FED_C", name: "Archive Flak" },
+        ],
+      },
+      "append",
+    );
+    try {
+      assert.equal(
+        hangarBay("PLAYER_SHIP_FED")?.systems.find((system) => system.id === "artillery")?.name,
+        "Archive Beam",
+      );
+      assert.equal(
+        hangarBay("PLAYER_SHIP_FED_3")?.systems.find((system) => system.id === "artillery")?.name,
+        "Archive Flak",
+      );
+    } finally {
       resetPackForTests();
     }
   });

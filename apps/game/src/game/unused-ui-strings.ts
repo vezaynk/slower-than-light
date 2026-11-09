@@ -1,13 +1,14 @@
 /**
  * English string keys from ftl.dat 1.6.13 that the game never shows.
- * There are 930, each six or more characters. Most are tooltips and menu text from
+ * There are 929, each six or more characters. Most are tooltips and menu text from
  * `text_misc.xml` and `text_tooltips.xml` (`tooltip_oxygen`, `tooltip_doors`,
  * `tooltip_shields`). The rest are tip and game-over rows stored in `text_events.xml`.
- * A key outside this set that is not on screen still fails the coverage check.
+ * `text_GAMEOVER_1` is not here: it is the GAMEOVER list's only line, and the verdict
+ * screen says it. A key outside this set that is not on screen still fails the coverage check.
  * When `FTL_DAT` is set, the archive string test asserts this set is still exactly
  * the long strings the loaded game does not show.
  */
-const KNOWN_UNUSED_UI_STRINGS = new Set<string>([
+export const knownUnusedUiStrings: ReadonlySet<string> = new Set<string>([
   "ach_easy",
   "ach_hard",
   "ach_normal",
@@ -700,7 +701,6 @@ const KNOWN_UNUSED_UI_STRINGS = new Set<string>([
   "teleporter_installed",
   "teleporter_on",
   "temp_disabled",
-  "text_GAMEOVER_1",
   "text_GENERIC_HIDE_TEXT_2",
   "text_GENERIC_HIDE_TEXT_3",
   "text_GENERIC_HIDE_TEXT_4",
@@ -942,5 +942,5 @@ const KNOWN_UNUSED_UI_STRINGS = new Set<string>([
 
 /** Tooltips and menu text the coverage check is allowed to skip. */
 export function knownUnusedUiString(key: string): boolean {
-  return KNOWN_UNUSED_UI_STRINGS.has(key);
+  return knownUnusedUiStrings.has(key);
 }

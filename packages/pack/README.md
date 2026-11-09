@@ -29,7 +29,7 @@ looks at every piece of the archive:
 - every font, and whether it is installed and parses;
 - every sound and music track, and whether it is played;
 - every English text string of six or more characters, and whether the game ever shows it. The known unused
-  UI strings (`apps/game/src/game/unused-ui-strings.ts`) are skipped: the 930 tooltips and menu keys `ftl.dat`
+  UI strings (`apps/game/src/game/unused-ui-strings.ts`) are skipped: the 929 tooltips and menu keys `ftl.dat`
   never shows. Any other unshown string still fails.
 
 Run it against the real archive with:
@@ -38,16 +38,17 @@ Run it against the real archive with:
 FTL_DAT=/path/to/ftl.dat pnpm --filter @stl/game test:src
 ```
 
-CI has no `ftl.dat`, so it checks only the stand-in. The ignored-string count is checked when `FTL_DAT` is set
-(`archive-cover-strings.test.ts`) and skipped otherwise. That file also runs a fake string table with no archive:
-a known tooltip key is ignored, an unknown key is reported, and a shown string is not.
+CI has no `ftl.dat`, so it checks only the stand-in. The ignored keys are checked against that set when
+`FTL_DAT` is set (`archive-cover-strings.test.ts`) and skipped otherwise. That file also runs a fake string
+table with no archive: a known tooltip key is ignored, an unknown key is reported, a shown string is not, and
+`text_GAMEOVER_1` is not in the set.
 
 As of November 2026 (FTL 1.6.13):
 
-| Archive             | Coverage                                                                                                                                                                                                                                                                                                                                                                  | Play-through (`archive-play.test.ts`)                                     |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `totallynotftl.dat` | Everything is used                                                                                                                                                                                                                                                                                                                                                        | Reaches sector 2 and saves                                                |
-| `ftl.dat`           | All of it is used except **930** known UI strings (of 5,176 English keys). Most are tooltips and menu text from `text_misc.xml` and `text_tooltips.xml` (`tooltip_oxygen`, `tooltip_doors`, `tooltip_shields`). The coverage check ignores that set and still fails if any other long string is not shown. With `FTL_DAT` set, the ignored count is asserted to stay 930. | **Fails**: "Engines are unpowered" at the first combat beacon of sector 1 |
+| Archive             | Coverage                                                                                                                                                                                                                                                                                                                                                                        | Play-through (`archive-play.test.ts`)                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `totallynotftl.dat` | Everything is used                                                                                                                                                                                                                                                                                                                                                              | Reaches sector 2 and saves                                                |
+| `ftl.dat`           | All of it is used except **929** known UI strings (of 5,176 English keys). Most are tooltips and menu text from `text_misc.xml` and `text_tooltips.xml` (`tooltip_oxygen`, `tooltip_doors`, `tooltip_shields`). The coverage check ignores that set and still fails if any other long string is not shown. With `FTL_DAT` set, the ignored keys are asserted to equal that set. | **Fails**: "Engines are unpowered" at the first combat beacon of sector 1 |
 
 English record text comes from the `text_*.xml` tables. Each translation (`text-de.xml` and the rest) is read
 into `pack.locales`, and the title screen offers it as a language. The coverage check skips those files, so it

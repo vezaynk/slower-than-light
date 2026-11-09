@@ -3,7 +3,14 @@
  * The stand-in and any dat passed as FTL_DAT or STL_DATS share this path. Translation files stay unread,
  * matching the English-only loader.
  */
-import { crewCopy, droneCopy, itemLines, tutorialLines, weaponCopy } from "./interface-copy.ts";
+import {
+  crewCopy,
+  droneCopy,
+  itemLines,
+  tutorialLines,
+  verdictListLines,
+  weaponCopy,
+} from "./interface-copy.ts";
 import { listWasPlayed, resetPlayedLists } from "./played-lists.ts";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
@@ -1103,7 +1110,7 @@ function scan(raw: FtlExtract, problems: string[]): Inventory {
 }
 
 /** Named `<text>` rows. Translation files are skipped, the same as the record scan. */
-function collectEnglishStrings(raw: FtlExtract): Map<string, string> {
+export function collectEnglishStrings(raw: FtlExtract): Map<string, string> {
   const strings = new Map<string, string>();
   const parser = new DOMParser({ errorHandler: () => {} });
   for (const doc of raw.documents) {
@@ -1328,7 +1335,8 @@ function exerciseOffset(
     problems.push(`drawing ${stem} ${layer} offset is not drawn`);
 }
 
-function shownText(): string {
+/** Text the loaded pack puts on screen. The string check looks for archive sentences inside this. */
+export function shownText(): string {
   const parts: string[] = [];
   const push = (value: string | undefined) => {
     if (value) parts.push(value);
@@ -1402,6 +1410,7 @@ function shownText(): string {
   }
   for (const line of tutorialLines()) push(line);
   for (const line of itemLines()) push(line);
+  for (const line of verdictListLines()) push(line);
   return parts.join("\n");
 }
 

@@ -1,7 +1,20 @@
 import { Kicker } from "@stl/ui";
 import { useEffect, useState } from "react";
 import { allAchievements, hullDef } from "@stl/pack";
-import { displayPhrase, verdictListLines } from "@/game/interface-copy";
+import {
+  displayPhrase,
+  verdictBody,
+  verdictHangarLabel,
+  verdictHighScore,
+  verdictMenuLabel,
+  verdictQuitLabel,
+  verdictRestartLabel,
+  verdictScoreLine,
+  verdictStatsLabel,
+  verdictTitle,
+  victoryCinema,
+  victoryCrewLine,
+} from "@/game/interface-copy";
 import { earnedIds, isTracked, noteRun } from "@/game/wiki/achievement-track";
 import { lifetimeOf } from "@/game/wiki/achieve-notes";
 import { playerHulls } from "@/game/hulls";
@@ -513,39 +526,11 @@ export function HelpScreen({ onContinue }: { onContinue: () => void }) {
 }
 
 function verdictCopy(game: Game): { title: string; body: string; score: boolean } {
-  if (game.outcome === "victory") {
-    return {
-      title: "VICTORY!",
-      body: "Congratulations! You've defeated the Rebel Flagship and ensured the victory of the Federation!",
-      score: true,
-    };
-  }
-  if (game.outcome === "tutorial") {
-    return {
-      title: "GAME OVER",
-      body: "Somehow you've died during the introduction training exercise. Feel free to try again but this doesn't bode well for your mission.",
-      score: false,
-    };
-  }
-  if (game.outcome === "crew") {
-    return {
-      title: "GAME OVER",
-      body: "All crew members have died. Your ship will continue to drift for eternity, or until looters destroy it.",
-      score: true,
-    };
-  }
-  if (game.outcome === "rebel") {
-    return {
-      title: "GAME OVER",
-      body: "The Rebel Flagship is within range of the Federation Base. All is lost, they've won.",
-      score: true,
-    };
-  }
-  const told = verdictListLines()[0];
+  const outcome = game.outcome ?? "";
   return {
-    title: "GAME OVER",
-    body: told ?? "One last explosion marks your fate as your ship is torn apart.",
-    score: true,
+    title: verdictTitle(outcome === "victory"),
+    body: verdictBody(outcome),
+    score: outcome !== "tutorial",
   };
 }
 
@@ -578,22 +563,16 @@ export function Verdict({ game }: { game: Game }) {
   }, [step]);
   if (stats) return <AchievementsScreen game={game} onClose={() => setStats(false)} />;
   if (step === "cinema") {
+    const cinema = victoryCinema();
     const names = game.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.name);
-    const crew =
-      names.length < 2
-        ? names.join("")
-        : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+    const crew = victoryCrewLine(names);
     return (
       <button type="button" className="victory-cinema" onClick={() => setStep("card")}>
-        <p>{"Thanks to the valiant effort of:"}</p>
+        <p>{cinema.ship}</p>
         <h2>{game.player.name}</h2>
-        <p>{"And her successful crew:"}</p>
+        <p>{cinema.crew}</p>
         <p className="cinema-crew">{crew}</p>
-        <p>
-          {
-            "The Rebel's flagship was destroyed, throwing their fleet into chaos and ensuring a Federation victory"
-          }
-        </p>
+        <p>{cinema.ending}</p>
       </button>
     );
   }
@@ -601,28 +580,23 @@ export function Verdict({ game }: { game: Game }) {
     <article className="verdict">
       <h2>{copy.title}</h2>
       <p>{displayPhrase(copy.body)}</p>
-      {copy.score ? (
-        <p className="verdict-score">
-          {"SCORE: "}
-          {score}
-        </p>
-      ) : null}
-      {copy.score && high ? <p className="verdict-high">{"New High Score!"}</p> : null}
+      {copy.score ? <p className="verdict-score">{verdictScoreLine(score)}</p> : null}
+      {copy.score && high ? <p className="verdict-high">{verdictHighScore()}</p> : null}
       <button type="button" className="verdict-stats" onClick={() => setStats(true)}>
-        {"STATS"}
+        {verdictStatsLabel()}
       </button>
       <div className="verdict-row">
         <button type="button" onClick={() => verdictRestart(game)}>
-          {"RESTART"}
+          {verdictRestartLabel()}
         </button>
         <button type="button" onClick={() => goTitle("hangar")}>
-          {"HANGAR"}
+          {verdictHangarLabel()}
         </button>
         <button type="button" onClick={() => goTitle("title")}>
-          {"MAIN MENU"}
+          {verdictMenuLabel()}
         </button>
         <button type="button" onClick={() => goTitle("title")}>
-          {"QUIT"}
+          {verdictQuitLabel()}
         </button>
       </div>
     </article>

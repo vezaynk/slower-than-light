@@ -1,16 +1,13 @@
 /**
  * Lines the screens render from the loaded archive.
- * A stand-in with no string table leaves these empty, and the screen keeps its own English.
- * Per the user: a screen uses an archive phrase in its own place (phraseOr). It does not list a screen's strings.
+ * A sentence that exists in the archive is read from there. The code does not keep a second copy.
+ * Per the user: a screen uses an archive phrase in its own place. It does not list a screen's strings.
  */
 import {
   allItemBlueprints,
-  allTextLists,
   archivePhrase,
-  textList,
   tutorialScript,
   weaponDef,
-  type OpeningLine,
   type WeaponKind,
 } from "@stl/pack";
 
@@ -18,24 +15,123 @@ export function phraseOr(key: string, fallback: string): string {
   return archivePhrase(key) ?? fallback;
 }
 
-function listText(line: OpeningLine, seen: Set<string>): string[] {
-  if ("text" in line) return line.text.trim() ? [line.text] : [];
-  if (!line.load || seen.has(line.load)) return [];
-  seen.add(line.load);
-  const nested = textList(line.load);
-  if (!nested) return [];
-  return nested.lines.flatMap((row) => listText(row, seen));
+/** A phrase from the loaded archive. Missing keys paint nothing: the sentence is not stored here. */
+function archiveLine(key: string): string {
+  return archivePhrase(key) ?? "";
 }
 
-/** Game-over lists. The verdict says the first line (WikiViews verdictCopy). */
-export function verdictListLines(): string[] {
-  const lines: string[] = [];
-  for (const list of allTextLists()) {
-    if (!/gameover/i.test(list.id)) continue;
-    const seen = new Set<string>([list.id]);
-    for (const line of list.lines) lines.push(...listText(line, seen));
-  }
-  return lines;
+/** Game Over and the victory card. */
+export function verdictTitle(victory: boolean): string {
+  return archiveLine(victory ? "gameover_title_victory" : "gameover_title_gameover");
+}
+
+/** Body for a named ending. Undefined for hull loss, which is the blow-up line. */
+export function verdictEnding(outcome: string): string | undefined {
+  const key =
+    outcome === "victory"
+      ? "gameover_win"
+      : outcome === "tutorial"
+        ? "gameover_tutorial"
+        : outcome === "crew"
+          ? "gameover_crew"
+          : outcome === "rebel"
+            ? "gameover_fedbase"
+            : undefined;
+  if (!key) return undefined;
+  return archiveLine(key);
+}
+
+/** The card body. A named ending uses its phrase. Hull loss uses the blow-up line. */
+export function verdictBody(outcome: string | undefined): string {
+  return verdictEnding(outcome ?? "") ?? verdictBlowup();
+}
+
+export function verdictBlowup(): string {
+  return archiveLine("gameover_blowup");
+}
+
+export function verdictScoreLabel(): string {
+  return archiveLine("gameover_score");
+}
+
+/** `gameover_score` is a format. `\1` is the score. */
+export function verdictScoreLine(score: number): string {
+  return verdictScoreLabel().replaceAll("\\1", String(score));
+}
+
+export function verdictHighScore(): string {
+  return archiveLine("new_high");
+}
+
+export function verdictRestartLabel(): string {
+  return archiveLine("gameover_button_restart");
+}
+
+export function verdictHangarLabel(): string {
+  return archiveLine("gameover_button_hangar");
+}
+
+export function verdictMenuLabel(): string {
+  return archiveLine("gameover_button_mainmenu");
+}
+
+export function verdictStatsLabel(): string {
+  return archiveLine("gameover_button_stats");
+}
+
+export function verdictQuitLabel(): string {
+  return archiveLine("gameover_button_quit");
+}
+
+/** The victory cinema. The crew list uses the archive's comma and the word before the last name. */
+export function victoryCinema(): {
+  ship: string;
+  crew: string;
+  comma: string;
+  join: string;
+  ending: string;
+} {
+  return {
+    ship: archiveLine("thank_ship"),
+    crew: archiveLine("thank_crew"),
+    comma: archiveLine("crewlist_comma"),
+    join: archiveLine("crewlist_and"),
+    ending: archiveLine("credit_victory"),
+  };
+}
+
+/** Crew names on the victory cinema, joined with the archive's separators. */
+export function victoryCrewLine(names: readonly string[]): string {
+  const cinema = victoryCinema();
+  if (names.length < 2) return names.join("");
+  const last = names[names.length - 1] ?? "";
+  return `${names.slice(0, -1).join(cinema.comma)}${cinema.join}${last}`;
+}
+
+/** Every verdict sentence the loaded archive can replace. The screen paints these same calls. */
+export function verdictArchiveLines(): string[] {
+  const cinema = victoryCinema();
+  return [
+    verdictTitle(true),
+    verdictTitle(false),
+    verdictEnding("victory") ?? "",
+    verdictEnding("tutorial") ?? "",
+    verdictEnding("crew") ?? "",
+    verdictEnding("rebel") ?? "",
+    verdictBlowup(),
+    verdictScoreLabel(),
+    verdictHighScore(),
+    verdictRestartLabel(),
+    verdictHangarLabel(),
+    verdictMenuLabel(),
+    verdictStatsLabel(),
+    verdictQuitLabel(),
+    cinema.ship,
+    cinema.crew,
+    cinema.comma,
+    cinema.join,
+    cinema.ending,
+  ];
 }
 
 /** The tutorial's continue button. The stand-in keeps the word Continue. */

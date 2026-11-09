@@ -27,6 +27,7 @@ import {
 } from "./archive.ts";
 import { standInMedia } from "./media.ts";
 import { TEXT_LISTS_XML } from "./text-lists.ts";
+import { TEXT_UI_XML } from "./text-ui.ts";
 
 function pngSize(bytes: Uint8Array): { w: number; h: number } {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -80,8 +81,8 @@ describe("totallynotftl.dat", () => {
     const media = await standInMedia();
     assert.equal(
       extracted.documents.length,
-      // ships, sectors, achievements, text lists, names, and the Esperanto table.
-      events.length + 6 + pictures.length + media.documents.length,
+      // ships, sectors, achievements, text lists, the game-over card, names, and the Esperanto table.
+      events.length + 7 + pictures.length + media.documents.length,
     );
     assert.match(
       extracted.documents.find((doc) => doc.path === "data/text-eo.xml")?.xml ?? "",
@@ -108,6 +109,10 @@ describe("totallynotftl.dat", () => {
     assert.equal(
       extracted.documents.find((doc) => doc.path === "data/text_lists.xml")?.xml,
       TEXT_LISTS_XML,
+    );
+    assert.equal(
+      extracted.documents.find((doc) => doc.path === "data/text_ui.xml")?.xml,
+      TEXT_UI_XML,
     );
 
     for (const file of pictures) {

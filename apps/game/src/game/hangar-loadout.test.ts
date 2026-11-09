@@ -19,6 +19,7 @@ import {
 import { createGame, hangarLoadout } from "./sim.ts";
 import { hangarBay } from "./hangar-bay.ts";
 import { hangarPages } from "./hangar-roster.ts";
+import { systemLabel } from "./content.ts";
 
 const picks = [
   { name: "Ada", uniform: 1 },
@@ -146,7 +147,7 @@ describe("hangar bay", () => {
     }
   });
 
-  it("prefers a loaded system title and shows a missing title as the id", () => {
+  it("prefers a loaded system title, and an untitled tune keeps its short name", () => {
     const shields = systemDef("shields");
     assert.ok(shields);
     const warnings: string[] = [];
@@ -154,14 +155,30 @@ describe("hangar bay", () => {
     try {
       const bay = hangarBay("PLAYER_SHIP_HARD");
       assert.equal(bay?.systems.find((system) => system.id === "shields")?.name, shields.name);
-      assert.equal(bay?.systems.find((system) => system.id === "engines")?.name, "engines");
+      for (const id of ["engines", "oxygen", "weapons", "pilot"]) {
+        assert.equal(bay?.systems.find((system) => system.id === id)?.name, systemLabel(id), id);
+      }
+      assert.equal(systemLabel("engines"), "Engines");
+      assert.equal(systemLabel("pilot"), "Piloting");
+      const drones = layouts
+        .map((layout) => hangarBay(layout.id))
+        .find((sheet) => sheet?.systems.some((system) => system.id === "drones"));
+      assert.equal(drones?.systems.find((system) => system.id === "drones")?.name, "Drone Control");
       assert.deepEqual(
-        warnings.filter((message) => message.includes('"engines"')),
-        ['System "engines" has no systemBlueprint title; the hangar shows its id.'],
+        warnings.filter((message) => message.includes("systemBlueprint")),
+        [],
       );
-      hangarBay("PLAYER_SHIP_HARD");
-      assert.equal(warnings.filter((message) => message.includes('"engines"')).length, 1);
 
+      const engines = systemDef("engines");
+      assert.equal(engines, undefined);
+      loadPack(
+        { systems: [{ id: "engines", name: "Thrusters", cost: 40, slot: "sys" }] },
+        "append",
+      );
+      assert.equal(
+        hangarBay("PLAYER_SHIP_HARD")?.systems.find((system) => system.id === "engines")?.name,
+        "Thrusters",
+      );
       loadPack({ systems: [{ ...shields, name: "Bulwark" }] }, "append");
       assert.equal(
         hangarBay("PLAYER_SHIP_HARD")?.systems.find((system) => system.id === "shields")?.name,
@@ -178,7 +195,7 @@ describe("hangar bay", () => {
     assert.ok(gun);
     assert.equal(
       hangarBay("PLAYER_SHIP_FED")?.systems.find((system) => system.id === "artillery")?.name,
-      "artillery",
+      "Artillery",
     );
     assert.equal(
       hangarBay("PLAYER_SHIP_FED_3")?.systems.find((system) => system.id === "artillery")?.name,

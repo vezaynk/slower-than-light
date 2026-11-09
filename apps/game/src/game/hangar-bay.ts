@@ -2,7 +2,8 @@
  * The hangar's loadout for one hull, from the loaded archive.
  * Weapons, drones, augments, and the starting fit are the player blueprint's lists.
  * A system title is its `systemBlueprint` title. An artillery kit whose weapon blueprint has a title uses that
- * title (the archive's name for that gun). A system with no title shows its id, once warned. No English names live here.
+ * title (the archive's name for that gun). A system the archive leaves untitled keeps `systemLabel`
+ * (Engines, Piloting, Drone Control, and the rest) and does not warn. No English names are written here.
  */
 import {
   augmentDef,
@@ -16,6 +17,7 @@ import {
 import { droneKeyForName, droneKeyOf, type DroneKey } from "./gear-look.ts";
 import type { IconName } from "./icons.ts";
 import { canDeploy } from "./extras/swarm.ts";
+import { systemLabel } from "./content.ts";
 
 /** The augment's blueprint title. An id the archive has no `augBlueprint` for shows as the id, with a warning. */
 function augmentName(id: string): string {
@@ -71,15 +73,14 @@ function weaponTitle(id: string): string | undefined {
 
 /**
  * Artillery is named by its weapon blueprint when that blueprint has a title. Otherwise the systemBlueprint title.
- * Neither: the id, warned once.
+ * A tune the archive leaves untitled keeps the short name the rest of the ship already uses.
  */
 function systemName(id: string, weapon?: string): string {
   const fromWeapon = weapon ? weaponTitle(weapon) : undefined;
   if (fromWeapon) return fromWeapon;
   const fromSystem = distinctTitle(systemDef(id));
   if (fromSystem) return fromSystem;
-  warnPack(`System "${id}" has no systemBlueprint title; the hangar shows its id.`);
-  return id;
+  return systemLabel(id);
 }
 
 function systemIcon(id: string, weapon?: string): IconName {

@@ -5,7 +5,7 @@ import { weaponDef } from "@stl/pack";
 import { installStandIn } from "@stl/standin";
 import { freshGame, installArchive } from "./archive-play.ts";
 import { applyImpact, evasionPercent } from "./sim.ts";
-import { asbPierce } from "./wiki/cited-sectors.ts";
+import { asbPierce } from "./rules/asb.ts";
 import type { Shot } from "./types.ts";
 
 const dat = process.env.FTL_DAT?.trim();

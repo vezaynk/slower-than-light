@@ -14,9 +14,9 @@ import {
   waitHere,
 } from "../sim.ts";
 import { fleetToReach } from "../rules/sector-map.ts";
+import { citedAsbShot } from "../rules/asb.ts";
 import {
   citedAsb,
-  citedAsbShot,
   citedBeaconCount,
   citedFleetAdvance,
   citedSector,

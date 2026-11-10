@@ -3,7 +3,7 @@ import { afterEach, describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
 import type { WeaponInst } from "../types.ts";
 import { citedEnemy } from "../wiki/cited-enemies.ts";
-import { citedSellQuote } from "../wiki/cited-stores.ts";
+import { citedSellQuote } from "../rules/sell.ts";
 import "./base.ts";
 import { loadPack, resetPackForTests, weaponDef } from "@stl/pack";
 

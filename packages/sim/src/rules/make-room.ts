@@ -17,8 +17,14 @@
  */
 import { cargoSlotCount } from "@stl/pack";
 import { CREW_CAP, dismissCrew, log, weaponSlotCap } from "../sim.ts";
-import type { CargoItem, Game, Overflow } from "../types.ts";
-import { canFieldDrone, fieldDroneSchematic, fieldedSchematics } from "../wiki/cited-stores.ts";
+import type { CargoItem, Game, Kit, Overflow } from "../types.ts";
+import { canFieldDrone, fieldDroneSchematic } from "../wiki/cited-stores.ts";
+
+/** Fitted means the id is in the loadout. A lone kit.target counts when the loadout is empty. */
+export function fieldedSchematics(kit: Kit): string[] {
+  if (kit.loadout?.length) return [...kit.loadout];
+  return kit.target ? [kit.target] : [];
+}
 
 /**
  * Environmental Hazards names a "cargo bay to swap weapons and drone schematics". Per the user: it has 4 slots and

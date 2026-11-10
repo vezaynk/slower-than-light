@@ -6,10 +6,9 @@ import type { Game, Kit, KitId, StockItem, WeaponInst } from "../types.ts";
 import { allDrones, droneDef, loadPack, resetPackForTests, weaponDef } from "@stl/pack";
 import { OVERCHARGER_PLUS_SELL } from "../rules/cited-overcharger.ts";
 import { stowDrone } from "../rules/make-room.ts";
+import { citedSell, citedSellQuote } from "../rules/sell.ts";
 import {
   CRYSTAL_SECTOR_WEAPONS,
-  citedSell,
-  citedSellQuote,
   citedStock,
   droneSlotCap,
   storeSections,

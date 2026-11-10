@@ -233,8 +233,6 @@ import {
 } from "./wiki/flagship-systems.ts";
 import {
   citedAsb,
-  asbPierce,
-  citedAsbShot,
   citedBeaconCount,
   citedFleetAdvance,
   citedSector,
@@ -243,6 +241,7 @@ import {
   nebulaSector,
   stormReactor,
 } from "./wiki/cited-sectors.ts";
+import { asbPierce, citedAsbShot } from "./rules/asb.ts";
 import {
   eventHasPulsar,
   pickPulsarTargets,

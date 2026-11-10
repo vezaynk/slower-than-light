@@ -67,7 +67,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     price: 80,
     blurb: "Three bolts. The first one only buys down a shield layer.",
   },
-  // Laser (Weapons), "Basic Laser": "Sells for: 10 (cannot be bought or found)". price 0, not the sell value.
+  // Laser (Weapons), "Basic Laser": "Sells for: 10 (cannot be bought or found)".
+  // ftl.dat `<cost>` is 20. Sell is half of that. Rarity 0 is the line that keeps it off the shelf.
   // Power 1, charge 10 seconds, shots 1, damage per shot 1.
   // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.08, not on the page.
   LASER_BURST_1: {
@@ -83,10 +84,11 @@ export const WEAPONS: Record<string, WeaponDef> = {
     fire: 0,
     breach: 0,
     ammo: false,
-    price: 0,
+    price: 20,
     blurb: "One bolt. A shield layer stops it whole.",
   },
-  // Laser (Weapons), "Dual Lasers": "Sells for: 12 (cannot be bought or found)". price 0, not the sell value.
+  // Laser (Weapons), "Dual Lasers": "Sells for: 12 (cannot be bought or found)".
+  // ftl.dat `<cost>` is 25. Sell is half of that. Rarity 0 is the line that keeps it off the shelf.
   // Power 1, charge 10 seconds, shots 2, damage per shot 1.
   // Effect: low chance of fire. No percent is published. INFERRED removed: fire was 0.08, not on the page.
   // gap 0.3 is not on the page and is left in place.
@@ -103,7 +105,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     fire: 0,
     breach: 0,
     ammo: false,
-    price: 0,
+    price: 25,
     blurb: "Two bolts from a single power bar.",
   },
   // Laser (Weapons), "Heavy Laser Mark I": purchase price 50, power 1, charge 9 seconds, shots 1, damage per shot 2.
@@ -161,7 +163,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     stunChance: 0.1,
     blurb: "No hull damage. A shield blocks it. If it lands, it locks one power bar for 5 seconds.",
   },
-  // Missile (Weapons), "Artemis Missiles": sells for 19 (cannot be bought or found), so price is 0, not 19.
+  // Missile (Weapons), "Artemis Missiles": "Sells for: 19 (cannot be bought or found)".
+  // ftl.dat `<cost>` is 38. Sell is half of that, rounded down. Rarity 0 keeps it off the shelf.
   // Power 1, charge 11 seconds, shots 1, damage per shot 2.
   // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
   // Low chance to stun is stunChance. The lead says a missile spends 1 ammunition.
@@ -178,11 +181,12 @@ export const WEAPONS: Record<string, WeaponDef> = {
     fire: 0,
     breach: 0,
     ammo: true,
-    price: 0,
+    price: 38,
     stunChance: 0.1,
     blurb: "Ignores shields. Two damage. Spends one missile. Can still miss.",
   },
-  // Missile (Weapons), "Leto Missiles": sells for 10 (cannot be bought or found), so price is 0, not 10.
+  // Missile (Weapons), "Leto Missiles": "Sells for: 10 (cannot be bought or found)".
+  // ftl.dat `<cost>` is 20. Sell is half of that. Rarity 0 keeps it off the shelf.
   // Power 1, charge 9 seconds, shots 1, damage per shot 1.
   // Effect: low chance of fire or breach. No percent is published. INFERRED removed: fire 0.1 and breach 0.09 were not on the page.
   // Low chance to stun is stunChance. The lead says a missile spends 1 ammunition.
@@ -199,7 +203,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     fire: 0,
     breach: 0,
     ammo: true,
-    price: 0,
+    price: 20,
     stunChance: 0.1,
     blurb: "Ignores shields. One damage. Spends one missile. Can still miss.",
   },

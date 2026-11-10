@@ -15,7 +15,6 @@ import { shelfAugment } from "../extras/augments.ts";
 import type { Game, Kit, KitId, StockItem, SysId } from "../types.ts";
 import { seatKits } from "../layouts.ts";
 import { cargoOf, cargoSlots, fieldedSchematics, receiveDrone } from "../rules/make-room.ts";
-import { NOT_SOLD } from "../rules/sell.ts";
 
 /**
  * Extra store rows whose price and stock the wiki states.
@@ -93,9 +92,9 @@ const AUGMENT_CAP = 3;
 // Crew, and Ship: a ship holds 8. A ninth forces a dismissal, which this store does not do.
 const CREW_CAP = 8;
 
-/** An augment a store or a random reward can draw: a shelf augment, less Rock Plating and Titanium System Casing. */
+/** An augment a store or a random reward can draw. Store rarity 0 is a ship or event grant. */
 export function drawableAugment(row: { id: string; rarity?: number }): boolean {
-  return !NOT_SOLD.has(row.id) && shelfAugment(row);
+  return shelfAugment(row);
 }
 
 /**
@@ -400,8 +399,8 @@ function grantSystem(g: Game, item: StockItem): boolean {
 
 function grantAugment(g: Game, item: StockItem): boolean {
   const row = augmentDef(item.ref);
-  // A stock row is bought as offered, except a ship or event grant (store rarity 0) or a NOT_SOLD row.
-  if (!row || NOT_SOLD.has(row.id) || row.rarity === 0) return false;
+  // A stock row is bought as offered. Store rarity 0 is a ship or event grant.
+  if (!row || row.rarity === 0) return false;
   if (!g.augments) g.augments = [];
   if (g.augments.includes(row.id) || g.augments.length >= AUGMENT_CAP) return false;
   g.augments.push(row.id);

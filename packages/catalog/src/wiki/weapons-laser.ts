@@ -81,8 +81,9 @@ export const LASER_WEAPONS: WeaponDef[] = [
     // Laser (Weapons), "Types of lasers": same sentence, 30% breach after the fire roll. The weapon line only says "moderate chance of fire or breach" and gives no percent.
     breach: 0.3,
     ammo: false,
-    // Laser (Weapons), "Heavy Pierce Laser Mark I": "Sells for: 27 (cannot be bought or found)". price is 0. Sell value 27 is not stored in price.
-    price: 0,
+    // Laser (Weapons), "Heavy Pierce Laser Mark I": "Sells for: 27 (cannot be bought or found)".
+    // ftl.dat `<cost>` is 55. Sell is half of that, rounded down. Rarity 0 keeps it off the shelf.
+    price: 55,
     stunChance: 0.2,
     blurb:
       "Heavy lasers can wreak more havoc than their smaller, burst laser counterparts. This modified version pierces 1 shield.",
@@ -238,8 +239,9 @@ export const LASER_WEAPONS: WeaponDef[] = [
     // Laser (Weapons), "Laser Charger (S)": "Effect: -". The section gives no breach percent. 0 means no number was published, not a measured zero chance.
     breach: 0,
     ammo: false,
-    // Laser (Weapons), "Laser Charger (S)": "Sells for: 15 (cannot be bought or found)". price is 0. Sell value 15 is not stored in price.
-    price: 0,
+    // Laser (Weapons), "Laser Charger (S)": "Sells for: 15 (cannot be bought or found)".
+    // ftl.dat `<cost>` is 30. Sell is half of that. Rarity 0 keeps it off the shelf.
+    price: 30,
     chargeLevels: 2,
     blurb:
       "This laser weapon can charge two times, giving it an additional projectile. This improved version only requires 1 power.",

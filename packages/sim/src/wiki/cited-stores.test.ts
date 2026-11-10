@@ -543,8 +543,8 @@ describe("cited stores", () => {
     assert.equal(byRef.dart, undefined);
     assert.equal(byRef.ARTILLERY_BOSS_4, undefined);
     assert.equal(byRef.MISSILES_2, undefined);
-    assert.equal(byRef.ROCK_ARMOR, undefined);
-    assert.equal(byRef.SYSTEM_CASING, undefined);
+    assert.equal(byRef.ROCK_ARMOR, 40);
+    assert.equal(byRef.SYSTEM_CASING, 40);
     assert.equal(
       citedSellQuote(g).some((quote) => quote.kind !== "weapon" && quote.kind !== "augment"),
       false,

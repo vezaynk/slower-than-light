@@ -8,13 +8,13 @@ const expected: Record<
 > = {
   LASER_BURST_2_A: { power: 2, charge: 11, shots: 2, damage: 1, price: 50 },
   LASER_BURST_5: { power: 4, charge: 19, shots: 5, damage: 1, price: 95 },
-  LASER_HEAVY_1_SP: { power: 2, charge: 10, shots: 1, damage: 2, price: 0 },
+  LASER_HEAVY_1_SP: { power: 2, charge: 10, shots: 1, damage: 2, price: 55 },
   LASER_HEAVY_2: { power: 3, charge: 13, shots: 2, damage: 2, price: 65 },
   LASER_HULL_1: { power: 2, charge: 14, shots: 2, damage: 1, price: 55 },
   LASER_HULL_2: { power: 3, charge: 15, shots: 3, damage: 1, price: 75 },
   LASER_CHAINGUN: { power: 2, charge: 16, shots: 2, damage: 1, price: 65 },
   LASER_CHAINGUN_2: { power: 4, charge: 11.1, shots: 1, damage: 1, price: 95 },
-  LASER_CHARGEGUN_PLAYER: { power: 1, charge: 5.5, shots: 2, damage: 1, price: 0 },
+  LASER_CHARGEGUN_PLAYER: { power: 1, charge: 5.5, shots: 2, damage: 1, price: 30 },
   LASER_CHARGEGUN: { power: 2, charge: 6, shots: 2, damage: 1, price: 55 },
   LASER_CHARGEGUN_2: { power: 3, charge: 5, shots: 4, damage: 1, price: 70 },
 };

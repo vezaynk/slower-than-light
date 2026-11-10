@@ -67,7 +67,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     name: "Adv. Flak Gun",
     kind: "flak",
     // Flak (Weapons) "Adv. Flak Gun": 1 power, 8s, 3 shots, 1 damage.
-    // Sells for 30 and cannot be bought or found, so price is 0, not the sell scrap.
+    // "Sells for: 30". ftl.dat `<cost>` is 60. Sell is half of that. Rarity 0 is "cannot be bought or found".
     power: 1,
     charge: 8,
     shots: 3,
@@ -80,7 +80,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     breach: FLAK_FAMILY.breach,
     // INFERRED: ammo false. The section lists no missile cost.
     ammo: FLAK_FAMILY.ammo,
-    price: 0,
+    price: 60,
     radius: 40,
     spin: 720,
     droneTargetable: 1,
@@ -208,7 +208,7 @@ export const FLAK_CRYSTAL_GAPS: FlakCrystalGap[] = [
       "When fired at 1x2 room: 48.74% in main room, 11.51% in each tile next to long sides, 2.57% in each tile next to short sides, 0.02% in each tile next to corners.",
       "When fired at 2x2 room: 89.59% in main room, 1.30% in each tile next to sides.",
     ],
-    note: 'Flak (Weapons) "Adv. Flak Gun": targeting area radius 40 is on the row. 3 additional fake flak are not on WeaponDef. Sells for 30 and cannot be bought or found, so price is 0. Enemies never use it. Only on Lanius B. Room odds are applied by advFlakLanding. Radius 40 is not simulated as pixels.',
+    note: 'Flak (Weapons) "Adv. Flak Gun": targeting area radius 40 is on the row. 3 additional fake flak are not on WeaponDef. Sells for 30. ftl.dat cost is 60. Enemies never use it. Only on Lanius B. Room odds are applied by advFlakLanding. Radius 40 is not simulated as pixels.',
   },
   {
     id: "SHOTGUN_2",

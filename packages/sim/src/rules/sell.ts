@@ -1,29 +1,14 @@
 /**
  * Selling weapons, drones, and augments, including cargo.
  * Template:In-game tips, Selling: half the purchase price, rounded down.
- * A printed "Sells for" replaces that half. Fuel, missiles, drone parts, hull repair, crew, and systems are not sold.
+ * Fuel, missiles, drone parts, hull repair, crew, and systems are not sold.
  * Cargo schematics sell the same way. A price of 0 is not sold.
- * The numbers that are not half a blueprint price stay here: the printed sell prices, and the Shield Overcharger + at 30.
+ * The Shield Overcharger + is 30. That number is not half a blueprint price.
  */
 import { augmentDef, droneDef, weaponDef } from "@stl/pack";
 import type { Game } from "../types.ts";
 import { OVERCHARGER_PLUS_SELL } from "./cited-overcharger.ts";
 import { fieldedSchematics, cargoOf, unfieldSchematic } from "./make-room.ts";
-
-// Augmentations, "Non-Purchasable Augmentations". The catalog's 50 is marked invented there.
-export const NOT_SOLD: ReadonlySet<string> = new Set(["ROCK_ARMOR", "SYSTEM_CASING"]);
-// Weapon pages that print "Sells for: N" instead of a purchase price. Half of 0 is not used.
-const WEAPON_SELL: Readonly<Record<string, number>> = {
-  LASER_BURST_1: 10,
-  LASER_BURST_2: 12,
-  LASER_HEAVY_1_SP: 27,
-  LASER_CHARGEGUN_PLAYER: 15,
-  BEAM_1: 10,
-  BOMB_BREACH_1: 25,
-  SHOTGUN_PLAYER: 30,
-  MISSILES_2_PLAYER: 19,
-  MISSILES_1: 10,
-};
 
 // content.ts marks the Dart entry INVENTED, including its 40 scrap price. No sale.
 const INVENTED_WEAPON_PRICE: ReadonlySet<string> = new Set(["dart"]);
@@ -38,15 +23,12 @@ export type SellQuote = {
 
 function weaponSell(defId: string): number | null {
   if (INVENTED_WEAPON_PRICE.has(defId)) return null;
-  const printed = WEAPON_SELL[defId];
-  if (printed != null) return printed;
   const def = weaponDef(defId);
   if (!def || def.price <= 0) return null;
   return Math.floor(def.price / 2);
 }
 
 function augmentSell(id: string): number | null {
-  if (NOT_SOLD.has(id)) return null;
   const row = augmentDef(id);
   if (!row || row.cost <= 0) return null;
   return Math.floor(row.cost / 2);
@@ -77,7 +59,6 @@ function shieldPlusFielded(g: Game): boolean {
 /**
  * Template:In-game tips, Selling: weapons, drones, and augments sell for half the purchase price.
  * Scrap: half-price, rounded down against the player.
- * A printed "Sells for" or "Sell price" replaces that half.
  * Fuel, missiles, drone parts, hull repair, crew, and systems are not sold. Drone Control is not sold.
  * Cargo drone schematics sell the same way. A schematic with no purchase price, or a price of 0, is not sold.
  * A fitted schematic is not quoted, except a fitted Shield Overcharger +.

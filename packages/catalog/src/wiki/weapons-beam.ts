@@ -15,7 +15,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     name: "Mini Beam",
     kind: "beam",
     // Beam (Weapons), "Mini Beam": 1 power, charge 12 seconds, 1 damage per room.
-    // Sells for: 10. Cannot be bought or found, so price is 0.
+    // "Sells for: 10". ftl.dat `<cost>` is 20. Sell is half of that. Rarity 0 is "cannot be bought or found".
     // Effect: 10% chance to start fire (per tile), so fire is 0.1.
     // INFERRED: shots 1, gap 0, ion 0, breach 0. The section states none of those.
     // Length 45 and crew damage 15 are in BEAM_GAPS. Comes equipped on Stealth A and Stealth C.
@@ -28,7 +28,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     fire: 0.1,
     breach: 0,
     ammo: false,
-    price: 0,
+    price: 20,
     blurb: "Extremely cheap and weak beam weapon.",
   },
   {

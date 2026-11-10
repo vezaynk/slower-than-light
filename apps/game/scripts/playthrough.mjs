@@ -1353,14 +1353,13 @@ async function verdictText(page) {
 
 function verdictOk(text) {
   if (text.includes("VICTORY!")) return true;
-  if (text.includes("The Rebel's flagship was destroyed")) return true;
+  if (text.includes("The flagship is gone")) return true;
   if (!text.includes("GAME OVER")) return false;
   return (
-    /crew members have died/i.test(text) ||
-    /Rebel Flagship is within range/i.test(text) ||
-    /explosion marks your fate/i.test(text) ||
-    /torn apart/i.test(text) ||
-    /introduction training/i.test(text)
+    /ship is empty/i.test(text) ||
+    /sits on the base/i.test(text) ||
+    /hull gives way/i.test(text) ||
+    /practice jump/i.test(text)
   );
 }
 

@@ -13,8 +13,10 @@
  * - a fight page's own surrender row, read from the event (`eventDef`);
  * - the offer text, boarders, and what is paid stay in wiki/surrender.ts.
  *
- * Boss and elite never surrender. Rebel Elite and Flagship blueprints name no `<surrender>`, so that is a tier
- * check, not a tunable.
+ * A ship's own `<surrender>` decides. That is the tag on its hull, or a layout-less blueprint of the same name
+ * (gap `<shipBlueprint name="REBEL_SKINNY_ELITE">` and the `BOSS_*` rows are chance 0). Chance 0 never offers.
+ * The hull tag wins, so a mod can give the Flagship an offer without a code change. With no tag, the faction row
+ * is used. A ship with no faction does not borrow Rebel. Tier is not the rule.
  *
  * Hooks in sim.ts (marked @agent:surrender): startCombat sets the plan, step calls surrenderTick before
  * enemyEscapeStep.
@@ -22,12 +24,14 @@
 import {
   eventDef,
   factionSurrender,
+  hullDef,
   stalemateStat,
   storedId,
   type SurrenderOfferDef,
 } from "@stl/pack";
 import { log, rand } from "../sim.ts";
 import type { Game } from "../types.ts";
+import { flagshipHullId } from "../wiki/flagship-layout.ts";
 import type { SurrenderOffer } from "../wiki/surrender.ts";
 import { closeFight, here, openOffer } from "../wiki/surrender.ts";
 
@@ -58,6 +62,11 @@ export type SurrenderContext = {
   faction?: string;
   pirate?: boolean;
   event?: string;
+  /**
+   * Ship blueprint id. Its `<surrender>` replaces the faction row. Chance 0 never offers.
+   * Absent, and with no faction, the fight does not borrow Rebel.
+   */
+  ship?: string;
 };
 
 /**
@@ -156,31 +165,56 @@ function never(): SurrenderPlan {
   return { chance: 0, threshold: 0, rolled: false, offered: false, refused: false, offer: null };
 }
 
+type SurrenderBand = { chance: number; min: number; max: number };
+
+/** The hull's `<surrender>` wins over a layout-less blueprint of the same name. */
+function taggedSurrender(id: string | undefined): SurrenderBand | undefined {
+  if (!id) return undefined;
+  const onHull = hullDef(id)?.surrender;
+  if (onHull) return onHull;
+  return factionSurrender(id);
+}
+
+/** Chance 0 does not roll a threshold. A positive chance draws one point in the band. */
+function bandPlan(row: SurrenderBand, roll: () => number): SurrenderPlan {
+  if (!(row.chance > 0)) return never();
+  const threshold = row.min + roll() * (row.max - row.min);
+  return { ...never(), chance: row.chance, threshold };
+}
+
+/**
+ * Blueprint the offer is read from. The Flagship keeps no classId (a classId would end the fight when its crew
+ * dies, before the AI takes over), so its stage blueprint is the id.
+ */
+export function surrenderBlueprintId(
+  ship: { classId?: string; flagship?: { stage: 1 | 2 | 3 } },
+  difficulty: string | undefined,
+): string | undefined {
+  if (ship.flagship) return flagshipHullId(ship.flagship.stage, difficulty);
+  return ship.classId;
+}
+
 /** The fight page's offer, once the pack has loaded it. */
 function scriptedFor(id: string | undefined): SurrenderOfferDef | undefined {
   return id ? eventDef(storedId(id))?.surrender : undefined;
 }
 
 export function surrenderPlan(ctx: SurrenderContext, roll: () => number): SurrenderPlan {
-  // Enemy Ships, "Never run away, never surrender": "Rebel Elite ships" and the Flagship.
-  // INFERRED for the boss: the Flagship is on no surrender row (Template:SurrenderEscape "verify").
-  // Their blueprints (REBEL_SKINNY_ELITE, ROCK_ASSAULT_ELITE, BOSS_*) name no `<surrender>`, so this stays a tier check.
-  if (ctx.tier === "boss" || ctx.tier === "elite") return never();
   if (ctx.event && NO_SURRENDER_EVENTS.has(ctx.event)) return never();
-  // @agent:sector-hostiles. The event page's own surrender row replaces the faction row.
+  // @agent:sector-hostiles. The event page's own surrender row replaces the ship's row.
   const scripted = scriptedFor(ctx.event);
   if (scripted) {
     const threshold = scripted.low + roll() * (scripted.high - scripted.low);
     return { ...never(), chance: scripted.chance, threshold, event: ctx.event };
   }
-  // A faction with no blueprint does not offer. A pirate uses the pirate row.
-  // INFERRED: a ship with no faction field is a generic Rebel, as in rules/escape.ts.
-  const row = factionSurrender(ctx.pirate ? "pirate" : (ctx.faction ?? "rebel"));
+  // The ship's own tag. Chance 0 is never. A hull tag wins over the layout-less row of the same name.
+  const own = taggedSurrender(ctx.ship);
+  if (own) return bandPlan(own, roll);
+  // No tag on this blueprint: the faction row, which is itself a `<surrender>`. Pirates use the pirate row.
+  // A ship with no faction does not borrow Rebel.
+  const row = factionSurrender(ctx.pirate ? "pirate" : ctx.faction);
   if (!row) return never();
-  // Enemy Ships, DISCLAIMER: the percent "may be incorrect as a concept"; read as a percent of max hull here.
-  // INFERRED: one threshold drawn uniformly inside the row's range, like the escape threshold.
-  const threshold = row.min + roll() * (row.max - row.min);
-  return { ...never(), chance: row.chance, threshold };
+  return bandPlan(row, roll);
 }
 
 function ratio(g: Game): number {
@@ -208,9 +242,13 @@ export function surrenderTick(g: Game, h: number): boolean {
   if (!ship || g.phase !== "combat") return false;
   if (g.enemySurrender === undefined) {
     // Saves from before this module: build the plan from the ship that is already here.
-    const boss = here(g)?.kind === "boss";
     g.enemySurrender = surrenderPlan(
-      { tier: boss ? "boss" : "pool", faction: ship.faction, pirate: ship.pirate },
+      {
+        tier: "pool",
+        faction: ship.faction,
+        pirate: ship.pirate,
+        ship: surrenderBlueprintId(ship, g.difficulty),
+      },
       () => rand(g),
     );
   }

@@ -118,6 +118,15 @@ function shipElement(doc: XmlDocument, hull: HullDef): XmlElement {
     ship.appendChild(element(doc, "crewCount", crew));
   }
   if (hull.boardingAI) ship.appendChild(leaf(doc, "boardingAI", hull.boardingAI));
+  if (hull.surrender) {
+    ship.appendChild(
+      element(doc, "surrender", {
+        chance: String(hull.surrender.chance),
+        min: String(hull.surrender.min),
+        max: String(hull.surrender.max),
+      }),
+    );
+  }
   if (hull.shield) ship.appendChild(leaf(doc, "shieldImage", hull.shield));
   if (hull.cloak) ship.appendChild(leaf(doc, "cloakImage", hull.cloak));
   if (hull.floor) ship.appendChild(leaf(doc, "floorImage", hull.floor));

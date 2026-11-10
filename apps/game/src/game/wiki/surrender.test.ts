@@ -1,10 +1,19 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { allEvents, eventDef, loadPack, resetPackForTests, stalemateStat } from "@stl/pack";
+import {
+  allEvents,
+  eventDef,
+  factionSurrender,
+  hullDef,
+  loadPack,
+  resetPackForTests,
+  stalemateStat,
+} from "@stl/pack";
 import { CREW_CAP, choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
-import { surrenderPlan } from "../rules/surrender.ts";
+import { surrenderBlueprintId, surrenderPlan } from "../rules/surrender.ts";
+import { flagshipHullId } from "./flagship-layout.ts";
 import {
   ACCEPT_ID,
   REFUSE_ID,
@@ -56,8 +65,22 @@ describe("surrender rows (Enemy Ships, Surrender/escape values)", () => {
     for (const f of ["auto", "engi", "mantis", "zoltan", "federation"]) {
       assert.equal(surrenderPlan({ tier: "pool", faction: f }, () => 0.5).chance, 0, f);
     }
-    assert.equal(surrenderPlan({ tier: "elite", faction: "rebel" }, () => 0.5).chance, 0);
+    // The blueprint's `<surrender chance="0">` is the never, not the tier.
+    assert.equal(
+      surrenderPlan({ tier: "elite", faction: "rebel", ship: "REBEL_SKINNY_ELITE" }, () => 0.5)
+        .chance,
+      0,
+    );
+    assert.equal(
+      surrenderPlan({ tier: "elite", faction: "rock", ship: "ROCK_ASSAULT_ELITE" }, () => 0.5)
+        .chance,
+      0,
+    );
+    assert.equal(surrenderPlan({ tier: "boss", ship: "BOSS_1_NORMAL_DLC" }, () => 0.5).chance, 0);
+    assert.equal(surrenderPlan({ tier: "boss", ship: "BOSS_3_HARD" }, () => 0.5).chance, 0);
+    // No tag and no faction does not borrow Rebel. Tier alone does not decide.
     assert.equal(surrenderPlan({ tier: "boss" }, () => 0.5).chance, 0);
+    assert.equal(surrenderPlan({ tier: "elite", faction: "rebel" }, () => 0.5).chance, 50);
     assert.equal(
       surrenderPlan(
         { tier: "pool", faction: "rebel", event: "rebel-ship-supplying-civilians" },
@@ -72,6 +95,83 @@ describe("surrender rows (Enemy Ships, Surrender/escape values)", () => {
       ).chance,
       0,
     );
+  });
+
+  it("a ship's own surrender tag beats the chance-0 row and the tier", () => {
+    const boss = createGame(3);
+    startCombat(boss, "boss");
+    assert.equal(boss.enemySurrender?.chance, 0);
+    assert.equal(boss.enemy?.classId, undefined);
+    assert.equal(boss.enemy?.flagship?.stage, 1);
+
+    const elite = createGame(4);
+    startCombat(elite, "elite");
+    assert.equal(elite.enemySurrender?.chance, 0);
+    assert.ok(
+      elite.enemy?.classId === "REBEL_SKINNY_ELITE" ||
+        elite.enemy?.classId === "ROCK_ASSAULT_ELITE",
+    );
+
+    const hull = hullDef("BOSS_1_NORMAL_DLC");
+    assert.ok(hull);
+    loadPack({ hulls: [{ ...hull, surrender: { chance: 25, min: 10, max: 10 } }] }, "append");
+    try {
+      const fromHull = surrenderPlan(
+        { tier: "boss", ship: "BOSS_1_NORMAL_DLC", faction: "rebel" },
+        () => 0,
+      );
+      assert.equal(fromHull.chance, 25);
+      assert.equal(fromHull.threshold, 10);
+    } finally {
+      resetPackForTests();
+    }
+
+    loadPack({ factions: [{ id: "BOSS_1_NORMAL_DLC", chance: 40, min: 30, max: 30 }] }, "append");
+    try {
+      const mod = createGame(1);
+      mod.difficulty = "normal";
+      startCombat(mod, "boss");
+      assert.equal(mod.enemySurrender?.chance, 40);
+      assert.equal(mod.enemySurrender?.threshold, 30);
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("the shipyard Flagship never offers, and a resumed stage stays at 0", () => {
+    for (const difficulty of ["easy", "normal", "hard"] as const) {
+      const g = createGame(1, undefined, difficulty);
+      startCombat(g, "second Rebel Flagship", false, "rebel-shipyard");
+      assert.equal(g.enemy?.classId, undefined, difficulty);
+      assert.equal(g.enemy?.faction, undefined, difficulty);
+      assert.equal(g.enemy?.flagship?.stage, 1, difficulty);
+      const id = flagshipHullId(1, difficulty);
+      assert.equal(surrenderBlueprintId(g.enemy!, difficulty), id);
+      assert.equal(factionSurrender(id)?.chance, 0, id);
+      assert.equal(g.enemySurrender?.chance, 0, difficulty);
+    }
+    // The shipyard fight is not tier "boss", so a remembered stage is not resumed and the memo stays.
+    const yard = createGame(3, undefined, "hard");
+    yard.flagshipMemo = { stage: 3, crew: [] };
+    startCombat(yard, "second Rebel Flagship", false, "rebel-shipyard");
+    assert.equal(yard.enemy?.flagship?.stage, 1);
+    assert.equal(yard.flagshipMemo?.stage, 3);
+    assert.equal(factionSurrender(flagshipHullId(1, "hard"))?.chance, 0);
+    assert.equal(yard.enemySurrender?.chance, 0);
+    for (const stage of [2, 3] as const) {
+      for (const difficulty of ["easy", "normal", "hard"] as const) {
+        const g = createGame(2, undefined, difficulty);
+        g.flagshipMemo = { stage, crew: [] };
+        startCombat(g, "boss");
+        const where = `${difficulty} stage ${stage}`;
+        assert.equal(g.enemy?.flagship?.stage, stage, where);
+        assert.equal(g.flagshipMemo, undefined, where);
+        const id = flagshipHullId(stage, difficulty);
+        assert.equal(surrenderBlueprintId(g.enemy!, difficulty), id);
+        assert.equal(factionSurrender(id)?.chance, 0, id);
+        assert.equal(g.enemySurrender?.chance, 0, where);
+      }
+    }
   });
 
   it("rolls a Stuff offer: two of fuel / missiles / parts plus scrap", () => {

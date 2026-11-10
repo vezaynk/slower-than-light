@@ -282,7 +282,7 @@ import { navAllows } from "./wiki/cited-nav.ts";
 import { citedZoltanPower } from "./rules/cited-zoltan-power.ts";
 
 import { escapePlan, eventSlugOf, hullRunSeconds, overtakenArrivalEscape } from "./rules/escape.ts";
-import { surrenderPlan, surrenderTick } from "./rules/surrender.ts";
+import { surrenderBlueprintId, surrenderPlan, surrenderTick } from "./rules/surrender.ts";
 // @agent:surrender. Enemy surrender offers. The when-rule is rules/surrender.ts.
 import {
   joinCrew,
@@ -6847,7 +6847,13 @@ export function startCombat(
   }
   // @agent:surrender. Enemy Ships: "Enemies may also surrender after dropping below a hull threshold." rules/surrender.ts.
   g.enemySurrender = surrenderPlan(
-    { tier, event, faction: built.ship.faction, pirate: built.ship.pirate },
+    {
+      tier,
+      event,
+      faction: built.ship.faction,
+      pirate: built.ship.pirate,
+      ship: surrenderBlueprintId(built.ship, g.difficulty),
+    },
     () => rand(g),
   );
   // A ship-event child replaces the wiki plan. A named class keeps its hull and borrows the page ship's `<escape>`.

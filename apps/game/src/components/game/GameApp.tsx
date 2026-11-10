@@ -19,6 +19,7 @@ import {
   localeLabel,
   selectLocale,
 } from "@/game/locale";
+import { bindArchiveImages } from "@stl/sim/archive-pay.ts";
 import { choiceBlue, offeredChoices } from "@stl/sim/wiki/choice-locks.ts";
 import { ArchiveBed } from "./ArchiveBed";
 import { shownEventTitle } from "@/game/event-title";
@@ -665,6 +666,7 @@ function DoorAllIcon({ open }: { open?: boolean }) {
 const HOVER_BEEP_MS = 70;
 
 bindLocaleImages((code) => setImageVariant({ lang: code }));
+bindArchiveImages((path) => archiveImage(path) != null);
 
 export function GameApp() {
   const version = useGame((s) => s.version);

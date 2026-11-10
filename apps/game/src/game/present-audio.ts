@@ -1,13 +1,13 @@
 import { playArchiveAudio, playArchiveSfx } from "./archive-audio.ts";
 import { playSfx, syncLoops, weaponLaunchCue } from "./audio.ts";
-import { takeBed } from "@stl/sim/sfx-queue.ts";
+import { takeBed, takeCues } from "@stl/sim/sfx-queue.ts";
 import type { Cue, Game } from "@stl/sim/types.ts";
 
 /** Play the cues and work loops one step recorded. Headless runs drop them. */
-export function presentAudio(g: Game): void {
+export function presentAudio(g: Game, cues: Cue[] = takeCues(g)): void {
   const bed = takeBed(g);
   if (bed) syncLoops(bed);
-  flushCues(g.sfx);
+  flushCues(cues);
 }
 
 function flushCues(queue: Cue[]): void {

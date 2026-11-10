@@ -33,6 +33,11 @@ export function queueLaunch(g: Game, id: string, kind: string | undefined): void
   g.sfx.push(kind == null ? { launch: id } : { launch: id, kind });
 }
 
+/** The cues queued since the last call. The app plays this. A headless step drops it. */
+export function takeCues(g: Game): Cue[] {
+  return g.sfx.splice(0, g.sfx.length);
+}
+
 /** Loop cues a module asked for during this step. Not saved: the app reads and clears them each step. */
 const heldLoops = new WeakMap<Game, Set<string>>();
 

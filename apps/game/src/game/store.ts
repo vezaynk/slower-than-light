@@ -5,6 +5,7 @@ import { noteUnlocks } from "./unlock-store.ts"; // @agent:unlocks
 import { readPinnedSeed, resolveRunSeed } from "./run-seed.ts";
 import { presentAudio } from "./present-audio.ts";
 import { bindCueTarget } from "@stl/sim/sfx-queue.ts";
+import type { Cue } from "@stl/sim/types.ts";
 import {
   createGame,
   loadGame,
@@ -41,12 +42,13 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
     tick: (dt) => {
       const game = get().game;
       const previous = bindCueTarget(game);
+      let cues: Cue[] = [];
       try {
-        step(game, dt);
+        cues = step(game, dt);
       } finally {
         bindCueTarget(previous);
       }
-      presentAudio(game);
+      presentAudio(game, cues);
       sealEmptyEvent(game);
       noteRun(game);
       noteUnlocks(game);

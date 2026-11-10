@@ -502,12 +502,24 @@ function finishSecret(g: Game, secret: boolean): boolean {
   return true;
 }
 
-/** The event card shows the archive image when that file is in the loaded pack. A list name picks one picture. */
+/** The app reports whether the loaded pack has this picture. Unbound, a stamp still stores the path. */
+let imagePresent: ((path: string) => boolean) | undefined;
+
+export function bindArchiveImages(fn: ((path: string) => boolean) | null): void {
+  imagePresent = fn ?? undefined;
+}
+
+/**
+ * The event card shows the archive image when that file is in the loaded pack.
+ * A list name picks one picture. A missing file leaves the card clear, so a later picture can still land.
+ */
 export function stampArchiveImage(g: Game, name: string | undefined): void {
   if (!name || !g.event || g.event.img) return;
   const list = imageList(name);
   const picked = list?.length ? list[Math.floor(rand(g) * list.length)] : name;
-  g.event.img = picked ?? name;
+  const path = picked ?? name;
+  if (!path || (imagePresent && !imagePresent(path))) return;
+  g.event.img = path;
 }
 
 /** Page and choice alters. Player rows apply as soon as the cost is paid. Enemy rows wait until that ship exists. */

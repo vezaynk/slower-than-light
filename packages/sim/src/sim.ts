@@ -7,6 +7,7 @@ import {
   queueLaunch,
   queueSfx,
   setBed,
+  takeCues,
   takeHeldLoops,
 } from "./sfx-queue.ts";
 import { saveStore } from "./save-store.ts";
@@ -344,6 +345,7 @@ import { fightUnlock } from "./unlocks.ts"; // @agent:unlocks
 import type {
   Beacon,
   Crew,
+  Cue,
   Difficulty,
   Door,
   BeamPoint,
@@ -8846,10 +8848,15 @@ function neutralShipTick(g: Game, h: number) {
   tickNeutralCrew(g, ship, h);
 }
 
-export function step(g: Game, dt: number) {
+/** Advance the run and take the cues it queued. A thrown step drops them. */
+export function step(g: Game, dt: number): Cue[] {
   const previousCue = bindCueTarget(g);
   try {
     stepBody(g, dt);
+    return takeCues(g);
+  } catch (error) {
+    g.sfx.length = 0;
+    throw error;
   } finally {
     bindCueTarget(previousCue);
   }

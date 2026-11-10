@@ -27,6 +27,7 @@ import type {
   EventTier,
   EscapeTimers,
   Stalemate,
+  SkillSpeed,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -552,6 +553,34 @@ export function readStalemate(node: XmlElement): Stalemate {
     const value = attrNum(raw);
     if (value == null || value <= 0) {
       warnPack(`stalemate: ${key}="${raw}" is not a positive number; it is skipped.`);
+      continue;
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
+const SKILL_SPEED_KEYS = [
+  "repair0",
+  "repair1",
+  "repair2",
+  "combat0",
+  "combat1",
+  "combat2",
+] as const;
+
+/**
+ * Gap `<skillSpeed repair0 repair1 repair2 combat0 combat1 combat2>` (types.ts SkillSpeed). A missing or
+ * non-positive attribute is left out, so the registry keeps the earlier value or FTL's default.
+ */
+export function readSkillSpeed(node: XmlElement): SkillSpeed {
+  const out: SkillSpeed = {};
+  for (const key of SKILL_SPEED_KEYS) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const value = attrNum(raw);
+    if (value == null || value <= 0) {
+      warnPack(`skillSpeed: ${key}="${raw}" is not a positive multiplier; it is skipped.`);
       continue;
     }
     out[key] = value;
@@ -1310,6 +1339,9 @@ export function parsePack(xml: string): ContentPack {
   const stalemateNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "stalemate",
   );
+  const skillNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "skillSpeed",
+  );
   const aiTargetNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "aiTarget",
   );
@@ -1361,6 +1393,7 @@ export function parsePack(xml: string): ContentPack {
   if (escapes.length > 0) pack.escapes = escapes;
   if (timersNode) pack.escapeTimers = readEscapeTimers(timersNode);
   if (stalemateNode) pack.stalemate = readStalemate(stalemateNode);
+  if (skillNode) pack.skillSpeed = readSkillSpeed(skillNode);
   if (aiTargetNode) pack.aiTarget = readAiTarget(aiTargetNode);
   if (waitsNode) pack.overchargerWaits = readOverchargerWaits(waitsNode);
   if (ionNode) pack.ionIntruder = readIonIntruder(ionNode);

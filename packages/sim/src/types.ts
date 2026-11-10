@@ -1,0 +1,1134 @@
+import type { AugmentId, KitId, SysId, WeaponKind } from "@stl/pack";
+import type { EscapePlan } from "./rules/escape.ts";
+import type { SurrenderPlan } from "./rules/surrender.ts";
+import type { FlagshipState } from "./wiki/flagship-systems.ts";
+export type { WeaponKind };
+export type { AugmentId, KitId, SysId };
+
+/** A point on a hull grid, in tile units. The integer part is the cell. */
+export type BeamPoint = { x: number; y: number };
+
+/** Player beam swipe. Both ends are clicks on the enemy ship, in tile space. */
+export type BeamLine = { a: BeamPoint; b: BeamPoint };
+
+export type SystemState = {
+  level: number;
+  power: number;
+  damage: number;
+  /** Seconds left on each ion point. One point locks one bar for 5s. */
+  ion: number[];
+  fix: number;
+  /**
+   * Bars powered before damage cut them. Per the user: a repaired bar takes reactor power back while it is spare.
+   * Absent once restored or once the player sets this system's power by hand.
+   */
+  want?: number;
+  /**
+   * Reactor bars a standing Zoltan presence has already replaced.
+   * Shields peel pairs and do not put them back. Engines, the medbay, and oxygen
+   * replace a full system and do not put them back. Weapons put them back from spare
+   * when the Zoltans leave a system that is no longer full.
+   */
+  zoltanHeld?: number;
+  /**
+   * Archive `<status type="limit">`. Usable bars cannot exceed this. The installed level stays.
+   * Absent means no cap. A player cap lasts until the jump. An enemy cap leaves with that ship.
+   */
+  archiveLimit?: number;
+  /** Archive `<status type="divide">`. Usable bars are floored by this. Replaces `archiveLimit` on the same system. */
+  archiveDivide?: number;
+};
+
+export type Room = {
+  id: string;
+  title: string;
+  system: SysId | null;
+  /** Subsystem kit housed in this room (enemy hulls from enemy-gen.ts). Weapon hits damage it. */
+  kit?: KitId;
+  /**
+   * Player hulls: the system this empty room is kept for, traced from the pale icon on the hull's *Systems.png hangar
+   * picture. Systems: "Each system occupies one predetermined room specific to the ship". INFERRED: it shows as a
+   * "Hall" until bought, because the wiki names no such room.
+   */
+  reserve?: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** Cells inside the box that are hull, not floor. */
+  omit?: { x: number; y: number }[];
+  o2: number;
+  fire: number;
+  breach: number;
+  breachFix: number;
+  fireTick: number;
+  flash: number;
+  venting: boolean;
+  /** Seconds of crystal coating left. Absent means the room is not coated. */
+  lock?: number;
+  /**
+   * Crystal Lockdown: this coating was already up when a hacking drone attached.
+   * When it melts, the room's doors are left with 4 hits. A pulse during the coating,
+   * or another lockdown, clears it.
+   */
+  lockHack?: boolean;
+  /** Boarding, "Combat": sabotage bar (0..1) from boarders and fires. At 1 the room's system takes 1 damage. Absent means 0. */
+  sabotage?: number;
+  /**
+   * @agent:hacking. Player rooms only: an enemy hacking drone is latched onto this room's system ("latched"),
+   * or its pulse is running ("pulse"). Written each combat tick by extras/spike.ts; ShipView draws it.
+   */
+  hacked?: "latched" | "pulse";
+};
+
+export type Door = {
+  a: string;
+  b: string | "void";
+  open: boolean;
+  /** Hits left before a boarder breaks a blast door. */
+  hp: number;
+  /**
+   * Crystal Lockdown coating hits still left. Separate from `hp`: the coating resets blast-door
+   * health, and the door level does not change the coating. Absent means this door is not coated.
+   */
+  coat?: number;
+  /** Seconds a broken door stays stuck open. */
+  stuck: number;
+  /**
+   * Door System: Close All (X) while this door is stuck open. It shuts when the
+   * 7 seconds end and it can be controlled again. Open All clears it.
+   */
+  seal?: boolean;
+  /**
+   * Door System: Open All overrides a crystal coating. These doors can then be
+   * closed by hand. A new coating clears it.
+   */
+  freed?: boolean;
+  /**
+   * @agent:hacking. Locked by a hack (extras/spike.ts). Hacking, "Overview": "Hacked doors are equivalent to
+   * level 3 blast doors" for the hacked ship's crew. Boarding, "Doors": boarders and mind-controlled crew pass.
+   */
+  hacked?: boolean;
+};
+
+/** One orange bar on a hangar cutaway. Side is the edge of cell (x, y). */
+export type DoorSide = "n" | "e" | "s" | "w";
+
+export type DoorMark = {
+  x: number;
+  y: number;
+  side: DoorSide;
+};
+
+export type SkillName = "pilot" | "engines" | "weapons" | "shields" | "repair" | "combat";
+
+/** Ship menu at the top of the screen: Upgrades, crew manifest, or inventory. */
+export type ShipTab = "upgrades" | "crew" | "inventory";
+
+export type Crew = {
+  id: string;
+  name: string;
+  side: "player" | "enemy";
+  aboard: "player" | "enemy";
+  hp: number;
+  maxHp: number;
+  room: string;
+  path: string[];
+  move: number;
+  /**
+   * Tile "x,y" the sprite starts this hop from.
+   * A fresh order from a stand records that tile. An order while they are already
+   * walking records the cell under them, and "@x,y" is the exact point so the
+   * sprite does not jump. Later hops record the doorway.
+   * Absent means the front standing tile. Cleared when the walk finishes.
+   */
+  via?: string;
+  /**
+   * Boarding party management: place in the destination room. Lower stands at the front
+   * and is struck first. Set when this body is ordered. Absent sorts as 0.
+   */
+  file?: number;
+  /**
+   * Teleporter pad "x,y" this body was ordered onto.
+   * Absent means they were not given a pad, so a send leaves them behind.
+   */
+  pad?: string;
+  /** Floor tile this body stands on while idle, and its room (crew-spots settleTiles). Absent until first stamped. */
+  tile?: { room: string; x: number; y: number };
+  /** An in-room walk to `tile`: the point it started from and progress 0-1. Absent when standing still. */
+  shift?: { x: number; y: number; t: number };
+  /**
+   * INFERRED from the controls list (Save Stations / Return to Stations).
+   * The room this crew member was standing in on the player ship when stations were saved.
+   */
+  station?: string;
+  /** The floor tile in `station` they stood on when stations were saved (per the user: save positions, not just rooms). */
+  stationTile?: { x: number; y: number };
+  think: number;
+  /** An enemy boarder's assigned room on the player ship (sim.ts boarderRooms, xftl doc/crew-ai). */
+  intrude?: string;
+  tone: number;
+  /** Hangar uniform swatch from crew-look.ts. Absent falls back to `tone`. */
+  uniform?: number;
+  skills?: Partial<Record<SkillName, number>>;
+  /** Crew definition id. Absent means the plain race. Campaign ids live in extras/kin.ts. */
+  kin?: string;
+  /** Seconds left fighting for the other side. */
+  leashed?: number;
+  /** Mind Control health boost (+15 at level 2, +30 at level 3) added to maxHp and hp while leashed (extras/leash.ts). */
+  leashBoost?: number;
+  /** Seconds until a clone finishes. Set only while this body is waiting. */
+  cloneIn?: number;
+  /**
+   * Crew skills, Combat: "killing cloned crew ... doesn't grant experience."
+   * Set when a Clone Bay returns this body. Absent means the original.
+   */
+  cloned?: boolean;
+  /** Clone Bay queue position, either side (lower clones first, "one-by-one"). Set only while `cloneIn` is set. */
+  cloneSeq?: number;
+  /** Seconds this body cannot act. Hacking Stun sets this for the pulse. */
+  stun?: number;
+  /**
+   * Seconds since this crew's last blow. Boarding, Combat: damage is per hit, "every few moments".
+   * Absent means the pause has not started.
+   */
+  swing?: number;
+  /**
+   * Seconds of swing the next blow lands at (sim.ts crewBlowDue, xftl doc/damage-notes). Absent means the first,
+   * 0.5-0.65 s lead-in.
+   */
+  swingAt?: number;
+  /** Seconds until this Crystal can coat a room again. Absent means ready, or not a Crystal. */
+  lockCool?: number;
+  /**
+   * Boarders: Humans (Abandoned): these humans have Emergency Respirators.
+   * The note names the augment; the 50% is the printed half (INFERRED on the boarder, not a hull augment).
+   */
+  lungs?: boolean;
+};
+
+export type WeaponInst = {
+  uid: string;
+  defId: string;
+  /**
+   * Progress of the shot currently charging, from 0 to 1.
+   * A charger (Ion Charger, Laser Charger, Laser Charger (S), Laser Charger Mark II)
+   * uses this for one shot. The bank lives in `loaded`. Every other gun still fills
+   * one bar for its whole volley.
+   */
+  charge: number;
+  /**
+   * Finished charger shots waiting to fire. Absent means 0.
+   * Ion (Weapons), Ion Charger, and Laser (Weapons), the three charger rows:
+   * each shot charges on its own, and a click fires however many are stored.
+   */
+  loaded?: number;
+  /**
+   * Hacking, "Overview" (Weapon Control): "a near frame-perfect hack can split a burst laser volley (e.g. Burst Laser I
+   * will shoot only 1 laser on the hack start and another one - after the hack, upon charge completion)".
+   * The shots of a volley still waiting to leave when the pulse lands. They leave the moment the charge refills,
+   * in place of a new volley. Absent means none.
+   */
+  held?: Shot[];
+  enabled: boolean;
+  autofire: boolean;
+  /**
+   * Weapon Control, Overview: Ctrl on this slot reverses the all-weapons autofire setting.
+   * Absent means the slot follows autofireAll.
+   */
+  autoInvert?: boolean;
+  target: string | null;
+  /**
+   * Bomb (Weapons), lead: a bomb aimed at your own ship. Absent or false means the enemy hull.
+   * Other weapons cannot set it.
+   */
+  own?: boolean;
+  /**
+   * Drawn swipe, in the enemy hull's tile space. The rooms on this segment are the shot.
+   * Absent until the player has clicked both ends. Enemy beams do not set it.
+   */
+  beamLine?: BeamLine | null;
+  /**
+   * Chain step. Absent is the first printed step.
+   * Laser (Weapons): Chain Burst 16/13/10/7, Chain Vulcan 11.1 down to 1.1.
+   * Ion (Weapons): Chain Ion deals 1, then 2, 3, and 4 ion. Its charge stays 14 seconds.
+   * Losing power resets this. A cloak pause does not.
+   */
+  chain?: number;
+  /**
+   * Crew skills, Weapons: seconds left to turn this gun off and drop the shot that just trained.
+   * INFERRED: 0.15. The page prints no duration. A beam that is still crossing can still be dropped.
+   */
+  muzzle?: number;
+  /** Shot ids from the launch that opened `muzzle`. */
+  muzzleShots?: string[];
+};
+
+export type Shot = {
+  id: string;
+  kind: WeaponKind;
+  from: "player" | "enemy" | "env";
+  /**
+   * Environmental Hazards, Asteroid Field: an env shot aimed at one hull.
+   * Absent keeps the old rule, so an env shot still hits the player.
+   */
+  at?: "player" | "enemy";
+  damage: number;
+  ion: number;
+  fireChance: number;
+  breachChance: number;
+  targetRoom: string;
+  beamRooms?: string[];
+  /** Player swipe in the target hull's tile space. The flight draws this segment. */
+  beamLine?: BeamLine;
+  /** Weapon id, when the shot was launched from a mount. Tests may set it. */
+  defId?: string;
+  /**
+   * WeaponInst uid of the mount that fired this shot. A beam keeps firing only while that mount stays powered,
+   * and a hacking pulse holds that mount's shots still waiting to leave (WeaponInst.held).
+   * Absent (drones, artillery, the environment, tests) belongs to no mount.
+   */
+  weapon?: string;
+  /**
+   * The module that lands this beam's swipe (registerBeamTicker in sim.ts), e.g. "drone".
+   * Absent means a mount beam, which sim.ts lands itself.
+   */
+  beamOwner?: string;
+  /** Beam rooms already resolved, struck or passed under a Zoltan Shield. Absent means none yet. */
+  beamHit?: string[];
+  /** Beam, "Beams vs Zoltan Shields": how many of the 33% / 80% instances have passed. Absent means 0. */
+  beamZoltan?: number;
+  /**
+   * Swipe fraction where shields blocked the beam. From then on it deals nothing and ends on the shield bubble.
+   * Absent while the beam still reaches the hull.
+   */
+  beamCut?: number;
+  /** The bubble that stopped the beam. Absent means the regular shields. */
+  beamCutBy?: "zoltan";
+  /**
+   * Bomb (Weapons), lead: this bomb was aimed at the shooter's own hull.
+   * Absent means the other hull, which is every non-bomb shot.
+   */
+  own?: boolean;
+  /**
+   * Missile (Weapons), ===Swarm Missiles===: this shot's long-side tile is not a room.
+   * applyImpact deals nothing. Absent means the shot still aims at targetRoom.
+   */
+  offRoom?: boolean;
+  wait: number;
+  t: number;
+  duration: number;
+  label?: string;
+  /**
+   * @agent:flagship. Chance (0..1) to stun the crew in the struck room. Only the stage-3 Power Surge lasers set it
+   * ("The Rebel Flagship", "Final stage" / "Power Surge": "20% stun"); sim.ts strikeRoom rolls it.
+   */
+  stunChance?: number;
+};
+
+export type Kit = {
+  id: KitId;
+  /** Archive weapon blueprint. Artillery Beam omits it or uses ARTILLERY_FED. Flak Artillery is ARTILLERY_FED_C. */
+  weapon?: string;
+  level: number;
+  /** Reactor bars currently fed into this kit. Subsystems stay at 0. */
+  power: number;
+  /**
+   * Living Zoltans in this kit's room. Stamped by noteZoltanKits. Not reactor power.
+   * Wiki page "Zoltans": one yellow bar, and it is not removed by ion.
+   */
+  zoltan?: number;
+  /**
+   * Seconds left on each ion point. Zoltans: Cloaking, Hacking, Mind Control, and Crew Teleporter
+   * cannot be activated while any point remains. Same 5s point as a system, up to 5. Absent means none.
+   */
+  ion?: number[];
+  /** Seconds of the active effect left. */
+  left: number;
+  /** Seconds until it can be started again. */
+  cool: number;
+  /** Aimed room id or system id. */
+  target: string | null;
+  on: boolean;
+  /** Module scratch timer (shield-drop cadence, drone shot cadence). */
+  aux: number;
+  /**
+   * Combat drone orbit, degrees. Drone Control, "Combat Drones (offensive drones)":
+   * the drone flies to a new angle and fires when it arrives. Absent until that flight starts.
+   */
+  heading?: number;
+  /** Destination angle for the flight in `left`. Absent until a leg is chosen. */
+  bearing?: number;
+  /** Bars knocked out by weapon hits on the kit's room (enemy hulls). Absent means 0. */
+  damage?: number;
+  /** Repair progress on the next damaged bar, in crew-seconds. */
+  fix?: number;
+  /** Same as SystemState.want: bars powered before damage cut them. */
+  want?: number;
+  /** System Repair drone's room. Absent until that crew drone is deployed. */
+  room?: string;
+  /** Rooms the System Repair drone has not entered yet. The Artillery Beam's swipe rooms while it fires. */
+  path?: string[];
+  /**
+   * Artillery Beam swipe in progress: rooms already struck or passed under a Zoltan Shield,
+   * and how many of the 33% / 80% Zoltan ticks have passed. Absent while no swipe is running.
+   */
+  swipe?: { hit: string[]; ticks: number; landed?: boolean };
+  /** Progress toward the next room, from 0 to 1. */
+  move?: number;
+  /**
+   * System Repair: the system room this drone was standing in when power came back.
+   * That system is finished before any higher-priority job. Absent means it is not stuck.
+   */
+  stick?: string;
+  /** System Repair: walking back to Drone Control, and not taking a new job until it arrives. */
+  home?: boolean;
+  /** System Repair: power was off, so the next powered tick reassesses from the room it is in. */
+  hold?: boolean;
+  /**
+   * Zoltans, lead: Zoltan ids already in this room during the current cooldown.
+   * A new arrival replaces one locked reactor bar. Absent means this cooldown has not been seen yet.
+   */
+  swap?: string[];
+  /** Zoltan ids that already freed a locked reactor bar during the current cooldown. */
+  peeled?: string[];
+  /**
+   * Reactor bars Zoltans have displaced in Drone Control while the system is full.
+   * Same stamp as SystemState.zoltanHeld. Leaving restores them from spare.
+   */
+  zoltanHeld?: number;
+  /** Archive `<status type="limit">` on this kit. Same rule as SystemState.archiveLimit. */
+  archiveLimit?: number;
+  /** Archive `<status type="divide">` on this kit. Same rule as SystemState.archiveDivide. */
+  archiveDivide?: number;
+  /**
+   * @agent:drones. Enemy Drone Control: the schematics this hull fields this fight (enemy-gen.ts).
+   * Absent on the player kit and on hand-built test kits, which keep the single `target` drone.
+   */
+  loadout?: string[];
+  /** @agent:drones. Enemy drones deployed this fight, one per loadout slot. Absent until the first combat tick. */
+  drones?: DroneUnit[];
+  /**
+   * Player turned this deployed drone off.
+   * Zoltans: while Zoltan power alone fully powers the schematic, that switch does nothing.
+   * Absent means it is not manually depowered.
+   */
+  idle?: boolean;
+  /** @agent:drones. Seconds the player's deployed drone is stunned (enemy Anti-Combat Drone). */
+  stun?: number;
+  /** @agent:drones. Seconds elapsed in the player drone's current ion stun (swarm.ts ionHitsKit). Absent otherwise. */
+  ionT?: number;
+  /** @agent:drones. Seconds until the player can redeploy after a drone was destroyed (swarm.ts REDEPLOY_S). */
+  lost?: number;
+  /**
+   * System Repair Drone: set when that drone is destroyed. A redeploy ignores fires in other rooms
+   * until Drone Control has no damage. Absent means this deployment was not a rebuild.
+   */
+  coldFires?: boolean;
+  /**
+   * System Repair Drone, dying animation. Drone Control: it briefly keeps repairing, preserves the
+   * bar already underway, and ignores intruders. Absent means it is not in that animation.
+   */
+  dying?: boolean;
+  /** Ion Intruder health while that schematic is deployed. Drone Control: "Health: 125 HP". */
+  hp?: number;
+  /**
+   * Ion Intruder: a blast door took damage since the last pulse.
+   * Drone Control: "Will skip its cooldown if it attacked a blast door ... beforehand."
+   */
+  doorHit?: boolean;
+  /** The door already counted for that skip, so the same door does not skip again. */
+  doorChew?: string;
+  /** @agent:hacking. Enemy hacking drone: seconds of flight left. Absent while no drone is flying (extras/spike.ts). */
+  hackFly?: number;
+  /** @agent:hacking. Enemy hacking drone: the full flight time rolled at launch, for flight progress in the fx. */
+  hackFlyTotal?: number;
+  /** @agent:hacking. Enemy hacking drone: latched onto the player hull on `target`. */
+  hackLatched?: boolean;
+  /**
+   * @agent:hacking. Backup Battery only: reactor bars an enemy Hacking pulse takes away right now (extras/spike.ts sets
+   * it, extras/cell.ts subtracts it). Hacking wiki, "Overview" (Backup Battery): "temporarily removes two regular power
+   * bars from reactor". Absent means 0.
+   */
+  drained?: number;
+  /**
+   * Backup Battery, Overview: ion points that arrived at `ionAt`.
+   * Two 1-ion sources at the same time cover a level 2 battery.
+   * INFERRED: a later game time does not add. The maximum gap is an HTML to-do, so this is not a numbered interval.
+   * These are not a system ion track, and the page says that single point has no ion mark in the GUI.
+   */
+  ionAt?: number;
+  /** Points counted at `ionAt`. Absent means none. */
+  ionN?: number;
+  /** @agent:hacking. Player crew id an enemy Mind Control hack is holding this pulse. */
+  hackHeld?: string;
+  /**
+   * @agent:hack-rules. Player Hacking only: a launch picked while paused, committed on the next unpaused tick
+   * (extras/spike.ts). Hacking wiki, "Choosing your hacking target": "Once the game is unpaused, this choice is permanent".
+   */
+  hackQueued?: boolean;
+};
+
+/**
+ * @agent:drones. One drone an enemy Drone Control has deployed (extras/swarm.ts).
+ * Drone Control, Overview: "Enemies can have up to 4 active drones".
+ */
+export type DroneUnit = {
+  /** Stable id. CombatFx keys the orbit and the shot muzzle on it. */
+  id: string;
+  /** Schematic id, the same strings as Kit.target ("COMBAT_1", "DEFENSE_1", "COMBAT_BEAM_2", "BOARDER_ION", …). */
+  kind: string;
+  /** False once destroyed. `cool` then counts the redeploy delay. */
+  alive: boolean;
+  /** True while Drone Control bars cover it this tick. */
+  powered: boolean;
+  /** Shot, swipe, or pulse cadence, in seconds accumulated. */
+  aux: number;
+  /** Combat drone's current orbit angle, in degrees. Absent until the first leg. */
+  heading?: number;
+  /** Combat drone's destination angle. The leg length is `left`. */
+  bearing?: number;
+  /** Defense cooldown or target-acquire wait; for a dead drone, the redeploy delay. */
+  cool: number;
+  /** Seconds of stun left (Anti-Combat Drone, ion). */
+  stun?: number;
+  /** Seconds elapsed in the current ion stun. Absent when the stun is not from ion. */
+  ionT?: number;
+  /** Seconds left flying to the player hull (boarding drone, Ion Intruder). */
+  fly?: number;
+  /** Player room it is in (boarders), or the room the last swipe hit (beams, for the fx). */
+  room?: string;
+  /** Boarding drone / Ion Intruder health. */
+  hp?: number;
+  /** Ion Intruder pulse wait or overcharger layer wait, in seconds. */
+  left?: number;
+  /** Boarding drone progress toward the next broken system bar. */
+  fix?: number;
+  /** Ion Intruder rooms still to enter. Absent means it is not walking. */
+  path?: string[];
+  /** Ion Intruder progress toward the next room, from 0 to 1. */
+  move?: number;
+  /** System Repair: system room to finish first after power returns. */
+  stick?: string;
+  /** System Repair: walking back to Drone Control without taking a new job. */
+  home?: boolean;
+  /** System Repair: saw a tick with no power, so the next powered tick reassesses. */
+  hold?: boolean;
+  /**
+   * System Repair Drone: set when that drone is destroyed. A redeploy ignores fires in other rooms
+   * until Drone Control has no damage.
+   */
+  coldFires?: boolean;
+  /**
+   * System Repair Drone, dying animation. Drone Control: it briefly keeps repairing, preserves the
+   * bar already underway, and ignores intruders. Absent means it is not in that animation.
+   */
+  dying?: boolean;
+  /** A blast door took damage since the last pulse. Consumed when the cooldown is skipped. */
+  doorHit?: boolean;
+  /** The door already counted for that skip. */
+  doorChew?: string;
+  /** Seconds since the last shot or swipe, for the fx. */
+  fired?: number;
+};
+
+/** Crew Teleporter, "Enemy Crew Teleporter": one enemy hull's boarding bookkeeping (extras/sling.ts). */
+export type EnemyBoarding = {
+  /** Boardings sent this fight. */
+  sent: number;
+  /** Most boardings this hull may send: 2, or 3–4 for a Rebel Elite. Unused while `invasion` is set. */
+  limit: number;
+  /** Crew ids walking to, or standing on, the teleporter pads. */
+  party: string[];
+  /** Crew ids this teleporter sent aboard the player, and which it can recall. */
+  away: string[];
+  /** Station room each boarder left, so recalled crew walk back to it. */
+  home: Record<string, string>;
+  /** Crew that stay aboard, fixed when the plan is made (xftl doc/ship-ai, "Crew teleporting"). Absent in old saves. */
+  stay?: number;
+  /** xftl doc/ship-ai: invasion mode ("used by the flagship"). The Flagship keeps 1 or 2 crew home (sling.ts). */
+  invasion?: boolean;
+};
+
+export type Ship = {
+  name: string;
+  hull: number;
+  hullMax: number;
+  reactor: number;
+  /**
+   * Environmental Hazards, Plasma/ion Storm: this hull's reactor runs at half efficiency, rounded up.
+   * Backup Battery, Overview: the battery bars are not part of that half. Absent means the reactor is whole.
+   */
+  storm?: boolean;
+  systems: Record<SysId, SystemState>;
+  rooms: Room[];
+  doors: Door[];
+  weapons: WeaponInst[];
+  ammo: number;
+  shieldNow: number;
+  shieldCharge: number;
+  cols: number;
+  rows: number;
+  /**
+   * Orange bars from the hangar picture. Absent means every shared wall has a door,
+   * which is the Lark grid. Interior bars share one door per room pair.
+   */
+  doorMarks?: DoorMark[];
+  /** Optional kits bought onto this hull. Empty on a fresh Lark. */
+  kits: Partial<Record<KitId, Kit>>;
+  /** Drone parts. Spent by the spike and the swarm. */
+  parts: number;
+  /**
+   * Zoltan Shield points left. Absent means the ship has no such augment.
+   * 0 means the 5-point bubble is depleted until the next FTL jump.
+   */
+  zoltan?: number;
+  /**
+   * Drone Control, Shield Overcharger: "Overcharged shields are lost when making FTL jump."
+   * True only when this bubble was created while zoltan was absent.
+   * A bubble that was already present, including a depleted 0, is not marked.
+   * PARTIAL: points added onto an existing bubble are not subtracted. The page gives no ledger.
+   */
+  zoltanOver?: boolean;
+  /** Augment ids on an explicit enemy hull. The player's rack is `Game.augments`. */
+  augments?: string[];
+  /** Enemy hulls: the archive blueprint this ship was built from. */
+  classId?: string;
+  /** Faction page the class comes from, and whether this is the pirate version. */
+  faction?: string;
+  pirate?: boolean;
+  /** AI-Controlled Rebel Ships: "Automated ships are unmanned." Systems run without crew. */
+  automated?: boolean;
+  /**
+   * @agent:hacking. Enemy hulls: the system or kit id the player's hacking drone is latched onto (extras/spike.ts).
+   * Hacking wiki, "Choosing your hacking target": "When the drone reaches the enemy ship, it latches onto the hull".
+   * Lives on the enemy ship, so it leaves with it. Absent while no player drone is attached.
+   */
+  hackDrone?: string;
+  /**
+   * @agent:hack-rules. Enemy hulls: the system or kit id the player's hacking drone is flying at (extras/spike.ts).
+   * Lives on the enemy ship so a drone still in flight is lost with it. Absent while no player drone is in flight.
+   */
+  hackFlying?: string;
+  /** Enemy systems installed per the wiki that the sim does not run yet (drones, hacking, cloaking, …). */
+  unwired?: { id: string; level: number }[];
+  /** Enemy hull has a Crew Teleporter, so it can board. */
+  boards?: boolean;
+  /** Enemy Crew Teleporter plan for this fight (extras/sling.ts). Absent until the hull first acts on it. */
+  boarding?: EnemyBoarding;
+  /** @agent:crewai. Enemy hulls: the crew AI's posts and tasks for this fight (extras/crewai.ts). Absent until it first plans. */
+  crewAi?: CrewAiState;
+  /** @agent:flagship. Rebel Flagship only: stage, Power Surge, and AI-takeover state (wiki/flagship-systems.ts). */
+  flagship?: FlagshipState;
+};
+
+/** @agent:crewai. One enemy crew task (extras/crewai.ts). `room` is the destination room id. */
+/** xftl doc/crew-ai task kinds: heal, combat ("defend"), fire, hull breach, and repair. "flee" is the wiki's. */
+export type CrewAiTask = {
+  kind: "heal" | "flee" | "defend" | "fire" | "breach" | "repair";
+  room: string;
+};
+
+/** @agent:crewai. Enemy crew AI state on an enemy hull (extras/crewai.ts). */
+export type CrewAiState = {
+  /** Seconds until the next plan. */
+  t: number;
+  /** Crew id -> station room id the crew returns to when idle. */
+  post: Record<string, string>;
+  /** Crew id -> the task it is on. Absent means idle (at or walking to its post). */
+  task: Record<string, CrewAiTask>;
+  /** xftl doc/crew-ai: bHurtCrew, read by the ship AI to power the Medbay. */
+  hurt?: boolean;
+  /** xftl doc/crew-ai: bOverrideRace. Once set, crew bad at combat are no longer kept off combat tasks. */
+  overrideRace?: boolean;
+};
+
+export type BeaconKind =
+  | "start"
+  | "empty"
+  | "hostile"
+  | "store"
+  | "event"
+  | "distress"
+  | "nebula"
+  | "cache"
+  | "exit"
+  | "boss";
+
+export type Beacon = {
+  id: string;
+  col: number;
+  row: number;
+  /** Map position in px inside its 110px cell (rules/sector-map.ts, xftl doc/sector-map). Absent in old saves. */
+  x?: number;
+  y?: number;
+  links: string[];
+  kind: BeaconKind;
+  visited: boolean;
+  resolved: boolean;
+  name: string;
+  tier: string;
+  flag: string;
+  asteroid: boolean;
+  /**
+   * Environmental Hazards, Anti-Ship Battery: an out-of-fuel wait that the fleet overtakes removes the nebula environment.
+   * The beacon kind stays nebula. Absent means that environment is still there.
+   */
+  cleared?: boolean;
+  /**
+   * @agent:quests. Beacons, "Quest (marker) beacon": the quest this beacon holds (wiki/quests.ts QUESTS key).
+   * Drawn as 'QUEST' on the map from any distance. Absent on every other beacon.
+   */
+  quest?: string;
+  /**
+   * Slug repair station, Trivia: revisiting removes the malfunction. The reward table stays.
+   * Set when that fight's engine cap or weapon half is applied. Absent on every other beacon.
+   */
+  mark?: string;
+  /**
+   * Archive `<reveal_map>`: this beacon's store, distress, quest, exit, or repair mark is drawn.
+   * Visiting and the score stay as they were.
+   */
+  known?: boolean;
+  /** Archive `<repair>`: the map draws REPAIR. This is not the Last Stand repair station. */
+  repair?: boolean;
+};
+
+/** Between-sector chart. Names and colors come from the Sectors page. */
+export type SectorNode = {
+  id: string;
+  /** ftl.dat sector id (sector_data.xml's sectorDescription name). */
+  sector: string;
+  name: string;
+  /** Short chart label, when the sector stored one. The HUD keeps `name`. */
+  short?: string;
+  group: "civilian" | "hostile" | "nebula" | "last-stand";
+  col: number;
+  row: number;
+  links: string[];
+};
+
+export type Phase =
+  "title" | "map" | "event" | "store" | "combat" | "reward" | "victory" | "defeat";
+
+/** Score, lead formula: Easy, Normal, or Hard. D is 1, 1.25, or 1.5. */
+export type Difficulty = "easy" | "normal" | "hard";
+
+/**
+ * Per the user: the cargo hold, 4 slots for weapons and drone schematics that are not fitted (rules/make-room.ts).
+ * Augmentations: "the cargo storage cannot hold any of them", and crew are not cargo.
+ * Weapon Control: "A weapon charge can be stored if a weapon is fully charged and then put into a cargo slot."
+ */
+export type CargoItem =
+  { kind: "weapon"; id: string; charge?: number } | { kind: "drone"; id: string };
+
+/** rules/make-room.ts: an item with no room. A crew entry means more than 8 crew are aboard. */
+export type Overflow =
+  | { kind: "augment"; id: string }
+  | { kind: "weapon"; id: string }
+  | { kind: "drone"; id: string }
+  /** `keep`: a paid hire, who stays (Crew: relieve "one of the existing crewmembers before purchase/hire"). */
+  | { kind: "crew"; keep?: string };
+
+export type StockItem = {
+  id: string;
+  kind:
+    "fuel" | "missiles" | "parts" | "weapon" | "repair" | "system" | "augment" | "drone" | "crew";
+  ref: string;
+  name: string;
+  detail: string;
+  cost: number;
+  amount: number;
+};
+
+export type FloatText = {
+  id: string;
+  text: string;
+  life: number;
+  x: number;
+  y: number;
+  /** Printed by a beam while it is still firing. The effects layer does not pair it with a landing shot. */
+  beam?: boolean;
+};
+
+/** Archive waves the tick asks the app to play. The file list stays with playback. */
+export type ArchiveEvent =
+  "missileHit" | "droneLaunch" | "hullHit" | "shieldsDown" | "sun" | "mantisFight";
+
+/**
+ * One sound the step produced. A string is a one-shot name. `archive` is a wave the tick used to play
+ * itself. `launch` is a weapon firing; the app picks the packed cue.
+ */
+export type Cue =
+  string | { archive: ArchiveEvent; variant?: number } | { launch: string; kind?: string };
+
+/** Work loops the step wants running. The app applies these. A missing flag is off. */
+export type BedFlags = {
+  fire: boolean;
+  repair: boolean;
+  airLeak: boolean;
+  hackLoop: boolean;
+  cloneBroken: boolean;
+  shrikeRepair: boolean;
+};
+
+export type GameEvent = {
+  title: string;
+  body: string;
+  choices: { id: string; label: string }[];
+  /** Archive image path. The event card resolves it to a URL. */
+  img?: string;
+};
+
+/**
+ * Counters for Achievements and Ship Achievements whose printed condition is not a single field
+ * the run already stored. A missing flag means that thing has not happened.
+ */
+export type AchieveTally = {
+  shot?: boolean;
+  offensiveDrone?: boolean;
+  teleported?: boolean;
+  upgraded?: boolean;
+  storeRepair?: boolean;
+  missileOrBomb?: boolean;
+  usedDrone?: boolean;
+  storeBuy?: boolean;
+  lostCrew?: boolean;
+  evadeStreak?: number;
+  evadeBest?: number;
+  boardKills?: number;
+  boardBest?: number;
+  enemyShot?: boolean;
+  playerShots?: number;
+  sawIt?: boolean;
+  allAboard?: boolean;
+  beamAt?: number;
+  beamRooms?: string[];
+  sliced?: boolean;
+  asphyxia?: boolean;
+  fromOne?: boolean;
+  cloakPrey?: boolean;
+  cloakAvoid?: number;
+  envJump?: boolean;
+  crewKillShips?: number;
+  cleanKills?: number;
+  cleanBroke?: boolean;
+  lastStand?: boolean;
+  dronePeak?: number;
+  droneHurt?: boolean;
+  weaponHurt?: boolean;
+  artilleryUsed?: boolean;
+  otherWeapon?: boolean;
+  missileShots?: number;
+  /**
+   * A crystal gun fired this fight. It still counts as a missile shot.
+   * It is not otherWeapon: that flag would fail Defense Drones Don't Do D'anything.
+   * It does block an artillery-only kill and a drone-only kill.
+   */
+  crystalWeapon?: boolean;
+  ionFour?: boolean;
+  nebulaJumps?: number;
+  antiBio?: number;
+  warmKill?: boolean;
+  missileDefense?: boolean;
+  shieldArmed?: boolean;
+  shieldIntact?: boolean;
+  shieldsHeld?: boolean;
+  vengeance?: boolean;
+  trapped?: boolean;
+  rockKills?: number;
+  artilleryKill?: boolean;
+  droneOnly?: boolean;
+  burnedAll?: boolean;
+  o2Broke?: boolean;
+  fightHull?: boolean;
+  phaseShift?: boolean;
+  bird?: boolean;
+  /** Hacking, Mind Control, and the Battery active together. */
+  mastery?: boolean;
+  /** Five crew kills in one fight before hull damage or a lost crewmember. */
+  avast?: boolean;
+  /** Reached sector 8 without an environmental-danger jump. */
+  reachedClean?: boolean;
+  /**
+   * Diplomatic Immunity: distinct crew-blue choice ids used by sector 5 on the Federation Cruiser.
+   * The count is `blueCrew`. A later sector does not add to the list.
+   */
+  blueSeen?: string[];
+  /** How many of those crew-blue choices have been used. */
+  blueCrew?: number;
+};
+
+export type Game = {
+  /**
+   * RNG cursor. Map generation and later rolls move it.
+   * `runSeed` is the seed the run was built from and does not move.
+   */
+  seed: number;
+  /** The seed passed to createGame. Absent on saves from before it was stored. */
+  runSeed?: number;
+  uid: number;
+  phase: Phase;
+  paused: boolean;
+  /**
+   * Per the user: the room radial menu holds the clock while it is open, apart from `paused` (closing it never
+   * unpauses a pause the player set). Not saved: loadGame clears it.
+   */
+  menuHold?: boolean;
+  /**
+   * Per the user: the player's own pause (the pause button, Space), independent of every other hold. A card, menu or
+   * overlay stops the clock through `paused`/`menuHold`/the overlay flags; closing them never clears this, and toggling
+   * this never clears them. All must be off for the clock to run (sim.ts halted).
+   */
+  userPaused?: boolean;
+  /**
+   * Per the user: rewards that arrived to a full rack, waiting for the player to pick what is left behind
+   * (rules/make-room.ts). The first entry is on screen; the clock is stopped while any wait.
+   */
+  overflow?: Overflow[];
+  /** Per the user: the distress beacon for an out-of-fuel wait. The executable loads NO_FUEL or NO_FUEL_DISTRESS. Missing means on. */
+  distress?: boolean;
+  /** Per the user: the 4-slot cargo hold (CargoItem). Missing on older saves means empty. */
+  cargo?: CargoItem[];
+  /**
+   * Per the user: a beaten ship that did not explode (surrender accepted, crew killed, stalemate break-off) stays at
+   * the beacon until the player jumps, so its panel stays up and crew still aboard can be teleported back. It is not
+   * a fight: no AI, guns or targeting. Cleared on jump and when a new fight starts. INFERRED from the Teleporter's
+   * recall and sling onJumpSling (crew left there when you jump are lost).
+   */
+  wreck?: Ship | null;
+  /**
+   * Per the user: enemy boarding drones that had already landed lose power when that hull is destroyed
+   * and stay in the room until the player jumps. Drones still in flight go down with the ship.
+   * A crew kill, a surrender, or the enemy fleeing does not park them here. Absent means none.
+   */
+  boarded?: DroneUnit[];
+  sector: number;
+  /** ftl.dat sector id. Sector tables key on this, not on the name the sector shows. */
+  sectorId: string;
+  sectorName: string;
+  beacons: Beacon[];
+  here: string;
+  fleet: number;
+  /**
+   * Archive `<secretSector>` armed a jump to the Hidden Crystal Worlds.
+   * The jump waits until the fight that armed it ends, and it is cleared if the player jumps away first.
+   */
+  secretSector?: boolean;
+  /**
+   * xftl doc/sector-map: the danger zone's centre height, "picked at random in the range of 50-300" per sector
+   * (rules/sector-map.ts). Absent in old saves.
+   */
+  dangerY?: number;
+  /** Augmentations, Distraction Buoys: the next fleet advance is skipped. 0 means none waiting. */
+  buoyDelay: number;
+  scrap: number;
+  fuel: number;
+  missiles: number;
+  player: Ship;
+  enemy: Ship | null;
+  crew: Crew[];
+  shots: Shot[];
+  log: string[];
+  selected: string | null;
+  /**
+   * Player crew in the current selection. The last id is `selected` (lockdown, teleporter preference).
+   * Absent on an older save means only `selected` is selected.
+   */
+  squad?: string[];
+  /** Weapon currently receiving a target click. */
+  armed: string | null;
+  /** Weapon Control, Overview: the cursor is in targeting mode. */
+  targeting: boolean;
+  /** First click of a player beam, in enemy tile space. Null until that click. */
+  beamAnchor: BeamPoint | null;
+  /** Weapon Control, Overview: autofire for every weapon. A slot's autoInvert reverses that. */
+  autofireAll: boolean;
+  mode: "crew" | "vent";
+  event: GameEvent | null;
+  stock: StockItem[] | null;
+  /** @agent:surrender. `res` lists non-scrap resources on the reward card (surrender cargo, stalemate fuel). */
+  reward: {
+    scrap: number;
+    note: string;
+    res?: { fuel?: number; missiles?: number; parts?: number };
+  } | null;
+  pending: string | null;
+  tutorial: boolean;
+  hint: boolean;
+  hitstop: number;
+  trauma: number;
+  floaters: FloatText[];
+  sfx: Cue[];
+  time: number;
+  asteroid: boolean;
+  asb: boolean;
+  /**
+   * `<environment type="PDS" target>`. Absent means the battery aims at this ship.
+   * "enemy" aims at the other hull. "all" fires at both.
+   */
+  asbAim?: "player" | "enemy" | "all";
+  /**
+   * `<environment type="nebula">` on the event being played.
+   * A wait here uses the nebula fleet step. A jump clears it.
+   */
+  eventNebula?: boolean;
+  /**
+   * `<environment type="storm">` on the event being played.
+   * The ion storm stays until the jump, including on a beacon that is not a nebula.
+   */
+  eventStorm?: boolean;
+  asteroidT: number;
+  /**
+   * Environmental Hazards, Asteroid Field: seconds until the next rock in a wave (rules/asteroid.ts).
+   * 0 until that field is armed.
+   */
+  asteroidWait?: number;
+  /** xftl doc/asteroids (rules/asteroid.ts): the asteroid state machine's phase, and seconds left in it. */
+  asteroidPhase?: "break" | "wave1" | "wave2";
+  asteroidPhaseLeft?: number;
+  /** xftl doc/asteroids: "fired in sequence at your ship and the enemy's ship"; true when the next one is the enemy's. */
+  asteroidEnemyNext?: boolean;
+  /** Seconds into the current anti-ship battery phase. */
+  asbT: number;
+  /**
+   * Environmental Hazards, ==Anti-Ship Battery (ASB)==.
+   * "warn" is the 15–20s warning. "shot" is the 5–10s wait for the real projectile.
+   */
+  asbPhase: "warn" | "shot";
+  /** Seconds the current phase runs. 0 until that battery is armed. */
+  asbWait: number;
+  /**
+   * Environmental Hazards, ==Pulsar==. True when the fight's event page sets pulsar=true.
+   * Absent on a save from before that clock, which is the same as off.
+   */
+  pulsar?: boolean;
+  /** Seconds into the current 11–18s pulsar cycle. */
+  pulsarT?: number;
+  /** Length of the current cycle. The warning is the last 5 seconds. 0 until armed. */
+  pulsarWait?: number;
+  /** True after this cycle's warning has been logged. */
+  pulsarWarned?: boolean;
+  /**
+   * Environmental Hazards, ==Class-M Red Giant Star==. True when the fight's event page sets redgiant=true.
+   * Absent on a save from before that clock, which is the same as off.
+   */
+  flare?: boolean;
+  /** Seconds into the current 28–34s flare cycle. */
+  flareT?: number;
+  /** Length of the current cycle. The warning is the last 5 seconds. 0 until armed. */
+  flareWait?: number;
+  /** True after this cycle's warning has been logged. */
+  flareWarned?: boolean;
+  boardTimer: number;
+  bossSurge: number;
+  /** Flagship stage. 1, then 2, then 3. Each stage is its own battle. */
+  ramStage: 1 | 2 | 3;
+  /**
+   * @agent:flagship. Rebel Flagship stage and surviving crew waiting for the next battle
+   * (wiki/flagship-systems.ts). Set when a stage falls, and when the player jumps away during stage 2 or 3.
+   * Absent before the first of those, and after a stage-1 retreat.
+   */
+  flagshipMemo?: import("./wiki/flagship-systems.ts").FlagshipMemo;
+  flee: number;
+  /** Enemy escape progress, 0 to 1, against enemyEscape.seconds. Moves only while enemyEscape.running. */
+  enemyFlee: number;
+  /** How the current enemy tries to jump away (rules/escape.ts). Null outside a fight. */
+  enemyEscape?: EscapePlan | null;
+  /** @agent:surrender. Surrender offer state for the current enemy (rules/surrender.ts). */
+  enemySurrender?: SurrenderPlan | null;
+  /** @agent:surrender. Anti-stalemate clock: seconds below the hull threshold since the enemy last lost hull. */
+  stalemate?: { ship: string; hull: number; quiet: number } | null;
+  /** Rebel Fleet: a fleeing scout or auto-ship got away, so the next fleet advance is doubled. */
+  pursuitDouble?: boolean;
+  picking: boolean;
+  outcome: string;
+  jumps: number;
+  kills: number;
+  /** Score, lead formula: Easy 1, Normal 1.25, Hard 1.5. Missing on an old save means Normal. */
+  difficulty: Difficulty;
+  /** Score page: scrap gained during the run. Starting scrap is not included. */
+  scrapCollected: number;
+  /**
+   * Manpower: event offers that upgrade the reactor do not count against the achievement.
+   * Bars added by those offers. Absent means none. The upgrades tab does not add to this.
+   */
+  reactorEvent?: number;
+  /**
+   * Achievement counters the save did not used to keep.
+   * Absent on an older save means none of these marks have been seen.
+   */
+  tally?: AchieveTally;
+  /** Score page: beacons visited. The starting beacon counts. */
+  beaconsVisited: number;
+  /** Sectors page chart. Empty until the exit beacon opens it. */
+  sectorMap: boolean;
+  /**
+   * Sectors, Hidden Crystal Worlds: a restart while in that sector. This run's exit does not open the chart.
+   * INVENTED: the page names no saved flag.
+   */
+  crystalRestart?: boolean;
+  route: SectorNode[];
+  routeHere: string;
+  /** Hull chosen in the hangar. Restart uses it. */
+  hullId?: string;
+  /** @agent:unlocks. Hull ids an event outcome unlocked this run (unlocks.ts grantUnlock). The store persists them. */
+  unlocked?: string[];
+  /** Title TUTORIAL. Game Over uses the training sentence only for this run. */
+  training: boolean;
+  manual: boolean;
+  shipSheet: boolean;
+  /**
+   * Ship menu tab. Upgrades, the crew manifest, or inventory.
+   * Absent on a save from before the split means Upgrades.
+   */
+  shipTab?: ShipTab;
+  muted: boolean;
+  lowHull: boolean;
+  /** Beacon the last-sector ship currently occupies. */
+  ramId: string | null;
+  /** Jumps remaining before that ship moves. */
+  ramClock: number;
+  /**
+   * The Rebel Flagship: flagship jumps already spent while it is on the Federation base.
+   * INFERRED: the jump that lands there is not one of those three.
+   */
+  ramAtBase?: number;
+  /** Installed augments. Three is the cap. A packed id is a string so a later listing can be fitted. */
+  augments: string[];
+  /**
+   * @agent:drones. Recent shots, rocks, and stray defense fire that struck an external drone (swarm.ts). Each entry
+   * ages in tickSwarm and drops after DRONE_BLAST_S, for a CombatFx burst at the orbit. Absent until the first hit.
+   */
+  droneBlasts?: DroneBlast[];
+  /** @agent:quests. Quests pushed to the next sector ("Added a quest marker to the next sector!"), wiki/quests.ts. */
+  questsNext?: string[];
+  /** @agent:quests. Slug of the event page that started the current fight (startCombat's `event`), for page win rewards. */
+  fightEvent?: string | null;
+  /** Root `<ship name>` id when this fight's tier is a ship event. Cleared when the tier is not one. */
+  fightShip?: string | null;
+  /**
+   * Boarders: Humans (Abandoned): faction of the last fight.
+   * A hungry-human beacon after a Lanius ship gives those boarders Emergency Respirators.
+   * INFERRED: remembered until the next startCombat, so a repeat before another fight still has it.
+   */
+  lastFaction?: string;
+};
+
+/** @agent:drones. One drone struck by a shot (swarm.ts noteBlast). */
+export type DroneBlast = {
+  /** Whose drone was struck. */
+  side: "player" | "enemy";
+  /** Schematic id of the drone. */
+  kind: string;
+  /** Enemy DroneUnit id; absent for the player's single drone. */
+  unitId?: string;
+  /** Which hull the drone orbits. */
+  at: "player-orbit" | "enemy-orbit";
+  /** What struck it. */
+  by: "shot" | "rock" | "defense";
+  /** "down" destroyed, "ion" stunned by an ion shot. */
+  result: "down" | "ion";
+  /** Seconds since the hit. */
+  age: number;
+};

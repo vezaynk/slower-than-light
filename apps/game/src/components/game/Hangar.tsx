@@ -10,7 +10,7 @@
  * and uniform per seat, and the run starts with exactly those crew (crew-look.ts).
  */
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import "@/game/pack/base";
+import "@stl/sim/pack/base.ts";
 import { achievementDef, hullDef, miniShipPath, startingFit, weaponDef } from "@stl/pack";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import {
@@ -21,19 +21,19 @@ import {
   kinLabel,
   randomName,
   type CrewPick,
-} from "@/game/crew-look";
-import type { KinId } from "@/game/extras/kin";
-import { hangarBay } from "@/game/hangar-bay";
+} from "@stl/sim/crew-look.ts";
+import type { KinId } from "@stl/sim/extras/kin.ts";
+import { hangarBay } from "@stl/sim/hangar-bay.ts";
 
 import { factionPaint } from "@/game/hull-plate";
-import { hangarLoadout } from "@/game/sim";
-import type { IconName } from "@/game/icons";
+import { hangarLoadout } from "@stl/sim/sim.ts";
+import type { IconName } from "@stl/sim/icons.ts";
 import { useGame } from "@/game/store";
-import type { Difficulty as RunDifficulty } from "@/game/types";
+import type { Difficulty as RunDifficulty } from "@stl/sim/types.ts";
 import { hangarPages } from "@/game/hangar-roster";
-import { earnedIds } from "@/game/wiki/achievement-track";
+import { earnedIds } from "@stl/sim/wiki/achievement-track.ts";
 import { getUnlocks, resetUnlocks, subscribeUnlocks, unlockAll } from "@/game/unlock-store";
-import { emptyUnlocks, isUnlockedIn, ruleFor, shipAchievements } from "@/game/unlocks";
+import { emptyUnlocks, isUnlockedIn, ruleFor, shipAchievements } from "@stl/sim/unlocks.ts";
 import { CrewSprite } from "./CrewSprite";
 import { DroneArt, WeaponArt } from "./GearArt";
 import { CloseX } from "./CloseX";

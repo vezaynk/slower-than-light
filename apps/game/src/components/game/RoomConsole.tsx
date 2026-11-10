@@ -4,7 +4,7 @@
  * hacking, and artillery have no terminal. Medbay and Clone Bay draw their machine on the tile nobody stands on
  * (RoomProp below).
  */
-import { pixelRuns } from "@/game/gear-look";
+import { pixelRuns } from "@stl/sim/gear-look.ts";
 
 const INK: Record<string, string> = {
   c: "ink-casing",

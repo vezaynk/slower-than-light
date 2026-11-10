@@ -11,7 +11,7 @@ import {
   saveOrder,
   STAND_IN_ID,
 } from "../pack/archive-list.ts";
-import { replaceSavedSession, savedSessionRaw } from "../sim.ts";
+import { replaceSavedSession, savedSessionRaw } from "@stl/sim/sim.ts";
 import {
   replaceUnlockRecord,
   resetUnlockMemory,
@@ -23,8 +23,12 @@ import {
   earnedIds,
   replaceAchievementRecord,
   resetAchievementMemory,
-} from "../wiki/achievement-track.ts";
-import { lifetimeRecordRaw, replaceLifetimeRecord, storedLifetime } from "../wiki/achieve-notes.ts";
+} from "@stl/sim/wiki/achievement-track.ts";
+import {
+  lifetimeRecordRaw,
+  replaceLifetimeRecord,
+  storedLifetime,
+} from "@stl/sim/wiki/achieve-notes.ts";
 import {
   commitHandoff,
   digestBlob,

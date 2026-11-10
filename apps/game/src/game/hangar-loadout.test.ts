@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { canFlyDrone } from "./extras/flown.ts";
-import { playerDroneSlots } from "./extras/swarm.ts";
-import { hullById, playerHulls } from "./hulls.ts";
+import { canFlyDrone } from "@stl/sim/extras/flown.ts";
+import { playerDroneSlots } from "@stl/sim/extras/swarm.ts";
+import { hullById, playerHulls } from "@stl/sim/hulls.ts";
 import {
   augmentDef,
   droneDef,
@@ -16,10 +16,10 @@ import {
   systemDef,
   weaponDef,
 } from "@stl/pack";
-import { createGame, hangarLoadout } from "./sim.ts";
-import { hangarBay } from "./hangar-bay.ts";
+import { createGame, hangarLoadout } from "@stl/sim/sim.ts";
+import { hangarBay } from "@stl/sim/hangar-bay.ts";
 import { hangarPages } from "./hangar-roster.ts";
-import { systemLabel } from "./content.ts";
+import { systemLabel } from "@stl/sim/content.ts";
 
 const picks = [
   { name: "Ada", uniform: 1 },

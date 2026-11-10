@@ -1,0 +1,3137 @@
+import { liveTable, skillRank } from "../content.ts";
+import { canFlyDrone, defenseAs, flownAs, type DefenseAs } from "./flown.ts";
+import {
+  applyIon,
+  blastHits,
+  crewBlowDamage,
+  crewBlowDue,
+  doorLevel,
+  FIRE_FIGHT_SHARE,
+  isMain,
+  archiveBars,
+  kitBars,
+  log,
+  negateIon,
+  noteDoorArmed,
+  noteEnemyBreach,
+  powerSlotFits,
+  punchCoat,
+  rand,
+  REPAIR_SECONDS,
+  sparePower,
+  syncShields,
+  takePowerSlot,
+  zoltanBars,
+} from "../sim.ts";
+import { xpNeedFor } from "./lineage.ts";
+import { combatSkillMult } from "../wiki/skills.ts";
+import { seatKits } from "../layouts.ts";
+import { evenBeamSpans } from "../beam-line.ts";
+import { registerBeamTicker } from "../beam-tickers.ts";
+import { SCHEMATIC_POWER } from "../enemy-gen.ts";
+import type { Crew, DroneBlast, DroneUnit, Game, Kit, Room, Ship, Shot, SysId } from "../types.ts";
+import "../pack/base.ts";
+import { crewDef, droneDef, weaponDef } from "@stl/pack";
+import { battleDroneFight, repairDronePace } from "./drone-crew.ts";
+import { veilBlocks } from "./veil.ts";
+import { crewDroneSpeed } from "../rules/cited-booster.ts";
+import { bypassZoltan } from "../rules/cited-bypass.ts";
+import {
+  intruderIon,
+  intruderPower,
+  intruderPulseMax,
+  intruderPulseMin,
+  intruderStun,
+} from "../rules/cited-intruder.ts";
+import { overchargerPower, overchargerWait } from "../rules/cited-overcharger.ts";
+import { scramblerBlocks } from "../rules/cited-scrambler.ts";
+import { beamHoldSeconds, COMBAT2, bearingAccepted, orbitLegSeconds } from "../rules/combat2.ts";
+import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { airShown } from "../air.ts";
+import { holdLoopCue, queueArchive, queueSfx } from "../sfx-queue.ts";
+
+/**
+ * Drone Control, the paragraph above "Overview": the system itself is priced at 60.
+ * A store bundle with a System Repair drone is 75. Any other bundled schematic is 85.
+ * The naked 60 is not what a store charges, so installSwarm still refuses.
+ * cited-stores.ts sells the labeled bundles: 75 with System Repair, 85 otherwise.
+ * There is no heading on that paragraph. "Overview" is the next heading, not its section.
+ */
+export const INSTALL_SCRAP: number | null = null;
+// Wiki citations:
+// > "When the Drone Control system is bought at a store, it always comes with 2 slots and 2 system levels. It includes one random \"half price\" drone schematic, which is a System Repair Drone, a Defense Drone Mark I, or a Combat Drone Mark I. The base price of the system is 60 scrap, so it costs 75 scrap when bundled with a System Repair Drone and 85 scrap otherwise." — [[Drone Control]]
+export const BUNDLE_PATCH = 75;
+export const BUNDLE_OTHER = 85;
+
+/**
+ * INFERRED: Drone Control, Overview says the system "Powers all of the ship's
+ * drones" and lists no power cost for the system room itself. Fed bars are
+ * the whole budget; this overhead stays 0.
+ */
+export const SYSTEM_POWER = 0;
+
+export type SwarmKind =
+  | "DEFENSE_1"
+  | "DEFENSE_2"
+  | "ANTI_DRONE"
+  | "COMBAT_1"
+  | "COMBAT_BEAM"
+  | "BOARDER"
+  | "REPAIR"
+  | "SHIP_REPAIR";
+
+/**
+ * Per-drone power when the blueprint omits `<power>`. The system overhead above is separate and is 0.
+ * INFERRED, same as SYSTEM_POWER.
+ */
+const DRONE_POWER_FALLBACK: Record<SwarmKind, number> = {
+  /** Drone Control, Defensive Drones > Defense Drone Mark I: "Power requirement: 2 power". */
+  DEFENSE_1: 2,
+  /** Drone Control, Defense Drone Mark II: "Power requirement: 3 power". */
+  DEFENSE_2: 3,
+  /** Drone Control, Anti-Combat Drone: "Power requirement: 1 power". */
+  ANTI_DRONE: 1,
+  /** Drone Control, Combat Drone Mark I: "Power requirement: 2 power". */
+  COMBAT_1: 2,
+  /** Drone Control, Combat Drones (offensive drones) > Anti-Ship Beam Drone I: "Power requirement: 2 power". */
+  COMBAT_BEAM: 2,
+  /** Drone Control, Boarding Drones > Boarding Drone: "Power requirement: 3 power". */
+  BOARDER: 3,
+  /** Drone Control, Crew Drones > System Repair Drone: "Power requirement: 1 power". */
+  REPAIR: 1,
+  /** Drone Control, Defensive Drones > Hull Repair Drone: "Power requirement: 2 power". */
+  SHIP_REPAIR: 2,
+};
+
+/** Bars a schematic needs. The blueprint's `<power>` wins. Shield overchargers are not in this list. */
+export const DRONE_POWER: Record<SwarmKind, number> = liveTable(
+  Object.keys(DRONE_POWER_FALLBACK),
+  (kind) => droneDef(kind)?.power ?? DRONE_POWER_FALLBACK[kind as SwarmKind],
+) as Record<SwarmKind, number>;
+
+/**
+ * Shot cooldown in seconds. Mark I and Mark II act when this hits 0.
+ * Anti-Combat starts fully charged (0) and would use its entry after a shot.
+ */
+/** Blueprint cooldown is milliseconds. These are the seconds when that child is absent. */
+const DRONE_COOLDOWN_MS = {
+  /** Drone Control, Defensive Drones > Defense Drone Mark I: "Cooldown: 1000 ms". */
+  DEFENSE_1: 1000,
+  /** Drone Control, Defense Drone Mark II: "Cooldown: 880 ms". */
+  DEFENSE_2: 880,
+  /** Drone Control, Anti-Combat Drone: "Cooldown: 7000 ms". */
+  ANTI_DRONE: 7000,
+} as const;
+
+export const DRONE_COOLDOWN_S: Record<"DEFENSE_1" | "DEFENSE_2" | "ANTI_DRONE", number> = liveTable(
+  Object.keys(DRONE_COOLDOWN_MS),
+  (kind) =>
+    (droneDef(kind)?.cooldown ?? DRONE_COOLDOWN_MS[kind as keyof typeof DRONE_COOLDOWN_MS]) / 1000,
+) as Record<"DEFENSE_1" | "DEFENSE_2" | "ANTI_DRONE", number>;
+
+/**
+ * Drone Control, "Combat Drones (offensive drones)", the paragraph above "Combat Drone Mark I":
+ * "Drones deal 1 hull/system damage per projectile (of the Combat Drones)".
+ * The Drones page is only a redirect and does not contain this sentence.
+ */
+const STRIKER_DAMAGE = 1;
+
+/** Drone Control, Combat Drone Mark I: "Laser blast has 10% chance to start fire in the hit room". */
+const STRIKER_FIRE = 10 / 100;
+
+/**
+ * INFERRED: Combat Drone Mark I lists a laser and a 10% fire chance only.
+ * No ion damage and no breach chance are given, so both stay 0.
+ */
+const STRIKER_ION = 0;
+const STRIKER_BREACH = 0;
+
+/** Damage figures one drone shot carries. */
+type DroneHit = { damage: number; ion: number; fireChance: number; breachChance: number };
+
+/**
+ * The gun a drone blueprint names with `<weaponBlueprint>` (ftl.dat: DRONE_LASER, DRONE_BEAM, DRONE_FIREBEAM...).
+ * Its damage, ion, fire, and breach replace the cited figures. A drone naming no loaded gun keeps them.
+ */
+export function droneGun(kind: string, cited: DroneHit): DroneHit {
+  const id = droneDef(kind)?.weapon;
+  const gun = id ? weaponDef(id) : undefined;
+  if (!gun) return cited;
+  return { damage: gun.damage, ion: gun.ion, fireChance: gun.fire, breachChance: gun.breach };
+}
+
+/**
+ * The projectile a drone's loaded gun launches, and the gun id for its pierce, stun, and sounds.
+ * ftl.dat's DRONE_ION and DRONE_MISSILE are typed ION and MISSILE. A gun typed LASER with no damage but ion
+ * still ionizes, because sim.ts applies ion only to an ion shot. A drone naming no loaded gun stays a laser.
+ */
+export function droneGunShot(kind: string): { kind: "laser" | "ion" | "missile"; defId?: string } {
+  const id = droneDef(kind)?.weapon;
+  const gun = id ? weaponDef(id) : undefined;
+  if (!id || !gun) return { kind: "laser" };
+  if (gun.kind === "missile") return { kind: "missile", defId: id };
+  if (gun.kind === "ion" || (gun.damage === 0 && gun.ion > 0)) return { kind: "ion", defId: id };
+  return { kind: "laser", defId: id };
+}
+
+/**
+ * INVENTED: the drone page has no projectile flight time. Must be > 0 because
+ * shot progress divides by duration. 0.7 matches other laser shots in this drill.
+ */
+const STRIKER_FLIGHT_S = 0.7;
+
+/**
+ * Drone Control, Anti-Ship Beam Drone I: "Speed: 15".
+ * "Beam speed: 3" is a beam stat, not a swipe interval.
+ * Combat Drones (offensive drones): offensive drones, including beam drones,
+ * orbit the enemy ship and attack when that leg finishes.
+ */
+export const BEAM1_SPEED = 15;
+/** Anti-Ship Beam Drone II: "Speed: 11". "Moves a bit slower than Mark I". */
+export const BEAM2_SPEED = 11;
+/** Anti-Ship Fire Drone: "Speed: 12". */
+export const FIRE_DRONE_SPEED = 12;
+
+export function beamDroneSpeed(kind: string): number {
+  const packed = droneDef(kind)?.speed;
+  if (packed != null && packed > 0) return packed;
+  if (kind === "COMBAT_2") return COMBAT2.speed;
+  if (kind === "COMBAT_BEAM_2") return BEAM2_SPEED;
+  if (kind === "fire" || kind === "COMBAT_FIRE") return FIRE_DRONE_SPEED;
+  return BEAM1_SPEED;
+}
+
+/**
+ * Drone Control, Combat Drones (offensive drones):
+ * "1 hull/system damage ... per room crossed by the beam (of the Beam Drones, but not the Fire Drone)."
+ * Anti-Ship Beam Drone I beam length is "20 (0.4 tile diagonally)".
+ * INFERRED: one room per swipe. The page does not say the swipe hits one room.
+ */
+const BEAM_DAMAGE = 1;
+
+/** Drone Control, Combat Drones (offensive drones) > Anti-Ship Beam Drone I: "10% chance to set a tile on fire". */
+const BEAM_FIRE = 10 / 100;
+
+const STRIKER_HIT: DroneHit = {
+  damage: STRIKER_DAMAGE,
+  ion: STRIKER_ION,
+  fireChance: STRIKER_FIRE,
+  breachChance: STRIKER_BREACH,
+};
+const COMBAT2_HIT: DroneHit = {
+  ...STRIKER_HIT,
+  damage: COMBAT2.damage,
+  fireChance: COMBAT2.fireChance,
+};
+const BEAM_HIT: DroneHit = { damage: BEAM_DAMAGE, ion: 0, fireChance: BEAM_FIRE, breachChance: 0 };
+
+/**
+ * Door System, Door strength: "They make about one attack per second with slightly randomized timing."
+ * Boarding Drones > Boarding Drone gives no attack interval.
+ * INFERRED: a flat 1 second. The slight randomization is not applied.
+ * Boarding Drone prints "Speed: 18 (when moving through space)". Flight seconds are unprinted,
+ * so this interval is still the arrival.
+ */
+const BOARD_INTERVAL_S = 1;
+
+/**
+ * Boarding, Combat: an unskilled human deals "3 to 7 HP, an average of 5 damage per hit."
+ * Drone Control, Boarding Drone, prints no hit damage, so the drone uses that range.
+ * INFERRED: each integer from 3 through 7 is equally likely. The average is the printed 5.
+ */
+function boardHit(g: Game): number {
+  return 3 + Math.floor(rand(g) * 5);
+}
+
+/** Drone Control, Overview: activating a drone that is not yet deployed will "spend one drone part". */
+const PART_COST = 1;
+
+/**
+ * INVENTED: fresh and in-flight combat shots have no extra windup. The page
+ * does not list a travel delay separate from the fire interval.
+ */
+const SHOT_WAIT_S = 0;
+const SHOT_T = 0;
+
+/** Label for combat shots spawned by the current tickSwarm call. Not a wiki value. */
+const READY_LABEL = "swarm-ready";
+const FLOWN_LABEL = "drones";
+
+const KINDS: readonly SwarmKind[] = [
+  "DEFENSE_1",
+  "DEFENSE_2",
+  "ANTI_DRONE",
+  "COMBAT_1",
+  "COMBAT_BEAM",
+  "BOARDER",
+  "REPAIR",
+  "SHIP_REPAIR",
+];
+
+function isKind(kind: string | null): kind is SwarmKind {
+  return !!kind && (KINDS as readonly string[]).includes(kind);
+}
+
+function fedBars(kit: Kit): number {
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  return Math.max(0, kitBars(kit) - SYSTEM_POWER);
+}
+
+function powered(kit: Kit, kind: SwarmKind): boolean {
+  return kit.on && !kit.idle && fedBars(kit) >= DRONE_POWER[kind];
+}
+
+function flightPower(kind: string): number | undefined {
+  if (isKind(kind)) return DRONE_POWER[kind];
+  if (kind === "DRONE_SHIELD_PLAYER") return overchargerPower("DRONE_SHIELD_PLAYER");
+  return SCHEMATIC_POWER[kind];
+}
+
+/**
+ * True while the deployed player drone has the bars to keep flying.
+ * Short bars, or a manual idle, leave it out: the sprite coasts to a stop
+ * instead of being recalled. Hull Repair still removes itself (tickSwarm).
+ */
+export function playerDroneCruising(kit: Kit): boolean {
+  if (!kit.on || kit.idle || !kit.target) return false;
+  const need = flightPower(kit.target);
+  return need != null && fedBars(kit) >= need;
+}
+
+function blank(): Kit {
+  return {
+    id: "drones",
+    // Drone Control, the paragraph above "Overview": a store purchase "comes with 2 slots and 2 system levels."
+    level: 2,
+    // INVENTED: a fitted kit starts unpowered, idle, and not deployed.
+    power: 0,
+    left: 0,
+    cool: 0,
+    target: null,
+    on: false,
+    aux: 0,
+  };
+}
+
+/** Buy drone control. Refuses: the paragraph above "Overview" sells a bundle, not the naked 60. */
+export function installSwarm(g: Game): boolean {
+  if (INSTALL_SCRAP == null || g.player.kits.drones) return false;
+  if (g.scrap < INSTALL_SCRAP) return false;
+  g.scrap -= INSTALL_SCRAP;
+  g.player.kits.drones = blank();
+  seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
+  log(g, "Drone Control installed on the Lark.");
+  return true;
+}
+
+/**
+ * Drone Control, the paragraph above "Overview": 75 with a System Repair schematic, 85 otherwise.
+ * Comes with 2 slots and 2 levels (blank()). The schematic is selected, not deployed;
+ * deploy still spends one part.
+ */
+export function installSwarmBundle(g: Game, kind: "REPAIR" | "DEFENSE_1" | "COMBAT_1"): boolean {
+  if (g.player.kits.drones) return false;
+  const cost = kind === "REPAIR" ? BUNDLE_PATCH : BUNDLE_OTHER;
+  if (g.scrap < cost) return false;
+  g.scrap -= cost;
+  noteAchieve(g, { k: "upgrade" });
+  const kit = blank();
+  kit.target = kind;
+  g.player.kits.drones = kit;
+  seatKits(g.player); // Kit room (layouts.ts): a bought system takes its hull's room.
+  log(
+    g,
+    kind === "REPAIR"
+      ? "Drone Control fitted, with a System Repair schematic."
+      : "Drone Control fitted.",
+  );
+  return true;
+}
+
+/**
+ * Systems, "Powering and upgrading systems": one bar at a time.
+ * INFERRED: power stops at the kit level, and the same step turns a bar off.
+ * Drone Control does not state that step.
+ */
+export function toggleSwarmPower(g: Game): void {
+  const kit = g.player.kits.drones;
+  if (!kit) return;
+  // Systems, "Damaged and destroyed systems": a hit lowers the system's maximum power until repaired (sim.ts kitBars).
+  if (kit.power < kit.level - (kit.damage ?? 0) && sparePower(g.player) >= 1) {
+    raiseSwarmPower(g);
+    return;
+  }
+  // Zoltans: dropping a reactor bar does not undeploy a drone those Zoltan bars still cover alone.
+  lowerSwarmPower(g);
+}
+
+/** Configure controls, page 2: E adds one Drone Control bar. */
+export function raiseSwarmPower(g: Game): void {
+  const kit = g.player.kits.drones;
+  if (!kit) return;
+  if (kit.power < kit.level - (kit.damage ?? 0) && sparePower(g.player) >= 1) kit.power += 1;
+}
+
+/** Systems, "Powering and upgrading systems": Shift plus the power key removes one bar. */
+export function lowerSwarmPower(g: Game): void {
+  const kit = g.player.kits.drones;
+  if (!kit || kit.power <= 0) return;
+  kit.power -= 1;
+}
+
+/**
+ * Zoltans: a deployed drone fully powered solely by Zoltan power cannot be manually de-powered.
+ * Manual control returns when that stops being true.
+ */
+export function depowerDrone(g: Game): boolean {
+  const kit = g.player.kits.drones;
+  // Two fitted schematics share one idle switch. Each still keeps its own deployment.
+  if (pairedRepair(kit)) {
+    if (!kit?.drones?.some((unit) => unit.alive)) return false;
+    kit.idle = true;
+    return true;
+  }
+  if (!kit?.on || !kit.target) return false;
+  const need = isKind(kit.target) ? DRONE_POWER[kit.target] : SCHEMATIC_POWER[kit.target];
+  const zoltan = kit.zoltan ?? 0;
+  if (need != null && zoltan >= need && kit.power <= 0) return false;
+  kit.idle = true;
+  return true;
+}
+
+function setCooldown(kit: Kit, seconds: number) {
+  // cool is the remaining lockout; aux mirrors it (Kit.aux is the drone shot cadence).
+  kit.cool = seconds;
+  kit.aux = seconds;
+}
+
+function tickCooldown(kit: Kit, dt: number) {
+  if (kit.cool > 0) kit.cool = Math.max(0, kit.cool - dt);
+  if (kit.aux > 0) kit.aux = Math.max(0, kit.aux - dt);
+}
+
+function ready(kit: Kit): boolean {
+  return kit.cool <= 0 && kit.aux <= 0;
+}
+
+/**
+ * Schematics the player can switch on.
+ * An enemy-style loadout is the list. Otherwise the single fitted target is the only slot.
+ */
+export function playerDroneSlots(kit: Kit | undefined): string[] {
+  if (!kit) return [];
+  if (kit.loadout?.length) return [...kit.loadout];
+  return kit.target ? [kit.target] : [];
+}
+
+/** The Engi Cruiser, Layout B: System Repair (x2). Two of that id are two drones, not one swapped schematic. */
+function pairedRepair(kit: Kit | undefined): boolean {
+  return (kit?.loadout?.filter((kind) => kind === "REPAIR").length ?? 0) > 1;
+}
+
+/**
+ * Drone Control, Overview: "Activating a drone is done in a similar way as activating weapons,
+ * by clicking on the installed drone schematic or pressing the key (5-7)."
+ * "Activating a drone will power it and, if the drone is not already deployed, will spend one
+ * drone part to deploy the drone."
+ * The first schematic is key 5, the second key 6, and the third key 7.
+ */
+export function activateDroneSlot(g: Game, index: number): boolean {
+  const kit = g.player.kits.drones;
+  // The Engi Cruiser, Layout B: two System Repair slots. The index picks which one.
+  if (pairedRepair(kit)) return deploySlot(g, index);
+  const kind = playerDroneSlots(kit)[index];
+  if (!kind) return false;
+  return deploy(g, kind);
+}
+
+/**
+ * Schematics player Drone Control can fly: every SwarmKind, plus Combat Drone Mark II, the Ion Intruder, and both Shield
+ * Overchargers, which stay outside SwarmKind (drones-missing.ts still lists them).
+ * Archive ids no hull lists are flown here too: beam II, the fire / ion / missile combat drones, the hacking drone,
+ * and the flagship's Defense II. The Anti-Personnel Drone (BATTLE) stays off this list. Engi B leaves it unfitted;
+ * an enemy hull that lists it flies that id.
+ */
+export function canDeploy(kind: string): boolean {
+  return canFlyDrone(kind);
+}
+
+/**
+ * Spend one drone part and deploy. Same kind already out does not spend again.
+ * Power is not taken here; the drone acts only while fed bars cover DRONE_POWER.
+ */
+export function deploy(g: Game, kind: string): boolean {
+  const kit = g.player.kits.drones;
+  if (!kit || !canDeploy(kind)) return false;
+  if (kit.on && kit.target === kind) {
+    delete kit.idle;
+    return true;
+  }
+  // @agent:drones. Drone Control, Overview: "If a drone is destroyed, there is a 10 second delay before it can be
+  // deployed again (costing another part)." INFERRED: the player kit flies one drone, so that delay holds the whole
+  // kit, whichever schematic is picked next. killPlayerDrone sets kit.lost.
+  if ((kit.lost ?? 0) > 0) {
+    log(g, `Drone Control is rebuilding: ${Math.ceil(kit.lost ?? 0)} s.`);
+    return false;
+  }
+  if (g.player.parts < PART_COST) {
+    log(g, "Drone Control needs a drone part.");
+    return false;
+  }
+  g.player.parts -= PART_COST;
+  kit.on = true;
+  delete kit.idle;
+  kit.target = kind;
+  kit.path = [];
+  kit.move = 0;
+  if (kind === "BOARDER_ION") kit.hp = INTRUDER_HP;
+  else if (kind === "REPAIR") kit.hp = 25;
+  else delete kit.hp;
+  if (kind !== "REPAIR") kit.room = undefined;
+  // Drone Control, "Anti-Combat Drone": "Starts fully charged when first deployed".
+  // Combat Drone Mark I does not say that, so the striker interval starts empty.
+  // Beam and Boarding Drone give no starting charge, so those intervals start empty too.
+  // Defense cooldowns also start ready.
+  setCooldown(kit, 0);
+  kit.left = 0;
+  // Hull Repair Drone: "repairing 3-5 hull points". The roll is the total for this deployment.
+  if (kind === "SHIP_REPAIR") kit.left = 3 + Math.floor(rand(g) * 3);
+  delete kit.stick;
+  delete kit.home;
+  delete kit.hold;
+  delete kit.dying;
+  // A new flight starts at the nose. The first leg is chosen on the next tick.
+  delete kit.heading;
+  delete kit.bearing;
+  log(g, `Drone Control deploys ${kind}.`);
+  queueArchive(g, "droneLaunch");
+  const functioning = (kit.drones ?? []).filter((d) => d.alive && d.powered).length;
+  noteAchieve(g, { k: "drone", kind, functioning: Math.max(functioning, kit.on ? 1 : 0) });
+  return true;
+}
+
+/** One schematic on a hull that fits more than one. A second copy of the same id is its own drone. */
+function playerSlotUnits(g: Game, kit: Kit): DroneUnit[] {
+  const loadout = kit.loadout ?? [];
+  if (!kit.drones || kit.drones.length !== loadout.length) {
+    kit.drones = loadout.map((kind, i) => ({
+      id: `pd-${i}-${nextId(g)}`,
+      kind,
+      alive: false,
+      powered: false,
+      aux: 0,
+      cool: 0,
+    }));
+  }
+  return kit.drones;
+}
+
+/**
+ * The Engi Cruiser, Layout B: System Repair (x2). Each slot spends one drone part when that drone is not already out.
+ * Drone Control, Overview: the 10 second rebuild is for the destroyed drone, not the other schematic.
+ */
+function deploySlot(g: Game, index: number): boolean {
+  const kit = g.player.kits.drones;
+  if (!kit?.loadout || index < 0 || index >= kit.loadout.length) return false;
+  const unit = playerSlotUnits(g, kit)[index];
+  if (!unit || unit.kind !== "REPAIR") return false;
+  if (unit.alive) {
+    delete kit.idle;
+    kit.on = true;
+    return true;
+  }
+  if (unit.cool > 0) {
+    log(g, `Drone Control is rebuilding: ${Math.ceil(unit.cool)} s.`);
+    return false;
+  }
+  if (g.player.parts < PART_COST) {
+    log(g, "Drone Control needs a drone part.");
+    return false;
+  }
+  deployUnit(g, g.player, unit);
+  delete kit.idle;
+  kit.on = true;
+  log(g, `Drone Control deploys ${unit.kind}.`);
+  const functioning = (kit.drones ?? []).filter((d) => d.alive && d.powered).length;
+  noteAchieve(g, { k: "drone", kind: unit.kind, functioning });
+  return true;
+}
+
+/**
+ * Two fitted crew drones. Bars fill slots from the first. A bar that cannot cover the next drone leaves it dark.
+ * System Repair still walks and repairs at an Engi's pace. The Drone Reactor Booster only changes the walk.
+ */
+function tickPlayerSlots(g: Game, kit: Kit, dt: number) {
+  const units = playerSlotUnits(g, kit);
+  const pool = dronePool(kit);
+  let any = false;
+  for (const unit of units) {
+    if (!unit.alive) {
+      unit.powered = false;
+      if (unit.cool > 0) unit.cool = Math.max(0, unit.cool - dt);
+      continue;
+    }
+    any = true;
+    if (unit.kind === "REPAIR" && unit.dying) {
+      tickDyingRepair(g, g.player, unit, dt, false, () => {
+        unit.dying = undefined;
+        unit.alive = false;
+        unit.powered = false;
+        unit.cool = REDEPLOY_S;
+        unit.coldFires = true;
+        log(g, "Your repair drone finishes the bar and breaks apart.");
+      });
+      continue;
+    }
+    const need = SCHEMATIC_POWER[unit.kind] ?? Number.POSITIVE_INFINITY;
+    unit.powered = !kit.idle && takePowerSlot(need, true, pool);
+    if (unit.kind !== "REPAIR") continue;
+    noteRepairPower(unit, g.player, unit.powered);
+    if (!unit.powered) {
+      maybeHealBay(g.player, unit, dt);
+      continue;
+    }
+    tickRepair(
+      g,
+      g.player,
+      unit,
+      dt,
+      "player",
+      false,
+      crewDroneSpeed(g.augments.includes("DRONE_SPEED")),
+    );
+  }
+  kit.on = any;
+}
+
+function shoots(
+  kind: DefenseAs,
+  shot: { kind: string; from: string; defId?: string },
+  defender: "player" | "enemy",
+): boolean {
+  if (kind !== "DEFENSE_1" && kind !== "DEFENSE_2") return false;
+  // Augmentations, Crystal Vengeance: defense drones can shoot the shard down.
+  // Grey note: a friendly defense drone can too. The shard is a neutral projectile like an asteroid.
+  // Mark I shoots asteroids, so both marks do, including a shard from this same ship.
+  if (shot.defId === "CRYSTAL_SHARDS") return true;
+  // Incoming only. The defending ship's own shots are not targets.
+  if (shot.from === defender) return false;
+  // Environmental Hazards, anti-ship battery: it cannot be shot down.
+  if (shot.from === "env" && shot.kind === "missile") return false;
+  // Defensive Drones > Defense Drone Mark I: missiles, hacking and boarding
+  // drones, and asteroids. Flak is always a target. drone_targetable opts in
+  // any other blueprint, which is how a mod marks a laser.
+  if (shot.kind === "missile") return true;
+  if (shot.kind === "flak") return true;
+  if (shot.defId && weaponDef(shot.defId)?.droneTargetable === 1) return true;
+  if (shot.kind === "hacking" || shot.kind === "boarding") return true;
+  // INFERRED: that section shoots asteroids. This drill spawns them as laser
+  // shots with from "env". An explicit kind "asteroid" counts too.
+  // Enemy lasers are not asteroids, so Mark I leaves those alone.
+  if (shot.kind === "asteroid") return true;
+  if (shot.from === "env" && shot.kind === "laser") return true;
+  // Defense Drone Mark II: "also ion blasts and lasers".
+  if (kind === "DEFENSE_2" && (shot.kind === "laser" || shot.kind === "ion")) return true;
+  return false;
+}
+
+/**
+ * Seconds between a defense drone's shots: the schematic's own `<cooldown>` (BOSS_DEFENSE_2 writes 750), else the
+ * screen it flies.
+ */
+function defenseCooldownS(id: string, as: DefenseAs): number {
+  const ms = droneDef(id)?.cooldown;
+  return ms != null ? ms / 1000 : DRONE_COOLDOWN_S[as];
+}
+
+/** A single-target kit's defense screen, when its fed bars cover the schematic's own power. */
+function kitScreen(kit: Kit): DefenseAs | undefined {
+  const as = defenseAs(kit.target);
+  if (!as || !kit.target || !kit.on || kit.idle) return undefined;
+  return fedBars(kit) >= (flightPower(kit.target) ?? DRONE_POWER[as]) ? as : undefined;
+}
+
+/**
+ * True when a powered defense drone is off cooldown and this shot is one it
+ * shoots down. One shot per cooldown: a hit fills kit.cool and kit.aux.
+ * The screen is the schematic's droneBlueprint `<type>` and `<target>` (flown.ts defenseAs), not its id.
+ */
+export function swarmIntercept(
+  g: Game,
+  shot: { kind: string; from: string; defId?: string; label?: string },
+): boolean {
+  const kit = g.player.kits.drones;
+  const kind = kit && kitScreen(kit);
+  if (!kit?.target || !kind || !ready(kit)) return false;
+  if (!shoots(kind, shot, "player")) return false;
+  if (kind !== "DEFENSE_1" && kind !== "DEFENSE_2") return false;
+  setCooldown(kit, defenseCooldownS(kit.target, kind));
+  defenseStray(g, "player", kind, shot);
+  return true;
+}
+
+/**
+ * Augmentations, "Defense Scrambler": enemy Defense Drone I, Defense Drone II,
+ * and Anti-Combat drones cannot acquire a target. The player's own drones are
+ * not this check. A blocked drone does not spend its cooldown.
+ */
+export function enemyDefenseIntercept(
+  g: Game,
+  shot: { kind: string; from: string; defId?: string; label?: string },
+): boolean {
+  const kit = g.enemy?.kits.drones;
+  // @agent:drones. A generated enemy fields several drones (kit.drones). Hand-built kits keep the single target below.
+  if (kit?.drones) return enemyUnitsIntercept(g, kit.drones, shot);
+  const kind = kit && kitScreen(kit);
+  if (!kit?.target || !kind) return false;
+  if (g.augments.includes("DEFENSE_SCRAMBLER") && scramblerBlocks(kind)) return false;
+  if (!ready(kit)) return false;
+  if (!shoots(kind, shot, "enemy")) return false;
+  if (kind !== "DEFENSE_1" && kind !== "DEFENSE_2") return false;
+  setCooldown(kit, defenseCooldownS(kit.target, kind));
+  defenseStray(g, "enemy", kind, shot);
+  return true;
+}
+
+function nextId(g: Game): string {
+  g.uid = (g.uid + 1) >>> 0;
+  return "u" + g.uid.toString(36);
+}
+
+function enemyRoom(g: Game): string | null {
+  const rooms = g.enemy?.rooms;
+  if (!rooms || rooms.length === 0) return null;
+  const i = Math.floor(rand(g) * rooms.length);
+  return rooms[i]?.id ?? null;
+}
+
+function pushStriker(g: Game, targetRoom: string) {
+  const shot: Shot = {
+    id: nextId(g),
+    kind: "laser",
+    from: "player",
+    ...droneGun("COMBAT_1", STRIKER_HIT),
+    targetRoom,
+    wait: SHOT_WAIT_S,
+    t: SHOT_T,
+    duration: STRIKER_FLIGHT_S,
+    label: READY_LABEL,
+  };
+  g.shots.push(shot);
+}
+
+function retireReady(g: Game) {
+  for (const shot of g.shots) {
+    if (shot.label === READY_LABEL) shot.label = FLOWN_LABEL;
+  }
+}
+
+/**
+ * Drone Control, "Combat Drones (offensive drones)": the next angle is random,
+ * at least ORBIT_MIN_SEP from the last, and the comparison does not wrap.
+ * A stuck roll falls back to the opposite angle, which that check accepts.
+ */
+export function pickOrbitBearing(g: Game, from: number): number {
+  for (let i = 0; i < 64; i++) {
+    const next = rand(g) * 360;
+    if (bearingAccepted(from, next)) return next;
+  }
+  return (from + 180) % 360;
+}
+
+type OrbitBody = { heading?: number; bearing?: number; left?: number; aux: number };
+
+/**
+ * Cloaking, Overview: "External combat drones move around the ship, attempting to attack but don't actually fire."
+ * The orbit leg already running (aux against left) and the swipe interval already running (aux) are that movement.
+ * Cloak does not add a duration and does not freeze those timers.
+ * veilBlocks(g, "player") is the enemy cloak. veilBlocks(g, "enemy") is the player cloak.
+ */
+function combatFireBlocked(g: Game, from: "player" | "enemy"): boolean {
+  return veilBlocks(g, from);
+}
+
+/**
+ * Fly the current leg and fire once on arrival. A missing room holds the shot
+ * where it is (no hull yet). A cloaked target does not: the leg still finishes,
+ * a new bearing is picked, and the fire callback withholds the shot.
+ * The timer does not run while unpowered: callers skip this until the bars cover the drone.
+ * `hold` is a beam drone's beamHoldSeconds (xftl doc/combat-drone, additionalPause), added to each leg after a shot.
+ */
+function flyCombatLaser(
+  g: Game,
+  body: OrbitBody,
+  dt: number,
+  speed: number,
+  room: () => string | null,
+  fire: (roomId: string) => void,
+  hold = 0,
+) {
+  if (body.heading == null) body.heading = 0;
+  if (body.bearing == null || !(body.left != null && body.left > 0)) {
+    body.bearing = pickOrbitBearing(g, body.heading);
+    body.left = orbitLegSeconds(body.heading, body.bearing, speed, hold);
+  }
+  body.aux += dt;
+  let guard = 0;
+  while (body.aux >= (body.left ?? 0) && guard++ < 32) {
+    const id = room();
+    if (!id) {
+      body.aux = body.left ?? 0;
+      return;
+    }
+    body.aux -= body.left ?? 0;
+    body.heading = body.bearing;
+    fire(id);
+    body.bearing = pickOrbitBearing(g, body.heading);
+    body.left = orbitLegSeconds(body.heading, body.bearing, speed, hold);
+  }
+}
+
+function tickStriker(g: Game, kit: Kit, dt: number) {
+  flyCombatLaser(
+    g,
+    kit,
+    dt,
+    beamDroneSpeed("COMBAT_1"),
+    () => enemyRoom(g),
+    (room) => {
+      if (combatFireBlocked(g, "player")) return;
+      pushStriker(g, room);
+    },
+  );
+}
+
+function tickWardcut(g: Game, kit: Kit, dt: number) {
+  // Drone Control, Anti-Combat Drone: stuns combat drones for 5 seconds,
+  // with a 47.8% chance to destroy them during that stun.
+  // The 7000 ms recharge (DRONE_COOLDOWN_S.ANTI_DRONE) counts down while powered.
+  tickCooldown(kit, dt);
+  // @agent:drones. The enemy's deployed drones are the targets (playerAntiCombat, below).
+  if (ready(kit)) playerAntiCombat(g, kit);
+}
+
+function tickBeam(g: Game, kit: Kit, dt: number) {
+  // Speed 15 is the orbit. Beam speed 3 is not this wait.
+  flyCombatLaser(
+    g,
+    kit,
+    dt,
+    beamDroneSpeed("COMBAT_BEAM"),
+    () => enemyRoom(g),
+    (roomId) => {
+      fireBeamSwipe(g, g.enemy, roomId, "COMBAT_BEAM", "player", FLOWN_LABEL);
+    },
+    // xftl doc/combat-drone: a beam drone holds 0.5 s while the beam finishes.
+    beamHoldSeconds(),
+  );
+}
+
+/** Crew rooms first, otherwise a system room, otherwise any room. Same rule as the hit below. */
+function boardLanding(g: Game, enemy: Ship): Room | undefined {
+  const alive = g.crew.filter(
+    (c) =>
+      c.side === "enemy" &&
+      c.aboard === "enemy" &&
+      c.hp > 0 &&
+      enemy.rooms.some((r) => r.id === c.room),
+  );
+  if (alive.length > 0) {
+    const rooms = enemy.rooms.filter((r) => alive.some((c) => c.room === r.id));
+    return rooms[Math.floor(rand(g) * rooms.length)];
+  }
+  const systems = enemy.rooms.filter((r) => r.system);
+  const pool = systems.length > 0 ? systems : enemy.rooms;
+  return pool[Math.floor(rand(g) * pool.length)];
+}
+
+function tickBoard(g: Game, kit: Kit, dt: number) {
+  // Cloaking, Overview: "Hacking and Boarding drones hold their position in space. They will continue their move when the cloak is over."
+  // Drone Control, Boarding Drones: "They cannot board a cloaked ship."
+  // Boarding Drone prints "Speed: 18 (when moving through space)". Flight seconds are unprinted, so BOARD_INTERVAL_S is still the arrival.
+  // The timer does not advance while the drone holds in space.
+  if (!kit.room && veilBlocks(g, "player")) return;
+  // Sabotage starts the tick after the breach. The arrival tick is still flight.
+  const boarded = !!kit.room;
+
+  kit.aux += dt;
+  while (kit.aux >= BOARD_INTERVAL_S) {
+    const enemy = g.enemy;
+    if (!enemy || enemy.rooms.length === 0) {
+      kit.aux = BOARD_INTERVAL_S;
+      return;
+    }
+    kit.aux -= BOARD_INTERVAL_S;
+    // Zoltan Shield: a boarding drone is destroyed on contact and does not damage the bubble.
+    // Contact is this arrival, before a room is chosen. No room, no breach, no crew or system hit.
+    // Bypass still says launch-then-destroyed. The fitted path reads that row. It is never "pass".
+    if (!kit.room && (enemy.zoltan ?? 0) > 0) {
+      const via = g.augments.includes("ZOLTAN_BYPASS") ? bypassZoltan("BOARDER") : "destroyed";
+      if (via !== "pass") {
+        kit.on = false;
+        log(g, "The boarding drone breaks on their Zoltan Shield.");
+        return;
+      }
+    }
+    // Drone Control, Boarding Drones: "They ignore regular shields".
+    // shieldNow is not read and is not reduced. Hull is not changed.
+    // "When deployed, Boarding Drones fly to the enemy ship, breach the hull and attack crew and systems inside."
+    if (!kit.room) {
+      const landed = boardLanding(g, enemy);
+      if (!landed) continue;
+      kit.room = landed.id;
+      kit.fix = 0;
+      // INFERRED: the page says "breach the hull" and does not print a count of 1.
+      if (landed.breach < 1) {
+        landed.breach = 1;
+        // Boarding, "Doors": a new breach shuts that enemy room's doors when the Door System functions.
+        noteEnemyBreach(g, landed.id);
+      }
+    }
+    const room = enemy.rooms.find((r) => r.id === kit.room);
+    if (!room) continue;
+    const alive = g.crew.filter(
+      (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === room.id,
+    );
+    if (alive.length > 0) {
+      const crew = alive[Math.floor(rand(g) * alive.length)];
+      if (!crew) continue;
+      crew.hp -= boardHit(g);
+    }
+    // No crew: system damage is accrueBar below, one bar per BREAK_BAR_S, not this blow.
+  }
+  if (boarded) sabotagePlayerBoard(g, kit, dt);
+  // Boarding, "Boarding Drones": stay until the system is destroyed and no hostile crew remain, then the nearest system room.
+  if (boarded && g.enemy) {
+    stepFinishedBoard(g, g.enemy, kit, (roomId) =>
+      g.crew.some(
+        (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === roomId,
+      ),
+    );
+  }
+}
+
+/** One enemy system bar per BREAK_BAR_S while the drone is already aboard and no enemy crew are in the room. */
+function sabotagePlayerBoard(g: Game, kit: Kit, dt: number) {
+  const enemy = g.enemy;
+  if (!enemy || !kit.room) return;
+  const room = enemy.rooms.find((r) => r.id === kit.room);
+  if (!room?.system) return;
+  const blocked = g.crew.some(
+    (c) => c.side === "enemy" && c.aboard === "enemy" && c.hp > 0 && c.room === room.id,
+  );
+  if (blocked) return;
+  const sys = enemy.systems[room.system];
+  if (!sys || sys.damage >= sys.level) return;
+  if (!accrueBar(kit, dt)) return;
+  sys.damage += 1;
+}
+
+function linked(ship: Ship, id: string): string[] {
+  const out: string[] = [];
+  for (const door of ship.doors) {
+    if (door.b === "void") continue;
+    if (door.a === id) out.push(door.b);
+    else if (door.b === id) out.push(door.a);
+  }
+  return out;
+}
+
+function route(ship: Ship, from: string, to: string): string[] | null {
+  if (from === to) return [];
+  const queue = [from];
+  const prev = new Map<string, string | null>([[from, null]]);
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const next of linked(ship, cur)) {
+      if (prev.has(next)) continue;
+      prev.set(next, cur);
+      if (next === to) {
+        const path: string[] = [];
+        let walk: string | null = to;
+        while (walk && walk !== from) {
+          path.push(walk);
+          walk = prev.get(walk) ?? null;
+        }
+        path.reverse();
+        return path;
+      }
+      queue.push(next);
+    }
+  }
+  return null;
+}
+
+/**
+ * Boarding, "Boarding Drones": "The Boarding Drone will stay in a room until it the system is destroyed and there is
+ * no hostile crew, then it will move to attack the nearest system room".
+ * INFERRED: nearest is the fewest interior doors. A system that is already destroyed is not a target.
+ * INFERRED: equal door counts are an even draw. No walk time is printed, so the move is immediate.
+ */
+function nearestWorkingSystem(g: Game, ship: Ship, from: string): Room | undefined {
+  let best = Infinity;
+  const tied: Room[] = [];
+  for (const room of ship.rooms) {
+    if (room.id === from || !room.system) continue;
+    const sys = ship.systems[room.system];
+    if (!sys || sys.damage >= sys.level) continue;
+    const path = route(ship, from, room.id);
+    if (!path) continue;
+    if (path.length < best) {
+      best = path.length;
+      tied.length = 0;
+      tied.push(room);
+    } else if (path.length === best) tied.push(room);
+  }
+  return randomOf(g, tied);
+}
+
+function stepFinishedBoard(
+  g: Game,
+  ship: Ship,
+  holder: { room?: string; fix?: number },
+  blocked: (roomId: string) => boolean,
+) {
+  if (!holder.room) return;
+  const room = ship.rooms.find((item) => item.id === holder.room);
+  if (!room?.system || blocked(room.id)) return;
+  const sys = ship.systems[room.system];
+  if (!sys || sys.damage < sys.level) return;
+  const next = nearestWorkingSystem(g, ship, room.id);
+  if (!next) return;
+  holder.room = next.id;
+  holder.fix = 0;
+}
+
+/**
+ * Drone Control, Crew Drones > System Repair Drone: "Repairs systems and breaches, and puts out fires,
+ * at the same speed as an Engi". That Engi multiplier is the pace when the repair crew blueprint is
+ * not loaded. A loaded repair blueprint supplies its own repair number. Engi repair is ×2, so with
+ * no blueprint one bar or breach takes REPAIR_SECONDS / 2.
+ * Skills: racial repair also scales fire-fighting, so the fire share uses that same pace.
+ * Inside the room the order is still fire, then a breach, then a system or kit.
+ * Which room is patchRank. INFERRED: the drone is not crew, so low oxygen does not stop the work.
+ * Crew skills, lead: repair drones "are totally unable to gain experience or achieve higher skill levels."
+ * No bumpXp on this path.
+ * `repowerKits` matches enemy crew repair, which puts the freed bar back on an enemy kit.
+ */
+function engiRepair(ship: Ship, room: Room, dt: number, repowerKits: boolean): void {
+  const pace = repairDronePace();
+  if (room.fire > 0) {
+    room.fire = Math.max(0, room.fire - FIRE_FIGHT_SHARE * pace * dt);
+    return;
+  }
+  if (room.breach > 0) {
+    room.breachFix += pace * dt;
+    if (room.breachFix >= REPAIR_SECONDS) {
+      room.breach = Math.max(0, room.breach - 1);
+      room.breachFix = 0;
+    }
+    return;
+  }
+  if (room.system && ship.systems[room.system].damage > 0) {
+    const sys = ship.systems[room.system];
+    sys.fix += pace * dt;
+    if (sys.fix >= REPAIR_SECONDS) {
+      sys.damage = Math.max(0, sys.damage - 1);
+      sys.fix = 0;
+    }
+    return;
+  }
+  const kit = room.kit ? ship.kits[room.kit] : undefined;
+  if (!kit || (kit.damage ?? 0) <= 0) return;
+  kit.fix = (kit.fix ?? 0) + pace * dt;
+  if (kit.fix < REPAIR_SECONDS) return;
+  kit.damage = Math.max(0, (kit.damage ?? 0) - 1);
+  kit.fix = 0;
+  if (repowerKits) kit.power = kit.level - (kit.damage ?? 0);
+}
+
+/**
+ * Drone Control, System Repair Drone, "Priorities (in the descending order)", plus the oxygen line.
+ * 0. Oxygen below 25% sends it to a damaged Oxygen system "over anything else".
+ *    INFERRED: 25% is the average of the room oxygen readings. The sim has no single ship meter.
+ * 1. A fire. A vented room's fire is ignored, and that room is skipped until the fire is gone.
+ *    A redeploy after destruction ignores fires in other rooms until Drone Control has no damage.
+ *    A fire in the room it already occupies still ranks.
+ * 2. A damaged Shields system.
+ * 3. A breach.
+ * 4. Any other damaged system or kit. The page's system order after Shields is a to-do, so the
+ *    nearest room wins. INFERRED: a kit ranks with those systems.
+ * Repower-sticky and the walk home are applied in tickRepair, above this rank.
+ */
+
+const PATCH_AIR = 25;
+
+function shipAir(ship: Ship): number {
+  if (ship.rooms.length === 0) return 100;
+  let sum = 0;
+  for (const room of ship.rooms) sum += airShown(room.o2);
+  return sum / ship.rooms.length;
+}
+
+function patchRank(
+  ship: Ship,
+  room: Room,
+  air: number,
+  here: string,
+  skipRemote: boolean,
+): number | null {
+  if (air < PATCH_AIR && room.system === "oxygen" && ship.systems.oxygen.damage > 0) return 0;
+  // "if a fire is in a vented room, it will be completely ignored" even when that room is damaged.
+  if (room.venting && room.fire > 0) return null;
+  if (room.fire > 0 && !(skipRemote && room.id !== here)) return 1;
+  if (room.system === "shields" && ship.systems.shields.damage > 0) return 2;
+  if (room.breach > 0) return 3;
+  if (room.system && ship.systems[room.system].damage > 0) return 4;
+  if (room.kit && (ship.kits[room.kit]?.damage ?? 0) > 0) return 4;
+  return null;
+}
+
+/** The room to work. Same id as `from` means stay. Null means nothing qualifies. */
+function patchTarget(ship: Ship, from: string, skipRemote: boolean): string | null {
+  const air = shipAir(ship);
+  let best: { id: string; rank: number; steps: number } | null = null;
+  for (const room of ship.rooms) {
+    const rank = patchRank(ship, room, air, from, skipRemote);
+    if (rank == null) continue;
+    const steps = room.id === from ? 0 : (route(ship, from, room.id)?.length ?? -1);
+    if (steps < 0) continue;
+    if (!best || rank < best.rank || (rank === best.rank && steps < best.steps)) {
+      best = { id: room.id, rank, steps };
+    }
+  }
+  return best?.id ?? null;
+}
+
+type RepairBody = {
+  room?: string;
+  path?: string[];
+  move?: number;
+  doorHit?: boolean;
+  doorChew?: string;
+  stick?: string;
+  home?: boolean;
+  hold?: boolean;
+  hp?: number;
+  /** Set on destruction. Cleared once Drone Control has no damage. */
+  coldFires?: boolean;
+  /** Dying animation: one bar already underway, then the real destroy. */
+  dying?: boolean;
+};
+
+/** Drone Control, System Repair Drone: "Health: 25 HP". */
+const PATCH_HP = 25;
+
+/**
+ * INVENTED: Crew Drones and System Repair say an idle drone heals in the Drone Control room when that
+ * system has any power. No rate is printed. 5 HP per second fills an empty drone in 5 seconds.
+ */
+export const PATCH_HEAL = 5;
+
+/**
+ * INVENTED: Hull Repair Drone repairs 3–5 hull then self-destructs. The page prints no seconds.
+ * One hull point every 3 seconds. Two points, the Recovery Arm's "just after 2 repairs", take 6 seconds.
+ * Speed 20 is movement around the ship, not this rate.
+ */
+export const HULL_POINT_S = 3;
+
+function droneBay(ship: Ship): string | undefined {
+  return ship.rooms.find((room) => room.kit === "drones")?.id;
+}
+
+/**
+ * Drone Control, System Repair: "If its power is interrupted, it will fully reassess the task priorities."
+ * On the next powered tick, a drone standing in a system room repairs that system first, "even" ahead of
+ * a higher-priority system. The oxygen-below-25% line is one of those priorities, so the stuck room wins.
+ */
+function noteRepairPower(body: RepairBody, ship: Ship, poweredNow: boolean): void {
+  if (!poweredNow) {
+    body.path = [];
+    body.move = 0;
+    body.home = false;
+    body.stick = undefined;
+    body.hold = true;
+    return;
+  }
+  if (!body.hold) return;
+  body.hold = false;
+  body.home = false;
+  body.path = [];
+  body.move = 0;
+  const here = body.room ? ship.rooms.find((room) => room.id === body.room) : undefined;
+  body.stick = here?.system ? here.id : undefined;
+}
+
+/**
+ * Drone Control, System Repair Drone: "A redeployed drone (i.e. after destruction) will ignore fires
+ * (in other rooms) till the Drone Control is fully repaired."
+ * Fully repaired is no damage on that system. The flag clears on the tick that sees it.
+ */
+function firesBlind(ship: Ship, body: RepairBody): boolean {
+  if (!body.coldFires) return false;
+  if ((ship.kits.drones?.damage ?? 0) === 0) {
+    body.coldFires = undefined;
+    return false;
+  }
+  return true;
+}
+
+/** The room to work. A stuck system outranks patchTarget. Walking home takes no job. */
+function repairDest(ship: Ship, body: RepairBody): string | null {
+  if (body.home) return null;
+  if (body.stick) {
+    const stuck = ship.rooms.find((room) => room.id === body.stick);
+    const sys = stuck?.system;
+    if (stuck && sys && ship.systems[sys].damage > 0) return stuck.id;
+    body.stick = undefined;
+  }
+  if (!body.room) return null;
+  return patchTarget(ship, body.room, firesBlind(ship, body));
+}
+
+/**
+ * Healing needs any power in Drone Control, including one Zoltan bar, and does not require
+ * this schematic's own power line. Only while idle in the drone bay. The rate is PATCH_HEAL.
+ */
+/**
+ * Drone Control, System Repair Drone: "The drone will briefly continue to provide its service during its
+ * "dying" animation (e.g. preserves the repair progress, and even finishes the repairs while ignoring the intruders)."
+ * INFERRED: "briefly" prints no seconds, so the animation is the one system or kit bar already underway
+ * (fix > 0), not a later bar and not a linger after that bar drops. A fire or a breach is not this bar.
+ * The page's HTML to-do asks whether those continue, and it prints no rule.
+ */
+function barUnderway(ship: Ship, body: RepairBody): { room: Room; kind: "system" | "kit" } | null {
+  const room = body.room ? ship.rooms.find((item) => item.id === body.room) : undefined;
+  if (!room || room.fire > 0 || room.breach > 0) return null;
+  if (room.system) {
+    const sys = ship.systems[room.system];
+    if (sys && sys.damage > 0 && sys.fix > 0) return { room, kind: "system" };
+  }
+  const kit = room.kit ? ship.kits[room.kit] : undefined;
+  if (kit && (kit.damage ?? 0) > 0 && (kit.fix ?? 0) > 0) return { room, kind: "kit" };
+  return null;
+}
+
+/** True when the killing blow starts, or is already inside, that animation. The real destroy waits. */
+function holdDyingRepair(ship: Ship, body: RepairBody): boolean {
+  if (body.dying) return true;
+  if (!barUnderway(ship, body)) return false;
+  body.dying = true;
+  body.hp = 0;
+  body.path = [];
+  body.move = 0;
+  body.home = false;
+  body.stick = undefined;
+  return true;
+}
+
+/**
+ * Finish the one bar, then destroy. INFERRED: intruder hits, ion, and a power cut do not end it early.
+ * coldFires and the redeploy delay still apply on the destroy, not at the start of the animation.
+ */
+function tickDyingRepair(
+  g: Game,
+  ship: Ship,
+  body: RepairBody,
+  dt: number,
+  repowerKits: boolean,
+  finish: () => void,
+): void {
+  const job = barUnderway(ship, body);
+  if (!job) {
+    body.dying = undefined;
+    finish();
+    return;
+  }
+  const pace = repairDronePace();
+  if (job.kind === "system" && job.room.system) {
+    const sys = ship.systems[job.room.system];
+    const before = sys.damage;
+    sys.fix += pace * dt;
+    if (sys.fix >= REPAIR_SECONDS) {
+      sys.damage = Math.max(0, sys.damage - 1);
+      sys.fix = 0;
+    }
+    if (sys.damage < before) {
+      body.dying = undefined;
+      finish();
+    }
+    return;
+  }
+  const kit = job.room.kit ? ship.kits[job.room.kit] : undefined;
+  if (!kit) {
+    body.dying = undefined;
+    finish();
+    return;
+  }
+  const before = kit.damage ?? 0;
+  kit.fix = (kit.fix ?? 0) + pace * dt;
+  if (kit.fix >= REPAIR_SECONDS) {
+    kit.damage = Math.max(0, before - 1);
+    kit.fix = 0;
+    if (repowerKits) kit.power = kit.level - (kit.damage ?? 0);
+  }
+  if ((kit.damage ?? 0) < before) {
+    body.dying = undefined;
+    finish();
+  }
+}
+
+function maybeHealBay(ship: Ship, body: RepairBody, dt: number): void {
+  const bay = droneBay(ship);
+  if (!bay || body.room !== bay || body.home || (body.path?.length ?? 0) > 0) return;
+  if (kitBars(ship.kits.drones) < 1) return;
+  body.hp = Math.min(PATCH_HP, (body.hp ?? PATCH_HP) + PATCH_HEAL * dt);
+}
+
+/**
+ * System Repair on either ship. Crew Drones: they move at the crew-drone fraction of crew speed,
+ * break shut doors, and when idle return to the drone bay. While walking home, new tasks wait
+ * until arrival or a repower. The player's Drone Reactor Booster is `pace`; the enemy copy is not boosted.
+ */
+function tickRepair(
+  g: Game,
+  ship: Ship,
+  body: RepairBody,
+  dt: number,
+  aboard: "player" | "enemy",
+  repowerKits: boolean,
+  pace: number,
+): void {
+  const bay = droneBay(ship);
+  if (!body.room || !ship.rooms.some((room) => room.id === body.room)) {
+    body.room = bay ?? ship.rooms[0]?.id;
+    body.path = [];
+    body.move = 0;
+  }
+  if (!body.room) return;
+  const target = repairDest(ship, body);
+  const here = ship.rooms.find((room) => room.id === body.room);
+  if (here && target === here.id) {
+    body.path = [];
+    const breaches = here.breach;
+    engiRepair(ship, here, dt, repowerKits);
+    // dlcSounds.xml shrikeRepair: the System Repair Drone's working loop. INFERRED: shrike names that drone.
+    holdLoopCue(g, "shrikeRepair");
+    // Door System: sealing a breach on an enemy ship shuts that room's doors when the system functions.
+    if (aboard === "enemy" && here.breach < breaches) noteEnemyBreach(g, here.id);
+    return;
+  }
+  // A new higher-ranked room replaces a walk that was aimed somewhere else. A walk already
+  // chosen, including the booster test's path, is kept when nothing outranks it.
+  if (target && body.path?.length && body.path[body.path.length - 1] !== target) body.path = [];
+  if (!body.home && !target && (!body.path || body.path.length === 0) && bay && body.room !== bay) {
+    const path = route(ship, body.room, bay);
+    if (path && path.length > 0) {
+      body.home = true;
+      body.path = path;
+    }
+  }
+  if ((!body.path || body.path.length === 0) && target && target !== body.room) {
+    const path = route(ship, body.room, target);
+    if (path && path.length) body.path = path;
+  }
+  if (!body.path || body.path.length === 0) {
+    if (body.home && body.room === bay) body.home = false;
+    maybeHealBay(ship, body, dt);
+    return;
+  }
+  if (chewDoor(g, ship, body, dt, aboard, aboard, true) === "blocked") return;
+  body.move = (body.move ?? 0) + (dt * pace) / 0.6;
+  if (body.move >= 1) {
+    const next = body.path.shift();
+    if (next) body.room = next;
+    body.move = 0;
+  }
+  if (body.home && body.room === bay && (body.path?.length ?? 0) === 0) {
+    body.home = false;
+    const job = repairDest(ship, body);
+    if (job && job !== body.room) {
+      const path = route(ship, body.room, job);
+      if (path && path.length) body.path = path;
+    }
+  }
+}
+
+function tickHull(g: Game, kit: Kit, dt: number): void {
+  // Hull Repair Drone: "repairing 3-5 hull points and then self-destructs".
+  // Reaching a full hull ends the job early. A hull that was already full has not been repaired.
+  kit.aux += dt;
+  let repaired = false;
+  while (kit.aux >= HULL_POINT_S && kit.left > 0 && g.player.hull < g.player.hullMax) {
+    kit.aux -= HULL_POINT_S;
+    g.player.hull += 1;
+    kit.left -= 1;
+    repaired = true;
+  }
+  if (kit.left <= 0 || (repaired && g.player.hull >= g.player.hullMax)) {
+    killPlayerDrone(g, "Your hull repair drone breaks apart.");
+  }
+}
+
+function tickCombat2(g: Game, kit: Kit, dt: number) {
+  // Drone Control, Combat Drone Mark II: "Power requirement: 4 power".
+  // "Moves faster, and consequently has a higher rate of fire." The wait is the orbit leg.
+  if (!kit.on || kit.power < (droneDef("COMBAT_2")?.power ?? COMBAT2.power)) return;
+  flyCombatLaser(
+    g,
+    kit,
+    dt,
+    beamDroneSpeed("COMBAT_2"),
+    () => enemyRoom(g),
+    (room) => {
+      if (combatFireBlocked(g, "player")) return;
+      pushStriker(g, room);
+    },
+  );
+}
+
+function systemRooms(enemy: Ship): Room[] {
+  return enemy.rooms.filter((room) => room.system);
+}
+
+/**
+ * Drone Control, Ion Intruder Drone: "Health: 125 HP".
+ * Enemy copies already stored this on DroneUnit. The player's drone uses Kit.hp.
+ */
+export const INTRUDER_HP = 125;
+
+/**
+ * Drone Control, Ion Intruder Drone: "Speed: 18 (when moving through space)".
+ * A space-flight figure, not seconds, and not the interior step below.
+ * BOARD_FLY_S stays the invented flight interval. This number is not converted into it.
+ */
+export const INTRUDER_SPACE_SPEED = 18;
+
+/**
+ * INFERRED: one interior room takes 0.6s. Crew spend that long on each floor tile
+ * (sim.ts moveCrew). This drone step stays one room.
+ * "Speed: 18 (when moving through space)" is INTRUDER_SPACE_SPEED and is not this step.
+ */
+const INTRUDER_ROOM_S = 0.6;
+
+/**
+ * Door System, "Door strength": boarders "make about one attack per second".
+ * Drone Control, Ion Intruder and System Repair: "Quickly breaks down doors".
+ * The Ion Intruder note says that speed was not measured against crew.
+ * INFERRED: two hits per second, twice the printed crew attack. Speed 18 is not this rate.
+ */
+export const DRONE_DOOR_HITS_PER_S = 2;
+
+/** Hacking, "Overview": hacked doors are level-3 blast doors. extras/spike.ts HACKED_DOOR_LEVEL. */
+const HACKED_DOOR_LEVEL = 3;
+
+type Walker = {
+  room?: string;
+  path?: string[];
+  move?: number;
+  doorHit?: boolean;
+  doorChew?: string;
+};
+
+function interiorDoor(ship: Ship, a: string, b: string) {
+  return ship.doors.find(
+    (door) =>
+      door.b !== "void" && ((door.a === a && door.b === b) || (door.a === b && door.b === a)),
+  );
+}
+
+function roomCoated(ship: Ship, id: string): boolean {
+  return (ship.rooms.find((room) => room.id === id)?.lock ?? 0) > 0;
+}
+
+/**
+ * A shut blast door holds the walker and loses DRONE_DOOR_HITS_PER_S hits per second.
+ * A coated door spends COATED_DOOR_HITS (punchCoat), not blast-door health, and still arms the ion skip.
+ * Hacking: the hacker's crew walk through. breakOwn is the System Repair drone, which still breaks them.
+ * Door System: below blast doors (level under 2, or the system is down) a drone walks through and the door stays shut.
+ * A blast door that opens this tick still holds the step.
+ */
+function chewDoor(
+  g: Game,
+  ship: Ship,
+  walker: Walker,
+  dt: number,
+  aboard: "player" | "enemy",
+  side: "player" | "enemy",
+  breakOwn: boolean,
+): "blocked" | "clear" {
+  const next = walker.path?.[0];
+  if (!walker.room || !next) return "clear";
+  const door = interiorDoor(ship, walker.room, next);
+  if (!door || door.open) return "clear";
+  if (roomCoated(ship, next) || roomCoated(ship, walker.room) || (door.coat ?? 0) > 0) {
+    const key = door.a < door.b ? `${door.a}|${door.b}` : `${door.b}|${door.a}`;
+    if (walker.doorChew !== key) {
+      walker.doorChew = key;
+      walker.doorHit = true;
+    }
+    if (punchCoat(door, dt * DRONE_DOOR_HITS_PER_S) === "broke") log(g, "A door gives way.");
+    return "blocked";
+  }
+  const hacked = ship === g.player && !!door.hacked && !!g.enemy;
+  const home = aboard === "player" ? "player" : "enemy";
+  if (hacked && side === "enemy" && !breakOwn) return "clear";
+  if (!hacked && side === home && !breakOwn) return "clear";
+  const hits = blastHits(hacked ? HACKED_DOOR_LEVEL : doorLevel(g, ship, aboard), g.difficulty);
+  // Door System: crew, drones, and boarders move freely when there are no blast doors. The door stays shut.
+  if (hits <= 0) return "clear";
+  if (door.hp <= 0) {
+    door.hp = hits;
+    noteDoorArmed(door, hits);
+  }
+  const key = door.a < door.b ? `${door.a}|${door.b}` : `${door.b}|${door.a}`;
+  if (walker.doorChew !== key) {
+    walker.doorChew = key;
+    walker.doorHit = true;
+  }
+  door.hp -= dt * DRONE_DOOR_HITS_PER_S;
+  if (door.hp > 0) return "blocked";
+  door.open = true;
+  door.stuck = 7;
+  door.hp = 0;
+  log(g, "A door gives way.");
+  return "blocked";
+}
+
+function takeDoorSkip(walker: Walker): boolean {
+  if (!walker.doorHit) return false;
+  walker.doorHit = false;
+  return true;
+}
+
+function stepIntruderWalk(
+  g: Game,
+  ship: Ship,
+  walker: Walker,
+  dt: number,
+  aboard: "player" | "enemy",
+  side: "player" | "enemy",
+) {
+  if (!walker.path?.length) return;
+  if (chewDoor(g, ship, walker, dt, aboard, side, false) === "blocked") return;
+  walker.move = (walker.move ?? 0) + dt / INTRUDER_ROOM_S;
+  while (walker.move >= 1 && walker.path.length > 0) {
+    const next = walker.path.shift();
+    if (next) walker.room = next;
+    walker.move -= 1;
+  }
+  if (walker.path.length === 0) walker.move = 0;
+}
+
+/** A door-linked route to a different system. No route means it stays. The page does not teleport it. */
+function intruderRoute(g: Game, ship: Ship, from: string, systems: Room[]): string[] {
+  const pool = systems.filter((room) => room.id !== from);
+  while (pool.length > 0) {
+    const dest = pool.splice(Math.floor(rand(g) * pool.length), 1)[0];
+    if (!dest) break;
+    const path = route(ship, from, dest.id);
+    if (path && path.length > 0) return path;
+  }
+  return [];
+}
+
+function hurtPlayerIntruder(g: Game, kit: Kit, dt: number): boolean {
+  if (!kit.room || kit.hp == null) return false;
+  const foes = g.crew.filter(
+    (c) =>
+      c.aboard === "enemy" &&
+      c.room === kit.room &&
+      c.hp > 0 &&
+      c.path.length === 0 &&
+      (c.stun ?? 0) <= 0 &&
+      !forPlayer(c),
+  );
+  if (!foes.length) return false;
+  kit.hp -= foes.reduce((sum, c) => sum + crewBlow(g, c, dt), 0);
+  if (kit.hp > 0) return false;
+  kit.hp = 0;
+  kit.path = [];
+  kit.move = 0;
+  killPlayerDrone(g, "Crew tore your ion intruder apart.");
+  return true;
+}
+
+function rollIntruderWait(g: Game): number {
+  // Drone Control, Ion Intruder: "Pulse time varies between 8.2 and 10 seconds."
+  // INFERRED: each wait is uniform inside that range. The page names no distribution.
+  return intruderPulseMin() + rand(g) * (intruderPulseMax() - intruderPulseMin());
+}
+
+function pulseIntruder(g: Game, enemy: Ship, kit: Kit): void {
+  const systems = systemRooms(enemy);
+  if (systems.length === 0) return;
+  if (!kit.room || !systems.some((room) => room.id === kit.room)) {
+    kit.room = systems[Math.floor(rand(g) * systems.length)]?.id;
+  }
+  const room = enemy.rooms.find((item) => item.id === kit.room);
+  if (room?.system) {
+    const sys = enemy.systems[room.system];
+    // A destroyed system is not ionized. An ionized system is still a target.
+    if (sys.damage < sys.level) {
+      applyIon(enemy, room.system, intruderIon());
+      for (const c of g.crew) {
+        if (c.side !== "enemy" || c.aboard !== "enemy" || c.room !== room.id || c.hp <= 0) continue;
+        // Boarding, "Stun effect": stun only enemy units, including crew the player is mind-controlling.
+        // Drone Control, Ion Intruder: a friendly boarder stays free. side "player" is already skipped.
+        c.stun = intruderStun();
+      }
+      // Boarding, "Boarding Drones": "The Ion Intruder will ionize a system, stunning all hostile crew and drones for 6 seconds, and then move to another system."
+      // Drone Control, Ion Intruder: "The stun does not affect friendly boarders, Boarding Drones, or other Ion Intruders."
+      for (const unit of enemy.kits.drones?.drones ?? []) {
+        const spot = enemyDroneSpot(unit);
+        if (spot?.at !== "enemy-room" || spot.room !== room.id) continue;
+        unit.stun = Math.max(unit.stun ?? 0, intruderStun());
+      }
+    }
+  }
+  // "then moves to a different system". The walk is stepIntruderWalk. This pulse only chooses the rooms.
+  if (kit.room) kit.path = intruderRoute(g, enemy, kit.room, systems);
+}
+
+function addOvercharge(ship: Ship): void {
+  // Drone Control, Shield Overcharger: "Periodically adds 1 point of Zoltan Shield to regular shields."
+  // A bubble created while none was present is the overcharged shield a jump drops.
+  // An existing bubble, including a depleted 0, is not marked. Jump still recharges that one to 5.
+  const born = ship.zoltan == null;
+  ship.zoltan = (ship.zoltan ?? 0) + 1;
+  if (born) ship.zoltanOver = true;
+}
+
+function tickOvercharger(g: Game, kit: Kit, dt: number): void {
+  // Drone Control, Shield Overcharger and Shield Overcharger +.
+  // overchargerSpeed() is the blueprint <speed>, a flight figure, not a wait. This tick does not move the drone and does not fire.
+  const need =
+    kit.target === "DRONE_SHIELD_PLAYER"
+      ? overchargerPower("DRONE_SHIELD_PLAYER")
+      : overchargerPower("DRONE_SHIELD");
+  // "Each timer resets should the drone become unpowered."
+  if (!kit.on || kit.power < need) {
+    kit.aux = 0;
+    kit.left = 0;
+    return;
+  }
+  const ship = g.player;
+  // The wait is the layer count when this charge started. A hit during it does not pick a new time.
+  if (!(kit.left > 0)) {
+    const wait = overchargerWait(ship.zoltan ?? 0);
+    if (wait == null) return;
+    kit.left = wait;
+    kit.aux = 0;
+    // dlcSounds.xml shieldDroneCharge: the overcharger starts building a layer.
+    queueSfx(g, "shieldDroneCharge");
+  }
+  kit.aux += dt;
+  while (kit.left > 0 && kit.aux >= kit.left) {
+    kit.aux -= kit.left;
+    addOvercharge(ship);
+    queueSfx(g, "shieldDroneActivate");
+    const next = overchargerWait(ship.zoltan ?? 0);
+    if (next == null) {
+      kit.left = 0;
+      kit.aux = 0;
+      return;
+    }
+    kit.left = next;
+  }
+}
+
+function tickIntruder(g: Game, kit: Kit, dt: number): void {
+  if (kit.hp == null) kit.hp = INTRUDER_HP;
+  if (!(kit.left > 0)) kit.left = rollIntruderWait(g);
+  // Removing power does not reset the cooldown. The timer freezes: it is not zeroed and it does not advance.
+  if (!kit.on || kit.power < intruderPower()) return;
+  const enemy = g.enemy;
+  if (!enemy) return;
+  const systems = systemRooms(enemy);
+  if (!kit.room || !systems.some((room) => room.id === kit.room)) {
+    kit.room = systems[Math.floor(rand(g) * systems.length)]?.id;
+    kit.path = [];
+    kit.move = 0;
+  }
+  if (hurtPlayerIntruder(g, kit, dt)) return;
+  // The walk started by the previous pulse. Speed 18 is space flight, not this step.
+  if (kit.path?.length) stepIntruderWalk(g, enemy, kit, dt, "enemy", "player");
+  // "Will skip its cooldown if it attacked a blast door ... beforehand." One skip per door.
+  // A Lockdown door is attacked too: "or a door locked with the Lockdown effect".
+  if (takeDoorSkip(kit)) kit.aux = kit.left;
+  kit.aux += dt;
+  while (kit.aux >= kit.left) {
+    // dlcSounds.xml ionBoarderCharge: the Ion Intruder's pulse.
+    queueSfx(g, "ionBoarderCharge");
+    pulseIntruder(g, enemy, kit);
+    kit.aux -= kit.left;
+    kit.left = rollIntruderWait(g);
+  }
+}
+
+/**
+ * Charge the deployed drone. Defense cooldowns count down on kit.cool and kit.aux.
+ * A striker that reaches its interval pushes a laser onto g.shots (no module stash).
+ * Timers pause while fed bars are under that drone's power.
+ * INFERRED: Overview says a drone stops when the system cannot power it, and
+ * Anti-Combat needs continuous power to recharge.
+ */
+function tickEnemyDefense(g: Game, dt: number) {
+  const kit = g.enemy?.kits.drones;
+  if (!kit || !kitScreen(kit)) return;
+  tickCooldown(kit, dt);
+}
+
+export function tickSwarm(g: Game, dt: number) {
+  retireReady(g);
+  if (!(dt > 0)) return;
+  tickStrandedBoarders(g, dt);
+  tickEnemyDefense(g, dt);
+  // @agent:drones. Enemy Drone Control: deploy on the first combat tick, then run every deployed drone.
+  tickEnemyDrones(g, dt);
+  ageBlasts(g, dt);
+  const kit = g.player.kits.drones;
+  // @agent:drones. The 10 second redeploy delay after a destroyed drone (deploy). It runs whether or not bars are fed.
+  if (kit && (kit.lost ?? 0) > 0) kit.lost = Math.max(0, (kit.lost ?? 0) - dt);
+  // The Engi Cruiser, Layout B: two System Repair schematics, each its own drone.
+  if (kit && pairedRepair(kit)) {
+    tickPlayerSlots(g, kit, dt);
+    return;
+  }
+  if (!kit?.target) return;
+  // System Repair dying animation runs even with no power and through a stun. The bar, not the hit, ends it.
+  if (kit.target === "REPAIR" && kit.on && kit.dying) {
+    tickDyingRepair(g, g.player, kit, dt, false, () =>
+      killPlayerDrone(g, "Your repair drone finishes the bar and breaks apart."),
+    );
+    return;
+  }
+  // @agent:drones. Drone Control, Anti-Combat Drone: an enemy one stunned this drone ("the 5 seconds stun").
+  // An ion stun (ionHitsKit) also rolls Overview's 15% per second after the first.
+  if ((kit.stun ?? 0) > 0) {
+    const spent = Math.min(dt, kit.stun ?? 0);
+    kit.stun = Math.max(0, (kit.stun ?? 0) - dt);
+    if (kit.ionT != null) {
+      const before = kit.ionT;
+      kit.ionT = before + spent;
+      if (ionBurnsOut(g, before, kit.ionT)) {
+        killPlayerDrone(g, `Your ${unitName(kit.target)} burns out under the ion charge.`);
+        return;
+      }
+      if (kit.stun <= 0) kit.ionT = undefined;
+    }
+    return;
+  }
+  if (kit.target === "COMBAT_2") {
+    tickCombat2(g, kit, dt);
+    return;
+  }
+  if (kit.target === "BOARDER_ION") {
+    tickIntruder(g, kit, dt);
+    return;
+  }
+  if (kit.target === "DRONE_SHIELD" || kit.target === "DRONE_SHIELD_PLAYER") {
+    tickOvercharger(g, kit, dt);
+    return;
+  }
+  // Hull Repair: "Depowering, or otherwise making an active Hull Repair Drone go offline, interrupts
+  // the hull repairs and removes it without salvaging the drone part." Not the 10 second rebuild.
+  if (kit.target === "SHIP_REPAIR" && kit.on && !powered(kit, "SHIP_REPAIR")) {
+    kit.on = false;
+    kit.target = null;
+    kit.left = 0;
+    kit.aux = 0;
+    log(g, "Hull Repair goes offline. The drone part stays spent.");
+    return;
+  }
+  if (kit.target === "REPAIR" && kit.on) {
+    const fed = powered(kit, "REPAIR");
+    noteRepairPower(kit, g.player, fed);
+    if (!fed) {
+      maybeHealBay(g.player, kit, dt);
+      return;
+    }
+    tickRepair(
+      g,
+      g.player,
+      kit,
+      dt,
+      "player",
+      false,
+      crewDroneSpeed(g.augments.includes("DRONE_SPEED")),
+    );
+    return;
+  }
+  // A defense schematic the code does not name (BOSS_DEFENSE_2) recharges on its screen's bars like Mark I / II.
+  if (!isKind(kit.target)) {
+    const screen = kitScreen(kit);
+    if (screen === "DEFENSE_1" || screen === "DEFENSE_2") tickCooldown(kit, dt);
+    return;
+  }
+  if (!powered(kit, kit.target)) return;
+  const kind = kit.target;
+  if (kind === "COMBAT_1") {
+    tickStriker(g, kit, dt);
+    return;
+  }
+  if (kind === "COMBAT_BEAM") {
+    tickBeam(g, kit, dt);
+    return;
+  }
+  if (kind === "BOARDER") {
+    tickBoard(g, kit, dt);
+    return;
+  }
+  if (kind === "SHIP_REPAIR") {
+    tickHull(g, kit, dt);
+    return;
+  }
+  if (kind === "ANTI_DRONE") {
+    tickWardcut(g, kit, dt);
+    return;
+  }
+  tickCooldown(kit, dt);
+}
+
+/** Combat lasers that became ready on the latest tickSwarm call. */
+export function swarmCombatShots(
+  g: Game,
+): Array<{ damage: number; fireChance: number; kind: "laser" }> {
+  const out: Array<{ damage: number; fireChance: number; kind: "laser" }> = [];
+  for (const shot of g.shots) {
+    if (shot.label !== READY_LABEL || shot.kind !== "laser") continue;
+    out.push({ damage: shot.damage, fireChance: shot.fireChance, kind: "laser" });
+  }
+  return out;
+}
+
+// ───────────────────────────────────────────────────────────────────────────────────────────
+// @agent:drones. Enemy Drone Control. A generated enemy carries kit.loadout (enemy-gen.ts rollDrones) and
+// deploys it here as kit.drones. The player's single-target kit above is unchanged.
+// ───────────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Drone Control, "Defensive Drones": "They also require approximately a second to acquire a target after being
+ * deployed or reactivated". INFERRED: exactly 1 second, for all three defensive schematics the enemy flies.
+ */
+export const ACQUIRE_S = 1;
+
+/** Drone Control, Overview: "If a drone is destroyed, there is a 10 second delay before it can be deployed again (costing another part)." */
+export const REDEPLOY_S = 10;
+
+/** Drone Control, Anti-Combat Drone: "Stuns Combat, Hacking, and Boarding drones with 47.8% chance to destroy them during the 5 seconds stun". */
+export const ANTI_STUN_S = 5;
+export const ANTI_KILL = 47.8 / 100;
+
+/**
+ * Drone Control, Overview: "External drones hit by an ion shot are stunned for 5 seconds for each ion damage.
+ * Each second of stun after the first, they have a 15% chance to be destroyed."
+ */
+export const ION_STUN_PER = 5;
+export const ION_KILL_PER_S = 15 / 100;
+
+/**
+ * Health lines: Boarding Drone "Health: 150 HP", Ion Intruder Drone "Health: 125 HP",
+ * Anti-Personnel Drone "Health: 150 HP", System Repair Drone "Health: 25 HP".
+ */
+const UNIT_HP: Record<string, number> = {
+  BOARDER: 150,
+  ionintruder: INTRUDER_HP,
+  personnel: 150,
+  REPAIR: 25,
+};
+
+/**
+ * INVENTED: Boarding Drone and Ion Intruder print "Speed: 18 (when moving through space)" (INTRUDER_SPACE_SPEED),
+ * a movement figure, not seconds. 3 seconds of flight is the interval your defense drones get to shoot one down.
+ */
+export const BOARD_FLY_S = 3;
+
+/**
+ * Crew skills, Combat skill: "always 12.5 seconds per crew for one system bar, regardless of the crew type or skills."
+ * INFERRED: a boarding drone breaks one bar in that same time. Drone Control prints no separate duration.
+ */
+export const BREAK_BAR_S = 12.5;
+
+/** One system bar when the drone has spent BREAK_BAR_S sabotaging. Overflow on that tick is dropped, as crew sabotage drops it. */
+function accrueBar(holder: { fix?: number }, dt: number): boolean {
+  holder.fix = (holder.fix ?? 0) + dt;
+  if (holder.fix < BREAK_BAR_S) return false;
+  holder.fix = 0;
+  return true;
+}
+
+/**
+ * Boarding, Combat: an unskilled human deals 3 to 7 HP per hit.
+ * Crew skills, Combat skill: that hit also lands on onboard drones, times the combat rank.
+ * Timing and the 3.0-7.0 base are sim.ts crewBlowDue and crewBlowDamage (xftl doc/damage-notes).
+ */
+function crewBlow(g: Game, c: Crew, dt: number): number {
+  if (!crewBlowDue(g, c, dt)) return 0;
+  return crewBlowDamage(g) * crewDef(c.kin ?? "human").fight * crewCombat(c);
+}
+
+/** Crew skills, Combat skill: "increases the damage dealt to crewmembers and onboard drones". Level 0 stays ×1, level 2 is 20% more. */
+function crewCombat(c: Crew): number {
+  return combatSkillMult(skillRank(c.skills?.combat ?? 0, xpNeedFor(c, "combat")));
+}
+
+/**
+ * Beam length "20 (0.4 tile diagonally)" is a length, not a swipe duration.
+ * The swipe lands when the orbit leg finishes. No separate flight seconds are printed.
+ */
+
+/** Anti-Ship Fire Drone: "90% chance to set a tile on fire" and "Does no hull damage". */
+const FIRE_DRONE_FIRE = 90 / 100;
+const FIRE_BEAM_HIT: DroneHit = { damage: 0, ion: 0, fireChance: FIRE_DRONE_FIRE, breachChance: 0 };
+
+/**
+ * Combat Drones (offensive drones): "Damage to Zoltan Shields is ... 1 per beam drone swipe (2 for Beam Drone II ...)".
+ * Anti-Ship Fire Drone: "Does 1 damage to a Zoltan Shield, just like the Anti-Ship Beam Drone I".
+ */
+const SWIPE_ZOLTAN: Record<string, number> = {
+  COMBAT_BEAM: 1,
+  COMBAT_BEAM_2: 2,
+  fire: 1,
+  COMBAT_FIRE: 1,
+};
+
+/** Shot label prefix for a shot fired by an enemy drone. CombatFx reads the drone id after the colon. */
+export const DRONE_LABEL = "drone:";
+
+/** Drone Control, "Combat Drones (offensive drones)": these orbit the target ship. */
+const OFFENSIVE = new Set([
+  "COMBAT_1",
+  "COMBAT_2",
+  "COMBAT_BEAM",
+  "COMBAT_BEAM_2",
+  "fire",
+  "COMBAT_FIRE",
+]);
+
+/** Anti-Ship Fire Drone. The archive blueprint is COMBAT_FIRE. Class tables still say fire. */
+function fireDrone(kind: string): boolean {
+  return kind === "fire" || kind === "COMBAT_FIRE";
+}
+/** Drone Control, "Boarding Drones": Boarding Drone and Ion Intruder Drone fly to the target and breach in. */
+const BOARDERS = new Set(["BOARDER", "BOARDER_ION"]);
+/** Drone Control, "Defensive Drones" the enemy flies. */
+const DEFENSIVE = new Set(["DEFENSE_1", "DEFENSE_2", "ANTI_DRONE", "DRONE_SHIELD"]);
+/** Drone Control, "Crew Drones": stay aboard their own ship. */
+const CREW_DRONES = new Set(["REPAIR", "personnel"]);
+
+/** Zoltans, "Race characteristics": "a drone actually loses only 7.5 HP". Crew in the room still take 15. */
+const ZOLTAN_DRONE_HP = 7.5;
+
+/**
+ * Zoltans, "Race characteristics": "full-HP drones will be shown missing 8 HP, however, a drone actually loses only
+ * 7.5 HP - it is how the game rounds down the decimal values". Stored health stays the fractional value.
+ */
+export function shownDroneHp(hp: number): number {
+  return Math.floor(hp);
+}
+
+/** Rooms on this hull that hold a drone with health, labeled with the rounded-down value. */
+export function roomDroneHp(ship: Ship, g: Game): { room: string; shown: number }[] {
+  const ids = new Set(ship.rooms.map((room) => room.id));
+  const out: { room: string; shown: number }[] = [];
+  const kit = g.player.kits.drones;
+  if (kit?.on && kit.hp != null && kit.room && ids.has(kit.room)) {
+    out.push({ room: kit.room, shown: shownDroneHp(kit.hp) });
+  }
+  for (const unit of g.enemy?.kits.drones?.drones ?? []) {
+    if (!unit.alive || unit.hp == null || !unit.room || !ids.has(unit.room)) continue;
+    out.push({ room: unit.room, shown: shownDroneHp(unit.hp) });
+  }
+  for (const unit of g.boarded ?? []) {
+    if (!unit.alive || unit.hp == null || !unit.room || !ids.has(unit.room)) continue;
+    out.push({ room: unit.room, shown: shownDroneHp(unit.hp) });
+  }
+  return out;
+}
+
+/**
+ * Zoltans, "Race characteristics": the death burst's drone damage, on a drone that already has health and is in the room.
+ * Orbiting drones have no health field, so they are skipped. A drone at 0 or below is destroyed.
+ */
+/**
+ * Weapons, "Weapons: general information": "On-board drones take half the regular crew damage."
+ * Beam (Weapons), "Beam targeting and damage mechanics": "Damage to crew drones is halved."
+ * crewHit is the damage the crew in that room just took. A drone with no health field is orbiting and is skipped.
+ * A drone at 0 or below is destroyed. The player's Ion Intruder stands on the enemy ship. A crew drone stands on its own.
+ */
+export function hurtRoomDrones(
+  g: Game,
+  aboard: "player" | "enemy",
+  roomId: string,
+  crewHit: number,
+): void {
+  if (!(crewHit > 0)) return;
+  const half = crewHit / 2;
+  const kit = g.player.kits.drones;
+  if (kit?.on && kit.hp != null && kit.room === roomId) {
+    const onEnemy = kit.target === "BOARDER_ION" || kit.target === "BOARDER";
+    if ((aboard === "enemy") === onEnemy) {
+      kit.hp -= half;
+      if (kit.hp <= 0) killPlayerDrone(g, "The hit destroys the drone.");
+    }
+  }
+  for (const unit of g.enemy?.kits.drones?.drones ?? []) {
+    if (!unit.alive || unit.hp == null || unit.room !== roomId) continue;
+    const spot = enemyDroneSpot(unit);
+    if (aboard === "player" && spot?.at !== "player-room") continue;
+    if (aboard === "enemy" && spot?.at !== "enemy-room") continue;
+    unit.hp -= half;
+    if (unit.hp <= 0) killUnit(g, unit, "The hit destroys the drone.");
+  }
+  if (aboard !== "player") return;
+  for (const unit of g.boarded ?? []) {
+    if (!unit.alive || unit.hp == null || unit.room !== roomId) continue;
+    unit.hp -= half;
+    if (unit.hp <= 0) killUnit(g, unit, "The hit destroys the drone.");
+  }
+}
+
+export function zoltanBurstDrones(g: Game, dead: Crew): void {
+  if (!crewDef(dead.kin).hasDeathExplosion || !dead.room) return;
+  if (dead.side === "enemy") {
+    const kit = g.player.kits.drones;
+    if (!kit?.on || kit.hp == null || kit.room !== dead.room) return;
+    kit.hp -= ZOLTAN_DRONE_HP;
+    if (kit.hp <= 0) killPlayerDrone(g, "The Zoltan burst destroys the drone.");
+    return;
+  }
+  for (const unit of [...(g.enemy?.kits.drones?.drones ?? []), ...(g.boarded ?? [])]) {
+    if (!unit.alive || unit.hp == null || unit.room !== dead.room) continue;
+    unit.hp -= ZOLTAN_DRONE_HP;
+    if (unit.hp <= 0) killUnit(g, unit, "The Zoltan burst destroys the drone.");
+  }
+}
+
+/** Where a deployed enemy drone is, for CombatFx: around the player hull, around its own hull, flying, or in a room. */
+export type EnemyDroneSpot =
+  | { at: "player-orbit" }
+  | { at: "enemy-orbit" }
+  | { at: "flying"; progress: number }
+  | { at: "player-room"; room: string }
+  | { at: "enemy-room"; room: string };
+
+export function enemyDroneSpot(unit: DroneUnit): EnemyDroneSpot | null {
+  if (!unit.alive) return null;
+  if (OFFENSIVE.has(flight(unit))) return { at: "player-orbit" };
+  if (BOARDERS.has(flight(unit))) {
+    if ((unit.fly ?? 0) > 0 || !unit.room)
+      return { at: "flying", progress: 1 - Math.max(0, unit.fly ?? 0) / BOARD_FLY_S };
+    return { at: "player-room", room: unit.room };
+  }
+  if (CREW_DRONES.has(flight(unit)))
+    return unit.room ? { at: "enemy-room", room: unit.room } : { at: "enemy-orbit" };
+  return { at: "enemy-orbit" };
+}
+
+/**
+ * Bars one enemy schematic needs: its own blueprint's `<power>`. A sim id with no blueprint (personnel) reads the
+ * shelf table, and a blueprint that omits `<power>` costs what its flight code's schematic does.
+ */
+function unitPower(kind: string): number {
+  return (
+    droneDef(kind)?.power ??
+    SCHEMATIC_POWER[kind] ??
+    SCHEMATIC_POWER[flownAs(kind) ?? ""] ??
+    Number.POSITIVE_INFINITY
+  );
+}
+
+/**
+ * The id whose flight code runs this drone (extras/flown.ts flownAs). The unit keeps its archive id, so power, gun,
+ * and speed still read that blueprint.
+ */
+function flight(unit: { kind: string }): string {
+  return flownAs(unit.kind) ?? unit.kind;
+}
+
+/** Same occupy / add split as sim.ts powerMask. Zero Zoltans keep the old skip-if-short walk. */
+function dronePool(kit: Kit): { z: number; r: number; occupy: boolean } {
+  const capacity = archiveBars(Math.max(0, kit.level - (kit.damage ?? 0)), kit);
+  const z = kit.zoltan ?? 0;
+  const held = kit.zoltanHeld ?? 0;
+  const occupy = capacity > 0 && z > 0 && kit.power + held >= capacity;
+  const green = Math.min(Math.max(0, kit.power), capacity);
+  return {
+    z,
+    r: occupy ? Math.min(green, Math.max(0, capacity - z)) : green,
+    occupy,
+  };
+}
+
+/** Fights for the player: player crew, or enemy crew under the player's mind control. Same rule as sim.ts life(). */
+function forPlayer(c: Crew): boolean {
+  return (c.leashed ?? 0) > 0 ? c.side === "enemy" : c.side === "player";
+}
+
+function stowed(kind: string, i: number, g: Game): DroneUnit {
+  return { id: `ed-${i}-${nextId(g)}`, kind, alive: false, powered: false, aux: 0, cool: 0 };
+}
+
+function deployUnit(g: Game, enemy: Ship, unit: DroneUnit) {
+  // Drone Control, Overview: activating a drone that is not deployed "will spend one drone part".
+  enemy.parts -= PART_COST;
+  const intruderCharge =
+    flight(unit) === "BOARDER_ION" && (unit.left ?? 0) > 0
+      ? { aux: unit.aux, left: unit.left }
+      : null;
+  unit.alive = true;
+  unit.powered = true;
+  unit.aux = 0;
+  unit.fix = 0;
+  unit.stun = undefined;
+  unit.ionT = undefined;
+  unit.fired = undefined;
+  unit.room = undefined;
+  unit.path = undefined;
+  unit.move = undefined;
+  unit.hp = UNIT_HP[flight(unit)];
+  unit.fly = BOARDERS.has(flight(unit)) ? BOARD_FLY_S : undefined;
+  unit.heading = undefined;
+  unit.bearing = undefined;
+  unit.stick = undefined;
+  unit.home = undefined;
+  unit.hold = undefined;
+  unit.dying = undefined;
+  // Defensive Drones: "require approximately a second to acquire a target after being deployed".
+  // Anti-Combat Drone: "Starts fully charged when first deployed", so after that second it fires at once.
+  unit.cool = DEFENSIVE.has(flight(unit)) ? ACQUIRE_S : 0;
+  unit.left = undefined;
+  // Ion Intruder Drone: "A newly deployed enemy Ion Intruder can have a full charge of the previously destroyed Ion Intruder".
+  if (intruderCharge) {
+    unit.aux = intruderCharge.aux;
+    unit.left = intruderCharge.left;
+  }
+  queueArchive(g, "droneLaunch");
+}
+
+function killUnit(g: Game, unit: DroneUnit, why: string) {
+  if (flight(unit) === "REPAIR" && unit.alive && g.enemy && holdDyingRepair(g.enemy, unit)) return;
+  if (flight(unit) === "REPAIR" && unit.alive) queueSfx(g, "shrikeDeath");
+  unit.dying = undefined;
+  unit.alive = false;
+  unit.powered = false;
+  unit.cool = REDEPLOY_S;
+  unit.stun = undefined;
+  unit.ionT = undefined;
+  unit.fly = undefined;
+  unit.heading = undefined;
+  unit.bearing = undefined;
+  unit.room = undefined;
+  unit.path = undefined;
+  unit.move = undefined;
+  unit.stick = undefined;
+  unit.home = undefined;
+  unit.hold = undefined;
+  if (flight(unit) !== "BOARDER_ION") {
+    unit.aux = 0;
+    unit.left = undefined;
+  }
+  if (flight(unit) === "REPAIR") unit.coldFires = true;
+  log(g, why);
+}
+
+/**
+ * Deploy, power, and run every enemy drone. Drone Control, "Drone Schematics": "Before the start of a ship fight it
+ * is impossible to know the exact drones the enemy ship will deploy, because the Drone Control system is technically
+ * depowered and the drones aren't deployed yet." So nothing is deployed until the first combat tick, and that tick
+ * only deploys: no drone acts on the tick it launches (INFERRED).
+ * Power: Drone Control bars go to drones from the first loadout slot. A full system lets Zoltan bars
+ * occupy those slots and does not combine a partial Zoltan into a drone it cannot finish (sim.ts takePowerSlot).
+ * A drone the bars no longer cover stops
+ * (Overview: "The drone will stay active until it is destroyed, its system is too damaged to power it, or you
+ * deactivate it"). It stays deployed, and repowering it spends no part (Overview: only a drone "not already
+ * deployed" spends one). A destroyed drone waits REDEPLOY_S and then spends a part to deploy again.
+ * INFERRED: the enemy always redeploys when it has the power and a part.
+ */
+function slideList<T>(list: T[], from: number, to: number): boolean {
+  if (from === to || !Number.isInteger(from) || !Number.isInteger(to)) return false;
+  if (from < 0 || to < 0 || from >= list.length || to >= list.length) return false;
+  const [item] = list.splice(from, 1);
+  list.splice(to, 0, item);
+  return true;
+}
+
+/**
+ * Weapon Control, Overview: the same drag that reorders weapons reorders drones.
+ * The schematic list and the deployed units stay in one index. A kit with no list does nothing.
+ */
+export function reorderDroneSlots(kit: Kit, from: number, to: number) {
+  const loadout = kit.loadout;
+  if (!loadout) return;
+  const drones = kit.drones;
+  if (drones && drones.length !== loadout.length) return;
+  if (!slideList(loadout, from, to)) return;
+  if (drones) slideList(drones, from, to);
+}
+
+/**
+ * Per the user: boarding drones already inside the player lose power when that hull is destroyed.
+ * Drones still in flight, and every other kind, go down with the ship. A crew kill does not call this.
+ */
+export function silenceBoarders(g: Game): void {
+  const kit = g.enemy?.kits.drones;
+  const units = kit?.drones;
+  const kept = (g.boarded ?? []).filter((unit) => unit.alive && !!unit.room);
+  if (units && kit) {
+    const stay: DroneUnit[] = [];
+    for (const unit of units) {
+      const landed =
+        unit.alive && BOARDERS.has(flight(unit)) && (unit.fly ?? 0) <= 0 && !!unit.room;
+      if (!landed) {
+        stay.push(unit);
+        continue;
+      }
+      unit.powered = false;
+      kept.push(unit);
+    }
+    kit.drones = stay;
+  }
+  g.boarded = kept.length ? kept : undefined;
+}
+
+/** Unpowered boarders left aboard. Crew can still destroy them. They do not sabotage, ionize, or move. */
+function tickStrandedBoarders(g: Game, dt: number) {
+  const list = g.boarded;
+  if (!list?.length) return;
+  for (const unit of list) {
+    if (!unit.alive) continue;
+    unit.powered = false;
+    // tickUnit reads the ship only for a repair drone. An unpowered boarder never reaches that.
+    tickUnit(g, g.player, unit, dt);
+  }
+  const live = list.filter((unit) => unit.alive && !!unit.room);
+  g.boarded = live.length ? live : undefined;
+}
+
+export function tickEnemyDrones(g: Game, dt: number) {
+  const enemy = g.enemy;
+  const kit = enemy?.kits.drones;
+  if (!enemy || !kit?.loadout?.length) return;
+  const first = !kit.drones;
+  if (!kit.drones) kit.drones = kit.loadout.map((kind, i) => stowed(kind, i, g));
+  const pool = dronePool(kit);
+  for (const unit of kit.drones) {
+    // A schematic no flight code runs stays stowed (flownAs warns once).
+    if (!flownAs(unit.kind)) continue;
+    const need = unitPower(unit.kind);
+    if (!unit.alive) {
+      unit.powered = false;
+      if (!first) unit.cool = Math.max(0, unit.cool - dt);
+      // A stowed drone that will not launch must not waste a partial Zoltan bar.
+      if (unit.cool > 0 || enemy.parts < PART_COST || !powerSlotFits(need, pool)) continue;
+      deployUnit(g, enemy, unit);
+      takePowerSlot(need, true, pool);
+      kit.on = true;
+      const name = unitName(flight(unit));
+      log(g, `Their Drone Control launches ${/^[aeiou]/.test(name) ? "an" : "a"} ${name}.`);
+      continue;
+    }
+    const was = unit.powered;
+    unit.powered = takePowerSlot(need, true, pool);
+    // Defensive Drones: the acquire second also follows a reactivation.
+    if (unit.powered && !was && DEFENSIVE.has(flight(unit)))
+      unit.cool = Math.max(unit.cool, ACQUIRE_S);
+    tickUnit(g, enemy, unit, dt);
+  }
+}
+
+function unitName(kind: string): string {
+  const names: Record<string, string> = {
+    COMBAT_1: "combat drone",
+    COMBAT_2: "combat drone",
+    COMBAT_BEAM: "beam drone",
+    COMBAT_BEAM_2: "beam drone",
+    fire: "fire drone",
+    DEFENSE_1: "defense drone",
+    DEFENSE_2: "defense drone",
+    ANTI_DRONE: "anti-combat drone",
+    DRONE_SHIELD: "shield overcharger",
+    REPAIR: "repair drone",
+    personnel: "anti-personnel drone",
+    BOARDER: "boarding drone",
+    BOARDER_ION: "ion intruder",
+    DRONE_SHIELD_PLAYER: "shield overcharger",
+    SHIP_REPAIR: "hull repair drone",
+  };
+  return names[kind] ?? "drone";
+}
+
+function tickStun(g: Game, unit: DroneUnit, dt: number) {
+  const left = unit.stun ?? 0;
+  const spent = Math.min(dt, left);
+  unit.stun = left - spent;
+  if (unit.ionT != null) {
+    const before = unit.ionT;
+    const after = before + spent;
+    unit.ionT = after;
+    // Overview: "Each second of stun after the first, they have a 15% chance to be destroyed."
+    for (let s = Math.floor(before) + 1; s <= Math.floor(after + 1e-9); s++) {
+      if (s >= 2 && rand(g) < ION_KILL_PER_S) {
+        killUnit(g, unit, `Their ${unitName(flight(unit))} burns out under the ion charge.`);
+        return;
+      }
+    }
+  }
+  if ((unit.stun ?? 0) <= 0) {
+    unit.stun = undefined;
+    unit.ionT = undefined;
+  }
+}
+
+function tickUnit(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
+  if (flight(unit) === "REPAIR" && unit.dying) {
+    tickDyingRepair(g, enemy, unit, dt, true, () =>
+      killUnit(g, unit, "Their repair drone finishes the bar and breaks apart."),
+    );
+    return;
+  }
+  unit.fired = (unit.fired ?? Number.POSITIVE_INFINITY) + dt;
+  if ((unit.stun ?? 0) > 0) {
+    tickStun(g, unit, dt);
+    if (!unit.alive || (unit.stun ?? 0) > 0) return;
+  }
+  // Overview: "Crew and boarding drones can be damaged and destroyed by hostile crew". Power does not matter for that.
+  if (
+    (BOARDERS.has(flight(unit)) && (unit.fly ?? 0) <= 0 && unit.room) ||
+    CREW_DRONES.has(flight(unit))
+  ) {
+    const aboard = BOARDERS.has(flight(unit)) ? "player" : "enemy";
+    if (crewHitsDrone(g, unit, aboard, dt)) return;
+  }
+  if (flight(unit) === "REPAIR") noteRepairPower(unit, enemy, unit.powered);
+  if (!unit.powered) {
+    // System Repair heals in the bay on any Drone Control power, even when this schematic is the one left dark.
+    if (flight(unit) === "REPAIR") maybeHealBay(enemy, unit, dt);
+    // Shield Overcharger: "Each timer resets should the drone become unpowered".
+    // Ion Intruder Drone: "Removing power does not reset its cooldown", so its timer just freezes.
+    if (flight(unit) === "DRONE_SHIELD") {
+      unit.aux = 0;
+      unit.left = undefined;
+    }
+    return;
+  }
+  switch (flight(unit)) {
+    case "DEFENSE_1":
+    case "DEFENSE_2":
+      unit.cool = Math.max(0, unit.cool - dt);
+      return;
+    case "ANTI_DRONE":
+      unit.cool = Math.max(0, unit.cool - dt);
+      if (unit.cool <= 0) enemyAntiCombat(g, unit);
+      return;
+    case "COMBAT_1":
+    case "COMBAT_2":
+    case "COMBAT_ION":
+    case "COMBAT_MISSILE":
+      tickEnemyStriker(g, unit, dt);
+      return;
+    case "COMBAT_BEAM":
+    case "COMBAT_BEAM_2":
+    case "fire":
+    case "COMBAT_FIRE":
+      tickEnemyBeam(g, unit, dt);
+      return;
+    case "DRONE_SHIELD":
+      tickEnemyOvercharger(enemy, unit, dt);
+      return;
+    case "BOARDER":
+    case "BOARDER_ION":
+      tickEnemyBoarder(g, unit, dt);
+      return;
+    case "REPAIR":
+      tickEnemyPatch(g, enemy, unit, dt);
+      return;
+    case "DRONE_HACKING":
+      return;
+    case "personnel":
+    case "BATTLE":
+      tickEnemyPersonnel(g, unit, dt);
+      return;
+  }
+}
+
+/**
+ * Returns true when the drone died. Each non-stunned crew member fighting for the player hits it for 3 to 7, times combat skill.
+ * Crew skills, lead: "destroying crew drones" does not grant experience. No noteCombatPoint on this death.
+ */
+function crewHitsDrone(g: Game, unit: DroneUnit, aboard: "player" | "enemy", dt: number): boolean {
+  if (!unit.room || unit.hp == null) return false;
+  const foes = g.crew.filter(
+    (c) =>
+      c.aboard === aboard &&
+      c.room === unit.room &&
+      c.hp > 0 &&
+      c.path.length === 0 &&
+      (c.stun ?? 0) <= 0 &&
+      forPlayer(c),
+  );
+  if (!foes.length) return false;
+  unit.hp -= foes.reduce((sum, c) => sum + crewBlow(g, c, dt), 0);
+  if (unit.hp > 0) return false;
+  killUnit(g, unit, `Crew tore their ${unitName(flight(unit))} apart.`);
+  return true;
+}
+
+function randomOf<T>(g: Game, list: readonly T[]): T | undefined {
+  if (!list.length) return undefined;
+  return list[Math.floor(rand(g) * list.length) % list.length];
+}
+
+/** Combat Drone Mark I and Mark II aboard the enemy. Same orbit leg as the player's copy. */
+function tickEnemyStriker(g: Game, unit: DroneUnit, dt: number) {
+  const speed = beamDroneSpeed(unit.kind);
+  flyCombatLaser(
+    g,
+    unit,
+    dt,
+    speed,
+    () => randomOf(g, g.player.rooms)?.id ?? null,
+    (roomId) => {
+      if (combatFireBlocked(g, "enemy")) return;
+      unit.fired = 0;
+      // Combat Drones (offensive drones): "orbit the enemy ship and attack it repeatedly, targeting random rooms".
+      g.shots.push({
+        id: nextId(g),
+        from: "enemy",
+        ...droneGun(unit.kind, flight(unit) === "COMBAT_2" ? COMBAT2_HIT : STRIKER_HIT),
+        ...droneGunShot(unit.kind),
+        targetRoom: roomId,
+        wait: SHOT_WAIT_S,
+        t: SHOT_T,
+        duration: STRIKER_FLIGHT_S,
+        label: DRONE_LABEL + unit.id,
+      });
+    },
+  );
+}
+
+function linkedRoom(g: Game, ship: Ship, id: string): string | undefined {
+  return randomOf(g, linked(ship, id));
+}
+
+/** `beamOwner` of a drone swipe. sim.ts stepShots hands those shots to tickDroneBeam. */
+const DRONE_BEAM = "drone";
+
+/**
+ * One swipe when the orbit leg finishes. Per the user: the beam fires for the drone's beam hold (beamHoldSeconds),
+ * from the drone to the one point it hits, and lands on each room as it touches it (tickDroneBeam).
+ * Anti-Ship Beam Drone II: "it can often hit 2 rooms". INFERRED: a door-linked neighbour is the second room.
+ * "0.4 tile diagonally" is the Beam I length, not a flight time, so the swipe takes the hold, not a second duration.
+ */
+function fireBeamSwipe(
+  g: Game,
+  ship: Ship | null,
+  roomId: string,
+  kind: string,
+  from: "player" | "enemy",
+  label: string,
+): void {
+  if (!ship || combatFireBlocked(g, from)) return;
+  const room = ship.rooms.find((item) => item.id === roomId);
+  if (!room) return;
+  const rooms = [room.id];
+  if (kind === "COMBAT_BEAM_2") {
+    const secondId = linkedRoom(g, ship, room.id);
+    if (secondId && ship.rooms.some((item) => item.id === secondId)) rooms.push(secondId);
+  }
+  g.shots.push({
+    id: nextId(g),
+    kind: "beam",
+    from,
+    ...droneGun(fireDrone(kind) ? "COMBAT_FIRE" : kind, fireDrone(kind) ? FIRE_BEAM_HIT : BEAM_HIT),
+    targetRoom: room.id,
+    beamRooms: rooms,
+    defId: kind,
+    wait: 0,
+    t: 0,
+    duration: beamHoldSeconds(),
+    label,
+    beamOwner: DRONE_BEAM,
+  });
+}
+
+/**
+ * The drone that fired this swipe still flies with its bars. Per the user: a drone powered down mid-swipe stops it.
+ * A stunned drone stops too.
+ */
+function droneBeamLive(g: Game, shot: Shot): boolean {
+  if (shot.from === "player") {
+    const kit = g.player.kits.drones;
+    if (!kit || kit.target !== shot.defId || !isKind(kit.target)) return false;
+    return powered(kit, kit.target) && !((kit.stun ?? 0) > 0);
+  }
+  const label = shot.label ?? "";
+  if (!label.startsWith(DRONE_LABEL)) return false;
+  const id = label.slice(DRONE_LABEL.length);
+  const unit = g.enemy?.kits.drones?.drones?.find((item) => item.id === id);
+  return !!unit && unit.alive && !!unit.powered && !((unit.stun ?? 0) > 0);
+}
+
+/**
+ * Anti-Ship Beam Drone I: "the beam cannot penetrate shields at all". Per the user: shields coming up stop it there.
+ * Zoltan Shield: Beam Drone I and the Fire Drone deal 1, Beam Drone II deals 2. That swipe does not also cut the hull,
+ * so it ends on the bubble.
+ * Combat Drones (offensive drones): "1 hull/system damage ... per room crossed by the beam
+ * (of the Beam Drones, but not the Fire Drone)."
+ */
+function tickDroneBeam(g: Game, shot: Shot): boolean {
+  const ship = shot.from === "player" ? g.enemy : g.player;
+  if (!ship || !droneBeamLive(g, shot)) return false;
+  if (shot.beamCut != null) return true;
+  const t = Math.min(1, Math.max(0, shot.t));
+  const kind = shot.defId ?? "COMBAT_BEAM";
+  if ((ship.zoltan ?? 0) > 0) {
+    ship.zoltan = Math.max(0, (ship.zoltan ?? 0) - (SWIPE_ZOLTAN[kind] ?? 1));
+    log(
+      g,
+      shot.from === "player"
+        ? `Your beam drone drains the Zoltan Shield to ${ship.zoltan}.`
+        : `Their ${unitName(kind)} drains the Zoltan Shield to ${ship.zoltan}.`,
+    );
+    shot.beamCut = t;
+    shot.beamCutBy = "zoltan";
+    return true;
+  }
+  if (ship.shieldNow > 0) {
+    shot.beamCut = t;
+    return true;
+  }
+  const done = shot.beamHit ?? [];
+  for (const span of evenBeamSpans(shot.beamRooms ?? [shot.targetRoom])) {
+    if (span.enter > t || done.includes(span.id)) continue;
+    done.push(span.id);
+    const hit = ship.rooms.find((item) => item.id === span.id);
+    if (!hit) continue;
+    if (fireDrone(kind)) {
+      // Anti-Ship Fire Drone: "90% chance to set a tile on fire" and "Does no hull damage".
+      // INFERRED: one tile per swipe. Fires, "Fires and enemy AI": the stack stops at 4.
+      if (rand(g) < shot.fireChance) {
+        hit.fire = Math.min(4, hit.fire + 1);
+        if (shot.from === "enemy") log(g, `Their fire drone lights the ${hit.title}.`);
+      }
+      continue;
+    }
+    const before = ship.hull;
+    ship.hull = Math.max(0, ship.hull - shot.damage);
+    if (shot.from === "player" && ship.hull < before) noteAchieve(g, { k: "droneHull" });
+    if (hit.system) {
+      const sys = ship.systems[hit.system];
+      if (sys && sys.damage < sys.level) sys.damage = Math.min(sys.level, sys.damage + shot.damage);
+    }
+    // INFERRED: one tile per swipe. The 10% is per tile. Beam length 0.4 tile is not a count of tiles.
+    // Fires, "Fires and enemy AI": the stack stops at 4.
+    if (rand(g) < shot.fireChance) hit.fire = Math.min(4, hit.fire + 1);
+  }
+  if (done.length > 0) shot.beamHit = done;
+  return true;
+}
+
+registerBeamTicker(DRONE_BEAM, tickDroneBeam);
+
+/**
+ * Beam Drone I / II and Fire Drone.
+ * Speed 15, 11, and 12 are the orbit. Beam speed 3, 8, and 2 are not the wait.
+ */
+function tickEnemyBeam(g: Game, unit: DroneUnit, dt: number) {
+  flyCombatLaser(
+    g,
+    unit,
+    dt,
+    beamDroneSpeed(unit.kind),
+    () => randomOf(g, g.player.rooms)?.id ?? null,
+    (roomId) => {
+      if (combatFireBlocked(g, "enemy")) return;
+      unit.fired = 0;
+      unit.room = roomId;
+      fireBeamSwipe(g, g.player, roomId, unit.kind, "enemy", DRONE_LABEL + unit.id);
+    },
+    // xftl doc/combat-drone: a beam drone holds 0.5 s while the beam finishes.
+    beamHoldSeconds(),
+  );
+}
+
+/** Shield Overcharger on the enemy hull: "Periodically adds 1 point of Zoltan Shield to regular shields", same table as yours. */
+function tickEnemyOvercharger(enemy: Ship, unit: DroneUnit, dt: number) {
+  if (!((unit.left ?? 0) > 0)) {
+    const wait = overchargerWait(enemy.zoltan ?? 0);
+    if (wait == null) return;
+    unit.left = wait;
+    unit.aux = 0;
+  }
+  unit.aux += dt;
+  while ((unit.left ?? 0) > 0 && unit.aux >= (unit.left ?? 0)) {
+    unit.aux -= unit.left ?? 0;
+    addOvercharge(enemy);
+    unit.fired = 0;
+    const next = overchargerWait(enemy.zoltan ?? 0);
+    if (next == null) {
+      unit.left = undefined;
+      unit.aux = 0;
+      return;
+    }
+    unit.left = next;
+  }
+}
+
+/** One system bar of damage on the player hull, with the same power cap and shield sync as a weapon hit. */
+function breakPlayerBar(g: Game, id: SysId) {
+  const ship = g.player;
+  const sys = ship.systems[id];
+  if (sys.damage >= sys.level) return;
+  sys.damage += 1;
+  const cap = Math.max(0, sys.level - sys.damage - sys.ion.length);
+  if (isMain(id) && sys.power > cap) sys.power = cap;
+  syncShields(ship, zoltanBars(g.crew, ship, "player", "shields"));
+}
+
+function playerSystemRooms(g: Game): Room[] {
+  return g.player.rooms.filter((room) => room.system);
+}
+
+/**
+ * Boarding Drone and Ion Intruder against the player.
+ * Boarding Drones: "When deployed, Boarding Drones fly to the enemy ship, breach the hull and attack crew and systems
+ * inside." "They ignore regular shields, but are destroyed when contacting a Zoltan Shield (the Zoltan Shield will be
+ * unaffected)." "They can be shot down by defensive drones". "They cannot board a cloaked ship."
+ * "They are unaffected by fires and low oxygen": a DroneUnit is not a Crew, so fire and air never touch it.
+ */
+function tickEnemyBoarder(g: Game, unit: DroneUnit, dt: number) {
+  if ((unit.fly ?? 0) > 0 || !unit.room) {
+    // INFERRED: against a cloaked ship the drone holds off in space until the cloak drops.
+    if (veilBlocks(g, "enemy")) return;
+    const hit = interceptIncomingDrone(g, "player", "boarding");
+    if (hit === "down") {
+      killUnit(g, unit, `Your drone shot down their ${unitName(flight(unit))}.`);
+      return;
+    }
+    if (hit === "stun") {
+      unit.stun = ANTI_STUN_S;
+      return;
+    }
+    unit.fly = Math.max(0, (unit.fly ?? 0) - dt);
+    if (unit.fly > 0) return;
+    if ((g.player.zoltan ?? 0) > 0) {
+      killUnit(g, unit, `Their ${unitName(flight(unit))} breaks on the Zoltan Shield.`);
+      return;
+    }
+    // INFERRED: the page does not say where a drone breaches in. A random system room, any room if none.
+    const systems = playerSystemRooms(g);
+    const room = randomOf(g, systems.length ? systems : g.player.rooms);
+    if (!room) return;
+    unit.room = room.id;
+    unit.fly = 0;
+    unit.aux = flight(unit) === "BOARDER_ION" ? unit.aux : 0;
+    // "breach the hull": INFERRED one breach in the landing room.
+    if (room.breach < 1) room.breach = 1;
+    log(g, `Their ${unitName(flight(unit))} breaches into the ${room.title}.`);
+    return;
+  }
+  if (flight(unit) === "BOARDER_ION") tickEnemyIntruder(g, unit, dt);
+  else tickEnemyBoard(g, unit, dt);
+}
+
+/** Boarding Drone: "Boards enemy ships and attacks enemy crew and systems". Crew blows stay one second for 3 to 7 HP. One system bar is BREAK_BAR_S. */
+function tickEnemyBoard(g: Game, unit: DroneUnit, dt: number) {
+  const here0 = g.player.rooms.find((room) => room.id === unit.room);
+  if (here0?.system) {
+    const foes0 = g.crew.filter(
+      (c) => c.aboard === "player" && c.room === here0.id && c.hp > 0 && forPlayer(c),
+    );
+    const sys0 = g.player.systems[here0.system];
+    if (foes0.length === 0 && sys0 && sys0.damage < sys0.level && accrueBar(unit, dt)) {
+      breakPlayerBar(g, here0.system);
+      unit.fired = 0;
+      log(g, `Their boarding drone wrecks the ${here0.title}.`);
+    }
+  }
+  unit.aux += dt;
+  while (unit.aux >= BOARD_INTERVAL_S) {
+    unit.aux -= BOARD_INTERVAL_S;
+    const here = g.player.rooms.find((room) => room.id === unit.room);
+    if (!here) return;
+    const foes = g.crew.filter(
+      (c) => c.aboard === "player" && c.room === here.id && c.hp > 0 && forPlayer(c),
+    );
+    const crew = randomOf(g, foes);
+    if (crew) {
+      crew.hp -= boardHit(g);
+      unit.fired = 0;
+      continue;
+    }
+    const sys = here.system ? g.player.systems[here.system] : null;
+    if (here.system && sys && sys.damage < sys.level) unit.fired = 0;
+  }
+  stepFinishedBoard(g, g.player, unit, (roomId) =>
+    g.crew.some((c) => c.aboard === "player" && c.room === roomId && c.hp > 0 && forPlayer(c)),
+  );
+}
+
+/**
+ * Ion Intruder Drone on the player: "Periodically emits an ion blast that deals 3 ion damage to the system and stuns
+ * enemy crew, then moves to a different system". "Will not attempt to ionise a destroyed system, but will still
+ * target systems that are ionised". "Doesn't stun friendly crew affected by mind control (e.g. enemy's Ion Intruder
+ * won't stun mind-controlled boarders on your ship, but will stun your mind-controlled crew)": it stuns player-side
+ * crew by origin, leashed or not, and never enemy-side crew.
+ */
+function tickEnemyIntruder(g: Game, unit: DroneUnit, dt: number) {
+  if (unit.hp == null) unit.hp = INTRUDER_HP;
+  if (unit.path?.length) stepIntruderWalk(g, g.player, unit, dt, "player", "enemy");
+  if (!((unit.left ?? 0) > 0)) unit.left = rollIntruderWait(g);
+  if (takeDoorSkip(unit)) unit.aux = unit.left ?? 0;
+  unit.aux += dt;
+  while (unit.aux >= (unit.left ?? 0)) {
+    unit.aux -= unit.left ?? 0;
+    unit.left = rollIntruderWait(g);
+    queueSfx(g, "ionBoarderCharge");
+    const ship = g.player;
+    const room = ship.rooms.find((item) => item.id === unit.room);
+    if (room?.system) {
+      const sys = ship.systems[room.system];
+      if (sys.damage < sys.level) {
+        // Augmentations, Reverse Ion Field: "immunity to all sources of ion damage", including this pulse.
+        // INFERRED: Drone Control, Ion Intruder, prints the stun beside the ion damage, so a resist still stuns.
+        const held = negateIon(g);
+        if (!held)
+          applyIon(ship, room.system, intruderIon(), zoltanBars(g.crew, ship, "player", "shields"));
+        for (const c of g.crew) {
+          if (c.side !== "player" || c.aboard !== "player" || c.room !== room.id || c.hp <= 0)
+            continue;
+          c.stun = Math.max(c.stun ?? 0, intruderStun());
+        }
+        // Boarding, "Boarding Drones": "The Ion Intruder will ionize a system, stunning all hostile crew and drones for 6 seconds, and then move to another system."
+        // Drone Control, Ion Intruder: "The stun does not affect friendly boarders, Boarding Drones, or other Ion Intruders."
+        const kit = g.player.kits.drones;
+        if (
+          kit?.on &&
+          kit.hp != null &&
+          kit.room === room.id &&
+          kit.target !== "BOARDER" &&
+          kit.target !== "BOARDER_ION"
+        ) {
+          kit.stun = Math.max(kit.stun ?? 0, intruderStun());
+        }
+        unit.fired = 0;
+        log(
+          g,
+          held
+            ? "Reverse Ion Field shrugged that off."
+            : `Their ion intruder pulses the ${room.title}.`,
+        );
+      }
+    }
+    // "then moves to a different system". A shut blast door is broken on the walk, at DRONE_DOOR_HITS_PER_S.
+    if (unit.room) unit.path = intruderRoute(g, ship, unit.room, playerSystemRooms(g));
+  }
+}
+
+/**
+ * System Repair Drone aboard the enemy: the same walk, repower stick, and trip home as the player's drone.
+ * No Drone Reactor Booster. A repaired bar is fed again, matching enemy crew repair.
+ */
+function tickEnemyPatch(g: Game, enemy: Ship, unit: DroneUnit, dt: number) {
+  tickRepair(g, enemy, unit, dt, "enemy", true, crewDroneSpeed(false));
+  if (unit.room) unit.fired = 0;
+}
+
+/**
+ * Anti-Personnel Drone aboard the enemy: "Attacks intruders, dealing the same damage as an untrained Human".
+ * Boarding, Combat: that hit is 3 to 7 HP. The battle crew blueprint's fight multiplier scales it when that
+ * row is loaded. An unloaded blueprint stays ×1, so the hit stays 3 to 7.
+ * INFERRED: the same 1 second pause as a crew blow. The page prints no seconds.
+ * INFERRED: the blow lands on the first living intruder in the room, and the drone goes straight to the first such room.
+ */
+function tickEnemyPersonnel(g: Game, unit: DroneUnit, dt: number) {
+  const intruders = g.crew.filter((c) => c.aboard === "enemy" && c.hp > 0 && forPlayer(c));
+  if (!intruders.length) {
+    unit.room = undefined;
+    return;
+  }
+  if (!intruders.some((c) => c.room === unit.room)) unit.room = intruders[0].room;
+  const here = intruders.filter((c) => c.room === unit.room && c.hp > 0);
+  const target = here[0];
+  if (!target) return;
+  unit.aux += dt;
+  if (unit.aux < 1) return;
+  unit.aux -= 1;
+  target.hp -= boardHit(g) * battleDroneFight();
+  unit.fired = 0;
+}
+
+/**
+ * Drone Control, Anti-Combat Drone: "Stuns Combat, Hacking, and Boarding drones with 47.8% chance to destroy them during the 5 seconds stun."
+ * Augmentations, "Defense Scrambler": an enemy Anti-Combat drone cannot acquire a target.
+ * Hacking drones are caught in flight by interceptIncomingDrone. This shot does not stun them.
+ * INFERRED: this sim has no separate flight clock on the player's boarding drone, so a deployed one is the target.
+ * Boarding Drone and Ion Intruder take the same acquire, cooldown, stun, and destroy roll as combat drones.
+ */
+function enemyAntiCombat(g: Game, unit: DroneUnit) {
+  if (g.augments.includes("DEFENSE_SCRAMBLER") && scramblerBlocks("ANTI_DRONE")) return;
+  const kit = g.player.kits.drones;
+  const kind = kit?.target;
+  if (!kit?.on || !kind || (!OFFENSIVE.has(kind) && !BOARDERS.has(kind)) || (kit.stun ?? 0) > 0)
+    return;
+  // "after the first shot it needs continuous power for 7 seconds to charge the next one".
+  unit.cool = defenseCooldownS(unit.kind, "ANTI_DRONE");
+  unit.fired = 0;
+  if (rand(g) < ANTI_KILL) {
+    killPlayerDrone(g, "Their anti-combat drone destroyed your drone.");
+    return;
+  }
+  kit.stun = ANTI_STUN_S;
+  log(g, "Their anti-combat drone stunned your drone.");
+}
+
+/** Your Anti-Combat Drone against their combat drones and their boarding drones in flight. INFERRED: a random target. */
+function playerAntiCombat(g: Game, kit: Kit) {
+  const units = g.enemy?.kits.drones?.drones ?? [];
+  const targets = units.filter(
+    (u) =>
+      u.alive &&
+      (u.stun ?? 0) <= 0 &&
+      (OFFENSIVE.has(flight(u)) || (BOARDERS.has(flight(u)) && ((u.fly ?? 0) > 0 || !u.room))),
+  );
+  const target = randomOf(g, targets);
+  if (!target || !kit.target) return;
+  setCooldown(kit, defenseCooldownS(kit.target, "ANTI_DRONE"));
+  if (rand(g) < ANTI_KILL) {
+    killUnit(g, target, `Your anti-combat drone destroyed their ${unitName(flight(target))}.`);
+    return;
+  }
+  target.stun = ANTI_STUN_S;
+  target.ionT = undefined;
+  log(g, `Your anti-combat drone stunned their ${unitName(flight(target))}.`);
+}
+
+/**
+ * Overview: "External drones hit by an ion shot are stunned for 5 seconds for each ion damage. Each second of stun
+ * after the first, they have a 15% chance to be destroyed." shotHitsDrone calls this for an ion shot that strikes an
+ * enemy drone; tickStun rolls the burn-out. External means not a crew drone already aboard.
+ */
+export function ionHitsDrone(unit: DroneUnit, ion: number): boolean {
+  if (!unit.alive || ion <= 0 || CREW_DRONES.has(flight(unit))) return false;
+  if (BOARDERS.has(flight(unit)) && (unit.fly ?? 0) <= 0 && unit.room) return false;
+  unit.stun = Math.max(unit.stun ?? 0, ION_STUN_PER * ion);
+  unit.ionT = 0;
+  return true;
+}
+
+/**
+ * Enemy Defense Drone Mark I / II against an incoming player shot, for enemyDefenseIntercept. flight() is the screen
+ * from the droneBlueprint (flown.ts defenseAs), so ftl.dat's DEFENSE_2_ENEMY shoots lasers and BOSS_DEFENSE_2 does not.
+ */
+function enemyUnitsIntercept(
+  g: Game,
+  units: DroneUnit[],
+  shot: { kind: string; from: string; defId?: string; label?: string },
+): boolean {
+  for (const unit of units) {
+    const as = flight(unit);
+    if (as !== "DEFENSE_1" && as !== "DEFENSE_2") continue;
+    if (!unit.alive || !unit.powered || (unit.stun ?? 0) > 0 || unit.cool > 0) continue;
+    // Augmentations, "Defense Scrambler": an enemy Defense Drone cannot acquire a target, and keeps its cooldown.
+    if (g.augments.includes("DEFENSE_SCRAMBLER") && scramblerBlocks(as)) continue;
+    if (!shoots(as, shot, "enemy")) continue;
+    unit.cool = defenseCooldownS(unit.kind, as);
+    unit.fired = 0;
+    defenseStray(g, "enemy", as, shot);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * HACKING-AGENT CONTRACT. Does the defending side's drone screen stop this incoming drone right now?
+ *
+ *   interceptIncomingDrone(g, defender, kind) → "down" | "stun" | null
+ *
+ * - defender: the ship the drone is flying AT ("player" when an enemy hacking drone flies at you).
+ * - kind: "hacking" or "boarding".
+ * - Call once per sim tick while that drone is still in flight (before it latches on). It is cheap and safe to call
+ *   every tick: a defense drone that fires spends its cooldown, so the next call waits for that cooldown.
+ * - "down": destroyed. A Defense Drone Mark I or II shot it (Defense Drone Mark I: "Shoots down incoming missiles,
+ *   hacking and boarding drones"), or an Anti-Combat Drone hit it and rolled the 47.8% kill.
+ * - "stun": an Anti-Combat Drone hit it and it survived. The caller should hold the drone in place ANTI_STUN_S
+ *   seconds ("Stuns Combat, Hacking, and Boarding drones ... during the 5 seconds stun").
+ * - null: nothing fired this tick.
+ * Hacking, Overview: "While travelling, the hacking drone can be targeted by defense drones and anti-combat drones".
+ * The Defense Scrambler stops the enemy's drones (defender "enemy"), never yours.
+ */
+export function interceptIncomingDrone(
+  g: Game,
+  defender: "player" | "enemy",
+  kind: "hacking" | "boarding",
+): "down" | "stun" | null {
+  const from = defender === "player" ? "enemy" : "player";
+  if (defender === "player") {
+    if (swarmIntercept(g, { kind, from })) return "down";
+    const kit = g.player.kits.drones;
+    if (!kit?.target || kitScreen(kit) !== "ANTI_DRONE" || !ready(kit) || (kit.stun ?? 0) > 0)
+      return null;
+    setCooldown(kit, defenseCooldownS(kit.target, "ANTI_DRONE"));
+    return rand(g) < ANTI_KILL ? "down" : "stun";
+  }
+  if (enemyDefenseIntercept(g, { kind, from })) return "down";
+  const units = g.enemy?.kits.drones?.drones ?? [];
+  if (g.augments.includes("DEFENSE_SCRAMBLER") && scramblerBlocks("ANTI_DRONE")) return null;
+  const cut = units.find(
+    (u) => flight(u) === "ANTI_DRONE" && u.alive && u.powered && (u.stun ?? 0) <= 0 && u.cool <= 0,
+  );
+  if (!cut) return null;
+  cut.cool = defenseCooldownS(cut.kind, "ANTI_DRONE");
+  cut.fired = 0;
+  return rand(g) < ANTI_KILL ? "down" : "stun";
+}
+
+// ───────────────────────────────────────────────────────────────────────────────────────────
+// @agent:drones. Shots, asteroids, and stray defense fire against external drones.
+// Drone Control, Overview: "Drones that fly around a ship can be shot down by enemy fire if they are in direct line of
+// fire, or can be destroyed by colliding with asteroids. Your weapons cannot hit your own drones and your defense
+// drones cannot shoot down each other with their weapons."
+// Combat Drones (offensive drones): "Offensive drones orbit the enemy ship ... Offensive drones can be destroyed by
+// asteroids or shots from the opposing ship, including accidental shots from the enemy defense drones targeting other
+// projectiles".
+// Weapons, lead: "Beams and ASB shots do not collide with anything"; bombs "teleport themselves directly into rooms".
+// The sim has no flight geometry, so "in direct line of fire" is a per-drone roll as each shot lands.
+// ───────────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * INVENTED: chance one deployed external drone is in the line of a projectile crossing its orbit. Basis: a drone
+ * covers a small arc of its orbit and moves (Combat Drones: "Their next position is chosen by a random angle"), and
+ * the page treats a hit as an occasional accident, not the norm. 5% per drone per shot.
+ */
+export const LINE_OF_FIRE = 5 / 100;
+/**
+ * INVENTED: chance an asteroid strikes one external drone orbiting the Lark. Basis: Environmental Hazards says defense
+ * drones "will often fail to hit them", so rocks sweep through the orbit; a rock is bigger than a laser, so double
+ * LINE_OF_FIRE.
+ */
+export const ROCK_HIT = 10 / 100;
+/**
+ * INVENTED: chance a defense drone's shot strays into an opposing offensive drone orbiting the same hull
+ * ("accidental shots from the enemy defense drones targeting other projectiles").
+ */
+export const DEFENSE_STRAY = 5 / 100;
+/**
+ * INVENTED: Combat Drones: "Defense Drone Mark II targeting the combat drone's lasers can unintentionally destroy the
+ * combat drone itself, especially if the laser blast was absorbed by the shields first." The drone is right behind
+ * its own laser, so three times DEFENSE_STRAY. The sim does not model the shield-absorb case separately.
+ */
+export const MARK2_OWN_LASER = 15 / 100;
+/** INVENTED: how long a DroneBlast stays on g.droneBlasts for the fx. */
+export const DRONE_BLAST_S = 1;
+
+/**
+ * External drones that orbit the player's own hull. Defensive Drones (Defense I / II, Anti-Combat, both Overchargers)
+ * and Hull Repair Drone ("Moves around and outside of your ship").
+ */
+const HOME_ORBIT = new Set([
+  "DEFENSE_1",
+  "DEFENSE_2",
+  "ANTI_DRONE",
+  "DRONE_SHIELD",
+  "DRONE_SHIELD_PLAYER",
+  "SHIP_REPAIR",
+]);
+
+type Orbiter = {
+  side: "player" | "enemy";
+  kind: string;
+  at: "player-orbit" | "enemy-orbit";
+  unit?: DroneUnit;
+};
+
+/** Every deployed external drone in orbit. Boarders in flight and crew drones are left out (INFERRED: no flight path). */
+function orbiters(g: Game): Orbiter[] {
+  const out: Orbiter[] = [];
+  const kit = g.player.kits.drones;
+  if (kit?.on && kit.target && (kit.lost ?? 0) <= 0) {
+    // Combat Drones: offensive drones "orbit the enemy ship". Defensive drones fly around their own.
+    if (OFFENSIVE.has(kit.target))
+      out.push({ side: "player", kind: kit.target, at: "enemy-orbit" });
+    else if (HOME_ORBIT.has(kit.target) || defenseAs(kit.target))
+      out.push({ side: "player", kind: kit.target, at: "player-orbit" });
+  }
+  for (const unit of g.enemy?.kits.drones?.drones ?? []) {
+    if (!unit.alive || CREW_DRONES.has(flight(unit)) || BOARDERS.has(flight(unit))) continue;
+    const spot = enemyDroneSpot(unit);
+    if (spot?.at === "player-orbit" || spot?.at === "enemy-orbit")
+      out.push({ side: "enemy", kind: unit.kind, at: spot.at, unit });
+  }
+  return out;
+}
+
+/** A shot a drone fired: the player's striker ("swarm-ready" / "drones") or an enemy drone ("drone:<id>"). */
+function droneShot(shot: { label?: string }): boolean {
+  const label = shot.label ?? "";
+  return label === READY_LABEL || label === FLOWN_LABEL || label.startsWith(DRONE_LABEL);
+}
+
+/** Overview, ion line, for the player's single drone. Same rule as ionHitsDrone. */
+export function ionHitsKit(kit: Kit, ion: number): boolean {
+  if (!kit.on || !kit.target || ion <= 0) return false;
+  if (!OFFENSIVE.has(kit.target) && !HOME_ORBIT.has(kit.target) && !defenseAs(kit.target))
+    return false;
+  kit.stun = Math.max(kit.stun ?? 0, ION_STUN_PER * ion);
+  kit.ionT = 0;
+  return true;
+}
+
+/** Overview: "Each second of stun after the first, they have a 15% chance to be destroyed." True on a burn-out. */
+function ionBurnsOut(g: Game, before: number, after: number): boolean {
+  for (let s = Math.floor(before) + 1; s <= Math.floor(after + 1e-9); s++) {
+    if (s >= 2 && rand(g) < ION_KILL_PER_S) return true;
+  }
+  return false;
+}
+
+/** The player's drone is destroyed: Overview's 10 second delay before it can be deployed again (deploy reads kit.lost). */
+function killPlayerDrone(g: Game, why: string) {
+  const kit = g.player.kits.drones;
+  if (!kit) return;
+  if (kit.target === "REPAIR" && kit.on && holdDyingRepair(g.player, kit)) return;
+  if (kit.target === "REPAIR" && kit.on) queueSfx(g, "shrikeDeath");
+  kit.dying = undefined;
+  kit.on = false;
+  kit.stun = 0;
+  kit.ionT = undefined;
+  kit.lost = REDEPLOY_S;
+  if (kit.target === "REPAIR") kit.coldFires = true;
+  log(g, why);
+}
+
+function noteBlast(g: Game, o: Orbiter, by: DroneBlast["by"], result: DroneBlast["result"]) {
+  const blast: DroneBlast = { side: o.side, kind: o.kind, at: o.at, by, result, age: 0 };
+  if (o.unit) blast.unitId = o.unit.id;
+  (g.droneBlasts ??= []).push(blast);
+}
+
+function ageBlasts(g: Game, dt: number) {
+  if (!g.droneBlasts?.length) return;
+  for (const b of g.droneBlasts) b.age += dt;
+  g.droneBlasts = g.droneBlasts.filter((b) => b.age < DRONE_BLAST_S);
+}
+
+/** Destroy, or ion-stun, one orbiting drone. Returns false when an ion hit does not apply (ionHitsDrone rules). */
+function strike(g: Game, o: Orbiter, by: DroneBlast["by"], ion: number): boolean {
+  const name = unitName(flight(o));
+  const whose = o.side === "player" ? "your" : "their";
+  if (ion > 0) {
+    const hit = o.unit
+      ? ionHitsDrone(o.unit, ion)
+      : !!g.player.kits.drones && ionHitsKit(g.player.kits.drones, ion);
+    if (!hit) return false;
+    log(g, `An ion blast stunned ${whose} ${name}.`);
+    noteBlast(g, o, by, "ion");
+    return true;
+  }
+  const why =
+    by === "rock"
+      ? `An asteroid smashed ${whose} ${name}.`
+      : by === "defense"
+        ? `A stray defense shot destroyed ${whose} ${name}.`
+        : o.side === "player"
+          ? `Their fire caught your ${name}.`
+          : `Your fire caught their ${name}.`;
+  if (o.unit) killUnit(g, o.unit, why);
+  else killPlayerDrone(g, why);
+  noteBlast(g, o, by, "down");
+  return true;
+}
+
+/**
+ * SIM CONTRACT. stepShots calls this as a projectile lands, after the defense drones had their chance and before
+ * applyImpact. True means an orbiting drone took the shot: the shot is spent and does not land.
+ * - Projectiles only (laser, ion, missile, flak). Beams, bombs, and ASB shots never collide (Weapons, lead).
+ * - A ship's shot can hit the other side's drones only ("Your weapons cannot hit your own drones"): their defensive
+ *   drones round the target hull, and their offensive drones round the firing hull, which the shot leaves through.
+ *   INFERRED: a drone's own shot starts in orbit near the target, so only the target-end drones are in its way.
+ * - An asteroid (from "env", label "Rock", aimed at the Lark) can hit any drone orbiting the Lark, either side
+ *   ("can be destroyed by colliding with asteroids"; "Offensive drones can be destroyed by asteroids").
+ * - Ion shots stun (ionHitsDrone / ionHitsKit) instead of destroying. INFERRED: kind "ion" decides, not shot.ion.
+ *   Combat Drones: "a depowered drone can block ion blasts" — the stunned drone still eats the shot.
+ * Rolls are made only while some drone is in the way, so a fight without drones draws no extra random numbers.
+ */
+export function shotHitsDrone(g: Game, shot: Shot): boolean {
+  if (shot.kind === "beam" || shot.kind === "bomb") return false;
+  const rock = shot.from === "env" && shot.label === "Rock";
+  if (shot.from === "env" && !rock) return false;
+  const target: "player" | "enemy" = shot.from === "player" ? "enemy" : "player";
+  const all = orbiters(g);
+  if (!all.length) return false;
+  let inWay: Orbiter[];
+  // Environmental Hazards, Asteroid Field: a rock aimed at the enemy meets drones around that hull.
+  if (rock)
+    inWay = all.filter((o) => o.at === (shot.at === "enemy" ? "enemy-orbit" : "player-orbit"));
+  else {
+    const outbound = droneShot(shot) ? null : `${shot.from}-orbit`;
+    inWay = all.filter(
+      (o) => o.side === target && (o.at === `${target}-orbit` || o.at === outbound),
+    );
+  }
+  const chance = rock ? ROCK_HIT : LINE_OF_FIRE;
+  for (const o of inWay) {
+    if (rand(g) >= chance) continue;
+    if (
+      strike(g, o, rock ? "rock" : "shot", !rock && shot.kind === "ion" ? Math.max(1, shot.ion) : 0)
+    )
+      return true;
+  }
+  return false;
+}
+
+/**
+ * A defense drone on `defender`'s hull just fired. Its shot may stray into an opposing offensive drone orbiting the
+ * same hull (DEFENSE_STRAY), or, for a Defense Drone Mark II shooting that drone's own laser, MARK2_OWN_LASER.
+ * Combat Drones (offensive drones), quoted on MARK2_OWN_LASER. "your defense drones cannot shoot down each other", so
+ * only the other side's drones count.
+ */
+function defenseStray(
+  g: Game,
+  defender: "player" | "enemy",
+  kind: string,
+  shot: { label?: string },
+) {
+  const victims = orbiters(g).filter(
+    (o) => o.side !== defender && o.at === `${defender}-orbit` && OFFENSIVE.has(flight(o)),
+  );
+  for (const o of victims) {
+    const own =
+      kind === "DEFENSE_2" &&
+      (o.unit
+        ? shot.label === DRONE_LABEL + o.unit.id
+        : shot.label === READY_LABEL || shot.label === FLOWN_LABEL);
+    if (rand(g) >= (own ? MARK2_OWN_LASER : DEFENSE_STRAY)) continue;
+    strike(g, o, "defense", 0);
+    return;
+  }
+}
+
+/**
+ * Drone Control, Overview: "External and boarding drones are lost when jumping to a new system and have to be
+ * redeployed at each new location or encounter". Drone Control, Crew Drones: "Crew drones stay on the ship and
+ * only need to be redeployed when destroyed." System Repair and Anti-Personnel are those crew drones.
+ * "The drone deployment delay is not reduced nor reset during FTL jump", so kit.lost is left alone.
+ * Called from extras/index.ts onPlayerJump after the Drone Recovery Arm refund.
+ */
+export function onJumpSwarm(g: Game) {
+  const kit = g.player.kits.drones;
+  if (!kit?.on && !kit?.drones?.some((unit) => unit.alive)) return;
+  // Crew drones stay aboard. A second System Repair is a crew drone too. A combat drone in the list is still lost.
+  if (kit && pairedRepair(kit)) {
+    for (const unit of kit.drones ?? []) {
+      if (!unit.alive || CREW_DRONES.has(flight(unit))) continue;
+      unit.alive = false;
+      unit.powered = false;
+      unit.aux = 0;
+    }
+    kit.on = (kit.drones ?? []).some((unit) => unit.alive);
+    return;
+  }
+  if (!kit?.on) return;
+  if (kit.target != null && CREW_DRONES.has(kit.target)) return;
+  kit.on = false;
+  kit.aux = 0;
+}

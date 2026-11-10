@@ -2,7 +2,7 @@ import { after, describe, it } from "node:test";
 import { installStandIn } from "@stl/standin";
 import { extractArchive } from "@stl/ftldat";
 import { assertArchiveCovered } from "./archive-cover.ts";
-import { archiveCases, installExtract } from "./archive-play.ts";
+import { archiveCases, installExtract } from "@stl/sim/archive-play.ts";
 
 describe("archive coverage", () => {
   after(async () => {

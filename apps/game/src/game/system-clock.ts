@@ -1,6 +1,6 @@
-import { flakChargeProgress } from "./extras/flakart.ts";
-import { lanceChargeProgress } from "./extras/lance.ts";
-import type { Kit, KitId, Ship, SysId } from "./types.ts";
+import { flakChargeProgress } from "@stl/sim/extras/flakart.ts";
+import { lanceChargeProgress } from "@stl/sim/extras/lance.ts";
+import type { Kit, KitId, Ship, SysId } from "@stl/sim/types.ts";
 
 /**
  * Per the user: while a system counts down (cloak, mind control, a hacking pulse, the battery,

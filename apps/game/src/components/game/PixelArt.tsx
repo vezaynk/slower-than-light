@@ -1,9 +1,9 @@
 import { useSyncExternalStore, type ReactNode } from "react";
-import "@/game/pack/base";
+import "@stl/sim/pack/base.ts";
 import { TITLE_FILES, TITLE_LOGO, TITLE_PLATE, hullDef, startingFit } from "@stl/pack";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
-import { layoutFor, roomClip, seatLayout } from "@/game/layouts";
-import type { KitId } from "@/game/types";
+import { layoutFor, roomClip, seatLayout } from "@stl/sim/layouts.ts";
+import type { KitId } from "@stl/sim/types.ts";
 
 /** Kits a hull can seat. Any other id stays on the blueprint and does not take a room. */
 const INSTALLABLE_KITS = new Set<string>([

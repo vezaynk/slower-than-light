@@ -1,5 +1,5 @@
 import { itemBlueprint } from "@stl/pack";
-import type { Game } from "./types.ts";
+import type { Game } from "@stl/sim/types.ts";
 
 /** Which hold an item blueprint fills. */
 export type ItemHold = "fuel" | "missiles" | "parts";

@@ -1,4 +1,4 @@
-import type { Door, DoorMark, Ship } from "@/game/types";
+import type { Door, DoorMark, Ship } from "@stl/sim/types.ts";
 
 export type Side = DoorMark["side"];
 

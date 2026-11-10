@@ -9,7 +9,7 @@ import {
   weaponPixels,
   type DroneKey,
   type PixelArt as Art,
-} from "@/game/gear-look";
+} from "@stl/sim/gear-look.ts";
 import {
   archiveGeneration,
   droneLayerUrl,

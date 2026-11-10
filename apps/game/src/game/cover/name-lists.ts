@@ -1,8 +1,8 @@
 import type { FtlExtract } from "@stl/ftldat";
 import { crewNames } from "@stl/pack";
-import { freshGame } from "../archive-play.ts";
+import { freshGame } from "@stl/sim/archive-play.ts";
 import { registerCoverExtra } from "../archive-cover-extra.ts";
-import { joinCrew } from "../wiki/surrender.ts";
+import { joinCrew } from "@stl/sim/wiki/surrender.ts";
 
 /** Display race `joinCrew` maps back to the kin id on the `<nameList race>` attribute. */
 const JOIN_AS: Record<string, string> = {

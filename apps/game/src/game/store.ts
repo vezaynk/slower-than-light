@@ -1,8 +1,10 @@
 /** INVENTED session store for the open run. It encodes no wiki rule. */
 import { create, type StoreApi, type UseBoundStore } from "zustand";
-import { noteRun } from "./wiki/achievement-track.ts";
+import { noteRun } from "@stl/sim/wiki/achievement-track.ts";
 import { noteUnlocks } from "./unlock-store.ts"; // @agent:unlocks
 import { readPinnedSeed, resolveRunSeed } from "./run-seed.ts";
+import { presentAudio } from "./present-audio.ts";
+import { bindCueTarget } from "@stl/sim/sfx-queue.ts";
 import {
   createGame,
   loadGame,
@@ -11,10 +13,10 @@ import {
   sealEmptyEvent,
   step,
   titleHandoff,
-} from "./sim.ts";
+} from "@stl/sim/sim.ts";
 import { quietPackWarnings } from "@stl/pack";
-import type { CrewPick } from "./crew-look.ts";
-import type { Difficulty, Game } from "./types.ts";
+import type { CrewPick } from "@stl/sim/crew-look.ts";
+import type { Difficulty, Game } from "@stl/sim/types.ts";
 
 type Store = {
   version: number;
@@ -38,7 +40,13 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
   return {
     tick: (dt) => {
       const game = get().game;
-      step(game, dt);
+      const previous = bindCueTarget(game);
+      try {
+        step(game, dt);
+      } finally {
+        bindCueTarget(previous);
+      }
+      presentAudio(game);
       sealEmptyEvent(game);
       noteRun(game);
       noteUnlocks(game);
@@ -46,7 +54,13 @@ function actions(set: StoreApi<Store>["setState"], get: StoreApi<Store>["getStat
     bump: () => set({ version: get().version + 1 }),
     act: (fn) => {
       const game = get().game;
-      fn(game);
+      const previous = bindCueTarget(game);
+      try {
+        fn(game);
+      } finally {
+        bindCueTarget(previous);
+      }
+      presentAudio(game);
       sealEmptyEvent(game);
       noteRun(game);
       noteUnlocks(game);

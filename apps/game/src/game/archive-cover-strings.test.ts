@@ -11,7 +11,7 @@ import {
   stringCoverProblems,
   unshownStringKeys,
 } from "./archive-cover.ts";
-import { installExtract } from "./archive-play.ts";
+import { installExtract } from "@stl/sim/archive-play.ts";
 import { archivePhrase } from "@stl/pack";
 import {
   verdictArchiveLines,
@@ -19,7 +19,7 @@ import {
   verdictScoreLine,
   verdictTitle,
   victoryCrewLine,
-} from "./interface-copy.ts";
+} from "@stl/sim/interface-copy.ts";
 
 describe("unshown archive strings", () => {
   it("reports an unshown sentence, keeps a shown one, and skips only a demo key", () => {

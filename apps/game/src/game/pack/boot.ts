@@ -4,7 +4,7 @@ import { extractArchive, type FtlExtract } from "@stl/ftldat";
 import { applyFtlMod } from "@stl/hyperspace";
 import { warnPack } from "@stl/pack";
 import { STAND_IN_ID, fileBlob, loadOrder, orderKey } from "./archive-list";
-import { loadExtractedPack } from "./install";
+import { loadExtractedPack } from "@stl/sim/pack/install.ts";
 import { rememberArchive } from "./media";
 import { rememberShipArt } from "./ship-art";
 

@@ -1,6 +1,6 @@
 import type { FtlExtract } from "@stl/ftldat";
 import { registerCoverExtra } from "../archive-cover-extra.ts";
-import { freshGame } from "../archive-play.ts";
+import { freshGame } from "@stl/sim/archive-play.ts";
 import { playTutorial } from "../tutorial.ts";
 
 function present(raw: FtlExtract): boolean {

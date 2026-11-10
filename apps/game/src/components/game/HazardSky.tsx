@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { ASTEROID_BACK_FILES, SKY_FILES, skyPath } from "@stl/pack";
-import type { Game } from "@/game/types";
+import type { Game } from "@stl/sim/types.ts";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { skyScene } from "@/game/sky-scene";
 import { animSpeed } from "./speed";

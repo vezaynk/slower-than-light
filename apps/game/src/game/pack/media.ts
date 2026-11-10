@@ -20,7 +20,7 @@ import {
   type WeaponAnim,
 } from "@stl/pack";
 import { remapSheetFile } from "../archive-cover-extra.ts";
-import { droneBlueprintOf } from "../gear-look.ts";
+import { droneBlueprintOf } from "@stl/sim/gear-look.ts";
 import { legibleCapRatio, ttfFromBitmap } from "./bitmap-ttf.ts";
 import { logResourceFailure } from "../play-log.ts";
 

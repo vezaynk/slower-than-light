@@ -10,7 +10,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { clipBeamEnd, pointInRoom, roomsOnSegment } from "@/game/beam-line";
+import { clipBeamEnd, pointInRoom, roomsOnSegment } from "@stl/sim/beam-line.ts";
 import {
   assignStands,
   blockedCells,
@@ -21,12 +21,12 @@ import {
   roomConsole,
   shiftPoint,
   stationSide,
-} from "@/game/crew-spots";
-import { cellOccupied, roomClip } from "@/game/layouts";
+} from "@stl/sim/crew-spots.ts";
+import { cellOccupied, roomClip } from "@stl/sim/layouts.ts";
 import { gunHeight, mountImage, mountPose } from "@/game/mount-place";
-import "@/game/pack/base";
-import { powerMask, weaponAccentHot, weaponSheetCharged, zoltanBars } from "@/game/sim";
-import type { BeamLine, BeamPoint, Crew, Ship } from "@/game/types";
+import "@stl/sim/pack/base.ts";
+import { powerMask, weaponAccentHot, weaponSheetCharged, zoltanBars } from "@stl/sim/sim.ts";
+import type { BeamLine, BeamPoint, Crew, Ship } from "@stl/sim/types.ts";
 import { EFFECT_CLIPS, hullDef, ROOM_PX, type HullMount, type HullPicture } from "@stl/pack";
 import {
   archiveGeneration,
@@ -35,8 +35,15 @@ import {
   weaponFrame,
   weaponMuzzle,
 } from "@/game/pack/media";
-import { arriveMove, dirOf, hopSteps, walkCells, walkPose, type CrewDir } from "@/game/walk-path";
-import { artilleryGun } from "@/game/wiki/flagship-systems";
+import {
+  arriveMove,
+  dirOf,
+  hopSteps,
+  walkCells,
+  walkPose,
+  type CrewDir,
+} from "@stl/sim/walk-path.ts";
+import { artilleryGun } from "@stl/sim/wiki/flagship-systems.ts";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import { RoomProp, RoomSeat, WallTerminal } from "./RoomConsole";
 import { drawnPlate, RoomPlate } from "./RoomPlate";
@@ -49,7 +56,7 @@ import { PixelIcon } from "./PixelIcon";
 import { RoomRadial } from "./RoomRadial";
 import { roomDoors } from "./room-doors";
 import { pageRect, toPage } from "./turn";
-import { airShown } from "@/game/air";
+import { airShown } from "@stl/sim/air.ts";
 import { ClipSprite } from "./ClipSprite";
 
 /** A player gun's queued room, drawn as a numbered reticle on the enemy ship. */

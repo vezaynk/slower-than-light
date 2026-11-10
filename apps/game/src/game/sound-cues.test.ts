@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { extractFtlDat } from "@stl/ftldat";
 import { readSounds } from "@stl/pack";
 import { LOOP_CUES, SFX_CUES, deathCue, isLoopCue } from "./audio.ts";
-import { meleeCues } from "./sim.ts";
+import { meleeCues } from "@stl/sim/sim.ts";
 
 /** Archive cues the sim, extras, and wiki modules name directly (not through SFX_CUES). */
 const DIRECT = [

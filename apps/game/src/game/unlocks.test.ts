@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { playerHulls } from "./hulls.ts";
-import { createGame } from "./sim.ts";
-import type { Game } from "./types.ts";
+import { playerHulls } from "@stl/sim/hulls.ts";
+import { createGame } from "@stl/sim/sim.ts";
+import type { Game } from "@stl/sim/types.ts";
 import {
   A_RULES,
   UNLOCKS_KEY,
@@ -16,7 +16,7 @@ import {
   ruleFor,
   shipAchievements,
   type UnlockState,
-} from "./unlocks.ts";
+} from "@stl/sim/unlocks.ts";
 import {
   getUnlocks,
   isUnlocked,
@@ -25,7 +25,7 @@ import {
   resetUnlocks,
   unlockAll,
 } from "./unlock-store.ts";
-import { resetAchievementMemory } from "./wiki/achievement-track.ts";
+import { resetAchievementMemory } from "@stl/sim/wiki/achievement-track.ts";
 
 function run(hull: string, patch: Partial<Game> = {}): Game {
   const g = createGame(1, hull);

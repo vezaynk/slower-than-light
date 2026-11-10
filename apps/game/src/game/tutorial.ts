@@ -1,6 +1,6 @@
 import { tutorialScript } from "@stl/pack";
-import { displayPhrase, tutorialContinueLabel } from "./interface-copy.ts";
-import type { Game } from "./types.ts";
+import { displayPhrase, tutorialContinueLabel } from "@stl/sim/interface-copy.ts";
+import type { Game } from "@stl/sim/types.ts";
 
 /**
  * Walks every loaded order's steps in order. Each step's words are put on the

@@ -14,10 +14,10 @@ import {
   verdictTitle,
   victoryCinema,
   victoryCrewLine,
-} from "@/game/interface-copy";
-import { earnedIds, isTracked, noteRun } from "@/game/wiki/achievement-track";
-import { lifetimeOf } from "@/game/wiki/achieve-notes";
-import { playerHulls } from "@/game/hulls";
+} from "@stl/sim/interface-copy.ts";
+import { earnedIds, isTracked, noteRun } from "@stl/sim/wiki/achievement-track.ts";
+import { lifetimeOf } from "@stl/sim/wiki/achieve-notes.ts";
+import { playerHulls } from "@stl/sim/hulls.ts";
 import {
   UNLOCKS_KEY,
   emptyUnlocks,
@@ -25,10 +25,10 @@ import {
   parseUnlocks,
   shipAchievements,
   type UnlockState,
-} from "@/game/unlocks";
-import { runScore } from "@/game/sim";
+} from "@stl/sim/unlocks.ts";
+import { runScore } from "@stl/sim/sim.ts";
 import { goTitle, verdictRestart } from "@/game/store";
-import type { Game, SectorNode } from "@/game/types";
+import type { Game, SectorNode } from "@stl/sim/types.ts";
 import { PixelIcon } from "./PixelIcon";
 import { PixelHull } from "./PixelArt";
 import { CloseX } from "./CloseX";

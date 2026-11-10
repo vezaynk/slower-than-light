@@ -468,7 +468,14 @@ export function readFaction(node: XmlElement): FactionSurrender | undefined {
   const chance = attrNum(offer.getAttribute("chance"));
   const min = attrNum(offer.getAttribute("min"));
   const max = attrNum(offer.getAttribute("max"));
-  if (chance == null || min == null || max == null) return undefined;
+  // A missing number is skipped with a warning, same as a hull tag and a faction `<escape>`.
+  // Chance 0 is a real row. Dropping it silently would leave the previous row, or no row at all.
+  if (chance == null || min == null || max == null) {
+    warnPack(
+      `shipBlueprint ${id}: <surrender> needs chance, min and max; the faction does not offer.`,
+    );
+    return undefined;
+  }
   return { id, chance, min, max };
 }
 

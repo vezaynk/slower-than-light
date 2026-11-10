@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   allEvents,
   eventDef,
+  factionSurrender,
   hullDef,
   loadPack,
   resetPackForTests,
@@ -11,7 +12,8 @@ import {
 import { CREW_CAP, choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
-import { surrenderPlan } from "../rules/surrender.ts";
+import { surrenderBlueprintId, surrenderPlan } from "../rules/surrender.ts";
+import { flagshipHullId } from "./flagship-layout.ts";
 import {
   ACCEPT_ID,
   REFUSE_ID,
@@ -133,6 +135,42 @@ describe("surrender rows (Enemy Ships, Surrender/escape values)", () => {
       assert.equal(mod.enemySurrender?.threshold, 30);
     } finally {
       resetPackForTests();
+    }
+  });
+
+  it("the shipyard Flagship never offers, and a resumed stage stays at 0", () => {
+    for (const difficulty of ["easy", "normal", "hard"] as const) {
+      const g = createGame(1, undefined, difficulty);
+      startCombat(g, "second Rebel Flagship", false, "rebel-shipyard");
+      assert.equal(g.enemy?.classId, undefined, difficulty);
+      assert.equal(g.enemy?.faction, undefined, difficulty);
+      assert.equal(g.enemy?.flagship?.stage, 1, difficulty);
+      const id = flagshipHullId(1, difficulty);
+      assert.equal(surrenderBlueprintId(g.enemy!, difficulty), id);
+      assert.equal(factionSurrender(id)?.chance, 0, id);
+      assert.equal(g.enemySurrender?.chance, 0, difficulty);
+    }
+    // The shipyard fight is not tier "boss", so a remembered stage is not resumed and the memo stays.
+    const yard = createGame(3, undefined, "hard");
+    yard.flagshipMemo = { stage: 3, crew: [] };
+    startCombat(yard, "second Rebel Flagship", false, "rebel-shipyard");
+    assert.equal(yard.enemy?.flagship?.stage, 1);
+    assert.equal(yard.flagshipMemo?.stage, 3);
+    assert.equal(factionSurrender(flagshipHullId(1, "hard"))?.chance, 0);
+    assert.equal(yard.enemySurrender?.chance, 0);
+    for (const stage of [2, 3] as const) {
+      for (const difficulty of ["easy", "normal", "hard"] as const) {
+        const g = createGame(2, undefined, difficulty);
+        g.flagshipMemo = { stage, crew: [] };
+        startCombat(g, "boss");
+        const where = `${difficulty} stage ${stage}`;
+        assert.equal(g.enemy?.flagship?.stage, stage, where);
+        assert.equal(g.flagshipMemo, undefined, where);
+        const id = flagshipHullId(stage, difficulty);
+        assert.equal(surrenderBlueprintId(g.enemy!, difficulty), id);
+        assert.equal(factionSurrender(id)?.chance, 0, id);
+        assert.equal(g.enemySurrender?.chance, 0, where);
+      }
     }
   });
 

@@ -4,7 +4,13 @@ import { emitGapDocument } from "./emit.ts";
 import { emitFtlShips } from "./ftl-emit.ts";
 import { packFromFtl } from "./ftl.ts";
 import { parsePack } from "./parse.ts";
-import { loadPack, resetPackForTests, stalemate, stalemateStat } from "./registry.ts";
+import {
+  factionSurrender,
+  loadPack,
+  resetPackForTests,
+  stalemate,
+  stalemateStat,
+} from "./registry.ts";
 import { onPackWarning } from "./warnings.ts";
 
 const GAP = `<FTL>
@@ -124,5 +130,57 @@ describe("hull surrender tag", () => {
     assert.equal(pack?.hulls?.[0]?.surrender, undefined);
     assert.equal(pack?.hulls?.[0]?.id, "MOD_BOSS");
     assert.ok(lines.some((line) => line.includes("MOD_BOSS") && line.includes("<surrender>")));
+  });
+});
+
+describe("faction surrender row", () => {
+  it("warns and skips a layout-less surrender that is missing a number", () => {
+    let pack: ReturnType<typeof packFromFtl> | undefined;
+    const lines = warned(() => {
+      pack = packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><shipBlueprint name="REBEL_SKINNY_ELITE"><surrender chance="0" min="0"/></shipBlueprint></FTL>`,
+        },
+      ]);
+    });
+    assert.equal(pack?.factions, undefined);
+    assert.ok(
+      lines.some((line) => line.includes("REBEL_SKINNY_ELITE") && line.includes("<surrender>")),
+    );
+  });
+
+  it("a bad append warns and leaves the earlier chance-0 row", () => {
+    resetPackForTests();
+    loadPack(
+      packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><shipBlueprint name="REBEL_SKINNY_ELITE"><surrender chance="0" min="0" max="0"/></shipBlueprint></FTL>`,
+        },
+      ]),
+      "base",
+    );
+    const lines = warned(() => {
+      loadPack(
+        packFromFtl([
+          {
+            path: "data/gap.xml",
+            xml: `<FTL><shipBlueprint name="REBEL_SKINNY_ELITE"><surrender chance="0"/></shipBlueprint></FTL>`,
+          },
+        ]),
+        "append",
+      );
+    });
+    assert.deepEqual(factionSurrender("REBEL_SKINNY_ELITE"), {
+      id: "REBEL_SKINNY_ELITE",
+      chance: 0,
+      min: 0,
+      max: 0,
+    });
+    assert.ok(
+      lines.some((line) => line.includes("REBEL_SKINNY_ELITE") && line.includes("<surrender>")),
+    );
+    resetPackForTests();
   });
 });

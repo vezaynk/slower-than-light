@@ -1,4 +1,4 @@
-import type { Beacon, Game } from "./types.ts";
+import type { Beacon, Game } from "@stl/sim/types.ts";
 
 /**
  * Which backdrop layers the ship stage should play.

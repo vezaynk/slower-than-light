@@ -94,6 +94,7 @@ import {
   readSectorMap,
   readFaction,
   readFactionEscape,
+  readHullSurrender,
   readRewards,
   readStore,
   readWeapon,
@@ -909,6 +910,8 @@ function readFtlHull(
     warnPack(
       `shipBlueprint ${id}: boardingAI "${boardingAI}" is not sabotage or invasion; it is left unset.`,
     );
+  const surrender = readHullSurrender(node);
+  if (surrender) hull.surrender = surrender;
   const grid = grids.get(layout);
   if (grid) hull.grid = cloneGrid(grid);
   return hull;

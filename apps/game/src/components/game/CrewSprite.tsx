@@ -4,10 +4,10 @@
  * the ship tokens, and the ship sheet so a crew member reads the same everywhere.
  */
 import { useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
-import { KIN_SKIN, uniformOf } from "@/game/crew-look";
+import { KIN_SKIN, uniformOf } from "@stl/sim/crew-look.ts";
 import { CREW_POSES, crewHead } from "@/game/crew-pixels";
-import type { KinId } from "@/game/extras/kin";
-import { pixelRuns, type PixelRun } from "@/game/gear-look";
+import type { KinId } from "@stl/sim/extras/kin.ts";
+import { pixelRuns, type PixelRun } from "@stl/sim/gear-look.ts";
 import {
   archiveGeneration,
   crewBody,
@@ -20,7 +20,7 @@ import {
   type CrewDir,
   type SpriteBody,
 } from "@/game/pack/media";
-import type { Crew } from "@/game/types";
+import type { Crew } from "@stl/sim/types.ts";
 import { logResourceFailure } from "@/game/play-log";
 import "./archive-art.css";
 import "./crew-motion.css";

@@ -1,7 +1,7 @@
 import "./room-motion.css";
 import type { CSSProperties } from "react";
-import { doorHurt } from "@/game/sim";
-import type { Door, DoorMark } from "@/game/types";
+import { doorHurt } from "@stl/sim/sim.ts";
+import type { Door, DoorMark } from "@stl/sim/types.ts";
 
 type Box = {
   id: string;

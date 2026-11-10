@@ -14,10 +14,10 @@
  * that camera. Beams never miss. Bombs teleport, so a miss stays a puff on the room.
  */
 import { useEffect, useRef } from "react";
-import { halted, shieldChargeFraction } from "@/game/sim";
-import { presentsAsWarhead } from "@/game/interface-copy";
+import { halted, shieldChargeFraction } from "@stl/sim/sim.ts";
+import { presentsAsWarhead } from "@stl/sim/interface-copy.ts";
 import { projectileSpin } from "@/game/projectile-spin";
-import { combatPlateId } from "@/game/wiki/flagship-layout";
+import { combatPlateId } from "@stl/sim/wiki/flagship-layout.ts";
 import {
   bubbleCrossing,
   bubbleRoom,
@@ -33,18 +33,18 @@ import {
   dronePixels,
   weaponPalette,
   type DroneKey,
-} from "@/game/gear-look";
-import { DRONE_LABEL, enemyDroneSpot, playerDroneCruising } from "@/game/extras/swarm";
+} from "@stl/sim/gear-look.ts";
+import { DRONE_LABEL, enemyDroneSpot, playerDroneCruising } from "@stl/sim/extras/swarm.ts";
 import { stepDrift, type DroneDrift } from "@/game/drone-drift";
-import { beamHoldSeconds, orbitChordPose } from "@/game/rules/combat2";
-import { roomInterior } from "@/game/extras/slug-sight";
-import { flownAs } from "@/game/extras/flown";
+import { beamHoldSeconds, orbitChordPose } from "@stl/sim/rules/combat2.ts";
+import { roomInterior } from "@stl/sim/extras/slug-sight.ts";
+import { flownAs } from "@stl/sim/extras/flown.ts";
 // @agent:combat-ui. Enemy hacking drone flight / latch / pulse (read-only view).
-import { enemyHackView, playerHackView } from "@/game/extras/spike";
+import { enemyHackView, playerHackView } from "@stl/sim/extras/spike.ts";
 // @agent:flagship. Stage-2 Power Surge drones (read-only view).
-import { surgeDroneView } from "@/game/wiki/flagship-systems";
+import { surgeDroneView } from "@stl/sim/wiki/flagship-systems.ts";
 import { useGame } from "@/game/store";
-import type { DroneBlast, DroneUnit, Shot } from "@/game/types";
+import type { DroneBlast, DroneUnit, Shot } from "@stl/sim/types.ts";
 import {
   flightSpeed,
   leftCamera,
@@ -53,7 +53,7 @@ import {
   missVelocity,
   shotFliesPast,
 } from "./miss-flight";
-import "@/game/pack/base";
+import "@stl/sim/pack/base.ts";
 import { pageRect } from "./turn";
 import { asteroidClip, ROOM_PX } from "@stl/pack";
 import { muzzlePoint } from "@/game/mount-place";

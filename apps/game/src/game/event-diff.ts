@@ -13,10 +13,10 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { eventDef, onPackWarning } from "@stl/pack";
-import type { BeaconKind, Game } from "./types.ts";
-import { choiceDisabled, choose, commitJump, createGame } from "./sim.ts";
-import { placeIn } from "./fixtures.ts";
-import { heldSchematics } from "./rules/make-room.ts";
+import type { BeaconKind, Game } from "@stl/sim/types.ts";
+import { choiceDisabled, choose, commitJump, createGame } from "@stl/sim/sim.ts";
+import { placeIn } from "@stl/sim/fixtures.ts";
+import { heldSchematics } from "@stl/sim/rules/make-room.ts";
 
 export type EventSide = {
   /** The beacon flag that makes the sim play this version. */
@@ -226,7 +226,7 @@ async function main(argv: string[]) {
   }
   const dat = arg("dat");
   if (dat) {
-    const { installArchive } = await import("./archive-play.ts");
+    const { installArchive } = await import("@stl/sim/archive-play.ts");
     await installArchive(new Uint8Array(readFileSync(dat)));
   }
   const seeds = seedRange(arg("seeds") ?? "1-20");

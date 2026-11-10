@@ -22,10 +22,10 @@
         "src/**",
         "tones/**",
         "totallynotftl.dat",
-        "$TURBO_ROOT$/apps/game/src/game/gear-look.ts",
-        "$TURBO_ROOT$/apps/game/src/game/icons.ts",
+        "$TURBO_ROOT$/packages/sim/src/gear-look.ts",
+        "$TURBO_ROOT$/packages/sim/src/icons.ts",
         "$TURBO_ROOT$/apps/game/src/game/crew-pixels.ts",
-        "$TURBO_ROOT$/apps/game/src/game/pack/base.ts",
+        "$TURBO_ROOT$/packages/sim/src/pack/base.ts",
         "$TURBO_ROOT$/packages/standin/package.json",
         "$TURBO_ROOT$/packages/standin/src/**"
       ]
@@ -51,6 +51,10 @@
     },
     "lint": {},
     "@stl/game#test:src": {
+      "dependsOn": ["^typecheck"],
+      "env": ["FTL_DAT", "STL_DATS", "STL_DAT_DIGEST"]
+    },
+    "@stl/sim#test": {
       "dependsOn": ["^typecheck"],
       "env": ["FTL_DAT", "STL_DATS", "STL_DAT_DIGEST"]
     }

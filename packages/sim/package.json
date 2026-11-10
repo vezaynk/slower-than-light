@@ -1,0 +1,28 @@
+{
+  "name": "@stl/sim",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "src/pack/base.ts"
+  ],
+  "exports": {
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test src/*.test.ts src/*/*.test.ts src/selftest.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "cd ../.. && ./node_modules/.bin/eslint packages/sim"
+  },
+  "dependencies": {
+    "@stl/catalog": "workspace:*",
+    "@stl/ftldat": "workspace:*",
+    "@stl/hyperspace": "workspace:*",
+    "@stl/pack": "workspace:*",
+    "@stl/standin": "workspace:*"
+  },
+  "devDependencies": {
+    "@stl/wiki-dump": "workspace:*",
+    "@types/node": "^22.16.5",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,7 +1,7 @@
 /** One glyph from icons.ts, drawn in currentColor. A room icon uses the archive mask when it is loaded. */
 import { useState, useSyncExternalStore, type CSSProperties } from "react";
-import { ICON_ROWS, ICON_SIZE, type IconName } from "@/game/icons";
-import { pixelRuns } from "@/game/gear-look";
+import { ICON_ROWS, ICON_SIZE, type IconName } from "@stl/sim/icons.ts";
+import { pixelRuns } from "@stl/sim/gear-look.ts";
 import { ICON_FILES } from "@stl/pack";
 import { archiveGeneration, archiveImage, roomIconUrl, subscribeArchive } from "@/game/pack/media";
 

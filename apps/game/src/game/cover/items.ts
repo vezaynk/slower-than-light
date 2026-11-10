@@ -1,9 +1,9 @@
 import type { FtlExtract } from "@stl/ftldat";
 import { itemBlueprint } from "@stl/pack";
 import { registerCoverExtra } from "../archive-cover-extra.ts";
-import { freshGame } from "../archive-play.ts";
+import { freshGame } from "@stl/sim/archive-play.ts";
 import { grantItem, itemHold, type ItemHold } from "../items.ts";
-import type { Game } from "../types.ts";
+import type { Game } from "@stl/sim/types.ts";
 
 function present(raw: FtlExtract): boolean {
   return raw.documents.some((doc) => doc.xml.includes("<itemBlueprint"));

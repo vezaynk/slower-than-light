@@ -43,7 +43,7 @@ import { FLAGSHIP_STAGES, type FlagshipStage } from "../wiki/flagship-stages.ts"
 import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
-import { STALEMATE } from "../wiki/surrender-rules.ts";
+import { NO_SURRENDER_SHIPS, STALEMATE } from "../wiki/surrender-rules.ts";
 import { SKILL_SPEED } from "../wiki/skill-rules.ts";
 import { AI_TARGET } from "../wiki/targeting-rules.ts";
 import { CRYSTAL_VENGEANCE, ION_INTRUDER, OVERCHARGER_WAITS } from "../wiki/augment-rules.ts";
@@ -1528,7 +1528,10 @@ export function loadCatalog(): void {
       stores: STORES.map(storeRow),
       tunes: SYSTEM_TUNES.map(tuneRow),
       rewards: REWARD_TABLE,
-      factions: FACTION_SURRENDER.map((row) => ({ ...row })),
+      factions: [
+        ...FACTION_SURRENDER.map((row) => ({ ...row })),
+        ...NO_SURRENDER_SHIPS.map((row) => ({ ...row })),
+      ],
       escapes: FACTION_ESCAPE.map((row) => ({ ...row })),
       escapeTimers: { ...ESCAPE_TIMERS },
       stalemate: { ...STALEMATE },

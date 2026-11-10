@@ -1,8 +1,8 @@
 /**
  * Read-only views for the combat UI (GameApp, CombatFx). Nothing here mutates the game.
  */
-import { enemyHackView } from "./extras/spike.ts";
-import type { Crew, Game, KitId } from "./types.ts";
+import { enemyHackView } from "@stl/sim/extras/spike.ts";
+import type { Crew, Game, KitId } from "@stl/sim/types.ts";
 
 /**
  * Player cloning queue, head first. Wiki page "Clone Bay", "Overview": "Portraits of the crew in the cloning queue are

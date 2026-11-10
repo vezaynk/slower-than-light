@@ -2,8 +2,7 @@
   "name": "@stl/game",
   "private": true,
   "sideEffects": [
-    "**/*.css",
-    "src/game/pack/base.ts"
+    "**/*.css"
   ],
   "type": "module",
   "scripts": {
@@ -12,7 +11,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test:src": "node --experimental-strip-types --test src/game/*.test.ts src/game/selftest.ts src/game/extras/*.test.ts src/game/wiki/*.test.ts src/game/rules/*.test.ts src/game/pack/*.test.ts src/game/handoff/*.test.ts scripts/prepare-android.test.mjs",
+    "test:src": "node --experimental-strip-types --test src/game/*.test.ts src/game/wiki/*.test.ts src/game/pack/*.test.ts src/game/handoff/*.test.ts scripts/prepare-android.test.mjs",
     "playthrough": "node scripts/playthrough.mjs",
     "lint": "cd ../.. && ./node_modules/.bin/eslint apps/game"
   },
@@ -27,6 +26,7 @@
     "@stl/ftldat": "workspace:*",
     "@stl/hyperspace": "workspace:*",
     "@stl/pack": "workspace:*",
+    "@stl/sim": "workspace:*",
     "@stl/standin": "workspace:*",
     "@stl/ui": "workspace:*",
     "@tailwindcss/vite": "^4.3.0",

@@ -1,0 +1,555 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import {
+  applyImpact,
+  applyPulsarPulse,
+  settleZoltanPower,
+  sparePower,
+  syncIonStorm,
+  upgrade,
+  waitHere,
+} from "../sim.ts";
+import { stormReactor } from "../wiki/cited-sectors.ts";
+import { seatKits } from "../layouts.ts";
+import {
+  batteryPaint,
+  batterySpareBars,
+  cellBonus,
+  installCell,
+  ionOnCell,
+  startCell,
+  tickCell,
+  upgradeCell,
+} from "./cell.ts";
+import { toggleVeilPower } from "./veil.ts";
+import { onPlayerJump } from "./index.ts";
+import { fleetToReach } from "../rules/sector-map.ts";
+import type { Crew, Kit, Shot, WeaponInst } from "../types.ts";
+import { startedGame } from "../test-start.ts";
+
+function pushCell(level = 1): Kit {
+  return {
+    id: "battery",
+    level,
+    power: 0,
+    left: 0,
+    cool: 0,
+    target: null,
+    on: false,
+    aux: 0,
+  };
+}
+
+describe("battery", () => {
+  it("gives 2 bars for 30s then cools for 20", () => {
+    // Wiki citations:
+    // > "1 35 Ftlgame-scrap.png 2 temporary power bars" — [[Backup Battery#System Upgrades]]
+    // > "When activated, Backup Battery provides 2 additional power bars for 30 seconds. Upgrading the subsystem provides 4 additional power bars in total upon activation." — [[Backup Battery#Overview]]
+    // > "Once the Backup Battery work cycle is over, the system enters a 20 seconds cooldown before it can be used again." — [[Backup Battery#Overview]]
+    const g = startedGame(1);
+    g.phase = "combat";
+    g.scrap = 35;
+    installCell(g);
+    assert.equal(g.scrap, 0);
+    assert.equal(g.player.kits.battery?.level, 1);
+    assert.equal(g.player.kits.battery?.power, 0);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 2);
+    assert.equal(g.player.kits.battery?.aux, 2);
+    assert.equal(g.player.kits.battery?.left, 30);
+    tickCell(g, 30);
+    assert.equal(cellBonus(g.player), 0);
+    assert.equal(g.player.kits.battery?.on, false);
+    assert.equal(g.player.kits.battery?.aux, 0);
+    assert.equal(g.player.kits.battery?.cool, 20);
+    assert.equal(g.player.kits.battery?.power, 0);
+  });
+
+  it("cools in 10s when augments include tap", () => {
+    // Wiki citations:
+    // > "Battery Charger augmentation reduces the cooldown to 10 seconds." — [[Backup Battery#Overview]]
+    const g = startedGame(2);
+    g.phase = "combat";
+    g.augments = ["BATTERY_BOOSTER"];
+    g.player.kits.battery = pushCell(1);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 2);
+    tickCell(g, 30);
+    assert.equal(cellBonus(g.player), 0);
+    assert.equal(g.player.kits.battery?.cool, 10);
+  });
+
+  it("upgrades to 4 bars for 50 scrap", () => {
+    // Wiki citations:
+    // > "2 50 Ftlgame-scrap.png 4 temporary power bars" — [[Backup Battery#System Upgrades]]
+    // > "Upgrading the subsystem provides 4 additional power bars in total upon activation." — [[Backup Battery#Overview]]
+    const g = startedGame(3);
+    g.scrap = 85;
+    installCell(g);
+    upgradeCell(g);
+    assert.equal(g.scrap, 0);
+    assert.equal(g.player.kits.battery?.level, 2);
+    assert.equal(g.player.kits.battery?.power, 0);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 4);
+    assert.equal(g.player.kits.battery?.aux, 4);
+  });
+
+  it("does not start again until cool reaches 0", () => {
+    const g = startedGame(4);
+    g.phase = "combat";
+    g.player.kits.battery = pushCell(1);
+    startCell(g);
+    tickCell(g, 30);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 0);
+    assert.equal(g.player.kits.battery?.cool, 20);
+    tickCell(g, 20);
+    assert.equal(g.player.kits.battery?.cool, 0);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 2);
+  });
+
+  it("does not crash when the enemy is null", () => {
+    const g = startedGame(5);
+    g.enemy = null;
+    tickCell(g, 1);
+    g.player.kits.battery = pushCell(1);
+    startCell(g);
+    tickCell(g, 0.5);
+    assert.equal(cellBonus(g.player), 2);
+  });
+
+  it("stays ready when it runs out and the ship is not in danger", () => {
+    const g = startedGame(7);
+    g.player.kits.battery = pushCell(1);
+    assert.equal(g.phase, "map");
+    startCell(g);
+    tickCell(g, 30);
+    assert.equal(g.player.kits.battery?.on, false);
+    assert.equal(g.player.kits.battery?.cool, 0);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 2);
+
+    // Backup Battery's IN DANGER note: an asteroid field still counts off the combat phase.
+    g.asteroid = true;
+    tickCell(g, 30);
+    assert.equal(g.player.kits.battery?.cool, 20);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 0);
+  });
+
+  it("resets a cooldown on an FTL jump and not when waiting", () => {
+    // Wiki citations:
+    // > "Backup Battery's cooldown is immediately reset by an FTL jump. However, Waiting (e.g. for Flagship or in out-fuel events) will not reset the cooldown." — [[Backup Battery#Overview]]
+    const g = startedGame(8);
+    g.player.kits.battery = pushCell(1);
+    g.player.kits.battery.cool = 12;
+    onPlayerJump(g);
+    assert.equal(g.player.kits.battery.cool, 0);
+    assert.equal(g.log[0], "Backup Battery is ready.");
+
+    g.player.kits.battery.cool = 12;
+    g.phase = "map";
+    g.fuel = 3;
+    waitHere(g);
+    assert.equal(g.player.kits.battery.cool, 12);
+  });
+
+  it("starts the 25s cooldown when one hit ionizes every level", () => {
+    // Wiki citations:
+    // > "If all system levels of the Backup Battery subsystem get ionized (e.g. when a pulsar ionizes it), it will enter its maximum 25 seconds cooldown." — [[Backup Battery#Overview]]
+    // > "1 ion damage will not cause disruption to activated level 2 Backup Battery" — [[Backup Battery#Overview]]
+    const g = startedGame(9);
+    g.phase = "map";
+    g.augments = ["BATTERY_BOOSTER"];
+    g.player.kits.battery = pushCell(1);
+    startCell(g);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), true);
+    assert.equal(g.player.kits.battery?.on, false);
+    assert.equal(g.player.kits.battery?.cool, 25);
+    assert.equal(cellBonus(g.player), 0);
+    assert.equal(g.log[0], "Backup Battery cooling.");
+    tickCell(g, 5);
+    assert.equal(g.player.kits.battery?.cool, 20);
+
+    g.player.kits.battery = pushCell(2);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 4);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), false);
+    assert.equal(g.player.kits.battery?.on, true);
+    assert.equal(g.player.kits.battery?.cool, 0);
+    assert.equal(cellBonus(g.player), 4);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 2), true);
+    assert.equal(g.player.kits.battery?.cool, 25);
+    assert.equal(cellBonus(g.player), 0);
+  });
+
+  it("locks an activated level 2 battery when two 1-ion sources land together", () => {
+    // Wiki citations:
+    // > "1 ion damage will not cause disruption to activated level 2 Backup Battery" — [[Backup Battery#Overview]]
+    // > "if 1 ion damage is applied from two ion sources simultaneously, the battery will enter its maximum cooldown." — [[Backup Battery#Overview]]
+    const g = startedGame(11);
+    g.phase = "combat";
+    g.player.kits.battery = pushCell(2);
+    startCell(g);
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), false);
+    assert.equal(g.player.kits.battery?.on, true);
+    assert.equal(g.log[0], "Backup Battery online.");
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), true);
+    assert.equal(g.player.kits.battery?.cool, 25);
+    assert.equal(g.player.kits.battery?.on, false);
+    assert.equal(cellBonus(g.player), 0);
+
+    g.player.kits.battery = pushCell(2);
+    startCell(g);
+    g.time = 1;
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), false);
+    g.time = 2;
+    assert.equal(ionOnCell(g, g.player.kits.battery!, 1), false);
+    assert.equal(g.player.kits.battery?.on, true);
+    assert.equal(g.player.kits.battery?.cool, 0);
+
+    const hit = startedGame(12);
+    hit.player.kits.battery = pushCell(2);
+    seatKits(hit.player);
+    const room = hit.player.rooms.find((r) => r.kit === "battery");
+    assert.ok(room);
+    hit.player.systems.engines.power = 0;
+    hit.player.shieldNow = 0;
+    hit.player.zoltan = 0;
+    startCell(hit);
+    const bomb: Shot = {
+      id: "b",
+      kind: "bomb",
+      from: "enemy",
+      damage: 0,
+      ion: 1,
+      fireChance: 0,
+      breachChance: 0,
+      defId: "BOMB_STUN",
+      targetRoom: room.id,
+      wait: 0,
+      t: 1,
+      duration: 1,
+    };
+    applyImpact(hit, bomb);
+    assert.equal(hit.player.kits.battery?.on, true);
+    applyImpact(hit, { ...bomb, id: "b2" });
+    assert.equal(hit.player.kits.battery?.cool, 25);
+    assert.equal(hit.player.kits.battery?.on, false);
+  });
+
+  it("lets an ion bomb and a pulsar cover the battery", () => {
+    const g = startedGame(10);
+    g.scrap = 85;
+    installCell(g);
+    upgradeCell(g);
+    const room = g.player.rooms.find((r) => r.kit === "battery");
+    assert.ok(room);
+    g.player.systems.engines.power = 0;
+    g.player.shieldNow = 0;
+    g.player.zoltan = 0;
+    startCell(g);
+    const bomb: Shot = {
+      id: "b",
+      kind: "bomb",
+      from: "enemy",
+      damage: 0,
+      ion: 1,
+      fireChance: 0,
+      breachChance: 0,
+      defId: "BOMB_STUN",
+      targetRoom: room.id,
+      wait: 0,
+      t: 1,
+      duration: 1,
+    };
+    applyImpact(g, bomb);
+    assert.notEqual(g.log[0], "Bomb missed the Lark.");
+    assert.equal(g.player.kits.battery?.on, true);
+    assert.equal(g.player.kits.battery?.cool, 0);
+    applyImpact(g, { ...bomb, defId: "BOMB_ION", ion: 4 });
+    assert.equal(g.player.kits.battery?.cool, 25);
+    assert.equal(g.player.kits.battery?.on, false);
+    assert.equal(g.log[0], "Backup Battery cooling.");
+
+    let pulsed = false;
+    for (let seed = 1; seed < 80 && !pulsed; seed++) {
+      const pulse = startedGame(seed);
+      pulse.player.kits.battery = pushCell(2);
+      pulse.player.zoltan = 0;
+      pulse.player.systems.shields.power = 0;
+      startCell(pulse);
+      applyPulsarPulse(pulse);
+      pulsed = pulse.player.kits.battery?.cool === 25;
+    }
+    assert.equal(pulsed, true);
+  });
+
+  it("pulls the extra bars back when the interval ends and ends a cloak or hold that used one", () => {
+    const g = startedGame(13);
+    g.phase = "combat";
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
+    g.player.reactor = 1;
+    g.player.systems.engines.power = 1;
+    g.player.kits.battery = pushCell(1);
+    startCell(g);
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 10,
+      cool: 0,
+      target: null,
+      on: true,
+      aux: 0,
+    };
+    tickCell(g, 30);
+    assert.equal(g.player.kits.battery?.cool, 20);
+    assert.equal(g.player.kits.cloaking?.on, false);
+    assert.equal(g.player.kits.cloaking?.power, 0);
+    assert.equal(g.player.kits.cloaking?.cool, 20);
+    assert.equal(g.player.systems.engines.power, 1);
+    assert.equal(sparePower(g.player), 0);
+
+    const hold = startedGame(14);
+    hold.phase = "combat";
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      hold.player.systems[id].power = 0;
+    hold.player.reactor = 1;
+    hold.player.systems.engines.power = 1;
+    hold.player.kits.battery = pushCell(1);
+    startCell(hold);
+    hold.player.kits.mind = {
+      id: "mind",
+      level: 1,
+      power: 1,
+      left: 14,
+      cool: 0,
+      target: "foe",
+      on: true,
+      aux: 0,
+    };
+    hold.crew.push({
+      id: "foe",
+      name: "Foe",
+      side: "enemy",
+      aboard: "enemy",
+      hp: 50,
+      maxHp: 50,
+      room: "e",
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 0,
+      leashed: 14,
+    });
+    tickCell(hold, 30);
+    assert.equal(hold.player.kits.mind?.on, false);
+    // Systems, "Systems cooldown": power loss ends the hold and starts the usual 20 seconds.
+    assert.equal(hold.player.kits.mind?.cool, 20);
+    assert.equal(hold.player.kits.mind?.power, 0);
+    assert.equal(hold.crew.find((c) => c.id === "foe")?.leashed, undefined);
+    assert.equal(hold.player.systems.engines.power, 1);
+
+    const guns = startedGame(15);
+    guns.phase = "map";
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      guns.player.systems[id].power = 0;
+    guns.player.reactor = 0;
+    guns.player.systems.weapons.power = 2;
+    guns.player.kits.battery = pushCell(1);
+    startCell(guns);
+    tickCell(guns, 30);
+    assert.equal(guns.player.kits.battery?.cool, 0);
+    assert.equal(guns.player.systems.weapons.power, 0);
+    assert.equal(sparePower(guns.player), 0);
+  });
+
+  it("leaves a cooling cloak's cooldown alone when its battery bar is taken back", () => {
+    const g = startedGame(16);
+    g.phase = "combat";
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
+    g.player.reactor = 1;
+    g.player.systems.engines.power = 1;
+    g.player.kits.battery = pushCell(1);
+    startCell(g);
+    g.player.kits.cloaking = {
+      id: "cloaking",
+      level: 1,
+      power: 1,
+      left: 0,
+      cool: 15,
+      target: null,
+      on: false,
+      aux: 0,
+    };
+    toggleVeilPower(g);
+    assert.equal(g.player.kits.cloaking.power, 1);
+    tickCell(g, 30);
+    assert.equal(g.player.kits.cloaking.on, false);
+    assert.equal(g.player.kits.cloaking.power, 0);
+    assert.equal(g.player.kits.cloaking.cool, 15);
+    assert.equal(g.player.systems.engines.power, 1);
+    assert.equal(g.player.kits.battery?.cool, 20);
+  });
+
+  it("counts battery bars as spare when a Zoltan leaves weapons", () => {
+    const g = startedGame(18);
+    g.player.reactor = 30;
+    const sys = g.player.systems.weapons;
+    sys.level = 4;
+    sys.power = 4;
+    sys.damage = 0;
+    sys.ion = [];
+    delete sys.zoltanHeld;
+    const mount = (defId: string): WeaponInst => ({
+      uid: defId,
+      defId,
+      charge: 0,
+      enabled: true,
+      autofire: false,
+      target: null,
+    });
+    g.player.weapons = ["LASER_CHAINGUN_2", "LASER_BURST_2_A", "LASER_CHARGEGUN"].map(mount);
+    const spark = (id: string): Crew => ({
+      id,
+      name: id,
+      side: "player",
+      aboard: "player",
+      hp: 70,
+      maxHp: 70,
+      room: "p-weapons",
+      path: [],
+      move: 0,
+      think: 0,
+      tone: 0,
+      kin: "energy",
+    });
+    g.crew.push(spark("za"), spark("zb"));
+    settleZoltanPower(g);
+    assert.equal(sys.power, 2);
+    g.player.reactor -= sparePower(g.player);
+    assert.equal(sparePower(g.player), 0);
+    g.player.kits.battery = pushCell(1);
+    startCell(g);
+    assert.equal(sparePower(g.player), 2);
+    g.crew = g.crew.filter((c) => c.kin !== "energy");
+    settleZoltanPower(g);
+    assert.equal(sys.power, 4);
+    assert.equal(sys.zoltanHeld, undefined);
+    assert.equal(sparePower(g.player), 0);
+  });
+
+  it("halves the reactor in an overtaken nebula and leaves the battery whole", () => {
+    assert.equal(stormReactor(8), 4);
+    assert.equal(stormReactor(5), 3);
+    assert.equal(stormReactor(1), 1);
+    const g = startedGame(19);
+    const beacon = g.beacons[2];
+    assert.ok(beacon);
+    beacon.kind = "nebula";
+    g.here = beacon.id;
+    g.fleet = fleetToReach(g, beacon) - 1;
+    g.player.reactor = 5;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
+    g.player.systems.weapons.power = 5;
+    syncIonStorm(g);
+    assert.equal(g.player.storm, undefined);
+    assert.equal(g.player.systems.weapons.power, 5);
+
+    g.fleet += 1;
+    syncIonStorm(g);
+    assert.equal(g.player.storm, true);
+    assert.equal(g.player.systems.weapons.power, 3);
+    assert.equal(sparePower(g.player), 0);
+    assert.equal(
+      g.log[0],
+      "This section of the nebula is experiencing a plasma storm. Your main reactor can only function at half capacity.",
+    );
+
+    g.player.kits.battery = pushCell(1);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 2);
+    assert.equal(sparePower(g.player), 2);
+
+    beacon.kind = "exit";
+    syncIonStorm(g);
+    assert.equal(g.player.storm, undefined);
+    assert.equal(sparePower(g.player), 5 + 2 - 3);
+  });
+
+  it("marks bonus bars after the regular reactor bars", () => {
+    const g = startedGame(21);
+    g.player.reactor = 5;
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
+    g.player.systems.weapons.power = 5;
+    g.player.kits.battery = pushCell(1);
+    startCell(g);
+    assert.equal(batterySpareBars(g.player), 2);
+    assert.equal(batteryPaint(g.player).systems.weapons, undefined);
+
+    g.player.systems.engines.power = 2;
+    const paint = batteryPaint(g.player);
+    assert.equal(batterySpareBars(g.player), 0);
+    assert.equal(paint.systems.weapons, 2);
+    assert.equal(paint.systems.engines, undefined);
+
+    g.player.systems.weapons.power = 1;
+    g.player.systems.engines.power = 2;
+    g.player.reactor = 1;
+    const split = batteryPaint(g.player);
+    assert.equal(split.systems.weapons, 1);
+    assert.equal(split.systems.engines, 1);
+    assert.equal(batterySpareBars(g.player), 0);
+  });
+
+  it("lets the ship assign more than 25 bars while the battery is on", () => {
+    const g = startedGame(17);
+    g.scrap = 100;
+    g.player.reactor = 25;
+    upgrade(g, "reactor");
+    assert.equal(g.player.reactor, 25);
+    for (const id of ["shields", "engines", "oxygen", "medbay", "weapons"] as const)
+      g.player.systems[id].power = 0;
+    g.player.systems.shields.power = 8;
+    g.player.systems.engines.power = 8;
+    g.player.systems.weapons.power = 8;
+    g.player.systems.oxygen.power = 1;
+    assert.equal(sparePower(g.player), 0);
+    g.player.kits.battery = pushCell(2);
+    startCell(g);
+    assert.equal(cellBonus(g.player), 4);
+    assert.equal(sparePower(g.player), 4);
+    g.player.systems.oxygen.power = 3;
+    g.player.systems.medbay.power = 2;
+    assert.equal(sparePower(g.player), 0);
+    assert.equal(
+      g.player.systems.shields.power +
+        g.player.systems.engines.power +
+        g.player.systems.weapons.power +
+        g.player.systems.oxygen.power +
+        g.player.systems.medbay.power,
+      29,
+    );
+  });
+
+  it("starts an enemy cell when spare power is tight", () => {
+    const g = startedGame(6);
+    g.enemy = {
+      ...g.player,
+      name: "Picket",
+      reactor: 7,
+      kits: { battery: pushCell(2) },
+    };
+    tickCell(g, 0.16);
+    assert.equal(g.enemy?.kits.battery?.on, true);
+    assert.equal(g.enemy?.kits.battery?.left, 30);
+    assert.equal(cellBonus(g.enemy!), 4);
+  });
+});

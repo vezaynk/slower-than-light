@@ -145,14 +145,7 @@ export const SFX_CUES: Record<string, readonly string[]> = {
  * The death sound for a crew member. A race with its own cue uses that. Everyone else uses the human family:
  * female crew (named from data/names.xml's female list) the femaleDeath cues, the rest death1 and death2.
  */
-export function deathCue(kin: string | undefined, sex?: "male" | "female"): string {
-  if (kin === "rock") return "rockDeath";
-  if (kin === "mantis") return "mantisDeath";
-  if (kin === "crystal") return "crystalDeath";
-  if (kin === "engi") return "engiDeath";
-  if (kin === "energy") return "energyDeath";
-  return sex === "female" ? "femaleDeath" : "death";
-}
+export { deathCue } from "@stl/sim/cues.ts";
 
 /**
  * The cue a weapon plays when it fires.

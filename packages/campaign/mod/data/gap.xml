@@ -22,6 +22,66 @@
   <shipBlueprint name="rock">
     <surrender chance="30" min="30" max="40"/>
   </shipBlueprint>
+  <shipBlueprint name="REBEL_SKINNY_ELITE">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="ROCK_ASSAULT_ELITE">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_1_EASY">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_1_EASY_DLC">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_1_NORMAL">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_1_NORMAL_DLC">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_1_HARD">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_1_HARD_DLC">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_2_EASY">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_2_EASY_DLC">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_2_NORMAL">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_2_NORMAL_DLC">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_2_HARD">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_2_HARD_DLC">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_3_EASY">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_3_EASY_DLC">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_3_NORMAL">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_3_NORMAL_DLC">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_3_HARD">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
+  <shipBlueprint name="BOSS_3_HARD_DLC">
+    <surrender chance="0" min="0" max="0"/>
+  </shipBlueprint>
   <customStore id="standard">
     <title>Store</title>
     <resource>

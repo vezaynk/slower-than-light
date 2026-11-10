@@ -579,6 +579,7 @@ function copyHull(row: HullDef): HullDef {
   if (row.installs) copy.installs = row.installs.map((item) => ({ ...item }));
   if (row.crewCounts) copy.crewCounts = row.crewCounts.map((item) => ({ ...item }));
   if (row.drones) copy.drones = [...row.drones];
+  if (row.surrender) copy.surrender = { ...row.surrender };
   return copy;
 }
 

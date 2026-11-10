@@ -424,6 +424,12 @@ export type HullDef = {
   maxSector?: number;
   /** `<boardingAI>`. Sabotage or invasion. Unset when the tag is absent or not one of those. */
   boardingAI?: "sabotage" | "invasion";
+  /**
+   * `<surrender chance min max>` on this blueprint. `chance` is a percent. `min` and `max` are a percent of max hull.
+   * Chance 0 never offers. Absent, the fight uses the faction row. A layout-less blueprint of the same name is that
+   * row, and this field wins over it.
+   */
+  surrender?: { chance: number; min: number; max: number };
 };
 
 /** One beacon quota. `id` is an event or an event list. */
@@ -618,7 +624,7 @@ export type EscapeTimers = {
  * Gap `<stalemate threshold seconds fuel>`: the anti-stalemate break-off FTL's executable hard-codes.
  * `threshold` is the percent of max hull below which a quiet fight can end. `seconds` is how long the enemy must go
  * without losing hull. `fuel` is what the player is granted. A missing value warns and uses FTL's (40, 60, 2).
- * Boss and elite never surrender; that is a tier check, not a number on their blueprints.
+ * Boss and elite never surrender because their blueprint ids name `<surrender chance="0">`, not because of a tier check.
  */
 export type Stalemate = {
   threshold?: number;

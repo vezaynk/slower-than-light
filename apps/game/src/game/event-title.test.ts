@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { loadPack, resetPackForTests } from "@stl/pack";
-import "./pack/base.ts";
+import "@stl/sim/pack/base.ts";
 import { shownEventTitle } from "./event-title.ts";
 
 afterEach(() => resetPackForTests());

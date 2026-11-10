@@ -3,7 +3,7 @@
  * toggling a native switch control (<input type="checkbox" switch>) gives one light system tap, which is all iOS can
  * do here, and it only answers the player's own touches. The Options setting turns all of it off. INVENTED patterns.
  */
-import type { Game } from "./types";
+import type { Game } from "@stl/sim/types.ts";
 import { useSettings } from "./settings";
 
 export type Buzz = "hold" | "step" | "shield" | "hit" | "heavy" | "crew" | "jump" | "win" | "lose";

@@ -1,4 +1,4 @@
-import { displayPhrase } from "@/game/interface-copy";
+import { displayPhrase } from "@stl/sim/interface-copy.ts";
 
 /** A scroll of archive sentences. Clicks stay on the block, so a parent button does not take them. */
 export function ArchiveLines({ lines, mark }: { lines: readonly string[]; mark?: string }) {

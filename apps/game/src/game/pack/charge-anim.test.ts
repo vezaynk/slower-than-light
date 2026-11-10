@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { readAnimations } from "@stl/pack";
-import "./base.ts";
-import { weaponAccentHot, weaponSheetCharged } from "../sim.ts";
-import type { WeaponInst } from "../types.ts";
+import "@stl/sim/pack/base.ts";
+import { weaponAccentHot, weaponSheetCharged } from "@stl/sim/sim.ts";
+import type { WeaponInst } from "@stl/sim/types.ts";
 import {
   chargeAnimProgress,
   chargingFrameIndex,

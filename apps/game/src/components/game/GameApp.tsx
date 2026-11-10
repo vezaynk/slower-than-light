@@ -12,10 +12,23 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { playSfx, resumeAudio, setMuted, setVolume, syncLoops, unlockAudio } from "@/game/audio";
-import { currentLocale, localeFace, localeLabel, selectLocale } from "@/game/locale";
-import { choiceBlue, offeredChoices } from "@/game/wiki/choice-locks";
+import {
+  bindLocaleImages,
+  currentLocale,
+  localeFace,
+  localeLabel,
+  selectLocale,
+} from "@/game/locale";
+import { bindArchiveImages } from "@stl/sim/archive-pay.ts";
+import { choiceBlue, offeredChoices } from "@stl/sim/wiki/choice-locks.ts";
 import { ArchiveBed } from "./ArchiveBed";
 import { shownEventTitle } from "@/game/event-title";
+import {
+  archiveGeneration,
+  archiveImage,
+  setImageVariant,
+  subscribeArchive,
+} from "@/game/pack/media";
 import { ArchiveLines } from "./ArchiveCopy";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
@@ -23,12 +36,12 @@ import { OptionsPanel } from "./OptionsPanel";
 import { HOLD_MS, momentDown, momentLive, momentMarkHeld, momentUp, type Moment } from "./moment";
 import { animSpeed, applyCssSpeed, FAST_SPEED, useFast } from "./speed";
 import { pageRect, toPage } from "./turn";
-import { SECTOR_NAMES, systemLabel, upgradeBlurb, upgradeCost } from "@/game/content";
-import { sectorTag } from "@/game/sector-ids";
-import { aimedBeamTiles } from "@/game/pack/beams";
+import { SECTOR_NAMES, systemLabel, upgradeBlurb, upgradeCost } from "@stl/sim/content.ts";
+import { sectorTag } from "@stl/sim/sector-ids.ts";
+import { aimedBeamTiles } from "@stl/sim/pack/beams.ts";
 import { bootPack, toSetup, useLaunch } from "@/game/launch";
 import { BootScreen, SetupScreen } from "./SetupScreen";
-import "@/game/pack/base";
+import "@stl/sim/pack/base.ts";
 import {
   FLEET_FILE,
   MAP_FILES,
@@ -46,28 +59,27 @@ import {
   phraseOr,
   weaponCopy,
   weaponDamageLabel,
-} from "@/game/interface-copy";
-import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
+} from "@stl/sim/interface-copy.ts";
 import { beaconMark } from "@/game/beacon-mark";
-import { scanMark } from "@/game/extras/augments";
-import { navAllows } from "@/game/wiki/cited-nav";
-import { stormReactor } from "@/game/wiki/cited-sectors";
-import { beaconXY, dangerCentre, overtaken } from "@/game/rules/sector-map";
+import { scanMark } from "@stl/sim/extras/augments.ts";
+import { navAllows } from "@stl/sim/wiki/cited-nav.ts";
+import { stormReactor } from "@stl/sim/wiki/cited-sectors.ts";
+import { beaconXY, dangerCentre, overtaken } from "@stl/sim/rules/sector-map.ts";
 import {
   batteryBarsOn,
   batterySpareBars,
   cellUpgradeCost,
   startCell,
   upgradeCell,
-} from "@/game/extras/cell";
-import { cleanName, kinLabel, NAME_MAX } from "@/game/crew-look";
+} from "@stl/sim/extras/cell.ts";
+import { cleanName, kinLabel, NAME_MAX } from "@stl/sim/crew-look.ts";
 import {
   recallSling,
   sendSling,
   shipInDanger,
   slingUpgradeCost,
   upgradeSling,
-} from "@/game/extras/sling";
+} from "@stl/sim/extras/sling.ts";
 import {
   activateDroneSlot,
   depowerDrone,
@@ -76,24 +88,24 @@ import {
   raiseSwarmPower,
   reorderDroneSlots,
   roomDroneHp,
-} from "@/game/extras/swarm";
+} from "@stl/sim/extras/swarm.ts";
 
-import { clampTargetPoint, roomAtPoint, roomCenter, targetableSpan } from "@/game/beam-line";
+import { clampTargetPoint, roomAtPoint, roomCenter, targetableSpan } from "@stl/sim/beam-line.ts";
 import {
   CHARGE_SECONDS as LANCE_CHARGE,
   lanceUpgradeCost,
   lowerLancePower,
   raiseLancePower,
   upgradeLance,
-} from "@/game/extras/lance";
+} from "@stl/sim/extras/lance.ts";
 import {
   CHARGE_SECONDS as FLAK_CHARGE,
   flakUpgradeCost,
   lowerFlakPower,
   raiseFlakPower,
   upgradeFlak,
-} from "@/game/extras/flakart";
-import { isFlakArtillery } from "@/game/wiki/weapons-flak-crystal";
+} from "@stl/sim/extras/flakart.ts";
+import { isFlakArtillery } from "@stl/sim/wiki/weapons-flak-crystal.ts";
 import { Hangar } from "./Hangar";
 import { InstallButton } from "./InstallGuide";
 import {
@@ -105,18 +117,18 @@ import {
   UnlockDiagram,
   classOfPage,
 } from "./PixelArt";
-import { startVeil, upgradeVeil, veilUpgradeCost } from "@/game/extras/veil";
-import { startLeash, UPGRADE_COST as LEASH_UPGRADE, upgradeLeash } from "@/game/extras/leash";
+import { startVeil, upgradeVeil, veilUpgradeCost } from "@stl/sim/extras/veil.ts";
+import { startLeash, UPGRADE_COST as LEASH_UPGRADE, upgradeLeash } from "@stl/sim/extras/leash.ts";
 import {
   cradleUpgradeCost,
   enemyCloneQueue,
   lowerCradlePower,
   raiseCradlePower,
   upgradeCradle,
-} from "@/game/extras/cradle";
-import { sensorSystemDetail } from "@/game/extras/sensors";
-import { systemUnderBoarders } from "@/game/extras/sabotage";
-import { shipSight } from "@/game/extras/slug-sight";
+} from "@stl/sim/extras/cradle.ts";
+import { sensorSystemDetail } from "@stl/sim/extras/sensors.ts";
+import { systemUnderBoarders } from "@stl/sim/extras/sabotage.ts";
+import { shipSight } from "@stl/sim/extras/slug-sight.ts";
 // @agent:combat-ui. Read-only combat views (clone queue, hacked kit) and the cloak lockout.
 import { hackedPlayerKit, playerCloneQueue } from "@/game/ui-views";
 import {
@@ -135,13 +147,18 @@ import {
   spikeRoomTargetable,
   spikeUpgradeCost,
   upgradeSpike,
-} from "@/game/extras/spike";
+} from "@stl/sim/extras/spike.ts";
 import { create } from "zustand";
-import { lastFuelSeconds } from "@/game/rules/escape";
+import { lastFuelSeconds } from "@stl/sim/rules/escape.ts";
 // @agent:surrender. The surrender card lists the offered cargo.
-import { raceKin, surrenderOfferView } from "@/game/wiki/surrender";
-import { augmentDetail, augmentName, bonusAugmentFate, droneName } from "@/game/rules/bonus-item";
-import { canFieldDrone, droneSlotCap } from "@/game/wiki/cited-stores";
+import { raceKin, surrenderOfferView } from "@stl/sim/wiki/surrender.ts";
+import {
+  augmentDetail,
+  augmentName,
+  bonusAugmentFate,
+  droneName,
+} from "@stl/sim/rules/bonus-item.ts";
+import { canFieldDrone, droneSlotCap } from "@stl/sim/wiki/cited-stores.ts";
 import {
   cargoCells,
   cargoSlots,
@@ -152,12 +169,12 @@ import {
   resolveOverflow,
   stowDrone,
   stowWeapon,
-} from "@/game/rules/make-room";
+} from "@stl/sim/rules/make-room.ts";
 
-import { UNIFORMS } from "@/game/crew-look";
+import { UNIFORMS } from "@stl/sim/crew-look.ts";
 import { enemySystemClock, ionClock, systemClock } from "@/game/system-clock";
-import { combatPlateId } from "@/game/wiki/flagship-layout";
-import { artilleryGun, artilleryView } from "@/game/wiki/flagship-systems";
+import { combatPlateId } from "@stl/sim/wiki/flagship-layout.ts";
+import { artilleryGun, artilleryView } from "@stl/sim/wiki/flagship-systems.ts";
 import {
   aim,
   armWeapon,
@@ -230,8 +247,8 @@ import {
   canDismiss,
   dismissCrew,
   healingIds,
-} from "@/game/sim";
-import { xpNeedFor } from "@/game/extras/lineage";
+} from "@stl/sim/sim.ts";
+import { xpNeedFor } from "@stl/sim/extras/lineage.ts";
 import { useGame } from "@/game/store";
 import { isUnlocked } from "@/game/unlock-store"; // @agent:unlocks
 import type {
@@ -245,8 +262,8 @@ import type {
   Ship,
   SkillName,
   SysId,
-} from "@/game/types";
-import { DRONE_LOOKS, droneKeyOf } from "@/game/gear-look";
+} from "@stl/sim/types.ts";
+import { DRONE_LOOKS, droneKeyOf } from "@stl/sim/gear-look.ts";
 import { CombatFx } from "./CombatFx";
 import { ShadeFx, useEnemyWreck } from "./ShadeFx";
 import { CrewFace, CrewSprite } from "./CrewSprite";
@@ -254,7 +271,7 @@ import { DroneArt, WeaponArt } from "./GearArt";
 import { CloseX } from "./CloseX";
 import { PixelIcon } from "./PixelIcon";
 import { clockRim } from "./SystemClock";
-import type { IconName } from "@/game/icons";
+import type { IconName } from "@stl/sim/icons.ts";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { Screen } from "./Screen";
 import { ShieldField } from "./ShieldField";
@@ -262,7 +279,7 @@ import { HazardSky } from "./HazardSky";
 import { ShipView, type AimMark, type HackMark } from "./ShipView";
 import { AchievementsScreen, HelpScreen, Verdict, sectorTone } from "./WikiViews";
 import { StoreBoard } from "./StoreBoard";
-import { airShown } from "@/game/air";
+import { airShown } from "@stl/sim/air.ts";
 import { installPlayLog, setLogWhere, unseenCounts, usePlayLog } from "@/game/play-log";
 import { startSentry } from "@/game/sentry";
 import { useShallow } from "zustand/react/shallow";
@@ -647,6 +664,9 @@ function DoorAllIcon({ open }: { open?: boolean }) {
 /** INVENTED title line. The play HUD follows the combat, event, and pause screens. */
 /** Shortest gap between two hover ticks. INFERRED: fast sweeps across a button row stay a few ticks. */
 const HOVER_BEEP_MS = 70;
+
+bindLocaleImages((code) => setImageVariant({ lang: code }));
+bindArchiveImages((path) => archiveImage(path) != null);
 
 export function GameApp() {
   const version = useGame((s) => s.version);
@@ -3899,6 +3919,7 @@ function EventCard({ game }: { game: Game }) {
   const locked = useArrivalLock();
   const event = game.event;
   if (!event) return null;
+  const picture = event.img ? archiveImage(event.img) : undefined;
   // @agent:surrender. Rewards, "Stuff": the offered resources and scrap, shown before the player answers.
   const offer = surrenderOfferView(game);
   // ftl.dat events have no title, so the parsed title is the event id. FTL shows no heading then.
@@ -3907,7 +3928,7 @@ function EventCard({ game }: { game: Game }) {
     <div className="modal-layer">
       <article className={`ftl-card${offer ? " surrender-card" : ""}`}>
         {heading ? <p className="event-lead">{heading}</p> : null}
-        {event.img ? <img className="event-img" src={event.img} alt="" /> : null}
+        {picture ? <img className="event-img" src={picture} alt="" /> : null}
         <p>{event.body}</p>
         {offer ? (
           <>

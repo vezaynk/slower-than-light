@@ -25,6 +25,7 @@ import type {
   EventEffect,
   EscapeTimers,
   Stalemate,
+  SkillSpeed,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -206,6 +207,7 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.beaconEvents) add(root, beaconEventsElement(doc, pack.beaconEvents));
   if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
   if (pack.stalemate) add(root, stalemateElement(doc, pack.stalemate));
+  if (pack.skillSpeed) add(root, skillSpeedElement(doc, pack.skillSpeed));
   if (pack.aiTarget) add(root, aiTargetElement(doc, pack.aiTarget));
   if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
   if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
@@ -249,6 +251,15 @@ function stalemateElement(doc: XmlDocument, row: Stalemate): XmlElement {
   if (row.seconds != null) attrs.seconds = num(row.seconds);
   if (row.fuel != null) attrs.fuel = num(row.fuel);
   return element(doc, "stalemate", attrs);
+}
+
+/** `<skillSpeed>`: crew skill rate multipliers FTL's executable hard-codes (types.ts SkillSpeed). */
+function skillSpeedElement(doc: XmlDocument, row: SkillSpeed): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of ["repair0", "repair1", "repair2", "combat0", "combat1", "combat2"] as const) {
+    if (row[key] != null) attrs[key] = num(row[key]);
+  }
+  return element(doc, "skillSpeed", attrs);
 }
 
 /** `<aiTarget>`: enemy weapon targeting numbers FTL's executable hard-codes (types.ts AiTarget). */

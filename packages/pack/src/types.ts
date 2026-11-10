@@ -633,6 +633,20 @@ export type Stalemate = {
 };
 
 /**
+ * Gap `<skillSpeed repair0 repair1 repair2 combat0 combat1 combat2>`: crew skill rate multipliers FTL's executable
+ * hard-codes. Repair is ×1 / ×1.1 / ×1.2 ("10% faster", "20% faster"). Combat is the same for crew damage.
+ * A missing value warns and uses FTL's. Rank 0 is the untrained rate.
+ */
+export type SkillSpeed = {
+  repair0?: number;
+  repair1?: number;
+  repair2?: number;
+  combat0?: number;
+  combat1?: number;
+  combat2?: number;
+};
+
+/**
  * Gap `<aiTarget easy normal hardRoom hardAny evasion oxygen artillery>`: enemy weapon targeting numbers FTL's
  * executable hard-codes (xftl combat-ai, PrioritizeSystem). `easy` and `normal` are the chance a shot picks from the
  * system list. `hardRoom` is the share of Hard shots that pick no system; `hardAny` is the share that pick any
@@ -1421,6 +1435,8 @@ export type ContentPack = {
   escapeTimers?: EscapeTimers;
   /** Anti-stalemate break-off. Absent until a pack loads it. */
   stalemate?: Stalemate;
+  /** Crew skill rate multipliers. Absent until a pack loads them. */
+  skillSpeed?: SkillSpeed;
   /** Enemy weapon targeting numbers. Absent until a pack loads them. */
   aiTarget?: AiTarget;
   /** Shield Overcharger layer waits. Absent until a pack loads them. */

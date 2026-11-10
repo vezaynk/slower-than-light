@@ -163,7 +163,7 @@ import {
   rollDangerY,
   startRow,
 } from "./rules/sector-map.ts";
-import { combatSkillMult, repairSkillMult } from "./wiki/skills.ts";
+import { combatSkillMult, repairSkillMult } from "./rules/skills.ts";
 import {
   chainChargeSeconds,
   chainDamageAmount,
@@ -4913,7 +4913,7 @@ export const FIRE_FIGHT_SHARE = 0.096;
  * One crew member's repair pace: race repair multiplier × repair skill.
  * Crew skills, lead: "Engi can finish repairs faster" and "Mantis complete the repairs slower."
  * Skills, "Repair skill": "Level 1 (Green) | 10%
- * faster repair", "Level 2 (Gold) | 20% faster repair" (wiki/skills.ts REPAIR_SKILL_MULT), and "Repair skill and racial
+ * faster repair", "Level 2 (Gold) | 20% faster repair" (rules/skills.ts), and "Repair skill and racial
  * aptitude for repairs also apply to fire-fighting". Used for systems, kit rooms, breaches, and fires.
  */
 export function repairPace(c: Crew): number {

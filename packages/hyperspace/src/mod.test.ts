@@ -116,6 +116,14 @@ const pack: ContentPack = {
   ],
   escapeTimers: { hull: 15, lastFuel: 90 },
   stalemate: { threshold: 40, seconds: 60, fuel: 2 },
+  skillSpeed: {
+    repair0: 1,
+    repair1: 1.1,
+    repair2: 1.2,
+    combat0: 1,
+    combat1: 1.1,
+    combat2: 1.2,
+  },
   aiTarget: {
     easy: 0.2,
     normal: 0.33,
@@ -229,6 +237,10 @@ describe("hyperspace mod", () => {
     assert.match(xml, /<escape chance="80" min="20" max="40"\/>/);
     assert.match(xml, /<escapeTimers hull="15" lastFuel="90"\/>/);
     assert.match(xml, /<stalemate threshold="40" seconds="60" fuel="2"\/>/);
+    assert.match(
+      xml,
+      /<skillSpeed repair0="1" repair1="1.1" repair2="1.2" combat0="1" combat1="1.1" combat2="1.2"\/>/,
+    );
     assert.match(
       xml,
       /<aiTarget easy="0.2" normal="0.33" hardRoom="0.5" hardAny="0.25" evasion="25" oxygen="50" artillery="4"\/>/,

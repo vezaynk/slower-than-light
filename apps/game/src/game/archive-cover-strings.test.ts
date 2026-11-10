@@ -13,12 +13,14 @@ import {
 } from "./archive-cover.ts";
 import { installExtract } from "@stl/sim/archive-play.ts";
 import { archivePhrase } from "@stl/pack";
+import { TOOLTIPS } from "@stl/catalog/src/wiki/tooltips.ts";
 import {
   verdictArchiveLines,
   verdictBody,
   verdictScoreLine,
   verdictTitle,
   victoryCrewLine,
+  tooltipLines,
 } from "@stl/sim/interface-copy.ts";
 
 describe("unshown archive strings", () => {
@@ -51,6 +53,16 @@ describe("unshown archive strings", () => {
       ),
       [],
     );
+    assert.deepEqual(
+      stringCoverProblems(
+        new Map([
+          ["tooltip_oxygen", "Oxygen system hover text"],
+          ["event_brand_new", "A sentence the game dropped"],
+        ]),
+        "Oxygen system hover text",
+      ),
+      ["1 string key left the screen (event_brand_new)"],
+    );
   });
 
   it("reads the game-over card from the loaded archive and does not keep a second copy", () => {
@@ -66,6 +78,14 @@ describe("unshown archive strings", () => {
     assert.ok(comma.endsWith(" "), comma);
     assert.ok(join.startsWith(" ") && join.endsWith(" "), join);
     assert.equal(victoryCrewLine(["Alice", "Bob", "Carol"]), `Alice${comma}Bob${join}Carol`);
+  });
+
+  it("shows every stand-in tooltip, so a tooltip does not hide another missing sentence", async () => {
+    await installStandIn();
+    const shown = shownText();
+    const strings = new Map(TOOLTIPS.map((row) => [row.name, row.text]));
+    assert.deepEqual(unshownStringKeys(strings, shown), []);
+    for (const line of tooltipLines()) assert.ok(shown.includes(line), line);
   });
 });
 

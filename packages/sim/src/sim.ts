@@ -1,4 +1,4 @@
-import { missileHitVariant } from "./interface-copy.ts";
+import { hudTip, missileHitVariant } from "./interface-copy.ts";
 import { deathCue } from "./cues.ts";
 import {
   bindCueTarget,
@@ -1398,9 +1398,9 @@ function pilotCanJump(g: Game, ship: Ship): boolean {
  * Null when a jump is allowed, otherwise the line to show.
  */
 export function jumpBlocked(g: Game): string | null {
-  if (!functional(g.player.systems.pilot)) return "Piloting is down.";
-  if (!present(g, g.player, "player", "pilot")) return "Nobody is piloting.";
-  if (engineBars(g, g.player, "player") <= 0) return "Engines are unpowered.";
+  if (!functional(g.player.systems.pilot)) return hudTip("tooltip_pilot_down");
+  if (!present(g, g.player, "player", "pilot")) return hudTip("tooltip_no_pilot");
+  if (engineBars(g, g.player, "player") <= 0) return hudTip("tooltip_engines_unpowered");
   return null;
 }
 

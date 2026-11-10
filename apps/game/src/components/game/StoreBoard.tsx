@@ -6,7 +6,7 @@
  * a fixed price; ×N is what the store has left (sim.ts rollStock).
  */
 import { allCrew, droneDef, weaponDef } from "@stl/pack";
-import { crewCopy, droneCopy, itemLines, weaponCopy } from "@stl/sim/interface-copy.ts";
+import { crewCopy, droneCopy, hudTip, itemLines, weaponCopy } from "@stl/sim/interface-copy.ts";
 import { Kicker } from "@stl/ui";
 import { useState, type ReactNode } from "react";
 import { hullRepairPerPoint } from "@stl/sim/content.ts";
@@ -360,19 +360,19 @@ export function StoreBoard({ game }: { game: Game }) {
         <header className="ship-sheet-head">
           <Kicker as="h2">{"Store"}</Kicker>
           <span className="store-have" aria-label={"Your supplies"}>
-            <span title={"Hull"}>
+            <span title={hudTip("tooltip_hull")}>
               <PixelIcon name="ship" size={16} />
               {game.player.hull}
             </span>
-            <span title={"Fuel"}>
+            <span title={hudTip("tooltip_fuel")}>
               <PixelIcon name="fuel" size={16} />
               {game.fuel}
             </span>
-            <span title={"Missiles"}>
+            <span title={hudTip("tooltip_missiles")}>
               <PixelIcon name="missile" size={16} />
               {game.missiles}
             </span>
-            <span title={"Drone parts"}>
+            <span title={hudTip("tooltip_drone_parts")}>
               <PixelIcon name="parts" size={16} />
               {game.player.parts}
             </span>

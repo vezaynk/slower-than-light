@@ -10,6 +10,17 @@ import {
   weaponDef,
   type WeaponKind,
 } from "@stl/pack";
+import { TOOLTIPS } from "@stl/catalog/src/wiki/tooltips.ts";
+
+/** A hover line from the loaded archive. A missing key paints nothing. */
+export function hudTip(name: string): string {
+  return archivePhrase(name) ?? "";
+}
+
+/** Every stand-in tooltip the screens read. The coverage check looks for these sentences. */
+export function tooltipLines(): string[] {
+  return TOOLTIPS.map((row) => hudTip(row.name)).filter((line) => line.length > 0);
+}
 
 export function phraseOr(key: string, fallback: string): string {
   return archivePhrase(key) ?? fallback;

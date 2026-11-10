@@ -56,6 +56,7 @@ import {
 import {
   crewCopy,
   droneCopy,
+  hudTip,
   phraseOr,
   weaponCopy,
   weaponDamageLabel,
@@ -1574,7 +1575,7 @@ function Hud({ game }: { game: Game }) {
         <span
           className={`count-chip hud-fuel${game.fuel < 1 ? " is-empty" : ""}`}
           aria-label={`${game.fuel} fuel`}
-          title={"Fuel"}
+          title={hudTip("tooltip_fuel")}
         >
           <PixelIcon name="fuel" />
           {game.fuel}
@@ -1586,7 +1587,7 @@ function Hud({ game }: { game: Game }) {
           title={
             jumpBlocked(game) ??
             (spool == null
-              ? "FTL needs a pilot or engines."
+              ? hudTip("tooltip_ftl_needs_crew")
               : `About ${Math.round(spool)} seconds at this engine power. Fuel ${game.fuel}.`)
           }
           onClick={() => {
@@ -1642,7 +1643,7 @@ function Hud({ game }: { game: Game }) {
           type="button"
           className="frame-btn"
           aria-label={game.picking ? "Back to the ship" : "Ship"}
-          title={infoLocked && !game.picking ? "In danger" : undefined}
+          title={infoLocked && !game.picking ? hudTip("tooltip_in_danger") : undefined}
           disabled={infoLocked && !game.picking}
           onClick={() =>
             act((g) => {
@@ -1658,7 +1659,7 @@ function Hud({ game }: { game: Game }) {
           type="button"
           className="frame-btn"
           aria-label={"Options"}
-          title={"Options"}
+          title={hudTip("tooltip_options")}
           onClick={() => useOptionsOpen.setState({ open: true })}
         >
           <PixelIcon name="upgrade" size={20} />
@@ -1751,12 +1752,12 @@ function CrewRail({ game }: { game: Game }) {
   return (
     <aside className="crew-rail">
       <div className="air-readout">
-        <span title={"Evasion"}>
+        <span title={hudTip("tooltip_evasion")}>
           <PixelIcon name="evade" />
           {"EVADE "}
           {evasionPercent(game, game.player, "player")}%
         </span>
-        <span title={"Oxygen"} className={air < 25 ? "is-o2-low" : undefined}>
+        <span title={hudTip("tooltip_oxygen")} className={air < 25 ? "is-o2-low" : undefined}>
           <PixelIcon name="oxygen" />
           {"OXYGEN "}
           {air}%
@@ -1813,7 +1814,7 @@ function CrewRail({ game }: { game: Game }) {
         <Button
           variant="text"
           aria-label={"Save stations"}
-          title={"Save where every crew member stands ( / )"}
+          title={hudTip("tooltip_save_spots")}
           onClick={() => act((g) => saveStations(g))}
         >
           {"SAVE"}
@@ -1821,7 +1822,7 @@ function CrewRail({ game }: { game: Game }) {
         <Button
           variant="text"
           aria-label={"Return to stations"}
-          title={"Send the crew back to their saved spots (Return)"}
+          title={hudTip("tooltip_recall_spots")}
           disabled={!crew.some((c) => c.station)}
           onClick={() => act((g) => returnToStations(g))}
         >
@@ -1832,11 +1833,7 @@ function CrewRail({ game }: { game: Game }) {
           portraits are shown; ... the 3rd portrait is substituted by the "+number" of other crew in the queue." Shown
           here under the live crew, head of the queue first. */}
       {clones ? (
-        <div
-          className="clone-queue"
-          role="status"
-          title={"Clone Bay queue: first in line is revived first"}
-        >
+        <div className="clone-queue" role="status" title={hudTip("tooltip_clone_queue")}>
           <p className="clone-queue-head">
             <PixelIcon name="clonebay" size={16} />
             {"CLONING · "}
@@ -3110,7 +3107,7 @@ function HackOrb({
             ) : (
               <span
                 className={`hack-card-cost${view.parts < 1 ? " is-short" : ""}`}
-                title={"Each launch costs one drone part"}
+                title={hudTip("tooltip_launch_cost")}
               >
                 <PixelIcon name="parts" size={12} />1 of {view.parts}
               </span>
@@ -3122,7 +3119,7 @@ function HackOrb({
         <button
           type="button"
           aria-label={"Remove power from Hacking"}
-          title={"Remove power"}
+          title={hudTip("tooltip_power_remove")}
           disabled={view.power <= 0}
           onClick={() => act((g) => lowerSpikePower(g))}
         >
@@ -3131,7 +3128,7 @@ function HackOrb({
         <button
           type="button"
           aria-label={"Add power to Hacking"}
-          title={"Add power"}
+          title={hudTip("tooltip_power_add")}
           disabled={view.power >= view.level || sparePower(game.player) < 1}
           onClick={() => act((g) => raiseSpikePower(g))}
         >
@@ -3798,13 +3795,18 @@ function StepButtons({
 }) {
   return (
     <span className="radial-steps">
-      <button type="button" aria-label={`Add power to ${label}`} title={"Add power"} onClick={onUp}>
+      <button
+        type="button"
+        aria-label={`Add power to ${label}`}
+        title={hudTip("tooltip_power_add")}
+        onClick={onUp}
+      >
         <PixelIcon name="plus" size={12} />
       </button>
       <button
         type="button"
         aria-label={`Remove power from ${label}`}
-        title={"Remove power"}
+        title={hudTip("tooltip_power_remove")}
         onClick={onDown}
       >
         <PixelIcon name="minus" size={12} />
@@ -4370,7 +4372,7 @@ function MissileChip({ game }: { game: Game }) {
     <span
       className={`count-chip${game.missiles < 1 ? " is-empty" : ""}`}
       aria-label={`${game.missiles} missiles`}
-      title={"Missiles"}
+      title={hudTip("tooltip_missiles")}
     >
       <PixelIcon name="missile" />
       {game.missiles}
@@ -4383,7 +4385,7 @@ function PartsChip({ game }: { game: Game }) {
     <span
       className={`count-chip${game.player.parts < 1 ? " is-empty" : ""}`}
       aria-label={`${game.player.parts} drone parts`}
-      title={"Drone parts"}
+      title={hudTip("tooltip_drone_parts")}
     >
       <PixelIcon name="parts" />
       {game.player.parts}

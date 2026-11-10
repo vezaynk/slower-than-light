@@ -19,7 +19,7 @@ import {
 import { SECTOR_NAMES } from "./content.ts";
 import { sectorIdOf } from "./sector-ids.ts";
 import type { Game } from "./types.ts";
-import { citedSell, citedSellQuote } from "./wiki/cited-stores.ts";
+import { citedSell, citedSellQuote } from "./rules/sell.ts";
 import { citedEvent } from "./wiki/cited-events.ts";
 import { ACCEPT_ID, joinCrew } from "./wiki/surrender.ts";
 import { bindSaveStore, resetSaveStore } from "./save-store.ts";

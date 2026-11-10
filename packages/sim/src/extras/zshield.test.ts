@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { installAugment } from "./augments.ts";
-import { citedSell, citedSellQuote } from "../wiki/cited-stores.ts";
+import { citedSell, citedSellQuote } from "../rules/sell.ts";
 import {
   applyImpact,
   COATED_DOOR_HITS,

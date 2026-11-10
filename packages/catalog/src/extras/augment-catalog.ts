@@ -100,22 +100,22 @@ export const CATALOG: Listing[] = [
     value: 0.1,
     stackable: true,
   },
-  // Augmentations, "Non-Purchasable Augmentations", Rock Plating. Sell price 40. Store cost 50 is INVENTED.
+  // Augmentations, "Non-Purchasable Augmentations", Rock Plating. Sell price 40.
+  // ftl.dat `<cost>` is 80. Sell is half of that. Rarity 0 keeps it off the shelf.
   {
     id: "ROCK_ARMOR",
     name: "Rock Plating",
-    detail:
-      "15% chance to ignore hull damage. Systems still take the hit. Not a store item on the wiki; 50 scrap is invented.",
-    cost: 50,
+    detail: "15% chance to ignore hull damage. Systems still take the hit. Not a store item.",
+    cost: 80,
     value: 0.15,
   },
-  // Augmentations, "Non-Purchasable Augmentations", Titanium System Casing. Sell price 40. Store cost 50 is INVENTED.
+  // Augmentations, "Non-Purchasable Augmentations", Titanium System Casing. Sell price 40.
+  // ftl.dat `<cost>` is 80. Sell is half of that. Rarity 0 keeps it off the shelf.
   {
     id: "SYSTEM_CASING",
     name: "Titanium System Casing",
-    detail:
-      "15% chance to ignore system damage. The hull still takes the hit. Not a store item on the wiki; 50 scrap is invented.",
-    cost: 50,
+    detail: "15% chance to ignore system damage. The hull still takes the hit. Not a store item.",
+    cost: 80,
     value: 0.15,
   },
   // Augmentations, "Misc. Augmentations", Battery Charger. Store cost 40.

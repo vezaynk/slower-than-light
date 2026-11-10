@@ -93,6 +93,8 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 | `achievement-track.ts`, `achieve-notes.ts`                                                                                                                                                                                                      | Achievement counters. Conditions are already gap data.                                                                                                                                                                                                                                                                                      |
 | `skills.ts`                                                                                                                                                                                                                                     | Done: `rules/skills.ts`. Repair and combat rates are gap `<skillSpeed repair0 repair1 repair2 combat0 combat1 combat2>` (1 / 1.1 / 1.2). A missing value warns and uses FTL's.                                                                                                                                                              |
 
+The anti-ship battery shot is `rules/asb.ts`. It reads PDS_SHOT. Selling weapons, drones, augments, and cargo is `rules/sell.ts`. Half the blueprint price, rounded down; a printed sell price replaces that half. Store rows stay in `cited-stores.ts`.
+
 ## Steps
 
 1. **Done (#173):** a blueprint-list fight draws from the ships its sector allows, instead of falling back to a wiki class.

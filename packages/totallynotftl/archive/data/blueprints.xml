@@ -2726,7 +2726,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <shots>1</shots>
     <power>1</power>
     <cooldown>10</cooldown>
-    <cost>0</cost>
+    <cost>20</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
@@ -2758,7 +2758,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <shots>2</shots>
     <power>1</power>
     <cooldown>10</cooldown>
-    <cost>0</cost>
+    <cost>25</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
@@ -2889,7 +2889,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <shots>1</shots>
     <power>1</power>
     <cooldown>11</cooldown>
-    <cost>0</cost>
+    <cost>38</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
@@ -2924,7 +2924,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <shots>1</shots>
     <power>1</power>
     <cooldown>9</cooldown>
-    <cost>0</cost>
+    <cost>20</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
@@ -3223,7 +3223,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <shots>1</shots>
     <power>2</power>
     <cooldown>10</cooldown>
-    <cost>0</cost>
+    <cost>55</cost>
     <fireChance>3</fireChance>
     <breachChance>3</breachChance>
     <ion>0</ion>
@@ -3430,7 +3430,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <shots>1</shots>
     <power>1</power>
     <cooldown>5.5</cooldown>
-    <cost>0</cost>
+    <cost>30</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
@@ -3529,7 +3529,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <shots>1</shots>
     <power>1</power>
     <cooldown>12</cooldown>
-    <cost>0</cost>
+    <cost>20</cost>
     <fireChance>1</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
@@ -4115,7 +4115,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <shots>1</shots>
     <power>1</power>
     <cooldown>9</cooldown>
-    <cost>0</cost>
+    <cost>50</cost>
     <fireChance>0</fireChance>
     <breachChance>10</breachChance>
     <ion>0</ion>
@@ -4350,7 +4350,7 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
     <shots>3</shots>
     <power>1</power>
     <cooldown>8</cooldown>
-    <cost>0</cost>
+    <cost>60</cost>
     <fireChance>0</fireChance>
     <breachChance>0</breachChance>
     <ion>0</ion>
@@ -4768,15 +4768,15 @@ Alternatively, beat the Flagship with layout A and B of every ship (excluding Th
   </augBlueprint>
   <augBlueprint name="ROCK_ARMOR">
     <title>Rock Plating</title>
-    <desc>15% chance to ignore hull damage. Systems still take the hit. Not a store item on the wiki; 50 scrap is invented.</desc>
-    <cost>50</cost>
+    <desc>15% chance to ignore hull damage. Systems still take the hit. Not a store item.</desc>
+    <cost>80</cost>
     <rarity>0</rarity>
     <value>0.15</value>
   </augBlueprint>
   <augBlueprint name="SYSTEM_CASING">
     <title>Titanium System Casing</title>
-    <desc>15% chance to ignore system damage. The hull still takes the hit. Not a store item on the wiki; 50 scrap is invented.</desc>
-    <cost>50</cost>
+    <desc>15% chance to ignore system damage. The hull still takes the hit. Not a store item.</desc>
+    <cost>80</cost>
     <rarity>0</rarity>
     <value>0.15</value>
   </augBlueprint>

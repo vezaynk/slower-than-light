@@ -92,7 +92,7 @@ describe("flak and crystal wiki weapons", () => {
     );
   });
 
-  it("copies Adv. Flak numbers, with price 0 because it is unsold", () => {
+  it("copies Adv. Flak numbers; the blueprint cost is ftl.dat's 60", () => {
     const section = flak.get("Adv. Flak Gun");
     assert.ok(section);
     const row = weapon("SHOTGUN_PLAYER");
@@ -109,7 +109,7 @@ describe("flak and crystal wiki weapons", () => {
     assert.equal(row.ammo, false);
     assert.match(section, /cannot be bought or found/);
     assert.equal(section.includes("Purchase price"), false);
-    assert.equal(row.price, 0);
+    assert.equal(row.price, 60);
     assert.notEqual(row.price, field(section, "Sells for"));
     assert.equal(row.blurb, quote(section));
     const extra = gap("SHOTGUN_PLAYER");

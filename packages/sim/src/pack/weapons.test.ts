@@ -3,7 +3,7 @@ import { afterEach, describe, it } from "node:test";
 import { createGame, startCombat } from "../sim.ts";
 import type { WeaponInst } from "../types.ts";
 import { citedEnemy } from "../wiki/cited-enemies.ts";
-import { citedSellQuote } from "../wiki/cited-stores.ts";
+import { citedSellQuote } from "../rules/sell.ts";
 import "./base.ts";
 import { loadPack, resetPackForTests, weaponDef } from "@stl/pack";
 
@@ -14,7 +14,7 @@ function mount(defId: string, uid = defId): WeaponInst {
 }
 
 describe("weapon lookups", () => {
-  it("sells at the packed price and name, and keeps a printed sell line", () => {
+  it("sells at half the packed price and uses the packed name", () => {
     const burst = weaponDef("LASER_BURST_3");
     const spark = weaponDef("LASER_BURST_1");
     assert.ok(burst && spark);
@@ -61,7 +61,7 @@ describe("weapon lookups", () => {
     assert.equal(byRef.LASER_BURST_3?.name, "Line");
     assert.equal(byRef.ember?.scrap, 7);
     assert.equal(byRef.ember?.name, "Ember");
-    assert.equal(byRef.LASER_BURST_1?.scrap, 10);
+    assert.equal(byRef.LASER_BURST_1?.scrap, 50);
     assert.equal(byRef.dart, undefined);
     const cargo = quotes.find((quote) => quote.id.startsWith("c:"));
     assert.equal(cargo?.name, "Ember (cargo)");

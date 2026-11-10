@@ -7,7 +7,14 @@ const ROWS: Record<
   { name: string; power: number; charge: number; damage: number; price: number; crew: number }
 > = {
   BOMB_1: { name: "Small Bomb", power: 1, charge: 13, damage: 2, price: 45, crew: 30 },
-  BOMB_BREACH_1: { name: "Breach Bomb Mark I", power: 1, charge: 9, damage: 1, price: 0, crew: 30 },
+  BOMB_BREACH_1: {
+    name: "Breach Bomb Mark I",
+    power: 1,
+    charge: 9,
+    damage: 1,
+    price: 50,
+    crew: 30,
+  },
   BOMB_BREACH_2: {
     name: "Breach Bomb Mark II",
     power: 2,

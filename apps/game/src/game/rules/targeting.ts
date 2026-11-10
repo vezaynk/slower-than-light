@@ -39,6 +39,7 @@ import type { Game, KitId, Room, Ship, SysId, WeaponInst } from "../types.ts";
 import { evasionPercent, powerMask, rand, zoltanBars } from "../sim.ts";
 import { airShown } from "../air.ts";
 import { aiTarget, warnPack } from "@stl/pack";
+import { isFlakArtillery } from "../wiki/weapons-flak-crystal.ts";
 
 /** A player system as the AI sees it: a core system id or a kit id. */
 export type TargetSystem = SysId | KitId;
@@ -101,12 +102,12 @@ function averageOxygen(ship: Ship): number {
 
 /**
  * Seconds of charge on the player artillery kit. Artillery Beam stores a 0..1 fraction of its clock.
- * Flak Artillery (ARTILLERY_FED_C) stores seconds. A missing kit never lists.
+ * A flak artillery gun stores seconds. A missing kit never lists.
  */
 function artilleryCharge(g: Game): number {
   const kit = g.player.kits.artillery;
   if (!kit) return Infinity;
-  if (kit.weapon === "ARTILLERY_FED_C") return kit.aux;
+  if (isFlakArtillery(kit.weapon)) return kit.aux;
   // extras/lance.ts: Artillery Beam charge time is 50 / 40 / 30 / 20 seconds at level 1-4.
   const seconds = [50, 40, 30, 20][Math.max(0, Math.min(3, kit.level - 1))];
   return kit.aux * seconds;

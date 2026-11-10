@@ -3,6 +3,7 @@ import { listedCost, liveTable, tuneMax, upgradeCost } from "../content.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { ARTILLERY_SHOT_LABEL, artillerySwipeSeconds } from "../wiki/weapons-beam.ts";
+import { isFlakArtillery } from "../wiki/weapons-flak-crystal.ts";
 import { noteAchieve, noteArtillery } from "../wiki/achieve-notes.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
@@ -103,8 +104,7 @@ export function lanceUpgradeCost(level: number): number | null {
 /** Artillery Beam, "System Upgrades": 30, then 50, then 80, through level 4. */
 export function upgradeLance(g: Game): boolean {
   const kit = g.player.kits.artillery;
-  if (!kit || kit.weapon === "ARTILLERY_FED_C" || kit.level >= tuneMax("artillery", 4))
-    return false;
+  if (!kit || isFlakArtillery(kit.weapon) || kit.level >= tuneMax("artillery", 4)) return false;
   const cost = lanceUpgradeCost(kit.level);
   if (cost == null || g.scrap < cost) return false;
   g.scrap -= cost;
@@ -121,12 +121,7 @@ export function upgradeLance(g: Game): boolean {
  */
 export function raiseLancePower(g: Game): void {
   const kit = g.player.kits.artillery;
-  if (
-    !kit ||
-    kit.weapon === "ARTILLERY_FED_C" ||
-    kit.power >= powerCap(kit) ||
-    sparePower(g.player) < 1
-  )
+  if (!kit || isFlakArtillery(kit.weapon) || kit.power >= powerCap(kit) || sparePower(g.player) < 1)
     return;
   kit.power += 1;
   kit.on = true;
@@ -134,14 +129,14 @@ export function raiseLancePower(g: Game): void {
 
 export function lowerLancePower(g: Game): void {
   const kit = g.player.kits.artillery;
-  if (!kit || kit.weapon === "ARTILLERY_FED_C" || kit.power <= 0) return;
+  if (!kit || isFlakArtillery(kit.weapon) || kit.power <= 0) return;
   kit.power -= 1;
   kit.on = kit.power > 0;
 }
 
 export function toggleLancePower(g: Game): void {
   const kit = g.player.kits.artillery;
-  if (!kit || kit.weapon === "ARTILLERY_FED_C") return;
+  if (!kit || isFlakArtillery(kit.weapon)) return;
   if (kit.power < powerCap(kit) && sparePower(g.player) >= 1) {
     raiseLancePower(g);
     return;
@@ -377,15 +372,15 @@ function beginSwipe(g: Game, enemy: Ship): void {
  * fraction. Null for the flak kit, and null during the swipe, which is the beam firing rather than charging.
  */
 export function lanceChargeProgress(kit: Kit): number | null {
-  if (kit.weapon === "ARTILLERY_FED_C") return null;
+  if (isFlakArtillery(kit.weapon)) return null;
   if (kit.left > 0 && kit.path?.length) return null;
   return Math.max(0, Math.min(1, kit.aux));
 }
 
 export function tickLance(g: Game, dt: number): void {
   const kit = g.player.kits.artillery;
-  // Flak Artillery shares the kit id. An omitted weapon stays the beam so older fixtures still fire.
-  if (!kit || kit.weapon === "ARTILLERY_FED_C" || !(dt > 0)) return;
+  // A flak gun on this slot is Flak Artillery. An omitted weapon stays the beam so older fixtures still fire.
+  if (!kit || isFlakArtillery(kit.weapon) || !(dt > 0)) return;
   let left = dt;
   if (kit.left > 0 && kit.path?.length) {
     if (g.paused || !!g.menuHold) return;

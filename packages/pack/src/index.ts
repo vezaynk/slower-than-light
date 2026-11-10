@@ -220,6 +220,7 @@ export type {
   AiTarget,
   EscapeTimers,
   Stalemate,
+  SkillSpeed,
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,

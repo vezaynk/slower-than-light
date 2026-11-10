@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { BUNDLE_OTHER, BUNDLE_PATCH } from "../extras/swarm.ts";
+import { BUNDLE_OTHER, BUNDLE_PATCH, playerDroneSlots } from "../extras/swarm.ts";
 import { buy, commitJump, createGame, openStoreHere, startCombat, step } from "../sim.ts";
 import type { Game, Kit, KitId, StockItem, WeaponInst } from "../types.ts";
 import { allDrones, droneDef, loadPack, resetPackForTests, weaponDef } from "@stl/pack";
@@ -751,6 +751,34 @@ describe("cited stores", () => {
     assert.deepEqual(bare.cargo, []);
     assert.equal(single.target, null);
     assert.equal(single.on, false);
+  });
+
+  it("sells a fielded Shield Overcharger + off a two-slot loadout", () => {
+    const g = createGame(1);
+    const drones = kit("drones", 2);
+    drones.loadout = ["DRONE_SHIELD_PLAYER", "ANTI_DRONE"];
+    drones.target = "DRONE_SHIELD_PLAYER";
+    drones.on = true;
+    drones.hp = 8;
+    g.player.kits.drones = drones;
+    g.cargo = [{ kind: "drone", id: "DRONE_SHIELD_PLAYER" }];
+    const before = g.scrap;
+    assert.equal(citedSell(g, "d:overchargerplus"), true);
+    assert.equal(g.scrap, before + OVERCHARGER_PLUS_SELL);
+    assert.deepEqual(drones.loadout, ["ANTI_DRONE"]);
+    assert.equal(drones.target, null);
+    assert.equal(drones.on, false);
+    assert.equal(drones.hp, undefined);
+    assert.deepEqual(playerDroneSlots(drones), ["ANTI_DRONE"]);
+    const cargo = citedSellQuote(g).filter((row) => row.ref === "DRONE_SHIELD_PLAYER");
+    assert.equal(cargo.length, 1);
+    assert.equal(cargo[0]?.id, "c:0:DRONE_SHIELD_PLAYER");
+    assert.equal(citedSell(g, cargo[0]!.id), true);
+    assert.deepEqual(g.cargo, []);
+    assert.equal(
+      citedSellQuote(g).some((row) => row.ref === "DRONE_SHIELD_PLAYER"),
+      false,
+    );
   });
 
   it("quotes a stowed Shield Overcharger + from cargo at 30", () => {

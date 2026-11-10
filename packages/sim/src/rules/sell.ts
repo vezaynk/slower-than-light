@@ -8,7 +8,7 @@
 import { augmentDef, droneDef, weaponDef } from "@stl/pack";
 import type { Game } from "../types.ts";
 import { OVERCHARGER_PLUS_SELL } from "./cited-overcharger.ts";
-import { fieldedSchematics, cargoOf } from "./make-room.ts";
+import { fieldedSchematics, cargoOf, unfieldSchematic } from "./make-room.ts";
 
 // Augmentations, "Non-Purchasable Augmentations". The catalog's 50 is marked invented there.
 export const NOT_SOLD: ReadonlySet<string> = new Set(["ROCK_ARMOR", "SYSTEM_CASING"]);
@@ -195,7 +195,7 @@ export function citedSell(g: Game, id: string): boolean {
   if (quote.kind === "drone") {
     const kit = g.player.kits.drones;
     if (!kit || kit.target !== quote.ref) return false;
-    groundDrone(kit);
+    unfieldSchematic(kit, quote.ref);
     g.scrap += quote.scrap;
     g.scrapCollected = (g.scrapCollected ?? 0) + quote.scrap;
     g.sfx.push("sell");

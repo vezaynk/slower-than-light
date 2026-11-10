@@ -205,6 +205,17 @@ function setFielded(kit: NonNullable<Game["player"]["kits"]["drones"]>, next: st
   powerDown(kit);
 }
 
+/** Take one schematic off the fielded list. An empty loadout must not fall back to a leftover target. */
+export function unfieldSchematic(
+  kit: NonNullable<Game["player"]["kits"]["drones"]>,
+  id: string,
+): void {
+  setFielded(
+    kit,
+    fieldedSchematics(kit).filter((row) => row !== id),
+  );
+}
+
 /** Called after a crewmember joins: a 9th asks who is relieved. */
 export function checkCrewRoom(g: Game) {
   if (aboardCrew(g).length > CREW_CAP && !g.overflow?.some((o) => o.kind === "crew"))

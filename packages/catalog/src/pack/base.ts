@@ -44,6 +44,7 @@ import { sectorQuotaPack } from "../wiki/beacon-quotas.ts";
 import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
 import { STALEMATE } from "../wiki/surrender-rules.ts";
+import { SKILL_SPEED } from "../wiki/skill-rules.ts";
 import { AI_TARGET } from "../wiki/targeting-rules.ts";
 import { CRYSTAL_VENGEANCE, ION_INTRUDER, OVERCHARGER_WAITS } from "../wiki/augment-rules.ts";
 import { BONUS_ITEM_WEIGHTS, CARGO_SLOTS } from "../wiki/rack-rules.ts";
@@ -1531,6 +1532,7 @@ export function loadCatalog(): void {
       escapes: FACTION_ESCAPE.map((row) => ({ ...row })),
       escapeTimers: { ...ESCAPE_TIMERS },
       stalemate: { ...STALEMATE },
+      skillSpeed: { ...SKILL_SPEED },
       aiTarget: { ...AI_TARGET },
       overchargerWaits: { ...OVERCHARGER_WAITS },
       ionIntruder: { ...ION_INTRUDER },

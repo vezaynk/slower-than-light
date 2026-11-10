@@ -22,6 +22,7 @@ import type {
   AiTarget,
   EscapeTimers,
   Stalemate,
+  SkillSpeed,
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
@@ -92,10 +93,12 @@ let baseCivilianSectorTitle: string | undefined;
 let beaconEventsValue: BeaconEvents = {};
 let escapeTimersValue: EscapeTimers = {};
 let stalemateValue: Stalemate = {};
+let skillSpeedValue: SkillSpeed = {};
 let cargoSlotsValue: CargoSlots = {};
 let bonusItemValue: BonusItemWeights = {};
 let baseEscapeTimers: EscapeTimers = {};
 let baseStalemate: Stalemate = {};
+let baseSkillSpeed: SkillSpeed = {};
 let aiTargetValue: AiTarget = {};
 let baseAiTarget: AiTarget = {};
 let overchargerWaitsValue: OverchargerWaits = {};
@@ -612,6 +615,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseEscapeTimers = { ...pack.escapeTimers };
     stalemateValue = { ...pack.stalemate };
     baseStalemate = { ...pack.stalemate };
+    skillSpeedValue = { ...pack.skillSpeed };
+    baseSkillSpeed = { ...pack.skillSpeed };
     aiTargetValue = { ...pack.aiTarget };
     baseAiTarget = { ...pack.aiTarget };
     overchargerWaitsValue = { ...pack.overchargerWaits };
@@ -667,6 +672,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     escapeTimersValue = { ...escapeTimersValue, ...pack.escapeTimers };
   if (mode === "append" && pack.stalemate)
     stalemateValue = { ...stalemateValue, ...pack.stalemate };
+  if (mode === "append" && pack.skillSpeed)
+    skillSpeedValue = { ...skillSpeedValue, ...pack.skillSpeed };
   if (mode === "append" && pack.aiTarget) aiTargetValue = { ...aiTargetValue, ...pack.aiTarget };
   if (mode === "append" && pack.overchargerWaits)
     overchargerWaitsValue = { ...overchargerWaitsValue, ...pack.overchargerWaits };
@@ -1150,6 +1157,40 @@ export function stalemateStat(key: keyof Stalemate): number {
   return FTL_STALEMATE[key];
 }
 
+/**
+ * FTL's crew skill rates (Skills, Repair and Combat): untrained ×1, green ×1.1, gold ×1.2.
+ * Used only when no loaded pack sets `<skillSpeed>`, with a warning.
+ */
+const FTL_SKILL_SPEED: Required<SkillSpeed> = {
+  repair0: 1,
+  repair1: 1.1,
+  repair2: 1.2,
+  combat0: 1,
+  combat1: 1.1,
+  combat2: 1.2,
+};
+
+const SKILL_RANK = ["0", "1", "2"] as const;
+
+/** The loaded `<skillSpeed>`, as authored (no defaults filled in). */
+export function skillSpeeds(): SkillSpeed {
+  return { ...skillSpeedValue };
+}
+
+/**
+ * Rate multiplier for one skill rank (gap `<skillSpeed>`). Rank 0, 1, or 2.
+ * A pack that omits the value gets FTL's, with one warning. Any other rank is the untrained rate.
+ */
+export function skillMult(kind: "repair" | "combat", rank: number): number {
+  if (rank !== 0 && rank !== 1 && rank !== 2) return FTL_SKILL_SPEED.repair0;
+  const key = `${kind}${SKILL_RANK[rank]}` as keyof SkillSpeed;
+  const value = skillSpeedValue[key];
+  if (value != null) return value;
+  const fallback = FTL_SKILL_SPEED[key];
+  warnPack(`No <skillSpeed ${key}> is loaded; FTL's ${fallback} is used.`);
+  return fallback;
+}
+
 const FTL_OVERCHARGER_WAITS: Required<OverchargerWaits> = {
   layer0: 8,
   layer1: 10,
@@ -1597,6 +1638,7 @@ export function resetPackForTests(): void {
   beaconEventsValue = { ...baseBeaconEvents };
   escapeTimersValue = { ...baseEscapeTimers };
   stalemateValue = { ...baseStalemate };
+  skillSpeedValue = { ...baseSkillSpeed };
   aiTargetValue = { ...baseAiTarget };
   overchargerWaitsValue = { ...baseOverchargerWaits };
   ionIntruderValue = { ...baseIonIntruder };

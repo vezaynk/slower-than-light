@@ -149,6 +149,8 @@ export {
   escapeTimers,
   stalemate,
   stalemateStat,
+  skillSpeeds,
+  skillMult,
   aiTarget,
   aiTargets,
   overchargerWaits,

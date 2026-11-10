@@ -34,6 +34,7 @@ import type {
   EmptyBeaconDef,
   EscapeTimers,
   Stalemate,
+  SkillSpeed,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -78,6 +79,7 @@ import {
   readEvent,
   readEscapeTimers,
   readStalemate,
+  readSkillSpeed,
   readAiTarget,
   readOverchargerWaits,
   readIonIntruder,
@@ -137,6 +139,7 @@ export type FtlTextFile = {
  * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender- and escape-only `<shipBlueprint>` is kept.
  * A root `<escapeTimers>` is a private tag FTL ignores: the escape timers its executable hard-codes.
  * A root `<stalemate>` is a private tag FTL ignores: the anti-stalemate break-off its executable hard-codes.
+ * A root `<skillSpeed>` is a private tag FTL ignores: the crew skill rate multipliers its executable hard-codes.
  * A root `<aiTarget>` is a private tag FTL ignores: the enemy targeting numbers its executable hard-codes.
  * A root `<overchargerWaits>`, `<ionIntruder>`, or `<crystalVengeance>` is the same kind of tag: layer waits, the
  * ion intruder's pulse, and the crystal vengeance shard. Power and speed stay on the droneBlueprint.
@@ -183,6 +186,7 @@ export function packFromFtl(
   let beaconEvents: BeaconEvents | undefined;
   let escapeTimers: EscapeTimers | undefined;
   let stalemate: Stalemate | undefined;
+  let skillSpeed: SkillSpeed | undefined;
   let aiTarget: AiTarget | undefined;
   let overchargerWaits: OverchargerWaits | undefined;
   let ionIntruder: IonIntruderRule | undefined;
@@ -273,6 +277,8 @@ export function packFromFtl(
         escapeTimers = { ...escapeTimers, ...readEscapeTimers(node) };
       } else if (node.tagName === "stalemate") {
         stalemate = { ...stalemate, ...readStalemate(node) };
+      } else if (node.tagName === "skillSpeed") {
+        skillSpeed = { ...skillSpeed, ...readSkillSpeed(node) };
       } else if (node.tagName === "aiTarget") {
         aiTarget = { ...aiTarget, ...readAiTarget(node) };
       } else if (node.tagName === "overchargerWaits") {
@@ -352,6 +358,7 @@ export function packFromFtl(
   if (escapes.rows.length > 0) pack.escapes = escapes.rows;
   if (escapeTimers) pack.escapeTimers = escapeTimers;
   if (stalemate) pack.stalemate = stalemate;
+  if (skillSpeed) pack.skillSpeed = skillSpeed;
   if (aiTarget) pack.aiTarget = aiTarget;
   if (overchargerWaits) pack.overchargerWaits = overchargerWaits;
   if (ionIntruder) pack.ionIntruder = ionIntruder;

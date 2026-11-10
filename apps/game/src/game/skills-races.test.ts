@@ -24,7 +24,7 @@ import "./pack/base.ts";
 import { XP_NEED, skillRank } from "./content.ts";
 import { xpNeedFor } from "./extras/lineage.ts";
 import type { SkillName } from "./types.ts";
-import { COMBAT_SKILL_MULT, REPAIR_SKILL_MULT } from "./wiki/skills.ts";
+import { combatSkillMult, repairSkillMult } from "./rules/skills.ts";
 import type { Crew, Game } from "./types.ts";
 import { sectorIdNamed } from "./fixtures.ts";
 
@@ -58,7 +58,10 @@ function rankFor(rank: 0 | 1 | 2) {
 
 describe("Skills, Repair skill: 10% / 20% faster repair", () => {
   it("prints the table", () => {
-    assert.deepEqual([...REPAIR_SKILL_MULT], [1, 1.1, 1.2]);
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => repairSkillMult(rank as 0 | 1 | 2)),
+      [1, 1.1, 1.2],
+    );
   });
 
   it("scales repair pace by rank (Human, so the 16-point Human table)", () => {
@@ -702,7 +705,10 @@ describe("Crew skills: player crew start untrained", () => {
 
 describe("Crew skills, Combat skill: 10% / 20% more damage dealt", () => {
   it("prints the table, with level 0 as default damage", () => {
-    assert.deepEqual([...COMBAT_SKILL_MULT], [1, 1.1, 1.2]);
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => combatSkillMult(rank as 0 | 1 | 2)),
+      [1, 1.1, 1.2],
+    );
   });
 
   it("a gold fighter deals 20% more and does not take 20% more", () => {

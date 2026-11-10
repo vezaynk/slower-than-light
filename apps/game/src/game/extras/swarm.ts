@@ -25,7 +25,7 @@ import {
   zoltanBars,
 } from "../sim.ts";
 import { xpNeedFor } from "./lineage.ts";
-import { combatSkillMult } from "../wiki/skills.ts";
+import { combatSkillMult } from "../rules/skills.ts";
 import { seatKits } from "../layouts.ts";
 import { evenBeamSpans } from "../beam-line.ts";
 import { registerBeamTicker } from "../beam-tickers.ts";

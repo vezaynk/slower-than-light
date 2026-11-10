@@ -5,7 +5,7 @@ import "../pack/base.ts";
 import { crewDef } from "@stl/pack";
 
 export type KinId =
-  "human" | "engi" | "energy" | "mantis" | "slug" | "rock" | "anaerobic" | "crystal";
+  "human" | "engi" | "energy" | "mantis" | "slug" | "rock" | "anaerobic" | "crystal" | "ghost";
 
 export type Kin = {
   name: string;

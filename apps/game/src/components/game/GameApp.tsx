@@ -22,7 +22,12 @@ import {
 import { choiceBlue, offeredChoices } from "@stl/sim/wiki/choice-locks.ts";
 import { ArchiveBed } from "./ArchiveBed";
 import { shownEventTitle } from "@/game/event-title";
-import { archiveImage, setImageVariant } from "@/game/pack/media";
+import {
+  archiveGeneration,
+  archiveImage,
+  setImageVariant,
+  subscribeArchive,
+} from "@/game/pack/media";
 import { ArchiveLines } from "./ArchiveCopy";
 import { setSetting, stepEventFont, useOptionsOpen, useSettings } from "@/game/settings";
 import { buzz, watchHaptics } from "@/game/haptics";
@@ -54,7 +59,6 @@ import {
   weaponCopy,
   weaponDamageLabel,
 } from "@stl/sim/interface-copy.ts";
-import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 import { beaconMark } from "@/game/beacon-mark";
 import { scanMark } from "@stl/sim/extras/augments.ts";
 import { navAllows } from "@stl/sim/wiki/cited-nav.ts";

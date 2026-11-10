@@ -1,0 +1,326 @@
+/**
+ * Wiki pages "Achievements" and "Ship Achievements".
+ * The list, names, and ship of each achievement are the archive's data/achievements.xml; when one is earned is the gap
+ * mod's `<condition>` on it. A condition reads named values (achievementReading below): the sector, the run's stored
+ * fields, the counters in g.tally (wiki/achieve-notes.ts), and a few gauges of the ship. Those readings are the game's
+ * sensors, as FTL keeps its own in the executable. An achievement with no condition is not tracked.
+ * Earned ids are kept in the save store. Anything the paragraphs do not state is marked INFERRED or INVENTED.
+ */
+import {
+  achievementDef,
+  allAchievements,
+  allEvents,
+  hullDef,
+  startingFit,
+  warnPack,
+  type AchievementCondition,
+  type AchievementDef,
+} from "@stl/pack";
+import { shipSight } from "../extras/slug-sight.ts";
+import { playerSensorLevel } from "../extras/spike.ts";
+import { playerHulls } from "../hulls.ts";
+import { bars, kitShownBars, zoltanBars } from "../sim.ts";
+import { UNLOCKS_KEY, parseUnlocks } from "../unlocks.ts";
+import type { AchieveTally, Difficulty, Game, SysId } from "../types.ts";
+import { saveStore } from "../save-store.ts";
+import { bankLifetime, lifetimeOf } from "./achieve-notes.ts";
+
+const STORAGE_KEY = "stl-achievements-v1";
+
+/** An id saved before the archive ids is the wiki slug on the loaded achievement. */
+function savedAchievementId(saved: string): string {
+  return allAchievements().find((row) => row.slug === saved)?.id ?? saved;
+}
+
+function savedUnlocks() {
+  try {
+    const store = saveStore();
+    if (!store) return null;
+    return parseUnlocks(store.getItem(UNLOCKS_KEY));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Achievements, "General Progression": "Federation Victory (Easy)" — "Beat the boss on Easy."
+ * "Federation Victory (Normal)" — "Beat the boss on Normal."
+ * A victory this run counts, and so does a difficulty already stored on the win record.
+ */
+function beatBoss(g: Game, difficulty: Difficulty): boolean {
+  if (g.phase === "victory" && g.outcome === "victory" && g.difficulty === difficulty) return true;
+  return savedUnlocks()?.boss?.includes(difficulty) ?? false;
+}
+
+/**
+ * Achievements, "General Progression": "Your Own Fleet" — "Unlock the Type A layout for every playable ship."
+ * The saved unlock list is that set. Layout B and Layout C are not part of the line.
+ */
+function typeAUnlocked(): boolean {
+  const ships = new Set(savedUnlocks()?.ships ?? []);
+  const typeA = playerHulls().filter((hull) => hull.layout === "A");
+  return typeA.length > 0 && typeA.every((hull) => ships.has(hull.id));
+}
+
+/**
+ * Manpower: "Get to sector 5 without upgrading your reactor in the Zoltan Cruiser."
+ * "Events which feature offers to upgrade your reactor, advertised or not, do not count against this achievement."
+ * The upgrades tab is sim.ts upgrade. reactorEvent is the bars those offers added.
+ */
+export function noteReactorEvent(g: Game): void {
+  g.reactorEvent = (g.reactorEvent ?? 0) + 1;
+}
+
+/**
+ * The ship blueprint a hull is a layout of. ftl.dat names a ship's layouts PLAYER_SHIP_HARD, PLAYER_SHIP_HARD_2, and
+ * PLAYER_SHIP_HARD_3; an achievement's `<ship>` names the first.
+ */
+export function shipFamily(hullId: string | undefined): string | undefined {
+  return hullId?.replace(/_\d+$/, "");
+}
+
+/**
+ * Gauges of the ship that no single field stores.
+ * - crewRaces: "The United Federation", "Have six unique aliens ... simultaneously." Page "The United Federation": "One
+ *   human does count toward this achievement." Living crew of the player's side.
+ * - systemsInstalled: "Full Arsenal", "Have 11 systems installed ... at one time." Page note: "primary systems" and
+ *   "subsystems" are not distinguished. INFERRED: every system level above 0 and every kit fitted counts.
+ * - poweredBars: "Givin' her all she's got, Captain!", "have 29 power in systems at the same time." The page: "a fully
+ *   upgraded reactor plus 4 Zoltan crewmembers manning systems to provide 29 power", so the lit bars count, Zoltan bars
+ *   included (sim.ts bars and kitShownBars).
+ * - reactorUpgrades: reactor bars bought above the blueprint's, not counting the ones reactor offers in events added.
+ * - weaponsUpgrades: "Artillery Mastery", "without upgrading your weapons system." INFERRED: levels above the start.
+ * - typeAUnlocked: "Your Own Fleet".
+ * - roomVision: "We're in position!", every enemy room open while sensors are not functioning.
+ */
+const GAUGES: Record<string, (g: Game) => number | boolean> = {
+  crewRaces: (g) =>
+    new Set(g.crew.filter((c) => c.side === "player" && c.hp > 0).map((c) => c.kin)).size,
+  systemsInstalled: (g) =>
+    Object.values(g.player.systems).filter((s) => s.level > 0).length +
+    Object.values(g.player.kits).filter((k) => k && k.level > 0).length,
+  poweredBars: (g) => {
+    let lit = 0;
+    for (const id of Object.keys(g.player.systems) as SysId[])
+      lit += bars(g.player.systems[id], zoltanBars(g.crew, g.player, "player", id));
+    for (const kit of Object.values(g.player.kits)) lit += kitShownBars(kit);
+    return lit;
+  },
+  reactorUpgrades: (g) => {
+    const hull = hullDef(g.hullId);
+    return hull ? g.player.reactor - (g.reactorEvent ?? 0) - hull.reactor : 0;
+  },
+  weaponsUpgrades: (g) => {
+    const hull = hullDef(g.hullId);
+    const start = hull ? (startingFit(hull).systems.weapons?.[0] ?? 0) : 0;
+    return g.player.systems.weapons.level - start;
+  },
+  typeAUnlocked: () => typeAUnlocked(),
+  roomVision: (g) => roomVision(g),
+};
+
+/**
+ * Ship Achievements, We're in position!: "have vision of every room on the enemy ship without functioning sensors."
+ * Sensors are out when destroyed, ionized, hacked, or in a nebula (playerSensorLevel). Room vision is shipSight,
+ * the same open rooms the board shows: a crew member's room, a Slug's neighbours, a hack, or a drone.
+ */
+function roomVision(g: Game): boolean {
+  const enemy = g.enemy;
+  if (!enemy || enemy.rooms.length === 0) return false;
+  if (playerSensorLevel(g) !== 0) return false;
+  const sight = shipSight(g);
+  return enemy.rooms.every((room) => sight.interior("enemy", room.id));
+}
+
+/**
+ * A choice that is blue because a living crew race is aboard. System, augment, and weapon locks do not count.
+ * Diplomatic Immunity: "only blue event choices that arise as a result of having particular ... crewmembers."
+ */
+function crewBlueChoice(id: string): boolean {
+  for (const ev of allEvents()) {
+    for (const choice of ev.choices) {
+      if (choice.id === id) return choice.reqs?.some((req) => req.k === "crew") ?? false;
+    }
+    for (const card of ev.cards ?? []) {
+      for (const choice of card.choices) {
+        if (choice.id === id) return choice.reqs?.some((req) => req.k === "crew") ?? false;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Diplomatic Immunity: "use your crew in four special blue events by sector 5" on the Federation Cruiser.
+ * Each distinct crew-blue choice counts once. Sector 6 is too late. Another ship does not count.
+ */
+export function noteCrewBlue(g: Game, choiceId: string): void {
+  if ((g.sector ?? 1) > 5) return;
+  if (shipFamily(g.hullId) !== "PLAYER_SHIP_FED") return;
+  if (!crewBlueChoice(choiceId)) return;
+  const tally = g.tally ?? (g.tally = {});
+  const seen = tally.blueSeen ?? [];
+  if (seen.includes(choiceId)) return;
+  tally.blueSeen = [...seen, choiceId];
+  tally.blueCrew = tally.blueSeen.length;
+}
+
+const warnedReadings = new Set<string>();
+
+/**
+ * One named value a condition reads, or undefined for a name the game does not know.
+ * `sector`, `scrap`, `jumps`: the run's fields. `sectorId.<id>`: in that sector. `victory.<difficulty>`: the boss beaten
+ * on it, this run or before. `lifetime.scrap` and `lifetime.kills`: across games. `tally.<key>`: a counter or flag the
+ * run kept. `gauge.<name>`: GAUGES above.
+ */
+export function achievementReading(g: Game, name: string): number | boolean | undefined {
+  if (name === "sector") return g.sector;
+  if (name === "scrap") return g.scrap;
+  if (name === "jumps") return g.jumps ?? 0;
+  const dot = name.indexOf(".");
+  const kind = dot < 0 ? name : name.slice(0, dot);
+  const key = dot < 0 ? "" : name.slice(dot + 1);
+  if (kind === "sectorId") return g.sectorId === key;
+  if (kind === "victory") return beatBoss(g, key as Difficulty);
+  if (kind === "lifetime" && (key === "scrap" || key === "kills")) return lifetimeOf(g)[key];
+  if (kind === "tally") {
+    const value = g.tally?.[key as keyof AchieveTally];
+    return typeof value === "number" || typeof value === "boolean" ? value : false;
+  }
+  if (kind === "gauge" && GAUGES[key]) return GAUGES[key](g);
+  if (!warnedReadings.has(name)) {
+    warnedReadings.add(name);
+    warnPack(
+      `An achievement condition reads "${name}", which the game does not know; it is false.`,
+    );
+  }
+  return undefined;
+}
+
+/** A condition against this run. A value with no bound must be true or above 0. */
+export function conditionMet(g: Game, row: AchievementCondition): boolean {
+  if ("all" in row) return row.all.every((part) => conditionMet(g, part));
+  if ("any" in row) return row.any.some((part) => conditionMet(g, part));
+  if ("not" in row) return !conditionMet(g, row.not);
+  const value = achievementReading(g, row.value);
+  if (value === undefined) return false;
+  if (row.min == null && row.max == null)
+    return value === true || (typeof value === "number" && value > 0);
+  const n = typeof value === "number" ? value : value ? 1 : 0;
+  return (row.min == null || n >= row.min) && (row.max == null || n <= row.max);
+}
+
+/**
+ * Ship Achievements, lead: a ship achievement "cannot be earned while flying another ship." The same page says it can
+ * be earned on Type A, B, or C, so any layout of the `<ship>` counts.
+ */
+function earnedBy(g: Game, row: AchievementDef): boolean {
+  if (!row.condition) return false;
+  if (row.ship && shipFamily(g.hullId) !== row.ship) return false;
+  return conditionMet(g, row.condition);
+}
+
+let memory: Set<string> | null = null;
+
+/** True when the game can tell this achievement was earned: it has a condition. */
+export function isTracked(id: string): boolean {
+  return !!achievementDef(id)?.condition;
+}
+
+/** Ids the current run meets. Does not read or write storage. */
+export function earnedNow(g: Game): string[] {
+  // INFERRED: the title placeholder is not a playthrough. Its sector and scrap do not count.
+  if (g.phase === "title") return [];
+  return allAchievements()
+    .filter((row) => earnedBy(g, row))
+    .map((row) => row.id);
+}
+
+function read(): Set<string> {
+  if (memory) return memory;
+  const next = new Set<string>();
+  memory = next;
+  try {
+    // Inside the try: with site data blocked, merely reading the store throws.
+    const store = saveStore();
+    if (!store) return next;
+    const raw = store.getItem(STORAGE_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return next;
+    // An id saved before the archive ids is the wiki slug; it is read as that achievement's archive id.
+    for (const saved of parsed) {
+      if (typeof saved !== "string") continue;
+      const id = savedAchievementId(saved);
+      if (isTracked(id)) next.add(id);
+    }
+  } catch {
+    // A bad saved value is not an earned id.
+  }
+  return next;
+}
+
+function write(ids: Set<string>) {
+  memory = ids;
+  try {
+    const store = saveStore();
+    if (!store) return;
+    store.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+  } catch {
+    // Storage can be full or blocked. The in-memory set still holds this session.
+  }
+}
+
+/** Remember ids this run just met. Already earned ids stay earned. */
+export function noteRun(g: Game): string[] {
+  bankLifetime(g);
+  const have = read();
+  let changed = false;
+  for (const id of earnedNow(g)) {
+    if (!have.has(id)) {
+      have.add(id);
+      changed = true;
+    }
+  }
+  if (changed) write(have);
+  return [...have];
+}
+
+export function earnedIds(): string[] {
+  return [...read()];
+}
+
+/** Test hook. Drops the in-memory copy so the next read uses the store. */
+export function resetAchievementMemory(): void {
+  memory = null;
+}
+
+/** The earned-achievement record as stored. Null when nothing has been earned. */
+export function achievementRecordRaw(): string | null {
+  try {
+    const store = saveStore();
+    if (!store) return null;
+    return store.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** Replace the earned-achievement record. Null clears it. The next read uses what was stored. */
+export function replaceAchievementRecord(raw: string | null): void {
+  try {
+    const store = saveStore();
+    if (!store) return;
+    if (raw == null) store.removeItem(STORAGE_KEY);
+    else store.setItem(STORAGE_KEY, raw);
+  } catch {
+    throw new Error("This browser could not store the achievements.");
+  }
+  memory = null;
+}
+
+/** Archive achievements the gap did not give a condition. Empty when every id can be earned. */
+export function untrackedIds(): string[] {
+  return allAchievements()
+    .filter((row) => !row.condition)
+    .map((row) => row.id);
+}

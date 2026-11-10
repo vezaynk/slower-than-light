@@ -6,8 +6,9 @@
 import { playSfx } from "./audio.ts";
 import { archiveBlob, archiveGeneration, soundCue, soundCues } from "./pack/media.ts";
 
-export type ArchiveAudioEvent =
-  "missileHit" | "droneLaunch" | "hullHit" | "shieldsDown" | "sun" | "mantisFight";
+import type { ArchiveEvent } from "@stl/sim/types.ts";
+
+export type ArchiveAudioEvent = ArchiveEvent;
 
 const EVENTS: readonly ArchiveAudioEvent[] = [
   "missileHit",

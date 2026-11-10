@@ -8,7 +8,7 @@ import {
   ROOM_PX,
   type HullPicture,
 } from "@stl/pack";
-import "./pack/base.ts";
+import "@stl/sim/pack/base.ts";
 import {
   baseImage,
   gibImage,

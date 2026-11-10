@@ -6,12 +6,12 @@
  * a fixed price; ×N is what the store has left (sim.ts rollStock).
  */
 import { allCrew, droneDef, weaponDef } from "@stl/pack";
-import { crewCopy, droneCopy, itemLines, weaponCopy } from "@/game/interface-copy";
+import { crewCopy, droneCopy, itemLines, weaponCopy } from "@stl/sim/interface-copy.ts";
 import { Kicker } from "@stl/ui";
 import { useState, type ReactNode } from "react";
-import { hullRepairPerPoint } from "@/game/content";
-import { droneKeyOf } from "@/game/gear-look";
-import type { IconName } from "@/game/icons";
+import { hullRepairPerPoint } from "@stl/sim/content.ts";
+import { droneKeyOf } from "@stl/sim/gear-look.ts";
+import type { IconName } from "@stl/sim/icons.ts";
 import {
   buy,
   canDismiss,
@@ -20,13 +20,13 @@ import {
   leaveStore,
   repairHull,
   weaponSlotCap,
-} from "@/game/sim";
+} from "@stl/sim/sim.ts";
 import { useGame } from "@/game/store";
-import type { Game, StockItem } from "@/game/types";
-import type { KinId } from "@/game/extras/kin";
-import { canFieldDrone, citedSell, citedSellQuote } from "@/game/wiki/cited-stores";
-import { cargoOf, cargoSlots } from "@/game/rules/make-room";
-import { kinLabel, UNIFORMS } from "@/game/crew-look";
+import type { Game, StockItem } from "@stl/sim/types.ts";
+import type { KinId } from "@stl/sim/extras/kin.ts";
+import { canFieldDrone, citedSell, citedSellQuote } from "@stl/sim/wiki/cited-stores.ts";
+import { cargoOf, cargoSlots } from "@stl/sim/rules/make-room.ts";
+import { kinLabel, UNIFORMS } from "@stl/sim/crew-look.ts";
 import { ArchiveLines } from "./ArchiveCopy";
 import { CloseX } from "./CloseX";
 import { CrewFace, CrewSprite } from "./CrewSprite";

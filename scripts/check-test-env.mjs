@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 
 const expected = {
   "@stl/game#test:src": ["FTL_DAT", "STL_DATS", "STL_DAT_DIGEST"],
+  "@stl/sim#test": ["FTL_DAT", "STL_DATS", "STL_DAT_DIGEST"],
   "@stl/totallynotftl#test": ["FTL_DAT", "FTL_DAT_DIGEST"],
 };
 

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame, enterHiddenCrystal, startCombat, step } from "../sim.ts";
+import { choose, createGame, enterHiddenCrystal, startCombat, step } from "@stl/sim/sim.ts";
 import { goTitle, useGame, verdictRestart } from "../store.ts";
-import type { Game } from "../types.ts";
+import type { Game } from "@stl/sim/types.ts";
 
 /** A fight the sim ends. Hull at 0 during combat is the shipped defeat, not an assigned phase. */
 function loseFight(g: Game): Game {

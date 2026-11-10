@@ -10,7 +10,7 @@ import {
   weaponDef,
 } from "@stl/pack";
 import { roomGridPixels, shieldOval } from "../components/game/shield-bubble.ts";
-import { deploy, swarmIntercept, tickSwarm } from "./extras/swarm.ts";
+import { deploy, swarmIntercept, tickSwarm } from "@stl/sim/extras/swarm.ts";
 import { currentLocale, localeFace, localeLabel, selectLocale } from "./locale.ts";
 import { baseGlowShift } from "./pack/ship-art.ts";
 import { projectileSpin } from "./projectile-spin.ts";
@@ -22,12 +22,12 @@ import {
   createGame,
   startCombat,
   step,
-} from "./sim.ts";
-import type { Game, Kit, Shot } from "./types.ts";
-import { choiceBlue, choiceOmitted, offeredChoices } from "./wiki/choice-locks.ts";
-import { citedEvent } from "./wiki/cited-events.ts";
-import { citedCrewDamage } from "./wiki/cited-weapons.ts";
-import { flak2Landing, flakScatterRadius } from "./wiki/weapons-flak-crystal.ts";
+} from "@stl/sim/sim.ts";
+import type { Game, Kit, Shot } from "@stl/sim/types.ts";
+import { choiceBlue, choiceOmitted, offeredChoices } from "@stl/sim/wiki/choice-locks.ts";
+import { citedEvent } from "@stl/sim/wiki/cited-events.ts";
+import { citedCrewDamage } from "@stl/sim/wiki/cited-weapons.ts";
+import { flak2Landing, flakScatterRadius } from "@stl/sim/wiki/weapons-flak-crystal.ts";
 
 afterEach(() => selectLocale("en"));
 

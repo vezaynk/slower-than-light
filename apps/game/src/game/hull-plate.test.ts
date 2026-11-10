@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { factionPaint, plateOf, type HullCell } from "./hull-plate.ts";
-import { playerHulls } from "./hulls.ts";
-import { layoutFor } from "./layouts.ts";
-import "./pack/base.ts";
+import { playerHulls } from "@stl/sim/hulls.ts";
+import { layoutFor } from "@stl/sim/layouts.ts";
+import "@stl/sim/pack/base.ts";
 import { hullDef, shipAllegiance } from "@stl/pack";
-import { enemyHulls } from "./enemy-gen.ts";
-import { flagshipLayout } from "./wiki/flagship-layout.ts";
+import { enemyHulls } from "@stl/sim/enemy-gen.ts";
+import { flagshipLayout } from "@stl/sim/wiki/flagship-layout.ts";
 
 type Box = { x: number; y: number; w: number; h: number; omit?: { x: number; y: number }[] };
 

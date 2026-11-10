@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { doorHurt } from "@/game/sim";
-import type { Crew } from "@/game/types";
+import { doorHurt } from "@stl/sim/sim.ts";
+import type { Crew } from "@stl/sim/types.ts";
 import { CrewFace, type CrewPose } from "./CrewSprite";
 import type { RadialDoor, Side } from "./room-doors";
 import { pageSize } from "./turn";

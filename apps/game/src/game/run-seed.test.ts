@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { resolveRunSeed } from "./run-seed.ts";
-import { createGame, rand } from "./sim.ts";
+import { createGame, rand } from "@stl/sim/sim.ts";
 
 describe("resolveRunSeed", () => {
   it("keeps a uint32 pin and mixes the clock otherwise", () => {

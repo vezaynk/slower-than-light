@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { enemySystemClock, ionClock, systemClock } from "./system-clock.ts";
-import type { Kit, KitId, Ship, SysId } from "./types.ts";
+import type { Kit, KitId, Ship, SysId } from "@stl/sim/types.ts";
 
 function kit(id: KitId, patch: Partial<Kit> = {}): Kit {
   return { id, level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0, ...patch };

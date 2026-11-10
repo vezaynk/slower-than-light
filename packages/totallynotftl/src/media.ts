@@ -230,8 +230,8 @@ async function buildMedia(): Promise<{
   documents: FtlDocument[];
   assets: { path: string; bytes: Uint8Array }[];
 }> {
-  const gear = await loadModule<GearModule>("../../../apps/game/src/game/gear-look.ts");
-  const icons = await loadModule<IconModule>("../../../apps/game/src/game/icons.ts");
+  const gear = await loadModule<GearModule>("../../../packages/sim/src/gear-look.ts");
+  const icons = await loadModule<IconModule>("../../../packages/sim/src/icons.ts");
   const crew = await loadModule<CrewModule>("../../../apps/game/src/game/crew-pixels.ts");
   const assets: { path: string; bytes: Uint8Array }[] = [];
   const weaponXml: string[] = [];

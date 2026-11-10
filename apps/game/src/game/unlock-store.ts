@@ -6,8 +6,8 @@
  * Developer switch: "?unlockAll=1" on the page URL unlocks every layout (and persists it), the same as the
  * hangar's UNLOCK ALL button. "?unlockAll=0" puts the hangar back to the start state.
  */
-import { earnedIds } from "./wiki/achievement-track.ts";
-import type { Game } from "./types.ts";
+import { earnedIds } from "@stl/sim/wiki/achievement-track.ts";
+import type { Game } from "@stl/sim/types.ts";
 import {
   UNLOCKS_KEY,
   allUnlocks,
@@ -16,7 +16,7 @@ import {
   isUnlockedIn,
   parseUnlocks,
   type UnlockState,
-} from "./unlocks.ts";
+} from "@stl/sim/unlocks.ts";
 
 let memory: UnlockState | null = null;
 const listeners = new Set<() => void>();

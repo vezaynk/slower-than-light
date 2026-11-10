@@ -77,6 +77,9 @@ importers:
       '@stl/pack':
         specifier: workspace:*
         version: link:../../packages/pack
+      '@stl/sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
       '@stl/standin':
         specifier: workspace:*
         version: link:../../packages/standin
@@ -224,6 +227,34 @@ importers:
         specifier: ^3.7.0
         version: 3.7.0
     devDependencies:
+      '@types/node':
+        specifier: ^22.16.5
+        version: 22.20.5
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+
+  packages/sim:
+    dependencies:
+      '@stl/catalog':
+        specifier: workspace:*
+        version: link:../catalog
+      '@stl/ftldat':
+        specifier: workspace:*
+        version: link:../ftldat
+      '@stl/hyperspace':
+        specifier: workspace:*
+        version: link:../hyperspace
+      '@stl/pack':
+        specifier: workspace:*
+        version: link:../pack
+      '@stl/standin':
+        specifier: workspace:*
+        version: link:../standin
+    devDependencies:
+      '@stl/wiki-dump':
+        specifier: workspace:*
+        version: link:../wiki-dump
       '@types/node':
         specifier: ^22.16.5
         version: 22.20.5

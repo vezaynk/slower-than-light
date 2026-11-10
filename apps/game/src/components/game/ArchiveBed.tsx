@@ -10,6 +10,7 @@ import {
   setImageVariant,
   subscribeArchive,
 } from "@/game/pack/media";
+import { currentLocale } from "@/game/locale";
 import { useSettings } from "@/game/settings";
 import { useGame } from "@/game/store";
 
@@ -21,7 +22,7 @@ export function ArchiveBed() {
     const tablet =
       typeof window !== "undefined" &&
       !!window.matchMedia?.("(pointer: coarse) and (min-width: 768px)").matches;
-    const lang = typeof document !== "undefined" ? document.documentElement.lang || "en" : "en";
+    const lang = currentLocale();
     setImageVariant({ colorblind, tablet, lang });
     const cursor = archive >= 0 ? archiveImage(CURSOR_FILE) : undefined;
     document.documentElement.style.setProperty(

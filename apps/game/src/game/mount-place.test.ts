@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { hullDef, pictureForRooms, ROOM_PX } from "@stl/pack";
-import { weaponPixels } from "./gear-look.ts";
-import { layoutFor } from "./layouts.ts";
-import "./pack/base.ts";
+import { weaponPixels } from "@stl/sim/gear-look.ts";
+import { layoutFor } from "@stl/sim/layouts.ts";
+import "@stl/sim/pack/base.ts";
 import {
   GUN_ART,
   GUN_PX,

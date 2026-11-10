@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { Kit } from "./types.ts";
-import { playerDroneCruising } from "./extras/swarm.ts";
+import type { Kit } from "@stl/sim/types.ts";
+import { playerDroneCruising } from "@stl/sim/extras/swarm.ts";
 import { DRIFT_TAU, stepDrift, type DroneDrift } from "./drone-drift.ts";
 
 function kit(partial: Partial<Kit> = {}): Kit {

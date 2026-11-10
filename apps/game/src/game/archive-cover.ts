@@ -10,8 +10,8 @@ import {
   tutorialLines,
   verdictArchiveLines,
   weaponCopy,
-} from "./interface-copy.ts";
-import { listWasPlayed, resetPlayedLists } from "./played-lists.ts";
+} from "@stl/sim/interface-copy.ts";
+import { listWasPlayed, resetPlayedLists } from "@stl/sim/played-lists.ts";
 import { createRequire } from "node:module";
 import assert from "node:assert/strict";
 import type { AugmentId, KitId, SysId } from "@stl/pack";
@@ -70,19 +70,19 @@ import {
   extraTextFile,
 } from "./archive-cover-extra.ts";
 import "./cover/register.ts";
-import { freshGame, PLAY_SEED, playerHull } from "./archive-play.ts";
-import { applyChoiceArchive, archiveSnap, showArchivePage } from "./archive-pay.ts";
-import { upgradeCost } from "./content.ts";
-import { installAugment } from "./extras/augments.ts";
-import { installCell } from "./extras/cell.ts";
-import { installCradle } from "./extras/cradle.ts";
-import { installLance } from "./extras/lance.ts";
-import { installLeash } from "./extras/leash.ts";
-import { installSling } from "./extras/sling.ts";
-import { installSpike } from "./extras/spike.ts";
-import { sensorLevel } from "./extras/sensors.ts";
-import { canDeploy, deploy, installSwarmBundle } from "./extras/swarm.ts";
-import { installVeil } from "./extras/veil.ts";
+import { freshGame, PLAY_SEED, playerHull } from "@stl/sim/archive-play.ts";
+import { applyChoiceArchive, archiveSnap, showArchivePage } from "@stl/sim/archive-pay.ts";
+import { upgradeCost } from "@stl/sim/content.ts";
+import { installAugment } from "@stl/sim/extras/augments.ts";
+import { installCell } from "@stl/sim/extras/cell.ts";
+import { installCradle } from "@stl/sim/extras/cradle.ts";
+import { installLance } from "@stl/sim/extras/lance.ts";
+import { installLeash } from "@stl/sim/extras/leash.ts";
+import { installSling } from "@stl/sim/extras/sling.ts";
+import { installSpike } from "@stl/sim/extras/spike.ts";
+import { sensorLevel } from "@stl/sim/extras/sensors.ts";
+import { canDeploy, deploy, installSwarmBundle } from "@stl/sim/extras/swarm.ts";
+import { installVeil } from "@stl/sim/extras/veil.ts";
 import {
   archiveBlob,
   archiveImage,
@@ -98,7 +98,7 @@ import {
 } from "./pack/media.ts";
 import { mountPose } from "./mount-place.ts";
 import { gibImage, gibImages, rememberShipArt, shipImage } from "./pack/ship-art.ts";
-import { CRYSTAL_SECTOR } from "./sector-ids.ts";
+import { CRYSTAL_SECTOR } from "@stl/sim/sector-ids.ts";
 import {
   choose,
   createGame,
@@ -111,15 +111,15 @@ import {
   startCombat,
   step,
   upgrade,
-} from "./sim.ts";
-import type { Game } from "./types.ts";
-import { conditionMet, isTracked } from "./wiki/achievement-track.ts";
-import { mixBeacons } from "./wiki/beacon-mix.ts";
-import { citedOwns } from "./wiki/cited-events.ts";
-import { emptyPageFor } from "./wiki/filler-events.ts";
-import { receiveAugment } from "./rules/make-room.ts";
-import { surrenderPlan } from "./rules/surrender.ts";
-import { playerShipIds } from "./unlocks.ts";
+} from "@stl/sim/sim.ts";
+import type { Game } from "@stl/sim/types.ts";
+import { conditionMet, isTracked } from "@stl/sim/wiki/achievement-track.ts";
+import { mixBeacons } from "@stl/sim/wiki/beacon-mix.ts";
+import { citedOwns } from "@stl/sim/wiki/cited-events.ts";
+import { emptyPageFor } from "@stl/sim/wiki/filler-events.ts";
+import { receiveAugment } from "@stl/sim/rules/make-room.ts";
+import { surrenderPlan } from "@stl/sim/rules/surrender.ts";
+import { playerShipIds } from "@stl/sim/unlocks.ts";
 
 /** `text-<code>.xml`, including a hyphenated locale such as `text-zh-Hans.xml`. */
 const TRANSLATION = /^text-.+\.xml(?:\.append)?$/i;

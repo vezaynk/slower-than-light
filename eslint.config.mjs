@@ -32,6 +32,36 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
+  {
+    files: ["packages/sim/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "react",
+              message: "The simulation does not import React.",
+            },
+            {
+              name: "react-dom",
+              message: "The simulation does not import React.",
+            },
+          ],
+          patterns: [
+            {
+              group: ["@/game", "@/game/*"],
+              message: "The simulation does not import the app.",
+            },
+            {
+              group: ["**/apps/game", "**/apps/game/**"],
+              message: "The simulation does not import the app.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Disable rules that conflict with Prettier formatting.
   prettier,
   {

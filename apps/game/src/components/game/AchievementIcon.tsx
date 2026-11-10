@@ -1,7 +1,7 @@
 /** Per the user: one achievement's own pixel icon (achievement-icons.ts). Locked ones are drawn grey and dim (stats.css). */
 import { useSyncExternalStore } from "react";
 import { ACH_ICON_ROWS, ACH_ICON_SIZE } from "@/game/achievement-icons";
-import { pixelRuns } from "@/game/gear-look";
+import { pixelRuns } from "@stl/sim/gear-look.ts";
 import { archiveGeneration, archiveImage, subscribeArchive } from "@/game/pack/media";
 
 const RUNS = Object.fromEntries(

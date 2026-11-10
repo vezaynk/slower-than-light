@@ -1,9 +1,9 @@
 import type { FtlExtract } from "@stl/ftldat";
 import { allSectors, eventCount, eventCountsIn } from "@stl/pack";
 import { registerCoverExtra } from "../archive-cover-extra.ts";
-import { freshGame } from "../archive-play.ts";
-import { enterSector } from "../sim.ts";
-import { lastEventDeals, mixBeacons } from "../wiki/beacon-mix.ts";
+import { freshGame } from "@stl/sim/archive-play.ts";
+import { enterSector } from "@stl/sim/sim.ts";
+import { lastEventDeals, mixBeacons } from "@stl/sim/wiki/beacon-mix.ts";
 
 function present(raw: FtlExtract): boolean {
   const needle = "newevents.xml";

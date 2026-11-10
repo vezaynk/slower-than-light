@@ -6,7 +6,7 @@
 import { Kicker } from "@stl/ui";
 import { useState } from "react";
 import { setSetting, useOptionsOpen, useSettings, type Settings } from "@/game/settings";
-import { saveGame } from "@/game/sim";
+import { saveGame } from "@stl/sim/sim.ts";
 import { useGame } from "@/game/store";
 import { canForceLandscape } from "./turn";
 import { CloseX } from "./CloseX";

@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { after, describe, it } from "node:test";
 import { allFillerLists, eventDef, fillerList } from "@stl/pack";
 import { installStandIn } from "@stl/standin";
-import { archiveCases, installArchive } from "./archive-play.ts";
+import { archiveCases, installArchive } from "@stl/sim/archive-play.ts";
 import { playSide, type EventDiffCase } from "./event-diff.ts";
-import { choose, createGame, rand, waitHere } from "./sim.ts";
-import type { GameEvent } from "./types.ts";
-import { citedEvent } from "./wiki/cited-events.ts";
-import { citedFleetAdvance } from "./wiki/cited-sectors.ts";
+import { choose, createGame, rand, waitHere } from "@stl/sim/sim.ts";
+import type { GameEvent } from "@stl/sim/types.ts";
+import { citedEvent } from "@stl/sim/wiki/cited-events.ts";
+import { citedFleetAdvance } from "@stl/sim/wiki/cited-sectors.ts";
 
 /**
  * Events that used to be code pages (wiki/README.md, "How to migrate an event module") and now play only from the

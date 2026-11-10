@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { eventDef, loadPack, onPackWarning, packFromFtl, resetPackForTests } from "@stl/pack";
-import { showArchivePage } from "../archive-pay.ts";
+import { showArchivePage } from "@stl/sim/archive-pay.ts";
 import { beaconMark } from "../beacon-mark.ts";
-import { CRYSTAL_SECTOR } from "../sector-ids.ts";
-import { canJumpTo, choose, commitJump, continueReward, createGame } from "../sim.ts";
-import type { Game } from "../types.ts";
-import { playerShipIds } from "../unlocks.ts";
-import { QUEST_CANCELLED } from "../wiki/quests.ts";
-import { overtaken } from "../rules/sector-map.ts";
+import { CRYSTAL_SECTOR } from "@stl/sim/sector-ids.ts";
+import { canJumpTo, choose, commitJump, continueReward, createGame } from "@stl/sim/sim.ts";
+import type { Game } from "@stl/sim/types.ts";
+import { playerShipIds } from "@stl/sim/unlocks.ts";
+import { QUEST_CANCELLED } from "@stl/sim/wiki/quests.ts";
+import { overtaken } from "@stl/sim/rules/sector-map.ts";
 
 const XML = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>

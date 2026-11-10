@@ -5,11 +5,11 @@
  */
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useGame } from "@/game/store";
-import { halted, shieldChargeFraction } from "@/game/sim";
+import { halted, shieldChargeFraction } from "@stl/sim/sim.ts";
 import { bubbleRoom, readShipScale, shieldRing, zoltanPad } from "./shield-bubble";
-import { combatPlateId } from "@/game/wiki/flagship-layout";
+import { combatPlateId } from "@stl/sim/wiki/flagship-layout.ts";
 import { animSpeed } from "./speed";
-import type { Ship } from "@/game/types";
+import type { Ship } from "@stl/sim/types.ts";
 import { pageRect } from "./turn";
 import { GIB_SECONDS, gibImages } from "@/game/pack/ship-art";
 

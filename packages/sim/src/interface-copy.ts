@@ -7,6 +7,7 @@ import {
   allItemBlueprints,
   archivePhrase,
   tutorialScript,
+  warnPack,
   weaponDef,
   type WeaponKind,
 } from "@stl/pack";
@@ -124,6 +125,20 @@ export function systemTip(id: string, enemy = false): string {
  */
 export function jumpBlockTip(why: keyof typeof JUMP_TIP): string {
   return archivePhrase(JUMP_TIP[why]) ?? why;
+}
+
+/** Words for a pack that has no `continue` key. Not ftl.dat's sentence. */
+const CONTINUE_FALLBACK = "Carry on.";
+
+/**
+ * The button an event gets when it writes no choice. The words are the archive's `continue` key.
+ * A pack that omits the key warns once and uses the fallback.
+ */
+export function continueLabel(): string {
+  const line = archivePhrase("continue");
+  if (line) return line;
+  warnPack(`continue is not loaded; the button says ${CONTINUE_FALLBACK}`);
+  return CONTINUE_FALLBACK;
 }
 
 export function phraseOr(key: string, fallback: string): string {

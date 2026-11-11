@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import { allEvents, allSectors, eventDef, fillerList } from "@stl/pack";
 import { choiceDisabled, choose, commitJump, step } from "../sim.ts";
+import { continueLabel } from "../interface-copy.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
 import { stampCitedEvents } from "./cited-events.ts";
@@ -239,7 +240,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       g.event?.choices.map((c) => c.id),
       ["exit-leave"],
     );
-    assert.equal(g.event?.choices[0]?.label, "Continue...");
+    assert.equal(g.event?.choices[0]?.label, continueLabel());
     assert.equal(exit.flag, "");
   });
 

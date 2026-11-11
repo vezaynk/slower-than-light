@@ -8,6 +8,7 @@ import {
   droneCopy,
   itemLines,
   tutorialLines,
+  tooltipLines,
   verdictArchiveLines,
   weaponCopy,
 } from "@stl/sim/interface-copy.ts";
@@ -792,13 +793,13 @@ function exerciseStrings(strings: Map<string, string>, problems: string[]): void
 }
 
 /**
- * A tooltip table means the archive still has screens the game paints itself. Report those.
- * The stand-in ships no tooltip table, so a missing sentence there has left the screen.
+ * An unshown tooltip means the archive still has screens the game paints itself. Report those and do not fail.
+ * A sentence that is not a tooltip, and has left the screen, fails. The stand-in's hover lines are on screen.
  */
 export function stringCoverProblems(strings: ReadonlyMap<string, string>, shown: string): string[] {
   const missing = unshownStringKeys(strings, shown);
   if (missing.length === 0) return [];
-  if ([...strings.keys()].some((key) => key.startsWith("tooltip_"))) return [];
+  if (missing.some((key) => key.startsWith("tooltip_"))) return [];
   const noun = missing.length === 1 ? "string key" : "string keys";
   const sample = missing.slice(0, 12).join(", ");
   return [
@@ -1433,6 +1434,7 @@ export function shownText(): string {
   for (const line of tutorialLines()) push(line);
   for (const line of itemLines()) push(line);
   for (const line of verdictArchiveLines()) push(line);
+  for (const line of tooltipLines()) push(line);
   return parts.join("\n");
 }
 

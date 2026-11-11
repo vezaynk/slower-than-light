@@ -1,4 +1,4 @@
-import { missileHitVariant } from "./interface-copy.ts";
+import { jumpBlockTip, missileHitVariant } from "./interface-copy.ts";
 import { deathCue } from "./cues.ts";
 import {
   bindCueTarget,
@@ -1395,13 +1395,22 @@ function pilotCanJump(g: Game, ship: Ship): boolean {
 
 /**
  * Piloting, "Overview": the same pilot and powered engines needed to charge the drive are needed to jump.
- * Null when a jump is allowed, otherwise the line to show.
+ * Out of fuel is the last block. Null when a jump is allowed, otherwise the archive line to show.
+ * A missing sentence is the reason id, which is still a block. Empty would count as allowed.
  */
-export function jumpBlocked(g: Game): string | null {
-  if (!functional(g.player.systems.pilot)) return "Piloting is down.";
-  if (!present(g, g.player, "player", "pilot")) return "Nobody is piloting.";
-  if (engineBars(g, g.player, "player") <= 0) return "Engines are unpowered.";
+export type JumpBlock = "piloting" | "crew" | "engines" | "fuel";
+
+export function jumpBlock(g: Game): JumpBlock | null {
+  if (!functional(g.player.systems.pilot)) return "piloting";
+  if (!present(g, g.player, "player", "pilot")) return "crew";
+  if (engineBars(g, g.player, "player") <= 0) return "engines";
+  if (g.fuel < 1) return "fuel";
   return null;
+}
+
+export function jumpBlocked(g: Game): string | null {
+  const why = jumpBlock(g);
+  return why ? jumpBlockTip(why) : null;
 }
 
 /** Engines, "FTL Drive charge time": the in-fight table. A body in piloting is required. */

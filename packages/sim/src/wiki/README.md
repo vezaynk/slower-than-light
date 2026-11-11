@@ -48,6 +48,10 @@ is 1/11). The flare clock stays code (`game/rules/flare.ts`). Which fight is a s
 `arrive-rock-sun` (alias `quest-rock-sun`). `ruwen-entry.ts` stays: Ancient device is `ROCK_CRYSTAL_BEACON`, and painting
 the quest marker is an executable rule with no archive id.
 
+Done: Rock arrival fights (November 2026). `ROCK_FIGHT_ASTEROID`, `ROCK_PIRATE`, `ROCK_PIRATE_ASTEROID`, and
+`ROCK_PIRATE_SUN` play as the page wrote them. The first text is empty, so the card uses one of the later sentences.
+The button and the ship stay on the choice.
+
 ### How to migrate an event module
 
 1. **Map it.** List the module's events, its importers (`git grep`), and each event's archive id

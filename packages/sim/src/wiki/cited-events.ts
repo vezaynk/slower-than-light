@@ -821,6 +821,25 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     }
     return card;
   }
+  // Rock arrival fights. The button and the ship are already on the page.
+  // The intro is one of the page's texts. ftl.dat stores the first of those as body.
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight in asteroid field]]
+  // > "Fight a Rock ship (default rewards)." — [[Rock fight in asteroid field]]
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight]]
+  // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight]]
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight in asteroid field]]
+  // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight in asteroid field]]
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight near sun]]
+  // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight near sun]]
+  if (
+    ev.slug === "ROCK_FIGHT_ASTEROID" ||
+    ev.slug === "ROCK_PIRATE" ||
+    ev.slug === "ROCK_PIRATE_ASTEROID" ||
+    ev.slug === "ROCK_PIRATE_SUN"
+  ) {
+    return writtenOpening(g, ev);
+  }
   // A list the out-of-fuel wait loads is not a stored event. Draw one of its pages.
   // The page keeps its ship, reward, hidden choices, and every opening line.
   if (!hasEvent(ev.slug) && fillerList(ev.slug)) {
@@ -1362,44 +1381,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Rock pirates fight near sun has no choice. Arrival calls this fight.
-  // One of the two printed intros. "Fight a Rock pirate ship (default rewards)." redgiant=true. unique=true.
-  if (ev.slug === "ROCK_PIRATE_SUN") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight near sun]]
-    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight near sun]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ROCK_PIRATE_SUN"),
-      choices: [{ id: "c:rock-pirates-fight-near-sun:0", label: "Fight a Rock pirate ship" }],
-    };
-  }
-  // Rock pirates fight in asteroid field has no choice. Arrival calls this fight.
-  // One of the two printed intros. "Fight a Rock pirate ship (default rewards)." asteroidfield=true. unique=true.
-  if (ev.slug === "ROCK_PIRATE_ASTEROID") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight in asteroid field]]
-    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight in asteroid field]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ROCK_PIRATE_ASTEROID"),
-      choices: [
-        { id: "c:rock-pirates-fight-in-asteroid-field:0", label: "Fight a Rock pirate ship" },
-      ],
-    };
-  }
-  // Rock fight in asteroid field has no choice. Arrival calls this fight.
-  // One of the three printed intros. "Fight a Rock ship (default rewards)." asteroidfield=true. unique=true.
-  if (ev.slug === "ROCK_FIGHT_ASTEROID") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight in asteroid field]]
-    // > "Fight a Rock ship (default rewards)." — [[Rock fight in asteroid field]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ROCK_FIGHT_ASTEROID"),
-      choices: [{ id: "c:rock-fight-in-asteroid-field:0", label: "Fight a Rock ship" }],
-    };
-  }
   // Rebel fight (Slug) has no choice. Arrival calls this fight.
   // One of the three printed intros. "Fight a Rebel ship (default rewards)." unique=false.
   if (ev.slug === "SLUG_REBEL") {
@@ -1443,18 +1424,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: opening(g, "ZOLTAN_PIRATE"),
       choices: [{ id: "c:pirate-fight-zoltan:0", label: "Fight a Pirate ship" }],
-    };
-  }
-  // Rock pirates fight has no choice. Arrival calls this fight.
-  // One of the three printed intros. "Fight a Rock pirate ship (default rewards)." unique=false.
-  if (ev.slug === "ROCK_PIRATE") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight]]
-    // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ROCK_PIRATE"),
-      choices: [{ id: "c:rock-pirates-fight:0", label: "Fight a Rock pirate ship" }],
     };
   }
   // Rebel fight near pulsar has no choice. Arrival calls this fight.
@@ -1667,6 +1636,20 @@ ${laniusTraderOfferText(offer)}`,
     };
   }
   return asWritten(ev);
+}
+
+/** The page's own text and choices. Several `<text>` nodes rotate, including the first.
+ * ftl.dat stores that first sentence as body and the whole list as texts. The matched card
+ * does not carry texts, so the draw reads the loaded event. A blank body is the stand-in's
+ * empty first text. */
+function writtenOpening(g: Game, ev: EventDef): GameEvent {
+  const card = asWritten(ev);
+  const texts = eventDef(ev.slug)?.texts ?? [];
+  if (!card.body.trim() || texts.length > 1) {
+    const line = opening(g, ev.slug);
+    if (line) card.body = line;
+  }
+  return card;
 }
 
 /** The page's own text and choices. */

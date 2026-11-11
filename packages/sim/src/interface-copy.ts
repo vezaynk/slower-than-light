@@ -11,6 +11,121 @@ import {
   type WeaponKind,
 } from "@stl/pack";
 
+/**
+ * Hover keys the screens request. The sentences come from the loaded archive, not from the stand-in table.
+ * `standin_tooltip_*` has no ftl.dat key. The catalog file says which line that is.
+ */
+const HUD_TIP_KEYS = [
+  "tooltip_jump_noPiloting",
+  "tooltip_jump_noCrew",
+  "tooltip_jump_noEngines",
+  "tooltip_jump_noFuel",
+  "tooltip_fuelCount",
+  "tooltip_hull",
+  "tooltip_missileCount",
+  "tooltip_droneCount",
+  "tooltip_evadeDisplay",
+  "tooltip_oxygenDisplay",
+  "mainmenu_options",
+  "escape_options",
+  "hotkey_savePositions",
+  "hotkey_loadPositions",
+  "help_power_text_pc_add",
+  "help_power_text_pc_remove",
+  "tooltip_shields",
+  "tooltip_shields_enemy",
+  "tooltip_engines",
+  "tooltip_engines_enemy",
+  "tooltip_oxygen",
+  "tooltip_oxygen_enemy",
+  "tooltip_weapons",
+  "tooltip_weapons_enemy",
+  "tooltip_drones",
+  "tooltip_drones_enemy",
+  "tooltip_medbay",
+  "tooltip_medbay_enemy",
+  "tooltip_pilot",
+  "tooltip_pilot_enemy",
+  "tooltip_sensors",
+  "tooltip_sensors_enemy",
+  "tooltip_doors",
+  "tooltip_doors_enemy",
+  "tooltip_teleporter",
+  "tooltip_teleporter_enemy",
+  "tooltip_cloaking",
+  "tooltip_cloaking_enemy",
+  "tooltip_artillery",
+  "tooltip_artillery_enemy",
+  "tooltip_battery",
+  "tooltip_battery_enemy",
+  "tooltip_clonebay",
+  "tooltip_clonebay_enemy",
+  "tooltip_mind",
+  "tooltip_mind_enemy",
+  "tooltip_hacking",
+  "tooltip_hacking_enemy",
+  "standin_tooltip_in_danger",
+  "standin_tooltip_clone_queue",
+  "standin_tooltip_launch_cost",
+  "standin_tooltip_ftl_needs_crew",
+] as const;
+
+const SYSTEM_TIP: Record<string, string> = {
+  shields: "tooltip_shields",
+  engines: "tooltip_engines",
+  oxygen: "tooltip_oxygen",
+  weapons: "tooltip_weapons",
+  drones: "tooltip_drones",
+  medbay: "tooltip_medbay",
+  pilot: "tooltip_pilot",
+  sensors: "tooltip_sensors",
+  doors: "tooltip_doors",
+  teleporter: "tooltip_teleporter",
+  cloaking: "tooltip_cloaking",
+  artillery: "tooltip_artillery",
+  battery: "tooltip_battery",
+  clonebay: "tooltip_clonebay",
+  mind: "tooltip_mind",
+  hacking: "tooltip_hacking",
+};
+
+const JUMP_TIP = {
+  piloting: "tooltip_jump_noPiloting",
+  crew: "tooltip_jump_noCrew",
+  engines: "tooltip_jump_noEngines",
+  fuel: "tooltip_jump_noFuel",
+} as const;
+
+/** A hover line from the loaded archive. A missing key paints nothing. */
+export function hudTip(name: string): string {
+  return archivePhrase(name) ?? "";
+}
+
+/** Keys the screens hover. Coverage reads each one back from the loaded archive. */
+export function hudTipKeys(): readonly string[] {
+  return HUD_TIP_KEYS;
+}
+
+/** Every hover line the loaded archive supplied for those keys. */
+export function tooltipLines(): string[] {
+  return HUD_TIP_KEYS.map((key) => hudTip(key)).filter((line) => line.length > 0);
+}
+
+/** The system icon's hover. Enemy chips use the `_enemy` key. */
+export function systemTip(id: string, enemy = false): string {
+  const key = SYSTEM_TIP[id];
+  if (!key) return "";
+  return hudTip(enemy ? `${key}_enemy` : key);
+}
+
+/**
+ * The jump-block sentence. A missing archive line stays a real block: empty is not null,
+ * and the gates treat empty as allowed.
+ */
+export function jumpBlockTip(why: keyof typeof JUMP_TIP): string {
+  return archivePhrase(JUMP_TIP[why]) ?? why;
+}
+
 export function phraseOr(key: string, fallback: string): string {
   return archivePhrase(key) ?? fallback;
 }

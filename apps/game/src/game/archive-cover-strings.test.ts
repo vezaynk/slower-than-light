@@ -19,6 +19,8 @@ import {
   verdictScoreLine,
   verdictTitle,
   victoryCrewLine,
+  hudTipKeys,
+  tooltipLines,
 } from "@stl/sim/interface-copy.ts";
 
 describe("unshown archive strings", () => {
@@ -51,6 +53,16 @@ describe("unshown archive strings", () => {
       ),
       [],
     );
+    assert.deepEqual(
+      stringCoverProblems(
+        new Map([
+          ["tooltip_oxygen", "Oxygen system hover text"],
+          ["event_brand_new", "A sentence the game dropped"],
+        ]),
+        "Oxygen system hover text",
+      ),
+      ["1 string key left the screen (event_brand_new)"],
+    );
   });
 
   it("reads the game-over card from the loaded archive and does not keep a second copy", () => {
@@ -66,6 +78,17 @@ describe("unshown archive strings", () => {
     assert.ok(comma.endsWith(" "), comma);
     assert.ok(join.startsWith(" ") && join.endsWith(" "), join);
     assert.equal(victoryCrewLine(["Alice", "Bob", "Carol"]), `Alice${comma}Bob${join}Carol`);
+  });
+
+  it("shows every hover line the loaded archive has for the screen keys", async () => {
+    await installStandIn();
+    const shown = shownText();
+    for (const key of hudTipKeys()) {
+      const line = archivePhrase(key);
+      assert.ok(line, `${key} is not in the loaded archive`);
+      assert.ok(shown.includes(line), key);
+    }
+    for (const line of tooltipLines()) assert.ok(shown.includes(line), line);
   });
 });
 

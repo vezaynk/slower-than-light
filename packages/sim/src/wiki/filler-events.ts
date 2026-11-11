@@ -1,4 +1,5 @@
 import { continueLabel } from "../interface-copy.ts";
+import { XP_NEED, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import {
   allEmptyBeacons,

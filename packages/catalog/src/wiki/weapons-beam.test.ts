@@ -62,7 +62,7 @@ describe("beam weapons", () => {
     assert.equal(byId.BEAM_1.charge, 12);
     assert.equal(byId.BEAM_1.damage, 1);
     assert.equal(byId.BEAM_1.fire, 0.1);
-    assert.equal(byId.BEAM_1.price, 0);
+    assert.equal(byId.BEAM_1.price, 20);
     assert.equal(byId.BEAM_1.blurb, "Extremely cheap and weak beam weapon.");
 
     assert.equal(byId.BEAM_LONG.power, 2);

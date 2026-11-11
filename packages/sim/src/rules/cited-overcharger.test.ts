@@ -4,7 +4,8 @@ import { DRONE_POWER, deploy, swarmIntercept, tickSwarm } from "../extras/swarm.
 import { hullById } from "../hulls.ts";
 import { commitJump, createGame, startCombat } from "../sim.ts";
 import type { Game } from "../types.ts";
-import { citedSell, citedSellQuote, citedStock } from "../wiki/cited-stores.ts";
+import { citedSell, citedSellQuote } from "./sell.ts";
+import { citedStock } from "../wiki/cited-stores.ts";
 import {
   OVERCHARGER_PLUS_SELL,
   overchargerPower,

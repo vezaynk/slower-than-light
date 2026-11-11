@@ -60,8 +60,9 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     breach: 1,
     // Bomb (Weapons) "Breach Bomb Mark I" is silent on ammo. Lead: they cost missile ammunition to fire. "Comparing bombs to missiles": 1 missile every time they fire.
     ammo: true,
-    // Bomb (Weapons) "Breach Bomb Mark I": sells for 25, "cannot be bought". price 0. Sell value is not the purchase price.
-    price: 0,
+    // Bomb (Weapons) "Breach Bomb Mark I": "Sells for: 25" and "cannot be bought".
+    // ftl.dat `<cost>` is 50. Sell is half of that. Rarity 0 keeps it off the shelf.
+    price: 50,
     persDamage: 2,
     sysDamage: 1,
     blurb:
@@ -270,7 +271,7 @@ export const BOMB_GAPS: Record<string, string> = {
     "Hull damage is 0. damage is system damage 2, not hull. Crew damage 30. No stun duration is printed. No breach guarantee and no breach percent. Effect: low chance of fire, no percent.",
   // Bomb (Weapons) "Breach Bomb Mark I": crew damage 30. Effect: guaranteed breach. Sells for 25; cannot be bought.
   BOMB_BREACH_1:
-    "Hull damage is 0. damage is system damage 1, not hull. Crew damage 30. Effect: guaranteed breach. Sells for 25. Cannot be bought, so price is 0. No stun number. No fire percent.",
+    "Hull damage is 0. damage is system damage 1, not hull. Crew damage 30. Effect: guaranteed breach. Sells for 25. ftl.dat cost is 50. No stun number. No fire percent.",
   // Bomb (Weapons) "Breach Bomb Mark II": crew damage 45. Effect: guaranteed breach.
   BOMB_BREACH_2:
     "Hull damage is 0. damage is system damage 3, not hull. Crew damage 45. Effect: guaranteed breach. No stun number. No fire percent.",

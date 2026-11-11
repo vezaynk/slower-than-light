@@ -5,7 +5,8 @@ import { installAugment } from "../extras/augments.ts";
 import { buy, createGame } from "../sim.ts";
 import type { AugmentId } from "../types.ts";
 import { grantRandomItem, rollBonusItem } from "../rules/bonus-item.ts";
-import { augmentItems, citedSellQuote } from "./cited-stores.ts";
+import { citedSellQuote } from "../rules/sell.ts";
+import { augmentItems } from "./cited-stores.ts";
 
 /** The ship and event grants the stand-in writes with `<rarity>0</rarity>`, with their blueprint cost. */
 const GRANTS: Record<string, number> = {

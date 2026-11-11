@@ -24,7 +24,8 @@ import {
 import { useGame } from "@/game/store";
 import type { Game, StockItem } from "@stl/sim/types.ts";
 import type { KinId } from "@stl/sim/extras/kin.ts";
-import { canFieldDrone, citedSell, citedSellQuote } from "@stl/sim/wiki/cited-stores.ts";
+import { canFieldDrone } from "@stl/sim/wiki/cited-stores.ts";
+import { citedSell, citedSellQuote } from "@stl/sim/rules/sell.ts";
 import { cargoOf, cargoSlots } from "@stl/sim/rules/make-room.ts";
 import { kinLabel, UNIFORMS } from "@stl/sim/crew-look.ts";
 import { ArchiveLines } from "./ArchiveCopy";

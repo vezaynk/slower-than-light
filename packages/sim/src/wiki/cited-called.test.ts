@@ -16,7 +16,8 @@ import {
 import { COMBAT2, orbitLegSeconds } from "../rules/combat2.ts";
 import { applyImpact, createGame, startCombat, step } from "../sim.ts";
 import type { Game, Shot } from "../types.ts";
-import { citedSellQuote, citedStock } from "./cited-stores.ts";
+import { citedSellQuote } from "../rules/sell.ts";
+import { citedStock } from "./cited-stores.ts";
 
 function fight(seed: number): Game {
   const g = createGame(seed);

@@ -88,6 +88,7 @@ export function emitMod(pack: ContentPack): string {
     pack.beaconEvents ||
     pack.escapeTimers ||
     pack.stalemate ||
+    pack.skillSpeed ||
     pack.aiTarget ||
     pack.overchargerWaits ||
     pack.ionIntruder ||
@@ -104,6 +105,7 @@ export function emitMod(pack: ContentPack): string {
     if (pack.beaconEvents) rules.beaconEvents = pack.beaconEvents;
     if (pack.escapeTimers) rules.escapeTimers = pack.escapeTimers;
     if (pack.stalemate) rules.stalemate = pack.stalemate;
+    if (pack.skillSpeed) rules.skillSpeed = pack.skillSpeed;
     if (pack.aiTarget) rules.aiTarget = pack.aiTarget;
     if (pack.overchargerWaits) rules.overchargerWaits = pack.overchargerWaits;
     if (pack.ionIntruder) rules.ionIntruder = pack.ionIntruder;
@@ -192,6 +194,7 @@ function omitEmpty(parsed: ContentPack): ContentPack {
   if (escapes) pack.escapes = escapes;
   if (parsed.escapeTimers) pack.escapeTimers = parsed.escapeTimers;
   if (parsed.stalemate) pack.stalemate = parsed.stalemate;
+  if (parsed.skillSpeed) pack.skillSpeed = parsed.skillSpeed;
   if (parsed.aiTarget) pack.aiTarget = parsed.aiTarget;
   if (parsed.overchargerWaits) pack.overchargerWaits = parsed.overchargerWaits;
   if (parsed.ionIntruder) pack.ionIntruder = parsed.ionIntruder;

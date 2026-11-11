@@ -14,13 +14,8 @@ import {
   waitHere,
 } from "../sim.ts";
 import { fleetToReach } from "../rules/sector-map.ts";
-import {
-  citedAsb,
-  citedAsbShot,
-  citedBeaconCount,
-  citedFleetAdvance,
-  citedSector,
-} from "./cited-sectors.ts";
+import { asbPierce, citedAsbShot } from "../rules/asb.ts";
+import { citedAsb, citedBeaconCount, citedFleetAdvance, citedSector } from "./cited-sectors.ts";
 
 function enterLastStand(seed = 1) {
   const g = createGame(seed, "PLAYER_SHIP_HARD", "normal");
@@ -420,8 +415,11 @@ describe("fleet advance and the anti-ship battery", () => {
       assert.equal(weaponDef("PDS_SHOT"), undefined);
       assert.deepEqual(citedAsbShot(), { damage: 3, breachChance: 1, fireChance: 0 });
       assert.deepEqual(citedAsbShot(), { damage: 3, breachChance: 1, fireChance: 0 });
+      assert.equal(asbPierce(), Infinity);
+      assert.equal(asbPierce(), Infinity);
       assert.deepEqual(warnings, [
         "PDS_SHOT is not loaded; the anti-ship battery uses 3 hull, breach 1, and fire 0.",
+        "PDS_SHOT has no <sp>; the anti-ship battery passes every shield layer.",
       ]);
     } finally {
       restore();

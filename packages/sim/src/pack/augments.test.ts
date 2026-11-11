@@ -3,7 +3,8 @@ import { afterEach, describe, it } from "node:test";
 import { installAugment } from "../extras/augments.ts";
 import { createGame } from "../sim.ts";
 import { grantBonusAugment } from "../rules/bonus-item.ts";
-import { augmentItems, citedBuy, citedSellQuote } from "../wiki/cited-stores.ts";
+import { citedSellQuote } from "../rules/sell.ts";
+import { augmentItems, citedBuy } from "../wiki/cited-stores.ts";
 import "./base.ts";
 import { augmentDef, loadPack, resetPackForTests } from "@stl/pack";
 

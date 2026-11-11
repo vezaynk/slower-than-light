@@ -6,8 +6,11 @@ import {
   allShipEvents,
   eventDef,
   fillerList,
+  hasEvent,
   openingLine,
+  pickOpening,
   storedId,
+  textList,
   warnPack,
 } from "@stl/pack";
 import type { EventDef as PackEvent } from "@stl/pack";
@@ -817,6 +820,12 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       if (line) card.body = line;
     }
     return card;
+  }
+  // A list the out-of-fuel wait loads is not a stored event. Draw one of its pages.
+  // The page keeps its ship, reward, hidden choices, and every opening line.
+  if (!hasEvent(ev.slug) && fillerList(ev.slug)) {
+    const drawn = fuelListCard(g, ev);
+    if (drawn) return drawn;
   }
   const missing = missingCard(g, b, ev);
   if (missing) return missing;
@@ -1669,6 +1678,80 @@ function asWritten(ev: EventDef): GameEvent {
   };
 }
 
+/**
+ * One page from a list the wait loaded.
+ * An inline page is not in the event table. A nested list is drawn, not stored as an event.
+ */
+function drawnListPage(g: Game, listId: string, seen: Set<string>): PackEvent | undefined {
+  if (seen.has(listId)) return undefined;
+  seen.add(listId);
+  const entries = fillerList(listId)?.entries ?? [];
+  if (entries.length === 0) return undefined;
+  const entry = entries[between(g, [0, entries.length - 1])]!;
+  if (entry.page) return entry.page;
+  if (hasEvent(entry.id)) return eventDef(entry.id);
+  if (fillerList(entry.id)) return drawnListPage(g, entry.id, seen);
+  return undefined;
+}
+
+/** Opening lines live on the page. A named event's later sentences are texts, not only the first. */
+function listPageBody(g: Game, page: PackEvent): string {
+  if (page.openings?.length) {
+    const line = pickOpening(
+      page.openings,
+      (id) => textList(id)?.lines,
+      (n) => between(g, [0, n - 1]),
+    );
+    if (line) return line;
+  }
+  const texts = page.texts ?? [];
+  if (texts.length > 1) return texts[between(g, [0, texts.length - 1])] ?? page.body;
+  if (!page.body.trim()) {
+    const line = opening(g, page.id);
+    if (line) return line;
+  }
+  return page.body;
+}
+
+function fuelListCard(g: Game, ev: EventDef): GameEvent | null {
+  const page = drawnListPage(g, ev.slug, new Set());
+  if (!page) return null;
+  const choices = page.choices.map((choice) => ({ id: choice.id, label: choice.label }));
+  if (choices.length === 0) choices.push({ id: `listpage:${page.id}`, label: "Continue..." });
+  return {
+    title: page.dest !== page.id ? page.dest : ev.dest,
+    body: listPageBody(g, page),
+    choices,
+  };
+}
+
+function inlineListPage(id: string): PackEvent | undefined {
+  for (const list of allFillerLists()) {
+    for (const entry of list.entries) if (entry.page?.id === id) return entry.page;
+  }
+  return hasEvent(id) ? eventDef(id) : undefined;
+}
+
+/**
+ * Continue on a list page that has no button of its own.
+ * The page's reward and its hostile ship run here. A second click is ack, so the reward is not paid twice.
+ */
+export function openLoadedListPage(g: Game, id: string): boolean {
+  const pageId = /^listpage:(.+)$/.exec(id)?.[1];
+  if (!pageId) return false;
+  const page = inlineListPage(pageId);
+  if (!page) return false;
+  const shown = showArchivePage(g, page);
+  if (shown === "unpaid") return false;
+  if (shown === true || g.phase === "defeat" || g.phase === "combat") return true;
+  if (g.event) {
+    g.event = { ...g.event, choices: [{ id: "ack", label: "Continue" }] };
+    g.phase = "event";
+    g.paused = true;
+  }
+  return true;
+}
+
 export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   const ev = citedEventRaw(g, b);
   if (!ev) return null;
@@ -2297,10 +2380,25 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
 }
 
 /** The page's hostile `<ship load>`, when this choice did not load one of its own. */
+function pageOwningChoice(id: string): PackEvent | undefined {
+  const root = allEvents().find((event) => event.choices.some((choice) => choice.id === id));
+  if (root) return root;
+  for (const list of allFillerLists()) {
+    for (const entry of list.entries) {
+      if (entry.page?.choices.some((choice) => choice.id === id)) return entry.page;
+    }
+  }
+  return undefined;
+}
+
 function fightPageShip(ctx: CitedChoice, id: string): boolean {
-  const page = allEvents().find((event) => event.choices.some((choice) => choice.id === id));
+  const page = pageOwningChoice(id);
   const ship = page?.ship;
   if (!ship?.hostile || !ship.load) return false;
+  // An inline list page was never opened by arrival, so its reward has not been paid.
+  if (page && !hasEvent(page.id) && (page.reward || page.boarders || page.grants?.length)) {
+    return showArchivePage(ctx.g, page) === true;
+  }
   ctx.fight(ship.load, ship.asteroid ? true : undefined, undefined, ship.autoBlueprint);
   return true;
 }

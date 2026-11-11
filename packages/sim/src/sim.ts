@@ -207,6 +207,7 @@ import {
   citedShieldHalf,
   citedSystemHalf,
   citedSystemOff,
+  openLoadedListPage,
   stampCitedEvents,
 } from "./wiki/cited-events.ts";
 import { missingPageWin } from "./wiki/cited-missing.ts";
@@ -8203,6 +8204,7 @@ export function choose(g: Game, id: string) {
       } else resolve();
       break;
     default:
+      if (openLoadedListPage(g, id)) break;
       if (citedOwns(id)) {
         // A price the ship cannot pay leaves the panel open. An unknown id is not this branch.
         const before = archiveSnap(g);

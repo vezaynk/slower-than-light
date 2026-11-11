@@ -516,6 +516,11 @@ function copyCard(row: EventCard): EventCard {
       if (choice.reqs?.length) copy.reqs = choice.reqs.map(copyReq);
       if (choice.owner) copy.owner = choice.owner;
       if (choice.gift?.k === "fuel") copy.gift = copyGift(choice.gift);
+      if (choice.hidden) copy.hidden = true;
+      if (choice.minLevel != null) copy.minLevel = choice.minLevel;
+      if (choice.maxLevel != null) copy.maxLevel = choice.maxLevel;
+      if (choice.maxGroup != null) copy.maxGroup = choice.maxGroup;
+      if (choice.blue === false) copy.blue = false;
       return copy;
     }),
   };
@@ -983,19 +988,14 @@ export function eventDef(id: string | undefined): EventDef | undefined {
  * A filler list loaded by `<event load="..."/>` is not an event. The out-of-fuel wait
  * still opens that name, so the list's pages are its cards. It stays out of the event
  * table: the catalog and the round trip do not store a second copy.
+ * Only NO_FUEL and NO_FUEL_DISTRESS. EXIT_LIST loads EXIT_NEUTRAL, and that list must
+ * stay a list: gotoPage returns eventDef before it draws.
  */
 function listEvent(id: string): EventDef | undefined {
   const cached = listEvents.get(id);
   if (cached) return cached;
   if (events.has(id) || !lists.has(id)) return undefined;
-  let loaded = false;
-  for (const list of lists.values()) {
-    if (list.entries.some((entry) => !entry.page && entry.id === id)) {
-      loaded = true;
-      break;
-    }
-  }
-  if (!loaded) return undefined;
+  if (!loadedByFuelWait(id)) return undefined;
   const list = lists.get(id);
   if (!list) return undefined;
   const cards: EventCard[] = [];
@@ -1008,6 +1008,11 @@ function listEvent(id: string): EventDef | undefined {
         id: choice.id,
         label: choice.label,
         ...(choice.reqs ? { reqs: choice.reqs } : {}),
+        ...(choice.hidden ? { hidden: true as const } : {}),
+        ...(choice.minLevel != null ? { minLevel: choice.minLevel } : {}),
+        ...(choice.maxLevel != null ? { maxLevel: choice.maxLevel } : {}),
+        ...(choice.maxGroup != null ? { maxGroup: choice.maxGroup } : {}),
+        ...(choice.blue === false ? { blue: false as const } : {}),
       })),
     });
   }
@@ -1024,6 +1029,17 @@ function listEvent(id: string): EventDef | undefined {
   };
   listEvents.set(id, row);
   return row;
+}
+
+/** The wait opens these two lists by name. A list they load is the page the wait shows. */
+const FUEL_WAIT_LISTS = new Set(["NO_FUEL", "NO_FUEL_DISTRESS"]);
+
+function loadedByFuelWait(id: string): boolean {
+  for (const list of lists.values()) {
+    if (!FUEL_WAIT_LISTS.has(list.id)) continue;
+    if (list.entries.some((entry) => !entry.page && entry.id === id)) return true;
+  }
+  return false;
 }
 
 /** One root `<ship name>` event. A campaign tier such as "pirate" does not match "PIRATE". */

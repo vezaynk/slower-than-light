@@ -909,6 +909,12 @@ export type EventCard = {
     reqs?: ChoiceReq[];
     gift?: ChoiceGift;
     owner?: LockOwner;
+    /** Exact `hidden="true"`. A stripped copy would keep the button on the card. */
+    hidden?: boolean;
+    minLevel?: number;
+    maxLevel?: number;
+    maxGroup?: number;
+    blue?: false;
   }[];
 };
 

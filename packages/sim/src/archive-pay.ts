@@ -890,6 +890,15 @@ function payAutoReward(g: Game, reward: ArchiveReward): string[] {
   if (name === "standard") return paid(rollStandard(g, tier));
   if (name === "stuff") return paid(rollSurrenderOffer(g, tier));
   if (name === "scrap_only") return paid(scrapOffer(g, tier));
+  if (name === "fuel_only" || name === "missiles_only" || name === "droneparts_only") {
+    const kind =
+      name === "missiles_only" ? "missiles" : name === "droneparts_only" ? "parts" : "fuel";
+    const offer = scrapOffer(g, tier);
+    offer.scrap = 0;
+    offer.eligible = 0;
+    offer[kind] = between(g, resourceBand(kind, tier));
+    return paid(offer);
+  }
   if (name === "fuel" || name === "missiles" || name === "droneparts") {
     const offer = scrapOffer(g, tier);
     const kind = name === "droneparts" ? "parts" : name;

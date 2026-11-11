@@ -57,6 +57,7 @@ import {
   crewCopy,
   droneCopy,
   hudTip,
+  systemTip,
   phraseOr,
   weaponCopy,
   weaponDamageLabel,
@@ -191,6 +192,7 @@ import {
   evasionPercent,
   ftlDriveCharging,
   ftlDriveSeconds,
+  jumpBlock,
   jumpBlocked,
   hasSave,
   isMain,
@@ -1493,14 +1495,18 @@ function Hud({ game }: { game: Game }) {
   const spool = ftlDriveSeconds(game);
   // Per the user: the drive is not ready while Piloting is down or empty or the Engines are unpowered (sim jumpBlocked,
   // the same check commitJump makes). The state then names the reason instead of CHARGING or READY.
-  const blocked = jumpBlocked(game);
-  const blockedWord = !blocked
-    ? ""
-    : blocked.startsWith("Nobody")
+  const block = jumpBlock(game);
+  const blocked = block ? jumpBlocked(game) : null;
+  const blockedWord =
+    block === "crew"
       ? "NO PILOT"
-      : blocked.startsWith("Piloting")
+      : block === "piloting"
         ? "PILOT DOWN"
-        : "NO ENGINES";
+        : block === "fuel"
+          ? "NO FUEL"
+          : block === "engines"
+            ? "NO ENGINES"
+            : "";
   const charging = !blocked && ftlDriveCharging(game);
   const ready = !blocked && game.phase === "combat" && game.flee >= 1 && !game.picking;
   const shieldFill = shieldChargeShown(game);
@@ -1575,7 +1581,7 @@ function Hud({ game }: { game: Game }) {
         <span
           className={`count-chip hud-fuel${game.fuel < 1 ? " is-empty" : ""}`}
           aria-label={`${game.fuel} fuel`}
-          title={hudTip("tooltip_fuel")}
+          title={hudTip("tooltip_fuelCount")}
         >
           <PixelIcon name="fuel" />
           {game.fuel}
@@ -1587,7 +1593,7 @@ function Hud({ game }: { game: Game }) {
           title={
             jumpBlocked(game) ??
             (spool == null
-              ? hudTip("tooltip_ftl_needs_crew")
+              ? hudTip("standin_tooltip_ftl_needs_crew")
               : `About ${Math.round(spool)} seconds at this engine power. Fuel ${game.fuel}.`)
           }
           onClick={() => {
@@ -1643,7 +1649,7 @@ function Hud({ game }: { game: Game }) {
           type="button"
           className="frame-btn"
           aria-label={game.picking ? "Back to the ship" : "Ship"}
-          title={infoLocked && !game.picking ? hudTip("tooltip_in_danger") : undefined}
+          title={infoLocked && !game.picking ? hudTip("standin_tooltip_in_danger") : undefined}
           disabled={infoLocked && !game.picking}
           onClick={() =>
             act((g) => {
@@ -1659,7 +1665,7 @@ function Hud({ game }: { game: Game }) {
           type="button"
           className="frame-btn"
           aria-label={"Options"}
-          title={hudTip("tooltip_options")}
+          title={hudTip("escape_options")}
           onClick={() => useOptionsOpen.setState({ open: true })}
         >
           <PixelIcon name="upgrade" size={20} />
@@ -1752,12 +1758,15 @@ function CrewRail({ game }: { game: Game }) {
   return (
     <aside className="crew-rail">
       <div className="air-readout">
-        <span title={hudTip("tooltip_evasion")}>
+        <span title={hudTip("tooltip_evadeDisplay")}>
           <PixelIcon name="evade" />
           {"EVADE "}
           {evasionPercent(game, game.player, "player")}%
         </span>
-        <span title={hudTip("tooltip_oxygen")} className={air < 25 ? "is-o2-low" : undefined}>
+        <span
+          title={hudTip("tooltip_oxygenDisplay")}
+          className={air < 25 ? "is-o2-low" : undefined}
+        >
           <PixelIcon name="oxygen" />
           {"OXYGEN "}
           {air}%
@@ -1814,7 +1823,7 @@ function CrewRail({ game }: { game: Game }) {
         <Button
           variant="text"
           aria-label={"Save stations"}
-          title={hudTip("tooltip_save_spots")}
+          title={hudTip("hotkey_savePositions")}
           onClick={() => act((g) => saveStations(g))}
         >
           {"SAVE"}
@@ -1822,7 +1831,7 @@ function CrewRail({ game }: { game: Game }) {
         <Button
           variant="text"
           aria-label={"Return to stations"}
-          title={hudTip("tooltip_recall_spots")}
+          title={hudTip("hotkey_loadPositions")}
           disabled={!crew.some((c) => c.station)}
           onClick={() => act((g) => returnToStations(g))}
         >
@@ -1833,7 +1842,7 @@ function CrewRail({ game }: { game: Game }) {
           portraits are shown; ... the 3rd portrait is substituted by the "+number" of other crew in the queue." Shown
           here under the live crew, head of the queue first. */}
       {clones ? (
-        <div className="clone-queue" role="status" title={hudTip("tooltip_clone_queue")}>
+        <div className="clone-queue" role="status" title={hudTip("standin_tooltip_clone_queue")}>
           <p className="clone-queue-head">
             <PixelIcon name="clonebay" size={16} />
             {"CLONING · "}
@@ -2392,9 +2401,10 @@ function TargetPanel({
           // sensorSystemDetail is that line. It does not add Hacking, Cloaking, Mind Control, or Clone Bay timers.
           // Below level 4, and off the hacked system, the chip stays the short power count.
           const full = vision?.system === id || sensors >= 4;
+          const archiveTip = systemTip(id, true);
           const tip = full
             ? `${sensorSystemDetail(enemy, id, systemLabel(id), shown)}${vision?.system === id ? " (hacking drone)" : ""}`
-            : systemLabel(id);
+            : archiveTip || systemLabel(id);
           // Below Sensors 4 only the icon shows: "level, power usage, ion damage" are level 4 information.
           // INFERRED: a damaged or destroyed system's icon is still tinted; the page does not hide damage.
           const harm =
@@ -2458,7 +2468,11 @@ function TargetPanel({
           return (
             <span
               key={id}
-              title={`${kitLabel(id, kit.weapon)}${fullKit ? ` ${kit.level}` : ""}${vision?.system === id ? " (hacking drone)" : ""}`}
+              title={
+                fullKit
+                  ? `${kitLabel(id, kit.weapon)}${fullKit ? ` ${kit.level}` : ""}${vision?.system === id ? " (hacking drone)" : ""}`
+                  : systemTip(id, true) || kitLabel(id, kit.weapon)
+              }
               className={
                 [
                   kit.on ? "is-on" : "",
@@ -3107,7 +3121,7 @@ function HackOrb({
             ) : (
               <span
                 className={`hack-card-cost${view.parts < 1 ? " is-short" : ""}`}
-                title={hudTip("tooltip_launch_cost")}
+                title={hudTip("standin_tooltip_launch_cost")}
               >
                 <PixelIcon name="parts" size={12} />1 of {view.parts}
               </span>
@@ -3119,7 +3133,7 @@ function HackOrb({
         <button
           type="button"
           aria-label={"Remove power from Hacking"}
-          title={hudTip("tooltip_power_remove")}
+          title={hudTip("help_power_text_pc_remove")}
           disabled={view.power <= 0}
           onClick={() => act((g) => lowerSpikePower(g))}
         >
@@ -3128,7 +3142,7 @@ function HackOrb({
         <button
           type="button"
           aria-label={"Add power to Hacking"}
-          title={hudTip("tooltip_power_add")}
+          title={hudTip("help_power_text_pc_add")}
           disabled={view.power >= view.level || sparePower(game.player) < 1}
           onClick={() => act((g) => raiseSpikePower(g))}
         >
@@ -3354,6 +3368,7 @@ function PowerStack({
         ship={game.player}
         icon={id}
         label={systemLabel(id)}
+        hover={systemTip(id)}
         onUp={() => act((g) => powerUp(g, id))}
         onDown={() => act((g) => powerDown(g, id))}
       />
@@ -3370,12 +3385,14 @@ function PowerOrb({
   ship,
   icon,
   label,
+  hover,
   onUp,
   onDown,
 }: {
   ship: Ship;
   icon: IconName;
   label: string;
+  hover?: string;
   onUp: () => void;
   onDown: () => void;
 }) {
@@ -3385,7 +3402,7 @@ function PowerOrb({
       type="button"
       className={["sys-orb", rim.className].filter(Boolean).join(" ")}
       style={rim.style}
-      title={label}
+      title={hover || label}
       aria-label={`${label}: add power (right-click removes)`}
       onPointerDown={(e) => armHold(e, onDown)}
       onClick={(e) => {
@@ -3560,6 +3577,7 @@ function KitPowerStack({ game, id }: { game: Game; id: PowerKit }) {
         ship={game.player}
         icon={kitIcon(id, kit.weapon)}
         label={label}
+        hover={systemTip(id)}
         onUp={() => act((g) => kitUp(g, id))}
         onDown={() => act((g) => kitDown(g, id))}
       />
@@ -3587,6 +3605,7 @@ function RadialSubsystem({ game, roomId }: { game: Game; roomId: string }) {
         className={`radial-sub${rim.className ? ` ${rim.className}` : ""}`}
         style={rim.style}
         aria-label={`${systemLabel(id)} ${sys.level - sys.damage}/${sys.level}`}
+        title={systemTip(id)}
       >
         <i className="sub-bars" aria-hidden="true">
           {Array.from({ length: Math.max(sys.level, 1) }, (_, n) => {
@@ -3627,6 +3646,7 @@ function RadialSubsystem({ game, roomId }: { game: Game; roomId: string }) {
       className={`radial-sub${rim.className ? ` ${rim.className}` : ""}`}
       style={rim.style}
       aria-label={KIT_LABEL.battery}
+      title={systemTip("battery")}
     >
       <i className="sub-bars" aria-hidden="true">
         {Array.from({ length: Math.max(kit.level, 1) }, (_, n) => (
@@ -3798,7 +3818,7 @@ function StepButtons({
       <button
         type="button"
         aria-label={`Add power to ${label}`}
-        title={hudTip("tooltip_power_add")}
+        title={hudTip("help_power_text_pc_add")}
         onClick={onUp}
       >
         <PixelIcon name="plus" size={12} />
@@ -3806,7 +3826,7 @@ function StepButtons({
       <button
         type="button"
         aria-label={`Remove power from ${label}`}
-        title={hudTip("tooltip_power_remove")}
+        title={hudTip("help_power_text_pc_remove")}
         onClick={onDown}
       >
         <PixelIcon name="minus" size={12} />
@@ -4372,7 +4392,7 @@ function MissileChip({ game }: { game: Game }) {
     <span
       className={`count-chip${game.missiles < 1 ? " is-empty" : ""}`}
       aria-label={`${game.missiles} missiles`}
-      title={hudTip("tooltip_missiles")}
+      title={hudTip("tooltip_missileCount")}
     >
       <PixelIcon name="missile" />
       {game.missiles}
@@ -4385,7 +4405,7 @@ function PartsChip({ game }: { game: Game }) {
     <span
       className={`count-chip${game.player.parts < 1 ? " is-empty" : ""}`}
       aria-label={`${game.player.parts} drone parts`}
-      title={hudTip("tooltip_drone_parts")}
+      title={hudTip("tooltip_droneCount")}
     >
       <PixelIcon name="parts" />
       {game.player.parts}
@@ -4630,6 +4650,7 @@ function TitleScreen() {
             type="button"
             className="menu-hit"
             aria-label={item.label}
+            title={item.id === "options" ? hudTip("mainmenu_options") : undefined}
             disabled={item.id === "continue" && !saveReady}
             style={{ top: item.top, height: item.height, right: item.right, width: item.width }}
             onClick={(e) => {

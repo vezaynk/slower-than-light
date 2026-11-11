@@ -31,8 +31,9 @@ looks at every piece of the archive:
 - every English text string of six or more characters, and whether the game ever shows it. A key whose
   name ends in `_demo` is the demo build's copy, and the release executable does not read it. Every other
   unshown string is a screen that still paints its own English. An unshown tooltip is reported and does
-  not fail the cover yet. The stand-in's hover lines are in its tooltip table and on screen, so any other
-  sentence that leaves the screen fails the cover. The game-over card already reads the archive. Hull loss uses
+  not fail the cover yet. The stand-in's hover lines use ftl.dat's keys, with its own sentences, and
+  those keys are read back from the loaded archive. A line with no ftl.dat key uses a standin_tooltip_ name.
+  Any other sentence that leaves the screen fails the cover. The game-over card already reads the archive. Hull loss uses
   the blow-up line. The crew list keeps the separators' spaces. The code only looks the keys up, and it
   fills the score into the archive's score line.
 

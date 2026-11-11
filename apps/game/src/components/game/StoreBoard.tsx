@@ -364,15 +364,15 @@ export function StoreBoard({ game }: { game: Game }) {
               <PixelIcon name="ship" size={16} />
               {game.player.hull}
             </span>
-            <span title={hudTip("tooltip_fuel")}>
+            <span title={hudTip("tooltip_fuelCount")}>
               <PixelIcon name="fuel" size={16} />
               {game.fuel}
             </span>
-            <span title={hudTip("tooltip_missiles")}>
+            <span title={hudTip("tooltip_missileCount")}>
               <PixelIcon name="missile" size={16} />
               {game.missiles}
             </span>
-            <span title={hudTip("tooltip_drone_parts")}>
+            <span title={hudTip("tooltip_droneCount")}>
               <PixelIcon name="parts" size={16} />
               {game.player.parts}
             </span>

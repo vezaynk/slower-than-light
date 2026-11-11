@@ -13,13 +13,13 @@ import {
 } from "./archive-cover.ts";
 import { installExtract } from "@stl/sim/archive-play.ts";
 import { archivePhrase } from "@stl/pack";
-import { TOOLTIPS } from "@stl/catalog/src/wiki/tooltips.ts";
 import {
   verdictArchiveLines,
   verdictBody,
   verdictScoreLine,
   verdictTitle,
   victoryCrewLine,
+  hudTipKeys,
   tooltipLines,
 } from "@stl/sim/interface-copy.ts";
 
@@ -80,11 +80,14 @@ describe("unshown archive strings", () => {
     assert.equal(victoryCrewLine(["Alice", "Bob", "Carol"]), `Alice${comma}Bob${join}Carol`);
   });
 
-  it("shows every stand-in tooltip, so a tooltip does not hide another missing sentence", async () => {
+  it("shows every hover line the loaded archive has for the screen keys", async () => {
     await installStandIn();
     const shown = shownText();
-    const strings = new Map(TOOLTIPS.map((row) => [row.name, row.text]));
-    assert.deepEqual(unshownStringKeys(strings, shown), []);
+    for (const key of hudTipKeys()) {
+      const line = archivePhrase(key);
+      assert.ok(line, `${key} is not in the loaded archive`);
+      assert.ok(shown.includes(line), key);
+    }
     for (const line of tooltipLines()) assert.ok(shown.includes(line), line);
   });
 });

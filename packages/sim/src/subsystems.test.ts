@@ -112,6 +112,11 @@ describe("piloting presence", () => {
     assert.equal(jumpBlocked(g), null);
     commitJump(g, to);
     assert.equal(g.jumps, 1);
+
+    g.fuel = 0;
+    assert.equal(jumpBlocked(g), "No fuel.");
+    commitJump(g, to);
+    assert.equal(g.jumps, 1);
   });
 });
 

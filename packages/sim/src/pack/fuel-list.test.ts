@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import { eventDef, fillerList, loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
+import {
+  archivePhrase,
+  eventDef,
+  fillerList,
+  loadPack,
+  onPackWarning,
+  packFromFtl,
+  resetPackForTests,
+} from "@stl/pack";
+import { continueLabel } from "../interface-copy.ts";
 import { choose, createGame, rand, waitHere } from "../sim.ts";
 import { drawLoadedPage, presentLoadedEvent } from "../wiki/cited-events.ts";
 import { choiceOmitted } from "../wiki/choice-locks.ts";
@@ -351,5 +360,35 @@ describe("a fuel list loaded by the wait", () => {
     assert.equal(g.phase, "event");
     assert.match(g.event?.body ?? "", /They leave/);
     assert.equal(g.enemy, null);
+  });
+
+  it("reads the nothing page's button from the archive continue phrase", () => {
+    resetPackForTests();
+    const warnings: string[] = [];
+    const restore = onPackWarning((message) => warnings.push(message));
+    try {
+      assert.equal(continueLabel(), "Carry on.");
+      continueLabel();
+      assert.deepEqual(warnings, ["continue is not loaded; the button says Carry on."]);
+      loadPack(
+        packFromFtl([
+          {
+            path: "data/text_misc.xml",
+            xml: `<FTL><text name="continue">Press onward.</text></FTL>`,
+          },
+        ]),
+        "append",
+      );
+      assert.equal(archivePhrase("continue"), "Press onward.");
+      assert.equal(continueLabel(), "Press onward.");
+      const page = eventDef("FUEL_NOTHING");
+      assert.equal(page?.choices.length, 0);
+      const { g, here } = parked(1);
+      const card = presentLoadedEvent(g, page!, here);
+      assert.equal(card?.choices[0]?.id, "fuel-wait-done");
+      assert.equal(card?.choices[0]?.label, "Press onward.");
+    } finally {
+      restore();
+    }
   });
 });

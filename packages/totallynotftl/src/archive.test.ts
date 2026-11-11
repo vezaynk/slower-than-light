@@ -27,6 +27,7 @@ import {
 } from "./archive.ts";
 import { standInMedia } from "./media.ts";
 import { TEXT_LISTS_XML } from "./text-lists.ts";
+import { TEXT_MISC_XML } from "./text-misc.ts";
 import { TEXT_UI_XML } from "./text-ui.ts";
 import { tooltipsXml } from "@stl/catalog/src/wiki/tooltips.ts";
 
@@ -82,8 +83,9 @@ describe("totallynotftl.dat", () => {
     const media = await standInMedia();
     assert.equal(
       extracted.documents.length,
-      // ships, sectors, achievements, text lists, the game-over card, hover lines, names, and the Esperanto table.
-      events.length + 8 + pictures.length + media.documents.length,
+      // ships, sectors, achievements, text lists, the game-over card, the misc button,
+      // hover lines, names, and the Esperanto table.
+      events.length + 9 + pictures.length + media.documents.length,
     );
     assert.match(
       extracted.documents.find((doc) => doc.path === "data/text-eo.xml")?.xml ?? "",
@@ -114,6 +116,10 @@ describe("totallynotftl.dat", () => {
     assert.equal(
       extracted.documents.find((doc) => doc.path === "data/text_ui.xml")?.xml,
       TEXT_UI_XML,
+    );
+    assert.equal(
+      extracted.documents.find((doc) => doc.path === "data/text_misc.xml")?.xml,
+      TEXT_MISC_XML,
     );
     assert.equal(
       extracted.documents.find((doc) => doc.path === "data/text_tooltips.xml")?.xml,

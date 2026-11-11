@@ -4,6 +4,7 @@
  * matching the English-only loader.
  */
 import {
+  continueLabel,
   crewCopy,
   droneCopy,
   itemLines,
@@ -1435,6 +1436,7 @@ export function shownText(): string {
   for (const line of itemLines()) push(line);
   for (const line of verdictArchiveLines()) push(line);
   for (const line of tooltipLines()) push(line);
+  push(continueLabel());
   return parts.join("\n");
 }
 

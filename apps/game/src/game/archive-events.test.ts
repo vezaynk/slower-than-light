@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { after, describe, it } from "node:test";
-import { allFillerLists, eventDef, fillerList } from "@stl/pack";
+import { allFillerLists, archivePhrase, eventDef, fillerList } from "@stl/pack";
 import { installStandIn } from "@stl/standin";
 import { archiveCases, installArchive } from "@stl/sim/archive-play.ts";
 import { playSide, type EventDiffCase } from "./event-diff.ts";
@@ -160,7 +160,9 @@ for (const archive of archiveCases()) {
             const texts = page.texts ?? [];
             assert.ok(texts.includes(live.event?.body ?? ""), page.id);
             assert.equal(live.event?.choices[0]?.id, "fuel-wait-done");
-            assert.equal(live.event?.choices[0]?.label, "Continue...");
+            const label = archivePhrase("continue");
+            assert.ok(label, "continue");
+            assert.equal(live.event?.choices[0]?.label, label);
             const advanced = live.fleet;
             choose(live, "fuel-wait-done");
             assert.equal(live.phase, "map");

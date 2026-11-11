@@ -235,14 +235,9 @@ function findNestedChoice(choices: readonly ChoiceDef[] | undefined, id: string)
   return null;
 }
 
-/** A goto names a page, or an ftl.dat eventList whose one page is drawn, as FTL draws it. */
+/** A stored event, or one page drawn from an eventList the load names. A list picks one entry, and a load of another list draws again. */
 function gotoPage(ctx: CitedChoice, id: string): PackEvent | undefined {
-  const page = eventDef(id);
-  if (page) return page;
-  const entries = fillerList(id)?.entries ?? [];
-  if (entries.length === 0) return undefined;
-  const entry = entries[ctx.irand(entries.length)]!;
-  return entry.page ?? eventDef(entry.id);
+  return drawLoadedPage(id, (n) => ctx.irand(n));
 }
 
 type TradeRes = "fuel" | "missiles" | "parts";
@@ -346,19 +341,6 @@ function matchEvent(b: Beacon): EventDef | null {
   // title, has no card, and is stored ahead of the page.
   for (const ev of loadedEvents()) {
     if (b.flag === ev.flag || b.flag === ev.slug) return ev;
-  }
-  // A list loaded by another list is not in the event table. eventDef still opens it.
-  const listed = eventDef(b.flag);
-  if (listed && listed.id === b.flag) {
-    return {
-      dest: listed.dest,
-      slug: listed.id,
-      flag: listed.flag,
-      aliases: listed.aliases,
-      sectors: listed.sectors,
-      body: listed.body,
-      choices: listed.choices,
-    };
   }
   let shell: EventDef | null = null;
   for (const ev of loadedEvents()) {
@@ -839,12 +821,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     ev.slug === "ROCK_PIRATE_SUN"
   ) {
     return writtenOpening(g, ev);
-  }
-  // A list the out-of-fuel wait loads is not a stored event. Draw one of its pages.
-  // The page keeps its ship, reward, hidden choices, and every opening line.
-  if (!hasEvent(ev.slug) && fillerList(ev.slug)) {
-    const drawn = fuelListCard(g, ev);
-    if (drawn) return drawn;
   }
   const missing = missingCard(g, b, ev);
   if (missing) return missing;
@@ -1662,19 +1638,24 @@ function asWritten(ev: EventDef): GameEvent {
 }
 
 /**
- * One page from a list the wait loaded.
- * An inline page is not in the event table. A nested list is drawn, not stored as an event.
+ * A stored event, or one page from an eventList. Duplicate rows are weights.
+ * A list entry that loads another list draws again. A stored event is not drawn from.
  */
-function drawnListPage(g: Game, listId: string, seen: Set<string>): PackEvent | undefined {
-  if (seen.has(listId)) return undefined;
-  seen.add(listId);
-  const entries = fillerList(listId)?.entries ?? [];
-  if (entries.length === 0) return undefined;
-  const entry = entries[between(g, [0, entries.length - 1])]!;
+export function drawLoadedPage(
+  id: string,
+  roll: (count: number) => number,
+  seen = new Set<string>(),
+): PackEvent | undefined {
+  if (!id || seen.has(id)) return undefined;
+  const stored = eventDef(id);
+  if (stored) return stored;
+  const list = fillerList(id);
+  if (!list?.entries.length) return undefined;
+  seen.add(id);
+  const entry =
+    list.entries[Math.min(list.entries.length - 1, Math.max(0, roll(list.entries.length)))]!;
   if (entry.page) return entry.page;
-  if (hasEvent(entry.id)) return eventDef(entry.id);
-  if (fillerList(entry.id)) return drawnListPage(g, entry.id, seen);
-  return undefined;
+  return entry.id ? drawLoadedPage(entry.id, roll, seen) : undefined;
 }
 
 /** Opening lines live on the page. A named event's later sentences are texts, not only the first. */
@@ -1696,16 +1677,46 @@ function listPageBody(g: Game, page: PackEvent): string {
   return page.body;
 }
 
-function fuelListCard(g: Game, ev: EventDef): GameEvent | null {
-  const page = drawnListPage(g, ev.slug, new Set());
-  if (!page) return null;
+/** The card the out-of-fuel wait shows for a page it already drew.
+ * A stored event plays as itself, so a choice's fuel and a loaded list stay on that page.
+ * An inline page keeps its ship, reward, and opening lines. Continue pays a page that has no button.
+ */
+export function presentLoadedEvent(g: Game, page: PackEvent, beacon: Beacon): GameEvent | null {
+  if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
+    const lines = page.texts?.length ? page.texts : [page.body];
+    const hi = lines.length > 0 ? lines.length - 1 : 0;
+    const body = lines[between(g, [0, hi])] ?? "";
+    const choice = page.choices[0];
+    return {
+      title: page.dest,
+      body,
+      choices: [{ id: "fuel-wait-done", label: choice?.label || "Continue..." }],
+    };
+  }
+  if (hasEvent(page.id)) {
+    const card = citedEvent(g, { ...beacon, flag: page.id, name: page.dest });
+    if (!card) return null;
+    // citedEvent keeps the packed first sentence when the page has several <text> nodes.
+    // A card that rewrote the body or the buttons is left alone.
+    const texts = page.texts ?? [];
+    if (texts.length > 1 && keptPackedOpening(card, page)) {
+      card.body = texts[between(g, [0, texts.length - 1])] ?? card.body;
+    }
+    return card;
+  }
   const choices = page.choices.map((choice) => ({ id: choice.id, label: choice.label }));
   if (choices.length === 0) choices.push({ id: `listpage:${page.id}`, label: "Continue..." });
   return {
-    title: page.dest !== page.id ? page.dest : ev.dest,
+    title: page.dest,
     body: listPageBody(g, page),
     choices,
   };
+}
+
+function keptPackedOpening(card: GameEvent, page: PackEvent): boolean {
+  if (card.body !== page.body) return false;
+  if (card.choices.length !== page.choices.length) return false;
+  return page.choices.every((choice, index) => card.choices[index]?.id === choice.id);
 }
 
 function inlineListPage(id: string): PackEvent | undefined {
@@ -2330,8 +2341,9 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     if (shown === "unpaid") return false;
     if (g.phase === "defeat") return true;
     if (shown === true) return true;
-    if (lines.length > 0 && page.choices.length === 0) {
-      result(g, page.body || lines.join(" "), undefined, page.body ? lines : []);
+    if (page.choices.length === 0) {
+      const extra = lines.filter((line) => line.trim() && !(page.body ?? "").includes(line.trim()));
+      result(g, page.body || extra.join("\n\n"), undefined, page.body ? extra : []);
       g.paused = true;
       return true;
     }

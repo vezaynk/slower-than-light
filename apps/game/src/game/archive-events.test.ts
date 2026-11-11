@@ -6,7 +6,7 @@ import { archiveCases, installArchive } from "@stl/sim/archive-play.ts";
 import { playSide, type EventDiffCase } from "./event-diff.ts";
 import { choose, createGame, rand, waitHere } from "@stl/sim/sim.ts";
 import type { GameEvent } from "@stl/sim/types.ts";
-import { citedEvent } from "@stl/sim/wiki/cited-events.ts";
+import { drawLoadedPage, presentLoadedEvent } from "@stl/sim/wiki/cited-events.ts";
 import { citedFleetAdvance } from "@stl/sim/wiki/cited-sectors.ts";
 
 /**
@@ -90,7 +90,7 @@ for (const archive of archiveCases()) {
         "NO_FUEL_REFUGEE",
       ]);
       for (const id of [...new Set([...ids(off), ...ids(on)])]) {
-        assert.ok(eventDef(id), id);
+        assert.ok(eventDef(id) || fillerList(id), id);
       }
       // fuelWaitCard reads texts. Openings alone are not a successful wait.
       assert.ok((eventDef("FUEL_NOTHING")?.texts?.length ?? 0) > 1);
@@ -140,25 +140,16 @@ for (const archive of archiveCases()) {
           const fleet = live.fleet;
           const entry = list.entries[Math.floor(rand(probe) * list.entries.length)];
           assert.ok(entry);
-          const page = eventDef(entry.id);
+          seen.add(entry.id);
+          const page = drawLoadedPage(entry.id, (n) => Math.floor(rand(probe) * n));
           assert.ok(page, entry.id);
-          seen.add(page.id);
-          let expected: GameEvent;
           if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
             const lines = page.texts ?? [];
-            // Variants that live only in openings are not a wait. fuelWaitCard reads texts.
+            // Variants that live only in openings are not a wait. The wait reads texts.
             assert.ok(lines.length > 1, `${page.id} variants are not texts`);
-            const body = lines[Math.floor(rand(probe) * lines.length)] ?? "";
-            expected = {
-              title: page.dest,
-              body,
-              choices: [{ id: "fuel-wait-done", label: page.choices[0]?.label || "Continue..." }],
-            };
-          } else {
-            const cited = citedEvent(probe, { ...beacon, flag: page.id, name: page.dest });
-            assert.ok(cited, page.id);
-            expected = cited;
           }
+          const expected = presentLoadedEvent(probe, page, beacon);
+          assert.ok(expected, page.id);
           waitHere(live);
           assert.equal(live.phase, "event");
           assert.equal(live.fleet - fleet, citedFleetAdvance(live, beacon));

@@ -804,7 +804,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     return card;
   }
   // Rock arrival fights. The button and the ship are already on the page.
-  // The intro is one of the page's texts. ftl.dat stores the first of those as body.
+  // The intro is one `<text load>`. A stored first sentence is not a list.
   // Wiki citations:
   // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight in asteroid field]]
   // > "Fight a Rock ship (default rewards)." — [[Rock fight in asteroid field]]
@@ -1614,14 +1614,10 @@ ${laniusTraderOfferText(offer)}`,
   return asWritten(ev);
 }
 
-/** The page's own text and choices. Several `<text>` nodes rotate, including the first.
- * ftl.dat stores that first sentence as body and the whole list as texts. The matched card
- * does not carry texts, so the draw reads the loaded event. A blank body is the stand-in's
- * empty first text. */
+/** The page's own text and choices. A `<text load>` draws one line. A stored first sentence stays. */
 function writtenOpening(g: Game, ev: EventDef): GameEvent {
   const card = asWritten(ev);
-  const texts = eventDef(ev.slug)?.texts ?? [];
-  if (!card.body.trim() || texts.length > 1) {
+  if (!card.body.trim()) {
     const line = opening(g, ev.slug);
     if (line) card.body = line;
   }

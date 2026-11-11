@@ -75,7 +75,13 @@ import {
 import { LAYOUT_FILE, SHIP_LAYOUTS, standInShieldShift } from "../ship-layouts.ts";
 import { hullLayers, standInSheet } from "../ship-art.ts";
 import { MOUNT_IMAGES, mountsFor } from "../weapon-mounts.ts";
-import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
+import {
+  ROCK_INTRO_LOAD,
+  SECTOR_TRACKS,
+  gridFromLayout,
+  loadPack,
+  pictureForRooms,
+} from "@stl/pack";
 import type {
   AchievementDef,
   AugmentDef,
@@ -358,7 +364,12 @@ function eventRow(row: EventDef): EventDef {
     }),
   };
   const texts = OPENING_TEXTS[row.id];
-  if (texts && texts.length > 1) copy.texts = [...texts];
+  if (texts && texts.length > 1) {
+    const archiveId = ftlIdFor(row);
+    // ftl.dat keeps these four as one `<text load>`. The sentences live on that textList.
+    if (ROCK_INTRO_LOAD.has(archiveId)) copy.openings = [{ load: archiveId }];
+    else copy.texts = [...texts];
+  }
   const offers = OFFER_ROWS[row.id];
   if (offers && offers.length > 0) copy.offers = offers.map(copyOffer);
   const rolls = ROLL_LISTS[row.id];
@@ -1150,6 +1161,19 @@ function ftlIdFor(event: EventDef): string {
   return ftlEventId(event.dest) ?? event.id;
 }
 
+/** The four rock arrival fights. The sentences sit on a textList named the same as the event. */
+function rockIntroLists(): { id: string; lines: { text: string }[] }[] {
+  const lists: { id: string; lines: { text: string }[] }[] = [];
+  for (const row of citedEventRecords()) {
+    const id = ftlIdFor(row);
+    if (!ROCK_INTRO_LOAD.has(id)) continue;
+    const lines = OPENING_TEXTS[row.id];
+    if (!lines || lines.length < 2) continue;
+    lists.push({ id, lines: lines.map((text) => ({ text })) });
+  }
+  return lists;
+}
+
 function mapGoto(fx: EventDef["choices"][number]["fx"][number], ids: Map<string, string>) {
   if (fx.k !== "goto") return fx;
   return { k: "goto" as const, id: ids.get(fx.id) ?? fx.id };
@@ -1570,6 +1594,7 @@ export function loadCatalog(): void {
       beaconEvents: { ...BEACON_EVENTS },
       empties,
       textLists: [
+        ...rockIntroLists(),
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },
         { id: "CREW_POOL", lines: CREW_POOL.map((text) => ({ text })) },
       ],

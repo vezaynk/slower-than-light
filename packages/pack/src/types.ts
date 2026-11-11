@@ -1190,8 +1190,8 @@ export type EventDef = {
   /** Opening sentences. The sim still picks one. Stored when a page has more than one. */
   texts?: string[];
   /**
-   * Opening lines when a text list entry is itself a list.
-   * A flat list is expanded into `texts`. Each nested load stays one draw.
+   * Opening lines the page draws from. A flat list is usually expanded into `texts`.
+   * A nested load, and a rock arrival list, stay one draw.
    */
   openings?: OpeningLine[];
   /** Offer rows. The sim still picks one and still rolls the numbers inside it. */

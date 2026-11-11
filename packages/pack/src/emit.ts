@@ -61,7 +61,7 @@ import type {
   WeaponKind,
 } from "./types.ts";
 import { prettyXml } from "./format.ts";
-import { QUEST_ARRIVAL_PREFIX } from "./parse.ts";
+import { QUEST_ARRIVAL_PREFIX, ROCK_INTRO_LOAD } from "./parse.ts";
 
 const TYPE: Record<WeaponKind, string> = {
   laser: "LASER",
@@ -181,7 +181,11 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   for (const sector of pack.sectors ?? []) add(root, sectorElement(doc, sector, sectorPart));
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
-  for (const event of pack.events ?? []) add(root, eventElement(doc, event));
+  for (const event of pack.events ?? []) {
+    add(root, eventElement(doc, event));
+    const intros = rockIntroList(doc, event, pack.textLists);
+    if (intros) add(root, intros);
+  }
   for (const list of pack.lists ?? []) add(root, listElement(doc, list));
   // `<ship name auto_blueprint>`: a ship event a fight loads, as ftl.dat's events_ships.xml writes them.
   for (const ship of pack.shipEvents ?? []) add(root, shipEventElement(doc, ship));
@@ -597,6 +601,31 @@ function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
   return node;
 }
 
+function rockIntro(event: EventDef): boolean {
+  const line = event.openings?.[0];
+  return (
+    ROCK_INTRO_LOAD.has(event.id) &&
+    event.body === "" &&
+    event.openings?.length === 1 &&
+    !!line &&
+    "load" in line &&
+    line.load === event.id
+  );
+}
+
+function rockIntroList(
+  doc: XmlDocument,
+  event: EventDef,
+  lists: ContentPack["textLists"],
+): XmlElement | undefined {
+  if (!rockIntro(event)) return undefined;
+  const found = lists?.find((row) => row.id === event.id);
+  if (!found) return undefined;
+  const node = element(doc, "textList", { name: event.id });
+  for (const line of found.lines) if ("text" in line) add(node, leaf(doc, "text", line.text));
+  return node;
+}
+
 function emptyElement(doc: XmlDocument, page: EmptyBeaconDef): XmlElement {
   const attrs: Record<string, string> = { name: page.id };
   if (page.nebula) attrs.nebula = "true";
@@ -609,17 +638,22 @@ function emptyElement(doc: XmlDocument, page: EmptyBeaconDef): XmlElement {
 
 function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const texts = event.texts ?? [];
+  const textLoad = rockIntro(event);
   const attrs: Record<string, string> = { name: event.id };
-  if (texts.length > 1 && event.body !== "" && event.body !== texts[0]) attrs.intro = "after";
+  if (!textLoad && texts.length > 1 && event.body !== "" && event.body !== texts[0])
+    attrs.intro = "after";
   const node = element(doc, "event", attrs);
   add(node, leaf(doc, "title", event.dest));
   for (const alias of event.aliases) {
     if (alias && alias !== event.id) add(node, leaf(doc, "alias", alias));
   }
   for (const sector of event.sectors) if (sector) add(node, leaf(doc, "sector", sector));
-  const lines =
-    texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
-  for (const line of lines) add(node, leaf(doc, "text", line));
+  if (textLoad) add(node, element(doc, "text", { load: event.id }));
+  else {
+    const lines =
+      texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
+    for (const line of lines) add(node, leaf(doc, "text", line));
+  }
   if (event.ship) add(node, archiveShipElement(doc, event.ship));
   if (event.environment) add(node, environmentElement(doc, event.environment));
   if (event.store) add(node, element(doc, "store", {}));

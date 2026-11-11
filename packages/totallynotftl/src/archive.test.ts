@@ -411,7 +411,17 @@ describe("totallynotftl.dat", () => {
     );
     assert.deepEqual(
       merged.textLists?.map((row) => row.id),
-      ["STAND_IN_CALM", "STAND_IN_MORE", "STAND_IN_NEST", "NAME_SYLLABLES", "CREW_POOL"],
+      [
+        "ROCK_FIGHT_ASTEROID",
+        "ROCK_PIRATE",
+        "ROCK_PIRATE_ASTEROID",
+        "ROCK_PIRATE_SUN",
+        "STAND_IN_CALM",
+        "STAND_IN_MORE",
+        "STAND_IN_NEST",
+        "NAME_SYLLABLES",
+        "CREW_POOL",
+      ],
     );
     assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_CALM")?.lines, [
       { text: "Nothing moves." },

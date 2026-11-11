@@ -182,7 +182,7 @@ const EVENT_FILES = [
  * An empty group is omitted. Blueprints and sectors are their own files.
  */
 export function standInEventFiles(): { path: string; xml: string }[] {
-  const { events, lists, shipEvents } = splitCampaign(campaignPack()).body;
+  const { events, lists, shipEvents, textLists } = splitCampaign(campaignPack()).body;
   const groups = new Map<string, EventDef[]>();
   for (const event of events ?? []) {
     const path = eventXmlFile(event);
@@ -197,6 +197,7 @@ export function standInEventFiles(): { path: string; xml: string }[] {
     const xml = emitPack({
       events: group,
       lists: path === "data/events.xml" ? lists : undefined,
+      textLists,
       shipEvents: ships,
     });
     return [{ path, xml }];

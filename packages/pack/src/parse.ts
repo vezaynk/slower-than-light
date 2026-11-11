@@ -1465,6 +1465,14 @@ function lockOwner(value: string | undefined): EventChoice["owner"] | undefined 
   return undefined;
 }
 
+/** Rock arrival fights. ftl.dat's intro is one `<text load>`, not a copied first sentence. */
+export const ROCK_INTRO_LOAD = new Set([
+  "ROCK_FIGHT_ASTEROID",
+  "ROCK_PIRATE",
+  "ROCK_PIRATE_ASTEROID",
+  "ROCK_PIRATE_SUN",
+]);
+
 export function readEvent(node: XmlElement): EventDef | undefined {
   const parent = node.parentNode as XmlElement | null;
   if (parent?.tagName === "eventList") return undefined;
@@ -1474,6 +1482,7 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   const sectors: string[] = [];
   const choices: EventChoice[] = [];
   const lines: string[] = [];
+  const loads: string[] = [];
   const offers: OfferRow[] = [];
   const rolls: RollEntry[] = [];
   const cards: EventCard[] = [];
@@ -1485,6 +1494,11 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   let ship: EventDef["ship"];
   for (const item of elements(node)) {
     if (item.tagName === "text") {
+      const load = attr(item, "load")?.trim();
+      if (load && !ownText(item).trim() && ROCK_INTRO_LOAD.has(load)) {
+        loads.push(load);
+        continue;
+      }
       lines.push(ownText(item).trim());
       continue;
     }
@@ -1564,6 +1578,10 @@ export function readEvent(node: XmlElement): EventDef | undefined {
     body: lines[0] ?? "",
     choices,
   };
+  if (loads.length === 1 && lines.length === 0) {
+    event.body = "";
+    event.openings = [{ load: loads[0]! }];
+  }
   const texts = openingTexts(node, lines);
   if (texts) event.texts = texts;
   if (offers.length > 0) event.offers = offers;

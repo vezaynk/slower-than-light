@@ -78,6 +78,7 @@ import {
   readChoiceGates,
   readEvent,
   readEscapeTimers,
+  ROCK_INTRO_LOAD,
   readStalemate,
   readSkillSpeed,
   readAiTarget,
@@ -644,6 +645,7 @@ function readOpeningLine(item: XmlElement): OpeningLine | undefined {
 
 /**
  * A flat `<text load="LIST"/>` becomes one `<text>` per line. The sim picks one when the page is shown.
+ * A rock arrival list stays one `<text load>`, so the reader draws it.
  * A list that itself loads another list stays one node, so that load remains one draw.
  * A load inside a textList stays put for the same reason. A missing list is warned about and left out.
  */
@@ -665,7 +667,7 @@ function expandTextLoads(doc: XmlDocument, lists: Map<string, OpeningLine[]>): v
       warnPack(`<text load="${name}"/> names no textList; that text is left out.`);
       continue;
     }
-    if (!flat) continue;
+    if (!flat || ROCK_INTRO_LOAD.has(name)) continue;
     for (const line of flat) {
       const copy = doc.createElement("text");
       copy.appendChild(doc.createTextNode(line));
@@ -1215,7 +1217,9 @@ function openingLines(
   const sole = textNodes.length === 1 ? loadName(textNodes[0]!) : undefined;
   if (sole) {
     const list = lists.get(sole);
-    if (!list || !nestedList(list)) return undefined;
+    if (!list) return undefined;
+    if (ROCK_INTRO_LOAD.has(sole)) return [{ load: sole }];
+    if (!nestedList(list)) return undefined;
     return list.map((line) => ({ ...line }));
   }
   const ordered: OpeningLine[] = [];

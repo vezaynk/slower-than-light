@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 
 const INTROS = [
   "A Rock mining vessel is harvesting the mineral-rich asteroids in this locality, and their scouts take your presence to be a transgression. Battle stations!",
@@ -49,6 +50,25 @@ describe("Rock fight in asteroid field", () => {
     assert.equal(g.fightEvent, "rock-fight-in-asteroid-field");
     assert.equal(g.asteroid, true);
     assert.equal(g.scrap, 10);
+  });
+
+  it("still rotates when the first sentence is stored as the body", () => {
+    const page = eventDef("ROCK_FIGHT_ASTEROID");
+    assert.ok(page);
+    loadPack({ events: [{ ...page, body: INTROS[0]!, texts: [...INTROS] }] }, "append");
+    try {
+      const seen = new Set<string>();
+      for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+        const g = createGame(seed);
+        open(g);
+        const body = g.event?.body ?? "";
+        assert.ok(INTROS.includes(body), body);
+        seen.add(body);
+      }
+      assert.equal(seen.size, INTROS.length);
+    } finally {
+      resetPackForTests();
+    }
   });
 
   it("shows the asteroid card, then the Rock fight", () => {

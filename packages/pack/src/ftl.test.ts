@@ -6,6 +6,7 @@ import { onPackWarning } from "./warnings.ts";
 import {
   blueprintList,
   eventDef,
+  fillerList,
   hullDef,
   loadPack,
   openingLine,
@@ -564,6 +565,112 @@ describe("packFromFtl", () => {
       ]);
     } finally {
       restore();
+    }
+  });
+
+  it("opens a list loaded by another list without storing a second event", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/events_fuel.xml",
+        xml: `<FTL>
+  <textList name="PIRATE_LINES">
+    <text>First pirate line.</text>
+    <text>Second pirate line.</text>
+  </textList>
+  <eventList name="NO_FUEL_DISTRESS">
+    <event load="NO_FUEL_REFUGEE"/>
+  </eventList>
+  <eventList name="NO_FUEL_REFUGEE">
+    <event>
+      <text>A refugee offers fuel.</text>
+      <ship hostile="true" load="PIRATE"/>
+      <autoReward level="LOW">scrap_only</autoReward>
+      <choice hidden="true"><text>Continue...</text></choice>
+    </event>
+    <event load="NO_FUEL_REFUGEE_PIRATE"/>
+    <event>
+      <text>A quieter offer.</text>
+      <choice hidden="true" req="engi" max_group="1"><text>Engi trade.</text></choice>
+      <choice max_group="1"><text>Plain trade.</text></choice>
+    </event>
+  </eventList>
+  <event name="NO_FUEL_REFUGEE_DAMAGED">
+    <text>A damaged ship.</text>
+    <choice>
+      <text>Help them.</text>
+      <event>
+        <item_modify>
+          <item type="fuel" min="3" max="3"/>
+          <item type="scrap" min="-10" max="-10"/>
+        </item_modify>
+      </event>
+    </choice>
+  </event>
+  <event name="NO_FUEL_REFUGEE_PIRATE">
+    <text load="PIRATE_LINES"/>
+    <choice><text>Fight.</text></choice>
+  </event>
+  <eventList name="UNUSED_LIST">
+    <event><text>Not loaded by a list.</text></event>
+  </eventList>
+  <eventList name="EXIT_LIST">
+    <event load="EXIT_NEUTRAL"/>
+  </eventList>
+  <eventList name="EXIT_NEUTRAL">
+    <event><text>A quiet exit.</text></event>
+  </eventList>
+</FTL>`,
+      },
+    ]);
+    assert.equal(
+      pack.events?.find((event) => event.id === "NO_FUEL_REFUGEE"),
+      undefined,
+    );
+    assert.equal(
+      pack.events?.find((event) => event.id === "UNUSED_LIST"),
+      undefined,
+    );
+    assert.equal(
+      pack.events?.find((event) => event.id === "EXIT_NEUTRAL"),
+      undefined,
+    );
+    loadPack(pack, "append");
+    try {
+      const distress = pack.lists?.find((list) => list.id === "NO_FUEL_DISTRESS");
+      assert.deepEqual(
+        distress?.entries.map((entry) => entry.id),
+        ["NO_FUEL_REFUGEE"],
+      );
+      const refugee = fillerList("NO_FUEL_REFUGEE");
+      assert.ok(refugee);
+      assert.equal(eventDef("NO_FUEL_REFUGEE"), undefined);
+      const pages = refugee.entries;
+      const ambush = pages[0]?.page;
+      assert.equal(ambush?.ship?.hostile, true);
+      assert.equal(ambush?.ship?.load, "PIRATE");
+      assert.deepEqual(ambush?.reward, { level: "LOW", name: "scrap_only" });
+      assert.equal(ambush?.choices[0]?.hidden, true);
+      const damaged = eventDef("NO_FUEL_REFUGEE_DAMAGED");
+      assert.equal(damaged?.choices[0]?.label, "Help them.");
+      assert.deepEqual(
+        damaged?.choices[0]?.fx.filter((fx) => fx.k === "res"),
+        [
+          { k: "res", id: "fuel", sign: 1, lo: 3, hi: 3 },
+          { k: "res", id: "scrap", sign: -1, lo: 10, hi: 10 },
+        ],
+      );
+      const pirate = eventDef("NO_FUEL_REFUGEE_PIRATE");
+      assert.equal(pirate?.body, "First pirate line.");
+      assert.deepEqual(pirate?.texts, ["First pirate line.", "Second pirate line."]);
+      assert.equal(pirate?.openings, undefined);
+      const quiet = pages[2]?.page;
+      assert.equal(quiet?.choices[0]?.hidden, true);
+      assert.equal(quiet?.choices[0]?.maxGroup, 1);
+      assert.equal(quiet?.choices[1]?.maxGroup, 1);
+      assert.equal(eventDef("UNUSED_LIST"), undefined);
+      assert.equal(eventDef("EXIT_NEUTRAL"), undefined);
+    } finally {
+      resetPackForTests();
     }
   });
 

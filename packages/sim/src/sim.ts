@@ -207,6 +207,9 @@ import {
   citedShieldHalf,
   citedSystemHalf,
   citedSystemOff,
+  drawLoadedPage,
+  openLoadedListPage,
+  presentLoadedEvent,
   stampCitedEvents,
 } from "./wiki/cited-events.ts";
 import { missingPageWin } from "./wiki/cited-missing.ts";
@@ -8212,6 +8215,7 @@ export function choose(g: Game, id: string) {
       } else resolve();
       break;
     default:
+      if (openLoadedListPage(g, id)) break;
       if (citedOwns(id)) {
         // A price the ship cannot pay leaves the panel open. An unknown id is not this branch.
         const before = archiveSnap(g);
@@ -8594,28 +8598,12 @@ function fuelWaitCard(g: Game, beacon: Beacon): NonNullable<Game["event"]> | nul
   }
   const entry = list.entries[Math.floor(rand(g) * list.entries.length)];
   if (!entry) return null;
-  const page = eventDef(entry.id);
+  const page = drawLoadedPage(entry.id, (n) => Math.floor(rand(g) * n));
   if (!page) {
     warnPack(`Out-of-fuel list ${listId} names ${entry.id}, which is not a loaded event.`);
     return null;
   }
-  if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
-    const lines = page.texts?.length ? page.texts : [page.body];
-    const body = lines[Math.floor(rand(g) * lines.length)] ?? "";
-    const choice = page.choices[0];
-    return {
-      title: page.dest,
-      body,
-      choices: [{ id: "fuel-wait-done", label: choice?.label || "Continue..." }],
-    };
-  }
-  return (
-    citedEvent(g, { ...beacon, flag: page.id, name: page.dest }) ?? {
-      title: page.dest,
-      body: page.body,
-      choices: page.choices.map((choice) => ({ id: choice.id, label: choice.label })),
-    }
-  );
+  return presentLoadedEvent(g, page, beacon);
 }
 
 export function upgrade(g: Game, id: SysId | "reactor") {

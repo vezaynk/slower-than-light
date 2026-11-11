@@ -567,6 +567,47 @@ describe("packFromFtl", () => {
     }
   });
 
+  it("turns a list loaded by another list into an event of cards", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/events_fuel.xml",
+        xml: `<FTL>
+  <eventList name="NO_FUEL_DISTRESS">
+    <event load="NO_FUEL_REFUGEE"/>
+  </eventList>
+  <eventList name="NO_FUEL_REFUGEE">
+    <event>
+      <text>A refugee offers fuel.</text>
+    </event>
+    <event load="NO_FUEL_REFUGEE_PIRATE"/>
+  </eventList>
+  <event name="NO_FUEL_REFUGEE_PIRATE">
+    <text>Pirates in a refugee ship.</text>
+    <choice><text>Fight.</text></choice>
+  </event>
+  <eventList name="UNUSED_LIST">
+    <event><text>Not loaded by a list.</text></event>
+  </eventList>
+</FTL>`,
+      },
+    ]);
+    const distress = pack.lists?.find((list) => list.id === "NO_FUEL_DISTRESS");
+    assert.deepEqual(
+      distress?.entries.map((entry) => entry.id),
+      ["NO_FUEL_REFUGEE"],
+    );
+    const refugee = pack.events?.find((event) => event.id === "NO_FUEL_REFUGEE");
+    assert.ok(refugee);
+    assert.equal(refugee.cards?.length, 2);
+    assert.equal(refugee.cards?.[0]?.body, "A refugee offers fuel.");
+    assert.equal(refugee.cards?.[1]?.body, "Pirates in a refugee ship.");
+    assert.equal(refugee.cards?.[1]?.choices[0]?.label, "Fight.");
+    assert.equal(
+      pack.events?.find((event) => event.id === "UNUSED_LIST"),
+      undefined,
+    );
+  });
+
   it("keeps a nested text list as one draw, then picks inside it", () => {
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));

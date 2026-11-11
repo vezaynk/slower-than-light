@@ -16,7 +16,6 @@ import type {
   CrewColor,
   CrewDef,
   EventChoice,
-  EventCard,
   EventDef,
   EventEffect,
   EventResource,
@@ -336,9 +335,6 @@ export function packFromFtl(
       if (row) blueprints.put(row);
     }
   }
-  // A list row can load another list (`<event load="NO_FUEL_REFUGEE"/>`). That name is not an
-  // event, so the wait cannot open it. The list becomes one event whose cards are its pages.
-  materializeLoadedLists(events, lists);
   const pack: ContentPack = {
     weapons: weapons.rows,
     augments: augments.rows,
@@ -1384,50 +1380,6 @@ function readEventBody(
   const environment = readEnvironment(node);
   if (environment) event.environment = environment;
   return event;
-}
-
-function materializeLoadedLists(events: Catalog<EventDef>, lists: Catalog<FillerListDef>): void {
-  const loaded = new Set<string>();
-  for (const list of lists.rows) {
-    for (const entry of list.entries) {
-      if (!entry.page) loaded.add(entry.id);
-    }
-  }
-  for (const name of loaded) {
-    if (events.get(name)) continue;
-    const list = lists.get(name);
-    if (!list) continue;
-    const row = eventFromList(list, events);
-    if (row) events.put(row);
-  }
-}
-
-/** One card per list page. A childless load uses the named event. An inline page is already read. */
-function eventFromList(list: FillerListDef, events: Catalog<EventDef>): EventDef | undefined {
-  const cards: EventCard[] = [];
-  for (const entry of list.entries) {
-    const page = entry.page ?? events.get(entry.id);
-    if (!page) continue;
-    cards.push({
-      body: page.body,
-      choices: page.choices.map((choice) => ({
-        id: choice.id,
-        label: choice.label,
-        ...(choice.reqs ? { reqs: choice.reqs } : {}),
-      })),
-    });
-  }
-  if (cards.length === 0) return undefined;
-  return {
-    id: list.id,
-    dest: list.id,
-    flag: list.id,
-    aliases: [],
-    sectors: [],
-    body: "",
-    choices: [],
-    cards,
-  };
 }
 
 function readFtlList(

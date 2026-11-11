@@ -344,6 +344,19 @@ function matchEvent(b: Beacon): EventDef | null {
   for (const ev of loadedEvents()) {
     if (b.flag === ev.flag || b.flag === ev.slug) return ev;
   }
+  // A list loaded by another list is not in the event table. eventDef still opens it.
+  const listed = eventDef(b.flag);
+  if (listed && listed.id === b.flag) {
+    return {
+      dest: listed.dest,
+      slug: listed.id,
+      flag: listed.flag,
+      aliases: listed.aliases,
+      sectors: listed.sectors,
+      body: listed.body,
+      choices: listed.choices,
+    };
+  }
   let shell: EventDef | null = null;
   for (const ev of loadedEvents()) {
     if (b.name !== ev.dest && !ev.aliases.includes(b.name)) continue;

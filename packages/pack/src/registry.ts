@@ -76,6 +76,7 @@ const tunes = new Map<string, TuneDef>();
 const events = new Map<string, EventDef>();
 const shipEvents = new Map<string, ShipEventDef>();
 const lists = new Map<string, FillerListDef>();
+const listEvents = new Map<string, EventDef>();
 const blueprints = new Map<string, BlueprintListDef>();
 const textLists = new Map<string, TextListDef>();
 const empties = new Map<string, EmptyBeaconDef>();
@@ -596,6 +597,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     stores.clear();
     tunes.clear();
     events.clear();
+    listEvents.clear();
     shipEvents.clear();
     lists.clear();
     blueprints.clear();
@@ -718,6 +720,7 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     shipEvents.set(row.id, copyShipEvent(row));
   for (const row of mode === "base" ? baseLists : (pack.lists ?? []))
     lists.set(row.id, copyList(row));
+  listEvents.clear();
   for (const row of mode === "base" ? baseBlueprints : (pack.blueprints ?? []))
     blueprints.set(row.id, copyBlueprint(row));
   for (const row of mode === "base" ? baseTextLists : (pack.textLists ?? []))
@@ -973,7 +976,54 @@ export function storedId(id: string): string {
 
 export function eventDef(id: string | undefined): EventDef | undefined {
   if (!id) return undefined;
-  return storedEvent(id);
+  return storedEvent(id) ?? listEvent(id);
+}
+
+/**
+ * A filler list loaded by `<event load="..."/>` is not an event. The out-of-fuel wait
+ * still opens that name, so the list's pages are its cards. It stays out of the event
+ * table: the catalog and the round trip do not store a second copy.
+ */
+function listEvent(id: string): EventDef | undefined {
+  const cached = listEvents.get(id);
+  if (cached) return cached;
+  if (events.has(id) || !lists.has(id)) return undefined;
+  let loaded = false;
+  for (const list of lists.values()) {
+    if (list.entries.some((entry) => !entry.page && entry.id === id)) {
+      loaded = true;
+      break;
+    }
+  }
+  if (!loaded) return undefined;
+  const list = lists.get(id);
+  if (!list) return undefined;
+  const cards: EventCard[] = [];
+  for (const entry of list.entries) {
+    const page = entry.page ?? events.get(entry.id);
+    if (!page) continue;
+    cards.push({
+      body: page.body,
+      choices: page.choices.map((choice) => ({
+        id: choice.id,
+        label: choice.label,
+        ...(choice.reqs ? { reqs: choice.reqs } : {}),
+      })),
+    });
+  }
+  if (cards.length === 0) return undefined;
+  const row: EventDef = {
+    id: list.id,
+    dest: list.id,
+    flag: list.id,
+    aliases: [],
+    sectors: [],
+    body: "",
+    choices: [],
+    cards,
+  };
+  listEvents.set(id, row);
+  return row;
 }
 
 /** One root `<ship name>` event. A campaign tier such as "pirate" does not match "PIRATE". */
@@ -1624,6 +1674,7 @@ export function resetPackForTests(): void {
   stores.clear();
   tunes.clear();
   events.clear();
+  listEvents.clear();
   shipEvents.clear();
   lists.clear();
   blueprints.clear();

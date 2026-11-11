@@ -1686,11 +1686,11 @@ export function presentLoadedEvent(g: Game, page: PackEvent, beacon: Beacon): Ga
     const lines = page.texts?.length ? page.texts : [page.body];
     const hi = lines.length > 0 ? lines.length - 1 : 0;
     const body = lines[between(g, [0, hi])] ?? "";
-    const choice = page.choices[0];
+    // ftl.dat writes no <choice>. Continue is the game's, and it does not resolve the beacon.
     return {
       title: page.dest,
       body,
-      choices: [{ id: "fuel-wait-done", label: choice?.label || "Continue..." }],
+      choices: [{ id: "fuel-wait-done", label: "Continue..." }],
     };
   }
   if (hasEvent(page.id)) {

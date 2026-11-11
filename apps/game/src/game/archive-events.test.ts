@@ -95,8 +95,9 @@ for (const archive of archiveCases()) {
       // fuelWaitCard reads texts. Openings alone are not a successful wait.
       assert.ok((eventDef("FUEL_NOTHING")?.texts?.length ?? 0) > 1);
       assert.ok((eventDef("FUEL_NOTHING_DISTRESS")?.texts?.length ?? 0) > 1);
-      assert.ok((eventDef("FUEL_NOTHING")?.choices.length ?? 0) >= 1);
-      assert.ok((eventDef("FUEL_NOTHING_DISTRESS")?.choices.length ?? 0) >= 1);
+      // ftl.dat writes no <choice>. The shown card's Continue is the play below.
+      assert.equal(eventDef("FUEL_NOTHING")?.choices.length, 0);
+      assert.equal(eventDef("FUEL_NOTHING_DISTRESS")?.choices.length, 0);
     });
 
     it("plays an out-of-fuel wait from the distress lists", async () => {
@@ -159,6 +160,7 @@ for (const archive of archiveCases()) {
             const texts = page.texts ?? [];
             assert.ok(texts.includes(live.event?.body ?? ""), page.id);
             assert.equal(live.event?.choices[0]?.id, "fuel-wait-done");
+            assert.equal(live.event?.choices[0]?.label, "Continue...");
             const advanced = live.fleet;
             choose(live, "fuel-wait-done");
             assert.equal(live.phase, "map");

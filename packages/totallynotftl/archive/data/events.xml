@@ -3601,10 +3601,6 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>The prolonged wait in empty space is causing tension among the crew. Still no contact.</text>
     <text>Cabin fever begins to spread among your crew.</text>
     <text>Long range scanners detect a small settlement, but they refuse all contact.</text>
-    <choice name="fuel-wait-done">
-      <text>Continue...</text>
-      <event/>
-    </choice>
   </event>
   <event name="FUEL_NOTHING_DISTRESS">
     <title>No fuel: wait fail (distress on)</title>
@@ -3616,10 +3612,6 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <text>A few passing ships seem oblivious to your distress call and ignore all hails.</text>
     <text>A few civilian ships are within scanning range, yet none respond to your calls.</text>
     <text>No ships pass through the area.</text>
-    <choice name="fuel-wait-done">
-      <text>Continue...</text>
-      <event/>
-    </choice>
   </event>
   <eventList name="FILLER">
     <event load="EMPTY_STATION2" unique="true"/>

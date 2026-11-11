@@ -1389,7 +1389,8 @@ const EXIT_LIST = {
 };
 
 /**
- * No fuel: wait fail. The lines are the page's `<text>` list. Continue leaves the beacon unresolved.
+ * No fuel: wait fail. ftl.dat is only a text list, with no `<choice>`. The wait card supplies Continue,
+ * which leaves the beacon unresolved.
  * Distress off is weight 4 on NO_FUEL (4/11 = 36.4%). Distress on is weight 2 on NO_FUEL_DISTRESS (2/12 = 16.7%).
  */
 function fuelNothing(id: string, dest: string, lines: readonly string[]): EventDef {
@@ -1401,7 +1402,7 @@ function fuelNothing(id: string, dest: string, lines: readonly string[]): EventD
     sectors: [],
     body: lines[0] ?? "",
     texts: [...lines],
-    choices: [{ id: "fuel-wait-done", label: "Continue...", fx: [{ k: "nothing" }] }],
+    choices: [],
   };
 }
 

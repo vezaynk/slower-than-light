@@ -50,7 +50,8 @@ the quest marker is an executable rule with no archive id.
 
 Done: Rock arrival fights (November 2026). `ROCK_FIGHT_ASTEROID`, `ROCK_PIRATE`, `ROCK_PIRATE_ASTEROID`, and
 `ROCK_PIRATE_SUN` play as the page wrote them. The first text is empty, so the card uses one of the later sentences.
-The button and the ship stay on the choice.
+The button and the ship stay on the choice. `ROCK_BOARDERS_SHIP`, `ROCK_BOARDERS_ASTEROID`, `ROCK_SHIP`, and
+`ROCK_BOARDERS_SUN` now play `writtenOpening`.
 
 Done: Rebel and auto-ship arrival fights (November 2026): `REBEL_AUTO`, `AUTO_WARNING`, `BOARDERS_REBEL_SHIP`,
 `NEBULA_REBEL`, `NEBULA_AUTO`, `REBEL`, `REBEL_PULSAR`, `BOSS_FLEETS_REBEL`, `BOSS_FLEETS_BOTH_FIGHT`,

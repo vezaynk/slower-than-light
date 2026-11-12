@@ -173,8 +173,8 @@ import {
 } from "./rules/chain.ts";
 import { bypassZoltan } from "./rules/cited-bypass.ts";
 import { vengeanceFires, vengeanceShot } from "./rules/cited-vengeance.ts";
-import { noteAchieve } from "./wiki/achieve-notes.ts";
-import { noteCrewBlue } from "./wiki/achievement-track.ts";
+import { noteAchieve } from "./rules/achieve-notes.ts";
+import { noteCrewBlue } from "./rules/achievement-track.ts";
 
 import {
   droneLine,

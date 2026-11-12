@@ -31,7 +31,7 @@ import type { IconName } from "@stl/sim/icons.ts";
 import { useGame } from "@/game/store";
 import type { Difficulty as RunDifficulty } from "@stl/sim/types.ts";
 import { hangarPages } from "@/game/hangar-roster";
-import { earnedIds } from "@stl/sim/wiki/achievement-track.ts";
+import { earnedIds } from "@stl/sim/rules/achievement-track.ts";
 import { getUnlocks, resetUnlocks, subscribeUnlocks, unlockAll } from "@/game/unlock-store";
 import { emptyUnlocks, isUnlockedIn, ruleFor, shipAchievements } from "@stl/sim/unlocks.ts";
 import { CrewSprite } from "./CrewSprite";

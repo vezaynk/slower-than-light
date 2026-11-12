@@ -1,6 +1,6 @@
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { flakScatterRadius, isFlakArtillery } from "../wiki/weapons-flak-crystal.ts";
-import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { noteAchieve } from "../rules/achieve-notes.ts";
 import { liveTable, tuneMax, upgradeCost } from "../content.ts";
 import { cellOccupied, seatKits } from "../layouts.ts";
 import { LASER_FLIGHT_S, projectileFlightSeconds } from "../wiki/projectile-speed.ts";

@@ -115,7 +115,7 @@ import {
   upgrade,
 } from "@stl/sim/sim.ts";
 import type { Game } from "@stl/sim/types.ts";
-import { conditionMet, isTracked } from "@stl/sim/wiki/achievement-track.ts";
+import { conditionMet, isTracked } from "@stl/sim/rules/achievement-track.ts";
 import { mixBeacons } from "@stl/sim/wiki/beacon-mix.ts";
 import { citedOwns } from "@stl/sim/wiki/cited-events.ts";
 import { emptyPageFor } from "@stl/sim/wiki/filler-events.ts";

@@ -1,6 +1,6 @@
 import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { kitBars, log, playerMedicalOff, sparePower } from "../sim.ts";
-import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { noteAchieve } from "../rules/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import { helixHolds } from "./moreaugs.ts";
 import { hackPulseOn } from "./spike.ts";

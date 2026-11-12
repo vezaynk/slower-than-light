@@ -6,8 +6,8 @@ import type { Shot } from "../types.ts";
 import { deriveUnlocks } from "../unlocks.ts";
 import { noteAchieve, noteArtillery } from "./achieve-notes.ts";
 import { earnedNow } from "./achievement-track.ts";
-import { stampCitedEvents } from "./cited-events.ts";
-import { drawFiller } from "./filler-events.ts";
+import { stampCitedEvents } from "../wiki/cited-events.ts";
+import { drawFiller } from "../wiki/filler-events.ts";
 
 function quietMap(seed = 1, hullId?: string) {
   const g = createGame(seed, hullId);

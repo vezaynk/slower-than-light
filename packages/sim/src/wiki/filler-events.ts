@@ -43,7 +43,7 @@ import {
   type SurrenderTier,
 } from "./surrender.ts";
 // Circular imports (beacon-mix -> here -> cited-events -> beacon-mix): only read inside functions, never at load.
-import { noteReactorEvent } from "./achievement-track.ts";
+import { noteReactorEvent } from "../rules/achievement-track.ts";
 import { rollBand } from "./event-bands.ts";
 import { priced, rollPrice } from "./event-prices.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";

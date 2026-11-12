@@ -2,7 +2,7 @@
  * Wiki pages "Achievements" and "Ship Achievements".
  * The list, names, and ship of each achievement are the archive's data/achievements.xml; when one is earned is the gap
  * mod's `<condition>` on it. A condition reads named values (achievementReading below): the sector, the run's stored
- * fields, the counters in g.tally (wiki/achieve-notes.ts), and a few gauges of the ship. Those readings are the game's
+ * fields, the counters in g.tally (rules/achieve-notes.ts), and a few gauges of the ship. Those readings are the game's
  * sensors, as FTL keeps its own in the executable. An achievement with no condition is not tracked.
  * Earned ids are kept in the save store. Anything the paragraphs do not state is marked INFERRED or INVENTED.
  */

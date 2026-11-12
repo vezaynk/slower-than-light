@@ -1240,11 +1240,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Zoltan fight]]
     // > "Fight a Zoltan ship (default rewards)." — [[Zoltan fight]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ZOLTAN_FIGHT"),
-      choices: [{ id: "c:zoltan-fight:0", label: "Fight a Zoltan ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Crystal fight has no choice. Arrival calls c:crystal-fight:0.
   // One of the seven printed intros. "Fight a Crystal ship (default rewards)." unique=false.
@@ -1397,11 +1393,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Zoltan)]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Zoltan)]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ZOLTAN_PIRATE"),
-      choices: [{ id: "c:pirate-fight-zoltan:0", label: "Fight a Pirate ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Rebel fight near pulsar has no choice. Arrival calls this fight.
   // One of the three printed intros. "Fight a Rebel ship (default rewards)." pulsar=true. unique=true.

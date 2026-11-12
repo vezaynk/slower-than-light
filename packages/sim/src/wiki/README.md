@@ -56,6 +56,7 @@ The button and the ship stay on the choice. `ROCK_BOARDERS_SHIP`, `ROCK_BOARDERS
 Done: Rebel and auto-ship arrival fights (November 2026): `REBEL_AUTO`, `AUTO_WARNING`, `BOARDERS_REBEL_SHIP`,
 `NEBULA_REBEL`, `NEBULA_AUTO`, `REBEL`, `REBEL_PULSAR`, `BOSS_FLEETS_REBEL`, `BOSS_FLEETS_BOTH_FIGHT`,
 `REBEL_HELPERS`, `REBEL_VS_FEDERATION`, and `BOSS_SCOUT_RESCUE` play as the page wrote them.
+`ENGI_MANTIS_FIGHT`, `NEBULA_MANTIS_FIGHT`, `MANTIS_FIGHT`, `MANTIS_FIGHT_CHOICE`, `MANTIS_CIVILIAN`, and `MANTIS_BOARDERS` now play `writtenOpening`.
 
 ### How to migrate an event module
 

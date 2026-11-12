@@ -53,6 +53,8 @@ Done: Rock arrival fights (November 2026). `ROCK_FIGHT_ASTEROID`, `ROCK_PIRATE`,
 The button and the ship stay on the choice. `ROCK_BOARDERS_SHIP`, `ROCK_BOARDERS_ASTEROID`, `ROCK_SHIP`, and
 `ROCK_BOARDERS_SUN` now play `writtenOpening`.
 
+`ENGI_MANTIS_FIGHT`, `NEBULA_MANTIS_FIGHT`, `MANTIS_FIGHT`, `MANTIS_FIGHT_CHOICE`, `MANTIS_CIVILIAN`, and `MANTIS_BOARDERS` now play `writtenOpening`.
+
 ### How to migrate an event module
 
 1. **Map it.** List the module's events, its importers (`git grep`), and each event's archive id

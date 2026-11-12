@@ -48,9 +48,18 @@ is 1/11). The flare clock stays code (`game/rules/flare.ts`). Which fight is a s
 `arrive-rock-sun` (alias `quest-rock-sun`). `ruwen-entry.ts` stays: Ancient device is `ROCK_CRYSTAL_BEACON`, and painting
 the quest marker is an executable rule with no archive id.
 
-Done: Rock arrival fights (November 2026). `ROCK_FIGHT_ASTEROID`, `ROCK_PIRATE`, `ROCK_PIRATE_ASTEROID`, and
-`ROCK_PIRATE_SUN` play as the page wrote them. The first text is empty, so the card uses one of the later sentences.
-The button and the ship stay on the choice.
+Done: arrival pages whose card was only a rotating intro and the archive's own buttons no longer have a slug branch.
+A page with no hand-written card draws `writtenOpening`: one line when the body is blank or the page has several
+`<text>` nodes, and the page's own choices. Ids: `ROCK_FIGHT_ASTEROID`, `ROCK_PIRATE`, `ROCK_PIRATE_ASTEROID`,
+`ROCK_PIRATE_SUN`, `ROCK_BOARDERS_SHIP`, `ROCK_BOARDERS_ASTEROID`, `ROCK_SHIP`, `ROCK_BOARDERS_SUN`,
+`ENGI_MANTIS_FIGHT`, `NEBULA_MANTIS_FIGHT`, `MANTIS_FIGHT`, `MANTIS_FIGHT_CHOICE`, `MANTIS_CIVILIAN`, `MANTIS_BOARDERS`,
+`LANIUS_REBEL_FIGHT`, `LANIUS_FIGHT`, `LANIUS_PIRATE_CIVILIAN`, `LANIUS_CIVILIAN`, `LANIUS_SOLO_SALVAGE`,
+`LANIUS_PIRATE_FIGHT`, `PIRATE`, `NEBULA_PIRATE`, `PIRATE_CIVILIAN`, `PIRATE_BRIBER`, `PIRATE_PULSAR`, `MERCENARY`,
+`ZOLTAN_FIGHT`, `ZOLTAN_PIRATE`, `CRYSTAL_FIGHT`, `BOARDERS_CRYSTAL`, `NEBULA_SLUG_FIGHT`, `SLUG_REBEL`, `SLUG_PIRATE`,
+`STORM_SLUG_FIGHT`, `REBEL_AUTO`, `AUTO_WARNING`, `BOARDERS_REBEL_SHIP`, `NEBULA_REBEL`, `NEBULA_AUTO`, `REBEL`,
+`REBEL_PULSAR`, `BOSS_FLEETS_REBEL`, `BOSS_FLEETS_BOTH_FIGHT`, `REBEL_HELPERS`, `REBEL_VS_FEDERATION`,
+`BOSS_SCOUT_RESCUE`, `QUEST_ESCORT`, `FUEL_FOR_DRONE`, `FREE_ITEMS`, `TRAP_BEACON`, `NEBULA_BOARDING`, `BOARDERS`,
+`FIND_WEAPON`.
 
 ### How to migrate an event module
 
@@ -95,7 +104,7 @@ These are behaviour, not content. Their logic stays; any table or constant becom
 | `cited-nav.ts`, `weapons-beam.ts`, `weapons-flak-crystal.ts`. Done: `cited-overcharger.ts`, `cited-intruder.ts`, `cited-booster.ts`, `cited-scrambler.ts`, `cited-bypass.ts`, `cited-zoltan-power.ts`, `cited-vengeance.ts` (now `game/rules/`) | Drone, augment, weapon and hazard behaviour                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `projectile-speed.ts`, `cited-weapons.ts`                                                                                                                                                                                                       | Shot flight time from `<speed>` (speed 60 flies 0.7 s; bombs 1.35 s); crew damage, systemless hull and pierce read from the blueprint                                                                                                                                                                                                                                                                                                                                               |
 | `achievement-track.ts`, `achieve-notes.ts`                                                                                                                                                                                                      | Done: `rules/achievement-track.ts` and `rules/achieve-notes.ts`. Thresholds are gap `<achievementRules systems power stealthSector blueEvents blueSector oxygen engines beamSeconds>` (11, 29, 8, 4, 5, 20, 8, 5). A missing value warns and uses FTL's. Full Arsenal, the power bar line, and the crew-blue count read that tag, not the condition min. Conditions stay the achievement `<condition>` rows. An offensive drone is a blueprint whose `<type>` is COMBAT or BOARDER. |
-| `skills.ts`                                                                                                                                                                                                                                     | Done: `rules/skills.ts`. Repair and combat rates are gap `<skillSpeed repair0 repair1 repair2 combat0 combat1 combat2>` (1 / 1.1 / 1.2). A missing value warns and uses FTL's.                                                                                                                                                                                                                                                                                                      |
+| `skills.ts`                                                                                                                                                                                                                                     | Done: `rules/skills.ts`. Repair and combat (1 / 1.1 / 1.2), piloting, engines, shields, and weapons rows are gap `<skillSpeed repair0 repair1 repair2 combat0 combat1 combat2 pilot0 pilot1 pilot2 engines0 engines1 engines2 shields0 shields1 shields2 weapons0 weapons1 weapons2>`. A missing value warns and uses FTL's.                |
 
 The anti-ship battery shot is `rules/asb.ts`. It reads PDS_SHOT. Selling weapons, drones, augments, and cargo is `rules/sell.ts`. Half the blueprint price, rounded down; a printed sell price replaces that half. Store rows stay in `cited-stores.ts`.
 

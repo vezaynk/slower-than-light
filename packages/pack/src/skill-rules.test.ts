@@ -41,6 +41,31 @@ describe("gap skill speed", () => {
     assert.deepEqual(back.skillSpeed, pack.skillSpeed);
   });
 
+  it("reads piloting, engines, shields, and weapons", () => {
+    const pack = packFromFtl([
+      {
+        path: "data/gap.xml",
+        xml: `<FTL><skillSpeed pilot0="5" pilot1="7" pilot2="10" engines0="5" engines1="7" engines2="10" shields0="1.1" shields1="1.2" shields2="1.3" weapons0="0.9" weapons1="0.85" weapons2="0.8"/></FTL>`,
+      },
+    ]);
+    assert.deepEqual(pack.skillSpeed, {
+      pilot0: 5,
+      pilot1: 7,
+      pilot2: 10,
+      engines0: 5,
+      engines1: 7,
+      engines2: 10,
+      shields0: 1.1,
+      shields1: 1.2,
+      shields2: 1.3,
+      weapons0: 0.9,
+      weapons1: 0.85,
+      weapons2: 0.8,
+    });
+    const back = packFromFtl([{ path: "data/gap.xml", xml: emitGapDocument(pack) }]);
+    assert.deepEqual(back.skillSpeed, pack.skillSpeed);
+  });
+
   it("lets a mod override one rank and keep the rest", () => {
     resetPackForTests();
     loadPack(packFromFtl([{ path: "data/gap.xml", xml: GAP }]), "base");

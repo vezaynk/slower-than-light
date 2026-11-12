@@ -24,8 +24,9 @@ import {
   hurtArtillery,
   surgeDroneCount,
 } from "./flagship-systems.ts";
-import { droneDef, hullDef, weaponDef } from "@stl/pack";
+import { droneDef, hullDef, loadPack, packFromFtl, resetPackForTests, weaponDef } from "@stl/pack";
 import { flownAs } from "../extras/flown.ts";
+import { enginesEvasion, pilotEvasion } from "../rules/skills.ts";
 import { flagshipHullId } from "./flagship-layout.ts";
 import { enemyDroneSpot } from "../extras/swarm.ts";
 import "../pack/base.ts";
@@ -496,6 +497,52 @@ describe("@agent:flagship Rebel Flagship artillery, retreat, surge stun, AI dodg
     assert.equal(flagshipAiEvade(g, e), 0);
     g.player.kits.hacking.target = "shields";
     assert.equal(flagshipAiEvade(g, e), 10);
+  });
+
+  it("the AI dodge reads the unskilled Engines and Piloting rows", () => {
+    loadPack(
+      packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><skillSpeed pilot0="4" engines0="2"/></FTL>`,
+        },
+      ]),
+      "append",
+    );
+    try {
+      assert.equal(pilotEvasion(0), 4);
+      assert.equal(enginesEvasion(0), 2);
+      const g = bossFight(37);
+      const e = g.enemy!;
+      for (const c of g.crew) if (c.side === "enemy") c.hp = 0;
+      step(g, 0.05);
+      assert.equal(e.flagship?.ai, true);
+      assert.equal(flagshipAiEvade(g, e), enginesEvasion(0) + pilotEvasion(0));
+      const powered = e.systems.engines.power;
+      e.systems.engines.power = 0;
+      assert.equal(flagshipAiEvade(g, e), 0);
+      e.systems.engines.power = powered;
+      g.player.kits.hacking = {
+        id: "hacking",
+        level: 1,
+        power: 1,
+        left: 0,
+        cool: 0,
+        target: "engines",
+        on: false,
+        aux: 0,
+      };
+      assert.equal(flagshipAiEvade(g, e), enginesEvasion(0) + pilotEvasion(0));
+      g.player.kits.hacking.on = true;
+      g.player.kits.hacking.left = 3;
+      assert.equal(flagshipAiEvade(g, e), 0);
+      g.player.kits.hacking.target = "pilot";
+      assert.equal(flagshipAiEvade(g, e), 0);
+      g.player.kits.hacking.target = "shields";
+      assert.equal(flagshipAiEvade(g, e), enginesEvasion(0) + pilotEvasion(0));
+    } finally {
+      resetPackForTests();
+    }
   });
 });
 

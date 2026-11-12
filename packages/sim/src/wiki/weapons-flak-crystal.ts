@@ -162,11 +162,6 @@ export function flakScatterRadius(defId: string | undefined, fallback: number): 
   return n != null && n > 0 ? n : fallback;
 }
 
-/** The artillery slot is Flak Artillery when the hull's gun is a flak blueprint. The id is the hull's. */
-export function isFlakArtillery(defId: string | undefined): defId is string {
-  return !!defId && weaponDef(defId)?.kind === "flak";
-}
-
 /**
  * Where one Flak II pellet lands. `roll` is used only for a 1×2 or a 2×2.
  * Every other shape ignores `roll` and stays.

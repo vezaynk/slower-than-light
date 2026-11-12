@@ -13,6 +13,25 @@ Audit of November 2026: 57 modules, about 30,500 lines. Eleven modules that noth
 own tests did) were removed with this README: `events-0`–`events-3`, `enemies-factions`, `enemies-rebel`, `stores`,
 `kin-gaps`, `hangar-sheet`, `drones-missing` and `cite`.
 
+## Text
+
+No prose lives in code. Every sentence the player reads comes from the loaded archive.
+
+- **Code asks by id.** A handler that shows a sentence calls `eventText(id)` (`src/event-text.ts`) with ftl.dat's
+  own text id (`<text name>` in `text_events.xml`, or the `id` an event's `<text id>` uses). Find the id in ftl.dat,
+  never invent one when ftl.dat has the sentence. ftl.dat then shows its sentence; the stand-in shows its own.
+- **The stand-in's lines** live in `packages/totallynotftl/src/text-events/<area>.ts`, keyed by that id, and ship as
+  the stand-in's `data/text_events.xml`.
+- **Stand-in text is functional.** It carries no lore, story, or flavour, and never copies ftl.dat's words.
+  - An option states its outcome: "Lose 3-7 fuel. Gain 15-30 scrap." When the outcome is random, it states the odds
+    of each outcome: "1 in 3: fight. 2 in 3: gain 10-20 scrap."
+  - An intro states what is at the beacon in mechanical terms: "Hostile ship.", "Trade offer: supplies for scrap."
+  - A result states what happened, or is empty when the resource lines the sim prints already say it.
+  - Titles are functional names ("Trade: supplies for scrap"). Blueprint descriptions are stat summaries.
+    Achievement text is the bare condition.
+  - Race, system, weapon, and resource names are mechanics and may be named. Factions' motives, histories, and
+    characters are story and may not.
+
 ## 1. Content that duplicates the archive: replace with archive reads, then delete
 
 | Module          | Lines | What it holds                                                                                                                                             | Archive source                                            |

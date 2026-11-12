@@ -17,6 +17,7 @@ import { packFtlDat } from "@stl/ftldat";
 import { pictureForRooms, type HullPicture } from "@stl/pack";
 import { standInMedia } from "./media.ts";
 import { NAMES_XML, TEXT_LISTS_XML } from "./text-lists.ts";
+import { textEventsXml } from "./text-events/index.ts";
 import { TEXT_MISC_XML } from "./text-misc.ts";
 import { TEXT_UI_XML } from "./text-ui.ts";
 import {
@@ -42,6 +43,7 @@ export async function standInDat(): Promise<Uint8Array> {
       { path: "data/text_lists.xml", xml: TEXT_LISTS_XML },
       { path: "data/text_ui.xml", xml: TEXT_UI_XML },
       { path: "data/text_misc.xml", xml: TEXT_MISC_XML },
+      { path: "data/text_events.xml", xml: textEventsXml() },
       { path: "data/text_tooltips.xml", xml: tooltipsXml() },
       { path: "data/names.xml", xml: NAMES_XML },
       { path: "data/text-eo.xml", xml: TEXT_EO_XML },

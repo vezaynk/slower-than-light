@@ -6,6 +6,7 @@ import type { Beacon, Game } from "../types.ts";
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 import { eventGrade } from "./event-grades.ts";
+import { eventText } from "../event-text.ts";
 
 afterEach(() => resetPackForTests());
 
@@ -43,7 +44,7 @@ function open(seed: number): Game {
 }
 
 function moons(body: string): number {
-  const found = body.match(/one of the (five|six|seven|eleven) moons/);
+  const found = body.match(/(five|six|seven|eleven) moons/);
   assert.ok(found, body);
   return WORDS[found[1]!]!;
 }
@@ -81,7 +82,7 @@ describe("slug moon grade", () => {
     assert.equal(hired.crew.filter((c) => c.kin === "slug").length, gels);
     assert.equal(hired.crew.filter((c) => c.kin === "engi").length, shells + 1);
     assert.equal(hired.scrap, scrap);
-    assert.match(hired.event?.body ?? "", /That isss\.\.\. correct/);
+    assert.ok((hired.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_TRUE_text")));
 
     loadPack(
       {
@@ -112,7 +113,7 @@ describe("slug moon grade", () => {
     assert.equal(poor.scrap, 9);
     assert.equal(poor.fuel, 10);
     assert.equal(poor.player.parts, 10);
-    assert.match(poor.event?.body ?? "", /How many moons are there in orbit here/);
+    assert.ok((poor.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")));
     poor.scrap = 40;
     choose(poor, `c:slug-moons-question:answer:${count}:${wrong}`);
     assert.equal(poor.scrap, 30);
@@ -165,7 +166,7 @@ describe("slug moon grade", () => {
     const quietCount = answer(quiet, moons(quiet.event?.body ?? ""));
     assert.equal(quiet.crew.filter((c) => c.side === "player").length, before);
     assert.equal(quiet.scrap, 80);
-    assert.match(quiet.event?.body ?? "", /How many moons are there in orbit here/);
+    assert.ok((quiet.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")));
     choose(quiet, `c:slug-moons-question:answer:${quietCount}:${quietCount === 5 ? 6 : 5}`);
     assert.equal(quiet.scrap, 80);
     assert.equal(quiet.fuel, 10);

@@ -3,18 +3,17 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const PLANS = "c:crystalline-ship-messaging-about-rebels";
 const OUTRUN =
-  "It was never your intention to lead the Rebels here, and frankly you could do with the scrap. The Crystalline ship immediately jumps off to inform the Rebels, leaving you with a fleet to outrun!";
+  eventText("event_CRYSTAL_REQUEST_c1_c1_text");
 const CRUISE =
-  "Unable to interpret it themselves, the Crystalline Beings assume your data will mean something to the Rebels. It should see the pursuing fleet taking a leisurely cruise before they get back on track.";
-const LIE =
-  "They take one look at your fake telemetry and realize what you've done. They apparently do not take being lied to well - they immediately attack";
-const BUOY =
-  "Your distraction buoy allows you to create a very convincing flight plan. They accept it as true and give you the scrap. The deception may not be the most honorable tactic but staying ahead of the fleet is your highest priority.";
+  eventText("event_CRYSTAL_REQUEST_LIST_1_text");
+const LIE = eventText("event_CRYSTAL_REQUEST_LIST_2_text");
+const BUOY = eventText("event_CRYSTAL_REQUEST_c1_c3_text");
 const APOLOGY =
-  "You apologize for the trouble you've brought them, but explain that you have no choice. They seem to understand, and break the comm link to set about preparing defenses.";
+  eventText("event_CRYSTAL_REQUEST_c1_c4_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -193,7 +192,7 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
     g.fleet = 3;
     const held = gear(g);
     choose(g, `${PLANS}:3`);
-    assert.equal(g.event?.body, `${APOLOGY}\n\nNothing happens.`);
+    assert.equal(g.event?.body, `${APOLOGY}\n\n`);
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 3);
     assert.deepEqual(gear(g), held);

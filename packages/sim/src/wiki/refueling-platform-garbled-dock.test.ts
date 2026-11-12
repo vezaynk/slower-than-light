@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame, step } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const DOCK = "c:refueling-platform-garbled-broadcast:2";
 const HAIL = "c:refueling-platform-garbled-broadcast:0";
@@ -263,7 +264,7 @@ describe("Refueling platform garbled broadcast dock", () => {
     open(g);
     const fuel = g.fuel;
     const screech =
-      "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!";
+      eventText("event_LANIUS_FUELING_STATION_c1_text");
     choose(g, HAIL);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

@@ -11,9 +11,10 @@ import {
 } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const LEAD =
-  "Your hacking system automatically counters the digital assault and you move in to fight the ship.";
+  eventText("event_AUTO_HACKER_c2_text");
 const BODY =
   "Your arrival is greeted by numerous computer alerts. The nearby automated Rebel scout has deployed a virus and disrupted your shield system. Hopefully it won't cause further problems before you can destroy it.";
 const COUNTER = "c:auto-ship-carrying-shield-virus:1";

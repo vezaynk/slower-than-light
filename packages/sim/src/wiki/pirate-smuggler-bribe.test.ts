@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -25,12 +26,12 @@ describe("Pirate smuggler weapons", () => {
     // > "You receive medium fuel and scrap." — [[Pirate smuggler]]
     const closed = createGame(1);
     open(closed);
-    assert.match(closed.event?.body ?? "", /smuggler trying to stay away/);
+    assert.ok((closed.event?.body ?? "").includes(eventText("event_NEBULA_PIRATE_SMUGGLE_text")));
     assert.ok(closed.event?.choices.some((c) => c.id === "c:pirate-smuggler:2"));
     assert.equal(choiceDisabled(closed, "c:pirate-smuggler:2"), "Needs level 6 Weapons");
     choose(closed, "c:pirate-smuggler:2");
     assert.equal(closed.phase, "event");
-    assert.match(closed.event?.body ?? "", /smuggler trying to stay away/);
+    assert.ok((closed.event?.body ?? "").includes(eventText("event_NEBULA_PIRATE_SMUGGLE_text")));
 
     const g = createGame(2);
     open(g);

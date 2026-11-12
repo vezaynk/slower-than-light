@@ -28,6 +28,7 @@ import {
 } from "./cited-events.ts";
 import { heldSchematics } from "../rules/make-room.ts";
 import { placeIn } from "../fixtures.ts";
+import { eventText } from "../event-text.ts";
 
 function storyFlags(beacons: readonly { flag: string }[]): string[] {
   return beacons
@@ -113,7 +114,7 @@ describe("cited events", () => {
     assert.equal(g.scrapCollected, 12);
     // The station applies the scrap itself so Scrap Recovery Arm and Repair Arm can change it.
     assert.deepEqual(paid.scrapCalls, []);
-    assert.ok(paid.notes.includes('"Thank you for your business."'));
+    assert.ok(paid.notes.includes(eventText("event_SELL_DRONES_STATION_c1_text")));
     assert.ok(paid.notes.includes("You receive 12 scrap."));
     assert.equal(g.phase, "map");
   });
@@ -331,9 +332,9 @@ describe("cited events", () => {
     const scrap = shop.scrap;
     choose(shop, choice.id);
     assert.equal(shop.phase, "event");
-    assert.ok(shop.event?.body?.includes('"Thank you for your business."'));
+    assert.ok(shop.event?.body?.includes(eventText("event_SELL_DRONES_STATION_c1_text")));
     assert.ok(shop.event?.body?.includes("You receive 12 scrap."));
-    assert.equal(shop.log.includes('"Thank you for your business."'), false);
+    assert.equal(shop.log.includes(eventText("event_SELL_DRONES_STATION_c1_text")), false);
     assert.equal(shop.log.includes("You receive 12 scrap."), false);
     assert.equal(shop.player.parts, 0);
     assert.equal(shop.scrap, scrap + 12);

@@ -5,6 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -33,9 +34,9 @@ describe("Pirate ship selling drones", () => {
     const g = createGame(1);
     open(g);
     assert.deepEqual(labels(g), [
-      "Hail the ship.",
-      "Attack him before he can attack!",
-      "Quickly prepare to jump away.",
+      eventText("event_PIRATE_SALESMAN_c1_choice"),
+      eventText("event_PIRATE_SALESMAN_c2_choice"),
+      eventText("event_PIRATE_SALESMAN_c3_choice"),
     ]);
     assert.equal(
       labels(g).some((l) => /schematic/i.test(l)),

@@ -3,9 +3,10 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const INTRO =
-  "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal.";
+  eventText("event_NEBULA_TRADER_text");
 
 const TAKE =
   /^c:trade-resources-in-nebula:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
@@ -66,10 +67,10 @@ describe("Trade resources in nebula", () => {
       assert.equal(ev.choices.length, 2);
       const take = ev.choices[0]!;
       const ignore = ev.choices[1]!;
-      assert.equal(take.label, "Trade.");
+      assert.equal(take.label, eventText("event_NEBULA_TRADER_c1_choice"));
       assert.match(take.id, TAKE);
       assert.equal(ignore.id, "c:trade-resources-in-nebula:4");
-      assert.equal(ignore.label, "Ignore.");
+      assert.equal(ignore.label, eventText("event_NEBULA_TRADER_c2_choice"));
       const m = TAKE.exec(take.id);
       assert.ok(m);
       const pay = m[1] as Res;

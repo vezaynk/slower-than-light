@@ -4,6 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 const BASE: Record<string, [number, number]> = {
   fuel: [15, 30],
@@ -61,7 +62,11 @@ describe("Lanius trader", () => {
       inBand(got.scrap, BASE[got.res]![0], BASE[got.res]![1]);
       assert.deepEqual(
         g.event?.choices.map((c) => c.label),
-        ["Agree to the exchange.", "Decline", "Ask for an alternative trade."],
+        [
+          eventText("event_LANIUS_TRADER_c1_choice"),
+          eventText("event_LANIUS_TRADER_c2_choice"),
+          eventText("event_LANIUS_TRADER_c3_choice"),
+        ],
       );
       const fuel = g.fuel;
       const missiles = g.missiles;

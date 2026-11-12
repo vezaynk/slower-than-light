@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -26,7 +27,7 @@ describe("Slug drink", () => {
     open(g);
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
-      ["Drink.", "Refuse", "Have your Rockman pose as captain."],
+      [eventText("event_SLUG_DRINK_c1_choice"), "Refuse", eventText("event_SLUG_DRINK_c3_choice")],
     );
     assert.equal(choiceDisabled(g, "c:slug-drink:1"), null);
     assert.equal(choiceDisabled(g, "c:slug-drink:2"), "Needs a Rock crewmember");
@@ -43,7 +44,7 @@ describe("Slug drink", () => {
     const fight = createGame(3);
     open(fight);
     const refused =
-      "The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire.";
+      eventText("event_SLUG_DRINK_c2_text");
     choose(fight, "c:slug-drink:0");
     assert.equal(fight.phase, "event");
     assert.equal(fight.event?.choices[0]?.id, "ship-resume");

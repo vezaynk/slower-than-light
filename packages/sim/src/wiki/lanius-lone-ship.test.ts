@@ -5,6 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -31,7 +32,7 @@ describe("Lanius lone ship", () => {
       `You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, "Help! The metal monsters are coming to melt down our ship!" Strangely, no active weapon signatures are detected.`,
     );
     const lead =
-      "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.";
+      eventText("event_LANIUS_SCARED_CIVILIAN_c1_text");
     choose(g, "c:lanius-lone-ship:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

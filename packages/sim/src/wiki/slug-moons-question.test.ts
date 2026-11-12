@@ -5,6 +5,7 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 import { citedAsb, citedFleetAdvance } from "./cited-sectors.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 const WORDS: Record<string, number> = { five: 5, six: 6, seven: 7, eleven: 11 };
 
@@ -40,7 +41,7 @@ function open(seed: number): Game {
 }
 
 function moons(body: string): number {
-  const found = body.match(/one of the (five|six|seven|eleven) moons/);
+  const found = body.match(/(five|six|seven|eleven) moons/);
   assert.ok(found, body);
   return WORDS[found[1]!]!;
 }
@@ -80,7 +81,7 @@ describe("Slug moons question", () => {
     // > "You track the distress beacon with difficulty to one of the eleven moons of a planet hidden in the nebula." — [[Slug moons question]]
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80; seed++) {
-      const found = open(seed).event?.body.match(/one of the (five|six|seven|eleven) moons/);
+      const found = open(seed).event?.body.match(/(five|six|seven|eleven) moons/);
       assert.ok(found);
       seen.add(found[1]!);
     }
@@ -98,7 +99,7 @@ describe("Slug moons question", () => {
     const scrap = g.scrap;
     const n = moons(g.event?.body ?? "");
     choose(g, g.event?.choices[0]?.id ?? "");
-    assert.match(g.event?.body ?? "", /How many moons are there in orbit here/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")));
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
       ["Five.", "Six.", "Seven.", "Eleven."],
@@ -107,7 +108,7 @@ describe("Slug moons question", () => {
     assert.equal(g.crew.filter((c) => c.side === "player").length, before + 1);
     assert.equal(g.crew.filter((c) => c.kin === "slug").length, gels + 1);
     assert.equal(g.scrap, scrap);
-    assert.match(g.event?.body ?? "", /That isss\.\.\. correct/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_TRUE_text")));
     assert.match(g.event?.body ?? "", /You receive a Slug crewmember/);
   });
 
@@ -123,7 +124,7 @@ describe("Slug moons question", () => {
     // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).
     assert.equal(g.crew.filter((c) => c.side === "player").length, CREW_CAP + 1);
     assert.deepEqual(g.overflow, [{ kind: "crew" }]);
-    assert.match(g.event?.body ?? "", /That isss\.\.\. correct/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_TRUE_text")));
   });
 
   it("a wrong answer loses 35 scrap, 2-4 fuel, and 1-2 drone parts", () => {
@@ -150,7 +151,7 @@ describe("Slug moons question", () => {
       fuels.add(fuel);
       parts.add(spent);
       assert.equal(g.crew.filter((c) => c.kin === "slug").length, gels);
-      assert.match(g.event?.body ?? "", /That issss\.\.\. incorrect/);
+      assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_FALSE_text")));
     }
     assert.deepEqual(
       [...fuels].sort((a, b) => a - b),
@@ -176,6 +177,6 @@ describe("Slug moons question", () => {
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, 1);
     assert.equal(g.player.parts, 0);
-    assert.match(g.event?.body ?? "", /How many moons are there in orbit here/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")));
   });
 });

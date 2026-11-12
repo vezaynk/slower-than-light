@@ -4,6 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -63,7 +64,7 @@ describe("Rebel ship attacking Crystal ship reward", () => {
     const g = createGame(3);
     open(g);
     const lead =
-      "You move in to intercept the Crystalline ship. As soon as the Rebel scans your ship it takes the opportunity to jump. You have the sneaking suspicion they will inform the fleet of your position, but that's the least of your current concerns.";
+      eventText("event_CRYSTAL_REBEL_CRYSTAL_c2_text");
     choose(g, "c:rebel-ship-attacking-crystal-ship:1");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

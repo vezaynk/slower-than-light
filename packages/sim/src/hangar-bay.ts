@@ -15,10 +15,9 @@ import {
   weaponDef,
 } from "@stl/pack";
 import { droneKeyForName, droneKeyOf, type DroneKey } from "./gear-look.ts";
-import type { IconName } from "./icons.ts";
+import { iconNamed, type IconName } from "./icons.ts";
 import { canDeploy } from "./extras/swarm.ts";
 import { systemLabel } from "./content.ts";
-import { isFlakArtillery } from "./wiki/weapons-flak-crystal.ts";
 
 /** The augment's blueprint title. An id the archive has no `augBlueprint` for shows as the id, with a warning. */
 function augmentName(id: string): string {
@@ -75,7 +74,7 @@ function systemName(id: string, weapon?: string): string {
 }
 
 function systemIcon(id: string, weapon?: string): IconName {
-  if (id === "artillery" && isFlakArtillery(weapon)) return "ARTILLERY_FED_C";
+  if (id === "artillery") return iconNamed(weapon) ?? "artillery";
   return id as IconName;
 }
 

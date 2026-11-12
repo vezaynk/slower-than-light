@@ -18,6 +18,7 @@ import {
 } from "@stl/pack";
 import { createGame, hangarLoadout } from "@stl/sim/sim.ts";
 import { hangarBay } from "@stl/sim/hangar-bay.ts";
+import { iconForName } from "@stl/sim/icons.ts";
 import { hangarPages } from "./hangar-roster.ts";
 import { systemLabel } from "@stl/sim/content.ts";
 
@@ -219,6 +220,40 @@ describe("hangar bay", () => {
         hangarBay("PLAYER_SHIP_FED_3")?.systems.find((system) => system.id === "artillery")?.name,
         "Archive Flak",
       );
+    } finally {
+      resetPackForTests();
+    }
+  });
+
+  it("uses the artillery glyph of the hull's gun, not a fixed flak id", () => {
+    const hull = hullDef("PLAYER_SHIP_FED_3");
+    const gun = weaponDef("ARTILLERY_FED_C");
+    assert.ok(hull && gun);
+    assert.equal(iconForName("Flak"), "artillery");
+    assert.equal(
+      hangarBay("PLAYER_SHIP_FED_3")?.systems.find((system) => system.id === "artillery")?.icon,
+      gun.id,
+    );
+    loadPack(
+      {
+        weapons: [{ ...gun, id: "MOD_FLAK", name: "MOD_FLAK" }],
+        hulls: [
+          {
+            ...hull,
+            installs: hull.installs?.map((item) =>
+              item.id === "artillery" ? { ...item, weapon: "MOD_FLAK" } : item,
+            ),
+          },
+        ],
+      },
+      "append",
+    );
+    try {
+      const slot = hangarBay("PLAYER_SHIP_FED_3")?.systems.find(
+        (system) => system.id === "artillery",
+      );
+      assert.equal(slot?.icon, "artillery");
+      assert.equal(slot?.name, systemLabel("artillery"));
     } finally {
       resetPackForTests();
     }

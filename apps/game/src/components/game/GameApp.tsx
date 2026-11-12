@@ -107,7 +107,7 @@ import {
   raiseFlakPower,
   upgradeFlak,
 } from "@stl/sim/extras/flakart.ts";
-import { isFlakArtillery } from "@stl/sim/wiki/weapons-flak-crystal.ts";
+import { isFlakArtillery } from "@stl/sim/rules/artillery.ts";
 import { Hangar } from "./Hangar";
 import { InstallButton } from "./InstallGuide";
 import {
@@ -274,7 +274,7 @@ import { DroneArt, WeaponArt } from "./GearArt";
 import { CloseX } from "./CloseX";
 import { PixelIcon } from "./PixelIcon";
 import { clockRim } from "./SystemClock";
-import type { IconName } from "@stl/sim/icons.ts";
+import { iconNamed, type IconName } from "@stl/sim/icons.ts";
 import { armHold, holdTookContext, swallowHoldClick } from "./hold";
 import { Screen } from "./Screen";
 import { ShieldField } from "./ShieldField";
@@ -331,11 +331,11 @@ function kitLabel(id: KitId, weapon?: string): string {
   if (id !== "artillery") return KIT_LABEL[id];
   const name = weapon ? weaponDef(weapon)?.name : undefined;
   if (name && name !== weapon) return name;
-  return isFlakArtillery(weapon) ? "Flak Artillery" : KIT_LABEL.artillery;
+  return systemLabel("artillery");
 }
 
 function kitIcon(id: KitId, weapon?: string): IconName {
-  if (id === "artillery" && isFlakArtillery(weapon)) return "ARTILLERY_FED_C";
+  if (id === "artillery") return iconNamed(weapon) ?? id;
   return id;
 }
 

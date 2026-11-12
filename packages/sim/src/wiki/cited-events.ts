@@ -1252,11 +1252,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Crystal fight]]
     // > "Fight a Crystal ship (default rewards)." — [[Crystal fight]]
-    return {
-      title: ev.dest,
-      body: opening(g, "CRYSTAL_FIGHT"),
-      choices: [{ id: "c:crystal-fight:0", label: "Fight a Crystal ship (default rewards)" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Rebel fight among Rebel fleet has no choice. Arrival calls this fight.
   // One of the seven printed intros. "Fight a Rebel ship." unique=false. The low scrap and medium scrap payouts stay the winning results.
@@ -1547,13 +1543,7 @@ ${laniusTraderOfferText(offer)}`,
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Crystal]]
     // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
-    return {
-      title: ev.dest,
-      body: opening(g, "BOARDERS_CRYSTAL"),
-      choices: [
-        { id: "c:boarders-crystal:0", label: "2-3 crystal boarders beam aboard your ship." },
-      ],
-    };
+    return writtenOpening(g, ev);
   }
   // Boarders: Rockmen near sun. One of the two printed intros. The boarders stay c:boarders-rockmen-near-sun:0.
   if (ev.slug === "ROCK_BOARDERS_SUN") {

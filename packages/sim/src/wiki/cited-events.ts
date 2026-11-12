@@ -30,6 +30,7 @@ import {
   joinCrew,
   mantisBoarders,
   pageCard,
+  pageFight,
   plasmaHumanBoarders,
   scrapBand,
   rockBoarders,
@@ -125,6 +126,11 @@ type ChoiceDef = {
   fx: Fx[];
   /** Buttons on an inline result. A load stores the next page on a goto instead. */
   choices?: ChoiceDef[];
+  hidden?: boolean;
+  owner?: "filler" | "missing" | "cited" | "quest";
+  textLoad?: string;
+  grants?: { kind: string; id: string; amount?: number; name?: string }[];
+  ship?: { hostile: boolean; load?: string };
 };
 
 type EventDef = {
@@ -1012,21 +1018,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
-  // Rock atheists. {{Blue Option|Improved Sensors|level=2+}}. The button stays visible.
-  if (ev.slug === "ROCK_ATHIEST") {
-    return {
-      title: ev.dest,
-      body: "You encounter a small craft with minimal propulsion; its Rock crew-member explains that the Rock home-world is run on lies and propaganda that keep the populace in check, and that they want no part of it.",
-      choices: [
-        { id: "c:rock-atheists:0", label: "Tell them their god sent them here to join your crew." },
-        {
-          id: "c:rock-atheists:1",
-          label: "Promise to share with them the truths they've been denied.",
-        },
-        { id: "c:rock-atheists:2", label: "Show them to your data suite." },
-      ],
-    };
-  }
   // Pirate ship selling drones. Hail, then dock. The unnamed schematic is not a button.
   if (ev.slug === "PIRATE_SALESMAN") {
     return {
@@ -1525,6 +1516,24 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const choice = findChoice(id);
   if (!choice) return false;
   const g = ctx.g;
+  // A hidden result that stores its own ship, text list, or grant. An unmet req does nothing.
+  if (
+    (choice.textLoad || choice.grants?.length || (choice.ship?.hostile && !choice.ship.load)) &&
+    ownedLock(g, id, choice.owner ? locksOwned(choice.owner) : {})
+  )
+    return false;
+  if (choice.ship?.hostile && !choice.ship.load) {
+    const load = pageOwningChoice(id)?.ship?.load;
+    if (!load) return false;
+    const slug = /^c:([^:]+):/.exec(id)?.[1] ?? load;
+    pageFight(
+      g,
+      textListLine(choice.textLoad, (n) => ctx.irand(n)),
+      load,
+      slug,
+    );
+    return true;
+  }
   // Letting a ship live ends the fight only while that ship is still there.
   if (choice.fx.some((fx) => fx.k === "close") && !g.enemy) return true;
   // Remote settlement. Fire Beam and Fire Bomb. citedChoose does not read citedChoiceDisabled.
@@ -1877,6 +1886,14 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (fightPageShip(ctx, id)) return true;
   ctx.resolve();
   return true;
+}
+
+/** One line of a textList. A missing list is a blank sentence. */
+function textListLine(id: string | undefined, roll: (count: number) => number): string {
+  const lines = (id ? textList(id)?.lines : undefined) ?? [];
+  const texts = lines.flatMap((line) => ("text" in line && line.text ? [line.text] : []));
+  if (texts.length === 0) return "";
+  return texts[Math.min(texts.length - 1, Math.max(0, roll(texts.length)))] ?? "";
 }
 
 /** The page's hostile `<ship load>`, when this choice did not load one of its own. */

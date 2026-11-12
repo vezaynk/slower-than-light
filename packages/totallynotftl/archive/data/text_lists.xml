@@ -43,4 +43,8 @@
     <text>Quill Ade</text>
     <text>Mara Kent</text>
   </textList>
+  <textList name="ROCK_ATHIEST_BAD">
+    <text>They shout that this is the same tale they left behind, and the skiff's guns start to charge.</text>
+    <text>They call you another keeper of the official story. The skiff turns hostile.</text>
+  </textList>
 </FTL>

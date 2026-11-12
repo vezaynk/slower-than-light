@@ -956,19 +956,6 @@ They apologize for their hasty response to your presence and spend some time ref
       <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
-  <event name="ROCK_ATHIEST">
-    <title>Rock atheists</title>
-    <alias>rock-atheists</alias>
-    <alias>Rock Deserters</alias>
-    <alias>Rock atheists</alias>
-    <sector>ROCK_SECTOR</sector>
-    <sector>ROCK_HOME</sector>
-    <text/>
-    <choice name="c:rock-atheists:0">
-      <text>Tell them their god sent them here to join your crew</text>
-      <ship hostile="true" load="ROCK_SHIP"/>
-    </choice>
-  </event>
   <event name="NEBULA_ROCK_RACIST">
     <title>Rock ship in plasma storm</title>
     <alias>rock-ship-in-plasma-storm</alias>

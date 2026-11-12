@@ -67,5 +67,9 @@ ${nameListXml("female", FEMALE_NAMES)}
 export const TEXT_LISTS_XML = `${FIXTURES}
 ${textListXml("NAME_SYLLABLES", NAME_SYLLABLES)}
 ${textListXml("CREW_POOL", CREW_POOL)}
+${textListXml("ROCK_ATHIEST_BAD", [
+  `They shout that this is the same tale they left behind, and the skiff's guns start to charge.`,
+  `They call you another keeper of the official story. The skiff turns hostile.`,
+])}
 </FTL>
 `;

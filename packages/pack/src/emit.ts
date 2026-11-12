@@ -42,6 +42,7 @@ import type {
   FactionEscape,
   FactionSurrender,
   FillerListDef,
+  ArchiveGrant,
   HullDef,
   NamedReward,
   OfferRow,
@@ -633,9 +634,35 @@ function statFind(doc: XmlDocument, tag: "crewBlueprint" | "race", race: CrewDef
 function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
   const node = element(doc, "eventList", { name: list.id });
   for (const entry of list.entries) {
+    if (entry.page) {
+      add(node, inlineListEvent(doc, entry));
+      continue;
+    }
     add(node, element(doc, "event", { load: entry.id, unique: entry.unique ? "true" : "false" }));
   }
   return node;
+}
+
+/** A list row that stores its page. The name is the entry id. Text and crew live on that event. */
+function inlineListEvent(doc: XmlDocument, entry: FillerListDef["entries"][number]): XmlElement {
+  const page = entry.page!;
+  const node = element(doc, "event", {
+    name: entry.id,
+    unique: entry.unique ? "true" : "false",
+  });
+  if (page.body) add(node, leaf(doc, "text", page.body));
+  if (page.ship) add(node, archiveShipElement(doc, page.ship));
+  for (const grant of page.grants ?? []) add(node, crewGrantElement(doc, grant));
+  return node;
+}
+
+function crewGrantElement(doc: XmlDocument, grant: ArchiveGrant): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (grant.amount != null) attrs.amount = num(grant.amount);
+  if (grant.kind === "crew") attrs.class = grant.id;
+  else attrs.id = grant.id;
+  if (grant.name) attrs.name = grant.name;
+  return element(doc, grant.kind === "crew" ? "crewMember" : grant.kind, attrs);
 }
 
 function textListElement(doc: XmlDocument, list: TextListDef): XmlElement {
@@ -702,6 +729,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
     }
     let placedGift = false;
     let note: XmlElement | undefined;
+    let granted = false;
     for (const fx of choice.fx) {
       if (fx.k === "nothing" && choice.gift && !placedGift) {
         add(choiceNode, nothingEvent(doc, choice.gift));
@@ -717,12 +745,32 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
           add(holder, quest);
           add(choiceNode, holder);
         }
+      } else if (fx.k === "note") {
+        const written = effectElement(doc, fx);
+        if (!granted && choice.grants?.length) {
+          for (const grant of choice.grants) add(written, crewGrantElement(doc, grant));
+          granted = true;
+        }
+        add(choiceNode, written);
+        note = written;
       } else {
         const node = effectElement(doc, fx);
         add(choiceNode, node);
-        if (fx.k === "note") note = node;
-        else if (node.tagName === "event") note = undefined;
+        if (node.tagName === "event") note = undefined;
       }
+    }
+    if (
+      !granted &&
+      (choice.textLoad ||
+        choice.grants?.length ||
+        (choice.ship && !choice.fx.some((fx) => fx.k === "fight")))
+    ) {
+      const result = element(doc, "event", {});
+      if (choice.textLoad) add(result, element(doc, "text", { load: choice.textLoad }));
+      if (choice.ship && !choice.fx.some((fx) => fx.k === "fight"))
+        add(result, archiveShipElement(doc, choice.ship));
+      for (const grant of choice.grants ?? []) add(result, crewGrantElement(doc, grant));
+      add(choiceNode, result);
     }
     if (choice.reward) add(choiceNode, autoReward(doc, choice.reward.name, choice.reward.level));
     if (choice.environment) add(choiceNode, environmentElement(doc, choice.environment));

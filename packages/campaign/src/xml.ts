@@ -47,7 +47,6 @@ import {
   droneOrbitRules,
   sectorMapRules,
   type ContentPack,
-  type EventDef,
 } from "@stl/pack";
 
 /** The catalog as one pack. */

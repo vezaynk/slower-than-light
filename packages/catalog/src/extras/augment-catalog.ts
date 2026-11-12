@@ -29,7 +29,7 @@ export const CATALOG: Listing[] = [
   {
     id: "AUTO_COOLDOWN",
     name: "Automated Re-loader",
-    detail: "Weapon charge speed rises 10% per copy. Charge time is divided by 1 + copies / 10.",
+    detail: "Weapons charge 10% faster per copy.",
     cost: 40,
     value: 0.1,
     stackable: true,
@@ -38,7 +38,7 @@ export const CATALOG: Listing[] = [
   {
     id: "EXPLOSIVE_REPLICATOR",
     name: "Explosive Replicator",
-    detail: "A missile has a 50% chance not to be spent.",
+    detail: "50% chance a missile or bomb shot uses no missile.",
     cost: 60,
     value: 0.5,
   },
@@ -46,21 +46,21 @@ export const CATALOG: Listing[] = [
   {
     id: "CLOAK_FIRE",
     name: "Stealth Weapons",
-    detail: "Firing does not drop cloaking.",
+    detail: "Firing does not end cloaking.",
     cost: 50,
   },
   // Augmentations, "Offensive Augmentations", Weapon Pre-Igniter. Store cost 120.
   {
     id: "WEAPON_PREIGNITE",
     name: "Weapon Pre-Igniter",
-    detail: "After a jump, enabled weapons that have power start fully charged.",
+    detail: "Powered weapons start fully charged after each jump.",
     cost: 120,
   },
   // Augmentations, "Defensive Augmentations", Repair Arm. Store cost 50.
   {
     id: "REPAIR_ARM",
     name: "Repair Arm",
-    detail: "Scrap gain repairs 2 hull and is cut 15% while the hull is not already full.",
+    detail: "Scrap gains repair 2 hull. Scrap gains are 15% lower while hull is damaged.",
     cost: 50,
     value: 0.15,
   },
@@ -68,7 +68,7 @@ export const CATALOG: Listing[] = [
   {
     id: "ION_ARMOR",
     name: "Reverse Ion Field",
-    detail: "50% chance to ignore an ion hit. Two or more ignore every ion hit.",
+    detail: "50% chance to ignore ion damage. 2 or more copies: ignore all ion damage.",
     cost: 45,
     value: 0.5,
     stackable: true,
@@ -86,7 +86,7 @@ export const CATALOG: Listing[] = [
   {
     id: "FTL_BOOSTER",
     name: "FTL Recharge Booster",
-    detail: "One copy makes FTL charge take 80% as long. Two take 67%. Three take 57%.",
+    detail: "FTL charges 25% faster per copy.",
     cost: 50,
     value: 0.25,
     stackable: true,
@@ -95,7 +95,7 @@ export const CATALOG: Listing[] = [
   {
     id: "SCRAP_COLLECTOR",
     name: "Scrap Recovery Arm",
-    detail: "Scrap gain is 10% higher per copy, applied before a weld cut, then rounded down.",
+    detail: "Scrap gains 10% higher per copy.",
     cost: 50,
     value: 0.1,
     stackable: true,
@@ -105,7 +105,7 @@ export const CATALOG: Listing[] = [
   {
     id: "ROCK_ARMOR",
     name: "Rock Plating",
-    detail: "15% chance to ignore hull damage. Systems still take the hit. Not a store item.",
+    detail: "15% chance to ignore hull damage. Not sold.",
     cost: 80,
     value: 0.15,
   },
@@ -114,7 +114,7 @@ export const CATALOG: Listing[] = [
   {
     id: "SYSTEM_CASING",
     name: "Titanium System Casing",
-    detail: "15% chance to ignore system damage. The hull still takes the hit. Not a store item.",
+    detail: "15% chance to ignore system damage. Not sold.",
     cost: 80,
     value: 0.15,
   },
@@ -122,7 +122,7 @@ export const CATALOG: Listing[] = [
   {
     id: "BATTERY_BOOSTER",
     name: "Battery Charger",
-    detail: "The Backup Battery cooldown is cut in half.",
+    detail: "Backup Battery cooldown halved.",
     cost: 40,
     value: 0.5,
   },
@@ -130,7 +130,7 @@ export const CATALOG: Listing[] = [
   {
     id: "O2_MASKS",
     name: "Emergency Respirators",
-    detail: "Suffocation damage is halved, including while boarding. A Crystal takes a quarter.",
+    detail: "Crew take half suffocation damage.",
     cost: 50,
     value: 0.5,
   },
@@ -138,14 +138,14 @@ export const CATALOG: Listing[] = [
   {
     id: "FIRE_EXTINGUISHERS",
     name: "Fire Suppression",
-    detail: "Fires on your ship die down faster than a person can put them out.",
+    detail: "Fires on your ship burn out faster.",
     cost: 65,
   },
   // Augmentations, "FTL Augmentations", Distraction Buoys. Store cost 55.
   {
     id: "FLEET_DISTRACTION",
     name: "Distraction Buoys",
-    detail: "At sector start, before sector 8, the fleet falls back one jump.",
+    detail: "Rebel fleet starts each sector 1 jump further back, before sector 8.",
     cost: 55,
     value: 1,
   },
@@ -153,15 +153,14 @@ export const CATALOG: Listing[] = [
   {
     id: "ADV_SCANNERS",
     name: "Long-Ranged Scanners",
-    detail:
-      "Adjacent beacons show an environmental hazard and possible ship presence. Selling or swapping the scanners hides that again.",
+    detail: "Adjacent beacons show hazards and ships.",
     cost: 30,
   },
   // Augmentations, "FTL Augmentations", FTL Jammer. Store cost 30.
   {
     id: "FTL_JAMMER",
     name: "FTL Jammer",
-    detail: "Enemy ships take twice as long to charge FTL.",
+    detail: "Enemy FTL charges at half speed.",
     cost: 30,
     value: 2,
   },
@@ -169,59 +168,56 @@ export const CATALOG: Listing[] = [
   {
     id: "DRONE_RECOVERY",
     name: "Drone Recovery Arm",
-    detail:
-      "A powered defense drone gives its part back when the jump starts. A powered combat drone gives it back only after the fight. Boarding, ion, crew, and hacking drones do not.",
+    detail: "Powered defense and combat drones return their drone part. Boarding drones do not.",
     cost: 50,
   },
   // Augmentations, "Offensive Augmentations", Hacking Stun. Store cost 60.
   {
     id: "HACKING_STUN",
     name: "Hacking Stun",
-    detail: "Everyone in a room during a hacking pulse is stunned for that pulse.",
+    detail: "Hacking pulses stun crew in the hacked room.",
     cost: 60,
   },
   // Augmentations, "Crew Augmentations", Backup DNA Bank. Store cost 40.
   {
     id: "BACKUP_DNA",
     name: "Backup DNA Bank",
-    detail: "A waiting body stays in the clone bay queue even when the clone bay is off or broken.",
+    detail: "Clone Bay keeps dead crew queued while unpowered or damaged.",
     cost: 40,
   },
   // Augmentations, "Crew Augmentations", Reconstructive Teleport. Store cost 70.
   {
     id: "TELEPORT_HEAL",
     name: "Reconstructive Teleport",
-    detail: "A person sent through the teleporter is fully healed.",
+    detail: "Crew are fully healed when teleported.",
     cost: 70,
   },
   // Augmentations, "Misc. Augmentations", Lifeform Scanner. Store cost 40.
   {
     id: "LIFE_SCANNER",
     name: "Lifeform Scanner",
-    detail: "Living crew show up even when sensors do not.",
+    detail: "Shows crew on enemy ships without Sensors.",
     cost: 40,
   },
   // Augmentations, "FTL Augmentations", "Adv. FTL Navigation". Purchase price 50.
   {
     id: "FTL_JUMPER",
     name: "Adv. FTL Navigation",
-    detail:
-      "The ship can jump to any previously visited beacon, including beacons later overtaken by the Rebel Fleet.",
+    detail: "Jump to any visited beacon, including ones the fleet has taken.",
     cost: 50,
   },
   // Augmentations, "Offensive Augmentations", Defense Scrambler. Purchase price 80.
   {
     id: "DEFENSE_SCRAMBLER",
     name: "Defense Scrambler",
-    detail:
-      "Enemy Defense Drone I, Defense Drone II, and Anti-Combat drones cannot acquire or shoot down targets. Your own defense drones still fire.",
+    detail: "Enemy defense drones cannot fire.",
     cost: 80,
   },
   // Augmentations, "Offensive Augmentations", Zoltan Shield Bypass. Purchase price 55.
   {
     id: "ZOLTAN_BYPASS",
     name: "Zoltan Shield Bypass",
-    detail: "Crew teleportation, bomb teleportation, and mind control work through Zoltan Shields.",
+    detail: "Teleporter, bombs, and Mind Control work through Zoltan Shields.",
     cost: 55,
   },
   // Augmentations, "Non-Purchasable Augmentations", Crystal Vengeance. "Sell price: 40", so the blueprint cost is 80.
@@ -230,7 +226,7 @@ export const CATALOG: Listing[] = [
     id: "CRYSTAL_SHARDS",
     name: "Crystal Vengeance",
     detail:
-      "Each time the ship takes damage there is a 10 percent chance to fire a crystal shot that does 1 damage, has a 10 percent chance to breach, has a 20 percent chance to stun for 3 seconds, ignores shields, is affected by evasion, and can be shot down by defense drones.",
+      "10% chance per hit taken to fire a shard: 1 damage, ignores shields, 10% breach, 20% stun. Not sold.",
     cost: 80,
   },
   // Augmentations, "Non-Purchasable Augmentations", Damaged Stasis Pod. "Sell price: 15", so the blueprint cost is 30.
@@ -238,8 +234,7 @@ export const CATALOG: Listing[] = [
   {
     id: "STASIS_POD",
     name: "Damaged Stasis Pod",
-    detail:
-      "More than one can be held at a time with each copy in an augmentation slot, each can be acquired only from the Dense asteroid field distress call, and each Zoltan research facility opens a single pod to yield a Crystal crewmember.",
+    detail: "Crystal crew pod. Opened by a Zoltan sector event. Stacks. Not sold.",
     cost: 30,
     stackable: true,
   },
@@ -248,8 +243,7 @@ export const CATALOG: Listing[] = [
   {
     id: "DRONE_SPEED",
     name: "Drone Reactor Booster",
-    detail:
-      "Crew drone movement speed is increased by 25 percent, from 50 percent of regular crew speed to 62.5 percent.",
+    detail: "Crew drones move 25% faster. Not sold.",
     cost: 50,
   },
   // Augmentations, "Non-Purchasable Augmentations", Engi Med-bot Dispersal. "Sell price: 30", so the blueprint cost is 60.
@@ -257,8 +251,7 @@ export const CATALOG: Listing[] = [
   {
     id: "NANO_MEDBAY",
     name: "Engi Med-bot Dispersal",
-    detail:
-      "It heals 1.6 health points per second when the medbay is powered, medbay upgrades do not affect it, it does not heal crew on another ship, and it does nothing with a clone bay.",
+    detail: "Heals crew 1.6 HP/s anywhere on your ship while Medbay is powered. Not sold.",
     cost: 60,
   },
   // Augmentations, "Non-Purchasable Augmentations", Mantis Pheromones. "Sell price: 25", so the blueprint cost is 50.
@@ -266,7 +259,7 @@ export const CATALOG: Listing[] = [
   {
     id: "CREW_STIMS",
     name: "Mantis Pheromones",
-    detail: "Crew movement speed increases by 25 percent on your ship and while boarding an enemy.",
+    detail: "Crew move 25% faster. Not sold.",
     cost: 50,
   },
   // Augmentations, "Non-Purchasable Augmentations", Slug Repair Gel. "Sell price: 30", so the blueprint cost is 60.
@@ -274,8 +267,7 @@ export const CATALOG: Listing[] = [
   {
     id: "SLUG_GEL",
     name: "Slug Repair Gel",
-    detail:
-      "It fixes all breaches simultaneously at 75 percent of regular crew speed and stacks with crew repairs.",
+    detail: "Repairs all breaches at once, at 75% crew repair speed. Not sold.",
     cost: 60,
   },
   // Augmentations, "Non-Purchasable Augmentations", Zoltan Shield. "Sell price: 40", so the blueprint cost is 80.
@@ -284,7 +276,7 @@ export const CATALOG: Listing[] = [
     id: "ENERGY_SHIELD",
     name: "Zoltan Shield",
     detail:
-      "It has 5 points of energy shielding that are completely recharged on an FTL jump, enemy shields are replenished on revisiting the beacon, only the initial boarding party of a boarding event passes through it, and Zoltan Shield Bypass lets crew teleportation, bomb teleportation, and mind control pass through it.",
+      "5-point shield over regular shields. Refills on each jump. Blocks teleporter, bombs, and Mind Control. Not sold.",
     cost: 80,
   },
 ];

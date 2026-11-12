@@ -10,7 +10,9 @@ import { STORE_RARITY } from "../wiki/store-rarity.ts";
 import {
   crewPowers,
   droneDetail,
+  hullDetail,
   shortLabel,
+  type HullNames,
   weaponDetail,
   weaponFlavor,
 } from "../extras/blueprint-copy.ts";
@@ -172,7 +174,7 @@ function droneRow(row: (typeof CITED_DRONES)[number] & { image?: string }): Dron
   const gun = DRONE_GUN_OF[row.ref];
   if (gun) drone.weapon = gun;
   drone.short = shortLabel(row.name);
-  const detail = droneDetail(row.type, row.power);
+  const detail = droneDetail(row.type, row.power, row.target);
   if (detail) drone.detail = detail;
   return drone;
 }
@@ -603,13 +605,30 @@ function copyOffer(row: OfferRow): OfferRow {
   };
 }
 
+/**
+ * Names the hull summary prints. A `_PLAYER` schematic reads its base row's name. An artillery gun with no
+ * weapon row prints "Artillery". Any other unknown id prints as itself.
+ */
+const HULL_NAMES: HullNames = {
+  weapon: (id) => WEAPONS[id]?.name ?? (id.startsWith("ARTILLERY") ? "Artillery" : id),
+  drone: (id) => {
+    const rows = [...CITED_DRONES, ...BOSS_DRONES];
+    const base = id.replace(/_PLAYER$/, "");
+    return (rows.find((row) => row.ref === id) ?? rows.find((row) => row.ref === base))?.name ?? id;
+  },
+  augment: (id) => CATALOG.find((row) => row.id === id)?.name ?? id,
+  kin: (id) => (KIN as Record<string, { name: string } | undefined>)[id]?.name ?? id,
+  kit: (id) =>
+    id === "drones" ? "Drone Control" : (CITED_SYSTEMS.find((row) => row.ref === id)?.name ?? id),
+};
+
 function hullRow(spec: HullSpec): HullDef {
   const row: HullDef = {
     id: spec.id,
     cruiser: spec.cruiser,
     layout: LAYOUT_FILE[spec.id] ?? spec.layout,
     name: spec.name,
-    quote: spec.quote,
+    quote: hullDetail(spec, HULL_NAMES),
     unlock: spec.unlock,
     weaponSlots: spec.weaponSlots,
     droneSlots: spec.droneSlots,

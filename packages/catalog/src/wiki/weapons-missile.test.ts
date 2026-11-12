@@ -36,7 +36,7 @@ const expected: Record<
     fire: 0.3,
     breach: 0,
     price: 45,
-    blurb: "Standard but powerful missile.",
+    blurb: "Missile. Ignores shields.",
   },
   MISSILES_BREACH: {
     name: "Breach Missiles",
@@ -47,7 +47,7 @@ const expected: Record<
     fire: 0.3,
     breach: 0.56,
     price: 65,
-    blurb: "These missiles are designed to cause maximum destruction to ship hull armor.",
+    blurb: "Missile. Ignores shields.",
   },
   MISSILES_HULL: {
     name: "Hull Missile",
@@ -58,7 +58,7 @@ const expected: Record<
     fire: 0,
     breach: 0.27,
     price: 65,
-    blurb: "High hull damage plus a decent breach chance.",
+    blurb: "Missile. Ignores shields. Double damage to rooms without a system.",
   },
   MISSILE_CHARGEGUN: {
     name: "Swarm Missiles",
@@ -69,7 +69,7 @@ const expected: Record<
     fire: 0,
     breach: 0,
     price: 65,
-    blurb: "If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.",
+    blurb: "Missile. Stores charges, then fires them all in one volley.",
   },
   MISSILES_BURST: {
     name: "Pegasus Missile",
@@ -80,7 +80,7 @@ const expected: Record<
     fire: 0.3,
     breach: 0,
     price: 60,
-    blurb: "Creative missile design allows for two projectiles for the cost of one!",
+    blurb: "Missile. Ignores shields. 2 shots for 1 missile.",
   },
   ARTILLERY_BOSS_2: {
     name: "Boss Missile",

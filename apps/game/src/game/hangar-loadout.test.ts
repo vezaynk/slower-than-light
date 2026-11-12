@@ -273,13 +273,14 @@ describe("hangar bay", () => {
     assert.equal(first?.weaponSlots, 4);
     assert.equal(first?.droneSlots, 2);
     assert.equal(first?.health, 30);
+    assert.equal(first?.unlock, "Available from the start.");
     assert.equal(
-      first?.unlock,
-      "Does not require unlocking (it is the only ship, the cruiser and the layout, available from the very start of the game)",
+      first?.quote,
+      "Weapons: Burst Laser II, Artemis Missiles. Crew: 3 Human. Reactor 8.",
     );
     assert.deepEqual(second?.unlock.split("\n"), [
-      "Defeat the Flagship prototype in the Rebel Stronghold sector to unlock this ship.",
-      "Alternatively, defeat the Rebel Flagship with the Engi Cruiser.",
+      "Beat the flagship with the Engi Cruiser.",
+      "Or win the unlock from a Rebel sector event.",
     ]);
     assert.equal(second?.weaponSlots, 4);
     assert.equal(second?.droneSlots, 2);

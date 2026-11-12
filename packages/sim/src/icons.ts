@@ -663,11 +663,16 @@ const NAME_ICONS: [RegExp, IconName][] = [
   [/cloak/, "cloaking"],
   [/teleport/, "teleporter"],
   [/battery/, "battery"],
-  [/flak/, "ARTILLERY_FED_C"],
-  [/artillery|beam/, "artillery"],
+  [/flak|artillery|beam/, "artillery"],
 ];
 
 export function iconForName(name: string): IconName | null {
   const key = name.toLowerCase();
   return NAME_ICONS.find(([re]) => re.test(key))?.[1] ?? null;
+}
+
+/** A glyph whose name is the weapon id. A gun with no glyph of its own has none. */
+export function iconNamed(id: string | undefined): IconName | undefined {
+  if (!id || !Object.prototype.hasOwnProperty.call(ICON_ROWS, id)) return undefined;
+  return id as IconName;
 }

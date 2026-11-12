@@ -39,7 +39,7 @@ import type { Game, KitId, Room, Ship, SysId, WeaponInst } from "../types.ts";
 import { evasionPercent, powerMask, rand, zoltanBars } from "../sim.ts";
 import { airShown } from "../air.ts";
 import { aiTarget, warnPack } from "@stl/pack";
-import { isFlakArtillery } from "../wiki/weapons-flak-crystal.ts";
+import { isFlakArtillery } from "./artillery.ts";
 
 /** A player system as the AI sees it: a core system id or a kit id. */
 export type TargetSystem = SysId | KitId;

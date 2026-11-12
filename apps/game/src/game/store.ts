@@ -1,6 +1,6 @@
 /** INVENTED session store for the open run. It encodes no wiki rule. */
 import { create, type StoreApi, type UseBoundStore } from "zustand";
-import { noteRun } from "@stl/sim/wiki/achievement-track.ts";
+import { noteRun } from "@stl/sim/rules/achievement-track.ts";
 import { noteUnlocks } from "./unlock-store.ts"; // @agent:unlocks
 import { readPinnedSeed, resolveRunSeed } from "./run-seed.ts";
 import { presentAudio } from "./present-audio.ts";

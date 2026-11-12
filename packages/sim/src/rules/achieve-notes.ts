@@ -2,7 +2,7 @@
  * Counters for the Achievements and Ship Achievements lines that are not a single field
  * the run already stored. Each mark is the printed condition. Nothing here grants a reward.
  */
-import { weaponDef } from "@stl/pack";
+import { achievementRule, droneDef, weaponDef } from "@stl/pack";
 import type { AchieveTally, Game } from "../types.ts";
 import { airShown } from "../air.ts";
 import { isCrystalMissile } from "../interface-copy.ts";
@@ -118,23 +118,18 @@ export function bankLifetime(g: Game) {
 
 function enginesFull(g: Game): boolean {
   const eng = g.player.systems.engines;
-  return eng.level >= 8 && eng.power >= eng.level && eng.damage === 0 && eng.ion.length === 0;
+  return (
+    eng.level >= achievementRule("engines") &&
+    eng.power >= eng.level &&
+    eng.damage === 0 &&
+    eng.ion.length === 0
+  );
 }
 
-function offensiveDrone(kind: string): boolean {
-  // Drone Control ids are striker and board. The printed names stay accepted too.
-  return (
-    kind === "combat" ||
-    kind === "COMBAT_1" ||
-    kind === "COMBAT_2" ||
-    kind === "beam" ||
-    kind === "COMBAT_BEAM_2" ||
-    kind === "fire" ||
-    kind === "BOARDER" ||
-    kind === "boarder" ||
-    kind === "boarding" ||
-    kind === "BOARDER_ION"
-  );
+/** COMBAT and BOARDER drones are offensive. The blueprint `<type>` decides. A missing type is not. */
+function offensiveDrone(id: string): boolean {
+  const type = droneDef(id)?.type;
+  return type === "COMBAT" || type === "BOARDER";
 }
 
 function observe(g: Game) {
@@ -142,10 +137,10 @@ function observe(g: Game) {
   // Ship Achievements, Lanius: net oxygen, the same mean the asphyxiation line uses.
   if ((g.jumps ?? 0) > 0 && g.player.rooms.length > 0) {
     const net = g.player.rooms.reduce((sum, r) => sum + airShown(r.o2), 0) / g.player.rooms.length;
-    if (net > 20) t.o2Broke = true;
+    if (net > achievementRule("oxygen")) t.o2Broke = true;
   }
   // Ship Achievements, Stealth: "get to sector 8 without jumping to a beacon with an environmental danger."
-  if (g.sector >= 8 && !t.envJump) t.reachedClean = true;
+  if (g.sector >= achievementRule("stealthSector") && !t.envJump) t.reachedClean = true;
   const enemy = g.enemy;
   if (!enemy) return;
   if (enemy.rooms.length > 0 && enemy.rooms.every((r) => r.fire >= 1)) t.burnedAll = true;
@@ -193,7 +188,7 @@ function onShot(g: Game, ev: Extract<AchieveNote, { k: "shot" }>) {
   } else t.otherWeapon = true;
   if (ev.kind === "beam" && g.enemy) {
     const now = g.time;
-    if (t.beamAt == null || now - t.beamAt > 5) {
+    if (t.beamAt == null || now - t.beamAt > achievementRule("beamSeconds")) {
       t.beamAt = now;
       t.beamRooms = [];
     }

@@ -28,6 +28,7 @@ import type {
   EscapeTimers,
   Stalemate,
   SkillSpeed,
+  AchievementRules,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -595,6 +596,36 @@ export function readSkillSpeed(node: XmlElement): SkillSpeed {
     const value = attrNum(raw);
     if (value == null || value <= 0) {
       warnPack(`skillSpeed: ${key}="${raw}" is not a positive number; it is skipped.`);
+      continue;
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
+const ACHIEVEMENT_RULE_KEYS = [
+  "systems",
+  "power",
+  "stealthSector",
+  "blueEvents",
+  "blueSector",
+  "oxygen",
+  "engines",
+  "beamSeconds",
+] as const;
+
+/**
+ * Gap `<achievementRules>` (types.ts AchievementRules). A missing or non-positive attribute is left out,
+ * so the registry keeps the earlier value or FTL's default.
+ */
+export function readAchievementRules(node: XmlElement): AchievementRules {
+  const out: AchievementRules = {};
+  for (const key of ACHIEVEMENT_RULE_KEYS) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const value = attrNum(raw);
+    if (value == null || value <= 0) {
+      warnPack(`achievementRules: ${key}="${raw}" is not a positive number; it is skipped.`);
       continue;
     }
     out[key] = value;
@@ -1361,6 +1392,9 @@ export function parsePack(xml: string): ContentPack {
   const skillNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "skillSpeed",
   );
+  const achievementRulesNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "achievementRules",
+  );
   const aiTargetNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "aiTarget",
   );
@@ -1414,6 +1448,7 @@ export function parsePack(xml: string): ContentPack {
   if (timersNode) pack.escapeTimers = readEscapeTimers(timersNode);
   if (stalemateNode) pack.stalemate = readStalemate(stalemateNode);
   if (skillNode) pack.skillSpeed = readSkillSpeed(skillNode);
+  if (achievementRulesNode) pack.achievementRules = readAchievementRules(achievementRulesNode);
   if (aiTargetNode) pack.aiTarget = readAiTarget(aiTargetNode);
   if (waitsNode) pack.overchargerWaits = readOverchargerWaits(waitsNode);
   if (ionNode) pack.ionIntruder = readIonIntruder(ionNode);

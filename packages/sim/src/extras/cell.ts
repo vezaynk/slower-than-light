@@ -1,7 +1,7 @@
 import { augmentDef } from "@stl/pack";
 import { listedCost, tuneMax, upgradeCost } from "../content.ts";
 import { log, sparePower, syncShields, zoltanBars } from "../sim.ts";
-import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { noteAchieve } from "../rules/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import { interruptLeash } from "./leash.ts";
 import { shipInDanger } from "./sling.ts";

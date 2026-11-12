@@ -16,7 +16,7 @@ import {
   roomWith,
   sparePower,
 } from "../sim.ts";
-import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { noteAchieve } from "../rules/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import "../pack/base.ts";
 import { crewDef, weaponDef } from "@stl/pack";

@@ -25,7 +25,7 @@ import {
   resetUnlocks,
   unlockAll,
 } from "./unlock-store.ts";
-import { resetAchievementMemory } from "@stl/sim/wiki/achievement-track.ts";
+import { resetAchievementMemory } from "@stl/sim/rules/achievement-track.ts";
 
 function run(hull: string, patch: Partial<Game> = {}): Game {
   const g = createGame(1, hull);

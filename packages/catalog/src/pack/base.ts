@@ -1280,27 +1280,25 @@ function campaignEvents(): EventDef[] {
 }
 
 const ROCK_LIES =
-  'They barely hear out your appeals before yelling, "These are the lies I sought to escape!" Looks like they\'re charging weapons!';
+  "They shout that this is the same tale they left behind, and the skiff's guns start to charge.";
 const ROCK_TRAITORS =
-  'They listen to your appeals and whisper, "Traitors to truth. You\'re no better than them!" Chaos ensues.';
-const ROCK_JOIN =
-  "Your promises gain their attention and they agree to serve with you, for a while.";
+  "They call you another keeper of the official story. The skiff turns hostile.";
+const ROCK_JOIN = "They take a bunk for the time being.";
 const ROCK_REFUSE =
-  "They seem tempted by your offer, but decide they can't risk being lied to again. They close frequencies and jump away.\n\nNothing happens.";
-const ROCK_SENSORS =
-  "The Rock captain is impressed by the data you've collected and agrees to stay with you until they find their footing in the galaxy.";
+  "They nearly accept, then shut the channel and jump. They will not be talked into another creed.";
+const ROCK_SENSORS = "The logs convince them. They come aboard until they can stand on their own.";
 
 /** ftl.dat's ROCK_ATHIEST: a quiet Rock ship, three hidden choices, and the promise list. */
 function shapeRockAtheist(events: EventDef[]): void {
   const event = events.find((row) => row.id === "ROCK_ATHIEST");
   if (!event) return;
   event.body =
-    "You encounter a small craft with minimal propulsion; its Rock crew-member explains that the Rock home-world is run on lies and propaganda that keep the populace in check, and that they want no part of it.";
+    "A Rock skiff with a weak drive hails you. Its pilot says the homeworld rules by stories that do not survive a second look, and they will not go back.";
   event.ship = { hostile: false, load: "ROCK_SHIP" };
   event.choices = [
     stampedChoice({
       id: "c:rock-atheists:0",
-      label: "Tell them their god sent them here to join your crew.",
+      label: "Claim their god sent them to sign on.",
       hidden: true,
       fx: [],
       textLoad: "ROCK_ATHIEST_BAD",
@@ -1308,13 +1306,13 @@ function shapeRockAtheist(events: EventDef[]): void {
     }),
     stampedChoice({
       id: "c:rock-atheists:1",
-      label: "Promise to share with them the truths they've been denied.",
+      label: "Offer the account their teachers left out.",
       hidden: true,
       fx: [{ k: "goto", id: "ROCK_ATHIEST_GOOD" }],
     }),
     stampedChoice({
       id: "c:rock-atheists:2",
-      label: "Show them to your data suite.",
+      label: "Let them read the sensor archive.",
       hidden: true,
       fx: [{ k: "note", text: ROCK_SENSORS }],
       grants: [{ kind: "crew", id: "rock", amount: 1 }],

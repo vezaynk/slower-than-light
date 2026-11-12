@@ -408,24 +408,24 @@
     <alias>Rock atheists</alias>
     <sector>ROCK_SECTOR</sector>
     <sector>ROCK_HOME</sector>
-    <text>You encounter a small craft with minimal propulsion; its Rock crew-member explains that the Rock home-world is run on lies and propaganda that keep the populace in check, and that they want no part of it.</text>
+    <text>A Rock skiff with a weak drive hails you. Its pilot says the homeworld rules by stories that do not survive a second look, and they will not go back.</text>
     <ship hostile="false" load="ROCK_SHIP"/>
     <choice name="c:rock-atheists:0" hidden="true">
-      <text>Tell them their god sent them here to join your crew.</text>
+      <text>Claim their god sent them to sign on.</text>
       <event>
         <text load="ROCK_ATHIEST_BAD"/>
         <ship hostile="true"/>
       </event>
     </choice>
     <choice name="c:rock-atheists:1" hidden="true">
-      <text>Promise to share with them the truths they've been denied.</text>
+      <text>Offer the account their teachers left out.</text>
       <event load="ROCK_ATHIEST_GOOD"/>
     </choice>
     <choice name="c:rock-atheists:2" owner="quest" hidden="true">
-      <text>Show them to your data suite.</text>
+      <text>Let them read the sensor archive.</text>
       <req req="sensors" lvl="2">Needs level 2 Sensors</req>
       <event>
-        <text>The Rock captain is impressed by the data you've collected and agrees to stay with you until they find their footing in the galaxy.</text>
+        <text>The logs convince them. They come aboard until they can stand on their own.</text>
         <crewMember amount="1" class="rock"/>
       </event>
     </choice>
@@ -5563,18 +5563,14 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventList>
   <eventList name="ROCK_ATHIEST_GOOD">
     <event name="ROCK_ATHIEST_GOOD_JOIN" unique="false">
-      <text>Your promises gain their attention and they agree to serve with you, for a while.</text>
+      <text>They take a bunk for the time being.</text>
       <crewMember amount="1" class="rock"/>
     </event>
     <event name="ROCK_ATHIEST_GOOD_AWAY" unique="false">
-      <text>They seem tempted by your offer, but decide they can't risk being lied to again. They close frequencies and jump away.
-
-Nothing happens.</text>
+      <text>They nearly accept, then shut the channel and jump. They will not be talked into another creed.</text>
     </event>
     <event name="ROCK_ATHIEST_GOOD_AWAY" unique="false">
-      <text>They seem tempted by your offer, but decide they can't risk being lied to again. They close frequencies and jump away.
-
-Nothing happens.</text>
+      <text>They nearly accept, then shut the channel and jump. They will not be talked into another creed.</text>
     </event>
   </eventList>
   <eventList name="STANDIN_EMPTY"/>

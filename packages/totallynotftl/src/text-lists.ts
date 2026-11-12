@@ -68,8 +68,8 @@ export const TEXT_LISTS_XML = `${FIXTURES}
 ${textListXml("NAME_SYLLABLES", NAME_SYLLABLES)}
 ${textListXml("CREW_POOL", CREW_POOL)}
 ${textListXml("ROCK_ATHIEST_BAD", [
-  `They barely hear out your appeals before yelling, "These are the lies I sought to escape!" Looks like they're charging weapons!`,
-  `They listen to your appeals and whisper, "Traitors to truth. You're no better than them!" Chaos ensues.`,
+  `They shout that this is the same tale they left behind, and the skiff's guns start to charge.`,
+  `They call you another keeper of the official story. The skiff turns hostile.`,
 ])}
 </FTL>
 `;

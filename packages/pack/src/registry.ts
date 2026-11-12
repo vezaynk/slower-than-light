@@ -1007,7 +1007,7 @@ export function shipEndingPage(
   return entry.page ?? (entry.id ? storedEvent(entry.id) : undefined);
 }
 
-/** Every `<textList>` the pack loaded. A flat list is also expanded onto its events. */
+/** Every `<textList>` the pack loaded. */
 export function allTextLists(): TextListDef[] {
   return [...textLists.values()].map(copyTextList);
 }

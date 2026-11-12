@@ -1094,7 +1094,8 @@ ${laniusTraderOfferText(offer)}`,
  * ftl.dat stores that first sentence as body and the whole list as texts. The matched card
  * does not carry texts, so the draw reads the loaded event. A blank body is the stand-in's
  * empty first text. A blank page with no list does not roll. A trade or a supply bundle
- * keeps its packed sentence, because the price is drawn from this same seed afterwards. */
+ * keeps its packed sentence, because the price is drawn from this same seed afterwards.
+ * A `<text load>` is an opening, so it draws one line. A stored first sentence with no list stays. */
 function writtenOpening(g: Game, ev: EventDef): GameEvent {
   const card = asWritten(ev);
   const page = eventDef(ev.slug);
@@ -1165,9 +1166,18 @@ function listPageBody(g: Game, page: PackEvent): string {
  */
 export function presentLoadedEvent(g: Game, page: PackEvent, beacon: Beacon): GameEvent | null {
   if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
-    const lines = page.texts?.length ? page.texts : [page.body];
-    const hi = lines.length > 0 ? lines.length - 1 : 0;
-    const body = lines[between(g, [0, hi])] ?? "";
+    let body = "";
+    if (page.openings?.length) {
+      body = pickOpening(
+        page.openings,
+        (id) => textList(id)?.lines,
+        (n) => between(g, [0, n - 1]),
+      );
+    } else {
+      const lines = page.texts?.length ? page.texts : [page.body];
+      const hi = lines.length > 0 ? lines.length - 1 : 0;
+      body = lines[between(g, [0, hi])] ?? "";
+    }
     // ftl.dat writes no <choice>. The button is the archive's continue phrase.
     // Choosing it does not resolve the beacon.
     return {

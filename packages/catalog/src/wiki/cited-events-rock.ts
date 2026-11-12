@@ -285,7 +285,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-rockmen-near-sun",
     aliases: ["Boarders: Rockmen near sun"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: 'As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, "Prepare to burn, fleshy meat-sack aliens!"',
+    body: "",
     choices: [
       {
         id: "c:boarders-rockmen-near-sun:0",

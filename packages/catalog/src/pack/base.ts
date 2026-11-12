@@ -323,6 +323,14 @@ function listRow(row: FillerListDef): FillerListDef {
 /** The wiki names a page's sectors by heading; the pack keys them by ftl.dat sector id, as sector_data.xml does. */
 const SECTOR_ID = new Map(SECTOR_TYPES.map((row) => [row.name, row.id]));
 
+/** Stand-in pages whose sentences are one textList. The list name is the archive id. */
+const TEXT_LIST_OPENINGS = new Set([
+  "ROCK_FIGHT_ASTEROID",
+  "ROCK_PIRATE",
+  "ROCK_PIRATE_ASTEROID",
+  "ROCK_PIRATE_SUN",
+]);
+
 function sectorIds(names: readonly string[]): string[] {
   return names.map((name) => SECTOR_ID.get(name) ?? name);
 }
@@ -358,7 +366,12 @@ function eventRow(row: EventDef): EventDef {
     }),
   };
   const texts = OPENING_TEXTS[row.id];
-  if (texts && texts.length > 1) copy.texts = [...texts];
+  if (texts && texts.length > 1) {
+    const archiveId = ftlIdFor(row);
+    // These pages keep one `<text load>`. The sentences live on that textList.
+    if (TEXT_LIST_OPENINGS.has(archiveId)) copy.openings = [{ load: archiveId }];
+    else copy.texts = [...texts];
+  }
   const offers = OFFER_ROWS[row.id];
   if (offers && offers.length > 0) copy.offers = offers.map(copyOffer);
   const rolls = ROLL_LISTS[row.id];
@@ -1150,6 +1163,19 @@ function ftlIdFor(event: EventDef): string {
   return ftlEventId(event.dest) ?? event.id;
 }
 
+/** Pages that draw one textList, named the same as the archive id. */
+function textListOpenings(): { id: string; lines: { text: string }[] }[] {
+  const lists: { id: string; lines: { text: string }[] }[] = [];
+  for (const row of citedEventRecords()) {
+    const id = ftlIdFor(row);
+    if (!TEXT_LIST_OPENINGS.has(id)) continue;
+    const lines = OPENING_TEXTS[row.id];
+    if (!lines || lines.length < 2) continue;
+    lists.push({ id, lines: lines.map((text) => ({ text })) });
+  }
+  return lists;
+}
+
 function mapGoto(fx: EventDef["choices"][number]["fx"][number], ids: Map<string, string>) {
   if (fx.k !== "goto") return fx;
   return { k: "goto" as const, id: ids.get(fx.id) ?? fx.id };
@@ -1571,6 +1597,7 @@ export function loadCatalog(): void {
       beaconEvents: { ...BEACON_EVENTS },
       empties,
       textLists: [
+        ...textListOpenings(),
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },
         { id: "CREW_POOL", lines: CREW_POOL.map((text) => ({ text })) },
       ],

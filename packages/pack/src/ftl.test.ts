@@ -511,7 +511,7 @@ describe("packFromFtl", () => {
     }
   });
 
-  it("fills id text from the strings, and expands an event's text list", () => {
+  it("fills id text from the strings, and keeps a sole text load", () => {
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));
     try {
@@ -552,9 +552,22 @@ describe("packFromFtl", () => {
       assert.equal(pack.weapons?.find((row) => row.id === "GUN")?.name, "Burst Laser I");
       assert.equal(pack.crew?.find((row) => row.id === "human")?.name, "Human");
       const quiet = pack.events?.find((row) => row.id === "QUIET");
-      assert.equal(quiet?.body, "Nothing stirs.");
-      assert.deepEqual(quiet?.texts, ["Nothing stirs.", "Quiet space."]);
-      assert.equal(quiet?.openings, undefined);
+      assert.equal(quiet?.body, "");
+      assert.equal(quiet?.texts, undefined);
+      assert.deepEqual(quiet?.openings, [{ load: "CALM" }]);
+      const rolls: number[] = [];
+      assert.equal(
+        pickOpening(
+          quiet?.openings ?? [],
+          (id) => pack.textLists?.find((row) => row.id === id)?.lines,
+          (n) => {
+            rolls.push(n);
+            return 0;
+          },
+        ),
+        "Nothing stirs.",
+      );
+      assert.deepEqual(rolls, [2]);
       assert.deepEqual(pack.textLists?.find((row) => row.id === "CALM")?.lines, [
         { text: "Nothing stirs." },
         { text: "Quiet space." },
@@ -660,9 +673,9 @@ describe("packFromFtl", () => {
         ],
       );
       const pirate = eventDef("NO_FUEL_REFUGEE_PIRATE");
-      assert.equal(pirate?.body, "First pirate line.");
-      assert.deepEqual(pirate?.texts, ["First pirate line.", "Second pirate line."]);
-      assert.equal(pirate?.openings, undefined);
+      assert.equal(pirate?.body, "");
+      assert.equal(pirate?.texts, undefined);
+      assert.deepEqual(pirate?.openings, [{ load: "PIRATE_LINES" }]);
       const quiet = pages[2]?.page;
       assert.equal(quiet?.choices[0]?.hidden, true);
       assert.equal(quiet?.choices[0]?.maxGroup, 1);
@@ -711,9 +724,9 @@ describe("packFromFtl", () => {
       const wrapped = pack.events?.find((row) => row.id === "WRAPPED");
       assert.equal(wrapped?.body, "");
       assert.equal(wrapped?.texts, undefined);
-      assert.deepEqual(wrapped?.openings, [{ load: "FLAT" }]);
+      assert.deepEqual(wrapped?.openings, [{ load: "WRAP" }]);
       const page = pack.events?.find((row) => row.id === "PAGE");
-      assert.deepEqual(page?.openings, [{ text: "Near." }, { load: "INNER" }]);
+      assert.deepEqual(page?.openings, [{ load: "OUTER" }]);
       const mixed = pack.events?.find((row) => row.id === "MIXED");
       assert.deepEqual(mixed?.openings, [{ text: "Literal." }, { load: "OUTER" }]);
 
@@ -723,7 +736,7 @@ describe("packFromFtl", () => {
         return n - 1;
       };
       assert.equal(pickOpening(wrapped!.openings!, list, last), "B.");
-      assert.deepEqual(rolls, [1, 2]);
+      assert.deepEqual(rolls, [2]);
       rolls.length = 0;
       assert.equal(pickOpening(page!.openings!, list, last), "Later.");
       assert.deepEqual(rolls, [2, 2]);

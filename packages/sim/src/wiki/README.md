@@ -54,6 +54,7 @@ The button and the ship stay on the choice. `ROCK_BOARDERS_SHIP`, `ROCK_BOARDERS
 `ROCK_BOARDERS_SUN` now play `writtenOpening`.
 
 Done: Slug `NEBULA_SLUG_FIGHT`, `SLUG_REBEL`, `SLUG_PIRATE`, `STORM_SLUG_FIGHT` play as written.
+`ENGI_MANTIS_FIGHT`, `NEBULA_MANTIS_FIGHT`, `MANTIS_FIGHT`, `MANTIS_FIGHT_CHOICE`, `MANTIS_CIVILIAN`, and `MANTIS_BOARDERS` now play `writtenOpening`.
 
 ### How to migrate an event module
 

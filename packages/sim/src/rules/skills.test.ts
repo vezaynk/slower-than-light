@@ -4,7 +4,14 @@ import { loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 import { createGame, repairPace, startCombat, step } from "../sim.ts";
 import "../pack/base.ts";
 import { XP_NEED } from "../content.ts";
-import { combatSkillMult, repairSkillMult } from "./skills.ts";
+import {
+  combatSkillMult,
+  enginesEvasion,
+  pilotEvasion,
+  repairSkillMult,
+  shieldsRecharge,
+  weaponsCharge,
+} from "./skills.ts";
 import type { Game } from "../types.ts";
 
 function lone(g: Game) {
@@ -30,6 +37,22 @@ describe("skill speed from the gap", () => {
     assert.deepEqual(
       [0, 1, 2].map((rank) => combatSkillMult(rank as 0 | 1 | 2)),
       [1, 1.1, 1.2],
+    );
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => pilotEvasion(rank as 0 | 1 | 2)),
+      [5, 7, 10],
+    );
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => enginesEvasion(rank as 0 | 1 | 2)),
+      [5, 7, 10],
+    );
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => shieldsRecharge(rank as 0 | 1 | 2)),
+      [1.1, 1.2, 1.3],
+    );
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => weaponsCharge(rank as 0 | 1 | 2)),
+      [0.9, 0.85, 0.8],
     );
   });
 

@@ -23,3 +23,23 @@ export function repairSkillMult(rank: 0 | 1 | 2): number {
 export function combatSkillMult(rank: 0 | 1 | 2): number {
   return skillMult("combat", rank);
 }
+
+/** Piloting, manning: +5 / +7 / +10 evasion. Gap `<skillSpeed pilot0 pilot1 pilot2>`. */
+export function pilotEvasion(rank: 0 | 1 | 2): number {
+  return skillMult("pilot", rank);
+}
+
+/** Engines, manning: the same +5 / +7 / +10. Gap `<skillSpeed engines0 engines1 engines2>`. */
+export function enginesEvasion(rank: 0 | 1 | 2): number {
+  return skillMult("engines", rank);
+}
+
+/** Shields, manning: recharge rate ×1.1 / ×1.2 / ×1.3. Gap `<skillSpeed shields0 shields1 shields2>`. */
+export function shieldsRecharge(rank: 0 | 1 | 2): number {
+  return skillMult("shields", rank);
+}
+
+/** Weapons, manning: charge time ×0.9 / ×0.85 / ×0.8. Gap `<skillSpeed weapons0 weapons1 weapons2>`. */
+export function weaponsCharge(rank: 0 | 1 | 2): number {
+  return skillMult("weapons", rank);
+}

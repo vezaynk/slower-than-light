@@ -65,7 +65,7 @@ function weaponTitle(id: string): string | undefined {
  * Artillery is named by its weapon blueprint when that blueprint has a title. Otherwise the systemBlueprint title.
  * A tune the archive leaves untitled keeps the short name the rest of the ship already uses.
  */
-function systemName(id: string, weapon?: string): string {
+export function systemName(id: string, weapon?: string): string {
   const fromWeapon = weapon ? weaponTitle(weapon) : undefined;
   if (fromWeapon) return fromWeapon;
   const fromSystem = distinctTitle(systemDef(id));
@@ -73,7 +73,7 @@ function systemName(id: string, weapon?: string): string {
   return systemLabel(id);
 }
 
-function systemIcon(id: string, weapon?: string): IconName {
+export function systemIcon(id: string, weapon?: string): IconName {
   if (id === "artillery") return iconNamed(weapon) ?? "artillery";
   return id as IconName;
 }

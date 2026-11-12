@@ -17,7 +17,7 @@ import {
   weaponDef,
 } from "@stl/pack";
 import { createGame, hangarLoadout } from "@stl/sim/sim.ts";
-import { hangarBay } from "@stl/sim/hangar-bay.ts";
+import { hangarBay, systemIcon, systemName } from "@stl/sim/hangar-bay.ts";
 import { iconForName } from "@stl/sim/icons.ts";
 import { hangarPages } from "./hangar-roster.ts";
 import { systemLabel } from "@stl/sim/content.ts";
@@ -202,6 +202,8 @@ describe("hangar bay", () => {
       hangarBay("PLAYER_SHIP_FED_3")?.systems.find((system) => system.id === "artillery")?.name,
       gun.name,
     );
+    assert.equal(systemName("artillery", gun.id), gun.name);
+    assert.equal(systemIcon("artillery", gun.id), gun.id);
     loadPack(
       {
         weapons: [
@@ -252,6 +254,8 @@ describe("hangar bay", () => {
       const slot = hangarBay("PLAYER_SHIP_FED_3")?.systems.find(
         (system) => system.id === "artillery",
       );
+      assert.equal(slot?.icon, systemIcon("artillery", "MOD_FLAK"));
+      assert.equal(slot?.name, systemName("artillery", "MOD_FLAK"));
       assert.equal(slot?.icon, "artillery");
       assert.equal(slot?.name, systemLabel("artillery"));
     } finally {

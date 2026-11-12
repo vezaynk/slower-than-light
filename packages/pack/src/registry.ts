@@ -285,6 +285,7 @@ function copyChoice(choice: EventChoice): EventChoice {
   if (choice.blue === false) copy.blue = false;
   if (choice.reward) copy.reward = { ...choice.reward };
   if (choice.ship) copy.ship = { ...choice.ship };
+  if (choice.textLoad) copy.textLoad = choice.textLoad;
   if (choice.grants?.length) copy.grants = choice.grants.map((grant) => ({ ...grant }));
   if (choice.boarders) copy.boarders = { ...choice.boarders };
   if (choice.environment) copy.environment = { ...choice.environment };

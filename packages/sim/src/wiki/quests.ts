@@ -1681,24 +1681,6 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Pirate ship attacking Crystal. Template:Crystal Ship Saved. The Crystal weapon is not named.
   "q:crystal-pirate:contact": (g) => crystalContact(g),
-  // Rock atheists. Two texts, no odds. INFERRED: equal. The fight marker sits under the second sentence; both charge.
-  "c:rock-atheists:0": (g) => {
-    const text = pick(g, [
-      'They barely hear out your appeals before yelling, "These are the lies I sought to escape!" Looks like they\'re charging weapons!',
-      'They listen to your appeals and whisper, "Traitors to truth. You\'re no better than them!" Chaos ensues.',
-    ]);
-    pageFight(g, text, "Rock ship", "rock-atheists");
-  },
-  // Promise. {{DuplicateEvent|2}} on nothing. The Rockman is one result.
-  "c:rock-atheists:1": (g) => rockAtheistPromise(g),
-  // Improved Sensors level 2+. A Rockman joins. No skill is printed.
-  "c:rock-atheists:2": (g) => {
-    if ((g.player.systems.sensors?.level ?? 0) < 2) return;
-    rockAtheistJoins(
-      g,
-      "The Rock captain is impressed by the data you've collected and agrees to stay with you until they find their footing in the galaxy.",
-    );
-  },
   // Pirate ship selling drones. Hail opens the dock, the slug warning, and the hacking toll.
   "q:pirate-drones:hail": (g) => {
     card(g, 'The ship responds "Yes, we have an extensive stock! Come aboard and see our wares!"', [
@@ -4945,38 +4927,8 @@ function crystalContact(g: Game) {
 }
 
 /**
- * Rock atheists. {{DuplicateEvent|2}} on the refusal. The Rockman joins once.
- * INFERRED: the refusal is twice as likely as the join.
+ * Pirate ship selling drones. The unnamed schematic is not offered. Five parts for 25 scrap stay on the static choice.
  */
-function rockAtheistPromise(g: Game) {
-  const join = weighted(g, [
-    [false, 2],
-    [true, 1],
-  ] as [boolean, number][]);
-  if (!join) {
-    result(
-      g,
-      "They seem tempted by your offer, but decide they can't risk being lied to again. They close frequencies and jump away.",
-      undefined,
-      ["Nothing happens."],
-    );
-    return;
-  }
-  rockAtheistJoins(
-    g,
-    "Your promises gain their attention and they agree to serve with you, for a while.",
-  );
-}
-
-/** The page names a Rockman and prints no skill. */
-function rockAtheistJoins(g: Game, text: string) {
-  const joined = joinCrew(g, "Rock");
-  result(g, text, undefined, [
-    joined ? "A Rockman crewmember joins you." : "There is no room aboard for the new crewmember.",
-  ]);
-}
-
-/** Pirate ship selling drones. The unnamed schematic is not offered. Five parts for 25 scrap stay on the static choice. */
 function pirateDroneDock(g: Game) {
   card(
     g,

@@ -401,6 +401,35 @@
       <event/>
     </choice>
   </event>
+  <event name="ROCK_ATHIEST">
+    <title>Rock atheists</title>
+    <alias>rock-atheists</alias>
+    <alias>Rock Deserters</alias>
+    <alias>Rock atheists</alias>
+    <sector>ROCK_SECTOR</sector>
+    <sector>ROCK_HOME</sector>
+    <text>You encounter a small craft with minimal propulsion; its Rock crew-member explains that the Rock home-world is run on lies and propaganda that keep the populace in check, and that they want no part of it.</text>
+    <ship hostile="false" load="ROCK_SHIP"/>
+    <choice name="c:rock-atheists:0" hidden="true">
+      <text>Tell them their god sent them here to join your crew.</text>
+      <event>
+        <text load="ROCK_ATHIEST_BAD"/>
+        <ship hostile="true"/>
+      </event>
+    </choice>
+    <choice name="c:rock-atheists:1" hidden="true">
+      <text>Promise to share with them the truths they've been denied.</text>
+      <event load="ROCK_ATHIEST_GOOD"/>
+    </choice>
+    <choice name="c:rock-atheists:2" owner="quest" hidden="true">
+      <text>Show them to your data suite.</text>
+      <req req="sensors" lvl="2">Needs level 2 Sensors</req>
+      <event>
+        <text>The Rock captain is impressed by the data you've collected and agrees to stay with you until they find their footing in the galaxy.</text>
+        <crewMember amount="1" class="rock"/>
+      </event>
+    </choice>
+  </event>
   <event name="SELL_DRONES_STATION">
     <title>Sell drone parts for scrap</title>
     <alias>sell-drone-parts-for-scrap</alias>
@@ -3217,11 +3246,6 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
       <req req="weapons" lvl="6">Needs level 6 Weapons</req>
       <event/>
     </choice>
-    <choice name="c:rock-atheists:2" owner="quest">
-      <text>c:rock-atheists:2</text>
-      <req req="sensors" lvl="2">Needs level 2 Sensors</req>
-      <event/>
-    </choice>
     <choice name="q:pirate-drones:slug" owner="quest">
       <text>q:pirate-drones:slug</text>
       <req><crewMember name="slug"/>Needs a Slug crewmember</req>
@@ -4859,7 +4883,6 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="REFUGEE_GHOST" unique="false"/>
   </eventList>
   <eventList name="ROCK_SECTOR__hostile__3">
-    <event load="ROCK_ATHIEST" unique="true"/>
     <event load="ROCK_SHIP" unique="true"/>
     <event load="ROCK_FIGHT_ASTEROID" unique="true"/>
     <event load="ROCK_BOARDERS_SHIP" unique="true"/>
@@ -4870,7 +4893,6 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="ROCK_SECTOR__HOSTILE_SHIP" unique="false"/>
   </eventList>
   <eventList name="ROCK_SECTOR__boarder__4">
-    <event load="ROCK_ATHIEST" unique="true"/>
     <event load="ROCK_SHIP" unique="true"/>
     <event load="ROCK_FIGHT_ASTEROID" unique="true"/>
     <event load="ROCK_BOARDERS_SHIP" unique="true"/>
@@ -4897,6 +4919,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventList>
   <eventList name="ROCK_SECTOR__neutral__7">
     <event load="REBEL_VS_FEDERATION" unique="true"/>
+    <event load="ROCK_ATHIEST" unique="true"/>
     <event load="FRIENDLY_SLAVER" unique="true"/>
     <event load="MERCENARY" unique="true"/>
     <event load="QUEST_ESCORT" unique="false"/>
@@ -4946,7 +4969,6 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="REFUGEE_GHOST" unique="false"/>
   </eventList>
   <eventList name="ROCK_HOME__hostile__5">
-    <event load="ROCK_ATHIEST" unique="true"/>
     <event load="ROCK_SHIP" unique="true"/>
     <event load="ROCK_FIGHT_ASTEROID" unique="true"/>
     <event load="ROCK_BOARDERS_SHIP" unique="true"/>
@@ -4957,7 +4979,6 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="ROCK_HOME__HOSTILE_SHIP" unique="false"/>
   </eventList>
   <eventList name="ROCK_HOME__boarder__6">
-    <event load="ROCK_ATHIEST" unique="true"/>
     <event load="ROCK_SHIP" unique="true"/>
     <event load="ROCK_FIGHT_ASTEROID" unique="true"/>
     <event load="ROCK_BOARDERS_SHIP" unique="true"/>
@@ -4984,6 +5005,7 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
   </eventList>
   <eventList name="ROCK_HOME__neutral__9">
     <event load="REBEL_VS_FEDERATION" unique="true"/>
+    <event load="ROCK_ATHIEST" unique="true"/>
     <event load="FRIENDLY_SLAVER" unique="true"/>
     <event load="MERCENARY" unique="true"/>
     <event load="QUEST_ESCORT" unique="false"/>
@@ -5538,6 +5560,22 @@ You tap into their frequency and hear the Rebel captain yelling, "We are liberat
     <event load="FUEL_ON_REBEL_WARNING" unique="false"/>
     <event load="FUEL_ON_REBEL_ATTACK" unique="false"/>
     <event load="NO_FUEL_REFUGEE" unique="false"/>
+  </eventList>
+  <eventList name="ROCK_ATHIEST_GOOD">
+    <event name="ROCK_ATHIEST_GOOD_JOIN" unique="false">
+      <text>Your promises gain their attention and they agree to serve with you, for a while.</text>
+      <crewMember amount="1" class="rock"/>
+    </event>
+    <event name="ROCK_ATHIEST_GOOD_AWAY" unique="false">
+      <text>They seem tempted by your offer, but decide they can't risk being lied to again. They close frequencies and jump away.
+
+Nothing happens.</text>
+    </event>
+    <event name="ROCK_ATHIEST_GOOD_AWAY" unique="false">
+      <text>They seem tempted by your offer, but decide they can't risk being lied to again. They close frequencies and jump away.
+
+Nothing happens.</text>
+    </event>
   </eventList>
   <eventList name="STANDIN_EMPTY"/>
 </FTL>

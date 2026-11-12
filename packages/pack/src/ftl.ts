@@ -646,6 +646,7 @@ function readOpeningLine(item: XmlElement): OpeningLine | undefined {
  * A flat `<text load="LIST"/>` becomes one `<text>` per line. The sim picks one when the page is shown.
  * A list that itself loads another list stays one node, so that load remains one draw.
  * A load inside a textList stays put for the same reason. A missing list is warned about and left out.
+ * A choice result whose only text is a load stays that load, so the ship beside it does not pin the first line.
  */
 function expandTextLoads(doc: XmlDocument, lists: Map<string, OpeningLine[]>): void {
   const loads: XmlElement[] = [];
@@ -665,7 +666,7 @@ function expandTextLoads(doc: XmlDocument, lists: Map<string, OpeningLine[]>): v
       warnPack(`<text load="${name}"/> names no textList; that text is left out.`);
       continue;
     }
-    if (!flat) continue;
+    if (!flat || choiceResultLoad(node)) continue;
     for (const line of flat) {
       const copy = doc.createElement("text");
       copy.appendChild(doc.createTextNode(line));
@@ -673,6 +674,24 @@ function expandTextLoads(doc: XmlDocument, lists: Map<string, OpeningLine[]>): v
     }
     parent.removeChild(node);
   }
+}
+
+/** A choice result's only text, when that text is a load, stays a reference. The ship sits beside it. */
+function choiceResultLoad(node: XmlElement): boolean {
+  const parent = node.parentNode;
+  if (!parent || parent.nodeType !== Node.ELEMENT_NODE) return false;
+  const event = parent as XmlElement;
+  if (event.tagName !== "event") return false;
+  const choice = event.parentNode;
+  if (
+    !choice ||
+    choice.nodeType !== Node.ELEMENT_NODE ||
+    (choice as XmlElement).tagName !== "choice"
+  )
+    return false;
+  let texts = 0;
+  for (const item of elements(event)) if (item.tagName === "text") texts += 1;
+  return texts === 1;
 }
 
 function flatTexts(lines: readonly OpeningLine[]): string[] | undefined {

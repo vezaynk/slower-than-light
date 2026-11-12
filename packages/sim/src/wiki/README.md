@@ -48,10 +48,18 @@ is 1/11). The flare clock stays code (`game/rules/flare.ts`). Which fight is a s
 `arrive-rock-sun` (alias `quest-rock-sun`). `ruwen-entry.ts` stays: Ancient device is `ROCK_CRYSTAL_BEACON`, and painting
 the quest marker is an executable rule with no archive id.
 
-Done: Rock arrival fights (November 2026). `ROCK_FIGHT_ASTEROID`, `ROCK_PIRATE`, `ROCK_PIRATE_ASTEROID`, and
-`ROCK_PIRATE_SUN` play as the page wrote them. The first text is empty, so the card uses one of the later sentences.
-The button and the ship stay on the choice. `ROCK_BOARDERS_SHIP`, `ROCK_BOARDERS_ASTEROID`, `ROCK_SHIP`, and
-`ROCK_BOARDERS_SUN` now play `writtenOpening`.
+Done: arrival pages whose card was only a rotating intro and the archive's own buttons no longer have a slug branch.
+A page with no hand-written card draws `writtenOpening`: one line when the body is blank or the page has several
+`<text>` nodes, and the page's own choices. Ids: `ROCK_FIGHT_ASTEROID`, `ROCK_PIRATE`, `ROCK_PIRATE_ASTEROID`,
+`ROCK_PIRATE_SUN`, `ROCK_BOARDERS_SHIP`, `ROCK_BOARDERS_ASTEROID`, `ROCK_SHIP`, `ROCK_BOARDERS_SUN`,
+`ENGI_MANTIS_FIGHT`, `NEBULA_MANTIS_FIGHT`, `MANTIS_FIGHT`, `MANTIS_FIGHT_CHOICE`, `MANTIS_CIVILIAN`, `MANTIS_BOARDERS`,
+`LANIUS_REBEL_FIGHT`, `LANIUS_FIGHT`, `LANIUS_PIRATE_CIVILIAN`, `LANIUS_CIVILIAN`, `LANIUS_SOLO_SALVAGE`,
+`LANIUS_PIRATE_FIGHT`, `PIRATE`, `NEBULA_PIRATE`, `PIRATE_CIVILIAN`, `PIRATE_BRIBER`, `PIRATE_PULSAR`, `MERCENARY`,
+`ZOLTAN_FIGHT`, `ZOLTAN_PIRATE`, `CRYSTAL_FIGHT`, `BOARDERS_CRYSTAL`, `NEBULA_SLUG_FIGHT`, `SLUG_REBEL`, `SLUG_PIRATE`,
+`STORM_SLUG_FIGHT`, `REBEL_AUTO`, `AUTO_WARNING`, `BOARDERS_REBEL_SHIP`, `NEBULA_REBEL`, `NEBULA_AUTO`, `REBEL`,
+`REBEL_PULSAR`, `BOSS_FLEETS_REBEL`, `BOSS_FLEETS_BOTH_FIGHT`, `REBEL_HELPERS`, `REBEL_VS_FEDERATION`,
+`BOSS_SCOUT_RESCUE`, `QUEST_ESCORT`, `FUEL_FOR_DRONE`, `FREE_ITEMS`, `TRAP_BEACON`, `NEBULA_BOARDING`, `BOARDERS`,
+`FIND_WEAPON`.
 
 ### How to migrate an event module
 

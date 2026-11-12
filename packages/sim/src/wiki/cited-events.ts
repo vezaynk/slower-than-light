@@ -823,6 +823,29 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   ) {
     return writtenOpening(g, ev);
   }
+  // Rebel and auto-ship arrival fights. The buttons already sit on the page.
+  // The first text is empty, so the intro is one of the later sentences.
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight with boarders]]
+  // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight among Rebel fleet]]
+  // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
+  // > "no surrender offers, no escape attempts" — [[Rebel fight among Rebel fleet]]
+  if (
+    ev.slug === "REBEL_AUTO" ||
+    ev.slug === "AUTO_WARNING" ||
+    ev.slug === "BOARDERS_REBEL_SHIP" ||
+    ev.slug === "NEBULA_REBEL" ||
+    ev.slug === "NEBULA_AUTO" ||
+    ev.slug === "REBEL" ||
+    ev.slug === "REBEL_PULSAR" ||
+    ev.slug === "BOSS_FLEETS_REBEL" ||
+    ev.slug === "BOSS_FLEETS_BOTH_FIGHT" ||
+    ev.slug === "REBEL_HELPERS" ||
+    ev.slug === "REBEL_VS_FEDERATION" ||
+    ev.slug === "BOSS_SCOUT_RESCUE"
+  ) {
+    return writtenOpening(g, ev);
+  }
   const missing = missingCard(g, b, ev);
   if (missing) return missing;
   if (ev.slug === "SLUG_DISTRESS_QUESTION") return slugMoonsCard(g, b, ev.dest);
@@ -1052,24 +1075,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Rebel fight in nebula has no choice. Arrival calls this fight.
-  // One of the seven printed intros. "Fight a Rebel ship (default rewards)." nebula=true. unique=false. No nebula environment is added.
-  if (ev.slug === "NEBULA_REBEL") {
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_REBEL"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Auto-ship fight in nebula has no choice. Arrival calls c:auto-ship-fight-in-nebula:0.
-  // One of the five printed intros. "Fight an Auto-ship." nebula=true. unique=false.
-  if (ev.slug === "NEBULA_AUTO") {
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_AUTO"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
   // Rock atheists. {{Blue Option|Improved Sensors|level=2+}}. The button stays visible.
   if (ev.slug === "ROCK_ATHIEST") {
     return {
@@ -1115,35 +1120,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: opening(g, "ROCK_BOARDERS_SHIP"),
       choices: [{ id: "c:rock-fight-with-boarders:0", label: "Fight a Rock ship" }],
-    };
-  }
-  // Auto-ship fight has no choice. Arrival calls c:auto-ship-fight:0.
-  // One of the nine printed intros. "Fight an Auto-ship." unique=false.
-  if (ev.slug === "REBEL_AUTO") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL_AUTO"),
-      choices: [{ id: "c:auto-ship-fight:0", label: "Fight an Auto-ship" }],
-    };
-  }
-  // Auto-ship warning has no choice. Arrival calls c:auto-ship-warning:0.
-  // The page shares those nine intros. "Fight an Auto-ship that is running away."
-  // The red line is the escape: Rebel Fleet pursuit is doubled. unique=true.
-  if (ev.slug === "AUTO_WARNING") {
-    return {
-      title: ev.dest,
-      body: opening(g, "AUTO_WARNING"),
-      choices: [{ id: "c:auto-ship-warning:0", label: "Fight an Auto-ship that is running away" }],
-    };
-  }
-  // Rebel fight with boarders. One of the four printed intros. The fight stays c:rebel-fight-with-boarders:0.
-  if (ev.slug === "BOARDERS_REBEL_SHIP") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight with boarders]]
-    return {
-      title: ev.dest,
-      body: opening(g, "BOARDERS_REBEL_SHIP"),
-      choices: [{ id: "c:rebel-fight-with-boarders:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rock fight with boarders in asteroid field. One of the two printed intros. The fight stays c:rock-fight-with-boarders-in-asteroid-field:0.
@@ -1258,40 +1234,11 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:crystal-fight:0", label: "Fight a Crystal ship (default rewards)" }],
     };
   }
-  // Rebel fight among Rebel fleet has no choice. Arrival calls this fight.
-  // One of the seven printed intros. "Fight a Rebel ship." unique=false. The low scrap and medium scrap payouts stay the winning results.
-  if (ev.slug === "BOSS_FLEETS_REBEL") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight among Rebel fleet]]
-    // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
-    // > "no surrender offers, no escape attempts" — [[Rebel fight among Rebel fleet]]
-    return {
-      title: ev.dest,
-      body: opening(g, "BOSS_FLEETS_REBEL"),
-      choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
-    };
-  }
   // The mercenary. One of the six printed intros. Delay, Fight, and Decline stay the existing choices.
   if (ev.slug === "MERCENARY") {
     return {
       title: ev.dest,
       body: opening(g, "MERCENARY"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Rebel ship supplying civilians. One of the five printed intros. Attack and Leave stay the existing choices.
-  if (ev.slug === "REBEL_HELPERS") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL_HELPERS"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Rebel ship attacking Federation loyalists. One of the three printed intros. Aid and Escape stay the existing choices.
-  if (ev.slug === "REBEL_VS_FEDERATION") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL_VS_FEDERATION"),
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
@@ -1329,17 +1276,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: opening(g, "LANIUS_SOLO_SALVAGE"),
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Rebel fight among Federation and Rebel fleets has no choice. Arrival calls this fight.
-  // One of the six printed intros. "Fight a Rebel ship." unique=false. The low scrap and medium scrap payouts stay the winning results.
-  if (ev.slug === "BOSS_FLEETS_BOTH_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "BOSS_FLEETS_BOTH_FIGHT"),
-      choices: [
-        { id: "c:rebel-fight-among-federation-and-rebel-fleets:0", label: "Fight a Rebel ship" },
-      ],
     };
   }
   // Escort civilians. One of the three printed intros. Accept and Decline stay the existing choices.
@@ -1403,15 +1339,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:pirate-fight-zoltan:0", label: "Fight a Pirate ship" }],
     };
   }
-  // Rebel fight near pulsar has no choice. Arrival calls this fight.
-  // One of the three printed intros. "Fight a Rebel ship (default rewards)." pulsar=true. unique=true.
-  if (ev.slug === "REBEL_PULSAR") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL_PULSAR"),
-      choices: [{ id: "c:rebel-fight-near-pulsar:0", label: "Fight a Rebel ship" }],
-    };
-  }
   // Rock fight has no choice. Arrival calls this fight.
   // One of the eight printed intros. "Fight a Rock ship (default rewards)." unique=false.
   if (ev.slug === "ROCK_SHIP") {
@@ -1431,15 +1358,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: opening(g, "PIRATE_PULSAR"),
       choices: [{ id: "c:pirate-fight-near-pulsar:0", label: "Fight a Pirate ship" }],
-    };
-  }
-  // Rebel fight has no choice. Arrival calls this fight.
-  // One of the ten printed intros. "Fight a Rebel ship (default rewards)." unique=false.
-  if (ev.slug === "REBEL") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL"),
-      choices: [{ id: "c:rebel-fight:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rebel checkpoint. The bribe is the packed scrap band, shown on the button.
@@ -1481,14 +1399,6 @@ ${laniusTraderOfferText(offer)}`,
           label: "Decline but ask about their translation device.",
         },
       ],
-    };
-  }
-  // Rebel ship attacking civilians in Last Stand. One of the five printed intros. Both choices stay.
-  if (ev.slug === "BOSS_SCOUT_RESCUE") {
-    return {
-      title: ev.dest,
-      body: opening(g, "BOSS_SCOUT_RESCUE"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
   // Free scrap with resources. One of the six printed intros. The gift stays c:free-scrap-with-resources:0.

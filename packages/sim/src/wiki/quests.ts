@@ -47,7 +47,7 @@ import {
 } from "../sim.ts";
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
-import { noteReactorEvent } from "./achievement-track.ts";
+import { noteReactorEvent } from "../rules/achievement-track.ts";
 import { grantRandomItem } from "../rules/bonus-item.ts";
 import { locksOwned, ownedLock, eventMissileWeapon } from "./choice-locks.ts";
 import { priceBand, priced, rollPrice } from "./event-prices.ts";

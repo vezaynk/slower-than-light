@@ -14,7 +14,7 @@ import {
   sparePower,
   startCombat,
 } from "../sim.ts";
-import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { noteAchieve } from "../rules/achieve-notes.ts";
 import { seatKits } from "../layouts.ts";
 import type { Crew, Game, Kit, Ship } from "../types.ts";
 import { bypassZoltan } from "../rules/cited-bypass.ts";

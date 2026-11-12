@@ -228,7 +228,7 @@ export function fightUnlock(g: Game, slug: string | null | undefined): void {
 
 /**
  * Pure: the unlock state after this run's progress. `earned` is the achievement ids already earned
- * (wiki/achievement-track.ts). Returns the same object when nothing changed.
+ * (rules/achievement-track.ts). Returns the same object when nothing changed.
  */
 export function deriveUnlocks(state: UnlockState, g: Game, earned: readonly string[]): UnlockState {
   const ships = new Set(state.ships);

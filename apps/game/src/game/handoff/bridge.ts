@@ -23,12 +23,12 @@ import {
   earnedIds,
   replaceAchievementRecord,
   resetAchievementMemory,
-} from "@stl/sim/wiki/achievement-track.ts";
+} from "@stl/sim/rules/achievement-track.ts";
 import {
   lifetimeRecordRaw,
   replaceLifetimeRecord,
   storedLifetime,
-} from "@stl/sim/wiki/achieve-notes.ts";
+} from "@stl/sim/rules/achieve-notes.ts";
 import {
   commitHandoff,
   digestBlob,

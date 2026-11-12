@@ -35,6 +35,7 @@ import {
   escapeTimers,
   stalemate,
   skillSpeeds,
+  achievementRules,
   aiTargets,
   overchargerWaits,
   ionIntruderRule,
@@ -64,6 +65,7 @@ export function campaignPack(): ContentPack {
     escapeTimers: escapeTimers(),
     stalemate: stalemate(),
     skillSpeed: skillSpeeds(),
+    achievementRules: achievementRules(),
     aiTarget: aiTargets(),
     overchargerWaits: overchargerWaits(),
     ionIntruder: ionIntruderRule(),
@@ -127,6 +129,7 @@ export function splitCampaign(pack: ContentPack): { body: ContentPack; gap: Cont
       escapeTimers: pack.escapeTimers,
       stalemate: pack.stalemate,
       skillSpeed: pack.skillSpeed,
+      achievementRules: pack.achievementRules,
       aiTarget: pack.aiTarget,
       overchargerWaits: pack.overchargerWaits,
       ionIntruder: pack.ionIntruder,
@@ -231,7 +234,7 @@ export function standInEventFiles(): { path: string; xml: string }[] {
  * Vanilla keeps Lanius in dlcBlueprints.xml and some weapons in that file too.
  * The same finds go in both appends. A find in a file that has no such blueprint does nothing.
  * The sector append adds notes. `data/gap.xml` adds the store, the rewards block, faction surrender and escape
- * rows, escape timers, the anti-stalemate break-off, crew skill rates, enemy targeting numbers, Shield Overcharger layer waits, the Ion
+ * rows, escape timers, the anti-stalemate break-off, crew skill rates, achievement thresholds, enemy targeting numbers, Shield Overcharger layer waits, the Ion
  * Intruder pulse, Crystal Vengeance, the fire weapons an executable rule forces onto a ship, the cargo hold,
  * bonus-item weights, asteroid timings, the pulsar, combat-drone orbit, the beacon map and the Rebel fleet's
  * advance, and empty beacons.

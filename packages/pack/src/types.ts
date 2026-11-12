@@ -660,6 +660,30 @@ export type SkillSpeed = {
 };
 
 /**
+ * Gap `<achievementRules systems power stealthSector blueEvents blueSector oxygen engines beamSeconds>`.
+ * Thresholds FTL's executable hard-codes. A missing value warns and uses FTL's.
+ * What counts as a system, a powered bar, a crew-blue choice, or a clean jump stays in code.
+ */
+export type AchievementRules = {
+  /** Full Arsenal: systems installed. */
+  systems?: number;
+  /** "Givin' her all she's got": powered bars at once. */
+  power?: number;
+  /** Stealth: sector reached with no environmental-hazard jump. */
+  stealthSector?: number;
+  /** Diplomatic Immunity: distinct crew-blue events. */
+  blueEvents?: number;
+  /** Diplomatic Immunity: last sector that still counts. */
+  blueSector?: number;
+  /** Lanius: net oxygen above this breaks the clean run. */
+  oxygen?: number;
+  /** Engines-full: engine level, fully powered and undamaged. */
+  engines?: number;
+  /** Beam slicing: seconds in which every enemy room must be cut. */
+  beamSeconds?: number;
+};
+
+/**
  * Gap `<aiTarget easy normal hardRoom hardAny evasion oxygen artillery>`: enemy weapon targeting numbers FTL's
  * executable hard-codes (xftl combat-ai, PrioritizeSystem). `easy` and `normal` are the chance a shot picks from the
  * system list. `hardRoom` is the share of Hard shots that pick no system; `hardAny` is the share that pick any
@@ -1452,6 +1476,8 @@ export type ContentPack = {
   stalemate?: Stalemate;
   /** Crew skill rate multipliers. Absent until a pack loads them. */
   skillSpeed?: SkillSpeed;
+  /** Achievement thresholds. Absent until a pack loads them. */
+  achievementRules?: AchievementRules;
   /** Enemy weapon targeting numbers. Absent until a pack loads them. */
   aiTarget?: AiTarget;
   /** Shield Overcharger layer waits. Absent until a pack loads them. */

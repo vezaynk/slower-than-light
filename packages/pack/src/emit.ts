@@ -26,6 +26,7 @@ import type {
   EscapeTimers,
   Stalemate,
   SkillSpeed,
+  AchievementRules,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -211,6 +212,7 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
   if (pack.stalemate) add(root, stalemateElement(doc, pack.stalemate));
   if (pack.skillSpeed) add(root, skillSpeedElement(doc, pack.skillSpeed));
+  if (pack.achievementRules) add(root, achievementRulesElement(doc, pack.achievementRules));
   if (pack.aiTarget) add(root, aiTargetElement(doc, pack.aiTarget));
   if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
   if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
@@ -282,6 +284,24 @@ function skillSpeedElement(doc: XmlDocument, row: SkillSpeed): XmlElement {
     if (row[key] != null) attrs[key] = num(row[key]);
   }
   return element(doc, "skillSpeed", attrs);
+}
+
+/** `<achievementRules>`: achievement thresholds FTL's executable hard-codes (types.ts AchievementRules). */
+function achievementRulesElement(doc: XmlDocument, row: AchievementRules): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of [
+    "systems",
+    "power",
+    "stealthSector",
+    "blueEvents",
+    "blueSector",
+    "oxygen",
+    "engines",
+    "beamSeconds",
+  ] as const) {
+    if (row[key] != null) attrs[key] = num(row[key]);
+  }
+  return element(doc, "achievementRules", attrs);
 }
 
 /** `<aiTarget>`: enemy weapon targeting numbers FTL's executable hard-codes (types.ts AiTarget). */

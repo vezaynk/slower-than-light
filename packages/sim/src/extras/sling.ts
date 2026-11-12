@@ -14,7 +14,7 @@ import {
   roomById,
   sparePower,
 } from "../sim.ts";
-import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { noteAchieve } from "../rules/achieve-notes.ts";
 import { bypassZoltan } from "../rules/cited-bypass.ts";
 import { mendOnSend } from "./moreaugs.ts";
 import { heldByEnemy } from "./leash.ts";

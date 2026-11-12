@@ -823,6 +823,18 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   ) {
     return writtenOpening(g, ev);
   }
+  // Lanius arrival fights. The choices are already on the page.
+  // The intro is one of the page's texts. ftl.dat stores the first of those as body.
+  if (
+    ev.slug === "LANIUS_REBEL_FIGHT" ||
+    ev.slug === "LANIUS_FIGHT" ||
+    ev.slug === "LANIUS_PIRATE_CIVILIAN" ||
+    ev.slug === "LANIUS_CIVILIAN" ||
+    ev.slug === "LANIUS_SOLO_SALVAGE" ||
+    ev.slug === "LANIUS_PIRATE_FIGHT"
+  ) {
+    return writtenOpening(g, ev);
+  }
   const missing = missingCard(g, b, ev);
   if (missing) return missing;
   if (ev.slug === "SLUG_DISTRESS_QUESTION") return slugMoonsCard(g, b, ev.dest);
@@ -1097,15 +1109,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
-  // Rebel fight (Lanius) has no choice. Arrival calls this fight.
-  // One of the six printed intros. "Fight a Rebel ship (default rewards)." unique=false.
-  if (ev.slug === "LANIUS_REBEL_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_REBEL_FIGHT"),
-      choices: [{ id: "c:rebel-fight-lanius:0", label: "Fight a Rebel ship" }],
-    };
-  }
   // Rock fight with boarders. One of the two printed intros. The fight stays c:rock-fight-with-boarders:0.
   if (ev.slug === "ROCK_BOARDERS_SHIP") {
     // Wiki citations:
@@ -1157,15 +1160,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       choices: [
         { id: "c:rock-fight-with-boarders-in-asteroid-field:0", label: "Fight a Rock ship" },
       ],
-    };
-  }
-  // Lanius fight has no choice. Arrival calls this fight.
-  // One of the eleven printed intros, including the repeated line. "Fight a Lanius ship (default Lanius rewards)." unique=false.
-  if (ev.slug === "LANIUS_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_FIGHT"),
-      choices: [{ id: "c:lanius-fight:0", label: "Fight a Lanius ship" }],
     };
   }
   // Mantis fight (Engi) has no choice. Arrival calls this fight.
@@ -1223,14 +1217,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "PIRATE_CIVILIAN"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Pirate ship attacking civilian (Lanius). One of the three printed intros. Both printed choices stay.
-  if (ev.slug === "LANIUS_PIRATE_CIVILIAN") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_PIRATE_CIVILIAN"),
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
@@ -1315,22 +1301,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:slug-fight-in-nebula:0", label: "Fight a Slug ship" }],
     };
   }
-  // Lanius ship attacking civilian. One of the three printed intros. Attack and Avoid stay the existing choices.
-  if (ev.slug === "LANIUS_CIVILIAN") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_CIVILIAN"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Lanius ship salvager. One of the five printed intros. Attack, Leave, and the scrap request stay the existing choices.
-  if (ev.slug === "LANIUS_SOLO_SALVAGE") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_SOLO_SALVAGE"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
   // Rebel fight among Federation and Rebel fleets has no choice. Arrival calls this fight.
   // One of the six printed intros. "Fight a Rebel ship." unique=false. The low scrap and medium scrap payouts stay the winning results.
   if (ev.slug === "BOSS_FLEETS_BOTH_FIGHT") {
@@ -1380,15 +1350,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: opening(g, "SLUG_PIRATE"),
       choices: [{ id: "c:pirate-fight-slug:0", label: "Fight a Pirate ship" }],
-    };
-  }
-  // Pirate fight (Lanius) has no choice. Arrival calls this fight.
-  // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
-  if (ev.slug === "LANIUS_PIRATE_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_PIRATE_FIGHT"),
-      choices: [{ id: "c:pirate-fight-lanius:0", label: "Fight a Pirate ship" }],
     };
   }
   // Pirate fight (Zoltan) has no choice. Arrival calls c:pirate-fight-zoltan:0.

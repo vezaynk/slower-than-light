@@ -52,6 +52,9 @@ Done: Rock arrival fights (November 2026). `ROCK_FIGHT_ASTEROID`, `ROCK_PIRATE`,
 `ROCK_PIRATE_SUN` play as the page wrote them. The first text is empty, so the card uses one of the later sentences.
 The button and the ship stay on the choice.
 
+Done: Lanius arrival fights (November 2026). `LANIUS_REBEL_FIGHT`, `LANIUS_FIGHT`, `LANIUS_PIRATE_CIVILIAN`,
+`LANIUS_CIVILIAN`, `LANIUS_SOLO_SALVAGE`, and `LANIUS_PIRATE_FIGHT` play as the page wrote them.
+
 ### How to migrate an event module
 
 1. **Map it.** List the module's events, its importers (`git grep`), and each event's archive id

@@ -6,6 +6,7 @@ import {
 } from "@xmldom/xmldom";
 import type {
   ArchiveEnvironment,
+  ArchiveGrant,
   ArchiveReward,
   AugmentDef,
   ChoiceGift,
@@ -1517,6 +1518,8 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   const prices: EventPrice[] = [];
   const bands: EventBand[] = [];
   const trades: TradeStep[] = [];
+  const fx: EventEffect[] = [];
+  const grants: ArchiveGrant[] = [];
   let grade: EventGrade | undefined;
   let surrender: SurrenderOfferDef | undefined;
   let ship: EventDef["ship"];
@@ -1554,7 +1557,14 @@ export function readEvent(node: XmlElement): EventDef | undefined {
       continue;
     }
     if (item.tagName === "item_modify") {
-      keepPrice(prices, readNamedPrice(item));
+      const price = readNamedPrice(item);
+      if (price) keepPrice(prices, price);
+      else for (const effect of resourceEffects(item)) fx.push(effect);
+      continue;
+    }
+    if (item.tagName === "crewMember") {
+      const grant = readCrewGrant(item);
+      if (grant) grants.push(grant);
       continue;
     }
     if (item.tagName === "roll") {
@@ -1584,22 +1594,8 @@ export function readEvent(node: XmlElement): EventDef | undefined {
       continue;
     }
     if (item.tagName !== "choice") continue;
-    const choiceId = attr(item, "name")?.trim();
-    if (!choiceId) continue;
-    const fx = readChoiceEffects(item);
-    const choice: EventChoice = { id: choiceId, label: textOf(item, "text") ?? choiceId, fx };
-    const reqs = readReqs(item);
-    if (reqs) choice.reqs = reqs;
-    readChoiceGates(choice, item);
-    const owner = lockOwner(attr(item, "owner"));
-    if (owner) choice.owner = owner;
-    const gift = readGift(item, "page");
-    if (gift) choice.gift = gift;
-    const reward = readChoiceReward(item);
-    if (reward) choice.reward = reward;
-    const environment = readEnvironment(item);
-    if (environment) choice.environment = environment;
-    choices.push(choice);
+    const choice = readCampaignChoice(item);
+    if (choice) choices.push(choice);
   }
   const event: EventDef = {
     id,
@@ -1615,6 +1611,8 @@ export function readEvent(node: XmlElement): EventDef | undefined {
     const texts = openingTexts(node, lines);
     if (texts) event.texts = texts;
   }
+  if (fx.length > 0) event.fx = fx;
+  if (grants.length > 0) event.grants = grants;
   if (offers.length > 0) event.offers = offers;
   if (rolls.length > 0) event.rolls = rolls;
   if (prices.length > 0) event.prices = prices;
@@ -2228,6 +2226,62 @@ function questEffects(node: XmlElement): EventEffect[] {
       );
   }
   return out;
+}
+
+/** A page's unnamed item_modify. A named price stays a price, not a result. */
+function resourceEffects(node: XmlElement): EventEffect[] {
+  const rows: EventEffect[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "item") continue;
+    const parsed = readResourceItem(item);
+    if (parsed) rows.push(parsed);
+  }
+  return rows;
+}
+
+/** `<crewMember class="anaerobic">Translator</crewMember>` grants that person. */
+function readCrewGrant(node: XmlElement): ArchiveGrant | undefined {
+  const race = attr(node, "class")?.trim() || attr(node, "type")?.trim();
+  const named = ownText(node).trim();
+  if (!race && !named) return undefined;
+  const grant: ArchiveGrant = { kind: "crew", id: race || "human" };
+  if (named && named !== grant.id) grant.name = named;
+  const amount = intAttr(node, "amount");
+  if (amount != null) grant.amount = amount;
+  return grant;
+}
+
+/** Campaign buttons, including the buttons on a result page. */
+function readCampaignChoice(node: XmlElement): EventChoice | undefined {
+  const choiceId = attr(node, "name")?.trim();
+  if (!choiceId) return undefined;
+  const choice: EventChoice = {
+    id: choiceId,
+    label: textOf(node, "text") ?? choiceId,
+    fx: readChoiceEffects(node),
+  };
+  const reqs = readReqs(node);
+  if (reqs) choice.reqs = reqs;
+  readChoiceGates(choice, node);
+  const owner = lockOwner(attr(node, "owner"));
+  if (owner) choice.owner = owner;
+  const gift = readGift(node, "page");
+  if (gift) choice.gift = gift;
+  const reward = readChoiceReward(node);
+  if (reward) choice.reward = reward;
+  const environment = readEnvironment(node);
+  if (environment) choice.environment = environment;
+  const result = elements(node).find((item) => item.tagName === "event");
+  if (result && !attr(result, "load")?.trim()) {
+    const nested = elements(result)
+      .filter((item) => item.tagName === "choice")
+      .flatMap((item) => {
+        const next = readCampaignChoice(item);
+        return next ? [next] : [];
+      });
+    if (nested.length > 0) choice.choices = nested;
+  }
+  return choice;
 }
 
 /** Choice results, in document order. */

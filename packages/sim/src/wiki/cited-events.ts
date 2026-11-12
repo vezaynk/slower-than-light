@@ -398,32 +398,6 @@ export function stampCitedEvents(g: Game) {
   markRuwenEntry(g);
 }
 
-export type LaniusTraderRes = "fuel" | "missiles" | "parts";
-export type LaniusTraderOffer = { res: LaniusTraderRes; cost: number; scrap: number };
-
-/** One Lanius row from the packed page. The resource draw stays between, then the cost, then the scrap. */
-export function rollLaniusTrader(
-  g: Game,
-  better: boolean,
-  id = "LANIUS_TRADER",
-): LaniusTraderOffer {
-  const band = better ? "better" : "base";
-  const rows = [];
-  for (const row of eventDef(storedId(id))?.offers ?? [])
-    if (row.k === "lanius" && row.band === band) rows.push(row);
-  const row = rows[between(g, [0, rows.length - 1])]!;
-  return { res: row.res, cost: between(g, row.cost), scrap: between(g, row.scrap) };
-}
-
-export function laniusTraderOfferText(offer: LaniusTraderOffer): string {
-  const word = offer.res === "parts" ? "drone parts" : offer.res;
-  return `You lose ${offer.cost} ${word} and receive ${offer.scrap} scrap.`;
-}
-
-export function laniusTraderTakeId(offer: LaniusTraderOffer): string {
-  return `q:lanius-trader:take:${offer.res}:${offer.cost}:${offer.scrap}`;
-}
-
 const SLUG_MOON_QUESTION =
   'As you drift closer, you are contacted by a Slug marooned on the moon\'s surface. "I shall join your crew, sssay I, if you can answer me this simple quesssstion. How many moons are there in orbit here?"';
 
@@ -762,8 +736,6 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
 const ROW_CARDS: Record<string, string> = {
   TRADER_CIV: "trade",
   NEBULA_TRADER: "trade",
-  LANIUS_TRADER: "lanius",
-  LANIUS_TRADER_TRANSLATOR: "lanius",
   FUEL_TRADER: "fuel",
   FUEL_TRADER_DISTRESS: "fuel",
   SLUG_DISTRESS_QUESTION: "count",
@@ -808,20 +780,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   if (missing) return missing;
   if (ev.slug === "SLUG_DISTRESS_QUESTION") return slugMoonsCard(g, b, ev.dest);
   if (ev.slug === "ZOLTAN_ODD_MOON") return zoltanOddCard(ev.dest);
-  if (ev.slug === "LANIUS_TRADER") {
-    const offer = rollLaniusTrader(g, false);
-    // The offer is rolled first so the shown trade stays on the same draws. The intro uses the next draw.
-    const intro = opening(g, "LANIUS_TRADER");
-    return {
-      title: ev.dest,
-      body: `${intro}\n\n${laniusTraderOfferText(offer)}`,
-      choices: [
-        { id: laniusTraderTakeId(offer), label: "Agree to the exchange." },
-        { id: "c:lanius-trader:3", label: "Decline" },
-        { id: "c:lanius-trader:4", label: "Ask for an alternative trade." },
-      ],
-    };
-  }
   // Auto-ship near radar station. Combat Drone Mark I or II, or an Anti-Ship Beam Drone.
   if (ev.slug === "AUTO_DEFENSE_RADAR") {
     return {
@@ -1058,27 +1016,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       label: labels[between(g, [0, labels.length - 1])]!,
     });
     return { title: ev.dest, body, choices };
-  }
-  // Lanius trader with translator. The printed hail, then the same one shown base trade. No better-band blue option.
-  if (ev.slug === "LANIUS_TRADER_TRANSLATOR") {
-    const offer = rollLaniusTrader(g, false, "LANIUS_TRADER_TRANSLATOR");
-    return {
-      title: ev.dest,
-      body: `A Lanius merchant appears to have a significantly improved translator as you clearly understand their message. "Metal content more than sufficient. Does your ship care to exchange resources for our excess metal?"
-
-${laniusTraderOfferText(offer)}`,
-      choices: [
-        {
-          id: `q:lanius-translator:take:${offer.res}:${offer.cost}:${offer.scrap}`,
-          label: "Agree to the exchange.",
-        },
-        { id: "c:lanius-trader-with-translator:3", label: "Decline" },
-        {
-          id: "c:lanius-trader-with-translator:4",
-          label: "Decline but ask about their translation device.",
-        },
-      ],
-    };
   }
   // Space station under construction. {{Blue Option|Lanius Crew|Offer to have your crewmember help.}}
   // The button stays visible. Agreeing to the sale is the follow-up card in wiki/quests.ts.

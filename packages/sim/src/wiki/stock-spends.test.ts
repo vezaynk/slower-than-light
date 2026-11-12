@@ -76,7 +76,6 @@ function labelOf(
 }
 
 const CAMPAIGN: [string, StockKind, number][] = [
-  ["q:lanius-translator:buy", "scrap", 40],
   ["s:zoltan-raft:hire", "scrap", 40],
   ["q:engi-distress:scrap", "scrap", 25],
   ["q:engi-distress:supplies", "scrap", 40],
@@ -127,20 +126,20 @@ describe("packed stock counts", () => {
   });
 
   it("restores a campaign count after a rewrite", () => {
-    rewriteStock("q:lanius-translator:buy", undefined);
-    assert.equal(stockCount("q:lanius-translator:buy", "scrap"), null);
+    rewriteStock("s:zoltan-raft:hire", undefined);
+    assert.equal(stockCount("s:zoltan-raft:hire", "scrap"), null);
     resetPackForTests();
-    assert.equal(stockCount("q:lanius-translator:buy", "scrap"), 40);
+    assert.equal(stockCount("s:zoltan-raft:hire", "scrap"), 40);
     assert.equal(stockCount("c:refueling-station:0", "scrap"), 12);
   });
 });
 
 describe("stock labels", () => {
   it("prints the campaign sentence and keeps the same button when that sentence is already there", () => {
-    const buy = { id: "q:lanius-translator:buy", label: "Purchase the translator for 40 scrap." };
-    const once = stampStockLabels([buy]);
-    assert.equal(once[0], buy);
-    assert.equal(stampStockLabels(once)[0], buy);
+    const hire = { id: "s:zoltan-raft:hire", label: "Offer to hire him for 40 scrap." };
+    const once = stampStockLabels([hire]);
+    assert.equal(once[0], hire);
+    assert.equal(stampStockLabels(once)[0], hire);
     const slug = {
       id: "c:no-fuel-slug-fuel-trader:slug",
       label: "Have your Slug make the purchase.",
@@ -153,13 +152,6 @@ describe("stock labels", () => {
 
   it("overlays a rewritten count and drops a button whose printed row is gone", () => {
     const rows: [string, string, StockKind, number, string][] = [
-      [
-        "q:lanius-translator:buy",
-        "Purchase the translator for 40 scrap.",
-        "scrap",
-        7,
-        "Purchase the translator for 7 scrap.",
-      ],
       [
         "s:zoltan-raft:hire",
         "Offer to hire him for 40 scrap.",
@@ -423,7 +415,7 @@ describe("stock spends", () => {
     assert.match(smaller.event?.body ?? "", /Fuel: -1\./);
   });
 
-  it("buys the translator for the packed scrap and hires nobody when the row is gone", () => {
+  it("asks about the crate, hires Translator for 40 scrap, and spends nothing when short", () => {
     const shown = startedGame(1);
     const beacon = spot(shown);
     beacon.flag = "LANIUS_TRADER_TRANSLATOR";
@@ -432,54 +424,31 @@ describe("stock spends", () => {
     shown.event = citedEvent(shown, beacon);
     choose(shown, "c:lanius-trader-with-translator:4");
     assert.equal(
-      labelOf(shown.event?.choices, "q:lanius-translator:buy"),
-      "Purchase the translator for 40 scrap.",
+      labelOf(shown.event?.choices, "c:lanius-trader-with-translator:4:0"),
+      "Pay 40 scrap for the crate.",
+    );
+    const short = shown.scrap;
+    choose(shown, "c:lanius-trader-with-translator:4:0");
+    assert.equal(shown.scrap, short);
+    assert.equal(
+      shown.crew.some((crew) => crew.name === "Translator"),
+      false,
     );
 
-    rewriteStock("q:lanius-translator:buy", [stock("scrap", 7)]);
-    const renamed = startedGame(2);
-    const next = spot(renamed);
+    const paid = startedGame(3);
+    const next = spot(paid);
     next.flag = "LANIUS_TRADER_TRANSLATOR";
     next.name = "Lanius trader with translator";
-    renamed.here = next.id;
-    renamed.event = citedEvent(renamed, next);
-    choose(renamed, "c:lanius-trader-with-translator:4");
-    assert.equal(
-      labelOf(renamed.event?.choices, "q:lanius-translator:buy"),
-      "Purchase the translator for 7 scrap.",
-    );
-
-    resetPackForTests();
-    const paid = startedGame(3);
+    paid.here = next.id;
     paid.scrap = 40;
-    choose(paid, "q:lanius-translator:buy");
+    paid.event = citedEvent(paid, next);
+    choose(paid, "c:lanius-trader-with-translator:4");
+    choose(paid, "c:lanius-trader-with-translator:4:0");
     assert.equal(paid.scrap, 0);
     assert.equal(
       paid.crew.some((crew) => crew.name === "Translator"),
       true,
     );
-
-    rewriteStock("q:lanius-translator:buy", undefined);
-    const skipped = startedGame(4);
-    const quiet = spot(skipped);
-    quiet.flag = "LANIUS_TRADER_TRANSLATOR";
-    quiet.name = "Lanius trader with translator";
-    skipped.here = quiet.id;
-    skipped.event = citedEvent(skipped, quiet);
-    choose(skipped, "c:lanius-trader-with-translator:4");
-    assert.equal(
-      skipped.event?.choices.some((choice) => choice.id === "q:lanius-translator:buy"),
-      false,
-    );
-    skipped.scrap = 40;
-    const seed = skipped.seed;
-    choose(skipped, "q:lanius-translator:buy");
-    assert.equal(skipped.scrap, 40);
-    assert.equal(
-      skipped.crew.some((crew) => crew.name === "Translator"),
-      false,
-    );
-    assert.equal(skipped.seed, seed);
   });
 
   it("offers the raft hire at the packed scrap and rolls only after the ship can pay", () => {

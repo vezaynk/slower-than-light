@@ -119,6 +119,7 @@ describe("base pack xml", () => {
         ["ROCK_PIRATE_SUN", [{ load: "ROCK_PIRATE_SUN" }]],
         ["STAND_IN_BEACON", [{ load: "STAND_IN_CALM" }]],
         ["STAND_IN_NESTED", [{ load: "STAND_IN_NEST" }]],
+        ["LANIUS_TRADER", [{ load: "LANIUS_TRADER_TEXT" }]],
       ],
     );
     assert.deepEqual(back.events, pack.events);

@@ -427,6 +427,7 @@ describe("totallynotftl.dat", () => {
         "STAND_IN_NEST",
         "NAME_SYLLABLES",
         "CREW_POOL",
+        "LANIUS_TRADER_TEXT",
       ],
     );
     assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_CALM")?.lines, [

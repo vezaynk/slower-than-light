@@ -5,10 +5,18 @@ type CoreFx =
   | { k: "fleet"; n: number; double?: boolean; faster?: boolean; lastStand?: boolean }
   | { k: "fight"; tier: string; asteroid?: boolean }
   | { k: "note"; text: string }
+  | { k: "goto"; id: string }
   | { k: "item"; item: "weapon" | "augment" | "drone" }
   | { k: "nothing" };
 
-type CoreChoice = { id: string; label: string; fx: CoreFx[] };
+type CoreChoice = {
+  id: string;
+  label: string;
+  fx: CoreFx[];
+  hidden?: boolean;
+  reqs?: { k: "attr"; id: string; text: string }[];
+  choices?: CoreChoice[];
+};
 
 export type CoreEvent = {
   dest: string;
@@ -1058,70 +1066,32 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:lanius-trader:0",
-        label: "You lose 3-7 fuel and receive 15-30 scrap",
-        fx: [
-          {
-            k: "res",
-            id: "fuel",
-            sign: -1,
-            lo: 3,
-            hi: 7,
-          },
-          {
-            k: "res",
-            id: "scrap",
-            sign: 1,
-            lo: 15,
-            hi: 30,
-          },
-        ],
-      },
-      {
-        id: "c:lanius-trader:1",
-        label: "You lose 3-7 missiles and receive 20-40 scrap",
-        fx: [
-          {
-            k: "res",
-            id: "missiles",
-            sign: -1,
-            lo: 3,
-            hi: 7,
-          },
-          {
-            k: "res",
-            id: "scrap",
-            sign: 1,
-            lo: 20,
-            hi: 40,
-          },
-        ],
-      },
-      {
-        id: "c:lanius-trader:2",
-        label: "You lose 3-7 drone parts and receive 20-40 scrap",
-        fx: [
-          {
-            k: "res",
-            id: "parts",
-            sign: -1,
-            lo: 3,
-            hi: 7,
-          },
-          {
-            k: "res",
-            id: "scrap",
-            sign: 1,
-            lo: 20,
-            hi: 40,
-          },
-        ],
+        label: "Make the trade.",
+        fx: [{ k: "goto", id: "LANIUS_TRADER_LIST" }],
       },
       {
         id: "c:lanius-trader:3",
-        label: "Decline",
+        label: "Send them off.",
+        fx: [{ k: "note", text: "They cut the hail and jump." }],
+      },
+      {
+        id: "c:lanius-trader:4",
+        label: "Have your Lanius ask for more.",
+        hidden: true,
+        reqs: [{ k: "attr", id: "anaerobic", text: "" }],
         fx: [
+          { k: "note", text: "Your Lanius speaks, and the trader answers with a heavier offer." },
+        ],
+        choices: [
           {
-            k: "nothing",
+            id: "c:lanius-trader:4:0",
+            label: "Take the heavier offer.",
+            fx: [{ k: "goto", id: "LANIUS_TRADER_LIST2" }],
+          },
+          {
+            id: "c:lanius-trader:4:1",
+            label: "Turn it down.",
+            fx: [{ k: "note", text: "They close the channel." }],
           },
         ],
       },
@@ -1137,74 +1107,34 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Lanius trader with translator",
     ],
     sectors: ["Abandoned Sector"],
-    body: "",
+    body: "This Lanius hail comes through clean. They have metal they cannot use, and they want supplies for it.",
     choices: [
       {
         id: "c:lanius-trader-with-translator:0",
-        label: "You lose 3-7 fuel and receive 15-30 scrap",
-        fx: [
-          {
-            k: "res",
-            id: "fuel",
-            sign: -1,
-            lo: 3,
-            hi: 7,
-          },
-          {
-            k: "res",
-            id: "scrap",
-            sign: 1,
-            lo: 15,
-            hi: 30,
-          },
-        ],
-      },
-      {
-        id: "c:lanius-trader-with-translator:1",
-        label: "You lose 3-7 missiles and receive 20-40 scrap",
-        fx: [
-          {
-            k: "res",
-            id: "missiles",
-            sign: -1,
-            lo: 3,
-            hi: 7,
-          },
-          {
-            k: "res",
-            id: "scrap",
-            sign: 1,
-            lo: 20,
-            hi: 40,
-          },
-        ],
-      },
-      {
-        id: "c:lanius-trader-with-translator:2",
-        label: "You lose 3-7 drone parts and receive 20-40 scrap",
-        fx: [
-          {
-            k: "res",
-            id: "parts",
-            sign: -1,
-            lo: 3,
-            hi: 7,
-          },
-          {
-            k: "res",
-            id: "scrap",
-            sign: 1,
-            lo: 20,
-            hi: 40,
-          },
-        ],
+        label: "Make the trade.",
+        fx: [{ k: "goto", id: "LANIUS_TRADER_LIST" }],
       },
       {
         id: "c:lanius-trader-with-translator:3",
-        label: "Decline",
-        fx: [
+        label: "Send them off.",
+        fx: [{ k: "note", text: "They cut the hail and jump." }],
+      },
+      {
+        id: "c:lanius-trader-with-translator:4",
+        label: "Ask what made the hail so clear.",
+        hidden: true,
+        fx: [{ k: "note", text: "They tap a crate and offer it for 40 scrap." }],
+        choices: [
           {
-            k: "nothing",
+            id: "c:lanius-trader-with-translator:4:0",
+            label: "Pay 40 scrap for the crate.",
+            hidden: true,
+            fx: [{ k: "goto", id: "LANIUS_TRANSLATOR_HIRE" }],
+          },
+          {
+            id: "c:lanius-trader-with-translator:4:1",
+            label: "Keep your scrap.",
+            fx: [{ k: "note", text: "They keep the crate and jump." }],
           },
         ],
       },

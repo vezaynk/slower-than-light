@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
+import { choiceOmitted, offeredChoices } from "./choice-locks.ts";
 import { citedEvent } from "./cited-events.ts";
 import { joinCrew } from "./surrender.ts";
 
@@ -16,6 +17,12 @@ const BETTER: Record<string, [number, number]> = {
   parts: [25, 50],
 };
 
+const INTROS = [
+  "A Lanius skiff holds its guns cold and asks for spare supplies, scrap in return.",
+  "A small Lanius hull drifts in with empty racks. The hail is clumsy, but it is a trade.",
+  "A laden Lanius hull is already turning away. They will trade the metal they cannot use.",
+];
+
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
@@ -29,49 +36,43 @@ function open(g: Game) {
   g.player.parts = 20;
 }
 
-function offer(body: string): { res: string; cost: number; scrap: number } {
-  const m = /You lose (\d+) (fuel|missiles|drone parts) and receive (\d+) scrap/.exec(body);
-  assert.ok(m, body);
-  return { res: m[2] === "drone parts" ? "parts" : m[2]!, cost: Number(m[1]), scrap: Number(m[3]) };
-}
-
 function inBand(n: number, lo: number, hi: number) {
   assert.ok(n >= lo && n <= hi, `${n} not in ${lo}-${hi}`);
 }
 
-const INTROS = [
-  'Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, "Metal sufficient. Request exchange." It appears there are some Lanius who wish sociable interaction with other races.',
-  "A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.",
-  "You arrive to find a large Lanius vessel laden with recently collected metal. They are apparently offering to trade for supplies they are lacking.",
-];
+/** The list page pays on the click. Notes are "Fuel: -N." and "Scrap: M." */
+function paid(body: string): { res: string; cost: number; scrap: number } {
+  const cost = /(?:Fuel|Missiles|Drone parts): -(\d+)\./.exec(body);
+  const scrap = /Scrap: (\d+)\./.exec(body);
+  assert.ok(cost, body);
+  assert.ok(scrap, body);
+  const res = body.includes("Fuel:") ? "fuel" : body.includes("Missiles:") ? "missiles" : "parts";
+  return { res, cost: Number(cost[1]), scrap: Number(scrap[1]) };
+}
 
 describe("Lanius trader", () => {
-  it("shows one of the three printed intros, then one base offer, and agreeing pays those amounts", () => {
+  it("rotates the three hails, then one base trade, and agreeing pays that page", () => {
     const seenIntro = new Set<string>();
     const seen = new Set<string>();
     for (let seed = 1; seed <= 80 && (seen.size < 3 || seenIntro.size < 3); seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
-      const intro = INTROS.find((line) => body.startsWith(`${line}\n\n`));
+      const intro = INTROS.find((line) => line === body);
       assert.ok(intro, body);
       seenIntro.add(intro);
-      const got = offer(body);
-      inBand(got.cost, 3, 7);
-      inBand(got.scrap, BASE[got.res]![0], BASE[got.res]![1]);
       assert.deepEqual(
-        g.event?.choices.map((c) => c.label),
-        ["Agree to the exchange.", "Decline", "Ask for an alternative trade."],
+        offeredChoices(g, g.event!.choices).map((c) => c.label),
+        ["Make the trade.", "Send them off."],
       );
       const fuel = g.fuel;
       const missiles = g.missiles;
       const parts = g.player.parts;
-      choose(g, g.event!.choices[0]!.id);
+      choose(g, "c:lanius-trader:0");
       assert.equal(g.phase, "event");
-      assert.equal(
-        g.event?.body,
-        `After the exchange is complete they leave without a word.\n\nScrap: ${got.scrap}.`,
-      );
+      const got = paid(g.event?.body ?? "");
+      inBand(got.cost, 3, 7);
+      inBand(got.scrap, BASE[got.res]![0], BASE[got.res]![1]);
       assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
       assert.equal(g.event?.choices[0]?.id, "ack");
       choose(g, "ack");
@@ -98,32 +99,45 @@ describe("Lanius trader", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, scrap);
     assert.equal(g.fuel, fuel);
-    assert.equal(g.event?.body, "They leave without a word.\n\nNothing happens.");
+    assert.equal(g.event?.body, "They cut the hail and jump.");
+    assert.equal(g.event?.choices[0]?.id, "ack");
   });
 
-  it("a short offer stays closed", () => {
+  it("a short stock leaves the trade unpaid", () => {
     const g = createGame(1);
     open(g);
-    const got = offer(g.event?.body ?? "");
-    if (got.res === "fuel") g.fuel = got.cost - 1;
-    else if (got.res === "missiles") g.missiles = got.cost - 1;
-    else g.player.parts = got.cost - 1;
-    const id = g.event!.choices[0]!.id;
-    const word = got.res === "parts" ? "drone parts" : got.res;
-    assert.equal(choiceDisabled(g, id), `Need ${got.cost} ${word}`);
+    g.fuel = 2;
+    g.missiles = 2;
+    g.player.parts = 2;
     const scrap = g.scrap;
-    choose(g, id);
-    assert.equal(g.phase, "event");
+    assert.equal(choiceDisabled(g, "c:lanius-trader:0"), null);
+    choose(g, "c:lanius-trader:0");
     assert.equal(g.scrap, scrap);
+    assert.equal(g.fuel, 2);
+    assert.equal(g.missiles, 2);
+    assert.equal(g.player.parts, 2);
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:lanius-trader:0"),
+      true,
+    );
   });
 
-  it("asking again needs a living Lanius and pays a better band", () => {
+  it("a living Lanius opens the heavier list, and a dead one does not", () => {
     const bare = createGame(1);
     open(bare);
-    assert.equal(choiceDisabled(bare, "c:lanius-trader:4"), "Needs a Lanius crewmember");
+    const bareIds = bare.event!.choices.map((c) => c.id);
+    assert.equal(choiceOmitted(bare, "c:lanius-trader:4", bareIds), true);
+    assert.equal(
+      offeredChoices(bare, bare.event!.choices).some((c) => c.id === "c:lanius-trader:4"),
+      false,
+    );
+    assert.equal(choiceDisabled(bare, "c:lanius-trader:4"), "Needs Lanius");
     choose(bare, "c:lanius-trader:4");
     assert.equal(bare.scrap, 10);
-    assert.equal(bare.phase, "event");
+    assert.equal(
+      bare.event?.choices.some((c) => c.id === "c:lanius-trader:0"),
+      true,
+    );
 
     const dead = createGame(2);
     open(dead);
@@ -131,35 +145,46 @@ describe("Lanius trader", () => {
     const lan = dead.crew.find((c) => c.kin === "anaerobic");
     assert.ok(lan);
     lan.hp = 0;
-    assert.equal(choiceDisabled(dead, "c:lanius-trader:4"), "Needs a Lanius crewmember");
+    assert.equal(
+      choiceOmitted(
+        dead,
+        "c:lanius-trader:4",
+        dead.event!.choices.map((c) => c.id),
+      ),
+      true,
+    );
 
     const seen = new Set<string>();
     for (let seed = 1; seed <= 60 && seen.size < 3; seed++) {
       const g = createGame(seed);
       open(g);
       assert.equal(joinCrew(g, "Lanius"), true);
+      assert.equal(
+        choiceOmitted(
+          g,
+          "c:lanius-trader:4",
+          g.event!.choices.map((c) => c.id),
+        ),
+        false,
+      );
       assert.equal(choiceDisabled(g, "c:lanius-trader:4"), null);
       choose(g, "c:lanius-trader:4");
-      const body = g.event?.body ?? "";
-      assert.match(body, /second proposal/);
-      const got = offer(body);
-      inBand(got.cost, 3, 7);
-      inBand(got.scrap, BETTER[got.res]![0], BETTER[got.res]![1]);
       assert.equal(g.scrap, 10);
+      assert.equal(
+        g.event?.body,
+        "Your Lanius speaks, and the trader answers with a heavier offer.",
+      );
       assert.deepEqual(
         g.event?.choices.map((c) => c.label),
-        ["Agree to the exchange.", "Decline"],
+        ["Take the heavier offer.", "Turn it down."],
       );
       const fuel = g.fuel;
       const missiles = g.missiles;
       const parts = g.player.parts;
-      choose(g, g.event!.choices[0]!.id);
-      assert.equal(g.phase, "event");
-      assert.equal(
-        g.event?.body,
-        `After the exchange is complete they leave without a word.\n\nScrap: ${got.scrap}.`,
-      );
-      assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
+      choose(g, "c:lanius-trader:4:0");
+      const got = paid(g.event?.body ?? "");
+      inBand(got.cost, 3, 7);
+      inBand(got.scrap, BETTER[got.res]![0], BETTER[got.res]![1]);
       assert.equal(g.event?.choices[0]?.id, "ack");
       choose(g, "ack");
       assert.equal(g.phase, "map");

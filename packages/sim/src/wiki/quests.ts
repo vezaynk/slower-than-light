@@ -55,7 +55,6 @@ import { rollBand, upgradeRows } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
 import { fleetToReach, jumpsBetween, overtaken } from "../rules/sector-map.ts";
 // @agent:quests-a. Quest-opener modules register a QuestPart; PARTS is read at call time (the modules import this one).
-import { laniusTraderOfferText, laniusTraderTakeId, rollLaniusTrader } from "./cited-events.ts";
 import { RUWEN_ENTRY } from "./ruwen-entry.ts";
 import { PART_A } from "./quests-a.ts";
 import { PART_B } from "./quests-b.ts"; // @agent:quests-b. Quest-opening events, part B.
@@ -81,7 +80,7 @@ import {
   type SurrenderOffer,
   type SurrenderTier,
 } from "./surrender.ts";
-import { keepNewHire, receiveAugment } from "../rules/make-room.ts";
+import { receiveAugment } from "../rules/make-room.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import {
   affordStock,
@@ -1391,61 +1390,6 @@ const CHOICES: Record<string, (g: Game) => void> = {
     result(g, "You ignore their derisive tone and prepare to jump.", undefined, [
       "Nothing happens.",
     ]);
-  },
-  // Lanius trader. "Decline." One printed result. Also the second proposal's Decline, same id.
-  "c:lanius-trader:3": (g) => {
-    result(g, "They leave without a word.", undefined, ["Nothing happens."]);
-  },
-  // Lanius trader, {{Blue Option|Lanius Crew|Ask for an alternative trade.}}
-  // A new roll of resource, cost, and scrap. INFERRED: the three better bands are equal.
-  // The named Translator is the other page, not this one.
-  "c:lanius-trader:4": (g) => {
-    if (!hasLanius(g)) return;
-    const offer = rollLaniusTrader(g, true);
-    card(
-      g,
-      `After a short discussion you do not understand, the trader comes back with a second proposal.
-
-${laniusTraderOfferText(offer)}`,
-      [
-        { id: laniusTraderTakeId(offer), label: "Agree to the exchange." },
-        { id: "c:lanius-trader:3", label: "Decline" },
-      ],
-    );
-  },
-  // Lanius trader with translator. "Decline." One printed result.
-  "c:lanius-trader-with-translator:3": (g) => {
-    result(g, "They leave without a word.", undefined, ["Nothing happens."]);
-  },
-  // Lanius trader with translator. "Decline but ask about their translation device."
-  "c:lanius-trader-with-translator:4": (g) => {
-    card(g, '"Yes. It is quality. Our ship contains excess. Care to purchase?"', [
-      { id: "q:lanius-translator:buy", label: "Purchase the translator for 40 scrap." },
-      { id: "q:lanius-translator:decline", label: "Decline again." },
-    ]);
-  },
-  // 40 scrap for a Lanius named Translator. The page prints no skill.
-  // At full crew the hire goes ahead and someone already aboard is relieved (make-room.ts keepNewHire).
-  "q:lanius-translator:buy": (g) => {
-    const cost = affordStock(g, "q:lanius-translator:buy", "scrap");
-    if (cost == null) return;
-    joinCrew(g, "Lanius", "Translator");
-    keepNewHire(g);
-    takeStock(g, "scrap", cost);
-    result(
-      g,
-      "Your ships dock and you are more than a little surprised when the Lanius you spoke with boards your ship. It appears the 'device' you purchased was one of the beings that learned your language.",
-      undefined,
-      ["A Lanius crewmember named Translator joins you."],
-    );
-  },
-  "q:lanius-translator:decline": (g) => {
-    result(
-      g,
-      '"No matter. This one does not mind this ship." They pull away and you are left to wonder what it meant by that. Perhaps the translation device has not yet been perfected?',
-      undefined,
-      ["Nothing happens."],
-    );
   },
   // Lanius ship absorbing automated scout. Two inspect results, no odds. INFERRED: equal.
   // "a random amount of scrap". The page notes lowercase "low" is treated as RANDOM.
@@ -4313,38 +4257,8 @@ The only ship left near the cruiser is an interceptor. This should be easy!`,
   },
 };
 
-const LANIUS_TRADER_TAKE =
-  /^q:lanius-(?:trader|translator):take:(fuel|missiles|parts):(\d+):(\d+)$/;
-
-/** The shown Lanius trader offer. The page prints those amounts before the choice, so this does not roll again. */
-function payLaniusTrader(g: Game, id: string) {
-  const m = LANIUS_TRADER_TAKE.exec(id);
-  if (!m) return;
-  const res = m[1] as "fuel" | "missiles" | "parts";
-  const cost = Number(m[2]);
-  const scrap = Number(m[3]);
-  const have = res === "fuel" ? g.fuel : res === "missiles" ? g.missiles : g.player.parts;
-  if (have < cost) return;
-  if (res === "fuel") g.fuel -= cost;
-  else if (res === "missiles") g.missiles -= cost;
-  else g.player.parts -= cost;
-  g.scrap += scrap;
-  g.scrapCollected = (g.scrapCollected ?? 0) + scrap;
-  const b = here(g);
-  if (b) b.resolved = true;
-  result(g, "After the exchange is complete they leave without a word.", undefined, [
-    `Scrap: ${scrap}.`,
-  ]);
-}
-
 /** surrender.ts surrenderChoose calls this first. True when the id was a quest choice. */
 export function questChoose(g: Game, id: string): boolean {
-  if (id.startsWith("q:lanius-trader:take:") || id.startsWith("q:lanius-translator:take:")) {
-    if (!LANIUS_TRADER_TAKE.test(id)) return false;
-    if (questChoiceDisabled(g, id)) return true;
-    payLaniusTrader(g, id);
-    return true;
-  }
   const checkpoint = /^q:rebel-checkpoint:bribe:(\d+)$/.exec(id);
   if (checkpoint) {
     if (questChoiceDisabled(g, id)) return true;
@@ -4365,13 +4279,6 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Rebel checkpoint. The bribe amount is the one shown on the button.
   const checkpoint = /^q:rebel-checkpoint:bribe:(\d+)$/.exec(id);
   if (checkpoint && g.scrap < Number(checkpoint[1])) return `Need ${checkpoint[1]} scrap`;
-  const trader = LANIUS_TRADER_TAKE.exec(id);
-  if (trader) {
-    const res = trader[1];
-    const cost = Number(trader[2]);
-    const have = res === "fuel" ? g.fuel : res === "missiles" ? g.missiles : g.player.parts;
-    if (have < cost) return `Need ${cost} ${res === "parts" ? "drone parts" : res}`;
-  }
   // Wiki citations:
   // > "(Engi Crew) Have your Engi crewmember contact them." — [[Engi fleet discussion]]
   // Lanius ship in rich debris field. Improved Piloting is level 2. Advanced Piloting is level 3.

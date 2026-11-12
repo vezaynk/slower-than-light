@@ -34,10 +34,6 @@ function scrapForFuel(
  * undefined keeps the button. null drops it. A string replaces the label.
  */
 function stockLabel(id: string): string | null | undefined {
-  if (id === "q:lanius-translator:buy") {
-    const n = stockCount(id, "scrap");
-    return n == null ? null : `Purchase the translator for ${n} scrap.`;
-  }
   if (id === "s:zoltan-raft:hire") {
     const n = stockCount(id, "scrap");
     return n == null ? null : `Offer to hire him for ${n} scrap.`;

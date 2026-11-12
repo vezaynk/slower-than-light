@@ -189,15 +189,26 @@ describe("filler lists", () => {
       assert.equal(rows.filter((row) => row.k === "fuel" && row.band === "high").length, 3, id);
       assert.equal(rows.filter((row) => row.k === "fuel" && row.band === "pt2").length, 3, id);
     }
-    const lanius = eventDef("LANIUS_TRADER")?.offers ?? [];
-    assert.equal(lanius.filter((row) => row.k === "lanius" && row.band === "base").length, 3);
-    assert.equal(lanius.filter((row) => row.k === "lanius" && row.band === "better").length, 3);
-    const translator = eventDef("LANIUS_TRADER_TRANSLATOR")?.offers ?? [];
-    assert.equal(translator.length, 3);
-    assert.equal(
-      translator.every((row) => row.k === "lanius" && row.band === "base"),
-      true,
+    const lanius = fillerList("LANIUS_TRADER_LIST");
+    const heavier = fillerList("LANIUS_TRADER_LIST2");
+    assert.deepEqual(
+      lanius?.entries.map((entry) => entry.id),
+      ["LANIUS_TRADER_LIST_FUEL", "LANIUS_TRADER_LIST_MISSILES", "LANIUS_TRADER_LIST_PARTS"],
     );
+    assert.deepEqual(
+      heavier?.entries.map((entry) => entry.id),
+      ["LANIUS_TRADER_LIST2_FUEL", "LANIUS_TRADER_LIST2_MISSILES", "LANIUS_TRADER_LIST2_PARTS"],
+    );
+    assert.deepEqual(eventDef("LANIUS_TRADER_LIST_FUEL")?.fx, [
+      { k: "res", id: "fuel", sign: -1, lo: 3, hi: 7 },
+      { k: "res", id: "scrap", sign: 1, lo: 15, hi: 30 },
+    ]);
+    assert.deepEqual(eventDef("LANIUS_TRADER_LIST2_PARTS")?.fx, [
+      { k: "res", id: "parts", sign: -1, lo: 3, hi: 7 },
+      { k: "res", id: "scrap", sign: 1, lo: 25, hi: 50 },
+    ]);
+    assert.equal(eventDef("LANIUS_TRADER")?.offers, undefined);
+    assert.equal(eventDef("LANIUS_TRADER_TRANSLATOR")?.offers, undefined);
     const supply = eventDef("TRADER_UPGRADES_EXCHANGE")?.offers ?? [];
     assert.equal(supply.length, 3);
     assert.equal(

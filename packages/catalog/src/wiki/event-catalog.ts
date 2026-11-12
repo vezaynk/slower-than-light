@@ -76,6 +76,8 @@ function copyEffect(fx: EventEffect): EventEffect {
 function copyChoice(choice: EventChoice): EventChoice {
   const copy: EventChoice = { id: choice.id, label: choice.label, fx: choice.fx.map(copyEffect) };
   if (choice.hidden) copy.hidden = true;
+  if (choice.reqs) copy.reqs = choice.reqs.map((req) => ({ ...req }));
+  if (choice.choices) copy.choices = choice.choices.map(copyChoice);
   if (choice.reward) copy.reward = { level: choice.reward.level, name: choice.reward.name };
   return copy;
 }

@@ -23,6 +23,7 @@ import type {
   EventChoice,
   EventDef,
   EventEffect,
+  ArchiveGrant,
   EscapeTimers,
   Stalemate,
   SkillSpeed,
@@ -666,6 +667,9 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   if (event.ship) add(node, archiveShipElement(doc, event.ship));
   if (event.environment) add(node, environmentElement(doc, event.environment));
   if (event.store) add(node, element(doc, "store", {}));
+  for (const effect of event.fx ?? []) if (effect.k !== "quest") add(node, effectElement(doc, effect));
+  for (const grant of event.grants ?? [])
+    if (grant.kind === "crew") add(node, crewGrant(doc, grant));
   for (const list of offerLists(doc, event.offers ?? [])) add(node, list);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll));
   for (const price of event.prices ?? []) add(node, priceElement(doc, price));
@@ -673,42 +677,57 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   for (const step of event.trades ?? []) add(node, tradeElement(doc, step));
   if (event.grade) add(node, gradeElement(doc, event.grade));
   for (const card of event.cards ?? []) add(node, cardElement(doc, card));
-  for (const choice of event.choices) {
-    const choiceNode = element(doc, "choice", choiceAttributes(choice));
-    add(choiceNode, leaf(doc, "text", choice.label));
-    for (const req of choice.reqs ?? []) {
-      if (req.k === "attr") continue;
-      add(choiceNode, reqElement(doc, req));
-    }
-    let placedGift = false;
-    let note: XmlElement | undefined;
-    for (const fx of choice.fx) {
-      if (fx.k === "nothing" && choice.gift && !placedGift) {
-        add(choiceNode, nothingEvent(doc, choice.gift));
-        placedGift = true;
-        note = undefined;
-      } else if (fx.k === "quest") {
-        // ftl.dat's <quest event> sits inside the result event, and FTL reads only the first <event> of a choice.
-        // The sentence is that event, even when a stand-in-only effect such as close comes between them.
-        const quest = element(doc, "quest", { event: QUEST_ARRIVAL_PREFIX + fx.id });
-        if (note) add(note, quest);
-        else {
-          const holder = element(doc, "event", {});
-          add(holder, quest);
-          add(choiceNode, holder);
-        }
-      } else {
-        const node = effectElement(doc, fx);
-        add(choiceNode, node);
-        if (fx.k === "note") note = node;
-        else if (node.tagName === "event") note = undefined;
-      }
-    }
-    if (choice.reward) add(choiceNode, autoReward(doc, choice.reward.name, choice.reward.level));
-    if (choice.environment) add(choiceNode, environmentElement(doc, choice.environment));
-    add(node, choiceNode);
-  }
+  for (const choice of event.choices) add(node, namedChoice(doc, choice));
   if (event.surrender) add(node, surrenderElement(doc, event.surrender));
+  return node;
+}
+
+function namedChoice(doc: XmlDocument, choice: EventChoice): XmlElement {
+  const choiceNode = element(doc, "choice", choiceAttributes(choice));
+  add(choiceNode, leaf(doc, "text", choice.label));
+  for (const req of choice.reqs ?? []) {
+    if (req.k === "attr") continue;
+    add(choiceNode, reqElement(doc, req));
+  }
+  let placedGift = false;
+  let note: XmlElement | undefined;
+  for (const fx of choice.fx) {
+    if (fx.k === "nothing" && choice.gift && !placedGift) {
+      add(choiceNode, nothingEvent(doc, choice.gift));
+      placedGift = true;
+      note = undefined;
+    } else if (fx.k === "quest") {
+      // ftl.dat's <quest event> sits inside the result event, and FTL reads only the first <event> of a choice.
+      // The sentence is that event, even when a stand-in-only effect such as close comes between them.
+      const quest = element(doc, "quest", { event: QUEST_ARRIVAL_PREFIX + fx.id });
+      if (note) add(note, quest);
+      else {
+        const holder = element(doc, "event", {});
+        add(holder, quest);
+        add(choiceNode, holder);
+      }
+    } else {
+      const written = effectElement(doc, fx);
+      add(choiceNode, written);
+      if (fx.k === "note") note = written;
+      else if (written.tagName === "event") note = undefined;
+    }
+  }
+  if (choice.choices?.length) {
+    const holder = note ?? element(doc, "event", {});
+    if (!note) add(choiceNode, holder);
+    for (const nested of choice.choices) add(holder, namedChoice(doc, nested));
+  }
+  if (choice.reward) add(choiceNode, autoReward(doc, choice.reward.name, choice.reward.level));
+  if (choice.environment) add(choiceNode, environmentElement(doc, choice.environment));
+  return choiceNode;
+}
+
+function crewGrant(doc: XmlDocument, grant: ArchiveGrant): XmlElement {
+  const attrs: Record<string, string> = { class: grant.id };
+  if (grant.amount != null) attrs.amount = num(grant.amount);
+  const node = element(doc, "crewMember", attrs);
+  if (grant.name) node.appendChild(doc.createTextNode(grant.name));
   return node;
 }
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { weaponDef } from "@stl/pack";
+import { weaponDef, achievementRule, loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 import { applyImpact, createGame, startCombat } from "../sim.ts";
 import type { Shot } from "../types.ts";
 import { deriveUnlocks } from "../unlocks.ts";
@@ -340,5 +340,49 @@ describe("Givin' her all she's got, Captain!", () => {
     assert.equal(earnedNow(g).includes("ACH_ENERGY_POWER"), false);
     g.crew.push(spark("d", "oxygen"));
     assert.equal(earnedNow(g).includes("ACH_ENERGY_POWER"), true);
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><achievementRules power="99"/></FTL>` }]),
+      "append",
+    );
+    try {
+      assert.equal(achievementRule("power"), 99);
+      assert.equal(earnedNow(g).includes("ACH_ENERGY_POWER"), false);
+    } finally {
+      resetPackForTests();
+    }
+  });
+});
+
+describe("achievement rule readings", () => {
+  it("counts a combat or boarder drone, not a defense drone or an english alias", () => {
+    const mark = (kind: string) => {
+      const g = quietMap();
+      noteAchieve(g, { k: "drone", kind, functioning: 1 });
+      return g.tally?.offensiveDrone === true;
+    };
+    assert.equal(mark("COMBAT_1"), true);
+    assert.equal(mark("BOARDER"), true);
+    assert.equal(mark("DEFENSE_1"), false);
+    assert.equal(mark("combat"), false);
+  });
+
+  it("a raised oxygen rule keeps breathable air from breaking the Lanius line", () => {
+    const broke = () => {
+      const g = quietMap();
+      g.jumps = 1;
+      for (const room of g.player.rooms) room.o2 = 100;
+      noteAchieve(g, { k: "tick" });
+      return g.tally?.o2Broke === true;
+    };
+    assert.equal(broke(), true);
+    loadPack(
+      packFromFtl([{ path: "data/gap.xml", xml: `<FTL><achievementRules oxygen="200"/></FTL>` }]),
+      "append",
+    );
+    try {
+      assert.equal(broke(), false);
+    } finally {
+      resetPackForTests();
+    }
   });
 });

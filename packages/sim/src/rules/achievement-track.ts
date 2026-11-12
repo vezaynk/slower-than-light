@@ -9,6 +9,7 @@
 import {
   achievementDef,
   allAchievements,
+  achievementRule,
   allEvents,
   hullDef,
   startingFit,
@@ -155,7 +156,7 @@ function crewBlueChoice(id: string): boolean {
  * Each distinct crew-blue choice counts once. Sector 6 is too late. Another ship does not count.
  */
 export function noteCrewBlue(g: Game, choiceId: string): void {
-  if ((g.sector ?? 1) > 5) return;
+  if ((g.sector ?? 1) > achievementRule("blueSector")) return;
   if (shipFamily(g.hullId) !== "PLAYER_SHIP_FED") return;
   if (!crewBlueChoice(choiceId)) return;
   const tally = g.tally ?? (g.tally = {});
@@ -197,6 +198,14 @@ export function achievementReading(g: Game, name: string): number | boolean | un
   return undefined;
 }
 
+/** Full Arsenal, the power bar line, and Diplomatic Immunity read these from `<achievementRules>`. */
+function ruleFloor(name: string): number | undefined {
+  if (name === "gauge.systemsInstalled") return achievementRule("systems");
+  if (name === "gauge.poweredBars") return achievementRule("power");
+  if (name === "tally.blueCrew") return achievementRule("blueEvents");
+  return undefined;
+}
+
 /** A condition against this run. A value with no bound must be true or above 0. */
 export function conditionMet(g: Game, row: AchievementCondition): boolean {
   if ("all" in row) return row.all.every((part) => conditionMet(g, part));
@@ -204,10 +213,11 @@ export function conditionMet(g: Game, row: AchievementCondition): boolean {
   if ("not" in row) return !conditionMet(g, row.not);
   const value = achievementReading(g, row.value);
   if (value === undefined) return false;
-  if (row.min == null && row.max == null)
+  const floor = ruleFloor(row.value) ?? row.min;
+  if (floor == null && row.max == null)
     return value === true || (typeof value === "number" && value > 0);
   const n = typeof value === "number" ? value : value ? 1 : 0;
-  return (row.min == null || n >= row.min) && (row.max == null || n <= row.max);
+  return (floor == null || n >= floor) && (row.max == null || n <= row.max);
 }
 
 /**

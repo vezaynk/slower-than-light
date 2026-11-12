@@ -23,6 +23,7 @@ import type {
   EscapeTimers,
   Stalemate,
   SkillSpeed,
+  AchievementRules,
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
@@ -94,11 +95,13 @@ let beaconEventsValue: BeaconEvents = {};
 let escapeTimersValue: EscapeTimers = {};
 let stalemateValue: Stalemate = {};
 let skillSpeedValue: SkillSpeed = {};
+let achievementRulesValue: AchievementRules = {};
 let cargoSlotsValue: CargoSlots = {};
 let bonusItemValue: BonusItemWeights = {};
 let baseEscapeTimers: EscapeTimers = {};
 let baseStalemate: Stalemate = {};
 let baseSkillSpeed: SkillSpeed = {};
+let baseAchievementRules: AchievementRules = {};
 let aiTargetValue: AiTarget = {};
 let baseAiTarget: AiTarget = {};
 let overchargerWaitsValue: OverchargerWaits = {};
@@ -618,6 +621,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseStalemate = { ...pack.stalemate };
     skillSpeedValue = { ...pack.skillSpeed };
     baseSkillSpeed = { ...pack.skillSpeed };
+    achievementRulesValue = { ...pack.achievementRules };
+    baseAchievementRules = { ...pack.achievementRules };
     aiTargetValue = { ...pack.aiTarget };
     baseAiTarget = { ...pack.aiTarget };
     overchargerWaitsValue = { ...pack.overchargerWaits };
@@ -675,6 +680,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     stalemateValue = { ...stalemateValue, ...pack.stalemate };
   if (mode === "append" && pack.skillSpeed)
     skillSpeedValue = { ...skillSpeedValue, ...pack.skillSpeed };
+  if (mode === "append" && pack.achievementRules)
+    achievementRulesValue = { ...achievementRulesValue, ...pack.achievementRules };
   if (mode === "append" && pack.aiTarget) aiTargetValue = { ...aiTargetValue, ...pack.aiTarget };
   if (mode === "append" && pack.overchargerWaits)
     overchargerWaitsValue = { ...overchargerWaitsValue, ...pack.overchargerWaits };
@@ -1192,6 +1199,37 @@ export function skillMult(kind: "repair" | "combat", rank: number): number {
   return fallback;
 }
 
+/**
+ * FTL's achievement thresholds. Used only when no loaded pack sets `<achievementRules>`, with one warning.
+ */
+const FTL_ACHIEVEMENT_RULES: Required<AchievementRules> = {
+  systems: 11,
+  power: 29,
+  stealthSector: 8,
+  blueEvents: 4,
+  blueSector: 5,
+  oxygen: 20,
+  engines: 8,
+  beamSeconds: 5,
+};
+
+/** The loaded `<achievementRules>`, as authored (no defaults filled in). */
+export function achievementRules(): AchievementRules {
+  return { ...achievementRulesValue };
+}
+
+/**
+ * One achievement threshold (gap `<achievementRules>`).
+ * A pack that omits the value gets FTL's, with one warning.
+ */
+export function achievementRule(key: keyof AchievementRules): number {
+  const value = achievementRulesValue[key];
+  if (value != null) return value;
+  const fallback = FTL_ACHIEVEMENT_RULES[key];
+  warnPack(`No <achievementRules ${key}> is loaded; FTL's ${fallback} is used.`);
+  return fallback;
+}
+
 const FTL_OVERCHARGER_WAITS: Required<OverchargerWaits> = {
   layer0: 8,
   layer1: 10,
@@ -1640,6 +1678,7 @@ export function resetPackForTests(): void {
   escapeTimersValue = { ...baseEscapeTimers };
   stalemateValue = { ...baseStalemate };
   skillSpeedValue = { ...baseSkillSpeed };
+  achievementRulesValue = { ...baseAchievementRules };
   aiTargetValue = { ...baseAiTarget };
   overchargerWaitsValue = { ...baseOverchargerWaits };
   ionIntruderValue = { ...baseIonIntruder };

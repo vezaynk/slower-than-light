@@ -6,6 +6,7 @@
  * carries them. An achievement with no condition is one the game cannot track yet.
  */
 import type { AchievementCondition } from "@stl/pack";
+import { ACHIEVEMENT_RULES } from "./achievement-rules.ts";
 
 export type AchievementRow = {
   id: string;
@@ -246,7 +247,7 @@ export const ACHIEVEMENTS: AchievementRow[] = [
     ship: "PLAYER_SHIP_HARD",
     multiDifficulty: true,
     source: "Ship Achievements",
-    condition: { value: "gauge.systemsInstalled", min: 11 },
+    condition: { value: "gauge.systemsInstalled", min: ACHIEVEMENT_RULES.systems },
   },
   {
     id: "ACH_TOUGH_SHIP",
@@ -368,7 +369,7 @@ export const ACHIEVEMENTS: AchievementRow[] = [
     source: "Ship Achievements",
     // Ship Achievements, Diplomatic Immunity: crew-blue choices only, through sector 5.
     // The run counts each distinct choice once (achievement-track noteCrewBlue).
-    condition: { value: "tally.blueCrew", min: 4 },
+    condition: { value: "tally.blueCrew", min: ACHIEVEMENT_RULES.blueEvents },
   },
   {
     id: "ACH_FED_UPGRADE",
@@ -469,7 +470,7 @@ export const ACHIEVEMENTS: AchievementRow[] = [
     ship: "PLAYER_SHIP_ENERGY",
     multiDifficulty: true,
     source: "Ship Achievements",
-    condition: { value: "gauge.poweredBars", min: 29 },
+    condition: { value: "gauge.poweredBars", min: ACHIEVEMENT_RULES.power },
   },
   {
     id: "ACH_ENERGY_MANPOWER",

@@ -124,6 +124,16 @@ const pack: ContentPack = {
     combat1: 1.1,
     combat2: 1.2,
   },
+  achievementRules: {
+    systems: 11,
+    power: 29,
+    stealthSector: 8,
+    blueEvents: 4,
+    blueSector: 5,
+    oxygen: 20,
+    engines: 8,
+    beamSeconds: 5,
+  },
   aiTarget: {
     easy: 0.2,
     normal: 0.33,
@@ -240,6 +250,10 @@ describe("hyperspace mod", () => {
     assert.match(
       xml,
       /<skillSpeed repair0="1" repair1="1.1" repair2="1.2" combat0="1" combat1="1.1" combat2="1.2"\/>/,
+    );
+    assert.match(
+      xml,
+      /<achievementRules systems="11" power="29" stealthSector="8" blueEvents="4" blueSector="5" oxygen="20" engines="8" beamSeconds="5"\/>/,
     );
     assert.match(
       xml,

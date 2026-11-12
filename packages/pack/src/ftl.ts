@@ -35,6 +35,7 @@ import type {
   EscapeTimers,
   Stalemate,
   SkillSpeed,
+  AchievementRules,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -80,6 +81,7 @@ import {
   readEscapeTimers,
   readStalemate,
   readSkillSpeed,
+  readAchievementRules,
   readAiTarget,
   readOverchargerWaits,
   readIonIntruder,
@@ -188,6 +190,7 @@ export function packFromFtl(
   let escapeTimers: EscapeTimers | undefined;
   let stalemate: Stalemate | undefined;
   let skillSpeed: SkillSpeed | undefined;
+  let achievementRules: AchievementRules | undefined;
   let aiTarget: AiTarget | undefined;
   let overchargerWaits: OverchargerWaits | undefined;
   let ionIntruder: IonIntruderRule | undefined;
@@ -280,6 +283,8 @@ export function packFromFtl(
         stalemate = { ...stalemate, ...readStalemate(node) };
       } else if (node.tagName === "skillSpeed") {
         skillSpeed = { ...skillSpeed, ...readSkillSpeed(node) };
+      } else if (node.tagName === "achievementRules") {
+        achievementRules = { ...achievementRules, ...readAchievementRules(node) };
       } else if (node.tagName === "aiTarget") {
         aiTarget = { ...aiTarget, ...readAiTarget(node) };
       } else if (node.tagName === "overchargerWaits") {
@@ -360,6 +365,7 @@ export function packFromFtl(
   if (escapeTimers) pack.escapeTimers = escapeTimers;
   if (stalemate) pack.stalemate = stalemate;
   if (skillSpeed) pack.skillSpeed = skillSpeed;
+  if (achievementRules) pack.achievementRules = achievementRules;
   if (aiTarget) pack.aiTarget = aiTarget;
   if (overchargerWaits) pack.overchargerWaits = overchargerWaits;
   if (ionIntruder) pack.ionIntruder = ionIntruder;

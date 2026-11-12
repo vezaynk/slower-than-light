@@ -86,6 +86,42 @@ describe("skill speed from the gap", () => {
     }
   });
 
+  it("a gap file that sets the system rows changes the manning helpers", () => {
+    loadPack(
+      packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><skillSpeed pilot0="3" pilot1="4" pilot2="6" engines0="2" engines1="4" engines2="8" shields0="1.4" shields1="1.5" shields2="1.6" weapons0="0.7" weapons1="0.6" weapons2="0.5"/></FTL>`,
+        },
+      ]),
+      "append",
+    );
+    try {
+      assert.deepEqual(
+        [0, 1, 2].map((rank) => pilotEvasion(rank as 0 | 1 | 2)),
+        [3, 4, 6],
+      );
+      assert.deepEqual(
+        [0, 1, 2].map((rank) => enginesEvasion(rank as 0 | 1 | 2)),
+        [2, 4, 8],
+      );
+      assert.deepEqual(
+        [0, 1, 2].map((rank) => shieldsRecharge(rank as 0 | 1 | 2)),
+        [1.4, 1.5, 1.6],
+      );
+      assert.deepEqual(
+        [0, 1, 2].map((rank) => weaponsCharge(rank as 0 | 1 | 2)),
+        [0.7, 0.6, 0.5],
+      );
+    } finally {
+      resetPackForTests();
+      assert.equal(pilotEvasion(0), 5);
+      assert.equal(enginesEvasion(0), 5);
+      assert.equal(shieldsRecharge(0), 1.1);
+      assert.equal(weaponsCharge(0), 0.9);
+    }
+  });
+
   it("repair pace follows the loaded multiplier", () => {
     const g = createGame(3);
     const { worker } = lone(g);

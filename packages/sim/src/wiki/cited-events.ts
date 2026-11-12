@@ -823,6 +823,21 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   ) {
     return writtenOpening(g, ev);
   }
+  // Pirate arrival fights. The buttons are already on the page.
+  // The intro is one of the page's texts. ftl.dat stores the first of those as body.
+  // Wiki citations:
+  // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
+  // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in nebula]]
+  if (
+    ev.slug === "PIRATE" ||
+    ev.slug === "NEBULA_PIRATE" ||
+    ev.slug === "PIRATE_CIVILIAN" ||
+    ev.slug === "PIRATE_BRIBER" ||
+    ev.slug === "PIRATE_PULSAR" ||
+    ev.slug === "MERCENARY"
+  ) {
+    return writtenOpening(g, ev);
+  }
   const missing = missingCard(g, b, ev);
   if (missing) return missing;
   if (ev.slug === "SLUG_DISTRESS_QUESTION") return slugMoonsCard(g, b, ev.dest);
@@ -1031,27 +1046,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
-  // Pirate fight has no choice. Arrival calls this fight.
-  // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
-  if (ev.slug === "PIRATE") {
-    return {
-      title: ev.dest,
-      body: opening(g, "PIRATE"),
-      choices: [{ id: "c:pirate-fight:0", label: "Fight a Pirate ship" }],
-    };
-  }
-  // Pirate fight in nebula has no choice. Arrival calls this fight.
-  // One of the five printed intros. "Fight a Pirate ship (default rewards)." nebula=true. unique=false. No nebula environment is added.
-  if (ev.slug === "NEBULA_PIRATE") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
-    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in nebula]]
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_PIRATE"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
   // Rebel fight in nebula has no choice. Arrival calls this fight.
   // One of the seven printed intros. "Fight a Rebel ship (default rewards)." nebula=true. unique=false. No nebula environment is added.
   if (ev.slug === "NEBULA_REBEL") {
@@ -1218,14 +1212,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
-  // Pirate ship attacking civilian. One of the six printed intros. Both printed choices stay.
-  if (ev.slug === "PIRATE_CIVILIAN") {
-    return {
-      title: ev.dest,
-      body: opening(g, "PIRATE_CIVILIAN"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
   // Pirate ship attacking civilian (Lanius). One of the three printed intros. Both printed choices stay.
   if (ev.slug === "LANIUS_PIRATE_CIVILIAN") {
     return {
@@ -1271,14 +1257,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
     };
   }
-  // The mercenary. One of the six printed intros. Delay, Fight, and Decline stay the existing choices.
-  if (ev.slug === "MERCENARY") {
-    return {
-      title: ev.dest,
-      body: opening(g, "MERCENARY"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
   // Rebel ship supplying civilians. One of the five printed intros. Attack and Leave stay the existing choices.
   if (ev.slug === "REBEL_HELPERS") {
     return {
@@ -1292,14 +1270,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     return {
       title: ev.dest,
       body: opening(g, "REBEL_VS_FEDERATION"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Pirate briber. One of the three printed intros. Accept and Attack stay the existing choices.
-  if (ev.slug === "PIRATE_BRIBER") {
-    return {
-      title: ev.dest,
-      body: opening(g, "PIRATE_BRIBER"),
       choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
     };
   }
@@ -1422,15 +1392,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: opening(g, "ROCK_SHIP"),
       choices: [{ id: "c:rock-fight:0", label: "Fight a Rock ship" }],
-    };
-  }
-  // Pirate fight near pulsar has no choice. Arrival calls this fight.
-  // One of the three printed intros. "Fight a Pirate ship (default rewards)." pulsar=true. unique=true.
-  if (ev.slug === "PIRATE_PULSAR") {
-    return {
-      title: ev.dest,
-      body: opening(g, "PIRATE_PULSAR"),
-      choices: [{ id: "c:pirate-fight-near-pulsar:0", label: "Fight a Pirate ship" }],
     };
   }
   // Rebel fight has no choice. Arrival calls this fight.

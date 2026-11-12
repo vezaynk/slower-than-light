@@ -1102,11 +1102,17 @@ ${laniusTraderOfferText(offer)}`,
 /** The page's own text and choices. Several `<text>` nodes rotate, including the first.
  * ftl.dat stores that first sentence as body and the whole list as texts. The matched card
  * does not carry texts, so the draw reads the loaded event. A blank body is the stand-in's
- * empty first text. */
+ * empty first text. A blank page with no list does not roll. A trade or a supply bundle
+ * keeps its packed sentence, because the price is drawn from this same seed afterwards. */
 function writtenOpening(g: Game, ev: EventDef): GameEvent {
   const card = asWritten(ev);
-  const texts = eventDef(ev.slug)?.texts ?? [];
-  if (!card.body.trim() || texts.length > 1) {
+  const page = eventDef(ev.slug);
+  const texts = page?.texts ?? [];
+  const openings = page?.openings ?? [];
+  if (texts.length === 0 && openings.length === 0) return card;
+  if (page?.trades?.length || page?.offers?.some((row) => row.k === "supply" || row.k === "trade"))
+    return card;
+  if (!card.body.trim() || texts.length > 1 || openings.length > 0) {
     const line = opening(g, ev.slug);
     if (line) card.body = line;
   }
@@ -1185,7 +1191,10 @@ export function presentLoadedEvent(g: Game, page: PackEvent, beacon: Beacon): Ga
     // citedEvent keeps the packed first sentence when the page has several <text> nodes.
     // A card that rewrote the body or the buttons is left alone.
     const texts = page.texts ?? [];
-    if (texts.length > 1 && keptPackedOpening(card, page)) {
+    // A c:/q:/s: page already drew its line in writtenOpening. Drawing again makes the
+    // packed first sentence show only when both rolls land on it.
+    const campaignChoice = page.choices.some((choice) => /^(?:c|q|s):/.test(choice.id));
+    if (texts.length > 1 && keptPackedOpening(card, page) && !campaignChoice) {
       card.body = texts[between(g, [0, texts.length - 1])] ?? card.body;
     }
     return card;

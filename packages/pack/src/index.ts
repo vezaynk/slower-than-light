@@ -88,7 +88,7 @@ export {
   type PackWarningListener,
 } from "./warnings.ts";
 export type { MusicTrack, SoundCue, SoundSet } from "./sounds.ts";
-export { parsePack, ROCK_INTRO_LOAD } from "./parse.ts";
+export { parsePack } from "./parse.ts";
 export type { FtlBlueprintFile, FtlTextFile } from "./ftl.ts";
 export {
   achievementDef,

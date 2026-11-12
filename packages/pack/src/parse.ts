@@ -51,6 +51,7 @@ import type {
   OfferPay,
   OfferRes,
   OfferRow,
+  OpeningLine,
   RollEntry,
   NamedReward,
   ResourceReward,
@@ -67,6 +68,7 @@ import type {
   SurrenderOfferDef,
   SurrenderReward,
   SystemDef,
+  TextListDef,
   TuneDef,
   TuneStep,
   WeaponBlueprint,
@@ -1281,6 +1283,7 @@ export function parsePack(xml: string): ContentPack {
   const tunes: TuneDef[] = [];
   const events: EventDef[] = [];
   const lists: FillerListDef[] = [];
+  const textLists: TextListDef[] = [];
   const empties: EmptyBeaconDef[] = [];
   for (const node of tagged(doc, "race")) {
     const row = readCrew(node);
@@ -1324,6 +1327,10 @@ export function parsePack(xml: string): ContentPack {
   for (const node of tagged(doc, "eventList")) {
     const row = readList(node);
     if (row) lists.push(row);
+  }
+  for (const node of tagged(doc, "textList")) {
+    const row = readTextList(node);
+    if (row) textLists.push(row);
   }
   for (const node of tagged(doc, "emptyBeacon")) {
     const row = readEmpty(node);
@@ -1388,6 +1395,7 @@ export function parsePack(xml: string): ContentPack {
     lists,
     empties,
   };
+  if (textLists.length > 0) pack.textLists = textLists;
   if (rewards) pack.rewards = rewards;
   if (factions.length > 0) pack.factions = factions;
   if (escapes.length > 0) pack.escapes = escapes;
@@ -1465,13 +1473,20 @@ function lockOwner(value: string | undefined): EventChoice["owner"] | undefined 
   return undefined;
 }
 
-/** Rock arrival fights. ftl.dat's intro is one `<text load>`, not a copied first sentence. */
-export const ROCK_INTRO_LOAD = new Set([
-  "ROCK_FIGHT_ASTEROID",
-  "ROCK_PIRATE",
-  "ROCK_PIRATE_ASTEROID",
-  "ROCK_PIRATE_SUN",
-]);
+/** One `<textList>`. A load with no sentence stays a load. */
+function readTextList(node: XmlElement): TextListDef | undefined {
+  const id = attr(node, "name")?.trim();
+  if (!id) return undefined;
+  const lines: OpeningLine[] = [];
+  for (const item of elements(node)) {
+    if (item.tagName !== "text") continue;
+    const load = attr(item, "load")?.trim();
+    const text = ownText(item).trim();
+    if (load && !text) lines.push({ load });
+    else if (text) lines.push({ text });
+  }
+  return { id, lines };
+}
 
 export function readEvent(node: XmlElement): EventDef | undefined {
   const parent = node.parentNode as XmlElement | null;
@@ -1482,7 +1497,8 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   const sectors: string[] = [];
   const choices: EventChoice[] = [];
   const lines: string[] = [];
-  const loads: string[] = [];
+  const openings: OpeningLine[] = [];
+  let sawLoad = false;
   const offers: OfferRow[] = [];
   const rolls: RollEntry[] = [];
   const cards: EventCard[] = [];
@@ -1495,11 +1511,15 @@ export function readEvent(node: XmlElement): EventDef | undefined {
   for (const item of elements(node)) {
     if (item.tagName === "text") {
       const load = attr(item, "load")?.trim();
-      if (load && !ownText(item).trim() && ROCK_INTRO_LOAD.has(load)) {
-        loads.push(load);
+      const text = ownText(item).trim();
+      if (load && !text) {
+        openings.push({ load });
+        sawLoad = true;
         continue;
       }
-      lines.push(ownText(item).trim());
+      // An empty first <text> is the stand-in's blank body. Later sentences are texts.
+      lines.push(text);
+      openings.push({ text });
       continue;
     }
     if (item.tagName === "alias") {
@@ -1575,15 +1595,14 @@ export function readEvent(node: XmlElement): EventDef | undefined {
     flag: id,
     aliases,
     sectors,
-    body: lines[0] ?? "",
+    body: sawLoad ? "" : (lines[0] ?? ""),
     choices,
   };
-  if (loads.length === 1 && lines.length === 0) {
-    event.body = "";
-    event.openings = [{ load: loads[0]! }];
+  if (sawLoad) event.openings = openings;
+  else {
+    const texts = openingTexts(node, lines);
+    if (texts) event.texts = texts;
   }
-  const texts = openingTexts(node, lines);
-  if (texts) event.texts = texts;
   if (offers.length > 0) event.offers = offers;
   if (rolls.length > 0) event.rolls = rolls;
   if (prices.length > 0) event.prices = prices;

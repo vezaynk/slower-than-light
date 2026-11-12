@@ -78,7 +78,6 @@ import {
   readChoiceGates,
   readEvent,
   readEscapeTimers,
-  ROCK_INTRO_LOAD,
   readStalemate,
   readSkillSpeed,
   readAiTarget,
@@ -644,8 +643,8 @@ function readOpeningLine(item: XmlElement): OpeningLine | undefined {
 }
 
 /**
- * A flat `<text load="LIST"/>` becomes one `<text>` per line. The sim picks one when the page is shown.
- * A rock arrival list stays one `<text load>`, so the reader draws it.
+ * A flat `<text load="LIST"/>` beside other text becomes one `<text>` per line.
+ * The page's only text, when that text is a load, stays one `<text load>`.
  * A list that itself loads another list stays one node, so that load remains one draw.
  * A load inside a textList stays put for the same reason. A missing list is warned about and left out.
  */
@@ -667,7 +666,8 @@ function expandTextLoads(doc: XmlDocument, lists: Map<string, OpeningLine[]>): v
       warnPack(`<text load="${name}"/> names no textList; that text is left out.`);
       continue;
     }
-    if (!flat || ROCK_INTRO_LOAD.has(name)) continue;
+    // A lone load stays a reference. A flat list next to other text is inlined.
+    if (!flat || soleText(node)) continue;
     for (const line of flat) {
       const copy = doc.createElement("text");
       copy.appendChild(doc.createTextNode(line));
@@ -675,6 +675,17 @@ function expandTextLoads(doc: XmlDocument, lists: Map<string, OpeningLine[]>): v
     }
     parent.removeChild(node);
   }
+}
+
+/** The parent has this load as its only `<text>`. */
+function soleText(node: XmlElement): boolean {
+  const parent = node.parentNode;
+  if (!parent || parent.nodeType !== Node.ELEMENT_NODE) return false;
+  let texts = 0;
+  for (const item of elements(parent as XmlElement)) {
+    if (item.tagName === "text") texts += 1;
+  }
+  return texts === 1;
 }
 
 function flatTexts(lines: readonly OpeningLine[]): string[] | undefined {
@@ -707,7 +718,7 @@ function nestedList(lines: readonly OpeningLine[] | undefined): boolean {
 }
 
 /**
- * Draws one line. A `load` spends another draw inside that list.
+ * Draws one line. A single load is not its own roll; the draw is inside that list.
  * A list that loads itself leaves the sentence blank.
  */
 export function pickOpening(
@@ -717,19 +728,30 @@ export function pickOpening(
   seen = new Set<string>(),
 ): string {
   if (!lines.length) return "";
+  const only = lines.length === 1 ? lines[0] : undefined;
+  if (only && "load" in only) return drawLoadedLine(only.load, list, roll, seen);
   const index = roll(lines.length);
   const line = lines[Math.min(lines.length - 1, Math.max(0, index))];
   if (!line || "text" in line) return line?.text ?? "";
-  if (seen.has(line.load)) {
-    warnPack(`textList ${line.load} loads itself; the sentence is left blank.`);
+  return drawLoadedLine(line.load, list, roll, seen);
+}
+
+function drawLoadedLine(
+  load: string,
+  list: (id: string) => readonly OpeningLine[] | undefined,
+  roll: (count: number) => number,
+  seen: Set<string>,
+): string {
+  if (seen.has(load)) {
+    warnPack(`textList ${load} loads itself; the sentence is left blank.`);
     return "";
   }
-  const next = list(line.load);
+  const next = list(load);
   if (!next?.length) {
-    warnPack(`<text load="${line.load}"/> names no textList; that text is left out.`);
+    warnPack(`<text load="${load}"/> names no textList; that text is left out.`);
     return "";
   }
-  seen.add(line.load);
+  seen.add(load);
   return pickOpening(next, list, roll, seen);
 }
 
@@ -1206,8 +1228,9 @@ function readRarities(node: XmlElement): SectorRarity[] {
 }
 
 /**
- * Nested loads stay one slot each. A page whose only text is one nested list
- * draws among that list's own entries, so the outer name is not an extra roll.
+ * A page whose only text is one load keeps that load.
+ * A load beside other text stays one slot when its list is nested.
+ * A flat list beside other text was already expanded into sentences.
  */
 function openingLines(
   textNodes: readonly XmlElement[],
@@ -1216,11 +1239,8 @@ function openingLines(
 ): OpeningLine[] | undefined {
   const sole = textNodes.length === 1 ? loadName(textNodes[0]!) : undefined;
   if (sole) {
-    const list = lists.get(sole);
-    if (!list) return undefined;
-    if (ROCK_INTRO_LOAD.has(sole)) return [{ load: sole }];
-    if (!nestedList(list)) return undefined;
-    return list.map((line) => ({ ...line }));
+    if (!lists.has(sole)) return undefined;
+    return [{ load: sole }];
   }
   const ordered: OpeningLine[] = [];
   let nested = false;

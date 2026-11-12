@@ -4,6 +4,7 @@
  * matching the English-only loader.
  */
 import {
+  continueLabel,
   crewCopy,
   droneCopy,
   itemLines,
@@ -1368,7 +1369,21 @@ export function shownText(): string {
     push(page?.dest);
     push(page?.body);
     for (const line of page?.texts ?? []) push(line);
-    for (const line of page?.openings ?? []) if ("text" in line) push(line.text);
+    const seen = new Set<string>();
+    const pushList = (id: string) => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      const row = textList(id);
+      if (!row) return;
+      for (const line of row.lines) {
+        if ("text" in line) push(line.text);
+        else pushList(line.load);
+      }
+    };
+    for (const line of page?.openings ?? []) {
+      if ("text" in line) push(line.text);
+      else pushList(line.load);
+    }
     for (const fx of page?.fx ?? []) if (fx.k === "note") push(fx.text);
     for (const grant of page?.grants ?? []) push(grant.name);
     for (const alter of page?.alters ?? []) if (alter.k === "removeCrew") push(alter.text);
@@ -1435,6 +1450,7 @@ export function shownText(): string {
   for (const line of itemLines()) push(line);
   for (const line of verdictArchiveLines()) push(line);
   for (const line of tooltipLines()) push(line);
+  push(continueLabel());
   return parts.join("\n");
 }
 

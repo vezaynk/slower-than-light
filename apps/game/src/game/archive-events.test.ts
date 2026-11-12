@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { after, describe, it } from "node:test";
-import { allFillerLists, eventDef, fillerList } from "@stl/pack";
+import { allFillerLists, archivePhrase, eventDef, fillerList, textList } from "@stl/pack";
+import type { EventDef } from "@stl/pack";
 import { installStandIn } from "@stl/standin";
 import { archiveCases, installArchive } from "@stl/sim/archive-play.ts";
 import { playSide, type EventDiffCase } from "./event-diff.ts";
@@ -13,6 +14,19 @@ import { citedFleetAdvance } from "@stl/sim/wiki/cited-sectors.ts";
  * Events that used to be code pages (wiki/README.md, "How to migrate an event module") and now play only from the
  * archive. Each row plays on the stand-in and, when FTL_DAT is set, on ftl.dat, through the same checker.
  */
+
+/** Sentences a wait can show. A sole text load draws one line from that list. */
+function fuelLines(page: EventDef | undefined): string[] {
+  const texts = page?.texts ?? [];
+  if (texts.length > 1) return texts;
+  const opening = page?.openings?.length === 1 ? page.openings[0] : undefined;
+  if (opening && "load" in opening) {
+    const lines = textList(opening.load)?.lines ?? [];
+    const drawn = lines.flatMap((line) => ("text" in line && line.text ? [line.text] : []));
+    if (drawn.length > 0) return drawn;
+  }
+  return texts.length > 0 ? texts : page?.body ? [page.body] : [];
+}
 for (const archive of archiveCases()) {
   describe(`archive events on ${archive.name}`, { timeout: archive.timeout ?? 60_000 }, () => {
     after(async () => {
@@ -92,11 +106,12 @@ for (const archive of archiveCases()) {
       for (const id of [...new Set([...ids(off), ...ids(on)])]) {
         assert.ok(eventDef(id) || fillerList(id), id);
       }
-      // fuelWaitCard reads texts. Openings alone are not a successful wait.
-      assert.ok((eventDef("FUEL_NOTHING")?.texts?.length ?? 0) > 1);
-      assert.ok((eventDef("FUEL_NOTHING_DISTRESS")?.texts?.length ?? 0) > 1);
-      assert.ok((eventDef("FUEL_NOTHING")?.choices.length ?? 0) >= 1);
-      assert.ok((eventDef("FUEL_NOTHING_DISTRESS")?.choices.length ?? 0) >= 1);
+      // A wait shows one line, from texts or from one text load.
+      assert.ok(fuelLines(eventDef("FUEL_NOTHING")).length > 1);
+      assert.ok(fuelLines(eventDef("FUEL_NOTHING_DISTRESS")).length > 1);
+      // ftl.dat writes no <choice>. The shown card's Continue is the play below.
+      assert.equal(eventDef("FUEL_NOTHING")?.choices.length, 0);
+      assert.equal(eventDef("FUEL_NOTHING_DISTRESS")?.choices.length, 0);
     });
 
     it("plays an out-of-fuel wait from the distress lists", async () => {
@@ -144,9 +159,8 @@ for (const archive of archiveCases()) {
           const page = drawLoadedPage(entry.id, (n) => Math.floor(rand(probe) * n));
           assert.ok(page, entry.id);
           if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
-            const lines = page.texts ?? [];
-            // Variants that live only in openings are not a wait. The wait reads texts.
-            assert.ok(lines.length > 1, `${page.id} variants are not texts`);
+            const lines = fuelLines(page);
+            assert.ok(lines.length > 1, `${page.id} variants are not a list`);
           }
           const expected = presentLoadedEvent(probe, page, beacon);
           assert.ok(expected, page.id);
@@ -156,9 +170,12 @@ for (const archive of archiveCases()) {
           assert.equal(beacon.resolved, false);
           assert.deepEqual(cardOf(live.event), cardOf(expected));
           if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
-            const texts = page.texts ?? [];
+            const texts = fuelLines(page);
             assert.ok(texts.includes(live.event?.body ?? ""), page.id);
             assert.equal(live.event?.choices[0]?.id, "fuel-wait-done");
+            const label = archivePhrase("continue");
+            assert.ok(label, "continue");
+            assert.equal(live.event?.choices[0]?.label, label);
             const advanced = live.fleet;
             choose(live, "fuel-wait-done");
             assert.equal(live.phase, "map");

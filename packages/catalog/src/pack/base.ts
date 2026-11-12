@@ -75,13 +75,7 @@ import {
 import { LAYOUT_FILE, SHIP_LAYOUTS, standInShieldShift } from "../ship-layouts.ts";
 import { hullLayers, standInSheet } from "../ship-art.ts";
 import { MOUNT_IMAGES, mountsFor } from "../weapon-mounts.ts";
-import {
-  ROCK_INTRO_LOAD,
-  SECTOR_TRACKS,
-  gridFromLayout,
-  loadPack,
-  pictureForRooms,
-} from "@stl/pack";
+import { SECTOR_TRACKS, gridFromLayout, loadPack, pictureForRooms } from "@stl/pack";
 import type {
   AchievementDef,
   AugmentDef,
@@ -329,6 +323,14 @@ function listRow(row: FillerListDef): FillerListDef {
 /** The wiki names a page's sectors by heading; the pack keys them by ftl.dat sector id, as sector_data.xml does. */
 const SECTOR_ID = new Map(SECTOR_TYPES.map((row) => [row.name, row.id]));
 
+/** Stand-in pages whose sentences are one textList. The list name is the archive id. */
+const TEXT_LIST_OPENINGS = new Set([
+  "ROCK_FIGHT_ASTEROID",
+  "ROCK_PIRATE",
+  "ROCK_PIRATE_ASTEROID",
+  "ROCK_PIRATE_SUN",
+]);
+
 function sectorIds(names: readonly string[]): string[] {
   return names.map((name) => SECTOR_ID.get(name) ?? name);
 }
@@ -366,8 +368,8 @@ function eventRow(row: EventDef): EventDef {
   const texts = OPENING_TEXTS[row.id];
   if (texts && texts.length > 1) {
     const archiveId = ftlIdFor(row);
-    // ftl.dat keeps these four as one `<text load>`. The sentences live on that textList.
-    if (ROCK_INTRO_LOAD.has(archiveId)) copy.openings = [{ load: archiveId }];
+    // These pages keep one `<text load>`. The sentences live on that textList.
+    if (TEXT_LIST_OPENINGS.has(archiveId)) copy.openings = [{ load: archiveId }];
     else copy.texts = [...texts];
   }
   const offers = OFFER_ROWS[row.id];
@@ -1161,12 +1163,12 @@ function ftlIdFor(event: EventDef): string {
   return ftlEventId(event.dest) ?? event.id;
 }
 
-/** The four rock arrival fights. The sentences sit on a textList named the same as the event. */
-function rockIntroLists(): { id: string; lines: { text: string }[] }[] {
+/** Pages that draw one textList, named the same as the archive id. */
+function textListOpenings(): { id: string; lines: { text: string }[] }[] {
   const lists: { id: string; lines: { text: string }[] }[] = [];
   for (const row of citedEventRecords()) {
     const id = ftlIdFor(row);
-    if (!ROCK_INTRO_LOAD.has(id)) continue;
+    if (!TEXT_LIST_OPENINGS.has(id)) continue;
     const lines = OPENING_TEXTS[row.id];
     if (!lines || lines.length < 2) continue;
     lists.push({ id, lines: lines.map((text) => ({ text })) });
@@ -1413,7 +1415,8 @@ const EXIT_LIST = {
 };
 
 /**
- * No fuel: wait fail. The lines are the page's `<text>` list. Continue leaves the beacon unresolved.
+ * No fuel: wait fail. ftl.dat is only a text list, with no `<choice>`. The wait card supplies Continue,
+ * which leaves the beacon unresolved.
  * Distress off is weight 4 on NO_FUEL (4/11 = 36.4%). Distress on is weight 2 on NO_FUEL_DISTRESS (2/12 = 16.7%).
  */
 function fuelNothing(id: string, dest: string, lines: readonly string[]): EventDef {
@@ -1425,7 +1428,7 @@ function fuelNothing(id: string, dest: string, lines: readonly string[]): EventD
     sectors: [],
     body: lines[0] ?? "",
     texts: [...lines],
-    choices: [{ id: "fuel-wait-done", label: "Continue...", fx: [{ k: "nothing" }] }],
+    choices: [],
   };
 }
 
@@ -1594,7 +1597,7 @@ export function loadCatalog(): void {
       beaconEvents: { ...BEACON_EVENTS },
       empties,
       textLists: [
-        ...rockIntroLists(),
+        ...textListOpenings(),
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },
         { id: "CREW_POOL", lines: CREW_POOL.map((text) => ({ text })) },
       ],

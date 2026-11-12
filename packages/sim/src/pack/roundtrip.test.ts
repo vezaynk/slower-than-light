@@ -24,7 +24,7 @@ import {
   parsePack,
   pictureXml,
   resetPackForTests,
-  ROCK_INTRO_LOAD,
+  allTextLists,
   writeGrid,
 } from "@stl/pack";
 import type { HullDef, HullSheet } from "@stl/pack";
@@ -77,6 +77,7 @@ describe("base pack xml", () => {
       events: allEvents(),
       lists: allFillerLists(),
       empties: allEmptyBeacons(),
+      textLists: allTextLists(),
     };
     const xml = emitPack(pack);
     const back = parsePack(xml);
@@ -108,8 +109,7 @@ describe("base pack xml", () => {
     assert.deepEqual(back.sectors, pack.sectors);
     assert.deepEqual(back.stores, pack.stores);
     assert.deepEqual(back.tunes, pack.tunes);
-    // The stand-in file stores page sentences. A nested textList load stays on the loaded event.
-    // The four rock arrival fights stay one `<text load>` too.
+    // A page whose opening is a load round-trips as that load, and the text lists travel with it.
     assert.deepEqual(
       pack.events.flatMap((event) => (event.openings ? [[event.id, event.openings] as const] : [])),
       [
@@ -117,18 +117,12 @@ describe("base pack xml", () => {
         ["ROCK_PIRATE", [{ load: "ROCK_PIRATE" }]],
         ["ROCK_PIRATE_ASTEROID", [{ load: "ROCK_PIRATE_ASTEROID" }]],
         ["ROCK_PIRATE_SUN", [{ load: "ROCK_PIRATE_SUN" }]],
-        ["STAND_IN_NESTED", [{ text: "The near reading." }, { load: "STAND_IN_MORE" }]],
+        ["STAND_IN_BEACON", [{ load: "STAND_IN_CALM" }]],
+        ["STAND_IN_NESTED", [{ load: "STAND_IN_NEST" }]],
       ],
     );
-    assert.deepEqual(
-      back.events,
-      pack.events.map((event) => {
-        if (!event.openings || ROCK_INTRO_LOAD.has(event.id)) return event;
-        const copy = { ...event };
-        delete copy.openings;
-        return copy;
-      }),
-    );
+    assert.deepEqual(back.events, pack.events);
+    assert.deepEqual(back.textLists, pack.textLists);
     assert.deepEqual(back.lists, pack.lists);
     assert.deepEqual(back.empties, pack.empties);
     const gap = parsePack(

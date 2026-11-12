@@ -14,6 +14,7 @@ import {
   warnPack,
 } from "@stl/pack";
 import type { EventDef as PackEvent } from "@stl/pack";
+import { continueLabel } from "../interface-copy.ts";
 import { missingCard, missingChoose, missingDisabled, missingOwns } from "./cited-missing.ts";
 import { archiveAuthoredChoices, locksOwned, ownedLock } from "./choice-locks.ts";
 // @agent:beacon-mix. Per-sector beacon composition from the Sectors page.
@@ -1679,14 +1680,24 @@ function listPageBody(g: Game, page: PackEvent): string {
  */
 export function presentLoadedEvent(g: Game, page: PackEvent, beacon: Beacon): GameEvent | null {
   if (page.id === "FUEL_NOTHING" || page.id === "FUEL_NOTHING_DISTRESS") {
-    const lines = page.texts?.length ? page.texts : [page.body];
-    const hi = lines.length > 0 ? lines.length - 1 : 0;
-    const body = lines[between(g, [0, hi])] ?? "";
-    const choice = page.choices[0];
+    let body = "";
+    if (page.openings?.length) {
+      body = pickOpening(
+        page.openings,
+        (id) => textList(id)?.lines,
+        (n) => between(g, [0, n - 1]),
+      );
+    } else {
+      const lines = page.texts?.length ? page.texts : [page.body];
+      const hi = lines.length > 0 ? lines.length - 1 : 0;
+      body = lines[between(g, [0, hi])] ?? "";
+    }
+    // ftl.dat writes no <choice>. The button is the archive's continue phrase.
+    // Choosing it does not resolve the beacon.
     return {
       title: page.dest,
       body,
-      choices: [{ id: "fuel-wait-done", label: choice?.label || "Continue..." }],
+      choices: [{ id: "fuel-wait-done", label: continueLabel() }],
     };
   }
   if (hasEvent(page.id)) {
@@ -1701,7 +1712,7 @@ export function presentLoadedEvent(g: Game, page: PackEvent, beacon: Beacon): Ga
     return card;
   }
   const choices = page.choices.map((choice) => ({ id: choice.id, label: choice.label }));
-  if (choices.length === 0) choices.push({ id: `listpage:${page.id}`, label: "Continue..." });
+  if (choices.length === 0) choices.push({ id: `listpage:${page.id}`, label: continueLabel() });
   return {
     title: page.dest,
     body: listPageBody(g, page),

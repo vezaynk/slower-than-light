@@ -1,4 +1,4 @@
-import { jumpBlockTip, missileHitVariant } from "./interface-copy.ts";
+import { continueLabel, jumpBlockTip, missileHitVariant } from "./interface-copy.ts";
 import { deathCue } from "./cues.ts";
 import {
   bindCueTarget,
@@ -7915,8 +7915,8 @@ function drawExitPage(g: Game, listId: string) {
 
 /**
  * The exit beacon card, from the archive's finish page. The title stays "Exit beacon" unless the page names its own.
- * The button keeps the sim's id (choose() switches on it) and takes the page's Continue label.
- * With no page loaded, FTL's FINISH_BEACON wording (hugomg.github.io/ftl-cheatsheet) stays the fallback.
+ * The button keeps the sim's id (choose() switches on it) and takes the page's own label.
+ * With no label loaded, the button is the archive's continue phrase.
  */
 function longRangeExit(
   g: Game,
@@ -7926,7 +7926,7 @@ function longRangeExit(
   const fallback = nebulaSector(g.sectorId)
     ? "This Long-Range Beacon is almost hidden within a nebula. When the FTL Drive is charged you can jump to the next Sector."
     : "You've arrived at the Long-Range Beacon. When the FTL Drive is charged you can jump to the next Sector.";
-  const label = page?.choices.find((choice) => choice.label.trim())?.label ?? "Continue...";
+  const label = page?.choices.find((choice) => choice.label.trim())?.label ?? continueLabel();
   return {
     title: page && page.dest && page.dest !== page.id ? page.dest : "Exit beacon",
     body: page?.body.trim() ? page.body : fallback,

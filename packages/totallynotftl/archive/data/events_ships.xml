@@ -2100,11 +2100,6 @@ They apologize for their hasty response to your presence and spend some time ref
       <ship hostile="true" load="ROCK_SHIP" asteroid="true"/>
     </choice>
   </event>
-  <textList name="ROCK_FIGHT_ASTEROID">
-    <text>A Rock mining vessel is harvesting the mineral-rich asteroids in this locality, and their scouts take your presence to be a transgression. Battle stations!</text>
-    <text>A rookie Rock cargo ship has taken its orders too literally and took the most direct route to their destination... right through an asteroid field. They're confused and fire wildly as you jump in.</text>
-    <text>The captain of a Rock freighter lost in the asteroid field hails you: "Our co-ordinates led us here, but only death greets us. What must be must be. Death to all." You power up the battle systems and wonder how long they've been stuck here.</text>
-  </textList>
   <event name="ROCK_BOARDERS_SHIP">
     <title>Rock fight with boarders</title>
     <alias>rock-fight-with-boarders</alias>
@@ -2151,11 +2146,6 @@ They apologize for their hasty response to your presence and spend some time ref
       <ship hostile="true" load="ROCK_PIRATE"/>
     </choice>
   </event>
-  <textList name="ROCK_PIRATE">
-    <text>As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type.</text>
-    <text>A Rock ship flies past your windows and you recognize outcast decorations on the hull. These must be pirates!</text>
-    <text>A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!</text>
-  </textList>
   <event name="ROCK_PIRATE_ASTEROID">
     <title>Rock pirates fight in asteroid field</title>
     <alias>rock-pirates-fight-in-asteroid-field</alias>
@@ -2171,10 +2161,6 @@ They apologize for their hasty response to your presence and spend some time ref
       <ship hostile="true" load="ROCK_PIRATE" asteroid="true"/>
     </choice>
   </event>
-  <textList name="ROCK_PIRATE_ASTEROID">
-    <text>Minute fissures in the shields spark and crackle as the ship jumps into the wake of a huge asteroid. More asteroids follow, as does a lost and aggressive Rock pirate ship.</text>
-    <text>You exit the jump surrounded by dirt and rocks. Before long a blast is deflected by your shield, but that was no asteroid... Incoming pirate!</text>
-  </textList>
   <event name="ROCK_PIRATE_SUN">
     <title>Rock pirates fight near sun</title>
     <alias>rock-pirates-fight-near-sun</alias>
@@ -2191,10 +2177,6 @@ They apologize for their hasty response to your presence and spend some time ref
       <ship hostile="true" load="ROCK_PIRATE"/>
     </choice>
   </event>
-  <textList name="ROCK_PIRATE_SUN">
-    <text>Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.</text>
-    <text>A Rock ship is silhouetted against a sun in supernova. They hail: "Even out here you follow us! We only wish to be left alone!" Out of panic or anger, they charge their weapons.</text>
-  </textList>
   <event name="ROCK_LOOTING">
     <title>Disabled Rock ship</title>
     <alias>disabled-rock-ship</alias>
@@ -3500,6 +3482,24 @@ Overhearing their conversation, it seems that they need to take possession of an
       <ship hostile="true" load="PIRATE"/>
     </choice>
   </event>
+  <textList name="ROCK_FIGHT_ASTEROID">
+    <text>A Rock mining vessel is harvesting the mineral-rich asteroids in this locality, and their scouts take your presence to be a transgression. Battle stations!</text>
+    <text>A rookie Rock cargo ship has taken its orders too literally and took the most direct route to their destination... right through an asteroid field. They're confused and fire wildly as you jump in.</text>
+    <text>The captain of a Rock freighter lost in the asteroid field hails you: "Our co-ordinates led us here, but only death greets us. What must be must be. Death to all." You power up the battle systems and wonder how long they've been stuck here.</text>
+  </textList>
+  <textList name="ROCK_PIRATE">
+    <text>As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type.</text>
+    <text>A Rock ship flies past your windows and you recognize outcast decorations on the hull. These must be pirates!</text>
+    <text>A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!</text>
+  </textList>
+  <textList name="ROCK_PIRATE_ASTEROID">
+    <text>Minute fissures in the shields spark and crackle as the ship jumps into the wake of a huge asteroid. More asteroids follow, as does a lost and aggressive Rock pirate ship.</text>
+    <text>You exit the jump surrounded by dirt and rocks. Before long a blast is deflected by your shield, but that was no asteroid... Incoming pirate!</text>
+  </textList>
+  <textList name="ROCK_PIRATE_SUN">
+    <text>Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.</text>
+    <text>A Rock ship is silhouetted against a sun in supernova. They hail: "Even out here you follow us! We only wish to be left alone!" Out of panic or anger, they charge their weapons.</text>
+  </textList>
   <ship name="PIRATE" auto_blueprint="SHIPS_PIRATE"/>
   <ship name="REBEL" auto_blueprint="SHIPS_REBEL"/>
   <ship name="REBEL_AUTO" auto_blueprint="SHIPS_AUTO"/>

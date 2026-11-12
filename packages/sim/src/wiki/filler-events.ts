@@ -1,3 +1,4 @@
+import { continueLabel } from "../interface-copy.ts";
 import { XP_NEED, upgradeCost } from "../content.ts";
 import { adjustScrap } from "../extras/index.ts";
 import {
@@ -1147,7 +1148,7 @@ function wreckageCard(g: Game, page: Page): GameEvent {
 }
 
 function moonCollapse(g: Game) {
-  const choices = [{ id: "s:moon:collapse-continue", label: "Continue..." }];
+  const choices = [{ id: "s:moon:collapse-continue", label: continueLabel() }];
   if (medbayLevel(g) >= 2)
     choices.push({
       id: "s:moon:collapse-medbay",
@@ -1166,7 +1167,7 @@ function moonCollapse(g: Game) {
 }
 
 function diseaseCure(g: Game) {
-  const choices = [{ id: "s:unknown-disease:continue", label: "Continue..." }];
+  const choices = [{ id: "s:unknown-disease:continue", label: continueLabel() }];
   if (g.augments.includes("NANO_MEDBAY")) {
     choices.push({
       id: "s:unknown-disease:medbot",
@@ -1721,7 +1722,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
 
 Scrap: ${offer.scrap}.`,
         [
-          { id: "s:plagued-station:continue", label: "Continue..." },
+          { id: "s:plagued-station:continue", label: continueLabel() },
           // {{Blue Option|Improved Medbay|Try to cure the disease.|level=2+|shortreq=Medbay}}. The button stays on the card.
           { id: "s:plagued-station:cure", label: "Try to cure the disease." },
         ],

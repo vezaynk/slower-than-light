@@ -1174,49 +1174,29 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight (Engi)]]
     // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Engi)]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ENGI_MANTIS_FIGHT"),
-      choices: [{ id: "c:mantis-fight-engi:0", label: "Fight a Mantis ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Mantis fight in nebula has no choice. Arrival calls this fight.
   // One of the five printed intros. "Fight a Mantis ship (default rewards)." nebula=true. unique=false.
   if (ev.slug === "NEBULA_MANTIS_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_MANTIS_FIGHT"),
-      choices: [{ id: "c:mantis-fight-in-nebula:0", label: "Fight a Mantis ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Mantis fight has no choice. Arrival calls this fight.
   // One of the twenty printed intros. "Fight a Mantis ship (default rewards)." unique=false.
   if (ev.slug === "MANTIS_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "MANTIS_FIGHT"),
-      choices: [{ id: "c:mantis-fight:0", label: "Fight a Mantis ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Mantis fight choice. One of the six printed intros. Attack, conceal, and cloaking stay on the def.
   if (ev.slug === "MANTIS_FIGHT_CHOICE") {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight choice]]
-    return {
-      title: ev.dest,
-      body: opening(g, "MANTIS_FIGHT_CHOICE"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
+    return writtenOpening(g, ev);
   }
   // Mantis ship attacking civilian. One of the five printed intros. Both printed choices stay.
   if (ev.slug === "MANTIS_CIVILIAN") {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Mantis ship attacking civilian]]
-    return {
-      title: ev.dest,
-      body: opening(g, "MANTIS_CIVILIAN"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
+    return writtenOpening(g, ev);
   }
   // Pirate ship attacking civilian. One of the six printed intros. Both printed choices stay.
   if (ev.slug === "PIRATE_CIVILIAN") {
@@ -1526,11 +1506,7 @@ ${laniusTraderOfferText(offer)}`,
   // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Mantis]]
   // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
   if (ev.slug === "MANTIS_BOARDERS") {
-    return {
-      title: ev.dest,
-      body: opening(g, "MANTIS_BOARDERS"),
-      choices: [{ id: "c:boarders-mantis:0", label: "2-4 mantis boarders beam aboard your ship." }],
-    };
+    return writtenOpening(g, ev);
   }
   // Boarders: Humans in nebula. One of the three printed intros. The boarders stay c:boarders-humans-in-nebula:0.
   if (ev.slug === "NEBULA_BOARDING") {

@@ -1111,11 +1111,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders]]
     // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ROCK_BOARDERS_SHIP"),
-      choices: [{ id: "c:rock-fight-with-boarders:0", label: "Fight a Rock ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Auto-ship fight has no choice. Arrival calls c:auto-ship-fight:0.
   // One of the nine printed intros. "Fight an Auto-ship." unique=false.
@@ -1151,13 +1147,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders in asteroid field]]
     // > "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders in asteroid field]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ROCK_BOARDERS_ASTEROID"),
-      choices: [
-        { id: "c:rock-fight-with-boarders-in-asteroid-field:0", label: "Fight a Rock ship" },
-      ],
-    };
+    return writtenOpening(g, ev);
   }
   // Lanius fight has no choice. Arrival calls this fight.
   // One of the eleven printed intros, including the repeated line. "Fight a Lanius ship (default Lanius rewards)." unique=false.
@@ -1418,11 +1408,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight]]
     // > "Fight a Rock ship (default rewards)." — [[Rock fight]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ROCK_SHIP"),
-      choices: [{ id: "c:rock-fight:0", label: "Fight a Rock ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Pirate fight near pulsar has no choice. Arrival calls this fight.
   // One of the three printed intros. "Fight a Pirate ship (default rewards)." pulsar=true. unique=true.
@@ -1560,13 +1546,7 @@ ${laniusTraderOfferText(offer)}`,
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Rockmen near sun]]
     // > "2-3 rock boarders beam aboard your ship." — [[Boarders: Rockmen near sun]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ROCK_BOARDERS_SUN"),
-      choices: [
-        { id: "c:boarders-rockmen-near-sun:0", label: "2-3 rock boarders beam aboard your ship." },
-      ],
-    };
+    return writtenOpening(g, ev);
   }
   // Boarders: Humans (Pirate). One of the five printed intros. The boarders stay c:boarders-humans-pirate:0.
   if (ev.slug === "BOARDERS") {

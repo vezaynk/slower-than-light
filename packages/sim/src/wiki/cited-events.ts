@@ -1309,11 +1309,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in nebula]]
     // > "Fight a Slug ship (default rewards)." — [[Slug fight in nebula]]
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_SLUG_FIGHT"),
-      choices: [{ id: "c:slug-fight-in-nebula:0", label: "Fight a Slug ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Lanius ship attacking civilian. One of the three printed intros. Attack and Avoid stay the existing choices.
   if (ev.slug === "LANIUS_CIVILIAN") {
@@ -1364,11 +1360,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight (Slug)]]
     // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Slug)]]
-    return {
-      title: ev.dest,
-      body: opening(g, "SLUG_REBEL"),
-      choices: [{ id: "c:rebel-fight-slug:0", label: "Fight a Rebel ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Pirate fight (Slug) has no choice. Arrival calls this fight.
   // One of the three printed intros. "Fight a Pirate ship (default rewards)." unique=false.
@@ -1376,11 +1368,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Slug)]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Slug)]]
-    return {
-      title: ev.dest,
-      body: opening(g, "SLUG_PIRATE"),
-      choices: [{ id: "c:pirate-fight-slug:0", label: "Fight a Pirate ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Pirate fight (Lanius) has no choice. Arrival calls this fight.
   // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
@@ -1515,11 +1503,7 @@ ${laniusTraderOfferText(offer)}`,
     // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in plasma storm]]
     // > "Note: This event has a plasma storm environment, but the beacon is not inside a nebula." — [[Slug fight in plasma storm]]
     // > "Fight a Slug ship (default rewards)." — [[Slug fight in plasma storm]]
-    return {
-      title: ev.dest,
-      body: opening(g, "STORM_SLUG_FIGHT"),
-      choices: [{ id: "c:slug-fight-in-plasma-storm:0", label: "Fight a Slug ship" }],
-    };
+    return writtenOpening(g, ev);
   }
   // Boarders: Mantis. One of the three printed intros. The boarders stay c:boarders-mantis:0.
   // Wiki citations:

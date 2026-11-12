@@ -13,14 +13,14 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Sell missiles for scrap",
+    name: "Trade: missiles for scrap",
     tier: "",
     flag: "SELL_MISSILES_STATION",
     asteroid: false,
   };
 }
 
-describe("Sell missiles for scrap", () => {
+describe("Trade: missiles for scrap", () => {
   it("opens on the printed black-market line", () => {
     const g = createGame(1);
     const ev = citedEvent(g, beacon());

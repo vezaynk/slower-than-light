@@ -17,14 +17,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_REBEL_FIGHT";
-  b.name = "Rebel fight (Lanius)";
+  b.name = "Hostile Rebel ship (Lanius sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight (Lanius)");
+  assert.equal(g.event?.title, "Hostile Rebel ship (Lanius sector)");
 }
 
-describe("Rebel fight (Lanius)", () => {
+describe("Hostile Rebel ship (Lanius sector)", () => {
   it("shows one of the six intros, and the fight choice starts a Rebel ship combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight (Lanius)]]
@@ -65,7 +65,7 @@ describe("Rebel fight (Lanius)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "LANIUS_REBEL_FIGHT";
-    dest.name = "Rebel fight (Lanius)";
+    dest.name = "Hostile Rebel ship (Lanius sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

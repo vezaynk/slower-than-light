@@ -226,36 +226,36 @@ describe("crystal shots are missiles, not warheads, for the three kill lines", (
 
 /** Category:Advanced Edition Content Events. An old save may still carry ae: false. That field is ignored. */
 const AE_TITLES = new Set([
-  "Abandoned station",
+  "Empty station",
   "Empty beacon (Lanius)",
   "Free scrap with resources (Lanius)",
-  "Lanius craftsmen",
-  "Lanius fight",
-  "Lanius fight distress",
-  "Lanius fight in asteroid field",
-  "Lanius fight near pulsar",
-  "Lanius fight with friendly ASB support",
-  "Lanius lone ship",
-  "Lanius powered-down ship",
-  "Lanius ship absorbing automated scout",
-  "Lanius ship absorbing jump beacon",
-  "Lanius ship absorbing rebel base",
-  "Lanius ship attacking Mantis",
-  "Lanius ship attacking civilian",
-  "Lanius ship attacking civilian distress",
-  "Lanius ship in rich debris field",
-  "Lanius ship salvager",
-  "Lanius trader",
-  "Lanius trader with translator",
+  "Trade: scrap for items (Lanius)",
+  "Hostile Lanius ship",
+  "Hostile Lanius ship (distress)",
+  "Hostile Lanius ship in asteroid field",
+  "Hostile Lanius ship near pulsar",
+  "Hostile Lanius ship with friendly ASB",
+  "Optional fight: unarmed Lanius ship",
+  "Powered-down Lanius ship",
+  "Optional fight: Lanius ship and Auto-ship",
+  "Lanius ship at jump beacon",
+  "Lanius ships: fleet delay",
+  "Optional fight: Lanius ship and Mantis ship",
+  "Optional fight: Lanius ship and civilian",
+  "Optional fight: Lanius ship (distress)",
+  "Optional fight: Lanius ship in debris field",
+  "Optional fight: Lanius salvager",
+  "Trade: supplies for scrap (Lanius)",
+  "Trade: supplies for scrap or crew (Lanius)",
   "Lanius with Federation science craft",
-  "Large trade station",
-  "Pirate fight (Lanius)",
-  "Pirate fight near pulsar",
-  "Pirate ship attacking civilian (Lanius)",
-  "Rebel fight (Lanius)",
-  "Rebel fight near pulsar",
-  "Refueling platform garbled broadcast",
-  "Space station under construction",
+  "Store (closed)",
+  "Hostile pirate ship (Lanius sector)",
+  "Hostile pirate ship near pulsar",
+  "Optional fight: pirate ship and civilian (Lanius)",
+  "Hostile Rebel ship (Lanius sector)",
+  "Hostile Rebel ship near pulsar",
+  "Refueling platform (Lanius)",
+  "Quest: missing cargo ship",
   "Store (Lanius)",
 ]);
 
@@ -283,7 +283,7 @@ describe("Advanced Edition content", () => {
     let saw = false;
     for (let i = 0; i < 400 && !saw; i++) {
       const page = drawFiller(g, "FILLER", []);
-      if (page?.dest === "Abandoned station") saw = true;
+      if (page?.dest === "Empty station") saw = true;
     }
     assert.equal(saw, true);
   });

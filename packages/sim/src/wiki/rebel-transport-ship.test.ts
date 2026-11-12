@@ -32,18 +32,18 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REBEL_TRANSPORT";
-  b.name = "Rebel transport ship";
+  b.name = "Optional fight: Rebel transport";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel transport ship");
+  assert.equal(g.event?.title, "Optional fight: Rebel transport");
 }
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
 }
 
-describe("Rebel transport ship", () => {
+describe("Optional fight: Rebel transport", () => {
   it("demanding the cargo starts a Rebel ship that is already running and does not surrender", () => {
     const g = createGame(1);
     open(g);

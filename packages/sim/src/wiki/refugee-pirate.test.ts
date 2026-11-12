@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REFUGEE_NO_DISTRESS_PIRATE";
-  b.name = "Refugee (Pirate)";
+  b.name = "Refugee ship (pirate)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Refugee (Pirate)");
+  assert.equal(g.event?.title, "Refugee ship (pirate)");
 }
 
 function scraps(body: string): number[] {
@@ -26,11 +26,11 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Refugee (Pirate)", () => {
+describe("Refugee ship (pirate)", () => {
   it("is a pirate sector card with hail and ignore", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee (Pirate)]]
-    const pages = citedPagesFor("PIRATE_SECTOR").filter((p) => p.dest === "Refugee (Pirate)");
+    const pages = citedPagesFor("PIRATE_SECTOR").filter((p) => p.dest === "Refugee ship (pirate)");
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["PIRATE_SECTOR"]);
     const g = createGame(1);

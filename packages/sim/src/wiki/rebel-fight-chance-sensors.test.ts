@@ -12,7 +12,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROGUE_REBEL";
-  b.name = "Rebel fight chance";
+  b.name = "Optional fight: hidden Rebel ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   // The card lives on the filler list, stamped filler:rebel-fight-chance. citedEvent does not list it.
@@ -21,7 +21,7 @@ function open(g: Game) {
     g.event = fillerEvent(g, b);
   }
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight chance");
+  assert.equal(g.event?.title, "Optional fight: hidden Rebel ship");
 }
 
 describe("Rebel fight chance Improved Sensors", () => {

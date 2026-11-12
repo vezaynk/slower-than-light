@@ -27,23 +27,23 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Slug Controlled Nebula and Slug Home Nebula. distress=true, unique=true, LRSmap=noship.
   // The note says a regular beacon, then a nebula environment on arrival. That kind change is in cited-events.ts.
   {
-    dest: "Slug moons question",
+    dest: "Distress: question in nebula",
     slug: "slug-moons-question",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug moons question]]
     // > "It is unique." — [[Slug moons question]]
     // > "You arrive near the distress beacon's signal." — [[Slug moons question]]
     flag: "cited:slug-moons-question",
-    aliases: ["Slug moons question"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You arrive near the distress beacon's signal.",
+    body: "Distress signal. Nebula.",
     choices: [
       {
         id: "c:slug-moons-question:0",
         // Wiki citations:
         // > "Investigate." — [[Slug moons question]]
-        label: "Investigate.",
-        fx: [{ k: "note", text: "The question follows." }],
+        label: "More options.",
+        fx: [{ k: "note", text: "More options." }],
       },
     ],
   },

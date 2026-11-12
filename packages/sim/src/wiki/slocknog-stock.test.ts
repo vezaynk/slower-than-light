@@ -39,14 +39,14 @@ function open(g: Game) {
   );
   assert.ok(beacon);
   beacon.flag = "SLUG_DISTRESS_RESCUE";
-  beacon.name = "Slocknog";
+  beacon.name = "Hire: Slug crew";
   g.here = beacon.id;
   g.event = citedEvent(g, beacon);
   g.phase = "event";
 }
 
 function hired(g: Game) {
-  return g.crew.some((crew) => crew.side === "player" && crew.hp > 0 && crew.name === "Slocknog");
+  return g.crew.some((crew) => crew.side === "player" && crew.hp > 0 && crew.name === "Hire: Slug crew");
 }
 
 describe("slocknog stock", () => {

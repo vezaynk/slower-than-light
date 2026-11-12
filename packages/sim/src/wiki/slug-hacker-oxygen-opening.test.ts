@@ -11,7 +11,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_SLUG_OXYGEN";
-  b.name = "Slug hacker (oxygen)";
+  b.name = "Hostile Slug ship: oxygen hack";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -21,7 +21,7 @@ describe("Slug hacker (oxygen) opening", () => {
   it("prints the sabotage sentence and keeps the continue choice", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Slug hacker (oxygen)");
+    assert.equal(g.event?.title, "Hostile Slug ship: oxygen hack");
     assert.equal(g.event?.body, BODY);
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

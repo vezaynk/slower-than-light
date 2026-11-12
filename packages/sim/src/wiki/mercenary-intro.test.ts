@@ -18,11 +18,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "MERCENARY";
-  b.name = "The mercenary";
+  b.name = "Mercenary";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "The mercenary");
+  assert.equal(g.event?.title, "Mercenary");
 }
 
 describe("The mercenary intro", () => {

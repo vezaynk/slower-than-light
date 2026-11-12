@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_MANTIS_DISTRESS";
-  b.name = "Lanius ship attacking Mantis";
+  b.name = "Optional fight: Lanius ship and Mantis ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Lanius ship attacking Mantis");
+  assert.equal(g.event?.title, "Optional fight: Lanius ship and Mantis ship");
 }
 
 function scraps(body: string): number[] {
@@ -26,7 +26,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Lanius ship attacking Mantis", () => {
+describe("Optional fight: Lanius ship and Mantis ship", () => {
   it("attacking starts a Lanius fight", () => {
     const g = createGame(1);
     open(g);

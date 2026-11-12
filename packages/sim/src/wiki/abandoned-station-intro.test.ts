@@ -19,7 +19,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Abandoned station",
+    name: "Empty station",
     tier: "",
     flag: "filler:abandoned-station",
     asteroid: false,

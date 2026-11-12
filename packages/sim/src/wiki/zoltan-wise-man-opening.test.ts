@@ -11,7 +11,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_RIFT_FIGHT";
-  b.name = "Zoltan wise man";
+  b.name = "Choose your fight";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -21,7 +21,7 @@ describe("Zoltan wise man opening", () => {
   it("prints the wiki opening sentence and keeps the Mantis choice", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Zoltan wise man");
+    assert.equal(g.event?.title, "Choose your fight");
     assert.equal(g.event?.body, BODY);
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

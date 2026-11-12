@@ -119,22 +119,22 @@ function fromParts<K extends "quests" | "arrive" | "choices" | "wins" | "gotAway
 
 /** Quest id -> the event page whose "Quest Marker" section it is, and the INVENTED beacon name. */
 export const QUESTS: Record<string, { page: string; title: string }> = {
-  escort: { page: "Escort civilians", title: "Escort destination" },
-  "mantis-war-camp": { page: "Mantis war camp", title: "Mantis encampment" },
-  "space-station": { page: "Space station under construction", title: "Missing cargo ship" },
-  "defector-cache": { page: "Rebel defector", title: "Defector's cache" },
-  "mantis-chase": { page: "Mantis ship-collectors", title: "Mantis trail" },
+  escort: { page: "Escort: fuel and quest", title: "Escort destination" },
+  "mantis-war-camp": { page: "Quest: Mantis base", title: "Mantis encampment" },
+  "space-station": { page: "Quest: missing cargo ship", title: "Missing cargo ship" },
+  "defector-cache": { page: "Hostile Rebel ship: defector", title: "Defector's cache" },
+  "mantis-chase": { page: "Hostile Mantis Fighter", title: "Quest: hostile Mantis Bomber" },
   "fed-base": {
-    page: "Rebel ship attacking Federation loyalists",
+    page: "Optional fight: Rebel ship and Federation ship",
     title: "Hidden Federation Base",
   },
-  "thief-stash": { page: "Legendary thief KazaaakplethKilik", title: "Thief's cache" },
-  "slug-pirate-trap": { page: "Slug comm tapping", title: "Slug raid" },
-  "engi-real": { page: "Engi fleet discussion", title: "Rebel base" },
-  "engi-fake": { page: "Engi fleet discussion", title: "Rebel base" },
-  "engi-final": { page: "Engi fleet discussion", title: "Mantis convoy" },
-  "slug-platform": { page: "Slug Home Nebula surrender", title: "Construction platform" },
-  "store-rescue": { page: "Settlement mercenary work", title: "Space dock" },
+  "thief-stash": { page: "Hostile armored Mantis ship", title: "Thief's cache" },
+  "slug-pirate-trap": { page: "Quest: tap Slug comms", title: "Quest: pirate ship and cache" },
+  "engi-real": { page: "Engi ships: Engi crew quest", title: "Quest: Rebel base (first)" },
+  "engi-fake": { page: "Engi ships: Engi crew quest", title: "Quest: Rebel base (second)" },
+  "engi-final": { page: "Engi ships: Engi crew quest", title: "Quest: Mantis convoy" },
+  "slug-platform": { page: "Hostile Slug ship: ship unlock", title: "Quest: Slug construction platform" },
+  "store-rescue": { page: "Quest offer: settlement", title: "Quest: space dock" },
 };
 
 export const QUEST_ADDED = "Added a quest marker to your map!";

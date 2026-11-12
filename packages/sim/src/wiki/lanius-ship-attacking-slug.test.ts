@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_SLUG_DISTRESS";
-  b.name = "Lanius ship attacking Slug";
+  b.name = "Optional fight: Lanius ship and Slug ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Lanius ship attacking Slug");
+  assert.equal(g.event?.title, "Optional fight: Lanius ship and Slug ship");
 }
 
 function scraps(body: string): number[] {
@@ -26,7 +26,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Lanius ship attacking Slug", () => {
+describe("Optional fight: Lanius ship and Slug ship", () => {
   it("attacking starts a Lanius fight", () => {
     // Wiki citations:
     // > "The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating." — [[Lanius ship attacking Slug]]

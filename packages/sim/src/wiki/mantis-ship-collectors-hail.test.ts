@@ -12,7 +12,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "DONOR_MANTIS_CHASE";
-  b.name = "Mantis ship-collectors";
+  b.name = "Hostile Mantis Fighter";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -25,7 +25,7 @@ describe("Mantis ship-collectors hail", () => {
     // > "Fight a Mantis Fighter with crew entirely composed of Mantis." — [[Mantis ship-collectors]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Mantis ship-collectors");
+    assert.equal(g.event?.title, "Hostile Mantis Fighter");
     assert.equal(g.event?.body, HAIL);
     choose(g, "c:mantis-ship-collectors:0");
     assert.equal(g.phase, "combat");
@@ -45,7 +45,7 @@ describe("Mantis ship-collectors hail", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "DONOR_MANTIS_CHASE";
-    dest.name = "Mantis ship-collectors";
+    dest.name = "Hostile Mantis Fighter";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;
@@ -94,7 +94,7 @@ describe("Mantis ship-collectors hail", () => {
     g.event = null;
     commitJump(g, dest.id);
     assert.equal(g.phase, "event");
-    assert.equal(g.event?.title, "Mantis ship-collectors");
+    assert.equal(g.event?.title, "Hostile Mantis Fighter");
     assert.ok((g.event?.choices.length ?? 0) > 0);
     assert.equal(g.event?.choices[0]?.id, "ack");
     choose(g, "ack");
@@ -107,7 +107,7 @@ describe("Mantis ship-collectors hail", () => {
     const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
     assert.ok(b);
     b.flag = "DONOR_MANTIS_CHASE";
-    b.name = "Mantis ship-collectors";
+    b.name = "Hostile Mantis Fighter";
     g.here = b.id;
     g.phase = "map";
     g.event = null;

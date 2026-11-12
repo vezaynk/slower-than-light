@@ -18,7 +18,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Boarders: Rockmen near sun",
+    name: "Boarders: Rock near sun",
     tier: "",
     flag: "ROCK_BOARDERS_SUN",
     asteroid: false,

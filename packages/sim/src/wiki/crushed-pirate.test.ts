@@ -13,7 +13,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Crushed pirate",
+    name: "Distress: ship stuck in asteroids",
     tier: "",
     flag: "filler:crushed-pirate",
     asteroid: false,
@@ -58,9 +58,9 @@ function lowPair(got: { fuel: number; missiles: number; parts: number }) {
   if (got.parts) assert.equal(got.parts, 1);
 }
 
-describe("Crushed pirate", () => {
+describe("Distress: ship stuck in asteroids", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Crushed pirate")?.slug, "DISTRESS_TRAPPED_MINER");
+    assert.equal(pageForRow("Distress: ship stuck in asteroids")?.slug, "DISTRESS_TRAPPED_MINER");
   });
 
   it("hides the beam choices until that gear is fitted", () => {

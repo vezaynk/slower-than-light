@@ -24,9 +24,9 @@ function agree(g: Game): { id: string; cost: number } | null {
   return { id: choice.id, cost };
 }
 
-describe("Trade scrap for upgrades", () => {
+describe("Trade: scrap for upgrades", () => {
   it("is a card an items draw can reach", () => {
-    assert.equal(pageForRow("Trade scrap for upgrades")?.slug, "TRADER_UPGRADES");
+    assert.equal(pageForRow("Trade: scrap for upgrades")?.slug, "TRADER_UPGRADES");
   });
 
   it("draws one of the four printed intros", () => {

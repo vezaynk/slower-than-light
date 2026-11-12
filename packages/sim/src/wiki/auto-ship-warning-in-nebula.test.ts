@@ -9,12 +9,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_AUTO_WARNING";
-  b.name = "Auto-ship warning in nebula";
+  b.name = "Fleeing Auto-ship in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Auto-ship warning in nebula");
+  assert.equal(g.event?.title, "Fleeing Auto-ship in nebula");
 }
 
 function scraps(body: string): number[] {
@@ -27,7 +27,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Auto-ship warning in nebula", () => {
+describe("Fleeing Auto-ship in nebula", () => {
   it("starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
     // Wiki citations:
     // > "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing." — [[Auto-ship warning in nebula]]
@@ -94,7 +94,7 @@ describe("Auto-ship warning in nebula", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "NEBULA_AUTO_WARNING";
-    dest.name = "Auto-ship warning in nebula";
+    dest.name = "Fleeing Auto-ship in nebula";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

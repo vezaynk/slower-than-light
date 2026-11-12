@@ -8,12 +8,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ESCORT_BEACON";
-  b.name = "Escort civilians FTL haywire";
+  b.name = "Escort: low scrap and quest";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Escort civilians FTL haywire");
+  assert.equal(g.event?.title, "Escort: low scrap and quest");
 }
 
 function scraps(body: string): number[] {
@@ -26,7 +26,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Escort civilians FTL haywire", () => {
+describe("Escort: low scrap and quest", () => {
   it("leading them pays low scrap and a quest marker, and declining spends nothing", () => {
     const g = createGame(1);
     open(g);

@@ -133,14 +133,14 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
   CIVILIAN_SECTOR: CIVILIAN,
   ENGI_SECTOR: ENGI(L("neutral", 4, 6, "4-6 neutral encounters")),
   ENGI_HOME: [
-    special("Engi fleet discussion"),
+    special("Engi ships: Engi crew quest"),
     ...ENGI(L("neutral", 5, 7, "5-7 neutral encounters")),
   ],
   // Wiki citations:
   // > "at one beacon per Zoltan sector" — [[Zoltan research facility#Trivia]]
-  ZOLTAN_SECTOR: [special("Zoltan research facility"), ...ZOLTAN],
+  ZOLTAN_SECTOR: [special("Zoltan crew scan"), ...ZOLTAN],
   ZOLTAN_HOME: [
-    special("Zoltan research facility"),
+    special("Zoltan crew scan"),
     special("Unarmed Zoltan transport"),
     ...ZOLTAN,
   ],
@@ -156,14 +156,14 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
     L("neutral", 5, 6, "5-6 neutral encounters"),
   ],
   MANTIS_SECTOR: MANTIS,
-  MANTIS_HOME: [special("Legendary thief KazaaakplethKilik"), ...MANTIS],
+  MANTIS_HOME: [special("Hostile armored Mantis ship"), ...MANTIS],
   PIRATE_SECTOR: REBEL(L("quest", 0, 1, "0-1 quests")),
   REBEL_SECTOR: REBEL(L("quest", 0, 2, "0-2 quests")),
-  REBEL_SECTOR_MINIBOSS: [special("Rebel shipyard"), ...REBEL(L("quest", 0, 2, "0-2 quests"))],
+  REBEL_SECTOR_MINIBOSS: [special("Optional fight: second flagship"), ...REBEL(L("quest", 0, 2, "0-2 quests"))],
   ROCK_SECTOR: ROCK,
-  ROCK_HOME: [special("Ancient device"), special("Rock war vessel encounter"), ...ROCK],
+  ROCK_HOME: [special("Device: scrap or wormhole"), special("Quest: Rock ship unlock"), ...ROCK],
   SLUG_SECTOR: SLUG,
-  SLUG_HOME: [special("Slug Home Nebula surrender"), ...SLUG],
+  SLUG_HOME: [special("Hostile Slug ship: ship unlock"), ...SLUG],
   NEBULA_SECTOR: [
     L("store", 0, 1, "0-1 stores"),
     L("items", 1, 3, "1-3 various items"),
@@ -203,7 +203,7 @@ export const HOSTILE_SLOTS = new Set<Slot>([
  * The sector's "1-2 boarders" line is that list, so both beacons can be the same event.
  */
 export const REPEAT_BOARDERS: Record<string, string> = {
-  LANIUS_SECTOR: "Boarders: Humans (Abandoned)",
+  LANIUS_SECTOR: "Boarders: Humans (Lanius sector)",
   CRYSTAL_HOME: "Boarders: Crystal",
 };
 
@@ -213,66 +213,66 @@ export type EventClass = "hostile" | "neutral" | "distress" | "items";
 
 /** Template:EventList HOSTILE CIVILIAN and Template:EventList HOSTILE1 (and OVERRIDE_HOSTILE1, same rows). */
 export const LIST_HOSTILE = [
-  "Auto-ship attacking outpost",
-  "Auto-ship fight near sun",
-  "Pirate fight",
-  "Pirate fight in asteroid field",
-  "Pirate toll",
-  "Pirate engine hacker",
-  "Slaver (hostile)",
-  "Pirate fight near sun",
-  "Rebel fight",
-  "Rebel ship attacking refueling outpost",
-  "Rebel ship warning",
-  "Auto-ship fight in asteroid field",
-  "Auto-ship attacking civilian",
-  "Auto-ship carrying shield virus",
-  "Auto-ship warning",
-  "Auto-ship fight",
+  "Optional fight: Auto-ship and outpost",
+  "Hostile Auto-ship near sun",
+  "Hostile pirate ship",
+  "Hostile pirate ship in asteroid field",
+  "Toll: pirate ship",
+  "Hostile pirate ship: engine hack",
+  "Crew demand: pirate ship",
+  "Hostile pirate ship near sun",
+  "Hostile Rebel ship",
+  "Optional fight: Rebel ship and outpost",
+  "Fleeing Rebel ship",
+  "Hostile Auto-ship in asteroid field",
+  "Optional fight: Auto-ship and civilian",
+  "Hostile Auto-ship: shield hack",
+  "Fleeing Auto-ship",
+  "Hostile Auto-ship",
 ];
 /** Template:EventList NEUTRAL CIVILIAN, NEUTRAL EXIT and QUESTS. */
 export const LIST_NEUTRAL = [
-  "Large asteroid field",
-  "Auto-ship near storage station",
-  "Auto-ship near sensor station",
-  "Slaver (friendly)",
-  "The mercenary",
-  "Pirate briber",
-  "Pirate ship attacking civilian",
-  "Remote settlement",
-  "Rebel transport ship",
-  "Plagued station",
-  "Intelligent ponies",
+  "Asteroid field: explore",
+  "Optional fight: Auto-ship at storage station",
+  "Optional fight: Auto-ship at sensor station",
+  "Trade: scrap for crew",
+  "Mercenary",
+  "Pirate bribe",
+  "Optional fight: pirate ship and civilian",
+  "Optional fight: pirate ship and settlement",
+  "Optional fight: Rebel transport",
+  "Station with life signs",
+  "Unknown life forms on a planet",
   "Refueling platform",
-  "Pirate ship selling drones",
+  "Trade: scrap for drone parts (pirate)",
   "Rebel checkpoint",
-  "Rebel ship supplying civilians",
-  "Refugee",
-  "Rebel fight chance",
-  "Battlefield wreckage",
-  "Encrypted federation signal",
-  "Settlement mercenary work",
-  "Merchant's request",
-  "Capture the ship",
-  "Escort civilians",
-  "Mantis war camp",
+  "Optional fight: Rebel supply ship",
+  "Refugee ship",
+  "Optional fight: hidden Rebel ship",
+  "Wreckage: search",
+  "Planet signal",
+  "Quest offer: settlement",
+  "Quest offer: merchant",
+  "Quest: capture a ship",
+  "Escort: fuel and quest",
+  "Quest: Mantis base",
 ];
 /** Template:EventList DISTRESS BEACON. */
 export const LIST_DISTRESS = [
-  "Asteroid belt distress",
-  "Giant alien spiders",
-  "Malfunctioning defense system",
-  "Unknown disease on mining colony",
-  "Fire on research station",
-  "Crushed pirate",
-  "Escort civilians FTL haywire",
-  "Friendly ship out of fuel",
-  "Pirate ship attacking civilian distress",
-  "Refugee distress",
-  "Refugee comms down",
-  "Single life form on moon",
-  "Pirate ship distress trap",
-  "Slug ship boarding Rock ship",
+  "Distress: ship in asteroid belt",
+  "Distress: station infestation",
+  "Distress: defense satellites",
+  "Distress: colony riot",
+  "Distress: station fire",
+  "Distress: ship stuck in asteroids",
+  "Escort: low scrap and quest",
+  "Fuel request",
+  "Optional fight: pirate ship (distress)",
+  "Refugee ship distress",
+  "Refugee ship, no comms",
+  "Distress: life form on moon",
+  "Hostile pirate ship (distress)",
+  "Optional fight: Slug ship and Rock ship",
   "Lanius empty distress beacon 1",
   "Lanius empty distress beacon 2",
   "Free scrap with resources (Zoltan)",
@@ -283,16 +283,16 @@ export const LIST_ITEMS = [
   "Free drone schematic",
   "Free weapon",
   "Free scrap with resources",
-  "Trade fuel for drone parts",
-  "Asteroid mining colony",
-  "Refueling station",
+  "Trade: fuel for drone parts",
+  "Trade: missiles for rewards",
+  "Trade: scrap for fuel",
   "Repair station",
-  "Sell drone parts for scrap",
-  "Sell missiles for scrap",
-  "Crew hiring station",
-  "Trade resources",
-  "Trade scrap for upgrades",
-  "Improve reactor for supplies",
+  "Trade: drone parts for scrap",
+  "Trade: missiles for scrap",
+  "Crew for hire",
+  "Trade: resources",
+  "Trade: scrap for upgrades",
+  "Trade: supplies for reactor",
 ];
 
 /**
@@ -300,7 +300,7 @@ export const LIST_ITEMS = [
  * Engi cache: ftl.dat's ITEMS_ENGI holds ENGI_FLEET_DELAY. Its result is a drone cache, the "Drone Schematics reward
  * opportunity" category on its page.
  */
-export const LIST_ITEMS_SECTOR = ["Engi cache"];
+export const LIST_ITEMS_SECTOR = ["Cache: fleet delay or reward"];
 
 /** The shape of a cited-events table row this module reads. */
 export type MixEvent = {
@@ -333,12 +333,12 @@ export function classifyEvent(ev: MixEvent): EventClass {
 
 /** Pages the dealer already repeats inside one sector. */
 export const REPEAT_DESTS = new Set([
-  "Escort civilians",
-  "Engi ship attacked by Mantis ship",
-  "Zoltan research facility",
+  "Escort: fuel and quest",
+  "Optional fight: Mantis ship (Engi distress)",
+  "Zoltan crew scan",
 ]);
 
 /** Zoltan research facility is capped at two beacons in a sector. */
 export const REPEAT_CAP: Record<string, number> = {
-  "Zoltan research facility": 2,
+  "Zoltan crew scan": 2,
 };

@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_MANTIS_FREIGHTER";
-  b.name = "Mantis ships battle for Rock freighter";
+  b.name = "Optional fight: two Mantis ships and Rock freighter";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Mantis ships battle for Rock freighter");
+  assert.equal(g.event?.title, "Optional fight: two Mantis ships and Rock freighter");
 }
 
 function drone(kind: string): Kit {
@@ -30,7 +30,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Mantis ships battle for Rock freighter", () => {
+describe("Optional fight: two Mantis ships and Rock freighter", () => {
   it("waits, then fights a weakened Mantis ship or a normal one", () => {
     // Wiki citations:
     // > "Wait, then attack the surviving Mantis." — [[Mantis ships battle for Rock freighter]]

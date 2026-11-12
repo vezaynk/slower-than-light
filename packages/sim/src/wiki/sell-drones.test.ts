@@ -13,14 +13,14 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Sell drone parts for scrap",
+    name: "Trade: drone parts for scrap",
     tier: "",
     flag: "SELL_DRONES_STATION",
     asteroid: false,
   };
 }
 
-describe("Sell drone parts for scrap", () => {
+describe("Trade: drone parts for scrap", () => {
   it("opens on the printed damaged-station line", () => {
     const g = createGame(1);
     const ev = citedEvent(g, beacon());

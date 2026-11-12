@@ -8,11 +8,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ENGI_UNLOCK_1";
-  b.name = "Engi fleet discussion";
+  b.name = "Engi ships: Engi crew quest";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Engi fleet discussion");
+  assert.equal(g.event?.title, "Engi ships: Engi crew quest");
 }
 
 describe("Engi fleet discussion ignore", () => {

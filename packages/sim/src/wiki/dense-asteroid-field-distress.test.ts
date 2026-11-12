@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ASTEROID_DERELICT_SHIP";
-  b.name = "Dense asteroid field distress";
+  b.name = "Derelict in dense asteroid field";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Dense asteroid field distress");
+  assert.equal(g.event?.title, "Derelict in dense asteroid field");
 }
 
 function reward(body: string) {
@@ -29,7 +29,7 @@ function resourcesPaid(body: string): number {
   return [got.fuel, got.missiles, got.parts].filter((n) => n > 0).length;
 }
 
-describe("Dense asteroid field distress", () => {
+describe("Derelict in dense asteroid field", () => {
   it("avoiding the field spends nothing", () => {
     // Wiki citations:
     // > "Avoid the area." — [[Dense asteroid field distress]]
@@ -163,7 +163,7 @@ describe("Dense asteroid field distress", () => {
     open(g);
     assert.equal(choiceDisabled(g, "c:dense-asteroid-field-distress:2"), "Needs Rock Plating");
     fillerChoose(g, "c:dense-asteroid-field-distress:2");
-    assert.equal(g.event?.title, "Dense asteroid field distress");
+    assert.equal(g.event?.title, "Derelict in dense asteroid field");
     assert.match(g.event?.body ?? "", /distress call/);
     assert.equal(g.scrap, 10);
     assert.equal(g.player.hull, hull);

@@ -20,7 +20,7 @@ function open(g: Game) {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Rebel fight chance",
+    name: "Optional fight: hidden Rebel ship",
     tier: "",
     flag: "filler:rebel-fight-chance",
     asteroid: false,

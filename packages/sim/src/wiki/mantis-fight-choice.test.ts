@@ -17,14 +17,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "MANTIS_FIGHT_CHOICE";
-  b.name = "Mantis fight choice";
+  b.name = "Optional fight: Mantis ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Mantis fight choice");
+  assert.equal(g.event?.title, "Optional fight: Mantis ship");
 }
 
-describe("Mantis fight choice", () => {
+describe("Optional fight: Mantis ship", () => {
   it("shows one of the six printed intros, then attacks a Mantis ship", () => {
     assert.equal(INTROS.length, 6);
     assert.equal(new Set(INTROS).size, 6);

@@ -27,27 +27,27 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Fight a Mantis ship (default rewards)." Mantis fight near sun has no choice. Arrival calls this fight. The printed sentence is the card body. redgiant=true. unique=false.
   {
-    dest: "Mantis fight near sun",
+    dest: "Hostile Mantis ship near sun",
     slug: "mantis-fight-near-sun",
     // Wiki citations:
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fight near sun]]
     // > "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?" — [[Mantis fight near sun]]
     flag: "cited:mantis-fight-near-sun",
-    aliases: ["Mantis fight near sun"],
+    aliases: [],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?",
+    body: "Hostile Mantis ship. Sun: fires break out.",
     choices: [
       {
         id: "c:mantis-fight-near-sun:0",
         // Wiki citations:
         // > "Fight a Mantis ship (default rewards)." — [[Mantis fight near sun]]
-        label: "Fight a Mantis ship (default rewards)",
+        label: "Fight the Mantis ship.",
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
     ],
   },
   {
-    dest: "Mantis ship-collectors",
+    dest: "Hostile Mantis Fighter",
     // Arrival calls this fight. The printed hail is the card body. The quest marker stays after the escape.
     slug: "mantis-ship-collectors",
     // Wiki citations:
@@ -55,15 +55,15 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Mantis ship-collectors]]
     // > "You are immediately hailed by an impressive-looking Mantis ship, \"Your ship would make a mighty fine prize. Prepare for battle!\"" — [[Mantis ship-collectors]]
     flag: "cited:mantis-ship-collectors",
-    aliases: ["Mantis ship-collectors"],
+    aliases: [],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: 'You are immediately hailed by an impressive-looking Mantis ship, "Your ship would make a mighty fine prize. Prepare for battle!"',
+    body: "Hostile Mantis ship.",
     choices: [
       {
         id: "c:mantis-ship-collectors:0",
         // Wiki citations:
         // > "Fight a Mantis Fighter with crew entirely composed of Mantis." — [[Mantis ship-collectors]]
-        label: "Fight a Mantis Fighter",
+        label: "Fight the Mantis ship.",
         fx: [{ k: "fight", tier: "Mantis Fighter" }],
       },
     ],
@@ -78,7 +78,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Boarders: Humans near sun]]
     // > "You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, \"I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours.\" Hostiles detected on board our ship!" — [[Boarders: Humans near sun]]
     flag: "cited:boarders-humans-near-sun",
-    aliases: ["Boarders: Humans near sun"],
+    aliases: [],
     sectors: [
       "Mantis Controlled Sector",
       "Mantis Homeworlds",
@@ -86,13 +86,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold",
     ],
-    body: "You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, \"I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours.\" Hostiles detected on board our ship!",
+    body: "Sun: fires break out. 2-4 Human boarders.",
     choices: [
       {
         id: "c:boarders-humans-near-sun:0",
         // Wiki citations:
         // > "2-4 human boarders beam aboard your ship." — [[Boarders: Humans near sun]]
-        label: "2-4 human boarders beam aboard your ship.",
+        label: "2-4 Human boarders.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -107,15 +107,15 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Boarders: Mantis]]
     // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Mantis]]
     flag: "cited:boarders-mantis",
-    aliases: ["Boarders: Mantis"],
+    aliases: [],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!",
+    body: "2-4 Mantis boarders.",
     choices: [
       {
         id: "c:boarders-mantis:0",
         // Wiki citations:
         // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
-        label: "2-4 mantis boarders beam aboard your ship.",
+        label: "2-4 Mantis boarders.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -123,16 +123,16 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Escape pod. Jettison does nothing. Prying it open is three results with no odds.
     // The Mantis and the Human are not named, so those grants stay unwired. The boarder is not a crew grant.
-    dest: "Escape pod",
+    dest: "Escape pod (Mantis)",
     slug: "escape-pod",
     // Wiki citations:
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Escape pod]]
     // > "It is unique." — [[Escape pod]]
     // > "You detect and retrieve an escape pod floating nearby. You consider returning it to space when you learn it's Mantis." — [[Escape pod]]
     flag: "cited:escape-pod",
-    aliases: ["Escape pod"],
+    aliases: [],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "You detect and retrieve an escape pod floating nearby. You consider returning it to space when you learn it's Mantis.",
+    body: "Escape pod.",
     choices: [
       {
         id: "c:escape-pod:0",
@@ -140,7 +140,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Jettison the pod." — [[Escape pod]]
         // > "You send the pod back out the airlock. You're not stupid." — [[Escape pod]]
         // > "Nothing happens." — [[Escape pod]]
-        label: "Jettison the pod.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       {
@@ -152,8 +152,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "The lost crewmember is revived." — [[Escape pod]]
         // > "The Mantis inside considers you a messenger from the god of mercy and demands to join your crew." — [[Escape pod]]
         // > "A man bursts out of the life-pod screaming and claws his way into a corner. A rare survivor of Mantis captivity. Once calm, the survivor offers to join your crew for a time." — [[Escape pod]]
-        label: "Pry it open.",
-        fx: [{ k: "note", text: "A Mantis boarder and a lost crewmember, or nothing." }],
+        label:
+          "1 in 3: 1 Mantis boarder, lose 1 crew. 1 in 3: gain 1 Mantis crew. 1 in 3: gain 1 Human crew.",
+        fx: [
+          {
+            k: "note",
+            text: "1 in 3: 1 Mantis boarder, lose 1 crew. 1 in 3: gain 1 Mantis crew. 1 in 3: gain 1 Human crew.",
+          },
+        ],
       },
     ],
   },

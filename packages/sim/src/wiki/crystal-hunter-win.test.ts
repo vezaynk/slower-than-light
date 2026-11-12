@@ -9,7 +9,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_HUNTER";
-  b.name = "Crystal fight with surrender offer (Human crew)";
+  b.name = "Hostile Crystal ship: crew surrender";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";

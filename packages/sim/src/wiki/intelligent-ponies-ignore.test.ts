@@ -13,7 +13,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Intelligent ponies",
+    name: "Unknown life forms on a planet",
     tier: "",
     flag: "filler:intelligent-ponies",
     asteroid: false,
@@ -31,11 +31,11 @@ function open(g: Game) {
   return ev;
 }
 
-describe("Intelligent ponies", () => {
+describe("Unknown life forms on a planet", () => {
   it("ignoring the readings prints the sentence and nothing happens", () => {
     const g = createGame(1);
     const ev = open(g);
-    assert.equal(ev.title, "Intelligent ponies");
+    assert.equal(ev.title, "Unknown life forms on a planet");
     assert.ok(ev.choices.some((c) => c.id === "c:intelligent-ponies:1"));
     g.fleet = 5;
     const fuel = g.fuel;

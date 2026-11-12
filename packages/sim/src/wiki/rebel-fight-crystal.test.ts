@@ -11,14 +11,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_REBEL";
-  b.name = "Rebel fight (Crystal)";
+  b.name = "Hostile Rebel ship (Crystal sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight (Crystal)");
+  assert.equal(g.event?.title, "Hostile Rebel ship (Crystal sector)");
 }
 
-describe("Rebel fight (Crystal)", () => {
+describe("Hostile Rebel ship (Crystal sector)", () => {
   it("shows the printed sentence, and the fight choice starts a Rebel combat", () => {
     // Wiki citations:
     // > "As soon as you arrive, a Rebel ship jumps in after you; they must be really hot on your tail." — [[Rebel fight (Crystal)]]
@@ -47,7 +47,7 @@ describe("Rebel fight (Crystal)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "CRYSTAL_REBEL";
-    dest.name = "Rebel fight (Crystal)";
+    dest.name = "Hostile Rebel ship (Crystal sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

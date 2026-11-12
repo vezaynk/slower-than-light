@@ -9,12 +9,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_WARNING";
-  b.name = "Auto-ship warning";
+  b.name = "Fleeing Auto-ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Auto-ship warning");
+  assert.equal(g.event?.title, "Fleeing Auto-ship");
 }
 
 function scraps(body: string): number[] {
@@ -30,7 +30,7 @@ function resources(body: string): number {
 const FTL =
   "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!";
 
-describe("Auto-ship warning", () => {
+describe("Fleeing Auto-ship", () => {
   it("shows the FTL warning, then starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
     const g = createGame(1);
     open(g);
@@ -96,7 +96,7 @@ describe("Auto-ship warning", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "AUTO_WARNING";
-    dest.name = "Auto-ship warning";
+    dest.name = "Fleeing Auto-ship";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

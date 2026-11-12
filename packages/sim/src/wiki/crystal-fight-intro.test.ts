@@ -18,11 +18,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_FIGHT";
-  b.name = "Crystal fight";
+  b.name = "Hostile Crystal ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Crystal fight");
+  assert.equal(g.event?.title, "Hostile Crystal ship");
 }
 
 describe("Crystal fight intro", () => {
@@ -73,7 +73,7 @@ describe("Crystal fight intro", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "CRYSTAL_FIGHT";
-    dest.name = "Crystal fight";
+    dest.name = "Hostile Crystal ship";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

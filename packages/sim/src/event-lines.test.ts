@@ -91,7 +91,7 @@ describe("event lines stay on the card", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "PIRATE_ASTEROID";
-    dest.name = "Pirate fight in asteroid field";
+    dest.name = "Hostile pirate ship in asteroid field";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

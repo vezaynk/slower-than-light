@@ -16,14 +16,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_PIRATE_FIGHT";
-  b.name = "Pirate fight (Lanius)";
+  b.name = "Hostile pirate ship (Lanius sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate fight (Lanius)");
+  assert.equal(g.event?.title, "Hostile pirate ship (Lanius sector)");
 }
 
-describe("Pirate fight (Lanius)", () => {
+describe("Hostile pirate ship (Lanius sector)", () => {
   it("shows one of the five intros, and the fight choice starts a pirate combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Lanius)]]
@@ -62,7 +62,7 @@ describe("Pirate fight (Lanius)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "LANIUS_PIRATE_FIGHT";
-    dest.name = "Pirate fight (Lanius)";
+    dest.name = "Hostile pirate ship (Lanius sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

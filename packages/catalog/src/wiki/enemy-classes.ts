@@ -704,7 +704,7 @@ export const ENEMY_CLASSES: EnemyClass[] = [
     easyHull: [15, 17],
     augment: "Rock Plating",
     where: "can only be encountered in the Rock Cruiser unlock event sequence",
-    uniqueTo: "Rock war vessel encounter",
+    uniqueTo: "Quest: Rock ship unlock",
   },
   {
     id: "energy-fighter",

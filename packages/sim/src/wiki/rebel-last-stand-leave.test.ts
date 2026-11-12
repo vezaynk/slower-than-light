@@ -8,11 +8,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "BOSS_SCOUT_RESCUE";
-  b.name = "Rebel ship attacking civilians in Last Stand";
+  b.name = "Optional fight: Rebel ship (Last Stand)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel ship attacking civilians in Last Stand");
+  assert.equal(g.event?.title, "Optional fight: Rebel ship (Last Stand)");
 }
 
 describe("Rebel ship attacking civilians in Last Stand leave", () => {

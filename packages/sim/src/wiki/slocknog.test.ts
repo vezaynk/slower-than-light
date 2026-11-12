@@ -10,18 +10,18 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_DISTRESS_RESCUE";
-  b.name = "Slocknog";
+  b.name = "Hire: Slug crew";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Slocknog");
+  assert.equal(g.event?.title, "Hire: Slug crew");
 }
 
 function players(g: Game) {
   return g.crew.filter((c) => c.side === "player" && c.hp > 0);
 }
 
-describe("Slocknog", () => {
+describe("Hire: Slug crew", () => {
   it("hiring him costs 55 scrap and stores no skills", () => {
     // Wiki citations:
     // > "Hire Slocknog." — [[Slocknog]]
@@ -33,7 +33,7 @@ describe("Slocknog", () => {
     open(g);
     assert.equal(choiceDisabled(g, "c:slocknog:0"), null);
     fillerChoose(g, "c:slocknog:0");
-    const slug = players(g).find((c) => c.name === "Slocknog");
+    const slug = players(g).find((c) => c.name === "Hire: Slug crew");
     assert.ok(slug);
     assert.equal(slug.kin, "slug");
     assert.equal(slug.skills, undefined);
@@ -52,7 +52,7 @@ describe("Slocknog", () => {
     fillerChoose(short, "c:slocknog:0");
     assert.equal(short.scrap, 54);
     assert.equal(
-      players(short).some((c) => c.name === "Slocknog"),
+      players(short).some((c) => c.name === "Hire: Slug crew"),
       false,
     );
 
@@ -63,7 +63,7 @@ describe("Slocknog", () => {
     fillerChoose(full, "c:slocknog:0");
     // Crew: at full crew a hire relieves "one of the existing crewmembers" (make-room.ts keepNewHire).
     assert.equal(full.scrap, 0);
-    const slug = players(full).find((c) => c.name === "Slocknog");
+    const slug = players(full).find((c) => c.name === "Hire: Slug crew");
     assert.ok(slug);
     assert.deepEqual(full.overflow, [{ kind: "crew", keep: slug.id }]);
   });
@@ -84,7 +84,7 @@ describe("Slocknog", () => {
     fillerChoose(g, "c:slocknog:1");
     assert.match(g.event?.body ?? "", /sssentient|sssly|remove me from this rock/);
     fillerChoose(g, "s:slocknog:rescue");
-    const slug = players(g).find((c) => c.name === "Slocknog");
+    const slug = players(g).find((c) => c.name === "Hire: Slug crew");
     assert.ok(slug);
     assert.equal(slug.skills, undefined);
     assert.equal(players(g).length, crew + 1);
@@ -98,7 +98,7 @@ describe("Slocknog", () => {
     assert.match(left.event?.body ?? "", /Nothing happens/);
     assert.equal(left.scrap, 10);
     assert.equal(
-      players(left).some((c) => c.name === "Slocknog"),
+      players(left).some((c) => c.name === "Hire: Slug crew"),
       false,
     );
   });

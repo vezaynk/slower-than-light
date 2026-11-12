@@ -386,7 +386,7 @@ describe("pack document", () => {
     const events = [
       {
         id: "refugee",
-        dest: "Refugee",
+        dest: "Refugee ship",
         flag: "refugee",
         aliases: [],
         sectors: [],

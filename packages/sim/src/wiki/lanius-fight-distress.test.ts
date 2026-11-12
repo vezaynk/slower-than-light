@@ -11,15 +11,15 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_DISTRESS_TRAP";
-  b.name = "Lanius fight distress";
+  b.name = "Hostile Lanius ship (distress)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Lanius fight distress");
+  assert.equal(g.event?.title, "Hostile Lanius ship (distress)");
   assert.equal(g.event?.body, BODY);
 }
 
-describe("Lanius fight distress", () => {
+describe("Hostile Lanius ship (distress)", () => {
   it("shows the printed intro, and the fight choice starts a Lanius combat", () => {
     // Wiki citations:
     // > "You are too late - whatever once was emitting the distress signal from this system drew a Lanius ship as well as your own. Having consumed the original target, the Lanius turn their attention to your vessel." — [[Lanius fight distress]]
@@ -47,7 +47,7 @@ describe("Lanius fight distress", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "LANIUS_DISTRESS_TRAP";
-    dest.name = "Lanius fight distress";
+    dest.name = "Hostile Lanius ship (distress)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

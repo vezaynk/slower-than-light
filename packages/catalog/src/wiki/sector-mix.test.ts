@@ -42,13 +42,13 @@ describe("sector mix", () => {
   });
 
   it("classifies from the event lists first, then from the page's own choices", () => {
-    assert.equal(classifyEvent(byDest("Pirate toll")), "hostile");
-    assert.equal(classifyEvent(byDest("Auto-ship attacking civilian")), "hostile");
-    assert.equal(classifyEvent(byDest("Auto-ship near storage station")), "neutral");
-    assert.equal(classifyEvent(byDest("Pirate ship distress trap")), "distress");
+    assert.equal(classifyEvent(byDest("Toll: pirate ship")), "hostile");
+    assert.equal(classifyEvent(byDest("Optional fight: Auto-ship and civilian")), "hostile");
+    assert.equal(classifyEvent(byDest("Optional fight: Auto-ship at storage station")), "neutral");
+    assert.equal(classifyEvent(byDest("Hostile pirate ship (distress)")), "distress");
     assert.equal(classifyEvent(byDest("Free weapon")), "items");
-    assert.equal(classifyEvent(byDest("Zoltan fight")), "hostile");
+    assert.equal(classifyEvent(byDest("Hostile Zoltan ship")), "hostile");
     assert.equal(classifyEvent(byDest("Deactivated Auto-ship")), "neutral");
-    assert.equal(classifyEvent(byDest("Rebel ship attacking Federation loyalists")), "neutral");
+    assert.equal(classifyEvent(byDest("Optional fight: Rebel ship and Federation ship")), "neutral");
   });
 });

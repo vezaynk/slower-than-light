@@ -19,14 +19,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_SHIP";
-  b.name = "Rock fight";
+  b.name = "Hostile Rock ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rock fight");
+  assert.equal(g.event?.title, "Hostile Rock ship");
 }
 
-describe("Rock fight", () => {
+describe("Hostile Rock ship", () => {
   it("shows one of the eight intros, and the fight choice starts a Rock ship combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight]]
@@ -71,7 +71,7 @@ describe("Rock fight", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ROCK_SHIP";
-    dest.name = "Rock fight";
+    dest.name = "Hostile Rock ship";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

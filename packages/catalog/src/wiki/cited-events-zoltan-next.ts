@@ -31,30 +31,36 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   // Zoltan Controlled Sector and Zoltan Homeworlds. unique=true. LRSmap=noship.
   {
-    dest: "Zoltan odd moon",
+    dest: "Moon scan",
     slug: "zoltan-odd-moon",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan odd moon]]
     // > "It is unique." — [[Zoltan odd moon]]
     // > "Something strikes you as odd about a moon in the distance." — [[Zoltan odd moon]]
     flag: "cited:zoltan-odd-moon",
-    aliases: ["Zoltan odd moon"],
+    aliases: [],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "Something strikes you as odd about a moon in the distance.",
+    body: "A moon.",
     choices: [
       {
         id: "c:zoltan-odd-moon:0",
         // Wiki citations:
         // > "Check it out." — [[Zoltan odd moon]]
-        label: "Check it out.",
-        fx: [{ k: "note", text: "The moon has more than one result." }],
+        label:
+          "1 in 4: nothing happens. 1 in 4: gain a weapon and low scrap. 1 in 4: gain medium scrap. 1 in 4: more options.",
+        fx: [
+          {
+            k: "note",
+            text: "1 in 4: nothing happens. 1 in 4: gain a weapon and low scrap. 1 in 4: gain medium scrap. 1 in 4: more options.",
+          },
+        ],
       },
       {
         id: "c:zoltan-odd-moon:1",
         // Wiki citations:
         // > "Leave it be." — [[Zoltan odd moon]]
         // > "Nothing happens." — [[Zoltan odd moon]]
-        label: "Leave it be.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -64,42 +70,42 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Hail is a trade or the Zoltan fight. Those branches run in filler-events.ts.
   // type=zoltan does not wrap the trade in DuplicateEvent|4, and it does not roll the pirate or Slug hails.
   {
-    dest: "Refugee (Zoltan)",
+    dest: "Refugee ship (Zoltan)",
     slug: "refugee-zoltan",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee (Zoltan)]]
     flag: "cited:refugee-zoltan",
-    aliases: ["Refugee (Zoltan)"],
+    aliases: [],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.",
+    body: "Refugee ship.",
     choices: [
       {
         id: "c:refugee-zoltan:0",
-        label: "Hail them.",
-        fx: [{ k: "note", text: "A trade, or a Zoltan ship." }],
+        label: "1 in 2: trade. 1 in 2: fight a Zoltan ship.",
+        fx: [{ k: "note", text: "1 in 2: trade. 1 in 2: fight a Zoltan ship." }],
       },
-      { id: "c:refugee-zoltan:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-zoltan:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // Refugee distress (Zoltan). Template:Drifting Refugee Ship, introtext=distress, type=zoltan.
   // Zoltan Controlled Sector and Zoltan Homeworlds. distress=true. unique=false. LRSmap=noship.
   // The same type=zoltan hail: one trade, or the Zoltan fight. Not on the EventList distress beacon list.
   {
-    dest: "Refugee distress (Zoltan)",
+    dest: "Refugee ship distress (Zoltan)",
     slug: "refugee-distress-zoltan",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee distress (Zoltan)]]
     flag: "cited:refugee-distress-zoltan",
-    aliases: ["Refugee distress (Zoltan)"],
+    aliases: [],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.",
+    body: "Refugee ship.",
     choices: [
       {
         id: "c:refugee-distress-zoltan:0",
-        label: "Hail them.",
-        fx: [{ k: "note", text: "A trade, or a Zoltan ship." }],
+        label: "1 in 2: trade. 1 in 2: fight a Zoltan ship.",
+        fx: [{ k: "note", text: "1 in 2: trade. 1 in 2: fight a Zoltan ship." }],
       },
-      { id: "c:refugee-distress-zoltan:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-distress-zoltan:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
 ];

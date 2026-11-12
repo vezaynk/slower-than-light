@@ -8,11 +8,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_HARVESTER";
-  b.name = "Lanius ship in rich debris field";
+  b.name = "Optional fight: Lanius ship in debris field";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Lanius ship in rich debris field");
+  assert.equal(g.event?.title, "Optional fight: Lanius ship in debris field");
 }
 
 describe("Lanius ship in rich debris field attack fight", () => {

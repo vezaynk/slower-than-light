@@ -12,7 +12,7 @@ function open(g: Game) {
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "The mercenary");
+  assert.equal(g.event?.title, "Mercenary");
 }
 
 describe("The Mercenary fight", () => {

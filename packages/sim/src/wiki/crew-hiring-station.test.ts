@@ -14,18 +14,18 @@ function open(g: Game): Beacon {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "filler:crew-hiring-station";
-  b.name = "Crew hiring station";
+  b.name = "Crew for hire";
   b.kind = "cache";
   g.here = b.id;
   g.event = fillerEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Crew hiring station");
+  assert.equal(g.event?.title, "Crew for hire");
   return b;
 }
 
-describe("Crew hiring station", () => {
+describe("Crew for hire", () => {
   it("is an items card", () => {
-    const page = pageForRow("Crew hiring station");
+    const page = pageForRow("Crew for hire");
     assert.equal(page?.slug, "TAVERN_HIRE");
     assert.equal(page?.choices.length, 1);
     assert.equal(page?.choices[0]?.label, "Don't hire anyone.");

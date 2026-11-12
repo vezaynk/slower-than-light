@@ -483,7 +483,7 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
     // > "As you drift closer, you are contacted by a Slug marooned on the moon's surface." — [[Slug moons question]]
     // > "How many moons are there in orbit here?" — [[Slug moons question]]
     const n = Number(ask[1]);
-    const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Slug moons question";
+    const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Distress: question in nebula";
     ctx.g.event = {
       title,
       body: SLUG_MOON_QUESTION,
@@ -558,7 +558,7 @@ const ZOLTAN_MOON_DRONE = `Initial scans indicate a network of caves not far und
 Your drone discovers a vast cave network and evidence of excavation. Buried deep below you find a Zoltan scientist, still hard at work. He tells you that all his colleagues are long dead. You decide not to ask questions and offer to let him join your crew.`;
 
 function zoltanMoonTitle(g: Game): string {
-  return g.beacons.find((b) => b.id === g.here)?.name ?? "Zoltan odd moon";
+  return g.beacons.find((b) => b.id === g.here)?.name ?? "Moon scan";
 }
 
 function zoltanOddCard(title: string): GameEvent {
@@ -1492,7 +1492,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     const b = ctx.g.beacons.find((x) => x.id === ctx.g.here);
     if (!b) return false;
     b.flag = "ROCK_SLUG_ARGUMENT";
-    b.name = "Rock and Slug standoff";
+    b.name = "Rock and Slug ships: debt";
     b.kind = "nebula";
     const card = citedEvent(ctx.g, b);
     if (!card) return false;

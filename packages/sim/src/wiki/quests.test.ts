@@ -160,7 +160,7 @@ describe("Cited events that add a marker", () => {
   it("Escort civilians: fuel, then a marker; the escort destination pays one of the template results", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed < 80 && seen.size < 4; seed++) {
-      const g = atCited(createGame(seed), "Civilian Sector", "Escort civilians");
+      const g = atCited(createGame(seed), "Civilian Sector", "Escort: fuel and quest");
       const fuel = g.fuel;
       choose(g, "c:escort-civilians:0");
       const gained = g.fuel - fuel;
@@ -196,16 +196,16 @@ describe("Cited events that add a marker", () => {
 
   it("Mantis war camp, Escort FTL haywire and Space station under construction add their markers", () => {
     const pages: [string, string, string, string][] = [
-      ["Civilian Sector", "Mantis war camp", "c:mantis-war-camp:0", "mantis-war-camp"],
+      ["Civilian Sector", "Quest: Mantis base", "c:mantis-war-camp:0", "mantis-war-camp"],
       [
         "Civilian Sector",
-        "Escort civilians FTL haywire",
+        "Escort: low scrap and quest",
         "c:escort-civilians-ftl-haywire:0",
         "escort",
       ],
       [
         "Civilian Sector",
-        "Space station under construction",
+        "Quest: missing cargo ship",
         "c:space-station-under-construction:0",
         "space-station",
       ],
@@ -250,7 +250,7 @@ describe("Cited events that add a marker", () => {
     // > "You catch up with the Mantis ship that escaped before, only to see them transferring their crew into an even bigger ship!" — [[Mantis ship-collectors#Quest Marker]]
     // > "Fight a Mantis Bomber with crew entirely composed of Mantis." — [[Mantis ship-collectors#Quest Marker]]
     // > "After killing enemy crew You find an intact weapon on their now empty ship. You take as much scrap from the ships as possible." — [[Mantis ship-collectors#Quest Marker]]
-    const g = atCited(createGame(5), "Mantis Controlled Sector", "Mantis ship-collectors");
+    const g = atCited(createGame(5), "Mantis Controlled Sector", "Hostile Mantis Fighter");
     choose(g, "c:mantis-ship-collectors:0");
     assert.equal(g.phase, "combat");
     assert.ok(
@@ -297,7 +297,7 @@ describe("Cited events that add a marker", () => {
     // > "You receive a Human crewmember and a quest marker is added to your map; you fight a Rebel ship (default rewards)." — [[Rebel defector]]
     let found = false;
     for (let seed = 1; seed < 120 && !found; seed++) {
-      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
+      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Hostile Rebel ship: defector");
       choose(g, "c:rebel-defector:1");
       const openedFight =
         g.phase === "combat" ||
@@ -322,7 +322,7 @@ describe("Cited events that add a marker", () => {
     const g = atCited(
       createGame(2),
       "Civilian Sector",
-      "Rebel ship attacking Federation loyalists",
+      "Optional fight: Rebel ship and Federation ship",
     );
     choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -335,7 +335,7 @@ describe("Cited events that add a marker", () => {
   });
 });
 
-describe("Slug comm tapping", () => {
+describe("Quest: tap Slug comms", () => {
   it("is a Slug nebula card whose tap adds the marker; engaging the pirate offers 'Let the pirate escape' for high scrap", () => {
     // Wiki citations:
     // > "Tap their comm frequency." — [[Slug comm tapping]]
@@ -344,13 +344,13 @@ describe("Slug comm tapping", () => {
     // > "Let the pirate escape and go after the Slugman ship." — [[Slug comm tapping#Quest Marker]]
     // > "The pirate's too badly damaged to pursue you, and you catch up to the Slugs before they jump. \"Ah, of courssse, we would never leave without providing the agreed upon ssspoils.\" They transfer over a decent chunk of the profits and set off." — [[Slug comm tapping#Quest Marker]]
     // > "You receive high scrap." — [[Slug comm tapping#Quest Marker]]
-    const ev = allEvents().find((e) => e.dest === "Slug comm tapping" && e.sectors.length > 0);
+    const ev = allEvents().find((e) => e.dest === "Quest: tap Slug comms" && e.sectors.length > 0);
     assert.ok(ev);
     assert.deepEqual(
       ev.sectors.map((id) => sectorDef(id)?.name ?? id),
       ["Slug Controlled Nebula", "Slug Home Nebula"],
     );
-    const g = atCited(createGame(8), "Slug Home Nebula", "Slug comm tapping");
+    const g = atCited(createGame(8), "Slug Home Nebula", "Quest: tap Slug comms");
     choose(g, "c:slug-comm-tapping:0");
     assert.ok(g.event!.body.includes(QUEST_ADDED));
     choose(g, "ack");
@@ -381,7 +381,7 @@ describe("Slug comm tapping", () => {
     // > "Head for the cache." — [[Slug comm tapping#Quest Marker]]
     // > "With the pirate taken care of, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship." — [[Slug comm tapping#Quest Marker]]
     // > "You receive low scrap with resources." — [[Slug comm tapping#Quest Marker]]
-    const g = atCited(createGame(8), "Slug Home Nebula", "Slug comm tapping");
+    const g = atCited(createGame(8), "Slug Home Nebula", "Quest: tap Slug comms");
     choose(g, "c:slug-comm-tapping:0");
     choose(g, "ack");
     jumpTo(g, questBeacons(g)[0]);
@@ -395,14 +395,14 @@ describe("Slug comm tapping", () => {
   });
 });
 
-describe("Engi fleet discussion", () => {
+describe("Engi ships: Engi crew quest", () => {
   it("the Engi Crew blue option needs an Engi crewmember; it adds the real and the fake markers", () => {
     // Wiki citations:
     // > "(Engi Crew) Have your Engi crewmember contact them." — [[Engi fleet discussion]]
     // > "Offer your help." — [[Engi fleet discussion]]
     // > "A quest marker is added to your map." — [[Engi fleet discussion]]
     // > "A second quest marker is added to your map." — [[Engi fleet discussion]]
-    const g = atCited(createGame(6), "Engi Homeworlds", "Engi fleet discussion");
+    const g = atCited(createGame(6), "Engi Homeworlds", "Engi ships: Engi crew quest");
     for (const c of g.crew) if (c.side === "player") c.kin = "human";
     assert.equal(choiceDisabled(g, "c:engi-fleet-discussion:2"), "Needs an Engi crewmember");
     g.crew.find((c) => c.side === "player")!.kin = "engi";
@@ -562,7 +562,7 @@ describe("Other surrender pages with a marker", () => {
       const b = t.beacons.find((x) => x.col === 1)!;
       b.flag = "MERCENARY_WORK_START";
       b.kind = "event";
-      b.name = "Settlement mercenary work";
+      b.name = "Quest offer: settlement";
       t.here = b.id;
       t.event = citedEvent(t, b);
       t.phase = "event";
@@ -589,14 +589,14 @@ describe("Page win rewards (destroyed / crew killed)", () => {
   const cases: [string, string, string, string, string][] = [
     [
       "Slug Home Nebula",
-      "The Black Raven",
+      "Hostile Slug pirate ship",
       "s:the-black-raven:accept",
-      '"The Black Raven" breaks apart',
+      '"Hostile Slug pirate ship" breaks apart',
       "The once-dreaded pirate Nights",
     ],
     [
       "Zoltan Controlled Sector",
-      "Zoltan ship asks to dock",
+      "Docking request: Zoltan ship",
       "c:zoltan-ship-asks-to-dock:0",
       "While you search the debris",
       "While you scrap their ship",
@@ -617,7 +617,7 @@ describe("Page win rewards (destroyed / crew killed)", () => {
         let g: Game | null = null;
         for (let seed = 1; seed < 40 && !g; seed++) {
           const t = atCited(createGame(seed), sector, dest);
-          if (dest === "The Black Raven") choose(t, "c:the-black-raven:0");
+          if (dest === "Hostile Slug pirate ship") choose(t, "c:the-black-raven:0");
           choose(t, fightId);
           if (
             t.phase === "combat" ||
@@ -642,7 +642,7 @@ describe("Page win rewards (destroyed / crew killed)", () => {
     // Wiki citations:
     // > "After destroying enemy ship or after killing enemy crew With all of the would-be pirates dead, you think it best not to return to the settlement... You prepare to jump." — [[Settlement mercenary work]]
     // > "You receive low scrap with resources." — [[Settlement mercenary work]]
-    const g = atCited(createGame(1), "Civilian Sector", "Settlement mercenary work");
+    const g = atCited(createGame(1), "Civilian Sector", "Quest offer: settlement");
     choose(g, "s:settlement-mercenary-work:accept");
     g.enemySurrender!.chance = 0;
     winByHull(g);
@@ -664,7 +664,7 @@ describe("Rebel defector, Accept his proposal", () => {
     // > "You lose a crewmember; 1 human boarder beams aboard your ship and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
     const seen = { join: 0, deceive: 0, trigger: 0, evisc: 0 };
     for (let seed = 1; seed <= 90; seed++) {
-      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
+      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Hostile Rebel ship: defector");
       g.player.hull = g.player.hullMax;
       g.fleet = 4;
       const hull = g.player.hull;
@@ -730,7 +730,7 @@ describe("Rebel defector, Accept his proposal", () => {
     // > "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge." — [[Rebel defector]]
     let cloned = false;
     for (let seed = 1; seed <= 80 && !cloned; seed++) {
-      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
+      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Hostile Rebel ship: defector");
       g.player.kits.clonebay = {
         id: "clonebay",
         level: 1,
@@ -759,7 +759,7 @@ describe("Rebel defector, Accept his proposal", () => {
 
     let spared = false;
     for (let seed = 1; seed <= 80 && !spared; seed++) {
-      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Rebel defector");
+      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Hostile Rebel ship: defector");
       g.player.hull = g.player.hullMax;
       const living = g.crew.filter((c) => c.side === "player" && c.hp > 0);
       for (const c of living.slice(1)) c.hp = 0;
@@ -780,7 +780,7 @@ describe("Rebel defector, Accept his proposal", () => {
 
 describe("Space station under construction, Lanius sale", () => {
   it("pays an augmentation and high scrap, and splices the Lanius out even with a clone bay", () => {
-    const g = atCited(createGame(3), "Civilian Sector", "Space station under construction");
+    const g = atCited(createGame(3), "Civilian Sector", "Quest: missing cargo ship");
     assert.ok(joinCrew(g, "Lanius"));
     g.player.kits.clonebay = {
       id: "clonebay",
@@ -810,7 +810,7 @@ describe("Space station under construction, Lanius sale", () => {
   });
 
   it("pays nothing when that Lanius is the last living crewmember", () => {
-    const g = atCited(createGame(4), "Civilian Sector", "Space station under construction");
+    const g = atCited(createGame(4), "Civilian Sector", "Quest: missing cargo ship");
     assert.ok(joinCrew(g, "Lanius"));
     for (const c of g.crew) if (c.kin !== "anaerobic") c.hp = 0;
     const scrap = g.scrap;
@@ -833,7 +833,7 @@ describe("Federation loyalists, Healing Burst", () => {
       const g = atCited(
         createGame(seed),
         "Civilian Sector",
-        "Rebel ship attacking Federation loyalists",
+        "Optional fight: Rebel ship and Federation ship",
       );
       choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
       if (g.phase !== "combat" && g.event?.choices[0]?.id !== "ship-resume") continue;

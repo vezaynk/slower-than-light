@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_DORMANT_EVENT";
-  b.name = "Lanius powered-down ship";
+  b.name = "Powered-down Lanius ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Lanius powered-down ship");
+  assert.equal(g.event?.title, "Powered-down Lanius ship");
 }
 
 function scraps(body: string): number[] {
@@ -43,7 +43,7 @@ function assertDefaultFight(g: Game) {
   assert.equal(g.scrap, 10);
 }
 
-describe("Lanius powered-down ship", () => {
+describe("Powered-down Lanius ship", () => {
   it("scanning starts a Lanius fight on default rewards", () => {
     // Wiki citations:
     // > "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down." — [[Lanius powered-down ship]]

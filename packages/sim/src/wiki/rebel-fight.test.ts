@@ -21,14 +21,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REBEL";
-  b.name = "Rebel fight";
+  b.name = "Hostile Rebel ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight");
+  assert.equal(g.event?.title, "Hostile Rebel ship");
 }
 
-describe("Rebel fight", () => {
+describe("Hostile Rebel ship", () => {
   it("shows one of the ten intros, and the fight choice starts a Rebel combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight]]
@@ -73,7 +73,7 @@ describe("Rebel fight", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "REBEL";
-    dest.name = "Rebel fight";
+    dest.name = "Hostile Rebel ship";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

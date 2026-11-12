@@ -8,14 +8,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REBEL_VS_FEDERATION";
-  b.name = "Rebel ship attacking Federation loyalists";
+  b.name = "Optional fight: Rebel ship and Federation ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel ship attacking Federation loyalists");
+  assert.equal(g.event?.title, "Optional fight: Rebel ship and Federation ship");
 }
 
-describe("Rebel ship attacking Federation loyalists", () => {
+describe("Optional fight: Rebel ship and Federation ship", () => {
   it("aiding the Federation ship engages the Rebel ship", () => {
     const g = createGame(1);
     open(g);

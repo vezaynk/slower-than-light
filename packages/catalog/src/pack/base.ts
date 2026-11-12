@@ -1216,7 +1216,7 @@ const STORE_PAGE: EventDef = {
   flag: "STORE",
   aliases: [],
   sectors: [],
-  body: "A trading post hangs at this beacon, open for business.",
+  body: "Store.",
   choices: [],
   store: true,
 };
@@ -1227,19 +1227,19 @@ const STORE_PAGE: EventDef = {
  */
 const REBEL_TRADE: EventDef = {
   id: "STORE_REBELSIDE",
-  dest: "Large trade station",
+  dest: "Store (closed)",
   flag: "STORE_REBELSIDE",
   aliases: [],
   sectors: [],
-  body: 'You come across a large trade station. However, as soon as you approach a warning goes out to all ships in the region: "Do not associate with the Federation sympathizer. All who oppose the Rebels will be punished."',
+  body: "Store. It refuses to trade with you.",
   choices: [
     {
       id: "c:large-trade-station:1",
-      label: "Leave.",
+      label: "Nothing happens.",
       fx: [
         {
           k: "note",
-          text: "You decide it's better not to push your luck and move on.",
+          text: "Nothing happens.",
         },
       ],
     },
@@ -1370,7 +1370,7 @@ const START_PAGE: EventDef = {
   flag: "START_BEACON",
   aliases: [],
   sectors: [],
-  body: "The jump drive spins down. Fresh sensor returns trickle in from the beacons ahead.",
+  body: "Start beacon.",
   choices: [],
 };
 
@@ -1384,11 +1384,11 @@ const FINISH_PAGE: EventDef = {
   flag: "FINISH_BEACON",
   aliases: [],
   sectors: [],
-  body: "A long-range relay marks the way out of this sector. Charge the drive to jump onward.",
+  body: "Sector exit. Jump to the next sector.",
   choices: [
     {
       id: "continue",
-      label: "Continue...",
+      label: "Continue.",
       hidden: true,
       fx: [{ k: "goto", id: "EXIT_LIST" }],
     },
@@ -1402,7 +1402,7 @@ const FINISH_NEBULA_PAGE: EventDef = {
   flag: "FINISH_BEACON_NEBULA",
   aliases: [],
   sectors: [],
-  body: "The long-range relay is buried in nebula haze, but its signal holds. Charge the drive to jump onward.",
+  body: "Sector exit. Nebula. Jump to the next sector.",
   choices: [],
 };
 
@@ -1434,30 +1434,30 @@ function fuelNothing(id: string, dest: string, lines: readonly string[]): EventD
 }
 
 const FUEL_NOTHING = fuelNothing("FUEL_NOTHING", "No fuel: wait fail (distress off)", [
-  "No ship is in scanning range and no one arrives at the beacon.",
-  "Your waiting yields nothing while the fleet surely gets closer...",
-  "A freighter suddenly arrives nearby. They are so close you can almost wave at them, but your hails are ignored and the ship quickly jumps away.",
-  "Small traffic passes within a short distance of you, but no one responds to your hails.",
-  "The only ship within hailing range appears to be a civilian vessel. However, it quickly leaves once it picks up your signal.",
-  "As you wait, a small asteroid storm pelts softly against your shields and hull.",
-  "You begin to wonder if turning on the beacon would be worth the risk of detection. The fleet slowly approaches.",
-  "You contemplate the vastness of space.",
-  "The prolonged wait in empty space is causing tension among the crew. Still no contact.",
-  "Cabin fever begins to spread among your crew.",
-  "Long range scanners detect a small settlement, but they refuse all contact.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
 ]);
 
 const FUEL_NOTHING_DISTRESS = fuelNothing(
   "FUEL_NOTHING_DISTRESS",
   "No fuel: wait fail (distress on)",
   [
-    "You contemplate that it is fortunate the ship's life support system does not rely on FTL fuel cells.",
-    "Nothing happens. Your calls go unanswered.",
-    "The distress beacon's light is the only movement visible outside the ship.",
-    "No ships jump into the sector...",
-    "A few passing ships seem oblivious to your distress call and ignore all hails.",
-    "A few civilian ships are within scanning range, yet none respond to your calls.",
-    "No ships pass through the area.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
   ],
 );
 

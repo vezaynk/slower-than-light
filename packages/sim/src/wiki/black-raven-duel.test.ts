@@ -12,7 +12,7 @@ function arrive(seed: number): Game {
   const g = createGame(seed);
   g.sectorId = "SLUG_HOME";
   g.sectorName = "Slug Home Nebula";
-  const ev = allEvents().find((e) => e.dest === "The Black Raven")!;
+  const ev = allEvents().find((e) => e.dest === "Hostile Slug pirate ship")!;
   const b = g.beacons.find(
     (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
   )!;

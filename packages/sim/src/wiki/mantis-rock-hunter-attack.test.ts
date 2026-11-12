@@ -8,14 +8,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_MANTIS_HUNTER";
-  b.name = "Mantis ship with Rock body parts";
+  b.name = "Optional fight: Mantis hunter";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Mantis ship with Rock body parts");
+  assert.equal(g.event?.title, "Optional fight: Mantis hunter");
 }
 
-describe("Mantis ship with Rock body parts", () => {
+describe("Optional fight: Mantis hunter", () => {
   it("attacking prints the lead-in and starts a Mantis ship fight", () => {
     // Wiki citations:
     // > "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!" — [[Mantis ship with Rock body parts]]

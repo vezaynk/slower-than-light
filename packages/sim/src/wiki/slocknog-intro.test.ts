@@ -12,14 +12,14 @@ function open(g: Game) {
   assert.ok(b);
   b.kind = "event";
   b.flag = "SLUG_DISTRESS_RESCUE";
-  b.name = "Slocknog";
+  b.name = "Hire: Slug crew";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   return b;
 }
 
-describe("Slocknog", () => {
+describe("Hire: Slug crew", () => {
   it("shows the printed hire sentence", () => {
     // Wiki citations:
     // > "You detect life signs on a nearby moon - a lone Slug marooned on its surface. \"Ah, a sssentient ssspecies, after all this time. I am Slocknog, a wandering hero ssseeking adventure. You may hire me for a ssmall sssum.\"" — [[Slocknog]]

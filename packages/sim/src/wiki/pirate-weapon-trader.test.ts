@@ -11,18 +11,18 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_WEAPONS_TRADER";
-  b.name = "Pirate ship selling weapon";
+  b.name = "Trade: weapon for scrap (nebula)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate ship selling weapon");
+  assert.equal(g.event?.title, "Trade: weapon for scrap (nebula)");
 }
 
 function mind(): Kit {
   return { id: "mind", level: 1, power: 1, left: 0, cool: 0, target: null, on: false, aux: 0 };
 }
 
-describe("Pirate ship selling weapon", () => {
+describe("Trade: weapon for scrap (nebula)", () => {
   it("ignoring the trader shows nothing and spends nothing", () => {
     const g = createGame(1);
     open(g);

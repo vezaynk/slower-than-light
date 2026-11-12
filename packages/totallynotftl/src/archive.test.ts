@@ -397,9 +397,9 @@ describe("totallynotftl.dat", () => {
         flag: "STAND_IN_BEACON",
         aliases: [],
         sectors: [],
-        body: "Nothing moves.",
+        body: "",
         choices: [],
-        texts: ["Nothing moves.", "The beacon holds still."],
+        openings: [{ load: "STAND_IN_CALM" }],
       },
     );
     assert.deepEqual(
@@ -412,12 +412,22 @@ describe("totallynotftl.dat", () => {
         sectors: [],
         body: "",
         choices: [],
-        openings: [{ text: "The near reading." }, { load: "STAND_IN_MORE" }],
+        openings: [{ load: "STAND_IN_NEST" }],
       },
     );
     assert.deepEqual(
       merged.textLists?.map((row) => row.id),
-      ["STAND_IN_CALM", "STAND_IN_MORE", "STAND_IN_NEST", "NAME_SYLLABLES", "CREW_POOL"],
+      [
+        "ROCK_FIGHT_ASTEROID",
+        "ROCK_PIRATE",
+        "ROCK_PIRATE_ASTEROID",
+        "ROCK_PIRATE_SUN",
+        "STAND_IN_CALM",
+        "STAND_IN_MORE",
+        "STAND_IN_NEST",
+        "NAME_SYLLABLES",
+        "CREW_POOL",
+      ],
     );
     assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_CALM")?.lines, [
       { text: "Nothing moves." },

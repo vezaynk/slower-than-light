@@ -57,6 +57,7 @@ import type {
   SurrenderOfferDef,
   SurrenderReward,
   SystemDef,
+  TextListDef,
   TuneDef,
   WeaponBlueprint,
   WeaponKind,
@@ -183,6 +184,7 @@ export function emitPack(pack: ContentPack, slice: EmitSlice = {}): string {
   for (const store of pack.stores ?? []) add(root, storeElement(doc, store));
   if (pack.rewards) add(root, rewardsElement(doc, pack.rewards));
   for (const event of pack.events ?? []) add(root, eventElement(doc, event));
+  for (const list of pack.textLists ?? []) add(root, textListElement(doc, list));
   for (const list of pack.lists ?? []) add(root, listElement(doc, list));
   // `<ship name auto_blueprint>`: a ship event a fight loads, as ftl.dat's events_ships.xml writes them.
   for (const ship of pack.shipEvents ?? []) add(root, shipEventElement(doc, ship));
@@ -636,6 +638,19 @@ function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
   return node;
 }
 
+function textListElement(doc: XmlDocument, list: TextListDef): XmlElement {
+  const node = element(doc, "textList", { name: list.id });
+  for (const line of list.lines) {
+    if ("load" in line) add(node, element(doc, "text", { load: line.load }));
+    else if (line.text) add(node, leaf(doc, "text", line.text));
+  }
+  return node;
+}
+
+function loadOpening(event: EventDef): boolean {
+  return !!event.openings?.some((line) => "load" in line);
+}
+
 function emptyElement(doc: XmlDocument, page: EmptyBeaconDef): XmlElement {
   const attrs: Record<string, string> = { name: page.id };
   if (page.nebula) attrs.nebula = "true";
@@ -648,17 +663,26 @@ function emptyElement(doc: XmlDocument, page: EmptyBeaconDef): XmlElement {
 
 function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   const texts = event.texts ?? [];
+  const asLoad = loadOpening(event);
   const attrs: Record<string, string> = { name: event.id };
-  if (texts.length > 1 && event.body !== "" && event.body !== texts[0]) attrs.intro = "after";
+  if (!asLoad && texts.length > 1 && event.body !== "" && event.body !== texts[0])
+    attrs.intro = "after";
   const node = element(doc, "event", attrs);
   add(node, leaf(doc, "title", event.dest));
   for (const alias of event.aliases) {
     if (alias && alias !== event.id) add(node, leaf(doc, "alias", alias));
   }
   for (const sector of event.sectors) if (sector) add(node, leaf(doc, "sector", sector));
-  const lines =
-    texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
-  for (const line of lines) add(node, leaf(doc, "text", line));
+  if (asLoad) {
+    for (const line of event.openings ?? []) {
+      if ("load" in line) add(node, element(doc, "text", { load: line.load }));
+      else add(node, leaf(doc, "text", line.text));
+    }
+  } else {
+    const lines =
+      texts.length > 1 ? (event.body === texts[0] ? texts : [event.body, ...texts]) : [event.body];
+    for (const line of lines) add(node, leaf(doc, "text", line));
+  }
   if (event.ship) add(node, archiveShipElement(doc, event.ship));
   if (event.environment) add(node, environmentElement(doc, event.environment));
   if (event.store) add(node, element(doc, "store", {}));

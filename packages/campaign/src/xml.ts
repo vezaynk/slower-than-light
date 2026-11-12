@@ -1,5 +1,6 @@
 import { loadCatalog } from "@stl/catalog";
 import { eventXmlFile } from "@stl/catalog/src/wiki/beacon-quotas.ts";
+import type { EventDef, TextListDef } from "@stl/pack";
 import {
   allAugments,
   allCrew,
@@ -47,7 +48,6 @@ import {
   droneOrbitRules,
   sectorMapRules,
   type ContentPack,
-  type EventDef,
 } from "@stl/pack";
 
 /** The catalog as one pack. */
@@ -180,12 +180,34 @@ const EVENT_FILES = [
   "data/dlcEvents_anaerobic.xml",
 ];
 
+/** Text lists an event file's load openings draw from, including a list those lists load. */
+function referencedTextLists(
+  events: readonly EventDef[],
+  lists: TextListDef[] | undefined,
+): TextListDef[] | undefined {
+  if (!lists?.length) return undefined;
+  const byId = new Map(lists.map((row) => [row.id, row]));
+  const want = new Set<string>();
+  const add = (id: string) => {
+    if (want.has(id)) return;
+    const row = byId.get(id);
+    if (!row) return;
+    want.add(id);
+    for (const line of row.lines) if ("load" in line) add(line.load);
+  };
+  for (const event of events) {
+    for (const line of event.openings ?? []) if ("load" in line) add(line.load);
+  }
+  const found = lists.filter((row) => want.has(row.id));
+  return found.length > 0 ? found : undefined;
+}
+
 /**
  * Event pages in FTL's event files. Lists sit on events.xml.
  * An empty group is omitted. Blueprints and sectors are their own files.
  */
 export function standInEventFiles(): { path: string; xml: string }[] {
-  const { events, lists, shipEvents } = splitCampaign(campaignPack()).body;
+  const { events, lists, shipEvents, textLists } = splitCampaign(campaignPack()).body;
   const groups = new Map<string, EventDef[]>();
   for (const event of events ?? []) {
     const path = eventXmlFile(event);
@@ -200,6 +222,7 @@ export function standInEventFiles(): { path: string; xml: string }[] {
     const xml = emitPack({
       events: group,
       lists: path === "data/events.xml" ? lists : undefined,
+      textLists: referencedTextLists(group, textLists),
       shipEvents: ships,
     });
     return [{ path, xml }];

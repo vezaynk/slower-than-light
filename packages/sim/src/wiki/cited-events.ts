@@ -804,25 +804,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     }
     return card;
   }
-  // Rock arrival fights. The button and the ship are already on the page.
-  // The intro is one of the page's texts. ftl.dat stores the first of those as body.
-  // Wiki citations:
-  // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight in asteroid field]]
-  // > "Fight a Rock ship (default rewards)." — [[Rock fight in asteroid field]]
-  // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight]]
-  // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight]]
-  // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight in asteroid field]]
-  // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight in asteroid field]]
-  // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight near sun]]
-  // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight near sun]]
-  if (
-    ev.slug === "ROCK_FIGHT_ASTEROID" ||
-    ev.slug === "ROCK_PIRATE" ||
-    ev.slug === "ROCK_PIRATE_ASTEROID" ||
-    ev.slug === "ROCK_PIRATE_SUN"
-  ) {
-    return writtenOpening(g, ev);
-  }
   const missing = missingCard(g, b, ev);
   if (missing) return missing;
   if (ev.slug === "SLUG_DISTRESS_QUESTION") return slugMoonsCard(g, b, ev.dest);
@@ -1031,45 +1012,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       ],
     };
   }
-  // Pirate fight has no choice. Arrival calls this fight.
-  // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
-  if (ev.slug === "PIRATE") {
-    return {
-      title: ev.dest,
-      body: opening(g, "PIRATE"),
-      choices: [{ id: "c:pirate-fight:0", label: "Fight a Pirate ship" }],
-    };
-  }
-  // Pirate fight in nebula has no choice. Arrival calls this fight.
-  // One of the five printed intros. "Fight a Pirate ship (default rewards)." nebula=true. unique=false. No nebula environment is added.
-  if (ev.slug === "NEBULA_PIRATE") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
-    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in nebula]]
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_PIRATE"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Rebel fight in nebula has no choice. Arrival calls this fight.
-  // One of the seven printed intros. "Fight a Rebel ship (default rewards)." nebula=true. unique=false. No nebula environment is added.
-  if (ev.slug === "NEBULA_REBEL") {
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_REBEL"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Auto-ship fight in nebula has no choice. Arrival calls c:auto-ship-fight-in-nebula:0.
-  // One of the five printed intros. "Fight an Auto-ship." nebula=true. unique=false.
-  if (ev.slug === "NEBULA_AUTO") {
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_AUTO"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
   // Rock atheists. {{Blue Option|Improved Sensors|level=2+}}. The button stays visible.
   if (ev.slug === "ROCK_ATHIEST") {
     return {
@@ -1095,317 +1037,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
         { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
         { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
       ],
-    };
-  }
-  // Rebel fight (Lanius) has no choice. Arrival calls this fight.
-  // One of the six printed intros. "Fight a Rebel ship (default rewards)." unique=false.
-  if (ev.slug === "LANIUS_REBEL_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_REBEL_FIGHT"),
-      choices: [{ id: "c:rebel-fight-lanius:0", label: "Fight a Rebel ship" }],
-    };
-  }
-  // Rock fight with boarders. One of the two printed intros. The fight stays c:rock-fight-with-boarders:0.
-  if (ev.slug === "ROCK_BOARDERS_SHIP") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders]]
-    // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
-    return writtenOpening(g, ev);
-  }
-  // Auto-ship fight has no choice. Arrival calls c:auto-ship-fight:0.
-  // One of the nine printed intros. "Fight an Auto-ship." unique=false.
-  if (ev.slug === "REBEL_AUTO") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL_AUTO"),
-      choices: [{ id: "c:auto-ship-fight:0", label: "Fight an Auto-ship" }],
-    };
-  }
-  // Auto-ship warning has no choice. Arrival calls c:auto-ship-warning:0.
-  // The page shares those nine intros. "Fight an Auto-ship that is running away."
-  // The red line is the escape: Rebel Fleet pursuit is doubled. unique=true.
-  if (ev.slug === "AUTO_WARNING") {
-    return {
-      title: ev.dest,
-      body: opening(g, "AUTO_WARNING"),
-      choices: [{ id: "c:auto-ship-warning:0", label: "Fight an Auto-ship that is running away" }],
-    };
-  }
-  // Rebel fight with boarders. One of the four printed intros. The fight stays c:rebel-fight-with-boarders:0.
-  if (ev.slug === "BOARDERS_REBEL_SHIP") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight with boarders]]
-    return {
-      title: ev.dest,
-      body: opening(g, "BOARDERS_REBEL_SHIP"),
-      choices: [{ id: "c:rebel-fight-with-boarders:0", label: "Fight a Rebel ship" }],
-    };
-  }
-  // Rock fight with boarders in asteroid field. One of the two printed intros. The fight stays c:rock-fight-with-boarders-in-asteroid-field:0.
-  if (ev.slug === "ROCK_BOARDERS_ASTEROID") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders in asteroid field]]
-    // > "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders in asteroid field]]
-    return writtenOpening(g, ev);
-  }
-  // Lanius fight has no choice. Arrival calls this fight.
-  // One of the eleven printed intros, including the repeated line. "Fight a Lanius ship (default Lanius rewards)." unique=false.
-  if (ev.slug === "LANIUS_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_FIGHT"),
-      choices: [{ id: "c:lanius-fight:0", label: "Fight a Lanius ship" }],
-    };
-  }
-  // Mantis fight (Engi) has no choice. Arrival calls this fight.
-  // One of the four printed intros. "Fight a Mantis ship (default rewards)." unique=false.
-  if (ev.slug === "ENGI_MANTIS_FIGHT") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight (Engi)]]
-    // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Engi)]]
-    return writtenOpening(g, ev);
-  }
-  // Mantis fight in nebula has no choice. Arrival calls this fight.
-  // One of the five printed intros. "Fight a Mantis ship (default rewards)." nebula=true. unique=false.
-  if (ev.slug === "NEBULA_MANTIS_FIGHT") {
-    return writtenOpening(g, ev);
-  }
-  // Mantis fight has no choice. Arrival calls this fight.
-  // One of the twenty printed intros. "Fight a Mantis ship (default rewards)." unique=false.
-  if (ev.slug === "MANTIS_FIGHT") {
-    return writtenOpening(g, ev);
-  }
-  // Mantis fight choice. One of the six printed intros. Attack, conceal, and cloaking stay on the def.
-  if (ev.slug === "MANTIS_FIGHT_CHOICE") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight choice]]
-    return writtenOpening(g, ev);
-  }
-  // Mantis ship attacking civilian. One of the five printed intros. Both printed choices stay.
-  if (ev.slug === "MANTIS_CIVILIAN") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Mantis ship attacking civilian]]
-    return writtenOpening(g, ev);
-  }
-  // Pirate ship attacking civilian. One of the six printed intros. Both printed choices stay.
-  if (ev.slug === "PIRATE_CIVILIAN") {
-    return {
-      title: ev.dest,
-      body: opening(g, "PIRATE_CIVILIAN"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Pirate ship attacking civilian (Lanius). One of the three printed intros. Both printed choices stay.
-  if (ev.slug === "LANIUS_PIRATE_CIVILIAN") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_PIRATE_CIVILIAN"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Zoltan fight has no choice. Arrival calls c:zoltan-fight:0.
-  // One of the seven printed intros. "Fight a Zoltan ship (default rewards)." unique=false.
-  if (ev.slug === "ZOLTAN_FIGHT") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Zoltan fight]]
-    // > "Fight a Zoltan ship (default rewards)." — [[Zoltan fight]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ZOLTAN_FIGHT"),
-      choices: [{ id: "c:zoltan-fight:0", label: "Fight a Zoltan ship" }],
-    };
-  }
-  // Crystal fight has no choice. Arrival calls c:crystal-fight:0.
-  // One of the seven printed intros. "Fight a Crystal ship (default rewards)." unique=false.
-  if (ev.slug === "CRYSTAL_FIGHT") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Crystal fight]]
-    // > "Fight a Crystal ship (default rewards)." — [[Crystal fight]]
-    return {
-      title: ev.dest,
-      body: opening(g, "CRYSTAL_FIGHT"),
-      choices: [{ id: "c:crystal-fight:0", label: "Fight a Crystal ship (default rewards)" }],
-    };
-  }
-  // Rebel fight among Rebel fleet has no choice. Arrival calls this fight.
-  // One of the seven printed intros. "Fight a Rebel ship." unique=false. The low scrap and medium scrap payouts stay the winning results.
-  if (ev.slug === "BOSS_FLEETS_REBEL") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight among Rebel fleet]]
-    // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
-    // > "no surrender offers, no escape attempts" — [[Rebel fight among Rebel fleet]]
-    return {
-      title: ev.dest,
-      body: opening(g, "BOSS_FLEETS_REBEL"),
-      choices: [{ id: "c:rebel-fight-among-rebel-fleet:0", label: "Fight a Rebel ship" }],
-    };
-  }
-  // The mercenary. One of the six printed intros. Delay, Fight, and Decline stay the existing choices.
-  if (ev.slug === "MERCENARY") {
-    return {
-      title: ev.dest,
-      body: opening(g, "MERCENARY"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Rebel ship supplying civilians. One of the five printed intros. Attack and Leave stay the existing choices.
-  if (ev.slug === "REBEL_HELPERS") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL_HELPERS"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Rebel ship attacking Federation loyalists. One of the three printed intros. Aid and Escape stay the existing choices.
-  if (ev.slug === "REBEL_VS_FEDERATION") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL_VS_FEDERATION"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Pirate briber. One of the three printed intros. Accept and Attack stay the existing choices.
-  if (ev.slug === "PIRATE_BRIBER") {
-    return {
-      title: ev.dest,
-      body: opening(g, "PIRATE_BRIBER"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Slug fight in nebula has no choice. Arrival calls this fight.
-  // One of the five printed intros. "Fight a Slug ship (default rewards)." nebula=true. unique=false. No nebula environment is added. Surrender stays the Slug row.
-  if (ev.slug === "NEBULA_SLUG_FIGHT") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in nebula]]
-    // > "Fight a Slug ship (default rewards)." — [[Slug fight in nebula]]
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_SLUG_FIGHT"),
-      choices: [{ id: "c:slug-fight-in-nebula:0", label: "Fight a Slug ship" }],
-    };
-  }
-  // Lanius ship attacking civilian. One of the three printed intros. Attack and Avoid stay the existing choices.
-  if (ev.slug === "LANIUS_CIVILIAN") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_CIVILIAN"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Lanius ship salvager. One of the five printed intros. Attack, Leave, and the scrap request stay the existing choices.
-  if (ev.slug === "LANIUS_SOLO_SALVAGE") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_SOLO_SALVAGE"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Rebel fight among Federation and Rebel fleets has no choice. Arrival calls this fight.
-  // One of the six printed intros. "Fight a Rebel ship." unique=false. The low scrap and medium scrap payouts stay the winning results.
-  if (ev.slug === "BOSS_FLEETS_BOTH_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "BOSS_FLEETS_BOTH_FIGHT"),
-      choices: [
-        { id: "c:rebel-fight-among-federation-and-rebel-fleets:0", label: "Fight a Rebel ship" },
-      ],
-    };
-  }
-  // Escort civilians. One of the three printed intros. Accept and Decline stay the existing choices.
-  if (ev.slug === "QUEST_ESCORT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "QUEST_ESCORT"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Trade fuel for drone parts. One of the three printed intros. The trade and the reject stay the existing choices.
-  if (ev.slug === "FUEL_FOR_DRONE") {
-    return {
-      title: ev.dest,
-      body: opening(g, "FUEL_FOR_DRONE"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Rebel fight (Slug) has no choice. Arrival calls this fight.
-  // One of the three printed intros. "Fight a Rebel ship (default rewards)." unique=false.
-  if (ev.slug === "SLUG_REBEL") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight (Slug)]]
-    // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Slug)]]
-    return {
-      title: ev.dest,
-      body: opening(g, "SLUG_REBEL"),
-      choices: [{ id: "c:rebel-fight-slug:0", label: "Fight a Rebel ship" }],
-    };
-  }
-  // Pirate fight (Slug) has no choice. Arrival calls this fight.
-  // One of the three printed intros. "Fight a Pirate ship (default rewards)." unique=false.
-  if (ev.slug === "SLUG_PIRATE") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Slug)]]
-    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Slug)]]
-    return {
-      title: ev.dest,
-      body: opening(g, "SLUG_PIRATE"),
-      choices: [{ id: "c:pirate-fight-slug:0", label: "Fight a Pirate ship" }],
-    };
-  }
-  // Pirate fight (Lanius) has no choice. Arrival calls this fight.
-  // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
-  if (ev.slug === "LANIUS_PIRATE_FIGHT") {
-    return {
-      title: ev.dest,
-      body: opening(g, "LANIUS_PIRATE_FIGHT"),
-      choices: [{ id: "c:pirate-fight-lanius:0", label: "Fight a Pirate ship" }],
-    };
-  }
-  // Pirate fight (Zoltan) has no choice. Arrival calls c:pirate-fight-zoltan:0.
-  // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
-  if (ev.slug === "ZOLTAN_PIRATE") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Zoltan)]]
-    // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Zoltan)]]
-    return {
-      title: ev.dest,
-      body: opening(g, "ZOLTAN_PIRATE"),
-      choices: [{ id: "c:pirate-fight-zoltan:0", label: "Fight a Pirate ship" }],
-    };
-  }
-  // Rebel fight near pulsar has no choice. Arrival calls this fight.
-  // One of the three printed intros. "Fight a Rebel ship (default rewards)." pulsar=true. unique=true.
-  if (ev.slug === "REBEL_PULSAR") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL_PULSAR"),
-      choices: [{ id: "c:rebel-fight-near-pulsar:0", label: "Fight a Rebel ship" }],
-    };
-  }
-  // Rock fight has no choice. Arrival calls this fight.
-  // One of the eight printed intros. "Fight a Rock ship (default rewards)." unique=false.
-  if (ev.slug === "ROCK_SHIP") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight]]
-    // > "Fight a Rock ship (default rewards)." — [[Rock fight]]
-    return writtenOpening(g, ev);
-  }
-  // Pirate fight near pulsar has no choice. Arrival calls this fight.
-  // One of the three printed intros. "Fight a Pirate ship (default rewards)." pulsar=true. unique=true.
-  if (ev.slug === "PIRATE_PULSAR") {
-    return {
-      title: ev.dest,
-      body: opening(g, "PIRATE_PULSAR"),
-      choices: [{ id: "c:pirate-fight-near-pulsar:0", label: "Fight a Pirate ship" }],
-    };
-  }
-  // Rebel fight has no choice. Arrival calls this fight.
-  // One of the ten printed intros. "Fight a Rebel ship (default rewards)." unique=false.
-  if (ev.slug === "REBEL") {
-    return {
-      title: ev.dest,
-      body: opening(g, "REBEL"),
-      choices: [{ id: "c:rebel-fight:0", label: "Fight a Rebel ship" }],
     };
   }
   // Rebel checkpoint. The bribe is the packed scrap band, shown on the button.
@@ -1449,110 +1080,6 @@ ${laniusTraderOfferText(offer)}`,
       ],
     };
   }
-  // Rebel ship attacking civilians in Last Stand. One of the five printed intros. Both choices stay.
-  if (ev.slug === "BOSS_SCOUT_RESCUE") {
-    return {
-      title: ev.dest,
-      body: opening(g, "BOSS_SCOUT_RESCUE"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Free scrap with resources. One of the six printed intros. The gift stays c:free-scrap-with-resources:0.
-  if (ev.slug === "FREE_ITEMS") {
-    return {
-      title: ev.dest,
-      body: opening(g, "FREE_ITEMS"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Pirate ship distress trap has no choice. Arrival calls this fight.
-  // One of the four printed intros. No odds. INFERRED: equal. "Fight a Pirate ship (default rewards)." distress=true. unique=true.
-  if (ev.slug === "TRAP_BEACON") {
-    return {
-      title: ev.dest,
-      body: opening(g, "TRAP_BEACON"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
-  // Slug fight in plasma storm has no choice. Arrival calls this fight.
-  // One of the four printed intros. "Fight a Slug ship (default rewards)." plasmastorm=true. unique=false. The beacon stays outside a nebula. Surrender stays the Slug row.
-  if (ev.slug === "STORM_SLUG_FIGHT") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in plasma storm]]
-    // > "Note: This event has a plasma storm environment, but the beacon is not inside a nebula." — [[Slug fight in plasma storm]]
-    // > "Fight a Slug ship (default rewards)." — [[Slug fight in plasma storm]]
-    return {
-      title: ev.dest,
-      body: opening(g, "STORM_SLUG_FIGHT"),
-      choices: [{ id: "c:slug-fight-in-plasma-storm:0", label: "Fight a Slug ship" }],
-    };
-  }
-  // Boarders: Mantis. One of the three printed intros. The boarders stay c:boarders-mantis:0.
-  // Wiki citations:
-  // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Mantis]]
-  // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
-  if (ev.slug === "MANTIS_BOARDERS") {
-    return writtenOpening(g, ev);
-  }
-  // Boarders: Humans in nebula. One of the three printed intros. The boarders stay c:boarders-humans-in-nebula:0.
-  if (ev.slug === "NEBULA_BOARDING") {
-    return {
-      title: ev.dest,
-      body: opening(g, "NEBULA_BOARDING"),
-      choices: [
-        { id: "c:boarders-humans-in-nebula:0", label: "2-4 human boarders beam aboard your ship." },
-      ],
-    };
-  }
-  // Boarders: Crystal. One of the three printed intros. The boarders stay c:boarders-crystal:0.
-  if (ev.slug === "BOARDERS_CRYSTAL") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Crystal]]
-    // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
-    return {
-      title: ev.dest,
-      body: opening(g, "BOARDERS_CRYSTAL"),
-      choices: [
-        { id: "c:boarders-crystal:0", label: "2-3 crystal boarders beam aboard your ship." },
-      ],
-    };
-  }
-  // Boarders: Rockmen near sun. One of the two printed intros. The boarders stay c:boarders-rockmen-near-sun:0.
-  if (ev.slug === "ROCK_BOARDERS_SUN") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Rockmen near sun]]
-    // > "2-3 rock boarders beam aboard your ship." — [[Boarders: Rockmen near sun]]
-    return writtenOpening(g, ev);
-  }
-  // Boarders: Humans (Pirate). One of the five printed intros. The boarders stay c:boarders-humans-pirate:0.
-  if (ev.slug === "BOARDERS") {
-    // Wiki citations:
-    // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Humans (Pirate)]]
-    // > "What appears to be a civilian ship sends a friendly hail." — [[Boarders: Humans (Pirate)]]
-    // > "As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!" — [[Boarders: Humans (Pirate)]]
-    // > "A heavily damaged ship is drifting near this beacon." — [[Boarders: Humans (Pirate)]]
-    // > "Nice of you to drop by. As you can see, our ship has seen better days." — [[Boarders: Humans (Pirate)]]
-    // > "I think we might be taking it from you now." — [[Boarders: Humans (Pirate)]]
-    // > "Intruders beam aboard." — [[Boarders: Humans (Pirate)]]
-    // > "You detect life-signs actually on the beacon itself! A teleporter signal warns you but it's too late, they've beamed from the beacon onto your ship and seem intent on taking it over." — [[Boarders: Humans (Pirate)]]
-    // > "Your ship detects a faint distress signal on a nearby moon. As you approach the rock, warning lights flash as hostiles beam aboard the ship from some hidden location." — [[Boarders: Humans (Pirate)]]
-    // > "As you arrive, you become aware of a small Rebel outpost near the beacon. You are hardly able to bark an order before a small team is beamed aboard your ship. They must have been expecting you..." — [[Boarders: Humans (Pirate)]]
-    return {
-      title: ev.dest,
-      body: opening(g, "BOARDERS"),
-      choices: [
-        { id: "c:boarders-humans-pirate:0", label: "3-5 human boarders beam aboard your ship." },
-      ],
-    };
-  }
-  // Free weapon. One of the six printed intros. The gift stays c:free-weapon:0.
-  if (ev.slug === "FIND_WEAPON") {
-    return {
-      title: ev.dest,
-      body: opening(g, "FIND_WEAPON"),
-      choices: ev.choices.map((c) => ({ id: c.id, label: c.label })),
-    };
-  }
   // Space station under construction. {{Blue Option|Lanius Crew|Offer to have your crewmember help.}}
   // The button stays visible. Agreeing to the sale is the follow-up card in wiki/quests.ts.
   if (ev.slug === "QUEST_CONSTRUCTIONYARD") {
@@ -1568,17 +1095,24 @@ ${laniusTraderOfferText(offer)}`,
       ],
     };
   }
-  return asWritten(ev);
+  // No hand-written card. A blank body or several <text> nodes draws one line.
+  return writtenOpening(g, ev);
 }
 
 /** The page's own text and choices. Several `<text>` nodes rotate, including the first.
  * ftl.dat stores that first sentence as body and the whole list as texts. The matched card
  * does not carry texts, so the draw reads the loaded event. A blank body is the stand-in's
- * empty first text. */
+ * empty first text. A blank page with no list does not roll. A trade or a supply bundle
+ * keeps its packed sentence, because the price is drawn from this same seed afterwards. */
 function writtenOpening(g: Game, ev: EventDef): GameEvent {
   const card = asWritten(ev);
-  const texts = eventDef(ev.slug)?.texts ?? [];
-  if (!card.body.trim() || texts.length > 1) {
+  const page = eventDef(ev.slug);
+  const texts = page?.texts ?? [];
+  const openings = page?.openings ?? [];
+  if (texts.length === 0 && openings.length === 0) return card;
+  if (page?.trades?.length || page?.offers?.some((row) => row.k === "supply" || row.k === "trade"))
+    return card;
+  if (!card.body.trim() || texts.length > 1 || openings.length > 0) {
     const line = opening(g, ev.slug);
     if (line) card.body = line;
   }
@@ -1657,7 +1191,10 @@ export function presentLoadedEvent(g: Game, page: PackEvent, beacon: Beacon): Ga
     // citedEvent keeps the packed first sentence when the page has several <text> nodes.
     // A card that rewrote the body or the buttons is left alone.
     const texts = page.texts ?? [];
-    if (texts.length > 1 && keptPackedOpening(card, page)) {
+    // A c:/q:/s: page already drew its line in writtenOpening. Drawing again makes the
+    // packed first sentence show only when both rolls land on it.
+    const campaignChoice = page.choices.some((choice) => /^(?:c|q|s):/.test(choice.id));
+    if (texts.length > 1 && keptPackedOpening(card, page) && !campaignChoice) {
       card.body = texts[between(g, [0, texts.length - 1])] ?? card.body;
     }
     return card;

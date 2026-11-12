@@ -158,8 +158,11 @@ describe("cited events", () => {
 
   it("pays Free drone schematic's low scrap and a random drone schematic", () => {
     const g = createGame(5, "PLAYER_SHIP_HARD", "normal");
+    const seed = g.seed;
     const ev = citedEvent(g, beacon("Free drone schematic", "FIND_DRONE"));
     assert.ok(ev);
+    assert.equal(ev.body, "");
+    assert.equal(g.seed, seed);
     assert.equal(ev.choices[0]?.label, "You receive a drone schematic with low scrap");
     const held = heldSchematics(g).length;
     g.scrap = 0;
@@ -172,6 +175,15 @@ describe("cited events", () => {
       run.notes.some((n) => / schematic (fitted|stowed in cargo)\.$/.test(n)),
       run.notes.join("\n"),
     );
+  });
+
+  it("leaves a priced trade on its packed sentence", () => {
+    const g = createGame(5);
+    const seed = g.seed;
+    const ev = citedEvent(g, beacon("Trade scrap for upgrades", "TRADER_UPGRADES"));
+    assert.ok(ev);
+    assert.match(ev.body, /automated message from a nearby space station/);
+    assert.equal(g.seed, seed);
   });
 
   it("pays Free scrap with resources (Engi) as a standard gift", () => {

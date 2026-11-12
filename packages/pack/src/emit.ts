@@ -255,10 +255,29 @@ function stalemateElement(doc: XmlDocument, row: Stalemate): XmlElement {
   return element(doc, "stalemate", attrs);
 }
 
-/** `<skillSpeed>`: crew skill rate multipliers FTL's executable hard-codes (types.ts SkillSpeed). */
+/** `<skillSpeed>`: crew skill numbers FTL's executable hard-codes (types.ts SkillSpeed). */
 function skillSpeedElement(doc: XmlDocument, row: SkillSpeed): XmlElement {
   const attrs: Record<string, string> = {};
-  for (const key of ["repair0", "repair1", "repair2", "combat0", "combat1", "combat2"] as const) {
+  for (const key of [
+    "repair0",
+    "repair1",
+    "repair2",
+    "combat0",
+    "combat1",
+    "combat2",
+    "pilot0",
+    "pilot1",
+    "pilot2",
+    "engines0",
+    "engines1",
+    "engines2",
+    "shields0",
+    "shields1",
+    "shields2",
+    "weapons0",
+    "weapons1",
+    "weapons2",
+  ] as const) {
     if (row[key] != null) attrs[key] = num(row[key]);
   }
   return element(doc, "skillSpeed", attrs);

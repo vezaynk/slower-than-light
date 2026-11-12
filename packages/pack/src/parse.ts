@@ -569,11 +569,23 @@ const SKILL_SPEED_KEYS = [
   "combat0",
   "combat1",
   "combat2",
+  "pilot0",
+  "pilot1",
+  "pilot2",
+  "engines0",
+  "engines1",
+  "engines2",
+  "shields0",
+  "shields1",
+  "shields2",
+  "weapons0",
+  "weapons1",
+  "weapons2",
 ] as const;
 
 /**
- * Gap `<skillSpeed repair0 repair1 repair2 combat0 combat1 combat2>` (types.ts SkillSpeed). A missing or
- * non-positive attribute is left out, so the registry keeps the earlier value or FTL's default.
+ * Gap `<skillSpeed>` (types.ts SkillSpeed). A missing or non-positive attribute is left out,
+ * so the registry keeps the earlier value or FTL's default.
  */
 export function readSkillSpeed(node: XmlElement): SkillSpeed {
   const out: SkillSpeed = {};
@@ -582,7 +594,7 @@ export function readSkillSpeed(node: XmlElement): SkillSpeed {
     if (raw == null) continue;
     const value = attrNum(raw);
     if (value == null || value <= 0) {
-      warnPack(`skillSpeed: ${key}="${raw}" is not a positive multiplier; it is skipped.`);
+      warnPack(`skillSpeed: ${key}="${raw}" is not a positive number; it is skipped.`);
       continue;
     }
     out[key] = value;

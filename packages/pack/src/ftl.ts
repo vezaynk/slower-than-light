@@ -140,7 +140,7 @@ export type FtlTextFile = {
  * A root `<customStore>`, `<rewards>`, `<emptyBeacon>`, or surrender- and escape-only `<shipBlueprint>` is kept.
  * A root `<escapeTimers>` is a private tag FTL ignores: the escape timers its executable hard-codes.
  * A root `<stalemate>` is a private tag FTL ignores: the anti-stalemate break-off its executable hard-codes.
- * A root `<skillSpeed>` is a private tag FTL ignores: the crew skill rate multipliers its executable hard-codes.
+ * A root `<skillSpeed>` is a private tag FTL ignores: the crew skill numbers its executable hard-codes.
  * A root `<aiTarget>` is a private tag FTL ignores: the enemy targeting numbers its executable hard-codes.
  * A root `<overchargerWaits>`, `<ionIntruder>`, or `<crystalVengeance>` is the same kind of tag: layer waits, the
  * ion intruder's pulse, and the crystal vengeance shard. Power and speed stay on the droneBlueprint.

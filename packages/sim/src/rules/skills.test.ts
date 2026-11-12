@@ -4,7 +4,14 @@ import { loadPack, packFromFtl, resetPackForTests } from "@stl/pack";
 import { createGame, repairPace, startCombat, step } from "../sim.ts";
 import "../pack/base.ts";
 import { XP_NEED } from "../content.ts";
-import { combatSkillMult, repairSkillMult } from "./skills.ts";
+import {
+  combatSkillMult,
+  enginesEvasion,
+  pilotEvasion,
+  repairSkillMult,
+  shieldsRecharge,
+  weaponsCharge,
+} from "./skills.ts";
 import type { Game } from "../types.ts";
 
 function lone(g: Game) {
@@ -30,6 +37,22 @@ describe("skill speed from the gap", () => {
     assert.deepEqual(
       [0, 1, 2].map((rank) => combatSkillMult(rank as 0 | 1 | 2)),
       [1, 1.1, 1.2],
+    );
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => pilotEvasion(rank as 0 | 1 | 2)),
+      [5, 7, 10],
+    );
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => enginesEvasion(rank as 0 | 1 | 2)),
+      [5, 7, 10],
+    );
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => shieldsRecharge(rank as 0 | 1 | 2)),
+      [1.1, 1.2, 1.3],
+    );
+    assert.deepEqual(
+      [0, 1, 2].map((rank) => weaponsCharge(rank as 0 | 1 | 2)),
+      [0.9, 0.85, 0.8],
     );
   });
 
@@ -60,6 +83,42 @@ describe("skill speed from the gap", () => {
     } finally {
       resetPackForTests();
       assert.equal(repairSkillMult(2), 1.2);
+    }
+  });
+
+  it("a gap file that sets the system rows changes the manning helpers", () => {
+    loadPack(
+      packFromFtl([
+        {
+          path: "data/gap.xml",
+          xml: `<FTL><skillSpeed pilot0="3" pilot1="4" pilot2="6" engines0="2" engines1="4" engines2="8" shields0="1.4" shields1="1.5" shields2="1.6" weapons0="0.7" weapons1="0.6" weapons2="0.5"/></FTL>`,
+        },
+      ]),
+      "append",
+    );
+    try {
+      assert.deepEqual(
+        [0, 1, 2].map((rank) => pilotEvasion(rank as 0 | 1 | 2)),
+        [3, 4, 6],
+      );
+      assert.deepEqual(
+        [0, 1, 2].map((rank) => enginesEvasion(rank as 0 | 1 | 2)),
+        [2, 4, 8],
+      );
+      assert.deepEqual(
+        [0, 1, 2].map((rank) => shieldsRecharge(rank as 0 | 1 | 2)),
+        [1.4, 1.5, 1.6],
+      );
+      assert.deepEqual(
+        [0, 1, 2].map((rank) => weaponsCharge(rank as 0 | 1 | 2)),
+        [0.7, 0.6, 0.5],
+      );
+    } finally {
+      resetPackForTests();
+      assert.equal(pilotEvasion(0), 5);
+      assert.equal(enginesEvasion(0), 5);
+      assert.equal(shieldsRecharge(0), 1.1);
+      assert.equal(weaponsCharge(0), 0.9);
     }
   });
 

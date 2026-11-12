@@ -633,9 +633,10 @@ export type Stalemate = {
 };
 
 /**
- * Gap `<skillSpeed repair0 repair1 repair2 combat0 combat1 combat2>`: crew skill rate multipliers FTL's executable
- * hard-codes. Repair is ×1 / ×1.1 / ×1.2 ("10% faster", "20% faster"). Combat is the same for crew damage.
- * A missing value warns and uses FTL's. Rank 0 is the untrained rate.
+ * Gap `<skillSpeed repair0 repair1 repair2 combat0 combat1 combat2 pilot0 pilot1 pilot2 engines0 engines1 engines2 shields0 shields1 shields2 weapons0 weapons1 weapons2>`.
+ * Repair is ×1 / ×1.1 / ×1.2 ("10% faster", "20% faster"). Combat is the same for crew damage.
+ * Piloting and Engines are evasion points +5 / +7 / +10 while manned. Shields recharge is ×1.1 / ×1.2 / ×1.3.
+ * Weapons charge time is ×0.9 / ×0.85 / ×0.8. A missing value warns and uses FTL's. Rank 0 is untrained manning.
  */
 export type SkillSpeed = {
   repair0?: number;
@@ -644,6 +645,18 @@ export type SkillSpeed = {
   combat0?: number;
   combat1?: number;
   combat2?: number;
+  pilot0?: number;
+  pilot1?: number;
+  pilot2?: number;
+  engines0?: number;
+  engines1?: number;
+  engines2?: number;
+  shields0?: number;
+  shields1?: number;
+  shields2?: number;
+  weapons0?: number;
+  weapons1?: number;
+  weapons2?: number;
 };
 
 /**

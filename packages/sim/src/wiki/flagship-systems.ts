@@ -14,6 +14,7 @@ import { spikeEvadeZero } from "../extras/spike.ts";
 import { hullDef, weaponDef } from "@stl/pack";
 import { DRONE_LABEL, beamDroneSpeed, pickOrbitBearing } from "../extras/swarm.ts";
 import { beamHoldSeconds, orbitLegSeconds } from "../rules/combat2.ts";
+import { enginesEvasion, pilotEvasion } from "../rules/skills.ts";
 import { randomRoom } from "../rules/targeting.ts";
 import { flagshipHardLinks, flagshipHullId, flagshipLayout } from "./flagship-layout.ts";
 
@@ -530,8 +531,8 @@ function tickAi(g: Game, ship: Ship, state: FlagshipState, dt: number) {
 
 /**
  * Evasion bonus while the AI flies the ship. Dodge Rate, every stage: "If controlled by AI" equals "fully manned"
- * (20 / 25 / 38), which is the base plus +5 engines and +5 piloting for unskilled crew (sim.ts EVADE_SKILL[0]).
- * "undamaged systems are treated as manned": each of Engines and Piloting adds its 5 only while undamaged.
+ * (20 / 25 / 38), which is the base plus the unskilled Engines and Piloting rows.
+ * "undamaged systems are treated as manned": each of Engines and Piloting adds its unskilled row only while undamaged.
  * Called from extras/index.ts extraEvade.
  */
 export function flagshipAiEvade(g: Game, ship: Ship): number {
@@ -545,7 +546,9 @@ export function flagshipAiEvade(g: Game, ship: Ship): number {
   const { engines, pilot } = ship.systems;
   // No dodge at all without working engines (sim.ts evasionPercent returns only this bonus then).
   if (Math.min(engines.power, engines.level - engines.damage) - engines.ion.length <= 0) return 0;
-  return (engines.damage === 0 ? 5 : 0) + (pilot.damage === 0 ? 5 : 0);
+  return (
+    (engines.damage === 0 ? enginesEvasion(0) : 0) + (pilot.damage === 0 ? pilotEvasion(0) : 0)
+  );
 }
 
 /**

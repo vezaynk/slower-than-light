@@ -15,10 +15,9 @@ import {
   weaponDef,
 } from "@stl/pack";
 import { droneKeyForName, droneKeyOf, type DroneKey } from "./gear-look.ts";
-import type { IconName } from "./icons.ts";
+import { iconNamed, type IconName } from "./icons.ts";
 import { canDeploy } from "./extras/swarm.ts";
 import { systemLabel } from "./content.ts";
-import { isFlakArtillery } from "./wiki/weapons-flak-crystal.ts";
 
 /** The augment's blueprint title. An id the archive has no `augBlueprint` for shows as the id, with a warning. */
 function augmentName(id: string): string {
@@ -66,7 +65,7 @@ function weaponTitle(id: string): string | undefined {
  * Artillery is named by its weapon blueprint when that blueprint has a title. Otherwise the systemBlueprint title.
  * A tune the archive leaves untitled keeps the short name the rest of the ship already uses.
  */
-function systemName(id: string, weapon?: string): string {
+export function systemName(id: string, weapon?: string): string {
   const fromWeapon = weapon ? weaponTitle(weapon) : undefined;
   if (fromWeapon) return fromWeapon;
   const fromSystem = distinctTitle(systemDef(id));
@@ -74,8 +73,8 @@ function systemName(id: string, weapon?: string): string {
   return systemLabel(id);
 }
 
-function systemIcon(id: string, weapon?: string): IconName {
-  if (id === "artillery" && isFlakArtillery(weapon)) return "ARTILLERY_FED_C";
+export function systemIcon(id: string, weapon?: string): IconName {
+  if (id === "artillery") return iconNamed(weapon) ?? "artillery";
   return id as IconName;
 }
 

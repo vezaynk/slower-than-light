@@ -57,14 +57,16 @@ describe("Rock fight in asteroid field", () => {
     assert.ok(page);
     loadPack(
       {
-        events: [{ ...page, body: INTROS[0]!, texts: [...INTROS] }],
+        events: [{ ...page, body: INTROS[0]!, texts: [INTROS[0]!], openings: undefined }],
         textLists: [{ id: "ROCK_FIGHT_ASTEROID", lines: INTROS.map((text) => ({ text })) }],
       },
       "append",
     );
     const stuck = createGame(1);
+    const seed = stuck.seed;
     open(stuck);
     assert.equal(stuck.event?.body, INTROS[0]);
+    assert.equal(stuck.seed, seed);
     loadPack(
       {
         events: [

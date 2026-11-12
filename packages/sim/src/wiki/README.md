@@ -54,6 +54,7 @@ The button and the ship stay on the choice. `ROCK_BOARDERS_SHIP`, `ROCK_BOARDERS
 `ROCK_BOARDERS_SUN` now play `writtenOpening`.
 
 Done: Zoltan arrival fights (November 2026). `ZOLTAN_FIGHT` and `ZOLTAN_PIRATE` play as written.
+`ENGI_MANTIS_FIGHT`, `NEBULA_MANTIS_FIGHT`, `MANTIS_FIGHT`, `MANTIS_FIGHT_CHOICE`, `MANTIS_CIVILIAN`, and `MANTIS_BOARDERS` now play `writtenOpening`.
 
 ### How to migrate an event module
 

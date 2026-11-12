@@ -163,7 +163,14 @@ import {
   rollDangerY,
   startRow,
 } from "./rules/sector-map.ts";
-import { combatSkillMult, repairSkillMult } from "./rules/skills.ts";
+import {
+  combatSkillMult,
+  enginesEvasion,
+  pilotEvasion,
+  repairSkillMult,
+  shieldsRecharge,
+  weaponsCharge,
+} from "./rules/skills.ts";
 import {
   chainChargeSeconds,
   chainDamageAmount,
@@ -1115,15 +1122,6 @@ function noteDodge(g: Game) {
   bumpXp(g, manningCrew(g, g.player, "player", "engines"), "engines", 1);
 }
 
-/** Engines, manning: +5 / +7 / +10 evasion by skill rank. Same table for piloting. */
-// Wiki citations:
-// > "Manning the Engines increases evasion (by +5/+7/+10 %)" — [[Engines#Overview]]
-const EVADE_SKILL = [5, 7, 10];
-/** Weapon Control, manning: charge time ×0.9 / ×0.85 / ×0.8. */
-const WEAPON_RATE = [0.9, 0.85, 0.8];
-/** Shields, manning: recharge rate ×1.1 / ×1.2 / ×1.3. */
-const SHIELD_RATE = [1.1, 1.2, 1.3];
-
 /**
  * AI-Controlled Rebel Ships: "automated ships get manning bonuses for all their systems."
  * "Only damaging the system removes the manning bonus." Ion, fire, a breach, boarding, and a latched hack do not.
@@ -1141,7 +1139,7 @@ function autoSkillEvade(ship: Ship, engBars: number): number {
   const enginesUp =
     engines.level > 0 && engines.damage === 0 && (engBars > 0 || engines.ion.length > 0);
   const pilotUp = pilot.level > 0 && pilot.damage === 0;
-  return (enginesUp ? EVADE_SKILL[0] : 0) + (pilotUp ? EVADE_SKILL[0] : 0);
+  return (enginesUp ? enginesEvasion(0) : 0) + (pilotUp ? pilotEvasion(0) : 0);
 }
 
 /**
@@ -1363,7 +1361,7 @@ export function evasionPercent(g: Game, ship: Ship, aboard: "player" | "enemy"):
     if (autoManning(ship) && eng > 0 && ship.systems.engines.damage === 0) {
       return Math.min(
         100,
-        Math.round((EVADE_TABLE[eng] ?? 0) + EVADE_SKILL[0] + extraEvade(g, ship, aboard)),
+        Math.round((EVADE_TABLE[eng] ?? 0) + enginesEvasion(0) + extraEvade(g, ship, aboard)),
       );
     }
     return Math.min(100, extraEvade(g, ship, aboard));
@@ -1374,10 +1372,10 @@ export function evasionPercent(g: Game, ship: Ship, aboard: "player" | "enemy"):
     return Math.min(100, Math.round(evade + extraEvade(g, ship, aboard)));
   }
   const engCrew = manningCrew(g, ship, aboard, "engines");
-  if (engCrew) evade += EVADE_SKILL[rankOf(engCrew, "engines")];
+  if (engCrew) evade += enginesEvasion(rankOf(engCrew, "engines"));
   if (present(g, ship, aboard, "pilot")) {
     const pilotCrew = manningCrew(g, ship, aboard, "pilot");
-    if (pilotCrew) evade += EVADE_SKILL[rankOf(pilotCrew, "pilot")];
+    if (pilotCrew) evade += pilotEvasion(rankOf(pilotCrew, "pilot"));
     return Math.min(100, Math.round(evade + extraEvade(g, ship, aboard)));
   }
   const pilotBars = pilot.level - pilot.damage;
@@ -4634,14 +4632,14 @@ function chargeSide(g: Game, ship: Ship, from: "player" | "enemy", dt: number) {
   const weapons = ship.systems.weapons;
   const skill = ship.flagship
     ? gunner
-      ? WEAPON_RATE[rankOf(gunner, "weapons")]
+      ? weaponsCharge(rankOf(gunner, "weapons"))
       : 1
     : ship.automated
       ? weapons.level > 0 && weapons.damage === 0
-        ? WEAPON_RATE[0]
+        ? weaponsCharge(0)
         : 1
       : gunner
-        ? WEAPON_RATE[rankOf(gunner, "weapons")]
+        ? weaponsCharge(rankOf(gunner, "weapons"))
         : 1;
   const mult = skill / weaponBoost(g, from);
   // @agent:hacking. Hacking, "Overview" (Weapon Control): an enemy pulse drains and holds the player's weapons.
@@ -5435,9 +5433,9 @@ function shieldNeed(g: Game, ship: Ship, aboard: "player" | "enemy"): number | n
   const shields = ship.systems.shields;
   const rate =
     ship.automated && shields.level > 0 && shields.damage === 0
-      ? SHIELD_RATE[0]
+      ? shieldsRecharge(0)
       : op
-        ? SHIELD_RATE[rankOf(op, "shields")]
+        ? shieldsRecharge(rankOf(op, "shields"))
         : 1;
   return shieldLayerSeconds(ship.shieldNow + 1) / (rate * shieldBoost(g, aboard));
 }

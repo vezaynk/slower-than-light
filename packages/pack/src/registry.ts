@@ -1169,6 +1169,18 @@ const FTL_SKILL_SPEED: Required<SkillSpeed> = {
   combat0: 1,
   combat1: 1.1,
   combat2: 1.2,
+  pilot0: 5,
+  pilot1: 7,
+  pilot2: 10,
+  engines0: 5,
+  engines1: 7,
+  engines2: 10,
+  shields0: 1.1,
+  shields1: 1.2,
+  shields2: 1.3,
+  weapons0: 0.9,
+  weapons1: 0.85,
+  weapons2: 0.8,
 };
 
 const SKILL_RANK = ["0", "1", "2"] as const;
@@ -1182,7 +1194,10 @@ export function skillSpeeds(): SkillSpeed {
  * Rate multiplier for one skill rank (gap `<skillSpeed>`). Rank 0, 1, or 2.
  * A pack that omits the value gets FTL's, with one warning. Any other rank is the untrained rate.
  */
-export function skillMult(kind: "repair" | "combat", rank: number): number {
+export function skillMult(
+  kind: "repair" | "combat" | "pilot" | "engines" | "shields" | "weapons",
+  rank: number,
+): number {
   if (rank !== 0 && rank !== 1 && rank !== 2) return FTL_SKILL_SPEED.repair0;
   const key = `${kind}${SKILL_RANK[rank]}` as keyof SkillSpeed;
   const value = skillSpeedValue[key];

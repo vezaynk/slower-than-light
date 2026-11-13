@@ -8,13 +8,15 @@ import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 import { printedBand, rollBand, upgradeRows } from "./event-bands.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 const DULL = "nothing of much interest";
 const GULP = "cargo hold";
 const THANKS = "scrap in exchange";
 const WOW = "repair part of your hull";
-const ABANDONED = "No one answers your hails";
-const SCAN = "unclaimed fuel and drone parts";
+const ABANDONED = eventText("button_store");
+const SCAN = eventText("event_LANIUS_FUELING_STATION_LIST_3_c3_text");
 const S3 = "s:garbled-dock:sensors3";
 
 afterEach(() => resetPackForTests());
@@ -529,15 +531,15 @@ describe("printed bands", () => {
       assert.equal(fuelMarks(campaign.event?.body ?? ""), fuelMarks(gone.event?.body ?? "") + 1);
       assert.ok((campaign.event?.body ?? "").includes(`Fuel: ${extra}.`));
       assert.equal(campaign.log.includes(`Fuel: ${extra}.`), false);
-      assert.match(campaign.event?.body ?? "", /fuel reserves on the station/);
-      assert.match(gone.event?.body ?? "", /fuel reserves on the station/);
+      assert.match(campaign.event?.body ?? "", textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"));
+      assert.match(gone.event?.body ?? "", textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"));
       assert.match(
         campaign.event?.body ?? "",
-        dead ? /no more life-signs/ : /collection of useful scrap material/,
+        dead ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text") : textRe("event_DESTROYED_DEFAULT_1_text", "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text", "ship_PIRATE_BRIBER_destroyed_text"),
       );
       assert.match(
         gone.event?.body ?? "",
-        dead ? /no more life-signs/ : /collection of useful scrap material/,
+        dead ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text") : textRe("event_DESTROYED_DEFAULT_1_text", "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text", "ship_PIRATE_BRIBER_destroyed_text"),
       );
 
       rewrite(eventId, [
@@ -554,7 +556,7 @@ describe("printed bands", () => {
       assert.ok((fixed.event?.body ?? "").includes("Fuel: 7."));
       assert.equal(fixed.log.includes("Fuel: 7."), false);
       assert.equal(quiet.log.includes("Fuel: 7."), false);
-      assert.match(quiet.event?.body ?? "", /fuel reserves on the station/);
+      assert.match(quiet.event?.body ?? "", textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"));
       assert.equal((quiet.event?.body ?? "").includes("Fuel: 7."), false);
     }
   });

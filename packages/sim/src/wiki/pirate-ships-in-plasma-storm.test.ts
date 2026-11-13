@@ -6,6 +6,8 @@ import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { hullRunSeconds } from "../rules/escape.ts";
 import { surrenderPlan } from "../rules/surrender.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -44,7 +46,7 @@ describe("Pirate ships in plasma storm", () => {
     choose(leave, "c:pirate-ships-in-plasma-storm:2");
     assert.equal(
       leave.event?.body,
-      "Sometimes discretion is the better part of valor.\n\nNothing happens.",
+      [eventText("event_STORM_ZOLTAN_SUPPLY_CHOICE_c3_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(leave.phase, "event");
     assert.equal(leave.scrap, 10);
@@ -55,7 +57,7 @@ describe("Pirate ships in plasma storm", () => {
     const fuel = createGame(2);
     open(fuel);
     const fuelLead =
-      "You jet toward the pirate with the fuel supplies and engage - hopefully you can leave the ship in one piece!";
+      eventText("event_STORM_ZOLTAN_SUPPLY_CHOICE_c1_text");
     choose(fuel, "c:pirate-ships-in-plasma-storm:0");
     assert.equal(fuel.phase, "event");
     assert.equal(fuel.event?.choices[0]?.id, "ship-resume");
@@ -82,7 +84,7 @@ describe("Pirate ships in plasma storm", () => {
     const ammo = createGame(3);
     open(ammo);
     const ammoLead =
-      "You jet toward the pirate with the ammunition and engage - hopefully you can leave the ship in one piece!";
+      eventText("event_STORM_ZOLTAN_SUPPLY_CHOICE_c2_text");
     choose(ammo, "c:pirate-ships-in-plasma-storm:1");
     assert.equal(ammo.phase, "event");
     assert.equal(ammo.event?.choices[0]?.id, "ship-resume");
@@ -118,7 +120,7 @@ describe("Pirate ships in plasma storm", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "pirate-ships-in-plasma-storm", deadCrew), true);
       const body = g.event?.body ?? "";
-      assert.match(body, deadCrew ? /salvage most of the fuel supplies/ : /scant fuel canisters/);
+      assert.match(body, deadCrew ? textRe("ship_STORM_PIRATE_SUPPLY_FUEL_deadCrew_text") : textRe("ship_STORM_PIRATE_SUPPLY_FUEL_destroyed_text"));
       const scrap = scraps(body);
       assert.equal(scrap.length, 1, body);
       const fuel = amount(body, "Fuel");
@@ -155,7 +157,7 @@ describe("Pirate ships in plasma storm", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "pirate-ships-in-plasma-storm-ammo", deadCrew), true);
       const body = g.event?.body ?? "";
-      assert.match(body, deadCrew ? /salvage most of the ammunition/ : /scant ammunition crates/);
+      assert.match(body, deadCrew ? textRe("ship_STORM_PIRATE_SUPPLY_AMMO_deadCrew_text") : textRe("ship_STORM_PIRATE_SUPPLY_AMMO_destroyed_text"));
       const scrap = scraps(body);
       assert.equal(scrap.length, 1, body);
       const missiles = amount(body, "Missiles");

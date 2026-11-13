@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -37,7 +39,7 @@ describe("Rebel ship attacking civilians in Last Stand reward", () => {
     const body = destroyed.event?.body ?? "";
     assert.match(
       body,
-      /With the Rebel ship destroyed you are free to contact their would-be victim/,
+      textRe("ship_BOSS_SCOUT_RESCUE_destroyed_text"),
     );
     assert.ok(destroyed.event?.choices.some((c) => c.id === "q:last-stand-survivors:contact"));
     const paid = scraps(body);
@@ -53,7 +55,7 @@ describe("Rebel ship attacking civilians in Last Stand reward", () => {
     choose(killed, "c:rebel-ship-attacking-civilians-in-last-stand:0");
     assert.equal(pageWin(killed, "rebel-ship-attacking-civilians-in-last-stand", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, /With the Rebel ship defeated you quickly salvage what you can/);
+    assert.match(dead, textRe("ship_BOSS_SCOUT_RESCUE_deadCrew_text"));
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);
@@ -74,12 +76,12 @@ describe("Rebel ship attacking civilians in Last Stand reward", () => {
       const guns = g.player.weapons.length;
       choose(g, "q:last-stand-survivors:contact");
       const body = g.event?.body ?? "";
-      if (body.includes("repair a bit of damage")) {
+      if (body.includes(eventText("event_BOSS_SCOUT_RESCUE_LIST_2_text"))) {
         seen.add("repair");
         assert.match(body, /Hull repairs: 8/);
         assert.equal(g.player.hull, Math.min(max, hull + 8));
         assert.equal(g.scrap, before);
-      } else if (body.includes("Take some supplies")) {
+      } else if (body.includes(eventText("event_BOSS_SCOUT_RESCUE_LIST_3_text"))) {
         seen.add("supplies");
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);

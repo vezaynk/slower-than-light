@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -17,7 +18,7 @@ function open(g: Game) {
 
 describe("Rebel ship attacking civilians in Last Stand fight", () => {
   it("attacking shows the printed lead-in and fights a Rebel ship", () => {
-    const lead = "You move in to intercept.";
+    const lead = eventText("event_BOSS_SCOUT_RESCUE_c1_text");
     const g = createGame(1);
     open(g);
     choose(g, "c:rebel-ship-attacking-civilians-in-last-stand:0");

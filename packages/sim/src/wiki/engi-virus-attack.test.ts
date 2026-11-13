@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -21,7 +22,7 @@ describe("The Engi virus attack", () => {
     open(g);
     const engines = g.player.systems.engines;
     const shields = g.player.systems.shields;
-    const told = "The Engi be damned, no one threatens your ship. You prepare for a fight!";
+    const told = eventText("event_ENGI_VIRUS_c1_c2_text");
     choose(g, "c:the-engi-virus:1");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));

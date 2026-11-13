@@ -28,6 +28,7 @@ import {
 } from "./cited-events.ts";
 import { heldSchematics } from "../rules/make-room.ts";
 import { placeIn } from "../fixtures.ts";
+import { eventText } from "../event-text.ts";
 
 function storyFlags(beacons: readonly { flag: string }[]): string[] {
   return beacons
@@ -454,7 +455,7 @@ describe("crew entirely composed of Mantis", () => {
         "Zoltan ship follows Mantis ship",
       );
       const lead =
-        "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends.";
+        eventText("event_ZOLTAN_DISTRESS_MANTIS_c2_text");
       choose(z, "c:zoltan-ship-follows-mantis-ship:1");
       assert.equal(z.phase, "event");
       assert.equal(z.event?.choices[0]?.id, "ship-resume");
@@ -853,7 +854,7 @@ describe("Slug hacker (choice)", () => {
     shields.player.systems.shields.damage = 0;
     shields.player.systems.shields.ion = [];
     shields.player.shieldNow = 2;
-    const shieldsLead = `"Very good then!" Your shield power suddenly drops and they charge.`;
+    const shieldsLead = eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c1_text");
     choose(shields, "c:slug-hacker-choice:0");
     assert.equal(shields.phase, "event");
     assert.equal(shields.event?.choices[0]?.id, "ship-resume");
@@ -879,7 +880,7 @@ describe("Slug hacker (choice)", () => {
       r.fire = 0;
       r.breach = 0;
     }
-    const airLead = `"A being that would choose sssuffocation? Who am I to judge..." Your life support shuts off and they move in to attack.`;
+    const airLead = eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c2_text");
     choose(air, "c:slug-hacker-choice:1");
     assert.equal(air.phase, "event");
     assert.equal(air.event?.choices[0]?.id, "ship-resume");
@@ -908,7 +909,7 @@ describe("Slug hacker (choice)", () => {
       { uid: "a", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: null },
       { uid: "b", defId: "LASER_BURST_1", charge: 0, enabled: true, autofire: false, target: null },
     ];
-    const gunsLead = `"Your acceptance of death is almosst admirable... Almosst." Your weapons system registers a hacking module. You hardly have time to respond before they attack.`;
+    const gunsLead = eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c3_text");
     choose(guns, "c:slug-hacker-choice:2");
     assert.equal(guns.phase, "event");
     assert.equal(guns.event?.choices[0]?.id, "ship-resume");
@@ -942,7 +943,7 @@ describe("The Engi virus", () => {
     g.player.systems.engines.damage = 0;
     g.player.systems.engines.ion = [];
     const wipe =
-      "Wiping your engine core and shields proves useless... eventually you trap the virus in the weapons systems to purge it, but before you do, the Engi grow restless and attack!";
+      eventText("event_ENGI_VIRUS_c1_c1_text");
     choose(g, "c:the-engi-virus:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

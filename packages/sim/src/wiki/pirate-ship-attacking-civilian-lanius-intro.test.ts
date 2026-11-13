@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const INTROS = [
   `You discover an abandoned mining facility in the process of being 'acquired' by the Lanius. However, you immediately receive a call from a civilian transport vessel, "Help! We were trying to escape before the Lanius came only to be caught by pirates!" You see a lone pirate ship boarding the civilian craft.`,
@@ -40,7 +41,7 @@ describe("Pirate ship attacking civilian (Lanius) intro", () => {
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;
     open(g);
-    const lead = "You charge the weapons, which quickly gets the pirate ship's attention.";
+    const lead = eventText("event_LANIUS_PIRATE_CIVILIAN_c1_text");
     choose(g, "c:pirate-ship-attacking-civilian-lanius:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -58,7 +59,7 @@ describe("Pirate ship attacking civilian (Lanius) intro", () => {
     choose(stay, "c:pirate-ship-attacking-civilian-lanius:1");
     assert.equal(
       stay.event?.body,
-      "Unfortunately it is not your mission to save every person affected by this war or the Lanius invasion.\n\nNothing happens.",
+      [eventText("event_LANIUS_CIVILIAN_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(stay.phase, "event");
     assert.equal(stay.scrap, 10);

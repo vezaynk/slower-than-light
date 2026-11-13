@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -23,7 +24,7 @@ describe("Zoltan security checkpoint attack", () => {
     // > "Fight a Zoltan ship (default rewards)." — [[Zoltan security checkpoint]]
     const g = createGame(1);
     open(g);
-    const lead = "Expecting resistance, their Energy Shield is raised and ready for combat.";
+    const lead = eventText("event_ZOLTAN_CREW_SCAN_c1_text");
     choose(g, "c:zoltan-security-checkpoint:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

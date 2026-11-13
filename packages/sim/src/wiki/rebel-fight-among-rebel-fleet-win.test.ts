@@ -4,6 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -37,7 +38,7 @@ describe("Rebel fight among Rebel fleet win", () => {
     const guns = g.player.weapons.length;
     assert.equal(pageWin(g, "rebel-fight-among-rebel-fleet", false), true);
     const body = g.event?.body ?? "";
-    assert.match(body, /no time to salvage all of the wreck/);
+    assert.match(body, textRe("ship_BOSS_FLEETS_REBEL_destroyed_text"));
     const paid = scraps(body).filter((n) => n > 0);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -54,7 +55,7 @@ describe("Rebel fight among Rebel fleet win", () => {
     const guns = g.player.weapons.length;
     assert.equal(pageWin(g, "rebel-fight-among-rebel-fleet", true), true);
     const body = g.event?.body ?? "";
-    assert.match(body, /few nearby materials/);
+    assert.match(body, textRe("ship_BOSS_FLEETS_REBEL_deadCrew_text"));
     const paid = scraps(body).filter((n) => n > 0);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);

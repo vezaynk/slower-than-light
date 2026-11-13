@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -56,7 +58,7 @@ describe("Lanius lone ship", () => {
     choose(g, "c:lanius-lone-ship:1");
     assert.equal(
       g.event?.body,
-      "You ignore the ship's pleas and watch as it hastily escapes. Oddly, the Lanius ship makes no move to chase it. You wonder if they were ever a threat at all.\n\nNothing happens.",
+      [eventText("event_LANIUS_SCARED_CIVILIAN_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
@@ -70,7 +72,7 @@ describe("Lanius lone ship", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:lanius-lone-ship:2");
-      assert.match(g.event?.body ?? "", /Don't go any closer/);
+      assert.match(g.event?.body ?? "", textRe("event_LANIUS_SCARED_CIVILIAN_c3_text"));
       assert.equal(g.scrap, 10);
       choose(g, "q:lanius-lone:continue");
       const body = g.event?.body ?? "";

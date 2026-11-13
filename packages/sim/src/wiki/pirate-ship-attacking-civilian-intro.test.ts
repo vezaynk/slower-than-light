@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 const INTROS = [
   "You arrive in the system to see a pirate ship pursuing a civilian ship. You detect messages from the civilian ship on a distress frequency.",
@@ -52,7 +54,7 @@ describe("Pirate ship attacking civilian intro", () => {
     const before = g.crew.filter((c) => c.side === "player").length;
     open(g);
     choose(g, "c:pirate-ship-attacking-civilian:0");
-    const lead = "You power up your weapons and engage the pirate ship.";
+    const lead = eventText("event_PIRATE_CIVILIAN_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);
@@ -68,7 +70,7 @@ describe("Pirate ship attacking civilian intro", () => {
     open(stay);
     choose(stay, "c:pirate-ship-attacking-civilian:1");
     assert.equal(stay.phase, "event");
-    assert.match(stay.event?.body ?? "", /distress calls stop/);
+    assert.match(stay.event?.body ?? "", textRe("event_PIRATE_CIVILIAN_BEACON_c2_text", "event_PIRATE_CIVILIAN_c2_text"));
     assert.equal(stay.scrap, 10);
   });
 });

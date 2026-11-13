@@ -4,6 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -61,7 +62,7 @@ describe("Lanius ship in rich debris field", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "lanius-ship-in-rich-debris-field", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? /no more life-signs/ : /useful scrap material/);
+      assert.match(body, dead ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text") : textRe("event_DESTROYED_DEFAULT_1_text", "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text", "ship_PIRATE_BRIBER_destroyed_text"));
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       inBand(paid[0]!, 12, 19);
@@ -94,11 +95,11 @@ describe("Lanius ship in rich debris field", () => {
       if (/good haul/.test(body)) {
         inBand(extra[0]!, 19, 23);
         seen.add("high");
-      } else if (/scavenge what you can/.test(body)) {
+      } else if (textRe("event_LANIUS_HARVESTER_SHIP_LIST_2_text").test(body)) {
         inBand(extra[0]!, 12, 19);
         seen.add("medium");
       } else {
-        assert.match(body, /harvested much of it/);
+        assert.match(body, textRe("event_LANIUS_HARVESTER_SHIP_LIST_1_text"));
         inBand(extra[0]!, 7, 10);
         seen.add("low");
       }
@@ -133,7 +134,7 @@ describe("Lanius ship in rich debris field", () => {
     );
     choose(mid, "c:lanius-ship-in-rich-debris-field:3");
     const midBody = mid.event?.body ?? "";
-    assert.match(midBody, /gather resources from the debris field/);
+    assert.match(midBody, textRe("event_LANIUS_HARVESTER_c2_text"));
     const midPaid = scraps(midBody);
     assert.equal(midPaid.length, 1, midBody);
     inBand(midPaid[0]!, 12, 19);
@@ -159,7 +160,7 @@ describe("Lanius ship in rich debris field", () => {
     open(g);
     choose(g, "c:lanius-ship-in-rich-debris-field:2");
     assert.equal(g.phase, "event");
-    assert.match(g.event?.body ?? "", /You charge up your drive and prepare to make the next jump/);
+    assert.match(g.event?.body ?? "", textRe("event_LANIUS_HARVESTER_c5_text"));
     assert.match(g.event?.body ?? "", /Nothing happens/);
     assert.equal(g.scrap, 10);
   });

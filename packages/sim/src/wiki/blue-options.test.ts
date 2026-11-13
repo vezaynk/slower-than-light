@@ -7,6 +7,7 @@ import type { Beacon, Game, Kit } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerChoose, fillerEvent } from "./filler-events.ts";
 import { questChoose } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
 function beacon(name: string, flag: string): Beacon {
   return {
@@ -262,14 +263,14 @@ describe("Skipped blue options", () => {
       if (!plain) {
         const g = createGame(seed);
         questChoose(g, "q:loyalists:contact");
-        if ((g.event?.body ?? "").includes("verge of destruction")) plain = g;
+        if ((g.event?.body ?? "").includes(eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_text"))) plain = g;
       }
       if (!card) {
         const g = createGame(seed + 100);
         g.player.weapons.push(heal);
         g.missiles = 0;
         questChoose(g, "q:loyalists:contact");
-        if ((g.event?.body ?? "").includes("verge of destruction")) card = g;
+        if ((g.event?.body ?? "").includes(eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_text"))) card = g;
       }
     }
     assert.ok(plain);

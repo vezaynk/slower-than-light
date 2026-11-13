@@ -4,6 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -36,7 +37,7 @@ describe("Rebel ship attacking Crystal ship reward", () => {
     assert.equal(destroyed.enemy?.faction, "rebel");
     assert.equal(pageWin(destroyed, "rebel-ship-attacking-crystal-ship", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The Rebels destroyed, you pick the bones of their ship/);
+    assert.match(body, textRe("button_store", "ship_REBEL_CRYSTAL_REBEL_CRYSTAL_destroyed_text"));
     assert.ok(destroyed.event?.choices.some((c) => c.id === "q:rebel-crystal:contact"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
@@ -51,7 +52,7 @@ describe("Rebel ship attacking Crystal ship reward", () => {
     choose(killed, "c:rebel-ship-attacking-crystal-ship:0");
     assert.equal(pageWin(killed, "rebel-ship-attacking-crystal-ship", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, /The Rebels destroyed, you pick the bones of their ship/);
+    assert.match(dead, textRe("button_store", "ship_REBEL_CRYSTAL_REBEL_CRYSTAL_destroyed_text"));
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -24,7 +25,7 @@ describe("Slug hacker (choice) fight lead-ins", () => {
     shields.player.systems.shields.damage = 0;
     shields.player.systems.shields.ion = [];
     shields.player.shieldNow = 2;
-    const shieldsLead = `"Very good then!" Your shield power suddenly drops and they charge.`;
+    const shieldsLead = eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c1_text");
     choose(shields, "c:slug-hacker-choice:0");
     assert.equal(shields.phase, "event");
     assert.equal(shields.event?.choices[0]?.id, "ship-resume");
@@ -39,7 +40,7 @@ describe("Slug hacker (choice) fight lead-ins", () => {
 
     const air = createGame(2);
     open(air);
-    const airLead = `"A being that would choose sssuffocation? Who am I to judge..." Your life support shuts off and they move in to attack.`;
+    const airLead = eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c2_text");
     choose(air, "c:slug-hacker-choice:1");
     assert.equal(air.phase, "event");
     assert.equal(air.event?.choices[0]?.id, "ship-resume");
@@ -53,7 +54,7 @@ describe("Slug hacker (choice) fight lead-ins", () => {
 
     const guns = createGame(3);
     open(guns);
-    const gunsLead = `"Your acceptance of death is almosst admirable... Almosst." Your weapons system registers a hacking module. You hardly have time to respond before they attack.`;
+    const gunsLead = eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c3_text");
     choose(guns, "c:slug-hacker-choice:2");
     assert.equal(guns.phase, "event");
     assert.equal(guns.event?.choices[0]?.id, "ship-resume");

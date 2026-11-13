@@ -11,9 +11,10 @@ import {
 } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const LEAD =
-  "Fearing the imminent battle you desperately try to get the medbay working again. It's lights flicker back on and you turn to face the intruders.";
+  eventText("event_NEBULA_SLUG_MEDBAY_c2_text");
 const ID = "c:slug-hacker-medical:2";
 
 function open(g: Game) {

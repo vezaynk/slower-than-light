@@ -198,7 +198,7 @@ function zoltanHub(g: Game, text: string) {
 You head into a ship supply store. It is a well-equipped, self-service affair. An order is dialed into a terminal, scrap is deposited, and the item is dispatched from a nearby chute.`,
       undefined,
       [],
-      STORE_CHOICES,
+      STORE_CHOICES(),
     );
   } else {
     result(

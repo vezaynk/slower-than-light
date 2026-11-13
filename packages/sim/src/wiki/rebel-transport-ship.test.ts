@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { heldSchematics } from "../rules/make-room.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 /**
  * Template:Pirate Smuggler / Rebel Transport. The unnamed weapon and drone schematic are random ones (Rewards,
@@ -20,8 +22,8 @@ function held(g: Game, kind: "weapon" | "drone"): number {
 
 /** The rows whose sentence hands over a weapon / a drone schematic. */
 function gives(text: string, kind: "weapon" | "drone"): number {
-  if (kind === "drone") return /military-grade Drone Schematics/.test(text) ? 1 : 0;
-  return /new military-grade weaponry|You find a piece still intact|You find military-grade weaponry/.test(
+  if (kind === "drone") return textRe("event_REBEL_TRANSPORT_CAPTURED_4_text", "event_REBEL_TRANSPORT_DESTROYED_5_text").test(text) ? 1 : 0;
+  return textRe("event_REBEL_TRANSPORT_DESTROYED_1_text", "event_REBEL_TRANSPORT_DESTROYED_3_text", "event_REBEL_TRANSPORT_CAPTURED_1_text").test(
     text,
   )
     ? 1
@@ -73,7 +75,7 @@ describe("Rebel transport ship", () => {
     choose(g, "c:rebel-transport-ship:1");
     assert.equal(
       g.event?.body,
-      "They stay outside your weapons range, and eventually jump away.\n\nNothing happens.",
+      [eventText("event_REBEL_TRANSPORT_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

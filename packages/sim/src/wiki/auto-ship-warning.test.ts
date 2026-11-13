@@ -4,6 +4,8 @@ import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -28,7 +30,7 @@ function resources(body: string): number {
 }
 
 const FTL =
-  "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!";
+  eventText("ship_REBEL_AUTO_WARNING_escape_text");
 
 describe("Auto-ship warning", () => {
   it("shows the FTL warning, then starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
@@ -66,7 +68,7 @@ describe("Auto-ship warning", () => {
     const parts = destroyed.player.parts;
     assert.equal(pageWin(destroyed, "auto-ship-warning", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /one step ahead of the fleet/);
+    assert.match(body, textRe("ship_REBEL_AUTO_WARNING_destroyed_text", "ship_SQUAT_WARNING_deadCrew_text", "ship_SQUAT_WARNING_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);

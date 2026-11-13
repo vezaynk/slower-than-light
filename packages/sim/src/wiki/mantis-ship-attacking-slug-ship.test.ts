@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { surrenderPlan } from "../rules/surrender.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -45,7 +47,7 @@ describe("Mantis ship attacking Slug ship", () => {
     assert.equal(out.phase, "map");
     assert.equal(out.scrap, 10);
 
-    const mantisLead = "You lock onto the Mantis ship and engage.";
+    const mantisLead = eventText("event_SLUG_DISTRESS_MANTIS_c1_text");
     const mantis = createGame(2);
     open(mantis);
     choose(mantis, "c:mantis-ship-attacking-slug-ship:0");
@@ -61,7 +63,7 @@ describe("Mantis ship attacking Slug ship", () => {
     assert.equal(mantis.scrap, 10);
     assert.equal(mantis.log.includes(mantisLead), false);
 
-    const slugLead = "You move to finish what the Mantis have started.";
+    const slugLead = eventText("event_SLUG_DISTRESS_MANTIS_c2_text");
     const slug = createGame(3);
     open(slug);
     choose(slug, "c:mantis-ship-attacking-slug-ship:1");
@@ -122,7 +124,7 @@ describe("Mantis ship attacking Slug ship", () => {
     pageWin(leave, "mantis-ship-attacking-slug-ship", true);
     const scrap = leave.scrap;
     choose(leave, "q:mantis-slug:leave");
-    assert.match(leave.event?.body ?? "", /aren't worth fighting/);
+    assert.match(leave.event?.body ?? "", textRe("ship_SLUG_DISTRESS_MANTIS_destroyed_c1_text"));
     assert.match(leave.event?.body ?? "", /Nothing happens/);
     assert.equal(leave.scrap, scrap);
     assert.equal(leave.augments.length, augs);
@@ -146,10 +148,10 @@ describe("Mantis ship attacking Slug ship", () => {
       const queued = (g.overflow ?? []).filter((x) => x.kind === "augment").length;
       assert.equal(
         g.augments.length + queued,
-        beforeAugs + (/augmentation has already transported/.test(text) ? 1 : 0),
+        beforeAugs + (textRe("event_SLUG_DISTRESS_MANTIS_SURRENDER_2_text").test(text) ? 1 : 0),
       );
       const n = scraps(text)[0]!;
-      if (/augmentation has already transported/.test(text)) {
+      if (textRe("event_SLUG_DISTRESS_MANTIS_SURRENDER_2_text").test(text)) {
         paidLow = true;
         assert.equal(resources(text), 0, text);
         assert.ok(n >= 7 && n <= 10, text);

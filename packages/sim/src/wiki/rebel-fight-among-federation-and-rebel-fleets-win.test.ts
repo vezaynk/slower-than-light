@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -21,7 +22,7 @@ describe("Rebel fight among Federation and Rebel fleets win", () => {
     const guns = g.player.weapons.length;
     assert.equal(pageWin(g, "rebel-fight-among-federation-and-rebel-fleets", false), true);
     const body = g.event?.body ?? "";
-    assert.match(body, /no time to salvage all of the wreck/);
+    assert.match(body, textRe("ship_BOSS_FLEETS_REBEL_destroyed_text"));
     const paid = scraps(body).filter((n) => n > 0);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -35,7 +36,7 @@ describe("Rebel fight among Federation and Rebel fleets win", () => {
     const guns = g.player.weapons.length;
     assert.equal(pageWin(g, "rebel-fight-among-federation-and-rebel-fleets", true), true);
     const body = g.event?.body ?? "";
-    assert.match(body, /few nearby materials/);
+    assert.match(body, textRe("ship_BOSS_FLEETS_REBEL_deadCrew_text"));
     const paid = scraps(body).filter((n) => n > 0);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);

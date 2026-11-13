@@ -5,9 +5,10 @@ import { choiceDisabled, choose, commitJump, createGame, step } from "../sim.ts"
 import type { Beacon, Game, Kit, KitId } from "../types.ts";
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
-import { QUEST_ADDED } from "./quests.ts";
+import { questAdded } from "./quests.ts";
 import { PART_B } from "./quests-b.ts";
 import { placeIn } from "../fixtures.ts";
+import { eventText } from "../event-text.ts";
 
 function here(g: Game): Beacon {
   return g.beacons.find((b) => b.id === g.here)!;
@@ -220,7 +221,7 @@ describe("Capture the ship", () => {
     choose(g, "c:capture-the-ship:2");
     assert.deepEqual(ids(g), ["q:capture:agree", "q:capture:decline"]);
     choose(g, "q:capture:agree");
-    assert.ok(g.event!.body.includes(QUEST_ADDED));
+    assert.ok(g.event!.body.includes(questAdded()));
     choose(g, "ack");
     assert.ok(arrive(g, "capture-ship").includes("WITHOUT destroying the ship"));
     // Capture the ship, Quest Marker: "Fight a Pirate ship."
@@ -315,23 +316,23 @@ describe("Encrypted federation signal", () => {
         let fightEvent: string;
         let asb: boolean;
         let lead: string;
-        if (body.includes("bombarded by an automated drone")) {
+        if (body.includes(eventText("event_FEDERATION_BASE_ASSIST_1_text"))) {
           assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
           fightEvent =
             id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist";
           asb = false;
-          lead = "The automated drone turns on you.";
-        } else if (body.includes("using their Anti-Ship Battery")) {
+          lead = eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice");
+        } else if (body.includes(eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"))) {
           assert.equal(id, "q:fed-base:assist-asb");
           fightEvent = "quest-fed-assist-asb";
           asb = true;
-          lead = "You move in to assist.";
+          lead = eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text");
         } else {
-          assert.ok(body.includes("taking down the wing leader"));
+          assert.ok(body.includes(eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice")));
           assert.equal(id, "q:fed-base:assist-wing");
           fightEvent = "quest-fed-assist-wing";
           asb = true;
-          lead = "You swoop in to assist, taking down the wing leader.";
+          lead = eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice");
         }
         choose(g, id);
         assert.equal(g.phase, "event");

@@ -4,6 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -45,7 +46,7 @@ describe("Slug hacker (doors) reward", () => {
     const guns = destroyed.player.weapons.length;
     assert.equal(pageWin(destroyed, "slug-hacker-doors", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The Slug ship breaks apart and your systems return to normal/);
+    assert.match(body, textRe("ship_JELLY_STATUS_OXYGEN_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -57,7 +58,7 @@ describe("Slug hacker (doors) reward", () => {
     const killed = createGame(2);
     assert.equal(pageWin(killed, "slug-hacker-doors", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, /their hacking system shuts down and your systems return to normal/);
+    assert.match(dead, textRe("ship_JELLY_STATUS_OXYGEN_FIRE_deadCrew_text"));
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);
@@ -75,7 +76,7 @@ describe("Slug hacker (doors) reward", () => {
     assert.equal(destroyed.fightEvent, "slug-hacker-doors");
     assert.equal(pageWin(destroyed, "slug-hacker-doors", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /their hacking module is destroyed/);
+    assert.match(body, textRe("ship_JELLY_STATUS_HACKING_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);

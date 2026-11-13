@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
@@ -38,7 +40,7 @@ describe("Lanius ship attacking civilian", () => {
   it("attacking starts a Lanius fight", () => {
     const g = createGame(1);
     open(g);
-    const lead = "You charge your weapons, which quickly gets the Lanius ship's attention.";
+    const lead = eventText("event_LANIUS_CIVILIAN_c1_text");
     choose(g, "c:lanius-ship-attacking-civilian:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -59,7 +61,7 @@ describe("Lanius ship attacking civilian", () => {
       const crew = g.crew.filter((c) => c.side === "player").length;
       assert.equal(pageWin(g, "lanius-ship-attacking-civilian", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? /No more life signs/ : /Lanius craft breaks apart/);
+      assert.match(body, dead ? /No more life signs/ : textRe("ship_LANIUS_AUTO_REBEL_destroyed_text", "ship_LANIUS_CIVILIAN_destroyed_text"));
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= (dead ? 19 : 12) && paid[0]! <= (dead ? 23 : 19), body);
@@ -98,7 +100,7 @@ describe("Lanius ship attacking civilian", () => {
         assert.equal(g.scrap, before + paid[0]!);
         assert.equal(g.player.hull, 20);
         seen.add("weapon");
-      } else if (/patch up some of your hull/.test(body)) {
+      } else if (textRe("event_QUEST_ESCORT_ARRIVE_3_text", "event_SAVE_CIVILIAN_LIST_LANIUS_5_text").test(body)) {
         assert.match(body, /Hull repairs: 5/);
         assert.equal(body.includes("Scrap:"), false);
         assert.equal(g.scrap, before);
@@ -111,7 +113,7 @@ describe("Lanius ship attacking civilian", () => {
         assert.equal(resources(body), 2, body);
         assert.equal(g.scrap, before + paid[0]!);
         seen.add("medium");
-      } else if (/did not survive/.test(body)) {
+      } else if (textRe("event_SAVE_CIVILIAN_LIST_LANIUS_3_text").test(body)) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -136,7 +138,7 @@ describe("Lanius ship attacking civilian", () => {
     choose(g, "c:lanius-ship-attacking-civilian:1");
     assert.equal(
       g.event?.body,
-      "Unfortunately it is not your mission to save every person affected by this war or the Lanius invasion.\n\nNothing happens.",
+      [eventText("event_LANIUS_CIVILIAN_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.notEqual(g.phase, "combat");

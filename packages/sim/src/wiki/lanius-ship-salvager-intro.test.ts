@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const INTROS = [
   "You come across a single Lanius ship salvaging a small civilian craft. You cannot tell if they attacked the craft or just happened upon it.",
@@ -43,7 +44,7 @@ describe("Lanius ship salvager intro", () => {
     const g = createGame(1);
     open(g);
     const lead =
-      "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.";
+      eventText("event_LANIUS_SOLO_SALVAGE_c1_text");
     choose(g, "c:lanius-ship-salvager:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

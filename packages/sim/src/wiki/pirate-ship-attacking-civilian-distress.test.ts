@@ -4,6 +4,8 @@ import { choose, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -36,7 +38,7 @@ describe("Pirate ship attacking civilian distress", () => {
       true,
     );
     choose(g, "c:pirate-ship-attacking-civilian-distress:0");
-    const lead = "You power up your weapons and engage the pirate ship.";
+    const lead = eventText("event_PIRATE_CIVILIAN_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);
@@ -53,7 +55,7 @@ describe("Pirate ship attacking civilian distress", () => {
     assert.equal(out.phase, "event");
     assert.equal(
       out.event?.body,
-      "The fight brings them out of your immediate scanning range; however, after a time the distress calls stop.\n\nNothing happens.",
+      [eventText("event_PIRATE_CIVILIAN_BEACON_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(out.scrap, 10);
     assert.equal(out.fleet, 5);
@@ -65,7 +67,7 @@ describe("Pirate ship attacking civilian distress", () => {
     open(destroyed);
     assert.equal(pageWin(destroyed, "pirate-ship-attacking-civilian-distress", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The pirate ship breaks apart/);
+    assert.match(body, textRe("ship_PIRATE_CIVILIAN_destroyed_text", "ship_PIRATE_REFUGEE_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -108,7 +110,7 @@ describe("Pirate ship attacking civilian distress", () => {
       if (attack) {
         fight = true;
         const lead =
-          "Detecting the greater threat (and potential reward), they turn and engage your ship.";
+          eventText("event_PIRATE_CIVILIAN_BEACON_BEAM_1_text");
         assert.equal(g.event?.body, lead);
         assert.equal(g.log.includes(lead), false);
         assert.equal(g.fightEvent, "pirate-ship-attacking-civilian-distress");
@@ -116,7 +118,7 @@ describe("Pirate ship attacking civilian distress", () => {
         assert.equal(g.scrap, 10);
       } else {
         left = true;
-        assert.match(g.event?.body ?? "", /wasn't looking for a fight/);
+        assert.match(g.event?.body ?? "", textRe("event_PIRATE_CIVILIAN_BEACON_BEAM_2_text"));
         assert.equal(g.scrap, 10);
         assert.equal(
           g.event?.choices.some((c) => c.id === "q:lanius-civilian:contact"),

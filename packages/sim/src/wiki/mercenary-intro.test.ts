@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 // Six printed intros, no odds. INFERRED: equal.
 const INTROS = [
@@ -45,7 +46,7 @@ describe("The mercenary intro", () => {
     const g = createGame(1);
     open(g);
     const lead =
-      "Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle.";
+      eventText("event_MERCENARY_c3_text");
     choose(g, "c:the-mercenary:1");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);

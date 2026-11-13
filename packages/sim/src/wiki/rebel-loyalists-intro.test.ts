@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 // Three printed intros, no odds. INFERRED: equal.
 const INTROS = [
@@ -45,7 +46,7 @@ describe("Rebel ship attacking Federation loyalists intro", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
-    const lead = "You power up your weapons and engage the Rebel ship.";
+    const lead = eventText("event_REBEL_VS_FEDERATION_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

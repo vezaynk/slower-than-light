@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -21,7 +22,7 @@ describe("Mantis ship attacking civilian aid", () => {
     // > "You frown, power up the weapons and prepare to engage the Mantis ship. Not today." — [[Mantis ship attacking civilian]]
     // > "Fight the Mantis Ship." — [[Mantis ship attacking civilian]]
     const lead =
-      "You frown, power up the weapons and prepare to engage the Mantis ship. Not today.";
+      eventText("event_MANTIS_CIVILIAN_c1_text");
     const g = createGame(1);
     open(g);
     choose(g, "c:mantis-ship-attacking-civilian:0");

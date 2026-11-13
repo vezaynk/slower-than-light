@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -22,7 +23,7 @@ describe("Pirate toll reject", () => {
     // > "Fight a Pirate ship (default rewards)." — [[Pirate toll]]
     const g = createGame(1);
     open(g);
-    const told = '"Too bad... You will regret this decision!"';
+    const told = eventText("event_PIRATE_CHOICE_c2_text");
     choose(g, "c:pirate-toll:1");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));

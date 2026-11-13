@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -73,7 +74,7 @@ describe("Rock ship in plasma storm", () => {
     assert.equal(choiceDisabled(g, "c:rock-ship-in-plasma-storm:2"), null);
     choose(g, "c:rock-ship-in-plasma-storm:2");
     const body = g.event?.body ?? "";
-    assert.match(body, /thinner part of the nebula/);
+    assert.match(body, textRe("event_NEBULA_ROCK_RACIST_c3_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);

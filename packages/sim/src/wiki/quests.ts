@@ -138,10 +138,10 @@ export const QUESTS: Record<string, { page: string; title: string }> = {
   "store-rescue": { page: "Settlement mercenary work", title: "Space dock" },
 };
 
-export const QUEST_ADDED = eventText("added_quest");
-export const QUEST_NEXT = eventText("added_quest_sector");
-export const QUEST_CANCELLED =
-  eventText("no_time");
+/** The marker lines, read from the archive when printed (text_misc.xml ids). */
+export const questAdded = () => eventText("added_quest");
+export const questNext = () => eventText("added_quest_sector");
+export const questCancelled = () => eventText("no_time");
 
 /** Ship-unlocking event pages (Category:Ship Unlocking Events) are not overwritten by a marker. INFERRED (Beacons @to-do). */
 const KEEP_FLAGS = new Set([
@@ -213,23 +213,23 @@ function mark(b: Beacon, id: string) {
 export function addQuest(g: Game, id: string): string {
   // "quests are not allowed in sector 8".
   if (g.sector >= 8) {
-    log(g, QUEST_CANCELLED);
-    return QUEST_CANCELLED;
+    log(g, questCancelled());
+    return questCancelled();
   }
   const spot = questSpot(g);
   if (spot) {
     mark(spot, id);
-    log(g, QUEST_ADDED);
-    return QUEST_ADDED;
+    log(g, questAdded());
+    return questAdded();
   }
   // "If this happens in sector 7, the quest will be "cancelled"".
   if (g.sector >= 7) {
-    log(g, QUEST_CANCELLED);
-    return QUEST_CANCELLED;
+    log(g, questCancelled());
+    return questCancelled();
   }
   (g.questsNext ??= []).push(id);
-  log(g, QUEST_NEXT);
-  return QUEST_NEXT;
+  log(g, questNext());
+  return questNext();
 }
 
 /**
@@ -272,7 +272,12 @@ export function placeQueuedQuests(g: Game) {
 // ---------------------------------------------------------------------------------------------------------------
 
 export type Choice = { id: string; label: string };
-const ACK: Choice[] = [opt("ack", "continue")];
+
+/** A button whose label is the archive's text for `key` (ftl.dat's choice id). */
+function opt(id: string, key: string): Choice {
+  return { id, label: eventText(key) };
+}
+const ACK = (): Choice[] => [opt("ack", "continue")];
 
 /** Rewards, "Scrap only": T scrap. Same augment adjustment as the other rewards. */
 export function scrapOnly(g: Game, tier: SurrenderTier): SurrenderOffer {
@@ -287,7 +292,7 @@ function cargoAndScrap(g: Game, tier: "low" | "high", kind: "fuel" | "missiles")
   return offer;
 }
 
-const ENGI_DISTRESS_AFTER: Choice[] = [
+const ENGI_DISTRESS_AFTER = (): Choice[] => [
   opt("q:engi-distress:scrap", "event_DISTRESS_ENGI_REBEL_RESULT_c1_choice"),
   opt("q:engi-distress:supplies", "event_DISTRESS_ENGI_REBEL_RESULT_c2_choice"),
   opt("q:engi-distress:nothing", "event_DISTRESS_ENGI_REBEL_RESULT_c3_choice"),
@@ -301,12 +306,7 @@ const ENGI_DISTRESS_AFTER: Choice[] = [
 function lastStandSurvivors(g: Game) {
   const kind = pick(g, ["repair", "supplies", "thanks"] as const);
   if (kind === "repair") {
-    result(
-      g,
-      eventText("event_BOSS_SCOUT_RESCUE_LIST_2_text"),
-      undefined,
-      [repair(g, 8)],
-    );
+    result(g, eventText("event_BOSS_SCOUT_RESCUE_LIST_2_text"), undefined, [repair(g, 8)]);
     return;
   }
   if (kind === "supplies") {
@@ -317,22 +317,20 @@ function lastStandSurvivors(g: Game) {
     );
     return;
   }
-  result(
-    g,
-    eventText("event_BOSS_SCOUT_RESCUE_LIST_1_text"),
-    undefined,
-    ["Nothing happens."],
-  );
+  result(g, eventText("event_BOSS_SCOUT_RESCUE_LIST_1_text"), undefined, ["Nothing happens."]);
 }
 
 /** Engi distress Rebel fight, destroyed low standard or a crew kill medium, then the Engi ask for help. */
 function engiDistressWin(g: Game, deadCrew: boolean) {
   result(
     g,
-    [eventText("ship_DISTRESS_ENGI_REBEL_destroyed_text"), eventText("event_DISTRESS_ENGI_REBEL_RESULT_text")].join(" "),
+    [
+      eventText("ship_DISTRESS_ENGI_REBEL_destroyed_text"),
+      eventText("event_DISTRESS_ENGI_REBEL_RESULT_text"),
+    ].join(" "),
     rollStandard(g, deadCrew ? "medium" : "low"),
     [],
-    ENGI_DISTRESS_AFTER,
+    ENGI_DISTRESS_AFTER(),
   );
 }
 
@@ -354,20 +352,16 @@ function engiDistressGift(g: Game) {
     return;
   }
   if (r === "schematic") {
-    result(
-      g,
-      eventText("event_DISTRESS_ENGI_REBEL_LIST1_3_text"),
-      undefined,
-      [spent, grantRandomItem(g, "drone")],
-    );
+    result(g, eventText("event_DISTRESS_ENGI_REBEL_LIST1_3_text"), undefined, [
+      spent,
+      grantRandomItem(g, "drone"),
+    ]);
     return;
   }
-  result(
-    g,
-    eventText("event_DISTRESS_ENGI_REBEL_LIST1_1_text"),
-    undefined,
-    ["Nothing else happens.", spent],
-  );
+  result(g, eventText("event_DISTRESS_ENGI_REBEL_LIST1_1_text"), undefined, [
+    "Nothing else happens.",
+    spent,
+  ]);
 }
 
 /** The result card: page text, what was paid, extras, and the next choices ("ack" by default). */
@@ -376,7 +370,7 @@ export function result(
   text: string,
   offer?: SurrenderOffer,
   extras: string[] = [],
-  choices: Choice[] = ACK,
+  choices: Choice[] = ACK(),
 ) {
   const lines: string[] = [text];
   const got: string[] = [];
@@ -475,9 +469,7 @@ function slugDrink(g: Game, rock: boolean) {
     const note = repair(g, 10);
     result(
       g,
-      rock
-        ? eventText("event_SLUG_DRINK_ROCK_1_text")
-        : eventText("event_SLUG_DRINK_DRINK_1_text"),
+      rock ? eventText("event_SLUG_DRINK_ROCK_1_text") : eventText("event_SLUG_DRINK_DRINK_1_text"),
       undefined,
       [note],
       [opt("q:open-store", "continue")],
@@ -485,45 +477,28 @@ function slugDrink(g: Game, rock: boolean) {
     return;
   }
   if (rock) {
-    pageFight(
-      g,
-      eventText("event_SLUG_DRINK_ROCK_2_text"),
-      "Slug ship",
-      "slug-drink",
-    );
+    pageFight(g, eventText("event_SLUG_DRINK_ROCK_2_text"), "Slug ship", "slug-drink");
     return;
   }
   // INFERRED: scrap does not go below zero. A missing band loses nothing.
   const n = rollBand("slug-drink", "trap", "scrap", (lo, hi) => between(g, [lo, hi]));
   if (n == null) {
-    result(
-      g,
-      eventText("event_SLUG_DRINK_DRINK_2_text"),
-    );
+    result(g, eventText("event_SLUG_DRINK_DRINK_2_text"));
     return;
   }
   const lost = Math.min(g.scrap, n);
   g.scrap -= lost;
-  result(
-    g,
-    eventText("event_SLUG_DRINK_DRINK_2_text"),
-    undefined,
-    [`Scrap: -${lost}.`],
-  );
+  result(g, eventText("event_SLUG_DRINK_DRINK_2_text"), undefined, [`Scrap: -${lost}.`]);
 }
 
 /** Lanius powered-down ship, "Investigate the vessel." Blue options stay visible when the ship cannot use them. */
 function investigateDormant(g: Game) {
-  card(
-    g,
-    eventText("event_LANIUS_DORMANT_INVESTIGATE_text"),
-    [
-      opt("q:lanius-dormant:ignore", "event_LANIUS_DORMANT_INVESTIGATE_c1_choice"),
-      opt("q:lanius-dormant:navigate", "event_LANIUS_DORMANT_INVESTIGATE_c3_choice"),
-      opt("q:lanius-dormant:plunder", "event_LANIUS_DORMANT_INVESTIGATE_c2_choice"),
-      opt("q:lanius-dormant:autopilot", "event_LANIUS_DORMANT_INVESTIGATE_c4_choice"),
-    ],
-  );
+  card(g, eventText("event_LANIUS_DORMANT_INVESTIGATE_text"), [
+    opt("q:lanius-dormant:ignore", "event_LANIUS_DORMANT_INVESTIGATE_c1_choice"),
+    opt("q:lanius-dormant:navigate", "event_LANIUS_DORMANT_INVESTIGATE_c3_choice"),
+    opt("q:lanius-dormant:plunder", "event_LANIUS_DORMANT_INVESTIGATE_c2_choice"),
+    opt("q:lanius-dormant:autopilot", "event_LANIUS_DORMANT_INVESTIGATE_c4_choice"),
+  ]);
 }
 export function sensors(g: Game): number {
   return g.player.systems.sensors?.level ?? 0;
@@ -565,17 +540,9 @@ export function hullRun(chance: number, threshold: number, seconds: number): Esc
 function arriveEscort(g: Game) {
   const r = pick(g, ["ambush", "reward", "store", "reactor"] as const);
   if (r === "ambush") {
-    card(
-      g,
-      eventText("event_QUEST_ESCORT_ARRIVE_1_text"),
-      [opt("q:escort:fight", "continue")],
-    );
+    card(g, eventText("event_QUEST_ESCORT_ARRIVE_1_text"), [opt("q:escort:fight", "continue")]);
   } else if (r === "reward") {
-    result(
-      g,
-      eventText("event_QUEST_ESCORT_ARRIVE_2_text"),
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("event_QUEST_ESCORT_ARRIVE_2_text"), rollStandard(g, "high"));
   } else if (r === "store") {
     // "Your ship receives 5 repairs and a store opens."
     result(
@@ -583,7 +550,7 @@ function arriveEscort(g: Game) {
       eventText("event_QUEST_ESCORT_ARRIVE_3_text"),
       undefined,
       [repair(g, 5)],
-      STORE_CHOICES,
+      STORE_CHOICES(),
     );
   } else {
     // "Your ship reactor is upgraded." Ref: "If your ship reactor was already fully upgraded ... "Could not upgrade the
@@ -595,52 +562,35 @@ function arriveEscort(g: Game) {
       noteReactorEvent(g);
       note = `Reactor ${g.player.reactor}.`;
     }
-    result(
-      g,
-      eventText("event_QUEST_ESCORT_ARRIVE_4_text"),
-      undefined,
-      [note],
-    );
+    result(g, eventText("event_QUEST_ESCORT_ARRIVE_4_text"), undefined, [note]);
   }
 }
 
-export const STORE_CHOICES: Choice[] = [
-  { id: "q:open-store", label: "See their wares." },
-  { id: "ack", label: "Leave." },
+export const STORE_CHOICES = (): Choice[] => [
+  opt("q:open-store", "button_store"),
+  opt("ack", "continue"),
 ];
 
 /** Space station under construction, "Quest Marker": "One of the following subevents occurs". */
 function arriveStation(g: Game) {
   const r = pick(g, ["rebel", "empty", "floating"] as const);
   if (r === "rebel") {
-    card(
-      g,
-      eventText("event_QUEST_CONSTRUCTIONYARD_LIST_1_text"),
-      [
-        opt("q:station:attack", "event_QUEST_CONSTRUCTIONYARD_LIST_1_c1_choice"),
-        opt("q:station:leave", "event_QUEST_CONSTRUCTIONYARD_LIST_1_c2_choice"),
-      ],
-    );
+    card(g, eventText("event_QUEST_CONSTRUCTIONYARD_LIST_1_text"), [
+      opt("q:station:attack", "event_QUEST_CONSTRUCTIONYARD_LIST_1_c1_choice"),
+      opt("q:station:leave", "event_QUEST_CONSTRUCTIONYARD_LIST_1_c2_choice"),
+    ]);
   } else if (r === "empty") {
     // {{:Abandoned station}}.
-    card(
-      g,
-      eventText("event_QUEST_CONSTRUCTIONYARD_LIST_2_text"),
-      [
-        opt("q:station:examine", "event_QUEST_CONSTRUCTIONYARD_LIST_2_c1_choice"),
-        opt("q:station:stay", "event_QUEST_CONSTRUCTIONYARD_LIST_2_c2_choice"),
-      ],
-    );
+    card(g, eventText("event_QUEST_CONSTRUCTIONYARD_LIST_2_text"), [
+      opt("q:station:examine", "event_QUEST_CONSTRUCTIONYARD_LIST_2_c1_choice"),
+      opt("q:station:stay", "event_QUEST_CONSTRUCTIONYARD_LIST_2_c2_choice"),
+    ]);
   } else {
-    card(
-      g,
-      eventText("event_QUEST_CONSTRUCTIONYARD_LIST_3_text"),
-      [
-        opt("q:station:fuel4", "event_QUEST_CONSTRUCTIONYARD_LIST_3_c1_choice"),
-        opt("q:station:fuel1", "event_QUEST_CONSTRUCTIONYARD_LIST_3_c2_choice"),
-        opt("q:station:none", "event_QUEST_CONSTRUCTIONYARD_LIST_3_c3_choice"),
-      ],
-    );
+    card(g, eventText("event_QUEST_CONSTRUCTIONYARD_LIST_3_text"), [
+      opt("q:station:fuel4", "event_QUEST_CONSTRUCTIONYARD_LIST_3_c1_choice"),
+      opt("q:station:fuel1", "event_QUEST_CONSTRUCTIONYARD_LIST_3_c2_choice"),
+      opt("q:station:none", "event_QUEST_CONSTRUCTIONYARD_LIST_3_c3_choice"),
+    ]);
   }
 }
 
@@ -653,29 +603,21 @@ function arriveStation(g: Game) {
 export function arriveFedAssist(g: Game) {
   const r = pick(g, ["auto", "repair", "asb", "wing"] as const);
   if (r === "asb") {
-    card(
-      g,
-      eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"),
-      [opt("q:fed-base:assist-asb", "continue")],
-    );
+    card(g, eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"), [
+      opt("q:fed-base:assist-asb", "continue"),
+    ]);
   } else if (r === "wing") {
-    card(
-      g,
-      eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_3_text"),
-      [opt("q:fed-base:assist-wing", "continue")],
-    );
+    card(g, eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_3_text"), [
+      opt("q:fed-base:assist-wing", "continue"),
+    ]);
   } else if (r === "repair") {
-    card(
-      g,
-      eventText("event_FEDERATION_BASE_ASSIST_1_text"),
-      [opt("q:fed-base:assist-repair", "continue")],
-    );
+    card(g, eventText("event_FEDERATION_BASE_ASSIST_1_text"), [
+      opt("q:fed-base:assist-repair", "continue"),
+    ]);
   } else {
-    card(
-      g,
-      eventText("event_FEDERATION_BASE_ASSIST_1_text"),
-      [opt("q:fed-base:assist", "continue")],
-    );
+    card(g, eventText("event_FEDERATION_BASE_ASSIST_1_text"), [
+      opt("q:fed-base:assist", "continue"),
+    ]);
   }
 }
 
@@ -684,42 +626,30 @@ function arriveFedBase(g: Game) {
   const r = pick(g, ["schematic", "crew", "dock", "empty", "assist"] as const);
   if (r === "schematic") {
     // "You receive a drone schematic with high scrap." The schematic is not named: Rewards, "Drone": "A random drone schematic & T scrap."
-    result(
-      g,
-      eventText("event_HIDDEN_FEDERATION_BASE_LIST_1_text"),
-      scrapOnly(g, "high"),
-      [grantRandomItem(g, "drone")],
-    );
+    result(g, eventText("event_HIDDEN_FEDERATION_BASE_LIST_1_text"), scrapOnly(g, "high"), [
+      grantRandomItem(g, "drone"),
+    ]);
   } else if (r === "crew") {
     // "You receive a crewmember and low scrap with resources." Race not named: INFERRED random.
     const joined = crew(g, randomRace(g));
-    result(
-      g,
-      eventText("event_HIDDEN_FEDERATION_BASE_LIST_2_text"),
-      rollStandard(g, "low"),
-      [joined],
-    );
+    result(g, eventText("event_HIDDEN_FEDERATION_BASE_LIST_2_text"), rollStandard(g, "low"), [
+      joined,
+    ]);
   } else if (r === "dock") {
-    result(
-      g,
-      eventText("event_HIDDEN_FEDERATION_BASE_LIST_3_text"),
-      rollStandard(g, "medium"),
-      [repair(g, 35)],
-    );
+    result(g, eventText("event_HIDDEN_FEDERATION_BASE_LIST_3_text"), rollStandard(g, "medium"), [
+      repair(g, 35),
+    ]);
   } else if (r === "empty") {
     const choices: Choice[] = [opt("ack", "event_HIDDEN_FEDERATION_BASE_LIST_4_c1_choice")];
     // {{Blue Option|Improved Sensors|...|level=2}} / {{Blue Option|Advanced Sensors|...|level=3}} / Long-Ranged Scanners.
     // The same label is printed on each. A ship that meets more than one requirement can pick.
-    const scan = "Run a second scan pass.";
-    if (sensors(g) >= 2) choices.push({ id: "q:fed-base:scan-2", label: scan });
-    if (sensors(g) >= 3) choices.push({ id: "q:fed-base:scan-3", label: scan });
+    if (sensors(g) >= 2)
+      choices.push(opt("q:fed-base:scan-2", "event_HIDDEN_FEDERATION_BASE_LIST_4_c2_choice"));
+    if (sensors(g) >= 3)
+      choices.push(opt("q:fed-base:scan-3", "event_HIDDEN_FEDERATION_BASE_LIST_4_c3_choice"));
     if (g.augments.includes("ADV_SCANNERS"))
-      choices.push({ id: "q:fed-base:scan-glass", label: scan });
-    card(
-      g,
-      eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_text"),
-      choices,
-    );
+      choices.push(opt("q:fed-base:scan-glass", "event_HIDDEN_FEDERATION_BASE_LIST_4_c4_choice"));
+    card(g, eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_text"), choices);
   } else {
     arriveFedAssist(g);
   }
@@ -764,20 +694,14 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       break;
     case "mantis-war-camp": {
       // Mantis war camp, "Quest Marker".
-      const choices: Choice[] = [
-        opt("q:war-camp:leave", "event_QUEST_MANTIS_INVASION_c1_choice"),
-      ];
+      const choices: Choice[] = [opt("q:war-camp:leave", "event_QUEST_MANTIS_INVASION_c1_choice")];
       // {{Blue Option|Missile Weapon|Bombard their key structures.}} [1 missile]
       if (hasMissileWeapon(g))
         choices.push(opt("q:war-camp:missile", "event_QUEST_MANTIS_INVASION_c2_choice"));
       // {{Blue Option|Fire Bomb|Teleport fire bombs into key structures.}} [2 missiles]. Fire Bomb is fitted as "BOMB_FIRE".
       if (g.player.weapons.some((w) => w.defId === "BOMB_FIRE"))
         choices.push(opt("q:war-camp:firebomb", "event_QUEST_MANTIS_INVASION_c3_choice"));
-      card(
-        g,
-        eventText("event_QUEST_MANTIS_INVASION_text"),
-        choices,
-      );
+      card(g, eventText("event_QUEST_MANTIS_INVASION_text"), choices);
       break;
     }
     case "space-station":
@@ -797,11 +721,7 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
           rollSurrenderOffer(g, "high", true),
         );
       } else {
-        result(
-          g,
-          eventText("event_ALISON_DEFECTOR_QUEST_2_text"),
-          scrapOnly(g, "low"),
-        );
+        result(g, eventText("event_ALISON_DEFECTOR_QUEST_2_text"), scrapOnly(g, "low"));
       }
       break;
     case "fed-base":
@@ -809,12 +729,9 @@ export function questEvent(g: Game, b: Beacon): GameEvent | null {
       break;
     case "thief-stash":
       // "You receive a weapon with high scrap." The weapon is not named: Rewards, "Weapon": "A random weapon & T scrap."
-      result(
-        g,
-        eventText("event_MANTIS_NAMED_THIEF_STASH_text"),
-        scrapOnly(g, "high"),
-        [grantRandomItem(g, "weapon")],
-      );
+      result(g, eventText("event_MANTIS_NAMED_THIEF_STASH_text"), scrapOnly(g, "high"), [
+        grantRandomItem(g, "weapon"),
+      ]);
       break;
     case RUWEN_ENTRY:
       // Ancient device: the QUEST tag does not replace the card. eventFor falls through to that page.
@@ -851,19 +768,22 @@ function loyalistsRescueCard(g: Game) {
     choices.push(opt("q:loyalists:teleport", "event_REBEL_VS_FEDERATION_SAVED_LIST_2_c3_choice"));
   if (g.player.weapons.some((w) => w.defId === "BOMB_HEAL"))
     choices.push(opt("q:loyalists:heal", "event_REBEL_VS_FEDERATION_SAVED_LIST_2_c4_choice"));
-  card(
-    g,
-    eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_text"),
-    choices,
-  );
+  card(g, eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_text"), choices);
 }
 
 function thiefDyingCard(g: Game, scan: boolean) {
   const choices: Choice[] = [
-    { id: "q:thief:mercy", label: scan ? eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c3_c1_choice") : eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c1_choice") },
+    {
+      id: "q:thief:mercy",
+      label: scan
+        ? eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c3_c1_choice")
+        : eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c1_choice"),
+    },
     {
       id: "q:thief:listen",
-      label: scan ? eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c3_c2_choice") : eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c2_choice"),
+      label: scan
+        ? eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c3_c2_choice")
+        : eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c2_choice"),
     },
   ];
   // {{Blue Option|Adv. Medbay|...|level=2+}}, {{Blue Option|Adv. Clonebay|...|level=2+}}.
@@ -891,8 +811,7 @@ function engiVictory(g: Game, text = "", offer?: SurrenderOffer) {
   // > "Victory." — [[Engi fleet discussion#Final Quest Marker]]
   // > "The Engi emerge victorious from their battles with only minor losses. They message you, \"Project X-ME56 commissioned by Federation military research division. Advanced stealth cruiser. Project finished during rebellion. Unable to reconnect with Federation military command.\"" — [[Engi fleet discussion#Victory]]
   // > "Ask about the Mantis ships." — [[Engi fleet discussion#Victory]]
-  const body =
-    eventText("event_ENGI_UNLOCK_4_text");
+  const body = eventText("event_ENGI_UNLOCK_4_text");
   const choices = [opt("q:engi-victory:ask", "event_ENGI_UNLOCK_4_c1_choice")];
   if (offer) result(g, `${text}\n\n${body}`, offer, [], choices);
   else card(g, text ? `${text}\n\n${body}` : body, choices);
@@ -910,11 +829,7 @@ function deactivatedDownload(g: Game) {
     );
     return;
   }
-  result(
-    g,
-    eventText("event_DOWNLOAD_DRONE_DATA_1_text"),
-    rollStandard(g, "low"),
-  );
+  result(g, eventText("event_DOWNLOAD_DRONE_DATA_1_text"), rollStandard(g, "low"));
 }
 
 /** Refueling platform dock. 3 damage to engines. `fires` is the ignite result's 1-2 fires. */
@@ -931,8 +846,7 @@ function refuelEngines(g: Game, fires: boolean) {
 
 /** The berth that is already a Pirate ship. 3 hull, 3 engine damage, then the default Pirate fight. No fires. */
 function refuelAmbush(g: Game) {
-  const text =
-    eventText("event_FUELING_STATION_PIRATE_LIST_2_text");
+  const text = eventText("event_FUELING_STATION_PIRATE_LIST_2_text");
   if (damageHull(g, 3)) {
     log(g, text);
     return;
@@ -941,13 +855,13 @@ function refuelAmbush(g: Game) {
   pageFight(g, text, "Pirate ship", "refueling-platform");
 }
 
-const REBEL_SUPPLY_NEXT: Choice[] = [
+const REBEL_SUPPLY_NEXT = (): Choice[] => [
   opt("s:rebel-supply:steal", "ship_REBEL_HELPERS_SHIP_destroyed_c1_choice"),
   opt("s:rebel-supply:leave", "ship_REBEL_HELPERS_SHIP_destroyed_c2_choice"),
 ];
 
 // Leave the civilians alone. Four printed sentences, no odds. INFERRED: equal.
-const REBEL_SUPPLY_LEAVE = [
+const REBEL_SUPPLY_LEAVE = () => [
   eventText("text_REBEL_HELPER_NO_SUPPLIES_TEXT_1"),
   eventText("text_REBEL_HELPER_NO_SUPPLIES_TEXT_2"),
   eventText("text_REBEL_HELPER_NO_SUPPLIES_TEXT_3"),
@@ -990,39 +904,25 @@ function rebelSupplySteal(g: Game) {
     // Rewards, Drone parts: "T drone parts & T scrap." The event tooltip prints low as 1 drone part.
     const offer = scrapOnly(g, "low");
     offer.parts = 1;
-    result(
-      g,
-      eventText("event_REBEL_HELPERS_SUPPLIES_1_text"),
-      offer,
-    );
+    result(g, eventText("event_REBEL_HELPERS_SUPPLIES_1_text"), offer);
     return;
   }
   if (kind === "scrap") {
-    result(
-      g,
-      eventText("event_REBEL_HELPERS_SUPPLIES_3_text"),
-      scrapOnly(g, "low"),
-    );
+    result(g, eventText("event_REBEL_HELPERS_SUPPLIES_3_text"), scrapOnly(g, "low"));
     return;
   }
   if (kind === "trap") {
-    const text =
-      eventText("event_REBEL_HELPERS_SUPPLIES_4_text");
+    const text = eventText("event_REBEL_HELPERS_SUPPLIES_4_text");
     if (damageHull(g, 2)) return;
     const room = rebelSupplyRoom(g);
     result(g, text, undefined, ["Hull damage: 2.", room].filter(Boolean));
     return;
   }
-  result(
-    g,
-    eventText("event_REBEL_HELPERS_SUPPLIES_2_text"),
-    undefined,
-    ["Nothing happens."],
-  );
+  result(g, eventText("event_REBEL_HELPERS_SUPPLIES_2_text"), undefined, ["Nothing happens."]);
 }
 
 function rebelSupplyLeave(g: Game) {
-  result(g, pick(g, REBEL_SUPPLY_LEAVE), undefined, ["Nothing happens."]);
+  result(g, pick(g, REBEL_SUPPLY_LEAVE()), undefined, ["Nothing happens."]);
 }
 
 /** Destroyed pays low scrap with resources. A crew kill pays medium. Then steal or leave. */
@@ -1030,10 +930,10 @@ function rebelSupplyWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
     ? eventText("ship_REBEL_HELPERS_SHIP_deadCrew_text")
     : eventText("ship_REBEL_HELPERS_SHIP_destroyed_text");
-  result(g, text, rollStandard(g, deadCrew ? "medium" : "low"), [], REBEL_SUPPLY_NEXT);
+  result(g, text, rollStandard(g, deadCrew ? "medium" : "low"), [], REBEL_SUPPLY_NEXT());
 }
 
-const ZOLTAN_RAFT_NEXT: Choice[] = [
+const ZOLTAN_RAFT_NEXT = (): Choice[] => [
   opt("s:zoltan-raft:go", "ship_ZOLTAN_LIFERAFT_destroyed_c1_c1_choice"),
   opt("s:zoltan-raft:hire", "ship_ZOLTAN_LIFERAFT_destroyed_c1_c2_choice"),
 ];
@@ -1044,22 +944,17 @@ const ZOLTAN_RAFT_NEXT: Choice[] = [
  */
 function zoltanRaftWin(g: Game, deadCrew: boolean) {
   if (deadCrew) {
-    result(
-      g,
-      eventText("ship_ZOLTAN_LIFERAFT_deadCrew_text"),
-      scrapOnly(g, "high"),
-      [grantRandomItem(g, "augment")],
-    );
+    result(g, eventText("ship_ZOLTAN_LIFERAFT_deadCrew_text"), scrapOnly(g, "high"), [
+      grantRandomItem(g, "augment"),
+    ]);
     return;
   }
   result(
     g,
     eventText("ship_ZOLTAN_LIFERAFT_destroyed_text"),
     rollStandard(g, "medium"),
-    [
-      eventText("ship_ZOLTAN_LIFERAFT_destroyed_c1_text"),
-    ],
-    ZOLTAN_RAFT_NEXT,
+    [eventText("ship_ZOLTAN_LIFERAFT_destroyed_c1_text")],
+    ZOLTAN_RAFT_NEXT(),
   );
 }
 
@@ -1071,20 +966,10 @@ function zoltanRaftHire(g: Game) {
     takeStock(g, "scrap", cost);
     const spent = scrapLine(cost);
     const joined = crew(g, "Zoltan");
-    result(
-      g,
-      eventText("event_ZOLTAN_LIFERAFT_HIRE_2_text"),
-      undefined,
-      [spent, joined],
-    );
+    result(g, eventText("event_ZOLTAN_LIFERAFT_HIRE_2_text"), undefined, [spent, joined]);
     return;
   }
-  result(
-    g,
-    eventText("event_ZOLTAN_LIFERAFT_HIRE_1_text"),
-    undefined,
-    ["Nothing happens."],
-  );
+  result(g, eventText("event_ZOLTAN_LIFERAFT_HIRE_1_text"), undefined, ["Nothing happens."]);
 }
 
 /**
@@ -1118,12 +1003,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "You have no interest in anything the Slugs could make business out of. Time to move on." — [[Slug comm tapping]]
     // > "Nothing happens." — [[Slug comm tapping]]
-    result(
-      g,
-      eventText("event_QUEST_SLUG_PIRATE_TRAP_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_QUEST_SLUG_PIRATE_TRAP_c2_text"), undefined, ["Nothing happens."]);
   },
   // Lanius ship attacking civilian, "Contact the civilian ship." Template:Save the Civilian Ship.
   // Six results, no odds. The unnamed crewmember is not offered. INFERRED: the other five are equal.
@@ -1137,45 +1017,24 @@ const CHOICES: Record<string, (g: Game) => void> = {
       ["nothing", 1],
     ] as const);
     if (kind === "weapon") {
-      result(
-        g,
-        eventText("event_SAVE_CIVILIAN_LIST_LANIUS_4_text"),
-        scrapOnly(g, "low"),
-        [grantRandomItem(g, "weapon")],
-      );
+      result(g, eventText("event_SAVE_CIVILIAN_LIST_LANIUS_4_text"), scrapOnly(g, "low"), [
+        grantRandomItem(g, "weapon"),
+      ]);
       return;
     }
     if (kind === "repair") {
-      result(
-        g,
-        eventText("event_SAVE_CIVILIAN_LIST_LANIUS_5_text"),
-        undefined,
-        [repair(g, 5)],
-      );
+      result(g, eventText("event_SAVE_CIVILIAN_LIST_LANIUS_5_text"), undefined, [repair(g, 5)]);
       return;
     }
     if (kind === "medium") {
-      result(
-        g,
-        eventText("event_SAVE_CIVILIAN_LIST_LANIUS_2_text"),
-        rollStandard(g, "medium"),
-      );
+      result(g, eventText("event_SAVE_CIVILIAN_LIST_LANIUS_2_text"), rollStandard(g, "medium"));
       return;
     }
     if (kind === "low") {
-      result(
-        g,
-        eventText("event_SAVE_CIVILIAN_LIST_LANIUS_3_text"),
-        rollStandard(g, "low"),
-      );
+      result(g, eventText("event_SAVE_CIVILIAN_LIST_LANIUS_3_text"), rollStandard(g, "low"));
       return;
     }
-    result(
-      g,
-      eventText("event_SAVE_CIVILIAN_LIST_LANIUS_6_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_SAVE_CIVILIAN_LIST_LANIUS_6_text"), undefined, ["Nothing happens."]);
   },
   // Crystal ship attacking Federation loyalists, "You contact the Federation ship."
   // Two results and no odds. INFERRED: equal.
@@ -1188,18 +1047,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
         ["materials", 1],
       ] as const) === "survivor"
     ) {
-      result(
-        g,
-        eventText("event_CRYSTAL_FED_LIST_2_text"),
-        rollStandard(g, "low"),
-      );
+      result(g, eventText("event_CRYSTAL_FED_LIST_2_text"), rollStandard(g, "low"));
       return;
     }
-    result(
-      g,
-      eventText("event_CRYSTAL_FED_LIST_1_text"),
-      rollSurrenderOffer(g, undefined, true),
-    );
+    result(g, eventText("event_CRYSTAL_FED_LIST_1_text"), rollSurrenderOffer(g, undefined, true));
   },
   // Lanius ship attacking Rock, "Contact the Rockmen." Two results, no odds. INFERRED: equal.
   "q:lanius-rock:contact": (g) => {
@@ -1209,19 +1060,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
         ["nothing", 1],
       ] as const) === "scrap"
     ) {
-      result(
-        g,
-        eventText("event_LANIUS_ROCK_DISTRESS_END_2_text"),
-        rollStandard(g, "medium"),
-      );
+      result(g, eventText("event_LANIUS_ROCK_DISTRESS_END_2_text"), rollStandard(g, "medium"));
       return;
     }
-    result(
-      g,
-      eventText("event_LANIUS_ROCK_DISTRESS_END_1_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_ROCK_DISTRESS_END_1_text"), undefined, ["Nothing happens."]);
   },
   // Lanius ship attacking Mantis, "Contact the Mantis." Two results, no odds. INFERRED: equal.
   // Rewards, Missiles: "T missiles & T scrap." The page tooltip prints medium as 2-4 missiles.
@@ -1234,18 +1076,10 @@ const CHOICES: Record<string, (g: Game) => void> = {
     ) {
       const offer = scrapOnly(g, "medium");
       offer.missiles = between(g, resourceBand("missiles", "medium"));
-      result(
-        g,
-        eventText("event_LANIUS_MANTIS_DISTRESS_END_1_text"),
-        offer,
-      );
+      result(g, eventText("event_LANIUS_MANTIS_DISTRESS_END_1_text"), offer);
       return;
     }
-    result(
-      g,
-      eventText("event_LANIUS_MANTIS_DISTRESS_END_2_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_LANIUS_MANTIS_DISTRESS_END_2_text"), rollStandard(g, "medium"));
   },
   // Lanius ship attacking Slug, "Contact the Slugs." Two results, no odds. INFERRED: equal.
   "q:lanius-slug:contact": (g) => {
@@ -1255,36 +1089,19 @@ const CHOICES: Record<string, (g: Game) => void> = {
         ["nothing", 1],
       ] as const) === "supplies"
     ) {
-      result(
-        g,
-        eventText("event_LANIUS_SLUG_DISTRESS_END_2_text"),
-        rollStandard(g, "medium"),
-      );
+      result(g, eventText("event_LANIUS_SLUG_DISTRESS_END_2_text"), rollStandard(g, "medium"));
       return;
     }
-    result(
-      g,
-      eventText("event_LANIUS_SLUG_DISTRESS_END_1_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_SLUG_DISTRESS_END_1_text"), undefined, ["Nothing happens."]);
   },
   // Lanius ship in rich debris field. Improved Piloting level 2 and Advanced Piloting level 3.
   "c:lanius-ship-in-rich-debris-field:3": (g) => {
     if ((g.player.systems.pilot?.level ?? 0) < 2) return;
-    result(
-      g,
-      eventText("event_LANIUS_HARVESTER_c2_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_LANIUS_HARVESTER_c2_text"), rollStandard(g, "medium"));
   },
   "c:lanius-ship-in-rich-debris-field:4": (g) => {
     if ((g.player.systems.pilot?.level ?? 0) < 3) return;
-    result(
-      g,
-      eventText("event_LANIUS_HARVESTER_c3_text"),
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("event_LANIUS_HARVESTER_c3_text"), rollStandard(g, "high"));
   },
   // Investigate the debris. Three results, no odds. INFERRED: equal.
   "q:lanius-debris:investigate": (g) => {
@@ -1294,26 +1111,14 @@ const CHOICES: Record<string, (g: Game) => void> = {
       ["low", 1],
     ] as const);
     if (kind === "high") {
-      result(
-        g,
-        eventText("event_LANIUS_HARVESTER_SHIP_LIST_3_text"),
-        rollStandard(g, "high"),
-      );
+      result(g, eventText("event_LANIUS_HARVESTER_SHIP_LIST_3_text"), rollStandard(g, "high"));
       return;
     }
     if (kind === "medium") {
-      result(
-        g,
-        eventText("event_LANIUS_HARVESTER_SHIP_LIST_2_text"),
-        rollStandard(g, "medium"),
-      );
+      result(g, eventText("event_LANIUS_HARVESTER_SHIP_LIST_2_text"), rollStandard(g, "medium"));
       return;
     }
-    result(
-      g,
-      eventText("event_LANIUS_HARVESTER_SHIP_LIST_1_text"),
-      rollStandard(g, "low"),
-    );
+    result(g, eventText("event_LANIUS_HARVESTER_SHIP_LIST_1_text"), rollStandard(g, "low"));
   },
   // Lanius ship salvager. "Attack the ship." One printed lead-in, then a Lanius ship fight.
   // The nested scoff attack prints "were doing". This choice prints "are doing".
@@ -1340,30 +1145,17 @@ const CHOICES: Record<string, (g: Game) => void> = {
       ["low", 1],
     ] as const);
     if (kind === "share") {
-      result(
-        g,
-        eventText("event_LANIUS_SOLO_SALVAGE_LIST_1_text"),
-        scrapOnly(g, "medium"),
-      );
+      result(g, eventText("event_LANIUS_SOLO_SALVAGE_LIST_1_text"), scrapOnly(g, "medium"));
       return;
     }
     if (kind === "scoff") {
-      card(
-        g,
-        eventText("event_LANIUS_SOLO_SALVAGE_LIST_3_text"),
-        [
-          opt("q:lanius-salvager:attack", "event_LANIUS_SOLO_SALVAGE_LIST_3_c1_choice"),
-          opt("q:lanius-salvager:leave", "event_LANIUS_SOLO_SALVAGE_LIST_3_c2_choice"),
-        ],
-      );
+      card(g, eventText("event_LANIUS_SOLO_SALVAGE_LIST_3_text"), [
+        opt("q:lanius-salvager:attack", "event_LANIUS_SOLO_SALVAGE_LIST_3_c1_choice"),
+        opt("q:lanius-salvager:leave", "event_LANIUS_SOLO_SALVAGE_LIST_3_c2_choice"),
+      ]);
       return;
     }
-    result(
-      g,
-      eventText("event_LANIUS_SOLO_SALVAGE_LIST_2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_SOLO_SALVAGE_LIST_2_text"), undefined, ["Nothing happens."]);
   },
   "q:lanius-salvager:attack": (g) => {
     pageFight(
@@ -1390,12 +1182,12 @@ const CHOICES: Record<string, (g: Game) => void> = {
     const offer = rollLaniusTrader(g, true);
     card(
       g,
-      `After a short discussion you do not understand, the trader comes back with a second proposal.
+      `${eventText("event_LANIUS_TRADER_c3_text")}
 
 ${laniusTraderOfferText(offer)}`,
       [
         opt(laniusTraderTakeId(offer), "event_LANIUS_TRADER_c1_choice"),
-        { id: "c:lanius-trader:3", label: "Decline" },
+        opt("c:lanius-trader:3", "event_LANIUS_TRADER_c2_choice"),
       ],
     );
   },
@@ -1418,20 +1210,14 @@ ${laniusTraderOfferText(offer)}`,
     joinCrew(g, "Lanius", "Translator");
     keepNewHire(g);
     takeStock(g, "scrap", cost);
-    result(
-      g,
-      eventText("event_LANIUS_TRADER_TRANSLATOR_c3_c1_text"),
-      undefined,
-      ["A Lanius crewmember named Translator joins you."],
-    );
+    result(g, eventText("event_LANIUS_TRADER_TRANSLATOR_c3_c1_text"), undefined, [
+      "A Lanius crewmember named Translator joins you.",
+    ]);
   },
   "q:lanius-translator:decline": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_TRADER_TRANSLATOR_c3_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_TRADER_TRANSLATOR_c3_c2_text"), undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Lanius ship absorbing automated scout. Two inspect results, no odds. INFERRED: equal.
   // "a random amount of scrap". The page notes lowercase "low" is treated as RANDOM.
@@ -1449,10 +1235,7 @@ ${laniusTraderOfferText(offer)}`,
       );
       return;
     }
-    result(
-      g,
-      eventText("event_AUTO_DEFENSE_MAP_SENSORS_1_text"),
-    );
+    result(g, eventText("event_AUTO_DEFENSE_MAP_SENSORS_1_text"));
   },
   // Crew Teleporter. The map reveal is not wired.
   // Auto-ship fight in plasma storm. Engines 3-5. Two results, no odds. INFERRED: equal.
@@ -1478,12 +1261,7 @@ ${laniusTraderOfferText(offer)}`,
   // Cloaking. Always lose the ship. The page prints no drone-part cost.
   "c:auto-ship-fight-in-plasma-storm:3": (g) => {
     if ((g.player.kits.cloaking?.level ?? 0) <= 0) return;
-    result(
-      g,
-      eventText("event_STORM_AUTO_c4_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_STORM_AUTO_c4_text"), undefined, ["Nothing happens."]);
   },
   // Deactivated Auto-ship. Download, two results, no odds. INFERRED: equal. The map reveal is not wired.
   "c:deactivated-auto-ship:1": (g) => {
@@ -1493,37 +1271,27 @@ ${laniusTraderOfferText(offer)}`,
   "c:deactivated-auto-ship:2": (g) => {
     if (sensors(g) < 3) return;
     if (pick(g, ["safe", "standby"] as const) === "safe") {
-      result(
-        g,
-        eventText("event_BROKEN_REBEL_DRONE_SENSORS_1_text"),
-        rollStandard(g, "low"),
-      );
+      result(g, eventText("event_BROKEN_REBEL_DRONE_SENSORS_1_text"), rollStandard(g, "low"));
       return;
     }
-    card(
-      g,
-      eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_text"),
-      [
-        opt("q:deactivated-auto:yes", "event_BROKEN_REBEL_DRONE_SENSORS_2_c1_choice"),
-        opt("q:deactivated-auto:no", "event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"),
-      ],
-    );
+    card(g, eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_text"), [
+      opt("q:deactivated-auto:yes", "event_BROKEN_REBEL_DRONE_SENSORS_2_c1_choice"),
+      opt("q:deactivated-auto:no", "event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"),
+    ]);
   },
   // Standby "Yes." reuses the download's two results.
   "q:deactivated-auto:yes": (g) => {
     deactivatedDownload(g);
   },
   "q:deactivated-auto:no": (g) => {
-    result(g, eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_text"), undefined, ["Nothing happens."]);
+    result(g, eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_text"), undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Rock ship in plasma storm. A living Rock crewmember. High standard. The map is not involved.
   "c:rock-ship-in-plasma-storm:2": (g) => {
     if (!hasRock(g)) return;
-    result(
-      g,
-      eventText("event_NEBULA_ROCK_RACIST_c3_text"),
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("event_NEBULA_ROCK_RACIST_c3_text"), rollStandard(g, "high"));
   },
   // Slug drink. Two results, no odds. INFERRED: equal.
   "c:slug-drink:1": (g) => {
@@ -1539,30 +1307,18 @@ ${laniusTraderOfferText(offer)}`,
     // Wiki citations:
     // > "You don't want to alert the Rebels of your presence and you don't want to anger the Zoltan in their territory. The best solution is to leave." — [[Zoltan quest primitives]]
     // > "Nothing happens." — [[Zoltan quest primitives]]
-    result(
-      g,
-      eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c3_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c3_text"), undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Escort civilians FTL haywire. "Decline." One printed result. No quest marker.
   "c:escort-civilians-ftl-haywire:1": (g) => {
-    result(
-      g,
-      eventText("event_ESCORT_BEACON_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_ESCORT_BEACON_c2_text"), undefined, ["Nothing happens."]);
   },
   // Escort civilians FTL haywire. Advanced FTL Navigation. High scrap with resources. No quest marker.
   "c:escort-civilians-ftl-haywire:2": (g) => {
     if (!g.augments.includes("FTL_JUMPER")) return;
-    result(
-      g,
-      eventText("event_ESCORT_BEACON_c3_text"),
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("event_ESCORT_BEACON_c3_text"), rollStandard(g, "high"));
   },
   // Auto-ship warning has no choice. Arrival calls this id.
   // One printed lead-in, then "Fight an Auto-ship that is running away." Escape stays the 40 second pursuit row.
@@ -1580,12 +1336,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Pirate briber. "Try to be a hero. Attack the pirate." One printed lead-in, then a Pirate ship fight.
   "c:pirate-briber:1": (g) => {
-    pageFight(
-      g,
-      eventText("event_PIRATE_BRIBER_c2_text"),
-      "Pirate ship",
-      "pirate-briber",
-    );
+    pageFight(g, eventText("event_PIRATE_BRIBER_c2_text"), "Pirate ship", "pirate-briber");
   },
   // Engi distress Rebel fight. {{SurrenderEscape(alt)|no}}: never runs away, never surrenders.
   "c:engi-distress-rebel-fight:0": (g) => {
@@ -1613,20 +1364,17 @@ ${laniusTraderOfferText(offer)}`,
     const spentScrap = scrapLine(scrap);
     const spentMissiles = missileLine(missiles);
     const spentFuel = fuelLine(fuel);
-    result(
-      g,
-      eventText("event_DISTRESS_ENGI_REBEL_LIST2_text"),
-      undefined,
-      [grantAug(g, "NANO_MEDBAY"), spentScrap, spentMissiles, spentFuel],
-    );
+    result(g, eventText("event_DISTRESS_ENGI_REBEL_LIST2_text"), undefined, [
+      grantAug(g, "NANO_MEDBAY"),
+      spentScrap,
+      spentMissiles,
+      spentFuel,
+    ]);
   },
   "q:engi-distress:nothing": (g) => {
-    result(
-      g,
-      eventText("event_DISTRESS_ENGI_REBEL_RESULT_c3_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_DISTRESS_ENGI_REBEL_RESULT_c3_text"), undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Pirate smuggler. Weapon Control level 6+. Medium fuel (2-4) and medium scrap.
   "c:pirate-smuggler:2": (g) => {
@@ -1636,14 +1384,10 @@ ${laniusTraderOfferText(offer)}`,
     // > "Take their bribe." — [[Pirate smuggler]]
     // > "Ignore their bribe and attack." — [[Pirate smuggler]]
     if ((g.player.systems.weapons?.level ?? 0) < 6) return;
-    card(
-      g,
-      eventText("event_NEBULA_PIRATE_SMUGGLE_c3_text"),
-      [
-        opt("q:pirate-smuggler:bribe", "event_NEBULA_PIRATE_SMUGGLE_c3_c1_choice"),
-        opt("q:pirate-smuggler:attack", "event_NEBULA_PIRATE_SMUGGLE_c3_c2_choice"),
-      ],
-    );
+    card(g, eventText("event_NEBULA_PIRATE_SMUGGLE_c3_text"), [
+      opt("q:pirate-smuggler:bribe", "event_NEBULA_PIRATE_SMUGGLE_c3_c1_choice"),
+      opt("q:pirate-smuggler:attack", "event_NEBULA_PIRATE_SMUGGLE_c3_c2_choice"),
+    ]);
   },
   "q:pirate-smuggler:bribe": (g) => {
     // Wiki citations:
@@ -1651,7 +1395,7 @@ ${laniusTraderOfferText(offer)}`,
     // > "You receive medium fuel and scrap." — [[Pirate smuggler]]
     const offer = scrapOnly(g, "medium");
     offer.fuel = rollFuel("q:pirate-smuggler:bribe", (lo, hi) => between(g, [lo, hi]));
-    result(g, "You receive medium fuel and scrap.", offer);
+    result(g, "", offer);
   },
   "q:pirate-smuggler:attack": (g) => {
     // Wiki citations:
@@ -1680,10 +1424,7 @@ ${laniusTraderOfferText(offer)}`,
   // Improved Sensors level 2+. A Rockman joins. No skill is printed.
   "c:rock-atheists:2": (g) => {
     if ((g.player.systems.sensors?.level ?? 0) < 2) return;
-    rockAtheistJoins(
-      g,
-      eventText("event_ROCK_ATHIEST_c3_text"),
-    );
+    rockAtheistJoins(g, eventText("event_ROCK_ATHIEST_c3_text"));
   },
   // Pirate ship selling drones. Hail opens the dock, the slug warning, and the hacking toll.
   "q:pirate-drones:hail": (g) => {
@@ -1710,11 +1451,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   "q:pirate-drones:hack": (g) => {
     if ((g.player.kits.hacking?.level ?? 0) <= 0) return;
-    result(
-      g,
-      eventText("event_CONTACT_PIRATE_SALESMAN_c4_text"),
-      scrapOnly(g, "low"),
-    );
+    result(g, eventText("event_CONTACT_PIRATE_SALESMAN_c4_text"), scrapOnly(g, "low"));
   },
   "q:pirate-drones:nothing": (g) => pirateDroneNothing(g),
   // Three sibling results and no odds. INFERRED: equal. The system must already be installed.
@@ -1752,17 +1489,15 @@ ${laniusTraderOfferText(offer)}`,
     // > "Let them leave." — [[Pirate ships in plasma storm]]
     // > "Sometimes discretion is the better part of valor." — [[Pirate ships in plasma storm]]
     // > "Nothing happens." — [[Pirate ships in plasma storm]]
-    result(g, eventText("event_STORM_ZOLTAN_SUPPLY_CHOICE_c3_text"), undefined, ["Nothing happens."]);
+    result(g, eventText("event_STORM_ZOLTAN_SUPPLY_CHOICE_c3_text"), undefined, [
+      "Nothing happens.",
+    ]);
   },
   "q:pirate-briber:gone": (g) => {
     pirateGone(g);
   },
   "q:pirate-briber:salvage": (g) => {
-    result(
-      g,
-      eventText("event_PIRATE_BRIBER_WIN_1_c1_text"),
-      rollStandard(g, "low"),
-    );
+    result(g, eventText("event_PIRATE_BRIBER_WIN_1_c1_text"), rollStandard(g, "low"));
   },
   // No effect in The Last Stand.
   "q:pirate-briber:delay": (g) => {
@@ -1791,32 +1526,22 @@ ${laniusTraderOfferText(offer)}`,
     // > "Nothing happens." — [[Rebel fight choice in nebula]]
     const r = pick(g, ["caught", "chase", "hidden"] as const);
     if (r === "caught") {
-      card(
-        g,
-        eventText("event_NEBULA_REBEL_UNDETECTED_LIST_1_text"),
-        [
-          opt("q:rebel-nebula:fight", "event_NEBULA_REBEL_UNDETECTED_LIST_1_c1_choice"),
-          opt("q:rebel-nebula:engines", "event_NEBULA_REBEL_UNDETECTED_LIST_1_c2_choice"),
-        ],
-      );
+      card(g, eventText("event_NEBULA_REBEL_UNDETECTED_LIST_1_text"), [
+        opt("q:rebel-nebula:fight", "event_NEBULA_REBEL_UNDETECTED_LIST_1_c1_choice"),
+        opt("q:rebel-nebula:engines", "event_NEBULA_REBEL_UNDETECTED_LIST_1_c2_choice"),
+      ]);
       return;
     }
     if (r === "chase") {
       g.fleet += 1;
-      result(
-        g,
-        eventText("event_NEBULA_REBEL_UNDETECTED_LIST_3_text"),
-        undefined,
-        ["Rebel Fleet pursuit is doubled for 1 jump."],
-      );
+      result(g, eventText("event_NEBULA_REBEL_UNDETECTED_LIST_3_text"), undefined, [
+        "Rebel Fleet pursuit is doubled for 1 jump.",
+      ]);
       return;
     }
-    result(
-      g,
-      eventText("event_NEBULA_REBEL_UNDETECTED_LIST_2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_NEBULA_REBEL_UNDETECTED_LIST_2_text"), undefined, [
+      "Nothing happens.",
+    ]);
   },
   "q:rebel-nebula:fight": (g) => {
     pageFight(g, "", "Rebel ship", "rebel-fight-choice-in-nebula");
@@ -1828,12 +1553,9 @@ ${laniusTraderOfferText(offer)}`,
     // > "Your powerful engines allow you to out-distance the ship and eventually lose it within the nebula." — [[Rebel fight choice in nebula]]
     // > "Nothing happens." — [[Rebel fight choice in nebula]]
     if ((g.player.systems.engines?.level ?? 0) < 4) return;
-    result(
-      g,
-      eventText("event_NEBULA_REBEL_UNDETECTED_LIST_1_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_NEBULA_REBEL_UNDETECTED_LIST_1_c2_text"), undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Cloaking. Nothing happens.
   "c:rebel-fight-choice-in-nebula:2": (g) => {
@@ -1842,12 +1564,7 @@ ${laniusTraderOfferText(offer)}`,
     // > "You use your cloaking system to slip further into the nebula undetected." — [[Rebel fight choice in nebula]]
     // > "Nothing happens." — [[Rebel fight choice in nebula]]
     if ((g.player.kits.cloaking?.level ?? 0) <= 0) return;
-    result(
-      g,
-      eventText("event_NEBULA_REBEL_UNDETECTED_c3_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_NEBULA_REBEL_UNDETECTED_c3_text"), undefined, ["Nothing happens."]);
   },
   // Mantis fight choice. Conceal: {{DuplicateEvent|2}} on the fight, once on nothing.
   // The printed OR is the two fight sentences. INFERRED: those two are equal inside the doubled result.
@@ -1864,12 +1581,9 @@ ${laniusTraderOfferText(offer)}`,
       [false, 1],
     ] as [boolean, number][]);
     if (!spotted) {
-      result(
-        g,
-        eventText("event_MANTIS_FIGHT_CHOICE_AVOID_1_text"),
-        undefined,
-        ["Nothing happens."],
-      );
+      result(g, eventText("event_MANTIS_FIGHT_CHOICE_AVOID_1_text"), undefined, [
+        "Nothing happens.",
+      ]);
       return;
     }
     const line = pick(g, [
@@ -1919,12 +1633,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Pirate ship attacking civilian. "Stay out of it." One printed result.
   "c:pirate-ship-attacking-civilian:1": (g) => {
-    result(
-      g,
-      eventText("event_PIRATE_CIVILIAN_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_PIRATE_CIVILIAN_c2_text"), undefined, ["Nothing happens."]);
   },
   // Pirate ship attacking civilian distress. "Aid the civilian ship." One printed lead-in, then a Pirate ship fight.
   "c:pirate-ship-attacking-civilian-distress:0": (g) => {
@@ -1937,12 +1646,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Pirate ship attacking civilian distress. The distress page's stay-out line.
   "c:pirate-ship-attacking-civilian-distress:1": (g) => {
-    result(
-      g,
-      eventText("event_PIRATE_CIVILIAN_BEACON_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_PIRATE_CIVILIAN_BEACON_c2_text"), undefined, ["Nothing happens."]);
   },
   // Pirate ship attacking civilian (Lanius). "Attack the pirate." One printed lead-in, then a Pirate ship fight.
   "c:pirate-ship-attacking-civilian-lanius:0": (g) => {
@@ -1955,12 +1659,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Pirate ship attacking civilian (Lanius). "Avoid the conflict." One printed result.
   "c:pirate-ship-attacking-civilian-lanius:1": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_CIVILIAN_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_CIVILIAN_c2_text"), undefined, ["Nothing happens."]);
   },
   // Lanius ship attacking civilian. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-civilian:0": (g) => {
@@ -1973,12 +1672,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Lanius ship attacking civilian. "Avoid the conflict." One printed result.
   "c:lanius-ship-attacking-civilian:1": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_CIVILIAN_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_CIVILIAN_c2_text"), undefined, ["Nothing happens."]);
   },
   // Lanius ship attacking civilian distress. "Fight the Lanius ship." One printed lead-in, then a Lanius ship fight.
   "c:lanius-ship-attacking-civilian-distress:0": (g) => {
@@ -1991,12 +1685,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // The Mercenary. "Fight the ship." One printed lead-in, then a Pirate ship fight.
   "c:the-mercenary:1": (g) => {
-    pageFight(
-      g,
-      eventText("event_MERCENARY_c3_text"),
-      "Pirate ship",
-      "the-mercenary",
-    );
+    pageFight(g, eventText("event_MERCENARY_c3_text"), "Pirate ship", "the-mercenary");
   },
   // Pirate toll. "Reject their offer." One printed lead-in, then a Pirate ship fight.
   "c:pirate-toll:1": (g) => {
@@ -2013,27 +1702,15 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Lanius ship attacking Rock. "Leave the Rockmen to their fate." One printed result.
   "c:lanius-ship-attacking-rock:1": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_ROCK_DISTRESS_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_ROCK_DISTRESS_c2_text"), undefined, ["Nothing happens."]);
   },
   // Lanius ship absorbing automated scout. "Leave them alone." One printed result. Do not inspect the scout.
   "c:lanius-ship-absorbing-automated-scout:1": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_AUTO_REBEL_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_AUTO_REBEL_c2_text"), undefined, ["Nothing happens."]);
   },
   // Mantis ship attacking Crystal. "Ignore them." One printed result.
   "c:mantis-ship-attacking-crystal:1": (g) => {
-    result(g, eventText("event_CRYSTAL_MANTIS_CRYSTAL_c2_text"), undefined, [
-      "Nothing happens.",
-    ]);
+    result(g, eventText("event_CRYSTAL_MANTIS_CRYSTAL_c2_text"), undefined, ["Nothing happens."]);
   },
   // Mantis ship with Rock body parts. "Ignore them." One printed result.
   "c:mantis-ship-with-rock-body-parts:1": (g) => {
@@ -2041,21 +1718,11 @@ ${laniusTraderOfferText(offer)}`,
     // > "Ignore them." — [[Mantis ship with Rock body parts]]
     // > "The Mantis take no interest in your ship - they're lying in wait for the next Rock ship to venture through. You're able to spin up the engines and jump at your leisure." — [[Mantis ship with Rock body parts]]
     // > "Nothing happens." — [[Mantis ship with Rock body parts]]
-    result(
-      g,
-      eventText("event_ROCK_MANTIS_HUNTER_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_ROCK_MANTIS_HUNTER_c2_text"), undefined, ["Nothing happens."]);
   },
   // Lanius lone ship. "Stay out of it." One printed result.
   "c:lanius-lone-ship:1": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_SCARED_CIVILIAN_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_SCARED_CIVILIAN_c2_text"), undefined, ["Nothing happens."]);
   },
   // Crystal fight choice. "Leave them alone." One printed result.
   "c:crystal-fight-choice:1": (g) => {
@@ -2063,12 +1730,7 @@ ${laniusTraderOfferText(offer)}`,
     // > "Leave them alone." — [[Crystal fight choice]]
     // > "It's best to take advantage of the rare occasions when the Rebels aren't shooting at you. You prepare to jump." — [[Crystal fight choice]]
     // > "Nothing happens." — [[Crystal fight choice]]
-    result(
-      g,
-      eventText("event_CRYSTAL_REBEL_CRYSTAL2_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_CRYSTAL_REBEL_CRYSTAL2_c2_text"), undefined, ["Nothing happens."]);
   },
   // Destroyed cargo ship. "Leave it alone, this looks suspicious." One printed result.
   "c:destroyed-cargo-ship:1": (g) => {
@@ -2083,30 +1745,15 @@ ${laniusTraderOfferText(offer)}`,
     // > "Ignore them." — [[Pirate ship attacking Crystal]]
     // > "You assume the Crystalline ship can handle itself. You have enough of your own problems." — [[Pirate ship attacking Crystal]]
     // > "Nothing happens." — [[Pirate ship attacking Crystal]]
-    result(
-      g,
-      eventText("event_CRYSTAL_PIRATE_CRYSTAL_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_CRYSTAL_PIRATE_CRYSTAL_c2_text"), undefined, ["Nothing happens."]);
   },
   // Escort civilians. "Decline." One printed result.
   "c:escort-civilians:1": (g) => {
-    result(
-      g,
-      eventText("event_QUEST_ESCORT_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_QUEST_ESCORT_c2_text"), undefined, ["Nothing happens."]);
   },
   // Remote settlement. "Ignore them." One printed result.
   "c:remote-settlement:1": (g) => {
-    result(
-      g,
-      eventText("event_PIRATE_STATION_CROPS_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_PIRATE_STATION_CROPS_c2_text"), undefined, ["Nothing happens."]);
   },
   // Pirate smuggler. "Ignore the ship." One printed result.
   "c:pirate-smuggler:1": (g) => {
@@ -2114,9 +1761,7 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Refueling platform garbled broadcast. "Ignore the platform." One printed result.
   "c:refueling-platform-garbled-broadcast:1": (g) => {
-    result(g, eventText("event_LANIUS_FUELING_STATION_c3_text"), undefined, [
-      "Nothing happens.",
-    ]);
+    result(g, eventText("event_LANIUS_FUELING_STATION_c3_text"), undefined, ["Nothing happens."]);
   },
   // Refueling platform garbled broadcast. "Dock with the platform." The berth, then signal or the blast doors.
   "c:refueling-platform-garbled-broadcast:2": (g) => {
@@ -2133,7 +1778,7 @@ ${laniusTraderOfferText(offer)}`,
       g.fuel += n;
       card(
         g,
-        `No one answers your hails. You run some scans and discover that the station has been recently abandoned, no doubt due to the threat of the Lanius. You empty their fuel reserves before leaving.
+        `${eventText("event_LANIUS_FUELING_STATION_LIST_3_text")}
 
 Fuel: ${n}.`,
         [
@@ -2188,12 +1833,7 @@ Fuel: ${n}.`,
   "s:garbled-dock:doors": (g) => {
     if ((g.player.systems.doors?.level ?? 0) < 2) return;
     g.fuel += rollFuel("s:garbled-dock:doors", (lo, hi) => between(g, [lo, hi]));
-    result(
-      g,
-      eventText("event_LANIUS_FUELING_STATION_c2_c2_text"),
-      undefined,
-      ["Fuel: 5."],
-    );
+    result(g, eventText("event_LANIUS_FUELING_STATION_c2_c2_text"), undefined, ["Fuel: 5."]);
   },
   // Abandoned follow-up. The page prints no italic before this line.
   "s:garbled-dock:continue": (g) => {
@@ -2204,12 +1844,7 @@ Fuel: ${n}.`,
     if (sensors(g) < 2) return;
     const n = rollFuel("s:garbled-dock:sensors2", (lo, hi) => between(g, [lo, hi]));
     g.fuel += n;
-    result(
-      g,
-      eventText("event_LANIUS_FUELING_STATION_LIST_3_c2_text"),
-      undefined,
-      [`Fuel: ${n}.`],
-    );
+    result(g, eventText("event_LANIUS_FUELING_STATION_LIST_3_c2_text"), undefined, [`Fuel: ${n}.`]);
   },
   // Advanced Sensors, level 3. Same label as the level-2 scan. A level-3 ship may take either; neither is picked for it.
   "s:garbled-dock:sensors3": (g) => {
@@ -2252,22 +1887,22 @@ Fuel: ${n}.`,
   "c:refueling-platform:0": (g) => {
     const kind = pick(g, ["offer", "steal", "ignite", "staff", "ambush"] as const);
     if (kind === "offer") {
-      const choices = [opt("s:refuel-dock:reject", "event_FUELING_STATION_NORMAL_LIST_1_c2_choice")];
+      const choices = [
+        opt("s:refuel-dock:reject", "event_FUELING_STATION_NORMAL_LIST_1_c2_choice"),
+      ];
       if (refuelOffer()) {
-        choices.unshift(opt("s:refuel-dock:accept", "event_FUELING_STATION_NORMAL_LIST_1_c1_choice"));
+        choices.unshift(
+          opt("s:refuel-dock:accept", "event_FUELING_STATION_NORMAL_LIST_1_c1_choice"),
+        );
       }
       card(g, eventText("event_FUELING_STATION_NORMAL_LIST_1_text"), choices);
       return;
     }
     if (kind === "steal") {
-      card(
-        g,
-        eventText("event_FUELING_STATION_NORMAL_LIST_2_text"),
-        [
-          opt("s:refuel-dock:steal", "event_FUELING_STATION_NORMAL_LIST_2_c1_choice"),
-          opt("s:refuel-dock:values", "event_FUELING_STATION_NORMAL_LIST_2_c2_choice"),
-        ],
-      );
+      card(g, eventText("event_FUELING_STATION_NORMAL_LIST_2_text"), [
+        opt("s:refuel-dock:steal", "event_FUELING_STATION_NORMAL_LIST_2_c1_choice"),
+        opt("s:refuel-dock:values", "event_FUELING_STATION_NORMAL_LIST_2_c2_choice"),
+      ]);
       return;
     }
     if (kind === "ignite") {
@@ -2300,12 +1935,7 @@ Fuel: ${n}.`,
   "s:refuel-dock:steal": (g) => {
     const n = rollFuel("s:refuel-dock:steal", (lo, hi) => between(g, [lo, hi]));
     g.fuel += n;
-    result(
-      g,
-      eventText("event_FUELING_STATION_NORMAL_LIST_2_c1_text"),
-      undefined,
-      [`Fuel: ${n}.`],
-    );
+    result(g, eventText("event_FUELING_STATION_NORMAL_LIST_2_c1_text"), undefined, [`Fuel: ${n}.`]);
   },
   "s:refuel-dock:values": (g) => {
     result(g, "Nothing happens.");
@@ -2314,16 +1944,10 @@ Fuel: ${n}.`,
   "s:refuel-dock:quick": (g) => {
     if (pick(g, ["safe", "boom"] as const) === "safe") {
       g.fuel += rollFuel("s:refuel-dock:quick", (lo, hi) => between(g, [lo, hi]));
-      result(
-        g,
-        eventText("event_FUELING_STATION_BLOW_1_text"),
-        undefined,
-        ["Fuel: 5."],
-      );
+      result(g, eventText("event_FUELING_STATION_BLOW_1_text"), undefined, ["Fuel: 5."]);
       return;
     }
-    const text =
-      eventText("event_FUELING_STATION_BLOW_2_text");
+    const text = eventText("event_FUELING_STATION_BLOW_2_text");
     if (damageHull(g, 3)) return;
     refuelEngines(g, true);
     // The page says lose 3 fuel. INFERRED: fuel does not go below zero.
@@ -2332,16 +1956,12 @@ Fuel: ${n}.`,
     result(g, text, undefined, [`Fuel: -${lost}.`]);
   },
   "s:refuel-dock:berth": (g) => {
-    result(
-      g,
-      eventText("event_FUELING_STATION_NORMAL_LIST_3_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_FUELING_STATION_NORMAL_LIST_3_c2_text"), undefined, [
+      "Nothing happens.",
+    ]);
   },
   "s:refuel-dock:wait": (g) => {
-    const text =
-      eventText("event_FUELING_STATION_PIRATE_LIST_1_c1_text");
+    const text = eventText("event_FUELING_STATION_PIRATE_LIST_1_c1_text");
     if (damageHull(g, 3)) return;
     hurtSystem(g.player, "engines", 3);
     // "2-4 boarders". The race is not named. INFERRED: human, the same as the pirate burst on Abandoned station.
@@ -2352,12 +1972,7 @@ Fuel: ${n}.`,
   "s:refuel-dock:doors": (g) => {
     if ((g.player.systems.doors?.level ?? 0) < 2) return;
     g.fuel += rollFuel("s:refuel-dock:doors", (lo, hi) => between(g, [lo, hi]));
-    result(
-      g,
-      eventText("event_FUELING_STATION_PIRATE_LIST_1_c2_text"),
-      undefined,
-      ["Fuel: 5."],
-    );
+    result(g, eventText("event_FUELING_STATION_PIRATE_LIST_1_c2_text"), undefined, ["Fuel: 5."]);
   },
   // Rebel ship supplying civilians. "Leave them be." One printed result.
   "c:rebel-ship-supplying-civilians:1": (g) => {
@@ -2397,21 +2012,11 @@ Fuel: ${n}.`,
   },
   // Lanius ship attacking Mantis. "Leave the Mantis to their fate." One printed result.
   "c:lanius-ship-attacking-mantis:1": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_MANTIS_DISTRESS_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_MANTIS_DISTRESS_c2_text"), undefined, ["Nothing happens."]);
   },
   // Lanius ship attacking Slug. "Leave the Slugs to their fate." One printed result.
   "c:lanius-ship-attacking-slug:1": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_SLUG_DISTRESS_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_SLUG_DISTRESS_c2_text"), undefined, ["Nothing happens."]);
   },
   // Zoltan ship follows Mantis ship. "Interfere and save the Mantis ship." One printed lead-in, then a Zoltan ship fight in the asteroid field.
   "c:zoltan-ship-follows-mantis-ship:0": (g) => {
@@ -2451,40 +2056,20 @@ Fuel: ${n}.`,
     // > "Don't interfere." — [[Zoltan ship follows Mantis ship]]
     // > "The Zoltan know their business better than most - best to leave them to it. You prepare to jump." — [[Zoltan ship follows Mantis ship]]
     // > "Nothing happens." — [[Zoltan ship follows Mantis ship]]
-    result(
-      g,
-      eventText("event_ZOLTAN_DISTRESS_MANTIS_c3_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_ZOLTAN_DISTRESS_MANTIS_c3_text"), undefined, ["Nothing happens."]);
   },
   // Zoltan wise man. "Mantis." One printed lead-in, then a Mantis ship whose crew are all Mantis.
   "c:zoltan-wise-man:0": (g) => {
-    pageFight(
-      g,
-      eventText("event_ZOLTAN_RIFT_FIGHT_c1_text"),
-      "Mantis ship",
-      "zoltan-wise-man",
-    );
+    pageFight(g, eventText("event_ZOLTAN_RIFT_FIGHT_c1_text"), "Mantis ship", "zoltan-wise-man");
     allMantisCrew(g);
   },
   // Zoltan wise man. "Slug." One printed lead-in, then a Slug ship fight. The page does not say the crew are all Mantis.
   "c:zoltan-wise-man:1": (g) => {
-    pageFight(
-      g,
-      eventText("event_ZOLTAN_RIFT_FIGHT_c2_text"),
-      "Slug ship",
-      "zoltan-wise-man",
-    );
+    pageFight(g, eventText("event_ZOLTAN_RIFT_FIGHT_c2_text"), "Slug ship", "zoltan-wise-man");
   },
   // Zoltan wise man. "Rockmen." One printed lead-in, then a Rock ship fight. The page does not say the crew are all Mantis.
   "c:zoltan-wise-man:2": (g) => {
-    pageFight(
-      g,
-      eventText("event_ZOLTAN_RIFT_FIGHT_c3_text"),
-      "Rock ship",
-      "zoltan-wise-man",
-    );
+    pageFight(g, eventText("event_ZOLTAN_RIFT_FIGHT_c3_text"), "Rock ship", "zoltan-wise-man");
   },
   // Space station under construction. "Decline." One printed result.
   "c:space-station-under-construction:1": (g) => {
@@ -2494,14 +2079,10 @@ Fuel: ${n}.`,
   // Clone Bay: "Your clonebay obviously does not revive your crewmember since they did not die."
   "c:space-station-under-construction:2": (g) => {
     if (!hasLanius(g)) return;
-    card(
-      g,
-      eventText("event_QUEST_CONSTRUCTIONYARD_c3_text"),
-      [
-        opt("q:station:sale", "event_QUEST_CONSTRUCTIONYARD_c3_c1_c1_choice"),
-        opt("q:station:nosale", "event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_choice"),
-      ],
-    );
+    card(g, eventText("event_QUEST_CONSTRUCTIONYARD_c3_text"), [
+      opt("q:station:sale", "event_QUEST_CONSTRUCTIONYARD_c3_c1_c1_choice"),
+      opt("q:station:nosale", "event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_choice"),
+    ]);
   },
   "q:station:sale": (g) => {
     const living = g.crew.filter((c) => c.side === "player" && c.hp > 0);
@@ -2509,19 +2090,13 @@ Fuel: ${n}.`,
     // The project does not remove the last living crewmember. A clone bay does not bring a sold Lanius back.
     if (!sold || living.length < 2) return;
     g.crew = g.crew.filter((c) => c.id !== sold.id);
-    result(
-      g,
-      eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c1_text"),
-      scrapOnly(g, "high"),
-      [`${sold.name} is gone.`, grantRandomItem(g, "augment")],
-    );
+    result(g, eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c1_text"), scrapOnly(g, "high"), [
+      `${sold.name} is gone.`,
+      grantRandomItem(g, "augment"),
+    ]);
   },
   "q:station:nosale": (g) => {
-    result(
-      g,
-      eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_text"),
-      scrapOnly(g, "medium"),
-    );
+    result(g, eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_text"), scrapOnly(g, "medium"));
   },
   // Crystal ship attacking Federation loyalists. "Save the Federation ship." One printed lead-in, then a Crystal ship fight.
   // {{SurrenderEscape(alt)|no|CRYSTAL_FED}} is not this line.
@@ -2535,40 +2110,20 @@ Fuel: ${n}.`,
   },
   // Crystal ship attacking Federation loyalists. "Prepare to leave." One printed result.
   "c:crystal-ship-attacking-federation-loyalists:1": (g) => {
-    result(
-      g,
-      eventText("event_CRYSTAL_FED_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_CRYSTAL_FED_c2_text"), undefined, ["Nothing happens."]);
   },
   // Engi smashed ships. "Attempt to help the ships by prying them apart." One printed lead-in, then an Engi ship fight.
   "c:engi-smashed-ships:0": (g) => {
-    pageFight(
-      g,
-      eventText("event_ENGI_SEX_c1_text"),
-      "Engi ship",
-      "engi-smashed-ships",
-    );
+    pageFight(g, eventText("event_ENGI_SEX_c1_text"), "Engi ship", "engi-smashed-ships");
   },
   // The Engi virus. "Attack the Engi vessel!" One printed lead-in, then an Engi ship fight. Halving engines and shields is the other choice.
   "c:the-engi-virus:1": (g) => {
-    pageFight(
-      g,
-      eventText("event_ENGI_VIRUS_c1_c2_text"),
-      "Engi ship",
-      "the-engi-virus",
-    );
+    pageFight(g, eventText("event_ENGI_VIRUS_c1_c2_text"), "Engi ship", "the-engi-virus");
   },
   // The Engi virus. "Hold on! Let us try to purge the system code!" One printed lead-in, then an Engi ship fight.
   // The page halves Engines and Shields, rounding down. This handler returns before citedChoose, so the half is applied here.
   "c:the-engi-virus:0": (g) => {
-    pageFight(
-      g,
-      eventText("event_ENGI_VIRUS_c1_c1_text"),
-      "Engi ship",
-      "the-engi-virus",
-    );
+    pageFight(g, eventText("event_ENGI_VIRUS_c1_c1_text"), "Engi ship", "the-engi-virus");
     halvePlayerSystems(g, ["engines", "shields"]);
   },
   // Slug hacker (choice). "Shields." One printed lead-in, then a Slug ship fight.
@@ -2647,32 +2202,20 @@ Fuel: ${n}.`,
   },
   // Rebel ship attacking Crystal ship. "Ignore them." One printed result.
   "c:rebel-ship-attacking-crystal-ship:2": (g) => {
-    result(g, eventText("event_CRYSTAL_REBEL_CRYSTAL_c3_text"), undefined, [
-      "Nothing happens.",
-    ]);
+    result(g, eventText("event_CRYSTAL_REBEL_CRYSTAL_c3_text"), undefined, ["Nothing happens."]);
   },
   // Rebel ship attacking Crystal ship. Template:Crystal Ship Saved. The Crystal weapon is not named.
   "q:rebel-crystal:contact": (g) => crystalContact(g),
   // Slug hacker (oxygen). "Try to squeeze some extra power to the system." One printed lead-in, then a Slug ship fight.
   // The page halves the Oxygen system, rounding down. This handler returns before citedChoose, so the half is applied here.
   "c:slug-hacker-oxygen:1": (g) => {
-    pageFight(
-      g,
-      eventText("event_NEBULA_SLUG_OXYGEN_c2_text"),
-      "Slug ship",
-      "slug-hacker-oxygen",
-    );
+    pageFight(g, eventText("event_NEBULA_SLUG_OXYGEN_c2_text"), "Slug ship", "slug-hacker-oxygen");
     halvePlayerSystems(g, ["oxygen"]);
   },
   // Slug hacker (oxygen). "Counter the remote hacking." One printed lead-in, then a Slug ship fight.
   // The page says "Hacking offline". INFERRED: the installed level stays, and a launch is refused until that fight ends.
   "c:slug-hacker-oxygen:2": (g) => {
-    pageFight(
-      g,
-      eventText("event_NEBULA_SLUG_OXYGEN_c3_text"),
-      "Slug ship",
-      "slug-hacker-oxygen",
-    );
+    pageFight(g, eventText("event_NEBULA_SLUG_OXYGEN_c3_text"), "Slug ship", "slug-hacker-oxygen");
     shutPlayerHacking(g);
   },
   // Slug hacker (doors). "Counter the remote hacking." One printed lead-in, then a Slug ship fight.
@@ -2682,12 +2225,7 @@ Fuel: ${n}.`,
   // Both endings on this path pay high scrap. Continue pays medium when the ship is destroyed.
   "c:slug-hacker-doors:1": (g) => {
     doorsCounterWin.set(g, true);
-    pageFight(
-      g,
-      eventText("event_NEBULA_SLUG_DOORS_c2_text"),
-      "Slug ship",
-      "slug-hacker-doors",
-    );
+    pageFight(g, eventText("event_NEBULA_SLUG_DOORS_c2_text"), "Slug ship", "slug-hacker-doors");
     shutPlayerHacking(g);
   },
   // Slug hacker (medical). "Counter the remote hacking." One printed lead-in, then a Slug ship fight.
@@ -2695,12 +2233,7 @@ Fuel: ${n}.`,
   // INFERRED: the installed hacking level stays, and a launch is refused until that fight ends.
   // This handler returns before citedChoose, so the Continue path's medical shutdown and boarders do not run.
   "c:slug-hacker-medical:1": (g) => {
-    pageFight(
-      g,
-      eventText("event_NEBULA_SLUG_MEDBAY_c3_text"),
-      "Slug ship",
-      "slug-hacker-medical",
-    );
+    pageFight(g, eventText("event_NEBULA_SLUG_MEDBAY_c3_text"), "Slug ship", "slug-hacker-medical");
     shutPlayerHacking(g);
     slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
   },
@@ -2709,12 +2242,7 @@ Fuel: ${n}.`,
   // This handler returns before citedChoose, so the Continue path's full medical shutdown does not run.
   "c:slug-hacker-medical:2": (g) => {
     if ((g.player.systems.medbay?.level ?? 0) < 2) return;
-    pageFight(
-      g,
-      eventText("event_NEBULA_SLUG_MEDBAY_c2_text"),
-      "Slug ship",
-      "slug-hacker-medical",
-    );
+    pageFight(g, eventText("event_NEBULA_SLUG_MEDBAY_c2_text"), "Slug ship", "slug-hacker-medical");
     halvePlayerSystems(g, ["medbay"]);
     slugBoarders(g, 2, 2, "slug boarders beam aboard your ship.");
   },
@@ -2769,22 +2297,12 @@ Fuel: ${n}.`,
     // > "(Hacking System) Counter the remote hacking." — [[Pirate engine hacker]]
     // > "Your Hacking System automatically counters the digital assault and you move in to fight the ship." — [[Pirate engine hacker]]
     // > "Fight the Pirate ship with your Hacking offline." — [[Pirate engine hacker]]
-    pageFight(
-      g,
-      eventText("event_AUTO_HACKER_c2_text"),
-      "Pirate ship",
-      "pirate-engine-hacker",
-    );
+    pageFight(g, eventText("event_AUTO_HACKER_c2_text"), "Pirate ship", "pirate-engine-hacker");
     shutPlayerHacking(g);
   },
   // Zoltan retake the ship. "Leave." One printed result.
   "c:zoltan-retake-the-ship:1": (g) => {
-    result(
-      g,
-      eventText("event_ZOLTAN_LIFERAFT_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_ZOLTAN_LIFERAFT_c2_text"), undefined, ["Nothing happens."]);
   },
   // Federation Deserters. "Attack the traitors." One printed lead-in, then a Federation ship fight.
   "c:federation-deserters:0": (g) => {
@@ -2797,12 +2315,7 @@ Fuel: ${n}.`,
   },
   // Federation Deserters. "Leave them be." One printed result.
   "c:federation-deserters:1": (g) => {
-    result(
-      g,
-      eventText("event_CRYSTAL_FED_DESERTER_c3_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_CRYSTAL_FED_DESERTER_c3_text"), undefined, ["Nothing happens."]);
   },
   // Rebel ship attacking refueling outpost. "Intervene to defend the outpost." One printed lead-in, then a Rebel ship fight.
   // Never-escape and never-surrender stay on this fight slug.
@@ -2825,37 +2338,21 @@ Fuel: ${n}.`,
   },
   // Auto-ship attacking outpost. "Avoid the conflict." One printed result.
   "c:auto-ship-attacking-outpost:1": (g) => {
-    result(
-      g,
-      eventText("event_AUTO_REFUEL_STATION_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_AUTO_REFUEL_STATION_c2_text"), undefined, ["Nothing happens."]);
   },
   // Auto-ship attacking civilian. "Stay out of it." One printed result.
   "c:auto-ship-attacking-civilian:1": (g) => {
-    result(g, eventText("event_AUTO_CIVILIAN_c2_text"), undefined, [
-      "Nothing happens.",
-    ]);
+    result(g, eventText("event_AUTO_CIVILIAN_c2_text"), undefined, ["Nothing happens."]);
   },
   // Rebel ship attacking refueling outpost. "Avoid the conflict." One printed result.
   "c:rebel-ship-attacking-refueling-outpost:1": (g) => {
-    result(
-      g,
-      eventText("event_SQUAT_REFUEL_STATION_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_SQUAT_REFUEL_STATION_c2_text"), undefined, ["Nothing happens."]);
   },
   // Rebel ship attacking refueling outpost. "Contact the outpost." Medium fuel (tooltip 2-4) and medium scrap.
   "q:refuel-outpost:contact": (g) => {
     const offer = scrapOnly(g, "medium");
     offer.fuel = rollFuel("q:refuel-outpost:contact", (lo, hi) => between(g, [lo, hi]));
-    result(
-      g,
-      eventText("ship_SQUAT_REFUEL_STATION_destroyed_c1_text"),
-      offer,
-    );
+    result(g, eventText("ship_SQUAT_REFUEL_STATION_destroyed_c1_text"), offer);
   },
   // Rebel ship attacking civilians in Last Stand. "Prepare to fight the Rebel ship!" One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-civilians-in-last-stand:0": (g) => {
@@ -2868,9 +2365,7 @@ Fuel: ${n}.`,
   },
   // Rebel ship attacking civilians in Last Stand. "There's no time, get ready to jump." One printed result.
   "c:rebel-ship-attacking-civilians-in-last-stand:1": (g) => {
-    result(g, eventText("event_BOSS_SCOUT_RESCUE_c2_text"), undefined, [
-      "Nothing happens.",
-    ]);
+    result(g, eventText("event_BOSS_SCOUT_RESCUE_c2_text"), undefined, ["Nothing happens."]);
   },
   // Rebel ship attacking civilians in Last Stand. "Contact the survivors." Three results, no odds. INFERRED: equal.
   // The supplies line is Rewards, Stuff: medium resources and low scrap. The page names no bonus item, so none is granted.
@@ -2908,21 +2403,11 @@ Fuel: ${n}.`,
   },
   // Lanius ship in rich debris field. "Ignore the vessel." One printed result.
   "c:lanius-ship-in-rich-debris-field:2": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_HARVESTER_c5_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_HARVESTER_c5_text"), undefined, ["Nothing happens."]);
   },
   // Lanius ship attacking civilian distress. "Avoid the conflict." One printed result.
   "c:lanius-ship-attacking-civilian-distress:1": (g) => {
-    result(
-      g,
-      eventText("event_LANIUS_DISTRESS_FIGHT_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_DISTRESS_FIGHT_c2_text"), undefined, ["Nothing happens."]);
   },
   // Rebel ship attacking Federation loyalists. "Aid the Federation ship." One printed lead-in, then a Rebel ship fight.
   "c:rebel-ship-attacking-federation-loyalists:0": (g) => {
@@ -2936,36 +2421,19 @@ Fuel: ${n}.`,
   // Rebel ship warning has no choice. Arrival calls this id.
   // "Fight a Rebel ship that is running away." One printed lead-in, then the running Rebel fight.
   "c:rebel-ship-warning:0": (g) => {
-    pageFight(
-      g,
-      eventText("ship_SQUAT_WARNING_escape_text"),
-      "Rebel ship",
-      "rebel-ship-warning",
-    );
+    pageFight(g, eventText("ship_SQUAT_WARNING_escape_text"), "Rebel ship", "rebel-ship-warning");
   },
   // Rebel ship attacking Federation loyalists. "Use this chance to escape." One printed result.
   "c:rebel-ship-attacking-federation-loyalists:1": (g) => {
-    result(
-      g,
-      eventText("event_REBEL_VS_FEDERATION_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_REBEL_VS_FEDERATION_c2_text"), undefined, ["Nothing happens."]);
   },
   // Rebel shipyard. "Leave immediately." One printed result. Do not grant the unnamed salvage or start the Flagship fight.
   "c:rebel-shipyard:1": (g) => {
-    result(
-      g,
-      eventText("event_FLAGSHIP_CONSTRUCTION_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_FLAGSHIP_CONSTRUCTION_c2_text"), undefined, ["Nothing happens."]);
   },
   // Rebel transport ship. "Avoid the ship." One printed result.
   "c:rebel-transport-ship:1": (g) => {
-    result(g, eventText("event_REBEL_TRANSPORT_c2_text"), undefined, [
-      "Nothing happens.",
-    ]);
+    result(g, eventText("event_REBEL_TRANSPORT_c2_text"), undefined, ["Nothing happens."]);
   },
   // Mantis ship attacking civilian. "Aid the civilian ship." One printed lead-in, then a Mantis ship fight.
   "c:mantis-ship-attacking-civilian:0": (g) => {
@@ -3043,21 +2511,15 @@ Fuel: ${n}.`,
       // Wiki citations:
       // > "After a few moments of uncertainty, your crew is allowed to pass." — [[Zoltan security checkpoint]]
       // > "Nothing happens." — [[Zoltan security checkpoint]]
-      result(g, eventText("event_ZOLTAN_CREW_SCAN_LIST_1_text"), undefined, [
-        "Nothing happens.",
-      ]);
+      result(g, eventText("event_ZOLTAN_CREW_SCAN_LIST_1_text"), undefined, ["Nothing happens."]);
       return;
     }
     // Wiki citations:
     // > "The Zoltan security staff board your ship and begin scanning the crew's faces into a computer. Suddenly alarms go off and the Zoltan leap on one of your crew! \"This person is wanted on five charges of Utter Villainy! Surrender them to us!\"" — [[Zoltan security checkpoint]]
-    card(
-      g,
-      eventText("event_ZOLTAN_CREW_SCAN_LIST_2_text"),
-      [
-        opt("q:zoltan-checkpoint:give", "event_ZOLTAN_CREW_SCAN_LIST_2_c1_choice"),
-        opt("q:zoltan-checkpoint:fight", "event_ZOLTAN_CREW_SCAN_LIST_2_c2_choice"),
-      ],
-    );
+    card(g, eventText("event_ZOLTAN_CREW_SCAN_LIST_2_text"), [
+      opt("q:zoltan-checkpoint:give", "event_ZOLTAN_CREW_SCAN_LIST_2_c1_choice"),
+      opt("q:zoltan-checkpoint:fight", "event_ZOLTAN_CREW_SCAN_LIST_2_c2_choice"),
+    ]);
   },
   // Clone Bay has no effect. INFERRED: never the last crewmember.
   "q:zoltan-checkpoint:give": (g) => {
@@ -3073,16 +2535,8 @@ Fuel: ${n}.`,
       g.crew = g.crew.filter((c) => c.id !== lost.id);
       extras.push(`${lost.name} is lost.`);
     }
-    if (g.player.kits.clonebay)
-      extras.push(
-        eventText("event_ZOLTAN_CREW_SCAN_LIST_2_c1_c0_clone"),
-      );
-    result(
-      g,
-      eventText("event_ZOLTAN_CREW_SCAN_LIST_2_c1_text"),
-      undefined,
-      extras,
-    );
+    if (g.player.kits.clonebay) extras.push(eventText("event_ZOLTAN_CREW_SCAN_LIST_2_c1_c0_clone"));
+    result(g, eventText("event_ZOLTAN_CREW_SCAN_LIST_2_c1_text"), undefined, extras);
   },
   // The scan fight is not the attack fight. Weapon Control is halved, and 2-4 Zoltan boarders come aboard.
   "q:zoltan-checkpoint:fight": (g) => {
@@ -3138,11 +2592,9 @@ Fuel: ${n}.`,
       );
       return;
     }
-    card(
-      g,
-      eventText("event_PIRATE_CIVILIAN_BEACON_BEAM_2_text"),
-      [opt("q:lanius-civilian:contact", "continue")],
-    );
+    card(g, eventText("event_PIRATE_CIVILIAN_BEACON_BEAM_2_text"), [
+      opt("q:lanius-civilian:contact", "continue"),
+    ]);
   },
   // Auto-ship near storage station. Two results, no odds. INFERRED: equal.
   "c:auto-ship-near-storage-station:2": (g) => {
@@ -3156,10 +2608,7 @@ Fuel: ${n}.`,
       );
       return;
     }
-    storageInvestigate(
-      g,
-      eventText("event_AUTO_DEFENSE_ITEM_CLOAK_1_text"),
-    );
+    storageInvestigate(g, eventText("event_AUTO_DEFENSE_ITEM_CLOAK_1_text"));
   },
   // Auto-ship near storage station in nebula. Cloaking: two results, no odds. INFERRED: equal.
   "c:auto-ship-near-storage-station-in-nebula:2": (g) => {
@@ -3196,10 +2645,7 @@ Fuel: ${n}.`,
       showEventLines(g, [spent]);
       return;
     }
-    storageInvestigate(
-      g,
-      eventText("event_NEBULA_AUTO_DEFENSE_ITEM_HACK_1_text"),
-    );
+    storageInvestigate(g, eventText("event_NEBULA_AUTO_DEFENSE_ITEM_HACK_1_text"));
     showEventLines(g, [spent]);
   },
   // Improved Hacking, level 2+, one drone part. Always the station.
@@ -3208,10 +2654,7 @@ Fuel: ${n}.`,
     if ((g.player.kits.hacking?.level ?? 0) < 2 || n == null) return;
     takeStock(g, "parts", n);
     const spent = partsLine(n);
-    storageInvestigate(
-      g,
-      eventText("event_NEBULA_AUTO_DEFENSE_ITEM_c6_text"),
-    );
+    storageInvestigate(g, eventText("event_NEBULA_AUTO_DEFENSE_ITEM_c6_text"));
     showEventLines(g, [spent]);
   },
   // Auto-ship near radar station. {{DuplicateEvent|2}} on the station, once on the fight.
@@ -3257,12 +2700,10 @@ Fuel: ${n}.`,
     if ((g.player.kits.hacking?.level ?? 0) <= 0 || n == null) return;
     takeStock(g, "parts", n);
     g.fleet = Math.max(0, g.fleet - 1);
-    result(
-      g,
-      eventText("ship_REBEL_AUTO_RADAR_destroyed_c3_text"),
-      undefined,
-      [partsLine(n), "The Rebel Fleet is delayed for 1 turn."],
-    );
+    result(g, eventText("ship_REBEL_AUTO_RADAR_destroyed_c3_text"), undefined, [
+      partsLine(n),
+      "The Rebel Fleet is delayed for 1 turn.",
+    ]);
   },
   // Template:Investigate the station. Four results, no odds. INFERRED: equal.
   // The weapon and the drone schematic are unnamed: Rewards, "Weapon": "A random weapon & T scrap." / "Drone": "A
@@ -3270,70 +2711,43 @@ Fuel: ${n}.`,
   "q:auto-storage:investigate": (g) => {
     const kind = pick(g, ["weapon", "schematic", "resources", "nothing"] as const);
     if (kind === "weapon") {
-      result(
-        g,
-        eventText("event_DEFENSE_ITEM_LIST_3_text"),
-        scrapOnly(g, "low"),
-        [grantRandomItem(g, "weapon")],
-      );
+      result(g, eventText("event_DEFENSE_ITEM_LIST_3_text"), scrapOnly(g, "low"), [
+        grantRandomItem(g, "weapon"),
+      ]);
       return;
     }
     if (kind === "schematic") {
-      result(
-        g,
-        eventText("event_DEFENSE_ITEM_LIST_2_text"),
-        scrapOnly(g, "low"),
-        [grantRandomItem(g, "drone")],
-      );
+      result(g, eventText("event_DEFENSE_ITEM_LIST_2_text"), scrapOnly(g, "low"), [
+        grantRandomItem(g, "drone"),
+      ]);
       return;
     }
     if (kind === "resources") {
-      result(
-        g,
-        eventText("event_DEFENSE_ITEM_LIST_4_text"),
-        rollSurrenderOffer(g, "medium", true),
-      );
+      result(g, eventText("event_DEFENSE_ITEM_LIST_4_text"), rollSurrenderOffer(g, "medium", true));
       return;
     }
-    result(
-      g,
-      eventText("event_DEFENSE_ITEM_LIST_1_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_DEFENSE_ITEM_LIST_1_text"), undefined, ["Nothing happens."]);
   },
   "c:auto-ship-near-sensor-station:3": (g) => {
     if (!hasTeleporter(g)) return;
-    result(
-      g,
-      eventText("event_AUTO_DEFENSE_MAP_c4_text"),
-    );
+    result(g, eventText("event_AUTO_DEFENSE_MAP_c4_text"));
   },
   "q:lanius-scout:inspect": (g) => {
     const offer = scrapOnly(g, pick(g, ["low", "medium", "high"]));
     if (pick(g, ["map", "fleet"] as const) === "fleet") {
       g.fleet = Math.max(0, g.fleet - 1);
-      result(
-        g,
-        eventText("event_LANIUS_AUTO_REBEL_LIST_2_text"),
-        offer,
-        ["The Rebel Fleet is delayed for 1 turn."],
-      );
+      result(g, eventText("event_LANIUS_AUTO_REBEL_LIST_2_text"), offer, [
+        "The Rebel Fleet is delayed for 1 turn.",
+      ]);
       return;
     }
-    result(
-      g,
-      eventText("event_LANIUS_AUTO_REBEL_LIST_1_text"),
-      offer,
-    );
+    result(g, eventText("event_LANIUS_AUTO_REBEL_LIST_1_text"), offer);
   },
   // Lanius lone ship, "Try to contact the Lanius ship." The civilian warning, then one button.
   "c:lanius-lone-ship:2": (g) => {
-    card(
-      g,
-      eventText("event_LANIUS_SCARED_CIVILIAN_c3_text"),
-      [opt("q:lanius-lone:continue", "event_LANIUS_SCARED_CIVILIAN_c3_c1_choice")],
-    );
+    card(g, eventText("event_LANIUS_SCARED_CIVILIAN_c3_text"), [
+      opt("q:lanius-lone:continue", "event_LANIUS_SCARED_CIVILIAN_c3_c1_choice"),
+    ]);
   },
   // Three results, no odds. INFERRED: equal. The fight is default Lanius rewards, so there is no PAGE_WINS row.
   "q:lanius-lone:continue": (g) => {
@@ -3361,12 +2775,9 @@ Fuel: ${n}.`,
       );
       return;
     }
-    result(
-      g,
-      eventText("event_LANIUS_SCARED_CIVILIAN_LIST_2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_LANIUS_SCARED_CIVILIAN_LIST_2_text"), undefined, [
+      "Nothing happens.",
+    ]);
   },
   // {{Blue Option|Lanius Crew|Try to contact the ship.}} A dead Lanius does not count.
   "c:lanius-lone-ship:3": (g) => {
@@ -3430,11 +2841,7 @@ Fuel: ${n}.`,
       );
       return;
     }
-    result(
-      g,
-      eventText("event_LANIUS_DORMANT_PILOT_2_text"),
-      scrapOnly(g, "low"),
-    );
+    result(g, eventText("event_LANIUS_DORMANT_PILOT_2_text"), scrapOnly(g, "low"));
   },
   // {{Blue Option|Lanius Crew}}. Medium resources with some scrap (Rewards, Stuff). The unnamed bonus item is not granted.
   "q:lanius-dormant:plunder": (g) => {
@@ -3448,31 +2855,19 @@ Fuel: ${n}.`,
   // {{Blue Option|Advanced Piloting|level=2+}}. Medium scrap with resources.
   "q:lanius-dormant:autopilot": (g) => {
     if ((g.player.systems.pilot?.level ?? 0) < 2) return;
-    result(
-      g,
-      eventText("event_LANIUS_DORMANT_INVESTIGATE_c4_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_LANIUS_DORMANT_INVESTIGATE_c4_text"), rollStandard(g, "medium"));
   },
   // Engi fleet discussion, "Message them and ask if you can help." -> "Nothing happens."
   "c:engi-fleet-discussion:0": (g) => {
     // Wiki citations:
     // > "Slightly shocked at your question, their leader quickly responds, \"Declined offer with apologetic gratitude. Topic of discussion private matter, no concern of Federation.\"" — [[Engi fleet discussion]]
-    result(
-      g,
-      eventText("event_ENGI_UNLOCK_1_c1_text"),
-    );
+    result(g, eventText("event_ENGI_UNLOCK_1_c1_text"));
   },
   // Engi fleet discussion. "Ignore it and move on." One printed result.
   "c:engi-fleet-discussion:1": (g) => {
     // Wiki citations:
     // > "You can't help but wonder what they were discussing as you prepare to jump." — [[Engi fleet discussion]]
-    result(
-      g,
-      eventText("event_ENGI_UNLOCK_1_c2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_ENGI_UNLOCK_1_c2_text"), undefined, ["Nothing happens."]);
   },
   // {{Blue Option|Engi Crew|Have your Engi crewmember contact them.}}
   "c:engi-fleet-discussion:2": (g) => {
@@ -3480,11 +2875,9 @@ Fuel: ${n}.`,
     // Wiki citations:
     // > "Your crew member syncs with the comm unit to communicate with them directly. You offer your help and a summary of the ship's mission. They respond, \"Our goals have analogous elements. However, not all available for disclosure, discretion necessary.\"" — [[Engi fleet discussion]]
     // > "Offer your help." — [[Engi fleet discussion]]
-    card(
-      g,
-      eventText("event_ENGI_UNLOCK_1_c3_text"),
-      [opt("q:engi-fleet:offer", "event_ENGI_UNLOCK_1_c3_c1_choice")],
-    );
+    card(g, eventText("event_ENGI_UNLOCK_1_c3_text"), [
+      opt("q:engi-fleet:offer", "event_ENGI_UNLOCK_1_c3_c1_choice"),
+    ]);
   },
   "q:engi-fleet:offer": (g) => {
     // Wiki citations:
@@ -3497,13 +2890,12 @@ Fuel: ${n}.`,
     const second = addQuest(g, "engi-fake");
     card(
       g,
-      `"Secret technologies stolen by Mantis. Implicit connection to Rebels. Implicit. Tracked Mantis to hidden Rebel base, uploading coordinates."
-
-${first}
-
-"However, tracked second ship to different base. Would calculate probability but data insufficient. Cannot risk obvious Rebel-Engi conflict. Also, need time to acquire military ships. Assist in finding technology?"
-
-${second}`,
+      [
+        eventText("event_ENGI_UNLOCK_1_c3_c1_text"),
+        first,
+        eventText("event_ENGI_UNLOCK_1_c3_c1_c1_text"),
+        second,
+      ].join("\n\n"),
       [opt("ack", "event_ENGI_UNLOCK_1_c3_c1_c1_c1_choice")],
     );
   },
@@ -3529,43 +2921,29 @@ ${second}`,
     ] as ["join" | "deceive" | "trigger" | "evisc", number][]);
     if (r === "join") {
       const joined = crew(g, "Human");
-      defectorFight(
-        g,
-        eventText("event_ALISON_DEFECTOR_HELP_3_text"),
-      );
+      defectorFight(g, eventText("event_ALISON_DEFECTOR_HELP_3_text"));
       showEventLines(g, [joined]);
     } else if (r === "deceive") {
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "engines", 1);
       g.fleet *= 2;
-      defectorFight(
-        g,
-        eventText("event_ALISON_DEFECTOR_HELP_1_text"),
-      );
+      defectorFight(g, eventText("event_ALISON_DEFECTOR_HELP_1_text"));
       showEventLines(g, ["Rebel Fleet pursuit is doubled."]);
     } else if (r === "trigger") {
       if (damageHull(g, 3)) return;
-      defectorFight(
-        g,
-        eventText("event_ALISON_DEFECTOR_HELP_2_text"),
-      );
+      defectorFight(g, eventText("event_ALISON_DEFECTOR_HELP_2_text"));
       humanBoarders(g, 2, 2);
     } else {
       // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). Never the last living crewmember.
       const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
       let extra = "";
-      if (g.player.kits.clonebay)
-        extra =
-          eventText("event_ALISON_DEFECTOR_HELP_6_c0_clone");
+      if (g.player.kits.clonebay) extra = eventText("event_ALISON_DEFECTOR_HELP_6_c0_clone");
       else if (mine.length > 1) {
         const lost = pick(g, mine);
         g.crew = g.crew.filter((c) => c.id !== lost.id);
         extra = `${lost.name} is gone.`;
       }
-      defectorFight(
-        g,
-        eventText("event_ALISON_DEFECTOR_HELP_6_text"),
-      );
+      defectorFight(g, eventText("event_ALISON_DEFECTOR_HELP_6_text"));
       humanBoarders(g, 1, 1);
       if (extra) showEventLines(g, [extra]);
     }
@@ -3580,23 +2958,16 @@ ${second}`,
     // > "You fight a Rebel ship (default rewards)." — [[Rebel defector]]
     const r = pick(g, ["cache", "boarder", "fight"] as const);
     if (r === "cache") {
-      card(
-        g,
-        eventText("event_ALISON_DEFECTOR_REJECT_3_text"),
-        [
-          opt("q:defector:reluctant", "event_ALISON_DEFECTOR_REJECT_3_c1_choice"),
-          opt("q:defector:execute", "event_ALISON_DEFECTOR_REJECT_3_c2_choice"),
-          opt("q:defector:again", "event_ALISON_DEFECTOR_REJECT_3_c3_choice"),
-        ],
-      );
+      card(g, eventText("event_ALISON_DEFECTOR_REJECT_3_text"), [
+        opt("q:defector:reluctant", "event_ALISON_DEFECTOR_REJECT_3_c1_choice"),
+        opt("q:defector:execute", "event_ALISON_DEFECTOR_REJECT_3_c2_choice"),
+        opt("q:defector:again", "event_ALISON_DEFECTOR_REJECT_3_c3_choice"),
+      ]);
     } else if (r === "boarder") {
       defectorFight(g, eventText("event_ALISON_DEFECTOR_REJECT_2_text"));
       humanBoarders(g, 1, 1);
     } else {
-      defectorFight(
-        g,
-        eventText("event_ALISON_DEFECTOR_REJECT_1_text"),
-      );
+      defectorFight(g, eventText("event_ALISON_DEFECTOR_REJECT_1_text"));
     }
   },
   "q:defector:reluctant": (g) => {
@@ -3621,45 +2992,31 @@ ${second}`,
     if (r === "join") {
       const joined = crew(g, "Human");
       const line = addQuest(g, "defector-cache");
-      defectorFight(
-        g,
-        eventText("event_ALISON_DEFECTOR_HELP_2_3_text"),
-      );
+      defectorFight(g, eventText("event_ALISON_DEFECTOR_HELP_2_3_text"));
       showEventLines(g, [joined, line]);
     } else if (r === "deceive") {
       // "3 hull damage, 1 damage to engines; Rebel Fleet pursuit is doubled". Doubling as cited-events.ts fx "double".
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "engines", 1);
       g.fleet *= 2;
-      defectorFight(
-        g,
-        eventText("event_ALISON_DEFECTOR_HELP_2_1_text"),
-      );
+      defectorFight(g, eventText("event_ALISON_DEFECTOR_HELP_2_1_text"));
       showEventLines(g, ["Rebel Fleet pursuit is doubled."]);
     } else if (r === "trigger") {
       if (damageHull(g, 3)) return;
       hurtSystem(g.player, "pilot", 1);
-      defectorFight(
-        g,
-        eventText("event_ALISON_DEFECTOR_HELP_2_2_text"),
-      );
+      defectorFight(g, eventText("event_ALISON_DEFECTOR_HELP_2_2_text"));
       humanBoarders(g, 2, 2);
     } else {
       // "You lose a crewmember" (Clone Bay: "The lost crewmember is revived."). INFERRED: never the last crewmember.
       const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
       let extra = "";
-      if (g.player.kits.clonebay)
-        extra =
-          eventText("event_ALISON_DEFECTOR_HELP_2_6_c0_clone");
+      if (g.player.kits.clonebay) extra = eventText("event_ALISON_DEFECTOR_HELP_2_6_c0_clone");
       else if (mine.length > 1) {
         const lost = pick(g, mine);
         g.crew = g.crew.filter((c) => c.id !== lost.id);
         extra = `${lost.name} is gone.`;
       }
-      defectorFight(
-        g,
-        eventText("event_ALISON_DEFECTOR_HELP_2_6_text"),
-      );
+      defectorFight(g, eventText("event_ALISON_DEFECTOR_HELP_2_6_text"));
       humanBoarders(g, 1, 1);
       if (extra) showEventLines(g, [extra]);
     }
@@ -3693,10 +3050,7 @@ ${second}`,
         { ...NEVER_RUN },
       );
     } else {
-      result(
-        g,
-        eventText("event_MANTIS_LANDING_PARTY_LEAVE_2_text"),
-      );
+      result(g, eventText("event_MANTIS_LANDING_PARTY_LEAVE_2_text"));
     }
   },
   "q:war-camp:missile": (g) => {
@@ -3718,9 +3072,7 @@ ${second}`,
     const joined = crew(g, "Engi");
     result(
       g,
-      `It appears they have not set up a Teleporter disruption field yet. You deposit one bomb in a fuel depot and another in the barracks. Mantis comm channels fill with panicked chatter and you watch a number of structures go up in flames.
-
-With most of their ships and forces focused on the chaos, you slip undetected to a nearby depot. You find some useful resources and an Engi slave who gladly accepts your liberation.`,
+      eventText("event_QUEST_MANTIS_INVASION_c3_text"),
       rollSurrenderOffer(g, "high", true),
       [joined],
     );
@@ -3737,8 +3089,7 @@ With most of their ships and forces focused on the chaos, you slip undetected to
     // "while a planet-side Anti-Ship Battery periodically fires on your ship."
     g.asb = true;
   },
-  "q:station:leave": (g) =>
-    result(g, eventText("event_QUEST_CONSTRUCTIONYARD_LIST_1_c2_text")),
+  "q:station:leave": (g) => result(g, eventText("event_QUEST_CONSTRUCTIONYARD_LIST_1_c2_text")),
   "q:station:contact": (g) => {
     result(
       g,
@@ -3760,17 +3111,9 @@ With most of their ships and forces focused on the chaos, you slip undetected to
       ["engi", 1],
     ] as ["rest" | "hull" | "pirate" | "battery" | "clone" | "engi", number][]);
     if (r === "rest") {
-      result(
-        g,
-        eventText("event_EMPTY_STATION2_LIST_2_text"),
-        scrapOnly(g, "low"),
-      );
+      result(g, eventText("event_EMPTY_STATION2_LIST_2_text"), scrapOnly(g, "low"));
     } else if (r === "hull") {
-      result(
-        g,
-        eventText("event_EMPTY_STATION2_LIST_3_text"),
-        scrapOnly(g, "low"),
-      );
+      result(g, eventText("event_EMPTY_STATION2_LIST_3_text"), scrapOnly(g, "low"));
     } else if (r === "pirate") {
       pageFight(
         g,
@@ -3782,30 +3125,22 @@ With most of their ships and forces focused on the chaos, you slip undetected to
     } else if (r === "battery") {
       humanBoarders(g, 2, 4, "boarders beam aboard.");
       beginBoarding(g, true);
-      showEventLines(g, [
-        eventText("event_EMPTY_STATION2_LIST_6_text"),
-      ]);
+      showEventLines(g, [eventText("event_EMPTY_STATION2_LIST_6_text")]);
     } else if (r === "clone") {
-      const choices: Choice[] = [opt("q:station:scrapmachines", "event_EMPTY_STATION2_LIST_4_c2_choice")];
+      const choices: Choice[] = [
+        opt("q:station:scrapmachines", "event_EMPTY_STATION2_LIST_4_c2_choice"),
+      ];
       if (g.player.kits.clonebay)
         choices.unshift(opt("q:station:dna", "event_EMPTY_STATION2_LIST_4_c1_choice"));
-      card(
-        g,
-        eventText("event_EMPTY_STATION2_LIST_4_text"),
-        choices,
-      );
+      card(g, eventText("event_EMPTY_STATION2_LIST_4_text"), choices);
     } else {
-      result(
-        g,
-        eventText("event_EMPTY_STATION2_LIST_1_text"),
-      );
+      result(g, eventText("event_EMPTY_STATION2_LIST_1_text"));
     }
   },
   // Clonebay DNA: DuplicateEvent|2 calm crewmember, or 1 crazed boarder. No printed odds (weight 2 / 1).
   // The crazed boarder's race is not named. INFERRED human, same as the unnamed boarders on this page.
   "q:station:dna": (g) => {
-    const rebuilt =
-      eventText("event_EMPTY_STATION2_LIST_4_c1_text");
+    const rebuilt = eventText("event_EMPTY_STATION2_LIST_4_c1_text");
     if (
       weighted(g, [
         ["calm", 2],
@@ -3814,16 +3149,14 @@ With most of their ships and forces focused on the chaos, you slip undetected to
     ) {
       humanBoarders(g, 1, 1, "boarder beams aboard.");
       beginBoarding(g);
-      showEventLines(g, [
-        `${rebuilt} The clone emerges in a crazed frenzy and refuses to calm down. You have no choice but to fight.`,
-      ]);
+      showEventLines(g, [`${rebuilt} ${eventText("event_EMPTY_STATION2_CLONE_3_text")}`]);
       return;
     }
     // DuplicateEvent|2: calms down, or seems to accept. INFERRED: equal.
     const calm =
       rand(g) < 0.5
-        ? `${rebuilt} The clone is extremely confused but calms down after you try to explain the situation. With no other options the clone offers to work on your ship for a time.`
-        : `${rebuilt} The clone is extremely confused but seems to accept their new situation. With no other options the clone offers to work on your ship for a time.`;
+        ? `${rebuilt} ${eventText("event_EMPTY_STATION2_CLONE_1_text")}`
+        : `${rebuilt} ${eventText("event_EMPTY_STATION2_CLONE_2_text")}`;
     result(g, calm, undefined, [crew(g, randomRace(g))]);
   },
   "q:station:scrapmachines": (g) =>
@@ -3833,20 +3166,13 @@ With most of their ships and forces focused on the chaos, you slip undetected to
     const n = affordStock(g, "q:station:fuel4", "fuel");
     if (n == null) return;
     takeStock(g, "fuel", n);
-    result(
-      g,
-      eventText("event_QUEST_CONSTRUCTIONYARD_LIST_3_c1_text"),
-      scrapOnly(g, "medium"),
-    );
+    result(g, eventText("event_QUEST_CONSTRUCTIONYARD_LIST_3_c1_text"), scrapOnly(g, "medium"));
   },
   "q:station:fuel1": (g) => {
     const n = affordStock(g, "q:station:fuel1", "fuel");
     if (n == null) return;
     takeStock(g, "fuel", n);
-    result(
-      g,
-      eventText("event_QUEST_CONSTRUCTIONYARD_LIST_3_c2_text"),
-    );
+    result(g, eventText("event_QUEST_CONSTRUCTIONYARD_LIST_3_c2_text"));
   },
   "q:station:none": (g) => result(g, eventText("event_QUEST_CONSTRUCTIONYARD_LIST_3_c3_text")),
 
@@ -3862,25 +3188,16 @@ With most of their ships and forces focused on the chaos, you slip undetected to
   "q:mantis-chase:fight": (g) => {
     // Wiki citations:
     // > "Fight a Mantis Bomber with crew entirely composed of Mantis." — [[Mantis ship-collectors#Quest Marker]]
-    pageFight(
-      g,
-      "",
-      "Mantis Bomber",
-      "quest-mantis-chase",
-      hullRun(100, 60, 12),
-    );
+    pageFight(g, "", "Mantis Bomber", "quest-mantis-chase", hullRun(100, 60, 12));
     allMantisCrew(g);
   },
 
   "q:loyalists:contact": (g) => {
     const r = pick(g, ["base", "supplies", "rescue"] as const);
     if (r === "base") {
-      result(
-        g,
-        eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_1_text"),
-        undefined,
-        [addQuest(g, "fed-base")],
-      );
+      result(g, eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_1_text"), undefined, [
+        addQuest(g, "fed-base"),
+      ]);
     } else if (r === "supplies") {
       result(
         g,
@@ -3890,32 +3207,24 @@ With most of their ships and forces focused on the chaos, you slip undetected to
     } else loyalistsRescueCard(g);
   },
   "q:loyalists:rescue": (g) => {
-    result(
-      g,
-      eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_c1_text"),
-      rollStandard(g, "low"),
-      [crew(g, randomRace(g))],
-    );
+    result(g, eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_c1_text"), rollStandard(g, "low"), [
+      crew(g, randomRace(g)),
+    ]);
   },
   "q:loyalists:medbot": (g) => {
     // "a crewmember with 1 skill in shields, and high (3-6 fuel) fuel and scrap" (Rewards, "Fuel": T fuel & T scrap).
     const offer = scrapOnly(g, "high");
     offer.fuel = rollFuel("q:loyalists:medbot", (lo, hi) => between(g, [lo, hi]));
-    result(
-      g,
-      eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_c2_text"),
-      offer,
-      [crew(g, randomRace(g), "shields")],
-    );
+    result(g, eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_c2_text"), offer, [
+      crew(g, randomRace(g), "shields"),
+    ]);
   },
   "q:loyalists:teleport": (g) => {
     const joined = crew(g, randomRace(g), "combat");
-    result(
-      g,
-      eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_c3_text"),
-      scrapOnly(g, "medium"),
-      [joined, addQuest(g, "fed-base")],
-    );
+    result(g, eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_c3_text"), scrapOnly(g, "medium"), [
+      joined,
+      addQuest(g, "fed-base"),
+    ]);
   },
   // {{Blue Option|Healing Burst}}. 1 missile. A crewmember with 1 skill in engines, medium scrap, and the Federation base.
   "q:loyalists:heal": (g) => {
@@ -3923,49 +3232,34 @@ With most of their ships and forces focused on the chaos, you slip undetected to
     if (n == null || !g.player.weapons.some((w) => w.defId === "BOMB_HEAL")) return;
     takeStock(g, "missiles", n);
     const joined = crew(g, randomRace(g), "engines");
-    result(
-      g,
-      `You launch a healing bomb into their ship and the Nanobots are able to keep the crew stabilized. Once they come to, you send over some supplies to keep them healthy enough to get to friendly territory.
-
-Now that they're safe an engineer offers to join your crew and the rest tell you of a hidden Federation base a few jumps from here.`,
-      scrapOnly(g, "medium"),
-      [missileLine(n), joined, addQuest(g, "fed-base")],
-    );
+    result(g, eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_c4_text"), scrapOnly(g, "medium"), [
+      missileLine(n),
+      joined,
+      addQuest(g, "fed-base"),
+    ]);
   },
   // Improved Sensors, level 2: medium scrap with resources.
   "q:fed-base:scan-2": (g) => {
     if (sensors(g) < 2) return;
-    result(
-      g,
-      eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_c2_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_c2_text"), rollStandard(g, "medium"));
   },
   // Advanced Sensors, level 3: a weapon with medium scrap.
   "q:fed-base:scan-3": (g) => {
     if (sensors(g) < 3) return;
-    result(
-      g,
-      eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_c3_text"),
-      scrapOnly(g, "medium"),
-      [grantRandomItem(g, "weapon")],
-    );
+    result(g, eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_c3_text"), scrapOnly(g, "medium"), [
+      grantRandomItem(g, "weapon"),
+    ]);
   },
   // Long-Ranged Scanners: a weapon with medium scrap. The weapon is not named.
   "q:fed-base:scan-glass": (g) => {
     if (!g.augments.includes("ADV_SCANNERS")) return;
-    result(
-      g,
-      eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_c4_text"),
-      scrapOnly(g, "medium"),
-      [grantRandomItem(g, "weapon")],
-    );
+    result(g, eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_c4_text"), scrapOnly(g, "medium"), [
+      grantRandomItem(g, "weapon"),
+    ]);
   },
-  "q:fed-base:assist": (g) =>
-    pageFight(g, "", "Auto-ship", "quest-fed-assist"),
+  "q:fed-base:assist": (g) => pageFight(g, "", "Auto-ship", "quest-fed-assist"),
   // The other non-AE arrival. Same sentence, a different contact.
-  "q:fed-base:assist-repair": (g) =>
-    pageFight(g, "", "Auto-ship", "quest-fed-assist-repair"),
+  "q:fed-base:assist-repair": (g) => pageFight(g, "", "Auto-ship", "quest-fed-assist-repair"),
   // AE Auto-ship. "periodically" prints no seconds: aidPlayerAsb is the existing friendly battery.
   "q:fed-base:assist-asb": (g) => {
     pageFight(g, "", "Auto-ship", "quest-fed-assist-asb");
@@ -3987,78 +3281,54 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
   },
   // Non-AE contact fixed by the weapon arrival: a crewmember and a weapon with low scrap.
   "q:fed-assist:contact": (g) => {
-    result(
-      g,
-      eventText("ship_AUTO_FEDERATION_BASE_destroyed_c1_text"),
-      scrapOnly(g, "low"),
-      [crew(g, randomRace(g)), grantRandomItem(g, "weapon")],
-    );
+    result(g, eventText("ship_AUTO_FEDERATION_BASE_destroyed_c1_text"), scrapOnly(g, "low"), [
+      crew(g, randomRace(g)),
+      grantRandomItem(g, "weapon"),
+    ]);
   },
   // Non-AE contact fixed by the repair arrival: a crewmember, high scrap with resources, and 7 repairs.
   "q:fed-assist-repair:contact": (g) => {
-    result(
-      g,
-      eventText("ship_AUTO_FEDERATION_BASE2_destroyed_c1_text"),
-      rollStandard(g, "high"),
-      [crew(g, randomRace(g)), repair(g, 7)],
-    );
+    result(g, eventText("ship_AUTO_FEDERATION_BASE2_destroyed_c1_text"), rollStandard(g, "high"), [
+      crew(g, randomRace(g)),
+      repair(g, 7),
+    ]);
   },
   // AE Auto-ship contact: a crewmember, high scrap with resources, and 7 repairs.
   "q:fed-assist-asb:contact": (g) => {
-    result(
-      g,
-      eventText("ship_AUTO_FEDERATION_BASE2_destroyed_c1_text"),
-      rollStandard(g, "high"),
-      [crew(g, randomRace(g)), repair(g, 7)],
-    );
+    result(g, eventText("ship_AUTO_FEDERATION_BASE2_destroyed_c1_text"), rollStandard(g, "high"), [
+      crew(g, randomRace(g)),
+      repair(g, 7),
+    ]);
   },
   // AE Elite contact: a crewmember and no scrap. The footnote drops only the scrap.
   "q:fed-assist-wing:contact": (g) => {
-    result(
-      g,
-      eventText("ship_REBEL_FEDERATION_PDS_gotaway_c1_text"),
-      undefined,
-      [crew(g, randomRace(g))],
-    );
+    result(g, eventText("ship_REBEL_FEDERATION_PDS_gotaway_c1_text"), undefined, [
+      crew(g, randomRace(g)),
+    ]);
   },
 
   "q:thief:strip": (g) => {
-    result(
-      g,
-      eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c1_text"),
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c1_text"), rollStandard(g, "high"));
   },
   "q:thief:teleport": (g) => thiefDyingCard(g, false),
   "q:thief:scan": (g) => thiefDyingCard(g, true),
   "q:thief:mercy": (g) => {
-    result(
-      g,
-      eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c1_text"),
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c1_text"), rollStandard(g, "high"));
   },
   "q:thief:listen": (g) => {
-    result(
-      g,
-      eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c2_text"),
-      rollStandard(g, "high"),
-      [addQuest(g, "thief-stash")],
-    );
+    result(g, eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c2_text"), rollStandard(g, "high"), [
+      addQuest(g, "thief-stash"),
+    ]);
   },
   "q:thief:save": (g) => {
-    card(
-      g,
-      eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c3_text"),
-      [opt("q:thief:accept", "event_MANTIS_NAMED_THIEF_DEFEAT_c2_c3_c1_choice")],
-    );
+    card(g, eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c3_text"), [
+      opt("q:thief:accept", "event_MANTIS_NAMED_THIEF_DEFEAT_c2_c3_c1_choice"),
+    ]);
   },
   "q:thief:clone": (g) => {
-    card(
-      g,
-      eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c4_text"),
-      [opt("q:thief:accept", "event_MANTIS_NAMED_THIEF_DEFEAT_c2_c3_c1_choice")],
-    );
+    card(g, eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c4_text"), [
+      opt("q:thief:accept", "event_MANTIS_NAMED_THIEF_DEFEAT_c2_c3_c1_choice"),
+    ]);
   },
   "q:thief:accept": (g) => {
     // "receive high scrap, Mantis Pheromones augmentation, Mantis crewmember named Kazaaak maxed in all skills, and a
@@ -4071,12 +3341,11 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
       c.skills = Object.fromEntries(all.map((s) => [s, xpNeedFor(c, s) * 2]));
       joined = "Kazaaak joins your crew.";
     }
-    result(
-      g,
-      eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c3_c1_text"),
-      scrapOnly(g, "high"),
-      [joined, grantAug(g, "CREW_STIMS"), addQuest(g, "thief-stash")],
-    );
+    result(g, eventText("event_MANTIS_NAMED_THIEF_DEFEAT_c2_c3_c1_text"), scrapOnly(g, "high"), [
+      joined,
+      grantAug(g, "CREW_STIMS"),
+      addQuest(g, "thief-stash"),
+    ]);
   },
 
   "q:slug-trap:engage": (g) => {
@@ -4163,11 +3432,9 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
     // Wiki citations:
     // > "\"Likely ploy by Rebels to avoid breaking non-aggression pact with Engi. 97.56 percent likely. Your mission to assist last Federation fleet, correct? Coordinates?\"" — [[Engi fleet discussion#Victory]]
     // > "Transmit coordinates of Federation command." — [[Engi fleet discussion#Victory]]
-    card(
-      g,
-      eventText("event_ENGI_UNLOCK_4_c1_text"),
-      [opt("q:engi-victory:transmit", "event_ENGI_UNLOCK_4_c1_c1_choice")],
-    );
+    card(g, eventText("event_ENGI_UNLOCK_4_c1_text"), [
+      opt("q:engi-victory:transmit", "event_ENGI_UNLOCK_4_c1_c1_choice"),
+    ]);
   },
   "q:engi-victory:transmit": (g) => {
     // Wiki citations:
@@ -4176,23 +3443,17 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
     // "You unlock the Stealth Cruiser; you receive Titanium System Casing augmentation, high scrap with resources and your
     // ship receives 20 repairs." The unlock is the grantUnlock line below.
     grantUnlock(g, "PLAYER_SHIP_STEALTH"); // @agent:unlocks. "You unlock the Stealth Cruiser".
-    result(
-      g,
-      eventText("event_ENGI_UNLOCK_4_c1_c1_text"),
-      rollStandard(g, "high"),
-      [grantAug(g, "SYSTEM_CASING"), repair(g, 20)],
-    );
+    result(g, eventText("event_ENGI_UNLOCK_4_c1_c1_text"), rollStandard(g, "high"), [
+      grantAug(g, "SYSTEM_CASING"),
+      repair(g, 20),
+    ]);
   },
 
   // "this ship is always a Slug Assault class" / the interceptor: "It is always a Slug Interceptor class" (enemy-gen classId).
   "q:slug-platform:charge": (g) => {
-    pageFight(
-      g,
-      eventText("event_SLUG_UNLOCK_1_c1_text"),
-      "Slug Assault",
-      "quest-slug-platform",
-      { ...NEVER_RUN },
-    );
+    pageFight(g, eventText("event_SLUG_UNLOCK_1_c1_text"), "Slug Assault", "quest-slug-platform", {
+      ...NEVER_RUN,
+    });
   },
   "q:slug-platform:tail": (g) => {
     const choices: Choice[] = [
@@ -4200,30 +3461,18 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
       opt("q:slug-platform:wait", "event_SLUG_UNLOCK_2_c2_choice"),
     ];
     // {{Blue Option|Slug Crew|...}}, {{Blue Option|Improved Sensors|...|level=2+}}.
-    if (hasSlug(g))
-      choices.push(opt("q:slug-platform:slug", "event_SLUG_UNLOCK_2_c3_choice"));
+    if (hasSlug(g)) choices.push(opt("q:slug-platform:slug", "event_SLUG_UNLOCK_2_c3_choice"));
     if (sensors(g) >= 2)
       choices.push(opt("q:slug-platform:sensors", "event_SLUG_UNLOCK_2_c4_choice"));
-    card(
-      g,
-      eventText("event_SLUG_UNLOCK_2_text"),
-      choices,
-    );
+    card(g, eventText("event_SLUG_UNLOCK_2_text"), choices);
   },
   "q:slug-platform:slow": (g) => {
-    pageFight(
-      g,
-      eventText("event_SLUG_UNLOCK_2_c1_text"),
-      "Slug Assault",
-      "quest-slug-platform",
-      { ...NEVER_RUN },
-    );
+    pageFight(g, eventText("event_SLUG_UNLOCK_2_c1_text"), "Slug Assault", "quest-slug-platform", {
+      ...NEVER_RUN,
+    });
   },
   "q:slug-platform:wait": (g) => {
-    result(
-      g,
-      eventText("event_SLUG_UNLOCK_2_c2_text"),
-    );
+    result(g, eventText("event_SLUG_UNLOCK_2_c2_text"));
   },
   "q:slug-platform:slug": (g) => {
     card(
@@ -4265,10 +3514,7 @@ Now that they're safe an engineer offers to join your crew and the rest tell you
     // Wiki citations:
     // > "After a time the ship powers down its weapons and jumps away. No life-signs are detected on the moon." — [[Settlement mercenary work#Quest marker]]
     // > "Nothing happens." — [[Settlement mercenary work#Quest marker]]
-    result(
-      g,
-      eventText("event_QUEST_STORE_RESCUE_c2_text"),
-    );
+    result(g, eventText("event_QUEST_STORE_RESCUE_c2_text"));
   },
 };
 
@@ -4291,9 +3537,7 @@ function payLaniusTrader(g: Game, id: string) {
   g.scrapCollected = (g.scrapCollected ?? 0) + scrap;
   const b = here(g);
   if (b) b.resolved = true;
-  result(g, eventText("event_LANIUS_TRADER_LIST_1_text"), undefined, [
-    `Scrap: ${scrap}.`,
-  ]);
+  result(g, eventText("event_LANIUS_TRADER_LIST_1_text"), undefined, [`Scrap: ${scrap}.`]);
 }
 
 /** surrender.ts surrenderChoose calls this first. True when the id was a quest choice. */
@@ -4431,24 +3675,24 @@ export function questAfterCited(g: Game, id: string) {
     // Escort civilians FTL haywire, Lead them. Low scrap is already applied; the card does not print a count.
     const body =
       id === "c:escort-civilians:0"
-        ? `"Great. Take this bit of fuel as a down-payment. We'll be one step behind you, following your jump signatures. Don't want to take any risks now, do we?"
+        ? `${eventText("event_QUEST_ESCORT_c1_text")}
 
 ${line}`
         : id === "c:mantis-war-camp:0"
-          ? `"Thank you! If you can just give us a count on their numbers perhaps we can get the Rebels to help."
+          ? `${eventText("event_QUEST_MANTIS_INVASION_START_c1_text")}
 
 ${line}`
           : id === "c:space-station-under-construction:0"
-            ? `"Great. Thanks for your help. I've marked their last known coordinates and sent over some supplies to help you get there."
+            ? `${eventText("event_QUEST_CONSTRUCTIONYARD_c1_text")}
 
 ${line}`
             : id === "c:escort-civilians-ftl-haywire:0"
-              ? `"Take this bit of scrap as a down-payment. We'll use your jump signatures to follow you. You're really helping us out here."
+              ? `${eventText("event_ESCORT_BEACON_c1_text")}
 
 ${line}`
               : line;
     // A short card so the marker line is seen; "ack" goes back to the map (the beacon is already resolved).
-    g.event = { title: here(g)?.name ?? "Event", body, choices: ACK };
+    g.event = { title: here(g)?.name ?? "Event", body, choices: ACK() };
     g.phase = "event";
     g.paused = true;
     return;
@@ -4468,15 +3712,29 @@ ${line}`
 export type Win = (g: Game, deadCrew: boolean) => boolean | void;
 
 /** Rewards, "Standard" by destroyed / crew-killed, with the page's text. */
+/** Text read when it is shown: a table built at module load holds `lazyText(id)`, not the line itself. */
+export type LazyText = string | (() => string);
+export const lazyText =
+  (id: string): (() => string) =>
+  () =>
+    eventText(id);
+const shown = (t: LazyText): string => (typeof t === "function" ? t() : t);
+
 export function std(
   destroyed: SurrenderTier,
   killed: SurrenderTier,
-  textD: string,
-  textK = textD,
-  then?: Choice[],
+  textD: LazyText,
+  textK: LazyText = textD,
+  then?: Choice[] | (() => Choice[]),
 ): Win {
   return (g, deadCrew) =>
-    result(g, deadCrew ? textK : textD, rollStandard(g, deadCrew ? killed : destroyed), [], then);
+    result(
+      g,
+      shown(deadCrew ? textK : textD),
+      rollStandard(g, deadCrew ? killed : destroyed),
+      [],
+      typeof then === "function" ? then() : then,
+    );
 }
 
 /** Rock and Slug standoff. "Your ship reactor is upgraded." No step is printed. INFERRED: one bar.
@@ -4517,7 +3775,7 @@ export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []
     const note = eventReactor(g);
     result(
       g,
-      `${lead} The Slug Captain offers a free reactor upgrade for your help. It never hurts to get a little power boost!`,
+      `${lead} ${eventText("event_ROCK_SLUG_GRATEFUL_2_text")}`,
       undefined,
       [...extras, note].filter(Boolean),
     );
@@ -4532,25 +3790,22 @@ export function slugCaptainGrateful(g: Game, lead: string, extras: string[] = []
     const tail = extras.length ? ` ${extras.join(" ")}` : "";
     const choices = [];
     if (n != null) {
-      choices.push({ id: `s:rock-slug:upgrade:${n}`, label: `Agree to the price. [${n} scrap]` });
+      choices.push({
+        id: `s:rock-slug:upgrade:${n}`,
+        label: `${eventText("event_ROCK_SLUG_GRATEFUL_3_c1_choice")} [${n} scrap]`,
+      });
     }
     choices.push(opt("s:rock-slug:decline", "event_ROCK_SLUG_GRATEFUL_3_c2_choice"));
-    card(
-      g,
-      `${lead} The Slug Captain, thankful for your help, offers a reactor upgrade for your ship... for a 'fair' price.${tail}`,
-      choices,
-    );
+    card(g, `${lead} ${eventText("event_ROCK_SLUG_GRATEFUL_3_text")}${tail}`, choices);
     return;
   }
   // Wiki citations:
   // > "The Slugs offer their thanks for your help, and jump away. Their true appreciation is questionable, but at least you can get back to your mission." — [[Rock and Slug standoff#Slug reward]]
   // > "Nothing happens." — [[Rock and Slug standoff#Slug reward]]
-  result(
-    g,
-    `${lead} The Slugs offer their thanks for your help, and jump away. Their true appreciation is questionable, but at least you can get back to your mission.`,
-    undefined,
-    [...extras, "Nothing happens."],
-  );
+  result(g, `${lead} ${eventText("event_ROCK_SLUG_GRATEFUL_1_text")}`, undefined, [
+    ...extras,
+    "Nothing happens.",
+  ]);
 }
 
 /** Transaction 10-15 subtract_scrap. The amount is the one shown on the choice. */
@@ -4561,11 +3816,7 @@ export function rockSlugPay(g: Game, kind: "debt" | "upgrade", n: number): boole
     // Wiki citations:
     // > "Offer to pay off the Rock debt. [ Scrap lost: 10-15 ]" — [[Rock and Slug standoff]]
     // > "You pay off the debt. The Rock Captain still seems annoyed at the Slug's getting their 'undeserved' scrap, but at least the situation will remain peaceful." — [[Rock and Slug standoff]]
-    slugCaptainGrateful(
-      g,
-      eventText("event_ROCK_SLUG_ARGUMENT_c1_c1_text"),
-      [`Scrap: -${n}.`],
-    );
+    slugCaptainGrateful(g, eventText("event_ROCK_SLUG_ARGUMENT_c1_c1_text"), [`Scrap: -${n}.`]);
     return true;
   }
   // Wiki citations:
@@ -4596,19 +3847,17 @@ function laniusCivilianWin(g: Game, deadCrew: boolean) {
   );
 }
 
-const SCOUT_INSPECT: Choice[] = [
-  opt("q:lanius-scout:inspect", "continue"),
-];
+const SCOUT_INSPECT = (): Choice[] => [opt("q:lanius-scout:inspect", "continue")];
 
 /** Lanius ship absorbing automated scout. Destroyed pays medium standard. A crew kill pays high. Then inspect. */
 function laniusScoutWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
     ? eventText("ship_LANIUS_AUTO_REBEL_deadCrew_text")
     : eventText("ship_LANIUS_AUTO_REBEL_destroyed_text");
-  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], SCOUT_INSPECT);
+  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], SCOUT_INSPECT());
 }
 
-const STORAGE_INVESTIGATE: Choice[] = [
+const STORAGE_INVESTIGATE = (): Choice[] => [
   opt("q:auto-storage:investigate", "ship_REBEL_AUTO_ITEM_destroyed_c1_choice"),
 ];
 
@@ -4620,12 +3869,12 @@ function autoStorageWin(g: Game, deadCrew: boolean) {
     eventText("ship_REBEL_AUTO_ITEM_destroyed_text"),
     scrapOnly(g, "medium"),
     [],
-    STORAGE_INVESTIGATE,
+    STORAGE_INVESTIGATE(),
   );
 }
 
 function storageInvestigate(g: Game, text: string) {
-  card(g, text, STORAGE_INVESTIGATE);
+  card(g, text, STORAGE_INVESTIGATE());
 }
 
 /** Auto-ship near radar station. Combat Drone Mark I and II, and Anti-Ship Beam Drone I and II. */
@@ -4636,7 +3885,7 @@ function hasRadarCombat(g: Game): boolean {
   return !!kit && kit.level > 0 && RADAR_COMBAT.includes(kit.target ?? "");
 }
 
-const RADAR_AFTER: Choice[] = [
+const RADAR_AFTER = (): Choice[] => [
   opt("q:auto-radar:hack", "ship_REBEL_AUTO_RADAR_destroyed_c1_choice"),
   opt("q:auto-radar:leave", "ship_REBEL_AUTO_RADAR_destroyed_c2_choice"),
   opt("q:auto-radar:drone", "ship_REBEL_AUTO_RADAR_destroyed_c3_choice"),
@@ -4650,7 +3899,7 @@ function autoRadarWin(g: Game, deadCrew: boolean) {
     eventText("ship_REBEL_AUTO_RADAR_destroyed_text"),
     scrapOnly(g, "medium"),
     [],
-    RADAR_AFTER,
+    RADAR_AFTER(),
   );
 }
 
@@ -4664,27 +3913,23 @@ function autoRadarAccess(g: Game, lead = "") {
   const extras: string[] = [];
   if (kind === "delay") {
     g.fleet = Math.max(0, g.fleet - 1);
-    text =
-      eventText("event_DEFENSE_RADAR_LIST_1_text");
+    text = eventText("event_DEFENSE_RADAR_LIST_1_text");
     extras.push("The Rebel Fleet is delayed for 1 turn.");
   } else if (kind === "map") {
-    text =
-      eventText("event_DEFENSE_RADAR_LIST_2_text");
+    text = eventText("event_DEFENSE_RADAR_LIST_2_text");
   } else if (kind === "pursuit") {
     g.pursuitDouble = true;
-    text =
-      eventText("event_DEFENSE_RADAR_LIST_4_text");
+    text = eventText("event_DEFENSE_RADAR_LIST_4_text");
     extras.push("Rebel Fleet pursuit is doubled for 1 jump.");
   } else {
-    text =
-      eventText("event_DEFENSE_RADAR_LIST_3_text");
+    text = eventText("event_DEFENSE_RADAR_LIST_3_text");
     extras.push("Nothing happens.");
   }
   result(g, lead ? `${lead} ${text}` : text, undefined, extras);
 }
 
 /** Pirate briber. Continue is not printed. INVENTED label. The five victim results have no odds. INFERRED: equal. */
-const PIRATE_GONE: Choice[] = [opt("q:pirate-briber:gone", "continue")];
+const PIRATE_GONE = (): Choice[] => [opt("q:pirate-briber:gone", "continue")];
 
 /** Destroyed pays a random scrap-only amount. INFERRED: low, medium, and high are equal.
  *  A crew kill pays medium standard. Then the victim. */
@@ -4695,7 +3940,7 @@ function pirateBriberWin(g: Game, deadCrew: boolean) {
       eventText("ship_PIRATE_BRIBER_deadCrew_text"),
       rollStandard(g, "medium"),
       [],
-      PIRATE_GONE,
+      PIRATE_GONE(),
     );
     return;
   }
@@ -4704,7 +3949,7 @@ function pirateBriberWin(g: Game, deadCrew: boolean) {
     eventText("ship_PIRATE_BRIBER_destroyed_text"),
     scrapOnly(g, pick(g, ["low", "medium", "high"])),
     [],
-    PIRATE_GONE,
+    PIRATE_GONE(),
   );
 }
 
@@ -4722,7 +3967,8 @@ type SmugglePay =
   | { k: "random" }
   | { k: "parts" };
 
-type SmuggleRow = { text: string; pay: SmugglePay; item?: "weapon" | "drone" };
+/** `textId` is the archive text id of the row's result. */
+type SmuggleRow = { textId: string; pay: SmugglePay; item?: "weapon" | "drone" };
 
 function smugglePay(g: Game, pay: SmugglePay): SurrenderOffer {
   if (pay.k === "random") return scrapOnly(g, pick(g, ["low", "medium", "high"]));
@@ -4739,7 +3985,7 @@ function smugglePay(g: Game, pay: SmugglePay): SurrenderOffer {
 const SMUGGLE_HULL: [SmuggleRow, number][] = [
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_1_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_1_text",
       pay: { k: "scrap", tier: "medium" },
       item: "weapon",
     },
@@ -4747,7 +3993,7 @@ const SMUGGLE_HULL: [SmuggleRow, number][] = [
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_3_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_3_text",
       pay: { k: "random" },
       item: "weapon",
     },
@@ -4755,7 +4001,7 @@ const SMUGGLE_HULL: [SmuggleRow, number][] = [
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_5_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_5_text",
       pay: { k: "scrap", tier: "medium" },
       item: "drone",
     },
@@ -4763,56 +4009,56 @@ const SMUGGLE_HULL: [SmuggleRow, number][] = [
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_9_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_9_text",
       pay: { k: "standard", tier: "low" },
     },
     1,
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_7_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_7_text",
       pay: { k: "scrap", tier: "medium" },
     },
     1,
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_11_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_11_text",
       pay: { k: "standard", tier: "high" },
     },
     1,
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_6_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_6_text",
       pay: { k: "parts" },
     },
     1,
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_4_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_4_text",
       pay: { k: "scrap", tier: "medium" },
     },
     1,
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_8_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_8_text",
       pay: { k: "scrap", tier: "medium" },
     },
     1,
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_10_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_10_text",
       pay: { k: "standard", tier: "low" },
     },
     1,
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_DESTROYED_2_text"),
+      textId: "event_REBEL_TRANSPORT_DESTROYED_2_text",
       pay: { k: "standard", tier: "low" },
     },
     1,
@@ -4822,7 +4068,7 @@ const SMUGGLE_HULL: [SmuggleRow, number][] = [
 const SMUGGLE_CREW: [SmuggleRow, number][] = [
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_CAPTURED_1_text"),
+      textId: "event_REBEL_TRANSPORT_CAPTURED_1_text",
       pay: { k: "scrap", tier: "medium" },
       item: "weapon",
     },
@@ -4830,7 +4076,7 @@ const SMUGGLE_CREW: [SmuggleRow, number][] = [
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_CAPTURED_4_text"),
+      textId: "event_REBEL_TRANSPORT_CAPTURED_4_text",
       pay: { k: "scrap", tier: "medium" },
       item: "drone",
     },
@@ -4838,14 +4084,14 @@ const SMUGGLE_CREW: [SmuggleRow, number][] = [
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_CAPTURED_2_text"),
+      textId: "event_REBEL_TRANSPORT_CAPTURED_2_text",
       pay: { k: "scrap", tier: "high" },
     },
     1,
   ],
   [
     {
-      text: eventText("event_REBEL_TRANSPORT_CAPTURED_3_text"),
+      textId: "event_REBEL_TRANSPORT_CAPTURED_3_text",
       pay: { k: "scrap", tier: "medium" },
     },
     1,
@@ -4855,43 +4101,31 @@ const SMUGGLE_CREW: [SmuggleRow, number][] = [
 /** Pirate smuggler. Template:Pirate Smuggler / Rebel Transport, destroyed and a crew kill. */
 function smuggleCargoWin(g: Game, deadCrew: boolean) {
   const row = weighted(g, deadCrew ? SMUGGLE_CREW : SMUGGLE_HULL);
-  result(g, row.text, smugglePay(g, row.pay), row.item ? [grantRandomItem(g, row.item)] : []);
+  result(
+    g,
+    eventText(row.textId),
+    smugglePay(g, row.pay),
+    row.item ? [grantRandomItem(g, row.item)] : [],
+  );
 }
 
-const CRYSTAL_CONTACT: Choice[] = [
-  opt("q:crystal-pirate:contact", "continue"),
-];
+const CRYSTAL_CONTACT = (): Choice[] => [opt("q:crystal-pirate:contact", "continue")];
 
 /**
  * Template:Crystal Ship Saved. {{DuplicateEvent|2}} on the reward and on nothing. The printed OR is the two
  * sentences. INFERRED: each sentence is one copy. The Crystal weapon is not named, so none is granted.
  * A random amount of resources is rollStandard with no tier.
  */
-const CRYSTAL_SAVED: [string, "stuff" | "nothing" | "weapon"][] = [
-  [
-    eventText("event_CRYSTAL_SAVED_3_text"),
-    "stuff",
-  ],
-  [
-    eventText("event_CRYSTAL_SAVED_4_text"),
-    "stuff",
-  ],
-  [
-    eventText("event_CRYSTAL_SAVED_1_text"),
-    "nothing",
-  ],
-  [
-    eventText("event_CRYSTAL_SAVED_2_text"),
-    "nothing",
-  ],
-  [
-    eventText("event_CRYSTAL_SAVED_5_text"),
-    "weapon",
-  ],
+const CRYSTAL_SAVED = (): [string, "stuff" | "nothing" | "weapon"][] => [
+  [eventText("event_CRYSTAL_SAVED_3_text"), "stuff"],
+  [eventText("event_CRYSTAL_SAVED_4_text"), "stuff"],
+  [eventText("event_CRYSTAL_SAVED_1_text"), "nothing"],
+  [eventText("event_CRYSTAL_SAVED_2_text"), "nothing"],
+  [eventText("event_CRYSTAL_SAVED_5_text"), "weapon"],
 ];
 
 function crystalContact(g: Game) {
-  const [text, kind] = pick(g, CRYSTAL_SAVED);
+  const [text, kind] = pick(g, CRYSTAL_SAVED());
   if (kind === "stuff") {
     result(g, text, rollStandard(g));
     return;
@@ -4913,18 +4147,10 @@ function rockAtheistPromise(g: Game) {
     [true, 1],
   ] as [boolean, number][]);
   if (!join) {
-    result(
-      g,
-      eventText("event_ROCK_ATHIEST_GOOD_2_text"),
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, eventText("event_ROCK_ATHIEST_GOOD_2_text"), undefined, ["Nothing happens."]);
     return;
   }
-  rockAtheistJoins(
-    g,
-    eventText("event_ROCK_ATHIEST_GOOD_1_text"),
-  );
+  rockAtheistJoins(g, eventText("event_ROCK_ATHIEST_GOOD_1_text"));
 }
 
 /** The page names a Rockman and prints no skill. */
@@ -4937,15 +4163,11 @@ function rockAtheistJoins(g: Game, text: string) {
 
 /** Pirate ship selling drones. The unnamed schematic is not offered. Five parts for 25 scrap stay on the static choice. */
 function pirateDroneDock(g: Game) {
-  card(
-    g,
-    eventText("event_DOCK_DRONE_SALESMAN_text"),
-    [
-      opt("c:pirate-ship-selling-drones:0", "event_DOCK_DRONE_SALESMAN_c1_choice"),
-      opt("q:pirate-drones:nothing", "event_DOCK_DRONE_SALESMAN_c6_choice"),
-      opt("q:pirate-drones:upgrade", "event_DOCK_DRONE_SALESMAN_c3_choice"),
-    ],
-  );
+  card(g, eventText("event_DOCK_DRONE_SALESMAN_text"), [
+    opt("c:pirate-ship-selling-drones:0", "event_DOCK_DRONE_SALESMAN_c1_choice"),
+    opt("q:pirate-drones:nothing", "event_DOCK_DRONE_SALESMAN_c6_choice"),
+    opt("q:pirate-drones:upgrade", "event_DOCK_DRONE_SALESMAN_c3_choice"),
+  ]);
 }
 
 /**
@@ -5027,7 +4249,7 @@ function pirateDroneUpgrade(g: Game) {
   result(g, `Drone Control at level ${level}.`, undefined, [`Scrap: -${cost}.`]);
 }
 
-const REBEL_CHECKPOINT_BRIBE = [
+const REBEL_CHECKPOINT_BRIBE = () => [
   eventText("text_REBEL_BRIBE_TEXT_1"),
   eventText("text_REBEL_BRIBE_TEXT_2"),
   eventText("text_REBEL_BRIBE_TEXT_3"),
@@ -5038,7 +4260,7 @@ const REBEL_CHECKPOINT_BRIBE = [
 function rebelCheckpointBribe(g: Game, n: number) {
   if (!priced("rebel-checkpoint", "bribe", n, "scrap") || g.scrap < n) return;
   g.scrap -= n;
-  const text = pick(g, REBEL_CHECKPOINT_BRIBE);
+  const text = pick(g, REBEL_CHECKPOINT_BRIBE());
   card(
     g,
     `${text}
@@ -5052,36 +4274,18 @@ Scrap: -${n}.`,
 function rebelCheckpointContact(g: Game) {
   const kind = pick(g, ["fight", "standard", "scrap", "nothing"] as const);
   if (kind === "fight") {
-    pageFight(
-      g,
-      eventText("event_REBEL_BRIBE_RESULT_4_text"),
-      "Rebel ship",
-      "rebel-checkpoint",
-    );
+    pageFight(g, eventText("event_REBEL_BRIBE_RESULT_4_text"), "Rebel ship", "rebel-checkpoint");
     return;
   }
   if (kind === "standard") {
-    result(
-      g,
-      eventText("event_REBEL_BRIBE_RESULT_3_text"),
-      rollStandard(g, "low"),
-    );
+    result(g, eventText("event_REBEL_BRIBE_RESULT_3_text"), rollStandard(g, "low"));
     return;
   }
   if (kind === "scrap") {
-    result(
-      g,
-      eventText("event_REBEL_BRIBE_RESULT_2_text"),
-      scrapOnly(g, "low"),
-    );
+    result(g, eventText("event_REBEL_BRIBE_RESULT_2_text"), scrapOnly(g, "low"));
     return;
   }
-  result(
-    g,
-    eventText("event_REBEL_BRIBE_RESULT_1_text"),
-    undefined,
-    ["Nothing happens."],
-  );
+  result(g, eventText("event_REBEL_BRIBE_RESULT_1_text"), undefined, ["Nothing happens."]);
 }
 
 /** Pirate ship attacking Crystal, and Mantis ship attacking Crystal.
@@ -5098,10 +4302,10 @@ function crystalPirateWin(g: Game, deadCrew: boolean) {
   const text = deadCrew
     ? eventText("ship_PIRATE_CRYSTAL_deadCrew_text")
     : eventText("ship_PIRATE_CRYSTAL_destroyed_text");
-  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], CRYSTAL_CONTACT);
+  result(g, text, rollStandard(g, deadCrew ? "high" : "medium"), [], CRYSTAL_CONTACT());
 }
 
-const MANTIS_SLUG_AFTER: Choice[] = [
+const MANTIS_SLUG_AFTER = (): Choice[] => [
   opt("q:mantis-slug:leave", "ship_SLUG_DISTRESS_MANTIS_destroyed_c1_choice"),
   opt("q:mantis-slug:finish", "ship_SLUG_DISTRESS_MANTIS_destroyed_c2_choice"),
 ];
@@ -5116,7 +4320,7 @@ function mantisSlugSaved(g: Game) {
     eventText("ship_SLUG_DISTRESS_MANTIS_destroyed_text"),
     rollStandard(g, "medium"),
     [],
-    MANTIS_SLUG_AFTER,
+    MANTIS_SLUG_AFTER(),
   );
 }
 
@@ -5130,12 +4334,9 @@ function mantisSlugFinish(g: Game) {
     // Wiki citations:
     // > "The Slug captain hails you: \"A misstake! A sssimple misstake. Of course we can pay you! Ssseee? An augmentation has already transported.\" You allow them to leave with their lives." — [[Mantis ship attacking Slug ship]]
     // > "You receive an augmentation with low scrap." — [[Mantis ship attacking Slug ship]]
-    result(
-      g,
-      eventText("event_SLUG_DISTRESS_MANTIS_SURRENDER_2_text"),
-      scrapOnly(g, "low"),
-      [grantRandomItem(g, "augment")],
-    );
+    result(g, eventText("event_SLUG_DISTRESS_MANTIS_SURRENDER_2_text"), scrapOnly(g, "low"), [
+      grantRandomItem(g, "augment"),
+    ]);
     return;
   }
   // Wiki citations:
@@ -5169,39 +4370,21 @@ function pirateGone(g: Game) {
     return;
   }
   if (kind === "repair") {
-    result(
-      g,
-      eventText("event_PIRATE_BRIBER_WIN_5_text"),
-      undefined,
-      [repair(g, 15)],
-    );
+    result(g, eventText("event_PIRATE_BRIBER_WIN_5_text"), undefined, [repair(g, 15)]);
     return;
   }
   if (kind === "rebel") {
-    card(
-      g,
-      eventText("event_PIRATE_BRIBER_WIN_1_text"),
-      [
-        opt("q:pirate-briber:salvage", "event_PIRATE_BRIBER_WIN_1_c1_choice"),
-        opt("q:pirate-briber:delay", "event_PIRATE_BRIBER_WIN_1_c2_choice"),
-      ],
-    );
+    card(g, eventText("event_PIRATE_BRIBER_WIN_1_text"), [
+      opt("q:pirate-briber:salvage", "event_PIRATE_BRIBER_WIN_1_c1_choice"),
+      opt("q:pirate-briber:delay", "event_PIRATE_BRIBER_WIN_1_c2_choice"),
+    ]);
     return;
   }
   if (kind === "scrap") {
-    result(
-      g,
-      eventText("event_PIRATE_BRIBER_WIN_2_text"),
-      scrapOnly(g, "medium"),
-    );
+    result(g, eventText("event_PIRATE_BRIBER_WIN_2_text"), scrapOnly(g, "medium"));
     return;
   }
-  result(
-    g,
-    eventText("event_PIRATE_BRIBER_WIN_3_text"),
-    undefined,
-    ["Nothing happens."],
-  );
+  result(g, eventText("event_PIRATE_BRIBER_WIN_3_text"), undefined, ["Nothing happens."]);
 }
 
 /** Refueling platform garbled broadcast. Both endings pay medium scrap with resources, then the station's fuel.
@@ -5217,7 +4400,7 @@ function garbledBroadcastWin(g: Game, deadCrew: boolean) {
   );
   const station = `${text}
 
-It looks as if the Lanius were uninterested in the fuel reserves on the station, and there is a good amount of fuel left. You take what your ship can hold and prepare to jump to the next beacon.`;
+${eventText("event_LANIUS_FUELING_STATION_END_text")}`;
   if (extra == null) {
     result(g, station, offer);
     return;
@@ -5293,7 +4476,7 @@ export const PAGE_WINS: Record<string, Win> = {
   "settlement-mercenary-work": std(
     "low",
     "low",
-    eventText("ship_SQUAT_PIRATE_MERCENARY_destroyed_text"),
+    lazyText("ship_SQUAT_PIRATE_MERCENARY_destroyed_text"),
   ),
   // The Black Raven: destroyed -> medium, deadCrew -> high scrap with resources.
   // Wiki citations:
@@ -5304,8 +4487,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "the-black-raven": std(
     "medium",
     "high",
-    eventText("ship_DONOR_BLACK_RAVEN_destroyed_text"),
-    eventText("ship_DONOR_BLACK_RAVEN_deadCrew_text"),
+    lazyText("ship_DONOR_BLACK_RAVEN_destroyed_text"),
+    lazyText("ship_DONOR_BLACK_RAVEN_deadCrew_text"),
   ),
   // Zoltan ship asks to dock: destroyed -> low, deadCrew -> medium scrap with resources.
   // Wiki citations:
@@ -5316,8 +4499,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "zoltan-ship-asks-to-dock": std(
     "low",
     "medium",
-    eventText("ship_ZOLTAN_SCIENCE_DOCK_destroyed_text"),
-    eventText("ship_ZOLTAN_SCIENCE_DOCK_deadCrew_text"),
+    lazyText("ship_ZOLTAN_SCIENCE_DOCK_destroyed_text"),
+    lazyText("ship_ZOLTAN_SCIENCE_DOCK_deadCrew_text"),
   ),
   // ---- Other cited pages with a quest branch ----
   // Mantis ship-collectors: destroyed -> medium, deadCrew -> high scrap with resources.
@@ -5329,16 +4512,16 @@ export const PAGE_WINS: Record<string, Win> = {
   "mantis-ship-collectors": std(
     "medium",
     "high",
-    eventText("ship_DONOR_MANTIS_CHASE1_destroyed_text"),
-    eventText("ship_DONOR_MANTIS_CHASE1_deadCrew_text"),
+    lazyText("ship_DONOR_MANTIS_CHASE1_destroyed_text"),
+    lazyText("ship_DONOR_MANTIS_CHASE1_deadCrew_text"),
   ),
   // Rebel ship attacking Federation loyalists: "medium scrap with resources" -> "Contact the Federation ship".
   "rebel-ship-attacking-federation-loyalists": std(
     "medium",
     "medium",
-    eventText("ship_REBEL_VS_FEDERATION_destroyed_text"),
-    eventText("ship_REBEL_VS_FEDERATION_deadCrew_text"),
-    [opt("q:loyalists:contact", "ship_REBEL_VS_FEDERATION_destroyed_c1_choice")],
+    lazyText("ship_REBEL_VS_FEDERATION_destroyed_text"),
+    lazyText("ship_REBEL_VS_FEDERATION_deadCrew_text"),
+    () => [opt("q:loyalists:contact", "ship_REBEL_VS_FEDERATION_destroyed_c1_choice")],
   ),
   // Slug ship boarding Rock ship: both endings pay medium scrap, then the freighter.
   // The nothing result is printed twice. The two sentences are alternatives. INFERRED: equal.
@@ -5361,9 +4544,7 @@ export const PAGE_WINS: Record<string, Win> = {
       // > "You receive medium scrap with resources." — [[Slug ship boarding Rock ship]]
       const more = rollStandard(g, "medium");
       payOffer(g, more, true);
-      extras.push(
-        eventText("event_SLUG_DISTRESS_ROCK_RESULT_3_text"),
-      );
+      extras.push(eventText("event_SLUG_DISTRESS_ROCK_RESULT_3_text"));
       if (more.scrap) extras.push(`Scrap: ${more.scrap}.`);
       if (more.fuel) extras.push(`Fuel: ${more.fuel}.`);
       if (more.missiles) extras.push(`Missiles: ${more.missiles}.`);
@@ -5406,69 +4587,45 @@ export const PAGE_WINS: Record<string, Win> = {
   // The page prints no crew-kill reward.
   "auto-ship-near-sensor-station": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("ship_REBEL_AUTO_MAP_destroyed_text"),
-      scrapOnly(g, "low"),
-    );
+    result(g, eventText("ship_REBEL_AUTO_MAP_destroyed_text"), scrapOnly(g, "low"));
   },
   // Auto-ship fight in nebula. The page prints medium scrap with resources on a destroyed ship and no crew-kill reward.
   "auto-ship-fight-in-nebula": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("event_DESTROYED_DEFAULT_1_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_DESTROYED_DEFAULT_1_text"), rollStandard(g, "medium"));
   },
   // Auto-ship fight (Crystal) has no choice. Arrival calls this fight.
   // The page prints the same destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward.
   "auto-ship-fight-crystal": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("event_DESTROYED_DEFAULT_1_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_DESTROYED_DEFAULT_1_text"), rollStandard(g, "medium"));
   },
   // Auto-ship fight near sun. The page prints the same destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward. The red giant stays on the fight slug.
   "auto-ship-fight-near-sun": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("event_DESTROYED_DEFAULT_1_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_DESTROYED_DEFAULT_1_text"), rollStandard(g, "medium"));
   },
   // Auto-ship fight in asteroid field. The page prints the same destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward. The asteroid field stays on the fight.
   "auto-ship-fight-in-asteroid-field": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("event_DESTROYED_DEFAULT_1_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_DESTROYED_DEFAULT_1_text"), rollStandard(g, "medium"));
   },
   // Auto-ship fight. The page prints the same destroyed line and medium scrap with resources.
   // The page prints no crew-kill reward.
   "auto-ship-fight": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("event_DESTROYED_DEFAULT_1_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_DESTROYED_DEFAULT_1_text"), rollStandard(g, "medium"));
   },
   // Crystal ship attacking Federation loyalists. Destroyed pays medium scrap with resources.
   // A crew kill pays high. Then "You contact the Federation ship." Default salvage is not paid.
   "crystal-ship-attacking-federation-loyalists": std(
     "medium",
     "high",
-    eventText("ship_CRYSTAL_FED_destroyed_text"),
-    eventText("ship_CRYSTAL_FED_deadCrew_text"),
+    lazyText("ship_CRYSTAL_FED_destroyed_text"),
+    lazyText("ship_CRYSTAL_FED_deadCrew_text"),
     [opt("q:crystal-loyalists:contact", "continue")],
   ),
   // Crystal fight with surrender offer (Human crew). Both endings pay medium scrap with resources.
@@ -5476,33 +4633,33 @@ export const PAGE_WINS: Record<string, Win> = {
   "crystal-fight-with-surrender-offer-human-crew": std(
     "medium",
     "medium",
-    eventText("ship_CRYSTAL_HUNTER_destroyed_text"),
-    eventText("ship_CRYSTAL_HUNTER_deadCrew_text"),
+    lazyText("ship_CRYSTAL_HUNTER_destroyed_text"),
+    lazyText("ship_CRYSTAL_HUNTER_deadCrew_text"),
   ),
   // Crystal fight with surrender offer (hull repairs). Both endings pay medium scrap with resources.
   // The surrender's fuel and 8 repairs are a separate offer. This win does not repair the hull.
   "crystal-fight-with-surrender-offer-hull-repairs": std(
     "medium",
     "medium",
-    eventText("ship_CRYSTAL_CONVOY_destroyed_text"),
-    eventText("ship_CRYSTAL_CONVOY_deadCrew_text"),
+    lazyText("ship_CRYSTAL_CONVOY_destroyed_text"),
+    lazyText("ship_CRYSTAL_CONVOY_deadCrew_text"),
   ),
   // Rebel ship attacking civilians in Last Stand. Destroyed pays medium scrap with resources.
   // A crew kill pays high. Then contact the survivors.
   "rebel-ship-attacking-civilians-in-last-stand": std(
     "medium",
     "high",
-    eventText("ship_BOSS_SCOUT_RESCUE_destroyed_text"),
-    eventText("ship_BOSS_SCOUT_RESCUE_deadCrew_text"),
-    [opt("q:last-stand-survivors:contact", "ship_BOSS_SCOUT_RESCUE_destroyed_c1_choice")],
+    lazyText("ship_BOSS_SCOUT_RESCUE_destroyed_text"),
+    lazyText("ship_BOSS_SCOUT_RESCUE_deadCrew_text"),
+    () => [opt("q:last-stand-survivors:contact", "ship_BOSS_SCOUT_RESCUE_destroyed_c1_choice")],
   ),
   // Rebel ship attacking refueling outpost. Destroyed pays medium scrap with resources.
   // A crew kill pays high. Then contact the outpost.
   "rebel-ship-attacking-refueling-outpost": std(
     "medium",
     "high",
-    eventText("ship_SQUAT_REFUEL_STATION_destroyed_text"),
-    eventText("ship_SQUAT_REFUEL_STATION_deadCrew_text"),
+    lazyText("ship_SQUAT_REFUEL_STATION_destroyed_text"),
+    lazyText("ship_SQUAT_REFUEL_STATION_deadCrew_text"),
     [opt("q:refuel-outpost:contact", "continue")],
   ),
   // Rebel ship attacking Crystal ship. Attack the Rebel: both endings share the bones sentence.
@@ -5526,8 +4683,7 @@ export const PAGE_WINS: Record<string, Win> = {
     const lead = deadCrew
       ? eventText("ship_ZOLTAN_RIFT_MANTIS_deadCrew_text")
       : eventText("ship_ZOLTAN_RIFT_MANTIS_destroyed_text");
-    const rage =
-      eventText("event_ZOLTAN_RIFT_SUCCESS_text");
+    const rage = eventText("event_ZOLTAN_RIFT_SUCCESS_text");
     const first = rollStandard(g, deadCrew ? "medium" : "low");
     const second = rollStandard(g, "high");
     result(g, `${lead}\n\n${rage}`, first, offerLines(g, second));
@@ -5607,16 +4763,16 @@ export const PAGE_WINS: Record<string, Win> = {
   "slug-hacker-oxygen": std(
     "medium",
     "medium",
-    eventText("ship_JELLY_STATUS_OXYGEN_destroyed_text"),
-    eventText("ship_JELLY_STATUS_OXYGEN_FIRE_deadCrew_text"),
+    lazyText("ship_JELLY_STATUS_OXYGEN_destroyed_text"),
+    lazyText("ship_JELLY_STATUS_OXYGEN_FIRE_deadCrew_text"),
   ),
   // Slug hacker (medical). Fight a Slug ship: both endings pay high scrap with resources.
   // The medbay shutdown, the halved medbay, and the hacking shutdown already end with the fight.
   "slug-hacker-medical": std(
     "high",
     "high",
-    eventText("ship_JELLY_STATUS_MEDBAY_destroyed_text"),
-    eventText("ship_JELLY_STATUS_MEDBAY_deadCrew_text"),
+    lazyText("ship_JELLY_STATUS_MEDBAY_destroyed_text"),
+    lazyText("ship_JELLY_STATUS_MEDBAY_deadCrew_text"),
   ),
   // Lanius fight with friendly ASB support. Destroyed pays medium scrap with resources.
   // A crew kill pays high. After the fight, two results and no odds. INFERRED: equal.
@@ -5634,7 +4790,7 @@ export const PAGE_WINS: Record<string, Win> = {
     ) {
       result(
         g,
-        `${text} After your skirmish, the fighting dies down and you're contacted by the planetary defense team. "Sorry you got caught up in that fight, stranger. No matter how many of these monsters we blow out of the sky, they just keep coming. We can patch up your ship for you."`,
+        `${text} ${eventText("event_LANIUS_BOARDERS_PDS_LIST_1_text")}`,
         rollStandard(g, tier),
         [repair(g, 8)],
       );
@@ -5642,7 +4798,7 @@ export const PAGE_WINS: Record<string, Win> = {
     }
     result(
       g,
-      `${text} You finish off your assailant with the help of the Anti-Ship Battery but the fight rages on in the distance. You'd best leave before you get dragged into it again.`,
+      `${text} ${eventText("event_LANIUS_BOARDERS_PDS_LIST_2_text")}`,
       rollStandard(g, tier),
       ["Nothing happens."],
     );
@@ -5651,39 +4807,27 @@ export const PAGE_WINS: Record<string, Win> = {
   // The page prints no crew-kill reward. The engines and cloaking escapes stay as they are.
   "auto-ship-fight-in-plasma-storm": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("event_DESTROYED_DEFAULT_1_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("event_DESTROYED_DEFAULT_1_text"), rollStandard(g, "medium"));
   },
   // Rebel ship warning. Both endings pay medium scrap with resources.
   // The 40 second run and doubled pursuit are the ship event's escape and gotaway.
   "rebel-ship-warning": std(
     "medium",
     "medium",
-    eventText("ship_SQUAT_WARNING_destroyed_text"),
-    eventText("ship_SQUAT_WARNING_deadCrew_text"),
+    lazyText("ship_SQUAT_WARNING_destroyed_text"),
+    lazyText("ship_SQUAT_WARNING_deadCrew_text"),
   ),
   // Auto-ship warning. {{Winning|destroyed=true}}: "You receive low scrap with resources."
   // The page prints no crew-kill reward. The 40 second run and doubled pursuit are the ship event's escape and gotaway.
   "auto-ship-warning": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("ship_REBEL_AUTO_WARNING_destroyed_text"),
-      rollStandard(g, "low"),
-    );
+    result(g, eventText("ship_REBEL_AUTO_WARNING_destroyed_text"), rollStandard(g, "low"));
   },
   // Auto-ship warning in nebula. Same destroyed line: "You receive low scrap with resources."
   // The page prints no crew-kill reward. The 40 second run and doubled pursuit are the ship event's escape and gotaway.
   "auto-ship-warning-in-nebula": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("ship_REBEL_AUTO_WARNING_destroyed_text"),
-      rollStandard(g, "low"),
-    );
+    result(g, eventText("ship_REBEL_AUTO_WARNING_destroyed_text"), rollStandard(g, "low"));
   },
   // Auto-ship attacking civilian. Destroyed pays low standard, then Contact the civilian ship.
   // Template:Save the Civilian Ship is the same card as the Lanius civilian contact.
@@ -5756,35 +4900,19 @@ export const PAGE_WINS: Record<string, Win> = {
     // > "After killing enemy crew There isn't time to salvage the enemy ship but your crew made off with a few nearby materials. Prepare to jump." — [[Rebel fight among Rebel fleet]]
     // > "You receive medium scrap with resources." — [[Rebel fight among Rebel fleet]]
     if (deadCrew) {
-      result(
-        g,
-        eventText("ship_BOSS_FLEETS_REBEL_deadCrew_text"),
-        rollStandard(g, "medium"),
-      );
+      result(g, eventText("ship_BOSS_FLEETS_REBEL_deadCrew_text"), rollStandard(g, "medium"));
       return;
     }
-    result(
-      g,
-      eventText("ship_BOSS_FLEETS_REBEL_destroyed_text"),
-      scrapOnly(g, "low"),
-    );
+    result(g, eventText("ship_BOSS_FLEETS_REBEL_destroyed_text"), scrapOnly(g, "low"));
   },
   // Rebel fight among Federation and Rebel fleets. This page prints low scrap only on a hull kill and medium scrap with resources on a crew kill.
   // The two endings are separate printed results. Default salvage is not paid.
   "rebel-fight-among-federation-and-rebel-fleets": (g, deadCrew) => {
     if (deadCrew) {
-      result(
-        g,
-        eventText("ship_BOSS_FLEETS_REBEL_deadCrew_text"),
-        rollStandard(g, "medium"),
-      );
+      result(g, eventText("ship_BOSS_FLEETS_REBEL_deadCrew_text"), rollStandard(g, "medium"));
       return;
     }
-    result(
-      g,
-      eventText("ship_BOSS_FLEETS_REBEL_destroyed_text"),
-      scrapOnly(g, "low"),
-    );
+    result(g, eventText("ship_BOSS_FLEETS_REBEL_destroyed_text"), scrapOnly(g, "low"));
   },
   // Pirate ships in plasma storm. Destroyed: low fuel (1-3) and low scrap. Crew kill: high fuel (3-6) and high scrap.
   // Rewards, "Fuel": T fuel and T scrap. The ion-storm sentence is the page's text. No storm duration is printed.
@@ -5839,11 +4967,7 @@ export const PAGE_WINS: Record<string, Win> = {
     // Wiki citations:
     // > "After destroying enemy ship or after killing enemy crew At last the Slugs' prized possessions are yours for the taking. After, that is, you split your takings with the Mantis." — [[Mantis ship attacking Slug ship]]
     // > "You receive high scrap with resources." — [[Mantis ship attacking Slug ship]]
-    result(
-      g,
-      eventText("ship_SLUG_DISTRESS_MANTIS_SLUG_destroyed_text"),
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("ship_SLUG_DISTRESS_MANTIS_SLUG_destroyed_text"), rollStandard(g, "high"));
   },
   // Zoltan security checkpoint, the scan fight. Destroyed pays low standard. A crew kill pays medium. The attack stays default.
   "zoltan-security-checkpoint-scan": (g, deadCrew) => {
@@ -5851,21 +4975,13 @@ export const PAGE_WINS: Record<string, Win> = {
       // Wiki citations:
       // > "After killing enemy crew You scrap what you can and prepare to jump before the other guards arrive." — [[Zoltan security checkpoint]]
       // > "You receive medium scrap with resources." — [[Zoltan security checkpoint]]
-      result(
-        g,
-        eventText("ship_ZOLTAN_CREW_SCAN_destroyed_text"),
-        rollStandard(g, "medium"),
-      );
+      result(g, eventText("ship_ZOLTAN_CREW_SCAN_destroyed_text"), rollStandard(g, "medium"));
       return;
     }
     // Wiki citations:
     // > "After destroying enemy ship You scrap what you can and prepare to jump before the other guards arrive." — [[Zoltan security checkpoint]]
     // > "You receive low scrap with resources." — [[Zoltan security checkpoint]]
-    result(
-      g,
-      eventText("ship_ZOLTAN_CREW_SCAN_destroyed_text"),
-      rollStandard(g, "low"),
-    );
+    result(g, eventText("ship_ZOLTAN_CREW_SCAN_destroyed_text"), rollStandard(g, "low"));
   },
   "pirate-ship-attacking-civilian-lanius": pirateCivilianWin,
   // Pirate ship attacking civilian distress. Same destroyed and crew-kill rewards.
@@ -5876,29 +4992,18 @@ export const PAGE_WINS: Record<string, Win> = {
     if (deadCrew) return false;
     const more = rollStandard(g, "medium");
     payOffer(g, more, true);
-    const extras = [
-      eventText("ship_REBEL_AUTO_REFUEL_destroyed_c1_text"),
-    ];
+    const extras = [eventText("ship_REBEL_AUTO_REFUEL_destroyed_c1_text")];
     if (more.scrap) extras.push(`Scrap: ${more.scrap}.`);
     if (more.fuel) extras.push(`Fuel: ${more.fuel}.`);
     if (more.missiles) extras.push(`Missiles: ${more.missiles}.`);
     if (more.parts) extras.push(`Drone parts: ${more.parts}.`);
-    result(
-      g,
-      eventText("ship_REBEL_AUTO_REFUEL_destroyed_text"),
-      rollStandard(g, "low"),
-      extras,
-    );
+    result(g, eventText("ship_REBEL_AUTO_REFUEL_destroyed_text"), rollStandard(g, "low"), extras);
   },
   // Auto-ship carrying shield virus. Both fights (Continue and the hacking counter) use this slug.
   // Destroyed pays medium scrap with resources. The page prints no crew-kill reward.
   "auto-ship-carrying-shield-virus": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(
-      g,
-      eventText("ship_REBEL_AUTO_FUEL_destroyed_text"),
-      rollStandard(g, "medium"),
-    );
+    result(g, eventText("ship_REBEL_AUTO_FUEL_destroyed_text"), rollStandard(g, "medium"));
   },
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
   // Lanius ship attacking civilian distress prints the same two endings and the same contact.
@@ -5964,12 +5069,9 @@ export const PAGE_WINS: Record<string, Win> = {
     const hail = deadCrew
       ? eventText("ship_ENGI_SEX_SHIP_deadCrew_text")
       : eventText("ship_ENGI_SEX_SHIP_destroyed_text");
-    result(
-      g,
-      `${hail} Apparently, you interrupted the equivalent of a "consolidation" of two ships that were using each other's parts to construct a new vessel. The Engi were not truly hostile, their targeting computers had not finished adjusting. There's nothing to be done about it now. You leave the remains for the surviving ship.`,
-      undefined,
-      ["Nothing happens."],
-    );
+    result(g, `${hail} ${eventText("event_ENGI_SEX_SHIP_DONE_text")}`, undefined, [
+      "Nothing happens.",
+    ]);
   },
   // Rock and Slug standoff. Destroyed pays low standard. A crew kill pays medium. Then the Slug captain.
   "rock-and-slug-standoff": (g, deadCrew) => {
@@ -5996,11 +5098,7 @@ export const PAGE_WINS: Record<string, Win> = {
   // Legendary thief KazaaakplethKilik: destroyed -> medium; deadCrew opens the strip / survivors card.
   "legendary-thief-kazaaakplethkilik": (g, deadCrew) => {
     if (!deadCrew) {
-      result(
-        g,
-        eventText("ship_MANTIS_NAMED_THIEF_destroyed_text"),
-        rollStandard(g, "medium"),
-      );
+      result(g, eventText("ship_MANTIS_NAMED_THIEF_destroyed_text"), rollStandard(g, "medium"));
       return;
     }
     const choices: Choice[] = [opt("q:thief:strip", "event_MANTIS_NAMED_THIEF_DEFEAT_c1_choice")];
@@ -6015,16 +5113,16 @@ export const PAGE_WINS: Record<string, Win> = {
   "quest-mantis-war-camp": std(
     "medium",
     "high",
-    eventText("ship_MANTIS_LANDING_PARTY_destroyed_text"),
-    eventText("ship_MANTIS_LANDING_PARTY_deadCrew_text"),
+    lazyText("ship_MANTIS_LANDING_PARTY_destroyed_text"),
+    lazyText("ship_MANTIS_LANDING_PARTY_deadCrew_text"),
   ),
   // Space station under construction: destroyed -> medium, deadCrew -> high; then "Contact the cargo ship." -> medium scrap.
   "quest-space-station-rebel": std(
     "medium",
     "high",
-    eventText("ship_QUEST_CONSTRUCTIONYARD_SHIP_destroyed_text"),
-    eventText("ship_QUEST_CONSTRUCTIONYARD_SHIP_destroyed_text"),
-    [opt("q:station:contact", "ship_QUEST_CONSTRUCTIONYARD_SHIP_destroyed_c1_choice")],
+    lazyText("ship_QUEST_CONSTRUCTIONYARD_SHIP_destroyed_text"),
+    lazyText("ship_QUEST_CONSTRUCTIONYARD_SHIP_destroyed_text"),
+    () => [opt("q:station:contact", "ship_QUEST_CONSTRUCTIONYARD_SHIP_destroyed_c1_choice")],
   ),
   // Mantis ship-collectors marker: "a weapon and medium" / "a weapon and high scrap with resources". The weapon is not
   // named: Rewards, "Weapon": "A random weapon & T scrap."
@@ -6048,7 +5146,7 @@ export const PAGE_WINS: Record<string, Win> = {
   "quest-slug-pirate-trap-engage": std(
     "medium",
     "high",
-    eventText("ship_QUEST_SLUG_PIRATE_TRAP1_destroyed_text"),
+    lazyText("ship_QUEST_SLUG_PIRATE_TRAP1_destroyed_text"),
   ),
   // Wiki citations:
   // > "With the pirate taken care of, you search again for the cache he was protecting, but it's lost in the clouds. You console yourself with the salvage from the well-armed pirate ship." — [[Slug comm tapping#Quest Marker]]
@@ -6058,8 +5156,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "quest-slug-pirate-trap-cache": std(
     "low",
     "medium",
-    eventText("ship_QUEST_SLUG_PIRATE_TRAP2_destroyed_text"),
-    eventText("ship_QUEST_SLUG_PIRATE_TRAP2_deadCrew_text"),
+    lazyText("ship_QUEST_SLUG_PIRATE_TRAP2_destroyed_text"),
+    lazyText("ship_QUEST_SLUG_PIRATE_TRAP2_deadCrew_text"),
   ),
   // Engi fleet discussion, real marker: deadCrew -> "high scrap with resources and a final quest marker". The page prints
   // no destroyed result. INFERRED: a destroyed ship pays the default reward and the trail is lost.
@@ -6068,12 +5166,9 @@ export const PAGE_WINS: Record<string, Win> = {
     // Wiki citations:
     // > "Once their crew is dead you scan the log for information regarding the envoy. You're in luck! It seems ships matching the thieves' description passed through here not too long ago. You strip the ship and prepare to pursue them." — [[Engi fleet discussion#First Quest Marker (Real)]]
     // > "You receive high scrap with resources and a final quest marker is added to your map." — [[Engi fleet discussion#First Quest Marker (Real)]]
-    result(
-      g,
-      eventText("ship_REBEL_ENGI_UNLOCK_2REAL_deadCrew_text"),
-      rollStandard(g, "high"),
-      [addQuest(g, "engi-final")],
-    );
+    result(g, eventText("ship_REBEL_ENGI_UNLOCK_2REAL_deadCrew_text"), rollStandard(g, "high"), [
+      addQuest(g, "engi-final"),
+    ]);
   },
   // Fake marker: destroyed / deadCrew -> medium scrap with resources.
   // Wiki citations:
@@ -6083,8 +5178,8 @@ export const PAGE_WINS: Record<string, Win> = {
   "quest-engi-fake": std(
     "medium",
     "medium",
-    eventText("ship_REBEL_ENGI_UNLOCK_2FAKE_destroyed_text"),
-    eventText("ship_REBEL_ENGI_UNLOCK_2FAKE_deadCrew_text"),
+    lazyText("ship_REBEL_ENGI_UNLOCK_2FAKE_destroyed_text"),
+    lazyText("ship_REBEL_ENGI_UNLOCK_2FAKE_deadCrew_text"),
   ),
   // Final marker: destroyed -> Victory; deadCrew -> medium scrap with resources, then Victory.
   "quest-engi-final": (g, deadCrew) => {
@@ -6100,23 +5195,16 @@ export const PAGE_WINS: Record<string, Win> = {
     } else engiVictory(g);
   },
   // Slug Home Nebula marker: the platform guard -> high scrap with resources.
-  "quest-slug-platform": std(
-    "high",
-    "high",
-    eventText("ship_JELLY_UNLOCK2_destroyed_text"),
-  ),
+  "quest-slug-platform": std("high", "high", lazyText("ship_JELLY_UNLOCK2_destroyed_text")),
   // The interceptor: "receive high scrap with resources and Slug Repair Gel augmentation". The Slug Cruiser unlock is the grantUnlock line.
   "quest-slug-interceptor": (g) => {
     // Wiki citations:
     // > "After destroying enemy ship or after killing enemy crew With the escort destroyed you take a look at your impressive prize. Your mission is too pressing to take a test flight. Before you rig the ship's computer to guide the it back to the main Federation hangar you discover a unique augment that duplicates the Slug's ability to heal breaches!" — [[Slug Home Nebula surrender#Fight the interceptor]]
     // > "You unlock the Slug Cruiser; receive high scrap with resources and Slug Repair Gel augmentation." — [[Slug Home Nebula surrender#Fight the interceptor]]
     grantUnlock(g, "PLAYER_SHIP_JELLY"); // @agent:unlocks. Slug Home Nebula surrender: "You unlock the Slug Cruiser".
-    result(
-      g,
-      eventText("ship_JELLY_UNLOCK3_destroyed_text"),
-      rollStandard(g, "high"),
-      [grantAug(g, "SLUG_GEL")],
-    );
+    result(g, eventText("ship_JELLY_UNLOCK3_destroyed_text"), rollStandard(g, "high"), [
+      grantAug(g, "SLUG_GEL"),
+    ]);
   },
   // Settlement mercenary work marker: "medium scrap, your ship receives 5 repairs and a store opens."
   "quest-store-rescue": (g) => {
@@ -6128,31 +5216,39 @@ export const PAGE_WINS: Record<string, Win> = {
       eventText("ship_SQUAT_STORE_RESCUE_destroyed_text"),
       scrapOnly(g, "medium"),
       [repair(g, 5)],
-      STORE_CHOICES,
+      STORE_CHOICES(),
     );
   },
   // Federation Base Assist (Auto-ship, weapon contact): "low scrap with resources", then that contact.
-  "quest-fed-assist": std("low", "low", eventText("ship_AUTO_FEDERATION_BASE_destroyed_text"), eventText("ship_AUTO_FEDERATION_BASE_destroyed_text"), [
-    opt("q:fed-assist:contact", "continue"),
-  ]),
+  "quest-fed-assist": std(
+    "low",
+    "low",
+    lazyText("ship_AUTO_FEDERATION_BASE_destroyed_text"),
+    lazyText("ship_AUTO_FEDERATION_BASE_destroyed_text"),
+    [opt("q:fed-assist:contact", "continue")],
+  ),
   // The other non-AE Auto-ship. Same salvage, then the repair contact.
   "quest-fed-assist-repair": std(
     "low",
     "low",
-    eventText("ship_AUTO_FEDERATION_BASE2_destroyed_text"),
-    eventText("ship_AUTO_FEDERATION_BASE2_destroyed_text"),
+    lazyText("ship_AUTO_FEDERATION_BASE2_destroyed_text"),
+    lazyText("ship_AUTO_FEDERATION_BASE2_destroyed_text"),
     [opt("q:fed-assist-repair:contact", "continue")],
   ),
   // AE Auto-ship. Destroyed, and INFERRED a crew-kill the template does not list, both use this sentence and low scrap.
-  "quest-fed-assist-asb": std("low", "low", eventText("ship_AUTO_FEDERATION_BASE2_destroyed_text"), eventText("ship_AUTO_FEDERATION_BASE2_destroyed_text"), [
-    opt("q:fed-assist-asb:contact", "continue"),
-  ]),
+  "quest-fed-assist-asb": std(
+    "low",
+    "low",
+    lazyText("ship_AUTO_FEDERATION_BASE2_destroyed_text"),
+    lazyText("ship_AUTO_FEDERATION_BASE2_destroyed_text"),
+    [opt("q:fed-assist-asb:contact", "continue")],
+  ),
   // AE Elite Rebel. Destroyed is low scrap with resources; a crew kill is medium. Then the outpost contact.
   "quest-fed-assist-wing": std(
     "low",
     "medium",
-    eventText("ship_REBEL_FEDERATION_PDS_destroyed_text"),
-    eventText("ship_REBEL_FEDERATION_PDS_deadCrew_text"),
+    lazyText("ship_REBEL_FEDERATION_PDS_destroyed_text"),
+    lazyText("ship_REBEL_FEDERATION_PDS_deadCrew_text"),
     [opt("q:fed-assist-wing:contact", "continue")],
   ),
 };
@@ -6173,19 +5269,11 @@ export function pageWin(g: Game, slug: string | null | undefined, deadCrew: bool
 const GOT_AWAY: Record<string, (g: Game) => void> = {
   // Pirate briber. Escape pays no fight scrap. Then the victim.
   "pirate-briber": (g) => {
-    card(
-      g,
-      eventText("ship_PIRATE_BRIBER_gotaway_text"),
-      PIRATE_GONE,
-    );
+    card(g, eventText("ship_PIRATE_BRIBER_gotaway_text"), PIRATE_GONE());
   },
   // Lanius ship absorbing automated scout. Escape pays no fight scrap. Then inspect.
   "lanius-ship-absorbing-automated-scout": (g) => {
-    card(
-      g,
-      eventText("ship_LANIUS_AUTO_REBEL_gotaway_text"),
-      SCOUT_INSPECT,
-    );
+    card(g, eventText("ship_LANIUS_AUTO_REBEL_gotaway_text"), SCOUT_INSPECT());
   },
   // Mantis ship-collectors: "After them!" -> quest marker / "Forget it." -> nothing.
   "mantis-ship-collectors": (g) => {
@@ -6193,49 +5281,32 @@ const GOT_AWAY: Record<string, (g: Game) => void> = {
     // > "The ship made an emergency FTL jump, but it looks like they didn't mask their signatures. You could easily follow them if you want." — [[Mantis ship-collectors]]
     // > "After them!" — [[Mantis ship-collectors]]
     // > "Forget it." — [[Mantis ship-collectors]]
-    card(
-      g,
-      eventText("ship_DONOR_MANTIS_CHASE1_gotaway_text"),
-      [
-        opt("q:mantis-collectors:follow", "ship_DONOR_MANTIS_CHASE1_gotaway_c1_choice"),
-        opt("q:mantis-collectors:forget", "ship_DONOR_MANTIS_CHASE1_gotaway_c2_choice"),
-      ],
-    );
+    card(g, eventText("ship_DONOR_MANTIS_CHASE1_gotaway_text"), [
+      opt("q:mantis-collectors:follow", "ship_DONOR_MANTIS_CHASE1_gotaway_c1_choice"),
+      opt("q:mantis-collectors:forget", "ship_DONOR_MANTIS_CHASE1_gotaway_c2_choice"),
+    ]);
   },
   "quest-mantis-chase": (g) => {
     // Wiki citations:
     // > "Looks like they got away. At least you're able to scrap their abandoned fighter." — [[Mantis ship-collectors#Quest Marker]]
     // > "You receive high scrap with resources." — [[Mantis ship-collectors#Quest Marker]]
-    result(
-      g,
-      eventText("ship_DONOR_MANTIS_CHASE2_gotaway_text"),
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("ship_DONOR_MANTIS_CHASE2_gotaway_text"), rollStandard(g, "high"));
   },
   // "Nothing happens. [unlock quest is failed]"
   "quest-engi-real": (g) => {
     // Wiki citations:
     // > "With the ship gone, you search through the abandoned base for any signs of their destination but find none." — [[Engi fleet discussion#First Quest Marker (Real)]]
-    result(
-      g,
-      eventText("ship_REBEL_ENGI_UNLOCK_2REAL_gotaway_text"),
-    );
+    result(g, eventText("ship_REBEL_ENGI_UNLOCK_2REAL_gotaway_text"));
   },
   "quest-engi-fake": (g) => {
     // Wiki citations:
     // > "With the ship gone you search through the abandoned base for any signs of their destination but find none." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
-    result(
-      g,
-      eventText("ship_REBEL_ENGI_UNLOCK_2FAKE_gotaway_text"),
-    );
+    result(g, eventText("ship_REBEL_ENGI_UNLOCK_2FAKE_gotaway_text"));
   },
   "quest-slug-interceptor": (g) => {
     // Wiki citations:
     // > "After the ship successfully escaped The interceptor jumps away with the cruiser linked to its FTL signatures. You were so close..." — [[Slug Home Nebula surrender#Fight the interceptor]]
-    result(
-      g,
-      eventText("ship_JELLY_UNLOCK3_gotaway_text"),
-    );
+    result(g, eventText("ship_JELLY_UNLOCK3_gotaway_text"));
   },
   // The mid-run sentence "After watching their squadron get destroyed, it looks like their leader is prepared to turn tail and run." has no separate card hook.
   "quest-fed-assist-wing": (g) => {
@@ -6245,11 +5316,9 @@ const GOT_AWAY: Record<string, (g: Game) => void> = {
   },
   // Rebel ship warning. The escape already doubles pursuit (sim.ts). This card prints the page's sentence.
   "rebel-ship-warning": (g) => {
-    card(
-      g,
-      `${eventText("ship_SQUAT_WARNING_gotaway_text")}\n\nRebel Fleet pursuit is doubled.`,
-      [opt("ack", "continue")],
-    );
+    card(g, `${eventText("ship_SQUAT_WARNING_gotaway_text")}\n\nRebel Fleet pursuit is doubled.`, [
+      opt("ack", "continue"),
+    ]);
   },
 };
 

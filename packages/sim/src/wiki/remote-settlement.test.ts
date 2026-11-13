@@ -5,6 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { heldSchematics } from "../rules/make-room.ts";
 import { scrapBand } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 const CROP =
   "The pirate watches as you start to light the meager crops on fire. In a few moments the settlement surrenders, offering tribute to leave them alone. The pirate seems impressed.";
@@ -96,7 +97,7 @@ describe("Remote settlement", () => {
     choose(g, "c:remote-settlement:1");
     assert.equal(
       g.event?.body,
-      "It's just not possible to save every civilian affected by this war. You prepare to jump.\n\nNothing happens.",
+      [eventText("event_PIRATE_STATION_CROPS_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

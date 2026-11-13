@@ -4,6 +4,8 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageGotAway, pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -39,7 +41,7 @@ describe("Rebel ship warning reward", () => {
     const body = destroyed.event?.body ?? "";
     assert.match(
       body,
-      /Their ship breaks apart and you are relieved to know that you are still one step ahead of the fleet\./,
+      textRe("ship_SQUAT_WARNING_destroyed_text"),
     );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
@@ -59,7 +61,7 @@ describe("Rebel ship warning reward", () => {
     const killedBody = killed.event?.body ?? "";
     assert.match(
       killedBody,
-      /Their ship goes silent and you are relieved to know that you are still one step ahead of the fleet\./,
+      textRe("ship_SQUAT_WARNING_deadCrew_text"),
     );
     const medium = scraps(killedBody);
     assert.equal(medium.length, 1, killedBody);
@@ -76,7 +78,7 @@ describe("Rebel ship warning reward", () => {
     pageGotAway(g, "rebel-ship-warning");
     assert.equal(
       g.event?.body,
-      "The scout jumps away. They are sure to have informed the fleet of your position. You must get to the next Sector as soon as possible!\n\nRebel Fleet pursuit is doubled.",
+      [eventText("ship_SQUAT_WARNING_gotaway_text"), "Rebel Fleet pursuit is doubled."].join("\n\n"),
     );
     assert.equal(g.pursuitDouble, true);
     assert.equal(g.fleet, 4);

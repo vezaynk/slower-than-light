@@ -8,14 +8,15 @@ import { citedEvent } from "./cited-events.ts";
 import {
   addQuest,
   placeQueuedQuests,
-  QUEST_ADDED,
-  QUEST_CANCELLED,
-  QUEST_NEXT,
+  questAdded,
+  questCancelled,
+  questNext,
   QUESTS,
 } from "./quests.ts";
 import { fleetToReach, jumpsBetween } from "../rules/sector-map.ts";
 import { ACCEPT_ID, joinCrew } from "./surrender.ts";
 import { placeIn } from "../fixtures.ts";
+import { eventText } from "../event-text.ts";
 
 function here(g: Game): Beacon {
   return g.beacons.find((b) => b.id === g.here)!;
@@ -90,7 +91,7 @@ describe("Beacons, Quest (marker) beacon: placement", () => {
   it("adds the marker fewer jumps away than the fleet needs to take it, never on a visited beacon (xftl AddQuest)", () => {
     for (let seed = 1; seed < 30; seed++) {
       const g = createGame(seed);
-      assert.equal(addQuest(g, "escort"), QUEST_ADDED);
+      assert.equal(addQuest(g, "escort"), questAdded());
       const [b] = questBeacons(g);
       assert.ok(b);
       assert.ok(jumpsBetween(g.beacons, here(g).id, b.id) < fleetToReach(g, b) - g.fleet);
@@ -120,7 +121,7 @@ describe("Beacons, Quest (marker) beacon: placement", () => {
     g.here = late.id;
     // The fleet has every beacon: nowhere left this sector.
     g.fleet = Math.max(...g.beacons.map((b) => fleetToReach(g, b)));
-    assert.equal(addQuest(g, "mantis-war-camp"), QUEST_NEXT);
+    assert.equal(addQuest(g, "mantis-war-camp"), questNext());
     assert.equal(questBeacons(g).length, 0);
     assert.deepEqual(g.questsNext, ["mantis-war-camp"]);
     g.sectorMap = true;
@@ -136,11 +137,11 @@ describe("Beacons, Quest (marker) beacon: placement", () => {
     g.sector = 7;
     g.here = g.beacons.find((b) => b.col === 5)!.id;
     g.fleet = Math.max(...g.beacons.map((b) => fleetToReach(g, b)));
-    assert.equal(addQuest(g, "escort"), QUEST_CANCELLED);
+    assert.equal(addQuest(g, "escort"), questCancelled());
     assert.equal((g.questsNext ?? []).length, 0);
     g.sector = 8;
     g.here = g.beacons[0].id;
-    assert.equal(addQuest(g, "escort"), QUEST_CANCELLED);
+    assert.equal(addQuest(g, "escort"), questCancelled());
   });
 
   it("a marker the Rebel Fleet has overtaken is lost to the Elite fight (INFERRED)", () => {
@@ -165,9 +166,9 @@ describe("Cited events that add a marker", () => {
       choose(g, "c:escort-civilians:0");
       const gained = g.fuel - fuel;
       assert.ok(gained >= 1 && gained <= 3);
-      const prose = `"Great. Take this bit of fuel as a down-payment. We'll be one step behind you, following your jump signatures. Don't want to take any risks now, do we?"`;
-      assert.equal(g.event!.body, `${prose}\n\n${QUEST_ADDED}\n\nFuel: ${gained}.`);
-      assert.equal(g.log.includes(QUEST_ADDED), true);
+      const prose = eventText("button_store");
+      assert.equal(g.event!.body, `${prose}\n\n${questAdded()}\n\nFuel: ${gained}.`);
+      assert.equal(g.log.includes(questAdded()), true);
       assert.equal(g.log.includes(prose), false);
       assert.equal(g.log.includes(`Fuel: ${gained}.`), false);
       choose(g, "ack");
@@ -181,7 +182,7 @@ describe("Cited events that add a marker", () => {
         resumeFight(g);
         assert.equal(g.phase, "combat");
       } else if (body.includes("offer you a reward")) seen.add("reward");
-      else if (body.includes("show you their wares")) {
+      else if (body.includes(eventText("event_QUEST_ESCORT_ARRIVE_3_text"))) {
         seen.add("store");
         assert.ok(body.includes("Hull repairs: 5."));
         choose(g, "q:open-store");
@@ -218,7 +219,7 @@ describe("Cited events that add a marker", () => {
       const parts = g.player.parts;
       choose(g, id);
       assert.equal(questBeacons(g, quest).length, 1, dest);
-      assert.equal(g.log.includes(QUEST_ADDED), true);
+      assert.equal(g.log.includes(questAdded()), true);
       const pay =
         id === "c:mantis-war-camp:0"
           ? [`Medium scrap: ${g.scrap - scrap}.`]
@@ -231,11 +232,11 @@ describe("Cited events that add a marker", () => {
               ];
       const prose =
         id === "c:mantis-war-camp:0"
-          ? `"Thank you! If you can just give us a count on their numbers perhaps we can get the Rebels to help."`
+          ? eventText("button_store")
           : id === "c:space-station-under-construction:0"
-            ? `"Great. Thanks for your help. I've marked their last known coordinates and sent over some supplies to help you get there."`
-            : `"Take this bit of scrap as a down-payment. We'll use your jump signatures to follow you. You're really helping us out here."`;
-      assert.equal(g.event!.body, [prose, QUEST_ADDED, ...pay].join("\n\n"));
+            ? eventText("button_store")
+            : eventText("button_store");
+      assert.equal(g.event!.body, [prose, questAdded(), ...pay].join("\n\n"));
       assert.equal(g.log.includes(prose), false);
       for (const line of pay) assert.equal(g.log.includes(line), false, line);
     }
@@ -287,7 +288,7 @@ describe("Cited events that add a marker", () => {
     assert.equal(g.enemyEscape!.threshold, 60);
     winByCrew(g);
     assert.equal(g.phase, "event");
-    assert.ok(g.event!.body.startsWith("You find an intact weapon"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_DONOR_MANTIS_CHASE2_deadCrew_text")));
   });
 
   it("Rebel defector: reject -> the cache offer -> reluctant accept can add the cache marker", () => {
@@ -309,7 +310,7 @@ describe("Cited events that add a marker", () => {
         found = true;
         assert.equal(g.event?.choices[0]?.id, "ship-resume");
         assert.ok(g.crew.some((c) => c.side === "player" && c.kin === "human"));
-        assert.equal(g.log.includes(QUEST_ADDED), true);
+        assert.equal(g.log.includes(questAdded()), true);
         resumeFight(g);
         assert.equal(g.phase, "combat");
         assert.ok(g.crew.some((c) => c.side === "player" && c.kin === "human"));
@@ -330,7 +331,7 @@ describe("Cited events that add a marker", () => {
     assert.equal(g.phase, "combat");
     winByHull(g);
     assert.equal(g.phase, "event");
-    assert.ok(g.event!.body.startsWith("With the ship destroyed"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_ENGI_SEX_SHIP_destroyed_text")));
     assert.deepEqual(choiceIds(g), ["q:loyalists:contact"]);
   });
 });
@@ -352,7 +353,7 @@ describe("Slug comm tapping", () => {
     );
     const g = atCited(createGame(8), "Slug Home Nebula", "Slug comm tapping");
     choose(g, "c:slug-comm-tapping:0");
-    assert.ok(g.event!.body.includes(QUEST_ADDED));
+    assert.ok(g.event!.body.includes(questAdded()));
     choose(g, "ack");
     const [b] = questBeacons(g, "slug-pirate-trap");
     assert.equal(b.kind, "nebula");
@@ -389,7 +390,7 @@ describe("Slug comm tapping", () => {
     assert.equal(g.enemySurrender!.chance, 0);
     winByHull(g);
     assert.equal(g.phase, "event");
-    assert.ok(g.event!.body.startsWith("With the pirate taken care of"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_QUEST_SLUG_PIRATE_TRAP2_destroyed_text")));
     choose(g, "ack");
     assert.equal(g.phase, "map");
   });
@@ -442,7 +443,7 @@ describe("Engi fleet discussion", () => {
     );
     assert.equal(g.enemySurrender!.threshold, 50);
     winByCrew(g);
-    assert.ok(g.event!.body.startsWith("Once their crew is dead"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_REBEL_ENGI_UNLOCK_2REAL_deadCrew_text")));
     choose(g, "ack");
     if (!questBeacons(g, "engi-final").length) {
       // Too close to the exit: pushed to the next sector. Place it from the start beacon for the rest of the check.
@@ -482,7 +483,7 @@ describe("Engi fleet discussion", () => {
     assert.equal(g.phase, "combat");
     g.enemyFlee = 1;
     step(g, 1 / 30);
-    assert.ok(g.event!.body.startsWith("With the ship gone, you search"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_REBEL_ENGI_UNLOCK_2REAL_gotaway_text")));
     assert.ok(real.resolved);
     choose(g, "ack");
 
@@ -571,7 +572,7 @@ describe("Other surrender pages with a marker", () => {
     }
     assert.ok(g);
     choose(g, "s:settlement-mercenary-work:dock");
-    assert.ok(g.event!.body.includes(QUEST_ADDED));
+    assert.ok(g.event!.body.includes(questAdded()));
     choose(g, "ack");
     jumpTo(g, questBeacons(g, "store-rescue")[0]);
     choose(g, "q:store-rescue:engage");
@@ -591,15 +592,15 @@ describe("Page win rewards (destroyed / crew killed)", () => {
       "Slug Home Nebula",
       "The Black Raven",
       "s:the-black-raven:accept",
-      '"The Black Raven" breaks apart',
-      "The once-dreaded pirate Nights",
+      eventText("ship_DONOR_BLACK_RAVEN_destroyed_text"),
+      eventText("ship_DONOR_BLACK_RAVEN_deadCrew_text"),
     ],
     [
       "Zoltan Controlled Sector",
       "Zoltan ship asks to dock",
       "c:zoltan-ship-asks-to-dock:0",
-      "While you search the debris",
-      "While you scrap their ship",
+      eventText("ship_ZOLTAN_SCIENCE_DOCK_destroyed_text"),
+      eventText("ship_ZOLTAN_SCIENCE_DOCK_deadCrew_text"),
     ],
   ];
   for (const [sector, dest, fightId, destroyed, killed] of cases) {
@@ -646,7 +647,7 @@ describe("Page win rewards (destroyed / crew killed)", () => {
     choose(g, "s:settlement-mercenary-work:accept");
     g.enemySurrender!.chance = 0;
     winByHull(g);
-    assert.ok(g.event!.body.startsWith("With all of the would-be pirates dead"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_SQUAT_PIRATE_MERCENARY_destroyed_text")));
   });
 });
 
@@ -797,7 +798,7 @@ describe("Space station under construction, Lanius sale", () => {
     assert.ok(choiceIds(g).includes("q:station:sale"));
     choose(g, "q:station:sale");
     const body = g.event!.body;
-    assert.ok(body.startsWith("Once your Lanius crewmember understands"));
+    assert.ok(body.startsWith(eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c1_text")));
     const paid = Number(body.match(/Scrap: (\d+)/)?.[1]);
     assert.ok(paid >= 19 && paid <= 23, body);
     assert.equal(/Fuel:|Missiles:|Drone parts:/.test(body), false);
@@ -851,7 +852,7 @@ describe("Federation loyalists, Healing Burst", () => {
       const crew = g.crew.filter((c) => c.side === "player").length;
       choose(g, "q:loyalists:heal");
       const body = g.event!.body;
-      assert.ok(body.startsWith("You launch a healing bomb"));
+      assert.ok(body.startsWith(eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_c4_text")));
       assert.match(body, /Missiles: -1/);
       assert.match(body, /crewmember joins you/);
       const paid = Number(body.match(/Scrap: (\d+)/)?.[1]);
@@ -860,7 +861,7 @@ describe("Federation loyalists, Healing Burst", () => {
       assert.equal(g.scrap, scrap + paid);
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
       assert.ok((g.crew[g.crew.length - 1]!.skills?.engines ?? 0) > 0);
-      assert.ok(body.includes(QUEST_ADDED) || body.includes(QUEST_NEXT));
+      assert.ok(body.includes(questAdded()) || body.includes(questNext()));
     }
     assert.ok(found);
   });
@@ -872,9 +873,9 @@ describe("Hidden Federation Base scans", () => {
       const g = createGame(seed);
       assert.ok(g.player.systems.sensors);
       setup(g);
-      if (addQuest(g, "fed-base") !== QUEST_ADDED) continue;
+      if (addQuest(g, "fed-base") !== questAdded()) continue;
       jumpTo(g, questBeacons(g, "fed-base")[0]!);
-      if (g.event?.body.includes("yields no results")) return g;
+      if (g.event?.body.includes(eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c1_choice"))) return g;
     }
     assert.fail("no empty search");
   }
@@ -892,7 +893,7 @@ describe("Hidden Federation Base scans", () => {
     assert.deepEqual(choiceIds(two), ["ack", "q:fed-base:scan-2"]);
     choose(two, "q:fed-base:scan-2");
     const level2 = two.event!.body;
-    assert.ok(level2.startsWith("Your Advanced Sensors pick faint signatures"));
+    assert.ok(level2.startsWith(eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_c2_text")));
     assert.equal(
       ["Fuel:", "Missiles:", "Drone parts:"].filter((label) => level2.includes(label)).length,
       2,
@@ -907,7 +908,7 @@ describe("Hidden Federation Base scans", () => {
     assert.deepEqual(choiceIds(three), ["ack", "q:fed-base:scan-2", "q:fed-base:scan-3"]);
     choose(three, "q:fed-base:scan-3");
     const level3 = three.event!.body;
-    assert.ok(level3.startsWith("Your sensors pick faint signatures"));
+    assert.ok(level3.startsWith(eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_c3_text")));
     assert.match(level3, /mounted\.|stowed in cargo\./);
     assert.equal(/Fuel:|Missiles:|Drone parts:/.test(level3), false);
 
@@ -935,7 +936,7 @@ describe("Mantis war camp, Missile Weapon", () => {
     const g = createGame(6);
     g.player.weapons = [gun(defId)];
     g.missiles = 0;
-    assert.equal(addQuest(g, "mantis-war-camp"), QUEST_ADDED);
+    assert.equal(addQuest(g, "mantis-war-camp"), questAdded());
     jumpTo(g, questBeacons(g, "mantis-war-camp")[0]!);
     return g;
   }
@@ -971,7 +972,7 @@ describe("Quest markers sit to the right of the ship", () => {
   it("refuses a beacon at or left of the ship, and a forced placement may use one", () => {
     const blocked = createGame(2);
     const ship = park(blocked, 3);
-    assert.equal(addQuest(blocked, "escort"), QUEST_NEXT);
+    assert.equal(addQuest(blocked, "escort"), questNext());
     assert.equal(questBeacons(blocked).length, 0);
     placeQueuedQuests(blocked);
     const placed = questBeacons(blocked, "escort");
@@ -985,7 +986,7 @@ describe("Quest markers sit to the right of the ship", () => {
     )!;
     right.kind = "event";
     right.flag = "";
-    assert.equal(addQuest(open, "escort"), QUEST_ADDED);
+    assert.equal(addQuest(open, "escort"), questAdded());
     assert.equal(questBeacons(open, "escort")[0]!.id, right.id);
   });
 });

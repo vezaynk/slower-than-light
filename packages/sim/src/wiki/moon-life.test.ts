@@ -17,7 +17,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Distress: life form on moon",
+    name: "Single life form on moon",
     tier: "",
     flag: "filler:single-life-form-on-moon",
     asteroid: false,
@@ -75,9 +75,9 @@ function scene(seed: number, setup?: (g: Game) => void): Game | null {
   return g;
 }
 
-describe("Distress: life form on moon", () => {
+describe("Single life form on moon", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Distress: life form on moon")?.slug, "STRANDED_BEACON");
+    assert.equal(pageForRow("Single life form on moon")?.slug, "STRANDED_BEACON");
     const g = createGame(1);
     assert.deepEqual(
       open(g).choices.map((c) => c.id),

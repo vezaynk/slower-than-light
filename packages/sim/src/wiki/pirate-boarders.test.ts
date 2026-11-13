@@ -6,7 +6,7 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-pirate:0";
-const DEST = "Boarders: Humans (pirate)";
+const DEST = "Boarders: Humans (Pirate)";
 const INTROS = [
   `What appears to be a civilian ship sends a friendly hail. As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!"`,
   `A heavily damaged ship is drifting near this beacon. You receive a communication: "Hello! Nice of you to drop by. As you can see, our ship has seen better days. Yours is looking quite nice, I think we might be taking it from you now." Intruders beam aboard.`,
@@ -35,7 +35,7 @@ function boarded(g: Game) {
   return g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
 }
 
-describe("Boarders: Humans (pirate)", () => {
+describe("Boarders: Humans (Pirate)", () => {
   it("is one Pirate Controlled Sector card and beams 3-5 humans with no ship", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Boarders: Humans (Pirate)]]

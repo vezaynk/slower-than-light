@@ -32,12 +32,12 @@ export type CitedEventDef = {
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
-    dest: "Cache: fleet delay or reward",
+    dest: "Engi cache",
     slug: "engi-cache",
     // Wiki citations:
     // > "{{Locations|Engi Controlled Sector|Engi Homeworlds|LRSmap=noship|unique=true}}" — [[Engi cache]]
     flag: "cited:engi-cache",
-    aliases: [],
+    aliases: ["Engi cache"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
     body: "Cache. Use it to delay the fleet, or take it.",
     choices: [

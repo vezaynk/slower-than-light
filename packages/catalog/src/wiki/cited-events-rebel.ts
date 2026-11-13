@@ -25,13 +25,13 @@ export type CitedEventDef = {
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
-    dest: "Hostile Rebel ship (Last Stand, Rebel fleet)",
+    dest: "Rebel fight among Rebel fleet",
     // Arrival calls this fight. One of the seven printed intros.
     slug: "rebel-fight-among-rebel-fleet",
     // Wiki citations:
     // > "This random event occurs in The Last Stand." — [[Rebel fight among Rebel fleet]]
     flag: "cited:rebel-fight-among-rebel-fleet",
-    aliases: [],
+    aliases: ["Rebel fight among Rebel fleet"],
     sectors: ["The Last Stand"],
     body: "",
     choices: [
@@ -52,12 +52,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Hostile Rebel ship with boarders",
+    dest: "Rebel fight with boarders",
     slug: "rebel-fight-with-boarders",
     // Wiki citations:
     // > "This random event occurs in Rebel Controlled Sector, Rebel Stronghold." — [[Rebel fight with boarders]]
     flag: "cited:rebel-fight-with-boarders",
-    aliases: [],
+    aliases: ["Rebel fight with boarders"],
     sectors: ["Rebel Controlled Sector", "Rebel Stronghold"],
     body: "",
     choices: [

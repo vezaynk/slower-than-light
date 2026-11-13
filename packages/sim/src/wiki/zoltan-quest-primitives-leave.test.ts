@@ -11,11 +11,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_QUEST_PRIMITIVES";
-  b.name = "Quest: planet defense";
+  b.name = "Zoltan quest primitives";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Quest: planet defense");
+  assert.equal(g.event?.title, "Zoltan quest primitives");
   assert.equal(g.event?.body, OPENING);
 }
 

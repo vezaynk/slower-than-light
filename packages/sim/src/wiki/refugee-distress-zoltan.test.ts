@@ -11,11 +11,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REFUGEE_DISTRESS_ZOLTAN";
-  b.name = "Refugee ship distress (Zoltan)";
+  b.name = "Refugee distress (Zoltan)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Refugee ship distress (Zoltan)");
+  assert.equal(g.event?.title, "Refugee distress (Zoltan)");
 }
 
 function scraps(body: string): number[] {
@@ -28,18 +28,16 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Refugee ship distress (Zoltan)", () => {
+describe("Refugee distress (Zoltan)", () => {
   it("is a Zoltan sector card with the distress intro", () => {
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee distress (Zoltan)]]
     const pages = citedPagesFor("ZOLTAN_SECTOR").filter(
-      (p) => p.dest === "Refugee ship distress (Zoltan)",
+      (p) => p.dest === "Refugee distress (Zoltan)",
     );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["ZOLTAN_SECTOR", "ZOLTAN_HOME"]);
-    const home = citedPagesFor("ZOLTAN_HOME").some(
-      (p) => p.dest === "Refugee ship distress (Zoltan)",
-    );
+    const home = citedPagesFor("ZOLTAN_HOME").some((p) => p.dest === "Refugee distress (Zoltan)");
     assert.equal(home, true);
     const g = createGame(1);
     open(g);

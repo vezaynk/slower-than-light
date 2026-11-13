@@ -22,7 +22,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Trade: supplies for reactor",
+    name: "Improve reactor for supplies",
     tier: "",
     flag: "filler:improve-reactor-for-supplies",
     asteroid: false,
@@ -41,9 +41,9 @@ function offer(g: ReturnType<typeof createGame>) {
   return { ev, id: agree.id, missiles: Number(m[1]), parts: Number(m[2]), fuel: Number(m[3]) };
 }
 
-describe("Trade: supplies for reactor", () => {
+describe("Improve reactor for supplies", () => {
   it("is a card an items draw can reach", () => {
-    assert.equal(pageForRow("Trade: supplies for reactor")?.slug, "TRADER_UPGRADES_EXCHANGE");
+    assert.equal(pageForRow("Improve reactor for supplies")?.slug, "TRADER_UPGRADES_EXCHANGE");
   });
 
   it("shows one printed intro and one printed bundle", () => {

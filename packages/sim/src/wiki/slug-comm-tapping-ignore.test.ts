@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "QUEST_SLUG_PIRATE_TRAP";
-  b.name = "Quest: tap Slug comms";
+  b.name = "Slug comm tapping";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Quest: tap Slug comms");
+  assert.equal(g.event?.title, "Slug comm tapping");
 }
 
 describe("Slug comm tapping ignore", () => {

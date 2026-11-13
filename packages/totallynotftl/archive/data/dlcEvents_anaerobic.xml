@@ -52,8 +52,10 @@
 -->
 <FTL>
   <event name="LANIUS_NOBOARDERS_PDS">
-    <title>Hostile Lanius ship with friendly ASB</title>
+    <title>Lanius fight with friendly ASB support</title>
     <alias>lanius-fight-with-friendly-asb-support</alias>
+    <alias>Anti-Ship Battery Firing on Lanius Ships</alias>
+    <alias>Lanius fight with friendly ASB support</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Hostile Lanius ship. Anti-Ship Battery fires on it.</text>
     <choice name="c:lanius-fight-with-friendly-asb-support:0">
@@ -62,8 +64,10 @@
     </choice>
   </event>
   <event name="LANIUS_AUTO_REBEL">
-    <title>Optional fight: Lanius ship and Auto-ship</title>
+    <title>Lanius ship absorbing automated scout</title>
     <alias>lanius-ship-absorbing-automated-scout</alias>
+    <alias>Lanius absorbing automated scout</alias>
+    <alias>Lanius ship absorbing automated scout</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Lanius ship by an Auto-ship.</text>
     <choice name="c:lanius-ship-absorbing-automated-scout:0">
@@ -76,8 +80,10 @@
     </choice>
   </event>
   <event name="LANIUS_MANTIS_DISTRESS">
-    <title>Optional fight: Lanius ship and Mantis ship</title>
+    <title>Lanius ship attacking Mantis</title>
     <alias>lanius-ship-attacking-mantis</alias>
+    <alias>Lanius ship attacking Mantis</alias>
+    <alias>Ship Being Mined by Lanius</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Lanius ship attacking a Mantis ship.</text>
     <choice name="c:lanius-ship-attacking-mantis:0">
@@ -90,8 +96,10 @@
     </choice>
   </event>
   <event name="LANIUS_ROCK_DISTRESS">
-    <title>Optional fight: Lanius ship and Rock ship</title>
+    <title>Lanius ship attacking Rock</title>
     <alias>lanius-ship-attacking-rock</alias>
+    <alias>Lanius attacking Rock</alias>
+    <alias>Lanius ship attacking Rock</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Lanius ship attacking a Rock ship.</text>
     <choice name="c:lanius-ship-attacking-rock:0">
@@ -104,8 +112,10 @@
     </choice>
   </event>
   <event name="LANIUS_CIVILIAN">
-    <title>Optional fight: Lanius ship and civilian</title>
+    <title>Lanius ship attacking civilian</title>
     <alias>lanius-ship-attacking-civilian</alias>
+    <alias>Lanius Attacking Civilian</alias>
+    <alias>Lanius ship attacking civilian</alias>
     <sector>LANIUS_SECTOR</sector>
     <text/>
     <text>Lanius ship attacking a civilian ship.</text>
@@ -121,8 +131,10 @@
     </choice>
   </event>
   <event name="LANIUS_DISTRESS_FIGHT">
-    <title>Optional fight: Lanius ship (distress)</title>
+    <title>Lanius ship attacking civilian distress</title>
     <alias>lanius-ship-attacking-civilian-distress</alias>
+    <alias>Lanius attacking civilian distress</alias>
+    <alias>Lanius ship attacking civilian distress</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Lanius ship attacking a civilian ship.</text>
     <choice name="c:lanius-ship-attacking-civilian-distress:0">
@@ -142,8 +154,9 @@
     </choice>
   </event>
   <event name="LANIUS_HARVESTER">
-    <title>Optional fight: Lanius ship in debris field</title>
+    <title>Lanius ship in rich debris field</title>
     <alias>lanius-ship-in-rich-debris-field</alias>
+    <alias>Lanius ship in rich debris field</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Lanius ship in a debris field.</text>
     <choice name="c:lanius-ship-in-rich-debris-field:0">
@@ -174,8 +187,10 @@
     </choice>
   </event>
   <event name="LANIUS_SOLO_SALVAGE">
-    <title>Optional fight: Lanius salvager</title>
+    <title>Lanius ship salvager</title>
     <alias>lanius-ship-salvager</alias>
+    <alias>Lanius Salvaging Small Asteroid Belt</alias>
+    <alias>Lanius ship salvager</alias>
     <sector>LANIUS_SECTOR</sector>
     <text/>
     <text>Lanius ship salvaging.</text>
@@ -200,8 +215,9 @@
     </choice>
   </event>
   <event name="LANIUS_FIGHT">
-    <title>Hostile Lanius ship</title>
+    <title>Lanius fight</title>
     <alias>lanius-fight</alias>
+    <alias>Lanius fight</alias>
     <sector>LANIUS_SECTOR</sector>
     <text/>
     <text>Hostile Lanius ship.</text>
@@ -221,8 +237,9 @@
     </choice>
   </event>
   <event name="LANIUS_DISTRESS_TRAP">
-    <title>Hostile Lanius ship (distress)</title>
+    <title>Lanius fight distress</title>
     <alias>lanius-fight-distress</alias>
+    <alias>Lanius fight distress</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Hostile Lanius ship.</text>
     <choice name="c:lanius-fight-distress:0">
@@ -231,8 +248,9 @@
     </choice>
   </event>
   <event name="LANIUS_FIGHT_ASTEROID">
-    <title>Hostile Lanius ship in asteroid field</title>
+    <title>Lanius fight in asteroid field</title>
     <alias>lanius-fight-in-asteroid-field</alias>
+    <alias>Lanius fight in asteroid field</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Hostile Lanius ship. Asteroid field.</text>
     <choice name="c:lanius-fight-in-asteroid-field:0">
@@ -241,8 +259,9 @@
     </choice>
   </event>
   <event name="LANIUS_FIGHT_PULSAR">
-    <title>Hostile Lanius ship near pulsar</title>
+    <title>Lanius fight near pulsar</title>
     <alias>lanius-fight-near-pulsar</alias>
+    <alias>Lanius fight near pulsar</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Hostile Lanius ship. Pulsar: ion pulses.</text>
     <choice name="c:lanius-fight-near-pulsar:0">
@@ -251,8 +270,9 @@
     </choice>
   </event>
   <event name="LANIUS_SCARED_CIVILIAN">
-    <title>Optional fight: unarmed Lanius ship</title>
+    <title>Lanius lone ship</title>
     <alias>lanius-lone-ship</alias>
+    <alias>Lanius lone ship</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Unarmed Lanius ship chasing a civilian ship.</text>
     <choice name="c:lanius-lone-ship:0">
@@ -278,8 +298,9 @@
     </choice>
   </event>
   <event name="LANIUS_DORMANT_EVENT">
-    <title>Powered-down Lanius ship</title>
+    <title>Lanius powered-down ship</title>
     <alias>lanius-powered-down-ship</alias>
+    <alias>Lanius powered-down ship</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Powered-down Lanius ship.</text>
     <choice name="c:lanius-powered-down-ship:0">
@@ -300,8 +321,9 @@
     </choice>
   </event>
   <event name="LANIUS_SLUG_DISTRESS">
-    <title>Optional fight: Lanius ship and Slug ship</title>
+    <title>Lanius ship attacking Slug</title>
     <alias>lanius-ship-attacking-slug</alias>
+    <alias>Lanius ship attacking Slug</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Lanius ship attacking a Slug ship.</text>
     <choice name="c:lanius-ship-attacking-slug:0">
@@ -314,8 +336,9 @@
     </choice>
   </event>
   <event name="LANIUS_BEACON_EATER">
-    <title>Lanius ship at jump beacon</title>
+    <title>Lanius ship absorbing jump beacon</title>
     <alias>lanius-ship-absorbing-jump-beacon</alias>
+    <alias>Lanius ship absorbing jump beacon</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Damaged Lanius ship docked with the beacon.</text>
     <choice name="c:lanius-ship-absorbing-jump-beacon:0">
@@ -346,8 +369,9 @@
     </choice>
   </event>
   <event name="LANIUS_GROUP_AUTO">
-    <title>Lanius ships: fleet delay</title>
+    <title>Lanius ship absorbing rebel base</title>
     <alias>lanius-ship-absorbing-rebel-base</alias>
+    <alias>Lanius ship absorbing rebel base</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Lanius ships. Option: delay the fleet.</text>
     <choice name="c:lanius-ship-absorbing-rebel-base:0">

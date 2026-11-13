@@ -39,7 +39,7 @@ function open(g: Game) {
   );
   assert.ok(beacon);
   beacon.flag = "LANIUS_RESEARCHER_CRAFT";
-  beacon.name = "Trade: scrap for items (Lanius)";
+  beacon.name = "Lanius craftsmen";
   g.here = beacon.id;
   g.phase = "event";
 }

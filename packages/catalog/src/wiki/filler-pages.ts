@@ -13,10 +13,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // ASTEROID_EXPLORE. Explore: fuel "high|3-6"; "medium|2-4 missiles" missiles and scrap; "medium|1 drone part"; a
   // Pirate ship in an asteroid field; "5 hull damage"; nothing. Scrap Recovery Arm mines high scrap.
   {
-    dest: "Asteroid field: explore",
+    dest: "Large asteroid field",
     slug: "large-asteroid-field",
     flag: "cited:large-asteroid-field",
-    aliases: [],
+    aliases: ["Large asteroid field", "Large Asteroid Field"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -54,10 +54,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // a Mantis ship, a Rebel ship, a Zoltan ship. Improved Sensors: that same medium salvage, and no fight.
   // Advanced Sensors can grant an unnamed weapon and prints no odds. Left unwired.
   {
-    dest: "Wreckage: search",
+    dest: "Battlefield wreckage",
     slug: "battlefield-wreckage",
     flag: "cited:battlefield-wreckage",
-    aliases: [],
+    aliases: ["Battlefield wreckage", "Battlefield Wreckage"],
     sectors: [
       "Engi Controlled Sector",
       "Engi Homeworlds",
@@ -88,10 +88,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // The sick card's Continue still loses that crewmember. Clone Bay has [no effect].
   // Improved Medbay level=2+ is "Try to cure the disease." Scrap: "a random amount of scrap".
   {
-    dest: "Station with life signs",
+    dest: "Plagued station",
     slug: "plagued-station",
     flag: "cited:plagued-station",
-    aliases: [],
+    aliases: ["Plagued station", "Plagued Station"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Damaged station. Faint life signs.",
     choices: [
@@ -110,10 +110,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   },
   // ROGUE_REBEL. Go looking: a Rebel ship ({{DuplicateEvent|2}}); pursuit doubled for 1 jump and a Rebel ship; nothing.
   {
-    dest: "Optional fight: hidden Rebel ship",
+    dest: "Rebel fight chance",
     slug: "rebel-fight-chance",
     flag: "cited:rebel-fight-chance",
-    aliases: [],
+    aliases: ["Rebel fight chance", "Rebel Fight Chance"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Request: find a Rebel ship in this system.",
     choices: [
@@ -142,10 +142,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // REFUGEE_NO_DISTRESS, Template:Drifting Refugee Ship (type=main). Hail: a trade ({{DuplicateEvent|4}}); a Pirate
   // ambush; a Zoltan ship; a pirate ship using them as bait; a Slug ship.
   {
-    dest: "Refugee ship",
+    dest: "Refugee",
     slug: "refugee",
     flag: "cited:refugee",
-    aliases: [],
+    aliases: ["Refugee"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -166,10 +166,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // DONOR_PONY. Investigate opens three choices: communicate (Engi crewmember and low scrap with resources, or
   // nothing), sell (lose a crewmember, or nothing), leave.
   {
-    dest: "Unknown life forms on a planet",
+    dest: "Intelligent ponies",
     slug: "intelligent-ponies",
     flag: "cited:intelligent-ponies",
-    aliases: [],
+    aliases: ["Intelligent ponies", "Intelligent Ponies"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Unknown life forms on a planet.",
     choices: [
@@ -185,10 +185,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // planet-side Anti-Ship Battery with no ship; a cloning bay (scrap the machinery: low scrap); an empty shell.
   // Unnamed boarders are INFERRED human. The Clonebay DNA blue option is not offered on this copy.
   {
-    dest: "Empty station",
+    dest: "Abandoned station",
     slug: "abandoned-station",
     flag: "cited:abandoned-station",
-    aliases: [],
+    aliases: ["Abandoned station", "Abandoned Station"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Empty station.",
     choices: [
@@ -203,10 +203,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // TERRAFORMING_SCAN. Scan: nothing, or "Successful Scan" (oxygen upgraded; a Pirate ship; the mold, with a 15-25 scrap
   // bribe either way).
   {
-    dest: "Planet scan request",
+    dest: "Terraforming scan",
     slug: "terraforming-scan",
     flag: "cited:terraforming-scan",
-    aliases: [],
+    aliases: ["Terraforming scan", "Terraforming Scan"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Station. Request: scan a planet.",
     choices: [
@@ -220,10 +220,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   },
   // NEBULA_EMPTY. "Nothing happens." The intro is one of the page's nine texts (EMPTY_PAGES), drawn on arrival.
   {
-    dest: "Empty beacon in nebula",
+    dest: "Empty nebula beacon",
     slug: "empty-nebula-beacon",
     flag: "cited:empty-nebula-beacon",
-    aliases: [],
+    aliases: ["Empty nebula beacon", "Empty Nebula Beacon", "Nebula empty beacon"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -238,10 +238,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   },
   // NEBULA_LOST_SHIP. Follow: a crewmember; a Rebel ship; nothing.
   {
-    dest: "Lost ship in nebula",
+    dest: "Nebula lost ship",
     slug: "nebula-lost-ship",
     flag: "cited:nebula-lost-ship",
-    aliases: [],
+    aliases: ["Nebula lost ship", "Nebula Lost Ship"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -282,10 +282,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // STORM_ITEMS. Search: "4 hull damage" and high resources with some scrap; a crewmember and low scrap with resources;
   // lose a crewmember and low scrap with resources; a drone schematic with medium scrap; a weapon with medium scrap.
   {
-    dest: "Wrecks in plasma storm",
+    dest: "Plasma storm incapacitated ships",
     slug: "plasma-storm-incapacitated-ships",
     flag: "cited:plasma-storm-incapacitated-ships",
-    aliases: [],
+    aliases: ["Plasma storm incapacitated ships", "Plasma Storm Incapacitated Ships"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -319,10 +319,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // FRIENDLY_BEACON. Give "2-4" fuel: high scrap ({{DuplicateEvent|2}}); a weapon; the sector map (not wired); the
   // reactor upgraded.
   {
-    dest: "Fuel request",
+    dest: "Friendly ship out of fuel",
     slug: "friendly-ship-out-of-fuel",
     flag: "cited:friendly-ship-out-of-fuel",
-    aliases: [],
+    aliases: ["Friendly ship out of fuel", "Friendly Ship Out of Fuel"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -359,10 +359,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   },
   // REFUGEE_DISTRESS, Template:Drifting Refugee Ship (introtext=distress, type=main). Same results as Refugee.
   {
-    dest: "Refugee ship distress",
+    dest: "Refugee distress",
     slug: "refugee-distress",
     flag: "cited:refugee-distress",
-    aliases: [],
+    aliases: ["Refugee distress", "Refugee Distress"],
     sectors: ["Civilian Sector", "Pirate Controlled Sector", "Uncharted Nebula"],
     body: "Refugee ship.",
     choices: [
@@ -377,10 +377,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // REFUGEE_GHOST. Board, five results, no odds: lose a crewmember; a crewmember; "medium|2-4 missiles" missiles
   // and scrap; "2-4 human boarders" with no ship; nothing.
   {
-    dest: "Refugee ship, no comms",
+    dest: "Refugee comms down",
     slug: "refugee-comms-down",
     flag: "cited:refugee-comms-down",
-    aliases: [],
+    aliases: ["Refugee comms down", "Refugee Comms Down"],
     sectors: ["Civilian Sector", "Pirate Controlled Sector", "Uncharted Nebula"],
     body: "Refugee ship. No comms.",
     choices: [
@@ -398,10 +398,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // TRADER_UPGRADES. Inquire offers one of Oxygen, Piloting, Door System, Sensors, or the reactor.
   // alsooccur=exit stays with the unwired exit list. The items row is Template:EventList ITEMS.
   {
-    dest: "Trade: scrap for upgrades",
+    dest: "Trade scrap for upgrades",
     slug: "trade-scrap-for-upgrades",
     flag: "cited:trade-scrap-for-upgrades",
-    aliases: [],
+    aliases: ["Trade scrap for upgrades"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -428,10 +428,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   },
   // REFUEL_STATION. Each buy is a fixed scrap cost for a fixed fuel amount. Ignore does nothing.
   {
-    dest: "Trade: scrap for fuel",
+    dest: "Refueling station",
     slug: "refueling-station",
     flag: "cited:refueling-station",
-    aliases: [],
+    aliases: ["Refueling station"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -486,10 +486,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // A missile weapon's launch offer does nothing and returns the non-blue choices.
   // Hull Missile is not a missile weapon for events.
   {
-    dest: "Trade: missiles for rewards",
+    dest: "Asteroid mining colony",
     slug: "asteroid-mining-colony",
     flag: "cited:asteroid-mining-colony",
-    aliases: [],
+    aliases: ["Asteroid mining colony"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -529,10 +529,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // Each band is inclusive. A maxed reactor still takes the supplies and gains no bar.
   // The reactor step size is not printed. INFERRED: one bar, and not past 25.
   {
-    dest: "Trade: supplies for reactor",
+    dest: "Improve reactor for supplies",
     slug: "improve-reactor-for-supplies",
     flag: "cited:improve-reactor-for-supplies",
-    aliases: [],
+    aliases: ["Improve reactor for supplies"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -568,10 +568,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // Both drone costs skip the part when the reward includes drone parts. That is the two-of-three resource draw.
   // Anti-Bio Beam: high resources with some scrap. The unnamed bonus item is not granted.
   {
-    dest: "Distress: station infestation",
+    dest: "Giant alien spiders",
     slug: "giant-alien-spiders",
     flag: "cited:giant-alien-spiders",
-    aliases: [],
+    aliases: ["Giant alien spiders"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -613,10 +613,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // A beam that is not Anti-Bio or Fire, including Artillery Beam, pays medium scrap with resources.
   // A beam drone that is not an Anti-Ship Fire Drone spends 1 part for the same reward, with the drone-part bug.
   {
-    dest: "Distress: ship stuck in asteroids",
+    dest: "Crushed pirate",
     slug: "crushed-pirate",
     flag: "cited:crushed-pirate",
-    aliases: [],
+    aliases: ["Crushed pirate"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -668,10 +668,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // Medbay level 2 or more opens the cure. Continue pays that same reward. Engi Med-bot Dispersal pays high scrap.
   // Its weapon is not named: a random one (Rewards, "Weapon").
   {
-    dest: "Distress: colony riot",
+    dest: "Unknown disease on mining colony",
     slug: "unknown-disease-on-mining-colony",
     flag: "cited:unknown-disease-on-mining-colony",
-    aliases: [],
+    aliases: ["Unknown disease on mining colony"],
     sectors: [
       "Civilian Sector",
       "Mantis Controlled Sector",
@@ -720,10 +720,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // INFERRED: equal. Leave: nothing. A living Rock pays high scrap and an unnamed augmentation. A Repair Drone pays high
   // scrap and an unnamed drone schematic. Each is a random one (Rewards, "Augment" / "Drone").
   {
-    dest: "Distress: station fire",
+    dest: "Fire on research station",
     slug: "fire-on-research-station",
     flag: "cited:fire-on-research-station",
-    aliases: [],
+    aliases: ["Fire on research station"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -774,10 +774,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // Bring him back: a crewmember, Charlie, 5 hull and 1 system damage, or he collapses. No odds. INFERRED: equal.
   // A level 2 medbay, a level 3 medbay, and a living Slug are blue options. The Slug's crewmember is not named.
   {
-    dest: "Distress: life form on moon",
+    dest: "Single life form on moon",
     slug: "single-life-form-on-moon",
     flag: "cited:single-life-form-on-moon",
-    aliases: [],
+    aliases: ["Single life form on moon"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -801,10 +801,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // TRAP_BEACON. The intro is one of four printed lines. No odds. INFERRED: equal.
   // Fight a Pirate ship. Default rewards are the destroy salvage. The PIRATE surrender and escape rows are that faction's plan.
   {
-    dest: "Hostile pirate ship (distress)",
+    dest: "Pirate ship distress trap",
     slug: "pirate-ship-distress-trap",
     flag: "cited:pirate-ship-distress-trap",
-    aliases: [],
+    aliases: ["Pirate ship distress trap"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -836,10 +836,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // The other printed result (5 hull, 1 random system, 1 breached room) stays unwired, so that button does not roll a weight.
   // The commented-out Lanius crew option is not in the game. It is not added here.
   {
-    dest: "Distress: defense satellites",
+    dest: "Malfunctioning defense system",
     slug: "malfunctioning-defense-system",
     flag: "cited:malfunctioning-defense-system",
-    aliases: [],
+    aliases: ["Malfunctioning defense system"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -876,10 +876,10 @@ export const FILLER_PAGES: CitedEventDef[] = [
   // TAVERN_HIRE. The intro varies. Don't hire anyone does nothing.
   // Both hire prices grant an unnamed crewmember and stay unwired.
   {
-    dest: "Crew for hire",
+    dest: "Crew hiring station",
     slug: "crew-hiring-station",
     flag: "cited:crew-hiring-station",
-    aliases: [],
+    aliases: ["Crew hiring station"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",

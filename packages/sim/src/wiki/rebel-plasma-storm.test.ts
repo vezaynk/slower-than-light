@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { choose, commitJump, createGame, sparePower, startCombat, syncIonStorm } from "../sim.ts";
 import { citedFleetAdvance, ionStormBeacon } from "./cited-sectors.ts";
 
-describe("Hostile Rebel ship in plasma storm", () => {
+describe("Rebel fight in plasma storm", () => {
   it("storms a non-nebula beacon and keeps the full fleet step", () => {
     const g = createGame(4);
     const beacon = g.beacons.find(
@@ -12,7 +12,7 @@ describe("Hostile Rebel ship in plasma storm", () => {
     assert.ok(beacon);
     beacon.kind = "event";
     beacon.flag = "STORM_REBEL";
-    beacon.name = "Hostile Rebel ship in plasma storm";
+    beacon.name = "Rebel fight in plasma storm";
     beacon.col = 5;
     g.here = beacon.id;
     g.fleet = 1;
@@ -59,7 +59,7 @@ describe("Hostile Rebel ship in plasma storm", () => {
     assert.equal(ionStormBeacon(beacon, g), false);
     beacon.kind = "exit";
     beacon.flag = "STORM_REBEL";
-    beacon.name = "Hostile Rebel ship in plasma storm";
+    beacon.name = "Rebel fight in plasma storm";
     assert.equal(ionStormBeacon(beacon, g), false);
   });
 
@@ -73,7 +73,7 @@ describe("Hostile Rebel ship in plasma storm", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "STORM_REBEL";
-    dest.name = "Hostile Rebel ship in plasma storm";
+    dest.name = "Rebel fight in plasma storm";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

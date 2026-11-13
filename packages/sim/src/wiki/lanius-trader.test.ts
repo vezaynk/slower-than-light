@@ -21,11 +21,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_TRADER";
-  b.name = "Trade: supplies for scrap (Lanius)";
+  b.name = "Lanius trader";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Trade: supplies for scrap (Lanius)");
+  assert.equal(g.event?.title, "Lanius trader");
   g.missiles = 20;
   g.player.parts = 20;
 }
@@ -46,7 +46,7 @@ const INTROS = [
   "Lanius ship. Trade offer: supplies for scrap.",
 ];
 
-describe("Trade: supplies for scrap (Lanius)", () => {
+describe("Lanius trader", () => {
   it("shows one of the three printed intros, then one base offer, and agreeing pays those amounts", () => {
     const seenIntro = new Set<string>();
     const seen = new Set<string>();

@@ -9,12 +9,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_ROCK_RACIST";
-  b.name = "Optional fight: Rock ship in plasma storm";
+  b.name = "Rock ship in plasma storm";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Optional fight: Rock ship in plasma storm");
+  assert.equal(g.event?.title, "Rock ship in plasma storm");
 }
 
 function scraps(body: string): number[] {
@@ -27,7 +27,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Optional fight: Rock ship in plasma storm", () => {
+describe("Rock ship in plasma storm", () => {
   it("arming the weapons starts a Rock fight, and leaving spends nothing", () => {
     const g = createGame(1);
     open(g);

@@ -9,14 +9,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_SCARED_CIVILIAN";
-  b.name = "Optional fight: unarmed Lanius ship";
+  b.name = "Lanius lone ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: unarmed Lanius ship");
+  assert.equal(g.event?.title, "Lanius lone ship");
 }
 
-describe("Optional fight: unarmed Lanius ship", () => {
+describe("Lanius lone ship", () => {
   it("attacking shows the lead-in card and starts a Lanius ship fight", () => {
     const lead = eventText("event_LANIUS_SCARED_CIVILIAN_c1_text");
     const g = createGame(1);

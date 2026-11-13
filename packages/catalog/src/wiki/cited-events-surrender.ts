@@ -35,14 +35,14 @@ export type CitedEventDef = {
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
-    dest: "Surrendering Engi ship",
+    dest: "Engi surrender",
     slug: "engi-surrender",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Engi surrender]]
     // > "It is unique." — [[Engi surrender]]
     // > "An Engi ship in the vicinity, seeing you jump in armed to the teeth, immediately broadcasts its surrender. \"Subject goal: wealth. Engi motivation: survival. Transfer of goods acceptable?\"" — [[Engi surrender]]
     flag: "cited:engi-surrender",
-    aliases: [],
+    aliases: ["Engi surrender", "Engi Surrender"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
     body: "Engi ship. Offer: its cargo.",
     choices: [
@@ -65,14 +65,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Floating cargo",
+    dest: "Destroyed cargo ship",
     slug: "destroyed-cargo-ship",
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Destroyed cargo ship]]
     // > "It is unique." — [[Destroyed cargo ship]]
     // > "Not too far from the beacon, you detect a destroyed cargo ship with its cargo scattered nearby, intact." — [[Destroyed cargo ship]]
     flag: "cited:destroyed-cargo-ship",
-    aliases: [],
+    aliases: ["Destroyed cargo ship", "Destroyed Cargo Ship"],
     sectors: ["Pirate Controlled Sector"],
     body: "Cargo near a wreck.",
     choices: [
@@ -126,14 +126,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Quest offer: settlement",
+    dest: "Settlement mercenary work",
     slug: "settlement-mercenary-work",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rock Controlled Sector, Rock Homeworlds." — [[Settlement mercenary work]]
     // > "It is unique." — [[Settlement mercenary work]]
     // > "You are immediately contacted by a settlement, \"Hello, travelers. Your ship seems to be outfitted for combat...care to take up a bit of mercenary work?\"" — [[Settlement mercenary work]]
     flag: "cited:settlement-mercenary-work",
-    aliases: [],
+    aliases: ["Settlement mercenary work", "Settlement Mercenary Work"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -164,14 +164,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Hostile Slug pirate ship",
+    dest: "The Black Raven",
     slug: "the-black-raven",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[The Black Raven]]
     // > "It is unique." — [[The Black Raven]]
     // > "As you jump in, you immediately see an impressive Slug pirate ship with \"The Black Raven\" painted on one side. They hail you, \"Greetingsss. I am the dreaded pirate, Captain Nights. You mussst be full of fear, no? You have heard of me... no?\"" — [[The Black Raven]]
     flag: "cited:the-black-raven",
-    aliases: [],
+    aliases: ["The Black Raven"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Slug pirate ship.",
     choices: [
@@ -184,7 +184,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Docking request: Zoltan ship",
+    dest: "Zoltan ship asks to dock",
     slug: "zoltan-ship-asks-to-dock",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan ship asks to dock]]
@@ -192,7 +192,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "What appears to be a Zoltan science ship requests permission to dock." — [[Zoltan ship asks to dock]]
     flag: "cited:zoltan-ship-asks-to-dock",
     // "Zoltan science ship" is the same page under its old title (the dump keeps both with the same text).
-    aliases: [],
+    aliases: ["Zoltan ship asks to dock", "Zoltan science ship"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Zoltan ship. Request: dock.",
     choices: [
@@ -216,14 +216,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // @agent:quests. "Slug comm tapping" ({{Locations|Slug Controlled Nebula|Slug Home Nebula|...}}).
   {
-    dest: "Quest: tap Slug comms",
+    dest: "Slug comm tapping",
     slug: "slug-comm-tapping",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug comm tapping]]
     // > "It is unique." — [[Slug comm tapping]]
     // > "You arrive to the sight of two Slug ships in communication range. They don't see you." — [[Slug comm tapping]]
     flag: "cited:slug-comm-tapping",
-    aliases: [],
+    aliases: ["Slug comm tapping", "Slug Comm Tapping"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Two Slug ships. Nebula.",
     choices: [
@@ -252,7 +252,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // @agent:quests. "Engi fleet discussion" ({{Locations|Engi Homeworlds|...}}), the Stealth Cruiser unlocking event.
   {
-    dest: "Engi ships: Engi crew quest",
+    dest: "Engi fleet discussion",
     slug: "engi-fleet-discussion",
     // Wiki citations:
     // > "This random event occurs in Engi Homeworlds." — [[Engi fleet discussion]]
@@ -260,7 +260,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "This is the Stealth Cruiser ship unlocking event." — [[Engi fleet discussion]]
     // > "You arrive near a small fleet of civilian Engi ships. A simple decryption and translation of their comm frequency tells you that they are having a frantic discussion about something obviously troubling them." — [[Engi fleet discussion]]
     flag: "cited:engi-fleet-discussion",
-    aliases: [],
+    aliases: ["Engi fleet discussion", "Engi Fleet Discussion"],
     sectors: ["Engi Homeworlds"],
     body: "Engi ships.",
     choices: [

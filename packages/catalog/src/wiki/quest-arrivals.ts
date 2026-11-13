@@ -120,7 +120,7 @@ export const QUEST_PAGES: QuestPage[] = [
     [button("q:capture:fight", "Fight the pirate ship.")],
   ),
   {
-    dest: "Quest beacon",
+    dest: "Quest marker choices",
     slug: "quest-marker-choices",
     flag: "choice:quest-marker-choices",
     aliases: [],

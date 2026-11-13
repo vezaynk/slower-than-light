@@ -28,14 +28,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // Lanius ship absorbing jump beacon. Abandoned Sector. unique=true. LRSmap=ship.
     // Ask, leave, the Lanius decline, and the Hull Repair Drone run in filler-events.ts.
     // Sending 30 scrap, and giving 30 scrap, 6 missiles, or 6 drone parts, each grant an unnamed augmentation and stay unwired.
-    dest: "Lanius ship at jump beacon",
+    dest: "Lanius ship absorbing jump beacon",
     slug: "lanius-ship-absorbing-jump-beacon",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius ship absorbing jump beacon]]
     // > "It is unique." — [[Lanius ship absorbing jump beacon]]
     // > "You detect a damaged vessel docked with the jump beacon. It appears the Lanius are absorbing metal from the beacon, risking destroying it and becoming stranded." — [[Lanius ship absorbing jump beacon]]
     flag: "cited:lanius-ship-absorbing-jump-beacon",
-    aliases: [],
+    aliases: ["Lanius ship absorbing jump beacon"],
     sectors: ["Abandoned Sector"],
     body: "Damaged Lanius ship docked with the beacon.",
     choices: [
@@ -83,14 +83,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     // Lanius ship absorbing rebel base. The delay, the fight, and the Lanius crew run in filler-events.ts.
-    dest: "Lanius ships: fleet delay",
+    dest: "Lanius ship absorbing rebel base",
     slug: "lanius-ship-absorbing-rebel-base",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius ship absorbing rebel base]]
     // > "It is unique." — [[Lanius ship absorbing rebel base]]
     // > "You notice a number of Lanius ships absorbing a forward Rebel base and its automated scouts. They don't seem to be aggressive. Perhaps their desire for metal could prove to be useful?" — [[Lanius ship absorbing rebel base]]
     flag: "cited:lanius-ship-absorbing-rebel-base",
-    aliases: [],
+    aliases: ["Lanius ship absorbing rebel base"],
     sectors: ["Abandoned Sector"],
     body: "Lanius ships. Option: delay the fleet.",
     choices: [
@@ -138,14 +138,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Lanius craftsmen. Abandoned Sector. unique=true. LRSmap=noship.
     // The inquiry, the 45/50/40 scrap crafts, and the Lanius 10-scrap discount run in filler-events.ts.
-    dest: "Trade: scrap for items (Lanius)",
+    dest: "Lanius craftsmen",
     slug: "lanius-craftsmen",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius craftsmen]]
     // > "It is unique." — [[Lanius craftsmen]]
     // > "A merchant ship is docked with a Lanius transport. You message them to see if they need any help. It turns out they have been studying the Lanius's ability to reshape metal." — [[Lanius craftsmen]]
     flag: "cited:lanius-craftsmen",
-    aliases: [],
+    aliases: ["Lanius craftsmen"],
     sectors: ["Abandoned Sector"],
     body: "Item seller.",
     choices: [

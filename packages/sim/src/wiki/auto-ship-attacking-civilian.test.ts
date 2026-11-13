@@ -19,12 +19,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_CIVILIAN";
-  b.name = "Optional fight: Auto-ship and civilian";
+  b.name = "Auto-ship attacking civilian";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Optional fight: Auto-ship and civilian");
+  assert.equal(g.event?.title, "Auto-ship attacking civilian");
 }
 
 function scraps(body: string): number[] {
@@ -37,7 +37,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Optional fight: Auto-ship and civilian", () => {
+describe("Auto-ship attacking civilian", () => {
   it("aiding the civilian starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);

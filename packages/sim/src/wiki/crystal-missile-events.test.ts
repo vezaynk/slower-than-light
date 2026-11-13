@@ -46,7 +46,7 @@ function miningOffers(defId: string): boolean {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Trade: missiles for rewards",
+    name: "Asteroid mining colony",
     tier: "",
     flag: "filler:asteroid-mining-colony",
     asteroid: false,
@@ -63,7 +63,7 @@ function mineDetonates(defId: string): boolean {
   );
   assert.ok(beacon);
   beacon.flag = "ROCK_STARSHIP_MINE";
-  beacon.name = "Live mine";
+  beacon.name = "Rock live mine";
   g.here = beacon.id;
   g.event = citedEvent(g, beacon);
   g.phase = "event";

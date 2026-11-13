@@ -14,11 +14,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "FUEL_FOR_DRONE";
-  b.name = "Trade: fuel for drone parts";
+  b.name = "Trade fuel for drone parts";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Trade: fuel for drone parts");
+  assert.equal(g.event?.title, "Trade fuel for drone parts");
 }
 
 describe("Trade fuel for drone parts intro", () => {

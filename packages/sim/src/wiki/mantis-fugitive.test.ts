@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ALISON_MANTIS_CREW";
-  b.name = "Mantis boarder: fight or hand over";
+  b.name = "Mantis fugitive";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Mantis boarder: fight or hand over");
+  assert.equal(g.event?.title, "Mantis fugitive");
 }
 
 function players(g: Game) {
@@ -33,7 +33,7 @@ function reward(body: string) {
   return { scrap: n("Scrap"), fuel: n("Fuel"), missiles: n("Missiles"), parts: n("Drone parts") };
 }
 
-describe("Mantis boarder: fight or hand over", () => {
+describe("Mantis fugitive", () => {
   it("siding with him is a trap or a thanks, and the unnamed Mantis does not join", () => {
     // Wiki citations:
     // > "It was a trap! The Mantis sabotages your ship before teleporting away." — [[Mantis fugitive]]

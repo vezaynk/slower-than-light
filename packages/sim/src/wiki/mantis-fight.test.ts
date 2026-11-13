@@ -31,14 +31,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "MANTIS_FIGHT";
-  b.name = "Hostile Mantis ship";
+  b.name = "Mantis fight";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Mantis ship");
+  assert.equal(g.event?.title, "Mantis fight");
 }
 
-describe("Hostile Mantis ship", () => {
+describe("Mantis fight", () => {
   it("shows one of the twenty printed intros, then fights a Mantis ship", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight]]
@@ -96,7 +96,7 @@ describe("Hostile Mantis ship", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "MANTIS_FIGHT";
-    dest.name = "Hostile Mantis ship";
+    dest.name = "Mantis fight";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

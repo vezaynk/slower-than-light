@@ -11,18 +11,18 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_DISTRESS_RESCUE";
-  b.name = "Hire: Slug crew";
+  b.name = "Slocknog";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hire: Slug crew");
+  assert.equal(g.event?.title, "Slocknog");
 }
 
 function players(g: Game) {
   return g.crew.filter((c) => c.side === "player" && c.hp > 0);
 }
 
-describe("Hire: Slug crew", () => {
+describe("Slocknog", () => {
   it("hiring him costs 55 scrap and stores no skills", () => {
     // Wiki citations:
     // > "Hire Slocknog." — [[Slocknog]]

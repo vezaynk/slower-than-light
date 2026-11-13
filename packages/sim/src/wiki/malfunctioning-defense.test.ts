@@ -14,7 +14,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Distress: defense satellites",
+    name: "Malfunctioning defense system",
     tier: "",
     flag: "filler:malfunctioning-defense-system",
     asteroid: false,
@@ -64,9 +64,9 @@ function arm(g: Game, defId: string) {
   });
 }
 
-describe("Distress: defense satellites", () => {
+describe("Malfunctioning defense system", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Distress: defense satellites")?.slug, "DISTRESS_SATELLITE_DEFENSE");
+    assert.equal(pageForRow("Malfunctioning defense system")?.slug, "DISTRESS_SATELLITE_DEFENSE");
   });
 
   it("opens on the distress and hides the blue options", () => {

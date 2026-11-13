@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_AUTO";
-  b.name = "Hostile Auto-ship (Crystal sector)";
+  b.name = "Auto-ship fight (Crystal)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Auto-ship (Crystal sector)");
+  assert.equal(g.event?.title, "Auto-ship fight (Crystal)");
 }
 
 function scraps(body: string): number[] {
@@ -27,7 +27,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Hostile Auto-ship (Crystal sector)", () => {
+describe("Auto-ship fight (Crystal)", () => {
   it("a destroyed ship pays medium scrap with resources, and a crew kill does not", () => {
     const destroyed = createGame(1);
     open(destroyed);
@@ -71,7 +71,7 @@ describe("Hostile Auto-ship (Crystal sector)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "CRYSTAL_AUTO";
-    dest.name = "Hostile Auto-ship (Crystal sector)";
+    dest.name = "Auto-ship fight (Crystal)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

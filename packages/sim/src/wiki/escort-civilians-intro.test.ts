@@ -11,11 +11,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "QUEST_ESCORT";
-  b.name = "Escort: fuel and quest";
+  b.name = "Escort civilians";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Escort: fuel and quest");
+  assert.equal(g.event?.title, "Escort civilians");
 }
 
 describe("Escort civilians intro", () => {

@@ -23,11 +23,6 @@ const TITLES = [
   "Lanius ship absorbing rebel base",
 ];
 
-/** A row's dest is its functional title; its slug is the wiki page title's slug. */
-function titleOf(ev: { slug: string }): string {
-  return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
-}
-
 const SECTORS = new Set([
   "Civilian (Starting) Sector",
   "Civilian Sector",
@@ -99,19 +94,19 @@ describe("cited lanius events", () => {
     // > "This random event occurs in Abandoned Sector." — [[Lanius ship absorbing rebel base]]
     // > "This random event occurs in Abandoned Sector." — [[Lanius craftsmen]]
     assert.equal(wiki.size, TITLES.length);
-    const dests = EXTRA_EVENTS.map((ev) => titleOf(ev));
+    const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     assert.deepEqual(dests, [
       "Lanius ship absorbing jump beacon",
       "Lanius ship absorbing rebel base",
       "Lanius craftsmen",
     ]);
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(titleOf(ev)));
-      assert.equal(slug(titleOf(ev)), ev.slug);
+      assert.ok(TITLES.includes(ev.dest));
+      assert.equal(ev.slug, slug(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
-      assert.deepEqual(ev.aliases, []);
-      const text = wiki.get(titleOf(ev));
+      assert.deepEqual(ev.aliases, [ev.dest]);
+      const text = wiki.get(ev.dest);
       assert.ok(text);
       assert.deepEqual(ev.sectors, locationNames(text));
       ev.choices.forEach((choice, i) => {

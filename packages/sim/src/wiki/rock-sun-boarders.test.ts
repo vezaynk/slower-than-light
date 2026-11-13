@@ -5,7 +5,7 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-rockmen-near-sun:0";
-const DEST = "Boarders: Rock near sun";
+const DEST = "Boarders: Rockmen near sun";
 const INTROS = [
   'As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, "Prepare to burn, fleshy meat-sack aliens!"',
   "Sun: fires break out. 2-3 Rock boarders.",
@@ -32,7 +32,7 @@ function boarded(g: Game) {
   return g.crew.filter((c) => c.side === "enemy" && c.kin === "rock" && c.aboard === "player");
 }
 
-describe("Boarders: Rock near sun", () => {
+describe("Boarders: Rockmen near sun", () => {
   it("is one card in each named sector and beams 2-3 rocks under a red giant", () => {
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Boarders: Rockmen near sun]]

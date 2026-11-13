@@ -16,14 +16,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Asteroid belt distress" ({{Locations|Civilian Sector|Engi Controlled Sector|Engi Homeworlds|Pirate Controlled
   // Sector|Rebel Controlled Sector|Rebel Stronghold|Rock Controlled Sector|Rock Homeworlds|Uncharted Nebula|distress=true}}).
   {
-    dest: "Distress: ship in asteroid belt",
+    dest: "Asteroid belt distress",
     slug: "asteroid-belt-distress",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Uncharted Nebula." — [[Asteroid belt distress]]
     // > "It is unique." — [[Asteroid belt distress]]
     // > "You follow the distress beacon to a tiny asteroid belt." — [[Asteroid belt distress]]
     flag: "cited:asteroid-belt-distress",
-    aliases: [],
+    aliases: ["Asteroid belt distress", "Asteroid Belt Distress"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -50,14 +50,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Capture the ship" ({{Locations|Civilian Sector|Rock Controlled Sector|Rock Homeworlds|Zoltan Controlled Sector|
   // Zoltan Homeworlds}}). The three blue options lead to "Offer a solution" (wiki/quests-b.ts).
   {
-    dest: "Quest: capture a ship",
+    dest: "Capture the ship",
     slug: "capture-the-ship",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Rock Controlled Sector, Rock Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Capture the ship]]
     // > "It is unique." — [[Capture the ship]]
     // > "You arrive to find a number of ships convening around a station." — [[Capture the ship]]
     flag: "cited:capture-the-ship",
-    aliases: [],
+    aliases: ["Capture the ship", "Capture the Ship"],
     sectors: [
       "Civilian Sector",
       "Rock Controlled Sector",
@@ -114,14 +114,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Rebel Controlled Sector|Rebel Stronghold|Rock Controlled Sector|Rock Homeworlds|Zoltan Controlled Sector|Zoltan
   // Homeworlds}}). The away party rolls one of five results (wiki/quests-b.ts).
   {
-    dest: "Planet signal",
+    dest: "Encrypted federation signal",
     slug: "encrypted-federation-signal",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector, Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Encrypted federation signal]]
     // > "It is unique." — [[Encrypted federation signal]]
     // > "A Federation encrypted signal is being broadcast from a nearby planet." — [[Encrypted federation signal]]
     flag: "cited:encrypted-federation-signal",
-    aliases: [],
+    aliases: ["Encrypted federation signal", "Encrypted Federation Signal"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -162,13 +162,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Engi ship attacked by Mantis ship" ({{Locations|Engi Controlled Sector|Engi Homeworlds}}).
   {
-    dest: "Optional fight: Mantis ship (Engi distress)",
+    dest: "Engi ship attacked by Mantis ship",
     slug: "engi-ship-attacked-by-mantis-ship",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Engi ship attacked by Mantis ship]]
     // > "You receive a distress call from a nearby Engi ship." — [[Engi ship attacked by Mantis ship]]
     flag: "cited:engi-ship-attacked-by-mantis-ship",
-    aliases: [],
+    aliases: ["Engi ship attacked by Mantis ship", "Engi Ship Attacked by Mantis Ship"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
     body: "Distress call.",
     choices: [
@@ -194,14 +194,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Merchant's request" ({{Locations|Civilian Sector|Engi Controlled Sector|Engi Homeworlds|Pirate Controlled Sector|
   // Rebel Controlled Sector|Rebel Stronghold}}).
   {
-    dest: "Quest offer: merchant",
+    dest: "Merchant's request",
     slug: "merchant-s-request",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold." — [[Merchant's request]]
     // > "It is unique." — [[Merchant's request]]
     // > "You arrive at a populated sector." — [[Merchant's request]]
     flag: "cited:merchant-s-request",
-    aliases: [],
+    aliases: ["Merchant's request", "Merchant's Request"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -231,14 +231,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Nebula wreckage" ({{Locations|Slug Controlled Nebula|Uncharted Nebula|nebula=true}}).
   {
-    dest: "Wreckage in nebula",
+    dest: "Nebula wreckage",
     slug: "nebula-wreckage",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Uncharted Nebula." — [[Nebula wreckage]]
     // > "It is unique." — [[Nebula wreckage]]
     // > "This nebula looks like it's recently seen two ships exchange fire" — [[Nebula wreckage]]
     flag: "cited:nebula-wreckage",
-    aliases: [],
+    aliases: ["Nebula wreckage", "Nebula Wreckage"],
     sectors: ["Slug Controlled Nebula", "Uncharted Nebula"],
     body: "Wreckage. Nebula.",
     choices: [

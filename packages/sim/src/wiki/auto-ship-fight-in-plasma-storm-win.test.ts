@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "STORM_AUTO";
-  b.name = "Hostile Auto-ship in plasma storm";
+  b.name = "Auto-ship fight in plasma storm";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Auto-ship in plasma storm");
+  assert.equal(g.event?.title, "Auto-ship fight in plasma storm");
 }
 
 function scraps(body: string): number[] {

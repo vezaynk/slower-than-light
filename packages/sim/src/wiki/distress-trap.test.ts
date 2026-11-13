@@ -20,7 +20,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Hostile pirate ship (distress)",
+    name: "Pirate ship distress trap",
     tier: "",
     flag: "filler:pirate-ship-distress-trap",
     asteroid: false,
@@ -37,7 +37,7 @@ function open(g: Game) {
   return ev;
 }
 
-describe("Hostile pirate ship (distress)", () => {
+describe("Pirate ship distress trap", () => {
   it("is a card a distress draw can reach", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate ship distress trap]]
@@ -46,7 +46,7 @@ describe("Hostile pirate ship (distress)", () => {
     // > "Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight." — [[Pirate ship distress trap]]
     // > "As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!" — [[Pirate ship distress trap]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate ship distress trap]]
-    assert.equal(pageForRow("Hostile pirate ship (distress)")?.slug, "TRAP_BEACON");
+    assert.equal(pageForRow("Pirate ship distress trap")?.slug, "TRAP_BEACON");
     const ev = open(createGame(1));
     assert.deepEqual(
       ev.choices.map((c) => c.id),
@@ -100,7 +100,7 @@ describe("Hostile pirate ship (distress)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "TRAP_BEACON";
-    dest.name = "Hostile pirate ship (distress)";
+    dest.name = "Pirate ship distress trap";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

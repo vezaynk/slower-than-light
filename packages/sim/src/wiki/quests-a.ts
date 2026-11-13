@@ -133,16 +133,16 @@ const CONTINUE: Choice[] = [{ id: "qa:zrf:thanks", label: "Continue." }];
 
 const QUESTS_A: QuestPart["quests"] = {
   // Ancient device, "Quest Marker" (CRYSTAL_UNLOCK).
-  "crystal-unlock": { page: "Device: scrap or wormhole", title: "Crystal repair station" },
+  "crystal-unlock": { page: "Ancient device", title: "Crystal repair station" },
   // Rock war vessel encounter, "Sun Quest Marker" and "Shipyard Quest Marker".
-  "rock-sun": { page: "Quest: Rock ship unlock", title: "Quest: Rock ship near sun" },
-  "rock-shipyard": { page: "Quest: Rock ship unlock", title: "Rockman shipyard" },
+  "rock-sun": { page: "Rock war vessel encounter", title: "Quest: Rock ship near sun" },
+  "rock-shipyard": { page: "Rock war vessel encounter", title: "Rockman shipyard" },
   // Unarmed Zoltan transport, "Quest Marker".
   "zoltan-peace": { page: "Unarmed Zoltan transport", title: "Quest: Zoltan beacon" },
   // Zoltan trade hub, "Quest Marker" ({{:Zoltan quest primitives}}).
-  "zoltan-primitives": { page: "Zoltan store hub", title: "Quest: planet defense arrival" },
+  "zoltan-primitives": { page: "Zoltan trade hub", title: "Quest: planet defense arrival" },
   // Rock bride, "Quest Marker".
-  "rock-bride": { page: "Quest: Rock passenger", title: "Quest: Rock passenger delivery" },
+  "rock-bride": { page: "Rock bride", title: "Quest: Rock passenger delivery" },
 };
 
 const ARRIVE: QuestPart["arrive"] = {

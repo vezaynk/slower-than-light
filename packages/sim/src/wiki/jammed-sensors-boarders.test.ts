@@ -8,7 +8,7 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const CONTINUE = "c:boarders-humans-jammed-sensors:0";
 const HACK = "c:boarders-humans-jammed-sensors:1";
-const DEST = "Boarders: Humans, sensors jammed";
+const DEST = "Boarders: Humans jammed sensors";
 const SECTORS = ["PIRATE_SECTOR", "ZOLTAN_SECTOR", "ZOLTAN_HOME"];
 
 function beacon(): Beacon {
@@ -44,7 +44,7 @@ function fitHacking(g: Game) {
   };
 }
 
-describe("Boarders: Humans, sensors jammed", () => {
+describe("Boarders: Humans jammed sensors", () => {
   it("disables sensors for 3-5 humans until the jump, and hacking only counters the jam", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Boarders: Humans jammed sensors]]

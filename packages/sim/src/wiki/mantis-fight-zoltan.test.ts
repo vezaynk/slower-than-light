@@ -4,7 +4,7 @@ import { choose, commitJump, createGame } from "../sim.ts";
 
 const BODY = "Hostile Mantis ship.";
 
-describe("Hostile Mantis ship (Zoltan sector)", () => {
+describe("Mantis fight (Zoltan)", () => {
   it("starts the Mantis ship from the arrival card", () => {
     // Wiki citations:
     // > "You pick up the last broadcast from a rupturing Zoltan freighter: \"The Mantis, they're here, please-\" You're interrupted by fire off the port bow!" — [[Mantis fight (Zoltan)]]
@@ -17,7 +17,7 @@ describe("Hostile Mantis ship (Zoltan sector)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ZOLTAN_MANTIS";
-    dest.name = "Hostile Mantis ship (Zoltan sector)";
+    dest.name = "Mantis fight (Zoltan)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

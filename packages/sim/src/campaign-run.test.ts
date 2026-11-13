@@ -295,7 +295,7 @@ describe("a seeded Kestrel run", () => {
     );
     assert.ok(beacon);
     beacon.flag = "CONFUSED_MANTIS";
-    beacon.name = "Engi ship with Mantis crew";
+    beacon.name = "Confused Mantis";
     hired.here = beacon.id;
     hired.event = citedEvent(hired, beacon);
     hired.phase = "event";

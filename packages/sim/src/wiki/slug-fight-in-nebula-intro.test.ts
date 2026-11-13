@@ -16,11 +16,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_SLUG_FIGHT";
-  b.name = "Hostile Slug ship in nebula";
+  b.name = "Slug fight in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Slug ship in nebula");
+  assert.equal(g.event?.title, "Slug fight in nebula");
 }
 
 describe("Slug fight in nebula intro", () => {
@@ -66,7 +66,7 @@ describe("Slug fight in nebula intro", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "NEBULA_SLUG_FIGHT";
-    dest.name = "Hostile Slug ship in nebula";
+    dest.name = "Slug fight in nebula";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

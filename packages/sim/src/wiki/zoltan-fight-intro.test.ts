@@ -18,11 +18,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_FIGHT";
-  b.name = "Hostile Zoltan ship";
+  b.name = "Zoltan fight";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Zoltan ship");
+  assert.equal(g.event?.title, "Zoltan fight");
 }
 
 describe("Zoltan fight intro", () => {
@@ -72,7 +72,7 @@ describe("Zoltan fight intro", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ZOLTAN_FIGHT";
-    dest.name = "Hostile Zoltan ship";
+    dest.name = "Zoltan fight";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

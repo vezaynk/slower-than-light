@@ -376,7 +376,7 @@ describe("scripted surrenders (event pages)", () => {
     assert.deepEqual(at("slaver-hostile", 0), [80, 20, "slaver-hostile"]);
     assert.deepEqual(at("slug-home-nebula-surrender", 0), [100, 30, "slug-home-nebula-surrender"]);
     assert.equal(
-      allEvents().find((event) => event.dest === "Trade: scrap for crew")?.surrender?.chance,
+      allEvents().find((event) => event.dest === "Slaver (friendly)")?.surrender?.chance,
       80,
     );
     assert.equal(eventDef("FRIENDLY_SLAVER")?.surrender?.chance, 80);
@@ -611,7 +611,7 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(surrenderOfferView(slaver)!.crew, "Crystal");
 
     const human = allEvents().find(
-      (event) => event.dest === "Hostile Crystal ship: crew surrender",
+      (event) => event.dest === "Crystal fight with surrender offer (Human crew)",
     )?.surrender;
     assert.ok(human);
     const named = rollScriptedOffer(createGame(4), human);

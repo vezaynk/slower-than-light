@@ -41,7 +41,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     // Wiki citations:
     // > "Accept their surrender." — [[Crystal fight#The ship surrenders]]
     // > "Ignore them." — [[Crystal fight#The ship surrenders]]
-    page: "Hostile Crystal ship",
+    page: "Crystal fight",
     chance: 40,
     low: 30,
     high: 40,
@@ -55,7 +55,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // "Accept their surrender." -> "You receive a Human crewmember and the fight continues." (ref: "The surrender is
   // lacking the usual tag to stop the fight").
   "crystal-fight-with-surrender-offer-human-crew": {
-    page: "Hostile Crystal ship: crew surrender",
+    page: "Crystal fight with surrender offer (Human crew)",
     chance: 50,
     low: 30,
     high: 40,
@@ -69,7 +69,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // "Stop the fight." -> "You receive low (1-3 fuel) fuel and scrap, and your ship receives 8 repairs."
   // Rewards, "Fuel": "T fuel & T scrap" (low fuel and low scrap). The two printed sentences are the result.
   "crystal-fight-with-surrender-offer-hull-repairs": {
-    page: "Hostile Crystal ship: repair surrender",
+    page: "Crystal fight with surrender offer (hull repairs)",
     chance: 100,
     low: 30,
     high: 40,
@@ -82,7 +82,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // "Pirate briber": "(has 70% chance to surrender at 30-40% hull)". "Accept the more generous bribe and leave." ->
   // "You receive high (fuel: 3-6 ; missiles: 4-8 ; drone parts: 1-2) resources with some scrap" (Rewards#Stuff).
   "pirate-briber": {
-    page: "Pirate bribe",
+    page: "Pirate briber",
     chance: 70,
     low: 30,
     high: 40,
@@ -94,7 +94,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // "Pirate smuggler", Fight the Pirate ship: "(enemy ship has 50% chance to surrender at 20-40% hull)".
   // "Accept their offer." -> "You receive a random amount of resources with some scrap" (Rewards#Stuff, random tier).
   "pirate-smuggler": {
-    page: "Optional fight: pirate smuggler",
+    page: "Pirate smuggler",
     chance: 50,
     low: 20,
     high: 40,
@@ -106,7 +106,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // "Remote settlement", Fight the pirate ship: "(50% chance for surrender offer at 20-40% hull)". "Let them go." ->
   // "You receive medium (fuel: 2-4 ; missiles: 2-4 ; drone parts: 1) resources with some scrap" (Rewards#Stuff).
   "remote-settlement": {
-    page: "Optional fight: pirate ship and settlement",
+    page: "Remote settlement",
     chance: 50,
     low: 20,
     high: 40,
@@ -121,7 +121,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // randomRace draws it weighted by the sector's crew rarities (apps/game/src/game/rarity.ts rollSectorRace, FTL's
   // GetRandomCrew).
   "slaver-hostile": {
-    page: "Crew demand: pirate ship",
+    page: "Slaver (hostile)",
     chance: 80,
     low: 20,
     high: 40,
@@ -131,7 +131,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     refuse: "Keep fighting.",
   },
   "slaver-friendly": {
-    page: "Trade: scrap for crew",
+    page: "Slaver (friendly)",
     chance: 80,
     low: 20,
     high: 40,
@@ -157,7 +157,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     // > "We don't want the weapon, we want information." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
     // > "We will not accept surrender!" — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
     // > "Continue the fight." — [[Slug Home Nebula surrender#When the Slug ship surrenders]]
-    page: "Hostile Slug ship: ship unlock",
+    page: "Slug Home Nebula surrender",
     chance: 100,
     low: 30,
     high: 40,
@@ -177,7 +177,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
   // offer", so 100%. The page names no surrender reward; Template:SurrenderEscape links every offer to Rewards#Stuff
   // (random tier, as the default rows). INVENTED: the hail and both labels; the page prints none.
   "destroyed-cargo-ship": {
-    page: "Floating cargo",
+    page: "Destroyed cargo ship",
     chance: 100,
     low: 0,
     high: 50,
@@ -198,7 +198,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     // > "You receive a weapon with medium scrap." — [[Settlement mercenary work]]
     // > "Forget your promise, they die!" — [[Settlement mercenary work]]
     // > "The fight continues." — [[Settlement mercenary work]]
-    page: "Quest offer: settlement",
+    page: "Settlement mercenary work",
     chance: 100,
     low: 30,
     high: 40,
@@ -219,7 +219,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     // > "You receive a weapon with high scrap." — [[The Black Raven#Fighting the Black Raven]]
     // > "Ignore him and attack." — [[The Black Raven#Fighting the Black Raven]]
     // > "The ship proposes a surrender offer when its hull integrity falls down to 30-40%." — [[The Black Raven#Trivia]]
-    page: "Hostile Slug pirate ship",
+    page: "The Black Raven",
     chance: 100,
     low: 30,
     high: 40,
@@ -237,7 +237,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     // > "When the ship surrenders The Zoltan captain sends an urgent hail: \"Wait, this was all a test! A test that you passed! A diverse crew, working together, surely a sight to warm the heart of any dispassionate observer. Come, I shall join your crew!\" (Enemy ship has 50% chance to surrender at 30-40% hull; never tries to escape )" — [[Zoltan ship asks to dock]]
     // > "You receive a Zoltan crewmember and low scrap with resources." — [[Zoltan ship asks to dock]]
     // > "If surrender is triggered, the fight is over: there is no option or prompt to decline the surrender to continue the fight." — [[Zoltan ship asks to dock#Trivia]]
-    page: "Docking request: Zoltan ship",
+    page: "Zoltan ship asks to dock",
     chance: 50,
     low: 30,
     high: 40,
@@ -259,7 +259,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     // > "Let the pirate escape and go after the Slugman ship." — [[Slug comm tapping#Quest Marker]]
     // > "The pirate's too badly damaged to pursue you, and you catch up to the Slugs before they jump. \"Ah, of courssse, we would never leave without providing the agreed upon ssspoils.\" They transfer over a decent chunk of the profits and set off." — [[Slug comm tapping#Quest Marker]]
     // > "You receive high scrap." — [[Slug comm tapping#Quest Marker]]
-    page: "Quest: tap Slug comms",
+    page: "Slug comm tapping",
     chance: 100,
     low: 30,
     high: 40,
@@ -279,7 +279,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     // > "\"Of course, that's why you're here. Yes, they passed by here but I had nothing to do with it, I don't know what they were carrying. I'll transmit coordinates. Now just let us go...\"" — [[Engi fleet discussion#First Quest Marker (Real)]]
     // > "A final quest marker is added to your map." — [[Engi fleet discussion#First Quest Marker (Real)]]
     // > "You prepare an FTL message containing the coordinates to send to the Engies and get ready to jump." — [[Engi fleet discussion#First Quest Marker (Real)]]
-    page: "Engi ships: Engi crew quest",
+    page: "Engi fleet discussion",
     chance: 100,
     low: 50,
     high: 50,
@@ -301,7 +301,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     // > "\"Ah, so that's what you're after. Too bad, you followed the wrong ship. The envoy that passed through here was a fake, to trick fools like you. Now let us go!\"" — [[Engi fleet discussion#Second Quest Marker (Fake)]]
     // > "Let them go." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
     // > "Ignore him and attack." — [[Engi fleet discussion#Second Quest Marker (Fake)]]
-    page: "Engi ships: Engi crew quest",
+    page: "Engi fleet discussion",
     chance: 100,
     low: 40,
     high: 40,
@@ -327,7 +327,7 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     // > "\"Thank you. But do you have any idea how much repairing TWO ships will set us back?...\" What an odd Mantis. You prepare to leave." — [[Mantis ship-collectors#Quest Marker]]
     // > "You receive a weapon with high scrap." — [[Mantis ship-collectors#Quest Marker]]
     // > "Finish them off." — [[Mantis ship-collectors#Quest Marker]]
-    page: "Hostile Mantis Fighter",
+    page: "Mantis ship-collectors",
     chance: 100,
     low: 20,
     high: 20,

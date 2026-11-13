@@ -10,14 +10,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_REBEL";
-  b.name = "Hostile Rebel ship (Slug sector)";
+  b.name = "Rebel fight (Slug)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Rebel ship (Slug sector)");
+  assert.equal(g.event?.title, "Rebel fight (Slug)");
 }
 
-describe("Hostile Rebel ship (Slug sector)", () => {
+describe("Rebel fight (Slug)", () => {
   it("shows one of the three intros, and the fight choice starts a Rebel ship combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rebel fight (Slug)]]
@@ -57,7 +57,7 @@ describe("Hostile Rebel ship (Slug sector)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "SLUG_REBEL";
-    dest.name = "Hostile Rebel ship (Slug sector)";
+    dest.name = "Rebel fight (Slug)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

@@ -10,7 +10,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_MANTIS_CHOICE";
-  b.name = "Optional fight: Mantis ship in nebula";
+  b.name = "Mantis fight choice in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -25,7 +25,7 @@ describe("Mantis fight choice in nebula hail", () => {
     const g = createGame(1);
     const crew = g.crew.filter((c) => c.side === "player").length;
     open(g);
-    assert.equal(g.event?.title, "Optional fight: Mantis ship in nebula");
+    assert.equal(g.event?.title, "Mantis fight choice in nebula");
     assert.equal(g.event?.body, HAIL);
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),

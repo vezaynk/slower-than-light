@@ -11,11 +11,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_DEFENSE_MAP";
-  b.name = "Optional fight: Auto-ship at sensor station";
+  b.name = "Auto-ship near sensor station";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: Auto-ship at sensor station");
+  assert.equal(g.event?.title, "Auto-ship near sensor station");
 }
 
 function scraps(body: string): number[] {
@@ -28,7 +28,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Optional fight: Auto-ship at sensor station", () => {
+describe("Auto-ship near sensor station", () => {
   it("attacking starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);

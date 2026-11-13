@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_SCIENCE_DOCK";
-  b.name = "Docking request: Zoltan ship";
+  b.name = "Zoltan ship asks to dock";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Docking request: Zoltan ship");
+  assert.equal(g.event?.title, "Zoltan ship asks to dock");
 }
 
 describe("Zoltan ship asks to dock keep distance", () => {

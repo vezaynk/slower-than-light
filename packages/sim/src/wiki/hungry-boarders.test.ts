@@ -17,7 +17,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Boarders: Humans (Lanius sector)",
+    name: "Boarders: Humans (Abandoned)",
     tier: "",
     flag: "LANIUS_PIRATE_BOARDERS",
     asteroid: false,
@@ -28,10 +28,10 @@ function boarded(g: Game) {
   return g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
 }
 
-describe("Boarders: Humans (Lanius sector)", () => {
+describe("Boarders: Humans (Abandoned)", () => {
   it("is one Abandoned Sector card and beams 3-4 humans with no ship", () => {
     const pages = citedPagesFor("LANIUS_SECTOR").filter(
-      (e) => e.dest === "Boarders: Humans (Lanius sector)",
+      (e) => e.dest === "Boarders: Humans (Abandoned)",
     );
     assert.equal(pages.length, 1);
     assert.deepEqual([...pages[0].sectors], ["LANIUS_SECTOR"]);
@@ -62,7 +62,7 @@ describe("Boarders: Humans (Lanius sector)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "LANIUS_PIRATE_BOARDERS";
-    dest.name = "Boarders: Humans (Lanius sector)";
+    dest.name = "Boarders: Humans (Abandoned)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

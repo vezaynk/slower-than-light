@@ -31,14 +31,14 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   // Zoltan Controlled Sector and Zoltan Homeworlds. unique=true. LRSmap=noship.
   {
-    dest: "Moon scan",
+    dest: "Zoltan odd moon",
     slug: "zoltan-odd-moon",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan odd moon]]
     // > "It is unique." — [[Zoltan odd moon]]
     // > "Something strikes you as odd about a moon in the distance." — [[Zoltan odd moon]]
     flag: "cited:zoltan-odd-moon",
-    aliases: [],
+    aliases: ["Zoltan odd moon"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "A moon.",
     choices: [
@@ -70,12 +70,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Hail is a trade or the Zoltan fight. Those branches run in filler-events.ts.
   // type=zoltan does not wrap the trade in DuplicateEvent|4, and it does not roll the pirate or Slug hails.
   {
-    dest: "Refugee ship (Zoltan)",
+    dest: "Refugee (Zoltan)",
     slug: "refugee-zoltan",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee (Zoltan)]]
     flag: "cited:refugee-zoltan",
-    aliases: [],
+    aliases: ["Refugee (Zoltan)"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Refugee ship.",
     choices: [
@@ -91,12 +91,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Zoltan Controlled Sector and Zoltan Homeworlds. distress=true. unique=false. LRSmap=noship.
   // The same type=zoltan hail: one trade, or the Zoltan fight. Not on the EventList distress beacon list.
   {
-    dest: "Refugee ship distress (Zoltan)",
+    dest: "Refugee distress (Zoltan)",
     slug: "refugee-distress-zoltan",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Refugee distress (Zoltan)]]
     flag: "cited:refugee-distress-zoltan",
-    aliases: [],
+    aliases: ["Refugee distress (Zoltan)"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Refugee ship.",
     choices: [

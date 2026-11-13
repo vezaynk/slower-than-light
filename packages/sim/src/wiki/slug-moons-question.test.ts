@@ -18,7 +18,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: true,
     resolved: false,
-    name: "Distress: question in nebula",
+    name: "Slug moons question",
     tier: "",
     flag: "SLUG_DISTRESS_QUESTION",
     asteroid: false,
@@ -46,14 +46,12 @@ function moons(body: string): number {
   return WORDS[found[1]!]!;
 }
 
-describe("Distress: question in nebula", () => {
+describe("Slug moons question", () => {
   it("is placed in the two slug sectors", () => {
-    assert.ok(
-      citedPagesFor("SLUG_SECTOR").some((ev) => ev.dest === "Distress: question in nebula"),
-    );
-    assert.ok(citedPagesFor("SLUG_HOME").some((ev) => ev.dest === "Distress: question in nebula"));
+    assert.ok(citedPagesFor("SLUG_SECTOR").some((ev) => ev.dest === "Slug moons question"));
+    assert.ok(citedPagesFor("SLUG_HOME").some((ev) => ev.dest === "Slug moons question"));
     assert.equal(
-      citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.dest === "Distress: question in nebula"),
+      citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.dest === "Slug moons question"),
       false,
     );
   });

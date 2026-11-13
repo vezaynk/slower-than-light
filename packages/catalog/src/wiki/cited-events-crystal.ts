@@ -27,12 +27,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Crystal fight has no choice. Arrival calls c:crystal-fight:0.
   // One of the seven printed intros. "Fight a Crystal ship (default rewards)." unique=false.
   {
-    dest: "Hostile Crystal ship",
+    dest: "Crystal fight",
     slug: "crystal-fight",
     // Wiki citations:
     // > "This random event occurs in Hidden Crystal Worlds." — [[Crystal fight]]
     flag: "cited:crystal-fight",
-    aliases: [],
+    aliases: ["Crystal fight"],
     sectors: ["Hidden Crystal Worlds"],
     body: "",
     choices: [
@@ -49,14 +49,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Optional fight: Rebel ship and Crystal ship (Crystal sector)",
+    dest: "Crystal fight choice",
     slug: "crystal-fight-choice",
     // Wiki citations:
     // > "This random event occurs in Hidden Crystal Worlds." — [[Crystal fight choice]]
     // > "It is unique." — [[Crystal fight choice]]
     // > "You're greeted by an unwelcome sight - a Rebel advance ship is laying down fire on a Crystalline vessel in the distance." — [[Crystal fight choice]]
     flag: "cited:crystal-fight-choice",
-    aliases: [],
+    aliases: ["Crystal fight choice"],
     sectors: ["Hidden Crystal Worlds"],
     body: "Rebel ship attacking a Crystal ship.",
     choices: [
@@ -82,13 +82,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Optional fight: pirate ship and Crystal ship",
+    dest: "Pirate ship attacking Crystal",
     slug: "pirate-ship-attacking-crystal",
     // Wiki citations:
     // > "This random event occurs in Hidden Crystal Worlds." — [[Pirate ship attacking Crystal]]
     // > "A pirate ship jumps in right after you arrive at the beacon. It must have followed once the Long-Range Beacon was reactivated. It almost charges a small Crystalline transport ship, weapons armed." — [[Pirate ship attacking Crystal]]
     flag: "cited:pirate-ship-attacking-crystal",
-    aliases: [],
+    aliases: ["Pirate ship attacking Crystal"],
     sectors: ["Hidden Crystal Worlds"],
     body: "Pirate ship attacking a Crystal ship.",
     choices: [
@@ -114,13 +114,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Hostile Rebel ship (Crystal sector)",
+    dest: "Rebel fight (Crystal)",
     slug: "rebel-fight-crystal",
     // Wiki citations:
     // > "This random event occurs in Hidden Crystal Worlds." — [[Rebel fight (Crystal)]]
     // > "As soon as you arrive, a Rebel ship jumps in after you; they must be really hot on your tail." — [[Rebel fight (Crystal)]]
     flag: "cited:rebel-fight-crystal",
-    aliases: [],
+    aliases: ["Rebel fight (Crystal)"],
     sectors: ["Hidden Crystal Worlds"],
     body: "Hostile Rebel ship.",
     choices: [
@@ -142,7 +142,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // Wiki citations:
     // > "This random event occurs in Hidden Crystal Worlds." — [[Boarders: Crystal]]
     flag: "cited:boarders-crystal",
-    aliases: [],
+    aliases: ["Boarders: Crystal"],
     sectors: ["Hidden Crystal Worlds"],
     body: "2-3 Crystal boarders.",
     choices: [

@@ -113,7 +113,7 @@ describe("Engi surrender (no fight)", () => {
     // > "Accept their offer of surrender." — [[Engi surrender]]
     // > "The Engi obediently transfer over the goods and get on their way. Money for nothing." — [[Engi surrender]]
     // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
-    const g = arrive(3, "Engi Homeworlds", "Surrendering Engi ship");
+    const g = arrive(3, "Engi Homeworlds", "Engi surrender");
     const s0 = snap(g);
     choose(g, "c:engi-surrender:1");
     assert.equal(g.enemy, null);
@@ -137,7 +137,7 @@ describe("Engi surrender (no fight)", () => {
     // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
     const seen = new Set<string>();
     for (let seed = 1; seed < 40 && seen.size < 2; seed++) {
-      const g = arrive(seed, "Engi Controlled Sector", "Surrendering Engi ship");
+      const g = arrive(seed, "Engi Controlled Sector", "Engi surrender");
       const s0 = snap(g);
       choose(g, "c:engi-surrender:0");
       if (g.event!.body.startsWith(eventText("event_ENGI_SURRENDER_LIST_1_text"))) {
@@ -153,7 +153,7 @@ describe("Engi surrender (no fight)", () => {
   });
 });
 
-describe("Docking request: Zoltan ship", () => {
+describe("Zoltan ship asks to dock", () => {
   it("Dock: a fight with a forced 50% surrender, or a medium Stuff gift", () => {
     // Wiki citations:
     // > "Dock with them." — [[Zoltan ship asks to dock]]
@@ -166,7 +166,7 @@ describe("Docking request: Zoltan ship", () => {
     // > "You receive medium resources with some scrap." — [[Zoltan ship asks to dock]]
     const seen = new Set<string>();
     for (let seed = 1; seed < 60 && seen.size < 2; seed++) {
-      const g = arrive(seed, "Zoltan Controlled Sector", "Docking request: Zoltan ship");
+      const g = arrive(seed, "Zoltan Controlled Sector", "Zoltan ship asks to dock");
       const s0 = snap(g);
       choose(g, "c:zoltan-ship-asks-to-dock:0");
       const dockLead = eventText("event_ZOLTAN_SCIENCE_DOCK_LIST_1_text");
@@ -210,7 +210,7 @@ describe("Docking request: Zoltan ship", () => {
   });
 });
 
-describe("Quest offer: settlement", () => {
+describe("Settlement mercenary work", () => {
   it("pirate job: never runs, guaranteed surrender at 30-40%, medium scrap (the unnamed weapon is not granted)", () => {
     // Wiki citations:
     // > "Fight a Pirate ship." — [[Settlement mercenary work]]
@@ -222,7 +222,7 @@ describe("Quest offer: settlement", () => {
     // > "The \"SQUAT_PIRATE_MERCENARY\" ship from the settlement never runs away." — [[Settlement mercenary work#Trivia]]
     let done = false;
     for (let seed = 1; seed < 40 && !done; seed++) {
-      const g = arrive(seed, "Civilian Sector", "Quest offer: settlement");
+      const g = arrive(seed, "Civilian Sector", "Settlement mercenary work");
       choose(g, "c:settlement-mercenary-work:0");
       const ids = g.event!.choices.map((c) => c.id);
       if (!ids.includes("s:settlement-mercenary-work:accept")) {
@@ -265,7 +265,7 @@ describe("Quest offer: settlement", () => {
   });
 });
 
-describe("Hostile Slug pirate ship", () => {
+describe("The Black Raven", () => {
   it("No -> challenge; declining still fights a Slug pirate with a guaranteed offer of high scrap", () => {
     // Wiki citations:
     // > "Decline." — [[The Black Raven]]
@@ -275,7 +275,7 @@ describe("Hostile Slug pirate ship", () => {
     // > "You receive a weapon with high scrap." — [[The Black Raven#Fighting the Black Raven]]
     // > "The ship proposes a surrender offer when its hull integrity falls down to 30-40%." — [[The Black Raven#Trivia]]
     // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
-    const g = arrive(5, "Slug Home Nebula", "Hostile Slug pirate ship");
+    const g = arrive(5, "Slug Home Nebula", "The Black Raven");
     choose(g, "c:the-black-raven:0");
     assert.deepEqual(
       g.event!.choices.map((c) => c.id),
@@ -309,7 +309,7 @@ describe("Hostile Slug pirate ship", () => {
     // > "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire." — [[The Black Raven#Fighting the Black Raven]]
     // > "Continue the fight." — [[The Black Raven#Fighting the Black Raven]]
     const cut = eventText("ship_DONOR_BLACK_RAVEN_surrender_c2_text");
-    const g = arrive(5, "Slug Home Nebula", "Hostile Slug pirate ship");
+    const g = arrive(5, "Slug Home Nebula", "The Black Raven");
     choose(g, "c:the-black-raven:0");
     choose(g, "s:the-black-raven:decline");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -326,7 +326,7 @@ describe("Hostile Slug pirate ship", () => {
   });
 });
 
-describe("Floating cargo", () => {
+describe("Destroyed cargo ship", () => {
   it("Bring it aboard: supplies, scrap, boarders with no ship, or the pirate ambush", () => {
     // Wiki citations:
     // > "Bring it aboard." — [[Destroyed cargo ship]]
@@ -339,7 +339,7 @@ describe("Floating cargo", () => {
     // > "2-4 human boarders beam aboard your ship and you fight a Pirate ship (default rewards)." — [[Destroyed cargo ship]]
     const seen = new Set<string>();
     for (let seed = 1; seed < 80 && seen.size < 4; seed++) {
-      const g = arrive(seed, "Pirate Controlled Sector", "Floating cargo");
+      const g = arrive(seed, "Pirate Controlled Sector", "Destroyed cargo ship");
       const s0 = snap(g);
       const kills = g.kills;
       choose(g, "c:destroyed-cargo-ship:0");

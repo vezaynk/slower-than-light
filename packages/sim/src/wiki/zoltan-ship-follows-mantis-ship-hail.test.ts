@@ -10,7 +10,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_DISTRESS_MANTIS";
-  b.name = "Optional fight: Zoltan ship or Mantis ship";
+  b.name = "Zoltan ship follows Mantis ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -22,7 +22,7 @@ describe("Zoltan ship follows Mantis ship hail", () => {
     // > "Your jump interrupts a Zoltan security ship as it follows a Mantis pirate into an asteroid field. They message you, \"Your presence here will continue to be tolerated - but please, do not interfere.\"" — [[Zoltan ship follows Mantis ship]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Optional fight: Zoltan ship or Mantis ship");
+    assert.equal(g.event?.title, "Zoltan ship follows Mantis ship");
     assert.equal(g.event?.body, HAIL);
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),

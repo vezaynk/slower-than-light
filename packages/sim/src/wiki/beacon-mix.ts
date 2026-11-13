@@ -12,7 +12,7 @@ import {
 import { drawFiller, stampFiller } from "./filler-events.ts";
 
 /** Sectors, Zoltan: the research facility is placed at most twice. */
-const REPEAT_CAP: Record<string, number> = { "Zoltan crew scan": 2 };
+const REPEAT_CAP: Record<string, number> = { "Zoltan research facility": 2 };
 
 /**
  * The deal runs rand() on a shadow state seeded from g.seed, the sector and its id, so g.seed's own rolls
@@ -54,9 +54,9 @@ export function lastEventDeals(id: string): number {
 }
 
 const NEBULA_OPENERS = new Set([
-  "Quest: tap Slug comms",
-  "Hostile Slug ship: ship unlock",
-  "Wreckage in nebula",
+  "Slug comm tapping",
+  "Slug Home Nebula surrender",
+  "Nebula wreckage",
 ]);
 
 const SHARED_LISTS = new Set([

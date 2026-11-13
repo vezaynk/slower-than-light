@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_STATION_CROPS";
-  b.name = "Optional fight: pirate ship and settlement";
+  b.name = "Remote settlement";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: pirate ship and settlement");
+  assert.equal(g.event?.title, "Remote settlement");
 }
 
 describe("Remote settlement attack", () => {

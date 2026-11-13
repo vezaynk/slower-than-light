@@ -41,7 +41,7 @@ describe("filler lists", () => {
     );
     assert.equal(fillerList("FILLER")?.entries.length, before);
     const page = drawFiller(createGame(1), "ember-list", []);
-    assert.deepEqual(page, pageForRow("Asteroid field: explore"));
+    assert.deepEqual(page, pageForRow("Large asteroid field"));
     assert.equal(page?.slug, "ASTEROID_EXPLORE");
     resetPackForTests();
     assert.equal(drawFiller(createGame(1), "ember-list", []), null);
@@ -57,7 +57,7 @@ describe("filler lists", () => {
     assert.equal(fillerList("FILLER")?.entries.length, 1);
     assert.equal(fillerList("NEBULA")?.entries.length, nebula);
     const page = drawFiller(createGame(1), "FILLER", []);
-    assert.deepEqual(page, pageForRow("Asteroid field: explore"));
+    assert.deepEqual(page, pageForRow("Large asteroid field"));
   });
 
   it("draws a packed event that the campaign lists do not name", () => {
@@ -89,10 +89,7 @@ describe("filler lists", () => {
       { lists: [{ id: "ember-list", entries: [{ id: "REFUEL_STATION", unique: false }] }] },
       "append",
     );
-    assert.deepEqual(
-      drawFiller(createGame(1), "ember-list", []),
-      pageForRow("Trade: scrap for fuel"),
-    );
+    assert.deepEqual(drawFiller(createGame(1), "ember-list", []), pageForRow("Refueling station"));
   });
 
   it("reads an appended empty beacon and falls back to Civilian", () => {
@@ -119,7 +116,7 @@ describe("filler lists", () => {
 
   it("loads opening cards and keeps the two shared slugs as sector pages", () => {
     assert.equal(
-      allEvents().find((event) => event.dest === "Asteroid field: explore")?.id,
+      allEvents().find((event) => event.dest === "Large asteroid field")?.id,
       "ASTEROID_EXPLORE",
     );
     assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
@@ -157,7 +154,7 @@ describe("filler lists", () => {
     assert.equal(allEvents().length, before);
     assert.equal(drawFiller(createGame(1), "ember-list", [])?.body, "Replaced.");
     resetPackForTests();
-    assert.equal(eventDef("ASTEROID_EXPLORE")?.dest, "Asteroid field: explore");
+    assert.equal(eventDef("ASTEROID_EXPLORE")?.dest, "Large asteroid field");
   });
 
   it("rolls an appended opening list and restores the campaign sentences", () => {
@@ -369,7 +366,7 @@ describe("filler lists", () => {
     assert.ok(beacon);
     stampEmptyNebula(beacon, "NEBULA_SECTOR");
     assert.equal(beacon.flag, "filler:NEBULA_EMPTY");
-    assert.equal(beacon.name, "Empty beacon in nebula");
+    assert.equal(beacon.name, "Empty nebula beacon");
     stampEmptyNebula(beacon, "SLUG_HOME");
     assert.equal(beacon.flag, "filler:NEBULA_NOTHING_SLUG");
     assert.equal(beacon.name, "Empty nebula beacon (Slug)");

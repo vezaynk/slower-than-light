@@ -9,14 +9,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_MANTIS_CRYSTAL";
-  b.name = "Optional fight: Mantis ship and Crystal ships";
+  b.name = "Mantis ship attacking Crystal";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: Mantis ship and Crystal ships");
+  assert.equal(g.event?.title, "Mantis ship attacking Crystal");
 }
 
-describe("Optional fight: Mantis ship and Crystal ships", () => {
+describe("Mantis ship attacking Crystal", () => {
   it("attacking the Mantis prints the lead-in and starts a Mantis ship fight", () => {
     const g = createGame(1);
     open(g);

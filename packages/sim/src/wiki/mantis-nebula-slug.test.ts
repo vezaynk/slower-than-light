@@ -11,14 +11,14 @@ function open(g: Game) {
   assert.ok(b);
   b.kind = "event";
   b.flag = "NEBULA_SLUG_MANTIS";
-  b.name = "Hostile Mantis ship in nebula (Slug sector)";
+  b.name = "Mantis fight in nebula (Slug)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   return b;
 }
 
-describe("Hostile Mantis ship in nebula (Slug sector)", () => {
+describe("Mantis fight in nebula (Slug)", () => {
   it("shows the printed sentence, including Weapons up, then fights a Mantis ship", () => {
     // Wiki citations:
     // > "The Mantis attack ship here looks to have been hunting Slugs on their home turf - a rare test of honor for the mightiest Mantis crews. Weapons up!" — [[Mantis fight in nebula (Slug)]]
@@ -48,7 +48,7 @@ describe("Hostile Mantis ship in nebula (Slug sector)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "NEBULA_SLUG_MANTIS";
-    dest.name = "Hostile Mantis ship in nebula (Slug sector)";
+    dest.name = "Mantis fight in nebula (Slug)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

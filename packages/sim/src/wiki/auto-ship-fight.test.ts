@@ -20,14 +20,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REBEL_AUTO";
-  b.name = "Hostile Auto-ship";
+  b.name = "Auto-ship fight";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Auto-ship");
+  assert.equal(g.event?.title, "Auto-ship fight");
 }
 
-describe("Hostile Auto-ship", () => {
+describe("Auto-ship fight", () => {
   it("shows one of the nine intros, then fights an Auto-ship", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Auto-ship fight]]
@@ -73,7 +73,7 @@ describe("Hostile Auto-ship", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "REBEL_AUTO";
-    dest.name = "Hostile Auto-ship";
+    dest.name = "Auto-ship fight";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

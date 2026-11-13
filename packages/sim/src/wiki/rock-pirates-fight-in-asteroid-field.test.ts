@@ -13,14 +13,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_PIRATE_ASTEROID";
-  b.name = "Hostile Rock pirate ship in asteroid field";
+  b.name = "Rock pirates fight in asteroid field";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Rock pirate ship in asteroid field");
+  assert.equal(g.event?.title, "Rock pirates fight in asteroid field");
 }
 
-describe("Hostile Rock pirate ship in asteroid field", () => {
+describe("Rock pirates fight in asteroid field", () => {
   it("shows one of the two intros, and the fight starts inside an asteroid field", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight in asteroid field]]
@@ -60,7 +60,7 @@ describe("Hostile Rock pirate ship in asteroid field", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ROCK_PIRATE_ASTEROID";
-    dest.name = "Hostile Rock pirate ship in asteroid field";
+    dest.name = "Rock pirates fight in asteroid field";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

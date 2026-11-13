@@ -18,11 +18,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "BOSS_FLEETS_REBEL";
-  b.name = "Hostile Rebel ship (Last Stand, Rebel fleet)";
+  b.name = "Rebel fight among Rebel fleet";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Rebel ship (Last Stand, Rebel fleet)");
+  assert.equal(g.event?.title, "Rebel fight among Rebel fleet");
 }
 
 describe("Rebel fight among Rebel fleet intro", () => {
@@ -73,7 +73,7 @@ describe("Rebel fight among Rebel fleet intro", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "BOSS_FLEETS_REBEL";
-    dest.name = "Hostile Rebel ship (Last Stand, Rebel fleet)";
+    dest.name = "Rebel fight among Rebel fleet";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

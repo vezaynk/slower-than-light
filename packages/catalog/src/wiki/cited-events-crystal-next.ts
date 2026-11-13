@@ -25,13 +25,13 @@ export type CitedEventDef = {
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
-    dest: "Scrap for crew or weapon (Crystal)",
+    dest: "Crystal scrap collector",
     slug: "crystal-scrap-collector",
     // Wiki citations:
     // > "This random event occurs in Hidden Crystal Worlds." — [[Crystal scrap collector]]
     // > "It is unique." — [[Crystal scrap collector]]
     flag: "cited:crystal-scrap-collector",
-    aliases: [],
+    aliases: ["Crystal scrap collector"],
     sectors: ["Hidden Crystal Worlds"],
     body: "",
     choices: [

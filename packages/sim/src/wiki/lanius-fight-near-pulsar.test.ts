@@ -10,15 +10,15 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_FIGHT_PULSAR";
-  b.name = "Hostile Lanius ship near pulsar";
+  b.name = "Lanius fight near pulsar";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Lanius ship near pulsar");
+  assert.equal(g.event?.title, "Lanius fight near pulsar");
   assert.equal(g.event?.body, BODY);
 }
 
-describe("Hostile Lanius ship near pulsar", () => {
+describe("Lanius fight near pulsar", () => {
   it("shows the printed intro, and the fight choice starts a Lanius combat near a pulsar", () => {
     // Wiki citations:
     // > "There appears to be some sort of research station near a pulsar, although it's hard to tell since a portion of it has been melted. The Lanius ship that has been working at it moves in to intercept you, totally oblivious to the threat of EM pulses." — [[Lanius fight near pulsar]]
@@ -47,7 +47,7 @@ describe("Hostile Lanius ship near pulsar", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "LANIUS_FIGHT_PULSAR";
-    dest.name = "Hostile Lanius ship near pulsar";
+    dest.name = "Lanius fight near pulsar";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

@@ -12,18 +12,18 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_DISTRESS_ROCK";
-  b.name = "Optional fight: Slug ship and Rock ship";
+  b.name = "Slug ship boarding Rock ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: Slug ship and Rock ship");
+  assert.equal(g.event?.title, "Slug ship boarding Rock ship");
 }
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
 }
 
-describe("Optional fight: Slug ship and Rock ship", () => {
+describe("Slug ship boarding Rock ship", () => {
   it("engaging fights a Slug ship or the Slugs back down", () => {
     // Wiki citations:
     // > "Engage the Slug ship." — [[Slug ship boarding Rock ship]]

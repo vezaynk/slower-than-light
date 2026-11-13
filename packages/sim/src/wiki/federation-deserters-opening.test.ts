@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_FED_DESERTER";
-  b.name = "Supplies for map: Federation ship";
+  b.name = "Federation deserters";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Supplies for map: Federation ship");
+  assert.equal(g.event?.title, "Federation deserters");
 }
 
 describe("Federation deserters opening", () => {

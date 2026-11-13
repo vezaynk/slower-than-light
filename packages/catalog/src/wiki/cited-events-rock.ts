@@ -27,14 +27,19 @@ export type CitedEventDef = {
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
-    dest: "Optional fight: Mantis hunter",
+    dest: "Mantis ship with Rock body parts",
     slug: "mantis-ship-with-rock-body-parts",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Mantis ship with Rock body parts]]
     // > "It is unique." — [[Mantis ship with Rock body parts]]
     // > "A Mantis ship here is adorned with Rock body parts! It would be a gorier display if they had internal organs, but the message is clear enough: this is a hunter of a very specialized kind." — [[Mantis ship with Rock body parts]]
     flag: "cited:mantis-ship-with-rock-body-parts",
-    aliases: [],
+    aliases: [
+      "Mantis ship with Rock body parts",
+      "Mantis Ship Rock Body Parts",
+      "Mantis Ship Rock body parts",
+      "Mantis ship Rock body parts",
+    ],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "Mantis ship.",
     choices: [
@@ -89,12 +94,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Rock ship (default rewards)." Rock fight has no choice. Arrival calls this fight. One of the eight printed intros. unique=false.
   {
-    dest: "Hostile Rock ship",
+    dest: "Rock fight",
     slug: "rock-fight",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock fight]]
     flag: "cited:rock-fight",
-    aliases: [],
+    aliases: ["Rock fight", "Rock Fight"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "",
     choices: [
@@ -112,13 +117,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Rock ship (default rewards)." Rock fight in asteroid field has no choice. Arrival calls this fight. One of the three printed intros. asteroidfield=true. unique=true.
   {
-    dest: "Hostile Rock ship in asteroid field",
+    dest: "Rock fight in asteroid field",
     slug: "rock-fight-in-asteroid-field",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock fight in asteroid field]]
     // > "It is unique." — [[Rock fight in asteroid field]]
     flag: "cited:rock-fight-in-asteroid-field",
-    aliases: [],
+    aliases: ["Rock fight in asteroid field", "Rock Fight in Asteroid Field"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "",
     choices: [
@@ -137,13 +142,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Rock fight with boarders. The page prints no button. The red line is the outcome, applied on arrival.
     // "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." unique=true.
-    dest: "Hostile Rock ship with boarders",
+    dest: "Rock fight with boarders",
     slug: "rock-fight-with-boarders",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock fight with boarders]]
     // > "It is unique." — [[Rock fight with boarders]]
     flag: "cited:rock-fight-with-boarders",
-    aliases: [],
+    aliases: ["Rock fight with boarders", "Rock Fight With Boarders", "Rock Fight with Boarders"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "",
     choices: [
@@ -162,13 +167,17 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Rock fight with boarders in asteroid field. The page prints no button. The red line is the outcome, applied on arrival.
     // "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." asteroidfield=true. unique=true.
-    dest: "Hostile Rock ship with boarders in asteroid field",
+    dest: "Rock fight with boarders in asteroid field",
     slug: "rock-fight-with-boarders-in-asteroid-field",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock fight with boarders in asteroid field]]
     // > "It is unique." — [[Rock fight with boarders in asteroid field]]
     flag: "cited:rock-fight-with-boarders-in-asteroid-field",
-    aliases: [],
+    aliases: [
+      "Rock fight with boarders in asteroid field",
+      "Rock Fight With Boarders in Asteroid Field",
+      "Rock Fight with Boarders in Asteroid Field",
+    ],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "",
     choices: [
@@ -186,12 +195,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Rock pirate ship (default rewards)." Rock pirates fight has no choice. Arrival calls this fight. One of the three printed intros. unique=false.
   {
-    dest: "Hostile Rock pirate ship",
+    dest: "Rock pirates fight",
     slug: "rock-pirates-fight",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock pirates fight]]
     flag: "cited:rock-pirates-fight",
-    aliases: [],
+    aliases: ["Rock pirates fight", "Rock Pirate Fight", "Rock pirate fight"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "",
     choices: [
@@ -209,13 +218,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Rock pirate ship (default rewards)." Rock pirates fight in asteroid field has no choice. Arrival calls this fight. One of the two printed intros. asteroidfield=true. unique=true.
   {
-    dest: "Hostile Rock pirate ship in asteroid field",
+    dest: "Rock pirates fight in asteroid field",
     slug: "rock-pirates-fight-in-asteroid-field",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock pirates fight in asteroid field]]
     // > "It is unique." — [[Rock pirates fight in asteroid field]]
     flag: "cited:rock-pirates-fight-in-asteroid-field",
-    aliases: [],
+    aliases: [
+      "Rock pirates fight in asteroid field",
+      "Rock Pirate in Asteroid Field",
+      "Rock pirate fight in asteroid field",
+      "Rock pirate in asteroid field",
+    ],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "",
     choices: [
@@ -233,13 +247,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Rock pirate ship (default rewards)." Rock pirates fight near sun has no choice. Arrival calls this fight. One of the two printed intros. redgiant=true. unique=true.
   {
-    dest: "Hostile Rock pirate ship near sun",
+    dest: "Rock pirates fight near sun",
     slug: "rock-pirates-fight-near-sun",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock pirates fight near sun]]
     // > "It is unique." — [[Rock pirates fight near sun]]
     flag: "cited:rock-pirates-fight-near-sun",
-    aliases: [],
+    aliases: [
+      "Rock pirates fight near sun",
+      "Rock Pirate Near Sun",
+      "Rock pirate fight near sun",
+      "Rock pirate near sun",
+    ],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "",
     choices: [
@@ -258,13 +277,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Boarders: Rockmen near sun. The page prints no button. The red line is the outcome, applied on arrival.
     // redgiant=true, LRSmap=noship+redgiant, unique=true. Not a crew grant.
-    dest: "Boarders: Rock near sun",
+    dest: "Boarders: Rockmen near sun",
     slug: "boarders-rockmen-near-sun",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Boarders: Rockmen near sun]]
     // > "It is unique." — [[Boarders: Rockmen near sun]]
     flag: "cited:boarders-rockmen-near-sun",
-    aliases: [],
+    aliases: ["Boarders: Rockmen near sun"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "",
     choices: [
@@ -287,7 +306,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Disabled Rock ship]]
     // > "You find a disabled rock transport floating near the beacon. You consider stripping it of useful parts but are uncertain why it's there in the first place." — [[Disabled Rock ship]]
     flag: "cited:disabled-rock-ship",
-    aliases: [],
+    aliases: ["Disabled Rock ship"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "Disabled Rock ship.",
     choices: [
@@ -319,14 +338,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     // Rock and Slug standoff. The debt, the demand, and the Slug captain run in filler-events.ts and quests.ts.
-    dest: "Rock and Slug ships: debt",
+    dest: "Rock and Slug standoff",
     slug: "rock-and-slug-standoff",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock and Slug standoff]]
     // > "It is unique." — [[Rock and Slug standoff]]
     // > "You find a Slug Cruiser and Rock ship at a standoff, both with weapons armed and ready to fight. You could intervene before this gets out of hand." — [[Rock and Slug standoff]]
     flag: "cited:rock-and-slug-standoff",
-    aliases: [],
+    aliases: ["Rock and Slug standoff"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "Rock ship and Slug ship, both armed.",
     choices: [
@@ -351,14 +370,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     // Mantis ships battle for Rock freighter. The fights, the scrap, and the drone parts run in filler-events.ts.
-    dest: "Optional fight: two Mantis ships and Rock freighter",
+    dest: "Mantis ships battle for Rock freighter",
     slug: "mantis-ships-battle-for-rock-freighter",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Mantis ships battle for Rock freighter]]
     // > "It is unique." — [[Mantis ships battle for Rock freighter]]
     // > "A curious sight greets you at this beacon: a disabled Rock freighter drifts in space while two Mantis craft battle it out - presumably over who deserves the spoils." — [[Mantis ships battle for Rock freighter]]
     flag: "cited:mantis-ships-battle-for-rock-freighter",
-    aliases: [],
+    aliases: [
+      "Mantis ships battle for Rock freighter",
+      "Mantis Ships Battle for Rock Freighter",
+      "Mantis ships battle for Rock Freighter",
+    ],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "Two Mantis ships and a disabled Rock ship.",
     choices: [
@@ -401,14 +424,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     // Rock live mine. The bite, the wires, and the scrap run in filler-events.ts.
-    dest: "Live mine",
+    dest: "Rock live mine",
     slug: "rock-live-mine",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock live mine]]
     // > "It is unique." — [[Rock live mine]]
     // > "The burnt out hull of a Rock mine layer drifts by. Behind the wreck drifts a live mine; an automated drone that drills into ships' hulls before exploding. It locks onto your ship's signature and heads your way!" — [[Rock live mine]]
     flag: "cited:rock-live-mine",
-    aliases: [],
+    aliases: ["Rock live mine", "Rock Live Mine"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "Mine approaching.",
     choices: [

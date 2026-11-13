@@ -30,7 +30,7 @@ const TITLES = [
   "Zoltan trade hub",
 ];
 
-/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+/** A row's dest is its wiki page title, and its slug is that title's slug. */
 function titleOf(ev: { slug: string }): string {
   return (TITLES as readonly string[]).find((t) => slugOf(t) === ev.slug) ?? ev.slug;
 }
@@ -112,7 +112,7 @@ describe("cited zoltan events", () => {
       seen.add(titleOf(ev));
       assert.equal(slugOf(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
-      assert.deepEqual(ev.aliases, []);
+      assert.ok(ev.aliases.includes(ev.dest));
       // The printed Zoltan asteroid intro is 260 characters.
       // The printed Great Eye opening is 302 characters.
       // Zoltan quest primitives opening is both printed sentences, 365 characters.

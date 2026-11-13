@@ -1246,7 +1246,7 @@ const STORE_PAGE: EventDef = {
  */
 const REBEL_TRADE: EventDef = {
   id: "STORE_REBELSIDE",
-  dest: "Store (closed)",
+  dest: "Large trade station",
   flag: "STORE_REBELSIDE",
   aliases: [],
   sectors: [],

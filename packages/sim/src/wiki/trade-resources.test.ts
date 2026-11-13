@@ -45,14 +45,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "TRADER_CIV";
-  b.name = "Trade: resources";
+  b.name = "Trade resources";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   return g.event;
 }
 
-describe("Trade: resources", () => {
+describe("Trade resources", () => {
   it("shows one rolled offer, and Trade pays exactly those numbers", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Trade resources]]
@@ -68,7 +68,7 @@ describe("Trade: resources", () => {
       const g = createGame(seed);
       const ev = open(g);
       assert.ok(ev);
-      assert.equal(ev.title, "Trade: resources");
+      assert.equal(ev.title, "Trade resources");
       assert.equal(ev.choices.length, 2);
       const take = ev.choices[0]!;
       const ignore = ev.choices[1]!;
@@ -180,7 +180,7 @@ describe("Trade: resources", () => {
     assert.equal(g.missiles, missiles);
     assert.equal(g.player.parts, parts);
     assert.equal(g.scrap, scrap);
-    assert.equal(g.event?.title, "Trade: resources");
+    assert.equal(g.event?.title, "Trade resources");
     assert.deepEqual(g.log, log);
   });
 });

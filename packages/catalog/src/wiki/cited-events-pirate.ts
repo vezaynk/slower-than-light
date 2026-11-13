@@ -27,13 +27,13 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Fight a Pirate ship (default rewards)." Pirate fight in nebula has no choice. Arrival calls this fight. One of the five printed intros. nebula=true. unique=false. No nebula environment is added.
   {
-    dest: "Hostile pirate ship in nebula",
+    dest: "Pirate fight in nebula",
     slug: "pirate-fight-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector, Uncharted Nebula." — [[Pirate fight in nebula]]
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight in nebula]]
     flag: "cited:pirate-fight-in-nebula",
-    aliases: [],
+    aliases: ["Pirate fight in nebula"],
     sectors: ["Pirate Controlled Sector", "Uncharted Nebula"],
     body: "",
     choices: [
@@ -50,12 +50,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Pirate Controlled Sector. unique=false. LRSmap=noship.
   // Hail is a trade or the pirate bait. type=pirate does not wrap the trade in DuplicateEvent|4.
   {
-    dest: "Refugee ship (pirate)",
+    dest: "Refugee (Pirate)",
     slug: "refugee-pirate",
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee (Pirate)]]
     flag: "cited:refugee-pirate",
-    aliases: [],
+    aliases: ["Refugee (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
     body: "Refugee ship.",
     choices: [
@@ -71,12 +71,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Pirate Controlled Sector. distress=true. unique=false. LRSmap=noship.
   // The same type=pirate hail. Not on the EventList distress beacon list.
   {
-    dest: "Refugee ship distress (pirate)",
+    dest: "Refugee distress (Pirate)",
     slug: "refugee-distress-pirate",
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Refugee distress (Pirate)]]
     flag: "cited:refugee-distress-pirate",
-    aliases: [],
+    aliases: ["Refugee distress (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
     body: "Refugee ship.",
     choices: [
@@ -92,14 +92,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // The noinclude intro. Dock, leave, the Anti-Personnel Drone, and the Lifeform Scanner run in quests-b.ts.
   // The includeonly intro stays on Merchant's Delivery.
   {
-    dest: "Silent research station",
+    dest: "Research station with no response",
     slug: "research-station-with-no-response",
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Research station with no response]]
     // > "It is unique." — [[Research station with no response]]
     // > "You arrive to find a small research station putting out a distress signal. There is no response to your hails." — [[Research station with no response]]
     flag: "cited:research-station-with-no-response",
-    aliases: [],
+    aliases: ["Research station with no response"],
     sectors: ["Pirate Controlled Sector"],
     body: "Station. No response.",
     choices: [

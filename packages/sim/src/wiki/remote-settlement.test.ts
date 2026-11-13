@@ -16,13 +16,13 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_STATION_CROPS";
-  b.name = "Optional fight: pirate ship and settlement";
+  b.name = "Remote settlement";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
 }
 
-describe("Optional fight: pirate ship and settlement", () => {
+describe("Remote settlement", () => {
   it("prints the blockade sentence and both choices", () => {
     // Wiki citations:
     // > "Scans show a remote settlement being blockaded by a pirate ship. The ship hastily messages you, \"Stay out of this, or you'll be next!...Concentrate fire on...\"" — [[Remote settlement]]
@@ -32,7 +32,7 @@ describe("Optional fight: pirate ship and settlement", () => {
     // > "(Fire Bomb) Show the pirate how to intimidate settlers: start fires in their crude dwellings. [ Missiles lost: 1 ]" — [[Remote settlement]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Optional fight: pirate ship and settlement");
+    assert.equal(g.event?.title, "Remote settlement");
     assert.equal(g.event?.body, BODY);
     assert.equal(
       g.event?.choices.some((c) => c.id === "c:remote-settlement:0"),

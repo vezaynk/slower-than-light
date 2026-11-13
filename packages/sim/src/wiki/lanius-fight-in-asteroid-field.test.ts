@@ -10,16 +10,16 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_FIGHT_ASTEROID";
-  b.name = "Hostile Lanius ship in asteroid field";
+  b.name = "Lanius fight in asteroid field";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Hostile Lanius ship in asteroid field");
+  assert.equal(g.event?.title, "Lanius fight in asteroid field");
   assert.equal(g.event?.body, BODY);
 }
 
-describe("Hostile Lanius ship in asteroid field", () => {
+describe("Lanius fight in asteroid field", () => {
   it("starts the fight inside an asteroid field", () => {
     // Wiki citations:
     // > "This beacon appears to have been set up within an asteroid field to access a mining settlement. However, half of the settlement has been disassembled by a number of Lanius scavengers. Their military escort moves in to scare you off." — [[Lanius fight in asteroid field]]
@@ -47,7 +47,7 @@ describe("Hostile Lanius ship in asteroid field", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "LANIUS_FIGHT_ASTEROID";
-    dest.name = "Hostile Lanius ship in asteroid field";
+    dest.name = "Lanius fight in asteroid field";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REBEL_VS_FEDERATION";
-  b.name = "Optional fight: Rebel ship and Federation ship";
+  b.name = "Rebel ship attacking Federation loyalists";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: Rebel ship and Federation ship");
+  assert.equal(g.event?.title, "Rebel ship attacking Federation loyalists");
 }
 
 describe("Rebel ship attacking Federation loyalists escape", () => {

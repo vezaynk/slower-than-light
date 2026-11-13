@@ -10,14 +10,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_ZOLTAN_ROCK";
-  b.name = "Hostile Rock ship in nebula";
+  b.name = "Rock fight in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Rock ship in nebula");
+  assert.equal(g.event?.title, "Rock fight in nebula");
 }
 
-describe("Hostile Rock ship in nebula", () => {
+describe("Rock fight in nebula", () => {
   it("shows both printed sentences, and the fight choice starts a Rock ship combat", () => {
     // Wiki citations:
     // > "This nebula turns out to be the hiding place of a terrified rock crew taking refuge from the Zoltan border police. They don't seem prepared to risk your leaving with their co-ordinates, and open fire!" — [[Rock fight in nebula]]
@@ -45,7 +45,7 @@ describe("Hostile Rock ship in nebula", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "NEBULA_ZOLTAN_ROCK";
-    dest.name = "Hostile Rock ship in nebula";
+    dest.name = "Rock fight in nebula";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

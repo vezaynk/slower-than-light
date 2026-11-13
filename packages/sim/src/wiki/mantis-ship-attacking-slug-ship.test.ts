@@ -12,12 +12,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_DISTRESS_MANTIS";
-  b.name = "Optional fight: Mantis ship or Slug ship";
+  b.name = "Mantis ship attacking Slug ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Optional fight: Mantis ship or Slug ship");
+  assert.equal(g.event?.title, "Mantis ship attacking Slug ship");
 }
 
 function scraps(body: string): number[] {
@@ -30,7 +30,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Optional fight: Mantis ship or Slug ship", () => {
+describe("Mantis ship attacking Slug ship", () => {
   it("leaving spends nothing, and attacking starts the named fight", () => {
     // Wiki citations:
     // > "Of all the species in the galaxy, these two deserve one another. You power up the jump drive." — [[Mantis ship attacking Slug ship]]

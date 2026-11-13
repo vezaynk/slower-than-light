@@ -13,7 +13,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "WRECKAGE_EVENT";
-  b.name = "Wreckage: search";
+  b.name = "Battlefield wreckage";
   g.here = b.id;
   g.event = citedEvent(g, b);
   // The card lives on the filler list, stamped filler:battlefield-wreckage. citedEvent may be null.
@@ -22,7 +22,7 @@ function open(g: Game) {
     g.event = fillerEvent(g, b);
   }
   g.phase = "event";
-  assert.equal(g.event?.title, "Wreckage: search");
+  assert.equal(g.event?.title, "Battlefield wreckage");
 }
 
 describe("Battlefield wreckage Improved Sensors", () => {

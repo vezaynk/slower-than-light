@@ -13,7 +13,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_HACKER";
-  b.name = "Hostile Auto-ship: shield hack";
+  b.name = "Auto-ship carrying shield virus";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";

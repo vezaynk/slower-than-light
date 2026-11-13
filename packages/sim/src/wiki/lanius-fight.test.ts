@@ -22,14 +22,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_FIGHT";
-  b.name = "Hostile Lanius ship";
+  b.name = "Lanius fight";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Lanius ship");
+  assert.equal(g.event?.title, "Lanius fight");
 }
 
-describe("Hostile Lanius ship", () => {
+describe("Lanius fight", () => {
   it("shows one of the eleven printed intros, including the repeated line, then fights a Lanius ship", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Lanius fight]]
@@ -80,7 +80,7 @@ describe("Hostile Lanius ship", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "LANIUS_FIGHT";
-    dest.name = "Hostile Lanius ship";
+    dest.name = "Lanius fight";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

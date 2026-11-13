@@ -10,16 +10,16 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_DRINK";
-  b.name = "Slug drink offer";
+  b.name = "Slug drink";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Slug drink offer");
+  assert.equal(g.event?.title, "Slug drink");
   assert.equal(g.event?.body, "Slug ship. Offer: a drink.");
 }
 
-describe("Slug drink offer", () => {
+describe("Slug drink", () => {
   it("refusing starts a Slug fight, and a Rock is required to pose as captain", () => {
     const g = createGame(1);
     open(g);

@@ -22,10 +22,10 @@ export type CoreEvent = {
 
 export const CORE_EVENTS: CoreEvent[] = [
   {
-    dest: "Optional fight: Auto-ship and civilian",
+    dest: "Auto-ship attacking civilian",
     slug: "auto-ship-attacking-civilian",
     flag: "cited:auto-ship-attacking-civilian",
-    aliases: [],
+    aliases: ["Auto-ship attacking civilian", "Rebel Scout Pursuing Civilian Ship"],
     sectors: ["Civilian Sector", "Rebel Controlled Sector", "Rebel Stronghold"],
     body: "Auto-ship attacking a civilian ship.",
     choices: [
@@ -51,10 +51,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Auto-ship and outpost",
+    dest: "Auto-ship attacking outpost",
     slug: "auto-ship-attacking-outpost",
     flag: "cited:auto-ship-attacking-outpost",
-    aliases: [],
+    aliases: ["Auto-ship attacking outpost"],
     sectors: ["Civilian Sector", "Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Auto-ship attacking a refueling outpost.",
     choices: [
@@ -80,10 +80,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Auto-ship: shield hack",
+    dest: "Auto-ship carrying shield virus",
     slug: "auto-ship-carrying-shield-virus",
     flag: "cited:auto-ship-carrying-shield-virus",
-    aliases: [],
+    aliases: ["Auto-ship carrying shield virus"],
     sectors: ["Civilian Sector"],
     body: "Hostile Auto-ship. Your shields are hacked.",
     choices: [
@@ -112,10 +112,10 @@ export const CORE_EVENTS: CoreEvent[] = [
   // Auto-ship fight (Crystal) has no choice. Arrival calls c:auto-ship-fight-crystal:0.
   // "Fight an Auto-ship." unique=true.
   {
-    dest: "Hostile Auto-ship (Crystal sector)",
+    dest: "Auto-ship fight (Crystal)",
     slug: "auto-ship-fight-crystal",
     flag: "cited:auto-ship-fight-crystal",
-    aliases: [],
+    aliases: ["Auto-ship fight (Crystal)", "Crystal Auto Fight"],
     sectors: ["Hidden Crystal Worlds"],
     body: "Hostile Auto-ship.",
     choices: [
@@ -134,10 +134,10 @@ export const CORE_EVENTS: CoreEvent[] = [
   // Auto-ship fight in asteroid field has no choice. Arrival calls c:auto-ship-fight-in-asteroid-field:0.
   // "Fight an Auto-ship." asteroidfield=true. unique=false.
   {
-    dest: "Hostile Auto-ship in asteroid field",
+    dest: "Auto-ship fight in asteroid field",
     slug: "auto-ship-fight-in-asteroid-field",
     flag: "cited:auto-ship-fight-in-asteroid-field",
-    aliases: [],
+    aliases: ["Auto-ship fight in asteroid field"],
     sectors: [
       "Civilian Sector",
       "Mantis Controlled Sector",
@@ -164,10 +164,10 @@ export const CORE_EVENTS: CoreEvent[] = [
   // Auto-ship fight in nebula has no choice. Arrival calls c:auto-ship-fight-in-nebula:0.
   // One of the five printed intros. "Fight an Auto-ship." nebula=true. unique=false.
   {
-    dest: "Hostile Auto-ship in nebula",
+    dest: "Auto-ship fight in nebula",
     slug: "auto-ship-fight-in-nebula",
     flag: "cited:auto-ship-fight-in-nebula",
-    aliases: [],
+    aliases: ["Auto-ship fight in nebula", "Auto-ship in nebula"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -194,10 +194,10 @@ export const CORE_EVENTS: CoreEvent[] = [
   // Auto-ship fight near sun has no choice. Arrival calls c:auto-ship-fight-near-sun:0.
   // "Fight an Auto-ship." redgiant=true. unique=true.
   {
-    dest: "Hostile Auto-ship near sun",
+    dest: "Auto-ship fight near sun",
     slug: "auto-ship-fight-near-sun",
     flag: "cited:auto-ship-fight-near-sun",
-    aliases: [],
+    aliases: ["Auto-ship close to star", "Auto-ship fight near sun", "Auto-ship near sun"],
     sectors: ["Civilian Sector"],
     body: "Hostile Auto-ship. Sun: fires break out.",
     choices: [
@@ -214,10 +214,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Auto-ship at radar station",
+    dest: "Auto-ship near radar station",
     slug: "auto-ship-near-radar-station",
     flag: "cited:auto-ship-near-radar-station",
-    aliases: [],
+    aliases: ["Auto-ship near radar station"],
     sectors: ["Rebel Controlled Sector", "Rebel Stronghold"],
     body: "Dormant Auto-ship by a station.",
     choices: [
@@ -243,10 +243,14 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Auto-ship at sensor station",
+    dest: "Auto-ship near sensor station",
     slug: "auto-ship-near-sensor-station",
     flag: "cited:auto-ship-near-sensor-station",
-    aliases: [],
+    aliases: [
+      "Auto-ship near sensor station",
+      "Rebel Auto-ship near sensor station",
+      "Rebel Automated Ship Near Sensor Station",
+    ],
     sectors: ["Civilian Sector", "Rebel Controlled Sector", "Rebel Stronghold"],
     body: "Auto-ship guarding a sensor station.",
     choices: [
@@ -272,10 +276,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Auto-ship at station in nebula",
+    dest: "Auto-ship near storage station in nebula",
     slug: "auto-ship-near-storage-station-in-nebula",
     flag: "cited:auto-ship-near-storage-station-in-nebula",
-    aliases: [],
+    aliases: ["Auto-ship near small space-station", "Auto-ship near storage station in nebula"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -311,10 +315,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Fleeing Auto-ship",
+    dest: "Auto-ship warning",
     slug: "auto-ship-warning",
     flag: "cited:auto-ship-warning",
-    aliases: [],
+    aliases: ["Auto-ship warning", "Rebel Auto-Ship Warning"],
     sectors: [
       "Civilian Sector",
       "Mantis Controlled Sector",
@@ -340,7 +344,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     dest: "Boarders: Humans in plasma storm",
     slug: "boarders-humans-in-plasma-storm",
     flag: "cited:boarders-humans-in-plasma-storm",
-    aliases: [],
+    aliases: [
+      "Boarders in Plasma Storm",
+      "Boarders: Humans in plasma storm",
+      "Human boarders in plasma storm",
+    ],
     sectors: ["Civilian Sector", "Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Plasma storm. 3-4 Human boarders.",
     choices: [
@@ -358,10 +366,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Crystal ship: crew surrender",
+    dest: "Crystal fight with surrender offer (Human crew)",
     slug: "crystal-fight-with-surrender-offer-human-crew",
     flag: "cited:crystal-fight-with-surrender-offer-human-crew",
-    aliases: [],
+    aliases: ["Crystal fight with surrender offer (Human crew)"],
     sectors: ["Hidden Crystal Worlds"],
     body: "Hostile Crystal ship.",
     choices: [
@@ -378,10 +386,14 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Crystal ship: repair surrender",
+    dest: "Crystal fight with surrender offer (hull repairs)",
     slug: "crystal-fight-with-surrender-offer-hull-repairs",
     flag: "cited:crystal-fight-with-surrender-offer-hull-repairs",
-    aliases: [],
+    aliases: [
+      "Crystal fight with surrender offer (hull repairs)",
+      "Crystal ship convoy fight",
+      "Large Convoy",
+    ],
     sectors: ["Hidden Crystal Worlds"],
     body: "Hostile Crystal ship.",
     choices: [
@@ -398,10 +410,13 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Crystal ship and Federation ship",
+    dest: "Crystal ship attacking Federation loyalists",
     slug: "crystal-ship-attacking-federation-loyalists",
     flag: "cited:crystal-ship-attacking-federation-loyalists",
-    aliases: [],
+    aliases: [
+      "Crystal attacking Federation loyalists",
+      "Crystal ship attacking Federation loyalists",
+    ],
     sectors: ["Hidden Crystal Worlds"],
     body: "Crystal ship attacking a Federation ship.",
     choices: [
@@ -427,10 +442,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Flight-plan offer: scrap or fleet",
+    dest: "Crystalline ship messaging about Rebels",
     slug: "crystalline-ship-messaging-about-rebels",
     flag: "cited:crystalline-ship-messaging-about-rebels",
-    aliases: [],
+    aliases: ["Crystalline Ship Messaging About Rebels", "Crystalline ship messaging about Rebels"],
     sectors: ["Hidden Crystal Worlds"],
     body: "Crystal ship. Offer: scrap for a fleet advance.",
     choices: [
@@ -476,7 +491,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     dest: "Deactivated Auto-ship",
     slug: "deactivated-auto-ship",
     flag: "cited:deactivated-auto-ship",
-    aliases: [],
+    aliases: ["Deactivated Auto-ship", "Deactivated Rebel Automated Scout"],
     sectors: [
       "Abandoned Sector",
       "Engi Controlled Sector",
@@ -505,10 +520,15 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Rebel ship (Engi distress)",
+    dest: "Engi distress Rebel fight",
     slug: "engi-distress-rebel-fight",
     flag: "cited:engi-distress-rebel-fight",
-    aliases: [],
+    aliases: [
+      "Engi distress",
+      "Engi distress Rebel fight",
+      "Rebel Attacking Engi",
+      "Rebel attacking poorly equipped Engi",
+    ],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
     body: "Hostile Rebel ship.",
     choices: [
@@ -525,10 +545,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: two Engi ships",
+    dest: "Engi smashed ships",
     slug: "engi-smashed-ships",
     flag: "cited:engi-smashed-ships",
-    aliases: [],
+    aliases: ["Engi smashed ships", "Two Smashed Ships"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
     body: "Two damaged Engi ships.",
     choices: [
@@ -564,10 +584,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Escort: low scrap and quest",
+    dest: "Escort civilians FTL haywire",
     slug: "escort-civilians-ftl-haywire",
     flag: "cited:escort-civilians-ftl-haywire",
-    aliases: [],
+    aliases: ["Escort FTL haywire civilian ship", "Escort civilians FTL haywire"],
     sectors: [
       "Civilian Sector",
       "Mantis Controlled Sector",
@@ -607,10 +627,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Supplies for map: Federation ship",
+    dest: "Federation deserters",
     slug: "federation-deserters",
     flag: "cited:federation-deserters",
-    aliases: [],
+    aliases: ["Federation Deserters", "Federation deserters"],
     sectors: ["Hidden Crystal Worlds"],
     body: "Federation ship. Offer: supplies for a map.",
     choices: [
@@ -659,7 +679,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     dest: "Free drone schematic",
     slug: "free-drone-schematic",
     flag: "cited:free-drone-schematic",
-    aliases: [],
+    aliases: ["Free Drone Schematic", "Free drone schematic"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -701,7 +721,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     dest: "Free scrap with resources",
     slug: "free-scrap-with-resources",
     flag: "cited:free-scrap-with-resources",
-    aliases: [],
+    aliases: ["Free scrap with resources"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -738,7 +758,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     dest: "Free scrap with resources (Lanius)",
     slug: "free-scrap-with-resources-lanius",
     flag: "cited:free-scrap-with-resources-lanius",
-    aliases: [],
+    aliases: ["Free scrap with resources (Lanius)", "Lanius free stuff"],
     sectors: ["Abandoned Sector"],
     body: "Free salvage.",
     choices: [
@@ -756,10 +776,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Lanius ship with friendly ASB",
+    dest: "Lanius fight with friendly ASB support",
     slug: "lanius-fight-with-friendly-asb-support",
     flag: "cited:lanius-fight-with-friendly-asb-support",
-    aliases: [],
+    aliases: ["Anti-Ship Battery Firing on Lanius Ships", "Lanius fight with friendly ASB support"],
     sectors: ["Abandoned Sector"],
     body: "Hostile Lanius ship. Anti-Ship Battery fires on it.",
     choices: [
@@ -776,10 +796,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Lanius ship and Auto-ship",
+    dest: "Lanius ship absorbing automated scout",
     slug: "lanius-ship-absorbing-automated-scout",
     flag: "cited:lanius-ship-absorbing-automated-scout",
-    aliases: [],
+    aliases: ["Lanius absorbing automated scout", "Lanius ship absorbing automated scout"],
     sectors: ["Abandoned Sector"],
     body: "Lanius ship by an Auto-ship.",
     choices: [
@@ -805,10 +825,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Lanius ship and Mantis ship",
+    dest: "Lanius ship attacking Mantis",
     slug: "lanius-ship-attacking-mantis",
     flag: "cited:lanius-ship-attacking-mantis",
-    aliases: [],
+    aliases: ["Lanius ship attacking Mantis", "Ship Being Mined by Lanius"],
     sectors: ["Abandoned Sector"],
     body: "Lanius ship attacking a Mantis ship.",
     choices: [
@@ -834,10 +854,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Lanius ship and Rock ship",
+    dest: "Lanius ship attacking Rock",
     slug: "lanius-ship-attacking-rock",
     flag: "cited:lanius-ship-attacking-rock",
-    aliases: [],
+    aliases: ["Lanius attacking Rock", "Lanius ship attacking Rock"],
     sectors: ["Abandoned Sector"],
     body: "Lanius ship attacking a Rock ship.",
     choices: [
@@ -863,10 +883,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Lanius ship and civilian",
+    dest: "Lanius ship attacking civilian",
     slug: "lanius-ship-attacking-civilian",
     flag: "cited:lanius-ship-attacking-civilian",
-    aliases: [],
+    aliases: ["Lanius Attacking Civilian", "Lanius ship attacking civilian"],
     sectors: ["Abandoned Sector"],
     body: "",
     choices: [
@@ -892,10 +912,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Lanius ship (distress)",
+    dest: "Lanius ship attacking civilian distress",
     slug: "lanius-ship-attacking-civilian-distress",
     flag: "cited:lanius-ship-attacking-civilian-distress",
-    aliases: [],
+    aliases: ["Lanius attacking civilian distress", "Lanius ship attacking civilian distress"],
     sectors: ["Abandoned Sector"],
     body: "Lanius ship attacking a civilian ship.",
     choices: [
@@ -931,10 +951,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Lanius ship in debris field",
+    dest: "Lanius ship in rich debris field",
     slug: "lanius-ship-in-rich-debris-field",
     flag: "cited:lanius-ship-in-rich-debris-field",
-    aliases: [],
+    aliases: ["Lanius ship in rich debris field"],
     sectors: ["Abandoned Sector"],
     body: "Lanius ship in a debris field.",
     choices: [
@@ -990,10 +1010,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Lanius salvager",
+    dest: "Lanius ship salvager",
     slug: "lanius-ship-salvager",
     flag: "cited:lanius-ship-salvager",
-    aliases: [],
+    aliases: ["Lanius Salvaging Small Asteroid Belt", "Lanius ship salvager"],
     sectors: ["Abandoned Sector"],
     body: "",
     choices: [
@@ -1029,10 +1049,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Trade: supplies for scrap (Lanius)",
+    dest: "Lanius trader",
     slug: "lanius-trader",
     flag: "cited:lanius-trader",
-    aliases: [],
+    aliases: ["Lanius trader"],
     sectors: ["Abandoned Sector"],
     body: "",
     choices: [
@@ -1108,10 +1128,14 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Trade: supplies for scrap or crew (Lanius)",
+    dest: "Lanius trader with translator",
     slug: "lanius-trader-with-translator",
     flag: "cited:lanius-trader-with-translator",
-    aliases: [],
+    aliases: [
+      "Lanius Merchant",
+      "Lanius Merchant with Improved Translator",
+      "Lanius trader with translator",
+    ],
     sectors: ["Abandoned Sector"],
     body: "",
     choices: [
@@ -1187,10 +1211,14 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile armored Mantis ship",
+    dest: "Legendary thief KazaaakplethKilik",
     slug: "legendary-thief-kazaaakplethkilik",
     flag: "cited:legendary-thief-kazaaakplethkilik",
-    aliases: [],
+    aliases: [
+      "KazaaakplethKilik",
+      "Legendary Thief KazaaakplethKilik Random Event",
+      "Legendary thief KazaaakplethKilik",
+    ],
     sectors: ["Mantis Homeworlds"],
     body: "Hostile Mantis ship. Heavy armor.",
     choices: [
@@ -1217,10 +1245,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Mantis ship with boarders",
+    dest: "Mantis outcasts",
     slug: "mantis-outcasts",
     flag: "cited:mantis-outcasts",
-    aliases: [],
+    aliases: ["Mantis outcasts"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Hostile Mantis ship. 2-3 Mantis boarders.",
     choices: [
@@ -1237,10 +1265,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Mantis ship and Crystal ships",
+    dest: "Mantis ship attacking Crystal",
     slug: "mantis-ship-attacking-crystal",
     flag: "cited:mantis-ship-attacking-crystal",
-    aliases: [],
+    aliases: ["Mantis ship attacking Crystal"],
     sectors: ["Hidden Crystal Worlds"],
     body: "Mantis ship attacking civilian ships.",
     choices: [
@@ -1266,10 +1294,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Quest: Mantis base",
+    dest: "Mantis war camp",
     slug: "mantis-war-camp",
     flag: "cited:mantis-war-camp",
-    aliases: [],
+    aliases: ["Mantis War Camp", "Mantis war camp"],
     sectors: ["Civilian Sector", "Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Quest offer.",
     choices: [
@@ -1299,13 +1327,13 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Out of fuel: fleeing Auto-ship",
+    dest: "No fuel: Auto-ship warning",
     slug: "no-fuel-auto-ship-warning",
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: Auto-ship warning]]
     // > "A ship responding to your distress moves in. Unfortunately it turns out to be an automated Rebel scout. It immediately reverses thrust after scanning your ship." — [[No fuel: Auto-ship warning]]
     flag: "cited:no-fuel-auto-ship-warning",
-    aliases: [],
+    aliases: ["No fuel: Auto-ship fight", "No fuel: Auto-ship warning"],
     sectors: [],
     body: "Fleeing Auto-ship.",
     choices: [
@@ -1324,12 +1352,12 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Out of fuel: Engi trade",
+    dest: "No fuel: Engi ship repair",
     slug: "no-fuel-engi-ship-repair",
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: Engi ship repair]]
     flag: "cited:no-fuel-engi-ship-repair",
-    aliases: [],
+    aliases: ["Fuel Engi Ship Repair", "No fuel: Engi ship repair"],
     sectors: [],
     body: "",
     choices: [
@@ -1384,12 +1412,12 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Out of fuel: fleeing Mantis ship",
+    dest: "No fuel: Mantis fight",
     slug: "no-fuel-mantis-fight",
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: Mantis fight]]
     flag: "cited:no-fuel-mantis-fight",
-    aliases: [],
+    aliases: ["Mantis Fuel Attack", "No fuel: Mantis fight"],
     sectors: [],
     body: "",
     choices: [
@@ -1408,12 +1436,12 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Out of fuel: fleeing Rebel ship",
+    dest: "No fuel: Rebel fight",
     slug: "no-fuel-rebel-fight",
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: Rebel fight]]
     flag: "cited:no-fuel-rebel-fight",
-    aliases: [],
+    aliases: ["No fuel: Rebel assistant hails", "No fuel: Rebel fight"],
     sectors: [],
     body: "",
     choices: [
@@ -1432,13 +1460,13 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Out of fuel: Slug fuel seller",
+    dest: "No fuel: Slug fuel depot",
     slug: "no-fuel-slug-fuel-depot",
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: Slug fuel depot]]
     // > "A mobile Slugman fuel depot enters scanning range. \"My prices are fair, but I ask one thing - do not insult me with negotiation!\" You check out his price list." — [[No fuel: Slug fuel depot]]
     flag: "cited:no-fuel-slug-fuel-depot",
-    aliases: [],
+    aliases: ["No fuel: Slug fuel depot", "Slugman Fuel Depot"],
     sectors: [],
     body: "Fuel seller.",
     choices: [
@@ -1504,12 +1532,12 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Out of fuel: automated fuel ship",
+    dest: "No fuel: automated refueling ship",
     slug: "no-fuel-automated-refueling-ship",
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: automated refueling ship]]
     flag: "cited:no-fuel-automated-refueling-ship",
-    aliases: [],
+    aliases: ["Automated Re-Fueling Ship", "No fuel: automated refueling ship"],
     sectors: [],
     body: "",
     choices: [
@@ -1591,13 +1619,13 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Out of fuel: explore the system",
+    dest: "No fuel: explore the system",
     slug: "no-fuel-explore-the-system",
     // Wiki citations:
     // > "This random event occurs." — [[No fuel: explore the system]]
     // > "Although your lack of fuel cells prevents your ship from jumping, you can still use your impulse engines. Will you spend some time exploring the nearby system?" — [[No fuel: explore the system]]
     flag: "cited:no-fuel-explore-the-system",
-    aliases: [],
+    aliases: ["Explore the System", "No fuel: explore the system"],
     sectors: [],
     body: "Out of fuel. Option: explore the system.",
     choices: [
@@ -1685,10 +1713,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Pirate bribe",
+    dest: "Pirate briber",
     slug: "pirate-briber",
     flag: "cited:pirate-briber",
-    aliases: [],
+    aliases: ["Pirate briber"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -1727,10 +1755,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: pirate ship and civilian (Lanius)",
+    dest: "Pirate ship attacking civilian (Lanius)",
     slug: "pirate-ship-attacking-civilian-lanius",
     flag: "cited:pirate-ship-attacking-civilian-lanius",
-    aliases: [],
+    aliases: ["Pirate ship attacking civilian (Lanius)"],
     sectors: ["Abandoned Sector"],
     body: "",
     choices: [
@@ -1756,10 +1784,13 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: pirate ship (distress)",
+    dest: "Pirate ship attacking civilian distress",
     slug: "pirate-ship-attacking-civilian-distress",
     flag: "cited:pirate-ship-attacking-civilian-distress",
-    aliases: [],
+    aliases: [
+      "Civilian ship chased by Pirate (distress)",
+      "Pirate ship attacking civilian distress",
+    ],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -1793,10 +1824,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Trade: scrap for drone parts (pirate)",
+    dest: "Pirate ship selling drones",
     slug: "pirate-ship-selling-drones",
     flag: "cited:pirate-ship-selling-drones",
-    aliases: [],
+    aliases: ["Drones salesman", "Pirate ship selling drones"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Pirate ship. Offer: drone parts for scrap.",
     choices: [
@@ -1842,10 +1873,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Trade: weapon for scrap (nebula)",
+    dest: "Pirate ship selling weapon",
     slug: "pirate-ship-selling-weapon",
     flag: "cited:pirate-ship-selling-weapon",
-    aliases: [],
+    aliases: ["Black Market Weapon Trader", "Pirate arms dealer", "Pirate ship selling weapon"],
     sectors: ["Civilian Sector", "Slug Controlled Nebula", "Slug Home Nebula", "Uncharted Nebula"],
     body: "Weapon seller. Nebula.",
     choices: [
@@ -1884,7 +1915,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     dest: "Rebel checkpoint",
     slug: "rebel-checkpoint",
     flag: "cited:rebel-checkpoint",
-    aliases: [],
+    aliases: ["Rebel Civilian Checkpoint", "Rebel checkpoint"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "",
     choices: [
@@ -1910,11 +1941,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Rebel ship (Last Stand, both fleets)",
+    dest: "Rebel fight among Federation and Rebel fleets",
     // Arrival calls this fight. One of the six printed intros.
     slug: "rebel-fight-among-federation-and-rebel-fleets",
     flag: "cited:rebel-fight-among-federation-and-rebel-fleets",
-    aliases: [],
+    aliases: ["Rebel fight among Federation and Rebel fleets"],
     sectors: ["The Last Stand"],
     body: "",
     choices: [
@@ -1931,10 +1962,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Rebel ship in plasma storm",
+    dest: "Rebel fight in plasma storm",
     slug: "rebel-fight-in-plasma-storm",
     flag: "cited:rebel-fight-in-plasma-storm",
-    aliases: [],
+    aliases: ["Rebel fight in plasma storm"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -1961,10 +1992,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Rebel ship and Crystal ship",
+    dest: "Rebel ship attacking Crystal ship",
     slug: "rebel-ship-attacking-crystal-ship",
     flag: "cited:rebel-ship-attacking-crystal-ship",
-    aliases: [],
+    aliases: ["Crystalline Ship Engaged with Rebel", "Rebel ship attacking Crystal ship"],
     sectors: ["Hidden Crystal Worlds"],
     body: "Rebel ship fighting a Crystal ship.",
     choices: [
@@ -2005,10 +2036,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Rebel ship and Federation ship",
+    dest: "Rebel ship attacking Federation loyalists",
     slug: "rebel-ship-attacking-federation-loyalists",
     flag: "cited:rebel-ship-attacking-federation-loyalists",
-    aliases: [],
+    aliases: ["Federation Ship in Need of Aid", "Rebel ship attacking Federation loyalists"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -2042,10 +2073,13 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Rebel ship (Last Stand)",
+    dest: "Rebel ship attacking civilians in Last Stand",
     slug: "rebel-ship-attacking-civilians-in-last-stand",
     flag: "cited:rebel-ship-attacking-civilians-in-last-stand",
-    aliases: [],
+    aliases: [
+      "Rebel Attacking Civilians in Last Stand",
+      "Rebel ship attacking civilians in Last Stand",
+    ],
     sectors: ["The Last Stand"],
     body: "",
     choices: [
@@ -2071,10 +2105,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Rebel ship and outpost",
+    dest: "Rebel ship attacking refueling outpost",
     slug: "rebel-ship-attacking-refueling-outpost",
     flag: "cited:rebel-ship-attacking-refueling-outpost",
-    aliases: [],
+    aliases: ["Rebel ship attacking refueling outpost"],
     sectors: ["Civilian Sector", "Rebel Controlled Sector", "Rebel Stronghold", "The Last Stand"],
     body: "Rebel ship attacking a refueling outpost.",
     choices: [
@@ -2100,10 +2134,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Rebel supply ship",
+    dest: "Rebel ship supplying civilians",
     slug: "rebel-ship-supplying-civilians",
     flag: "cited:rebel-ship-supplying-civilians",
-    aliases: [],
+    aliases: ["Rebel ship supplying civilians", "Rebels Supplying Civilians"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "",
     choices: [
@@ -2139,10 +2173,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: second flagship",
+    dest: "Rebel shipyard",
     slug: "rebel-shipyard",
     flag: "cited:rebel-shipyard",
-    aliases: [],
+    aliases: ["Rebel Flagship Construction", "Rebel shipyard"],
     sectors: ["Rebel Stronghold"],
     body: "Shipyard. A second flagship is docked.",
     choices: [
@@ -2168,10 +2202,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Rebel transport",
+    dest: "Rebel transport ship",
     slug: "rebel-transport-ship",
     flag: "cited:rebel-transport-ship",
-    aliases: [],
+    aliases: ["Rebel transport ship"],
     sectors: [
       "Civilian Sector",
       "Mantis Controlled Sector",
@@ -2208,7 +2242,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     dest: "Refueling platform",
     slug: "refueling-platform",
     flag: "cited:refueling-platform",
-    aliases: [],
+    aliases: ["Orbiting Small Platform", "Refueling platform"],
     sectors: [
       "Abandoned Sector",
       "Engi Controlled Sector",
@@ -2240,10 +2274,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Trade: scrap for fuel",
+    dest: "Refueling station",
     slug: "refueling-station",
     flag: "cited:refueling-station",
-    aliases: [],
+    aliases: ["Refuel Station", "Refueling station"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -2336,10 +2370,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Rock crew offer",
+    dest: "Rock atheists",
     slug: "rock-atheists",
     flag: "cited:rock-atheists",
-    aliases: [],
+    aliases: ["Rock Deserters", "Rock atheists"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "",
     choices: [
@@ -2356,10 +2390,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: Rock ship in plasma storm",
+    dest: "Rock ship in plasma storm",
     slug: "rock-ship-in-plasma-storm",
     flag: "cited:rock-ship-in-plasma-storm",
-    aliases: [],
+    aliases: ["Rock Armoured Transport", "Rock ship in plasma storm"],
     sectors: ["Uncharted Nebula"],
     body: "Rock ship. Plasma storm.",
     choices: [
@@ -2385,10 +2419,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Trade: drone parts for scrap",
+    dest: "Sell drone parts for scrap",
     slug: "sell-drone-parts-for-scrap",
     flag: "cited:sell-drone-parts-for-scrap",
-    aliases: [],
+    aliases: ["Sell drone parts for scrap"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -2478,10 +2512,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Trade: missiles for scrap",
+    dest: "Sell missiles for scrap",
     slug: "sell-missiles-for-scrap",
     flag: "cited:sell-missiles-for-scrap",
-    aliases: [],
+    aliases: ["Sell missiles for scrap", "Trade: sell missiles for scrap"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -2571,10 +2605,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Trade: scrap for crew",
+    dest: "Slaver (friendly)",
     slug: "slaver-friendly",
     flag: "cited:slaver-friendly",
-    aliases: [],
+    aliases: ["Friendly Slaver", "Slaver (friendly)"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -2610,10 +2644,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Crew demand: pirate ship",
+    dest: "Slaver (hostile)",
     slug: "slaver-hostile",
     flag: "cited:slaver-hostile",
-    aliases: [],
+    aliases: ["Pirate Slaver", "Slaver (hostile)"],
     sectors: ["Civilian Sector", "Pirate Controlled Sector"],
     body: "Pirate ship. Demand: 1 crew.",
     choices: [
@@ -2649,10 +2683,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Slug drink offer",
+    dest: "Slug drink",
     slug: "slug-drink",
     flag: "cited:slug-drink",
-    aliases: [],
+    aliases: ["Slug drink"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     // Slug drink. The printed hail.
     body: "Slug ship. Offer: a drink.",
@@ -2670,10 +2704,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Slug ship: choose a hack",
+    dest: "Slug hacker (choice)",
     slug: "slug-hacker-choice",
     flag: "cited:slug-hacker-choice",
-    aliases: [],
+    aliases: ["Dangerous Looking Ship", "Dangerous looking slug ship", "Slug hacker (choice)"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Hostile Slug ship. Choose which system it hacks.",
     choices: [
@@ -2733,10 +2767,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Slug ship: door hack",
+    dest: "Slug hacker (doors)",
     slug: "slug-hacker-doors",
     flag: "cited:slug-hacker-doors",
-    aliases: [],
+    aliases: ["Slug doors hacker", "Slug hacker (doors)"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Hostile Slug ship. Doors hacked.",
     choices: [
@@ -2763,10 +2797,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Slug ship: medbay hack",
+    dest: "Slug hacker (medical)",
     slug: "slug-hacker-medical",
     flag: "cited:slug-hacker-medical",
-    aliases: [],
+    aliases: ["Slug hacker (medical)"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Hostile Slug ship. Medbay hacked. 2 Slug boarders.",
     choices: [
@@ -2803,10 +2837,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Slug ship: oxygen hack",
+    dest: "Slug hacker (oxygen)",
     slug: "slug-hacker-oxygen",
     flag: "cited:slug-hacker-oxygen",
-    aliases: [],
+    aliases: ["Slug Sabotage Oxygen System", "Slug hacker (oxygen)", "Slug oxygen hacker"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     body: "Hostile Slug ship. Oxygen hacked.",
     choices: [
@@ -2843,10 +2877,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Quest: missing cargo ship",
+    dest: "Space station under construction",
     slug: "space-station-under-construction",
     flag: "cited:space-station-under-construction",
-    aliases: [],
+    aliases: ["Space Station Under Construction", "Space station under construction"],
     sectors: ["Civilian Sector"],
     body: "Quest offer.",
     choices: [
@@ -2893,10 +2927,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Hostile Engi ship: virus",
+    dest: "The Engi virus",
     slug: "the-engi-virus",
     flag: "cited:the-engi-virus",
-    aliases: [],
+    aliases: ["Engi virus", "The Engi Virus", "The Engi virus"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
     body: "Hostile Engi ship.",
     choices: [
@@ -2923,10 +2957,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Mercenary",
+    dest: "The mercenary",
     slug: "the-mercenary",
     flag: "cited:the-mercenary",
-    aliases: [],
+    aliases: ["The Mercenary", "The mercenary"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -2977,10 +3011,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Optional fight: pirate-held Zoltan ship",
+    dest: "Zoltan retake the ship",
     slug: "zoltan-retake-the-ship",
     flag: "cited:zoltan-retake-the-ship",
-    aliases: [],
+    aliases: ["Zoltan Life Raft", "Zoltan retake the ship"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Pirate-held Zoltan ship. Kill the crew to win.",
     choices: [
@@ -3006,10 +3040,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     ],
   },
   {
-    dest: "Choose your fight",
+    dest: "Zoltan wise man",
     slug: "zoltan-wise-man",
     flag: "cited:zoltan-wise-man",
-    aliases: [],
+    aliases: ["Zoltan wise man"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Choose which ship to fight.",
     choices: [
@@ -3049,10 +3083,10 @@ export const CORE_EVENTS: CoreEvent[] = [
     // Boarders: Humans (Abandoned). Locations unique=false. Template:Locations: "This event can occur multiple times per sector."
     // Abandoned Sector, Beacons: "1-2 boarders" — both beacons can be this event (beacon-mix.ts).
     // The page prints no button. The red line is the outcome, applied on arrival. No ship (LRSmap=noship).
-    dest: "Boarders: Humans (Lanius sector)",
+    dest: "Boarders: Humans (Abandoned)",
     slug: "boarders-humans-abandoned",
     flag: "cited:boarders-humans-abandoned",
-    aliases: [],
+    aliases: ["Weak and hungry human boarders", "Weak and hungry Human intruders"],
     sectors: ["Abandoned Sector"],
     body: "3-4 Human boarders.",
     choices: [

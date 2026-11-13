@@ -22,7 +22,7 @@ const TITLES = [
   "Zoltan research facility",
 ] as const;
 
-/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+/** A row's dest is its wiki page title, and its slug is that title's slug. */
 function titleOf(ev: { slug: string }): string {
   return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
 }
@@ -126,7 +126,7 @@ describe("cited Engi leftover events", () => {
       for (const sector of ev.sectors) assert.ok(names.includes(sector), sector);
       assert.equal(slug(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
-      assert.deepEqual(ev.aliases, []);
+      assert.ok(ev.aliases.includes(ev.dest));
       assert.ok(ev.body.length <= 240);
       const plain = normalizeWiki(page);
       // The stand-in's opening is functional text, never the page's sentence.

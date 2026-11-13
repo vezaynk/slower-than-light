@@ -11,11 +11,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_SLUG_ARGUMENT";
-  b.name = "Rock and Slug ships: debt";
+  b.name = "Rock and Slug standoff";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rock and Slug ships: debt");
+  assert.equal(g.event?.title, "Rock and Slug standoff");
 }
 
 function scraps(body: string): number[] {
@@ -28,7 +28,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Rock and Slug ships: debt", () => {
+describe("Rock and Slug standoff", () => {
   it("leaves them with nothing spent", () => {
     // Wiki citations:
     // > "Leave them be." — [[Rock and Slug standoff]]

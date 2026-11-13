@@ -15,11 +15,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_PIRATE_CIVILIAN";
-  b.name = "Optional fight: pirate ship and civilian (Lanius)";
+  b.name = "Pirate ship attacking civilian (Lanius)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: pirate ship and civilian (Lanius)");
+  assert.equal(g.event?.title, "Pirate ship attacking civilian (Lanius)");
 }
 
 describe("Pirate ship attacking civilian (Lanius) intro", () => {

@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_RESEARCHER_CRAFT";
-  b.name = "Trade: scrap for items (Lanius)";
+  b.name = "Lanius craftsmen";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Trade: scrap for items (Lanius)");
+  assert.equal(g.event?.title, "Lanius craftsmen");
 }
 
 function stock(g: Game) {
@@ -39,16 +39,14 @@ function sameStock(g: Game, before: ReturnType<typeof stock>) {
   assert.equal(g.crew.filter((c) => c.side === "player").length, before.crew);
 }
 
-describe("Trade: scrap for items (Lanius)", () => {
+describe("Lanius craftsmen", () => {
   it("is one Abandoned Sector card", () => {
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius craftsmen]]
-    const pages = citedPagesFor("LANIUS_SECTOR").filter(
-      (e) => e.dest === "Trade: scrap for items (Lanius)",
-    );
+    const pages = citedPagesFor("LANIUS_SECTOR").filter((e) => e.dest === "Lanius craftsmen");
     assert.equal(pages.length, 1);
     assert.equal(
-      citedPagesFor("CIVILIAN_SECTOR").some((e) => e.dest === "Trade: scrap for items (Lanius)"),
+      citedPagesFor("CIVILIAN_SECTOR").some((e) => e.dest === "Lanius craftsmen"),
       false,
     );
   });

@@ -27,12 +27,12 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   /** "Fight a Mantis Ship (default rewards)." Mantis fight has no choice. Arrival calls this fight. unique=false. */
   {
-    dest: "Hostile Mantis ship",
+    dest: "Mantis fight",
     slug: "mantis-fight",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fight]]
     flag: "cited:mantis-fight",
-    aliases: [],
+    aliases: ["Mantis fight"],
     sectors: ["Civilian Sector", "Mantis Controlled Sector", "Mantis Homeworlds"],
     body: "",
     choices: [
@@ -47,12 +47,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Mantis ship (default rewards)." Mantis fight in nebula has no choice. Arrival calls this fight. nebula=true. unique=false. */
   {
-    dest: "Hostile Mantis ship in nebula",
+    dest: "Mantis fight in nebula",
     slug: "mantis-fight-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Uncharted Nebula." — [[Mantis fight in nebula]]
     flag: "cited:mantis-fight-in-nebula",
-    aliases: [],
+    aliases: ["Mantis fight in nebula"],
     sectors: ["Civilian Sector", "Uncharted Nebula"],
     body: "",
     choices: [
@@ -67,14 +67,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight the Pirate ship with your Engines limited to level 1." */
   {
-    dest: "Hostile pirate ship: engine hack",
+    dest: "Pirate engine hacker",
     slug: "pirate-engine-hacker",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate engine hacker]]
     // > "It is unique." — [[Pirate engine hacker]]
     // > "Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack." — [[Pirate engine hacker]]
     flag: "cited:pirate-engine-hacker",
-    aliases: [],
+    aliases: ["Pirate engine hacker"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -104,12 +104,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Pirate ship (default rewards)." Pirate fight has no choice. Arrival calls this fight. unique=false. */
   {
-    dest: "Hostile pirate ship",
+    dest: "Pirate fight",
     slug: "pirate-fight",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate fight]]
     flag: "cited:pirate-fight",
-    aliases: [],
+    aliases: ["Pirate fight"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -129,12 +129,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Pirate ship (default rewards)." Pirate fight (Lanius) has no choice. Arrival calls this fight. unique=false. */
   {
-    dest: "Hostile pirate ship (Lanius sector)",
+    dest: "Pirate fight (Lanius)",
     slug: "pirate-fight-lanius",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Pirate fight (Lanius)]]
     flag: "cited:pirate-fight-lanius",
-    aliases: [],
+    aliases: ["Pirate fight (Lanius)"],
     sectors: ["Abandoned Sector"],
     body: "",
     choices: [
@@ -152,13 +152,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
    * Arrival calls this fight. The wait sentence is the card body. asteroidfield=true. unique=false.
    */
   {
-    dest: "Hostile pirate ship in asteroid field",
+    dest: "Pirate fight in asteroid field",
     slug: "pirate-fight-in-asteroid-field",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate fight in asteroid field]]
     // > "A pirate ship was lying in wait inside this asteroid field. It immediately moves in to attack." — [[Pirate fight in asteroid field]]
     flag: "cited:pirate-fight-in-asteroid-field",
-    aliases: [],
+    aliases: ["Pirate fight in asteroid field"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -179,13 +179,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Pirate ship (default rewards)." Pirate fight near pulsar has no choice. Arrival calls this fight. pulsar=true. unique=true. */
   {
-    dest: "Hostile pirate ship near pulsar",
+    dest: "Pirate fight near pulsar",
     slug: "pirate-fight-near-pulsar",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate fight near pulsar]]
     // > "It is unique." — [[Pirate fight near pulsar]]
     flag: "cited:pirate-fight-near-pulsar",
-    aliases: [],
+    aliases: ["Pirate fight near pulsar"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -205,14 +205,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Pirate ship (default rewards)." Pirate fight near sun has no choice. Arrival calls this fight. The star warning is the card body. redgiant=true. unique=true. */
   {
-    dest: "Hostile pirate ship near sun",
+    dest: "Pirate fight near sun",
     slug: "pirate-fight-near-sun",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate fight near sun]]
     // > "It is unique." — [[Pirate fight near sun]]
     // > "This beacon has been placed too close to a super-giant class M star! The ship will gradually overheat until you get out of here... or die. A pirate, apparently oblivious to the danger of the sun, moves in to engage." — [[Pirate fight near sun]]
     flag: "cited:pirate-fight-near-sun",
-    aliases: [],
+    aliases: ["Pirate fight near sun"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -232,12 +232,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "You power up your weapons and engage the pirate ship." */
   {
-    dest: "Optional fight: pirate ship and civilian",
+    dest: "Pirate ship attacking civilian",
     slug: "pirate-ship-attacking-civilian",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula." — [[Pirate ship attacking civilian]]
     flag: "cited:pirate-ship-attacking-civilian",
-    aliases: [],
+    aliases: ["Pirate ship attacking civilian"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -269,14 +269,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Pirate ship (default rewards)." */
   {
-    dest: "Hostile pirate ship (distress)",
+    dest: "Pirate ship distress trap",
     // Arrival calls this fight. One of the four printed intros.
     slug: "pirate-ship-distress-trap",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector, Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Pirate ship distress trap]]
     // > "It is unique." — [[Pirate ship distress trap]]
     flag: "cited:pirate-ship-distress-trap",
-    aliases: [],
+    aliases: ["Pirate ship distress trap"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -308,12 +308,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight the pirate ship." */
   {
-    dest: "Optional fight: pirate smuggler",
+    dest: "Pirate smuggler",
     slug: "pirate-smuggler",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Uncharted Nebula." — [[Pirate smuggler]]
     flag: "cited:pirate-smuggler",
-    aliases: [],
+    aliases: ["Pirate smuggler"],
     sectors: ["Civilian Sector", "Pirate Controlled Sector", "Uncharted Nebula"],
     body: "",
     choices: [
@@ -342,13 +342,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
    * "Reject their 'offer'." "Fight a Pirate ship (default rewards)."
    */
   {
-    dest: "Toll: pirate ship",
+    dest: "Pirate toll",
     slug: "pirate-toll",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector." — [[Pirate toll]]
     // > "Upon completing your jump, you receive a message from a nearby ship. \"Greetings and welcome to our beacon! For a small fee, we'll let you continue on your way.\"" — [[Pirate toll]]
     flag: "cited:pirate-toll",
-    aliases: [],
+    aliases: ["Pirate toll"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -379,12 +379,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Rebel ship (default rewards)." Rebel fight has no choice. Arrival calls this fight. unique=false. */
   {
-    dest: "Hostile Rebel ship",
+    dest: "Rebel fight",
     slug: "rebel-fight",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector, Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds, Rebel Controlled Sector, Rebel Stronghold, The Last Stand, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rebel fight]]
     flag: "cited:rebel-fight",
-    aliases: [],
+    aliases: ["Rebel fight"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -411,12 +411,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Rebel ship (default rewards)." Rebel fight (Lanius) has no choice. Arrival calls this fight. unique=false. */
   {
-    dest: "Hostile Rebel ship (Lanius sector)",
+    dest: "Rebel fight (Lanius)",
     slug: "rebel-fight-lanius",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Rebel fight (Lanius)]]
     flag: "cited:rebel-fight-lanius",
-    aliases: [],
+    aliases: ["Rebel fight (Lanius)"],
     sectors: ["Abandoned Sector"],
     body: "",
     choices: [
@@ -431,14 +431,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Attack the ship." "Fight a Rebel ship (default rewards)." */
   {
-    dest: "Optional fight: Rebel ship in nebula",
+    dest: "Rebel fight choice in nebula",
     slug: "rebel-fight-choice-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rebel fight choice in nebula]]
     // > "It is unique." — [[Rebel fight choice in nebula]]
     // > "Your ship emerges quite far away from the beacon. You see a rebel ship waiting nearby, undoubtedly stationed to look for you." — [[Rebel fight choice in nebula]]
     flag: "cited:rebel-fight-choice-in-nebula",
-    aliases: [],
+    aliases: ["Rebel fight choice in nebula"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -482,12 +482,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Rebel ship (default rewards)." Rebel fight in nebula has no choice. Arrival calls this fight. nebula=true. unique=false. */
   {
-    dest: "Hostile Rebel ship in nebula",
+    dest: "Rebel fight in nebula",
     slug: "rebel-fight-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rebel fight in nebula]]
     flag: "cited:rebel-fight-in-nebula",
-    aliases: [],
+    aliases: ["Rebel fight in nebula"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -510,13 +510,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Rebel ship (default rewards)." Rebel fight near pulsar has no choice. Arrival calls this fight. pulsar=true. unique=true. */
   {
-    dest: "Hostile Rebel ship near pulsar",
+    dest: "Rebel fight near pulsar",
     slug: "rebel-fight-near-pulsar",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Mantis Controlled Sector, Mantis Homeworlds, Rebel Controlled Sector, Rebel Stronghold, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rebel fight near pulsar]]
     // > "It is unique." — [[Rebel fight near pulsar]]
     flag: "cited:rebel-fight-near-pulsar",
-    aliases: [],
+    aliases: ["Rebel fight near pulsar"],
     sectors: [
       "Civilian Sector",
       "Mantis Controlled Sector",
@@ -539,14 +539,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** Rebel ship warning has no choice. Arrival applies this fight. "Fight a Rebel ship that is running away." unique=true. */
   {
-    dest: "Fleeing Rebel ship",
+    dest: "Rebel ship warning",
     slug: "rebel-ship-warning",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Rebel Controlled Sector, Rebel Stronghold." — [[Rebel ship warning]]
     // > "It is unique." — [[Rebel ship warning]]
     // > "You stumble across a forward scout of the Rebel fleet." — [[Rebel ship warning]]
     flag: "cited:rebel-ship-warning",
-    aliases: [],
+    aliases: ["Rebel ship warning"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -568,14 +568,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "Fight a Lanius ship." */
   {
-    dest: "Refueling platform (Lanius)",
+    dest: "Refueling platform garbled broadcast",
     slug: "refueling-platform-garbled-broadcast",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Refueling platform garbled broadcast]]
     // > "It is unique." — [[Refueling platform garbled broadcast]]
     // > "You detect a refueling platform near the beacon, although its broadcast signal is garbled, and you can't make out the message." — [[Refueling platform garbled broadcast]]
     flag: "cited:refueling-platform-garbled-broadcast",
-    aliases: [],
+    aliases: ["Refueling platform garbled broadcast"],
     sectors: ["Abandoned Sector"],
     body: "Fuel platform.",
     choices: [
@@ -616,14 +616,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
    * Same random drone schematic with high scrap.
    */
   {
-    dest: "Optional fight: pirate ship and settlement",
+    dest: "Remote settlement",
     slug: "remote-settlement",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector." — [[Remote settlement]]
     // > "It is unique." — [[Remote settlement]]
     // > "Scans show a remote settlement being blockaded by a pirate ship. The ship hastily messages you, \"Stay out of this, or you'll be next!...Concentrate fire on...\"" — [[Remote settlement]]
     flag: "cited:remote-settlement",
-    aliases: [],
+    aliases: ["Remote settlement"],
     sectors: ["Civilian Sector"],
     body: "Pirate ship blockading a settlement.",
     choices: [
@@ -681,7 +681,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Repair station]]
     // > "You see a small station fitted with hundreds of Repair drones. You receive an automated message, \"We don't know who you are and we don't care, but this is the right place for some ship repair!\"" — [[Repair station]]
     flag: "cited:repair-station",
-    aliases: [],
+    aliases: ["Repair station"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -753,12 +753,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   /** "You lose 2-4 fuel and receive 1-3 drones." */
   {
-    dest: "Trade: fuel for drone parts",
+    dest: "Trade fuel for drone parts",
     slug: "trade-fuel-for-drone-parts",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Trade fuel for drone parts]]
     flag: "cited:trade-fuel-for-drone-parts",
-    aliases: [],
+    aliases: ["Trade fuel for drone parts"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -806,12 +806,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
    * "You lose 2-4 missiles and receive 4-10 fuel."
    */
   {
-    dest: "Trade: resources",
+    dest: "Trade resources",
     slug: "trade-resources",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Trade resources]]
     flag: "cited:trade-resources",
-    aliases: [],
+    aliases: ["Trade resources"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -888,13 +888,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
    * "You lose 2-4 missiles and receive 4-10 fuel."
    */
   {
-    dest: "Trade: resources in nebula",
+    dest: "Trade resources in nebula",
     slug: "trade-resources-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Trade resources in nebula]]
     // > "It is unique." — [[Trade resources in nebula]]
     flag: "cited:trade-resources-in-nebula",
-    aliases: [],
+    aliases: ["Trade resources in nebula"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",

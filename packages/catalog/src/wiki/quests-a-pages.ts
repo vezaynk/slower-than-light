@@ -13,14 +13,14 @@ import type { CitedEventDef } from "./cited-events-surrender.ts";
 export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Ancient device" ({{Locations|Rock Homeworlds|...|unique=true}}), ROCK_CRYSTAL_BEACON, the Crystal Cruiser's 3rd step.
   {
-    dest: "Device: scrap or wormhole",
+    dest: "Ancient device",
     slug: "ancient-device",
     // Wiki citations:
     // > "This random event occurs in Rock Homeworlds." — [[Ancient device]]
     // > "It is unique." — [[Ancient device]]
     // > "An ancient device is orbiting within the crystal rings of a nearby gas giant." — [[Ancient device]]
     flag: "cited:ancient-device",
-    aliases: [],
+    aliases: ["Ancient device", "Ancient Device"],
     sectors: ["Rock Homeworlds"],
     body: "Inactive device.",
     choices: [
@@ -52,14 +52,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Rock war vessel encounter" ({{Locations|Rock Homeworlds|...|unique=true}}), ROCK_UNLOCK, the Rock Cruiser unlock.
   {
-    dest: "Quest: Rock ship unlock",
+    dest: "Rock war vessel encounter",
     slug: "rock-war-vessel-encounter",
     // Wiki citations:
     // > "This random event occurs in Rock Homeworlds." — [[Rock war vessel encounter]]
     // > "It is unique." — [[Rock war vessel encounter]]
     // > "You are immediately messaged by an imposing looking Rock war vessel" — [[Rock war vessel encounter]]
     flag: "cited:rock-war-vessel-encounter",
-    aliases: [],
+    aliases: ["Rock war vessel encounter", "Rock War Vessel Encounter"],
     sectors: ["Rock Homeworlds"],
     body: "Rock ship. Quest offer.",
     choices: [
@@ -110,7 +110,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Unarmed Zoltan transport]]
     // > "An unarmed Zoltan transport vessel is slowly making its way toward the beacon here." — [[Unarmed Zoltan transport]]
     flag: "cited:unarmed-zoltan-transport",
-    aliases: [],
+    aliases: ["Unarmed Zoltan transport", "Unarmed Zoltan Transport"],
     sectors: ["Zoltan Homeworlds"],
     body: "Unarmed Zoltan ship.",
     choices: [
@@ -148,13 +148,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // The stasis button stays visible until a pod is aboard.
   {
-    dest: "Zoltan crew scan",
+    dest: "Zoltan research facility",
     slug: "zoltan-research-facility",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan research facility]]
     // > "You arrive at a Zoltan research facility." — [[Zoltan research facility]]
     flag: "cited:zoltan-research-facility",
-    aliases: [],
+    aliases: ["Zoltan research facility", "Zoltan Research Facility"],
     sectors: [
       "Engi Controlled Sector",
       "Engi Homeworlds",
@@ -200,14 +200,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Zoltan trade hub" ({{Locations|Zoltan Controlled Sector|Zoltan Homeworlds|...|unique=true}}), ZOLTAN_TRADE_HUB.
   {
-    dest: "Zoltan store hub",
+    dest: "Zoltan trade hub",
     slug: "zoltan-trade-hub",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan trade hub]]
     // > "It is unique." — [[Zoltan trade hub]]
     // > "You come to a Zoltan trade and supply hub" — [[Zoltan trade hub]]
     flag: "cited:zoltan-trade-hub",
-    aliases: [],
+    aliases: ["Zoltan trade hub", "Zoltan Trade Hub"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Store. Entry needs papers.",
     choices: [
@@ -245,14 +245,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Rock bride" ({{Locations|Rock Controlled Sector|Rock Homeworlds|...|unique=true}}), ROCK_QUEST_MARRIAGE_START.
   {
-    dest: "Quest: Rock passenger",
+    dest: "Rock bride",
     slug: "rock-bride",
     // Wiki citations:
     // > "This random event occurs in Rock Controlled Sector, Rock Homeworlds." — [[Rock bride]]
     // > "It is unique." — [[Rock bride]]
     // > "A rock captain hails you" — [[Rock bride]]
     flag: "cited:rock-bride",
-    aliases: [],
+    aliases: ["Rock bride", "Rock Bride", "Rock Bride Transport"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
     body: "Rock ship. Quest offer: carry a passenger.",
     choices: [

@@ -17,7 +17,7 @@ function open(g: Game) {
   assert.ok(b);
   b.kind = "event";
   b.flag = "STORM_SLUG_FIGHT";
-  b.name = "Hostile Slug ship in plasma storm";
+  b.name = "Slug fight in plasma storm";
   b.col = 6;
   g.here = b.id;
   g.fleet = 1;
@@ -28,7 +28,7 @@ function open(g: Game) {
   return b;
 }
 
-describe("Hostile Slug ship in plasma storm", () => {
+describe("Slug fight in plasma storm", () => {
   it("shows one of the four printed intros, then storms a non-nebula beacon", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Slug fight in plasma storm]]
@@ -83,7 +83,7 @@ describe("Hostile Slug ship in plasma storm", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "STORM_SLUG_FIGHT";
-    dest.name = "Hostile Slug ship in plasma storm";
+    dest.name = "Slug fight in plasma storm";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

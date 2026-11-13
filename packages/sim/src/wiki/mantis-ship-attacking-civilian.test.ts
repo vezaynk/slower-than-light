@@ -18,12 +18,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "MANTIS_CIVILIAN";
-  b.name = "Optional fight: Mantis ship and civilian";
+  b.name = "Mantis ship attacking civilian";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Optional fight: Mantis ship and civilian");
+  assert.equal(g.event?.title, "Mantis ship attacking civilian");
 }
 
 function scraps(body: string): number[] {
@@ -36,7 +36,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Optional fight: Mantis ship and civilian", () => {
+describe("Mantis ship attacking civilian", () => {
   it("aiding the civilian starts a Mantis fight", () => {
     const g = createGame(1);
     open(g);

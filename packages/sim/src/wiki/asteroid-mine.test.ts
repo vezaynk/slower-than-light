@@ -12,7 +12,7 @@ const MINE = "c:large-asteroid-field:2";
 describe("Large asteroid field mining", () => {
   it("stays closed without a fitted Scrap Recovery Arm", () => {
     const g = startedGame(4);
-    const page = allEvents().find((event) => event.dest === "Asteroid field: explore");
+    const page = allEvents().find((event) => event.dest === "Large asteroid field");
     assert.ok(
       page?.choices.some((choice) => choice.id === MINE && choice.label === "Gain high scrap."),
     );

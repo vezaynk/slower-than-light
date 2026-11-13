@@ -12,14 +12,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_SCARED_CIVILIAN";
-  b.name = "Optional fight: unarmed Lanius ship";
+  b.name = "Lanius lone ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: unarmed Lanius ship");
+  assert.equal(g.event?.title, "Lanius lone ship");
 }
 
-describe("Optional fight: unarmed Lanius ship", () => {
+describe("Lanius lone ship", () => {
   it("attacking starts a Lanius fight on default rewards", () => {
     // Wiki citations:
     // > "You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, \"Help! The metal monsters are coming to melt down our ship!\" Strangely, no active weapon signatures are detected." — [[Lanius lone ship]]

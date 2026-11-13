@@ -27,13 +27,13 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Fight a Mantis ship (default rewards)." Mantis fight near sun has no choice. Arrival calls this fight. The printed sentence is the card body. redgiant=true. unique=false.
   {
-    dest: "Hostile Mantis ship near sun",
+    dest: "Mantis fight near sun",
     slug: "mantis-fight-near-sun",
     // Wiki citations:
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fight near sun]]
     // > "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?" — [[Mantis fight near sun]]
     flag: "cited:mantis-fight-near-sun",
-    aliases: [],
+    aliases: ["Mantis fight near sun"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
     body: "Hostile Mantis ship. Sun: fires break out.",
     choices: [
@@ -47,7 +47,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Hostile Mantis Fighter",
+    dest: "Mantis ship-collectors",
     // Arrival calls this fight. The printed hail is the card body. The quest marker stays after the escape.
     slug: "mantis-ship-collectors",
     // Wiki citations:
@@ -55,7 +55,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Mantis ship-collectors]]
     // > "You are immediately hailed by an impressive-looking Mantis ship, \"Your ship would make a mighty fine prize. Prepare for battle!\"" — [[Mantis ship-collectors]]
     flag: "cited:mantis-ship-collectors",
-    aliases: [],
+    aliases: ["Mantis ship-collectors"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
     body: "Hostile Mantis ship.",
     choices: [
@@ -78,7 +78,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Boarders: Humans near sun]]
     // > "You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, \"I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours.\" Hostiles detected on board our ship!" — [[Boarders: Humans near sun]]
     flag: "cited:boarders-humans-near-sun",
-    aliases: [],
+    aliases: ["Boarders: Humans near sun"],
     sectors: [
       "Mantis Controlled Sector",
       "Mantis Homeworlds",
@@ -107,7 +107,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Boarders: Mantis]]
     // > "The intro text for this event varies, and could be any of the following:" — [[Boarders: Mantis]]
     flag: "cited:boarders-mantis",
-    aliases: [],
+    aliases: ["Boarders: Mantis"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
     body: "2-4 Mantis boarders.",
     choices: [
@@ -123,14 +123,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Escape pod. Jettison does nothing. Prying it open is three results with no odds.
     // The Mantis and the Human are not named, so those grants stay unwired. The boarder is not a crew grant.
-    dest: "Escape pod (Mantis)",
+    dest: "Escape pod",
     slug: "escape-pod",
     // Wiki citations:
     // > "This random event occurs in Mantis Controlled Sector, Mantis Homeworlds." — [[Escape pod]]
     // > "It is unique." — [[Escape pod]]
     // > "You detect and retrieve an escape pod floating nearby. You consider returning it to space when you learn it's Mantis." — [[Escape pod]]
     flag: "cited:escape-pod",
-    aliases: [],
+    aliases: ["Escape pod"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
     body: "Escape pod.",
     choices: [

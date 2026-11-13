@@ -21,7 +21,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Boarders: Humans (pirate)",
+    name: "Boarders: Humans (Pirate)",
     tier: "",
     flag: "BOARDERS",
     asteroid: false,

@@ -54,6 +54,9 @@
   <event name="STORM_BOARDING">
     <title>Boarders: Humans in plasma storm</title>
     <alias>boarders-humans-in-plasma-storm</alias>
+    <alias>Boarders in Plasma Storm</alias>
+    <alias>Boarders: Humans in plasma storm</alias>
+    <alias>Human boarders in plasma storm</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>
@@ -66,6 +69,8 @@
   <event name="BROKEN_REBEL_DRONE">
     <title>Deactivated Auto-ship</title>
     <alias>deactivated-auto-ship</alias>
+    <alias>Deactivated Auto-ship</alias>
+    <alias>Deactivated Rebel Automated Scout</alias>
     <sector>LANIUS_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -84,8 +89,10 @@
     </choice>
   </event>
   <event name="ESCORT_BEACON">
-    <title>Escort: low scrap and quest</title>
+    <title>Escort civilians FTL haywire</title>
     <alias>escort-civilians-ftl-haywire</alias>
+    <alias>Escort FTL haywire civilian ship</alias>
+    <alias>Escort civilians FTL haywire</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>MANTIS_SECTOR</sector>
     <sector>MANTIS_HOME</sector>
@@ -109,6 +116,8 @@
   <event name="FIND_DRONE">
     <title>Free drone schematic</title>
     <alias>free-drone-schematic</alias>
+    <alias>Free Drone Schematic</alias>
+    <alias>Free drone schematic</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -135,6 +144,7 @@
   <event name="FREE_ITEMS">
     <title>Free scrap with resources</title>
     <alias>free-scrap-with-resources</alias>
+    <alias>Free scrap with resources</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -165,6 +175,8 @@
   <event name="LANIUS_FREE_STUFF">
     <title>Free scrap with resources (Lanius)</title>
     <alias>free-scrap-with-resources-lanius</alias>
+    <alias>Free scrap with resources (Lanius)</alias>
+    <alias>Lanius free stuff</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Free salvage.</text>
     <choice name="c:free-scrap-with-resources-lanius:0">
@@ -173,8 +185,9 @@
     </choice>
   </event>
   <event name="LANIUS_TRADER">
-    <title>Trade: supplies for scrap (Lanius)</title>
+    <title>Lanius trader</title>
     <alias>lanius-trader</alias>
+    <alias>Lanius trader</alias>
     <sector>LANIUS_SECTOR</sector>
     <text/>
     <text>Lanius ship. Trade offer: supplies for scrap.</text>
@@ -253,8 +266,11 @@
     </choice>
   </event>
   <event name="LANIUS_TRADER_TRANSLATOR">
-    <title>Trade: supplies for scrap or crew (Lanius)</title>
+    <title>Lanius trader with translator</title>
     <alias>lanius-trader-with-translator</alias>
+    <alias>Lanius Merchant</alias>
+    <alias>Lanius Merchant with Improved Translator</alias>
+    <alias>Lanius trader with translator</alias>
     <sector>LANIUS_SECTOR</sector>
     <text/>
     <eventList name="base">
@@ -310,8 +326,10 @@
     </choice>
   </event>
   <event name="QUEST_MANTIS_INVASION_START">
-    <title>Quest: Mantis base</title>
+    <title>Mantis war camp</title>
     <alias>mantis-war-camp</alias>
+    <alias>Mantis War Camp</alias>
+    <alias>Mantis war camp</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ZOLTAN_SECTOR</sector>
     <sector>ZOLTAN_HOME</sector>
@@ -327,8 +345,10 @@
     </choice>
   </event>
   <event name="REFUEL_STATION">
-    <title>Trade: scrap for fuel</title>
+    <title>Refueling station</title>
     <alias>refueling-station</alias>
+    <alias>Refuel Station</alias>
+    <alias>Refueling station</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -382,8 +402,10 @@
     </choice>
   </event>
   <event name="ROCK_ATHIEST">
-    <title>Rock crew offer</title>
+    <title>Rock atheists</title>
     <alias>rock-atheists</alias>
+    <alias>Rock Deserters</alias>
+    <alias>Rock atheists</alias>
     <sector>ROCK_SECTOR</sector>
     <sector>ROCK_HOME</sector>
     <text>Neutral Rock ship. It may join your crew.</text>
@@ -409,8 +431,9 @@
     </choice>
   </event>
   <event name="SELL_DRONES_STATION">
-    <title>Trade: drone parts for scrap</title>
+    <title>Sell drone parts for scrap</title>
     <alias>sell-drone-parts-for-scrap</alias>
+    <alias>Sell drone parts for scrap</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -458,8 +481,10 @@
     </choice>
   </event>
   <event name="SELL_MISSILES_STATION">
-    <title>Trade: missiles for scrap</title>
+    <title>Sell missiles for scrap</title>
     <alias>sell-missiles-for-scrap</alias>
+    <alias>Sell missiles for scrap</alias>
+    <alias>Trade: sell missiles for scrap</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -507,8 +532,10 @@
     </choice>
   </event>
   <event name="QUEST_CONSTRUCTIONYARD">
-    <title>Quest: missing cargo ship</title>
+    <title>Space station under construction</title>
     <alias>space-station-under-construction</alias>
+    <alias>Space Station Under Construction</alias>
+    <alias>Space station under construction</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <text>Quest offer.</text>
     <choice name="c:space-station-under-construction:0">
@@ -530,8 +557,10 @@
     </choice>
   </event>
   <event name="LANIUS_PIRATE_BOARDERS">
-    <title>Boarders: Humans (Lanius sector)</title>
+    <title>Boarders: Humans (Abandoned)</title>
     <alias>boarders-humans-abandoned</alias>
+    <alias>Weak and hungry human boarders</alias>
+    <alias>Weak and hungry Human intruders</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>3-4 Human boarders.</text>
     <choice name="c:boarders-humans-abandoned:0">
@@ -540,8 +569,9 @@
     </choice>
   </event>
   <event name="QUEST_ESCORT">
-    <title>Escort: fuel and quest</title>
+    <title>Escort civilians</title>
     <alias>escort-civilians</alias>
+    <alias>Escort civilians</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -567,6 +597,7 @@
   <event name="FIND_WEAPON">
     <title>Free weapon</title>
     <alias>free-weapon</alias>
+    <alias>Free weapon</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -597,6 +628,7 @@
   <event name="NEBULA_BOARDING">
     <title>Boarders: Humans in nebula</title>
     <alias>boarders-humans-in-nebula</alias>
+    <alias>Boarders: Humans in nebula</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>PIRATE_SECTOR</sector>
     <sector>NEBULA_SECTOR</sector>
@@ -609,8 +641,9 @@
     </choice>
   </event>
   <event name="NEBULA_REBEL_BOARDING">
-    <title>Boarders: Rebels in nebula</title>
+    <title>Boarders: rebels in nebula</title>
     <alias>boarders-rebels-in-nebula</alias>
+    <alias>Boarders: rebels in nebula</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>PIRATE_SECTOR</sector>
     <sector>REBEL_SECTOR</sector>
@@ -627,6 +660,7 @@
   <event name="REPAIR_STATION">
     <title>Repair station</title>
     <alias>repair-station</alias>
+    <alias>Repair station</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -680,8 +714,9 @@
     </choice>
   </event>
   <event name="FUEL_FOR_DRONE">
-    <title>Trade: fuel for drone parts</title>
+    <title>Trade fuel for drone parts</title>
     <alias>trade-fuel-for-drone-parts</alias>
+    <alias>Trade fuel for drone parts</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -716,8 +751,9 @@
     </choice>
   </event>
   <event name="TRADER_CIV">
-    <title>Trade: resources</title>
+    <title>Trade resources</title>
     <alias>trade-resources</alias>
+    <alias>Trade resources</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -808,8 +844,9 @@
     </choice>
   </event>
   <event name="NEBULA_TRADER">
-    <title>Trade: resources in nebula</title>
+    <title>Trade resources in nebula</title>
     <alias>trade-resources-in-nebula</alias>
+    <alias>Trade resources in nebula</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>PIRATE_SECTOR</sector>
     <sector>REBEL_SECTOR</sector>
@@ -888,6 +925,7 @@
   <event name="BOARDERS_CRYSTAL">
     <title>Boarders: Crystal</title>
     <alias>boarders-crystal</alias>
+    <alias>Boarders: Crystal</alias>
     <sector>CRYSTAL_HOME</sector>
     <text>2-3 Crystal boarders.</text>
     <text>2-3 Crystal boarders.</text>
@@ -898,8 +936,9 @@
     </choice>
   </event>
   <event name="CONFUSED_MANTIS">
-    <title>Engi ship with Mantis crew</title>
+    <title>Confused Mantis</title>
     <alias>confused-mantis</alias>
+    <alias>Confused Mantis</alias>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
     <text>Engi ship. Request: help with a crewmember.</text>
@@ -915,6 +954,7 @@
   <event name="BOARDERS_SUN">
     <title>Boarders: Humans near sun</title>
     <alias>boarders-humans-near-sun</alias>
+    <alias>Boarders: Humans near sun</alias>
     <sector>MANTIS_SECTOR</sector>
     <sector>MANTIS_HOME</sector>
     <sector>PIRATE_SECTOR</sector>
@@ -930,6 +970,7 @@
   <event name="MANTIS_BOARDERS">
     <title>Boarders: Mantis</title>
     <alias>boarders-mantis</alias>
+    <alias>Boarders: Mantis</alias>
     <sector>MANTIS_SECTOR</sector>
     <sector>MANTIS_HOME</sector>
     <text>2-4 Mantis boarders.</text>
@@ -941,8 +982,9 @@
     </choice>
   </event>
   <event name="MANTIS_CREW">
-    <title>Escape pod (Mantis)</title>
+    <title>Escape pod</title>
     <alias>escape-pod</alias>
+    <alias>Escape pod</alias>
     <sector>MANTIS_SECTOR</sector>
     <sector>MANTIS_HOME</sector>
     <text>Escape pod.</text>
@@ -958,8 +1000,9 @@
     </choice>
   </event>
   <event name="REFUGEE_NO_DISTRESS_PIRATE">
-    <title>Refugee ship (pirate)</title>
+    <title>Refugee (Pirate)</title>
     <alias>refugee-pirate</alias>
+    <alias>Refugee (Pirate)</alias>
     <sector>PIRATE_SECTOR</sector>
     <text>Refugee ship.</text>
     <eventList name="trade">
@@ -1000,8 +1043,9 @@
     </choice>
   </event>
   <event name="REFUGEE_DISTRESS_PIRATE">
-    <title>Refugee ship distress (pirate)</title>
+    <title>Refugee distress (Pirate)</title>
     <alias>refugee-distress-pirate</alias>
+    <alias>Refugee distress (Pirate)</alias>
     <sector>PIRATE_SECTOR</sector>
     <text>Refugee ship.</text>
     <eventList name="trade">
@@ -1042,8 +1086,9 @@
     </choice>
   </event>
   <event name="STATION_SICK">
-    <title>Silent research station</title>
+    <title>Research station with no response</title>
     <alias>research-station-with-no-response</alias>
+    <alias>Research station with no response</alias>
     <sector>PIRATE_SECTOR</sector>
     <text>Station. No response.</text>
     <choice name="c:research-station-with-no-response:0">
@@ -1072,8 +1117,9 @@
     </choice>
   </event>
   <event name="ROCK_BOARDERS_SUN">
-    <title>Boarders: Rock near sun</title>
+    <title>Boarders: Rockmen near sun</title>
     <alias>boarders-rockmen-near-sun</alias>
+    <alias>Boarders: Rockmen near sun</alias>
     <sector>ROCK_SECTOR</sector>
     <sector>ROCK_HOME</sector>
     <text/>
@@ -1086,8 +1132,9 @@
     </choice>
   </event>
   <event name="ROCK_SLUG_ARGUMENT">
-    <title>Rock and Slug ships: debt</title>
+    <title>Rock and Slug standoff</title>
     <alias>rock-and-slug-standoff</alias>
+    <alias>Rock and Slug standoff</alias>
     <sector>ROCK_SECTOR</sector>
     <sector>ROCK_HOME</sector>
     <text>Rock ship and Slug ship, both armed.</text>
@@ -1111,8 +1158,11 @@
     </choice>
   </event>
   <event name="ROCK_MANTIS_FREIGHTER">
-    <title>Optional fight: two Mantis ships and Rock freighter</title>
+    <title>Mantis ships battle for Rock freighter</title>
     <alias>mantis-ships-battle-for-rock-freighter</alias>
+    <alias>Mantis ships battle for Rock freighter</alias>
+    <alias>Mantis Ships Battle for Rock Freighter</alias>
+    <alias>Mantis ships battle for Rock Freighter</alias>
     <sector>ROCK_SECTOR</sector>
     <sector>ROCK_HOME</sector>
     <text>Two Mantis ships and a disabled Rock ship.</text>
@@ -1145,8 +1195,10 @@
     </choice>
   </event>
   <event name="ROCK_STARSHIP_MINE">
-    <title>Live mine</title>
+    <title>Rock live mine</title>
     <alias>rock-live-mine</alias>
+    <alias>Rock live mine</alias>
+    <alias>Rock Live Mine</alias>
     <sector>ROCK_SECTOR</sector>
     <sector>ROCK_HOME</sector>
     <text>Mine approaching.</text>
@@ -1165,8 +1217,9 @@
     </choice>
   </event>
   <event name="SLUG_DISTRESS_RESCUE">
-    <title>Hire: Slug crew</title>
+    <title>Slocknog</title>
     <alias>slocknog</alias>
+    <alias>Slocknog</alias>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>
     <text>Crew for hire: 1 Slug.</text>
@@ -1181,8 +1234,9 @@
     </choice>
   </event>
   <event name="REFUGEE_NO_DISTRESS_SLUG">
-    <title>Refugee ship (Slug)</title>
+    <title>Refugee (Slug)</title>
     <alias>refugee-slug</alias>
+    <alias>Refugee (Slug)</alias>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>
     <text>Refugee ship.</text>
@@ -1224,8 +1278,9 @@
     </choice>
   </event>
   <event name="REFUGEE_DISTRESS_SLUG">
-    <title>Refugee ship distress (Slug)</title>
+    <title>Refugee distress (Slug)</title>
     <alias>refugee-distress-slug</alias>
+    <alias>Refugee distress (Slug)</alias>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>
     <text>Refugee ship.</text>
@@ -1267,8 +1322,11 @@
     </choice>
   </event>
   <event name="ZOLTAN_FREE_AUGMENT">
-    <title>Free augment</title>
+    <title>Zoltan free augment</title>
     <alias>zoltan-free-augment</alias>
+    <alias>Zoltan free augment</alias>
+    <alias>Zoltan Academy Free Augment</alias>
+    <alias>Zoltan academy free augment</alias>
     <sector>ZOLTAN_SECTOR</sector>
     <sector>ZOLTAN_HOME</sector>
     <text>Free augment.</text>
@@ -1279,8 +1337,9 @@
     </choice>
   </event>
   <event name="BOARDERS_HACKING">
-    <title>Boarders: Humans, sensors jammed</title>
+    <title>Boarders: Humans jammed sensors</title>
     <alias>boarders-humans-jammed-sensors</alias>
+    <alias>Boarders: Humans jammed sensors</alias>
     <sector>PIRATE_SECTOR</sector>
     <sector>ZOLTAN_SECTOR</sector>
     <sector>ZOLTAN_HOME</sector>
@@ -1296,8 +1355,9 @@
     </choice>
   </event>
   <event name="NEBULA_ZOLTAN_EYE">
-    <title>Monolith in nebula</title>
+    <title>Zoltan Great Eye</title>
     <alias>zoltan-great-eye</alias>
+    <alias>Zoltan Great Eye</alias>
     <sector>ZOLTAN_SECTOR</sector>
     <sector>ZOLTAN_HOME</sector>
     <text>Monolith on a planet. Nebula.</text>
@@ -1486,8 +1546,9 @@
     </choice>
   </event>
   <event name="ASTEROID_DERELICT_SHIP">
-    <title>Derelict in dense asteroid field</title>
+    <title>Dense asteroid field distress</title>
     <alias>dense-asteroid-field-distress</alias>
+    <alias>Dense asteroid field distress</alias>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
     <sector>PIRATE_SECTOR</sector>
@@ -1513,8 +1574,9 @@
     </choice>
   </event>
   <event name="LANIUS_RESEARCHER_CRAFT">
-    <title>Trade: scrap for items (Lanius)</title>
+    <title>Lanius craftsmen</title>
     <alias>lanius-craftsmen</alias>
+    <alias>Lanius craftsmen</alias>
     <sector>LANIUS_SECTOR</sector>
     <text>Item seller.</text>
     <choice name="c:lanius-craftsmen:0">
@@ -1531,8 +1593,9 @@
     </choice>
   </event>
   <event name="ENGI_FLEET_DELAY">
-    <title>Cache: fleet delay or reward</title>
+    <title>Engi cache</title>
     <alias>engi-cache</alias>
+    <alias>Engi cache</alias>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
     <text>Cache. Use it to delay the fleet, or take it.</text>
@@ -1555,8 +1618,9 @@
     </choice>
   </event>
   <event name="SLUG_DISTRESS_QUESTION">
-    <title>Distress: question in nebula</title>
+    <title>Slug moons question</title>
     <alias>slug-moons-question</alias>
+    <alias>Slug moons question</alias>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>
     <text>Distress signal. Nebula.</text>
@@ -1577,8 +1641,9 @@
     </choice>
   </event>
   <event name="CRYSTAL_SCRAP_EXCITED">
-    <title>Scrap for crew or weapon (Crystal)</title>
+    <title>Crystal scrap collector</title>
     <alias>crystal-scrap-collector</alias>
+    <alias>Crystal scrap collector</alias>
     <sector>CRYSTAL_HOME</sector>
     <text/>
     <choice name="c:crystal-scrap-collector:0">
@@ -1596,8 +1661,9 @@
     </choice>
   </event>
   <event name="BOARDERS">
-    <title>Boarders: Humans (pirate)</title>
+    <title>Boarders: Humans (Pirate)</title>
     <alias>boarders-humans-pirate</alias>
+    <alias>Boarders: Humans (Pirate)</alias>
     <sector>PIRATE_SECTOR</sector>
     <text>3-5 Human boarders.</text>
     <text>3-5 Human boarders.</text>
@@ -1610,8 +1676,9 @@
     </choice>
   </event>
   <event name="ZOLTAN_ODD_MOON">
-    <title>Moon scan</title>
+    <title>Zoltan odd moon</title>
     <alias>zoltan-odd-moon</alias>
+    <alias>Zoltan odd moon</alias>
     <sector>ZOLTAN_SECTOR</sector>
     <sector>ZOLTAN_HOME</sector>
     <text>A moon.</text>
@@ -1627,8 +1694,9 @@
     </choice>
   </event>
   <event name="REFUGEE_NO_DISTRESS_ZOLTAN">
-    <title>Refugee ship (Zoltan)</title>
+    <title>Refugee (Zoltan)</title>
     <alias>refugee-zoltan</alias>
+    <alias>Refugee (Zoltan)</alias>
     <sector>ZOLTAN_SECTOR</sector>
     <sector>ZOLTAN_HOME</sector>
     <text>Refugee ship.</text>
@@ -1670,8 +1738,9 @@
     </choice>
   </event>
   <event name="REFUGEE_DISTRESS_ZOLTAN">
-    <title>Refugee ship distress (Zoltan)</title>
+    <title>Refugee distress (Zoltan)</title>
     <alias>refugee-distress-zoltan</alias>
+    <alias>Refugee distress (Zoltan)</alias>
     <sector>ZOLTAN_SECTOR</sector>
     <sector>ZOLTAN_HOME</sector>
     <text>Refugee ship.</text>
@@ -1713,8 +1782,10 @@
     </choice>
   </event>
   <event name="ENGI_SURRENDER">
-    <title>Surrendering Engi ship</title>
+    <title>Engi surrender</title>
     <alias>engi-surrender</alias>
+    <alias>Engi surrender</alias>
+    <alias>Engi Surrender</alias>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
     <text>Engi ship. Offer: its cargo.</text>
@@ -1732,8 +1803,10 @@
     </choice>
   </event>
   <event name="ZOLTAN_CREW_STUDY">
-    <title>Zoltan crew scan</title>
+    <title>Zoltan research facility</title>
     <alias>zoltan-research-facility</alias>
+    <alias>Zoltan research facility</alias>
+    <alias>Zoltan Research Facility</alias>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
     <sector>ZOLTAN_SECTOR</sector>
@@ -1765,8 +1838,11 @@
     </choice>
   </event>
   <event name="ROCK_QUEST_MARRIAGE_START">
-    <title>Quest: Rock passenger</title>
+    <title>Rock bride</title>
     <alias>rock-bride</alias>
+    <alias>Rock bride</alias>
+    <alias>Rock Bride</alias>
+    <alias>Rock Bride Transport</alias>
     <sector>ROCK_SECTOR</sector>
     <sector>ROCK_HOME</sector>
     <text>Rock ship. Quest offer: carry a passenger.</text>
@@ -1783,8 +1859,10 @@
     </choice>
   </event>
   <event name="CIVILIAN_ASTEROIDS_BEACON">
-    <title>Distress: ship in asteroid belt</title>
+    <title>Asteroid belt distress</title>
     <alias>asteroid-belt-distress</alias>
+    <alias>Asteroid belt distress</alias>
+    <alias>Asteroid Belt Distress</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -1803,8 +1881,10 @@
     </choice>
   </event>
   <event name="NEBULA_BATTLEFIELD">
-    <title>Wreckage in nebula</title>
+    <title>Nebula wreckage</title>
     <alias>nebula-wreckage</alias>
+    <alias>Nebula wreckage</alias>
+    <alias>Nebula Wreckage</alias>
     <sector>SLUG_SECTOR</sector>
     <sector>NEBULA_SECTOR</sector>
     <text>Wreckage. Nebula.</text>
@@ -2156,7 +2236,7 @@
     </choice>
   </event>
   <event name="quest-marker-choices">
-    <title>Quest beacon</title>
+    <title>Quest marker choices</title>
     <text/>
     <choice name="s:slug-home-nebula-surrender:info">
       <text>Quest beacon added.</text>
@@ -2196,7 +2276,7 @@
     </choice>
   </event>
   <event name="quest-slug-pirate-trap-engage">
-    <title>Quest: tap Slug comms</title>
+    <title>Slug comm tapping</title>
     <text/>
     <surrender chance="100" min="30" max="40">
       <text>Surrender offer: let the pirate ship go.</text>
@@ -2211,7 +2291,7 @@
     </surrender>
   </event>
   <event name="quest-engi-real">
-    <title>Engi ships: Engi crew quest</title>
+    <title>Engi fleet discussion</title>
     <text/>
     <surrender chance="100" min="50" max="50" forced="true" quest="engi-final">
       <text>Surrender offer: quest beacon.</text>
@@ -2222,7 +2302,7 @@
     </surrender>
   </event>
   <event name="quest-engi-fake">
-    <title>Engi ships: Engi crew quest</title>
+    <title>Engi fleet discussion</title>
     <text/>
     <surrender chance="100" min="40" max="40" forced="true">
       <text>Surrender offer.</text>
@@ -2241,7 +2321,7 @@
     </surrender>
   </event>
   <event name="quest-mantis-chase">
-    <title>Hostile Mantis Fighter</title>
+    <title>Mantis ship-collectors</title>
     <text/>
     <surrender chance="100" min="20" max="20">
       <text>Surrender offer: high scrap and a weapon.</text>
@@ -2257,8 +2337,10 @@
     </surrender>
   </event>
   <event name="DONOR_PLAGUE">
-    <title>Station with life signs</title>
+    <title>Plagued station</title>
     <alias>plagued-station</alias>
+    <alias>Plagued station</alias>
+    <alias>Plagued Station</alias>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>
     <text>Damaged station. Faint life signs.</text>
@@ -2274,8 +2356,10 @@
     </choice>
   </event>
   <event name="DONOR_PONY">
-    <title>Unknown life forms on a planet</title>
+    <title>Intelligent ponies</title>
     <alias>intelligent-ponies</alias>
+    <alias>Intelligent ponies</alias>
+    <alias>Intelligent Ponies</alias>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>
     <text>Unknown life forms on a planet.</text>
@@ -2291,8 +2375,10 @@
     </choice>
   </event>
   <event name="TERRAFORMING_SCAN">
-    <title>Planet scan request</title>
+    <title>Terraforming scan</title>
     <alias>terraforming-scan</alias>
+    <alias>Terraforming scan</alias>
+    <alias>Terraforming Scan</alias>
     <sector>SLUG_SECTOR</sector>
     <sector>SLUG_HOME</sector>
     <text>Station. Request: scan a planet.</text>
@@ -2311,8 +2397,11 @@
     </choice>
   </event>
   <event name="NEBULA_EMPTY">
-    <title>Empty beacon in nebula</title>
+    <title>Empty nebula beacon</title>
     <alias>empty-nebula-beacon</alias>
+    <alias>Empty nebula beacon</alias>
+    <alias>Empty Nebula Beacon</alias>
+    <alias>Nebula empty beacon</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>PIRATE_SECTOR</sector>
     <sector>REBEL_SECTOR</sector>
@@ -2327,8 +2416,10 @@
     </choice>
   </event>
   <event name="STORM_ITEMS">
-    <title>Wrecks in plasma storm</title>
+    <title>Plasma storm incapacitated ships</title>
     <alias>plasma-storm-incapacitated-ships</alias>
+    <alias>Plasma storm incapacitated ships</alias>
+    <alias>Plasma Storm Incapacitated Ships</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>PIRATE_SECTOR</sector>
     <sector>REBEL_SECTOR</sector>
@@ -2352,8 +2443,10 @@
     </choice>
   </event>
   <event name="FRIENDLY_BEACON">
-    <title>Fuel request</title>
+    <title>Friendly ship out of fuel</title>
     <alias>friendly-ship-out-of-fuel</alias>
+    <alias>Friendly ship out of fuel</alias>
+    <alias>Friendly Ship Out of Fuel</alias>
     <sector>LANIUS_SECTOR</sector>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
@@ -2385,8 +2478,10 @@
     </choice>
   </event>
   <event name="REFUGEE_GHOST">
-    <title>Refugee ship, no comms</title>
+    <title>Refugee comms down</title>
     <alias>refugee-comms-down</alias>
+    <alias>Refugee comms down</alias>
+    <alias>Refugee Comms Down</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>PIRATE_SECTOR</sector>
     <sector>NEBULA_SECTOR</sector>
@@ -2404,8 +2499,9 @@
     </choice>
   </event>
   <event name="TRADER_UPGRADES">
-    <title>Trade: scrap for upgrades</title>
+    <title>Trade scrap for upgrades</title>
     <alias>trade-scrap-for-upgrades</alias>
+    <alias>Trade scrap for upgrades</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -2440,8 +2536,9 @@
     </choice>
   </event>
   <event name="HELP_MINERS">
-    <title>Trade: missiles for rewards</title>
+    <title>Asteroid mining colony</title>
     <alias>asteroid-mining-colony</alias>
+    <alias>Asteroid mining colony</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -2493,8 +2590,9 @@
     </choice>
   </event>
   <event name="TRADER_UPGRADES_EXCHANGE">
-    <title>Trade: supplies for reactor</title>
+    <title>Improve reactor for supplies</title>
     <alias>improve-reactor-for-supplies</alias>
+    <alias>Improve reactor for supplies</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -2545,8 +2643,9 @@
     </choice>
   </event>
   <event name="DISTRESS_INFESTATION">
-    <title>Distress: station infestation</title>
+    <title>Giant alien spiders</title>
     <alias>giant-alien-spiders</alias>
+    <alias>Giant alien spiders</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -2590,8 +2689,9 @@
     </choice>
   </event>
   <event name="DISTRESS_STATION_DISEASE">
-    <title>Distress: colony riot</title>
+    <title>Unknown disease on mining colony</title>
     <alias>unknown-disease-on-mining-colony</alias>
+    <alias>Unknown disease on mining colony</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>MANTIS_SECTOR</sector>
     <sector>MANTIS_HOME</sector>
@@ -2633,8 +2733,9 @@
     </choice>
   </event>
   <event name="DISTRESS_STATION_FIRE">
-    <title>Distress: station fire</title>
+    <title>Fire on research station</title>
     <alias>fire-on-research-station</alias>
+    <alias>Fire on research station</alias>
     <sector>LANIUS_SECTOR</sector>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>MANTIS_SECTOR</sector>
@@ -2680,8 +2781,9 @@
     </choice>
   </event>
   <event name="STRANDED_BEACON">
-    <title>Distress: life form on moon</title>
+    <title>Single life form on moon</title>
     <alias>single-life-form-on-moon</alias>
+    <alias>Single life form on moon</alias>
     <sector>LANIUS_SECTOR</sector>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>PIRATE_SECTOR</sector>
@@ -2703,8 +2805,9 @@
     </choice>
   </event>
   <event name="DISTRESS_SATELLITE_DEFENSE">
-    <title>Distress: defense satellites</title>
+    <title>Malfunctioning defense system</title>
     <alias>malfunctioning-defense-system</alias>
+    <alias>Malfunctioning defense system</alias>
     <sector>LANIUS_SECTOR</sector>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
@@ -2730,8 +2833,9 @@
     </choice>
   </event>
   <event name="TAVERN_HIRE">
-    <title>Crew for hire</title>
+    <title>Crew hiring station</title>
     <alias>crew-hiring-station</alias>
+    <alias>Crew hiring station</alias>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>ENGI_SECTOR</sector>
     <sector>ENGI_HOME</sector>
@@ -2754,7 +2858,7 @@
     </choice>
   </event>
   <event name="filler-refueling-station">
-    <title>Trade: scrap for fuel</title>
+    <title>Refueling station</title>
     <text>Fuel seller.</text>
     <choice name="c:refueling-station:0" owner="filler">
       <text>Lose 12 scrap. Gain 6 fuel.</text>
@@ -3442,7 +3546,7 @@
     <store/>
   </event>
   <event name="STORE_REBELSIDE">
-    <title>Store (closed)</title>
+    <title>Large trade station</title>
     <text>Store: closed.</text>
     <choice name="c:large-trade-station:1">
       <text>Nothing happens.</text>

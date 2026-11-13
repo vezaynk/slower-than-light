@@ -14,7 +14,7 @@ describe("Zoltan security checkpoint intro", () => {
     const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
     assert.ok(b);
     b.flag = "ZOLTAN_CREW_SCAN";
-    b.name = "Zoltan checkpoint";
+    b.name = "Zoltan security checkpoint";
     g.here = b.id;
     g.event = citedEvent(g, b);
     g.phase = "event";

@@ -14,14 +14,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_PULSAR";
-  b.name = "Hostile pirate ship near pulsar";
+  b.name = "Pirate fight near pulsar";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile pirate ship near pulsar");
+  assert.equal(g.event?.title, "Pirate fight near pulsar");
 }
 
-describe("Hostile pirate ship near pulsar", () => {
+describe("Pirate fight near pulsar", () => {
   it("shows one of the three intros, and the fight choice starts a pirate combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight near pulsar]]
@@ -59,7 +59,7 @@ describe("Hostile pirate ship near pulsar", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "PIRATE_PULSAR";
-    dest.name = "Hostile pirate ship near pulsar";
+    dest.name = "Pirate fight near pulsar";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

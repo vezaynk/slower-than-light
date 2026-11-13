@@ -19,11 +19,6 @@ const TITLES = [
   "Store (Crystal)",
 ];
 
-/** A row's dest is its functional title; its slug is the wiki page title's slug. */
-function titleOf(ev: { slug: string }): string {
-  return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
-}
-
 function slug(title: string): string {
   return title
     .toLowerCase()
@@ -64,7 +59,7 @@ describe("cited crystal events", () => {
     // > "This random event occurs in Hidden Crystal Worlds." — [[Rebel fight (Crystal)]]
     // > "This random event occurs in Hidden Crystal Worlds." — [[Boarders: Crystal]]
     assert.equal(wiki.size, TITLES.length);
-    const dests = EXTRA_EVENTS.map((e) => titleOf(e));
+    const dests = EXTRA_EVENTS.map((e) => e.dest);
     assert.deepEqual(dests, [
       "Crystal fight",
       "Crystal fight choice",
@@ -73,11 +68,11 @@ describe("cited crystal events", () => {
       "Boarders: Crystal",
     ]);
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(titleOf(ev)));
-      assert.equal(slug(titleOf(ev)), ev.slug);
+      assert.ok(TITLES.includes(ev.dest));
+      assert.equal(ev.slug, slug(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
-      assert.deepEqual(ev.sectors, locationNames(wiki.get(titleOf(ev)) ?? ""));
+      assert.deepEqual(ev.sectors, locationNames(wiki.get(ev.dest) ?? ""));
       ev.choices.forEach((c, i) => {
         assert.equal(c.id, `c:${ev.slug}:${i}`);
         assert.ok(c.fx.length > 0);
@@ -93,22 +88,19 @@ describe("cited crystal events", () => {
         ),
       );
       // Boarders: Crystal states the boarder line and no resource or fight.
-      assert.equal(stated || titleOf(ev) === "Boarders: Crystal", true);
+      assert.equal(stated || ev.dest === "Boarders: Crystal", true);
     }
   });
 
   it("puts each reward and hull number on that page", () => {
     for (const ev of EXTRA_EVENTS) {
-      const page = wiki.get(titleOf(ev)) ?? "";
+      const page = wiki.get(ev.dest) ?? "";
       for (const choice of ev.choices) {
         for (const fx of choice.fx) {
           const nums =
             fx.k === "res" ? [fx.lo, fx.hi] : fx.k === "hull" || fx.k === "fleet" ? [fx.n] : [];
           for (const n of nums) {
-            assert.ok(
-              new RegExp(`(?<!\\d)${Math.abs(n)}(?!\\d)`).test(page),
-              `${titleOf(ev)} ${n}`,
-            );
+            assert.ok(new RegExp(`(?<!\\d)${Math.abs(n)}(?!\\d)`).test(page), `${ev.dest} ${n}`);
           }
         }
       }

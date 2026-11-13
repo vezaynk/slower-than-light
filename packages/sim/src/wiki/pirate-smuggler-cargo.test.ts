@@ -41,7 +41,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_PIRATE_SMUGGLE";
-  b.name = "Optional fight: pirate smuggler";
+  b.name = "Pirate smuggler";
   g.here = b.id;
 }
 

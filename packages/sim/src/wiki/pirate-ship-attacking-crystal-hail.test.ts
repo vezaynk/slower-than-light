@@ -10,7 +10,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_PIRATE_CRYSTAL";
-  b.name = "Optional fight: pirate ship and Crystal ship";
+  b.name = "Pirate ship attacking Crystal";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -24,7 +24,7 @@ describe("Pirate ship attacking Crystal hail", () => {
     // > "Ignore them." — [[Pirate ship attacking Crystal]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Optional fight: pirate ship and Crystal ship");
+    assert.equal(g.event?.title, "Pirate ship attacking Crystal");
     assert.equal(g.event?.body, HAIL);
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),

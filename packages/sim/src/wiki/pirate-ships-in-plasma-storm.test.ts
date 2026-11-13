@@ -13,11 +13,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "STORM_ZOLTAN_SUPPLY_CHOICE";
-  b.name = "Optional fight: pirate ships in plasma storm";
+  b.name = "Pirate ships in plasma storm";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: pirate ships in plasma storm");
+  assert.equal(g.event?.title, "Pirate ships in plasma storm");
 }
 
 function scraps(body: string): number[] {
@@ -29,7 +29,7 @@ function amount(body: string, label: string): number | undefined {
   return m ? Number(m[1]) : undefined;
 }
 
-describe("Optional fight: pirate ships in plasma storm", () => {
+describe("Pirate ships in plasma storm", () => {
   it("lets them leave, and each cargo fight is a pirate that never surrenders", () => {
     // Wiki citations:
     // > "Let them leave." — [[Pirate ships in plasma storm]]

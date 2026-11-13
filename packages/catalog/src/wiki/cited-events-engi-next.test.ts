@@ -21,11 +21,6 @@ const TITLES = [
   "Rebel Attacking Engi",
 ];
 
-/** A row's dest is its functional title; its slug is the wiki page title's slug. */
-function titleOf(ev: { slug: string }): string {
-  return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
-}
-
 function slug(title: string): string {
   return title
     .toLowerCase()
@@ -70,17 +65,17 @@ describe("cited engi next events", () => {
 
   it("exports only candidate titles that exist", () => {
     assert.equal(wiki.size, TITLES.length);
-    const dests = EXTRA_EVENTS.map((ev) => titleOf(ev));
+    const dests = EXTRA_EVENTS.map((ev) => ev.dest);
     for (const dest of dests) {
       assert.ok(TITLES.includes(dest), dest);
     }
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(titleOf(ev)));
-      assert.equal(slug(titleOf(ev)), ev.slug);
+      assert.ok(TITLES.includes(ev.dest));
+      assert.equal(ev.slug, slug(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
-      assert.deepEqual(ev.aliases, []);
-      const text = wiki.get(titleOf(ev));
+      assert.deepEqual(ev.aliases, [ev.dest]);
+      const text = wiki.get(ev.dest);
       assert.ok(text);
       assert.deepEqual(ev.sectors, locationNames(text));
       ev.choices.forEach((choice, i) => {

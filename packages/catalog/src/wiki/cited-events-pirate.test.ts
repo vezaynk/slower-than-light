@@ -16,11 +16,6 @@ const TITLES = [
   "Store (Pirate)",
 ];
 
-/** A row's dest is its functional title; its slug is the wiki page title's slug. */
-function titleOf(ev: { slug: string }): string {
-  return (TITLES as readonly string[]).find((t) => slugOf(t) === ev.slug) ?? ev.slug;
-}
-
 function slugOf(title: string): string {
   return title
     .toLowerCase()
@@ -72,10 +67,10 @@ describe("cited pirate events", () => {
     // > "This random event occurs in Pirate Controlled Sector." — [[Research station with no response]]
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(titleOf(ev)), titleOf(ev));
-      assert.equal(seen.has(titleOf(ev)), false, titleOf(ev));
-      seen.add(titleOf(ev));
-      assert.equal(slugOf(titleOf(ev)), ev.slug);
+      assert.ok(TITLES.includes(ev.dest), ev.dest);
+      assert.equal(seen.has(ev.dest), false, ev.dest);
+      seen.add(ev.dest);
+      assert.equal(ev.slug, slugOf(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
       assert.ok(ev.choices.length >= 1);
@@ -84,13 +79,13 @@ describe("cited pirate events", () => {
         assert.ok(choice.fx.length >= 1);
       });
 
-      const page = await pageText(titleOf(ev));
+      const page = await pageText(ev.dest);
       assert.deepEqual(ev.sectors, sectorNames(page));
 
       for (const choice of ev.choices) {
         for (const fx of choice.fx) {
           for (const n of numbersOf(fx)) {
-            assert.ok(hasNumber(page, n), `${titleOf(ev)} number ${n}`);
+            assert.ok(hasNumber(page, n), `${ev.dest} number ${n}`);
           }
           if (fx.k === "fight") assert.ok(page.includes(fx.tier), fx.tier);
         }

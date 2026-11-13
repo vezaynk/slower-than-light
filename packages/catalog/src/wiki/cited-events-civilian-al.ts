@@ -30,12 +30,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Auto-ship fight has no choice. Arrival applies this fight.
   // "Fight an Auto-ship." unique=false.
   {
-    dest: "Hostile Auto-ship",
+    dest: "Auto-ship fight",
     slug: "auto-ship-fight",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector, Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Auto-ship fight]]
     flag: "cited:auto-ship-fight",
-    aliases: [],
+    aliases: ["Auto-ship fight"],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -58,14 +58,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // Prepare to fight. Fight an Auto-ship.
   {
-    dest: "Hostile Auto-ship in plasma storm",
+    dest: "Auto-ship fight in plasma storm",
     slug: "auto-ship-fight-in-plasma-storm",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Auto-ship fight in plasma storm]]
     // > "It is unique." — [[Auto-ship fight in plasma storm]]
     // > "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack." — [[Auto-ship fight in plasma storm]]
     flag: "cited:auto-ship-fight-in-plasma-storm",
-    aliases: [],
+    aliases: ["Auto-ship fight in plasma storm"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -89,14 +89,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // Attack the automated ship to get to the storage cache. Fight the Auto-ship.
   {
-    dest: "Optional fight: Auto-ship at storage station",
+    dest: "Auto-ship near storage station",
     slug: "auto-ship-near-storage-station",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Rebel Controlled Sector, Rebel Stronghold, Slug Controlled Nebula, Slug Home Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Auto-ship near storage station]]
     // > "It is unique." — [[Auto-ship near storage station]]
     // > "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods." — [[Auto-ship near storage station]]
     flag: "cited:auto-ship-near-storage-station",
-    aliases: [],
+    aliases: ["Auto-ship near storage station"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -131,14 +131,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Auto-ship warning in nebula has no choice. Arrival applies this fight.
   // "Fight an Auto-ship that is running away." unique=true. nebula=true.
   {
-    dest: "Fleeing Auto-ship in nebula",
+    dest: "Auto-ship warning in nebula",
     slug: "auto-ship-warning-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Auto-ship warning in nebula]]
     // > "It is unique." — [[Auto-ship warning in nebula]]
     // > "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing." — [[Auto-ship warning in nebula]]
     flag: "cited:auto-ship-warning-in-nebula",
-    aliases: [],
+    aliases: ["Auto-ship warning in nebula"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",
@@ -161,12 +161,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // You receive {{tooltip|low|1-3}} fuel and a quest marker is added to your map.
   {
-    dest: "Escort: fuel and quest",
+    dest: "Escort civilians",
     slug: "escort-civilians",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rock Controlled Sector, Rock Homeworlds." — [[Escort civilians]]
     flag: "cited:escort-civilians",
-    aliases: [],
+    aliases: ["Escort civilians"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -206,7 +206,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Hidden Crystal Worlds, Mantis Controlled Sector, Mantis Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula." — [[Free weapon]]
     flag: "cited:free-weapon",
-    aliases: [],
+    aliases: ["Free weapon"],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -239,12 +239,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Lanius ship (default Lanius rewards)." Lanius fight has no choice. Arrival calls this fight. One of the eleven printed intros, including the repeated line. unique=false.
   {
-    dest: "Hostile Lanius ship",
+    dest: "Lanius fight",
     slug: "lanius-fight",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius fight]]
     flag: "cited:lanius-fight",
-    aliases: [],
+    aliases: ["Lanius fight"],
     sectors: ["Abandoned Sector"],
     body: "",
     choices: [
@@ -259,14 +259,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Lanius ship (default Lanius rewards)." Lanius fight distress has no choice. Arrival calls this fight. The printed sentence is the card body. distress=true. unique=true.
   {
-    dest: "Hostile Lanius ship (distress)",
+    dest: "Lanius fight distress",
     slug: "lanius-fight-distress",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius fight distress]]
     // > "It is unique." — [[Lanius fight distress]]
     // > "You are too late - whatever once was emitting the distress signal from this system drew a Lanius ship as well as your own. Having consumed the original target, the Lanius turn their attention to your vessel." — [[Lanius fight distress]]
     flag: "cited:lanius-fight-distress",
-    aliases: [],
+    aliases: ["Lanius fight distress"],
     sectors: ["Abandoned Sector"],
     body: "Hostile Lanius ship.",
     choices: [
@@ -281,14 +281,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Lanius ship (default Lanius rewards)." Lanius fight in asteroid field has no choice. Arrival calls this fight. The printed sentence is the card body. asteroidfield=true. unique=true.
   {
-    dest: "Hostile Lanius ship in asteroid field",
+    dest: "Lanius fight in asteroid field",
     slug: "lanius-fight-in-asteroid-field",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius fight in asteroid field]]
     // > "It is unique." — [[Lanius fight in asteroid field]]
     // > "This beacon appears to have been set up within an asteroid field to access a mining settlement. However, half of the settlement has been disassembled by a number of Lanius scavengers. Their military escort moves in to scare you off." — [[Lanius fight in asteroid field]]
     flag: "cited:lanius-fight-in-asteroid-field",
-    aliases: [],
+    aliases: ["Lanius fight in asteroid field"],
     sectors: ["Abandoned Sector"],
     body: "Hostile Lanius ship. Asteroid field.",
     choices: [
@@ -303,14 +303,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Lanius ship (default Lanius rewards)." Lanius fight near pulsar has no choice. Arrival calls this fight. The printed sentence is the card body. pulsar=true. unique=true.
   {
-    dest: "Hostile Lanius ship near pulsar",
+    dest: "Lanius fight near pulsar",
     slug: "lanius-fight-near-pulsar",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius fight near pulsar]]
     // > "It is unique." — [[Lanius fight near pulsar]]
     // > "There appears to be some sort of research station near a pulsar, although it's hard to tell since a portion of it has been melted. The Lanius ship that has been working at it moves in to intercept you, totally oblivious to the threat of EM pulses." — [[Lanius fight near pulsar]]
     flag: "cited:lanius-fight-near-pulsar",
-    aliases: [],
+    aliases: ["Lanius fight near pulsar"],
     sectors: ["Abandoned Sector"],
     body: "Hostile Lanius ship. Pulsar: ion pulses.",
     choices: [
@@ -325,14 +325,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // Attack the Lanius ship. Fight a Lanius ship.
   {
-    dest: "Optional fight: unarmed Lanius ship",
+    dest: "Lanius lone ship",
     slug: "lanius-lone-ship",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius lone ship]]
     // > "It is unique." — [[Lanius lone ship]]
     // > "You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, \"Help! The metal monsters are coming to melt down our ship!\" Strangely, no active weapon signatures are detected." — [[Lanius lone ship]]
     flag: "cited:lanius-lone-ship",
-    aliases: [],
+    aliases: ["Lanius lone ship"],
     sectors: ["Abandoned Sector"],
     body: "Unarmed Lanius ship chasing a civilian ship.",
     choices: [
@@ -376,14 +376,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // Scan the ship for lifeforms. Fight a Lanius ship. Power weapons and investigate are quest branches.
   {
-    dest: "Powered-down Lanius ship",
+    dest: "Lanius powered-down ship",
     slug: "lanius-powered-down-ship",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius powered-down ship]]
     // > "It is unique." — [[Lanius powered-down ship]]
     // > "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down." — [[Lanius powered-down ship]]
     flag: "cited:lanius-powered-down-ship",
-    aliases: [],
+    aliases: ["Lanius powered-down ship"],
     sectors: ["Abandoned Sector"],
     body: "Powered-down Lanius ship.",
     choices: [
@@ -413,14 +413,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // Attack the Lanius ship. Fight a Lanius ship.
   {
-    dest: "Optional fight: Lanius ship and Slug ship",
+    dest: "Lanius ship attacking Slug",
     slug: "lanius-ship-attacking-slug",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius ship attacking Slug]]
     // > "It is unique." — [[Lanius ship attacking Slug]]
     // > "The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating." — [[Lanius ship attacking Slug]]
     flag: "cited:lanius-ship-attacking-slug",
-    aliases: [],
+    aliases: ["Lanius ship attacking Slug"],
     sectors: ["Abandoned Sector"],
     body: "Lanius ship attacking a Slug ship.",
     choices: [
@@ -453,7 +453,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "It is unique." — [[Boarders: Humans in nebula]]
     // > "You see a small station nearby and feel the shudder of shots ringing through the ship. You can't be sure without sensors, but it seems there may be intruders on the ship!" — [[Boarders: Humans in nebula]]
     flag: "cited:boarders-humans-in-nebula",
-    aliases: [],
+    aliases: ["Boarders: Humans in nebula"],
     sectors: ["Civilian Sector", "Pirate Controlled Sector", "Uncharted Nebula"],
     body: "Nebula. 2-4 Human boarders.",
     choices: [
@@ -470,14 +470,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // "3-4 human boarders beam aboard your ship." nebula=true, LRSmap=noship+nebula, unique=true.
   // Not a crew grant. No ship.
   {
-    dest: "Boarders: Rebels in nebula",
+    dest: "Boarders: rebels in nebula",
     slug: "boarders-rebels-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Uncharted Nebula, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Boarders: rebels in nebula]]
     // > "It is unique." — [[Boarders: rebels in nebula]]
     // > "There appear to be a number of small stations nearby. Before you have time to scan them, warnings go off. A Rebel teleporter was used in one of the stations. You've been boarded!" — [[Boarders: rebels in nebula]]
     flag: "cited:boarders-rebels-in-nebula",
-    aliases: [],
+    aliases: ["Boarders: rebels in nebula"],
     sectors: [
       "Civilian Sector",
       "Pirate Controlled Sector",

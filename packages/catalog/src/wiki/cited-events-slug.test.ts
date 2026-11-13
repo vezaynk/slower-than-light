@@ -39,7 +39,7 @@ const TITLES = [
   "The Black Raven",
 ];
 
-/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+/** A row's dest is its wiki page title, and its slug is that title's slug. */
 function titleOf(ev: { slug: string }): string {
   return (TITLES as readonly string[]).find((t) => slugOf(t) === ev.slug) ?? ev.slug;
 }
@@ -97,7 +97,7 @@ describe("EXTRA_EVENTS slug list", () => {
       assert.ok(TITLES.includes(titleOf(event)), titleOf(event));
       assert.equal(slugOf(titleOf(event)), event.slug);
       assert.equal(event.flag, `cited:${event.slug}`);
-      assert.deepEqual(event.aliases, []);
+      assert.ok(event.aliases.includes(event.dest));
       assert.ok(event.body.length <= 240);
       assert.ok(event.choices.length > 0);
       event.choices.forEach((choice, index) => {

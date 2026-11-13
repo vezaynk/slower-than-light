@@ -144,7 +144,7 @@ describe("quest openers (quests-a)", () => {
       assert.ok(flags("Zoltan Homeworlds", seed).includes("ZOLTAN_CREW_STUDY"));
       assert.ok(flags("Zoltan Controlled Sector", seed).includes("ZOLTAN_CREW_STUDY"));
     }
-    assert.ok(citedPagesFor("ROCK_SECTOR").some((e) => e.dest === "Quest: Rock passenger"));
+    assert.ok(citedPagesFor("ROCK_SECTOR").some((e) => e.dest === "Rock bride"));
   });
 
   it("Rock war vessel encounter: marker -> Rock Assault (Elite) that runs at 32 s -> got away -> shipyard unlocks the Rock Cruiser", () => {
@@ -157,7 +157,7 @@ describe("quest openers (quests-a)", () => {
     // > "Another quest marker is added to your map." — [[Rock war vessel encounter#Sun Quest Marker]]
     // > "You unlock the Rock Cruiser." — [[Rock war vessel encounter#Shipyard Quest Marker]]
     // > "You receive Rock Plating augmentation and your ship receives 29 repairs." — [[Rock war vessel encounter#Shipyard Quest Marker]]
-    const g = atCited(createGame(7), "Rock Homeworlds", "Quest: Rock ship unlock");
+    const g = atCited(createGame(7), "Rock Homeworlds", "Rock war vessel encounter");
     g.sector = 5;
     choose(g, "c:rock-war-vessel-encounter:0");
     choose(g, "ack");
@@ -215,7 +215,7 @@ describe("quest openers (quests-a)", () => {
     // > "You jump to the Hidden Crystal Worlds." — [[Ancient device]]
     // > "The strength of enemy ships in the Crystal sector corresponds to the Rock Homeworlds sector number." — [[Ancient device#Notes]]
     // > "You unlock the Crystal Cruiser; you receive medium fuel and scrap, Crystal Vengeance augmentation, and your ship receives 10 repairs." — [[Ancient device#Quest Marker]]
-    const g = atCited(createGame(9), "Rock Homeworlds", "Device: scrap or wormhole");
+    const g = atCited(createGame(9), "Rock Homeworlds", "Ancient device");
     g.sector = 5;
     assert.equal(choiceDisabled(g, "c:ancient-device:2"), "Needs a Crystal crewmember");
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
@@ -245,7 +245,7 @@ describe("quest openers (quests-a)", () => {
     const names = new Set<string>();
     let offChart = 0;
     for (let seed = 1; seed <= 24; seed++) {
-      const g = atCited(createGame(seed), "Rock Homeworlds", "Device: scrap or wormhole");
+      const g = atCited(createGame(seed), "Rock Homeworlds", "Ancient device");
       g.sector = 5;
       g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
       assert.ok(joinCrew(g, "Crystal"));
@@ -273,7 +273,7 @@ describe("quest openers (quests-a)", () => {
     assert.ok(names.size > 1);
     assert.ok(offChart > 0);
 
-    const last = atCited(createGame(3), "Rock Homeworlds", "Device: scrap or wormhole");
+    const last = atCited(createGame(3), "Rock Homeworlds", "Ancient device");
     last.sector = 7;
     last.crew = last.crew.filter((c) => c.side === "player").slice(0, 3);
     assert.ok(joinCrew(last, "Crystal"));
@@ -306,11 +306,11 @@ describe("quest openers (quests-a)", () => {
     const plain = quiet.beacons.find((b) => b.flag === "ROCK_CRYSTAL_BEACON");
     assert.ok(plain);
     assert.equal(plain.quest, undefined);
-    assert.equal(plain.name, "Device: scrap or wormhole");
+    assert.equal(plain.name, "Ancient device");
     assert.ok(joinCrew(quiet, "Crystal", "Ruwen"));
     assert.equal(plain.quest, "ruwen-entry");
     assert.equal(plain.flag, "ROCK_CRYSTAL_BEACON");
-    assert.equal(plain.name, "Device: scrap or wormhole");
+    assert.equal(plain.name, "Ancient device");
 
     const dead = createGame(5);
     dead.sector = 5;
@@ -345,7 +345,7 @@ describe("quest openers (quests-a)", () => {
     assert.ok(entry);
     assert.equal(entry.quest, "ruwen-entry");
     assert.equal(entry.flag, "ROCK_CRYSTAL_BEACON");
-    assert.equal(entry.name, "Device: scrap or wormhole");
+    assert.equal(entry.name, "Ancient device");
 
     const start = g.beacons.find((b) => b.kind === "start")!;
     g.here = start.id;
@@ -389,7 +389,7 @@ describe("quest openers (quests-a)", () => {
     // > "(Damaged Stasis Pod) Ask if they can fix this." — [[Zoltan research facility]]
     // > "I've never seen a cryogenic system like this." — [[Zoltan research facility]]
     // > "Crystal crewmember named Ruwen" — [[Zoltan research facility]]
-    const g = atCited(createGame(8), "Zoltan Homeworlds", "Zoltan crew scan");
+    const g = atCited(createGame(8), "Zoltan Homeworlds", "Zoltan research facility");
     assert.ok(ids(g).includes("c:zoltan-research-facility:3"));
     assert.equal(choiceDisabled(g, "c:zoltan-research-facility:3"), "Needs a Damaged Stasis Pod");
     g.augments.push("STASIS_POD");
@@ -409,7 +409,7 @@ describe("quest openers (quests-a)", () => {
     // > "Fight a Rock ship (default rewards)." — [[Ancient device]]
     const seen = new Set<string>();
     for (let seed = 1; seed < 40 && seen.size < 2; seed++) {
-      const g = atCited(createGame(seed), "Rock Homeworlds", "Device: scrap or wormhole");
+      const g = atCited(createGame(seed), "Rock Homeworlds", "Ancient device");
       choose(g, "c:ancient-device:0");
       const fight =
         g.enemy != null &&
@@ -528,11 +528,11 @@ describe("quest openers (quests-a)", () => {
     // > "You take out the ship and contact the research station." — [[Zoltan research facility]]
     // > "Thank you for rescuing us! They held us hostage to ambush unsuspecting passersby. Please, take this." — [[Zoltan research facility]]
     // > "You receive a drone schematic with low resources and scrap." — [[Zoltan research facility]]
-    const g0 = atCited(createGame(2), "Zoltan Controlled Sector", "Zoltan crew scan");
+    const g0 = atCited(createGame(2), "Zoltan Controlled Sector", "Zoltan research facility");
     if ((g0.player.systems.medbay?.level ?? 0) < 3)
       assert.equal(choiceDisabled(g0, "c:zoltan-research-facility:2"), "Needs Medbay level 3");
     const g = seedWhere((x) => {
-      atCited(x, "Zoltan Controlled Sector", "Zoltan crew scan");
+      atCited(x, "Zoltan Controlled Sector", "Zoltan research facility");
       choose(x, "c:zoltan-research-facility:0");
       return x.phase === "event" && x.enemy != null && x.event?.choices[0]?.id === "ship-resume";
     });
@@ -566,12 +566,12 @@ describe("quest openers (quests-a)", () => {
     // > "2-4 zoltan boarders beam aboard your ship and you fight a Zoltan ship (default rewards)." — [[Zoltan trade hub]]
     // > "A store opens." — [[Zoltan trade hub#In the Zoltan hub]]
     // > "A quest marker is added to your map." — [[Zoltan trade hub#In the Zoltan hub]]
-    const g0 = atCited(createGame(4), "Zoltan Controlled Sector", "Zoltan store hub");
+    const g0 = atCited(createGame(4), "Zoltan Controlled Sector", "Zoltan trade hub");
     g0.crew = g0.crew.filter((c) => c.kin !== "energy");
     assert.equal(choiceDisabled(g0, "c:zoltan-trade-hub:2"), "Needs a Zoltan crewmember");
     const seen = new Set<string>();
     for (let seed = 1; seed < 60 && seen.size < 3; seed++) {
-      const g = atCited(createGame(seed), "Zoltan Controlled Sector", "Zoltan store hub");
+      const g = atCited(createGame(seed), "Zoltan Controlled Sector", "Zoltan trade hub");
       g.sector = 4;
       choose(g, "c:zoltan-trade-hub:0");
       const fight =
@@ -610,7 +610,7 @@ describe("quest openers (quests-a)", () => {
     // > "Refuse to comply." — [[Rock bride#Quest Marker]]
     // > "You receive a Rockman crewmember named Ariadne and fight a Rock ship." — [[Rock bride#Quest Marker]]
     // > "After destroying enemy ship His escort eliminated, the Grand Basilisk dispatches his entire fleet. There's just time to take your pick from the wreck before you jump out of reach." — [[Rock bride#Quest Marker]]
-    const g = atCited(createGame(6), "Rock Controlled Sector", "Quest: Rock passenger");
+    const g = atCited(createGame(6), "Rock Controlled Sector", "Rock bride");
     g.sector = 5;
     choose(g, "c:rock-bride:0");
     choose(g, "ack");

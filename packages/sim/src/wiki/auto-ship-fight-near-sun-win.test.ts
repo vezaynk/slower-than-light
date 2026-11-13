@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_SUN";
-  b.name = "Hostile Auto-ship near sun";
+  b.name = "Auto-ship fight near sun";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Auto-ship near sun");
+  assert.equal(g.event?.title, "Auto-ship fight near sun");
 }
 
 function scraps(body: string): number[] {
@@ -27,7 +27,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Hostile Auto-ship near sun", () => {
+describe("Auto-ship fight near sun", () => {
   it("a destroyed ship pays medium scrap with resources, and a crew kill does not", () => {
     const destroyed = createGame(1);
     open(destroyed);
@@ -71,7 +71,7 @@ describe("Hostile Auto-ship near sun", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "AUTO_SUN";
-    dest.name = "Hostile Auto-ship near sun";
+    dest.name = "Auto-ship fight near sun";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

@@ -44,11 +44,6 @@ const TITLES = [
   "Unknown disease on mining colony",
 ] as const;
 
-/** A row's dest is its functional title; its slug is the wiki page title's slug. */
-function titleOf(ev: { slug: string }): string {
-  return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
-}
-
 const SHIPS = new Set([
   "Auto-ship",
   "Pirate ship",
@@ -139,13 +134,13 @@ describe("civilian M-Z cited events", () => {
     assert.equal(pages.size, TITLES.length);
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(titleOf(ev) as (typeof TITLES)[number]), titleOf(ev));
-      assert.ok(!seen.has(titleOf(ev)), titleOf(ev));
-      seen.add(titleOf(ev));
-      assert.equal(slug(titleOf(ev)), ev.slug);
+      assert.ok(TITLES.includes(ev.dest as (typeof TITLES)[number]), ev.dest);
+      assert.ok(!seen.has(ev.dest), ev.dest);
+      seen.add(ev.dest);
+      assert.equal(ev.slug, slug(ev.dest));
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
-      const page = pages.get(titleOf(ev)) ?? "";
+      const page = pages.get(ev.dest) ?? "";
       assert.deepEqual(ev.sectors, locations(page));
       ev.choices.forEach((choice, i) => {
         assert.equal(choice.id, `c:${ev.slug}:${i}`);
@@ -156,7 +151,7 @@ describe("civilian M-Z cited events", () => {
           else if (fx.k === "hull" || fx.k === "fleet") nums.push(fx.n);
           else if (fx.k === "fight") assert.ok(SHIPS.has(fx.tier), fx.tier);
           for (const n of nums) {
-            assert.ok(hasNumber(page, n), `${titleOf(ev)} ${n} missing from page`);
+            assert.ok(hasNumber(page, n), `${ev.dest} ${n} missing from page`);
           }
         }
       });

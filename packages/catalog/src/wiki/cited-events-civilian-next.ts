@@ -28,14 +28,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Dense asteroid field distress. The search, the remains, and Rock Plating run in filler-events.ts.
     // The weapon taken with the scrap is a random one there (Rewards, "Weapon": "A random weapon & T scrap.").
-    dest: "Derelict in dense asteroid field",
+    dest: "Dense asteroid field distress",
     slug: "dense-asteroid-field-distress",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rock Controlled Sector, Rock Homeworlds." — [[Dense asteroid field distress]]
     // > "It is unique." — [[Dense asteroid field distress]]
     // > "A ship without life forms within a nearby dense asteroid field is giving off the distress call." — [[Dense asteroid field distress]]
     flag: "cited:dense-asteroid-field-distress",
-    aliases: [],
+    aliases: ["Dense asteroid field distress"],
     sectors: [
       "Engi Controlled Sector",
       "Engi Homeworlds",

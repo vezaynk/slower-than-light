@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_ROCK_DISTRESS";
-  b.name = "Optional fight: Lanius ship and Rock ship";
+  b.name = "Lanius ship attacking Rock";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: Lanius ship and Rock ship");
+  assert.equal(g.event?.title, "Lanius ship attacking Rock");
 }
 
 describe("Lanius ship attacking Rock escape", () => {

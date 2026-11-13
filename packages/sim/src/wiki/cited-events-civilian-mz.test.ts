@@ -5,7 +5,7 @@ import { choose, createGame, evasionPercent, ftlSeconds, startCombat, step } fro
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 
-describe("Hostile pirate ship: engine hack", () => {
+describe("Pirate engine hacker", () => {
   it("limits evasion and the FTL charge to level 1, then restores them when that ship is destroyed", () => {
     // Wiki citations:
     // > "Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack." — [[Pirate engine hacker]]
@@ -14,7 +14,7 @@ describe("Hostile pirate ship: engine hack", () => {
     const g = createGame(4);
     g.sectorId = "CIVILIAN_SECTOR";
     g.sectorName = "Civilian Sector";
-    const ev = allEvents().find((e) => e.dest === "Hostile pirate ship: engine hack");
+    const ev = allEvents().find((e) => e.dest === "Pirate engine hacker");
     assert.ok(ev);
     const b = g.beacons.find(
       (x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss" && x.kind !== "store",
@@ -57,7 +57,7 @@ describe("Hostile pirate ship: engine hack", () => {
   });
 });
 
-describe("Optional fight: Rebel ship in nebula", () => {
+describe("Rebel fight choice in nebula", () => {
   it("prints the opening sentence, and attacking starts a Rebel fight", () => {
     // Wiki citations:
     // > "Your ship emerges quite far away from the beacon. You see a rebel ship waiting nearby, undoubtedly stationed to look for you." — [[Rebel fight choice in nebula]]
@@ -67,7 +67,7 @@ describe("Optional fight: Rebel ship in nebula", () => {
     const b = g.beacons.find((x) => x.kind !== "start");
     assert.ok(b);
     b.flag = "NEBULA_REBEL_UNDETECTED";
-    b.name = "Optional fight: Rebel ship in nebula";
+    b.name = "Rebel fight choice in nebula";
     g.here = b.id;
     g.event = citedEvent(g, b);
     g.phase = "event";

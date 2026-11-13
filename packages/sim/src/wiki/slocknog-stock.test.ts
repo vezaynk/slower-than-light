@@ -40,7 +40,7 @@ function open(g: Game) {
   );
   assert.ok(beacon);
   beacon.flag = "SLUG_DISTRESS_RESCUE";
-  beacon.name = "Hire: Slug crew";
+  beacon.name = "Slocknog";
   g.here = beacon.id;
   g.event = citedEvent(g, beacon);
   g.phase = "event";

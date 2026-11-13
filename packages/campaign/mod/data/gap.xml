@@ -414,7 +414,7 @@
     <text>Nothing here.</text>
   </emptyBeacon>
   <emptyBeacon name="NEBULA_EMPTY" nebula="true">
-    <title>Empty beacon in nebula</title>
+    <title>Empty nebula beacon</title>
     <sector>CIVILIAN_SECTOR</sector>
     <sector>PIRATE_SECTOR</sector>
     <sector>REBEL_SECTOR</sector>

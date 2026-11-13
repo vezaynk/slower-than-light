@@ -15,7 +15,7 @@ function open(g: Game) {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Wreckage: search",
+    name: "Battlefield wreckage",
     tier: "",
     flag: "filler:battlefield-wreckage",
     asteroid: false,

@@ -39,14 +39,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_TRADER";
-  b.name = "Trade: resources in nebula";
+  b.name = "Trade resources in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   return g.event;
 }
 
-describe("Trade: resources in nebula", () => {
+describe("Trade resources in nebula", () => {
   it("shows one rolled offer, and Trade pays exactly those numbers", () => {
     // Wiki citations:
     // > "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal." — [[Trade resources in nebula]]
@@ -62,7 +62,7 @@ describe("Trade: resources in nebula", () => {
       const g = createGame(seed);
       const ev = open(g);
       assert.ok(ev);
-      assert.equal(ev.title, "Trade: resources in nebula");
+      assert.equal(ev.title, "Trade resources in nebula");
       assert.equal(ev.choices.length, 2);
       const take = ev.choices[0]!;
       const ignore = ev.choices[1]!;
@@ -167,7 +167,7 @@ describe("Trade: resources in nebula", () => {
     assert.equal(g.missiles, missiles);
     assert.equal(g.player.parts, parts);
     assert.equal(g.scrap, scrap);
-    assert.equal(g.event?.title, "Trade: resources in nebula");
+    assert.equal(g.event?.title, "Trade resources in nebula");
     assert.deepEqual(g.log, log);
   });
 });

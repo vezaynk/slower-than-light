@@ -30,14 +30,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Engi fight has no choice. Arrival calls c:engi-fight:0.
   // "Fight an Engi ship (default rewards)." unique=true.
   {
-    dest: "Hostile Engi ship",
+    dest: "Engi fight",
     slug: "engi-fight",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Engi fight]]
     // > "It is unique." — [[Engi fight]]
     // > "You jump into a debris field that used to be a Zoltan cruiser. Unfortunately, its Engi escort takes you for the attacker and retaliates! They refuse all hails." — [[Engi fight]]
     flag: "cited:engi-fight",
-    aliases: [],
+    aliases: ["Engi fight", "Engi fight (Zoltan)", "Zoltan Engi fight"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Hostile Engi ship.",
     choices: [
@@ -56,14 +56,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Mantis fight (Zoltan) has no choice. Arrival calls c:mantis-fight-zoltan:0.
   // "Fight a Mantis ship (default rewards)." unique=true.
   {
-    dest: "Hostile Mantis ship (Zoltan sector)",
+    dest: "Mantis fight (Zoltan)",
     slug: "mantis-fight-zoltan",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Mantis fight (Zoltan)]]
     // > "It is unique." — [[Mantis fight (Zoltan)]]
     // > "You pick up the last broadcast from a rupturing Zoltan freighter: \"The Mantis, they're here, please-\" You're interrupted by fire off the port bow!" — [[Mantis fight (Zoltan)]]
     flag: "cited:mantis-fight-zoltan",
-    aliases: [],
+    aliases: ["Mantis fight (Zoltan)", "Zoltan Mantis fight"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Hostile Mantis ship.",
     choices: [
@@ -82,12 +82,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Pirate fight (Zoltan) has no choice. Arrival calls c:pirate-fight-zoltan:0.
   // One of the five printed intros. "Fight a Pirate ship (default rewards)." unique=false.
   {
-    dest: "Hostile pirate ship (Zoltan sector)",
+    dest: "Pirate fight (Zoltan)",
     slug: "pirate-fight-zoltan",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Pirate fight (Zoltan)]]
     flag: "cited:pirate-fight-zoltan",
-    aliases: [],
+    aliases: ["Pirate fight (Zoltan)", "Zoltan Pirate Fight", "Zoltan Pirate fight"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "",
     choices: [
@@ -104,14 +104,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Optional fight: pirate ships in plasma storm",
+    dest: "Pirate ships in plasma storm",
     slug: "pirate-ships-in-plasma-storm",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Pirate ships in plasma storm]]
     // > "It is unique." — [[Pirate ships in plasma storm]]
     // > "You spy two pirate ships lurking in the nebula here. They remain unaware of your presence; you're able to get your scanners to at least identify their cargo: One is carrying the fuel supplies, the other the ammunition. They begin to drift away from each other in the storm." — [[Pirate ships in plasma storm]]
     flag: "cited:pirate-ships-in-plasma-storm",
-    aliases: [],
+    aliases: [
+      "Pirate ships in plasma storm",
+      "Plasma storm pirate ships",
+      "Two pirate ships in plasma storm",
+    ],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Two pirate ships. One carries fuel, one carries missiles. Plasma storm.",
     choices: [
@@ -153,14 +157,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Rock ship (default rewards)." Rock fight in nebula has no choice. Arrival calls this fight. The printed sentence is the card body. nebula=true. unique=true. No nebula environment is added.
   {
-    dest: "Hostile Rock ship in nebula",
+    dest: "Rock fight in nebula",
     slug: "rock-fight-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Rock fight in nebula]]
     // > "It is unique." — [[Rock fight in nebula]]
     // > "This nebula turns out to be the hiding place of a terrified rock crew taking refuge from the Zoltan border police. They don't seem prepared to risk your leaving with their co-ordinates, and open fire!" — [[Rock fight in nebula]]
     flag: "cited:rock-fight-in-nebula",
-    aliases: [],
+    aliases: ["Rock fight in nebula", "Zoltan Rock fight in nebula"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Hostile Rock ship. Nebula.",
     choices: [
@@ -177,14 +181,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Hostile Zoltan ship with boarders",
+    dest: "Zoltan border police",
     slug: "zoltan-border-police",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan border police]]
     // > "It is unique." — [[Zoltan border police]]
     // > "There are few more zealous in their customs checks than the Zoltan. A team of border police beam on board. There's just a little confusion over your weapons licences, but things escalate rapidly from heated discussion to gunfire!" — [[Zoltan border police]]
     flag: "cited:zoltan-border-police",
-    aliases: [],
+    aliases: ["Zoltan border police", "Zoltan Border Police"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Hostile Zoltan ship. 3-4 Zoltan boarders.",
     choices: [
@@ -203,12 +207,12 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Zoltan fight has no choice. Arrival calls c:zoltan-fight:0.
   // One of the seven printed intros. "Fight a Zoltan ship (default rewards)." unique=false.
   {
-    dest: "Hostile Zoltan ship",
+    dest: "Zoltan fight",
     slug: "zoltan-fight",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan fight]]
     flag: "cited:zoltan-fight",
-    aliases: [],
+    aliases: ["Zoltan fight", "Zoltan Fight"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "",
     choices: [
@@ -227,14 +231,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Zoltan fight in asteroid field has no choice. Arrival calls c:zoltan-fight-in-asteroid-field:0.
   // "Fight a Zoltan ship (default rewards)." asteroidfield=true. unique=true.
   {
-    dest: "Hostile Zoltan ship in asteroid field",
+    dest: "Zoltan fight in asteroid field",
     slug: "zoltan-fight-in-asteroid-field",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan fight in asteroid field]]
     // > "It is unique." — [[Zoltan fight in asteroid field]]
     // > "You arrive in an asteroid field and are greeted by a Zoltan guard, \"By attempting to access these closed mining fields, you are in violation of the Natural Mineral Protection Act. Your weaponry will be confiscated for processing.\" You don't have time for this." — [[Zoltan fight in asteroid field]]
     flag: "cited:zoltan-fight-in-asteroid-field",
-    aliases: [],
+    aliases: ["Zoltan fight in asteroid field"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Hostile Zoltan ship. Asteroid field.",
     choices: [
@@ -252,14 +256,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     // Rewards, "Augment": "A random augmentation & T scrap." The page does not name the augmentation.
-    dest: "Free augment",
+    dest: "Zoltan free augment",
     slug: "zoltan-free-augment",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan free augment]]
     // > "It is unique." — [[Zoltan free augment]]
     // > "A Zoltan academy sits docked just outside the beacon perimeter. They're happy to show you the fruits of their labor, and offer something to take home with you." — [[Zoltan free augment]]
     flag: "cited:zoltan-free-augment",
-    aliases: [],
+    aliases: ["Zoltan free augment", "Zoltan Academy Free Augment", "Zoltan academy free augment"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Free augment.",
     choices: [
@@ -277,7 +281,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Quest: planet defense",
+    dest: "Zoltan quest primitives",
     slug: "zoltan-quest-primitives",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan quest primitives]]
@@ -285,7 +289,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     // > "You arrive at the primitive planet that you heard about at the cantina and are surprised to see a Zoltan ship facing off against a Rebel assault craft." — [[Zoltan quest primitives]]
     // > "You tap into their frequency and hear the Rebel captain yelling, \"We are liberating this planet in the name of the new Galactic government! These aliens will not be left in ignorance where they cannot be of use!\"" — [[Zoltan quest primitives]]
     flag: "cited:zoltan-quest-primitives",
-    aliases: [],
+    aliases: ["Zoltan quest primitives"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Zoltan ship and Rebel ship over a planet.",
     choices: [
@@ -327,14 +331,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Zoltan checkpoint",
+    dest: "Zoltan security checkpoint",
     slug: "zoltan-security-checkpoint",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan security checkpoint]]
     // > "It is unique." — [[Zoltan security checkpoint]]
     // > "You arrive at a Zoltan security checkpoint set up in a perimeter around the beacon. \"Traveling vessel, you will submit to crew profiling to identify fugitives of the empire.\"" — [[Zoltan security checkpoint]]
     flag: "cited:zoltan-security-checkpoint",
-    aliases: [],
+    aliases: ["Zoltan security checkpoint", "Zoltan Security Checkpoint"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Checkpoint. Crew scan.",
     choices: [
@@ -353,14 +357,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     ],
   },
   {
-    dest: "Optional fight: Zoltan ship or Mantis ship",
+    dest: "Zoltan ship follows Mantis ship",
     slug: "zoltan-ship-follows-mantis-ship",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan ship follows Mantis ship]]
     // > "It is unique." — [[Zoltan ship follows Mantis ship]]
     // > "Your jump interrupts a Zoltan security ship as it follows a Mantis pirate into an asteroid field. They message you, \"Your presence here will continue to be tolerated - but please, do not interfere.\"" — [[Zoltan ship follows Mantis ship]]
     flag: "cited:zoltan-ship-follows-mantis-ship",
-    aliases: [],
+    aliases: ["Zoltan ship follows Mantis ship", "Zoltan Follows Mantis", "Zoltan follows Mantis"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Zoltan ship chasing a Mantis ship. Asteroid field.",
     choices: [
@@ -404,14 +408,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     // Boarders: Humans jammed sensors. LRSmap=noship, unique=true. Not a crew grant.
-    dest: "Boarders: Humans, sensors jammed",
+    dest: "Boarders: Humans jammed sensors",
     slug: "boarders-humans-jammed-sensors",
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Boarders: Humans jammed sensors]]
     // > "It is unique." — [[Boarders: Humans jammed sensors]]
     // > "You catch a glimpse of a strange signal coming from a space station before your sensors shut off unexpectedly. As you discover that your sensors are being jammed, you hear hostiles beam onto your ship." — [[Boarders: Humans jammed sensors]]
     flag: "cited:boarders-humans-jammed-sensors",
-    aliases: [],
+    aliases: ["Boarders: Humans jammed sensors"],
     sectors: ["Pirate Controlled Sector", "Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "3-5 Human boarders. Sensors jammed.",
     choices: [
@@ -442,14 +446,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     // Zoltan Great Eye. The four pull results, including Healing Burst, run in filler-events.ts.
-    dest: "Monolith in nebula",
+    dest: "Zoltan Great Eye",
     slug: "zoltan-great-eye",
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan Great Eye]]
     // > "It is unique." — [[Zoltan Great Eye]]
     // > "Inside this nebula you detect a rogue planet drifting through space, on its surface a huge monolith visible at this distance even to the naked eye. A Zoltan elder hails you from the planet. \"Through luck or intent, you have discovered the Great Eye. Look into its depths and receive your just deserts.\"" — [[Zoltan Great Eye]]
     flag: "cited:zoltan-great-eye",
-    aliases: [],
+    aliases: ["Zoltan Great Eye"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
     body: "Monolith on a planet. Nebula.",
     choices: [

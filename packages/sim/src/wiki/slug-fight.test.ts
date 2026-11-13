@@ -4,7 +4,7 @@ import { choose, commitJump, createGame } from "../sim.ts";
 
 const BODY = "Hostile Slug ship.";
 
-describe("Hostile Slug ship", () => {
+describe("Slug fight", () => {
   it("shows the arrival card, then starts the Slug fight", () => {
     // Wiki citations:
     // > "It's rare for the Slugs to stay exposed in open space for long periods - the ship here may be lost, or just passing through, but either way he moves in to attack!" — [[Slug fight]]
@@ -17,7 +17,7 @@ describe("Hostile Slug ship", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "SLUG_FIGHT";
-    dest.name = "Hostile Slug ship";
+    dest.name = "Slug fight";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

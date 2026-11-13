@@ -11,19 +11,19 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_AUTO_DEFENSE_ITEM";
-  b.name = "Optional fight: Auto-ship at station in nebula";
+  b.name = "Auto-ship near storage station in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.player.parts = 3;
-  assert.equal(g.event?.title, "Optional fight: Auto-ship at station in nebula");
+  assert.equal(g.event?.title, "Auto-ship near storage station in nebula");
 }
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
 }
 
-describe("Optional fight: Auto-ship at station in nebula", () => {
+describe("Auto-ship near storage station in nebula", () => {
   it("attacking starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);

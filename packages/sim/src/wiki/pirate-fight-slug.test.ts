@@ -10,14 +10,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_PIRATE";
-  b.name = "Hostile pirate ship (Slug sector)";
+  b.name = "Pirate fight (Slug)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile pirate ship (Slug sector)");
+  assert.equal(g.event?.title, "Pirate fight (Slug)");
 }
 
-describe("Hostile pirate ship (Slug sector)", () => {
+describe("Pirate fight (Slug)", () => {
   it("shows one of the three intros, and the fight choice starts a pirate combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Slug)]]
@@ -56,7 +56,7 @@ describe("Hostile pirate ship (Slug sector)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "SLUG_PIRATE";
-    dest.name = "Hostile pirate ship (Slug sector)";
+    dest.name = "Pirate fight (Slug)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

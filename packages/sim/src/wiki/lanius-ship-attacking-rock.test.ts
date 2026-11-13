@@ -11,11 +11,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_ROCK_DISTRESS";
-  b.name = "Optional fight: Lanius ship and Rock ship";
+  b.name = "Lanius ship attacking Rock";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Optional fight: Lanius ship and Rock ship");
+  assert.equal(g.event?.title, "Lanius ship attacking Rock");
 }
 
 function scraps(body: string): number[] {
@@ -28,7 +28,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Optional fight: Lanius ship and Rock ship", () => {
+describe("Lanius ship attacking Rock", () => {
   it("attacking shows the Rock distress card and starts a Lanius fight", () => {
     const lead = eventText("event_LANIUS_ROCK_DISTRESS_c1_text");
     const g = createGame(1);

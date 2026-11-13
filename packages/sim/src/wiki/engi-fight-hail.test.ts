@@ -10,14 +10,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_ENGI";
-  b.name = "Hostile Engi ship";
+  b.name = "Engi fight";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Engi ship");
+  assert.equal(g.event?.title, "Engi fight");
 }
 
-describe("Hostile Engi ship", () => {
+describe("Engi fight", () => {
   it("shows the printed intro, and the fight choice starts an Engi combat", () => {
     // Wiki citations:
     // > "You jump into a debris field that used to be a Zoltan cruiser. Unfortunately, its Engi escort takes you for the attacker and retaliates! They refuse all hails." — [[Engi fight]]
@@ -46,7 +46,7 @@ describe("Hostile Engi ship", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ZOLTAN_ENGI";
-    dest.name = "Hostile Engi ship";
+    dest.name = "Engi fight";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

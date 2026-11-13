@@ -18,7 +18,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "DONOR_PLAGUE";
-  b.name = "Station with life signs";
+  b.name = "Plagued station";
   g.here = b.id;
   g.event = citedEvent(g, b);
   // The card lives on the filler list, stamped filler:plagued-station. citedEvent does not list it.
@@ -27,7 +27,7 @@ function open(g: Game) {
     g.event = fillerEvent(g, b);
   }
   g.phase = "event";
-  assert.equal(g.event?.title, "Station with life signs");
+  assert.equal(g.event?.title, "Plagued station");
 }
 
 function players(g: Game) {
@@ -46,7 +46,7 @@ function sick(setup?: (g: Game) => void): Game {
   assert.fail("no disease card");
 }
 
-describe("Station with life signs", () => {
+describe("Plagued station", () => {
   it("shows the cure choice on the disease card and refuses it below a level 2 Medbay", () => {
     const g = sick();
     assert.ok(

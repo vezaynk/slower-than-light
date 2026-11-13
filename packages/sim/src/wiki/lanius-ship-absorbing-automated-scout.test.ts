@@ -11,12 +11,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_AUTO_REBEL";
-  b.name = "Optional fight: Lanius ship and Auto-ship";
+  b.name = "Lanius ship absorbing automated scout";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Optional fight: Lanius ship and Auto-ship");
+  assert.equal(g.event?.title, "Lanius ship absorbing automated scout");
 }
 
 function scraps(body: string): number[] {
@@ -37,7 +37,7 @@ function scrapBand(n: number): "low" | "medium" | "high" | "other" {
   return "other";
 }
 
-describe("Optional fight: Lanius ship and Auto-ship", () => {
+describe("Lanius ship absorbing automated scout", () => {
   it("fighting starts a Lanius escape with no surrender offer", () => {
     const g = createGame(1);
     open(g);

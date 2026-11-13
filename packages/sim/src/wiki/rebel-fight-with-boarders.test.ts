@@ -15,11 +15,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "BOARDERS_REBEL_SHIP";
-  b.name = "Hostile Rebel ship with boarders";
+  b.name = "Rebel fight with boarders";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Rebel ship with boarders");
+  assert.equal(g.event?.title, "Rebel fight with boarders");
 }
 
 describe("Rebel fight with boarders intros", () => {

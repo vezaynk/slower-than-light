@@ -84,7 +84,7 @@ function docked(seed: number): Game {
   );
   assert.ok(here);
   here.flag = "LANIUS_FUELING_STATION";
-  here.name = "Refueling platform (Lanius)";
+  here.name = "Refueling platform garbled broadcast";
   g.here = here.id;
   g.event = citedEvent(g, here);
   g.phase = "event";
@@ -672,7 +672,7 @@ describe("printed bands", () => {
       );
       assert.ok(beacon);
       beacon.flag = "REFUGEE_NO_DISTRESS_ZOLTAN";
-      beacon.name = "Refugee ship (Zoltan)";
+      beacon.name = "Refugee (Zoltan)";
       g.here = beacon.id;
       g.event = citedEvent(g, beacon);
       g.phase = "event";
@@ -688,7 +688,7 @@ describe("printed bands", () => {
       );
       assert.ok(beacon);
       beacon.flag = "REFUGEE_NO_DISTRESS_ZOLTAN";
-      beacon.name = "Refugee ship (Zoltan)";
+      beacon.name = "Refugee (Zoltan)";
       g.here = beacon.id;
       g.event = citedEvent(g, beacon);
       g.phase = "event";

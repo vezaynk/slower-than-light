@@ -15,7 +15,7 @@ const TITLES = [
   "Store (Rebel)",
 ];
 
-/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+/** A row's dest is its wiki page title, and its slug is that title's slug. */
 function titleOf(ev: { slug: string }): string {
   return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
 }
@@ -74,7 +74,7 @@ describe("cited rebel events", () => {
       assert.equal(slug(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
-      assert.deepEqual(ev.aliases, []);
+      assert.ok(ev.aliases.includes(ev.dest));
       const text = wiki.get(titleOf(ev));
       assert.ok(text);
       assert.deepEqual(ev.sectors, locationNames(text));

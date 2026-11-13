@@ -66,7 +66,7 @@ function slugOf(title: string): string {
 
 describe("filler lists and opening cards", () => {
   const dump = loadDump();
-  // A row's dest is its functional title. Its id or slug is the wiki page title's slug.
+  // A row's dest is its wiki page title. Its id or slug is that title's slug.
   const titleBySlug = new Map<string, string>();
   for (const title of dump.keys())
     if (!titleBySlug.has(slugOf(title))) titleBySlug.set(slugOf(title), title);
@@ -112,7 +112,7 @@ describe("filler lists and opening cards", () => {
       const slug = ev.slug;
       assert.ok(titleBySlug.has(slug), slug);
       assert.equal(ev.flag, `cited:${slug}`);
-      assert.deepEqual(ev.aliases, []);
+      assert.ok(ev.aliases.includes(ev.dest));
       assert.deepEqual(ev.sectors, locations(pageOf(slug)).sectors, ev.dest);
       ev.choices.forEach((c, i) => {
         assert.equal(c.id, `c:${slug}:${i}`);

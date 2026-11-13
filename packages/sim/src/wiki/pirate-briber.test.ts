@@ -11,12 +11,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_BRIBER";
-  b.name = "Pirate bribe";
+  b.name = "Pirate briber";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Pirate bribe");
+  assert.equal(g.event?.title, "Pirate briber");
 }
 
 function scraps(body: string): number[] {
@@ -29,7 +29,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Pirate bribe", () => {
+describe("Pirate briber", () => {
   it("accepting the bribe pays low scrap with resources, and attacking starts a pirate fight", () => {
     const g = createGame(1);
     open(g);

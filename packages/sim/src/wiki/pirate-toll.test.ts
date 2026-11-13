@@ -11,14 +11,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_CHOICE";
-  b.name = "Toll: pirate ship";
+  b.name = "Pirate toll";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Toll: pirate ship");
+  assert.equal(g.event?.title, "Pirate toll");
 }
 
-describe("Toll: pirate ship", () => {
+describe("Pirate toll", () => {
   it("shows the printed toll sentence before pay and reject", () => {
     // Wiki citations:
     // > "Upon completing your jump, you receive a message from a nearby ship. \"Greetings and welcome to our beacon! For a small fee, we'll let you continue on your way.\"" — [[Pirate toll]]

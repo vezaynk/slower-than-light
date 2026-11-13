@@ -52,8 +52,9 @@
 -->
 <FTL>
   <event name="BOSS_FLEETS_BOTH_FIGHT">
-    <title>Hostile Rebel ship (Last Stand, both fleets)</title>
+    <title>Rebel fight among Federation and Rebel fleets</title>
     <alias>rebel-fight-among-federation-and-rebel-fleets</alias>
+    <alias>Rebel fight among Federation and Rebel fleets</alias>
     <sector>FINAL</sector>
     <text/>
     <text>Hostile Rebel ship.</text>
@@ -68,8 +69,10 @@
     </choice>
   </event>
   <event name="BOSS_SCOUT_RESCUE">
-    <title>Optional fight: Rebel ship (Last Stand)</title>
+    <title>Rebel ship attacking civilians in Last Stand</title>
     <alias>rebel-ship-attacking-civilians-in-last-stand</alias>
+    <alias>Rebel Attacking Civilians in Last Stand</alias>
+    <alias>Rebel ship attacking civilians in Last Stand</alias>
     <sector>FINAL</sector>
     <text/>
     <text>Rebel ship attacking civilian ships.</text>
@@ -87,8 +90,10 @@
     </choice>
   </event>
   <event name="FLAGSHIP_CONSTRUCTION">
-    <title>Optional fight: second flagship</title>
+    <title>Rebel shipyard</title>
     <alias>rebel-shipyard</alias>
+    <alias>Rebel Flagship Construction</alias>
+    <alias>Rebel shipyard</alias>
     <sector>REBEL_SECTOR_MINIBOSS</sector>
     <text>Shipyard. A second flagship is docked.</text>
     <choice name="c:rebel-shipyard:0">
@@ -101,8 +106,9 @@
     </choice>
   </event>
   <event name="BOSS_FLEETS_REBEL">
-    <title>Hostile Rebel ship (Last Stand, Rebel fleet)</title>
+    <title>Rebel fight among Rebel fleet</title>
     <alias>rebel-fight-among-rebel-fleet</alias>
+    <alias>Rebel fight among Rebel fleet</alias>
     <sector>FINAL</sector>
     <text/>
     <text>Hostile Rebel ship.</text>

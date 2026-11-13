@@ -289,7 +289,7 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
       const g = dealt(seed, "Civilian Sector");
       for (const b of g.beacons) {
         if (
-          b.name === "Optional fight: Rebel ship and Federation ship" ||
+          b.name === "Rebel ship attacking Federation loyalists" ||
           b.flag === "REBEL_VS_FEDERATION"
         ) {
           assert.notEqual(b.kind, "distress");
@@ -311,9 +311,9 @@ describe("beacon mix (Sectors, Beacons lists)", () => {
 
   it("puts nebula openers on nebula beacons", () => {
     const byFlag = new Map([
-      ["QUEST_SLUG_PIRATE_TRAP", "Quest: tap Slug comms"],
-      ["NEBULA_SLUG_FIGHT_UNLOCK", "Hostile Slug ship: ship unlock"],
-      ["NEBULA_BATTLEFIELD", "Wreckage in nebula"],
+      ["QUEST_SLUG_PIRATE_TRAP", "Slug comm tapping"],
+      ["NEBULA_SLUG_FIGHT_UNLOCK", "Slug Home Nebula surrender"],
+      ["NEBULA_BATTLEFIELD", "Nebula wreckage"],
     ]);
     const seen = new Set<string>();
     for (const sector of ["SLUG_HOME", "SLUG_SECTOR", "NEBULA_SECTOR"]) {

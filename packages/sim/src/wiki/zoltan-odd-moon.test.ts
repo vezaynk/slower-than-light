@@ -17,7 +17,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: true,
     resolved: false,
-    name: "Moon scan",
+    name: "Zoltan odd moon",
     tier: "",
     flag: "ZOLTAN_ODD_MOON",
     asteroid: false,
@@ -62,14 +62,14 @@ function fitBoard(g: Game) {
   };
 }
 
-describe("Moon scan", () => {
+describe("Zoltan odd moon", () => {
   it("is placed in the two Zoltan sectors", () => {
     // Wiki citations:
     // > "This random event occurs in Zoltan Controlled Sector, Zoltan Homeworlds." — [[Zoltan odd moon]]
-    assert.ok(citedPagesFor("ZOLTAN_SECTOR").some((ev) => ev.dest === "Moon scan"));
-    assert.ok(citedPagesFor("ZOLTAN_HOME").some((ev) => ev.dest === "Moon scan"));
+    assert.ok(citedPagesFor("ZOLTAN_SECTOR").some((ev) => ev.dest === "Zoltan odd moon"));
+    assert.ok(citedPagesFor("ZOLTAN_HOME").some((ev) => ev.dest === "Zoltan odd moon"));
     assert.equal(
-      citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.dest === "Moon scan"),
+      citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.dest === "Zoltan odd moon"),
       false,
     );
   });

@@ -14,11 +14,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "STATION_SICK";
-  b.name = "Silent research station";
+  b.name = "Research station with no response";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Silent research station");
+  assert.equal(g.event?.title, "Research station with no response");
 }
 
 function drone(kind: string): Kit {
@@ -35,7 +35,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Silent research station", () => {
+describe("Research station with no response", () => {
   it("is one pirate sector card with the arrival sentence", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Research station with no response]]
@@ -47,7 +47,7 @@ describe("Silent research station", () => {
     // > "Run advanced life scans." — [[Research station with no response]]
     // > "(Life Scanner)" — [[Research station with no response]]
     const pages = citedPagesFor("PIRATE_SECTOR").filter(
-      (p) => p.dest === "Silent research station",
+      (p) => p.dest === "Research station with no response",
     );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["PIRATE_SECTOR"]);

@@ -20,11 +20,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_SLUG_MEDBAY";
-  b.name = "Hostile Slug ship: medbay hack";
+  b.name = "Slug hacker (medical)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Hostile Slug ship: medbay hack");
+  assert.equal(g.event?.title, "Slug hacker (medical)");
 }
 
 function fitHacking(g: Game) {

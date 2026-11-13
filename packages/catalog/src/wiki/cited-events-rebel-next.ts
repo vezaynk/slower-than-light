@@ -25,13 +25,13 @@ export type CitedEventDef = {
 
 export const EXTRA_EVENTS: CitedEventDef[] = [
   {
-    dest: "Hostile Rebel ship: defector",
+    dest: "Rebel defector",
     slug: "rebel-defector",
     // Wiki citations:
     // > "This random event occurs in Rebel Controlled Sector, Rebel Stronghold." — [[Rebel defector]]
     // > "It is unique." — [[Rebel defector]]
     flag: "cited:rebel-defector",
-    aliases: [],
+    aliases: ["Rebel defector"],
     sectors: ["Rebel Controlled Sector", "Rebel Stronghold"],
     body: "",
     choices: [

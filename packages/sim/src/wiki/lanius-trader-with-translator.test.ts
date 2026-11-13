@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame } from "../sim.ts";
+import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { offeredChoices } from "./choice-locks.ts";
 import { citedEvent } from "./cited-events.ts";
@@ -14,8 +14,7 @@ const BASE: Record<string, [number, number]> = {
   parts: [20, 40],
 };
 
-const HAIL =
-  "This Lanius hail comes through clean. They have metal they cannot use, and they want supplies for it.";
+const HAIL = "Lanius ship. Trade offer: supplies for scrap.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -50,13 +49,21 @@ describe("Lanius trader with translator", () => {
       const g = createGame(seed);
       open(g);
       assert.equal(g.event?.body, HAIL);
-      assert.deepEqual(
-        offeredChoices(g, g.event!.choices).map((c) => c.label),
-        ["Make the trade.", "Send them off.", "Ask what made the hail so clear."],
-      );
+      const labels = offeredChoices(g, g.event!.choices).map((c) => c.label);
+      assert.deepEqual(labels.slice(1), [
+        "Nothing happens.",
+        "Ask about the translator. More choices follow.",
+      ]);
+      const offer =
+        /^Trade\. \[Lose (\d+) (?:fuel|missiles|drone parts)\. Gain (\d+) scrap\.\]$/.exec(
+          labels[0] ?? "",
+        );
+      assert.ok(offer, labels[0]);
       const fuel = g.fuel;
       choose(g, "c:lanius-trader-with-translator:0");
       const got = paid(g.event?.body ?? "");
+      assert.equal(got.cost, Number(offer[1]));
+      assert.equal(got.scrap, Number(offer[2]));
       inBand(got.cost, 3, 7);
       inBand(got.scrap, BASE[got.res]![0], BASE[got.res]![1]);
       assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
@@ -78,23 +85,23 @@ describe("Lanius trader with translator", () => {
     const missiles = g.missiles;
     const parts = g.player.parts;
     choose(g, "c:lanius-trader-with-translator:3");
-    assert.equal(g.phase, "event");
+    assert.equal(g.phase, "map");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, fuel);
     assert.equal(g.missiles, missiles);
     assert.equal(g.player.parts, parts);
-    assert.equal(g.event?.body, "They cut the hail and jump.");
   });
 
   it("40 scrap hires a Lanius named Translator with no skill, and a short purse hires nobody", () => {
     const poor = createGame(1);
     open(poor);
     choose(poor, "c:lanius-trader-with-translator:4");
-    assert.equal(poor.event?.body, "They tap a crate and offer it for 40 scrap.");
+    assert.equal(poor.event?.body, "Offer: 1 Lanius crew for 40 scrap.");
     assert.deepEqual(
       poor.event?.choices.map((c) => c.label),
-      ["Pay 40 scrap for the crate.", "Keep your scrap."],
+      ["Lose 40 scrap. Gain 1 Lanius crew.", "Nothing happens."],
     );
+    assert.equal(choiceDisabled(poor, "c:lanius-trader-with-translator:4:0"), "Need 40 scrap");
     const scrap = poor.scrap;
     choose(poor, "c:lanius-trader-with-translator:4:0");
     assert.equal(poor.scrap, scrap);
@@ -102,7 +109,7 @@ describe("Lanius trader with translator", () => {
       poor.crew.some((c) => c.name === "Translator"),
       false,
     );
-    assert.equal(poor.event?.body, "They tap a crate and offer it for 40 scrap.");
+    assert.equal(poor.event?.body, "Offer: 1 Lanius crew for 40 scrap.");
 
     const g = createGame(2);
     open(g);
@@ -111,7 +118,7 @@ describe("Lanius trader with translator", () => {
     choose(g, "c:lanius-trader-with-translator:4");
     choose(g, "c:lanius-trader-with-translator:4:0");
     const body = g.event?.body ?? "";
-    assert.match(body, /called Translator/);
+    assert.match(body, /named Translator/);
     assert.match(body, /Scrap: -40\./);
     assert.equal(g.scrap, 0);
     const hired = g.crew.filter((c) => c.name === "Translator");
@@ -125,7 +132,7 @@ describe("Lanius trader with translator", () => {
     again.scrap = 40;
     choose(again, "c:lanius-trader-with-translator:4");
     choose(again, "c:lanius-trader-with-translator:4:1");
-    assert.equal(again.event?.body, "They keep the crate and jump.");
+    assert.equal(again.phase, "map");
     assert.equal(again.scrap, 40);
     assert.equal(
       again.crew.some((c) => c.name === "Translator"),
@@ -144,6 +151,7 @@ describe("Lanius trader with translator", () => {
     const translator = g.crew.find((c) => c.name === "Translator");
     assert.ok(translator);
     assert.equal(translator.kin, "anaerobic");
-    assert.deepEqual(g.overflow, [{ kind: "crew" }]);
+    // The paid hire cannot be the one who makes room: the scrap is already spent.
+    assert.deepEqual(g.overflow, [{ kind: "crew", keep: translator.id }]);
   });
 });

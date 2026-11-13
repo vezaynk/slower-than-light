@@ -63,7 +63,7 @@ import { grantUnlockAt } from "./unlocks.ts";
 import { grantRandomItem } from "./rules/bonus-item.ts";
 import { addArchiveQuest } from "./wiki/quests.ts";
 import { fleetToReach } from "./rules/sector-map.ts";
-import { receiveAugment, receiveDrone, receiveWeapon } from "./rules/make-room.ts";
+import { keepNewHire, receiveAugment, receiveDrone, receiveWeapon } from "./rules/make-room.ts";
 import {
   between,
   closeFight,
@@ -167,6 +167,8 @@ export function showArchivePage(
   syncIonStorm(g);
   const toldGrants = lines.length;
   applyGrants(g, page.grants, lines);
+  // A page that charges for the crewmember it grants is a hire: the new hire cannot be the one who makes room.
+  if (paidHire(page)) keepNewHire(g);
   if (notes) notes.push(...lines.slice(toldGrants));
   if (page.reward) lines.push(...payAutoReward(g, page.reward));
   if (page.ship?.hostile && page.ship.load) {
@@ -751,6 +753,12 @@ function findNested(choices: EventChoice[], id: string): EventChoice | undefined
     }
   }
   return undefined;
+}
+
+/** A crew grant on a page that also spends a resource. */
+function paidHire(page: EventDef): boolean {
+  const hires = (page.grants ?? []).some((grant) => grant.kind === "crew");
+  return hires && (page.fx ?? []).some((fx) => fx.k === "res" && fx.sign < 0);
 }
 
 function applyGrants(g: Game, grants: ArchiveGrant[] | undefined, lines: string[]): void {

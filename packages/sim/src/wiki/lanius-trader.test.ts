@@ -18,11 +18,17 @@ const BETTER: Record<string, [number, number]> = {
   parts: [25, 50],
 };
 
-const INTROS = [
-  "A Lanius skiff holds its guns cold and asks for spare supplies, scrap in return.",
-  "A small Lanius hull drifts in with empty racks. The hail is clumsy, but it is a trade.",
-  "A laden Lanius hull is already turning away. They will trade the metal they cannot use.",
-];
+const INTROS = ["Lanius ship. Trade offer: supplies for scrap."];
+
+const OFFER = /^Trade\. \[Lose (\d+) (fuel|missiles|drone parts)\. Gain (\d+) scrap\.\]$/;
+
+/** The trade the card already drew, read off the button. */
+function shown(label: string | undefined): { res: string; cost: number; scrap: number } {
+  const m = OFFER.exec(label ?? "");
+  assert.ok(m, label);
+  const res = m[2] === "drone parts" ? "parts" : m[2]!;
+  return { res, cost: Number(m[1]), scrap: Number(m[3]) };
+}
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -62,16 +68,17 @@ describe("Lanius trader", () => {
       const intro = INTROS.find((line) => line === body);
       assert.ok(intro, body);
       seenIntro.add(intro);
-      assert.deepEqual(
-        offeredChoices(g, g.event!.choices).map((c) => c.label),
-        ["Make the trade.", "Send them off."],
-      );
+      const labels = offeredChoices(g, g.event!.choices).map((c) => c.label);
+      assert.equal(labels.length, 2);
+      assert.equal(labels[1], "Nothing happens.");
+      const offer = shown(labels[0]);
       const fuel = g.fuel;
       const missiles = g.missiles;
       const parts = g.player.parts;
       choose(g, "c:lanius-trader:0");
       assert.equal(g.phase, "event");
       const got = paid(g.event?.body ?? "");
+      assert.deepEqual(got, offer);
       inBand(got.cost, 3, 7);
       inBand(got.scrap, BASE[got.res]![0], BASE[got.res]![1]);
       assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
@@ -97,21 +104,21 @@ describe("Lanius trader", () => {
     const scrap = g.scrap;
     const fuel = g.fuel;
     choose(g, "c:lanius-trader:3");
-    assert.equal(g.phase, "event");
+    assert.equal(g.phase, "map");
     assert.equal(g.scrap, scrap);
     assert.equal(g.fuel, fuel);
-    assert.equal(g.event?.body, "They cut the hail and jump.");
-    assert.equal(g.event?.choices[0]?.id, "ack");
   });
 
-  it("a short stock leaves the trade unpaid", () => {
+  it("a short stock disables the shown trade and spends nothing", () => {
     const g = createGame(1);
     open(g);
     g.fuel = 2;
     g.missiles = 2;
     g.player.parts = 2;
     const scrap = g.scrap;
-    assert.equal(choiceDisabled(g, "c:lanius-trader:0"), null);
+    const offer = shown(g.event?.choices.find((c) => c.id === "c:lanius-trader:0")?.label);
+    const word = offer.res === "parts" ? "drone parts" : offer.res;
+    assert.equal(choiceDisabled(g, "c:lanius-trader:0"), `Need ${offer.cost} ${word}`);
     choose(g, "c:lanius-trader:0");
     assert.equal(g.scrap, scrap);
     assert.equal(g.fuel, 2);
@@ -171,19 +178,16 @@ describe("Lanius trader", () => {
       assert.equal(choiceDisabled(g, "c:lanius-trader:4"), null);
       choose(g, "c:lanius-trader:4");
       assert.equal(g.scrap, 10);
-      assert.equal(
-        g.event?.body,
-        "Your Lanius speaks, and the trader answers with a heavier offer.",
-      );
-      assert.deepEqual(
-        g.event?.choices.map((c) => c.label),
-        ["Take the heavier offer.", "Turn it down."],
-      );
+      assert.equal(g.event?.body, "Second trade offer.");
+      const labels = g.event?.choices.map((c) => c.label) ?? [];
+      assert.equal(labels[1], "Nothing happens.");
+      const offer = shown(labels[0]);
       const fuel = g.fuel;
       const missiles = g.missiles;
       const parts = g.player.parts;
       choose(g, "c:lanius-trader:4:0");
       const got = paid(g.event?.body ?? "");
+      assert.deepEqual(got, offer);
       inBand(got.cost, 3, 7);
       inBand(got.scrap, BETTER[got.res]![0], BETTER[got.res]![1]);
       assert.equal(g.event?.choices[0]?.id, "ack");

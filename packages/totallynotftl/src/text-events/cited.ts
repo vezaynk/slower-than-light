@@ -43,15 +43,9 @@ export const TEXT: Record<string, string> = {
   event_ZOLTAN_ODD_MOON_EXPLOSION_3_text: "Gain a weapon and random scrap.",
 
   // Lanius trader (LANIUS_TRADER) and Lanius trader with translator. The body states the offer.
-  event_LANIUS_TRADER_c1_choice:
-    "1 in 3 each: lose 3-7 fuel, gain 15-30 scrap; lose 3-7 missiles, gain 20-40 scrap; lose 3-7 drone parts, gain 20-40 scrap.",
   event_LANIUS_TRADER_c2_choice: "Nothing happens.",
-  event_LANIUS_TRADER_c3_choice:
-    "Get a second offer: 3-7 fuel, missiles, or drone parts for 20-50 scrap.",
-  event_LANIUS_TRADER_TRANSLATOR_text: "Trade offer: one resource for scrap.",
   event_LANIUS_TRADER_TRANSLATOR_c1_choice: "Make the trade shown.",
   event_LANIUS_TRADER_TRANSLATOR_c2_choice: "Nothing happens.",
-  event_LANIUS_TRADER_TRANSLATOR_c3_choice: "Get an offer: 1 Lanius crew for 40 scrap.",
 
   // Blue options on auto-ship and station pages.
   event_AUTO_DEFENSE_RADAR_c1_text: "Fight the automated ship.",

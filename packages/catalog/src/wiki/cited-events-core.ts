@@ -1068,8 +1068,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:lanius-trader:0",
-        label:
-          "1 in 3 each: lose 3-7 fuel, gain 15-30 scrap; lose 3-7 missiles, gain 20-40 scrap; lose 3-7 drone parts, gain 20-40 scrap.",
+        label: "Trade.",
         fx: [{ k: "goto", id: "LANIUS_TRADER_LIST" }],
       },
       {
@@ -1086,8 +1085,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         choices: [
           {
             id: "c:lanius-trader:4:0",
-            label:
-              "1 in 3 each: lose 3-7 fuel, gain 20-35 scrap; lose 3-7 missiles, gain 25-50 scrap; lose 3-7 drone parts, gain 25-50 scrap.",
+            label: "Trade.",
             fx: [{ k: "goto", id: "LANIUS_TRADER_LIST2" }],
           },
           {
@@ -1113,8 +1111,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:lanius-trader-with-translator:0",
-        label:
-          "1 in 3 each: lose 3-7 fuel, gain 15-30 scrap; lose 3-7 missiles, gain 20-40 scrap; lose 3-7 drone parts, gain 20-40 scrap.",
+        label: "Trade.",
         fx: [{ k: "goto", id: "LANIUS_TRADER_LIST" }],
       },
       {

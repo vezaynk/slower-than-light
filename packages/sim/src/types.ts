@@ -978,6 +978,11 @@ export type Game = {
    * The ion storm stays until the jump, including on a beacon that is not a nebula.
    */
   eventStorm?: boolean;
+  /**
+   * The page each list-loading button on the open card already drew, with its rolled resource amounts.
+   * FTL builds a choice's result when the card opens, so the trade is shown before the click and paid as shown.
+   */
+  eventPresets?: Record<string, { page: import("@stl/pack").EventDef; amounts: number[] }>;
   asteroidT: number;
   /**
    * Environmental Hazards, Asteroid Field: seconds until the next rock in a wave (rules/asteroid.ts).
